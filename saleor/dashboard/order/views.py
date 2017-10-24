@@ -12,12 +12,12 @@ from django_prices.templatetags.prices_i18n import gross
 from payments import PaymentStatus
 from prices import Price
 
-from saleor.dashboard.order.utils import get_absolute_url
 from .forms import (CancelGroupForm, CancelItemsForm, CancelOrderForm,
                     CapturePaymentForm, ChangeQuantityForm, MoveItemsForm,
                     OrderNoteForm, RefundPaymentForm, ReleasePaymentForm,
                     RemoveVoucherForm, ShipGroupForm)
-from .utils import create_packing_slip_pdf, create_invoice_pdf
+from .utils import (create_packing_slip_pdf, create_invoice_pdf,
+                    get_statics_absolute_url)
 from ..order.forms import OrderFilterForm
 from ..views import staff_member_required
 from ...core.utils import get_paginator_items
@@ -375,7 +375,7 @@ def remove_order_voucher(request, order_pk):
 @staff_member_required
 @permission_required('order.edit_order')
 def order_invoice(request, group_pk):
-    absolute_url = get_absolute_url(request)
+    absolute_url = get_statics_absolute_url(request)
     pdf_file, group = create_invoice_pdf(group_pk, absolute_url)
     response = HttpResponse(pdf_file, content_type='application/pdf')
     name = "invoice-%s-%s" % (group.order.id, group.id)
@@ -386,7 +386,7 @@ def order_invoice(request, group_pk):
 @staff_member_required
 @permission_required('order.edit_order')
 def order_packing_slip(request, group_pk):
-    absolute_url = get_absolute_url(request)
+    absolute_url = get_statics_absolute_url(request)
     pdf_file, group = create_packing_slip_pdf(group_pk, absolute_url)
     response = HttpResponse(pdf_file, content_type='application/pdf')
     name = "packing-slip-%s-%s" % (group.order.id, group.id)

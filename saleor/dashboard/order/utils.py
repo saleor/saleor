@@ -1,7 +1,7 @@
 from django.template.loader import get_template
 
-from saleor.settings import STATIC_URL
-from saleor.site.utils import get_site_settings_from_request
+from ...settings import STATIC_URL
+from ...site.utils import get_site_settings_from_request
 from ...order.models import DeliveryGroup
 
 
@@ -9,7 +9,7 @@ INVOICE_TEMPLATE = 'dashboard/order/pdf/invoice.html'
 PACKING_SLIP_TEMPLATE = 'dashboard/order/pdf/packing_slip.html'
 
 
-def get_absolute_url(request):
+def get_statics_absolute_url(request):
     site = get_site_settings_from_request(request)
     absolute_url = '%(protocol)s://%(domain)s%(static_url)s' % {
         'protocol': 'https' if request.is_secure() else 'http',
@@ -27,11 +27,9 @@ def _create_pdf(rendered_template, absolute_url):
 
 
 def create_invoice_pdf(group_pk, absolute_url):
-    group = (DeliveryGroup.objects
-             .prefetch_related(
-                'items', 'order', 'order__user', 'order__shipping_address',
-                'order__billing_address')
-             .get(pk=group_pk))
+    group = (DeliveryGroup.objects.prefetch_related(
+        'items', 'order', 'order__user', 'order__shipping_address',
+        'order__billing_address').get(pk=group_pk))
     ctx = {'group': group}
     rendered_template = get_template(INVOICE_TEMPLATE).render(ctx)
     pdf_file = _create_pdf(rendered_template, absolute_url)
@@ -39,11 +37,9 @@ def create_invoice_pdf(group_pk, absolute_url):
 
 
 def create_packing_slip_pdf(group_pk, absolute_url):
-    group = (DeliveryGroup.objects
-             .prefetch_related(
-                'items', 'order', 'order__user', 'order__shipping_address',
-                'order__billing_address')
-             .get(pk=group_pk))
+    group = (DeliveryGroup.objects.prefetch_related(
+        'items', 'order', 'order__user', 'order__shipping_address',
+        'order__billing_address').get(pk=group_pk))
     ctx = {'group': group}
     rendered_template = get_template(PACKING_SLIP_TEMPLATE).render(ctx)
     pdf_file = _create_pdf(rendered_template, absolute_url)
