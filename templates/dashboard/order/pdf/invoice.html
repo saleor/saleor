@@ -50,7 +50,7 @@
 
 <h2>{% trans "Items Ordered" context "Order invoice" %}</h2>
 {% if group %}
-  <table class="highlight data-table order-table bordered">
+  <table class="data-table order-table bordered">
     <thead>
     <tr>
       <th class="wide">
@@ -106,7 +106,7 @@
   </table>
 {% endif %}
 
-<table class="bordered highlight responsive data-table">
+<table class="bordered  responsive data-table">
   <tbody>
     <tr>
       <td class="wide">
@@ -131,7 +131,7 @@
         {% trans "Grand total" context "Order totals header" %}
       </td>
       <td>
-        {% gross group.order.get_total html=True %}
+        {% gross group.get_total html=True %}
       </td>
     </tr>
   </tfoot>
