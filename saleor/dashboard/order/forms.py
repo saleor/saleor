@@ -3,12 +3,14 @@ from __future__ import unicode_literals
 from django import forms
 from django.conf import settings
 from django.core.validators import MinValueValidator, MaxValueValidator
+from django.shortcuts import reverse
 from django.utils.translation import npgettext_lazy, pgettext_lazy
 from django_prices.forms import PriceField
 from payments import PaymentError, PaymentStatus
 from satchless.item import InsufficientStock
 
 from ...cart.forms import QuantityField
+from ...core.forms import AjaxSelect2ChoiceField
 from ...discount.models import Voucher
 from ...order import OrderStatus
 from ...order.models import DeliveryGroup, Order, OrderedItem, OrderNote
@@ -16,7 +18,7 @@ from ...order.utils import (
     cancel_order, cancel_delivery_group, change_order_line_quantity,
     merge_duplicated_lines)
 from ...product.models import Stock
-from ...userprofile.models import Address
+from ...userprofile.models import Address, User
 
 
 class OrderNoteForm(forms.ModelForm):
@@ -355,9 +357,16 @@ class ChangeStockForm(forms.ModelForm):
 
 
 class CreateOrderForm(forms.ModelForm):
+    user = AjaxSelect2ChoiceField(queryset=User.objects.all())
+
     class Meta:
         model = Order
         fields = ('user',)
+
+    def __init__(self, *args, **kwargs):
+        super(CreateOrderForm, self).__init__(*args, **kwargs)
+        self.fields['user'].set_fetch_data_url(
+            reverse('dashboard:ajax-users-list'))
 
     def save(self, commit=True):
         user = self.instance.user

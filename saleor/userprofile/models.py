@@ -176,3 +176,9 @@ class User(PermissionsMixin, AbstractBaseUser, index.Indexed):
 
     def get_short_name(self):
         return self.email
+
+    @property
+    def full_name(self):
+        address = self.default_billing_address
+        if address:
+            return '%s %s' % (address.first_name, address.last_name)

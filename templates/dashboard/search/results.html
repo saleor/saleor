@@ -94,7 +94,7 @@
       {% elif query %}
         <div class="not-found">
             <p class="grey-text">
-              {% blocktrans trimmed with full_name=result.get_full_name context "No Search result message" %}
+              {% blocktrans trimmed context "No Search result message" %}
                 No results for query "{{ query }}".
               {%  endblocktrans %}
             </p>
