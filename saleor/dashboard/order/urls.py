@@ -32,4 +32,9 @@ urlpatterns = [
     url(r'^(?P<order_pk>\d+)/shipment/(?P<group_pk>\d+)/ship/$',
         views.ship_delivery_group, name='ship-delivery-group'),
     url(r'^(?P<order_pk>\d+)/shipment/(?P<group_pk>\d+)/cancel/$',
-        views.cancel_delivery_group, name='cancel-delivery-group')]
+        views.cancel_delivery_group, name='cancel-delivery-group'),
+
+    url(r'^(?P<group_pk>\d+)/invoice/$',
+        views.order_invoice, name='order-invoice'),
+    url(r'^(?P<group_pk>\d+)/packing-slips/$',
+        views.order_packing_slip, name='order-packing-slips')]

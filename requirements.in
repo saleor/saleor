@@ -1,6 +1,7 @@
 Babel>=2.5
 BabelDjango>=0.2
 boto3
+cairosvg==1.0.22
 Django>=1.11
 dj_database_url>=0.3.0
 dj_email_url>=0.0.4
@@ -39,3 +40,4 @@ social-auth-app-django>=1.1.0
 text-unidecode
 uwsgi>=2.0.0
 celery[redis]
+weasyprint>=0.40

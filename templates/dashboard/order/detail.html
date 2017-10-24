@@ -351,10 +351,16 @@
                   </a>
                 {% endif %}
                 {% if group.can_cancel %}
-                  <a href="#base-modal" data-href="{% url 'dashboard:cancel-delivery-group' order_pk=order.pk group_pk=group.pk %}" class="btn btn-flat modal-trigger-custom" title="{% trans "Cancel group" context "Shipment group table action" %}">
+                  <a href="#base-modal" data-href="{% url 'dashboard:cancel-delivery-group' order_pk=order.pk group_pk=group.pk %}" class="btn btn-flat modal-trigger-custom" title="{% trans 'Cancel group' context 'Shipment group table action' %}">
                     {% trans "Cancel this shipment" context "Shipment group table action" %}
                   </a>
                 {% endif %}
+                <a href="{% url 'dashboard:order-invoice' group_pk=group.pk %}" data-href="" class="btn btn-flat" target="_blank">
+                  {% trans "Invoice" context "Order detail action" %}
+                </a>
+                <a href="{% url 'dashboard:order-packing-slips' group_pk=group.pk %}" data-href="" class="btn btn-flat" target="_blank">
+                  {% trans "Packing Slips" context "Order detail action" %}
+                </a>
               </div>
             {% else %}
               {% if group.tracking_number %}
@@ -363,6 +369,14 @@
                     Tracking number: {{ tracking }}
                   {% endblocktrans %}
                 </div>
+              {% else %}
+                {% if group.tracking_number %}
+                  <div class="card-action">
+                    {% blocktrans trimmed with tracking=group.tracking_number context "Shipment group table text" %}
+                      Tracking number: {{ tracking }}
+                    {% endblocktrans %}
+                  </div>
+                {% endif %}
               {% endif %}
             {% endif %}
           {% endif %}

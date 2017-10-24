@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 from django.contrib import messages
 from django.contrib.auth.decorators import permission_required
 from django.db import transaction
+from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect
 from django.template.context_processors import csrf
 from django.template.response import TemplateResponse
@@ -11,18 +12,20 @@ from django_prices.templatetags.prices_i18n import gross
 from payments import PaymentStatus
 from prices import Price
 
-from ...core.utils import get_paginator_items
-from ...order import OrderStatus
-from ...order.models import Order, OrderedItem, OrderNote
-from ...product.models import ProductVariant
-from ...userprofile.i18n import AddressForm
-from ...settings import DASHBOARD_PAGINATE_BY
-from ..order.forms import OrderFilterForm
-from ..views import staff_member_required
 from .forms import (CancelGroupForm, CancelItemsForm, CancelOrderForm,
                     CapturePaymentForm, ChangeQuantityForm, MoveItemsForm,
                     OrderNoteForm, RefundPaymentForm, ReleasePaymentForm,
                     RemoveVoucherForm, ShipGroupForm)
+from .utils import (create_packing_slip_pdf, create_invoice_pdf,
+                    get_statics_absolute_url)
+from ..order.forms import OrderFilterForm
+from ..views import staff_member_required
+from ...core.utils import get_paginator_items
+from ...order import OrderStatus
+from ...order.models import Order, OrderedItem, OrderNote
+from ...product.models import ProductVariant
+from ...settings import DASHBOARD_PAGINATE_BY
+from ...userprofile.i18n import AddressForm
 
 
 @staff_member_required
@@ -367,3 +370,25 @@ def remove_order_voucher(request, order_pk):
     return TemplateResponse(request,
                             'dashboard/order/modal/order_remove_voucher.html',
                             ctx, status=status)
+
+
+@staff_member_required
+@permission_required('order.edit_order')
+def order_invoice(request, group_pk):
+    absolute_url = get_statics_absolute_url(request)
+    pdf_file, group = create_invoice_pdf(group_pk, absolute_url)
+    response = HttpResponse(pdf_file, content_type='application/pdf')
+    name = "invoice-%s-%s" % (group.order.id, group.id)
+    response['Content-Disposition'] = 'filename=%s' % name
+    return response
+
+
+@staff_member_required
+@permission_required('order.edit_order')
+def order_packing_slip(request, group_pk):
+    absolute_url = get_statics_absolute_url(request)
+    pdf_file, group = create_packing_slip_pdf(group_pk, absolute_url)
+    response = HttpResponse(pdf_file, content_type='application/pdf')
+    name = "packing-slip-%s-%s" % (group.order.id, group.id)
+    response['Content-Disposition'] = 'filename=%s' % name
+    return response

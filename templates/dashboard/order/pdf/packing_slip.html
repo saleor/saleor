@@ -1,0 +1,85 @@
+{% load discount_amount_for from prices %}
+{% load i18n static %}
+{% load prices_i18n %}
+{% load shop %}
+
+<html>
+<head>
+  <title>Packing slip</title>
+  <link rel="stylesheet" type="text/css" href="{% static '/assets/document.css' %}" />
+</head>
+<body>
+<header>
+  <div style="float:left">
+    <img src="{% static '/images/saleor_logo_black.svg' %}">
+  </div>
+  <div
+      style="float:right">{{ group.order.created }}<br>{% trans "Order ID:" context "Packing slip header" %} {{ group.order.id }}
+  </div>
+</header>
+
+<h2>{% trans "Packing Slips" context "Packing slips header" %}</h2>
+<table width="100%" border="1" cellspacing="0">
+  <thead>
+  <tr>
+    <th align="left" width="50%">{% trans "Shipping Details" context "Packing slip shipping details" %}</th>
+    <th align="left" width="50%">{% trans "Billing Details" context "Packing slip shipping details" %}</th>
+  </tr>
+  </thead>
+  <tbody>
+  <tr>
+    <td valign="top">
+      {% with group.order.shipping_address as address %}
+        <h2>
+          {% trans "Shipping address" context "Packing slip shipping address" %}
+        </h2>
+        {% include 'dashboard/includes/_address.html' with address=address only %}
+      {% endwith %}
+    </td>
+    <td valign="top">
+      {% with group.order.billing_address as address %}
+        <h2>
+          {% trans "Billing address" context "Packing slip billing address" %}
+        </h2>
+        {% include 'dashboard/includes/_address.html' with address=address only %}
+      {% endwith %}
+    </td>
+  </tr>
+  </tbody>
+</table>
+
+<h2>{% trans "Items Ordered" context "Order invoice" %}</h2>
+{% if group %}
+  <table class="bordered data-table">
+    <thead>
+    <tr>
+      <th class="wide">
+        {% trans "Item" context "Shipment group table header" %}
+      </th>
+      <th>
+        {% trans "SKU" context "Shipment group table header" %}
+      </th>
+      <th class="right-align">
+        {% trans "Quantity" context "Shipment group table header" %}
+      </th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for item in group.items.all %}
+      <tr>
+        <td>
+          {{ item.product_name }}<br>
+        </td>
+        <td>
+          {{ item.product_sku }}
+        </td>
+        <td class="right-align">
+          {{ item.quantity }}
+        </td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+{% endif %}
+</body>
+</html>

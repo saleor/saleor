@@ -1,4 +1,7 @@
+from __future__ import unicode_literals
+
 from versatileimagefield.widgets import VersatileImagePPOIClickWidget
+from base64 import b64encode
 
 try:
     from urllib.parse import urlencode
