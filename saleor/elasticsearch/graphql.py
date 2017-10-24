@@ -1,8 +1,9 @@
 import graphene
 from graphene.types.json import JSONString
 from saleor_oye.graphql.charts import ArtistType
+from saleor_oye.graphql.labels import LabelType
 from saleor_oye.graphql.releases import ArtikelType
-from saleor_oye.models import Artikel, Artist
+from saleor_oye.models import Artikel, Artist, Label
 
 __author__ = 'tkolter'
 
@@ -18,6 +19,8 @@ class SearchableType(graphene.Interface):
             return ReleaseSearchResult
         if type == 'artist':
             return ArtistSearchResult
+        if type == 'label':
+            return LabelSearchResult
 
     def resolve_highlight(self, *args):
         if hasattr(self.meta, "highlight"):
@@ -50,6 +53,19 @@ class ArtistSearchResult(graphene.ObjectType):
         try:
             return Artist.objects.get(pk=self.meta.id)
         except Artist.DoesNotExist:
+            pass
+
+
+class LabelSearchResult(graphene.ObjectType):
+    class Meta:
+        interfaces = (SearchableType, )
+
+    label = graphene.Field(lambda: LabelType)
+
+    def resolve_label(self, *args):
+        try:
+            return Label.objects.get(pk=self.meta.id)
+        except Label.DoesNotExist:
             pass
 
 

@@ -12,6 +12,13 @@ __author__ = 'tkolter'
 connections.create_connection()
 
 
+MAIN_RELEASE_FIELDS = ['title', 'name', '']
+
+
+def get_fuzziness(field):
+    return config.SEARCH_FUZZINESS if field in MAIN_RELEASE_FIELDS else 0
+
+
 ngram_analyzer = analyzer(
     'autocomplete_analyzer',
     tokenizer='uax_url_email',
@@ -41,7 +48,11 @@ class Release(DocType):
         fields={'raw': Keyword()})
     title = Text(search_analyzer=lowercase_analyzer, analyzer=lowercase_analyzer)
     released_at = Date()
-    description = Text(search_analyzer=lowercase_analyzer, analyzer=lowercase_analyzer)
+    description = Text(
+        search_analyzer=lowercase_analyzer,
+        analyzer=lowercase_analyzer,
+        include_in_all=False,
+    )
     label = String(
         search_analyzer=lowercase_analyzer,
         analyzer=lowercase_analyzer,
@@ -74,18 +85,36 @@ class Artist(DocType):
         index = 'oye-artists'
 
 
+class Label(DocType):
+    name = String(
+        search_analyzer=lowercase_analyzer,
+        analyzer=lowercase_analyzer,
+    )
+
+    class Meta:
+        index = 'oye-labels'
+
+
 QUERY_FIELDS = [
     'title.token',
     'artist_name',
     'description',
     'label',
-    # 'name',
     '_all',
 ]
 
 
 def search(query, size=10, page=1, doc_type=None, fields=QUERY_FIELDS):
     should_queries = []
+
+    search_params = {}
+    if doc_type == 'artist':
+        search_params['index'] = 'oye-artists'
+    elif doc_type == 'release':
+        search_params['index'] = 'oye-releases'
+    elif doc_type == 'label':
+        search_params['index'] = 'oye-labels'
+        fields = ['name']
 
     match_prefix = config.SEARCH_PHRASE_PREFIX
     match_phrase = "match_phrase_prefix" if match_prefix else "match_phrase"
@@ -117,12 +146,10 @@ def search(query, size=10, page=1, doc_type=None, fields=QUERY_FIELDS):
                 "match": {
                     field: {
                         "query": query,
-                        "fuzziness":  config.SEARCH_FUZZINESS,
-                        # "operator": "or",
+                        "fuzziness": get_fuzziness(field),
                         "operator": "and",
                         "prefix_length": config.SEARCH_PREFIX_LENGTH,
                         "max_expansions": 10,
-                        # "analyzer": "standard"
                      }
                  }
             }
@@ -146,12 +173,6 @@ def search(query, size=10, page=1, doc_type=None, fields=QUERY_FIELDS):
             }
         }
     }
-
-    search_params = {}
-    if doc_type == 'artist':
-        search_params['index'] = 'oye-artists'
-    elif doc_type == 'release':
-        search_params['index'] = 'oye-releases'
 
     s = Search(**search_params).from_dict(query_dict).index(search_params['index']).doc_type(doc_type)
     response = s.execute()
