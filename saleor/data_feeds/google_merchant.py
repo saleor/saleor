@@ -4,7 +4,6 @@ import gzip
 import csv
 
 from django.conf import settings
-from django.contrib.sites.models import Site
 from django.contrib.syndication.views import add_domain
 from django.core.files.storage import default_storage
 from django.utils import six
@@ -13,6 +12,7 @@ from django.utils.encoding import smart_text
 from ..discount.models import Sale
 from ..product.models import (AttributeChoiceValue, Category, ProductAttribute,
                               ProductVariant)
+from ..site.utils import get_site_settings
 
 CATEGORY_SEPARATOR = ' > '
 
@@ -207,7 +207,7 @@ def write_feed(file_obj):
     attribute_values_dict = {smart_text(a.pk): smart_text(a) for a
                              in AttributeChoiceValue.objects.all()}
     category_paths = {}
-    current_site = Site.objects.get_current()
+    current_site = get_site_settings()
     for item in get_feed_items():
         item_data = item_attributes(item, categories, category_paths,
                                     current_site, discounts, attributes_dict,
