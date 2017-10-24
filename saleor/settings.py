@@ -423,7 +423,8 @@ DISCOGS_USER_TOKEN = os.environ.get('DISCOGS_USER_TOKEN', None)
 
 PASSWORD_HASHERS = [
     'django.contrib.auth.hashers.Argon2PasswordHasher',
-    'saleor_oye.auth.hashers.Argon2WrappedMD5PasswordHasher'
+    'saleor_oye.auth.hashers.Argon2WrappedMD5PasswordHasher',
+    'saleor_oye.auth.hashers.Argon2WawisysPasswordHasher'
 ]
 
 
