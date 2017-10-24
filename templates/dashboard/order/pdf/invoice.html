@@ -113,7 +113,7 @@
         {% trans "Subtotal" context "Order subtotal" %}
       </td>
       <td class="right-align">
-        {% gross group.order.get_subtotal_without_voucher html=True %}
+        {% gross group.get_subtotal_without_voucher html=True %}
       </td>
     </tr>
     <tr>
@@ -121,7 +121,7 @@
         {% trans "Total Shipping Price" context "Order totals header" %}
       </td>
       <td class="right-align">
-        {% gross group.order.get_total_shipping html=True %}
+        {% gross group.shipping_price html=True %}
       </td>
     </tr>
   </tbody>
