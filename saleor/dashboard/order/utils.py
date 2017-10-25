@@ -29,8 +29,12 @@ def _create_pdf(rendered_template, absolute_url):
 def create_invoice_pdf(group_pk, absolute_url):
     group = (DeliveryGroup.objects.prefetch_related(
         'items', 'order', 'order__user', 'order__shipping_address',
-        'order__billing_address').get(pk=group_pk))
-    ctx = {'group': group}
+        'order__billing_address', 'order__voucher', 'order__groups').get(
+        pk=group_pk))
+    first_delivery_group = False
+    if str(group.order.groups.order_by('pk')[0].pk) == group_pk:
+        first_delivery_group = True
+    ctx = {'group': group, 'first_delivery_group': first_delivery_group}
     rendered_template = get_template(INVOICE_TEMPLATE).render(ctx)
     pdf_file = _create_pdf(rendered_template, absolute_url)
     return pdf_file, group
