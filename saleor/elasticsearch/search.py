@@ -12,11 +12,18 @@ __author__ = 'tkolter'
 connections.create_connection()
 
 
-MAIN_RELEASE_FIELDS = ['title', 'artist_name']
+MAIN_SEARCH_FIELDS = {
+    'release': ['title', 'artist_name'],
+    'artist': ['name'],
+}
 
 
-def get_fuzziness(field):
-    return config.SEARCH_FUZZINESS if field in MAIN_RELEASE_FIELDS else 0
+def get_fuzziness(field, doc_type):
+    return (
+        config.SEARCH_FUZZINESS
+        if field in MAIN_SEARCH_FIELDS.get(doc_type, [])
+        else 0
+    )
 
 
 ngram_analyzer = analyzer(
@@ -146,7 +153,7 @@ def search(query, size=10, page=1, doc_type=None, fields=QUERY_FIELDS):
                 "match": {
                     field: {
                         "query": query,
-                        "fuzziness": get_fuzziness(field),
+                        "fuzziness": get_fuzziness(field, doc_type),
                         "operator": "and",
                         "prefix_length": config.SEARCH_PREFIX_LENGTH,
                         "max_expansions": 10,
