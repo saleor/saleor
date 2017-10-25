@@ -1,5 +1,6 @@
 from constance import config
-from elasticsearch_dsl import DocType, Text, Integer, InnerObjectWrapper, Nested, String, Date
+from elasticsearch_dsl import DocType, Text, Integer, InnerObjectWrapper, \
+    Nested, String, Date, char_filter
 from elasticsearch_dsl import Keyword
 from elasticsearch_dsl import MetaField
 from elasticsearch_dsl import Search
@@ -15,6 +16,7 @@ connections.create_connection()
 MAIN_SEARCH_FIELDS = {
     'release': ['title', 'artist_name'],
     'artist': ['name'],
+    'label': ['name']
 }
 
 
@@ -35,8 +37,19 @@ ngram_analyzer = analyzer(
     ]
 )
 
+oye_char_filter = char_filter(
+    'oye_char_filter',
+    type='mapping',
+    mappings=[
+        "$ => s"
+    ]
+)
+
 lowercase_analyzer = analyzer(
     'lowercase_analyzer',
+    char_filter=[
+        oye_char_filter
+    ],
     tokenizer='standard',
     filter=[
         'lowercase'
