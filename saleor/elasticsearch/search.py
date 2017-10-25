@@ -12,7 +12,7 @@ __author__ = 'tkolter'
 connections.create_connection()
 
 
-MAIN_RELEASE_FIELDS = ['title', 'name', '']
+MAIN_RELEASE_FIELDS = ['title', 'artist_name']
 
 
 def get_fuzziness(field):
