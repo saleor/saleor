@@ -10,7 +10,7 @@ import django_cache_url
 
 
 def get_list(text):
-    return map(str.strip, text.split(','))
+    return [item.strip() for item in text.split(',')]
 
 
 DEBUG = ast.literal_eval(os.environ.get('DEBUG', 'True'))
