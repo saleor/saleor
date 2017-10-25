@@ -124,6 +124,18 @@
         {% gross group.shipping_price html=True %}
       </td>
     </tr>
+    {% if first_delivery_group %}
+    {% if group.order.voucher %}
+      <tr>
+        <td>
+          {% trans "Voucher" context "Order voucher header" %} {{ group.order.voucher }}
+        </td>
+        <td class="right-align">
+          {% gross group.order.discount|discount_amount_for:group.order.total html=True %}
+        </td>
+      </tr>
+    {% endif %}
+    {% endif %}
   </tbody>
   <tfoot>
     <tr>
