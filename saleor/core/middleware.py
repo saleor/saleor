@@ -57,4 +57,3 @@ class ClearSiteCacheMiddleware(object):
         # print 'cache cleared'
         sm = sites.SiteManager()
         sm.clear_cache()
-
