@@ -9,6 +9,10 @@ from django.contrib.messages import constants as messages
 import django_cache_url
 
 
+def get_list(text):
+    return map(str.strip, text.split(','))
+
+
 DEBUG = ast.literal_eval(os.environ.get('DEBUG', 'True'))
 
 SITE_ID = 1
@@ -23,7 +27,8 @@ ADMINS = (
     # ('Your Name', 'your_email@example.com'),
 )
 MANAGERS = ADMINS
-INTERNAL_IPS = os.environ.get('INTERNAL_IPS', '127.0.0.1').split()
+
+INTERNAL_IPS = get_list(os.environ.get('INTERNAL_IPS', '127.0.0.1'))
 
 CACHES = {'default': django_cache_url.config()}
 
@@ -284,8 +289,7 @@ BOOTSTRAP3 = {
 
 TEST_RUNNER = ''
 
-ALLOWED_HOSTS = map(
-    str.strip, os.environ.get('ALLOWED_HOSTS', 'localhost').split(','))
+ALLOWED_HOSTS = get_list(os.environ.get('ALLOWED_HOSTS', 'localhost'))
 
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
