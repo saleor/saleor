@@ -1,7 +1,7 @@
 import logging
 
 from django.conf import settings
-from django.contrib.sites.models import SiteManager
+from django.contrib.sites import models as sites
 from django.utils.translation import get_language
 from django_countries.fields import Country
 
@@ -54,6 +54,7 @@ class CurrencyMiddleware(object):
 
 class ClearSiteCacheMiddleware(object):
     def process_request(self, request):
-        sm = SiteManager()
+        # print 'cache cleared'
+        sm = sites.SiteManager()
         sm.clear_cache()
 

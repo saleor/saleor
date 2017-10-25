@@ -41,7 +41,7 @@ def webpage_schema(request):
         '@context': 'http://schema.org',
         '@type': 'WebSite',
         'url': url,
-        'name': site_settings.name,
+        'name': site_settings.site.name,
         'description': site_settings.description}
     if bool(settings.SEARCH_BACKENDS):
         data['potentialAction'] = {

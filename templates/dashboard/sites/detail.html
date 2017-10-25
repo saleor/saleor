@@ -31,16 +31,16 @@
           <div class="card-content card-content-form">
             {% csrf_token %}
             <div class="row">
-              {{ form.name|materializecss }}
+              {{ site_form.name|materializecss }}
             </div>
             <div class="row">
-              {{ form.domain|materializecss }}
+              {{ site_form.domain|materializecss }}
             </div>
             <div class="row">
-              {{ form.header_text|materializecss }}
+              {{ site_settings_form.header_text|materializecss }}
             </div>
             <div class="row">
-              {{ form.description|materializecss }}
+              {{ site_settings_form.description|materializecss }}
             </div>
 
             <h5 class="card-title">{% trans "Authorization keys" context "Authorization keys formset title" %}</h5>
