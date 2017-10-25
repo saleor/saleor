@@ -284,7 +284,8 @@ BOOTSTRAP3 = {
 
 TEST_RUNNER = ''
 
-ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', 'localhost').split()
+ALLOWED_HOSTS = map(
+    str.strip, os.environ.get('ALLOWED_HOSTS', 'localhost').split(','))
 
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
