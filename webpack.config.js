@@ -4,15 +4,12 @@ var FaviconsWebpackPlugin = require('favicons-webpack-plugin');
 var path = require('path');
 var webpack = require('webpack');
 var autoprefixer = require('autoprefixer');
-var dotenv = require('dotenv');
 
 var resolve = path.resolve.bind(path, __dirname);
 
 var extractTextPlugin;
 var fileLoaderPath;
 var output;
-
-dotenv.config({path: 'common.env'});
 
 if (process.env.NODE_ENV === 'production') {
   output = {
