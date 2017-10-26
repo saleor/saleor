@@ -1,0 +1,32 @@
+{% extends "dashboard/base_modal_confirm_delete.html" %}
+
+{% load i18n %}
+{% load prices_i18n %}
+{% load staticfiles %}
+
+{% block action_url %}{% url "dashboard:product-class-delete" pk=product_class.pk %}{% endblock %}
+
+{% block title %}
+{% blocktrans trimmed context "Modal delete product class text" %}
+Delete product class {{ product_class }}
+{% endblocktrans %}
+{% endblock title %}
+
+{% block content %}
+<p>
+    {% blocktrans trimmed context "Modal delete product class text" %}
+    Are you sure you want to delete product class <strong>{{ product_class }}</strong>?    
+    {% endblocktrans %}
+</p>
+<p>
+{% if products %}
+    {% blocktrans trimmed context "Modal delete product class text" with product_count=products.count %}
+    There are {{ product_count }} products in product class.
+    {% endblocktrans %}
+{% else %}
+    {% blocktrans trimmed context "Modal delete product class text" %}
+    There are no products in this product class.
+    {% endblocktrans %}
+{% endif %}
+</p>
+{% endblock %}

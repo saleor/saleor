@@ -1,7 +1,6 @@
 language: python
 cache:
   pip: true
-  yarn: true
   directories:
     - node_modules
 sudo: false
@@ -9,19 +8,15 @@ addons:
   apt:
     sources:
       - deadsnakes
-      - sourceline: 'deb https://dl.yarnpkg.com/debian/ stable main'
-        key_url: 'https://dl.yarnpkg.com/debian/pubkey.gpg'
     packages:
       - python3.5
       - python3.5-dev
-      - yarn
 install:
   - pip install -U pip setuptools wheel
   - pip install tox codecov
-  - nvm install 6
-  - yarn
-  - yarn add --force node-sass # force our way around https://github.com/yarnpkg/yarn/issues/1981
-  - yarn run build-assets --production
+  - nvm install 8
+  - npm i
+  - npm run build-assets --production
 script:
   - tox
 env:
@@ -29,22 +24,13 @@ env:
     - DJANGO_SETTINGS_MODULE=tests.settings
     - DATABASE_URL='postgres://postgres@localhost:5432/saleor'
   matrix:
-    - TOXENV=py27-django18
-    - TOXENV=py27-django110
     - TOXENV=py27-django111
-    - TOXENV=py34-django18
-    - TOXENV=py34-django110
     - TOXENV=py34-django111
     - TOXENV=py34-django_master
-    - TOXENV=py35-django18
-    - TOXENV=py35-django110
     - TOXENV=py35-django111
     - TOXENV=py35-django_master
 matrix:
   allow_failures:
-    - env: TOXENV=py27-django111
-    - env: TOXENV=py34-django111
-    - env: TOXENV=py35-django111
     - env: TOXENV=py34-django_master
     - env: TOXENV=py35-django_master
 after_success:

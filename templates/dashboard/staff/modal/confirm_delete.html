@@ -1,0 +1,20 @@
+{% extends "dashboard/base_modal_confirm_delete.html" %}
+
+{% load i18n %}
+
+{% block action_url %}{% url 'dashboard:staff-delete' pk=staff.pk %}{% endblock %}
+
+{% block title %}
+{% blocktrans trimmed context "Modal delete group text" %}
+  Delete staff member <strong>{{ staff }}</strong>?
+{% endblocktrans %}
+{% endblock %}
+
+{% block content %}
+{% blocktrans trimmed context "Modal delete group text" %}
+<p>Are you sure you want to delete staff member?</p>
+<p>Deleting staff member also removes him from customer list and removes all his related data (orders, payment etc.).</p>
+<p>We strongly recommend not deleting user accounts that were used for purchases (for example customer which was promoted with staff member status).</p>
+<p>{{ staff }} has <strong>{{ orders }}</strong> orders.</p>
+{% endblocktrans %}
+{% endblock content %}

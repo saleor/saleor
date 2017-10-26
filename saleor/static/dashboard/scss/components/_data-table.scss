@@ -1,8 +1,6 @@
 @mixin data-table {
   &-container {
-    @media #{$medium-and-down} {
-      overflow: scroll;
-    }
+    overflow: auto;
   }
 
   &-action {
@@ -49,6 +47,10 @@
 
   tr[data-action-go]>td:not(.ignore-link):hover {
     cursor: pointer;
+  }
+
+  .danger {
+    color: $error-color;
   }
 
   th, td {

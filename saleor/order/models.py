@@ -3,7 +3,6 @@ from __future__ import unicode_literals
 from decimal import Decimal
 from uuid import uuid4
 
-import emailit.api
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.urlresolvers import reverse
@@ -24,6 +23,7 @@ from ..product.models import Product
 from ..userprofile.models import Address
 from ..search import index
 from . import OrderStatus
+from . import emails
 
 
 class OrderManager(models.Manager):
@@ -104,6 +104,11 @@ class Order(models.Model, ItemSet, index.Indexed):
         ordering = ('-last_status_change',)
         verbose_name = pgettext_lazy('Order model', 'Order')
         verbose_name_plural = pgettext_lazy('Order model', 'Orders')
+        permissions = (
+            ('view_order',
+             pgettext_lazy('Permission description', 'Can view orders')),
+            ('edit_order',
+             pgettext_lazy('Permission description', 'Can edit orders')))
 
     def save(self, *args, **kwargs):
         if not self.token:
@@ -172,11 +177,7 @@ class Order(models.Model, ItemSet, index.Indexed):
         email = self.get_user_current_email()
         payment_url = build_absolute_uri(
             reverse('order:details', kwargs={'token': self.token}))
-        context = {'payment_url': payment_url}
-
-        emailit.api.send_mail(
-            email, context, 'order/emails/confirm_email',
-            from_email=settings.ORDER_FROM_EMAIL)
+        emails.send_order_confirmation.delay(email, payment_url)
 
     def get_last_payment_status(self):
         last_payment = self.payments.last()
@@ -409,10 +410,7 @@ class Payment(BasePayment):
         email = self.order.get_user_current_email()
         order_url = build_absolute_uri(
             reverse('order:details', kwargs={'token': self.order.token}))
-        context = {'order_url': order_url}
-        emailit.api.send_mail(
-            email, context, 'order/payment/emails/confirm_email',
-            from_email=settings.ORDER_FROM_EMAIL)
+        emails.send_payment_confirmation.delay(email, order_url)
 
     def get_purchased_items(self):
         items = [

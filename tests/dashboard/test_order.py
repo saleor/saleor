@@ -1,9 +1,11 @@
 from __future__ import unicode_literals
 
+import mock
 import pytest
 from django.core.urlresolvers import reverse
 from saleor.dashboard.order.forms import ChangeQuantityForm, MoveItemsForm
-from saleor.order.models import Order, OrderHistoryEntry, OrderedItem, DeliveryGroup
+from saleor.order.models import (Order, OrderHistoryEntry, OrderedItem,
+                                 DeliveryGroup)
 from saleor.order.utils import add_items_to_delivery_group
 from saleor.product.models import Stock, ProductVariant
 from tests.utils import get_redirect_location, get_url_path
@@ -274,3 +276,52 @@ def test_view_split_order_line_with_invalid_data(admin_client, order_with_items_
         url, {'quantity': quantity, 'target_group': MoveItemsForm.NEW_SHIPMENT})
     assert response.status_code == 400
     assert DeliveryGroup.objects.count() == 1
+
+
+@pytest.mark.integration
+@pytest.mark.django_db
+def test_view_order_invoice(
+        admin_client, order_with_items_and_stock, billing_address):
+    """
+    user goes to order details page
+    user clicks on Invoice button
+    user downloads the invoice as PDF file
+    """
+    order_with_items_and_stock.shipping_address = billing_address
+    order_with_items_and_stock.billing_address = billing_address
+    order_with_items_and_stock.save()
+    url = reverse(
+        'dashboard:order-invoice', kwargs={
+            'group_pk': order_with_items_and_stock.groups.all()[0].pk
+        })
+    response = admin_client.get(url)
+    assert response.status_code == 200
+    assert response['content-type'] == 'application/pdf'
+    name = "invoice-%s-%s" % (order_with_items_and_stock.id,
+                              order_with_items_and_stock.groups.all()[0].pk)
+    assert response['Content-Disposition'] == 'filename=%s' % name
+
+
+@pytest.mark.integration
+@pytest.mark.django_db
+def test_view_order_packing_slips(
+        admin_client, order_with_items_and_stock, billing_address):
+    """
+    user goes to order details page
+    user clicks on Packing Slips button
+    user downloads the packing slips as PDF file
+    """
+    order_with_items_and_stock.shipping_address = billing_address
+    order_with_items_and_stock.billing_address = billing_address
+    order_with_items_and_stock.save()
+    url = reverse(
+        'dashboard:order-packing-slips', kwargs={
+            'group_pk': order_with_items_and_stock.groups.all()[0].pk
+        })
+    response = admin_client.get(url)
+    assert response.status_code == 200
+    assert response['content-type'] == 'application/pdf'
+    name = "packing-slip-%s-%s" % (
+        order_with_items_and_stock.id,
+        order_with_items_and_stock.groups.all()[0].pk)
+    assert response['Content-Disposition'] == 'filename=%s' % name

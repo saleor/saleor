@@ -1,0 +1,83 @@
+{% extends "dashboard/base.html" %}
+{% load i18n %}
+{% load prices_i18n %}
+{% load materializecss %}
+{% load staticfiles %}
+{% load utils %}
+
+{% block title %}
+  {% trans "Staff" context "Dashboard staff members list" %} - {{ block.super }}
+{% endblock %}
+
+{% block body_class %}body-customers{% endblock %}
+
+{% block menu_staff_class %}active{% endblock %}
+
+{% block header_extra %}
+    <div class="fixed-action-btn">
+      <a class="btn-fab btn-floating btn-large waves-effect waves-light teal"
+        title="{% trans "Add staff member" context "Staff members list add button text" %}"
+        href="{% url 'dashboard:staff-create' %}">
+        <svg data-src="{% static "dashboard/images/add.svg" %}" />
+      </a>
+    </div>
+{% endblock %}
+
+{% block breadcrumbs %}
+  <ul class="breadcrumbs">
+    <li class="visible-s">
+      {% trans "Staff" context "Dashboard staff members list" %}
+    </li>
+  </ul>
+{% endblock %}
+
+{% block content %}
+  {% if staff %}
+    <div class="card">
+      <div class="data-table-container">
+        <table class="bordered highlight responsive data-table">
+          <thead>
+            <tr>
+              <th>
+                {% trans "Email" context "Customers table header" %}
+              </th>
+              <th class="wide">
+                {% trans "Name" context "Customers table header" %}
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for user in staff %}
+              <tr data-action-go="{% url "dashboard:staff-details" pk=user.pk %}">
+                {% with user.default_billing_address as default_address %}
+                  <td>
+                    {{ user.email }}
+                  </td>
+                  {% if default_address %}
+                    <td>
+                      {{ default_address.first_name }} {{ default_address.last_name }}
+                    </td>
+                    <td>
+                      {{ default_address.city }}, {{ default_address.get_country_display }}
+                    </td>
+                  {% else %}
+                    <td colspan="2"></td>
+                  {% endif %}
+                {% endwith %}
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  {% else %}
+    <div class="card-content card-content--no-data not-found">
+      <p class="grey-text">
+        {% trans "No customers found." context "Empty customers table message" %}
+      </p>
+    </div>
+  {% endif %}
+
+  {% paginate staff %}
+
+{% endblock %}

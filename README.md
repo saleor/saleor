@@ -25,6 +25,8 @@ Want to see Saleor in action?
 
 [Saleor live demo](http://demo.getsaleor.com/)
 
+[Saleor Dashboard (admin area) demo](http://demo.getsaleor.com/dashboard/)
+
 Or launch the demo on a free Heroku instance.
 
 [![Deploy](https://www.herokucdn.com/deploy/button.png)](https://heroku.com/deploy)

@@ -109,7 +109,7 @@ class Checkout(object):
     def shipping_address(self):
         if self._shipping_address is None:
             address = self._get_address_from_storage('shipping_address')
-            if address is None and self.user.is_authenticated():
+            if address is None and self.user.is_authenticated:
                 address = self.user.default_shipping_address
             self._shipping_address = address
         return self._shipping_address
@@ -164,7 +164,7 @@ class Checkout(object):
         address = self._get_address_from_storage('billing_address')
         if address is not None:
             return address
-        elif (self.user.is_authenticated() and
+        elif (self.user.is_authenticated and
               self.user.default_billing_address):
             return self.user.default_billing_address
         elif self.shipping_address:
@@ -228,7 +228,7 @@ class Checkout(object):
 
     def _add_to_user_address_book(self, address, is_billing=False,
                                   is_shipping=False):
-        if self.user.is_authenticated():
+        if self.user.is_authenticated:
             store_user_address(
                 self.user, address, shipping=is_shipping,
                 billing=is_billing)
@@ -270,7 +270,7 @@ class Checkout(object):
             'tracking_client_id': self.tracking_code,
             'total': self.get_total()}
 
-        if self.user.is_authenticated():
+        if self.user.is_authenticated:
             order_data['user'] = self.user
             order_data['user_email'] = self.user.email
 

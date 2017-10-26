@@ -1,6 +1,6 @@
 machine:
   node:
-    version: "6.1.0"
+    version: "8.7.0"
   python:
     version: "3.5.1"
   environment:
@@ -12,11 +12,10 @@ machine:
 
 dependencies:
   pre:
-    - yarn
-    - yarn add --force node-sass # force our way around https://github.com/yarnpkg/yarn/issues/1981
+    - npm install
     - pip install -r requirements.txt
   override:
-    - yarn run build-assets --production
+    - npm run build-assets --production
     - ./manage.py collectstatic --no-input
     - sed -i.bak "s#'dev'#'$(git describe --tags)'#" saleor/__init__.py
   post:
@@ -27,10 +26,10 @@ test:
 
 deployment:
   release:
-    tag: /v.*/
+    branch: demo
     commands:
       - docker login -e $DOCKERCLOUD_EMAIL -u $DOCKERCLOUD_USER -p $DOCKERCLOUD_PASS
-      - docker tag mirumee/saleor:latest mirumee/saleor:$CIRCLE_TAG
-      - docker push mirumee/saleor:$CIRCLE_TAG
+      - docker tag mirumee/saleor:latest mirumee/saleor:$CIRCLE_SHA1
+      - docker push mirumee/saleor:$CIRCLE_SHA1
       - docker push mirumee/saleor:latest
       - curl -X POST https://circleci.com/api/v1.1/project/github/mirumee/saleor-demo?circle-token=$CIRCLE_API_TOKEN

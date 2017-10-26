@@ -119,7 +119,7 @@ def test_password_reset_view_get(client, db):
     url = reverse('account_reset_password')
     response = client.get(url)
     assert response.status_code == 200
-    assert response.template_name == 'account/password_reset.html'
+    assert response.template_name == ['account/password_reset.html']
 
 
 def test_base_backend(authorization_key, base_backend):

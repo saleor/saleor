@@ -220,10 +220,14 @@ class ElasticsearchSearchQuery(BaseSearchQuery):
         if lookup == 'exact':
             if value is None:
                 return {
-                    'missing': {
-                        'field': column_name,
+                    'bool': {
+                        'must_not': {
+                            'term': {
+                                'field': column_name
+                                }
+                            }
+                        }
                     }
-                }
             else:
                 return {
                     'term': {
@@ -234,10 +238,14 @@ class ElasticsearchSearchQuery(BaseSearchQuery):
         if lookup == 'isnull':
             if value:
                 return {
-                    'missing': {
-                        'field': column_name,
+                    'bool': {
+                        'must_not': {
+                            'term': {
+                                'field': column_name
+                                }
+                            }
+                        }
                     }
-                }
             else:
                 return {
                     'exists': {
@@ -447,8 +455,8 @@ class ElasticsearchSearchResults(BaseSearchResults):
         hits = self.backend.es.search(**params)
 
         # Get pks from results
-        pks = [hit['fields']['pk'][0] for hit in hits['hits']['hits']]
-        scores = {str(hit['fields']['pk'][0]): hit['_score']
+        pks = [hit['_source']['pk'] for hit in hits['hits']['hits']]
+        scores = {str(hit['_source']['pk'][0]): hit['_score']
                   for hit in hits['hits']['hits']}
 
         # Initialise results dictionary

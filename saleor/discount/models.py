@@ -121,6 +121,11 @@ class Voucher(models.Model):
     class Meta:
         verbose_name = pgettext_lazy('Voucher model', 'voucher')
         verbose_name_plural = pgettext_lazy('Voucher model', 'vouchers')
+        permissions = (
+            ('view_voucher',
+             pgettext_lazy('Permission description', 'Can view vouchers')),
+            ('edit_voucher',
+             pgettext_lazy('Permission description', 'Can edit vouchers')))
 
     def __str__(self):
         if self.name:
@@ -174,8 +179,7 @@ class Voucher(models.Model):
         limit = self.limit if self.limit is not None else value
         if value < limit:
             msg = pgettext(
-                'Voucher not applicable',
-                'This offer is only valid for orders over %(amount)s.')
+                'Voucher not applicable', 'This offer is only valid for orders over %(amount)s.')
             raise NotApplicable(msg % {'amount': net(limit)})
 
     def get_discount_for_checkout(self, checkout):
@@ -261,6 +265,11 @@ class Sale(models.Model):
         app_label = 'discount'
         verbose_name = pgettext_lazy('Sale (discount) model', 'sale')
         verbose_name_plural = pgettext_lazy('Sales (discounts) model', 'sales')
+        permissions = (
+            ('view_sale',
+             pgettext_lazy('Permission description', 'Can view sales')),
+            ('edit_sale',
+             pgettext_lazy('Permission description', 'Can edit sales')))
 
     def __repr__(self):
         return 'Sale(name=%r, value=%r, type=%s)' % (
@@ -296,8 +305,7 @@ class Sale(models.Model):
             return self.get_discount()
         raise NotApplicable(
             pgettext(
-                'Voucher not applicable',
-                'Discount not applicable for this product'))
+                'Voucher not applicable', 'Discount not applicable for this product'))
 
 
 def get_product_discounts(product, discounts, **kwargs):

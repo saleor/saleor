@@ -1,0 +1,87 @@
+{% extends 'dashboard/base.html' %}
+
+{% load i18n %}
+{% load staticfiles %}
+
+{% block title %}
+  {{ attribute }} - {{ block.super }}
+{% endblock %}
+
+{% block body_class %}body-attribute{% endblock %}
+
+{% block menu_attributes_class %}active{% endblock %}
+
+{% block breadcrumbs %}
+  <ul class="breadcrumbs breadcrumbs--history">
+    <li>
+      <a href="{% url 'dashboard:product-attributes' %}" class="breadcrumbs--ellipsed-item">
+      {% trans "Attributes" context "Attribute detail breadcrumbs" %}
+      </a>
+    </li>
+    <li class="back-mobile">
+      <a href="{% url 'dashboard:product-attributes' %}">
+        <svg data-src="{% static "dashboard/images/arrow_left.svg" %}" fill="#fff" width="20px" height="20px" />
+      </a>
+    </li>
+    <li>
+      <span class="breadcrumbs--ellipsed-item">
+        {{ attribute }}
+      </span>
+    </li>
+  </ul>
+{% endblock %}
+
+{% block menu_catalogue_class %} active{% endblock %}
+
+{% block content %}
+
+  <div class="row">
+    <div class="col m12 l9">
+      <div class="card">
+        <div class="card-content">
+          <span class="card-title">
+            {{ attribute.name }}
+          </span>
+        </div>
+        <div class="card-action">
+          <a class="btn btn-flat" href="{% url "dashboard:product-attribute-update" attribute.pk %}">
+            {% trans "Edit attribute" context "Attribute detail action" %}
+          </a>
+          <a class="btn btn-flat modal-trigger-custom" href="#base-modal"
+            data-href="{% url 'dashboard:product-attribute-delete' pk=attribute.pk %}">
+              {% trans "Remove attribute" context "Attribute detail action" %}
+          </a>
+        </div>
+      </div>
+    </div>
+    <div class="col m12 l9">
+      <div class="card">
+        <div class="card-content">
+          <span class="card-title">{% trans "Attribute values" %}</span>
+        </div>
+        <div class="data-table-container">
+          <table class="bordered highlight responsive data-table">
+            <thead>
+              <tr>
+                <th>{% trans "Display name" %}</th>
+                <th>{% trans "Color" %}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for value in attribute.values.all %}
+                <tr>
+                  <td>
+                    {{ value.name }}
+                  </td>
+                  <td>
+                    {{ value.color }}
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}

@@ -102,6 +102,7 @@ class ValueVoucherForm(forms.ModelForm):
 
 class ProductVoucherForm(forms.ModelForm):
 
+    use_required_attribute = False
     apply_to = forms.ChoiceField(
         choices=Voucher.APPLY_TO_PRODUCT_CHOICES, required=False)
 
@@ -128,6 +129,7 @@ class ProductVoucherForm(forms.ModelForm):
 
 class CategoryVoucherForm(forms.ModelForm):
 
+    use_required_attribute = False
     apply_to = forms.ChoiceField(
         choices=Voucher.APPLY_TO_PRODUCT_CHOICES, required=False)
 

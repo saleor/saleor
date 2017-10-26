@@ -1,0 +1,207 @@
+{% extends "dashboard/base.html" %}
+
+{% load i18n %}
+{% load prices_i18n %}
+{% load staticfiles %}
+{% load status %}
+
+{% block title %}{{ product }} - {{ block.super }}{% endblock %}
+
+{% block body_class %}body-products{% endblock %}
+
+{% block menu_products_class %}active{% endblock %}
+
+{% block breadcrumbs %}
+  <ul class="breadcrumbs breadcrumbs--history">
+    <li>
+      <a href="{% url "dashboard:product-list" %}" class="breadcrumb">
+        {% trans "Products" context "Product form breadcrumbs" %}
+      </a>
+    </li>
+    <li class="back-mobile">
+      <a href="{% url "dashboard:product-list" %}">
+        <svg data-src="{% static "dashboard/images/arrow_left.svg" %}" fill="#fff" width="20px" height="20px" />
+      </a>
+    </li>
+    <li>
+      <span class="breadcrumbs--ellipsed-item">
+        {{ product }}
+      </span>
+    </li>
+  </ul>
+{% endblock %}
+{% block content %}
+  <div class="row">
+    <div class="col s12 l9">
+      <div class="card">
+        <div class="card-content">
+          <span class="card-title">{{ product }} <br> {{ product.product_class }}</span>
+          <div class="row">
+            <div class="col s5 m6">
+              <p class="text-padding">{% trans "Sale price" context "Product field" %}</p>
+            </div>
+            <div class="col s7 m6">
+              {% with sale_price.min_price as min_price %}
+                {% with sale_price.max_price as max_price %}
+                  <p class="text-padding right-align">{% gross min_price %} - {% gross max_price %}</p>
+                {% endwith %}
+              {% endwith %}
+            </div>
+            <div class="col s5 m6">
+                <p class="text-padding">{% trans "Purchase cost" context "Product field" %}</p>
+            </div>
+            <div class="col s7 m6">
+              {% with sale_price.min_price as min_price %}
+                {% with sale_price.max_price as max_price %}
+                  <p class="text-padding right-align">{% net min_price %} - {% net max_price %}</p>
+                {% endwith %}
+              {% endwith %}
+            </div>
+            <div class="col s5 m6">
+                <p class="text-padding">{% trans "Gross margin" context "Product field" %}</p>
+            </div>
+            <div class="col s7 m6">
+              {% if gross_price_range %}
+              {% with gross_price_range.min_price as min_price %}
+                {% with gross_price_range.max_price as max_price %}
+                  <p class="text-padding right-align">{% tax min_price %} - {% tax max_price %}</p>
+                {% endwith %}
+              {% endwith %}
+              {% else %}
+                <p class="text-padding right-align">-</p>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+        <div class="card-action">
+          {% if perms.product.edit_product %}
+            <a href="{% url "dashboard:product-update" product.pk %}" class="btn btn-flat">
+              {% trans "Edit product" context "Product action" %}
+            </a>
+            <a href="#base-modal" data-href="{% url 'dashboard:product-delete' pk=product.pk %}" class="modal-trigger-custom btn btn-flat">
+                {% trans "Remove product" context "Product action" %}
+            </a>
+          {% endif %}
+          <a href="{{ product.get_absolute_url }}" target="_blank" class="btn btn-flat">
+            {% trans "View on site" context "Product action" %}
+          </a>
+        </div>
+      </div>
+      {% if not no_variants %}
+        <div class="card">
+          <div class="card-content">
+            <span class="card-title">{% trans "Variant" %}</span>
+          </div>
+          {% if perms.product.edit_product %}
+            <div class="data-table-header-action">
+                <a href="{% url 'dashboard:variant-add' product_pk=product.pk %}" class="btn-data-table btn-flat">{% trans "Add" %}</a>
+            </div>
+          {% endif %}
+          <div class="data-table-container">
+            <table class="bordered highlight responsive data-table">
+              <thead>
+                <tr>
+                  <th>{% trans "SKU" %}</th>
+                  <th>{% trans "Name" %}</th>
+                  <th>{% trans "Status" %}</th>
+                  <th class="right-align">{% trans "Price" %}</th>
+                  {% if perms.product.edit_product %}
+                    <th></th>
+                  {% endif %}
+                </tr>
+              </thead>
+              <tbody>
+                {% for variant in variants %}
+                  <tr data-action-go="{% url "dashboard:variant-details" product_pk=product.pk variant_pk=variant.pk %}">
+                    <td>{{ variant.sku }}</td>
+                    <td>{{ variant }}</td>
+                    <td class="wide">{% render_variant_availability_status variant %}</td>
+                    <td class="right-align">{% gross variant.get_price_per_item %}</td>
+                    {% if perms.product.edit_product %}
+                      <td><a href="{% url 'dashboard:variant-update' product_pk=product.pk variant_pk=variant.pk %}" class="btn btn-flat">{% trans "Edit" %}</a></td>
+                    {% endif %}
+                  </tr>
+                {% empty %}
+                  <tr>
+                    <td colspan="5">{% trans "No variants found" context "Dashboard product details page" %}</td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      {% endif %}
+      {% if no_variants and only_variant %}
+        <div class="card">
+          <div class="card-content">
+            <span class="card-title">{% trans "Stock" context "Dashboard variant details view" %}</span>
+          </div>
+          <div class="data-table-header-action">
+            <a class="btn btn-flat" href="{% url "dashboard:variant-stock-add" product_pk=product.pk variant_pk=only_variant.pk %}">
+              {% trans "Add" context "Dashboard action" %}
+            </a>
+          </div>
+          <div class="data-table-container">
+            {% include "dashboard/product/_stock_table.html" with product=product variant=only_variant stock=stock %}
+          </div>
+        </div>
+      {% endif %}
+    </div>
+    {% if perms.product.edit_product %}
+    <div class="col s12 l3">
+      <div id="status">
+        <div class="row">
+          <div class="col s12">
+            <div class="card">
+              <div class="card-content">
+                <div class="switch" data-url="{% url 'dashboard:product-publish' product.pk %}">
+                  <label>
+                    <input type="checkbox" {% if product.is_published %} checked {% endif %}>
+                    <span class="lever"></span>
+                    <span class="label">
+                      {% if product.is_published %}
+                        {% trans "Published" context "Product field" %}
+                      {% else %}
+                        {% trans "Draft" context "Product field" %}
+                      {% endif %}
+                    </span>
+                  </label>
+                </div>
+                <h5>{% render_availability_status product %}</h5>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+   <div class="col s12 l3">
+      <div id="images">
+        <div class="row">
+          <div class="col s12">
+            <div class="card">
+              <div class="card-content">
+              <span class="card-title">{% trans "Images" %}</span>
+                <div class="row">
+                  {% for image in images %}
+                    <div class="col s4">
+                      <img class="responsive-img" src="{{ image.image.crop.255x255 }}" srcset="{{ image.image.crop.255x255 }} 1x, {{ image.image.crop.510x510 }} 2x" alt="{{ image.alt }}">
+                    </div>
+                  {% endfor %}
+                </div>
+              </div>
+              {% if perms.product.edit_product %}
+                <div class="card-action">
+                  <a href="{% url 'dashboard:product-image-list' product.pk %}" class="btn btn-flat">{% trans "Edit images" %}</a>
+                </div>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col s12 l9">
+
+    </div>
+  </div>
+{% endblock %}

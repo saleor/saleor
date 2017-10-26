@@ -1,4 +1,6 @@
-from collections import namedtuple
+from collections import defaultdict, namedtuple
+
+from six import iteritems
 
 from django.conf import settings
 from django.contrib.auth.models import AnonymousUser
@@ -8,6 +10,7 @@ from django_prices.templatetags import prices_i18n
 from ..cart.utils import get_cart_from_request, get_or_create_cart_from_request
 from ..core.utils import to_local_currency
 from .forms import ProductForm
+from . import ProductAvailabilityStatus, VariantAvailabilityStatus
 
 try:
     from urllib.parse import urlencode
@@ -17,7 +20,7 @@ except ImportError:
 
 def products_visible_to_user(user):
     from .models import Product
-    if user.is_authenticated() and user.is_active and user.is_staff:
+    if user.is_authenticated and user.is_active and user.is_staff:
         return Product.objects.all()
     else:
         return Product.objects.get_available_products()
@@ -159,13 +162,9 @@ def get_variant_picker_data(product, discounts=None, local_currency=None):
     data = {'variantAttributes': [], 'variants': []}
 
     variant_attributes = product.product_class.variant_attributes.all()
-    for attribute in variant_attributes:
-        data['variantAttributes'].append({
-            'pk': attribute.pk,
-            'name': attribute.name,
-            'slug': attribute.slug,
-            'values': [{'pk': value.pk, 'name': value.name, 'slug': value.slug}
-                       for value in attribute.values.all()]})
+
+    # Collect only available variants
+    filter_available_variants = defaultdict(list)
 
     for variant in variants:
         price = variant.get_price_per_item(discounts)
@@ -193,6 +192,23 @@ def get_variant_picker_data(product, discounts=None, local_currency=None):
             'priceLocalCurrency': price_as_dict(price_local_currency),
             'schemaData': schema_data}
         data['variants'].append(variant_data)
+
+        for variant_key, variant_value in iteritems(variant.attributes):
+            filter_available_variants[int(variant_key)].append(
+                int(variant_value))
+
+    for attribute in variant_attributes:
+        available_variants = filter_available_variants.get(attribute.pk, None)
+
+        if available_variants:
+            data['variantAttributes'].append({
+                'pk': attribute.pk,
+                'name': attribute.name,
+                'slug': attribute.slug,
+                'values': [
+                    {'pk': value.pk, 'name': value.name, 'slug': value.slug}
+                    for value in attribute.values.filter(
+                        pk__in=available_variants)]})
 
     data['availability'] = {
         'discount': price_as_dict(availability.discount),
@@ -256,3 +272,43 @@ def get_attributes_display_map(obj, attributes):
             else:
                 display_map[attribute.pk] = value
     return display_map
+
+
+def get_product_availability_status(product):
+    from .models import Stock
+
+    is_available = product.is_available()
+    has_stock_records = Stock.objects.filter(variant__product=product)
+    are_all_variants_in_stock = all(
+        variant.is_in_stock() for variant in product.variants.all())
+    is_in_stock = any(
+        variant.is_in_stock() for variant in product.variants.all())
+    requires_variants = product.product_class.has_variants
+
+    if not product.is_published:
+        return ProductAvailabilityStatus.NOT_PUBLISHED
+    elif requires_variants and not product.variants.exists():
+        # We check the requires_variants flag here in order to not show this
+        # status with product classes that don't require variants, as in that
+        # case variants are hidden from the UI and user doesn't manage them.
+        return ProductAvailabilityStatus.VARIANTS_MISSSING
+    elif not has_stock_records:
+        return ProductAvailabilityStatus.NOT_CARRIED
+    elif not is_in_stock:
+        return ProductAvailabilityStatus.OUT_OF_STOCK
+    elif not are_all_variants_in_stock:
+        return ProductAvailabilityStatus.LOW_STOCK
+    elif not is_available and product.available_on is not None:
+        return ProductAvailabilityStatus.NOT_YET_AVAILABLE
+    else:
+        return ProductAvailabilityStatus.READY_FOR_PURCHASE
+
+
+def get_variant_availability_status(variant):
+    has_stock_records = variant.stock.exists()
+    if not has_stock_records:
+        return VariantAvailabilityStatus.NOT_CARRIED
+    elif not variant.is_in_stock():
+        return VariantAvailabilityStatus.OUT_OF_STOCK
+    else:
+        return VariantAvailabilityStatus.AVAILABLE

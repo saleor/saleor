@@ -1,4 +1,3 @@
-from django.contrib.admin.views.decorators import staff_member_required
 from django.conf import settings
 from django.shortcuts import render
 
@@ -6,6 +5,7 @@ from ...order.models import Order
 from ...product.models import Product
 from ...search.views import paginate_results
 from ...userprofile.models import User
+from ..views import staff_member_required
 from .forms import DashboardSearchForm
 
 

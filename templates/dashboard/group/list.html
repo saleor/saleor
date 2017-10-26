@@ -1,0 +1,62 @@
+{% extends "dashboard/base.html" %}
+{% load i18n %}
+{% load materializecss %}
+{% load staticfiles %}
+{% load utils %}
+
+{% block title %}
+  {% trans "Groups" context "Dashboard groups list" %} - {{ block.super }}
+{% endblock %}
+
+{% block body_class %}body-customers{% endblock %}
+
+{% block menu_groups_class %}active{% endblock %}
+
+{% block header_extra %}
+    <div class="fixed-action-btn">
+      <a class="btn-fab btn-floating btn-large waves-effect waves-light teal"
+        title="{% trans "Add group" context "Group list add button text" %}"
+        href="{% url 'dashboard:group-create' %}">
+        <svg data-src="{% static "dashboard/images/add.svg" %}" />
+      </a>
+    </div>
+{% endblock %}
+
+{% block breadcrumbs %}
+  <ul class="breadcrumbs">
+    <li class="visible-s">
+      {% trans "Groups" context "Dashboard groups list" %}
+    </li>
+  </ul>
+{% endblock %}
+
+{% block content %}
+  {% if groups %}
+    <ul class="collection list">
+      {% for group in groups %}
+        <li class="collection-item list-item">
+          <a class="list-item-name" href="{% url 'dashboard:group-details' pk=group.name.pk %}">
+            {{ group.name }}
+            <p class="list-item-desc">
+              <span>
+                {% for permission in group.permissions %}
+                  {{ permission.name }},
+                {% endfor %}
+              </span>
+            </p>
+          </a>
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <div class="card-content card-content--no-data not-found">
+      <p class="grey-text">
+        {% trans "No groups found." context "Empty group table message" %}
+      </p>
+    </div>
+  {% endif %}
+
+  {% paginate groups %}
+
+{% endblock %}
+

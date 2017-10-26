@@ -1,7 +1,9 @@
 from __future__ import unicode_literals
 
 from django.contrib import messages
+from django.contrib.auth.decorators import permission_required
 from django.db import transaction
+from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect
 from django.template.context_processors import csrf
 from django.template.response import TemplateResponse
@@ -10,37 +12,43 @@ from django_prices.templatetags.prices_i18n import gross
 from payments import PaymentStatus
 from prices import Price
 
-from ...core.utils import get_paginator_items
-from ...order import OrderStatus
-from ...order.models import Order, OrderedItem, OrderNote
-from ...product.models import ProductVariant
-from ...userprofile.i18n import AddressForm
-from ..order.forms import OrderFilterForm
-from ..views import staff_member_required
 from .forms import (CancelGroupForm, CancelItemsForm, CancelOrderForm,
                     CapturePaymentForm, ChangeQuantityForm, MoveItemsForm,
                     OrderNoteForm, RefundPaymentForm, ReleasePaymentForm,
                     RemoveVoucherForm, ShipGroupForm)
+from .utils import (create_packing_slip_pdf, create_invoice_pdf,
+                    get_statics_absolute_url)
+from ..order.forms import OrderFilterForm
+from ..views import staff_member_required
+from ...core.utils import get_paginator_items
+from ...order import OrderStatus
+from ...order.models import Order, OrderedItem, OrderNote
+from ...product.models import ProductVariant
+from ...settings import DASHBOARD_PAGINATE_BY
+from ...userprofile.i18n import AddressForm
 
 
 @staff_member_required
+@permission_required('order.view_order')
 def order_list(request):
     orders_all = Order.objects.prefetch_related(
-        'groups', 'payments', 'groups__items', 'user').all()
-    active_status = request.GET.get('status')
-    if active_status:
-        orders = orders_all.filter(status=active_status)
+        'groups', 'payments', 'groups__items', 'user')
+    status = request.GET.get('status')
+    if status:
+        orders = orders_all.filter(status=status)
     else:
-        orders = orders_all
-    page = get_paginator_items(orders, 20, request.GET.get('page'))
+        orders = orders_all.all()
+    orders = get_paginator_items(
+        orders, DASHBOARD_PAGINATE_BY, request.GET.get('page'))
     form = OrderFilterForm(
-        request.POST or None, initial={'status': active_status or None})
-    ctx = {'object_list': page.object_list, 'orders_all': orders_all, 'page_obj': page,
-           'is_paginated': page.has_other_pages(), 'form': form}
+        request.POST or None, initial={'status': status or None})
+    ctx = {'orders': orders,
+           'form': form}
     return TemplateResponse(request, 'dashboard/order/list.html', ctx)
 
 
 @staff_member_required
+@permission_required('order.view_order')
 def order_details(request, order_pk):
     qs = (Order.objects
           .select_related('user', 'shipping_address', 'billing_address')
@@ -75,6 +83,7 @@ def order_details(request, order_pk):
 
 
 @staff_member_required
+@permission_required('order.edit_order')
 def order_add_note(request, order_pk):
     order = get_object_or_404(Order, pk=order_pk)
     note = OrderNote(order=order, user=request.user)
@@ -91,11 +100,12 @@ def order_add_note(request, order_pk):
         status = 400
     ctx = {'order': order, 'form': form}
     ctx.update(csrf(request))
-    template = 'dashboard/order/modal_add_note.html'
+    template = 'dashboard/order/modal/add_note.html'
     return TemplateResponse(request, template, ctx, status=status)
 
 
 @staff_member_required
+@permission_required('order.edit_order')
 def capture_payment(request, order_pk, payment_pk):
     order = get_object_or_404(Order, pk=order_pk)
     payment = get_object_or_404(order.payments, pk=payment_pk)
@@ -113,11 +123,12 @@ def capture_payment(request, order_pk, payment_pk):
     status = 400 if form.errors else 200
     ctx = {'captured': payment.captured_amount, 'currency': payment.currency,
            'form': form, 'order': order, 'payment': payment}
-    return TemplateResponse(request, 'dashboard/order/modal_capture.html', ctx,
+    return TemplateResponse(request, 'dashboard/order/modal/capture.html', ctx,
                             status=status)
 
 
 @staff_member_required
+@permission_required('order.edit_order')
 def refund_payment(request, order_pk, payment_pk):
     order = get_object_or_404(Order, pk=order_pk)
     payment = get_object_or_404(order.payments, pk=payment_pk)
@@ -135,11 +146,12 @@ def refund_payment(request, order_pk, payment_pk):
     status = 400 if form.errors else 200
     ctx = {'captured': payment.captured_amount, 'currency': payment.currency,
            'form': form, 'order': order, 'payment': payment}
-    return TemplateResponse(request, 'dashboard/order/modal_refund.html', ctx,
+    return TemplateResponse(request, 'dashboard/order/modal/refund.html', ctx,
                             status=status)
 
 
 @staff_member_required
+@permission_required('order.edit_order')
 def release_payment(request, order_pk, payment_pk):
     order = get_object_or_404(Order, pk=order_pk)
     payment = get_object_or_404(order.payments, pk=payment_pk)
@@ -152,11 +164,12 @@ def release_payment(request, order_pk, payment_pk):
     status = 400 if form.errors else 200
     ctx = {'captured': payment.captured_amount, 'currency': payment.currency,
            'form': form, 'order': order, 'payment': payment}
-    return TemplateResponse(request, 'dashboard/order/modal_release.html', ctx,
+    return TemplateResponse(request, 'dashboard/order/modal/release.html', ctx,
                             status=status)
 
 
 @staff_member_required
+@permission_required('order.edit_order')
 def orderline_change_quantity(request, order_pk, line_pk):
     order = get_object_or_404(Order, pk=order_pk)
     item = get_object_or_404(OrderedItem.objects.filter(
@@ -182,11 +195,12 @@ def orderline_change_quantity(request, order_pk, line_pk):
     elif form.errors:
         status = 400
     ctx = {'order': order, 'object': item, 'form': form}
-    template = 'dashboard/order/modal_change_quantity.html'
+    template = 'dashboard/order/modal/change_quantity.html'
     return TemplateResponse(request, template, ctx, status=status)
 
 
 @staff_member_required
+@permission_required('order.edit_order')
 def orderline_split(request, order_pk, line_pk):
     order = get_object_or_404(Order, pk=order_pk)
     item = get_object_or_404(OrderedItem.objects.filter(
@@ -217,11 +231,12 @@ def orderline_split(request, order_pk, line_pk):
     elif form.errors:
         status = 400
     ctx = {'order': order, 'object': item, 'form': form, 'line_pk': line_pk}
-    template = 'dashboard/order/modal_split_order_line.html'
+    template = 'dashboard/order/modal/split_order_line.html'
     return TemplateResponse(request, template, ctx, status=status)
 
 
 @staff_member_required
+@permission_required('order.edit_order')
 def orderline_cancel(request, order_pk, line_pk):
     order = get_object_or_404(Order, pk=order_pk)
     item = get_object_or_404(OrderedItem.objects.filter(
@@ -241,11 +256,12 @@ def orderline_cancel(request, order_pk, line_pk):
         status = 400
     ctx = {'order': order, 'item': item, 'form': form}
     return TemplateResponse(
-        request, 'dashboard/order/modal_cancel_line.html',
+        request, 'dashboard/order/modal/cancel_line.html',
         ctx, status=status)
 
 
 @staff_member_required
+@permission_required('order.edit_order')
 def ship_delivery_group(request, order_pk, group_pk):
     order = get_object_or_404(Order, pk=order_pk)
     group = get_object_or_404(order.groups.all(), pk=group_pk)
@@ -263,11 +279,12 @@ def ship_delivery_group(request, order_pk, group_pk):
     elif form.errors:
         status = 400
     ctx = {'order': order, 'group': group, 'form': form}
-    template = 'dashboard/order/modal_ship_delivery_group.html'
+    template = 'dashboard/order/modal/ship_delivery_group.html'
     return TemplateResponse(request, template, ctx, status=status)
 
 
 @staff_member_required
+@permission_required('order.edit_order')
 def cancel_delivery_group(request, order_pk, group_pk):
     order = get_object_or_404(Order, pk=order_pk)
     group = get_object_or_404(order.groups.all(), pk=group_pk)
@@ -285,11 +302,12 @@ def cancel_delivery_group(request, order_pk, group_pk):
     elif form.errors:
         status = 400
     ctx = {'order': order, 'group': group}
-    template = 'dashboard/order/modal_cancel_delivery_group.html'
+    template = 'dashboard/order/modal/cancel_delivery_group.html'
     return TemplateResponse(request, template, ctx, status=status)
 
 
 @staff_member_required
+@permission_required('order.edit_order')
 def address_view(request, order_pk, address_type):
     order = Order.objects.get(pk=order_pk)
     if address_type == 'shipping':
@@ -313,6 +331,7 @@ def address_view(request, order_pk, address_type):
 
 
 @staff_member_required
+@permission_required('order.edit_order')
 def cancel_order(request, order_pk):
     status = 200
     order = get_object_or_404(Order, pk=order_pk)
@@ -328,10 +347,12 @@ def cancel_order(request, order_pk):
     elif form.errors:
         status = 400
     ctx = {'order': order}
-    return TemplateResponse(request, 'dashboard/order/modal_cancel_order.html',
+    return TemplateResponse(request, 'dashboard/order/modal/cancel_order.html',
                             ctx, status=status)
 
 
+@staff_member_required
+@permission_required('order.edit_order')
 def remove_order_voucher(request, order_pk):
     status = 200
     order = get_object_or_404(Order, pk=order_pk)
@@ -347,5 +368,27 @@ def remove_order_voucher(request, order_pk):
         status = 400
     ctx = {'order': order}
     return TemplateResponse(request,
-                            'dashboard/order/modal_order_remove_voucher.html',
+                            'dashboard/order/modal/order_remove_voucher.html',
                             ctx, status=status)
+
+
+@staff_member_required
+@permission_required('order.edit_order')
+def order_invoice(request, group_pk):
+    absolute_url = get_statics_absolute_url(request)
+    pdf_file, group = create_invoice_pdf(group_pk, absolute_url)
+    response = HttpResponse(pdf_file, content_type='application/pdf')
+    name = "invoice-%s-%s" % (group.order.id, group.id)
+    response['Content-Disposition'] = 'filename=%s' % name
+    return response
+
+
+@staff_member_required
+@permission_required('order.edit_order')
+def order_packing_slip(request, group_pk):
+    absolute_url = get_statics_absolute_url(request)
+    pdf_file, group = create_packing_slip_pdf(group_pk, absolute_url)
+    response = HttpResponse(pdf_file, content_type='application/pdf')
+    name = "packing-slip-%s-%s" % (group.order.id, group.id)
+    response['Content-Disposition'] = 'filename=%s' % name
+    return response

@@ -15,7 +15,7 @@
 {% endblock breadcrumb %}
 
 {% block content %}
-<div class="alert alert-success hidden-xs-up remove-product-alert">
+<div class="alert alert-success d-block d-sm-none remove-product-alert">
   {% trans "Product has been deleted from cart" context "Cart message" %}
   <button type="button" class="close close-msg" aria-hidden="true">&times;</button>
 </div>
@@ -39,8 +39,8 @@
         <div class="row">
           <div class="col-7 cart__line__product">
             <a class="link--clean" href="{{ line.variant.get_absolute_url }}">
-              <img src="{% get_thumbnail line.variant.product.images.first.image method="crop" size="60x60" %}" 
-                   srcset="{% get_thumbnail line.variant.product.images.first.image method="crop" size="60x60" %} 1x, {% get_thumbnail line.variant.product.images.first.image method="crop" size="120x120" %} 2x" 
+              <img src="{% get_thumbnail line.variant.product.images.first.image method="crop" size="60x60" %}"
+                   srcset="{% get_thumbnail line.variant.product.images.first.image method="crop" size="60x60" %} 1x, {% get_thumbnail line.variant.product.images.first.image method="crop" size="120x120" %} 2x"
                    alt="">
               <p>{{ line.variant.product }}
                 <br><small>{{ line.variant }}</small></p>

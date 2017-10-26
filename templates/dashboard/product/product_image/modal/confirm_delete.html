@@ -1,0 +1,19 @@
+{% extends "dashboard/base_modal_confirm_delete.html" %}
+
+{% load i18n %}
+{% load product_first_image from product_images %}
+
+{% block action_url %}
+{% url 'dashboard:product-image-delete' product_pk=product.pk img_pk=image.pk %}
+{% endblock %}
+
+{% block title %}
+{% trans "Delete product image" context "Modal delete image text" %}
+{% endblock %}
+
+{% block content %}
+<div class="center-align">		
+<img class="responsive-img" src="{{ image.image.crop.255x255 }}"  srcset="{{ image.image.crop.255x255 }} 1x, {{ image.image.crop.510x510 }} 2x" alt="">
+</div>
+<p>{% trans "Are you sure you want to delete product image?" context "Modal delete image text" %}</p>
+{% endblock content %}

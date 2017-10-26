@@ -8,9 +8,12 @@ from django.utils.encoding import smart_text
 
 from saleor.cart.models import Cart
 from saleor.cart import CartStatus, utils
-from saleor.product import models
-from saleor.product.utils import get_attributes_display_map
-from saleor.product.utils import get_availability
+
+from saleor.product import (
+    models, ProductAvailabilityStatus, VariantAvailabilityStatus)
+from saleor.product.utils import (
+    get_attributes_display_map, get_availability, get_variant_picker_data,
+    get_product_availability_status, get_variant_availability_status)
 from tests.utils import filter_products_by_attribute
 
 
@@ -303,3 +306,152 @@ def test_get_attributes_display_map_no_choices(product_in_stock):
         product_in_stock, attributes)
 
     assert attributes_display_map == {product_attr.pk: smart_text(-1)}
+
+
+def test_product_availability_status(unavailable_product):
+    product = unavailable_product
+    product.product_class.has_variants = True
+
+    # product is not published
+    status = get_product_availability_status(product)
+    assert status == ProductAvailabilityStatus.NOT_PUBLISHED
+
+    product.is_published = True
+    product.save()
+
+    # product has no variants
+    status = get_product_availability_status(product)
+    assert status == ProductAvailabilityStatus.VARIANTS_MISSSING
+
+    # product has variant but not stock records
+    variant_1 = product.variants.create(sku='test-1')
+    variant_2 = product.variants.create(sku='test-2')
+    status = get_product_availability_status(product)
+    assert status == ProductAvailabilityStatus.NOT_CARRIED
+
+    # create empty stock records
+    stock_1 = variant_1.stock.create(quantity=0)
+    stock_2 = variant_2.stock.create(quantity=0)
+    status = get_product_availability_status(product)
+    assert status == ProductAvailabilityStatus.OUT_OF_STOCK
+
+    # assign quantity to only one stock record
+    stock_1.quantity = 5
+    stock_1.save()
+    status = get_product_availability_status(product)
+    assert status == ProductAvailabilityStatus.LOW_STOCK
+
+    # both stock records have some quantity
+    stock_2.quantity = 5
+    stock_2.save()
+    status = get_product_availability_status(product)
+    assert status == ProductAvailabilityStatus.READY_FOR_PURCHASE
+
+    # set product availability date from future
+    product.available_on = datetime.date.today() + datetime.timedelta(days=1)
+    product.save()
+    status = get_product_availability_status(product)
+    assert status == ProductAvailabilityStatus.NOT_YET_AVAILABLE
+
+
+def test_variant_availability_status(unavailable_product):
+    product = unavailable_product
+    product.product_class.has_variants = True
+
+    variant = product.variants.create(sku='test')
+    status = get_variant_availability_status(variant)
+    assert status == VariantAvailabilityStatus.NOT_CARRIED
+
+    stock = variant.stock.create(quantity=0)
+    status = get_variant_availability_status(variant)
+    assert status == VariantAvailabilityStatus.OUT_OF_STOCK
+
+    stock.quantity = 5
+    stock.save()
+    status = get_variant_availability_status(variant)
+    assert status == VariantAvailabilityStatus.AVAILABLE
+
+
+def test_product_filter_before_filtering(
+        authorized_client, product_in_stock, default_category):
+    products = (models.Product.objects.all()
+                .filter(categories__name=default_category)
+                .order_by('-price'))
+    url = reverse(
+        'product:category', kwargs={'path': default_category.slug,
+                                    'category_id': default_category.pk})
+    response = authorized_client.get(url)
+    assert list(products) == list(response.context['filter'].qs)
+
+
+def test_product_filter_product_exists(authorized_client, product_in_stock,
+                                       default_category):
+    products = (models.Product.objects.all()
+                .filter(categories__name=default_category)
+                .order_by('-price'))
+    url = reverse(
+        'product:category', kwargs={'path': default_category.slug,
+                                    'category_id': default_category.pk})
+    data = {'price_0': [''], 'price_1': ['20']}
+    response = authorized_client.get(url, data)
+    assert list(response.context['filter'].qs) == list(products)
+
+
+def test_product_filter_product_does_not_exists(
+        authorized_client, product_in_stock, default_category):
+    url = reverse(
+        'product:category', kwargs={'path': default_category.slug,
+                                    'category_id': default_category.pk})
+    data = {'price_0': ['20'], 'price_1': ['']}
+    response = authorized_client.get(url, data)
+    assert not list(response.context['filter'].qs)
+
+
+def test_product_filter_form(authorized_client, product_in_stock,
+                             default_category):
+    products = (models.Product.objects.all()
+                .filter(categories__name=default_category)
+                .order_by('-price'))
+    url = reverse(
+        'product:category', kwargs={'path': default_category.slug,
+                                    'category_id': default_category.pk})
+    response = authorized_client.get(url)
+    assert 'price' in response.context['filter'].form.fields.keys()
+    assert 'sort_by' in response.context['filter'].form.fields.keys()
+    assert list(response.context['filter'].qs) == list(products)
+
+
+def test_product_filter_sorted_by_price_descending(
+    authorized_client, product_list, default_category):
+    products = (models.Product.objects.all()
+                .filter(categories__name=default_category)
+                .order_by('-price'))
+    url = reverse(
+        'product:category', kwargs={'path': default_category.slug,
+                                    'category_id': default_category.pk})
+    data = {'sort_by': '-price'}
+    response = authorized_client.get(url, data)
+    assert list(response.context['filter'].qs) == list(products)
+
+
+def test_product_filter_sorted_by_wrong_parameter(
+        authorized_client, product_in_stock, default_category):
+    url = reverse(
+        'product:category', kwargs={'path': default_category.slug,
+                                    'category_id': default_category.pk})
+    data = {'sort_by': 'aaa'}
+    response = authorized_client.get(url, data)
+    assert not list(response.context['filter'].qs)
+
+
+def test_get_variant_picker_data_proper_variant_count(product_in_stock):
+    """
+    test checks if get_variant_picker_data provide proper count of
+    variant information from available product variants and not count
+    of variant attributes from product class
+    """
+    data = get_variant_picker_data(
+        product_in_stock, discounts=None, local_currency=None)
+
+    assert len(data['variantAttributes'][0]['values']) == 1
+

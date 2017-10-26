@@ -1,16 +1,20 @@
 from django.contrib import messages
+from django.contrib.auth.decorators import permission_required
 from django.core.urlresolvers import reverse
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect
 from django.template.response import TemplateResponse
 from django.utils.translation import pgettext_lazy
 
+from ...core.utils import get_paginator_items
 from ...product.models import Category
+from ...settings import DASHBOARD_PAGINATE_BY
 from ..views import staff_member_required
 from .forms import CategoryForm
 
 
 @staff_member_required
+@permission_required('product.view_category')
 def category_list(request, root_pk=None):
     root = None
     path = None
@@ -19,11 +23,14 @@ def category_list(request, root_pk=None):
         root = get_object_or_404(Category, pk=root_pk)
         path = root.get_ancestors(include_self=True) if root else []
         categories = root.get_children()
+    categories = get_paginator_items(
+        categories, DASHBOARD_PAGINATE_BY, request.GET.get('page'))
     ctx = {'categories': categories, 'path': path, 'root': root}
     return TemplateResponse(request, 'dashboard/category/list.html', ctx)
 
 
 @staff_member_required
+@permission_required('product.edit_category')
 def category_create(request, root_pk=None):
     category = Category()
     form = CategoryForm(request.POST or None, parent_pk=root_pk)
@@ -42,6 +49,7 @@ def category_create(request, root_pk=None):
 
 
 @staff_member_required
+@permission_required('product.edit_category')
 def category_edit(request, root_pk=None):
     category = get_object_or_404(Category, pk=root_pk)
     form = CategoryForm(request.POST or None, instance=category,
@@ -60,11 +68,12 @@ def category_edit(request, root_pk=None):
     elif form.errors:
         status = 400
     ctx = {'category': category, 'form': form, 'status': status}
-    template = 'dashboard/category/modal_edit.html'
+    template = 'dashboard/category/modal/edit.html'
     return TemplateResponse(request, template, ctx, status=status)
 
 
 @staff_member_required
+@permission_required('product.edit_category')
 def category_delete(request, pk):
     category = get_object_or_404(Category, pk=pk)
     if request.method == 'POST':
@@ -90,6 +99,5 @@ def category_delete(request, pk):
     ctx = {'category': category,
            'descendants': list(category.get_descendants()),
            'products_count': len(category.products.all())}
-    return TemplateResponse(request,
-                            'dashboard/category/modal_delete.html',
-                            ctx)
+    return TemplateResponse(
+        request, 'dashboard/category/modal/confirm_delete.html', ctx)

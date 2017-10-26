@@ -1,0 +1,97 @@
+{% extends "dashboard/base.html" %}
+{% load materializecss %}
+{% load i18n %}
+{% load staticfiles %}
+
+{% block title %}
+  {% if group.name %}
+    {{ group }}
+  {% else %}
+    {% trans "Add new group" context "Dashboard add group" %}
+  {% endif %}
+  - {% trans "Group" context "Dashboard group" %} - {{ block.super }}
+{% endblock %}
+
+{% block body_class %}body-customers{% endblock %}
+
+{% block menu_groups_class %}active{% endblock %}
+
+{% block header_menu %}
+  {% url "dashboard:groups-list" as url %}
+  {% include "dashboard/includes/_back-link.html" with url=url %}
+{% endblock %}
+
+{% block breadcrumbs %}
+  <ul class="breadcrumbs breadcrumbs--history">
+    <li>
+      <a href="{% url "dashboard:group-list" %}">
+        {% trans "Groups" context "Dashboard groups list" %}
+      </a>
+    </li>
+    <li class="back-mobile">
+      <a href="{% url "dashboard:group-list" %}">
+        <svg data-src="{% static "dashboard/images/arrow_left.svg" %}" fill="#fff" width="20px" height="20px" />
+      </a>
+    </li>
+    <li>
+      <span class="breadcrumbs--elipsed-item">
+        {% if group.name %}{{ group }}{% else %}{% trans "Add new group" context "Dashboard add new group" %}{% endif %}
+      </span>
+    </li>
+  </ul>
+{% endblock %}
+
+{% block header_extra %}
+  {% if group.pk %}
+    <a class="dropdown-button right" href="#" data-activates="context-menu" data-constrainwidth="false">
+      <svg data-src="{% static "dashboard/images/more_vert.svg" %}" height="24" width="24" />
+    </a>
+    <ul id="context-menu" class="dropdown-content">
+      <li>
+        <a href="#base-modal" data-href="{% url 'dashboard:group-delete' pk=group.pk %}"
+        class="modal-trigger-custom">
+          {% trans 'Remove group' context 'Group form action' %}
+        </a>
+      </li>
+    </ul>
+  {% endif %}
+{% endblock %}
+
+
+{% block content %}
+  <div class="row">
+    <div class="col s12 l8">
+      {% if form %}
+        <form method="post" class="card">
+          <div class="card">
+            <div class="data-table-header">
+              <h5 class="data-table-title">
+                Permissions
+              </h5>
+            </div>
+            <div class="card-content">
+              {% csrf_token %}
+              <div class="row">
+                <div class="col s12">
+                  {{ form|materializecss }}
+                </div>
+              </div>
+            </div>
+            <div class="card-action right-align">
+              <a href="{% url 'dashboard:group-list' %}" class="btn btn-flat">
+                {% trans "Cancel" context "Dashboard cancel action" %}
+              </a>
+              <button type="submit" class="btn waves-effect waves-light">
+                {% if group.name %}
+                  {% trans 'Update' context 'Dashboard update action' %}
+                {% else %}
+                  {% trans 'Add' context 'Dashboard add action' %}
+                {% endif %}
+              </button>
+            </div>
+          </div>
+        </form>
+      {% endif %}
+    </div>
+  </div>
+{% endblock %}

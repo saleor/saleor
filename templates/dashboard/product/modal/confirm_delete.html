@@ -1,0 +1,18 @@
+{% extends "dashboard/base_modal_confirm_delete.html" %}
+
+{% load i18n %}
+{% load prices_i18n %}
+
+{% block action_url %}{% url 'dashboard:product-delete' pk=product.pk %}{% endblock %}
+
+{% block title %}
+{% blocktrans trimmed context "Modal delete product text" %}
+Delete product {{ product }}
+{% endblocktrans %}
+{% endblock %}
+
+{% block content %}
+{% blocktrans trimmed context "Modal delete product text" %}
+Are you sure you want to delete product <strong>{{ product }}</strong>?
+{% endblocktrans %}
+{% endblock content %}
