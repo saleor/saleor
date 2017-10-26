@@ -18,7 +18,7 @@ if (process.env.NODE_ENV === 'production') {
   output = {
     path: resolve('saleor/static/assets/'),
     filename: '[name].[chunkhash].js',
-    publicPath: process.env.ASSETS_PRODUCTION
+    publicPath: process.env.STATIC_URL || '/static/assets/'
   };
   fileLoaderPath = 'file-loader?name=[name].[hash].[ext]';
   extractTextPlugin = new ExtractTextPlugin('[name].[contenthash].css');
