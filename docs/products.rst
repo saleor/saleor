@@ -18,7 +18,7 @@ It's the most important object in shop. All cart and stock operations use varian
 Product
 -------
 
-Describes common details of a few *product variants*. When the shop displays the category view, items on the list are distinct *products*. If the variant has no overriddeen property (example: price), the default value is taken from the *product*.
+Describes common details of a few *product variants*. When the shop displays the category view, items on the list are distinct *products*. If the variant has no overridden property (example: price), the default value is taken from the *product*.
 
 - available_on
     Until this date the product is not listed in storefront and is unavailable for users.
