@@ -214,6 +214,8 @@ INSTALLED_APPS = [
     'constance.backends.database',
     'django_celery_beat',
 
+    'robots',
+
 ]
 
 LOGGING = {
@@ -428,7 +430,6 @@ PASSWORD_HASHERS = [
 ]
 
 
-
 AUTHENTICATION_BACKENDS = [
     'saleor_oye.auth.backends.OyePasswordAuth',
     'rest_framework.authentication.TokenAuthentication',
@@ -462,6 +463,7 @@ CELERY_BROKER_USER = os.environ.get('RABBITMQ_USER', 'guest')
 CELERY_BROKER_PASSWORD = os.environ.get('RABBITMQ_PASSWORD', 'guest')
 CELERY_BROKER_PORT = 5672
 CELERY_BROKER_HOST = 'localhost'
+CELERY_TASK_ALWAYS_EAGER=DEBUG
 
 
 CORS_ALLOW_HEADERS = (
