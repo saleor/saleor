@@ -3,20 +3,20 @@
 # This file is distributed under the same license as the Saleor package.
 # Mirumee Software <hello@mirumee.com>, 2017.
 #
-#, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: master\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2017-10-11 08:30-0500\n"
-"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"Last-Translator: Patryk Zawadzki <patrys@room-303.com>, 2017\n"
+"PO-Revision-Date: 2017-10-26 18:06+0200\n"
+"Last-Translator: Jens-Erik Weber <Jens-Erik.Weber@passiv.de>\n"
 "Language-Team: German (https://www.transifex.com/mirumee/teams/34782/de/)\n"
 "Language: de\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Generator: Poedit 1.8.11\n"
 
 #: saleor/cart/__init__.py:20
 msgctxt "cart status"
@@ -794,15 +794,12 @@ msgstr "Sie haben die Bestellung Ihrem Account hinzugefügt."
 #: saleor/product/__init__.py:16
 msgctxt "Product status"
 msgid "not published"
-msgstr ""
+msgstr "nicht veröffentlicht"
 
 #: saleor/product/__init__.py:18
-#, fuzzy
-#| msgctxt "Variant image model"
-#| msgid "variant image"
 msgctxt "Product status"
 msgid "variants missing"
-msgstr "Bild der Variante"
+msgstr "Varianten fehlen"
 
 #: saleor/product/__init__.py:20
 msgctxt "Product status"
@@ -810,25 +807,19 @@ msgid "not carried"
 msgstr ""
 
 #: saleor/product/__init__.py:22
-#, fuzzy
-#| msgctxt "Dashboard homepage table title"
-#| msgid "Products with low stock"
 msgctxt "Product status"
 msgid "out of stock"
-msgstr "Prokute mit geringem Lagerbestand"
+msgstr "nicht lagernd"
 
 #: saleor/product/__init__.py:24
 msgctxt "Product status"
 msgid "stock running low"
-msgstr ""
+msgstr "Vorrat wird knapp"
 
 #: saleor/product/__init__.py:26
-#, fuzzy
-#| msgctxt "Product field"
-#| msgid "available on"
 msgctxt "Product status"
 msgid "not yet available"
-msgstr "verfügar ab"
+msgstr "noch nicht verfügbar"
 
 #: saleor/product/__init__.py:28
 #, fuzzy
@@ -838,12 +829,9 @@ msgid "ready for purchase"
 msgstr "Vielen Dank für Ihren Einkauf!"
 
 #: saleor/product/__init__.py:41
-#, fuzzy
-#| msgctxt "Product field"
-#| msgid "available on"
 msgctxt "Variant status"
 msgid "available"
-msgstr "verfügar ab"
+msgstr "verfügbar"
 
 #: saleor/product/__init__.py:43
 msgctxt "Variant status"
@@ -851,25 +839,16 @@ msgid "not carried"
 msgstr ""
 
 #: saleor/product/__init__.py:45
-#, fuzzy
-#| msgctxt "Dashboard homepage table title"
-#| msgid "Products with low stock"
 msgctxt "Variant status"
 msgid "out of stock"
-msgstr "Prokute mit geringem Lagerbestand"
+msgstr "nicht lagernd"
 
 #: saleor/product/filters.py:18
-#, fuzzy
-#| msgctxt "Voucher field"
-#| msgid "name"
 msgctxt "Sort by filter"
 msgid "name"
 msgstr "Name"
 
 #: saleor/product/filters.py:20
-#, fuzzy
-#| msgctxt "Product field"
-#| msgid "price"
 msgctxt "Sort by filter"
 msgid "price"
 msgstr "Preis"
@@ -999,7 +978,7 @@ msgstr "verfügar ab"
 #: saleor/product/models.py:136
 msgctxt "Product field"
 msgid "is published"
-msgstr ""
+msgstr "ist veröffentlicht"
 
 #: saleor/product/models.py:137
 msgctxt "Product field"
@@ -1429,7 +1408,7 @@ msgstr "Der Wert ist für das gewählte Land ungütlig"
 #: saleor/userprofile/models.py:36
 msgctxt "Address field"
 msgid "given name"
-msgstr "Geburtsname"
+msgstr "Vorname"
 
 #: saleor/userprofile/models.py:39
 msgctxt "Address field"
@@ -1534,12 +1513,12 @@ msgstr "Nutzer"
 #: saleor/userprofile/models.py:146
 msgctxt "Permission description"
 msgid "Can view users"
-msgstr ""
+msgstr "Kann Benutzer ansehen"
 
 #: saleor/userprofile/models.py:148
 msgctxt "Permission description"
 msgid "Can edit users"
-msgstr ""
+msgstr "Kann Benutzer bearbeiten"
 
 #: saleor/userprofile/templatetags/i18n_address_tags.py:15
 #, python-format
@@ -1981,40 +1960,34 @@ msgid "Sale"
 msgstr "Angebot"
 
 #: templates/category/index.html:34
-#, fuzzy
-#| msgctxt "Main navigation item"
-#| msgid "Home"
 msgctxt "Category breadcrumbs home"
 msgid "Home"
-msgstr "Home"
+msgstr "Start"
 
 #: templates/category/index.html:52 templates/category/index.html:71
 msgctxt "Category page filters"
 msgid "Sort by"
-msgstr ""
+msgstr "Sortieren nach"
 
 #: templates/category/index.html:76
 msgctxt "sort by option"
 msgid "ascending"
-msgstr ""
+msgstr "aufsteigend"
 
 #: templates/category/index.html:82
 msgctxt "sort by option"
 msgid "descending"
-msgstr ""
+msgstr "absteigend"
 
 #: templates/category/index.html:115
-#, fuzzy
-#| msgctxt "Status filter action"
-#| msgid "Filter"
 msgctxt "Filter heading title"
 msgid "Filters"
-msgstr "Filtern"
+msgstr "Filter"
 
 #: templates/category/index.html:117
 msgctxt "Category page filters"
 msgid "Clear filters"
-msgstr ""
+msgstr "Filter löschen"
 
 #: templates/category/index.html:158
 #, fuzzy
@@ -2027,7 +2000,7 @@ msgstr "ab"
 #: templates/category/index.html:160
 msgctxt "Category price filter"
 msgid "to"
-msgstr ""
+msgstr "bis"
 
 #: templates/category/index.html:163
 #, fuzzy
@@ -2055,7 +2028,7 @@ msgstr "Abschluss"
 #: templates/checkout/details.html:34
 msgctxt "Order review title"
 msgid "Order review"
-msgstr "Bestellungskontrolle "
+msgstr "Bestellung überprüfen"
 
 #: templates/checkout/details.html:50
 msgctxt "Order review section"
@@ -2292,13 +2265,13 @@ msgstr "Konfiguration"
 #: templates/dashboard/base.html:173
 msgctxt "Dashboard staff members list"
 msgid "Staff members"
-msgstr ""
+msgstr "Mitarbeiter"
 
 #: templates/dashboard/base.html:178 templates/dashboard/group/detail.html:30
 #: templates/dashboard/group/list.html:8 templates/dashboard/group/list.html:28
 msgctxt "Dashboard groups list"
 msgid "Groups"
-msgstr ""
+msgstr "Gruppen"
 
 #: templates/dashboard/base.html:183
 #: templates/dashboard/product/product_class/form.html:30
@@ -2334,12 +2307,9 @@ msgid "Release:"
 msgstr "Freigeben:"
 
 #: templates/dashboard/base_modal_confirm_delete.html:10
-#, fuzzy
-#| msgctxt "Dashboard delete action"
-#| msgid "Delete"
 msgctxt "Dashboard confirmation modal"
 msgid "Delete"
-msgstr "Angebot löschen"
+msgstr "Löschen"
 
 #: templates/dashboard/base_modal_confirm_delete.html:16
 msgctxt "Dashboard confirmation modal"
@@ -2467,12 +2437,10 @@ msgid "No categories."
 msgstr "Keine Kategorien"
 
 #: templates/dashboard/category/modal/confirm_delete.html:11
-#, fuzzy, python-format
-#| msgctxt "Delete category page title"
-#| msgid "Delete category"
+#, python-format
 msgctxt "Delete category modal title"
 msgid "Delete category %(category)s"
-msgstr "Kategorie löschen"
+msgstr "Kategorie %(category)s löschen"
 
 #: templates/dashboard/category/modal/confirm_delete.html:17
 #, fuzzy, python-format
@@ -2721,73 +2689,54 @@ msgid "No vouchers found"
 msgstr "Keine Gutscheine gefunden"
 
 #: templates/dashboard/discount/voucher/modal/confirm_delete.html:10
-#, fuzzy, python-format
-#| msgctxt "Order totals header"
-#| msgid "Voucher %(voucher)s"
+#, python-format
 msgctxt "Delete voucher text"
 msgid "Delete voucher %(voucher)s"
-msgstr "Gutschein %(voucher)s"
+msgstr "Gutschein %(voucher)s löschen"
 
 #: templates/dashboard/discount/voucher/modal/confirm_delete.html:16
-#, fuzzy, python-format
-#| msgctxt "Delete voucher text"
-#| msgid "You are about to delete <strong>%(voucher)s</strong>."
+#, python-format
 msgctxt "Delete voucher text"
 msgid "Are you sure you want to delete voucher <strong>%(voucher)s</strong>?"
-msgstr "Sie löschen <strong>%(voucher)s</strong>."
+msgstr ""
+"Sind Sie sicher, dass Sie den Gutschein <strong>%(voucher)s</strong> löschen "
+"wollen?"
 
 #: templates/dashboard/group/detail.html:12
-#, fuzzy
-#| msgctxt "Product form page title"
-#| msgid "Add new product"
 msgctxt "Dashboard add group"
 msgid "Add new group"
-msgstr "Neues Produkt hinzufügen"
+msgstr "Neue Gruppe hinzufügen"
 
 #: templates/dashboard/group/detail.html:14
 msgctxt "Dashboard group"
 msgid "Group"
-msgstr ""
+msgstr "Gruppe"
 
 #: templates/dashboard/group/detail.html:40
-#, fuzzy
-#| msgctxt "Product form page title"
-#| msgid "Add new product"
 msgctxt "Dashboard add new group"
 msgid "Add new group"
-msgstr "Neues Produkt hinzufügen"
+msgstr "Neue Gruppe hinzufügen"
 
 #: templates/dashboard/group/detail.html:55
-#, fuzzy
-#| msgctxt "Product form action"
-#| msgid "Remove product"
 msgctxt "Group form action"
 msgid "Remove group"
-msgstr "Produkt löschen"
+msgstr "Gruppe entfernen"
 
 #: templates/dashboard/group/list.html:18
-#, fuzzy
-#| msgctxt "Product list add button text"
-#| msgid "Add product"
 msgctxt "Group list add button text"
 msgid "Add group"
-msgstr "Produkt hinzufügen"
+msgstr "Gruppe hinzufügen"
 
 #: templates/dashboard/group/list.html:54
-#, fuzzy
-#| msgctxt "Empty product list message"
-#| msgid "No products found."
 msgctxt "Empty group table message"
 msgid "No groups found."
-msgstr "Keine Produkte gefunden"
+msgstr "Keine Gruppe gefunden"
 
 #: templates/dashboard/group/modal/confirm_delete.html:6
-#, fuzzy, python-format
-#| msgctxt "Delete voucher text"
-#| msgid "You are about to delete <strong>%(voucher)s</strong>."
+#, python-format
 msgctxt "Modal delete group text"
 msgid "Delete group <strong>%(group)s</strong>?"
-msgstr "Sie löschen <strong>%(voucher)s</strong>."
+msgstr "Gruppe <strong>%(group)s</strong> löschen?"
 
 #: templates/dashboard/group/modal/confirm_delete.html:12
 #, python-format
@@ -2931,7 +2880,7 @@ msgstr "Bestellung abbrechen"
 #: templates/dashboard/order/detail.html:39
 msgctxt "Order detail action"
 msgid "Print"
-msgstr ""
+msgstr "Drucken"
 
 #: templates/dashboard/order/detail.html:72
 msgctxt "Order detail tab"
@@ -3406,29 +3355,20 @@ msgid "Split"
 msgstr "Aufteilen"
 
 #: templates/dashboard/product/_stock_table.html:7
-#, fuzzy
-#| msgctxt "Customers table header"
-#| msgid "Location"
 msgid "Location"
 msgstr "Ort"
 
 #: templates/dashboard/product/_stock_table.html:8
-#, fuzzy
-#| msgctxt "Add to cart form field label"
-#| msgid "Quantity"
 msgid "Quantity"
-msgstr "Anzahl"
+msgstr "Menge"
 
 #: templates/dashboard/product/_stock_table.html:9
-#, fuzzy
-#| msgctxt "Stock table header"
-#| msgid "Allocated"
 msgid "Allocated"
 msgstr "Zugewiesen"
 
 #: templates/dashboard/product/_stock_table.html:10
 msgid "Cost"
-msgstr ""
+msgstr "Kosten"
 
 #: templates/dashboard/product/_stock_table.html:23
 #, fuzzy
@@ -3441,130 +3381,82 @@ msgstr "Keine Bestellungen gefunden"
 #: templates/dashboard/product/detail.html:18
 #: templates/dashboard/product/product_variant/detail.html:20
 #: templates/dashboard/product/stock/detail.html:19
-#, fuzzy
-#| msgctxt "Dashboard products list"
-#| msgid "Products"
 msgctxt "Product form breadcrumbs"
 msgid "Products"
 msgstr "Produkte"
 
 #: templates/dashboard/product/detail.html:41
-#, fuzzy
-#| msgctxt "Product field"
-#| msgid "price"
 msgctxt "Product field"
 msgid "Sale price"
-msgstr "Preis"
+msgstr "Verkaufspreis"
 
 #: templates/dashboard/product/detail.html:51
-#, fuzzy
-#| msgctxt "Voucher: discount for"
-#| msgid "All purchases"
 msgctxt "Product field"
 msgid "Purchase cost"
-msgstr "Alle Käufe"
+msgstr "Einkaufspreis"
 
 #: templates/dashboard/product/detail.html:61
 msgctxt "Product field"
 msgid "Gross margin"
-msgstr ""
+msgstr "Bruttogewinnspanne"
 
 #: templates/dashboard/product/detail.html:79
-#, fuzzy
-#| msgctxt "Product list add button text"
-#| msgid "Add product"
 msgctxt "Product action"
 msgid "Edit product"
-msgstr "Produkt hinzufügen"
+msgstr "Produkt bearbeiten"
 
 #: templates/dashboard/product/detail.html:82
-#, fuzzy
-#| msgctxt "Product form action"
-#| msgid "Remove product"
 msgctxt "Product action"
 msgid "Remove product"
 msgstr "Produkt löschen"
 
 #: templates/dashboard/product/detail.html:86
-#, fuzzy
-#| msgctxt "Dashboard preview action"
-#| msgid "View on site"
 msgctxt "Product action"
 msgid "View on site"
-msgstr "auf der Seite ansehen"
+msgstr "Auf der Website ansehen"
 
 #: templates/dashboard/product/detail.html:93
-#, fuzzy
-#| msgctxt "Dashboard variants"
-#| msgid "Variants"
 msgid "Variant"
-msgstr "Varianten"
+msgstr "Variante"
 
 #: templates/dashboard/product/detail.html:97
-#, fuzzy
-#| msgctxt "Dashboard add action"
-#| msgid "Add"
 msgid "Add"
 msgstr "Hinzufügen"
 
 #: templates/dashboard/product/detail.html:104
-#, fuzzy
-#| msgctxt "Product variant field"
-#| msgid "SKU"
 msgid "SKU"
-msgstr "EAN"
+msgstr "Artikelnummer"
 
 #: templates/dashboard/product/detail.html:105
-#, fuzzy
-#| msgctxt "Customers table header"
-#| msgid "Name"
 msgid "Name"
 msgstr "Name"
 
 #: templates/dashboard/product/detail.html:106
-#, fuzzy
-#| msgctxt "Recent orders column title"
-#| msgid "Status"
 msgid "Status"
 msgstr "Status"
 
 #: templates/dashboard/product/detail.html:107
 #: templates/dashboard/shipping/detail.html:81
-#, fuzzy
-#| msgctxt "Cart table header"
-#| msgid "Price"
 msgid "Price"
 msgstr "Preis"
 
 #: templates/dashboard/product/detail.html:121
-#, fuzzy
-#| msgctxt "Password change breadcrumb"
-#| msgid "Edit"
 msgid "Edit"
 msgstr "Bearbeiten"
 
 #: templates/dashboard/product/detail.html:126
-#, fuzzy
-#| msgctxt "Empty attribute list message"
-#| msgid "No attributes found."
 msgctxt "Dashboard product details page"
 msgid "No variants found"
-msgstr "Keine Attribute gefunden."
+msgstr "Keine Varianten gefunden."
 
 #: templates/dashboard/product/detail.html:137
 #: templates/dashboard/product/product_variant/detail.html:80
-#, fuzzy
-#| msgctxt "Dashboard stock"
-#| msgid "Stock"
 msgctxt "Dashboard variant details view"
 msgid "Stock"
 msgstr "Lager"
 
 #: templates/dashboard/product/detail.html:141
 #: templates/dashboard/product/product_variant/detail.html:85
-#, fuzzy
-#| msgctxt "Dashboard add action"
-#| msgid "Add"
 msgctxt "Dashboard action"
 msgid "Add"
 msgstr "Hinzufügen"
@@ -3572,7 +3464,7 @@ msgstr "Hinzufügen"
 #: templates/dashboard/product/detail.html:163
 msgctxt "Product field"
 msgid "Published"
-msgstr ""
+msgstr "Veröffentlicht"
 
 #: templates/dashboard/product/detail.html:165
 msgctxt "Product field"
@@ -3582,23 +3474,14 @@ msgstr ""
 #: templates/dashboard/product/detail.html:184
 #: templates/dashboard/product/product_image/list.html:7
 #: templates/dashboard/product/product_image/list.html:30
-#, fuzzy
-#| msgctxt "Product form tab"
-#| msgid "Images"
 msgid "Images"
 msgstr "Bilder"
 
 #: templates/dashboard/product/detail.html:195
-#, fuzzy
-#| msgctxt "Product image model"
-#| msgid "product images"
 msgid "Edit images"
-msgstr "Produktbilder"
+msgstr "Bilder bearbeiten"
 
 #: templates/dashboard/product/form.html:10
-#, fuzzy
-#| msgctxt "Password change breadcrumb"
-#| msgid "Edit"
 msgctxt "Dashboard products list"
 msgid "Edit"
 msgstr "Bearbeiten"
@@ -3614,9 +3497,6 @@ msgid "Add new product"
 msgstr "Neues Produkt hinzufügen"
 
 #: templates/dashboard/product/form.html:52
-#, fuzzy
-#| msgctxt "Password change breadcrumb"
-#| msgid "Edit"
 msgctxt "Product form breadcrumbs"
 msgid "Edit"
 msgstr "Bearbeiten"
@@ -3627,12 +3507,9 @@ msgstr "Bearbeiten"
 #: templates/dashboard/product/product_variant/form.html:107
 #: templates/dashboard/product/stock/form.html:102
 #: templates/dashboard/shipping/form.html:124
-#, fuzzy
-#| msgctxt "Modal add note primary action"
-#| msgid "Save note"
 msgctxt "Dashboard update action"
 msgid "Save"
-msgstr "Notiz speichern"
+msgstr "Sichern"
 
 #: templates/dashboard/product/list.html:22
 #: templates/dashboard/product/list.html:26
@@ -3651,20 +3528,15 @@ msgid "Create product type first."
 msgstr "Erstellen Sie zuerst einen Prpdukttypen"
 
 #: templates/dashboard/product/list.html:91
-#, fuzzy
-#| msgctxt "Dashboard create new action"
-#| msgid "Create new"
 msgctxt "Dashboard add action"
 msgid "Create new"
 msgstr "Neu erstellen"
 
 #: templates/dashboard/product/modal/confirm_delete.html:9
-#, fuzzy, python-format
-#| msgctxt "Product delete breadcrumbs"
-#| msgid "Delete %(product)s"
+#, python-format
 msgctxt "Modal delete product text"
 msgid "Delete product %(product)s"
-msgstr "%(product)s löschen"
+msgstr "Produkt %(product)s löschen"
 
 #: templates/dashboard/product/modal/confirm_delete.html:15
 #, fuzzy, python-format
@@ -3675,20 +3547,14 @@ msgid "Are you sure you want to delete product <strong>%(product)s</strong>?"
 msgstr "Sie löschen <strong>%(voucher)s</strong>."
 
 #: templates/dashboard/product/product_attribute/detail.html:18
-#, fuzzy
-#| msgctxt "Dashboard attributes list"
-#| msgid "Attributes"
 msgctxt "Attribute detail breadcrumbs"
 msgid "Attributes"
 msgstr "Attribute"
 
 #: templates/dashboard/product/product_attribute/detail.html:48
-#, fuzzy
-#| msgctxt "Attribute list add button text"
-#| msgid "Add attribute"
 msgctxt "Attribute detail action"
 msgid "Edit attribute"
-msgstr "Attribut hinzufügen"
+msgstr "Attribut bearbeiten"
 
 #: templates/dashboard/product/product_attribute/detail.html:52
 msgctxt "Attribute detail action"
@@ -3696,30 +3562,18 @@ msgid "Remove attribute"
 msgstr "Attribute löschen"
 
 #: templates/dashboard/product/product_attribute/detail.html:60
-#, fuzzy
-#| msgctxt "Attribute values formset title"
-#| msgid "Attribute values"
 msgid "Attribute values"
 msgstr "Attributwerte"
 
 #: templates/dashboard/product/product_attribute/detail.html:66
-#, fuzzy
-#| msgctxt "Product attribute field"
-#| msgid "display name"
 msgid "Display name"
 msgstr "Anzeigename"
 
 #: templates/dashboard/product/product_attribute/detail.html:67
-#, fuzzy
-#| msgctxt "Attribute choice value field"
-#| msgid "color"
 msgid "Color"
 msgstr "Farbe"
 
 #: templates/dashboard/product/product_attribute/form.html:8
-#, fuzzy
-#| msgctxt "Password change breadcrumb"
-#| msgid "Edit"
 msgctxt "Dashboard attributes list"
 msgid "Edit"
 msgstr "Bearbeiten"
@@ -3730,9 +3584,6 @@ msgid "Add new attribute"
 msgstr "Neues Attribute hinzufügen"
 
 #: templates/dashboard/product/product_attribute/form.html:45
-#, fuzzy
-#| msgctxt "Password change breadcrumb"
-#| msgid "Edit"
 msgctxt "Attribute detail breadcrumbs"
 msgid "Edit"
 msgstr "Bearbeiten"
@@ -3758,12 +3609,10 @@ msgid "No attributes found."
 msgstr "Keine Attribute gefunden."
 
 #: templates/dashboard/product/product_attribute/modal/confirm_delete.html:10
-#, fuzzy, python-format
-#| msgctxt "Delete attribute page title"
-#| msgid "Delete attribute"
+#, python-format
 msgctxt "Modal delete attribute text"
 msgid "Delete attribute %(attribute)s"
-msgstr "Attribut löschen"
+msgstr "Attribut %(attribute)s löschen"
 
 #: templates/dashboard/product/product_attribute/modal/confirm_delete.html:16
 #, fuzzy, python-format
@@ -3875,27 +3724,19 @@ msgstr "Es gibt keine Variante dieses Produkts"
 #: templates/dashboard/product/product_image/form.html:8
 msgctxt "Image form text"
 msgid "Edit - Image"
-msgstr ""
+msgstr "Bearbeiten –  Bild"
 
 #: templates/dashboard/product/product_image/form.html:10
-#, fuzzy
-#| msgid "Add image"
 msgctxt "Image form text"
 msgid "Add image"
 msgstr "Bild hinzufügen"
 
 #: templates/dashboard/product/product_image/form.html:38
-#, fuzzy
-#| msgctxt "Product form tab"
-#| msgid "Images"
 msgctxt "Image form text"
 msgid "Image"
-msgstr "Bilder"
+msgstr "Bild"
 
 #: templates/dashboard/product/product_image/form.html:43
-#, fuzzy
-#| msgctxt "Password change breadcrumb"
-#| msgid "Edit"
 msgctxt "Image form text"
 msgid "Edit"
 msgstr "Bearbeiten"
@@ -3937,12 +3778,9 @@ msgid "Add image"
 msgstr "Bild hinzufügen"
 
 #: templates/dashboard/product/product_image/modal/confirm_delete.html:11
-#, fuzzy
-#| msgctxt "Product delete breadcrumbs"
-#| msgid "Delete product"
 msgctxt "Modal delete image text"
 msgid "Delete product image"
-msgstr "Produkt löschen"
+msgstr "Produktbild löschen"
 
 #: templates/dashboard/product/product_image/modal/confirm_delete.html:18
 #, fuzzy
@@ -3953,72 +3791,45 @@ msgid "Are you sure you want to delete product image?"
 msgstr "Wollen Sie das folgende Bild wirklich löschen?"
 
 #: templates/dashboard/product/product_variant/detail.html:49
-#, fuzzy
-#| msgctxt "Product variant field"
-#| msgid "SKU"
 msgctxt "Dashboard variant details view"
 msgid "SKU"
-msgstr "EAN"
+msgstr "Artikelnummer"
 
 #: templates/dashboard/product/product_variant/detail.html:53
-#, fuzzy
-#| msgctxt "Product field"
-#| msgid "price"
 msgctxt "Dashboard variant details view"
 msgid "Sale price"
-msgstr "Preis"
+msgstr "Verkaufspreis"
 
 #: templates/dashboard/product/product_variant/detail.html:59
-#, fuzzy
-#| msgctxt "Stock item field"
-#| msgid "cost price"
 msgctxt "Dashboard variant details view"
 msgid "Cost price"
-msgstr "Kosten"
+msgstr "Selbstkostenpreis"
 
 #: templates/dashboard/product/product_variant/detail.html:69
-#, fuzzy
-#| msgctxt "Product variant table link title"
-#| msgid "Edit variant"
 msgctxt "Dashboard action"
 msgid "Edit variant"
 msgstr "Variante bearbeiten"
 
 #: templates/dashboard/product/product_variant/detail.html:72
-#, fuzzy
-#| msgctxt "Delete variant page title"
-#| msgid "Delete variant"
 msgctxt "Dashboard action"
 msgid "Delete variant"
 msgstr "Variante löschen"
 
 #: templates/dashboard/product/product_variant/detail.html:103
-#, fuzzy
-#| msgctxt "Product form tab"
-#| msgid "Images"
 msgctxt "Dashboard variant details view"
 msgid "Images"
 msgstr "Bilder"
 
 #: templates/dashboard/product/product_variant/detail.html:108
-#, fuzzy
-#| msgctxt "Product variant field"
-#| msgid "images"
 msgid "No images"
-msgstr "Bilder"
+msgstr "Keine Bilder"
 
 #: templates/dashboard/product/product_variant/detail.html:115
-#, fuzzy
-#| msgctxt "Delete image page title"
-#| msgid "Delete image"
 msgctxt "Dashboard action"
 msgid "Select images"
-msgstr "Bils löschen"
+msgstr "Bilder auswählen"
 
 #: templates/dashboard/product/product_variant/form.html:8
-#, fuzzy
-#| msgctxt "Password change breadcrumb"
-#| msgid "Edit"
 msgctxt "Variant form page title"
 msgid "Edit"
 msgstr "Bearbeiten"
@@ -4029,9 +3840,6 @@ msgid "Add variant"
 msgstr "Variante hinzufügen"
 
 #: templates/dashboard/product/product_variant/form.html:47
-#, fuzzy
-#| msgctxt "Password change breadcrumb"
-#| msgid "Edit"
 msgctxt "Variant form breadcrumbs"
 msgid "Edit"
 msgstr "Bearbeiten"
@@ -4053,14 +3861,14 @@ msgid "This product has no attributes."
 msgstr "Das Produkt hat keine Attribute"
 
 #: templates/dashboard/product/product_variant/modal/confirm_delete.html:12
-#, fuzzy, python-format
-#| msgctxt "Delete variant breadcrumbs"
-#| msgid "Delete variant for %(product)s"
+#, python-format
 msgctxt "Dashboard confirmation modal"
 msgid ""
 "\n"
 "Delete variant %(variant)s\n"
-msgstr "Variant vom %(product)s löschen."
+msgstr ""
+"\n"
+"Variante %(variant)s löschen.\n"
 
 #: templates/dashboard/product/product_variant/modal/confirm_delete.html:19
 #, fuzzy, python-format
@@ -4096,33 +3904,21 @@ msgid "Select variant images"
 msgstr "Bilder der Variante"
 
 #: templates/dashboard/product/product_variant/modal/select_images.html:17
-#, fuzzy
-#| msgctxt "Modal add note primary action"
-#| msgid "Save note"
 msgctxt "Dashboard modal action"
 msgid "Save"
-msgstr "Notiz speichern"
+msgstr "Sichern"
 
 #: templates/dashboard/product/stock/detail.html:57
-#, fuzzy
-#| msgctxt "Customers table header"
-#| msgid "Location"
 msgctxt "Dashboard stock details view"
 msgid "Location"
 msgstr "Ort"
 
 #: templates/dashboard/product/stock/detail.html:58
-#, fuzzy
-#| msgctxt "Add to cart form field label"
-#| msgid "Quantity"
 msgctxt "Dashboard stock details view"
 msgid "Quantity"
-msgstr "Anzahl"
+msgstr "Menge"
 
 #: templates/dashboard/product/stock/detail.html:59
-#, fuzzy
-#| msgctxt "Stock table header"
-#| msgid "Allocated"
 msgctxt "Dashboard stock details view"
 msgid "Allocated"
 msgstr "Zugewiesen"
@@ -4144,9 +3940,7 @@ msgid "Delete stock"
 msgstr "Lager löschen"
 
 #: templates/dashboard/product/stock/form.html:8
-#, fuzzy, python-format
-#| msgctxt "Dashboard stock"
-#| msgid "Stock %(variant)s"
+#, python-format
 msgctxt "Dashboard stock"
 msgid "Edit - Stock %(variant)s"
 msgstr "Lager %(variant)s"
@@ -4163,9 +3957,6 @@ msgid "Stock %(variant)s"
 msgstr "Lager %(variant)s"
 
 #: templates/dashboard/product/stock/form.html:53
-#, fuzzy
-#| msgctxt "Password change breadcrumb"
-#| msgid "Edit"
 msgctxt "Stock form breadcrumbs"
 msgid "Edit"
 msgstr "Bearbeiten"
@@ -4273,9 +4064,6 @@ msgid "Search results"
 msgstr "Suchergebnisse"
 
 #: templates/dashboard/search/results.html:14
-#, fuzzy
-#| msgctxt "Search page title"
-#| msgid "Search results"
 msgctxt "Dashboard search"
 msgid "Search results"
 msgstr "Suchergebnisse"
@@ -4311,62 +4099,38 @@ msgid "No results for query \"%(query)s\"."
 msgstr "Keine Ergebnisse für die Suche \"%(query)s\"."
 
 #: templates/dashboard/shipping/detail.html:21
-#, fuzzy
-#| msgctxt "Dashboard shipping methods list"
-#| msgid "Shipping methods"
 msgctxt "Shipping method form breadcrumbs"
 msgid "Shipping methods"
-msgstr "Versandart"
+msgstr "Versandarten"
 
 #: templates/dashboard/shipping/detail.html:47
-#, fuzzy
-#| msgctxt "Product details title"
-#| msgid "Description"
 msgctxt "Shipping method field"
 msgid "Description"
 msgstr "Beschreibung"
 
 #: templates/dashboard/shipping/detail.html:58
-#, fuzzy
-#| msgctxt "Shipping method model"
-#| msgid "shipping method"
 msgctxt "Shipping method action"
 msgid "Edit shipping method"
-msgstr "Versandmethode"
+msgstr "Versandmethode bearbeiten"
 
 #: templates/dashboard/shipping/detail.html:61
-#, fuzzy
-#| msgctxt "Shipping method form action"
-#| msgid "Delete shipping method"
 msgctxt "Shipping method action"
 msgid "Delete shipping method"
 msgstr "Versandart löschen"
 
 #: templates/dashboard/shipping/detail.html:71
-#, fuzzy
-#| msgctxt "Shipping method form text"
-#| msgid "Price per country"
 msgid "Price per country"
 msgstr "Preis nach Land"
 
 #: templates/dashboard/shipping/detail.html:79
-#, fuzzy
-#| msgctxt "Country form field label"
-#| msgid "Country"
 msgid "Country"
 msgstr "Land"
 
 #: templates/dashboard/shipping/detail.html:92
-#, fuzzy
-#| msgctxt "Delivery group field"
-#| msgid "shipping price"
 msgid "No shippment prices"
-msgstr "Versandpreis"
+msgstr "Kein Versandpreis"
 
 #: templates/dashboard/shipping/form.html:9
-#, fuzzy
-#| msgctxt "Password change breadcrumb"
-#| msgid "Edit"
 msgctxt "Dashboard shipping methods"
 msgid "Edit"
 msgstr "Bearbeiten"
@@ -4383,9 +4147,6 @@ msgid "Shipping methods"
 msgstr "Versandart"
 
 #: templates/dashboard/shipping/form.html:49
-#, fuzzy
-#| msgctxt "Password change breadcrumb"
-#| msgid "Edit"
 msgctxt "Shipping method form page title"
 msgid "Edit"
 msgstr "Bearbeiten"
@@ -4436,14 +4197,14 @@ msgid "No Shipping methods found"
 msgstr "Keine Versandmethode gefunden."
 
 #: templates/dashboard/shipping/modal/confirm_delete.html:12
-#, fuzzy, python-format
-#| msgctxt "Delete shipping method page title"
-#| msgid "Delete %(shipping_method)s"
+#, python-format
 msgctxt "Dashboard confirmation modal"
 msgid ""
 "\n"
 "Delete shipping method %(shipping_method)s\n"
-msgstr "%(shipping_method)s löschen"
+msgstr ""
+"\n"
+"%(shipping_method)s löschen\n"
 
 #: templates/dashboard/shipping/modal/confirm_delete.html:18
 #, fuzzy, python-format
@@ -4469,12 +4230,12 @@ msgstr "Authorisierunggsschlüssel"
 #: templates/dashboard/staff/detail.html:25
 msgctxt "Dashboard staff list"
 msgid "Staff"
-msgstr ""
+msgstr "Mitarbeiter"
 
 #: templates/dashboard/staff/list.html:7 templates/dashboard/staff/list.html:17
 msgctxt "Dashboard staff members list"
 msgid "Staff"
-msgstr ""
+msgstr "Mitarbeiter"
 
 #: templates/home.html:13
 msgctxt "Homepage title"
