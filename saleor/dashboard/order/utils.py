@@ -10,10 +10,10 @@ PACKING_SLIP_TEMPLATE = 'dashboard/order/pdf/packing_slip.html'
 
 
 def get_statics_absolute_url(request):
-    site = get_site_settings_from_request(request)
+    site_settings = get_site_settings_from_request(request)
     absolute_url = '%(protocol)s://%(domain)s%(static_url)s' % {
         'protocol': 'https' if request.is_secure() else 'http',
-        'domain': site.domain,
+        'domain': site_settings.site.domain,
         'static_url': STATIC_URL,
     }
     return absolute_url
