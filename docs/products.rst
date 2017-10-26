@@ -13,18 +13,18 @@ Class diagram
 Product variant
 ---------------
 
-It's most important object in shop. All cart and stock operations use variants. Even if your *product* don't have multiple variants, we create one under the hood.
+It's the most important object in shop. All cart and stock operations use variants. Even if your *product* doesn't have multiple variants, we create one under the hood.
 
 Product
 -------
 
-Describes common details of few *product variants*. When shop displays category view, items on the list are distinct *products*. If variant has no overrode property (example: price), default value is taken from *product*.
+Describes common details of a few *product variants*. When the shop displays the category view, items on the list are distinct *products*. If the variant has no overridden property (example: price), the default value is taken from the *product*.
 
 - available_on
-    Until this date product is not listed in storefront and is unavailable for users.
+    Until this date the product is not listed in storefront and is unavailable for users.
 
 - is_featured
-    Featured products are displayed on front page.
+    Featured products are displayed on the front page.
 
 
 Product class
