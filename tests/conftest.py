@@ -8,6 +8,7 @@ from io import BytesIO
 from PIL import Image
 
 from django.contrib.auth.models import AnonymousUser
+from django.contrib.sites.models import Site
 from django.utils.encoding import smart_text
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.contrib.auth.models import AnonymousUser, Group, Permission
@@ -436,10 +437,9 @@ def sale(db, default_category):
 
 @pytest.fixture
 def site_settings(db, settings):
-    obj = SiteSettings.objects.create(name="mirumee.com",
-                                      header_text="mirumee.com",
-                                      domain="mirumee.com")
-    settings.SITE_SETTINGS_ID = obj.pk
+    site = Site.objects.get_or_create(name="mirumee.com", domain="mirumee.com")[0]
+    obj = SiteSettings.objects.get_or_create(site=site)[0]
+    settings.SITE_SETTINGS_ID = site.pk
     return obj
 
 

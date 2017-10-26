@@ -27,7 +27,7 @@ def test_saleor_feed_items(product_in_stock):
     discounts = []
     category_paths = {}
     attributes_dict = {}
-    current_site = get_site_settings()
+    current_site = get_site_settings().site
     attribute_values_dict = {smart_text(a.pk): smart_text(a) for a
                              in AttributeChoiceValue.objects.all()}
     attributes = item_attributes(items[0], categories, category_paths,

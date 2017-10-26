@@ -123,6 +123,7 @@ def test_password_reset_view_get(client, db):
 
 
 def test_base_backend(authorization_key, base_backend):
+    assert authorization_key.site_settings.site.domain == 'mirumee.com'
     key, secret = base_backend.get_key_and_secret()
     assert key == 'Key'
     assert secret == 'Password'

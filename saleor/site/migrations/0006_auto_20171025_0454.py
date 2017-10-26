@@ -11,10 +11,7 @@ def link_to_sites(apps, schema_editor):
     Site = apps.get_model('sites', 'Site')
 
     for site in SiteSettings.objects.all():
-        try:
-            site.site = Site.objects.get(domain__iexact=site.domain)
-        except:
-            site.site = Site.objects.all().order_by('pk')[0]
+        site.site = Site.objects.get_or_create(domain=site.domain, name=site.name)[0]
         site.save()
 
 

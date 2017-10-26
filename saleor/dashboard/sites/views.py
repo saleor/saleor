@@ -33,7 +33,8 @@ def update(request, site_id=None):
         initial=[{'site_settings': site_settings}])
     if all([site_settings_form.is_valid(),
             formset.is_valid()]):
-        site_form.save()
+        site = site_form.save()
+        site_settings.site = site
         site_settings = site_settings_form.save()
         formset.save()
         messages.success(request, _('Updated site %s') % site_settings)

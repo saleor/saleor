@@ -1,17 +1,18 @@
 import pytest
 
+from django.contrib.sites.models import Site
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.urlresolvers import reverse
 from django.db.utils import IntegrityError
 from django.utils.encoding import smart_text
 
 from saleor.site import utils
-from saleor.site.models import AuthorizationKey
-from saleor.dashboard.sites.forms import SiteSettingForm
+from saleor.site.models import AuthorizationKey, SiteSettings
+from saleor.dashboard.sites.forms import SiteSettingForm, SiteForm
 
 
 def test_get_site_settings_uncached(site_settings):
-    result = utils.get_site_settings_uncached(site_settings.id)
+    result = utils.get_site_settings_uncached(site_settings.site.pk)
     assert result == site_settings
 
 
@@ -26,14 +27,28 @@ def test_index_view(admin_client, site_settings):
 @pytest.mark.django_db
 def test_form():
     data = {'name': 'mirumee', 'domain': 'mirumee.com'}
-    form = SiteSettingForm(data)
+    form = SiteForm(data)
     assert form.is_valid()
 
     site = form.save()
-    assert smart_text(site) == 'mirumee'
+    assert smart_text(site) == 'mirumee.com'
+
+    form = SiteForm({})
+    assert not form.is_valid()
+
+
+@pytest.mark.django_db
+def test_form(site_settings):
+    data = {'header_text': 'mirumee', 'description': 'mirumee.com'}
+    form = SiteSettingForm(data, instance=site_settings)
+    assert form.is_valid()
+
+    site = form.save()
+    assert site.header_text == 'mirumee'
+    assert smart_text(site) == 'mirumee.com'
 
     form = SiteSettingForm({})
-    assert not form.is_valid()
+    assert form.is_valid()
 
 
 def test_site_update_view(admin_client, site_settings):
@@ -43,13 +58,15 @@ def test_site_update_view(admin_client, site_settings):
     assert response.status_code == 200
 
     data = {'name': 'Mirumee Labs', 'header_text': 'We have all the things!',
-            'domain': 'mirumee.com', 'form-TOTAL_FORMS': 0,
+            'domain': 'newmirumee.com', 'form-TOTAL_FORMS': 0,
             'form-INITIAL_FORMS': 0}
     response = admin_client.post(url, data)
     assert response.status_code == 302
 
-    site_settings.refresh_from_db()
-    assert site_settings.name == 'Mirumee Labs'
+    site_settings = SiteSettings.objects.get(pk=site_settings.id)
+    assert site_settings.header_text == 'We have all the things!'
+    assert site_settings.site.domain == 'newmirumee.com'
+    assert site_settings.site.name == 'Mirumee Labs'
 
 
 @pytest.mark.django_db

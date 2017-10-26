@@ -1,4 +1,5 @@
 from django.conf import settings
+from django.contrib.sites.models import Site
 
 from .models import SiteSettings, AuthorizationKey
 
@@ -29,23 +30,24 @@ def get_domain():
     """
     Returns domain name from default settings
     """
-    return get_site_settings().domain
+    return get_site_settings().site.domain
 
 
 def get_site_name():
     """Returns site name from default settings."""
-    return get_site_settings().name
+    return get_site_settings().site.name
 
 
 def get_site_settings_uncached(settings_id=None):
     # type: (str) -> SiteSettings
     """Query database for settings object."""
-    return SiteSettings.objects.get_or_create(pk=settings_id)[0]
+    site = Site.objects.get_or_create(pk=settings_id)[0]
+    return SiteSettings.objects.get_or_create(site=site)[0]
 
 
 def get_authorization_key_for_backend(backend_name):
     # type: (str) -> AuthorizationKey
     site_settings_id = getattr(settings, 'SITE_SETTINGS_ID', None)
     authorization_key = AuthorizationKey.objects.filter(
-        name=backend_name, site_settings__id=site_settings_id)
+        name=backend_name, site_settings__site__id=site_settings_id)
     return authorization_key.first()
