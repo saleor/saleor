@@ -1,9 +1,11 @@
 $timeline-width: 3px !default;
 $timeline-circle-radius: 6px !default;
 $timeline-event-margin: 30px !default;
+$timeline-date-width: 20rem;
+$timeline-status-width: 12rem;
 
 .timeline-outer {
-  padding-left: 180px;
+  padding-left: $timeline-date-width;
   .timeline {
     border-left: $timeline-width $primary-color-light solid;
     position: relative;
@@ -17,10 +19,12 @@ $timeline-event-margin: 30px !default;
         display: block;
       }
       &:before {
-        left: -10rem;
+        left: -$timeline-date-width;
         content: attr(data-date);
         text-align: right;
         top: calc(#{$timeline-circle-radius} + #{$timeline-width} + .5px - #{$label-font-size} + .1rem);
+        width: $timeline-date-width;
+        padding-right: 3rem;
       }
       &:after {
         box-shadow: 0 0 0 $timeline-width $primary-color-light;
@@ -39,7 +43,7 @@ $timeline-event-margin: 30px !default;
       }
       .content {
         margin-left: 3rem;
-        padding-left: 200px;
+        padding-left: $timeline-status-width;
         position: relative;
         top: calc(#{$timeline-circle-radius} + #{$timeline-width} + .5px - #{$label-font-size} + .1rem);
       }
@@ -63,10 +67,12 @@ $timeline-event-margin: 30px !default;
           left: 3rem;
           top: calc(#{$timeline-circle-radius} + #{$timeline-width} + .5px - #{$label-font-size} + .7rem);
           min-width: 0;
+          text-align: left;
         }
         .content {
           position: relative;
           top: calc(#{$timeline-circle-radius} + #{$timeline-width} + .5px - #{$label-font-size} - .5rem);
+          padding-left: if($timeline-date-width > $timeline-status-width, $timeline-date-width, $timeline-status-width);
         }
       }
     }
