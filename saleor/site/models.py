@@ -15,13 +15,13 @@ with lock:
 
 
 def new_get_current(self, request=None):
-    print('in new get current')
+    # print('in new get current')
     from django.conf import settings
     if getattr(settings, 'SITE_ID', ''):
         site_id = settings.SITE_ID
-        print 'SITE_ID in settings'
+        # print 'SITE_ID in settings'
         site = self.prefetch_related('settings').filter(pk=site_id)
-        print site
+        # print site
         return site[0]
     elif request:
         # print 'SITE_ID not in settings'
