@@ -11,11 +11,6 @@ from saleor.site.models import AuthorizationKey, SiteSettings
 from saleor.dashboard.sites.forms import SiteSettingForm, SiteForm
 
 
-def test_get_site_settings_uncached(site_settings):
-    result = utils.get_site_settings_uncached(site_settings.site.pk)
-    assert result == site_settings
-
-
 def test_index_view(admin_client, site_settings):
     response = admin_client.get(reverse('dashboard:site-index'), follow=True)
     assert response.status_code == 200
@@ -29,10 +24,8 @@ def test_form():
     data = {'name': 'mirumee', 'domain': 'mirumee.com'}
     form = SiteForm(data)
     assert form.is_valid()
-
     site = form.save()
     assert smart_text(site) == 'mirumee.com'
-
     form = SiteForm({})
     assert not form.is_valid()
 
@@ -82,7 +75,7 @@ def test_get_authorization_key_for_backend(site_settings):
 
 @pytest.mark.django_db
 def test_get_authorization_key_no_settings_site(settings, authorization_key):
-    settings.SITE_SETTINGS_ID = None
+    settings.SITE_ID = None
     assert utils.get_authorization_key_for_backend('Backend') is None
 
 

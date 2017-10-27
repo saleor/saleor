@@ -249,8 +249,9 @@ GOOGLE_ANALYTICS_TRACKING_ID = os.environ.get('GOOGLE_ANALYTICS_TRACKING_ID')
 
 
 def get_host():
-    from saleor.site.utils import get_domain
-    return get_domain()
+    from django.contrib.sites.models import Site
+    return Site.objects.get_current().domain
+
 
 PAYMENT_HOST = get_host
 
@@ -379,7 +380,7 @@ GRAPHENE = {
         PROJECT_ROOT, 'saleor', 'static', 'schema.json')
 }
 
-SITE_SETTINGS_ID = 1
+# SITE_SETTINGS_ID = 1
 
 AUTHENTICATION_BACKENDS = [
     'saleor.registration.backends.facebook.CustomFacebookOAuth2',

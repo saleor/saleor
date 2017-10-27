@@ -129,6 +129,6 @@ def test_base_backend(authorization_key, base_backend):
     assert secret == 'Password'
 
 
-def test_backend_no_settings(settings, authorization_key, base_backend):
-    settings.SITE_SETTINGS_ID = None
+def test_backend_no_site(settings, authorization_key, base_backend):
+    settings.SITE_ID = None
     assert base_backend.get_key_and_secret() is None

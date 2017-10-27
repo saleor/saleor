@@ -19,8 +19,10 @@ def new_get_current(self, request=None):
     from django.conf import settings
     if getattr(settings, 'SITE_ID', ''):
         site_id = settings.SITE_ID
-        # print 'SITE_ID in settings'
-        return self.get(pk=site_id)
+        print 'SITE_ID in settings'
+        site = self.prefetch_related('settings').filter(pk=site_id)
+        print site
+        return site[0]
     elif request:
         # print 'SITE_ID not in settings'
         host = request.get_host()

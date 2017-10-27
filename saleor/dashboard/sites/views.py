@@ -7,15 +7,11 @@ from django.utils.translation import ugettext_lazy as _
 from .forms import AuthorizationKeyFormSet, SiteForm, SiteSettingForm
 from ..views import superuser_required
 from ...site.models import AuthorizationKey, SiteSettings
-from ...site.utils import get_site_settings_from_request
-
-
-from django.contrib.sites.models import Site
 
 
 @superuser_required
 def index(request):
-    settings = get_site_settings_from_request(request)
+    settings = get_current_site(request).settings
     return redirect('dashboard:site-update', site_id=settings.pk)
 
 
@@ -31,10 +27,10 @@ def update(request, site_id=None):
     formset = AuthorizationKeyFormSet(
         request.POST or None, queryset=authorization_qs,
         initial=[{'site_settings': site_settings}])
-    if all([site_settings_form.is_valid(),
+    if all([site_settings_form.is_valid(), site_form.is_valid(),
             formset.is_valid()]):
         site = site_form.save()
-        site_settings.site = site
+        site_settings_form.instance.site = site
         site_settings = site_settings_form.save()
         formset.save()
         messages.success(request, _('Updated site %s') % site_settings)

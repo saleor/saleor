@@ -11,12 +11,13 @@ if six.PY3:
 else:
     from StringIO import StringIO
 
+from django.contrib.sites.models import Site
+
 from saleor.product.models import AttributeChoiceValue, Category
 from saleor.data_feeds.google_merchant import (get_feed_items,
                                                item_attributes,
                                                item_google_product_category,
                                                write_feed)
-from saleor.site.utils import get_site_settings
 
 
 def test_saleor_feed_items(product_in_stock):
@@ -27,7 +28,7 @@ def test_saleor_feed_items(product_in_stock):
     discounts = []
     category_paths = {}
     attributes_dict = {}
-    current_site = get_site_settings().site
+    current_site = Site.objects.get_current()
     attribute_values_dict = {smart_text(a.pk): smart_text(a) for a
                              in AttributeChoiceValue.objects.all()}
     attributes = item_attributes(items[0], categories, category_paths,
