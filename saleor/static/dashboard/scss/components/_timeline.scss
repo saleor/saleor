@@ -1,0 +1,91 @@
+$timeline-width: 3px !default;
+$timeline-circle-radius: 6px !default;
+$timeline-event-margin: 30px !default;
+
+.timeline-outer {
+  padding-left: 180px;
+  .timeline {
+    border-left: $timeline-width solid $primary-color-light;
+    position: relative;
+    list-style: none;
+    h1, h2, h3 {
+      font-size: 1.4em;
+    }
+    .event {
+      padding-bottom: 15px;
+      margin-bottom: $timeline-event-margin;
+      position: relative;
+      &:before, &:after {
+        position: absolute;
+        display: block;
+      }
+      &:before {
+        left: -10rem;
+        content: attr(data-date);
+        text-align: right;
+        top: calc(#{$timeline-circle-radius} + #{$timeline-width} + .5px - #{$label-font-size} + .1rem);
+      }
+      &:after {
+        box-shadow: 0 0 0 $timeline-width $primary-color-light;
+        left: - $timeline-circle-radius - ($timeline-width / 2) - 1;
+        background: $body-bg;
+        border-radius: 50%;
+        height: 2 * $timeline-circle-radius + 1;
+        width: 2 * $timeline-circle-radius + 1;
+        content: "";
+        top: $timeline-width;
+      }
+      &:last-of-type {
+        padding-bottom: 0;
+        margin-bottom: 0;
+        border: none;
+      }
+      .content {
+        margin-left: 3rem;
+        padding-left: 200px;
+        position: relative;
+        top: calc(#{$timeline-circle-radius} + #{$timeline-width} + .5px - #{$label-font-size} + .1rem);
+      }
+      .status {
+        position: absolute;
+        left: 0;
+        top: 0;
+      }
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .timeline-outer {
+    padding-left: 0;
+    margin: 0 1rem;
+    .timeline {
+      .event {
+        margin-bottom: $timeline-event-margin / 2;
+        &:before {
+          left: 3rem;
+          top: calc(#{$timeline-circle-radius} + #{$timeline-width} + .5px - #{$label-font-size} + .7rem);
+          min-width: 0;
+        }
+        .content {
+          position: relative;
+          top: calc(#{$timeline-circle-radius} + #{$timeline-width} + .5px - #{$label-font-size} - .5rem);
+        }
+      }
+    }
+  }
+}
+
+@media (max-width: $small-screen) {
+  .timeline-outer {
+    .timeline {
+      .event {
+        .content {
+          padding-left: 0;
+          top: calc(#{$timeline-circle-radius} + #{$timeline-width} + .5px - #{$label-font-size} - .5rem);
+          padding-top: 3rem;
+        }
+      }
+    }
+  }
+}
