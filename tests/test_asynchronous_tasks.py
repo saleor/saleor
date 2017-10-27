@@ -17,7 +17,7 @@ def test_task_running_asynchronously_on_worker(celery_worker):
     assert dummy_task.delay(42).get(timeout=10) == 43
 
 
-@pytest.mark.django_db(transaction=True)
+@pytest.mark.django_db
 @pytest.mark.integration
 @mock.patch('saleor.order.emails.send_templated_mail')
 def test_email_sending_asynchronously(email_send, transactional_db, celery_app,
