@@ -5,12 +5,9 @@ $timeline-event-margin: 30px !default;
 .timeline-outer {
   padding-left: 180px;
   .timeline {
-    border-left: $timeline-width solid $primary-color-light;
+    border-left: $timeline-width $primary-color-light solid;
     position: relative;
     list-style: none;
-    h1, h2, h3 {
-      font-size: 1.4em;
-    }
     .event {
       padding-bottom: 15px;
       margin-bottom: $timeline-event-margin;
