@@ -4,7 +4,7 @@
 {% load i18n %}
 
 {% block title %}{% trans "Sign Up" context "Signup page title" %} — {{ block.super }}{% endblock %}
-
+<!-- In order to make credentials api, we have to implement a function to save the data of form and make it available when user signin back. In this way we'll be able to Show account chooser when signing back and also have functionality to store password and other user credentials for autosignin and flexibility. -->
 {% block content %}
   <div class="col-lg-10 offset-lg-1 col-sm-12">
     <div class="row login">
