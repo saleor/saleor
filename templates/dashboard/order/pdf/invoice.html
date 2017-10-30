@@ -5,7 +5,7 @@
 
 <html>
 <head>
-  <title>Invoice, order ID: {{ group.order.id }}</title>
+  <title>Invoice, order ID: {{ order.id }}</title>
   <link rel="stylesheet" type="text/css" href="{% static '/assets/document.css' %}" />
 </head>
 <body>
@@ -14,7 +14,7 @@
     <img src="{% static '/images/saleor_logo_black.svg' %}">
   </div>
   <div
-      style="float:right">{{ group.order.created }}<br>{% trans 'Order ID:' context 'Invoice header' %} {{ group.order.id }}
+      style="float:right">{{ order.created }}<br>{% trans 'Order ID:' context 'Invoice header' %} {{ order.id }}
   </div>
 </header>
 
@@ -29,7 +29,7 @@
   <tbody>
   <tr>
     <td valign="top">
-      {% with group.order.shipping_address as address %}
+      {% with order.shipping_address as address %}
         <h2>
           {% trans "Shipping address" context "Invoice shipping address" %}
         </h2>
@@ -37,7 +37,7 @@
       {% endwith %}
     </td>
     <td valign="top">
-      {% with group.order.billing_address as address %}
+      {% with order.billing_address as address %}
         <h2>
           {% trans "Billing address" context "Invoice billing address" %}
         </h2>
@@ -49,29 +49,29 @@
 </table>
 
 <h2>{% trans "Items Ordered" context "Order invoice" %}</h2>
-{% if group %}
-  <table class="data-table order-table bordered">
+{% if order %}
+  <table class="highlight data-table order-table bordered">
     <thead>
     <tr>
       <th class="wide">
-        {% trans "Item" context "Shipment group table header" %}
+        {% trans "Item" context "Shipment order table header" %}
       </th>
       <th>
-        {% trans "SKU" context "Shipment group table header" %}
+        {% trans "SKU" context "Shipment order table header" %}
       </th>
       <th class="right-align">
-        {% trans "Price" context "Shipment group table header" %}
+        {% trans "Price" context "Shipment order table header" %}
       </th>
       <th class="right-align">
-        {% trans "Quantity" context "Shipment group table header" %}
+        {% trans "Quantity" context "Shipment order table header" %}
       </th>
       <th class="right-align">
-        {% trans "Total" context "Shipment group table header" %}
+        {% trans "Total" context "Shipment order table header" %}
       </th>
     </tr>
     </thead>
     <tbody>
-    {% for item in group.items.all %}
+    {% for item in order.get_items.all %}
       <tr>
         <td>
           {{ item.product_name|truncatechars:40 }}<br>
@@ -90,30 +90,32 @@
         </td>
       </tr>
     {% endfor %}
-    {% if group.shipping_price.gross or group.is_shipping_required %}
-      <tr>
-        <td colspan="4">
-          {% blocktrans trimmed with group_shipping_method_name=group.shipping_method_name context "Shipment group table item column data" %}
-            Shipping ({{ group_shipping_method_name }})
-          {% endblocktrans %}
-        </td>
-        <td class="right-align">
-          {% gross group.shipping_price html=True %}
-        </td>
-      </tr>
+    {% if order.shipping_price.gross or order.is_shipping_required %}
+      {% for shipping in shipping_methods %}
+        <tr>
+          <td colspan="4">
+            {% blocktrans trimmed with shipping_name=shipping.name context "Shipment order table item column data" %}
+              Shipping ({{ shipping_name }})
+            {% endblocktrans %}
+          </td>
+          <td class="right-align">
+            {% gross shipping.price html=True %}
+          </td>
+        </tr>
+      {% endfor %}
     {% endif %}
     </tbody>
   </table>
 {% endif %}
 
-<table class="bordered  responsive data-table">
+<table class="bordered highlight responsive data-table">
   <tbody>
     <tr>
       <td class="wide">
         {% trans "Subtotal" context "Order subtotal" %}
       </td>
       <td class="right-align">
-        {% gross group.get_subtotal_without_voucher html=True %}
+        {% gross order.get_subtotal_without_voucher html=True %}
       </td>
     </tr>
     <tr>
@@ -121,20 +123,18 @@
         {% trans "Total Shipping Price" context "Order totals header" %}
       </td>
       <td class="right-align">
-        {% gross group.shipping_price html=True %}
+        {% gross order.get_total_shipping html=True %}
       </td>
     </tr>
-    {% if first_delivery_group %}
-    {% if group.order.voucher %}
+    {% if order.voucher %}
       <tr>
         <td>
-          {% trans "Voucher" context "Order voucher header" %} {{ group.order.voucher }}
+          {% trans "Voucher" context "Order voucher header" %} {{ order.voucher }}
         </td>
         <td class="right-align">
-          {% gross group.order.discount|discount_amount_for:group.order.total html=True %}
+          {% gross order.discount|discount_amount_for:order.total html=True %}
         </td>
       </tr>
-    {% endif %}
     {% endif %}
   </tbody>
   <tfoot>
@@ -143,11 +143,10 @@
         {% trans "Grand total" context "Order totals header" %}
       </td>
       <td>
-        {% gross group.get_total html=True %}
+        {% gross order.get_total html=True %}
       </td>
     </tr>
   </tfoot>
 </table>
 </body>
 </html>
-
