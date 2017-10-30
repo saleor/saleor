@@ -22,6 +22,7 @@ Demo
 ----
 
 Want to see Saleor in action?
+Want to pay faster than flash?
 
 [Saleor live demo](http://demo.getsaleor.com/)
 
