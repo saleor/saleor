@@ -1,0 +1,18 @@
+[main]
+host = https://www.transifex.com
+
+[saleor-1.dashboardpo]
+file_filter = saleor/dashboard/locale/<lang>/LC_MESSAGES/django.po
+source_file = saleor/dashboard/locale/en/LC_MESSAGES/django.po
+source_lang = en
+
+[saleor-1.javascriptpo]
+file_filter = locale/<lang>/LC_MESSAGES/djangojs.po
+source_file = locale/en/LC_MESSAGES/djangojs.po
+source_lang = en
+
+[saleor-1.storefrontpo]
+file_filter = locale/<lang>/LC_MESSAGES/django.po
+source_file = locale/en/LC_MESSAGES/django.po
+source_lang = en
+
