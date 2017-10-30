@@ -2,7 +2,7 @@ from __future__ import unicode_literals
 
 import csv
 
-from mock import Mock
+from mock import Mock, patch
 
 from django.utils import six
 from django.utils.encoding import smart_text
@@ -69,3 +69,10 @@ def test_write_feed(product_in_stock, monkeypatch):
                               'availability', 'price', 'condition']
     for field in google_required_fields:
         assert field in header
+
+
+@patch('saleor.data_feeds.google_merchant.item_link')
+def test_feed_contains_site_settings_domain(mocked_item_link, product_in_stock):
+    write_feed(StringIO())
+    mocked_item_link.assert_called_once_with(
+        product_in_stock.variants.first(), Site.objects.get_current())
