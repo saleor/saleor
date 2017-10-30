@@ -1,8 +1,16 @@
-import json
+from elasticsearch import Elasticsearch
+from elasticsearch_dsl import Search
+from elasticsearch_dsl.query import MultiMatch
+
+CLIENT = Elasticsearch()
 
 
-def build_es_query():
-    return json.dumps({})
+def search(phrase):
+    result = (Search()
+              .query(MultiMatch(query=phrase, fields=['name', 'description']))
+              .using(CLIENT)
+              .execute())
+    return []
 
 
 class SearchBackend(object):
@@ -11,5 +19,5 @@ class SearchBackend(object):
     def __init__(*args, **kwargs):
         pass
 
-    def search(self, query, model_or_queryset):
-        return []
+    def search(self, query, model_or_queryset=None):
+        pass
