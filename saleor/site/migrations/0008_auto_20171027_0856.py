@@ -17,7 +17,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='sitesettings',
             name='site',
-            field=models.OneToOneField(blank=False,
+            field=models.OneToOneField(null=False,
                                        on_delete=django.db.models.deletion.CASCADE,
                                        related_name='settings',
                                        to='sites.Site'),
