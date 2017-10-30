@@ -8,8 +8,9 @@ from django.core.urlresolvers import reverse
 from django.utils.encoding import smart_text
 from mock import Mock
 
+from saleor.dashboard.product import ProductBulkAction
 from saleor.dashboard.product.forms import (
-    ProductClassForm, ProductClassSelectorForm, ProductForm)
+    ProductBulkUpdate, ProductClassForm, ProductClassSelectorForm, ProductForm)
 from saleor.product.models import (
     Product, ProductAttribute, ProductClass, ProductImage, ProductVariant,
     Stock, StockLocation)
@@ -305,3 +306,35 @@ def test_view_invalid_reorder_product_images(
     resp_decoded = json.loads(response.content.decode('utf-8'))
     assert 'error' in resp_decoded
     assert 'ordered_images' in resp_decoded['error']
+
+
+def test_product_bulk_update_form_can_publish_products(product_list):
+    data = {
+        'action': ProductBulkAction.PUBLISH,
+        'products': [p.pk for p in product_list]
+    }
+    form = ProductBulkUpdate(data)
+
+    assert form.is_valid()
+
+    form.save()
+
+    for p in product_list:
+        p.refresh_from_db()
+        assert p.is_published
+
+
+def test_product_bulk_update_form_can_unpublish_products(product_list):
+    data = {
+        'action': ProductBulkAction.UNPUBLISH,
+        'products': [p.pk for p in product_list]
+    }
+    form = ProductBulkUpdate(data)
+
+    assert form.is_valid()
+
+    form.save()
+
+    for p in product_list:
+        p.refresh_from_db()
+        assert not p.is_published
