@@ -1,0 +1,274 @@
+# Saleor
+# Copyright (C) 2017 Mirumee Software
+# This file is distributed under the same license as the Saleor package.
+# Mirumee Software <hello@mirumee.com>, 2017.
+# 
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2017-03-17 15:40+0100\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: Roy Waterman <shopsupport@knijter.nl>, 2017\n"
+"Language-Team: Dutch (https://www.transifex.com/mirumee/teams/34782/nl/)\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: nl\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: static/dashboard/js/dashboard.js:208
+msgctxt "Datepicker option"
+msgid "Next month"
+msgstr "Volgende maand"
+
+#: static/dashboard/js/dashboard.js:209
+msgctxt "Datepicker option"
+msgid "Previous month"
+msgstr "Vorige maand"
+
+#: static/dashboard/js/dashboard.js:212
+msgctxt "Datepicker option"
+msgid "Select a month"
+msgstr "Kies een maand"
+
+#: static/dashboard/js/dashboard.js:213
+msgctxt "Datepicker option"
+msgid "Select a year"
+msgstr "Kies een jaar"
+
+#: static/dashboard/js/dashboard.js:216
+msgctxt "Datepicker option"
+msgid "January"
+msgstr "Januari"
+
+#: static/dashboard/js/dashboard.js:216
+msgctxt "Datepicker option"
+msgid "February"
+msgstr "Februari"
+
+#: static/dashboard/js/dashboard.js:216
+msgctxt "Datepicker option"
+msgid "March"
+msgstr "Maart"
+
+#: static/dashboard/js/dashboard.js:216
+msgctxt "Datepicker option"
+msgid "April"
+msgstr "April"
+
+#: static/dashboard/js/dashboard.js:216 static/dashboard/js/dashboard.js:217
+msgctxt "Datepicker option"
+msgid "May"
+msgstr "Mei"
+
+#: static/dashboard/js/dashboard.js:216
+msgctxt "Datepicker option"
+msgid "June"
+msgstr "Juni"
+
+#: static/dashboard/js/dashboard.js:216
+msgctxt "Datepicker option"
+msgid "July"
+msgstr "Juli"
+
+#: static/dashboard/js/dashboard.js:216
+msgctxt "Datepicker option"
+msgid "August"
+msgstr "Augustus"
+
+#: static/dashboard/js/dashboard.js:216
+msgctxt "Datepicker option"
+msgid "September"
+msgstr "September"
+
+#: static/dashboard/js/dashboard.js:216
+msgctxt "Datepicker option"
+msgid "October"
+msgstr "Oktober"
+
+#: static/dashboard/js/dashboard.js:216
+msgctxt "Datepicker option"
+msgid "November"
+msgstr "November"
+
+#: static/dashboard/js/dashboard.js:216
+msgctxt "Datepicker option"
+msgid "December"
+msgstr "December"
+
+#: static/dashboard/js/dashboard.js:217
+msgctxt "Datepicker option"
+msgid "Jan"
+msgstr "Jan"
+
+#: static/dashboard/js/dashboard.js:217
+msgctxt "Datepicker option"
+msgid "Feb"
+msgstr "Feb"
+
+#: static/dashboard/js/dashboard.js:217
+msgctxt "Datepicker option"
+msgid "Mar"
+msgstr "Maa"
+
+#: static/dashboard/js/dashboard.js:217
+msgctxt "Datepicker option"
+msgid "Apr"
+msgstr "Apr"
+
+#: static/dashboard/js/dashboard.js:217
+msgctxt "Datepicker option"
+msgid "Jun"
+msgstr "Jun"
+
+#: static/dashboard/js/dashboard.js:217
+msgctxt "Datepicker option"
+msgid "Jul"
+msgstr "Jul"
+
+#: static/dashboard/js/dashboard.js:217
+msgctxt "Datepicker option"
+msgid "Aug"
+msgstr "Aug"
+
+#: static/dashboard/js/dashboard.js:217
+msgctxt "Datepicker option"
+msgid "Sep"
+msgstr "Sep"
+
+#: static/dashboard/js/dashboard.js:217
+msgctxt "Datepicker option"
+msgid "Oct"
+msgstr "Okt"
+
+#: static/dashboard/js/dashboard.js:217
+msgctxt "Datepicker option"
+msgid "Nov"
+msgstr "Nov"
+
+#: static/dashboard/js/dashboard.js:217
+msgctxt "Datepicker option"
+msgid "Dec"
+msgstr "Dec"
+
+#: static/dashboard/js/dashboard.js:218
+msgctxt "Datepicker option"
+msgid "Sunday"
+msgstr "Zondag"
+
+#: static/dashboard/js/dashboard.js:218
+msgctxt "Datepicker option"
+msgid "Monday"
+msgstr "Maandag"
+
+#: static/dashboard/js/dashboard.js:218
+msgctxt "Datepicker option"
+msgid "Tuesday"
+msgstr "Dinsdag"
+
+#: static/dashboard/js/dashboard.js:218
+msgctxt "Datepicker option"
+msgid "Wednesday"
+msgstr "Woensdag"
+
+#: static/dashboard/js/dashboard.js:218
+msgctxt "Datepicker option"
+msgid "Thursday"
+msgstr "Donderdag"
+
+#: static/dashboard/js/dashboard.js:218
+msgctxt "Datepicker option"
+msgid "Friday"
+msgstr "Vrijdag"
+
+#: static/dashboard/js/dashboard.js:218
+msgctxt "Datepicker option"
+msgid "Saturday"
+msgstr "Zaterdag"
+
+#: static/dashboard/js/dashboard.js:219
+msgctxt "Datepicker option"
+msgid "Sun"
+msgstr "Zon"
+
+#: static/dashboard/js/dashboard.js:219
+msgctxt "Datepicker option"
+msgid "Mon"
+msgstr "Maa"
+
+#: static/dashboard/js/dashboard.js:219
+msgctxt "Datepicker option"
+msgid "Tue"
+msgstr "Din"
+
+#: static/dashboard/js/dashboard.js:219
+msgctxt "Datepicker option"
+msgid "Wed"
+msgstr "Woe"
+
+#: static/dashboard/js/dashboard.js:219
+msgctxt "Datepicker option"
+msgid "Thu"
+msgstr "Don"
+
+#: static/dashboard/js/dashboard.js:219
+msgctxt "Datepicker option"
+msgid "Fri"
+msgstr "Vri"
+
+#: static/dashboard/js/dashboard.js:219
+msgctxt "Datepicker option"
+msgid "Sat"
+msgstr "Zat"
+
+#: static/dashboard/js/dashboard.js:222
+msgctxt "Sunday shortcut"
+msgid "S"
+msgstr "S"
+
+#: static/dashboard/js/dashboard.js:222
+msgctxt "Monday shortcut"
+msgid "M"
+msgstr "M"
+
+#: static/dashboard/js/dashboard.js:222
+msgctxt "Tuesday shortcut"
+msgid "T"
+msgstr "T"
+
+#: static/dashboard/js/dashboard.js:222
+msgctxt "Wednesday shortcut"
+msgid "W"
+msgstr "W"
+
+#: static/dashboard/js/dashboard.js:222
+msgctxt "Thursday shortcut"
+msgid "T"
+msgstr "T"
+
+#: static/dashboard/js/dashboard.js:222
+msgctxt "Friday shortcut"
+msgid "F"
+msgstr "F"
+
+#: static/dashboard/js/dashboard.js:222
+msgctxt "Saturday shortcut"
+msgid "S"
+msgstr "S"
+
+#: static/dashboard/js/dashboard.js:223
+msgctxt "Datepicker option"
+msgid "Today"
+msgstr "Vandaag"
+
+#: static/dashboard/js/dashboard.js:224
+msgctxt "Datepicker option"
+msgid "Clear"
+msgstr "Wis"
+
+#: static/dashboard/js/dashboard.js:225
+msgctxt "Datepicker option"
+msgid "Close"
+msgstr "Sluit"

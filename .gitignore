@@ -4,12 +4,13 @@
 !.codeclimate.yml
 !.coveragerc
 !.dockerignore
+!.eslintrc.json
 !.flowconfig
 !.gitignore
 !.nvmrc
 !.pylintrc
 !.travis*
-!.eslintrc.json
+!.tx
 *.css
 *.log
 *.pot
