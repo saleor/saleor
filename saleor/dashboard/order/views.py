@@ -374,11 +374,11 @@ def remove_order_voucher(request, order_pk):
 
 @staff_member_required
 @permission_required('order.edit_order')
-def order_invoice(request, group_pk):
+def order_invoice(request, order_pk):
     absolute_url = get_statics_absolute_url(request)
-    pdf_file, group = create_invoice_pdf(group_pk, absolute_url)
+    pdf_file, order = create_invoice_pdf(order_pk, absolute_url)
     response = HttpResponse(pdf_file, content_type='application/pdf')
-    name = "invoice-%s-%s" % (group.order.id, group.id)
+    name = "invoice-%s" % order.id
     response['Content-Disposition'] = 'filename=%s' % name
     return response
 
