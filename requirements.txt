@@ -41,6 +41,7 @@ django-webpack-loader==0.5.0
 django==1.11.5
 dnspython==1.15.0         # via email-validator
 docutils==0.14            # via botocore
+elasticsearch-dsl==5.3.0
 elasticsearch==5.4.0
 email-validator==1.0.2    # via faker
 faker==0.8.3
@@ -79,7 +80,7 @@ pytest-django==3.1.2
 pytest-freezegun==0.2.0
 pytest-vcr==0.3.0
 pytest==3.2.2
-python-dateutil==2.6.1    # via botocore, faker, freezegun
+python-dateutil==2.6.1    # via botocore, elasticsearch-dsl, faker, freezegun
 python-openid==2.2.5      # via social-auth-core
 pytz==2017.2              # via babel, celery, django
 pyyaml==3.12              # via vcrpy
