@@ -1,18 +1,28 @@
 from . import newelastic
+import pytest
 
 
-def test_search(mocker):
-    mocker.patch.object(newelastic.CLIENT, 'search', returnvalue=[])
-    phrase = 'foo'
-    products = newelastic.search(phrase)
-    expected_query = {
+@pytest.fixture
+def search_phrase():
+    return 'How fortunate man with none'
+
+
+@pytest.fixture
+def es_search_query(search_phrase):
+    query = {
         'query': {
             'multi_match': {
                 'fields': ['name', 'description'],
-                'query': phrase
+                'query': search_phrase
             }
         }
     }
+    return query
+
+
+def test_no_result_search(mocker, es_search_query, search_phrase):
+    mocker.patch.object(newelastic.CLIENT, 'search', returnvalue=[])
+    products = newelastic.search(search_phrase)
     newelastic.CLIENT.search.assert_called_once_with(
-        body=expected_query, doc_type=[], index=None)
+        body=es_search_query, doc_type=[], index=None)
     assert not products
