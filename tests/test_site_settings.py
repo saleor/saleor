@@ -1,9 +1,9 @@
 import pytest
 
 from django.contrib.sites.models import Site
-from django.core.exceptions import ObjectDoesNotExist
 from django.core.urlresolvers import reverse
 from django.db.utils import IntegrityError
+from django.test.client import RequestFactory
 from django.utils.encoding import smart_text
 
 from saleor.site import utils
@@ -102,3 +102,21 @@ def test_settings_available_backends(site_settings, authorization_key):
     backend_name = authorization_key.name
     available_backends = site_settings.available_backends()
     assert backend_name in available_backends
+
+
+def test_new_get_current():
+    result = Site.objects.get_current()
+    assert result.name == 'mirumee.com'
+    assert result.domain == 'mirumee.com'
+    assert type(result.settings) == SiteSettings
+    assert str(result.settings) == 'mirumee.com'
+
+
+def test_new_get_current_from_request():
+    factory = RequestFactory()
+    request = factory.get(reverse('dashboard:site-index'))
+    result = Site.objects.get_current(request)
+    assert result.name == 'mirumee.com'
+    assert result.domain == 'mirumee.com'
+    assert type(result.settings) == SiteSettings
+    assert str(result.settings) == 'mirumee.com'

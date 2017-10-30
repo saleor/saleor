@@ -1,5 +1,5 @@
 import threading
-from django.contrib.sites import models as sites
+from django.contrib.sites.models import SiteManager, Site
 from django.core.exceptions import ImproperlyConfigured
 from django.db import models
 from django.http.request import split_domain_port
@@ -15,22 +15,26 @@ with lock:
 
 
 def new_get_current(self, request=None):
-    # print('in new get current')
     from django.conf import settings
     if getattr(settings, 'SITE_ID', ''):
         site_id = settings.SITE_ID
-        # print 'SITE_ID in settings'
-        site = self.prefetch_related('settings').filter(pk=site_id)
-        # print site
-        return site[0]
+        if site_id not in THREADED_SITE_CACHE:
+            site = self.get(pk=site_id)
+            THREADED_SITE_CACHE[site_id] = site
+        return THREADED_SITE_CACHE[site_id]
     elif request:
-        # print 'SITE_ID not in settings'
         host = request.get_host()
         try:
-            return self.get(domain__iexact=host)
-        except sites.Site.DoesNotExist:
+            # First attempt to look up the site by host with or without port.
+            if host not in THREADED_SITE_CACHE:
+                THREADED_SITE_CACHE[host] = self.get(domain__iexact=host)
+            return THREADED_SITE_CACHE[host]
+        except Site.DoesNotExist:
+            # Fallback to looking up site after stripping port from the host.
             domain, port = split_domain_port(host)
-            return self.get(domain__iexact=domain)
+            if domain not in THREADED_SITE_CACHE:
+                THREADED_SITE_CACHE[domain] = self.get(domain__iexact=domain)
+        return THREADED_SITE_CACHE[domain]
 
     raise ImproperlyConfigured(
         "You're using the Django \"sites framework\" without having "
@@ -40,13 +44,12 @@ def new_get_current(self, request=None):
     )
 
 
-sites.SITE_CACHE = THREADED_SITE_CACHE
-sites.SiteManager.get_current = new_get_current
+SiteManager.get_current = new_get_current
 
 
 @python_2_unicode_compatible
 class SiteSettings(models.Model):
-    site = models.OneToOneField(sites.Site, related_name='settings')
+    site = models.OneToOneField(Site, related_name='settings')
     header_text = models.CharField(
         pgettext_lazy('Site field', 'header text'), max_length=200, blank=True)
     description = models.CharField(

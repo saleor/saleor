@@ -1,13 +1,13 @@
 import logging
 
 from django.conf import settings
-from django.contrib.sites import models as sites
 from django.utils.translation import get_language
 from django_countries.fields import Country
 
 from . import analytics
 from ..discount.models import Sale
 from .utils import get_client_ip, get_country_by_ip, get_currency_for_country
+from ..site.models import THREADED_SITE_CACHE
 
 logger = logging.getLogger(__name__)
 
@@ -54,6 +54,4 @@ class CurrencyMiddleware(object):
 
 class ClearSiteCacheMiddleware(object):
     def process_request(self, request):
-        # print 'cache cleared'
-        sm = sites.SiteManager()
-        sm.clear_cache()
+        SITE_CACHE = THREADED_SITE_CACHE
