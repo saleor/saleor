@@ -14,8 +14,8 @@ from ...product.models import (
     Product, ProductAttribute, ProductClass, ProductImage, ProductVariant,
     Stock, StockLocation)
 from ...product.utils import get_availability
-from ..views import staff_member_required, superuser_required
 from ...settings import DASHBOARD_PAGINATE_BY
+from ..views import staff_member_required, superuser_required
 from . import forms
 
 
@@ -109,7 +109,8 @@ def product_list(request):
     products = get_paginator_items(
         products, DASHBOARD_PAGINATE_BY, request.GET.get('page'))
     ctx = {
-        'form': form, 'products': products, 'product_classes': product_classes}
+        'bulk_action_form': forms.ProductBulkUpdate(), 'form': form,
+        'products': products, 'product_classes': product_classes}
     return TemplateResponse(request, 'dashboard/product/list.html', ctx)
 
 
