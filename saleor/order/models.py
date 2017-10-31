@@ -115,11 +115,10 @@ class Order(models.Model, ItemSet, index.Indexed):
             self.token = str(uuid4())
         return super(Order, self).save(*args, **kwargs)
 
-    def change_status(self, status, comment=''):
+    def change_status(self, status):
         if status != self.status:
             self.status = status
             self.save()
-            self.history.create(status=status, comment=comment)
 
     def get_items(self):
         return OrderedItem.objects.filter(delivery_group__order=self)
@@ -320,8 +319,11 @@ class OrderedItemManager(models.Manager):
         if not source_group.get_total_quantity() or force:
             source_group.delete()
         if not order.get_items():
-            order.change_status(OrderStatus.CANCELLED, pgettext_lazy(
-                'Order status change', 'Order CANCELLED. No items in order'))
+            order.change_status(OrderStatus.CANCELLED)
+            order.create_history_entry(
+                status=OrderStatus.CANCELLED, comment=pgettext_lazy(
+                    'Order status change',
+                    'Shipment canceled. No items in shipment'))
 
 
 @python_2_unicode_compatible
@@ -376,8 +378,11 @@ class OrderedItem(models.Model, ItemLine):
         if not self.delivery_group.get_total_quantity():
             self.delivery_group.delete()
         if not order.get_items():
-            order.change_status(OrderStatus.CANCELLED, pgettext_lazy(
-                'Order status change', 'Order CANCELLED. No items in order'))
+            order.change_status(OrderStatus.CANCELLED)
+            order.create_history_entry(
+                status=OrderStatus.CANCELLED, comment=pgettext_lazy(
+                    'Order status change',
+                    'Order cancelled. No items in order'))
 
 
 class PaymentManager(models.Manager):

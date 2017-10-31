@@ -236,8 +236,7 @@ class ShipGroupForm(forms.ModelForm):
         self.instance.change_status(OrderStatus.SHIPPED)
         statuses = [g.status for g in order.groups.all()]
         if OrderStatus.SHIPPED in statuses and OrderStatus.NEW not in statuses:
-            order.change_status(OrderStatus.SHIPPED, pgettext_lazy(
-                'Order status change', 'All items shipped'))
+            order.change_status(OrderStatus.SHIPPED)
 
 
 class CancelGroupForm(forms.Form):
