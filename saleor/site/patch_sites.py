@@ -22,7 +22,6 @@ with lock:
 
 
 def new_get_current(self, request=None):
-    print "new get current"
     from django.conf import settings
     if getattr(settings, 'SITE_ID', ''):
         site_id = settings.SITE_ID
