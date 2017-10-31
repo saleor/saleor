@@ -13,10 +13,8 @@ def link_to_sites(apps, schema_editor):
         setting.site = Site.objects.get_or_create(domain=setting.domain, name=setting.name)[0]
         setting.save()
 
-    for site in Site.objects.all():
-        if not site.settings:
-            site.settings = SiteSettings.objects.create()
-            site.save()
+    for site in Site.objects.filter(settings__isnull=True):
+        SiteSettings.objects.create(site=site, domain=site.domain, name=site.name)
 
 
 class Migration(migrations.Migration):
