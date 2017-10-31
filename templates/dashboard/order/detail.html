@@ -526,47 +526,20 @@
       </p>
     {% endif %}
   </div>
-  <div class="card tab-content" id="order-history">
+  <div class="tab-content" id="order-history">
     <p class="print-show print-tabs">{% trans "History" context "Order detail tab" %}</p>
-    <div class="data-table-container">
-      <table class="bordered highlight responsive data-table">
-        <thead>
-          <tr>
-            <th>
-              {% trans "Date" context "Order history table header" %}
-            </th>
-            <th>
-              {% trans "Order status" context "Order history table header" %}
-            </th>
-            <th>
-              {% trans "User" context "Order history table header" %}
-            </th>
-            <th class="wide">
-              {% trans "Comment" context "Order history table header" %}
-            </th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for event in order.history.all %}
-          <tr>
-            <td>
-              {{ event.date }}
-            </td>
-            <td>
+  <div class="timeline-outer">
+    <ul class="timeline">
+      {% for event in order.history.all %}
+        <li class="event" data-date="{{ event.date }}">
+          <div class="content">
+            {{ event.comment|default:"" }}{% if event.user %} by {{ event.user }}{% endif %}
+            <div class="status">
               {% render_status event.status event.get_status_display %}
-            </td>
-            <td>
-              {% if event.user %}
-                {{ event.user }}
-              {% endif %}
-            </td>
-            <td>
-              {{ event.comment|default:"" }}
-            </td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-    </div>
+            </div>
+          </div>
+        </li>
+      {% endfor %}
+    </ul>
   </div>
 {% endblock %}
