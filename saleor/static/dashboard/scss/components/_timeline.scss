@@ -1,6 +1,6 @@
 $timeline-width: 3px !default;
 $timeline-circle-radius: 6px !default;
-$timeline-event-margin: 30px !default;
+$timeline-event-margin: 1rem !default;
 $timeline-date-width: 20rem;
 $timeline-status-width: 12rem;
 
@@ -44,6 +44,7 @@ $timeline-status-width: 12rem;
       .content {
         margin-left: 3rem;
         padding-left: $timeline-status-width;
+        min-height: 1.5rem;
         position: relative;
         top: calc(#{$timeline-circle-radius} + #{$timeline-width} + .5px - #{$label-font-size} + .1rem);
       }
@@ -51,6 +52,9 @@ $timeline-status-width: 12rem;
         position: absolute;
         left: 0;
         top: 0;
+      }
+      &:last-of-type {
+        height: 0;
       }
     }
   }
@@ -62,7 +66,6 @@ $timeline-status-width: 12rem;
     margin: 0 1rem;
     .timeline {
       .event {
-        margin-bottom: $timeline-event-margin / 2;
         &:before {
           left: 3rem;
           top: calc(#{$timeline-circle-radius} + #{$timeline-width} + .5px - #{$label-font-size} + .7rem);
@@ -83,6 +86,7 @@ $timeline-status-width: 12rem;
   .timeline-outer {
     .timeline {
       .event {
+        margin-bottom: $timeline-event-margin / 2;
         .content {
           padding-left: 0;
           top: calc(#{$timeline-circle-radius} + #{$timeline-width} + .5px - #{$label-font-size} - .5rem);
