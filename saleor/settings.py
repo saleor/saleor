@@ -380,8 +380,6 @@ GRAPHENE = {
         PROJECT_ROOT, 'saleor', 'static', 'schema.json')
 }
 
-# SITE_SETTINGS_ID = 1
-
 AUTHENTICATION_BACKENDS = [
     'saleor.registration.backends.facebook.CustomFacebookOAuth2',
     'saleor.registration.backends.google.CustomGoogleOAuth2',

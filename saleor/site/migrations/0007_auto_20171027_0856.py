@@ -9,9 +9,14 @@ def link_to_sites(apps, schema_editor):
     SiteSettings = apps.get_model('site', 'SiteSettings')
     Site = apps.get_model('sites', 'Site')
 
-    for site in SiteSettings.objects.all():
-        site.site = Site.objects.get_or_create(domain=site.domain, name=site.name)[0]
-        site.save()
+    for setting in SiteSettings.objects.all():
+        setting.site = Site.objects.get_or_create(domain=setting.domain, name=setting.name)[0]
+        setting.save()
+
+    for site in Site.objects.all():
+        if not site.settings:
+            site.settings = SiteSettings.objects.create()
+            site.save()
 
 
 class Migration(migrations.Migration):
@@ -22,5 +27,5 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RunPython(link_to_sites),
+        migrations.RunPython(link_to_sites, migrations.RunPython.noop),
     ]
