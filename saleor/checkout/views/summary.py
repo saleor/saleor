@@ -1,13 +1,14 @@
 from django.contrib import messages
 from django.shortcuts import redirect
 from django.template.response import TemplateResponse
-from django.utils.translation import pgettext
+from django.utils.translation import pgettext, pgettext_lazy
 
 from ..forms import (
     AnonymousUserBillingForm, BillingAddressesForm,
     BillingWithoutShippingAddressForm)
 from ...userprofile.forms import get_address_form
 from ...userprofile.models import Address
+from ...order import OrderStatus
 
 
 def create_order(checkout):
@@ -20,7 +21,8 @@ def create_order(checkout):
         return None, redirect('checkout:summary')
     checkout.clear_storage()
     checkout.cart.clear()
-    order.create_history_entry()
+    order.create_history_entry(status=OrderStatus.NEW, comment=pgettext_lazy(
+        'Order status change', 'Order was placed'))
     order.send_confirmation_email()
     return order, redirect('order:payment', token=order.token)
 
