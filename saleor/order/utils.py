@@ -35,8 +35,7 @@ def order_status_change(sender, instance, **kwargs):
         order.change_status(OrderStatus.FULLY_PAID)
         order.create_history_entry(
             status=OrderStatus.FULLY_PAID, comment=pgettext_lazy(
-                'Order status change',
-                'Order fully paid'))
+                'Order status change', 'Order fully paid'))
         instance.send_confirmation_email()
         try:
             analytics.report_order(order.tracking_client_id, order)
