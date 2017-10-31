@@ -46,23 +46,66 @@
   <div class="row">
     <div class="col s12">
       {% if products %}
-        <ul class="collection list">
-          {% for product in products %}
-            <li class="collection-item avatar list-item">
-              <a href="{% url 'dashboard:product-detail' pk=product.pk %}">
-                <img src="{% product_first_image product size="60x60" method="crop" %}"
-                     srcset="{% product_first_image product size="60x60" method="crop" %} 1x, {% product_first_image product size="120x120" method="crop" %} 2x"
-                     alt="" class="circle teal">
-                <span class="title list-item-name">
+      <div class="card">
+      <form method="POST">
+      {% csrf_token %}
+        <div class="data-table-header-action">
+          <div class="row mb-0">
+            <div class="col s12">
+              {{ bulk_action_form.action|materializecss:"inline s4" }}
+              <input type="submit" class="btn-flat bulk-submit" value="{% trans "Submit" context "Dashboard form submit input" %}" />
+            </div>
+          </div>
+          <div class="row">
+            <div class="col s12">
+                <div class="data-table-header-action-selected-items">
+                  <span id="counter">0</span> {% trans "item(s) selected" context "Dashboard bulk action summary" %}
+                </div>
+            </div>
+          </div>
+        </div>
+        <div class="data-table-container">
+          <table class="bordered highlight responsive data-table">
+            <thead>
+              <tr>
+                <th class="bulk-checkbox">
+                  <input id="select-all-products" type="checkbox" class="filled-in select-all switch-actions select-item">
+                  <label for="select-all-products"></label>
+                </th>
+                <th></th>
+                <th class="wide">
+                  {% trans "Name" context "Products list table header" %}
+                </th>
+                <th>
+                  {% trans "Price" context "Products list table header" %}
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+            {% for product in products %}
+              <tr class="avatar" data-action-go="{% url 'dashboard:product-detail' pk=product.pk %}">
+                <td class="bulk-checkbox ignore-link">
+                  <input id="id_products_{{ product.pk }}" type="checkbox" name="products" value="{{ product.pk }}" class="filled-in switch-actions select-item">
+                  <label for="id_products_{{ product.pk }}"></label>
+                </td>
+                <td class="avatar">
+                  <img src="{% product_first_image product size="60x60" method="crop" %}"
+                      srcset="{% product_first_image product size="60x60" method="crop" %} 1x, {% product_first_image product size="120x120" method="crop" %} 2x"
+                      alt="" class="circle teal">
+                </td>
+                <td>
                   {{ product.name }}
-                </span>
-                <p class="list-item-price">
+                </td>
+                <td>
                   {% gross product.price html=True %}
-                </p>
-              </a>
-            </li>
-          {% endfor %}
-        </ul>
+                </td>
+              </tr>
+            {% endfor %}
+            </tbody>
+            </table>
+          </div>
+        </form>
+        </div>
         {% paginate products %}
       {% else %}
         <div class="not-found">
