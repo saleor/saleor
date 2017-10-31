@@ -13,9 +13,18 @@ def search_phrase():
 def es_search_query(search_phrase):
     query = {
         'query': {
-            'multi_match': {
-                'query': 'How fortunate man with none',
-                'fields': ['name', 'description']
+            'bool': {
+                'must': [{
+                    'multi_match': {
+                        'query': 'How fortunate man with none',
+                        'fields': ['name', 'description']
+                    }
+                }],
+                'filter': [{
+                    'match': {
+                        'content_type': 'product.Product'
+                    }
+                }]
             }
         },
         '_source': ['pk']

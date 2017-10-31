@@ -1,6 +1,7 @@
 interactions:
 - request:
-    body: '{"query": {"multi_match": {"query": "foo", "fields": ["name", "description"]}},
+    body: '{"query": {"bool": {"must": [{"multi_match": {"query": "foo", "fields":
+      ["name", "description"]}}], "filter": [{"match": {"content_type": "product.Product"}}]}},
       "_source": ["pk"]}'
     headers:
       connection: [keep-alive]
@@ -8,7 +9,7 @@ interactions:
     method: GET
     uri: http://search:9200/storefront__product_product/_search
   response:
-    body: {string: '{"took":93,"timed_out":false,"_shards":{"total":5,"successful":5,"failed":0},"hits":{"total":0,"max_score":null,"hits":[]}}'}
+    body: {string: '{"took":11,"timed_out":false,"_shards":{"total":5,"successful":5,"failed":0},"hits":{"total":0,"max_score":null,"hits":[]}}'}
     headers:
       content-length: ['123']
       content-type: [application/json; charset=UTF-8]

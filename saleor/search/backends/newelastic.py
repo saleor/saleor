@@ -12,6 +12,7 @@ def search_products(phrase):
     INDEX = 'storefront__product_product'  # TODO: parametrize this
     query = MultiMatch(fields=['name', 'description'], query=phrase)
     search = Search(index=INDEX).query(query).source(['pk']).using(CLIENT)
+    search = search.filter('match', content_type='product.Product')
     return [hit.pk for hit in search.execute()]
 
 
