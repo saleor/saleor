@@ -278,10 +278,6 @@ class DeliveryGroup(models.Model, ItemSet):
         subtotal = super(DeliveryGroup, self).get_total(**kwargs)
         return subtotal + self.shipping_price
 
-    def get_subtotal_without_voucher(self, **kwargs):
-        subtotal = super(DeliveryGroup, self).get_total(**kwargs)
-        return subtotal
-
     def get_total_quantity(self):
         return sum([item.get_quantity() for item in self])
 
