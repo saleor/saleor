@@ -137,3 +137,11 @@ li#version-indicator {
     }
   }
 }
+
+.address {
+  margin-bottom: 1rem;
+  .phone-number {
+    margin-left: .5rem;
+    color: unset;
+  }
+}

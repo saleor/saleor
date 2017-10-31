@@ -5,8 +5,8 @@
 	<div class="formatted-address">{% format_address address latin=True %}</div>
 	{% if address.phone %}
 		<div>
-			<svg data-src="{% static "dashboard/images/phone.svg" %}" width="14" height="14" />
-			<a href="tel:{{ address.phone }}">
+			<svg data-src="{% static "dashboard/images/phone.svg" %}" width="16" height="16" class="left" />
+			<a href="tel:{{ address.phone }}" class="phone-number">
 				{{ address.phone }}
 			</a>
 		</div>

@@ -23,6 +23,9 @@ header {
             transition: background-color .2s ease-out;
             width: 100%;
             line-height: 1;
+            &::placeholder {
+              color: white;
+            }
             &:hover {
               background-color: rgba(255, 255, 255, .25);
             }

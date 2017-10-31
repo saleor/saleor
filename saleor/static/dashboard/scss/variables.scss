@@ -20,8 +20,7 @@ $error-color: #F44336;
 $link-color: #039BE5;
 $grey-color: #9E9E9E;
 $sidenav-font-color: #616161;
-$placeholder-text-color: white;
-$body-bg: #f5f5f5;
+$placeholder-text-color: lighten($off-black, 75%);
 
 /*** PADDINGS ***/
 
@@ -46,10 +45,4 @@ $h4-fontsize: 1.3rem !default;
 $h5-fontsize: 1.2rem !default;
 $h6-fontsize: 1rem !default;
 
-/*** Timeline Configuration ***/
 
-$timeline-width: 3px !default;
-$timeline-circle-radius: 6px !default;
-$timeline-event-margin: 1rem !default;
-$timeline-date-width: 20rem;
-$timeline-status-width: 12rem;
