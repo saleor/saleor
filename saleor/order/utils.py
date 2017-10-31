@@ -32,8 +32,11 @@ def check_order_status(func):
 def order_status_change(sender, instance, **kwargs):
     order = instance.order
     if order.is_fully_paid():
-        order.change_status(OrderStatus.FULLY_PAID, pgettext_lazy(
-            'Order status change', 'Order fully paid'))
+        order.change_status(OrderStatus.FULLY_PAID)
+        order.create_history_entry(
+            status=OrderStatus.FULLY_PAID, comment=pgettext_lazy(
+                'Order status change',
+                'Order fully paid'))
         instance.send_confirmation_email()
         try:
             analytics.report_order(order.tracking_client_id, order)
