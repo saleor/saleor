@@ -6,12 +6,12 @@ from django.http.request import split_domain_port
 
 
 '''
-We are patching django.contrib.sites because it is cached on module level and 
-can be in some cases thread unsafe. Also django.contrib.sites can be used by 
+We are patching django.contrib.sites because it is cached on module level and
+can be in some cases thread unsafe. Also django.contrib.sites can be used by
 other modules and we don't want to lose its functionality. Saleor has its own
 SiteSetting, but having those settings in two places is not what we wanted.
 Instead we link django.contrib.sites and saleor Site.Settings with One To One
-relationship. 
+relationship.
 In this patch we are also prefetching our settings for better performance.
 '''
 
