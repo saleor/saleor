@@ -1,3 +1,5 @@
+from __future__ import unicode_literals
+
 from saleor.product.models import Product
 from django.core.management import call_command
 from django.core.urlresolvers import reverse

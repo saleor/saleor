@@ -1,3 +1,5 @@
+from __future__ import unicode_literals
+
 from elasticsearch import Elasticsearch
 from django.utils.six.moves.urllib.parse import urlparse
 from elasticsearch_dsl import Search
