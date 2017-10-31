@@ -6,11 +6,11 @@ interactions:
       connection: [keep-alive]
       content-type: [application/json]
     method: GET
-    uri: http://search:9200/_search
+    uri: http://search:9200/storefront__product_product/_search
   response:
-    body: {string: '{"took":104,"timed_out":false,"_shards":{"total":15,"successful":15,"failed":0},"hits":{"total":0,"max_score":null,"hits":[]}}'}
+    body: {string: '{"took":93,"timed_out":false,"_shards":{"total":5,"successful":5,"failed":0},"hits":{"total":0,"max_score":null,"hits":[]}}'}
     headers:
-      content-length: ['126']
+      content-length: ['123']
       content-type: [application/json; charset=UTF-8]
     status: {code: 200, message: OK}
 version: 1

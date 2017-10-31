@@ -7,11 +7,11 @@ CLIENT = Elasticsearch()
 
 
 def search_products(phrase):
-    query = MultiMatch(
-        index='storefront__product_product',
-        fields=['name', 'description'],
-        query=phrase)
-    result = Search().query(query).source(['pk']).using(CLIENT).execute()
+    query = MultiMatch(fields=['name', 'description'], query=phrase)
+    result = (Search(index='storefront__product_product').query(query)
+                                                         .source(['pk'])
+                                                         .using(CLIENT)
+                                                         .execute())
     return [hit.pk for hit in result]
 
 

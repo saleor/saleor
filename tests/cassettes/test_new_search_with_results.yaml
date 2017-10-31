@@ -6,11 +6,11 @@ interactions:
       connection: [keep-alive]
       content-type: [application/json]
     method: GET
-    uri: http://search:9200/_search
+    uri: http://search:9200/storefront__product_product/_search
   response:
-    body: {string: '{"took":33,"timed_out":false,"_shards":{"total":15,"successful":15,"failed":0},"hits":{"total":3,"max_score":3.160794,"hits":[{"_index":"storefront__product_product","_type":"product_product","_id":"product_product:39","_score":3.160794,"_source":{"pk":"39"}},{"_index":"storefront__product_product","_type":"product_product","_id":"product_product:35","_score":2.6753218,"_source":{"pk":"35"}},{"_index":"storefront__product_product","_type":"product_product","_id":"product_product:34","_score":2.6753218,"_source":{"pk":"34"}}]}}'}
+    body: {string: '{"took":25,"timed_out":false,"_shards":{"total":5,"successful":5,"failed":0},"hits":{"total":1,"max_score":3.7124774,"hits":[{"_index":"storefront__product_product","_type":"product_product","_id":"product_product:32","_score":3.7124774,"_source":{"pk":"32"}}]}}'}
     headers:
-      content-length: ['532']
+      content-length: ['262']
       content-type: [application/json; charset=UTF-8]
     status: {code: 200, message: OK}
 version: 1
