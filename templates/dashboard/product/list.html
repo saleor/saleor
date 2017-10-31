@@ -47,7 +47,7 @@
     <div class="col s12">
       {% if products %}
       <div class="card">
-      <form method="POST">
+      <form method="POST" action="{% url "dashboard:product-bulk-update" %}" novalidate>
       {% csrf_token %}
         <div class="data-table-header-action">
           <div class="row mb-0">
