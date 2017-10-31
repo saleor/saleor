@@ -1,10 +1,13 @@
 from django.contrib.sites.models import Site
 from django.db import models
-
 from django.utils.encoding import python_2_unicode_compatible
 from django.utils.translation import pgettext_lazy
 
 from . import AuthenticationBackends
+from .patch_sites import patch_contrib_sites
+
+
+patch_contrib_sites()
 
 
 @python_2_unicode_compatible

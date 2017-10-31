@@ -22,6 +22,7 @@ with lock:
 
 
 def new_get_current(self, request=None):
+    print "new get current"
     from django.conf import settings
     if getattr(settings, 'SITE_ID', ''):
         site_id = settings.SITE_ID
@@ -72,6 +73,3 @@ def patch_contrib_sites():
     SiteManager.get_current = new_get_current
     SiteManager.clear_cache = new_clear_cache
     SiteManager.get_by_natural_key = new_get_by_natural_key
-
-
-patch_contrib_sites()
