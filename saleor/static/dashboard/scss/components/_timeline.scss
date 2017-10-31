@@ -1,9 +1,3 @@
-$timeline-width: 3px !default;
-$timeline-circle-radius: 6px !default;
-$timeline-event-margin: 1rem !default;
-$timeline-date-width: 20rem;
-$timeline-status-width: 12rem;
-
 .timeline-outer {
   padding-left: $timeline-date-width;
   .timeline {
@@ -11,7 +5,7 @@ $timeline-status-width: 12rem;
     position: relative;
     list-style: none;
     .event {
-      padding-bottom: 15px;
+      padding-bottom: 1rem;
       margin-bottom: $timeline-event-margin;
       position: relative;
       &:before, &:after {
