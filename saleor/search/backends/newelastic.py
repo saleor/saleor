@@ -7,30 +7,30 @@ CLIENT = Elasticsearch()
 
 
 def search_products(phrase):
+    INDEX = 'storefront__product_product'  # TODO: parametrize this
     query = MultiMatch(fields=['name', 'description'], query=phrase)
-    result = (Search(index='storefront__product_product').query(query)
-                                                         .source(['pk'])
-                                                         .using(CLIENT)
-                                                         .execute())
-    return [hit.pk for hit in result]
+    search = Search(index=INDEX).query(query).source(['pk']).using(CLIENT)
+    return [hit.pk for hit in search.execute()]
+
+
+def _make_host_entry(url):
+    use_ssl = url.scheme == 'https'
+    auth = (url.username, url.password)
+    http_auth = auth if all(auth) else None
+    return {
+        'host': url.hostname,
+        'port': url.port or (443 if use_ssl else 80),
+        'url_prefix': url.path,
+        'use_ssl': use_ssl,
+        'verify_certs': use_ssl,
+        'http_auth': http_auth
+    }
 
 
 def _get_es_hosts(params):
     hosts = params.pop('HOSTS', [])
-    es_urls = params.pop('URLS', [])
-    for url in map(urlparse, es_urls):
-        use_ssl = url.scheme == 'https'
-        auth = (url.username, url.password)
-        http_auth = auth if all(auth) else None
-        hosts.append({
-            'host': url.hostname,
-            'port': url.port or (443 if use_ssl else 80),
-            'url_prefix': url.path,
-            'use_ssl': use_ssl,
-            'verify_certs': use_ssl,
-            'http_auth': http_auth
-        })
-    return hosts
+    es_urls = map(urlparse, params.pop('URLS', []))
+    return hosts + [_make_host_entry(url) for url in es_urls]
 
 
 class SearchBackend(object):
