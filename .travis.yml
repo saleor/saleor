@@ -1,20 +1,17 @@
 language: python
+sudo: false
+python:
+  - "2.7"
+  - "3.4"
+  - "3.5"
+  - "3.6"
 cache:
   pip: true
   directories:
     - node_modules
-sudo: false
-addons:
-  apt:
-    sources:
-      - deadsnakes
-    packages:
-      - python3.5
-      - python3.5-dev
-      - python3.6
 install:
   - pip install -U pip setuptools wheel
-  - pip install tox codecov
+  - pip install tox-travis codecov
   - nvm install 8
   - npm i
   - npm run build-assets --production
@@ -25,18 +22,28 @@ env:
     - DJANGO_SETTINGS_MODULE=tests.settings
     - DATABASE_URL='postgres://postgres@localhost:5432/saleor'
   matrix:
-    - TOXENV=py27-django111
-    - TOXENV=py34-django111
-    - TOXENV=py34-django_master
-    - TOXENV=py35-django111
-    - TOXENV=py35-django_master
-    - TOXENV=py36-django111
-    - TOXENV=py36-django_master
+  - DJANGO="1.11"
+  - DJANGO="2.0"
+  - DJANGO="master"
 matrix:
   allow_failures:
-    - env: TOXENV=py34-django_master
-    - env: TOXENV=py35-django_master
-    - env: TOXENV=py36-django_master
+    - python: "3.4"
+      env: DJANGO="2.0"
+    - python: "3.4"
+      env: DJANGO="master"
+    - python: "3.5"
+      env: DJANGO="2.0"
+    - python: "3.5"
+      env: DJANGO="master"
+    - python: "3.6"
+      env: DJANGO="2.0"
+    - python: "3.6"
+      env: DJANGO="master"
+  exclude:
+    - python: "2.7"
+      env: DJANGO="2.0"
+    - python: "2.7"
+      env: DJANGO="master"
 after_success:
   - codecov
 services:
