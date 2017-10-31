@@ -13,7 +13,6 @@ def es_search_query(search_phrase):
         'query': {
             'multi_match': {
                 'query': 'How fortunate man with none',
-                'index': 'storefront__product_product',
                 'fields': ['name', 'description']
             }
         },
@@ -22,9 +21,15 @@ def es_search_query(search_phrase):
     return query
 
 
-def test_no_result_search(mocker, es_search_query, search_phrase):
+@pytest.fixture
+def storefront_index():
+    return 'storefront__product_product'
+
+
+def test_no_result_search(mocker, es_search_query, search_phrase,
+                          storefront_index):
     mocker.patch.object(newelastic.CLIENT, 'search', returnvalue=[])
     products = newelastic.search_products(search_phrase)
     newelastic.CLIENT.search.assert_called_once_with(
-        body=es_search_query, doc_type=[], index=None)
+        body=es_search_query, doc_type=[], index=[storefront_index])
     assert not products
