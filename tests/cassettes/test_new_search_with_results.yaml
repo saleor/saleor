@@ -1,0 +1,16 @@
+interactions:
+- request:
+    body: '{"_source": ["pk"], "query": {"multi_match": {"fields": ["name", "description"],
+      "query": "group"}}}'
+    headers:
+      connection: [keep-alive]
+      content-type: [application/json]
+    method: GET
+    uri: http://search:9200/_search
+  response:
+    body: {string: '{"took":5,"timed_out":false,"_shards":{"total":15,"successful":15,"failed":0},"hits":{"total":4,"max_score":3.1094596,"hits":[{"_index":"storefront__product_product","_type":"product_product","_id":"product_product:60","_score":3.1094596,"_source":{"pk":"60"}},{"_index":"storefront__product_product","_type":"product_product","_id":"product_product:9","_score":2.7236264,"_source":{"pk":"9"}},{"_index":"storefront__product_product","_type":"product_product","_id":"product_product:35","_score":2.7236264,"_source":{"pk":"35"}},{"_index":"storefront__product_product","_type":"product_product","_id":"product_product:8","_score":2.5116475,"_source":{"pk":"8"}}]}}'}
+    headers:
+      content-length: ['664']
+      content-type: [application/json; charset=UTF-8]
+    status: {code: 200, message: OK}
+version: 1

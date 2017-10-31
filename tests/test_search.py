@@ -4,11 +4,11 @@ from django.core.urlresolvers import reverse
 
 from decimal import Decimal
 import pytest
-import vcr
 
 MATCH_SEARCH_REQUEST = ['method', 'host', 'port', 'path', 'body']
 PRODUCTS_FOUND = [41, 59]  # same as in recorded data!
 DATE_OF_RECORDING = '2017-10-18'
+
 
 @pytest.fixture(scope='function', autouse=True)
 def recorded_on_date(freezer):
@@ -66,9 +66,7 @@ def indexed_products(product_class, default_category):
 
 
 def _extract_pks(object_list):
-    def get_pk(prod):
-        return prod.pk
-    return [get_pk(prod) for prod, _ in object_list]
+    return [prod.pk for prod, _ in object_list]
 
 
 @pytest.mark.integration
@@ -91,10 +89,17 @@ def new_search_backend():
 
 
 @pytest.mark.integration
-@pytest.mark.vcr(record_mode='none', match_on=MATCH_SEARCH_REQUEST)
-@vcr.use_cassette('test_search_with_empty_results.yaml')
+@pytest.mark.vcr(record_mode='once', match_on=MATCH_SEARCH_REQUEST)
 def test_new_search_with_empty_results(db, client, new_search_backend):
     WORD = 'foo'
     response = client.get(reverse('search:search'), {'q': WORD})
     assert 0 == len(response.context['results'].object_list)
     assert WORD == response.context['query']
+
+
+@pytest.mark.integration
+@pytest.mark.vcr(record_mode='once', match_on=MATCH_SEARCH_REQUEST)
+def test_new_search_with_results(db, client, new_search_backend):
+    WORD = 'group'
+    response = client.get(reverse('search:search'), {'q': WORD})
+    _extract_pks(response.context['results'].object_list)
