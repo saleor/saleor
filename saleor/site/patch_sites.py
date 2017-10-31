@@ -1,19 +1,14 @@
+'''
+Since django.contrib.sites may not be thread-safe when there are
+multiple instances of the application server, we're patching it with
+a thread-safe structure and methods that use it underneath.
+'''
+
 import threading
 
 from django.contrib.sites.models import SiteManager
 from django.core.exceptions import ImproperlyConfigured
 from django.http.request import split_domain_port
-
-
-'''
-We are patching django.contrib.sites because it is cached on module level and
-can be in some cases thread unsafe. Also django.contrib.sites can be used by
-other modules and we don't want to lose its functionality. Saleor has its own
-SiteSetting, but having those settings in two places is not what we wanted.
-Instead we link django.contrib.sites and saleor Site.Settings with One To One
-relationship.
-In this patch we are also prefetching our settings for better performance.
-'''
 
 
 lock = threading.Lock()
