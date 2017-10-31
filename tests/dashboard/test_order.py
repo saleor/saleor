@@ -292,13 +292,12 @@ def test_view_order_invoice(
     order_with_items_and_stock.save()
     url = reverse(
         'dashboard:order-invoice', kwargs={
-            'group_pk': order_with_items_and_stock.groups.all()[0].pk
+            'order_pk': order_with_items_and_stock.id
         })
     response = admin_client.get(url)
     assert response.status_code == 200
     assert response['content-type'] == 'application/pdf'
-    name = "invoice-%s-%s" % (order_with_items_and_stock.id,
-                              order_with_items_and_stock.groups.all()[0].pk)
+    name = "invoice-%s" % order_with_items_and_stock.id
     assert response['Content-Disposition'] == 'filename=%s' % name
 
 
