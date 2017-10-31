@@ -3,18 +3,12 @@ from django.utils.six.moves.urllib.parse import urlparse
 from elasticsearch_dsl import Search
 from elasticsearch_dsl.query import MultiMatch
 
-from ...product.models import Product
-
-
 CLIENT = Elasticsearch()
 
 
 def search(phrase):
-    result = (Search()
-              .query(MultiMatch(query=phrase, fields=['name', 'description']))
-              .source(['pk'])
-              .using(CLIENT)
-              .execute())
+    query = MultiMatch(query=phrase, fields=['name', 'description'])
+    result = Search().query(query).source(['pk']).using(CLIENT).execute()
     return [hit.pk for hit in result]
 
 
@@ -34,7 +28,8 @@ def _get_es_hosts(params):
             'url_prefix': parsed_url.path,
             'use_ssl': use_ssl,
             'verify_certs': use_ssl,
-            'http_auth': http_auth})
+            'http_auth': http_auth
+        })
     return hosts
 
 
@@ -45,7 +40,5 @@ class SearchBackend(object):
         global CLIENT
         CLIENT = Elasticsearch(hosts=_get_es_hosts(params))
 
-    def search(self, query, model_or_queryset=None):
-        found_product_ids = search(query)
-        products = Product.objects.filter(pk__in=found_product_ids)
-        return [str(obj.pk) for obj in products]
+    def search(self, query, model_or_queryset):
+        return model_or_queryset.filter(pk__in=search(query))
