@@ -1,0 +1,16 @@
+interactions:
+- request:
+    body: '{"query": {"multi_match": {"query": "foo", "fields": ["name", "description"]}},
+      "_source": ["pk"]}'
+    headers:
+      connection: [keep-alive]
+      content-type: [application/json]
+    method: GET
+    uri: http://search:9200/_search
+  response:
+    body: {string: '{"took":3,"timed_out":false,"_shards":{"total":15,"successful":15,"failed":0},"hits":{"total":0,"max_score":null,"hits":[]}}'}
+    headers:
+      content-length: ['124']
+      content-type: [application/json; charset=UTF-8]
+    status: {code: 200, message: OK}
+version: 1

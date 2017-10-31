@@ -10,10 +10,11 @@ def search_phrase():
 @pytest.fixture
 def es_search_query(search_phrase):
     query = {
+        '_source': ['pk'],
         'query': {
             'multi_match': {
                 'fields': ['name', 'description'],
-                'query': search_phrase
+                'query': 'How fortunate man with none'
             }
         }
     }
