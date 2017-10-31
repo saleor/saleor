@@ -11,7 +11,7 @@ def search_phrase():
 
 @pytest.fixture
 def es_search_query(search_phrase):
-    query = {
+    return {
         'query': {
             'bool': {
                 'must': [{
@@ -29,7 +29,6 @@ def es_search_query(search_phrase):
         },
         '_source': ['pk']
     }
-    return query
 
 
 @pytest.fixture

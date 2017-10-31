@@ -5,14 +5,19 @@ from django.utils.six.moves.urllib.parse import urlparse
 from elasticsearch_dsl import Search
 from elasticsearch_dsl.query import MultiMatch
 
+# module scoped elasticsearch client handler for dependency injection
 CLIENT = Elasticsearch()
 
 
 def search_products(phrase):
+    ''' Execute external search for product matching phrase  '''
     INDEX = 'storefront__product_product'  # TODO: parametrize this
+    CONTENT = 'product.Product'
     query = MultiMatch(fields=['name', 'description'], query=phrase)
-    search = Search(index=INDEX).query(query).source(['pk']).using(CLIENT)
-    search = search.filter('match', content_type='product.Product')
+    search = (Search(index=INDEX).query(query)
+                                 .source(['pk'])
+                                 .using(CLIENT)
+                                 .filter('match', content_type=CONTENT))
     return [hit.pk for hit in search.execute()]
 
 
