@@ -95,7 +95,7 @@ def start_payment(request, order, variant):
         raise Http404('%r is not a valid payment variant' % (variant,))
     with transaction.atomic():
         order.change_status(OrderStatus.PAYMENT_PENDING, pgettext_lazy(
-                'Order status change', 'Order is waiting for payment'))
+            'Order status change', 'Order is waiting for payment'))
         payment, dummy_created = Payment.objects.get_or_create(
             variant=variant, status=PaymentStatus.WAITING, order=order,
             defaults=defaults)
