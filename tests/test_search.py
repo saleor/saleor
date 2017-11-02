@@ -99,9 +99,46 @@ def test_new_search_with_empty_results(db, client, new_search_backend):
     assert WORD == response.context['query']
 
 
+@pytest.fixture
+def other_indexed_products(product_class, default_category):
+    def gen_product_with_id(object_id):
+        product = Product.objects.create(
+            pk=object_id,
+            name='Test product ' + str(object_id),
+            price=Decimal(10.0),
+            product_class=product_class)
+        product.categories.add(default_category)
+        return product
+    return [gen_product_with_id(prod) for prod in [15, 58]]
+
+
 @pytest.mark.integration
 @pytest.mark.vcr(record_mode='once', match_on=MATCH_SEARCH_REQUEST)
-def test_new_search_with_results(db, client, new_search_backend):
-    WORD = 'group'
-    response = client.get(reverse('search:search'), {'q': WORD})
-    _extract_pks(response.context['results'].object_list)
+def test_new_search_with_result(db, other_indexed_products, client,
+                                new_search_backend):
+    EXISTING_PHRASE = 'Group'
+    response = client.get(reverse('search:search'), {'q': EXISTING_PHRASE})
+    found_products = _extract_pks(response.context['results'].object_list)
+    assert [15, 58] == sorted(found_products)
+    assert EXISTING_PHRASE == response.context['query']
+
+
+@pytest.fixture
+def products_with_mixed_publishing(other_indexed_products):
+    UNPUBLISH_PK = [15]
+    products_to_unpublish = Product.objects.filter(pk__in=UNPUBLISH_PK)
+    for prod in products_to_unpublish:
+        prod.is_published = False
+        prod.save()
+    return other_indexed_products
+
+
+@pytest.mark.integration
+@pytest.mark.vcr(record_mode='once', match_on=MATCH_SEARCH_REQUEST)
+def test_new_search_doesnt_show_unpublished(db, products_with_mixed_publishing,
+                                            client, new_search_backend):
+    EXISTING_PHRASE = 'Group'
+    response = client.get(reverse('search:search'), {'q': EXISTING_PHRASE})
+    found_products = _extract_pks(response.context['results'].object_list)
+    assert [58] == found_products
+    assert EXISTING_PHRASE == response.context['query']
