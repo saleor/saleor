@@ -1,4 +1,5 @@
 import {initSelects} from './utils';
+import SVGInjector from 'svg-injector-2';
 
 export default $(document).ready((e) => {
   $('body').on('click', '.modal-trigger-custom', function (e) {
@@ -18,6 +19,7 @@ export default $(document).ready((e) => {
           $('input#' + id).prop('checked', !checkbox);
           $(e.target).toggleClass('checked', !checkbox);
         });
+        new SVGInjector().inject(document.querySelectorAll('.modal-content svg[data-src]:not(.injected-svg)'));
       }
     });
 

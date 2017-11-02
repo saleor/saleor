@@ -20,7 +20,7 @@ $error-color: #F44336;
 $link-color: #039BE5;
 $grey-color: #9E9E9E;
 $sidenav-font-color: #616161;
-$placeholder-text-color: white;
+$placeholder-text-color: lighten($off-black, 75%);
 $body-bg: #f5f5f5;
 
 /*** PADDINGS ***/
