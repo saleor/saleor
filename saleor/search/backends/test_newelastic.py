@@ -18,7 +18,7 @@ def es_search_query(search_phrase):
             'bool': {
                 'must': [{
                     'multi_match': {
-                        'fields': ['name', 'description'],
+                        'fields': FIELDS,
                         'query': 'How fortunate man with none'
                     }
                 }],
@@ -28,7 +28,7 @@ def es_search_query(search_phrase):
                     }
                 }, {
                     'match': {
-                        'content_type': 'product.Product'
+                        'content_type': CONTENT_TYPE
                     }
                 }]
             }
