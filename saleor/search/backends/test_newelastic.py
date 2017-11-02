@@ -4,16 +4,11 @@ from . import newelastic
 import pytest
 
 
-@pytest.fixture
-def search_phrase():
-    return 'How fortunate man with none'
-
-
-@pytest.fixture
-def es_search_query(search_phrase):
-    CONTENT_TYPE = 'product.Product'
-    FIELDS = ['name', 'description']
-    return {
+PHRASE = 'How fortunate man with none'
+CONTENT_TYPE = 'product.Product'
+FIELDS = ['name', 'description']
+INDEX = 'storefront__product_product'
+QUERY = {
         'query': {
             'bool': {
                 'must': [{
@@ -38,14 +33,16 @@ def es_search_query(search_phrase):
 
 
 @pytest.fixture
-def storefront_index():
-    return 'storefront__product_product'
+def elasticsearch_client(mocker):
+    SETTINGS = {'URLS': ['http://localhost']}
+    nes = newelastic.SearchBackend(SETTINGS)
+    mocker.patch.object(
+        newelastic.SearchBackend.client, 'search', returnvalue=[])
+    return nes
 
 
-def test_storefront_product_search_query_syntax(
-        mocker, es_search_query, search_phrase, storefront_index):
-    mocker.patch.object(newelastic.CLIENT, 'search', returnvalue=[])
-    products = newelastic.search_products(search_phrase)
-    newelastic.CLIENT.search.assert_called_once_with(
-        body=es_search_query, doc_type=[], index=[storefront_index])
+def test_storefront_product_search_query_syntax(elasticsearch_client):
+    products = newelastic.search_products(PHRASE)
+    newelastic.SearchBackend.client.search.assert_called_once_with(
+        body=QUERY, doc_type=[], index=[INDEX])
     assert not products
