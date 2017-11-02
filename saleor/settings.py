@@ -376,6 +376,12 @@ if ES_URL:
             'URLS': [ES_URL],
             'INDEX': os.environ.get('ELASTICSEARCH_INDEX_NAME', 'storefront'),
             'TIMEOUT': 5,
+            'AUTO_UPDATE': False},
+        'elasticsearch_dashboard': {
+            'BACKEND': 'saleor.search.backends.elasticsearch_dashboard',
+            'URLS': [ES_URL],
+            'INDEX': os.environ.get('ELASTICSEARCH_INDEX_NAME', 'storefront'),
+            'TIMEOUT': 5,
             'AUTO_UPDATE': False}
     }
 else:
