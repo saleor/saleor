@@ -12,6 +12,7 @@ from ...discount.models import Voucher
 
 
 def add_voucher_form(view):
+    """Decorate a view injecting a voucher form and handling its submission."""
     @wraps(view)
     def func(request, checkout):
         prefix = 'discount'
@@ -41,6 +42,11 @@ def add_voucher_form(view):
 
 
 def validate_voucher(view):
+    """Decorate a view making it check whether a discount voucher is valid.
+
+    If the voucher is invalid it will be removed and the user will be
+    redirected to the checkout summary view.
+    """
     @wraps(view)
     def func(request, checkout, cart):
         if checkout.voucher_code:
@@ -61,6 +67,7 @@ def validate_voucher(view):
 @require_POST
 @load_checkout
 def remove_voucher_view(request, checkout, cart):
+    """Clear the discount and remove the voucher."""
     next_url = request.GET.get('next', request.META['HTTP_REFERER'])
     del checkout.discount
     del checkout.voucher_code

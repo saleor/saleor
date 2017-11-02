@@ -1,3 +1,4 @@
+"""Checkout session state management."""
 from __future__ import unicode_literals
 
 from functools import wraps
@@ -25,6 +26,10 @@ STORAGE_SESSION_KEY = 'checkout_storage'
 class Checkout(object):
     """Represents a checkout session.
 
+    This object acts a temporary storage for the entire checkout session. An
+    order instance is only created when the user confirms their order and is
+    ready to pay.
+
     `VERSION` is used to prevent code trying to work with incompatible
     checkout structures.
 
@@ -46,7 +51,7 @@ class Checkout(object):
 
     @classmethod
     def from_storage(cls, storage_data, cart, user, tracking_code):
-        """Restores a previously serialized checkout session.
+        """Restore a previously serialized checkout session.
 
         `storage_data` is the value previously returned by
         `Checkout.for_storage()`.
@@ -62,13 +67,14 @@ class Checkout(object):
         return checkout
 
     def for_storage(self):
-        """Serializes a checkout session to allow persistence.
+        """Serialize a checkout session to allow persistence.
 
         The session can later be restored using `Checkout.from_storage()`.
         """
         return self.storage
 
     def clear_storage(self):
+        """Discard the entire state."""
         self.storage = None
         self.modified = True
 
@@ -85,10 +91,19 @@ class Checkout(object):
 
     @property
     def is_shipping_required(self):
+        """Return `True` if this checkout session needs shipping."""
         return self.cart.is_shipping_required()
 
     @property
     def deliveries(self):
+        """Return the cart split into delivery groups.
+
+        Generates tuples consisting of a partition, its shipping cost and its
+        total cost.
+
+        Each partition is a list of tuples containing the cart line, its unit
+        price and the line total.
+        """
         for partition in self.cart.partition():
             if self.shipping_method and partition.is_shipping_required():
                 shipping_cost = self.shipping_method.get_total()
@@ -107,6 +122,7 @@ class Checkout(object):
 
     @property
     def shipping_address(self):
+        """Return a shipping address if any."""
         if self._shipping_address is None:
             address = self._get_address_from_storage('shipping_address')
             if address is None and self.user.is_authenticated:
@@ -124,6 +140,7 @@ class Checkout(object):
 
     @property
     def shipping_method(self):
+        """Return a shipping method if any."""
         if self._shipping_method is None:
             shipping_address = self.shipping_address
             if shipping_address is None:
@@ -152,6 +169,7 @@ class Checkout(object):
 
     @property
     def email(self):
+        """Return the customer email if any."""
         return self.storage.get('email')
 
     @email.setter
@@ -161,6 +179,7 @@ class Checkout(object):
 
     @property
     def billing_address(self):
+        """Return the billing addres if any."""
         address = self._get_address_from_storage('billing_address')
         if address is not None:
             return address
@@ -179,6 +198,7 @@ class Checkout(object):
 
     @property
     def discount(self):
+        """Return a discount if any."""
         value = self.storage.get('discount_value')
         currency = self.storage.get('discount_currency')
         name = self.storage.get('discount_name')
@@ -208,6 +228,7 @@ class Checkout(object):
 
     @property
     def voucher_code(self):
+        """Return a discount voucher code if any."""
         return self.storage.get('voucher_code')
 
     @voucher_code.setter
@@ -223,6 +244,7 @@ class Checkout(object):
 
     @property
     def is_shipping_same_as_billing(self):
+        """Return `True` if shipping and billing addresses are identical."""
         return Address.objects.are_identical(
             self.shipping_address, self.billing_address)
 
@@ -233,20 +255,26 @@ class Checkout(object):
                 self.user, address, shipping=is_shipping,
                 billing=is_billing)
 
-    def _get_address_copy(self, address):
-        address.user = None
-        address.pk = None
-        address.save()
-        return address
-
     def _save_order_billing_address(self):
-        return self._get_address_copy(self.billing_address)
+        return Address.objects.copy(self.billing_address)
 
     def _save_order_shipping_address(self):
-        return self._get_address_copy(self.shipping_address)
+        return Address.objects.copy(self.shipping_address)
 
     @transaction.atomic
     def create_order(self):
+        """Create an order from the checkout session.
+
+        Each order will get a private copy of both the billing and the shipping
+        address (if shipping ).
+
+        If any of the addresses is new and the user is logged in the address
+        will also get saved to that user's address book.
+
+        Current user's language is saved in the order so we can later determine
+        which language to use when sending email.
+        """
+        # FIXME: save locale along with the language
         voucher = self._get_voucher(
             vouchers=Voucher.objects.active().select_for_update())
         if self.voucher_code is not None and voucher is None:
@@ -315,6 +343,11 @@ class Checkout(object):
                 return None
 
     def recalculate_discount(self):
+        """Recalculate `self.discount` based on the voucher.
+
+        Will clear both voucher and discount if the discount is no longer
+        applicable.
+        """
         voucher = self._get_voucher()
         if voucher is not None:
             try:
@@ -327,6 +360,7 @@ class Checkout(object):
             del self.voucher_code
 
     def get_subtotal(self):
+        """Calculate order total without shipping."""
         zero = Price(0, currency=settings.DEFAULT_CURRENCY)
         cost_iterator = (
             total - shipping_cost
@@ -335,6 +369,7 @@ class Checkout(object):
         return total
 
     def get_total(self):
+        """Calculate order total with shipping."""
         zero = Price(0, currency=settings.DEFAULT_CURRENCY)
         cost_iterator = (
             total
@@ -343,6 +378,7 @@ class Checkout(object):
         return total if self.discount is None else self.discount.apply(total)
 
     def get_total_shipping(self):
+        """Calculate shipping total."""
         zero = Price(0, currency=settings.DEFAULT_CURRENCY)
         cost_iterator = (
             shipping_cost
@@ -352,6 +388,13 @@ class Checkout(object):
 
 
 def load_checkout(view):
+    """Decorate view with checkout session and cart for each request.
+
+    Any views decorated by this will change their signature from
+    `func(request)` to `func(request, checkout, cart)`.
+    """
+    # FIXME: behave like middleware and assign checkout and cart to request
+    # instead of changing the view signature
     @wraps(view)
     @get_or_empty_db_cart(Cart.objects.for_display())
     def func(request, cart):

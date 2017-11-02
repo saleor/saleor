@@ -14,17 +14,28 @@ from ..search import index
 class AddressManager(models.Manager):
 
     def as_data(self, address):
+        """Return the address as a dict suitable for passing as kwargs.
+
+        Result does not contain the primary key or an associated user.
+        """
         data = model_to_dict(address, exclude=['id', 'user'])
         if isinstance(data['country'], Country):
             data['country'] = data['country'].code
         return data
 
     def are_identical(self, addr1, addr2):
+        """Return `True` if `addr1` and `addr2` are the same address."""
         data1 = self.as_data(addr1)
         data2 = self.as_data(addr2)
         return data1 == data2
 
+    def copy(self, address):
+        """Return a new instance of the same address."""
+        data = self.as_data(address)
+        return self.model.objects.create(**data)
+
     def store_address(self, user, address):
+        """Add the address to a user's address book if not already present."""
         data = self.as_data(address)
         address, dummy_created = user.addresses.get_or_create(**data)
         return address
@@ -92,24 +103,27 @@ class Address(models.Model):
 
 class UserManager(BaseUserManager):
 
-    def create_user(self, email, password=None, is_staff=False,
-                    is_active=True, username='', **extra_fields):
-        'Creates a User with the given username, email and password'
+    def create_user(
+            self, email, password=None, is_staff=False, is_active=True,
+            **extra_fields):
+        """Create a user instance with the given email and password."""
         email = UserManager.normalize_email(email)
-        user = self.model(email=email, is_active=is_active,
-                          is_staff=is_staff, **extra_fields)
+        user = self.model(
+            email=email, is_active=is_active, is_staff=is_staff,
+            **extra_fields)
         if password:
             user.set_password(password)
         user.save()
         return user
 
     def create_superuser(self, email, password=None, **extra_fields):
-        return self.create_user(email, password, is_staff=True,
-                                is_superuser=True, **extra_fields)
+        return self.create_user(
+            email, password, is_staff=True, is_superuser=True, **extra_fields)
 
 
 class User(PermissionsMixin, AbstractBaseUser, index.Indexed):
-    email = models.EmailField(pgettext_lazy('User field', 'email'), unique=True)
+    email = models.EmailField(
+        pgettext_lazy('User field', 'email'), unique=True)
     addresses = models.ManyToManyField(
         Address, blank=True,
         verbose_name=pgettext_lazy('User field', 'addresses'))
