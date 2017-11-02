@@ -5,9 +5,6 @@ from django.utils.six.moves.urllib.parse import urlparse
 from elasticsearch_dsl import Search
 from elasticsearch_dsl.query import MultiMatch
 
-# module scoped elasticsearch client handler for dependency injection
-CLIENT = Elasticsearch()
-
 
 def _make_host_entry(url):
     use_ssl = url.scheme == 'https'
