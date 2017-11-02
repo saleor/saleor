@@ -1,3 +1,4 @@
+from datetime import date
 from functools import wraps
 
 from django.contrib import messages
@@ -45,7 +46,8 @@ def validate_voucher(view):
     def func(request, checkout, cart):
         if checkout.voucher_code:
             try:
-                Voucher.objects.active().get(code=checkout.voucher_code)
+                Voucher.objects.active(today=date.today()).get(
+                    code=checkout.voucher_code)
             except Voucher.DoesNotExist:
                 del checkout.voucher_code
                 checkout.recalculate_discount()

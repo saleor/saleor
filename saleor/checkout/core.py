@@ -1,5 +1,6 @@
 from __future__ import unicode_literals
 
+from datetime import date
 from functools import wraps
 
 from django.conf import settings
@@ -248,7 +249,8 @@ class Checkout(object):
     @transaction.atomic
     def create_order(self):
         voucher = self._get_voucher(
-            vouchers=Voucher.objects.active().select_for_update())
+            vouchers=Voucher.objects.active(today=date.today())
+                            .select_for_update())
         if self.voucher_code is not None and voucher is None:
             # Voucher expired in meantime, abort order placement
             return
@@ -308,7 +310,7 @@ class Checkout(object):
         voucher_code = self.voucher_code
         if voucher_code is not None:
             if vouchers is None:
-                vouchers = Voucher.objects.active()
+                vouchers = Voucher.objects.active(today=date.today())
             try:
                 return vouchers.get(code=self.voucher_code)
             except Voucher.DoesNotExist:

@@ -201,17 +201,12 @@ def test_invalid_checkout_discount_form(monkeypatch, voucher):
     assert 'voucher' in form.errors
 
 
-@patch('saleor.discount.models.date')
-def test_checkout_discount_form_active_queryset(date_mock, voucher):
-    date_mock.today.return_value = date.today() - timedelta(days=1)
-    checkout = Mock(cart=Mock())
-    voucher.end_date = date.today() + timedelta(days=1)
-    voucher.save()
-    form = CheckoutDiscountForm({'voucher': voucher.code}, checkout=checkout)
-    qs = form.fields['voucher'].queryset
-    form_qs = list(qs) if qs else []
+def test_voucher_queryset_active(voucher):
     vouchers = Voucher.objects.all()
-    assert not set(form_qs).issubset(vouchers)
+    assert len(vouchers) == 1
+    active_vouchers = Voucher.objects.active(
+        today=date.today() - timedelta(days=1))
+    assert len(active_vouchers) == 0
 
 
 @pytest.mark.parametrize(
