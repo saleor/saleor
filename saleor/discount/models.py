@@ -22,8 +22,7 @@ class NotApplicable(ValueError):
 
 class VoucherQueryset(models.QuerySet):
 
-    def active(self):
-        today = date.today()
+    def active(self, today):
         queryset = self.filter(
             models.Q(usage_limit__isnull=True) |
             models.Q(used__lt=models.F('usage_limit')))
