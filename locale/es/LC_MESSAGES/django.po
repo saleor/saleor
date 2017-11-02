@@ -3,13 +3,12 @@
 # This file is distributed under the same license as the Saleor package.
 # Mirumee Software <hello@mirumee.com>, 2017.
 #
-#, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: master\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2017-10-11 08:30-0500\n"
-"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"PO-Revision-Date: 2017-11-02 15:04-0400\n"
 "Last-Translator: Patryk Zawadzki <patrys@room-303.com>, 2017\n"
 "Language-Team: Spanish (https://www.transifex.com/mirumee/teams/34782/es/)\n"
 "Language: es\n"
@@ -17,6 +16,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Generator: Poedit 1.8.7.1\n"
 
 #: saleor/cart/__init__.py:20
 msgctxt "cart status"
@@ -445,12 +445,12 @@ msgstr "categorías"
 #: saleor/discount/models.py:267
 msgctxt "Sale (discount) model"
 msgid "sale"
-msgstr "liquidación"
+msgstr "descuento"
 
 #: saleor/discount/models.py:268
 msgctxt "Sales (discounts) model"
 msgid "sales"
-msgstr "liquidaciones"
+msgstr "descuentos"
 
 #: saleor/discount/models.py:271
 #, fuzzy
@@ -1979,7 +1979,7 @@ msgstr "Checkout"
 #: templates/category/_items.html:32
 msgctxt "Sale (discount) label for item in product list"
 msgid "Sale"
-msgstr "Liquidación"
+msgstr "dto."
 
 #: templates/category/index.html:34
 #, fuzzy
