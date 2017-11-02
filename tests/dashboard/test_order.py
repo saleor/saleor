@@ -278,6 +278,29 @@ def test_view_split_order_line_with_invalid_data(admin_client, order_with_items_
     assert DeliveryGroup.objects.count() == 1
 
 
+def test_ordered_item_change_quantity(transactional_db, order_with_items):
+    assert list(order_with_items.history.all()) == []
+    items = order_with_items.groups.all()[0].items.all()
+    items[0].change_quantity(0)
+    items[1].change_quantity(0)
+    items[2].change_quantity(0)
+    history = list(order_with_items.history.all())
+    assert len(history) == 1
+    assert history[0].status == 'cancelled'
+    assert history[0].comment == 'Order cancelled. No items in order'
+
+
+def test_ordered_item_remove_empty_group_with_force(
+        transactional_db, order_with_items):
+    group = order_with_items.groups.all()[0]
+    items = group.items.all()
+    OrderedItem.objects.remove_empty_groups(items[0], force=True)
+    history = list(order_with_items.history.all())
+    assert len(history) == 1
+    assert history[0].status == 'cancelled'
+    assert history[0].comment == 'Order cancelled. No items in order'
+
+
 @pytest.mark.integration
 @pytest.mark.django_db
 def test_view_order_invoice(
