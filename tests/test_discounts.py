@@ -209,6 +209,21 @@ def test_voucher_queryset_active(voucher):
     assert len(active_vouchers) == 0
 
 
+@patch('saleor.discount.forms.date')
+def test_checkout_discount_form_active_queryset(date_mock, voucher):
+    assert len(Voucher.objects.all()) == 1
+    checkout = Mock(cart=Mock())
+    date_mock.today.return_value = date.today() - timedelta(days=1)
+    form = CheckoutDiscountForm({'voucher': voucher.code}, checkout=checkout)
+    qs = form.fields['voucher'].queryset
+    assert len(qs) == 0
+
+    date_mock.today.return_value = date.today()
+    form = CheckoutDiscountForm({'voucher': voucher.code}, checkout=checkout)
+    qs = form.fields['voucher'].queryset
+    assert len(qs) == 1
+
+
 @pytest.mark.parametrize(
     'prices, discount_value, discount_type, apply_to, expected_value', [
         ([10], 10, Voucher.DISCOUNT_VALUE_FIXED, Voucher.APPLY_TO_ONE_PRODUCT, 10),  # noqa
