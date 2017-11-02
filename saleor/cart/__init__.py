@@ -8,6 +8,8 @@ logger = logging.getLogger(__name__)
 
 
 class CartStatus:
+    """Enum of possible cart statuses."""
+
     OPEN = 'open'
     SAVED = 'saved'
     WAITING_FOR_PAYMENT = 'payment'

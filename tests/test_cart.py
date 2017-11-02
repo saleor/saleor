@@ -16,7 +16,7 @@ from satchless.item import InsufficientStock
 
 from saleor.cart import CartStatus, forms, utils
 from saleor.cart.context_processors import cart_counter
-from saleor.cart.models import Cart, ProductGroup
+from saleor.cart.models import Cart, ProductGroup, find_open_cart_for_user
 from saleor.cart.views import update
 from saleor.discount.models import Sale
 from saleor.product.models import Category
@@ -59,11 +59,13 @@ def cancelled_user_cart(customer_user):
     return Cart.objects.get_or_create(
         user=customer_user, status=CartStatus.CANCELED)[0]
 
+
 @pytest.fixture()
 def local_currency(monkeypatch):
     def side_effect(price, currency):
         return price
     monkeypatch.setattr('saleor.cart.views.to_local_currency', side_effect)
+
 
 def test_get_or_create_anonymous_cart_from_token(
         opened_anonymous_cart, cancelled_anonymous_cart, opened_user_cart,
@@ -93,7 +95,8 @@ def test_get_or_create_anonymous_cart_from_token(
     cart.delete()
 
     # test against getting cart assigned to user
-    cart = utils.get_or_create_anonymous_cart_from_token(opened_user_cart.token)
+    cart = utils.get_or_create_anonymous_cart_from_token(
+        opened_user_cart.token)
     assert Cart.objects.all().count() == 5
     assert cart not in carts
     assert cart.user is None
@@ -159,8 +162,8 @@ def test_get_user_cart(
     assert cart is None
 
 
-def test_get_or_create_cart_from_request(cart_request_factory, monkeypatch,
-                                         customer_user):
+def test_get_or_create_cart_from_request(
+        cart_request_factory, monkeypatch, customer_user):
     token = uuid4()
     queryset = Cart.objects.all()
     request = cart_request_factory(user=customer_user, token=token)
@@ -183,8 +186,8 @@ def test_get_or_create_cart_from_request(cart_request_factory, monkeypatch,
     assert returned_cart == anonymous_cart
 
 
-def test_get_cart_from_request(monkeypatch, customer_user,
-                               cart_request_factory):
+def test_get_cart_from_request(
+        monkeypatch, customer_user, cart_request_factory):
     queryset = Cart.objects.all()
     token = uuid4()
     request = cart_request_factory(user=customer_user, token=token)
@@ -271,8 +274,8 @@ def test_find_and_assign_anonymous_cart_and_close_opened(
     token = opened_anonymous_cart.token
     token_user = opened_user_cart.token
     request = cart_request_factory(user=customer_user, token=token)
-    mock_view = lambda request: Mock(delete_cookie=lambda name: None)
-    utils.find_and_assign_anonymous_cart()(mock_view)(request)
+    utils.find_and_assign_anonymous_cart()(
+        lambda request: Mock(delete_cookie=lambda name: None))(request)
     token_cart = Cart.objects.filter(token=token).first()
     user_cart = Cart.objects.filter(token=token_user).first()
     assert token_cart.user.pk == customer_user.pk
@@ -321,8 +324,8 @@ def test_adding_invalid_quantity(cart, product_in_stock):
     ({'gift-wrap': True}, None, False),
     ({'gift-wrap': True}, {'gift-wrap': True}, True)
 ])
-def test_getting_line(create_line_data, get_line_data, lines_equal,
-                      cart, product_in_stock):
+def test_getting_line(
+        create_line_data, get_line_data, lines_equal, cart, product_in_stock):
     variant = product_in_stock.variants.get()
     assert cart.get_line(variant) is None
     line = cart.create_line(variant, 1, create_line_data)
@@ -349,8 +352,9 @@ def test_shipping_detection(cart, product_in_stock):
 
 
 def test_cart_counter(monkeypatch):
-    monkeypatch.setattr('saleor.cart.context_processors.get_cart_from_request',
-                        Mock(return_value=Mock(quantity=4)))
+    monkeypatch.setattr(
+        'saleor.cart.context_processors.get_cart_from_request',
+        Mock(return_value=Mock(quantity=4)))
     ret = cart_counter(Mock())
     assert ret == {'cart_counter': 4}
 
@@ -359,8 +363,9 @@ def test_get_product_variants_and_prices():
     variant = Mock(product_id=1, id=1)
     cart = MagicMock(spec=Cart)
     cart.lines.all.return_value = [
-        Mock(quantity=1, variant=variant,
-             get_price_per_item=Mock(return_value=10))]
+        Mock(
+            quantity=1, variant=variant,
+            get_price_per_item=Mock(return_value=10))]
     variants = list(utils.get_product_variants_and_prices(cart, variant))
     assert variants == [(variant, 10)]
 
@@ -389,18 +394,21 @@ def test_check_product_availability_and_warn(
         monkeypatch, cart, product_in_stock):
     variant = product_in_stock.variants.get()
     cart.add(variant, 1)
-    monkeypatch.setattr('django.contrib.messages.warning',
-                        Mock(warning=Mock()))
-    monkeypatch.setattr('saleor.cart.utils.contains_unavailable_variants',
-                        Mock(return_value=False))
+    monkeypatch.setattr(
+        'django.contrib.messages.warning', Mock(warning=Mock()))
+    monkeypatch.setattr(
+        'saleor.cart.utils.contains_unavailable_variants',
+        Mock(return_value=False))
 
     utils.check_product_availability_and_warn(MagicMock(), cart)
     assert len(cart) == 1
 
-    monkeypatch.setattr('saleor.cart.utils.contains_unavailable_variants',
-                        Mock(return_value=True))
-    monkeypatch.setattr('saleor.cart.utils.remove_unavailable_variants',
-                        lambda c: c.add(variant, 0, replace=True))
+    monkeypatch.setattr(
+        'saleor.cart.utils.contains_unavailable_variants',
+        Mock(return_value=True))
+    monkeypatch.setattr(
+        'saleor.cart.utils.remove_unavailable_variants',
+        lambda c: c.add(variant, 0, replace=True))
 
     utils.check_product_availability_and_warn(MagicMock(), cart)
     assert len(cart) == 0
@@ -408,8 +416,9 @@ def test_check_product_availability_and_warn(
 
 def test_add_to_cart_form():
     cart_lines = []
-    cart = Mock(add=lambda variant, quantity: cart_lines.append(variant),
-                get_line=Mock(return_value=Mock(quantity=1)))
+    cart = Mock(
+        add=lambda variant, quantity: cart_lines.append(variant),
+        get_line=Mock(return_value=Mock(quantity=1)))
     data = {'quantity': 1}
     form = forms.AddToCartForm(data=data, cart=cart, product=Mock())
 
@@ -432,8 +441,9 @@ def test_add_to_cart_form():
 
 def test_form_when_variant_does_not_exist():
     cart_lines = []
-    cart = Mock(add=lambda variant, quantity: cart_lines.append(Mock()),
-                get_line=Mock(return_value=Mock(quantity=1)))
+    cart = Mock(
+        add=lambda variant, quantity: cart_lines.append(Mock()),
+        get_line=Mock(return_value=Mock(quantity=1)))
 
     form = forms.AddToCartForm(data={'quantity': 1}, cart=cart, product=Mock())
     form.get_variant = Mock(side_effect=ObjectDoesNotExist)
@@ -442,8 +452,9 @@ def test_form_when_variant_does_not_exist():
 
 def test_add_to_cart_form_when_empty_stock():
     cart_lines = []
-    cart = Mock(add=lambda variant, quantity: cart_lines.append(Mock()),
-                get_line=Mock(return_value=Mock(quantity=1)))
+    cart = Mock(
+        add=lambda variant, quantity: cart_lines.append(Mock()),
+        get_line=Mock(return_value=Mock(quantity=1)))
 
     form = forms.AddToCartForm(data={'quantity': 1}, cart=cart, product=Mock())
     exception_mock = InsufficientStock(
@@ -455,8 +466,9 @@ def test_add_to_cart_form_when_empty_stock():
 
 def test_add_to_cart_form_when_insufficient_stock():
     cart_lines = []
-    cart = Mock(add=lambda variant, quantity: cart_lines.append(variant),
-                get_line=Mock(return_value=Mock(quantity=1)))
+    cart = Mock(
+        add=lambda variant, quantity: cart_lines.append(variant),
+        get_line=Mock(return_value=Mock(quantity=1)))
 
     form = forms.AddToCartForm(data={'quantity': 1}, cart=cart, product=Mock())
     exception_mock = InsufficientStock(
@@ -488,8 +500,9 @@ def test_replace_cartline_form_when_insufficient_stock(
     cart.add(variant, initial_quantity)
     exception_mock = InsufficientStock(
         Mock(get_stock_quantity=Mock(return_value=2)))
-    monkeypatch.setattr('saleor.product.models.ProductVariant.check_quantity',
-                        Mock(side_effect=exception_mock))
+    monkeypatch.setattr(
+        'saleor.product.models.ProductVariant.check_quantity',
+        Mock(side_effect=exception_mock))
     data = {'quantity': replaced_quantity}
     form = forms.ReplaceCartLineForm(data=data, cart=cart, variant=variant)
     assert not form.is_valid()
@@ -513,7 +526,8 @@ def test_view_cart(client, sale, product_in_stock, request_cart):
     assert response.status_code == 200
 
 
-def test_view_update_cart_quantity(client, local_currency, product_in_stock, request_cart):
+def test_view_update_cart_quantity(
+        client, local_currency, product_in_stock, request_cart):
     variant = product_in_stock.variants.get()
     request_cart.add(variant, 1)
     response = client.post(
@@ -596,11 +610,13 @@ def test_total_with_discount(client, sale, request_cart, product_in_stock):
 
 
 def test_product_group():
-    group = ProductGroup([Mock(is_shipping_required=Mock(return_value=False)),
-                          Mock(is_shipping_required=Mock(return_value=False))])
+    group = ProductGroup([
+        Mock(is_shipping_required=Mock(return_value=False)),
+        Mock(is_shipping_required=Mock(return_value=False))])
     assert not group.is_shipping_required()
-    group = ProductGroup([Mock(is_shipping_required=Mock(return_value=True)),
-                          Mock(is_shipping_required=Mock(return_value=False))])
+    group = ProductGroup([
+        Mock(is_shipping_required=Mock(return_value=True)),
+        Mock(is_shipping_required=Mock(return_value=False))])
     assert group.is_shipping_required()
 
 
@@ -626,23 +642,21 @@ def test_cart_queryset(customer_user):
     assert canceled.filter(pk=canceled_cart.pk).exists()
 
 
-def test_get_user_open_cart(customer_user, opened_user_cart):
-
-    assert Cart.get_user_open_cart(customer_user) == opened_user_cart
+def test_find_open_cart_for_user(customer_user, opened_user_cart):
+    assert find_open_cart_for_user(customer_user) == opened_user_cart
 
     cart = Cart.objects.create(user=customer_user)
 
-    assert Cart.get_user_open_cart(customer_user) == cart
-    assert Cart.objects.get(pk=opened_user_cart.pk).status == CartStatus.CANCELED
+    assert find_open_cart_for_user(customer_user) == cart
+    assert (
+        Cart.objects.get(pk=opened_user_cart.pk).status == CartStatus.CANCELED)
 
 
 def test_cart_repr():
     cart = Cart()
-
     assert repr(cart) == 'Cart(quantity=0)'
 
     cart.quantity = 1
-
     assert repr(cart) == 'Cart(quantity=1)'
 
 
@@ -685,15 +699,15 @@ def test_cart_line_state(product_in_stock, request_cart_with_item):
     assert line.quantity == 2
 
 
-def test_get_category_variants_and_prices(default_category, product_in_stock,
-                                          request_cart_with_item):
+def test_get_category_variants_and_prices(
+        default_category, product_in_stock, request_cart_with_item):
     variant = product_in_stock.variants.get()
     top_category = Category.objects.create(name='foo', slug='bar')
     product_in_stock.categories.add(top_category)
     default_category.parent = top_category
     default_category.save()
-    result = list(utils.get_category_variants_and_prices(request_cart_with_item,
-                                                         top_category))
+    result = list(utils.get_category_variants_and_prices(
+        request_cart_with_item, top_category))
     assert result[0][0] == variant
 
 
