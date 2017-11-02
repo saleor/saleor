@@ -45,3 +45,26 @@ def test_order_discount(sale, order, request_cart_with_item):
         group, cart.lines.all(), discounts=cart.discounts)
     item = group.items.first()
     assert item.get_price_per_item() == Price(currency="USD", net=5)
+
+
+def test_ordered_item_change_quantity(transactional_db, order_with_items):
+    assert list(order_with_items.history.all()) == []
+    items = order_with_items.groups.all()[0].items.all()
+    items[0].change_quantity(0)
+    items[1].change_quantity(0)
+    items[2].change_quantity(0)
+    history = list(order_with_items.history.all())
+    assert len(history) == 1
+    assert history[0].status == 'cancelled'
+    assert history[0].comment == 'Order cancelled. No items in order'
+
+
+def test_ordered_item_remove_empty_groupwith_force(
+        transactional_db, order_with_items):
+    group = order_with_items.groups.all()[0]
+    items = group.items.all()
+    models.OrderedItem.objects.remove_empty_groups(items[0], force=True)
+    history = list(order_with_items.history.all())
+    assert len(history) == 1
+    assert history[0].status == 'cancelled'
+    assert history[0].comment == 'Order cancelled. No items in order'
