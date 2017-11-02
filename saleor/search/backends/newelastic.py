@@ -2,6 +2,7 @@ from __future__ import unicode_literals
 
 from elasticsearch import Elasticsearch
 from django.utils.six.moves.urllib.parse import urlparse
+from django.db.models.query import QuerySet
 from elasticsearch_dsl import Search
 from elasticsearch_dsl.query import MultiMatch
 
@@ -38,12 +39,16 @@ class SearchBackend(object):
             cls.client = Elasticsearch(hosts=_get_es_hosts(params))
 
     def search(self, query, model_or_queryset):
-        return model_or_queryset.filter(pk__in=search_products(query))
+        qs = model_or_queryset
+        # TODO: remove this ugly type incoherence of old search api
+        if not isinstance(model_or_queryset, QuerySet):
+            qs = model_or_queryset.objects.all()
+        return qs.filter(pk__in=search_products(query))
 
 
 def search_products(phrase):
     ''' Execute external search for product matching phrase  '''
-    INDEX = 'storefront__product_product'  # TODO: parametrize this
+    INDEX = 'storefront__product_product'
     CONTENT = 'product.Product'
     query = MultiMatch(fields=['name', 'description'], query=phrase)
     search = (Search(index=INDEX).query(query)
