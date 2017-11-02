@@ -1,17 +1,17 @@
 interactions:
 - request:
-    body: '{"query": {"bool": {"must": [{"multi_match": {"query": "group", "fields":
-      ["name", "description"]}}], "filter": [{"match": {"content_type": "product.Product"}}]}},
-      "_source": ["pk"]}'
+    body: '{"query": {"bool": {"filter": [{"term": {"is_published_filter": true}},
+      {"match": {"content_type": "product.Product"}}], "must": [{"multi_match": {"query":
+      "group", "fields": ["name", "description"]}}]}}, "_source": ["pk"]}'
     headers:
       connection: [keep-alive]
       content-type: [application/json]
     method: GET
     uri: http://search:9200/storefront__product_product/_search
   response:
-    body: {string: '{"took":10,"timed_out":false,"_shards":{"total":5,"successful":5,"failed":0},"hits":{"total":1,"max_score":3.7124774,"hits":[{"_index":"storefront__product_product","_type":"product_product","_id":"product_product:32","_score":3.7124774,"_source":{"pk":"32"}}]}}'}
+    body: {string: '{"took":4,"timed_out":false,"_shards":{"total":5,"successful":5,"failed":0},"hits":{"total":1,"max_score":3.7124774,"hits":[{"_index":"storefront__product_product","_type":"product_product","_id":"product_product:32","_score":3.7124774,"_source":{"pk":"32"}}]}}'}
     headers:
-      content-length: ['262']
+      content-length: ['261']
       content-type: [application/json; charset=UTF-8]
     status: {code: 200, message: OK}
 version: 1
