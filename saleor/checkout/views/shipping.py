@@ -7,7 +7,7 @@ from ...userprofile.models import Address
 
 
 def anonymous_user_shipping_address_view(request, checkout):
-
+    """Display the shipping step for a user who is not logged in."""
     address_form, preview = get_address_form(
         request.POST or None, country_code=request.country.code,
         autocomplete_type='shipping',
@@ -28,6 +28,11 @@ def anonymous_user_shipping_address_view(request, checkout):
 
 
 def user_shipping_address_view(request, checkout):
+    """Display the shipping step for a logged in user.
+
+    In addition to entering a new address the user has an option of selecting
+    one of the existing entries from their address book.
+    """
     data = request.POST or None
     additional_addresses = request.user.addresses.all()
     checkout.email = request.user.email
@@ -54,7 +59,8 @@ def user_shipping_address_view(request, checkout):
             data, additional_addresses=additional_addresses)
 
     if addresses_form.is_valid() and not preview:
-        if addresses_form.cleaned_data['address'] != ShippingAddressesForm.NEW_ADDRESS:
+        if (addresses_form.cleaned_data['address'] !=
+                ShippingAddressesForm.NEW_ADDRESS):
             address_id = addresses_form.cleaned_data['address']
             checkout.shipping_address = Address.objects.get(id=address_id)
             return redirect('checkout:shipping-method')
@@ -64,4 +70,5 @@ def user_shipping_address_view(request, checkout):
     return TemplateResponse(
         request, 'checkout/shipping_address.html', context={
             'address_form': address_form, 'user_form': addresses_form,
-            'checkout': checkout, 'additional_addresses': additional_addresses})
+            'checkout': checkout,
+            'additional_addresses': additional_addresses})

@@ -12,5 +12,4 @@ urlpatterns = [
     url(r'^summary/', views.summary_view, name='summary'),
     url(r'^remove_voucher/', views.discount.remove_voucher_view,
         name='remove-voucher'),
-    url(r'^login/', views.login, name='login'),
-]
+    url(r'^login/', views.login, name='login')]

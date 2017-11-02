@@ -19,6 +19,7 @@ from ...registration.forms import LoginForm
 @validate_cart
 @validate_is_shipping_required
 def index_view(request, checkout):
+    """Redirect to the initial step of checkout."""
     return redirect('checkout:shipping-address')
 
 
@@ -28,6 +29,7 @@ def index_view(request, checkout):
 @validate_is_shipping_required
 @add_voucher_form
 def shipping_address_view(request, checkout):
+    """Display the correct shipping address step."""
     if request.user.is_authenticated:
         return user_shipping_address_view(request, checkout)
     return anonymous_user_shipping_address_view(request, checkout)
@@ -40,14 +42,19 @@ def shipping_address_view(request, checkout):
 @validate_shipping_address
 @add_voucher_form
 def shipping_method_view(request, checkout):
+    """Display the shipping method selection step."""
     country_code = checkout.shipping_address.country.code
     shipping_method_form = ShippingMethodForm(
-        country_code, request.POST or None, initial={'method': checkout.shipping_method})
+        country_code, request.POST or None,
+        initial={'method': checkout.shipping_method})
     if shipping_method_form.is_valid():
         checkout.shipping_method = shipping_method_form.cleaned_data['method']
         return redirect('checkout:summary')
-    return TemplateResponse(request, 'checkout/shipping_method.html', context={
-        'shipping_method_form': shipping_method_form, 'checkout': checkout})
+    return TemplateResponse(
+        request, 'checkout/shipping_method.html',
+        context={
+            'shipping_method_form': shipping_method_form,
+            'checkout': checkout})
 
 
 @load_checkout
@@ -55,6 +62,7 @@ def shipping_method_view(request, checkout):
 @validate_cart
 @add_voucher_form
 def summary_view(request, checkout):
+    """Display the correct order summary."""
     if checkout.is_shipping_required:
         view = validate_shipping_address(summary_with_shipping_view)
         view = validate_shipping_method(view)
@@ -68,12 +76,8 @@ def summary_view(request, checkout):
 @load_checkout
 @validate_cart
 def login(request, checkout):
-    """
-    Allows user to choose if he wants to login before checkout or continue
-    as an anonymous user
-    """
+    """Allow the user to log in prior to checkout."""
     if request.user.is_authenticated:
         return redirect('checkout:index')
     form = LoginForm()
-    ctx = {'form': form}
-    return TemplateResponse(request, 'checkout/login.html', ctx)
+    return TemplateResponse(request, 'checkout/login.html', {'form': form})
