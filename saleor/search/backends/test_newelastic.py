@@ -45,4 +45,3 @@ def test_storefront_product_search_query_syntax(elasticsearch_client):
     products = newelastic.search_products(PHRASE)
     newelastic.SearchBackend.client.search.assert_called_once_with(
         body=QUERY, doc_type=[], index=[INDEX])
-    assert not products
