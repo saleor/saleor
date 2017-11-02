@@ -16,11 +16,11 @@ cairocffi==0.8.0          # via cairosvg, weasyprint
 cairosvg==1.0.22
 celery[redis]==4.1.0
 certifi==2017.7.27.1      # via requests
-cffi==1.10.0              # via cryptography
+cffi==1.10.0              # via cairocffi, cryptography, weasyprint
 chardet==3.0.4            # via requests
 cryptography==2.0.3       # via django-payments
-defusedxml==0.5.0         # via python3-openid, social-auth-core
 cssselect2==0.2.1         # via weasyprint
+defusedxml==0.5.0         # via python3-openid, social-auth-core
 dj-database-url==0.4.2
 dj-email-url==0.0.10
 django-bootstrap3==9.0.0
@@ -29,7 +29,7 @@ django-celery-results==1.0.1
 django-countries==4.6.1
 django-filter==1.0.4
 django-mptt==0.8.7
-django-payments==0.11.0.3
+django-payments==0.12.0
 django-prices-openexchangerates==0.1.15
 django-prices==0.6.2
 django-redis==4.8.0
@@ -84,7 +84,7 @@ requests==2.18.4
 s3transfer==0.1.10        # via boto3
 satchless==1.1.3
 singledispatch==3.4.0.3   # via graphene-django
-six==1.11.0               # via cryptography, django-templated-email, faker, graphene, graphene-django, graphql-core, graphql-relay, mock, promise, purl, python-dateutil, singledispatch, social-auth-app-django, social-auth-core
+six==1.11.0               # via cryptography, django-templated-email, faker, graphene, graphene-django, graphql-core, graphql-relay, html5lib, mock, promise, purl, python-dateutil, singledispatch, social-auth-app-django, social-auth-core
 social-auth-app-django==1.2.0
 social-auth-core==1.4.0   # via social-auth-app-django
 stripe==1.65.0            # via django-payments
