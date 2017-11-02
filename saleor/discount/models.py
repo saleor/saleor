@@ -17,7 +17,15 @@ from ..cart.utils import (
 
 
 class NotApplicable(ValueError):
-    pass
+    """Exception raised when a discount is not applicable to a checkout.
+
+    If the error is raised because the order value is too low the minimum
+    price limit will be available as the `limit` attribute.
+    """
+
+    def __init__(self, msg, limit=None):
+        super(NotApplicable, self).__init__(msg)
+        self.limit = limit
 
 
 class VoucherQueryset(models.QuerySet):
@@ -47,30 +55,38 @@ class Voucher(models.Model):
     APPLY_TO_ONE_PRODUCT = 'one'
     APPLY_TO_ALL_PRODUCTS = 'all'
 
-    APPLY_TO_PRODUCT_CHOICES = (
-        (APPLY_TO_ONE_PRODUCT,
-         pgettext_lazy('Voucher application', 'Apply to a single item')),
-        (APPLY_TO_ALL_PRODUCTS,
-         pgettext_lazy('Voucher application', 'Apply to all matching products')))
+    APPLY_TO_PRODUCT_CHOICES = [
+        (
+            APPLY_TO_ONE_PRODUCT,
+            pgettext_lazy('Voucher application', 'Apply to a single item')),
+        (
+            APPLY_TO_ALL_PRODUCTS,
+            pgettext_lazy(
+                'Voucher application', 'Apply to all matching products'))]
 
     DISCOUNT_VALUE_FIXED = 'fixed'
     DISCOUNT_VALUE_PERCENTAGE = 'percentage'
 
-    DISCOUNT_VALUE_TYPE_CHOICES = (
-        (DISCOUNT_VALUE_FIXED,
-         pgettext_lazy('Voucher discount type', settings.DEFAULT_CURRENCY)),
-        (DISCOUNT_VALUE_PERCENTAGE, pgettext_lazy('Voucher discount type', '%')))
+    DISCOUNT_VALUE_TYPE_CHOICES = [
+        (
+            DISCOUNT_VALUE_FIXED,
+            pgettext_lazy('Voucher discount type', settings.DEFAULT_CURRENCY)),
+        (
+            DISCOUNT_VALUE_PERCENTAGE,
+            pgettext_lazy('Voucher discount type', '%'))]
 
     PRODUCT_TYPE = 'product'
     CATEGORY_TYPE = 'category'
     SHIPPING_TYPE = 'shipping'
     VALUE_TYPE = 'value'
 
-    TYPE_CHOICES = (
+    TYPE_CHOICES = [
         (VALUE_TYPE, pgettext_lazy('Voucher: discount for', 'All purchases')),
         (PRODUCT_TYPE, pgettext_lazy('Voucher: discount for', 'One product')),
-        (CATEGORY_TYPE, pgettext_lazy('Voucher: discount for', 'A category of products')),
-        (SHIPPING_TYPE, pgettext_lazy('Voucher: discount for', 'Shipping')))
+        (
+            CATEGORY_TYPE,
+            pgettext_lazy('Voucher: discount for', 'A category of products')),
+        (SHIPPING_TYPE, pgettext_lazy('Voucher: discount for', 'Shipping'))]
 
     type = models.CharField(
         pgettext_lazy('Voucher field', 'discount for'), max_length=20,
@@ -136,15 +152,21 @@ class Voucher(models.Model):
             if self.is_free:
                 return pgettext('Voucher type', 'Free shipping')
             else:
-                return pgettext('Voucher type', '%(discount)s off shipping') % {
-                    'discount': discount}
+                return pgettext(
+                    'Voucher type',
+                    '%(discount)s off shipping') % {'discount': discount}
         if self.type == Voucher.PRODUCT_TYPE:
-            return pgettext('Voucher type', '%(discount)s off %(product)s') % {
-                'discount': discount, 'product': self.product}
+            return pgettext(
+                'Voucher type',
+                '%(discount)s off %(product)s') % {
+                    'discount': discount, 'product': self.product}
         if self.type == Voucher.CATEGORY_TYPE:
-            return pgettext('Voucher type', '%(discount)s off %(category)s') % {
-                'discount': discount, 'category': self.category}
-        return pgettext('Voucher type', '%(discount)s off') % {'discount': discount}
+            return pgettext(
+                'Voucher type',
+                '%(discount)s off %(category)s') % {
+                    'discount': discount, 'category': self.category}
+        return pgettext(
+            'Voucher type', '%(discount)s off') % {'discount': discount}
 
     def get_apply_to_display(self):
         if self.type == Voucher.SHIPPING_TYPE and self.apply_to:
@@ -179,8 +201,9 @@ class Voucher(models.Model):
         limit = self.limit if self.limit is not None else value
         if value < limit:
             msg = pgettext(
-                'Voucher not applicable', 'This offer is only valid for orders over %(amount)s.')
-            raise NotApplicable(msg % {'amount': net(limit)})
+                'Voucher not applicable',
+                'This offer is only valid for orders over %(amount)s.')
+            raise NotApplicable(msg % {'amount': net(limit)}, limit=limit)
 
     def get_discount_for_checkout(self, checkout):
         if self.type == Voucher.VALUE_TYPE:
@@ -191,19 +214,22 @@ class Voucher(models.Model):
         elif self.type == Voucher.SHIPPING_TYPE:
             if not checkout.is_shipping_required:
                 msg = pgettext(
-                    'Voucher not applicable', 'Your order does not require shipping.')
+                    'Voucher not applicable',
+                    'Your order does not require shipping.')
                 raise NotApplicable(msg)
             shipping_method = checkout.shipping_method
             if not shipping_method:
                 msg = pgettext(
-                    'Voucher not applicable', 'Please select a shipping method first.')
+                    'Voucher not applicable',
+                    'Please select a shipping method first.')
                 raise NotApplicable(msg)
             if (self.apply_to and
                     shipping_method.country_code != self.apply_to):
                 msg = pgettext(
-                    'Voucher not applicable', 'This offer is only valid in %(country)s.')
-                raise NotApplicable(msg % {
-                    'country': self.get_apply_to_display()})
+                    'Voucher not applicable',
+                    'This offer is only valid in %(country)s.')
+                raise NotApplicable(
+                    msg % {'country': self.get_apply_to_display()})
             cart_total = checkout.get_subtotal()
             self.validate_limit(cart_total)
             return self.get_fixed_discount_for(shipping_method.price)
@@ -247,7 +273,8 @@ class Sale(models.Model):
         (FIXED, pgettext_lazy('Discount type', settings.DEFAULT_CURRENCY)),
         (PERCENTAGE, pgettext_lazy('Discount type', '%')))
 
-    name = models.CharField(pgettext_lazy('Sale (discount) field', 'name'), max_length=255)
+    name = models.CharField(
+        pgettext_lazy('Sale (discount) field', 'name'), max_length=255)
     type = models.CharField(
         pgettext_lazy('Sale (discount) field', 'type'),
         max_length=10, choices=DISCOUNT_TYPE_CHOICES, default=FIXED)
@@ -305,7 +332,8 @@ class Sale(models.Model):
             return self.get_discount()
         raise NotApplicable(
             pgettext(
-                'Voucher not applicable', 'Discount not applicable for this product'))
+                'Voucher not applicable',
+                'Discount not applicable for this product'))
 
 
 def get_product_discounts(product, discounts, **kwargs):
