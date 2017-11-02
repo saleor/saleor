@@ -1,12 +1,19 @@
 from django import forms
+from django.contrib.sites.models import Site
 
 from ...site.models import SiteSettings, AuthorizationKey
+
+
+class SiteForm(forms.ModelForm):
+    class Meta:
+        model = Site
+        exclude = []
 
 
 class SiteSettingForm(forms.ModelForm):
     class Meta:
         model = SiteSettings
-        exclude = []
+        exclude = ['site']
 
 
 class AuthorizationKeyForm(forms.ModelForm):

@@ -5,7 +5,7 @@
 
 <html lang="{{ LANGUAGE_CODE }}" class="no-js">
 <head>
-  <title>{% block title %}{{ settings.name }}{% endblock %}</title>
+  <title>{% block title %}{{ site.name }}{% endblock %}</title>
   {% block meta %}
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -30,7 +30,7 @@
     <div class="navbar__login d-none d-md-block container">
       <div class="row">
         <div class="col-6">
-          <p class="text-left">{{ settings.header_text }}</p>
+          <p class="text-left">{{ site.settings.header_text }}</p>
         </div>
         <div class="col-6">
           <ul class="float-right">

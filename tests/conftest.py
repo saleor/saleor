@@ -8,6 +8,7 @@ from io import BytesIO
 from PIL import Image
 
 from django.contrib.auth.models import AnonymousUser
+from django.contrib.sites.models import Site
 from django.utils.encoding import smart_text
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.contrib.auth.models import AnonymousUser, Group, Permission
@@ -28,6 +29,19 @@ from saleor.product.models import (AttributeChoiceValue, Category, Product,
 from saleor.shipping.models import ShippingMethod
 from saleor.site.models import SiteSettings, AuthorizationKey
 from saleor.userprofile.models import Address, User
+
+
+@pytest.fixture(autouse=True)
+def site_settings(db, settings):
+    '''
+    This fixture is autouse set to True because
+    django.contrib.sites.models.Site and saleor.site.models.SiteSettings has
+    OneToOne relationship and Site should never exist without SiteSettings.
+    '''
+    site = Site.objects.get_or_create(name="mirumee.com", domain="mirumee.com")[0]
+    obj = SiteSettings.objects.get_or_create(site=site)[0]
+    settings.SITE_ID = site.pk
+    return obj
 
 
 @pytest.fixture
@@ -432,15 +446,6 @@ def sale(db, default_category):
     sale = Sale.objects.create(name="Sale", value=5)
     sale.categories.add(default_category)
     return sale
-
-
-@pytest.fixture
-def site_settings(db, settings):
-    obj = SiteSettings.objects.create(name="mirumee.com",
-                                      header_text="mirumee.com",
-                                      domain="mirumee.com")
-    settings.SITE_SETTINGS_ID = obj.pk
-    return obj
 
 
 @pytest.fixture

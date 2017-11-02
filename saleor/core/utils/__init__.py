@@ -7,6 +7,7 @@ from json import JSONEncoder
 from babel.numbers import get_territory_currencies
 from django import forms
 from django.conf import settings
+from django.contrib.sites.models import Site
 from django.core.paginator import InvalidPage, Paginator
 from django.http import Http404
 from django.utils.encoding import iri_to_uri, smart_text
@@ -17,7 +18,6 @@ from geolite2 import geolite2
 from prices import PriceRange
 
 from ...userprofile.models import User
-from ...site.utils import get_site_settings
 
 try:
     from urllib.parse import urljoin
@@ -42,11 +42,9 @@ class CategoryChoiceField(forms.ModelChoiceField):
         return '%s%s' % (indent, smart_text(obj))
 
 
-def build_absolute_uri(location, is_secure=False, site_settings=None):
+def build_absolute_uri(location, is_secure=False):
     # type: (str, bool, saleor.site.models.SiteSettings) -> str
-    if site_settings is None:
-        site_settings = get_site_settings()
-    host = site_settings.domain
+    host = Site.objects.get_current().domain
     current_uri = '%s://%s' % ('https' if is_secure else 'http', host)
     location = urljoin(current_uri, location)
     return iri_to_uri(location)

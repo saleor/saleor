@@ -2,7 +2,7 @@ from __future__ import unicode_literals
 
 import csv
 
-from mock import Mock
+from mock import Mock, patch
 
 from django.utils import six
 from django.utils.encoding import smart_text
@@ -11,12 +11,13 @@ if six.PY3:
 else:
     from StringIO import StringIO
 
+from django.contrib.sites.models import Site
+
 from saleor.product.models import AttributeChoiceValue, Category
 from saleor.data_feeds.google_merchant import (get_feed_items,
                                                item_attributes,
                                                item_google_product_category,
                                                write_feed)
-from saleor.site.utils import get_site_settings
 
 
 def test_saleor_feed_items(product_in_stock):
@@ -27,7 +28,7 @@ def test_saleor_feed_items(product_in_stock):
     discounts = []
     category_paths = {}
     attributes_dict = {}
-    current_site = get_site_settings()
+    current_site = Site.objects.get_current()
     attribute_values_dict = {smart_text(a.pk): smart_text(a) for a
                              in AttributeChoiceValue.objects.all()}
     attributes = item_attributes(items[0], categories, category_paths,
@@ -68,3 +69,10 @@ def test_write_feed(product_in_stock, monkeypatch):
                               'availability', 'price', 'condition']
     for field in google_required_fields:
         assert field in header
+
+
+@patch('saleor.data_feeds.google_merchant.item_link')
+def test_feed_contains_site_settings_domain(mocked_item_link, product_in_stock):
+    write_feed(StringIO())
+    mocked_item_link.assert_called_once_with(
+        product_in_stock.variants.first(), Site.objects.get_current())
