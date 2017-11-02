@@ -258,6 +258,7 @@ def get_host():
     return Site.objects.get_current().domain
 
 
+
 PAYMENT_HOST = get_host
 
 PAYMENT_MODEL = 'order.Payment'
@@ -352,34 +353,29 @@ LOGOUT_ON_PASSWORD_CHANGE = False
 
 
 ELASTICSEARCH_URL = os.environ.get('ELASTICSEARCH_URL')
-SEARCHBOX_URL = os.environ.get('SEARCHBOX_URL')
-BONSAI_URL = os.environ.get('BONSAI_URL')
-# We'll support couple of elasticsearch add-ons, but finally we'll use single
-# variable
-ES_URL = ELASTICSEARCH_URL or SEARCHBOX_URL or BONSAI_URL or ''
-if ES_URL:
+if ELASTICSEARCH_URL:
     SEARCH_BACKENDS = {
         'default': {
             'BACKEND': 'saleor.search.backends.elasticsearch5',
-            'URLS': [ES_URL],
+            'URLS': [ELASTICSEARCH_URL],
             'INDEX': os.environ.get('ELASTICSEARCH_INDEX_NAME', 'storefront'),
             'TIMEOUT': 5,
             'AUTO_UPDATE': True},
         'newelastic': {
             'BACKEND': 'saleor.search.backends.newelastic',
-            'URLS': [ES_URL],
+            'URLS': [ELASTICSEARCH_URL],
             'INDEX': os.environ.get('ELASTICSEARCH_INDEX_NAME', 'storefront'),
             'TIMEOUT': 5,
             'AUTO_UPDATE': False},
         'dashboard': {
             'BACKEND': 'saleor.search.backends.dashboard',
-            'URLS': [ES_URL],
+            'URLS': [ELASTICSEARCH_URL],
             'INDEX': os.environ.get('ELASTICSEARCH_INDEX_NAME', 'storefront'),
             'TIMEOUT': 5,
             'AUTO_UPDATE': False},
         'elasticsearch_dashboard': {
             'BACKEND': 'saleor.search.backends.elasticsearch_dashboard',
-            'URLS': [ES_URL],
+            'URLS': [ELASTICSEARCH_URL],
             'INDEX': os.environ.get('ELASTICSEARCH_INDEX_NAME', 'storefront'),
             'TIMEOUT': 5,
             'AUTO_UPDATE': False}
