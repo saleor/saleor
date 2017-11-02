@@ -8,8 +8,11 @@ from decimal import Decimal
 import pytest
 
 MATCH_SEARCH_REQUEST = ['method', 'host', 'port', 'path', 'body']
-PRODUCTS_FOUND = [15, 34, 41, 58, 59]  # same as in recorded data!
-DATE_OF_RECORDING = '2017-10-18'
+OLD_BACKEND_FOUND = {41, 59}  # same as in recorded data!
+NEW_BACKEND_FOUND = {15, 34, 58}  # same as in recorded data!
+PRODUCTS_INDEXED = OLD_BACKEND_FOUND | NEW_BACKEND_FOUND
+
+DATE_OF_RECORDING = '2017-10-18'  # time freee for old backend
 
 
 @pytest.fixture(scope='function', autouse=True)
@@ -64,7 +67,7 @@ def indexed_products(product_class, default_category):
             product_class=product_class)
         product.categories.add(default_category)
         return product
-    return [gen_product_with_id(prod) for prod in PRODUCTS_FOUND]
+    return [gen_product_with_id(prod) for prod in PRODUCTS_INDEXED]
 
 
 def _extract_pks(object_list):
@@ -77,7 +80,7 @@ def test_search_with_result(db, indexed_products, client):
     EXISTING_PHRASE = 'Group'
     response = client.get(reverse('search:search'), {'q': EXISTING_PHRASE})
     found_products = _extract_pks(response.context['results'].object_list)
-    assert [41, 59] == sorted(found_products)
+    assert OLD_BACKEND_FOUND == set(found_products)
     assert EXISTING_PHRASE == response.context['query']
 
 
@@ -93,6 +96,7 @@ def new_search_backend():
 @pytest.mark.integration
 @pytest.mark.vcr(record_mode='once', match_on=MATCH_SEARCH_REQUEST)
 def test_new_search_with_empty_results(db, client, new_search_backend):
+    ''' no products found with foo '''
     WORD = 'foo'
     response = client.get(reverse('search:search'), {'q': WORD})
     assert 0 == len(response.context['results'].object_list)
@@ -103,17 +107,20 @@ def test_new_search_with_empty_results(db, client, new_search_backend):
 @pytest.mark.vcr(record_mode='once', match_on=MATCH_SEARCH_REQUEST)
 def test_new_search_with_result(db, indexed_products, client,
                                 new_search_backend):
+    ''' some products founds, only those both in search result and objects '''
     EXISTING_PHRASE = 'Group'
     response = client.get(reverse('search:search'), {'q': EXISTING_PHRASE})
     found_products = _extract_pks(response.context['results'].object_list)
-    assert [15, 34, 58] == sorted(found_products)
+    assert NEW_BACKEND_FOUND == set(found_products)
     assert EXISTING_PHRASE == response.context['query']
+
+
+PRODUCTS_TO_UNPUBLISH = {15, 34}
 
 
 @pytest.fixture
 def products_with_mixed_publishing(indexed_products):
-    UNPUBLISH_PK = [15]
-    products_to_unpublish = Product.objects.filter(pk__in=UNPUBLISH_PK)
+    products_to_unpublish = Product.objects.filter(pk__in=PRODUCTS_TO_UNPUBLISH)
     for prod in products_to_unpublish:
         prod.is_published = False
         prod.save()
@@ -124,8 +131,9 @@ def products_with_mixed_publishing(indexed_products):
 @pytest.mark.vcr(record_mode='once', match_on=MATCH_SEARCH_REQUEST)
 def test_new_search_doesnt_show_unpublished(db, products_with_mixed_publishing,
                                             client, new_search_backend):
+    published_products = NEW_BACKEND_FOUND - PRODUCTS_TO_UNPUBLISH
     EXISTING_PHRASE = 'Group'
     response = client.get(reverse('search:search'), {'q': EXISTING_PHRASE})
     found_products = _extract_pks(response.context['results'].object_list)
-    assert [34, 58] == sorted(found_products)
+    assert published_products == set(found_products)
     assert EXISTING_PHRASE == response.context['query']
