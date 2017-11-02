@@ -91,7 +91,6 @@
             </li>
           {% endfor %}
         </ul>
-{#        {% include "dashboard/includes/_pagination.html" with page_obj=results %}#}
         {% paginate results %}
       {% elif query %}
         <div class="not-found">
