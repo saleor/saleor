@@ -11,16 +11,22 @@ def search_phrase():
 
 @pytest.fixture
 def es_search_query(search_phrase):
+    CONTENT_TYPE = 'product.Product'
+    FIELDS = ['name', 'description']
     return {
         'query': {
             'bool': {
                 'must': [{
                     'multi_match': {
-                        'query': 'How fortunate man with none',
-                        'fields': ['name', 'description']
+                        'fields': ['name', 'description'],
+                        'query': 'How fortunate man with none'
                     }
                 }],
                 'filter': [{
+                    'term': {
+                        'is_published_filter': True
+                    }
+                }, {
                     'match': {
                         'content_type': 'product.Product'
                     }
@@ -36,8 +42,8 @@ def storefront_index():
     return 'storefront__product_product'
 
 
-def test_no_result_search(mocker, es_search_query, search_phrase,
-                          storefront_index):
+def test_storefront_product_search_query_syntax(
+        mocker, es_search_query, search_phrase, storefront_index):
     mocker.patch.object(newelastic.CLIENT, 'search', returnvalue=[])
     products = newelastic.search_products(search_phrase)
     newelastic.CLIENT.search.assert_called_once_with(

@@ -15,23 +15,23 @@ def search_products(phrase):
     CONTENT = 'product.Product'
     query = MultiMatch(fields=['name', 'description'], query=phrase)
     search = (Search(index=INDEX).query(query)
+                                 .filter('term', is_published_filter=True)
+                                 .filter('match', content_type=CONTENT)
                                  .source(['pk'])
-                                 .using(CLIENT)
-                                 .filter('match', content_type=CONTENT))
+                                 .using(CLIENT))
     return [hit.pk for hit in search.execute()]
 
 
 def _make_host_entry(url):
     use_ssl = url.scheme == 'https'
     auth = (url.username, url.password)
-    http_auth = auth if all(auth) else None
     return {
         'host': url.hostname,
         'port': url.port or (443 if use_ssl else 80),
         'url_prefix': url.path,
         'use_ssl': use_ssl,
         'verify_certs': use_ssl,
-        'http_auth': http_auth
+        'http_auth': auth if all(auth) else None
     }
 
 
