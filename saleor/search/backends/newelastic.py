@@ -9,19 +9,6 @@ from elasticsearch_dsl.query import MultiMatch
 CLIENT = Elasticsearch()
 
 
-def search_products(phrase):
-    ''' Execute external search for product matching phrase  '''
-    INDEX = 'storefront__product_product'  # TODO: parametrize this
-    CONTENT = 'product.Product'
-    query = MultiMatch(fields=['name', 'description'], query=phrase)
-    search = (Search(index=INDEX).query(query)
-                                 .filter('term', is_published_filter=True)
-                                 .filter('match', content_type=CONTENT)
-                                 .source(['pk'])
-                                 .using(CLIENT))
-    return [hit.pk for hit in search.execute()]
-
-
 def _make_host_entry(url):
     use_ssl = url.scheme == 'https'
     auth = (url.username, url.password)
@@ -43,10 +30,28 @@ def _get_es_hosts(params):
 
 class SearchBackend(object):
     rebuilder_class = None
+    client = None
 
     def __init__(self, params):
-        global CLIENT
-        CLIENT = Elasticsearch(hosts=_get_es_hosts(params))
+        self._init_client(params)
+
+    @classmethod
+    def _init_client(cls, params):
+        if cls.client is None:
+            cls.client = Elasticsearch(hosts=_get_es_hosts(params))
 
     def search(self, query, model_or_queryset):
         return model_or_queryset.filter(pk__in=search_products(query))
+
+
+def search_products(phrase):
+    ''' Execute external search for product matching phrase  '''
+    INDEX = 'storefront__product_product'  # TODO: parametrize this
+    CONTENT = 'product.Product'
+    query = MultiMatch(fields=['name', 'description'], query=phrase)
+    search = (Search(index=INDEX).query(query)
+                                 .filter('term', is_published_filter=True)
+                                 .filter('match', content_type=CONTENT)
+                                 .source(['pk'])
+                                 .using(SearchBackend.client))
+    return [hit.pk for hit in search.execute()]
