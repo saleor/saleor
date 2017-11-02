@@ -1,7 +1,7 @@
+from django.contrib.sites.shortcuts import get_current_site
 from django.template.loader import get_template
 
 from ...settings import STATIC_URL
-from ...site.utils import get_site_settings_from_request
 from ...order.models import DeliveryGroup
 
 
@@ -10,7 +10,7 @@ PACKING_SLIP_TEMPLATE = 'dashboard/order/pdf/packing_slip.html'
 
 
 def get_statics_absolute_url(request):
-    site = get_site_settings_from_request(request)
+    site = get_current_site(request)
     absolute_url = '%(protocol)s://%(domain)s%(static_url)s' % {
         'protocol': 'https' if request.is_secure() else 'http',
         'domain': site.domain,

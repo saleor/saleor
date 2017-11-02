@@ -5,15 +5,13 @@ import saleor.order.emails as emails
 import mock
 
 EMAIL = "foo@bar.com"
-SITE_NAME = 'WOOBALOOBA'
+SITE_NAME = 'mirumee.com'
 URL = 'wooba/looba'
 EMAIL_FROM = settings.ORDER_FROM_EMAIL
 
 
-@mock.patch('saleor.order.emails.get_site_name', return_value=SITE_NAME)
 @mock.patch('saleor.order.emails.send_templated_mail')
-def test_send_confirmation_using_templated_email(mocked_templated_email,
-                                                 mocked_get_site_name):
+def test_send_confirmation_using_templated_email(mocked_templated_email):
     emails.send_order_confirmation(EMAIL, URL)
     context = {'site_name': SITE_NAME, 'url': URL}
     mocked_templated_email.assert_called_once_with(
@@ -23,10 +21,8 @@ def test_send_confirmation_using_templated_email(mocked_templated_email,
         template_name=emails.CONFIRM_ORDER_TEMPLATE)
 
 
-@mock.patch('saleor.order.emails.get_site_name', return_value=SITE_NAME)
 @mock.patch('saleor.order.emails.send_templated_mail')
-def test_send_order_payment_confirmation(mocked_templated_email,
-                                         mocked_get_site_name):
+def test_send_order_payment_confirmation(mocked_templated_email):
     emails.send_payment_confirmation(EMAIL, URL)
     context = {'site_name': SITE_NAME, 'url': URL}
     mocked_templated_email.assert_called_once_with(

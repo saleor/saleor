@@ -100,7 +100,7 @@ context_processors = [
     'saleor.core.context_processors.categories',
     'saleor.cart.context_processors.cart_counter',
     'saleor.core.context_processors.search_enabled',
-    'saleor.site.context_processors.settings',
+    'saleor.site.context_processors.site',
     'saleor.core.context_processors.webpage_schema',
     'social_django.context_processors.backends',
     'social_django.context_processors.login_redirect',
@@ -139,6 +139,7 @@ MIDDLEWARE_CLASSES = [
     'saleor.core.middleware.GoogleAnalytics',
     'saleor.core.middleware.CountryMiddleware',
     'saleor.core.middleware.CurrencyMiddleware',
+    'saleor.core.middleware.ClearSiteCacheMiddleware',
     'social_django.middleware.SocialAuthExceptionMiddleware',
 ]
 
@@ -253,8 +254,9 @@ GOOGLE_ANALYTICS_TRACKING_ID = os.environ.get('GOOGLE_ANALYTICS_TRACKING_ID')
 
 
 def get_host():
-    from saleor.site.utils import get_domain
-    return get_domain()
+    from django.contrib.sites.models import Site
+    return Site.objects.get_current().domain
+
 
 PAYMENT_HOST = get_host
 
@@ -382,8 +384,6 @@ GRAPHENE = {
     'SCHEMA_OUTPUT': os.path.join(
         PROJECT_ROOT, 'saleor', 'static', 'schema.json')
 }
-
-SITE_SETTINGS_ID = 1
 
 AUTHENTICATION_BACKENDS = [
     'saleor.registration.backends.facebook.CustomFacebookOAuth2',

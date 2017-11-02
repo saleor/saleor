@@ -1,6 +1,7 @@
 import logging
 
 from django.conf import settings
+from django.contrib.sites.models import Site
 from django.utils.translation import get_language
 from django_countries.fields import Country
 
@@ -49,3 +50,19 @@ class CurrencyMiddleware(object):
             request.currency = get_currency_for_country(request.country)
         else:
             request.currency = settings.DEFAULT_CURRENCY
+
+
+class ClearSiteCacheMiddleware(object):
+    """
+    This middleware clears the Sites cache, refetches the current Site
+    and sets it as attribute in request object for future uses in this
+    request cycle.
+    By default django.contrib.sites caches Site instances at the module
+    level, which leads to problems when updating Site instances, such
+    as necessity to restart the application server in order to invalidate
+    the cache. Using this middleware solves this problem.
+    """
+
+    def process_request(self, request):
+        Site.objects.clear_cache()
+        request.site = Site.objects.get_current()

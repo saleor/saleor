@@ -4,14 +4,14 @@ from django.core import mail
 from django.core.urlresolvers import reverse
 
 from django.contrib.auth.tokens import default_token_generator
+from django.contrib.sites.models import Site
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode
 from templated_email import send_templated_mail
 
 from saleor.dashboard.staff.forms import StaffForm
 from saleor.userprofile.models import User
-from saleor.settings import DEFAULT_FROM_EMAIL, get_host
-from saleor.site.utils import get_site_name
+from saleor.settings import DEFAULT_FROM_EMAIL
 
 
 def test_staff_form_not_valid(db):
@@ -78,9 +78,10 @@ def test_staff_create_email_with_set_link_password(
 
 
 def test_send_set_password_email(staff_user):
+    site = Site.objects.get_current()
     ctx = {'protocol': 'http',
-           'domain': get_host(),
-           'site_name': get_site_name(),
+           'domain': site.domain,
+           'site_name': site.name,
            'uid': urlsafe_base64_encode(force_bytes(staff_user.pk)),
            'token': default_token_generator.make_token(staff_user)}
     send_templated_mail(template_name='dashboard/staff/set_password',
