@@ -1,7 +1,7 @@
+from datetime import date, timedelta
 from decimal import Decimal
-
 import pytest
-from mock import Mock
+from mock import Mock, patch
 from prices import FixedDiscount, FractionalDiscount, Price
 
 from django_prices.templatetags.prices_i18n import net
@@ -199,6 +199,19 @@ def test_invalid_checkout_discount_form(monkeypatch, voucher):
         Mock(side_effect=NotApplicable('Not applicable')))
     assert not form.is_valid()
     assert 'voucher' in form.errors
+
+
+@patch('saleor.discount.models.date')
+def test_checkout_discount_form_active_queryset(date_mock, voucher):
+    date_mock.today.return_value = date.today() - timedelta(days=1)
+    checkout = Mock(cart=Mock())
+    voucher.end_date = date.today() + timedelta(days=1)
+    voucher.save()
+    form = CheckoutDiscountForm({'voucher': voucher.code}, checkout=checkout)
+    qs = form.fields['voucher'].queryset
+    form_qs = list(qs) if qs else []
+    vouchers = Voucher.objects.all()
+    assert not set(form_qs).issubset(vouchers)
 
 
 @pytest.mark.parametrize(
