@@ -322,7 +322,7 @@ class OrderedItemManager(models.Manager):
             order.change_status(OrderStatus.CANCELLED)
             order.create_history_entry(
                 status=OrderStatus.CANCELLED, comment=pgettext_lazy(
-                    'Order status change',
+                    'Order status history entry',
                     'Shipment canceled. No items in shipment'))
 
 
@@ -381,7 +381,7 @@ class OrderedItem(models.Model, ItemLine):
             order.change_status(OrderStatus.CANCELLED)
             order.create_history_entry(
                 status=OrderStatus.CANCELLED, comment=pgettext_lazy(
-                    'Order status change',
+                    'Order status history entry',
                     'Order cancelled. No items in order'))
 
 

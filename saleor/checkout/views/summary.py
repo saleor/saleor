@@ -22,7 +22,7 @@ def create_order(checkout):
     checkout.clear_storage()
     checkout.cart.clear()
     order.create_history_entry(status=OrderStatus.NEW, comment=pgettext_lazy(
-        'Order status change', 'Order was placed'))
+        'Order status history entry', 'Order was placed'))
     order.send_confirmation_email()
     return order, redirect('order:payment', token=order.token)
 
