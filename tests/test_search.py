@@ -1,54 +1,14 @@
 from __future__ import unicode_literals
 
 from saleor.product.models import Product
-from django.core.management import call_command
 from django.core.urlresolvers import reverse
 
 from decimal import Decimal
 import pytest
 
 MATCH_SEARCH_REQUEST = ['method', 'host', 'port', 'path', 'body']
-OLD_BACKEND_FOUND = {41, 59}  # same as in recorded data!
 NEW_BACKEND_FOUND = {15, 34, 58}  # same as in recorded data!
-PRODUCTS_INDEXED = OLD_BACKEND_FOUND | NEW_BACKEND_FOUND
-
-DATE_OF_RECORDING = '2017-10-18'  # time freee for old backend
-
-
-@pytest.fixture(scope='function', autouse=True)
-def recorded_on_date(freezer):
-    '''Freeze date during tests to date of recording
-
-    Current date is used in search query, please change used constant to new
-    current date when re-recording communication with live elasticsearch.
-    Leave changed date as new fixed time.
-    '''
-    freezer.move_to(DATE_OF_RECORDING)
-
-
-@pytest.mark.integration
-@pytest.mark.vcr(record_mode='once')
-def test_index_products(product_list):
-    options = {'backend_name': 'default'}
-    call_command('update_index', **options)
-
-
-@pytest.mark.integration
-@pytest.mark.vcr(record_mode='once', match_on=MATCH_SEARCH_REQUEST)
-def test_search_with_empty_result(db, client):
-    WORD = 'foo'
-    response = client.get(reverse('search:search'), {'q': WORD})
-    assert 0 == len(response.context['results'].object_list)
-    assert WORD == response.context['query']
-
-
-@pytest.mark.integration
-@pytest.mark.vcr(record_mode='once', match_on=MATCH_SEARCH_REQUEST)
-def test_search_multiple_words(db, client):
-    ''' Check request format for multiple word phrases '''
-    PHRASE = 'how fortunate the man with none'
-    client.get(reverse('search:search'), {'q': PHRASE})
-
+PRODUCTS_INDEXED = NEW_BACKEND_FOUND
 
 @pytest.fixture
 def indexed_products(product_class, default_category):
@@ -72,16 +32,6 @@ def indexed_products(product_class, default_category):
 
 def _extract_pks(object_list):
     return [prod.pk for prod, _ in object_list]
-
-
-@pytest.mark.integration
-@pytest.mark.vcr(record_mode='once', match_on=MATCH_SEARCH_REQUEST)
-def test_search_with_result(db, indexed_products, client):
-    EXISTING_PHRASE = 'Group'
-    response = client.get(reverse('search:search'), {'q': EXISTING_PHRASE})
-    found_products = _extract_pks(response.context['results'].object_list)
-    assert OLD_BACKEND_FOUND == set(found_products)
-    assert EXISTING_PHRASE == response.context['query']
 
 
 @pytest.fixture
