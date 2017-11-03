@@ -1,8 +1,8 @@
+"""Cart-related ORM models."""
 from __future__ import unicode_literals
 
 from collections import namedtuple
 from decimal import Decimal
-from prices import Price
 from uuid import uuid4
 
 from django.conf import settings
@@ -13,41 +13,66 @@ from django.utils.timezone import now
 from django.utils.translation import pgettext_lazy
 from django_prices.models import PriceField
 from jsonfield import JSONField
+from prices import Price
 from satchless.item import ItemLine, ItemList, partition
 
 from . import CartStatus, logger
-
 
 CENTS = Decimal('0.01')
 SimpleCart = namedtuple('SimpleCart', ('quantity', 'total', 'token'))
 
 
+def find_open_cart_for_user(user):
+    """Find an open cart for the given user."""
+    carts = user.carts.open()
+    if len(carts) > 1:
+        logger.warning('%s has more than one open basket', user)
+        for cart in carts[1:]:
+            cart.change_status(CartStatus.CANCELED)
+    return carts.first()
+
+
 class ProductGroup(ItemList):
+    """A group of products."""
+
     def is_shipping_required(self):
+        """Return `True` if any product in group requires shipping."""
         return any(p.is_shipping_required() for p in self)
 
 
 class CartQueryset(models.QuerySet):
+    """A specialized queryset for dealing with carts."""
 
     def anonymous(self):
+        """Return unassigned carts."""
         return self.filter(user=None)
 
     def open(self):
+        """Return `OPEN` carts."""
         return self.filter(status=CartStatus.OPEN)
 
     def saved(self):
+        """Return `SAVED` carts."""
         return self.filter(status=CartStatus.SAVED)
 
     def waiting_for_payment(self):
+        """Return `SAVED_FOR_PAYMENT` carts."""
         return self.filter(status=CartStatus.WAITING_FOR_PAYMENT)
 
     def checkout(self):
+        """Return carts in `CHECKOUT` state."""
         return self.filter(status=CartStatus.CHECKOUT)
 
     def canceled(self):
+        """Return `CANCELED` carts."""
         return self.filter(status=CartStatus.CANCELED)
 
     def for_display(self):
+        """Annotate the queryset for display purposes.
+
+        Prefetches additional data from the database to avoid the n+1 queries
+        problem.
+        """
         return self.prefetch_related(
             'lines__variant__product__categories',
             'lines__variant__product__images',
@@ -57,6 +82,8 @@ class CartQueryset(models.QuerySet):
 
 
 class Cart(models.Model):
+    """A shopping cart."""
+
     status = models.CharField(
         pgettext_lazy('Cart field', 'order status'),
         max_length=32, choices=CartStatus.CHOICES, default=CartStatus.OPEN)
@@ -79,7 +106,6 @@ class Cart(models.Model):
     checkout_data = JSONField(
         verbose_name=pgettext_lazy('Cart field', 'checkout data'), null=True,
         editable=False,)
-
     total = PriceField(
         pgettext_lazy('Cart field', 'total'),
         currency=settings.DEFAULT_CURRENCY, max_digits=12, decimal_places=2,
@@ -99,6 +125,7 @@ class Cart(models.Model):
         super(Cart, self).__init__(*args, **kwargs)
 
     def update_quantity(self):
+        """Recalculate cart quantity based on lines."""
         total_lines = self.count()['total_quantity']
         if not total_lines:
             total_lines = 0
@@ -106,6 +133,8 @@ class Cart(models.Model):
         self.save(update_fields=['quantity'])
 
     def change_status(self, status):
+        """Change cart status."""
+        # FIXME: investigate replacing with django-fsm transitions
         if status not in dict(CartStatus.CHOICES):
             raise ValueError('Not expected status')
         if status != self.status:
@@ -114,22 +143,18 @@ class Cart(models.Model):
             self.save()
 
     def change_user(self, user):
-        open_cart = Cart.get_user_open_cart(user)
+        """Assign cart to a user.
+
+        If the user already has an open cart assigned, cancel it.
+        """
+        open_cart = find_open_cart_for_user(user)
         if open_cart is not None:
             open_cart.change_status(status=CartStatus.CANCELED)
         self.user = user
         self.save(update_fields=['user'])
 
-    @staticmethod
-    def get_user_open_cart(user):
-        carts = user.carts.open()
-        if len(carts) > 1:
-            logger.warning('%s has more than one open basket', user)
-            for cart in carts[1:]:
-                cart.change_status(CartStatus.CANCELED)
-        return carts.first()
-
     def is_shipping_required(self):
+        """Return `True` if any of the lines requires shipping."""
         return any(line.is_shipping_required() for line in self.lines.all())
 
     def __repr__(self):
@@ -138,30 +163,40 @@ class Cart(models.Model):
     def __len__(self):
         return self.lines.count()
 
+    # pylint: disable=R0201
     def get_subtotal(self, item, **kwargs):
+        """Return the cost of a cart line."""
         return item.get_total(**kwargs)
 
     def get_total(self, **kwargs):
-        subtotals = [self.get_subtotal(item, **kwargs)
-                     for item in self.lines.all()]
+        """Return the total cost of the cart prior to shipping."""
+        subtotals = [
+            self.get_subtotal(item, **kwargs) for item in self.lines.all()]
         if not subtotals:
             raise AttributeError('Calling get_total() on an empty item set')
         zero = Price(0, currency=settings.DEFAULT_CURRENCY)
         return sum(subtotals, zero)
 
     def count(self):
+        """Return the total quantity in cart."""
         lines = self.lines.all()
         return lines.aggregate(total_quantity=models.Sum('quantity'))
 
     def clear(self):
+        """Remove the cart."""
         self.delete()
 
     def create_line(self, variant, quantity, data):
-        line = self.lines.create(variant=variant, quantity=quantity,
-                                 data=data or {})
-        return line
+        """Create a cart line for given variant, quantity and optional data.
+
+        The `data` parameter may be used to differentiate between items with
+        different customization options.
+        """
+        return self.lines.create(
+            variant=variant, quantity=quantity, data=data or {})
 
     def get_line(self, variant, data=None):
+        """Return a line matching the given variant and data if any."""
         all_lines = self.lines.all()
         if data is None:
             data = {}
@@ -172,7 +207,15 @@ class Cart(models.Model):
 
     def add(self, variant, quantity=1, data=None, replace=False,
             check_quantity=True):
-        cart_line, created = self.lines.get_or_create(
+        """Add a product vartiant to cart.
+
+        The `data` parameter may be used to differentiate between items with
+        different customization options.
+
+        If `replace` is truthy then any previous quantity is discarded instead
+        of added to.
+        """
+        cart_line, dummy_created = self.lines.get_or_create(
             variant=variant, defaults={'quantity': 0, 'data': data or {}})
         if replace:
             new_quantity = quantity
@@ -195,6 +238,7 @@ class Cart(models.Model):
         self.update_quantity()
 
     def partition(self):
+        """Split the card into a list of groups for shipping."""
         grouper = (
             lambda p: 'physical' if p.is_shipping_required() else 'digital')
         return partition(self.lines.all(), grouper, ProductGroup)
@@ -202,6 +246,11 @@ class Cart(models.Model):
 
 @python_2_unicode_compatible
 class CartLine(models.Model, ItemLine):
+    """A single cart line.
+
+    Multiple lines in the same cart can refer to the same product variant if
+    their `data` field is different.
+    """
 
     cart = models.ForeignKey(
         Cart, related_name='lines',
@@ -246,14 +295,19 @@ class CartLine(models.Model, ItemLine):
         self.variant, self.quantity, self.data = data
 
     def get_total(self, **kwargs):
+        """Return the total price of this line."""
         amount = super(CartLine, self).get_total(**kwargs)
         return amount.quantize(CENTS)
 
     def get_quantity(self, **kwargs):
+        """Return the line's quantity."""
         return self.quantity
 
+    # pylint: disable=W0221
     def get_price_per_item(self, discounts=None, **kwargs):
+        """Return the unit price of the line."""
         return self.variant.get_price_per_item(discounts=discounts, **kwargs)
 
     def is_shipping_required(self):
+        """Return `True` if the related product variant requires shipping."""
         return self.variant.is_shipping_required()
