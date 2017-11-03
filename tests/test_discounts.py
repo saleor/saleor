@@ -1,7 +1,7 @@
 from datetime import date, timedelta
 from decimal import Decimal
 import pytest
-from mock import Mock, patch
+from mock import Mock
 from prices import FixedDiscount, FractionalDiscount, Price
 
 from django_prices.templatetags.prices_i18n import net
@@ -209,16 +209,21 @@ def test_voucher_queryset_active(voucher):
     assert len(active_vouchers) == 0
 
 
-@patch('saleor.discount.forms.date')
-def test_checkout_discount_form_active_queryset(date_mock, voucher):
+def test_checkout_discount_form_active_queryset_voucher_not_active(voucher):
     assert len(Voucher.objects.all()) == 1
     checkout = Mock(cart=Mock())
-    date_mock.today.return_value = date.today() - timedelta(days=1)
+    voucher.start_date = date.today() + timedelta(days=1)
+    voucher.save()
     form = CheckoutDiscountForm({'voucher': voucher.code}, checkout=checkout)
     qs = form.fields['voucher'].queryset
     assert len(qs) == 0
 
-    date_mock.today.return_value = date.today()
+
+def test_checkout_discount_form_active_queryset_voucher_active(voucher):
+    assert len(Voucher.objects.all()) == 1
+    checkout = Mock(cart=Mock())
+    voucher.start_date = date.today()
+    voucher.save()
     form = CheckoutDiscountForm({'voucher': voucher.code}, checkout=checkout)
     qs = form.fields['voucher'].queryset
     assert len(qs) == 1
