@@ -3,7 +3,7 @@ from django.utils.translation import pgettext
 
 from .backends import get_search_backend
 
-USE_BACKEND = 'default'
+USE_BACKEND = 'newelastic'
 
 
 class SearchForm(forms.Form):

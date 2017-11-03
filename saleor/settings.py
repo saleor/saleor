@@ -360,34 +360,8 @@ if ELASTICSEARCH_URL:
             'hosts': ELASTICSEARCH_URL
         },
     }
-    SEARCH_BACKENDS = {
-        'default': {
-            'BACKEND': 'saleor.search.backends.elasticsearch5',
-            'URLS': [ELASTICSEARCH_URL],
-            'INDEX': os.environ.get('ELASTICSEARCH_INDEX_NAME', 'storefront'),
-            'TIMEOUT': 5,
-            'AUTO_UPDATE': True},
-        'newelastic': {
-            'BACKEND': 'saleor.search.backends.newelastic',
-            'URLS': [ELASTICSEARCH_URL],
-            'INDEX': os.environ.get('ELASTICSEARCH_INDEX_NAME', 'storefront'),
-            'TIMEOUT': 5,
-            'AUTO_UPDATE': False},
-        'dashboard': {
-            'BACKEND': 'saleor.search.backends.dashboard',
-            'URLS': [ELASTICSEARCH_URL],
-            'INDEX': os.environ.get('ELASTICSEARCH_INDEX_NAME', 'storefront'),
-            'TIMEOUT': 5,
-            'AUTO_UPDATE': False},
-        'elasticsearch_dashboard': {
-            'BACKEND': 'saleor.search.backends.elasticsearch_dashboard',
-            'URLS': [ELASTICSEARCH_URL],
-            'INDEX': os.environ.get('ELASTICSEARCH_INDEX_NAME', 'storefront'),
-            'TIMEOUT': 5,
-            'AUTO_UPDATE': False}
-    }
-else:
-    SEARCH_BACKENDS = {}
+
+SEARCH_BACKENDS = {}
 
 
 GRAPHENE = {

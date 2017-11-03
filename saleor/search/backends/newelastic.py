@@ -52,6 +52,6 @@ def search_products(phrase):
     search = (ProductDocument.search()
                              .query(query)
                              .source(False)
-                             .filter('term', is_published=True)
-                             .using(SearchBackend.client))  # TODO: use default
+                             .filter('term', is_published=True))
+                             #.using(SearchBackend.client))  # TODO: use default
     return [hit.meta.id for hit in search.execute()]
