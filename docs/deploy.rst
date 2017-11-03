@@ -59,3 +59,19 @@ Prepare the database
 .. code-block:: bash
 
  $ heroku run python manage.py migrate
+
+
+Updating currency exchange rates
+********************************
+
+This needs to be run periodically. The best way to achieve this is using Heroku's Scheduler service. Let's add it to our application:
+
+.. code-block:: bash
+
+ $ heroku addons:create scheduler
+
+Then log into your Heroku account, find the Heroku Scheduler addon in the active addon list, and have it run the following command on a daily basis:
+
+.. code-block:: bash
+
+ python manage.py update_exchange_rates --all
