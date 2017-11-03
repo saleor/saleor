@@ -1,7 +1,7 @@
 from datetime import date, timedelta
 from decimal import Decimal
 import pytest
-from mock import Mock
+from mock import Mock, patch
 from prices import FixedDiscount, FractionalDiscount, Price
 
 from django_prices.templatetags.prices_i18n import net
@@ -224,6 +224,28 @@ def test_checkout_discount_form_active_queryset_voucher_active(voucher):
     checkout = Mock(cart=Mock())
     voucher.start_date = date.today()
     voucher.save()
+    form = CheckoutDiscountForm({'voucher': voucher.code}, checkout=checkout)
+    qs = form.fields['voucher'].queryset
+    assert len(qs) == 1
+
+
+@patch('saleor.discount.forms.date')
+def test_checkout_discount_form_active_queryset_after_some_time(
+        date_mock, voucher):
+    '''
+    This test simulates server running for some time. This test is different
+    than test_checkout_discount_form_active_queryset_voucher_active because
+    original bug set date.today() in VoucherQueryset only once with start of
+    the server.
+    '''
+    assert len(Voucher.objects.all()) == 1
+    checkout = Mock(cart=Mock())
+    date_mock.today.return_value = date.today() - timedelta(days=1)
+    form = CheckoutDiscountForm({'voucher': voucher.code}, checkout=checkout)
+    qs = form.fields['voucher'].queryset
+    assert len(qs) == 0
+
+    date_mock.today.return_value = date.today()
     form = CheckoutDiscountForm({'voucher': voucher.code}, checkout=checkout)
     qs = form.fields['voucher'].queryset
     assert len(qs) == 1
