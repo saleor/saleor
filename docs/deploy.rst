@@ -32,10 +32,13 @@ First steps
 
  $ heroku create --buildpack https://github.com/heroku/heroku-buildpack-nodejs.git
  $ heroku buildpacks:add https://github.com/heroku/heroku-buildpack-python.git
- $ heroku addons:create heroku-postgresql
- $ heroku addons:create heroku-redis
- $ heroku config:set SECRET_KEY='<your secret key here>'
+ $ heroku addons:create heroku-postgresql:hobby-dev
+ $ heroku addons:create heroku-redis:hobby-dev
+ $ heroku addons:create sendgrid:starter
+ $ heroku addons:create bonsai:sandbox
  $ heroku config:set ALLOWED_HOSTS='<your hosts here>'
+ $ heroku config:set NODE_MODULES_CACHE=false
+ $ heroku config:set SECRET_KEY='<your secret key here>'
 
 
 .. note::
