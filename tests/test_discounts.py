@@ -1,7 +1,8 @@
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta
 from decimal import Decimal
+from freezegun import freeze_time
 import pytest
-from mock import Mock, patch
+from mock import Mock
 from prices import FixedDiscount, FractionalDiscount, Price
 
 from django_prices.templatetags.prices_i18n import net
@@ -229,26 +230,22 @@ def test_checkout_discount_form_active_queryset_voucher_active(voucher):
     assert len(qs) == 1
 
 
-@patch('saleor.discount.forms.date')
-def test_checkout_discount_form_active_queryset_after_some_time(
-        date_mock, voucher):
-    '''
-    This test simulates server running for some time. This test is different
-    than test_checkout_discount_form_active_queryset_voucher_active because
-    original bug set date.today() in VoucherQueryset only once with start of
-    the server.
-    '''
-    assert len(Voucher.objects.all()) == 1
-    checkout = Mock(cart=Mock())
-    date_mock.today.return_value = date.today() - timedelta(days=1)
-    form = CheckoutDiscountForm({'voucher': voucher.code}, checkout=checkout)
-    qs = form.fields['voucher'].queryset
-    assert len(qs) == 0
+def test_checkout_discount_form_active_queryset_after_some_time(voucher):
+    with freeze_time(datetime.now()) as frozen_date:
+        assert len(Voucher.objects.all()) == 1
+        checkout = Mock(cart=Mock())
+        voucher.end_date = datetime.now() + timedelta(days=1)
+        voucher.save()
+        form = CheckoutDiscountForm(
+            {'voucher': voucher.code}, checkout=checkout)
+        qs = form.fields['voucher'].queryset
+        assert len(qs) == 1
 
-    date_mock.today.return_value = date.today()
-    form = CheckoutDiscountForm({'voucher': voucher.code}, checkout=checkout)
-    qs = form.fields['voucher'].queryset
-    assert len(qs) == 1
+        frozen_date.move_to(datetime.now() + timedelta(days=2))
+        form = CheckoutDiscountForm(
+            {'voucher': voucher.code}, checkout=checkout)
+        qs = form.fields['voucher'].queryset
+        assert len(qs) == 0
 
 
 @pytest.mark.parametrize(
