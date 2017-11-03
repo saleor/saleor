@@ -119,7 +119,6 @@ class Order(models.Model, ItemSet, index.Indexed):
         if status != self.status:
             self.status = status
             self.save()
-            self.history.create(status=status)
 
     def get_items(self):
         return OrderedItem.objects.filter(delivery_group__order=self)
@@ -321,6 +320,10 @@ class OrderedItemManager(models.Manager):
             source_group.delete()
         if not order.get_items():
             order.change_status(OrderStatus.CANCELLED)
+            order.create_history_entry(
+                status=OrderStatus.CANCELLED, comment=pgettext_lazy(
+                    'Order status history entry',
+                    'Order cancelled. No items in order'))
 
 
 @python_2_unicode_compatible
@@ -376,6 +379,10 @@ class OrderedItem(models.Model, ItemLine):
             self.delivery_group.delete()
         if not order.get_items():
             order.change_status(OrderStatus.CANCELLED)
+            order.create_history_entry(
+                status=OrderStatus.CANCELLED, comment=pgettext_lazy(
+                    'Order status history entry',
+                    'Order cancelled. No items in order'))
 
 
 class PaymentManager(models.Manager):
