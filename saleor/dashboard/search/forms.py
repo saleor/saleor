@@ -1,5 +1,5 @@
 from ...search.forms import SearchForm
-from .backends import newelastic
+from ...search.backends import newelastic
 
 
 class DashboardSearchForm(SearchForm):
