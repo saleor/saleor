@@ -3,7 +3,6 @@ from __future__ import unicode_literals
 from django import forms
 from django.conf import settings
 from django.core.validators import MinValueValidator, MaxValueValidator
-from django.shortcuts import get_object_or_404
 from django.utils.translation import npgettext_lazy, pgettext_lazy
 from django_prices.forms import PriceField
 from payments import PaymentError, PaymentStatus
@@ -14,7 +13,7 @@ from ...discount.models import Voucher
 from ...order import OrderStatus
 from ...order.models import DeliveryGroup, Order, OrderedItem, OrderNote
 from ...order.utils import cancel_order, cancel_delivery_group
-from ...product.models import ProductVariant, Stock
+from ...product.models import Stock
 
 
 class OrderNoteForm(forms.ModelForm):

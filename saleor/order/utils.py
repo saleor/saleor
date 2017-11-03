@@ -3,6 +3,7 @@ from functools import wraps
 
 from django.dispatch import receiver
 from django.shortcuts import get_object_or_404, redirect
+from django.utils.translation import pgettext_lazy
 from payments.signals import status_changed
 
 from ..core import analytics
@@ -32,6 +33,9 @@ def order_status_change(sender, instance, **kwargs):
     order = instance.order
     if order.is_fully_paid():
         order.change_status(OrderStatus.FULLY_PAID)
+        order.create_history_entry(
+            status=OrderStatus.FULLY_PAID, comment=pgettext_lazy(
+                'Order status history entry', 'Order fully paid'))
         instance.send_confirmation_email()
         try:
             analytics.report_order(order.tracking_client_id, order)
