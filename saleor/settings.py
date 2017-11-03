@@ -354,6 +354,12 @@ LOGOUT_ON_PASSWORD_CHANGE = False
 
 ELASTICSEARCH_URL = os.environ.get('ELASTICSEARCH_URL')
 if ELASTICSEARCH_URL:
+    INSTALLED_APPS.append('django_elasticsearch_dsl')
+    ELASTICSEARCH_DSL = {
+        'default': {
+            'hosts': 'localhost:9200'
+        },
+    }
     SEARCH_BACKENDS = {
         'default': {
             'BACKEND': 'saleor.search.backends.elasticsearch5',
