@@ -357,7 +357,7 @@ if ELASTICSEARCH_URL:
     INSTALLED_APPS.append('django_elasticsearch_dsl')
     ELASTICSEARCH_DSL = {
         'default': {
-            'hosts': 'localhost:9200'
+            'hosts': ELASTICSEARCH_URL
         },
     }
     SEARCH_BACKENDS = {
