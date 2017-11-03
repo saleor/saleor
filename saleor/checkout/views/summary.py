@@ -21,7 +21,7 @@ def create_order(checkout):
         return None, redirect('checkout:summary')
     checkout.clear_storage()
     checkout.cart.clear()
-    user = checkout.user if not checkout.user.is_anonymous else None
+    user = None if checkout.user.is_anonymous else checkout.user
     order.create_history_entry(
         status=OrderStatus.NEW, user=user, comment=pgettext_lazy(
             'Order status history entry', 'Order was placed'))
