@@ -5,31 +5,27 @@ import pytest
 
 
 PHRASE = 'How fortunate man with none'
-CONTENT_TYPE = 'product.Product'
 FIELDS = ['name', 'description']
-INDEX = 'storefront__product_product'
+INDEX = 'storefront'
+DOC_TYPE = 'product_document'
 QUERY = {
-        'query': {
-            'bool': {
-                'must': [{
-                    'multi_match': {
-                        'fields': FIELDS,
-                        'query': 'How fortunate man with none'
-                    }
-                }],
-                'filter': [{
-                    'term': {
-                        'is_published_filter': True
-                    }
-                }, {
-                    'match': {
-                        'content_type': CONTENT_TYPE
-                    }
-                }]
-            }
-        },
-        '_source': ['pk']
+    '_source': False,
+    'query': {
+        'bool': {
+            'must': [{
+                'multi_match': {
+                    'query': PHRASE,
+                    'fields': FIELDS
+                }
+            }],
+            'filter': [{
+                'term': {
+                    'is_published': True
+                }
+            }]
+        }
     }
+}
 
 
 @pytest.fixture
@@ -44,4 +40,4 @@ def elasticsearch_client(mocker):
 def test_storefront_product_search_query_syntax(elasticsearch_client):
     products = newelastic.search_products(PHRASE)
     newelastic.SearchBackend.client.search.assert_called_once_with(
-        body=QUERY, doc_type=[], index=[INDEX])
+        body=QUERY, doc_type=[DOC_TYPE], index=[INDEX])

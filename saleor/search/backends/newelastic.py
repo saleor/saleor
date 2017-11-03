@@ -3,8 +3,8 @@ from __future__ import unicode_literals
 from elasticsearch import Elasticsearch
 from django.utils.six.moves.urllib.parse import urlparse
 from django.db.models.query import QuerySet
-from elasticsearch_dsl import Search
 from elasticsearch_dsl.query import MultiMatch
+from ..documents import ProductDocument
 
 
 def _make_host_entry(url):
@@ -48,12 +48,10 @@ class SearchBackend(object):
 
 def search_products(phrase):
     ''' Execute external search for product matching phrase  '''
-    INDEX = 'storefront__product_product'
-    CONTENT = 'product.Product'
     query = MultiMatch(fields=['name', 'description'], query=phrase)
-    search = (Search(index=INDEX).query(query)
-                                 .filter('term', is_published_filter=True)
-                                 .filter('match', content_type=CONTENT)
-                                 .source(['pk'])
-                                 .using(SearchBackend.client))
-    return [hit.pk for hit in search.execute()]
+    search = (ProductDocument.search()
+                             .query(query)
+                             .source(False)
+                             .filter('term', is_published=True)
+                             .using(SearchBackend.client))  # TODO: use default
+    return [hit.meta.id for hit in search.execute()]
