@@ -11,7 +11,6 @@ from django.utils.translation import pgettext_lazy
 from ...product.models import (
     AttributeChoiceValue, Product, ProductAttribute, ProductClass,
     ProductImage, ProductVariant, Stock, StockLocation, VariantImage)
-from ...search import index as search_index
 from .widgets import ImagePreviewWidget
 from . import ProductBulkAction
 
@@ -146,7 +145,6 @@ class ProductForm(forms.ModelForm):
                 attributes[smart_text(attr.pk)] = value
         self.instance.attributes = attributes
         instance = super(ProductForm, self).save(commit=commit)
-        search_index.insert_or_update_object(instance)
         return instance
 
 

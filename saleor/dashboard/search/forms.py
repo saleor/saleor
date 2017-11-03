@@ -1,11 +1,10 @@
-from ...search.backends import get_search_backend
 from ...search.forms import SearchForm
+from .backends import newelastic
 
 
 class DashboardSearchForm(SearchForm):
-
     def search(self, queryset_map=None):
-        backend = get_search_backend('dashboard')
         query = self.cleaned_data['q']
-        results = backend.search(query, queryset_map=queryset_map)
+        results = newelastic.SearchBackend.search(
+            query, queryset_map=queryset_map)
         return results

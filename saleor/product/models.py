@@ -22,7 +22,6 @@ from text_unidecode import unidecode
 from versatileimagefield.fields import PPOIField, VersatileImageField
 
 from ..discount.models import calculate_discounted_price
-from ..search import index
 from .utils import get_attributes_display_map
 
 
@@ -118,7 +117,7 @@ class ProductManager(models.Manager):
 
 
 @python_2_unicode_compatible
-class Product(models.Model, ItemRange, index.Indexed):
+class Product(models.Model, ItemRange):
     product_class = models.ForeignKey(
         ProductClass, related_name='products',
         verbose_name=pgettext_lazy('Product field', 'product class'),
@@ -146,11 +145,6 @@ class Product(models.Model, ItemRange, index.Indexed):
 
     objects = ProductManager()
 
-    search_fields = [
-        index.SearchField('name', partial_match=True),
-        index.SearchField('description'),
-        index.FilterField('available_on'),
-        index.FilterField('is_published')]
 
     class Meta:
         app_label = 'product'
