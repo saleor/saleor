@@ -33,7 +33,7 @@ class CheckoutDiscountForm(forms.Form):
         kwargs['initial'] = initial
         super(CheckoutDiscountForm, self).__init__(*args, **kwargs)
         self.fields['voucher'].queryset = Voucher.objects.active(
-            today=date.today())
+            date=date.today())
 
     def clean(self):
         cleaned_data = super(CheckoutDiscountForm, self).clean()

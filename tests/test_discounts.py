@@ -205,7 +205,7 @@ def test_voucher_queryset_active(voucher):
     vouchers = Voucher.objects.all()
     assert len(vouchers) == 1
     active_vouchers = Voucher.objects.active(
-        today=date.today() - timedelta(days=1))
+        date=date.today() - timedelta(days=1))
     assert len(active_vouchers) == 0
 
 

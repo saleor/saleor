@@ -46,7 +46,7 @@ def validate_voucher(view):
     def func(request, checkout, cart):
         if checkout.voucher_code:
             try:
-                Voucher.objects.active(today=date.today()).get(
+                Voucher.objects.active(date=date.today()).get(
                     code=checkout.voucher_code)
             except Voucher.DoesNotExist:
                 del checkout.voucher_code
