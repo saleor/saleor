@@ -100,10 +100,6 @@ def start_payment(request, order, variant):
             defaults=defaults)
         try:
             form = payment.get_form(data=request.POST or None)
-            order.create_history_entry(
-                status=OrderStatus.PAYMENT_PENDING, comment=pgettext_lazy(
-                    'Order status history entry',
-                    'Order is waiting for payment'))
         except RedirectNeeded as redirect_to:
             return redirect(str(redirect_to))
         except Exception:
