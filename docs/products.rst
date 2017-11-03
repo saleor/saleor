@@ -1,142 +1,156 @@
-Product management
-==================
+Product structure
+=================
 
 Before filling your shop with products we need to introduce 3 product concepts - *product classes*, *products*, *product variants*.
 
-**Example:** Book store - one of *products* would be "Introduction to Saleor". The book is available in hard and soft cover, so there would be 2 *product variants*. Type of cover is only attribute which creates separate variants in our store, so we use *product class* named "Book" with activated variants and 'Cover type' variant attribute.
+Overview
+--------
+
+Consider a book store. One of your *products* is a book titled "Introduction to Saleor".
+
+The book is available in hard and soft cover, so there would be 2 *product variants*.
+
+Type of cover is the only attribute which creates separate variants in our store, so we use *product class* named "Book" with variants enabled and a "Cover type" *variant attribute*.
 
 Class diagram
 -------------
 
 .. image:: img/product_class_tree.png
 
-Product variant
----------------
+Product variants
+----------------
 
-It's the most important object in shop. All cart and stock operations use variants. Even if your *product* doesn't have multiple variants, we create one under the hood.
+Variants are the most important objects in your shop. All cart and stock operations use variants. Even if a product doesn't have multiple variants, the store will create one under the hood.
 
-Product
--------
+Products
+--------
 
 Describes common details of a few *product variants*. When the shop displays the category view, items on the list are distinct *products*. If the variant has no overridden property (example: price), the default value is taken from the *product*.
 
-- available_on
+- ``available_on``
     Until this date the product is not listed in storefront and is unavailable for users.
 
-- is_featured
+- ``is_featured``
     Featured products are displayed on the front page.
 
 
-Product class
--------------
+Product classes
+---------------
 
-Think about it as template for your *products*. Multiple *products* can use same *product class*.
-Note: In interface product class is called *Product Type*
+Think about classes as templates for your products. Multiple *products* can use the same product class.
 
-- product_attributes
-    Attributes shared with all *product variants*. Example: Publisher - all book variants are published by same company
+- ``product_attributes``
+    Attributes shared among all *product variants*. Example: publisher; all book variants are published by same company.
 
-- variant_attributes
-    It's what distinguishes different *variants*. Example: Cover type - your book can be in hard or soft cover.
+- ``variant_attributes``
+    It's what distinguishes different *variants*. Example: cover type; your book can be in hard or soft cover.
 
-- is_shipping_required
-    Mark as false for *products* which does not need shipping. Could be used for digital products.
+- ``is_shipping_required``
+    Indicates whether purchases need to be delivered. Example: digital products; you won't use DHL to ship an MP3 file.
 
-- has_variants
-    If your *product* has no different variants or if you want to create separate *product* for every one of them - turn this option off.
-    Note: this option simplifies dashboard. There is always *variant* created under the hood.
+- ``has_variants``
+    Turn this off if your *product* does not have multiple variants or if you want to create separate *products* for every one of them.
+
+    This option mainly simplifies product management in the dashboard. There is always at least one *variant* created under the hood.
 
 
-.. warning::
-    Changing a *product class* affects all *products* of this class.
+.. note:: In the admin interface a product class is called a "product type".
 
-.. warning::
-    You can't remove *product class* if it has any *products*.
+.. warning:: Changing a product class affects all products of this type.
+
+.. warning:: You can't remove a product class if there are products of that type.
 
 
 Attributes
 ----------
 
 *Attributes* can help you better describe your products. Also, the can be used to filter items in category views.
+
 There are 2 types of *attributes* - choice type and text type. If you don't provide choice values, then attribute is text type.
 
-**Examples**
+Examples
+~~~~~~~~
 
-* *Choice type*: Every shirt you sell can be made in 3 colors. Then you create *attribute* Color with 3 choice values (for example 'Red', 'Green', 'Blue')
-* *Text type*: Number of pages
+* *Choice type*: Colors of a t-shirt (for example 'Red', 'Green', 'Blue')
+* *Text type*: Number of pages in a book
 
 
-Example - Coffee
-----------------
+Example: Coffee
+~~~~~~~~~~~~~~~
 
 Your shop sells Coffee from around the world. Customer can order 1kg, 500g and 250g packages. Orders are shipped by couriers.
 
-**Attributes**
+.. table:: Attributes
 
-===================  ==================
- *Name*               *Values*
--------------------  ------------------
-Country of origin     Brazil, Vietnam, Colombia, Indonesia
-Package size          1kg, 500g, 250g
-===================  ==================
+   =================  ===========
+   Attribute          Values
+   =================  ===========
+   Country of origin  * Brazil
+                      * Vietnam
+                      * Colombia
+                      * Indonesia
+   Package size       * 1kg
+                      * 500g
+                      * 250g
+   =================  ===========
 
-**Product class**
+.. table:: Product class
 
-========================  =================
-*Name*                    Coffee
-*Product Attributes*      Country of origin
-*Variant Attributes*      Package size
-*Has variants*            Yes
-*Is shipping required*    Yes
-========================  =================
+   ======  ===================  =========  ==================  =========
+   Name    Product attributes   Variants?  Variant attributes  Shipping?
+   ======  ===================  =========  ==================  =========
+   Coffee  * Country of origin  Yes        * Package size      Yes
+   ======  ===================  =========  ==================  =========
 
-**Product**
+.. table:: Product
 
-=============================  =================================
-*Product class*                Coffee
-*Name*                         Best Java Coffee
-*Country of Origin attribute*  Indonesia
-*Description*                  Best coffee found on Java island!
-=============================  =================================
+   =============  ================  =================  =================================
+   Product class  Name              Country of origin  Description
+   =============  ================  =================  =================================
+   Coffee         Best Java Coffee  Indonesia          Best coffee found on Java island!
+   =============  ================  =================  =================================
 
-**Variants**
+.. table:: Variants
 
-========================  =======
-*Package size attribute*  *Price*
-1kg                        $20
-500g                       $12
-250g                       $7
-========================  =======
+   ====  ============  ==============
+   SKU   Package size  Price override
+   ====  ============  ==============
+   J001  1kg           $20
+   J002  500g          $12
+   J003  250g          $7
+   ====  ============  ==============
 
 
-Example - Online game item
---------------------------
+Example: Online game items
+~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 You have great selection of online games items. Each item is unique, important details are included in description. Bought items are shipped directly to buyer account.
 
-**Attributes**
+.. table:: Attributes
 
-==========  =====================================
-*Name*      *Values*
-Game        Kings Online, War MMO, Target Shooter
-Max attack  ---
-==========  =====================================
+   ==========  ================
+   Attribute   Values
+   ==========  ================
+   Game        * Kings Online
+               * War MMO
+               * Target Shooter
+   Max attack  ---
+   ==========  ================
 
+.. table:: Product class
 
-**Product class**
+   =========  ==================  =========  ==================  =========
+   Name       Product attributes  Variants?  Variant attributes  Shipping?
+   =========  ==================  =========  ==================  =========
+   Game item  * Game              No         ---                 No
+              * Max attack
+   =========  ==================  =========  ==================  =========
 
-======================  ================
-*Name*                  Game item
-*Product Attributes*    Game, Max attack
-*Variant Attributes*    None
-*Has variants*          No
-*Is shipping required*  No
-======================  ================
+.. table:: Products
 
-**Product**
-
-===============  ================  =======  ================  ======================  =======================================================
-*Product class*  *Name*            *Price*  *Game attribute*  *Max attack attribute*  *Description*
-Game item        Magic Fire Sword  $199     Kings Online      8000 damage             Unique sword for any fighter. Set your enemies in fire!
-Game item        Rapid Pistol      $2500    Target Shooter    250 damage              Fastest pistol in whole game.
-===============  ================  =======  ================  ======================  =======================================================
+   =============  ================  =====  ==============  ===========  =======================================================
+   Product class  Name              Price  Game            Max attack   Description
+   =============  ================  =====  ==============  ===========  =======================================================
+   Game item      Magic Fire Sword  $199   Kings Online    8000         Unique sword for any fighter. Set your enemies on fire!
+   Game item      Rapid Pistol      $2500  Target Shooter  250          Fastest pistol in the whole game.
+   =============  ================  =====  ==============  ===========  =======================================================
