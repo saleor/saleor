@@ -30,15 +30,8 @@ class SearchBackend(object):
     rebuilder_class = None
     client = None
 
-    def __init__(self, params):
-        self._init_client(params)
-
-    @classmethod
-    def _init_client(cls, params):
-        if cls.client is None:
-            cls.client = Elasticsearch(hosts=_get_es_hosts(params))
-
-    def search(self, query, model_or_queryset):
+    @staticmethod
+    def search(query, model_or_queryset):
         qs = model_or_queryset
         # TODO: remove this ugly type incoherence of old search api
         if not isinstance(model_or_queryset, QuerySet):
@@ -53,5 +46,4 @@ def search_products(phrase):
                              .query(query)
                              .source(False)
                              .filter('term', is_published=True))
-                             #.using(SearchBackend.client))  # TODO: use default
     return [hit.meta.id for hit in search.execute()]
