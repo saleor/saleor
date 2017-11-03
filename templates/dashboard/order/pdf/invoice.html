@@ -6,10 +6,10 @@
 <html>
 <head>
   <title>Invoice, order ID: {{ order.id }}</title>
-  <link rel="stylesheet" type="text/css" href="{% static '/assets/document.css' %}" />
+  <link rel="stylesheet" type="text/css" href="{% static '/assets/document.css' %}"/>
 </head>
 <body>
-  <header>
+<header>
   <div style="float:left">
     <img src="{% static '/images/saleor_logo_black.svg' %}">
   </div>
@@ -22,20 +22,24 @@
 <table width="100%" border="1" cellspacing="0">
   <thead>
   <tr>
-    <th align="left" width="50%">{% trans "Shipping Details" %}</th>
+    {% if order.shipping_address %}
+      <th align="left" width="50%">{% trans "Shipping Details" %}</th>
+    {% endif %}
     <th align="left" width="50%">{% trans "Billing Details" %}</th>
   </tr>
   </thead>
   <tbody>
   <tr>
-    <td valign="top">
-      {% with order.shipping_address as address %}
-        <h2>
-          {% trans "Shipping address" context "Invoice shipping address" %}
-        </h2>
-        {% include 'dashboard/includes/_address.html' with address=address only %}
-      {% endwith %}
-    </td>
+    {% if order.shipping_address %}
+      <td valign="top">
+        {% with order.shipping_address as address %}
+          <h2>
+            {% trans "Shipping address" context "Invoice shipping address" %}
+          </h2>
+          {% include 'dashboard/includes/_address.html' with address=address only %}
+        {% endwith %}
+      </td>
+    {% endif %}
     <td valign="top">
       {% with order.billing_address as address %}
         <h2>
@@ -74,7 +78,7 @@
     {% for item in order.get_items.all %}
       <tr>
         <td>
-          {{ item.product_name|truncatechars:40 }}<br>
+          {{ item.product_name|truncatechars:30 }}<br>
         </td>
         <td>
           {{ item.product_sku }}
@@ -110,42 +114,42 @@
 
 <table class="bordered highlight responsive data-table">
   <tbody>
-    <tr>
-      <td class="wide">
-        {% trans "Subtotal" context "Order subtotal" %}
-      </td>
-      <td class="right-align">
-        {% gross order.get_subtotal_without_voucher html=True %}
-      </td>
-    </tr>
+  <tr>
+    <td class="wide">
+      {% trans "Subtotal" context "Order subtotal" %}
+    </td>
+    <td class="right-align">
+      {% gross order.get_subtotal_without_voucher html=True %}
+    </td>
+  </tr>
+  <tr>
+    <td>
+      {% trans "Total Shipping Price" context "Order totals header" %}
+    </td>
+    <td class="right-align">
+      {% gross order.get_total_shipping html=True %}
+    </td>
+  </tr>
+  {% if order.voucher %}
     <tr>
       <td>
-        {% trans "Total Shipping Price" context "Order totals header" %}
+        {% trans "Voucher" context "Order voucher header" %} {{ order.voucher }}
       </td>
       <td class="right-align">
-        {% gross order.get_total_shipping html=True %}
+        {% gross order.discount|discount_amount_for:order.total html=True %}
       </td>
     </tr>
-    {% if order.voucher %}
-      <tr>
-        <td>
-          {% trans "Voucher" context "Order voucher header" %} {{ order.voucher }}
-        </td>
-        <td class="right-align">
-          {% gross order.discount|discount_amount_for:order.total html=True %}
-        </td>
-      </tr>
-    {% endif %}
+  {% endif %}
   </tbody>
   <tfoot>
-    <tr>
-      <td>
-        {% trans "Grand total" context "Order totals header" %}
-      </td>
-      <td>
-        {% gross order.get_total html=True %}
-      </td>
-    </tr>
+  <tr>
+    <td>
+      {% trans "Grand total" context "Order totals header" %}
+    </td>
+    <td class="right-align">
+      {% gross order.get_total html=True %}
+    </td>
+  </tr>
   </tfoot>
 </table>
 </body>
