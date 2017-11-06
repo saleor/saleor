@@ -4,9 +4,9 @@ const $mobileNav = $('nav');
 const renderLoginBar = (e) => {
   const $desktopLinkBar = $('.navbar__login');
   const $mobileLinkBar = $('.navbar__menu__login');
-  const windowWidth = $(window).width();
+  const windowWidth = window.innerWidth;
 
-  if (windowWidth < 767) {
+  if (windowWidth < 768) {
     const $desktopLinks = $desktopLinkBar.find('a');
     if ($desktopLinks.length) {
       $mobileNav.append('<ul class="nav navbar-nav navbar__menu__login"></ul>');
