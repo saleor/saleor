@@ -10,6 +10,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2017-03-17 15:40+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: Cosmin Cosma <cosmingcosma@gmail.com>, 2017\n"
 "Language-Team: Romanian (https://www.transifex.com/mirumee/teams/34782/ro/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -20,254 +21,254 @@ msgstr ""
 #: static/dashboard/js/dashboard.js:208
 msgctxt "Datepicker option"
 msgid "Next month"
-msgstr ""
+msgstr "Luna viitoare"
 
 #: static/dashboard/js/dashboard.js:209
 msgctxt "Datepicker option"
 msgid "Previous month"
-msgstr ""
+msgstr "Luna trecută"
 
 #: static/dashboard/js/dashboard.js:212
 msgctxt "Datepicker option"
 msgid "Select a month"
-msgstr ""
+msgstr "Selectați o lună"
 
 #: static/dashboard/js/dashboard.js:213
 msgctxt "Datepicker option"
 msgid "Select a year"
-msgstr ""
+msgstr "Selectați un an"
 
 #: static/dashboard/js/dashboard.js:216
 msgctxt "Datepicker option"
 msgid "January"
-msgstr ""
+msgstr "Ianuarie"
 
 #: static/dashboard/js/dashboard.js:216
 msgctxt "Datepicker option"
 msgid "February"
-msgstr ""
+msgstr "Februarie"
 
 #: static/dashboard/js/dashboard.js:216
 msgctxt "Datepicker option"
 msgid "March"
-msgstr ""
+msgstr "Martie"
 
 #: static/dashboard/js/dashboard.js:216
 msgctxt "Datepicker option"
 msgid "April"
-msgstr ""
+msgstr "Aprilie"
 
 #: static/dashboard/js/dashboard.js:216 static/dashboard/js/dashboard.js:217
 msgctxt "Datepicker option"
 msgid "May"
-msgstr ""
+msgstr "Mai"
 
 #: static/dashboard/js/dashboard.js:216
 msgctxt "Datepicker option"
 msgid "June"
-msgstr ""
+msgstr "Iunie"
 
 #: static/dashboard/js/dashboard.js:216
 msgctxt "Datepicker option"
 msgid "July"
-msgstr ""
+msgstr "Iulie"
 
 #: static/dashboard/js/dashboard.js:216
 msgctxt "Datepicker option"
 msgid "August"
-msgstr ""
+msgstr "August"
 
 #: static/dashboard/js/dashboard.js:216
 msgctxt "Datepicker option"
 msgid "September"
-msgstr ""
+msgstr "Septembrie"
 
 #: static/dashboard/js/dashboard.js:216
 msgctxt "Datepicker option"
 msgid "October"
-msgstr ""
+msgstr "Octombrie"
 
 #: static/dashboard/js/dashboard.js:216
 msgctxt "Datepicker option"
 msgid "November"
-msgstr ""
+msgstr "Noiembrie"
 
 #: static/dashboard/js/dashboard.js:216
 msgctxt "Datepicker option"
 msgid "December"
-msgstr ""
+msgstr "Decembrie"
 
 #: static/dashboard/js/dashboard.js:217
 msgctxt "Datepicker option"
 msgid "Jan"
-msgstr ""
+msgstr "Ian"
 
 #: static/dashboard/js/dashboard.js:217
 msgctxt "Datepicker option"
 msgid "Feb"
-msgstr ""
+msgstr "Feb"
 
 #: static/dashboard/js/dashboard.js:217
 msgctxt "Datepicker option"
 msgid "Mar"
-msgstr ""
+msgstr "Mar"
 
 #: static/dashboard/js/dashboard.js:217
 msgctxt "Datepicker option"
 msgid "Apr"
-msgstr ""
+msgstr "Apr"
 
 #: static/dashboard/js/dashboard.js:217
 msgctxt "Datepicker option"
 msgid "Jun"
-msgstr ""
+msgstr "Iun"
 
 #: static/dashboard/js/dashboard.js:217
 msgctxt "Datepicker option"
 msgid "Jul"
-msgstr ""
+msgstr "Iul"
 
 #: static/dashboard/js/dashboard.js:217
 msgctxt "Datepicker option"
 msgid "Aug"
-msgstr ""
+msgstr "Aug"
 
 #: static/dashboard/js/dashboard.js:217
 msgctxt "Datepicker option"
 msgid "Sep"
-msgstr ""
+msgstr "Sep"
 
 #: static/dashboard/js/dashboard.js:217
 msgctxt "Datepicker option"
 msgid "Oct"
-msgstr ""
+msgstr "Oct"
 
 #: static/dashboard/js/dashboard.js:217
 msgctxt "Datepicker option"
 msgid "Nov"
-msgstr ""
+msgstr "Noi"
 
 #: static/dashboard/js/dashboard.js:217
 msgctxt "Datepicker option"
 msgid "Dec"
-msgstr ""
+msgstr "Dec"
 
 #: static/dashboard/js/dashboard.js:218
 msgctxt "Datepicker option"
 msgid "Sunday"
-msgstr ""
+msgstr "Duminică"
 
 #: static/dashboard/js/dashboard.js:218
 msgctxt "Datepicker option"
 msgid "Monday"
-msgstr ""
+msgstr "Luni"
 
 #: static/dashboard/js/dashboard.js:218
 msgctxt "Datepicker option"
 msgid "Tuesday"
-msgstr ""
+msgstr "Marți"
 
 #: static/dashboard/js/dashboard.js:218
 msgctxt "Datepicker option"
 msgid "Wednesday"
-msgstr ""
+msgstr "Miercuri"
 
 #: static/dashboard/js/dashboard.js:218
 msgctxt "Datepicker option"
 msgid "Thursday"
-msgstr ""
+msgstr "Joi"
 
 #: static/dashboard/js/dashboard.js:218
 msgctxt "Datepicker option"
 msgid "Friday"
-msgstr ""
+msgstr "Vineri"
 
 #: static/dashboard/js/dashboard.js:218
 msgctxt "Datepicker option"
 msgid "Saturday"
-msgstr ""
+msgstr "Sâmbătă"
 
 #: static/dashboard/js/dashboard.js:219
 msgctxt "Datepicker option"
 msgid "Sun"
-msgstr ""
+msgstr "Dum"
 
 #: static/dashboard/js/dashboard.js:219
 msgctxt "Datepicker option"
 msgid "Mon"
-msgstr ""
+msgstr "Lun"
 
 #: static/dashboard/js/dashboard.js:219
 msgctxt "Datepicker option"
 msgid "Tue"
-msgstr ""
+msgstr "Mar"
 
 #: static/dashboard/js/dashboard.js:219
 msgctxt "Datepicker option"
 msgid "Wed"
-msgstr ""
+msgstr "Mie"
 
 #: static/dashboard/js/dashboard.js:219
 msgctxt "Datepicker option"
 msgid "Thu"
-msgstr ""
+msgstr "Joi"
 
 #: static/dashboard/js/dashboard.js:219
 msgctxt "Datepicker option"
 msgid "Fri"
-msgstr ""
+msgstr "Vin"
 
 #: static/dashboard/js/dashboard.js:219
 msgctxt "Datepicker option"
 msgid "Sat"
-msgstr ""
+msgstr "Sâm"
 
 #: static/dashboard/js/dashboard.js:222
 msgctxt "Sunday shortcut"
 msgid "S"
-msgstr ""
+msgstr "D"
 
 #: static/dashboard/js/dashboard.js:222
 msgctxt "Monday shortcut"
 msgid "M"
-msgstr ""
+msgstr "L"
 
 #: static/dashboard/js/dashboard.js:222
 msgctxt "Tuesday shortcut"
 msgid "T"
-msgstr ""
+msgstr "M"
 
 #: static/dashboard/js/dashboard.js:222
 msgctxt "Wednesday shortcut"
 msgid "W"
-msgstr ""
+msgstr "M"
 
 #: static/dashboard/js/dashboard.js:222
 msgctxt "Thursday shortcut"
 msgid "T"
-msgstr ""
+msgstr "J"
 
 #: static/dashboard/js/dashboard.js:222
 msgctxt "Friday shortcut"
 msgid "F"
-msgstr ""
+msgstr "V"
 
 #: static/dashboard/js/dashboard.js:222
 msgctxt "Saturday shortcut"
 msgid "S"
-msgstr ""
+msgstr "S"
 
 #: static/dashboard/js/dashboard.js:223
 msgctxt "Datepicker option"
 msgid "Today"
-msgstr ""
+msgstr "Astăzi"
 
 #: static/dashboard/js/dashboard.js:224
 msgctxt "Datepicker option"
 msgid "Clear"
-msgstr ""
+msgstr "Șterge"
 
 #: static/dashboard/js/dashboard.js:225
 msgctxt "Datepicker option"
 msgid "Close"
-msgstr ""
+msgstr "Închide"
