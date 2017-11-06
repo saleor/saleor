@@ -142,7 +142,7 @@ Usage
     $ docker-compose run web python manage.py populatedb --createsuperuser
 
    The ``--createsuperuser`` switch creates an admin account for
-    ``admin@example.com`` with the password set to ``admin``.
+   ``admin@example.com`` with the password set to ``admin``.
 
 
 5. Run the containers
