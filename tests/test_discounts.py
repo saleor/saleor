@@ -231,21 +231,21 @@ def test_checkout_discount_form_active_queryset_voucher_active(voucher):
 
 
 def test_checkout_discount_form_active_queryset_after_some_time(voucher):
-    with freeze_time(datetime.now()) as frozen_date:
-        assert len(Voucher.objects.all()) == 1
-        checkout = Mock(cart=Mock())
-        voucher.end_date = datetime.now() + timedelta(days=1)
-        voucher.save()
+    assert len(Voucher.objects.all()) == 1
+    checkout = Mock(cart=Mock())
+    voucher.start_date = date(year=2016, month=6, day=1)
+    voucher.save()
+
+    with freeze_time('2016-05-31'):
+        form = CheckoutDiscountForm(
+            {'voucher': voucher.code}, checkout=checkout)
+        assert len(form.fields['voucher'].queryset) == 0
+
+    with freeze_time('2016-06-2'):
         form = CheckoutDiscountForm(
             {'voucher': voucher.code}, checkout=checkout)
         qs = form.fields['voucher'].queryset
         assert len(qs) == 1
-
-        frozen_date.move_to(datetime.now() + timedelta(days=2))
-        form = CheckoutDiscountForm(
-            {'voucher': voucher.code}, checkout=checkout)
-        qs = form.fields['voucher'].queryset
-        assert len(qs) == 0
 
 
 @pytest.mark.parametrize(
