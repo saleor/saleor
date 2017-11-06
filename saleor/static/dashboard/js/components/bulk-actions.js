@@ -1,6 +1,12 @@
 function updateCounterSelected () {
   const count = $('.select-item:checked').length;
-  $('.data-table-header-action-selected-items #counter').text(count);
+  const counterText = $('.data-table-header-action-selected-items');
+  $('#counter').text(count);
+  if (!count) {
+    counterText.addClass('hide');
+  } else {
+    counterText.removeClass('hide');
+  }
 }
 
 $(document).ready((e) => {
