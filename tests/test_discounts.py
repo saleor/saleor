@@ -253,7 +253,6 @@ def test_checkout_discount_form_active_queryset_after_some_time(voucher):
         assert len(form.fields['voucher'].queryset) == 0
 
 
-
 @pytest.mark.parametrize(
     'prices, discount_value, discount_type, apply_to, expected_value', [
         ([10], 10, Voucher.DISCOUNT_VALUE_FIXED, Voucher.APPLY_TO_ONE_PRODUCT, 10),  # noqa
