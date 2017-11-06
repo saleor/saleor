@@ -453,3 +453,14 @@ def authorization_key(db, site_settings):
     return AuthorizationKey.objects.create(
         site_settings=site_settings, name='Backend', key='Key',
         password='Password')
+
+
+@pytest.fixture
+def product_list(product_class):
+    product_1 = Product.objects.create(
+        name='Test product 1', price=Decimal('10.00'),
+        product_class=product_class, is_published=True)
+    product_2 = Product.objects.create(
+        name='Test product 2', price=Decimal('20.00'),
+        product_class=product_class, is_published=False)
+    return [product_1, product_2]
