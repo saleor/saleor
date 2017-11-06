@@ -5,7 +5,7 @@
 
 <html>
 <head>
-  <title>Invoice, order ID: {{ order.id }}</title>
+  <title>{% trans "Invoice, order ID" context "Invoice title" %}: {{ order.id }}</title>
   <link rel="stylesheet" type="text/css" href="{% static '/assets/document.css' %}"/>
 </head>
 <body>
@@ -23,9 +23,9 @@
   <thead>
   <tr>
     {% if order.shipping_address %}
-      <th align="left" width="50%">{% trans "Shipping Details" %}</th>
+      <th align="left" width="50%">{% trans "Shipping Details" context "Invoice table header" %}</th>
     {% endif %}
-    <th align="left" width="50%">{% trans "Billing Details" %}</th>
+    <th align="left" width="50%">{% trans "Billing Details" context "Invoice table header" %}</th>
   </tr>
   </thead>
   <tbody>
@@ -52,7 +52,7 @@
   </tbody>
 </table>
 
-<h2>{% trans "Items Ordered" context "Order invoice" %}</h2>
+<h2>{% trans "Items Ordered" context "Invoice ordered items header" %}</h2>
 {% if order %}
   <table class="data-table order-table bordered">
     <thead>
@@ -118,7 +118,7 @@
   <tbody>
   <tr>
     <td class="wide">
-      {% trans "Subtotal" context "Order subtotal" %}
+      {% trans "Subtotal" context "Order subtotal price" %}
     </td>
     <td class="right-align">
       {% gross order.get_subtotal_without_voucher html=True %}
@@ -126,7 +126,7 @@
   </tr>
   <tr>
     <td>
-      {% trans "Total Shipping Price" context "Order totals header" %}
+      {% trans "Total Shipping Price" context "Order total shipping price header" %}
     </td>
     <td class="right-align">
       {% gross order.get_total_shipping html=True %}
@@ -146,7 +146,7 @@
   <tfoot>
   <tr>
     <td>
-      {% trans "Grand total" context "Order totals header" %}
+      {% trans "Grand total" context "Order total price header" %}
     </td>
     <td class="right-align">
       {% gross order.get_total html=True %}
