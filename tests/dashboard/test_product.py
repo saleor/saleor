@@ -308,33 +308,23 @@ def test_view_invalid_reorder_product_images(
     assert 'ordered_images' in resp_decoded['error']
 
 
-def test_product_bulk_update_form_can_publish_products(product_list):
-    data = {
-        'action': ProductBulkAction.PUBLISH,
-        'products': [p.pk for p in product_list]
-    }
+def perform_bulk_action(product_list, action):
+    """Perform given bulk action on given product list."""
+    data = {'action': action, 'products': [p.pk for p in product_list]}
     form = ProductBulkUpdate(data)
-
     assert form.is_valid()
-
     form.save()
 
+
+def test_product_bulk_update_form_can_publish_products(product_list):
+    perform_bulk_action(product_list, ProductBulkAction.PUBLISH)
     for p in product_list:
         p.refresh_from_db()
         assert p.is_published
 
 
 def test_product_bulk_update_form_can_unpublish_products(product_list):
-    data = {
-        'action': ProductBulkAction.UNPUBLISH,
-        'products': [p.pk for p in product_list]
-    }
-    form = ProductBulkUpdate(data)
-
-    assert form.is_valid()
-
-    form.save()
-
+    perform_bulk_action(product_list, ProductBulkAction.UNPUBLISH)
     for p in product_list:
         p.refresh_from_db()
         assert not p.is_published
