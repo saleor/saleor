@@ -5,7 +5,7 @@
 
 <html>
 <head>
-  <title>{% trans "Invoice, order ID" context "Invoice title" %}: {{ order.id }}</title>
+  <title>{% trans "Invoice for Order" context "Invoice title" %} #{{ order.id }}</title>
   <link rel="stylesheet" type="text/css" href="{% static '/assets/document.css' %}"/>
 </head>
 <body>
@@ -14,7 +14,7 @@
     <img src="{% static '/images/saleor_logo_black.svg' %}">
   </div>
   <div
-      style="float:right">{{ order.created }}<br>{% trans 'Order ID:' context 'Invoice header' %} {{ order.id }}
+      style="float:right">{{ order.created }}<br>{% trans 'Order' context 'Invoice header' %} #{{ order.id }}
   </div>
 </header>
 
