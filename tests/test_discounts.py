@@ -241,7 +241,7 @@ def test_checkout_discount_form_active_queryset_after_some_time(voucher):
             {'voucher': voucher.code}, checkout=checkout)
         assert len(form.fields['voucher'].queryset) == 0
 
-    with freeze_time('2016-06-2'):
+    with freeze_time('2016-06-01'):
         form = CheckoutDiscountForm(
             {'voucher': voucher.code}, checkout=checkout)
         qs = form.fields['voucher'].queryset
