@@ -1,5 +1,6 @@
+from datetime import date, datetime, timedelta
 from decimal import Decimal
-
+from freezegun import freeze_time
 import pytest
 from mock import Mock
 from prices import FixedDiscount, FractionalDiscount, Price
@@ -188,6 +189,57 @@ def test_invalid_checkout_discount_form(monkeypatch, voucher):
         Mock(side_effect=NotApplicable('Not applicable')))
     assert not form.is_valid()
     assert 'voucher' in form.errors
+
+
+def test_voucher_queryset_active(voucher):
+    vouchers = Voucher.objects.all()
+    assert len(vouchers) == 1
+    active_vouchers = Voucher.objects.active(
+        date=date.today() - timedelta(days=1))
+    assert len(active_vouchers) == 0
+
+
+def test_checkout_discount_form_active_queryset_voucher_not_active(voucher):
+    assert len(Voucher.objects.all()) == 1
+    checkout = Mock(cart=Mock())
+    voucher.start_date = date.today() + timedelta(days=1)
+    voucher.save()
+    form = CheckoutDiscountForm({'voucher': voucher.code}, checkout=checkout)
+    qs = form.fields['voucher'].queryset
+    assert len(qs) == 0
+
+
+def test_checkout_discount_form_active_queryset_voucher_active(voucher):
+    assert len(Voucher.objects.all()) == 1
+    checkout = Mock(cart=Mock())
+    voucher.start_date = date.today()
+    voucher.save()
+    form = CheckoutDiscountForm({'voucher': voucher.code}, checkout=checkout)
+    qs = form.fields['voucher'].queryset
+    assert len(qs) == 1
+
+
+def test_checkout_discount_form_active_queryset_after_some_time(voucher):
+    assert len(Voucher.objects.all()) == 1
+    checkout = Mock(cart=Mock())
+    voucher.start_date = date(year=2016, month=6, day=1)
+    voucher.end_date = date(year=2016, month=6, day=2)
+    voucher.save()
+
+    with freeze_time('2016-05-31'):
+        form = CheckoutDiscountForm(
+            {'voucher': voucher.code}, checkout=checkout)
+        assert len(form.fields['voucher'].queryset) == 0
+
+    with freeze_time('2016-06-01'):
+        form = CheckoutDiscountForm(
+            {'voucher': voucher.code}, checkout=checkout)
+        assert len(form.fields['voucher'].queryset) == 1
+
+    with freeze_time('2016-06-03'):
+        form = CheckoutDiscountForm(
+            {'voucher': voucher.code}, checkout=checkout)
+        assert len(form.fields['voucher'].queryset) == 0
 
 
 @pytest.mark.parametrize(
