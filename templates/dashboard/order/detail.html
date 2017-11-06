@@ -203,6 +203,9 @@
                   {% trans "Release" context "Order summary card action" %}
                 </a>
               {% endif %}
+            <a href="{% url 'dashboard:order-invoice' order_pk=order.pk %}" data-href="" class="btn btn-flat" target="_blank">
+                  {% trans "Invoice" context "Order detail action" %}
+                </a>
             </div>
           {% endif %}
         {% endif %}
@@ -355,9 +358,6 @@
                     {% trans "Cancel this shipment" context "Shipment group table action" %}
                   </a>
                 {% endif %}
-                <a href="{% url 'dashboard:order-invoice' group_pk=group.pk %}" data-href="" class="btn btn-flat" target="_blank">
-                  {% trans "Invoice" context "Order detail action" %}
-                </a>
                 <a href="{% url 'dashboard:order-packing-slips' group_pk=group.pk %}" data-href="" class="btn btn-flat" target="_blank">
                   {% trans "Packing Slips" context "Order detail action" %}
                 </a>

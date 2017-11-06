@@ -2,7 +2,7 @@ from django.contrib.sites.shortcuts import get_current_site
 from django.template.loader import get_template
 
 from ...settings import STATIC_URL
-from ...order.models import DeliveryGroup
+from ...order.models import DeliveryGroup, Order
 
 
 INVOICE_TEMPLATE = 'dashboard/order/pdf/invoice.html'
@@ -26,14 +26,18 @@ def _create_pdf(rendered_template, absolute_url):
     return pdf_file
 
 
-def create_invoice_pdf(group_pk, absolute_url):
-    group = (DeliveryGroup.objects.prefetch_related(
-        'items', 'order', 'order__user', 'order__shipping_address',
-        'order__billing_address').get(pk=group_pk))
-    ctx = {'group': group}
+def create_invoice_pdf(order_pk, absolute_url):
+    order = (Order.objects.prefetch_related(
+        'user', 'shipping_address',
+        'billing_address', 'voucher', 'groups').get(
+        pk=order_pk))
+    shipping_methods = [
+        {'name': d.shipping_method_name,
+         'price': d.shipping_price} for d in order.groups.all()]
+    ctx = {'order': order, 'shipping_methods': shipping_methods}
     rendered_template = get_template(INVOICE_TEMPLATE).render(ctx)
     pdf_file = _create_pdf(rendered_template, absolute_url)
-    return pdf_file, group
+    return pdf_file, order
 
 
 def create_packing_slip_pdf(group_pk, absolute_url):
