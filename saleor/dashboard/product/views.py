@@ -5,8 +5,7 @@ from django.contrib.auth.decorators import permission_required
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect
 from django.template.response import TemplateResponse
-from django.utils.http import is_safe_url
-from django.utils.translation import pgettext_lazy
+from django.utils.translation import npgettext_lazy, pgettext_lazy
 from django.views.decorators.http import require_POST
 
 from ...core.utils import get_paginator_items
@@ -14,8 +13,8 @@ from ...product.models import (
     Product, ProductAttribute, ProductClass, ProductImage, ProductVariant,
     Stock, StockLocation)
 from ...product.utils import get_availability
-from ..views import staff_member_required, superuser_required
 from ...settings import DASHBOARD_PAGINATE_BY
+from ..views import staff_member_required, superuser_required
 from . import forms
 
 
@@ -109,7 +108,8 @@ def product_list(request):
     products = get_paginator_items(
         products, DASHBOARD_PAGINATE_BY, request.GET.get('page'))
     ctx = {
-        'form': form, 'products': products, 'product_classes': product_classes}
+        'bulk_action_form': forms.ProductBulkUpdate(), 'form': form,
+        'products': products, 'product_classes': product_classes}
     return TemplateResponse(request, 'dashboard/product/list.html', ctx)
 
 
@@ -594,3 +594,19 @@ def ajax_upload_image(request, product_pk):
         status = 400
         ctx = {'error': form.errors}
     return JsonResponse(ctx, status=status)
+
+
+@require_POST
+@staff_member_required
+def product_bulk_update(request):
+    form = forms.ProductBulkUpdate(request.POST)
+    if form.is_valid():
+        form.save()
+        count = len(form.cleaned_data['products'])
+        msg = npgettext_lazy(
+            'Dashboard message',
+            '%(count)d product has been updated',
+            '%(count)d products have been updated',
+            number=count) % {'count': count}
+        messages.success(request, msg)
+    return redirect('dashboard:product-list')
