@@ -1,8 +1,9 @@
+function updateCounterSelected () {
+  const count = $('.select-item:checked').length;
+  $('.data-table-header-action-selected-items #counter').text(count);
+}
+
 $(document).ready((e) => {
-  function updateCounterSelected() {
-    const count = $('.select-item:checked').length;
-    $('.data-table-header-action-selected-items #counter').text(count);
-  }
   $('.select-all').on('change', function () {
     let $items = $(this).parents('form').find('.switch-actions');
     if (this.checked) {
@@ -12,7 +13,7 @@ $(document).ready((e) => {
     }
     updateCounterSelected();
   });
-  $('.select-item').on('change', function() {
+  $('.select-item').on('change', function () {
     updateCounterSelected();
   });
   $('.switch-actions').on('change', function () {
