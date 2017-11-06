@@ -1,6 +1,11 @@
 @mixin data-table {
   &-container {
     overflow: auto;
+    .avatar {
+      img {
+        vertical-align: middle;
+      }
+    }
   }
 
   &-action {
@@ -45,7 +50,7 @@
     }
   }
 
-  tr[data-action-go]>td:not(.ignore-link):hover {
+  tr[data-action-go] > td:not(.ignore-link):hover {
     cursor: pointer;
   }
 
