@@ -159,7 +159,12 @@ class User(PermissionsMixin, AbstractBaseUser, index.Indexed):
             ('view_user',
              pgettext_lazy('Permission description', 'Can view users')),
             ('edit_user',
-             pgettext_lazy('Permission description', 'Can edit users')))
+             pgettext_lazy('Permission description', 'Can edit users')),
+             ('view_group',
+             pgettext_lazy('Permission description', 'Can view groups')), 
+             ('edit_group',
+             pgettext_lazy('Permission description', 'Can edit groups')), 
+             )
 
     def get_full_name(self):
         return self.email

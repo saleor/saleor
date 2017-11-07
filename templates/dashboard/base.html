@@ -168,7 +168,7 @@
             {% if user.is_superuser %}
               <li class="side-nav-section">
                 <p>
-                  {% trans "Configuration"  context "Dashboard configuration" %}
+                  {% trans "Staff management" context "Management section" %}
                 </p>
                 <ul>
                   <li class="{% block menu_staff_class %}{% endblock %}">
@@ -181,6 +181,15 @@
                       {% trans "Groups" context "Dashboard groups list" %}
                     </a>
                   </li>
+                </ul>
+              </li>
+            {% endif %}
+            {% if user.is_superuser %}
+              <li class="side-nav-section">
+                <p>
+                  {% trans "Configuration"  context "Dashboard configuration" %}
+                </p>
+                <ul>    
                   <li class="{% block menu_product_classes_class %}{% endblock %}">
                     <a href="{% url 'dashboard:product-class-list' %}">
                       {% trans "Product types" context "Dashboard product types list" %}
