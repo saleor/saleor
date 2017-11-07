@@ -15,11 +15,11 @@ MODELS_PERMISSIONS = [
     'sale.edit_sale',
     'user.view_user',
     'user.edit_user',
-    'voucher.view_voucher',
-    'voucher.edit_voucher',
     'user.view_group',
     'user.edit_group',
     'user.view_staff',
+    'voucher.view_voucher',
+    'voucher.edit_voucher',
 ]
 
 
