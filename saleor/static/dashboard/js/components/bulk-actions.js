@@ -3,11 +3,14 @@ function updateCounterSelected () {
   const $counterTextNode = $('.data-table-header-action-selected-items');
   let counterText;
   switch (count) {
-    case 0: counterText = pgettext('bulk action select label zero', 'no items selected');
-    break;
-    case 1: counterText = pgettext('bulk action select label one', 'item selected');
-    break;
-    default: counterText = pgettext('bulk action select label multiple', 'items selected');
+    case 0:
+      counterText = pgettext('bulk action select label zero', 'no items selected');
+      break;
+    case 1:
+      counterText = pgettext('bulk action select label one', 'item selected');
+      break;
+    default:
+      counterText = pgettext('bulk action select label multiple', 'items selected');
   }
   $counterTextNode.html(count ? `${count} ${counterText}` : counterText);
   if (!count) {
