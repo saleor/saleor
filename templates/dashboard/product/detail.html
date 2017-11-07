@@ -154,7 +154,7 @@
           <div class="col s12">
             <div class="card">
               <div class="card-content">
-                <div class="switch" data-url="{% url 'dashboard:product-publish' product.pk %}">
+                <div class="switch" id="product-is-published" data-url="{% url 'dashboard:product-publish' product.pk %}">
                   <label>
                     <input type="checkbox" {% if product.is_published %} checked {% endif %}>
                     <span class="lever"></span>
