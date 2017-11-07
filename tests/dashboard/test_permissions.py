@@ -175,6 +175,24 @@ def test_staff_cant_view_products_attribute_delete(
     assert response.status_code == 302
 
 
+def test_admin_can_view_product_image_update(admin_client, product_with_image):
+    product_image = product_with_image.images.all()[0]
+    url = reverse('dashboard:product-image-update',
+                  kwargs={'img_pk': product_image.pk,
+                          'product_pk': product_with_image.pk})
+    response = admin_client.get(url)
+    assert response.status_code == 200
+
+
+def test_staff_cant_view_product_image_update(staff_client, product_with_image):
+    product_image = product_with_image.images.all()[0]
+    url = reverse('dashboard:product-image-update',
+                  kwargs={'img_pk': product_image.pk,
+                          'product_pk': product_with_image.pk})
+    response = staff_client.get(url)
+    assert response.status_code == 302
+
+
 def test_admin_can_view_shipping_methods_list(admin_client):
     response = admin_client.get(reverse('dashboard:shipping-methods'))
     assert response.status_code == 200

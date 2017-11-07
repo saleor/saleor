@@ -7,9 +7,7 @@ import pytest
 from io import BytesIO
 from PIL import Image
 
-from django.contrib.auth.models import AnonymousUser
 from django.contrib.sites.models import Site
-from django.utils.encoding import smart_text
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.contrib.auth.models import AnonymousUser, Group, Permission
 from django.core.files import File
