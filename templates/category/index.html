@@ -1,18 +1,30 @@
-{% extends "product/product_list_base.html" %}
-{% load i18n %}
+{% extends "base.html" %}
+{% load slice from shop %}
 {% load staticfiles %}
+{% load bootstrap_pagination from bootstrap3 %}
+{% load render_bundle from webpack_loader %}
 
-{% block breadcrumb_part %}
-  <li>
-    <a href="{% url 'home' %}">{% trans "Home" context 'Category breadcrumbs home' %}</a>
-  </li>
-  {% for ancestor in object.get_ancestors %}
-    <li><a href='{{ ancestor.get_absolute_url }}'>{{ ancestor.name }}</a>
-    </li>
-  {% endfor %}
-  <li><a href='{{ object.get_absolute_url }}'>{{ object.name }}</a></li>
-{% endblock %}
+{% block footer_scripts %}
+  {{ block.super }}
+  {% render_bundle 'category' 'js' %}
+{% endblock footer_scripts %}
 
-{% block filters %}
-  {% include "category/filters.html" with category=object %}
-{% endblock filters %}
+{% block title %}{{ category }} — {{ block.super }}{% endblock %}
+
+{% block breadcrumb %}
+    {{ block.super }}
+    {% for breadcrumb in breadcrumbs %}
+        <li{% if forloop.last %} class="active"{% endif %}>
+            {% if not forloop.last %}
+                <a href="{{ breadcrumb.get_absolute_url }}">{{ breadcrumb }}</a>
+            {% else %}
+                <span>{{ breadcrumb }}</span>
+            {% endif %}
+        </li>
+    {% endfor %}
+{% endblock breadcrumb %}
+
+{% block content %}
+    {% csrf_token %}
+    <div id="category-page" data-category='{"id":{{category.id}}}'></div>
+{% endblock content %}

@@ -44,6 +44,7 @@ var providePlugin = new webpack.ProvidePlugin({
 
 var config = {
   entry: {
+    category: './saleor/static/js/category.js',
     dashboard: './saleor/static/dashboard/js/dashboard.js',
     document: './saleor/static/dashboard/js/document.js',
     storefront: './saleor/static/js/storefront.js'

@@ -111,17 +111,11 @@ def category_index(request, path, category_id):
     category = get_object_or_404(Category, id=category_id)
     actual_path = category.get_full_path()
     if actual_path != path:
-        return redirect('product:category', permanent=True, path=actual_path,
-                        category_id=category_id)
-    # Check for subcategories
-    categories = category.get_descendants(include_self=True)
-    products = products_with_details(user=request.user).filter(
-        category__in=categories).order_by('name')
-    product_filter = ProductCategoryFilter(
-        request.GET, queryset=products, category=category)
-    ctx = get_product_list_context(request, product_filter)
-    ctx.update({'object': category})
-    return TemplateResponse(request, 'category/index.html', ctx)
+        return redirect(
+            'product:category', permanent=True, path=actual_path,
+            category_id=category_id)
+    return TemplateResponse(
+        request, 'category/index.html', {'category': category})
 
 
 def collection_index(request, slug, pk):
