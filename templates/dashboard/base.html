@@ -165,22 +165,26 @@
               </ul>
             </li>
             {% endif %}
-            {% if user.is_superuser %}
+            {% if perms.userprofile.view_group %}
               <li class="side-nav-section">
                 <p>
                   {% trans "Staff management" context "Management section" %}
                 </p>
                 <ul>
+                  {% if perms.userprofile.edit_group %}
                   <li class="{% block menu_staff_class %}{% endblock %}">
                     <a href="{% url 'dashboard:staff-list' %}">
                       {% trans "Staff members" context "Dashboard staff members list" %}
                     </a>
                   </li>
+                  {% endif %}
+                  {% if perms.userprofile.edit_group %}
                   <li class="{% block menu_groups_class %}{% endblock %}">
                     <a href="{% url 'dashboard:group-list' %}">
                       {% trans "Groups" context "Dashboard groups list" %}
                     </a>
                   </li>
+                  {% endif %}
                 </ul>
               </li>
             {% endif %}
