@@ -9,7 +9,12 @@ function updateCounterSelected () {
     counterText = pgettext('bulk action select label multiple', 'items selected');
   }
 
-  $counterTextNode.html(count ? `${count} ${counterText}` : '');
+  $counterTextNode.html(count ? `${count} ${counterText}` : counterText);
+  if (!count) {
+    $counterTextNode.addClass('hide');
+  } else {
+    $counterTextNode.removeClass('hide');
+  }
 }
 
 $(document).ready((e) => {
