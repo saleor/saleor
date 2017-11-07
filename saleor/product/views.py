@@ -112,22 +112,15 @@ def product_add_to_cart(request, slug, product_id):
     return response
 
 
-def category_index(request, slug, category_id):
-    categories = Category.objects.prefetch_related('translations')
-    category = get_object_or_404(categories, id=category_id)
-    if slug != category.slug:
+def category_index(request, path, category_id):
+    category = get_object_or_404(Category, id=category_id)
+    actual_path = category.get_full_path()
+    if actual_path != path:
         return redirect(
-            'product:category', permanent=True, slug=category.slug,
+            'product:category', permanent=True, path=actual_path,
             category_id=category_id)
-    # Check for subcategories
-    categories = category.get_descendants(include_self=True)
-    products = products_for_products_list(user=request.user).filter(
-        category__in=categories).order_by('name')
-    product_filter = ProductCategoryFilter(
-        request.GET, queryset=products, category=category)
-    ctx = get_product_list_context(request, product_filter)
-    ctx.update({'object': category})
-    return TemplateResponse(request, 'category/index.html', ctx)
+    return TemplateResponse(
+        request, 'category/index.html', {'category': category})
 
 
 def collection_index(request, slug, pk):
