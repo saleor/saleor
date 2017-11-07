@@ -19,6 +19,7 @@ MODELS_PERMISSIONS = [
     'voucher.edit_voucher',
     'user.view_group',
     'user.edit_group',
+    'user.view_staff',
 ]
 
 
