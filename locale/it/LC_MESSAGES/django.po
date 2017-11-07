@@ -843,7 +843,7 @@ msgstr "Prodotti con scarsa disponibilità"
 #: saleor/product/__init__.py:24
 msgctxt "Product status"
 msgid "stock running low"
-msgstr Prodotti in esaurimento""
+msgstr "Prodotti in esaurimento"
 
 #: saleor/product/__init__.py:26
 #, fuzzy
@@ -3833,7 +3833,7 @@ msgstr "Aggiungi"
 #: templates/dashboard/product/detail.html:163
 msgctxt "Product field"
 msgid "Published"
-msgstr Pubblicato""
+msgstr "Pubblicato"
 
 #: templates/dashboard/product/detail.html:165
 msgctxt "Product field"
