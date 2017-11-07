@@ -448,10 +448,10 @@ msgstr "Chiudi"
 #: saleor/static/js/components/variantPicker/VariantPicker.js:161
 msgctxt "Product details primary action"
 msgid "Add to cart"
-msgstr ""
+msgstr "Aggiungi al carrello"
 
 #: saleor/static/assets/storefront.js:32
 #: saleor/static/js/components/variantPicker/QuantityInput.js:21
 msgctxt "Add to cart form field label"
 msgid "Quantity"
-msgstr ""
+msgstr "Quantità"

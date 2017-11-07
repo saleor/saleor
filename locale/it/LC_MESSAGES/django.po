@@ -471,7 +471,7 @@ msgstr "Aggiungi nuova offerta"
 #: saleor/discount/models.py:298
 msgctxt "Permission description"
 msgid "Can edit sales"
-msgstr ""
+msgstr "Modifica offerte"
 
 #: saleor/discount/models.py:335
 msgctxt "Voucher not applicable"
@@ -653,7 +653,7 @@ msgstr "Spedizione #%s"
 #: saleor/order/models.py:326 saleor/order/models.py:385
 msgctxt "Order status history entry"
 msgid "Order cancelled. No items in order"
-msgstr ""
+msgstr "Ordine cancellato. Nessun prodotto nell'ordine"
 
 #: saleor/order/models.py:333
 msgctxt "Ordered item field"
@@ -817,7 +817,7 @@ msgstr "Hai collegato con successo l'ordine al tuo account"
 #: saleor/product/__init__.py:16
 msgctxt "Product status"
 msgid "not published"
-msgstr ""
+msgstr "non pubblicato"
 
 #: saleor/product/__init__.py:18
 #, fuzzy
@@ -830,7 +830,7 @@ msgstr "immagine variante"
 #: saleor/product/__init__.py:20
 msgctxt "Product status"
 msgid "not carried"
-msgstr ""
+msgstr "nessun magazzino"
 
 #: saleor/product/__init__.py:22
 #, fuzzy
@@ -843,7 +843,7 @@ msgstr "Prodotti con scarsa disponibilità"
 #: saleor/product/__init__.py:24
 msgctxt "Product status"
 msgid "stock running low"
-msgstr ""
+msgstr Prodotti in esaurimento""
 
 #: saleor/product/__init__.py:26
 #, fuzzy
@@ -871,7 +871,7 @@ msgstr "disponibile dal"
 #: saleor/product/__init__.py:43
 msgctxt "Variant status"
 msgid "not carried"
-msgstr ""
+msgstr "nessun magazzino"
 
 #: saleor/product/__init__.py:45
 #, fuzzy
@@ -900,12 +900,12 @@ msgstr "prezzo"
 #: saleor/product/filters.py:31
 msgctxt "Product list sorting form"
 msgid "Sort by"
-msgstr ""
+msgstr "Ordina per"
 
 #: saleor/product/filters.py:84
 #, python-format
 msgid "%(value)s is not a valid sorting option"
-msgstr ""
+msgstr "%(value)s non è un parametro di ordinamento valido"
 
 #: saleor/product/forms.py:20
 #, python-format
@@ -1032,7 +1032,7 @@ msgstr "disponibile dal"
 #: saleor/product/models.py:136
 msgctxt "Product field"
 msgid "is published"
-msgstr ""
+msgstr "pubblicato"
 
 #: saleor/product/models.py:137
 msgctxt "Product field"
@@ -1557,12 +1557,12 @@ msgstr "utenti"
 #: saleor/userprofile/models.py:160
 msgctxt "Permission description"
 msgid "Can view users"
-msgstr ""
+msgstr "Può visualizzare gli utenti"
 
 #: saleor/userprofile/models.py:162
 msgctxt "Permission description"
 msgid "Can edit users"
-msgstr ""
+msgstr "Può modificare gli utenti"
 
 #: saleor/userprofile/templatetags/i18n_address_tags.py:15
 #, python-format
@@ -1826,7 +1826,7 @@ msgctxt "Password reset from key form title"
 msgid ""
 "Sorry but this link is no longer valid. If you forget your password, please "
 "use link below."
-msgstr ""
+msgstr "Link non più valido. Se hai dimenticato la password, usa il link qui sotto."
 
 #: templates/account/password_reset_from_key.html:42
 #, fuzzy
@@ -2037,17 +2037,17 @@ msgstr "Pagina iniziale"
 #: templates/category/index.html:52 templates/category/index.html:71
 msgctxt "Category page filters"
 msgid "Sort by"
-msgstr ""
+msgstr "Ordina per"
 
 #: templates/category/index.html:76
 msgctxt "sort by option"
 msgid "ascending"
-msgstr ""
+msgstr "crescente"
 
 #: templates/category/index.html:82
 msgctxt "sort by option"
 msgid "descending"
-msgstr ""
+msgstr "decrescente"
 
 #: templates/category/index.html:115
 #, fuzzy
@@ -2060,7 +2060,7 @@ msgstr "Filtra"
 #: templates/category/index.html:117
 msgctxt "Category page filters"
 msgid "Clear filters"
-msgstr ""
+msgstr "Ripulisci filtri"
 
 #: templates/category/index.html:158
 #, fuzzy
@@ -2073,7 +2073,7 @@ msgstr "da"
 #: templates/category/index.html:160
 msgctxt "Category price filter"
 msgid "to"
-msgstr ""
+msgstr "a"
 
 #: templates/category/index.html:163
 #, fuzzy
@@ -2347,13 +2347,13 @@ msgstr "Configurazione"
 #: templates/dashboard/base.html:173
 msgctxt "Dashboard staff members list"
 msgid "Staff members"
-msgstr ""
+msgstr "Membri dello Staff"
 
 #: templates/dashboard/base.html:178 templates/dashboard/group/detail.html:28
 #: templates/dashboard/group/list.html:8 templates/dashboard/group/list.html:28
 msgctxt "Dashboard groups list"
 msgid "Groups"
-msgstr ""
+msgstr "Gruppi"
 
 #: templates/dashboard/base.html:183
 #: templates/dashboard/product/product_class/form.html:30
@@ -2564,7 +2564,7 @@ msgstr "Modifica  %(category)s"
 #: templates/dashboard/customer/detail.html:47
 msgctxt "Customer promote to staff member action"
 msgid "Promote to staff"
-msgstr ""
+msgstr "Promuovi a staff"
 
 #: templates/dashboard/customer/detail.html:61
 msgctxt "Customer orders table title"
@@ -2658,7 +2658,7 @@ msgstr "Nessun cliente trovato."
 #: templates/dashboard/customer/modal/confirm_promote.html:9
 msgctxt "Dashboard confirmation modal"
 msgid "Promote to staff member"
-msgstr ""
+msgstr "Promuovi a membro dello staff"
 
 #: templates/dashboard/customer/modal/confirm_promote.html:17
 #, fuzzy
@@ -2826,7 +2826,7 @@ msgstr "Aggiungi nuovo prodotto"
 #: templates/dashboard/group/detail.html:12
 msgctxt "Dashboard group"
 msgid "Group"
-msgstr ""
+msgstr "Gruppo"
 
 #: templates/dashboard/group/detail.html:38
 #, fuzzy
@@ -2875,6 +2875,8 @@ msgid ""
 "<p>Are you sure you want to delete group %(group)s?</p> <p>Users might lose "
 "permissions related to this group.</p>"
 msgstr ""
+"<p>Sei sicuro di cancellare il gruppo %(group)s?</p> <p>Gli utenti perderebbero i permessi "
+"relativi a quel gruppo.</p>"
 
 #: templates/dashboard/includes/_orders_table.html:13
 msgctxt "Orders table header"
@@ -3010,7 +3012,7 @@ msgstr "Annulla Ordine"
 #: templates/dashboard/order/detail.html:39
 msgctxt "Order detail action"
 msgid "Print"
-msgstr ""
+msgstr "Stampa"
 
 #: templates/dashboard/order/detail.html:72
 msgctxt "Order detail tab"
@@ -3098,7 +3100,7 @@ msgstr "Rilascia"
 #: templates/dashboard/order/detail.html:207
 msgctxt "Order detail action"
 msgid "Invoice"
-msgstr ""
+msgstr "Fattura"
 
 #: templates/dashboard/order/detail.html:260
 #, python-format
@@ -3180,7 +3182,7 @@ msgstr "Annulla questa spedizione"
 #: templates/dashboard/order/detail.html:362
 msgctxt "Order detail action"
 msgid "Packing Slips"
-msgstr ""
+msgstr "Imballaggio"
 
 #: templates/dashboard/order/detail.html:368
 #: templates/dashboard/order/detail.html:375
@@ -3495,7 +3497,7 @@ msgstr "Ordine"
 #: templates/dashboard/order/pdf/invoice.html:21
 msgctxt "Order invoice"
 msgid "Invoice"
-msgstr ""
+msgstr "Fattura"
 
 #: templates/dashboard/order/pdf/invoice.html:26
 #, fuzzy
@@ -3532,7 +3534,7 @@ msgstr "Indirizzo di fatturazione"
 #: templates/dashboard/order/pdf/invoice.html:55
 msgctxt "Invoice ordered items header"
 msgid "Items Ordered"
-msgstr ""
+msgstr "Prodotti ordinati"
 
 #: templates/dashboard/order/pdf/invoice.html:62
 #, fuzzy
@@ -3625,7 +3627,7 @@ msgstr "Ordine"
 #: templates/dashboard/order/pdf/packing_slip.html:21
 msgctxt "Packing slips header"
 msgid "Packing Slips"
-msgstr ""
+msgstr "Imballaggio"
 
 #: templates/dashboard/order/pdf/packing_slip.html:25
 #, fuzzy
@@ -3662,7 +3664,7 @@ msgstr "Indirizzo di fatturazione"
 #: templates/dashboard/order/pdf/packing_slip.html:51
 msgctxt "Order invoice"
 msgid "Items Ordered"
-msgstr ""
+msgstr "Prodotti ordinati"
 
 #: templates/dashboard/product/_stock_table.html:7
 #, fuzzy
@@ -3687,7 +3689,7 @@ msgstr "Assegnata"
 
 #: templates/dashboard/product/_stock_table.html:10
 msgid "Cost"
-msgstr ""
+msgstr "Costo"
 
 #: templates/dashboard/product/_stock_table.html:23
 #, fuzzy
@@ -3726,7 +3728,7 @@ msgstr "Tutti gli acquisti"
 #: templates/dashboard/product/detail.html:61
 msgctxt "Product field"
 msgid "Gross margin"
-msgstr ""
+msgstr "Profitto lordo"
 
 #: templates/dashboard/product/detail.html:79
 #, fuzzy
@@ -3831,12 +3833,12 @@ msgstr "Aggiungi"
 #: templates/dashboard/product/detail.html:163
 msgctxt "Product field"
 msgid "Published"
-msgstr ""
+msgstr Pubblicato""
 
 #: templates/dashboard/product/detail.html:165
 msgctxt "Product field"
 msgid "Draft"
-msgstr ""
+msgstr "Bozza"
 
 #: templates/dashboard/product/detail.html:184
 #: templates/dashboard/product/product_image/list.html:7
@@ -3902,12 +3904,12 @@ msgstr "Aggiungi prodotto"
 #: templates/dashboard/product/list.html:56
 msgctxt "Dashboard form submit input"
 msgid "Submit"
-msgstr ""
+msgstr "Invia"
 
 #: templates/dashboard/product/list.html:62
 msgctxt "Dashboard bulk action summary"
 msgid "item(s) selected"
-msgstr ""
+msgstr "prodotto/i selezionati"
 
 #: templates/dashboard/product/list.html:77
 #, fuzzy
@@ -4160,7 +4162,7 @@ msgstr "Non ci sono varianti per questo prodotto"
 #: templates/dashboard/product/product_image/form.html:8
 msgctxt "Image form text"
 msgid "Edit - Image"
-msgstr ""
+msgstr "Modifica - Immagine"
 
 #: templates/dashboard/product/product_image/form.html:10
 #, fuzzy
@@ -4766,17 +4768,17 @@ msgstr "Aggiungi nuova offerta"
 #: templates/dashboard/staff/detail.html:12
 msgctxt "Dashboard staff"
 msgid "Staff"
-msgstr ""
+msgstr "Staff"
 
 #: templates/dashboard/staff/detail.html:28
 msgctxt "Dashboard staff list"
 msgid "Staff"
-msgstr ""
+msgstr "Staff"
 
 #: templates/dashboard/staff/detail.html:36
 msgctxt "Dashboard add staff member action"
 msgid "Add staff member"
-msgstr ""
+msgstr "Aggiungi un membro dello staff"
 
 #: templates/dashboard/staff/detail.html:49
 #, fuzzy
@@ -4797,12 +4799,12 @@ msgstr "Dettagli Pagamento"
 #: templates/dashboard/staff/list.html:9 templates/dashboard/staff/list.html:29
 msgctxt "Dashboard staff members list"
 msgid "Staff"
-msgstr ""
+msgstr "Staff"
 
 #: templates/dashboard/staff/list.html:19
 msgctxt "Staff members list add button text"
 msgid "Add staff member"
-msgstr ""
+msgstr "Aggiungi un membro dello staff"
 
 #: templates/dashboard/staff/modal/confirm_delete.html:8
 #, fuzzy, python-format
@@ -4823,6 +4825,11 @@ msgid ""
 "promoted with staff member status).</p> <p>%(staff)s has <strong>%(orders)s</"
 "strong> orders.</p>"
 msgstr ""
+"<p>Sei sicuro di eliminare il membro dello staff?</p> <p>Eliminando il membro dello staff "
+"lo rimuoverai anche dalla lista clienti e rimuoverai i suoi dati "
+"(ordini, pagamenti etc.).</p> <p>Raccomandiamo assolutamente di non rimuovere l'account "
+"utente che era stato usato per acquisti.</p> <p>%(staff)s ha <strong>%(orders)s</"
+"strong> ordini.</p>"
 
 #: templates/home.html:13
 msgctxt "Homepage title"
