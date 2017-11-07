@@ -10,6 +10,8 @@
 
 {% block title %}{{ product }} — {{ block.super }}{% endblock %}
 
+{% block meta_description %}{{ product.description }}{% endblock %}
+
 {% block breadcrumb %}
   <ul class="breadcrumbs list-unstyled">
     <li><a href="/">
@@ -44,8 +46,8 @@
             <div class="carousel-inner" role="listbox">
               {% for image in images %}
                 <div class="carousel-item{% if forloop.first %} active{% endif %}">
-                  <img class="d-block img-fluid" 
-                       src="{% get_thumbnail image.image method="crop" size="540x540" %}" 
+                  <img class="d-block img-fluid"
+                       src="{% get_thumbnail image.image method="crop" size="540x540" %}"
                        srcset="{% get_thumbnail image.image method="crop" size="540x540" %} 1x, {% get_thumbnail image.image method="crop" size="1080x1080" %} 2x" alt="">
                 </div>
               {% endfor %}
@@ -62,8 +64,8 @@
               {% for image in images %}
                 {% if images|length > 1 %}
                   <li data-target="#carousel-example-generic" data-slide-to="{{ forloop.counter0 }}"{% if forloop.first %} class="active"{% endif %}>
-                    <img src="{% get_thumbnail image.image method="crop" size="60x60" %}" 
-                         srcset="{% get_thumbnail image.image method="crop" size="60x60" %} 1x, {% get_thumbnail image.image method="crop" size="120x120" %} 2x" 
+                    <img src="{% get_thumbnail image.image method="crop" size="60x60" %}"
+                         srcset="{% get_thumbnail image.image method="crop" size="60x60" %} 1x, {% get_thumbnail image.image method="crop" size="120x120" %} 2x"
                          alt="">
                   </li>
                 {% endif %}
@@ -71,9 +73,9 @@
             </ol>
           </div>
         {% else %}
-          <img src="{% static 'images/placeholder540x540.png' %}" 
-               srcset="{% static 'images/placeholder540x540.png' %} 1x, {% static 'images/placeholder1080x1080.png' %} 2x" 
-               alt="" 
+          <img src="{% static 'images/placeholder540x540.png' %}"
+               srcset="{% static 'images/placeholder540x540.png' %} 1x, {% static 'images/placeholder1080x1080.png' %} 2x"
+               alt=""
                class="img-fluid">
         {% endif %}
       {% endwith %}
