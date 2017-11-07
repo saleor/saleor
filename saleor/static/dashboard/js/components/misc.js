@@ -28,10 +28,7 @@ export default $(document).ready((e) => {
       }).then((r) => {
         return r.json();
       }).then((r) => {
-        const label = r.is_published ?
-          pgettext('Product field', 'Published') :
-          pgettext('Product field', 'Draft');
-        $(e.currentTarget).find('.label').text(label);
+        window.location.reload();
       });
     }
     return 1;
