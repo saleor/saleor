@@ -7,6 +7,7 @@ machine:
     DATABASE_URL: postgres://ubuntu:@127.0.0.1:5432/circle_test
     DJANGO_SETTINGS_MODULE: saleor.settings
     SECRET_KEY: irrelevant
+    STATIC_URL: https://saleor-demo.s3.amazonaws.com/assets/
   services:
     - docker
 
@@ -26,7 +27,7 @@ test:
 
 deployment:
   release:
-    branch: demo
+    tag: /demo.*/
     commands:
       - docker login -e $DOCKERCLOUD_EMAIL -u $DOCKERCLOUD_USER -p $DOCKERCLOUD_PASS
       - docker tag mirumee/saleor:latest mirumee/saleor:$CIRCLE_SHA1
