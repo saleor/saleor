@@ -61,7 +61,7 @@
             <ul class="right">
               {% for action, label in bulk_action_form.action.field.widget.choices %}
                 <li>
-                  <a href="" data-action="{{ action }}">{{ label }}</a>
+                  <a href="" data-action="{{ action }}" class="btn-flat">{{ label|upper }}</a>
                 </li>
               {% endfor %}
             </ul>
