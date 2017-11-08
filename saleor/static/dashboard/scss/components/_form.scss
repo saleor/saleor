@@ -25,10 +25,15 @@
     width: 100%;
   }
 
-  p.help-block {
-    margin: -7px 0 15px;
-    font-size: $label-font-size;
-    clear: both;
+  p {
+    &.help-block {
+      margin: -7px 0 15px;
+      font-size: $label-font-size;
+      clear: both;
+    }
+    &.margin {
+      margin-bottom: 25px;
+    }
   }
 
   .input-field {
@@ -166,7 +171,7 @@
     border-radius: 50%;
   }
   .filled-in:not(:checked) + label:after {
-    border:none;
+    border: none;
   }
 }
 
