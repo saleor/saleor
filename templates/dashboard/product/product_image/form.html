@@ -62,22 +62,13 @@
 
 {% block content %}
   <div class="row">
-    <div class="col s12 m9">
+    <div class="col s12 l9">
       <div class="card">
         <form method="post" enctype="multipart/form-data">
           <div class="card-content">
             {% csrf_token %}
             <div class="row">
-              <div class="col s12 m8">
-                <div class="row">
-                  {{ form.image|materializecss }}
-                </div>
-                {% if product_image.pk %}
-                  <p class="no-margin">
-                    {% trans "Pick the most relevant part of the image using the red circle." context "Image form text" %}
-                  </p>
-                {% endif %}
-              </div>
+              {{ form.image|materializecss }}
             </div>
             <div class="row">
               {{ form.alt|materializecss }}

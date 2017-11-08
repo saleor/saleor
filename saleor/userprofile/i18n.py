@@ -18,6 +18,7 @@ AREA_TYPE_TRANSLATIONS = {
     'department': pgettext_lazy('Address field', 'Department'),
     'district': pgettext_lazy('Address field', 'District'),
     'do_si': pgettext_lazy('Address field', 'Do/si'),
+    'eircode': pgettext_lazy('Address field', 'Eircode'),
     'emirate': pgettext_lazy('Address field', 'Emirate'),
     'island': pgettext_lazy('Address field', 'Island'),
     'neighborhood': pgettext_lazy('Address field', 'Neighborhood'),
