@@ -238,7 +238,7 @@
              name="{{ field.name }}_0" type="file">
     </div>
     <div class="file-path-wrapper">
-      <input class="file-path" type="text">
+      <input class="file-path" type="text" value="{{ field.value.display_value }}">
     </div>
     {% for error in field.errors %}
       <p class="help-block materialize-red-text">
