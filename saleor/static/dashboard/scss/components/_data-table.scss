@@ -21,7 +21,6 @@
 
   &-header-alternative {
     box-shadow: none;
-    border-bottom: 1px #d0d0d0 solid;
     transition: $transition-duration;
     max-height: 0;
     overflow: hidden;
@@ -32,11 +31,15 @@
       background: #fff;
       color: $off-black;
       max-height: 100px;
+      border-bottom: 1px #d0d0d0 solid;
       .show-bulk {
         display: block;
       }
       th, a {
         color: color('teal', 'base');
+      }
+      .data-table-header-action-selected-items {
+        margin-left: 13px;
       }
     }
     &.single {
