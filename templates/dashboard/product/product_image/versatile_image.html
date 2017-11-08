@@ -5,15 +5,6 @@
     <label class="versatileimagefield-label">{{ widget.initial_text }}</label>
     <a href="{{ widget.value.url }}">{{ widget.value.display_value }}</a>
   </div>
-  {% if not widget.required %}
-    <div class="sizedimage-mod clear">
-      <input type="checkbox" name="{{ widget.checkbox_name }}"
-             id="{{ widget.checkbox_id }}"/>
-      <label class="versatileimagefield-label" for="{{ widget.checkbox_id }}">
-        {{ widget.clear_checkbox_label }}:
-      </label>
-    </div>
-  {% endif %}
 {% endif %}
 <div class="sizedimage-mod preview">
   <label class="versatileimagefield-label">
@@ -34,8 +25,3 @@
     {% endif %}
   </div>
 </div>
-{#<div class="sizedimage-mod new-upload">#}
-{#  <label class="versatileimagefield-label">{{ widget.input_text }}</label>#}
-{#  <input type="{{ widget.type }}"#}
-{#         name="{{ widget.name }}"{% include "versatileimagefield/forms/widgets/attrs.html" %} />#}
-{#</div>#}
