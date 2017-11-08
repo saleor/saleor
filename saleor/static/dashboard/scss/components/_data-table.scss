@@ -1,6 +1,12 @@
 @mixin data-table {
   &-container {
     overflow: auto;
+    .avatar {
+      padding: 0;
+      img {
+        vertical-align: middle;
+      }
+    }
   }
 
   &-action {
@@ -11,6 +17,40 @@
   &-header-action {
     border-bottom: 1px solid $table-border-color;
     padding: 14px 8px;
+  }
+
+  &-header-alternative {
+    box-shadow: none;
+    transition: $transition-duration;
+    max-height: 0;
+    overflow: hidden;
+    .show-single, .show-bulk {
+      display: none;
+    }
+    &.bulk {
+      background: #fff;
+      color: $off-black;
+      max-height: 100px;
+      border-bottom: 1px #d0d0d0 solid;
+      .show-bulk {
+        display: block;
+      }
+      th, a {
+        color: color('teal', 'base');
+      }
+      .data-table-header-action-selected-items {
+        margin-left: 13px;
+      }
+    }
+    &.single {
+      background: #fff;
+      .show-single {
+        display: block;
+      }
+      th, a {
+        color: color('teal', 'base');
+      }
+    }
   }
 
   &-header {
@@ -45,7 +85,7 @@
     }
   }
 
-  tr[data-action-go]>td:not(.ignore-link):hover {
+  tr[data-action-go] > td:not(.ignore-link):hover {
     cursor: pointer;
   }
 
