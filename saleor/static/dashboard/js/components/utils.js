@@ -37,7 +37,8 @@ export function initSelects() {
         url: url,
         delay: 250
       },
-      width: '100%'
+      width: '100%',
+      minimumInputLength: 2
     });
   });
 }
