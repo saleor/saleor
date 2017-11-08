@@ -13,9 +13,11 @@ from payments import PaymentStatus
 from prices import Price
 
 from .forms import (
-    CancelGroupForm, CancelLinesForm, CancelOrderForm, CapturePaymentForm,
-    ChangeStockForm, ChangeQuantityForm, MoveLinesForm, OrderNoteForm,
-    RefundPaymentForm, ReleasePaymentForm, RemoveVoucherForm, ShipGroupForm)
+    AddDeliveryGroupItemForm, CancelGroupForm, CancelLinesForm,
+    CancelOrderForm, CapturePaymentForm, ChangeStockForm, ChangeQuantityForm,
+    MoveLinesForm, OrderNoteForm, RefundPaymentForm, ReleasePaymentForm,
+    RemoveVoucherForm, ShipGroupForm)
+
 from .utils import (create_packing_slip_pdf, create_invoice_pdf,
                     get_statics_absolute_url)
 from ..order.forms import OrderFilterForm

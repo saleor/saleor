@@ -672,6 +672,12 @@ def product_bulk_update(request):
 
 @staff_member_required
 def ajax_variants_list(request):
+    def get_variant_label(variant):
+        return {
+            'id': variant.id,
+            'text': '%s, %s' % (
+                variant.display_product(), gross(variant.product.price))}
+
     queryset = ProductVariant.objects.prefetch_related('product')
     search_query = request.GET.get('q', '')
     if search_query:
@@ -681,11 +687,6 @@ def ajax_variants_list(request):
             Q(price_override__icontains=search_query) |
             Q(product__name__icontains=search_query) |
             Q(product__price__icontains=search_query))
-    variants = []
-    for variant in queryset:
-        variants.append({
-            'id': variant.id,
-            'text': '%s, %s' % (
-                variant.display_product(), gross(variant.product.price))})
+    variants = [get_variant_label(variant) for variant in queryset]
     results = {'results': variants}
     return JsonResponse(results)
