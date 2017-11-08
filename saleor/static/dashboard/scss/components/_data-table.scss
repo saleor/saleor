@@ -19,6 +19,37 @@
     padding: 14px 8px;
   }
 
+  &-header-alternative {
+    box-shadow: none;
+    border-bottom: 1px #d0d0d0 solid;
+    transition: $transition-duration;
+    max-height: 0;
+    overflow: hidden;
+    .show-single, .show-bulk {
+      display: none;
+    }
+    &.bulk {
+      background: #fff;
+      color: $off-black;
+      max-height: 100px;
+      .show-bulk {
+        display: block;
+      }
+      th, a {
+        color: color('teal', 'base');
+      }
+    }
+    &.single {
+      background: #fff;
+      .show-single {
+        display: block;
+      }
+      th, a {
+        color: color('teal', 'base');
+      }
+    }
+  }
+
   &-header {
     align-items: center;
     display: flex;
