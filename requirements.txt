@@ -45,7 +45,7 @@ elasticsearch==5.4.0
 email-validator==1.0.2    # via faker
 faker==0.8.3
 freezegun==0.3.9
-google-i18n-address==2.0.2
+google-i18n-address==2.0.3
 google-measurement-protocol==0.1.6
 graphene-django==1.2.0
 graphene==1.4.1           # via graphene-django
@@ -76,7 +76,7 @@ pyjwt==1.5.3              # via django-payments, social-auth-core
 pyphen==0.9.4             # via weasyprint
 pytest-django==3.1.2
 pytest==3.2.2
-python-dateutil==2.6.1    # via botocore, faker
+python-dateutil==2.6.1    # via botocore, faker, freezegun
 python3-openid==3.1.0     # via social-auth-core
 pytz==2017.2              # via babel, celery, django
 redis==2.10.6             # via celery, django-redis
@@ -85,7 +85,7 @@ requests==2.18.4
 s3transfer==0.1.10        # via boto3
 satchless==1.1.3
 singledispatch==3.4.0.3   # via graphene-django
-six==1.11.0               # via cryptography, django-templated-email, faker, graphene, graphene-django, graphql-core, graphql-relay, html5lib, mock, promise, purl, python-dateutil, singledispatch, social-auth-app-django, social-auth-core
+six==1.11.0               # via cryptography, django-templated-email, faker, freezegun, graphene, graphene-django, graphql-core, graphql-relay, html5lib, mock, promise, purl, python-dateutil, singledispatch, social-auth-app-django, social-auth-core
 social-auth-app-django==1.2.0
 social-auth-core==1.4.0   # via social-auth-app-django
 stripe==1.65.0            # via django-payments
