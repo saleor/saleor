@@ -1,7 +1,7 @@
 from __future__ import unicode_literals
 
 from versatileimagefield.widgets import VersatileImagePPOIClickWidget
-from base64 import b64encode
+from ..product.widgets import ImagePreviewWidget
 
 try:
     from urllib.parse import urlencode
@@ -28,6 +28,11 @@ def construct_get_query(context, **params):
 @register.filter
 def is_versatile_image_ppoi_click_widget(field):
     return isinstance(field.field.widget, VersatileImagePPOIClickWidget)
+
+
+@register.filter
+def is_image_preview_widget(field):
+    return isinstance(field.field.widget, ImagePreviewWidget)
 
 
 @register.inclusion_tag('dashboard/product/product_variant/_image_select.html')
