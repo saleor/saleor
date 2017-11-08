@@ -1,18 +1,12 @@
 function updateCounterSelected () {
   const count = $('.select-item:checked').length;
   const $counterTextNode = $('.data-table-header-action-selected-items');
-  let counterText;
+  const counterText = ngettext('item selected', 'items selected', count);
 
-  if (count === 1) {
-    counterText = pgettext('bulk action select label one', 'item selected');
-  } else {
-    counterText = pgettext('bulk action select label multiple', 'items selected');
-  }
-
-  $counterTextNode.html(count ? `${count} ${counterText}` : counterText);
   if (!count) {
     $counterTextNode.addClass('hide');
   } else {
+    $counterTextNode.html(`${count} ${counterText}`);
     $counterTextNode.removeClass('hide');
   }
 }
