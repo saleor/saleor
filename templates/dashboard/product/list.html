@@ -47,23 +47,26 @@
     <div class="col s12">
       {% if products %}
       <div class="card">
-      <form method="POST" action="{% url "dashboard:product-bulk-update" %}" novalidate>
-      {% csrf_token %}
-        <div class="data-table-header-action">
-          <div class="row mb-0">
-            <div class="col s12">
-              {{ bulk_action_form.action|materializecss:"inline s4" }}
-              <input type="submit" class="btn-flat bulk-submit" value="{% trans "Submit" context "Dashboard form submit input" %}" />
-            </div>
+      <form method="POST"
+            action="{% url "dashboard:product-bulk-update" %}"
+            novalidate
+            id="bulk-actions-form">
+        {% csrf_token %}
+        <input name="action" type="hidden" id="bulk-action" />
+        <nav class="data-table-header-alternative single">
+          <div class="bulk-info show-bulk">
+            <div class="data-table-header-action-selected-items col inline"></div>
           </div>
-          <div class="row">
-            <div class="col s12">
-                <div class="data-table-header-action-selected-items">
-                  <span id="counter">0</span> {% trans "item(s) selected" context "Dashboard bulk action summary" %}
-                </div>
-            </div>
+          <div class="bulk-actions show-bulk nav-wrapper">
+            <ul class="right">
+              {% for action, label in bulk_action_form.action.field.widget.choices %}
+                <li>
+                  <a href="" data-action="{{ action }}" class="btn-flat">{{ label|upper }}</a>
+                </li>
+              {% endfor %}
+            </ul>
           </div>
-        </div>
+        </nav>
         <div class="data-table-container">
           <table class="bordered highlight responsive data-table">
             <thead>
@@ -76,7 +79,7 @@
                 <th class="wide">
                   {% trans "Name" context "Products list table header" %}
                 </th>
-                <th>
+                <th class="right-align">
                   {% trans "Price" context "Products list table header" %}
                 </th>
               </tr>
@@ -91,7 +94,7 @@
                 <td class="avatar">
                   <img src="{% product_first_image product size="60x60" method="crop" %}"
                       srcset="{% product_first_image product size="60x60" method="crop" %} 1x, {% product_first_image product size="120x120" method="crop" %} 2x"
-                      alt="" class="circle teal">
+                      alt="" class="teal">
                 </td>
                 <td>
                   {{ product.name }}

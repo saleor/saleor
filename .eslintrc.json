@@ -6,7 +6,8 @@
   "extends": ["standard", "plugin:react/recommended"],
   "globals": {
     "gettext": true,
-    "pgettext": true
+    "pgettext": true,
+    "ngettext": true
   },
   "plugins": ["react"],
   "parser": "babel-eslint",
