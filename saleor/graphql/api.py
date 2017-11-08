@@ -35,6 +35,8 @@ class ProductAvailabilityType(graphene.ObjectType):
     price_range = graphene.Field(lambda: PriceRangeType)
     price_range_undiscounted = graphene.Field(lambda: PriceRangeType)
     price_range_local_currency = graphene.Field(lambda: PriceRangeType)
+    purchase_cost_range = graphene.Field(lambda: PriceRangeType)
+    gross_margin = graphene.Field(lambda: PriceRangeType)
 
 
 class ProductType(DjangoObjectType):

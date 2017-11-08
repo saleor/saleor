@@ -222,6 +222,23 @@ class Product(models.Model, ItemRange, index.Indexed):
         grosses = sorted(grosses, key=lambda x: x.tax)
         return PriceRange(min(grosses), max(grosses))
 
+    def get_purchase_cost_range(self):
+        if not self.variants.exists():
+            pass
+        else:
+            purchase_costs = []
+            for variant in self:
+                purchase_costs += [s.cost_price for s in variant.stock.all()
+                                   if s.cost_price]
+            purchase_costs = sorted(purchase_costs, key=lambda x: x.gross)
+            return PriceRange(min(purchase_costs), max(purchase_costs))
+
+    def get_gross_margin(self, sale, cost):
+        gross_margins = [sale.min_price - cost.min_price,
+                         sale.max_price - cost.max_price]
+        gross_margins = sorted(gross_margins, key=lambda x: x.gross)
+        return PriceRange(min(gross_margins), max(gross_margins))
+
 
 @python_2_unicode_compatible
 class ProductVariant(models.Model, Item):
