@@ -108,6 +108,12 @@ def product_add_to_cart(request, slug, product_id):
 
 
 def category_index(request, path, category_id):
+    """Category index page.
+
+    NOTE: The implementation of this view on the `demo` branch is different
+    than on the `master` branch. Here it only renders the proper template
+    and the product list is rendered by React using GraphQL API.
+    """
     category = get_object_or_404(Category, id=category_id)
     actual_path = category.get_full_path()
     if actual_path != path:

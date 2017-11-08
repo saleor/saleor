@@ -44,7 +44,7 @@ var providePlugin = new webpack.ProvidePlugin({
 
 var config = {
   entry: {
-    category: './saleor/static/js/category.js',
+    category: './saleor/static/js/category.js',  // Note: this file is required by the dynamic category page implementation.
     dashboard: './saleor/static/dashboard/js/dashboard.js',
     document: './saleor/static/dashboard/js/document.js',
     storefront: './saleor/static/js/storefront.js'
