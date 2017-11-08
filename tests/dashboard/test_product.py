@@ -1,16 +1,17 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
+from io import BytesIO
 import json
 import pytest
-from django import forms
+from PIL import Image
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.core.urlresolvers import reverse
 from django.utils.encoding import smart_text
-from mock import Mock
 
 from saleor.dashboard.product import ProductBulkAction
 from saleor.dashboard.product.forms import (
-    ProductBulkUpdate, ProductClassForm, ProductClassSelectorForm, ProductForm)
+    ProductBulkUpdate, ProductClassForm, ProductForm)
 from saleor.product.models import (
     Product, ProductAttribute, ProductClass, ProductImage, ProductVariant,
     Stock, StockLocation)
@@ -18,6 +19,16 @@ from saleor.product.models import (
 
 HTTP_STATUS_OK = 200
 HTTP_REDIRECTION = 302
+
+
+def create_image():
+    img_data = BytesIO()
+    image = Image.new('RGBA', size=(1, 1), color=(255, 0, 0, 0))
+    image.save(img_data, format='JPEG')
+    image_name = 'product2'
+    image = SimpleUploadedFile(
+        image_name + '.jpg', img_data.getvalue(), 'image/png')
+    return image, image_name
 
 
 @pytest.mark.integration
@@ -277,7 +288,8 @@ def test_view_product_image_delete(admin_client, product_with_image):
     response = admin_client.post(url)
     assert response.status_code == HTTP_REDIRECTION
     assert not ProductImage.objects.filter(pk=product_image.pk)
-    
+
+
 def test_view_reorder_product_images(admin_client, product_with_images):
     order_before = [img.pk for img in product_with_images.images.all()]
     ordered_images = list(reversed(order_before))
@@ -306,6 +318,60 @@ def test_view_invalid_reorder_product_images(
     resp_decoded = json.loads(response.content.decode('utf-8'))
     assert 'error' in resp_decoded
     assert 'ordered_images' in resp_decoded['error']
+
+
+def test_view_product_image_add(admin_client, product_with_image):
+    assert len(ProductImage.objects.all()) == 1
+    assert len(product_with_image.images.all()) == 1
+    url = reverse('dashboard:product-image-add',
+                  kwargs={'product_pk': product_with_image.pk})
+    response = admin_client.get(url)
+    assert response.status_code == 200
+    image, image_name = create_image()
+    data = {'image_0': image, 'alt': ['description']}
+    response = admin_client.post(url, data, follow=True)
+    assert response.status_code == 200
+    assert len(ProductImage.objects.all()) == 2
+    product_with_image.refresh_from_db()
+    images = product_with_image.images.all()
+    assert len(images) == 2
+    assert image_name in images[1].image.name
+    assert images[1].alt == 'description'
+
+
+def test_view_product_image_edit_same_image_add_description(
+        admin_client, product_with_image):
+    assert len(product_with_image.images.all()) == 1
+    product_image = product_with_image.images.all()[0]
+    url = reverse('dashboard:product-image-update',
+                  kwargs={'img_pk': product_image.pk,
+                          'product_pk': product_with_image.pk})
+    response = admin_client.get(url)
+    assert response.status_code == 200
+    data = {'image_1': ['0.49x0.59'], 'alt': ['description']}
+    response = admin_client.post(url, data, follow=True)
+    assert response.status_code == 200
+    assert len(product_with_image.images.all()) == 1
+    product_image.refresh_from_db()
+    assert product_image.alt == 'description'
+
+
+def test_view_product_image_edit_new_image(admin_client, product_with_image):
+    assert len(product_with_image.images.all()) == 1
+    product_image = product_with_image.images.all()[0]
+    url = reverse('dashboard:product-image-update',
+                  kwargs={'img_pk': product_image.pk,
+                          'product_pk': product_with_image.pk})
+    response = admin_client.get(url)
+    assert response.status_code == 200
+    image, image_name = create_image()
+    data = {'image_0': image, 'alt': ['description']}
+    response = admin_client.post(url, data, follow=True)
+    assert response.status_code == 200
+    assert len(product_with_image.images.all()) == 1
+    product_image.refresh_from_db()
+    assert image_name in product_image.image.name
+    assert product_image.alt == 'description'
 
 
 def perform_bulk_action(product_list, action):
