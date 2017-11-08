@@ -38,6 +38,7 @@ First steps
  $ heroku addons:create bonsai:sandbox-10
  $ heroku config:set ALLOWED_HOSTS='<your hosts here>'
  $ heroku config:set NODE_MODULES_CACHE=false
+ $ heroku config:set NPM_CONFIG_PRODUCTION=false
  $ heroku config:set SECRET_KEY='<your secret key here>'
 
 
