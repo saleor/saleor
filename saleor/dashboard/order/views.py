@@ -12,10 +12,10 @@ from django_prices.templatetags.prices_i18n import gross
 from payments import PaymentStatus
 from prices import Price
 
-from .forms import (CancelGroupForm, CancelItemsForm, CancelOrderForm,
-                    CapturePaymentForm, ChangeQuantityForm, MoveItemsForm,
-                    OrderNoteForm, RefundPaymentForm, ReleasePaymentForm,
-                    RemoveVoucherForm, ShipGroupForm)
+from .forms import (
+    CancelGroupForm, CancelItemsForm, CancelOrderForm, CapturePaymentForm,
+    ChangeStockForm, ChangeQuantityForm, MoveItemsForm, OrderNoteForm,
+    RefundPaymentForm, ReleasePaymentForm, RemoveVoucherForm, ShipGroupForm)
 from .utils import (create_packing_slip_pdf, create_invoice_pdf,
                     get_statics_absolute_url)
 from ..order.forms import OrderFilterForm

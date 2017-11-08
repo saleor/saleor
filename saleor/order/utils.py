@@ -5,6 +5,7 @@ from django.dispatch import receiver
 from django.shortcuts import get_object_or_404, redirect
 from django.utils.translation import pgettext_lazy
 from payments.signals import status_changed
+from satchless.item import InsufficientStock
 
 from ..core import analytics
 from ..product.models import Stock
@@ -60,9 +61,11 @@ def add_items_to_delivery_group(delivery_group, partition, discounts=None):
 
         while total_quantity > 0:
             stock = product_variant.select_stockrecord()
+            if not stock:
+                raise InsufficientStock(product_variant)
             quantity = (
                 stock.quantity_available
-                if stock and total_quantity > stock.quantity_available
+                if total_quantity > stock.quantity_available
                 else total_quantity
             )
             delivery_group.items.create(

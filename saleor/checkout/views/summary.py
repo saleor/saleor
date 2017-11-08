@@ -2,6 +2,7 @@ from django.contrib import messages
 from django.shortcuts import redirect
 from django.template.response import TemplateResponse
 from django.utils.translation import pgettext, pgettext_lazy
+from satchless.item import InsufficientStock
 
 from ..forms import (
     AnonymousUserBillingForm, BillingAddressesForm,
@@ -18,7 +19,10 @@ def create_order(checkout):
 
     `checkout` is a `saleor.checkout.core.Checkout` instance.
     """
-    order = checkout.create_order()
+    try:
+        order = checkout.create_order()
+    except InsufficientStock:
+        order = None
     if not order:
         return None, redirect('checkout:summary')
     checkout.clear_storage()
