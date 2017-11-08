@@ -60,7 +60,7 @@ var faviconsWebpackPlugin = new FaviconsWebpackPlugin({
 
 var config = {
   entry: {
-    category: './saleor/static/js/category.js',
+    category: './saleor/static/js/category.js',  // Note: this file is required by the dynamic category page implementation.
     dashboard: './saleor/static/dashboard/js/dashboard.js',
     storefront: './saleor/static/js/storefront.js',
     document: './saleor/static/dashboard/scss/document.scss',
