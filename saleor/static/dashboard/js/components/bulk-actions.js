@@ -1,17 +1,19 @@
-function updateCounterSelected () {
+function updateHeader () {
   const count = $('.select-item:checked').length;
   const $counterTextNode = $('.data-table-header-action-selected-items');
+  const $header = $('.data-table-header-alternative');
   const counterText = ngettext('item selected', 'items selected', count);
 
   if (!count) {
-    $counterTextNode.addClass('hide');
+    $header.addClass('single').removeClass('bulk');
   } else {
     $counterTextNode.html(`${count} ${counterText}`);
-    $counterTextNode.removeClass('hide');
+    $header.addClass('bulk').removeClass('single');
   }
 }
 
 $(document).ready((e) => {
+  updateHeader();
   $('.select-all').on('change', function () {
     let $items = $(this).parents('form').find('.switch-actions');
     if (this.checked) {
@@ -19,11 +21,9 @@ $(document).ready((e) => {
     } else {
       $items.prop('checked', false);
     }
-    updateCounterSelected();
+    updateHeader();
   });
-  $('.select-item').on('change', function () {
-    updateCounterSelected();
-  });
+  $('.select-item').on('change', updateHeader);
   $('.switch-actions').on('change', function () {
     let $btnChecked = $(this).parents('form').find('.btn-show-when-checked');
     let $btnUnchecked = $(this).parents('form').find('.btn-show-when-unchecked');
@@ -34,5 +34,10 @@ $(document).ready((e) => {
       $btnUnchecked.show();
       $btnChecked.hide();
     }
+  });
+  $('.bulk-actions a').on('click', (e) => {
+    const a = $(e.currentTarget);
+    $('#bulk-action').val(a.attr('data-action'));
+    $('#bulk-actions-form').submit();
   });
 });
