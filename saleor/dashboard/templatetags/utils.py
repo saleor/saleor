@@ -27,12 +27,19 @@ def construct_get_query(context, **params):
 
 @register.filter
 def is_versatile_image_ppoi_click_widget(field):
-    print(type(field.field.widget), isinstance(field.field.widget, VersatileImagePPOIClickWidget))
+    '''
+    This filter checks if image field widget is used when user wants to edit
+    existing product image.
+    '''
     return isinstance(field.field.widget, VersatileImagePPOIClickWidget)
 
 
 @register.filter
 def is_image_preview_widget(field):
+    '''
+    This filter checks if image field widget is used when user wants to add new
+    product image.
+    '''
     return isinstance(field.field.widget, ImagePreviewWidget)
 
 
