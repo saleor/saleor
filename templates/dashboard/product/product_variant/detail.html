@@ -60,15 +60,13 @@
             </div>
             <div class="col s7 m6">
               <p class="text-padding right-align">
-                {% with variant.get_costs_data.costs as costs %}
-                  {% if costs|length > 1 %}
-                    {% gross costs|first %} - {% gross costs|last %}
-                  {% elif costs|length == 1 %}
-                    {% gross costs|first %}
-                  {% else %}
-                    -
-                  {% endif %}
-                {% endwith %}
+                {% if costs|length > 1 %}
+                  {% gross costs|first %} - {% gross costs|last %}
+                {% elif costs|length == 1 %}
+                  {% gross costs|first %}
+                {% else %}
+                  -
+                {% endif %}
               </p>
             </div>
             <div class="col s5 m6">
@@ -76,17 +74,15 @@
             </div>
             <div class="col s7 m6">
               <p class="text-padding right-align">
-                {% with variant.get_costs_data.margins as margins %}
-                  {% if margins|length > 1 %}
-                    {{ margins|first }}% - {{ margins|last }}%
+                {% if margins|length > 1 %}
+                  {{ margins|first }}% - {{ margins|last }}%
+                {% else %}
+                  {% if variant.get_costs_data.margins %}
+                    {{ margins|first }}%
                   {% else %}
-                    {% if variant.get_costs_data.margins %}
-                      {{ margins|first }}%
-                    {% else %}
-                      0%
-                    {% endif %}
+                    -
                   {% endif %}
-                {% endwith %}
+                {% endif %}
               </p>
             </div>
           </div>

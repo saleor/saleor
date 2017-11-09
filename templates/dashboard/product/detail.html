@@ -4,6 +4,7 @@
 {% load prices_i18n %}
 {% load staticfiles %}
 {% load status %}
+{% load utils %}
 
 {% block title %}{{ product }} - {{ block.super }}{% endblock %}
 
@@ -115,17 +116,14 @@
                     <td class="wide">{% render_variant_availability_status variant %}</td>
                     <td class="right-align">{% gross variant.get_price_per_item %}</td>
                     <td class="right-align">
-                      {% with variant.get_costs_data.margins as margins %}
-                        {% if margins|length > 1 %}
-                          {{ margins|first }}% - {{ margins|last }}%
-                        {% else %}
-                          {% if variant.get_costs_data.margins %}
-                            {{ margins|first }}%
-                          {% else %}
-                            0%
-                          {% endif %}
-                        {% endif %}
-                      {% endwith %}
+                      {% margins_for_variant variant=variant as margins %}
+                      {% if margins|length > 1 %}
+                        {{ margins|first }}% - {{ margins|last }}%
+                      {% elif margins %}
+                        {{ margins|first }}%
+                      {% else %}
+                        -
+                      {% endif %}
                     </td>
                     {% if perms.product.edit_product %}
                       <td><a href="{% url 'dashboard:variant-update' product_pk=product.pk variant_pk=variant.pk %}" class="btn btn-flat">{% trans "Edit" %}</a></td>
