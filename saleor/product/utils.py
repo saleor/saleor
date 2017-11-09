@@ -355,7 +355,9 @@ def get_variant_costs_data(variant):
     margins = []
     for stock in variant.stock.all():
         costs.append(get_cost_price(stock))
-        margins.append(get_margin_for_variant(stock))
+        margin = get_margin_for_variant(stock)
+        if margin:
+            margins.append(margin)
     costs = sorted(costs, key=lambda x: x.gross)
     margins = sorted(margins)
     return {'costs': costs, 'margins': margins}
@@ -370,7 +372,7 @@ def get_cost_price(stock):
 
 def get_margin_for_variant(stock):
     if not stock.cost_price:
-        return 0
+        return None
     price = stock.variant.get_price_per_item()
     margin = price - stock.cost_price
     percent = round((margin.gross / price.gross) * 100, 0)
