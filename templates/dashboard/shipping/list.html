@@ -22,6 +22,7 @@
 {% endblock %}
 
 {% block content %}
+  {% if perms.shipping.edit_shipping %}
   <div class="fixed-action-btn">
     <a href="{% url 'dashboard:shipping-method-add' %}"
        class="btn-fab btn-floating btn-large waves-effect waves-light"
@@ -29,6 +30,7 @@
       <svg data-src="{% static "dashboard/images/add.svg" %}" />
     </a>
   </div>
+  {% endif %}
   <div class="row">
     <div class="col s12">
       <div class="card">

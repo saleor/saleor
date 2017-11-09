@@ -502,3 +502,13 @@ def permission_view_attributes():
 @pytest.fixture
 def permission_edit_attributes():
     return Permission.objects.get(codename='edit_attributes')
+
+
+@pytest.fixture
+def permission_view_shipping():
+    return Permission.objects.get(codename='view_shipping')
+
+
+@pytest.fixture
+def permission_edit_shipping():
+    return Permission.objects.get(codename='edit_shipping')

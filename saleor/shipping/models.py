@@ -28,8 +28,17 @@ class ShippingMethod(models.Model):
         blank=True, default='')
 
     class Meta:
-        verbose_name = pgettext_lazy('Shipping method model', 'shipping method')
-        verbose_name_plural = pgettext_lazy('Shipping method model', 'shipping methods')
+        verbose_name = pgettext_lazy('Shipping method model',
+                                     'shipping method')
+        verbose_name_plural = pgettext_lazy('Shipping method model',
+                                            'shipping methods')
+        permissions = (
+            ('view_shipping',
+             pgettext_lazy('Permission description',
+                           'Can view shipping method')),
+            ('edit_shipping',
+             pgettext_lazy('Permission description',
+                           'Can edit shipping method')))
 
     def __str__(self):
         return self.name
