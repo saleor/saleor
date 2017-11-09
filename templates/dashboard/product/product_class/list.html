@@ -14,11 +14,13 @@
 {% block menu_product_classes_class %}active{% endblock %}
 
 {% block header_extra %}
+{% if perms.product.edit_classes %}
   <div class="fixed-action-btn">
     <a class="btn-fab btn-floating btn-large waves-effect waves-light" title="{% trans "Add product type" context "Product type list add button text" %}" href="{% url 'dashboard:product-class-add' %}">
       <svg data-src="{% static "dashboard/images/add.svg" %}" />
     </a>
   </div>
+{% endif %}
 {% endblock %}
 
 {% block breadcrumbs %}

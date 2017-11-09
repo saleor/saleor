@@ -493,3 +493,12 @@ def permission_view_classes():
 def permission_edit_classes():
     return Permission.objects.get(codename='edit_classes')
 
+
+@pytest.fixture
+def permission_view_attributes():
+    return Permission.objects.get(codename='view_attributes')
+
+
+@pytest.fixture
+def permission_edit_attributes():
+    return Permission.objects.get(codename='edit_attributes')
