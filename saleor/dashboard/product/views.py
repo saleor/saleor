@@ -12,7 +12,8 @@ from ...core.utils import get_paginator_items
 from ...product.models import (
     Product, ProductAttribute, ProductClass, ProductImage, ProductVariant,
     Stock, StockLocation)
-from ...product.utils import get_availability
+from ...product.utils import (
+    get_availability, get_product_costs_data, get_variant_costs_data)
 from ...settings import DASHBOARD_PAGINATE_BY
 from ..views import staff_member_required, superuser_required
 from . import forms
@@ -156,6 +157,7 @@ def product_detail(request, pk):
     images = product.images.all()
     availability = get_availability(product)
     sale_price = availability.price_range
+    purchase_cost, gross_margin = get_product_costs_data(product)
     gross_price_range = product.get_gross_price_range()
 
     # no_variants is True for product classes that doesn't require variant.
@@ -171,7 +173,8 @@ def product_detail(request, pk):
         'product': product, 'sale_price': sale_price, 'variants': variants,
         'gross_price_range': gross_price_range, 'images': images,
         'no_variants': no_variants, 'only_variant': only_variant,
-        'stock': stock}
+        'stock': stock, 'purchase_cost': purchase_cost,
+        'gross_margin': gross_margin}
     return TemplateResponse(request, 'dashboard/product/detail.html', ctx)
 
 
@@ -397,8 +400,10 @@ def variant_details(request, product_pk, variant_pk):
 
     stock = variant.stock.all()
     images = variant.images.all()
+    costs_data = get_variant_costs_data(variant)
     ctx = {'images': images, 'product': product, 'stock': stock,
-           'variant': variant}
+           'variant': variant, 'costs': costs_data['costs'],
+           'margins': costs_data['margins']}
     return TemplateResponse(
         request,
         'dashboard/product/product_variant/detail.html',

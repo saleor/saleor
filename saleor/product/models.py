@@ -23,6 +23,7 @@ from versatileimagefield.fields import VersatileImageField, PPOIField
 
 from ..discount.models import calculate_discounted_price
 from ..search import index
+from ..settings import DEFAULT_CURRENCY
 from .utils import get_attributes_display_map
 
 

@@ -56,10 +56,34 @@
               <p class="text-padding right-align">{% gross variant.get_price %}</p>
             </div>
             <div class="col s5 m6">
-              <p class="text-padding">{% trans "Cost price" context "Dashboard variant details view" %}</p>
+              <p class="text-padding">{% trans "Cost price range" context "Dashboard variant details view" %}</p>
             </div>
             <div class="col s7 m6">
-              <p class="text-padding right-align">{% if variant.get_cost_price %}{% gross variant.get_cost_price %}{% else %}-{% endif %}</p>
+              <p class="text-padding right-align">
+                {% if costs|length > 1 %}
+                  {% gross costs|first %} - {% gross costs|last %}
+                {% elif costs|length == 1 %}
+                  {% gross costs|first %}
+                {% else %}
+                  -
+                {% endif %}
+              </p>
+            </div>
+            <div class="col s5 m6">
+              <p class="text-padding">{% trans "Gross margin" context "Dashboard variant details view" %}</p>
+            </div>
+            <div class="col s7 m6">
+              <p class="text-padding right-align">
+                {% if margins|length > 1 %}
+                  {{ margins|first }}% - {{ margins|last }}%
+                {% else %}
+                  {% if margins %}
+                    {{ margins|first }}% - {{ margins|last }}%
+                  {% else %}
+                    -
+                  {% endif %}
+                {% endif %}
+              </p>
             </div>
           </div>
         </div>
