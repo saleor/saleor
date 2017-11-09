@@ -93,7 +93,8 @@ class Cart(models.Model):
         pgettext_lazy('Cart field', 'last status change'), auto_now_add=True)
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL, blank=True, null=True, related_name='carts',
-        verbose_name=pgettext_lazy('Cart field', 'user'))
+        verbose_name=pgettext_lazy('Cart field', 'user'),
+        on_delete=models.CASCADE)
     email = models.EmailField(
         pgettext_lazy('Cart field', 'email'), blank=True, null=True)
     token = models.UUIDField(
@@ -254,10 +255,12 @@ class CartLine(models.Model, ItemLine):
 
     cart = models.ForeignKey(
         Cart, related_name='lines',
-        verbose_name=pgettext_lazy('Cart line field', 'cart'))
+        verbose_name=pgettext_lazy('Cart line field', 'cart'),
+        on_delete=models.CASCADE)
     variant = models.ForeignKey(
         'product.ProductVariant', related_name='+',
-        verbose_name=pgettext_lazy('Cart line field', 'product'))
+        verbose_name=pgettext_lazy('Cart line field', 'product'),
+        on_delete=models.CASCADE)
     quantity = models.PositiveIntegerField(
         pgettext_lazy('Cart line field', 'quantity'),
         validators=[MinValueValidator(0), MaxValueValidator(999)])

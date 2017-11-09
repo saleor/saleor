@@ -1,6 +1,5 @@
-import pytest
-from django.core.urlresolvers import reverse
 from django.test.client import RequestFactory
+from django.urls import reverse
 
 from saleor.dashboard.templatetags.utils import construct_get_query, paginate
 

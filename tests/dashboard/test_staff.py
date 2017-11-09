@@ -1,17 +1,16 @@
 from __future__ import unicode_literals
 
-from django.core import mail
-from django.core.urlresolvers import reverse
-
 from django.contrib.auth.tokens import default_token_generator
 from django.contrib.sites.models import Site
+from django.core import mail
+from django.urls import reverse
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode
 from templated_email import send_templated_mail
 
 from saleor.dashboard.staff.forms import StaffForm
-from saleor.userprofile.models import User
 from saleor.settings import DEFAULT_FROM_EMAIL
+from saleor.userprofile.models import User
 
 
 def test_staff_form_not_valid(db):
