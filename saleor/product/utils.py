@@ -1,5 +1,6 @@
 from collections import defaultdict, namedtuple
 
+from prices import Price, PriceRange
 from six import iteritems
 
 from django.conf import settings
@@ -10,6 +11,7 @@ from django_prices.templatetags import prices_i18n
 from ..cart.utils import get_cart_from_request, get_or_create_cart_from_request
 from ..core.utils import to_local_currency
 from .forms import ProductForm
+from ..settings import DEFAULT_CURRENCY
 from . import ProductAvailabilityStatus, VariantAvailabilityStatus
 
 try:
@@ -63,17 +65,13 @@ def products_with_availability(products, discounts, local_currency):
 
 ProductAvailability = namedtuple(
     'ProductAvailability', (
-        'available', 'price_range', 'price_range_undiscounted',
-        'purchase_cost_range', 'gross_margin', 'discount',
+        'available', 'price_range', 'price_range_undiscounted', 'discount',
         'price_range_local_currency', 'discount_local_currency'))
 
 
 def get_availability(product, discounts=None, local_currency=None):
     # In default currency
-    purchase_cost_range = product.get_purchase_cost_range()
     price_range = product.get_price_range(discounts=discounts)
-    gross_margin = product.get_gross_margin(
-        sale=price_range, cost=purchase_cost_range)
     undiscounted = product.get_price_range()
     if undiscounted.min_price > price_range.min_price:
         discount = undiscounted.min_price - price_range.min_price
@@ -102,8 +100,6 @@ def get_availability(product, discounts=None, local_currency=None):
         available=is_available,
         price_range=price_range,
         price_range_undiscounted=undiscounted,
-        purchase_cost_range=purchase_cost_range,
-        gross_margin=gross_margin,
         discount=discount,
         price_range_local_currency=price_range_local,
         discount_local_currency=discount_local_currency)
@@ -318,3 +314,37 @@ def get_variant_availability_status(variant):
         return VariantAvailabilityStatus.OUT_OF_STOCK
     else:
         return VariantAvailabilityStatus.AVAILABLE
+
+
+def get_purchase_cost_and_gross_margins(product, **kwargs):
+    zero_price = PriceRange(Price(0, 0, currency=DEFAULT_CURRENCY),
+                            Price(0, 0, currency=DEFAULT_CURRENCY))
+    purchase_costs_range = gross_margin = zero_price
+    gross_margin_percent = (0, 0)
+    costs = []
+    margins = []
+    percents = []
+
+    if product.variants.exists():
+        variants = product.variants.all()
+        for variant in variants:
+            for stock in variant.stock.all():
+                if stock.cost_price:
+                    cost = stock.cost_price
+                    costs.append(cost)
+                    price = product.get_price_per_item(variant, **kwargs)
+                    margin = price - cost
+                    margins.append(margin)
+                    percent = round((margin.gross / cost.gross) * 100, 0)
+                    percents.append(percent)
+        costs = sorted(costs, key=lambda x: x.gross)
+        margins = sorted(margins, key=lambda x: x.gross)
+        percents = sorted(percents)
+
+    if costs:
+        purchase_costs_range = PriceRange(min(costs), max(costs))
+    if margins:
+        gross_margin = PriceRange(min(margins), max(margins))
+    if percents:
+        gross_margin_percent = (percents[0], percents[-1])
+    return purchase_costs_range, gross_margin, gross_margin_percent
