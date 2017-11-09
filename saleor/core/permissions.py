@@ -5,8 +5,12 @@ from django.contrib.auth.models import Permission
 MODELS_PERMISSIONS = [
     'order.view_order',
     'order.edit_order',
+    'product.view_attributes',
+    'product.edit_attributes',
     'product.view_category',
     'product.edit_category',
+    'product.view_class',
+    'product.edit_class',
     'product.view_product',
     'product.edit_product',
     'product.view_stock_location',

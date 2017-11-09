@@ -19,7 +19,8 @@ from ..views import staff_member_required, superuser_required
 from . import forms
 
 
-@superuser_required
+@staff_member_required
+@permission_required('product.view_class')
 def product_class_list(request):
     classes = ProductClass.objects.all().prefetch_related(
         'product_attributes', 'variant_attributes').order_by('name')
@@ -39,7 +40,8 @@ def product_class_list(request):
         ctx)
 
 
-@superuser_required
+@staff_member_required
+@permission_required('product.edit_class')
 def product_class_create(request):
     product_class = ProductClass()
     form = forms.ProductClassForm(request.POST or None,
@@ -57,7 +59,8 @@ def product_class_create(request):
         ctx)
 
 
-@superuser_required
+@staff_member_required
+@permission_required('product.edit_class')
 def product_class_edit(request, pk):
     product_class = get_object_or_404(
         ProductClass, pk=pk)
@@ -76,7 +79,8 @@ def product_class_edit(request, pk):
         ctx)
 
 
-@superuser_required
+@staff_member_required
+@permission_required('product.edit_class')
 def product_class_delete(request, pk):
     product_class = get_object_or_404(ProductClass, pk=pk)
     if request.method == 'POST':
