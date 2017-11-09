@@ -129,10 +129,12 @@ def category_index(request, path, category_id):
     products_and_availability = list(products_with_availability(
         products_paginated, request.discounts, request.currency))
     now_sorted_by = get_now_sorted_by(product_filter)
+    arg_sort_by = request.GET.get('sort_by')
+    is_descending = arg_sort_by.startswith('-') if arg_sort_by else False
     ctx = {'category': category, 'filter': product_filter,
            'products': products_and_availability,
            'products_paginated': products_paginated,
            'sort_by_choices': get_sort_by_choices(product_filter),
            'now_sorted_by': now_sorted_by,
-           'is_descending': now_sorted_by.startswith('-')}
+           'is_descending': is_descending}
     return TemplateResponse(request, 'category/index.html', ctx)
