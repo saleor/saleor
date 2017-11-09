@@ -188,22 +188,26 @@
                 </ul>
               </li>
             {% endif %}
-            {% if user.is_superuser %}
+            {% if perms.product.view_class or perms.product.view_attributes %}
               <li class="side-nav-section">
                 <p>
                   {% trans "Configuration"  context "Dashboard configuration" %}
                 </p>
                 <ul>
+                    {% if perms.userprofile.view_class %}
                   <li class="{% block menu_product_classes_class %}{% endblock %}">
                     <a href="{% url 'dashboard:product-class-list' %}">
                       {% trans "Product types" context "Dashboard product types list" %}
                     </a>
                   </li>
+                  {% endif %}
+                  {% if perms.userprofile.view_attributes %}
                   <li class="{% block menu_attributes_class %}{% endblock %}">
                     <a href="{% url 'dashboard:product-attributes' %}">
                       {% trans "Attributes" context "Dashboard attributes list" %}
                     </a>
                   </li>
+                  {% endif %}
                   <li class="{% block menu_delivery_class %}{% endblock %}">
                     <a href="{% url 'dashboard:shipping-methods' %}">
                       {% trans "Shipping methods" context "Dashboard shipping methods list" %}
