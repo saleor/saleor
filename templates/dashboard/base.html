@@ -194,14 +194,14 @@
                   {% trans "Configuration"  context "Dashboard configuration" %}
                 </p>
                 <ul>
-                    {% if perms.userprofile.view_class %}
+                    {% if perms.product.view_class %}
                   <li class="{% block menu_product_classes_class %}{% endblock %}">
                     <a href="{% url 'dashboard:product-class-list' %}">
                       {% trans "Product types" context "Dashboard product types list" %}
                     </a>
                   </li>
                   {% endif %}
-                  {% if perms.userprofile.view_attributes %}
+                  {% if perms.product.view_attributes %}
                   <li class="{% block menu_attributes_class %}{% endblock %}">
                     <a href="{% url 'dashboard:product-attributes' %}">
                       {% trans "Attributes" context "Dashboard attributes list" %}
