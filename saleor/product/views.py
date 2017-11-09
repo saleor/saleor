@@ -114,25 +114,17 @@ def product_add_to_cart(request, slug, product_id):
 
 
 def category_index(request, path, category_id):
+    """Category index page.
+
+    NOTE: The implementation of this view on the `demo` branch is different
+    than on the `master` branch. Here it only renders the proper template
+    and the product list is rendered by React using GraphQL API.
+    """
     category = get_object_or_404(Category, id=category_id)
     actual_path = category.get_full_path()
     if actual_path != path:
-        return redirect('product:category', permanent=True, path=actual_path,
-                        category_id=category_id)
-    products = (products_with_details(user=request.user)
-                .filter(categories__name=category)
-                .order_by('name'))
-    product_filter = ProductFilter(
-        request.GET, queryset=products, category=category)
-    products_paginated = get_paginator_items(
-        product_filter.qs, PAGINATE_BY, request.GET.get('page'))
-    products_and_availability = list(products_with_availability(
-        products_paginated, request.discounts, request.currency))
-    now_sorted_by = get_now_sorted_by(product_filter)
-    ctx = {'category': category, 'filter': product_filter,
-           'products': products_and_availability,
-           'products_paginated': products_paginated,
-           'sort_by_choices': get_sort_by_choices(product_filter),
-           'now_sorted_by': now_sorted_by,
-           'is_descending': now_sorted_by.startswith('-')}
-    return TemplateResponse(request, 'category/index.html', ctx)
+        return redirect(
+            'product:category', permanent=True, path=actual_path,
+            category_id=category_id)
+    return TemplateResponse(
+        request, 'category/index.html', {'category': category})
