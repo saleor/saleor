@@ -157,8 +157,7 @@ def product_detail(request, pk):
     images = product.images.all()
     availability = get_availability(product)
     sale_price = availability.price_range
-    purchase_cost, gross_margin, gross_margin_percent = (
-        get_purchase_cost_and_gross_margins(product))
+    purchase_cost, gross_margin = get_purchase_cost_and_gross_margins(product)
     gross_price_range = product.get_gross_price_range()
 
     # no_variants is True for product classes that doesn't require variant.
@@ -175,8 +174,7 @@ def product_detail(request, pk):
         'gross_price_range': gross_price_range, 'images': images,
         'no_variants': no_variants, 'only_variant': only_variant,
         'stock': stock, 'purchase_cost': purchase_cost,
-        'gross_margin': gross_margin,
-        'gross_margin_percent': gross_margin_percent}
+        'gross_margin': gross_margin}
     return TemplateResponse(request, 'dashboard/product/detail.html', ctx)
 
 

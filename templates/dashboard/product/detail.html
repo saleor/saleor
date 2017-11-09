@@ -62,21 +62,7 @@
             </div>
             <div class="col s7 m6">
               {% if gross_margin %}
-              {% with gross_margin.min_price as min_price %}
-                {% with gross_margin.max_price as max_price %}
-                  <p class="text-padding right-align">{% gross min_price %} - {% gross max_price %}</p>
-                {% endwith %}
-              {% endwith %}
-              {% else %}
-                <p class="text-padding right-align">-</p>
-              {% endif %}
-            </div>
-            <div class="col s5 m6">
-                <p class="text-padding">{% trans "Gross margin percent" context "Product field" %}</p>
-            </div>
-            <div class="col s7 m6">
-              {% if gross_margin_percent %}
-                <p class="text-padding right-align">{{ gross_margin_percent.0 }}% - {{ gross_margin_percent.1 }}%</p>
+                <p class="text-padding right-align">{{ gross_margin.0 }}% - {{ gross_margin.1 }}%</p>
               {% else %}
                 <p class="text-padding right-align">-</p>
               {% endif %}
@@ -115,6 +101,7 @@
                   <th>{% trans "Name" %}</th>
                   <th>{% trans "Status" %}</th>
                   <th class="right-align">{% trans "Price" %}</th>
+                  <th class="right-align">{% trans "Gross margin" %}</th>
                   {% if perms.product.edit_product %}
                     <th></th>
                   {% endif %}
@@ -127,6 +114,16 @@
                     <td>{{ variant }}</td>
                     <td class="wide">{% render_variant_availability_status variant %}</td>
                     <td class="right-align">{% gross variant.get_price_per_item %}</td>
+                    <td class="right-align">
+                      {% if variant.get_costs_data.margins|length > 1 %}
+                        {{ variant.get_costs_data.margins|first }}% - {{ variant.get_costs_data.margins|last }}%</td>
+                      {% else %}
+                        {% if variant.get_costs_data.margins %}
+                          {{ variant.get_costs_data.margins|first }}%
+                        {% else %}
+                          0%
+                        {% endif %}
+                      {% endif %}
                     {% if perms.product.edit_product %}
                       <td><a href="{% url 'dashboard:variant-update' product_pk=product.pk variant_pk=variant.pk %}" class="btn btn-flat">{% trans "Edit" %}</a></td>
                     {% endif %}
