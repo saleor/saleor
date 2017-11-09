@@ -327,6 +327,21 @@ class ProductVariant(models.Model, Item):
         if stock:
             return stock.cost_price
 
+    def get_costs_data(self):
+        costs = []
+        margins = []
+        for stock in self.stock.all():
+            if stock.cost_price:
+                cost = stock.cost_price
+                costs.append(cost)
+                price = self.get_price_per_item()
+                margin = price - cost
+                percent = round((margin.gross / price.gross) * 100, 0)
+                margins.append(percent)
+        costs = sorted(costs, key=lambda x: x.gross)
+        margins = sorted(margins)
+        return {'costs': costs, 'margins': margins}
+
 
 @python_2_unicode_compatible
 class StockLocation(models.Model):

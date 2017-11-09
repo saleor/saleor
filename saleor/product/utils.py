@@ -319,41 +319,32 @@ def get_variant_availability_status(variant):
 def get_purchase_cost_and_gross_margins(product):
     zero_price = Price(0, 0, currency=DEFAULT_CURRENCY)
     zero_price_range = PriceRange(zero_price, zero_price)
-    purchase_costs_range = gross_margin = zero_price_range
-    gross_margin_percent = (0, 0)
+    purchase_costs_range = zero_price_range
+    gross_margin = (0, 0)
 
     if not product.variants.exists():
-        return purchase_costs_range, gross_margin, gross_margin_percent
+        return purchase_costs_range, gross_margin
 
     variants = product.variants.all()
-    costs, margins, percents = get_cost_data_from_variants(variants)
+    costs, margins = get_cost_data_from_variants(variants)
 
     if costs:
         purchase_costs_range = PriceRange(min(costs), max(costs))
-        gross_margin = PriceRange(min(margins), max(margins))
-        gross_margin_percent = (percents[0], percents[-1])
-    return purchase_costs_range, gross_margin, gross_margin_percent
+        gross_margin = (margins[0], margins[-1])
+    return purchase_costs_range, gross_margin
 
 
-def sort_cost_data(costs, margins, percents):
+def sort_cost_data(costs, margins):
     costs = sorted(costs, key=lambda x: x.gross)
-    margins = sorted(margins, key=lambda x: x.gross)
-    percents = sorted(percents)
-    return costs, margins, percents
+    margins = sorted(margins)
+    return costs, margins
 
 
 def get_cost_data_from_variants(variants):
     costs = []
     margins = []
-    percents = []
     for variant in variants:
-        for stock in variant.stock.all():
-            if stock.cost_price:
-                cost = stock.cost_price
-                costs.append(cost)
-                price = variant.get_price_per_item()
-                margin = price - cost
-                margins.append(margin)
-                percent = round((margin.gross / cost.gross) * 100, 0)
-                percents.append(percent)
-    return sort_cost_data(costs, margins, percents)
+        costs_data = variant.get_costs_data()
+        costs += costs_data['costs']
+        margins += costs_data['margins']
+    return sort_cost_data(costs, margins)
