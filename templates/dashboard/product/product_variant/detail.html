@@ -77,8 +77,8 @@
                 {% if margins|length > 1 %}
                   {{ margins|first }}% - {{ margins|last }}%
                 {% else %}
-                  {% if variant.get_costs_data.margins %}
-                    {{ margins|first }}%
+                  {% if margins %}
+                    {{ margins|first }}% - {{ margins|last }}%
                   {% else %}
                     -
                   {% endif %}
