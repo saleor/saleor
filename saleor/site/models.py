@@ -13,7 +13,8 @@ patch_contrib_sites()
 
 @python_2_unicode_compatible
 class SiteSettings(models.Model):
-    site = models.OneToOneField(Site, related_name='settings')
+    site = models.OneToOneField(
+        Site, related_name='settings', on_delete=models.CASCADE)
     header_text = models.CharField(
         pgettext_lazy('Site field', 'header text'), max_length=200, blank=True)
     description = models.CharField(
@@ -29,7 +30,7 @@ class SiteSettings(models.Model):
 
 @python_2_unicode_compatible
 class AuthorizationKey(models.Model):
-    site_settings = models.ForeignKey(SiteSettings)
+    site_settings = models.ForeignKey(SiteSettings, on_delete=models.CASCADE)
     name = models.CharField(
         pgettext_lazy('Authentiaction field', 'name'), max_length=20,
         choices=AuthenticationBackends.BACKENDS)
