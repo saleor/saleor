@@ -706,6 +706,7 @@ def test_staff_group_member_can_view_staff_members_list_and_detail(
                                         args=[staff_user.pk]))
     assert response.status_code == 200
 
+
 def test_staff_group_member_can_create_and_delete_staff_members(
         staff_client, staff_user, staff_group, permission_edit_staff):
     assert not staff_user.has_perm("userprofile.edit_staff")
@@ -743,6 +744,7 @@ def test_staff_group_member_can_view_group_list_and_details(
                                         args=[staff_group.pk]))
     assert response.status_code == 200
 
+
 def test_staff_with_permission_can_create_and_delete_group(
         staff_client, staff_user, staff_group, permission_edit_group):
     assert not staff_user.has_perm("userprofile.edit_group")
@@ -759,4 +761,43 @@ def test_staff_with_permission_can_create_and_delete_group(
                                         args=[staff_group.pk]))
     assert response.status_code == 200
     response = staff_client.get(reverse('dashboard:group-create'))
+    assert response.status_code == 200
+
+
+def test_staff_with_permissions_can_view_products_classes_list(
+        staff_client, staff_user, staff_group, permission_view_classes):
+    assert not staff_user.has_perm("product.view_classes")
+    response = staff_client.get(reverse('dashboard:product-class-list'))
+    assert response.status_code == 302
+    staff_group.permissions.add(permission_view_classes)
+    staff_user.groups.add(staff_group)
+    staff_user = User.objects.get(pk=staff_user.pk)
+    assert staff_user.has_perm("product.view_classes")
+    response = staff_client.get(reverse('dashboard:product-class-list'))
+    assert response.status_code == 200
+
+
+def test_staff_with_permissions_can_edit_add_and_delete_products_classes_list(
+        staff_client, staff_user, staff_group, permission_edit_classes,
+        product_class):
+    assert not staff_user.has_perm("product.edit_classes")
+    response = staff_client.get(reverse('dashboard:product-class-update',
+                                        args=[product_class.pk]))
+    assert response.status_code == 302
+    response = staff_client.get(reverse('dashboard:product-class-delete',
+                                        args=[product_class.pk]))
+    assert response.status_code == 302
+    response = staff_client.get(reverse('dashboard:product-class-add'))
+    assert response.status_code == 302
+    staff_group.permissions.add(permission_edit_classes)
+    staff_user.groups.add(staff_group)
+    staff_user = User.objects.get(pk=staff_user.pk)
+    assert staff_user.has_perm("product.edit_classes")
+    response = staff_client.get(reverse('dashboard:product-class-update',
+                                        args=[product_class.pk]))
+    assert response.status_code == 200
+    response = staff_client.get(reverse('dashboard:product-class-delete',
+                                        args=[product_class.pk]))
+    assert response.status_code == 200
+    response = staff_client.get(reverse('dashboard:product-class-add'))
     assert response.status_code == 200
