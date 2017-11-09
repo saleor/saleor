@@ -1,6 +1,8 @@
+from __future__ import unicode_literals
+
 from django.conf import settings
 
-from .models import SiteSettings, AuthorizationKey
+from .models import AuthorizationKey
 
 
 def get_authorization_key_for_backend(backend_name):
