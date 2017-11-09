@@ -91,17 +91,16 @@ class CategoryPage extends Component {
     } else {
       this.props.data.variables.attributesFilter.splice(index, 1);
     }
-    this.setState(() => ({
+    this.setState({
       loading: true
-    }));
-    console.log(this.props.data.variables.attributesFilter);
+    });
 
     this.timer = +new Date();
     setTimeout(() => {
-      if (this.timer + WAIT_FOR_INPUT - 20 < +new Date()) {
-        this.setState(() => ({
+      if (this.timer + WAIT_FOR_INPUT - 5 < +new Date()) {
+        this.setState({
           loading: false
-        }));
+        });
         this.props.data.refetch({
           attributesFilter: this.props.data.variables.attributesFilter
         });
