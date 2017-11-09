@@ -9,7 +9,7 @@ from django.utils.translation import pgettext_lazy
 
 from ...core.utils import get_paginator_items
 from ...settings import DASHBOARD_PAGINATE_BY
-from ..views import superuser_required, staff_member_required
+from ..views import staff_member_required
 from .forms import GroupPermissionsForm
 
 

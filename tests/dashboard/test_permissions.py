@@ -743,8 +743,8 @@ def test_staff_group_member_can_view_group_list_and_details(
                                         args=[staff_group.pk]))
     assert response.status_code == 200
 
-def test_staff_with_permission_can_create_delete_group(
-    staff_client, staff_user, staff_group, permission_edit_group):
+def test_staff_with_permission_can_create_and_delete_group(
+        staff_client, staff_user, staff_group, permission_edit_group):
     assert not staff_user.has_perm("userprofile.edit_group")
     response = staff_client.get(reverse('dashboard:group-delete',
                                         args=[staff_group.pk]))
