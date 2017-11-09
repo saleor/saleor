@@ -1,18 +1,20 @@
 from __future__ import unicode_literals
 
 from django.contrib import messages
+from django.contrib.auth.decorators import permission_required
 from django.shortcuts import get_object_or_404, redirect
 from django.template.response import TemplateResponse
 from django.utils.translation import pgettext_lazy
 
 from ...core.utils import get_paginator_items
 from ...shipping.models import ShippingMethod
-from ..views import superuser_required
+from ..views import superuser_required, staff_member_required
 from ...settings import DASHBOARD_PAGINATE_BY
 from .forms import ShippingMethodForm, ShippingMethodCountryFormSet
 
 
-@superuser_required
+@staff_member_required
+@permission_required('shipping.view_shipping')
 def shipping_method_list(request):
     methods = (ShippingMethod.objects.prefetch_related('price_per_country')
                .order_by('name'))
@@ -22,7 +24,8 @@ def shipping_method_list(request):
     return TemplateResponse(request, 'dashboard/shipping/list.html', ctx)
 
 
-@superuser_required
+@staff_member_required
+@permission_required('shipping.edit_shipping')
 def shipping_method_edit(request, method):
     form = ShippingMethodForm(request.POST or None, instance=method)
     formset = ShippingMethodCountryFormSet(request.POST or None, instance=method)
@@ -40,19 +43,22 @@ def shipping_method_edit(request, method):
     return TemplateResponse(request, 'dashboard/shipping/form.html', ctx)
 
 
-@superuser_required
+@staff_member_required
+@permission_required('shipping.edit_shipping')
 def shipping_method_add(request):
     method = ShippingMethod()
     return shipping_method_edit(request, method)
 
 
-@superuser_required
+@staff_member_required
+@permission_required('shipping.edit_shipping')
 def shipping_method_update(request, pk):
     method = get_object_or_404(ShippingMethod, pk=pk)
     return shipping_method_edit(request, method)
 
 
-@superuser_required
+@staff_member_required
+@permission_required('shipping.view_shipping')
 def shipping_method_detail(request, pk):
     shipping_methods = ShippingMethod.objects.prefetch_related(
         'price_per_country').all()
@@ -63,7 +69,8 @@ def shipping_method_detail(request, pk):
         request, 'dashboard/shipping/detail.html', ctx)
 
 
-@superuser_required
+@staff_member_required
+@permission_required('shipping.edit_shipping')
 def shipping_method_delete(request, pk):
     shipping_method = get_object_or_404(ShippingMethod, pk=pk)
     if request.method == 'POST':
