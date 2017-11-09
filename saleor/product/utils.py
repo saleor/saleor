@@ -330,6 +330,7 @@ def get_product_costs_data(product):
 
     if costs:
         purchase_costs_range = PriceRange(min(costs), max(costs))
+    if margins:
         gross_margin = (margins[0], margins[-1])
     return purchase_costs_range, gross_margin
 
