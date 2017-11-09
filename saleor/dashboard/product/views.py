@@ -20,7 +20,7 @@ from . import forms
 
 
 @staff_member_required
-@permission_required('product.view_class')
+@permission_required('product.view_classes')
 def product_class_list(request):
     classes = ProductClass.objects.all().prefetch_related(
         'product_attributes', 'variant_attributes').order_by('name')
@@ -41,7 +41,7 @@ def product_class_list(request):
 
 
 @staff_member_required
-@permission_required('product.edit_class')
+@permission_required('product.edit_classes')
 def product_class_create(request):
     product_class = ProductClass()
     form = forms.ProductClassForm(request.POST or None,
@@ -60,7 +60,7 @@ def product_class_create(request):
 
 
 @staff_member_required
-@permission_required('product.edit_class')
+@permission_required('product.edit_classes')
 def product_class_edit(request, pk):
     product_class = get_object_or_404(
         ProductClass, pk=pk)
@@ -80,7 +80,7 @@ def product_class_edit(request, pk):
 
 
 @staff_member_required
-@permission_required('product.edit_class')
+@permission_required('product.edit_classes')
 def product_class_delete(request, pk):
     product_class = get_object_or_404(ProductClass, pk=pk)
     if request.method == 'POST':
