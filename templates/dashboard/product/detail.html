@@ -115,15 +115,18 @@
                     <td class="wide">{% render_variant_availability_status variant %}</td>
                     <td class="right-align">{% gross variant.get_price_per_item %}</td>
                     <td class="right-align">
-                      {% if variant.get_costs_data.margins|length > 1 %}
-                        {{ variant.get_costs_data.margins|first }}% - {{ variant.get_costs_data.margins|last }}%</td>
-                      {% else %}
-                        {% if variant.get_costs_data.margins %}
-                          {{ variant.get_costs_data.margins|first }}%
+                      {% with variant.get_costs_data.margins as margins %}
+                        {% if margins|length > 1 %}
+                          {{ margins|first }}% - {{ margins|last }}%
                         {% else %}
-                          0%
+                          {% if variant.get_costs_data.margins %}
+                            {{ margins|first }}%
+                          {% else %}
+                            0%
+                          {% endif %}
                         {% endif %}
-                      {% endif %}
+                      {% endwith %}
+                    </td>
                     {% if perms.product.edit_product %}
                       <td><a href="{% url 'dashboard:variant-update' product_pk=product.pk variant_pk=variant.pk %}" class="btn btn-flat">{% trans "Edit" %}</a></td>
                     {% endif %}

@@ -331,13 +331,9 @@ class ProductVariant(models.Model, Item):
         costs = []
         margins = []
         for stock in self.stock.all():
-            if stock.cost_price:
-                cost = stock.cost_price
-                costs.append(cost)
-                price = self.get_price_per_item()
-                margin = price - cost
-                percent = round((margin.gross / price.gross) * 100, 0)
-                margins.append(percent)
+            costs_data = stock.get_costs_data()
+            costs += costs_data['costs']
+            margins += costs_data['margins']
         costs = sorted(costs, key=lambda x: x.gross)
         margins = sorted(margins)
         return {'costs': costs, 'margins': margins}
@@ -406,6 +402,21 @@ class Stock(models.Model):
     @property
     def quantity_available(self):
         return max(self.quantity - self.quantity_allocated, 0)
+
+    def get_costs_data(self):
+        costs = []
+        margins = []
+        if self.cost_price:
+            cost = self.cost_price
+            costs.append(cost)
+            price = self.variant.get_price_per_item()
+            margin = price - cost
+            percent = round((margin.gross / price.gross) * 100, 0)
+            margins.append(percent)
+        costs = sorted(costs, key=lambda x: x.gross)
+        margins = sorted(margins)
+        print margins
+        return {'costs': costs, 'margins': margins}
 
 
 @python_2_unicode_compatible
