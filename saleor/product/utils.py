@@ -1,5 +1,6 @@
 from collections import defaultdict, namedtuple
 
+from prices import Price, PriceRange
 from six import iteritems
 
 from django.conf import settings
@@ -10,6 +11,7 @@ from django_prices.templatetags import prices_i18n
 from ..cart.utils import get_cart_from_request, get_or_create_cart_from_request
 from ..core.utils import to_local_currency
 from .forms import ProductForm
+from ..settings import DEFAULT_CURRENCY
 from . import ProductAvailabilityStatus, VariantAvailabilityStatus
 
 try:
@@ -312,3 +314,67 @@ def get_variant_availability_status(variant):
         return VariantAvailabilityStatus.OUT_OF_STOCK
     else:
         return VariantAvailabilityStatus.AVAILABLE
+
+
+def get_product_costs_data(product):
+    zero_price = Price(0, 0, currency=DEFAULT_CURRENCY)
+    zero_price_range = PriceRange(zero_price, zero_price)
+    purchase_costs_range = zero_price_range
+    gross_margin = (0, 0)
+
+    if not product.variants.exists():
+        return purchase_costs_range, gross_margin
+
+    variants = product.variants.all()
+    costs, margins = get_cost_data_from_variants(variants)
+
+    if costs:
+        purchase_costs_range = PriceRange(min(costs), max(costs))
+    if margins:
+        gross_margin = (margins[0], margins[-1])
+    return purchase_costs_range, gross_margin
+
+
+def sort_cost_data(costs, margins):
+    costs = sorted(costs, key=lambda x: x.gross)
+    margins = sorted(margins)
+    return costs, margins
+
+
+def get_cost_data_from_variants(variants):
+    costs = []
+    margins = []
+    for variant in variants:
+        costs_data = get_variant_costs_data(variant)
+        costs += costs_data['costs']
+        margins += costs_data['margins']
+    return sort_cost_data(costs, margins)
+
+
+def get_variant_costs_data(variant):
+    costs = []
+    margins = []
+    for stock in variant.stock.all():
+        costs.append(get_cost_price(stock))
+        margin = get_margin_for_variant(stock)
+        if margin:
+            margins.append(margin)
+    costs = sorted(costs, key=lambda x: x.gross)
+    margins = sorted(margins)
+    return {'costs': costs, 'margins': margins}
+
+
+def get_cost_price(stock):
+    zero_price = Price(0, 0, currency=DEFAULT_CURRENCY)
+    if not stock.cost_price:
+        return zero_price
+    return stock.cost_price
+
+
+def get_margin_for_variant(stock):
+    if not stock.cost_price:
+        return None
+    price = stock.variant.get_price_per_item()
+    margin = price - stock.cost_price
+    percent = round((margin.gross / price.gross) * 100, 0)
+    return percent
