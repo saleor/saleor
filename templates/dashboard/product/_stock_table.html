@@ -19,7 +19,7 @@
         <td>{{ stock_item.quantity_allocated }}</td>
         <td class="right-align">{% if stock_item.cost_price %}{% gross stock_item.cost_price %}{% else %}-{% endif %}</td>
         <td class="right-align">
-          {{ stock_item.get_costs_data.margins|first }}%
+          {{ stock_item.get_costs_data.margins }}%
         </td>
       </tr>
     {% empty %}

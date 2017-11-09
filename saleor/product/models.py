@@ -23,6 +23,7 @@ from versatileimagefield.fields import VersatileImageField, PPOIField
 
 from ..discount.models import calculate_discounted_price
 from ..search import index
+from ..settings import DEFAULT_CURRENCY
 from .utils import get_attributes_display_map
 
 
@@ -332,8 +333,8 @@ class ProductVariant(models.Model, Item):
         margins = []
         for stock in self.stock.all():
             costs_data = stock.get_costs_data()
-            costs += costs_data['costs']
-            margins += costs_data['margins']
+            costs.append(costs_data['costs'])
+            margins.append(costs_data['margins'])
         costs = sorted(costs, key=lambda x: x.gross)
         margins = sorted(margins)
         return {'costs': costs, 'margins': margins}
@@ -404,19 +405,14 @@ class Stock(models.Model):
         return max(self.quantity - self.quantity_allocated, 0)
 
     def get_costs_data(self):
-        costs = []
-        margins = []
-        if self.cost_price:
-            cost = self.cost_price
-            costs.append(cost)
-            price = self.variant.get_price_per_item()
-            margin = price - cost
-            percent = round((margin.gross / price.gross) * 100, 0)
-            margins.append(percent)
-        costs = sorted(costs, key=lambda x: x.gross)
-        margins = sorted(margins)
-        print margins
-        return {'costs': costs, 'margins': margins}
+        zero_price = Price(0, 0, currency=DEFAULT_CURRENCY)
+        if not self.cost_price:
+            return {'costs': zero_price, 'margins': 0}
+
+        price = self.variant.get_price_per_item()
+        margin = price - self.cost_price
+        percent = round((margin.gross / price.gross) * 100, 0)
+        return {'costs': self.cost_price, 'margins': percent}
 
 
 @python_2_unicode_compatible
