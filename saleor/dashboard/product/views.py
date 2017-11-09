@@ -12,7 +12,8 @@ from ...core.utils import get_paginator_items
 from ...product.models import (
     Product, ProductAttribute, ProductClass, ProductImage, ProductVariant,
     Stock, StockLocation)
-from ...product.utils import get_availability
+from ...product.utils import (
+    get_availability, get_purchase_cost_and_gross_margins)
 from ...settings import DASHBOARD_PAGINATE_BY
 from ..views import staff_member_required, superuser_required
 from . import forms
@@ -156,8 +157,8 @@ def product_detail(request, pk):
     images = product.images.all()
     availability = get_availability(product)
     sale_price = availability.price_range
-    purchase_cost = availability.purchase_cost_range
-    gross_margin = availability.gross_margin
+    purchase_cost, gross_margin, gross_margin_percent = (
+        get_purchase_cost_and_gross_margins(product))
     gross_price_range = product.get_gross_price_range()
 
     # no_variants is True for product classes that doesn't require variant.
@@ -174,7 +175,8 @@ def product_detail(request, pk):
         'gross_price_range': gross_price_range, 'images': images,
         'no_variants': no_variants, 'only_variant': only_variant,
         'stock': stock, 'purchase_cost': purchase_cost,
-        'gross_margin': gross_margin}
+        'gross_margin': gross_margin,
+        'gross_margin_percent': gross_margin_percent}
     return TemplateResponse(request, 'dashboard/product/detail.html', ctx)
 
 
