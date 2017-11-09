@@ -8,6 +8,7 @@
       <th>{% trans "Quantity" %}</th>
       <th>{% trans "Allocated" %}</th>
       <th class="right-align">{% trans "Cost" %}</th>
+      <th class="right-align">{% trans "Gross margin" %}</th>
     </tr>
   </thead>
   <tbody>
@@ -17,6 +18,9 @@
         <td>{{ stock_item.quantity }}</td>
         <td>{{ stock_item.quantity_allocated }}</td>
         <td class="right-align">{% if stock_item.cost_price %}{% gross stock_item.cost_price %}{% else %}-{% endif %}</td>
+        <td class="right-align">
+          {{ stock_item.get_costs_data.margins|first }}%
+        </td>
       </tr>
     {% empty %}
       <tr>
