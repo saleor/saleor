@@ -1,23 +1,25 @@
 import queryString from 'query-string';
-import React, {Component, PropTypes} from 'react';
-import {gql} from 'react-apollo';
+import React, { Component, PropTypes } from 'react';
+import { gql } from 'react-apollo';
 
 import CategoryFilter from './CategoryFilter';
 import PriceFilter from './PriceFilter';
 import ProductFilters from './ProductFilters';
 import ProductList from './ProductList';
 import SortBy from './SortBy';
-import {isMobile} from '../utils';
+import { isMobile } from '../utils';
 
+const WAIT_FOR_INPUT = 200;
 
 class CategoryPage extends Component {
-  constructor(props) {
+  constructor (props) {
     super(props);
     this.state = {
-      filtersMenu: !isMobile()
+      filtersMenu: !isMobile(),
+      loading: false
     };
+    this.timer = new Date();
   }
-
 
   static propTypes = {
     attributes: PropTypes.array,
@@ -83,15 +85,28 @@ class CategoryPage extends Component {
 
   updateAttributesFilter = (key) => {
     const index = this.props.data.variables.attributesFilter.indexOf(key);
-    let attributesFilter = this.props.data.variables.attributesFilter.splice(0);
-    if (index < 0) {
-      attributesFilter.push(key);
+    this.props.data.variables.attributesFilter = this.props.data.variables.attributesFilter.splice(0);
+    if (index === -1) {
+      this.props.data.variables.attributesFilter.push(key);
     } else {
-      attributesFilter.splice(index, 1);
+      this.props.data.variables.attributesFilter.splice(index, 1);
     }
-    this.props.data.refetch({
-      attributesFilter: attributesFilter
-    });
+    this.setState(() => ({
+      loading: true
+    }));
+    console.log(this.props.data.variables.attributesFilter);
+
+    this.timer = +new Date();
+    setTimeout(() => {
+      if (this.timer + WAIT_FOR_INPUT - 20 < +new Date()) {
+        this.setState(() => ({
+          loading: false
+        }));
+        this.props.data.refetch({
+          attributesFilter: this.props.data.variables.attributesFilter
+        });
+      }
+    }, WAIT_FOR_INPUT);
   };
 
   updatePriceFilter = (minPrice, maxPrice) => {
@@ -101,7 +116,7 @@ class CategoryPage extends Component {
     });
   };
 
-  persistStateInUrl() {
+  persistStateInUrl () {
     const {attributesFilter, count, maxPrice, minPrice, sortBy} = this.props.data.variables;
     let urlParams = {};
     if (minPrice) {
@@ -128,14 +143,14 @@ class CategoryPage extends Component {
     history.pushState({}, null, url);
   }
 
-  componentDidUpdate() {
-    // Persist current state of relay variables as query string. Current
+  componentDidUpdate () {
+    // Persist current state of apollo variables as query string. Current
     // variables are available in props after component rerenders, so it has to
     // be called inside componentDidUpdate method.
     this.persistStateInUrl();
   }
 
-  render() {
+  render () {
     const attributes = this.props.data.attributes;
     const category = this.props.data.category;
     const variables = this.props.data.variables;
@@ -150,7 +165,8 @@ class CategoryPage extends Component {
                 <li><a href="/">{pgettext('Main navigation item', 'Home')}</a></li>
                 {category.ancestors && (category.ancestors.map((ancestor) => {
                   return (
-                    <li key={ancestor.pk}><a href={ancestor.url}>{ancestor.name}</a></li>
+                    <li key={ancestor.pk}><a href={ancestor.url}>{ancestor.name}</a>
+                    </li>
                   );
                 }))}
                 <li><a href={category.url}>{category.name}</a></li>
@@ -166,7 +182,8 @@ class CategoryPage extends Component {
                   )}
                 </div>
                 <div className="col-6 col-md-10 col-lg-6">
-                  <SortBy sortedValue={variables.sortBy} setSorting={this.setSorting}/>
+                  <SortBy sortedValue={variables.sortBy}
+                          setSorting={this.setSorting}/>
                 </div>
               </div>
             </div>
@@ -205,7 +222,7 @@ class CategoryPage extends Component {
                 onLoadMore={this.incrementProductsCount}
                 products={category.products}
                 updating={pendingVariables}
-                loading={this.props.data.loading}
+                loading={this.props.data.loading || this.state.loading}
               />
             </div>
           </div>

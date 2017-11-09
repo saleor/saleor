@@ -54,6 +54,7 @@ export default graphql(rootQuery, {
       attributesFilter: attributesFilter,
       minPrice: minPrice,
       maxPrice: maxPrice
-    }
+    },
+    fetchPolicy: 'cache-and-network'
   })
 })(App);
