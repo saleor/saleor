@@ -1,19 +1,18 @@
 import datetime
 
-from mock import Mock
 import pytest
-
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.utils.encoding import smart_text
+from mock import Mock
 
-from saleor.cart.models import Cart
 from saleor.cart import CartStatus, utils
-
+from saleor.cart.models import Cart
 from saleor.product import (
-    models, ProductAvailabilityStatus, VariantAvailabilityStatus)
+    ProductAvailabilityStatus, VariantAvailabilityStatus, models)
 from saleor.product.utils import (
-    get_attributes_display_map, get_availability, get_variant_picker_data,
-    get_product_availability_status, get_variant_availability_status)
+    get_attributes_display_map, get_availability,
+    get_product_availability_status, get_variant_availability_status,
+    get_variant_picker_data)
 from tests.utils import filter_products_by_attribute
 
 
@@ -454,4 +453,3 @@ def test_get_variant_picker_data_proper_variant_count(product_in_stock):
         product_in_stock, discounts=None, local_currency=None)
 
     assert len(data['variantAttributes'][0]['values']) == 1
-

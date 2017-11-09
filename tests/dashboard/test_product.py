@@ -1,13 +1,14 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
-from io import BytesIO
 import json
+from io import BytesIO
+
 import pytest
-from PIL import Image
 from django.core.files.uploadedfile import SimpleUploadedFile
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.utils.encoding import smart_text
+from PIL import Image
 
 from saleor.dashboard.product import ProductBulkAction
 from saleor.dashboard.product.forms import (
@@ -15,7 +16,6 @@ from saleor.dashboard.product.forms import (
 from saleor.product.models import (
     Product, ProductAttribute, ProductClass, ProductImage, ProductVariant,
     Stock, StockLocation)
-
 
 HTTP_STATUS_OK = 200
 HTTP_REDIRECTION = 302

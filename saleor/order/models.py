@@ -5,25 +5,24 @@ from uuid import uuid4
 
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
-from django.core.urlresolvers import reverse
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
+from django.urls import reverse
 from django.utils.encoding import python_2_unicode_compatible
 from django.utils.timezone import now
 from django.utils.translation import pgettext_lazy
 from django_prices.models import PriceField
 from payments import PaymentStatus, PurchasedItem
 from payments.models import BasePayment
-from prices import Price, FixedDiscount
+from prices import FixedDiscount, Price
 from satchless.item import ItemLine, ItemSet
 
+from . import OrderStatus, emails
 from ..core.utils import build_absolute_uri
 from ..discount.models import Voucher
 from ..product.models import Product
-from ..userprofile.models import Address
 from ..search import index
-from . import OrderStatus
-from . import emails
+from ..userprofile.models import Address
 
 
 class OrderManager(models.Manager):
