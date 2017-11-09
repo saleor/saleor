@@ -316,7 +316,7 @@ def get_variant_availability_status(variant):
         return VariantAvailabilityStatus.AVAILABLE
 
 
-def get_purchase_cost_and_gross_margins(product):
+def get_product_costs_data(product):
     zero_price = Price(0, 0, currency=DEFAULT_CURRENCY)
     zero_price_range = PriceRange(zero_price, zero_price)
     purchase_costs_range = zero_price_range
@@ -344,7 +344,34 @@ def get_cost_data_from_variants(variants):
     costs = []
     margins = []
     for variant in variants:
-        costs_data = variant.get_costs_data()
+        costs_data = get_variant_costs_data(variant)
         costs += costs_data['costs']
         margins += costs_data['margins']
     return sort_cost_data(costs, margins)
+
+
+def get_variant_costs_data(variant):
+    costs = []
+    margins = []
+    for stock in variant.stock.all():
+        costs.append(get_cost_price(stock))
+        margins.append(get_margin_for_variant(stock))
+    costs = sorted(costs, key=lambda x: x.gross)
+    margins = sorted(margins)
+    return {'costs': costs, 'margins': margins}
+
+
+def get_cost_price(stock):
+    zero_price = Price(0, 0, currency=DEFAULT_CURRENCY)
+    if not stock.cost_price:
+        return zero_price
+    return stock.cost_price
+
+
+def get_margin_for_variant(stock):
+    if not stock.cost_price:
+        return 0
+    price = stock.variant.get_price_per_item()
+    margin = price - stock.cost_price
+    percent = round((margin.gross / price.gross) * 100, 0)
+    return percent

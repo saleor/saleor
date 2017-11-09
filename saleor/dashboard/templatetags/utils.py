@@ -9,6 +9,7 @@ except ImportError:
     from urllib import urlencode
 
 from django.template import Library
+from ...product.utils import get_margin_for_variant, get_variant_costs_data
 
 register = Library()
 
@@ -45,3 +46,14 @@ def paginate(context, page_obj, num_of_pages=5):
     context['next_section'] = (2 * num_of_pages) + 1
     context['previous_section'] = (-2 * num_of_pages) - 1
     return context
+
+
+@register.simple_tag
+def margin_for_variant(stock):
+    return get_margin_for_variant(stock)
+
+
+@register.simple_tag
+def margins_for_variant(variant):
+    margins = get_variant_costs_data(variant)['margins']
+    return margins

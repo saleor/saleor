@@ -328,16 +328,6 @@ class ProductVariant(models.Model, Item):
         if stock:
             return stock.cost_price
 
-    def get_costs_data(self):
-        costs = []
-        margins = []
-        for stock in self.stock.all():
-            costs.append(stock.get_cost_price())
-            margins.append(stock.get_margin_for_variant())
-        costs = sorted(costs, key=lambda x: x.gross)
-        margins = sorted(margins)
-        return {'costs': costs, 'margins': margins}
-
 
 @python_2_unicode_compatible
 class StockLocation(models.Model):
@@ -402,20 +392,6 @@ class Stock(models.Model):
     @property
     def quantity_available(self):
         return max(self.quantity - self.quantity_allocated, 0)
-
-    def get_cost_price(self):
-        zero_price = Price(0, 0, currency=DEFAULT_CURRENCY)
-        if not self.cost_price:
-            return zero_price
-        return self.cost_price
-
-    def get_margin_for_variant(self):
-        if not self.cost_price:
-            return 0
-        price = self.variant.get_price_per_item()
-        margin = price - self.cost_price
-        percent = round((margin.gross / price.gross) * 100, 0)
-        return percent
 
 
 @python_2_unicode_compatible
