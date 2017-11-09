@@ -122,7 +122,7 @@ class Product(models.Model, ItemRange, index.Indexed):
     product_class = models.ForeignKey(
         ProductClass, related_name='products',
         verbose_name=pgettext_lazy('Product field', 'product class'),
-        on_delete=models.PROTECT)
+        on_delete=models.CASCADE)
     name = models.CharField(
         pgettext_lazy('Product field', 'name'), max_length=128)
     description = models.TextField(
@@ -376,7 +376,7 @@ class Stock(models.Model):
         verbose_name=pgettext_lazy('Stock item field', 'variant'),
         on_delete=models.CASCADE)
     location = models.ForeignKey(
-        StockLocation, null=True, on_delete=models.PROTECT)
+        StockLocation, null=True, on_delete=models.CASCADE)
     quantity = models.IntegerField(
         pgettext_lazy('Stock item field', 'quantity'),
         validators=[MinValueValidator(0)], default=Decimal(1))
