@@ -47,6 +47,9 @@
           {% trans 'Promote to staff' context 'Customer promote to staff member action' %}
         </a>
       </li>
+      <li>
+        <a href="/impersonate/{{ customer.pk }}">Impersonate customer</a>
+      </li>
     </ul>
   {% endif %}
 {% endblock %}

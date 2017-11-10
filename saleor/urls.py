@@ -27,6 +27,7 @@ urlpatterns = [
     url(r'^dashboard/',
         include((dashboard_urls, 'dashboard'), namespace='dashboard')),
     url(r'^graphql', GraphQLView.as_view(graphiql=settings.DEBUG)),
+    url(r'^impersonate/', include('impersonate.urls')),
     url(r'^jsi18n/$', JavaScriptCatalog.as_view(), name='javascript-catalog'),
     url(r'^order/', include((order_urls, 'order'), namespace='order')),
     url(r'^products/',
