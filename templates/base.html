@@ -47,10 +47,18 @@
                 <a href="{% url "profile:details" %}">
                   {% trans "Your account" context "Main navigation item" %}</a>
               </li>
-              <li>
-                <a href="{% url "account_logout" %}">
-                  {% trans "Log out" context "Main navigation item" %}</a>
-              </li>
+              {% if user.is_impersonate %}
+                <li>
+                  <a href="{% url "impersonate-stop" %}">
+                    {% trans 'Stop impersonating' context 'Main navigation item' %}
+                  </a>
+                </li>
+              {% else %}
+                <li>
+                  <a href="{% url "account_logout" %}">
+                    {% trans "Log out" context "Main navigation item" %}</a>
+                </li>
+              {% endif %}
             {% else %}
               <li>
                 <a href="{% url "account_signup" %}">
@@ -196,10 +204,18 @@
                   {% trans "Your account" context "Main navigation item" %}
                 </a>
               </li>
-              <li>
-                <a href="{% url "account_logout" %}">
-                  {% trans "Log out" context "Main navigation item" %}</a>
-              </li>
+              {% if user.is_impersonate %}
+                <li>
+                  <a href="{% url "impersonate-stop" %}">
+                    {% trans 'Stop impersonating' context 'Main navigation item' %}
+                  </a>
+                </li>
+              {% else %}
+                <li>
+                  <a href="{% url "account_logout" %}">
+                    {% trans "Log out" context "Main navigation item" %}</a>
+                </li>
+              {% endif %}
             {% else %}
               <li>
                 <a href="{% url "account_signup" %}">

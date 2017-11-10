@@ -139,6 +139,7 @@ MIDDLEWARE = [
     'saleor.core.middleware.CurrencyMiddleware',
     'saleor.core.middleware.ClearSiteCacheMiddleware',
     'social_django.middleware.SocialAuthExceptionMiddleware',
+    'impersonate.middleware.ImpersonateMiddleware'
 ]
 
 INSTALLED_APPS = [
@@ -185,6 +186,7 @@ INSTALLED_APPS = [
     'django_countries',
     'django_filters',
     'django_celery_results',
+    'impersonate'
 ]
 
 LOGGING = {
