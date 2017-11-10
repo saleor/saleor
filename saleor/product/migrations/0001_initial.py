@@ -2,6 +2,7 @@
 from __future__ import unicode_literals
 
 from django.db import models, migrations
+import django.db.models.deletion
 import versatileimagefield.fields
 from decimal import Decimal
 import django.core.validators
@@ -36,7 +37,7 @@ class Migration(migrations.Migration):
                 ('rght', models.PositiveIntegerField(editable=False, db_index=True)),
                 ('tree_id', models.PositiveIntegerField(editable=False, db_index=True)),
                 ('level', models.PositiveIntegerField(editable=False, db_index=True)),
-                ('parent', models.ForeignKey(related_name='children', verbose_name='parent', blank=True, to='product.Category', null=True)),
+                ('parent', models.ForeignKey(related_name='children', verbose_name='parent', blank=True, to='product.Category', null=True, on_delete=django.db.models.deletion.CASCADE)),
             ],
             options={
                 'verbose_name_plural': 'categories',
@@ -81,7 +82,7 @@ class Migration(migrations.Migration):
                 ('ppoi', versatileimagefield.fields.PPOIField(default='0.5x0.5', max_length=20, editable=False)),
                 ('alt', models.CharField(max_length=128, verbose_name='short description', blank=True)),
                 ('order', models.PositiveIntegerField(editable=False)),
-                ('product', models.ForeignKey(related_name='images', to='product.Product')),
+                ('product', models.ForeignKey(related_name='images', to='product.Product', on_delete=django.db.models.deletion.CASCADE)),
             ],
             options={
                 'ordering': ['order'],
@@ -96,7 +97,7 @@ class Migration(migrations.Migration):
                 ('price_override', django_prices.models.PriceField(decimal_places=2, currency=b'USD', max_digits=12, blank=True, null=True, verbose_name='price override')),
                 ('weight_override', models.DecimalField(decimal_places=2, max_digits=6, blank=True, null=True, verbose_name='weight override')),
                 ('attributes', models.TextField(default='{}', verbose_name='attributes')),
-                ('product', models.ForeignKey(related_name='variants', to='product.Product')),
+                ('product', models.ForeignKey(related_name='variants', to='product.Product', on_delete=django.db.models.deletion.CASCADE)),
             ],
             bases=(models.Model, satchless.item.Item),
         ),
@@ -107,7 +108,7 @@ class Migration(migrations.Migration):
                 ('location', models.CharField(max_length=100, verbose_name='location')),
                 ('quantity', models.IntegerField(default=Decimal('1'), verbose_name='quantity', validators=[django.core.validators.MinValueValidator(0)])),
                 ('cost_price', django_prices.models.PriceField(decimal_places=2, currency=b'USD', max_digits=12, blank=True, null=True, verbose_name='cost price')),
-                ('variant', models.ForeignKey(related_name='stock', verbose_name='variant', to='product.ProductVariant')),
+                ('variant', models.ForeignKey(related_name='stock', verbose_name='variant', to='product.ProductVariant', on_delete=django.db.models.deletion.CASCADE)),
             ],
         ),
         migrations.AddField(
@@ -128,7 +129,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='attributechoicevalue',
             name='attribute',
-            field=models.ForeignKey(related_name='values', to='product.ProductAttribute'),
+            field=models.ForeignKey(related_name='values', to='product.ProductAttribute', on_delete=django.db.models.deletion.CASCADE),
         ),
         migrations.AlterUniqueTogether(
             name='stock',
