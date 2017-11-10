@@ -539,6 +539,8 @@ def permission_impersonate_user():
 
 def translated_variant(db, product_in_stock):
     attribute = product_in_stock.product_class.variant_attributes.first()
+    from pprint import pprint
+    pprint(attribute.__dict__)
     return ProductAttributeTranslation.objects.create(
         language_code='fr', product_attribute=attribute,
         name='Name tranlsated to french')

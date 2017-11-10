@@ -198,7 +198,7 @@ def get_variant_picker_data(product, discounts=None, local_currency=None):
         if available_variants:
             data['variantAttributes'].append({
                 'pk': attribute.pk,
-                'name': attribute.name,
+                'name': attribute.translated.name,
                 'slug': attribute.slug,
                 'values': [
                     {'pk': value.pk, 'name': value.name, 'slug': value.slug}

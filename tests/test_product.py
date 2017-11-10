@@ -484,10 +484,14 @@ def test_view_ajax_available_products_list(admin_client, product_in_stock):
 
 
 def test_variant_picker_data_with_translations(
-        product_in_stock, translated_variant, settings):
+        product_in_stock, translated_variant, translated_product_attribute, settings):
     settings.LANGUAGE_CODE = 'fr'
     variant_picker_data = get_variant_picker_data(product_in_stock)
+    from pprint import pprint
+    pprint(translated_variant)
+    # pprint(variant_picker_data)
     attribute = variant_picker_data['variantAttributes'][0]
+    # pprint(attribute)
     assert attribute['name'] == translated_variant.name
 
 
