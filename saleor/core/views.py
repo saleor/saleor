@@ -1,4 +1,7 @@
 from django.template.response import TemplateResponse
+from django.http.response import HttpResponseRedirect
+from django.contrib import messages
+from django.utils.translation import pgettext_lazy
 
 from ..dashboard.views import staff_member_required
 from ..product.utils import products_with_availability, products_for_homepage
@@ -8,6 +11,11 @@ def home(request):
     products = products_for_homepage()[:8]
     products = products_with_availability(
         products, discounts=request.discounts, local_currency=request.currency)
+    # TODO: Get rid of url parameters
+    if request.GET.get('action') == 'impersonate':
+        msg = pgettext_lazy('Impersonation message',
+                            'You are now logged as %s') % request.user.email
+        messages.success(request, msg)
     return TemplateResponse(
         request, 'home.html',
         {'products': products, 'parent': None})
