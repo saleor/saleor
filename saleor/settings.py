@@ -419,4 +419,5 @@ CELERY_RESULT_BACKEND = 'django-db'
 
 # IMPERSONATE SETTINGS
 IMPERSONATE_URI_EXCLUSIONS = [r'^dashboard/']
-IMPERSONATE_CUSTOM_USER_QUERYSET = 'saleor.userprofile.utils.can_impersonate'
+IMPERSONATE_CUSTOM_USER_QUERYSET = 'saleor.userprofile.utils.get_customers'
+IMPERSONATE_REDIRECT_URL = '/?action=impersonate'

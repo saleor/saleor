@@ -15,5 +15,5 @@ def store_user_address(user, address, billing=False, shipping=False):
         user.save()
     return entry
 
-def can_impersonate(request):
+def get_customers(request):
     return User.objects.filter(is_staff=False, is_superuser=False)
