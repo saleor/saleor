@@ -1,4 +1,4 @@
-from .models import Address
+from .models import Address, User
 
 
 def store_user_address(user, address, billing=False, shipping=False):
@@ -14,3 +14,6 @@ def store_user_address(user, address, billing=False, shipping=False):
     if changed:
         user.save()
     return entry
+
+def can_impersonate(request):
+    return User.objects.filter(is_staff=False, is_superuser=False)
