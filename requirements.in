@@ -37,7 +37,7 @@ pytest>=3.2.2
 pytest-django
 requests>=1.2.0
 satchless>=1.1.2,<1.2a0
-social-auth-app-django>=1.1.0
+social-auth-app-django>=2.0.0
 text-unidecode
 uwsgi>=2.0.0
 celery[redis]
