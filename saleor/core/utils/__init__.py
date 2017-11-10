@@ -8,8 +8,8 @@ from django.conf import settings
 from django.contrib.sites.models import Site
 from django.core.paginator import InvalidPage, Paginator
 from django.http import Http404
-from django.utils.encoding import iri_to_uri, smart_text, python_2_unicode_compatible
-from django.utils.functional import cached_property
+from django.utils.encoding import (
+    iri_to_uri, smart_text, python_2_unicode_compatible)
 from django.utils.translation import get_language
 from django_countries import countries
 from django_countries.fields import Country
@@ -129,7 +129,8 @@ def create_superuser(credentials):
 class TranslationWrapper(object):
     def __init__(self, instance, locale):
         self.instance = instance
-        self.translation = next((t for t in instance.translations.all() if t.language_code == locale), None)
+        self.translation = next((t for t in instance.translations.all()
+                                 if t.language_code == locale), None)
 
     def __getattr__(self, item):
         if self.translation is not None and hasattr(
