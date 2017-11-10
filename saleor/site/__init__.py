@@ -1,3 +1,6 @@
+from __future__ import unicode_literals
+
+
 class AuthenticationBackends:
     GOOGLE = 'google-oauth2'
     FACEBOOK = 'facebook'
