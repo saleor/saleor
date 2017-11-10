@@ -13,8 +13,8 @@
 {% block menu_groups_class %}active{% endblock %}
 
 {% block header_extra %}
+  {% if perms.userprofile.edit_group %}
 
-{% if perms.userprofile.edit_group %}
     <div class="fixed-action-btn">
       <a class="btn-fab btn-floating btn-large waves-effect waves-light"
         title="{% trans "Add group" context "Group list add button text" %}"
@@ -22,7 +22,7 @@
         <svg data-src="{% static "dashboard/images/add.svg" %}" />
       </a>
     </div>
-{% endif %}
+  {% endif %}
 {% endblock %}
 
 {% block breadcrumbs %}

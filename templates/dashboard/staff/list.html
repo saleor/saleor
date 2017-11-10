@@ -14,7 +14,7 @@
 {% block menu_staff_class %}active{% endblock %}
 
 {% block header_extra %}
-{% if perms.userprofile.edit_staff %}
+  {% if perms.userprofile.edit_staff %}
     <div class="fixed-action-btn">
       <a class="btn-fab btn-floating btn-large waves-effect waves-light"
         title="{% trans "Add staff member" context "Staff members list add button text" %}"
@@ -22,7 +22,7 @@
         <svg data-src="{% static "dashboard/images/add.svg" %}" />
       </a>
     </div>
-{% endif %}
+  {% endif %}
 {% endblock %}
 
 {% block breadcrumbs %}
