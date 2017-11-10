@@ -24,7 +24,7 @@
 {% block menu_discounts_class %} active{% endblock %}
 
 {% block content %}
-  {% if perms.voucher.edit_voucher %}
+  {% if perms.discount.edit_voucher %}
     <div class="fixed-action-btn">
       <a href="{% url 'dashboard:voucher-add' %}" class="btn-fab btn-floating btn-large waves-effect waves-light"
          title="{% trans "Add voucher" context "Voucher list add button text" %}">
@@ -63,7 +63,7 @@
           </thead>
           {% for voucher in vouchers %}
             <tbody>
-              <tr data-action-go="{% if perms.voucher.edit_voucher %}{% url 'dashboard:voucher-update' pk=voucher.pk %}{% endif %}">
+              <tr data-action-go="{% if perms.discount.edit_voucher %}{% url 'dashboard:voucher-update' pk=voucher.pk %}{% endif %}">
                 <td>
                   {{ voucher }}
                 </td>

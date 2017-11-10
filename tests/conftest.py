@@ -512,3 +512,8 @@ def permission_view_shipping():
 @pytest.fixture
 def permission_edit_shipping():
     return Permission.objects.get(codename='edit_shipping')
+
+
+@pytest.fixture
+def permission_edit_user():
+    return Permission.objects.get(codename='edit_user')
