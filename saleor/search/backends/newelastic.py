@@ -5,13 +5,16 @@ from elasticsearch_dsl.query import MultiMatch
 from ..documents import ProductDocument
 
 
-def search_products(phrase):
+def get_search_query(phrase):
     ''' Execute external search for product matching phrase  '''
     query = MultiMatch(fields=['name', 'description'], query=phrase)
-    search = (ProductDocument.search()
-                             .query(query)
-                             .source(False)
-                             .filter('term', is_published=True))
+    return (ProductDocument.search()
+                           .query(query)
+                           .source(False)
+                           .filter('term', is_published=True))
+
+
+def _execute_es_search(query):
     return [hit.meta.id for hit in search.execute()]
 
 
@@ -20,7 +23,5 @@ def search(query, model_or_queryset):
         # TODO: remove this ugly type incoherence of old search api
         if not isinstance(model_or_queryset, QuerySet):
             qs = model_or_queryset.objects.all()
-        return qs.filter(pk__in=search_products(query))
-
-
-
+        found_objs = _execute_es_search(get_search_query(query))
+        return qs.filter(pk__in=found_objs)
