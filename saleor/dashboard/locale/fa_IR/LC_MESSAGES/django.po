@@ -2,7 +2,7 @@
 # Copyright (C) 2017 Mirumee Software
 # This file is distributed under the same license as the Saleor package.
 # Mirumee Software <hello@mirumee.com>, 2017.
-#
+# 
 #, fuzzy
 msgid ""
 msgstr ""
@@ -11,12 +11,11 @@ msgstr ""
 "POT-Creation-Date: 2017-11-06 04:12-0600\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Farid Shahy <fkonigy@gmail.com>, 2017\n"
-"Language-Team: Persian (Iran) (https://www.transifex.com/mirumee/teams/34782/"
-"fa_IR/)\n"
-"Language: fa_IR\n"
+"Language-Team: Persian (Iran) (https://www.transifex.com/mirumee/teams/34782/fa_IR/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"Language: fa_IR\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
 
 #: saleor/dashboard/category/views.py:42

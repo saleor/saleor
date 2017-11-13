@@ -2,7 +2,7 @@
 # Copyright (C) 2017 Mirumee Software
 # This file is distributed under the same license as the Saleor package.
 # Mirumee Software <hello@mirumee.com>, 2017.
-#
+# 
 #, fuzzy
 msgid ""
 msgstr ""
@@ -12,10 +12,10 @@ msgstr ""
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Jihan Chung <jihanchung20@gmail.com>, 2017\n"
 "Language-Team: Korean (https://www.transifex.com/mirumee/teams/34782/ko/)\n"
-"Language: ko\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"Language: ko\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
 
 #: saleor/dashboard/category/views.py:42
@@ -228,8 +228,7 @@ msgctxt "Dashboard message related to an order line"
 msgid ""
 "Changed quantity for product %(product)s from %(old_quantity)s to "
 "%(new_quantity)s"
-msgstr ""
-"%(product)s의 수량이 %(old_quantity)s에서 %(new_quantity)s로 변경되었습니다"
+msgstr "%(product)s의 수량이 %(old_quantity)s에서 %(new_quantity)s로 변경되었습니다"
 
 #: saleor/dashboard/order/views.py:221
 msgctxt "Dashboard message related to a delivery group"
@@ -240,8 +239,7 @@ msgstr "삭제된 카테고리"
 #, python-format
 msgctxt "Dashboard message related to delivery groups"
 msgid "Moved %(how_many)s items %(item)s from %(old_group)s to %(new_group)s"
-msgstr ""
-"%(how_many)s개의 %(item)s가 %(old_group)s에서 %(new_group)s로 카테고리가 변경"
+msgstr "%(how_many)s개의 %(item)s가 %(old_group)s에서 %(new_group)s로 카테고리가 변경"
 
 #: saleor/dashboard/order/views.py:249
 #, python-format
@@ -457,24 +455,19 @@ msgid "Updated site %s"
 msgstr "업데이트 된 %s 사이트"
 
 #: saleor/dashboard/staff/views.py:36
-#, fuzzy, python-format
-#| msgid "Updated site %s"
+#, python-format
 msgctxt "Dashboard message"
 msgid "Updated staff member %s"
-msgstr "업데이트 된 %s 사이트"
+msgstr ""
 
 #: saleor/dashboard/staff/views.py:50
-#, fuzzy, python-format
-#| msgctxt "Dashboard message"
-#| msgid "Added category %s"
+#, python-format
 msgctxt "Dashboard message"
 msgid "Added staff member %s"
-msgstr "추가된 카테고리 %s"
+msgstr ""
 
 #: saleor/dashboard/staff/views.py:67
-#, fuzzy, python-format
-#| msgctxt "Sale (discount) message"
-#| msgid "Deleted sale %s"
+#, python-format
 msgctxt "Dashboard message"
 msgid "Deleted staff member %s"
-msgstr "삭제된 할인 %s"
+msgstr ""

@@ -2,7 +2,7 @@
 # Copyright (C) 2017 Mirumee Software
 # This file is distributed under the same license as the Saleor package.
 # Mirumee Software <hello@mirumee.com>, 2017.
-#
+# 
 #, fuzzy
 msgid ""
 msgstr ""
@@ -10,162 +10,162 @@ msgstr ""
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2017-11-06 04:12-0600\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: Cosmin Cosma <cosmingcosma@gmail.com>, 2017\n"
 "Language-Team: Romanian (https://www.transifex.com/mirumee/teams/34782/ro/)\n"
-"Language: ro\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=3; plural=(n==1?0:(((n%100>19)||((n%100==0)&&(n!=0)))?"
-"2:1));\n"
+"Language: ro\n"
+"Plural-Forms: nplurals=3; plural=(n==1?0:(((n%100>19)||((n%100==0)&&(n!=0)))?2:1));\n"
 
 #: saleor/cart/__init__.py:22
 msgctxt "cart status"
 msgid "Open - currently active"
-msgstr ""
+msgstr "Deschis - activ în prezent"
 
 #: saleor/cart/__init__.py:24
 msgctxt "cart status"
 msgid "Waiting for payment"
-msgstr ""
+msgstr "Așteptând plata"
 
 #: saleor/cart/__init__.py:26
 msgctxt "cart status"
 msgid "Saved - for items to be purchased later"
-msgstr ""
+msgstr "Salvat - pentru a fi cumpărate mai târziu"
 
 #: saleor/cart/__init__.py:28
 msgctxt "cart status"
 msgid "Submitted - an order was placed"
-msgstr ""
+msgstr "Trimisă - comanda a fost trimisă"
 
 #: saleor/cart/__init__.py:30
 msgctxt "cart status"
 msgid "Checkout - processed in checkout"
-msgstr ""
+msgstr "Verificare - procesate la verificare"
 
 #: saleor/cart/__init__.py:32
 msgctxt "cart status"
 msgid "Canceled - canceled by user"
-msgstr ""
+msgstr "Anulat - anulat de utilizator"
 
 #: saleor/cart/forms.py:31
 msgctxt "Add to cart form field label"
 msgid "Quantity"
-msgstr ""
+msgstr "Cantitate"
 
 #: saleor/cart/forms.py:35
 msgctxt "Add to cart form error"
 msgid "Sorry. This product is currently not available."
-msgstr ""
+msgstr "Ne pare rău. Acest produs nu este disponibil."
 
 #: saleor/cart/forms.py:38
 msgctxt "Add to cart form error"
 msgid "Sorry. This product is currently out of stock."
-msgstr ""
+msgstr "Ne pare rău. Acest produs nu este în stoc."
 
 #: saleor/cart/forms.py:41
 msgctxt "Add to cart form error"
 msgid "Oops. We could not find that product."
-msgstr ""
+msgstr "Hopa. Nu am putut găsi produsul respectiv."
 
 #: saleor/cart/forms.py:44
 #, python-format
 msgctxt "Add to cart form error"
 msgid "Only %d remaining in stock."
 msgid_plural "Only %d remaining in stock."
-msgstr[0] ""
-msgstr[1] ""
-msgstr[2] ""
+msgstr[0] "Numai %deste în stoc."
+msgstr[1] "Numai %d mai sunt în stoc."
+msgstr[2] "Numai %d sunt în stoc. "
 
 #: saleor/cart/forms.py:153
 msgctxt "Country form field label"
 msgid "Country"
-msgstr ""
+msgstr "Țară"
 
 #: saleor/cart/models.py:88
 msgctxt "Cart field"
 msgid "order status"
-msgstr ""
+msgstr "starea comenzii"
 
 #: saleor/cart/models.py:91
 msgctxt "Cart field"
 msgid "created"
-msgstr ""
+msgstr "creat"
 
 #: saleor/cart/models.py:93
 msgctxt "Cart field"
 msgid "last status change"
-msgstr ""
+msgstr "ultima schimbare de stare"
 
 #: saleor/cart/models.py:96
 msgctxt "Cart field"
 msgid "user"
-msgstr ""
+msgstr "utilizator"
 
 #: saleor/cart/models.py:98
 msgctxt "Cart field"
 msgid "email"
-msgstr ""
+msgstr "email"
 
 #: saleor/cart/models.py:100 saleor/cart/models.py:105
 msgctxt "Cart field"
 msgid "token"
-msgstr ""
+msgstr "token"
 
 #: saleor/cart/models.py:107
 msgctxt "Cart field"
 msgid "checkout data"
-msgstr ""
+msgstr "date de verificat"
 
 #: saleor/cart/models.py:110
 msgctxt "Cart field"
 msgid "total"
-msgstr ""
+msgstr "total"
 
 #: saleor/cart/models.py:114
 msgctxt "Cart field"
 msgid "quantity"
-msgstr ""
+msgstr "cantitate"
 
 #: saleor/cart/models.py:120
 msgctxt "Cart model"
 msgid "Cart"
-msgstr ""
+msgstr "Coș"
 
 #: saleor/cart/models.py:121
 msgctxt "Cart model"
 msgid "Carts"
-msgstr ""
+msgstr "Coșuri"
 
 #: saleor/cart/models.py:257
 msgctxt "Cart line field"
 msgid "cart"
-msgstr ""
+msgstr "coș"
 
 #: saleor/cart/models.py:260
 msgctxt "Cart line field"
 msgid "product"
-msgstr ""
+msgstr "produs"
 
 #: saleor/cart/models.py:262
 msgctxt "Cart line field"
 msgid "quantity"
-msgstr ""
+msgstr "cantitate"
 
 #: saleor/cart/models.py:266
 msgctxt "Cart line field"
 msgid "data"
-msgstr ""
+msgstr "date"
 
 #: saleor/cart/models.py:270
 msgctxt "Cart line model"
 msgid "Cart line"
-msgstr ""
+msgstr "Linia de coș"
 
 #: saleor/cart/models.py:271
 msgctxt "Cart line model"
 msgid "Cart lines"
-msgstr ""
+msgstr "Linii de coș"
 
 #: saleor/cart/utils.py:97
 msgctxt "Cart warning message"
@@ -173,46 +173,48 @@ msgid ""
 "Sorry. We don't have that many items in stock. Quantity was set to maximum "
 "available for now."
 msgstr ""
+"Scuze. Nu avem multe articole în stoc. Cantitatea a fost setată la maximum "
+"disponibilă pentru moment."
 
 #: saleor/checkout/forms.py:22
 msgctxt "Shipping addresses form choice"
 msgid "Enter a new address"
-msgstr ""
+msgstr "Introduceți o nouă adresă"
 
 #: saleor/checkout/forms.py:25
 msgctxt "Shipping addresses form field label"
 msgid "Address"
-msgstr ""
+msgstr "Adresă"
 
 #: saleor/checkout/forms.py:44
 msgctxt "Billing addresses form choice"
 msgid "Enter a new address"
-msgstr ""
+msgstr "Introduceți o nouă adresă"
 
 #: saleor/checkout/forms.py:46
 msgctxt "Billing addresses form choice"
 msgid "Same as shipping"
-msgstr ""
+msgstr "La fel ca la livrare"
 
 #: saleor/checkout/forms.py:83
 msgctxt "Shipping method form field label"
 msgid "Shipping method"
-msgstr ""
+msgstr "Metodă de livrare"
 
 #: saleor/checkout/forms.py:104
 msgctxt "Shipping form field label"
 msgid "Email"
-msgstr ""
+msgstr "Email"
 
 #: saleor/checkout/forms.py:113
 msgctxt "Billing form field label"
 msgid "Email"
-msgstr ""
+msgstr "Email"
 
 #: saleor/checkout/views/discount.py:60
 msgctxt "Checkout warning"
 msgid "This voucher has expired. Please review your checkout."
-msgstr ""
+msgstr "Acest voucher a expirat. Vă rugăm verificați."
 
 #: saleor/checkout/views/summary.py:29
 msgctxt "Order status history entry"
@@ -222,22 +224,22 @@ msgstr ""
 #: saleor/checkout/views/summary.py:41
 msgctxt "Checkout warning"
 msgid "Please review your checkout."
-msgstr ""
+msgstr "Vă rugăm verificați."
 
 #: saleor/discount/forms.py:13
 msgctxt "Voucher form error"
 msgid "Discount code incorrect or expired"
-msgstr ""
+msgstr "Codul de reducere incorect sau expirat"
 
 #: saleor/discount/forms.py:23
 msgctxt "Checkout discount form label for voucher field"
 msgid "Gift card or discount code"
-msgstr ""
+msgstr "Card cadou sau cod de discount"
 
 #: saleor/discount/models.py:61
 msgctxt "Voucher application"
 msgid "Apply to a single item"
-msgstr ""
+msgstr "Aplicați la un singur articol"
 
 #: saleor/discount/models.py:65
 msgctxt "Voucher application"
@@ -312,7 +314,7 @@ msgstr ""
 #: saleor/discount/models.py:118
 msgctxt "Voucher field"
 msgid "product"
-msgstr ""
+msgstr "produs"
 
 #: saleor/discount/models.py:121
 msgctxt "Voucher field"
@@ -503,22 +505,22 @@ msgstr ""
 #: saleor/order/models.py:50
 msgctxt "Order field"
 msgid "order status"
-msgstr ""
+msgstr "starea comenzii"
 
 #: saleor/order/models.py:53
 msgctxt "Order field"
 msgid "created"
-msgstr ""
+msgstr "creat"
 
 #: saleor/order/models.py:56
 msgctxt "Order field"
 msgid "last status change"
-msgstr ""
+msgstr "ultima schimbare de stare"
 
 #: saleor/order/models.py:60
 msgctxt "Order field"
 msgid "user"
-msgstr ""
+msgstr "utilizator"
 
 #: saleor/order/models.py:63
 msgctxt "Order field"
@@ -543,7 +545,7 @@ msgstr ""
 #: saleor/order/models.py:75
 msgctxt "Order field"
 msgid "token"
-msgstr ""
+msgstr "token"
 
 #: saleor/order/models.py:77
 msgctxt "Order field"
@@ -644,7 +646,7 @@ msgstr ""
 #: saleor/order/models.py:337
 msgctxt "Ordered item field"
 msgid "product"
-msgstr ""
+msgstr "produs"
 
 #: saleor/order/models.py:339
 msgctxt "Ordered item field"
@@ -669,7 +671,7 @@ msgstr ""
 #: saleor/order/models.py:349
 msgctxt "Ordered item field"
 msgid "quantity"
-msgstr ""
+msgstr "cantitate"
 
 #: saleor/order/models.py:352
 msgctxt "Ordered item field"
@@ -719,7 +721,7 @@ msgstr ""
 #: saleor/order/models.py:458
 msgctxt "Order history entry field"
 msgid "order status"
-msgstr ""
+msgstr "starea comenzii"
 
 #: saleor/order/models.py:461
 msgctxt "Order history entry field"
@@ -729,7 +731,7 @@ msgstr ""
 #: saleor/order/models.py:465
 msgctxt "Order history entry field"
 msgid "user"
-msgstr ""
+msgstr "utilizator"
 
 #: saleor/order/models.py:470
 msgctxt "Order history entry model"
@@ -999,7 +1001,7 @@ msgstr ""
 #: saleor/product/models.py:154
 msgctxt "Product model"
 msgid "product"
-msgstr ""
+msgstr "produs"
 
 #: saleor/product/models.py:155
 msgctxt "Product model"
@@ -1074,7 +1076,7 @@ msgstr ""
 #: saleor/product/models.py:372
 msgctxt "Stock item field"
 msgid "quantity"
-msgstr ""
+msgstr "cantitate"
 
 #: saleor/product/models.py:375
 msgctxt "Stock item field"
@@ -1129,7 +1131,7 @@ msgstr ""
 #: saleor/product/models.py:457
 msgctxt "Product image field"
 msgid "product"
-msgstr ""
+msgstr "produs"
 
 #: saleor/product/models.py:460
 msgctxt "Product image field"
@@ -1184,7 +1186,7 @@ msgstr ""
 #: saleor/registration/forms.py:14
 msgctxt "Form field"
 msgid "Email"
-msgstr ""
+msgstr "Email"
 
 #: saleor/registration/forms.py:26
 msgctxt "User form field"
@@ -1447,7 +1449,7 @@ msgstr ""
 #: saleor/userprofile/models.py:126
 msgctxt "User field"
 msgid "email"
-msgstr ""
+msgstr "email"
 
 #: saleor/userprofile/models.py:129
 msgctxt "User field"
@@ -1482,7 +1484,7 @@ msgstr ""
 #: saleor/userprofile/models.py:156
 msgctxt "User model"
 msgid "user"
-msgstr ""
+msgstr "utilizator"
 
 #: saleor/userprofile/models.py:157
 msgctxt "User model"
@@ -1534,13 +1536,11 @@ msgctxt "Email confirmation message"
 msgid ""
 "Hi!\n"
 "\n"
-"You have requested login access to saleor project. To continue visit the "
-"link below.\n"
+"You have requested login access to saleor project. To continue visit the link below.\n"
 "\n"
 "%(activate_url)s\n"
 "\n"
-"If you didn't try to login to saleor please ignore this message. We "
-"apologise for inconvenience.\n"
+"If you didn't try to login to saleor please ignore this message. We apologise for inconvenience.\n"
 "\n"
 "Sincerely,\n"
 "Saleor Team"
@@ -1556,10 +1556,8 @@ msgstr ""
 msgid ""
 "Hello from %(site_name)s!\n"
 "\n"
-"You're receiving this e-mail because you or someone else has requested a "
-"password for your user account at %(domain)s.\n"
-"It can be safely ignored if you did not request a password reset. Click the "
-"link below to reset your password."
+"You're receiving this e-mail because you or someone else has requested a password for your user account at %(domain)s.\n"
+"It can be safely ignored if you did not request a password reset. Click the link below to reset your password."
 msgstr ""
 
 #: templates/account/email/password_reset_message.txt:8
@@ -1619,7 +1617,8 @@ msgstr ""
 
 #: templates/account/password_change.html:7 templates/cart/index.html:12
 #: templates/order/details.html:16 templates/order/payment.html:19
-#: templates/product/details.html:16 templates/userprofile/address-edit.html:15
+#: templates/product/details.html:16
+#: templates/userprofile/address-edit.html:15
 #: templates/userprofile/details.html:14
 msgctxt "Main navigation item"
 msgid "Home"
@@ -1753,8 +1752,7 @@ msgstr ""
 #: templates/account/password_reset_from_key_done.html:10
 #, python-format
 msgctxt "Password reset from key done text"
-msgid ""
-"You can now <a href=\"%(login_url)s\">sign in</a> using your new password"
+msgid "You can now <a href=\"%(login_url)s\">sign in</a> using your new password"
 msgstr ""
 
 #: templates/account/password_set.html:14
@@ -1886,7 +1884,7 @@ msgstr ""
 #: templates/cart/index.html:13
 msgctxt "Cart breadcrumb"
 msgid "Cart"
-msgstr ""
+msgstr "Coș"
 
 #: templates/cart/index.html:19
 msgctxt "Cart message"
@@ -1901,7 +1899,7 @@ msgstr ""
 #: templates/cart/index.html:30
 msgctxt "Cart table header"
 msgid "Quantity"
-msgstr ""
+msgstr "Cantitate"
 
 #: templates/cart/index.html:33
 msgctxt "Cart table header"
@@ -2062,7 +2060,7 @@ msgstr ""
 #: templates/checkout/shipping_method.html:13
 msgctxt "Checkout shipping method form title"
 msgid "Shipping method"
-msgstr ""
+msgstr "Metodă de livrare"
 
 #: templates/checkout/shipping_method.html:17
 msgctxt "Checkout shipping method primary action"
@@ -2071,17 +2069,17 @@ msgstr ""
 
 #: templates/checkout/snippets/addresses-form-panel.html:1
 msgid "Same as shipping"
-msgstr ""
+msgstr "La fel ca la livrare"
 
 #: templates/checkout/snippets/addresses-form.html:4
 msgctxt "Checkout addresses form label"
 msgid "Same as shipping"
-msgstr ""
+msgstr "La fel ca la livrare"
 
 #: templates/checkout/snippets/addresses-form.html:11
 msgctxt "Checkout addresses form label"
 msgid "Enter a new address"
-msgstr ""
+msgstr "Introduceți o nouă adresă"
 
 #: templates/checkout/snippets/voucher-form.html:15
 msgctxt "Checkout voucher form action"
@@ -2141,7 +2139,7 @@ msgstr ""
 #: templates/dashboard/base.html:74 templates/dashboard/search/results.html:25
 msgctxt "Dashboard search"
 msgid "Search"
-msgstr ""
+msgstr "Căutare"
 
 #: templates/dashboard/base.html:86 templates/dashboard/base.html:219
 msgctxt "Dashboard homepage"
@@ -2207,12 +2205,14 @@ msgstr ""
 #: templates/dashboard/order/address_form.html:23
 #: templates/dashboard/order/detail.html:11
 #: templates/dashboard/order/detail.html:49
-#: templates/dashboard/order/list.html:7 templates/dashboard/order/list.html:15
+#: templates/dashboard/order/list.html:7
+#: templates/dashboard/order/list.html:15
 msgctxt "Dashboard orders list"
 msgid "Orders"
 msgstr ""
 
-#: templates/dashboard/base.html:158 templates/dashboard/customer/detail.html:9
+#: templates/dashboard/base.html:158
+#: templates/dashboard/customer/detail.html:9
 #: templates/dashboard/customer/detail.html:25
 #: templates/dashboard/customer/list.html:8
 #: templates/dashboard/customer/list.html:18
@@ -2231,7 +2231,8 @@ msgid "Staff members"
 msgstr ""
 
 #: templates/dashboard/base.html:178 templates/dashboard/group/detail.html:28
-#: templates/dashboard/group/list.html:8 templates/dashboard/group/list.html:28
+#: templates/dashboard/group/list.html:8
+#: templates/dashboard/group/list.html:28
 msgctxt "Dashboard groups list"
 msgid "Groups"
 msgstr ""
@@ -2411,7 +2412,8 @@ msgstr ""
 #: templates/dashboard/category/modal/confirm_delete.html:17
 #, python-format
 msgctxt "Delete category modal title"
-msgid "Are you sure you want to delete category <strong>%(category)s</strong>?"
+msgid ""
+"Are you sure you want to delete category <strong>%(category)s</strong>?"
 msgstr ""
 
 #: templates/dashboard/category/modal/confirm_delete.html:22
@@ -2494,7 +2496,7 @@ msgstr ""
 #: templates/dashboard/staff/list.html:42
 msgctxt "Customers table header"
 msgid "Email"
-msgstr ""
+msgstr "Email"
 
 #: templates/dashboard/customer/list.html:34
 #: templates/dashboard/staff/list.html:45
@@ -2790,7 +2792,7 @@ msgstr ""
 #: templates/dashboard/index.html:33
 msgctxt "Preauthorized payments table header"
 msgid "Amount"
-msgstr ""
+msgstr "Cantitate"
 
 #: templates/dashboard/index.html:47
 msgid "Guest"
@@ -2972,7 +2974,7 @@ msgstr ""
 #: templates/dashboard/order/pdf/packing_slip.html:63
 msgctxt "Shipment group table header"
 msgid "Quantity"
-msgstr ""
+msgstr "Cantitate"
 
 #: templates/dashboard/order/detail.html:280
 #: templates/dashboard/order/pdf/invoice.html:69
@@ -3102,7 +3104,7 @@ msgstr ""
 #: templates/dashboard/order/detail.html:493
 msgctxt "Payment history table header"
 msgid "Amount"
-msgstr ""
+msgstr "Cantitate"
 
 #: templates/dashboard/order/detail.html:501
 #, python-format
@@ -3188,7 +3190,7 @@ msgstr ""
 #: templates/dashboard/order/modal/cancel_line.html:30
 msgctxt "Modal remove order line table header"
 msgid "Quantity"
-msgstr ""
+msgstr "Cantitate"
 
 #: templates/dashboard/order/modal/cancel_line.html:33
 msgctxt "Modal remove order line table header"
@@ -3402,7 +3404,7 @@ msgstr ""
 
 #: templates/dashboard/product/_stock_table.html:8
 msgid "Quantity"
-msgstr ""
+msgstr "Cantitate"
 
 #: templates/dashboard/product/_stock_table.html:9
 msgid "Allocated"
@@ -3503,7 +3505,7 @@ msgstr ""
 #: templates/dashboard/product/detail.html:163
 msgctxt "Product field"
 msgid "Published"
-msgstr ""
+msgstr "Publicat"
 
 #: templates/dashboard/product/detail.html:165
 msgctxt "Product field"
@@ -3728,8 +3730,8 @@ msgstr ""
 #, python-format
 msgctxt "Modal delete product class text"
 msgid ""
-"Are you sure you want to delete product class <strong>%(product_class)s</"
-"strong>?"
+"Are you sure you want to delete product class "
+"<strong>%(product_class)s</strong>?"
 msgstr ""
 
 #: templates/dashboard/product/product_class/modal/confirm_delete.html:23
@@ -3892,15 +3894,14 @@ msgstr ""
 msgctxt "Dashboard confirmation modal"
 msgid ""
 "\n"
-"Are you sure you want to delete variant <strong>%(variant)s</strong> of "
-"product %(product)s?\n"
+"Are you sure you want to delete variant <strong>%(variant)s</strong> of product %(product)s?\n"
 msgstr ""
 
 #: templates/dashboard/product/product_variant/modal/confirm_delete.html:25
 msgctxt "Dashboard confirmation modal"
 msgid ""
-"This is the only variant of this product. If you remove it, the product will "
-"become unavailable."
+"This is the only variant of this product. If you remove it, the product will"
+" become unavailable."
 msgstr ""
 
 #: templates/dashboard/product/product_variant/modal/select_images.html:9
@@ -3921,7 +3922,7 @@ msgstr ""
 #: templates/dashboard/product/stock/detail.html:58
 msgctxt "Dashboard stock details view"
 msgid "Quantity"
-msgstr ""
+msgstr "Cantitate"
 
 #: templates/dashboard/product/stock/detail.html:59
 msgctxt "Dashboard stock details view"
@@ -4034,7 +4035,8 @@ msgstr ""
 #, python-format
 msgctxt "Modal delete stock location text"
 msgid ""
-"Are you sure you want to delete stock location <strong>%(location)s</strong>?"
+"Are you sure you want to delete stock location "
+"<strong>%(location)s</strong>?"
 msgstr ""
 
 #: templates/dashboard/product/stock_location/modal/confirm_delete.html:23
@@ -4115,7 +4117,7 @@ msgstr ""
 
 #: templates/dashboard/shipping/detail.html:79
 msgid "Country"
-msgstr ""
+msgstr "Țară"
 
 #: templates/dashboard/shipping/detail.html:92
 msgid "No shippment prices"
@@ -4155,7 +4157,7 @@ msgstr ""
 #: templates/dashboard/shipping/form.html:82
 msgctxt "Shipping method country list"
 msgid "Country"
-msgstr ""
+msgstr "Țară"
 
 #: templates/dashboard/shipping/form.html:85
 msgctxt "Shipping method country list"
@@ -4200,8 +4202,7 @@ msgstr ""
 msgctxt "Dashboard confirmation modal"
 msgid ""
 "\n"
-"Are you sure you want to delete shipping method <strong>%(shipping_method)s</"
-"strong>?\n"
+"Are you sure you want to delete shipping method <strong>%(shipping_method)s</strong>?\n"
 msgstr ""
 
 #: templates/dashboard/sites/detail.html:9
@@ -4244,7 +4245,8 @@ msgctxt "Staff member details header"
 msgid "Staff member details"
 msgstr ""
 
-#: templates/dashboard/staff/list.html:9 templates/dashboard/staff/list.html:29
+#: templates/dashboard/staff/list.html:9
+#: templates/dashboard/staff/list.html:29
 msgctxt "Dashboard staff members list"
 msgid "Staff"
 msgstr ""
@@ -4268,8 +4270,8 @@ msgid ""
 "member also removes him from customer list and removes all his related data "
 "(orders, payment etc.).</p> <p>We strongly recommend not deleting user "
 "accounts that were used for purchases (for example customer which was "
-"promoted with staff member status).</p> <p>%(staff)s has <strong>%(orders)s</"
-"strong> orders.</p>"
+"promoted with staff member status).</p> <p>%(staff)s has "
+"<strong>%(orders)s</strong> orders.</p>"
 msgstr ""
 
 #: templates/home.html:13
@@ -4337,7 +4339,7 @@ msgstr ""
 #: templates/order/_ordered_items_table.html:37
 msgctxt "Order details column title"
 msgid "Quantity"
-msgstr ""
+msgstr "Cantitate"
 
 #: templates/order/_ordered_items_table.html:42
 msgctxt "Order details column title"
