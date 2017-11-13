@@ -6,10 +6,14 @@ import pytest
 
 MATCH_SEARCH_REQUEST = ['method', 'host', 'port', 'path', 'body']
 PRODUCTS_INDEXED = {15, 56}  # same as in recorded data!
+PRODUCTS_TO_UNPUBLISH = {56}  # choose from PRODUCTS_INDEXED
+PHRASE_WITH_RESULTS = 'Group'
+PHRASE_WITHOUT_RESULTS = 'foo'
 
 
 @pytest.fixture(scope='function', autouse=True)
 def es_autosync_disabled(settings):
+    ''' Prevent ES index from being refreshed every time obj is saved '''
     settings.ELASTICSEARCH_DSL_AUTO_REFRESH = False
     settings.ELASTICSEARCH_DSL_AUTOSYNC = False
 
@@ -46,18 +50,15 @@ def execute_search(client, phrase):
 @pytest.mark.vcr(record_mode='once', match_on=MATCH_SEARCH_REQUEST)
 def test_new_search_with_empty_results(db, client):
     ''' no products found with foo '''
-    assert 0 == len(execute_search(client, 'foo'))
+    assert 0 == len(execute_search(client, PHRASE_WITHOUT_RESULTS))
 
 
 @pytest.mark.integration
 @pytest.mark.vcr(record_mode='once', match_on=MATCH_SEARCH_REQUEST)
 def test_new_search_with_result(db, indexed_products, client):
     ''' some products founds, only those both in search result and objects '''
-    found_products = execute_search(client, 'Group')
+    found_products = execute_search(client, PHRASE_WITH_RESULTS)
     assert PRODUCTS_INDEXED == set(found_products)
-
-
-PRODUCTS_TO_UNPUBLISH = {56}
 
 
 @pytest.fixture
@@ -74,5 +75,5 @@ def products_with_mixed_publishing(indexed_products):
 def test_new_search_doesnt_show_unpublished(db, products_with_mixed_publishing,
                                             client):
     published_products = PRODUCTS_INDEXED - PRODUCTS_TO_UNPUBLISH
-    found_products = execute_search(client, 'Group')
+    found_products = execute_search(client, PHRASE_WITH_RESULTS)
     assert published_products == set(found_products)
