@@ -25,6 +25,7 @@ MODELS_PERMISSIONS = [
     'user.edit_group',
     'user.view_staff',
     'user.edit_staff',
+    'user.impersonate_user',
     'voucher.view_voucher',
     'voucher.edit_voucher',
 ]
