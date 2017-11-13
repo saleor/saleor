@@ -351,17 +351,17 @@ WEBPACK_LOADER = {
 
 LOGOUT_ON_PASSWORD_CHANGE = False
 
+ENABLE_SEARCH = False
 
 ELASTICSEARCH_URL = os.environ.get('ELASTICSEARCH_URL')
 if ELASTICSEARCH_URL:
+    ENABLE_SEARCH = True
     INSTALLED_APPS.append('django_elasticsearch_dsl')
     ELASTICSEARCH_DSL = {
         'default': {
             'hosts': ELASTICSEARCH_URL
         },
     }
-
-SEARCH_BACKENDS = {}
 
 
 GRAPHENE = {
