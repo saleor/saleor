@@ -5,8 +5,7 @@ import pytest
 
 
 MATCH_SEARCH_REQUEST = ['method', 'host', 'port', 'path', 'body']
-NEW_BACKEND_FOUND = {15, 34, 58}  # same as in recorded data!
-PRODUCTS_INDEXED = NEW_BACKEND_FOUND
+PRODUCTS_INDEXED = {15, 56}  # same as in recorded data!
 
 
 @pytest.fixture(scope='function', autouse=True)
@@ -57,11 +56,11 @@ def test_new_search_with_result(db, indexed_products, client):
     EXISTING_PHRASE = 'Group'
     response = client.get(reverse('search:search'), {'q': EXISTING_PHRASE})
     found_products = _extract_pks(response.context['results'].object_list)
-    assert NEW_BACKEND_FOUND == set(found_products)
+    assert PRODUCTS_INDEXED == set(found_products)
     assert EXISTING_PHRASE == response.context['query']
 
 
-PRODUCTS_TO_UNPUBLISH = {15, 34}
+PRODUCTS_TO_UNPUBLISH = {56}
 
 
 @pytest.fixture
@@ -77,7 +76,7 @@ def products_with_mixed_publishing(indexed_products):
 @pytest.mark.vcr(record_mode='once', match_on=MATCH_SEARCH_REQUEST)
 def test_new_search_doesnt_show_unpublished(db, products_with_mixed_publishing,
                                             client):
-    published_products = NEW_BACKEND_FOUND - PRODUCTS_TO_UNPUBLISH
+    published_products = PRODUCTS_INDEXED - PRODUCTS_TO_UNPUBLISH
     EXISTING_PHRASE = 'Group'
     response = client.get(reverse('search:search'), {'q': EXISTING_PHRASE})
     found_products = _extract_pks(response.context['results'].object_list)
