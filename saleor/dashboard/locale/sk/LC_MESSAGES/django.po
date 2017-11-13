@@ -2,7 +2,7 @@
 # Copyright (C) 2017 Mirumee Software
 # This file is distributed under the same license as the Saleor package.
 # Mirumee Software <hello@mirumee.com>, 2017.
-#
+# 
 #, fuzzy
 msgid ""
 msgstr ""
@@ -10,12 +10,12 @@ msgstr ""
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2017-11-06 04:12-0600\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"Last-Translator: Mato <mato@jansto.sk>, 2017\n"
+"Last-Translator: Martin Janšto <mato@jansto.sk>, 2017\n"
 "Language-Team: Slovak (https://www.transifex.com/mirumee/teams/34782/sk/)\n"
-"Language: sk\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"Language: sk\n"
 "Plural-Forms: nplurals=3; plural=(n==1) ? 0 : (n>=2 && n<=4) ? 1 : 2;\n"
 
 #: saleor/dashboard/category/views.py:42
@@ -458,24 +458,19 @@ msgid "Updated site %s"
 msgstr "Upravená stránka %s"
 
 #: saleor/dashboard/staff/views.py:36
-#, fuzzy, python-format
-#| msgid "Updated site %s"
+#, python-format
 msgctxt "Dashboard message"
 msgid "Updated staff member %s"
-msgstr "Upravená stránka %s"
+msgstr ""
 
 #: saleor/dashboard/staff/views.py:50
-#, fuzzy, python-format
-#| msgctxt "Dashboard message"
-#| msgid "Added category %s"
+#, python-format
 msgctxt "Dashboard message"
 msgid "Added staff member %s"
-msgstr "Pridaná kategória %s"
+msgstr ""
 
 #: saleor/dashboard/staff/views.py:67
-#, fuzzy, python-format
-#| msgctxt "Sale (discount) message"
-#| msgid "Deleted sale %s"
+#, python-format
 msgctxt "Dashboard message"
 msgid "Deleted staff member %s"
-msgstr "Zmazaná zľava %s"
+msgstr ""
