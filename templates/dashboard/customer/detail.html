@@ -48,7 +48,7 @@
         </a>
       </li>
       <li>
-        <a href="/impersonate/{{ customer.pk }}">Impersonate customer</a>
+        <a href="{% url 'impersonate-start' uid=customer.pk %}">Impersonate customer</a>
       </li>
     </ul>
   {% endif %}
