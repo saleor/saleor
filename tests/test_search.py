@@ -1,13 +1,19 @@
-
 from saleor.product.models import Product
 from django.core.urlresolvers import reverse
-
 from decimal import Decimal
 import pytest
+
 
 MATCH_SEARCH_REQUEST = ['method', 'host', 'port', 'path', 'body']
 NEW_BACKEND_FOUND = {15, 34, 58}  # same as in recorded data!
 PRODUCTS_INDEXED = NEW_BACKEND_FOUND
+
+
+@pytest.fixture(scope='function', autouse=True)
+def es_autosync_disabled(settings):
+    settings.ELASTICSEARCH_DSL_AUTO_REFRESH = False
+    settings.ELASTICSEARCH_DSL_AUTOSYNC = False
+
 
 @pytest.mark.vcr()
 @pytest.fixture
