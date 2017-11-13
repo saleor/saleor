@@ -40,7 +40,7 @@
                   <a href="{% url 'dashboard:product-detail' pk=product.pk %}">
                     <img src="{% product_first_image product size="60x60" method="crop" %}"
                          srcset="{% product_first_image product size="60x60" method="crop" %} 1x, {% product_first_image product size="120x120" method="crop" %} 2x"
-                         class="circle teal" alt="{{ product.name }}">
+                         class="circle" alt="{{ product.name }}">
                     <span class="list-item-name">
                       {{ product.name }}
                     </span>
@@ -53,7 +53,7 @@
                 {% endwith %}
               {% elif result.content_type == 'order_order' %}
                 <a href="{% url 'dashboard:order-details' order_pk=result.pk %}">
-                  <i class="small material-icons circle teal">payment</i>
+                  <i class="small material-icons circle">payment</i>
                   <span class="list-item-name">
                     {% blocktrans trimmed with order_number=result.pk context "Dashboard order" %}
                       Order #{{ order_number }}
@@ -74,7 +74,7 @@
                 </a>
               {% elif result.content_type == 'userprofile_user' %}
                 <a href="{% url 'dashboard:customer-details' pk=result.pk %}">
-                  <i class="small material-icons circle teal">perm_identity</i>
+                  <i class="small material-icons circle">perm_identity</i>
                   <span class="list-item-name">
                     {% blocktrans trimmed with full_name=result.get_full_name context "Dashboard user" %}
                       User {{ full_name }}
