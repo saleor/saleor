@@ -765,22 +765,22 @@ def test_staff_with_permission_can_create_and_delete_group(
 
 
 def test_staff_with_permissions_can_view_products_classes_list(
-        staff_client, staff_user, staff_group, permission_view_classes):
-    assert not staff_user.has_perm("product.view_classes")
+        staff_client, staff_user, staff_group, permission_view_properties):
+    assert not staff_user.has_perm("product.view_properties")
     response = staff_client.get(reverse('dashboard:product-class-list'))
     assert response.status_code == 302
-    staff_group.permissions.add(permission_view_classes)
+    staff_group.permissions.add(permission_view_properties)
     staff_user.groups.add(staff_group)
     staff_user = User.objects.get(pk=staff_user.pk)
-    assert staff_user.has_perm("product.view_classes")
+    assert staff_user.has_perm("product.view_properties")
     response = staff_client.get(reverse('dashboard:product-class-list'))
     assert response.status_code == 200
 
 
 def test_staff_with_permissions_can_edit_add_and_delete_products_classes_list(
-        staff_client, staff_user, staff_group, permission_edit_classes,
+        staff_client, staff_user, staff_group, permission_edit_properties,
         product_class):
-    assert not staff_user.has_perm("product.edit_classes")
+    assert not staff_user.has_perm("product.edit_properties")
     response = staff_client.get(reverse('dashboard:product-class-update',
                                         args=[product_class.pk]))
     assert response.status_code == 302
@@ -789,10 +789,10 @@ def test_staff_with_permissions_can_edit_add_and_delete_products_classes_list(
     assert response.status_code == 302
     response = staff_client.get(reverse('dashboard:product-class-add'))
     assert response.status_code == 302
-    staff_group.permissions.add(permission_edit_classes)
+    staff_group.permissions.add(permission_edit_properties)
     staff_user.groups.add(staff_group)
     staff_user = User.objects.get(pk=staff_user.pk)
-    assert staff_user.has_perm("product.edit_classes")
+    assert staff_user.has_perm("product.edit_properties")
     response = staff_client.get(reverse('dashboard:product-class-update',
                                         args=[product_class.pk]))
     assert response.status_code == 200
@@ -804,18 +804,18 @@ def test_staff_with_permissions_can_edit_add_and_delete_products_classes_list(
 
 
 def test_staff_with_permissions_can_view_products_attributes_list(
-        staff_client, staff_user, staff_group, permission_view_attributes,
+        staff_client, staff_user, staff_group, permission_view_properties,
         color_attribute):
-    assert not staff_user.has_perm("product.view_attributes")
+    assert not staff_user.has_perm("product.view_properties")
     response = staff_client.get(reverse('dashboard:product-attributes'))
     assert response.status_code == 302
     response = staff_client.get(reverse('dashboard:product-attribute-detail',
                                         args=[color_attribute.pk]))
     assert response.status_code == 302
-    staff_group.permissions.add(permission_view_attributes)
+    staff_group.permissions.add(permission_view_properties)
     staff_user.groups.add(staff_group)
     staff_user = User.objects.get(pk=staff_user.pk)
-    assert staff_user.has_perm("product.view_attributes")
+    assert staff_user.has_perm("product.view_properties")
     response = staff_client.get(reverse('dashboard:product-attributes'))
     assert response.status_code == 200
     response = staff_client.get(reverse('dashboard:product-attribute-detail',
@@ -824,9 +824,9 @@ def test_staff_with_permissions_can_view_products_attributes_list(
 
 
 def test_staff_with_permissions_can_update_add_and_delete_products_attributes(
-        staff_client, staff_user, staff_group, permission_edit_attributes,
+        staff_client, staff_user, staff_group, permission_edit_properties,
         color_attribute):
-    assert not staff_user.has_perm("product.edit_attributes")
+    assert not staff_user.has_perm("product.edit_properties")
     response = staff_client.get(reverse('dashboard:product-attribute-update',
                                         args=[color_attribute.pk]))
     assert response.status_code == 302
@@ -835,10 +835,10 @@ def test_staff_with_permissions_can_update_add_and_delete_products_attributes(
     assert response.status_code == 302
     response = staff_client.get(reverse('dashboard:product-attribute-add'))
     assert response.status_code == 302
-    staff_group.permissions.add(permission_edit_attributes)
+    staff_group.permissions.add(permission_edit_properties)
     staff_user.groups.add(staff_group)
     staff_user = User.objects.get(pk=staff_user.pk)
-    assert staff_user.has_perm("product.edit_attributes")
+    assert staff_user.has_perm("product.edit_properties")
     response = staff_client.get(reverse('dashboard:product-attribute-update',
                                         args=[color_attribute.pk]))
     assert response.status_code == 200

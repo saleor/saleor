@@ -43,7 +43,7 @@
             {{ attribute.name }}
           </span>
         </div>
-        {% if perms.product.edit_attributes %}
+        {% if perms.product.edit_properties %}
         <div class="card-action">
           <a class="btn btn-flat" href="{% url "dashboard:product-attribute-update" attribute.pk %}">
             {% trans "Edit attribute" context "Attribute detail action" %}
