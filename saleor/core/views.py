@@ -4,6 +4,7 @@ from django.utils.translation import pgettext_lazy
 
 from ..dashboard.views import staff_member_required
 from ..product.utils import products_with_availability, products_for_homepage
+from ..settings import IMPERSONATE_GET_PARAM
 
 
 def home(request):
@@ -11,7 +12,7 @@ def home(request):
     products = products_with_availability(
         products, discounts=request.discounts, local_currency=request.currency)
     # TODO: Get rid of url parameters
-    if request.GET.get('action') == 'impersonate':
+    if request.GET.get('action') == IMPERSONATE_GET_PARAM:
         msg = pgettext_lazy('Impersonation message',
                             'You are now logged as %s') % request.user.email
         messages.success(request, msg)
