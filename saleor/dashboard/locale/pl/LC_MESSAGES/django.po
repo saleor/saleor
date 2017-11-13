@@ -2,7 +2,7 @@
 # Copyright (C) 2017 Mirumee Software
 # This file is distributed under the same license as the Saleor package.
 # Mirumee Software <hello@mirumee.com>, 2017.
-#
+# 
 #, fuzzy
 msgid ""
 msgstr ""
@@ -10,14 +10,13 @@ msgstr ""
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2017-11-06 04:12-0600\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: Patryk Zawadzki <patrys@room-303.com>, 2017\n"
 "Language-Team: Polish (https://www.transifex.com/mirumee/teams/34782/pl/)\n"
-"Language: pl\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=4; plural=(n==1 ? 0 : (n%10>=2 && n%10<=4) && (n"
-"%100<12 || n%100>14) ? 1 : n!=1 && (n%10>=0 && n%10<=1) || (n%10>=5 && n"
-"%10<=9) || (n%100>=12 && n%100<=14) ? 2 : 3);\n"
+"Language: pl\n"
+"Plural-Forms: nplurals=4; plural=(n==1 ? 0 : (n%10>=2 && n%10<=4) && (n%100<12 || n%100>14) ? 1 : n!=1 && (n%10>=0 && n%10<=1) || (n%10>=5 && n%10<=9) || (n%100>=12 && n%100<=14) ? 2 : 3);\n"
 
 #: saleor/dashboard/category/views.py:42
 #, python-format
@@ -46,22 +45,22 @@ msgstr ""
 #: saleor/dashboard/discount/forms.py:25
 msgctxt "Sale (discount) error"
 msgid "Sale cannot exceed 100%"
-msgstr ""
+msgstr "Zniżka nie może przekroczyć 100%"
 
 #: saleor/dashboard/discount/forms.py:66
 msgctxt "Shipping voucher form label for `limit` field"
 msgid "Only if order is over or equal to"
-msgstr ""
+msgstr "Tylko jeśli wartość zamówienia to przynajmniej"
 
 #: saleor/dashboard/discount/forms.py:70
 msgctxt "Shipping voucher form label for `apply_to` field"
 msgid "Country"
-msgstr ""
+msgstr "Kraj"
 
 #: saleor/dashboard/discount/forms.py:90
 msgctxt "Value voucher form label for `limit` field"
 msgid "Only if purchase value is greater than or equal to"
-msgstr ""
+msgstr "Tylko jeśli wartość zakupów to przynajmniej"
 
 #: saleor/dashboard/discount/views.py:37
 msgctxt "Sale (discount) message"
@@ -120,7 +119,7 @@ msgstr ""
 #: saleor/dashboard/order/forms.py:35
 msgctxt "Payment management form (capture, refund, release)"
 msgid "Amount"
-msgstr ""
+msgstr "Kwota"
 
 #: saleor/dashboard/order/forms.py:49
 msgctxt "Payment form error"
@@ -147,7 +146,7 @@ msgstr ""
 #: saleor/dashboard/order/forms.py:115
 msgctxt "Move items form label"
 msgid "Quantity"
-msgstr ""
+msgstr "Liczba"
 
 #: saleor/dashboard/order/forms.py:118
 msgctxt "Move items form label"
@@ -162,7 +161,7 @@ msgstr ""
 #: saleor/dashboard/order/forms.py:171
 msgctxt "Change quantity form label"
 msgid "Quantity"
-msgstr ""
+msgstr "Liczba"
 
 #: saleor/dashboard/order/forms.py:193
 #, python-format
@@ -177,7 +176,7 @@ msgstr[3] ""
 #: saleor/dashboard/order/forms.py:219
 msgctxt "Ship group form field placeholder"
 msgid "Parcel tracking number"
-msgstr ""
+msgstr "Numer śledzenia przesyłki"
 
 #: saleor/dashboard/order/forms.py:226
 msgctxt "Ship group form error"
@@ -197,12 +196,12 @@ msgstr ""
 #: saleor/dashboard/order/forms.py:295
 msgctxt "Order status field value"
 msgid "All"
-msgstr ""
+msgstr "Wszystkie"
 
 #: saleor/dashboard/order/forms.py:300
 msgctxt "Payment status field value"
 msgid "All"
-msgstr ""
+msgstr "Wszystkie"
 
 #: saleor/dashboard/order/views.py:96
 msgctxt "Dashboard message related to an order"
@@ -213,13 +212,13 @@ msgstr ""
 #, python-format
 msgctxt "Dashboard message related to a payment"
 msgid "Captured %(amount)s"
-msgstr ""
+msgstr "Pobrano %(amount)s"
 
 #: saleor/dashboard/order/views.py:142
 #, python-format
 msgctxt "Dashboard message related to a payment"
 msgid "Refunded %(amount)s"
-msgstr ""
+msgstr "Zwrócono %(amount)s"
 
 #: saleor/dashboard/order/views.py:160
 msgctxt "Dashboard message"
@@ -249,19 +248,19 @@ msgstr ""
 #, python-format
 msgctxt "Dashboard message related to an order line"
 msgid "Cancelled item %s"
-msgstr ""
+msgstr "Anulowano pozycję %s"
 
 #: saleor/dashboard/order/views.py:275
 #, python-format
 msgctxt "Dashboard message related to a delivery group"
 msgid "Shipped %s"
-msgstr ""
+msgstr "Wysłano %s"
 
 #: saleor/dashboard/order/views.py:298
 #, python-format
 msgctxt "Dashboard message related to a delivery group"
 msgid "Cancelled %s"
-msgstr ""
+msgstr "Anulowano %s"
 
 #: saleor/dashboard/order/views.py:317
 msgctxt "Dashboard message"
@@ -276,7 +275,7 @@ msgstr ""
 #: saleor/dashboard/order/views.py:340
 msgctxt "Dashboard message"
 msgid "Cancelled order"
-msgstr ""
+msgstr "Anulowano zamówienie"
 
 #: saleor/dashboard/order/views.py:361
 msgctxt "Dashboard message"
@@ -286,12 +285,12 @@ msgstr ""
 #: saleor/dashboard/product/forms.py:25
 msgctxt "Product class form label"
 msgid "Product type"
-msgstr ""
+msgstr "Typ produktu"
 
 #: saleor/dashboard/product/forms.py:47
 msgctxt "stock form error"
 msgid "Stock item for this location and variant already exists"
-msgstr ""
+msgstr "Istnieje już stan magazynowy dla wybranego wariantu i lokalizacji"
 
 #: saleor/dashboard/product/forms.py:62
 msgctxt "Product class form label"
@@ -306,7 +305,7 @@ msgstr ""
 #: saleor/dashboard/product/forms.py:75
 msgctxt "Product class form error"
 msgid "Product variants are disabled."
-msgstr ""
+msgstr "Warianty produktu są wyłączone."
 
 #: saleor/dashboard/product/forms.py:80
 msgctxt "Product class form error"
@@ -321,7 +320,7 @@ msgstr ""
 #: saleor/dashboard/product/forms.py:106
 msgctxt "product form"
 msgid "Published"
-msgstr ""
+msgstr "Opublikowany"
 
 #: saleor/dashboard/product/forms.py:108
 msgctxt "product form"
@@ -331,7 +330,7 @@ msgstr ""
 #: saleor/dashboard/product/forms.py:114
 msgctxt "Product form placeholder"
 msgid "Search"
-msgstr ""
+msgstr "Szukaj"
 
 #: saleor/dashboard/product/views.py:50
 #, python-format

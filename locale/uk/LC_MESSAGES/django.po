@@ -2,7 +2,7 @@
 # Copyright (C) 2017 Mirumee Software
 # This file is distributed under the same license as the Saleor package.
 # Mirumee Software <hello@mirumee.com>, 2017.
-#
+# 
 #, fuzzy
 msgid ""
 msgstr ""
@@ -11,14 +11,12 @@ msgstr ""
 "POT-Creation-Date: 2017-11-06 04:12-0600\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Oleksandr Pryymak <235@inmind.org>, 2017\n"
-"Language-Team: Ukrainian (https://www.transifex.com/mirumee/teams/34782/"
-"uk/)\n"
-"Language: uk\n"
+"Language-Team: Ukrainian (https://www.transifex.com/mirumee/teams/34782/uk/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n"
-"%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
+"Language: uk\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
 
 #: saleor/cart/__init__.py:22
 msgctxt "cart status"
@@ -217,15 +215,13 @@ msgstr "Email"
 msgctxt "Checkout warning"
 msgid "This voucher has expired. Please review your checkout."
 msgstr ""
-"Термін дії ваучера закінчився. Будь ласка, перегляньте оформлення замовлення."
+"Термін дії ваучера закінчився. Будь ласка, перегляньте оформлення "
+"замовлення."
 
 #: saleor/checkout/views/summary.py:29
-#, fuzzy
-#| msgctxt "cart status"
-#| msgid "Submitted - an order was placed"
 msgctxt "Order status history entry"
 msgid "Order was placed"
-msgstr "Прийнято - замовлення розміщено"
+msgstr ""
 
 #: saleor/checkout/views/summary.py:41
 msgctxt "Checkout warning"
@@ -777,12 +773,9 @@ msgid "OrderNote for Order #%d"
 msgstr "Нотатка для Замовлення №%d"
 
 #: saleor/order/utils.py:38
-#, fuzzy
-#| msgctxt "order status"
-#| msgid "Fully paid"
 msgctxt "Order status history entry"
 msgid "Order fully paid"
-msgstr "Повністю оплачено"
+msgstr ""
 
 #: saleor/order/views.py:89
 #, python-format
@@ -852,20 +845,14 @@ msgid "out of stock"
 msgstr ""
 
 #: saleor/product/filters.py:14
-#, fuzzy
-#| msgctxt "Voucher field"
-#| msgid "name"
 msgctxt "Product list sorting option"
 msgid "name"
-msgstr "назва"
+msgstr ""
 
 #: saleor/product/filters.py:16
-#, fuzzy
-#| msgctxt "Product field"
-#| msgid "price"
 msgctxt "Product list sorting option"
 msgid "price"
-msgstr "ціна"
+msgstr ""
 
 #: saleor/product/filters.py:31
 msgctxt "Product list sorting form"
@@ -1553,13 +1540,11 @@ msgctxt "Email confirmation message"
 msgid ""
 "Hi!\n"
 "\n"
-"You have requested login access to saleor project. To continue visit the "
-"link below.\n"
+"You have requested login access to saleor project. To continue visit the link below.\n"
 "\n"
 "%(activate_url)s\n"
 "\n"
-"If you didn't try to login to saleor please ignore this message. We "
-"apologise for inconvenience.\n"
+"If you didn't try to login to saleor please ignore this message. We apologise for inconvenience.\n"
 "\n"
 "Sincerely,\n"
 "Saleor Team"
@@ -1570,8 +1555,7 @@ msgstr ""
 "\n"
 "%(activate_url)s\n"
 "\n"
-"Якщо це не ви, або ж помилково - ігноруйте це повідомлення. Вибачне за "
-"незручності.\n"
+"Якщо це не ви, або ж помилково - ігноруйте це повідомлення. Вибачне за незручності.\n"
 "\n"
 "З повагою,\n"
 "Команда Магазину"
@@ -1586,18 +1570,14 @@ msgstr "Підтвердіть свою електронну адресу"
 msgid ""
 "Hello from %(site_name)s!\n"
 "\n"
-"You're receiving this e-mail because you or someone else has requested a "
-"password for your user account at %(domain)s.\n"
-"It can be safely ignored if you did not request a password reset. Click the "
-"link below to reset your password."
+"You're receiving this e-mail because you or someone else has requested a password for your user account at %(domain)s.\n"
+"It can be safely ignored if you did not request a password reset. Click the link below to reset your password."
 msgstr ""
 "Привіт від %(site_name)s!\n"
 "\n"
-"Ви отримали це повідомлення тому що ви, або хтось інший, запросили пароль до "
-"вашого рахунку на сайті %(domain)s.\n"
+"Ви отримали це повідомлення тому що ви, або хтось інший, запросили пароль до вашого рахунку на сайті %(domain)s.\n"
 "\n"
-"Ігноруйте, якщо ця дія була виконана не вами. Інакше, натисніть на посилання "
-"нижче щоб перевстановити ваш пароль:"
+"Ігноруйте, якщо ця дія була виконана не вами. Інакше, натисніть на посилання нижче щоб перевстановити ваш пароль:"
 
 #: templates/account/email/password_reset_message.txt:8
 #, python-format
@@ -1633,12 +1613,10 @@ msgid "Log in"
 msgstr "Вхід "
 
 #: templates/account/partials/already_logged_in.html:5
-#, fuzzy, python-format
-#| msgctxt "Already logged in warning message"
-#| msgid "You are already logged in as %(user_display)s."
+#, python-format
 msgctxt "Already logged in warning message"
 msgid "You are already logged in as %(user)s."
-msgstr "Ви вже увійшли як%(user_display)s."
+msgstr ""
 
 #: templates/account/partials/login_form.html:17
 msgctxt "Login form primary action"
@@ -1660,7 +1638,8 @@ msgstr "Google"
 
 #: templates/account/password_change.html:7 templates/cart/index.html:12
 #: templates/order/details.html:16 templates/order/payment.html:19
-#: templates/product/details.html:16 templates/userprofile/address-edit.html:15
+#: templates/product/details.html:16
+#: templates/userprofile/address-edit.html:15
 #: templates/userprofile/details.html:14
 msgctxt "Main navigation item"
 msgid "Home"
@@ -1748,9 +1727,9 @@ msgid ""
 "used.<br> Please request a <a href=\"%(passwd_reset_url)s\">new password "
 "reset</a>."
 msgstr ""
-"Посилання на скидання пароля — недійсне, ймовірно воно вже було використане."
-"<br>Будь ласка зробіть запит<a href=\"%(passwd_reset_url)s\">на нове "
-"скидання пароля</a>."
+"Посилання на скидання пароля — недійсне, ймовірно воно вже було "
+"використане.<br>Будь ласка зробіть запит<a href=\"%(passwd_reset_url)s\">на "
+"нове скидання пароля</a>."
 
 #: templates/account/password_reset_from_key.html:24
 msgctxt "Password reset from key form title"
@@ -1768,11 +1747,9 @@ msgid "Continue"
 msgstr "Продовжити"
 
 #: templates/account/password_reset_from_key.html:39
-#, fuzzy
-#| msgid "Password Reset E-mail"
 msgctxt "Password reset link expired from key form title"
 msgid "Password Reset Link Expired"
-msgstr "Скинути пароль через електронну адресу"
+msgstr ""
 
 #: templates/account/password_reset_from_key.html:40
 msgctxt "Password reset from key form title"
@@ -1782,12 +1759,9 @@ msgid ""
 msgstr ""
 
 #: templates/account/password_reset_from_key.html:42
-#, fuzzy
-#| msgctxt "Checkout create password page title"
-#| msgid "Create password"
 msgctxt "Reset my password link"
 msgid "Reset my password"
-msgstr "Створити пароль"
+msgstr ""
 
 #: templates/account/password_reset_from_key_done.html:4
 msgctxt "Password reset from key done page title"
@@ -1806,8 +1780,7 @@ msgstr "Ваш пароль тепер змінений."
 #: templates/account/password_reset_from_key_done.html:10
 #, python-format
 msgctxt "Password reset from key done text"
-msgid ""
-"You can now <a href=\"%(login_url)s\">sign in</a> using your new password"
+msgid "You can now <a href=\"%(login_url)s\">sign in</a> using your new password"
 msgstr ""
 "Тепер Ви можете<a href=\"%(login_url)s\">увійти </a>використовуючи свій "
 "новий пароль"
@@ -2262,12 +2235,14 @@ msgstr "Розпродажі "
 #: templates/dashboard/order/address_form.html:23
 #: templates/dashboard/order/detail.html:11
 #: templates/dashboard/order/detail.html:49
-#: templates/dashboard/order/list.html:7 templates/dashboard/order/list.html:15
+#: templates/dashboard/order/list.html:7
+#: templates/dashboard/order/list.html:15
 msgctxt "Dashboard orders list"
 msgid "Orders"
 msgstr "Замовлення"
 
-#: templates/dashboard/base.html:158 templates/dashboard/customer/detail.html:9
+#: templates/dashboard/base.html:158
+#: templates/dashboard/customer/detail.html:9
 #: templates/dashboard/customer/detail.html:25
 #: templates/dashboard/customer/list.html:8
 #: templates/dashboard/customer/list.html:18
@@ -2286,7 +2261,8 @@ msgid "Staff members"
 msgstr ""
 
 #: templates/dashboard/base.html:178 templates/dashboard/group/detail.html:28
-#: templates/dashboard/group/list.html:8 templates/dashboard/group/list.html:28
+#: templates/dashboard/group/list.html:8
+#: templates/dashboard/group/list.html:28
 msgctxt "Dashboard groups list"
 msgid "Groups"
 msgstr ""
@@ -2466,7 +2442,8 @@ msgstr ""
 #: templates/dashboard/category/modal/confirm_delete.html:17
 #, python-format
 msgctxt "Delete category modal title"
-msgid "Are you sure you want to delete category <strong>%(category)s</strong>?"
+msgid ""
+"Are you sure you want to delete category <strong>%(category)s</strong>?"
 msgstr ""
 
 #: templates/dashboard/category/modal/confirm_delete.html:22
@@ -2590,12 +2567,9 @@ msgid "Promote to staff member"
 msgstr ""
 
 #: templates/dashboard/customer/modal/confirm_promote.html:17
-#, fuzzy
-#| msgctxt "Order review section title"
-#| msgid "Promo code"
 msgctxt "Dashboard promote action"
 msgid "Promote"
-msgstr "Промо-код"
+msgstr ""
 
 #: templates/dashboard/discount/sale/form.html:10
 msgctxt "Sale (discount) page title"
@@ -3388,12 +3362,9 @@ msgid "Split"
 msgstr "Розділити"
 
 #: templates/dashboard/order/pdf/invoice.html:17
-#, fuzzy
-#| msgctxt "Order model"
-#| msgid "Order"
 msgctxt "Invoice header"
 msgid "Order ID:"
-msgstr "Замовлення"
+msgstr ""
 
 #: templates/dashboard/order/pdf/invoice.html:21
 msgctxt "Order invoice"
@@ -3401,34 +3372,22 @@ msgid "Invoice"
 msgstr ""
 
 #: templates/dashboard/order/pdf/invoice.html:25
-#, fuzzy
-#| msgctxt "Dashboard shipping methods list"
-#| msgid "Shipping methods"
 msgid "Shipping Details"
-msgstr "Методи доставки"
+msgstr ""
 
 #: templates/dashboard/order/pdf/invoice.html:26
-#, fuzzy
-#| msgctxt "Checkout summary title"
-#| msgid "Billing address"
 msgid "Billing Details"
-msgstr "Платіжна адреса"
+msgstr ""
 
 #: templates/dashboard/order/pdf/invoice.html:34
-#, fuzzy
-#| msgctxt "Checkout shipping address title"
-#| msgid "Shipping address"
 msgctxt "Invoice shipping address"
 msgid "Shipping address"
-msgstr "Адреса доставки"
+msgstr ""
 
 #: templates/dashboard/order/pdf/invoice.html:42
-#, fuzzy
-#| msgctxt "Checkout summary title"
-#| msgid "Billing address"
 msgctxt "Invoice billing address"
 msgid "Billing address"
-msgstr "Платіжна адреса"
+msgstr ""
 
 #: templates/dashboard/order/pdf/invoice.html:51
 #: templates/dashboard/order/pdf/packing_slip.html:51
@@ -3437,20 +3396,14 @@ msgid "Items Ordered"
 msgstr ""
 
 #: templates/dashboard/order/pdf/invoice.html:121
-#, fuzzy
-#| msgctxt "Delivery group field"
-#| msgid "shipping price"
 msgctxt "Order totals header"
 msgid "Total Shipping Price"
-msgstr "вартість доставки"
+msgstr ""
 
 #: templates/dashboard/order/pdf/packing_slip.html:17
-#, fuzzy
-#| msgctxt "Order model"
-#| msgid "Order"
 msgctxt "Packing slip header"
 msgid "Order ID:"
-msgstr "Замовлення"
+msgstr ""
 
 #: templates/dashboard/order/pdf/packing_slip.html:21
 msgctxt "Packing slips header"
@@ -3458,36 +3411,24 @@ msgid "Packing Slips"
 msgstr ""
 
 #: templates/dashboard/order/pdf/packing_slip.html:25
-#, fuzzy
-#| msgctxt "Dashboard shipping methods list"
-#| msgid "Shipping methods"
 msgctxt "Packing slip shipping details"
 msgid "Shipping Details"
-msgstr "Методи доставки"
+msgstr ""
 
 #: templates/dashboard/order/pdf/packing_slip.html:26
-#, fuzzy
-#| msgctxt "Checkout summary title"
-#| msgid "Billing address"
 msgctxt "Packing slip shipping details"
 msgid "Billing Details"
-msgstr "Платіжна адреса"
+msgstr ""
 
 #: templates/dashboard/order/pdf/packing_slip.html:34
-#, fuzzy
-#| msgctxt "Checkout shipping address title"
-#| msgid "Shipping address"
 msgctxt "Packing slip shipping address"
 msgid "Shipping address"
-msgstr "Адреса доставки"
+msgstr ""
 
 #: templates/dashboard/order/pdf/packing_slip.html:42
-#, fuzzy
-#| msgctxt "Checkout summary title"
-#| msgid "Billing address"
 msgctxt "Packing slip billing address"
 msgid "Billing address"
-msgstr "Платіжна адреса"
+msgstr ""
 
 #: templates/dashboard/product/_stock_table.html:7
 msgid "Location"
@@ -3823,8 +3764,8 @@ msgstr ""
 #, python-format
 msgctxt "Modal delete product class text"
 msgid ""
-"Are you sure you want to delete product class <strong>%(product_class)s</"
-"strong>?"
+"Are you sure you want to delete product class "
+"<strong>%(product_class)s</strong>?"
 msgstr ""
 
 #: templates/dashboard/product/product_class/modal/confirm_delete.html:23
@@ -3873,7 +3814,8 @@ msgstr "Додати зображення для %(product)s"
 msgctxt "Image form text"
 msgid "Pick the most relevant part of the image using the red circle."
 msgstr ""
-"Виберіть найбільш відповідну частину зображення використовуючи червоне кільце"
+"Виберіть найбільш відповідну частину зображення використовуючи червоне "
+"кільце"
 
 #: templates/dashboard/product/product_image/list.html:61
 msgctxt "Image card text"
@@ -3988,15 +3930,14 @@ msgstr ""
 msgctxt "Dashboard confirmation modal"
 msgid ""
 "\n"
-"Are you sure you want to delete variant <strong>%(variant)s</strong> of "
-"product %(product)s?\n"
+"Are you sure you want to delete variant <strong>%(variant)s</strong> of product %(product)s?\n"
 msgstr ""
 
 #: templates/dashboard/product/product_variant/modal/confirm_delete.html:25
 msgctxt "Dashboard confirmation modal"
 msgid ""
-"This is the only variant of this product. If you remove it, the product will "
-"become unavailable."
+"This is the only variant of this product. If you remove it, the product will"
+" become unavailable."
 msgstr ""
 
 #: templates/dashboard/product/product_variant/modal/select_images.html:9
@@ -4130,7 +4071,8 @@ msgstr ""
 #, python-format
 msgctxt "Modal delete stock location text"
 msgid ""
-"Are you sure you want to delete stock location <strong>%(location)s</strong>?"
+"Are you sure you want to delete stock location "
+"<strong>%(location)s</strong>?"
 msgstr ""
 
 #: templates/dashboard/product/stock_location/modal/confirm_delete.html:23
@@ -4298,8 +4240,7 @@ msgstr ""
 msgctxt "Dashboard confirmation modal"
 msgid ""
 "\n"
-"Are you sure you want to delete shipping method <strong>%(shipping_method)s</"
-"strong>?\n"
+"Are you sure you want to delete shipping method <strong>%(shipping_method)s</strong>?\n"
 msgstr ""
 
 #: templates/dashboard/sites/detail.html:9
@@ -4313,12 +4254,9 @@ msgid "Authorization keys"
 msgstr "Ключі авторизації"
 
 #: templates/dashboard/staff/detail.html:10
-#, fuzzy
-#| msgctxt "Sale (discount) page title"
-#| msgid "Add new sale"
 msgctxt "Dashboard add group"
 msgid "Add new staff member"
-msgstr "Додати новий розпродаж"
+msgstr ""
 
 #: templates/dashboard/staff/detail.html:12
 msgctxt "Dashboard staff"
@@ -4336,22 +4274,17 @@ msgid "Add staff member"
 msgstr ""
 
 #: templates/dashboard/staff/detail.html:49
-#, fuzzy
-#| msgctxt "Sale (discount) action"
-#| msgid "Remove sale"
 msgctxt "Staff member form action"
 msgid "Remove staff member"
-msgstr "Видалити розпродаж"
+msgstr ""
 
 #: templates/dashboard/staff/detail.html:63
-#, fuzzy
-#| msgctxt "Order details link text"
-#| msgid "Payment details"
 msgctxt "Staff member details header"
 msgid "Staff member details"
-msgstr "Деталі платежу"
+msgstr ""
 
-#: templates/dashboard/staff/list.html:9 templates/dashboard/staff/list.html:29
+#: templates/dashboard/staff/list.html:9
+#: templates/dashboard/staff/list.html:29
 msgctxt "Dashboard staff members list"
 msgid "Staff"
 msgstr ""
@@ -4375,8 +4308,8 @@ msgid ""
 "member also removes him from customer list and removes all his related data "
 "(orders, payment etc.).</p> <p>We strongly recommend not deleting user "
 "accounts that were used for purchases (for example customer which was "
-"promoted with staff member status).</p> <p>%(staff)s has <strong>%(orders)s</"
-"strong> orders.</p>"
+"promoted with staff member status).</p> <p>%(staff)s has "
+"<strong>%(orders)s</strong> orders.</p>"
 msgstr ""
 
 #: templates/home.html:13
@@ -4666,8 +4599,8 @@ msgid ""
 "<strong>Warning!</strong> You are previewing a product that will become "
 "visible on <strong>%(date)s</strong>."
 msgstr ""
-"<strong>Увага!</strong> Перегляд продукту що буде видимий <strong>%(date)s</"
-"strong>."
+"<strong>Увага!</strong> Перегляд продукту що буде видимий "
+"<strong>%(date)s</strong>."
 
 #: templates/product/details.html:87
 msgctxt "Product details link text"
@@ -4811,27 +4744,3 @@ msgstr "Редагувати"
 msgctxt "No addresses text"
 msgid "You will see new addresses here after first successful checkout."
 msgstr "Тут відображатиметься адреса після першого успішного замовлення."
-
-#~ msgctxt "Site field"
-#~ msgid "domain"
-#~ msgstr "домен"
-
-#~ msgctxt "Site field"
-#~ msgid "name"
-#~ msgstr "назва"
-
-#~ msgctxt "Order history table header"
-#~ msgid "Date"
-#~ msgstr "Дата"
-
-#~ msgctxt "Order history table header"
-#~ msgid "Order status"
-#~ msgstr "Статус замовлення"
-
-#~ msgctxt "Order history table header"
-#~ msgid "User"
-#~ msgstr "Користувач"
-
-#~ msgctxt "Order history table header"
-#~ msgid "Comment"
-#~ msgstr "Коментар"
