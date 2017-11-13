@@ -2,7 +2,7 @@
 # Copyright (C) 2017 Mirumee Software
 # This file is distributed under the same license as the Saleor package.
 # Mirumee Software <hello@mirumee.com>, 2017.
-#
+# 
 #, fuzzy
 msgid ""
 msgstr ""
@@ -12,10 +12,10 @@ msgstr ""
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Rapahel Wierscher <rapwie@gmail.com>, 2017\n"
 "Language-Team: German (https://www.transifex.com/mirumee/teams/34782/de/)\n"
-"Language: de\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"Language: de\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
 #: saleor/dashboard/category/views.py:42
@@ -95,28 +95,21 @@ msgid "Deleted voucher %s"
 msgstr "Rabattcode %s gelöscht"
 
 #: saleor/dashboard/group/views.py:34
-#, fuzzy
-#| msgctxt "Dashboard message related to a delivery group"
-#| msgid "removed group"
 msgctxt "Dashboard message"
 msgid "Created group"
-msgstr "Gruppe gelöscht"
+msgstr ""
 
 #: saleor/dashboard/group/views.py:48
-#, fuzzy, python-format
-#| msgctxt "Dashboard message"
-#| msgid "Updated product %s"
+#, python-format
 msgctxt "Dashboard message"
 msgid "Updated group %s"
-msgstr "Produkt %s geändert"
+msgstr ""
 
 #: saleor/dashboard/group/views.py:62
-#, fuzzy, python-format
-#| msgctxt "Dashboard message"
-#| msgid "Deleted product %s"
+#, python-format
 msgctxt "Dashboard message"
 msgid "Deleted group %s"
-msgstr "Produkt %s gelöscht"
+msgstr ""
 
 #: saleor/dashboard/order/forms.py:26
 msgctxt "Order note form placeholder"
@@ -166,12 +159,9 @@ msgid "New shipment"
 msgstr "Neuer Versand"
 
 #: saleor/dashboard/order/forms.py:171
-#, fuzzy
-#| msgctxt "Move items form label"
-#| msgid "Quantity"
 msgctxt "Change quantity form label"
 msgid "Quantity"
-msgstr "Anzahl"
+msgstr "Menge"
 
 #: saleor/dashboard/order/forms.py:193
 #, python-format
@@ -184,7 +174,7 @@ msgstr[1] "Nur noch %(remaining)d auf Lager."
 #: saleor/dashboard/order/forms.py:219
 msgctxt "Ship group form field placeholder"
 msgid "Parcel tracking number"
-msgstr "Trackingnummer des Paktes"
+msgstr "Sendungsnummer"
 
 #: saleor/dashboard/order/forms.py:226
 msgctxt "Ship group form error"
@@ -332,7 +322,7 @@ msgstr "Einige Produkte diesen Typs haben mehr als eine Variante."
 #: saleor/dashboard/product/forms.py:106
 msgctxt "product form"
 msgid "Published"
-msgstr ""
+msgstr "Veröffentlicht"
 
 #: saleor/dashboard/product/forms.py:108
 msgctxt "product form"
@@ -409,12 +399,10 @@ msgid "Deleted image %s"
 msgstr "Bild %s gelöscht"
 
 #: saleor/dashboard/product/views.py:370
-#, fuzzy, python-format
-#| msgctxt "Dashboard message"
-#| msgid "Updated variant %s"
+#, python-format
 msgctxt "Dashboard message"
 msgid "Saved variant %s"
-msgstr "Variant %s geändert"
+msgstr ""
 
 #: saleor/dashboard/product/views.py:437
 #, python-format
@@ -472,36 +460,19 @@ msgid "Updated site %s"
 msgstr "Seite %s geändert"
 
 #: saleor/dashboard/staff/views.py:36
-#, fuzzy, python-format
-#| msgid "Updated site %s"
+#, python-format
 msgctxt "Dashboard message"
 msgid "Updated staff member %s"
-msgstr "Seite %s geändert"
+msgstr ""
 
 #: saleor/dashboard/staff/views.py:50
-#, fuzzy, python-format
-#| msgctxt "Dashboard message"
-#| msgid "Added category %s"
+#, python-format
 msgctxt "Dashboard message"
 msgid "Added staff member %s"
-msgstr "Kategorie %s hinzugefügt"
+msgstr ""
 
 #: saleor/dashboard/staff/views.py:67
-#, fuzzy, python-format
-#| msgctxt "Sale (discount) message"
-#| msgid "Deleted sale %s"
+#, python-format
 msgctxt "Dashboard message"
 msgid "Deleted staff member %s"
-msgstr "Angebot %s gelöscht"
-
-#~ msgctxt "Product form placeholder"
-#~ msgid "Give your awesome product a name"
-#~ msgstr "Geben Sie Ihren tollen Profukt einen Namen."
-
-#~ msgctxt "Dashboard message"
-#~ msgid "Added variant %s"
-#~ msgstr "Variante %s hinzuefügt"
-
-#~ msgctxt "Dashboard message"
-#~ msgid "Deleted variants"
-#~ msgstr "Varianten gelöscht"
+msgstr ""
