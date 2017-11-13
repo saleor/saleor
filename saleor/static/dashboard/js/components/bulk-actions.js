@@ -1,5 +1,5 @@
 function updateHeader () {
-  const count = $('.select-item:checked').length;
+  const count = $('.select-item:checked').length - $('#select-all-products:checked').length;
   const $counterTextNode = $('.data-table-header-action-selected-items');
   const $header = $('.data-table-header-alternative');
   const counterText = ngettext('item selected', 'items selected', count);
