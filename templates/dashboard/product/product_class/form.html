@@ -53,7 +53,7 @@
       <svg data-src="{% static "dashboard/images/more_vert.svg" %}" height="24" width="24" />
     </a>
     <ul id="context-menu" class="dropdown-content">
-      {% if perms.product.edit_attributes %}
+      {% if perms.product.edit_properties %}
       <li>
         <a href="#base-modal" data-href="{% url 'dashboard:product-class-delete' pk=product_class.pk %}"
         class="modal-trigger-custom">
@@ -94,7 +94,7 @@
               </div>
             </div>
           </div>
-          {% if perms.product.edit_classes %}
+          {% if perms.product.edit_properties %}
           <div class="card-action right-align">
             {% if product_class.pk %}
               <a href="{% url 'dashboard:product-class-list' %}" class="btn btn-flat">

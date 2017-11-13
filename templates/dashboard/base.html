@@ -188,20 +188,20 @@
                 </ul>
               </li>
             {% endif %}
-            {% if perms.product.view_class or perms.product.view_attributes or perms.shipping.view_shipping or perms.product.view_classes %}
+            {% if perms.product.view_class or perms.product.view_properties or perms.shipping.view_shipping or perms.product.view_properties %}
               <li class="side-nav-section">
                 <p>
                   {% trans "Configuration"  context "Dashboard configuration" %}
                 </p>
                 <ul>
-                  {% if perms.product.view_classes %}
+                  {% if perms.product.view_properties %}
                   <li class="{% block menu_product_classes_class %}{% endblock %}">
                     <a href="{% url 'dashboard:product-class-list' %}">
                       {% trans "Product types" context "Dashboard product types list" %}
                     </a>
                   </li>
                   {% endif %}
-                  {% if perms.product.view_attributes %}
+                  {% if perms.product.view_properties %}
                   <li class="{% block menu_attributes_class %}{% endblock %}">
                     <a href="{% url 'dashboard:product-attributes' %}">
                       {% trans "Attributes" context "Dashboard attributes list" %}
