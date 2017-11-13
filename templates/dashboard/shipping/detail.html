@@ -68,7 +68,7 @@
       <div class="card">
         <div class="card-content">
           <span class="card-title">
-             {% trans "Price per country" %}
+             {% trans "Price per country" context "Title of the per-country shipping price list" %}
           </span>
         </div>
         <div class="data-table-container">
@@ -76,9 +76,9 @@
             <thead>
               <tr>
                 <th>
-                  {% trans "Country" %}
+                  {% trans "Country" context "Header of the per-country shipping price list" %}
                 </th>
-                <th>{% trans "Price" %}</th>
+                <th>{% trans "Price" context "Header of the per-country shipping price list" %}</th>
               </tr>
             </thead>
             <tbody>
@@ -89,7 +89,7 @@
                 </tr>
               {% empty %}
                 <tr>
-                  <td colspan="2">{% trans "No shippment prices" %}</td>
+                  <td colspan="2">{% trans "No shipping prices" context "Empty list of per-country shipping prices" %}</td>
                 </tr>
               {% endfor %}
             </tbody>
