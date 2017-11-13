@@ -91,7 +91,7 @@
           </div>
           {% if perms.product.edit_product %}
             <div class="data-table-header-action">
-                <a href="{% url 'dashboard:variant-add' product_pk=product.pk %}" class="btn-data-table btn-flat">{% trans "Add" %}</a>
+                <a href="{% url 'dashboard:variant-add' product_pk=product.pk %}" class="btn-data-table btn btn-flat">{% trans "Add" %}</a>
             </div>
           {% endif %}
           <div class="data-table-container">
