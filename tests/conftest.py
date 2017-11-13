@@ -550,3 +550,11 @@ def translated_product_attribute(db, product_in_stock):
     return ProductAttributeTranslation.objects.create(
         language_code='fr', product_attribute=attribute,
         name='Name tranlsated to french')
+
+
+@pytest.fixture
+def attribute_choice_translation_fr(db, translated_product_attribute):
+    value = translated_product_attribute.product_attribute.values.first()
+    return AttributeChoiceValueTranslation.objects.create(
+        language_code='fr', attribute_choice_value=value,
+        name='French name')

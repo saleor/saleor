@@ -497,3 +497,13 @@ def test_get_product_attributes_data_translation(
     attributes_data = get_product_attributes_data(product_in_stock)
     attributes_keys = [attr.name for attr in iterkeys(attributes_data)]
     assert translated_product_attribute.name in attributes_keys
+
+
+def test_attribute_choice_value_translation_fr(
+        db, settings, product_in_stock, attribute_choice_translation_fr):
+    attribute = product_in_stock.product_class.product_attributes.first()
+    choice = attribute.values.first()
+    assert choice.translated.name == 'Red'
+
+    settings.LANGUAGE_CODE = 'fr'
+    assert choice.translated.name == 'French name'

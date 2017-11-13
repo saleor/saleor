@@ -6,13 +6,15 @@ from saleor.product.models import ProductTranslation
 @pytest.fixture
 def product_translation_fr(db, product_in_stock):
     return ProductTranslation.objects.create(
-        language_code='fr', product=product_in_stock, name='French name')
+        language_code='fr', product=product_in_stock, name='French name',
+        description='French description')
 
 
 @pytest.fixture
 def product_translation_pl(db, product_in_stock):
     return ProductTranslation.objects.create(
-        language_code='pl', product=product_in_stock, name='Polish name')
+        language_code='pl', product=product_in_stock, name='Polish name',
+        description="Polish description")
 
 
 def test_translation(product_in_stock, settings, product_translation_fr):
@@ -20,6 +22,7 @@ def test_translation(product_in_stock, settings, product_translation_fr):
 
     settings.LANGUAGE_CODE = 'fr'
     assert product_in_stock.translated.name == 'French name'
+    assert product_in_stock.translated.description == 'French description'
 
 
 def test_translation_str_returns_str_of_instance(
