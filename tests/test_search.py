@@ -35,29 +35,26 @@ def indexed_products(product_class, default_category):
     return [gen_product_with_id(prod) for prod in PRODUCTS_INDEXED]
 
 
-def _extract_pks(object_list):
-    return [prod.pk for prod, _ in object_list]
+def execute_search(client, phrase):
+    response = client.get(reverse('search:search'), {'q': phrase})
+    assert phrase == response.context['query']
+    found_objs = response.context['results'].object_list
+    return [prod.pk for prod, _ in found_objs]
 
 
 @pytest.mark.integration
 @pytest.mark.vcr(record_mode='once', match_on=MATCH_SEARCH_REQUEST)
 def test_new_search_with_empty_results(db, client):
     ''' no products found with foo '''
-    WORD = 'foo'
-    response = client.get(reverse('search:search'), {'q': WORD})
-    assert 0 == len(response.context['results'].object_list)
-    assert WORD == response.context['query']
+    assert 0 == len(execute_search(client, 'foo'))
 
 
 @pytest.mark.integration
 @pytest.mark.vcr(record_mode='once', match_on=MATCH_SEARCH_REQUEST)
 def test_new_search_with_result(db, indexed_products, client):
     ''' some products founds, only those both in search result and objects '''
-    EXISTING_PHRASE = 'Group'
-    response = client.get(reverse('search:search'), {'q': EXISTING_PHRASE})
-    found_products = _extract_pks(response.context['results'].object_list)
+    found_products = execute_search(client, 'Group')
     assert PRODUCTS_INDEXED == set(found_products)
-    assert EXISTING_PHRASE == response.context['query']
 
 
 PRODUCTS_TO_UNPUBLISH = {56}
@@ -77,8 +74,5 @@ def products_with_mixed_publishing(indexed_products):
 def test_new_search_doesnt_show_unpublished(db, products_with_mixed_publishing,
                                             client):
     published_products = PRODUCTS_INDEXED - PRODUCTS_TO_UNPUBLISH
-    EXISTING_PHRASE = 'Group'
-    response = client.get(reverse('search:search'), {'q': EXISTING_PHRASE})
-    found_products = _extract_pks(response.context['results'].object_list)
+    found_products = execute_search(client, 'Group')
     assert published_products == set(found_products)
-    assert EXISTING_PHRASE == response.context['query']
