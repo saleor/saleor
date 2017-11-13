@@ -1,5 +1,8 @@
 .btn-flat {
   color: $secondary-color;
+  &:hover {
+    color: #fff;
+  }
 }
 .btn {
   &:not(.btn-floating) {
