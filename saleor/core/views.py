@@ -1,5 +1,4 @@
 from django.template.response import TemplateResponse
-from django.http.response import HttpResponseRedirect
 from django.contrib import messages
 from django.utils.translation import pgettext_lazy
 
