@@ -2,7 +2,7 @@
 # Copyright (C) 2017 Mirumee Software
 # This file is distributed under the same license as the Saleor package.
 # Mirumee Software <hello@mirumee.com>, 2017.
-#
+# 
 #, fuzzy
 msgid ""
 msgstr ""
@@ -12,10 +12,10 @@ msgstr ""
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Jihan Chung <jihanchung20@gmail.com>, 2017\n"
 "Language-Team: Korean (https://www.transifex.com/mirumee/teams/34782/ko/)\n"
-"Language: ko\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"Language: ko\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
 
 #: saleor/cart/__init__.py:22
@@ -212,16 +212,12 @@ msgstr "이메일"
 #: saleor/checkout/views/discount.py:60
 msgctxt "Checkout warning"
 msgid "This voucher has expired. Please review your checkout."
-msgstr ""
-"이 바우처는 기한이 초과되었습니다. 당신의 체크아웃을 다시 확인하여 주세요."
+msgstr "이 바우처는 기한이 초과되었습니다. 당신의 체크아웃을 다시 확인하여 주세요."
 
 #: saleor/checkout/views/summary.py:29
-#, fuzzy
-#| msgctxt "cart status"
-#| msgid "Submitted - an order was placed"
 msgctxt "Order status history entry"
 msgid "Order was placed"
-msgstr "주문 전송"
+msgstr ""
 
 #: saleor/checkout/views/summary.py:41
 msgctxt "Checkout warning"
@@ -773,12 +769,9 @@ msgid "OrderNote for Order #%d"
 msgstr "#%d 에 대한 주문 노트"
 
 #: saleor/order/utils.py:38
-#, fuzzy
-#| msgctxt "order status"
-#| msgid "Fully paid"
 msgctxt "Order status history entry"
 msgid "Order fully paid"
-msgstr "결제 완료"
+msgstr ""
 
 #: saleor/order/views.py:89
 #, python-format
@@ -848,20 +841,14 @@ msgid "out of stock"
 msgstr ""
 
 #: saleor/product/filters.py:14
-#, fuzzy
-#| msgctxt "Voucher field"
-#| msgid "name"
 msgctxt "Product list sorting option"
 msgid "name"
-msgstr "이름"
+msgstr ""
 
 #: saleor/product/filters.py:16
-#, fuzzy
-#| msgctxt "Product field"
-#| msgid "price"
 msgctxt "Product list sorting option"
 msgid "price"
-msgstr "가격"
+msgstr ""
 
 #: saleor/product/filters.py:31
 msgctxt "Product list sorting form"
@@ -1549,26 +1536,22 @@ msgctxt "Email confirmation message"
 msgid ""
 "Hi!\n"
 "\n"
-"You have requested login access to saleor project. To continue visit the "
-"link below.\n"
+"You have requested login access to saleor project. To continue visit the link below.\n"
 "\n"
 "%(activate_url)s\n"
 "\n"
-"If you didn't try to login to saleor please ignore this message. We "
-"apologise for inconvenience.\n"
+"If you didn't try to login to saleor please ignore this message. We apologise for inconvenience.\n"
 "\n"
 "Sincerely,\n"
 "Saleor Team"
 msgstr ""
 "안녕하세요!\n"
 "\n"
-"당신은  saleor project에 로그인을 시도하였습니다. 계속 하시려면 아래의 링크"
-"로 방문해 주세요.\n"
+"당신은  saleor project에 로그인을 시도하였습니다. 계속 하시려면 아래의 링크로 방문해 주세요.\n"
 "\n"
 "%(activate_url)s\n"
 "\n"
-"만약 당신이 로그인을 한 것이 아니라면, 이 메시지를 무시하셔도 좋습니다. 불편"
-"함을 드려 죄송합니다.\n"
+"만약 당신이 로그인을 한 것이 아니라면, 이 메시지를 무시하셔도 좋습니다. 불편함을 드려 죄송합니다.\n"
 "\n"
 "퍼블릭 갤러리 팀"
 
@@ -1582,18 +1565,14 @@ msgstr "당신의 이메일 주소를 확인하여 주세요"
 msgid ""
 "Hello from %(site_name)s!\n"
 "\n"
-"You're receiving this e-mail because you or someone else has requested a "
-"password for your user account at %(domain)s.\n"
-"It can be safely ignored if you did not request a password reset. Click the "
-"link below to reset your password."
+"You're receiving this e-mail because you or someone else has requested a password for your user account at %(domain)s.\n"
+"It can be safely ignored if you did not request a password reset. Click the link below to reset your password."
 msgstr ""
 "%(site_name)s 에 오신 것을 환영합니다!\n"
 "\n"
-"당신의 계정으로 %(domain)s 에서 비밀번호를 요청하였으므로, 이 이메일을 송부합"
-"니다.\n"
+"당신의 계정으로 %(domain)s 에서 비밀번호를 요청하였으므로, 이 이메일을 송부합니다.\n"
 "\n"
-"만약 당신이 비밀번호 초기화를 하지 않았다면, 안전하게 이 메시지를 무시하셔도 "
-"좋습니다."
+"만약 당신이 비밀번호 초기화를 하지 않았다면, 안전하게 이 메시지를 무시하셔도 좋습니다."
 
 #: templates/account/email/password_reset_message.txt:8
 #, python-format
@@ -1629,12 +1608,10 @@ msgid "Log in"
 msgstr "로그인"
 
 #: templates/account/partials/already_logged_in.html:5
-#, fuzzy, python-format
-#| msgctxt "Already logged in warning message"
-#| msgid "You are already logged in as %(user_display)s."
+#, python-format
 msgctxt "Already logged in warning message"
 msgid "You are already logged in as %(user)s."
-msgstr "당신은 이미 %(user_display)s 으로 로그인 되었습니다."
+msgstr ""
 
 #: templates/account/partials/login_form.html:17
 msgctxt "Login form primary action"
@@ -1656,7 +1633,8 @@ msgstr "구글"
 
 #: templates/account/password_change.html:7 templates/cart/index.html:12
 #: templates/order/details.html:16 templates/order/payment.html:19
-#: templates/product/details.html:16 templates/userprofile/address-edit.html:15
+#: templates/product/details.html:16
+#: templates/userprofile/address-edit.html:15
 #: templates/userprofile/details.html:14
 msgctxt "Main navigation item"
 msgid "Home"
@@ -1699,9 +1677,7 @@ msgctxt "Password reset form help text"
 msgid ""
 "Please let us know the email you have used to register or purchase at our "
 "store."
-msgstr ""
-"당신이 사용하고 있는 혹은 스토어에서 구매 시 사용한 이메일을 적어 주시기 바랍"
-"니다."
+msgstr "당신이 사용하고 있는 혹은 스토어에서 구매 시 사용한 이메일을 적어 주시기 바랍니다."
 
 #: templates/account/password_reset.html:25
 msgctxt "Password reset primary action"
@@ -1723,9 +1699,7 @@ msgctxt "Password reset done text"
 msgid ""
 "We have sent you an e-mail. Please contact us if you do not receive it "
 "within a few minutes."
-msgstr ""
-"이메일을 전송하였습니다. 몇분 안에 이메일을 못 받으실 경우 저희쪽으로 연락 주"
-"시기 바랍니다."
+msgstr "이메일을 전송하였습니다. 몇분 안에 이메일을 못 받으실 경우 저희쪽으로 연락 주시기 바랍니다."
 
 #: templates/account/password_reset_from_key.html:6
 msgctxt "Password reset from key page title"
@@ -1744,8 +1718,8 @@ msgid ""
 "used.<br> Please request a <a href=\"%(passwd_reset_url)s\">new password "
 "reset</a>."
 msgstr ""
-"비밀번호 초기화 링크가 사용불가합니다. <br> <a href=\"%(passwd_reset_url)s\">"
-"새로운 비밀번호 초기화</a>를 요청하여 주시기 바랍니다."
+"비밀번호 초기화 링크가 사용불가합니다. <br> <a href=\"%(passwd_reset_url)s\">새로운 비밀번호 "
+"초기화</a>를 요청하여 주시기 바랍니다."
 
 #: templates/account/password_reset_from_key.html:24
 msgctxt "Password reset from key form title"
@@ -1763,11 +1737,9 @@ msgid "Continue"
 msgstr "계속"
 
 #: templates/account/password_reset_from_key.html:39
-#, fuzzy
-#| msgid "Password Reset E-mail"
 msgctxt "Password reset link expired from key form title"
 msgid "Password Reset Link Expired"
-msgstr "비밀번호 초기화 이메일"
+msgstr ""
 
 #: templates/account/password_reset_from_key.html:40
 msgctxt "Password reset from key form title"
@@ -1777,12 +1749,9 @@ msgid ""
 msgstr ""
 
 #: templates/account/password_reset_from_key.html:42
-#, fuzzy
-#| msgctxt "Checkout create password page title"
-#| msgid "Create password"
 msgctxt "Reset my password link"
 msgid "Reset my password"
-msgstr "비밀번호 생성"
+msgstr ""
 
 #: templates/account/password_reset_from_key_done.html:4
 msgctxt "Password reset from key done page title"
@@ -1801,11 +1770,8 @@ msgstr "당신의 비밀번호가 변경 되었습니다."
 #: templates/account/password_reset_from_key_done.html:10
 #, python-format
 msgctxt "Password reset from key done text"
-msgid ""
-"You can now <a href=\"%(login_url)s\">sign in</a> using your new password"
-msgstr ""
-"지금 새로운 비밀번호를 이용하여 <a href=\"%(login_url)s\">로그인</a>할 수 있"
-"습니다"
+msgid "You can now <a href=\"%(login_url)s\">sign in</a> using your new password"
+msgstr "지금 새로운 비밀번호를 이용하여 <a href=\"%(login_url)s\">로그인</a>할 수 있습니다"
 
 #: templates/account/password_set.html:14
 msgctxt "Password set form legend"
@@ -2257,12 +2223,14 @@ msgstr "판매"
 #: templates/dashboard/order/address_form.html:23
 #: templates/dashboard/order/detail.html:11
 #: templates/dashboard/order/detail.html:49
-#: templates/dashboard/order/list.html:7 templates/dashboard/order/list.html:15
+#: templates/dashboard/order/list.html:7
+#: templates/dashboard/order/list.html:15
 msgctxt "Dashboard orders list"
 msgid "Orders"
 msgstr "주문"
 
-#: templates/dashboard/base.html:158 templates/dashboard/customer/detail.html:9
+#: templates/dashboard/base.html:158
+#: templates/dashboard/customer/detail.html:9
 #: templates/dashboard/customer/detail.html:25
 #: templates/dashboard/customer/list.html:8
 #: templates/dashboard/customer/list.html:18
@@ -2281,7 +2249,8 @@ msgid "Staff members"
 msgstr ""
 
 #: templates/dashboard/base.html:178 templates/dashboard/group/detail.html:28
-#: templates/dashboard/group/list.html:8 templates/dashboard/group/list.html:28
+#: templates/dashboard/group/list.html:8
+#: templates/dashboard/group/list.html:28
 msgctxt "Dashboard groups list"
 msgid "Groups"
 msgstr ""
@@ -2461,7 +2430,8 @@ msgstr ""
 #: templates/dashboard/category/modal/confirm_delete.html:17
 #, python-format
 msgctxt "Delete category modal title"
-msgid "Are you sure you want to delete category <strong>%(category)s</strong>?"
+msgid ""
+"Are you sure you want to delete category <strong>%(category)s</strong>?"
 msgstr ""
 
 #: templates/dashboard/category/modal/confirm_delete.html:22
@@ -2583,12 +2553,9 @@ msgid "Promote to staff member"
 msgstr ""
 
 #: templates/dashboard/customer/modal/confirm_promote.html:17
-#, fuzzy
-#| msgctxt "Order review section title"
-#| msgid "Promo code"
 msgctxt "Dashboard promote action"
 msgid "Promote"
-msgstr "프로모션 코드"
+msgstr ""
 
 #: templates/dashboard/discount/sale/form.html:10
 msgctxt "Sale (discount) page title"
@@ -3379,12 +3346,9 @@ msgid "Split"
 msgstr "분리"
 
 #: templates/dashboard/order/pdf/invoice.html:17
-#, fuzzy
-#| msgctxt "Order model"
-#| msgid "Order"
 msgctxt "Invoice header"
 msgid "Order ID:"
-msgstr "주문"
+msgstr ""
 
 #: templates/dashboard/order/pdf/invoice.html:21
 msgctxt "Order invoice"
@@ -3392,34 +3356,22 @@ msgid "Invoice"
 msgstr ""
 
 #: templates/dashboard/order/pdf/invoice.html:25
-#, fuzzy
-#| msgctxt "Dashboard shipping methods list"
-#| msgid "Shipping methods"
 msgid "Shipping Details"
-msgstr "배송 방식"
+msgstr ""
 
 #: templates/dashboard/order/pdf/invoice.html:26
-#, fuzzy
-#| msgctxt "Checkout summary title"
-#| msgid "Billing address"
 msgid "Billing Details"
-msgstr "결제 주소"
+msgstr ""
 
 #: templates/dashboard/order/pdf/invoice.html:34
-#, fuzzy
-#| msgctxt "Checkout shipping address title"
-#| msgid "Shipping address"
 msgctxt "Invoice shipping address"
 msgid "Shipping address"
-msgstr "배송 주소"
+msgstr ""
 
 #: templates/dashboard/order/pdf/invoice.html:42
-#, fuzzy
-#| msgctxt "Checkout summary title"
-#| msgid "Billing address"
 msgctxt "Invoice billing address"
 msgid "Billing address"
-msgstr "결제 주소"
+msgstr ""
 
 #: templates/dashboard/order/pdf/invoice.html:51
 #: templates/dashboard/order/pdf/packing_slip.html:51
@@ -3428,20 +3380,14 @@ msgid "Items Ordered"
 msgstr ""
 
 #: templates/dashboard/order/pdf/invoice.html:121
-#, fuzzy
-#| msgctxt "Delivery group field"
-#| msgid "shipping price"
 msgctxt "Order totals header"
 msgid "Total Shipping Price"
-msgstr "주문 가격"
+msgstr ""
 
 #: templates/dashboard/order/pdf/packing_slip.html:17
-#, fuzzy
-#| msgctxt "Order model"
-#| msgid "Order"
 msgctxt "Packing slip header"
 msgid "Order ID:"
-msgstr "주문"
+msgstr ""
 
 #: templates/dashboard/order/pdf/packing_slip.html:21
 msgctxt "Packing slips header"
@@ -3449,36 +3395,24 @@ msgid "Packing Slips"
 msgstr ""
 
 #: templates/dashboard/order/pdf/packing_slip.html:25
-#, fuzzy
-#| msgctxt "Dashboard shipping methods list"
-#| msgid "Shipping methods"
 msgctxt "Packing slip shipping details"
 msgid "Shipping Details"
-msgstr "배송 방식"
+msgstr ""
 
 #: templates/dashboard/order/pdf/packing_slip.html:26
-#, fuzzy
-#| msgctxt "Checkout summary title"
-#| msgid "Billing address"
 msgctxt "Packing slip shipping details"
 msgid "Billing Details"
-msgstr "결제 주소"
+msgstr ""
 
 #: templates/dashboard/order/pdf/packing_slip.html:34
-#, fuzzy
-#| msgctxt "Checkout shipping address title"
-#| msgid "Shipping address"
 msgctxt "Packing slip shipping address"
 msgid "Shipping address"
-msgstr "배송 주소"
+msgstr ""
 
 #: templates/dashboard/order/pdf/packing_slip.html:42
-#, fuzzy
-#| msgctxt "Checkout summary title"
-#| msgid "Billing address"
 msgctxt "Packing slip billing address"
 msgid "Billing address"
-msgstr "결제 주소"
+msgstr ""
 
 #: templates/dashboard/product/_stock_table.html:7
 msgid "Location"
@@ -3762,9 +3696,7 @@ msgctxt "Product class help text"
 msgid ""
 "Product Type is a template used for creating new products. It also controls "
 "which attributes can be used during product creation process."
-msgstr ""
-"제품 타입에 새로운 제품들을 생성하기 위한 탬플릿이 사용 되었으며, 이는 제품 "
-"생성 프로세스에서 속성을 설정할 것입니다."
+msgstr "제품 타입에 새로운 제품들을 생성하기 위한 탬플릿이 사용 되었으며, 이는 제품 생성 프로세스에서 속성을 설정할 것입니다."
 
 #: templates/dashboard/product/product_class/list.html:18
 msgctxt "Product type list add button text"
@@ -3814,8 +3746,8 @@ msgstr ""
 #, python-format
 msgctxt "Modal delete product class text"
 msgid ""
-"Are you sure you want to delete product class <strong>%(product_class)s</"
-"strong>?"
+"Are you sure you want to delete product class "
+"<strong>%(product_class)s</strong>?"
 msgstr ""
 
 #: templates/dashboard/product/product_class/modal/confirm_delete.html:23
@@ -3978,15 +3910,14 @@ msgstr ""
 msgctxt "Dashboard confirmation modal"
 msgid ""
 "\n"
-"Are you sure you want to delete variant <strong>%(variant)s</strong> of "
-"product %(product)s?\n"
+"Are you sure you want to delete variant <strong>%(variant)s</strong> of product %(product)s?\n"
 msgstr ""
 
 #: templates/dashboard/product/product_variant/modal/confirm_delete.html:25
 msgctxt "Dashboard confirmation modal"
 msgid ""
-"This is the only variant of this product. If you remove it, the product will "
-"become unavailable."
+"This is the only variant of this product. If you remove it, the product will"
+" become unavailable."
 msgstr ""
 
 #: templates/dashboard/product/product_variant/modal/select_images.html:9
@@ -4120,7 +4051,8 @@ msgstr ""
 #, python-format
 msgctxt "Modal delete stock location text"
 msgid ""
-"Are you sure you want to delete stock location <strong>%(location)s</strong>?"
+"Are you sure you want to delete stock location "
+"<strong>%(location)s</strong>?"
 msgstr ""
 
 #: templates/dashboard/product/stock_location/modal/confirm_delete.html:23
@@ -4284,8 +4216,7 @@ msgstr ""
 msgctxt "Dashboard confirmation modal"
 msgid ""
 "\n"
-"Are you sure you want to delete shipping method <strong>%(shipping_method)s</"
-"strong>?\n"
+"Are you sure you want to delete shipping method <strong>%(shipping_method)s</strong>?\n"
 msgstr ""
 
 #: templates/dashboard/sites/detail.html:9
@@ -4299,12 +4230,9 @@ msgid "Authorization keys"
 msgstr "인증 키"
 
 #: templates/dashboard/staff/detail.html:10
-#, fuzzy
-#| msgctxt "Sale (discount) page title"
-#| msgid "Add new sale"
 msgctxt "Dashboard add group"
 msgid "Add new staff member"
-msgstr "새로운 할인 추가"
+msgstr ""
 
 #: templates/dashboard/staff/detail.html:12
 msgctxt "Dashboard staff"
@@ -4322,22 +4250,17 @@ msgid "Add staff member"
 msgstr ""
 
 #: templates/dashboard/staff/detail.html:49
-#, fuzzy
-#| msgctxt "Sale (discount) action"
-#| msgid "Remove sale"
 msgctxt "Staff member form action"
 msgid "Remove staff member"
-msgstr "할인 제거"
+msgstr ""
 
 #: templates/dashboard/staff/detail.html:63
-#, fuzzy
-#| msgctxt "Order details link text"
-#| msgid "Payment details"
 msgctxt "Staff member details header"
 msgid "Staff member details"
-msgstr "결제 상세"
+msgstr ""
 
-#: templates/dashboard/staff/list.html:9 templates/dashboard/staff/list.html:29
+#: templates/dashboard/staff/list.html:9
+#: templates/dashboard/staff/list.html:29
 msgctxt "Dashboard staff members list"
 msgid "Staff"
 msgstr ""
@@ -4361,8 +4284,8 @@ msgid ""
 "member also removes him from customer list and removes all his related data "
 "(orders, payment etc.).</p> <p>We strongly recommend not deleting user "
 "accounts that were used for purchases (for example customer which was "
-"promoted with staff member status).</p> <p>%(staff)s has <strong>%(orders)s</"
-"strong> orders.</p>"
+"promoted with staff member status).</p> <p>%(staff)s has "
+"<strong>%(orders)s</strong> orders.</p>"
 msgstr ""
 
 #: templates/home.html:13
@@ -4472,17 +4395,15 @@ msgid ""
 "We've sent a confirmation email with details to <span>%(email)s</span>.<br> "
 "If any problems or questions contact us."
 msgstr ""
-"<span>%(email)s</span>로 자세한 내용을 담은 확인 메일을 송부 하였습니다.<br> "
-"이에 문제가 있으시면 사이트 담당자에게 연락 주시기 바랍니다."
+"<span>%(email)s</span>로 자세한 내용을 담은 확인 메일을 송부 하였습니다.<br> 이에 문제가 있으시면 사이트 "
+"담당자에게 연락 주시기 바랍니다."
 
 #: templates/order/create_password.html:26
 msgctxt "Checkout text"
 msgid ""
 "It looks like you already are our customer! <br> Please log in to connect "
 "order with your account."
-msgstr ""
-"당신은 이미 가입된 고객입니다!<br>로그인을 통해 당신의 주문을 계정을 통해 구"
-"매하세요."
+msgstr "당신은 이미 가입된 고객입니다!<br>로그인을 통해 당신의 주문을 계정을 통해 구매하세요."
 
 #: templates/order/create_password.html:36
 msgctxt "Checkout title"
@@ -4570,9 +4491,8 @@ msgid ""
 "before attempting a new payment. Please be warned that if you try again and "
 "the previous transaction succeeds you might end up being charged twice."
 msgstr ""
-"결제가 완료되지 않음을 확신하지 않으면(예를 들어 결제 전 웹브라우저를 닫은 경"
-"우), 새로운 결제를 시도하기 전에 기다리셔야 합니다. 이전 거래를 기다리지 않"
-"고 다시 결제를 시도할 경우, 중복 결제가 될 수 있음을 주의하시기 바랍니다."
+"결제가 완료되지 않음을 확신하지 않으면(예를 들어 결제 전 웹브라우저를 닫은 경우), 새로운 결제를 시도하기 전에 기다리셔야 합니다. "
+"이전 거래를 기다리지 않고 다시 결제를 시도할 경우, 중복 결제가 될 수 있음을 주의하시기 바랍니다."
 
 #: templates/order/payment.html:63
 msgctxt "Payment pending action"
@@ -4648,8 +4568,7 @@ msgid ""
 "<strong>Warning!</strong> You are previewing a product that will become "
 "visible on <strong>%(date)s</strong>."
 msgstr ""
-"<strong>주의!</strong> 지금 보고 계신 제품은 <strong>%(date)s</strong> 일 부"
-"터 확인 가능합니다."
+"<strong>주의!</strong> 지금 보고 계신 제품은 <strong>%(date)s</strong> 일 부터 확인 가능합니다."
 
 #: templates/product/details.html:87
 msgctxt "Product details link text"
@@ -4793,27 +4712,3 @@ msgstr "수정"
 msgctxt "No addresses text"
 msgid "You will see new addresses here after first successful checkout."
 msgstr "첫번째 주문이 완료되면 주소를 확인할 수 있습니다."
-
-#~ msgctxt "Site field"
-#~ msgid "domain"
-#~ msgstr "도메인"
-
-#~ msgctxt "Site field"
-#~ msgid "name"
-#~ msgstr "이름"
-
-#~ msgctxt "Order history table header"
-#~ msgid "Date"
-#~ msgstr "날짜"
-
-#~ msgctxt "Order history table header"
-#~ msgid "Order status"
-#~ msgstr "주문 상태"
-
-#~ msgctxt "Order history table header"
-#~ msgid "User"
-#~ msgstr "사용자"
-
-#~ msgctxt "Order history table header"
-#~ msgid "Comment"
-#~ msgstr "답변"

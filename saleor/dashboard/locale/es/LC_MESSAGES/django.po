@@ -2,7 +2,7 @@
 # Copyright (C) 2017 Mirumee Software
 # This file is distributed under the same license as the Saleor package.
 # Mirumee Software <hello@mirumee.com>, 2017.
-#
+# 
 #, fuzzy
 msgid ""
 msgstr ""
@@ -10,12 +10,12 @@ msgstr ""
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2017-11-06 04:12-0600\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"Last-Translator: Matías Saguir <mativs@gmail.com>, 2017\n"
+"Last-Translator: Mario Álvarez <ahoy@m4grio.me>, 2017\n"
 "Language-Team: Spanish (https://www.transifex.com/mirumee/teams/34782/es/)\n"
-"Language: es\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"Language: es\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
 #: saleor/dashboard/category/views.py:42
@@ -95,28 +95,21 @@ msgid "Deleted voucher %s"
 msgstr "Cupón Borrado %s"
 
 #: saleor/dashboard/group/views.py:34
-#, fuzzy
-#| msgctxt "Dashboard message related to a delivery group"
-#| msgid "removed group"
 msgctxt "Dashboard message"
 msgid "Created group"
-msgstr "Grupo borrado"
+msgstr "Grupo creado"
 
 #: saleor/dashboard/group/views.py:48
-#, fuzzy, python-format
-#| msgctxt "Dashboard message"
-#| msgid "Updated product %s"
+#, python-format
 msgctxt "Dashboard message"
 msgid "Updated group %s"
-msgstr "Producto actualizado %s"
+msgstr "Grupo %s actualizado"
 
 #: saleor/dashboard/group/views.py:62
-#, fuzzy, python-format
-#| msgctxt "Dashboard message"
-#| msgid "Deleted product %s"
+#, python-format
 msgctxt "Dashboard message"
 msgid "Deleted group %s"
-msgstr "Producto Borrado %s"
+msgstr "Grupo %s eliminado"
 
 #: saleor/dashboard/order/forms.py:26
 msgctxt "Order note form placeholder"
@@ -158,17 +151,14 @@ msgstr "Cantidad"
 #: saleor/dashboard/order/forms.py:118
 msgctxt "Move items form label"
 msgid "Target shipment"
-msgstr "Envio objetivo"
+msgstr "Envío objetivo"
 
 #: saleor/dashboard/order/forms.py:135
 msgctxt "Delivery group value for `target_group` field"
 msgid "New shipment"
-msgstr "Nuevo envio"
+msgstr "Nuevo envío"
 
 #: saleor/dashboard/order/forms.py:171
-#, fuzzy
-#| msgctxt "Move items form label"
-#| msgid "Quantity"
 msgctxt "Change quantity form label"
 msgid "Quantity"
 msgstr "Cantidad"
@@ -184,7 +174,7 @@ msgstr[1] "Solo quedan %(remaining)d en stock."
 #: saleor/dashboard/order/forms.py:219
 msgctxt "Ship group form field placeholder"
 msgid "Parcel tracking number"
-msgstr "Numero de seguimiento de la parcela"
+msgstr "Número de seguimiento de la parcela"
 
 #: saleor/dashboard/order/forms.py:226
 msgctxt "Ship group form error"
@@ -332,7 +322,7 @@ msgstr "Algunos productos de este tipo tienen mas de una variante."
 #: saleor/dashboard/product/forms.py:106
 msgctxt "product form"
 msgid "Published"
-msgstr ""
+msgstr "Publicado"
 
 #: saleor/dashboard/product/forms.py:108
 msgctxt "product form"
@@ -409,12 +399,10 @@ msgid "Deleted image %s"
 msgstr "Imagen borrada %s"
 
 #: saleor/dashboard/product/views.py:370
-#, fuzzy, python-format
-#| msgctxt "Dashboard message"
-#| msgid "Updated variant %s"
+#, python-format
 msgctxt "Dashboard message"
 msgid "Saved variant %s"
-msgstr "Variante actualizada %s"
+msgstr ""
 
 #: saleor/dashboard/product/views.py:437
 #, python-format
@@ -472,36 +460,19 @@ msgid "Updated site %s"
 msgstr "Sitio actualizado %s"
 
 #: saleor/dashboard/staff/views.py:36
-#, fuzzy, python-format
-#| msgid "Updated site %s"
+#, python-format
 msgctxt "Dashboard message"
 msgid "Updated staff member %s"
-msgstr "Sitio actualizado %s"
+msgstr ""
 
 #: saleor/dashboard/staff/views.py:50
-#, fuzzy, python-format
-#| msgctxt "Dashboard message"
-#| msgid "Added category %s"
+#, python-format
 msgctxt "Dashboard message"
 msgid "Added staff member %s"
-msgstr "Categoría añadida%s"
+msgstr ""
 
 #: saleor/dashboard/staff/views.py:67
-#, fuzzy, python-format
-#| msgctxt "Sale (discount) message"
-#| msgid "Deleted sale %s"
+#, python-format
 msgctxt "Dashboard message"
 msgid "Deleted staff member %s"
-msgstr "Venta borrada %s"
-
-#~ msgctxt "Product form placeholder"
-#~ msgid "Give your awesome product a name"
-#~ msgstr "Dale un nombre asombroso a tu producto"
-
-#~ msgctxt "Dashboard message"
-#~ msgid "Added variant %s"
-#~ msgstr "Variante agregada %s"
-
-#~ msgctxt "Dashboard message"
-#~ msgid "Deleted variants"
-#~ msgstr "Variantes borradas"
+msgstr ""

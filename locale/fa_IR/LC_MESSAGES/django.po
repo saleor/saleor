@@ -2,7 +2,7 @@
 # Copyright (C) 2017 Mirumee Software
 # This file is distributed under the same license as the Saleor package.
 # Mirumee Software <hello@mirumee.com>, 2017.
-#
+# 
 #, fuzzy
 msgid ""
 msgstr ""
@@ -11,12 +11,11 @@ msgstr ""
 "POT-Creation-Date: 2017-11-06 04:12-0600\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Farid Shahy <fkonigy@gmail.com>, 2017\n"
-"Language-Team: Persian (Iran) (https://www.transifex.com/mirumee/teams/34782/"
-"fa_IR/)\n"
-"Language: fa_IR\n"
+"Language-Team: Persian (Iran) (https://www.transifex.com/mirumee/teams/34782/fa_IR/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"Language: fa_IR\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
 
 #: saleor/cart/__init__.py:22
@@ -768,12 +767,9 @@ msgid "OrderNote for Order #%d"
 msgstr ""
 
 #: saleor/order/utils.py:38
-#, fuzzy
-#| msgctxt "order status"
-#| msgid "Fully paid"
 msgctxt "Order status history entry"
 msgid "Order fully paid"
-msgstr "پرداخت شده"
+msgstr ""
 
 #: saleor/order/views.py:89
 #, python-format
@@ -843,20 +839,14 @@ msgid "out of stock"
 msgstr ""
 
 #: saleor/product/filters.py:14
-#, fuzzy
-#| msgctxt "Voucher field"
-#| msgid "name"
 msgctxt "Product list sorting option"
 msgid "name"
-msgstr "نام"
+msgstr ""
 
 #: saleor/product/filters.py:16
-#, fuzzy
-#| msgctxt "Product field"
-#| msgid "price"
 msgctxt "Product list sorting option"
 msgid "price"
-msgstr "قیمت"
+msgstr ""
 
 #: saleor/product/filters.py:31
 msgctxt "Product list sorting form"
@@ -1542,13 +1532,11 @@ msgctxt "Email confirmation message"
 msgid ""
 "Hi!\n"
 "\n"
-"You have requested login access to saleor project. To continue visit the "
-"link below.\n"
+"You have requested login access to saleor project. To continue visit the link below.\n"
 "\n"
 "%(activate_url)s\n"
 "\n"
-"If you didn't try to login to saleor please ignore this message. We "
-"apologise for inconvenience.\n"
+"If you didn't try to login to saleor please ignore this message. We apologise for inconvenience.\n"
 "\n"
 "Sincerely,\n"
 "Saleor Team"
@@ -1564,10 +1552,8 @@ msgstr ""
 msgid ""
 "Hello from %(site_name)s!\n"
 "\n"
-"You're receiving this e-mail because you or someone else has requested a "
-"password for your user account at %(domain)s.\n"
-"It can be safely ignored if you did not request a password reset. Click the "
-"link below to reset your password."
+"You're receiving this e-mail because you or someone else has requested a password for your user account at %(domain)s.\n"
+"It can be safely ignored if you did not request a password reset. Click the link below to reset your password."
 msgstr ""
 
 #: templates/account/email/password_reset_message.txt:8
@@ -1627,7 +1613,8 @@ msgstr "گوگل"
 
 #: templates/account/password_change.html:7 templates/cart/index.html:12
 #: templates/order/details.html:16 templates/order/payment.html:19
-#: templates/product/details.html:16 templates/userprofile/address-edit.html:15
+#: templates/product/details.html:16
+#: templates/userprofile/address-edit.html:15
 #: templates/userprofile/details.html:14
 msgctxt "Main navigation item"
 msgid "Home"
@@ -1740,12 +1727,9 @@ msgid ""
 msgstr ""
 
 #: templates/account/password_reset_from_key.html:42
-#, fuzzy
-#| msgctxt "Checkout create password page title"
-#| msgid "Create password"
 msgctxt "Reset my password link"
 msgid "Reset my password"
-msgstr "ایجاد رمز عبور"
+msgstr ""
 
 #: templates/account/password_reset_from_key_done.html:4
 msgctxt "Password reset from key done page title"
@@ -1764,8 +1748,7 @@ msgstr ""
 #: templates/account/password_reset_from_key_done.html:10
 #, python-format
 msgctxt "Password reset from key done text"
-msgid ""
-"You can now <a href=\"%(login_url)s\">sign in</a> using your new password"
+msgid "You can now <a href=\"%(login_url)s\">sign in</a> using your new password"
 msgstr ""
 
 #: templates/account/password_set.html:14
@@ -2218,12 +2201,14 @@ msgstr ""
 #: templates/dashboard/order/address_form.html:23
 #: templates/dashboard/order/detail.html:11
 #: templates/dashboard/order/detail.html:49
-#: templates/dashboard/order/list.html:7 templates/dashboard/order/list.html:15
+#: templates/dashboard/order/list.html:7
+#: templates/dashboard/order/list.html:15
 msgctxt "Dashboard orders list"
 msgid "Orders"
 msgstr "سفارش ها"
 
-#: templates/dashboard/base.html:158 templates/dashboard/customer/detail.html:9
+#: templates/dashboard/base.html:158
+#: templates/dashboard/customer/detail.html:9
 #: templates/dashboard/customer/detail.html:25
 #: templates/dashboard/customer/list.html:8
 #: templates/dashboard/customer/list.html:18
@@ -2242,7 +2227,8 @@ msgid "Staff members"
 msgstr ""
 
 #: templates/dashboard/base.html:178 templates/dashboard/group/detail.html:28
-#: templates/dashboard/group/list.html:8 templates/dashboard/group/list.html:28
+#: templates/dashboard/group/list.html:8
+#: templates/dashboard/group/list.html:28
 msgctxt "Dashboard groups list"
 msgid "Groups"
 msgstr ""
@@ -2422,7 +2408,8 @@ msgstr ""
 #: templates/dashboard/category/modal/confirm_delete.html:17
 #, python-format
 msgctxt "Delete category modal title"
-msgid "Are you sure you want to delete category <strong>%(category)s</strong>?"
+msgid ""
+"Are you sure you want to delete category <strong>%(category)s</strong>?"
 msgstr ""
 
 #: templates/dashboard/category/modal/confirm_delete.html:22
@@ -3337,12 +3324,9 @@ msgid "Split"
 msgstr ""
 
 #: templates/dashboard/order/pdf/invoice.html:17
-#, fuzzy
-#| msgctxt "Order model"
-#| msgid "Order"
 msgctxt "Invoice header"
 msgid "Order ID:"
-msgstr "سفارش"
+msgstr ""
 
 #: templates/dashboard/order/pdf/invoice.html:21
 msgctxt "Order invoice"
@@ -3350,34 +3334,22 @@ msgid "Invoice"
 msgstr ""
 
 #: templates/dashboard/order/pdf/invoice.html:25
-#, fuzzy
-#| msgctxt "Dashboard shipping methods list"
-#| msgid "Shipping methods"
 msgid "Shipping Details"
-msgstr "روشهای ارسال"
+msgstr ""
 
 #: templates/dashboard/order/pdf/invoice.html:26
-#, fuzzy
-#| msgctxt "Checkout summary title"
-#| msgid "Billing address"
 msgid "Billing Details"
-msgstr "آدرس فاکتور"
+msgstr ""
 
 #: templates/dashboard/order/pdf/invoice.html:34
-#, fuzzy
-#| msgctxt "Checkout shipping address title"
-#| msgid "Shipping address"
 msgctxt "Invoice shipping address"
 msgid "Shipping address"
-msgstr "آدرس ارسال"
+msgstr ""
 
 #: templates/dashboard/order/pdf/invoice.html:42
-#, fuzzy
-#| msgctxt "Checkout summary title"
-#| msgid "Billing address"
 msgctxt "Invoice billing address"
 msgid "Billing address"
-msgstr "آدرس فاکتور"
+msgstr ""
 
 #: templates/dashboard/order/pdf/invoice.html:51
 #: templates/dashboard/order/pdf/packing_slip.html:51
@@ -3386,20 +3358,14 @@ msgid "Items Ordered"
 msgstr ""
 
 #: templates/dashboard/order/pdf/invoice.html:121
-#, fuzzy
-#| msgctxt "Delivery group field"
-#| msgid "shipping price"
 msgctxt "Order totals header"
 msgid "Total Shipping Price"
-msgstr "هزینه ارسال"
+msgstr ""
 
 #: templates/dashboard/order/pdf/packing_slip.html:17
-#, fuzzy
-#| msgctxt "Order model"
-#| msgid "Order"
 msgctxt "Packing slip header"
 msgid "Order ID:"
-msgstr "سفارش"
+msgstr ""
 
 #: templates/dashboard/order/pdf/packing_slip.html:21
 msgctxt "Packing slips header"
@@ -3407,36 +3373,24 @@ msgid "Packing Slips"
 msgstr ""
 
 #: templates/dashboard/order/pdf/packing_slip.html:25
-#, fuzzy
-#| msgctxt "Dashboard shipping methods list"
-#| msgid "Shipping methods"
 msgctxt "Packing slip shipping details"
 msgid "Shipping Details"
-msgstr "روشهای ارسال"
+msgstr ""
 
 #: templates/dashboard/order/pdf/packing_slip.html:26
-#, fuzzy
-#| msgctxt "Checkout summary title"
-#| msgid "Billing address"
 msgctxt "Packing slip shipping details"
 msgid "Billing Details"
-msgstr "آدرس فاکتور"
+msgstr ""
 
 #: templates/dashboard/order/pdf/packing_slip.html:34
-#, fuzzy
-#| msgctxt "Checkout shipping address title"
-#| msgid "Shipping address"
 msgctxt "Packing slip shipping address"
 msgid "Shipping address"
-msgstr "آدرس ارسال"
+msgstr ""
 
 #: templates/dashboard/order/pdf/packing_slip.html:42
-#, fuzzy
-#| msgctxt "Checkout summary title"
-#| msgid "Billing address"
 msgctxt "Packing slip billing address"
 msgid "Billing address"
-msgstr "آدرس فاکتور"
+msgstr ""
 
 #: templates/dashboard/product/_stock_table.html:7
 msgid "Location"
@@ -3770,8 +3724,8 @@ msgstr ""
 #, python-format
 msgctxt "Modal delete product class text"
 msgid ""
-"Are you sure you want to delete product class <strong>%(product_class)s</"
-"strong>?"
+"Are you sure you want to delete product class "
+"<strong>%(product_class)s</strong>?"
 msgstr ""
 
 #: templates/dashboard/product/product_class/modal/confirm_delete.html:23
@@ -3934,15 +3888,14 @@ msgstr ""
 msgctxt "Dashboard confirmation modal"
 msgid ""
 "\n"
-"Are you sure you want to delete variant <strong>%(variant)s</strong> of "
-"product %(product)s?\n"
+"Are you sure you want to delete variant <strong>%(variant)s</strong> of product %(product)s?\n"
 msgstr ""
 
 #: templates/dashboard/product/product_variant/modal/confirm_delete.html:25
 msgctxt "Dashboard confirmation modal"
 msgid ""
-"This is the only variant of this product. If you remove it, the product will "
-"become unavailable."
+"This is the only variant of this product. If you remove it, the product will"
+" become unavailable."
 msgstr ""
 
 #: templates/dashboard/product/product_variant/modal/select_images.html:9
@@ -4076,7 +4029,8 @@ msgstr ""
 #, python-format
 msgctxt "Modal delete stock location text"
 msgid ""
-"Are you sure you want to delete stock location <strong>%(location)s</strong>?"
+"Are you sure you want to delete stock location "
+"<strong>%(location)s</strong>?"
 msgstr ""
 
 #: templates/dashboard/product/stock_location/modal/confirm_delete.html:23
@@ -4240,8 +4194,7 @@ msgstr ""
 msgctxt "Dashboard confirmation modal"
 msgid ""
 "\n"
-"Are you sure you want to delete shipping method <strong>%(shipping_method)s</"
-"strong>?\n"
+"Are you sure you want to delete shipping method <strong>%(shipping_method)s</strong>?\n"
 msgstr ""
 
 #: templates/dashboard/sites/detail.html:9
@@ -4280,14 +4233,12 @@ msgid "Remove staff member"
 msgstr ""
 
 #: templates/dashboard/staff/detail.html:63
-#, fuzzy
-#| msgctxt "Order details link text"
-#| msgid "Payment details"
 msgctxt "Staff member details header"
 msgid "Staff member details"
-msgstr "جزییات پرداخت"
+msgstr ""
 
-#: templates/dashboard/staff/list.html:9 templates/dashboard/staff/list.html:29
+#: templates/dashboard/staff/list.html:9
+#: templates/dashboard/staff/list.html:29
 msgctxt "Dashboard staff members list"
 msgid "Staff"
 msgstr ""
@@ -4311,8 +4262,8 @@ msgid ""
 "member also removes him from customer list and removes all his related data "
 "(orders, payment etc.).</p> <p>We strongly recommend not deleting user "
 "accounts that were used for purchases (for example customer which was "
-"promoted with staff member status).</p> <p>%(staff)s has <strong>%(orders)s</"
-"strong> orders.</p>"
+"promoted with staff member status).</p> <p>%(staff)s has "
+"<strong>%(orders)s</strong> orders.</p>"
 msgstr ""
 
 #: templates/home.html:13
@@ -4734,15 +4685,3 @@ msgstr "ویرایش"
 msgctxt "No addresses text"
 msgid "You will see new addresses here after first successful checkout."
 msgstr ""
-
-#~ msgctxt "Site field"
-#~ msgid "name"
-#~ msgstr "نام"
-
-#~ msgctxt "Order history table header"
-#~ msgid "Date"
-#~ msgstr "تاریخ"
-
-#~ msgctxt "Order history table header"
-#~ msgid "User"
-#~ msgstr "کاربر"
