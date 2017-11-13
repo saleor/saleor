@@ -23,6 +23,12 @@ def index(request, cart):
     cart_lines = []
     check_product_availability_and_warn(request, cart)
 
+    # refresh required to get updated cart lines and it's quantity
+    try:
+        cart = Cart.objects.get(pk=cart.pk)
+    except Cart.DoesNotExist:
+        pass
+
     for line in cart.lines.all():
         initial = {'quantity': line.get_quantity()}
         form = ReplaceCartLineForm(None, cart=cart, variant=line.variant,
