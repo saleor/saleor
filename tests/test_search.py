@@ -9,6 +9,7 @@ MATCH_SEARCH_REQUEST = ['method', 'host', 'port', 'path', 'body']
 NEW_BACKEND_FOUND = {15, 34, 58}  # same as in recorded data!
 PRODUCTS_INDEXED = NEW_BACKEND_FOUND
 
+@pytest.mark.vcr()
 @pytest.fixture
 def indexed_products(product_class, default_category):
     ''' Products to be found by search backend
@@ -33,18 +34,9 @@ def _extract_pks(object_list):
     return [prod.pk for prod, _ in object_list]
 
 
-@pytest.fixture
-def new_search_backend():
-    import saleor.search.forms
-    old_backend = saleor.search.forms.USE_BACKEND
-    saleor.search.forms.USE_BACKEND = 'newelastic'
-    yield new_search_backend
-    saleor.search.forms.USE_BACKEND = old_backend
-
-
 @pytest.mark.integration
 @pytest.mark.vcr(record_mode='once', match_on=MATCH_SEARCH_REQUEST)
-def test_new_search_with_empty_results(db, client, new_search_backend):
+def test_new_search_with_empty_results(db, client):
     ''' no products found with foo '''
     WORD = 'foo'
     response = client.get(reverse('search:search'), {'q': WORD})
@@ -54,8 +46,7 @@ def test_new_search_with_empty_results(db, client, new_search_backend):
 
 @pytest.mark.integration
 @pytest.mark.vcr(record_mode='once', match_on=MATCH_SEARCH_REQUEST)
-def test_new_search_with_result(db, indexed_products, client,
-                                new_search_backend):
+def test_new_search_with_result(db, indexed_products, client):
     ''' some products founds, only those both in search result and objects '''
     EXISTING_PHRASE = 'Group'
     response = client.get(reverse('search:search'), {'q': EXISTING_PHRASE})
@@ -79,7 +70,7 @@ def products_with_mixed_publishing(indexed_products):
 @pytest.mark.integration
 @pytest.mark.vcr(record_mode='once', match_on=MATCH_SEARCH_REQUEST)
 def test_new_search_doesnt_show_unpublished(db, products_with_mixed_publishing,
-                                            client, new_search_backend):
+                                            client):
     published_products = NEW_BACKEND_FOUND - PRODUCTS_TO_UNPUBLISH
     EXISTING_PHRASE = 'Group'
     response = client.get(reverse('search:search'), {'q': EXISTING_PHRASE})
