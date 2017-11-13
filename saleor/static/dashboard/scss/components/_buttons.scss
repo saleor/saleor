@@ -2,6 +2,9 @@
   color: $secondary-color;
   &:hover {
     color: #fff;
+    &:not(.btn) {
+      color: $secondary-color;
+    }
   }
 }
 .btn {
