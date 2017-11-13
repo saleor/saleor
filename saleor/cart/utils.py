@@ -58,9 +58,6 @@ def remove_unavailable_variants(cart):
         except InsufficientStock as e:
             quantity = e.item.get_stock_quantity()
             cart.add(line.variant, quantity=quantity, replace=True)
-        finally:
-            if quantity > 0:
-                line.refresh_from_db()
 
 
 def get_product_variants_and_prices(cart, product):
