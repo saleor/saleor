@@ -27,7 +27,7 @@
 {% block header_extra %}
   {% if perms.product.edit_category %}
     <div class="fixed-action-btn">
-      <a class="btn-fab btn-floating btn-large waves-effect waves-light teal"
+      <a class="btn-fab btn-floating btn-large waves-effect waves-light"
       title="{% trans "Add category" context "Category list add button text" %}"
       href="{% if root %}{% url 'dashboard:category-add' root_pk=root.pk %}{% else %}{% url 'dashboard:category-add' %}{% endif %}">
         <svg data-src="{% static "dashboard/images/add.svg" %}" />
