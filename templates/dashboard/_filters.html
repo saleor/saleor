@@ -1,0 +1,22 @@
+{% load i18n %}
+{% load materializecss %}
+
+<div class="row">
+  <div class="col s12">
+    <div class="card">
+      <div class="card-content">
+        <span class="card-title">{% trans 'Filters' context 'Dashboard card title' %}</span>
+        <form method="get">
+          {% for field in filter.form %}
+            <div class="col s4">
+              {{ field|materializecss }}
+            </div>
+          {% endfor %}
+          <div class="card-action">
+            <button class="btn primary" type="submit">{% trans 'Update' context 'Category price filter' %}</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
