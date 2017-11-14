@@ -572,7 +572,9 @@ def attribute_choice_value_delete(request, attribute_pk, value_pk):
 def stock_location_list(request):
     stock_locations = StockLocation.objects.all().order_by('name')
     stock_locations = get_paginator_items(
-        stock_locations, settings.DASHBOARD_PAGINATE_BY, request.GET.get('page'))
+        stock_locations,
+        settings.DASHBOARD_PAGINATE_BY,
+        request.GET.get('page'))
     ctx = {'locations': stock_locations}
     return TemplateResponse(
         request,
