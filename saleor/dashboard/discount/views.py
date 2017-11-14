@@ -8,8 +8,10 @@ from django.template.response import TemplateResponse
 from django.utils.translation import pgettext_lazy
 
 from ...core.utils import get_paginator_items
+from ...core.utils.filters import get_now_sorted_by
 from ...discount.models import Sale, Voucher
 from ..views import staff_member_required
+from .filters import SaleFilter, SORT_BY_FIELDS
 from . import forms
 
 
@@ -17,9 +19,16 @@ from . import forms
 @permission_required('discount.view_sale')
 def sale_list(request):
     sales = Sale.objects.prefetch_related('products').order_by('name')
+    sale_filter = SaleFilter(request.GET, queryset=sales)
     sales = get_paginator_items(
-        sales, settings.DASHBOARD_PAGINATE_BY, request.GET.get('page'))
-    ctx = {'sales': sales}
+        sale_filter.qs, settings.DASHBOARD_PAGINATE_BY, request.GET.get('page'))
+    now_sorted_by = get_now_sorted_by(sale_filter, SORT_BY_FIELDS)
+    arg_sort_by = request.GET.get('sort_by')
+    is_descending = arg_sort_by.startswith('-') if arg_sort_by else False
+    ctx = {
+        'sales': sales, 'filter': sale_filter,
+        'now_sorted_by': now_sorted_by,
+        'is_descending': is_descending}
     return TemplateResponse(request, 'dashboard/discount/sale/list.html', ctx)
 
 
