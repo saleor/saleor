@@ -1,3 +1,5 @@
+from __future__ import unicode_literals
+
 from django.utils import six
 from graphene.types import Scalar
 from graphql.language import ast

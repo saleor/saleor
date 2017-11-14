@@ -1,3 +1,5 @@
+from __future__ import unicode_literals
+
 from django.conf import settings
 from django.contrib.admin.views.decorators import \
     staff_member_required as _staff_member_required

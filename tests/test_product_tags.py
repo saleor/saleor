@@ -1,3 +1,5 @@
+from __future__ import unicode_literals
+
 from django.contrib.staticfiles.templatetags.staticfiles import static
 from mock import Mock
 from saleor.product.templatetags.product_images import (

@@ -1,3 +1,5 @@
+from __future__ import unicode_literals
+
 from django.forms import MultiWidget, HiddenInput
 from versatileimagefield.widgets import (ClearableFileInputWithImagePreview,
                                          SizedImageCenterpointWidgetMixIn)

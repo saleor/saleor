@@ -1,3 +1,5 @@
+from __future__ import unicode_literals
+
 from datetime import date, datetime, timedelta
 from decimal import Decimal
 from freezegun import freeze_time

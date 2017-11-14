@@ -1,3 +1,5 @@
+from __future__ import unicode_literals
+
 import graphene
 
 from django.shortcuts import _get_queryset

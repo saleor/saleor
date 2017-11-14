@@ -1,3 +1,5 @@
+from __future__ import unicode_literals
+
 try:
     from urllib.parse import urlparse
 except ImportError:
