@@ -1,3 +1,5 @@
+from __future__ import unicode_literals
+
 from django import forms
 from django.template.loader import get_template
 from django import template

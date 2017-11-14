@@ -1,3 +1,5 @@
+from __future__ import unicode_literals
+
 from collections import defaultdict, namedtuple
 
 from prices import Price, PriceRange

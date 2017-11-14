@@ -1,3 +1,5 @@
+from __future__ import unicode_literals
+
 from social_core.backends.facebook import FacebookOAuth2
 
 from . import BaseBackend

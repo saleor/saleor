@@ -1,3 +1,5 @@
+from __future__ import unicode_literals
+
 from bootstrap3.renderers import FormRenderer as BaseFormRenderer
 
 

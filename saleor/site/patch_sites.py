@@ -1,3 +1,5 @@
+from __future__ import unicode_literals
+
 '''
 Since django.contrib.sites may not be thread-safe when there are
 multiple instances of the application server, we're patching it with

@@ -1,3 +1,5 @@
+from __future__ import unicode_literals
+
 from templated_email import send_templated_mail
 from django.conf import settings
 from django.contrib.sites.models import Site

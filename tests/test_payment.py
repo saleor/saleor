@@ -1,3 +1,5 @@
+from __future__ import unicode_literals
+
 from prices import Price
 
 from saleor.order.models import Payment
