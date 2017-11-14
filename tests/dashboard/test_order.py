@@ -442,3 +442,17 @@ def test_view_change_order_line_stock_merges_lines(
 
     stock.refresh_from_db()
     assert stock.quantity_allocated == 0
+
+
+def test_view_order_add(admin_client, customer_user):
+    url = reverse('dashboard:order-add')
+    data = {'user': customer_user.pk}
+
+    response = admin_client.post(url, data)
+
+    assert response.status_code == 302
+    assert Order.objects.count() == 1
+    order = Order.objects.last()
+    assert order.user == customer_user
+    assert response.url == reverse(
+        'dashboard:order-details', kwargs={'order_pk': order.pk})
