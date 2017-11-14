@@ -9,6 +9,18 @@
     }
   }
 
+  &-description {
+    tr {
+      th, td {
+        padding: 10px 24px;
+        p {
+          margin: 5px 0 0 0;
+          color: color('grey', 'base');
+        }
+      }
+    }
+  }
+
   &-action {
     border-top: 1px solid $table-border-color;
     padding: 10px 8px;
