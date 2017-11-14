@@ -1,6 +1,8 @@
 {% extends "dashboard/base.html" %}
 {% load i18n %}
 {% load prices_i18n %}
+{% load shop %}
+{% load staticfiles %}
 {% load materializecss %}
 {% load utils %}
 {% load static %}
@@ -37,9 +39,12 @@
         <thead>
           <tr>
             <th>
-              {% trans "Name" context "Sale (discount) table header" %}
+              <a href="{% get_sort_by_url_toggle 'name' %}">
+                {% trans "Name" context "Sale (discount) table header" %}
+              </a>
             </th>
             <th>
+              <a href="{% get_sort_by_url_toggle 'value' %}">
               {% trans "Discount" context "Sale (discount) table header" %}
             </th>
           </tr>

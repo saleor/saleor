@@ -27,8 +27,7 @@ def sale_list(request):
     is_descending = arg_sort_by.startswith('-') if arg_sort_by else False
     ctx = {
         'sales': sales, 'filter': sale_filter,
-        'now_sorted_by': now_sorted_by,
-        'is_descending': is_descending}
+        'now_sorted_by': now_sorted_by, 'is_descending': is_descending}
     return TemplateResponse(request, 'dashboard/discount/sale/list.html', ctx)
 
 

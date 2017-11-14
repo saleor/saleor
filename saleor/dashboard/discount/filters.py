@@ -9,7 +9,7 @@ from ...discount.models import Sale
 
 SORT_BY_FIELDS = {
     'name': pgettext_lazy('Product list sorting option', 'name'),
-    'discount': pgettext_lazy('Product list sorting option', 'discount')}
+    'value': pgettext_lazy('Product list sorting option', 'value')}
 
 
 class SaleFilter(FilterSet):
