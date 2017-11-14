@@ -22,6 +22,7 @@
 {% block menu_discounts_class %} active{% endblock %}
 
 {% block content %}
+  {% include './../../_filters.html' %}
   {% if perms.discount.edit_sale %}
     <div class="fixed-action-btn">
       <a href="{% url 'dashboard:sale-add' %}" class="btn-fab btn-floating btn-large waves-effect waves-light"
