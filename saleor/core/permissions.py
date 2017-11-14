@@ -17,6 +17,8 @@ MODELS_PERMISSIONS = [
     'sale.edit_sale',
     'shipping.view_shipping',
     'shipping.edit_shipping',
+    'site.edit_settings',
+    'site.view_settings',
     'user.view_user',
     'user.edit_user',
     'user.view_group',

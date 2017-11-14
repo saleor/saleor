@@ -41,7 +41,7 @@ def group_create(request):
 
 
 @staff_member_required
-@permission_required('userprofile.view_group')
+@permission_required('userprofile.edit_group')
 def group_details(request, pk):
     group = Group.objects.get(pk=pk)
     form = GroupPermissionsForm(request.POST or None, instance=group)
