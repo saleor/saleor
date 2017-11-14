@@ -145,3 +145,14 @@ li#version-indicator {
     color: unset;
   }
 }
+
+svg {
+  &.fill {
+    &-primary {
+      fill: $primary-color;
+    }
+    &-secondary {
+      fill: $secondary-color;
+    }
+  }
+}
