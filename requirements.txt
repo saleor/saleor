@@ -43,10 +43,9 @@ django==1.11.5
 dnspython==1.15.0         # via email-validator
 docutils==0.14            # via botocore
 elasticsearch-dsl==5.3.0
-elasticsearch==5.4.0
+elasticsearch==5.5.1
 email-validator==1.0.2    # via faker
 faker==0.8.3
-freezegun==0.3.9
 google-i18n-address==2.0.3
 google-measurement-protocol==0.1.6
 graphene-django==1.2.0
@@ -78,11 +77,10 @@ pycparser==2.18           # via cffi
 pyjwt==1.5.3              # via django-payments, social-auth-core
 pyphen==0.9.4             # via weasyprint
 pytest-django==3.1.2
-pytest-freezegun==0.2.0
 pytest-mock==1.6.3
 pytest-vcr==0.3.0
 pytest==3.2.2
-python-dateutil==2.6.1    # via botocore, elasticsearch-dsl, faker, freezegun
+python-dateutil==2.6.1    # via botocore, elasticsearch-dsl, faker
 python-openid==2.2.5      # via social-auth-core
 pytz==2017.2              # via babel, celery, django
 pyyaml==3.12              # via vcrpy
@@ -100,7 +98,7 @@ suds-jurko==0.6           # via django-payments
 text-unidecode==1.0
 tinycss2==0.6.1           # via cssselect2, weasyprint
 typing==3.6.2             # via promise
-urllib3==1.22             # via elasticsearch, requests
+urllib3==1.21.1           # via elasticsearch, requests
 uwsgi==2.0.15
 vcrpy==1.11.1             # via pytest-vcr
 vine==1.1.4               # via amqp
