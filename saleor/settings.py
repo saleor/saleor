@@ -134,7 +134,7 @@ MIDDLEWARE_CLASSES = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.locale.LocaleMiddleware',
-    'babeldjango.middleware.LocaleMiddleware',
+    'django_babel.middleware.LocaleMiddleware',
     'saleor.core.middleware.DiscountMiddleware',
     'saleor.core.middleware.GoogleAnalytics',
     'saleor.core.middleware.CountryMiddleware',
@@ -175,7 +175,7 @@ INSTALLED_APPS = [
 
     # External apps
     'versatileimagefield',
-    'babeldjango',
+    'django_babel',
     'bootstrap3',
     'django_prices',
     'django_prices_openexchangerates',

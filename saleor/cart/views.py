@@ -1,7 +1,7 @@
 """Cart-related views."""
 from __future__ import unicode_literals
 
-from babeldjango.templatetags.babel import currencyfmt
+from django_babel.templatetags.babel import currencyfmt
 from django.core.urlresolvers import reverse
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
