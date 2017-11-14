@@ -70,8 +70,8 @@ def ajax_users_list(request):
     search_query = request.GET.get('q', '')
     if search_query:
         queryset = queryset.filter(
-            Q(first_name__icontains=search_query) |
-            Q(last_name__icontains=search_query) |
+            Q(default_billing_address__first_name__icontains=search_query) |
+            Q(default_billing_address__last_name__icontains=search_query) |
             Q(email__icontains=search_query))
     users = []
     for user in queryset:
