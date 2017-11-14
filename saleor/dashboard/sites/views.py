@@ -1,21 +1,24 @@
 from django.contrib import messages
+from django.contrib.auth.decorators import permission_required
 from django.contrib.sites.shortcuts import get_current_site
 from django.shortcuts import get_object_or_404, redirect
 from django.template.response import TemplateResponse
 from django.utils.translation import ugettext_lazy as _
 
 from .forms import AuthorizationKeyFormSet, SiteForm, SiteSettingForm
-from ..views import superuser_required
+from ..views import staff_member_required
 from ...site.models import AuthorizationKey, SiteSettings
 
 
-@superuser_required
+@staff_member_required
+@permission_required('site.edit_settings')
 def index(request):
     settings = get_current_site(request).settings
     return redirect('dashboard:site-update', site_id=settings.pk)
 
 
-@superuser_required
+@staff_member_required
+@permission_required('site.edit_settings')
 def update(request, site_id=None):
     site_settings = get_object_or_404(SiteSettings, pk=site_id)
     site = site_settings.site

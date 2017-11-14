@@ -731,17 +731,11 @@ def test_staff_group_member_can_view_group_list_and_details(
     assert not staff_user.has_perm("userprofile.view_group")
     response = staff_client.get(reverse('dashboard:group-list'))
     assert response.status_code == 302
-    response = staff_client.get(reverse('dashboard:group-details',
-                                        args=[staff_group.pk]))
-    assert response.status_code == 302
     staff_group.permissions.add(permission_view_group)
     staff_user.groups.add(staff_group)
     staff_user = User.objects.get(pk=staff_user.pk)
     assert staff_user.has_perm("userprofile.view_group")
     response = staff_client.get(reverse('dashboard:group-list'))
-    assert response.status_code == 200
-    response = staff_client.get(reverse('dashboard:group-details',
-                                        args=[staff_group.pk]))
     assert response.status_code == 200
 
 
@@ -751,12 +745,18 @@ def test_staff_with_permission_can_create_and_delete_group(
     response = staff_client.get(reverse('dashboard:group-delete',
                                         args=[staff_group.pk]))
     assert response.status_code == 302
+    response = staff_client.get(reverse('dashboard:group-details',
+                                        args=[staff_group.pk]))
+    assert response.status_code == 302
     response = staff_client.get(reverse('dashboard:group-create'))
     assert response.status_code == 302
     staff_group.permissions.add(permission_edit_group)
     staff_user.groups.add(staff_group)
     staff_user = User.objects.get(pk=staff_user.pk)
     assert staff_user.has_perm("userprofile.edit_group")
+    response = staff_client.get(reverse('dashboard:group-details',
+                                        args=[staff_group.pk]))
+    assert response.status_code == 200
     response = staff_client.get(reverse('dashboard:group-delete',
                                         args=[staff_group.pk]))
     assert response.status_code == 200
@@ -917,3 +917,19 @@ def test_staff_with_permissions_can_promote_customer(
                                          args=[customer_user.pk]))
     customer_user = User.objects.get(pk=customer_user.pk)
     assert customer_user.is_staff
+
+
+def test_staff_group_member_can_view_and_edit_site_settings(
+        staff_client, staff_user, staff_group, site_settings,
+        permission_edit_settings):
+    assert not staff_user.has_perm("site.edit_settings")
+    response = staff_client.get(reverse('dashboard:site-update',
+                                        args=[site_settings.pk]))
+    assert response.status_code == 302
+    staff_group.permissions.add(permission_edit_settings)
+    staff_user.groups.add(staff_group)
+    staff_user = User.objects.get(pk=staff_user.pk)
+    assert staff_user.has_perm("site.edit_settings")
+    response = staff_client.get(reverse('dashboard:site-update',
+                                        args=[site_settings.pk]))
+    assert response.status_code == 200
