@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 import datetime
 import json
 
+from django.conf import settings
 from django.http import HttpResponsePermanentRedirect, JsonResponse
 from django.shortcuts import get_object_or_404, redirect
 from django.template.response import TemplateResponse
@@ -10,13 +11,12 @@ from django.urls import reverse
 
 from ..cart.utils import set_cart_cookie
 from ..core.utils import get_paginator_items, serialize_decimal
-from ..settings import PAGINATE_BY
 from .filters import ProductFilter, get_now_sorted_by, get_sort_by_choices
 from .models import Category
-from .utils import (
-    get_availability, get_product_attributes_data, get_product_images,
-    get_variant_picker_data, handle_cart_form, product_json_ld,
-    products_for_cart, products_with_availability, products_with_details)
+from .utils import (get_availability, get_product_attributes_data,
+                    get_product_images, get_variant_picker_data,
+                    handle_cart_form, product_json_ld, products_for_cart,
+                    products_with_availability, products_with_details)
 
 
 def product_details(request, slug, product_id, form=None):
@@ -123,7 +123,7 @@ def category_index(request, path, category_id):
     product_filter = ProductFilter(
         request.GET, queryset=products, category=category)
     products_paginated = get_paginator_items(
-        product_filter.qs, PAGINATE_BY, request.GET.get('page'))
+        product_filter.qs, settings.PAGINATE_BY, request.GET.get('page'))
     products_and_availability = list(products_with_availability(
         products_paginated, request.discounts, request.currency))
     now_sorted_by = get_now_sorted_by(product_filter)

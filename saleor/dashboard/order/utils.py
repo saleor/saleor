@@ -1,9 +1,8 @@
+from django.conf import settings.STATIC_URL
 from django.contrib.sites.shortcuts import get_current_site
 from django.template.loader import get_template
 
-from ...settings import STATIC_URL
 from ...order.models import DeliveryGroup, Order
-
 
 INVOICE_TEMPLATE = 'dashboard/order/pdf/invoice.html'
 PACKING_SLIP_TEMPLATE = 'dashboard/order/pdf/packing_slip.html'
@@ -14,7 +13,7 @@ def get_statics_absolute_url(request):
     absolute_url = '%(protocol)s://%(domain)s%(static_url)s' % {
         'protocol': 'https' if request.is_secure() else 'http',
         'domain': site.domain,
-        'static_url': STATIC_URL,
+        'static_url': settings.STATIC_URL,
     }
     return absolute_url
 
