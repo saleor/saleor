@@ -424,4 +424,3 @@ IMPERSONATE_GET_PARAM = 'impersonate'
 IMPERSONATE_REDIRECT_URL = '/?action=' + IMPERSONATE_GET_PARAM
 IMPERSONATE_USE_HTTP_REFERER = True
 IMPERSONATE_CUSTOM_ALLOW = 'saleor.userprofile.utils.can_impersonate'
-
