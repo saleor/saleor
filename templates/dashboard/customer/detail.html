@@ -41,7 +41,7 @@
       <svg data-src="{% static "dashboard/images/more_vert.svg" %}" height="24" width="24" />
     </a>
     <ul id="context-menu" class="dropdown-content">
-      {% if perms.userprofile.edit_user %}
+      {% if perms.userprofile.edit_user and perms.userprofile.edit_staff %}
         <li>
           <a href="#base-modal" data-href="{% url 'dashboard:customer-promote' pk=customer.pk %}"
           class="modal-trigger-custom">
