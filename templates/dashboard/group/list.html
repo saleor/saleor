@@ -13,13 +13,13 @@
 {% block menu_groups_class %}active{% endblock %}
 
 {% block header_extra %}
-    <div class="fixed-action-btn">
-      <a class="btn-fab btn-floating btn-large waves-effect waves-light"
-        title="{% trans "Add group" context "Group list add button text" %}"
-        href="{% url 'dashboard:group-create' %}">
-        <svg data-src="{% static "dashboard/images/add.svg" %}" />
-      </a>
-    </div>
+  <div class="fixed-action-btn">
+    <a class="btn-fab btn-floating btn-large waves-effect waves-light"
+       title="{% trans "Add group" context "Group list add button text" %}"
+       href="{% url 'dashboard:group-create' %}">
+      <svg data-src="{% static "dashboard/images/add.svg" %}"/>
+    </a>
+  </div>
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -31,32 +31,40 @@
 {% endblock %}
 
 {% block content %}
-  {% if groups %}
-    <ul class="collection list">
-      {% for group in groups %}
-        <li class="collection-item list-item">
-          <a class="list-item-name" href="{% url 'dashboard:group-details' pk=group.name.pk %}">
-            {{ group.name }}
-            <p class="list-item-desc">
-              <span>
-                {% for permission in group.permissions %}
-                  {{ permission.name }},
-                {% endfor %}
-              </span>
-            </p>
-          </a>
-        </li>
-      {% endfor %}
-    </ul>
-  {% else %}
-    <div class="card-content card-content--no-data not-found">
-      <p class="grey-text">
-        {% trans "No groups found." context "Empty group table message" %}
-      </p>
+  <div class="row">
+    <div class="col s12">
+      {% if groups %}
+        <div class="card">
+          <div class="data-table-container">
+            <table class="bordered highlight data-table data-table-description">
+              <tbody>
+              {% for group in groups %}
+                <tr data-action-go="{% url 'dashboard:group-details' pk=group.name.pk %}">
+                  <td>
+                    {{ group.name }}
+                    <p>
+                <span>
+                  {% for permission in group.permissions %}
+                    {{ permission.name }},
+                  {% endfor %}
+                </span>
+                    </p>
+                  </td>
+                </tr>
+              {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+        {% paginate groups %}
+      {% else %}
+        <div class="card-content card-content--no-data not-found">
+          <p class="grey-text">
+            {% trans "No groups found." context "Empty group table message" %}
+          </p>
+        </div>
+      {% endif %}
     </div>
-  {% endif %}
-
-  {% paginate groups %}
-
+  </div>
 {% endblock %}
 
