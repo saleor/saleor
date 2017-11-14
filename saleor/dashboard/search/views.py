@@ -18,14 +18,14 @@ def search(request):
         Order: Order.objects.prefetch_related('user'),
         User: User.objects.all()}
     if form.is_valid():
-        results = form.search(queryset_map=queryset_map)
-        page = paginate_results(results, request.GET, settings.PAGINATE_BY)
+        results = form.search()
+        #page = paginate_results(results, request.GET, settings.PAGINATE_BY)
         query = form.cleaned_data['q']
     else:
-        page = []
+        results = []
     ctx = {
         'form': form,
         'query': query,
-        'results': page,
+        'results': results,
         'query_string': '?q=%s' % query}
     return render(request, 'dashboard/search/results.html', ctx)
