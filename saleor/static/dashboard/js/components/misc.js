@@ -20,8 +20,8 @@ export default $(document).ready((e) => {
   });
 
   $('#product-is-published').on('click', (e) => {
-    const form = $(e.currentTarget).closest('form');
-    const input = form.find('input')[0];
+    const form = $(e.currentTarget).closest('#toggle-publish-form');
+    const input = form.find('#toggle-publish-switch')[0];
     if (e.target === input) {
       const url = form.attr('action');
       fetch(url, {
