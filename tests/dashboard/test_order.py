@@ -456,3 +456,18 @@ def test_view_order_add(admin_client, customer_user):
     assert order.user == customer_user
     assert response.url == reverse(
         'dashboard:order-details', kwargs={'order_pk': order.pk})
+
+
+def test_view_order_add_sets_proper_addresses(
+        admin_client, customer_user, billing_address):
+    customer_user.default_billing_address = billing_address
+    customer_user.save()
+
+    url = reverse('dashboard:order-add')
+    data = {'user': customer_user.pk}
+    admin_client.post(url, data)
+
+    order = Order.objects.last()
+    assert order.user == customer_user
+    assert order.billing_address == customer_user.default_billing_address
+    assert order.shipping_address == None
