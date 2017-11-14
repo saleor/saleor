@@ -20,11 +20,16 @@ export default $(document).ready((e) => {
   });
 
   $('#product-is-published').on('click', (e) => {
-    const input = $(e.currentTarget).find('input')[0];
+    const form = $(e.currentTarget).closest('#toggle-publish-form');
+    const input = form.find('#toggle-publish-switch')[0];
     if (e.target === input) {
-      const url = $(e.currentTarget).attr('data-url');
+      const url = form.attr('action');
       fetch(url, {
-        credentials: 'same-origin'
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: {
+          'X-CSRFToken': $('[name=csrfmiddlewaretoken]').val()
+        }
       }).then((r) => {
         return r.json();
       }).then((r) => {

@@ -179,6 +179,7 @@ def product_detail(request, pk):
     return TemplateResponse(request, 'dashboard/product/detail.html', ctx)
 
 
+@require_POST
 @staff_member_required
 @permission_required('product.edit_product')
 def product_toggle_is_published(request, pk):
