@@ -7,7 +7,6 @@
 amqp==2.2.2               # via kombu
 asn1crypto==0.22.0        # via cryptography
 babel==2.5.1
-babeldjango==0.2.2        # via django-prices
 billiard==3.5.0.3         # via celery
 boto3==1.4.7
 botocore==1.7.14          # via boto3, s3transfer
@@ -32,7 +31,7 @@ django-filter==1.0.4
 django-mptt==0.8.7
 django-payments==0.12.0
 django-prices-openexchangerates==0.1.15
-django-prices==0.6.2
+django-prices==0.7.0
 django-redis==4.8.0
 django-render-block==0.5  # via django-templated-email
 django-storages==1.6.5
