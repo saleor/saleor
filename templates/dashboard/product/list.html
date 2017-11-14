@@ -2,6 +2,7 @@
 {% load i18n %}
 {% load prices_i18n %}
 {% load materializecss %}
+{% load shop %}
 {% load staticfiles %}
 {% load product_first_image from product_images %}
 {% load utils %}
@@ -75,10 +76,14 @@
                 </th>
                 <th></th>
                 <th class="wide">
-                  {% trans "Name" context "Products list table header" %}
+                  <a href="{% get_sort_by_url_toggle 'name' %}">
+                    {% trans "Name" context "Products list table header" %}
+                  </a>
                 </th>
                 <th class="right-align">
-                  {% trans "Price" context "Products list table header" %}
+                  <a href="{% get_sort_by_url_toggle 'price' %}">
+                    {% trans "Price" context "Products list table header" %}
+                  </a>
                 </th>
               </tr>
             </thead>
