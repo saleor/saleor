@@ -1,8 +1,8 @@
 from saleor.product.models import Product
 from django.core.urlresolvers import reverse
+from elasticsearch_dsl.connections import connections
 from decimal import Decimal
 import pytest
-
 
 MATCH_SEARCH_REQUEST = ['method', 'host', 'port', 'path', 'body']
 PRODUCTS_INDEXED = {15, 56}  # same as in recorded data!
@@ -16,6 +16,12 @@ def es_autosync_disabled(settings):
     ''' Prevent ES index from being refreshed every time obj is saved '''
     settings.ELASTICSEARCH_DSL_AUTO_REFRESH = False
     settings.ELASTICSEARCH_DSL_AUTOSYNC = False
+
+
+@pytest.fixture(scope='module', autouse=True)
+def enable_es():
+    ES_URL = 'http://search:9200'
+    connections.create_connection('default', hosts=[ES_URL])
 
 
 @pytest.mark.vcr()
