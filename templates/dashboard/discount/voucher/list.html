@@ -1,6 +1,7 @@
 {% extends "dashboard/base.html" %}
 {% load i18n %}
 {% load prices_i18n %}
+{% load shop %}
 {% load materializecss %}
 {% load utils %}
 {% load static %}
@@ -24,6 +25,7 @@
 {% block menu_discounts_class %} active{% endblock %}
 
 {% block content %}
+  {% include './../../_filters.html' %}
   {% if perms.discount.edit_voucher %}
     <div class="fixed-action-btn">
       <a href="{% url 'dashboard:voucher-add' %}" class="btn-fab btn-floating btn-large waves-effect waves-light"
@@ -39,25 +41,39 @@
           <thead>
             <tr>
               <th class="wide">
-                {% trans "Name" context "Voucher table header" %}
+                <a href="{% get_sort_by_url_toggle 'name' %}">
+                  {% trans "Name" context "Voucher table header" %}
+                </a>
               </th>
               <th class="right-align">
-                {% trans "Discount" context "Voucher table header" %}
+                <a href="{% get_sort_by_url_toggle 'discount_value' %}">
+                  {% trans "Discount" context "Voucher table header" %}
+                </a>
               </th>
               <th>
-                {% trans "Apply to" context "Voucher table header" %}
+                <a href="{% get_sort_by_url_toggle 'apply_to' %}">
+                  {% trans "Apply to" context "Voucher table header" %}
+                </a>
               </th>
               <th>
-                {% trans "Start date" context "Voucher table header" %}
+                <a href="{% get_sort_by_url_toggle 'start_date' %}">
+                  {% trans "Start date" context "Voucher table header" %}
+                </a>
               </th>
               <th>
-                {% trans "End date" context "Voucher table header" %}
+                <a href="{% get_sort_by_url_toggle 'end_date' %}">
+                  {% trans "End date" context "Voucher table header" %}
+                </a>
               </th>
               <th class="right-align">
-                {% trans "Used" context "Voucher table header" %}
+                <a href="{% get_sort_by_url_toggle 'used' %}">
+                  {% trans "Used" context "Voucher table header" %}
+                </a>
               </th>
               <th class="right-align">
-                {% trans "Limit" context "Voucher table header" %}
+                <a href="{% get_sort_by_url_toggle 'limit' %}">
+                  {% trans "Limit" context "Voucher table header" %}
+                </a>
               </th>
             </tr>
           </thead>
