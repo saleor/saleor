@@ -1,9 +1,9 @@
 from django.contrib import messages
 from django.contrib.auth.decorators import permission_required
-from django.core.urlresolvers import reverse
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect
 from django.template.response import TemplateResponse
+from django.urls import reverse
 from django.utils.translation import pgettext_lazy
 
 from ...core.utils import get_paginator_items

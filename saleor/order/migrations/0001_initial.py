@@ -40,9 +40,9 @@ class Migration(migrations.Migration):
                 ('shipping_method', models.CharField(max_length=255, verbose_name='Delivery method', blank=True)),
                 ('anonymous_user_email', models.EmailField(default='', max_length=254, editable=False, blank=True)),
                 ('token', models.CharField(unique=True, max_length=36, verbose_name='token')),
-                ('billing_address', models.ForeignKey(related_name='+', editable=False, to='userprofile.Address')),
-                ('shipping_address', models.ForeignKey(related_name='+', editable=False, to='userprofile.Address', null=True)),
-                ('user', models.ForeignKey(related_name='orders', verbose_name='user', blank=True, to=settings.AUTH_USER_MODEL, null=True)),
+                ('billing_address', models.ForeignKey(related_name='+', editable=False, to='userprofile.Address', on_delete=django.db.models.deletion.CASCADE)),
+                ('shipping_address', models.ForeignKey(related_name='+', editable=False, to='userprofile.Address', null=True, on_delete=django.db.models.deletion.CASCADE)),
+                ('user', models.ForeignKey(related_name='orders', verbose_name='user', blank=True, to=settings.AUTH_USER_MODEL, null=True, on_delete=django.db.models.deletion.CASCADE)),
             ],
             options={
                 'ordering': ('-last_status_change',),
@@ -58,7 +58,7 @@ class Migration(migrations.Migration):
                 ('quantity', models.IntegerField(verbose_name='quantity', validators=[django.core.validators.MinValueValidator(0), django.core.validators.MaxValueValidator(999)])),
                 ('unit_price_net', models.DecimalField(verbose_name='unit price (net)', max_digits=12, decimal_places=4)),
                 ('unit_price_gross', models.DecimalField(verbose_name='unit price (gross)', max_digits=12, decimal_places=4)),
-                ('delivery_group', models.ForeignKey(related_name='items', editable=False, to='order.DeliveryGroup')),
+                ('delivery_group', models.ForeignKey(related_name='items', editable=False, to='order.DeliveryGroup', on_delete=django.db.models.deletion.CASCADE)),
                 ('product', models.ForeignKey(related_name='+', on_delete=django.db.models.deletion.SET_NULL, verbose_name='product', blank=True, to='product.Product', null=True)),
             ],
             bases=(models.Model, satchless.item.ItemLine),
@@ -70,8 +70,8 @@ class Migration(migrations.Migration):
                 ('date', models.DateTimeField(default=django.utils.timezone.now, verbose_name='last history change', editable=False)),
                 ('status', models.CharField(max_length=32, verbose_name='order status', choices=[('new', 'Processing'), ('cancelled', 'Cancelled'), ('payment-pending', 'Waiting for payment'), ('fully-paid', 'Fully paid'), ('shipped', 'Shipped')])),
                 ('comment', models.CharField(default='', max_length=100, blank=True)),
-                ('order', models.ForeignKey(related_name='history', to='order.Order')),
-                ('user', models.ForeignKey(blank=True, to=settings.AUTH_USER_MODEL, null=True)),
+                ('order', models.ForeignKey(related_name='history', to='order.Order', on_delete=django.db.models.deletion.CASCADE)),
+                ('user', models.ForeignKey(blank=True, to=settings.AUTH_USER_MODEL, null=True, on_delete=django.db.models.deletion.CASCADE)),
             ],
             options={
                 'ordering': ['date'],
@@ -83,8 +83,8 @@ class Migration(migrations.Migration):
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
                 ('date', models.DateTimeField(auto_now_add=True)),
                 ('content', models.CharField(max_length=250)),
-                ('order', models.ForeignKey(related_name='notes', to='order.Order')),
-                ('user', models.ForeignKey(to=settings.AUTH_USER_MODEL)),
+                ('order', models.ForeignKey(related_name='notes', to='order.Order', on_delete=django.db.models.deletion.CASCADE)),
+                ('user', models.ForeignKey(to=settings.AUTH_USER_MODEL, on_delete=django.db.models.deletion.CASCADE)),
             ],
         ),
         migrations.CreateModel(
@@ -117,7 +117,7 @@ class Migration(migrations.Migration):
                 ('message', models.TextField(default='', blank=True)),
                 ('token', models.CharField(default='', max_length=36, blank=True)),
                 ('captured_amount', models.DecimalField(default='0.0', max_digits=9, decimal_places=2)),
-                ('order', models.ForeignKey(related_name='payments', to='order.Order')),
+                ('order', models.ForeignKey(related_name='payments', to='order.Order', on_delete=django.db.models.deletion.CASCADE)),
             ],
             options={
                 'abstract': False,
@@ -126,6 +126,6 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='deliverygroup',
             name='order',
-            field=models.ForeignKey(related_name='groups', editable=False, to='order.Order'),
+            field=models.ForeignKey(related_name='groups', editable=False, to='order.Order', on_delete=django.db.models.deletion.CASCADE),
         ),
     ]

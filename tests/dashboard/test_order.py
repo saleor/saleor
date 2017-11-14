@@ -1,13 +1,13 @@
 from __future__ import unicode_literals
 
-import mock
 import pytest
-from django.core.urlresolvers import reverse
+from django.urls import reverse
+
 from saleor.dashboard.order.forms import ChangeQuantityForm, MoveItemsForm
-from saleor.order.models import (Order, OrderHistoryEntry, OrderedItem,
-                                 DeliveryGroup)
+from saleor.order.models import (
+    DeliveryGroup, Order, OrderedItem, OrderHistoryEntry)
 from saleor.order.utils import add_items_to_delivery_group
-from saleor.product.models import Stock, ProductVariant
+from saleor.product.models import ProductVariant, Stock
 from tests.utils import get_redirect_location, get_url_path
 
 

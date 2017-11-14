@@ -87,8 +87,9 @@ def product_class_delete(request, pk):
                 'Dashboard message',
                 'Deleted product type %s') % product_class)
         return redirect('dashboard:product-class-list')
-    ctx = {'product_class': product_class,
-           'products': product_class.products.all()}
+    ctx = {
+        'product_class': product_class,
+        'products': product_class.products.all()}
     return TemplateResponse(
         request,
         'dashboard/product/product_class/modal/confirm_delete.html',
