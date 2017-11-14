@@ -1,19 +1,20 @@
 from __future__ import unicode_literals
+
 from datetime import date
 from decimal import Decimal
 
 from django.conf import settings
 from django.db import models
 from django.db.models import F
-from django.utils.translation import pgettext, pgettext_lazy
 from django.utils.encoding import python_2_unicode_compatible, smart_text
+from django.utils.translation import pgettext, pgettext_lazy
 from django_countries import countries
 from django_prices.models import PriceField
 from django_prices.templatetags.prices_i18n import net
-from prices import FixedDiscount, percentage_discount, Price
+from prices import FixedDiscount, Price, percentage_discount
 
 from ..cart.utils import (
-    get_product_variants_and_prices, get_category_variants_and_prices)
+    get_category_variants_and_prices, get_product_variants_and_prices)
 
 
 class NotApplicable(ValueError):
@@ -114,10 +115,12 @@ class Voucher(models.Model):
     # not mandatory fields, usage depends on type
     product = models.ForeignKey(
         'product.Product', blank=True, null=True,
-        verbose_name=pgettext_lazy('Voucher field', 'product'))
+        verbose_name=pgettext_lazy('Voucher field', 'product'),
+        on_delete=models.CASCADE)
     category = models.ForeignKey(
         'product.Category', blank=True, null=True,
-        verbose_name=pgettext_lazy('Voucher field', 'category'))
+        verbose_name=pgettext_lazy('Voucher field', 'category'),
+        on_delete=models.CASCADE)
     apply_to = models.CharField(
         pgettext_lazy('Voucher field', 'apply to'),
         max_length=20, blank=True, null=True)

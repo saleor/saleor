@@ -1,12 +1,13 @@
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.core.urlresolvers import reverse
 from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404
 from django.template.response import TemplateResponse
+from django.urls import reverse
 from django.utils.translation import pgettext
-from .forms import (ChangePasswordForm, get_address_form,
-                    logout_on_password_change)
+
+from .forms import (
+    ChangePasswordForm, get_address_form, logout_on_password_change)
 
 
 @login_required

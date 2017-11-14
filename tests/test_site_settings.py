@@ -1,14 +1,13 @@
 import pytest
-
 from django.contrib.sites.models import Site
-from django.core.urlresolvers import reverse
 from django.db.utils import IntegrityError
 from django.test.client import RequestFactory
+from django.urls import reverse
 from django.utils.encoding import smart_text
 
+from saleor.dashboard.sites.forms import SiteForm, SiteSettingForm
 from saleor.site import utils
 from saleor.site.models import AuthorizationKey, SiteSettings
-from saleor.dashboard.sites.forms import SiteSettingForm, SiteForm
 
 
 def test_index_view(admin_client, site_settings):

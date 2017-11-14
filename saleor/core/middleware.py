@@ -2,6 +2,7 @@ import logging
 
 from django.conf import settings
 from django.contrib.sites.models import Site
+from django.utils.deprecation import MiddlewareMixin
 from django.utils.translation import get_language
 from django_countries.fields import Country
 
@@ -12,7 +13,7 @@ from .utils import get_client_ip, get_country_by_ip, get_currency_for_country
 logger = logging.getLogger(__name__)
 
 
-class GoogleAnalytics(object):
+class GoogleAnalytics(MiddlewareMixin):
     def process_request(self, request):
         client_id = analytics.get_client_id(request)
         path = request.path
@@ -26,15 +27,14 @@ class GoogleAnalytics(object):
             logger.exception('Unable to update analytics')
 
 
-class DiscountMiddleware(object):
+class DiscountMiddleware(MiddlewareMixin):
     def process_request(self, request):
         discounts = Sale.objects.all()
         discounts = discounts.prefetch_related('products', 'categories')
         request.discounts = discounts
 
 
-class CountryMiddleware(object):
-
+class CountryMiddleware(MiddlewareMixin):
     def process_request(self, request):
         client_ip = get_client_ip(request)
         if client_ip:
@@ -43,8 +43,7 @@ class CountryMiddleware(object):
             request.country = Country(settings.DEFAULT_COUNTRY)
 
 
-class CurrencyMiddleware(object):
-
+class CurrencyMiddleware(MiddlewareMixin):
     def process_request(self, request):
         if hasattr(request, 'country') and request.country is not None:
             request.currency = get_currency_for_country(request.country)
@@ -52,7 +51,7 @@ class CurrencyMiddleware(object):
             request.currency = settings.DEFAULT_CURRENCY
 
 
-class ClearSiteCacheMiddleware(object):
+class ClearSiteCacheMiddleware(MiddlewareMixin):
     """
     This middleware clears the Sites cache, refetches the current Site
     and sets it as attribute in request object for future uses in this
