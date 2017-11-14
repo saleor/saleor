@@ -43,21 +43,35 @@
 {% block menu_catalogue_class %} active{% endblock %}
 
 {% block content %}
-  <div class="row">
-    <div class="col s12">
-      {% if products %}
-      <div class="card">
-      <form method="POST"
-            action="{% url "dashboard:product-bulk-update" %}"
-            novalidate
-            id="bulk-actions-form">
-        {% csrf_token %}
-        <input name="action" type="hidden" id="bulk-action" />
-        <nav class="data-table-header-alternative single">
-          <div class="bulk-info show-bulk">
+  {% if products %}
+    <div class="row">
+      <div class="col s12">
+        <div class="card">
+          <div class="card-content">
+            <span class="card-title">{% trans 'Filters' context 'Dashboard card title' %}</span>
+            <form method="get">
+              {% for field in filter.form %}
+                <div class="col s4">
+                  {{ field|materializecss }}
+                </div>
+              {% endfor %}
+              <button class="btn primary" type="submit">{% trans 'Update' context 'Category price filter' %}</button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col s12">
+        <div class="card">
+          <form method="POST" action="{% url 'dashboard:product-bulk-update' %}" novalidate id="bulk-actions-form">
+            {% csrf_token %}
+            <input name="action" type="hidden" id="bulk-action" />
+            <nav class="data-table-header-alternative single">
+              <div class="bulk-info show-bulk">
             <div class="data-table-header-action-selected-items col inline"></div>
           </div>
-          <div class="bulk-actions show-bulk nav-wrapper">
+              <div class="bulk-actions show-bulk nav-wrapper">
             <ul class="right">
               {% for action, label in bulk_action_form.action.field.widget.choices %}
                 <li>
@@ -66,9 +80,9 @@
               {% endfor %}
             </ul>
           </div>
-        </nav>
-        <div class="data-table-container">
-          <table class="bordered highlight responsive data-table">
+            </nav>
+            <div class="data-table-container">
+              <table class="bordered highlight responsive data-table">
             <thead>
               <tr>
                 <th class="bulk-checkbox">
@@ -106,11 +120,15 @@
             {% endfor %}
             </tbody>
             </table>
-          </div>
-        </form>
+            </div>
+          </form>
         </div>
         {% paginate products %}
-      {% else %}
+      </div>
+    </div>
+  {% else %}
+    <div class="row">
+      <div class="col s12">
         <div class="not-found">
           <p class="grey-text">
             {% trans "No products found." context "Empty product list message" %}
@@ -121,9 +139,9 @@
             </p>
           {% endif %}
         </div>
-      {% endif %}
+      </div>
     </div>
-  </div>
+  {% endif %}
   <div id="modal-product-class" class="modal">
     <form method="post" novalidate>
       <div class="modal-content">
