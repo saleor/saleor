@@ -1,5 +1,6 @@
 from django_elasticsearch_dsl import DocType, Index
 from ..product.models import Product
+from ..userprofile.models import User
 
 storefront = Index('storefront')
 storefront.settings(number_of_shards=1, number_of_replicas=0)
@@ -16,3 +17,11 @@ class ProductDocument(DocType):
             'description',
             'is_published'
         ]
+
+users = Index('users')
+
+@users.doc_type
+class UserDocument(DocType):
+    class Meta:
+        model = User
+        fields = ['email', 'is_staff']
