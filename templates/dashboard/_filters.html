@@ -9,11 +9,27 @@
         <form method="get">
           {% for field in filter.form %}
             <div class="col s4">
-              {{ field|materializecss }}
+              {% if field.name == 'sort_by' %}
+                <!--Field 'sort_by' is hidden because it is rendered in header.
+                This is required if you want to have sorting to be kept during further filtering.-->
+                <input type="hidden" name="sort_by"
+                       value="{% if request.GET.sort_by %}{{ request.GET.sort_by }}{% endif %}">
+              {% elif field.name != 'price' %}
+                {{ field|materializecss }}
+              {% endif %}
             </div>
           {% endfor %}
-          <div class="card-action">
-            <button class="btn primary" type="submit">{% trans 'Update' context 'Category price filter' %}</button>
+          {% for field in filter.form %}
+            {% if field.name == 'price' %}
+              <div class="col s4">
+                {{ field|materializecss }}
+              </div>
+            {% endif %}
+          {% endfor %}
+          <div class="row">
+            <div class="card-action">
+              <button class="btn primary" type="submit">{% trans 'Filter' context 'Category price filter' %}</button>
+            </div>
           </div>
         </form>
       </div>
