@@ -5,7 +5,9 @@ from decimal import Decimal
 import pytest
 
 MATCH_SEARCH_REQUEST = ['method', 'host', 'port', 'path', 'body']
-PRODUCTS_INDEXED = {15, 56}  # same as in recorded data!
+STOREFRONT_PRODUCTS = {15,56}  # same as in recorded data!
+DASHBOARD_PRODUCTS = {6, 29}
+PRODUCTS_INDEXED = STOREFRONT_PRODUCTS | DASHBOARD_PRODUCTS
 PRODUCTS_TO_UNPUBLISH = {56}  # choose from PRODUCTS_INDEXED
 PHRASE_WITH_RESULTS = 'Group'
 PHRASE_WITHOUT_RESULTS = 'foo'
@@ -64,7 +66,7 @@ def test_new_search_with_empty_results(db, client):
 def test_new_search_with_result(db, indexed_products, client):
     ''' some products founds, only those both in search result and objects '''
     found_products = execute_search(client, PHRASE_WITH_RESULTS)
-    assert PRODUCTS_INDEXED == set(found_products)
+    assert STOREFRONT_PRODUCTS == set(found_products)
 
 
 @pytest.fixture
@@ -80,7 +82,7 @@ def products_with_mixed_publishing(indexed_products):
 @pytest.mark.vcr(record_mode='once', match_on=MATCH_SEARCH_REQUEST)
 def test_new_search_doesnt_show_unpublished(db, products_with_mixed_publishing,
                                             client):
-    published_products = PRODUCTS_INDEXED - PRODUCTS_TO_UNPUBLISH
+    published_products = STOREFRONT_PRODUCTS - PRODUCTS_TO_UNPUBLISH
     found_products = execute_search(client, PHRASE_WITH_RESULTS)
     assert published_products == set(found_products)
 
@@ -103,3 +105,13 @@ def test_dashboard_search_with_empty_results(db, admin_client):
     assert 0 == len(products)
     assert 0 == len(users)
     assert 0 == len(orders)
+
+
+@pytest.mark.integration
+@pytest.mark.vcr(record_mode='once', match_on=MATCH_SEARCH_REQUEST)
+def test_dashboard_search_with_product_result(db, indexed_products,
+                                              admin_client):
+    ''' products found in dashboard search view  '''
+    products, _, _ = execute_dashboard_search(admin_client,
+                                              PHRASE_WITH_RESULTS)
+    assert DASHBOARD_PRODUCTS == products
