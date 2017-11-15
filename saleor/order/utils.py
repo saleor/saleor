@@ -84,26 +84,43 @@ def create_order_lines_in_delivery_group(
             # refresh for reading quantity_available in next select_stockrecord
             stock.refresh_from_db()
 
+def add_items_to_delivery_group(delivery_group, partition, discounts=None):
+    for item_line in partition:
+        variant = item_line.variant
+        price = item_line.get_price_per_item(discounts)
+        quantity = item_line.get_quantity()
+        create_item_in_delivery_group(delivery_group, variant, quantity, price)
+
 
 def add_item_to_delivery_group(group, variant, quantity):
-    stock = variant.select_stockrecord(quantity=quantity)
     try:
         item = group.items.get(
             product=variant.product, product_sku=variant.sku)
+        if not item.stock or item.stock.quantity_available < quantity:
+            raise InsufficientStock(variant)
         item.quantity += quantity
         item.save()
-    except OrderedItem.DoesNotExist:
+        Stock.objects.allocate_stock(item.stock, quantity)
+    except (OrderedItem.DoesNotExist, InsufficientStock):
         price = variant.get_price_per_item()
-        item = group.items.create(
-            product=variant.product,
-            product_name=variant.display_product(),
-            product_sku=variant.sku,
-            quantity=quantity,
-            unit_price_net=price.net,
-            unit_price_gross=price.gross,
-            stock=stock,
-            stock_location=stock.location.name if stock else None)
-    Stock.objects.allocate_stock(stock, quantity)
+        item = create_item_in_delivery_group(group, variant, quantity, price)
+    return item
+
+
+def create_item_in_delivery_group(group, variant, quantity, price):
+    stock = variant.select_stockrecord(quantity=quantity)
+    item = group.items.create(
+        product=variant.product,
+        product_name=variant.display_product(),
+        product_sku=variant.sku,
+        quantity=quantity,
+        unit_price_net=price.net,
+        unit_price_gross=price.gross,
+        stock=stock,
+        stock_location=stock.location.name if stock else None)
+    if stock:
+        # allocate quantity to avoid overselling
+        Stock.objects.allocate_stock(stock, quantity)
     return item
 
 
