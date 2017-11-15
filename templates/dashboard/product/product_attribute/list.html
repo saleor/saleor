@@ -37,16 +37,22 @@
         <div class="card">
           <div class="data-table-container">
             <table class="bordered highlight data-table data-table-description">
+              <thead>
+                <tr>
+                  <th>{% trans "Name" context "Dashboard attributes list table header name" %}</th>
+                  <th>{% trans "Values" context "Dashboard attributes list table header values" %}</th>
+                </tr>
+              </thead>
               <tbody>
                 {% for pk, name, values in attributes %}
                   <tr data-action-go="{% url 'dashboard:product-attribute-detail' pk=pk %}">
                     <td>
                       {{ name }}
-                      <p>
-                        {% for value in values %}
-                          {{ value }}{% if not forloop.last %}, {% endif %}
-                        {% endfor %}
-                      </p>
+                    </td>
+                    <td>
+                      {% for value in values %}
+                        {{ value }}{% if not forloop.last %}, {% endif %}
+                      {% endfor %}
                     </td>
                   </tr>
                 {% endfor %}

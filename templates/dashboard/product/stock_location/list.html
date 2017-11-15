@@ -37,6 +37,11 @@
         <div class="card">
           <div class="data-table-container">
             <table class="highlight bordered data-table">
+              <thead>
+                <tr>
+                  <th>{% trans "Name" context "Dashboard stock location table header name" %}</th>
+                </tr>
+              </thead>
               <tbody>
                 {% for location in locations %}
                   <tr data-action-go="
