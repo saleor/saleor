@@ -49,7 +49,10 @@ class OrderDocument(DocType):
     user = fields.StringField(analyzer=email_analyzer)
 
     def prepare_user(self, instance):
-        return instance.user_email
+        if instance.user:
+            return instance.user.email
+        else:
+            return instance.user_email
 
     class Meta:
         model = Order
