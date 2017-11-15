@@ -1,7 +1,6 @@
 from __future__ import unicode_literals
 from . import elasticsearch_dashboard
 
-
 PHRASE = 'You can go to the west'
 PRODUCT_QUERY = {
     '_source': False,
@@ -24,8 +23,11 @@ ORDERS_QUERY = {
 USERS_QUERY = {
     '_source': False,
     'query': {
-        'match': {
-            'user': PHRASE
+        'multi_match': {
+            'fields': ['user', 'email'],
+            'operator': 'and',
+            'query': PHRASE,
+            'type': 'cross_fields'
         }
     }
 }

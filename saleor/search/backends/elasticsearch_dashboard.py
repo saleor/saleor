@@ -10,7 +10,12 @@ def _search_products(phrase):
 
 
 def _search_users(phrase):
-    return UserDocument.search().query('match', user=phrase).source(False)
+    user_query = MultiMatch(
+        fields=['user', 'email'],
+        query=phrase,
+        type='cross_fields',
+        operator='and')
+    return UserDocument.search().query(user_query).source(False)
 
 
 def _search_orders(phrase):
