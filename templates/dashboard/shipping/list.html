@@ -52,7 +52,7 @@
               </thead>
               <tbody>
                 {% for method in shipping_methods %}
-                  <tr data-action-go="{% url 'dashboard:shipping-method-detail' pk=method.pk %}">
+                  <tr data-action-go="{% if perms.discount.edit_staff %}{% url 'dashboard:shipping-method-detail' pk=method.pk %}{% endif %}">
                     <td>
                       {{ method }}
                     </td>
