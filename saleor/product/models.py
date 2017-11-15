@@ -397,7 +397,6 @@ class Stock(models.Model):
 
     @property
     def quantity_available(self):
-        self.refresh_from_db()
         return max(self.quantity - self.quantity_allocated, 0)
 
 
