@@ -1,11 +1,12 @@
 from saleor.product.models import Product
+from saleor.userprofile.models import User
 from django.core.urlresolvers import reverse
 from elasticsearch_dsl.connections import connections
 from decimal import Decimal
 import pytest
 
 MATCH_SEARCH_REQUEST = ['method', 'host', 'port', 'path', 'body']
-STOREFRONT_PRODUCTS = {15,56}  # same as in recorded data!
+STOREFRONT_PRODUCTS = {15, 56}  # same as in recorded data!
 DASHBOARD_PRODUCTS = {6, 29}
 PRODUCTS_INDEXED = STOREFRONT_PRODUCTS | DASHBOARD_PRODUCTS
 PRODUCTS_TO_UNPUBLISH = {56}  # choose from PRODUCTS_INDEXED
@@ -115,3 +116,22 @@ def test_dashboard_search_with_product_result(db, indexed_products,
     products, _, _ = execute_dashboard_search(admin_client,
                                               PHRASE_WITH_RESULTS)
     assert DASHBOARD_PRODUCTS == products
+
+
+EXISTING_EMAIL = 'amy.smith@example.com'
+USERS = {EXISTING_EMAIL: 9}
+
+
+@pytest.fixture
+def customers(db):
+    for email, pk in USERS.items():
+        User.objects.create_user(email, 'password', pk=pk)
+
+
+@pytest.mark.integration
+@pytest.mark.vcr(record_mode='once', match_on=MATCH_SEARCH_REQUEST)
+def test_dashboard_search_user_by_email(db, admin_client, customers):
+    ''' user can be found in dashboard search by email address '''
+    _, users, _ = execute_dashboard_search(admin_client, EXISTING_EMAIL)
+    assert 1 == len(users)
+    assert USERS[EXISTING_EMAIL] in users
