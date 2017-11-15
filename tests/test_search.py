@@ -83,3 +83,23 @@ def test_new_search_doesnt_show_unpublished(db, products_with_mixed_publishing,
     published_products = PRODUCTS_INDEXED - PRODUCTS_TO_UNPUBLISH
     found_products = execute_search(client, PHRASE_WITH_RESULTS)
     assert published_products == set(found_products)
+
+
+def execute_dashboard_search(client, phrase):
+    response = client.get(reverse('dashboard:search'), {'q': phrase})
+    assert phrase == response.context['query']
+    found_prod = {p.pk for p in response.context['products']}
+    found_users = {p.pk for p in response.context['users']}
+    found_orders = {p.pk for p in response.context['orders']}
+    return found_prod, found_users, found_orders
+
+
+@pytest.mark.integration
+@pytest.mark.vcr(record_mode='once', match_on=MATCH_SEARCH_REQUEST)
+def test_dashboard_search_with_empty_results(db, admin_client):
+    ''' no products found with foo '''
+    products, users, orders = execute_dashboard_search(admin_client,
+                                                       PHRASE_WITHOUT_RESULTS)
+    assert 0 == len(products)
+    assert 0 == len(users)
+    assert 0 == len(orders)
