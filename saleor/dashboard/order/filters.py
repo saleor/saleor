@@ -1,6 +1,7 @@
 from __future__ import unicode_literals
 
-from django_filters import (ChoiceFilter, FilterSet, RangeFilter, OrderingFilter)
+from django_filters import (
+    ChoiceFilter, FilterSet, RangeFilter, OrderingFilter)
 from django.utils.translation import pgettext_lazy
 from django_prices.models import PriceField
 from payments import PaymentStatus
