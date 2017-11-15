@@ -44,8 +44,8 @@
 {% block menu_catalogue_class %} active{% endblock %}
 
 {% block content %}
+  {% include 'dashboard/includes/_filters.html' %}
   {% if products %}
-    {% include 'dashboard/includes/_filters.html' %}
     <div class="row">
       <div class="col s12">
         <div class="card">
