@@ -81,6 +81,8 @@ def add_items_to_delivery_group(delivery_group, partition, discounts=None):
             if stock:
                 # allocate quantity to avoid overselling
                 Stock.objects.allocate_stock(stock, quantity)
+                # refresh for reading quantity_available in next select stock
+                stock.refresh_from_db()
 
 
 def cancel_delivery_group(group, cancel_order=True):
