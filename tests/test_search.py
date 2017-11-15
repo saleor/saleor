@@ -119,7 +119,9 @@ def test_dashboard_search_with_product_result(db, indexed_products,
 
 
 EXISTING_EMAIL = 'amy.smith@example.com'
-USERS = {EXISTING_EMAIL: 9}
+NON_EXISTING_EMAIL = 'john.doe@foo.bar'
+USERS = {EXISTING_EMAIL: 9,
+         NON_EXISTING_EMAIL: 100}
 
 
 @pytest.fixture
@@ -133,5 +135,4 @@ def customers(db):
 def test_dashboard_search_user_by_email(db, admin_client, customers):
     ''' user can be found in dashboard search by email address '''
     _, users, _ = execute_dashboard_search(admin_client, EXISTING_EMAIL)
-    assert 1 == len(users)
-    assert USERS[EXISTING_EMAIL] in users
+    assert {USERS[EXISTING_EMAIL]} == users
