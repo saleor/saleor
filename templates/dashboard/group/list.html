@@ -37,18 +37,22 @@
         <div class="card">
           <div class="data-table-container">
             <table class="bordered highlight data-table data-table-description">
+              <thead>
+                <tr>
+                  <th>{% trans "Name" context "Dashboard groups list table header name" %}</th>
+                  <th>{% trans "Permissions" context "Dashboard groups list table header permissions" %}</th>
+                </tr>
+              </thead>
               <tbody>
               {% for group in groups %}
                 <tr data-action-go="{% url 'dashboard:group-details' pk=group.name.pk %}">
                   <td>
                     {{ group.name }}
-                    <p>
-                <span>
-                  {% for permission in group.permissions %}
-                    {{ permission.name }},
-                  {% endfor %}
-                </span>
-                    </p>
+                  </td>
+                  <td>
+                    {% for permission in group.permissions %}
+                      {{ permission.name }},
+                    {% endfor %}
                   </td>
                 </tr>
               {% endfor %}
