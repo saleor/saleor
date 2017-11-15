@@ -1,5 +1,6 @@
 from saleor.product.models import Product
 from saleor.userprofile.models import User
+from saleor.order.models import Order
 from django.core.urlresolvers import reverse
 from elasticsearch_dsl.connections import connections
 from decimal import Decimal
@@ -118,10 +119,14 @@ def test_dashboard_search_with_product_result(db, indexed_products,
     assert DASHBOARD_PRODUCTS == products
 
 
+# data below must be aligned with recorded communication every time
 EXISTING_EMAIL = 'amy.smith@example.com'
 NON_EXISTING_EMAIL = 'john.doe@foo.bar'
+USER_WITH_ORDER = 'christie.ross@example.com'
 USERS = {EXISTING_EMAIL: 9,
-         NON_EXISTING_EMAIL: 100}
+         NON_EXISTING_EMAIL: 100,
+         USER_WITH_ORDER: 666}
+ORDERS = {USER_WITH_ORDER: 20}
 
 
 @pytest.fixture
@@ -136,3 +141,22 @@ def test_dashboard_search_user_by_email(db, admin_client, customers):
     ''' user can be found in dashboard search by email address '''
     _, users, _ = execute_dashboard_search(admin_client, EXISTING_EMAIL)
     assert {USERS[EXISTING_EMAIL]} == users
+
+
+@pytest.fixture
+def orders(db, billing_address):
+    pks = set()
+    for email, pk in ORDERS.items():
+        Order.objects.create(
+            billing_address=billing_address, user_email=email, pk=pk)
+        pks.add(pk)
+    return pks
+
+
+@pytest.mark.integration
+@pytest.mark.vcr(record_mode='once', match_on=MATCH_SEARCH_REQUEST)
+def test_dashboard_search_orders_by_user(db, admin_client, customers, orders):
+    ''' order can be found in dashboard search by customers email '''
+    _, _, orders = execute_dashboard_search(admin_client, USER_WITH_ORDER)
+    assert 1 == len(orders)
+    assert ORDERS[USER_WITH_ORDER] in orders

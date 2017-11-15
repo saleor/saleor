@@ -1,0 +1,49 @@
+interactions:
+- request:
+    body: '{"_source": {"exclude": ["*"]}, "query": {"multi_match": {"fields": ["name",
+      "description"], "query": "christie.ross@example.com"}}}'
+    headers:
+      connection: [keep-alive]
+      content-type: [application/json]
+    method: GET
+    uri: http://search:9200/storefront/product_document/_search
+  response:
+    body: {string: '{"took":0,"timed_out":false,"_shards":{"total":1,"successful":1,"failed":0},"hits":{"total":0,"max_score":null,"hits":[]}}'}
+    headers:
+      Warning: ['299 Elasticsearch-5.4.3-eed30a8 "Deprecated field [exclude] used,
+          expected [excludes] instead" "Wed, 15 Nov 2017 14:45:10 GMT"']
+      content-length: ['122']
+      content-type: [application/json; charset=UTF-8]
+    status: {code: 200, message: OK}
+- request:
+    body: '{"_source": {"exclude": ["*"]}, "query": {"multi_match": {"fields": ["user",
+      "status", "discount_name"], "query": "christie.ross@example.com"}}}'
+    headers:
+      connection: [keep-alive]
+      content-type: [application/json]
+    method: GET
+    uri: http://search:9200/orders/order_document/_search
+  response:
+    body: {string: '{"took":1,"timed_out":false,"_shards":{"total":1,"successful":1,"failed":0},"hits":{"total":1,"max_score":2.6390574,"hits":[{"_index":"orders","_type":"order_document","_id":"20","_score":2.6390574,"_source":{}}]}}'}
+    headers:
+      Warning: ['299 Elasticsearch-5.4.3-eed30a8 "Deprecated field [exclude] used,
+          expected [excludes] instead" "Wed, 15 Nov 2017 14:45:10 GMT"']
+      content-length: ['214']
+      content-type: [application/json; charset=UTF-8]
+    status: {code: 200, message: OK}
+- request:
+    body: '{"_source": {"exclude": ["*"]}, "query": {"match": {"user": "christie.ross@example.com"}}}'
+    headers:
+      connection: [keep-alive]
+      content-type: [application/json]
+    method: GET
+    uri: http://search:9200/users/user_document/_search
+  response:
+    body: {string: '{"took":1,"timed_out":false,"_shards":{"total":1,"successful":1,"failed":0},"hits":{"total":1,"max_score":2.6855774,"hits":[{"_index":"users","_type":"user_document","_id":"12","_score":2.6855774,"_source":{}}]}}'}
+    headers:
+      Warning: ['299 Elasticsearch-5.4.3-eed30a8 "Deprecated field [exclude] used,
+          expected [excludes] instead" "Wed, 15 Nov 2017 14:45:11 GMT"']
+      content-length: ['212']
+      content-type: [application/json; charset=UTF-8]
+    status: {code: 200, message: OK}
+version: 1
