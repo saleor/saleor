@@ -1,6 +1,7 @@
 {% extends "dashboard/base.html" %}
 {% load i18n %}
 {% load prices_i18n %}
+{% load shop %}
 {% load materializecss %}
 {% load utils %}
 
@@ -21,6 +22,7 @@
 {% endblock %}
 
 {% block content %}
+  {% include 'dashboard/includes/_filters.html' %}
   {% if customers %}
     <div class="card">
       <div class="data-table-container">
@@ -28,19 +30,29 @@
           <thead>
             <tr>
               <th>
-                {% trans "Email" context "Customers table header" %}
+                <a href="{% get_sort_by_url_toggle 'email' %}">
+                  {% trans "Email" context "Customers table header" %}
+                </a>
               </th>
               <th class="wide">
-                {% trans "Name" context "Customers table header" %}
+                <a href="{% get_sort_by_url_toggle 'default_billing_address__first_name' %}">
+                  {% trans "Name" context "Customers table header" %}
+                </a>
               </th>
               <th>
-                {% trans "Location" context "Customers table header" %}
+                <a href="{% get_sort_by_url_toggle 'default_billing_address__city' %}">
+                  {% trans "Location" context "Customers table header" %}
+                </a>
               </th>
               <th class="right-align">
-                {% trans "Number of orders" context "Customers table header" %}
+                <a href="{% get_sort_by_url_toggle 'num_orders' %}">
+                  {% trans "Number of orders" context "Customers table header" %}
+                </a>
               </th>
               <th>
-                {% trans "Last order" context "Customers table header" %}
+                <a href="{% get_sort_by_url_toggle 'last_order' %}">
+                  {% trans "Last order" context "Customers table header" %}
+                </a>
               </th>
             </tr>
           </thead>

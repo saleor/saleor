@@ -8,9 +8,12 @@ from ...order.models import Order
 
 
 SORT_BY_FIELDS = {
-    'status': pgettext_lazy('Sale list sorting option', 'status'),
-    'created': pgettext_lazy('Sale list sorting option', 'created'),
-    'user_email': pgettext_lazy('Sale list sorting option', 'user_email')}
+    'pk': pgettext_lazy('Order list sorting option', '#'),
+    'status': pgettext_lazy('Order list sorting option', 'status'),
+    'payments__status': pgettext_lazy('Order list sorting option', 'payment'),
+    'user__email': pgettext_lazy('Order list sorting option', 'email'),
+    'created': pgettext_lazy('Order list sorting option', 'created'),
+    'total_net': pgettext_lazy('Order list sorting option', 'created')}
 
 
 class OrderFilter(FilterSet):

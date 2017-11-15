@@ -1,5 +1,6 @@
 {% load i18n %}
 {% load prices_i18n %}
+{% load shop %}
 {% load status %}
 
 <div class="data-table-container">
@@ -7,22 +8,34 @@
     <thead>
       <tr>
         <th>
-          #
+          <a href="{% get_sort_by_url_toggle 'pk' %}">
+            #
+          </a>
         </th>
         <th>
-          {% trans "Order status" context "Orders table header" %}
+          <a href="{% get_sort_by_url_toggle 'status' %}">
+            {% trans "Order status" context "Orders table header" %}
+          </a>
         </th>
         <th>
-          {% trans "Payment status" context "Orders table header" %}
+          <a href="{% get_sort_by_url_toggle 'payments__status' %}">
+            {% trans "Payment status" context "Orders table header" %}
+          </a>
         </th>
         <th>
-          {% trans "Customer" context "Orders table header" %}
+          <a href="{% get_sort_by_url_toggle 'user__email' %}">
+            {% trans "Customer" context "Orders table header" %}
+          </a>
         </th>
         <th>
-          {% trans "Placed on" context "Orders table header" %}
+          <a href="{% get_sort_by_url_toggle 'created' %}">
+            {% trans "Placed on" context "Orders table header" %}
+          </a>
         </th>
         <th class="right-align">
-          {% trans "Total" context "Orders table header" %}
+          <a href="{% get_sort_by_url_toggle 'total_net' %}">
+            {% trans "Total" context "Orders table header" %}
+          </a>
         </th>
       </tr>
     </thead>
