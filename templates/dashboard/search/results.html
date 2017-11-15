@@ -33,10 +33,10 @@
       </div>
       {% if results %}
         <ul class="collection list">
-          {% for result in results %}
+          {% for result_type, result_items in results.items %}
             <li class="collection-item avatar list-item">
-              {% if result.content_type == 'product_product' %}
-                {% with product=result %}
+              {% if result_type == 'products' %}
+                {% for product in result_items %}
                   <a href="{% url 'dashboard:product-detail' pk=product.pk %}">
                     <img src="{% product_first_image product size="60x60" method="crop" %}"
                          srcset="{% product_first_image product size="60x60" method="crop" %} 1x, {% product_first_image product size="120x120" method="crop" %} 2x"
@@ -50,9 +50,10 @@
                       </small>
                     </p>
                   </a>
-                {% endwith %}
-              {% elif result.content_type == 'order_order' %}
-                <a href="{% url 'dashboard:order-details' order_pk=result.pk %}">
+                {% endfor %}
+              {% elif result_type == 'orders' %}
+              {% for order in result_items %}
+                <a href="{% url 'dashboard:order-details' order_pk=order.pk %}">
                   <i class="small material-icons circle">payment</i>
                   <span class="list-item-name">
                     {% blocktrans trimmed with order_number=result.pk context "Dashboard order" %}
@@ -61,22 +62,24 @@
                   </span>
                   <p class="list-item-price">
                     <small>
-                      {% blocktrans trimmed context "Dashboard customer" with email=result.user_email %}
+                      {% blocktrans trimmed context "Dashboard customer" with email=order.user_email %}
                         Customer: {{ email }}
                       {% endblocktrans %}
                     </small>
                     <small>
-                      {% blocktrans trimmed with placed=result.created context "Dashboard order info" %}
+                      {% blocktrans trimmed with placed=order.created context "Dashboard order info" %}
                         Placed on: {{ placed }}
                       {% endblocktrans %}
                     </small>
                   </p>
                 </a>
-              {% elif result.content_type == 'userprofile_user' %}
-                <a href="{% url 'dashboard:customer-details' pk=result.pk %}">
+              {% endfor %}
+              {% elif result_type == 'users' %}
+              {% for user in result_items %}
+                <a href="{% url 'dashboard:customer-details' pk=user.pk %}">
                   <i class="small material-icons circle">perm_identity</i>
                   <span class="list-item-name">
-                    {% blocktrans trimmed with full_name=result.get_full_name context "Dashboard user" %}
+                    {% blocktrans trimmed with full_name=user.get_full_name context "Dashboard user" %}
                       User {{ full_name }}
                     {% endblocktrans %}
                   </span>
@@ -86,6 +89,7 @@
                     </small>
                   </p>
                 </a>
+                {% endfor %}
               {% endif %}
             </li>
           {% endfor %}
