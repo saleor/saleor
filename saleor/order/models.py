@@ -315,15 +315,6 @@ class OrderedItemManager(models.Manager):
         item.quantity -= quantity
         self.remove_empty_groups(item)
 
-    def merge_duplicates(self, item):
-        lines = item.delivery_group.items.filter(
-            product=item.product, product_name=item.product_name,
-            product_sku=item.product_sku, stock=item.stock)
-        if lines.count() > 1:
-            item.quantity = sum([line.quantity for line in lines])
-            item.save()
-            lines.exclude(pk=item.pk).delete()
-
     def remove_empty_groups(self, item, force=False):
         source_group = item.delivery_group
         order = source_group.order

@@ -12,7 +12,8 @@ from ...cart.forms import QuantityField
 from ...discount.models import Voucher
 from ...order import OrderStatus
 from ...order.models import DeliveryGroup, Order, OrderedItem, OrderNote
-from ...order.utils import cancel_order, cancel_delivery_group
+from ...order.utils import (
+    cancel_order, cancel_delivery_group, merge_duplicated_lines)
 from ...product.models import Stock
 
 
@@ -347,5 +348,5 @@ class ChangeStockForm(forms.ModelForm):
                 stock.location.name if stock.location else '')
             Stock.objects.allocate_stock(stock, quantity)
         super(ChangeStockForm, self).save(commit)
-        OrderedItem.objects.merge_duplicates(self.instance)
+        merge_duplicated_lines(self.instance)
         return self.instance
