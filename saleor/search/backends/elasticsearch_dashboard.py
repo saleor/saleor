@@ -19,4 +19,5 @@ def get_search_query(phrase):
 
 
 def search(phrase):
+    ''' Provide queryset for every search result '''
     return {k: s.to_queryset() for k, s in get_search_query(phrase).items()}
