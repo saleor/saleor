@@ -15,8 +15,8 @@ def get_search_query(phrase):
         fields=['user_email', 'status', 'discount_name'], query=phrase)
     orders = OrderDocument.search().query(order_query).source(False)
 
-    return products, users, orders
+    return {'products': products, 'users': users, 'orders': orders}
 
 
 def search(phrase):
-    return [s.to_queryset() for s in get_search_query(phrase)]
+    return {k: s.to_queryset() for k, s in get_search_query(phrase).items()}
