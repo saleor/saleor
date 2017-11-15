@@ -1,21 +1,5 @@
 interactions:
 - request:
-    body: '{"query": {"multi_match": {"query": "Group", "fields": ["user", "status",
-      "discount_name"]}}, "_source": {"exclude": ["*"]}}'
-    headers:
-      connection: [keep-alive]
-      content-type: [application/json]
-    method: GET
-    uri: http://search:9200/orders/order_document/_search
-  response:
-    body: {string: '{"took":5,"timed_out":false,"_shards":{"total":1,"successful":1,"failed":0},"hits":{"total":0,"max_score":null,"hits":[]}}'}
-    headers:
-      Warning: ['299 Elasticsearch-5.4.3-eed30a8 "Deprecated field [exclude] used,
-          expected [excludes] instead" "Wed, 15 Nov 2017 12:23:11 GMT"']
-      content-length: ['122']
-      content-type: [application/json; charset=UTF-8]
-    status: {code: 200, message: OK}
-- request:
     body: '{"query": {"multi_match": {"query": "Group", "fields": ["name", "description"]}},
       "_source": {"exclude": ["*"]}}'
     headers:
@@ -24,26 +8,41 @@ interactions:
     method: GET
     uri: http://search:9200/storefront/product_document/_search
   response:
-    body: {string: '{"took":2,"timed_out":false,"_shards":{"total":1,"successful":1,"failed":0},"hits":{"total":2,"max_score":3.3258386,"hits":[{"_index":"storefront","_type":"product_document","_id":"6","_score":3.3258386,"_source":{}},{"_index":"storefront","_type":"product_document","_id":"29","_score":3.3258386,"_source":{}}]}}'}
+    body: {string: '{"took":2,"timed_out":false,"_shards":{"total":1,"successful":1,"failed":0},"hits":{"total":15,"max_score":2.972128,"hits":[{"_index":"storefront","_type":"product_document","_id":"58","_score":2.972128,"_source":{}},{"_index":"storefront","_type":"product_document","_id":"83","_score":2.972128,"_source":{}},{"_index":"storefront","_type":"product_document","_id":"84","_score":2.972128,"_source":{}},{"_index":"storefront","_type":"product_document","_id":"122","_score":2.972128,"_source":{}},{"_index":"storefront","_type":"product_document","_id":"121","_score":2.972128,"_source":{}},{"_index":"storefront","_type":"product_document","_id":"127","_score":2.972128,"_source":{}},{"_index":"storefront","_type":"product_document","_id":"152","_score":2.972128,"_source":{}},{"_index":"storefront","_type":"product_document","_id":"162","_score":2.972128,"_source":{}},{"_index":"storefront","_type":"product_document","_id":"176","_score":2.972128,"_source":{}},{"_index":"storefront","_type":"product_document","_id":"177","_score":2.972128,"_source":{}}]}}'}
     headers:
       Warning: ['299 Elasticsearch-5.4.3-eed30a8 "Deprecated field [exclude] used,
-          expected [excludes] instead" "Wed, 15 Nov 2017 12:23:11 GMT"']
-      content-length: ['313']
+          expected [excludes] instead" "Wed, 15 Nov 2017 13:38:09 GMT"']
+      content-length: ['1063']
       content-type: [application/json; charset=UTF-8]
     status: {code: 200, message: OK}
 - request:
-    body: '{"query": {"multi_match": {"query": "Group", "fields": ["user"]}}, "_source":
-      {"exclude": ["*"]}}'
+    body: '{"query": {"multi_match": {"query": "Group", "fields": ["user", "status",
+      "discount_name"]}}, "_source": {"exclude": ["*"]}}'
+    headers:
+      connection: [keep-alive]
+      content-type: [application/json]
+    method: GET
+    uri: http://search:9200/orders/order_document/_search
+  response:
+    body: {string: '{"took":1,"timed_out":false,"_shards":{"total":1,"successful":1,"failed":0},"hits":{"total":0,"max_score":null,"hits":[]}}'}
+    headers:
+      Warning: ['299 Elasticsearch-5.4.3-eed30a8 "Deprecated field [exclude] used,
+          expected [excludes] instead" "Wed, 15 Nov 2017 13:38:09 GMT"']
+      content-length: ['122']
+      content-type: [application/json; charset=UTF-8]
+    status: {code: 200, message: OK}
+- request:
+    body: '{"query": {"match": {"user": "Group"}}, "_source": {"exclude": ["*"]}}'
     headers:
       connection: [keep-alive]
       content-type: [application/json]
     method: GET
     uri: http://search:9200/users/user_document/_search
   response:
-    body: {string: '{"took":1,"timed_out":false,"_shards":{"total":1,"successful":1,"failed":0},"hits":{"total":0,"max_score":null,"hits":[]}}'}
+    body: {string: '{"took":0,"timed_out":false,"_shards":{"total":1,"successful":1,"failed":0},"hits":{"total":0,"max_score":null,"hits":[]}}'}
     headers:
       Warning: ['299 Elasticsearch-5.4.3-eed30a8 "Deprecated field [exclude] used,
-          expected [excludes] instead" "Wed, 15 Nov 2017 12:23:11 GMT"']
+          expected [excludes] instead" "Wed, 15 Nov 2017 13:38:09 GMT"']
       content-length: ['122']
       content-type: [application/json; charset=UTF-8]
     status: {code: 200, message: OK}
