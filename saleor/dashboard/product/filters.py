@@ -14,10 +14,9 @@ SORT_BY_FIELDS = {'name': pgettext_lazy('Product list sorting option', 'name'),
 
 class ProductFilter(FilterSet):
     sort_by = OrderingFilter(
-        label=pgettext_lazy('Product list sorting form', 'Sort by'),
+        label=pgettext_lazy('Product list sorting filter', 'Sort by'),
         fields=SORT_BY_FIELDS.keys(),
-        field_labels=SORT_BY_FIELDS
-    )
+        field_labels=SORT_BY_FIELDS)
 
     class Meta:
         model = Product

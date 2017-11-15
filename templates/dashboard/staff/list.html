@@ -2,6 +2,7 @@
 {% load i18n %}
 {% load prices_i18n %}
 {% load materializecss %}
+{% load shop %}
 {% load staticfiles %}
 {% load utils %}
 
@@ -42,13 +43,19 @@
           <thead>
             <tr>
               <th>
-                {% trans "Email" context "Staff members table header" %}
+                <a href="{% get_sort_by_url_toggle 'email' %}">
+                  {% trans "Email" context "Staff members table header" %}
+                </a>
               </th>
               <th class="wide">
-                {% trans "Name" context "Staff members table header" %}
+                <a href="{% get_sort_by_url_toggle 'default_billing_address__first_name' %}">
+                  {% trans "Name" context "Staff members table header" %}
+                </a>
               </th>
               <th>
-                {% trans "Location" context "Staff members table header" %}
+                <a href="{% get_sort_by_url_toggle 'default_billing_address__city' %}">
+                  {% trans "Location" context "Staff members table header" %}
+                </a>
               </th>
             </tr>
           </thead>

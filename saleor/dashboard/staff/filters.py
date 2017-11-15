@@ -1,6 +1,6 @@
 from __future__ import unicode_literals
 
-from django_filters import (FilterSet, RangeFilter, OrderingFilter)
+from django_filters import (CharFilter, FilterSet, RangeFilter, OrderingFilter)
 from django.utils.translation import pgettext_lazy
 from django_prices.models import PriceField
 
@@ -18,16 +18,19 @@ SORT_BY_FIELDS = {
 
 class StaffFilter(FilterSet):
     sort_by = OrderingFilter(
-        label=pgettext_lazy('Sale list sorting form', 'Sort by'),
+        label=pgettext_lazy('Staff list sorting filter', 'Sort by'),
         fields=SORT_BY_FIELDS.keys(),
-        field_labels=SORT_BY_FIELDS
-    )
+        field_labels=SORT_BY_FIELDS)
+    name = CharFilter(
+        label=pgettext_lazy('Staff list sorting filter', 'Name'),
+        name='default_billing_address__first_name')
+    last_name = CharFilter(
+        label=pgettext_lazy('Staff list sorting filter', 'Last name'),
+        name='default_billing_address__last_name')
+    city = CharFilter(
+        label=pgettext_lazy('Staff list sorting filter', 'City'),
+        name='default_billing_address__city')
 
     class Meta:
         model = User
         fields = ['email', 'is_active', 'groups']
-        filter_overrides = {
-            PriceField: {
-                'filter_class': RangeFilter
-            }
-        }

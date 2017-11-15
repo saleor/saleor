@@ -1,6 +1,6 @@
 from __future__ import unicode_literals
 
-from django_filters import (FilterSet, OrderingFilter)
+from django_filters import (FilterSet, OrderingFilter, RangeFilter)
 from django.utils.translation import pgettext_lazy
 
 from ...discount.models import Sale, Voucher
@@ -23,10 +23,9 @@ SORT_BY_FIELDS_VOUCHER = {
 
 class SaleFilter(FilterSet):
     sort_by = OrderingFilter(
-        label=pgettext_lazy('Sale list sorting form', 'Sort by'),
+        label=pgettext_lazy('Sale list sorting filter', 'Sort by'),
         fields=SORT_BY_FIELDS_SALE.keys(),
-        field_labels=SORT_BY_FIELDS_SALE
-    )
+        field_labels=SORT_BY_FIELDS_SALE)
 
     class Meta:
         model = Sale
@@ -35,12 +34,14 @@ class SaleFilter(FilterSet):
 
 class VoucherFilter(FilterSet):
     sort_by = OrderingFilter(
-        label=pgettext_lazy('Voucher list sorting form', 'Sort by'),
+        label=pgettext_lazy('Voucher list sorting filter', 'Sort by'),
         fields=SORT_BY_FIELDS_VOUCHER.keys(),
-        field_labels=SORT_BY_FIELDS_VOUCHER
-    )
+        field_labels=SORT_BY_FIELDS_VOUCHER)
+    limit = RangeFilter(
+        label=pgettext_lazy('Voucher list sorting filter', 'Limit'),
+        name='limit')
 
     class Meta:
         model = Voucher
-        fields = ['discount_value_type', 'discount_value', 'apply_to',
-                  'start_date', 'end_date', 'limit']
+        fields = ['name', 'discount_value_type', 'discount_value', 'apply_to',
+                  'start_date', 'end_date']
