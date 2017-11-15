@@ -203,6 +203,7 @@ class ChangeQuantityForm(forms.ModelForm):
             # update stock allocation
             delta = quantity - self.initial_quantity
             Stock.objects.allocate_stock(stock, delta)
+            stock.refresh_from_db()
         self.instance.change_quantity(quantity)
         Order.objects.recalculate_order(self.instance.delivery_group.order)
 

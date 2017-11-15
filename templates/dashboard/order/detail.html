@@ -308,7 +308,7 @@
                         {{ item.product_name }}<br>
                       </td>
                       <td class="right-align">
-                        {% if group.status != 'cancelled' %}
+                        {% if group.can_edit_items %}
                           <a class="dropdown-button" href="#" data-activates="line-stock-actions-{{ item.pk }}" data-constrainwidth="false">
                             {{ item.stock_location|default:"-" }}
                             <svg data-src="{% static "dashboard/images/arrow_drop_down.svg" %}" width="24" height="24" />
@@ -331,7 +331,7 @@
                         {% gross item.get_price_per_item html=True %}
                       </td>
                       <td class="right-align">
-                        {% if group.status != 'cancelled' %}
+                        {% if group.can_edit_items %}
                           <a class="dropdown-button" href="#" data-activates="line-actions-{{ item.pk }}" data-constrainwidth="false">
                             {{ item.quantity }}
                             <svg data-src="{% static "dashboard/images/arrow_drop_down.svg" %}" width="24" height="24" />
