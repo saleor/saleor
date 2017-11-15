@@ -8,11 +8,9 @@ from django.template.response import TemplateResponse
 from django.utils.translation import pgettext_lazy
 
 from ...core.utils import get_paginator_items
-from ...core.utils.filters import get_now_sorted_by
 from ...discount.models import Sale, Voucher
 from ..views import staff_member_required
-from .filters import (
-    SaleFilter, VoucherFilter, SORT_BY_FIELDS_SALE, SORT_BY_FIELDS_VOUCHER)
+from .filters import SaleFilter, VoucherFilter
 from . import forms
 
 
@@ -23,12 +21,7 @@ def sale_list(request):
     sale_filter = SaleFilter(request.GET, queryset=sales)
     sales = get_paginator_items(
         sale_filter.qs, settings.DASHBOARD_PAGINATE_BY, request.GET.get('page'))
-    now_sorted_by = get_now_sorted_by(sale_filter, SORT_BY_FIELDS_VOUCHER)
-    arg_sort_by = request.GET.get('sort_by')
-    is_descending = arg_sort_by.startswith('-') if arg_sort_by else False
-    ctx = {
-        'sales': sales, 'filter': sale_filter,
-        'now_sorted_by': now_sorted_by, 'is_descending': is_descending}
+    ctx = {'sales': sales, 'filter': sale_filter}
     return TemplateResponse(request, 'dashboard/discount/sale/list.html', ctx)
 
 
@@ -74,11 +67,8 @@ def voucher_list(request):
                 .order_by('name'))
     voucher_filter = VoucherFilter(request.GET, queryset=vouchers)
     vouchers = get_paginator_items(
-        voucher_filter.qs, DASHBOARD_PAGINATE_BY, request.GET.get('page'))
-    now_sorted_by = get_now_sorted_by(voucher_filter, SORT_BY_FIELDS_VOUCHER)
-    arg_sort_by = request.GET.get('sort_by')
-    is_descending = arg_sort_by.startswith('-') if arg_sort_by else False
-
+        voucher_filter.qs, settings.DASHBOARD_PAGINATE_BY,
+        request.GET.get('page'))
     ctx = {'vouchers': vouchers, 'filter': voucher_filter}
     return TemplateResponse(
         request, 'dashboard/discount/voucher/list.html', ctx)
