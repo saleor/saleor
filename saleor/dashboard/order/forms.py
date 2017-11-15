@@ -379,7 +379,7 @@ class AddDeliveryGroupItemForm(forms.Form):
                     pgettext_lazy(
                         'Add item form error',
                         'Could not add item. '
-                        'Only %(remaining).2f remaining in stock.' %
+                        'Only %(remaining)d remaining in stock.' %
                         {'remaining': e.item.get_stock_quantity()}))
                 self.add_error('quantity', error)
         return cleaned_data
