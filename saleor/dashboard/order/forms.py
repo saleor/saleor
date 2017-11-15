@@ -17,7 +17,7 @@ from ...order.models import DeliveryGroup, Order, OrderLine, OrderNote
 from ...order.utils import (
     add_item_to_delivery_group, cancel_order, cancel_delivery_group,
     change_order_line_quantity, merge_duplicated_lines)
-from ...product.models import ProductVariant, Stock
+from ...product.models import Product, ProductVariant, Stock
 
 
 class OrderNoteForm(forms.ModelForm):
@@ -356,7 +356,8 @@ class ChangeStockForm(forms.ModelForm):
 
 class AddDeliveryGroupItemForm(forms.Form):
     variant = AjaxSelect2ChoiceField(
-        queryset=ProductVariant.objects.all(),
+        queryset=ProductVariant.objects.filter(
+            product__in=Product.objects.get_available_products()),
         fetch_data_url=reverse_lazy('dashboard:ajax-variants'))
     quantity = QuantityField(
         label=pgettext_lazy('Variant quantity form label', 'Quantity'),
