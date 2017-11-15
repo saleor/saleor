@@ -25,7 +25,7 @@
 {% block menu_discounts_class %} active{% endblock %}
 
 {% block content %}
-  {% include './../../_filters.html' %}
+  {% include 'dashboard/includes/_filters.html' %}
   {% if perms.discount.edit_voucher %}
     <div class="fixed-action-btn">
       <a href="{% url 'dashboard:voucher-add' %}" class="btn-fab btn-floating btn-large waves-effect waves-light"

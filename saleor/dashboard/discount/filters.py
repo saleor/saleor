@@ -1,8 +1,7 @@
 from __future__ import unicode_literals
 
-from django_filters import (FilterSet, RangeFilter, OrderingFilter)
+from django_filters import (FilterSet, OrderingFilter)
 from django.utils.translation import pgettext_lazy
-from django_prices.models import PriceField
 
 from ...discount.models import Sale, Voucher
 
