@@ -10,7 +10,7 @@ SORT_BY_FIELDS_SALE = {
     'name': pgettext_lazy('Sale list sorting option', 'name'),
     'value': pgettext_lazy('Sale list sorting option', 'value')}
 
-SORT_BY_FIELDS_VOUCHER = {
+SORT_BY_FIELDS_LABELS_VOUCHER = {
     'name': pgettext_lazy('Voucher list sorting option', 'name'),
     'discount_value': pgettext_lazy(
         'Voucher list sorting option', 'discount_value'),
@@ -35,8 +35,8 @@ class SaleFilter(FilterSet):
 class VoucherFilter(FilterSet):
     sort_by = OrderingFilter(
         label=pgettext_lazy('Voucher list sorting filter', 'Sort by'),
-        fields=SORT_BY_FIELDS_VOUCHER.keys(),
-        field_labels=SORT_BY_FIELDS_VOUCHER)
+        fields=SORT_BY_FIELDS_LABELS_VOUCHER.keys(),
+        field_labels=SORT_BY_FIELDS_LABELS_VOUCHER)
     limit = RangeFilter(
         label=pgettext_lazy('Voucher list sorting filter', 'Limit'),
         name='limit')

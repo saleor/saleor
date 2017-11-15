@@ -6,7 +6,16 @@ from django.utils.translation import pgettext_lazy
 from ...userprofile.models import User
 
 
-SORT_BY_FIELDS = {
+SORT_BY_FIELDS = (
+    ('email', 'email'),
+    ('default_billing_address__first_name', 'name'),
+    ('default_billing_address__city', 'location'),
+    ('num_orders', 'num_orders'),
+    ('last_order', 'last_order')
+)
+
+
+SORT_BY_FIELDS_LABELS = {
     'email': pgettext_lazy(
         'Customer list sorting option', 'email'),
     'default_billing_address__first_name': pgettext_lazy(
@@ -22,8 +31,8 @@ SORT_BY_FIELDS = {
 class CustomerFilter(FilterSet):
     sort_by = OrderingFilter(
         label=pgettext_lazy('Customer list sorting form', 'Sort by'),
-        fields=SORT_BY_FIELDS.keys(),
-        field_labels=SORT_BY_FIELDS)
+        fields=SORT_BY_FIELDS,
+        field_labels=SORT_BY_FIELDS_LABELS)
     name = CharFilter(
         label=pgettext_lazy('Customer list sorting filter', 'Name'),
         name='default_billing_address__first_name')
