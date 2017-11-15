@@ -33,7 +33,7 @@ USERS_QUERY = {
 
 def test_dashboard_search_query_syntax():
     ''' Check if generated ES queries have desired syntax '''
-    searches = elasticsearch_dashboard.get_search_query(PHRASE)
+    searches = elasticsearch_dashboard.get_search_queries(PHRASE)
     assert PRODUCT_QUERY == searches['products'].to_dict()
     assert ORDERS_QUERY == searches['orders'].to_dict()
     assert USERS_QUERY == searches['users'].to_dict()
