@@ -9,7 +9,16 @@ from payments import PaymentStatus
 from ...order.models import Order
 
 
-SORT_BY_FIELDS = {
+SORT_BY_FIELDS = (
+    ('pk', 'pk'),
+    ('status', 'status'),
+    ('payments__status', 'payment_status'),
+    ('user__email', 'email'),
+    ('created', 'created'),
+    ('total_net', 'total')
+)
+
+SORT_BY_FIELDS_LABELS = {
     'pk': pgettext_lazy('Order list sorting option', '#'),
     'status': pgettext_lazy('Order list sorting option', 'status'),
     'payments__status': pgettext_lazy('Order list sorting option', 'payment'),
@@ -21,8 +30,8 @@ SORT_BY_FIELDS = {
 class OrderFilter(FilterSet):
     sort_by = OrderingFilter(
         label=pgettext_lazy('Order list sorting filter', 'Sort by'),
-        fields=SORT_BY_FIELDS.keys(),
-        field_labels=SORT_BY_FIELDS)
+        fields=SORT_BY_FIELDS,
+        field_labels=SORT_BY_FIELDS_LABELS)
     payment_status = ChoiceFilter(
         label=pgettext_lazy('Order list sorting filter', 'Payment status'),
         name='payments__status', choices=PaymentStatus.CHOICES)

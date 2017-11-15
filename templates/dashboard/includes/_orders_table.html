@@ -18,12 +18,12 @@
           </a>
         </th>
         <th>
-          <a href="{% get_sort_by_url_toggle 'payments__status' %}">
+          <a href="{% get_sort_by_url_toggle 'payment_status' %}">
             {% trans "Payment status" context "Orders table header" %}
           </a>
         </th>
         <th>
-          <a href="{% get_sort_by_url_toggle 'user__email' %}">
+          <a href="{% get_sort_by_url_toggle 'email' %}">
             {% trans "Customer" context "Orders table header" %}
           </a>
         </th>
@@ -33,7 +33,7 @@
           </a>
         </th>
         <th class="right-align">
-          <a href="{% get_sort_by_url_toggle 'total_net' %}">
+          <a href="{% get_sort_by_url_toggle 'total' %}">
             {% trans "Total" context "Orders table header" %}
           </a>
         </th>
