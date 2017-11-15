@@ -105,3 +105,16 @@ def cancel_order(order):
         cancel_delivery_group(group, cancel_order=False)
     order.status = OrderStatus.CANCELLED
     order.save()
+
+
+def merge_duplicated_lines(item):
+    """ Merges duplicated items in delivery group into one (given) item.
+    If there are no duplicates, nothing will happen.
+    """
+    lines = item.delivery_group.items.filter(
+        product=item.product, product_name=item.product_name,
+        product_sku=item.product_sku, stock=item.stock)
+    if lines.count() > 1:
+        item.quantity = sum([line.quantity for line in lines])
+        item.save()
+        lines.exclude(pk=item.pk).delete()
