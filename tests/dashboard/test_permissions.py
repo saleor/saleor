@@ -688,13 +688,10 @@ def test_staff_group_member_can_view_customer_details(
     assert response.status_code == 302
 
 
-def test_staff_group_member_can_view_staff_members_list_and_detail(
+def test_staff_group_member_can_view_staff_members_list(
         staff_client, staff_user, staff_group, permission_view_staff):
     assert not staff_user.has_perm("userprofile.view_staff")
     response = staff_client.get(reverse('dashboard:staff-list'))
-    assert response.status_code == 302
-    response = staff_client.get(reverse('dashboard:staff-details',
-                                        args=[staff_user.pk]))
     assert response.status_code == 302
     staff_group.permissions.add(permission_view_staff)
     staff_user.groups.add(staff_group)
@@ -702,17 +699,17 @@ def test_staff_group_member_can_view_staff_members_list_and_detail(
     assert staff_user.has_perm("userprofile.view_staff")
     response = staff_client.get(reverse('dashboard:staff-list'))
     assert response.status_code == 200
-    response = staff_client.get(reverse('dashboard:staff-details',
-                                        args=[staff_user.pk]))
-    assert response.status_code == 200
 
 
-def test_staff_group_member_can_create_and_delete_staff_members(
+def test_staff_group_member_can_view_detail_create_and_delete_staff_members(
         staff_client, staff_user, staff_group, permission_edit_staff):
     assert not staff_user.has_perm("userprofile.edit_staff")
     response = staff_client.get(reverse('dashboard:staff-create'))
     assert response.status_code == 302
     response = staff_client.get(reverse('dashboard:staff-delete',
+                                        args=[staff_user.pk]))
+    assert response.status_code == 302
+    response = staff_client.get(reverse('dashboard:staff-details',
                                         args=[staff_user.pk]))
     assert response.status_code == 302
     staff_group.permissions.add(permission_edit_staff)
@@ -722,6 +719,9 @@ def test_staff_group_member_can_create_and_delete_staff_members(
     response = staff_client.get(reverse('dashboard:staff-create'))
     assert response.status_code == 200
     response = staff_client.get(reverse('dashboard:staff-delete',
+                                        args=[staff_user.pk]))
+    assert response.status_code == 200
+    response = staff_client.get(reverse('dashboard:staff-details',
                                         args=[staff_user.pk]))
     assert response.status_code == 200
 

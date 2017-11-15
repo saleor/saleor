@@ -27,7 +27,7 @@ def staff_list(request):
 
 
 @staff_member_required
-@permission_required('userprofile.view_staff')
+@permission_required('userprofile.edit_staff')
 def staff_details(request, pk):
     queryset = User.objects.filter(is_staff=True)
     staff_member = get_object_or_404(queryset, pk=pk)
