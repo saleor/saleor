@@ -43,5 +43,5 @@ class VoucherFilter(FilterSet):
 
     class Meta:
         model = Voucher
-        fields = ['name', 'discount_value_type', 'discount_value', 'apply_to',
-                  'start_date', 'end_date', 'used', 'limit']
+        fields = ['discount_value_type', 'discount_value', 'apply_to',
+                  'start_date', 'end_date', 'limit']

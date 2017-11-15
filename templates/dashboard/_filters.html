@@ -6,6 +6,9 @@
     <div class="card">
       <div class="card-content">
         <span class="card-title">{% trans 'Filters' context 'Dashboard card title' %}</span>
+        <a href="?">
+          <span class="clear-filters float-right">{% trans 'Clear filters' context 'Category page filters' %}</span>
+        </a>
         <form method="get">
           {% for field in filter.form %}
             <div class="col s4">
