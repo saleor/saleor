@@ -34,6 +34,7 @@
 {% endblock %}
 
 {% block content %}
+  {% include 'dashboard/includes/_filters.html' %}
   {% if staff %}
     <div class="card">
       <div class="data-table-container">
@@ -41,10 +42,13 @@
           <thead>
             <tr>
               <th>
-                {% trans "Email" context "Customers table header" %}
+                {% trans "Email" context "Staff members table header" %}
               </th>
               <th class="wide">
-                {% trans "Name" context "Customers table header" %}
+                {% trans "Name" context "Staff members table header" %}
+              </th>
+              <th>
+                {% trans "Location" context "Staff members table header" %}
               </th>
             </tr>
           </thead>

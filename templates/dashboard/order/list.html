@@ -17,8 +17,8 @@
 {% endblock %}
 
 {% block content %}
+  {% include "dashboard/includes/_filters.html" %}
   {% if orders %}
-    {% include "dashboard/includes/_filters.html" %}
     {% if orders %}
       <div class="card">
         {% include "dashboard/includes/_orders_table.html" with orders=orders %}
