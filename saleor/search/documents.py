@@ -28,7 +28,7 @@ users.settings(number_of_shards=1, number_of_replicas=0)
 class UserDocument(DocType):
     class Meta:
         model = User
-        fields = ['email', 'is_staff']
+        fields = ['email']
 
 
 orders = Index('orders')
@@ -39,4 +39,4 @@ orders.settings(number_of_shards=1, number_of_replicas=0)
 class OrderDocument(DocType):
     class Meta:
         model = Order
-        fields = ['status', 'created', 'user_email', 'discount_name']
+        fields = ['status', 'user_email', 'discount_name']
