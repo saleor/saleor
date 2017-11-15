@@ -10,12 +10,13 @@ def _search_products(phrase):
 
 
 def _search_users(phrase):
-    return UserDocument.search().query('match', email=phrase).source(False)
+    user_query = MultiMatch(fields=['user'], query=phrase)
+    return UserDocument.search().query(user_query).source(False)
 
 
 def _search_orders(phrase):
     order_query = MultiMatch(
-        fields=['user_email', 'status', 'discount_name'], query=phrase)
+        fields=['user', 'status', 'discount_name'], query=phrase)
     return OrderDocument.search().query(order_query).source(False)
 
 
