@@ -65,7 +65,6 @@ mock==2.0.0
 multidict==3.3.0          # via yarl
 oauthlib==2.0.4           # via requests-oauthlib, social-auth-core
 olefile==0.44             # via pillow
-pathlib==1.0.1
 pbr==3.1.1                # via mock
 pdfrw==0.4                # via weasyprint
 pillow==4.0.0             # via django-versatileimagefield

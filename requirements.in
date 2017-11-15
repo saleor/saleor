@@ -1,6 +1,5 @@
 Babel>=2.5
 boto3
-pathlib
 cairosvg==1.0.22
 Django>=1.11
 dj_database_url>=0.3.0
