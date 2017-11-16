@@ -317,7 +317,7 @@ class Sale(models.Model):
         raise NotImplementedError('Unknown discount type')
 
     def _product_has_category_discount(self, product, discounted_categories):
-        for category in product.categories.all():
+        for category in product._get_all_categories():
             for discounted_category in discounted_categories:
                 if category.is_descendant_of(discounted_category,
                                              include_self=True):
