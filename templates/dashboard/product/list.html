@@ -44,10 +44,9 @@
 {% block menu_catalogue_class %} active{% endblock %}
 
 {% block content %}
-  {% include 'dashboard/includes/_filters.html' %}
   {% if products %}
     <div class="row">
-      <div class="col s12">
+      <div class="col s9">
         <div class="card">
           <form method="POST" action="{% url 'dashboard:product-bulk-update' %}" novalidate id="bulk-actions-form">
             {% csrf_token %}
@@ -113,6 +112,9 @@
           </form>
         </div>
         {% paginate products %}
+      </div>
+      <div class="col s3">
+        {% include 'dashboard/includes/_filters.html' %}
       </div>
     </div>
   {% else %}

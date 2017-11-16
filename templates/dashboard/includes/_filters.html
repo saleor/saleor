@@ -4,32 +4,41 @@
 
 <div class="card">
   <form method="get">
-    <div class="card-content row">
-      <span class="card-title">{% trans 'Filters' context 'Dashboard card title' %}</span>
-      {% for field in filter.form %}
-        <div class="col s4">
-          {% if field.name == 'sort_by' %}
-            <!--Field 'sort_by' is hidden because it is rendered in header.
-            This is required if you want to have sorting to be kept during further filtering.-->
-            <input type="hidden" name="sort_by"
-                   value="{% if request.GET.sort_by %}{{ request.GET.sort_by }}{% endif %}">
-          {% elif field.name != 'price' %}
-            {{ field|materializecss }}
-          {% endif %}
-        </div>
-      {% endfor %}
-      {% for field in filter.form %}
-        {% if field.name == 'price' %}
-          <div class="col s4">
-            {{ field|materializecss }}
-          </div>
-        {% endif %}
-      {% endfor %}
+    <div class="card-content">
+      <div class="col s12">
+        <span class="card-title">{% trans 'Filters' context 'Dashboard card title' %}</span>
+        <span>{% trans 'Total records found' context 'Dashboard filter' %}: {{ filter.qs|length }}</span>
+      </div>
+      <div class="clearfix"></div>
+    </div>
+    <div class="card-content card-action">
       <div class="row">
-        <a href="?">
-          <span class="clear-filters float-right">{% trans 'Clear filters' context 'Category page filters' %}</span>
-        </a>
-        <button class="btn primary" type="submit">{% trans 'Filter' context 'Category price filter' %}</button>
+        {% for field in filter.form %}
+          <div class="col s12">
+            {% if field.name == 'sort_by' %}
+              <!--Field 'sort_by' is hidden because it is rendered in header.
+              This is required if you want to have sorting to be kept during further filtering.-->
+              <input type="hidden" name="sort_by"
+                     value="{% if request.GET.sort_by %}{{ request.GET.sort_by }}{% endif %}">
+            {% else %}
+              {{ field|materializecss }}
+            {% endif %}
+          </div>
+        {% endfor %}
+      </div>
+    <div class="clearfix"></div>
+    </div>
+    <div class="card-action">
+      <div class="right-align">
+        <div class="col s12">
+          <a href="?" class="clear-filters btn btn-flat">
+            {% trans 'Clear filters' context 'Category page filters' %}
+          </a>
+          <button class="btn primary" type="submit">
+            {% trans 'Filter' context 'Category price filter' %}
+          </button>
+        </div>
+        <div class="clearfix"></div>
       </div>
     </div>
   </form>
