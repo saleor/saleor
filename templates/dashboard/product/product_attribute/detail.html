@@ -61,12 +61,20 @@
         <div class="card-content">
           <span class="card-title">{% trans "Attribute values" %}</span>
         </div>
+        {% if perms.product.edit_product %}
+            <div class="data-table-header-action">
+                <a href="" class="btn-data-table btn btn-flat">{% trans "Add" %}</a>
+            </div>
+          {% endif %}
         <div class="data-table-container">
           <table class="bordered highlight responsive data-table">
             <thead>
               <tr>
                 <th>{% trans "Display name" %}</th>
                 <th>{% trans "Color" %}</th>
+                {% if perms.product.edit_product %}
+                  <th></th>
+                {% endif %}
               </tr>
             </thead>
             <tbody>
@@ -76,8 +84,15 @@
                     {{ value.name }}
                   </td>
                   <td>
-                    {{ value.color }}
+                    {% if value.color %}
+                      {{ value.color }}
+                    {% else %}
+                      -
+                    {% endif %}
                   </td>
+                  {% if perms.product.edit_product %}
+                      <td class="right-align"><a href="{% url "dashboard:product-attribute-value-update" pk=value.pk %}" class="btn btn-flat">{% trans "Edit" %}</a></td>
+                    {% endif %}
                 </tr>
               {% endfor %}
             </tbody>
