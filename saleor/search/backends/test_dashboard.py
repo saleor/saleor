@@ -24,7 +24,7 @@ USERS_QUERY = {
     '_source': False,
     'query': {
         'multi_match': {
-            'fields': ['user', 'email'],
+            'fields': ['user', 'email', 'first_name', 'last_name'],
             'operator': 'and',
             'query': PHRASE,
             'type': 'cross_fields'

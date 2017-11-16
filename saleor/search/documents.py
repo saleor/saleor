@@ -31,9 +31,21 @@ email_analyzer = analyzer('email_analyzer', tokenizer='uax_url_email')
 @users.doc_type
 class UserDocument(DocType):
     user = fields.StringField(analyzer=email_analyzer)
+    first_name = fields.StringField()
+    last_name = fields.StringField()
 
     def prepare_user(self, instance):
         return instance.email
+
+    def prepare_first_name(self, instance):
+        address = instance.default_billing_address
+        if address:
+            return address.first_name
+
+    def prepare_last_name(self, instance):
+        address = instance.default_billing_address
+        if address:
+            return address.last_name
 
     class Meta:
         model = User
