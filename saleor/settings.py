@@ -258,7 +258,6 @@ def get_host():
     return Site.objects.get_current().domain
 
 
-
 PAYMENT_HOST = get_host
 
 PAYMENT_MODEL = 'order.Payment'
