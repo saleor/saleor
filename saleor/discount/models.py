@@ -334,12 +334,18 @@ class Sale(models.Model):
             self._discounted_categories_cached = set(self.categories.all())
         return self._discounted_categories_cached
 
-    def modifier_for_product(self, product):
+    def get_modifier_for_product(self, product):
         if product.pk in self._discounted_products():
             return self.get_discount()
         if self._product_has_category_discount(
                 product, self._discounted_categories()):
             return self.get_discount()
+        return None
+
+    def modifier_for_product(self, product):
+        modifier = self.get_modifier_for_product(product)
+        if modifier:
+            return modifier
         raise NotApplicable(
             pgettext(
                 'Voucher not applicable',
@@ -348,10 +354,9 @@ class Sale(models.Model):
 
 def get_product_discounts(product, discounts, **kwargs):
     for discount in discounts:
-        try:
-            yield discount.modifier_for_product(product, **kwargs)
-        except NotApplicable:
-            pass
+        modifier = discount.get_modifier_for_product(product, **kwargs)
+        if modifier:
+            yield modifier
 
 
 def calculate_discounted_price(product, price, discounts, **kwargs):
