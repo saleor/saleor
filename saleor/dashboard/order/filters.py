@@ -1,7 +1,8 @@
 from __future__ import unicode_literals
 
 from django_filters import (
-    ChoiceFilter, FilterSet, RangeFilter, OrderingFilter)
+    ChoiceFilter, DateFromToRangeFilter, FilterSet, RangeFilter,
+    OrderingFilter)
 from django.utils.translation import pgettext_lazy
 from django_prices.models import PriceField
 from payments import PaymentStatus
@@ -35,6 +36,9 @@ class OrderFilter(FilterSet):
     payment_status = ChoiceFilter(
         label=pgettext_lazy('Order list sorting filter', 'Payment status'),
         name='payments__status', choices=PaymentStatus.CHOICES)
+    created = DateFromToRangeFilter(
+        label=pgettext_lazy('Order list sorting filter', 'Placed on'),
+        name='created')
 
     class Meta:
         model = Order
