@@ -41,9 +41,8 @@
               <thead>
                 <tr>
                   <th>{% trans "Name" context "Dashboard product types list table header name" %}</th>
-                  <th>{% trans "Variants" context "Dashboard variants" %}</th>
-                  <th>{% trans "Variant attributes" context "Product type item list text" %}</th>
                   <th>{% trans "Product attributes" context "Product type item list text" %}</th>
+                  <th>{% trans "Variant attributes" context "Product type item list text" %}</th>
                 </tr>
               </thead>
               <tbody>
@@ -53,22 +52,15 @@
                     {{ name }}
                   </td>
                   <td>
-                    {% if has_variants %}
-                      {% trans "Yes" %}
-                    {% else %}
-                      {% trans "No" %}
-                    {% endif %}
-                  </td>
-                  <td>
-                    {% if variant_attributes %}
-                      {{ variant_attributes|join:", " }}
+                    {% if product_attributes %}
+                      {{ product_attributes|join:", " }}
                     {% else %}
                       {% trans "None" %}
                     {% endif %}
                   </td>
                   <td>
-                    {% if product_attributes %}
-                      {{ product_attributes|join:", " }}
+                    {% if variant_attributes %}
+                      {{ variant_attributes|join:", " }}
                     {% else %}
                       {% trans "None" %}
                     {% endif %}
