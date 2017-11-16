@@ -13,7 +13,8 @@ from ...discount.models import Voucher
 from ...order import OrderStatus
 from ...order.models import DeliveryGroup, Order, OrderedItem, OrderNote
 from ...order.utils import (
-    cancel_order, cancel_delivery_group, merge_duplicated_lines)
+    cancel_order, cancel_delivery_group, change_order_line_quantity,
+    merge_duplicated_lines)
 from ...product.models import Stock
 
 
@@ -202,8 +203,9 @@ class ChangeQuantityForm(forms.ModelForm):
             # update stock allocation
             delta = quantity - self.initial_quantity
             Stock.objects.allocate_stock(stock, delta)
-        self.instance.change_quantity(quantity)
+        change_order_line_quantity(self.instance, quantity)
         Order.objects.recalculate_order(self.instance.delivery_group.order)
+        return self.instance
 
 
 class ShipGroupForm(forms.ModelForm):
