@@ -11,7 +11,7 @@ from django.views.decorators.http import require_POST
 from ...core.utils import get_paginator_items
 from ...product.models import (
     Product, ProductAttribute, ProductClass, ProductImage, ProductVariant,
-    Stock, StockLocation)
+    Stock, StockLocation, AttributeChoiceValue)
 from ...product.utils import (
     get_availability, get_product_costs_data, get_variant_costs_data)
 from ...settings import DASHBOARD_PAGINATE_BY
@@ -511,6 +511,45 @@ def attribute_edit(request, pk=None):
 @staff_member_required
 @permission_required('product.edit_properties')
 def attribute_delete(request, pk):
+    attribute = get_object_or_404(ProductAttribute, pk=pk)
+    if request.method == 'POST':
+        attribute.delete()
+        messages.success(
+            request,
+            pgettext_lazy(
+                'Dashboard message',
+                'Deleted attribute %s') % (attribute.name,))
+        return redirect('dashboard:product-attributes')
+    return TemplateResponse(
+        request,
+        'dashboard/product/product_attribute/modal/confirm_delete.html',
+        {'attribute': attribute})
+
+
+@superuser_required
+def attribute_value_edit(request, pk=None):
+    if pk:
+        value = get_object_or_404(AttributeChoiceValue, pk=pk)
+    else:
+        value = AttributeChoiceValue()
+    form = forms.AttributeChoiceValueForm(
+        request.POST or None, request.FILES or None, instance=value)
+    if form.is_valid():
+        value = form.save()
+        msg = pgettext_lazy(
+            'Dashboard message', 'Updated attribute\'s value') if pk else pgettext_lazy(
+                'Dashboard message', 'Added attribute\'s value')
+        messages.success(request, msg)
+        return redirect('dashboard:product-attribute-detail', pk=value.pk)
+    ctx = {'attribute': value, 'form': form}
+    return TemplateResponse(
+        request,
+        'dashboard/product/product_attribute/values_add_edit.html',
+        ctx)
+
+
+@superuser_required
+def attribute_value_delete(request, pk):
     attribute = get_object_or_404(ProductAttribute, pk=pk)
     if request.method == 'POST':
         attribute.delete()

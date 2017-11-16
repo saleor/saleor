@@ -75,6 +75,12 @@ urlpatterns = [
         views.attribute_edit, name='product-attribute-add'),
     url(r'attributes/(?P<pk>[0-9]+)/delete/$',
         views.attribute_delete, name='product-attribute-delete'),
+    url(r'attributes/value/(?P<pk>[0-9]+)/update/$',
+        views.attribute_value_edit, name='product-attribute-value-update'),
+    url(r'attributes/value/add/$',
+        views.attribute_value_edit, name='product-attribute-value-add'),
+    url(r'attributes/value/(?P<pk>[0-9]+)/delete/$',
+        views.attribute_value_delete, name='product-attribute-value-delete'),
 
     url(r'stocklocations/$', views.stock_location_list,
         name='product-stock-location-list'),

@@ -64,45 +64,39 @@
         <form method="post" enctype="multipart/form-data" id="form-attributes" novalidate>
           <div class="card-content card-content-form">
             {% csrf_token %}
-            <div class="row">
-              {{ form.name|materializecss }}
-            </div>
-            <div class="row">
-              {{ form.slug|materializecss }}
-            </div>
-            {% comment %}<span class="card-title">
-              {% trans "Attribute values" context "Attribute values formset title" %}
+            <span class="card-title">
+              {% trans "Attribute values" context "Attribute values form title" %}
             </span>
-            {{ formset.management_form }}
-            {{ formset.non_form_errors.as_ul }}{% endcomment %}
+            {{ form.management_form }}
+            {{ form.non_form_errors.as_ul }}
           </div>
-{#          <div class="formset-table-container">#}
-{#            <table id="formset" class="formset-table">#}
-{#              {% for form in formset.forms %}#}
-{#                {% if forloop.first %}#}
-{#                  <thead>#}
-{#                    <tr>#}
-{#                      {% for field in form.visible_fields %}#}
-{#                        <th>{{ field.label|capfirst }}</th>#}
-{#                      {% endfor %}#}
-{#                    </tr>#}
-{#                  </thead>#}
-{#                {% endif %}#}
-{#                <tr>#}
-{#                  {% for field in form.visible_fields %}#}
-{#                    <td{% if forloop.last %} class="center-align"{% endif %}>#}
-{#                      {% if forloop.first %}#}
-{#                        {% for hidden in form.hidden_fields %}#}
-{#                          {{ hidden }}#}
-{#                        {% endfor %}#}
-{#                      {% endif %}#}
-{#                      {{ field|materializecss }}#}
-{#                    </td>#}
-{#                  {% endfor %}#}
-{#                </tr>#}
-{#              {% endfor %}#}
-{#            </table>#}
-{#          </div>#}
+          <div class="form-table-container">
+            <table id="form" class="form-table">
+              {% for form in form.forms %}
+                {% if forloop.first %}
+                  <thead>
+                    <tr>
+                      {% for field in form.visible_fields %}
+                        <th>{{ field.label|capfirst }}</th>
+                      {% endfor %}
+                    </tr>
+                  </thead>
+                {% endif %}
+                <tr>
+                  {% for field in form.visible_fields %}
+                    <td{% if forloop.last %} class="center-align"{% endif %}>
+                      {% if forloop.first %}
+                        {% for hidden in form.hidden_fields %}
+                          {{ hidden }}
+                        {% endfor %}
+                      {% endif %}
+                      {{ field|materializecss }}
+                    </td>
+                  {% endfor %}
+                </tr>
+              {% endfor %}
+            </table>
+          </div>
           <div class="card-action right-align">
             {% if attribute.pk %}
               <a href="{% url 'dashboard:product-attribute-detail' attribute.pk %}" class="btn btn-flat">
