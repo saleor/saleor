@@ -64,7 +64,7 @@ def group_delete(request, pk):
         group.delete()
         messages.success(
             request,
-            pgettext_lazy('Dashboard message', 'Deleted group %s') % group
+            pgettext_lazy('Dashboard message', 'Removed group %s') % group
         )
         return redirect('dashboard:group-list')
     return TemplateResponse(
