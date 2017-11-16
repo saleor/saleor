@@ -6,13 +6,13 @@
 {% block action_url %}{% url 'dashboard:product-delete' pk=product.pk %}{% endblock %}
 
 {% block title %}
-{% blocktrans trimmed context "Modal delete product text" %}
-Delete product {{ product }}
+{% blocktrans trimmed context "Modal remove product text" %}
+Remove product {{ product }}
 {% endblocktrans %}
 {% endblock %}
 
 {% block content %}
-{% blocktrans trimmed context "Modal delete product text" %}
-Are you sure you want to delete product <strong>{{ product }}</strong>?
+{% blocktrans trimmed context "Modal remove product text" %}
+Are you sure you want to remove product <strong>{{ product }}</strong>?
 {% endblocktrans %}
 {% endblock content %}
