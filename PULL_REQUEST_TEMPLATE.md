@@ -2,6 +2,9 @@ I want to merge this change because...
 
 (Please mention all relevant issue numbers.)
 
+(If your changes affect the UI, providing "before" and "after" screenshots will
+greatly reduce the amount of work needed to review your work.)
+
 ### Pull Request Checklist
 
 (Please keep this section.)
