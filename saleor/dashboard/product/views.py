@@ -491,17 +491,14 @@ def attribute_edit(request, pk=None):
     else:
         attribute = ProductAttribute()
     form = forms.ProductAttributeForm(request.POST or None, instance=attribute)
-    formset = forms.AttributeChoiceValueFormset(
-        request.POST or None, request.FILES or None, instance=attribute)
-    if all([form.is_valid(), formset.is_valid()]):
+    if form.is_valid():
         attribute = form.save()
-        formset.save()
         msg = pgettext_lazy(
             'Dashboard message', 'Updated attribute') if pk else pgettext_lazy(
                 'Dashboard message', 'Added attribute')
         messages.success(request, msg)
         return redirect('dashboard:product-attribute-detail', pk=attribute.pk)
-    ctx = {'attribute': attribute, 'form': form, 'formset': formset}
+    ctx = {'attribute': attribute, 'form': form}
     return TemplateResponse(
         request,
         'dashboard/product/product_attribute/form.html',
@@ -527,21 +524,22 @@ def attribute_delete(request, pk):
 
 
 @superuser_required
-def attribute_value_edit(request, pk=None):
-    if pk:
-        value = get_object_or_404(AttributeChoiceValue, pk=pk)
+def attribute_value_edit(request, attribute_pk, value_pk=None):
+    attribute = get_object_or_404(ProductAttribute, pk=attribute_pk)
+    if value_pk:
+        value = get_object_or_404(AttributeChoiceValue, pk=value_pk)
     else:
-        value = AttributeChoiceValue()
-    form = forms.AttributeChoiceValueForm(
-        request.POST or None, request.FILES or None, instance=value)
+        value = AttributeChoiceValue(attribute_id=attribute_pk)
+    form = forms.AttributeChoiceValueForm(request.POST or None,
+                                          attribute=attribute, instance=value)
     if form.is_valid():
         value = form.save()
         msg = pgettext_lazy(
-            'Dashboard message', 'Updated attribute\'s value') if pk else pgettext_lazy(
+            'Dashboard message', 'Updated attribute\'s value') if value.pk else pgettext_lazy(
                 'Dashboard message', 'Added attribute\'s value')
         messages.success(request, msg)
-        return redirect('dashboard:product-attribute-detail', pk=value.pk)
-    ctx = {'attribute': value, 'form': form}
+        return redirect('dashboard:product-attribute-detail', pk=attribute_pk)
+    ctx = {'attribute_pk': attribute_pk, 'value': value, 'form': form}
     return TemplateResponse(
         request,
         'dashboard/product/product_attribute/values_add_edit.html',
