@@ -11,7 +11,7 @@ def _search_products(phrase):
 
 def _search_users(phrase):
     user_query = MultiMatch(
-        fields=['user', 'email'],
+        fields=['user', 'email', 'first_name', 'last_name'],
         query=phrase,
         type='cross_fields',
         operator='and')

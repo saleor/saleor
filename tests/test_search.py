@@ -8,7 +8,7 @@ import pytest
 
 MATCH_SEARCH_REQUEST = ['method', 'host', 'port', 'path', 'body']
 STOREFRONT_PRODUCTS = {15, 56}  # same as in recorded data!
-DASHBOARD_PRODUCTS = {58, 83, 84, 122, 162}
+DASHBOARD_PRODUCTS = {58, 56}
 PRODUCTS_INDEXED = STOREFRONT_PRODUCTS | DASHBOARD_PRODUCTS
 PRODUCTS_TO_UNPUBLISH = {56}  # choose from PRODUCTS_INDEXED
 PHRASE_WITH_RESULTS = 'Group'
@@ -120,13 +120,16 @@ def test_dashboard_search_with_product_result(db, indexed_products,
 
 
 # data below must be aligned with recorded communication every time
-EXISTING_EMAIL = 'amy.smith@example.com'
+EXISTING_EMAIL = 'nancy.mccoy@example.com'
 NON_EXISTING_EMAIL = 'john.doe@foo.bar'
-USER_WITH_ORDER = 'christie.ross@example.com'
+USER_WITH_ORDER = 'jennifer.green@example.com'
+EXISTING_NAME = 'Rhonda'
+EXISTING_NAME_FULL = 'rhonda.ayala@example.com'
 USERS = {EXISTING_EMAIL: 9,
-         NON_EXISTING_EMAIL: 100,
-         USER_WITH_ORDER: 666}
-ORDERS = {USER_WITH_ORDER: 20}
+         NON_EXISTING_EMAIL: 870,
+         USER_WITH_ORDER: 666,
+         EXISTING_NAME_FULL: 6}
+ORDERS = {USER_WITH_ORDER: {18, 19}}
 
 
 @pytest.fixture
@@ -143,14 +146,23 @@ def test_dashboard_search_user_by_email(db, admin_client, customers):
     assert {USERS[EXISTING_EMAIL]} == users
 
 
+@pytest.mark.integration
+@pytest.mark.vcr(record_mode='once', match_on=MATCH_SEARCH_REQUEST)
+def test_dashboard_search_user_name(db, admin_client, customers):
+    ''' user can be found in dashboard search by partial name match  '''
+    _, users, _ = execute_dashboard_search(admin_client, EXISTING_NAME)
+    assert USERS[EXISTING_NAME_FULL] in users
+
+
 @pytest.fixture
 def orders(db, billing_address):
-    pks = set()
-    for email, pk in ORDERS.items():
-        Order.objects.create(
-            billing_address=billing_address, user_email=email, pk=pk)
-        pks.add(pk)
-    return pks
+    all_pks = set()
+    for email, pks in ORDERS.items():
+        for pk in pks:
+            Order.objects.create(
+                billing_address=billing_address, user_email=email, pk=pk)
+        all_pks = all_pks | pks
+    return all_pks
 
 
 @pytest.mark.integration
@@ -158,5 +170,4 @@ def orders(db, billing_address):
 def test_dashboard_search_orders_by_user(db, admin_client, customers, orders):
     ''' order can be found in dashboard search by customers email '''
     _, _, orders = execute_dashboard_search(admin_client, USER_WITH_ORDER)
-    assert 1 == len(orders)
-    assert ORDERS[USER_WITH_ORDER] in orders
+    assert ORDERS[USER_WITH_ORDER] == orders
