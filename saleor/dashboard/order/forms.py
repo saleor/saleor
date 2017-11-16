@@ -177,7 +177,6 @@ class ChangeQuantityForm(forms.ModelForm):
         fields = ['quantity']
 
     def __init__(self, *args, **kwargs):
-        self.variant = kwargs.pop('variant')
         super(ChangeQuantityForm, self).__init__(*args, **kwargs)
         self.initial_quantity = self.instance.quantity
         self.fields['quantity'].initial = self.initial_quantity
@@ -203,7 +202,6 @@ class ChangeQuantityForm(forms.ModelForm):
             # update stock allocation
             delta = quantity - self.initial_quantity
             Stock.objects.allocate_stock(stock, delta)
-            stock.refresh_from_db()
         self.instance.change_quantity(quantity)
         Order.objects.recalculate_order(self.instance.delivery_group.order)
 

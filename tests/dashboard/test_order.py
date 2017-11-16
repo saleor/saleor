@@ -122,59 +122,46 @@ def test_view_change_order_line_quantity_with_invalid_data(
         url, {'quantity': 0})
     assert response.status_code == 400
 
+
 def test_dashboard_change_quantity_form(request_cart_with_item, order):
     cart = request_cart_with_item
     group = DeliveryGroup.objects.create(order=order)
     add_items_to_delivery_group(group, cart.lines.all())
     order_line = group.items.get()
-    variant = ProductVariant.objects.get(sku=order_line.product_sku)
 
     # Check max quantity validation
-    form = ChangeQuantityForm(
-        {'quantity': 9999},
-        instance=order_line,
-        variant=variant)
+    form = ChangeQuantityForm({'quantity': 9999}, instance=order_line)
     assert not form.is_valid()
-    assert form.errors['quantity'] == ['Ensure this value is less than or equal to 50.']
+    assert form.errors['quantity'] == [
+        'Ensure this value is less than or equal to 50.']
 
     # Check minimum quantity validation
-    form = ChangeQuantityForm(
-        {'quantity': 0},
-        instance=order_line,
-        variant=variant)
+    form = ChangeQuantityForm({'quantity': 0}, instance=order_line)
     assert not form.is_valid()
     assert group.items.get().stock.quantity_allocated == 1
 
     # Check available quantity validation
-    form = ChangeQuantityForm(
-        {'quantity': 20},
-        instance=order_line,
-        variant=variant)
+    form = ChangeQuantityForm({'quantity': 20}, instance=order_line)
     assert not form.is_valid()
     assert group.items.get().stock.quantity_allocated == 1
     assert form.errors['quantity'] == ['Only 5 remaining in stock.']
 
     # Save same quantity
-    form = ChangeQuantityForm(
-        {'quantity': 1},
-        instance=order_line,
-        variant=variant)
+    form = ChangeQuantityForm({'quantity': 1}, instance=order_line)
     assert form.is_valid()
     form.save()
+    order_line.stock.refresh_from_db()
     assert group.items.get().stock.quantity_allocated == 1
+
     # Increase quantity
-    form = ChangeQuantityForm(
-        {'quantity': 2},
-        instance=order_line,
-        variant = variant)
+    form = ChangeQuantityForm({'quantity': 2}, instance=order_line)
     assert form.is_valid()
     form.save()
+    order_line.stock.refresh_from_db()
     assert group.items.get().stock.quantity_allocated == 2
+
     # Decrease quantity
-    form = ChangeQuantityForm(
-        {'quantity': 1},
-        instance=order_line,
-        variant=variant)
+    form = ChangeQuantityForm({'quantity': 1}, instance=order_line)
     assert form.is_valid()
     form.save()
     assert group.items.get().stock.quantity_allocated == 1

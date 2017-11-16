@@ -174,10 +174,7 @@ def orderline_change_quantity(request, order_pk, line_pk):
     order = get_object_or_404(Order, pk=order_pk)
     item = get_object_or_404(OrderedItem.objects.filter(
         delivery_group__order=order), pk=line_pk)
-    variant = get_object_or_404(
-        ProductVariant, sku=item.product_sku)
-    form = ChangeQuantityForm(
-        request.POST or None, instance=item, variant=variant)
+    form = ChangeQuantityForm(request.POST or None, instance=item)
     status = 200
     old_quantity = item.quantity
     if form.is_valid():
