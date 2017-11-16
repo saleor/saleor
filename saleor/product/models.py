@@ -230,6 +230,7 @@ class Product(models.Model, ItemRange, index.Indexed):
             self._get_all_categories_cached = self.categories.all()
         return self._get_all_categories_cached
 
+
 @python_2_unicode_compatible
 class ProductVariant(models.Model, Item):
     sku = models.CharField(

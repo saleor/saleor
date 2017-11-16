@@ -323,14 +323,17 @@ class Sale(models.Model):
                                              include_self=True):
                     return True
         return False
-    
+
     def _discounted_products(self):
-        if not hasattr(self, '_discounted_products_cached'): 
-            self._discounted_products_cached = {p['pk'] for p in self.products.all().values('pk')}
+        if not hasattr(self, '_discounted_products_cached'):
+            self._discounted_products_cached = {
+                p['pk']
+                for p in self.products.all().values('pk')
+            }
         return self._discounted_products_cached
 
     def _discounted_categories(self):
-        if not hasattr(self, '_discounted_categories_cached'): 
+        if not hasattr(self, '_discounted_categories_cached'):
             self._discounted_categories_cached = set(self.categories.all())
         return self._discounted_categories_cached
 
