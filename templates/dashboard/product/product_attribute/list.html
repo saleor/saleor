@@ -50,9 +50,7 @@
                       {{ name }}
                     </td>
                     <td>
-                      {% for value in values %}
-                        {{ value }}{% if not forloop.last %}, {% endif %}
-                      {% endfor %}
+                      {% if values %}{{ values|join:", " }}{% else %}-{% endif %}
                     </td>
                   </tr>
                 {% endfor %}

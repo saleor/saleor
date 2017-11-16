@@ -117,7 +117,6 @@
                 <tr>
                   <th>{% trans "Name" context "Category list table header name" %}</th>
                   <th>{% trans "Description" context "Category list table header description" %}</th>
-                  <th>{% trans "Visible" context "Category list table header visible" %}</th>
                 </tr>
               </thead>
               <tbody>
@@ -131,12 +130,6 @@
                         {{ node.description }}
                       {% else %}
                         &nbsp;
-                      {% endif %}
-                    </td>
-                    <td class="center-align">
-                      {% if node.hidden %}
-                        <svg data-src="{% static "dashboard/images/visibility_off.svg" %}"
-                             width="20" height="20"/>
                       {% endif %}
                     </td>
                   </tr>
