@@ -18,8 +18,9 @@ UUID_NAMESPACE = uuid.UUID('fb4abc05-e2fb-4e3e-8b78-28037ef7d07f')
 
 def get_client_id(request):
     parts = [request.META.get(key, '') for key in FINGERPRINT_PARTS]
-    encoded_parts = '_'.join(parts).encode('utf_8')
-    return uuid.uuid5(UUID_NAMESPACE, str(encoded_parts))
+    # In Python2 parts are unicode type
+    # We transform it to str to avoid UnicodeDecodeError in uuid package
+    return uuid.uuid5(UUID_NAMESPACE, str('_'.join(parts)))
 
 
 def _report(client_id, what, extra_info=None, extra_headers=None):
