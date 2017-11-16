@@ -381,19 +381,6 @@ class OrderedItem(models.Model, ItemLine):
     def get_quantity(self):
         return self.quantity
 
-    def change_quantity(self, new_quantity):
-        order = self.delivery_group.order
-        self.quantity = new_quantity
-        self.save()
-        if not self.delivery_group.get_total_quantity():
-            self.delivery_group.delete()
-        if not order.get_items():
-            order.change_status(OrderStatus.CANCELLED)
-            order.create_history_entry(
-                status=OrderStatus.CANCELLED, comment=pgettext_lazy(
-                    'Order status history entry',
-                    'Order cancelled. No items in order'))
-
 
 class PaymentManager(models.Manager):
     def last(self):

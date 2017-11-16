@@ -8,7 +8,8 @@ from django.urls import reverse
 from saleor.dashboard.order.forms import ChangeQuantityForm, MoveItemsForm
 from saleor.order.models import (
     DeliveryGroup, Order, OrderedItem, OrderHistoryEntry)
-from saleor.order.utils import add_items_to_delivery_group
+from saleor.order.utils import (
+    add_items_to_delivery_group, change_order_line_quantity)
 from saleor.product.models import ProductVariant, Stock, StockLocation
 from tests.utils import get_redirect_location, get_url_path
 
@@ -270,9 +271,9 @@ def test_view_split_order_line_with_invalid_data(admin_client, order_with_items_
 def test_ordered_item_change_quantity(transactional_db, order_with_items):
     assert list(order_with_items.history.all()) == []
     items = order_with_items.groups.all()[0].items.all()
-    items[0].change_quantity(0)
-    items[1].change_quantity(0)
-    items[2].change_quantity(0)
+    change_order_line_quantity(items[0], 0)
+    change_order_line_quantity(items[1], 0)
+    change_order_line_quantity(items[2], 0)
     history = list(order_with_items.history.all())
     assert len(history) == 1
     assert history[0].status == 'cancelled'

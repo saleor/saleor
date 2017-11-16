@@ -117,3 +117,20 @@ def merge_duplicated_lines(item):
         item.quantity = sum([line.quantity for line in lines])
         item.save()
         lines.exclude(pk=item.pk).delete()
+
+
+def change_order_line_quantity(line, new_quantity):
+    """Change the quantity of ordered items in a order line."""
+    line.quantity = new_quantity
+    line.save()
+
+    if not line.delivery_group.get_total_quantity():
+        line.delivery_group.delete()
+
+    order = line.delivery_group.order
+    if not order.get_items():
+        order.change_status(OrderStatus.CANCELLED)
+        order.create_history_entry(
+            status=OrderStatus.CANCELLED, comment=pgettext_lazy(
+                'Order status history entry',
+                'Order cancelled. No items in order'))
