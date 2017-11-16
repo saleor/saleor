@@ -15,14 +15,3 @@ def store_user_address(user, address, billing=False, shipping=False):
         user.save()
     return entry
 
-
-def get_customers(request):
-    return User.objects.filter(is_staff=False, is_superuser=False)
-
-
-def can_impersonate(request):
-    '''This function checks if user has right permissions to impersonate customers.
-    It is required by django-impersonate module since it requires a function as
-    input argument, not just permission name.
-    '''
-    return request.user.has_perm('impersonate_user')

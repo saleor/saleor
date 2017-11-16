@@ -512,3 +512,7 @@ def permission_edit_user():
 @pytest.fixture
 def permission_edit_settings():
     return Permission.objects.get(codename='edit_settings')
+
+
+def permission_impersonate_user():
+    return Permission.objects.get(codename='impersonate_user')
