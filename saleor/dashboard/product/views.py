@@ -519,23 +519,24 @@ def attribute_delete(request, pk):
         return redirect('dashboard:product-attributes')
     return TemplateResponse(
         request,
-        'dashboard/product/product_attribute/modal/confirm_delete.html',
+        'dashboard/product/product_attribute/modal/'
+        'attribute_confirm_delete.html',
         {'attribute': attribute})
 
 
 @superuser_required
-def attribute_value_edit(request, attribute_pk, value_pk=None):
-    attribute = get_object_or_404(ProductAttribute, pk=attribute_pk)
+def attribute_choice_value_edit(request, attribute_pk, value_pk=None):
     if value_pk:
         value = get_object_or_404(AttributeChoiceValue, pk=value_pk)
     else:
         value = AttributeChoiceValue(attribute_id=attribute_pk)
-    form = forms.AttributeChoiceValueForm(request.POST or None,
-                                          attribute=attribute, instance=value)
+    form = forms.AttributeChoiceValueForm(
+        request.POST or None, instance=value)
     if form.is_valid():
         value = form.save()
         msg = pgettext_lazy(
-            'Dashboard message', 'Updated attribute\'s value') if value.pk else pgettext_lazy(
+            'Dashboard message', 'Updated attribute\'s value')\
+            if value.pk else pgettext_lazy(
                 'Dashboard message', 'Added attribute\'s value')
         messages.success(request, msg)
         return redirect('dashboard:product-attribute-detail', pk=attribute_pk)
@@ -547,20 +548,21 @@ def attribute_value_edit(request, attribute_pk, value_pk=None):
 
 
 @superuser_required
-def attribute_value_delete(request, pk):
-    attribute = get_object_or_404(ProductAttribute, pk=pk)
+def attribute_choice_value_delete(request, attribute_pk, value_pk):
+    value = get_object_or_404(AttributeChoiceValue, pk=value_pk)
     if request.method == 'POST':
-        attribute.delete()
+        value.delete()
         messages.success(
             request,
             pgettext_lazy(
                 'Dashboard message',
-                'Deleted attribute %s') % (attribute.name,))
-        return redirect('dashboard:product-attributes')
+                'Removed attribute choice value %s') % (value.name,))
+        return redirect('dashboard:product-attribute-detail', pk=attribute_pk)
     return TemplateResponse(
         request,
-        'dashboard/product/product_attribute/modal/confirm_delete.html',
-        {'attribute': attribute})
+        'dashboard/product/product_attribute/modal/'
+        'attribute_choice_value_confirm_delete.html',
+        {'value': value, 'attribute_pk': attribute_pk})
 
 
 @staff_member_required
