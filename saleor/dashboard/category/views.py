@@ -81,7 +81,7 @@ def category_delete(request, pk):
         messages.success(
             request,
             pgettext_lazy(
-                'Dashboard message', 'Deleted category %s') % category)
+                'Dashboard message', 'Removed category %s') % category)
         root_pk = None
         if category.parent:
             root_pk = category.parent.pk
