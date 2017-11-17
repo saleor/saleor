@@ -62,10 +62,12 @@
           <span class="card-title">{% trans "Attribute values" %}</span>
         </div>
         {% if perms.product.edit_product %}
-            <div class="data-table-header-action">
-                <a href="{% url 'dashboard:product-attribute-value-add' attribute_pk=attribute.pk %}"" class="btn-data-table btn btn-flat">{% trans "Add" %}</a>
-            </div>
-          {% endif %}
+          <div class="data-table-header-action">
+              <a href="{% url 'dashboard:product-attribute-value-add' attribute_pk=attribute.pk %}" class="btn-data-table btn btn-flat">
+                {% trans "Add" %}
+              </a>
+          </div>
+        {% endif %}
         <div class="data-table-container">
           <table class="bordered highlight responsive data-table">
             <thead>
@@ -92,8 +94,12 @@
                   </td>
                   {% if perms.product.edit_product %}
                     <td class="right-align">
-                      <a href="{% url 'dashboard:product-attribute-value-update' attribute_pk=attribute.pk value_pk=value.pk %}" class="btn btn-flat">{% trans 'Edit' context 'Attribute choice value edit action' %}</a>
-                      <a class="btn btn-flat modal-trigger-custom" href="#base-modal" data-href="{% url 'dashboard:product-attribute-value-delete' attribute_pk=attribute.pk value_pk=value.pk %}">{% trans 'Remove' context 'Attribute choice value edit action' %}</a>
+                      <a href="{% url 'dashboard:product-attribute-value-update' attribute_pk=attribute.pk value_pk=value.pk %}" class="btn btn-flat">
+                        {% trans 'Edit' context 'Attribute choice value edit action' %}
+                      </a>
+                      <a class="btn btn-flat modal-trigger-custom" href="#base-modal" data-href="{% url 'dashboard:product-attribute-value-delete' attribute_pk=attribute.pk value_pk=value.pk %}">
+                        {% trans 'Remove' context 'Attribute choice value edit action' %}
+                      </a>
                     </td>
                   {% endif %}
                 </tr>

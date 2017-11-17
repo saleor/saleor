@@ -1,0 +1,19 @@
+{% extends "dashboard/base_modal_confirm_delete.html" %}
+
+{% load i18n %}
+
+{% block action_url %}
+{% url "dashboard:shipping-method-country-delete" shipping_method_pk=shipping_method_pk country_pk=country.pk %}
+{% endblock %}
+
+{% block title %}
+{% blocktrans trimmed context "Modal delete attribute text" %}
+Delete shipping {{ country }}
+{% endblocktrans %}
+{% endblock title %}
+
+{% block content %}
+{% blocktrans trimmed context "Modal delete attribute text" %}
+Are you sure you want to delete shipping <strong>{{ country }}</strong>?
+{% endblocktrans %}
+{% endblock content %}
