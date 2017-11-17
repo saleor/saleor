@@ -1,6 +1,5 @@
 from __future__ import unicode_literals
 
-from django.db.models.query import QuerySet
 from elasticsearch_dsl.query import MultiMatch
 from ..documents import ProductDocument
 
@@ -15,13 +14,9 @@ def get_search_query(phrase):
 
 
 def _execute_es_search(search):
-    return [hit.meta.id for hit in search.execute()]
+    return [hit.meta.id for hit in search.scan()]
 
 
-def search(query, model_or_queryset):
-        qs = model_or_queryset
-        # TODO: remove this ugly type incoherence of old search api
-        if not isinstance(model_or_queryset, QuerySet):
-            qs = model_or_queryset.objects.all()
-        found_objs = _execute_es_search(get_search_query(query))
+def search(phrase, qs):
+        found_objs = _execute_es_search(get_search_query(phrase))
         return qs.filter(pk__in=found_objs)
