@@ -139,6 +139,7 @@ MIDDLEWARE = [
     'saleor.core.middleware.CurrencyMiddleware',
     'saleor.core.middleware.ClearSiteCacheMiddleware',
     'social_django.middleware.SocialAuthExceptionMiddleware',
+    'impersonate.middleware.ImpersonateMiddleware'
 ]
 
 INSTALLED_APPS = [
@@ -185,6 +186,7 @@ INSTALLED_APPS = [
     'django_countries',
     'django_filters',
     'django_celery_results',
+    'impersonate'
 ]
 
 LOGGING = {
@@ -414,3 +416,10 @@ CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
 CELERY_RESULT_BACKEND = 'django-db'
+
+# Impersonate module settings
+IMPERSONATE_URI_EXCLUSIONS = [r'^dashboard/']
+IMPERSONATE_CUSTOM_USER_QUERYSET = \
+    'saleor.userprofile.impersonate.get_impersonatable_users'
+IMPERSONATE_USE_HTTP_REFERER = True
+IMPERSONATE_CUSTOM_ALLOW = 'saleor.userprofile.impersonate.can_impersonate'
