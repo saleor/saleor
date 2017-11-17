@@ -12,6 +12,7 @@ django-filter==1.0.4
 django-impersonate==1.1
 django-mptt>=0.7.1
 django-payments>=0.12.1
+django-phonenumber-field==1.3.0
 django-prices>=0.4.11
 django-prices-openexchangerates>=0.1.12
 django-redis>=4.0.0
