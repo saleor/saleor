@@ -187,6 +187,7 @@ INSTALLED_APPS = [
     'django_filters',
     'django_celery_results',
     'impersonate'
+    'phonenumber_field',
 ]
 
 LOGGING = {

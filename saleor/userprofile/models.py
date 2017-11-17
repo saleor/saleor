@@ -8,6 +8,9 @@ from django.utils import timezone
 from django.utils.encoding import python_2_unicode_compatible
 from django.utils.translation import pgettext_lazy
 from django_countries.fields import Country, CountryField
+from phonenumber_field.modelfields import PhoneNumberField
+
+from ..search import index
 
 
 class AddressManager(models.Manager):
@@ -71,9 +74,9 @@ class Address(models.Model):
     country_area = models.CharField(
         pgettext_lazy('Address field', 'state or province'),
         max_length=128, blank=True)
-    phone = models.CharField(
+    phone = PhoneNumberField(
         pgettext_lazy('Address field', 'phone number'),
-        max_length=30, blank=True)
+        blank=True, default='')
     objects = AddressManager()
 
     @property
