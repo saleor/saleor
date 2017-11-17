@@ -197,6 +197,13 @@
   }
 }
 
+.input-range {
+  .separator {
+    display: inline-block;
+    margin-top: 10px;
+  }
+}
+
 .main form, .modal form {
   @include form;
 }

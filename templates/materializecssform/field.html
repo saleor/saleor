@@ -256,12 +256,12 @@
     {% endif %}
   </div>
 {% elif field|is_range %}
-  <div class="input-field col s12">
+  <div class="input-field input-range col s12">
     {% for value in field.value %}
       <input type="number" class="col s5"
              name="{{ field.name }}_{{ forloop.counter0 }}" value="{{ value }}">
       {% if not forloop.last %}
-        <div class="col s2 center-align">-</div>
+        <div class="col s2 center-align separator">-</div>
       {% endif %}
     {% endfor %}
     <label>{{ field.label }}</label>
