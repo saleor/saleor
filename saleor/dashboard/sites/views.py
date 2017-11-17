@@ -19,7 +19,6 @@ def index(request):
     return redirect('dashboard:site-detail', pk=settings.pk)
 
 
-
 @staff_member_required
 @permission_required('site.edit_settings')
 def site_settings_edit(request, pk=None):
