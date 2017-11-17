@@ -44,81 +44,85 @@
 {% block menu_catalogue_class %} active{% endblock %}
 
 {% block content %}
-  {% if products %}
-    <div class="row">
-      <div class="col s12 l9">
-        <div class="card">
-          <form method="POST" action="{% url 'dashboard:product-bulk-update' %}" novalidate id="bulk-actions-form">
-            {% csrf_token %}
-            <input name="action" type="hidden" id="bulk-action" />
-            <nav class="data-table-header-alternative single">
-              <div class="bulk-info show-bulk">
-            <div class="data-table-header-action-selected-items col inline"></div>
-          </div>
-              <div class="bulk-actions show-bulk nav-wrapper">
-            <ul class="right">
-              {% for action, label in bulk_action_form.action.field.widget.choices %}
-                <li>
-                  <a href="" data-action="{{ action }}" class="btn-flat">{{ label|upper }}</a>
-                </li>
-              {% endfor %}
-            </ul>
-          </div>
-            </nav>
-            <div class="data-table-container">
-              <table class="bordered highlight responsive data-table">
-            <thead>
-              <tr>
-                <th class="bulk-checkbox">
-                  <input id="select-all-products" type="checkbox" class="filled-in select-all switch-actions select-item">
-                  <label for="select-all-products"></label>
-                </th>
-                <th></th>
-                <th class="wide">
-                  <a href="{% get_sort_by_url_toggle 'name' %}">
-                    {% trans "Name" context "Products list table header" %}
-                  </a>
-                </th>
-                <th class="right-align">
-                  <a href="{% get_sort_by_url_toggle 'price' %}">
-                    {% trans "Price" context "Products list table header" %}
-                  </a>
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-            {% for product in products %}
-              <tr class="avatar" data-action-go="{% url 'dashboard:product-detail' pk=product.pk %}">
-                <td class="bulk-checkbox ignore-link">
-                  <input id="id_products_{{ product.pk }}" type="checkbox" name="products" value="{{ product.pk }}" class="filled-in switch-actions select-item">
-                  <label for="id_products_{{ product.pk }}"></label>
-                </td>
-                <td class="avatar">
-                  <img src="{% product_first_image product size="60x60" method="crop" %}"
-                      srcset="{% product_first_image product size="60x60" method="crop" %} 1x, {% product_first_image product size="120x120" method="crop" %} 2x"
-                      alt="">
-                </td>
-                <td>
-                  {{ product.name }}
-                </td>
-                <td>
-                  {% gross product.price html=True %}
-                </td>
-              </tr>
-            {% endfor %}
-            </tbody>
-            </table>
-            </div>
-          </form>
+  <div class="row">
+    <div class="col s12 l9" id="product-list">
+    {% if products %}
+      <div class="card">
+        <form method="POST" action="{% url 'dashboard:product-bulk-update' %}" novalidate id="bulk-actions-form">
+          {% csrf_token %}
+          <input name="action" type="hidden" id="bulk-action" />
+          <nav class="data-table-header-alternative single">
+            <div class="bulk-info show-bulk">
+          <div class="data-table-header-action-selected-items col inline"></div>
         </div>
-        {% paginate products %}
+            <div class="bulk-actions show-bulk nav-wrapper">
+          <ul class="right">
+            {% for action, label in bulk_action_form.action.field.widget.choices %}
+              <li>
+                <a href="" data-action="{{ action }}" class="btn-flat">{{ label|upper }}</a>
+              </li>
+            {% endfor %}
+          </ul>
+        </div>
+          </nav>
+          <div class="data-table-container">
+            <table class="bordered highlight responsive data-table">
+          <thead>
+            <tr>
+              <th class="bulk-checkbox">
+                <input id="select-all-products" type="checkbox" class="filled-in select-all switch-actions select-item">
+                <label for="select-all-products"></label>
+              </th>
+              <th></th>
+              <th class="wide{% if request.GET.sort_by == 'name' or request.GET.sort_by == '-name' %} active{% endif %}">
+                <a href="{% get_sort_by_url_toggle 'name' %}">
+                  {% if is_descending %}
+                    <svg data-src="{% static '/images/arrow_down_icon.svg' %}" />
+                  {% else %}
+                    <svg data-src="{% static '/images/arrow_up_icon.svg' %}" />
+                  {% endif %}
+                  {% trans "Name" context "Products list table header" %}
+                </a>
+              </th>
+              <th class="right-align {% if request.GET.sort_by == 'price' or request.GET.sort_by == '-price' %} active{% endif %}">
+                <a href="{% get_sort_by_url_toggle 'price' %}">
+                  {% if is_descending %}
+                    <svg data-src="{% static '/images/arrow_down_icon.svg' %}" />
+                  {% else %}
+                    <svg data-src="{% static '/images/arrow_up_icon.svg' %}" />
+                  {% endif %}
+                  {% trans "Price" context "Products list table header" %}
+                </a>
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+          {% for product in products %}
+            <tr class="avatar" data-action-go="{% url 'dashboard:product-detail' pk=product.pk %}">
+              <td class="bulk-checkbox ignore-link">
+                <input id="id_products_{{ product.pk }}" type="checkbox" name="products" value="{{ product.pk }}" class="filled-in switch-actions select-item">
+                <label for="id_products_{{ product.pk }}"></label>
+              </td>
+              <td class="avatar">
+                <img src="{% product_first_image product size="60x60" method="crop" %}"
+                    srcset="{% product_first_image product size="60x60" method="crop" %} 1x, {% product_first_image product size="120x120" method="crop" %} 2x"
+                    alt="">
+              </td>
+              <td>
+                {{ product.name }}
+              </td>
+              <td>
+                {% gross product.price html=True %}
+              </td>
+            </tr>
+          {% endfor %}
+          </tbody>
+          </table>
+          </div>
+        </form>
       </div>
-      <div class="col s12 l3">
-        {% include 'dashboard/includes/_filters.html' %}
-      </div>
-    </div>
-  {% else %}
-    <div class="row">
+      {% paginate products %}
+    {% else %}
       <div class="col s12">
         <div class="not-found">
           <p class="grey-text">
@@ -131,8 +135,12 @@
           {% endif %}
         </div>
       </div>
+    {% endif %}
     </div>
-  {% endif %}
+    <div class="col s12 l3" id="product-filters">
+      {% include 'dashboard/includes/_filters.html' %}
+    </div>
+  </div>
   <div id="modal-product-class" class="modal">
     <form method="post" novalidate>
       <div class="modal-content">

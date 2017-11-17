@@ -39,3 +39,9 @@ export default $(document).ready((e) => {
     return 1;
   });
 });
+
+export const screenSizes = {
+  sm: 600,
+  md: 992,
+  lg: 1200
+};

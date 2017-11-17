@@ -137,6 +137,28 @@
     font-weight: normal;
     font-size: 12px;
     height: 56px;
+    svg {
+      display: none;
+    }
+    &.active {
+      a {
+        font-weight: 600;
+        color: lighten(#000, 13%);
+      }
+      svg {
+        display: inline-block;
+        fill: lighten(#000, 13%);
+        position: absolute;
+        top: -2px;
+        left: -20px;
+        width: 16px;
+        height: 16px;
+      }
+    }
+    a {
+      position: relative;
+      color: $grey-color;
+    }
   }
 
   tfoot {
