@@ -1,5 +1,5 @@
 from __future__ import unicode_literals
-from . import newelastic
+from . import elasticsearch
 
 PHRASE = 'How fortunate man with none'
 FIELDS = ['title', 'name', 'description']
@@ -26,4 +26,4 @@ QUERY = {
 
 
 def test_storefront_product_search_query_syntax():
-    assert QUERY == newelastic.get_search_query(PHRASE).to_dict()
+    assert QUERY == elasticsearch.get_search_query(PHRASE).to_dict()

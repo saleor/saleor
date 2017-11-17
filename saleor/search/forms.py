@@ -1,6 +1,6 @@
 from django import forms
 from django.utils.translation import pgettext
-from .backends import newelastic
+from .backends import elasticsearch
 
 
 class SearchForm(forms.Form):
@@ -8,4 +8,4 @@ class SearchForm(forms.Form):
         label=pgettext('Search form label', 'Query'), required=True)
 
     def search(self, model_or_queryset):
-        return newelastic.search(self.cleaned_data['q'], model_or_queryset)
+        return elasticsearch.search(self.cleaned_data['q'], model_or_queryset)
