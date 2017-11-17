@@ -1,0 +1,11 @@
+@media (min-width: $large-screen) {
+  .body-products-list {
+    .main {
+      .container {
+        width: auto;
+        max-width: none;
+        margin: 40px 20px 0 270px;
+      }
+    }
+  }
+}
