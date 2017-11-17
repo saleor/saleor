@@ -22,16 +22,15 @@ def search(request):
     form = SearchForm(data=request.GET or None)
     if form.is_valid():
         visible_products = products_with_details(request.user)
-        results = form.search(model_or_queryset=visible_products)
+        results = form.search(qs=visible_products)
         results = products_with_availability(
             results, discounts=request.discounts,
             local_currency=request.currency)
-        results = list(results)
         query = form.cleaned_data.get('q', '')
     else:
         results = []
         query = ''
-    page = paginate_results(results, request.GET, settings.PAGINATE_BY)
+    page = paginate_results(list(results), request.GET, settings.PAGINATE_BY)
     ctx = {
         'query': query,
         'results': page,
