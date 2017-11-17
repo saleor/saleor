@@ -26,8 +26,8 @@ def styleguide(request):
 def impersonate(request, uid):
     response = orig_impersonate(request, uid)
     if request.session.modified:
-        msg = pgettext_lazy('Impersonation message',
-                            'You are now logged as {}'.format(
-                                User.objects.get(pk=uid)))
+        msg = pgettext_lazy(
+            'Impersonation message',
+            'You are now logged as {}'.format(User.objects.get(pk=uid)))
         messages.success(request, msg)
     return response
