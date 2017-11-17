@@ -48,7 +48,7 @@
               </thead>
               <tbody>
               {% for group in groups %}
-                <tr data-action-go="{% if perms.discount.edit_group %}{% url 'dashboard:group-details' pk=group.name.pk %}{% endif %}">
+                <tr data-action-go="{% if perms.userprofile.edit_group %}{% url 'dashboard:group-details' pk=group.name.pk %}{% endif %}">
                   <td>
                     {{ group.name }}
                   </td>
