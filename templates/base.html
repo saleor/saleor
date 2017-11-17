@@ -28,7 +28,8 @@
 <body>
 {% block header %}
   <header class="navbar" role="navigation">
-    <div class="navbar__login d-none d-md-block container">
+    <div class="navbar__login container-fluid {% if user.is_impersonate %} bg-warning{% endif %}">
+      <div class=" d-none d-md-block container">
       <div class="row">
         <div class="col-6">
           <p class="text-left">{{ site.settings.header_text }}</p>
@@ -36,7 +37,7 @@
         <div class="col-6">
           <ul class="float-right">
             {% if user.is_authenticated %}
-              {% if user.is_staff %}
+              {% if user.is_staff or request.impersonator.is_staff %}
                 <li>
                   <a href="{% url "dashboard:index" %}" target="_blank" rel="noopener">
                     {% trans "Dashboard" context "Main navigation item" %}
@@ -47,10 +48,18 @@
                 <a href="{% url "profile:details" %}">
                   {% trans "Your account" context "Main navigation item" %}</a>
               </li>
-              <li>
-                <a href="{% url "account_logout" %}">
-                  {% trans "Log out" context "Main navigation item" %}</a>
-              </li>
+              {% if user.is_impersonate %}
+                <li>
+                  <a href="{% url "impersonate-stop" %}">
+                    {% trans 'Stop impersonating' context 'Main navigation item' %}
+                  </a>
+                </li>
+              {% else %}
+                <li>
+                  <a href="{% url "account_logout" %}">
+                    {% trans "Log out" context "Main navigation item" %}</a>
+                </li>
+              {% endif %}
             {% else %}
               <li>
                 <a href="{% url "account_signup" %}">
@@ -65,6 +74,7 @@
           </ul>
         </div>
       </div>
+    </div>
     </div>
     <div class="navbar__brand container-fluid d-block">
       <div class="container">
@@ -196,10 +206,18 @@
                   {% trans "Your account" context "Main navigation item" %}
                 </a>
               </li>
-              <li>
-                <a href="{% url "account_logout" %}">
-                  {% trans "Log out" context "Main navigation item" %}</a>
-              </li>
+              {% if user.is_impersonate %}
+                <li>
+                  <a href="{% url "impersonate-stop" %}">
+                    {% trans 'Stop impersonating' context 'Main navigation item' %}
+                  </a>
+                </li>
+              {% else %}
+                <li>
+                  <a href="{% url "account_logout" %}">
+                    {% trans "Log out" context "Main navigation item" %}</a>
+                </li>
+              {% endif %}
             {% else %}
               <li>
                 <a href="{% url "account_signup" %}">

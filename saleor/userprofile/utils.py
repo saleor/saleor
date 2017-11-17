@@ -1,4 +1,4 @@
-from .models import Address
+from .models import Address, User
 
 
 def store_user_address(user, address, billing=False, shipping=False):
