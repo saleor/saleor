@@ -6,7 +6,7 @@ PRODUCT_QUERY = {
     '_source': False,
     'query': {
         'multi_match': {
-            'fields': [ 'name', 'title', 'description'],
+            'fields': ['name', 'title', 'description'],
             'query': PHRASE,
             'type': 'cross_fields'
         }

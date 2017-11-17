@@ -34,11 +34,9 @@ class Category(MPTTModel):
     description = models.TextField(
         pgettext_lazy('Category field', 'description'), blank=True)
     parent = models.ForeignKey(
-        'self',
-        null=True,
-        blank=True,
-        related_name='children',
-        verbose_name=pgettext_lazy('Category field', 'parent'))
+        'self', null=True, blank=True, related_name='children',
+        verbose_name=pgettext_lazy('Category field', 'parent'),
+        on_delete=models.CASCADE)
     hidden = models.BooleanField(
         pgettext_lazy('Category field', 'hidden'), default=False)
 
@@ -101,8 +99,8 @@ class ProductClass(models.Model):
 
     class Meta:
         verbose_name = pgettext_lazy('Product class model', 'product class')
-        verbose_name_plural = pgettext_lazy('Product class model',
-                                            'product classes')
+        verbose_name_plural = pgettext_lazy(
+            'Product class model', 'product classes')
         app_label = 'product'
 
     def __str__(self):
@@ -463,10 +461,10 @@ class AttributeChoiceValue(models.Model):
 
     class Meta:
         unique_together = ('name', 'attribute')
-        verbose_name = pgettext_lazy('Attribute choice value model',
-                                     'attribute choices value')
-        verbose_name_plural = pgettext_lazy('Attribute choice value model',
-                                            'attribute choices values')
+        verbose_name = pgettext_lazy(
+            'Attribute choice value model', 'attribute choices value')
+        verbose_name_plural = pgettext_lazy(
+            'Attribute choice value model', 'attribute choices values')
 
     def __str__(self):
         return self.name
@@ -536,5 +534,5 @@ class VariantImage(models.Model):
 
     class Meta:
         verbose_name = pgettext_lazy('Variant image model', 'variant image')
-        verbose_name_plural = pgettext_lazy('Variant image model',
-                                            'variant images')
+        verbose_name_plural = pgettext_lazy(
+            'Variant image model', 'variant images')
