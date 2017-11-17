@@ -6,6 +6,7 @@
 !.dockerignore
 !.eslintrc.json
 !.flowconfig
+!.github
 !.gitignore
 !.nvmrc
 !.pylintrc
