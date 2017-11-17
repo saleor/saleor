@@ -5,12 +5,13 @@ from django.test.client import RequestFactory
 from django.urls import reverse
 from django.utils.encoding import smart_text
 
-from saleor.dashboard.sites.forms import SiteForm, SiteSettingForm
+from saleor.dashboard.sites.forms import SiteForm, SiteSettingsForm
 from saleor.site import utils
 from saleor.site.models import AuthorizationKey, SiteSettings
 
 
 def test_index_view(admin_client, site_settings):
+    assert len(SiteSettings.objects.all()) == 1
     response = admin_client.get(reverse('dashboard:site-index'), follow=True)
     assert response.status_code == 200
 
@@ -32,20 +33,20 @@ def test_form():
 @pytest.mark.django_db
 def test_form(site_settings):
     data = {'header_text': 'mirumee', 'description': 'mirumee.com'}
-    form = SiteSettingForm(data, instance=site_settings)
+    form = SiteSettingsForm(data, instance=site_settings)
     assert form.is_valid()
 
     site = form.save()
     assert site.header_text == 'mirumee'
     assert smart_text(site) == 'mirumee.com'
 
-    form = SiteSettingForm({})
+    form = SiteSettingsForm({})
     assert form.is_valid()
 
 
 def test_site_update_view(admin_client, site_settings):
     url = reverse('dashboard:site-update',
-                  kwargs={'site_id': site_settings.id})
+                  kwargs={'pk': site_settings.pk})
     response = admin_client.get(url)
     assert response.status_code == 200
 

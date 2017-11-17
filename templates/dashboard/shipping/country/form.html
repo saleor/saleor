@@ -1,0 +1,102 @@
+{% extends "dashboard/base.html" %}
+{% load i18n %}
+{% load materializecss %}
+{% load staticfiles %}
+
+{% block title %}
+  {% if method.pk %}
+   {% trans "Edit" context "Dashboard attributes list" %} - {{ method }}
+  {% else %}
+    {% trans "Add new attribute" context "Attribute detail page title" %}
+  {% endif %}
+  - {{ block.super }}
+{% endblock %}
+
+{% block body_class %}body-shipping-method-country{% endblock %}
+
+{% block menu_attributes_class %}active{% endblock %}
+
+{% block header_menu %}
+  {% url "dashboard:shipping-method-list" as url %}
+  {% include "dashboard/includes/_back-link.html" with url=url %}
+{% endblock %}
+
+
+{% block breadcrumbs %}
+  <ul class="breadcrumbs breadcrumbs--history">
+    <li>
+      <a href="{% url 'dashboard:shipping-methods' %}" class="breadcrumbs--ellipsed-item">
+      {% trans "Shipping methods" context "Dashboard attributes list" %}
+      </a>
+    </li>
+    <li class="back-mobile">
+      <a href="{% url 'dashboard:shipping-methods' %}">
+        <svg data-src="{% static "dashboard/images/arrow_left.svg" %}" fill="#fff" width="20px" height="20px" />
+      </a>
+    </li>
+    {% if method.pk %}
+    <li>
+      <a href="{% url 'dashboard:shipping-method-detail' method.pk %}" class="breadcrumbs--ellipsed-item">
+        {{ method }}
+      </a>
+    </li>
+    <li>
+      <span class="breadcrumbs--ellipsed-item">
+        {% trans "Edit" context "Attribute detail breadcrumbs" %}
+      </span>
+    </li>
+    {% else %}
+    <li>
+      <span class="breadcrumbs--ellipsed-item">
+        {% trans "Add new attribute" context "Attribute detail breadcrumbs" %}
+      </span>
+    </li>
+    {% endif %}
+  </ul>
+{% endblock %}
+
+{% block menu_catalogue_class %} active{% endblock %}
+
+{% block content %}
+  <div class="row">
+    <div class="col m12 l9">
+      <div class="card">
+        <form method="post" enctype="multipart/form-data" id="form-attributes" novalidate>
+          {% csrf_token %}
+          <div class="card-content">
+            <span class="card-title">
+              {% trans "Shipping method price for country " context "Shipping method price for country form title" %}
+            </span>
+            {% for field in form %}
+              <div class="row">
+                <div class="col s12 l8" >
+                  <div class="row">
+                    {{ field|materializecss }}
+                  </div>
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+          <div class="card-action right-align">
+            {% if value.pk %}
+              <a href="{% url 'dashboard:shipping-method-detail' pk=shipping_method_pk %}" class="btn btn-flat">
+                {% trans "Cancel" context "Dashboard cancel action" %}
+              </a>
+              <button type="submit" class="btn waves-effect waves-light">
+                {% trans "Save" context "Dashboard update action" %}
+              </button>
+            {% else %}
+              <a href="{% url 'dashboard:shipping-method-detail' pk=shipping_method_pk %}" class="btn btn-flat">
+                {% trans "Cancel" context "Dashboard cancel action" %}
+              </a>
+              <button type="submit" class="btn waves-effect waves-light">
+                {% trans "Create" context "Dashboard create action" %}
+              </button>
+            {% endif %}
+          </div>
+        </form>
+      </div>
+    </div>
+    <div class="col m12 l3 help-box"></div>
+  </div>
+{% endblock %}
