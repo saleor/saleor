@@ -4,11 +4,20 @@
     color: #fff;
   }
 }
+
 .btn {
   &:not(.btn-floating) {
     box-shadow: none;
   }
+  &-danger {
+    color: $error-color;
+    &:hover {
+      background: $error-color;
+      color: #fff;
+    }
+  }
 }
+
 .btn-fab, .btn-floating {
   svg {
     vertical-align: middle;
