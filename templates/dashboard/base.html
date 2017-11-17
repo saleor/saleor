@@ -165,42 +165,63 @@
               </ul>
             </li>
             {% endif %}
-            {% if user.is_superuser %}
+            {% if perms.userprofile.view_group or perms.userprofile.edit_group %}
               <li class="side-nav-section">
                 <p>
-                  {% trans "Configuration"  context "Dashboard configuration" %}
+                  {% trans "Staff management" context "Management section" %}
                 </p>
                 <ul>
+                  {% if perms.userprofile.view_staff %}
                   <li class="{% block menu_staff_class %}{% endblock %}">
                     <a href="{% url 'dashboard:staff-list' %}">
                       {% trans "Staff members" context "Dashboard staff members list" %}
                     </a>
                   </li>
+                  {% endif %}
+                  {% if perms.userprofile.view_group %}
                   <li class="{% block menu_groups_class %}{% endblock %}">
                     <a href="{% url 'dashboard:group-list' %}">
                       {% trans "Groups" context "Dashboard groups list" %}
                     </a>
                   </li>
+                  {% endif %}
+                </ul>
+              </li>
+            {% endif %}
+            {% if perms.site.edit_settings or perms.product.view_properties or perms.shipping.view_shipping or perms.product.view_properties %}
+              <li class="side-nav-section">
+                <p>
+                  {% trans "Configuration"  context "Dashboard configuration" %}
+                </p>
+                <ul>
+                  {% if perms.product.view_properties %}
                   <li class="{% block menu_product_classes_class %}{% endblock %}">
                     <a href="{% url 'dashboard:product-class-list' %}">
                       {% trans "Product types" context "Dashboard product types list" %}
                     </a>
                   </li>
+                  {% endif %}
+                  {% if perms.product.view_properties %}
                   <li class="{% block menu_attributes_class %}{% endblock %}">
                     <a href="{% url 'dashboard:product-attributes' %}">
                       {% trans "Attributes" context "Dashboard attributes list" %}
                     </a>
                   </li>
+                  {% endif %}
+                  {% if perms.shipping.view_shipping %}
                   <li class="{% block menu_delivery_class %}{% endblock %}">
                     <a href="{% url 'dashboard:shipping-methods' %}">
                       {% trans "Shipping methods" context "Dashboard shipping methods list" %}
                     </a>
                   </li>
+                  {% endif %}
+                  {% if perms.site.edit_settings %}
                   <li class="{% block menu_settings_class %}{% endblock %}">
                     <a href="{% url 'dashboard:site-index' %}">
                       {% trans "Site settings" context "Dashboard site settings" %}
                     </a>
                   </li>
+                  {% endif %}
                 </ul>
               </li>
               <li class="side-nav-section" id="version-indicator">

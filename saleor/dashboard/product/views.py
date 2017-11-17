@@ -15,11 +15,12 @@ from ...product.models import (
 from ...product.utils import (
     get_availability, get_product_costs_data, get_variant_costs_data)
 from ...settings import DASHBOARD_PAGINATE_BY
-from ..views import staff_member_required, superuser_required
+from ..views import staff_member_required
 from . import forms
 
 
-@superuser_required
+@staff_member_required
+@permission_required('product.view_properties')
 def product_class_list(request):
     classes = ProductClass.objects.all().prefetch_related(
         'product_attributes', 'variant_attributes').order_by('name')
@@ -39,7 +40,8 @@ def product_class_list(request):
         ctx)
 
 
-@superuser_required
+@staff_member_required
+@permission_required('product.edit_properties')
 def product_class_create(request):
     product_class = ProductClass()
     form = forms.ProductClassForm(request.POST or None,
@@ -57,7 +59,8 @@ def product_class_create(request):
         ctx)
 
 
-@superuser_required
+@staff_member_required
+@permission_required('product.edit_properties')
 def product_class_edit(request, pk):
     product_class = get_object_or_404(
         ProductClass, pk=pk)
@@ -76,7 +79,8 @@ def product_class_edit(request, pk):
         ctx)
 
 
-@superuser_required
+@staff_member_required
+@permission_required('product.edit_properties')
 def product_class_delete(request, pk):
     product_class = get_object_or_404(ProductClass, pk=pk)
     if request.method == 'POST':
@@ -453,7 +457,8 @@ def variant_delete(request, product_pk, variant_pk):
         ctx)
 
 
-@superuser_required
+@staff_member_required
+@permission_required('product.view_properties')
 def attribute_list(request):
     attributes = [
         (attribute.pk, attribute.name, attribute.values.all())
@@ -467,7 +472,8 @@ def attribute_list(request):
         ctx)
 
 
-@superuser_required
+@staff_member_required
+@permission_required('product.view_properties')
 def attribute_detail(request, pk):
     attributes = ProductAttribute.objects.prefetch_related('values').all()
     attribute = get_object_or_404(attributes, pk=pk)
@@ -477,7 +483,8 @@ def attribute_detail(request, pk):
         {'attribute': attribute})
 
 
-@superuser_required
+@staff_member_required
+@permission_required('product.edit_properties')
 def attribute_edit(request, pk=None):
     if pk:
         attribute = get_object_or_404(ProductAttribute, pk=pk)
@@ -501,7 +508,8 @@ def attribute_edit(request, pk=None):
         ctx)
 
 
-@superuser_required
+@staff_member_required
+@permission_required('product.edit_properties')
 def attribute_delete(request, pk):
     attribute = get_object_or_404(ProductAttribute, pk=pk)
     if request.method == 'POST':

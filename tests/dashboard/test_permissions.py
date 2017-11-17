@@ -686,3 +686,250 @@ def test_staff_group_member_can_view_customer_details(
     response = staff_client.get(reverse('dashboard:order-details',
                                         args=[order_with_items_and_stock.pk]))
     assert response.status_code == 302
+
+
+def test_staff_group_member_can_view_staff_members_list(
+        staff_client, staff_user, staff_group, permission_view_staff):
+    assert not staff_user.has_perm("userprofile.view_staff")
+    response = staff_client.get(reverse('dashboard:staff-list'))
+    assert response.status_code == 302
+    staff_group.permissions.add(permission_view_staff)
+    staff_user.groups.add(staff_group)
+    staff_user = User.objects.get(pk=staff_user.pk)
+    assert staff_user.has_perm("userprofile.view_staff")
+    response = staff_client.get(reverse('dashboard:staff-list'))
+    assert response.status_code == 200
+
+
+def test_staff_group_member_can_view_detail_create_and_delete_staff_members(
+        staff_client, staff_user, staff_group, permission_edit_staff):
+    assert not staff_user.has_perm("userprofile.edit_staff")
+    response = staff_client.get(reverse('dashboard:staff-create'))
+    assert response.status_code == 302
+    response = staff_client.get(reverse('dashboard:staff-delete',
+                                        args=[staff_user.pk]))
+    assert response.status_code == 302
+    response = staff_client.get(reverse('dashboard:staff-details',
+                                        args=[staff_user.pk]))
+    assert response.status_code == 302
+    staff_group.permissions.add(permission_edit_staff)
+    staff_user.groups.add(staff_group)
+    staff_user = User.objects.get(pk=staff_user.pk)
+    assert staff_user.has_perm("userprofile.edit_staff")
+    response = staff_client.get(reverse('dashboard:staff-create'))
+    assert response.status_code == 200
+    response = staff_client.get(reverse('dashboard:staff-delete',
+                                        args=[staff_user.pk]))
+    assert response.status_code == 200
+    response = staff_client.get(reverse('dashboard:staff-details',
+                                        args=[staff_user.pk]))
+    assert response.status_code == 200
+
+
+def test_staff_group_member_can_view_group_list_and_details(
+        staff_client, staff_user, staff_group, permission_view_group):
+    assert not staff_user.has_perm("userprofile.view_group")
+    response = staff_client.get(reverse('dashboard:group-list'))
+    assert response.status_code == 302
+    staff_group.permissions.add(permission_view_group)
+    staff_user.groups.add(staff_group)
+    staff_user = User.objects.get(pk=staff_user.pk)
+    assert staff_user.has_perm("userprofile.view_group")
+    response = staff_client.get(reverse('dashboard:group-list'))
+    assert response.status_code == 200
+
+
+def test_staff_with_permission_can_create_and_delete_group(
+        staff_client, staff_user, staff_group, permission_edit_group):
+    assert not staff_user.has_perm("userprofile.edit_group")
+    response = staff_client.get(reverse('dashboard:group-delete',
+                                        args=[staff_group.pk]))
+    assert response.status_code == 302
+    response = staff_client.get(reverse('dashboard:group-details',
+                                        args=[staff_group.pk]))
+    assert response.status_code == 302
+    response = staff_client.get(reverse('dashboard:group-create'))
+    assert response.status_code == 302
+    staff_group.permissions.add(permission_edit_group)
+    staff_user.groups.add(staff_group)
+    staff_user = User.objects.get(pk=staff_user.pk)
+    assert staff_user.has_perm("userprofile.edit_group")
+    response = staff_client.get(reverse('dashboard:group-details',
+                                        args=[staff_group.pk]))
+    assert response.status_code == 200
+    response = staff_client.get(reverse('dashboard:group-delete',
+                                        args=[staff_group.pk]))
+    assert response.status_code == 200
+    response = staff_client.get(reverse('dashboard:group-create'))
+    assert response.status_code == 200
+
+
+def test_staff_with_permissions_can_view_products_classes_list(
+        staff_client, staff_user, staff_group, permission_view_properties):
+    assert not staff_user.has_perm("product.view_properties")
+    response = staff_client.get(reverse('dashboard:product-class-list'))
+    assert response.status_code == 302
+    staff_group.permissions.add(permission_view_properties)
+    staff_user.groups.add(staff_group)
+    staff_user = User.objects.get(pk=staff_user.pk)
+    assert staff_user.has_perm("product.view_properties")
+    response = staff_client.get(reverse('dashboard:product-class-list'))
+    assert response.status_code == 200
+
+
+def test_staff_with_permissions_can_edit_add_and_delete_products_classes_list(
+        staff_client, staff_user, staff_group, permission_edit_properties,
+        product_class):
+    assert not staff_user.has_perm("product.edit_properties")
+    response = staff_client.get(reverse('dashboard:product-class-update',
+                                        args=[product_class.pk]))
+    assert response.status_code == 302
+    response = staff_client.get(reverse('dashboard:product-class-delete',
+                                        args=[product_class.pk]))
+    assert response.status_code == 302
+    response = staff_client.get(reverse('dashboard:product-class-add'))
+    assert response.status_code == 302
+    staff_group.permissions.add(permission_edit_properties)
+    staff_user.groups.add(staff_group)
+    staff_user = User.objects.get(pk=staff_user.pk)
+    assert staff_user.has_perm("product.edit_properties")
+    response = staff_client.get(reverse('dashboard:product-class-update',
+                                        args=[product_class.pk]))
+    assert response.status_code == 200
+    response = staff_client.get(reverse('dashboard:product-class-delete',
+                                        args=[product_class.pk]))
+    assert response.status_code == 200
+    response = staff_client.get(reverse('dashboard:product-class-add'))
+    assert response.status_code == 200
+
+
+def test_staff_with_permissions_can_view_products_attributes_list(
+        staff_client, staff_user, staff_group, permission_view_properties,
+        color_attribute):
+    assert not staff_user.has_perm("product.view_properties")
+    response = staff_client.get(reverse('dashboard:product-attributes'))
+    assert response.status_code == 302
+    response = staff_client.get(reverse('dashboard:product-attribute-detail',
+                                        args=[color_attribute.pk]))
+    assert response.status_code == 302
+    staff_group.permissions.add(permission_view_properties)
+    staff_user.groups.add(staff_group)
+    staff_user = User.objects.get(pk=staff_user.pk)
+    assert staff_user.has_perm("product.view_properties")
+    response = staff_client.get(reverse('dashboard:product-attributes'))
+    assert response.status_code == 200
+    response = staff_client.get(reverse('dashboard:product-attribute-detail',
+                                        args=[color_attribute.pk]))
+    assert response.status_code == 200
+
+
+def test_staff_with_permissions_can_update_add_and_delete_products_attributes(
+        staff_client, staff_user, staff_group, permission_edit_properties,
+        color_attribute):
+    assert not staff_user.has_perm("product.edit_properties")
+    response = staff_client.get(reverse('dashboard:product-attribute-update',
+                                        args=[color_attribute.pk]))
+    assert response.status_code == 302
+    response = staff_client.get(reverse('dashboard:product-attribute-delete',
+                                        args=[color_attribute.pk]))
+    assert response.status_code == 302
+    response = staff_client.get(reverse('dashboard:product-attribute-add'))
+    assert response.status_code == 302
+    staff_group.permissions.add(permission_edit_properties)
+    staff_user.groups.add(staff_group)
+    staff_user = User.objects.get(pk=staff_user.pk)
+    assert staff_user.has_perm("product.edit_properties")
+    response = staff_client.get(reverse('dashboard:product-attribute-update',
+                                        args=[color_attribute.pk]))
+    assert response.status_code == 200
+    response = staff_client.get(reverse('dashboard:product-attribute-delete',
+                                        args=[color_attribute.pk]))
+    assert response.status_code == 200
+    response = staff_client.get(reverse('dashboard:product-attribute-add'))
+    assert response.status_code == 200
+
+
+def test_staff_with_permissions_can_view_shipping_methods_and_detail(
+        staff_client, staff_user, staff_group, permission_view_shipping,
+        shipping_method):
+    assert not staff_user.has_perm("shipping.view_shipping")
+    response = staff_client.get(reverse('dashboard:shipping-methods'))
+    assert response.status_code == 302
+    response = staff_client.get(reverse('dashboard:shipping-method-detail',
+                                        args=[shipping_method.pk]))
+    assert response.status_code == 302
+    staff_group.permissions.add(permission_view_shipping)
+    staff_user.groups.add(staff_group)
+    staff_user = User.objects.get(pk=staff_user.pk)
+    assert staff_user.has_perm("shipping.view_shipping")
+    response = staff_client.get(reverse('dashboard:shipping-methods'))
+    assert response.status_code == 200
+    response = staff_client.get(reverse('dashboard:shipping-method-detail',
+                                        args=[shipping_method.pk]))
+    assert response.status_code == 200
+
+
+def test_staff_with_permissions_can_update_add_and_delete_shipping_method(
+        staff_client, staff_user, staff_group, permission_edit_shipping,
+        shipping_method):
+    assert not staff_user.has_perm("shipping.edit_shipping")
+    response = staff_client.get(reverse('dashboard:shipping-method-update',
+                                        args=[shipping_method.pk]))
+    assert response.status_code == 302
+    response = staff_client.get(reverse('dashboard:shipping-method-delete',
+                                        args=[shipping_method.pk]))
+    assert response.status_code == 302
+    response = staff_client.get(reverse('dashboard:shipping-method-add'))
+    assert response.status_code == 302
+    staff_group.permissions.add(permission_edit_shipping)
+    staff_user.groups.add(staff_group)
+    staff_user = User.objects.get(pk=staff_user.pk)
+    assert staff_user.has_perm("shipping.edit_shipping")
+    response = staff_client.get(reverse('dashboard:shipping-method-update',
+                                        args=[shipping_method.pk]))
+    assert response.status_code == 200
+    response = staff_client.get(reverse('dashboard:shipping-method-delete',
+                                        args=[shipping_method.pk]))
+    assert response.status_code == 200
+    response = staff_client.get(reverse('dashboard:shipping-method-add'))
+    assert response.status_code == 200
+
+
+def test_staff_with_permissions_can_promote_customer(
+        staff_client, staff_user, staff_group, customer_user,
+        permission_edit_staff, permission_edit_user):
+    assert not staff_user.has_perm("userprofile.edit_user")
+    assert not staff_user.has_perm("userprofile.edit_staff")
+    assert not customer_user.is_staff
+    response = staff_client.get(reverse('dashboard:customer-promote',
+                                        args=[customer_user.pk]))
+    assert response.status_code == 302
+    staff_group.permissions.add(permission_edit_user)
+    staff_group.permissions.add(permission_edit_staff)
+    staff_user.groups.add(staff_group)
+    staff_user = User.objects.get(pk=staff_user.pk)
+    assert staff_user.has_perm("userprofile.edit_user")
+    assert staff_user.has_perm("userprofile.edit_staff")
+    response = staff_client.get(reverse('dashboard:customer-promote',
+                                        args=[customer_user.pk]))
+    assert response.status_code == 200
+    response = staff_client.post(reverse('dashboard:customer-promote',
+                                         args=[customer_user.pk]))
+    customer_user = User.objects.get(pk=customer_user.pk)
+    assert customer_user.is_staff
+
+
+def test_staff_group_member_can_view_and_edit_site_settings(
+        staff_client, staff_user, staff_group, site_settings,
+        permission_edit_settings):
+    assert not staff_user.has_perm("site.edit_settings")
+    response = staff_client.get(reverse('dashboard:site-update',
+                                        args=[site_settings.pk]))
+    assert response.status_code == 302
+    staff_group.permissions.add(permission_edit_settings)
+    staff_user.groups.add(staff_group)
+    staff_user = User.objects.get(pk=staff_user.pk)
+    assert staff_user.has_perm("site.edit_settings")
+    response = staff_client.get(reverse('dashboard:site-update',
+                                        args=[site_settings.pk]))
+    assert response.status_code == 200

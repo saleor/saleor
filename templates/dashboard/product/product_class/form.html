@@ -53,12 +53,14 @@
       <svg data-src="{% static "dashboard/images/more_vert.svg" %}" height="24" width="24" />
     </a>
     <ul id="context-menu" class="dropdown-content">
+      {% if perms.product.edit_properties %}
       <li>
         <a href="#base-modal" data-href="{% url 'dashboard:product-class-delete' pk=product_class.pk %}"
         class="modal-trigger-custom">
           {% trans "Remove product type" context "Product class action" %}
         </a>
       </li>
+      {% endif %}
     </ul>
   {% endif %}
 {% endblock %}
@@ -92,6 +94,7 @@
               </div>
             </div>
           </div>
+          {% if perms.product.edit_properties %}
           <div class="card-action right-align">
             {% if product_class.pk %}
               <a href="{% url 'dashboard:product-class-list' %}" class="btn btn-flat">
@@ -109,6 +112,7 @@
               </button>
             {% endif %}
           </div>
+          {% endif %}
         </form>
       </div>
     </div>

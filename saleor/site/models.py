@@ -21,6 +21,15 @@ class SiteSettings(models.Model):
         pgettext_lazy('Site field', 'site description'), max_length=500,
         blank=True)
 
+    class Meta:
+        permissions = (
+            ('edit_settings',
+             pgettext_lazy('Permission description',
+                           'Can edit site settings')),
+            ('view_settings',
+             pgettext_lazy('Permission description',
+                           'Can view site settings')))
+
     def __str__(self):
         return self.site.name
 

@@ -10,7 +10,7 @@ from django.utils.translation import pgettext_lazy
 from ...core.utils import get_paginator_items
 from ...userprofile.models import User
 from ...settings import DASHBOARD_PAGINATE_BY
-from ..views import staff_member_required, superuser_required
+from ..views import staff_member_required
 
 
 @staff_member_required
@@ -42,7 +42,9 @@ def customer_details(request, pk):
     return TemplateResponse(request, 'dashboard/customer/detail.html', ctx)
 
 
-@superuser_required
+@staff_member_required
+@permission_required('userprofile.edit_staff')
+@permission_required('userprofile.edit_user')
 def customer_promote_to_staff(request, pk):
     customer = get_object_or_404(User, pk=pk)
     if request.method == 'POST':

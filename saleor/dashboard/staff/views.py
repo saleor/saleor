@@ -1,19 +1,21 @@
 from __future__ import unicode_literals
 
 from django.contrib import messages
+from django.contrib.auth.decorators import permission_required
 from django.shortcuts import get_object_or_404, redirect
 from django.template.response import TemplateResponse
 from django.utils.translation import pgettext_lazy
 
 from .emails import send_set_password_email
 from .forms import StaffForm
-from ..views import superuser_required
+from ..views import staff_member_required
 from ...core.utils import get_paginator_items
 from ...settings import DASHBOARD_PAGINATE_BY
 from ...userprofile.models import User
 
 
-@superuser_required
+@staff_member_required
+@permission_required('userprofile.view_staff')
 def staff_list(request):
     staff_members = (User.objects.filter(is_staff=True)
                      .prefetch_related('default_billing_address')
@@ -24,7 +26,8 @@ def staff_list(request):
     return TemplateResponse(request, 'dashboard/staff/list.html', ctx)
 
 
-@superuser_required
+@staff_member_required
+@permission_required('userprofile.edit_staff')
 def staff_details(request, pk):
     queryset = User.objects.filter(is_staff=True)
     staff_member = get_object_or_404(queryset, pk=pk)
@@ -40,7 +43,8 @@ def staff_details(request, pk):
     return TemplateResponse(request, 'dashboard/staff/detail.html', ctx)
 
 
-@superuser_required
+@staff_member_required
+@permission_required('userprofile.edit_staff')
 def staff_create(request):
     staff = User()
     form = StaffForm(request.POST or None, instance=staff)
@@ -55,7 +59,8 @@ def staff_create(request):
     return TemplateResponse(request, 'dashboard/staff/detail.html', ctx)
 
 
-@superuser_required
+@staff_member_required
+@permission_required('userprofile.edit_staff')
 def staff_delete(request, pk):
     queryset = User.objects.prefetch_related(
         'orders')
