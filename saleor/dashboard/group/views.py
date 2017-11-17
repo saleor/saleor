@@ -1,6 +1,7 @@
 from __future__ import unicode_literals
 
 from django.contrib import messages
+from django.contrib.auth.decorators import permission_required
 from django.contrib.auth.models import Group
 from django.shortcuts import get_object_or_404, redirect
 from django.template.response import TemplateResponse
@@ -8,11 +9,12 @@ from django.utils.translation import pgettext_lazy
 
 from ...core.utils import get_paginator_items
 from ...settings import DASHBOARD_PAGINATE_BY
-from ..views import superuser_required
+from ..views import staff_member_required
 from .forms import GroupPermissionsForm
 
 
-@superuser_required
+@staff_member_required
+@permission_required('userprofile.view_group')
 def group_list(request):
     groups = [{'name': group, 'permissions': group.permissions.all()}
               for group in Group.objects.all().prefetch_related('permissions')]
@@ -22,7 +24,8 @@ def group_list(request):
     return TemplateResponse(request, 'dashboard/group/list.html', ctx)
 
 
-@superuser_required
+@staff_member_required
+@permission_required('userprofile.edit_group')
 def group_create(request):
     group = Group()
     form = GroupPermissionsForm(request.POST or None)
@@ -37,7 +40,8 @@ def group_create(request):
     return TemplateResponse(request, 'dashboard/group/detail.html', ctx)
 
 
-@superuser_required
+@staff_member_required
+@permission_required('userprofile.edit_group')
 def group_details(request, pk):
     group = Group.objects.get(pk=pk)
     form = GroupPermissionsForm(request.POST or None, instance=group)
@@ -52,7 +56,8 @@ def group_details(request, pk):
     return TemplateResponse(request, 'dashboard/group/detail.html', ctx)
 
 
-@superuser_required
+@staff_member_required
+@permission_required('userprofile.edit_group')
 def group_delete(request, pk):
     group = get_object_or_404(Group, pk=pk)
     if request.method == 'POST':

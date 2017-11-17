@@ -462,3 +462,53 @@ def product_list(product_class):
         name='Test product 2', price=Decimal('20.00'),
         product_class=product_class, is_published=False)
     return [product_1, product_2]
+
+
+@pytest.fixture
+def permission_view_staff():
+    return Permission.objects.get(codename='view_staff')
+
+
+@pytest.fixture
+def permission_edit_staff():
+    return Permission.objects.get(codename='edit_staff')
+
+
+@pytest.fixture
+def permission_view_group():
+    return Permission.objects.get(codename='view_group')
+
+
+@pytest.fixture
+def permission_edit_group():
+    return Permission.objects.get(codename='edit_group')
+
+
+@pytest.fixture
+def permission_view_properties():
+    return Permission.objects.get(codename='view_properties')
+
+
+@pytest.fixture
+def permission_edit_properties():
+    return Permission.objects.get(codename='edit_properties')
+
+
+@pytest.fixture
+def permission_view_shipping():
+    return Permission.objects.get(codename='view_shipping')
+
+
+@pytest.fixture
+def permission_edit_shipping():
+    return Permission.objects.get(codename='edit_shipping')
+
+
+@pytest.fixture
+def permission_edit_user():
+    return Permission.objects.get(codename='edit_user')
+
+
+@pytest.fixture
+def permission_edit_settings():
+    return Permission.objects.get(codename='edit_settings')

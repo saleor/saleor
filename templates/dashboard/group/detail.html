@@ -47,12 +47,14 @@
       <svg data-src="{% static "dashboard/images/more_vert.svg" %}" height="24" width="24" />
     </a>
     <ul id="context-menu" class="dropdown-content">
+        {% if perms.userprofile.edit_group %}
       <li>
         <a href="#base-modal" data-href="{% url 'dashboard:group-delete' pk=group.pk %}"
         class="modal-trigger-custom">
           {% trans 'Remove group' context 'Group form action' %}
         </a>
       </li>
+      {% endif %}
     </ul>
   {% endif %}
 {% endblock %}
@@ -77,6 +79,7 @@
                 </div>
               </div>
             </div>
+            {% if perms.userprofile.edit_group %}
             <div class="card-action right-align">
               <a href="{% url 'dashboard:group-list' %}" class="btn btn-flat">
                 {% trans "Cancel" context "Dashboard cancel action" %}
@@ -88,6 +91,7 @@
                   {% trans 'Add' context 'Dashboard add action' %}
                 {% endif %}
               </button>
+              {% endif %}
             </div>
           </div>
         </form>
