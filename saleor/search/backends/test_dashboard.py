@@ -6,10 +6,12 @@ PRODUCT_QUERY = {
     '_source': False,
     'query': {
         'multi_match': {
-            'fields': ['name', 'description'],
-            'query': PHRASE
+            'fields': [ 'name', 'title', 'description'],
+            'query': PHRASE,
+            'type': 'cross_fields'
         }
-    }
+    },
+    'sort': ['_score']
 }
 ORDERS_QUERY = {
     '_source': False,
