@@ -2,7 +2,7 @@ from __future__ import unicode_literals
 from . import newelastic
 
 PHRASE = 'How fortunate man with none'
-FIELDS = ['name', 'description']
+FIELDS = ['title', 'name', 'description']
 INDEX = 'storefront'
 DOC_TYPE = 'product_document'
 QUERY = {

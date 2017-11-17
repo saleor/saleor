@@ -6,7 +6,7 @@ from elasticsearch_dsl.connections import connections
 from decimal import Decimal
 import pytest
 
-MATCH_SEARCH_REQUEST = ['method', 'host', 'port', 'path', 'body']
+MATCH_SEARCH_REQUEST = ['method', 'host', 'port', 'path']
 STOREFRONT_PRODUCTS = {15, 56}  # same as in recorded data!
 DASHBOARD_PRODUCTS = {58, 56}
 PRODUCTS_INDEXED = STOREFRONT_PRODUCTS | DASHBOARD_PRODUCTS
