@@ -524,7 +524,8 @@ def attribute_delete(request, pk):
         {'attribute': attribute})
 
 
-@superuser_required
+@staff_member_required
+@permission_required('product.edit_properties')
 def attribute_choice_value_edit(request, attribute_pk, value_pk=None):
     if value_pk:
         value = get_object_or_404(AttributeChoiceValue, pk=value_pk)
@@ -547,7 +548,8 @@ def attribute_choice_value_edit(request, attribute_pk, value_pk=None):
         ctx)
 
 
-@superuser_required
+@staff_member_required
+@permission_required('product.edit_properties')
 def attribute_choice_value_delete(request, attribute_pk, value_pk):
     value = get_object_or_404(AttributeChoiceValue, pk=value_pk)
     if request.method == 'POST':

@@ -6,7 +6,7 @@ from django.shortcuts import get_object_or_404, redirect
 from django.template.response import TemplateResponse
 from django.utils.translation import pgettext_lazy
 
-from .forms import AuthorizationKeyFormSet, SiteForm, SiteSettingForm
+from .forms import AuthorizationKeyForm, SiteForm, SiteSettingsForm
 from ..views import staff_member_required
 from ...site.models import AuthorizationKey, SiteSettings
 
@@ -45,7 +45,8 @@ def site_settings_edit(request, pk=None):
     return TemplateResponse(request, 'dashboard/sites/form.html', ctx)
 
 
-@superuser_required
+@staff_member_required
+@permission_required('site.edit_settings')
 def site_settings_detail(request, pk):
     site_settings = get_object_or_404(SiteSettings, pk=pk)
     authorization_keys = AuthorizationKey.objects.filter(
@@ -54,7 +55,8 @@ def site_settings_detail(request, pk):
     return TemplateResponse(request, 'dashboard/sites/detail.html', ctx)
 
 
-@superuser_required
+@staff_member_required
+@permission_required('site.edit_settings')
 def authorization_key_edit(request, site_settings_pk, key_pk=None):
     if key_pk:
         key = get_object_or_404(AuthorizationKey, pk=key_pk)
@@ -76,7 +78,8 @@ def authorization_key_edit(request, site_settings_pk, key_pk=None):
         request, 'dashboard/sites/authorization_keys/form.html', ctx)
 
 
-@superuser_required
+@staff_member_required
+@permission_required('site.edit_settings')
 def authorization_key_delete(request, site_settings_pk, key_pk):
     key = get_object_or_404(AuthorizationKey, pk=key_pk)
     if request.method == 'POST':
