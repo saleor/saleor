@@ -11,7 +11,6 @@ from saleor.site.models import AuthorizationKey, SiteSettings
 
 
 def test_index_view(admin_client, site_settings):
-    assert len(SiteSettings.objects.all()) == 1
     response = admin_client.get(reverse('dashboard:site-index'), follow=True)
     assert response.status_code == 200
 
@@ -102,6 +101,46 @@ def test_settings_available_backends(site_settings, authorization_key):
     backend_name = authorization_key.name
     available_backends = site_settings.available_backends()
     assert backend_name in available_backends
+
+
+def test_authorization_key_form_add(admin_client, site_settings):
+    assert site_settings.available_backends().count() == 0
+    data = {'site_settings': site_settings.pk, 'name': 'google-oauth2',
+            'key': 'key', 'password': 'password'}
+    url = reverse('dashboard:authorization-key-add',
+                  kwargs={'site_settings_pk': site_settings.pk})
+    response = admin_client.post(url, data, follow=True)
+    assert response.status_code == 200
+    assert len(AuthorizationKey.objects.all()) == 1
+    assert site_settings.available_backends().count() == 1
+    assert 'google-oauth2' in site_settings.available_backends()
+
+
+def test_authorization_key_form_edit(
+        admin_client, site_settings, authorization_key):
+    assert site_settings.available_backends().count() == 1
+    data = {'site_settings': site_settings.pk, 'name': 'google-oauth2',
+            'key': 'key', 'password': 'password'}
+    url = reverse('dashboard:authorization-key-edit',
+                  kwargs={'site_settings_pk': site_settings.pk,
+                          'key_pk': authorization_key.pk})
+    response = admin_client.post(url, data, follow=True)
+    assert response.status_code == 200
+    assert len(AuthorizationKey.objects.all()) == 1
+    assert site_settings.available_backends().count() == 1
+    assert 'google-oauth2' in site_settings.available_backends()
+
+
+def test_authorization_key_form_delete(
+        admin_client, site_settings, authorization_key):
+    assert site_settings.available_backends().count() == 1
+    url = reverse('dashboard:authorization-key-delete',
+                  kwargs={'site_settings_pk': site_settings.pk,
+                          'key_pk': authorization_key.pk})
+    response = admin_client.post(url, follow=True)
+    assert response.status_code == 200
+    assert len(AuthorizationKey.objects.all()) == 0
+    assert site_settings.available_backends().count() == 0
 
 
 def test_new_get_current():
