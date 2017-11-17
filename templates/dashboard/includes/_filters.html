@@ -1,5 +1,6 @@
 {% load i18n %}
 {% load materializecss %}
+{% load static %}
 
 
 <div class="card">
@@ -8,37 +9,40 @@
       <div class="col s12">
         <span class="card-title">{% trans 'Filters' context 'Dashboard card title' %}</span>
         <span>{% trans 'Total records found' context 'Dashboard filter' %}: {{ filter.qs|length }}</span>
+        <span class="collapse-activate hide-on-large-only"><svg data-src="{% static '/images/filter_icon.svg' %}" /></span>
       </div>
       <div class="clearfix"></div>
     </div>
-    <div class="card-content card-action">
-      <div class="row">
-        {% for field in filter.form %}
-          <div class="col s12">
-            {% if field.name == 'sort_by' %}
-              <!--Field 'sort_by' is hidden because it is rendered in header.
-              This is required if you want to have sorting to be kept during further filtering.-->
-              <input type="hidden" name="sort_by"
-                     value="{% if request.GET.sort_by %}{{ request.GET.sort_by }}{% endif %}">
-            {% else %}
-              {{ field|materializecss }}
-            {% endif %}
-          </div>
-        {% endfor %}
-      </div>
-    <div class="clearfix"></div>
-    </div>
-    <div class="card-action">
-      <div class="right-align">
-        <div class="col s12">
-          <a href="?" class="clear-filters btn btn-flat btn-danger">
-            {% trans 'Clear filters' context 'Category page filters' %}
-          </a>
-          <button class="btn primary" type="submit">
-            {% trans 'Filter' context 'Category price filter' %}
-          </button>
+    <div class="collapse">
+      <div class="card-content card-action">
+        <div class="row">
+          {% for field in filter.form %}
+            <div class="col s12">
+              {% if field.name == 'sort_by' %}
+                <!--Field 'sort_by' is hidden because it is rendered in header.
+                This is required if you want to have sorting to be kept during further filtering.-->
+                <input type="hidden" name="sort_by"
+                       value="{% if request.GET.sort_by %}{{ request.GET.sort_by }}{% endif %}">
+              {% else %}
+                {{ field|materializecss }}
+              {% endif %}
+            </div>
+          {% endfor %}
         </div>
         <div class="clearfix"></div>
+      </div>
+      <div class="card-action">
+        <div class="right-align">
+          <div class="col s12">
+            <a href="?" class="clear-filters btn btn-flat btn-danger">
+              {% trans 'Clear filters' context 'Category page filters' %}
+            </a>
+            <button class="btn primary" type="submit">
+              {% trans 'Filter' context 'Category price filter' %}
+            </button>
+          </div>
+          <div class="clearfix"></div>
+        </div>
       </div>
     </div>
   </form>
