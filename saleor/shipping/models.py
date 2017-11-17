@@ -94,12 +94,8 @@ class ShippingMethodCountry(models.Model):
     shipping_method = models.ForeignKey(
         ShippingMethod, related_name='price_per_country',
         verbose_name=pgettext_lazy(
-<<<<<<< HEAD
             'Shipping method country field', 'shipping method'),
         on_delete=models.CASCADE)
-=======
-            'Shipping method country field', 'shipping method'),)
->>>>>>> Code style
 
     objects = ShippingMethodCountryQueryset.as_manager()
 

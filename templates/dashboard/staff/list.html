@@ -50,7 +50,7 @@
           </thead>
           <tbody>
             {% for user in staff %}
-              <tr data-action-go="{% if perms.discount.edit_staff %}{% url "dashboard:staff-details" pk=user.pk %}{% endif %}">
+              <tr data-action-go="{% if perms.userprofile.edit_staff %}{% url "dashboard:staff-details" pk=user.pk %}{% endif %}">
                 {% with user.default_billing_address as default_address %}
                   <td>
                     {{ user.email }}
