@@ -28,17 +28,17 @@ class ShippingMethod(models.Model):
         blank=True, default='')
 
     class Meta:
-        verbose_name = pgettext_lazy('Shipping method model',
-                                     'shipping method')
-        verbose_name_plural = pgettext_lazy('Shipping method model',
-                                            'shipping methods')
+        verbose_name = pgettext_lazy(
+            'Shipping method model', 'shipping method')
+        verbose_name_plural = pgettext_lazy(
+            'Shipping method model', 'shipping methods')
         permissions = (
             ('view_shipping',
-             pgettext_lazy('Permission description',
-                           'Can view shipping method')),
+             pgettext_lazy(
+                 'Permission description', 'Can view shipping method')),
             ('edit_shipping',
-             pgettext_lazy('Permission description',
-                           'Can edit shipping method')))
+             pgettext_lazy(
+                 'Permission description', 'Can edit shipping method')))
 
     def __str__(self):
         return self.name
@@ -70,8 +70,8 @@ class ShippingMethodCountryQueryset(models.QuerySet):
 
         for dummy_method_id, method_values in grouped_shipping:
             method_values = list(method_values)
-            # if there is any country choice and specific one remove any
-            # country choice
+            # if there is any country choice and specific one remove
+            # any country choice
             if len(method_values) == 2:
                 method = [
                     val for val in method_values if val[2] != any_country][0]
@@ -94,8 +94,12 @@ class ShippingMethodCountry(models.Model):
     shipping_method = models.ForeignKey(
         ShippingMethod, related_name='price_per_country',
         verbose_name=pgettext_lazy(
+<<<<<<< HEAD
             'Shipping method country field', 'shipping method'),
         on_delete=models.CASCADE)
+=======
+            'Shipping method country field', 'shipping method'),)
+>>>>>>> Code style
 
     objects = ShippingMethodCountryQueryset.as_manager()
 
