@@ -118,7 +118,7 @@ def category_index(request, path, category_id):
         return redirect('product:category', permanent=True, path=actual_path,
                         category_id=category_id)
     products = (products_with_details(user=request.user)
-                .filter(categories__name=category)
+                .filter(categories__id=category.id)
                 .order_by('name'))
     product_filter = ProductFilter(
         request.GET, queryset=products, category=category)
