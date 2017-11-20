@@ -21,13 +21,9 @@ def index(request):
 
 @staff_member_required
 @permission_required('site.edit_settings')
-def site_settings_edit(request, pk=None):
-    if pk:
-        site_settings = get_object_or_404(SiteSettings, pk=pk)
-        site = site_settings.site
-    else:
-        site_settings = SiteSettings()
-        site = Site()
+def site_settings_edit(request, pk):
+    site_settings = get_object_or_404(SiteSettings, pk=pk)
+    site = site_settings.site
     site_settings_form = SiteSettingsForm(
         request.POST or None, instance=site_settings)
     site_form = SiteForm(request.POST or None, instance=site)
