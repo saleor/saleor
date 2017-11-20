@@ -9,7 +9,7 @@ from saleor.dashboard.order.forms import ChangeQuantityForm, MoveLinesForm
 from saleor.order.models import (
     DeliveryGroup, Order, OrderLine, OrderHistoryEntry)
 from saleor.order.utils import (
-    create_order_lines_in_delivery_group, change_order_line_quantity)
+    fill_group_with_partition, change_order_line_quantity)
 from saleor.product.models import ProductVariant, Stock, StockLocation
 from tests.utils import get_redirect_location, get_url_path
 
@@ -127,7 +127,7 @@ def test_view_change_order_line_quantity_with_invalid_data(
 def test_dashboard_change_quantity_form(request_cart_with_item, order):
     cart = request_cart_with_item
     group = DeliveryGroup.objects.create(order=order)
-    create_order_lines_in_delivery_group(group, cart.lines.all())
+    fill_group_with_partition(group, cart.lines.all())
     order_line = group.items.get()
 
     # Check max quantity validation

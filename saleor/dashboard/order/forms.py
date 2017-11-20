@@ -15,7 +15,7 @@ from ...discount.models import Voucher
 from ...order import OrderStatus
 from ...order.models import DeliveryGroup, Order, OrderLine, OrderNote
 from ...order.utils import (
-    add_item_to_delivery_group, cancel_order, cancel_delivery_group,
+    add_variant_to_delivery_group, cancel_order, cancel_delivery_group,
     change_order_line_quantity, merge_duplicated_lines)
 from ...product.models import Product, ProductVariant, Stock
 
@@ -387,5 +387,5 @@ class AddDeliveryGroupItemForm(forms.Form):
     def save(self):
         variant = self.cleaned_data['variant']
         quantity = self.cleaned_data['quantity']
-        add_item_to_delivery_group(self.group, variant, quantity)
+        add_variant_to_delivery_group(self.group, variant, quantity)
         Order.objects.recalculate_order(self.group.order)

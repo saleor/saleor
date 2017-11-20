@@ -54,68 +54,40 @@ def attach_order_to_user(order, user):
     order.save(update_fields=['user'])
 
 
-def create_order_lines_in_delivery_group(
-        delivery_group, partition, discounts=None):
-    for order_line in partition:
-        product_variant = order_line.variant
-        price = order_line.get_price_per_item(discounts)
-        total_quantity = order_line.get_quantity()
-
-        while total_quantity > 0:
-            stock = product_variant.select_stockrecord()
-            if not stock:
-                raise InsufficientStock(product_variant)
-            quantity = (
-                stock.quantity_available
-                if total_quantity > stock.quantity_available
-                else total_quantity
-            )
-            delivery_group.items.create(
-                product=product_variant.product,
-                quantity=quantity,
-                unit_price_net=price.net,
-                product_name=product_variant.display_product(),
-                product_sku=product_variant.sku,
-                unit_price_gross=price.gross,
-                stock=stock,
-                stock_location=stock.location.name)
-            total_quantity -= quantity
-            # allocate quantity to avoid overselling
-            Stock.objects.allocate_stock(stock, quantity)
-            # refresh for reading quantity_available in next select_stockrecord
-            stock.refresh_from_db()
-
-def add_items_to_delivery_group(delivery_group, partition, discounts=None):
-    for item_line in partition:
-        variant = item_line.variant
-        price = item_line.get_price_per_item(discounts)
-        quantity = item_line.get_quantity()
-        create_item_in_delivery_group(delivery_group, variant, quantity, price)
+def fill_group_with_partition(group, partition, discounts=None):
+    """
+    Fills delivery group with order lines created from partition items.
+    """
+    for item in partition:
+        add_variant_to_delivery_group(
+            group, item.variant, item.get_quantity(), discounts,
+            add_to_existing=False)
 
 
-def add_item_to_delivery_group(group, variant, quantity):
-    items = group.items.filter(
-        product=variant.product, product_sku=variant.sku, stock__isnull=False,
-        stock__quantity__gte=F('stock__quantity_allocated') + quantity)
-    if items.exists():
-        item = items.first()
-        item.quantity += quantity
-        item.save()
-        Stock.objects.allocate_stock(item.stock, quantity)
-    else:
-        price = variant.get_price_per_item()
-        create_item_in_delivery_group(group, variant, quantity, price)
+def add_variant_to_delivery_group(
+        group, variant, total_quantity, discounts=None, add_to_existing=True):
+    """
+    Adds total_quantity of variant to group.
+    Raises InsufficientStock exception if quantity could not be fulfilled.
 
+    By default, first adds variant to existing lines with same variant.
+    It can be disabled with setting add_to_existing to False.
 
-def create_item_in_delivery_group(group, variant, total_quantity, price):
-    while total_quantity > 0:
+    Order lines are created by increasing quantity of lines,
+    as long as total_quantity of variant will be added.
+    """
+    quantity_left = (
+        add_variant_to_existing_lines(group, variant, total_quantity)
+        if add_to_existing else total_quantity)
+    price = variant.get_price_per_item(discounts)
+    while quantity_left > 0:
         stock = variant.select_stockrecord()
         if not stock:
             raise InsufficientStock(variant)
         quantity = (
             stock.quantity_available
-            if total_quantity > stock.quantity_available
-            else total_quantity
+            if quantity_left > stock.quantity_available
+            else quantity_left
         )
         item = group.items.create(
             product=variant.product,
@@ -126,11 +98,39 @@ def create_item_in_delivery_group(group, variant, total_quantity, price):
             unit_price_gross=price.gross,
             stock=stock,
             stock_location=stock.location.name)
-        # allocate quantity to avoid overselling
         Stock.objects.allocate_stock(stock, quantity)
-        # refresh stock to get quantity_allocated in next loop
-        stock.refresh_from_db()
-        total_quantity -= quantity
+        stock.refresh_from_db() # refresh stock for accessing quantity_allocated
+        quantity_left -= quantity
+
+
+def add_variant_to_existing_lines(group, variant, total_quantity):
+    """
+    Adds variant to existing lines with same variant.
+
+    Variant is added by increasing quantity of lines with same variant,
+    as long as total_quantity of variant will be added
+    or there is no more lines with same variant.
+
+    Returns quantity that could not be fulfilled with existing lines.
+    """
+    items = group.items.filter(
+        product=variant.product, product_sku=variant.sku,
+        stock__isnull=False).order_by(
+            F('stock__quantity_allocated') - F('stock__quantity'))
+
+    quantity_left = total_quantity
+    for item in items:
+        quantity_added = (
+            item.stock.quantity_available
+            if quantity_left > item.stock.quantity_available
+            else quantity_left)
+        item.quantity += quantity_added
+        item.save()
+        Stock.objects.allocate_stock(item.stock, quantity_added)
+        quantity_left -= quantity_added
+        if quantity_left == 0:
+            break
+    return quantity_left
 
 
 def cancel_delivery_group(group, cancel_order=True):

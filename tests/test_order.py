@@ -3,7 +3,7 @@ from prices import Price
 from saleor.cart.models import Cart
 from saleor.order import models
 from saleor.order.utils import (
-    add_item_to_delivery_group, create_order_lines_in_delivery_group)
+    add_variant_to_delivery_group, fill_group_with_partition)
 
 
 def test_total_property():
@@ -33,7 +33,7 @@ def test_stock_allocation(billing_address, product_in_stock):
     cart.add(variant, quantity=2)
     order = models.Order.objects.create(billing_address=billing_address)
     delivery_group = models.DeliveryGroup.objects.create(order=order)
-    create_order_lines_in_delivery_group(delivery_group, cart.lines.all())
+    fill_group_with_partition(delivery_group, cart.lines.all())
     order_line = delivery_group.items.get()
     stock = order_line.stock
     assert stock.quantity_allocated == 2
@@ -42,19 +42,19 @@ def test_stock_allocation(billing_address, product_in_stock):
 def test_order_discount(sale, order, request_cart_with_item):
     cart = request_cart_with_item
     group = models.DeliveryGroup.objects.create(order=order)
-    create_order_lines_in_delivery_group(
+    fill_group_with_partition(
         group, cart.lines.all(), discounts=cart.discounts)
     item = group.items.first()
     assert item.get_price_per_item() == Price(currency="USD", net=5)
 
 
-def test_add_item_to_delivery_group_adds_item_for_new_variant(
+def test_add_variant_to_delivery_group_adds_item_for_new_variant(
         order_with_items, product_in_stock):
     group = order_with_items.groups.get()
     variant = product_in_stock.variants.get()
     items_before = group.items.count()
 
-    add_item_to_delivery_group(group, variant, 1)
+    add_variant_to_delivery_group(group, variant, 1)
 
     item = group.items.last()
     assert group.items.count() == items_before + 1
@@ -62,20 +62,20 @@ def test_add_item_to_delivery_group_adds_item_for_new_variant(
     assert item.quantity == 1
 
 
-def test_add_item_to_delivery_group_allocates_stock_for_new_variant(
+def test_add_variant_to_delivery_group_allocates_stock_for_new_variant(
         order_with_items, product_in_stock):
     group = order_with_items.groups.get()
     variant = product_in_stock.variants.get()
     stock = variant.select_stockrecord(quantity=1)
     stock_before = stock.quantity_allocated
 
-    add_item_to_delivery_group(group, variant, 1)
+    add_variant_to_delivery_group(group, variant, 1)
 
     stock.refresh_from_db()
     assert stock.quantity_allocated == stock_before + 1
 
 
-def test_add_item_to_delivery_group_edits_item_for_existing_variant(
+def test_add_variant_to_delivery_group_edits_item_for_existing_variant(
         order_with_items_and_stock):
     order = order_with_items_and_stock
     group = order.groups.get()
@@ -84,7 +84,7 @@ def test_add_item_to_delivery_group_edits_item_for_existing_variant(
     items_before = group.items.count()
     item_quantity_before = existing_item.quantity
 
-    add_item_to_delivery_group(group, variant, 1)
+    add_variant_to_delivery_group(group, variant, 1)
 
     existing_item.refresh_from_db()
     assert group.items.count() == items_before
@@ -92,7 +92,7 @@ def test_add_item_to_delivery_group_edits_item_for_existing_variant(
     assert existing_item.quantity == item_quantity_before + 1
 
 
-def test_add_item_to_delivery_group_allocates_stock_for_existing_variant(
+def test_add_variant_to_delivery_group_allocates_stock_for_existing_variant(
         order_with_items_and_stock):
     order = order_with_items_and_stock
     group = order.groups.get()
@@ -101,7 +101,7 @@ def test_add_item_to_delivery_group_allocates_stock_for_existing_variant(
     stock = existing_item.stock
     stock_before = stock.quantity_allocated
 
-    add_item_to_delivery_group(group, variant, 1)
+    add_variant_to_delivery_group(group, variant, 1)
 
     stock.refresh_from_db()
     assert stock.quantity_allocated == stock_before + 1
