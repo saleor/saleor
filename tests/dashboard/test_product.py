@@ -238,8 +238,9 @@ def test_attribute_choice_value_edit(color_attribute, admin_client):
     data = {'name': 'Pink', 'color': '#FFF'}
     response = admin_client.post(url, data, follow=True)
     assert response.status_code == 200
-    values = AttributeChoiceValue.objects.filter(attribute=color_attribute.pk)
-    assert len(values) == 2
+    values = AttributeChoiceValue.objects.filter(
+        attribute=color_attribute.pk, name='Pink')
+    assert len(values) == 1
     assert values[0].name == 'Pink'
 
 
