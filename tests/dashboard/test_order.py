@@ -1,13 +1,16 @@
 from __future__ import unicode_literals
 
+from decimal import Decimal
+
 import pytest
 from django.urls import reverse
 
 from saleor.dashboard.order.forms import ChangeQuantityForm, MoveItemsForm
 from saleor.order.models import (
     DeliveryGroup, Order, OrderedItem, OrderHistoryEntry)
-from saleor.order.utils import add_items_to_delivery_group
-from saleor.product.models import ProductVariant, Stock
+from saleor.order.utils import (
+    add_items_to_delivery_group, change_order_line_quantity)
+from saleor.product.models import ProductVariant, Stock, StockLocation
 from tests.utils import get_redirect_location, get_url_path
 
 
@@ -120,59 +123,46 @@ def test_view_change_order_line_quantity_with_invalid_data(
         url, {'quantity': 0})
     assert response.status_code == 400
 
+
 def test_dashboard_change_quantity_form(request_cart_with_item, order):
     cart = request_cart_with_item
     group = DeliveryGroup.objects.create(order=order)
     add_items_to_delivery_group(group, cart.lines.all())
     order_line = group.items.get()
-    variant = ProductVariant.objects.get(sku=order_line.product_sku)
 
     # Check max quantity validation
-    form = ChangeQuantityForm(
-        {'quantity': 9999},
-        instance=order_line,
-        variant=variant)
+    form = ChangeQuantityForm({'quantity': 9999}, instance=order_line)
     assert not form.is_valid()
-    assert form.errors['quantity'] == ['Ensure this value is less than or equal to 50.']
+    assert form.errors['quantity'] == [
+        'Ensure this value is less than or equal to 50.']
 
     # Check minimum quantity validation
-    form = ChangeQuantityForm(
-        {'quantity': 0},
-        instance=order_line,
-        variant=variant)
+    form = ChangeQuantityForm({'quantity': 0}, instance=order_line)
     assert not form.is_valid()
     assert group.items.get().stock.quantity_allocated == 1
 
     # Check available quantity validation
-    form = ChangeQuantityForm(
-        {'quantity': 20},
-        instance=order_line,
-        variant=variant)
+    form = ChangeQuantityForm({'quantity': 20}, instance=order_line)
     assert not form.is_valid()
     assert group.items.get().stock.quantity_allocated == 1
-    assert form.errors['quantity'] == ['Only 4 remaining in stock.']
+    assert form.errors['quantity'] == ['Only 5 remaining in stock.']
 
     # Save same quantity
-    form = ChangeQuantityForm(
-        {'quantity': 1},
-        instance=order_line,
-        variant=variant)
+    form = ChangeQuantityForm({'quantity': 1}, instance=order_line)
     assert form.is_valid()
     form.save()
+    order_line.stock.refresh_from_db()
     assert group.items.get().stock.quantity_allocated == 1
+
     # Increase quantity
-    form = ChangeQuantityForm(
-        {'quantity': 2},
-        instance=order_line,
-        variant = variant)
+    form = ChangeQuantityForm({'quantity': 2}, instance=order_line)
     assert form.is_valid()
     form.save()
+    order_line.stock.refresh_from_db()
     assert group.items.get().stock.quantity_allocated == 2
+
     # Decrease quantity
-    form = ChangeQuantityForm(
-        {'quantity': 1},
-        instance=order_line,
-        variant=variant)
+    form = ChangeQuantityForm({'quantity': 1}, instance=order_line)
     assert form.is_valid()
     form.save()
     assert group.items.get().stock.quantity_allocated == 1
@@ -281,9 +271,9 @@ def test_view_split_order_line_with_invalid_data(admin_client, order_with_items_
 def test_ordered_item_change_quantity(transactional_db, order_with_items):
     assert list(order_with_items.history.all()) == []
     items = order_with_items.groups.all()[0].items.all()
-    items[0].change_quantity(0)
-    items[1].change_quantity(0)
-    items[2].change_quantity(0)
+    change_order_line_quantity(items[0], 0)
+    change_order_line_quantity(items[1], 0)
+    change_order_line_quantity(items[2], 0)
     history = list(order_with_items.history.all())
     assert len(history) == 1
     assert history[0].status == 'cancelled'
@@ -347,3 +337,108 @@ def test_view_order_packing_slips(
         order_with_items_and_stock.id,
         order_with_items_and_stock.groups.all()[0].pk)
     assert response['Content-Disposition'] == 'filename=%s' % name
+
+
+@pytest.mark.integration
+@pytest.mark.django_db
+def test_view_change_order_line_stock_valid(
+        admin_client, order_with_items_and_stock):
+    order = order_with_items_and_stock
+    line = order.get_items().last()
+    old_stock = line.stock
+    variant = ProductVariant.objects.get(sku=line.product_sku)
+    stock_location = StockLocation.objects.create(name='Warehouse 2')
+    stock = Stock.objects.create(
+        variant=variant, cost_price=2, quantity=2, quantity_allocated=0,
+        location=stock_location)
+
+    url = reverse(
+        'dashboard:orderline-change-stock', kwargs={
+            'order_pk': order.pk,
+            'line_pk': line.pk})
+    data = {'stock': stock.pk}
+    response = admin_client.post(url, data)
+
+    assert response.status_code == 200
+
+    line.refresh_from_db()
+    assert line.stock == stock
+    assert line.stock_location == stock.location.name
+    assert line.stock.quantity_allocated == 2
+
+    old_stock.refresh_from_db()
+    assert old_stock.quantity_allocated == 0
+
+
+@pytest.mark.integration
+@pytest.mark.django_db
+def test_view_change_order_line_stock_insufficient_stock(
+        admin_client, order_with_items_and_stock):
+    order = order_with_items_and_stock
+    line = order.get_items().last()
+    old_stock = line.stock
+    variant = ProductVariant.objects.get(sku=line.product_sku)
+    stock_location = StockLocation.objects.create(name='Warehouse 2')
+    stock = Stock.objects.create(
+        variant=variant, cost_price=2, quantity=2, quantity_allocated=1,
+        location=stock_location)
+
+    url = reverse(
+        'dashboard:orderline-change-stock', kwargs={
+            'order_pk': order.pk,
+            'line_pk': line.pk})
+    data = {'stock': stock.pk}
+    response = admin_client.post(url, data)
+
+    assert response.status_code == 400
+
+    line.refresh_from_db()
+    assert line.stock == old_stock
+    assert line.stock_location == old_stock.location.name
+
+    old_stock.refresh_from_db()
+    assert old_stock.quantity_allocated == 2
+
+    stock.refresh_from_db()
+    assert stock.quantity_allocated == 1
+
+
+def test_view_change_order_line_stock_merges_lines(
+        admin_client, order_with_items_and_stock):
+    order = order_with_items_and_stock
+    line = order.get_items().first()
+    group = line.delivery_group
+    old_stock = line.stock
+    variant = ProductVariant.objects.get(sku=line.product_sku)
+    stock_location = StockLocation.objects.create(name='Warehouse 2')
+    stock = Stock.objects.create(
+        variant=variant, cost_price=2, quantity=2, quantity_allocated=2,
+        location=stock_location)
+    line_2 = group.items.create(
+        delivery_group=group,
+        product=line.product,
+        product_name=line.product.name,
+        product_sku='SKU_A',
+        quantity=2,
+        unit_price_net=Decimal('30.00'),
+        unit_price_gross=Decimal('30.00'),
+        stock=stock,
+        stock_location=stock.location.name
+    )
+    lines_before = group.items.count()
+
+    url = reverse(
+        'dashboard:orderline-change-stock', kwargs={
+            'order_pk': order.pk,
+            'line_pk': line_2.pk})
+    data = {'stock': old_stock.pk}
+    response = admin_client.post(url, data)
+
+    assert response.status_code == 200
+    assert group.items.count() == lines_before - 1
+
+    old_stock.refresh_from_db()
+    assert old_stock.quantity_allocated == 5
+
+    stock.refresh_from_db()
+    assert stock.quantity_allocated == 0

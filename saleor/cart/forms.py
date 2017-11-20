@@ -122,7 +122,8 @@ class ReplaceCartLineForm(AddToCartForm):
             self.variant.check_quantity(quantity)
         except InsufficientStock as e:
             msg = self.error_messages['insufficient-stock']
-            raise forms.ValidationError(msg % e.item.get_stock_quantity())
+            raise forms.ValidationError(
+                msg % e.item.get_stock_quantity())
         return quantity
 
     def clean(self):

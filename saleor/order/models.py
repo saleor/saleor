@@ -294,19 +294,23 @@ class DeliveryGroup(models.Model, ItemSet):
     def can_cancel(self):
         return self.status != OrderStatus.CANCELLED
 
+    def can_edit_items(self):
+        return self.status not in {OrderStatus.CANCELLED, OrderStatus.SHIPPED}
+
 
 class OrderedItemManager(models.Manager):
     def move_to_group(self, item, target_group, quantity):
         try:
             target_item = target_group.items.get(
                 product=item.product, product_name=item.product_name,
-                product_sku=item.product_sku)
+                product_sku=item.product_sku, stock=item.stock)
         except ObjectDoesNotExist:
             target_group.items.create(
                 delivery_group=target_group, product=item.product,
                 product_name=item.product_name, product_sku=item.product_sku,
                 quantity=quantity, unit_price_net=item.unit_price_net,
                 stock=item.stock,
+                stock_location=item.stock_location,
                 unit_price_gross=item.unit_price_gross)
         else:
             target_item.quantity += quantity
@@ -376,19 +380,6 @@ class OrderedItem(models.Model, ItemLine):
 
     def get_quantity(self):
         return self.quantity
-
-    def change_quantity(self, new_quantity):
-        order = self.delivery_group.order
-        self.quantity = new_quantity
-        self.save()
-        if not self.delivery_group.get_total_quantity():
-            self.delivery_group.delete()
-        if not order.get_items():
-            order.change_status(OrderStatus.CANCELLED)
-            order.create_history_entry(
-                status=OrderStatus.CANCELLED, comment=pgettext_lazy(
-                    'Order status history entry',
-                    'Order cancelled. No items in order'))
 
 
 class PaymentManager(models.Manager):
