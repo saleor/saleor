@@ -13,10 +13,5 @@ def get_search_query(phrase):
                            .filter('term', is_published=True))
 
 
-def _execute_es_search(search):
-    return [hit.meta.id for hit in search.scan()]
-
-
 def search(phrase, qs):
-        found_objs = _execute_es_search(get_search_query(phrase))
-        return qs.filter(pk__in=found_objs)
+        return qs & get_search_query(phrase).to_queryset()

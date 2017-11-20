@@ -8,5 +8,4 @@ class SearchForm(forms.Form):
         label=pgettext('Search form label', 'Query'), required=True)
 
     def search(self, qs):
-        return elasticsearch.search(
-            self.cleaned_data['q'], qs)
+        return elasticsearch.search(self.cleaned_data['q'], qs)
