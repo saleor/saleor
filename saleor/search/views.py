@@ -20,8 +20,7 @@ def paginate_results(results, get_data, paginate_by=settings.PAGINATE_BY):
 
 def evaluate_search_query(form, request):
     query = form.cleaned_data.get('q', '')
-    visible_products = products_with_details(request.user)
-    results = form.search(qs=visible_products)
+    results = products_with_details(request.user) & form.search()
     results = products_with_availability(
         results,
         discounts=request.discounts,
