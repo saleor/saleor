@@ -101,7 +101,7 @@ tinycss2==0.6.1           # via cssselect2, weasyprint
 typing==3.6.2             # via promise
 urllib3==1.21.1           # via elasticsearch, requests
 uwsgi==2.0.15
-vcrpy==1.11.1             # via pytest-vcr
+vcrpy==1.11.0
 vine==1.1.4               # via amqp
 weasyprint==0.41
 webencodings==0.5.1       # via html5lib, tinycss2
