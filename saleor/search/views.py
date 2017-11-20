@@ -19,19 +19,16 @@ def paginate_results(results, get_data, paginate_by=settings.PAGINATE_BY):
 
 
 def evaluate_search_query(form, request):
-    query = form.cleaned_data.get('q', '')
     results = products_with_details(request.user) & form.search()
-    results = products_with_availability(
-        results,
-        discounts=request.discounts,
-        local_currency=request.currency)
-    return query, results
+    return products_with_availability(results, discounts=request.discounts,
+                                      local_currency=request.currency)
 
 
 def search(request):
     form = SearchForm(data=request.GET or None)
     if form.is_valid():
-        query, results = evaluate_search_query(form, request)
+        query = form.cleaned_data.get('q', '')
+        results = evaluate_search_query(form, request)
     else:
         query, results = '', []
     page = paginate_results(list(results), request.GET)
