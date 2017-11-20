@@ -175,11 +175,10 @@ def change_order_line_quantity(line, new_quantity):
 
     if not line.delivery_group.get_total_quantity():
         line.delivery_group.delete()
-
-    order = line.delivery_group.order
-    if not order.get_lines():
-        order.change_status(OrderStatus.CANCELLED)
-        order.create_history_entry(
-            status=OrderStatus.CANCELLED, comment=pgettext_lazy(
-                'Order status history entry',
-                'Order cancelled. No items in order'))
+        order = line.delivery_group.order
+        if not order.get_lines():
+            order.change_status(OrderStatus.CANCELLED)
+            order.create_history_entry(
+                status=OrderStatus.CANCELLED, comment=pgettext_lazy(
+                    'Order status history entry',
+                    'Order cancelled. No items in order'))
