@@ -9,7 +9,8 @@ from saleor.dashboard.order.forms import ChangeQuantityForm, MoveLinesForm
 from saleor.order.models import (
     DeliveryGroup, Order, OrderLine, OrderHistoryEntry)
 from saleor.order.utils import (
-    fill_group_with_partition, change_order_line_quantity)
+    add_variant_to_existing_lines, change_order_line_quantity,
+    fill_group_with_partition)
 from saleor.product.models import ProductVariant, Stock, StockLocation
 from tests.utils import get_redirect_location, get_url_path
 
@@ -442,3 +443,64 @@ def test_view_change_order_line_stock_merges_lines(
 
     stock.refresh_from_db()
     assert stock.quantity_allocated == 0
+
+
+def test_add_variant_to_existing_lines_one_line(
+        order_with_variant_from_different_stocks):
+    order = order_with_variant_from_different_stocks
+    lines = order.get_items().filter(product_sku='SKU_A')
+    variant_lines_before = lines.count()
+    line = lines.get(stock_location='Warehouse 2')
+    quantity_before = line.quantity
+    variant = ProductVariant.objects.get(sku='SKU_A')
+
+    quantity_left = add_variant_to_existing_lines(
+        line.delivery_group, variant, 2)
+
+    lines_after = order.get_items().filter(product_sku='SKU_A').count()
+    line.refresh_from_db()
+    assert quantity_left == 0
+    assert lines_after == variant_lines_before
+    assert line.quantity == 4
+
+
+def test_add_variant_to_existing_lines_multiple_lines(
+        order_with_variant_from_different_stocks):
+    order = order_with_variant_from_different_stocks
+    lines = order.get_items().filter(product_sku='SKU_A')
+    variant_lines_before = lines.count()
+    line_1 = lines.get(stock_location='Warehouse 1')
+    line_2 = lines.get(stock_location='Warehouse 2')
+    variant = ProductVariant.objects.get(sku='SKU_A')
+
+    quantity_left = add_variant_to_existing_lines(
+        line_1.delivery_group, variant, 4)
+
+    lines_after = order.get_items().filter(product_sku='SKU_A').count()
+    line_1.refresh_from_db()
+    line_2.refresh_from_db()
+    assert quantity_left == 0
+    assert lines_after == variant_lines_before
+    assert line_1.quantity == 4
+    assert line_2.quantity == 5
+
+
+def test_add_variant_to_existing_lines_multiple_lines_with_rest(
+        order_with_variant_from_different_stocks):
+    order = order_with_variant_from_different_stocks
+    lines = order.get_items().filter(product_sku='SKU_A')
+    variant_lines_before = lines.count()
+    line_1 = lines.get(stock_location='Warehouse 1')
+    line_2 = lines.get(stock_location='Warehouse 2')
+    variant = ProductVariant.objects.get(sku='SKU_A')
+
+    quantity_left = add_variant_to_existing_lines(
+        line_1.delivery_group, variant, 7)
+
+    lines_after = order.get_items().filter(product_sku='SKU_A').count()
+    line_1.refresh_from_db()
+    line_2.refresh_from_db()
+    assert quantity_left == 2
+    assert lines_after == variant_lines_before
+    assert line_1.quantity == 5
+    assert line_2.quantity == 5
