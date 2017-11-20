@@ -11,6 +11,7 @@ from django.utils.translation import pgettext_lazy
 from django_prices.templatetags.prices_i18n import gross
 from payments import PaymentStatus
 from prices import Price
+from satchless.item import InsufficientStock
 
 from .forms import (
     AddDeliveryGroupItemForm, CancelGroupForm, CancelLinesForm,
@@ -313,13 +314,25 @@ def add_item_delivery_group(request, order_pk, group_pk):
     form = AddDeliveryGroupItemForm(request.POST or None, group=group)
     status = 200
     if form.is_valid():
-        with transaction.atomic():
-            form.save()
-        msg = pgettext_lazy(
-            'Dashboard message related to a delivery group',
-            'Added %s to %s') % (form.cleaned_data['variant'], group)
-        messages.success(request, msg)
-        group.order.create_history_entry(comment=msg, user=request.user)
+        msg_dict = {
+            'quantity': form.cleaned_data['quantity'],
+            'variant': form.cleaned_data['variant'],
+            'group': group
+        }
+        try:
+            with transaction.atomic():
+                form.save()
+            msg = pgettext_lazy(
+                'Dashboard message related to a delivery group',
+                'Added %(quantity)d x %(variant)s to %(group)s') % msg_dict
+            group.order.create_history_entry(comment=msg, user=request.user)
+            messages.success(request, msg)
+        except InsufficientStock:
+            msg = pgettext_lazy(
+                'Dashboard message related to a delivery group',
+                'Insufficient stock: could not add %(quantity)d x '
+                '%(variant)s to %(group)s') % msg_dict
+            messages.warning(request, msg)
         return redirect('dashboard:order-details', order_pk=order_pk)
     elif form.errors:
         status = 400

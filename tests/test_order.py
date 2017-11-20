@@ -54,10 +54,10 @@ def test_add_item_to_delivery_group_adds_item_for_new_variant(
     variant = product_in_stock.variants.get()
     items_before = group.items.count()
 
-    item = add_item_to_delivery_group(group, variant, 1)
+    add_item_to_delivery_group(group, variant, 1)
 
+    item = group.items.last()
     assert group.items.count() == items_before + 1
-    assert group.items.last().pk == item.pk
     assert item.product_sku == variant.sku
     assert item.quantity == 1
 
@@ -84,12 +84,12 @@ def test_add_item_to_delivery_group_edits_item_for_existing_variant(
     items_before = group.items.count()
     item_quantity_before = existing_item.quantity
 
-    item = add_item_to_delivery_group(group, variant, 1)
+    add_item_to_delivery_group(group, variant, 1)
 
+    existing_item.refresh_from_db()
     assert group.items.count() == items_before
-    assert item.pk == existing_item.pk
-    assert item.product_sku == variant.sku
-    assert item.quantity == item_quantity_before + 1
+    assert existing_item.product_sku == variant.sku
+    assert existing_item.quantity == item_quantity_before + 1
 
 
 def test_add_item_to_delivery_group_allocates_stock_for_existing_variant(
