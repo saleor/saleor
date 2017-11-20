@@ -99,7 +99,8 @@ def add_variant_to_delivery_group(
             stock=stock,
             stock_location=stock.location.name)
         Stock.objects.allocate_stock(stock, quantity)
-        stock.refresh_from_db() # refresh stock for accessing quantity_allocated
+        # refresh stock for accessing quantity_allocated
+        stock.refresh_from_db()
         quantity_left -= quantity
 
 
