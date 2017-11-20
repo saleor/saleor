@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: master\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2017-11-06 04:12-0600\n"
+"POT-Creation-Date: 2017-11-13 05:26-0600\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Cosmin Cosma <cosmingcosma@gmail.com>, 2017\n"
 "Language-Team: Romanian (https://www.transifex.com/mirumee/teams/34782/ro/)\n"
@@ -40,7 +40,7 @@ msgstr "Categorie eliminată %s"
 #, python-format
 msgctxt "Dashboard message"
 msgid "Customer %s promoted to staff member"
-msgstr ""
+msgstr "Clientul %s promovat la un membru al personalului"
 
 #: saleor/dashboard/discount/forms.py:25
 msgctxt "Sale (discount) error"
@@ -283,54 +283,64 @@ msgctxt "Dashboard message"
 msgid "Removed voucher from order"
 msgstr "Voucher eliminat din comandă"
 
-#: saleor/dashboard/product/forms.py:25
+#: saleor/dashboard/product/__init__.py:10
+msgctxt "product bulk action"
+msgid "Publish"
+msgstr "Publică"
+
+#: saleor/dashboard/product/__init__.py:11
+msgctxt "product bulk action"
+msgid "Unpublish"
+msgstr "Anulați publicarea"
+
+#: saleor/dashboard/product/forms.py:26
 msgctxt "Product class form label"
 msgid "Product type"
 msgstr "Tip de produs"
 
-#: saleor/dashboard/product/forms.py:47
+#: saleor/dashboard/product/forms.py:48
 msgctxt "stock form error"
 msgid "Stock item for this location and variant already exists"
 msgstr "Articolul în stoc pentru această locație și varianta există deja"
 
-#: saleor/dashboard/product/forms.py:62
+#: saleor/dashboard/product/forms.py:63
 msgctxt "Product class form label"
 msgid "Attributes specific to each variant"
 msgstr "Atribute specifice fiecărei variante"
 
-#: saleor/dashboard/product/forms.py:65
+#: saleor/dashboard/product/forms.py:66
 msgctxt "Product class form label"
 msgid "Attributes common to all variants"
 msgstr "Atribute comune tuturor variantelor"
 
-#: saleor/dashboard/product/forms.py:75
+#: saleor/dashboard/product/forms.py:76
 msgctxt "Product class form error"
 msgid "Product variants are disabled."
 msgstr "Variantele de produs sunt dezactivate."
 
-#: saleor/dashboard/product/forms.py:80
+#: saleor/dashboard/product/forms.py:81
 msgctxt "Product class form error"
 msgid "A single attribute can't belong to both a product and its variant."
 msgstr ""
 "Un singur atribut nu poate să aparțină atât produsului, cât și variantei "
 "sale."
 
-#: saleor/dashboard/product/forms.py:94
+#: saleor/dashboard/product/forms.py:95
 msgctxt "Product class form error"
 msgid "Some products of this type have more than one variant."
 msgstr "Unele produse de acest tip au mai multe variante."
 
-#: saleor/dashboard/product/forms.py:106
+#: saleor/dashboard/product/forms.py:107
 msgctxt "product form"
 msgid "Published"
 msgstr "Publicat"
 
-#: saleor/dashboard/product/forms.py:108
+#: saleor/dashboard/product/forms.py:109
 msgctxt "product form"
 msgid "Feature this product on homepage"
 msgstr "Prezentați acest produs pe pagina principală"
 
-#: saleor/dashboard/product/forms.py:114
+#: saleor/dashboard/product/forms.py:115
 msgctxt "Product form placeholder"
 msgid "Search"
 msgstr "Căutare"
@@ -353,95 +363,104 @@ msgctxt "Dashboard message"
 msgid "Deleted product type %s"
 msgstr "Tip de produs șters %s"
 
-#: saleor/dashboard/product/views.py:139
+#: saleor/dashboard/product/views.py:140
 #, python-format
 msgctxt "Dashboard message"
 msgid "Added product %s"
 msgstr "Produs adăugat %s"
 
-#: saleor/dashboard/product/views.py:211
+#: saleor/dashboard/product/views.py:214
 #, python-format
 msgctxt "Dashboard message"
 msgid "Updated product %s"
 msgstr "Produs actualizat %s"
 
-#: saleor/dashboard/product/views.py:227
+#: saleor/dashboard/product/views.py:230
 #, python-format
 msgctxt "Dashboard message"
 msgid "Deleted product %s"
 msgstr "Produsul șters %s"
 
-#: saleor/dashboard/product/views.py:262
+#: saleor/dashboard/product/views.py:265
 msgctxt "Dashboard message"
 msgid "Saved stock"
 msgstr "Stoc salvat"
 
-#: saleor/dashboard/product/views.py:283
+#: saleor/dashboard/product/views.py:286
 msgctxt "Dashboard message"
 msgid "Deleted stock"
 msgstr "Stoc eliminat"
 
-#: saleor/dashboard/product/views.py:321
+#: saleor/dashboard/product/views.py:324
 #, python-format
 msgctxt "Dashboard message"
 msgid "Updated image %s"
 msgstr "Imagine actualizată %s"
 
-#: saleor/dashboard/product/views.py:325
+#: saleor/dashboard/product/views.py:328
 #, python-format
 msgctxt "Dashboard message"
 msgid "Added image %s"
 msgstr "Imagine adăugată %s"
 
-#: saleor/dashboard/product/views.py:346
+#: saleor/dashboard/product/views.py:349
 #, python-format
 msgctxt "Dashboard message"
 msgid "Deleted image %s"
 msgstr "Imagine ștersă %s"
 
-#: saleor/dashboard/product/views.py:370
+#: saleor/dashboard/product/views.py:373
 #, python-format
 msgctxt "Dashboard message"
 msgid "Saved variant %s"
 msgstr "Varianta salvată %s"
 
-#: saleor/dashboard/product/views.py:437
+#: saleor/dashboard/product/views.py:442
 #, python-format
 msgctxt "Dashboard message"
 msgid "Deleted variant %s"
 msgstr "Varianta ștersă %s"
 
-#: saleor/dashboard/product/views.py:486
+#: saleor/dashboard/product/views.py:491
 msgctxt "Dashboard message"
 msgid "Updated attribute"
 msgstr "Updated attribute"
 
-#: saleor/dashboard/product/views.py:487
+#: saleor/dashboard/product/views.py:492
 msgctxt "Dashboard message"
 msgid "Added attribute"
 msgstr "Adăugat atribut"
 
-#: saleor/dashboard/product/views.py:506
+#: saleor/dashboard/product/views.py:511
 #, python-format
 msgctxt "Dashboard message"
 msgid "Deleted attribute %s"
 msgstr "Atributul șters %s"
 
-#: saleor/dashboard/product/views.py:539
+#: saleor/dashboard/product/views.py:544
 msgctxt "Dashboard message for stock location"
 msgid "Updated location"
 msgstr "Locația actualizată"
 
-#: saleor/dashboard/product/views.py:540
+#: saleor/dashboard/product/views.py:545
 msgctxt "Dashboard message for stock location"
 msgid "Added location"
 msgstr "Locație adăugată"
 
-#: saleor/dashboard/product/views.py:559
+#: saleor/dashboard/product/views.py:564
 #, python-format
 msgctxt "Dashboard message for stock location"
 msgid "Deleted location %s"
 msgstr "Locație ștersă %s"
+
+#: saleor/dashboard/product/views.py:613
+#, python-format
+msgctxt "Dashboard message"
+msgid "%(count)d product has been updated"
+msgid_plural "%(count)d products have been updated"
+msgstr[0] "%(count)d produs a fost actualizat"
+msgstr[1] "%(count)d produse au fost actualizate"
+msgstr[2] "%(count)d produse au fost actualizate"
 
 #: saleor/dashboard/shipping/views.py:33
 #, python-format
@@ -464,16 +483,16 @@ msgstr "Site actualizat %s"
 #, python-format
 msgctxt "Dashboard message"
 msgid "Updated staff member %s"
-msgstr ""
+msgstr "Actualizat membru al personalului %s"
 
 #: saleor/dashboard/staff/views.py:50
 #, python-format
 msgctxt "Dashboard message"
 msgid "Added staff member %s"
-msgstr ""
+msgstr "Adăugat membru al personalului %s"
 
 #: saleor/dashboard/staff/views.py:67
 #, python-format
 msgctxt "Dashboard message"
 msgid "Deleted staff member %s"
-msgstr ""
+msgstr "Membru al personalului eliminat %s"
