@@ -3,6 +3,7 @@ from django.conf import settings
 from django.contrib.auth.models import AnonymousUser
 from mock import MagicMock, Mock
 from prices import Price
+from satchless.item import InsufficientStock
 
 from saleor.checkout import views
 from saleor.checkout.core import STORAGE_SESSION_KEY, Checkout
@@ -201,3 +202,18 @@ def test_checkout_discount(request_cart, sale, product_in_stock):
     request_cart.add(variant, 1)
     checkout = Checkout(request_cart, AnonymousUser(), 'tracking_code')
     assert checkout.get_total() == Price(currency="USD", net=5)
+
+
+def test_checkout_create_order_insufficient_stock(
+        request_cart, customer_user, product_in_stock, billing_address,
+        shipping_method):
+    product_class = product_in_stock.product_class
+    product_class.is_shipping_required = False
+    product_class.save()
+    customer_user.default_billing_address = billing_address
+    customer_user.save()
+    variant = product_in_stock.variants.get()
+    request_cart.add(variant, quantity=10, check_quantity=False)
+    checkout = Checkout(request_cart, customer_user, 'tracking_code')
+    with pytest.raises(InsufficientStock):
+        checkout.create_order()

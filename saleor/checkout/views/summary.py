@@ -2,6 +2,7 @@ from django.contrib import messages
 from django.shortcuts import redirect
 from django.template.response import TemplateResponse
 from django.utils.translation import pgettext, pgettext_lazy
+from satchless.item import InsufficientStock
 
 from ..forms import (
     AnonymousUserBillingForm, BillingAddressesForm,
@@ -36,11 +37,14 @@ def handle_order_placement(request, checkout):
 
     This is a helper function.
     """
-    order, redirect = create_order(checkout)
+    try:
+        order, redirect_url = create_order(checkout)
+    except InsufficientStock:
+        return redirect('cart:index')
     if not order:
         msg = pgettext('Checkout warning', 'Please review your checkout.')
         messages.warning(request, msg)
-    return redirect
+    return redirect_url
 
 
 def get_billing_forms_with_shipping(

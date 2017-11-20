@@ -271,6 +271,9 @@
                     {% trans "Item" context "Shipment group table header" %}
                   </th>
                   <th>
+                    {% trans "Stock" context "Shipment group table header" %}
+                  </th>
+                  <th>
                     {% trans "SKU" context "Shipment group table header" %}
                   </th>
                   <th class="right-align">
@@ -287,7 +290,7 @@
               <tfoot>
                 {% if group.shipping_price.gross or group.is_shipping_required %}
                   <tr>
-                    <td colspan="4">
+                    <td colspan="5">
                       {% blocktrans trimmed with group_shipping_method_name=group.shipping_method_name context "Shipment group table item column data" %}
                         Shipping ({{ group_shipping_method_name }})
                       {% endblocktrans %}
@@ -304,6 +307,23 @@
                       <td>
                         {{ item.product_name }}<br>
                       </td>
+                      <td class="right-align">
+                        {% if group.can_edit_items %}
+                          <a class="dropdown-button" href="#" data-activates="line-stock-actions-{{ item.pk }}" data-constrainwidth="false">
+                            {{ item.stock_location|default:"-" }}
+                            <svg data-src="{% static "dashboard/images/arrow_drop_down.svg" %}" width="24" height="24" />
+                          </a>
+                          <ul id="line-stock-actions-{{ item.pk }}" class="dropdown-content">
+                            <li>
+                              <a href="#base-modal" data-href="{% url 'dashboard:orderline-change-stock' order_pk=order.pk line_pk=item.pk %}" class="modal-trigger-custom" {% if group.status != 'new' %} disabled{% endif %} title="{% trans "Change stock location" context "Shipment group table row action" %}">
+                                {% trans "Change stock" context "Shipment group table row action" %}
+                              </a>
+                            </li>
+                          </ul>
+                        {% else %}
+                          {{ item.stock_location|default:"-" }}
+                        {% endif %}
+                      </td>
                       <td>
                         {{ item.product_sku }}
                       </td>
@@ -311,7 +331,7 @@
                         {% gross item.get_price_per_item html=True %}
                       </td>
                       <td class="right-align">
-                        {% if group.status != 'cancelled' %}
+                        {% if group.can_edit_items %}
                           <a class="dropdown-button" href="#" data-activates="line-actions-{{ item.pk }}" data-constrainwidth="false">
                             {{ item.quantity }}
                             <svg data-src="{% static "dashboard/images/arrow_drop_down.svg" %}" width="24" height="24" />
