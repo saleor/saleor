@@ -11,6 +11,11 @@
         <span>{% trans 'Total records found' context 'Dashboard filter' %}: {{ filter.qs|length }}</span>
         <span class="collapse-activate hide-on-large-only"><svg data-src="{% static '/images/filter_icon.svg' %}" /></span>
       </div>
+      <div class="col s12 hide-on-large-only">
+        {% for chip in chips %}
+          <div class="chip">{{ chip }}</div>
+        {% endfor %}
+      </div>
       <div class="clearfix"></div>
     </div>
     <div class="collapse">

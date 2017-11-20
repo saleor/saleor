@@ -7,20 +7,19 @@ from django.db.models import Q
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect
 from django.template.response import TemplateResponse
-from django.utils.translation import npgettext_lazy, pgettext_lazy
+from django.utils.translation import npgettext_lazy, pgettext_lazy, gettext
 from django.views.decorators.http import require_POST
 from django_prices.templatetags.prices_i18n import gross
 
 from ...core.utils import get_paginator_items
 from ...product.models import (
-    AttributeChoiceValue, Product, ProductAttribute, ProductClass,
+    AttributeChoiceValue, Category, Product, ProductAttribute, ProductClass,
     ProductImage, ProductVariant, Stock, StockLocation)
 from ...product.utils import (
     get_availability, get_product_costs_data, get_variant_costs_data)
 from ...settings import DASHBOARD_PAGINATE_BY
 from ..views import staff_member_required
 from .filters import ProductFilter
-
 from . import forms
 
 
@@ -111,6 +110,7 @@ def product_list(request):
     products = Product.objects.prefetch_related('images')
     products = products.order_by('name')
     product_classes = ProductClass.objects.all()
+    product_categories = Category.objects.all()
     form = forms.ProductClassSelectorForm(
         request.POST or None, product_classes=product_classes)
     if form.is_valid():
@@ -119,11 +119,38 @@ def product_list(request):
     product_filter = ProductFilter(request.GET, queryset=products)
     products = get_paginator_items(
         product_filter.qs, DASHBOARD_PAGINATE_BY, request.GET.get('page'))
+    sort_by = request.GET.get('sort_by')
+
+    def get_filter_chips(product_filter):
+        chips = []
+        for iterator, item in enumerate(product_filter.form):
+            if item.name is not 'sort_by' and item.value():
+                label = item.label
+                if isinstance(item.value(), (list, tuple)):
+                    if item.name == 'price':
+                        if any(item.value()):
+                            chips.append(label + ': ' + ' - '.join(item.value()))
+                    elif item.name == 'categories':
+                        for value in item.value():
+                            chips.append(
+                                label + ': ' + product_categories.get(pk=value).name)
+                    else:
+                        for value in item.value():
+                            chips.append(label + ': ' + str(value))
+                else:
+                    value = item.value()
+                    chips.append(label + ': ' + str(value))
+            else:
+                continue
+        return chips
+
+    chips = get_filter_chips(product_filter)
+
     ctx = {
-        'is_descending': request.GET.get('sort_by').startswith('-'),
+        'is_descending': sort_by.startswith('-') if sort_by else False,
         'bulk_action_form': forms.ProductBulkUpdate(), 'form': form,
         'products': products, 'product_classes': product_classes,
-        'filter': product_filter}
+        'filter': product_filter, 'chips': chips}
     return TemplateResponse(request, 'dashboard/product/list.html', ctx)
 
 
