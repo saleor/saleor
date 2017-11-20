@@ -504,3 +504,25 @@ def test_add_variant_to_existing_lines_multiple_lines_with_rest(
     assert lines_after == variant_lines_before
     assert line_1.quantity == 5
     assert line_2.quantity == 5
+
+
+def test_view_add_variant_to_delivery_group(
+        admin_client, order_with_variant_from_different_stocks):
+    order = order_with_variant_from_different_stocks
+    group = order.groups.get()
+    variant = ProductVariant.objects.get(sku='SKU_A')
+    line = OrderedItem.objects.get(
+        product_sku='SKU_A', stock_location='Warehouse 2')
+    url = reverse(
+        'dashboard:add-variant-delivery-group', kwargs={
+            'order_pk': order.pk, 'group_pk': group.pk
+    })
+    data = {'variant': variant.pk, 'quantity': 2}
+
+    response = admin_client.post(url, data)
+
+    line.refresh_from_db()
+    assert response.status_code == 302
+    assert get_redirect_location(response) == reverse(
+        'dashboard:order-details', kwargs={'order_pk': order.pk})
+    assert line.quantity == 4
