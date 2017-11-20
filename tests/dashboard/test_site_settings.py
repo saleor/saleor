@@ -19,18 +19,18 @@ def test_index_view(admin_client, site_settings):
 
 
 @pytest.mark.django_db
-def test_form():
-    data = {'name': 'mirumee', 'domain': 'mirumee.com'}
+def test_site_form():
+    data = {'name': 'mirumee_test', 'domain': 'mirumee_test.com'}
     form = SiteForm(data)
     assert form.is_valid()
     site = form.save()
-    assert smart_text(site) == 'mirumee.com'
+    assert smart_text(site) == 'mirumee_test.com'
     form = SiteForm({})
     assert not form.is_valid()
 
 
 @pytest.mark.django_db
-def test_form(site_settings):
+def test_site_settings_form(site_settings):
     data = {'header_text': 'mirumee', 'description': 'mirumee.com'}
     form = SiteSettingsForm(data, instance=site_settings)
     assert form.is_valid()
@@ -114,6 +114,18 @@ def test_authorization_key_form_add(admin_client, site_settings):
     assert len(AuthorizationKey.objects.all()) == 1
     assert site_settings.available_backends().count() == 1
     assert 'google-oauth2' in site_settings.available_backends()
+
+
+def test_authorization_key_form_add_not_valid(admin_client, site_settings):
+    assert site_settings.available_backends().count() == 0
+    data = {'site_settings': 'not_valid', 'name': 'not_valid',
+            'key': 'key', 'password': ''}
+    url = reverse('dashboard:authorization-key-add',
+                  kwargs={'site_settings_pk': site_settings.pk})
+    response = admin_client.post(url, data, follow=True)
+    assert response.status_code == 200
+    assert len(AuthorizationKey.objects.all()) == 0
+    assert site_settings.available_backends().count() == 0
 
 
 def test_authorization_key_form_edit(
