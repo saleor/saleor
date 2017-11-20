@@ -1,6 +1,7 @@
 import logging
 from functools import wraps
 
+from django.db.models import F
 from django.dispatch import receiver
 from django.shortcuts import get_object_or_404, redirect
 from django.utils.translation import pgettext_lazy
@@ -93,35 +94,43 @@ def add_items_to_delivery_group(delivery_group, partition, discounts=None):
 
 
 def add_item_to_delivery_group(group, variant, quantity):
-    try:
-        item = group.items.get(
-            product=variant.product, product_sku=variant.sku)
-        if not item.stock or item.stock.quantity_available < quantity:
-            raise InsufficientStock(variant)
+    items = group.items.filter(
+        product=variant.product, product_sku=variant.sku, stock__isnull=False,
+        stock__quantity__gte=F('stock__quantity_allocated') + quantity)
+    if items.exists():
+        item = items.first()
         item.quantity += quantity
         item.save()
         Stock.objects.allocate_stock(item.stock, quantity)
-    except (OrderedItem.DoesNotExist, InsufficientStock):
+    else:
         price = variant.get_price_per_item()
-        item = create_item_in_delivery_group(group, variant, quantity, price)
-    return item
+        create_item_in_delivery_group(group, variant, quantity, price)
 
 
-def create_item_in_delivery_group(group, variant, quantity, price):
-    stock = variant.select_stockrecord(quantity=quantity)
-    item = group.items.create(
-        product=variant.product,
-        product_name=variant.display_product(),
-        product_sku=variant.sku,
-        quantity=quantity,
-        unit_price_net=price.net,
-        unit_price_gross=price.gross,
-        stock=stock,
-        stock_location=stock.location.name if stock else None)
-    if stock:
+def create_item_in_delivery_group(group, variant, total_quantity, price):
+    while total_quantity > 0:
+        stock = variant.select_stockrecord()
+        if not stock:
+            raise InsufficientStock(variant)
+        quantity = (
+            stock.quantity_available
+            if total_quantity > stock.quantity_available
+            else total_quantity
+        )
+        item = group.items.create(
+            product=variant.product,
+            product_name=variant.display_product(),
+            product_sku=variant.sku,
+            quantity=quantity,
+            unit_price_net=price.net,
+            unit_price_gross=price.gross,
+            stock=stock,
+            stock_location=stock.location.name)
         # allocate quantity to avoid overselling
         Stock.objects.allocate_stock(stock, quantity)
-    return item
+        # refresh stock to get quantity_allocated in next loop
+        stock.refresh_from_db()
+        total_quantity -= quantity
 
 
 def cancel_delivery_group(group, cancel_order=True):

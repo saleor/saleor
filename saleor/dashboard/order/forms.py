@@ -387,6 +387,5 @@ class AddDeliveryGroupItemForm(forms.Form):
     def save(self):
         variant = self.cleaned_data['variant']
         quantity = self.cleaned_data['quantity']
-        line = add_item_to_delivery_group(self.group, variant, quantity)
+        add_item_to_delivery_group(self.group, variant, quantity)
         Order.objects.recalculate_order(self.group.order)
-        return line
