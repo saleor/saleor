@@ -153,6 +153,7 @@ class MoveItemsForm(forms.Form):
 
 
 class CancelItemsForm(forms.Form):
+
     def __init__(self, *args, **kwargs):
         self.item = kwargs.pop('item')
         super(CancelItemsForm, self).__init__(*args, **kwargs)
@@ -249,6 +250,7 @@ class CancelGroupForm(forms.Form):
 
 
 class CancelOrderForm(forms.Form):
+
     def __init__(self, *args, **kwargs):
         self.order = kwargs.pop('order')
         super(CancelOrderForm, self).__init__(*args, **kwargs)
@@ -267,6 +269,7 @@ class CancelOrderForm(forms.Form):
 
 
 class RemoveVoucherForm(forms.Form):
+
     def __init__(self, *args, **kwargs):
         self.order = kwargs.pop('order')
         super(RemoveVoucherForm, self).__init__(*args, **kwargs)
@@ -290,14 +293,13 @@ class RemoveVoucherForm(forms.Form):
 
 
 ORDER_STATUS_CHOICES = [
-                           ('', pgettext_lazy('Order status field value', 'All'))
-                       ] + OrderStatus.CHOICES
+    ('', pgettext_lazy('Order status field value', 'All'))
+] + OrderStatus.CHOICES
+
 
 PAYMENT_STATUS_CHOICES = [
-                             (
-                                 '',
-                                 pgettext_lazy('Payment status field value', 'All')),
-                         ] + PaymentStatus.CHOICES
+    ('', pgettext_lazy('Payment status field value', 'All')),
+] + PaymentStatus.CHOICES
 
 
 class OrderFilterForm(forms.Form):
