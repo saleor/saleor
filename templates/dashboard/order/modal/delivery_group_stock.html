@@ -4,9 +4,13 @@
 <form method="post" role="form" action="{% url 'dashboard:orderline-change-stock' order_pk=order_pk line_pk=line_pk %}" class="form-async" novalidate>
   {% csrf_token %}
   <div class="modal-content">
-    <h5>
-      {% trans "Change stock" context "Modal change stock title" %}
-    </h5>
+    <div class="row">
+      <div class="col">
+        <h5>
+          {% trans "Change stock" context "Modal change stock title" %}
+        </h5>
+      </div>
+    </div>
     <div class="row">
       {{ form|materializecss:"s12 m6" }}
     </div>
