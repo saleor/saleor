@@ -14,8 +14,8 @@ from saleor.dashboard.product import ProductBulkAction
 from saleor.dashboard.product.forms import (
     ProductBulkUpdate, ProductClassForm, ProductForm)
 from saleor.product.models import (
-    Product, ProductAttribute, ProductClass, ProductImage, ProductVariant,
-    Stock, StockLocation)
+    AttributeChoiceValue, Product, ProductAttribute, ProductClass,
+    ProductImage, ProductVariant, Stock, StockLocation)
 
 HTTP_STATUS_OK = 200
 HTTP_REDIRECTION = 302
@@ -150,6 +150,111 @@ def test_change_attributes_in_product_form(
     product = form.save()
     assert product.get_attribute(color_attribute.pk) == smart_text(new_color)
     assert product.get_attribute(text_attribute.pk) == new_author
+
+
+def test_attribute_list(db, product_in_stock, color_attribute, admin_client):
+    assert len(ProductAttribute.objects.all()) == 2
+    response = admin_client.get(reverse('dashboard:product-attributes'))
+    assert response.status_code == 200
+
+
+def test_attribute_detail(color_attribute, admin_client):
+    url = reverse('dashboard:product-attribute-detail',
+                  kwargs={'pk': color_attribute.pk})
+    response = admin_client.get(url)
+    assert response.status_code == 200
+
+
+def test_attribute_add(color_attribute, admin_client):
+    assert len(ProductAttribute.objects.all()) == 1
+    url = reverse('dashboard:product-attribute-add')
+    data = {'name': 'test', 'slug': 'test'}
+    response = admin_client.post(url, data, follow=True)
+    assert response.status_code == 200
+    assert len(ProductAttribute.objects.all()) == 2
+
+
+def test_attribute_add_not_valid(color_attribute, admin_client):
+    assert len(ProductAttribute.objects.all()) == 1
+    url = reverse('dashboard:product-attribute-add')
+    data = {}
+    response = admin_client.post(url, data, follow=True)
+    assert response.status_code == 200
+    assert len(ProductAttribute.objects.all()) == 1
+
+
+def test_attribute_edit(color_attribute, admin_client):
+    assert len(ProductAttribute.objects.all()) == 1
+    url = reverse('dashboard:product-attribute-update',
+                  kwargs={'pk': color_attribute.pk})
+    data = {'name': 'new_name', 'slug': 'new_slug'}
+    response = admin_client.post(url, data, follow=True)
+    assert response.status_code == 200
+    assert len(ProductAttribute.objects.all()) == 1
+    color_attribute.refresh_from_db()
+    assert color_attribute.name == 'new_name'
+    assert color_attribute.slug == 'new_slug'
+
+
+def test_attribute_delete(color_attribute, admin_client):
+    assert len(ProductAttribute.objects.all()) == 1
+    url = reverse('dashboard:product-attribute-delete',
+                  kwargs={'pk': color_attribute.pk})
+    response = admin_client.post(url, follow=True)
+    assert response.status_code == 200
+    assert len(ProductAttribute.objects.all()) == 0
+
+
+def test_attribute_choice_value_add(color_attribute, admin_client):
+    values = AttributeChoiceValue.objects.filter(attribute=color_attribute.pk)
+    assert len(values) == 2
+    url = reverse('dashboard:product-attribute-value-add',
+                  kwargs={'attribute_pk': color_attribute.pk})
+    data = {'name': 'Pink', 'color': '#FFF'}
+    response = admin_client.post(url, data, follow=True)
+    assert response.status_code == 200
+    values = AttributeChoiceValue.objects.filter(attribute=color_attribute.pk)
+    assert len(values) == 3
+
+
+def test_attribute_choice_value_add_not_valid(color_attribute, admin_client):
+    values = AttributeChoiceValue.objects.filter(attribute=color_attribute.pk)
+    assert len(values) == 2
+    url = reverse('dashboard:product-attribute-value-add',
+                  kwargs={'attribute_pk': color_attribute.pk})
+    data = {}
+    response = admin_client.post(url, data, follow=True)
+    assert response.status_code == 200
+    values = AttributeChoiceValue.objects.filter(attribute=color_attribute.pk)
+    assert len(values) == 2
+
+
+def test_attribute_choice_value_edit(color_attribute, admin_client):
+    values = AttributeChoiceValue.objects.filter(attribute=color_attribute.pk)
+    assert len(values) == 2
+    url = reverse('dashboard:product-attribute-value-update',
+                  kwargs={'attribute_pk': color_attribute.pk,
+                          'value_pk': values[0].pk})
+    data = {'name': 'Pink', 'color': '#FFF'}
+    response = admin_client.post(url, data, follow=True)
+    assert response.status_code == 200
+    values = AttributeChoiceValue.objects.filter(attribute=color_attribute.pk)
+    assert len(values) == 2
+    assert values[0].name == 'Pink'
+
+
+def test_attribute_choice_value_delete(color_attribute, admin_client):
+    values = AttributeChoiceValue.objects.filter(attribute=color_attribute.pk)
+    assert len(values) == 2
+    deleted_value = values[0]
+    url = reverse('dashboard:product-attribute-value-delete',
+                  kwargs={'attribute_pk': color_attribute.pk,
+                          'value_pk': deleted_value.pk})
+    response = admin_client.post(url, follow=True)
+    assert response.status_code == 200
+    values = AttributeChoiceValue.objects.filter(attribute=color_attribute.pk)
+    assert len(values) == 1
+    assert deleted_value not in values
 
 
 def test_get_formfield_name_with_unicode_characters(db):
