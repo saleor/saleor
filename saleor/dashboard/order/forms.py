@@ -354,7 +354,8 @@ class ChangeStockForm(forms.ModelForm):
         return self.instance
 
 
-class AddDeliveryGroupItemForm(forms.Form):
+class AddVariantToDeliveryGroupForm(forms.Form):
+    """ Adds variant in given quantity to delivery group. """
     variant = AjaxSelect2ChoiceField(
         queryset=ProductVariant.objects.filter(
             product__in=Product.objects.get_available_products()),
@@ -365,10 +366,11 @@ class AddDeliveryGroupItemForm(forms.Form):
 
     def __init__(self, *args, **kwargs):
         self.group = kwargs.pop('group')
-        super(AddDeliveryGroupItemForm, self).__init__(*args, **kwargs)
+        super(AddVariantToDeliveryGroupForm, self).__init__(*args, **kwargs)
 
     def clean(self):
-        cleaned_data = super(AddDeliveryGroupItemForm, self).clean()
+        """ Checks if given quantity is available in stocks. """
+        cleaned_data = super(AddVariantToDeliveryGroupForm, self).clean()
         if 'variant' in cleaned_data and 'quantity' in cleaned_data:
             variant = cleaned_data['variant']
             quantity = cleaned_data['quantity']
@@ -385,6 +387,7 @@ class AddDeliveryGroupItemForm(forms.Form):
         return cleaned_data
 
     def save(self):
+        """ Adds variant to delivery group. Updates stocks and order. """
         variant = self.cleaned_data['variant']
         quantity = self.cleaned_data['quantity']
         add_variant_to_delivery_group(self.group, variant, quantity)

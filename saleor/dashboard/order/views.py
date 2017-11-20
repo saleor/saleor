@@ -14,7 +14,7 @@ from prices import Price
 from satchless.item import InsufficientStock
 
 from .forms import (
-    AddDeliveryGroupItemForm, CancelGroupForm, CancelLinesForm,
+    AddVariantToDeliveryGroupForm, CancelGroupForm, CancelLinesForm,
     CancelOrderForm, CapturePaymentForm, ChangeStockForm, ChangeQuantityForm,
     MoveLinesForm, OrderNoteForm, RefundPaymentForm, ReleasePaymentForm,
     RemoveVoucherForm, ShipGroupForm)
@@ -311,7 +311,7 @@ def cancel_delivery_group(request, order_pk, group_pk):
 def add_item_delivery_group(request, order_pk, group_pk):
     order = get_object_or_404(Order, pk=order_pk)
     group = get_object_or_404(order.groups.all(), pk=group_pk)
-    form = AddDeliveryGroupItemForm(request.POST or None, group=group)
+    form = AddVariantToDeliveryGroupForm(request.POST or None, group=group)
     status = 200
     if form.is_valid():
         msg_dict = {
