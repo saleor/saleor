@@ -40,7 +40,7 @@ pytest
 pytest-django
 pytest-vcr
 pytest-mock
-vcrpy<1.11.1
+vcrpy<=1.10.3  # limit until python 2.7 is dropped
 requests>=1.2.0
 satchless>=1.1.2,<1.2a0
 social-auth-app-django>=2.0.0
