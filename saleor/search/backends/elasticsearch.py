@@ -13,5 +13,5 @@ def get_search_query(phrase):
                            .filter('term', is_published=True))
 
 
-def search(phrase, qs):
-        return qs & get_search_query(phrase).to_queryset()
+def search(phrase):
+        return get_search_query(phrase).to_queryset()
