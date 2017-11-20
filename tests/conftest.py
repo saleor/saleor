@@ -486,9 +486,11 @@ def product_list(product_class):
     product_1 = Product.objects.create(
         name='Test product 1', price=Decimal('10.00'),
         product_class=product_class, is_published=True)
+    ProductVariant.objects.create(product=product_1, sku='SKU_1')
     product_2 = Product.objects.create(
         name='Test product 2', price=Decimal('20.00'),
         product_class=product_class, is_published=False)
+    ProductVariant.objects.create(product=product_2, sku='SKU_2')
     return [product_1, product_2]
 
 

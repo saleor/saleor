@@ -66,7 +66,7 @@ def test_add_variant_to_delivery_group_allocates_stock_for_new_variant(
         order_with_items, product_in_stock):
     group = order_with_items.groups.get()
     variant = product_in_stock.variants.get()
-    stock = variant.select_stockrecord(quantity=1)
+    stock = variant.select_stockrecord()
     stock_before = stock.quantity_allocated
 
     add_variant_to_delivery_group(group, variant, 1)
