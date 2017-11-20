@@ -379,7 +379,7 @@
                   </a>
                 {% endif %}
                 {% if group.can_edit_items %}
-                  <a href="#base-modal" data-href="{% url 'dashboard:add-item-delivery-group' order_pk=order.pk group_pk=group.pk %}" class="btn btn-flat modal-trigger-custom" title="{% trans "Add item to group" context "Shipment group table action" %}">
+                  <a href="#base-modal" data-href="{% url 'dashboard:add-variant-delivery-group' order_pk=order.pk group_pk=group.pk %}" class="btn btn-flat modal-trigger-custom" title="{% trans "Add item to group" context "Shipment group table action" %}">
                     {% trans "Add item" context "Shipment group table action" %}
                   </a>
                 {% endif %}

@@ -1,7 +1,7 @@
 {% load i18n %}
 {% load materializecss %}
 
-<form id="add-item-delivery-group-form" method="post" role="form" action="{% url 'dashboard:add-item-delivery-group' order_pk=order.pk group_pk=group.pk %}" class="form-async" novalidate>
+<form id="add-variant-delivery-group-form" method="post" role="form" action="{% url 'dashboard:add-variant-delivery-group' order_pk=order.pk group_pk=group.pk %}" class="form-async" novalidate>
   {% csrf_token %}
   <div class="modal-content">
     <h5>
