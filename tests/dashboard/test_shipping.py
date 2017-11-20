@@ -21,6 +21,15 @@ def test_shipping_method_add(admin_client):
     assert len(ShippingMethod.objects.all()) == 1
 
 
+def test_shipping_method_add_not_valid(admin_client):
+    assert len(ShippingMethod.objects.all()) == 0
+    url = reverse('dashboard:shipping-method-add')
+    data = {}
+    response = admin_client.post(url, data, follow=True)
+    assert response.status_code == 200
+    assert len(ShippingMethod.objects.all()) == 0
+
+
 def test_shipping_method_edit(admin_client, shipping_method):
     assert len(ShippingMethod.objects.all()) == 1
     url = reverse('dashboard:shipping-method-update',
@@ -58,6 +67,16 @@ def test_shipping_method_country_add(admin_client, shipping_method):
     response = admin_client.post(url, data, follow=True)
     assert response.status_code == 200
     assert len(ShippingMethodCountry.objects.all()) == 2
+
+
+def test_shipping_method_country_add_not_valid(admin_client, shipping_method):
+    assert len(ShippingMethodCountry.objects.all()) == 1
+    url = reverse('dashboard:shipping-method-country-add',
+                  kwargs={'shipping_method_pk': shipping_method.pk})
+    data = {}
+    response = admin_client.post(url, data, follow=True)
+    assert response.status_code == 200
+    assert len(ShippingMethodCountry.objects.all()) == 1
 
 
 def test_shipping_method_country_edit(admin_client, shipping_method):
