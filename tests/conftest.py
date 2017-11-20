@@ -537,6 +537,7 @@ def permission_impersonate_user():
     return Permission.objects.get(codename='impersonate_user')
 
 
+@pytest.fixture
 def translated_variant(db, product_in_stock):
     attribute = product_in_stock.product_class.variant_attributes.first()
     return ProductAttributeTranslation.objects.create(
