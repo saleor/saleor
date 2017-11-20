@@ -8,7 +8,7 @@ from .forms import SearchForm
 from ..product.utils import products_with_details, products_with_availability
 
 
-def paginate_results(results, get_data, paginate_by=25):
+def paginate_results(results, get_data, paginate_by=settings.PAGINATE_BY):
     paginator = Paginator(results, paginate_by)
     page_number = get_data.get('page', 1)
     try:
@@ -18,19 +18,24 @@ def paginate_results(results, get_data, paginate_by=25):
     return page
 
 
+def evaluate_search_query(form, request):
+    query = form.cleaned_data.get('q', '')
+    visible_products = products_with_details(request.user)
+    results = form.search(qs=visible_products)
+    results = products_with_availability(
+        results,
+        discounts=request.discounts,
+        local_currency=request.currency)
+    return query, results
+
+
 def search(request):
     form = SearchForm(data=request.GET or None)
     if form.is_valid():
-        visible_products = products_with_details(request.user)
-        results = form.search(qs=visible_products)
-        results = products_with_availability(
-            results, discounts=request.discounts,
-            local_currency=request.currency)
-        query = form.cleaned_data.get('q', '')
+        query, results = evaluate_search_query(form, request)
     else:
-        results = []
-        query = ''
-    page = paginate_results(list(results), request.GET, settings.PAGINATE_BY)
+        query, results = '', []
+    page = paginate_results(list(results), request.GET)
     ctx = {
         'query': query,
         'results': page,
