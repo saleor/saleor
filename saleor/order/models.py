@@ -283,11 +283,6 @@ class DeliveryGroup(models.Model, ItemSet):
     def can_edit_items(self):
         return self.status not in {OrderStatus.CANCELLED, OrderStatus.SHIPPED}
 
-    def can_add_item(self):
-        return (
-            self.status != OrderStatus.CANCELLED and
-            self.status != OrderStatus.SHIPPED)
-
 
 class OrderLineManager(models.Manager):
     def move_to_group(self, line, target_group, quantity):
