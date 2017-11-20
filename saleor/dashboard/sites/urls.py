@@ -4,7 +4,6 @@ from . import views
 
 urlpatterns = [
     url(r'^$', views.index, name='site-index'),
-    url(r'^add/$', views.site_settings_edit, name='site-settings-add'),
     url(r'^(?P<pk>\d+)/update/$', views.site_settings_edit,
         name='site-update'),
     url(r'^(?P<pk>\d+)/$', views.site_settings_detail,
