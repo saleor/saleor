@@ -181,16 +181,16 @@ def orderline_change_quantity(request, order_pk, line_pk):
     status = 200
     old_quantity = line.quantity
     if form.is_valid():
-        with transaction.atomic():
-            form.save()
         msg = pgettext_lazy(
             'Dashboard message related to an order line',
             'Changed quantity for product %(product)s from'
             ' %(old_quantity)s to %(new_quantity)s') % {
                 'product': line.product, 'old_quantity': old_quantity,
                 'new_quantity': line.quantity}
-        order.create_history_entry(comment=msg, user=request.user)
-        messages.success(request, msg)
+        with transaction.atomic():
+            order.create_history_entry(comment=msg, user=request.user)
+            form.save()
+            messages.success(request, msg)
         return redirect('dashboard:order-details', order_pk=order.pk)
     elif form.errors:
         status = 400
@@ -248,8 +248,8 @@ def orderline_cancel(request, order_pk, line_pk):
             'Dashboard message related to an order line',
             'Cancelled item %s') % line
         with transaction.atomic():
-            form.cancel_line()
             order.create_history_entry(comment=msg, user=request.user)
+            form.cancel_item()
             messages.success(request, msg)
         return redirect('dashboard:order-details', order_pk=order.pk)
     elif form.errors:
