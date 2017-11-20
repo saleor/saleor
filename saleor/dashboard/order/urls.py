@@ -36,7 +36,7 @@ urlpatterns = [
     url(r'^(?P<order_pk>\d+)/shipment/(?P<group_pk>\d+)/cancel/$',
         views.cancel_delivery_group, name='cancel-delivery-group'),
     url(r'^(?P<order_pk>\d+)/shipment/(?P<group_pk>\d+)/add-item/$',
-        views.add_item_delivery_group, name='add-item-delivery-group'),
+        views.add_variant_to_delivery_group, name='add-variant-delivery-group'),
     url(r'^(?P<order_pk>\d+)/invoice/$',
         views.order_invoice, name='order-invoice'),
     url(r'^(?P<group_pk>\d+)/packing-slips/$',

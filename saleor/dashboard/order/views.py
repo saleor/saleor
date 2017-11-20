@@ -308,7 +308,7 @@ def cancel_delivery_group(request, order_pk, group_pk):
 
 @staff_member_required
 @permission_required('order.edit_order')
-def add_item_delivery_group(request, order_pk, group_pk):
+def add_variant_to_delivery_group(request, order_pk, group_pk):
     order = get_object_or_404(Order, pk=order_pk)
     group = get_object_or_404(order.groups.all(), pk=group_pk)
     form = AddVariantToDeliveryGroupForm(request.POST or None, group=group)
@@ -337,7 +337,7 @@ def add_item_delivery_group(request, order_pk, group_pk):
     elif form.errors:
         status = 400
     ctx = {'order': order, 'group': group, 'form': form}
-    template = 'dashboard/order/modal_add_item_delivery_group.html'
+    template = 'dashboard/order/modal/add_variant_to_delivery_group.html'
     return TemplateResponse(request, template, ctx, status=status)
 
 
