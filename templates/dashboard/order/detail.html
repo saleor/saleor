@@ -240,7 +240,11 @@
                   <span class="card-title black-text">
                     {% trans "Billing address" context "" %}
                   </span>
-                  {% include 'dashboard/includes/_address.html' with address=address only %}
+                  {% if address %}
+                    {% include 'dashboard/includes/_address.html' with address=address only %}
+                  {% else %}
+                    -
+                  {% endif %}
                 {% endwith %}
               </div>
               {% if perms.order.edit_order %}

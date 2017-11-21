@@ -372,11 +372,7 @@ class CreateOrderForm(forms.ModelForm):
         user = self.instance.user
         self.instance.user_email = user.email
         self.instance.shipping_address = user.default_shipping_address
-        billing_address = user.default_billing_address
-        if not billing_address:
-            billing_address = Address.objects.create(
-                country=settings.DEFAULT_COUNTRY)
-        self.instance.billing_address = billing_address
+        self.instance.billing_address = user.default_billing_address
         order = super(CreateOrderForm, self).save(commit)
         Order.objects.recalculate_order(order)
         return order

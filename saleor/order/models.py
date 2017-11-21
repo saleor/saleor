@@ -64,7 +64,7 @@ class Order(models.Model, ItemSet, index.Indexed):
         pgettext_lazy('Order field', 'tracking client id'),
         max_length=36, blank=True, editable=False)
     billing_address = models.ForeignKey(
-        Address, related_name='+', editable=False,
+        Address, related_name='+', editable=False, null=True,
         verbose_name=pgettext_lazy('Order field', 'billing address'),
         on_delete=models.PROTECT)
     shipping_address = models.ForeignKey(
@@ -141,7 +141,7 @@ class Order(models.Model, ItemSet, index.Indexed):
 
     def _index_billing_phone(self):
         billing_address = self.billing_address
-        return billing_address.phone
+        return billing_address.phone if billing_address else None
 
     def _index_shipping_phone(self):
         return self.shipping_address.phone
