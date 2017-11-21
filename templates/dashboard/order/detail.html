@@ -369,7 +369,7 @@
             </table>
           </div>
           {% if perms.order.edit_order %}
-            {% if group.can_ship or group.can_cancel or group.can_edit_items %}
+            {% if group.can_ship or group.can_cancel %}
               <div class="data-table-action">
                 {% if group.can_ship %}
                   <a href="#base-modal" data-href="{% url 'dashboard:ship-delivery-group' order_pk=order.pk group_pk=group.pk %}" class="btn btn-flat modal-trigger-custom">
