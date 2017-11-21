@@ -62,7 +62,7 @@ class ChipFactory:
 
     def make(self):
         for field in self.form:
-            if field.value() is not None:
+            if field.value() not in ['', None]:
                 field_type = str(type(field.field))
                 if field.name in self.handlers.keys():
                     self.handlers[field.name](field, self.chips, self.context)
