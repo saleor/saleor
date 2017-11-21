@@ -279,7 +279,8 @@ class StockLocationForm(forms.ModelForm):
 class AttributeChoiceValueForm(forms.ModelForm):
     class Meta:
         model = AttributeChoiceValue
-        fields = ['name', 'color']
+        fields = ['attribute', 'name', 'color']
+        widgets = {'attribute': forms.HiddenInput()}
 
     def save(self, commit=True):
         self.instance.slug = slugify(self.instance.name)

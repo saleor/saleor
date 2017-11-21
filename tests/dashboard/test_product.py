@@ -210,7 +210,7 @@ def test_attribute_choice_value_add(color_attribute, admin_client):
     assert len(values) == 2
     url = reverse('dashboard:product-attribute-value-add',
                   kwargs={'attribute_pk': color_attribute.pk})
-    data = {'name': 'Pink', 'color': '#FFF'}
+    data = {'name': 'Pink', 'color': '#FFF', 'attribute': color_attribute.pk}
     response = admin_client.post(url, data, follow=True)
     assert response.status_code == 200
     values = AttributeChoiceValue.objects.filter(attribute=color_attribute.pk)
@@ -235,7 +235,7 @@ def test_attribute_choice_value_edit(color_attribute, admin_client):
     url = reverse('dashboard:product-attribute-value-update',
                   kwargs={'attribute_pk': color_attribute.pk,
                           'value_pk': values[0].pk})
-    data = {'name': 'Pink', 'color': '#FFF'}
+    data = {'name': 'Pink', 'color': '#FFF', 'attribute': color_attribute.pk}
     response = admin_client.post(url, data, follow=True)
     assert response.status_code == 200
     values = AttributeChoiceValue.objects.filter(
