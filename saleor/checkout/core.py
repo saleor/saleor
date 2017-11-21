@@ -21,6 +21,8 @@ from ..shipping.models import ANY_COUNTRY, ShippingMethodCountry
 from ..userprofile.models import Address
 from ..userprofile.utils import store_user_address
 
+from phonenumber_field.phonenumber import PhoneNumber
+
 STORAGE_SESSION_KEY = 'checkout_storage'
 
 
@@ -134,6 +136,9 @@ class Checkout(object):
     @shipping_address.setter
     def shipping_address(self, address):
         address_data = model_to_dict(address)
+        phone_number = address_data.get('phone')
+        if phone_number:
+            address_data['phone'] = str(address_data['phone'])
         address_data['country'] = smart_text(address_data['country'])
         self.storage['shipping_address'] = address_data
         self.modified = True
@@ -405,7 +410,6 @@ def load_checkout(view):
         except KeyError:
             session_data = ''
         tracking_code = analytics.get_client_id(request)
-
         checkout = Checkout.from_storage(
             session_data, cart, request.user, tracking_code)
         response = view(request, checkout, cart)
