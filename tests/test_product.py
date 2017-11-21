@@ -456,15 +456,13 @@ def test_get_variant_picker_data_proper_variant_count(product_in_stock):
     assert len(data['variantAttributes'][0]['values']) == 1
 
 
-def test_view_ajax_variants_list(admin_client, product_list):
-    variant_1 = product_list[0].variants.first()
-    variant_2 = product_list[1].variants.first()
+def test_view_ajax_available_variants_list(admin_client, product_in_stock):
+    variant = product_in_stock.variants.first()
     variants_list = [
-        {'id': variant_1.pk, 'text': 'SKU_1, Test product 1 (SKU_1), $10.00'},
-        {'id': variant_2.pk, 'text': 'SKU_2, Test product 2 (SKU_2), $20.00'}
+        {'id': variant.pk, 'text': '123, Test product (Size: Small), $10.00'}
     ]
 
-    url = reverse('dashboard:ajax-variants')
+    url = reverse('dashboard:ajax-available-variants')
     response = admin_client.get(url, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
     resp_decoded = json.loads(response.content.decode('utf-8'))
 

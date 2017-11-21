@@ -360,7 +360,7 @@ class AddVariantToOrderForm(forms.Form):
     variant = AjaxSelect2ChoiceField(
         queryset=ProductVariant.objects.filter(
             product__in=Product.objects.get_available_products()),
-        fetch_data_url=reverse_lazy('dashboard:ajax-variants'))
+        fetch_data_url=reverse_lazy('dashboard:ajax-available-variants'))
     quantity = QuantityField(
         label=pgettext_lazy(
             'Add variant to delivery group form label', 'Quantity'),
