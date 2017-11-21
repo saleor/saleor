@@ -203,16 +203,16 @@ def orderline_change_quantity(request, order_pk, line_pk):
 @permission_required('order.edit_order')
 def orderline_split(request, order_pk, line_pk):
     order = get_object_or_404(Order, pk=order_pk)
-    line = get_object_or_404(OrderLine.objects.filter(
+    line = get_object_or_404(OrderedItem.objects.filter(
         delivery_group__order=order), pk=line_pk)
-    form = MoveLinesForm(request.POST or None, line=line)
+    form = MoveItemsForm(request.POST or None, line=line)
     line_pk = None
     if line:
         line_pk = line.pk
     status = 200
     if form.is_valid():
         old_group = line.delivery_group
-        how_many = form.cleaned_data['quantity']
+        how_many = form.cleaned_data.get('quantity')
         with transaction.atomic():
             target_group = form.move_lines()
         if not old_group.pk:
