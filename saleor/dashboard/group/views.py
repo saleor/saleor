@@ -9,6 +9,7 @@ from django.template.response import TemplateResponse
 from django.utils.translation import pgettext_lazy
 
 from ...core.utils import get_paginator_items
+from ..views import staff_member_required
 from .forms import GroupPermissionsForm
 
 
