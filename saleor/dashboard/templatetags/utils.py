@@ -70,3 +70,10 @@ def margin_for_variant(stock):
 def margins_for_variant(variant):
     margins = get_variant_costs_data(variant)['margins']
     return margins
+
+
+@register.inclusion_tag('dashboard/includes/_filters.html', takes_context=True)
+def add_filters(context, filter_set):
+    chips = filter_set.get_chips()
+    context['chips'] = chips
+    return context
