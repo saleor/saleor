@@ -5,16 +5,18 @@
 
 {% block title %}
   {% if method.pk %}
-   {% trans "Edit" context "Dashboard attributes list" %} - {{ method }}
+   {% trans "Edit" context "Dashboard price per country edit page" %} - {{ method }}
   {% else %}
-    {% trans "Add new attribute" context "Attribute detail page title" %}
+    {% trans "Add new shipping price per country" context "Shipping price per country edit page title" %}
   {% endif %}
   - {{ block.super }}
 {% endblock %}
 
-{% block body_class %}body-shipping-method-country{% endblock %}
+{% block body_class %}body-shipping-methods{% endblock %}
 
-{% block menu_attributes_class %}active{% endblock %}
+{% block menu_delivery_class %}active{% endblock %}
+
+{% block menu_shipping_class %}active{% endblock %}
 
 {% block header_menu %}
   {% url "dashboard:shipping-method-list" as url %}
@@ -80,7 +82,7 @@
             {% endfor %}
           </div>
           <div class="card-action right-align">
-            {% if value.pk %}
+            {% if country.pk %}
               <a href="{% url 'dashboard:shipping-method-detail' pk=shipping_method.pk %}" class="btn btn-flat">
                 {% trans "Cancel" context "Dashboard cancel action" %}
               </a>
