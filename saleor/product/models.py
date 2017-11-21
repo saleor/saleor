@@ -168,7 +168,6 @@ class Product(models.Model, ItemRange):
              pgettext_lazy(
                  'Permission description', 'Can edit product properties')))
 
-
     def __iter__(self):
         if not hasattr(self, '__variants'):
             setattr(self, '__variants', self.variants.all())
