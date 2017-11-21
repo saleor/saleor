@@ -4,13 +4,19 @@
 <form id="add-variant-to-order-form" method="post" role="form" action="{% url 'dashboard:add-variant-to-order' order_pk=order.pk %}" class="form-async" novalidate>
   {% csrf_token %}
   <div class="modal-content">
-    <h5>
-      {% trans "Add product to order" context "Modal order add variant title" %}
-    </h5>
     <div class="row">
-      {{ form.variant|materializecss:"s12 m6" }}
-      {{ form.quantity|materializecss:"s12 m6" }}
-      {{ form.target_group|materializecss:"s12 m6" }}
+      <div class="col">
+        <h5>
+          {% trans "Add product to order" context "Modal order add variant title" %}
+        </h5>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col s12 m8 center-align">
+          {{ form.variant|materializecss }}
+          {{ form.quantity|materializecss }}
+          {{ form.target_group|materializecss }}
+      </div>
     </div>
   </div>
   <div class="modal-footer">
