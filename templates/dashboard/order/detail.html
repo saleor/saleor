@@ -207,8 +207,8 @@
                     {% trans "Invoice" context "Order detail action" %}
                 </a>
               {% endif %}
-              <a href="#base-modal" data-href="{% url 'dashboard:add-variant-to-order' order_pk=order.pk %}" class="btn btn-flat modal-trigger-custom" title="{% trans "Add variant to order" context "Order summary card action title" %}">
-                {% trans "Add variant" context "Order summary card action" %}
+              <a href="#base-modal" data-href="{% url 'dashboard:add-variant-to-order' order_pk=order.pk %}" class="btn btn-flat modal-trigger-custom" title="{% trans "Add product to order" context "Order summary card action title" %}">
+                {% trans "Add product" context "Order summary card action" %}
               </a>
             </div>
         {% endif %}
