@@ -33,7 +33,7 @@ def site_settings_edit(request, pk):
         site_settings_form.instance.site = site
         site_settings = site_settings_form.save()
         messages.success(request, pgettext_lazy(
-            'Dashboard message', 'Updated site %s') % site_settings)
+            'Dashboard message', 'Updated site settings'))
         return redirect('dashboard:site-detail', pk=site_settings.id)
     ctx = {'site': site_settings, 'site_settings_form': site_settings_form,
            'site_form': site_form}
@@ -62,9 +62,9 @@ def authorization_key_edit(request, site_settings_pk, key_pk=None):
         key = form.save()
         msg = pgettext_lazy(
             'dashboard message',
-            'Updated country shipping price %s') % (key,) \
+            'Updated authorization key %s') % (key,) \
             if key_pk else pgettext_lazy(
-            'Dashboard message', 'Added country shipping price %s') % (key,)
+            'Dashboard message', 'Added authorization key %s') % (key,)
         messages.success(request, msg)
         return redirect(
             'dashboard:site-detail', pk=site_settings_pk)

@@ -559,7 +559,7 @@ def attribute_choice_value_delete(request, attribute_pk, value_pk):
             request,
             pgettext_lazy(
                 'Dashboard message',
-                'Removed attribute choice value %s') % (value.name,))
+                'Removed attribute\'s value %s') % (value.name,))
         return redirect('dashboard:product-attribute-detail', pk=attribute_pk)
     return TemplateResponse(
         request,
