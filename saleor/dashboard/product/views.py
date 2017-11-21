@@ -671,7 +671,7 @@ def product_bulk_update(request):
 
 
 @staff_member_required
-def ajax_variants_list(request):
+def ajax_available_variants_list(request):
     """
     Returns variants list filtered by request GET parameters.
     Response format is as required by select2 field.
@@ -681,7 +681,9 @@ def ajax_variants_list(request):
             variant.sku, variant.display_product(),
             gross(variant.product.price))
 
-    queryset = ProductVariant.objects.prefetch_related('product')
+    available_products = Product.objects.get_available_products()
+    queryset = ProductVariant.objects.filter(
+        product__in=available_products).prefetch_related('product')
     search_query = request.GET.get('q', '')
     if search_query:
         queryset = queryset.filter(
