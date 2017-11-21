@@ -28,15 +28,21 @@ class StaffFilter(FilterSet):
         label=pgettext_lazy('Staff list sorting filter', 'Sort by'),
         fields=SORT_BY_FIELDS,
         field_labels=SORT_BY_FIELDS_LABELS)
+    email = CharFilter(
+        label=pgettext_lazy('Staff list name filter', 'Email'),
+        lookup_expr='icontains')
     name = CharFilter(
         label=pgettext_lazy('Staff list sorting filter', 'Name'),
-        name='default_billing_address__first_name')
+        name='default_billing_address__first_name',
+        lookup_expr='icontains')
     last_name = CharFilter(
         label=pgettext_lazy('Staff list sorting filter', 'Last name'),
-        name='default_billing_address__last_name')
+        name='default_billing_address__last_name',
+        lookup_expr='icontains')
     city = CharFilter(
         label=pgettext_lazy('Staff list sorting filter', 'City'),
-        name='default_billing_address__city')
+        name='default_billing_address__city',
+        lookup_expr='icontains')
 
     class Meta:
         model = User

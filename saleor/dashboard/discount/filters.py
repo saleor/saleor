@@ -1,6 +1,6 @@
 from __future__ import unicode_literals
 
-from django_filters import (FilterSet, OrderingFilter, RangeFilter)
+from django_filters import (CharFilter, FilterSet, OrderingFilter, RangeFilter)
 from django.utils.translation import pgettext_lazy
 
 from ...discount.models import Sale, Voucher
@@ -22,6 +22,9 @@ SORT_BY_FIELDS_LABELS_VOUCHER = {
 
 
 class SaleFilter(FilterSet):
+    name = CharFilter(
+        label=pgettext_lazy('Sale list name filter', 'Name'),
+        lookup_expr='icontains')
     sort_by = OrderingFilter(
         label=pgettext_lazy('Sale list sorting filter', 'Sort by'),
         fields=SORT_BY_FIELDS_SALE.keys(),
@@ -29,10 +32,13 @@ class SaleFilter(FilterSet):
 
     class Meta:
         model = Sale
-        fields = ['categories', 'type', 'value']
+        fields = ['name', 'categories', 'type', 'value']
 
 
 class VoucherFilter(FilterSet):
+    name = CharFilter(
+        label=pgettext_lazy('Voucher list name filter', 'Name'),
+        lookup_expr='icontains')
     sort_by = OrderingFilter(
         label=pgettext_lazy('Voucher list sorting filter', 'Sort by'),
         fields=SORT_BY_FIELDS_LABELS_VOUCHER.keys(),
