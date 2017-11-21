@@ -11,7 +11,7 @@ from satchless.item import InsufficientStock
 from ..core import analytics
 from ..product.models import Stock
 from ..userprofile.utils import store_user_address
-from .models import Order, OrderedItem
+from .models import Order
 from . import OrderStatus
 
 logger = logging.getLogger(__name__)

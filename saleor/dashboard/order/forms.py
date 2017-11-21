@@ -114,12 +114,16 @@ class ReleasePaymentForm(forms.Form):
 
 class MoveLinesForm(forms.Form):
     """ Moves part of products in order line to existing or new group.  """
-    NEW_SHIPMENT = 'new'
     quantity = QuantityField(
         label=pgettext_lazy('Move lines form label', 'Quantity'),
         validators=[MinValueValidator(1)])
-    target_group = forms.ChoiceField(
+    target_group = forms.ModelChoiceField(
+        queryset=DeliveryGroup.objects.none(), required=False,
+        empty_label=pgettext_lazy(
+            'Delivery group value for `target_group` field',
+            'New shipment'),
         label=pgettext_lazy('Move lines form label', 'Target shipment'))
+
 
     def __init__(self, *args, **kwargs):
         self.line = kwargs.pop('line')
@@ -128,29 +132,19 @@ class MoveLinesForm(forms.Form):
             MaxValueValidator(self.line.quantity))
         self.fields['quantity'].widget.attrs.update({
             'max': self.line.quantity, 'min': 1})
-        self.fields['target_group'].choices = self.get_delivery_group_choices()
-
-    def get_delivery_group_choices(self):
-        group = self.line.delivery_group
-        groups = group.order.groups.exclude(pk=group.pk).exclude(
-            status=OrderStatus.CANCELLED)
-        choices = [(self.NEW_SHIPMENT, pgettext_lazy(
-            'Delivery group value for `target_group` field',
-            'New shipment'))]
-        choices.extend([(g.pk, str(g)) for g in groups])
-        return choices
+        self.old_group = self.line.delivery_group
+        queryset = self.old_group.order.groups.exclude(
+            pk=self.old_group.pk).exclude(status=OrderStatus.CANCELLED)
+        self.fields['target_group'].queryset = queryset
 
     def move_lines(self):
-        how_many = self.cleaned_data['quantity']
-        choice = self.cleaned_data['target_group']
-        old_group = self.line.delivery_group
-        if choice == self.NEW_SHIPMENT:
+        how_many = self.cleaned_data.get('quantity')
+        target_group = self.cleaned_data.get('target_group')
+        if not target_group:
             # For new group we use the same delivery name but zero price
-            target_group = old_group.order.groups.create(
-                status=old_group.status,
-                shipping_method_name=old_group.shipping_method_name)
-        else:
-            target_group = DeliveryGroup.objects.get(pk=choice)
+            target_group = self.old_group.order.groups.create(
+                status=self.old_group.status,
+                shipping_method_name=self.old_group.shipping_method_name)
         OrderLine.objects.move_to_group(self.line, target_group, how_many)
         return target_group
 
