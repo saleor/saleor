@@ -1,7 +1,7 @@
 from __future__ import unicode_literals
 
 from django_filters import (
-    ChoiceFilter, DateFromToRangeFilter, FilterSet, RangeFilter,
+    CharFilter, ChoiceFilter, DateFromToRangeFilter, FilterSet, RangeFilter,
     OrderingFilter)
 from django.utils.translation import pgettext_lazy
 from django_prices.models import PriceField
@@ -29,6 +29,9 @@ SORT_BY_FIELDS_LABELS = {
 
 
 class OrderFilter(FilterSet):
+    user__email = CharFilter(
+        label=pgettext_lazy('Order list user email filter', 'User email'),
+        lookup_expr='icontains')
     sort_by = OrderingFilter(
         label=pgettext_lazy('Order list sorting filter', 'Sort by'),
         fields=SORT_BY_FIELDS,
@@ -42,7 +45,7 @@ class OrderFilter(FilterSet):
 
     class Meta:
         model = Order
-        fields = ['status', 'created', 'user_email', 'total_net']
+        fields = ['status', 'created', 'user__email', 'total_net']
         filter_overrides = {
             PriceField: {
                 'filter_class': RangeFilter
