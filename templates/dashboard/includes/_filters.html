@@ -11,9 +11,9 @@
         <span>{% trans 'Total records found' context 'Dashboard filter' %}: {{ filter.qs|length }}</span>
         <span class="collapse-activate hide-on-large-only"><svg data-src="{% static '/images/filter_icon.svg' %}" /></span>
       </div>
-      <div class="col s12 hide-on-large-only">
+      <div class="col s12 hide-on-large-only chips-container">
         {% for chip in chips %}
-          <div class="chip">{{ chip }}</div>
+          <div class="chip">{{ chip.content|safe }} <a class="js-build-query" data-name="{{ chip.name }}" data-value="{{ chip.value }}">×</a></div>
         {% endfor %}
       </div>
       <div class="clearfix"></div>
