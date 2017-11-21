@@ -534,11 +534,12 @@ def attribute_choice_value_edit(request, attribute_pk, value_pk=None):
         value = AttributeChoiceValue(attribute_id=attribute_pk)
     form = forms.AttributeChoiceValueForm(
         request.POST or None, instance=value)
+    print request.POST
     if form.is_valid():
-        value = form.save()
+        form.save()
         msg = pgettext_lazy(
             'Dashboard message', 'Updated attribute\'s value')\
-            if value.pk else pgettext_lazy(
+            if value_pk else pgettext_lazy(
                 'Dashboard message', 'Added attribute\'s value')
         messages.success(request, msg)
         return redirect('dashboard:product-attribute-detail', pk=attribute_pk)

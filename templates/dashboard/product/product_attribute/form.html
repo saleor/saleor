@@ -70,11 +70,6 @@
             <div class="row">
               {{ form.slug|materializecss }}
             </div>
-            {% comment %}<span class="card-title">
-              {% trans "Attribute values" context "Attribute values formset title" %}
-            </span>
-            {{ formset.management_form }}
-            {{ formset.non_form_errors.as_ul }}{% endcomment %}
           </div>
           <div class="card-action right-align">
             {% if attribute.pk %}

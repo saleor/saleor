@@ -69,15 +69,19 @@
             <span class="card-title">
               {% trans "Attribute values" context "Attribute values form title" %}
             </span>
-            {% for field in form %}
-              <div class="row">
-                <div class="col s12 l8" >
+              {% for field in form %}
+                {% if field.name == 'attribute' %}
+                  {{ field }}
+                {% else %}
                   <div class="row">
-                    {{ field|materializecss }}
+                    <div class="col s12 l8" >
+                      <div class="row">
+                        {{ field|materializecss }}
+                      </div>
+                    </div>
                   </div>
-                </div>
-              </div>
-            {% endfor %}
+                {% endif %}
+              {% endfor %}
           </div>
           <div class="card-action right-align">
             {% if value.pk %}
