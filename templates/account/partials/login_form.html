@@ -19,8 +19,8 @@
       <a class="link--styled" href="{% url 'account_reset_password' %}">
         {% trans "Forgot password?" context "Login form secondary link" %}
       </a>
-      {% if settings.available_backends %}
-        {% with available_backends=settings.available_backends %}
+      {% with available_backends=settings.available_backends %}
+        {% if available_backends %}
           <hr>
           <div class="row">
             <div class="col-sm-6 col-md-12 col-xl-6">
@@ -44,8 +44,8 @@
               {% endif %}
             </div>
           </div>
-        {% endwith %}
-      {% endif %}
+        {% endif %}
+      {% endwith %}
     </div>
   </div>
 </form>
