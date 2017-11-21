@@ -280,7 +280,7 @@ class AttributeChoiceValueForm(forms.ModelForm):
     class Meta:
         model = AttributeChoiceValue
         fields = ['attribute', 'name', 'color']
-        widgets = {'attribute': forms.HiddenInput()}
+        widgets = {'attribute': forms.widgets.HiddenInput()}
 
     def save(self, commit=True):
         self.instance.slug = slugify(self.instance.name)
