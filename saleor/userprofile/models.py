@@ -75,7 +75,7 @@ class Address(models.Model):
         pgettext_lazy('Address field', 'state or province'),
         max_length=128, blank=True)
     phone = PhoneNumberField(
-        pgettext_lazy('Address field', 'phone number'),
+        verbose_name=pgettext_lazy('Address field', 'phone number'),
         blank=True, default='')
     objects = AddressManager()
 
@@ -100,7 +100,7 @@ class Address(models.Model):
                 self.first_name, self.last_name, self.company_name,
                 self.street_address_1, self.street_address_2, self.city,
                 self.postal_code, self.country, self.country_area,
-                self.phone))
+                str(self.phone)))
 
 
 class UserManager(BaseUserManager):
