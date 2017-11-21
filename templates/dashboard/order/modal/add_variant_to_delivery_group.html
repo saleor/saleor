@@ -1,15 +1,16 @@
 {% load i18n %}
 {% load materializecss %}
 
-<form id="add-variant-delivery-group-form" method="post" role="form" action="{% url 'dashboard:add-variant-delivery-group' order_pk=order.pk group_pk=group.pk %}" class="form-async" novalidate>
+<form id="add-variant-delivery-group-form" method="post" role="form" action="{% url 'dashboard:add-variant-delivery-group' order_pk=order.pk %}" class="form-async" novalidate>
   {% csrf_token %}
   <div class="modal-content">
     <h5>
       {% trans "Add item to delivery group" context "Modal delivery group add item title" %}
     </h5>
     <div class="row">
-      {{ form.variant|materializecss:"s12 m8" }}
-      {{ form.quantity|materializecss:"s12 m4" }}
+      {{ form.variant|materializecss:"s12 m6" }}
+      {{ form.quantity|materializecss:"s12 m6" }}
+      {{ form.target_group|materializecss:"s12 m6" }}
     </div>
   </div>
   <div class="modal-footer">

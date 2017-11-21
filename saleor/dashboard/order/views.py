@@ -308,26 +308,29 @@ def cancel_delivery_group(request, order_pk, group_pk):
 
 @staff_member_required
 @permission_required('order.edit_order')
-def add_variant_to_delivery_group(request, order_pk, group_pk):
+def add_variant_to_delivery_group(request, order_pk):
     order = get_object_or_404(Order, pk=order_pk)
-    group = get_object_or_404(order.groups.all(), pk=group_pk)
-    form = AddVariantToDeliveryGroupForm(request.POST or None, group=group)
+    form = AddVariantToDeliveryGroupForm(request.POST or None, order=order)
     status = 200
     if form.is_valid():
         msg_dict = {
-            'quantity': form.cleaned_data['quantity'],
-            'variant': form.cleaned_data['variant'],
-            'group': group
+            'quantity': form.cleaned_data.get('quantity'),
+            'variant': form.cleaned_data.get('variant'),
+            'group': form.cleaned_data.get('target_group')
         }
         try:
             with transaction.atomic():
                 form.save()
+            if form.cleaned_data.get('target_group') is None:
+                msg_dict['group'] = order.groups.last()
             msg = pgettext_lazy(
                 'Dashboard message related to a delivery group',
                 'Added %(quantity)d x %(variant)s to %(group)s') % msg_dict
-            group.order.create_history_entry(comment=msg, user=request.user)
+            order.create_history_entry(comment=msg, user=request.user)
             messages.success(request, msg)
         except InsufficientStock:
+            if form.cleaned_data.get('target_group') is None:
+                msg_dict['group'] = 'new shipment'
             msg = pgettext_lazy(
                 'Dashboard message related to a delivery group',
                 'Insufficient stock: could not add %(quantity)d x '
@@ -336,7 +339,7 @@ def add_variant_to_delivery_group(request, order_pk, group_pk):
         return redirect('dashboard:order-details', order_pk=order_pk)
     elif form.errors:
         status = 400
-    ctx = {'order': order, 'group': group, 'form': form}
+    ctx = {'order': order, 'form': form}
     template = 'dashboard/order/modal/add_variant_to_delivery_group.html'
     return TemplateResponse(request, template, ctx, status=status)
 

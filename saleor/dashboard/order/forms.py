@@ -113,6 +113,7 @@ class ReleasePaymentForm(forms.Form):
 
 
 class MoveLinesForm(forms.Form):
+    """ Moves part of products in order line to existing or new group.  """
     NEW_SHIPMENT = 'new'
     quantity = QuantityField(
         label=pgettext_lazy('Move lines form label', 'Quantity'),
@@ -361,19 +362,31 @@ class AddVariantToDeliveryGroupForm(forms.Form):
             product__in=Product.objects.get_available_products()),
         fetch_data_url=reverse_lazy('dashboard:ajax-variants'))
     quantity = QuantityField(
-        label=pgettext_lazy('Variant quantity form label', 'Quantity'),
+        label=pgettext_lazy(
+            'Add variant to delivery group form label', 'Quantity'),
         validators=[MinValueValidator(1)])
+    target_group = forms.ModelChoiceField(
+        queryset=DeliveryGroup.objects.none(), required=False,
+        empty_label=pgettext_lazy(
+            'Delivery group value for `target_group` field',
+            'New shipment'),
+        label=pgettext_lazy(
+            'Add variant to delivery group form label', 'Target shipment'))
 
     def __init__(self, *args, **kwargs):
-        self.group = kwargs.pop('group')
+        self.order = kwargs.pop('order')
         super(AddVariantToDeliveryGroupForm, self).__init__(*args, **kwargs)
+        self.fields['target_group'].queryset = (
+            self.order.groups.exclude(
+                status__in={OrderStatus.CANCELLED, OrderStatus.SHIPPED})
+        )
 
     def clean(self):
         """ Checks if given quantity is available in stocks. """
         cleaned_data = super(AddVariantToDeliveryGroupForm, self).clean()
-        if 'variant' in cleaned_data and 'quantity' in cleaned_data:
-            variant = cleaned_data['variant']
-            quantity = cleaned_data['quantity']
+        variant = cleaned_data.get('variant')
+        quantity = cleaned_data.get('quantity')
+        if variant and quantity is not None:
             try:
                 variant.check_quantity(quantity)
             except InsufficientStock as e:
@@ -388,7 +401,11 @@ class AddVariantToDeliveryGroupForm(forms.Form):
 
     def save(self):
         """ Adds variant to delivery group. Updates stocks and order. """
-        variant = self.cleaned_data['variant']
-        quantity = self.cleaned_data['quantity']
-        add_variant_to_delivery_group(self.group, variant, quantity)
-        Order.objects.recalculate_order(self.group.order)
+        variant = self.cleaned_data.get('variant')
+        quantity = self.cleaned_data.get('quantity')
+        target_group = self.cleaned_data.get('target_group')
+        if not target_group:
+            target_group = self.order.groups.create(
+                status=OrderStatus.NEW)
+        add_variant_to_delivery_group(target_group, variant, quantity)
+        Order.objects.recalculate_order(self.order)

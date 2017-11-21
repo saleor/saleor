@@ -35,7 +35,7 @@ urlpatterns = [
         views.ship_delivery_group, name='ship-delivery-group'),
     url(r'^(?P<order_pk>\d+)/shipment/(?P<group_pk>\d+)/cancel/$',
         views.cancel_delivery_group, name='cancel-delivery-group'),
-    url(r'^(?P<order_pk>\d+)/shipment/(?P<group_pk>\d+)/add-item/$',
+    url(r'^(?P<order_pk>\d+)/add-item/$',
         views.add_variant_to_delivery_group,
         name='add-variant-delivery-group'),
     url(r'^(?P<order_pk>\d+)/invoice/$',
