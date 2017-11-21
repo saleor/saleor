@@ -1,6 +1,7 @@
 import 'select2';
+import queryString from 'query-string';
 
-var supportsPassive = false;
+let supportsPassive = false;
 try {
   let opts = Object.defineProperty({}, 'passive', {
     get: function () {
@@ -41,4 +42,14 @@ export function initSelects() {
       minimumInputLength: 2
     });
   });
+}
+
+export function removeFromQuery(name, value) {
+  const urlParams = queryString.parse(location.search);
+  if (Array.isArray(urlParams[name])) {
+    delete urlParams[name][urlParams[name].indexOf(value)];
+  } else {
+    delete urlParams[name];
+  }
+  return queryString.stringify(urlParams);
 }

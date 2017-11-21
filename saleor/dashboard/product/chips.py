@@ -41,7 +41,8 @@ def handle_range(field, chips, context):
     for i, value in enumerate(values):
         if value:
             chips.append({'content': PATTERN % (field.label, text[i] + ' ' + value),
-                          'name': field.name, 'value': field.value()[i]})
+                          'name': '%s_%i' % (field.name, i),
+                          'value': field.value()[i]})
 
 
 DEFAULT_HANDLERS = {

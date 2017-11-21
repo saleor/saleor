@@ -1,6 +1,6 @@
 import SVGInjector from 'svg-injector-2';
 
-import { initSelects } from './utils';
+import { initSelects, removeFromQuery } from './utils';
 
 export default $(document).ready((e) => {
   new SVGInjector().inject(document.querySelectorAll('svg[data-src]'));
@@ -38,6 +38,11 @@ export default $(document).ready((e) => {
     }
     return 1;
   });
+
+  $('.js-build-query').each((i, chip) => {
+    const $chip = $(chip);
+    $chip.attr('href', window.location.pathname.split('?')[0] + '?' + removeFromQuery($chip.attr('data-name'), $chip.attr('data-value')));
+  })
 });
 
 export const screenSizes = {
