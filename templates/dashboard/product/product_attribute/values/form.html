@@ -26,7 +26,7 @@
   <ul class="breadcrumbs breadcrumbs--history">
     <li>
       <a href="{% url 'dashboard:product-attributes' %}" class="breadcrumbs--ellipsed-item">
-      {% trans "Attributes" context "Dashboard attributes list" %}
+        {% trans "Attributes" context "Dashboard attributes list" %}
       </a>
     </li>
     <li class="back-mobile">
@@ -40,6 +40,8 @@
         {{ attribute }}
       </a>
     </li>
+    {% endif %}
+    {% if value.pk %}
     <li>
       <span class="breadcrumbs--ellipsed-item">
         {% trans "Edit" context "Attribute detail breadcrumbs" %}
@@ -79,14 +81,14 @@
           </div>
           <div class="card-action right-align">
             {% if value.pk %}
-              <a href="{% url 'dashboard:product-attribute-detail' pk=attribute_pk %}" class="btn btn-flat">
+              <a href="{% url 'dashboard:product-attribute-detail' pk=attribute.pk %}" class="btn btn-flat">
                 {% trans "Cancel" context "Dashboard cancel action" %}
               </a>
               <button type="submit" class="btn waves-effect waves-light">
                 {% trans "Save" context "Dashboard update action" %}
               </button>
             {% else %}
-              <a href="{% url 'dashboard:product-attribute-detail' pk=attribute_pk%}" class="btn btn-flat">
+              <a href="{% url 'dashboard:product-attribute-detail' pk=attribute.pk%}" class="btn btn-flat">
                 {% trans "Cancel" context "Dashboard cancel action" %}
               </a>
               <button type="submit" class="btn waves-effect waves-light">

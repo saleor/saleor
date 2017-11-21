@@ -79,23 +79,24 @@ def shipping_method_delete(request, pk):
 @staff_member_required
 @permission_required('shipping.edit_shipping')
 def shipping_method_country_edit(request, shipping_method_pk, country_pk=None):
+    shipping_method = get_object_or_404(ShippingMethod, pk=shipping_method_pk)
     if country_pk:
-        method = get_object_or_404(ShippingMethodCountry, pk=country_pk)
+        country = get_object_or_404(ShippingMethodCountry, pk=country_pk)
     else:
-        method = ShippingMethodCountry(shipping_method_id=shipping_method_pk)
-    form = ShippingMethodCountryForm(request.POST or None, instance=method)
+        country = ShippingMethodCountry(shipping_method_id=shipping_method_pk)
+    form = ShippingMethodCountryForm(request.POST or None, instance=country)
     if form.is_valid():
-        method = form.save()
+        country = form.save()
         msg = pgettext_lazy(
             'Dashboard message',
-            'Updated country shipping price %s') % (method,) \
+            'Updated country shipping price %s') % (country,) \
             if country_pk else pgettext_lazy(
-            'Dashboard message', 'Added country shipping price %s') % (method,)
+            'Dashboard message', 'Added country shipping price %s') % (country,)
         messages.success(request, msg)
         return redirect(
             'dashboard:shipping-method-detail', pk=shipping_method_pk)
-    ctx = {'form': form, 'shipping_method_pk': shipping_method_pk,
-           'method': method}
+    ctx = {'form': form, 'shipping_method': shipping_method,
+           'country': country}
     return TemplateResponse(
         request, 'dashboard/shipping/country/form.html', ctx)
 
