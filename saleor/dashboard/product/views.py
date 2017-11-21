@@ -527,6 +527,7 @@ def attribute_delete(request, pk):
 @staff_member_required
 @permission_required('product.edit_properties')
 def attribute_choice_value_edit(request, attribute_pk, value_pk=None):
+    attribute = get_object_or_404(ProductAttribute, pk=attribute_pk)
     if value_pk:
         value = get_object_or_404(AttributeChoiceValue, pk=value_pk)
     else:
@@ -541,10 +542,10 @@ def attribute_choice_value_edit(request, attribute_pk, value_pk=None):
                 'Dashboard message', 'Added attribute\'s value')
         messages.success(request, msg)
         return redirect('dashboard:product-attribute-detail', pk=attribute_pk)
-    ctx = {'attribute_pk': attribute_pk, 'value': value, 'form': form}
+    ctx = {'attribute': attribute, 'value': value, 'form': form}
     return TemplateResponse(
         request,
-        'dashboard/product/product_attribute/values_add_edit.html',
+        'dashboard/product/product_attribute/values/form.html',
         ctx)
 
 
@@ -562,8 +563,7 @@ def attribute_choice_value_delete(request, attribute_pk, value_pk):
         return redirect('dashboard:product-attribute-detail', pk=attribute_pk)
     return TemplateResponse(
         request,
-        'dashboard/product/product_attribute/modal/'
-        'attribute_choice_value_confirm_delete.html',
+        'dashboard/product/product_attribute/values/modal/confirm_delete.html',
         {'value': value, 'attribute_pk': attribute_pk})
 
 
