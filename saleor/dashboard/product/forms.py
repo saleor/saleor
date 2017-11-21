@@ -2,8 +2,8 @@ from __future__ import unicode_literals
 
 from django import forms
 from django.db.models import Count
-from django.forms.models import ModelChoiceIterator, inlineformset_factory
-from django.forms.widgets import CheckboxSelectMultiple, TextInput
+from django.forms.models import ModelChoiceIterator
+from django.forms.widgets import CheckboxSelectMultiple
 from django.utils.encoding import smart_text
 from django.utils.text import slugify
 from django.utils.translation import pgettext_lazy

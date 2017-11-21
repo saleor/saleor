@@ -10,8 +10,8 @@ from django.views.decorators.http import require_POST
 
 from ...core.utils import get_paginator_items
 from ...product.models import (
-    Product, ProductAttribute, ProductClass, ProductImage, ProductVariant,
-    Stock, StockLocation, AttributeChoiceValue)
+    AttributeChoiceValue, Product, ProductAttribute, ProductClass,
+    ProductImage, ProductVariant, Stock, StockLocation)
 from ...product.utils import (
     get_availability, get_product_costs_data, get_variant_costs_data)
 from ...settings import DASHBOARD_PAGINATE_BY
