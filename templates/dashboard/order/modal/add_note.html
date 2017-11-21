@@ -4,9 +4,13 @@
 <form role="form" method="post" action="{% url 'dashboard:order-add-note' order_pk=order.pk %}" class="form-async" novalidate>
   {% csrf_token %}
   <div class="modal-content">
-    <h5>
-      {% trans "Add note" context "Modal add note title" %}
-    </h5>
+    <div class="row">
+      <div class="col">
+        <h5>
+          {% trans "Add note" context "Modal add note title" %}
+        </h5>
+      </div>
+    </div>
     <div class="row">
       {{ form|materializecss }}
     </div>
