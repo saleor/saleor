@@ -89,7 +89,7 @@ def add_variant_to_delivery_group(
             if quantity_left > stock.quantity_available
             else quantity_left
         )
-        item = group.items.create(
+        group.items.create(
             product=variant.product,
             product_name=variant.display_product(),
             product_sku=variant.sku,
@@ -114,20 +114,21 @@ def add_variant_to_existing_lines(group, variant, total_quantity):
 
     Returns quantity that could not be fulfilled with existing lines.
     """
-    items = group.items.filter(
+    # order descending by lines' stock available quantity
+    lines = group.items.filter(
         product=variant.product, product_sku=variant.sku,
         stock__isnull=False).order_by(
             F('stock__quantity_allocated') - F('stock__quantity'))
 
     quantity_left = total_quantity
-    for item in items:
+    for line in lines:
         quantity_added = (
-            item.stock.quantity_available
-            if quantity_left > item.stock.quantity_available
+            line.stock.quantity_available
+            if quantity_left > line.stock.quantity_available
             else quantity_left)
-        item.quantity += quantity_added
-        item.save()
-        Stock.objects.allocate_stock(item.stock, quantity_added)
+        line.quantity += quantity_added
+        line.save()
+        Stock.objects.allocate_stock(line.stock, quantity_added)
         quantity_left -= quantity_added
         if quantity_left == 0:
             break

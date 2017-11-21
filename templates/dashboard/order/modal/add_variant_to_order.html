@@ -1,11 +1,11 @@
 {% load i18n %}
 {% load materializecss %}
 
-<form id="add-variant-delivery-group-form" method="post" role="form" action="{% url 'dashboard:add-variant-delivery-group' order_pk=order.pk %}" class="form-async" novalidate>
+<form id="add-variant-to-order-form" method="post" role="form" action="{% url 'dashboard:add-variant-to-order' order_pk=order.pk %}" class="form-async" novalidate>
   {% csrf_token %}
   <div class="modal-content">
     <h5>
-      {% trans "Add item to delivery group" context "Modal delivery group add item title" %}
+      {% trans "Add variant to order" context "Modal order add variant title" %}
     </h5>
     <div class="row">
       {{ form.variant|materializecss:"s12 m6" }}
@@ -15,7 +15,7 @@
   </div>
   <div class="modal-footer">
     <button type="submit" class="modal-action btn-flat">
-      {% trans "Add" context "Modal delivery group add item primary action" %}
+      {% trans "Add" context "Modal order add variant primary action" %}
     </button>
     <a href="#!" aria-hidden="true" class="modal-action modal-close btn-flat">
       {% trans "Cancel" context "Dashboard cancel action" %}

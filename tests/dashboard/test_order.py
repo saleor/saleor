@@ -514,10 +514,8 @@ def test_view_add_variant_to_delivery_group(
     line = OrderedItem.objects.get(
         product_sku='SKU_A', stock_location='Warehouse 2')
     url = reverse(
-        'dashboard:add-variant-delivery-group', kwargs={
-            'order_pk': order.pk, 'group_pk': group.pk
-    })
-    data = {'variant': variant.pk, 'quantity': 2}
+        'dashboard:add-variant-to-order', kwargs={'order_pk': order.pk})
+    data = {'variant': variant.pk, 'quantity': 2, 'target_group': group.pk}
 
     response = admin_client.post(url, data)
 

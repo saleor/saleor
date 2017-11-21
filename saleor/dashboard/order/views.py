@@ -14,7 +14,7 @@ from prices import Price
 from satchless.item import InsufficientStock
 
 from .forms import (
-    AddVariantToDeliveryGroupForm, CancelGroupForm, CancelLinesForm,
+    AddVariantToOrderForm, CancelGroupForm, CancelLinesForm,
     CancelOrderForm, CapturePaymentForm, ChangeStockForm, ChangeQuantityForm,
     MoveLinesForm, OrderNoteForm, RefundPaymentForm, ReleasePaymentForm,
     RemoveVoucherForm, ShipGroupForm)
@@ -308,9 +308,10 @@ def cancel_delivery_group(request, order_pk, group_pk):
 
 @staff_member_required
 @permission_required('order.edit_order')
-def add_variant_to_delivery_group(request, order_pk):
+def add_variant_to_order(request, order_pk):
+    """ Adds variant in given quantity to existing or new group in order. """
     order = get_object_or_404(Order, pk=order_pk)
-    form = AddVariantToDeliveryGroupForm(request.POST or None, order=order)
+    form = AddVariantToOrderForm(request.POST or None, order=order)
     status = 200
     if form.is_valid():
         msg_dict = {
@@ -340,7 +341,7 @@ def add_variant_to_delivery_group(request, order_pk):
     elif form.errors:
         status = 400
     ctx = {'order': order, 'form': form}
-    template = 'dashboard/order/modal/add_variant_to_delivery_group.html'
+    template = 'dashboard/order/modal/add_variant_to_order.html'
     return TemplateResponse(request, template, ctx, status=status)
 
 
