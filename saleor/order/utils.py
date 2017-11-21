@@ -122,14 +122,14 @@ def add_variant_to_existing_lines(group, variant, total_quantity):
 
     quantity_left = total_quantity
     for line in lines:
-        quantity_added = (
+        quantity = (
             line.stock.quantity_available
             if quantity_left > line.stock.quantity_available
             else quantity_left)
-        line.quantity += quantity_added
+        line.quantity += quantity
         line.save()
-        Stock.objects.allocate_stock(line.stock, quantity_added)
-        quantity_left -= quantity_added
+        Stock.objects.allocate_stock(line.stock, quantity)
+        quantity_left -= quantity
         if quantity_left == 0:
             break
     return quantity_left
