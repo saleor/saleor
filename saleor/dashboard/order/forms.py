@@ -22,10 +22,9 @@ class OrderNoteForm(forms.ModelForm):
     class Meta:
         model = OrderNote
         fields = ['content']
-        widgets = {'content': forms.Textarea({
-            'rows': 5,
-            'placeholder': pgettext_lazy(
-                'Order note form placeholder', 'Note')})}
+        widgets = {
+            'content': forms.Textarea()
+        }
 
     def __init__(self, *args, **kwargs):
         super(OrderNoteForm, self).__init__(*args, **kwargs)
