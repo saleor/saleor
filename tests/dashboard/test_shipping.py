@@ -1,9 +1,7 @@
 import pytest
 from django.urls import reverse
 
-from saleor.dashboard.shipping.forms import ShippingMethodForm, ShippingMethodCountryForm
 from saleor.shipping.models import ShippingMethod, ShippingMethodCountry
-from prices import Price
 
 
 def test_shipping_method_list(admin_client, shipping_method):
