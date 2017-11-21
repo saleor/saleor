@@ -304,66 +304,66 @@
                   </tr>
                 {% endif %}
               </tfoot>
-                <tbody>
-                  {% for item in group.items.all %}
-                    <tr>
-                      <td>
-                        {{ item.product_name }}<br>
-                      </td>
-                      <td class="right-align">
-                        {% if group.can_edit_items %}
-                          <a class="dropdown-button" href="#" data-activates="line-stock-actions-{{ item.pk }}" data-constrainwidth="false">
-                            {{ item.stock_location|default:"-" }}
-                            <svg data-src="{% static "dashboard/images/arrow_drop_down.svg" %}" width="24" height="24" />
-                          </a>
-                          <ul id="line-stock-actions-{{ item.pk }}" class="dropdown-content">
-                            <li>
-                              <a href="#base-modal" data-href="{% url 'dashboard:orderline-change-stock' order_pk=order.pk line_pk=item.pk %}" class="modal-trigger-custom" {% if group.status != 'new' %} disabled{% endif %} title="{% trans "Change stock location" context "Shipment group table row action" %}">
-                                {% trans "Change stock" context "Shipment group table row action" %}
-                              </a>
-                            </li>
-                          </ul>
-                        {% else %}
+              <tbody>
+                {% for item in group.items.all %}
+                  <tr>
+                    <td>
+                      {{ item.product_name }}<br>
+                    </td>
+                    <td class="right-align">
+                      {% if group.can_edit_items %}
+                        <a class="dropdown-button" href="#" data-activates="line-stock-actions-{{ item.pk }}" data-constrainwidth="false">
                           {{ item.stock_location|default:"-" }}
-                        {% endif %}
-                      </td>
-                      <td>
-                        {{ item.product_sku }}
-                      </td>
-                      <td class="right-align">
-                        {% gross item.get_price_per_item html=True %}
-                      </td>
-                      <td class="right-align">
-                        {% if group.can_edit_items %}
-                          <a class="dropdown-button" href="#" data-activates="line-actions-{{ item.pk }}" data-constrainwidth="false">
-                            {{ item.quantity }}
-                            <svg data-src="{% static "dashboard/images/arrow_drop_down.svg" %}" width="24" height="24" />
-                          </a>
-                          <ul id="line-actions-{{ item.pk }}" class="dropdown-content">
-                            <li>
-                              <a href="#base-modal" data-href="{% url 'dashboard:orderline-change-quantity' order_pk=order.pk line_pk=item.pk %}" class="modal-trigger-custom" {% if group.status != 'new' %} disabled{% endif %} title="{% trans "Change quantity" context "Shipment group table row action" %}">
-                                {% trans "Change quantity" context "Shipment group table row action" %}
-                              </a>
-                            </li>
-                            <li>
-                              <a href="#base-modal" data-href="{% url 'dashboard:orderline-split' order_pk=order.pk line_pk=item.pk %}" class="modal-trigger-custom" {% if group.status != 'new' %} disabled{% endif %} title="{% trans "Split line" context "Shipment group table row action" %}">
-                                {% trans "Split order line" context "Shipment group table row action" %}
-                              </a>
-                            </li>
-                            <li>
-                              <a href="#base-modal" data-href="{% url 'dashboard:orderline-cancel' order_pk=order.pk line_pk=item.pk %}" class="modal-trigger-custom" title="{% trans "Remove line" context "Shipment group table row action" %}">
-                                {% trans "Remove line" context "Shipment group table row action" %}
-                              </a>
-                            </li>
-                          </ul>
-                        {% else %}
-                      {{ item.quantity }}
-                    {% endif %}
-                  </td>
-                  <td class="right-align">
-                    {% gross item.get_total html=True %}
-                  </td>
-                </tr>
+                          <svg data-src="{% static "dashboard/images/arrow_drop_down.svg" %}" width="24" height="24" />
+                        </a>
+                        <ul id="line-stock-actions-{{ item.pk }}" class="dropdown-content">
+                          <li>
+                            <a href="#base-modal" data-href="{% url 'dashboard:orderline-change-stock' order_pk=order.pk line_pk=item.pk %}" class="modal-trigger-custom" title="{% trans "Change stock location" context "Shipment group table row action" %}">
+                              {% trans "Change stock" context "Shipment group table row action" %}
+                            </a>
+                          </li>
+                        </ul>
+                      {% else %}
+                        {{ item.stock_location|default:"-" }}
+                      {% endif %}
+                    </td>
+                    <td>
+                      {{ item.product_sku }}
+                    </td>
+                    <td class="right-align">
+                      {% gross item.get_price_per_item html=True %}
+                    </td>
+                    <td class="right-align">
+                      {% if group.can_edit_items %}
+                        <a class="dropdown-button" href="#" data-activates="line-actions-{{ item.pk }}" data-constrainwidth="false">
+                          {{ item.quantity }}
+                          <svg data-src="{% static "dashboard/images/arrow_drop_down.svg" %}" width="24" height="24" />
+                        </a>
+                        <ul id="line-actions-{{ item.pk }}" class="dropdown-content">
+                          <li>
+                            <a href="#base-modal" data-href="{% url 'dashboard:orderline-change-quantity' order_pk=order.pk line_pk=item.pk %}" class="modal-trigger-custom" title="{% trans "Change quantity" context "Shipment group table row action" %}">
+                              {% trans "Change quantity" context "Shipment group table row action" %}
+                            </a>
+                          </li>
+                          <li>
+                            <a href="#base-modal" data-href="{% url 'dashboard:orderline-split' order_pk=order.pk line_pk=item.pk %}" class="modal-trigger-custom" title="{% trans "Split line" context "Shipment group table row action" %}">
+                              {% trans "Split order line" context "Shipment group table row action" %}
+                            </a>
+                          </li>
+                          <li>
+                            <a href="#base-modal" data-href="{% url 'dashboard:orderline-cancel' order_pk=order.pk line_pk=item.pk %}" class="modal-trigger-custom" title="{% trans "Remove line" context "Shipment group table row action" %}">
+                              {% trans "Remove line" context "Shipment group table row action" %}
+                            </a>
+                          </li>
+                        </ul>
+                      {% else %}
+                        {{ item.quantity }}
+                      {% endif %}
+                    </td>
+                    <td class="right-align">
+                      {% gross item.get_total html=True %}
+                    </td>
+                  </tr>
                 {% endfor %}
               </tbody>
             </table>

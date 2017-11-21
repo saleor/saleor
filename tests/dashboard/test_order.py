@@ -6,6 +6,7 @@ import pytest
 from django.urls import reverse
 
 from saleor.dashboard.order.forms import ChangeQuantityForm, MoveLinesForm
+from saleor.order import OrderStatus
 from saleor.order.models import (
     DeliveryGroup, Order, OrderLine, OrderHistoryEntry)
 from saleor.order.utils import (
@@ -277,7 +278,7 @@ def test_ordered_item_change_quantity(transactional_db, order_with_items):
     change_order_line_quantity(items[2], 0)
     history = list(order_with_items.history.all())
     assert len(history) == 1
-    assert history[0].status == 'cancelled'
+    assert history[0].status == OrderStatus.CANCELLED
     assert history[0].comment == 'Order cancelled. No items in order'
 
 
@@ -288,7 +289,7 @@ def test_ordered_item_remove_empty_group_with_force(
     OrderLine.objects.remove_empty_groups(items[0], force=True)
     history = list(order_with_items.history.all())
     assert len(history) == 1
-    assert history[0].status == 'cancelled'
+    assert history[0].status == OrderStatus.CANCELLED
     assert history[0].comment == 'Order cancelled. No items in order'
 
 

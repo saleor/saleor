@@ -133,7 +133,7 @@ class MoveLinesForm(forms.Form):
     def get_delivery_group_choices(self):
         group = self.line.delivery_group
         groups = group.order.groups.exclude(pk=group.pk).exclude(
-            status='cancelled')
+            status=OrderStatus.CANCELLED)
         choices = [(self.NEW_SHIPMENT, pgettext_lazy(
             'Delivery group value for `target_group` field',
             'New shipment'))]
@@ -404,7 +404,6 @@ class AddVariantToOrderForm(forms.Form):
         quantity = self.cleaned_data.get('quantity')
         target_group = self.cleaned_data.get('target_group')
         if not target_group:
-            target_group = self.order.groups.create(
-                status=OrderStatus.NEW)
+            target_group = self.order.groups.create(status=OrderStatus.NEW)
         add_variant_to_delivery_group(target_group, variant, quantity)
         Order.objects.recalculate_order(self.order)

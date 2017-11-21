@@ -404,7 +404,7 @@ def create_delivery_group(order):
     shipping_country = shipping_method.price_per_country.get_or_create(
         country_code=region, defaults={'price': fake.price()})[0]
     delivery_group = DeliveryGroup.objects.create(
-        status=random.choice(['new', 'shipped']),
+        status=random.choice([OrderStatus.NEW, OrderStatus.SHIPPED]),
         order=order,
         shipping_method_name=str(shipping_country),
         shipping_price=shipping_country.price)
