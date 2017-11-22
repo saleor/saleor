@@ -4,20 +4,22 @@
 {% load staticfiles %}
 
 {% block title %}
-  {% if attribute.pk %}
-   {% trans "Edit" context "Dashboard attributes list" %} - {{ attribute }}
+  {% if method.pk %}
+   {% trans "Edit" context "Dashboard price per country edit page" %} - {{ method }}
   {% else %}
-    {% trans "Add new attribute" context "Attribute detail page title" %}
+    {% trans "Add new shipping price per country" context "Shipping price per country edit page title" %}
   {% endif %}
   - {{ block.super }}
 {% endblock %}
 
-{% block body_class %}body-attributes{% endblock %}
+{% block body_class %}body-shipping-methods{% endblock %}
 
-{% block menu_attributes_class %}active{% endblock %}
+{% block menu_delivery_class %}active{% endblock %}
+
+{% block menu_shipping_class %}active{% endblock %}
 
 {% block header_menu %}
-  {% url "dashboard:product-attributes" as url %}
+  {% url "dashboard:shipping-method-list" as url %}
   {% include "dashboard/includes/_back-link.html" with url=url %}
 {% endblock %}
 
@@ -25,21 +27,23 @@
 {% block breadcrumbs %}
   <ul class="breadcrumbs breadcrumbs--history">
     <li>
-      <a href="{% url 'dashboard:product-attributes' %}" class="breadcrumbs--ellipsed-item">
-      {% trans "Attributes" context "Dashboard attributes list" %}
+      <a href="{% url 'dashboard:shipping-methods' %}" class="breadcrumbs--ellipsed-item">
+      {% trans "Shipping methods" context "Dashboard attributes list" %}
       </a>
     </li>
     <li class="back-mobile">
-      <a href="{% url 'dashboard:product-attributes' %}">
+      <a href="{% url 'dashboard:shipping-methods' %}">
         <svg data-src="{% static "dashboard/images/arrow_left.svg" %}" fill="#fff" width="20px" height="20px" />
       </a>
     </li>
-    {% if attribute.pk %}
+    {% if shipping_method.pk %}
     <li>
-      <a href="{% url 'dashboard:product-attribute-detail' attribute.pk %}" class="breadcrumbs--ellipsed-item">
-        {{ attribute }}
+      <a href="{% url 'dashboard:shipping-method-detail' shipping_method.pk %}" class="breadcrumbs--ellipsed-item">
+        {{ shipping_method }}
       </a>
     </li>
+    {% endif %}
+    {% if country.pk %}
     <li>
       <span class="breadcrumbs--ellipsed-item">
         {% trans "Edit" context "Attribute detail breadcrumbs" %}
@@ -48,7 +52,7 @@
     {% else %}
     <li>
       <span class="breadcrumbs--ellipsed-item">
-        {% trans "Add new attribute" context "Attribute detail breadcrumbs" %}
+        {% trans "Add new price for country" context "Attribute detail breadcrumbs" %}
       </span>
     </li>
     {% endif %}
@@ -59,28 +63,28 @@
 
 {% block content %}
   <div class="row">
-    <div class="col m12 l9">
+    <div class="col s12 l9">
       <div class="card">
         <form method="post" enctype="multipart/form-data" id="form-attributes" novalidate>
-          <div class="card-content card-content-form">
-            {% csrf_token %}
+          {% csrf_token %}
+          <div class="card-content">
+            <span class="card-title">
+              {% trans "Shipping method price for country " context "Shipping method price for country form title" %}
+            </span>
             <div class="row">
-              {{ form.name|materializecss }}
-            </div>
-            <div class="row">
-              {{ form.slug|materializecss }}
+              {{ form|materializecss }}
             </div>
           </div>
           <div class="card-action right-align">
-            {% if attribute.pk %}
-              <a href="{% url 'dashboard:product-attribute-detail' attribute.pk %}" class="btn btn-flat">
+            {% if country.pk %}
+              <a href="{% url 'dashboard:shipping-method-detail' pk=shipping_method.pk %}" class="btn btn-flat">
                 {% trans "Cancel" context "Dashboard cancel action" %}
               </a>
               <button type="submit" class="btn waves-effect waves-light">
                 {% trans "Save" context "Dashboard update action" %}
               </button>
             {% else %}
-              <a href="{% url 'dashboard:product-attributes' %}" class="btn btn-flat">
+              <a href="{% url 'dashboard:shipping-method-detail' pk=shipping_method.pk %}" class="btn btn-flat">
                 {% trans "Cancel" context "Dashboard cancel action" %}
               </a>
               <button type="submit" class="btn waves-effect waves-light">
@@ -91,6 +95,6 @@
         </form>
       </div>
     </div>
-    <div class="col m12 l3 help-box"></div>
+    <div class="col s12 l3 help-box"></div>
   </div>
 {% endblock %}

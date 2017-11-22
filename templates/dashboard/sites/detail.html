@@ -1,91 +1,122 @@
 {% extends 'dashboard/base.html' %}
+
 {% load i18n %}
-{% load materializecss %}
+{% load prices_i18n %}
+{% load staticfiles %}
 
 {% block title %}
-  {% if site.pk %}
-    {{ site }}
-  {% else %}
-    {% trans "Add new site settings" context "Site settings page title" %}
-  {% endif %}
-   - {% trans "Site settings" context "Dashboard site settings" %} - {{ block.super }}
+    {{ site }} - {{ block.super }}
 {% endblock %}
-
-{% block body_class %}body-settings{% endblock %}
 
 {% block menu_settings_class %}active{% endblock %}
 
 {% block breadcrumbs %}
   <ul class="breadcrumbs breadcrumbs--history">
-    <li class="visible-s">
-      {% trans "Site settings" context "Dashboard site settings" %}
+    <li>
+      <span class="breadcrumbs--elipsed-item">
+          Site settings
+      </span>
     </li>
   </ul>
 {% endblock %}
 
 {% block content %}
   <div class="row">
-    <div class="col m12 l9">
+    <div class="col s12 l9">
       <div class="card">
-        <form method="post" id="form-category" enctype="multipart/form-data" novalidate>
-          <div class="card-content card-content-form">
-            {% csrf_token %}
-            <div class="row">
-              {{ site_form.name|materializecss }}
+        <div class="card-content">
+          <span class="card-title">
+            {{ site.site.name }}
+          </span>
+          <div class="row">
+            <div class="col s12 m4 l12">
+              <h4>
+                {% trans "Domain" context "Site settings field" %}
+              </h4>
+              <p>
+                {{ site.site.domain }}
+              </p>
             </div>
-            <div class="row">
-              {{ site_form.domain|materializecss }}
-            </div>
-            <div class="row">
-              {{ site_settings_form.header_text|materializecss }}
-            </div>
-            <div class="row">
-              {{ site_settings_form.description|materializecss }}
-            </div>
-
-            <h5 class="card-title">{% trans "Authorization keys" context "Authorization keys formset title" %}</h5>
-              {{ formset.management_form }}
-              {{ formset.non_form_errors.as_ul }}
           </div>
-
-          <div class="formset-table-container">
-            <table id="formset" class="formset-table">
-              {% for form in formset.forms %}
-                {% if forloop.first %}
-                  <thead>
-                  <tr>
-                    {% for field in form.visible_fields %}
-                      <th>{{ field.label|capfirst }}</th>
-                    {% endfor %}
-                  </tr>
-                  </thead>
+          <div class="row">
+            <div class="col s12 m4 l12">
+              <h4>
+                {% trans "Header text" context "Site settings field" %}
+              </h4>
+              <p>
+                {{ site.header_text }}
+              </p>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col s12 m4 l12">
+              <h4>
+                {% trans "Description" context "Site settings field" %}
+              </h4>
+              <p>
+                {% if site.description %}
+                  {{ site.description }}
+                {% else %}
+                  -
                 {% endif %}
-                <tr>
-                  {% for field in form.visible_fields %}
-                    <td{% if forloop.last %} class="center-align"{% endif %}>
-                      {% if forloop.first %}
-                        {% for hidden in form.hidden_fields %}
-                          {{ hidden }}
-                        {% endfor %}
-                      {% endif %}
-                      {{ field|materializecss }}
-                    </td>
-                  {% endfor %}
-                </tr>
-              {% endfor %}
-            </table>
+              </p>
+            </div>
           </div>
-          <div class="card-action right-align">
-            <a class="btn btn-flat" href="{% url "dashboard:index" %}" traget="_blank">
-              {% trans "Cancel" context "Dashboard cancel action" %}
-            </a>
-            <button type="submit" class="btn waves-effect waves-light">
-              {% trans "Update" context "Dashboard update action" %}
-            </button>
-          </div>
-        </form>
+        </div>
+        <div class="card-action">
+          <a class="btn btn-flat" href="{% url 'dashboard:site-update' pk=site.pk %}">
+            {% trans "Edit site settings" context "Shipping method action" %}
+          </a>
+        </div>
       </div>
     </div>
-    <div class="col m12 l3 help-box"></div>
+    <div class="col s12 l9">
+      <div class="card">
+        <div class="card-content">
+          <span class="card-title">
+             {% trans "Authorization keys" context "Title of the authorization keys list" %}
+          </span>
+        </div>
+        <div class="data-table-header-action">
+            <a href="{% url 'dashboard:authorization-key-add' site_settings_pk=site.pk %}" class="btn-data-table btn btn-flat">
+              {% trans "Add" %}
+            </a>
+        </div>
+        <div class="data-table-container">
+          <table class="bordered highlight responsive data-table">
+            <thead>
+              <tr>
+                <th>
+                  {% trans "Name" context "Header of authorization keys list" %}
+                </th>
+                <th>
+                  {% trans "Key" context "Header of authorization keys list" %}
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for key in authorization_keys %}
+                <tr>
+                  <td>{{ key.name }}</td>
+                  <td>{{ key.key }}</td>
+                  <td class="right-align">
+                    <a href="{% url 'dashboard:authorization-key-edit' site_settings_pk=site.pk key_pk=key.pk %}" class="btn btn-flat">
+                      {% trans 'Edit' context 'Authorization key edit action' %}
+                    </a>
+                    <a class="btn btn-flat modal-trigger-custom" href="#base-modal" data-href="{% url 'dashboard:authorization-key-delete' site_settings_pk=site.pk key_pk=key.pk %}">
+                      {% trans 'Remove' context 'Authorization key remove action' %}
+                    </a>
+                  </td>
+                </tr>
+              {% empty %}
+                <tr>
+                  <td colspan="2">{% trans "No authorization keys" context "Empty list of authorization keys" %}</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
   </div>
 {% endblock %}

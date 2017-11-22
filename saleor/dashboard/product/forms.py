@@ -2,7 +2,7 @@ from __future__ import unicode_literals
 
 from django import forms
 from django.db.models import Count
-from django.forms.models import ModelChoiceIterator, inlineformset_factory
+from django.forms.models import ModelChoiceIterator
 from django.forms.widgets import CheckboxSelectMultiple
 from django.utils.encoding import smart_text
 from django.utils.text import slugify
@@ -279,16 +279,12 @@ class StockLocationForm(forms.ModelForm):
 class AttributeChoiceValueForm(forms.ModelForm):
     class Meta:
         model = AttributeChoiceValue
-        exclude = ('slug', )
+        fields = ['attribute', 'name', 'color']
+        widgets = {'attribute': forms.widgets.HiddenInput()}
 
     def save(self, commit=True):
         self.instance.slug = slugify(self.instance.name)
         return super(AttributeChoiceValueForm, self).save(commit=commit)
-
-
-AttributeChoiceValueFormset = inlineformset_factory(
-    ProductAttribute, AttributeChoiceValue, form=AttributeChoiceValueForm,
-    extra=1)
 
 
 class OrderedModelMultipleChoiceField(forms.ModelMultipleChoiceField):

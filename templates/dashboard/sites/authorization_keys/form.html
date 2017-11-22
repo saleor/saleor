@@ -4,20 +4,20 @@
 {% load staticfiles %}
 
 {% block title %}
-  {% if attribute.pk %}
-   {% trans "Edit" context "Dashboard attributes list" %} - {{ attribute }}
+  {% if site.pk %}
+   {% trans "Edit" context "Dashboard authorization key list" %} - {{ site }}
   {% else %}
-    {% trans "Add new attribute" context "Attribute detail page title" %}
+    {% trans "Add new authorization key" context "Add new authorization key page title" %}
   {% endif %}
   - {{ block.super }}
 {% endblock %}
 
-{% block body_class %}body-attributes{% endblock %}
+{% block body_class %}body-authorization-key{% endblock %}
 
 {% block menu_attributes_class %}active{% endblock %}
 
 {% block header_menu %}
-  {% url "dashboard:product-attributes" as url %}
+  {% url "dashboard:site-index" as url %}
   {% include "dashboard/includes/_back-link.html" with url=url %}
 {% endblock %}
 
@@ -25,8 +25,8 @@
 {% block breadcrumbs %}
   <ul class="breadcrumbs breadcrumbs--history">
     <li>
-      <a href="{% url 'dashboard:product-attributes' %}" class="breadcrumbs--ellipsed-item">
-      {% trans "Attributes" context "Dashboard attributes list" %}
+      <a href="{% url 'dashboard:site-index' %}" class="breadcrumbs--ellipsed-item">
+      {% trans "Site settings" context "Dashboard site setting detail" %}
       </a>
     </li>
     <li class="back-mobile">
@@ -34,21 +34,16 @@
         <svg data-src="{% static "dashboard/images/arrow_left.svg" %}" fill="#fff" width="20px" height="20px" />
       </a>
     </li>
-    {% if attribute.pk %}
-    <li>
-      <a href="{% url 'dashboard:product-attribute-detail' attribute.pk %}" class="breadcrumbs--ellipsed-item">
-        {{ attribute }}
-      </a>
-    </li>
+    {% if key.pk %}
     <li>
       <span class="breadcrumbs--ellipsed-item">
-        {% trans "Edit" context "Attribute detail breadcrumbs" %}
+        {% trans "Edit" context "Authorization key breadcrumbs" %}
       </span>
     </li>
     {% else %}
     <li>
       <span class="breadcrumbs--ellipsed-item">
-        {% trans "Add new attribute" context "Attribute detail breadcrumbs" %}
+        {% trans "Add new authorization key" context "Authorization key breadcrumbs" %}
       </span>
     </li>
     {% endif %}
@@ -59,28 +54,28 @@
 
 {% block content %}
   <div class="row">
-    <div class="col m12 l9">
+    <div class="col s12 l9">
       <div class="card">
         <form method="post" enctype="multipart/form-data" id="form-attributes" novalidate>
-          <div class="card-content card-content-form">
-            {% csrf_token %}
+          {% csrf_token %}
+          <div class="card-content">
+            <span class="card-title">
+              {% trans "Authorization key" context "Authorization key form title" %}
+            </span>
             <div class="row">
-              {{ form.name|materializecss }}
-            </div>
-            <div class="row">
-              {{ form.slug|materializecss }}
+              {{ form|materializecss }}
             </div>
           </div>
           <div class="card-action right-align">
-            {% if attribute.pk %}
-              <a href="{% url 'dashboard:product-attribute-detail' attribute.pk %}" class="btn btn-flat">
+            {% if value.pk %}
+              <a href="{% url 'dashboard:site-detail' pk=site_settings_pk %}" class="btn btn-flat">
                 {% trans "Cancel" context "Dashboard cancel action" %}
               </a>
               <button type="submit" class="btn waves-effect waves-light">
                 {% trans "Save" context "Dashboard update action" %}
               </button>
             {% else %}
-              <a href="{% url 'dashboard:product-attributes' %}" class="btn btn-flat">
+              <a href="{% url 'dashboard:site-detail' pk=site_settings_pk %}" class="btn btn-flat">
                 {% trans "Cancel" context "Dashboard cancel action" %}
               </a>
               <button type="submit" class="btn waves-effect waves-light">
@@ -91,6 +86,5 @@
         </form>
       </div>
     </div>
-    <div class="col m12 l3 help-box"></div>
   </div>
 {% endblock %}
