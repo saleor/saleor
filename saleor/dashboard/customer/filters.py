@@ -1,8 +1,7 @@
 from __future__ import unicode_literals
 
 from django_filters import (CharFilter, FilterSet, OrderingFilter, RangeFilter)
-from django_countries import countries
-from django.db.models import Q
+from ...core.utils.filters import filter_by_customer, filter_by_location
 from django.utils.translation import pgettext_lazy
 
 from ...userprofile.models import User
@@ -37,10 +36,10 @@ class CustomerFilter(FilterSet):
         field_labels=SORT_BY_FIELDS_LABELS)
     name_or_email = CharFilter(
         label=pgettext_lazy('Customer name or email filter', 'Name or email'),
-        method='filter_by_customer')
+        method=filter_by_customer)
     location = CharFilter(
         label=pgettext_lazy('Customer list sorting filter', 'Location'),
-        method='filter_by_location')
+        method=filter_by_location)
     num_orders = RangeFilter(
         label=pgettext_lazy(
             'Customer list sorting filter', 'Number of orders'),
@@ -49,17 +48,3 @@ class CustomerFilter(FilterSet):
     class Meta:
         model = User
         fields = ['email', 'is_active', 'is_staff']
-
-    def filter_by_customer(self, queryset, name, value):
-        return queryset.filter(
-            Q(email__icontains=value) |
-            Q(default_billing_address__first_name__icontains=value) |
-            Q(default_billing_address__last_name__icontains=value))
-
-    def filter_by_location(self, queryset, name, value):
-        for code, country in dict(countries).items():
-            if value.lower() in country.lower():
-                value = code
-        return queryset.filter(
-            Q(default_billing_address__city__icontains=value) |
-            Q(default_billing_address__country__icontains=value))
