@@ -85,8 +85,8 @@ class ProductClass(models.Model):
                                    'product attributes'))
     variant_attributes = models.ManyToManyField(
         'ProductAttribute', related_name='product_variants_class', blank=True,
-        verbose_name=pgettext_lazy('Product class field',
-                                   'variant attributes'))
+        verbose_name=pgettext_lazy(
+            'Product class field', 'variant attributes'))
     is_shipping_required = models.BooleanField(
         pgettext_lazy('Product class field', 'is shipping required'),
         default=False)
@@ -125,14 +125,11 @@ class Product(models.Model, ItemRange):
     description = models.TextField(
         verbose_name=pgettext_lazy('Product field', 'description'))
     categories = models.ManyToManyField(
-        Category,
-        verbose_name=pgettext_lazy('Product field', 'categories'),
+        Category, verbose_name=pgettext_lazy('Product field', 'categories'),
         related_name='products')
     price = PriceField(
         pgettext_lazy('Product field', 'price'),
-        currency=settings.DEFAULT_CURRENCY,
-        max_digits=12,
-        decimal_places=2)
+        currency=settings.DEFAULT_CURRENCY, max_digits=12, decimal_places=2)
     available_on = models.DateField(
         pgettext_lazy('Product field', 'available on'), blank=True, null=True)
     is_published = models.BooleanField(
@@ -301,11 +298,10 @@ class ProductVariant(models.Model, Item):
             attributes = self.product.product_class.variant_attributes.all()
         values = get_attributes_display_map(self, attributes)
         if values:
-            return ', '.join([
-                '%s: %s' % (smart_text(attributes.get(id=int(key))),
-                            smart_text(value))
-                for (key, value) in six.iteritems(values)
-            ])
+            return ', '.join(
+                ['%s: %s' % (smart_text(attributes.get(id=int(key))),
+                             smart_text(value))
+                 for (key, value) in six.iteritems(values)])
         else:
             return smart_text(self.sku)
 
@@ -376,19 +372,14 @@ class Stock(models.Model):
         StockLocation, null=True, on_delete=models.CASCADE)
     quantity = models.IntegerField(
         pgettext_lazy('Stock item field', 'quantity'),
-        validators=[MinValueValidator(0)],
-        default=Decimal(1))
+        validators=[MinValueValidator(0)], default=Decimal(1))
     quantity_allocated = models.IntegerField(
         pgettext_lazy('Stock item field', 'allocated quantity'),
-        validators=[MinValueValidator(0)],
-        default=Decimal(0))
+        validators=[MinValueValidator(0)], default=Decimal(0))
     cost_price = PriceField(
         pgettext_lazy('Stock item field', 'cost price'),
-        currency=settings.DEFAULT_CURRENCY,
-        max_digits=12,
-        decimal_places=2,
-        blank=True,
-        null=True)
+        currency=settings.DEFAULT_CURRENCY, max_digits=12, decimal_places=2,
+        blank=True, null=True)
 
     objects = StockManager()
 
@@ -408,8 +399,7 @@ class Stock(models.Model):
 class ProductAttribute(models.Model):
     slug = models.SlugField(
         pgettext_lazy('Product attribute field', 'internal name'),
-        max_length=50,
-        unique=True)
+        max_length=50, unique=True)
     name = models.CharField(
         pgettext_lazy('Product attribute field', 'display name'),
         max_length=100)
