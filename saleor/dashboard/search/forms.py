@@ -1,11 +1,8 @@
-from ...search.backends import get_search_backend
 from ...search.forms import SearchForm
+from ...search.backends import elasticsearch_dashboard
 
 
 class DashboardSearchForm(SearchForm):
-
-    def search(self, queryset_map=None):
-        backend = get_search_backend('dashboard')
+    def search(self):
         query = self.cleaned_data['q']
-        results = backend.search(query, queryset_map=queryset_map)
-        return results
+        return elasticsearch_dashboard.search(query)

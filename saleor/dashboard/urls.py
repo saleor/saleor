@@ -22,8 +22,8 @@ urlpatterns = [
     url(r'^staff/', include(staff_urls)),
     url(r'^groups/', include(groups_urls)),
     url(r'^discounts/', include(discount_urls)),
-    url(r'^search/', include(search_urls)),
     url(r'^settings/', include(site_urls)),
     url(r'^shipping/', include(shipping_urls)),
     url(r'^style-guide/', core_views.styleguide, name='styleguide'),
+    url(r'^search/', include(search_urls)),
 ]

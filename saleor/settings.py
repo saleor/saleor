@@ -356,30 +356,16 @@ WEBPACK_LOADER = {
 
 LOGOUT_ON_PASSWORD_CHANGE = False
 
+ELASTICSEARCH_URL = os.environ.get('ELASTICSEARCH_URL', None)
+ENABLE_SEARCH = bool(ELASTICSEARCH_URL)
 
-ELASTICSEARCH_URL = os.environ.get('ELASTICSEARCH_URL')
-SEARCHBOX_URL = os.environ.get('SEARCHBOX_URL')
-BONSAI_URL = os.environ.get('BONSAI_URL')
-# We'll support couple of elasticsearch add-ons, but finally we'll use single
-# variable
-ES_URL = ELASTICSEARCH_URL or SEARCHBOX_URL or BONSAI_URL or ''
-if ES_URL:
-    SEARCH_BACKENDS = {
+if ELASTICSEARCH_URL:
+    INSTALLED_APPS.append('django_elasticsearch_dsl')
+    ELASTICSEARCH_DSL = {
         'default': {
-            'BACKEND': 'saleor.search.backends.elasticsearch5',
-            'URLS': [ES_URL],
-            'INDEX': os.environ.get('ELASTICSEARCH_INDEX_NAME', 'storefront'),
-            'TIMEOUT': 5,
-            'AUTO_UPDATE': True},
-        'dashboard': {
-            'BACKEND': 'saleor.search.backends.dashboard',
-            'URLS': [ES_URL],
-            'INDEX': os.environ.get('ELASTICSEARCH_INDEX_NAME', 'storefront'),
-            'TIMEOUT': 5,
-            'AUTO_UPDATE': False}
+            'hosts': ELASTICSEARCH_URL
+        },
     }
-else:
-    SEARCH_BACKENDS = {}
 
 
 GRAPHENE = {

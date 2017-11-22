@@ -22,7 +22,6 @@ from text_unidecode import unidecode
 from versatileimagefield.fields import PPOIField, VersatileImageField
 
 from ..discount.models import calculate_discounted_price
-from ..search import index
 from .utils import get_attributes_display_map
 
 
@@ -93,8 +92,7 @@ class ProductClass(models.Model):
         default=False)
 
     class Meta:
-        verbose_name = pgettext_lazy(
-            'Product class model', 'product class')
+        verbose_name = pgettext_lazy('Product class model', 'product class')
         verbose_name_plural = pgettext_lazy(
             'Product class model', 'product classes')
         app_label = 'product'
@@ -109,7 +107,6 @@ class ProductClass(models.Model):
 
 
 class ProductManager(models.Manager):
-
     def get_available_products(self):
         today = datetime.date.today()
         return self.get_queryset().filter(
@@ -118,7 +115,7 @@ class ProductManager(models.Manager):
 
 
 @python_2_unicode_compatible
-class Product(models.Model, ItemRange, index.Indexed):
+class Product(models.Model, ItemRange):
     product_class = models.ForeignKey(
         ProductClass, related_name='products',
         verbose_name=pgettext_lazy('Product field', 'product class'),
@@ -137,20 +134,14 @@ class Product(models.Model, ItemRange, index.Indexed):
         pgettext_lazy('Product field', 'available on'), blank=True, null=True)
     is_published = models.BooleanField(
         pgettext_lazy('Product field', 'is published'), default=True)
-    attributes = HStoreField(pgettext_lazy('Product field', 'attributes'),
-                             default={})
+    attributes = HStoreField(
+        pgettext_lazy('Product field', 'attributes'), default={})
     updated_at = models.DateTimeField(
         pgettext_lazy('Product field', 'updated at'), auto_now=True, null=True)
     is_featured = models.BooleanField(
         pgettext_lazy('Product field', 'is featured'), default=False)
 
     objects = ProductManager()
-
-    search_fields = [
-        index.SearchField('name', partial_match=True),
-        index.SearchField('description'),
-        index.FilterField('available_on'),
-        index.FilterField('is_published')]
 
     class Meta:
         app_label = 'product'
@@ -315,8 +306,7 @@ class ProductVariant(models.Model, Item):
             return smart_text(self.sku)
 
     def display_product(self):
-        return '%s (%s)' % (smart_text(self.product),
-                            smart_text(self))
+        return '%s (%s)' % (smart_text(self.product), smart_text(self))
 
     def get_first_image(self):
         return self.product.get_first_image()
@@ -358,7 +348,6 @@ class StockLocation(models.Model):
 
 
 class StockManager(models.Manager):
-
     def allocate_stock(self, stock, quantity):
         stock.quantity_allocated = F('quantity_allocated') + quantity
         stock.save(update_fields=['quantity_allocated'])
@@ -449,11 +438,9 @@ class AttributeChoiceValue(models.Model):
     class Meta:
         unique_together = ('name', 'attribute')
         verbose_name = pgettext_lazy(
-            'Attribute choice value model',
-            'attribute choices value')
+            'Attribute choice value model', 'attribute choices value')
         verbose_name_plural = pgettext_lazy(
-            'Attribute choice value model',
-            'attribute choices values')
+            'Attribute choice value model', 'attribute choices values')
 
     def __str__(self):
         return self.name
@@ -480,8 +467,7 @@ class ProductImage(models.Model):
         pgettext_lazy('Product image field', 'short description'),
         max_length=128, blank=True)
     order = models.PositiveIntegerField(
-        pgettext_lazy('Product image field', 'order'),
-        editable=False)
+        pgettext_lazy('Product image field', 'order'), editable=False)
 
     objects = ImageManager()
 
@@ -520,7 +506,6 @@ class VariantImage(models.Model):
         on_delete=models.CASCADE)
 
     class Meta:
-        verbose_name = pgettext_lazy(
-            'Variant image model', 'variant image')
+        verbose_name = pgettext_lazy('Variant image model', 'variant image')
         verbose_name_plural = pgettext_lazy(
             'Variant image model', 'variant images')
