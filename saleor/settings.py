@@ -5,8 +5,8 @@ import os.path
 
 import dj_database_url
 import dj_email_url
-from django.contrib.messages import constants as messages
 import django_cache_url
+from django.contrib.messages import constants as messages
 
 
 def get_list(text):
@@ -108,9 +108,7 @@ context_processors = [
 
 loaders = [
     'django.template.loaders.filesystem.Loader',
-    'django.template.loaders.app_directories.Loader',
-    # TODO: this one is slow, but for now need for mptt?
-    'django.template.loaders.eggs.Loader']
+    'django.template.loaders.app_directories.Loader']
 
 if not DEBUG:
     loaders = [('django.template.loaders.cached.Loader', loaders)]
@@ -127,20 +125,21 @@ TEMPLATES = [{
 # Make this unique, and don't share it with anybody.
 SECRET_KEY = os.environ.get('SECRET_KEY')
 
-MIDDLEWARE_CLASSES = [
+MIDDLEWARE = [
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.locale.LocaleMiddleware',
-    'babeldjango.middleware.LocaleMiddleware',
+    'django_babel.middleware.LocaleMiddleware',
     'saleor.core.middleware.DiscountMiddleware',
     'saleor.core.middleware.GoogleAnalytics',
     'saleor.core.middleware.CountryMiddleware',
     'saleor.core.middleware.CurrencyMiddleware',
     'saleor.core.middleware.ClearSiteCacheMiddleware',
     'social_django.middleware.SocialAuthExceptionMiddleware',
+    'impersonate.middleware.ImpersonateMiddleware'
 ]
 
 INSTALLED_APPS = [
@@ -175,7 +174,7 @@ INSTALLED_APPS = [
 
     # External apps
     'versatileimagefield',
-    'babeldjango',
+    'django_babel',
     'bootstrap3',
     'django_prices',
     'django_prices_openexchangerates',
@@ -187,26 +186,29 @@ INSTALLED_APPS = [
     'django_countries',
     'django_filters',
     'django_celery_results',
+    'impersonate'
 ]
 
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
+    'root': {
+        'level': 'INFO',
+        'handlers': ['console']
+    },
     'formatters': {
         'verbose': {
-            'format': '%(levelname)s %(asctime)s %(module)s '
-                      '%(process)d %(thread)d %(message)s'
+            'format': (
+                '%(levelname)s %(name)s %(message)s'
+                ' [PID:%(process)d:%(threadName)s]')
         },
         'simple': {
             'format': '%(levelname)s %(message)s'
-        },
+        }
     },
     'filters': {
         'require_debug_false': {
             '()': 'django.utils.log.RequireDebugFalse'
-        },
-        'require_debug_true': {
-            '()': 'django.utils.log.RequireDebugTrue'
         }
     },
     'handlers': {
@@ -218,14 +220,18 @@ LOGGING = {
         'console': {
             'level': 'DEBUG',
             'class': 'logging.StreamHandler',
-            'filters': ['require_debug_true'],
-            'formatter': 'simple'
-        },
+            'formatter': 'verbose'
+        }
     },
     'loggers': {
-        'django.request': {
-            'handlers': ['mail_admins'],
-            'level': 'ERROR',
+        'django': {
+            'handlers': ['console', 'mail_admins'],
+            'level': 'INFO',
+            'propagate': True
+        },
+        'django.server': {
+            'handlers': ['console'],
+            'level': 'INFO',
             'propagate': True
         },
         'saleor': {
@@ -416,3 +422,10 @@ CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
 CELERY_RESULT_BACKEND = 'django-db'
+
+# Impersonate module settings
+IMPERSONATE_URI_EXCLUSIONS = [r'^dashboard/']
+IMPERSONATE_CUSTOM_USER_QUERYSET = \
+    'saleor.userprofile.impersonate.get_impersonatable_users'
+IMPERSONATE_USE_HTTP_REFERER = True
+IMPERSONATE_CUSTOM_ALLOW = 'saleor.userprofile.impersonate.can_impersonate'

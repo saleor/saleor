@@ -1,19 +1,19 @@
 """Cart-related views."""
 from __future__ import unicode_literals
 
-from babeldjango.templatetags.babel import currencyfmt
-from django.core.urlresolvers import reverse
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.template.response import TemplateResponse
+from django.urls import reverse
+from django_babel.templatetags.babel import currencyfmt
 
-from ..core.utils import to_local_currency, get_user_shipping_country
+from ..core.utils import get_user_shipping_country, to_local_currency
 from ..product.models import ProductVariant
 from ..shipping.utils import get_shipment_options
-from .forms import ReplaceCartLineForm, CountryForm
+from .forms import CountryForm, ReplaceCartLineForm
 from .models import Cart
-from .utils import (check_product_availability_and_warn, get_or_empty_db_cart,
-                    get_cart_data)
+from .utils import (
+    check_product_availability_and_warn, get_cart_data, get_or_empty_db_cart)
 
 
 @get_or_empty_db_cart(cart_queryset=Cart.objects.for_display())
@@ -22,6 +22,12 @@ def index(request, cart):
     discounts = request.discounts
     cart_lines = []
     check_product_availability_and_warn(request, cart)
+
+    # refresh required to get updated cart lines and it's quantity
+    try:
+        cart = Cart.objects.get(pk=cart.pk)
+    except Cart.DoesNotExist:
+        pass
 
     for line in cart.lines.all():
         initial = {'quantity': line.get_quantity()}

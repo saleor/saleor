@@ -36,13 +36,14 @@
 {% block content %}
 
   <div class="row">
-    <div class="col m12 l9">
+    <div class="col s12 l9">
       <div class="card">
         <div class="card-content">
           <span class="card-title">
             {{ attribute.name }}
           </span>
         </div>
+        {% if perms.product.edit_properties %}
         <div class="card-action">
           <a class="btn btn-flat" href="{% url "dashboard:product-attribute-update" attribute.pk %}">
             {% trans "Edit attribute" context "Attribute detail action" %}
@@ -52,19 +53,30 @@
               {% trans "Remove attribute" context "Attribute detail action" %}
           </a>
         </div>
+        {% endif %}
       </div>
     </div>
-    <div class="col m12 l9">
+    <div class="col s12 l9">
       <div class="card">
         <div class="card-content">
           <span class="card-title">{% trans "Attribute values" %}</span>
         </div>
+        {% if perms.product.edit_product %}
+          <div class="data-table-header-action">
+              <a href="{% url 'dashboard:product-attribute-value-add' attribute_pk=attribute.pk %}" class="btn-data-table btn btn-flat">
+                {% trans "Add" %}
+              </a>
+          </div>
+        {% endif %}
         <div class="data-table-container">
           <table class="bordered highlight responsive data-table">
             <thead>
               <tr>
                 <th>{% trans "Display name" %}</th>
                 <th>{% trans "Color" %}</th>
+                {% if perms.product.edit_product %}
+                  <th></th>
+                {% endif %}
               </tr>
             </thead>
             <tbody>
@@ -74,8 +86,22 @@
                     {{ value.name }}
                   </td>
                   <td>
-                    {{ value.color }}
+                    {% if value.color %}
+                      {{ value.color }}
+                    {% else %}
+                      -
+                    {% endif %}
                   </td>
+                  {% if perms.product.edit_product %}
+                    <td class="right-align">
+                      <a href="{% url 'dashboard:product-attribute-value-update' attribute_pk=attribute.pk value_pk=value.pk %}" class="btn btn-flat">
+                        {% trans 'Edit' context 'Attribute choice value edit action' %}
+                      </a>
+                      <a class="btn btn-flat modal-trigger-custom" href="#base-modal" data-href="{% url 'dashboard:product-attribute-value-delete' attribute_pk=attribute.pk value_pk=value.pk %}">
+                        {% trans 'Remove' context 'Attribute choice value edit action' %}
+                      </a>
+                    </td>
+                  {% endif %}
                 </tr>
               {% endfor %}
             </tbody>

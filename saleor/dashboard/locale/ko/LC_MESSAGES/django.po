@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: master\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2017-11-06 04:12-0600\n"
+"POT-Creation-Date: 2017-11-13 05:26-0600\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Jihan Chung <jihanchung20@gmail.com>, 2017\n"
 "Language-Team: Korean (https://www.transifex.com/mirumee/teams/34782/ko/)\n"
@@ -279,52 +279,62 @@ msgctxt "Dashboard message"
 msgid "Removed voucher from order"
 msgstr "주문으로부터 바우처 삭제"
 
-#: saleor/dashboard/product/forms.py:25
+#: saleor/dashboard/product/__init__.py:10
+msgctxt "product bulk action"
+msgid "Publish"
+msgstr ""
+
+#: saleor/dashboard/product/__init__.py:11
+msgctxt "product bulk action"
+msgid "Unpublish"
+msgstr ""
+
+#: saleor/dashboard/product/forms.py:26
 msgctxt "Product class form label"
 msgid "Product type"
 msgstr "제품 타입"
 
-#: saleor/dashboard/product/forms.py:47
+#: saleor/dashboard/product/forms.py:48
 msgctxt "stock form error"
 msgid "Stock item for this location and variant already exists"
 msgstr ""
 
-#: saleor/dashboard/product/forms.py:62
+#: saleor/dashboard/product/forms.py:63
 msgctxt "Product class form label"
 msgid "Attributes specific to each variant"
 msgstr "각 옵션의 속성"
 
-#: saleor/dashboard/product/forms.py:65
+#: saleor/dashboard/product/forms.py:66
 msgctxt "Product class form label"
 msgid "Attributes common to all variants"
 msgstr "각 옵션의 일반 속성"
 
-#: saleor/dashboard/product/forms.py:75
+#: saleor/dashboard/product/forms.py:76
 msgctxt "Product class form error"
 msgid "Product variants are disabled."
 msgstr "제품 옵션 제한되었습니다."
 
-#: saleor/dashboard/product/forms.py:80
+#: saleor/dashboard/product/forms.py:81
 msgctxt "Product class form error"
 msgid "A single attribute can't belong to both a product and its variant."
 msgstr "단일 속성은 제품 및 이의 옵션에 포함될 수 없습니다."
 
-#: saleor/dashboard/product/forms.py:94
+#: saleor/dashboard/product/forms.py:95
 msgctxt "Product class form error"
 msgid "Some products of this type have more than one variant."
 msgstr "이 타입의 몇몇 제품은 한 개 이상의 옵션을 가지고 있습니다."
 
-#: saleor/dashboard/product/forms.py:106
+#: saleor/dashboard/product/forms.py:107
 msgctxt "product form"
 msgid "Published"
 msgstr ""
 
-#: saleor/dashboard/product/forms.py:108
+#: saleor/dashboard/product/forms.py:109
 msgctxt "product form"
 msgid "Feature this product on homepage"
 msgstr ""
 
-#: saleor/dashboard/product/forms.py:114
+#: saleor/dashboard/product/forms.py:115
 msgctxt "Product form placeholder"
 msgid "Search"
 msgstr "검색"
@@ -347,95 +357,102 @@ msgctxt "Dashboard message"
 msgid "Deleted product type %s"
 msgstr "삭제된 제품 타입 %s"
 
-#: saleor/dashboard/product/views.py:139
+#: saleor/dashboard/product/views.py:140
 #, python-format
 msgctxt "Dashboard message"
 msgid "Added product %s"
 msgstr "추가된 제품 %s"
 
-#: saleor/dashboard/product/views.py:211
+#: saleor/dashboard/product/views.py:214
 #, python-format
 msgctxt "Dashboard message"
 msgid "Updated product %s"
 msgstr "업데이트 된 제품 %s"
 
-#: saleor/dashboard/product/views.py:227
+#: saleor/dashboard/product/views.py:230
 #, python-format
 msgctxt "Dashboard message"
 msgid "Deleted product %s"
 msgstr "삭제된 제품 %s"
 
-#: saleor/dashboard/product/views.py:262
+#: saleor/dashboard/product/views.py:265
 msgctxt "Dashboard message"
 msgid "Saved stock"
 msgstr "저장된 품목"
 
-#: saleor/dashboard/product/views.py:283
+#: saleor/dashboard/product/views.py:286
 msgctxt "Dashboard message"
 msgid "Deleted stock"
 msgstr "삭제된 품목"
 
-#: saleor/dashboard/product/views.py:321
+#: saleor/dashboard/product/views.py:324
 #, python-format
 msgctxt "Dashboard message"
 msgid "Updated image %s"
 msgstr "업데이트 된 %s 이미지"
 
-#: saleor/dashboard/product/views.py:325
+#: saleor/dashboard/product/views.py:328
 #, python-format
 msgctxt "Dashboard message"
 msgid "Added image %s"
 msgstr "추가된 %s 이미지"
 
-#: saleor/dashboard/product/views.py:346
+#: saleor/dashboard/product/views.py:349
 #, python-format
 msgctxt "Dashboard message"
 msgid "Deleted image %s"
 msgstr "삭제된 %s 이미지"
 
-#: saleor/dashboard/product/views.py:370
+#: saleor/dashboard/product/views.py:373
 #, python-format
 msgctxt "Dashboard message"
 msgid "Saved variant %s"
 msgstr ""
 
-#: saleor/dashboard/product/views.py:437
+#: saleor/dashboard/product/views.py:442
 #, python-format
 msgctxt "Dashboard message"
 msgid "Deleted variant %s"
 msgstr "삭제된 %s 카테고리 태그"
 
-#: saleor/dashboard/product/views.py:486
+#: saleor/dashboard/product/views.py:491
 msgctxt "Dashboard message"
 msgid "Updated attribute"
 msgstr "업데이트된 속성"
 
-#: saleor/dashboard/product/views.py:487
+#: saleor/dashboard/product/views.py:492
 msgctxt "Dashboard message"
 msgid "Added attribute"
 msgstr "추가된 속성"
 
-#: saleor/dashboard/product/views.py:506
+#: saleor/dashboard/product/views.py:511
 #, python-format
 msgctxt "Dashboard message"
 msgid "Deleted attribute %s"
 msgstr "삭제된 %s 속성"
 
-#: saleor/dashboard/product/views.py:539
+#: saleor/dashboard/product/views.py:544
 msgctxt "Dashboard message for stock location"
 msgid "Updated location"
 msgstr "업데이트 된 위치"
 
-#: saleor/dashboard/product/views.py:540
+#: saleor/dashboard/product/views.py:545
 msgctxt "Dashboard message for stock location"
 msgid "Added location"
 msgstr "추가된 위치"
 
-#: saleor/dashboard/product/views.py:559
+#: saleor/dashboard/product/views.py:564
 #, python-format
 msgctxt "Dashboard message for stock location"
 msgid "Deleted location %s"
 msgstr "삭제된 %s 위치"
+
+#: saleor/dashboard/product/views.py:613
+#, python-format
+msgctxt "Dashboard message"
+msgid "%(count)d product has been updated"
+msgid_plural "%(count)d products have been updated"
+msgstr[0] ""
 
 #: saleor/dashboard/shipping/views.py:33
 #, python-format

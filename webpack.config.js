@@ -62,8 +62,8 @@ var config = {
   entry: {
     category: './saleor/static/js/category.js',  // Note: this file is required by the dynamic category page implementation.
     dashboard: './saleor/static/dashboard/js/dashboard.js',
+    document: './saleor/static/dashboard/js/document.js',
     storefront: './saleor/static/js/storefront.js',
-    document: './saleor/static/dashboard/scss/document.scss',
     vendor: [
       'babel-es6-polyfill',
       'bootstrap',

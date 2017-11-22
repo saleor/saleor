@@ -4,12 +4,12 @@ import json
 from uuid import uuid4
 
 import pytest
-from babeldjango.templatetags.babel import currencyfmt
 from django.contrib.auth.models import AnonymousUser
 from django.core import signing
 from django.core.exceptions import ObjectDoesNotExist
-from django.core.urlresolvers import reverse
 from django.http import HttpResponse
+from django.urls import reverse
+from django_babel.templatetags.babel import currencyfmt
 from mock import MagicMock, Mock
 from prices import Price
 from satchless.item import InsufficientStock
@@ -736,18 +736,18 @@ def test_get_or_create_db_cart(customer_user, db, rf):
 
 
 def test_get_cart_data(request_cart_with_item, shipping_method):
-    shippment_option = get_shipment_options('PL')
+    shipment_option = get_shipment_options('PL')
     cart_data = utils.get_cart_data(
-        request_cart_with_item, shippment_option, 'USD', None)
+        request_cart_with_item, shipment_option, 'USD', None)
     assert cart_data['cart_total'] == Price(net=10, currency='USD')
     assert cart_data['total_with_shipping'].min_price == Price(
         net=20, currency='USD')
 
 
 def test_get_cart_data_no_shipping(request_cart_with_item):
-    shippment_option = get_shipment_options('PL')
+    shipment_option = get_shipment_options('PL')
     cart_data = utils.get_cart_data(
-        request_cart_with_item, shippment_option, 'USD', None)
+        request_cart_with_item, shipment_option, 'USD', None)
     cart_total = cart_data['cart_total']
     assert cart_total == Price(net=10, currency='USD')
     assert cart_data['total_with_shipping'].min_price == cart_total

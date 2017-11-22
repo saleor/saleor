@@ -36,17 +36,24 @@
 
 
 {% block header_extra %}
-  {% if customer.pk and not customer.is_staff and request.user.is_superuser %}
+  {% if customer.pk and not customer.is_staff and perms.userprofile.edit_staff and perms.userprofile.edit_user or perms.userprofile.impersonate_user %}
     <a class="dropdown-button right" href="#" data-activates="context-menu" data-constrainwidth="false">
       <svg data-src="{% static "dashboard/images/more_vert.svg" %}" height="24" width="24" />
     </a>
     <ul id="context-menu" class="dropdown-content">
-      <li>
-        <a href="#base-modal" data-href="{% url 'dashboard:customer-promote' pk=customer.pk %}"
-        class="modal-trigger-custom">
-          {% trans 'Promote to staff' context 'Customer promote to staff member action' %}
-        </a>
-      </li>
+      {% if perms.userprofile.edit_user and perms.userprofile.edit_staff %}
+        <li>
+          <a href="#base-modal" data-href="{% url 'dashboard:customer-promote' pk=customer.pk %}"
+          class="modal-trigger-custom">
+            {% trans 'Promote to staff' context 'Customer promote to staff member action' %}
+          </a>
+        </li>
+      {% endif %}
+      {% if perms.userprofile.impersonate_user %}
+        <li>
+          <a href="{% url 'impersonate-start' uid=customer.pk %}">Impersonate customer</a>
+        </li>
+      {% endif %}
     </ul>
   {% endif %}
 {% endblock %}

@@ -1,18 +1,21 @@
 from __future__ import unicode_literals
 
 from django.contrib import messages
+from django.contrib.auth.decorators import permission_required
 from django.shortcuts import get_object_or_404, redirect
 from django.template.response import TemplateResponse
 from django.utils.translation import pgettext_lazy
 
 from ...core.utils import get_paginator_items
-from ...shipping.models import ShippingMethod
-from ..views import superuser_required
+
+from ..views import staff_member_required
+from ...shipping.models import ShippingMethod, ShippingMethodCountry
 from ...settings import DASHBOARD_PAGINATE_BY
-from .forms import ShippingMethodForm, ShippingMethodCountryFormSet
+from .forms import ShippingMethodForm, ShippingMethodCountryForm
 
 
-@superuser_required
+@staff_member_required
+@permission_required('shipping.view_shipping')
 def shipping_method_list(request):
     methods = (ShippingMethod.objects.prefetch_related('price_per_country')
                .order_by('name'))
@@ -22,37 +25,29 @@ def shipping_method_list(request):
     return TemplateResponse(request, 'dashboard/shipping/list.html', ctx)
 
 
-@superuser_required
-def shipping_method_edit(request, method):
+@staff_member_required
+@permission_required('shipping.edit_shipping')
+def shipping_method_edit(request, pk=None):
+    if pk:
+        method = get_object_or_404(ShippingMethod, pk=pk)
+    else:
+        method = ShippingMethod()
     form = ShippingMethodForm(request.POST or None, instance=method)
-    formset = ShippingMethodCountryFormSet(request.POST or None, instance=method)
-    if form.is_valid() and formset.is_valid():
-        shipping_method = form.save()
-        formset.save()
+    if form.is_valid():
+        method = form.save()
         msg = pgettext_lazy(
-            'Dashboard message', '%(shipping_method_name)s method saved') % {
-                'shipping_method_name': shipping_method}
+            'dashboard message', 'Updated shipping method') \
+            if pk else pgettext_lazy(
+            'Dashboard message', 'Added shipping method')
         messages.success(request, msg)
-        return redirect(
-            'dashboard:shipping-method-detail', pk=shipping_method.pk)
-    ctx = {'shipping_method_form': form,
-           'price_per_country_formset': formset, 'shipping_method': method}
-    return TemplateResponse(request, 'dashboard/shipping/form.html', ctx)
+        return redirect('dashboard:shipping-method-detail', pk=method.pk)
+    ctx = {'form': form, 'shipping_method': method}
+    return TemplateResponse(
+        request, 'dashboard/shipping/form.html', ctx)
 
 
-@superuser_required
-def shipping_method_add(request):
-    method = ShippingMethod()
-    return shipping_method_edit(request, method)
-
-
-@superuser_required
-def shipping_method_update(request, pk):
-    method = get_object_or_404(ShippingMethod, pk=pk)
-    return shipping_method_edit(request, method)
-
-
-@superuser_required
+@staff_member_required
+@permission_required('shipping.view_shipping')
 def shipping_method_detail(request, pk):
     shipping_methods = ShippingMethod.objects.prefetch_related(
         'price_per_country').all()
@@ -63,7 +58,8 @@ def shipping_method_detail(request, pk):
         request, 'dashboard/shipping/detail.html', ctx)
 
 
-@superuser_required
+@staff_member_required
+@permission_required('shipping.edit_shipping')
 def shipping_method_delete(request, pk):
     shipping_method = get_object_or_404(ShippingMethod, pk=pk)
     if request.method == 'POST':
@@ -71,8 +67,55 @@ def shipping_method_delete(request, pk):
         messages.success(
             request,
             pgettext_lazy(
-                'Dashboard message', '%(shipping_method_name)s successfully deleted') % {
+                'Dashboard message',
+                '%(shipping_method_name)s successfully deleted') % {
                     'shipping_method_name': shipping_method})
         return redirect('dashboard:shipping-methods')
     ctx = {'shipping_method': shipping_method}
-    return TemplateResponse(request, 'dashboard/shipping/modal/confirm_delete.html', ctx)
+    return TemplateResponse(
+        request, 'dashboard/shipping/modal/confirm_delete.html', ctx)
+
+
+@staff_member_required
+@permission_required('shipping.edit_shipping')
+def shipping_method_country_edit(request, shipping_method_pk, country_pk=None):
+    shipping_method = get_object_or_404(ShippingMethod, pk=shipping_method_pk)
+    if country_pk:
+        country = get_object_or_404(ShippingMethodCountry, pk=country_pk)
+    else:
+        country = ShippingMethodCountry(shipping_method_id=shipping_method_pk)
+    form = ShippingMethodCountryForm(request.POST or None, instance=country)
+    if form.is_valid():
+        country = form.save()
+        msg = pgettext_lazy(
+            'Dashboard message',
+            'Updated country shipping price %s') % (country,) \
+            if country_pk else pgettext_lazy(
+            'Dashboard message', 'Added shipping price for %s') % (country,)
+        messages.success(request, msg)
+        return redirect(
+            'dashboard:shipping-method-detail', pk=shipping_method_pk)
+    ctx = {'form': form, 'shipping_method': shipping_method,
+           'country': country}
+    return TemplateResponse(
+        request, 'dashboard/shipping/country/form.html', ctx)
+
+
+@staff_member_required
+@permission_required('shipping.edit_shipping')
+def shipping_method_country_delete(
+        request, shipping_method_pk, country_pk=None):
+    country = get_object_or_404(ShippingMethodCountry, pk=country_pk)
+    if request.method == 'POST':
+        country.delete()
+        messages.success(
+            request,
+            pgettext_lazy(
+                'Dashboard message',
+                'Removed shipping method %s') %
+            (country,))
+        return redirect(
+            'dashboard:shipping-method-detail', pk=shipping_method_pk)
+    return TemplateResponse(
+        request, 'dashboard/shipping/modal/country_confirm_delete.html',
+        {'country': country, 'shipping_method_pk': shipping_method_pk})

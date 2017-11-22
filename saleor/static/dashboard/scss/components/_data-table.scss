@@ -48,7 +48,7 @@
         display: block;
       }
       th, a {
-        color: color('teal', 'base');
+        color: $secondary-color;
       }
     }
   }
@@ -115,6 +115,11 @@
 
     &.no-padded {
       padding: 0;
+    }
+
+    &.nowrap {
+      white-space: normal;
+      padding: 10px 24px;
     }
 
     .dropdown-button {

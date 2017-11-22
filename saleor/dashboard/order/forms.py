@@ -12,7 +12,9 @@ from ...cart.forms import QuantityField
 from ...discount.models import Voucher
 from ...order import OrderStatus
 from ...order.models import DeliveryGroup, Order, OrderedItem, OrderNote
-from ...order.utils import cancel_order, cancel_delivery_group
+from ...order.utils import (
+    cancel_order, cancel_delivery_group, change_order_line_quantity,
+    merge_duplicated_lines)
 from ...product.models import Stock
 
 
@@ -20,10 +22,9 @@ class OrderNoteForm(forms.ModelForm):
     class Meta:
         model = OrderNote
         fields = ['content']
-        widgets = {'content': forms.Textarea({
-            'rows': 5,
-            'placeholder': pgettext_lazy(
-                'Order note form placeholder', 'Note')})}
+        widgets = {
+            'content': forms.Textarea()
+        }
 
     def __init__(self, *args, **kwargs):
         super(OrderNoteForm, self).__init__(*args, **kwargs)
@@ -176,7 +177,6 @@ class ChangeQuantityForm(forms.ModelForm):
         fields = ['quantity']
 
     def __init__(self, *args, **kwargs):
-        self.variant = kwargs.pop('variant')
         super(ChangeQuantityForm, self).__init__(*args, **kwargs)
         self.initial_quantity = self.instance.quantity
         self.fields['quantity'].initial = self.initial_quantity
@@ -184,15 +184,15 @@ class ChangeQuantityForm(forms.ModelForm):
     def clean_quantity(self):
         quantity = self.cleaned_data['quantity']
         delta = quantity - self.initial_quantity
-        try:
-            self.variant.check_quantity(delta)
-        except InsufficientStock as e:
+        stock = self.instance.stock
+        if stock and delta > stock.quantity_available:
             raise forms.ValidationError(
                 npgettext_lazy(
                     'Change quantity form error',
                     'Only %(remaining)d remaining in stock.',
                     'Only %(remaining)d remaining in stock.',
-                    'remaining') % {'remaining': e.item.get_stock_quantity()})
+                    'remaining') % {'remaining': (
+                        self.initial_quantity + stock.quantity_available)})
         return quantity
 
     def save(self):
@@ -202,8 +202,9 @@ class ChangeQuantityForm(forms.ModelForm):
             # update stock allocation
             delta = quantity - self.initial_quantity
             Stock.objects.allocate_stock(stock, delta)
-        self.instance.change_quantity(quantity)
+        change_order_line_quantity(self.instance, quantity)
         Order.objects.recalculate_order(self.instance.delivery_group.order)
+        return self.instance
 
 
 class ShipGroupForm(forms.ModelForm):
@@ -307,3 +308,45 @@ class OrderFilterForm(forms.Form):
 
 class PaymentFilterForm(forms.Form):
     status = forms.ChoiceField(choices=PAYMENT_STATUS_CHOICES)
+
+
+class StockChoiceField(forms.ModelChoiceField):
+    def label_from_instance(self, obj):
+        return obj.location.name
+
+
+class ChangeStockForm(forms.ModelForm):
+    stock = StockChoiceField(queryset=Stock.objects.none())
+
+    class Meta:
+        model = OrderedItem
+        fields = ['stock']
+
+    def __init__(self, *args, **kwargs):
+        super(ChangeStockForm, self).__init__(*args, **kwargs)
+        sku = self.instance.product_sku
+        self.fields['stock'].queryset = Stock.objects.filter(variant__sku=sku)
+        self.old_stock = self.instance.stock
+
+    def clean_stock(self):
+        stock = self.cleaned_data['stock']
+        if stock and stock.quantity_available < self.instance.quantity:
+            raise forms.ValidationError(
+                pgettext_lazy(
+                    'Change stock form error',
+                    'Only %(remaining)d remaining in this stock.') % {
+                        'remaining': stock.quantity_available})
+        return stock
+
+    def save(self, commit=True):
+        quantity = self.instance.quantity
+        if self.old_stock is not None:
+            Stock.objects.deallocate_stock(self.old_stock, quantity)
+        stock = self.instance.stock
+        if stock is not None:
+            self.instance.stock_location = (
+                stock.location.name if stock.location else '')
+            Stock.objects.allocate_stock(stock, quantity)
+        super(ChangeStockForm, self).save(commit)
+        merge_duplicated_lines(self.instance)
+        return self.instance

@@ -123,7 +123,7 @@ class CategoryType(DjangoObjectType):
 
         tree = self.get_descendants(include_self=True)
         qs = products_for_api(context.user)
-        qs = qs.filter(categories__in=tree)
+        qs = qs.filter(categories__in=tree).distinct()
         attributes_filter = args.get('attributes')
         order_by = args.get('order_by')
         price_lte = args.get('price_lte')

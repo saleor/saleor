@@ -5,7 +5,8 @@
 {% load staticfiles %}
 {% load utils %}
 
-{% block title %}{% trans "Categories" context "Category list page title" %} - {{ block.super }}{% endblock %}
+{% block title %}{% trans "Categories" context "Category list page title" %} -
+  {{ block.super }}{% endblock %}
 
 {% block body_class %}body-categories{% endblock %}
 
@@ -18,8 +19,8 @@
     {% else %}
       {% url 'dashboard:category-list' as url %}
     {% endif %}
-      {% include "dashboard/includes/_back-link.html" with url=url %}
-    {% else %}
+    {% include "dashboard/includes/_back-link.html" with url=url %}
+  {% else %}
     {{ block.super }}
   {% endif %}
 {% endblock %}
@@ -28,23 +29,30 @@
   {% if perms.product.edit_category %}
     <div class="fixed-action-btn">
       <a class="btn-fab btn-floating btn-large waves-effect waves-light"
-      title="{% trans "Add category" context "Category list add button text" %}"
-      href="{% if root %}{% url 'dashboard:category-add' root_pk=root.pk %}{% else %}{% url 'dashboard:category-add' %}{% endif %}">
-        <svg data-src="{% static "dashboard/images/add.svg" %}" />
+         title="{% trans "Add category" context "Category list add button text" %}"
+         href="
+             {% if root %}{% url 'dashboard:category-add' root_pk=root.pk %}{% else %}{% url 'dashboard:category-add' %}{% endif %}">
+        <svg data-src="{% static "dashboard/images/add.svg" %}"/>
       </a>
     </div>
     {% if root %}
-      <a class="dropdown-button right" href="#" data-activates="category-delete" data-constrainwidth="false">
-        <svg data-src="{% static "dashboard/images/more_vert.svg" %}" height="24" width="24" />
+      <a class="dropdown-button right" href="#" data-activates="category-delete"
+         data-constrainwidth="false">
+        <svg data-src="{% static "dashboard/images/more_vert.svg" %}" height="24"
+             width="24"/>
       </a>
       <ul id="category-delete" class="dropdown-content">
         <li>
-          <a class="modal-trigger-custom" data-href="{% url 'dashboard:category-edit' root_pk=root.pk %}" href="#base-modal">
+          <a class="modal-trigger-custom"
+             data-href="{% url 'dashboard:category-edit' root_pk=root.pk %}"
+             href="#base-modal">
             {% trans "Edit category" context "Dashboard edit action" %}
           </a>
         </li>
         <li>
-          <a class="modal-trigger-custom" data-href="{% url 'dashboard:category-delete' pk=root.pk %}" href="#base-modal">
+          <a class="modal-trigger-custom"
+             data-href="{% url 'dashboard:category-delete' pk=root.pk %}"
+             href="#base-modal">
             {% trans "Remove category" context "Category list action link" %}
           </a>
         </li>
@@ -71,7 +79,8 @@
     {% if path %}
       <li class="back-mobile">
         <a href="{% url 'dashboard:category-list' %}">
-          <svg data-src="{% static "dashboard/images/arrow_left.svg" %}" fill="#fff" width="20px" height="20px" />
+          <svg data-src="{% static "dashboard/images/arrow_left.svg" %}" fill="#fff"
+               width="20px" height="20px"/>
         </a>
       </li>
       {% for node in path %}
@@ -83,7 +92,9 @@
           </li>
         {% else %}
           <li class="hide-on-med-and-down">
-            <a title="{{ node.name }}" href="{% url 'dashboard:category-list' root_pk=node.pk %}" class="breadcrumbs--ellipsed-item">
+            <a title="{{ node.name }}"
+               href="{% url 'dashboard:category-list' root_pk=node.pk %}"
+               class="breadcrumbs--ellipsed-item">
               {{ node.name }}
             </a>
           </li>
@@ -96,42 +107,51 @@
 {% block menu_catalogue_class %} active{% endblock %}
 
 {% block content %}
-  {% if categories %}
-    <ul class="collection list">
-      {% for node in categories %}
-        <li class="collection-item list-item">
-          <a class="list-item-name" href="{% url "dashboard:category-list" root_pk=node.pk %}">
-            {{ node.name }}
-            <p class="list-item-desc">
-              <span>
-                {% if node.description %}
-                  {{ node.description }}
-                {% else %}
-                  &nbsp;
-                {% endif %}
-              </span>
-            </p>
-            {% if node.hidden %}
-              <span class="list-item-icon">
-                <svg data-src="{% static "dashboard/images/visibility_off.svg" %}" width="20" height="20" />
-              </span>
-            {% endif %}
-          </a>
-        </li>
-      {% endfor %}
-    </ul>
-    {% paginate categories %}
-  {% else %}
-    <div class="not-found">
-      {% if root %}
-        <p class="grey-text">
-          {% trans "No subcategories." context "Empty Category list message" %}
-        </p>
+  <div class="row">
+    <div class="col s12">
+      {% if categories %}
+        <div class="card">
+          <div class="data-table-container">
+            <table class="bordered highlight responsive data-table data-table-description">
+              <thead>
+                <tr>
+                  <th>{% trans "Name" context "Category list table header name" %}</th>
+                  <th>{% trans "Description" context "Category list table header description" %}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for node in categories %}
+                  <tr data-action-go="{% url "dashboard:category-list" root_pk=node.pk %}">
+                    <td>
+                      {{ node.name }}
+                    </td>
+                    <td class="nowrap">
+                      {% if node.description %}
+                        {{ node.description }}
+                      {% else %}
+                        &nbsp;
+                      {% endif %}
+                    </td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+        {% paginate categories %}
       {% else %}
-        <p class="grey-text">
-          {% trans "No categories." context "Empty Category list message" %}
-        </p>
+        <div class="not-found">
+          {% if root %}
+            <p class="grey-text">
+              {% trans "No subcategories." context "Empty Category list message" %}
+            </p>
+          {% else %}
+            <p class="grey-text">
+              {% trans "No categories." context "Empty Category list message" %}
+            </p>
+          {% endif %}
+        </div>
       {% endif %}
     </div>
-  {% endif %}
+  </div>
 {% endblock %}

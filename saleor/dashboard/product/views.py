@@ -10,16 +10,17 @@ from django.views.decorators.http import require_POST
 
 from ...core.utils import get_paginator_items
 from ...product.models import (
-    Product, ProductAttribute, ProductClass, ProductImage, ProductVariant,
-    Stock, StockLocation)
+    AttributeChoiceValue, Product, ProductAttribute, ProductClass,
+    ProductImage, ProductVariant, Stock, StockLocation)
 from ...product.utils import (
     get_availability, get_product_costs_data, get_variant_costs_data)
 from ...settings import DASHBOARD_PAGINATE_BY
-from ..views import staff_member_required, superuser_required
+from ..views import staff_member_required
 from . import forms
 
 
-@superuser_required
+@staff_member_required
+@permission_required('product.view_properties')
 def product_class_list(request):
     classes = ProductClass.objects.all().prefetch_related(
         'product_attributes', 'variant_attributes').order_by('name')
@@ -39,7 +40,8 @@ def product_class_list(request):
         ctx)
 
 
-@superuser_required
+@staff_member_required
+@permission_required('product.edit_properties')
 def product_class_create(request):
     product_class = ProductClass()
     form = forms.ProductClassForm(request.POST or None,
@@ -57,7 +59,8 @@ def product_class_create(request):
         ctx)
 
 
-@superuser_required
+@staff_member_required
+@permission_required('product.edit_properties')
 def product_class_edit(request, pk):
     product_class = get_object_or_404(
         ProductClass, pk=pk)
@@ -76,7 +79,8 @@ def product_class_edit(request, pk):
         ctx)
 
 
-@superuser_required
+@staff_member_required
+@permission_required('product.edit_properties')
 def product_class_delete(request, pk):
     product_class = get_object_or_404(ProductClass, pk=pk)
     if request.method == 'POST':
@@ -87,8 +91,9 @@ def product_class_delete(request, pk):
                 'Dashboard message',
                 'Deleted product type %s') % product_class)
         return redirect('dashboard:product-class-list')
-    ctx = {'product_class': product_class,
-           'products': product_class.products.all()}
+    ctx = {
+        'product_class': product_class,
+        'products': product_class.products.all()}
     return TemplateResponse(
         request,
         'dashboard/product/product_class/modal/confirm_delete.html',
@@ -178,6 +183,7 @@ def product_detail(request, pk):
     return TemplateResponse(request, 'dashboard/product/detail.html', ctx)
 
 
+@require_POST
 @staff_member_required
 @permission_required('product.edit_product')
 def product_toggle_is_published(request, pk):
@@ -451,7 +457,8 @@ def variant_delete(request, product_pk, variant_pk):
         ctx)
 
 
-@superuser_required
+@staff_member_required
+@permission_required('product.view_properties')
 def attribute_list(request):
     attributes = [
         (attribute.pk, attribute.name, attribute.values.all())
@@ -465,7 +472,8 @@ def attribute_list(request):
         ctx)
 
 
-@superuser_required
+@staff_member_required
+@permission_required('product.view_properties')
 def attribute_detail(request, pk):
     attributes = ProductAttribute.objects.prefetch_related('values').all()
     attribute = get_object_or_404(attributes, pk=pk)
@@ -475,31 +483,30 @@ def attribute_detail(request, pk):
         {'attribute': attribute})
 
 
-@superuser_required
+@staff_member_required
+@permission_required('product.edit_properties')
 def attribute_edit(request, pk=None):
     if pk:
         attribute = get_object_or_404(ProductAttribute, pk=pk)
     else:
         attribute = ProductAttribute()
     form = forms.ProductAttributeForm(request.POST or None, instance=attribute)
-    formset = forms.AttributeChoiceValueFormset(
-        request.POST or None, request.FILES or None, instance=attribute)
-    if all([form.is_valid(), formset.is_valid()]):
+    if form.is_valid():
         attribute = form.save()
-        formset.save()
         msg = pgettext_lazy(
             'Dashboard message', 'Updated attribute') if pk else pgettext_lazy(
                 'Dashboard message', 'Added attribute')
         messages.success(request, msg)
         return redirect('dashboard:product-attribute-detail', pk=attribute.pk)
-    ctx = {'attribute': attribute, 'form': form, 'formset': formset}
+    ctx = {'attribute': attribute, 'form': form}
     return TemplateResponse(
         request,
         'dashboard/product/product_attribute/form.html',
         ctx)
 
 
-@superuser_required
+@staff_member_required
+@permission_required('product.edit_properties')
 def attribute_delete(request, pk):
     attribute = get_object_or_404(ProductAttribute, pk=pk)
     if request.method == 'POST':
@@ -512,8 +519,52 @@ def attribute_delete(request, pk):
         return redirect('dashboard:product-attributes')
     return TemplateResponse(
         request,
-        'dashboard/product/product_attribute/modal/confirm_delete.html',
+        'dashboard/product/product_attribute/modal/'
+        'attribute_confirm_delete.html',
         {'attribute': attribute})
+
+
+@staff_member_required
+@permission_required('product.edit_properties')
+def attribute_choice_value_edit(request, attribute_pk, value_pk=None):
+    attribute = get_object_or_404(ProductAttribute, pk=attribute_pk)
+    if value_pk:
+        value = get_object_or_404(AttributeChoiceValue, pk=value_pk)
+    else:
+        value = AttributeChoiceValue(attribute_id=attribute_pk)
+    form = forms.AttributeChoiceValueForm(
+        request.POST or None, instance=value)
+    if form.is_valid():
+        form.save()
+        msg = pgettext_lazy(
+            'Dashboard message', 'Updated attribute\'s value')\
+            if value_pk else pgettext_lazy(
+                'Dashboard message', 'Added attribute\'s value')
+        messages.success(request, msg)
+        return redirect('dashboard:product-attribute-detail', pk=attribute_pk)
+    ctx = {'attribute': attribute, 'value': value, 'form': form}
+    return TemplateResponse(
+        request,
+        'dashboard/product/product_attribute/values/form.html',
+        ctx)
+
+
+@staff_member_required
+@permission_required('product.edit_properties')
+def attribute_choice_value_delete(request, attribute_pk, value_pk):
+    value = get_object_or_404(AttributeChoiceValue, pk=value_pk)
+    if request.method == 'POST':
+        value.delete()
+        messages.success(
+            request,
+            pgettext_lazy(
+                'Dashboard message',
+                'Removed attribute\'s value %s') % (value.name,))
+        return redirect('dashboard:product-attribute-detail', pk=attribute_pk)
+    return TemplateResponse(
+        request,
+        'dashboard/product/product_attribute/values/modal/confirm_delete.html',
+        {'value': value, 'attribute_pk': attribute_pk})
 
 
 @staff_member_required

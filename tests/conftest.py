@@ -415,7 +415,8 @@ def order_with_items_and_stock(order, product_class):
         quantity=3,
         unit_price_net=Decimal('30.00'),
         unit_price_gross=Decimal('30.00'),
-        stock=stock
+        stock=stock,
+        stock_location=stock.location.name
     )
     product = Product.objects.create(
         name='Test product 2', price=Decimal('20.00'),
@@ -432,7 +433,8 @@ def order_with_items_and_stock(order, product_class):
         quantity=2,
         unit_price_net=Decimal('20.00'),
         unit_price_gross=Decimal('20.00'),
-        stock=stock
+        stock=stock,
+        stock_location=stock.location.name
     )
     Order.objects.recalculate_order(order)
     order.refresh_from_db()
@@ -462,3 +464,58 @@ def product_list(product_class):
         name='Test product 2', price=Decimal('20.00'),
         product_class=product_class, is_published=False)
     return [product_1, product_2]
+
+
+@pytest.fixture
+def permission_view_staff():
+    return Permission.objects.get(codename='view_staff')
+
+
+@pytest.fixture
+def permission_edit_staff():
+    return Permission.objects.get(codename='edit_staff')
+
+
+@pytest.fixture
+def permission_view_group():
+    return Permission.objects.get(codename='view_group')
+
+
+@pytest.fixture
+def permission_edit_group():
+    return Permission.objects.get(codename='edit_group')
+
+
+@pytest.fixture
+def permission_view_properties():
+    return Permission.objects.get(codename='view_properties')
+
+
+@pytest.fixture
+def permission_edit_properties():
+    return Permission.objects.get(codename='edit_properties')
+
+
+@pytest.fixture
+def permission_view_shipping():
+    return Permission.objects.get(codename='view_shipping')
+
+
+@pytest.fixture
+def permission_edit_shipping():
+    return Permission.objects.get(codename='edit_shipping')
+
+
+@pytest.fixture
+def permission_edit_user():
+    return Permission.objects.get(codename='edit_user')
+
+
+@pytest.fixture
+def permission_edit_settings():
+    return Permission.objects.get(codename='edit_settings')
+
+
+@pytest.fixture
+def permission_impersonate_user():
+    return Permission.objects.get(codename='impersonate_user')

@@ -1,14 +1,13 @@
 import pytest
-
 from django.contrib.sites.models import Site
-from django.core.urlresolvers import reverse
 from django.db.utils import IntegrityError
 from django.test.client import RequestFactory
+from django.urls import reverse
 from django.utils.encoding import smart_text
 
+from saleor.dashboard.sites.forms import SiteForm, SiteSettingsForm
 from saleor.site import utils
 from saleor.site.models import AuthorizationKey, SiteSettings
-from saleor.dashboard.sites.forms import SiteSettingForm, SiteForm
 
 
 def test_index_view(admin_client, site_settings):
@@ -20,33 +19,33 @@ def test_index_view(admin_client, site_settings):
 
 
 @pytest.mark.django_db
-def test_form():
-    data = {'name': 'mirumee', 'domain': 'mirumee.com'}
+def test_site_form():
+    data = {'name': 'mirumee_test', 'domain': 'mirumee_test.com'}
     form = SiteForm(data)
     assert form.is_valid()
     site = form.save()
-    assert smart_text(site) == 'mirumee.com'
+    assert smart_text(site) == 'mirumee_test.com'
     form = SiteForm({})
     assert not form.is_valid()
 
 
 @pytest.mark.django_db
-def test_form(site_settings):
+def test_site_settings_form(site_settings):
     data = {'header_text': 'mirumee', 'description': 'mirumee.com'}
-    form = SiteSettingForm(data, instance=site_settings)
+    form = SiteSettingsForm(data, instance=site_settings)
     assert form.is_valid()
 
     site = form.save()
     assert site.header_text == 'mirumee'
     assert smart_text(site) == 'mirumee.com'
 
-    form = SiteSettingForm({})
+    form = SiteSettingsForm({})
     assert form.is_valid()
 
 
 def test_site_update_view(admin_client, site_settings):
     url = reverse('dashboard:site-update',
-                  kwargs={'site_id': site_settings.id})
+                  kwargs={'pk': site_settings.pk})
     response = admin_client.get(url)
     assert response.status_code == 200
 
@@ -102,6 +101,58 @@ def test_settings_available_backends(site_settings, authorization_key):
     backend_name = authorization_key.name
     available_backends = site_settings.available_backends()
     assert backend_name in available_backends
+
+
+def test_authorization_key_form_add(admin_client, site_settings):
+    assert site_settings.available_backends().count() == 0
+    data = {'site_settings': site_settings.pk, 'name': 'google-oauth2',
+            'key': 'key', 'password': 'password'}
+    url = reverse('dashboard:authorization-key-add',
+                  kwargs={'site_settings_pk': site_settings.pk})
+    response = admin_client.post(url, data, follow=True)
+    assert response.status_code == 200
+    assert len(AuthorizationKey.objects.all()) == 1
+    assert site_settings.available_backends().count() == 1
+    assert 'google-oauth2' in site_settings.available_backends()
+
+
+def test_authorization_key_form_add_not_valid(admin_client, site_settings):
+    assert site_settings.available_backends().count() == 0
+    data = {'site_settings': 'not_valid', 'name': 'not_valid',
+            'key': 'key', 'password': ''}
+    url = reverse('dashboard:authorization-key-add',
+                  kwargs={'site_settings_pk': site_settings.pk})
+    response = admin_client.post(url, data, follow=True)
+    assert response.status_code == 200
+    assert len(AuthorizationKey.objects.all()) == 0
+    assert site_settings.available_backends().count() == 0
+
+
+def test_authorization_key_form_edit(
+        admin_client, site_settings, authorization_key):
+    assert site_settings.available_backends().count() == 1
+    data = {'site_settings': site_settings.pk, 'name': 'google-oauth2',
+            'key': 'key', 'password': 'password'}
+    url = reverse('dashboard:authorization-key-edit',
+                  kwargs={'site_settings_pk': site_settings.pk,
+                          'key_pk': authorization_key.pk})
+    response = admin_client.post(url, data, follow=True)
+    assert response.status_code == 200
+    assert len(AuthorizationKey.objects.all()) == 1
+    assert site_settings.available_backends().count() == 1
+    assert 'google-oauth2' in site_settings.available_backends()
+
+
+def test_authorization_key_form_delete(
+        admin_client, site_settings, authorization_key):
+    assert site_settings.available_backends().count() == 1
+    url = reverse('dashboard:authorization-key-delete',
+                  kwargs={'site_settings_pk': site_settings.pk,
+                          'key_pk': authorization_key.pk})
+    response = admin_client.post(url, follow=True)
+    assert response.status_code == 200
+    assert len(AuthorizationKey.objects.all()) == 0
+    assert site_settings.available_backends().count() == 0
 
 
 def test_new_get_current():

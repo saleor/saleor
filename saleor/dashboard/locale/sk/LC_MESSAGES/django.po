@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: master\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2017-11-06 04:12-0600\n"
+"POT-Creation-Date: 2017-11-13 05:26-0600\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Martin Janšto <mato@jansto.sk>, 2017\n"
 "Language-Team: Slovak (https://www.transifex.com/mirumee/teams/34782/sk/)\n"
@@ -282,52 +282,62 @@ msgctxt "Dashboard message"
 msgid "Removed voucher from order"
 msgstr "Vymazaný kupón s objednávky"
 
-#: saleor/dashboard/product/forms.py:25
+#: saleor/dashboard/product/__init__.py:10
+msgctxt "product bulk action"
+msgid "Publish"
+msgstr ""
+
+#: saleor/dashboard/product/__init__.py:11
+msgctxt "product bulk action"
+msgid "Unpublish"
+msgstr ""
+
+#: saleor/dashboard/product/forms.py:26
 msgctxt "Product class form label"
 msgid "Product type"
 msgstr "Typ produktu"
 
-#: saleor/dashboard/product/forms.py:47
+#: saleor/dashboard/product/forms.py:48
 msgctxt "stock form error"
 msgid "Stock item for this location and variant already exists"
 msgstr ""
 
-#: saleor/dashboard/product/forms.py:62
+#: saleor/dashboard/product/forms.py:63
 msgctxt "Product class form label"
 msgid "Attributes specific to each variant"
 msgstr "Atribúty špecificke pre každý variant"
 
-#: saleor/dashboard/product/forms.py:65
+#: saleor/dashboard/product/forms.py:66
 msgctxt "Product class form label"
 msgid "Attributes common to all variants"
 msgstr "Atribúty bežné pre všetky varianty"
 
-#: saleor/dashboard/product/forms.py:75
+#: saleor/dashboard/product/forms.py:76
 msgctxt "Product class form error"
 msgid "Product variants are disabled."
 msgstr "Variant produktu je nepoužiteľný."
 
-#: saleor/dashboard/product/forms.py:80
+#: saleor/dashboard/product/forms.py:81
 msgctxt "Product class form error"
 msgid "A single attribute can't belong to both a product and its variant."
 msgstr "Jeden atribút nemôže patriť obom produktu aj variantu"
 
-#: saleor/dashboard/product/forms.py:94
+#: saleor/dashboard/product/forms.py:95
 msgctxt "Product class form error"
 msgid "Some products of this type have more than one variant."
 msgstr "Rovnaké produkty tohto typu majú viac než jeden variant."
 
-#: saleor/dashboard/product/forms.py:106
+#: saleor/dashboard/product/forms.py:107
 msgctxt "product form"
 msgid "Published"
 msgstr ""
 
-#: saleor/dashboard/product/forms.py:108
+#: saleor/dashboard/product/forms.py:109
 msgctxt "product form"
 msgid "Feature this product on homepage"
 msgstr ""
 
-#: saleor/dashboard/product/forms.py:114
+#: saleor/dashboard/product/forms.py:115
 msgctxt "Product form placeholder"
 msgid "Search"
 msgstr "Vyhľadávanie"
@@ -350,95 +360,104 @@ msgctxt "Dashboard message"
 msgid "Deleted product type %s"
 msgstr "Vymazaný typ produktu %s"
 
-#: saleor/dashboard/product/views.py:139
+#: saleor/dashboard/product/views.py:140
 #, python-format
 msgctxt "Dashboard message"
 msgid "Added product %s"
 msgstr "Pridaný  produkt %s"
 
-#: saleor/dashboard/product/views.py:211
+#: saleor/dashboard/product/views.py:214
 #, python-format
 msgctxt "Dashboard message"
 msgid "Updated product %s"
 msgstr "Zmenený produkt %s"
 
-#: saleor/dashboard/product/views.py:227
+#: saleor/dashboard/product/views.py:230
 #, python-format
 msgctxt "Dashboard message"
 msgid "Deleted product %s"
 msgstr "Vymazaný produkt %s"
 
-#: saleor/dashboard/product/views.py:262
+#: saleor/dashboard/product/views.py:265
 msgctxt "Dashboard message"
 msgid "Saved stock"
 msgstr "Uložený sklad"
 
-#: saleor/dashboard/product/views.py:283
+#: saleor/dashboard/product/views.py:286
 msgctxt "Dashboard message"
 msgid "Deleted stock"
 msgstr "Vymazaný sklad"
 
-#: saleor/dashboard/product/views.py:321
+#: saleor/dashboard/product/views.py:324
 #, python-format
 msgctxt "Dashboard message"
 msgid "Updated image %s"
 msgstr "Zmenený obrázok %s"
 
-#: saleor/dashboard/product/views.py:325
+#: saleor/dashboard/product/views.py:328
 #, python-format
 msgctxt "Dashboard message"
 msgid "Added image %s"
 msgstr "Pridaný obrázok %s"
 
-#: saleor/dashboard/product/views.py:346
+#: saleor/dashboard/product/views.py:349
 #, python-format
 msgctxt "Dashboard message"
 msgid "Deleted image %s"
 msgstr "Vymazaný obrázok %s"
 
-#: saleor/dashboard/product/views.py:370
+#: saleor/dashboard/product/views.py:373
 #, python-format
 msgctxt "Dashboard message"
 msgid "Saved variant %s"
 msgstr ""
 
-#: saleor/dashboard/product/views.py:437
+#: saleor/dashboard/product/views.py:442
 #, python-format
 msgctxt "Dashboard message"
 msgid "Deleted variant %s"
 msgstr "Vymazaný variant %s"
 
-#: saleor/dashboard/product/views.py:486
+#: saleor/dashboard/product/views.py:491
 msgctxt "Dashboard message"
 msgid "Updated attribute"
 msgstr "Upravený atribut"
 
-#: saleor/dashboard/product/views.py:487
+#: saleor/dashboard/product/views.py:492
 msgctxt "Dashboard message"
 msgid "Added attribute"
 msgstr "Pridaný atribut"
 
-#: saleor/dashboard/product/views.py:506
+#: saleor/dashboard/product/views.py:511
 #, python-format
 msgctxt "Dashboard message"
 msgid "Deleted attribute %s"
 msgstr "Vymazaný atribut %s"
 
-#: saleor/dashboard/product/views.py:539
+#: saleor/dashboard/product/views.py:544
 msgctxt "Dashboard message for stock location"
 msgid "Updated location"
 msgstr "Upravená lokácia"
 
-#: saleor/dashboard/product/views.py:540
+#: saleor/dashboard/product/views.py:545
 msgctxt "Dashboard message for stock location"
 msgid "Added location"
 msgstr "Pridaná lokácia"
 
-#: saleor/dashboard/product/views.py:559
+#: saleor/dashboard/product/views.py:564
 #, python-format
 msgctxt "Dashboard message for stock location"
 msgid "Deleted location %s"
 msgstr "Zmazaná lokácia %s"
+
+#: saleor/dashboard/product/views.py:613
+#, python-format
+msgctxt "Dashboard message"
+msgid "%(count)d product has been updated"
+msgid_plural "%(count)d products have been updated"
+msgstr[0] ""
+msgstr[1] ""
+msgstr[2] ""
 
 #: saleor/dashboard/shipping/views.py:33
 #, python-format

@@ -12,10 +12,10 @@ from django_prices.templatetags.prices_i18n import gross
 from payments import PaymentStatus
 from prices import Price
 
-from .forms import (CancelGroupForm, CancelItemsForm, CancelOrderForm,
-                    CapturePaymentForm, ChangeQuantityForm, MoveItemsForm,
-                    OrderNoteForm, RefundPaymentForm, ReleasePaymentForm,
-                    RemoveVoucherForm, ShipGroupForm)
+from .forms import (
+    CancelGroupForm, CancelItemsForm, CancelOrderForm, CapturePaymentForm,
+    ChangeStockForm, ChangeQuantityForm, MoveItemsForm, OrderNoteForm,
+    RefundPaymentForm, ReleasePaymentForm, RemoveVoucherForm, ShipGroupForm)
 from .utils import (create_packing_slip_pdf, create_invoice_pdf,
                     get_statics_absolute_url)
 from ..order.forms import OrderFilterForm
@@ -174,10 +174,7 @@ def orderline_change_quantity(request, order_pk, line_pk):
     order = get_object_or_404(Order, pk=order_pk)
     item = get_object_or_404(OrderedItem.objects.filter(
         delivery_group__order=order), pk=line_pk)
-    variant = get_object_or_404(
-        ProductVariant, sku=item.product_sku)
-    form = ChangeQuantityForm(
-        request.POST or None, instance=item, variant=variant)
+    form = ChangeQuantityForm(request.POST or None, instance=item)
     status = 200
     old_quantity = item.quantity
     if form.is_valid():
@@ -392,3 +389,22 @@ def order_packing_slip(request, group_pk):
     name = "packing-slip-%s-%s" % (group.order.id, group.id)
     response['Content-Disposition'] = 'filename=%s' % name
     return response
+
+
+@staff_member_required
+@permission_required('order.edit_order')
+def orderline_change_stock(request, order_pk, line_pk):
+    line = get_object_or_404(OrderedItem, pk=line_pk)
+    status = 200
+    form = ChangeStockForm(request.POST or None, instance=line)
+    if form.is_valid():
+        form.save()
+        msg = pgettext_lazy(
+            'Dashboard message',
+            'Stock location changed for %s') % form.instance.product_sku
+        messages.success(request, msg)
+    elif form.errors:
+        status = 400
+    ctx = {'order_pk': order_pk, 'line_pk': line_pk, 'form': form}
+    template = 'dashboard/order/modal/delivery_group_stock.html'
+    return TemplateResponse(request, template, ctx, status=status)

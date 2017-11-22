@@ -2,16 +2,17 @@
 {% load i18n static %}
 {% load prices_i18n %}
 {% load shop %}
+{% load render_bundle from webpack_loader %}
 
 <html>
 <head>
   <title>Packing slip</title>
-  <link rel="stylesheet" type="text/css" href="{% static '/assets/document.css' %}" />
+  {% render_bundle 'document' 'css' %}
 </head>
 <body>
 <header>
   <div style="float:left">
-    <img src="{% static '/images/saleor_logo_black.svg' %}">
+    <img src="{% static '/images/logo_document.svg' %}">
   </div>
   <div
       style="float:right">{{ group.order.created }}<br>{% trans "Order ID:" context "Packing slip header" %} {{ group.order.id }}
