@@ -47,7 +47,7 @@ class Command(BaseCommand):
             cursor.execute('PRAGMA synchronous = OFF;')
 
     def populate_search_index(self):
-        call_command('update_index')
+        call_command('search_index', '--rebuild', force=True)
 
     def handle(self, *args, **options):
         self.make_database_faster()
