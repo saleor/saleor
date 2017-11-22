@@ -58,8 +58,9 @@ class ChipFactory:
         self.chips = []
         self.context = context
         self.form = form
-        self.handlers = dict(DEFAULT_HANDLERS)
-        self.handlers.update(handlers)
+        factory_handlers = dict(DEFAULT_HANDLERS)
+        factory_handlers.update(handlers)
+        self.handlers = factory_handlers
 
     def make(self):
         for field in self.form:
