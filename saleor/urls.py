@@ -34,7 +34,6 @@ urlpatterns = [
         include((product_urls, 'product'), namespace='product')),
     url(r'^profile/',
         include((userprofile_urls, 'profile'), namespace='profile')),
-    url(r'^search/', include((search_urls, 'search'), namespace='search')),
     url(r'^feeds/',
         include((feed_urls, 'data_feeds'), namespace='data_feeds')),
     url(r'^sitemap\.xml$', sitemap, {'sitemaps': sitemaps},
@@ -42,6 +41,11 @@ urlpatterns = [
     url(r'', include('payments.urls')),
     url('', include('social_django.urls', namespace='social')),
 ]
+
+if settings.ENABLE_SEARCH:
+    urlpatterns += [
+        url(r'^search/', include((search_urls, 'search'), namespace='search'))
+    ]
 
 if settings.DEBUG:
     # static files (images, css, javascript, etc.)
