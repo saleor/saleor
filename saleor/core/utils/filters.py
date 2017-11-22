@@ -1,13 +1,13 @@
 from __future__ import unicode_literals
 
 
-def get_sort_by_choices(filter):
+def get_sort_by_choices(filter_set):
     return [(choice[0], choice[1].lower()) for choice in
-            filter.filters['sort_by'].field.choices[1::2]]
+            filter_set.filters['sort_by'].field.choices[1::2]]
 
 
-def get_now_sorted_by(filter, fields, default_sort='name'):
-    sort_by = filter.form.cleaned_data.get('sort_by')
+def get_now_sorted_by(filter_set, fields, default_sort='name'):
+    sort_by = filter_set.form.cleaned_data.get('sort_by')
     if sort_by:
         sort_by = fields[sort_by[0].strip('-')]
     else:
