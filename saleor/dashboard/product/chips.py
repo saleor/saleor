@@ -9,15 +9,6 @@ def find_type_in_list(needle, haystack):
     return matches[0] if len(matches) else 'default'
 
 
-def concat_dicts(a, b):
-    output = {}
-    for key in a.keys():
-        output[key] = a[key]
-    for key in b.keys():
-        output[key] = b[key]
-    return output
-
-
 def handle_default(field, chips, context):
     in_context = field.name in context.keys()
     value = context[field.name][str(field.value())] if in_context else field.value()
@@ -67,7 +58,8 @@ class ChipFactory:
         self.chips = []
         self.context = context
         self.form = form
-        self.handlers = concat_dicts(DEFAULT_HANDLERS, handlers)
+        self.handlers = dict(DEFAULT_HANDLERS)
+        self.handlers.update(handlers)
 
     def make(self):
         for field in self.form:
