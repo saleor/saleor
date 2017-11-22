@@ -24,7 +24,7 @@ const moveFilters = () => {
 
 export default $(document).ready(() => {
   $list = $filters.prev();
-  if ($('.body-filters').length) {
+  if ($filters.length) {
     moveFilters();
     $(window).on('resize', moveFilters);
   }

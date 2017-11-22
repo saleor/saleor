@@ -157,22 +157,9 @@ svg {
   }
 }
 
-.collapse {
-  overflow: hidden;
-  max-height: 1000px;
-  transition: $transition-duration;
-  &.collapsed {
-    max-height: 0;
-  }
-}
-
-.collapse-activate {
-  position: absolute;
-  top: 21px;
-  right: 20px;
-  svg {
-    width: 24px;
-    height: 24px;
-    fill: $grey-color;
+.chips-container {
+  margin-top: 18px;
+  a {
+    color: #999;
   }
 }
