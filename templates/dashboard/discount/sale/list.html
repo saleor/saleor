@@ -11,7 +11,7 @@
   {% trans "Sales" %} - {{ block.super }}
 {% endblock %}
 
-{% block body_class %}body-sales{% endblock %}
+{% block body_class %}body-sales body-filters{% endblock %}
 
 {% block menu_sales_class %}active{% endblock %}
 
@@ -24,7 +24,6 @@
 {% block menu_discounts_class %} active{% endblock %}
 
 {% block content %}
-  {% include 'dashboard/includes/_filters.html' %}
   {% if perms.discount.edit_sale %}
     <div class="fixed-action-btn">
       <a href="{% url 'dashboard:sale-add' %}" class="btn-fab btn-floating btn-large waves-effect waves-light"
@@ -33,46 +32,60 @@
       </a>
     </div>
   {% endif %}
-  <div class="card">
-    <div class="data-table-container">
-      <table class="bordered highlight responsive data-table">
-        <thead>
-          <tr>
-            <th>
-              <a href="{% get_sort_by_url_toggle 'name' %}">
-                {% trans "Name" context "Sale (discount) table header" %}
-              </a>
-            </th>
-            <th>
-              <a href="{% get_sort_by_url_toggle 'value' %}">
-              {% trans "Discount" context "Sale (discount) table header" %}
-            </th>
-          </tr>
-        </thead>
-        <tbody>
-          {% if sales %}
-            {% for sale in sales %}
-              <tr data-action-go="{% if perms.discount.edit_sale %}{% url 'dashboard:sale-update' pk=sale.pk %}{% endif %}">
+  <div class="row">
+    <div class="col s12 l9">
+      <div class="card">
+        {% if perms.sale.edit_sale %}
+          <div class="data-table-header-action">
+            <a href="{% url 'dashboard:sale-add' %}" class="btn btn-data-table btn-flat"  title="{% trans "Add sale" context "Sale (discount) list add button text" %}">
+              {% trans "Add" context "Dashboard add action" %}
+            </a>
+          </div>
+        {% endif %}
+        <div class="data-table-container">
+          <table class="bordered highlight responsive data-table">
+            <thead>
+              <tr>
+                <th>
+                  <a href="{% get_sort_by_url_toggle 'name' %}">
+                    {% trans "Name" context "Sale (discount) table header" %}
+                  </a>
+                </th>
+                <th>
+                  <a href="{% get_sort_by_url_toggle 'value' %}">
+                  {% trans "Discount" context "Sale (discount) table header" %}
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {% if sales %}
+                {% for sale in sales %}
+                  <tr data-action-go="{% if perms.sale.edit_sale %}{% url 'dashboard:sale-update' pk=sale.pk %}{% endif %}">
+                    <td>
+                      {{ sale }}
+                    </td>
+                    <td>
+                      {{ sale.value }}{{ sale.get_type_display }}
+                    </td>
+                  </tr>
+                {% endfor %}
+              {% else %}
+              <tr>
                 <td>
-                  {{ sale }}
-                </td>
-                <td>
-                  {{ sale.value }}{{ sale.get_type_display }}
+                  <span>
+                    {% trans "No sales found" context "Empty sales table message" %}
+                  </span>
                 </td>
               </tr>
-            {% endfor %}
-          {% else %}
-          <tr>
-            <td>
-              <span>
-                {% trans "No sales found" context "Empty sales table message" %}
-              </span>
-            </td>
-          </tr>
-          {% endif %}
-        </tbody>
-      </table>
+              {% endif %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+      {% paginate sales %}
+    </div>
+    <div class="col s12 l3" id="filters">
+      {% include 'dashboard/includes/_filters.html' %}
     </div>
   </div>
-  {% paginate sales %}
 {% endblock %}

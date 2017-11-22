@@ -2,26 +2,29 @@ import {screenSizes} from './misc';
 
 let prevWindowWidth = null;
 let initialized = false;
+let $list = null;
+const $filters = $('#filters');
 
 const moveFilters = () => {
   if (prevWindowWidth !== window.innerWidth) {
     const $collapsibleCard = $('.collapse');
     prevWindowWidth = window.innerWidth;
     if (window.innerWidth < screenSizes.md) {
-      $('#product-list').before($('#product-filters'));
+      $list.before($filters);
       if (!initialized) {
         $collapsibleCard.addClass('collapsed');
         initialized = true;
       }
     } else {
-      $('#product-list').after($('#product-filters'));
+      $list.after($filters);
       $collapsibleCard.removeClass('collapsed');
     }
   }
 };
 
 export default $(document).ready(() => {
-  if ($('.body-products-list').length) {
+  $list = $filters.prev();
+  if ($('.body-filters').length) {
     moveFilters();
     $(window).on('resize', moveFilters);
   }

@@ -9,7 +9,7 @@ import './components/datepicker';
 import './components/modal';
 import './components/image-gallery';
 import './components/misc';
-import './components/product-filter';
+import './components/filters';
 import './components/side-menu';
 import './components/styleguide';
 import './components/tab';
