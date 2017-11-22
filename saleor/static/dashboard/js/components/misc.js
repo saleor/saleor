@@ -42,7 +42,7 @@ export default $(document).ready((e) => {
   $('.js-build-query').each((i, chip) => {
     const $chip = $(chip);
     $chip.attr('href', window.location.pathname.split('?')[0] + '?' + removeFromQuery($chip.attr('data-name'), $chip.attr('data-value')));
-  })
+  });
 });
 
 export const screenSizes = {
