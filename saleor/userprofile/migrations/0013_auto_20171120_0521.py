@@ -4,6 +4,26 @@ from __future__ import unicode_literals
 
 from django.db import migrations
 import phonenumber_field.modelfields
+import phonenumbers
+
+
+def convert_phone_number_to_phonenumberfield(apps, schema_editor):
+    Address = apps.get_model("userprofile", "Address")
+    for address in Address.objects.all():
+        if address.phone:
+            phone_number = phonenumbers.parse(address.phone.raw_input,
+                                              address.country.code)
+            address.phone = phone_number
+            address.save()
+
+
+def convert_phone_number_to_str(apps, schema_editor):
+    Address = apps.get_model("userprofile", "Address")
+    for address in Address.objects.all():
+        if address.phone:
+            phone_number = str(address.phone)
+            address.phone = phone_number
+            address.save()
 
 
 class Migration(migrations.Migration):
@@ -18,4 +38,6 @@ class Migration(migrations.Migration):
             name='phone',
             field=phonenumber_field.modelfields.PhoneNumberField(blank=True, default='', max_length=128, verbose_name='phone number'),
         ),
+        migrations.RunPython(convert_phone_number_to_phonenumberfield,
+                             convert_phone_number_to_str),
     ]
