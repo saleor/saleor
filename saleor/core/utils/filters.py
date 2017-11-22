@@ -26,10 +26,13 @@ def filter_by_customer(queryset, name, value):
 
 
 def filter_by_location(queryset, name, value):
+    country_codes = []
     for code, country in dict(countries).items():
         if value.lower() in country.lower():
-            value = code
-            break
+            country_codes.append(code)
+    q = Q(default_billing_address__country__icontains=value)
+    for code in country_codes:
+        q |= Q(default_billing_address__country__icontains=code)
+
     return queryset.filter(
-        Q(default_billing_address__city__icontains=value) |
-        Q(default_billing_address__country__icontains=value))
+        Q(default_billing_address__city__icontains=value) | q)
