@@ -25,6 +25,8 @@ def evaluate_search_query(form, request):
 
 
 def search(request):
+    if not settings.ENABLE_SEARCH:
+        raise Http404('No such page!')
     form = SearchForm(data=request.GET or None)
     if form.is_valid():
         query = form.cleaned_data.get('q', '')
