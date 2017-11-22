@@ -1,5 +1,12 @@
 @media (min-width: $large-screen) {
-  .body-products-list {
+  .body-filters {
+    &.nav-toggled {
+      .main {
+        .container {
+          margin: 40px 20px;
+        }
+      }
+    }
     .main {
       .container {
         width: auto;

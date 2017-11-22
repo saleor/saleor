@@ -11,7 +11,7 @@
   {% trans "Products" context "Dashboard products list" %} - {{ block.super }}
 {% endblock %}
 
-{% block body_class %}body-products-list{% endblock %}
+{% block body_class %}body-products-list body-filters{% endblock %}
 
 {% block menu_products_class %}active{% endblock %}
 
@@ -137,7 +137,7 @@
       </div>
     {% endif %}
     </div>
-    <div class="col s12 l3" id="product-filters">
+    <div class="col s12 l3" id="filters">
       {% add_filters filter %}
     </div>
   </div>

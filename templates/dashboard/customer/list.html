@@ -9,7 +9,7 @@
   {% trans "Customers" context "Dashboard customers list" %} - {{ block.super }}
 {% endblock %}
 
-{% block body_class %}body-customers{% endblock %}
+{% block body_class %}body-customers body-filters{% endblock %}
 
 {% block menu_customers_class %}active{% endblock %}
 
@@ -22,83 +22,88 @@
 {% endblock %}
 
 {% block content %}
-  {% include 'dashboard/includes/_filters.html' %}
-  {% if customers %}
-    <div class="card">
-      <div class="data-table-container">
-        <table class="bordered highlight responsive data-table">
-          <thead>
-            <tr>
-              <th>
-                <a href="{% get_sort_by_url_toggle 'email' %}">
-                  {% trans "Email" context "Customers table header" %}
-                </a>
-              </th>
-              <th class="wide">
-                <a href="{% get_sort_by_url_toggle 'name' %}">
-                  {% trans "Name" context "Customers table header" %}
-                </a>
-              </th>
-              <th>
-                <a href="{% get_sort_by_url_toggle 'location' %}">
-                  {% trans "Location" context "Customers table header" %}
-                </a>
-              </th>
-              <th class="right-align">
-                <a href="{% get_sort_by_url_toggle 'num_orders' %}">
-                  {% trans "Number of orders" context "Customers table header" %}
-                </a>
-              </th>
-              <th>
-                <a href="{% get_sort_by_url_toggle 'last_order' %}">
-                  {% trans "Last order" context "Customers table header" %}
-                </a>
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for customer in customers %}
-              <tr data-action-go="{% url "dashboard:customer-details" pk=customer.pk %}">
-                {% with customer.default_billing_address as default_address %}
-                  <td>
-                    {{ customer.email }}
-                  </td>
-                  {% if default_address %}
-                    <td>
-                      {{ default_address.first_name }} {{ default_address.last_name }}
-                    </td>
-                    <td>
-                      {{ default_address.city }}, {{ default_address.get_country_display }}
-                    </td>
-                  {% else %}
-                    <td>-</td>
-                    <td>-</td>
-                  {% endif %}
-                {% endwith %}
-                <td class="right-align">
-                  {{ customer.num_orders }}
-                </td>
-                <td class="ignore-link">
-                  {% if customer.last_order %}
-                    <a href="{% url 'dashboard:order-details' order_pk=customer.last_order %}">
-                      {% blocktrans with last_order=customer.last_order trimmed context "Customers table last order data" %}
-                        #{{ last_order }}
-                      {% endblocktrans %}
+  <div class="row">
+    <div class="col s12 l9">
+      {% if customers %}
+        <div class="card">
+          <div class="data-table-container">
+            <table class="bordered highlight responsive data-table">
+              <thead>
+                <tr>
+                  <th>
+                    <a href="{% get_sort_by_url_toggle 'email' %}">
+                      {% trans "Email" context "Customers table header" %}
                     </a>
-                  {% endif %}
-                </td>
-              </tr>
-            {% endfor %}
-          </tbody>
-        </table>
-      </div>
+                  </th>
+                  <th class="wide">
+                    <a href="{% get_sort_by_url_toggle 'name' %}">
+                      {% trans "Name" context "Customers table header" %}
+                    </a>
+                  </th>
+                  <th>
+                    <a href="{% get_sort_by_url_toggle 'location' %}">
+                      {% trans "Location" context "Customers table header" %}
+                    </a>
+                  </th>
+                  <th class="right-align">
+                    <a href="{% get_sort_by_url_toggle 'num_orders' %}">
+                      {% trans "Number of orders" context "Customers table header" %}
+                    </a>
+                  </th>
+                  <th>
+                    <a href="{% get_sort_by_url_toggle 'last_order' %}">
+                      {% trans "Last order" context "Customers table header" %}
+                    </a>
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for customer in customers %}
+                  <tr data-action-go="{% url "dashboard:customer-details" pk=customer.pk %}">
+                    {% with customer.default_billing_address as default_address %}
+                      <td>
+                        {{ customer.email }}
+                      </td>
+                      {% if default_address %}
+                        <td>
+                          {{ default_address.first_name }} {{ default_address.last_name }}
+                        </td>
+                        <td>
+                          {{ default_address.city }}, {{ default_address.get_country_display }}
+                        </td>
+                      {% else %}
+                        <td colspan="2"></td>
+                      {% endif %}
+                    {% endwith %}
+                    <td class="right-align">
+                      {{ customer.num_orders }}
+                    </td>
+                    <td class="ignore-link">
+                      {% if customer.last_order %}
+                        <a href="{% url 'dashboard:order-details' order_pk=customer.last_order %}">
+                          {% blocktrans with last_order=customer.last_order trimmed context "Customers table last order data" %}
+                            #{{ last_order }}
+                          {% endblocktrans %}
+                        </a>
+                      {% endif %}
+                    </td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      {% else %}
+        <div class="card-content card-content--no-data not-found">
+          <p class="grey-text">
+            {% trans "No customers found." context "Empty customers table message" %}
+          </p>
+        </div>
+      {% endif %}
+      {% paginate customers %}
     </div>
-  {% else %}
-    <div class="card-content card-content--no-data not-found">
-      <p class="grey-text">
-        {% trans "No customers found." context "Empty customers table message" %}
-      </p>
+    <div class="col s12 l3" id="filters">
+      {% include 'dashboard/includes/_filters.html' %}
     </div>
-  {% endif %}
-  {% paginate customers %}
+  </div>
 {% endblock %}
