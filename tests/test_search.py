@@ -18,6 +18,7 @@ PHRASE_WITHOUT_RESULTS = 'foo'
 @pytest.fixture(scope='function', autouse=True)
 def es_autosync_disabled(settings):
     ''' Prevent ES index from being refreshed every time obj is saved '''
+    settings.ENABLE_SEARCH = True
     settings.ELASTICSEARCH_DSL_AUTO_REFRESH = False
     settings.ELASTICSEARCH_DSL_AUTOSYNC = False
 
