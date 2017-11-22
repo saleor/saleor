@@ -5,8 +5,8 @@ import os.path
 
 import dj_database_url
 import dj_email_url
-from django.contrib.messages import constants as messages
 import django_cache_url
+from django.contrib.messages import constants as messages
 
 
 def get_list(text):
@@ -192,21 +192,23 @@ INSTALLED_APPS = [
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
+    'root': {
+        'level': 'INFO',
+        'handlers': ['console']
+    },
     'formatters': {
         'verbose': {
-            'format': '%(levelname)s %(asctime)s %(module)s '
-                      '%(process)d %(thread)d %(message)s'
+            'format': (
+                '%(levelname)s %(name)s %(message)s'
+                ' [PID:%(process)d:%(threadName)s]')
         },
         'simple': {
             'format': '%(levelname)s %(message)s'
-        },
+        }
     },
     'filters': {
         'require_debug_false': {
             '()': 'django.utils.log.RequireDebugFalse'
-        },
-        'require_debug_true': {
-            '()': 'django.utils.log.RequireDebugTrue'
         }
     },
     'handlers': {
@@ -218,14 +220,18 @@ LOGGING = {
         'console': {
             'level': 'DEBUG',
             'class': 'logging.StreamHandler',
-            'filters': ['require_debug_true'],
-            'formatter': 'simple'
-        },
+            'formatter': 'verbose'
+        }
     },
     'loggers': {
-        'django.request': {
-            'handlers': ['mail_admins'],
-            'level': 'ERROR',
+        'django': {
+            'handlers': ['console', 'mail_admins'],
+            'level': 'INFO',
+            'propagate': True
+        },
+        'django.server': {
+            'handlers': ['console'],
+            'level': 'INFO',
             'propagate': True
         },
         'saleor': {
