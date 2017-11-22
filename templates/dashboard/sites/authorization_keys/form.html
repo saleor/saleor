@@ -62,19 +62,9 @@
             <span class="card-title">
               {% trans "Authorization key" context "Authorization key form title" %}
             </span>
-            {% for field in form %}
-              {% if field.name == 'site_settings' %}
-                {{ field }}
-              {% else %}
-                <div class="row">
-                  <div class="col s12 l8" >
-                    <div class="row">
-                      {{ field|materializecss }}
-                    </div>
-                  </div>
-                </div>
-              {% endif %}
-            {% endfor %}
+            <div class="row">
+              {{ form|materializecss }}
+            </div>
           </div>
           <div class="card-action right-align">
             {% if value.pk %}

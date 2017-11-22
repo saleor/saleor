@@ -22,4 +22,4 @@ class AuthorizationKeyForm(forms.ModelForm):
         exclude = []
         widgets = {'password': forms.PasswordInput(render_value=True),
                    'key': forms.TextInput(),
-                   'site_settings': forms.HiddenInput()}
+                   'site_settings': forms.widgets.HiddenInput()}

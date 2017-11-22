@@ -17,4 +17,4 @@ class ShippingMethodCountryForm(forms.ModelForm):
     class Meta:
         model = ShippingMethodCountry
         exclude = []
-        widgets = {'shipping_method': forms.HiddenInput()}
+        widgets = {'shipping_method': forms.widgets.HiddenInput()}
