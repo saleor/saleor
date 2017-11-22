@@ -11,7 +11,8 @@ def find_type_in_list(needle, haystack):
 
 def handle_default(field, chips, context):
     in_context = field.name in context.keys()
-    value = context[field.name][str(field.value())] if in_context else field.value()
+    value = context[field.name][
+        str(field.value())] if in_context else field.value()
     chips.append({'content': PATTERN % (field.label, value),
                   'name': field.name, 'value': field.value()})
 
@@ -19,7 +20,8 @@ def handle_default(field, chips, context):
 def handle_multiple_select(field, chips, context):
     in_context = field.name in context.keys()
     for partial_value in [f for f in field.value() if f]:
-        value = context[field.name][partial_value] if in_context else partial_value
+        value = context[field.name][
+            partial_value] if in_context else partial_value
         chips.append({'content': PATTERN % (field.label, value),
                       'name': field.name, 'value': partial_value})
 
@@ -35,14 +37,16 @@ def handle_boolean(field, chips, context):
 
 
 def handle_range(field, chips, context):
-    values = ['%s <span class="currency">%s</span>' % (f, settings.DEFAULT_CURRENCY)
-              if f else None for f in field.value()]
+    values = [
+        '%s <span class="currency">%s</span>' % (f, settings.DEFAULT_CURRENCY)
+        if f else None for f in field.value()]
     text = [gettext('From'), gettext('To')]
     for i, value in enumerate(values):
         if value:
-            chips.append({'content': PATTERN % (field.label, text[i] + ' ' + value),
-                          'name': '%s_%i' % (field.name, i),
-                          'value': field.value()[i]})
+            chips.append(
+                {'content': PATTERN % (field.label, text[i] + ' ' + value),
+                 'name': '%s_%i' % (field.name, i),
+                 'value': field.value()[i]})
 
 
 DEFAULT_HANDLERS = {
