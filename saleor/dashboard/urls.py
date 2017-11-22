@@ -1,5 +1,4 @@
 from django.conf.urls import url, include
-from django.conf import settings
 
 from . import views as core_views
 from .category.urls import urlpatterns as category_urls
@@ -26,7 +25,5 @@ urlpatterns = [
     url(r'^settings/', include(site_urls)),
     url(r'^shipping/', include(shipping_urls)),
     url(r'^style-guide/', core_views.styleguide, name='styleguide'),
+    url(r'^search/', include(search_urls)),
 ]
-
-if settings.ENABLE_SEARCH:
-    urlpatterns += [url(r'^search/', include(search_urls))]
