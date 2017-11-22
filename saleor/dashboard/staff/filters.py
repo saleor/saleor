@@ -1,8 +1,9 @@
 from __future__ import unicode_literals
 
-from django_filters import (CharFilter, FilterSet, RangeFilter, OrderingFilter)
+from django_filters import (CharFilter, FilterSet, OrderingFilter)
+from django_countries import countries
+from django.db.models import Q
 from django.utils.translation import pgettext_lazy
-from django_prices.models import PriceField
 
 from ...userprofile.models import User
 
@@ -28,22 +29,27 @@ class StaffFilter(FilterSet):
         label=pgettext_lazy('Staff list sorting filter', 'Sort by'),
         fields=SORT_BY_FIELDS,
         field_labels=SORT_BY_FIELDS_LABELS)
-    email = CharFilter(
-        label=pgettext_lazy('Staff list name filter', 'Email'),
-        lookup_expr='icontains')
-    name = CharFilter(
-        label=pgettext_lazy('Staff list sorting filter', 'Name'),
-        name='default_billing_address__first_name',
-        lookup_expr='icontains')
-    last_name = CharFilter(
-        label=pgettext_lazy('Staff list sorting filter', 'Last name'),
-        name='default_billing_address__last_name',
-        lookup_expr='icontains')
-    city = CharFilter(
-        label=pgettext_lazy('Staff list sorting filter', 'City'),
-        name='default_billing_address__city',
-        lookup_expr='icontains')
+    name_or_email = CharFilter(
+        label=pgettext_lazy('Customer name or email filter', 'Name or email'),
+        method='filter_by_customer')
+    location = CharFilter(
+        label=pgettext_lazy('Customer list sorting filter', 'Location'),
+        method='filter_by_location')
 
     class Meta:
         model = User
         fields = ['email', 'is_active', 'groups']
+
+    def filter_by_customer(self, queryset, name, value):
+        return queryset.filter(
+            Q(email__icontains=value) |
+            Q(default_billing_address__first_name__icontains=value) |
+            Q(default_billing_address__last_name__icontains=value))
+
+    def filter_by_location(self, queryset, name, value):
+        for code, country in dict(countries).items():
+            if value.lower() in country.lower():
+                value = code
+        return queryset.filter(
+            Q(default_billing_address__city__icontains=value) |
+            Q(default_billing_address__country__icontains=value))
