@@ -197,8 +197,8 @@ header {
 .main {
   .container {
     margin: 40px 40px 0;
-    max-width: 1200px;
     width: auto;
+    max-width: none;
     transition: margin .1s;
     @media (max-width: $small-screen) {
       margin: 15px 15px 0;
@@ -232,7 +232,7 @@ body.nav-toggled {
         margin-left: 270px;
       }
       @media (min-width: $large-screen) {
-        margin: 40px auto;
+        margin: 40px;
       }
     }
   }
