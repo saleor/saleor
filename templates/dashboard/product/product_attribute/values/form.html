@@ -26,7 +26,7 @@
   <ul class="breadcrumbs breadcrumbs--history">
     <li>
       <a href="{% url 'dashboard:product-attributes' %}" class="breadcrumbs--ellipsed-item">
-      {% trans "Attributes" context "Dashboard attributes list" %}
+        {% trans "Attributes" context "Dashboard attributes list" %}
       </a>
     </li>
     <li class="back-mobile">
@@ -40,6 +40,8 @@
         {{ attribute }}
       </a>
     </li>
+    {% endif %}
+    {% if value.pk %}
     <li>
       <span class="breadcrumbs--ellipsed-item">
         {% trans "Edit" context "Attribute detail breadcrumbs" %}
@@ -62,25 +64,25 @@
     <div class="col m12 l9">
       <div class="card">
         <form method="post" enctype="multipart/form-data" id="form-attributes" novalidate>
-          <div class="card-content card-content-form">
-            {% csrf_token %}
+          {% csrf_token %}
+          <div class="card-content">
+            <span class="card-title">
+              {% trans "Attribute values" context "Attribute values form title" %}
+            </span>
             <div class="row">
-              {{ form.name|materializecss }}
-            </div>
-            <div class="row">
-              {{ form.slug|materializecss }}
+              {{ form|materializecss }}
             </div>
           </div>
           <div class="card-action right-align">
-            {% if attribute.pk %}
-              <a href="{% url 'dashboard:product-attribute-detail' attribute.pk %}" class="btn btn-flat">
+            {% if value.pk %}
+              <a href="{% url 'dashboard:product-attribute-detail' pk=attribute.pk %}" class="btn btn-flat">
                 {% trans "Cancel" context "Dashboard cancel action" %}
               </a>
               <button type="submit" class="btn waves-effect waves-light">
                 {% trans "Save" context "Dashboard update action" %}
               </button>
             {% else %}
-              <a href="{% url 'dashboard:product-attributes' %}" class="btn btn-flat">
+              <a href="{% url 'dashboard:product-attribute-detail' pk=attribute.pk%}" class="btn btn-flat">
                 {% trans "Cancel" context "Dashboard cancel action" %}
               </a>
               <button type="submit" class="btn waves-effect waves-light">
