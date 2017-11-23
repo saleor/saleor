@@ -39,7 +39,8 @@ class SaleFilter(FilterSet):
         fields=SORT_BY_FIELDS_SALE.keys(),
         field_labels=SORT_BY_FIELDS_SALE)
     type = ChoiceFilter(
-        label=pgettext_lazy('Sale list is sale type filter label', 'Discount type'),
+        label=pgettext_lazy(
+            'Sale list is sale type filter label', 'Discount type'),
         choices=DISCOUNT_TYPE_CHOICES,
         empty_label=pgettext_lazy('Filter empty choice label', 'All'),
         widget=forms.Select)
