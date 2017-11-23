@@ -1,13 +1,10 @@
 from __future__ import unicode_literals
 
-from django_filters import (CharFilter, FilterSet, RangeFilter, OrderingFilter)
 from django.utils.translation import pgettext_lazy
+from django_filters import (CharFilter, FilterSet, RangeFilter, OrderingFilter)
 from django_prices.models import PriceField
-from django.urls import reverse
 
-from .chips import ChipFactory
-from ...product.models import Category, Product
-
+from ...product.models import Product
 
 SORT_BY_FIELDS = {'name': pgettext_lazy('Product list sorting option', 'name'),
                   'price': pgettext_lazy(
@@ -31,13 +28,3 @@ class ProductFilter(FilterSet):
                 'filter_class': RangeFilter
             }
         }
-
-    def get_chips(self):
-        categories = Category.objects.all()
-        context = {
-            'categories': {str(c.pk): c.name for c in categories}
-        }
-        handlers = {
-            'sort_by': lambda field, chips, context: None
-        }
-        return ChipFactory(self.form, context, handlers).make()
