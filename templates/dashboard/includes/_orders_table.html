@@ -13,16 +13,6 @@
           </a>
         </th>
         <th>
-          <a href="{% get_sort_by_url_toggle 'status' %}">
-            {% trans "Order status" context "Orders table header" %}
-          </a>
-        </th>
-        <th>
-          <a href="{% get_sort_by_url_toggle 'payment_status' %}">
-            {% trans "Payment status" context "Orders table header" %}
-          </a>
-        </th>
-        <th>
           <a href="{% get_sort_by_url_toggle 'email' %}">
             {% trans "Customer" context "Orders table header" %}
           </a>
@@ -30,6 +20,16 @@
         <th>
           <a href="{% get_sort_by_url_toggle 'created' %}">
             {% trans "Placed on" context "Orders table header" %}
+          </a>
+        </th>
+        <th>
+          <a href="{% get_sort_by_url_toggle 'status' %}">
+            {% trans "Order status" context "Orders table header" %}
+          </a>
+        </th>
+        <th>
+          <a href="{% get_sort_by_url_toggle 'payment_status' %}">
+            {% trans "Payment status" context "Orders table header" %}
           </a>
         </th>
         <th class="right-align">
@@ -45,18 +45,18 @@
           <td>
             #{{ order.id }}
           </td>
-          <td>
-            {% render_status order.status order.get_status_display %}
-          </td>
-          <td>
-            {% render_status order.get_last_payment_status order.get_last_payment_status_display %}
-          </td>
           {% trans "Guest" context "Anonymous user account value" as guest %}
           <td>
             {{ order.user|default:guest }}
           </td>
           <td>
             {{ order.created }}
+          </td>
+          <td>
+            {% render_status order.status order.get_status_display %}
+          </td>
+          <td>
+            {% render_status order.get_last_payment_status order.get_last_payment_status_display %}
           </td>
           <td class="right-align">
             {% gross order.get_total html=True %}
