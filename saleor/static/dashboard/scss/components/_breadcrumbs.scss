@@ -14,7 +14,7 @@
   &--history {
     li {
       &:before {
-        content: url('/static/dashboard/images/chevron_right.svg');
+        content: url('../images/chevron_right.svg');
         vertical-align: text-bottom;
         display: inline-block;
       }
@@ -22,13 +22,13 @@
         display: none;
       }
     }
-  } 
+  }
   li {
     float: none;
     line-height: $subheader-height;
     color: white;
     display: inline-block;
-    @media (max-width: $medium-screen-up) { 
+    @media (max-width: $medium-screen-up) {
       &:first-of-type:not(.visible-s) {
         display: none;
         &:before {
