@@ -49,10 +49,6 @@ class CustomerFilter(FilterSet):
     location = CharFilter(
         label=pgettext_lazy('Customer list sorting filter', 'Location'),
         method=filter_by_location)
-    num_orders = RangeFilter(
-        label=pgettext_lazy(
-            'Customer list sorting filter', 'Number of orders'),
-        name='num_orders')
     is_active = ChoiceFilter(
         label=pgettext_lazy(
             'Customer list is published filter label', 'Is active'),
