@@ -1,20 +1,19 @@
 from __future__ import unicode_literals
-
+from django.template import Library
+from django.forms.fields import NullBooleanField, ChoiceField
+from django.forms.models import ModelMultipleChoiceField
+from django_filters.fields import RangeField
 from versatileimagefield.widgets import VersatileImagePPOIClickWidget
-from ..product.widgets import ImagePreviewWidget
 
 try:
     from urllib.parse import urlencode
 except ImportError:
     from urllib import urlencode
 
-from django.template import Library
-from django.forms.fields import NullBooleanField, ChoiceField
-from django.forms.models import ModelMultipleChoiceField
-from django_filters.fields import RangeField
 from ...product.utils import get_margin_for_variant, get_variant_costs_data
 from ..chips import (handle_nullboolean, handle_default, handle_multiplechoice,
                      handle_range, handle_choice)
+from ..product.widgets import ImagePreviewWidget
 
 register = Library()
 
