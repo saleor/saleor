@@ -30,14 +30,14 @@
             <table class="bordered highlight responsive data-table">
               <thead>
                 <tr>
-                  <th>
-                    <a href="{% get_sort_by_url_toggle 'email' %}">
-                      {% trans "Email" context "Customers table header" %}
-                    </a>
-                  </th>
                   <th class="wide">
                     <a href="{% get_sort_by_url_toggle 'name' %}">
                       {% trans "Name" context "Customers table header" %}
+                    </a>
+                  </th>
+                  <th>
+                    <a href="{% get_sort_by_url_toggle 'email' %}">
+                      {% trans "Email" context "Customers table header" %}
                     </a>
                   </th>
                   <th>
@@ -52,18 +52,22 @@
                   <tr data-action-go="{% url "dashboard:customer-details" pk=customer.pk %}">
                     {% with customer.default_billing_address as default_address %}
                       <td>
+                        {% if default_address %}
+                          {{ default_address.first_name }} {{ default_address.last_name }}
+                        {% else %}
+                          -
+                        {% endif %}
+                      </td>
+                      <td>
                         {{ customer.email }}
                       </td>
-                      {% if default_address %}
-                        <td>
-                          {{ default_address.first_name }} {{ default_address.last_name }}
-                        </td>
-                        <td>
+                      <td>
+                        {% if default_address %}
                           {{ default_address.city }}, {{ default_address.get_country_display }}
-                        </td>
-                      {% else %}
-                        <td colspan="2"></td>
-                      {% endif %}
+                        {% else %}
+                          -
+                        {% endif %}
+                      </td>
                     {% endwith %}
                   </tr>
                 {% endfor %}
