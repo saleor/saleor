@@ -1,5 +1,4 @@
 from django.utils.translation import gettext
-from django.conf import settings
 
 PATTERN = '%s: %s'
 
