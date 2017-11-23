@@ -1,3 +1,5 @@
+from ...product.models import Product
+
 
 def search(phrase):
-    pass
+    return Product.objects.none()
