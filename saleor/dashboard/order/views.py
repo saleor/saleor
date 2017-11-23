@@ -22,7 +22,7 @@ from ..order.forms import OrderFilterForm
 from ..views import staff_member_required
 from ...core.utils import get_paginator_items
 from ...order import OrderStatus
-from ...order.models import Order, OrderedItem, OrderNote
+from ...order.models import Order, OrderLine, OrderNote
 from ...product.models import ProductVariant
 from ...settings import DASHBOARD_PAGINATE_BY
 from ...userprofile.i18n import AddressForm
@@ -172,7 +172,7 @@ def release_payment(request, order_pk, payment_pk):
 @permission_required('order.edit_order')
 def orderline_change_quantity(request, order_pk, line_pk):
     order = get_object_or_404(Order, pk=order_pk)
-    item = get_object_or_404(OrderedItem.objects.filter(
+    item = get_object_or_404(OrderLine.objects.filter(
         delivery_group__order=order), pk=line_pk)
     form = ChangeQuantityForm(request.POST or None, instance=item)
     status = 200
@@ -200,7 +200,7 @@ def orderline_change_quantity(request, order_pk, line_pk):
 @permission_required('order.edit_order')
 def orderline_split(request, order_pk, line_pk):
     order = get_object_or_404(Order, pk=order_pk)
-    item = get_object_or_404(OrderedItem.objects.filter(
+    item = get_object_or_404(OrderLine.objects.filter(
         delivery_group__order=order), pk=line_pk)
     form = MoveItemsForm(request.POST or None, item=item)
     line_pk = None
@@ -236,7 +236,7 @@ def orderline_split(request, order_pk, line_pk):
 @permission_required('order.edit_order')
 def orderline_cancel(request, order_pk, line_pk):
     order = get_object_or_404(Order, pk=order_pk)
-    item = get_object_or_404(OrderedItem.objects.filter(
+    item = get_object_or_404(OrderLine.objects.filter(
         delivery_group__order=order), pk=line_pk)
     form = CancelItemsForm(data=request.POST or None, item=item)
     status = 200
@@ -394,7 +394,7 @@ def order_packing_slip(request, group_pk):
 @staff_member_required
 @permission_required('order.edit_order')
 def orderline_change_stock(request, order_pk, line_pk):
-    line = get_object_or_404(OrderedItem, pk=line_pk)
+    line = get_object_or_404(OrderLine, pk=line_pk)
     status = 200
     form = ChangeStockForm(request.POST or None, instance=line)
     if form.is_valid():

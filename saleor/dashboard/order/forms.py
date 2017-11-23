@@ -11,7 +11,7 @@ from satchless.item import InsufficientStock
 from ...cart.forms import QuantityField
 from ...discount.models import Voucher
 from ...order import OrderStatus
-from ...order.models import DeliveryGroup, Order, OrderedItem, OrderNote
+from ...order.models import DeliveryGroup, Order, OrderLine, OrderNote
 from ...order.utils import (
     cancel_order, cancel_delivery_group, change_order_line_quantity,
     merge_duplicated_lines)
@@ -148,7 +148,7 @@ class MoveItemsForm(forms.Form):
                 shipping_method_name=old_group.shipping_method_name)
         else:
             target_group = DeliveryGroup.objects.get(pk=choice)
-        OrderedItem.objects.move_to_group(self.item, target_group, how_many)
+        OrderLine.objects.move_to_group(self.item, target_group, how_many)
         return target_group
 
 
@@ -163,7 +163,7 @@ class CancelItemsForm(forms.Form):
             Stock.objects.deallocate_stock(self.item.stock, self.item.quantity)
         order = self.item.delivery_group.order
         self.item.quantity = 0
-        OrderedItem.objects.remove_empty_groups(self.item)
+        OrderLine.objects.remove_empty_groups(self.item)
         Order.objects.recalculate_order(order)
 
 
@@ -173,7 +173,7 @@ class ChangeQuantityForm(forms.ModelForm):
         validators=[MinValueValidator(1)])
 
     class Meta:
-        model = OrderedItem
+        model = OrderLine
         fields = ['quantity']
 
     def __init__(self, *args, **kwargs):
@@ -319,7 +319,7 @@ class ChangeStockForm(forms.ModelForm):
     stock = StockChoiceField(queryset=Stock.objects.none())
 
     class Meta:
-        model = OrderedItem
+        model = OrderLine
         fields = ['stock']
 
     def __init__(self, *args, **kwargs):

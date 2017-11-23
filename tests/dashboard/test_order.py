@@ -7,7 +7,7 @@ from django.urls import reverse
 
 from saleor.dashboard.order.forms import ChangeQuantityForm, MoveItemsForm
 from saleor.order.models import (
-    DeliveryGroup, Order, OrderedItem, OrderHistoryEntry)
+    DeliveryGroup, Order, OrderLine, OrderHistoryEntry)
 from saleor.order.utils import (
     add_items_to_delivery_group, change_order_line_quantity)
 from saleor.product.models import ProductVariant, Stock, StockLocation
@@ -46,7 +46,7 @@ def test_view_cancel_order_line(admin_client, order_with_items_and_stock):
     url = reverse(
         'dashboard:orderline-cancel', kwargs={
             'order_pk': order_with_items_and_stock.pk,
-            'line_pk': OrderedItem.objects.get().pk})
+            'line_pk': OrderLine.objects.get().pk})
     response = admin_client.post(
         url, {'csrfmiddlewaretoken': 'hello'}, follow=True)
     # check delivery group removal if it becomes empty
@@ -284,7 +284,7 @@ def test_ordered_item_remove_empty_group_with_force(
         transactional_db, order_with_items):
     group = order_with_items.groups.all()[0]
     items = group.items.all()
-    OrderedItem.objects.remove_empty_groups(items[0], force=True)
+    OrderLine.objects.remove_empty_groups(items[0], force=True)
     history = list(order_with_items.history.all())
     assert len(history) == 1
     assert history[0].status == 'cancelled'
