@@ -114,7 +114,7 @@ class Order(models.Model, ItemSet):
             self.status = status
             self.save()
 
-    def get_items(self):
+    def get_lines(self):
         return OrderLine.objects.filter(delivery_group__order=self)
 
     def is_fully_paid(self):
@@ -206,7 +206,7 @@ class Order(models.Model, ItemSet):
         self.total_tax = Price(price.tax, currency=price.currency)
 
     def get_subtotal_without_voucher(self):
-        if self.get_items():
+        if self.get_lines():
             return super(Order, self).get_total()
         return Price(net=0, currency=settings.DEFAULT_CURRENCY)
 
@@ -313,7 +313,7 @@ class OrderLineManager(models.Manager):
             line.delete()
         if not source_group.get_total_quantity() or force:
             source_group.delete()
-        if not order.get_items():
+        if not order.get_lines():
             order.change_status(OrderStatus.CANCELLED)
             order.create_history_entry(
                 status=OrderStatus.CANCELLED, comment=pgettext_lazy(
@@ -403,23 +403,23 @@ class Payment(BasePayment):
         emails.send_payment_confirmation.delay(email, order_url)
 
     def get_purchased_items(self):
-        items = [
+        lines = [
             PurchasedItem(
-                name=item.product_name, sku=item.product_sku,
-                quantity=item.quantity,
-                price=item.unit_price_gross.quantize(Decimal('0.01')),
+                name=line.product_name, sku=line.product_sku,
+                quantity=line.quantity,
+                price=line.unit_price_gross.quantize(Decimal('0.01')),
                 currency=settings.DEFAULT_CURRENCY)
-            for item in self.order.get_items()]
+            for line in self.order.get_lines()]
 
         voucher = self.order.voucher
         if voucher is not None:
-            items.append(PurchasedItem(
+            lines.append(PurchasedItem(
                 name=self.order.discount_name,
                 sku='DISCOUNT',
                 quantity=1,
                 price=-self.order.discount_amount.net,
                 currency=self.currency))
-        return items
+        return lines
 
     def get_total_price(self):
         net = self.total - self.tax
