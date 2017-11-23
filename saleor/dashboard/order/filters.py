@@ -3,6 +3,8 @@ from __future__ import unicode_literals
 from django_filters import (
     CharFilter, ChoiceFilter, DateFromToRangeFilter, FilterSet, RangeFilter,
     OrderingFilter)
+from django_filters.widgets import RangeWidget
+from django import forms
 from django.utils.translation import pgettext_lazy
 from django_prices.models import PriceField
 from payments import PaymentStatus
@@ -29,6 +31,12 @@ SORT_BY_FIELDS_LABELS = {
     'total_net': pgettext_lazy('Order list sorting option', 'created')}
 
 
+class DateRangeWidget(RangeWidget):
+    def __init__(self, attrs=None):
+        widgets = (forms.DateInput, forms.DateInput)
+        super(RangeWidget, self).__init__(widgets, attrs)
+
+
 class OrderFilter(FilterSet):
     name_or_email = CharFilter(
         label=pgettext_lazy('Customer name or email filter', 'Name or email'),
@@ -42,7 +50,7 @@ class OrderFilter(FilterSet):
         name='payments__status', choices=PaymentStatus.CHOICES)
     created = DateFromToRangeFilter(
         label=pgettext_lazy('Order list sorting filter', 'Placed on'),
-        name='created')
+        name='created', widget=DateRangeWidget)
 
     class Meta:
         model = Order
@@ -52,3 +60,6 @@ class OrderFilter(FilterSet):
                 'filter_class': RangeFilter
             }
         }
+
+
+
