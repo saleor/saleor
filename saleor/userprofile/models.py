@@ -10,8 +10,6 @@ from django.utils.translation import pgettext_lazy
 from django_countries.fields import Country, CountryField
 from phonenumber_field.modelfields import PhoneNumberField
 
-from ..search import index
-
 
 class AddressManager(models.Manager):
 
