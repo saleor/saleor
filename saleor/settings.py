@@ -357,16 +357,20 @@ WEBPACK_LOADER = {
 
 LOGOUT_ON_PASSWORD_CHANGE = False
 
+# SEARCH CONFIGURATION
+DB_SEARCH_ENABLED = True
+PREFER_DB_SEARCH = False  # prefer db backend over elasticsearch
 
 ELASTICSEARCH_URL = os.environ.get('ELASTICSEARCH_URL')
 SEARCHBOX_URL = os.environ.get('SEARCHBOX_URL')
 BONSAI_URL = os.environ.get('BONSAI_URL')
+
 # We'll support couple of elasticsearch add-ons, but finally we'll use single
 # variable
 ES_URL = ELASTICSEARCH_URL or SEARCHBOX_URL or BONSAI_URL
-ENABLE_SEARCH = bool(ES_URL)
+ENABLE_SEARCH = bool(ES_URL) or DB_SEARCH_ENABLED
 
-if ENABLE_SEARCH:
+if ES_URL:
     INSTALLED_APPS.append('django_elasticsearch_dsl')
     ELASTICSEARCH_DSL = {
         'default': {
