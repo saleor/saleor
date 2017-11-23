@@ -2,6 +2,7 @@
 {% load i18n %}
 {% load mptt_tags %}
 {% load materializecss %}
+{% load get_sort_by_url_toggle from shop %}
 {% load staticfiles %}
 {% load utils %}
 
@@ -115,8 +116,14 @@
             <table class="bordered highlight responsive data-table data-table-description no-align">
               <thead>
                 <tr>
-                  <th>{% trans "Name" context "Category list table header name" %}</th>
-                  <th>{% trans "Description" context "Category list table header description" %}</th>
+                  <th>
+                    <a href="{% get_sort_by_url_toggle 'name' %}">
+                      {% trans "Name" context "Category list table header name" %}
+                    </a>
+                  </th>
+                  <th>
+                    {% trans "Description" context "Category list table header description" %}
+                  </th>
                 </tr>
               </thead>
               <tbody>
