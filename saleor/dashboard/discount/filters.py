@@ -1,9 +1,12 @@
 from __future__ import unicode_literals
 
-from django_filters import (CharFilter, FilterSet, OrderingFilter, RangeFilter)
+from django_filters import (
+    CharFilter, DateFromToRangeFilter, FilterSet, OrderingFilter, RangeFilter)
 from django.utils.translation import pgettext_lazy
 
+from ...core.utils.filters import filter_by_date_range
 from ...discount.models import Sale, Voucher
+from ..widgets import DateRangeWidget
 
 
 SORT_BY_FIELDS_SALE = {
@@ -46,6 +49,9 @@ class VoucherFilter(FilterSet):
     limit = RangeFilter(
         label=pgettext_lazy('Voucher list sorting filter', 'Limit'),
         name='limit')
+    date = DateFromToRangeFilter(
+        label=pgettext_lazy('Order list sorting filter', 'Period of validity'),
+        name='created', widget=DateRangeWidget, method=filter_by_date_range)
 
     class Meta:
         model = Voucher

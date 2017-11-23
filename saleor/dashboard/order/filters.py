@@ -3,14 +3,13 @@ from __future__ import unicode_literals
 from django_filters import (
     CharFilter, ChoiceFilter, DateFromToRangeFilter, FilterSet, RangeFilter,
     OrderingFilter)
-from django_filters.widgets import RangeWidget
-from django import forms
 from django.utils.translation import pgettext_lazy
 from django_prices.models import PriceField
 from payments import PaymentStatus
 
 from ...core.utils.filters import filter_by_customer
 from ...order.models import Order
+from ..widgets import DateRangeWidget
 
 
 SORT_BY_FIELDS = (
@@ -29,12 +28,6 @@ SORT_BY_FIELDS_LABELS = {
     'user__email': pgettext_lazy('Order list sorting option', 'email'),
     'created': pgettext_lazy('Order list sorting option', 'created'),
     'total_net': pgettext_lazy('Order list sorting option', 'created')}
-
-
-class DateRangeWidget(RangeWidget):
-    def __init__(self, attrs=None):
-        widgets = (forms.DateInput, forms.DateInput)
-        super(RangeWidget, self).__init__(widgets, attrs)
 
 
 class OrderFilter(FilterSet):

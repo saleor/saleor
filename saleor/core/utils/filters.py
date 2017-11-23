@@ -40,3 +40,15 @@ def get_mapped_country_codes_from_search(value):
         if value.lower() in country.lower():
             country_codes.append(code)
     return country_codes
+
+
+def filter_by_date_range(queryset, name, value):
+    q = Q()
+    if value.start:
+        q = Q(start_date__gte=value.start)
+    if value.stop:
+        if value.start:
+            q |= Q(end_date__lte=value.stop)
+        else:
+            q = Q(end_date__lte=value.stop)
+    return queryset.filter(q)
