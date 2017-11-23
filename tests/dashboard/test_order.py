@@ -9,7 +9,7 @@ from saleor.dashboard.order.forms import ChangeQuantityForm, MoveItemsForm
 from saleor.order.models import (
     DeliveryGroup, Order, OrderLine, OrderHistoryEntry)
 from saleor.order.utils import (
-    add_items_to_delivery_group, change_order_line_quantity)
+    create_order_lines_in_delivery_group, change_order_line_quantity)
 from saleor.product.models import ProductVariant, Stock, StockLocation
 from tests.utils import get_redirect_location, get_url_path
 
@@ -17,7 +17,7 @@ from tests.utils import get_redirect_location, get_url_path
 @pytest.mark.integration
 @pytest.mark.django_db
 def test_view_cancel_order_line(admin_client, order_with_items_and_stock):
-    lines_before = order_with_items_and_stock.get_items()
+    lines_before = order_with_items_and_stock.get_lines()
     lines_before_count = lines_before.count()
     line = lines_before.first()
     line_quantity = line.quantity
@@ -36,7 +36,7 @@ def test_view_cancel_order_line(admin_client, order_with_items_and_stock):
     assert get_redirect_location(response) == reverse(
         'dashboard:order-details', args=[order_with_items_and_stock.pk])
     # check ordered item removal
-    lines_after = Order.objects.get().get_items()
+    lines_after = Order.objects.get().get_lines()
     assert lines_before_count - 1 == lines_after.count()
     # check stock deallocation
     assert Stock.objects.first().quantity_allocated == quantity_allocated_before - line_quantity
@@ -50,7 +50,7 @@ def test_view_cancel_order_line(admin_client, order_with_items_and_stock):
     response = admin_client.post(
         url, {'csrfmiddlewaretoken': 'hello'}, follow=True)
     # check delivery group removal if it becomes empty
-    assert Order.objects.get().get_items().count() == 0
+    assert Order.objects.get().get_lines().count() == 0
     assert DeliveryGroup.objects.count() == 0
     # check success messages after redirect
     assert response.context['messages']
@@ -63,7 +63,7 @@ def test_view_change_order_line_quantity(admin_client, order_with_items_and_stoc
     user goes to order details page
     user selects first order line with quantity 3 and changes it to 2
     """
-    lines_before_quantity_change = order_with_items_and_stock.get_items()
+    lines_before_quantity_change = order_with_items_and_stock.get_lines()
     lines_before_quantity_change_count = lines_before_quantity_change.count()
     line = lines_before_quantity_change.first()
     line_quantity_before_quantity_change = line.quantity
@@ -84,7 +84,7 @@ def test_view_change_order_line_quantity(admin_client, order_with_items_and_stoc
         args=[order_with_items_and_stock.pk])
     # success messages should appear after redirect
     assert response.context['messages']
-    lines_after = Order.objects.get().get_items()
+    lines_after = Order.objects.get().get_lines()
     # order should have the same lines
     assert lines_before_quantity_change_count == lines_after.count()
     # stock allocation should be 2 now
@@ -113,7 +113,7 @@ def test_view_change_order_line_quantity_with_invalid_data(
     user selects the first order line with quantity 3 and try to change it to 0 and -1
     user gets an error.
     """
-    lines = order_with_items_and_stock.get_items()
+    lines = order_with_items_and_stock.get_lines()
     line = lines.first()
     url = reverse(
         'dashboard:orderline-change-quantity', kwargs={
@@ -127,7 +127,7 @@ def test_view_change_order_line_quantity_with_invalid_data(
 def test_dashboard_change_quantity_form(request_cart_with_item, order):
     cart = request_cart_with_item
     group = DeliveryGroup.objects.create(order=order)
-    add_items_to_delivery_group(group, cart.lines.all())
+    create_order_lines_in_delivery_group(group, cart.lines.all())
     order_line = group.items.get()
 
     # Check max quantity validation
@@ -178,7 +178,7 @@ def test_view_split_order_line(admin_client, order_with_items_and_stock):
     user selects the line from the new shipment and moves all items
       back to the first shipment
     """
-    lines_before_split = order_with_items_and_stock.get_items()
+    lines_before_split = order_with_items_and_stock.get_lines()
     lines_before_split_count = lines_before_split.count()
     line = lines_before_split.first()
     line_quantity_before_split = line.quantity
@@ -203,7 +203,7 @@ def test_view_split_order_line(admin_client, order_with_items_and_stock):
         args=[order_with_items_and_stock.pk])
     # success messages should appear after redirect
     assert response.context['messages']
-    lines_after = Order.objects.get().get_items()
+    lines_after = Order.objects.get().get_lines()
     # order should have one more line
     assert lines_before_split_count + 1 == lines_after.count()
     # stock allocation should not be changed
@@ -241,7 +241,7 @@ def test_view_split_order_line(admin_client, order_with_items_and_stock):
     # the new shipment should be removed
     assert order_with_items_and_stock.groups.count() == 1
     # the related order line should be removed
-    assert lines_before_split_count == Order.objects.get().get_items().count()
+    assert lines_before_split_count == Order.objects.get().get_lines().count()
     line.refresh_from_db()
     # the initial line should get the quantity restored to its initial value
     assert line_quantity_before_split == line.quantity
@@ -256,7 +256,7 @@ def test_view_split_order_line_with_invalid_data(admin_client, order_with_items_
     user selects first order line with quantity 3 and try move 0 and 4 items to a new shipment
     user gets an error and no delivery groups are created.
     """
-    lines = order_with_items_and_stock.get_items()
+    lines = order_with_items_and_stock.get_lines()
     line = lines.first()
     url = reverse(
         'dashboard:orderline-split', kwargs={
@@ -344,7 +344,7 @@ def test_view_order_packing_slips(
 def test_view_change_order_line_stock_valid(
         admin_client, order_with_items_and_stock):
     order = order_with_items_and_stock
-    line = order.get_items().last()
+    line = order.get_lines().last()
     old_stock = line.stock
     variant = ProductVariant.objects.get(sku=line.product_sku)
     stock_location = StockLocation.objects.create(name='Warehouse 2')
@@ -375,7 +375,7 @@ def test_view_change_order_line_stock_valid(
 def test_view_change_order_line_stock_insufficient_stock(
         admin_client, order_with_items_and_stock):
     order = order_with_items_and_stock
-    line = order.get_items().last()
+    line = order.get_lines().last()
     old_stock = line.stock
     variant = ProductVariant.objects.get(sku=line.product_sku)
     stock_location = StockLocation.objects.create(name='Warehouse 2')
@@ -406,7 +406,7 @@ def test_view_change_order_line_stock_insufficient_stock(
 def test_view_change_order_line_stock_merges_lines(
         admin_client, order_with_items_and_stock):
     order = order_with_items_and_stock
-    line = order.get_items().first()
+    line = order.get_lines().first()
     group = line.delivery_group
     old_stock = line.stock
     variant = ProductVariant.objects.get(sku=line.product_sku)

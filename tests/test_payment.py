@@ -8,9 +8,9 @@ def test_get_purchased_items(order_with_items, settings, voucher):
     payment = Payment.objects.create(order=order_with_items, variant='paypal')
     discount = Price('10.0', currency=settings.DEFAULT_CURRENCY)
 
-    assert len(payment.get_purchased_items()) == len(order_with_items.get_items())
+    assert len(payment.get_purchased_items()) == len(order_with_items.get_lines())
 
-    for p, o in zip(payment.get_purchased_items(), order_with_items.get_items()):
+    for p, o in zip(payment.get_purchased_items(), order_with_items.get_lines()):
         assert p.sku == o.product_sku
         assert p.quantity == o.quantity
 
@@ -21,9 +21,9 @@ def test_get_purchased_items(order_with_items, settings, voucher):
 
     settings.PAYMENT_VARIANTS = { 'paypal': ('PaypalProvider', {})}
 
-    assert len(payment.get_purchased_items()) == len(order_with_items.get_items()) + 1
+    assert len(payment.get_purchased_items()) == len(order_with_items.get_lines()) + 1
 
-    for p, o in zip(payment.get_purchased_items()[:-1], order_with_items.get_items()):
+    for p, o in zip(payment.get_purchased_items()[:-1], order_with_items.get_lines()):
         assert p.sku == o.product_sku
         assert p.quantity == o.quantity
 
