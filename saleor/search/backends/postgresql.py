@@ -1,0 +1,3 @@
+
+def search(phrase):
+    pass
