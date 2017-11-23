@@ -98,6 +98,7 @@ def add_filters(context, filter_set):
                 chips = handle_default(field, chips)
     filter_context = {
         'chips': chips,
-        'filter': filter_set
+        'filter': filter_set,
+        'count': filter_set.qs.count()
     }
     return filter_context
