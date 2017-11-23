@@ -1,8 +1,10 @@
 from __future__ import unicode_literals
 
 from django_filters import (
-    CharFilter, DateFromToRangeFilter, FilterSet, OrderingFilter, RangeFilter)
+    CharFilter, ChoiceFilter, DateFromToRangeFilter, FilterSet, OrderingFilter,
+    RangeFilter)
 from django.utils.translation import pgettext_lazy
+from django import forms
 
 from ...core.utils.filters import filter_by_date_range
 from ...discount.models import Sale, Voucher
@@ -23,15 +25,24 @@ SORT_BY_FIELDS_LABELS_VOUCHER = {
     'used': pgettext_lazy('Voucher list sorting option', 'used'),
     'limit': pgettext_lazy('Voucher list sorting option', 'limit')}
 
+DISCOUNT_TYPE_CHOICES = (
+    ('fixed', pgettext_lazy('Sale type filter choice', 'USD')),
+    ('percentage', pgettext_lazy('Sale type filter choice', '%')))
+
 
 class SaleFilter(FilterSet):
     name = CharFilter(
-        label=pgettext_lazy('Sale list name filter', 'Name'),
+        label=pgettext_lazy('Sale list name filter label', 'Name'),
         lookup_expr='icontains')
     sort_by = OrderingFilter(
-        label=pgettext_lazy('Sale list sorting filter', 'Sort by'),
+        label=pgettext_lazy('Sale list sorting filter label', 'Sort by'),
         fields=SORT_BY_FIELDS_SALE.keys(),
         field_labels=SORT_BY_FIELDS_SALE)
+    type = ChoiceFilter(
+        label=pgettext_lazy('Sale list is sale type filter label', 'Discount type'),
+        choices=DISCOUNT_TYPE_CHOICES,
+        empty_label=pgettext_lazy('Filter empty choice label', 'All'),
+        widget=forms.Select)
 
     class Meta:
         model = Sale
@@ -40,20 +51,27 @@ class SaleFilter(FilterSet):
 
 class VoucherFilter(FilterSet):
     name = CharFilter(
-        label=pgettext_lazy('Voucher list name filter', 'Name'),
+        label=pgettext_lazy('Voucher list name filter label', 'Name'),
         lookup_expr='icontains')
     sort_by = OrderingFilter(
-        label=pgettext_lazy('Voucher list sorting filter', 'Sort by'),
+        label=pgettext_lazy('Voucher list sorting filter label', 'Sort by'),
         fields=SORT_BY_FIELDS_LABELS_VOUCHER.keys(),
         field_labels=SORT_BY_FIELDS_LABELS_VOUCHER)
+    type = ChoiceFilter(
+        name='discount_value_type',
+        label=pgettext_lazy(
+            'Sale list is sale type filter label', 'Discount type'),
+        choices=DISCOUNT_TYPE_CHOICES,
+        empty_label=pgettext_lazy('Filter empty choice label', 'All'),
+        widget=forms.Select)
+    date = DateFromToRangeFilter(
+        label=pgettext_lazy(
+            'Order list sorting filter label', 'Period of validity'),
+        name='created', widget=DateRangeWidget, method=filter_by_date_range)
     limit = RangeFilter(
         label=pgettext_lazy('Voucher list sorting filter', 'Limit'),
         name='limit')
-    date = DateFromToRangeFilter(
-        label=pgettext_lazy('Order list sorting filter', 'Period of validity'),
-        name='created', widget=DateRangeWidget, method=filter_by_date_range)
 
     class Meta:
         model = Voucher
-        fields = ['name', 'discount_value_type', 'discount_value',
-                  'start_date', 'end_date']
+        fields = ['name', 'discount_value']
