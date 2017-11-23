@@ -8,8 +8,8 @@ amqp==2.2.2               # via kombu
 asn1crypto==0.22.0        # via cryptography
 babel==2.5.1
 billiard==3.5.0.3         # via celery
-boto3==1.4.7
-botocore==1.7.14          # via boto3, s3transfer
+boto3==1.4.8
+botocore==1.8.1           # via boto3, s3transfer
 braintree==3.37.2         # via django-payments
 cairocffi==0.8.0          # via cairosvg, weasyprint
 cairosvg==1.0.22
@@ -19,6 +19,7 @@ cffi==1.10.0              # via cairocffi, cryptography, weasyprint
 chardet==3.0.4            # via requests
 cryptography==2.0.3       # via django-payments
 cssselect2==0.2.1         # via weasyprint
+defusedxml==0.5.0         # via python3-openid, social-auth-core
 dj-database-url==0.4.2
 dj-email-url==0.0.10
 django-babel==0.6.1
@@ -81,7 +82,7 @@ pytest-mock==1.6.3
 pytest-vcr==0.3.0
 pytest==3.2.2
 python-dateutil==2.6.1    # via botocore, elasticsearch-dsl, faker, freezegun
-python-openid==2.2.5      # via social-auth-core
+python3-openid==3.1.0     # via social-auth-core
 pytz==2017.2              # via babel, celery, django
 pyyaml==3.12              # via vcrpy
 redis==2.10.6             # via celery, django-redis
