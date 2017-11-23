@@ -1,8 +1,10 @@
 from __future__ import unicode_literals
 
-from django_filters import (CharFilter, FilterSet, OrderingFilter, RangeFilter)
+from django_filters import (
+    CharFilter, ChoiceFilter, FilterSet, OrderingFilter, RangeFilter)
 from ...core.utils.filters import filter_by_customer, filter_by_location
 from django.utils.translation import pgettext_lazy
+from django import forms
 
 from ...userprofile.models import User
 
@@ -15,7 +17,6 @@ SORT_BY_FIELDS = (
     ('last_order', 'last_order')
 )
 
-
 SORT_BY_FIELDS_LABELS = {
     'email': pgettext_lazy(
         'Customer list sorting option', 'email'),
@@ -27,6 +28,14 @@ SORT_BY_FIELDS_LABELS = {
         'Customer list sorting option', 'number of orders'),
     'last_order': pgettext_lazy(
         'Customer list sorting option', 'last order')}
+
+IS_ACTIVE_CHOICES = (
+    ('1', pgettext_lazy('Is active filter choice', 'Active')),
+    ('0', pgettext_lazy('Is active filter choice', 'Not active')))
+
+IS_STAFF_CHOICES = (
+    ('1', pgettext_lazy('Is active filter choice', 'Is staff')),
+    ('0', pgettext_lazy('Is active filter choice', 'Is not staff')))
 
 
 class CustomerFilter(FilterSet):
@@ -44,7 +53,19 @@ class CustomerFilter(FilterSet):
         label=pgettext_lazy(
             'Customer list sorting filter', 'Number of orders'),
         name='num_orders')
+    is_active = ChoiceFilter(
+        label=pgettext_lazy(
+            'Customer list is published filter label', 'Is active'),
+        choices=IS_ACTIVE_CHOICES,
+        empty_label=pgettext_lazy('Filter empty choice label', 'All'),
+        widget=forms.Select)
+    is_staff = ChoiceFilter(
+        label=pgettext_lazy(
+            'Customer list is published filter label', 'Is staff'),
+        choices=IS_STAFF_CHOICES,
+        empty_label=pgettext_lazy('Filter empty choice label', 'All'),
+        widget=forms.Select)
 
     class Meta:
         model = User
-        fields = ['email', 'is_active', 'is_staff']
+        fields = []
