@@ -13,8 +13,8 @@ from payments import PaymentStatus
 from prices import Price
 
 from .forms import (
-    CancelGroupForm, CancelItemsForm, CancelOrderForm, CapturePaymentForm,
-    ChangeStockForm, ChangeQuantityForm, MoveItemsForm, OrderNoteForm,
+    CancelGroupForm, CancelLinesForm, CancelOrderForm, CapturePaymentForm,
+    ChangeStockForm, ChangeQuantityForm, MoveLinesForm, OrderNoteForm,
     RefundPaymentForm, ReleasePaymentForm, RemoveVoucherForm, ShipGroupForm)
 from .utils import (create_packing_slip_pdf, create_invoice_pdf,
                     get_statics_absolute_url)
@@ -172,11 +172,11 @@ def release_payment(request, order_pk, payment_pk):
 @permission_required('order.edit_order')
 def orderline_change_quantity(request, order_pk, line_pk):
     order = get_object_or_404(Order, pk=order_pk)
-    item = get_object_or_404(OrderLine.objects.filter(
+    line = get_object_or_404(OrderLine.objects.filter(
         delivery_group__order=order), pk=line_pk)
-    form = ChangeQuantityForm(request.POST or None, instance=item)
+    form = ChangeQuantityForm(request.POST or None, instance=line)
     status = 200
-    old_quantity = item.quantity
+    old_quantity = line.quantity
     if form.is_valid():
         with transaction.atomic():
             form.save()
@@ -184,14 +184,14 @@ def orderline_change_quantity(request, order_pk, line_pk):
             'Dashboard message related to an order line',
             'Changed quantity for product %(product)s from'
             ' %(old_quantity)s to %(new_quantity)s') % {
-                'product': item.product, 'old_quantity': old_quantity,
-                'new_quantity': item.quantity}
+                'product': line.product, 'old_quantity': old_quantity,
+                'new_quantity': line.quantity}
         order.create_history_entry(comment=msg, user=request.user)
         messages.success(request, msg)
         return redirect('dashboard:order-details', order_pk=order.pk)
     elif form.errors:
         status = 400
-    ctx = {'order': order, 'object': item, 'form': form}
+    ctx = {'order': order, 'object': line, 'form': form}
     template = 'dashboard/order/modal/change_quantity.html'
     return TemplateResponse(request, template, ctx, status=status)
 
@@ -200,18 +200,18 @@ def orderline_change_quantity(request, order_pk, line_pk):
 @permission_required('order.edit_order')
 def orderline_split(request, order_pk, line_pk):
     order = get_object_or_404(Order, pk=order_pk)
-    item = get_object_or_404(OrderLine.objects.filter(
+    line = get_object_or_404(OrderLine.objects.filter(
         delivery_group__order=order), pk=line_pk)
-    form = MoveItemsForm(request.POST or None, item=item)
+    form = MoveLinesForm(request.POST or None, item=line)
     line_pk = None
-    if item:
-        line_pk = item.pk
+    if line:
+        line_pk = line.pk
     status = 200
     if form.is_valid():
-        old_group = item.delivery_group
+        old_group = line.delivery_group
         how_many = form.cleaned_data['quantity']
         with transaction.atomic():
-            target_group = form.move_items()
+            target_group = form.move_lines()
         if not old_group.pk:
             old_group = pgettext_lazy(
                 'Dashboard message related to a delivery group',
@@ -220,14 +220,14 @@ def orderline_split(request, order_pk, line_pk):
             'Dashboard message related to delivery groups',
             'Moved %(how_many)s items %(item)s from %(old_group)s'
             ' to %(new_group)s') % {
-                'how_many': how_many, 'item': item, 'old_group': old_group,
+                'how_many': how_many, 'item': line, 'old_group': old_group,
                 'new_group': target_group}
         order.create_history_entry(comment=msg, user=request.user)
         messages.success(request, msg)
         return redirect('dashboard:order-details', order_pk=order.pk)
     elif form.errors:
         status = 400
-    ctx = {'order': order, 'object': item, 'form': form, 'line_pk': line_pk}
+    ctx = {'order': order, 'object': line, 'form': form, 'line_pk': line_pk}
     template = 'dashboard/order/modal/split_order_line.html'
     return TemplateResponse(request, template, ctx, status=status)
 
@@ -236,22 +236,22 @@ def orderline_split(request, order_pk, line_pk):
 @permission_required('order.edit_order')
 def orderline_cancel(request, order_pk, line_pk):
     order = get_object_or_404(Order, pk=order_pk)
-    item = get_object_or_404(OrderLine.objects.filter(
+    line = get_object_or_404(OrderLine.objects.filter(
         delivery_group__order=order), pk=line_pk)
-    form = CancelItemsForm(data=request.POST or None, item=item)
+    form = CancelLinesForm(data=request.POST or None, line=line)
     status = 200
     if form.is_valid():
         msg = pgettext_lazy(
             'Dashboard message related to an order line',
-            'Cancelled item %s') % item
+            'Cancelled item %s') % line
         with transaction.atomic():
-            form.cancel_item()
+            form.cancel_line()
             order.create_history_entry(comment=msg, user=request.user)
             messages.success(request, msg)
         return redirect('dashboard:order-details', order_pk=order.pk)
     elif form.errors:
         status = 400
-    ctx = {'order': order, 'item': item, 'form': form}
+    ctx = {'order': order, 'item': line, 'form': form}
     return TemplateResponse(
         request, 'dashboard/order/modal/cancel_line.html',
         ctx, status=status)

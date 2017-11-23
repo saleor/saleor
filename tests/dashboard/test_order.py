@@ -5,7 +5,7 @@ from decimal import Decimal
 import pytest
 from django.urls import reverse
 
-from saleor.dashboard.order.forms import ChangeQuantityForm, MoveItemsForm
+from saleor.dashboard.order.forms import ChangeQuantityForm, MoveLinesForm
 from saleor.order.models import (
     DeliveryGroup, Order, OrderLine, OrderHistoryEntry)
 from saleor.order.utils import (
@@ -193,7 +193,7 @@ def test_view_split_order_line(admin_client, order_with_items_and_stock):
     assert response.status_code == 200
     response = admin_client.post(
         url,
-        {'quantity': 2, 'target_group': MoveItemsForm.NEW_SHIPMENT},
+        {'quantity': 2, 'target_group': MoveLinesForm.NEW_SHIPMENT},
         follow=True)
     redirected_to, redirect_status_code = response.redirect_chain[-1]
     # check redirection
@@ -263,7 +263,7 @@ def test_view_split_order_line_with_invalid_data(admin_client, order_with_items_
             'order_pk': order_with_items_and_stock.pk,
             'line_pk': line.pk})
     response = admin_client.post(
-        url, {'quantity': quantity, 'target_group': MoveItemsForm.NEW_SHIPMENT})
+        url, {'quantity': quantity, 'target_group': MoveLinesForm.NEW_SHIPMENT})
     assert response.status_code == 400
     assert DeliveryGroup.objects.count() == 1
 
