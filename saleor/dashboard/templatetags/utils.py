@@ -9,7 +9,12 @@ except ImportError:
     from urllib import urlencode
 
 from django.template import Library
+from django.forms.fields import NullBooleanField, ChoiceField
+from django.forms.models import ModelMultipleChoiceField
+from django_filters.fields import RangeField
 from ...product.utils import get_margin_for_variant, get_variant_costs_data
+from ..chips import (handle_nullboolean, handle_default, handle_multiplechoice,
+                     handle_range, handle_choice)
 
 register = Library()
 
@@ -74,6 +79,26 @@ def margins_for_variant(variant):
 
 @register.inclusion_tag('dashboard/includes/_filters.html', takes_context=True)
 def add_filters(context, filter_set):
-    chips = filter_set.get_chips()
-    context['chips'] = chips
-    return context
+    chips = []
+    data = filter_set.form.cleaned_data
+    for key in data.keys():
+        if key == 'sort_by':
+            continue
+        field = filter_set.form[key]
+        if field.value() not in ['', None]:
+            if isinstance(field.field, NullBooleanField):
+                chips = handle_nullboolean(field, chips)
+            elif isinstance(field.field, ModelMultipleChoiceField):
+                field_data = {str(o.pk): str(o) for o in data[key]}
+                chips = handle_multiplechoice(field, chips, field_data)
+            elif isinstance(field.field, RangeField):
+                chips = handle_range(field, chips)
+            elif isinstance(field.field, ChoiceField):
+                chips = handle_choice(field, chips)
+            else:
+                chips = handle_default(field, chips)
+    filter_context = {
+        'chips': chips,
+        'filter': filter_set
+    }
+    return filter_context
