@@ -115,7 +115,7 @@ class Order(models.Model, ItemSet):
             self.save()
 
     def get_items(self):
-        return OrderedItem.objects.filter(delivery_group__order=self)
+        return OrderLine.objects.filter(delivery_group__order=self)
 
     def is_fully_paid(self):
         total_paid = sum(
@@ -284,7 +284,7 @@ class DeliveryGroup(models.Model, ItemSet):
         return self.status not in {OrderStatus.CANCELLED, OrderStatus.SHIPPED}
 
 
-class OrderedItemManager(models.Manager):
+class OrderLineManager(models.Manager):
     def move_to_group(self, item, target_group, quantity):
         try:
             target_item = target_group.items.get(
@@ -322,7 +322,7 @@ class OrderedItemManager(models.Manager):
 
 
 @python_2_unicode_compatible
-class OrderedItem(models.Model, ItemLine):
+class OrderLine(models.Model, ItemLine):
     delivery_group = models.ForeignKey(
         DeliveryGroup, related_name='items', editable=False,
         verbose_name=pgettext_lazy('Ordered item field', 'delivery group'),
@@ -336,7 +336,7 @@ class OrderedItem(models.Model, ItemLine):
     product_sku = models.CharField(
         pgettext_lazy('Ordered item field', 'sku'), max_length=32)
     stock_location = models.CharField(
-        pgettext_lazy('OrderedItem field', 'stock location'), max_length=100,
+        pgettext_lazy('OrderLine field', 'stock location'), max_length=100,
         default='')
     stock = models.ForeignKey(
         'product.Stock', on_delete=models.SET_NULL, null=True,
@@ -351,7 +351,7 @@ class OrderedItem(models.Model, ItemLine):
         pgettext_lazy('Ordered item field', 'unit price (gross)'),
         max_digits=12, decimal_places=4)
 
-    objects = OrderedItemManager()
+    objects = OrderLineManager()
 
     def __str__(self):
         return self.product_name

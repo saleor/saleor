@@ -19,7 +19,7 @@ from saleor.cart import utils
 from saleor.cart.models import Cart
 from saleor.checkout.core import Checkout
 from saleor.discount.models import Voucher, Sale
-from saleor.order.models import Order, OrderedItem, DeliveryGroup
+from saleor.order.models import Order, OrderLine, DeliveryGroup
 from saleor.product.models import (AttributeChoiceValue, Category, Product,
                                    ProductAttribute, ProductClass,
                                    ProductVariant, ProductImage, Stock,
@@ -357,7 +357,7 @@ def order_with_items(order, product_class):
         name='Test product', price=Decimal('10.00'),
         product_class=product_class)
 
-    OrderedItem.objects.create(
+    OrderLine.objects.create(
         delivery_group=group,
         product=product,
         product_name=product.name,
@@ -370,7 +370,7 @@ def order_with_items(order, product_class):
         name='Test product 2', price=Decimal('20.00'),
         product_class=product_class)
 
-    OrderedItem.objects.create(
+    OrderLine.objects.create(
         delivery_group=group,
         product=product,
         product_name=product.name,
@@ -383,7 +383,7 @@ def order_with_items(order, product_class):
         name='Test product 3', price=Decimal('30.00'),
         product_class=product_class)
 
-    OrderedItem.objects.create(
+    OrderLine.objects.create(
         delivery_group=group,
         product=product,
         product_name=product.name,
@@ -407,7 +407,7 @@ def order_with_items_and_stock(order, product_class):
     stock = Stock.objects.create(
         variant=variant, cost_price=1, quantity=5, quantity_allocated=3,
         location=warehouse)
-    OrderedItem.objects.create(
+    OrderLine.objects.create(
         delivery_group=group,
         product=product,
         product_name=product.name,
@@ -425,7 +425,7 @@ def order_with_items_and_stock(order, product_class):
     stock = Stock.objects.create(
         variant=variant, cost_price=2, quantity=2, quantity_allocated=2,
         location=warehouse)
-    OrderedItem.objects.create(
+    OrderLine.objects.create(
         delivery_group=group,
         product=product,
         product_name=product.name,
