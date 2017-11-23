@@ -206,9 +206,6 @@ header {
     @media (min-width: $large-screen) {
       margin-left: 270px;
     }
-    @media (min-width: 1740px) {
-      margin: 40px auto;
-    }
   }
 }
 
@@ -232,7 +229,7 @@ body.nav-toggled {
         margin-left: 270px;
       }
       @media (min-width: $large-screen) {
-        margin: 40px;
+        margin: 40px 40px 0;
       }
     }
   }
