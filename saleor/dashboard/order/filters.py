@@ -60,6 +60,3 @@ class OrderFilter(FilterSet):
                 'filter_class': RangeFilter
             }
         }
-
-
-
