@@ -45,16 +45,6 @@
                       {% trans "Location" context "Customers table header" %}
                     </a>
                   </th>
-                  <th class="right-align">
-                    <a href="{% get_sort_by_url_toggle 'num_orders' %}">
-                      {% trans "Number of orders" context "Customers table header" %}
-                    </a>
-                  </th>
-                  <th>
-                    <a href="{% get_sort_by_url_toggle 'last_order' %}">
-                      {% trans "Last order" context "Customers table header" %}
-                    </a>
-                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -75,18 +65,6 @@
                         <td colspan="2"></td>
                       {% endif %}
                     {% endwith %}
-                    <td class="right-align">
-                      {{ customer.num_orders }}
-                    </td>
-                    <td class="ignore-link">
-                      {% if customer.last_order %}
-                        <a href="{% url 'dashboard:order-details' order_pk=customer.last_order %}">
-                          {% blocktrans with last_order=customer.last_order trimmed context "Customers table last order data" %}
-                            #{{ last_order }}
-                          {% endblocktrans %}
-                        </a>
-                      {% endif %}
-                    </td>
                   </tr>
                 {% endfor %}
               </tbody>

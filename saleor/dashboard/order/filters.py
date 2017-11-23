@@ -48,7 +48,7 @@ class OrderFilter(FilterSet):
         widget=forms.Select)
     name_or_email = CharFilter(
         label=pgettext_lazy(
-            'Customer name or email filter label', 'Name or email'),
+            'Customer name or email filter label', 'Customer name or email'),
         method=filter_by_customer)
     sort_by = OrderingFilter(
         label=pgettext_lazy('Order list sorting filter label', 'Sort by'),
