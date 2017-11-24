@@ -361,9 +361,9 @@ LOGOUT_ON_PASSWORD_CHANGE = False
 DB_SEARCH_ENABLED = True
 PREFER_DB_SEARCH = False  # prefer db backend over elasticsearch
 
-ELASTICSEARCH_URL = os.environ.get('ELASTICSEARCH_URL')
-SEARCHBOX_URL = os.environ.get('SEARCHBOX_URL')
-BONSAI_URL = os.environ.get('BONSAI_URL')
+ELASTICSEARCH_URL = os.environ.get('ELASTICSEARCH_URL', None)
+SEARCHBOX_URL = os.environ.get('SEARCHBOX_URL', None)
+BONSAI_URL = os.environ.get('BONSAI_URL', None)
 
 # We'll support couple of elasticsearch add-ons, but finally we'll use single
 # variable
