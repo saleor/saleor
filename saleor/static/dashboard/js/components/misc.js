@@ -1,6 +1,6 @@
 import SVGInjector from 'svg-injector-2';
 
-import { initSelects, removeFromQuery } from './utils';
+import { initSelects } from './utils';
 
 export default $(document).ready((e) => {
   new SVGInjector().inject(document.querySelectorAll('svg[data-src]'));
