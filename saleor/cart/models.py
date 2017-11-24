@@ -118,8 +118,6 @@ class Cart(models.Model):
 
     class Meta:
         ordering = ('-last_status_change',)
-        verbose_name = pgettext_lazy('Cart model', 'Cart')
-        verbose_name_plural = pgettext_lazy('Cart model', 'Carts')
 
     def __init__(self, *args, **kwargs):
         self.discounts = kwargs.pop('discounts', None)
@@ -270,8 +268,6 @@ class CartLine(models.Model, ItemLine):
 
     class Meta:
         unique_together = ('cart', 'variant', 'data')
-        verbose_name = pgettext_lazy('Cart line model', 'Cart line')
-        verbose_name_plural = pgettext_lazy('Cart line model', 'Cart lines')
 
     def __str__(self):
         return smart_str(self.variant)

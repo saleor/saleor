@@ -137,8 +137,6 @@ class Voucher(models.Model):
                 self.discount_value_type == Voucher.DISCOUNT_VALUE_PERCENTAGE)
 
     class Meta:
-        verbose_name = pgettext_lazy('Voucher model', 'voucher')
-        verbose_name_plural = pgettext_lazy('Voucher model', 'vouchers')
         permissions = (
             ('view_voucher',
              pgettext_lazy('Permission description', 'Can view vouchers')),
@@ -292,8 +290,6 @@ class Sale(models.Model):
 
     class Meta:
         app_label = 'discount'
-        verbose_name = pgettext_lazy('Sale (discount) model', 'sale')
-        verbose_name_plural = pgettext_lazy('Sales (discounts) model', 'sales')
         permissions = (
             ('view_sale',
              pgettext_lazy('Permission description', 'Can view sales')),

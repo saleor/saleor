@@ -98,8 +98,6 @@ class Order(models.Model, ItemSet):
 
     class Meta:
         ordering = ('-last_status_change',)
-        verbose_name = pgettext_lazy('Order model', 'Order')
-        verbose_name_plural = pgettext_lazy('Order model', 'Orders')
         permissions = (
             ('view_order',
              pgettext_lazy('Permission description', 'Can view orders')),
@@ -246,11 +244,6 @@ class DeliveryGroup(models.Model, ItemSet):
         pgettext_lazy('Delivery group field', 'last updated'),
         null=True, auto_now=True)
 
-    class Meta:
-        verbose_name = pgettext_lazy('Delivery group model', 'Delivery Group')
-        verbose_name_plural = pgettext_lazy(
-            'Delivery group model', 'Delivery Groups')
-
     def __str__(self):
         return pgettext_lazy(
             'Delivery group str', 'Shipment #%s') % self.pk
@@ -360,10 +353,6 @@ class OrderedItem(models.Model, ItemLine):
 
     objects = OrderedItemManager()
 
-    class Meta:
-        verbose_name = pgettext_lazy('Ordered item model', 'Ordered item')
-        verbose_name_plural = pgettext_lazy('Ordered item model', 'Ordered items')
-
     def __str__(self):
         return self.product_name
 
@@ -393,8 +382,6 @@ class Payment(BasePayment):
 
     class Meta:
         ordering = ('-pk',)
-        verbose_name = pgettext_lazy('Payment model', 'Payment')
-        verbose_name_plural = pgettext_lazy('Payment model', 'Payments')
 
     def get_failure_url(self):
         return build_absolute_uri(
@@ -459,10 +446,6 @@ class OrderHistoryEntry(models.Model):
 
     class Meta:
         ordering = ('date', )
-        verbose_name = pgettext_lazy(
-            'Order history entry model', 'Order history entry')
-        verbose_name_plural = pgettext_lazy(
-            'Order history entry model', 'Order history entries')
 
     def __str__(self):
         return pgettext_lazy(
@@ -480,10 +463,6 @@ class OrderNote(models.Model):
     content = models.CharField(
         pgettext_lazy('Order note model', 'content'),
         max_length=250)
-
-    class Meta:
-        verbose_name = pgettext_lazy('Order note model', 'Order note')
-        verbose_name_plural = pgettext_lazy('Order note model', 'Order notes')
 
     def __str__(self):
         return pgettext_lazy(
