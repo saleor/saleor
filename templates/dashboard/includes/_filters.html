@@ -13,7 +13,7 @@
       </div>
       <div class="col s12 hide-on-large-only chips-container">
         {% for chip in chips %}
-          <div class="chip">{{ chip.content|safe }} <a class="js-build-query" data-name="{{ chip.name }}" data-value="{{ chip.value }}">×</a></div>
+          <div class="chip">{{ chip.content|safe }} <a href="{{ chip.link }}">×</a></div>
         {% endfor %}
       </div>
       <div class="clearfix"></div>
