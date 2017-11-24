@@ -44,8 +44,6 @@ class Category(MPTTModel):
     tree = TreeManager()
 
     class Meta:
-        verbose_name = pgettext_lazy('Category model', 'category')
-        verbose_name_plural = pgettext_lazy('Category model', 'categories')
         app_label = 'product'
         permissions = (
             ('view_category',
@@ -92,9 +90,6 @@ class ProductClass(models.Model):
         default=False)
 
     class Meta:
-        verbose_name = pgettext_lazy('Product class model', 'product class')
-        verbose_name_plural = pgettext_lazy(
-            'Product class model', 'product classes')
         app_label = 'product'
 
     def __str__(self):
@@ -145,8 +140,6 @@ class Product(models.Model, ItemRange):
 
     class Meta:
         app_label = 'product'
-        verbose_name = pgettext_lazy('Product model', 'product')
-        verbose_name_plural = pgettext_lazy('Product model', 'products')
         permissions = (
             ('view_product',
              pgettext_lazy('Permission description', 'Can view products')),
@@ -245,10 +238,6 @@ class ProductVariant(models.Model, Item):
 
     class Meta:
         app_label = 'product'
-        verbose_name = pgettext_lazy(
-            'Product variant model', 'product variant')
-        verbose_name_plural = pgettext_lazy(
-            'Product variant model', 'product variants')
 
     def __str__(self):
         return self.name or self.display_variant()
@@ -406,10 +395,6 @@ class ProductAttribute(models.Model):
 
     class Meta:
         ordering = ('slug', )
-        verbose_name = pgettext_lazy(
-            'Product attribute model', 'product attribute')
-        verbose_name_plural = pgettext_lazy(
-            'Product attribute model', 'product attributes')
 
     def __str__(self):
         return self.name
@@ -437,10 +422,6 @@ class AttributeChoiceValue(models.Model):
 
     class Meta:
         unique_together = ('name', 'attribute')
-        verbose_name = pgettext_lazy(
-            'Attribute choice value model', 'attribute choices value')
-        verbose_name_plural = pgettext_lazy(
-            'Attribute choice value model', 'attribute choices values')
 
     def __str__(self):
         return self.name
@@ -474,9 +455,6 @@ class ProductImage(models.Model):
     class Meta:
         ordering = ('order', )
         app_label = 'product'
-        verbose_name = pgettext_lazy('Product image model', 'product image')
-        verbose_name_plural = pgettext_lazy(
-            'Product image model', 'product images')
 
     def get_ordering_queryset(self):
         return self.product.images.all()
@@ -504,8 +482,3 @@ class VariantImage(models.Model):
         ProductImage, related_name='variant_images',
         verbose_name=pgettext_lazy('Variant image field', 'image'),
         on_delete=models.CASCADE)
-
-    class Meta:
-        verbose_name = pgettext_lazy('Variant image model', 'variant image')
-        verbose_name_plural = pgettext_lazy(
-            'Variant image model', 'variant images')
