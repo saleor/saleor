@@ -1,5 +1,4 @@
 import 'select2';
-import queryString from 'query-string';
 
 let supportsPassive = false;
 try {
@@ -42,14 +41,4 @@ export function initSelects() {
       minimumInputLength: 2
     });
   });
-}
-
-export function removeFromQuery(name, value) {
-  const urlParams = queryString.parse(location.search);
-  if (Array.isArray(urlParams[name])) {
-    delete urlParams[name][urlParams[name].indexOf(value)];
-  } else {
-    delete urlParams[name];
-  }
-  return queryString.stringify(urlParams);
 }
