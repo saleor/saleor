@@ -6,11 +6,14 @@ from django_filters import (
     CharFilter, ChoiceFilter, FilterSet, RangeFilter, OrderingFilter)
 from django_prices.models import PriceField
 
-from ...product.models import Product
+from ...product.models import Product, ProductClass
 
-SORT_BY_FIELDS = {'name': pgettext_lazy('Product list sorting option', 'name'),
-                  'price': pgettext_lazy(
-                      'Product list sorting option', 'price')}
+PRODUCT_SORT_BY_FIELDS = {
+    'name': pgettext_lazy('Product list sorting option', 'name'),
+    'price': pgettext_lazy('Product type list sorting option', 'price')}
+
+PRODUCT_CLASS_SORT_BY_FIELDS = {
+    'name': pgettext_lazy('Product type list sorting option', 'name')}
 
 PUBLISHED_CHOICES = (
     ('1', pgettext_lazy('Is publish filter choice', 'Published')),
@@ -27,8 +30,8 @@ class ProductFilter(FilterSet):
         lookup_expr='icontains')
     sort_by = OrderingFilter(
         label=pgettext_lazy('Product list sorting filter label', 'Sort by'),
-        fields=SORT_BY_FIELDS.keys(),
-        field_labels=SORT_BY_FIELDS)
+        fields=PRODUCT_SORT_BY_FIELDS.keys(),
+        field_labels=PRODUCT_SORT_BY_FIELDS)
     is_published = ChoiceFilter(
         label=pgettext_lazy(
             'Product list is published filter label', 'Is published'),
@@ -50,3 +53,17 @@ class ProductFilter(FilterSet):
                 'filter_class': RangeFilter
             }
         }
+
+
+class ProductClassFilter(FilterSet):
+    name = CharFilter(
+        label=pgettext_lazy('Product type list name filter label', 'Name'),
+        lookup_expr='icontains')
+    sort_by = OrderingFilter(
+        label=pgettext_lazy('Product list sorting filter label', 'Sort by'),
+        fields=PRODUCT_CLASS_SORT_BY_FIELDS.keys(),
+        field_labels=PRODUCT_CLASS_SORT_BY_FIELDS)
+
+    class Meta:
+        model = ProductClass
+        fields = ['name', 'product_attributes', 'variant_attributes']
