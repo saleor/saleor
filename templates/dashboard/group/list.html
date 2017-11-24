@@ -1,6 +1,7 @@
 {% extends "dashboard/base.html" %}
 {% load i18n %}
 {% load materializecss %}
+{% load get_sort_by_url_toggle from shop %}
 {% load staticfiles %}
 {% load utils %}
 
@@ -42,8 +43,16 @@
             <table class="bordered highlight data-table data-table-description no-align">
               <thead>
                 <tr>
-                  <th>{% trans "Name" context "Dashboard groups list table header name" %}</th>
-                  <th>{% trans "Permissions" context "Dashboard groups list table header permissions" %}</th>
+                  <th>
+                    <a href="{% get_sort_by_url_toggle 'name' %}">
+                      {% trans "Name" context "Dashboard groups list table header name" %}
+                    </a>
+                  </th>
+                  <th>
+                    <a href="{% get_sort_by_url_toggle 'permissions' %}">
+                      {% trans "Permissions" context "Dashboard groups list table header permissions" %}
+                    </a>
+                  </th>
                 </tr>
               </thead>
               <tbody>

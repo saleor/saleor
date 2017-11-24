@@ -10,17 +10,21 @@ from django.utils.translation import pgettext_lazy
 
 from ...core.utils import get_paginator_items
 from ..views import staff_member_required
+from .filters import GroupFilter
 from .forms import GroupPermissionsForm
 
 
 @staff_member_required
 @permission_required('userprofile.view_group')
 def group_list(request):
-    groups = [{'name': group, 'permissions': group.permissions.all()}
-              for group in Group.objects.all().prefetch_related('permissions')]
+    groups = Group.objects.all().prefetch_related('permissions')
+    group_filter = GroupFilter(request.GET, queryset=groups)
+    display_groups = [{'name': group, 'permissions': group.permissions.all()}
+                      for group in group_filter.qs]
     groups = get_paginator_items(
-        groups, settings.DASHBOARD_PAGINATE_BY, request.GET.get('page'))
-    ctx = {'groups': groups}
+        display_groups, settings.DASHBOARD_PAGINATE_BY,
+        request.GET.get('page'))
+    ctx = {'groups': groups, 'filter': group_filter}
     return TemplateResponse(request, 'dashboard/group/list.html', ctx)
 
 
