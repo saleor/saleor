@@ -33,9 +33,19 @@ def get_sort_by_url(context, field, descending=False):
 def get_sort_by_url_toggle(context, field):
     request = context['request']
     request_get = request.GET.copy()
+    if request_get.get('sort_by'):
+        # toggle existing sort_by
+        new_sort_by = toggle(field, request_get)
+    else:
+        # first click on link
+        new_sort_by = u'-%s' % field  # descending sort
+    request_get['sort_by'] = new_sort_by
+    return '%s?%s' % (request.path, request_get.urlencode())
+
+
+def toggle(field, request_get):
     if field == request_get.get('sort_by'):
         new_sort_by = u'-%s' % field  # descending sort
     else:
         new_sort_by = field  # ascending sort
-    request_get['sort_by'] = new_sort_by
-    return '%s?%s' % (request.path, request_get.urlencode())
+    return new_sort_by
