@@ -18,6 +18,10 @@ class LoginForm(django_forms.AuthenticationForm):
             email = request.GET.get('email')
             if email:
                 self.fields['username'].initial = email
+            else:
+                self.fields['username'].initial = 'admin@example.com'
+                self.fields['password'].initial = 'admin'
+                self.fields['password'].widget.render_value = True
 
 
 class SignupForm(forms.ModelForm):
