@@ -538,3 +538,36 @@ def test_product_bulk_update_form_can_unpublish_products(product_list):
     for p in product_list:
         p.refresh_from_db()
         assert not p.is_published
+
+
+def test_product_list_filters(admin_client, product_list):
+    db_products = Product.objects.all()
+    assert len(db_products) == 2
+    data = {u'price_1': [u''], u'price_0': [u''], u'is_featured': [u''],
+            u'name': [u'Test'], u'sort_by': [u''], u'is_published': [u'']}
+    url = reverse('dashboard:product-list')
+    response = admin_client.get(url, data)
+    assert response.status_code == 200
+    assert list(response.context['filter'].qs) == product_list
+
+    data = {u'price_1': [u''], u'price_0': [u''], u'is_featured': [u''],
+            u'name': [u'Test'], u'sort_by': [u'name'], u'is_published': [u'']}
+    url = reverse('dashboard:product-list')
+    response = admin_client.get(url, data)
+    assert response.status_code == 200
+    assert list(response.context['filter'].qs) == product_list
+
+    data = {u'price_1': [u''], u'price_0': [u''], u'is_featured': [u''],
+            u'name': [u'Test'], u'sort_by': [u'-name'], u'is_published': [u'']}
+    url = reverse('dashboard:product-list')
+    response = admin_client.get(url, data)
+    assert response.status_code == 200
+    assert list(response.context['filter'].qs) == product_list[::-1]
+
+    data = {u'price_1': [u''], u'price_0': [u''], u'is_featured': [u''],
+            u'name': [u'BADTest'], u'sort_by': [u''],
+            u'is_published': [u'']}
+    url = reverse('dashboard:product-list')
+    response = admin_client.get(url, data)
+    assert response.status_code == 200
+    assert list(response.context['filter'].qs) == []
