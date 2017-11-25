@@ -2,6 +2,7 @@ from __future__ import unicode_literals
 
 from django.core.management import call_command
 from django.core.management.base import BaseCommand
+from django.conf import settings
 from django.db import connection
 
 from ...utils.random_data import (
@@ -47,7 +48,8 @@ class Command(BaseCommand):
             cursor.execute('PRAGMA synchronous = OFF;')
 
     def populate_search_index(self):
-        call_command('search_index', '--rebuild', force=True)
+        if settings.ELASTICSEARCH_URL:
+            call_command('search_index', '--rebuild', force=True)
 
     def handle(self, *args, **options):
         self.make_database_faster()
