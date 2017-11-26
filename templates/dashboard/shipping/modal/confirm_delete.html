@@ -1,0 +1,21 @@
+{% extends "dashboard/base_modal_confirm_delete.html" %}
+
+{% load i18n %}
+{% load prices_i18n %}
+{% load staticfiles %}
+
+{% block action_url %}
+{% url "dashboard:shipping-method-delete" shipping_method.pk %}
+{% endblock %}
+
+{% block title %}
+{% blocktrans context "Dashboard confirmation modal" %}
+Delete shipping method {{ shipping_method }}
+{% endblocktrans %}
+{% endblock %}
+
+{% block content %}
+{% blocktrans context "Dashboard confirmation modal" %}
+Are you sure you want to delete shipping method <strong>{{ shipping_method}}</strong>?
+{% endblocktrans %}
+{% endblock %}

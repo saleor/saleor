@@ -3,7 +3,7 @@ from collections import defaultdict
 import i18naddress
 from django import forms
 from django.forms.forms import BoundField
-from django.utils.translation import pgettext_lazy, pgettext
+from django.utils.translation import pgettext, pgettext_lazy
 from django_countries.data import COUNTRIES
 
 from .models import Address
@@ -18,6 +18,7 @@ AREA_TYPE_TRANSLATIONS = {
     'department': pgettext_lazy('Address field', 'Department'),
     'district': pgettext_lazy('Address field', 'District'),
     'do_si': pgettext_lazy('Address field', 'Do/si'),
+    'eircode': pgettext_lazy('Address field', 'Eircode'),
     'emirate': pgettext_lazy('Address field', 'Emirate'),
     'island': pgettext_lazy('Address field', 'Island'),
     'neighborhood': pgettext_lazy('Address field', 'Neighborhood'),

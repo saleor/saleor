@@ -3,7 +3,7 @@ from django.conf.urls import url, include
 from django.conf.urls.static import static
 from django.contrib.sitemaps.views import sitemap
 from django.contrib.staticfiles.views import serve
-from django.views.i18n import javascript_catalog
+from django.views.i18n import JavaScriptCatalog
 from graphene_django.views import GraphQLView
 
 from .cart.urls import urlpatterns as cart_urls
@@ -21,16 +21,22 @@ from .userprofile.urls import urlpatterns as userprofile_urls
 urlpatterns = [
     url(r'^', include(core_urls)),
     url(r'^account/', include(registration_urls)),
-    url(r'^cart/', include(cart_urls, namespace='cart')),
-    url(r'^checkout/', include(checkout_urls, namespace='checkout')),
-    url(r'^dashboard/', include(dashboard_urls, namespace='dashboard')),
+    url(r'^cart/', include((cart_urls, 'cart'), namespace='cart')),
+    url(r'^checkout/',
+        include((checkout_urls, 'checkout'), namespace='checkout')),
+    url(r'^dashboard/',
+        include((dashboard_urls, 'dashboard'), namespace='dashboard')),
     url(r'^graphql', GraphQLView.as_view(graphiql=settings.DEBUG)),
-    url(r'^jsi18n/$', javascript_catalog, name='javascript-catalog'),
-    url(r'^order/', include(order_urls, namespace='order')),
-    url(r'^products/', include(product_urls, namespace='product')),
-    url(r'^profile/', include(userprofile_urls, namespace='profile')),
-    url(r'^search/', include(search_urls, namespace='search')),
-    url(r'^feeds/', include(feed_urls, namespace='data_feeds')),
+    url(r'^impersonate/', include('impersonate.urls')),
+    url(r'^jsi18n/$', JavaScriptCatalog.as_view(), name='javascript-catalog'),
+    url(r'^order/', include((order_urls, 'order'), namespace='order')),
+    url(r'^products/',
+        include((product_urls, 'product'), namespace='product')),
+    url(r'^profile/',
+        include((userprofile_urls, 'profile'), namespace='profile')),
+    url(r'^feeds/',
+        include((feed_urls, 'data_feeds'), namespace='data_feeds')),
+    url(r'^search/', include((search_urls, 'search'), namespace='search')),
     url(r'^sitemap\.xml$', sitemap, {'sitemaps': sitemaps},
         name='django.contrib.sitemaps.views.sitemap'),
     url(r'', include('payments.urls')),

@@ -1,0 +1,23 @@
+{% load i18n %}
+
+<form action="{% url 'dashboard:customer-promote' pk=customer.pk %}" method="post" novalidate>
+  {% csrf_token %}
+  <div class="modal-content">
+    <div class="row">
+      <div class="col s12">
+        <h5>
+          {% trans "Promote to staff member" context "Dashboard confirmation modal" %}
+        </h5>
+      </div>
+    </div>
+    {% trans "Are you sure?" context "Dashboard confirmation modal" %}
+  </div>
+  <div class="modal-footer">
+    <button type="submit" class="modal-action btn-flat">
+      {% trans "Promote" context "Dashboard promote action" %}
+    </button>
+    <a href="#!" class="modal-action modal-close btn-flat">
+      {% trans "Cancel" context "Dashboard cancel action" %}
+    </a>
+  </div>
+</form>

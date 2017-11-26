@@ -1,0 +1,129 @@
+{% extends "dashboard/base.html" %}
+{% load prices_i18n %}
+{% load i18n %}
+{% load materializecss %}
+{% load staticfiles %}
+{% load attributes %}
+
+{% block title %}
+  {% if product_class.pk %}
+    {{ product_class }}
+  {% else %}
+    {% trans "Add new product type" context "Product class page title" %}
+  {% endif %} 
+  - {% trans "Products" context "Dashboard products list" %} - {{ block.super }}
+{% endblock %}
+
+{% block body_class %}body-products{% endblock %}
+
+{% block menu_product_classes_class %}active{% endblock %}
+
+{% block header_menu %}
+  {% url "dashboard:product-class-list" as url %}
+  {% include "dashboard/includes/_back-link.html" with url=url %}
+{% endblock %}
+
+{% block breadcrumbs %}
+  <ul class="breadcrumbs breadcrumbs--history">
+    <li>
+      <a href="{% url "dashboard:product-class-list" %}" class="breadcrumb">
+        {% trans "Product types" context "Dashboard product types list" %}
+      </a>
+    </li>
+    <li class="back-mobile">
+      <a href="{% url "dashboard:product-class-list" %}">
+        <svg data-src="{% static "dashboard/images/arrow_left.svg" %}" fill="#fff" width="20px" height="20px" />
+      </a>
+    </li>
+    <li>
+      <span class="breadcrumbs--ellipsed-item">
+        {% if product_class.pk %}
+          {{ product_class }}
+        {% else %}
+          {% trans 'Add new product type' context "Product class breadcrumbs" %}
+        {% endif %}
+      </span>
+    </li>
+  </ul>
+{% endblock %}
+
+{% block header_extra %}
+  {% if product_class.pk %}
+    <a class="dropdown-button right" href="#" data-activates="context-menu" data-constrainwidth="false">
+      <svg data-src="{% static "dashboard/images/more_vert.svg" %}" height="24" width="24" />
+    </a>
+    <ul id="context-menu" class="dropdown-content">
+      {% if perms.product.edit_properties %}
+      <li>
+        <a href="#base-modal" data-href="{% url 'dashboard:product-class-delete' pk=product_class.pk %}"
+        class="modal-trigger-custom">
+          {% trans "Remove product type" context "Product class action" %}
+        </a>
+      </li>
+      {% endif %}
+    </ul>
+  {% endif %}
+{% endblock %}
+
+{% block content %}
+  <div class="row">
+    <div class="col m12 l9">
+      <div class="card">
+        <form method="post" id="form-product" enctype="multipart/form-data" novalidate>
+          <div class="card-content card-content-form">
+            {% csrf_token %}
+            <div class="row">
+              {{ form.name|materializecss }}
+            </div>
+            <div class="row">
+              <div class="col s12 m8">
+                <div class="row">
+                  {{ form.product_attributes|materializecss:"input-field s12" }}
+                </div>
+                <div class="row">
+                  {{ form.variant_attributes|materializecss:"input-field s12" }}
+                </div>
+              </div>
+              <div class="col s12 m4">
+                <div class="row">
+                  {{ form.is_shipping_required|materializecss }}
+                </div>
+                <div class="row">
+                  {{ form.has_variants|materializecss }}
+                </div>
+              </div>
+            </div>
+          </div>
+          {% if perms.product.edit_properties %}
+          <div class="card-action right-align">
+            {% if product_class.pk %}
+              <a href="{% url 'dashboard:product-class-list' %}" class="btn btn-flat">
+                {% trans "Cancel" context "Dashboard cancel action" %}
+              </a>
+              <button type="submit" class="btn waves-effect waves-light">
+                {% trans "Update" context "Dashboard update action" %}
+              </button>
+            {% else %}
+              <a href="{% url 'dashboard:product-class-list' %}" class="btn btn-flat">
+                {% trans "Cancel" context "Dashboard cancel action" %}
+              </a>
+              <button type="submit" class="btn waves-effect waves-light">
+                {% trans "Create" context "Dashboard create action" %}
+              </button>
+            {% endif %}
+          </div>
+          {% endif %}
+        </form>
+      </div>
+    </div>
+    <div class="col m12 l3 help-box">
+      <p class="grey-text">
+        <svg data-src="{% static "dashboard/images/help.svg" %}" width="18" height="18" />
+        {% blocktrans trimmed context "Product class help text" %}
+        Product Type is a template used for creating new products.
+        It also controls which attributes can be used during product creation process.
+        {% endblocktrans %}
+      </p>
+    </div>
+  </div>
+{% endblock %}

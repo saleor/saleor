@@ -1,5 +1,5 @@
 html {
-  background: #f5f5f5;
+  background: $body-bg;
   @media only screen and (min-width: 0) {
     font-size: 14px;
   }
@@ -10,6 +10,13 @@ html {
 
 strong {
   font-weight: bold;
+}
+
+h5 {
+  font-weight: 400;
+  font-size: 1.2rem;
+  text-transform: uppercase;
+  padding-top: 10px;
 }
 
 h6 {
@@ -33,6 +40,10 @@ h6 {
 
 .text-lg {
   font-size: 120%;
+}
+
+.text-padding {
+  padding: 5px 0;
 }
 
 .label {
@@ -103,13 +114,45 @@ h6 {
   }
 }
 
-
 li#version-indicator {
   @media (min-height: 750px) {
     position: absolute;
     bottom: 0;
   }
   p {
-      @extend .grey-text, .text-lighten-1;
+    @extend .grey-text, .text-lighten-1;
+  }
+}
+
+.main {
+  form {
+    .input-field {
+      label {
+        pointer-events: auto;
+
+        &:not(.label-icon) {
+          transform: none;
+        }
+      }
+    }
+  }
+}
+
+.address {
+  margin-bottom: 1rem;
+  .phone-number {
+    margin-left: .5rem;
+    color: unset;
+  }
+}
+
+svg {
+  &.fill {
+    &-primary {
+      fill: $primary-color;
+    }
+    &-secondary {
+      fill: $secondary-color;
+    }
   }
 }

@@ -10,6 +10,8 @@ Environment variables
 ``ALLOWED_HOSTS``
   Controls `Django's allowed hosts <https://docs.djangoproject.com/en/1.10/ref/settings/#allowed-hosts>`_ setting. Defaults to ``localhost``.
 
+  Separate multiple values with comma.
+
 ``CACHE_URL`` or ``REDIS_URL``
   The URL of a cache database. Defaults to local process memory.
 
@@ -44,11 +46,14 @@ Environment variables
 ``INTERNAL_IPS``
   Controls `Django's internal IPs <https://docs.djangoproject.com/en/1.10/ref/settings/#internal-ips>`_ setting. Defaults to ``127.0.0.1``.
 
-  Separate multiple values with whitespace.
+  Separate multiple values with comma.
 
 ``SECRET_KEY``
   Controls `Django's secret key <https://docs.djangoproject.com/en/1.10/ref/settings/#secret-key>`_ setting.
 
 
 ``MAX_CART_LINE_QUANTITY``
-  Controls maximum number of items in one cart line. Defaults to ``50``
+  Controls maximum number of items in one cart line. Defaults to ``50``.
+
+``STATIC_URL``
+  Controls production assets' mount path. Defaults to ``/static/assets/``.

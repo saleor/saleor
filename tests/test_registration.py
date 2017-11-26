@@ -1,11 +1,11 @@
 import pytest
-
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import AnonymousUser
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 
-from saleor.registration.forms import LoginForm, SignupForm
 from saleor.registration.backends import BaseBackend
+from saleor.registration.forms import LoginForm, SignupForm
+
 from .utils import get_redirect_location
 
 User = get_user_model()
@@ -119,15 +119,16 @@ def test_password_reset_view_get(client, db):
     url = reverse('account_reset_password')
     response = client.get(url)
     assert response.status_code == 200
-    assert response.template_name == 'account/password_reset.html'
+    assert response.template_name == ['account/password_reset.html']
 
 
 def test_base_backend(authorization_key, base_backend):
+    assert authorization_key.site_settings.site.domain == 'mirumee.com'
     key, secret = base_backend.get_key_and_secret()
     assert key == 'Key'
     assert secret == 'Password'
 
 
-def test_backend_no_settings(settings, authorization_key, base_backend):
-    settings.SITE_SETTINGS_ID = None
+def test_backend_no_site(settings, authorization_key, base_backend):
+    settings.SITE_ID = None
     assert base_backend.get_key_and_secret() is None

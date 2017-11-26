@@ -13,6 +13,8 @@ Contents:
    products
    stock
    settings
+   localization
+   seo
    payments
    integrations
    development

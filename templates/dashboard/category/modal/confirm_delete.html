@@ -1,0 +1,46 @@
+{% extends "dashboard/base_modal_confirm_delete.html" %}
+
+{% load i18n %}
+{% load mptt_tags %}
+
+{% block action_url %}
+{% url "dashboard:category-delete" pk=category.pk %}
+{% endblock %}
+
+{% block title %}
+{% blocktrans with category=category trimmed context "Delete category modal title" %}
+Delete category {{ category }}
+{% endblocktrans %}
+{% endblock %}
+
+{% block content %}
+{% blocktrans with category=category trimmed context "Delete category modal title" %}
+Are you sure you want to delete category <strong>{{ category }}</strong>?
+{% endblocktrans %}
+{% if descendants %}
+<p>
+{% trans "The following child categories will be deleted:" context "Delete category form text about descendant categories" %}
+<ul>
+  {% recursetree descendants %}
+  <li>
+    {{ node.name }}
+    {% if not node.is_leaf_node %}
+      <ul class="children">
+        {{ children }}
+      </ul>
+    {% endif %}
+  </li>
+  {% endrecursetree %}
+</ul>
+</p>
+{% endif %}
+{% if products_count %}
+<p>
+{% blocktrans count counter=products_count trimmed context "Delete category form text about products" %}
+  There is one product in this category that will be deleted.
+  {% plural %}
+  There are {{ counter }} products in this category that will be deleted.
+{% endblocktrans %}
+</p>
+{% endif %}
+{% endblock content %}

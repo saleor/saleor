@@ -4,7 +4,7 @@
     padding-bottom: $global-padding / 2;
   }
   .breadcrumbs {
-    margin-bottom: 0;
+    margin: 0;
   }
   .category-list {
     margin-top: $global-margin;
@@ -15,7 +15,7 @@
   }
   .category-top {
     border-bottom: solid 1px $gray;
-    padding-bottom: $global-padding;
+    padding: $global-padding 0;
     @include media-breakpoint-down(sm) {
       width: 100%;
       position: fixed;

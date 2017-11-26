@@ -5,8 +5,12 @@ import os.path
 
 import dj_database_url
 import dj_email_url
-from django.contrib.messages import constants as messages
 import django_cache_url
+from django.contrib.messages import constants as messages
+
+
+def get_list(text):
+    return [item.strip() for item in text.split(',')]
 
 
 DEBUG = ast.literal_eval(os.environ.get('DEBUG', 'True'))
@@ -23,7 +27,8 @@ ADMINS = (
     # ('Your Name', 'your_email@example.com'),
 )
 MANAGERS = ADMINS
-INTERNAL_IPS = os.environ.get('INTERNAL_IPS', '127.0.0.1').split()
+
+INTERNAL_IPS = get_list(os.environ.get('INTERNAL_IPS', '127.0.0.1'))
 
 CACHES = {'default': django_cache_url.config()}
 
@@ -45,6 +50,7 @@ USE_I18N = True
 USE_L10N = True
 USE_TZ = True
 
+FORM_RENDERER = 'django.forms.renderers.TemplatesSetting'
 
 EMAIL_URL = os.environ.get('EMAIL_URL')
 SENDGRID_USERNAME = os.environ.get('SENDGRID_USERNAME')
@@ -65,7 +71,6 @@ EMAIL_USE_SSL = email_config['EMAIL_USE_SSL']
 
 DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL')
 ORDER_FROM_EMAIL = os.getenv('ORDER_FROM_EMAIL', DEFAULT_FROM_EMAIL)
-
 
 MEDIA_ROOT = os.path.join(PROJECT_ROOT, 'media')
 MEDIA_URL = '/media/'
@@ -95,7 +100,7 @@ context_processors = [
     'saleor.core.context_processors.categories',
     'saleor.cart.context_processors.cart_counter',
     'saleor.core.context_processors.search_enabled',
-    'saleor.site.context_processors.settings',
+    'saleor.site.context_processors.site',
     'saleor.core.context_processors.webpage_schema',
     'social_django.context_processors.backends',
     'social_django.context_processors.login_redirect',
@@ -103,9 +108,7 @@ context_processors = [
 
 loaders = [
     'django.template.loaders.filesystem.Loader',
-    'django.template.loaders.app_directories.Loader',
-    # TODO: this one is slow, but for now need for mptt?
-    'django.template.loaders.eggs.Loader']
+    'django.template.loaders.app_directories.Loader']
 
 if not DEBUG:
     loaders = [('django.template.loaders.cached.Loader', loaders)]
@@ -122,19 +125,21 @@ TEMPLATES = [{
 # Make this unique, and don't share it with anybody.
 SECRET_KEY = os.environ.get('SECRET_KEY')
 
-MIDDLEWARE_CLASSES = [
+MIDDLEWARE = [
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.locale.LocaleMiddleware',
-    'babeldjango.middleware.LocaleMiddleware',
+    'django_babel.middleware.LocaleMiddleware',
     'saleor.core.middleware.DiscountMiddleware',
     'saleor.core.middleware.GoogleAnalytics',
     'saleor.core.middleware.CountryMiddleware',
     'saleor.core.middleware.CurrencyMiddleware',
+    'saleor.core.middleware.ClearSiteCacheMiddleware',
     'social_django.middleware.SocialAuthExceptionMiddleware',
+    'impersonate.middleware.ImpersonateMiddleware'
 ]
 
 INSTALLED_APPS = [
@@ -150,6 +155,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'django.contrib.auth',
     'django.contrib.postgres',
+    'django.forms',
 
     # Local apps
     'saleor.userprofile',
@@ -168,39 +174,42 @@ INSTALLED_APPS = [
 
     # External apps
     'versatileimagefield',
-    'babeldjango',
+    'django_babel',
     'bootstrap3',
     'django_prices',
     'django_prices_openexchangerates',
-    'emailit',
     'graphene_django',
     'mptt',
     'payments',
-    'materializecssform',
-    'rest_framework',
     'webpack_loader',
     'social_django',
     'django_countries',
+    'django_filters',
+    'django_celery_results',
+    'impersonate',
+    'phonenumber_field',
 ]
 
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
+    'root': {
+        'level': 'INFO',
+        'handlers': ['console']
+    },
     'formatters': {
         'verbose': {
-            'format': '%(levelname)s %(asctime)s %(module)s '
-                      '%(process)d %(thread)d %(message)s'
+            'format': (
+                '%(levelname)s %(name)s %(message)s'
+                ' [PID:%(process)d:%(threadName)s]')
         },
         'simple': {
             'format': '%(levelname)s %(message)s'
-        },
+        }
     },
     'filters': {
         'require_debug_false': {
             '()': 'django.utils.log.RequireDebugFalse'
-        },
-        'require_debug_true': {
-            '()': 'django.utils.log.RequireDebugTrue'
         }
     },
     'handlers': {
@@ -212,14 +221,18 @@ LOGGING = {
         'console': {
             'level': 'DEBUG',
             'class': 'logging.StreamHandler',
-            'filters': ['require_debug_true'],
-            'formatter': 'simple'
-        },
+            'formatter': 'verbose'
+        }
     },
     'loggers': {
-        'django.request': {
-            'handlers': ['mail_admins'],
-            'level': 'ERROR',
+        'django': {
+            'handlers': ['console', 'mail_admins'],
+            'level': 'INFO',
+            'propagate': True
+        },
+        'django.server': {
+            'handlers': ['console'],
+            'level': 'INFO',
             'propagate': True
         },
         'saleor': {
@@ -234,8 +247,8 @@ AUTH_USER_MODEL = 'userprofile.User'
 
 LOGIN_URL = '/account/login/'
 
-DEFAULT_COUNTRY = 'US'
-DEFAULT_CURRENCY = 'USD'
+DEFAULT_COUNTRY = 'IN'
+DEFAULT_CURRENCY = 'INR'
 AVAILABLE_CURRENCIES = [DEFAULT_CURRENCY]
 
 OPENEXCHANGERATES_API_KEY = os.environ.get('OPENEXCHANGERATES_API_KEY')
@@ -248,8 +261,9 @@ GOOGLE_ANALYTICS_TRACKING_ID = os.environ.get('GOOGLE_ANALYTICS_TRACKING_ID')
 
 
 def get_host():
-    from saleor.site.utils import get_domain
-    return get_domain()
+    from django.contrib.sites.models import Site
+    return Site.objects.get_current().domain
+
 
 PAYMENT_HOST = get_host
 
@@ -271,6 +285,7 @@ LOW_STOCK_THRESHOLD = 10
 MAX_CART_LINE_QUANTITY = os.environ.get('MAX_CART_LINE_QUANTITY', 50)
 
 PAGINATE_BY = 16
+DASHBOARD_PAGINATE_BY = 30
 
 BOOTSTRAP3 = {
     'set_placeholder': False,
@@ -283,7 +298,7 @@ BOOTSTRAP3 = {
 
 TEST_RUNNER = ''
 
-ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', 'localhost').split()
+ALLOWED_HOSTS = get_list(os.environ.get('ALLOWED_HOSTS', 'localhost'))
 
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
@@ -342,30 +357,16 @@ WEBPACK_LOADER = {
 
 LOGOUT_ON_PASSWORD_CHANGE = False
 
+ELASTICSEARCH_URL = os.environ.get('ELASTICSEARCH_URL', None)
+ENABLE_SEARCH = bool(ELASTICSEARCH_URL)
 
-ELASTICSEARCH_URL = os.environ.get('ELASTICSEARCH_URL')
-SEARCHBOX_URL = os.environ.get('SEARCHBOX_URL')
-BONSAI_URL = os.environ.get('BONSAI_URL')
-# We'll support couple of elasticsearch add-ons, but finally we'll use single
-# variable
-ES_URL = ELASTICSEARCH_URL or SEARCHBOX_URL or BONSAI_URL or ''
-if ES_URL:
-    SEARCH_BACKENDS = {
+if ELASTICSEARCH_URL:
+    INSTALLED_APPS.append('django_elasticsearch_dsl')
+    ELASTICSEARCH_DSL = {
         'default': {
-            'BACKEND': 'saleor.search.backends.elasticsearch2',
-            'URLS': [ES_URL],
-            'INDEX': os.environ.get('ELASTICSEARCH_INDEX_NAME', 'storefront'),
-            'TIMEOUT': 5,
-            'AUTO_UPDATE': True},
-        'dashboard': {
-            'BACKEND': 'saleor.search.backends.dashboard',
-            'URLS': [ES_URL],
-            'INDEX': os.environ.get('ELASTICSEARCH_INDEX_NAME', 'storefront'),
-            'TIMEOUT': 5,
-            'AUTO_UPDATE': False}
+            'hosts': ELASTICSEARCH_URL
+        },
     }
-else:
-    SEARCH_BACKENDS = {}
 
 
 GRAPHENE = {
@@ -376,8 +377,6 @@ GRAPHENE = {
     'SCHEMA_OUTPUT': os.path.join(
         PROJECT_ROOT, 'saleor', 'static', 'schema.json')
 }
-
-SITE_SETTINGS_ID = 1
 
 AUTHENTICATION_BACKENDS = [
     'saleor.registration.backends.facebook.CustomFacebookOAuth2',
@@ -402,3 +401,18 @@ SOCIAL_AUTH_USER_MODEL = AUTH_USER_MODEL
 SOCIAL_AUTH_FACEBOOK_SCOPE = ['email']
 SOCIAL_AUTH_FACEBOOK_PROFILE_EXTRA_PARAMS = {
     'fields': 'id, email'}
+
+# CELERY SETTINGS
+CELERY_BROKER_URL = os.environ.get('REDIS_BROKER_URL') or ''
+CELERY_TASK_ALWAYS_EAGER = False if CELERY_BROKER_URL else True
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
+CELERY_RESULT_BACKEND = 'django-db'
+
+# Impersonate module settings
+IMPERSONATE_URI_EXCLUSIONS = [r'^dashboard/']
+IMPERSONATE_CUSTOM_USER_QUERYSET = \
+    'saleor.userprofile.impersonate.get_impersonatable_users'
+IMPERSONATE_USE_HTTP_REFERER = True
+IMPERSONATE_CUSTOM_ALLOW = 'saleor.userprofile.impersonate.can_impersonate'

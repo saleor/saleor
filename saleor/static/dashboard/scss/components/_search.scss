@@ -8,7 +8,7 @@
     &::placeholder {
       color: $primary-color;
     }
-    &:focus:not([readonly]), &.valid, &:focus.valid, {
+    &:focus:not([readonly]), &.valid, &:focus.valid {
       border: none;
       box-shadow: none;
     }

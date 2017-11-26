@@ -1,0 +1,72 @@
+{% extends "dashboard/base.html" %}
+{% load i18n %}
+{% load prices_i18n %}
+{% load materializecss %}
+{% load utils %}
+{% load static %}
+
+{% block title %}
+  {% trans "Sales" %} - {{ block.super }}
+{% endblock %}
+
+{% block body_class %}body-sales{% endblock %}
+
+{% block menu_sales_class %}active{% endblock %}
+
+{% block breadcrumbs %}
+  <ul class="breadcrumbs">
+    <li class="visible-s">{% trans "Sales" context "Dashboard sales (discounts) list." %}</li>
+  </ul>
+{% endblock %}
+
+{% block menu_discounts_class %} active{% endblock %}
+
+{% block content %}
+  {% if perms.discount.edit_sale %}
+    <div class="fixed-action-btn">
+      <a href="{% url 'dashboard:sale-add' %}" class="btn-fab btn-floating btn-large waves-effect waves-light"
+         title="{% trans "Add sale" context "Sale (discount) list add button text" %}">
+        <svg data-src="{% static "dashboard/images/add.svg" %}" />
+      </a>
+    </div>
+  {% endif %}
+  <div class="card">
+    <div class="data-table-container">
+      <table class="bordered highlight responsive data-table">
+        <thead>
+          <tr>
+            <th>
+              {% trans "Name" context "Sale (discount) table header" %}
+            </th>
+            <th>
+              {% trans "Discount" context "Sale (discount) table header" %}
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          {% if sales %}
+            {% for sale in sales %}
+              <tr data-action-go="{% if perms.discount.edit_sale %}{% url 'dashboard:sale-update' pk=sale.pk %}{% endif %}">
+                <td>
+                  {{ sale }}
+                </td>
+                <td>
+                  {{ sale.value }}{{ sale.get_type_display }}
+                </td>
+              </tr>
+            {% endfor %}
+          {% else %}
+          <tr>
+            <td>
+              <span>
+                {% trans "No sales found" context "Empty sales table message" %}
+              </span>
+            </td>
+          </tr>
+          {% endif %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  {% paginate sales %}
+{% endblock %}

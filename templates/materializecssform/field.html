@@ -5,25 +5,25 @@
 {% if field|is_checkbox %}
   <div class="input input-field col {{ classes.label }}">
     <div class="{{ classes.single_value }}">
-      <p>
+      <div>
         {% if field.auto_id %}
-          <input id="{{ field.auto_id }}" name="{{ field.html_name }}" class="filled-in" type="checkbox"{% if field.value %} checked="checked" {% endif %}>
+          <input id="{{ field.auto_id }}" name="{{ field.html_name }}" class="filled-in" type="checkbox"{% if field.value %} checked="checked" {% endif %} {% if field.field.disabled %} disabled {% endif %}>
           <label for="{{ field.auto_id }}">
             {{ field.label }}
+            {% for error in field.errors %}
+              <p class="help-block materialize-red-text">{{ error }}</p>
+            {% endfor %}
+            {% if field.help_text %}
+              <p class="help-block">
+                {{ field.help_text|safe }}
+              </p>
+            {% endif %}
           </label>
         {% endif %}
-        {% for error in field.errors %}
-          <p class="help-block materialize-red-text">{{ error }}</p>
-        {% endfor %}
-        {% if field.help_text %}
-          <p class="help-block">
-            {{ field.help_text|safe }}
-          </p>
-        {% endif %}
-      </p>
+      </div>
     </div>
   </div>
-{% elif field|is_multiple_checkbox %}
+{% elif field|is_checkbox_select_multiple %}
   <div class="input input-field col {{ classes.label }}">
     {% if field.auto_id %}
       <label class="control-label {{ classes.label }}">
@@ -35,7 +35,7 @@
     {% endif %}
     {% for choice in field %}
       <p>
-        <input id="{{ choice.id_for_label }}" name="{{ choice.name }}" class="filled-in" type="checkbox" value="{{ choice.choice_value }}" {% if choice.choice_value in choice.value %} checked="checked" {% endif %}>
+        <input id="{{ choice.id_for_label }}" name="{{ choice.data.name }}" class="filled-in" type="checkbox" value="{{ choice.data.value }}" {% if choice.data.selected %} checked="checked" {% endif %}>
         <label for="{{ choice.id_for_label }}">
           {{ choice.choice_label }}
         </label>
@@ -148,31 +148,31 @@
     {% endif %}
   </div>
 {% elif field|is_textarea %}
-  <div class="input input-field col {{ classes.label }}">
-    <textarea id="{{ field.auto_id }}" class="materialize-textarea {{ field.field.widget.attrs.class }}"
-    name="{{ field.name }}">
-      {% if field.value %}
-        {{ field.value }}
-      {% endif %}
-    </textarea>
-    {% if field.auto_id %}
-      <label class="active {{ classes.label }}" for="{{ field.auto_id }}">
-        {{ field.label }}
-        {% if not field.field.required %}
-          {% trans "(optional)" context "Dashboard form labels" %}
+  <div class="col s12">
+    <div class="row">
+      <div class="input-field col s12 {{ classes.label }}">
+        <textarea id="{{ field.auto_id }}"
+                  class="materialize-textarea {{ field.field.widget.attrs.class }}"
+                  name="{{ field.name }}">{% if field.value %}{{ field.value }}{% endif %}</textarea>
+        {% if field.auto_id %}
+          <label class="{{ classes.label }}" for="{{ field.auto_id }}">
+            {{ field.label }}
+            {% if not field.field.required %}
+              {% trans "(optional)" context "Dashboard form labels" %}
+            {% endif %}
+          </label>
         {% endif %}
-      </label>
-      {% endif %}
-      {% for error in field.errors %}
-        <p class="help-block materialize-red-text">{{ error }}</p>
-      {% endfor %}
-      {% if field.help_text %}
-        <p class="help-block">
-          {{ field.help_text|safe }}
-        </p>
-      {% endif %}
+        {% for error in field.errors %}
+          <p class="help-block materialize-red-text">{{ error }}</p>
+        {% endfor %}
+        {% if field.help_text %}
+          <p class="help-block">
+            {{ field.help_text|safe }}
+          </p>
+        {% endif %}
+      </div>
+    </div>
   </div>
-
 {% elif field|is_file %}
   <div class="input col {{ classes.label }}">
     <p>
@@ -198,23 +198,57 @@
         {% endif %}
       </label>
     {% endif %}
-      <div class="btn">
-        <span>
-          {% trans "File" %}
-        </span>
-        <input class="file-chooser" id="{{ field.auto_id }}_0"
-        name="{{ field.name }}_0" type="file">
-        <input class="ppoi-input" id="{{ field.auto_id }}_1"
-        name="{{ field.name }}_1" type="hidden">
-      </div>
-      <div class="file-path-wrapper">
-        <input class="file-path" type="text">
-      </div>
-      {% for error in field.errors %}
-        <p class="help-block materialize-red-text">
-          {{ error }}
-        </p>
-      {% endfor %}
+    <div class="btn">
+      <span>
+        {% trans "File" %}
+      </span>
+      <input class="file-chooser" id="{{ field.auto_id }}_0"
+             name="{{ field.name }}_0" type="file">
+      <input class="ppoi-input" id="{{ field.auto_id }}_1"
+             name="{{ field.name }}_1" type="hidden">
+    </div>
+    <div class="file-path-wrapper">
+      <input class="file-path" type="text">
+    </div>
+    {% for error in field.errors %}
+      <p class="help-block materialize-red-text">
+        {{ error }}
+      </p>
+    {% endfor %}
+    {% if field.help_text %}
+      <p class="help-block">
+        {{ field.help_text|safe }}
+      </p>
+    {% endif %}
+  </div>
+{% elif field|is_image_preview_widget %}
+  <div class="col">
+    {{ field }}
+  </div>
+  <div class="input col file-field input-field {{ classes.label }}">
+    {% if field.auto_id %}
+      <label class="{{ classes.label }}" for="{{ field.auto_id }}">
+        {{ field.label }}
+        {% if not field.field.required %}
+          {% trans "(optional)" context "Dashboard form labels" %}
+        {% endif %}
+      </label>
+    {% endif %}
+    <div class="btn">
+      <span>
+        {% trans "File" %}
+      </span>
+      <input class="file-chooser" id="{{ field.auto_id }}_0"
+             name="{{ field.name }}_0" type="file">
+    </div>
+    <div class="file-path-wrapper">
+      <input class="file-path" type="text" value="{{ field.value.display_value }}">
+    </div>
+    {% for error in field.errors %}
+      <p class="help-block materialize-red-text">
+        {{ error }}
+      </p>
+    {% endfor %}
     {% if field.help_text %}
       <p class="help-block">
         {{ field.help_text|safe }}

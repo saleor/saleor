@@ -1,0 +1,19 @@
+{% extends "dashboard/base_modal_confirm_delete.html" %}
+
+{% load i18n %}
+
+{% block action_url %}
+{% url "dashboard:voucher-delete" pk=voucher.pk %}
+{% endblock %}
+
+{% block title %}
+{% blocktrans trimmed context "Delete voucher text" %}
+Delete voucher {{ voucher }}
+{% endblocktrans %}
+{% endblock title %}
+
+{% block content %}
+{% blocktrans trimmed context "Delete voucher text" %}
+Are you sure you want to delete voucher <strong>{{ voucher }}</strong>?
+{% endblocktrans %}
+{% endblock content %}

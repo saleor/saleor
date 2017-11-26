@@ -27,6 +27,8 @@ If you intend to use S3 for your static files as well, set an additional environ
   The S3 bucket name to use for static files.
 
 
+.. _openexchangerates:
+
 Converting prices to local currencies using Open Exchange Rates
 ---------------------------------------------------------------
 

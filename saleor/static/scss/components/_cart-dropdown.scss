@@ -73,7 +73,9 @@
       margin: $global-margin 0;
     }
   }
-  &.show {
-    display: block;
+  @include media-breakpoint-up(md) {
+    &.show {
+    display: block !important;
+  }
   }
 }

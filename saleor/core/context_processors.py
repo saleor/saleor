@@ -3,10 +3,10 @@ from __future__ import unicode_literals
 import json
 
 from django.conf import settings
-from django.core.urlresolvers import reverse
+from django.contrib.sites.shortcuts import get_current_site
+from django.urls import reverse
 
 from ..core.utils import build_absolute_uri
-from ..site.utils import get_site_settings_from_request
 from ..product.models import Category
 
 
@@ -31,19 +31,19 @@ def categories(request):
 
 
 def search_enabled(request):
-    return {'SEARCH_IS_ENABLED': bool(settings.SEARCH_BACKENDS)}
+    return {'SEARCH_IS_ENABLED': bool(settings.ENABLE_SEARCH)}
 
 
 def webpage_schema(request):
-    site_settings = get_site_settings_from_request(request)
-    url = build_absolute_uri(location='/', site_settings=site_settings)
+    site = get_current_site(request)
+    url = build_absolute_uri(location='/')
     data = {
         '@context': 'http://schema.org',
         '@type': 'WebSite',
         'url': url,
-        'name': site_settings.name,
-        'description': site_settings.description}
-    if bool(settings.SEARCH_BACKENDS):
+        'name': site.name,
+        'description': site.settings.description}
+    if bool(settings.ENABLE_SEARCH):
         data['potentialAction'] = {
             '@type': 'SearchAction',
             'target': '%s%s?q={search_term}' % (url, reverse('search:search')),

@@ -1,3 +1,4 @@
+from datetime import date
 from django import forms
 from django.utils.encoding import smart_text
 from django.utils.translation import pgettext_lazy
@@ -17,7 +18,8 @@ class VoucherField(forms.ModelChoiceField):
 class CheckoutDiscountForm(forms.Form):
 
     voucher = VoucherField(
-        queryset=Voucher.objects.active(), to_field_name='code',
+        queryset=Voucher.objects.none(),
+        to_field_name='code',
         label=pgettext_lazy(
             'Checkout discount form label for voucher field',
             'Gift card or discount code'),
@@ -30,6 +32,8 @@ class CheckoutDiscountForm(forms.Form):
             initial['voucher'] = self.checkout.voucher_code
         kwargs['initial'] = initial
         super(CheckoutDiscountForm, self).__init__(*args, **kwargs)
+        self.fields['voucher'].queryset = Voucher.objects.active(
+            date=date.today())
 
     def clean(self):
         cleaned_data = super(CheckoutDiscountForm, self).clean()

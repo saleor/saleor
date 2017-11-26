@@ -1,5 +1,8 @@
 .btn-flat {
   color: $secondary-color;
+  &.btn:hover {
+    color: #fff;
+  }
 }
 .btn {
   &:not(.btn-floating) {
@@ -13,4 +16,8 @@
   &.btn-fab-hidden {
     transform: scaleX(0) scaleY(0);
   }
+}
+
+.bulk-submit {
+  margin-top: 25px;
 }

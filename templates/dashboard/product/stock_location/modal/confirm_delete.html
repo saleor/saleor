@@ -1,0 +1,32 @@
+{% extends "dashboard/base_modal_confirm_delete.html" %}
+
+{% load i18n %}
+
+{% block action_url %}
+{% url 'dashboard:product-stock-location-delete' location.pk %}
+{% endblock %}
+
+{% block title %}
+{% blocktrans trimmed context "Modal delete stock location text" %}
+Delete stock location {{ location }}
+{% endblocktrans %}
+{% endblock title %}
+
+{% block content %}
+<p>
+{% blocktrans trimmed context "Modal delete stock location text" %}
+    Are you sure you want to delete stock location <strong>{{ location }}</strong>?
+{% endblocktrans %}
+</p>
+{% if stock_count %}
+<p>
+{% blocktrans trimmed count counter=stock_count context "Modal delete stock location text" %}
+  There is one stock associated with this stock location that will be deleted.
+  {% plural %}
+  There are {{ counter }} stocks associated with this stock location that will be deleted.
+{% endblocktrans %}
+</p>
+{% endif %}
+
+{% endblock content %}
+

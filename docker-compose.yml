@@ -11,20 +11,29 @@ services:
     image: redis
     ports:
       - '127.0.0.1:6379:6379'
+  celery:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    env_file: common.env
+    command: celery -A saleor worker --app=saleor.celeryconf:app --loglevel=info
+    volumes:
+      - .:/app:Z
+    links:
+      - redis
+    depends_on:
+      - redis
   search:
-    image: elasticsearch:2.4
+    image: elasticsearch:5.4.3
+    mem_limit: 512m
+    environment:
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
     ports:
       - '127.0.0.1:9200:9200'
   web:
     build: .
     command: python manage.py runserver 0.0.0.0:8000
-    environment:
-      - DATABASE_URL=postgres://saleor:saleor@db/saleor
-      - DEFAULT_FROM_EMAIL=noreply@example.com
-      - ELASTICSEARCH_URL=http://search:9200/
-      - OPENEXCHANGERATES_API_KEY
-      - REDIS_URL=redis://redis:6379/0
-      - SECRET_KEY=changeme
+    env_file: common.env
     depends_on:
       - db
       - redis

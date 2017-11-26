@@ -17,7 +17,7 @@ Before you are ready to run Saleor you will need certain software installed on y
 
 #. ``wheel`` Python package if you're using pip older than 8.1.2
 
-#. `Node.js <https://nodejs.org/>`_ version 6 or above
+#. `Node.js <https://nodejs.org/>`_ version 8 or above
 
    .. note::
 
@@ -28,12 +28,6 @@ Before you are ready to run Saleor you will need certain software installed on y
    .. code-block:: bash
 
     $ npm i webpack -g
-
-#. `Yarn <https://yarnpkg.com/>`_ installed globally with:
-
-   .. code-block:: bash
-
-    $ npm i yarn -g
 
 #. `PostgreSQL <https://www.postgresql.org/>`_ version 9.4 or above
 
@@ -80,6 +74,16 @@ Installation
     $ export SECRET_KEY='<mysecretkey>'
 
 
+#. Create PostgreSQL user:
+
+   .. note::
+
+       You need to create the user to use within your project.
+       Username and password are extracted from ``DATABASE_URL`` environmental variable.
+       If absent, defaults to ``saleor`` and ``saleor``.
+       Consult `PostgreSQL's documentation <https://www.postgresql.org/docs/current/static/app-createuser.html>`_ for details.
+
+
 #. Prepare the database:
 
    .. code-block:: bash
@@ -91,7 +95,7 @@ Installation
 
    .. code-block:: bash
 
-    $ yarn
+    $ npm install
 
    .. note::
 
@@ -101,7 +105,7 @@ Installation
 
    .. code-block:: bash
 
-    $ yarn run build-assets
+    $ npm run build-assets
 
 
 #. Run like a normal django project:

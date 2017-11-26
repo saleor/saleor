@@ -1,0 +1,90 @@
+{% extends "dashboard/base.html" %}
+{% load i18n %}
+{% load materializecss %}
+{% load staticfiles %}
+
+{% block title %}
+  {% if site.pk %}
+   {% trans "Edit" context "Dashboard authorization key list" %} - {{ site }}
+  {% else %}
+    {% trans "Add new authorization key" context "Add new authorization key page title" %}
+  {% endif %}
+  - {{ block.super }}
+{% endblock %}
+
+{% block body_class %}body-authorization-key{% endblock %}
+
+{% block menu_attributes_class %}active{% endblock %}
+
+{% block header_menu %}
+  {% url "dashboard:site-index" as url %}
+  {% include "dashboard/includes/_back-link.html" with url=url %}
+{% endblock %}
+
+
+{% block breadcrumbs %}
+  <ul class="breadcrumbs breadcrumbs--history">
+    <li>
+      <a href="{% url 'dashboard:site-index' %}" class="breadcrumbs--ellipsed-item">
+      {% trans "Site settings" context "Dashboard site setting detail" %}
+      </a>
+    </li>
+    <li class="back-mobile">
+      <a href="{% url 'dashboard:product-attributes' %}">
+        <svg data-src="{% static "dashboard/images/arrow_left.svg" %}" fill="#fff" width="20px" height="20px" />
+      </a>
+    </li>
+    {% if key.pk %}
+    <li>
+      <span class="breadcrumbs--ellipsed-item">
+        {% trans "Edit" context "Authorization key breadcrumbs" %}
+      </span>
+    </li>
+    {% else %}
+    <li>
+      <span class="breadcrumbs--ellipsed-item">
+        {% trans "Add new authorization key" context "Authorization key breadcrumbs" %}
+      </span>
+    </li>
+    {% endif %}
+  </ul>
+{% endblock %}
+
+{% block menu_catalogue_class %} active{% endblock %}
+
+{% block content %}
+  <div class="row">
+    <div class="col s12 l9">
+      <div class="card">
+        <form method="post" enctype="multipart/form-data" id="form-attributes" novalidate>
+          {% csrf_token %}
+          <div class="card-content">
+            <span class="card-title">
+              {% trans "Authorization key" context "Authorization key form title" %}
+            </span>
+            <div class="row">
+              {{ form|materializecss }}
+            </div>
+          </div>
+          <div class="card-action right-align">
+            {% if value.pk %}
+              <a href="{% url 'dashboard:site-detail' pk=site_settings_pk %}" class="btn btn-flat">
+                {% trans "Cancel" context "Dashboard cancel action" %}
+              </a>
+              <button type="submit" class="btn waves-effect waves-light">
+                {% trans "Save" context "Dashboard update action" %}
+              </button>
+            {% else %}
+              <a href="{% url 'dashboard:site-detail' pk=site_settings_pk %}" class="btn btn-flat">
+                {% trans "Cancel" context "Dashboard cancel action" %}
+              </a>
+              <button type="submit" class="btn waves-effect waves-light">
+                {% trans "Create" context "Dashboard create action" %}
+              </button>
+            {% endif %}
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+{% endblock %}

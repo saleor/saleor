@@ -4,6 +4,7 @@
 {% load materializecss %}
 {% load staticfiles %}
 {% load product_first_image from product_images %}
+{% load utils %}
 
 {% block title %}
   {% trans "Products" context "Dashboard products list" %} - {{ block.super }}
@@ -15,17 +16,19 @@
 
 {% block header_extra %}
   {% if product_classes %}
-    <div class="fixed-action-btn">
-      {% if product_classes|length > 1 %}
-        <a class="btn-fab btn-floating btn-large waves-effect waves-light teal modal-trigger" href="#modal-product-class" title="{% trans "Add product" context "Product list add button text" %}">
-          <svg data-src="{% static "dashboard/images/add.svg" %}" />
-        </a>
-      {% else %}
-        <a class="btn-fab btn-floating btn-large waves-effect waves-light teal modal-trigger" href="{% url 'dashboard:product-add' product_classes.0.pk %}" title="{% trans "Add product" context "Product list add button text" %}">
-          <svg data-src="{% static "dashboard/images/add.svg" %}" />
-        </a>
-      {% endif %}
-    </div>
+    {% if perms.product.edit_product %}
+      <div class="fixed-action-btn">
+        {% if product_classes|length > 1 %}
+          <a class="btn-fab btn-floating btn-large waves-effect waves-light modal-trigger" href="#modal-product-class" title="{% trans "Add product" context "Product list add button text" %}">
+            <svg data-src="{% static "dashboard/images/add.svg" %}" />
+          </a>
+        {% else %}
+          <a class="btn-fab btn-floating btn-large waves-effect waves-light modal-trigger" href="{% url 'dashboard:product-add' product_classes.0.pk %}" title="{% trans "Add product" context "Product list add button text" %}">
+            <svg data-src="{% static "dashboard/images/add.svg" %}" />
+          </a>
+        {% endif %}
+      </div>
+    {% endif %}
   {% endif %}
 {% endblock %}
 
@@ -43,24 +46,70 @@
   <div class="row">
     <div class="col s12">
       {% if products %}
-        <ul class="collection list">
-          {% for product in products %}
-            <li class="collection-item avatar list-item">
-              <a href="{% url 'dashboard:product-update' pk=product.pk %}">
-                <img src="{% product_first_image product size="60x60" method="crop" %}" 
-                     srcset="{% product_first_image product size="60x60" method="crop" %} 1x, {% product_first_image product size="120x120" method="crop" %} 2x" 
-                     alt="" class="circle teal">
-                <span class="title list-item-name">
+      <div class="card">
+      <form method="POST"
+            action="{% url "dashboard:product-bulk-update" %}"
+            novalidate
+            id="bulk-actions-form">
+        {% csrf_token %}
+        <input name="action" type="hidden" id="bulk-action" />
+        <nav class="data-table-header-alternative single">
+          <div class="bulk-info show-bulk">
+            <div class="data-table-header-action-selected-items col inline"></div>
+          </div>
+          <div class="bulk-actions show-bulk nav-wrapper">
+            <ul class="right">
+              {% for action, label in bulk_action_form.action.field.widget.choices %}
+                <li>
+                  <a href="" data-action="{{ action }}" class="btn-flat">{{ label|upper }}</a>
+                </li>
+              {% endfor %}
+            </ul>
+          </div>
+        </nav>
+        <div class="data-table-container">
+          <table class="bordered highlight responsive data-table">
+            <thead>
+              <tr>
+                <th class="bulk-checkbox">
+                  <input id="select-all-products" type="checkbox" class="filled-in select-all switch-actions select-item">
+                  <label for="select-all-products"></label>
+                </th>
+                <th></th>
+                <th class="wide">
+                  {% trans "Name" context "Products list table header" %}
+                </th>
+                <th class="right-align">
+                  {% trans "Price" context "Products list table header" %}
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+            {% for product in products %}
+              <tr class="avatar" data-action-go="{% url 'dashboard:product-detail' pk=product.pk %}">
+                <td class="bulk-checkbox ignore-link">
+                  <input id="id_products_{{ product.pk }}" type="checkbox" name="products" value="{{ product.pk }}" class="filled-in switch-actions select-item">
+                  <label for="id_products_{{ product.pk }}"></label>
+                </td>
+                <td class="avatar">
+                  <img src="{% product_first_image product size="60x60" method="crop" %}"
+                      srcset="{% product_first_image product size="60x60" method="crop" %} 1x, {% product_first_image product size="120x120" method="crop" %} 2x"
+                      alt="">
+                </td>
+                <td>
                   {{ product.name }}
-                </span>
-                <p class="list-item-price">
+                </td>
+                <td>
                   {% gross product.price html=True %}
-                </p>
-              </a>
-            </li>
-          {% endfor %}
-        </ul>
-        {% include "dashboard/includes/_pagination.html" with page_obj=products %}
+                </td>
+              </tr>
+            {% endfor %}
+            </tbody>
+            </table>
+          </div>
+        </form>
+        </div>
+        {% paginate products %}
       {% else %}
         <div class="not-found">
           <p class="grey-text">
@@ -76,20 +125,21 @@
     </div>
   </div>
   <div id="modal-product-class" class="modal">
-    <div class="modal-content">
-      <form method="post" novalidate>
+    <form method="post" novalidate>
+      <div class="modal-content">
         {% csrf_token %}
         <div class="row">
           {{ form|materializecss }}
         </div>
-        <div class="row">
-          <div class="col s12">
-            <button class="btn" type="submit">
-              {% trans "Create new" context "Dashboard create new action" %}
-            </button>
-          </div>
-        </div>
-      </form>
-    </div>
+      </div>
+      <div class="modal-footer">
+        <button type="submit" class="modal-action btn-flat">
+          {% trans "Create new" context "Dashboard add action" %}
+        </button>
+        <a href="#!" class="modal-action modal-close btn-flat">
+          {% trans "Cancel" context "Dashboard cancel action" %}
+        </a>
+      </div>
+    </form>
   </div>
 {% endblock %}

@@ -1,12 +1,19 @@
 from django import forms
+from django.contrib.sites.models import Site
 
 from ...site.models import SiteSettings, AuthorizationKey
 
 
-class SiteSettingForm(forms.ModelForm):
+class SiteForm(forms.ModelForm):
+    class Meta:
+        model = Site
+        exclude = []
+
+
+class SiteSettingsForm(forms.ModelForm):
     class Meta:
         model = SiteSettings
-        exclude = []
+        exclude = ['site']
 
 
 class AuthorizationKeyForm(forms.ModelForm):
@@ -15,8 +22,4 @@ class AuthorizationKeyForm(forms.ModelForm):
         exclude = []
         widgets = {'password': forms.PasswordInput(render_value=True),
                    'key': forms.TextInput(),
-                   'site_settings': forms.HiddenInput()}
-
-
-AuthorizationKeyFormSet = forms.modelformset_factory(
-    AuthorizationKey, form=AuthorizationKeyForm, can_delete=True)
+                   'site_settings': forms.widgets.HiddenInput()}

@@ -25,12 +25,14 @@
     <svg data-src="{% static "dashboard/images/more_vert.svg" %}" height="24" width="24" />
   </a>
   <ul id="context-menu" class="dropdown-content">
-    {% if order.can_cancel %}
-      <li>
-        <a href="#base-modal" data-href="{% url "dashboard:order-cancel" order_pk=order.pk %}" class="modal-trigger-custom">
-          {% trans "Cancel Order" context "Order detail action" %}
-        </a>
-      </li>
+    {% if perms.order.edit_order %}
+      {% if order.can_cancel %}
+        <li>
+          <a href="#base-modal" data-href="{% url "dashboard:order-cancel" order_pk=order.pk %}" class="modal-trigger-custom">
+            {% trans "Cancel Order" context "Order detail action" %}
+          </a>
+        </li>
+      {% endif %}
     {% endif %}
     <li>
       <a class="btn-print" href="#">
@@ -69,7 +71,7 @@
             <span>
               {% trans "Details" context "Order detail tab" %}
             </span>
-            <svg data-src="{% static "dashboard/images/description.svg" %}" />
+            <svg data-src="{% static "dashboard/images/description.svg" %}" class="fill-secondary"/>
           </a>
         </li>
         <li role="presentation" class="tab col s4">
@@ -77,7 +79,7 @@
             <span>
               {% trans "Payments" context "Order detail tab" %}
             </span>
-            <svg data-src="{% static "dashboard/images/payment.svg" %}" />
+            <svg data-src="{% static "dashboard/images/payment.svg" %}" class="fill-secondary" />
           </a>
         </li>
         <li role="presentation" class="tab col s4">
@@ -85,7 +87,7 @@
             <span>
               {% trans "History" context "Order detail tab" %}
             </span>
-            <svg data-src="{% static "dashboard/images/history.svg" %}" />
+            <svg data-src="{% static "dashboard/images/history.svg" %}" class="fill-secondary" />
           </a>
         </li>
       </ul>
@@ -181,26 +183,31 @@
             </tbody>
           </table>
         </div>
-        {% if can_capture or can_refund or can_release %}
-          <div class="data-table-action">
-            {% if can_capture %}
-              <a href="#base-modal" data-href="{% url 'dashboard:capture-payment' order_pk=order.pk payment_pk=payment.pk %}"
-            class="btn btn-flat modal-trigger-custom">
-                {% trans "Capture" context "Order summary card action" %}
-              </a>
-            {% elif can_refund %}
-              <a href="#base-modal" data-href="{% url 'dashboard:refund-payment' order_pk=order.pk payment_pk=payment.pk %}"
-            class="btn btn-flat modal-trigger-custom">
-                {% trans "Refund" context "Order summary card action" %}
-              </a>
-            {% endif %}
-            {% if can_release %}
-              <a href="#base-modal" data-href="{% url 'dashboard:release-payment' order_pk=order.pk payment_pk=payment.pk %}"
-            class="btn btn-flat modal-trigger-custom">
-                {% trans "Release" context "Order summary card action" %}
-              </a>
-            {% endif %}
-          </div>
+        {% if perms.order.edit_order %}
+          {% if can_capture or can_refund or can_release %}
+            <div class="data-table-action">
+              {% if can_capture %}
+                <a href="#base-modal" data-href="{% url 'dashboard:capture-payment' order_pk=order.pk payment_pk=payment.pk %}"
+              class="btn btn-flat modal-trigger-custom">
+                  {% trans "Capture" context "Order summary card action" %}
+                </a>
+              {% elif can_refund %}
+                <a href="#base-modal" data-href="{% url 'dashboard:refund-payment' order_pk=order.pk payment_pk=payment.pk %}"
+              class="btn btn-flat modal-trigger-custom">
+                  {% trans "Refund" context "Order summary card action" %}
+                </a>
+              {% endif %}
+              {% if can_release %}
+                <a href="#base-modal" data-href="{% url 'dashboard:release-payment' order_pk=order.pk payment_pk=payment.pk %}"
+              class="btn btn-flat modal-trigger-custom">
+                  {% trans "Release" context "Order summary card action" %}
+                </a>
+              {% endif %}
+            <a href="{% url 'dashboard:order-invoice' order_pk=order.pk %}" data-href="" class="btn btn-flat" target="_blank">
+                  {% trans "Invoice" context "Order detail action" %}
+                </a>
+            </div>
+          {% endif %}
         {% endif %}
       </div>
       {% with order.shipping_address as address %}
@@ -214,11 +221,13 @@
                   </span>
                   {% include 'dashboard/includes/_address.html' with address=address only %}
                 </div>
-                <div class="card-action">
-                  <a class="btn btn-flat" href="{% url "dashboard:address-edit" order_pk=order.pk address_type="shipping" %}">
-                    {% trans "Edit" context "Dashboard edit action" %}
-                  </a>
-                </div>
+                {% if perms.order.edit_order %}
+                  <div class="card-action">
+                    <a class="btn btn-flat" href="{% url "dashboard:address-edit" order_pk=order.pk address_type="shipping" %}">
+                      {% trans "Edit" context "Dashboard edit action" %}
+                    </a>
+                  </div>
+                {% endif %}
               </div>
             </div>
           {% endif %}
@@ -232,10 +241,12 @@
                   {% include 'dashboard/includes/_address.html' with address=address only %}
                 {% endwith %}
               </div>
-              <div class="card-action">
-                <a href="{% url "dashboard:address-edit" order_pk=order.pk address_type="billing" %}" class="btn btn-flat">
-                  {% trans "Edit" context "Dashboard edit action" %}</a>
-              </div>
+              {% if perms.order.edit_order %}
+                <div class="card-action">
+                  <a href="{% url "dashboard:address-edit" order_pk=order.pk address_type="billing" %}" class="btn btn-flat">
+                    {% trans "Edit" context "Dashboard edit action" %}</a>
+                </div>
+              {% endif %}
             </div>
           </div>
         </div>
@@ -260,6 +271,9 @@
                     {% trans "Item" context "Shipment group table header" %}
                   </th>
                   <th>
+                    {% trans "Stock" context "Shipment group table header" %}
+                  </th>
+                  <th>
                     {% trans "SKU" context "Shipment group table header" %}
                   </th>
                   <th class="right-align">
@@ -276,7 +290,7 @@
               <tfoot>
                 {% if group.shipping_price.gross or group.is_shipping_required %}
                   <tr>
-                    <td colspan="4">
+                    <td colspan="5">
                       {% blocktrans trimmed with group_shipping_method_name=group.shipping_method_name context "Shipment group table item column data" %}
                         Shipping ({{ group_shipping_method_name }})
                       {% endblocktrans %}
@@ -293,6 +307,23 @@
                       <td>
                         {{ item.product_name }}<br>
                       </td>
+                      <td class="right-align">
+                        {% if group.can_edit_items %}
+                          <a class="dropdown-button" href="#" data-activates="line-stock-actions-{{ item.pk }}" data-constrainwidth="false">
+                            {{ item.stock_location|default:"-" }}
+                            <svg data-src="{% static "dashboard/images/arrow_drop_down.svg" %}" width="24" height="24" />
+                          </a>
+                          <ul id="line-stock-actions-{{ item.pk }}" class="dropdown-content">
+                            <li>
+                              <a href="#base-modal" data-href="{% url 'dashboard:orderline-change-stock' order_pk=order.pk line_pk=item.pk %}" class="modal-trigger-custom" {% if group.status != 'new' %} disabled{% endif %} title="{% trans "Change stock location" context "Shipment group table row action" %}">
+                                {% trans "Change stock" context "Shipment group table row action" %}
+                              </a>
+                            </li>
+                          </ul>
+                        {% else %}
+                          {{ item.stock_location|default:"-" }}
+                        {% endif %}
+                      </td>
                       <td>
                         {{ item.product_sku }}
                       </td>
@@ -300,7 +331,7 @@
                         {% gross item.get_price_per_item html=True %}
                       </td>
                       <td class="right-align">
-                        {% if group.status != 'cancelled' %}
+                        {% if group.can_edit_items %}
                           <a class="dropdown-button" href="#" data-activates="line-actions-{{ item.pk }}" data-constrainwidth="false">
                             {{ item.quantity }}
                             <svg data-src="{% static "dashboard/images/arrow_drop_down.svg" %}" width="24" height="24" />
@@ -334,26 +365,39 @@
               </tbody>
             </table>
           </div>
-          {% if group.can_ship or group.can_cancel %}
-            <div class="data-table-action">
-              {% if group.can_ship %}
-                <a href="#base-modal" data-href="{% url 'dashboard:ship-delivery-group' order_pk=order.pk group_pk=group.pk %}" class="btn btn-flat modal-trigger-custom">
-                  {% trans "Dispatch" context "Shipment group table action" %}
+          {% if perms.order.edit_order %}
+            {% if group.can_ship or group.can_cancel %}
+              <div class="data-table-action">
+                {% if group.can_ship %}
+                  <a href="#base-modal" data-href="{% url 'dashboard:ship-delivery-group' order_pk=order.pk group_pk=group.pk %}" class="btn btn-flat modal-trigger-custom">
+                    {% trans "Dispatch" context "Shipment group table action" %}
+                  </a>
+                {% endif %}
+                {% if group.can_cancel %}
+                  <a href="#base-modal" data-href="{% url 'dashboard:cancel-delivery-group' order_pk=order.pk group_pk=group.pk %}" class="btn btn-flat modal-trigger-custom" title="{% trans 'Cancel group' context 'Shipment group table action' %}">
+                    {% trans "Cancel this shipment" context "Shipment group table action" %}
+                  </a>
+                {% endif %}
+                <a href="{% url 'dashboard:order-packing-slips' group_pk=group.pk %}" data-href="" class="btn btn-flat" target="_blank">
+                  {% trans "Packing Slips" context "Order detail action" %}
                 </a>
-              {% endif %}
-              {% if group.can_cancel %}
-                <a href="#base-modal" data-href="{% url 'dashboard:cancel-delivery-group' order_pk=order.pk group_pk=group.pk %}" class="btn btn-flat modal-trigger-custom" title="{% trans "Cancel group" context "Shipment group table action" %}">
-                  {% trans "Cancel this shipment" context "Shipment group table action" %}
-                </a>
-              {% endif %}
-            </div>
-          {% else %}
-            {% if group.tracking_number %}
-              <div class="card-action">
-                {% blocktrans trimmed with tracking=group.tracking_number context "Shipment group table text" %}
-                  Tracking number: {{ tracking }}
-                {% endblocktrans %}
               </div>
+            {% else %}
+              {% if group.tracking_number %}
+                <div class="card-action">
+                  {% blocktrans trimmed with tracking=group.tracking_number context "Shipment group table text" %}
+                    Tracking number: {{ tracking }}
+                  {% endblocktrans %}
+                </div>
+              {% else %}
+                {% if group.tracking_number %}
+                  <div class="card-action">
+                    {% blocktrans trimmed with tracking=group.tracking_number context "Shipment group table text" %}
+                      Tracking number: {{ tracking }}
+                    {% endblocktrans %}
+                  </div>
+                {% endif %}
+              {% endif %}
             {% endif %}
           {% endif %}
         </div>
@@ -435,11 +479,13 @@
             </p>
           {% endif %}
         </div>
-        <div class="card-action">
-          <a data-href="{% url "dashboard:order-add-note" order_pk=order.pk %}" class="modal-trigger-custom btn btn-flat" href="#base-modal">
-            {% trans "Add note" context "Order notes card action" %}
-          </a>
-        </div>
+        {% if perms.order.edit_order %}
+          <div class="card-action">
+            <a data-href="{% url "dashboard:order-add-note" order_pk=order.pk %}" class="modal-trigger-custom btn btn-flat" href="#base-modal">
+              {% trans "Add note" context "Order notes card action" %}
+            </a>
+          </div>
+        {% endif %}
       </div>
     </div>
   </div>
@@ -500,47 +546,20 @@
       </p>
     {% endif %}
   </div>
-  <div class="card tab-content" id="order-history">
+  <div class="tab-content" id="order-history">
     <p class="print-show print-tabs">{% trans "History" context "Order detail tab" %}</p>
-    <div class="data-table-container">
-      <table class="bordered highlight responsive data-table">
-        <thead>
-          <tr>
-            <th>
-              {% trans "Date" context "Order history table header" %}
-            </th>
-            <th>
-              {% trans "Order status" context "Order history table header" %}
-            </th>
-            <th>
-              {% trans "User" context "Order history table header" %}
-            </th>
-            <th class="wide">
-              {% trans "Comment" context "Order history table header" %}
-            </th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for event in order.history.all %}
-          <tr>
-            <td>
-              {{ event.date }}
-            </td>
-            <td>
+  <div class="timeline-outer">
+    <ul class="timeline">
+      {% for event in order.history.all %}
+        <li class="event" data-date="{{ event.date }}">
+          <div class="content">
+            {{ event.comment|default:"" }}{% if event.user %} by {{ event.user }}{% endif %}
+            <div class="status">
               {% render_status event.status event.get_status_display %}
-            </td>
-            <td>
-              {% if event.user %}
-                {{ event.user }}
-              {% endif %}
-            </td>
-            <td>
-              {{ event.comment|default:"" }}
-            </td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-    </div>
+            </div>
+          </div>
+        </li>
+      {% endfor %}
+    </ul>
   </div>
 {% endblock %}

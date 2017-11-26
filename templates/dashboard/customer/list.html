@@ -2,6 +2,7 @@
 {% load i18n %}
 {% load prices_i18n %}
 {% load materializecss %}
+{% load utils %}
 
 {% block title %}
   {% trans "Customers" context "Dashboard customers list" %} - {{ block.super }}
@@ -58,7 +59,8 @@
                       {{ default_address.city }}, {{ default_address.get_country_display }}
                     </td>
                   {% else %}
-                    <td colspan="2"></td>
+                    <td>-</td>
+                    <td>-</td>
                   {% endif %}
                 {% endwith %}
                 <td class="right-align">
@@ -86,5 +88,5 @@
       </p>
     </div>
   {% endif %}
-  {% include "dashboard/includes/_pagination.html" with page_obj=customers %}
+  {% paginate customers %}
 {% endblock %}
