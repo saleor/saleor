@@ -3,7 +3,6 @@
 # This file is distributed under the same license as the Saleor package.
 # Mirumee Software <hello@mirumee.com>, 2017.
 #
-#, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: master\n"
@@ -12,7 +11,7 @@ msgstr ""
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Kotaro Saito <kotaro_saito@backroot.net>\n"
 "Language-Team: Japanese\n"
-"Language: ja_JP\n"
+"Language: ja\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -1617,7 +1616,7 @@ msgstr ""
 #: templates/account/login.html:5
 msgctxt "Login page title"
 msgid "Log in"
-msgstr ""
+msgstr "ログイン"
 
 #: templates/account/login.html:13
 msgctxt "Login form secondary title"
@@ -1627,12 +1626,12 @@ msgstr ""
 #: templates/account/login.html:17
 msgctxt "Login form secondary action"
 msgid "Register"
-msgstr ""
+msgstr "登録"
 
 #: templates/account/login.html:22
 msgctxt "Login form title"
 msgid "Log in"
-msgstr ""
+msgstr "ログイン"
 
 #: templates/account/partials/already_logged_in.html:5
 #, python-format
@@ -1801,37 +1800,37 @@ msgstr ""
 #: templates/account/password_set.html:14
 msgctxt "Password set form legend"
 msgid "Password Reset"
-msgstr ""
+msgstr "パスワードのリセット"
 
 #: templates/account/password_set.html:21
 msgctxt "Password set form primary action"
 msgid "Continue"
-msgstr ""
+msgstr "続ける"
 
 #: templates/account/signup.html:6
 msgctxt "Signup page title"
 msgid "Sign Up"
-msgstr ""
+msgstr "サインアップ"
 
 #: templates/account/signup.html:13
 msgctxt "Signup form secondary title"
 msgid "Already have an account?"
-msgstr ""
+msgstr "既にアカウントをお持ちですか？"
 
 #: templates/account/signup.html:17
 msgctxt "Signup form secondary action"
 msgid "Log in"
-msgstr ""
+msgstr "ログイン"
 
 #: templates/account/signup.html:24
 msgctxt "Signup form title"
 msgid "Create an account"
-msgstr ""
+msgstr "アカウントの作成"
 
 #: templates/account/signup.html:33
 msgctxt "Signup form primary action"
 msgid "Create an account"
-msgstr ""
+msgstr "アカウントの作成"
 
 #: templates/base.html:13
 msgctxt "Meta author text"
@@ -1841,7 +1840,7 @@ msgstr ""
 #: templates/base.html:43 templates/base.html:195
 msgctxt "Main navigation item"
 msgid "Dashboard"
-msgstr ""
+msgstr "ダッシュボード"
 
 #: templates/base.html:54 templates/base.html:212
 msgctxt "Main navigation item"
@@ -1851,42 +1850,42 @@ msgstr ""
 #: templates/base.html:60 templates/base.html:218
 msgctxt "Main navigation item"
 msgid "Log out"
-msgstr ""
+msgstr "ログアウト"
 
 #: templates/base.html:66 templates/base.html:224
 msgctxt "Main navigation item"
 msgid "Register"
-msgstr ""
+msgstr "登録"
 
 #: templates/base.html:70 templates/base.html:229
 msgctxt "Main navigation item"
 msgid "Log in"
-msgstr ""
+msgstr "ログイン"
 
 #: templates/base.html:85
 msgctxt "Hamburger button text"
 msgid "menu"
-msgstr ""
+msgstr "メニュー"
 
 #: templates/base.html:102
 msgid "Search for product"
-msgstr ""
+msgstr "商品検索"
 
 #: templates/base.html:113 templates/base.html:188
 msgctxt "Main navigation item"
 msgid "Your Cart"
-msgstr ""
+msgstr "カートの中身"
 
 #: templates/base.html:200
 msgctxt "Main navigation item"
 msgid "Style guide"
-msgstr ""
+msgstr "スタイルガイド"
 
 #: templates/cart-dropdown.html:33 templates/cart/_subtotal_table.html:9
 #: templates/dashboard/order/detail.html:421
 msgctxt "Order subtotal"
 msgid "Subtotal"
-msgstr ""
+msgstr "小計"
 
 #: templates/cart-dropdown.html:35
 msgctxt "Cart dropdown text"
@@ -1896,12 +1895,12 @@ msgstr ""
 #: templates/cart-dropdown.html:45
 msgctxt "Cart dropdown secondary action"
 msgid "Go to cart"
-msgstr ""
+msgstr "カートへ"
 
 #: templates/cart-dropdown.html:48
 msgctxt "Cart dropdown primary action"
 msgid "Checkout"
-msgstr ""
+msgstr "注文手続きへ"
 
 #: templates/cart-dropdown.html:53 templates/cart/index.html:85
 msgctxt "Empty cart message"
@@ -2166,7 +2165,7 @@ msgstr ""
 #: templates/dashboard/base.html:10
 msgctxt "Dashboard default page title"
 msgid "Dashboard - Saleor"
-msgstr ""
+msgstr "ダッシュボード - Saleor"
 
 #: templates/dashboard/base.html:39
 msgctxt "Dashboard top navigation action"
@@ -2176,27 +2175,27 @@ msgstr ""
 #: templates/dashboard/base.html:44
 msgctxt "Dashboard top navigation action"
 msgid "Style guide"
-msgstr ""
+msgstr "スタイルガイド"
 
 #: templates/dashboard/base.html:49
 msgctxt "Dashboard top navigation action"
 msgid "Log out"
-msgstr ""
+msgstr "ログアウト"
 
 #: templates/dashboard/base.html:77 templates/dashboard/search/results.html:25
 msgctxt "Dashboard search"
 msgid "Search"
-msgstr ""
+msgstr "検索"
 
 #: templates/dashboard/base.html:89 templates/dashboard/base.html:243
 msgctxt "Dashboard homepage"
 msgid "Home"
-msgstr ""
+msgstr "ホーム"
 
 #: templates/dashboard/base.html:95
 msgctxt "Dashboard catalogue"
 msgid "Catalogue"
-msgstr ""
+msgstr "カタログ"
 
 #: templates/dashboard/base.html:101 templates/dashboard/product/form.html:30
 #: templates/dashboard/product/list.html:10
@@ -2216,22 +2215,22 @@ msgstr ""
 #: templates/dashboard/category/list.html:75
 msgctxt "Dashboard categories list"
 msgid "Categories"
-msgstr ""
+msgstr "分類"
 
 #: templates/dashboard/base.html:115
 msgctxt "Dashboard stock loactions list"
 msgid "Stock locations"
-msgstr ""
+msgstr "在庫"
 
 #: templates/dashboard/base.html:125
 msgctxt "Dashboard discounts list"
 msgid "Discounts"
-msgstr ""
+msgstr "割引"
 
 #: templates/dashboard/base.html:131
 msgctxt "Dashboard sales (discounts) list"
 msgid "Sales"
-msgstr ""
+msgstr "売上"
 
 #: templates/dashboard/base.html:138
 #: templates/dashboard/discount/voucher/form.html:12
@@ -2240,12 +2239,12 @@ msgstr ""
 #: templates/dashboard/discount/voucher/list.html:19
 msgctxt "Dashboard vouchers list"
 msgid "Vouchers"
-msgstr ""
+msgstr "バウチャー"
 
 #: templates/dashboard/base.html:148
 msgctxt "Dashboard sales. `Sales' is noun of to sell"
 msgid "Sales"
-msgstr ""
+msgstr "売上"
 
 #: templates/dashboard/base.html:154
 #: templates/dashboard/order/address_form.html:7
@@ -2255,7 +2254,7 @@ msgstr ""
 #: templates/dashboard/order/list.html:7 templates/dashboard/order/list.html:15
 msgctxt "Dashboard orders list"
 msgid "Orders"
-msgstr ""
+msgstr "注文"
 
 #: templates/dashboard/base.html:161 templates/dashboard/customer/detail.html:9
 #: templates/dashboard/customer/detail.html:25
@@ -2263,28 +2262,28 @@ msgstr ""
 #: templates/dashboard/customer/list.html:18
 msgctxt "Dashboard customers list"
 msgid "Customers"
-msgstr ""
+msgstr "顧客"
 
 #: templates/dashboard/base.html:171
 msgctxt "Management section"
 msgid "Staff management"
-msgstr ""
+msgstr "スタッフ管理"
 
 #: templates/dashboard/base.html:177
 msgctxt "Dashboard staff members list"
 msgid "Staff members"
-msgstr ""
+msgstr "スタッフ"
 
 #: templates/dashboard/base.html:184 templates/dashboard/group/detail.html:28
 #: templates/dashboard/group/list.html:8 templates/dashboard/group/list.html:31
 msgctxt "Dashboard groups list"
 msgid "Groups"
-msgstr ""
+msgstr "グループ"
 
 #: templates/dashboard/base.html:194
 msgctxt "Dashboard configuration"
 msgid "Configuration"
-msgstr ""
+msgstr "設定"
 
 #: templates/dashboard/base.html:200
 #: templates/dashboard/product/product_class/form.html:30
@@ -2292,7 +2291,7 @@ msgstr ""
 #: templates/dashboard/product/product_class/list.html:29
 msgctxt "Dashboard product types list"
 msgid "Product types"
-msgstr ""
+msgstr "商品の種類"
 
 #: templates/dashboard/base.html:207
 #: templates/dashboard/product/product_attribute/form.html:29
@@ -2300,35 +2299,35 @@ msgstr ""
 #: templates/dashboard/product/product_attribute/list.html:28
 msgctxt "Dashboard attributes list"
 msgid "Attributes"
-msgstr ""
+msgstr "属性"
 
 #: templates/dashboard/base.html:214 templates/dashboard/shipping/list.html:9
 #: templates/dashboard/shipping/list.html:19
 msgctxt "Dashboard shipping methods list"
 msgid "Shipping methods"
-msgstr ""
+msgstr "配送方法"
 
 #: templates/dashboard/base.html:221 templates/dashboard/sites/detail.html:11
 #: templates/dashboard/sites/detail.html:21
 msgctxt "Dashboard site settings"
 msgid "Site settings"
-msgstr ""
+msgstr "サイトの設定"
 
 #: templates/dashboard/base.html:229
 msgctxt "Dashboard software version"
 msgid "Release:"
-msgstr ""
+msgstr "リリース"
 
 #: templates/dashboard/base_modal_confirm_delete.html:10
 msgctxt "Dashboard confirmation modal"
 msgid "Delete"
-msgstr ""
+msgstr "削除"
 
 #: templates/dashboard/base_modal_confirm_delete.html:16
 #: templates/dashboard/customer/modal/confirm_promote.html:13
 msgctxt "Dashboard confirmation modal"
 msgid "Are you sure?"
-msgstr ""
+msgstr "よろしいですか？"
 
 #: templates/dashboard/base_modal_confirm_delete.html:22
 #: templates/dashboard/product/product_image/list.html:72
@@ -2336,7 +2335,7 @@ msgstr ""
 #: templates/dashboard/shipping/form.html:88
 msgctxt "Dashboard delete action"
 msgid "Delete"
-msgstr ""
+msgstr "削除"
 
 #: templates/dashboard/base_modal_confirm_delete.html:25
 #: templates/dashboard/category/detail.html:80
@@ -2380,18 +2379,18 @@ msgstr ""
 #: templates/dashboard/staff/detail.html:77
 msgctxt "Dashboard cancel action"
 msgid "Cancel"
-msgstr ""
+msgstr "キャンセル"
 
 #: templates/dashboard/category/detail.html:11
 #: templates/dashboard/category/detail.html:24
 msgctxt "Category detail page title"
 msgid "Add new category"
-msgstr ""
+msgstr "新しい分類の追加"
 
 #: templates/dashboard/category/detail.html:45
 msgctxt "Category detail breadcrumbs"
 msgid "Add new category"
-msgstr ""
+msgstr "新しい分類の追加"
 
 #: templates/dashboard/category/detail.html:89
 #: templates/dashboard/category/modal/edit.html:25
@@ -2406,7 +2405,7 @@ msgstr ""
 #: templates/dashboard/staff/detail.html:81
 msgctxt "Dashboard update action"
 msgid "Update"
-msgstr ""
+msgstr "更新"
 
 #: templates/dashboard/category/detail.html:93
 #: templates/dashboard/discount/sale/form.html:108
@@ -2421,47 +2420,47 @@ msgstr ""
 #: templates/dashboard/shipping/form.html:131
 msgctxt "Dashboard create action"
 msgid "Create"
-msgstr ""
+msgstr "作成"
 
 #: templates/dashboard/category/list.html:8
 msgctxt "Category list page title"
 msgid "Categories"
-msgstr ""
+msgstr "分類"
 
 #: templates/dashboard/category/list.html:32
 msgctxt "Category list add button text"
 msgid "Add category"
-msgstr ""
+msgstr "分類の追加"
 
 #: templates/dashboard/category/list.html:49
 msgctxt "Dashboard edit action"
 msgid "Edit category"
-msgstr ""
+msgstr "分類の編集"
 
 #: templates/dashboard/category/list.html:56
 msgctxt "Category list action link"
 msgid "Remove category"
-msgstr ""
+msgstr "分類の削除"
 
 #: templates/dashboard/category/list.html:118
 msgctxt "Category list table header name"
 msgid "Name"
-msgstr ""
+msgstr "名前"
 
 #: templates/dashboard/category/list.html:119
 msgctxt "Category list table header description"
 msgid "Description"
-msgstr ""
+msgstr "説明"
 
 #: templates/dashboard/category/list.html:146
 msgctxt "Empty Category list message"
 msgid "No subcategories."
-msgstr ""
+msgstr "小分類がありません。"
 
 #: templates/dashboard/category/list.html:150
 msgctxt "Empty Category list message"
 msgid "No categories."
-msgstr ""
+msgstr "分類がありません。"
 
 #: templates/dashboard/category/modal/confirm_delete.html:11
 #, python-format
@@ -2560,12 +2559,12 @@ msgstr ""
 #: templates/dashboard/staff/list.html:47
 msgctxt "Customers table header"
 msgid "Name"
-msgstr ""
+msgstr "名前"
 
 #: templates/dashboard/customer/list.html:37
 msgctxt "Customers table header"
 msgid "Location"
-msgstr ""
+msgstr "住所"
 
 #: templates/dashboard/customer/list.html:40
 msgctxt "Customers table header"
@@ -4159,7 +4158,7 @@ msgstr ""
 #: templates/dashboard/product/stock_location/form.html:38
 msgctxt "Dashboard stock location"
 msgid "Stock location"
-msgstr ""
+msgstr "在庫"
 
 #: templates/dashboard/product/stock_location/form.html:27
 msgctxt "Stock location detail action"
