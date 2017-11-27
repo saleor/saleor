@@ -10,6 +10,7 @@ from django.utils.translation import pgettext_lazy
 from ...core.utils import get_paginator_items
 from ...shipping.models import ShippingMethod, ShippingMethodCountry
 from ..views import staff_member_required
+from .filters import ShippingMethodFilter
 from .forms import ShippingMethodCountryForm, ShippingMethodForm
 
 
@@ -18,9 +19,12 @@ from .forms import ShippingMethodCountryForm, ShippingMethodForm
 def shipping_method_list(request):
     methods = (ShippingMethod.objects.prefetch_related('price_per_country')
                .order_by('name'))
+    shipping_method_filter = ShippingMethodFilter(
+        request.GET, queryset=methods)
     methods = get_paginator_items(
-        methods, settings.DASHBOARD_PAGINATE_BY, request.GET.get('page'))
-    ctx = {'shipping_methods': methods}
+        shipping_method_filter.qs, settings.DASHBOARD_PAGINATE_BY,
+        request.GET.get('page'))
+    ctx = {'shipping_methods': methods, 'filter': shipping_method_filter}
     return TemplateResponse(request, 'dashboard/shipping/list.html', ctx)
 
 

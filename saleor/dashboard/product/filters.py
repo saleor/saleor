@@ -6,11 +6,15 @@ from django_filters import (
     CharFilter, ChoiceFilter, FilterSet, ModelMultipleChoiceFilter,
     RangeFilter, OrderingFilter)
 
-from ...product.models import Category, Product, ProductClass, StockLocation
+from ...product.models import (
+    Category, Product, ProductAttribute, ProductClass, StockLocation)
 
 PRODUCT_SORT_BY_FIELDS = {
     'name': pgettext_lazy('Product list sorting option', 'name'),
     'price': pgettext_lazy('Product type list sorting option', 'price')}
+
+PRODUCT_ATTRIBUTE_SORT_BY_FIELDS = {
+    'name': pgettext_lazy('Product attribute list sorting option', 'name')}
 
 PRODUCT_CLASS_SORT_BY_FIELDS = {
     'name': pgettext_lazy('Product type list sorting option', 'name')}
@@ -49,7 +53,7 @@ class ProductFilter(FilterSet):
         empty_label=pgettext_lazy('Filter empty choice label', 'All'),
         widget=forms.Select)
     sort_by = OrderingFilter(
-        label=pgettext_lazy('Product list sorting filter label', 'Sort by'),
+        label=pgettext_lazy('Product list filter label', 'Sort by'),
         fields=PRODUCT_SORT_BY_FIELDS.keys(),
         field_labels=PRODUCT_SORT_BY_FIELDS)
 
@@ -58,12 +62,26 @@ class ProductFilter(FilterSet):
         fields = []
 
 
-class ProductClassFilter(FilterSet):
+class ProductAttributeFilter(FilterSet):
     name = CharFilter(
-        label=pgettext_lazy('Product type list name filter label', 'Name'),
+        label=pgettext_lazy('Product attribute list filter label', 'Name'),
         lookup_expr='icontains')
     sort_by = OrderingFilter(
-        label=pgettext_lazy('Product list sorting filter label', 'Sort by'),
+        label=pgettext_lazy('Product attribute list filter label', 'Sort by'),
+        fields=PRODUCT_CLASS_SORT_BY_FIELDS.keys(),
+        field_labels=PRODUCT_CLASS_SORT_BY_FIELDS)
+
+    class Meta:
+        model = ProductAttribute
+        fields = []
+
+
+class ProductClassFilter(FilterSet):
+    name = CharFilter(
+        label=pgettext_lazy('Product type list filter label', 'Name'),
+        lookup_expr='icontains')
+    sort_by = OrderingFilter(
+        label=pgettext_lazy('Product class list filter label', 'Sort by'),
         fields=PRODUCT_CLASS_SORT_BY_FIELDS.keys(),
         field_labels=PRODUCT_CLASS_SORT_BY_FIELDS)
 
@@ -75,7 +93,7 @@ class ProductClassFilter(FilterSet):
 class StockLocationFilter(FilterSet):
     sort_by = OrderingFilter(
         label=pgettext_lazy(
-            'Stock location list sorting filter label', 'Sort by'),
+            'Stock location list filter label', 'Sort by'),
         fields=STOCK_LOCATION_SORT_BY_FIELDS.keys(),
         field_labels=STOCK_LOCATION_SORT_BY_FIELDS)
 

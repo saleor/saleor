@@ -1,6 +1,7 @@
 {% extends "dashboard/base.html" %}
 {% load i18n %}
 {% load prices_i18n %}
+{% load get_sort_by_url_toggle from shop %}
 {% load status %}
 {% load utils %}
 {% load static %}
@@ -32,7 +33,7 @@
   </div>
   {% endif %}
   <div class="row">
-    <div class="col s12">
+    <div class="col s12 l9">
       <div class="card">
         <div class="data-table-container">
           <table class="bordered highlight responsive data-table">
@@ -40,7 +41,9 @@
               <thead>
                 <tr>
                   <th>
-                    {% trans "Name" context "Shipping methods table header" %}
+                    <a href="{% get_sort_by_url_toggle 'name' %}">
+                      {% trans "Name" context "Shipping methods table header" %}
+                    </a>
                   </th>
                   <th>
                     {% trans "Price range" context "Shipping methods table header" %}
@@ -86,6 +89,9 @@
         </div>
       </div>
     </div>
+    <div class="col s12 l3" id="filters">
+    {% add_filters filter %}
+  </div>
   </div>
   {% paginate shipping_methods %}
 {% endblock %}
