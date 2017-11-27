@@ -28,10 +28,6 @@ class ShippingMethod(models.Model):
         blank=True, default='')
 
     class Meta:
-        verbose_name = pgettext_lazy(
-            'Shipping method model', 'shipping method')
-        verbose_name_plural = pgettext_lazy(
-            'Shipping method model', 'shipping methods')
         permissions = (
             ('view_shipping',
              pgettext_lazy(
@@ -101,10 +97,6 @@ class ShippingMethodCountry(models.Model):
 
     class Meta:
         unique_together = ('country_code', 'shipping_method')
-        verbose_name = pgettext_lazy(
-            'Shipping method country model', 'shipping method country')
-        verbose_name_plural = pgettext_lazy(
-            'Shipping method country model', 'shipping method countries')
 
     def __str__(self):
         # https://docs.djangoproject.com/en/dev/ref/models/instances/#django.db.models.Model.get_FOO_display  # noqa
