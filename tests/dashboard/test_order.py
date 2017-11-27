@@ -517,7 +517,7 @@ def test_view_add_variant_to_delivery_group(
     url = reverse(
         'dashboard:add-variant-to-group', kwargs={
             'order_pk': order.pk, 'group_pk': group.pk})
-    data = {'variant': variant.pk, 'quantity': 2, 'target_group': group.pk}
+    data = {'variant': variant.pk, 'quantity': 2}
 
     response = admin_client.post(url, data)
 

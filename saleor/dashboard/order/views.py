@@ -14,7 +14,7 @@ from prices import Price
 from satchless.item import InsufficientStock
 
 from .forms import (
-    AddVariantToOrderForm, CancelGroupForm, CancelLinesForm,
+    AddVariantToDeliveryGroupForm, CancelGroupForm, CancelLinesForm,
     CancelOrderForm, CapturePaymentForm, ChangeStockForm, ChangeQuantityForm,
     MoveLinesForm, OrderNoteForm, RefundPaymentForm, ReleasePaymentForm,
     RemoveVoucherForm, ShipGroupForm)
@@ -312,27 +312,23 @@ def add_variant_to_group(request, order_pk, group_pk):
     """ Adds variant in given quantity to existing or new group in order. """
     order = get_object_or_404(Order, pk=order_pk)
     group = get_object_or_404(order.groups.all(), pk=group_pk)
-    form = AddVariantToOrderForm(request.POST or None, order=order)
+    form = AddVariantToDeliveryGroupForm(request.POST or None, group=group)
     status = 200
     if form.is_valid():
         msg_dict = {
             'quantity': form.cleaned_data.get('quantity'),
             'variant': form.cleaned_data.get('variant'),
-            'group': form.cleaned_data.get('target_group')
+            'group': group
         }
         try:
             with transaction.atomic():
                 form.save()
-            if form.cleaned_data.get('target_group') is None:
-                msg_dict['group'] = order.groups.last()
             msg = pgettext_lazy(
                 'Dashboard message related to a delivery group',
                 'Added %(quantity)d x %(variant)s to %(group)s') % msg_dict
             order.create_history_entry(comment=msg, user=request.user)
             messages.success(request, msg)
         except InsufficientStock:
-            if form.cleaned_data.get('target_group') is None:
-                msg_dict['group'] = 'new shipment'
             msg = pgettext_lazy(
                 'Dashboard message related to a delivery group',
                 'Insufficient stock: could not add %(quantity)d x '

@@ -124,7 +124,6 @@ class MoveLinesForm(forms.Form):
             'New shipment'),
         label=pgettext_lazy('Move lines form label', 'Target shipment'))
 
-
     def __init__(self, *args, **kwargs):
         self.line = kwargs.pop('line')
         super(MoveLinesForm, self).__init__(*args, **kwargs)
@@ -349,8 +348,8 @@ class ChangeStockForm(forms.ModelForm):
         return self.instance
 
 
-class AddVariantToOrderForm(forms.Form):
-    """ Adds variant in given quantity to existing or new group in order. """
+class AddVariantToDeliveryGroupForm(forms.Form):
+    """ Adds variant in given quantity to delivery group. """
     variant = AjaxSelect2ChoiceField(
         queryset=ProductVariant.objects.filter(
             product__in=Product.objects.get_available_products()),
@@ -359,24 +358,14 @@ class AddVariantToOrderForm(forms.Form):
         label=pgettext_lazy(
             'Add variant to delivery group form label', 'Quantity'),
         validators=[MinValueValidator(1)])
-    target_group = forms.ModelChoiceField(
-        queryset=DeliveryGroup.objects.none(), required=False,
-        empty_label=pgettext_lazy(
-            'Delivery group value for `target_group` field',
-            'New shipment'),
-        label=pgettext_lazy(
-            'Add variant to delivery group form label', 'Target shipment'))
 
     def __init__(self, *args, **kwargs):
-        self.order = kwargs.pop('order')
-        super(AddVariantToOrderForm, self).__init__(*args, **kwargs)
-        excluded_statuses = {OrderStatus.CANCELLED, OrderStatus.SHIPPED}
-        queryset = self.order.groups.exclude(status__in=excluded_statuses)
-        self.fields['target_group'].queryset = queryset
+        self.group = kwargs.pop('group')
+        super(AddVariantToDeliveryGroupForm, self).__init__(*args, **kwargs)
 
     def clean(self):
         """ Checks if given quantity is available in stocks. """
-        cleaned_data = super(AddVariantToOrderForm, self).clean()
+        cleaned_data = super(AddVariantToDeliveryGroupForm, self).clean()
         variant = cleaned_data.get('variant')
         quantity = cleaned_data.get('quantity')
         if variant and quantity is not None:
@@ -396,8 +385,5 @@ class AddVariantToOrderForm(forms.Form):
         """ Adds variant to target group. Updates stocks and order. """
         variant = self.cleaned_data.get('variant')
         quantity = self.cleaned_data.get('quantity')
-        target_group = self.cleaned_data.get('target_group')
-        if not target_group:
-            target_group = self.order.groups.create(status=OrderStatus.NEW)
-        add_variant_to_delivery_group(target_group, variant, quantity)
-        Order.objects.recalculate_order(self.order)
+        add_variant_to_delivery_group(self.group, variant, quantity)
+        Order.objects.recalculate_order(self.group.order)
