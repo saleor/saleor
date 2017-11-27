@@ -141,10 +141,10 @@
   }
 
   th {
-    color: map_get($grey, darken-1);
     font-weight: normal;
     font-size: 12px;
     height: 56px;
+    color: $grey-color;
     svg {
       display: none;
     }
