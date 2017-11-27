@@ -25,6 +25,13 @@ def filter_by_customer(queryset, name, value):
         Q(default_billing_address__last_name__icontains=value))
 
 
+def filter_by_order_customer(queryset, name, value):
+    return queryset.filter(
+        Q(user__email__icontains=value) |
+        Q(user__default_billing_address__first_name__icontains=value) |
+        Q(user__default_billing_address__last_name__icontains=value))
+
+
 def filter_by_location(queryset, name, value):
     q = Q(default_billing_address__city__icontains=value)
     q |= Q(default_billing_address__country__icontains=value)

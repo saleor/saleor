@@ -5,10 +5,9 @@ from django_filters import (
     RangeFilter, OrderingFilter)
 from django import forms
 from django.utils.translation import pgettext_lazy
-from django_prices.models import PriceField
 from payments import PaymentStatus
 
-from ...core.utils.filters import filter_by_customer
+from ...core.utils.filters import filter_by_order_customer
 from ...order.models import Order
 from ...order import OrderStatus
 from ..widgets import DateRangeWidget
@@ -38,7 +37,7 @@ class OrderFilter(FilterSet):
     name_or_email = CharFilter(
         label=pgettext_lazy(
             'Order list filter label', 'Customer name or email'),
-        method=filter_by_customer)
+        method=filter_by_order_customer)
     created = DateFromToRangeFilter(
         label=pgettext_lazy('Order list filter label', 'Placed on'),
         name='created', widget=DateRangeWidget)
