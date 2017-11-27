@@ -89,7 +89,7 @@ def product_class_delete(request, pk):
             request,
             pgettext_lazy(
                 'Dashboard message',
-                'Deleted product type %s') % product_class)
+                'Removed product type %s') % product_class)
         return redirect('dashboard:product-class-list')
     ctx = {
         'product_class': product_class,
@@ -233,7 +233,7 @@ def product_delete(request, pk):
         product.delete()
         messages.success(
             request,
-            pgettext_lazy('Dashboard message', 'Deleted product %s') % product)
+            pgettext_lazy('Dashboard message', 'Removed product %s') % product)
         return redirect('dashboard:product-list')
     return TemplateResponse(
         request,
@@ -289,7 +289,7 @@ def stock_delete(request, product_pk, variant_pk, stock_pk):
     if request.method == 'POST':
         stock.delete()
         messages.success(
-            request, pgettext_lazy('Dashboard message', 'Deleted stock'))
+            request, pgettext_lazy('Dashboard message', 'Removed stock'))
         return redirect(
             'dashboard:variant-details', product_pk=product.pk,
             variant_pk=variant.pk)
@@ -352,7 +352,7 @@ def product_image_delete(request, product_pk, img_pk):
             request,
             pgettext_lazy(
                 'Dashboard message',
-                'Deleted image %s') % image.image.name)
+                'Removed image %s') % image.image.name)
         return redirect('dashboard:product-image-list', product_pk=product.pk)
     return TemplateResponse(
         request,
@@ -445,7 +445,7 @@ def variant_delete(request, product_pk, variant_pk):
         messages.success(
             request,
             pgettext_lazy(
-                'Dashboard message', 'Deleted variant %s') % variant.name)
+                'Dashboard message', 'Removed variant %s') % variant.name)
         return redirect('dashboard:product-detail', pk=product.pk)
 
     ctx = {'is_only_variant': product.variants.count() == 1,
@@ -515,7 +515,7 @@ def attribute_delete(request, pk):
             request,
             pgettext_lazy(
                 'Dashboard message',
-                'Deleted attribute %s') % (attribute.name,))
+                'Removed attribute %s') % (attribute.name,))
         return redirect('dashboard:product-attributes')
     return TemplateResponse(
         request,
@@ -612,7 +612,7 @@ def stock_location_delete(request, location_pk):
         messages.success(
             request, pgettext_lazy(
                 'Dashboard message for stock location',
-                'Deleted location %s') % location)
+                'Removed location %s') % location)
         return redirect('dashboard:product-stock-location-list')
     ctx = {'location': location, 'stock_count': stock_count}
     return TemplateResponse(

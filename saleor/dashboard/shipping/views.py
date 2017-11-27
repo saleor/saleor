@@ -68,7 +68,7 @@ def shipping_method_delete(request, pk):
             request,
             pgettext_lazy(
                 'Dashboard message',
-                '%(shipping_method_name)s successfully deleted') % {
+                '%(shipping_method_name)s successfully removed') % {
                     'shipping_method_name': shipping_method})
         return redirect('dashboard:shipping-methods')
     ctx = {'shipping_method': shipping_method}

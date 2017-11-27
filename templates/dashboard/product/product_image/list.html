@@ -41,7 +41,7 @@
         {% csrf_token %}
         <div class="row">
           <ul class="product-gallery" id="product-gallery" data-post-url="{% url 'dashboard:product-images-reorder' product_pk=product.pk %}">
-            {% if images %}    
+            {% if images %}
               {% for image in images %}
                 <li class="col s6 m3 product-gallery-item" data-id="{{ image.pk }}">
                   <div class="row">
@@ -69,7 +69,7 @@
                           {% trans "Edit" context "Dashboard edit action" %}
                         </a>
                         <a href="#base-modal" class="btn btn-flat modal-trigger-custom" data-href="{% url 'dashboard:product-image-delete' product_pk=product.pk img_pk=image.pk %}">
-                          {% trans "Delete" context "Dashboard delete action" %}
+                          {% trans "Remove" context "Dashboard remove action" %}
                         </a>
                       </div>
                     </div>
@@ -115,7 +115,7 @@
                 </a>
                 <a href="#base-modal" class="btn btn-flat card-action-delete modal-trigger-custom"
                 data-href="{% url 'dashboard:product-image-delete' product_pk=product.pk img_pk=0 %}">
-                  {% trans "Delete" context "Dashboard delete action" %}
+                  {% trans "Remove" context "Dashboard remove action" %}
                 </a>
               </div>
             </div>

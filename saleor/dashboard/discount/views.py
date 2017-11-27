@@ -50,7 +50,7 @@ def sale_delete(request, pk):
         instance.delete()
         messages.success(
             request,
-            pgettext_lazy('Sale (discount) message', 'Deleted sale %s') % (instance.name,))
+            pgettext_lazy('Sale (discount) message', 'Removed sale %s') % (instance.name,))
         return redirect('dashboard:sale-list')
     ctx = {'sale': instance}
     return TemplateResponse(
@@ -119,7 +119,7 @@ def voucher_delete(request, pk):
         instance.delete()
         messages.success(
             request,
-            pgettext_lazy('Voucher message', 'Deleted voucher %s') % (instance,))
+            pgettext_lazy('Voucher message', 'Removed voucher %s') % (instance,))
         return redirect('dashboard:voucher-list')
     ctx = {'voucher': instance}
     return TemplateResponse(

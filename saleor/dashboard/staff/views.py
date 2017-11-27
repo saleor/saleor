@@ -69,7 +69,7 @@ def staff_delete(request, pk):
     if request.method == 'POST':
         staff.delete()
         msg = pgettext_lazy(
-            'Dashboard message', 'Deleted staff member %s') % staff
+            'Dashboard message', 'Removed staff member %s') % staff
         messages.success(request, msg)
         return redirect('dashboard:staff-list')
     return TemplateResponse(
