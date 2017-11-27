@@ -2,7 +2,8 @@ from __future__ import unicode_literals
 
 from django.contrib import messages
 from django.contrib.auth.decorators import permission_required
-from django.db.models import Count, Max
+from django.db.models import Count, Max, Q
+from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect
 from django.template.response import TemplateResponse
 from django.utils.translation import pgettext_lazy
@@ -58,3 +59,22 @@ def customer_promote_to_staff(request, pk):
     return TemplateResponse(
         request, 'dashboard/customer/modal/confirm_promote.html',
         {'customer': customer})
+
+
+@staff_member_required
+def ajax_users_list(request):
+    def get_user_label(user):
+        return '%s (%s)' % (user.full_name, user.email)
+
+    queryset = User.objects.all()
+    search_query = request.GET.get('q', '')
+    if search_query:
+        queryset = queryset.filter(
+            Q(default_billing_address__first_name__icontains=search_query) |
+            Q(default_billing_address__last_name__icontains=search_query) |
+            Q(email__icontains=search_query))
+    users = [
+        {'id': user.pk, 'text': get_user_label(user)}
+        for user in queryset
+    ]
+    return JsonResponse({'results': users})

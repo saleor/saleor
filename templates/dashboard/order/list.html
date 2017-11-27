@@ -3,6 +3,7 @@
 {% load prices_i18n %}
 {% load status %}
 {% load utils %}
+{% load staticfiles %}
 
 {% block title %}{% trans "Orders" context "Dashboard orders list" %} - {{ block.super }}{% endblock %}
 
@@ -40,4 +41,12 @@
       </p>
     </div>
   {% endif %}
+{% endblock %}
+
+{% block header_extra %}
+  <div class="fixed-action-btn">
+    <a class="btn-fab btn-floating btn-large waves-effect waves-light" href="{% url 'dashboard:order-add' %}" title="{% trans "Add order" context "Order list add button" %}">
+      <svg data-src="{% static "dashboard/images/add.svg" %}" />
+    </a>
+  </div>
 {% endblock %}

@@ -212,14 +212,17 @@
       </div>
       {% with order.shipping_address as address %}
         <div class="row">
-          {% if address %}
             <div class="col s12 m6 l12 p6">
               <div class="card">
                 <div class="card-content">
                   <span class="card-title black-text">
                     {% trans "Shipping address" context "" %}
                   </span>
-                  {% include 'dashboard/includes/_address.html' with address=address only %}
+                  {% if address %}
+                    {% include 'dashboard/includes/_address.html' with address=address only %}
+                  {% else %}
+                    -
+                  {% endif %}
                 </div>
                 {% if perms.order.edit_order %}
                   <div class="card-action">
@@ -230,7 +233,6 @@
                 {% endif %}
               </div>
             </div>
-          {% endif %}
           <div class="col s12 {% if address %}m6{% else %}m12{% endif %} l12 p6">
             <div class="card">
               <div class="card-content">
@@ -238,7 +240,11 @@
                   <span class="card-title black-text">
                     {% trans "Billing address" context "" %}
                   </span>
-                  {% include 'dashboard/includes/_address.html' with address=address only %}
+                  {% if address %}
+                    {% include 'dashboard/includes/_address.html' with address=address only %}
+                  {% else %}
+                    -
+                  {% endif %}
                 {% endwith %}
               </div>
               {% if perms.order.edit_order %}
