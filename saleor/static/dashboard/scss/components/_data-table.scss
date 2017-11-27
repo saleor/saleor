@@ -166,6 +166,9 @@
     a {
       position: relative;
       color: $grey-color;
+      &:hover {
+        color: darken($grey-color, 15%);
+      }
     }
   }
 
