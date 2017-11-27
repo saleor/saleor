@@ -60,7 +60,7 @@ class OrderFilter(FilterSet):
 
     class Meta:
         model = Order
-        fields = ['total_net']
+        fields = ['id', 'total_net']
         filter_overrides = {
             PriceField: {
                 'filter_class': RangeFilter
