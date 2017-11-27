@@ -15,3 +15,9 @@ def postgresql_search_enabled(settings):
 def test_dummy_integration(client):
     phrase = 'foo'
     client.get(reverse('search:search'), {'q': phrase})
+
+
+@pytest.mark.integration
+def test_dummy_dashboard_integration(client):
+    phrase = 'foo'
+    client.get(reverse('dashboard:search'), {'q': phrase})

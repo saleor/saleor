@@ -1,10 +1,11 @@
 from __future__ import unicode_literals
 
-from ...search.backends import elasticsearch_dashboard
+from ...search.backends import picker
 from ...search.forms import SearchForm
 
 
 class DashboardSearchForm(SearchForm):
     def search(self):
         query = self.cleaned_data['q']
-        return elasticsearch_dashboard.search(query)
+        search = picker.pick_dashboard_backend()
+        return search(query)
