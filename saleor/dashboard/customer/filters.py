@@ -33,10 +33,6 @@ IS_ACTIVE_CHOICES = (
     ('1', pgettext_lazy('Is active filter choice', 'Active')),
     ('0', pgettext_lazy('Is active filter choice', 'Not active')))
 
-IS_STAFF_CHOICES = (
-    ('1', pgettext_lazy('Is active filter choice', 'Is staff')),
-    ('0', pgettext_lazy('Is active filter choice', 'Is not staff')))
-
 
 class CustomerFilter(FilterSet):
     name_or_email = CharFilter(
@@ -48,11 +44,6 @@ class CustomerFilter(FilterSet):
     is_active = ChoiceFilter(
         label=pgettext_lazy('Customer list filter label', 'Is active'),
         choices=IS_ACTIVE_CHOICES,
-        empty_label=pgettext_lazy('Filter empty choice label', 'All'),
-        widget=forms.Select)
-    is_staff = ChoiceFilter(
-        label=pgettext_lazy('Customer list filter label', 'Is staff'),
-        choices=IS_STAFF_CHOICES,
         empty_label=pgettext_lazy('Filter empty choice label', 'All'),
         widget=forms.Select)
     sort_by = OrderingFilter(
