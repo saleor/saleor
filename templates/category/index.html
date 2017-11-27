@@ -56,9 +56,9 @@
                     </span>
                     <div class="sort-order-icon">
                       {% if is_descending %}
-                        <svg data-src="{% static "assets/arrow_down.svg" %}">
+                        <svg data-src="{% static "images/arrow_down.svg" %}">
                       {% else %}
-                        <svg data-src="{% static "assets/arrow_up.svg" %}">
+                        <svg data-src="{% static "images/arrow_up.svg" %}">
                       {% endif %}
                     </div>
                   </div>
@@ -75,13 +75,13 @@
                             <a href="{% get_sort_by_url choice %}">
                               <span>{% trans 'ascending' context 'sort by option' %}</span>
                               <div class="sort-order-icon float-right">
-                                <img src="{% static "assets/arrow_up.svg" %}">
+                                <img src="{% static "images/arrow_up.svg" %}">
                               </div>
                             </a>
                             <a href="{% get_sort_by_url choice descending=True %}">
                               <span>{% trans 'descending' context 'sort by option' %}</span>
                               <div class="sort-order-icon float-right">
-                                <img src="{% static "assets/arrow_down.svg" %}">
+                                <img src="{% static "images/arrow_down.svg" %}">
                               </div>
                             </a>
                           </div>
@@ -118,8 +118,8 @@
             </a>
           </h2>
           <div class="product-filters">
-            <div class="product-filters__attributes" data-icon-up="{% static "assets/chevron_up.svg" %}"
-                 data-icon-down="{% static "assets/chevron_down.svg" %}">
+            <div class="product-filters__attributes" data-icon-up="{% static "images/chevron_up.svg" %}"
+                 data-icon-down="{% static "images/chevron_down.svg" %}">
               <form method="get">
                 {% for field in filter.form %}
                   {% if field.name == 'sort_by' %}
@@ -132,7 +132,7 @@
                       <h3 class="filter-label">
                         {{ field.label }}
                         <div class="collapse-filters-icon">
-                          <img src="{% static "assets/chevron_up.svg" %}">
+                          <img src="{% static "images/chevron_up.svg" %}">
                         </div>
                       </h3>
                       <div class="filter-form-field" style="display:block">
@@ -147,7 +147,7 @@
                       <h3 class="filter-label">
                         {{ field.label }}
                         <div class="collapse-filters-icon">
-                          <img src="{% static "assets/chevron_up.svg" %}">
+                          <img src="{% static "images/chevron_up.svg" %}">
                         </div>
                       </h3>
                       <div class="filter-form-field" style="display:block">
