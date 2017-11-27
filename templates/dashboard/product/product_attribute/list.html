@@ -1,6 +1,7 @@
 {% extends "dashboard/base.html" %}
 {% load i18n %}
 {% load materializecss %}
+{% load get_sort_by_url_toggle from shop %}
 {% load staticfiles %}
 {% load utils %}
 
@@ -34,15 +35,21 @@
 
 {% block content %}
   <div class="row">
-    <div class="col s12">
+    <div class="col s12 l9">
       {% if attributes %}
         <div class="card">
           <div class="data-table-container">
             <table class="bordered highlight data-table data-table-description">
               <thead>
                 <tr>
-                  <th>{% trans "Name" context "Dashboard attributes list table header name" %}</th>
-                  <th>{% trans "Values" context "Dashboard attributes list table header values" %}</th>
+                  <th>
+                    <a href="{% get_sort_by_url_toggle 'name' %}">
+                      {% trans "Name" context "Dashboard attributes list table header name" %}
+                    </a>
+                  </th>
+                  <th>
+                    {% trans "Values" context "Dashboard attributes list table header values" %}
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -68,6 +75,9 @@
           </p>
         </div>
       {% endif %}
+    </div>
+    <div class="col s12 l3" id="filters">
+      {% add_filters filter %}
     </div>
   </div>
 {% endblock %}

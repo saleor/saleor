@@ -18,7 +18,9 @@ from ...product.models import (
 from ...product.utils import (
     get_availability, get_product_costs_data, get_variant_costs_data)
 from ..views import staff_member_required
-from .filters import ProductFilter, ProductClassFilter, StockLocationFilter
+from .filters import (
+    ProductFilter, ProductAttributeFilter, ProductClassFilter,
+    StockLocationFilter)
 from . import forms
 
 
@@ -473,12 +475,15 @@ def variant_delete(request, product_pk, variant_pk):
 @staff_member_required
 @permission_required('product.view_properties')
 def attribute_list(request):
+    attributes = (ProductAttribute.objects.prefetch_related('values')
+                  .order_by('name'))
+    attribute_filter = ProductAttributeFilter(request.GET, queryset=attributes)
     attributes = [
         (attribute.pk, attribute.name, attribute.values.all())
-        for attribute in ProductAttribute.objects.prefetch_related('values')]
+        for attribute in attribute_filter.qs]
     attributes = get_paginator_items(
         attributes, settings.DASHBOARD_PAGINATE_BY, request.GET.get('page'))
-    ctx = {'attributes': attributes}
+    ctx = {'attributes': attributes, 'filter': attribute_filter}
     return TemplateResponse(
         request,
         'dashboard/product/product_attribute/list.html',
