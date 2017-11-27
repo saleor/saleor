@@ -20,7 +20,7 @@ If you're deploying somewhere else, you can use one of following services:
 Environment variables
 ---------------------
 
-``ELASTICSEARCH_URL``
+``ELASTICSEARCH_URL`` or ``BONSAI_URL`` or ``SEARCHBOX_URL``
   URL to elasticsearch engine. If it's empty - search will be not available.
 
   **Example:** ``https://user:password@my-3rdparty-es.com:9200``
