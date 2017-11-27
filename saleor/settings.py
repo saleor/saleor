@@ -357,14 +357,20 @@ WEBPACK_LOADER = {
 
 LOGOUT_ON_PASSWORD_CHANGE = False
 
-ELASTICSEARCH_URL = os.environ.get('ELASTICSEARCH_URL', None)
-ENABLE_SEARCH = bool(ELASTICSEARCH_URL)
 
-if ELASTICSEARCH_URL:
+ELASTICSEARCH_URL = os.environ.get('ELASTICSEARCH_URL')
+SEARCHBOX_URL = os.environ.get('SEARCHBOX_URL')
+BONSAI_URL = os.environ.get('BONSAI_URL')
+# We'll support couple of elasticsearch add-ons, but finally we'll use single
+# variable
+ES_URL = ELASTICSEARCH_URL or SEARCHBOX_URL or BONSAI_URL
+ENABLE_SEARCH = bool(ES_URL)
+
+if ENABLE_SEARCH:
     INSTALLED_APPS.append('django_elasticsearch_dsl')
     ELASTICSEARCH_DSL = {
         'default': {
-            'hosts': ELASTICSEARCH_URL
+            'hosts': ES_URL
         },
     }
 
