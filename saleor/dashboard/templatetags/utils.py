@@ -1,7 +1,7 @@
 from __future__ import unicode_literals
+
+from django import forms
 from django.template import Library
-from django.forms.fields import NullBooleanField, ChoiceField
-from django.forms.models import ModelMultipleChoiceField
 from django_filters.fields import RangeField
 from versatileimagefield.widgets import VersatileImagePPOIClickWidget
 
@@ -11,8 +11,10 @@ except ImportError:
     from urllib import urlencode
 
 from ...product.utils import get_margin_for_variant, get_variant_costs_data
-from ..chips import (handle_nullboolean, handle_default, handle_multiplechoice,
-                     handle_range, handle_choice)
+from .chips import (
+    handle_default, handle_multiple_choice, handle_multiple_model_choice,
+    handle_nullboolean, handle_range, handle_single_choice,
+    handle_single_model_choice)
 from ..product.widgets import ImagePreviewWidget
 
 register = Library()
@@ -76,29 +78,34 @@ def margins_for_variant(variant):
     return margins
 
 
-@register.inclusion_tag('dashboard/includes/_filters.html', takes_context=True)
-def add_filters(context, filter_set):
+@register.inclusion_tag('dashboard/includes/_filters.html')
+def add_filters(filter_set, sort_by_filter_name='sort_by'):
     chips = []
-    data = filter_set.form.cleaned_data
-    for key in data.keys():
-        if key == 'sort_by':
+    cleaned_data = filter_set.form.cleaned_data
+    for filter_name in cleaned_data.keys():
+        if filter_name == sort_by_filter_name:
+            # Skip processing of sort_by filter, as it's rendered differently
             continue
-        field = filter_set.form[key]
+
+        field = filter_set.form[filter_name]
         if field.value() not in ['', None]:
-            if isinstance(field.field, NullBooleanField):
-                chips = handle_nullboolean(field, chips)
-            elif isinstance(field.field, ModelMultipleChoiceField):
-                field_data = {str(o.pk): str(o) for o in data[key]}
-                chips = handle_multiplechoice(field, chips, field_data)
+            if isinstance(field.field, forms.NullBooleanField):
+                items = handle_nullboolean(field)
+            elif isinstance(field.field, forms.ModelMultipleChoiceField):
+                items = handle_multiple_model_choice(
+                    field, cleaned_data[filter_name])
+            elif isinstance(field.field, forms.MultipleChoiceField):
+                items = handle_multiple_choice(
+                    field, cleaned_data[filter_name])
+            elif isinstance(field.field, forms.ModelChoiceField):
+                items = handle_single_model_choice(
+                    field, cleaned_data[filter_name])
+            elif isinstance(field.field, forms.ChoiceField):
+                items = handle_single_choice(field, cleaned_data[filter_name])
             elif isinstance(field.field, RangeField):
-                chips = handle_range(field, chips)
-            elif isinstance(field.field, ChoiceField):
-                chips = handle_choice(field, chips)
+                items = handle_range(field)
             else:
-                chips = handle_default(field, chips)
-    filter_context = {
-        'chips': chips,
-        'filter': filter_set,
-        'count': filter_set.qs.count()
-    }
-    return filter_context
+                items = handle_default(field)
+            chips.extend(items)
+    return {
+        'chips': chips, 'filter': filter_set, 'count': filter_set.qs.count()}
