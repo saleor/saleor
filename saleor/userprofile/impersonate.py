@@ -1,6 +1,7 @@
 # Module used to config django-impersonate app
+from __future__ import unicode_literals
 
-from .models import Address, User
+from .models import User
 
 
 def get_impersonatable_users(request):
