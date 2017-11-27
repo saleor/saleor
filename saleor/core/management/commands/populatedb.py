@@ -48,7 +48,7 @@ class Command(BaseCommand):
             cursor.execute('PRAGMA synchronous = OFF;')
 
     def populate_search_index(self):
-        if settings.ENABLE_SEARCH:
+        if settings.ES_URL:
             call_command('search_index', '--rebuild', force=True)
 
     def handle(self, *args, **options):
