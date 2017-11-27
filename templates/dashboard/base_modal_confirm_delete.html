@@ -18,12 +18,12 @@
   </div>
   <div class="modal-footer">
   {% block footer %}
-    <button type="submit" class="modal-action btn-flat">
-      {% trans "Remove" context "Dashboard delete action" %}
-    </button>
     <a href="#!" class="modal-action modal-close btn-flat">
       {% trans "Cancel" context "Dashboard cancel action" %}
     </a>
+    <button type="submit" class="modal-action btn-flat">
+      {% trans "Remove" context "Dashboard delete action" %}
+    </button>
   {% endblock footer %}
   </div>
 </form>
