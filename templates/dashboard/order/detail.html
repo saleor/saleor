@@ -336,7 +336,7 @@
                     <td class="right-align">
                       {% if group.can_edit_items %}
                         <a class="dropdown-button" href="#" data-activates="line-actions-{{ item.pk }}" data-constrainwidth="false">
-                          {{ item.quantity }}
+                          {{ item.quantity }} {% if item.stock_location %} ({{ item.stock_location|default:"-" }}) {% endif %}
                           <svg data-src="{% static "dashboard/images/arrow_drop_down.svg" %}" width="24" height="24" />
                         </a>
                         <ul id="line-actions-{{ item.pk }}" class="dropdown-content">
