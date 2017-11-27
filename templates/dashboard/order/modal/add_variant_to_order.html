@@ -1,13 +1,15 @@
 {% load i18n %}
 {% load materializecss %}
 
-<form id="add-variant-to-order-form" method="post" role="form" action="{% url 'dashboard:add-variant-to-order' order_pk=order.pk %}" class="form-async" novalidate>
+<form id="add-variant-to-group-form" method="post" role="form" action="{% url 'dashboard:add-variant-to-group' order_pk=order.pk group_pk=group.pk %}" class="form-async" novalidate>
   {% csrf_token %}
   <div class="modal-content">
     <div class="row">
       <div class="col">
         <h5>
-          {% trans "Add product to order" context "Modal order add variant title" %}
+          {% blocktrans with shipment=group context "Modal order add variant title" %}
+            Add product to {{ shipment }}
+          {% endblocktrans %}
         </h5>
       </div>
     </div>
