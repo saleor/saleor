@@ -122,7 +122,9 @@
                     </a>
                   </th>
                   <th>
-                    {% trans "Description" context "Category list table header description" %}
+                    <a href="{% get_sort_by_url_toggle 'name' %}">
+                      {% trans "Description" context "Category list table header description" %}
+                    </a>
                   </th>
                 </tr>
               </thead>

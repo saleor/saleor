@@ -3,10 +3,10 @@ from __future__ import unicode_literals
 from django import forms
 from django.utils.translation import pgettext_lazy
 from django_filters import (
-    CharFilter, ChoiceFilter, FilterSet, RangeFilter, OrderingFilter)
-from django_prices.models import PriceField
+    CharFilter, ChoiceFilter, FilterSet, ModelMultipleChoiceFilter,
+    RangeFilter, OrderingFilter)
 
-from ...product.models import Product, ProductClass
+from ...product.models import Category, Product, ProductClass, StockLocation
 
 PRODUCT_SORT_BY_FIELDS = {
     'name': pgettext_lazy('Product list sorting option', 'name'),
@@ -14,6 +14,9 @@ PRODUCT_SORT_BY_FIELDS = {
 
 PRODUCT_CLASS_SORT_BY_FIELDS = {
     'name': pgettext_lazy('Product type list sorting option', 'name')}
+
+STOCK_LOCATION_SORT_BY_FIELDS = {
+    'name': pgettext_lazy('Stock location list sorting option', 'name')}
 
 PUBLISHED_CHOICES = (
     ('1', pgettext_lazy('Is publish filter choice', 'Published')),
@@ -26,15 +29,16 @@ FEATURED_CHOICES = (
 
 class ProductFilter(FilterSet):
     name = CharFilter(
-        label=pgettext_lazy('Product list name filter label', 'Name'),
+        label=pgettext_lazy('Product list filter label', 'Name'),
         lookup_expr='icontains')
-    sort_by = OrderingFilter(
-        label=pgettext_lazy('Product list sorting filter label', 'Sort by'),
-        fields=PRODUCT_SORT_BY_FIELDS.keys(),
-        field_labels=PRODUCT_SORT_BY_FIELDS)
+    categories = ModelMultipleChoiceFilter(
+        label=pgettext_lazy('Product list filter label', 'Categories'),
+        name='categories',
+        queryset=Category.objects.all())
+    price = RangeFilter(
+        label=pgettext_lazy('Product list filter label', 'Price'))
     is_published = ChoiceFilter(
-        label=pgettext_lazy(
-            'Product list is published filter label', 'Is published'),
+        label=pgettext_lazy('Product list filter label', 'Is published'),
         choices=PUBLISHED_CHOICES,
         empty_label=pgettext_lazy('Filter empty choice label', 'All'),
         widget=forms.Select)
@@ -44,15 +48,14 @@ class ProductFilter(FilterSet):
         choices=FEATURED_CHOICES,
         empty_label=pgettext_lazy('Filter empty choice label', 'All'),
         widget=forms.Select)
+    sort_by = OrderingFilter(
+        label=pgettext_lazy('Product list sorting filter label', 'Sort by'),
+        fields=PRODUCT_SORT_BY_FIELDS.keys(),
+        field_labels=PRODUCT_SORT_BY_FIELDS)
 
     class Meta:
         model = Product
-        fields = ['name', 'categories', 'is_published', 'is_featured', 'price']
-        filter_overrides = {
-            PriceField: {
-                'filter_class': RangeFilter
-            }
-        }
+        fields = []
 
 
 class ProductClassFilter(FilterSet):
@@ -67,3 +70,15 @@ class ProductClassFilter(FilterSet):
     class Meta:
         model = ProductClass
         fields = ['name', 'product_attributes', 'variant_attributes']
+
+
+class StockLocationFilter(FilterSet):
+    sort_by = OrderingFilter(
+        label=pgettext_lazy(
+            'Stock location list sorting filter label', 'Sort by'),
+        fields=STOCK_LOCATION_SORT_BY_FIELDS.keys(),
+        field_labels=STOCK_LOCATION_SORT_BY_FIELDS)
+
+    class Meta:
+        model = StockLocation
+        fields = []

@@ -1,6 +1,7 @@
 {% extends 'dashboard/base.html' %}
 {% load i18n %}
 {% load materializecss %}
+{% load get_sort_by_url_toggle from shop %}
 {% load staticfiles %}
 {% load utils %}
 
@@ -39,7 +40,11 @@
             <table class="highlight bordered data-table no-align">
               <thead>
                 <tr>
-                  <th>{% trans "Name" context "Dashboard stock location table header name" %}</th>
+                  <th>
+                    <a href="{% get_sort_by_url_toggle 'name' %}">
+                      {% trans "Name" context "Dashboard stock location table header name" %}
+                    </a>
+                  </th>
                 </tr>
               </thead>
               <tbody>
