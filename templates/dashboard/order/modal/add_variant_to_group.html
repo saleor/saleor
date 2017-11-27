@@ -7,7 +7,7 @@
     <div class="row">
       <div class="col">
         <h5>
-          {% blocktrans with shipment=group context "Modal order add variant title" %}
+          {% blocktrans with shipment=group context "Modal group add variant title" %}
             Add product to {{ shipment }}
           {% endblocktrans %}
         </h5>
@@ -21,11 +21,11 @@
     </div>
   </div>
   <div class="modal-footer">
-    <button type="submit" class="modal-action btn-flat">
-      {% trans "Add" context "Modal order add variant primary action" %}
-    </button>
     <a href="#!" aria-hidden="true" class="modal-action modal-close btn-flat">
       {% trans "Cancel" context "Dashboard cancel action" %}
     </a>
+    <button type="submit" class="modal-action btn-flat">
+      {% trans "Add" context "Modal group add variant primary action" %}
+    </button>
   </div>
 </form>

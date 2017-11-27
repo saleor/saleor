@@ -338,7 +338,7 @@ def add_variant_to_group(request, order_pk, group_pk):
     elif form.errors:
         status = 400
     ctx = {'order': order, 'group': group, 'form': form}
-    template = 'dashboard/order/modal/add_variant_to_order.html'
+    template = 'dashboard/order/modal/add_variant_to_group.html'
     return TemplateResponse(request, template, ctx, status=status)
 
 
