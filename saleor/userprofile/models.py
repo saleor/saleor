@@ -81,10 +81,6 @@ class Address(models.Model):
     def full_name(self):
         return '%s %s' % (self.first_name, self.last_name)
 
-    class Meta:
-        verbose_name = pgettext_lazy('Address model', 'address')
-        verbose_name_plural = pgettext_lazy('Address model', 'addresses')
-
     def __str__(self):
         if self.company_name:
             return '%s - %s' % (self.company_name, self.full_name)
@@ -150,8 +146,6 @@ class User(PermissionsMixin, AbstractBaseUser):
     objects = UserManager()
 
     class Meta:
-        verbose_name = pgettext_lazy('User model', 'user')
-        verbose_name_plural = pgettext_lazy('User model', 'users')
         permissions = (
             ('view_user',
              pgettext_lazy('Permission description', 'Can view users')),
