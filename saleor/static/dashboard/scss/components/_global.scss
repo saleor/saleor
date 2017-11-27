@@ -128,6 +128,7 @@ li#version-indicator {
   form {
     .input-field {
       label {
+        height: auto;
         pointer-events: auto;
 
         &:not(.label-icon) {
