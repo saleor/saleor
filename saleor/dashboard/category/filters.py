@@ -6,7 +6,10 @@ from django.utils.translation import pgettext_lazy
 from ...product.models import Category
 
 
-SORT_BY_FIELDS = {'name': pgettext_lazy('Product list sorting option', 'name')}
+SORT_BY_FIELDS = {
+    'name': pgettext_lazy('Category list sorting option', 'name'),
+    'description': pgettext_lazy(
+        'Category list sorting option', 'description')}
 
 
 class CategoryFilter(FilterSet):

@@ -18,7 +18,7 @@ from ...product.models import (
 from ...product.utils import (
     get_availability, get_product_costs_data, get_variant_costs_data)
 from ..views import staff_member_required
-from .filters import ProductFilter, ProductClassFilter
+from .filters import ProductFilter, ProductClassFilter, StockLocationFilter
 from . import forms
 
 
@@ -119,7 +119,8 @@ def product_list(request):
             'dashboard:product-add', class_pk=form.cleaned_data['product_cls'])
     product_filter = ProductFilter(request.GET, queryset=products)
     products = get_paginator_items(
-        product_filter.qs, DASHBOARD_PAGINATE_BY, request.GET.get('page'))
+        product_filter.qs, settings.DASHBOARD_PAGINATE_BY,
+        request.GET.get('page'))
     sort_by = request.GET.get('sort_by')
 
     ctx = {
@@ -583,11 +584,12 @@ def attribute_choice_value_delete(request, attribute_pk, value_pk):
 @permission_required('product.view_stock_location')
 def stock_location_list(request):
     stock_locations = StockLocation.objects.all().order_by('name')
+    stock_location_filter = StockLocationFilter(
+        request.GET, queryset=stock_locations)
     stock_locations = get_paginator_items(
-        stock_locations,
-        settings.DASHBOARD_PAGINATE_BY,
+        stock_location_filter.qs, settings.DASHBOARD_PAGINATE_BY,
         request.GET.get('page'))
-    ctx = {'locations': stock_locations}
+    ctx = {'locations': stock_locations, 'filter': stock_location_filter}
     return TemplateResponse(
         request,
         'dashboard/product/stock_location/list.html',
