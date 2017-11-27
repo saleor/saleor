@@ -308,9 +308,10 @@ def cancel_delivery_group(request, order_pk, group_pk):
 
 @staff_member_required
 @permission_required('order.edit_order')
-def add_variant_to_order(request, order_pk):
+def add_variant_to_group(request, order_pk, group_pk):
     """ Adds variant in given quantity to existing or new group in order. """
     order = get_object_or_404(Order, pk=order_pk)
+    group = get_object_or_404(order.groups.all(), pk=group_pk)
     form = AddVariantToOrderForm(request.POST or None, order=order)
     status = 200
     if form.is_valid():
@@ -340,7 +341,7 @@ def add_variant_to_order(request, order_pk):
         return redirect('dashboard:order-details', order_pk=order_pk)
     elif form.errors:
         status = 400
-    ctx = {'order': order, 'form': form}
+    ctx = {'order': order, 'group': group, 'form': form}
     template = 'dashboard/order/modal/add_variant_to_order.html'
     return TemplateResponse(request, template, ctx, status=status)
 
