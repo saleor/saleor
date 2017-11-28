@@ -2,7 +2,6 @@
 {% load i18n %}
 {% load mptt_tags %}
 {% load materializecss %}
-{% load get_sort_by_toggle from shop %}
 {% load staticfiles %}
 {% load utils %}
 
@@ -23,42 +22,6 @@
     {% include "dashboard/includes/_back-link.html" with url=url %}
   {% else %}
     {{ block.super }}
-  {% endif %}
-{% endblock %}
-
-{% block header_extra %}
-  {% if perms.product.edit_category %}
-    <div class="fixed-action-btn">
-      <a class="btn-fab btn-floating btn-large waves-effect waves-light"
-         title="{% trans "Add category" context "Category list add button text" %}"
-         href="
-             {% if root %}{% url 'dashboard:category-add' root_pk=root.pk %}{% else %}{% url 'dashboard:category-add' %}{% endif %}">
-        <svg data-src="{% static "dashboard/images/add.svg" %}"/>
-      </a>
-    </div>
-    {% if root %}
-      <a class="dropdown-button right" href="#" data-activates="category-delete"
-         data-constrainwidth="false">
-        <svg data-src="{% static "dashboard/images/more_vert.svg" %}" height="24"
-             width="24"/>
-      </a>
-      <ul id="category-delete" class="dropdown-content">
-        <li>
-          <a class="modal-trigger-custom"
-             data-href="{% url 'dashboard:category-edit' root_pk=root.pk %}"
-             href="#base-modal">
-            {% trans "Edit category" context "Dashboard edit action" %}
-          </a>
-        </li>
-        <li>
-          <a class="modal-trigger-custom"
-             data-href="{% url 'dashboard:category-delete' pk=root.pk %}"
-             href="#base-modal">
-            {% trans "Remove category" context "Category list action link" %}
-          </a>
-        </li>
-      </ul>
-    {% endif %}
   {% endif %}
 {% endblock %}
 
@@ -108,8 +71,46 @@
 {% block menu_catalogue_class %} active{% endblock %}
 
 {% block content %}
+  {% if root %}
+    <div class="row">
+      <div class="col m12">
+        <div class="card">
+          <div class="card-content">
+            <span class="card-title">
+              {{ root.name }}
+            </span>
+            <div class="row">
+              {% if root.description %}
+                <div class="col s12 m4 l12">
+                  <h4>
+                    {% trans "Description" context "Shipping method field" %}
+                  </h4>
+                  <p>
+                    {{ root.description }}
+                  </p>
+                </div>
+              {% endif %}
+            </div>
+          </div>
+          {% if perms.product.edit_category %}
+          <div class="card-action">
+            <a class="btn btn-flat" href="{% url 'dashboard:category-edit' root_pk=root.pk %}">
+              {% trans "Edit category" context "Category detail view action" %}
+            </a>
+            <a class="btn btn-flat modal-trigger-custom"
+             data-href="{% url 'dashboard:category-delete' pk=root.pk %}"
+             href="#base-modal">
+              {% trans "Remove category" context "Category detail view action" %}
+            </a>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  {% endif %}
+
   <div class="row">
-    <div class="col s12 l9">
+    <div class="col s12">
       <div class="card">
         <div class="data-table-header-action">
           <a href="{% if root%}{% url 'dashboard:category-add' root_pk=root.pk %}{% else %}{% url 'dashboard:category-add' %}{% endif %}" class="btn-data-table btn btn-flat">
@@ -120,24 +121,18 @@
           <table class="bordered highlight responsive data-table data-table-description">
             <thead>
               <tr>
-                {% get_sort_by_toggle 'name' as toggle %}
-                <th class="{% if toggle.is_active %}active{% endif %}">
-                  <a href="{{ toggle.url }}">
-                    <svg data-src="{{ toggle.sorting_icon }}" />
-                    {% trans "Name" context "Category list table header name" %}
-                  </a>
+                <th>
+                  {% trans "Name" context "Category list table header name" %}
                 </th>
-                {% get_sort_by_toggle 'description' as toggle %}
-                <th class="wide {% if toggle.is_active %}active{% endif %}">
-                  <a href="{{ toggle.url }}">
-                    <svg data-src="{{ toggle.sorting_icon }}" />
-                    {% trans "Description" context "Category list table header description" %}
-                  </a>
+                <th>
+                  {% trans "Description" context "Category list table header description" %}
                 </th>
+                <th></th>
+              </tr>
             </thead>
             <tbody>
               {% for node in categories %}
-                <tr data-action-go="{% url 'dashboard:category-list' root_pk=node.pk %}">
+                <tr data-action-go="{% url 'dashboard:category-detail' pk=node.pk %}">
                   <td>
                     {{ node.name }}
                   </td>
@@ -159,10 +154,15 @@
                     </a>
                   </td>
                 </tr>
+              {% empty %}
+                <tr>
+                  <td colspan="2">{% trans "No categories" context "Empty list of categories" %}</td>
+                </tr>
               {% endfor %}
-            </table>
-          </div>
+            </tbody>
+          </table>
         </div>
+      </div>
       {% paginate categories %}
     </div>
   </div>
