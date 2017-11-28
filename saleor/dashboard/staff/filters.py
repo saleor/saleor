@@ -9,6 +9,7 @@ from django import forms
 
 from ...core.utils.filters import filter_by_customer, filter_by_location
 from ...userprofile.models import User
+from ..filters import SortedFilterSet
 
 
 SORT_BY_FIELDS = (
@@ -29,7 +30,7 @@ IS_ACTIVE_CHOICES = (
     ('0', pgettext_lazy('Is active filter choice', 'Not active')))
 
 
-class StaffFilter(FilterSet):
+class StaffFilter(SortedFilterSet):
     name_or_email = CharFilter(
         label=pgettext_lazy('Staff list filter label', 'Name or email'),
         method=filter_by_customer)

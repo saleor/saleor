@@ -5,13 +5,14 @@ from django_filters import (
 from django.utils.translation import pgettext_lazy
 
 from ...shipping.models import COUNTRY_CODE_CHOICES, ShippingMethod
+from ..filters import SortedFilterSet
 
 
 SORT_BY_FIELDS = {
     'name': pgettext_lazy('Group list sorting option', 'name')}
 
 
-class ShippingMethodFilter(FilterSet):
+class ShippingMethodFilter(SortedFilterSet):
     name = CharFilter(
         label=pgettext_lazy(
             'Shipping method list filter label', 'Name'),

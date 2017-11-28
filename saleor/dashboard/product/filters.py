@@ -8,6 +8,7 @@ from django_filters import (
 
 from ...product.models import (
     Category, Product, ProductAttribute, ProductClass, StockLocation)
+from ..filters import SortedFilterSet
 from ..widgets import PriceRangeWidget
 
 PRODUCT_SORT_BY_FIELDS = {
@@ -32,7 +33,7 @@ FEATURED_CHOICES = (
     ('0', pgettext_lazy('Is featured filter choice', 'Not featured')))
 
 
-class ProductFilter(FilterSet):
+class ProductFilter(SortedFilterSet):
     name = CharFilter(
         label=pgettext_lazy('Product list filter label', 'Name'),
         lookup_expr='icontains')
@@ -65,7 +66,7 @@ class ProductFilter(FilterSet):
         fields = []
 
 
-class ProductAttributeFilter(FilterSet):
+class ProductAttributeFilter(SortedFilterSet):
     name = CharFilter(
         label=pgettext_lazy('Product attribute list filter label', 'Name'),
         lookup_expr='icontains')
@@ -79,7 +80,7 @@ class ProductAttributeFilter(FilterSet):
         fields = []
 
 
-class ProductClassFilter(FilterSet):
+class ProductClassFilter(SortedFilterSet):
     name = CharFilter(
         label=pgettext_lazy('Product type list filter label', 'Name'),
         lookup_expr='icontains')
@@ -93,7 +94,7 @@ class ProductClassFilter(FilterSet):
         fields = ['name', 'product_attributes', 'variant_attributes']
 
 
-class StockLocationFilter(FilterSet):
+class StockLocationFilter(SortedFilterSet):
     sort_by = OrderingFilter(
         label=pgettext_lazy(
             'Stock location list filter label', 'Sort by'),

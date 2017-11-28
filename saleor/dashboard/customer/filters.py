@@ -7,6 +7,7 @@ from django.utils.translation import pgettext_lazy
 from django import forms
 
 from ...userprofile.models import User
+from ..filters import SortedFilterSet
 
 
 SORT_BY_FIELDS = (
@@ -34,7 +35,7 @@ IS_ACTIVE_CHOICES = (
     ('0', pgettext_lazy('Is active filter choice', 'Not active')))
 
 
-class CustomerFilter(FilterSet):
+class CustomerFilter(SortedFilterSet):
     name_or_email = CharFilter(
         label=pgettext_lazy('Customer name or email filter', 'Name or email'),
         method=filter_by_customer)

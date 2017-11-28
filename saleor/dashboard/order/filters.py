@@ -10,6 +10,7 @@ from payments import PaymentStatus
 from ...core.utils.filters import filter_by_order_customer
 from ...order.models import Order
 from ...order import OrderStatus
+from ..filters import SortedFilterSet
 from ..widgets import DateRangeWidget
 
 
@@ -31,7 +32,7 @@ SORT_BY_FIELDS_LABELS = {
     'total_net': pgettext_lazy('Order list sorting option', 'created')}
 
 
-class OrderFilter(FilterSet):
+class OrderFilter(SortedFilterSet):
     id = NumberFilter(
         label=pgettext_lazy('Order list filter label', 'ID'))
     name_or_email = CharFilter(

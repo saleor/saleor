@@ -9,6 +9,7 @@ from django import forms
 from ...core.utils.filters import filter_by_date_range
 from ...discount.models import Sale, Voucher
 from ...product.models import Category
+from ..filters import SortedFilterSet
 from ..widgets import DateRangeWidget
 
 
@@ -31,7 +32,7 @@ DISCOUNT_TYPE_CHOICES = (
     ('percentage', pgettext_lazy('Sale type filter choice', '%')))
 
 
-class SaleFilter(FilterSet):
+class SaleFilter(SortedFilterSet):
     name = CharFilter(
         label=pgettext_lazy('Sale list filter label', 'Name'),
         lookup_expr='icontains')
@@ -56,7 +57,7 @@ class SaleFilter(FilterSet):
         fields = []
 
 
-class VoucherFilter(FilterSet):
+class VoucherFilter(SortedFilterSet):
     name = CharFilter(
         label=pgettext_lazy('Voucher list name filter label', 'Name'),
         lookup_expr='icontains')
