@@ -141,3 +141,14 @@ def test_find_order_with_email(admin_client, orders_with_addresses, phrase,
     _, orders, _ = search_dashboard(admin_client, phrase)
     assert 1 == len(orders)
     assert orders_with_addresses[order_num] in orders
+
+
+@pytest.mark.integration
+@pytest.mark.django_db(transaction=True)
+@pytest.mark.parametrize('phrase,order_num', [('knop', 0), ('ZIEMniak', 1),
+                                              ('john', 2), ('ANDREAS', 0)])
+def test_find_order_with_user(admin_client, orders_with_addresses, phrase,
+                               order_num):
+    _, orders, _ = search_dashboard(admin_client, phrase)
+    assert 1 == len(orders)
+    assert orders_with_addresses[order_num] in orders
