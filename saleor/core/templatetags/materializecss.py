@@ -4,7 +4,7 @@ from django import forms
 from django.template.loader import get_template
 from django import template
 from django_filters.widgets import RangeWidget
-from ...dashboard.order.filters import DateRangeWidget
+from ...dashboard.widgets import DateRangeWidget, PriceRangeWidget
 
 register = template.Library()
 
@@ -96,3 +96,8 @@ def is_range(field):
 @register.filter
 def is_date_range(field):
     return isinstance(field.field.widget, DateRangeWidget)
+
+
+@register.filter
+def is_price_range(field):
+    return isinstance(field.field.widget, PriceRangeWidget)

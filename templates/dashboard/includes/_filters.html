@@ -39,10 +39,12 @@
       <div class="card-action">
         <div class="right-align">
           <div class="col s12">
-            <a href="?" class="clear-filters btn btn-flat">
-              {% trans 'Clear' context 'Category page filters' %}
-            </a>
-            <button class="btn primary" type="submit">
+              {% if filter.data  and not filter.data.sort_by %}
+                <a href="?" class="clear-filters btn btn-flat">
+                  {% trans 'Clear' context 'Category page filters' %}
+                </a>
+              {% endif %}
+            <button class="btn btn-flat" type="submit">
               {% trans 'Filter' context 'Category price filter' %}
             </button>
           </div>
