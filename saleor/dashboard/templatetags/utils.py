@@ -78,8 +78,8 @@ def margins_for_variant(variant):
     return margins
 
 
-@register.inclusion_tag('dashboard/includes/_filters.html')
-def add_filters(filter_set, sort_by_filter_name='sort_by'):
+@register.inclusion_tag('dashboard/includes/_filters.html', takes_context=True)
+def add_filters(context, filter_set, sort_by_filter_name='sort_by'):
     chips = []
     cleaned_data = filter_set.form.cleaned_data
     for filter_name in cleaned_data.keys():
@@ -107,5 +107,16 @@ def add_filters(filter_set, sort_by_filter_name='sort_by'):
             else:
                 items = handle_default(field)
             chips.extend(items)
+
+    for chip in chips:
+        request = context['request'].GET.copy()
+        param_values = request.getlist(chip['name'])
+        all_values = {k:request.getlist(k) for k in request.keys()}
+        index_of_value = param_values.index(str(chip['value']))
+        del all_values[chip['name']][index_of_value]
+        del chip['value']
+        del chip['name']
+        chip['link'] = '?' + urlencode(all_values, True)
+
     return {
         'chips': chips, 'filter': filter_set, 'count': filter_set.qs.count()}
