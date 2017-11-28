@@ -1,8 +1,8 @@
 from __future__ import unicode_literals
 
 from django_filters import (
-    CharFilter, ChoiceFilter, DateFromToRangeFilter, FilterSet, NumberFilter,
-    RangeFilter, OrderingFilter)
+    CharFilter, ChoiceFilter, DateFromToRangeFilter, NumberFilter, RangeFilter,
+    OrderingFilter)
 from django import forms
 from django.utils.translation import pgettext_lazy
 from payments import PaymentStatus

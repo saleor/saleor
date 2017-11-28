@@ -1,7 +1,7 @@
 from __future__ import unicode_literals
 
 from django_filters import (
-    CharFilter, ChoiceFilter, FilterSet, OrderingFilter)
+    CharFilter, ChoiceFilter, OrderingFilter)
 from ...core.utils.filters import filter_by_customer, filter_by_location
 from django.utils.translation import pgettext_lazy
 from django import forms

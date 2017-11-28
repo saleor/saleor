@@ -1,6 +1,6 @@
 from __future__ import unicode_literals
 
-from django_filters import (FilterSet, OrderingFilter)
+from django_filters import OrderingFilter
 from django.utils.translation import pgettext_lazy
 
 from ...product.models import Category

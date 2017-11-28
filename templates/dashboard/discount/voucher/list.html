@@ -49,16 +49,16 @@
                 <thead>
                   <tr>
                     {% get_sort_by_toggle 'name' as toggle %}
-                    <th class="wide {{ toggle.is_active }}">
-                      <a href="{{ toggle.url }}">
-                        <svg data-src="{{ toggle.arrow_src }}" />
-                        {% trans "Name" context "Voucher table header" %}
-                      </a>
+                    <th class="wide {% if toggle.is_active %}active{% endif %}">
+                    <a href="{{ toggle.url }}">
+                      <svg data-src="{{ toggle.sorting_icon }}" />
+                      {% trans "Name" context "Voucher table header" %}
+                    </a>
                     </th>
                     {% get_sort_by_toggle 'discount_value' as toggle %}
-                    <th class="wide {{ toggle.is_active }}">
+                    <th class="wide {% if toggle.is_active %}active{% endif %}">
                       <a href="{{ toggle.url }}">
-                        <svg data-src="{{ toggle.arrow_src }}" />
+                        <svg data-src="{{ toggle.sorting_icon }}" />
                         {% trans "Discount" context "Voucher table header" %}
                       </a>
                     </th>
@@ -66,30 +66,30 @@
                       {% trans "Apply to" context "Voucher table header" %}
                     </th>
                     {% get_sort_by_toggle 'start_date' as toggle %}
-                    <th class="wide {{ toggle.is_active }}">
+                    <th class="wide {% if toggle.is_active %}active{% endif %}">
                       <a href="{{ toggle.url }}">
-                        <svg data-src="{{ toggle.arrow_src }}" />
+                        <svg data-src="{{ toggle.sorting_icon }}" />
                         {% trans "Start date" context "Voucher table header" %}
                       </a>
                     </th>
                     {% get_sort_by_toggle 'end_date' as toggle %}
-                    <th class="wide {{ toggle.is_active }}">
+                    <th class="wide {% if toggle.is_active %}active{% endif %}">
                       <a href="{{ toggle.url }}">
-                        <svg data-src="{{ toggle.arrow_src }}" />
+                        <svg data-src="{{ toggle.sorting_icon }}" />
                         {% trans "End date" context "Voucher table header" %}
                       </a>
                     </th>
                     {% get_sort_by_toggle 'used' as toggle %}
-                    <th class="wide {{ toggle.is_active }}">
+                    <th class="wide {% if toggle.is_active %}active{% endif %}">
                       <a href="{{ toggle.url }}">
-                        <svg data-src="{{ toggle.arrow_src }}" />
+                        <svg data-src="{{ toggle.sorting_icon }}" />
                         {% trans "Used" context "Voucher table header" %}
                       </a>
                     </th>
                     {% get_sort_by_toggle 'limit' as toggle %}
-                    <th class="wide {{ toggle.is_active }}">
+                    <th class="wide {% if toggle.is_active %}active{% endif %}">
                       <a href="{{ toggle.url }}">
-                        <svg data-src="{{ toggle.arrow_src }}" />
+                        <svg data-src="{{ toggle.sorting_icon }}" />
                         {% trans "Limit" context "Voucher table header" %}
                       </a>
                     </th>

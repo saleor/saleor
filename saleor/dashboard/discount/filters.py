@@ -1,8 +1,8 @@
 from __future__ import unicode_literals
 
 from django_filters import (
-    CharFilter, ChoiceFilter, DateFromToRangeFilter, FilterSet,
-    ModelMultipleChoiceFilter, OrderingFilter, RangeFilter)
+    CharFilter, ChoiceFilter, DateFromToRangeFilter, ModelMultipleChoiceFilter,
+    OrderingFilter, RangeFilter)
 from django.utils.translation import pgettext_lazy
 from django import forms
 
