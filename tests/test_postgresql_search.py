@@ -46,28 +46,31 @@ def test_storefront_product_fuzzy_search(client, named_products, phrase,
     assert named_products[product_num] in results
 
 
+def search_dashboard(client, phrase):
+    response = client.get(reverse('dashboard:search'), {'q': phrase})
+    assert phrase == response.context['query']
+    context = response.context
+    return context['products'], context['orders'], context['users']
+
+
 @pytest.mark.integration
 @pytest.mark.django_db(transaction=True)
 def test_search_empty_results(admin_client, named_products):
-    phrase = 'foo'
-    resp = admin_client.get(reverse('dashboard:search'), {'q': phrase})
-    assert 0 == len(resp.context['products'])
-    assert phrase == resp.context['query']
+    products, _, _ = search_dashboard(admin_client, 'foo')
+    assert 0 == len(products)
 
 
 @pytest.mark.integration
 @pytest.mark.django_db(transaction=True)
 def test_find_product_by_name(admin_client, named_products):
-    phrase = 'coffee'
-    resp = admin_client.get(reverse('dashboard:search'), {'q': phrase})
-    assert 1 == len(resp.context['products'])
-    assert named_products[0] in resp.context['products']
+    products, _, _ = search_dashboard(admin_client, 'coffee')
+    assert 1 == len(products)
+    assert named_products[0] in products
 
 
 @pytest.mark.integration
 @pytest.mark.django_db(transaction=True)
 def test_find_product_by_description(admin_client, named_products):
-    phrase = 'BIG'
-    resp = admin_client.get(reverse('dashboard:search'), {'q': phrase})
-    assert 1 == len(resp.context['products'])
-    assert named_products[1] in resp.context['products']
+    products, _, _ = search_dashboard(admin_client, 'BIG')
+    assert 1 == len(products)
+    assert named_products[1] in products
