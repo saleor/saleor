@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
 from saleor.product.models import Product
@@ -92,23 +93,29 @@ def test_find_product_by_description(admin_client, named_products):
     assert named_products[1] in products
 
 
-ORDERS = [(10, 'Andreas', 'Knop', 'adreas.knop@example.com'),
-          (45, 'Euzebiusz', 'Ziemniak', 'euzeb.potato@cebula.pl'),
-          (13, 'John', 'Doe', 'johndoe@example.com')]
+USERS = [('Andreas', 'Knop', 'adreas.knop@example.com'),
+         ('Euzebiusz', 'Ziemniak', 'euzeb.potato@cebula.pl'),
+         ('John', 'Doe', 'johndoe@example.com')]
+ORDER_IDS = [10, 45, 13]
+ORDERS = [(pk, *user) for pk, user in zip(ORDER_IDS, USERS)]
+
+
+def gen_address_for_user(first_name, last_name):
+    return Address.objects.create(
+            first_name=first_name,
+            last_name=last_name,
+            company_name='Mirumee Software',
+            street_address_1='Tęczowa 7',
+            city='Wrocław',
+            postal_code='53-601',
+            country='PL')
 
 
 @pytest.fixture
 def orders_with_addresses():
     orders = []
     for pk, name, lastname, email in ORDERS:
-        addr = Address.objects.create(
-            first_name=name,
-            last_name=lastname,
-            company_name='Mirumee Software',
-            street_address_1='Tęczowa 7',
-            city='Wrocław',
-            postal_code='53-601',
-            country='PL')
+        addr = gen_address_for_user(name, lastname)
         user = User.objects.create(default_shipping_address=addr, email=email)
         order = Order.objects.create(user=user, billing_address=addr, pk=pk)
         orders.append(order)
@@ -146,9 +153,30 @@ def test_find_order_with_email(admin_client, orders_with_addresses, phrase,
 @pytest.mark.integration
 @pytest.mark.django_db(transaction=True)
 @pytest.mark.parametrize('phrase,order_num', [('knop', 0), ('ZIEMniak', 1),
-                                              ('john', 2), ('ANDREAS', 0)])
+                                              ('  john  ', 2), ('ANDREAS', 0)])
 def test_find_order_with_user(admin_client, orders_with_addresses, phrase,
                                order_num):
     _, orders, _ = search_dashboard(admin_client, phrase)
     assert 1 == len(orders)
     assert orders_with_addresses[order_num] in orders
+
+
+@pytest.fixture
+def users_with_addresses():
+    users = []
+    for firstname, lastname, email in USERS:
+        addr = gen_address_for_user(firstname, lastname)
+        user = User.objects.create(default_billing_address=addr, email=email)
+        users.append(user)
+    return users
+
+
+@pytest.mark.integration
+@pytest.mark.django_db(transaction=True)
+@pytest.mark.parametrize('phrase,user_num', [('adreas.knop@example.com', 0),
+                                             (' euzeb.potato@cebula.pl ', 1)])
+def test_find_user_with_email(admin_client, users_with_addresses, phrase,
+                              user_num):
+    _, _, users = search_dashboard(admin_client, phrase)
+    assert 1 == len(users)
+    assert users_with_addresses[user_num] in users
