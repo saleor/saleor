@@ -8,6 +8,7 @@ from django_filters import (
 
 from ...product.models import (
     Category, Product, ProductAttribute, ProductClass, StockLocation)
+from ..widgets import PriceRangeWidget
 
 PRODUCT_SORT_BY_FIELDS = {
     'name': pgettext_lazy('Product list sorting option', 'name'),
@@ -40,7 +41,9 @@ class ProductFilter(FilterSet):
         name='categories',
         queryset=Category.objects.all())
     price = RangeFilter(
-        label=pgettext_lazy('Product list filter label', 'Price'))
+        label=pgettext_lazy('Product list filter label', 'Price'),
+        name='price',
+        widget=PriceRangeWidget)
     is_published = ChoiceFilter(
         label=pgettext_lazy('Product list filter label', 'Is published'),
         choices=PUBLISHED_CHOICES,
