@@ -2,7 +2,7 @@ from __future__ import unicode_literals
 
 from django.contrib.auth.models import Group
 from django_filters import (
-    CharFilter, FilterSet, ModelMultipleChoiceFilter, OrderingFilter)
+    CharFilter, ModelMultipleChoiceFilter, OrderingFilter)
 from django.utils.translation import pgettext_lazy
 
 from ...core.permissions import get_permissions

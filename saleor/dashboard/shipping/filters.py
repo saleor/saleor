@@ -1,7 +1,7 @@
 from __future__ import unicode_literals
 
 from django_filters import (
-    FilterSet, CharFilter, ChoiceFilter, OrderingFilter, RangeFilter)
+    CharFilter, ChoiceFilter, OrderingFilter, RangeFilter)
 from django.utils.translation import pgettext_lazy
 
 from ...shipping.models import COUNTRY_CODE_CHOICES, ShippingMethod

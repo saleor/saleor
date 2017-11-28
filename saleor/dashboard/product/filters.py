@@ -3,8 +3,8 @@ from __future__ import unicode_literals
 from django import forms
 from django.utils.translation import pgettext_lazy
 from django_filters import (
-    CharFilter, ChoiceFilter, FilterSet, ModelMultipleChoiceFilter,
-    RangeFilter, OrderingFilter)
+    CharFilter, ChoiceFilter, ModelMultipleChoiceFilter, RangeFilter,
+    OrderingFilter)
 
 from ...product.models import (
     Category, Product, ProductAttribute, ProductClass, StockLocation)
