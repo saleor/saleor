@@ -7,8 +7,12 @@
       {% csrf_token %}
       {{ form.media }}
       {% bootstrap_form form %}
-      <button type="submit" class="btn primary">
-          {% trans "Save changes" context "Payment form primary action" %}
-      </button>
+      <div class="form-group">
+        <div class="col-sm-offset-2 col-sm-10">
+            <button type="submit" class="btn primary">
+                {% trans "Save changes" context "Payment form primary action" %}
+            </button>
+        </div>
+    </div>
   </form>
 {% endblock forms %}
