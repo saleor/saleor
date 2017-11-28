@@ -17,7 +17,7 @@
 {% block breadcrumbs %}
   <ul class="breadcrumbs breadcrumbs--history">
     <li>
-      <a href="{% url "dashboard:shipping-methods" %}">
+      <a href="{% url 'dashboard:shipping-methods' %}">
         {% trans "Shipping methods" context "Shipping method form breadcrumbs" %}
       </a>
     </li>
@@ -55,10 +55,10 @@
         </div>
         {% if perms.shipping.edit_shipping %}
         <div class="card-action">
-          <a class="btn btn-flat" href="{% url "dashboard:shipping-method-update" shipping_method.pk %}">
+          <a class="btn btn-flat" href="{% url 'dashboard:shipping-method-update' shipping_method.pk %}">
             {% trans "Edit shipping method" context "Shipping method action" %}
           </a>
-          <a class="btn btn-flat modal-trigger-custom" href="#base-modal" data-href="{% url "dashboard:shipping-method-delete" shipping_method.pk %}">
+          <a class="btn btn-flat modal-trigger-custom" href="#base-modal" data-href="{% url 'dashboard:shipping-method-delete' shipping_method.pk %}">
             {% trans "Remove shipping method" context "Shipping method action" %}
           </a>
         </div>
