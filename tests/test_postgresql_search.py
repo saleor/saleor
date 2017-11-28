@@ -1,6 +1,8 @@
 from __future__ import unicode_literals
 
 from saleor.product.models import Product
+from saleor.order.models import Order
+from saleor.userprofile.models import Address
 
 from django.core.urlresolvers import reverse
 from decimal import Decimal
@@ -87,3 +89,44 @@ def test_find_product_by_description(admin_client, named_products):
     products, _, _ = search_dashboard(admin_client, 'BIG')
     assert 1 == len(products)
     assert named_products[1] in products
+
+
+ORDERS = [(10, 'Andreas', 'Knop', 'adreas.knop@example.com'),
+          (45, 'Euzebiusz', 'Ziemniak', 'euzeb.potato@cebula.pl'),
+          (13, 'John', 'Doe', 'johndoe@example.com')]
+
+
+@pytest.fixture
+def orders_with_addresses():
+    orders = []
+    for pk, name, lastname, email in ORDERS:
+        addr = Address.objects.create(
+            first_name=name,
+            last_name=lastname,
+            company_name='Mirumee Software',
+            street_address_1='Tęczowa 7',
+            city='Wrocław',
+            postal_code='53-601',
+            country='PL')
+        order = Order.objects.create(
+            billing_address=addr, user_email=email, pk=pk)
+        orders.append(order)
+    return orders
+
+
+@pytest.mark.integration
+@pytest.mark.django_dn(transaction=True)
+def test_find_order_by_id_with_no_result(admin_client, orders_with_addresses):
+    phrase = '991'
+    _, orders, _ = search_dashboard(admin_client, phrase)
+    assert 0 == len(orders)
+
+
+@pytest.mark.integration
+@pytest.mark.django_dn(transaction=True)
+def test_find_order_by_id(admin_client, orders_with_addresses):
+    phrase = '10'
+    _, orders, _ = search_dashboard(admin_client, phrase)
+    assert 1 == len(orders)
+    assert orders_with_addresses[0] in orders
+
