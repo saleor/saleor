@@ -203,9 +203,9 @@ def orderline_change_quantity(request, order_pk, line_pk):
 @permission_required('order.edit_order')
 def orderline_split(request, order_pk, line_pk):
     order = get_object_or_404(Order, pk=order_pk)
-    line = get_object_or_404(OrderedItem.objects.filter(
+    line = get_object_or_404(OrderLine.objects.filter(
         delivery_group__order=order), pk=line_pk)
-    form = MoveItemsForm(request.POST or None, line=line)
+    form = MoveLinesForm(request.POST or None, line=line)
     line_pk = None
     if line:
         line_pk = line.pk
@@ -249,7 +249,7 @@ def orderline_cancel(request, order_pk, line_pk):
             'Cancelled item %s') % line
         with transaction.atomic():
             order.create_history_entry(comment=msg, user=request.user)
-            form.cancel_item()
+            form.cancel_line()
             messages.success(request, msg)
         return redirect('dashboard:order-details', order_pk=order.pk)
     elif form.errors:

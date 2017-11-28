@@ -23,7 +23,7 @@
       'shipping': '{{ order.get_delivery_total.gross }}',
       'tax': '{{ order.get_total.tax }}'
     });
-    {% for item in order.get_items %}
+    {% for item in order.get_lines %}
      __ga('ecommerce:addItem', {
         'id': '{{ item.id }}',
         'name': '{{ item }}',
