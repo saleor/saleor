@@ -32,6 +32,11 @@ def named_products(default_category, product_class):
     return [gen_product(name, desc) for name, desc in PRODUCTS]
 
 
+def search_storefront(client, phrase):
+    resp = client.get(reverse('search:search'), {'q': phrase})
+    return [prod for prod, _ in resp.context['results'].object_list]
+
+
 @pytest.mark.parametrize('phrase,product_num',
                          [('Arabika', 0), ('Aarabica', 0), ('Arab', 0),
                           ('czicken', 2), ('blue', 1), ('roast', 2),
@@ -40,10 +45,18 @@ def named_products(default_category, product_class):
 @pytest.mark.django_db(transaction=True)
 def test_storefront_product_fuzzy_search(client, named_products, phrase,
                                          product_num):
-    resp = client.get(reverse('search:search'), {'q': phrase})
-    results = [prod for prod, _ in resp.context['results'].object_list]
+    results = search_storefront(client, phrase)
     assert 1 == len(results)
     assert named_products[product_num] in results
+
+
+@pytest.mark.integration
+@pytest.mark.django_db(transaction=True)
+def test_storefront_filter_published_products(client, named_products):
+    prod_to_unpublish = named_products[0]
+    prod_to_unpublish.is_published = False
+    prod_to_unpublish.save()
+    assert search_storefront(client, 'Coffee') == []
 
 
 def search_dashboard(client, phrase):
