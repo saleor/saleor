@@ -95,7 +95,7 @@
     }
     @include media-breakpoint-down(sm) {
       margin-top: $global-margin * 3;
-    } 
+    }
   }
   &__thankyoupage {
     text-align: center;
@@ -140,6 +140,12 @@
           margin-bottom: $global-margin * 2.4;
         }
       }
+    }
+  }
+  &__payments {
+    &-card-expiry-slash {
+      font-size: 1.5rem;
+      font-weight: 100;
     }
   }
 }
