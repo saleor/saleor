@@ -83,7 +83,7 @@
               {% if root.description %}
                 <div class="col s12 m4 l12">
                   <h4>
-                    {% trans "Description" context "Shipping method field" %}
+                    {% trans "Description" context "Category field" %}
                   </h4>
                   <p>
                     {{ root.description }}
@@ -143,16 +143,18 @@
                       &nbsp;
                     {% endif %}
                   </td>
-                  <td class="right-align">
-                    <a href="{% url 'dashboard:category-edit' root_pk=node.pk %}" class="btn btn-flat">
-                      {% trans 'Edit' context 'Category edit action' %}
-                    </a>
-                    <a class="btn btn-flat modal-trigger-custom"
-                     data-href="{% url 'dashboard:category-delete' pk=node.pk %}"
-                     href="#base-modal">
-                      {% trans "Remove" context "Category list action link" %}
-                    </a>
-                  </td>
+                  {% if perms.product.edit_category %}
+                    <td class="right-align">
+                      <a href="{% url 'dashboard:category-edit' root_pk=node.pk %}" class="btn btn-flat">
+                        {% trans 'Edit' context 'Category edit action' %}
+                      </a>
+                      <a class="btn btn-flat modal-trigger-custom"
+                       data-href="{% url 'dashboard:category-delete' pk=node.pk %}"
+                       href="#base-modal">
+                        {% trans "Remove" context "Category list action link" %}
+                      </a>
+                    </td>
+                  {% endif %}
                 </tr>
               {% empty %}
                 <tr>
