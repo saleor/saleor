@@ -2,7 +2,7 @@ from prices import Price
 
 from saleor.cart.models import Cart
 from saleor.order import models
-from saleor.order.utils import add_items_to_delivery_group
+from saleor.order.utils import create_order_lines_in_delivery_group
 
 
 def test_total_property():
@@ -32,7 +32,7 @@ def test_stock_allocation(billing_address, product_in_stock):
     cart.add(variant, quantity=2)
     order = models.Order.objects.create(billing_address=billing_address)
     delivery_group = models.DeliveryGroup.objects.create(order=order)
-    add_items_to_delivery_group(delivery_group, cart.lines.all())
+    create_order_lines_in_delivery_group(delivery_group, cart.lines.all())
     order_line = delivery_group.items.get()
     stock = order_line.stock
     assert stock.quantity_allocated == 2
@@ -41,7 +41,7 @@ def test_stock_allocation(billing_address, product_in_stock):
 def test_order_discount(sale, order, request_cart_with_item):
     cart = request_cart_with_item
     group = models.DeliveryGroup.objects.create(order=order)
-    add_items_to_delivery_group(
+    create_order_lines_in_delivery_group(
         group, cart.lines.all(), discounts=cart.discounts)
     item = group.items.first()
     assert item.get_price_per_item() == Price(currency="USD", net=5)

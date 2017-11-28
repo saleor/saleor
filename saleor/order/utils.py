@@ -53,11 +53,12 @@ def attach_order_to_user(order, user):
     order.save(update_fields=['user'])
 
 
-def add_items_to_delivery_group(delivery_group, partition, discounts=None):
-    for item_line in partition:
-        product_variant = item_line.variant
-        price = item_line.get_price_per_item(discounts)
-        total_quantity = item_line.get_quantity()
+def create_order_lines_in_delivery_group(
+        delivery_group, partition, discounts=None):
+    for order_line in partition:
+        product_variant = order_line.variant
+        price = order_line.get_price_per_item(discounts)
+        total_quantity = order_line.get_quantity()
 
         while total_quantity > 0:
             stock = product_variant.select_stockrecord()
@@ -106,17 +107,17 @@ def cancel_order(order):
     order.save()
 
 
-def merge_duplicated_lines(item):
-    """ Merges duplicated items in delivery group into one (given) item.
+def merge_duplicated_lines(line):
+    """ Merges duplicated lines in delivery group into one (given) line.
     If there are no duplicates, nothing will happen.
     """
-    lines = item.delivery_group.items.filter(
-        product=item.product, product_name=item.product_name,
-        product_sku=item.product_sku, stock=item.stock)
+    lines = line.delivery_group.items.filter(
+        product=line.product, product_name=line.product_name,
+        product_sku=line.product_sku, stock=line.stock)
     if lines.count() > 1:
-        item.quantity = sum([line.quantity for line in lines])
-        item.save()
-        lines.exclude(pk=item.pk).delete()
+        line.quantity = sum([line.quantity for line in lines])
+        line.save()
+        lines.exclude(pk=line.pk).delete()
 
 
 def change_order_line_quantity(line, new_quantity):
@@ -128,7 +129,7 @@ def change_order_line_quantity(line, new_quantity):
         line.delivery_group.delete()
 
     order = line.delivery_group.order
-    if not order.get_items():
+    if not order.get_lines():
         order.change_status(OrderStatus.CANCELLED)
         order.create_history_entry(
             status=OrderStatus.CANCELLED, comment=pgettext_lazy(
