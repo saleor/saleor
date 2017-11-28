@@ -119,7 +119,7 @@ class MoveLinesForm(forms.Form):
         label=pgettext_lazy('Move lines form label', 'Target shipment'))
 
     def __init__(self, *args, **kwargs):
-        self.line = kwargs.pop('item')
+        self.line = kwargs.pop('line')
         super(MoveLinesForm, self).__init__(*args, **kwargs)
         self.fields['quantity'].validators.append(
             MaxValueValidator(self.line.quantity))
