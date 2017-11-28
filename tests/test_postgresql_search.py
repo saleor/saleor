@@ -161,14 +161,15 @@ def test_find_order_with_user(admin_client, orders_with_addresses, phrase,
     assert orders_with_addresses[order_num] in orders
 
 
+ORDER_PHRASE_WITH_RESULT = 'Andreas'
+
+
 @pytest.mark.integration
 @pytest.mark.django_db(transaction=True)
 def test_orders_result_doesnt_show_when_no_permission(
-        orders_with_addresses, staff_client, staff_user, staff_group,
-        permission_view_order):
+        orders_with_addresses, staff_client, staff_user):
     assert not staff_user.has_perm("order.view_order")
-    phrase = 'Andreas'
-    _, orders, _ = search_dashboard(staff_client, phrase)
+    _, orders, _ = search_dashboard(staff_client, ORDER_PHRASE_WITH_RESULT)
     assert 0 == len(orders)
 
 
@@ -180,8 +181,7 @@ def test_show_orders_when_permission_granted(
     assert not staff_user.has_perm("order.view_order")
     staff_group.permissions.add(permission_view_order)
     staff_user.groups.add(staff_group)
-    phrase = 'Andreas'
-    _, orders, _ = search_dashboard(staff_client, phrase)
+    _, orders, _ = search_dashboard(staff_client, ORDER_PHRASE_WITH_RESULT)
     assert 1 == len(orders)
 
 
@@ -215,3 +215,27 @@ def test_find_user_with_name(admin_client, users_with_addresses, phrase,
     _, _, users = search_dashboard(admin_client, phrase)
     assert 1 == len(users)
     assert users_with_addresses[user_num] in users
+
+
+USER_PHRASE_WITH_RESULT = 'adreas.knop@example.com'
+
+
+@pytest.mark.integration
+@pytest.mark.django_db(transaction=True)
+def test_dont_show_users_no_permission(users_with_addresses, staff_client,
+                                       staff_user):
+    assert not staff_user.has_perm('order.view_user')
+    _, _, users = search_dashboard(staff_client, USER_PHRASE_WITH_RESULT)
+    assert 0 == len(users)
+
+
+@pytest.mark.integration
+@pytest.mark.django_db(transaction=True)
+def test_show_users_when_access_granted(users_with_addresses, staff_client,
+                                        staff_user, staff_group,
+                                        permission_view_user):
+    assert not staff_user.has_perm('userprofile.view_user')
+    staff_group.permissions.add(permission_view_user)
+    staff_user.groups.add(staff_group)
+    _, _, users = search_dashboard(staff_client, USER_PHRASE_WITH_RESULT)
+    assert 1 == len(users)
