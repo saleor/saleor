@@ -123,10 +123,8 @@ def product_list(request):
     products = get_paginator_items(
         product_filter.qs, settings.DASHBOARD_PAGINATE_BY,
         request.GET.get('page'))
-    sort_by = request.GET.get('sort_by')
 
     ctx = {
-        'is_descending': sort_by.startswith('-') if sort_by else False,
         'bulk_action_form': forms.ProductBulkUpdate(), 'form': form,
         'products': products, 'product_classes': product_classes,
         'filter': product_filter,

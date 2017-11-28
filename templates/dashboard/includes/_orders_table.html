@@ -1,39 +1,51 @@
 {% load i18n %}
 {% load prices_i18n %}
-{% load get_sort_by_url_toggle from shop %}
+{% load get_sort_by_toggle from shop %}
 {% load status %}
 
 <div class="data-table-container">
   <table class="bordered highlight responsive data-table">
     <thead>
       <tr>
-        <th>
-          <a href="{% get_sort_by_url_toggle 'pk' %}">
+        {% get_sort_by_toggle 'pk' as toggle %}
+        <th class="wide {{ toggle.is_active }}">
+          <a href="{{ toggle.url }}">
+            <svg data-src="{{ toggle.arrow_src }}" />
             #
           </a>
         </th>
-        <th>
-          <a href="{% get_sort_by_url_toggle 'email' %}">
+        {% get_sort_by_toggle 'email' as toggle %}
+        <th class="wide {{ toggle.is_active }}">
+          <a href="{{ toggle.url }}">
+            <svg data-src="{{ toggle.arrow_src }}" />
             {% trans "Customer" context "Orders table header" %}
           </a>
         </th>
-        <th>
-          <a href="{% get_sort_by_url_toggle 'created' %}">
+        {% get_sort_by_toggle 'created' as toggle %}
+        <th class="wide {{ toggle.is_active }}">
+          <a href="{{ toggle.url }}">
+            <svg data-src="{{ toggle.arrow_src }}" />
             {% trans "Placed on" context "Orders table header" %}
           </a>
         </th>
-        <th>
-          <a href="{% get_sort_by_url_toggle 'status' %}">
+        {% get_sort_by_toggle 'status' as toggle %}
+        <th class="wide {{ toggle.is_active }}">
+          <a href="{{ toggle.url }}">
+            <svg data-src="{{ toggle.arrow_src }}" />
             {% trans "Order status" context "Orders table header" %}
           </a>
         </th>
-        <th>
-          <a href="{% get_sort_by_url_toggle 'payment_status' %}">
+        {% get_sort_by_toggle 'payment_status' as toggle %}
+        <th class="wide {{ toggle.is_active }}">
+          <a href="{{ toggle.url }}">
+            <svg data-src="{{ toggle.arrow_src }}" />
             {% trans "Payment status" context "Orders table header" %}
           </a>
         </th>
-        <th class="right-align">
-          <a href="{% get_sort_by_url_toggle 'total' %}">
+        {% get_sort_by_toggle 'total' as toggle %}
+        <th class="wide {{ toggle.is_active }}">
+          <a href="{{ toggle.url }}">
+            <svg data-src="{{ toggle.arrow_src }}" />
             {% trans "Total" context "Orders table header" %}
           </a>
         </th>

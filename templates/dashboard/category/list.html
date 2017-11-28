@@ -2,7 +2,7 @@
 {% load i18n %}
 {% load mptt_tags %}
 {% load materializecss %}
-{% load get_sort_by_url_toggle from shop %}
+{% load get_sort_by_toggle from shop %}
 {% load staticfiles %}
 {% load utils %}
 
@@ -116,13 +116,17 @@
             <table class="bordered highlight responsive data-table data-table-description no-align">
               <thead>
                 <tr>
-                  <th>
-                    <a href="{% get_sort_by_url_toggle 'name' %}">
+                  {% get_sort_by_toggle 'name' as toggle %}
+                  <th class="wide {{ toggle.is_active }}">
+                    <a href="{{ toggle.url }}">
+                      <svg data-src="{{ toggle.arrow_src }}" />
                       {% trans "Name" context "Category list table header name" %}
                     </a>
                   </th>
-                  <th>
-                    <a href="{% get_sort_by_url_toggle 'name' %}">
+                  {% get_sort_by_toggle 'description' as toggle %}
+                  <th class="wide {{ toggle.is_active }}">
+                    <a href="{{ toggle.url }}">
+                      <svg data-src="{{ toggle.arrow_src }}" />
                       {% trans "Description" context "Category list table header description" %}
                     </a>
                   </th>

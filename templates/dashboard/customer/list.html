@@ -1,7 +1,7 @@
 {% extends "dashboard/base.html" %}
 {% load i18n %}
 {% load prices_i18n %}
-{% load get_sort_by_url_toggle from shop %}
+{% load get_sort_by_toggle from shop %}
 {% load materializecss %}
 {% load utils %}
 
@@ -30,18 +30,24 @@
             <table class="bordered highlight responsive data-table">
               <thead>
                 <tr>
-                  <th class="wide">
-                    <a href="{% get_sort_by_url_toggle 'name' %}">
+                  {% get_sort_by_toggle 'name' as toggle %}
+                  <th class="wide {{ toggle.is_active }}">
+                    <a href="{{ toggle.url }}">
+                      <svg data-src="{{ toggle.arrow_src }}" />
                       {% trans "Name" context "Customers table header" %}
                     </a>
                   </th>
-                  <th>
-                    <a href="{% get_sort_by_url_toggle 'email' %}">
+                  {% get_sort_by_toggle 'email' as toggle %}
+                  <th class="wide {{ toggle.is_active }}">
+                    <a href="{{ toggle.url }}">
+                      <svg data-src="{{ toggle.arrow_src }}" />
                       {% trans "Email" context "Customers table header" %}
                     </a>
                   </th>
-                  <th>
-                    <a href="{% get_sort_by_url_toggle 'location' %}">
+                  {% get_sort_by_toggle 'location' as toggle %}
+                  <th class="wide {{ toggle.is_active }}">
+                    <a href="{{ toggle.url }}">
+                      <svg data-src="{{ toggle.arrow_src }}" />
                       {% trans "Location" context "Customers table header" %}
                     </a>
                   </th>

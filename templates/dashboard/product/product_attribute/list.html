@@ -1,7 +1,7 @@
 {% extends "dashboard/base.html" %}
 {% load i18n %}
 {% load materializecss %}
-{% load get_sort_by_url_toggle from shop %}
+{% load get_sort_by_toggle from shop %}
 {% load staticfiles %}
 {% load utils %}
 
@@ -42,8 +42,10 @@
             <table class="bordered highlight data-table data-table-description">
               <thead>
                 <tr>
-                  <th>
-                    <a href="{% get_sort_by_url_toggle 'name' %}">
+                  {% get_sort_by_toggle 'name' as toggle %}
+                  <th class="wide {{ toggle.is_active }}">
+                    <a href="{{ toggle.url }}">
+                      <svg data-src="{{ toggle.arrow_src }}" />
                       {% trans "Name" context "Dashboard attributes list table header name" %}
                     </a>
                   </th>
