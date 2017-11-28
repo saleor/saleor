@@ -111,7 +111,7 @@ def add_filters(context, filter_set, sort_by_filter_name='sort_by'):
     for chip in chips:
         request = context['request'].GET.copy()
         param_values = request.getlist(chip['name'])
-        all_values = {k:request.getlist(k) for k in request.keys()}
+        all_values = {k: request.getlist(k) for k in request.keys()}
         index_of_value = param_values.index(str(chip['value']))
         del all_values[chip['name']][index_of_value]
         del chip['value']
