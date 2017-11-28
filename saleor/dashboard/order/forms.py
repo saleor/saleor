@@ -11,7 +11,7 @@ from satchless.item import InsufficientStock
 from ...cart.forms import QuantityField
 from ...discount.models import Voucher
 from ...order import OrderStatus
-from ...order.models import DeliveryGroup, Order, OrderedItem, OrderNote
+from ...order.models import DeliveryGroup, Order, OrderLine, OrderNote
 from ...order.utils import (
     cancel_order, cancel_delivery_group, change_order_line_quantity,
     merge_duplicated_lines)
@@ -110,25 +110,25 @@ class ReleasePaymentForm(forms.Form):
         return True
 
 
-class MoveItemsForm(forms.Form):
+class MoveLinesForm(forms.Form):
     NEW_SHIPMENT = 'new'
     quantity = QuantityField(
-        label=pgettext_lazy('Move items form label', 'Quantity'),
+        label=pgettext_lazy('Move lines form label', 'Quantity'),
         validators=[MinValueValidator(1)])
     target_group = forms.ChoiceField(
-        label=pgettext_lazy('Move items form label', 'Target shipment'))
+        label=pgettext_lazy('Move lines form label', 'Target shipment'))
 
     def __init__(self, *args, **kwargs):
-        self.item = kwargs.pop('item')
-        super(MoveItemsForm, self).__init__(*args, **kwargs)
+        self.line = kwargs.pop('line')
+        super(MoveLinesForm, self).__init__(*args, **kwargs)
         self.fields['quantity'].validators.append(
-            MaxValueValidator(self.item.quantity))
+            MaxValueValidator(self.line.quantity))
         self.fields['quantity'].widget.attrs.update({
-            'max': self.item.quantity, 'min': 1})
+            'max': self.line.quantity, 'min': 1})
         self.fields['target_group'].choices = self.get_delivery_group_choices()
 
     def get_delivery_group_choices(self):
-        group = self.item.delivery_group
+        group = self.line.delivery_group
         groups = group.order.groups.exclude(pk=group.pk).exclude(
             status='cancelled')
         choices = [(self.NEW_SHIPMENT, pgettext_lazy(
@@ -137,10 +137,10 @@ class MoveItemsForm(forms.Form):
         choices.extend([(g.pk, str(g)) for g in groups])
         return choices
 
-    def move_items(self):
+    def move_lines(self):
         how_many = self.cleaned_data['quantity']
         choice = self.cleaned_data['target_group']
-        old_group = self.item.delivery_group
+        old_group = self.line.delivery_group
         if choice == self.NEW_SHIPMENT:
             # For new group we use the same delivery name but zero price
             target_group = old_group.order.groups.create(
@@ -148,22 +148,22 @@ class MoveItemsForm(forms.Form):
                 shipping_method_name=old_group.shipping_method_name)
         else:
             target_group = DeliveryGroup.objects.get(pk=choice)
-        OrderedItem.objects.move_to_group(self.item, target_group, how_many)
+        OrderLine.objects.move_to_group(self.line, target_group, how_many)
         return target_group
 
 
-class CancelItemsForm(forms.Form):
+class CancelLinesForm(forms.Form):
 
     def __init__(self, *args, **kwargs):
-        self.item = kwargs.pop('item')
-        super(CancelItemsForm, self).__init__(*args, **kwargs)
+        self.line = kwargs.pop('line')
+        super(CancelLinesForm, self).__init__(*args, **kwargs)
 
-    def cancel_item(self):
-        if self.item.stock:
-            Stock.objects.deallocate_stock(self.item.stock, self.item.quantity)
-        order = self.item.delivery_group.order
-        self.item.quantity = 0
-        OrderedItem.objects.remove_empty_groups(self.item)
+    def cancel_line(self):
+        if self.line.stock:
+            Stock.objects.deallocate_stock(self.line.stock, self.line.quantity)
+        order = self.line.delivery_group.order
+        self.line.quantity = 0
+        OrderLine.objects.remove_empty_groups(self.line)
         Order.objects.recalculate_order(order)
 
 
@@ -173,7 +173,7 @@ class ChangeQuantityForm(forms.ModelForm):
         validators=[MinValueValidator(1)])
 
     class Meta:
-        model = OrderedItem
+        model = OrderLine
         fields = ['quantity']
 
     def __init__(self, *args, **kwargs):
@@ -319,7 +319,7 @@ class ChangeStockForm(forms.ModelForm):
     stock = StockChoiceField(queryset=Stock.objects.none())
 
     class Meta:
-        model = OrderedItem
+        model = OrderLine
         fields = ['stock']
 
     def __init__(self, *args, **kwargs):

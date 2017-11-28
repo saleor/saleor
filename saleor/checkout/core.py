@@ -16,7 +16,7 @@ from ..cart.utils import get_or_empty_db_cart
 from ..core import analytics
 from ..discount.models import NotApplicable, Voucher
 from ..order.models import Order
-from ..order.utils import add_items_to_delivery_group
+from ..order.utils import create_order_lines_in_delivery_group
 from ..shipping.models import ANY_COUNTRY, ShippingMethodCountry
 from ..userprofile.models import Address
 from ..userprofile.utils import store_user_address
@@ -331,7 +331,7 @@ class Checkout(object):
             group = order.groups.create(
                 shipping_price=shipping_price,
                 shipping_method_name=shipping_method_name)
-            add_items_to_delivery_group(
+            create_order_lines_in_delivery_group(
                 group, partition, discounts=self.cart.discounts)
 
         if voucher is not None:

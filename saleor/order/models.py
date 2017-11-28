@@ -114,8 +114,8 @@ class Order(models.Model, ItemSet):
             self.status = status
             self.save()
 
-    def get_items(self):
-        return OrderedItem.objects.filter(delivery_group__order=self)
+    def get_lines(self):
+        return OrderLine.objects.filter(delivery_group__order=self)
 
     def is_fully_paid(self):
         total_paid = sum(
@@ -206,7 +206,7 @@ class Order(models.Model, ItemSet):
         self.total_tax = Price(price.tax, currency=price.currency)
 
     def get_subtotal_without_voucher(self):
-        if self.get_items():
+        if self.get_lines():
             return super(Order, self).get_total()
         return Price(net=0, currency=settings.DEFAULT_CURRENCY)
 
@@ -284,36 +284,36 @@ class DeliveryGroup(models.Model, ItemSet):
         return self.status not in {OrderStatus.CANCELLED, OrderStatus.SHIPPED}
 
 
-class OrderedItemManager(models.Manager):
-    def move_to_group(self, item, target_group, quantity):
+class OrderLineManager(models.Manager):
+    def move_to_group(self, line, target_group, quantity):
         try:
-            target_item = target_group.items.get(
-                product=item.product, product_name=item.product_name,
-                product_sku=item.product_sku, stock=item.stock)
+            target_line = target_group.items.get(
+                product=line.product, product_name=line.product_name,
+                product_sku=line.product_sku, stock=line.stock)
         except ObjectDoesNotExist:
             target_group.items.create(
-                delivery_group=target_group, product=item.product,
-                product_name=item.product_name, product_sku=item.product_sku,
-                quantity=quantity, unit_price_net=item.unit_price_net,
-                stock=item.stock,
-                stock_location=item.stock_location,
-                unit_price_gross=item.unit_price_gross)
+                delivery_group=target_group, product=line.product,
+                product_name=line.product_name, product_sku=line.product_sku,
+                quantity=quantity, unit_price_net=line.unit_price_net,
+                stock=line.stock,
+                stock_location=line.stock_location,
+                unit_price_gross=line.unit_price_gross)
         else:
-            target_item.quantity += quantity
-            target_item.save()
-        item.quantity -= quantity
-        self.remove_empty_groups(item)
+            target_line.quantity += quantity
+            target_line.save()
+        line.quantity -= quantity
+        self.remove_empty_groups(line)
 
-    def remove_empty_groups(self, item, force=False):
-        source_group = item.delivery_group
+    def remove_empty_groups(self, line, force=False):
+        source_group = line.delivery_group
         order = source_group.order
-        if item.quantity:
-            item.save()
+        if line.quantity:
+            line.save()
         else:
-            item.delete()
+            line.delete()
         if not source_group.get_total_quantity() or force:
             source_group.delete()
-        if not order.get_items():
+        if not order.get_lines():
             order.change_status(OrderStatus.CANCELLED)
             order.create_history_entry(
                 status=OrderStatus.CANCELLED, comment=pgettext_lazy(
@@ -322,36 +322,41 @@ class OrderedItemManager(models.Manager):
 
 
 @python_2_unicode_compatible
-class OrderedItem(models.Model, ItemLine):
+class OrderLine(models.Model, ItemLine):
     delivery_group = models.ForeignKey(
         DeliveryGroup, related_name='items', editable=False,
-        verbose_name=pgettext_lazy('Ordered item field', 'delivery group'),
+        verbose_name=pgettext_lazy('Ordered line field', 'delivery group'),
         on_delete=models.CASCADE)
     product = models.ForeignKey(
         Product, blank=True, null=True, related_name='+',
         on_delete=models.SET_NULL,
-        verbose_name=pgettext_lazy('Ordered item field', 'product'))
+        verbose_name=pgettext_lazy('Ordered line field', 'product'))
     product_name = models.CharField(
-        pgettext_lazy('Ordered item field', 'product name'), max_length=128)
+        pgettext_lazy('Ordered line field', 'product name'), max_length=128)
     product_sku = models.CharField(
-        pgettext_lazy('Ordered item field', 'sku'), max_length=32)
+        pgettext_lazy('Ordered line field', 'sku'), max_length=32)
     stock_location = models.CharField(
-        pgettext_lazy('OrderedItem field', 'stock location'), max_length=100,
+        pgettext_lazy('OrderLine field', 'stock location'), max_length=100,
         default='')
     stock = models.ForeignKey(
         'product.Stock', on_delete=models.SET_NULL, null=True,
-        verbose_name=pgettext_lazy('Ordered item field', 'stock'))
+        verbose_name=pgettext_lazy('Ordered line field', 'stock'))
     quantity = models.IntegerField(
-        pgettext_lazy('Ordered item field', 'quantity'),
+        pgettext_lazy('Ordered line field', 'quantity'),
         validators=[MinValueValidator(0), MaxValueValidator(999)])
     unit_price_net = models.DecimalField(
-        pgettext_lazy('Ordered item field', 'unit price (net)'),
+        pgettext_lazy('Ordered line field', 'unit price (net)'),
         max_digits=12, decimal_places=4)
     unit_price_gross = models.DecimalField(
-        pgettext_lazy('Ordered item field', 'unit price (gross)'),
+        pgettext_lazy('Ordered line field', 'unit price (gross)'),
         max_digits=12, decimal_places=4)
 
-    objects = OrderedItemManager()
+    objects = OrderLineManager()
+
+    class Meta:
+        verbose_name = pgettext_lazy('Ordered line model', 'Ordered line')
+        verbose_name_plural = pgettext_lazy(
+            'Ordered line model', 'Ordered lines')
 
     def __str__(self):
         return self.product_name
@@ -398,23 +403,23 @@ class Payment(BasePayment):
         emails.send_payment_confirmation.delay(email, order_url)
 
     def get_purchased_items(self):
-        items = [
+        lines = [
             PurchasedItem(
-                name=item.product_name, sku=item.product_sku,
-                quantity=item.quantity,
-                price=item.unit_price_gross.quantize(Decimal('0.01')),
+                name=line.product_name, sku=line.product_sku,
+                quantity=line.quantity,
+                price=line.unit_price_gross.quantize(Decimal('0.01')),
                 currency=settings.DEFAULT_CURRENCY)
-            for item in self.order.get_items()]
+            for line in self.order.get_lines()]
 
         voucher = self.order.voucher
         if voucher is not None:
-            items.append(PurchasedItem(
+            lines.append(PurchasedItem(
                 name=self.order.discount_name,
                 sku='DISCOUNT',
                 quantity=1,
                 price=-self.order.discount_amount.net,
                 currency=self.currency))
-        return items
+        return lines
 
     def get_total_price(self):
         net = self.total - self.tax
