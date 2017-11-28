@@ -47,7 +47,7 @@ def category_create(request, root_pk=None):
             pgettext_lazy(
                 'Dashboard message', 'Added category %s') % category)
         if root_pk:
-            return redirect('dashboard:category-list', root_pk=root_pk)
+            return redirect('dashboard:category-detail', pk=root_pk)
         else:
             return redirect('dashboard:category-list')
     ctx = {'category': category, 'form': form}
@@ -68,7 +68,7 @@ def category_edit(request, root_pk=None):
             pgettext_lazy(
                 'Dashboard message', 'Updated category %s') % category)
         if root_pk:
-            return redirect('dashboard:category-list', root_pk=root_pk)
+            return redirect('dashboard:category-detail', pk=root_pk)
         else:
             return redirect('dashboard:category-list')
     elif form.errors:
@@ -107,9 +107,9 @@ def category_delete(request, pk):
         if root_pk:
             if request.is_ajax():
                 response = {'redirectUrl': reverse(
-                    'dashboard:category-list', kwargs={'root_pk': root_pk})}
+                    'dashboard:category-detail', kwargs={'pk': root_pk})}
                 return JsonResponse(response)
-            return redirect('dashboard:category-list', root_pk=root_pk)
+            return redirect('dashboard:category-detail', pk=root_pk)
         else:
             if request.is_ajax():
                 response = {'redirectUrl': reverse('dashboard:category-list')}

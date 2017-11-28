@@ -15,7 +15,7 @@
 {% block header_menu %}
   {% if root %}
     {% if root.parent %}
-      {% url 'dashboard:category-list' root_pk=root.parent.pk as url %}
+      {% url 'dashboard:category-detail' pk=root.parent.pk as url %}
     {% else %}
       {% url 'dashboard:category-list' as url %}
     {% endif %}
@@ -57,7 +57,7 @@
         {% else %}
           <li class="hide-on-med-and-down">
             <a title="{{ node.name }}"
-               href="{% url 'dashboard:category-list' root_pk=node.pk %}"
+               href="{% url 'dashboard:category-detail' pk=node.pk %}"
                class="breadcrumbs--ellipsed-item">
               {{ node.name }}
             </a>

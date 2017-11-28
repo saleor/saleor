@@ -9,7 +9,7 @@
     {{ category }}
   {% else %}
     {% trans "Add new category" context "Category detail page title" %}
-  {% endif %} 
+  {% endif %}
   - {% trans "Categories" context "Dashboard categories list" %} - {{ block.super }}
 {% endblock %}
 
@@ -28,12 +28,12 @@
 {% block breadcrumbs %}
   <ul class="breadcrumbs breadcrumbs--history">
     <li>
-      <a href="{% url 'dashboard:category-list'%}" class="breadcrumbs--ellipsed-item">
+      <a href="{% url 'dashboard:category-list' %}" class="breadcrumbs--ellipsed-item">
         {% trans "Categories" context "Dashboard categories list" %}
       </a>
     </li>
     <li class="back-mobile">
-      <a href="{% url 'dashboard:category-list' %}" class="breadcrumbs--ellipsed-item"> 
+      <a href="{% url 'dashboard:category-list' %}" class="breadcrumbs--ellipsed-item">
         <svg data-src="{% static "dashboard/images/arrow-left.svg" %}" fill="#fff" width="20px" height="20px" />
       </a>
     </li>
@@ -76,7 +76,7 @@
           </div>
           <div class="card-action right-align">
             {% if category.parent %}
-              <a href="{% url 'dashboard:category-list' root_pk=category.parent.pk %}" class="btn btn-flat">
+              <a href="{% url 'dashboard:category-detail' pk=category.parent.pk %}" class="btn btn-flat">
                 {% trans "Cancel" context "Dashboard cancel action" %}
               </a>
             {% else %}
