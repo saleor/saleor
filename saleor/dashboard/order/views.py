@@ -202,7 +202,7 @@ def orderline_split(request, order_pk, line_pk):
     order = get_object_or_404(Order, pk=order_pk)
     line = get_object_or_404(OrderLine.objects.filter(
         delivery_group__order=order), pk=line_pk)
-    form = MoveLinesForm(request.POST or None, item=line)
+    form = MoveLinesForm(request.POST or None, line=line)
     line_pk = None
     if line:
         line_pk = line.pk
