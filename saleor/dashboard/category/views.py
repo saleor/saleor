@@ -51,7 +51,7 @@ def category_create(request, root_pk=None):
         else:
             return redirect('dashboard:category-list')
     ctx = {'category': category, 'form': form}
-    return TemplateResponse(request, 'dashboard/category/detail.html', ctx)
+    return TemplateResponse(request, 'dashboard/category/form.html', ctx)
 
 
 @staff_member_required
@@ -74,7 +74,7 @@ def category_edit(request, root_pk=None):
     elif form.errors:
         status = 400
     ctx = {'category': category, 'form': form, 'status': status}
-    template = 'dashboard/category/modal/edit.html'
+    template = 'dashboard/category/form.html'
     return TemplateResponse(request, template, ctx, status=status)
 
 
