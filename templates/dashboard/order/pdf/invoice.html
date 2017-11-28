@@ -77,7 +77,7 @@
     </tr>
     </thead>
     <tbody>
-    {% for item in order.get_items.all %}
+    {% for item in order.get_lines.all %}
       <tr>
         <td>
           {{ item.product_name|truncatechars:30 }}<br>
