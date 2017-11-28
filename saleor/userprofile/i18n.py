@@ -36,9 +36,8 @@ AREA_TYPE_TRANSLATIONS = {
 
 
 class AddressMetaForm(forms.ModelForm):
-    preview = forms.BooleanField(
-        label=pgettext('Address meta form label', 'preview'),
-        initial=False, required=False)
+    # This field is never visible in UI
+    preview = forms.BooleanField(initial=False, required=False)
 
     class Meta:
         model = Address
