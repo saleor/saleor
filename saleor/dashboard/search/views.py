@@ -16,6 +16,8 @@ def get_results(request, form):
     users = results['users']
     if not user.has_perm('order.view_order'):
         orders = orders.none()
+    if not user.has_perm('userprofile.view_user'):
+        users = users.none()
     return products, orders, users
 
 
