@@ -6,13 +6,14 @@ from django_filters import (
 from django.utils.translation import pgettext_lazy
 
 from ...core.permissions import get_permissions
+from ..filters import SortedFilterSet
 
 
 SORT_BY_FIELDS = {
     'name': pgettext_lazy('Group list sorting option', 'name')}
 
 
-class GroupFilter(FilterSet):
+class GroupFilter(SortedFilterSet):
     name = CharFilter(
         label=pgettext_lazy('Group list filter label', 'Name'),
         lookup_expr='icontains')

@@ -4,6 +4,7 @@ from django_filters import (FilterSet, OrderingFilter)
 from django.utils.translation import pgettext_lazy
 
 from ...product.models import Category
+from ..filters import SortedFilterSet
 
 
 SORT_BY_FIELDS = {
@@ -12,7 +13,7 @@ SORT_BY_FIELDS = {
         'Category list sorting option', 'description')}
 
 
-class CategoryFilter(FilterSet):
+class CategoryFilter(SortedFilterSet):
     sort_by = OrderingFilter(
         label=pgettext_lazy('Product list sorting filter label', 'Sort by'),
         fields=SORT_BY_FIELDS.keys(),

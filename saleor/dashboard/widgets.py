@@ -1,3 +1,4 @@
+from __future__ import unicode_literals
 from django_filters.widgets import RangeWidget
 from django_prices.widgets import PriceInput
 

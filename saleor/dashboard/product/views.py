@@ -123,7 +123,6 @@ def product_list(request):
     products = get_paginator_items(
         product_filter.qs, settings.DASHBOARD_PAGINATE_BY,
         request.GET.get('page'))
-
     ctx = {
         'bulk_action_form': forms.ProductBulkUpdate(), 'form': form,
         'products': products, 'product_classes': product_classes,
