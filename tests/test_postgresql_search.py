@@ -180,3 +180,15 @@ def test_find_user_with_email(admin_client, users_with_addresses, phrase,
     _, _, users = search_dashboard(admin_client, phrase)
     assert 1 == len(users)
     assert users_with_addresses[user_num] in users
+
+
+@pytest.mark.integration
+@pytest.mark.django_db(transaction=True)
+@pytest.mark.parametrize('phrase,user_num', [('Andreas Knop', 0),
+                                             (' Euzebiusz ', 1),
+                                             ('DOE', 2)])
+def test_find_user_with_name(admin_client, users_with_addresses, phrase,
+                             user_num):
+    _, _, users = search_dashboard(admin_client, phrase)
+    assert 1 == len(users)
+    assert users_with_addresses[user_num] in users
