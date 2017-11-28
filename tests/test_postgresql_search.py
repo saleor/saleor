@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 from saleor.product.models import Product
 from saleor.order.models import Order
 from saleor.userprofile.models import Address
+from saleor.userprofile.models import User
 
 from django.core.urlresolvers import reverse
 from decimal import Decimal
@@ -63,7 +64,7 @@ def test_storefront_filter_published_products(client, named_products):
 
 def search_dashboard(client, phrase):
     response = client.get(reverse('dashboard:search'), {'q': phrase})
-    assert phrase == response.context['query']
+    assert response.context['query'] in phrase
     context = response.context
     return context['products'], context['orders'], context['users']
 
@@ -108,14 +109,14 @@ def orders_with_addresses():
             city='Wrocław',
             postal_code='53-601',
             country='PL')
-        order = Order.objects.create(
-            billing_address=addr, user_email=email, pk=pk)
+        user = User.objects.create(default_shipping_address=addr, email=email)
+        order = Order.objects.create(user=user, billing_address=addr, pk=pk)
         orders.append(order)
     return orders
 
 
 @pytest.mark.integration
-@pytest.mark.django_dn(transaction=True)
+@pytest.mark.django_db(transaction=True)
 def test_find_order_by_id_with_no_result(admin_client, orders_with_addresses):
     phrase = '991'
     _, orders, _ = search_dashboard(admin_client, phrase)
@@ -123,10 +124,20 @@ def test_find_order_by_id_with_no_result(admin_client, orders_with_addresses):
 
 
 @pytest.mark.integration
-@pytest.mark.django_dn(transaction=True)
+@pytest.mark.django_db(transaction=True)
 def test_find_order_by_id(admin_client, orders_with_addresses):
-    phrase = '10'
+    phrase = ' 10 '
     _, orders, _ = search_dashboard(admin_client, phrase)
     assert 1 == len(orders)
     assert orders_with_addresses[0] in orders
 
+
+@pytest.mark.integration
+@pytest.mark.django_db(transaction=True)
+@pytest.mark.parametrize('phrase,order_num', [('euzeb.potato@cebula.pl', 1),
+                                              ('  johndoe@example.com ', 2)])
+def test_find_order_with_email(admin_client, orders_with_addresses, phrase,
+                               order_num):
+    _, orders, _ = search_dashboard(admin_client, phrase)
+    assert 1 == len(orders)
+    assert orders_with_addresses[order_num] in orders
