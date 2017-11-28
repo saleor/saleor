@@ -79,6 +79,19 @@ def category_edit(request, root_pk=None):
 
 
 @staff_member_required
+@permission_required('product.view_category')
+def category_detail(request, pk):
+    # categories = Category.tree.root_nodes()
+    root = get_object_or_404(Category, pk=pk)
+    path = root.get_ancestors(include_self=True) if root else []
+    categories = root.get_children()
+    categories = get_paginator_items(
+        categories, DASHBOARD_PAGINATE_BY, request.GET.get('page'))
+    ctx = {'categories': categories, 'path': path, 'root': root}
+    return TemplateResponse(request, 'dashboard/category/detail.html', ctx)
+
+
+@staff_member_required
 @permission_required('product.edit_category')
 def category_delete(request, pk):
     category = get_object_or_404(Category, pk=pk)
