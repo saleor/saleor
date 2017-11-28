@@ -1,4 +1,7 @@
-<div class="row">
-    <div class="col-6">{{ month }}</div>
-    <div class="col-6">{{ year }}</div>
-</div>
+<span style="white-space: nowrap">
+    {% with widget.subwidgets.0 as month %}
+        {% with widget.subwidgets.1 as year %}
+            {% include month.template_name with widget=month %} / {% include year.template_name with widget=year %}
+        {% endwith %}
+    {% endwith %}
+</span>
