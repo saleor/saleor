@@ -290,6 +290,10 @@
       {% endif %}
     </label>
     {% for value in field.value %}
+      <input type="number" class="col s3"
+             name="{{ field.name }}_{{ forloop.counter0 }}" value="{{ value }}"
+             id="{{ field.auto_id }}_{{ forloop.counter0 }}">
+      <span class="currency">{{ field.field.widget.currency }}</span>
       {% for error in field.errors %}
         <p class="help-block materialize-red-text">
           {{ error }}
@@ -300,9 +304,6 @@
           {{ field.help_text|safe }}
         </p>
       {% endif %}
-      <input type="number" class="col s5"
-             name="{{ field.name }}_{{ forloop.counter0 }}" value="{{ value }}"
-             id="{{ field.auto_id }}_{{ forloop.counter0 }}">
       {% if not forloop.last %}
         <div class="col s2 center-align separator">-</div>
       {% endif %}

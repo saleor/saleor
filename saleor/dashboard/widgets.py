@@ -14,6 +14,6 @@ class DateRangeWidget(RangeWidget):
 
 class PriceRangeWidget(RangeWidget):
     def __init__(self, attrs=None):
-        currency = getattr(settings, 'DEFAULT_CURRENCY')
-        widgets = (PriceInput(currency), PriceInput(currency))
+        self.currency = getattr(settings, 'DEFAULT_CURRENCY')
+        widgets = (PriceInput(self.currency), PriceInput(self.currency))
         super(RangeWidget, self).__init__(widgets, attrs)
