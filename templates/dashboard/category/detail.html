@@ -112,6 +112,11 @@
   <div class="row">
     <div class="col s12">
       <div class="card">
+        <div class="card-content">
+          <span class="card-title">
+             {% trans "Subcategories" context "Title of the subcategories list" %}
+          </span>
+        </div>
         <div class="data-table-header-action">
           <a href="{% if root%}{% url 'dashboard:category-add' root_pk=root.pk %}{% else %}{% url 'dashboard:category-add' %}{% endif %}" class="btn-data-table btn btn-flat">
             {% trans "Add" %}
