@@ -93,4 +93,7 @@ urlpatterns = [
         name='product-stock-location-edit'),
     url(r'stocklocations/(?P<location_pk>[0-9]+)/delete/$',
         views.stock_location_delete, name='product-stock-location-delete'),
+
+    url(r'^ajax/variants/$',
+        views.ajax_available_variants_list, name='ajax-available-variants'),
 ]

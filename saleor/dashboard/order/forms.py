@@ -3,19 +3,21 @@ from __future__ import unicode_literals
 from django import forms
 from django.conf import settings
 from django.core.validators import MinValueValidator, MaxValueValidator
+from django.urls import reverse_lazy
 from django.utils.translation import npgettext_lazy, pgettext_lazy
 from django_prices.forms import PriceField
 from payments import PaymentError, PaymentStatus
 from satchless.item import InsufficientStock
 
 from ...cart.forms import QuantityField
+from ...core.forms import AjaxSelect2ChoiceField
 from ...discount.models import Voucher
 from ...order import OrderStatus
 from ...order.models import DeliveryGroup, Order, OrderLine, OrderNote
 from ...order.utils import (
-    cancel_order, cancel_delivery_group, change_order_line_quantity,
-    merge_duplicated_lines)
-from ...product.models import Stock
+    add_variant_to_delivery_group, cancel_order, cancel_delivery_group,
+    change_order_line_quantity, merge_duplicated_lines)
+from ...product.models import Product, ProductVariant, Stock
 
 
 class OrderNoteForm(forms.ModelForm):
@@ -111,11 +113,15 @@ class ReleasePaymentForm(forms.Form):
 
 
 class MoveLinesForm(forms.Form):
-    NEW_SHIPMENT = 'new'
+    """ Moves part of products in order line to existing or new group.  """
     quantity = QuantityField(
         label=pgettext_lazy('Move lines form label', 'Quantity'),
         validators=[MinValueValidator(1)])
-    target_group = forms.ChoiceField(
+    target_group = forms.ModelChoiceField(
+        queryset=DeliveryGroup.objects.none(), required=False,
+        empty_label=pgettext_lazy(
+            'Delivery group value for `target_group` field',
+            'New shipment'),
         label=pgettext_lazy('Move lines form label', 'Target shipment'))
 
     def __init__(self, *args, **kwargs):
@@ -125,29 +131,19 @@ class MoveLinesForm(forms.Form):
             MaxValueValidator(self.line.quantity))
         self.fields['quantity'].widget.attrs.update({
             'max': self.line.quantity, 'min': 1})
-        self.fields['target_group'].choices = self.get_delivery_group_choices()
-
-    def get_delivery_group_choices(self):
-        group = self.line.delivery_group
-        groups = group.order.groups.exclude(pk=group.pk).exclude(
-            status='cancelled')
-        choices = [(self.NEW_SHIPMENT, pgettext_lazy(
-            'Delivery group value for `target_group` field',
-            'New shipment'))]
-        choices.extend([(g.pk, str(g)) for g in groups])
-        return choices
+        self.old_group = self.line.delivery_group
+        queryset = self.old_group.order.groups.exclude(
+            pk=self.old_group.pk).exclude(status=OrderStatus.CANCELLED)
+        self.fields['target_group'].queryset = queryset
 
     def move_lines(self):
-        how_many = self.cleaned_data['quantity']
-        choice = self.cleaned_data['target_group']
-        old_group = self.line.delivery_group
-        if choice == self.NEW_SHIPMENT:
+        how_many = self.cleaned_data.get('quantity')
+        target_group = self.cleaned_data.get('target_group')
+        if not target_group:
             # For new group we use the same delivery name but zero price
-            target_group = old_group.order.groups.create(
-                status=old_group.status,
-                shipping_method_name=old_group.shipping_method_name)
-        else:
-            target_group = DeliveryGroup.objects.get(pk=choice)
+            target_group = self.old_group.order.groups.create(
+                status=self.old_group.status,
+                shipping_method_name=self.old_group.shipping_method_name)
         OrderLine.objects.move_to_group(self.line, target_group, how_many)
         return target_group
 
@@ -350,3 +346,44 @@ class ChangeStockForm(forms.ModelForm):
         super(ChangeStockForm, self).save(commit)
         merge_duplicated_lines(self.instance)
         return self.instance
+
+
+class AddVariantToDeliveryGroupForm(forms.Form):
+    """ Adds variant in given quantity to delivery group. """
+    variant = AjaxSelect2ChoiceField(
+        queryset=ProductVariant.objects.filter(
+            product__in=Product.objects.get_available_products()),
+        fetch_data_url=reverse_lazy('dashboard:ajax-available-variants'))
+    quantity = QuantityField(
+        label=pgettext_lazy(
+            'Add variant to delivery group form label', 'Quantity'),
+        validators=[MinValueValidator(1)])
+
+    def __init__(self, *args, **kwargs):
+        self.group = kwargs.pop('group')
+        super(AddVariantToDeliveryGroupForm, self).__init__(*args, **kwargs)
+
+    def clean(self):
+        """ Checks if given quantity is available in stocks. """
+        cleaned_data = super(AddVariantToDeliveryGroupForm, self).clean()
+        variant = cleaned_data.get('variant')
+        quantity = cleaned_data.get('quantity')
+        if variant and quantity is not None:
+            try:
+                variant.check_quantity(quantity)
+            except InsufficientStock as e:
+                error = forms.ValidationError(
+                    pgettext_lazy(
+                        'Add item form error',
+                        'Could not add item. '
+                        'Only %(remaining)d remaining in stock.' %
+                        {'remaining': e.item.get_stock_quantity()}))
+                self.add_error('quantity', error)
+        return cleaned_data
+
+    def save(self):
+        """ Adds variant to target group. Updates stocks and order. """
+        variant = self.cleaned_data.get('variant')
+        quantity = self.cleaned_data.get('quantity')
+        add_variant_to_delivery_group(self.group, variant, quantity)
+        Order.objects.recalculate_order(self.group.order)
