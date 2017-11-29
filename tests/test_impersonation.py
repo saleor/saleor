@@ -1,8 +1,9 @@
-from django.core.urlresolvers import reverse
-import pytest
+from __future__ import unicode_literals
 
-from saleor.userprofile.impersonate import can_impersonate
+from django.core.urlresolvers import reverse
+
 from saleor.userprofile.models import User
+
 
 def test_staff_with_permission_can_impersonate(
         staff_client, customer_user, staff_user, permission_impersonate_user,

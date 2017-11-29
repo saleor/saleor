@@ -1,4 +1,5 @@
-import pytest
+from __future__ import unicode_literals
+
 from django.urls import reverse
 
 from saleor.shipping.models import ShippingMethod, ShippingMethodCountry

@@ -1,5 +1,6 @@
 from __future__ import unicode_literals
 
+from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import permission_required
 from django.shortcuts import get_object_or_404, redirect
@@ -10,7 +11,6 @@ from .emails import send_set_password_email
 from .forms import StaffForm
 from ..views import staff_member_required
 from ...core.utils import get_paginator_items
-from ...settings import DASHBOARD_PAGINATE_BY
 from ...userprofile.models import User
 
 
@@ -21,7 +21,7 @@ def staff_list(request):
                      .prefetch_related('default_billing_address')
                      .order_by('email'))
     staff_members = get_paginator_items(
-        staff_members, DASHBOARD_PAGINATE_BY, request.GET.get('page'))
+        staff_members, settings.DASHBOARD_PAGINATE_BY, request.GET.get('page'))
     ctx = {'staff': staff_members}
     return TemplateResponse(request, 'dashboard/staff/list.html', ctx)
 

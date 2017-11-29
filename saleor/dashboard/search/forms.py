@@ -1,5 +1,7 @@
-from ...search.forms import SearchForm
+from __future__ import unicode_literals
+
 from ...search.backends import elasticsearch_dashboard
+from ...search.forms import SearchForm
 
 
 class DashboardSearchForm(SearchForm):

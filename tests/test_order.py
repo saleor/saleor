@@ -1,3 +1,5 @@
+from __future__ import unicode_literals
+
 from prices import Price
 
 from saleor.cart.models import Cart

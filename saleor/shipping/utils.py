@@ -1,3 +1,5 @@
+from __future__ import unicode_literals
+
 from prices import PriceRange
 
 from .models import ShippingMethodCountry
