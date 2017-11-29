@@ -75,10 +75,10 @@
     padding: 0 24px;
   }
 
-  &.no-align {
+  &.last-right-align {
     td, th {
       &:last-child {
-        text-align: inherit;
+        text-align: right;
       }
     }
   }
@@ -119,7 +119,6 @@
 
     &:last-child {
       padding-right: 24px;
-      text-align: right;
     }
 
     &.no-padded {
