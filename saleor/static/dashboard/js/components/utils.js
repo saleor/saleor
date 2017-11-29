@@ -1,14 +1,10 @@
 import 'select2';
+import detectPassiveEvents from 'detect-passive-events';
 
-let supportsPassive = false;
-try {
-  let opts = Object.defineProperty({}, 'passive', {
-    get: function () {
-      supportsPassive = true;
-    }
-  });
-  window.addEventListener('test', null, opts);
-} catch (e) {
+function onScroll(func) {
+  window.addEventListener('scroll', func, detectPassiveEvents.hasSupport ? {
+    passive: true,
+  } : false);
 }
 
 function appendOption ($select, option) {
@@ -16,11 +12,7 @@ function appendOption ($select, option) {
     .attr('value', option.id).text(option.text));
 }
 
-export function onScroll (func) {
-  window.addEventListener('scroll', func, supportsPassive ? {passive: true} : false);
-}
-
-export function initSelects () {
+function initSelects() {
   $('select:not(.browser-default):not(.enable-ajax-select2):not([multiple])').material_select();
   $('select[multiple]:not(.browser-default):not(.enable-ajax-select2)').select2({width: '100%'});
 
@@ -47,3 +39,8 @@ export function initSelects () {
     });
   });
 }
+
+export {
+  onScroll,
+  initSelects,
+};
