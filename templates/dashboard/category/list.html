@@ -117,7 +117,7 @@
               <thead>
                 <tr>
                   {% get_sort_by_toggle 'name' as toggle %}
-                  <th class="wide {% if toggle.is_active %}active{% endif %}">
+                  <th class="{% if toggle.is_active %}active{% endif %}">
                     <a href="{{ toggle.url }}">
                       <svg data-src="{{ toggle.sorting_icon }}" />
                       {% trans "Name" context "Category list table header name" %}
