@@ -359,14 +359,12 @@ LOGOUT_ON_PASSWORD_CHANGE = False
 
 # SEARCH CONFIGURATION
 DB_SEARCH_ENABLED = True
-PREFER_DB_SEARCH = False  # prefer db backend over elasticsearch
-
-ELASTICSEARCH_URL = os.environ.get('ELASTICSEARCH_URL')
-SEARCHBOX_URL = os.environ.get('SEARCHBOX_URL')
-BONSAI_URL = os.environ.get('BONSAI_URL')
+PREFER_DB_SEARCH = False  # prefer use of db backend over elasticsearch
 
 # support deployment-dependant elastic enviroment variable
-ES_URL = ELASTICSEARCH_URL or SEARCHBOX_URL or BONSAI_URL
+ES_URL = (os.environ.get('ELASTICSEARCH_URL')
+          or os.environ.get('SEARCHBOX_URL') or os.environ.get('BONSAI_URL'))
+
 ENABLE_SEARCH = bool(ES_URL) or DB_SEARCH_ENABLED  # global search disabling
 
 if ES_URL:
