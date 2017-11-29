@@ -16,6 +16,16 @@
       color: #fff;
     }
   }
+  &-action {
+    &-primary {
+      @extend  .btn;
+      @extend .btn-flat;
+    }
+    &-secondary {
+      @extend .btn;
+      @extend .btn-flat;
+    }
+  }
 }
 
 .btn-fab, .btn-floating {
