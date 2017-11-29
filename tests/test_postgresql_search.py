@@ -36,6 +36,7 @@ def named_products(default_category, product_class):
 
 
 def search_storefront(client, phrase):
+    '''Execute storefront search on client mathing phrase'''
     resp = client.get(reverse('search:search'), {'q': phrase})
     return [prod for prod, _ in resp.context['results'].object_list]
 
@@ -67,6 +68,7 @@ def test_storefront_filter_published_products(client, named_products):
 
 
 def search_dashboard(client, phrase):
+    '''Execute dashboard search on client mathing phrase'''
     response = client.get(reverse('dashboard:search'), {'q': phrase})
     assert response.context['query'] in phrase
     context = response.context
