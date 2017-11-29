@@ -152,13 +152,14 @@
       a {
         font-weight: 600;
         color: lighten(#000, 13%);
+        padding-right: 16px;
       }
       svg {
         display: inline-block;
         fill: lighten(#000, 13%);
         position: absolute;
         top: -2px;
-        right: -20px;
+        right: -4px;
         width: 16px;
         height: 16px;
       }
