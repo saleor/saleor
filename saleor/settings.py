@@ -362,8 +362,8 @@ DB_SEARCH_ENABLED = True
 PREFER_DB_SEARCH = False  # prefer use of db backend over elasticsearch
 
 # support deployment-dependant elastic enviroment variable
-ES_URL = (os.environ.get('ELASTICSEARCH_URL')
-          or os.environ.get('SEARCHBOX_URL') or os.environ.get('BONSAI_URL'))
+ES_URL = (os.environ.get('ELASTICSEARCH_URL') or
+          os.environ.get('SEARCHBOX_URL') or os.environ.get('BONSAI_URL'))
 
 ENABLE_SEARCH = bool(ES_URL) or DB_SEARCH_ENABLED  # global search disabling
 
