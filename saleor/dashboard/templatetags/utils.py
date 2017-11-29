@@ -105,4 +105,5 @@ def add_filters(context, filter_set, sort_by_filter_name='sort_by'):
                 items = handle_default(field, request_get)
             chips.extend(items)
     return {
-        'chips': chips, 'filter': filter_set, 'count': filter_set.qs.count()}
+        'chips': chips, 'filter': filter_set, 'count': filter_set.qs.count(),
+        'request': context['request']}
