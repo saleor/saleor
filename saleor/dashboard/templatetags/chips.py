@@ -62,6 +62,8 @@ def handle_range(field):
     for i, value in enumerate(values):
         if value:
             chips.append(
-                {'content': CHIPS_PATTERN % (field.label, text[i] + ' ' + value),
-                 'name': '%s_%i' % (field.name, i), 'value': field.value()[i]})
+                {'content': CHIPS_PATTERN % (
+                    field.label, text[i] + ' ' + value),
+                 'name': '%s_%i' % (field.name, i),
+                 'value': field.value()[i]})
     return chips
