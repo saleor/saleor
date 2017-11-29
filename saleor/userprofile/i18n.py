@@ -4,14 +4,18 @@ from collections import defaultdict
 
 import i18naddress
 from django import forms
+from django.forms.fields import ChoiceField
 from django.forms.forms import BoundField
 from django.utils.translation import pgettext, pgettext_lazy
 from django_countries.data import COUNTRIES
+from phonenumbers import COUNTRY_CODE_TO_REGION_CODE
 
 from .models import Address
 
 COUNTRY_FORMS = {}
 UNKNOWN_COUNTRIES = set()
+
+phone_prefixes = [(k,'+{}'.format(k)) for (k, v) in COUNTRY_CODE_TO_REGION_CODE.items()]
 
 
 AREA_TYPE_TRANSLATIONS = {
@@ -74,9 +78,12 @@ class AddressForm(forms.ModelForm):
         model = Address
         exclude = []
 
+    phoneprefix = ChoiceField(choices=phone_prefixes)
+
     def __init__(self, *args, **kwargs):
         autocomplete_type = kwargs.pop('autocomplete_type', None)
         super(AddressForm, self).__init__(*args, **kwargs)
+        #TODO at this point, phone number is treated as invalid
         autocomplete_dict = defaultdict(
             lambda: 'off', self.AUTOCOMPLETE_MAPPING)
         for field_name, field in self.fields.items():
@@ -86,6 +93,16 @@ class AddressForm(forms.ModelForm):
             else:
                 autocomplete = autocomplete_dict[field_name]
             field.widget.attrs['autocomplete'] = autocomplete
+
+    def clean(self):
+        cleaned_data = super(AddressForm, self).clean()
+        phoneprefix = cleaned_data.get("phoneprefix")
+        phone = cleaned_data.get("phone") #TODO: It's None for now
+        full_number = str(phoneprefix) + phone
+
+        # if full_number <phonenumbers validation here>:
+        #     # perform your validation
+        #     raise forms.ValidationError("Invalid phone number")
 
 
 class CountryAwareAddressForm(AddressForm):
@@ -140,6 +157,7 @@ def get_address_form_class(country_code):
 
 
 def get_form_i18n_lines(form_instance):
+    # import ipdb; ipdb.set_trace()
     country_code = form_instance.i18n_country_code
     try:
         fields_order = i18naddress.get_field_order(
