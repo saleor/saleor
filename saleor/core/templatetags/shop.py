@@ -38,25 +38,29 @@ def get_sort_by_toggle(context, field):
     request = context['request']
     request_get = request.GET.copy()
     sort_by = request_get.get('sort_by')
+
+    # path to icon indicating applied sorting
+    sorting_icon = ''
+
+    # flag which determines if active sorting is on field
+    is_active = False
+
     if sort_by:
-        new_sort_by = sort_by
-    else:
-        new_sort_by = field  # sort_by param
-    sorting_icon = ''  # path to icon indicating applied sorting
-    is_active = False  # flag which determines if active sorting is on field
-    if sort_by:
-        # toggle existing sort_by
-        if field == sort_by:  # descending sort
+        if field == sort_by:
+            # enable descending sort
             new_sort_by = u'-%s' % field
             sorting_icon = static('/images/arrow_up_icon.svg')
             is_active = True
-        else:  # ascending sort
-            if field == sort_by[1:]:
+        else:
+            # enable ascending sort
+            new_sort_by = field
+            if field == sort_by.strip('-'):
                 sorting_icon = static('/images/arrow_down_icon.svg')
                 is_active = True
-    request_get['sort_by'] = new_sort_by
+    else:
+        new_sort_by = field
 
+    request_get['sort_by'] = new_sort_by
     return {
         'url': '%s?%s' % (request.path, request_get.urlencode()),
-        'is_active': is_active,
-        'sorting_icon': sorting_icon}
+        'is_active': is_active, 'sorting_icon': sorting_icon}
