@@ -81,8 +81,8 @@ def margins_for_variant(variant):
 @register.inclusion_tag('dashboard/includes/_filters.html', takes_context=True)
 def add_filters(context, filter_set, sort_by_filter_name='sort_by'):
     chips = []
-    cleaned_data = filter_set.form.cleaned_data
-    for filter_name in cleaned_data.keys():
+    request_get = context['request'].GET.copy()
+    for filter_name in filter_set.form.cleaned_data.keys():
         if filter_name == sort_by_filter_name:
             # Skip processing of sort_by filter, as it's rendered differently
             continue
@@ -90,34 +90,19 @@ def add_filters(context, filter_set, sort_by_filter_name='sort_by'):
         field = filter_set.form[filter_name]
         if field.value() not in ['', None]:
             if isinstance(field.field, forms.NullBooleanField):
-                items = handle_nullboolean(field)
+                items = handle_nullboolean(field, request_get)
             elif isinstance(field.field, forms.ModelMultipleChoiceField):
-                items = handle_multiple_model_choice(
-                    field, cleaned_data[filter_name])
+                items = handle_multiple_model_choice(field, request_get)
             elif isinstance(field.field, forms.MultipleChoiceField):
-                items = handle_multiple_choice(
-                    field, cleaned_data[filter_name])
+                items = handle_multiple_choice(field, request_get)
             elif isinstance(field.field, forms.ModelChoiceField):
-                items = handle_single_model_choice(
-                    field, cleaned_data[filter_name])
+                items = handle_single_model_choice(field, request_get)
             elif isinstance(field.field, forms.ChoiceField):
-                items = handle_single_choice(field, cleaned_data[filter_name])
+                items = handle_single_choice(field, request_get)
             elif isinstance(field.field, RangeField):
-                items = handle_range(field)
+                items = handle_range(field, request_get)
             else:
-                items = handle_default(field)
+                items = handle_default(field, request_get)
             chips.extend(items)
-
-    for chip in chips:
-        request = context['request'].GET.copy()
-        param_values = request.getlist(chip['name'])
-        all_values = {k: request.getlist(k) for k in request.keys()}
-        index_of_value = param_values.index(str(chip['value']))
-        del all_values[chip['name']][index_of_value]
-        del chip['value']
-        del chip['name']
-        chip['link'] = '?' + urlencode(all_values, True)
-
     return {
-        'chips': chips, 'filter': filter_set, 'count': filter_set.qs.count(),
-        'request': context['request']}
+        'chips': chips, 'filter': filter_set, 'count': filter_set.qs.count()}
