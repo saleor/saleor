@@ -3,8 +3,7 @@ from __future__ import unicode_literals
 
 from saleor.product.models import Product
 from saleor.order.models import Order
-from saleor.userprofile.models import Address
-from saleor.userprofile.models import User
+from saleor.userprofile.models import Address, User
 
 from django.core.urlresolvers import reverse
 from decimal import Decimal
@@ -47,19 +46,23 @@ def search_storefront(client, phrase):
                           ('coool', 1)])
 @pytest.mark.integration
 @pytest.mark.django_db(transaction=True)
-def test_storefront_product_fuzzy_search(client, named_products, phrase,
-                                         product_num):
+def test_storefront_product_fuzzy_name_search(client, named_products, phrase,
+                                              product_num):
     results = search_storefront(client, phrase)
     assert 1 == len(results)
     assert named_products[product_num] in results
 
 
+def unpublish_product(product):
+    prod_to_unpublish = product
+    prod_to_unpublish.is_published = False
+    prod_to_unpublish.save()
+
+
 @pytest.mark.integration
 @pytest.mark.django_db(transaction=True)
 def test_storefront_filter_published_products(client, named_products):
-    prod_to_unpublish = named_products[0]
-    prod_to_unpublish.is_published = False
-    prod_to_unpublish.save()
+    unpublish_product(named_products[0])
     assert search_storefront(client, 'Coffee') == []
 
 
@@ -72,25 +75,31 @@ def search_dashboard(client, phrase):
 
 @pytest.mark.integration
 @pytest.mark.django_db(transaction=True)
-def test_search_empty_results(admin_client, named_products):
-    products, _, _ = search_dashboard(admin_client, 'foo')
-    assert 0 == len(products)
+def test_dashboard_search_with_empty_results(admin_client, named_products):
+    products, orders, users = search_dashboard(admin_client, 'foo')
+    assert 0 == len(products) == len(orders) == len(users)
 
 
 @pytest.mark.integration
 @pytest.mark.django_db(transaction=True)
-def test_find_product_by_name(admin_client, named_products):
-    products, _, _ = search_dashboard(admin_client, 'coffee')
+@pytest.mark.parametrize('phrase,product_num', [('  coffee. ', 0),
+                                                ('shirt', 1), ('ROASTED', 2)])
+def test_find_product_by_name(admin_client, named_products, phrase,
+                              product_num):
+    products, _, _ = search_dashboard(admin_client, phrase)
     assert 1 == len(products)
-    assert named_products[0] in products
+    assert named_products[product_num] in products
 
 
 @pytest.mark.integration
 @pytest.mark.django_db(transaction=True)
-def test_find_product_by_description(admin_client, named_products):
-    products, _, _ = search_dashboard(admin_client, 'BIG')
+@pytest.mark.parametrize('phrase,product_num', [('BIG', 1), (' grains, ', 0),
+                                                ('fabulous', 2)])
+def test_find_product_by_description(admin_client, named_products, phrase,
+                                     product_num):
+    products, _, _ = search_dashboard(admin_client, phrase)
     assert 1 == len(products)
-    assert named_products[1] in products
+    assert named_products[product_num] in products
 
 
 USERS = [('Andreas', 'Knop', 'adreas.knop@example.com'),
@@ -125,7 +134,7 @@ def orders_with_addresses():
 @pytest.mark.integration
 @pytest.mark.django_db(transaction=True)
 def test_find_order_by_id_with_no_result(admin_client, orders_with_addresses):
-    phrase = '991'
+    phrase = '991'  # not existing id
     _, orders, _ = search_dashboard(admin_client, phrase)
     assert 0 == len(orders)
 
@@ -154,31 +163,32 @@ def test_find_order_with_email(admin_client, orders_with_addresses, phrase,
 @pytest.mark.django_db(transaction=True)
 @pytest.mark.parametrize('phrase,order_num', [('knop', 0), ('ZIEMniak', 1),
                                               ('  john  ', 2), ('ANDREAS', 0)])
-def test_find_order_with_user(admin_client, orders_with_addresses, phrase,
-                               order_num):
+def test_find_order_with_user_name(admin_client, orders_with_addresses, phrase,
+                                   order_num):
     _, orders, _ = search_dashboard(admin_client, phrase)
     assert 1 == len(orders)
     assert orders_with_addresses[order_num] in orders
 
 
 ORDER_PHRASE_WITH_RESULT = 'Andreas'
+ORDER_RESULTS_PERMISSION = 'order.view_order'
 
 
 @pytest.mark.integration
 @pytest.mark.django_db(transaction=True)
-def test_orders_result_doesnt_show_when_no_permission(
+def test_orders_search_results_restricted_to_users_with_permission(
         orders_with_addresses, staff_client, staff_user):
-    assert not staff_user.has_perm("order.view_order")
+    assert not staff_user.has_perm(ORDER_RESULTS_PERMISSION)
     _, orders, _ = search_dashboard(staff_client, ORDER_PHRASE_WITH_RESULT)
     assert 0 == len(orders)
 
 
 @pytest.mark.integration
 @pytest.mark.django_db(transaction=True)
-def test_show_orders_when_permission_granted(
+def test_show_orders_search_result_to_user_with_permission_granted(
         orders_with_addresses, staff_client, staff_user, staff_group,
         permission_view_order):
-    assert not staff_user.has_perm("order.view_order")
+    assert not staff_user.has_perm(ORDER_RESULTS_PERMISSION)
     staff_group.permissions.add(permission_view_order)
     staff_user.groups.add(staff_group)
     _, orders, _ = search_dashboard(staff_client, ORDER_PHRASE_WITH_RESULT)
@@ -199,8 +209,8 @@ def users_with_addresses():
 @pytest.mark.django_db(transaction=True)
 @pytest.mark.parametrize('phrase,user_num', [('adreas.knop@example.com', 0),
                                              (' euzeb.potato@cebula.pl ', 1)])
-def test_find_user_with_email(admin_client, users_with_addresses, phrase,
-                              user_num):
+def test_find_user_by_email(admin_client, users_with_addresses, phrase,
+                            user_num):
     _, _, users = search_dashboard(admin_client, phrase)
     assert 1 == len(users)
     assert users_with_addresses[user_num] in users
@@ -210,31 +220,32 @@ def test_find_user_with_email(admin_client, users_with_addresses, phrase,
 @pytest.mark.django_db(transaction=True)
 @pytest.mark.parametrize('phrase,user_num', [('Andreas Knop', 0),
                                              (' Euzebiusz ', 1), ('DOE', 2)])
-def test_find_user_with_name(admin_client, users_with_addresses, phrase,
-                             user_num):
+def test_find_user_by_name(admin_client, users_with_addresses, phrase,
+                           user_num):
     _, _, users = search_dashboard(admin_client, phrase)
     assert 1 == len(users)
     assert users_with_addresses[user_num] in users
 
 
 USER_PHRASE_WITH_RESULT = 'adreas.knop@example.com'
+USER_RESULTS_PERMISSION = 'userprofile.view_user'
 
 
 @pytest.mark.integration
 @pytest.mark.django_db(transaction=True)
-def test_dont_show_users_no_permission(users_with_addresses, staff_client,
-                                       staff_user):
-    assert not staff_user.has_perm('order.view_user')
+def test_users_search_results_restricted_to_staff_with_permission(
+        users_with_addresses, staff_client, staff_user):
+    assert not staff_user.has_perm(USER_RESULTS_PERMISSION)
     _, _, users = search_dashboard(staff_client, USER_PHRASE_WITH_RESULT)
     assert 0 == len(users)
 
 
 @pytest.mark.integration
 @pytest.mark.django_db(transaction=True)
-def test_show_users_when_access_granted(users_with_addresses, staff_client,
-                                        staff_user, staff_group,
-                                        permission_view_user):
-    assert not staff_user.has_perm('userprofile.view_user')
+def test_show_users_search_result_when_access_granted(
+        users_with_addresses, staff_client, staff_user, staff_group,
+        permission_view_user):
+    assert not staff_user.has_perm(USER_RESULTS_PERMISSION)
     staff_group.permissions.add(permission_view_user)
     staff_user.groups.add(staff_group)
     _, _, users = search_dashboard(staff_client, USER_PHRASE_WITH_RESULT)
