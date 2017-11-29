@@ -1,12 +1,14 @@
+from __future__ import unicode_literals
+
 from django.template.defaultfilters import yesno
 from django.utils.translation import pgettext_lazy
 
-PATTERN = '%s: %s'
+CHIPS_PATTERN = '%s: %s'
 
 
 def handle_default(field):
     item = {
-        'content': PATTERN % (field.label, field.value()),
+        'content': CHIPS_PATTERN % (field.label, field.value()),
         'name': field.name, 'value': field.value()}
     return [item]
 
@@ -15,7 +17,7 @@ def handle_single_choice(field, value):
     for choice_value, choice_label in field.field.choices:
         if choice_value == value:
             item = {
-                'content': PATTERN % (field.label, choice_label),
+                'content': CHIPS_PATTERN % (field.label, choice_label),
                 'name': field.name, 'value': value}
             return [item]
     return []
@@ -30,7 +32,7 @@ def handle_multiple_choice(field, values):
 
 def handle_single_model_choice(field, obj):
     return [{
-        'content': PATTERN % (field.label, str(obj)),
+        'content': CHIPS_PATTERN % (field.label, str(obj)),
         'name': field.name, 'value': obj.pk}]
 
 
@@ -46,7 +48,7 @@ def handle_nullboolean(field):
         field.value(),
         pgettext_lazy('Possible values of boolean filter', 'yes,no,all'))
     item = {
-        'content': PATTERN % (field.label, value),
+        'content': CHIPS_PATTERN % (field.label, value),
         'name': field.name, 'value': field.value()}
     return [item]
 
@@ -60,6 +62,6 @@ def handle_range(field):
     for i, value in enumerate(values):
         if value:
             chips.append(
-                {'content': PATTERN % (field.label, text[i] + ' ' + value),
+                {'content': CHIPS_PATTERN % (field.label, text[i] + ' ' + value),
                  'name': '%s_%i' % (field.name, i), 'value': field.value()[i]})
     return chips
