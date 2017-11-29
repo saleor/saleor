@@ -3,7 +3,7 @@
     "browser": true,
     "jquery": true
   },
-  "extends": ["standard", "plugin:react/recommended"],
+  "extends": ["airbnb-base"],
   "globals": {
     "gettext": true,
     "pgettext": true,
@@ -12,7 +12,6 @@
   "plugins": ["react"],
   "parser": "babel-eslint",
   "rules": {
-    "semi": ["error", "always"],
-    "space-before-function-paren": "off"
+    "semi": ["error", "always"]
   }
 }
