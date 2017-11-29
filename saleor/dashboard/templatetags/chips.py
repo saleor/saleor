@@ -86,7 +86,8 @@ def handle_range(field, request_get):
         if value:
             param_name = '%s_%i' % (field.name, i)
             items.append({
-                'content': CHIPS_PATTERN % (field.label, text[i] + ' ' + value),
+                'content': CHIPS_PATTERN % (
+                    field.label, text[i] + ' ' + value),
                 'link': get_cancel_url(request_get, param_name)})
     return items
 
@@ -98,7 +99,8 @@ def get_cancel_url(request_get, param_name, param_value=None):
     `param_name` - name of a parameter to exclude
     `param_value` - value of a parameter value to exclude (in case a parameter
     has multiple values)"""
-    new_request_get = {k: v for k, v in request_get.items() if k != param_name}
+    new_request_get = {
+        k: request_get.getlist(k) for k in request_get if k != param_name}
     param_values_list = request_get.getlist(param_name)
     if len(param_values_list) > 1 and param_value:
         new_param_values = [v for v in param_values_list if v != param_value]
