@@ -1,19 +1,26 @@
-import {onScroll} from './utils';
+import { onScroll } from './utils';
 
-export default $(document).ready((e) => {
-  let mainNavTop = $('.side-nav');
-  let $toggleMenu = $('#toggle-menu');
+function toggleMenu(e) {
+  e.preventDefault();
+  $('body').toggleClass('nav-toggled');
+}
 
-  function toggleMenu(e) {
-    $(document.body).toggleClass('nav-toggled');
-    e.preventDefault();
-  }
+export const init = $(() => {
+  const $mainNavTop = $('.side-nav');
+  const $toggleMenu = $('#toggle-menu');
 
   $toggleMenu.click(toggleMenu);
-  if (mainNavTop.length > 0) {
-    mainNavTop = mainNavTop.offset().top;
-    onScroll(function () {
-      $(document.body).toggleClass('sticky-nav', Math.floor($(window).scrollTop()) > Math.ceil(mainNavTop));
+  if ($mainNavTop.length > 0) {
+    const mainNavTop = $mainNavTop.offset().top;
+    onScroll(() => {
+      $('body').toggleClass(
+        'sticky-nav',
+        Math.floor($(window).scrollTop()) > Math.ceil(mainNavTop),
+      );
     });
   }
 });
+
+export {
+  init as default,
+};
