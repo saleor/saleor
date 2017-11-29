@@ -6,7 +6,7 @@ from . import (elasticsearch, elasticsearch_dashboard, postgresql,
 
 
 def elastic_configured():
-    return settings.ELASTICSEARCH_URL and not settings.PREFER_DB_SEARCH
+    return settings.ES_URL and not settings.PREFER_DB_SEARCH
 
 
 def pick_backend():
