@@ -2,11 +2,13 @@ from __future__ import unicode_literals
 
 from django.contrib import messages
 from django.contrib.auth.decorators import permission_required
+from django.db.models import Q
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect
 from django.template.response import TemplateResponse
 from django.utils.translation import npgettext_lazy, pgettext_lazy
 from django.views.decorators.http import require_POST
+from django_prices.templatetags.prices_i18n import gross
 
 from ...core.utils import get_paginator_items
 from ...product.models import (
@@ -666,3 +668,30 @@ def product_bulk_update(request):
             number=count) % {'count': count}
         messages.success(request, msg)
     return redirect('dashboard:product-list')
+
+
+@staff_member_required
+def ajax_available_variants_list(request):
+    """
+    Returns variants list filtered by request GET parameters.
+    Response format is as required by select2 field.
+    """
+    def get_variant_label(variant):
+        return '%s, %s, %s' % (
+            variant.sku, variant.display_product(),
+            gross(variant.product.price))
+
+    available_products = Product.objects.get_available_products()
+    queryset = ProductVariant.objects.filter(
+        product__in=available_products).prefetch_related('product')
+    search_query = request.GET.get('q', '')
+    if search_query:
+        queryset = queryset.filter(
+            Q(sku__icontains=search_query) |
+            Q(name__icontains=search_query) |
+            Q(product__name__icontains=search_query))
+    variants = [
+        {'id': variant.id, 'text': get_variant_label(variant)}
+        for variant in queryset
+    ]
+    return JsonResponse({'results': variants})

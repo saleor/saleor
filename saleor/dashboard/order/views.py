@@ -11,11 +11,14 @@ from django.utils.translation import pgettext_lazy
 from django_prices.templatetags.prices_i18n import gross
 from payments import PaymentStatus
 from prices import Price
+from satchless.item import InsufficientStock
 
 from .forms import (
-    CancelGroupForm, CancelLinesForm, CancelOrderForm, CapturePaymentForm,
-    ChangeStockForm, ChangeQuantityForm, MoveLinesForm, OrderNoteForm,
-    RefundPaymentForm, ReleasePaymentForm, RemoveVoucherForm, ShipGroupForm)
+    AddVariantToDeliveryGroupForm, CancelGroupForm, CancelLinesForm,
+    CancelOrderForm, CapturePaymentForm, ChangeStockForm, ChangeQuantityForm,
+    MoveLinesForm, OrderNoteForm, RefundPaymentForm, ReleasePaymentForm,
+    RemoveVoucherForm, ShipGroupForm)
+
 from .utils import (create_packing_slip_pdf, create_invoice_pdf,
                     get_statics_absolute_url)
 from ..order.forms import OrderFilterForm
@@ -178,16 +181,16 @@ def orderline_change_quantity(request, order_pk, line_pk):
     status = 200
     old_quantity = line.quantity
     if form.is_valid():
-        with transaction.atomic():
-            form.save()
         msg = pgettext_lazy(
             'Dashboard message related to an order line',
             'Changed quantity for product %(product)s from'
             ' %(old_quantity)s to %(new_quantity)s') % {
                 'product': line.product, 'old_quantity': old_quantity,
                 'new_quantity': line.quantity}
-        order.create_history_entry(comment=msg, user=request.user)
-        messages.success(request, msg)
+        with transaction.atomic():
+            order.create_history_entry(comment=msg, user=request.user)
+            form.save()
+            messages.success(request, msg)
         return redirect('dashboard:order-details', order_pk=order.pk)
     elif form.errors:
         status = 400
@@ -209,7 +212,7 @@ def orderline_split(request, order_pk, line_pk):
     status = 200
     if form.is_valid():
         old_group = line.delivery_group
-        how_many = form.cleaned_data['quantity']
+        how_many = form.cleaned_data.get('quantity')
         with transaction.atomic():
             target_group = form.move_lines()
         if not old_group.pk:
@@ -245,8 +248,8 @@ def orderline_cancel(request, order_pk, line_pk):
             'Dashboard message related to an order line',
             'Cancelled item %s') % line
         with transaction.atomic():
-            form.cancel_line()
             order.create_history_entry(comment=msg, user=request.user)
+            form.cancel_line()
             messages.success(request, msg)
         return redirect('dashboard:order-details', order_pk=order.pk)
     elif form.errors:
@@ -300,6 +303,42 @@ def cancel_delivery_group(request, order_pk, group_pk):
         status = 400
     ctx = {'order': order, 'group': group}
     template = 'dashboard/order/modal/cancel_delivery_group.html'
+    return TemplateResponse(request, template, ctx, status=status)
+
+
+@staff_member_required
+@permission_required('order.edit_order')
+def add_variant_to_group(request, order_pk, group_pk):
+    """ Adds variant in given quantity to existing or new group in order. """
+    order = get_object_or_404(Order, pk=order_pk)
+    group = get_object_or_404(order.groups.all(), pk=group_pk)
+    form = AddVariantToDeliveryGroupForm(request.POST or None, group=group)
+    status = 200
+    if form.is_valid():
+        msg_dict = {
+            'quantity': form.cleaned_data.get('quantity'),
+            'variant': form.cleaned_data.get('variant'),
+            'group': group
+        }
+        try:
+            with transaction.atomic():
+                form.save()
+            msg = pgettext_lazy(
+                'Dashboard message related to a delivery group',
+                'Added %(quantity)d x %(variant)s to %(group)s') % msg_dict
+            order.create_history_entry(comment=msg, user=request.user)
+            messages.success(request, msg)
+        except InsufficientStock:
+            msg = pgettext_lazy(
+                'Dashboard message related to a delivery group',
+                'Insufficient stock: could not add %(quantity)d x '
+                '%(variant)s to %(group)s') % msg_dict
+            messages.warning(request, msg)
+        return redirect('dashboard:order-details', order_pk=order_pk)
+    elif form.errors:
+        status = 400
+    ctx = {'order': order, 'group': group, 'form': form}
+    template = 'dashboard/order/modal/add_variant_to_group.html'
     return TemplateResponse(request, template, ctx, status=status)
 
 
