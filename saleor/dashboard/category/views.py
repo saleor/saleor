@@ -1,3 +1,6 @@
+from __future__ import unicode_literals
+
+from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import permission_required
 from django.http import JsonResponse
@@ -8,7 +11,6 @@ from django.utils.translation import pgettext_lazy
 
 from ...core.utils import get_paginator_items
 from ...product.models import Category
-from ...settings import DASHBOARD_PAGINATE_BY
 from ..views import staff_member_required
 from .forms import CategoryForm
 
@@ -24,7 +26,7 @@ def category_list(request, root_pk=None):
         path = root.get_ancestors(include_self=True) if root else []
         categories = root.get_children()
     categories = get_paginator_items(
-        categories, DASHBOARD_PAGINATE_BY, request.GET.get('page'))
+        categories, settings.DASHBOARD_PAGINATE_BY, request.GET.get('page'))
     ctx = {'categories': categories, 'path': path, 'root': root}
     return TemplateResponse(request, 'dashboard/category/list.html', ctx)
 

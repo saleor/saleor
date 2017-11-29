@@ -1,3 +1,5 @@
+from __future__ import unicode_literals
+
 
 def health_check(application, health_url):
     def health_check_wrapper(environ, start_response):

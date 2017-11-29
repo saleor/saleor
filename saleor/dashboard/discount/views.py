@@ -1,3 +1,5 @@
+from __future__ import unicode_literals
+
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import permission_required
@@ -7,7 +9,6 @@ from django.utils.translation import pgettext_lazy
 
 from ...core.utils import get_paginator_items
 from ...discount.models import Sale, Voucher
-from ...settings import DASHBOARD_PAGINATE_BY
 from ..views import staff_member_required
 from . import forms
 
@@ -17,7 +18,7 @@ from . import forms
 def sale_list(request):
     sales = Sale.objects.prefetch_related('products').order_by('name')
     sales = get_paginator_items(
-        sales, DASHBOARD_PAGINATE_BY, request.GET.get('page'))
+        sales, settings.DASHBOARD_PAGINATE_BY, request.GET.get('page'))
     ctx = {'sales': sales}
     return TemplateResponse(request, 'dashboard/discount/sale/list.html', ctx)
 
@@ -63,7 +64,7 @@ def voucher_list(request):
     vouchers = (Voucher.objects.select_related('product', 'category')
                 .order_by('name'))
     vouchers = get_paginator_items(
-        vouchers, DASHBOARD_PAGINATE_BY, request.GET.get('page'))
+        vouchers, settings.DASHBOARD_PAGINATE_BY, request.GET.get('page'))
     ctx = {'vouchers': vouchers}
     return TemplateResponse(
         request, 'dashboard/discount/voucher/list.html', ctx)

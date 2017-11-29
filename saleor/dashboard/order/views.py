@@ -1,5 +1,6 @@
 from __future__ import unicode_literals
 
+from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import permission_required
 from django.db import transaction
@@ -27,7 +28,6 @@ from ...core.utils import get_paginator_items
 from ...order import OrderStatus
 from ...order.models import Order, OrderLine, OrderNote
 from ...product.models import ProductVariant
-from ...settings import DASHBOARD_PAGINATE_BY
 from ...userprofile.i18n import AddressForm
 
 
@@ -42,7 +42,7 @@ def order_list(request):
     else:
         orders = orders_all.all()
     orders = get_paginator_items(
-        orders, DASHBOARD_PAGINATE_BY, request.GET.get('page'))
+        orders, settings.DASHBOARD_PAGINATE_BY, request.GET.get('page'))
     form = OrderFilterForm(
         request.POST or None, initial={'status': status or None})
     ctx = {'orders': orders,

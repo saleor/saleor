@@ -2,11 +2,12 @@
 from __future__ import unicode_literals
 
 from django import forms
-from django.core.exceptions import ObjectDoesNotExist, NON_FIELD_ERRORS
 from django.conf import settings
+from django.core.exceptions import NON_FIELD_ERRORS, ObjectDoesNotExist
 from django.utils.translation import npgettext_lazy, pgettext_lazy
 from django_countries.fields import LazyTypedChoiceField, countries
 from satchless.item import InsufficientStock
+
 from ..shipping.utils import get_shipment_options
 
 

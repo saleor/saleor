@@ -1,3 +1,5 @@
+from __future__ import unicode_literals
+
 from django import forms
 from django.shortcuts import get_object_or_404
 from django.utils.text import slugify

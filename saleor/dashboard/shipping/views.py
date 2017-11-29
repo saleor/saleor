@@ -1,5 +1,6 @@
 from __future__ import unicode_literals
 
+from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import permission_required
 from django.shortcuts import get_object_or_404, redirect
@@ -7,11 +8,9 @@ from django.template.response import TemplateResponse
 from django.utils.translation import pgettext_lazy
 
 from ...core.utils import get_paginator_items
-
-from ..views import staff_member_required
 from ...shipping.models import ShippingMethod, ShippingMethodCountry
-from ...settings import DASHBOARD_PAGINATE_BY
-from .forms import ShippingMethodForm, ShippingMethodCountryForm
+from ..views import staff_member_required
+from .forms import ShippingMethodCountryForm, ShippingMethodForm
 
 
 @staff_member_required
@@ -20,7 +19,7 @@ def shipping_method_list(request):
     methods = (ShippingMethod.objects.prefetch_related('price_per_country')
                .order_by('name'))
     methods = get_paginator_items(
-        methods, DASHBOARD_PAGINATE_BY, request.GET.get('page'))
+        methods, settings.DASHBOARD_PAGINATE_BY, request.GET.get('page'))
     ctx = {'shipping_methods': methods}
     return TemplateResponse(request, 'dashboard/shipping/list.html', ctx)
 

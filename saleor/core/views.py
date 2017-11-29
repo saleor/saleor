@@ -1,3 +1,5 @@
+from __future__ import unicode_literals
+
 from django.template.response import TemplateResponse
 from django.contrib import messages
 from django.conf import settings
