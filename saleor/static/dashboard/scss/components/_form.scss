@@ -205,6 +205,16 @@
   .separator {
     display: inline-block;
     margin-top: 10px;
+    width: 1rem;
+  }
+  &--field {
+    display: inline-table;
+    width: calc(50% - .8rem);
+    @media (max-width: $medium-screen) {
+      .input-text-suffix {
+        text-align: center;
+      }
+    }
   }
 }
 
