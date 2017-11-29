@@ -17,9 +17,9 @@ from saleor.discount.models import Sale, Voucher
 from saleor.order.models import DeliveryGroup, Order, OrderLine
 from saleor.order.utils import recalculate_order
 from saleor.product.models import (
-    AttributeChoiceValue, Category, Product, ProductAttribute, ProductClass,
-    ProductImage, ProductVariant, ProductAttributeTranslation, Stock,
-    StockLocation)
+    AttributeChoiceValue, AttributeChoiceValueTranslation, Category, Product,
+    ProductAttribute, ProductClass, ProductImage, ProductVariant,
+    ProductAttributeTranslation, Stock, StockLocation)
 from saleor.shipping.models import ShippingMethod
 from saleor.site.models import AuthorizationKey, SiteSettings
 from saleor.userprofile.models import Address, User
