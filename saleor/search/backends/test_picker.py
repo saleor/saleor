@@ -12,20 +12,20 @@ ELASTIC_DASHBOARD_BACKEND = elasticsearch_dashboard.search
 
 
 def test_picks_db(settings):
-    settings.ELASTICSEARCH_URL = None
+    settings.ES_URL = None
     assert pick_backend() is POSTGRES_STOREFRONT_BACKEND
     assert pick_dashboard_backend() is POSTGRES_DASHBOARD_BACKEND
 
 
 def test_pick_elastic_when_configured(settings):
-    settings.ELASTICSEARCH_URL = 'whatever'
+    settings.ES_URL = 'whatever'
     settings.PREFER_DB_SEARCH = False
     assert pick_backend() is ELASTIC_STOREFRONT_BACKEND
     assert pick_dashboard_backend() is ELASTIC_DASHBOARD_BACKEND
 
 
 def test_pick_db_when_preferred(settings):
-    settings.ELASTICSEARCH = 'whatever'
+    settings.ES_URL = 'whatever'
     settings.PREFER_DB_SEARCH = True
     assert pick_backend() is POSTGRES_STOREFRONT_BACKEND
     assert pick_dashboard_backend() is POSTGRES_DASHBOARD_BACKEND
