@@ -11,7 +11,7 @@ from ...core.utils.filters import filter_by_order_customer
 from ...order.models import Order
 from ...order import OrderStatus
 from ..filters import SortedFilterSet
-from ..widgets import DateRangeWidget
+from ..widgets import DateRangeWidget, PriceRangeWidget
 
 
 SORT_BY_FIELDS = (
@@ -55,7 +55,8 @@ class OrderFilter(SortedFilterSet):
         empty_label=pgettext_lazy('Filter empty choice label', 'All'),
         widget=forms.Select)
     total_net = RangeFilter(
-        label=pgettext_lazy('Order list filter label', 'Total'))
+        label=pgettext_lazy('Order list filter label', 'Total'),
+        widget=PriceRangeWidget)
     sort_by = OrderingFilter(
         label=pgettext_lazy('Order list filter label', 'Sort by'),
         fields=SORT_BY_FIELDS,
