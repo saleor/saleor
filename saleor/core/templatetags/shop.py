@@ -38,7 +38,10 @@ def get_sort_by_toggle(context, field):
     request = context['request']
     request_get = request.GET.copy()
     sort_by = request_get.get('sort_by')
-    new_sort_by = field  # sort_by param
+    if sort_by:
+        new_sort_by = sort_by
+    else:
+        new_sort_by = field  # sort_by param
     sorting_icon = ''  # path to icon indicating applied sorting
     is_active = False  # flag which determines if active sorting is on field
     if sort_by:

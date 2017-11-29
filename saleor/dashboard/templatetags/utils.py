@@ -119,4 +119,5 @@ def add_filters(context, filter_set, sort_by_filter_name='sort_by'):
         chip['link'] = '?' + urlencode(all_values, True)
 
     return {
-        'chips': chips, 'filter': filter_set, 'count': filter_set.qs.count()}
+        'chips': chips, 'filter': filter_set, 'count': filter_set.qs.count(),
+        'request': context['request']}
