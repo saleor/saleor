@@ -102,19 +102,14 @@ class ValueVoucherForm(forms.ModelForm):
         return super(ValueVoucherForm, self).save(commit)
 
 
-class ProductVoucherForm(forms.ModelForm):
+class CommonVoucherForm(forms.ModelForm):
 
     use_required_attribute = False
     apply_to = forms.ChoiceField(
         choices=Voucher.APPLY_TO_PRODUCT_CHOICES, required=False)
 
-    class Meta:
-        model = Voucher
-        fields = ['product', 'apply_to']
-
     def __init__(self, *args, **kwargs):
-        super(ProductVoucherForm, self).__init__(*args, **kwargs)
-        self.fields['product'].required = True
+        super(CommonVoucherForm, self).__init__(*args, **kwargs)
 
     def save(self, commit=True):
         self.instance.category = None
@@ -126,14 +121,21 @@ class ProductVoucherForm(forms.ModelForm):
         if (self.instance.discount_value_type ==
                 Voucher.DISCOUNT_VALUE_PERCENTAGE):
             self.instance.apply_to = None
-        return super(ProductVoucherForm, self).save(commit)
+        return super(CommonVoucherForm, self).save(commit)
 
 
-class CategoryVoucherForm(forms.ModelForm):
+class ProductVoucherForm(CommonVoucherForm):
 
-    use_required_attribute = False
-    apply_to = forms.ChoiceField(
-        choices=Voucher.APPLY_TO_PRODUCT_CHOICES, required=False)
+    class Meta:
+        model = Voucher
+        fields = ['product', 'apply_to']
+
+    def __init__(self, *args, **kwargs):
+        super(ProductVoucherForm, self).__init__(*args, **kwargs)
+        self.fields['product'].required = True
+
+
+class CategoryVoucherForm(CommonVoucherForm):
 
     class Meta:
         model = Voucher
@@ -142,15 +144,3 @@ class CategoryVoucherForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super(CategoryVoucherForm, self).__init__(*args, **kwargs)
         self.fields['category'].required = True
-
-    def save(self, commit=True):
-        self.instance.limit = None
-        self.instance.product = None
-        # Apply to one with percentage discount is more complicated case.
-        # On which product we should apply it? On first, last or cheapest?
-        # Percentage case is limited to the all value and the apply_to field
-        # is not used in this case so we set it to None.
-        if (self.instance.discount_value_type ==
-                Voucher.DISCOUNT_VALUE_PERCENTAGE):
-            self.instance.apply_to = None
-        return super(CategoryVoucherForm, self).save(commit)

@@ -5,9 +5,17 @@ engines:
     enabled: true
   pylint:
     enabled: true
-exclude_paths:
-- migrations/
-- tests/
+  duplication:
+    enabled: true
+    config:
+      languages:
+        python:
+          mass_threshold: 100 
+          python_version: 3
+exclude_patterns:
+- "**/migrations/"
+- "tests/"
+- "**/test_*"
 ratings:
   paths:
   - saleor/**
