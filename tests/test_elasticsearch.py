@@ -30,7 +30,7 @@ def elasticsearch_connection():
 def elasticsearch_enabled(settings):
     settings.ES_URL = ES_URL
     settings.ENABLE_SEARCH = True
-    settings.PREFER_DB_SEARCH = False
+    settings.SEARCH_BACKEND = 'elasticsearch'
 
 
 @pytest.fixture(scope='function', autouse=True)

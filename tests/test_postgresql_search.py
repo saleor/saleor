@@ -12,9 +12,8 @@ import pytest
 
 @pytest.fixture(scope='function', autouse=True)
 def postgresql_search_enabled(settings):
-    settings.ELASTICSEARCH_URL = None
     settings.ENABLE_SEARCH = True
-    settings.PREFER_DB_SEARCH = True
+    settings.SEARCH_BACKEND = 'default'
 
 
 PRODUCTS = [('Arabica Coffee', 'The best grains in galactic'),
