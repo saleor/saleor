@@ -36,6 +36,7 @@ $(document).ready((e) => {
     }
   });
   $('.bulk-actions a').on('click', (e) => {
+    e.preventDefault();
     const a = $(e.currentTarget);
     $('#bulk-action').val(a.attr('data-action'));
     $('#bulk-actions-form').submit();
