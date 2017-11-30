@@ -6,7 +6,7 @@
 
 {% block title %}
   {% if category.pk %}
-    {{ category }}
+    {% trans "Edit category" context "Category form page title" %} {{ category }}
   {% else %}
     {% trans "Add new category" context "Category detail page title" %}
   {% endif %}
@@ -21,7 +21,7 @@
   {% if category.pk %}
     {{ category }}
   {% else %}
-    {% trans "Add new category" context "Category detail page title" %}
+    {% trans "Add new category" context "Category form page title" %}
   {% endif %}
 {% endblock %}
 
@@ -37,15 +37,43 @@
         <svg data-src="{% static "dashboard/images/arrow-left.svg" %}" fill="#fff" width="20px" height="20px" />
       </a>
     </li>
-    <li>
-      {% if category.pk %}
-        <span class="breadcrumbs--ellipsed-item">{{ category }}</span>
-      {% else %}
-        <span class="breadcrumbs--ellipsed-item">
-          {% trans "Add new category" context "Category detail breadcrumbs" %}
-        </span>
-      {% endif %}
-    </li>
+    {% if path %}
+      <li class="back-mobile">
+        <a href="{% url 'dashboard:category-list' %}">
+          <svg data-src="{% static "dashboard/images/arrow_left.svg" %}" fill="#fff" width="20px" height="20px"/>
+        </a>
+      </li>
+      {% for node in path %}
+        {% if forloop.last %}
+          {% if node.pk %}
+            <li>
+              <a href="{% url 'dashboard:category-detail' pk=node.pk %}" class="breadcrumbs--ellipsed-item">{{ node }}</a>
+            </li>
+            <li>
+            {% if category.pk %}
+                <span class="breadcrumbs--ellipsed-item">
+                  {% trans "Edit" context "Category form page title" %}
+                </span>
+              </li>
+            {% else %}
+              <li>
+                <span class="breadcrumbs--ellipsed-item">
+                  {% trans "Add new category" context "Category detail breadcrumbs" %}
+                </span>
+              </li>
+            {% endif %}
+          {% endif %}
+        {% else %}
+          <li class="hide-on-med-and-down">
+            <a title="{{ node.name }}"
+               href="{% url 'dashboard:category-detail' pk=node.pk %}"
+               class="breadcrumbs--ellipsed-item">
+              {{ node.name }}
+            </a>
+          </li>
+        {% endif %}
+      {% endfor %}
+    {% endif %}
   </ul>
 {% endblock %}
 
@@ -75,15 +103,9 @@
             </div>
           </div>
           <div class="card-action right-align">
-            {% if category.parent %}
-              <a href="{% url 'dashboard:category-detail' pk=category.parent.pk %}" class="btn btn-flat">
-                {% trans "Cancel" context "Dashboard cancel action" %}
-              </a>
-            {% else %}
-              <a href="{% url 'dashboard:category-list' %}" class="btn btn-flat">
-                {% trans "Cancel" context "Dashboard cancel action" %}
-              </a>
-            {% endif %}
+            <a href="{% url 'dashboard:category-detail' pk=path.last.pk %}" class="btn btn-flat">
+              {% trans "Cancel" context "Dashboard cancel action" %}
+            </a>
             {% if category.pk %}
               <button type="submit" class="btn waves-effect waves-light">
                 {% trans "Update" context "Dashboard update action" %}
