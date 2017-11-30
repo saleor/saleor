@@ -1,6 +1,7 @@
 import {initSelects} from './utils';
 import SVGInjector from 'svg-injector-2';
 
+// List of input types that can be autofocused after opening modal
 const focusInputs = [
   'textarea',
   'input[type="text"]:not(.select-dropdown)',
