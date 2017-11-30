@@ -123,11 +123,33 @@
               <form method="get">
                 {% for field in filter.form %}
                   {% if field.name == 'sort_by' %}
-                    <!--Field 'sort_by' is hidden because it is rendered in header.
-                    This is required if you want to have sorting to be kept during further filtering.-->
+                    {% comment %}
+                      Field 'sort_by' is hidden because it is rendered in header.
+                      This is required if you want to have sorting to be kept during further filtering.
+                    {% endcomment %}
+
                     <input type="hidden" name="sort_by"
                            value="{% if request.GET.sort_by %}{{ request.GET.sort_by }}{% endif %}">
-                  {% elif field.name != 'price' %}
+                  {% elif field.name == 'price' %}
+                    <div class="toggle-filter product-filters__price-range">
+                      <h3 class="filter-label">
+                        {{ field.label }}
+                        <div class="collapse-filters-icon">
+                          <img src="{% static "images/chevron_up.svg" %}">
+                        </div>
+                      </h3>
+                      <div class="filter-form-field" style="display:block">
+                        <div class="mb-3">
+                          <input id="{{ field.auto_id }}_0" name="{{ field.name }}_0"
+                                value="{% if field.value.0 %}{{ field.value.0 }}{% endif %}" type="number" min="0"
+                                class="form-control d-inline"
+                                placeholder="{% trans 'from' context 'Category price filter' %}"><span>-</span><input id="{{ field.auto_id }}_1" name="{{ field.name }}_1"
+                                value="{% if field.value.1 %}{{ field.value.1 }}{% endif %}" type="number" min="0"
+                                class="form-control d-inline" placeholder="{% trans 'to' context 'Category price filter' %}">
+                        </div>
+                      </div>
+                    </div>
+                  {% else %}
                     <div class="toggle-filter">
                       <h3 class="filter-label">
                         {{ field.label }}
@@ -141,29 +163,9 @@
                     </div>
                   {% endif %}
                 {% endfor %}
-                {% for field in filter.form %}
-                  {% if field.name == 'price' %}
-                    <div class="toggle-filter product-filters__price-range">
-                      <h3 class="filter-label">
-                        {{ field.label }}
-                        <div class="collapse-filters-icon">
-                          <img src="{% static "images/chevron_up.svg" %}">
-                        </div>
-                      </h3>
-                      <div class="filter-form-field" style="display:block">
-                        <div>
-                          <input id="{{ field.auto_id }}_0" name="{{ field.name }}_0"
-                                 value="{% if field.value.0 %}{{ field.value.0 }}{% endif %}" type="number" min="0"
-                                 class="form-control d-inline"
-                                 placeholder="{% trans 'from' context 'Category price filter' %}"><span>-</span><input id="{{ field.auto_id }}_1" name="{{ field.name }}_1"
-                                 value="{% if field.value.1 %}{{ field.value.1 }}{% endif %}" type="number" min="0"
-                                 class="form-control d-inline" placeholder="{% trans 'to' context 'Category price filter' %}">
-                        </div>
-                      </div>
-                      <button class="btn primary" type="submit">{% trans 'Update' context 'Category price filter' %}</button>
-                    </div>
-                  {% endif %}
-                {% endfor %}
+                <div class="product-filters">
+                  <button class="btn primary" type="submit">{% trans 'Update' context 'Category price filter' %}</button>
+                </div>
               </form>
             </div>
           </div>
