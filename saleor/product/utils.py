@@ -42,7 +42,7 @@ def products_with_details(user):
 def products_for_api(user):
     products = products_visible_to_user(user)
     return products.prefetch_related(
-        'images', 'categories', 'variants', 'variants__stock')
+        'images', 'categories', 'variants__stock')
 
 
 def products_for_homepage():
@@ -119,8 +119,7 @@ def handle_cart_form(request, product, create_cart=False):
 
 def products_for_cart(user):
     products = products_visible_to_user(user)
-    products = products.prefetch_related(
-        'variants', 'variants__variant_images__image')
+    products = products.prefetch_related('variants__variant_images__image')
     return products
 
 
