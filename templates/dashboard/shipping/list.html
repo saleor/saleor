@@ -1,6 +1,7 @@
 {% extends "dashboard/base.html" %}
 {% load i18n %}
 {% load prices_i18n %}
+{% load get_sort_by_toggle from shop %}
 {% load status %}
 {% load utils %}
 {% load static %}
@@ -32,15 +33,19 @@
   </div>
   {% endif %}
   <div class="row">
-    <div class="col s12">
-      <div class="card">
-        <div class="data-table-container">
-          <table class="bordered highlight responsive data-table">
-            {% if shipping_methods %}
+    <div class="col s12 l9">
+      {% if shipping_methods %}
+        <div class="card">
+          <div class="data-table-container">
+            <table class="bordered highlight responsive data-table">
               <thead>
                 <tr>
-                  <th>
-                    {% trans "Name" context "Shipping methods table header" %}
+                  {% get_sort_by_toggle 'name' as toggle %}
+                  <th class="wide {% if toggle.is_active %}active{% endif %}">
+                    <a href="{{ toggle.url }}">
+                      <svg data-src="{{ toggle.sorting_icon }}" />
+                      {% trans "Name" context "Shipping methods table header" %}
+                    </a>
                   </th>
                   <th>
                     {% trans "Price range" context "Shipping methods table header" %}
@@ -71,21 +76,22 @@
                   </tr>
                 {% endfor %}
               </tbody>
-            {% else %}
-              <tbody>
-                <tr>
-                  <td>
-                    <span>
-                      {% trans "No Shipping methods found" context "Empty Shipping methods table message" %}
-                    </span>
-                  </td>
-                </tr>
-              </tbody>
-            {% endif %}
-          </table>
+            </table>
+          </div>
         </div>
-      </div>
+      {% else %}
+        <div class="col s12">
+          <div class="not-found">
+            <p class="grey-text">
+              {% trans "No Shipping methods found" context "Empty Shipping methods table message" %}
+            </p>
+          </div>
+        </div>
+      {% endif %}
     </div>
+    <div class="col s12 l3" id="filters">
+    {% add_filters filter %}
+  </div>
   </div>
   {% paginate shipping_methods %}
 {% endblock %}

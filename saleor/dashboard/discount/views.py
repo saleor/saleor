@@ -10,6 +10,7 @@ from django.utils.translation import pgettext_lazy
 from ...core.utils import get_paginator_items
 from ...discount.models import Sale, Voucher
 from ..views import staff_member_required
+from .filters import SaleFilter, VoucherFilter
 from . import forms
 
 
@@ -17,9 +18,10 @@ from . import forms
 @permission_required('discount.view_sale')
 def sale_list(request):
     sales = Sale.objects.prefetch_related('products').order_by('name')
+    sale_filter = SaleFilter(request.GET, queryset=sales)
     sales = get_paginator_items(
-        sales, settings.DASHBOARD_PAGINATE_BY, request.GET.get('page'))
-    ctx = {'sales': sales}
+        sale_filter.qs, settings.DASHBOARD_PAGINATE_BY, request.GET.get('page'))
+    ctx = {'sales': sales, 'filter': sale_filter}
     return TemplateResponse(request, 'dashboard/discount/sale/list.html', ctx)
 
 
@@ -63,9 +65,11 @@ def sale_delete(request, pk):
 def voucher_list(request):
     vouchers = (Voucher.objects.select_related('product', 'category')
                 .order_by('name'))
+    voucher_filter = VoucherFilter(request.GET, queryset=vouchers)
     vouchers = get_paginator_items(
-        vouchers, settings.DASHBOARD_PAGINATE_BY, request.GET.get('page'))
-    ctx = {'vouchers': vouchers}
+        voucher_filter.qs, settings.DASHBOARD_PAGINATE_BY,
+        request.GET.get('page'))
+    ctx = {'vouchers': vouchers, 'filter': voucher_filter}
     return TemplateResponse(
         request, 'dashboard/discount/voucher/list.html', ctx)
 

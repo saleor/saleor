@@ -75,6 +75,14 @@
     padding: 0 24px;
   }
 
+  &.last-right-align {
+    td, th {
+      &:last-child {
+        text-align: right;
+      }
+    }
+  }
+
   input[type=checkbox].filled-in + label {
     margin-top: 5px;
     padding: 0;
@@ -132,10 +140,36 @@
   }
 
   th {
-    color: map_get($grey, darken-1);
     font-weight: normal;
     font-size: 12px;
     height: 56px;
+    color: $grey-color;
+    svg {
+      display: none;
+    }
+    &.active {
+      a {
+        font-weight: 600;
+        color: lighten(#000, 13%);
+        padding-right: 16px;
+      }
+      svg {
+        display: inline-block;
+        fill: lighten(#000, 13%);
+        position: absolute;
+        top: -2px;
+        right: -4px;
+        width: 16px;
+        height: 16px;
+      }
+    }
+    a {
+      position: relative;
+      color: $grey-color;
+      &:hover {
+        color: darken($grey-color, 15%);
+      }
+    }
   }
 
   tfoot {
