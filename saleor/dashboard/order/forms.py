@@ -36,7 +36,9 @@ class ManagePaymentForm(forms.Form):
     amount = PriceField(
         label=pgettext_lazy(
             'Payment management form (capture, refund, release)', 'Amount'),
-        max_digits=12, decimal_places=2, currency=settings.DEFAULT_CURRENCY)
+        max_digits=12,
+        decimal_places=2,
+        currency=settings.DEFAULT_CURRENCY)
 
     def __init__(self, *args, **kwargs):
         self.payment = kwargs.pop('payment')
@@ -47,11 +49,9 @@ class ManagePaymentForm(forms.Form):
             raise forms.ValidationError(self.clean_error)
 
     def payment_error(self, message):
-        self.add_error(
-                None,
-                pgettext_lazy(
-                    'Payment form error',
-                    'Payment gateway error: %s') % message)
+        self.add_error(None,
+                       pgettext_lazy('Payment form error',
+                                     'Payment gateway error: %s') % message)
 
     def try_payment_action(self, action):
         amount = self.cleaned_data['amount']
