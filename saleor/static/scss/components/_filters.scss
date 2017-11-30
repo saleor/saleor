@@ -24,6 +24,10 @@
       }
     }
   }
+  button {
+    width: 100%;
+    margin-top: $global-margin;
+  }
   &__attributes {
     ul {
       li {
@@ -51,10 +55,6 @@
       width: 20%;
       text-align: center;
       display: inline-block;
-    }
-    button {
-      width: 100%;
-      margin-top: $global-margin;
     }
   }
   &__categories {
