@@ -92,7 +92,7 @@ def category_detail(request, pk):
     path = root.get_ancestors(include_self=True) if root else []
     categories = root.get_children()
     categories = get_paginator_items(
-        categories, DASHBOARD_PAGINATE_BY, request.GET.get('page'))
+        categories, settings.DASHBOARD_PAGINATE_BY, request.GET.get('page'))
     ctx = {'categories': categories, 'path': path, 'root': root}
     return TemplateResponse(request, 'dashboard/category/detail.html', ctx)
 
