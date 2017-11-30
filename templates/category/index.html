@@ -139,10 +139,7 @@
                         {{ field }}
                       </div>
                     </div>
-                  {% endif %}
-                {% endfor %}
-                {% for field in filter.form %}
-                  {% if field.name == 'price' %}
+                  {% elif field.name == 'price' %}
                     <div class="toggle-filter product-filters__price-range">
                       <h3 class="filter-label">
                         {{ field.label }}
