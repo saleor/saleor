@@ -25,8 +25,8 @@
 
 {% block content %}
   {% if perms.discount.edit_sale %}
-    <div class="fixed-action-btn">
-      <a href="{% url 'dashboard:sale-add' %}" class="btn-fab btn-floating btn-large waves-effect waves-light"
+    <div class="btn-fab-fixed">
+      <a href="{% url 'dashboard:sale-add' %}" class="btn-fab-default waves-effect waves-light"
          title="{% trans "Add sale" context "Sale (discount) list add button text" %}">
         <svg data-src="{% static "dashboard/images/add.svg" %}" />
       </a>
