@@ -1,15 +1,21 @@
 from __future__ import unicode_literals
 
+from django import forms
+from django.template import Library
+from django_filters.fields import RangeField
 from versatileimagefield.widgets import VersatileImagePPOIClickWidget
-from ..product.widgets import ImagePreviewWidget
 
 try:
     from urllib.parse import urlencode
 except ImportError:
     from urllib import urlencode
 
-from django.template import Library
 from ...product.utils import get_margin_for_variant, get_variant_costs_data
+from .chips import (
+    handle_default, handle_multiple_choice, handle_multiple_model_choice,
+    handle_nullboolean, handle_range, handle_single_choice,
+    handle_single_model_choice)
+from ..product.widgets import ImagePreviewWidget
 
 register = Library()
 
@@ -70,3 +76,34 @@ def margin_for_variant(stock):
 def margins_for_variant(variant):
     margins = get_variant_costs_data(variant)['margins']
     return margins
+
+
+@register.inclusion_tag('dashboard/includes/_filters.html', takes_context=True)
+def add_filters(context, filter_set, sort_by_filter_name='sort_by'):
+    chips = []
+    request_get = context['request'].GET.copy()
+    for filter_name in filter_set.form.cleaned_data.keys():
+        if filter_name == sort_by_filter_name:
+            # Skip processing of sort_by filter, as it's rendered differently
+            continue
+
+        field = filter_set.form[filter_name]
+        if field.value() not in ['', None]:
+            if isinstance(field.field, forms.NullBooleanField):
+                items = handle_nullboolean(field, request_get)
+            elif isinstance(field.field, forms.ModelMultipleChoiceField):
+                items = handle_multiple_model_choice(field, request_get)
+            elif isinstance(field.field, forms.MultipleChoiceField):
+                items = handle_multiple_choice(field, request_get)
+            elif isinstance(field.field, forms.ModelChoiceField):
+                items = handle_single_model_choice(field, request_get)
+            elif isinstance(field.field, forms.ChoiceField):
+                items = handle_single_choice(field, request_get)
+            elif isinstance(field.field, RangeField):
+                items = handle_range(field, request_get)
+            else:
+                items = handle_default(field, request_get)
+            chips.extend(items)
+    return {
+        'chips': chips, 'filter': filter_set, 'count': filter_set.qs.count(),
+        'sort_by': request_get.get(sort_by_filter_name, None)}

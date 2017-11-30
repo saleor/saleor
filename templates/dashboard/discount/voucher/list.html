@@ -1,6 +1,7 @@
 {% extends "dashboard/base.html" %}
 {% load i18n %}
 {% load prices_i18n %}
+{% load get_sort_by_toggle from shop %}
 {% load materializecss %}
 {% load utils %}
 {% load static %}
@@ -32,83 +33,114 @@
       </a>
     </div>
   {% endif %}
-  <div class="card">
-    <div class="data-table-container">
-      <table class="bordered highlight responsive data-table">
-        {% if vouchers %}
-          <thead>
-            <tr>
-              <th class="wide">
-                {% trans "Name" context "Voucher table header" %}
-              </th>
-              <th class="right-align">
-                {% trans "Discount" context "Voucher table header" %}
-              </th>
-              <th>
-                {% trans "Apply to" context "Voucher table header" %}
-              </th>
-              <th>
-                {% trans "Start date" context "Voucher table header" %}
-              </th>
-              <th>
-                {% trans "End date" context "Voucher table header" %}
-              </th>
-              <th class="right-align">
-                {% trans "Used" context "Voucher table header" %}
-              </th>
-              <th class="right-align">
-                {% trans "Limit" context "Voucher table header" %}
-              </th>
-            </tr>
-          </thead>
-          {% for voucher in vouchers %}
-            <tbody>
-              <tr data-action-go="{% if perms.discount.edit_voucher %}{% url 'dashboard:voucher-update' pk=voucher.pk %}{% endif %}">
-                <td>
-                  {{ voucher }}
-                </td>
-                <td class="right-align">
-                  {{ voucher.discount_value }}&nbsp;<span class="currency">{{ voucher.get_discount_value_type_display }}</span>
-                </td>
-                <td>
-                  {{ voucher.get_apply_to_display|default_if_none:"-" }}
-                </td>
-                <td>
-                  {{ voucher.start_date }}
-                </td>
-                <td>
-                  {{ voucher.end_date|default_if_none:"-" }}
-                </td>
-                <td class="right-align">
-                  {% if voucher.usage_limit or voucher.usage_limit == 0 %}
-                    {{ voucher.used }}/{{ voucher.usage_limit }}
-                  {% else %}
-                    {{ voucher.used }}
-                  {% endif %}
-                </td>
-                <td class="right-align">
-                  {% if voucher.limit %}
-                    {% gross voucher.limit html=True %}
-                  {% else %}
-                    -
-                  {% endif %}
-                </td>
-              </tr>
-            </tbody>
-          {% endfor %}
-        {% else %}
-          <tbody>
-            <tr>
-              <td>
-                <span>
-                  {% trans "No vouchers found" context "Empty vouchers table message" %}
-                </span>
-              </td>
-            </tr>
-          </tbody>
-        {% endif %}
-      </table>
+  <div class="row">
+    <div class="col s12 l9">
+        <div class="card">
+          <div class="data-table-container">
+            <table class="bordered highlight responsive data-table last-right-align">
+              {% if vouchers %}
+                <thead>
+                  <tr>
+                    {% get_sort_by_toggle 'name' as toggle %}
+                    <th class="wide {% if toggle.is_active %}active{% endif %}">
+                    <a href="{{ toggle.url }}">
+                      <svg data-src="{{ toggle.sorting_icon }}" />
+                      {% trans "Name" context "Voucher table header" %}
+                    </a>
+                    </th>
+                    {% get_sort_by_toggle 'discount_value' as toggle %}
+                    <th class="wide {% if toggle.is_active %}active{% endif %}">
+                      <a href="{{ toggle.url }}">
+                        <svg data-src="{{ toggle.sorting_icon }}" />
+                        {% trans "Discount" context "Voucher table header" %}
+                      </a>
+                    </th>
+                    <th>
+                      {% trans "Apply to" context "Voucher table header" %}
+                    </th>
+                    {% get_sort_by_toggle 'start_date' as toggle %}
+                    <th class="wide {% if toggle.is_active %}active{% endif %}">
+                      <a href="{{ toggle.url }}">
+                        <svg data-src="{{ toggle.sorting_icon }}" />
+                        {% trans "Start date" context "Voucher table header" %}
+                      </a>
+                    </th>
+                    {% get_sort_by_toggle 'end_date' as toggle %}
+                    <th class="wide {% if toggle.is_active %}active{% endif %}">
+                      <a href="{{ toggle.url }}">
+                        <svg data-src="{{ toggle.sorting_icon }}" />
+                        {% trans "End date" context "Voucher table header" %}
+                      </a>
+                    </th>
+                    {% get_sort_by_toggle 'used' as toggle %}
+                    <th class="wide {% if toggle.is_active %}active{% endif %}">
+                      <a href="{{ toggle.url }}">
+                        <svg data-src="{{ toggle.sorting_icon }}" />
+                        {% trans "Used" context "Voucher table header" %}
+                      </a>
+                    </th>
+                    {% get_sort_by_toggle 'limit' as toggle %}
+                    <th class="wide {% if toggle.is_active %}active{% endif %}">
+                      <a href="{{ toggle.url }}">
+                        <svg data-src="{{ toggle.sorting_icon }}" />
+                        {% trans "Limit" context "Voucher table header" %}
+                      </a>
+                    </th>
+                  </tr>
+                </thead>
+                {% for voucher in vouchers %}
+                  <tbody>
+                    <tr data-action-go="{% if perms.voucher.edit_voucher %}{% url 'dashboard:voucher-update' pk=voucher.pk %}{% endif %}">
+                      <td>
+                        {{ voucher }}
+                      </td>
+                      <td class="right-align">
+                        {{ voucher.discount_value }}&nbsp;<span class="currency">{{ voucher.get_discount_value_type_display }}</span>
+                      </td>
+                      <td>
+                        {{ voucher.get_apply_to_display|default_if_none:"-" }}
+                      </td>
+                      <td>
+                        {{ voucher.start_date }}
+                      </td>
+                      <td>
+                        {{ voucher.end_date|default_if_none:"-" }}
+                      </td>
+                      <td class="right-align">
+                        {% if voucher.usage_limit or voucher.usage_limit == 0 %}
+                          {{ voucher.used }}/{{ voucher.usage_limit }}
+                        {% else %}
+                          {{ voucher.used }}
+                        {% endif %}
+                      </td>
+                      <td class="right-align">
+                        {% if voucher.limit %}
+                          {% gross voucher.limit html=True %}
+                        {% else %}
+                          -
+                        {% endif %}
+                      </td>
+                    </tr>
+                  </tbody>
+                {% endfor %}
+              {% else %}
+                <tbody>
+                  <tr>
+                    <td>
+                      <span>
+                        {% trans "No vouchers found" context "Empty vouchers table message" %}
+                      </span>
+                    </td>
+                  </tr>
+                </tbody>
+              {% endif %}
+            </table>
+          </div>
+        </div>
+        {% paginate vouchers %}
+      </div>
+    <div class="col s12 l3" id="filters">
+      {% add_filters filter %}
     </div>
   </div>
-  {% paginate vouchers %}
 {% endblock %}

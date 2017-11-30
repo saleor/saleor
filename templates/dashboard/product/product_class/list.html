@@ -2,6 +2,7 @@
 {% load i18n %}
 {% load prices_i18n %}
 {% load materializecss %}
+{% load get_sort_by_toggle from shop %}
 {% load staticfiles %}
 {% load utils %}
 
@@ -35,16 +36,26 @@
 
 {% block content %}
   <div class="row">
-    <div class="col s12">
+    <div class="col s12 l9">
       {% if product_classes %}
         <div class="card">
           <div class="data-table-container">
             <table class="bordered highlight data-table data-table-description">
               <thead>
                 <tr>
-                  <th>{% trans "Name" context "Dashboard product types list table header name" %}</th>
-                  <th>{% trans "Product attributes" context "Product type item list text" %}</th>
-                  <th>{% trans "Variant attributes" context "Product type item list text" %}</th>
+                  {% get_sort_by_toggle 'name' as toggle %}
+                  <th class="wide {% if toggle.is_active %}active{% endif %}">
+                    <a href="{{ toggle.url }}">
+                      <svg data-src="{{ toggle.sorting_icon }}" />
+                      {% trans "Name" context "Dashboard product types list table header name" %}
+                    </a>
+                  </th>
+                  <th>
+                    {% trans "Product attributes" context "Product type item list text" %}
+                  </th>
+                  <th>
+                    {% trans "Variant attributes" context "Product type item list text" %}
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -81,6 +92,9 @@
           </p>
         </div>
       {% endif %}
+    </div>
+    <div class="col s12 l3" id="filters">
+      {% add_filters filter %}
     </div>
   </div>
   <div id="modal-product-class" class="modal">

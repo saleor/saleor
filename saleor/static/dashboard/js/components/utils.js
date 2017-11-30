@@ -1,6 +1,6 @@
 import 'select2';
 
-var supportsPassive = false;
+let supportsPassive = false;
 try {
   let opts = Object.defineProperty({}, 'passive', {
     get: function () {

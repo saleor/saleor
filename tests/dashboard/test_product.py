@@ -538,3 +538,51 @@ def test_product_bulk_update_form_can_unpublish_products(product_list):
     for p in product_list:
         p.refresh_from_db()
         assert not p.is_published
+
+
+def test_product_list_filters(admin_client, product_list):
+    db_products = Product.objects.all()
+    assert len(db_products) == 2
+    data = {'price_1': [''], 'price_0': [''], 'is_featured': [''],
+            'name': ['Test'], 'sort_by': [''], 'is_published': ['']}
+    url = reverse('dashboard:product-list')
+    response = admin_client.get(url, data)
+    assert response.status_code == 200
+    assert list(response.context['filter'].qs) == product_list
+
+
+def test_product_list_filters_sort_by(admin_client, product_list):
+    data = {'price_1': [''], 'price_0': [''], 'is_featured': [''],
+            'name': ['Test'], 'sort_by': ['name'], 'is_published': ['']}
+    url = reverse('dashboard:product-list')
+    response = admin_client.get(url, data)
+    assert response.status_code == 200
+    assert list(response.context['filter'].qs) == product_list
+
+    data = {'price_1': [''], 'price_0': [''], 'is_featured': [''],
+            'name': ['Test'], 'sort_by': ['-name'], 'is_published': ['']}
+    url = reverse('dashboard:product-list')
+    response = admin_client.get(url, data)
+    assert response.status_code == 200
+    assert list(response.context['filter'].qs) == product_list[::-1]
+
+
+def test_product_list_filters_is_published(
+        admin_client, product_list, default_category):
+    data = {'price_1': [''], 'price_0': [''], 'is_featured': [''],
+            'name': ['Test'], 'sort_by': ['name'],
+            'categories': [default_category.pk], 'is_published': ['1']}
+    url = reverse('dashboard:product-list')
+    response = admin_client.get(url, data)
+    assert response.status_code == 200
+    assert list(response.context['filter'].qs) == [product_list[0]]
+
+
+def test_product_list_filters_no_results(admin_client, product_list):
+    data = {'price_1': [u''], 'price_0': [''], 'is_featured': [''],
+            'name': ['BADTest'], 'sort_by': [''],
+            'is_published': ['']}
+    url = reverse('dashboard:product-list')
+    response = admin_client.get(url, data)
+    assert response.status_code == 200
+    assert list(response.context['filter'].qs) == []

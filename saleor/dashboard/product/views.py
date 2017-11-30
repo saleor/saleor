@@ -18,6 +18,9 @@ from ...product.models import (
 from ...product.utils import (
     get_availability, get_product_costs_data, get_variant_costs_data)
 from ..views import staff_member_required
+from .filters import (
+    ProductFilter, ProductAttributeFilter, ProductClassFilter,
+    StockLocationFilter)
 from . import forms
 
 
@@ -26,16 +29,18 @@ from . import forms
 def product_class_list(request):
     classes = ProductClass.objects.all().prefetch_related(
         'product_attributes', 'variant_attributes').order_by('name')
+    class_filter = ProductClassFilter(request.GET, queryset=classes)
     form = forms.ProductClassForm(request.POST or None)
     if form.is_valid():
         return redirect('dashboard:product-class-add')
     classes = get_paginator_items(
-        classes, settings.DASHBOARD_PAGINATE_BY, request.GET.get('page'))
+        class_filter.qs, settings.DASHBOARD_PAGINATE_BY,
+        request.GET.get('page'))
     classes.object_list = [
         (pc.pk, pc.name, pc.has_variants, pc.product_attributes.all(),
          pc.variant_attributes.all())
         for pc in classes.object_list]
-    ctx = {'form': form, 'product_classes': classes}
+    ctx = {'form': form, 'product_classes': classes, 'filter': class_filter}
     return TemplateResponse(
         request,
         'dashboard/product/product_class/list.html',
@@ -108,16 +113,21 @@ def product_list(request):
     products = Product.objects.prefetch_related('images')
     products = products.order_by('name')
     product_classes = ProductClass.objects.all()
+
     form = forms.ProductClassSelectorForm(
         request.POST or None, product_classes=product_classes)
     if form.is_valid():
         return redirect(
             'dashboard:product-add', class_pk=form.cleaned_data['product_cls'])
+    product_filter = ProductFilter(request.GET, queryset=products)
     products = get_paginator_items(
-        products, settings.DASHBOARD_PAGINATE_BY, request.GET.get('page'))
+        product_filter.qs, settings.DASHBOARD_PAGINATE_BY,
+        request.GET.get('page'))
     ctx = {
         'bulk_action_form': forms.ProductBulkUpdate(), 'form': form,
-        'products': products, 'product_classes': product_classes}
+        'products': products, 'product_classes': product_classes,
+        'filter': product_filter,
+    }
     return TemplateResponse(request, 'dashboard/product/list.html', ctx)
 
 
@@ -462,12 +472,15 @@ def variant_delete(request, product_pk, variant_pk):
 @staff_member_required
 @permission_required('product.view_properties')
 def attribute_list(request):
+    attributes = (ProductAttribute.objects.prefetch_related('values')
+                  .order_by('name'))
+    attribute_filter = ProductAttributeFilter(request.GET, queryset=attributes)
     attributes = [
         (attribute.pk, attribute.name, attribute.values.all())
-        for attribute in ProductAttribute.objects.prefetch_related('values')]
+        for attribute in attribute_filter.qs]
     attributes = get_paginator_items(
         attributes, settings.DASHBOARD_PAGINATE_BY, request.GET.get('page'))
-    ctx = {'attributes': attributes}
+    ctx = {'attributes': attributes, 'filter': attribute_filter}
     return TemplateResponse(
         request,
         'dashboard/product/product_attribute/list.html',
@@ -573,11 +586,12 @@ def attribute_choice_value_delete(request, attribute_pk, value_pk):
 @permission_required('product.view_stock_location')
 def stock_location_list(request):
     stock_locations = StockLocation.objects.all().order_by('name')
+    stock_location_filter = StockLocationFilter(
+        request.GET, queryset=stock_locations)
     stock_locations = get_paginator_items(
-        stock_locations,
-        settings.DASHBOARD_PAGINATE_BY,
+        stock_location_filter.qs, settings.DASHBOARD_PAGINATE_BY,
         request.GET.get('page'))
-    ctx = {'locations': stock_locations}
+    ctx = {'locations': stock_locations, 'filter': stock_location_filter}
     return TemplateResponse(
         request,
         'dashboard/product/stock_location/list.html',
