@@ -7,4 +7,5 @@ import './async-form';
 import './styleguide';
 import './bulk-actions';
 import './tab';
+import './filters';
 import './misc';
