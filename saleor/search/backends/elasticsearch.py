@@ -1,17 +1,11 @@
+# -*- coding: utf-8 -*-
 from __future__ import unicode_literals
-
-from elasticsearch_dsl.query import MultiMatch
-from ..documents import ProductDocument
+from . import elasticsearch_dashboard, elasticsearch_storefront
 
 
-def get_search_query(phrase):
-    ''' Execute external search for product matching phrase  '''
-    query = MultiMatch(fields=['title', 'name', 'description'], query=phrase)
-    return (ProductDocument.search()
-                           .query(query)
-                           .source(False)
-                           .filter('term', is_published=True))
+def search_storefront(phrase):
+    return elasticsearch_storefront.search(phrase)
 
 
-def search(phrase):
-        return get_search_query(phrase).to_queryset()
+def search_dashboard(phrase):
+    return elasticsearch_dashboard.search(phrase)
