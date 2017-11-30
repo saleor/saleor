@@ -70,14 +70,6 @@
           {% trans "Categories" context "Dashboard categories list" %}
         </a>
       </li>
-    {% else %}
-      <li class="visible-s">
-        <span>
-          {% trans "Categories" context "Dashboard categories list" %}
-        </span>
-      </li>
-    {% endif %}
-    {% if path %}
       <li class="back-mobile">
         <a href="{% url 'dashboard:category-list' %}">
           <svg data-src="{% static "dashboard/images/arrow_left.svg" %}" fill="#fff"
@@ -101,6 +93,12 @@
           </li>
         {% endif %}
       {% endfor %}
+    {% else %}
+      <li class="visible-s">
+        <span>
+          {% trans "Categories" context "Dashboard categories list" %}
+        </span>
+      </li>
     {% endif %}
   </ul>
 {% endblock %}
@@ -137,7 +135,7 @@
             </thead>
             <tbody>
               {% for node in categories %}
-                <tr data-action-go="{% url 'dashboard:category-list' root_pk=node.pk %}">
+                <tr data-action-go="{% url 'dashboard:category-detail' pk=node.pk %}">
                   <td>
                     {{ node.name }}
                   </td>
@@ -159,10 +157,11 @@
                     </a>
                   </td>
                 </tr>
-              </tbody>
-            </table>
-          </div>
+              {% endfor %}
+            </tbody>
+          </table>
         </div>
+      </div>
       {% paginate categories %}
     </div>
   </div>
