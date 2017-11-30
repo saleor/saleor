@@ -146,16 +146,6 @@
                       &nbsp;
                     {% endif %}
                   </td>
-                  <td class="right-align">
-                    <a href="{% url 'dashboard:category-edit' root_pk=node.pk %}" class="btn btn-flat">
-                      {% trans 'Edit' context 'Category edit action' %}
-                    </a>
-                    <a class="btn btn-flat modal-trigger-custom"
-                     data-href="{% url 'dashboard:category-delete' pk=node.pk %}"
-                     href="#base-modal">
-                      {% trans "Remove" context "Category list action link" %}
-                    </a>
-                  </td>
                 </tr>
               {% endfor %}
             </tbody>
