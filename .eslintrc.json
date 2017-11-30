@@ -13,6 +13,6 @@
   "parser": "babel-eslint",
   "rules": {
     "semi": ["error", "always"],
-    "space-before-function-paren": "warn"
+    "space-before-function-paren": "off"
   }
 }
