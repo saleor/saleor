@@ -359,7 +359,6 @@ LOGOUT_ON_PASSWORD_CHANGE = False
 
 # SEARCH CONFIGURATION
 DB_SEARCH_ENABLED = True
-PREFER_DB_SEARCH = False  # prefer use of db backend over elasticsearch
 
 # support deployment-dependant elastic enviroment variable
 ES_URL = (os.environ.get('ELASTICSEARCH_URL') or
@@ -367,7 +366,21 @@ ES_URL = (os.environ.get('ELASTICSEARCH_URL') or
 
 ENABLE_SEARCH = bool(ES_URL) or DB_SEARCH_ENABLED  # global search disabling
 
+SEARCH_BACKENDS = {
+    'default': {
+        'storefront': 'saleor.search.backends.postgresql',
+        'dashboard': 'saleor.search.backends.postgresql_dashboard'
+    },
+    'elasticsearch': {
+        'storefront': 'saleor.search.backends.elasticsearch',
+        'dashboard': 'saleor.search.backends.elasticsearch_dashboard'
+    }
+}
+
+SEARCH_BACKEND = 'default'
+
 if ES_URL:
+    SEARCH_BACKEND = 'elasticsearch'
     INSTALLED_APPS.append('django_elasticsearch_dsl')
     ELASTICSEARCH_DSL = {
         'default': {

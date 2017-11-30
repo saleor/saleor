@@ -1,13 +1,7 @@
 from __future__ import unicode_literals
 
+import importlib
 from django.conf import settings
-from . import (elasticsearch, elasticsearch_dashboard, postgresql,
-               postgresql_dashboard)
-
-
-def elastic_configured():
-    '''Evaluate elasticsearch configuration status'''
-    return settings.ES_URL and not settings.PREFER_DB_SEARCH
 
 
 def pick_backend():
@@ -16,9 +10,9 @@ def pick_backend():
     :rtype: callable with one argument of type str
 
     '''
-    if elastic_configured():
-        return elasticsearch.search
-    return postgresql.search
+    backend = importlib.import_module(
+        settings.SEARCH_BACKENDS[settings.SEARCH_BACKEND]['storefront'])
+    return backend.search
 
 
 def pick_dashboard_backend():
@@ -27,6 +21,6 @@ def pick_dashboard_backend():
     :rtype: callable with one argument of type str
 
     '''
-    if elastic_configured():
-        return elasticsearch_dashboard.search
-    return postgresql_dashboard.search
+    backend = importlib.import_module(
+        settings.SEARCH_BACKENDS[settings.SEARCH_BACKEND]['dashboard'])
+    return backend.search
