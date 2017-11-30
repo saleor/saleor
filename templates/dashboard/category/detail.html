@@ -143,13 +143,13 @@
                   </td>
                   <td class="nowrap">
                     {% if node.description %}
-                      {{ node.description|truncatewords:6 }}
+                      {{ node.description }}
                     {% else %}
                       &nbsp;
                     {% endif %}
                   </td>
                   {% if perms.product.edit_category %}
-                    <td class="right-align">
+                    <td class="right-align ignore-link">
                       <a href="{% url 'dashboard:category-edit' root_pk=node.pk %}" class="btn btn-flat">
                         {% trans 'Edit' context 'Category edit action' %}
                       </a>
