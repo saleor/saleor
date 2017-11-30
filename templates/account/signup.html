@@ -5,6 +5,10 @@
 
 {% block title %}{% trans "Sign Up" context "Signup page title" %} — {{ block.super }}{% endblock %}
 
+{% block meta_tags %}
+  <meta name="robots" content="nofollow">
+{% endblock meta_tags %}
+
 {% block content %}
   <div class="col-lg-10 offset-lg-1 col-sm-12">
     <div class="row login">
