@@ -45,7 +45,7 @@ def handle_multiple_choice(field, request_get):
 def handle_single_model_choice(field, request_get):
     """Build a list of chips for ModelChoiceField field."""
     for obj in field.field.queryset:
-        if str(obj.pk) == field.value():
+        if str(obj.pk) == str(field.value()):
             return [{
                 'content': CHIPS_PATTERN % (field.label, str(obj)),
                 'link': get_cancel_url(request_get, field.name)}]
@@ -58,7 +58,7 @@ def handle_multiple_model_choice(field, request_get):
     for pk in field.value():
         # iterate over field's queryset to match the selected object
         for obj in field.field.queryset:
-            if str(obj.pk) == pk:
+            if str(obj.pk) == str(pk):
                 items.append({
                     'content': CHIPS_PATTERN % (field.label, str(obj)),
                     'link': get_cancel_url(request_get, field.name, pk)})
@@ -72,7 +72,7 @@ def handle_nullboolean(field, request_get):
         pgettext_lazy('Possible values of boolean filter', 'yes,no,all'))
     return [{
         'content': CHIPS_PATTERN % (field.label, value),
-        'cancel_url': get_cancel_url(request_get, field.name)}]
+        'link': get_cancel_url(request_get, field.name)}]
 
 
 def handle_range(field, request_get):
@@ -87,7 +87,7 @@ def handle_range(field, request_get):
             param_name = '%s_%i' % (field.name, i)
             items.append({
                 'content': CHIPS_PATTERN % (
-                    field.label, text[i] + ' ' + value),
+                    field.label, text[i] + ' ' + str(value)),
                 'link': get_cancel_url(request_get, param_name)})
     return items
 
@@ -102,7 +102,7 @@ def get_cancel_url(request_get, param_name, param_value=None):
     new_request_get = {
         k: request_get.getlist(k) for k in request_get if k != param_name}
     param_values_list = request_get.getlist(param_name)
-    if len(param_values_list) > 1 and param_value:
+    if len(param_values_list) > 1 and param_value is not None:
         new_param_values = [v for v in param_values_list if v != param_value]
         new_request_get[param_name] = new_param_values
     cancel_url = '?' + urlencode(new_request_get, True)
