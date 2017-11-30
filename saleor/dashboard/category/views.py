@@ -39,6 +39,9 @@ def category_list(request, root_pk=None):
 @permission_required('product.edit_category')
 def category_create(request, root_pk=None):
     category = Category()
+    if root_pk:
+        root = get_object_or_404(Category, pk=root_pk)
+        path = root.get_ancestors(include_self=True) if root else []
     form = CategoryForm(request.POST or None, parent_pk=root_pk)
     if form.is_valid():
         category = form.save()
@@ -50,7 +53,7 @@ def category_create(request, root_pk=None):
             return redirect('dashboard:category-detail', pk=root_pk)
         else:
             return redirect('dashboard:category-list')
-    ctx = {'category': category, 'form': form}
+    ctx = {'category': category, 'form': form, 'path': path}
     return TemplateResponse(request, 'dashboard/category/form.html', ctx)
 
 
@@ -58,6 +61,9 @@ def category_create(request, root_pk=None):
 @permission_required('product.edit_category')
 def category_edit(request, root_pk=None):
     category = get_object_or_404(Category, pk=root_pk)
+    if root_pk:
+        root = get_object_or_404(Category, pk=root_pk)
+        path = root.get_ancestors(include_self=True) if root else []
     form = CategoryForm(request.POST or None, instance=category,
                         parent_pk=category.parent_id)
     status = 200
@@ -73,7 +79,7 @@ def category_edit(request, root_pk=None):
             return redirect('dashboard:category-list')
     elif form.errors:
         status = 400
-    ctx = {'category': category, 'form': form, 'status': status}
+    ctx = {'category': category, 'form': form, 'status': status, 'path': path}
     template = 'dashboard/category/form.html'
     return TemplateResponse(request, template, ctx, status=status)
 
