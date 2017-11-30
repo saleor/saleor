@@ -5,6 +5,13 @@ engines:
     enabled: true
   pylint:
     enabled: true
+  duplication:
+    enabled: true
+    config:
+      languages:
+        python:
+          mass_threshold: 64 
+          python_version: 3
 exclude_patterns:
 - "**/migrations/"
 - "tests/"
