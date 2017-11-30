@@ -40,3 +40,15 @@
 .bulk-submit {
   margin-top: 25px;
 }
+
+.btn-fab {
+  &-fixed {
+    @extend .fixed-action-btn;
+  &-default {
+    @extend .btn-fab;
+    @extend .btn-floating;
+    @extend .btn-large;
+    @extend .waves-effect;
+    @extend .waves-light;
+  }
+}

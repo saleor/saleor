@@ -26,8 +26,8 @@
 
 {% block content %}
   {% if perms.discount.edit_voucher %}
-    <div class="fixed-action-btn">
-      <a href="{% url 'dashboard:voucher-add' %}" class="btn-fab btn-floating btn-large waves-effect waves-light"
+    <div class="btn-fab-fixed">
+      <a href="{% url 'dashboard:voucher-add' %}" class="btn-fab-default waves-effect waves-light"
          title="{% trans "Add voucher" context "Voucher list add button text" %}">
         <svg data-src="{% static "dashboard/images/add.svg" %}" />
       </a>
