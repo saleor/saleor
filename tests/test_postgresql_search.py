@@ -13,7 +13,7 @@ import pytest
 @pytest.fixture(scope='function', autouse=True)
 def postgresql_search_enabled(settings):
     settings.ENABLE_SEARCH = True
-    settings.SEARCH_BACKEND = 'default'
+    settings.SEARCH_BACKEND = 'saleor.search.backends.postgresql'
 
 
 PRODUCTS = [('Arabica Coffee', 'The best grains in galactic'),
