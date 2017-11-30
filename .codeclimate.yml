@@ -8,6 +8,7 @@ engines:
 exclude_patterns:
 - "**/migrations/"
 - "tests/"
+- "**/test_*"
 ratings:
   paths:
   - saleor/**
