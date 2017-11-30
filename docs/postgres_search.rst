@@ -13,7 +13,7 @@ If your server runs on distribution (ex. Ubuntu) that splits postgresql package 
 Environment variables
 ---------------------
 
-PostgreSQL search is enabled by default if elasticsearch is not configured. No enviroment variable is needed.
+PostgreSQL search is enabled by default if Elasticsearch is not configured. No enviroment variable is needed.
 
 
 Data indexing
