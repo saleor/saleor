@@ -1,6 +1,13 @@
 import {initSelects} from './utils';
 import SVGInjector from 'svg-injector-2';
 
+// List of input types that can be autofocused after opening modal
+const focusInputs = [
+  'textarea',
+  'input[type="text"]:not(.select-dropdown)',
+  'input[type="number"]'
+];
+
 export default $(document).ready((e) => {
   $('body').on('click', '.modal-trigger-custom', function (e) {
     let that = this;
@@ -12,7 +19,7 @@ export default $(document).ready((e) => {
         $modal.html(response);
         initSelects();
         $modal.modal('open');
-        $modal.find('textarea, input[type="text"]')[0].focus();
+        $modal.find(focusInputs.join(','))[0].focus();
         // Image checkbox selector
         $('.image_select-item-overlay').on('click', function (e) {
           let id = $(e.target).attr('id');
