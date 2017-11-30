@@ -103,9 +103,15 @@
             </div>
           </div>
           <div class="card-action right-align">
-            <a href="{% url 'dashboard:category-detail' pk=path.last.pk %}" class="btn btn-flat">
-              {% trans "Cancel" context "Dashboard cancel action" %}
-            </a>
+            {% if path %}
+              <a href="{% url 'dashboard:category-detail' pk=path.last.pk %}" class="btn btn-flat">
+                {% trans "Cancel" context "Dashboard cancel action" %}
+              </a>
+            {% else %}
+              <a href="{% url 'dashboard:category-list' %}" class="btn btn-flat">
+                {% trans "Cancel" context "Dashboard cancel action" %}
+              </a>
+            {% endif %}
             {% if category.pk %}
               <button type="submit" class="btn waves-effect waves-light">
                 {% trans "Update" context "Dashboard update action" %}

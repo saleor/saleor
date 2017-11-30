@@ -38,6 +38,8 @@ def category_list(request, root_pk=None):
 @staff_member_required
 @permission_required('product.edit_category')
 def category_create(request, root_pk=None):
+    root = None
+    path = None
     category = Category()
     if root_pk:
         root = get_object_or_404(Category, pk=root_pk)
@@ -60,6 +62,8 @@ def category_create(request, root_pk=None):
 @staff_member_required
 @permission_required('product.edit_category')
 def category_edit(request, root_pk=None):
+    root = None
+    path = None
     category = get_object_or_404(Category, pk=root_pk)
     if root_pk:
         root = get_object_or_404(Category, pk=root_pk)
