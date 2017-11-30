@@ -36,80 +36,61 @@ class ManagePaymentForm(forms.Form):
     amount = PriceField(
         label=pgettext_lazy(
             'Payment management form (capture, refund, release)', 'Amount'),
-        max_digits=12, decimal_places=2, currency=settings.DEFAULT_CURRENCY)
+        max_digits=12,
+        decimal_places=2,
+        currency=settings.DEFAULT_CURRENCY)
 
     def __init__(self, *args, **kwargs):
         self.payment = kwargs.pop('payment')
         super(ManagePaymentForm, self).__init__(*args, **kwargs)
 
-
-class CapturePaymentForm(ManagePaymentForm):
     def clean(self):
-        if self.payment.status != PaymentStatus.PREAUTH:
-            raise forms.ValidationError(
-                pgettext_lazy(
-                    'Payment form error',
-                    'Only pre-authorized payments can be captured'))
+        if self.payment.status != self.clean_status:
+            raise forms.ValidationError(self.clean_error)
 
-    def capture(self):
+    def payment_error(self, message):
+        self.add_error(None,
+                       pgettext_lazy('Payment form error',
+                                     'Payment gateway error: %s') % message)
+
+    def try_payment_action(self, action):
         amount = self.cleaned_data['amount']
         try:
-            self.payment.capture(amount.gross)
+            action(amount.gross)
         except (PaymentError, ValueError) as e:
-            self.add_error(
-                None,
-                pgettext_lazy(
-                    'Payment form error',
-                    'Payment gateway error: %s') % e.message)
+            self.payment_error(e.message)
             return False
         return True
+
+
+class CapturePaymentForm(ManagePaymentForm):
+
+    clean_status = PaymentStatus.PREAUTH
+    clean_error = pgettext_lazy('Payment form error',
+                                'Only pre-authorized payments can be captured')
+
+    def capture(self):
+        return self.try_payment_action(self.payment.capture)
 
 
 class RefundPaymentForm(ManagePaymentForm):
-    def clean(self):
-        if self.payment.status != PaymentStatus.CONFIRMED:
-            raise forms.ValidationError(
-                pgettext_lazy(
-                    'Payment form error',
-                    'Only confirmed payments can be refunded'))
+
+    clean_status = PaymentStatus.CONFIRMED
+    clean_error = pgettext_lazy('Payment form error',
+                                'Only confirmed payments can be refunded')
 
     def refund(self):
-        amount = self.cleaned_data['amount']
-        try:
-            self.payment.refund(amount.gross)
-        except (PaymentError, ValueError) as e:
-            self.add_error(
-                None,
-                pgettext_lazy(
-                    'Payment form error',
-                    'Payment gateway error: %s') % e.message)
-            return False
-        return True
+        return self.try_payment_action(self.payment.refund)
 
 
-class ReleasePaymentForm(forms.Form):
-    def __init__(self, *args, **kwargs):
-        self.payment = kwargs.pop('payment')
-        super(ReleasePaymentForm, self).__init__(*args, **kwargs)
+class ReleasePaymentForm(ManagePaymentForm):
 
-    def clean(self):
-        if self.payment.status != PaymentStatus.PREAUTH:
-            raise forms.ValidationError(
-                pgettext_lazy(
-                    'Payment form error',
-                    'Only pre-authorized payments can be released'))
+    clean_status = PaymentStatus.PREAUTH
+    clean_error = pgettext_lazy('Payment form error',
+                                'Only pre-authorized payments can be released')
 
     def release(self):
-        try:
-            self.payment.release()
-        except (PaymentError, ValueError) as e:
-            self.add_error(
-                None,
-                pgettext_lazy(
-                    'Payment form error',
-                    'Payment gateway error: %s') % e.message)
-            return False
-        return True
+        return self.try_payment_action(self.payment.release)
 
 
 class MoveLinesForm(forms.Form):
