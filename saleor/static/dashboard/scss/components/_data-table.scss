@@ -172,7 +172,7 @@
     }
   }
 
-  tfoot {
+  tfoot:not(.no-bold) {
     font-weight: bold;
   }
 
