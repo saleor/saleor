@@ -18,27 +18,19 @@ from .forms import CategoryForm
 
 @staff_member_required
 @permission_required('product.view_category')
-def category_list(request, root_pk=None):
-    root = None
-    path = None
+def category_list(request):
     categories = Category.tree.root_nodes()
-    if root_pk:
-        root = get_object_or_404(Category, pk=root_pk)
-        path = root.get_ancestors(include_self=True) if root else []
-        categories = root.get_children()
     category_filter = CategoryFilter(request.GET, queryset=categories)
     categories = get_paginator_items(
         category_filter.qs, settings.DASHBOARD_PAGINATE_BY,
         request.GET.get('page'))
-    ctx = {'categories': categories, 'path': path, 'root': root,
-           'filter': category_filter}
+    ctx = {'categories': categories, 'filter': category_filter}
     return TemplateResponse(request, 'dashboard/category/list.html', ctx)
 
 
 @staff_member_required
 @permission_required('product.edit_category')
 def category_create(request, root_pk=None):
-    root = None
     path = None
     category = Category()
     if root_pk:
@@ -62,7 +54,6 @@ def category_create(request, root_pk=None):
 @staff_member_required
 @permission_required('product.edit_category')
 def category_edit(request, root_pk=None):
-    root = None
     path = None
     category = get_object_or_404(Category, pk=root_pk)
     if root_pk:
@@ -91,7 +82,6 @@ def category_edit(request, root_pk=None):
 @staff_member_required
 @permission_required('product.view_category')
 def category_detail(request, pk):
-    # categories = Category.tree.root_nodes()
     root = get_object_or_404(Category, pk=pk)
     path = root.get_ancestors(include_self=True) if root else []
     categories = root.get_children()

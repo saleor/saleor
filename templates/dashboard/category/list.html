@@ -6,100 +6,37 @@
 {% load staticfiles %}
 {% load utils %}
 
-{% block title %}{% trans "Categories" context "Category list page title" %} -
-  {{ block.super }}{% endblock %}
+{% block title %}
+  {% trans "Categories" context "Category list page title" %} - {{ block.super }}
+{% endblock %}
 
 {% block body_class %}body-categories{% endblock %}
 
 {% block menu_categories_class %}active{% endblock %}
 
 {% block header_menu %}
-  {% if root %}
-    {% if root.parent %}
-      {% url 'dashboard:category-detail' pk=root.parent.pk as url %}
-    {% else %}
-      {% url 'dashboard:category-list' as url %}
-    {% endif %}
-    {% include "dashboard/includes/_back-link.html" with url=url %}
-  {% else %}
-    {{ block.super }}
-  {% endif %}
+  {{ block.super }}
 {% endblock %}
 
 {% block header_extra %}
   {% if perms.product.edit_category %}
     <div class="fixed-action-btn">
       <a class="btn-fab btn-floating btn-large waves-effect waves-light"
-         title="{% trans "Add category" context "Category list add button text" %}"
-         href="
-             {% if root %}{% url 'dashboard:category-add' root_pk=root.pk %}{% else %}{% url 'dashboard:category-add' %}{% endif %}">
-        <svg data-src="{% static "dashboard/images/add.svg" %}"/>
+         title="{% trans 'Add category' context 'Category list add button text' %}"
+         href="{% url 'dashboard:category-add' %}">
+        <svg data-src="{% static 'dashboard/images/add.svg' %}"/>
       </a>
     </div>
-    {% if root %}
-      <a class="dropdown-button right" href="#" data-activates="category-delete"
-         data-constrainwidth="false">
-        <svg data-src="{% static "dashboard/images/more_vert.svg" %}" height="24"
-             width="24"/>
-      </a>
-      <ul id="category-delete" class="dropdown-content">
-        <li>
-          <a class="modal-trigger-custom"
-             data-href="{% url 'dashboard:category-edit' root_pk=root.pk %}"
-             href="#base-modal">
-            {% trans "Edit category" context "Dashboard edit action" %}
-          </a>
-        </li>
-        <li>
-          <a class="modal-trigger-custom"
-             data-href="{% url 'dashboard:category-delete' pk=root.pk %}"
-             href="#base-modal">
-            {% trans "Remove category" context "Category list action link" %}
-          </a>
-        </li>
-      </ul>
-    {% endif %}
   {% endif %}
 {% endblock %}
 
 {% block breadcrumbs %}
   <ul class="breadcrumbs breadcrumbs--history">
-    {% if path %}
-      <li>
-        <a href="{% url 'dashboard:category-list' %}">
-          {% trans "Categories" context "Dashboard categories list" %}
-        </a>
-      </li>
-      <li class="back-mobile">
-        <a href="{% url 'dashboard:category-list' %}">
-          <svg data-src="{% static "dashboard/images/arrow_left.svg" %}" fill="#fff"
-               width="20px" height="20px"/>
-        </a>
-      </li>
-      {% for node in path %}
-        {% if forloop.last %}
-          <li title="{{ node.name }}">
-            <span class="breadcrumbs--ellipsed-item">
-              {{ node.name }}
-            </span>
-          </li>
-        {% else %}
-          <li class="hide-on-med-and-down">
-            <a title="{{ node.name }}"
-               href="{% url 'dashboard:category-detail' pk=node.pk %}"
-               class="breadcrumbs--ellipsed-item">
-              {{ node.name }}
-            </a>
-          </li>
-        {% endif %}
-      {% endfor %}
-    {% else %}
-      <li class="visible-s">
-        <span>
-          {% trans "Categories" context "Dashboard categories list" %}
-        </span>
-      </li>
-    {% endif %}
+    <li class="visible-s">
+      <span>
+        {% trans "Categories" context "Dashboard categories list" %}
+      </span>
+    </li>
   </ul>
 {% endblock %}
 
