@@ -35,6 +35,7 @@ def user_shipping_address_view(request, checkout):
     In addition to entering a new address the user has an option of selecting
     one of the existing entries from their address book.
     """
+    # import ipdb; ipdb.set_trace()
     data = request.POST or None
     additional_addresses = request.user.addresses.all()
     checkout.email = request.user.email

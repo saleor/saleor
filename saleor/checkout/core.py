@@ -410,6 +410,7 @@ def load_checkout(view):
         except KeyError:
             session_data = ''
         tracking_code = analytics.get_client_id(request)
+        # import ipdb; ipdb.set_trace()
         checkout = Checkout.from_storage(
             session_data, cart, request.user, tracking_code)
         response = view(request, checkout, cart)

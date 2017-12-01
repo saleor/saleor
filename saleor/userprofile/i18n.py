@@ -4,20 +4,25 @@ from collections import defaultdict
 
 import i18naddress
 from django import forms
+from django.forms import ValidationError
 from django.forms.fields import ChoiceField
 from django.forms.forms import BoundField
 from django.utils.translation import pgettext, pgettext_lazy
 from django_countries.data import COUNTRIES
+from django.utils.translation import pgettext_lazy
+from phonenumber_field.formfields import PhoneNumberField
 from phonenumbers import COUNTRY_CODE_TO_REGION_CODE
+from phonenumbers.phonenumberutil import NumberParseException
 
 from .models import Address
 
 COUNTRY_FORMS = {}
 UNKNOWN_COUNTRIES = set()
 
-phone_prefixes = [(k,'+{}'.format(k)) for (k, v) in COUNTRY_CODE_TO_REGION_CODE.items()]
+phone_prefixes = [
+    (k,'+{}'.format(k)) for (k, v) in COUNTRY_CODE_TO_REGION_CODE.items()]
 
-
+# import ipdb;
 AREA_TYPE_TRANSLATIONS = {
     'area': pgettext_lazy('Address field', 'Area'),
     'county': pgettext_lazy('Address field', 'County'),
@@ -56,6 +61,36 @@ class AddressMetaForm(forms.ModelForm):
             self.data['preview'] = False
         return data
 
+from phonenumber_field.phonenumber import to_python, PhoneNumber
+# class CustomPhoneNumberField(PhoneNumberField):
+#     default_error_messages = {
+#         'invalid': ('Enter a valid phone number.'),
+#     }
+#     default_validators = []
+
+#     def to_python(self, value):
+#         import ipdb; ipdb.set_trace()
+#         phone_number = to_python(value)
+#         return phone_number
+#     # def to_python(self, value):
+#     #     phone = value
+#     #     return value
+
+
+class CustomPhoneNumberField(forms.CharField):
+    default_error_messages = {
+        'invalid': ('Enter a valid phone number.'),
+    }
+    default_validators = []
+
+    def to_python(self, value):
+        import ipdb; ipdb.set_trace()
+        phone_number = to_python(value)
+        return phone_number
+    # def to_python(self, value):
+    #     phone = value
+    #     return value
+
 
 class AddressForm(forms.ModelForm):
 
@@ -74,16 +109,22 @@ class AddressForm(forms.ModelForm):
         ('email', 'email')
     )
 
+
     class Meta:
         model = Address
-        exclude = []
+        exclude = ['phone']
 
     phoneprefix = ChoiceField(choices=phone_prefixes)
+    phone = forms.CharField()
+
 
     def __init__(self, *args, **kwargs):
         autocomplete_type = kwargs.pop('autocomplete_type', None)
+        phone = kwargs.pop('phone', None)
+        phoneprefix = kwargs.pop('phoneprefix', None)
         super(AddressForm, self).__init__(*args, **kwargs)
-        #TODO at this point, phone number is treated as invalid
+        self.fields['phone'].initial = phone
+        self.fields['phoneprefix'].initial = phoneprefix
         autocomplete_dict = defaultdict(
             lambda: 'off', self.AUTOCOMPLETE_MAPPING)
         for field_name, field in self.fields.items():
@@ -94,15 +135,25 @@ class AddressForm(forms.ModelForm):
                 autocomplete = autocomplete_dict[field_name]
             field.widget.attrs['autocomplete'] = autocomplete
 
+    def save(self, commit=True):
+        self.instance.phone = '+' + self.phoneprefix + self.phone
+        return super(AddressForm, self).save(commit=commit)
+
     def clean(self):
+        # import ipdb; ipdb.set_trace()
         cleaned_data = super(AddressForm, self).clean()
         phoneprefix = cleaned_data.get("phoneprefix")
-        phone = cleaned_data.get("phone") #TODO: It's None for now
-        full_number = str(phoneprefix) + phone
+        phone = cleaned_data.get("phone")
+        full_number = '+' + phoneprefix + phone
+        try:
+            cleaned_data['phone'] = PhoneNumber.from_string(
+                phone_number=full_number)
+        except NumberParseException as e:
+            # self.add_error('phone', 'Invalid phone number cleannot')
+            raise ValidationError('Please provide valid phone number clean123',
+            code='invalid_phone_number')
 
-        # if full_number <phonenumbers validation here>:
-        #     # perform your validation
-        #     raise forms.ValidationError("Invalid phone number")
+        return cleaned_data
 
 
 class CountryAwareAddressForm(AddressForm):
