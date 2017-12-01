@@ -1,11 +1,11 @@
+import './async-form';
+import './bulk-actions';
 import './datepicker';
+import './filters';
+import './image-gallery';
+import './misc';
 import './modal';
 import './side-menu';
-import './image-gallery';
-import './coupons';
-import './async-form';
 import './styleguide';
-import './bulk-actions';
 import './tab';
-import './filters';
-import './misc';
+import './vouchers';
