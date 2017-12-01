@@ -1,3 +1,5 @@
+from __future__ import unicode_literals
+
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import permission_required
@@ -7,8 +9,8 @@ from django.utils.translation import pgettext_lazy
 
 from ...core.utils import get_paginator_items
 from ...discount.models import Sale, Voucher
-from ...settings import DASHBOARD_PAGINATE_BY
 from ..views import staff_member_required
+from .filters import SaleFilter, VoucherFilter
 from . import forms
 
 
@@ -16,9 +18,10 @@ from . import forms
 @permission_required('discount.view_sale')
 def sale_list(request):
     sales = Sale.objects.prefetch_related('products').order_by('name')
+    sale_filter = SaleFilter(request.GET, queryset=sales)
     sales = get_paginator_items(
-        sales, DASHBOARD_PAGINATE_BY, request.GET.get('page'))
-    ctx = {'sales': sales}
+        sale_filter.qs, settings.DASHBOARD_PAGINATE_BY, request.GET.get('page'))
+    ctx = {'sales': sales, 'filter': sale_filter}
     return TemplateResponse(request, 'dashboard/discount/sale/list.html', ctx)
 
 
@@ -50,7 +53,7 @@ def sale_delete(request, pk):
         instance.delete()
         messages.success(
             request,
-            pgettext_lazy('Sale (discount) message', 'Deleted sale %s') % (instance.name,))
+            pgettext_lazy('Sale (discount) message', 'Removed sale %s') % (instance.name,))
         return redirect('dashboard:sale-list')
     ctx = {'sale': instance}
     return TemplateResponse(
@@ -62,9 +65,11 @@ def sale_delete(request, pk):
 def voucher_list(request):
     vouchers = (Voucher.objects.select_related('product', 'category')
                 .order_by('name'))
+    voucher_filter = VoucherFilter(request.GET, queryset=vouchers)
     vouchers = get_paginator_items(
-        vouchers, DASHBOARD_PAGINATE_BY, request.GET.get('page'))
-    ctx = {'vouchers': vouchers}
+        voucher_filter.qs, settings.DASHBOARD_PAGINATE_BY,
+        request.GET.get('page'))
+    ctx = {'vouchers': vouchers, 'filter': voucher_filter}
     return TemplateResponse(
         request, 'dashboard/discount/voucher/list.html', ctx)
 
@@ -119,7 +124,7 @@ def voucher_delete(request, pk):
         instance.delete()
         messages.success(
             request,
-            pgettext_lazy('Voucher message', 'Deleted voucher %s') % (instance,))
+            pgettext_lazy('Voucher message', 'Removed voucher %s') % (instance,))
         return redirect('dashboard:voucher-list')
     ctx = {'voucher': instance}
     return TemplateResponse(

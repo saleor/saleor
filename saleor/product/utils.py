@@ -1,3 +1,5 @@
+from __future__ import unicode_literals
+
 from collections import defaultdict, namedtuple
 
 from prices import Price, PriceRange
@@ -11,7 +13,6 @@ from django_prices.templatetags import prices_i18n
 from ..cart.utils import get_cart_from_request, get_or_create_cart_from_request
 from ..core.utils import to_local_currency
 from .forms import ProductForm
-from ..settings import DEFAULT_CURRENCY
 from . import ProductAvailabilityStatus, VariantAvailabilityStatus
 
 try:
@@ -41,7 +42,7 @@ def products_with_details(user):
 def products_for_api(user):
     products = products_visible_to_user(user)
     return products.prefetch_related(
-        'images', 'categories', 'variants', 'variants__stock')
+        'images', 'categories', 'variants__stock')
 
 
 def products_for_homepage():
@@ -118,8 +119,7 @@ def handle_cart_form(request, product, create_cart=False):
 
 def products_for_cart(user):
     products = products_visible_to_user(user)
-    products = products.prefetch_related(
-        'variants', 'variants__variant_images__image')
+    products = products.prefetch_related('variants__variant_images__image')
     return products
 
 
@@ -317,7 +317,7 @@ def get_variant_availability_status(variant):
 
 
 def get_product_costs_data(product):
-    zero_price = Price(0, 0, currency=DEFAULT_CURRENCY)
+    zero_price = Price(0, 0, currency=settings.DEFAULT_CURRENCY)
     zero_price_range = PriceRange(zero_price, zero_price)
     purchase_costs_range = zero_price_range
     gross_margin = (0, 0)
@@ -365,7 +365,7 @@ def get_variant_costs_data(variant):
 
 
 def get_cost_price(stock):
-    zero_price = Price(0, 0, currency=DEFAULT_CURRENCY)
+    zero_price = Price(0, 0, currency=settings.DEFAULT_CURRENCY)
     if not stock.cost_price:
         return zero_price
     return stock.cost_price

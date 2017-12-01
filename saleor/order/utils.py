@@ -1,6 +1,9 @@
+from __future__ import unicode_literals
+
 import logging
 from functools import wraps
 
+from django.db.models import F
 from django.dispatch import receiver
 from django.shortcuts import get_object_or_404, redirect
 from django.utils.translation import pgettext_lazy
@@ -53,35 +56,85 @@ def attach_order_to_user(order, user):
     order.save(update_fields=['user'])
 
 
-def add_items_to_delivery_group(delivery_group, partition, discounts=None):
-    for item_line in partition:
-        product_variant = item_line.variant
-        price = item_line.get_price_per_item(discounts)
-        total_quantity = item_line.get_quantity()
+def fill_group_with_partition(group, partition, discounts=None):
+    """
+    Fills delivery group with order lines created from partition items.
+    """
+    for item in partition:
+        add_variant_to_delivery_group(
+            group, item.variant, item.get_quantity(), discounts,
+            add_to_existing=False)
 
-        while total_quantity > 0:
-            stock = product_variant.select_stockrecord()
-            if not stock:
-                raise InsufficientStock(product_variant)
-            quantity = (
-                stock.quantity_available
-                if total_quantity > stock.quantity_available
-                else total_quantity
-            )
-            delivery_group.items.create(
-                product=product_variant.product,
-                quantity=quantity,
-                unit_price_net=price.net,
-                product_name=product_variant.display_product(),
-                product_sku=product_variant.sku,
-                unit_price_gross=price.gross,
-                stock=stock,
-                stock_location=stock.location.name)
-            total_quantity -= quantity
-            # allocate quantity to avoid overselling
-            Stock.objects.allocate_stock(stock, quantity)
-            # refresh for reading quantity_available in next select_stockrecord
-            stock.refresh_from_db()
+
+def add_variant_to_delivery_group(
+        group, variant, total_quantity, discounts=None, add_to_existing=True):
+    """
+    Adds total_quantity of variant to group.
+    Raises InsufficientStock exception if quantity could not be fulfilled.
+
+    By default, first adds variant to existing lines with same variant.
+    It can be disabled with setting add_to_existing to False.
+
+    Order lines are created by increasing quantity of lines,
+    as long as total_quantity of variant will be added.
+    """
+    quantity_left = (
+        add_variant_to_existing_lines(group, variant, total_quantity)
+        if add_to_existing else total_quantity)
+    price = variant.get_price_per_item(discounts)
+    while quantity_left > 0:
+        stock = variant.select_stockrecord()
+        if not stock:
+            raise InsufficientStock(variant)
+        quantity = (
+            stock.quantity_available
+            if quantity_left > stock.quantity_available
+            else quantity_left
+        )
+        group.items.create(
+            product=variant.product,
+            product_name=variant.display_product(),
+            product_sku=variant.sku,
+            quantity=quantity,
+            unit_price_net=price.net,
+            unit_price_gross=price.gross,
+            stock=stock,
+            stock_location=stock.location.name)
+        Stock.objects.allocate_stock(stock, quantity)
+        # refresh stock for accessing quantity_allocated
+        stock.refresh_from_db()
+        quantity_left -= quantity
+
+
+def add_variant_to_existing_lines(group, variant, total_quantity):
+    """
+    Adds variant to existing lines with same variant.
+
+    Variant is added by increasing quantity of lines with same variant,
+    as long as total_quantity of variant will be added
+    or there is no more lines with same variant.
+
+    Returns quantity that could not be fulfilled with existing lines.
+    """
+    # order descending by lines' stock available quantity
+    lines = group.items.filter(
+        product=variant.product, product_sku=variant.sku,
+        stock__isnull=False).order_by(
+            F('stock__quantity_allocated') - F('stock__quantity'))
+
+    quantity_left = total_quantity
+    for line in lines:
+        quantity = (
+            line.stock.quantity_available
+            if quantity_left > line.stock.quantity_available
+            else quantity_left)
+        line.quantity += quantity
+        line.save()
+        Stock.objects.allocate_stock(line.stock, quantity)
+        quantity_left -= quantity
+        if quantity_left == 0:
+            break
+    return quantity_left
 
 
 def cancel_delivery_group(group, cancel_order=True):
@@ -106,17 +159,17 @@ def cancel_order(order):
     order.save()
 
 
-def merge_duplicated_lines(item):
-    """ Merges duplicated items in delivery group into one (given) item.
+def merge_duplicated_lines(line):
+    """ Merges duplicated lines in delivery group into one (given) line.
     If there are no duplicates, nothing will happen.
     """
-    lines = item.delivery_group.items.filter(
-        product=item.product, product_name=item.product_name,
-        product_sku=item.product_sku, stock=item.stock)
+    lines = line.delivery_group.items.filter(
+        product=line.product, product_name=line.product_name,
+        product_sku=line.product_sku, stock=line.stock)
     if lines.count() > 1:
-        item.quantity = sum([line.quantity for line in lines])
-        item.save()
-        lines.exclude(pk=item.pk).delete()
+        line.quantity = sum([line.quantity for line in lines])
+        line.save()
+        lines.exclude(pk=line.pk).delete()
 
 
 def change_order_line_quantity(line, new_quantity):
@@ -126,11 +179,10 @@ def change_order_line_quantity(line, new_quantity):
 
     if not line.delivery_group.get_total_quantity():
         line.delivery_group.delete()
-
-    order = line.delivery_group.order
-    if not order.get_items():
-        order.change_status(OrderStatus.CANCELLED)
-        order.create_history_entry(
-            status=OrderStatus.CANCELLED, comment=pgettext_lazy(
-                'Order status history entry',
-                'Order cancelled. No items in order'))
+        order = line.delivery_group.order
+        if not order.get_lines():
+            order.change_status(OrderStatus.CANCELLED)
+            order.create_history_entry(
+                status=OrderStatus.CANCELLED, comment=pgettext_lazy(
+                    'Order status history entry',
+                    'Order cancelled. No items in order'))

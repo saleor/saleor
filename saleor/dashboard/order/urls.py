@@ -1,3 +1,5 @@
+from __future__ import unicode_literals
+
 from django.conf.urls import url
 
 from . import views
@@ -35,8 +37,10 @@ urlpatterns = [
         views.ship_delivery_group, name='ship-delivery-group'),
     url(r'^(?P<order_pk>\d+)/shipment/(?P<group_pk>\d+)/cancel/$',
         views.cancel_delivery_group, name='cancel-delivery-group'),
-
+    url(r'^(?P<order_pk>\d+)/shipment/(?P<group_pk>\d+)/add-variant/$',
+        views.add_variant_to_group, name='add-variant-to-group'),
     url(r'^(?P<order_pk>\d+)/invoice/$',
         views.order_invoice, name='order-invoice'),
     url(r'^(?P<group_pk>\d+)/packing-slips/$',
-        views.order_packing_slip, name='order-packing-slips')]
+        views.order_packing_slip, name='order-packing-slips'),
+]

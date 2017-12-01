@@ -5,6 +5,7 @@ from decimal import Decimal
 
 from django.conf import settings
 from django.contrib.postgres.fields import HStoreField
+from django.contrib.postgres.indexes import GinIndex
 from django.core.validators import MinValueValidator, RegexValidator
 from django.db import models
 from django.db.models import F, Max, Q
@@ -22,7 +23,6 @@ from text_unidecode import unidecode
 from versatileimagefield.fields import PPOIField, VersatileImageField
 
 from ..discount.models import calculate_discounted_price
-from ..search import index
 from .utils import get_attributes_display_map
 
 
@@ -45,8 +45,6 @@ class Category(MPTTModel):
     tree = TreeManager()
 
     class Meta:
-        verbose_name = pgettext_lazy('Category model', 'category')
-        verbose_name_plural = pgettext_lazy('Category model', 'categories')
         app_label = 'product'
         permissions = (
             ('view_category',
@@ -93,10 +91,6 @@ class ProductClass(models.Model):
         default=False)
 
     class Meta:
-        verbose_name = pgettext_lazy(
-            'Product class model', 'product class')
-        verbose_name_plural = pgettext_lazy(
-            'Product class model', 'product classes')
         app_label = 'product'
 
     def __str__(self):
@@ -109,7 +103,6 @@ class ProductClass(models.Model):
 
 
 class ProductManager(models.Manager):
-
     def get_available_products(self):
         today = datetime.date.today()
         return self.get_queryset().filter(
@@ -118,7 +111,7 @@ class ProductManager(models.Manager):
 
 
 @python_2_unicode_compatible
-class Product(models.Model, ItemRange, index.Indexed):
+class Product(models.Model, ItemRange):
     product_class = models.ForeignKey(
         ProductClass, related_name='products',
         verbose_name=pgettext_lazy('Product field', 'product class'),
@@ -137,8 +130,8 @@ class Product(models.Model, ItemRange, index.Indexed):
         pgettext_lazy('Product field', 'available on'), blank=True, null=True)
     is_published = models.BooleanField(
         pgettext_lazy('Product field', 'is published'), default=True)
-    attributes = HStoreField(pgettext_lazy('Product field', 'attributes'),
-                             default={})
+    attributes = HStoreField(
+        pgettext_lazy('Product field', 'attributes'), default={})
     updated_at = models.DateTimeField(
         pgettext_lazy('Product field', 'updated at'), auto_now=True, null=True)
     is_featured = models.BooleanField(
@@ -146,16 +139,9 @@ class Product(models.Model, ItemRange, index.Indexed):
 
     objects = ProductManager()
 
-    search_fields = [
-        index.SearchField('name', partial_match=True),
-        index.SearchField('description'),
-        index.FilterField('available_on'),
-        index.FilterField('is_published')]
-
     class Meta:
         app_label = 'product'
-        verbose_name = pgettext_lazy('Product model', 'product')
-        verbose_name_plural = pgettext_lazy('Product model', 'products')
+        indexes = [GinIndex(fields=['name', 'description'])]
         permissions = (
             ('view_product',
              pgettext_lazy('Permission description', 'Can view products')),
@@ -254,10 +240,6 @@ class ProductVariant(models.Model, Item):
 
     class Meta:
         app_label = 'product'
-        verbose_name = pgettext_lazy(
-            'Product variant model', 'product variant')
-        verbose_name_plural = pgettext_lazy(
-            'Product variant model', 'product variants')
 
     def __str__(self):
         return self.name or self.display_variant()
@@ -315,8 +297,7 @@ class ProductVariant(models.Model, Item):
             return smart_text(self.sku)
 
     def display_product(self):
-        return '%s (%s)' % (smart_text(self.product),
-                            smart_text(self))
+        return '%s (%s)' % (smart_text(self.product), smart_text(self))
 
     def get_first_image(self):
         return self.product.get_first_image()
@@ -358,7 +339,6 @@ class StockLocation(models.Model):
 
 
 class StockManager(models.Manager):
-
     def allocate_stock(self, stock, quantity):
         stock.quantity_allocated = F('quantity_allocated') + quantity
         stock.save(update_fields=['quantity_allocated'])
@@ -417,10 +397,6 @@ class ProductAttribute(models.Model):
 
     class Meta:
         ordering = ('slug', )
-        verbose_name = pgettext_lazy(
-            'Product attribute model', 'product attribute')
-        verbose_name_plural = pgettext_lazy(
-            'Product attribute model', 'product attributes')
 
     def __str__(self):
         return self.name
@@ -448,12 +424,6 @@ class AttributeChoiceValue(models.Model):
 
     class Meta:
         unique_together = ('name', 'attribute')
-        verbose_name = pgettext_lazy(
-            'Attribute choice value model',
-            'attribute choices value')
-        verbose_name_plural = pgettext_lazy(
-            'Attribute choice value model',
-            'attribute choices values')
 
     def __str__(self):
         return self.name
@@ -480,17 +450,13 @@ class ProductImage(models.Model):
         pgettext_lazy('Product image field', 'short description'),
         max_length=128, blank=True)
     order = models.PositiveIntegerField(
-        pgettext_lazy('Product image field', 'order'),
-        editable=False)
+        pgettext_lazy('Product image field', 'order'), editable=False)
 
     objects = ImageManager()
 
     class Meta:
         ordering = ('order', )
         app_label = 'product'
-        verbose_name = pgettext_lazy('Product image model', 'product image')
-        verbose_name_plural = pgettext_lazy(
-            'Product image model', 'product images')
 
     def get_ordering_queryset(self):
         return self.product.images.all()
@@ -518,9 +484,3 @@ class VariantImage(models.Model):
         ProductImage, related_name='variant_images',
         verbose_name=pgettext_lazy('Variant image field', 'image'),
         on_delete=models.CASCADE)
-
-    class Meta:
-        verbose_name = pgettext_lazy(
-            'Variant image model', 'variant image')
-        verbose_name_plural = pgettext_lazy(
-            'Variant image model', 'variant images')

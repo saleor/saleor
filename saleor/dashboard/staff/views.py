@@ -1,5 +1,6 @@
 from __future__ import unicode_literals
 
+from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import permission_required
 from django.shortcuts import get_object_or_404, redirect
@@ -7,10 +8,10 @@ from django.template.response import TemplateResponse
 from django.utils.translation import pgettext_lazy
 
 from .emails import send_set_password_email
+from .filters import StaffFilter
 from .forms import StaffForm
 from ..views import staff_member_required
 from ...core.utils import get_paginator_items
-from ...settings import DASHBOARD_PAGINATE_BY
 from ...userprofile.models import User
 
 
@@ -20,9 +21,11 @@ def staff_list(request):
     staff_members = (User.objects.filter(is_staff=True)
                      .prefetch_related('default_billing_address')
                      .order_by('email'))
+    staff_filter = StaffFilter(request.GET, queryset=staff_members)
     staff_members = get_paginator_items(
-        staff_members, DASHBOARD_PAGINATE_BY, request.GET.get('page'))
-    ctx = {'staff': staff_members}
+        staff_filter.qs, settings.DASHBOARD_PAGINATE_BY,
+        request.GET.get('page'))
+    ctx = {'staff': staff_members, 'filter': staff_filter}
     return TemplateResponse(request, 'dashboard/staff/list.html', ctx)
 
 
@@ -69,7 +72,7 @@ def staff_delete(request, pk):
     if request.method == 'POST':
         staff.delete()
         msg = pgettext_lazy(
-            'Dashboard message', 'Deleted staff member %s') % staff
+            'Dashboard message', 'Removed staff member %s') % staff
         messages.success(request, msg)
         return redirect('dashboard:staff-list')
     return TemplateResponse(

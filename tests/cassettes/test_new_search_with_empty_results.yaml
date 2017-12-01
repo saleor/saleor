@@ -1,0 +1,17 @@
+interactions:
+- request:
+    body: '{"query": {"bool": {"must": [{"multi_match": {"query": "foo", "fields":
+      ["name", "description"]}}], "filter": [{"term": {"is_published": true}}]}},
+      "_source": false}'
+    headers:
+      connection: [keep-alive]
+      content-type: [application/json]
+    method: GET
+    uri: http://search:9200/storefront/product_document/_search
+  response:
+    body: {string: '{"took":0,"timed_out":false,"_shards":{"total":1,"successful":1,"failed":0},"hits":{"total":0,"max_score":null,"hits":[]}}'}
+    headers:
+      content-length: ['122']
+      content-type: [application/json; charset=UTF-8]
+    status: {code: 200, message: OK}
+version: 1

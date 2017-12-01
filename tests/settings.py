@@ -1,3 +1,5 @@
+from __future__ import unicode_literals
+
 # pylint: disable=W0401, W0614
 from saleor.settings import *  # noqa
 

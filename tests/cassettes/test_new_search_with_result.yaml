@@ -1,0 +1,17 @@
+interactions:
+- request:
+    body: '{"query": {"bool": {"must": [{"multi_match": {"query": "Group", "fields":
+      ["name", "description"]}}], "filter": [{"term": {"is_published": true}}]}},
+      "_source": false}'
+    headers:
+      connection: [keep-alive]
+      content-type: [application/json]
+    method: GET
+    uri: http://search:9200/storefront/product_document/_search
+  response:
+    body: {string: '{"took":1,"timed_out":false,"_shards":{"total":1,"successful":1,"failed":0},"hits":{"total":2,"max_score":3.223138,"hits":[{"_index":"storefront","_type":"product_document","_id":"15","_score":3.223138},{"_index":"storefront","_type":"product_document","_id":"56","_score":3.223138}]}}'}
+    headers:
+      content-length: ['285']
+      content-type: [application/json; charset=UTF-8]
+    status: {code: 200, message: OK}
+version: 1

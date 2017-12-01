@@ -4,11 +4,30 @@
     color: #fff;
   }
 }
+
 .btn {
   &:not(.btn-floating) {
     box-shadow: none;
   }
+  &-danger {
+    color: $error-color;
+    &:hover {
+      background: $error-color;
+      color: #fff;
+    }
+  }
+  &-action {
+    &-primary {
+      @extend  .btn;
+      @extend .btn-flat;
+    }
+    &-secondary {
+      @extend .btn;
+      @extend .btn-flat;
+    }
+  }
 }
+
 .btn-fab, .btn-floating {
   svg {
     vertical-align: middle;

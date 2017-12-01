@@ -1,12 +1,15 @@
 from __future__ import unicode_literals
 
+from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import permission_required
+from django.db.models import Q
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect
 from django.template.response import TemplateResponse
 from django.utils.translation import npgettext_lazy, pgettext_lazy
 from django.views.decorators.http import require_POST
+from django_prices.templatetags.prices_i18n import gross
 
 from ...core.utils import get_paginator_items
 from ...product.models import (
@@ -14,8 +17,10 @@ from ...product.models import (
     ProductImage, ProductVariant, Stock, StockLocation)
 from ...product.utils import (
     get_availability, get_product_costs_data, get_variant_costs_data)
-from ...settings import DASHBOARD_PAGINATE_BY
 from ..views import staff_member_required
+from .filters import (
+    ProductFilter, ProductAttributeFilter, ProductClassFilter,
+    StockLocationFilter)
 from . import forms
 
 
@@ -24,16 +29,18 @@ from . import forms
 def product_class_list(request):
     classes = ProductClass.objects.all().prefetch_related(
         'product_attributes', 'variant_attributes').order_by('name')
+    class_filter = ProductClassFilter(request.GET, queryset=classes)
     form = forms.ProductClassForm(request.POST or None)
     if form.is_valid():
         return redirect('dashboard:product-class-add')
     classes = get_paginator_items(
-        classes, DASHBOARD_PAGINATE_BY, request.GET.get('page'))
+        class_filter.qs, settings.DASHBOARD_PAGINATE_BY,
+        request.GET.get('page'))
     classes.object_list = [
         (pc.pk, pc.name, pc.has_variants, pc.product_attributes.all(),
          pc.variant_attributes.all())
         for pc in classes.object_list]
-    ctx = {'form': form, 'product_classes': classes}
+    ctx = {'form': form, 'product_classes': classes, 'filter': class_filter}
     return TemplateResponse(
         request,
         'dashboard/product/product_class/list.html',
@@ -89,7 +96,7 @@ def product_class_delete(request, pk):
             request,
             pgettext_lazy(
                 'Dashboard message',
-                'Deleted product type %s') % product_class)
+                'Removed product type %s') % product_class)
         return redirect('dashboard:product-class-list')
     ctx = {
         'product_class': product_class,
@@ -106,16 +113,21 @@ def product_list(request):
     products = Product.objects.prefetch_related('images')
     products = products.order_by('name')
     product_classes = ProductClass.objects.all()
+
     form = forms.ProductClassSelectorForm(
         request.POST or None, product_classes=product_classes)
     if form.is_valid():
         return redirect(
             'dashboard:product-add', class_pk=form.cleaned_data['product_cls'])
+    product_filter = ProductFilter(request.GET, queryset=products)
     products = get_paginator_items(
-        products, DASHBOARD_PAGINATE_BY, request.GET.get('page'))
+        product_filter.qs, settings.DASHBOARD_PAGINATE_BY,
+        request.GET.get('page'))
     ctx = {
         'bulk_action_form': forms.ProductBulkUpdate(), 'form': form,
-        'products': products, 'product_classes': product_classes}
+        'products': products, 'product_classes': product_classes,
+        'filter': product_filter,
+    }
     return TemplateResponse(request, 'dashboard/product/list.html', ctx)
 
 
@@ -233,7 +245,7 @@ def product_delete(request, pk):
         product.delete()
         messages.success(
             request,
-            pgettext_lazy('Dashboard message', 'Deleted product %s') % product)
+            pgettext_lazy('Dashboard message', 'Removed product %s') % product)
         return redirect('dashboard:product-list')
     return TemplateResponse(
         request,
@@ -289,7 +301,7 @@ def stock_delete(request, product_pk, variant_pk, stock_pk):
     if request.method == 'POST':
         stock.delete()
         messages.success(
-            request, pgettext_lazy('Dashboard message', 'Deleted stock'))
+            request, pgettext_lazy('Dashboard message', 'Removed stock'))
         return redirect(
             'dashboard:variant-details', product_pk=product.pk,
             variant_pk=variant.pk)
@@ -352,7 +364,7 @@ def product_image_delete(request, product_pk, img_pk):
             request,
             pgettext_lazy(
                 'Dashboard message',
-                'Deleted image %s') % image.image.name)
+                'Removed image %s') % image.image.name)
         return redirect('dashboard:product-image-list', product_pk=product.pk)
     return TemplateResponse(
         request,
@@ -445,7 +457,7 @@ def variant_delete(request, product_pk, variant_pk):
         messages.success(
             request,
             pgettext_lazy(
-                'Dashboard message', 'Deleted variant %s') % variant.name)
+                'Dashboard message', 'Removed variant %s') % variant.name)
         return redirect('dashboard:product-detail', pk=product.pk)
 
     ctx = {'is_only_variant': product.variants.count() == 1,
@@ -460,12 +472,15 @@ def variant_delete(request, product_pk, variant_pk):
 @staff_member_required
 @permission_required('product.view_properties')
 def attribute_list(request):
+    attributes = (ProductAttribute.objects.prefetch_related('values')
+                  .order_by('name'))
+    attribute_filter = ProductAttributeFilter(request.GET, queryset=attributes)
     attributes = [
         (attribute.pk, attribute.name, attribute.values.all())
-        for attribute in ProductAttribute.objects.prefetch_related('values')]
+        for attribute in attribute_filter.qs]
     attributes = get_paginator_items(
-        attributes, DASHBOARD_PAGINATE_BY, request.GET.get('page'))
-    ctx = {'attributes': attributes}
+        attributes, settings.DASHBOARD_PAGINATE_BY, request.GET.get('page'))
+    ctx = {'attributes': attributes, 'filter': attribute_filter}
     return TemplateResponse(
         request,
         'dashboard/product/product_attribute/list.html',
@@ -515,7 +530,7 @@ def attribute_delete(request, pk):
             request,
             pgettext_lazy(
                 'Dashboard message',
-                'Deleted attribute %s') % (attribute.name,))
+                'Removed attribute %s') % (attribute.name,))
         return redirect('dashboard:product-attributes')
     return TemplateResponse(
         request,
@@ -571,9 +586,12 @@ def attribute_choice_value_delete(request, attribute_pk, value_pk):
 @permission_required('product.view_stock_location')
 def stock_location_list(request):
     stock_locations = StockLocation.objects.all().order_by('name')
+    stock_location_filter = StockLocationFilter(
+        request.GET, queryset=stock_locations)
     stock_locations = get_paginator_items(
-        stock_locations, DASHBOARD_PAGINATE_BY, request.GET.get('page'))
-    ctx = {'locations': stock_locations}
+        stock_location_filter.qs, settings.DASHBOARD_PAGINATE_BY,
+        request.GET.get('page'))
+    ctx = {'locations': stock_locations, 'filter': stock_location_filter}
     return TemplateResponse(
         request,
         'dashboard/product/stock_location/list.html',
@@ -612,7 +630,7 @@ def stock_location_delete(request, location_pk):
         messages.success(
             request, pgettext_lazy(
                 'Dashboard message for stock location',
-                'Deleted location %s') % location)
+                'Removed location %s') % location)
         return redirect('dashboard:product-stock-location-list')
     ctx = {'location': location, 'stock_count': stock_count}
     return TemplateResponse(
@@ -666,3 +684,30 @@ def product_bulk_update(request):
             number=count) % {'count': count}
         messages.success(request, msg)
     return redirect('dashboard:product-list')
+
+
+@staff_member_required
+def ajax_available_variants_list(request):
+    """
+    Returns variants list filtered by request GET parameters.
+    Response format is as required by select2 field.
+    """
+    def get_variant_label(variant):
+        return '%s, %s, %s' % (
+            variant.sku, variant.display_product(),
+            gross(variant.product.price))
+
+    available_products = Product.objects.get_available_products()
+    queryset = ProductVariant.objects.filter(
+        product__in=available_products).prefetch_related('product')
+    search_query = request.GET.get('q', '')
+    if search_query:
+        queryset = queryset.filter(
+            Q(sku__icontains=search_query) |
+            Q(name__icontains=search_query) |
+            Q(product__name__icontains=search_query))
+    variants = [
+        {'id': variant.id, 'text': get_variant_label(variant)}
+        for variant in queryset
+    ]
+    return JsonResponse({'results': variants})

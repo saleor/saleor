@@ -128,6 +128,7 @@ li#version-indicator {
   form {
     .input-field {
       label {
+        height: auto;
         pointer-events: auto;
 
         &:not(.label-icon) {
@@ -154,5 +155,12 @@ svg {
     &-secondary {
       fill: $secondary-color;
     }
+  }
+}
+
+.chips-container {
+  margin-top: 18px;
+  a {
+    color: #999;
   }
 }

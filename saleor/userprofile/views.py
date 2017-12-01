@@ -1,3 +1,5 @@
+from __future__ import unicode_literals
+
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponseRedirect
@@ -53,7 +55,7 @@ def address_delete(request, pk):
         address.delete()
         messages.success(
             request,
-            pgettext('Storefront message', 'Address successfully deleted.'))
+            pgettext('Storefront message', 'Address successfully removed'))
         return HttpResponseRedirect(reverse('profile:details') + '#addresses')
     return TemplateResponse(
         request, 'userprofile/address-delete.html', {'address': address})

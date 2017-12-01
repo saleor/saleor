@@ -8,7 +8,7 @@ from django.utils import timezone
 from django.utils.encoding import python_2_unicode_compatible
 from django.utils.translation import pgettext_lazy
 from django_countries.fields import Country, CountryField
-from ..search import index
+from phonenumber_field.modelfields import PhoneNumberField
 
 
 class AddressManager(models.Manager):
@@ -72,18 +72,14 @@ class Address(models.Model):
     country_area = models.CharField(
         pgettext_lazy('Address field', 'state or province'),
         max_length=128, blank=True)
-    phone = models.CharField(
-        pgettext_lazy('Address field', 'phone number'),
-        max_length=30, blank=True)
+    phone = PhoneNumberField(
+        verbose_name=pgettext_lazy('Address field', 'phone number'),
+        blank=True, default='')
     objects = AddressManager()
 
     @property
     def full_name(self):
         return '%s %s' % (self.first_name, self.last_name)
-
-    class Meta:
-        verbose_name = pgettext_lazy('Address model', 'address')
-        verbose_name_plural = pgettext_lazy('Address model', 'addresses')
 
     def __str__(self):
         if self.company_name:
@@ -98,7 +94,7 @@ class Address(models.Model):
                 self.first_name, self.last_name, self.company_name,
                 self.street_address_1, self.street_address_2, self.city,
                 self.postal_code, self.country, self.country_area,
-                self.phone))
+                str(self.phone)))
 
 
 class UserManager(BaseUserManager):
@@ -121,7 +117,7 @@ class UserManager(BaseUserManager):
             email, password, is_staff=True, is_superuser=True, **extra_fields)
 
 
-class User(PermissionsMixin, AbstractBaseUser, index.Indexed):
+class User(PermissionsMixin, AbstractBaseUser):
     email = models.EmailField(
         pgettext_lazy('User field', 'email'), unique=True)
     addresses = models.ManyToManyField(
@@ -149,12 +145,7 @@ class User(PermissionsMixin, AbstractBaseUser, index.Indexed):
 
     objects = UserManager()
 
-    search_fields = [
-        index.SearchField('email')]
-
     class Meta:
-        verbose_name = pgettext_lazy('User model', 'user')
-        verbose_name_plural = pgettext_lazy('User model', 'users')
         permissions = (
             ('view_user',
              pgettext_lazy('Permission description', 'Can view users')),

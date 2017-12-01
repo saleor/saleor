@@ -1,3 +1,5 @@
+from __future__ import unicode_literals
+
 from django.conf import settings
 from django.conf.urls import url, include
 from django.conf.urls.static import static
@@ -34,9 +36,9 @@ urlpatterns = [
         include((product_urls, 'product'), namespace='product')),
     url(r'^profile/',
         include((userprofile_urls, 'profile'), namespace='profile')),
-    url(r'^search/', include((search_urls, 'search'), namespace='search')),
     url(r'^feeds/',
         include((feed_urls, 'data_feeds'), namespace='data_feeds')),
+    url(r'^search/', include((search_urls, 'search'), namespace='search')),
     url(r'^sitemap\.xml$', sitemap, {'sitemaps': sitemaps},
         name='django.contrib.sitemaps.views.sitemap'),
     url(r'', include('payments.urls')),

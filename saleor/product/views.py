@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 import datetime
 import json
 
+from django.conf import settings
 from django.http import HttpResponsePermanentRedirect, JsonResponse
 from django.shortcuts import get_object_or_404, redirect
 from django.template.response import TemplateResponse
@@ -10,8 +11,8 @@ from django.urls import reverse
 
 from ..cart.utils import set_cart_cookie
 from ..core.utils import get_paginator_items, serialize_decimal
-from ..settings import PAGINATE_BY
-from .filters import ProductFilter, get_now_sorted_by, get_sort_by_choices
+from ..core.utils.filters import get_now_sorted_by, get_sort_by_choices
+from .filters import ProductFilter, SORT_BY_FIELDS
 from .models import Category
 from .utils import (
     get_availability, get_product_attributes_data, get_product_images,
@@ -60,9 +61,6 @@ def product_details(request, slug, product_id, form=None):
         form = handle_cart_form(request, product, create_cart=False)[0]
     availability = get_availability(product, discounts=request.discounts,
                                     local_currency=request.currency)
-    template_name = 'product/details_%s.html' % (
-        type(product).__name__.lower(),)
-    templates = [template_name, 'product/details.html']
     product_images = get_product_images(product)
     variant_picker_data = get_variant_picker_data(
         product, request.discounts, request.currency)
@@ -70,7 +68,7 @@ def product_details(request, slug, product_id, form=None):
     show_variant_picker = all([v.attributes for v in product.variants.all()])
     json_ld_data = product_json_ld(product, availability, product_attributes)
     return TemplateResponse(
-        request, templates,
+        request, 'product/details.html',
         {'is_visible': is_visible,
          'form': form,
          'availability': availability,

@@ -1,6 +1,8 @@
 {% extends "dashboard/base.html" %}
 {% load i18n %}
 {% load prices_i18n %}
+{% load get_sort_by_toggle from shop %}
+{% load staticfiles %}
 {% load materializecss %}
 {% load utils %}
 {% load static %}
@@ -30,43 +32,58 @@
       </a>
     </div>
   {% endif %}
-  <div class="card">
-    <div class="data-table-container">
-      <table class="bordered highlight responsive data-table">
-        <thead>
-          <tr>
-            <th>
-              {% trans "Name" context "Sale (discount) table header" %}
-            </th>
-            <th>
-              {% trans "Discount" context "Sale (discount) table header" %}
-            </th>
-          </tr>
-        </thead>
-        <tbody>
-          {% if sales %}
-            {% for sale in sales %}
-              <tr data-action-go="{% if perms.discount.edit_sale %}{% url 'dashboard:sale-update' pk=sale.pk %}{% endif %}">
+  <div class="row">
+    <div class="col s12 l9">
+      <div class="card">
+        <div class="data-table-container">
+          <table class="bordered highlight responsive data-table last-right-align">
+            <thead>
+              <tr>
+                {% get_sort_by_toggle 'name' as toggle %}
+                <th class="wide {% if toggle.is_active %}active{% endif %}">
+                  <a href="{{ toggle.url }}">
+                    <svg data-src="{{ toggle.sorting_icon }}" />
+                    {% trans "Name" context "Sale (discount) table header" %}
+                  </a>
+                </th>
+                {% get_sort_by_toggle 'value' as toggle %}
+                <th class="wide {% if toggle.is_active %}active{% endif %}">
+                  <a href="{{ toggle.url }}">
+                    <svg data-src="{{ toggle.sorting_icon }}" />
+                    {% trans "Discount" context "Sale (discount) table header" %}
+                  </a>
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {% if sales %}
+                {% for sale in sales %}
+                  <tr data-action-go="{% if perms.sale.edit_sale %}{% url 'dashboard:sale-update' pk=sale.pk %}{% endif %}">
+                    <td>
+                      {{ sale }}
+                    </td>
+                    <td>
+                      {{ sale.value }}{{ sale.get_type_display }}
+                    </td>
+                  </tr>
+                {% endfor %}
+              {% else %}
+              <tr>
                 <td>
-                  {{ sale }}
-                </td>
-                <td>
-                  {{ sale.value }}{{ sale.get_type_display }}
+                  <span>
+                    {% trans "No sales found" context "Empty sales table message" %}
+                  </span>
                 </td>
               </tr>
-            {% endfor %}
-          {% else %}
-          <tr>
-            <td>
-              <span>
-                {% trans "No sales found" context "Empty sales table message" %}
-              </span>
-            </td>
-          </tr>
-          {% endif %}
-        </tbody>
-      </table>
+              {% endif %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+      {% paginate sales %}
+    </div>
+    <div class="col s12 l3" id="filters">
+      {% add_filters filter %}
     </div>
   </div>
-  {% paginate sales %}
 {% endblock %}

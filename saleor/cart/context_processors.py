@@ -1,5 +1,6 @@
 """Cart-related context processors."""
 from __future__ import unicode_literals
+
 from .utils import get_cart_from_request
 
 

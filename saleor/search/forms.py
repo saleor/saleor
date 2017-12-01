@@ -1,14 +1,14 @@
+from __future__ import unicode_literals
+
 from django import forms
 from django.utils.translation import pgettext
-
-from .backends import get_search_backend
+from .backends import picker
 
 
 class SearchForm(forms.Form):
-    q = forms.CharField(label=pgettext('Search form label', 'Query'), required=True)
+    q = forms.CharField(
+        label=pgettext('Search form label', 'Query'), required=True)
 
-    def search(self, model_or_queryset):
-        backend = get_search_backend('default')
-        query = self.cleaned_data['q']
-        results = backend.search(query, model_or_queryset=model_or_queryset)
-        return results
+    def search(self):
+        search = picker.pick_backend()
+        return search(self.cleaned_data['q'])

@@ -255,6 +255,94 @@
       </p>
     {% endif %}
   </div>
+{% elif field|is_date_range %}
+  <div class="input-field input-range col s12 {{ classes.label }}">
+    <label class="active" for="{{ field.auto_id }}_0">
+      {{ field.label }}
+      {% if not field.field.required %}
+        {% trans "(optional)" context "Dashboard form labels" %}
+      {% endif %}
+    </label>
+    {% for value in field.value %}
+      <input type="date" id="{{ field.auto_id }}" class="datepicker col s5" name="{{ field.name }}_{{ forloop.counter0 }}"
+        value="{% if field.value %}{{ field.value|date:'Y-m-d' }}{% endif %}" data-value="{% if field.value %}{{ field.value|date:'Y-m-d' }}{% endif %}">
+      {% for error in field.errors %}
+        <p class="help-block materialize-red-text">
+          {{ error }}
+        </p>
+      {% endfor %}
+      {% if field.help_text %}
+        <p class="help-block">
+          {{ field.help_text|safe }}
+        </p>
+      {% endif %}
+      {% if not forloop.last %}
+        <div class="col s2 center-align separator">-</div>
+      {% endif %}
+    {% endfor %}
+  </div>
+{% elif field|is_price_range %}
+  <div class="input input-field input-range col s12 {{ classes.label }}">
+    <label class="active" for="{{ field.auto_id }}_0">
+      {{ field.label }}
+      {% if not field.field.required %}
+        {% trans "(optional)" context "Dashboard form labels" %}
+      {% endif %}
+    </label>
+    <div class="">
+      {% for value in field.value %}
+        <div class="input-range--field">
+          <div class="input-with-suffix">
+            <input type="number" class=""
+                   name="{{ field.name }}_{{ forloop.counter0 }}"
+                   value="{{ value }}"
+                   id="{{ field.auto_id }}_{{ forloop.counter0 }}">
+            <div class="input-text-suffix">{{ field.field.widget.currency }}</div>
+          </div>
+        </div>
+        {% for error in field.errors %}
+          <p class="help-block materialize-red-text">
+            {{ error }}
+          </p>
+        {% endfor %}
+        {% if field.help_text %}
+          <p class="help-block">
+            {{ field.help_text|safe }}
+          </p>
+        {% endif %}
+        {% if not forloop.last %}
+          <div class="center-align separator">-</div>
+        {% endif %}
+      {% endfor %}
+    </div>
+  </div>
+{% elif field|is_range %}
+  <div class="input input-field col s12 {{ classes.label }}">
+    <label class="active" for="{{ field.auto_id }}_0">
+      {{ field.label }}
+      {% if not field.field.required %}
+        {% trans "(optional)" context "Dashboard form labels" %}
+      {% endif %}
+    </label>
+    {% for value in field.value %}
+      {% for error in field.errors %}
+        <p class="help-block materialize-red-text">
+          {{ error }}
+        </p>
+      {% endfor %}
+      {% if field.help_text %}
+        <p class="help-block">
+          {{ field.help_text|safe }}
+        </p>
+      {% endif %}
+      <input type="number" class="col s5"
+             name="{{ field.name }}_{{ forloop.counter0 }}" value="{{ value }}"
+             id="{{ field.auto_id }}_{{ forloop.counter0 }}">
+      {% if not forloop.last %}
+        <div class="col s2 center-align separator">-</div>
+      {% endif %}
+    {% endfor %}
+  </div>
 {% else %}
   <div class="input input-field col {{ classes.label }}">
     {% if field.auto_id %}

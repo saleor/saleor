@@ -18,7 +18,7 @@ from prices import Price
 
 from ...discount.models import Sale, Voucher
 from ...order import OrderStatus
-from ...order.models import DeliveryGroup, Order, OrderedItem, Payment
+from ...order.models import DeliveryGroup, Order, OrderLine, Payment
 from ...product.models import (AttributeChoiceValue, Category, Product,
                                ProductAttribute, ProductClass, ProductImage,
                                ProductVariant, Stock, StockLocation)
@@ -404,7 +404,7 @@ def create_delivery_group(order):
     shipping_country = shipping_method.price_per_country.get_or_create(
         country_code=region, defaults={'price': fake.price()})[0]
     delivery_group = DeliveryGroup.objects.create(
-        status=random.choice(['new', 'shipped']),
+        status=random.choice([OrderStatus.NEW, OrderStatus.SHIPPED]),
         order=order,
         shipping_method_name=str(shipping_country),
         shipping_price=shipping_country.price)
@@ -414,7 +414,7 @@ def create_delivery_group(order):
 def create_order_line(delivery_group):
     product = Product.objects.all().order_by('?')[0]
     variant = product.variants.all()[0]
-    return OrderedItem.objects.create(
+    return OrderLine.objects.create(
         delivery_group=delivery_group,
         product=product,
         product_name=product.name,

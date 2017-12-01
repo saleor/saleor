@@ -1,5 +1,6 @@
 from __future__ import unicode_literals
 
+from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import permission_required
 from django.contrib.auth.models import Group
@@ -8,19 +9,22 @@ from django.template.response import TemplateResponse
 from django.utils.translation import pgettext_lazy
 
 from ...core.utils import get_paginator_items
-from ...settings import DASHBOARD_PAGINATE_BY
 from ..views import staff_member_required
+from .filters import GroupFilter
 from .forms import GroupPermissionsForm
 
 
 @staff_member_required
 @permission_required('userprofile.view_group')
 def group_list(request):
+    groups = (Group.objects.all().prefetch_related('permissions')
+              .order_by('name'))
+    group_filter = GroupFilter(request.GET, queryset=groups)
     groups = [{'name': group, 'permissions': group.permissions.all()}
-              for group in Group.objects.all().prefetch_related('permissions')]
+              for group in group_filter.qs]
     groups = get_paginator_items(
-        groups, DASHBOARD_PAGINATE_BY, request.GET.get('page'))
-    ctx = {'groups': groups}
+        groups, settings.DASHBOARD_PAGINATE_BY, request.GET.get('page'))
+    ctx = {'groups': groups, 'filter': group_filter}
     return TemplateResponse(request, 'dashboard/group/list.html', ctx)
 
 
@@ -64,7 +68,7 @@ def group_delete(request, pk):
         group.delete()
         messages.success(
             request,
-            pgettext_lazy('Dashboard message', 'Deleted group %s') % group
+            pgettext_lazy('Dashboard message', 'Removed group %s') % group
         )
         return redirect('dashboard:group-list')
     return TemplateResponse(

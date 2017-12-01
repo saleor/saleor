@@ -49,7 +49,8 @@ var providePlugin = new webpack.ProvidePlugin({
   $: 'jquery',
   jQuery: 'jquery',
   'window.jQuery': 'jquery',
-  'Popper': 'popper.js'
+  'Popper': 'popper.js',
+  'query-string': 'query-string'
 });
 
 var faviconsWebpackPlugin = new FaviconsWebpackPlugin({

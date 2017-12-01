@@ -28,10 +28,6 @@ class ShippingMethod(models.Model):
         blank=True, default='')
 
     class Meta:
-        verbose_name = pgettext_lazy(
-            'Shipping method model', 'shipping method')
-        verbose_name_plural = pgettext_lazy(
-            'Shipping method model', 'shipping methods')
         permissions = (
             ('view_shipping',
              pgettext_lazy(
@@ -101,10 +97,6 @@ class ShippingMethodCountry(models.Model):
 
     class Meta:
         unique_together = ('country_code', 'shipping_method')
-        verbose_name = pgettext_lazy(
-            'Shipping method country model', 'shipping method country')
-        verbose_name_plural = pgettext_lazy(
-            'Shipping method country model', 'shipping method countries')
 
     def __str__(self):
         # https://docs.djangoproject.com/en/dev/ref/models/instances/#django.db.models.Model.get_FOO_display  # noqa
@@ -113,30 +105,3 @@ class ShippingMethodCountry(models.Model):
 
     def get_total(self):
         return self.price
-
-
-class ShippingCountryQueryset(models.QuerySet):
-
-    def unique_for_country_code(self, country_code):
-        shipping = self.filter(
-            Q(country_code=country_code) |
-            Q(country_code=ANY_COUNTRY))
-        shipping = shipping.order_by('shipping_method_id')
-        shipping = shipping.values_list(
-            'shipping_method_id', 'id', 'country_code')
-        grouped_shipping = groupby(shipping, itemgetter(0))
-        any_country = ANY_COUNTRY
-
-        ids = []
-
-        for dummy_method_id, method_values in grouped_shipping:
-            method_values = list(method_values)
-            # if there is any country choice and specific one remove any
-            # country choice
-            if len(method_values) == 2:
-                method = [val for val in method_values
-                          if val[2] != any_country][0]
-            else:
-                method = method_values[0]
-            ids.append(method[1])
-        return self.filter(id__in=ids)

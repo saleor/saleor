@@ -1,5 +1,6 @@
 from __future__ import unicode_literals
 
+from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import permission_required
 from django.db.models import Count, Max
@@ -9,8 +10,8 @@ from django.utils.translation import pgettext_lazy
 
 from ...core.utils import get_paginator_items
 from ...userprofile.models import User
-from ...settings import DASHBOARD_PAGINATE_BY
 from ..views import staff_member_required
+from .filters import CustomerFilter
 
 
 @staff_member_required
@@ -24,9 +25,11 @@ def customer_list(request):
             num_orders=Count('orders', distinct=True),
             last_order=Max('orders', distinct=True))
         .order_by('email'))
+    customer_filter = CustomerFilter(request.GET, queryset=customers)
     customers = get_paginator_items(
-        customers, DASHBOARD_PAGINATE_BY, request.GET.get('page'))
-    ctx = {'customers': customers}
+        customer_filter.qs, settings.DASHBOARD_PAGINATE_BY,
+        request.GET.get('page'))
+    ctx = {'customers': customers, 'filter': customer_filter}
     return TemplateResponse(request, 'dashboard/customer/list.html', ctx)
 
 
