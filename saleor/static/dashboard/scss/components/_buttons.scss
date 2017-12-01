@@ -44,9 +44,12 @@
 .btn-fab {
   &-fixed {
     @extend .fixed-action-btn;
-    @media (min-width: $large-screen) {
+    @media (min-width: $medium-screen) {
       position: absolute;
       top: 4px;
+      right: 25%;
+    }
+    @media (min-width: $large-screen) {
       right: calc(25% - 60px);
     }
   }
