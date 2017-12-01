@@ -18,19 +18,26 @@ PRODUCTS_TO_UNPUBLISH = {56}  # choose from PRODUCTS_INDEXED
 PHRASE_WITH_RESULTS = 'Group'
 PHRASE_WITHOUT_RESULTS = 'foo'
 
-
-@pytest.fixture(scope='function', autouse=True)
-def es_autosync_disabled(settings):
-    ''' Prevent ES index from being refreshed every time obj is saved '''
-    settings.ENABLE_SEARCH = True
-    settings.ELASTICSEARCH_DSL_AUTO_REFRESH = False
-    settings.ELASTICSEARCH_DSL_AUTOSYNC = False
+ES_URL = 'http://search:9200'  # make it real for communication recording
 
 
 @pytest.fixture(scope='module', autouse=True)
-def enable_es():
-    ES_URL = 'http://search:9200'
+def elasticsearch_connection():
     connections.create_connection('default', hosts=[ES_URL])
+
+
+@pytest.fixture(scope='function', autouse=True)
+def elasticsearch_enabled(settings):
+    settings.ES_URL = ES_URL
+    settings.ENABLE_SEARCH = True
+    settings.SEARCH_BACKEND = 'saleor.search.backends.elasticsearch'
+
+
+@pytest.fixture(scope='function', autouse=True)
+def elasticsearch_autosync_disabled(settings):
+    ''' Prevent ES index from being refreshed every time obj is saved '''
+    settings.ELASTICSEARCH_DSL_AUTO_REFRESH = False
+    settings.ELASTICSEARCH_DSL_AUTOSYNC = False
 
 
 @pytest.mark.vcr()
