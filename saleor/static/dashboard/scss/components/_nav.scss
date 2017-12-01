@@ -178,6 +178,7 @@ header {
   background-color: $primary-color-light;
   height: $subheader-height;
   margin-top: 0;
+  position: relative;
   .container {
     width: 100%;
     max-width: none;
@@ -232,6 +233,9 @@ body.nav-toggled {
         margin: 40px 40px 0;
       }
     }
+  }
+  .btn-fab-fixed {
+    right: 25%;
   }
 }
 
