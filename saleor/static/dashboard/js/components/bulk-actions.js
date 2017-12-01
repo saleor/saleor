@@ -41,15 +41,13 @@ function onSubmit (e) {
   $('#bulk-actions-form').submit();
 }
 
-function init () {
-  return $(document).ready(() => {
-    updateSelectedItemsText();
-    $('.select-all').on('change', onSelectAll);
-    $('.switch-actions').on('change', onSwitchActions);
-    $('.select-item').on('change', updateSelectedItemsText);
-    $('.bulk-actions a').on('click', onSubmit);
-  });
-}
+const init = $(document).ready(() => {
+  updateSelectedItemsText();
+  $('.select-all').on('change', onSelectAll);
+  $('.switch-actions').on('change', onSwitchActions);
+  $('.select-item').on('change', updateSelectedItemsText);
+  $('.bulk-actions a').on('click', onSubmit);
+});
 
 export {
   init as default,
