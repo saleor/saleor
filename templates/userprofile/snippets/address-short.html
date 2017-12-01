@@ -11,7 +11,7 @@
     {{ address.street_address_1 }} {% if address.street_address_2 %} {{ address.street_address_2 }} {% endif %}<br>
     {{ address.postal_code }} {{ address.city }}
     {% if address.country_area %}
-        {{ address.country_area }}, 
+        {{ address.country_area }},
     {% endif %}<br>
     {{ address.get_country_display }}<br>
     {{ address.phone }}</p>
