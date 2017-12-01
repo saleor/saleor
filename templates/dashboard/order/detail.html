@@ -360,7 +360,7 @@
                 {% endif %}
                 {% if group.can_cancel %}
                   <a href="#base-modal" data-href="{% url 'dashboard:cancel-delivery-group' order_pk=order.pk group_pk=group.pk %}" class="btn btn-flat modal-trigger-custom" title="{% trans 'Cancel group' context 'Shipment group table action' %}">
-                    {% trans "Cancel this shipment" context "Shipment group table action" %}
+                    {% trans "Cancel shipment" context "Shipment group table action" %}
                   </a>
                 {% endif %}
                 <a href="#base-modal" data-href="{% url 'dashboard:add-variant-to-group' order_pk=order.pk group_pk=group.pk %}" class="btn btn-flat modal-trigger-custom" title="{% trans "Add product to order" context "Order summary card action title" %}">
