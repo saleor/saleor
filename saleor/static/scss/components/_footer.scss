@@ -4,6 +4,7 @@
   margin-top: $global-margin * 8;
   @include media-breakpoint-down(xs) {
     text-align: center;
+    margin-top: $global-margin * 2;
   }
   &__logo {
     margin-bottom: $global-margin;
