@@ -1,18 +1,17 @@
 from __future__ import unicode_literals
 
+from django import forms
+from django.utils.translation import pgettext_lazy
 from django_filters import (
     CharFilter, ChoiceFilter, DateFromToRangeFilter, NumberFilter, RangeFilter,
     OrderingFilter)
-from django import forms
-from django.utils.translation import pgettext_lazy
 from payments import PaymentStatus
 
-from ...core.utils.filters import filter_by_order_customer
-from ...order.models import Order
-from ...order import OrderStatus
-from ..filters import SortedFilterSet
+from ...core.filters import SortedFilterSet
 from ..widgets import DateRangeWidget, PriceRangeWidget
-
+from ...core.utils.filters import filter_by_order_customer
+from ...order import OrderStatus
+from ...order.models import Order
 
 SORT_BY_FIELDS = (
     ('pk', 'pk'),
