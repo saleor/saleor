@@ -113,9 +113,11 @@
         <div class="filters-menu__body d-none d-md-block">
           <h2>
             {% trans 'Filters' context 'Filter heading title' %}
-            <a href="?">
-              <span class="clear-filters float-right">{% trans 'Clear filters' context 'Category page filters' %}</span>
-            </a>
+            {% if filter.is_bound_unsorted %}
+              <a href="?">
+                <span class="clear-filters float-right">{% trans 'Clear filters' context 'Category page filters' %}</span>
+              </a>
+            {% endif %}
           </h2>
           <div class="product-filters">
             <div class="product-filters__attributes" data-icon-up="{% static "images/chevron_up.svg" %}"

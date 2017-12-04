@@ -1,11 +1,10 @@
 from __future__ import unicode_literals
 
-from django_filters import OrderingFilter
 from django.utils.translation import pgettext_lazy
+from django_filters import OrderingFilter
 
+from ...core.filters import SortedFilterSet
 from ...product.models import Category
-from ..filters import SortedFilterSet
-
 
 SORT_BY_FIELDS = {
     'name': pgettext_lazy('Category list sorting option', 'name'),
