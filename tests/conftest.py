@@ -351,7 +351,7 @@ def voucher(db):  # pylint: disable=W0613
 
 
 @pytest.fixture()
-def order_with_items(order, product_class):
+def order_with_lines(order, product_class):
     group = DeliveryGroup.objects.create(order=order)
     product = Product.objects.create(
         name='Test product', price=Decimal('10.00'),
@@ -397,7 +397,7 @@ def order_with_items(order, product_class):
 
 
 @pytest.fixture()
-def order_with_items_and_stock(order, product_class):
+def order_with_lines_and_stock(order, product_class):
     group = DeliveryGroup.objects.create(order=order)
     product = Product.objects.create(
         name='Test product', price=Decimal('10.00'),
@@ -442,7 +442,7 @@ def order_with_items_and_stock(order, product_class):
 
 
 @pytest.fixture()
-def order_with_variant_from_different_stocks(order_with_items_and_stock):
+def order_with_variant_from_different_stocks(order_with_lines_and_stock):
     line = OrderLine.objects.get(product_sku='SKU_A')
     variant = ProductVariant.objects.get(sku=line.product_sku)
     warehouse_2 = StockLocation.objects.create(name='Warehouse 2')
@@ -464,7 +464,7 @@ def order_with_variant_from_different_stocks(order_with_items_and_stock):
     Stock.objects.create(
         variant=variant, cost_price=1, quantity=5, quantity_allocated=0,
         location=warehouse_2)
-    return order_with_items_and_stock
+    return order_with_lines_and_stock
 
 
 @pytest.fixture()
