@@ -5,6 +5,7 @@ import json
 from io import BytesIO
 
 import pytest
+from django.conf import settings
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.urls import reverse
 from django.utils.encoding import smart_text
@@ -588,8 +589,14 @@ def test_product_list_filters_no_results(admin_client, product_list):
     assert list(response.context['filter'].qs) == []
 
 
-def tets_product_list_filters_with_pagination(admin_client, product_list):
+def test_product_list_pagination(admin_client, product_list):
+    settings.DASHBOARD_PAGINATE_BY = 1
     data = {'page': '1'}
+    url = reverse('dashboard:product-list')
+    response = admin_client.get(url, data)
+    assert response.status_code == 200
+
+    data = {'page': '2'}
     url = reverse('dashboard:product-list')
     response = admin_client.get(url, data)
     assert response.status_code == 200
