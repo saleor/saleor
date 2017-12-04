@@ -269,7 +269,7 @@ class DeliveryGroup(models.Model, ItemSet):
         return subtotal + self.shipping_price
 
     def get_total_quantity(self):
-        return sum([item.get_quantity() for item in self])
+        return sum([line.get_quantity() for line in self])
 
     def is_shipping_required(self):
         return self.shipping_required
