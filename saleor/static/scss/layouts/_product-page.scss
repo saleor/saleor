@@ -74,6 +74,7 @@
       left: 0;
       display: block;
       text-align: center;
+      z-index: 3;
       li {
         display: inline;
         text-indent: 0;
@@ -83,7 +84,7 @@
         }
         &.active {
           img {
-            opacity: 0.5;  
+            opacity: 0.5;
           }
         }
       }
