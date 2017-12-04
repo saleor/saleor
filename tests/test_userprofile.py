@@ -30,7 +30,9 @@ def test_address_form_for_country(country):
     data = {
         'first_name': 'John',
         'last_name': 'Doe',
-        'country': country}
+        'country': country,
+        'phone': '123456789'}
+
     form = forms.get_address_form(data, country_code=country)[0]
     errors = form.errors
     rules = i18naddress.get_validation_rules({'country_code': country})

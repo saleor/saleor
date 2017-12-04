@@ -11,7 +11,7 @@ from django_countries.fields import Country, CountryField
 from phonenumber_field.modelfields import PhoneNumberField
 
 from .validators import validate_possible_number
-# PhoneNumberField.default_validators = [validate_possible_number]
+PhoneNumberField.default_validators = [validate_possible_number]
 
 
 class AddressManager(models.Manager):

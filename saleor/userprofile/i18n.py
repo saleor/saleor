@@ -123,8 +123,10 @@ class AddressForm(forms.ModelForm):
         phone = kwargs.pop('phone', None)
         phoneprefix = kwargs.pop('phoneprefix', None)
         super(AddressForm, self).__init__(*args, **kwargs)
-        self.fields['phone'].initial = phone
-        self.fields['phoneprefix'].initial = phoneprefix
+        if self.instance.phone:
+            self.fields['phoneprefix'].initial = phoneprefix
+            self.fields['phone'].initial = phone
+
         autocomplete_dict = defaultdict(
             lambda: 'off', self.AUTOCOMPLETE_MAPPING)
         for field_name, field in self.fields.items():
@@ -171,7 +173,7 @@ class CountryAwareAddressForm(AddressForm):
 
     class Meta:
         model = Address
-        exclude = []
+        exclude = ['phone']
 
     def add_field_errors(self, errors):
         field_mapping = dict(self.I18N_MAPPING)
