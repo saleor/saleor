@@ -4,6 +4,11 @@
     text-decoration: underline;
   }
   &__info {
+    @include media-breakpoint-down(sm) {
+      h1 {
+        font-size: 2rem;
+      }
+    }
     h3 {
       text-transform: uppercase;
     }
