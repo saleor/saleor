@@ -45,7 +45,7 @@ Search integration architecture
 
 Search backends use `Elasticsearch DSL <https://github.com/elastic/elasticsearch-dsl-py>`_ for query definition in saleor/search/backends.
 
-There are two backends defined for elasticsearch integration, `storefront <https://github/com/saleor/saleor/search/backends/elasticsearch.py>`_ and `dashboard <https://github.com/saleor/saleor/search/backends/elasticsearch_dashboard.py>`_. Storefront search uses only storefront index for product only search, dashboard backend does additional searches in users and orders indexes as well.
+There are two backends defined for elasticsearch integration, `storefront <https://github.com/mirumee/saleor/blob/master/saleor/search/backends/elasticsearch_storefront.py>`_ and `dashboard <https://github.com/mirumee/saleor/blob/master/saleor/search/backends/elasticsearch_dashboard.py>`_. Storefront search uses only storefront index for product only search, dashboard backend does additional searches in users and orders indexes as well.
 
 
 Testing
