@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: master\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2017-11-20 04:38-0600\n"
+"POT-Creation-Date: 2017-11-27 16:26-0600\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Martin Janšto <mato@jansto.sk>, 2017\n"
 "Language-Team: Slovak (https://www.transifex.com/mirumee/teams/34782/sk/)\n"
@@ -127,45 +127,25 @@ msgctxt "Cart field"
 msgid "quantity"
 msgstr "množstvo"
 
-#: saleor/cart/models.py:121
-msgctxt "Cart model"
-msgid "Cart"
-msgstr "Košík"
-
-#: saleor/cart/models.py:122
-msgctxt "Cart model"
-msgid "Carts"
-msgstr "Košíky"
-
-#: saleor/cart/models.py:258
+#: saleor/cart/models.py:256
 msgctxt "Cart line field"
 msgid "cart"
 msgstr "košík"
 
-#: saleor/cart/models.py:262
+#: saleor/cart/models.py:260
 msgctxt "Cart line field"
 msgid "product"
 msgstr "produkt"
 
-#: saleor/cart/models.py:265
+#: saleor/cart/models.py:263
 msgctxt "Cart line field"
 msgid "quantity"
 msgstr "množstvo"
 
-#: saleor/cart/models.py:269
+#: saleor/cart/models.py:267
 msgctxt "Cart line field"
 msgid "data"
 msgstr "údaje"
-
-#: saleor/cart/models.py:273
-msgctxt "Cart line model"
-msgid "Cart line"
-msgstr "Rada košíka"
-
-#: saleor/cart/models.py:274
-msgctxt "Cart line model"
-msgid "Cart lines"
-msgstr "Rada košíkov"
 
 #: saleor/cart/utils.py:97
 msgctxt "Cart warning message"
@@ -336,138 +316,118 @@ msgctxt "Voucher field"
 msgid "limit"
 msgstr "limit"
 
-#: saleor/discount/models.py:140
-msgctxt "Voucher model"
-msgid "voucher"
-msgstr "poukaz"
-
-#: saleor/discount/models.py:141
-msgctxt "Voucher model"
-msgid "vouchers"
-msgstr "poukážky"
-
-#: saleor/discount/models.py:144
+#: saleor/discount/models.py:142
 msgctxt "Permission description"
 msgid "Can view vouchers"
 msgstr ""
 
-#: saleor/discount/models.py:146
+#: saleor/discount/models.py:144
 msgctxt "Permission description"
 msgid "Can edit vouchers"
 msgstr ""
 
-#: saleor/discount/models.py:155
+#: saleor/discount/models.py:153
 msgctxt "Voucher type"
 msgid "Free shipping"
 msgstr "Doprava zdarma"
 
-#: saleor/discount/models.py:159
+#: saleor/discount/models.py:157
 #, python-format
 msgctxt "Voucher type"
 msgid "%(discount)s off shipping"
 msgstr "%(discount)s na objednávku"
 
-#: saleor/discount/models.py:163
+#: saleor/discount/models.py:161
 #, python-format
 msgctxt "Voucher type"
 msgid "%(discount)s off %(product)s"
 msgstr "%(discount)s na %(product)s"
 
-#: saleor/discount/models.py:168
+#: saleor/discount/models.py:166
 #, python-format
 msgctxt "Voucher type"
 msgid "%(discount)s off %(category)s"
 msgstr "%(discount)s na %(category)s"
 
-#: saleor/discount/models.py:171
+#: saleor/discount/models.py:169
 #, python-format
 msgctxt "Voucher type"
 msgid "%(discount)s off"
 msgstr "%(discount)s na"
 
-#: saleor/discount/models.py:177
+#: saleor/discount/models.py:175
 msgctxt "Voucher"
 msgid "Any country"
 msgstr "Každá krajina"
 
-#: saleor/discount/models.py:207
+#: saleor/discount/models.py:205
 #, python-format
 msgctxt "Voucher not applicable"
 msgid "This offer is only valid for orders over %(amount)s."
 msgstr "Táto ponuka plati iba ak prekročíte sumu %(amount)s."
 
-#: saleor/discount/models.py:220
+#: saleor/discount/models.py:218
 msgctxt "Voucher not applicable"
 msgid "Your order does not require shipping."
 msgstr "Vaša objednávka nevyžaduje prepravu."
 
-#: saleor/discount/models.py:226
+#: saleor/discount/models.py:224
 msgctxt "Voucher not applicable"
 msgid "Please select a shipping method first."
 msgstr "Prosím vyberte spôsob odoslania."
 
-#: saleor/discount/models.py:232
+#: saleor/discount/models.py:230
 #, python-format
 msgctxt "Voucher not applicable"
 msgid "This offer is only valid in %(country)s."
 msgstr "Táto ponuka neplatí pre v %(country)s."
 
-#: saleor/discount/models.py:251
+#: saleor/discount/models.py:249
 msgctxt "Voucher not applicable"
 msgid "This offer is only valid for selected items."
 msgstr "Táto ponuka platí iba pre vybrané položky."
 
-#: saleor/discount/models.py:276
+#: saleor/discount/models.py:274
 msgctxt "Discount type"
 msgid "%"
 msgstr "%"
 
-#: saleor/discount/models.py:279
+#: saleor/discount/models.py:277
 msgctxt "Sale (discount) field"
 msgid "name"
 msgstr "meno"
 
-#: saleor/discount/models.py:281
+#: saleor/discount/models.py:279
 msgctxt "Sale (discount) field"
 msgid "type"
 msgstr "Typ"
 
-#: saleor/discount/models.py:284
+#: saleor/discount/models.py:282
 msgctxt "Sale (discount) field"
 msgid "value"
 msgstr "hodnota"
 
-#: saleor/discount/models.py:288
+#: saleor/discount/models.py:286
 msgctxt "Sale (discount) field"
 msgid "products"
 msgstr "produkty"
 
-#: saleor/discount/models.py:291
+#: saleor/discount/models.py:289
 msgctxt "Sale (discount) field"
 msgid "categories"
 msgstr "kategórie"
 
 #: saleor/discount/models.py:295
-msgctxt "Sale (discount) model"
-msgid "sale"
-msgstr "zľava"
-
-#: saleor/discount/models.py:296
-msgctxt "Sales (discounts) model"
-msgid "sales"
-msgstr "zľavy"
-
-#: saleor/discount/models.py:299
 msgctxt "Permission description"
 msgid "Can view sales"
 msgstr ""
 
-#: saleor/discount/models.py:301
+#: saleor/discount/models.py:297
 msgctxt "Permission description"
 msgid "Can edit sales"
 msgstr ""
 
-#: saleor/discount/models.py:338
+#: saleor/discount/models.py:334
 msgctxt "Voucher not applicable"
 msgid "Discount not applicable for this product"
 msgstr "Zľava, ktorá sa nevzťahuje na tento produkt"
@@ -507,269 +467,209 @@ msgctxt "Payment delete form error"
 msgid "Payment does not exist"
 msgstr "Platba neexistuje"
 
-#: saleor/order/models.py:49
+#: saleor/order/models.py:48
 msgctxt "Order field"
 msgid "order status"
 msgstr "stav objednávky"
 
-#: saleor/order/models.py:52
+#: saleor/order/models.py:51
 msgctxt "Order field"
 msgid "created"
 msgstr "vytvorená"
 
-#: saleor/order/models.py:55
+#: saleor/order/models.py:54
 msgctxt "Order field"
 msgid "last status change"
 msgstr "Posledná zmena stavu"
 
-#: saleor/order/models.py:59
+#: saleor/order/models.py:58
 msgctxt "Order field"
 msgid "user"
 msgstr "užívateľ"
 
-#: saleor/order/models.py:64
+#: saleor/order/models.py:63
 msgctxt "Order field"
 msgid "tracking client id"
 msgstr "ID pre sledovanie"
 
-#: saleor/order/models.py:68
+#: saleor/order/models.py:67
 msgctxt "Order field"
 msgid "billing address"
 msgstr "Fakturačná adresa"
 
-#: saleor/order/models.py:72
+#: saleor/order/models.py:71
 msgctxt "Order field"
 msgid "shipping address"
 msgstr "Dodacia adresa"
 
-#: saleor/order/models.py:75
+#: saleor/order/models.py:74
 msgctxt "Order field"
 msgid "user email"
 msgstr "E-mail používateľa"
 
-#: saleor/order/models.py:78
+#: saleor/order/models.py:77
 msgctxt "Order field"
 msgid "token"
 msgstr "token"
 
-#: saleor/order/models.py:80
+#: saleor/order/models.py:79
 msgctxt "Order field"
 msgid "total net"
 msgstr "celková suma"
 
-#: saleor/order/models.py:84
+#: saleor/order/models.py:83
 msgctxt "Order field"
 msgid "total tax"
 msgstr "celková daň"
 
-#: saleor/order/models.py:89
+#: saleor/order/models.py:88
 msgctxt "Order field"
 msgid "voucher"
 msgstr "poukaz"
 
-#: saleor/order/models.py:91
+#: saleor/order/models.py:90
 msgctxt "Order field"
 msgid "discount amount"
 msgstr "suma zľavy"
 
-#: saleor/order/models.py:95
+#: saleor/order/models.py:94
 msgctxt "Order field"
 msgid "discount name"
 msgstr "názov zľavy"
 
-#: saleor/order/models.py:108
-msgctxt "Order model"
-msgid "Order"
-msgstr "Objednať"
-
-#: saleor/order/models.py:109
-msgctxt "Order model"
-msgid "Orders"
-msgstr "Objednávky"
-
-#: saleor/order/models.py:112
+#: saleor/order/models.py:103
 msgctxt "Permission description"
 msgid "Can view orders"
 msgstr ""
 
-#: saleor/order/models.py:114
+#: saleor/order/models.py:105
 msgctxt "Permission description"
 msgid "Can edit orders"
 msgstr ""
 
-#: saleor/order/models.py:238
+#: saleor/order/models.py:229
 msgctxt "Delivery group field"
 msgid "delivery status"
 msgstr "stav doručenia"
 
-#: saleor/order/models.py:243
+#: saleor/order/models.py:234
 msgctxt "Delivery group field"
 msgid "shipping price"
 msgstr "cena prepravy"
 
-#: saleor/order/models.py:247
+#: saleor/order/models.py:238
 msgctxt "Delivery group field"
 msgid "shipping method name"
 msgstr "názov spôsobu odoslania"
 
-#: saleor/order/models.py:250
+#: saleor/order/models.py:241
 msgctxt "Delivery group field"
 msgid "tracking number"
 msgstr "sledovacie číslo"
 
-#: saleor/order/models.py:253
+#: saleor/order/models.py:244
 msgctxt "Delivery group field"
 msgid "last updated"
 msgstr "posledná zmena"
 
-#: saleor/order/models.py:257
-msgctxt "Delivery group model"
-msgid "Delivery Group"
-msgstr "Dodacia skupina"
-
-#: saleor/order/models.py:259
-msgctxt "Delivery group model"
-msgid "Delivery Groups"
-msgstr "Dodacie skupiny"
-
-#: saleor/order/models.py:263
+#: saleor/order/models.py:249
 #, python-format
 msgctxt "Delivery group str"
 msgid "Shipment #%s"
 msgstr "Zasielka #%s"
 
-#: saleor/order/models.py:335 saleor/order/utils.py:136
+#: saleor/order/models.py:321 saleor/order/utils.py:136
 msgctxt "Order status history entry"
 msgid "Order cancelled. No items in order"
 msgstr ""
 
-#: saleor/order/models.py:342
+#: saleor/order/models.py:328
 msgctxt "Ordered item field"
 msgid "delivery group"
 msgstr "dodacia skupina"
 
-#: saleor/order/models.py:347
+#: saleor/order/models.py:333
 msgctxt "Ordered item field"
 msgid "product"
 msgstr "produkt"
 
-#: saleor/order/models.py:349
+#: saleor/order/models.py:335
 msgctxt "Ordered item field"
 msgid "product name"
 msgstr "meno produktu"
 
-#: saleor/order/models.py:351
+#: saleor/order/models.py:337
 msgctxt "Ordered item field"
 msgid "sku"
 msgstr "EAN"
 
-#: saleor/order/models.py:353
+#: saleor/order/models.py:339
 msgctxt "OrderedItem field"
 msgid "stock location"
 msgstr "skladove miesto"
 
-#: saleor/order/models.py:357
+#: saleor/order/models.py:343
 msgctxt "Ordered item field"
 msgid "stock"
 msgstr "sklad"
 
-#: saleor/order/models.py:359
+#: saleor/order/models.py:345
 msgctxt "Ordered item field"
 msgid "quantity"
 msgstr "množstvo"
 
-#: saleor/order/models.py:362
+#: saleor/order/models.py:348
 msgctxt "Ordered item field"
 msgid "unit price (net)"
 msgstr "jednotková cena (netto)"
 
-#: saleor/order/models.py:365
+#: saleor/order/models.py:351
 msgctxt "Ordered item field"
 msgid "unit price (gross)"
 msgstr "jednotková cena (brutto)"
 
-#: saleor/order/models.py:371
-msgctxt "Ordered item model"
-msgid "Ordered item"
-msgstr "Objednáná položka"
-
-#: saleor/order/models.py:372
-msgctxt "Ordered item model"
-msgid "Ordered items"
-msgstr "Objednané položky"
-
-#: saleor/order/models.py:396
+#: saleor/order/models.py:378
 msgctxt "Payment field"
 msgid "order"
 msgstr "objednať"
 
-#: saleor/order/models.py:403
-msgctxt "Payment model"
-msgid "Payment"
-msgstr "Platba"
-
-#: saleor/order/models.py:404
-msgctxt "Payment model"
-msgid "Payments"
-msgstr "Platby"
-
-#: saleor/order/models.py:450
+#: saleor/order/models.py:430
 msgctxt "Order history entry field"
 msgid "last history change"
 msgstr "posledná zmena histórie"
 
-#: saleor/order/models.py:454
+#: saleor/order/models.py:434
 msgctxt "Order history entry field"
 msgid "order"
 msgstr "objednať"
 
-#: saleor/order/models.py:457
+#: saleor/order/models.py:437
 msgctxt "Order history entry field"
 msgid "order status"
 msgstr "stav objednávky"
 
-#: saleor/order/models.py:460
+#: saleor/order/models.py:440
 msgctxt "Order history entry field"
 msgid "comment"
 msgstr "komentár"
 
-#: saleor/order/models.py:464
+#: saleor/order/models.py:444
 msgctxt "Order history entry field"
 msgid "user"
 msgstr "používateľ"
 
-#: saleor/order/models.py:470
-msgctxt "Order history entry model"
-msgid "Order history entry"
-msgstr "História objednávky"
-
-#: saleor/order/models.py:472
-msgctxt "Order history entry model"
-msgid "Order history entries"
-msgstr "História objednávok"
-
-#: saleor/order/models.py:477
+#: saleor/order/models.py:453
 #, python-format
 msgctxt "Order history entry str"
 msgid "OrderHistoryEntry for Order #%d"
 msgstr "Historia objednávky pre objednávku #%d"
 
-#: saleor/order/models.py:488
+#: saleor/order/models.py:464
 msgctxt "Order note model"
 msgid "content"
 msgstr "obsah"
 
-#: saleor/order/models.py:492
-msgctxt "Order note model"
-msgid "Order note"
-msgstr "Poznámka k objednávke"
-
-#: saleor/order/models.py:493
-msgctxt "Order note model"
-msgid "Order notes"
-msgstr "Poznámky k objednávke"
-
-#: saleor/order/models.py:498
+#: saleor/order/models.py:470
 #, python-format
 msgctxt "Order note str"
 msgid "OrderNote for Order #%d"
@@ -873,330 +773,250 @@ msgctxt "Variant choice field label"
 msgid "%(variant_label)s - %(price)s"
 msgstr "%(variant_label)s - %(price)s"
 
-#: saleor/product/models.py:32
+#: saleor/product/models.py:31
 msgctxt "Category field"
 msgid "name"
 msgstr "meno"
 
-#: saleor/product/models.py:34
+#: saleor/product/models.py:33
 msgctxt "Category field"
 msgid "slug"
 msgstr "slug"
 
-#: saleor/product/models.py:36
+#: saleor/product/models.py:35
 msgctxt "Category field"
 msgid "description"
 msgstr "popis"
 
-#: saleor/product/models.py:39
+#: saleor/product/models.py:38
 msgctxt "Category field"
 msgid "parent"
 msgstr "rodič"
 
-#: saleor/product/models.py:42
+#: saleor/product/models.py:41
 msgctxt "Category field"
 msgid "hidden"
 msgstr "skrytý"
 
-#: saleor/product/models.py:48
-msgctxt "Category model"
-msgid "category"
-msgstr "kategória"
-
-#: saleor/product/models.py:49
-msgctxt "Category model"
-msgid "categories"
-msgstr "kategórie"
-
-#: saleor/product/models.py:53
+#: saleor/product/models.py:50
 msgctxt "Permission description"
 msgid "Can view categories"
 msgstr ""
 
-#: saleor/product/models.py:55
+#: saleor/product/models.py:52
 msgctxt "Permission description"
 msgid "Can edit categories"
 msgstr ""
 
-#: saleor/product/models.py:80
+#: saleor/product/models.py:77
 msgctxt "Product class field"
 msgid "name"
 msgstr "meno"
 
-#: saleor/product/models.py:82
+#: saleor/product/models.py:79
 msgctxt "Product class field"
 msgid "has variants"
 msgstr "Má varianty"
 
-#: saleor/product/models.py:86
+#: saleor/product/models.py:83
 msgctxt "Product class field"
 msgid "product attributes"
 msgstr "atribúty produktu"
 
-#: saleor/product/models.py:90
+#: saleor/product/models.py:87
 msgctxt "Product class field"
 msgid "variant attributes"
 msgstr "atribúty variantu"
 
-#: saleor/product/models.py:92
+#: saleor/product/models.py:89
 msgctxt "Product class field"
 msgid "is shipping required"
 msgstr "doprava je povinná"
 
-#: saleor/product/models.py:97
-msgctxt "Product class model"
-msgid "product class"
-msgstr "trieda produktu"
-
-#: saleor/product/models.py:99
-msgctxt "Product class model"
-msgid "product classes"
-msgstr "triedy produktu"
-
-#: saleor/product/models.py:124
+#: saleor/product/models.py:116
 msgctxt "Product field"
 msgid "product class"
 msgstr "trieda produktu"
 
-#: saleor/product/models.py:127
+#: saleor/product/models.py:119
 msgctxt "Product field"
 msgid "name"
 msgstr "meno"
 
-#: saleor/product/models.py:129
+#: saleor/product/models.py:121
 msgctxt "Product field"
 msgid "description"
 msgstr "popis"
 
-#: saleor/product/models.py:131
+#: saleor/product/models.py:123
 msgctxt "Product field"
 msgid "categories"
 msgstr "kategórie"
 
-#: saleor/product/models.py:134
+#: saleor/product/models.py:126
 msgctxt "Product field"
 msgid "price"
 msgstr "cena"
 
-#: saleor/product/models.py:137
+#: saleor/product/models.py:129
 msgctxt "Product field"
 msgid "available on"
 msgstr "k dispozícii na"
 
-#: saleor/product/models.py:139
+#: saleor/product/models.py:131
 msgctxt "Product field"
 msgid "is published"
 msgstr ""
 
-#: saleor/product/models.py:140
+#: saleor/product/models.py:133
 msgctxt "Product field"
 msgid "attributes"
 msgstr "atribúty"
 
-#: saleor/product/models.py:143
+#: saleor/product/models.py:135
 msgctxt "Product field"
 msgid "updated at"
 msgstr "zmenené na"
 
-#: saleor/product/models.py:145
+#: saleor/product/models.py:137
 msgctxt "Product field"
 msgid "is featured"
 msgstr "je zobrazený"
 
-#: saleor/product/models.py:157
-msgctxt "Product model"
-msgid "product"
-msgstr "produkt"
-
-#: saleor/product/models.py:158
-msgctxt "Product model"
-msgid "products"
-msgstr "produkty"
-
-#: saleor/product/models.py:161
+#: saleor/product/models.py:145
 msgctxt "Permission description"
 msgid "Can view products"
 msgstr ""
 
-#: saleor/product/models.py:163
+#: saleor/product/models.py:147
 msgctxt "Permission description"
 msgid "Can edit products"
 msgstr ""
 
-#: saleor/product/models.py:166
+#: saleor/product/models.py:150
 msgctxt "Permission description"
 msgid "Can view product properties"
 msgstr ""
 
-#: saleor/product/models.py:169
+#: saleor/product/models.py:153
 msgctxt "Permission description"
 msgid "Can edit product properties"
 msgstr ""
 
-#: saleor/product/models.py:238
+#: saleor/product/models.py:222
 msgctxt "Product variant field"
 msgid "SKU"
 msgstr "EAN"
 
-#: saleor/product/models.py:241
+#: saleor/product/models.py:225
 msgctxt "Product variant field"
 msgid "variant name"
 msgstr "názov variantu"
 
-#: saleor/product/models.py:244
+#: saleor/product/models.py:228
 msgctxt "Product variant field"
 msgid "price override"
 msgstr "prepis ceny"
 
-#: saleor/product/models.py:250
+#: saleor/product/models.py:234
 msgctxt "Product variant field"
 msgid "attributes"
 msgstr "atribúty"
 
-#: saleor/product/models.py:253
+#: saleor/product/models.py:237
 msgctxt "Product variant field"
 msgid "images"
 msgstr "obrázoky"
 
-#: saleor/product/models.py:258
-msgctxt "Product variant model"
-msgid "product variant"
-msgstr "variant produktu"
-
-#: saleor/product/models.py:260
-msgctxt "Product variant model"
-msgid "product variants"
-msgstr "varianty produktu"
-
-#: saleor/product/models.py:345
+#: saleor/product/models.py:324
 msgctxt "Stock location field"
 msgid "location"
 msgstr "lokacia"
 
-#: saleor/product/models.py:351
+#: saleor/product/models.py:330
 msgctxt "Permission description"
 msgid "Can view stock location"
 msgstr ""
 
-#: saleor/product/models.py:354
+#: saleor/product/models.py:333
 msgctxt "Permission description"
 msgid "Can edit stock location"
 msgstr ""
 
-#: saleor/product/models.py:380
+#: saleor/product/models.py:358
 msgctxt "Stock item field"
 msgid "variant"
 msgstr "varianta"
 
-#: saleor/product/models.py:385
+#: saleor/product/models.py:363
 msgctxt "Stock item field"
 msgid "quantity"
 msgstr "množstvo"
 
-#: saleor/product/models.py:388
+#: saleor/product/models.py:366
 msgctxt "Stock item field"
 msgid "allocated quantity"
 msgstr "pridelené množstvo"
 
-#: saleor/product/models.py:391
+#: saleor/product/models.py:369
 msgctxt "Stock item field"
 msgid "cost price"
 msgstr "cena"
 
-#: saleor/product/models.py:412
+#: saleor/product/models.py:390
 msgctxt "Product attribute field"
 msgid "internal name"
 msgstr "interný názov"
 
-#: saleor/product/models.py:415
+#: saleor/product/models.py:393
 msgctxt "Product attribute field"
 msgid "display name"
 msgstr "zobraziť meno"
 
-#: saleor/product/models.py:421
-msgctxt "Product attribute model"
-msgid "product attribute"
-msgstr "atribút produktu"
-
-#: saleor/product/models.py:423
-msgctxt "Product attribute model"
-msgid "product attributes"
-msgstr "atribúty produktu"
-
-#: saleor/product/models.py:438
+#: saleor/product/models.py:412
 msgctxt "Attribute choice value field"
 msgid "display name"
 msgstr "zobraziť meno"
 
-#: saleor/product/models.py:442
+#: saleor/product/models.py:416
 msgctxt "Attribute choice value field"
 msgid "color"
 msgstr "farba"
 
-#: saleor/product/models.py:453
-msgctxt "Attribute choice value model"
-msgid "attribute choices value"
-msgstr "hodnota výberu atribútu"
-
-#: saleor/product/models.py:456
-msgctxt "Attribute choice value model"
-msgid "attribute choices values"
-msgstr "hodnoty výberu atribútu"
-
-#: saleor/product/models.py:473
+#: saleor/product/models.py:441
 msgctxt "Product image field"
 msgid "product"
 msgstr "produkt"
 
-#: saleor/product/models.py:477
+#: saleor/product/models.py:445
 msgctxt "Product image field"
 msgid "image"
 msgstr "obrázok"
 
-#: saleor/product/models.py:478
+#: saleor/product/models.py:446
 msgctxt "Product image field"
 msgid "ppoi"
 msgstr "ppoi"
 
-#: saleor/product/models.py:480
+#: saleor/product/models.py:448
 msgctxt "Product image field"
 msgid "short description"
 msgstr "stručný popis"
 
-#: saleor/product/models.py:483
+#: saleor/product/models.py:451
 msgctxt "Product image field"
 msgid "order"
 msgstr "objednať"
 
-#: saleor/product/models.py:491
-msgctxt "Product image model"
-msgid "product image"
-msgstr "obrázok produktu"
-
-#: saleor/product/models.py:493
-msgctxt "Product image model"
-msgid "product images"
-msgstr "obrázky produktu"
-
-#: saleor/product/models.py:515
+#: saleor/product/models.py:479
 msgctxt "Variant image field"
 msgid "variant"
 msgstr "variant"
 
-#: saleor/product/models.py:519
+#: saleor/product/models.py:483
 msgctxt "Variant image field"
 msgid "image"
 msgstr "obrázok"
-
-#: saleor/product/models.py:524
-msgctxt "Variant image model"
-msgid "variant image"
-msgstr "variant obrázku"
-
-#: saleor/product/models.py:526
-msgctxt "Variant image model"
-msgid "variant images"
-msgstr "variant obrázkov"
 
 #: saleor/registration/forms.py:13
 msgctxt "Form field"
@@ -1236,50 +1056,30 @@ msgctxt "Shipping method field"
 msgid "description"
 msgstr "popis"
 
-#: saleor/shipping/models.py:32
-msgctxt "Shipping method model"
-msgid "shipping method"
-msgstr "spôsob dopravy"
-
 #: saleor/shipping/models.py:34
-msgctxt "Shipping method model"
-msgid "shipping methods"
-msgstr "spôsoby dopravy"
-
-#: saleor/shipping/models.py:38
 msgctxt "Permission description"
 msgid "Can view shipping method"
 msgstr ""
 
-#: saleor/shipping/models.py:41
+#: saleor/shipping/models.py:37
 msgctxt "Permission description"
 msgid "Can edit shipping method"
 msgstr ""
 
-#: saleor/shipping/models.py:88
+#: saleor/shipping/models.py:84
 msgctxt "Shipping method country field"
 msgid "country code"
 msgstr "kód krajiny"
 
-#: saleor/shipping/models.py:92
+#: saleor/shipping/models.py:88
 msgctxt "Shipping method country field"
 msgid "price"
 msgstr "cena"
 
-#: saleor/shipping/models.py:97
+#: saleor/shipping/models.py:93
 msgctxt "Shipping method country field"
 msgid "shipping method"
 msgstr "spôsob dopravy"
-
-#: saleor/shipping/models.py:105
-msgctxt "Shipping method country model"
-msgid "shipping method country"
-msgstr "spôsob dodania pre krajinu"
-
-#: saleor/shipping/models.py:107
-msgctxt "Shipping method country model"
-msgid "shipping method countries"
-msgstr "spôsob dodania pre krajiny"
 
 #: saleor/site/models.py:19
 msgctxt "Site field"
@@ -1476,92 +1276,72 @@ msgctxt "Address field"
 msgid "phone number"
 msgstr "telefonné číslo"
 
-#: saleor/userprofile/models.py:85
-msgctxt "Address model"
-msgid "address"
-msgstr "adresa"
-
-#: saleor/userprofile/models.py:86
-msgctxt "Address model"
-msgid "addresses"
-msgstr "adresy"
-
-#: saleor/userprofile/models.py:126
+#: saleor/userprofile/models.py:122
 msgctxt "User field"
 msgid "email"
 msgstr "email"
 
-#: saleor/userprofile/models.py:129
+#: saleor/userprofile/models.py:125
 msgctxt "User field"
 msgid "addresses"
 msgstr "adresy"
 
-#: saleor/userprofile/models.py:131
+#: saleor/userprofile/models.py:127
 msgctxt "User field"
 msgid "staff status"
 msgstr "štatút zamestnancov"
 
-#: saleor/userprofile/models.py:134
+#: saleor/userprofile/models.py:130
 msgctxt "User field"
 msgid "active"
 msgstr "aktívny"
 
-#: saleor/userprofile/models.py:137
+#: saleor/userprofile/models.py:133
 msgctxt "User field"
 msgid "date joined"
 msgstr "dátum registrácie"
 
-#: saleor/userprofile/models.py:142
+#: saleor/userprofile/models.py:138
 msgctxt "User field"
 msgid "default shipping address"
 msgstr "predvolená dodacia adresa"
 
-#: saleor/userprofile/models.py:146
+#: saleor/userprofile/models.py:142
 msgctxt "User field"
 msgid "default billing address"
 msgstr "predvolená fakturačná adresa"
 
-#: saleor/userprofile/models.py:156
-msgctxt "User model"
-msgid "user"
-msgstr "uživateľ"
-
-#: saleor/userprofile/models.py:157
-msgctxt "User model"
-msgid "users"
-msgstr "uživatelia"
-
-#: saleor/userprofile/models.py:160
+#: saleor/userprofile/models.py:151
 msgctxt "Permission description"
 msgid "Can view users"
 msgstr ""
 
-#: saleor/userprofile/models.py:162
+#: saleor/userprofile/models.py:153
 msgctxt "Permission description"
 msgid "Can edit users"
 msgstr ""
 
-#: saleor/userprofile/models.py:164
+#: saleor/userprofile/models.py:155
 msgctxt "Permission description"
 msgid "Can view groups"
 msgstr ""
 
-#: saleor/userprofile/models.py:166
+#: saleor/userprofile/models.py:157
 msgctxt "Permission description"
 msgid "Can edit groups"
 msgstr ""
 
-#: saleor/userprofile/models.py:168
+#: saleor/userprofile/models.py:159
 msgctxt "Permission description"
 msgid "Can view staff"
 msgstr ""
 
-#: saleor/userprofile/models.py:170
+#: saleor/userprofile/models.py:161
 msgctxt "Permission description"
 msgid "Can edit staff"
 msgstr ""
 
-#: saleor/userprofile/models.py:172
+#: saleor/userprofile/models.py:163
 msgctxt "Permission description"
 msgid "Can impersonate users"
 msgstr ""
@@ -1594,8 +1374,8 @@ msgstr "Adresa úspešne aktualizovaná."
 
 #: saleor/userprofile/views.py:56
 msgctxt "Storefront message"
-msgid "Address successfully deleted."
-msgstr "Adresa úspešne odstránená."
+msgid "Address successfully removed"
+msgstr ""
 
 #: templates/account/email/password_reset_message.txt:1
 #, python-format
@@ -1659,11 +1439,11 @@ msgctxt "Login form secondary link"
 msgid "Forgot password?"
 msgstr "Zabudli ste heslo?"
 
-#: templates/account/partials/login_form.html:29
+#: templates/account/partials/login_form.html:32
 msgid "Facebook"
 msgstr "Facebook"
 
-#: templates/account/partials/login_form.html:37
+#: templates/account/partials/login_form.html:42
 msgid "Google"
 msgstr "Google"
 
@@ -1953,8 +1733,8 @@ msgstr "Košík"
 
 #: templates/cart/index.html:19
 msgctxt "Cart message"
-msgid "Product has been deleted from cart"
-msgstr "Produkt bol odstránený z košíka"
+msgid "Product has been removed from cart"
+msgstr ""
 
 #: templates/cart/index.html:27
 msgctxt "Cart table header"
@@ -2319,6 +2099,7 @@ msgstr "Typy produktu"
 #: templates/dashboard/product/product_attribute/form.html:29
 #: templates/dashboard/product/product_attribute/list.html:8
 #: templates/dashboard/product/product_attribute/list.html:28
+#: templates/dashboard/product/product_attribute/values/form.html:29
 msgctxt "Dashboard attributes list"
 msgid "Attributes"
 msgstr "Atribúty"
@@ -2329,8 +2110,7 @@ msgctxt "Dashboard shipping methods list"
 msgid "Shipping methods"
 msgstr "Spôsoby dopravy"
 
-#: templates/dashboard/base.html:221 templates/dashboard/sites/detail.html:11
-#: templates/dashboard/sites/detail.html:21
+#: templates/dashboard/base.html:221 templates/dashboard/sites/form.html:11
 msgctxt "Dashboard site settings"
 msgid "Site settings"
 msgstr "Nastavenie stránky"
@@ -2342,7 +2122,7 @@ msgstr "Verzia:"
 
 #: templates/dashboard/base_modal_confirm_delete.html:10
 msgctxt "Dashboard confirmation modal"
-msgid "Delete"
+msgid "Remove"
 msgstr ""
 
 #: templates/dashboard/base_modal_confirm_delete.html:16
@@ -2352,56 +2132,59 @@ msgid "Are you sure?"
 msgstr "Ste si istý?"
 
 #: templates/dashboard/base_modal_confirm_delete.html:22
-#: templates/dashboard/product/product_image/list.html:72
-#: templates/dashboard/product/product_image/list.html:118
-#: templates/dashboard/shipping/form.html:88
-msgctxt "Dashboard delete action"
-msgid "Delete"
-msgstr "Vymazať"
-
-#: templates/dashboard/base_modal_confirm_delete.html:25
 #: templates/dashboard/category/detail.html:80
 #: templates/dashboard/category/detail.html:84
-#: templates/dashboard/category/modal/edit.html:28
-#: templates/dashboard/customer/modal/confirm_promote.html:20
+#: templates/dashboard/category/modal/edit.html:25
+#: templates/dashboard/customer/modal/confirm_promote.html:17
 #: templates/dashboard/discount/sale/form.html:98
 #: templates/dashboard/discount/sale/form.html:105
 #: templates/dashboard/discount/voucher/form.html:127
 #: templates/dashboard/discount/voucher/form.html:134
 #: templates/dashboard/group/detail.html:85
 #: templates/dashboard/order/address_form.html:61
-#: templates/dashboard/order/modal/add_note.html:19
-#: templates/dashboard/order/modal/cancel_line.html:63
-#: templates/dashboard/order/modal/capture.html:32
-#: templates/dashboard/order/modal/change_quantity.html:19
-#: templates/dashboard/order/modal/delivery_group_stock.html:23
-#: templates/dashboard/order/modal/refund.html:32
-#: templates/dashboard/order/modal/release.html:19
-#: templates/dashboard/order/modal/ship_delivery_group.html:23
-#: templates/dashboard/order/modal/split_order_line.html:19
+#: templates/dashboard/order/modal/add_note.html:20
+#: templates/dashboard/order/modal/cancel_line.html:60
+#: templates/dashboard/order/modal/capture.html:29
+#: templates/dashboard/order/modal/change_quantity.html:16
+#: templates/dashboard/order/modal/delivery_group_stock.html:20
+#: templates/dashboard/order/modal/refund.html:29
+#: templates/dashboard/order/modal/release.html:16
+#: templates/dashboard/order/modal/ship_delivery_group.html:20
+#: templates/dashboard/order/modal/split_order_line.html:16
 #: templates/dashboard/product/form.html:112
 #: templates/dashboard/product/form.html:119
-#: templates/dashboard/product/list.html:140
-#: templates/dashboard/product/product_attribute/form.html:109
-#: templates/dashboard/product/product_attribute/form.html:116
+#: templates/dashboard/product/list.html:137
+#: templates/dashboard/product/product_attribute/form.html:77
+#: templates/dashboard/product/product_attribute/form.html:84
+#: templates/dashboard/product/product_attribute/values/form.html:79
+#: templates/dashboard/product/product_attribute/values/form.html:86
 #: templates/dashboard/product/product_class/form.html:101
 #: templates/dashboard/product/product_class/form.html:108
 #: templates/dashboard/product/product_image/form.html:80
 #: templates/dashboard/product/product_image/form.html:87
 #: templates/dashboard/product/product_variant/form.html:104
 #: templates/dashboard/product/product_variant/form.html:111
-#: templates/dashboard/product/product_variant/modal/select_images.html:20
+#: templates/dashboard/product/product_variant/modal/select_images.html:17
 #: templates/dashboard/product/stock/form.html:99
 #: templates/dashboard/product/stock/form.html:106
 #: templates/dashboard/product/stock_location/form.html:74
 #: templates/dashboard/product/stock_location/form.html:81
-#: templates/dashboard/shipping/form.html:121
-#: templates/dashboard/shipping/form.html:128
-#: templates/dashboard/sites/detail.html:80
+#: templates/dashboard/shipping/country/form.html:81
+#: templates/dashboard/shipping/country/form.html:88
+#: templates/dashboard/shipping/form.html:78
+#: templates/dashboard/shipping/form.html:85
+#: templates/dashboard/sites/authorization_keys/form.html:72
+#: templates/dashboard/sites/authorization_keys/form.html:79
+#: templates/dashboard/sites/form.html:55
 #: templates/dashboard/staff/detail.html:77
 msgctxt "Dashboard cancel action"
 msgid "Cancel"
 msgstr "Zrušiť"
+
+#: templates/dashboard/base_modal_confirm_delete.html:25
+msgctxt "Dashboard delete action"
+msgid "Remove"
+msgstr ""
 
 #: templates/dashboard/category/detail.html:11
 #: templates/dashboard/category/detail.html:24
@@ -2415,15 +2198,15 @@ msgid "Add new category"
 msgstr "Pridať novú kategóriu"
 
 #: templates/dashboard/category/detail.html:89
-#: templates/dashboard/category/modal/edit.html:25
+#: templates/dashboard/category/modal/edit.html:28
 #: templates/dashboard/discount/sale/form.html:101
 #: templates/dashboard/discount/voucher/form.html:130
 #: templates/dashboard/group/detail.html:89
 #: templates/dashboard/order/address_form.html:64
-#: templates/dashboard/order/modal/change_quantity.html:16
+#: templates/dashboard/order/modal/change_quantity.html:19
 #: templates/dashboard/product/product_class/form.html:104
 #: templates/dashboard/product/stock_location/form.html:77
-#: templates/dashboard/sites/detail.html:83
+#: templates/dashboard/sites/form.html:58
 #: templates/dashboard/staff/detail.html:81
 msgctxt "Dashboard update action"
 msgid "Update"
@@ -2433,13 +2216,16 @@ msgstr "Aktualizovať"
 #: templates/dashboard/discount/sale/form.html:108
 #: templates/dashboard/discount/voucher/form.html:137
 #: templates/dashboard/product/form.html:122
-#: templates/dashboard/product/product_attribute/form.html:119
+#: templates/dashboard/product/product_attribute/form.html:87
+#: templates/dashboard/product/product_attribute/values/form.html:89
 #: templates/dashboard/product/product_class/form.html:111
 #: templates/dashboard/product/product_image/form.html:90
 #: templates/dashboard/product/product_variant/form.html:114
 #: templates/dashboard/product/stock/form.html:109
 #: templates/dashboard/product/stock_location/form.html:84
-#: templates/dashboard/shipping/form.html:131
+#: templates/dashboard/shipping/country/form.html:91
+#: templates/dashboard/shipping/form.html:88
+#: templates/dashboard/sites/authorization_keys/form.html:82
 msgctxt "Dashboard create action"
 msgid "Create"
 msgstr "Vytvoriť"
@@ -2486,31 +2272,31 @@ msgstr "Žiadne kategórie."
 
 #: templates/dashboard/category/modal/confirm_delete.html:11
 #, python-format
-msgctxt "Delete category modal title"
-msgid "Delete category %(category)s"
+msgctxt "Remove category modal title"
+msgid "Remove category %(category)s"
 msgstr ""
 
 #: templates/dashboard/category/modal/confirm_delete.html:17
 #, python-format
-msgctxt "Delete category modal title"
+msgctxt "Remove category modal title"
 msgid ""
-"Are you sure you want to delete category <strong>%(category)s</strong>?"
+"Are you sure you want to remove category <strong>%(category)s</strong>?"
 msgstr ""
 
 #: templates/dashboard/category/modal/confirm_delete.html:22
 msgctxt "Delete category form text about descendant categories"
-msgid "The following child categories will be deleted:"
-msgstr "Nasledujúce kategórie detí budú odstránené:"
+msgid "The following child categories will be removed:"
+msgstr ""
 
 #: templates/dashboard/category/modal/confirm_delete.html:39
 #, python-format
-msgctxt "Delete category form text about products"
-msgid "There is one product in this category that will be deleted."
+msgctxt "Remove category form text about products"
+msgid "There is one product in this category that will be removed."
 msgid_plural ""
-"There are %(counter)s products in this category that will be deleted."
-msgstr[0] "Jeden produkt v tejto kategórii bude vymazaný."
-msgstr[1] "V tejto kategórii budu vymazané %(counter)s produktov."
-msgstr[2] "V tejto kategórii budu vymazané %(counter)s produktov."
+"There are %(counter)s products in this category that will be removed."
+msgstr[0] ""
+msgstr[1] ""
+msgstr[2] ""
 
 #: templates/dashboard/category/modal/edit.html:11
 #, python-format
@@ -2617,7 +2403,7 @@ msgctxt "Dashboard confirmation modal"
 msgid "Promote to staff member"
 msgstr ""
 
-#: templates/dashboard/customer/modal/confirm_promote.html:17
+#: templates/dashboard/customer/modal/confirm_promote.html:20
 msgctxt "Dashboard promote action"
 msgid "Promote"
 msgstr ""
@@ -2670,13 +2456,13 @@ msgstr "Neboli nájdené žiadne položky"
 
 #: templates/dashboard/discount/sale/modal/confirm_delete.html:8
 #, python-format
-msgctxt "Delete sale (discount) text"
-msgid "Delete sale %(sale)s"
+msgctxt "Remove sale (discount) text"
+msgid "Remove sale %(sale)s"
 msgstr ""
 
 #: templates/dashboard/discount/sale/modal/confirm_delete.html:14
 #, python-format
-msgctxt "Delete sale (discount) text"
+msgctxt "Remove sale (discount) text"
 msgid "Are you sure you want to selete <strong>%(sale)s</strong>?"
 msgstr ""
 
@@ -2742,14 +2528,14 @@ msgstr "Neboli nájdené žiadne poukazy"
 
 #: templates/dashboard/discount/voucher/modal/confirm_delete.html:10
 #, python-format
-msgctxt "Delete voucher text"
-msgid "Delete voucher %(voucher)s"
+msgctxt "Remove voucher text"
+msgid "Remove voucher %(voucher)s"
 msgstr ""
 
 #: templates/dashboard/discount/voucher/modal/confirm_delete.html:16
 #, python-format
-msgctxt "Delete voucher text"
-msgid "Are you sure you want to delete voucher <strong>%(voucher)s</strong>?"
+msgctxt "Remove voucher text"
+msgid "Are you sure you want to remove voucher <strong>%(voucher)s</strong>?"
 msgstr ""
 
 #: templates/dashboard/group/detail.html:10
@@ -2800,15 +2586,15 @@ msgstr ""
 
 #: templates/dashboard/group/modal/confirm_delete.html:8
 #, python-format
-msgctxt "Modal delete group text"
-msgid "Delete group <strong>%(group)s</strong>?"
+msgctxt "Modal remove group text"
+msgid "Remove group <strong>%(group)s</strong>?"
 msgstr ""
 
 #: templates/dashboard/group/modal/confirm_delete.html:14
 #, python-format
-msgctxt "Modal delete group text"
+msgctxt "Modal remove group text"
 msgid ""
-"<p>Are you sure you want to delete group %(group)s?</p> <p>Users might lose "
+"<p>Are you sure you want to remove group %(group)s?</p> <p>Users might lose "
 "permissions related to this group.</p>"
 msgstr ""
 
@@ -2971,7 +2757,7 @@ msgid "Order summary"
 msgstr "Prehľad objednávky"
 
 #: templates/dashboard/order/detail.html:106
-#: templates/dashboard/search/results.html:85
+#: templates/dashboard/search/results.html:84
 msgctxt "Dashboard customer"
 msgid "Customer"
 msgstr "Zákazník"
@@ -3223,12 +3009,12 @@ msgctxt "Empty order list message"
 msgid "No orders."
 msgstr "Žiadne objednávky."
 
-#: templates/dashboard/order/modal/add_note.html:8
+#: templates/dashboard/order/modal/add_note.html:10
 msgctxt "Modal add note title"
 msgid "Add note"
 msgstr "Pridať poznámku"
 
-#: templates/dashboard/order/modal/add_note.html:16
+#: templates/dashboard/order/modal/add_note.html:23
 msgctxt "Modal add note primary action"
 msgid "Save note"
 msgstr "Uložiť poznámku"
@@ -3249,16 +3035,16 @@ msgstr ""
 "sklad./n            "
 
 #: templates/dashboard/order/modal/cancel_delivery_group.html:18
-msgctxt "Modal cancel delivery group primary action"
-msgid "Cancel this shipment"
-msgstr "Zrušte túto zásielku"
-
-#: templates/dashboard/order/modal/cancel_delivery_group.html:21
-#: templates/dashboard/order/modal/cancel_order.html:23
-#: templates/dashboard/order/modal/order_remove_voucher.html:22
+#: templates/dashboard/order/modal/cancel_order.html:20
+#: templates/dashboard/order/modal/order_remove_voucher.html:19
 msgctxt "Dashboard abort action"
 msgid "Abort"
 msgstr "Prerušiť"
+
+#: templates/dashboard/order/modal/cancel_delivery_group.html:21
+msgctxt "Modal cancel delivery group primary action"
+msgid "Cancel this shipment"
+msgstr "Zrušte túto zásielku"
 
 #: templates/dashboard/order/modal/cancel_line.html:9
 msgctxt "Modal remove order line title"
@@ -3295,7 +3081,9 @@ msgctxt "Modal remove order line table header"
 msgid "Total"
 msgstr "Súčet"
 
-#: templates/dashboard/order/modal/cancel_line.html:60
+#: templates/dashboard/order/modal/cancel_line.html:63
+#: templates/dashboard/product/product_image/list.html:72
+#: templates/dashboard/product/product_image/list.html:118
 msgctxt "Dashboard remove action"
 msgid "Remove"
 msgstr "Odstrániť"
@@ -3311,7 +3099,7 @@ msgctxt "Modal cancel order text"
 msgid "Are you sure, you want cancel order %(order)s?"
 msgstr "Ste si istý že chcete ukončit objenávku %(order)s?"
 
-#: templates/dashboard/order/modal/cancel_order.html:20
+#: templates/dashboard/order/modal/cancel_order.html:23
 msgctxt "Modal cancel order primary action"
 msgid "Cancel Order"
 msgstr "Zrušiť objednávku"
@@ -3336,7 +3124,7 @@ msgctxt "Modal capture payment list title"
 msgid "Captured amount:"
 msgstr "Captured amount"
 
-#: templates/dashboard/order/modal/capture.html:29
+#: templates/dashboard/order/modal/capture.html:32
 msgctxt "Modal capture payment primary action"
 msgid "Capture"
 msgstr "Zachytené"
@@ -3351,13 +3139,16 @@ msgctxt "Modal change stock title"
 msgid "Change stock"
 msgstr ""
 
-#: templates/dashboard/order/modal/delivery_group_stock.html:20
+#: templates/dashboard/order/modal/delivery_group_stock.html:23
 #: templates/dashboard/product/form.html:115
-#: templates/dashboard/product/product_attribute/form.html:112
+#: templates/dashboard/product/product_attribute/form.html:80
+#: templates/dashboard/product/product_attribute/values/form.html:82
 #: templates/dashboard/product/product_image/form.html:83
 #: templates/dashboard/product/product_variant/form.html:107
 #: templates/dashboard/product/stock/form.html:102
-#: templates/dashboard/shipping/form.html:124
+#: templates/dashboard/shipping/country/form.html:84
+#: templates/dashboard/shipping/form.html:81
+#: templates/dashboard/sites/authorization_keys/form.html:75
 msgctxt "Dashboard update action"
 msgid "Save"
 msgstr "Uložiť"
@@ -3373,7 +3164,7 @@ msgctxt "Modal remove voucher from order text"
 msgid "Are you sure, you want remove voucher discount from %(order)s?"
 msgstr "Ste si istý, že chcete zmazať kupón s objednávok %(order)s ?"
 
-#: templates/dashboard/order/modal/order_remove_voucher.html:19
+#: templates/dashboard/order/modal/order_remove_voucher.html:22
 msgctxt "Modal remove voucher from order primary action"
 msgid "Remove voucher"
 msgstr "Odstráňte poukaz"
@@ -3398,7 +3189,7 @@ msgctxt "Modal refund payment list title"
 msgid "Captured amount:"
 msgstr "Captured amount:"
 
-#: templates/dashboard/order/modal/refund.html:29
+#: templates/dashboard/order/modal/refund.html:32
 msgctxt "Modal refund payment primary action"
 msgid "Refund"
 msgstr "Vrátenie"
@@ -3413,7 +3204,7 @@ msgctxt "Modal release payment text"
 msgid "Do you want to release the payment?"
 msgstr "Chcete uhradiť platbu?"
 
-#: templates/dashboard/order/modal/release.html:16
+#: templates/dashboard/order/modal/release.html:19
 msgctxt "Modal release payment primary action"
 msgid "Release"
 msgstr "Uvolniť"
@@ -3428,7 +3219,7 @@ msgctxt "Modal ship delivery group text"
 msgid "Dispatch this shipment to the following address:"
 msgstr "Odošlite túto zásielku na túto adresu:"
 
-#: templates/dashboard/order/modal/ship_delivery_group.html:20
+#: templates/dashboard/order/modal/ship_delivery_group.html:23
 msgctxt "Modal ship delivery group primary action"
 msgid "Ship"
 msgstr "Loď"
@@ -3438,7 +3229,7 @@ msgctxt "Modal split order line title"
 msgid "Split order line"
 msgstr "Rozdeliť riadok objednávky"
 
-#: templates/dashboard/order/modal/split_order_line.html:16
+#: templates/dashboard/order/modal/split_order_line.html:19
 msgctxt "Modal split order line primary action"
 msgid "Split"
 msgstr "Rozdeliť"
@@ -3637,6 +3428,9 @@ msgid "Variant"
 msgstr ""
 
 #: templates/dashboard/product/detail.html:94
+#: templates/dashboard/product/product_attribute/detail.html:67
+#: templates/dashboard/shipping/detail.html:78
+#: templates/dashboard/sites/detail.html:82
 msgid "Add"
 msgstr "Pridať"
 
@@ -3743,21 +3537,21 @@ msgctxt "Empty product list without product types message"
 msgid "Create product type first."
 msgstr "Najprv vytvorte typ produktu."
 
-#: templates/dashboard/product/list.html:137
+#: templates/dashboard/product/list.html:140
 msgctxt "Dashboard add action"
 msgid "Create new"
 msgstr ""
 
 #: templates/dashboard/product/modal/confirm_delete.html:9
 #, python-format
-msgctxt "Modal delete product text"
-msgid "Delete product %(product)s"
+msgctxt "Modal remove product text"
+msgid "Remove product %(product)s"
 msgstr ""
 
 #: templates/dashboard/product/modal/confirm_delete.html:15
 #, python-format
-msgctxt "Modal delete product text"
-msgid "Are you sure you want to delete product <strong>%(product)s</strong>?"
+msgctxt "Modal remove product text"
+msgid "Are you sure you want to remove product <strong>%(product)s</strong>?"
 msgstr ""
 
 #: templates/dashboard/product/product_attribute/detail.html:18
@@ -3779,38 +3573,49 @@ msgstr "Odstrániť atribút"
 msgid "Attribute values"
 msgstr "Hodnoty atribútov"
 
-#: templates/dashboard/product/product_attribute/detail.html:68
+#: templates/dashboard/product/product_attribute/detail.html:75
 msgid "Display name"
 msgstr "Zobraziť meno"
 
-#: templates/dashboard/product/product_attribute/detail.html:69
+#: templates/dashboard/product/product_attribute/detail.html:76
 msgid "Color"
 msgstr "Farba"
 
+#: templates/dashboard/product/product_attribute/detail.html:98
+#: templates/dashboard/shipping/detail.html:100
+msgctxt "Attribute choice value edit action"
+msgid "Edit"
+msgstr ""
+
+#: templates/dashboard/product/product_attribute/detail.html:101
+msgctxt "Attribute choice value edit action"
+msgid "Remove"
+msgstr ""
+
 #: templates/dashboard/product/product_attribute/form.html:8
+#: templates/dashboard/product/product_attribute/values/form.html:8
 msgctxt "Dashboard attributes list"
 msgid "Edit"
 msgstr "Upraviť"
 
 #: templates/dashboard/product/product_attribute/form.html:10
+#: templates/dashboard/product/product_attribute/values/form.html:10
 msgctxt "Attribute detail page title"
 msgid "Add new attribute"
 msgstr "Pridať nový atribút"
 
 #: templates/dashboard/product/product_attribute/form.html:45
+#: templates/dashboard/product/product_attribute/values/form.html:47
+#: templates/dashboard/shipping/country/form.html:49
 msgctxt "Attribute detail breadcrumbs"
 msgid "Edit"
 msgstr "Upraviť"
 
 #: templates/dashboard/product/product_attribute/form.html:51
+#: templates/dashboard/product/product_attribute/values/form.html:53
 msgctxt "Attribute detail breadcrumbs"
 msgid "Add new attribute"
 msgstr "Pridať nový atribút"
-
-#: templates/dashboard/product/product_attribute/form.html:74
-msgctxt "Attribute values formset title"
-msgid "Attribute values"
-msgstr "Hodnoty atribútov"
 
 #: templates/dashboard/product/product_attribute/list.html:18
 msgctxt "Attribute list add button text"
@@ -3832,17 +3637,36 @@ msgctxt "Empty attribute list message"
 msgid "No attributes found."
 msgstr "Nenašli sa žiadne atribúty."
 
-#: templates/dashboard/product/product_attribute/modal/confirm_delete.html:10
+#: templates/dashboard/product/product_attribute/modal/attribute_confirm_delete.html:10
 #, python-format
-msgctxt "Modal delete attribute text"
-msgid "Delete attribute %(attribute)s"
+msgctxt "Modal remove attribute text"
+msgid "Remove attribute %(attribute)s"
 msgstr ""
 
-#: templates/dashboard/product/product_attribute/modal/confirm_delete.html:16
+#: templates/dashboard/product/product_attribute/modal/attribute_confirm_delete.html:16
+#, python-format
+msgctxt "Modal remove attribute text"
+msgid ""
+"Are you sure you want to remove attribute <strong>%(attribute)s</strong>?"
+msgstr ""
+
+#: templates/dashboard/product/product_attribute/values/form.html:70
+msgctxt "Attribute values form title"
+msgid "Attribute values"
+msgstr ""
+
+#: templates/dashboard/product/product_attribute/values/modal/confirm_delete.html:10
+#, python-format
+msgctxt "Modal delete attribute text"
+msgid "Delete attribute choice value %(value)s"
+msgstr ""
+
+#: templates/dashboard/product/product_attribute/values/modal/confirm_delete.html:16
 #, python-format
 msgctxt "Modal delete attribute text"
 msgid ""
-"Are you sure you want to delete attribute <strong>%(attribute)s</strong>?"
+"Are you sure you want to delete attribute choice value "
+"<strong>%(value)s</strong>?"
 msgstr ""
 
 #: templates/dashboard/product/product_class/form.html:12
@@ -3901,26 +3725,26 @@ msgstr "Vytvor nový"
 
 #: templates/dashboard/product/product_class/modal/confirm_delete.html:10
 #, python-format
-msgctxt "Modal delete product class text"
-msgid "Delete product class %(product_class)s"
+msgctxt "Modal remove product class text"
+msgid "Remove product class %(product_class)s"
 msgstr ""
 
 #: templates/dashboard/product/product_class/modal/confirm_delete.html:17
 #, python-format
-msgctxt "Modal delete product class text"
+msgctxt "Modal remove product class text"
 msgid ""
-"Are you sure you want to delete product class "
+"Are you sure you want to remove product class "
 "<strong>%(product_class)s</strong>?"
 msgstr ""
 
 #: templates/dashboard/product/product_class/modal/confirm_delete.html:23
 #, python-format
-msgctxt "Modal delete product class text"
+msgctxt "Modal remove product class text"
 msgid "There are %(product_count)s products in product class."
 msgstr ""
 
 #: templates/dashboard/product/product_class/modal/confirm_delete.html:27
-msgctxt "Modal delete product class text"
+msgctxt "Modal remove product class text"
 msgid "There are no products in this product class."
 msgstr ""
 
@@ -3976,13 +3800,13 @@ msgid "Add image"
 msgstr "Pridať obrázok"
 
 #: templates/dashboard/product/product_image/modal/confirm_delete.html:11
-msgctxt "Modal delete image text"
-msgid "Delete product image"
+msgctxt "Modal remove image text"
+msgid "Remove product image"
 msgstr ""
 
 #: templates/dashboard/product/product_image/modal/confirm_delete.html:18
-msgctxt "Modal delete image text"
-msgid "Are you sure you want to delete product image?"
+msgctxt "Modal remove image text"
+msgid "Are you sure you want to remove product image?"
 msgstr ""
 
 #: templates/dashboard/product/product_image/versatile_image.html:7
@@ -4021,7 +3845,7 @@ msgstr ""
 
 #: templates/dashboard/product/product_variant/detail.html:96
 msgctxt "Dashboard action"
-msgid "Delete variant"
+msgid "Remove variant"
 msgstr ""
 
 #: templates/dashboard/product/product_variant/detail.html:127
@@ -4074,7 +3898,7 @@ msgstr "Tento produkt nemá žiadne atribúty."
 msgctxt "Dashboard confirmation modal"
 msgid ""
 "\n"
-"Delete variant %(variant)s\n"
+"Remove variant %(variant)s\n"
 msgstr ""
 
 #: templates/dashboard/product/product_variant/modal/confirm_delete.html:19
@@ -4082,7 +3906,7 @@ msgstr ""
 msgctxt "Dashboard confirmation modal"
 msgid ""
 "\n"
-"Are you sure you want to delete variant <strong>%(variant)s</strong> of product %(product)s?\n"
+"Are you sure you want to remove variant <strong>%(variant)s</strong> of product %(product)s?\n"
 msgstr ""
 
 #: templates/dashboard/product/product_variant/modal/confirm_delete.html:25
@@ -4097,7 +3921,7 @@ msgctxt "Dashboard variant images modal"
 msgid "Select variant images"
 msgstr ""
 
-#: templates/dashboard/product/product_variant/modal/select_images.html:17
+#: templates/dashboard/product/product_variant/modal/select_images.html:20
 msgctxt "Dashboard modal action"
 msgid "Save"
 msgstr "Uložiť"
@@ -4124,7 +3948,7 @@ msgstr ""
 
 #: templates/dashboard/product/stock/detail.html:69
 msgctxt "Dashboard action"
-msgid "Delete stock"
+msgid "Remove stock"
 msgstr ""
 
 #: templates/dashboard/product/stock/form.html:8
@@ -4165,7 +3989,7 @@ msgstr "Pridať sklad pre %(product)s"
 msgctxt "Dashboard confirmation modal"
 msgid ""
 "\n"
-"Delete stock %(stock)s\n"
+"Remove stock %(stock)s\n"
 msgstr ""
 
 #: templates/dashboard/product/stock/modal/confirm_delete.html:17
@@ -4173,7 +3997,7 @@ msgstr ""
 msgctxt "Dashboard confirmation modal"
 msgid ""
 "\n"
-"Are you sure you want to delete stock <strong>%(stock)s</strong>?\n"
+"Are you sure you want to remove stock <strong>%(stock)s</strong>?\n"
 msgstr ""
 
 #: templates/dashboard/product/stock_location/form.html:11
@@ -4220,35 +4044,29 @@ msgstr "Neboli nájdené žiadne lokality."
 
 #: templates/dashboard/product/stock_location/modal/confirm_delete.html:10
 #, python-format
-msgctxt "Modal delete stock location text"
-msgid "Delete stock location %(location)s"
+msgctxt "Modal remove stock location text"
+msgid "Remove stock location %(location)s"
 msgstr ""
 
 #: templates/dashboard/product/stock_location/modal/confirm_delete.html:17
 #, python-format
-msgctxt "Modal delete stock location text"
+msgctxt "Modal remove stock location text"
 msgid ""
-"Are you sure you want to delete stock location "
+"Are you sure you want to remove stock location "
 "<strong>%(location)s</strong>?"
 msgstr ""
 
 #: templates/dashboard/product/stock_location/modal/confirm_delete.html:23
 #, python-format
-msgctxt "Modal delete stock location text"
+msgctxt "Modal remove stock location text"
 msgid ""
-"There is one stock associated with this stock location that will be deleted."
+"There is one stock associated with this stock location that will be removed."
 msgid_plural ""
 "There are %(counter)s stocks associated with this stock location that will "
-"be deleted."
+"be removed."
 msgstr[0] ""
-"Je tu jedena skladová jednotka spojená s týmto skladovým miestom ktorý bude "
-"vymazaná"
 msgstr[1] ""
-"Je tu %(counter)s skladových jednotiek spojené s týmto skladovým miestom "
-"ktoré budú vymazané."
 msgstr[2] ""
-"Je tu %(counter)s skladových jednotiek spojené s týmto skladovým miestom "
-"ktoré budú vymazané."
 
 #: templates/dashboard/search/results.html:9 templates/search/results.html:7
 msgctxt "Search page title"
@@ -4260,35 +4078,60 @@ msgctxt "Dashboard search"
 msgid "Search results"
 msgstr "Výsledky vyhľadávania"
 
-#: templates/dashboard/search/results.html:58
+#: templates/dashboard/search/results.html:56
 #, python-format
 msgctxt "Dashboard order"
 msgid "Order #%(order_number)s"
 msgstr "Objednávka #%(order_number)s"
 
-#: templates/dashboard/search/results.html:64
+#: templates/dashboard/search/results.html:62
 #, python-format
 msgctxt "Dashboard customer"
 msgid "Customer: %(email)s"
 msgstr "Zákaznik: %(email)s"
 
-#: templates/dashboard/search/results.html:69
+#: templates/dashboard/search/results.html:67
 #, python-format
 msgctxt "Dashboard order info"
 msgid "Placed on: %(placed)s"
 msgstr "Umiestnená na: %(placed)s"
 
-#: templates/dashboard/search/results.html:79
+#: templates/dashboard/search/results.html:78
 #, python-format
 msgctxt "Dashboard user"
 msgid "User %(full_name)s"
 msgstr "User %(full_name)s"
 
-#: templates/dashboard/search/results.html:97
+#: templates/dashboard/search/results.html:95
 #, python-format
 msgctxt "No Search result message"
 msgid "No results for query \"%(query)s\"."
 msgstr "Nenajdené žiadne výsledky pre \"%(query)s\"."
+
+#: templates/dashboard/shipping/country/form.html:8
+msgctxt "Dashboard price per country edit page"
+msgid "Edit"
+msgstr ""
+
+#: templates/dashboard/shipping/country/form.html:10
+msgctxt "Shipping price per country edit page title"
+msgid "Add new shipping price per country"
+msgstr ""
+
+#: templates/dashboard/shipping/country/form.html:31
+msgctxt "Dashboard attributes list"
+msgid "Shipping methods"
+msgstr ""
+
+#: templates/dashboard/shipping/country/form.html:55
+msgctxt "Attribute detail breadcrumbs"
+msgid "Add new price for country"
+msgstr ""
+
+#: templates/dashboard/shipping/country/form.html:72
+msgctxt "Shipping method price for country form title"
+msgid "Shipping method price for country "
+msgstr ""
 
 #: templates/dashboard/shipping/detail.html:21
 msgctxt "Shipping method form breadcrumbs"
@@ -4307,25 +4150,30 @@ msgstr "Upraviť spôsob dopravy"
 
 #: templates/dashboard/shipping/detail.html:62
 msgctxt "Shipping method action"
-msgid "Delete shipping method"
-msgstr "Odstrániť spôsob dopravy"
+msgid "Remove shipping method"
+msgstr ""
 
 #: templates/dashboard/shipping/detail.html:73
 msgctxt "Title of the per-country shipping price list"
 msgid "Price per country"
 msgstr "Cena pre krajinu"
 
-#: templates/dashboard/shipping/detail.html:81
+#: templates/dashboard/shipping/detail.html:86
 msgctxt "Header of the per-country shipping price list"
 msgid "Country"
 msgstr "Krajina"
 
-#: templates/dashboard/shipping/detail.html:83
+#: templates/dashboard/shipping/detail.html:89
 msgctxt "Header of the per-country shipping price list"
 msgid "Price"
 msgstr "Cena"
 
-#: templates/dashboard/shipping/detail.html:94
+#: templates/dashboard/shipping/detail.html:103
+msgctxt "Attribute choice value remove action"
+msgid "Remove"
+msgstr ""
+
+#: templates/dashboard/shipping/detail.html:109
 msgctxt "Empty list of per-country shipping prices"
 msgid "No shipping prices"
 msgstr ""
@@ -4355,21 +4203,6 @@ msgstr "Upraviť"
 msgctxt "Shipping method form breadcrumbs"
 msgid "Add new method"
 msgstr "Pridať novú metódu"
-
-#: templates/dashboard/shipping/form.html:75
-msgctxt "Shipping method form text"
-msgid "Price per country"
-msgstr "Cena pre krajinu"
-
-#: templates/dashboard/shipping/form.html:82
-msgctxt "Shipping method country list"
-msgid "Country"
-msgstr "Krajina"
-
-#: templates/dashboard/shipping/form.html:85
-msgctxt "Shipping method country list"
-msgid "Price"
-msgstr "Cena"
 
 #: templates/dashboard/shipping/list.html:29
 msgctxt "Shipping method list add button text"
@@ -4401,7 +4234,7 @@ msgstr "Nenašli sa žiadne spôsoby odoslania"
 msgctxt "Dashboard confirmation modal"
 msgid ""
 "\n"
-"Delete shipping method %(shipping_method)s\n"
+"Remove shipping method %(shipping_method)s\n"
 msgstr ""
 
 #: templates/dashboard/shipping/modal/confirm_delete.html:18
@@ -4409,18 +4242,128 @@ msgstr ""
 msgctxt "Dashboard confirmation modal"
 msgid ""
 "\n"
-"Are you sure you want to delete shipping method <strong>%(shipping_method)s</strong>?\n"
+"Are you sure you want to remove shipping method <strong>%(shipping_method)s</strong>?\n"
 msgstr ""
 
-#: templates/dashboard/sites/detail.html:9
+#: templates/dashboard/shipping/modal/country_confirm_delete.html:10
+#, python-format
+msgctxt "Modal delete attribute text"
+msgid "Delete shipping %(country)s"
+msgstr ""
+
+#: templates/dashboard/shipping/modal/country_confirm_delete.html:16
+#, python-format
+msgctxt "Modal delete attribute text"
+msgid "Are you sure you want to delete shipping <strong>%(country)s</strong>?"
+msgstr ""
+
+#: templates/dashboard/sites/authorization_keys/form.html:8
+msgctxt "Dashboard authorization key list"
+msgid "Edit"
+msgstr ""
+
+#: templates/dashboard/sites/authorization_keys/form.html:10
+msgctxt "Add new authorization key page title"
+msgid "Add new authorization key"
+msgstr ""
+
+#: templates/dashboard/sites/authorization_keys/form.html:29
+msgctxt "Dashboard site setting detail"
+msgid "Site settings"
+msgstr ""
+
+#: templates/dashboard/sites/authorization_keys/form.html:40
+msgctxt "Authorization key breadcrumbs"
+msgid "Edit"
+msgstr ""
+
+#: templates/dashboard/sites/authorization_keys/form.html:46
+msgctxt "Authorization key breadcrumbs"
+msgid "Add new authorization key"
+msgstr ""
+
+#: templates/dashboard/sites/authorization_keys/form.html:63
+msgctxt "Authorization key form title"
+msgid "Authorization key"
+msgstr ""
+
+#: templates/dashboard/sites/detail.html:34
+msgctxt "Site settings field"
+msgid "Domain"
+msgstr ""
+
+#: templates/dashboard/sites/detail.html:44
+msgctxt "Site settings field"
+msgid "Header text"
+msgstr ""
+
+#: templates/dashboard/sites/detail.html:54
+msgctxt "Site settings field"
+msgid "Description"
+msgstr ""
+
+#: templates/dashboard/sites/detail.html:68
+msgctxt "Shipping method action"
+msgid "Edit site settings"
+msgstr ""
+
+#: templates/dashboard/sites/detail.html:77
+msgctxt "Title of the authorization keys list"
+msgid "Authorization keys"
+msgstr ""
+
+#: templates/dashboard/sites/detail.html:90
+msgctxt "Header of authorization keys list"
+msgid "Name"
+msgstr ""
+
+#: templates/dashboard/sites/detail.html:93
+msgctxt "Header of authorization keys list"
+msgid "Key"
+msgstr ""
+
+#: templates/dashboard/sites/detail.html:104
+msgctxt "Authorization key edit action"
+msgid "Edit"
+msgstr ""
+
+#: templates/dashboard/sites/detail.html:107
+msgctxt "Authorization key remove action"
+msgid "Remove"
+msgstr ""
+
+#: templates/dashboard/sites/detail.html:113
+msgctxt "Empty list of authorization keys"
+msgid "No authorization keys"
+msgstr ""
+
+#: templates/dashboard/sites/form.html:9
 msgctxt "Site settings page title"
 msgid "Add new site settings"
 msgstr "Pridajte nové nastavenia lokality"
 
-#: templates/dashboard/sites/detail.html:46
-msgctxt "Authorization keys formset title"
-msgid "Authorization keys"
-msgstr "Autorizačné kľúče"
+#: templates/dashboard/sites/form.html:22
+msgctxt "Dashboard attributes list"
+msgid "Site settings"
+msgstr ""
+
+#: templates/dashboard/sites/form.html:27
+msgctxt "Dashboard site settings"
+msgid "Edit"
+msgstr ""
+
+#: templates/dashboard/sites/modal/confirm_delete.html:10
+#, python-format
+msgctxt "Modal delete authorization key text"
+msgid "Delete authorization key %(key)s"
+msgstr ""
+
+#: templates/dashboard/sites/modal/confirm_delete.html:16
+#, python-format
+msgctxt "Modal delete authorization key text"
+msgid ""
+"Are you sure you want to delete authorization key <strong>%(key)s</strong>?"
+msgstr ""
 
 #: templates/dashboard/staff/detail.html:10
 msgctxt "Dashboard add group"
@@ -4465,15 +4408,15 @@ msgstr ""
 
 #: templates/dashboard/staff/modal/confirm_delete.html:8
 #, python-format
-msgctxt "Modal delete group text"
-msgid "Delete staff member <strong>%(staff)s</strong>?"
+msgctxt "Modal remove group text"
+msgid "Remove staff member <strong>%(staff)s</strong>?"
 msgstr ""
 
 #: templates/dashboard/staff/modal/confirm_delete.html:14
 #, python-format
-msgctxt "Modal delete group text"
+msgctxt "Modal remove group text"
 msgid ""
-"<p>Are you sure you want to delete staff member?</p> <p>Deleting staff "
+"<p>Are you sure you want to remove staff member?</p> <p>Deleting staff "
 "member also removes him from customer list and removes all his related data "
 "(orders, payment etc.).</p> <p>We strongly recommend not deleting user "
 "accounts that were used for purchases (for example customer which was "
@@ -4516,17 +4459,17 @@ msgstr "Vybrané produkty"
 #: templates/materializecssform/field.html:86
 #: templates/materializecssform/field.html:109
 #: templates/materializecssform/field.html:135
-#: templates/materializecssform/field.html:158
-#: templates/materializecssform/field.html:179
-#: templates/materializecssform/field.html:193
-#: templates/materializecssform/field.html:229
-#: templates/materializecssform/field.html:260
+#: templates/materializecssform/field.html:161
+#: templates/materializecssform/field.html:183
+#: templates/materializecssform/field.html:197
+#: templates/materializecssform/field.html:233
+#: templates/materializecssform/field.html:264
 msgctxt "Dashboard form labels"
 msgid "(optional)"
 msgstr "(voliteľný)"
 
-#: templates/materializecssform/field.html:199
-#: templates/materializecssform/field.html:235
+#: templates/materializecssform/field.html:203
+#: templates/materializecssform/field.html:239
 msgid "File"
 msgstr "Súbor"
 
@@ -4799,14 +4742,14 @@ msgid "Search:"
 msgstr "Vyhľadávanie:"
 
 #: templates/userprofile/address-delete.html:6
-msgctxt "Delete address form action"
-msgid "Delete Address"
-msgstr "Odstrániť adresu"
+msgctxt "Remove address form action"
+msgid "Remove Address"
+msgstr ""
 
 #: templates/userprofile/address-delete.html:9
-msgctxt "Delete address form action"
+msgctxt "Remove address form action"
 msgid "Cancel"
-msgstr "Zrušiť"
+msgstr ""
 
 #: templates/userprofile/address-edit.html:7
 msgctxt "Edit address page title"
