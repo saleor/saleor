@@ -108,7 +108,7 @@ def voucher_edit(request, pk=None):
                 'Voucher message', 'Updated voucher') if pk else pgettext_lazy(
                     'Voucher message', 'Added voucher')
             messages.success(request, msg)
-            return redirect('dashboard:voucher-update', pk=instance.pk)
+            return redirect('dashboard:voucher-list')
     ctx = {
         'voucher': instance, 'default_currency': settings.DEFAULT_CURRENCY,
         'form': voucher_form, 'type_base_forms': type_base_forms}
