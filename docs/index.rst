@@ -13,7 +13,7 @@ Contents:
    products
    stock
    settings
-   search
+   contentsearch
    localization
    seo
    payments
