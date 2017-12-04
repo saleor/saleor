@@ -62,6 +62,9 @@
     @include media-breakpoint-down(sm) {
       padding: $global-padding*3 0 $global-padding*2;
     }
+    @media (max-width: 370px) {
+      padding-top: 5rem;
+    }
     h2 {
       font-size: 1.8rem;
       color: $body-color;
@@ -115,6 +118,11 @@
     background: $blue;
     margin-left: $global-margin/2;
     border-radius: 50%;
+  }
+  &__wrapper {
+    @include media-breakpoint-down(sm) {
+      padding-top: 8px;
+    }
   }
 }
 
@@ -172,16 +180,16 @@
       }
     }
     &:before {
-        content: '';
-        display: block;
-        width: 15px;
-        height: 10px;
-        position: absolute;
-        top: -10px;
-        right: 15px;
-        background-color: $light-gray;
-        clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
-      }
+      content: '';
+      display: block;
+      width: 15px;
+      height: 10px;
+      position: absolute;
+      top: -10px;
+      right: 15px;
+      background-color: $light-gray;
+      clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
+    }
   }
   .click-area {
     width: 100%;
