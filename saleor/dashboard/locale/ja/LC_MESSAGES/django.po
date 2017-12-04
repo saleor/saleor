@@ -8,8 +8,9 @@ msgid ""
 msgstr ""
 "Project-Id-Version: master\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2017-11-20 04:38-0600\n"
+"POT-Creation-Date: 2017-11-27 16:26-0600\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: Saito Kotaro <kotaro_saito@backroot.net>, 2017\n"
 "Language-Team: Japanese (https://www.transifex.com/mirumee/teams/34782/ja/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -21,211 +22,206 @@ msgstr ""
 #, python-format
 msgctxt "Dashboard message"
 msgid "Added category %s"
-msgstr ""
+msgstr "分類「 %s 」を追加しました。"
 
 #: saleor/dashboard/category/views.py:63
 #, python-format
 msgctxt "Dashboard message"
 msgid "Updated category %s"
-msgstr ""
+msgstr "分類 「%s 」を更新しました。"
 
 #: saleor/dashboard/category/views.py:84
 #, python-format
 msgctxt "Dashboard message"
-msgid "Deleted category %s"
-msgstr ""
+msgid "Removed category %s"
+msgstr "分類「%s」を削除しました。"
 
 #: saleor/dashboard/customer/views.py:55
 #, python-format
 msgctxt "Dashboard message"
 msgid "Customer %s promoted to staff member"
-msgstr ""
+msgstr "顧客「%s」がスタッフに昇格しました。"
 
 #: saleor/dashboard/discount/forms.py:25
 msgctxt "Sale (discount) error"
 msgid "Sale cannot exceed 100%"
-msgstr ""
+msgstr "売り上げは100％を超えることができません。"
 
 #: saleor/dashboard/discount/forms.py:66
 msgctxt "Shipping voucher form label for `limit` field"
 msgid "Only if order is over or equal to"
-msgstr ""
+msgstr "注文がそれ以上の場合のみ"
 
 #: saleor/dashboard/discount/forms.py:70
 msgctxt "Shipping voucher form label for `apply_to` field"
 msgid "Country"
-msgstr ""
+msgstr "国"
 
 #: saleor/dashboard/discount/forms.py:90
 msgctxt "Value voucher form label for `limit` field"
 msgid "Only if purchase value is greater than or equal to"
-msgstr ""
+msgstr "購入金額がそれ以上である場合のみ"
 
 #: saleor/dashboard/discount/views.py:37
 msgctxt "Sale (discount) message"
 msgid "Updated sale"
-msgstr ""
+msgstr "売り上げを更新しました。"
 
 #: saleor/dashboard/discount/views.py:38
 msgctxt "Sale (discount) message"
 msgid "Added sale"
-msgstr ""
+msgstr "売り上げを追加しました。"
 
 #: saleor/dashboard/discount/views.py:53
 #, python-format
 msgctxt "Sale (discount) message"
-msgid "Deleted sale %s"
-msgstr ""
+msgid "Removed sale %s"
+msgstr "売り上げ「%s」を削除しました。"
 
 #: saleor/dashboard/discount/views.py:103
 msgctxt "Voucher message"
 msgid "Updated voucher"
-msgstr ""
+msgstr "クーポンを更新しました。"
 
 #: saleor/dashboard/discount/views.py:104
 msgctxt "Voucher message"
 msgid "Added voucher"
-msgstr ""
+msgstr "クーポンを追加しました。"
 
 #: saleor/dashboard/discount/views.py:122
 #, python-format
 msgctxt "Voucher message"
-msgid "Deleted voucher %s"
-msgstr ""
+msgid "Removed voucher %s"
+msgstr "クーポン「%s」を削除しました。"
 
 #: saleor/dashboard/group/views.py:37
 msgctxt "Dashboard message"
 msgid "Created group"
-msgstr ""
+msgstr "グループを作成しました。"
 
 #: saleor/dashboard/group/views.py:52
 #, python-format
 msgctxt "Dashboard message"
 msgid "Updated group %s"
-msgstr ""
+msgstr "グループ「%s」を更新しました。"
 
 #: saleor/dashboard/group/views.py:67
 #, python-format
 msgctxt "Dashboard message"
-msgid "Deleted group %s"
-msgstr ""
+msgid "Removed group %s"
+msgstr "グループ「%s」を削除しました。"
 
-#: saleor/dashboard/order/forms.py:28
-msgctxt "Order note form placeholder"
-msgid "Note"
-msgstr ""
-
-#: saleor/dashboard/order/forms.py:37
+#: saleor/dashboard/order/forms.py:36
 msgctxt "Payment management form (capture, refund, release)"
 msgid "Amount"
-msgstr ""
+msgstr "金額"
 
-#: saleor/dashboard/order/forms.py:51
+#: saleor/dashboard/order/forms.py:50
 msgctxt "Payment form error"
 msgid "Only pre-authorized payments can be captured"
-msgstr ""
+msgstr "事前に承認された支払いのみを取り込むことができます。"
 
-#: saleor/dashboard/order/forms.py:62 saleor/dashboard/order/forms.py:84
-#: saleor/dashboard/order/forms.py:109
+#: saleor/dashboard/order/forms.py:61 saleor/dashboard/order/forms.py:83
+#: saleor/dashboard/order/forms.py:108
 #, python-format
 msgctxt "Payment form error"
 msgid "Payment gateway error: %s"
-msgstr ""
+msgstr "支払いシステムエラー：%s"
 
-#: saleor/dashboard/order/forms.py:73
+#: saleor/dashboard/order/forms.py:72
 msgctxt "Payment form error"
 msgid "Only confirmed payments can be refunded"
-msgstr ""
+msgstr "確認済の支払いのみ払い戻すことができます。"
 
-#: saleor/dashboard/order/forms.py:99
+#: saleor/dashboard/order/forms.py:98
 msgctxt "Payment form error"
 msgid "Only pre-authorized payments can be released"
-msgstr ""
+msgstr "事前に承認された支払いのみをリリースすることができます。"
 
-#: saleor/dashboard/order/forms.py:117
+#: saleor/dashboard/order/forms.py:116
 msgctxt "Move items form label"
 msgid "Quantity"
-msgstr ""
+msgstr "数量"
 
-#: saleor/dashboard/order/forms.py:120
+#: saleor/dashboard/order/forms.py:119
 msgctxt "Move items form label"
 msgid "Target shipment"
-msgstr ""
+msgstr "出荷対象"
 
-#: saleor/dashboard/order/forms.py:137
+#: saleor/dashboard/order/forms.py:136
 msgctxt "Delivery group value for `target_group` field"
 msgid "New shipment"
-msgstr ""
+msgstr "新規出荷"
 
-#: saleor/dashboard/order/forms.py:173
+#: saleor/dashboard/order/forms.py:172
 msgctxt "Change quantity form label"
 msgid "Quantity"
-msgstr ""
+msgstr "数量"
 
-#: saleor/dashboard/order/forms.py:193
+#: saleor/dashboard/order/forms.py:192
 #, python-format
 msgctxt "Change quantity form error"
 msgid "Only %(remaining)d remaining in stock."
 msgid_plural "Only %(remaining)d remaining in stock."
-msgstr[0] ""
+msgstr[0] "残りの %(remaining)d のみが在庫に残ります。"
 
-#: saleor/dashboard/order/forms.py:221
+#: saleor/dashboard/order/forms.py:220
 msgctxt "Ship group form field placeholder"
 msgid "Parcel tracking number"
-msgstr ""
+msgstr "荷物追跡番号"
 
-#: saleor/dashboard/order/forms.py:228
+#: saleor/dashboard/order/forms.py:227
 msgctxt "Ship group form error"
 msgid "Cannot ship this group"
-msgstr ""
+msgstr "このグループを発送できません。"
 
-#: saleor/dashboard/order/forms.py:265
+#: saleor/dashboard/order/forms.py:264
 msgctxt "Cancel order form error"
 msgid "This order can't be cancelled"
-msgstr ""
+msgstr "この注文はキャンセルできません。"
 
-#: saleor/dashboard/order/forms.py:284
+#: saleor/dashboard/order/forms.py:283
 msgctxt "Remove voucher form error"
 msgid "This order has no voucher"
-msgstr ""
+msgstr "この注文にクーポンはありません。"
 
-#: saleor/dashboard/order/forms.py:297
+#: saleor/dashboard/order/forms.py:296
 msgctxt "Order status field value"
 msgid "All"
-msgstr ""
+msgstr "すべて"
 
-#: saleor/dashboard/order/forms.py:302
+#: saleor/dashboard/order/forms.py:301
 msgctxt "Payment status field value"
 msgid "All"
-msgstr ""
+msgstr "すべて"
 
-#: saleor/dashboard/order/forms.py:338
+#: saleor/dashboard/order/forms.py:337
 #, python-format
 msgctxt "Change stock form error"
 msgid "Only %(remaining)d remaining in this stock."
-msgstr ""
+msgstr " %(remaining)d 個の在庫があります。"
 
 #: saleor/dashboard/order/views.py:96
 msgctxt "Dashboard message related to an order"
 msgid "Added note"
-msgstr ""
+msgstr "備考を追加しました。"
 
 #: saleor/dashboard/order/views.py:119
 #, python-format
 msgctxt "Dashboard message related to a payment"
 msgid "Captured %(amount)s"
-msgstr ""
+msgstr "%(amount)s を取り込みました。"
 
 #: saleor/dashboard/order/views.py:142
 #, python-format
 msgctxt "Dashboard message related to a payment"
 msgid "Refunded %(amount)s"
-msgstr ""
+msgstr "%(amount)sを払い戻しました。"
 
 #: saleor/dashboard/order/views.py:160
 msgctxt "Dashboard message"
 msgid "Released payment"
-msgstr ""
+msgstr "解除された支払い"
 
 #: saleor/dashboard/order/views.py:185
 #, python-format
@@ -233,269 +229,325 @@ msgctxt "Dashboard message related to an order line"
 msgid ""
 "Changed quantity for product %(product)s from %(old_quantity)s to "
 "%(new_quantity)s"
-msgstr ""
+msgstr "製品「 %(product)s 」の数量を %(old_quantity)s から %(new_quantity)sに変更しました。"
 
 #: saleor/dashboard/order/views.py:218
 msgctxt "Dashboard message related to a delivery group"
 msgid "removed group"
-msgstr ""
+msgstr "削除されたグループ"
 
 #: saleor/dashboard/order/views.py:221
 #, python-format
 msgctxt "Dashboard message related to delivery groups"
 msgid "Moved %(how_many)s items %(item)s from %(old_group)s to %(new_group)s"
-msgstr ""
+msgstr "%(how_many)s 個の %(item)s を %(old_group)s から %(new_group)sに移動しました。"
 
 #: saleor/dashboard/order/views.py:246
 #, python-format
 msgctxt "Dashboard message related to an order line"
 msgid "Cancelled item %s"
-msgstr ""
+msgstr "キャンセルされた商品「%s」"
 
 #: saleor/dashboard/order/views.py:272
 #, python-format
 msgctxt "Dashboard message related to a delivery group"
 msgid "Shipped %s"
-msgstr ""
+msgstr "配送済「%s」"
 
 #: saleor/dashboard/order/views.py:295
 #, python-format
 msgctxt "Dashboard message related to a delivery group"
 msgid "Cancelled %s"
-msgstr ""
+msgstr "キャンセル済「%s」"
 
 #: saleor/dashboard/order/views.py:314
 msgctxt "Dashboard message"
 msgid "Updated shipping address"
-msgstr ""
+msgstr "配送先住所を更新しました。"
 
 #: saleor/dashboard/order/views.py:319
 msgctxt "Dashboard message"
 msgid "Updated billing address"
-msgstr ""
+msgstr "請求先住所を更新しました。"
 
 #: saleor/dashboard/order/views.py:337
 msgctxt "Dashboard message"
 msgid "Cancelled order"
-msgstr ""
+msgstr "キャンセルされた注文"
 
 #: saleor/dashboard/order/views.py:358
 msgctxt "Dashboard message"
 msgid "Removed voucher from order"
-msgstr ""
+msgstr "注文からクーポンを削除しました。"
 
 #: saleor/dashboard/order/views.py:404
 #, python-format
 msgctxt "Dashboard message"
 msgid "Stock location changed for %s"
-msgstr ""
+msgstr "「%s」の在庫の場所が変更されました。"
 
 #: saleor/dashboard/product/__init__.py:10
 msgctxt "product bulk action"
 msgid "Publish"
-msgstr ""
+msgstr "公開"
 
 #: saleor/dashboard/product/__init__.py:11
 msgctxt "product bulk action"
 msgid "Unpublish"
-msgstr ""
+msgstr "非公開"
 
-#: saleor/dashboard/product/forms.py:26
+#: saleor/dashboard/product/forms.py:25
 msgctxt "Product class form label"
 msgid "Product type"
-msgstr ""
+msgstr "商品の種類"
 
-#: saleor/dashboard/product/forms.py:48
+#: saleor/dashboard/product/forms.py:47
 msgctxt "stock form error"
 msgid "Stock item for this location and variant already exists"
-msgstr ""
+msgstr "この場所とバリエーションの在庫は既に存在します。"
 
-#: saleor/dashboard/product/forms.py:63
+#: saleor/dashboard/product/forms.py:62
 msgctxt "Product class form label"
 msgid "Attributes specific to each variant"
-msgstr ""
+msgstr "各バリエーション固有の属性"
 
-#: saleor/dashboard/product/forms.py:66
+#: saleor/dashboard/product/forms.py:65
 msgctxt "Product class form label"
 msgid "Attributes common to all variants"
-msgstr ""
+msgstr "すべてのバリエーションに共通する属性"
 
-#: saleor/dashboard/product/forms.py:76
+#: saleor/dashboard/product/forms.py:75
 msgctxt "Product class form error"
 msgid "Product variants are disabled."
-msgstr ""
+msgstr "製品バリエーションは無効になっています。"
 
-#: saleor/dashboard/product/forms.py:81
+#: saleor/dashboard/product/forms.py:80
 msgctxt "Product class form error"
 msgid "A single attribute can't belong to both a product and its variant."
-msgstr ""
+msgstr "単一の属性は、製品とそのバリエーションの両方に属することはできません。"
 
-#: saleor/dashboard/product/forms.py:95
+#: saleor/dashboard/product/forms.py:94
 msgctxt "Product class form error"
 msgid "Some products of this type have more than one variant."
-msgstr ""
+msgstr "このタイプの製品には複数のバリエーションがあります。"
 
-#: saleor/dashboard/product/forms.py:107
+#: saleor/dashboard/product/forms.py:106
 msgctxt "product form"
 msgid "Published"
-msgstr ""
+msgstr "公開済"
 
-#: saleor/dashboard/product/forms.py:109
+#: saleor/dashboard/product/forms.py:108
 msgctxt "product form"
 msgid "Feature this product on homepage"
-msgstr ""
+msgstr "この商品はホームページに掲載されています。"
 
-#: saleor/dashboard/product/forms.py:115
+#: saleor/dashboard/product/forms.py:114
 msgctxt "Product form placeholder"
 msgid "Search"
-msgstr ""
+msgstr "検索"
 
 #: saleor/dashboard/product/views.py:52
 #, python-format
 msgctxt "Dashboard message"
 msgid "Added product type %s"
-msgstr ""
+msgstr "商品の種類「%s」を追加しました。"
 
 #: saleor/dashboard/product/views.py:72
 #, python-format
 msgctxt "Dashboard message"
 msgid "Updated product type %s"
-msgstr ""
+msgstr "商品の種類「%s」を更新しました。"
 
 #: saleor/dashboard/product/views.py:92
 #, python-format
 msgctxt "Dashboard message"
-msgid "Deleted product type %s"
-msgstr ""
+msgid "Removed product type %s"
+msgstr "商品の種類「%s」を削除しました。"
 
 #: saleor/dashboard/product/views.py:145
 #, python-format
 msgctxt "Dashboard message"
 msgid "Added product %s"
-msgstr ""
+msgstr "商品「%s」を追加しました。"
 
 #: saleor/dashboard/product/views.py:220
 #, python-format
 msgctxt "Dashboard message"
 msgid "Updated product %s"
-msgstr ""
+msgstr "商品「%s」を更新しました。"
 
 #: saleor/dashboard/product/views.py:236
 #, python-format
 msgctxt "Dashboard message"
-msgid "Deleted product %s"
-msgstr ""
+msgid "Removed product %s"
+msgstr "商品「%s」を削除しました。"
 
 #: saleor/dashboard/product/views.py:271
 msgctxt "Dashboard message"
 msgid "Saved stock"
-msgstr ""
+msgstr "保管した在庫"
 
 #: saleor/dashboard/product/views.py:292
 msgctxt "Dashboard message"
-msgid "Deleted stock"
-msgstr ""
+msgid "Removed stock"
+msgstr "削除した在庫"
 
 #: saleor/dashboard/product/views.py:330
 #, python-format
 msgctxt "Dashboard message"
 msgid "Updated image %s"
-msgstr ""
+msgstr "イメージ「%s」を更新しました。"
 
 #: saleor/dashboard/product/views.py:334
 #, python-format
 msgctxt "Dashboard message"
 msgid "Added image %s"
-msgstr ""
+msgstr "イメージ「%s」を追加しました。"
 
 #: saleor/dashboard/product/views.py:355
 #, python-format
 msgctxt "Dashboard message"
-msgid "Deleted image %s"
-msgstr ""
+msgid "Removed image %s"
+msgstr "イメージ「%s」を削除しました。"
 
 #: saleor/dashboard/product/views.py:379
 #, python-format
 msgctxt "Dashboard message"
 msgid "Saved variant %s"
-msgstr ""
+msgstr "バリエーション「%s」を保存しました。"
 
 #: saleor/dashboard/product/views.py:448
 #, python-format
 msgctxt "Dashboard message"
-msgid "Deleted variant %s"
-msgstr ""
+msgid "Removed variant %s"
+msgstr "バリエーション「%s」を削除しました。"
 
-#: saleor/dashboard/product/views.py:500
+#: saleor/dashboard/product/views.py:497
 msgctxt "Dashboard message"
 msgid "Updated attribute"
-msgstr ""
+msgstr "属性を更新しました。"
 
-#: saleor/dashboard/product/views.py:501
+#: saleor/dashboard/product/views.py:498
 msgctxt "Dashboard message"
 msgid "Added attribute"
-msgstr ""
+msgstr "属性を追加しました。"
 
-#: saleor/dashboard/product/views.py:521
+#: saleor/dashboard/product/views.py:518
 #, python-format
 msgctxt "Dashboard message"
-msgid "Deleted attribute %s"
-msgstr ""
+msgid "Removed attribute %s"
+msgstr "属性「%s」を削除しました。"
 
-#: saleor/dashboard/product/views.py:554
+#: saleor/dashboard/product/views.py:540
+msgctxt "Dashboard message"
+msgid "Updated attribute's value"
+msgstr "属性の値を更新しました。"
+
+#: saleor/dashboard/product/views.py:542
+msgctxt "Dashboard message"
+msgid "Added attribute's value"
+msgstr "属性の値を追加しました。"
+
+#: saleor/dashboard/product/views.py:562
+#, python-format
+msgctxt "Dashboard message"
+msgid "Removed attribute's value %s"
+msgstr "属性の値「%s」を削除しました。"
+
+#: saleor/dashboard/product/views.py:595
 msgctxt "Dashboard message for stock location"
 msgid "Updated location"
-msgstr ""
+msgstr "場所を更新しました。"
 
-#: saleor/dashboard/product/views.py:555
+#: saleor/dashboard/product/views.py:596
 msgctxt "Dashboard message for stock location"
 msgid "Added location"
-msgstr ""
+msgstr "場所を追加しました。"
 
-#: saleor/dashboard/product/views.py:574
+#: saleor/dashboard/product/views.py:615
 #, python-format
 msgctxt "Dashboard message for stock location"
-msgid "Deleted location %s"
-msgstr ""
+msgid "Removed location %s"
+msgstr "場所「%s」を削除しました。"
 
-#: saleor/dashboard/product/views.py:623
+#: saleor/dashboard/product/views.py:664
 #, python-format
 msgctxt "Dashboard message"
 msgid "%(count)d product has been updated"
 msgid_plural "%(count)d products have been updated"
-msgstr[0] ""
+msgstr[0] "%(count)d 製品が更新されました。"
 
-#: saleor/dashboard/shipping/views.py:36
+#: saleor/dashboard/shipping/views.py:39
+msgctxt "dashboard message"
+msgid "Updated shipping method"
+msgstr "配送方法を更新しました。"
+
+#: saleor/dashboard/shipping/views.py:41
+msgctxt "Dashboard message"
+msgid "Added shipping method"
+msgstr "配送方法を追加しました。"
+
+#: saleor/dashboard/shipping/views.py:71
 #, python-format
 msgctxt "Dashboard message"
-msgid "%(shipping_method_name)s method saved"
-msgstr ""
+msgid "%(shipping_method_name)s successfully removed"
+msgstr "%(shipping_method_name)s が正常に削除されました。"
 
-#: saleor/dashboard/shipping/views.py:81
+#: saleor/dashboard/shipping/views.py:92
 #, python-format
 msgctxt "Dashboard message"
-msgid "%(shipping_method_name)s successfully deleted"
-msgstr ""
+msgid "Updated country shipping price %s"
+msgstr "国の送料「%s」が更新されました。"
 
-#: saleor/dashboard/sites/views.py:39
+#: saleor/dashboard/shipping/views.py:94
 #, python-format
-msgid "Updated site %s"
-msgstr ""
+msgctxt "Dashboard message"
+msgid "Added shipping price for %s"
+msgstr "送料「%s」を追加しました。"
+
+#: saleor/dashboard/shipping/views.py:115
+#, python-format
+msgctxt "Dashboard message"
+msgid "Removed shipping method %s"
+msgstr "配送方法「%s」を削除しました。"
+
+#: saleor/dashboard/sites/views.py:36
+msgctxt "Dashboard message"
+msgid "Updated site settings"
+msgstr "サイトの設定を更新しました。"
+
+#: saleor/dashboard/sites/views.py:65
+#, python-format
+msgctxt "dashboard message"
+msgid "Updated authorization key %s"
+msgstr "認証キー「%s」を更新しました。"
+
+#: saleor/dashboard/sites/views.py:67
+#, python-format
+msgctxt "Dashboard message"
+msgid "Added authorization key %s"
+msgstr "認証キー「%s」を追加しました。"
+
+#: saleor/dashboard/sites/views.py:86
+#, python-format
+msgctxt "Dashboard message"
+msgid "Removed site authorization key %s"
+msgstr "サイトの認証キー「%s」を削除しました。"
 
 #: saleor/dashboard/staff/views.py:39
 #, python-format
 msgctxt "Dashboard message"
 msgid "Updated staff member %s"
-msgstr ""
+msgstr "スタッフ「%s」を更新しました。"
 
 #: saleor/dashboard/staff/views.py:54
 #, python-format
 msgctxt "Dashboard message"
 msgid "Added staff member %s"
-msgstr ""
+msgstr "スタッフ「%s」を追加しました。"
 
 #: saleor/dashboard/staff/views.py:72
 #, python-format
 msgctxt "Dashboard message"
-msgid "Deleted staff member %s"
-msgstr ""
+msgid "Removed staff member %s"
+msgstr "スタッフ「%s」を削除しました。"
