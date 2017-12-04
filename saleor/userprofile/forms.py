@@ -5,6 +5,7 @@ from django.conf import settings
 from django.contrib.auth import forms as django_forms, update_session_auth_hash
 
 from .i18n import AddressMetaForm, get_address_form_class
+import phonenumbers
 
 
 def get_address_form(data, country_code, initial=None, instance=None, **kwargs):
@@ -15,14 +16,23 @@ def get_address_form(data, country_code, initial=None, instance=None, **kwargs):
         country_code = country_form.cleaned_data['country']
         preview = country_form.cleaned_data['preview']
 
+    phone = str(instance.phone.national_number) if instance else ''
+    phoneprefix = str(instance.phone.country_code) if instance else ''
+
+    if data:
+        phoneprefix = data.get('phoneprefix')
+        phone = data.get('phone')
+        if instance:
+            instance.phone.country_code = phoneprefix
+            instance.phone.national_number = phone
+
     address_form_class = get_address_form_class(country_code)
 
-    # CHANGE HERE
     if not preview and instance is not None:
         address_form_class = get_address_form_class(
             instance.country.code)
         address_form = address_form_class(
-            data, instance=instance,
+            data, instance=instance, phone=phone, phoneprefix=phoneprefix,
             **kwargs)
     else:
         initial_address = (
