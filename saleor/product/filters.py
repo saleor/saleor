@@ -1,7 +1,7 @@
 from __future__ import unicode_literals
 from collections import OrderedDict
 
-from django_filters import (FilterSet, MultipleChoiceFilter, RangeFilter,
+from django_filters import (MultipleChoiceFilter, RangeFilter,
                             OrderingFilter)
 from django.forms import CheckboxSelectMultiple, ValidationError
 from django.utils.translation import pgettext_lazy
