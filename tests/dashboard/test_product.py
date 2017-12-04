@@ -542,7 +542,7 @@ def test_product_bulk_update_form_can_unpublish_products(product_list):
 
 def test_product_list_filters(admin_client, product_list):
     db_products = Product.objects.all()
-    assert len(db_products) == 2
+    assert len(db_products) == 3
     data = {'price_1': [''], 'price_0': [''], 'is_featured': [''],
             'name': ['Test'], 'sort_by': [''], 'is_published': ['']}
     url = reverse('dashboard:product-list')
@@ -575,7 +575,8 @@ def test_product_list_filters_is_published(
     url = reverse('dashboard:product-list')
     response = admin_client.get(url, data)
     assert response.status_code == 200
-    assert list(response.context['filter'].qs) == [product_list[0]]
+    result = list(response.context['filter'].qs)
+    assert result == [product_list[0], product_list[2]]
 
 
 def test_product_list_filters_no_results(admin_client, product_list):

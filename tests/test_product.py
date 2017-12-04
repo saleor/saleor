@@ -426,7 +426,7 @@ def test_product_filter_form(authorized_client, product_in_stock,
 def test_product_filter_sorted_by_price_descending(
     authorized_client, product_list, default_category):
     products = (models.Product.objects.all()
-                .filter(categories__name=default_category)
+                .filter(categories__name=default_category, is_published=True)
                 .order_by('-price'))
     url = reverse(
         'product:category', kwargs={'path': default_category.slug,
