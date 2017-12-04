@@ -51,7 +51,7 @@ def test_view_cancel_order_line(admin_client, order_with_lines_and_stock):
             'line_pk': OrderLine.objects.get().pk})
     response = admin_client.post(
         url, {'csrfmiddlewaretoken': 'hello'}, follow=True)
-    # check delivery group removal if it becomes empty
+    # check shipment group removal if it becomes empty
     assert Order.objects.get().get_lines().count() == 0
     assert DeliveryGroup.objects.count() == 0
     # check success messages after redirect
@@ -94,7 +94,7 @@ def test_view_change_order_line_quantity(admin_client, order_with_lines_and_stoc
     line.refresh_from_db()
     # source line quantity should be decreased to 2
     assert line.quantity == 2
-    # order should have the same delivery groups count
+    # order should have the same shipment groups count
     assert order_with_lines_and_stock.groups.count() == 1
     # a note in the order's history should be created
     assert OrderHistoryEntry.objects.get(
@@ -213,7 +213,7 @@ def test_view_split_order_line(admin_client, order_with_lines_and_stock):
     line.refresh_from_db()
     # source line quantity should be decreased to 1
     assert line.quantity == line_quantity_before_split - 2
-    # order should have 2 delivery groups now
+    # order should have 2 shipment groups now
     assert order_with_lines_and_stock.groups.count() == 2
     # a note in the order's history should be created
     new_group = DeliveryGroup.objects.last()
@@ -256,7 +256,7 @@ def test_view_split_order_line_with_invalid_data(admin_client, order_with_lines_
     """
     user goes to order details page
     user selects first order line with quantity 3 and try move 0 and 4 items to a new shipment
-    user gets an error and no delivery groups are created.
+    user gets an error and no shipment groups are created.
     """
     lines = order_with_lines_and_stock.get_lines()
     line = lines.first()

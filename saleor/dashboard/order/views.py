@@ -210,10 +210,10 @@ def orderline_split(request, order_pk, line_pk):
             target_group = form.move_lines()
         if not old_group.pk:
             old_group = pgettext_lazy(
-                'Dashboard message related to a delivery group',
+                'Dashboard message related to a shipment group',
                 'removed group')
         msg = pgettext_lazy(
-            'Dashboard message related to delivery groups',
+            'Dashboard message related to shipment groups',
             'Moved %(how_many)s items %(item)s from %(old_group)s'
             ' to %(new_group)s') % {
                 'how_many': how_many, 'item': line, 'old_group': old_group,
@@ -264,7 +264,7 @@ def ship_delivery_group(request, order_pk, group_pk):
         with transaction.atomic():
             form.save()
         msg = pgettext_lazy(
-            'Dashboard message related to a delivery group',
+            'Dashboard message related to a shipment group',
             'Shipped %s') % group
         messages.success(request, msg)
         group.order.create_history_entry(comment=msg, user=request.user)
@@ -287,7 +287,7 @@ def cancel_delivery_group(request, order_pk, group_pk):
         with transaction.atomic():
             form.cancel_group()
         msg = pgettext_lazy(
-            'Dashboard message related to a delivery group',
+            'Dashboard message related to a shipment group',
             'Cancelled %s') % group
         messages.success(request, msg)
         group.order.create_history_entry(comment=msg, user=request.user)
@@ -317,13 +317,13 @@ def add_variant_to_group(request, order_pk, group_pk):
             with transaction.atomic():
                 form.save()
             msg = pgettext_lazy(
-                'Dashboard message related to a delivery group',
+                'Dashboard message related to a shipment group',
                 'Added %(quantity)d x %(variant)s to %(group)s') % msg_dict
             order.create_history_entry(comment=msg, user=request.user)
             messages.success(request, msg)
         except InsufficientStock:
             msg = pgettext_lazy(
-                'Dashboard message related to a delivery group',
+                'Dashboard message related to a shipment group',
                 'Insufficient stock: could not add %(quantity)d x '
                 '%(variant)s to %(group)s') % msg_dict
             messages.warning(request, msg)
