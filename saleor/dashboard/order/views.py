@@ -272,7 +272,7 @@ def ship_delivery_group(request, order_pk, group_pk):
     elif form.errors:
         status = 400
     ctx = {'order': order, 'group': group, 'form': form}
-    template = 'dashboard/order/modal/ship_delivery_group.html'
+    template = 'dashboard/order/modal/ship_shipment_group.html'
     return TemplateResponse(request, template, ctx, status=status)
 
 
@@ -295,7 +295,7 @@ def cancel_delivery_group(request, order_pk, group_pk):
     elif form.errors:
         status = 400
     ctx = {'order': order, 'group': group}
-    template = 'dashboard/order/modal/cancel_delivery_group.html'
+    template = 'dashboard/order/modal/cancel_shipment_group.html'
     return TemplateResponse(request, template, ctx, status=status)
 
 
@@ -438,5 +438,5 @@ def orderline_change_stock(request, order_pk, line_pk):
     elif form.errors:
         status = 400
     ctx = {'order_pk': order_pk, 'line_pk': line_pk, 'form': form}
-    template = 'dashboard/order/modal/delivery_group_stock.html'
+    template = 'dashboard/order/modal/shipment_group_stock.html'
     return TemplateResponse(request, template, ctx, status=status)
