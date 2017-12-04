@@ -14,10 +14,8 @@ class SortedFilterSet(FilterSet):
         super(SortedFilterSet, self).__init__(data, *args, **kwargs)
 
     def set_is_bound_unsorted(self, data_copy):
+        if data_copy and data_copy.get('sort_by', None):
+            del data_copy['sort_by']
         if data_copy:
-            if data_copy.get('sort_by', None):
-                del data_copy['sort_by']
-            if data_copy:
-                return True
-        else:
-            return False
+            return True
+        return False
