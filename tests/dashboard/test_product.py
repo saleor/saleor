@@ -586,3 +586,10 @@ def test_product_list_filters_no_results(admin_client, product_list):
     response = admin_client.get(url, data)
     assert response.status_code == 200
     assert list(response.context['filter'].qs) == []
+
+
+def tets_product_list_filters_with_pagination(admin_client, product_list):
+    data = {'page': '1'}
+    url = reverse('dashboard:product-list')
+    response = admin_client.get(url, data)
+    assert response.status_code == 200
