@@ -5,6 +5,7 @@ import json
 from io import BytesIO
 
 import pytest
+from django.conf import settings
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.urls import reverse
 from django.utils.encoding import smart_text
@@ -585,3 +586,33 @@ def test_product_list_filters_no_results(admin_client, product_list):
     response = admin_client.get(url, data)
     assert response.status_code == 200
     assert list(response.context['filter'].qs) == []
+
+
+def test_product_list_pagination(admin_client, product_list):
+    settings.DASHBOARD_PAGINATE_BY = 1
+    data = {'page': '1'}
+    url = reverse('dashboard:product-list')
+    response = admin_client.get(url, data)
+    assert response.status_code == 200
+
+    data = {'page': '2'}
+    url = reverse('dashboard:product-list')
+    response = admin_client.get(url, data)
+    assert response.status_code == 200
+
+
+def test_product_list_pagination_with_filters(admin_client, product_list):
+    settings.DASHBOARD_PAGINATE_BY = 1
+    data = {'page': '1', 'price_1': [''], 'price_0': [''], 'is_featured': [''],
+            'name': ['Test'], 'sort_by': ['name'], 'is_published': ['']}
+    url = reverse('dashboard:product-list')
+    response = admin_client.get(url, data)
+    assert response.status_code == 200
+    assert list(response.context['products'])[0] == product_list[0]
+
+    data = {'page': '2', 'price_1': [''], 'price_0': [''], 'is_featured': [''],
+            'name': ['Test'], 'sort_by': ['name'], 'is_published': ['']}
+    url = reverse('dashboard:product-list')
+    response = admin_client.get(url, data)
+    assert response.status_code == 200
+    assert list(response.context['products'])[0] == product_list[1]

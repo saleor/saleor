@@ -6,10 +6,10 @@ from django_filters import (
     CharFilter, ChoiceFilter, ModelMultipleChoiceFilter, RangeFilter,
     OrderingFilter)
 
+from ...core.filters import SortedFilterSet
+from ..widgets import PriceRangeWidget
 from ...product.models import (
     Category, Product, ProductAttribute, ProductClass, StockLocation)
-from ..filters import SortedFilterSet
-from ..widgets import PriceRangeWidget
 
 PRODUCT_SORT_BY_FIELDS = {
     'name': pgettext_lazy('Product list sorting option', 'name'),

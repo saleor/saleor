@@ -1,14 +1,13 @@
 from __future__ import unicode_literals
 
+from django import forms
+from django.utils.translation import pgettext_lazy
 from django_filters import (
     CharFilter, ChoiceFilter, OrderingFilter)
+
+from ...core.filters import SortedFilterSet
 from ...core.utils.filters import filter_by_customer, filter_by_location
-from django.utils.translation import pgettext_lazy
-from django import forms
-
 from ...userprofile.models import User
-from ..filters import SortedFilterSet
-
 
 SORT_BY_FIELDS = (
     ('email', 'email'),

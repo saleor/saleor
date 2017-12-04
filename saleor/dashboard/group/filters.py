@@ -1,13 +1,12 @@
 from __future__ import unicode_literals
 
 from django.contrib.auth.models import Group
+from django.utils.translation import pgettext_lazy
 from django_filters import (
     CharFilter, ModelMultipleChoiceFilter, OrderingFilter)
-from django.utils.translation import pgettext_lazy
 
+from ...core.filters import SortedFilterSet
 from ...core.permissions import get_permissions
-from ..filters import SortedFilterSet
-
 
 SORT_BY_FIELDS = {
     'name': pgettext_lazy('Group list sorting option', 'name')}
