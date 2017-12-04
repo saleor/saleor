@@ -4,10 +4,13 @@ import uuid
 
 from django import forms
 from django.conf import settings
+from django.urls import reverse_lazy
 from django.utils.translation import pgettext_lazy
 from django_prices.forms import PriceField
 
+from ...core.forms import AjaxSelect2ChoiceField
 from ...discount.models import Sale, Voucher
+from ...product.models import Product
 from ...shipping.models import ShippingMethodCountry, COUNTRY_CODE_CHOICES
 
 
@@ -125,6 +128,10 @@ class CommonVoucherForm(forms.ModelForm):
 
 
 class ProductVoucherForm(CommonVoucherForm):
+    product = AjaxSelect2ChoiceField(
+        queryset=Product.objects.get_available_products(),
+        fetch_data_url=reverse_lazy('dashboard:ajax-available-products'),
+        required=True)
 
     class Meta:
         model = Voucher
@@ -132,7 +139,8 @@ class ProductVoucherForm(CommonVoucherForm):
 
     def __init__(self, *args, **kwargs):
         super(ProductVoucherForm, self).__init__(*args, **kwargs)
-        self.fields['product'].required = True
+        if self.instance.product:
+            self.fields['product'].set_initial(self.instance.product)
 
 
 class CategoryVoucherForm(CommonVoucherForm):
