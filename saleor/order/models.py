@@ -253,7 +253,7 @@ class DeliveryGroup(models.Model, ItemSet):
 
     def __iter__(self):
         if self.id:
-            return iter(self.items.all())
+            return iter(self.lines.all())
         return super(DeliveryGroup, self).__iter__()
 
     @property
@@ -287,11 +287,11 @@ class DeliveryGroup(models.Model, ItemSet):
 class OrderLineManager(models.Manager):
     def move_to_group(self, line, target_group, quantity):
         try:
-            target_line = target_group.items.get(
+            target_line = target_group.lines.get(
                 product=line.product, product_name=line.product_name,
                 product_sku=line.product_sku, stock=line.stock)
         except ObjectDoesNotExist:
-            target_group.items.create(
+            target_group.lines.create(
                 delivery_group=target_group, product=line.product,
                 product_name=line.product_name, product_sku=line.product_sku,
                 quantity=quantity, unit_price_net=line.unit_price_net,
@@ -324,7 +324,7 @@ class OrderLineManager(models.Manager):
 @python_2_unicode_compatible
 class OrderLine(models.Model, ItemLine):
     delivery_group = models.ForeignKey(
-        DeliveryGroup, related_name='items', editable=False,
+        DeliveryGroup, related_name='lines', editable=False,
         verbose_name=pgettext_lazy('Ordered line field', 'delivery group'),
         on_delete=models.CASCADE)
     product = models.ForeignKey(
