@@ -66,7 +66,7 @@ export default $(document).ready((e) => {
   let $cartBadge = $('.navbar__brand__cart .badge');
   let $closeMsg = $('.close-msg');
   $closeMsg.on('click', (e) => {
-    $removeProductSuccess.addClass('d-sm-none');
+    $removeProductSuccess.addClass('d-none');
   });
   $cartLine.each(function () {
     let $quantityInput = $(this).find('#id_quantity');
