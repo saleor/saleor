@@ -541,8 +541,6 @@ def test_product_bulk_update_form_can_unpublish_products(product_list):
 
 
 def test_product_list_filters(admin_client, product_list):
-    db_products = Product.objects.all()
-    assert len(db_products) == 3
     data = {'price_1': [''], 'price_0': [''], 'is_featured': [''],
             'name': ['Test'], 'sort_by': [''], 'is_published': ['']}
     url = reverse('dashboard:product-list')
