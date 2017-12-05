@@ -64,13 +64,7 @@
                     {% trans "Description" context "Category list table header description" %}
                   </a>
                 </th>
-                {% get_sort_by_toggle 'is_hidden' as toggle %}
-                <th class="{% if toggle.is_active %}active{% endif %}">
-                  <a href="{{ toggle.url }}">
-                    <svg data-src="{{ toggle.sorting_icon }}" />
-                    {% trans "Is hidden" context "Category list table header hidden" %}
-                  </a>
-                </th>
+              </tr>
             </thead>
             <tbody>
               {% for node in categories %}
@@ -83,15 +77,6 @@
                       {{ node.description|truncatewords:10 }}
                     {% else %}
                       &nbsp;
-                    {% endif %}
-                  </td>
-                  <td>
-                    {% if node.is_hidden %}
-                      <span>
-                        {% trans 'Hidden' context 'Category list table is hidden flag' %}
-                      </span>
-                    {% else %}
-                      -
                     {% endif %}
                   </td>
                 </tr>

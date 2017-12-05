@@ -22,12 +22,6 @@ class CategoryFilter(SortedFilterSet):
     name = CharFilter(
         label=pgettext_lazy('Category list filter label', 'Name'),
         lookup_expr='icontains')
-    is_hidden = ChoiceFilter(
-        label=pgettext_lazy(
-            'Category list filter label', 'Is hidden in site navigation'),
-        choices=IS_HIDDEN_CHOICES,
-        empty_label=pgettext_lazy('Filter empty choice label', 'All'),
-        widget=forms.Select)
     sort_by = OrderingFilter(
         label=pgettext_lazy('Category list sorting filter label', 'Sort by'),
         fields=SORT_BY_FIELDS.keys(),
