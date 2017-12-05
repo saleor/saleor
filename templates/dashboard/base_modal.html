@@ -11,14 +11,23 @@
             </div>
         </div>
         <div class="row">
+            {% if form.non_field_errors %}
+                <blockquote>
+                    {% for non_field_error in form.non_field_errors %}
+                         {{ non_field_error }}
+                    {% endfor %}
+                </blockquote>
+            {% endif %}
+        </div>
+        <div class="row">
             {% block content %}{% endblock %}
         </div>
     </div>
     <div class="modal-footer">
-        <a href="#!" class="modal-action modal-close btn-flat">
+        <a href="#!" class="modal-action modal-close btn-flat waves-effect">
             {% block cancel_action %} {% trans "Cancel" context "Dashboard modal cancel action" %} {% endblock %}
         </a>
-        <button type="submit" class="modal-action btn-flat">
+        <button type="submit" class="modal-action btn-flat waves-effect">
             {% block primary_action %} {% trans "Submit" context "Dashboard modal primary action" %} {% endblock %}
         </button>
     </div>

@@ -1,22 +1,20 @@
+{% extends "dashboard/base_modal.html" %}
+
 {% load i18n %}
 {% load materializecss %}
 
-<form method="post" role="form" class="form-async" action="{% url 'dashboard:orderline-split' order_pk=order.pk line_pk=line_pk %}" novalidate>
-  {% csrf_token %}
-  <div class="modal-content">
-    <h5>
-      {% trans "Split order line" context "Modal split order line title" %}
-    </h5>
-    <div class="row">
-      {{ form|materializecss:"s12 m6" }}
-    </div>
-  </div>
-  <div class="modal-footer">
-    <a href="#!" aria-hidden="true" class="modal-action modal-close btn-flat waves-effect">
-      {% trans "Cancel" context "Dashboard cancel action" %}
-    </a>
-    <button type="submit" class="modal-action btn-flat waves-effect">
-      {% trans "Split" context "Modal split order line primary action" %}
-    </button>
-  </div>
-</form>
+{% block action_url %}
+{% url 'dashboard:orderline-split' order_pk=order.pk line_pk=line_pk %}
+{% endblock %}
+
+{% block title %}
+{% trans "Split order line" context "Modal split order line title" %}
+{% endblock %}
+
+{% block content %}
+{{ form|materializecss:"s12 m6" }}
+{% endblock %}
+
+{% block primary_action %}
+{% trans "Split" context "Modal split order line primary action" %}
+{% endblock %}

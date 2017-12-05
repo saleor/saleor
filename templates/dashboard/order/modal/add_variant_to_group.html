@@ -1,31 +1,25 @@
+{% extends "dashboard/base_modal.html" %}
+
 {% load i18n %}
 {% load materializecss %}
 
-<form id="add-variant-to-group-form" method="post" role="form" action="{% url 'dashboard:add-variant-to-group' order_pk=order.pk group_pk=group.pk %}" class="form-async" novalidate>
-  {% csrf_token %}
-  <div class="modal-content">
-    <div class="row">
-      <div class="col">
-        <h5>
-          {% blocktrans with shipment=group context "Modal group add variant title" %}
-            Add product to {{ shipment }}
-          {% endblocktrans %}
-        </h5>
-      </div>
-    </div>
-    <div class="row">
-      <div class="col s12 m12 center-align">
-          {{ form.variant|materializecss:"s12 m8" }}
-          {{ form.quantity|materializecss:"s12 m4" }}
-      </div>
-    </div>
-  </div>
-  <div class="modal-footer">
-    <a href="#!" aria-hidden="true" class="modal-action modal-close btn-flat waves-effect">
-      {% trans "Cancel" context "Dashboard cancel action" %}
-    </a>
-    <button type="submit" class="modal-action btn-flat waves-effect">
-      {% trans "Add" context "Modal group add variant primary action" %}
-    </button>
-  </div>
-</form>
+{% block action_url %}
+{% url 'dashboard:add-variant-to-group' order_pk=order.pk group_pk=group.pk %}
+{% endblock %}
+
+{% block title %}
+{% blocktrans trimmed with shipment=group context "Modal group add variant title" %}
+Add product to {{ shipment }}
+{% endblocktrans %}
+{% endblock %}
+
+{% block content %}
+<div class="col s12 m12 center-align">
+  {{ form.variant|materializecss:"s12 m8" }}
+  {{ form.quantity|materializecss:"s12 m4" }}
+</div>
+{% endblock %}
+
+{% block primary_action %}
+{% trans "Add" context "Modal group add variant primary action" %}
+{% endblock %}
