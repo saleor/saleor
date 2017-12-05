@@ -1,4 +1,4 @@
-import {initSelects} from './utils';
+import { initSelects } from './utils';
 import SVGInjector from 'svg-injector-2';
 
 // List of input types that can be autofocused after opening modal
@@ -19,7 +19,10 @@ export default $(document).ready((e) => {
         $modal.html(response);
         initSelects();
         $modal.modal('open');
-        $modal.find(focusInputs.join(','))[0].focus();
+        const inputs = $modal.find(focusInputs.join(','));
+        if (inputs.length) {
+          $modal.find(focusInputs.join(','))[0].focus();
+        }
         // Image checkbox selector
         $('.image_select-item-overlay').on('click', function (e) {
           let id = $(e.target).attr('id');
