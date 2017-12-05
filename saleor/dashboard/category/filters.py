@@ -20,15 +20,16 @@ IS_HIDDEN_CHOICES = (
 
 class CategoryFilter(SortedFilterSet):
     name = CharFilter(
-        label=pgettext_lazy('Product list filter label', 'Name'),
+        label=pgettext_lazy('Category list filter label', 'Name'),
         lookup_expr='icontains')
     is_hidden = ChoiceFilter(
-        label=pgettext_lazy('Product list filter label', 'Is published'),
+        label=pgettext_lazy(
+            'Category list filter label', 'Is hidden in site navigation'),
         choices=IS_HIDDEN_CHOICES,
         empty_label=pgettext_lazy('Filter empty choice label', 'All'),
         widget=forms.Select)
     sort_by = OrderingFilter(
-        label=pgettext_lazy('Product list sorting filter label', 'Sort by'),
+        label=pgettext_lazy('Category list sorting filter label', 'Sort by'),
         fields=SORT_BY_FIELDS.keys(),
         field_labels=SORT_BY_FIELDS)
 

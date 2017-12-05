@@ -57,18 +57,18 @@
                     {% trans "Name" context "Category list table header name" %}
                   </a>
                 </th>
-                {% get_sort_by_toggle 'is_hidden' as toggle %}
-                <th class="{% if toggle.is_active %}active{% endif %}">
-                  <a href="{{ toggle.url }}">
-                    <svg data-src="{{ toggle.sorting_icon }}" />
-                    {% trans "Is hidden" context "Category list table header hidden" %}
-                  </a>
-                </th>
                 {% get_sort_by_toggle 'description' as toggle %}
                 <th class="wide {% if toggle.is_active %}active{% endif %}">
                   <a href="{{ toggle.url }}">
                     <svg data-src="{{ toggle.sorting_icon }}" />
                     {% trans "Description" context "Category list table header description" %}
+                  </a>
+                </th>
+                {% get_sort_by_toggle 'is_hidden' as toggle %}
+                <th class="{% if toggle.is_active %}active{% endif %}">
+                  <a href="{{ toggle.url }}">
+                    <svg data-src="{{ toggle.sorting_icon }}" />
+                    {% trans "Is hidden" context "Category list table header hidden" %}
                   </a>
                 </th>
             </thead>
@@ -78,6 +78,13 @@
                   <td>
                     {{ node.name }}
                   </td>
+                  <td class="nowrap">
+                    {% if node.description %}
+                      {{ node.description|truncatewords:10 }}
+                    {% else %}
+                      &nbsp;
+                    {% endif %}
+                  </td>
                   <td>
                     {% if node.is_hidden %}
                       <span>
@@ -85,13 +92,6 @@
                       </span>
                     {% else %}
                       -
-                    {% endif %}
-                  </td>
-                  <td class="nowrap">
-                    {% if node.description %}
-                      {{ node.description|truncatewords:10 }}
-                    {% else %}
-                      &nbsp;
                     {% endif %}
                   </td>
                 </tr>
