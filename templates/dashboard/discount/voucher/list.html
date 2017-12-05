@@ -24,7 +24,7 @@
 
 {% block menu_discounts_class %} active{% endblock %}
 
-{% block content %}
+{% block header_extra %}
   {% if perms.discount.edit_voucher %}
     <div class="btn-fab-fixed">
       <a href="{% url 'dashboard:voucher-add' %}" class="btn-fab-default waves-effect waves-light"
@@ -33,6 +33,9 @@
       </a>
     </div>
   {% endif %}
+{% endblock %}
+
+{% block content %}
   <div class="row">
     <div class="col s12 l9">
         <div class="card">
