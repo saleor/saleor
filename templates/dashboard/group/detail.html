@@ -81,10 +81,10 @@
             </div>
             {% if perms.userprofile.edit_group %}
             <div class="card-action right-align">
-              <a href="{% url 'dashboard:group-list' %}" class="btn btn-flat">
+              <a href="{% url 'dashboard:group-list' %}" class="btn-flat">
                 {% trans "Cancel" context "Dashboard cancel action" %}
               </a>
-              <button type="submit" class="btn waves-effect waves-light">
+              <button type="submit" class="btn">
                 {% if group.name %}
                   {% trans 'Update' context 'Dashboard update action' %}
                 {% else %}

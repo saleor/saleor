@@ -188,22 +188,22 @@
             <div class="data-table-action">
               {% if can_capture %}
                 <a href="#base-modal" data-href="{% url 'dashboard:capture-payment' order_pk=order.pk payment_pk=payment.pk %}"
-              class="btn btn-flat modal-trigger-custom">
+              class="btn-flat modal-trigger-custom waves-effect">
                   {% trans "Capture" context "Order summary card action" %}
                 </a>
               {% elif can_refund %}
                 <a href="#base-modal" data-href="{% url 'dashboard:refund-payment' order_pk=order.pk payment_pk=payment.pk %}"
-              class="btn btn-flat modal-trigger-custom">
+              class="btn-flat modal-trigger-custom waves-effect">
                   {% trans "Refund" context "Order summary card action" %}
                 </a>
               {% endif %}
               {% if can_release %}
                 <a href="#base-modal" data-href="{% url 'dashboard:release-payment' order_pk=order.pk payment_pk=payment.pk %}"
-              class="btn btn-flat modal-trigger-custom">
+              class="btn-flat modal-trigger-custom waves-effect">
                   {% trans "Release" context "Order summary card action" %}
                 </a>
               {% endif %}
-              <a href="{% url 'dashboard:order-invoice' order_pk=order.pk %}" data-href="" class="btn btn-flat" target="_blank">
+              <a href="{% url 'dashboard:order-invoice' order_pk=order.pk %}" data-href="" class="btn-flat waves-effect" target="_blank">
                   {% trans "Invoice" context "Order detail action" %}
               </a>
             </div>
@@ -223,7 +223,7 @@
                 </div>
                 {% if perms.order.edit_order %}
                   <div class="card-action">
-                    <a class="btn btn-flat" href="{% url "dashboard:address-edit" order_pk=order.pk address_type="shipping" %}">
+                    <a class="btn-flat waves-effect" href="{% url "dashboard:address-edit" order_pk=order.pk address_type="shipping" %}">
                       {% trans "Edit" context "Dashboard edit action" %}
                     </a>
                   </div>
@@ -243,7 +243,7 @@
               </div>
               {% if perms.order.edit_order %}
                 <div class="card-action">
-                  <a href="{% url "dashboard:address-edit" order_pk=order.pk address_type="billing" %}" class="btn btn-flat">
+                  <a href="{% url "dashboard:address-edit" order_pk=order.pk address_type="billing" %}" class="btn-flat waves-effect">
                     {% trans "Edit" context "Dashboard edit action" %}</a>
                 </div>
               {% endif %}
@@ -340,19 +340,19 @@
             {% if group.can_ship or group.can_cancel %}
               <div class="data-table-action">
                 {% if group.can_ship %}
-                  <a href="#base-modal" data-href="{% url 'dashboard:ship-delivery-group' order_pk=order.pk group_pk=group.pk %}" class="btn btn-flat modal-trigger-custom">
+                  <a href="#base-modal" data-href="{% url 'dashboard:ship-delivery-group' order_pk=order.pk group_pk=group.pk %}" class="btn-flat waves-effect modal-trigger-custom">
                     {% trans "Dispatch" context "Shipment group table action" %}
                   </a>
                 {% endif %}
                 {% if group.can_cancel %}
-                  <a href="#base-modal" data-href="{% url 'dashboard:cancel-delivery-group' order_pk=order.pk group_pk=group.pk %}" class="btn btn-flat modal-trigger-custom" title="{% trans 'Cancel group' context 'Shipment group table action' %}">
+                  <a href="#base-modal" data-href="{% url 'dashboard:cancel-delivery-group' order_pk=order.pk group_pk=group.pk %}" class="btn-flat waves-effect modal-trigger-custom" title="{% trans 'Cancel group' context 'Shipment group table action' %}">
                     {% trans "Cancel shipment" context "Shipment group table action" %}
                   </a>
                 {% endif %}
-                <a href="#base-modal" data-href="{% url 'dashboard:add-variant-to-group' order_pk=order.pk group_pk=group.pk %}" class="btn btn-flat modal-trigger-custom" title="{% trans "Add product to order" context "Order summary card action title" %}">
+                <a href="#base-modal" data-href="{% url 'dashboard:add-variant-to-group' order_pk=order.pk group_pk=group.pk %}" class="btn-flat waves-effect modal-trigger-custom" title="{% trans "Add product to order" context "Order summary card action title" %}">
                   {% trans "Add product" context "Order summary card action" %}
                 </a>
-                <a href="{% url 'dashboard:order-packing-slips' group_pk=group.pk %}" data-href="" class="btn btn-flat" target="_blank">
+                <a href="{% url 'dashboard:order-packing-slips' group_pk=group.pk %}" data-href="" class="btn-flat waves-effect" target="_blank">
                   {% trans "Packing Slips" context "Order detail action" %}
                 </a>
               </div>
@@ -455,7 +455,7 @@
         </div>
         {% if perms.order.edit_order %}
           <div class="card-action">
-            <a data-href="{% url "dashboard:order-add-note" order_pk=order.pk %}" class="modal-trigger-custom btn btn-flat" href="#base-modal">
+            <a data-href="{% url "dashboard:order-add-note" order_pk=order.pk %}" class="modal-trigger-custom btn-flat waves-effect" href="#base-modal">
               {% trans "Add note" context "Order notes card action" %}
             </a>
           </div>
