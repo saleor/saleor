@@ -1,0 +1,25 @@
+{% load i18n %}
+
+<form role="form" action="{% block action_url %}#!{% endblock %}" method="post" class="form-async" novalidate>
+    {% csrf_token %}
+    <div class="modal-content">
+        <div class="row">
+            <div class="col s12">
+                <h5>
+                    {% block title %}{% endblock %}
+                </h5>
+            </div>
+        </div>
+        <div class="row">
+            {% block content %}{% endblock %}
+        </div>
+    </div>
+    <div class="modal-footer">
+        <a href="#!" class="modal-action modal-close btn-flat">
+            {% block cancel_action %} {% trans "Cancel" context "Dashboard modal cancel action" %} {% endblock %}
+        </a>
+        <button type="submit" class="modal-action btn-flat">
+            {% block primary_action %} {% trans "Submit" context "Dashboard modal primary action" %} {% endblock %}
+        </button>
+    </div>
+</form>
