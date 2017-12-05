@@ -35,7 +35,7 @@ from ...userprofile.i18n import AddressForm
 @permission_required('order.view_order')
 def order_list(request):
     orders = (Order.objects.prefetch_related(
-        'payments', 'groups__items', 'user').order_by('-pk'))
+        'payments', 'groups__lines', 'user').order_by('-pk'))
     order_filter = OrderFilter(request.GET, queryset=orders)
     orders = get_paginator_items(
         order_filter.qs, settings.DASHBOARD_PAGINATE_BY,
@@ -49,7 +49,7 @@ def order_list(request):
 def order_details(request, order_pk):
     qs = (Order.objects
           .select_related('user', 'shipping_address', 'billing_address')
-          .prefetch_related('notes', 'payments', 'history', 'groups__items'))
+          .prefetch_related('notes', 'payments', 'history', 'groups__lines'))
     order = get_object_or_404(qs, pk=order_pk)
     notes = order.notes.all()
     all_payments = order.payments.exclude(status=PaymentStatus.INPUT)

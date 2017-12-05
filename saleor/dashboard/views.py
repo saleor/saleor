@@ -39,7 +39,7 @@ def index(request):
     orders_to_ship = Order.objects.filter(status=OrderStatus.FULLY_PAID)
     orders_to_ship = (orders_to_ship
                       .select_related('user')
-                      .prefetch_related('groups', 'groups__items', 'payments'))
+                      .prefetch_related('groups', 'groups__lines', 'payments'))
     payments = Payment.objects.filter(
         status=PaymentStatus.PREAUTH).order_by('-created')
     payments = payments.select_related('order', 'order__user')

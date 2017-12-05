@@ -91,7 +91,7 @@ def add_variant_to_delivery_group(
             if quantity_left > stock.quantity_available
             else quantity_left
         )
-        group.items.create(
+        group.lines.create(
             product=variant.product,
             product_name=variant.display_product(),
             product_sku=variant.sku,
@@ -117,7 +117,7 @@ def add_variant_to_existing_lines(group, variant, total_quantity):
     Returns quantity that could not be fulfilled with existing lines.
     """
     # order descending by lines' stock available quantity
-    lines = group.items.filter(
+    lines = group.lines.filter(
         product=variant.product, product_sku=variant.sku,
         stock__isnull=False).order_by(
             F('stock__quantity_allocated') - F('stock__quantity'))
@@ -163,7 +163,7 @@ def merge_duplicated_lines(line):
     """ Merges duplicated lines in delivery group into one (given) line.
     If there are no duplicates, nothing will happen.
     """
-    lines = line.delivery_group.items.filter(
+    lines = line.delivery_group.lines.filter(
         product=line.product, product_name=line.product_name,
         product_sku=line.product_sku, stock=line.stock)
     if lines.count() > 1:
