@@ -58,7 +58,7 @@ def attach_order_to_user(order, user):
 
 def fill_group_with_partition(group, partition, discounts=None):
     """
-    Fills delivery group with order lines created from partition items.
+    Fills shipment group with order lines created from partition items.
     """
     for item in partition:
         add_variant_to_delivery_group(
@@ -160,7 +160,7 @@ def cancel_order(order):
 
 
 def merge_duplicated_lines(line):
-    """ Merges duplicated lines in delivery group into one (given) line.
+    """ Merges duplicated lines in shipment group into one (given) line.
     If there are no duplicates, nothing will happen.
     """
     lines = line.delivery_group.lines.filter(

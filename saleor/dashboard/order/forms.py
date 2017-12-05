@@ -101,7 +101,7 @@ class MoveLinesForm(forms.Form):
     target_group = forms.ModelChoiceField(
         queryset=DeliveryGroup.objects.none(), required=False,
         empty_label=pgettext_lazy(
-            'Delivery group value for `target_group` field',
+            'Shipment group value for `target_group` field',
             'New shipment'),
         label=pgettext_lazy('Move lines form label', 'Target shipment'))
 
@@ -121,7 +121,7 @@ class MoveLinesForm(forms.Form):
         how_many = self.cleaned_data.get('quantity')
         target_group = self.cleaned_data.get('target_group')
         if not target_group:
-            # For new group we use the same delivery name but zero price
+            # For new group we use the same shipping name but zero price
             target_group = self.old_group.order.groups.create(
                 status=self.old_group.status,
                 shipping_method_name=self.old_group.shipping_method_name)
@@ -326,14 +326,14 @@ class ChangeStockForm(forms.ModelForm):
 
 
 class AddVariantToDeliveryGroupForm(forms.Form):
-    """ Adds variant in given quantity to delivery group. """
+    """ Adds variant in given quantity to shipment group. """
     variant = AjaxSelect2ChoiceField(
         queryset=ProductVariant.objects.filter(
             product__in=Product.objects.get_available_products()),
         fetch_data_url=reverse_lazy('dashboard:ajax-available-variants'))
     quantity = QuantityField(
         label=pgettext_lazy(
-            'Add variant to delivery group form label', 'Quantity'),
+            'Add variant to shipment group form label', 'Quantity'),
         validators=[MinValueValidator(1)])
 
     def __init__(self, *args, **kwargs):

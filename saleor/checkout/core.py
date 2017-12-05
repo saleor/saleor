@@ -99,7 +99,7 @@ class Checkout(object):
 
     @property
     def deliveries(self):
-        """Return the cart split into delivery groups.
+        """Return the cart split into shipment groups.
 
         Generates tuples consisting of a partition, its shipping cost and its
         total cost.
