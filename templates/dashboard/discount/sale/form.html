@@ -8,7 +8,7 @@
     {{ sale }}
   {% else %}
     {% trans "Add new sale"  context "Sale (discount) page title" %}
-  {% endif %} 
+  {% endif %}
   - {% trans "Sales" context "Dashboard sales (discounts) list." %} - {{ block.super }}
 {% endblock %}
 
@@ -94,17 +94,17 @@
 
           <div class="card-action right-align">
             {% if sale.pk %}
-              <a href="{% url 'dashboard:sale-list' %}" class="btn btn-flat">
+              <a href="{% url 'dashboard:sale-list' %}" class="btn-flat">
                 {% trans "Cancel" context "Dashboard cancel action" %}
               </a>
-              <button type="submit" class="btn waves-effect waves-light">
+              <button type="submit" class="btn">
                 {% trans "Update" context "Dashboard update action" %}
               </button>
             {% else %}
-              <a href="{% url 'dashboard:sale-list' %}" class="btn btn-flat">
+              <a href="{% url 'dashboard:sale-list' %}" class="btn-flat">
                 {% trans "Cancel" context "Dashboard cancel action" %}
               </a>
-              <button type="submit" class="btn waves-effect waves-light">
+              <button type="submit" class="btn">
                 {% trans "Create" context "Dashboard create action" %}
               </button>
             {% endif %}

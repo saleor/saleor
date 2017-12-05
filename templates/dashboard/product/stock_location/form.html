@@ -70,17 +70,17 @@
           </div>
           <div class="card-action right-align">
             {% if location.pk %}
-              <a href="{% url 'dashboard:product-stock-location-list' %}" class="btn btn-flat">
+              <a href="{% url 'dashboard:product-stock-location-list' %}" class="btn-flat">
                 {% trans "Cancel" context "Dashboard cancel action" %}
               </a>
-              <button type="submit" class="btn waves-effect waves-light">
+              <button type="submit" class="btn">
                 {% trans "Update" context "Dashboard update action" %}
               </button>
             {% else %}
-              <a href="{% url 'dashboard:product-stock-location-list' %}" class="btn btn-flat">
+              <a href="{% url 'dashboard:product-stock-location-list' %}" class="btn-flat">
                 {% trans "Cancel" context "Dashboard cancel action" %}
               </a>
-              <button type="submit" class="btn waves-effect waves-light">
+              <button type="submit" class="btn">
                 {% trans "Create" context "Dashboard create action" %}
               </button>
             {% endif %}

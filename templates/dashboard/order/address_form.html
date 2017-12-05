@@ -57,10 +57,10 @@
             </div>
           </div>
           <div class="card-action right-align">
-            <a href="{% url "dashboard:order-details" order_pk=order.pk %}" class="btn btn-flat">
+            <a href="{% url "dashboard:order-details" order_pk=order.pk %}" class="btn-flat">
               {% trans "Cancel" context "Dashboard cancel action" %}
             </a>
-            <button type="submit" class="btn waves-effect waves-light">
+            <button type="submit" class="btn">
               {% trans "Update" context "Dashboard update action" %}
             </button>
           </div>
