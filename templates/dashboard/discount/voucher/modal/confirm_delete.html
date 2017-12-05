@@ -1,4 +1,4 @@
-{% extends "dashboard/base_modal_confirm_delete.html" %}
+{% extends "dashboard/base_modal.html" %}
 
 {% load i18n %}
 
@@ -7,13 +7,19 @@
 {% endblock %}
 
 {% block title %}
-{% blocktrans trimmed context "Remove voucher text" %}
+{% blocktrans trimmed context "Modal remove voucher title" %}
 Remove voucher {{ voucher }}
 {% endblocktrans %}
-{% endblock title %}
+{% endblock %}
 
 {% block content %}
-{% blocktrans trimmed context "Remove voucher text" %}
-Are you sure you want to remove voucher <strong>{{ voucher }}</strong>?
-{% endblocktrans %}
-{% endblock content %}
+<div class="col">
+    {% blocktrans trimmed context "Modal remove voucher text" %}
+        Are you sure you want to remove voucher <strong>{{ voucher }}</strong>?
+    {% endblocktrans %}
+</div>
+{% endblock %}
+
+{% block primary_action %}
+{% trans "Remove" context "Modal remove voucher primary action" %}
+{% endblock %}
