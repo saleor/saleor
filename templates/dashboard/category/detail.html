@@ -2,6 +2,7 @@
 {% load i18n %}
 {% load mptt_tags %}
 {% load materializecss %}
+{% load get_sort_by_toggle from shop %}
 {% load staticfiles %}
 {% load utils %}
 
@@ -43,7 +44,7 @@
     {% if path %}
       <li class="back-mobile">
         <a href="{% url 'dashboard:category-list' %}">
-          <svg data-src="{% static "dashboard/images/arrow_left.svg" %}" fill="#fff"
+          <svg data-src="{% static 'dashboard/images/arrow_left.svg' %}" fill="#fff"
                width="20px" height="20px"/>
         </a>
       </li>
@@ -91,6 +92,18 @@
                 </div>
               {% endif %}
             </div>
+            {% if root.is_hidden %}
+              <div class="row">
+                <div class="col s12 l8">
+                  <h4>
+                    {% trans "Hidden" context "Category field" %}
+                  </h4>
+                  {% blocktrans trimmed context "Category detail is hidden text" %}
+                    This category is hidden on storefront
+                  {% endblocktrans %}
+                </div>
+              </div>
+            {% endif %}
           </div>
           {% if perms.product.edit_category %}
           <div class="card-action">
@@ -105,72 +118,94 @@
           </div>
           {% endif %}
         </div>
+        <div class="card">
+          <div class="card-content">
+            <span class="card-title">
+               {% trans "Subcategories" context "Title of the subcategories list" %}
+            </span>
+          </div>
+          <div class="data-table-header-action">
+            <a href="{% if root%}{% url 'dashboard:category-add' root_pk=root.pk %}{% else %}{% url 'dashboard:category-add' %}{% endif %}" class="btn-data-table btn btn-flat">
+              {% trans "Add" %}
+            </a>
+          </div>
+          <div class="data-table-container">
+            <table class="bordered highlight responsive data-table data-table-description">
+              <thead>
+                <tr>
+                  {% get_sort_by_toggle 'name' as toggle %}
+                  <th class="{% if toggle.is_active %}active{% endif %}">
+                    <a href="{{ toggle.url }}">
+                      <svg data-src="{{ toggle.sorting_icon }}" />
+                      {% trans "Name" context "Category list table header name" %}
+                    </a>
+                  </th>
+                  {% get_sort_by_toggle 'is_hidden' as toggle %}
+                  <th class="{% if toggle.is_active %}active{% endif %}">
+                    <a href="{{ toggle.url }}">
+                      <svg data-src="{{ toggle.sorting_icon }}" />
+                      {% trans "Is hidden" context "Category list table header hidden" %}
+                    </a>
+                  </th>
+                  {% get_sort_by_toggle 'description' as toggle %}
+                  <th class="wide {% if toggle.is_active %}active{% endif %}">
+                    <a href="{{ toggle.url }}">
+                      <svg data-src="{{ toggle.sorting_icon }}" />
+                      {% trans "Description" context "Category list table header description" %}
+                    </a>
+                  </th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for node in categories %}
+                  <tr data-action-go="{% url 'dashboard:category-detail' pk=node.pk %}">
+                    <td>
+                      {{ node.name }}
+                    </td>
+                    <td>
+                      {% if node.is_hidden %}
+                        <span>
+                          {% trans 'Hidden' context 'Category list table is hidden flag' %}
+                        </span>
+                      {% else %}
+                        -
+                      {% endif %}
+                    </td>
+                    <td class="nowrap">
+                      {% if node.description %}
+                        {{ node.description|truncatewords:10 }}
+                      {% else %}
+                        &nbsp;
+                      {% endif %}
+                    </td>
+                    {% if perms.product.edit_category %}
+                      <td class="right-align ignore-link">
+                        <a href="{% url 'dashboard:category-edit' root_pk=node.pk %}" class="btn btn-flat">
+                          {% trans 'Edit' context 'Category edit action' %}
+                        </a>
+                        <a class="btn btn-flat modal-trigger-custom"
+                         data-href="{% url 'dashboard:category-delete' pk=node.pk %}"
+                         href="#base-modal">
+                          {% trans "Remove" context "Category list action link" %}
+                        </a>
+                      </td>
+                    {% endif %}
+                  </tr>
+                {% empty %}
+                  <tr>
+                    <td colspan="2">{% trans "No categories" context "Empty list of categories" %}</td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+        {% paginate categories %}
+      </div>
+      <div class="col s12 l3" id="filters">
+        {% add_filters filter %}
       </div>
     </div>
   {% endif %}
-
-  <div class="row">
-    <div class="col s12 l9">
-      <div class="card">
-        <div class="card-content">
-          <span class="card-title">
-             {% trans "Subcategories" context "Title of the subcategories list" %}
-          </span>
-        </div>
-        <div class="data-table-header-action">
-          <a href="{% if root%}{% url 'dashboard:category-add' root_pk=root.pk %}{% else %}{% url 'dashboard:category-add' %}{% endif %}" class="btn-data-table btn btn-flat">
-            {% trans "Add" %}
-          </a>
-        </div>
-        <div class="data-table-container">
-          <table class="bordered highlight responsive data-table data-table-description">
-            <thead>
-              <tr>
-                <th>
-                  {% trans "Name" context "Category list table header name" %}
-                </th>
-                <th>
-                  {% trans "Description" context "Category list table header description" %}
-                </th>
-                <th></th>
-              </tr>
-            </thead>
-            <tbody>
-              {% for node in categories %}
-                <tr data-action-go="{% url 'dashboard:category-detail' pk=node.pk %}">
-                  <td>
-                    {{ node.name }}
-                  </td>
-                  <td class="nowrap">
-                    {% if node.description %}
-                      {{ node.description|truncatewords:6 }}
-                    {% else %}
-                      &nbsp;
-                    {% endif %}
-                  </td>
-                  {% if perms.product.edit_category %}
-                    <td class="right-align ignore-link">
-                      <a href="{% url 'dashboard:category-edit' root_pk=node.pk %}" class="btn btn-flat">
-                        {% trans 'Edit' context 'Category edit action' %}
-                      </a>
-                      <a class="btn btn-flat modal-trigger-custom"
-                       data-href="{% url 'dashboard:category-delete' pk=node.pk %}"
-                       href="#base-modal">
-                        {% trans "Remove" context "Category list action link" %}
-                      </a>
-                    </td>
-                  {% endif %}
-                </tr>
-              {% empty %}
-                <tr>
-                  <td colspan="2">{% trans "No categories" context "Empty list of categories" %}</td>
-                </tr>
-              {% endfor %}
-            </tbody>
-          </table>
-        </div>
-      </div>
-      {% paginate categories %}
-    </div>
-  </div>
 {% endblock %}
