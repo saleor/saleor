@@ -7,11 +7,14 @@ class AjaxSelect2ChoiceField(forms.ChoiceField):
     fetch_data_url - specifies url, from which select2 will fetch data
     """
 
-    def __init__(self, fetch_data_url='', initial=None, *args, **kwargs):
+    def __init__(
+            self, fetch_data_url='', initial=None, many=False, *args, **kwargs):
         self.queryset = kwargs.pop('queryset')
         super(AjaxSelect2ChoiceField, self).__init__(*args, **kwargs)
         self.widget.attrs['class'] = 'enable-ajax-select2'
         self.widget.attrs['data-url'] = fetch_data_url
+        if many:
+            self.widget.attrs['multiple'] = True
         if initial:
             self.set_initial(initial)
 

@@ -15,6 +15,10 @@ from ...shipping.models import ShippingMethodCountry, COUNTRY_CODE_CHOICES
 
 
 class SaleForm(forms.ModelForm):
+    products = AjaxSelect2ChoiceField(
+        queryset=Product.objects.get_available_products(),
+        fetch_data_url=reverse_lazy('dashboard:ajax-available-products'),
+        required=True, many=True)
 
     class Meta:
         model = Sale
