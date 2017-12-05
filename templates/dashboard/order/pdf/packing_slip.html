@@ -66,16 +66,16 @@
     </tr>
     </thead>
     <tbody>
-    {% for item in group.items.all %}
+    {% for line in group.lines.all %}
       <tr>
         <td>
-          {{ item.product_name }}<br>
+          {{ line.product_name }}<br>
         </td>
         <td>
-          {{ item.product_sku }}
+          {{ line.product_sku }}
         </td>
         <td class="right-align">
-          {{ item.quantity }}
+          {{ line.quantity }}
         </td>
       </tr>
     {% endfor %}
