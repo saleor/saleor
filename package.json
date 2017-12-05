@@ -1,7 +1,6 @@
 {
   "name": "saleor",
-  "version": "0.0.0",
-  "main": "Gruntfile.js",
+  "version": "2017.11.1",
   "repository": {
     "type": "git",
     "url": "git://github.com/mirumee/saleor.git"
