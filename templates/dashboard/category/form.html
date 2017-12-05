@@ -49,8 +49,8 @@
             <li>
               <a href="{% url 'dashboard:category-detail' pk=node.pk %}" class="breadcrumbs--ellipsed-item">{{ node }}</a>
             </li>
-            <li>
             {% if category.pk %}
+              <li>
                 <span class="breadcrumbs--ellipsed-item">
                   {% trans "Edit" context "Category form page title" %}
                 </span>
@@ -73,6 +73,12 @@
           </li>
         {% endif %}
       {% endfor %}
+    {% else %}
+      <li>
+        <span class="breadcrumbs--ellipsed-item">
+          {% trans "Add new category" context "Category detail breadcrumbs" %}
+        </span>
+      </li>
     {% endif %}
   </ul>
 {% endblock %}
