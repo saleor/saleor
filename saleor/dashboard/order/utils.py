@@ -43,7 +43,7 @@ def create_invoice_pdf(order_pk, absolute_url):
 
 def create_packing_slip_pdf(group_pk, absolute_url):
     group = (DeliveryGroup.objects.prefetch_related(
-        'items', 'order', 'order__user', 'order__shipping_address',
+        'lines', 'order', 'order__user', 'order__shipping_address',
         'order__billing_address').get(pk=group_pk))
     ctx = {'group': group}
     rendered_template = get_template(PACKING_SLIP_TEMPLATE).render(ctx)

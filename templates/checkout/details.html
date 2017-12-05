@@ -32,8 +32,8 @@
         {% with total=checkout.get_total %}
           <div class="checkout__review">
             <h3 class="checkout__review__tittle">{% trans "Order review" context "Order review title" %}</h3>
-            {% for delivery, delivery_cost, total_with_delivery in checkout.deliveries %}
-              {% for item, item_price_per_item, item_price_total in delivery %}
+            {% for shipment, shipment_cost, total_with_shipment in checkout.deliveries %}
+              {% for item, item_price_per_item, item_price_total in shipment %}
                 <div class="row">
                   <div class="col-8">
                     <p><strong>{{ item.variant.product }}</strong> x {{ item.quantity }}<br>
@@ -47,7 +47,7 @@
             {% endfor %}
             <div class="row checkout__review__section">
               <div class="col-8">
-                <p>{% trans "Delivery" context "Order review section" %}</p>
+                <p>{% trans "Shipment" context "Order review section" %}</p>
               </div>
               <div class="col-4">
                 <p class="float-right">{% if checkout.shipping_method %}

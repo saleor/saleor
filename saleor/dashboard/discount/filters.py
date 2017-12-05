@@ -1,17 +1,16 @@
 from __future__ import unicode_literals
 
+from django import forms
+from django.utils.translation import pgettext_lazy
 from django_filters import (
     CharFilter, ChoiceFilter, DateFromToRangeFilter, ModelMultipleChoiceFilter,
     OrderingFilter, RangeFilter)
-from django.utils.translation import pgettext_lazy
-from django import forms
 
+from ...core.filters import SortedFilterSet
+from ..widgets import DateRangeWidget
 from ...core.utils.filters import filter_by_date_range
 from ...discount.models import Sale, Voucher
 from ...product.models import Category
-from ..filters import SortedFilterSet
-from ..widgets import DateRangeWidget
-
 
 SORT_BY_FIELDS_SALE = {
     'name': pgettext_lazy('Sale list sorting option', 'name'),

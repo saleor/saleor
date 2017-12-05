@@ -223,37 +223,37 @@ class Order(models.Model, ItemSet):
 class DeliveryGroup(models.Model, ItemSet):
     """Represents a single shipment.
 
-    A single order can consist of may delivery groups.
+    A single order can consist of many shipment groups.
     """
     status = models.CharField(
-        pgettext_lazy('Delivery group field', 'delivery status'),
+        pgettext_lazy('Shipment group field', 'shipment status'),
         max_length=32, default=OrderStatus.NEW, choices=OrderStatus.CHOICES)
     order = models.ForeignKey(
         Order, related_name='groups', editable=False, on_delete=models.CASCADE)
     shipping_price = PriceField(
-        pgettext_lazy('Delivery group field', 'shipping price'),
+        pgettext_lazy('Shipment group field', 'shipping price'),
         currency=settings.DEFAULT_CURRENCY, max_digits=12, decimal_places=4,
         default=0, editable=False)
     shipping_method_name = models.CharField(
-        pgettext_lazy('Delivery group field', 'shipping method name'),
+        pgettext_lazy('Shipment group field', 'shipping method name'),
         max_length=255, null=True, default=None, blank=True, editable=False)
     tracking_number = models.CharField(
-        pgettext_lazy('Delivery group field', 'tracking number'),
+        pgettext_lazy('Shipment group field', 'tracking number'),
         max_length=255, default='', blank=True)
     last_updated = models.DateTimeField(
-        pgettext_lazy('Delivery group field', 'last updated'),
+        pgettext_lazy('Shipment group field', 'last updated'),
         null=True, auto_now=True)
 
     def __str__(self):
         return pgettext_lazy(
-            'Delivery group str', 'Shipment #%s') % self.pk
+            'Shipment group str', 'Shipment #%s') % self.pk
 
     def __repr__(self):
         return '%s(%r)' % (self.__class__.__name__, list(self))
 
     def __iter__(self):
         if self.id:
-            return iter(self.items.all())
+            return iter(self.lines.all())
         return super(DeliveryGroup, self).__iter__()
 
     @property
@@ -269,7 +269,7 @@ class DeliveryGroup(models.Model, ItemSet):
         return subtotal + self.shipping_price
 
     def get_total_quantity(self):
-        return sum([item.get_quantity() for item in self])
+        return sum([line.get_quantity() for line in self])
 
     def is_shipping_required(self):
         return self.shipping_required
@@ -287,11 +287,11 @@ class DeliveryGroup(models.Model, ItemSet):
 class OrderLineManager(models.Manager):
     def move_to_group(self, line, target_group, quantity):
         try:
-            target_line = target_group.items.get(
+            target_line = target_group.lines.get(
                 product=line.product, product_name=line.product_name,
                 product_sku=line.product_sku, stock=line.stock)
         except ObjectDoesNotExist:
-            target_group.items.create(
+            target_group.lines.create(
                 delivery_group=target_group, product=line.product,
                 product_name=line.product_name, product_sku=line.product_sku,
                 quantity=quantity, unit_price_net=line.unit_price_net,
@@ -324,8 +324,8 @@ class OrderLineManager(models.Manager):
 @python_2_unicode_compatible
 class OrderLine(models.Model, ItemLine):
     delivery_group = models.ForeignKey(
-        DeliveryGroup, related_name='items', editable=False,
-        verbose_name=pgettext_lazy('Ordered line field', 'delivery group'),
+        DeliveryGroup, related_name='lines', editable=False,
+        verbose_name=pgettext_lazy('Ordered line field', 'shipment group'),
         on_delete=models.CASCADE)
     product = models.ForeignKey(
         Product, blank=True, null=True, related_name='+',

@@ -283,15 +283,20 @@ def product_list(product_class, default_category):
 
     product_1 = Product.objects.create(
         name='Test product 1', price=Decimal('10.00'),
-        product_class=product_class, attributes=attributes)
+        product_class=product_class, attributes=attributes, is_published=True)
     product_1.categories.add(default_category)
 
     product_2 = Product.objects.create(
         name='Test product 2', price=Decimal('20.00'),
-        product_class=product_class, attributes=attributes)
+        product_class=product_class, attributes=attributes, is_published=False)
     product_2.categories.add(default_category)
 
-    return [product_1, product_2]
+    product_3 = Product.objects.create(
+        name='Test product 3', price=Decimal('20.00'),
+        product_class=product_class, attributes=attributes, is_published=True)
+    product_3.categories.add(default_category)
+
+    return [product_1, product_2, product_3]
 
 
 @pytest.fixture
@@ -351,7 +356,7 @@ def voucher(db):  # pylint: disable=W0613
 
 
 @pytest.fixture()
-def order_with_items(order, product_class):
+def order_with_lines(order, product_class):
     group = DeliveryGroup.objects.create(order=order)
     product = Product.objects.create(
         name='Test product', price=Decimal('10.00'),
@@ -397,7 +402,7 @@ def order_with_items(order, product_class):
 
 
 @pytest.fixture()
-def order_with_items_and_stock(order, product_class):
+def order_with_lines_and_stock(order, product_class):
     group = DeliveryGroup.objects.create(order=order)
     product = Product.objects.create(
         name='Test product', price=Decimal('10.00'),
@@ -442,7 +447,7 @@ def order_with_items_and_stock(order, product_class):
 
 
 @pytest.fixture()
-def order_with_variant_from_different_stocks(order_with_items_and_stock):
+def order_with_variant_from_different_stocks(order_with_lines_and_stock):
     line = OrderLine.objects.get(product_sku='SKU_A')
     variant = ProductVariant.objects.get(sku=line.product_sku)
     warehouse_2 = StockLocation.objects.create(name='Warehouse 2')
@@ -464,7 +469,7 @@ def order_with_variant_from_different_stocks(order_with_items_and_stock):
     Stock.objects.create(
         variant=variant, cost_price=1, quantity=5, quantity_allocated=0,
         location=warehouse_2)
-    return order_with_items_and_stock
+    return order_with_lines_and_stock
 
 
 @pytest.fixture()
@@ -479,18 +484,6 @@ def authorization_key(db, site_settings):
     return AuthorizationKey.objects.create(
         site_settings=site_settings, name='Backend', key='Key',
         password='Password')
-
-
-@pytest.fixture
-def product_list(product_class, default_category):
-    product_1 = Product.objects.create(
-        name='Test product 1', price=Decimal('10.00'),
-        product_class=product_class, is_published=True)
-    product_1.categories.add(default_category)
-    product_2 = Product.objects.create(
-        name='Test product 2', price=Decimal('20.00'),
-        product_class=product_class, is_published=False)
-    return [product_1, product_2]
 
 
 @pytest.fixture
