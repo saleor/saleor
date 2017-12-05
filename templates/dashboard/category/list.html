@@ -46,11 +46,6 @@
   <div class="row">
     <div class="col s12 l9">
       <div class="card">
-        <div class="data-table-header-action">
-          <a href="{% if root%}{% url 'dashboard:category-add' root_pk=root.pk %}{% else %}{% url 'dashboard:category-add' %}{% endif %}" class="btn-data-table btn btn-flat">
-            {% trans "Add" %}
-          </a>
-        </div>
         <div class="data-table-container">
           <table class="bordered highlight responsive data-table data-table-description">
             <thead>
@@ -60,6 +55,13 @@
                   <a href="{{ toggle.url }}">
                     <svg data-src="{{ toggle.sorting_icon }}" />
                     {% trans "Name" context "Category list table header name" %}
+                  </a>
+                </th>
+                {% get_sort_by_toggle 'is_hidden' as toggle %}
+                <th class="{% if toggle.is_active %}active{% endif %}">
+                  <a href="{{ toggle.url }}">
+                    <svg data-src="{{ toggle.sorting_icon }}" />
+                    {% trans "Is hidden" context "Category list table header hidden" %}
                   </a>
                 </th>
                 {% get_sort_by_toggle 'description' as toggle %}
@@ -76,6 +78,15 @@
                   <td>
                     {{ node.name }}
                   </td>
+                  <td>
+                    {% if node.is_hidden %}
+                      <span>
+                        {% trans 'Hidden' context 'Category list table is hidden flag' %}
+                      </span>
+                    {% else %}
+                      -
+                    {% endif %}
+                  </td>
                   <td class="nowrap">
                     {% if node.description %}
                       {{ node.description|truncatewords:10 }}
@@ -90,6 +101,9 @@
         </div>
       </div>
       {% paginate categories %}
+    </div>
+    <div class="col s12 l3" id="filters">
+      {% add_filters filter %}
     </div>
   </div>
 {% endblock %}

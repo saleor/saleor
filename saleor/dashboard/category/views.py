@@ -19,7 +19,7 @@ from .forms import CategoryForm
 @staff_member_required
 @permission_required('product.view_category')
 def category_list(request):
-    categories = Category.tree.root_nodes()
+    categories = Category.tree.root_nodes().order_by('name')
     category_filter = CategoryFilter(request.GET, queryset=categories)
     categories = get_paginator_items(
         category_filter.qs, settings.DASHBOARD_PAGINATE_BY,
@@ -84,10 +84,13 @@ def category_edit(request, root_pk=None):
 def category_detail(request, pk):
     root = get_object_or_404(Category, pk=pk)
     path = root.get_ancestors(include_self=True) if root else []
-    categories = root.get_children()
+    categories = root.get_children().order_by('name')
+    category_filter = CategoryFilter(request.GET, queryset=categories)
     categories = get_paginator_items(
-        categories, settings.DASHBOARD_PAGINATE_BY, request.GET.get('page'))
-    ctx = {'categories': categories, 'path': path, 'root': root}
+        category_filter.qs, settings.DASHBOARD_PAGINATE_BY,
+        request.GET.get('page'))
+    ctx = {'categories': categories, 'path': path, 'root': root,
+           'filter': category_filter}
     return TemplateResponse(request, 'dashboard/category/detail.html', ctx)
 
 
