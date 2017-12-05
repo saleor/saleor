@@ -1,8 +1,7 @@
 from __future__ import unicode_literals
 
-from django import forms
 from django.utils.translation import pgettext_lazy
-from django_filters import CharFilter, ChoiceFilter, OrderingFilter
+from django_filters import CharFilter, OrderingFilter
 
 from ...core.filters import SortedFilterSet
 from ...product.models import Category
