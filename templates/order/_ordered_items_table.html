@@ -76,13 +76,13 @@
       <div class="row">
         <div class="col-8 order-details__table-footer">
           <p>
-            {% blocktrans trimmed with shipping_method_name=item.shipping_method_name context "Order details delivery row text"  %}
-            Delivery ({{ shipping_method_name }})
+            {% blocktrans trimmed with shipping_method_name=item.shipping_method_name context "Order details shipment row text"  %}
+            Shipment ({{ shipping_method_name }})
             {% endblocktrans %}
           </p>
           {% if item.tracking_number %}
           <p>
-            {% blocktrans trimmed with tracking_number=item.tracking_number context "Order details delivery row text"  %}
+            {% blocktrans trimmed with tracking_number=item.tracking_number context "Order details shipment row text"  %}
             Tracking number: {{ tracking_number }}
             {% endblocktrans %}
           </p>
