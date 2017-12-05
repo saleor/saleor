@@ -16,7 +16,7 @@ from .forms import (
 def details(request):
     password_form = get_or_process_password_form(request)
     ctx = {'addresses': request.user.addresses.all(),
-           'orders': request.user.orders.prefetch_related('groups__items'),
+           'orders': request.user.orders.prefetch_related('groups__lines'),
            'change_password_form': password_form}
 
     return TemplateResponse(request, 'userprofile/details.html', ctx)

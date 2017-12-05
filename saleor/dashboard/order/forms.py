@@ -206,7 +206,7 @@ class ShipGroupForm(forms.ModelForm):
 
     def save(self):
         order = self.instance.order
-        for line in self.instance.items.all():
+        for line in self.instance.lines.all():
             stock = line.stock
             if stock is not None:
                 # remove and deallocate quantity
