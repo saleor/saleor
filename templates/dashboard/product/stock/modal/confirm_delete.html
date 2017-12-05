@@ -1,4 +1,4 @@
-{% extends "dashboard/base_modal_confirm_delete.html" %}
+{% extends "dashboard/base_modal.html" %}
 
 {% load i18n %}
 {% load prices_i18n %}
@@ -8,13 +8,19 @@
 {% endblock %}
 
 {% block title %}
-{% blocktrans context "Dashboard confirmation modal" %}
+{% blocktrans context "Modal remove stock title" %}
 Remove stock {{ stock }}
 {% endblocktrans %}
 {% endblock title %}
 
 {% block content %}
-{% blocktrans context "Dashboard confirmation modal" %}
-Are you sure you want to remove stock <strong>{{ stock }}</strong>?
-{% endblocktrans %}
+<div class="col">
+    {% blocktrans context "Modal remove stock text" %}
+        Are you sure you want to remove stock <strong>{{ stock }}</strong>?
+    {% endblocktrans %}
+</div>
 {% endblock content %}
+
+{% block primary_action %}
+{% trans "Remove" context "Modal remove stock primary action" %}
+{% endblock %}

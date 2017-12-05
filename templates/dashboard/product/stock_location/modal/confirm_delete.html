@@ -1,4 +1,4 @@
-{% extends "dashboard/base_modal_confirm_delete.html" %}
+{% extends "dashboard/base_modal.html" %}
 
 {% load i18n %}
 
@@ -7,26 +7,31 @@
 {% endblock %}
 
 {% block title %}
-{% blocktrans trimmed context "Modal remove stock location text" %}
+{% blocktrans trimmed context "Modal remove stock location title" %}
 Remove stock location {{ location }}
 {% endblocktrans %}
 {% endblock title %}
 
 {% block content %}
-<p>
-{% blocktrans trimmed context "Modal remove stock location text" %}
-    Are you sure you want to remove stock location <strong>{{ location }}</strong>?
-{% endblocktrans %}
-</p>
-{% if stock_count %}
-<p>
-{% blocktrans trimmed count counter=stock_count context "Modal remove stock location text" %}
-  There is one stock associated with this stock location that will be removed.
-  {% plural %}
-  There are {{ counter }} stocks associated with this stock location that will be removed.
-{% endblocktrans %}
-</p>
-{% endif %}
-
+<div class="col">
+  <p>
+  {% blocktrans trimmed context "Modal remove stock location text" %}
+      Are you sure you want to remove stock location <strong>{{ location }}</strong>?
+  {% endblocktrans %}
+  </p>
+  {% if stock_count %}
+    <p>
+    {% blocktrans trimmed count counter=stock_count context "Modal remove stock location text" %}
+      There is one stock associated with this stock location that will be removed.
+      {% plural %}
+      There are {{ counter }} stocks associated with this stock location that will be removed.
+    {% endblocktrans %}
+    </p>
+  {% endif %}
+</div>
 {% endblock content %}
+
+{% block primary_action %}
+{% trans "Remove" context "Modal remove stock location primary action" %}
+{% endblock %}
 
