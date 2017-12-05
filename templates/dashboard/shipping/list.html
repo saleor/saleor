@@ -22,7 +22,7 @@
   </ul>
 {% endblock %}
 
-{% block content %}
+{% block header_extra %}
   {% if perms.shipping.edit_shipping %}
   <div class="btn-fab-fixed">
     <a href="{% url 'dashboard:shipping-method-add' %}"
@@ -32,6 +32,9 @@
     </a>
   </div>
   {% endif %}
+{% endblock %}
+
+{% block content %}
   <div class="row">
     <div class="col s12 l9">
       {% if shipping_methods %}
