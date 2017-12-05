@@ -181,7 +181,7 @@ class ProductVariantType(DjangoObjectType):
         model = ProductVariant
         interfaces = (relay.Node, DjangoPkInterface)
 
-    def resolve_stock_quantity(self, args, context, info):
+    def resolve_stock_quantity(self, info):
         return self.get_stock_quantity()
 
 
