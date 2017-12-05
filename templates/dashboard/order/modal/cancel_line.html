@@ -1,20 +1,22 @@
+{% extends "dashboard/base_modal.html" %}
+
 {% load i18n %}
 {% load materializecss %}
 {% load prices_i18n %}
 
-<form class="form-async" role="form" method="post" action="{% url 'dashboard:orderline-cancel' order_pk=order.pk line_pk=item.pk %}" novalidate>
-  {% csrf_token %}
-  <div class="modal-content">
-    <h5>
-      {% trans "Remove order line?" context "Modal remove order line title" %}
-    </h5>
-    <p>
-      {% blocktrans trimmed with order=order context "Modal remove order line text" %}
-        Are you sure you want remove this order line?
-      {% endblocktrans %}
-    </p>
-    {{ form|materializecss }}
-    <table>
+{% block action_url %}
+{% url 'dashboard:orderline-cancel' order_pk=order.pk line_pk=item.pk %}
+{% endblock %}
+
+{% block title %}
+{% trans "Remove order line" context "Modal remove order line title" %}
+{% endblock %}
+
+{% block content %}
+<div class="col s12 m12">
+  {% trans "Are you sure you want remove this order line?" context "Modal remove order line text" %}
+  {{ form|materializecss }}
+  <table>
       <thead>
         <tr>
           <th class="wide">
@@ -54,13 +56,9 @@
         </tr>
       </tbody>
     </table>
-  </div>
-  <div class="modal-footer">
-    <a href="#!" aria-hidden="true" class="modal-action modal-close btn-flat waves-effect">
-      {% trans "Cancel" context "Dashboard cancel action" %}
-    </a>
-    <button type="submit" class="modal-action btn-flat waves-effect">
-      {% trans "Remove" context "Dashboard remove action" %}
-    </button>
-  </div>
-</form>
+</div>
+{% endblock %}
+
+{% block primary_action %}
+{% trans "Remove" context "Modal remove order line primary action" %}
+{% endblock %}
