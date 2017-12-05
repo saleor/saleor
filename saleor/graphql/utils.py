@@ -24,7 +24,7 @@ class DjangoPkInterface(graphene.Interface):
     """
     pk = graphene.ID(description="Primary key")
 
-    def resolve_pk(self, args, context, info):
+    def resolve_pk(self, info):
         return self.pk
 
 
