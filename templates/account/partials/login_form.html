@@ -6,10 +6,7 @@
   {% csrf_token %}
   <fieldset>
     {% bootstrap_form form %}
-    {% if redirect_field_value %}
-      <input type="hidden" name="next" name="{{ redirect_field_name }}"
-             value="{{ redirect_field_value }}"/>
-    {% endif %}
+      <input type="hidden" name="next" value="{{ next }}"/>
   </fieldset>
   <div class="row login__btn-group">
     <div class="col-sm-12">
