@@ -1,0 +1,25 @@
+{% extends "dashboard/base_modal.html" %}
+
+{% load i18n %}
+{% load materializecss %}
+{% load mptt_tags %}
+
+{% block action_url %}
+{% url "dashboard:category-edit" root_pk=category.pk %}
+{% endblock %}
+
+{% block title %}
+{% blocktrans trimmed with category=category context "Edit category modal title" %}
+Edit {{ category }}
+{% endblocktrans %}
+{% endblock %}
+
+{% block content %}
+{{ form.name|materializecss:"s8 m10" }}
+{{ form.hidden|materializecss:"s4 m2" }}
+{{ form.description|materializecss }}
+{% endblock %}
+
+{% block primary_action %}
+{% trans "Update" context "Edit category primary action" %}
+{% endblock %}
