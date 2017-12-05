@@ -52,22 +52,22 @@ class ProductType(DjangoObjectType):
         model = Product
         interfaces = (relay.Node, DjangoPkInterface)
 
-    def resolve_thumbnail_url(self, args, context, info):
-        size = args.get('size')
+    def resolve_thumbnail_url(self, info, size):
         if not size:
             size = '255x255'
         return product_first_image(self, size)
 
-    def resolve_images(self, args, context, info):
+    def resolve_images(self, info):
         return self.images.all()
 
-    def resolve_variants(self, args, context, info):
+    def resolve_variants(self, info):
         return self.variants.all()
 
-    def resolve_url(self, args, context, info):
+    def resolve_url(self, info):
         return self.get_absolute_url()
 
-    def resolve_availability(self, args, context, info):
+    def resolve_availability(self, info):
+        context = info.context
         a = get_availability(self, context.discounts, context.currency)
         return ProductAvailabilityType(**a._asdict())
 
@@ -99,23 +99,25 @@ class CategoryType(DjangoObjectType):
         model = Category
         interfaces = (relay.Node, DjangoPkInterface)
 
-    def resolve_ancestors(self, args, context, info):
+    def resolve_ancestors(self, info):
+        context = info.context
         return get_ancestors_from_cache(self, context)
 
-    def resolve_children(self, args, context, info):
+    def resolve_children(self, info):
         return self.children.all()
 
-    def resolve_siblings(self, args, context, info):
+    def resolve_siblings(self, info):
         return self.get_siblings()
 
-    def resolve_products_count(self, args, context, info):
+    def resolve_products_count(self, info):
         return self.products.count()
 
-    def resolve_url(self, args, context, info):
-        ancestors = get_ancestors_from_cache(self, context)
+    def resolve_url(self, info):
+        ancestors = get_ancestors_from_cache(self, info.context)
         return self.get_absolute_url(ancestors)
 
-    def resolve_products(self, args, context, info):
+    def resolve_products(self, info, attributes, order_by, price_lte, price_gte):
+        context = info.context
 
         def filter_by_price(queryset, value, operator):
             return [obj for obj in queryset if operator(get_availability(
@@ -124,12 +126,8 @@ class CategoryType(DjangoObjectType):
         tree = self.get_descendants(include_self=True)
         qs = products_for_api(context.user)
         qs = qs.filter(categories__in=tree).distinct()
-        attributes_filter = args.get('attributes')
-        order_by = args.get('order_by')
-        price_lte = args.get('price_lte')
-        price_gte = args.get('price_gte')
 
-        if attributes_filter:
+        if attributes:
             attributes = ProductAttribute.objects.prefetch_related('values')
             attributes_map = {attribute.slug: attribute.pk
                               for attribute in attributes}
@@ -139,7 +137,7 @@ class CategoryType(DjangoObjectType):
             queries = {}
             # Convert attribute:value pairs into a dictionary where
             # attributes are keys and values are grouped in lists
-            for attr_name, val_slug in attributes_filter:
+            for attr_name, val_slug in attributes:
                 try:
                     attr_pk = attributes_map[attr_name]
                 except KeyError:
@@ -194,8 +192,7 @@ class ProductImageType(DjangoObjectType):
         model = ProductImage
         interfaces = (relay.Node, DjangoPkInterface)
 
-    def resolve_url(self, args, context, info):
-        size = args.get('size')
+    def resolve_url(self, info, size):
         if size:
             return self.image.crop[size].url
         return self.image.url
@@ -214,7 +211,7 @@ class ProductAttributeType(DjangoObjectType):
         model = ProductAttribute
         interfaces = (relay.Node, DjangoPkInterface)
 
-    def resolve_values(self, args, context, info):
+    def resolve_values(self, info):
         return self.values.all()
 
 
@@ -225,10 +222,10 @@ class PriceType(graphene.ObjectType):
     net = graphene.Float()
     net_localized = graphene.String()
 
-    def resolve_gross_localized(self, args, context, info):
+    def resolve_gross_localized(self, info):
         return prices_i18n.gross(self)
 
-    def resolve_net_localized(self, args, context, info):
+    def resolve_net_localized(self, info):
         return prices_i18n.net(self)
 
 
@@ -248,17 +245,16 @@ class Query(graphene.ObjectType):
     root = graphene.Field(lambda: Query)
     debug = graphene.Field(DjangoDebug, name='_debug')
 
-    def resolve_category(self, args, context, info):
-        categories = Category.tree.filter(pk=args.get('pk')).get_cached_trees()
+    def resolve_category(self, info, pk):
+        categories = Category.tree.filter(pk=pk).get_cached_trees()
         if categories:
             category = categories[0]
             cache = {CACHE_ANCESTORS: CategoryAncestorsCache(category)}
-            setattr(context, CONTEXT_CACHE_NAME, cache)
+            setattr(info.context, CONTEXT_CACHE_NAME, cache)
             return category
         return None
 
-    def resolve_attributes(self, args, context, info):
-        category_pk = args.get('category_pk')
+    def resolve_attributes(self, info, category_pk):
         queryset = ProductAttribute.objects.prefetch_related('values')
         if category_pk:
             # Get attributes that are used with product classes
@@ -273,7 +269,7 @@ class Query(graphene.ObjectType):
                 Q(product_variants_class__in=product_classes))
         return queryset.distinct()
 
-    def resolve_root(self, args, context, info):
+    def resolve_root(self, info):
         # Re-expose the root query object. Workaround for the issue in Relay:
         # https://github.com/facebook/relay/issues/112
         return Query()
