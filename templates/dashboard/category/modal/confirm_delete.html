@@ -22,14 +22,10 @@ Are you sure you want to remove category <strong>{{ category }}</strong>?
 {% trans "The following child categories will be removed:" context "Delete category form text about descendant categories" %}
 <ul>
   {% recursetree descendants %}
-  <li>
-    {{ node.name }}
+    {{ node.name }},
     {% if not node.is_leaf_node %}
-      <ul class="children">
-        {{ children }}
-      </ul>
+      {{ children }}
     {% endif %}
-  </li>
   {% endrecursetree %}
 </ul>
 </p>
