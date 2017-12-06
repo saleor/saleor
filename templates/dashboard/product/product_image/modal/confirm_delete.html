@@ -1,4 +1,4 @@
-{% extends "dashboard/base_modal_confirm_delete.html" %}
+{% extends "dashboard/base_modal.html" %}
 
 {% load i18n %}
 {% load product_first_image from product_images %}
@@ -10,14 +10,14 @@
 {% endblock %}
 
 {% block title %}
-{% trans "Remove product image" context "Modal remove image text" %}
+{% trans "Remove product image" context "Modal remove product image text" %}
 {% endblock %}
 
 {% block content %}
 <div class="center-align">
     <img class="responsive-img" src="{{ image.image.crop.255x255 }}"  srcset="{{ image.image.crop.255x255 }} 1x, {{ image.image.crop.510x510 }} 2x" alt="">
 </div>
-<p>{% trans "Are you sure you want to remove product image?" context "Modal remove image text" %}</p>
+<p>{% trans "Are you sure you want to remove product image?" context "Modal remove product image text" %}</p>
 {% endblock content %}
 
 {% block primary_action %}
