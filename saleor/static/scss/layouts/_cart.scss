@@ -39,6 +39,10 @@
       }
       form {
         display: inline-block;
+        input {
+          width: 62px;
+          margin-right: 10px;
+        }
       }
       &-error {
         display: block;
@@ -89,6 +93,11 @@
     }
     .btn {
       margin: $global-margin * 2 0 $global-margin * 5;
+    }
+  }
+  &__submit {
+    @media (max-width: 370px) {
+      width: 100%;
     }
   }
 }

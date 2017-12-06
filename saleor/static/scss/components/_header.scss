@@ -31,6 +31,7 @@
     }
   }
 }
+
 .navbar {
   padding: 0;
   @include media-breakpoint-down(sm) {
@@ -41,7 +42,7 @@
   }
   @media (max-width: 370px) {
     svg {
-      max-height: 25px;
+      max-height: 23px;
       width: auto;
     }
   }
@@ -72,18 +73,22 @@
   &__logo {
     padding: $global-padding * 2 0;
     .menu-icon-mobile {
-        position: relative;
-        display: inline-block;
-        span {
-          position: absolute;
-          top: 1.3rem;
-          left: 1.1rem;
-          text-transform: uppercase;
-          font-size: 0.45rem;
-        }
-        svg {
-          vertical-align: top;
-        }
+      position: relative;
+      display: inline-block;
+      top: -5px;
+      span {
+        position: absolute;
+        top: 1.3rem;
+        left: 1.1rem;
+        text-transform: uppercase;
+        font-size: 0.45rem;
+      }
+      svg {
+        vertical-align: top;
+      }
+      @media (max-width: 370px) {
+        top: 0;
+      }
     }
     svg path {
       fill: $body-color;
@@ -131,7 +136,7 @@
         padding: $global-padding * 2;
         position: absolute;
         right: 0;
-        top:0;
+        top: 0;
         z-index: 4;
         @include media-breakpoint-down(sm) {
           position: relative;

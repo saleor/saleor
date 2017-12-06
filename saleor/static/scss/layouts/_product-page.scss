@@ -4,6 +4,11 @@
     text-decoration: underline;
   }
   &__info {
+    @include media-breakpoint-down(sm) {
+      h1 {
+        font-size: 2rem;
+      }
+    }
     h3 {
       text-transform: uppercase;
     }
@@ -74,6 +79,7 @@
       left: 0;
       display: block;
       text-align: center;
+      z-index: 3;
       li {
         display: inline;
         text-indent: 0;
@@ -83,7 +89,7 @@
         }
         &.active {
           img {
-            opacity: 0.5;  
+            opacity: 0.5;
           }
         }
       }

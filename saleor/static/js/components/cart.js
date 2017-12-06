@@ -66,7 +66,7 @@ export default $(document).ready((e) => {
   let $cartBadge = $('.navbar__brand__cart .badge');
   let $closeMsg = $('.close-msg');
   $closeMsg.on('click', (e) => {
-    $removeProductSuccess.addClass('d-sm-none');
+    $removeProductSuccess.addClass('d-none');
   });
   $cartLine.each(function () {
     let $quantityInput = $(this).find('#id_quantity');
@@ -86,7 +86,7 @@ export default $(document).ready((e) => {
               $.cookie('alert', 'true', {path: '/cart'});
               location.reload();
             } else {
-              $removeProductSuccess.removeClass('d-sm-none');
+              $removeProductSuccess.removeClass('d-none');
               $(this).fadeOut();
             }
           } else {
@@ -113,7 +113,7 @@ export default $(document).ready((e) => {
             $total.html(response.total);
             $cartBadge.html(response.cart.numItems);
             $cartDropdown.load(summaryLink);
-            $removeProductSuccess.removeClass('d-sm-none');
+            $removeProductSuccess.removeClass('d-none');
           } else {
             $.cookie('alert', 'true', {path: '/cart'});
             location.reload();
@@ -148,7 +148,7 @@ export default $(document).ready((e) => {
   $cartSubtotal.on('change', countrySelect, deliveryAjax);
 
   if ($.cookie('alert') === 'true') {
-    $removeProductSuccess.removeClass('d-sm-none');
+    $removeProductSuccess.removeClass('d-none');
     $.cookie('alert', 'false', {path: '/cart'});
   }
 });

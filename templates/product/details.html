@@ -60,7 +60,7 @@
                 <svg data-src="{% static "images/gallery_arrow.svg" %}" />
               </a>
             {% endif %}
-            <ol class="carousel-indicators hidden-sm-down">
+            <ol class="carousel-indicators d-none d-md-block">
               {% for image in images %}
                 {% if images|length > 1 %}
                   <li data-target="#carousel-example-generic" data-slide-to="{{ forloop.counter0 }}"{% if forloop.first %} class="active"{% endif %}>
