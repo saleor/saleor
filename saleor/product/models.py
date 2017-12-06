@@ -38,8 +38,8 @@ class Category(MPTTModel):
         'self', null=True, blank=True, related_name='children',
         verbose_name=pgettext_lazy('Category field', 'parent'),
         on_delete=models.CASCADE)
-    hidden = models.BooleanField(
-        pgettext_lazy('Category field', 'hidden'), default=False)
+    is_hidden = models.BooleanField(
+        pgettext_lazy('Category field', 'is_hidden'), default=False)
 
     objects = models.Manager()
     tree = TreeManager()
@@ -68,8 +68,8 @@ class Category(MPTTModel):
         nodes = [node for node in ancestors] + [self]
         return '/'.join([node.slug for node in nodes])
 
-    def set_hidden_descendants(self, hidden):
-        self.get_descendants().update(hidden=hidden)
+    def set_is_hidden_descendants(self, is_hidden):
+        self.get_descendants().update(is_hidden=is_hidden)
 
 
 @python_2_unicode_compatible
@@ -180,7 +180,7 @@ class Product(models.Model, ItemRange):
 
     def get_first_category(self):
         for category in self.categories.all():
-            if not category.hidden:
+            if not category.is_hidden:
                 return category
         return None
 

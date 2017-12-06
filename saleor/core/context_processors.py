@@ -27,7 +27,7 @@ def default_currency(request):
 # request is a required parameter
 # pylint: disable=W0613
 def categories(request):
-    return {'categories': Category.tree.root_nodes().filter(hidden=False)}
+    return {'categories': Category.tree.root_nodes().filter(is_hidden=False)}
 
 
 def search_enabled(request):

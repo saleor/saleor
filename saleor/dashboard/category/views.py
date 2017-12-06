@@ -18,27 +18,24 @@ from .forms import CategoryForm
 
 @staff_member_required
 @permission_required('product.view_category')
-def category_list(request, root_pk=None):
-    root = None
-    path = None
-    categories = Category.tree.root_nodes()
-    if root_pk:
-        root = get_object_or_404(Category, pk=root_pk)
-        path = root.get_ancestors(include_self=True) if root else []
-        categories = root.get_children()
+def category_list(request):
+    categories = Category.tree.root_nodes().order_by('name')
     category_filter = CategoryFilter(request.GET, queryset=categories)
     categories = get_paginator_items(
         category_filter.qs, settings.DASHBOARD_PAGINATE_BY,
         request.GET.get('page'))
-    ctx = {'categories': categories, 'path': path, 'root': root,
-           'filter': category_filter}
+    ctx = {'categories': categories, 'filter': category_filter}
     return TemplateResponse(request, 'dashboard/category/list.html', ctx)
 
 
 @staff_member_required
 @permission_required('product.edit_category')
 def category_create(request, root_pk=None):
+    path = None
     category = Category()
+    if root_pk:
+        root = get_object_or_404(Category, pk=root_pk)
+        path = root.get_ancestors(include_self=True) if root else []
     form = CategoryForm(request.POST or None, parent_pk=root_pk)
     if form.is_valid():
         category = form.save()
@@ -47,17 +44,21 @@ def category_create(request, root_pk=None):
             pgettext_lazy(
                 'Dashboard message', 'Added category %s') % category)
         if root_pk:
-            return redirect('dashboard:category-list', root_pk=root_pk)
+            return redirect('dashboard:category-detail', pk=root_pk)
         else:
             return redirect('dashboard:category-list')
-    ctx = {'category': category, 'form': form}
-    return TemplateResponse(request, 'dashboard/category/detail.html', ctx)
+    ctx = {'category': category, 'form': form, 'path': path}
+    return TemplateResponse(request, 'dashboard/category/form.html', ctx)
 
 
 @staff_member_required
 @permission_required('product.edit_category')
 def category_edit(request, root_pk=None):
+    path = None
     category = get_object_or_404(Category, pk=root_pk)
+    if root_pk:
+        root = get_object_or_404(Category, pk=root_pk)
+        path = root.get_ancestors(include_self=True) if root else []
     form = CategoryForm(request.POST or None, instance=category,
                         parent_pk=category.parent_id)
     status = 200
@@ -68,14 +69,29 @@ def category_edit(request, root_pk=None):
             pgettext_lazy(
                 'Dashboard message', 'Updated category %s') % category)
         if root_pk:
-            return redirect('dashboard:category-list', root_pk=root_pk)
+            return redirect('dashboard:category-detail', pk=root_pk)
         else:
             return redirect('dashboard:category-list')
     elif form.errors:
         status = 400
-    ctx = {'category': category, 'form': form, 'status': status}
-    template = 'dashboard/category/modal/edit.html'
+    ctx = {'category': category, 'form': form, 'status': status, 'path': path}
+    template = 'dashboard/category/form.html'
     return TemplateResponse(request, template, ctx, status=status)
+
+
+@staff_member_required
+@permission_required('product.view_category')
+def category_detail(request, pk):
+    root = get_object_or_404(Category, pk=pk)
+    path = root.get_ancestors(include_self=True) if root else []
+    categories = root.get_children().order_by('name')
+    category_filter = CategoryFilter(request.GET, queryset=categories)
+    categories = get_paginator_items(
+        category_filter.qs, settings.DASHBOARD_PAGINATE_BY,
+        request.GET.get('page'))
+    ctx = {'categories': categories, 'path': path, 'root': root,
+           'filter': category_filter}
+    return TemplateResponse(request, 'dashboard/category/detail.html', ctx)
 
 
 @staff_member_required
@@ -94,9 +110,9 @@ def category_delete(request, pk):
         if root_pk:
             if request.is_ajax():
                 response = {'redirectUrl': reverse(
-                    'dashboard:category-list', kwargs={'root_pk': root_pk})}
+                    'dashboard:category-detail', kwargs={'pk': root_pk})}
                 return JsonResponse(response)
-            return redirect('dashboard:category-list', root_pk=root_pk)
+            return redirect('dashboard:category-detail', pk=root_pk)
         else:
             if request.is_ajax():
                 response = {'redirectUrl': reverse('dashboard:category-list')}
