@@ -475,7 +475,7 @@ def test_view_ajax_available_variants_list(admin_client, product_in_stock):
 def test_view_ajax_available_products_list(admin_client, product_in_stock):
     products_list = [{'id': product_in_stock.pk, 'text': 'Test product'}]
 
-    url = reverse('dashboard:ajax-available-products')
+    url = reverse('dashboard:ajax-products')
     response = admin_client.get(url, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
     resp_decoded = json.loads(response.content.decode('utf-8'))
 

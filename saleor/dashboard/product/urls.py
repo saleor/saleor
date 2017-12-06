@@ -99,5 +99,5 @@ urlpatterns = [
     url(r'^ajax/variants/$',
         views.ajax_available_variants_list, name='ajax-available-variants'),
     url(r'^ajax/products/$',
-        views.ajax_available_products_list, name='ajax-available-products'),
+        views.ajax_products_list, name='ajax-products'),
 ]
