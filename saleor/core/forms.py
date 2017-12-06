@@ -8,7 +8,8 @@ class AjaxSelect2ChoiceField(forms.ChoiceField):
     """
 
     def __init__(
-            self, fetch_data_url='', initial=None, many=False, *args, **kwargs):
+            self, fetch_data_url='', initial=None, many=False, *args,
+            **kwargs):
         self.queryset = kwargs.pop('queryset')
         super(AjaxSelect2ChoiceField, self).__init__(*args, **kwargs)
         self.widget.attrs['class'] = 'enable-ajax-select2'
