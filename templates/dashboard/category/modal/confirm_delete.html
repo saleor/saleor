@@ -3,6 +3,8 @@
 {% load i18n %}
 {% load mptt_tags %}
 
+{% block form_class %}{% endblock %}
+
 {% block action_url %}
 {% url "dashboard:category-delete" pk=category.pk %}
 {% endblock %}

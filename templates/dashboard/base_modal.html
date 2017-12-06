@@ -1,6 +1,8 @@
 {% load i18n %}
 
-<form role="form" action="{% block action_url %}#!{% endblock %}" method="post" class="form-async" novalidate>
+<form
+    role="form" method="post" action="{% block action_url %}#!{% endblock %}"
+    class="{% block form_class %}form-async{% endblock %}" novalidate>
     {% csrf_token %}
     <div class="modal-content">
         <div class="row">
