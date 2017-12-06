@@ -32,7 +32,7 @@
 
 {% block content %}
     <div class="row checkout">
-        <div class="col-lg-10 offset-lg-1">
+        <div class="col-lg-10 m-auto">
             {% if order.user == user or not order.is_fully_paid %}
                 {% if not order.is_fully_paid %}
                        {% if waiting_payment %}

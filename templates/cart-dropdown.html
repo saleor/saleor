@@ -10,8 +10,8 @@
       <div class="row item">
         <div class="col-md-10">
           <a class="link--clean" href="{{ line.variant_url }}">
-            <img class="cart-dropdown__image" src="{% get_thumbnail line.image size="60x60" %}" 
-                 srcset="{% get_thumbnail line.image size="60x60" %} 1x, {% get_thumbnail line.image size="120x120" %} 2x" 
+            <img class="cart-dropdown__image" src="{% get_thumbnail line.image size="60x60" %}"
+                 srcset="{% get_thumbnail line.image size="60x60" %} 1x, {% get_thumbnail line.image size="120x120" %} 2x"
                  alt="">
             <h3>
               {{ line.product }}
@@ -41,7 +41,8 @@
       </div>
     </div>
     <div class="row cart-dropdown__actions">
-      <div class="col-md-5 offset-md-1">
+      <div class="col-md-1"></div>
+      <div class="col-md-5">
         <a href="{% url "cart:index" %}" class="btn secondary narrow float-md-right">{% trans "Go to cart" context "Cart dropdown secondary action" %}</a>
       </div>
       <div class="col-md-5">
