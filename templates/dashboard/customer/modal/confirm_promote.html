@@ -13,7 +13,9 @@
 {% endblock %}
 
 {% block content %}
-{% trans "Are you sure?" context "Modal promote to staff member text" %}
+{% blocktrans trimmed with customer=customer context "Modal promote to staff member text" %}
+Are you sure you want to promote {{ customer }} to staff member?
+{% endblocktrans %}
 {% endblock %}
 
 {% block primary_action %}
