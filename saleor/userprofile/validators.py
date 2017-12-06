@@ -6,7 +6,7 @@ from phonenumbers.phonenumberutil import is_possible_number
 
 def validate_possible_number(value):
     phone_number = to_python(value)
-    if phone_number and not is_possible_number(value):
+    if phone_number and not is_possible_number(phone_number):
         raise ValidationError(
-            _('The phone number entered is not valid. modelvaliderr'),
+            _('The phone number entered is not valid.'),
             code='invalid_phone_number')
