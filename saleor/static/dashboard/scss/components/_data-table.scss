@@ -93,7 +93,14 @@
     }
   }
 
-  tr[data-action-go] > td:not(.ignore-link):hover {
+  tr {
+    &.last-no-border {
+      &:last-of-type {
+        border-bottom: none;
+      }
+    }
+    &[data-action-go] > td:not(.ignore-link):hover {
+    }
     cursor: pointer;
   }
 
