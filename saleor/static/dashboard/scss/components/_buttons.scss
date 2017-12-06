@@ -40,3 +40,22 @@
 .bulk-submit {
   margin-top: 25px;
 }
+
+.btn-fab {
+  &-fixed {
+    @extend .fixed-action-btn;
+    @media (min-width: $medium-screen) {
+      position: absolute;
+      top: 4px;
+      right: 25%;
+    }
+    @media (min-width: $large-screen) {
+      right: calc(25% - 60px);
+    }
+  }
+  &-default {
+    @extend .btn-fab;
+    @extend .btn-floating;
+    @extend .btn-large;
+  }
+}
