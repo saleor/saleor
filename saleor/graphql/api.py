@@ -52,7 +52,8 @@ class ProductType(DjangoObjectType):
         model = Product
         interfaces = (relay.Node, DjangoPkInterface)
 
-    def resolve_thumbnail_url(self, info, size):
+    def resolve_thumbnail_url(self, info, **args):
+        size = args.get('size')
         if not size:
             size = '255x255'
         return product_first_image(self, size)
@@ -116,21 +117,15 @@ class CategoryType(DjangoObjectType):
         return self.get_absolute_url(ancestors)
 
     def resolve_products(self, info, **args):
-        attributes = args.get('attributes')
-        order_by = args.get('order_by')
-        price_lte = args.get('price_lte')
-        price_gte = args.get('price_gte')
         context = info.context
-
-        def filter_by_price(queryset, value, operator):
-            return [obj for obj in queryset if operator(get_availability(
-                obj, context.discounts).price_range.min_price.gross, value)]
-
-        tree = self.get_descendants(include_self=True)
         qs = products_for_api(context.user)
-        qs = qs.filter(categories__in=tree).distinct()
+        tree = self.get_descendants(include_self=True)
+        qs = qs.filter(categories__in=tree)
 
-        if attributes:
+        attributes_filter, order_by, price_lte, price_gte = map(
+            args.get, ['attributes', 'order_by', 'price_lte', 'price_gte'])
+
+        if attributes_filter:
             attributes = ProductAttribute.objects.prefetch_related('values')
             attributes_map = {attribute.slug: attribute.pk
                               for attribute in attributes}
@@ -140,7 +135,7 @@ class CategoryType(DjangoObjectType):
             queries = {}
             # Convert attribute:value pairs into a dictionary where
             # attributes are keys and values are grouped in lists
-            for attr_name, val_slug in attributes:
+            for attr_name, val_slug in attributes_filter:
                 try:
                     attr_pk = attributes_map[attr_name]
                 except KeyError:
@@ -167,6 +162,14 @@ class CategoryType(DjangoObjectType):
 
         if order_by:
             qs = qs.order_by(order_by)
+
+        def filter_by_price(queryset, value, operator):
+            return [
+                obj for obj in queryset
+                if operator(
+                    get_availability(obj, context.discounts)
+                    .price_range.min_price.gross, value)
+            ]
 
         if price_lte:
             qs = filter_by_price(qs, price_lte, operator.le)
@@ -195,7 +198,8 @@ class ProductImageType(DjangoObjectType):
         model = ProductImage
         interfaces = (relay.Node, DjangoPkInterface)
 
-    def resolve_url(self, info, size):
+    def resolve_url(self, info, **args):
+        size = args.get('size')
         if size:
             return self.image.crop[size].url
         return self.image.url
