@@ -15,7 +15,7 @@ class CategoryForm(forms.ModelForm):
         super(CategoryForm, self).__init__(*args, **kwargs)
         self.fields['is_hidden'].label = pgettext_lazy(
             'Category form field label', 'Hide in site navigation')
-        if self.instance.parent and self.instance.parent.hidden:
+        if self.instance.parent and self.instance.parent.is_hidden:
             self.fields['is_hidden'].widget.attrs['disabled'] = True
 
     class Meta:
