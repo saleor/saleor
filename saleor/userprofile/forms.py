@@ -16,15 +16,9 @@ def get_address_form(data, country_code, initial=None, instance=None, **kwargs):
         country_code = country_form.cleaned_data['country']
         preview = country_form.cleaned_data['preview']
 
-    phone = str(instance.phone.national_number) if instance else ''
-    phoneprefix = str(instance.phone.country_code) if instance else ''
-
     if data:
         phoneprefix = data.get('phoneprefix')
         phone = data.get('phone')
-        if instance:
-            instance.phone.country_code = phoneprefix
-            instance.phone.national_number = phone
 
     address_form_class = get_address_form_class(country_code)
 

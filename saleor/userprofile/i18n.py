@@ -22,7 +22,6 @@ UNKNOWN_COUNTRIES = set()
 phone_prefixes = [
     (k,'+{}'.format(k)) for (k, v) in COUNTRY_CODE_TO_REGION_CODE.items()]
 
-# import ipdb;
 AREA_TYPE_TRANSLATIONS = {
     'area': pgettext_lazy('Address field', 'Area'),
     'county': pgettext_lazy('Address field', 'County'),
@@ -210,7 +209,6 @@ def get_address_form_class(country_code):
 
 
 def get_form_i18n_lines(form_instance):
-    # import ipdb; ipdb.set_trace()
     country_code = form_instance.i18n_country_code
     try:
         fields_order = i18naddress.get_field_order(
