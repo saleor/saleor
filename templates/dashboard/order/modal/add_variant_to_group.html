@@ -14,10 +14,8 @@ Add product to {{ shipment }}
 {% endblock %}
 
 {% block content %}
-<div class="col s12 m12 center-align">
-  {{ form.variant|materializecss:"s12 m8" }}
-  {{ form.quantity|materializecss:"s12 m4" }}
-</div>
+{{ form.variant|materializecss:"s12 m8" }}
+{{ form.quantity|materializecss:"s12 m4" }}
 {% endblock %}
 
 {% block primary_action %}

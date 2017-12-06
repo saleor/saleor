@@ -12,10 +12,8 @@
 {% endblock %}
 
 {% block content %}
-<div class="col s12 m12">
-  {% trans "Dispatch this shipment to the following address:" context "Modal ship shipment group text" %}
-  {{ form|materializecss }}
-</div>
+{% trans "Dispatch this shipment to the following address:" context "Modal ship shipment group text" %}
+{{ form|materializecss }}
 {% endblock %}
 
 {% block primary_action %}

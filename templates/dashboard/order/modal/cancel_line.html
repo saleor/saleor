@@ -13,50 +13,48 @@
 {% endblock %}
 
 {% block content %}
-<div class="col s12 m12">
-  {% trans "Are you sure you want remove this order line?" context "Modal remove order line text" %}
-  {{ form|materializecss }}
-  <table>
-      <thead>
-        <tr>
-          <th class="wide">
-            {% trans "Item" context "Modal remove order line table header" %}
-          </th>
-          <th>
-            {% trans "SKU" context "Modal remove order line table header" %}
-          </th>
-          <th class="right-align">
-            {% trans "Price" context "Modal remove order line table header" %}
-          </th>
-          <th class="right-align">
-            {% trans "Quantity" context "Modal remove order line table header" %}
-          </th>
-          <th class="right-align">
-            {% trans "Total" context "Modal remove order line table header" %}
-          </th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td>
-            {{ item.product_name }}<br>
-          </td>
-          <td>
-            {{ item.product_sku }}
-          </td>
-          <td class="right-align">
-            {% gross item.get_price_per_item html=True %}
-          </td>
-          <td class="right-align">
-            {{ item.quantity }}
-          </td>
-          <td class="right-align">
-            {% gross item.get_total html=True %}
-          </td>
-        </tr>
-      </tbody>
-    </table>
-</div>
+{% trans "Are you sure you want remove this order line?" context "Modal remove order line text" %}
+{{ form|materializecss }}
+<table>
+    <thead>
+      <tr>
+        <th class="wide">
+          {% trans "Item" context "Modal remove order line table header" %}
+        </th>
+        <th>
+          {% trans "SKU" context "Modal remove order line table header" %}
+        </th>
+        <th class="right-align">
+          {% trans "Price" context "Modal remove order line table header" %}
+        </th>
+        <th class="right-align">
+          {% trans "Quantity" context "Modal remove order line table header" %}
+        </th>
+        <th class="right-align">
+          {% trans "Total" context "Modal remove order line table header" %}
+        </th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>
+          {{ item.product_name }}<br>
+        </td>
+        <td>
+          {{ item.product_sku }}
+        </td>
+        <td class="right-align">
+          {% gross item.get_price_per_item html=True %}
+        </td>
+        <td class="right-align">
+          {{ item.quantity }}
+        </td>
+        <td class="right-align">
+          {% gross item.get_total html=True %}
+        </td>
+      </tr>
+    </tbody>
+  </table>
 {% endblock %}
 
 {% block primary_action %}

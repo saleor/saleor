@@ -15,18 +15,15 @@
 
 {% block content %}
 {{ form|materializecss }}
-
-<div class="col s12 m12">
-  {% trans "Before this action:" context "Modal capture payment text" %}
-  <ul class="list">
-    <li class="list-item">{% trans "Order total:" context "Modal capture payment list header" %}
-      {% gross payment.order.get_total html=True %}
-    </li>
-    <li class="list-item">{% trans "Captured amount:" context "Modal capture payment list header" %}
-      {{ captured|currencyfmt:currency }}
-    </li>
-  </ul>
-</div>
+{% trans "Before this action:" context "Modal capture payment text" %}
+<ul class="list">
+  <li class="list-item">{% trans "Order total:" context "Modal capture payment list header" %}
+    {% gross payment.order.get_total html=True %}
+  </li>
+  <li class="list-item">{% trans "Captured amount:" context "Modal capture payment list header" %}
+    {{ captured|currencyfmt:currency }}
+  </li>
+</ul>
 {% endblock %}
 
 {% block primary_action %}
