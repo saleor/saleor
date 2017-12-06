@@ -257,8 +257,8 @@
         <div class="card shipment-table">
           <div class="data-table-header">
             <h5 class="data-table-title">
-              {% blocktrans trimmed with shipment=group.id context "Shipment group table title"  %}
-                Shipment #{{ shipment }}
+              {% blocktrans trimmed with shipment=group.id group_shipping_method_name=group.shipping_method_name context "Shipment group table title"  %}
+                Shipment #{{ shipment }} - {{ group_shipping_method_name }}
               {% endblocktrans %}
             </h5>
             {% render_status group.status group.get_status_display %}
@@ -284,23 +284,9 @@
                   </th>
                 </tr>
               </thead>
-              <tfoot class="no-bold">
-                {% if group.shipping_price.gross or group.is_shipping_required %}
-                  <tr>
-                    <td colspan="4">
-                      {% blocktrans trimmed with group_shipping_method_name=group.shipping_method_name context "Shipment group table item column data" %}
-                        Shipping ({{ group_shipping_method_name }})
-                      {% endblocktrans %}
-                    </td>
-                    <td class="right-align">
-                      {% gross group.shipping_price html=True %}
-                    </td>
-                  </tr>
-                {% endif %}
-              </tfoot>
               <tbody>
                 {% for line in group.lines.all %}
-                  <tr>
+                  <tr class="last-no-border">
                     <td>
                       {{ line.product_name }}<br>
                     </td>
