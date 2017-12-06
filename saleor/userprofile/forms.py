@@ -17,6 +17,7 @@ def get_address_form(data, country_code, initial=None, instance=None, **kwargs):
         preview = country_form.cleaned_data['preview']
 
     if data:
+        # WIP: If there is no 'data' we get an error, but initializing phone/phoneprefix before leads to mess
         phoneprefix = data.get('phoneprefix')
         phone = data.get('phone')
 

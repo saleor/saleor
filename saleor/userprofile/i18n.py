@@ -7,10 +7,9 @@ from django import forms
 from django.forms import ValidationError
 from django.forms.fields import ChoiceField
 from django.forms.forms import BoundField
-from django.utils.translation import pgettext, pgettext_lazy
 from django_countries.data import COUNTRIES
 from django.utils.translation import pgettext_lazy
-from phonenumber_field.formfields import PhoneNumberField
+from phonenumber_field.phonenumber import to_python, PhoneNumber
 from phonenumbers import COUNTRY_CODE_TO_REGION_CODE
 from phonenumbers.phonenumberutil import NumberParseException
 
@@ -59,36 +58,6 @@ class AddressMetaForm(forms.ModelForm):
             self.data = self.data.copy()
             self.data['preview'] = False
         return data
-
-from phonenumber_field.phonenumber import to_python, PhoneNumber
-# class CustomPhoneNumberField(PhoneNumberField):
-#     default_error_messages = {
-#         'invalid': ('Enter a valid phone number.'),
-#     }
-#     default_validators = []
-
-#     def to_python(self, value):
-#         import ipdb; ipdb.set_trace()
-#         phone_number = to_python(value)
-#         return phone_number
-#     # def to_python(self, value):
-#     #     phone = value
-#     #     return value
-
-
-class CustomPhoneNumberField(forms.CharField):
-    default_error_messages = {
-        'invalid': ('Enter a valid phone number.'),
-    }
-    default_validators = []
-
-    def to_python(self, value):
-        import ipdb; ipdb.set_trace()
-        phone_number = to_python(value)
-        return phone_number
-    # def to_python(self, value):
-    #     phone = value
-    #     return value
 
 
 class AddressForm(forms.ModelForm):
@@ -141,7 +110,6 @@ class AddressForm(forms.ModelForm):
         return super(AddressForm, self).save(commit=commit)
 
     def clean(self):
-        # import ipdb; ipdb.set_trace()
         cleaned_data = super(AddressForm, self).clean()
         phoneprefix = cleaned_data.get("phoneprefix")
         phone = cleaned_data.get("phone")
@@ -150,8 +118,8 @@ class AddressForm(forms.ModelForm):
             cleaned_data['phone'] = PhoneNumber.from_string(
                 phone_number=full_number)
         except NumberParseException as e:
-            # self.add_error('phone', 'Invalid phone number cleannot')
-            raise ValidationError('Please provide valid phone number clean123',
+            self.add_error('phone', 'Invalid phone number')
+            raise ValidationError('Please provide valid phone number',
             code='invalid_phone_number')
 
         return cleaned_data
