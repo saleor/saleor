@@ -2,6 +2,8 @@
 
 {% load i18n %}
 
+{% block form_class %}{% endblock %}
+
 {% block action_url %}
 {% url 'dashboard:product-stock-location-delete' location.pk %}
 {% endblock %}

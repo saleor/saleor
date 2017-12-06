@@ -2,6 +2,8 @@
 
 {% load i18n %}
 
+{% block form_class %}{% endblock %}
+
 {% block action_url %}
 {% url 'dashboard:customer-promote' pk=customer.pk %}
 {% endblock %}

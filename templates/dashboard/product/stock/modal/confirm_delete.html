@@ -3,6 +3,8 @@
 {% load i18n %}
 {% load prices_i18n %}
 
+{% block form_class %}{% endblock %}
+
 {% block action_url %}
 {% url 'dashboard:variant-stock-delete' product_pk=product.pk variant_pk=variant.pk stock_pk=stock.pk %}
 {% endblock %}

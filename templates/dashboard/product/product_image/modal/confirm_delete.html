@@ -3,6 +3,8 @@
 {% load i18n %}
 {% load product_first_image from product_images %}
 
+{% block form_class %}{% endblock %}
+
 {% block action_url %}
 {% url 'dashboard:product-image-delete' product_pk=product.pk img_pk=image.pk %}
 {% endblock %}
