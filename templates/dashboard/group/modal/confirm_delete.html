@@ -15,12 +15,10 @@
 {% endblock %}
 
 {% block content %}
-<div class="col">
-  {% blocktrans trimmed context "Modal remove group text" %}
-    Are you sure you want to remove group {{ group }}?
-    <br> Users might lose permissions related to this group.
-  {% endblocktrans %}
-</div>
+{% blocktrans trimmed context "Modal remove group text" %}
+  Are you sure you want to remove group {{ group }}?
+  <br> Users might lose permissions related to this group.
+{% endblocktrans %}
 {% endblock content %}
 
 {% block primary_action %}

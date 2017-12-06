@@ -16,11 +16,9 @@ Remove stock {{ stock }}
 {% endblock title %}
 
 {% block content %}
-<div class="col">
-    {% blocktrans context "Modal remove stock text" %}
-        Are you sure you want to remove stock <strong>{{ stock }}</strong>?
-    {% endblocktrans %}
-</div>
+{% blocktrans context "Modal remove stock text" %}
+    Are you sure you want to remove stock <strong>{{ stock }}</strong>?
+{% endblocktrans %}
 {% endblock content %}
 
 {% block primary_action %}

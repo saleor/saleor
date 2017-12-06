@@ -17,18 +17,16 @@
 {% endblock %}
 
 {% block content %}
-<div class="col">
+<p>
+{% blocktrans context "Modal remove variant text" %}
+    Are you sure you want to remove variant <strong>{{ variant }}</strong> of product {{ product }}?
+{% endblocktrans %}
+</p>
+{% if is_only_variant %}
     <p>
-    {% blocktrans context "Modal remove variant text" %}
-        Are you sure you want to remove variant <strong>{{ variant }}</strong> of product {{ product }}?
-    {% endblocktrans %}
+    {% trans "This is the only variant of this product. If you remove it, the product will become unavailable." context "Modal remove variant text" %}
     </p>
-    {% if is_only_variant %}
-        <p>
-        {% trans "This is the only variant of this product. If you remove it, the product will become unavailable." context "Modal remove variant text" %}
-        </p>
-    {% endif %}
-</div>
+{% endif %}
 {% endblock content %}
 
 {% block primary_action %}

@@ -13,11 +13,9 @@
 {% endblock %}
 
 {% block content %}
-<div class="col">
-  {% blocktrans trimmed with order=order context "Modal remove voucher from order text" %}
-    Are you sure you want remove voucher discount from order {{ order }}?
-  {% endblocktrans %}
-</div>
+{% blocktrans trimmed with order=order context "Modal remove voucher from order text" %}
+  Are you sure you want remove voucher discount from order {{ order }}?
+{% endblocktrans %}
 {% endblock %}
 
 {% block cancel_action %}

@@ -15,11 +15,9 @@ Remove voucher {{ voucher }}
 {% endblock %}
 
 {% block content %}
-<div class="col">
-    {% blocktrans trimmed context "Modal remove voucher text" %}
-        Are you sure you want to remove voucher <strong>{{ voucher }}</strong>?
-    {% endblocktrans %}
-</div>
+{% blocktrans trimmed context "Modal remove voucher text" %}
+    Are you sure you want to remove voucher <strong>{{ voucher }}</strong>?
+{% endblocktrans %}
 {% endblock %}
 
 {% block primary_action %}

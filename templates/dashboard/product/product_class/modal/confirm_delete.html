@@ -17,22 +17,20 @@
 {% endblock title %}
 
 {% block content %}
-<div class="col">
-    <p>
-        {% blocktrans trimmed context "Modal remove product class text" %}
-        Are you sure you want to remove product class <strong>{{ product_class }}</strong>?
-        {% endblocktrans %}
-    </p>
-    <p>
-    {% if products %}
-        {% blocktrans trimmed context "Modal remove product class text" with product_count=products.count %}
-        There are {{ product_count }} products in product class.
-        {% endblocktrans %}
-    {% else %}
-        {% blocktrans trimmed context "Modal remove product class text" %}
-        There are no products in this product class.
-        {% endblocktrans %}
-    {% endif %}
-    </p>
-</div>
+<p>
+    {% blocktrans trimmed context "Modal remove product class text" %}
+    Are you sure you want to remove product class <strong>{{ product_class }}</strong>?
+    {% endblocktrans %}
+</p>
+<p>
+{% if products %}
+    {% blocktrans trimmed context "Modal remove product class text" with product_count=products.count %}
+    There are {{ product_count }} products in product class.
+    {% endblocktrans %}
+{% else %}
+    {% blocktrans trimmed context "Modal remove product class text" %}
+    There are no products in this product class.
+    {% endblocktrans %}
+{% endif %}
+</p>
 {% endblock %}
