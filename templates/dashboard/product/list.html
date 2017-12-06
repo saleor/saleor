@@ -18,13 +18,13 @@
 {% block header_extra %}
   {% if product_classes %}
     {% if perms.product.edit_product %}
-      <div class="fixed-action-btn">
+      <div class="btn-fab-fixed">
         {% if product_classes|length > 1 %}
-          <a class="btn-fab btn-floating btn-large waves-effect waves-light modal-trigger" href="#modal-product-class" title="{% trans "Add product" context "Product list add button text" %}">
+          <a class="btn-fab-default waves-effect waves-light modal-trigger" href="#modal-product-class" title="{% trans "Add product" context "Product list add button text" %}">
             <svg data-src="{% static "dashboard/images/add.svg" %}" />
           </a>
         {% else %}
-          <a class="btn-fab btn-floating btn-large waves-effect waves-light modal-trigger" href="{% url 'dashboard:product-add' product_classes.0.pk %}" title="{% trans "Add product" context "Product list add button text" %}">
+          <a class="btn-fab-default waves-effect waves-light modal-trigger" href="{% url 'dashboard:product-add' product_classes.0.pk %}" title="{% trans "Add product" context "Product list add button text" %}">
             <svg data-src="{% static "dashboard/images/add.svg" %}" />
           </a>
         {% endif %}

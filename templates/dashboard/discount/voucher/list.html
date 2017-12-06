@@ -24,15 +24,18 @@
 
 {% block menu_discounts_class %} active{% endblock %}
 
-{% block content %}
+{% block header_extra %}
   {% if perms.discount.edit_voucher %}
-    <div class="fixed-action-btn">
-      <a href="{% url 'dashboard:voucher-add' %}" class="btn-fab btn-floating btn-large waves-effect waves-light"
+    <div class="btn-fab-fixed">
+      <a href="{% url 'dashboard:voucher-add' %}" class="btn-fab-default waves-effect waves-light"
          title="{% trans "Add voucher" context "Voucher list add button text" %}">
         <svg data-src="{% static "dashboard/images/add.svg" %}" />
       </a>
     </div>
   {% endif %}
+{% endblock %}
+
+{% block content %}
   <div class="row">
     <div class="col s12 l9">
         <div class="card">
