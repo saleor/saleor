@@ -12,7 +12,6 @@ from phonenumber_field.modelfields import PhoneNumberField
 
 from .validators import validate_possible_number
 
-# If not overwritten, 'default_validator' is being always run
 PhoneNumberField.default_validators = [validate_possible_number]
 
 

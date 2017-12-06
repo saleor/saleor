@@ -5,7 +5,6 @@ from django.conf import settings
 from django.contrib.auth import forms as django_forms, update_session_auth_hash
 
 from .i18n import AddressMetaForm, get_address_form_class
-import phonenumbers
 
 
 def get_address_form(data, country_code, initial=None, instance=None, **kwargs):
@@ -16,19 +15,13 @@ def get_address_form(data, country_code, initial=None, instance=None, **kwargs):
         country_code = country_form.cleaned_data['country']
         preview = country_form.cleaned_data['preview']
 
-    if data:
-        # WIP: If there is no 'data' we get an error, but initializing phone/phoneprefix before leads to mess
-        phoneprefix = data.get('phoneprefix')
-        phone = data.get('phone')
-
     address_form_class = get_address_form_class(country_code)
 
     if not preview and instance is not None:
         address_form_class = get_address_form_class(
             instance.country.code)
         address_form = address_form_class(
-            data, instance=instance, phone=phone, phoneprefix=phoneprefix,
-            **kwargs)
+            data, instance=instance, **kwargs)
     else:
         initial_address = (
             initial if not preview

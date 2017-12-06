@@ -4,22 +4,26 @@ from collections import defaultdict
 
 import i18naddress
 from django import forms
-from django.forms import ValidationError
-from django.forms.fields import ChoiceField
 from django.forms.forms import BoundField
+from django.forms import Select, TextInput
 from django_countries.data import COUNTRIES
 from django.utils.translation import pgettext_lazy
-from phonenumber_field.phonenumber import to_python, PhoneNumber
+from phonenumber_field.widgets import PhoneNumberPrefixWidget
+from phonenumber_field.formfields import PhoneNumberField
 from phonenumbers import COUNTRY_CODE_TO_REGION_CODE
-from phonenumbers.phonenumberutil import NumberParseException
 
 from .models import Address
+from .validators import validate_possible_number
+
+
+PhoneNumberField.default_validators = [validate_possible_number]
+PhoneNumberField.to_python = lambda self, value: value
 
 COUNTRY_FORMS = {}
 UNKNOWN_COUNTRIES = set()
 
 phone_prefixes = [
-    (k,'+{}'.format(k)) for (k, v) in COUNTRY_CODE_TO_REGION_CODE.items()]
+    ('+{}'.format(k),'+{}'.format(k)) for (k, v) in COUNTRY_CODE_TO_REGION_CODE.items()]
 
 AREA_TYPE_TRANSLATIONS = {
     'area': pgettext_lazy('Address field', 'Area'),
@@ -42,6 +46,12 @@ AREA_TYPE_TRANSLATIONS = {
     'townland': pgettext_lazy('Address field', 'Townland'),
     'village_township': pgettext_lazy('Address field', 'Village/township'),
     'zip': pgettext_lazy('Address field', 'ZIP code')}
+
+
+class PhonePrefixWidget(PhoneNumberPrefixWidget):
+    def __init__(self, attrs=None):
+        widgets = (Select(attrs=attrs, choices=phone_prefixes), TextInput())
+        super(PhoneNumberPrefixWidget, self).__init__(widgets, attrs)
 
 
 class AddressMetaForm(forms.ModelForm):
@@ -80,21 +90,13 @@ class AddressForm(forms.ModelForm):
 
     class Meta:
         model = Address
-        exclude = ['phone']
+        exclude = []
 
-    phoneprefix = ChoiceField(choices=phone_prefixes)
-    phone = forms.CharField()
-
+    phone = PhoneNumberField(widget=PhonePrefixWidget, required=False)
 
     def __init__(self, *args, **kwargs):
         autocomplete_type = kwargs.pop('autocomplete_type', None)
-        phone = kwargs.pop('phone', None)
-        phoneprefix = kwargs.pop('phoneprefix', None)
         super(AddressForm, self).__init__(*args, **kwargs)
-        if self.instance.phone:
-            self.fields['phoneprefix'].initial = phoneprefix
-            self.fields['phone'].initial = phone
-
         autocomplete_dict = defaultdict(
             lambda: 'off', self.AUTOCOMPLETE_MAPPING)
         for field_name, field in self.fields.items():
@@ -104,25 +106,6 @@ class AddressForm(forms.ModelForm):
             else:
                 autocomplete = autocomplete_dict[field_name]
             field.widget.attrs['autocomplete'] = autocomplete
-
-    def save(self, commit=True):
-        self.instance.phone = '+' + self.phoneprefix + self.phone
-        return super(AddressForm, self).save(commit=commit)
-
-    def clean(self):
-        cleaned_data = super(AddressForm, self).clean()
-        phoneprefix = cleaned_data.get("phoneprefix")
-        phone = cleaned_data.get("phone")
-        full_number = '+' + phoneprefix + phone
-        try:
-            cleaned_data['phone'] = PhoneNumber.from_string(
-                phone_number=full_number)
-        except NumberParseException as e:
-            self.add_error('phone', 'Invalid phone number')
-            raise ValidationError('Please provide valid phone number',
-            code='invalid_phone_number')
-
-        return cleaned_data
 
 
 class CountryAwareAddressForm(AddressForm):
@@ -140,7 +123,7 @@ class CountryAwareAddressForm(AddressForm):
 
     class Meta:
         model = Address
-        exclude = ['phone']
+        exclude = []
 
     def add_field_errors(self, errors):
         field_mapping = dict(self.I18N_MAPPING)
