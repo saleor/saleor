@@ -16,7 +16,7 @@
   <meta property="og:title" content="{{ product }} — {{ block.super }}">
   <meta property="og:description" content="{{ product.description }}">
 
-  {% with product_url=product.get_absolute_url %}
+  {% with product_url=product.get_full_absolute_url %}
     <meta property="og:url" content="{{ product_url }}">
     <link rel="canonical" href="{{ product_url }}">
   {% endwith %}

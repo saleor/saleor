@@ -24,7 +24,7 @@
 
   {% block meta_tags %}
     <meta property="og:title" content="{{ site.name }}">
-    <meta property="og:url" content="{{ request.get_full_path }}">
+    <meta property="og:url" content="{{ request.build_absolute_uri }}">
     <meta property="og:image" content="{% static "images/block1.png" %}">
   {% endblock meta_tags %}
 
