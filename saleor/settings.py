@@ -262,7 +262,8 @@ PAYMENT_MODEL = 'order.Payment'
 
 PAYMENT_VARIANTS = {
     'default': ('payments.dummy.DummyProvider', {}),
-    'taler': ('payments.taler.TalerProvider',
+    'taler': (
+        'payments.taler.TalerProvider',
         # NOTE: the shop currency should be changed to 'KUDOS' in
         # order to work correctly against the following backend.
         # The following link explains how to set up a merchant backend,
@@ -271,7 +272,7 @@ PAYMENT_VARIANTS = {
          'instance': 'default',
          'address': 'US',
          'jurisdiction': 'US',
-         'name': 'Taler tester shop'}) }
+         'name': 'Taler tester shop'})}
 
 SESSION_SERIALIZER = 'django.contrib.sessions.serializers.JSONSerializer'
 SESSION_ENGINE = 'django.contrib.sessions.backends.cached_db'
