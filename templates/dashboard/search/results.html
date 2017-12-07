@@ -28,7 +28,7 @@
                  name="q" value="{% if query %}{{ query }}{% endif %}">
           <button class="btn-flat waves-effect" type="submit">
             <svg data-src="{% static "dashboard/images/search.svg" %}"
-                 width="20" height="20" fill="#E57373"/>
+                 width="20" height="20" fill="#E57373" />
           </button>
         </form>
         <form class="hide-on-med-and-up row" method="get"
@@ -37,78 +37,77 @@
                  value="{% if query %}{{ query }}{% endif %}">
         </form>
       </div>
-        {% if products or orders or users %}
-          <ul class="collection list">
-            {% for product in products %}
-              <li class="collection-item avatar list-item">
-                <a href="{% url 'dashboard:product-detail' pk=product.pk %}">
-                  <img
-                      src="{% product_first_image product size="60x60" method="crop" %}"
-                      srcset="{% product_first_image product size="60x60" method="crop" %} 1x, {% product_first_image product size="120x120" method="crop" %} 2x"
-                      class="circle" alt="{{ product.name }}">
-                  <span class="list-item-name">
+      {% if products or orders or users %}
+        <ul class="collection list">
+          {% for product in products %}
+            <li class="collection-item avatar list-item">
+              <a href="{% url 'dashboard:product-detail' pk=product.pk %}">
+                <img src="{% product_first_image product size="60x60" method="crop" %}"
+                     srcset="{% product_first_image product size="60x60" method="crop" %} 1x, {% product_first_image product size="120x120" method="crop" %} 2x"
+                     class="circle" alt="{{ product.name }}">
+                <span class="list-item-name">
                       {{ product.name }}
                     </span>
-                  <p class="list-item-price">
-                    <small>
-                      {% gross product.price html=True %}
-                    </small>
-                  </p>
-                </a>
-              </li>
-            {% endfor %}
-            {% for order in orders %}
-              <li class="collection-item avatar list-item">
-                <a href="{% url 'dashboard:order-details' order_pk=order.pk %}">
-                  <i class="small material-icons circle">payment</i>
-                  <span class="list-item-name">
+                <p class="list-item-price">
+                  <small>
+                    {% gross product.price html=True %}
+                  </small>
+                </p>
+              </a>
+            </li>
+          {% endfor %}
+          {% for order in orders %}
+            <li class="collection-item avatar list-item">
+              <a href="{% url 'dashboard:order-details' order_pk=order.pk %}">
+                <i class="small material-icons circle">payment</i>
+                <span class="list-item-name">
                         {% blocktrans trimmed with order_number=order.pk context "Dashboard order" %}
                           Order #{{ order_number }}
                         {% endblocktrans %}
                       </span>
-                  <p class="list-item-price">
-                    <small>
-                      {% blocktrans trimmed context "Dashboard customer" with email=order.user_email %}
-                        Customer: {{ email }}
-                      {% endblocktrans %}
-                    </small>
-                    <small>
-                      {% blocktrans trimmed with placed=order.created context "Dashboard order info" %}
-                        Placed on: {{ placed }}
-                      {% endblocktrans %}
-                    </small>
-                  </p>
-                </a>
-              <li class="collection-item avatar list-item">
-            {% endfor %}
-            {% for user in users %}
-              <li class="collection-item avatar list-item">
-                <a href="{% url 'dashboard:customer-details' pk=user.pk %}">
-                  <i class="small material-icons circle">perm_identity</i>
-                  <span class="list-item-name">
+                <p class="list-item-price">
+                  <small>
+                    {% blocktrans trimmed context "Dashboard customer" with email=order.user_email %}
+                      Customer: {{ email }}
+                    {% endblocktrans %}
+                  </small>
+                  <small>
+                    {% blocktrans trimmed with placed=order.created context "Dashboard order info" %}
+                      Placed on: {{ placed }}
+                    {% endblocktrans %}
+                  </small>
+                </p>
+              </a>
+            <li class="collection-item avatar list-item">
+          {% endfor %}
+          {% for user in users %}
+            <li class="collection-item avatar list-item">
+              <a href="{% url 'dashboard:customer-details' pk=user.pk %}">
+                <i class="small material-icons circle">perm_identity</i>
+                <span class="list-item-name">
                         {% blocktrans trimmed with full_name=user.get_full_name context "Dashboard user" %}
                           User {{ full_name }}
                         {% endblocktrans %}
                       </span>
-                  <p class="list-item-price">
-                    <small>
-                      {% trans "Customer" context "Dashboard customer" %}
-                    </small>
-                  </p>
-                </a>
-              </li>
-            {% endfor %}
-          </ul>
-          {% include "dashboard/includes/_pagination.html" with page_obj=results %}
-        {% elif query %}
-          <div class="not-found">
-            <p class="grey-text">
-              {% blocktrans trimmed with full_name=result.get_full_name context "No Search result message" %}
-                No results for query "{{ query }}".
-              {% endblocktrans %}
-            </p>
-          </div>
-        {% endif %}
+                <p class="list-item-price">
+                  <small>
+                    {% trans "Customer" context "Dashboard customer" %}
+                  </small>
+                </p>
+              </a>
+            </li>
+          {% endfor %}
+        </ul>
+        {% include "dashboard/includes/_pagination.html" with page_obj=results %}
+      {% elif query %}
+        <div class="not-found">
+          <p class="grey-text">
+            {% blocktrans trimmed with full_name=result.get_full_name context "No Search result message" %}
+              No results for query "{{ query }}".
+            {% endblocktrans %}
+          </p>
+        </div>
+      {% endif %}
     </div>
   </div>
 {% endblock %}
