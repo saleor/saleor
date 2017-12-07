@@ -35,10 +35,10 @@ class CategoryChoiceField(forms.ModelChoiceField):
         return '%s%s' % (indent, smart_text(obj))
 
 
-def build_absolute_uri(location, is_secure=settings.ENABLE_SSL):
+def build_absolute_uri(location):
     # type: (str, bool, saleor.site.models.SiteSettings) -> str
     host = Site.objects.get_current().domain
-    current_uri = '%s://%s' % ('https' if is_secure else 'http', host)
+    current_uri = '%s://%s' % ('https' if settings.ENABLE_SSL else 'http', host)
     location = urljoin(current_uri, location)
     return iri_to_uri(location)
 
