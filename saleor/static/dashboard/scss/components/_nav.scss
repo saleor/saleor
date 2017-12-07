@@ -8,45 +8,6 @@ header {
       @media (max-width: $small-screen) {
         margin-right: 0;
       }
-      .search {
-        float: none;
-        margin-left: 270px;
-        padding: 10px 0;
-        .input-field {
-          input {
-            background-color: rgba(255, 255, 255, .15);
-            border-radius: 3px;
-            box-sizing: border-box;
-            display: inline-block;
-            height: 36px;
-            margin-bottom: 0;
-            transition: background-color .2s ease-out;
-            width: 100%;
-            line-height: 1;
-            &::placeholder {
-              color: white;
-            }
-            &:hover {
-              background-color: rgba(255, 255, 255, .25);
-            }
-            &:focus {
-              background-color: white;
-              border: none;
-              box-shadow: none;
-
-              ~ label {
-                svg {
-                  fill: $off-black;
-                }
-              }
-            }
-          }
-          label {
-            transition: color .2s ease-out;
-            margin-top: 22px;
-          }
-        }
-      }
     }
     .user-name {
       padding: (($dropdown-item-height - 22) / 2) 16px;
