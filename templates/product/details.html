@@ -12,6 +12,23 @@
 
 {% block meta_description %}{{ product.description }}{% endblock %}
 
+{% block meta_tags %}
+  <meta property="og:title" content="{{ product }} — {{ block.super }}">
+  <meta name="description" content="{{ product.description }}">
+
+  {% with product_url=product.get_absolute_url %}
+    <meta property="og:url" content="{{ product_url }}">
+    <link rel="canonical" href="{{ product_url }}">
+  {% endwith %}
+
+  {% product_first_image product size="510x510" as product_image %}
+  {% if product_image %}
+    <meta property="og:image" content="{{ product_image }}" />
+    <meta property="og:image:width" content="510">
+    <meta property="og:image:height" content="510">
+  {% endif %}
+{% endblock meta_tags %}
+
 {% block breadcrumb %}
   <ul class="breadcrumbs list-unstyled">
     <li><a href="/">
