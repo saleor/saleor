@@ -10,6 +10,7 @@ class ProductSitemap(Sitemap):
     def items(self):
         return Product.objects.only('id', 'name').order_by('-id')
 
+
 class CategorySitemap(Sitemap):
 
     def items(self):
