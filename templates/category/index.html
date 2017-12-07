@@ -13,8 +13,7 @@
 {% block title %}{{ category }} — {{ block.super }}{% endblock %}
 
 {% block meta_tags %}
-    <meta name="title" content="{{ category }}">
-    <meta property="og:title" content="{{ category }}">
+    <meta property="og:title" content="{{ category }} — {{ block.super }}">
     <meta name="og:description" content="{{ category.description }}">
     <meta property="og:image" content="{% static "images/logo.png" %}" />
 
