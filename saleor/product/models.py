@@ -5,7 +5,6 @@ from decimal import Decimal
 
 from django.conf import settings
 from django.contrib.postgres.fields import HStoreField
-from django.contrib.postgres.indexes import GinIndex
 from django.core.validators import MinValueValidator, RegexValidator
 from django.db import models
 from django.db.models import F, Max, Q
@@ -141,7 +140,6 @@ class Product(models.Model, ItemRange):
 
     class Meta:
         app_label = 'product'
-        indexes = [GinIndex(fields=['name', 'description'])]
         permissions = (
             ('view_product',
              pgettext_lazy('Permission description', 'Can view products')),
