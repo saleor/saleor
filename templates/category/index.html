@@ -13,11 +13,11 @@
 {% block title %}{{ category }} — {{ block.super }}{% endblock %}
 
 {% block meta_tags %}
-    <meta property="og:title" content="{{ category }} — {{ block.super }}">
+    <meta property="og:title" content="{{ category }}">
     <meta property="og:description" content="{{ category.description }}">
     <meta property="og:image" content="{% static "images/block1.png" %}">
 
-    {% with category_url=category.get_absolute_url %}
+    {% with category_url=category.get_full_absolute_url %}
       <meta property="og:url" content="{{ category_url }}">
       <link rel="canonical" href="{{ category_url }}?page={{ products_paginated.number }}">
 

@@ -20,6 +20,7 @@ from versatileimagefield.fields import PPOIField, VersatileImageField
 
 from ..discount.models import calculate_discounted_price
 from .utils import get_attributes_display_map
+from ..core.utils import build_absolute_uri
 
 
 class Category(MPTTModel):
@@ -54,6 +55,11 @@ class Category(MPTTModel):
         return reverse('product:category',
                        kwargs={'path': self.get_full_path(ancestors),
                                'category_id': self.id})
+
+    def get_full_absolute_url(self, ancestors=None):
+        return build_absolute_uri(
+            self.get_absolute_url(ancestors=ancestors)
+        )
 
     def get_full_path(self, ancestors=None):
         if not self.parent_id:
@@ -163,6 +169,9 @@ class Product(models.Model, ItemRange):
         return reverse(
             'product:details',
             kwargs={'slug': self.get_slug(), 'product_id': self.id})
+
+    def get_full_absolute_url(self):
+        return build_absolute_uri(self.get_absolute_url())
 
     def get_slug(self):
         return slugify(smart_text(unidecode(self.name)))
