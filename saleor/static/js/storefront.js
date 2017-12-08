@@ -10,3 +10,5 @@ import './components/address-form';
 import './components/password-input';
 import './components/styleguide';
 import './components/misc';
+
+import './payments';
