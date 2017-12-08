@@ -59,7 +59,7 @@
               <ul class="right">
                 {% for action, label in bulk_action_form.action.field.widget.choices %}
                   <li>
-                    <a href="" data-action="{{ action }}" class="btn-flat">{{ label|upper }}</a>
+                    <a href="" data-action="{{ action }}" class="btn-flat waves-effect">{{ label|upper }}</a>
                   </li>
                 {% endfor %}
               </ul>
@@ -144,10 +144,10 @@
         </div>
       </div>
       <div class="modal-footer">
-        <a href="#!" class="modal-action modal-close btn-flat">
+        <a href="#!" class="modal-action modal-close btn-flat waves-effect">
           {% trans "Cancel" context "Dashboard cancel action" %}
         </a>
-        <button type="submit" class="modal-action btn-flat">
+        <button type="submit" class="modal-action btn-flat waves-effect">
           {% trans "Create new" context "Dashboard add action" %}
         </button>
       </div>

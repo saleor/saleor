@@ -45,10 +45,10 @@
         </div>
         {% if perms.product.edit_properties %}
         <div class="card-action">
-          <a class="btn-flat" href="{% url "dashboard:product-attribute-update" attribute.pk %}">
+          <a class="btn-flat waves-effect" href="{% url "dashboard:product-attribute-update" attribute.pk %}">
             {% trans "Edit attribute" context "Attribute detail action" %}
           </a>
-          <a class="btn-flat modal-trigger-custom" href="#base-modal"
+          <a class="btn-flat waves-effect modal-trigger-custom" href="#base-modal"
             data-href="{% url 'dashboard:product-attribute-delete' pk=attribute.pk %}">
               {% trans "Remove attribute" context "Attribute detail action" %}
           </a>
@@ -63,7 +63,7 @@
         </div>
         {% if perms.product.edit_product %}
           <div class="data-table-header-action">
-              <a href="{% url 'dashboard:product-attribute-value-add' attribute_pk=attribute.pk %}" class="btn-flat">
+              <a href="{% url 'dashboard:product-attribute-value-add' attribute_pk=attribute.pk %}" class="btn-flat waves-effect">
                 {% trans "Add" %}
               </a>
           </div>
@@ -94,10 +94,10 @@
                   </td>
                   {% if perms.product.edit_product %}
                     <td class="right-align">
-                      <a href="{% url 'dashboard:product-attribute-value-update' attribute_pk=attribute.pk value_pk=value.pk %}" class="btn-flat">
+                      <a href="{% url 'dashboard:product-attribute-value-update' attribute_pk=attribute.pk value_pk=value.pk %}" class="btn-flat waves-effect">
                         {% trans 'Edit' context 'Attribute choice value edit action' %}
                       </a>
-                      <a class="btn-flat modal-trigger-custom" href="#base-modal" data-href="{% url 'dashboard:product-attribute-value-delete' attribute_pk=attribute.pk value_pk=value.pk %}">
+                      <a class="btn-flat waves-effect modal-trigger-custom" href="#base-modal" data-href="{% url 'dashboard:product-attribute-value-delete' attribute_pk=attribute.pk value_pk=value.pk %}">
                         {% trans 'Remove' context 'Attribute choice value edit action' %}
                       </a>
                     </td>

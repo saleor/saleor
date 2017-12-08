@@ -1,15 +1,24 @@
+.card .card-action {
+  a:not(.btn):not(.btn-large):not(.btn-large):not(.btn-floating) {
+    @extend .btn-flat;
+    &:hover {
+      color: $secondary-color;
+    }
+  }
+}
+
 .btn {
   &:not(.btn-floating) {
     box-shadow: none;
   }
   &-flat {
-    @extend .btn;
+    @extend .waves-lightgray;
     color: $secondary-color;
     &:hover {
-      background: transparentize(#cccccc, .6);
+      background: unset;
     }
     &:focus, &:active {
-      background: transparentize(#000000, .88);
+      background: unset;
     }
   }
   &-fab {
