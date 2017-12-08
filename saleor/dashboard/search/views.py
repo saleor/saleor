@@ -8,6 +8,12 @@ from ..views import staff_member_required
 from .forms import DashboardSearchForm
 
 
+def limit_results(*results):
+    '''Pass-through only first few best items for each result query'''
+    limit = settings.DASHBOARD_SEARCH_LIMIT
+    return (qs[:limit] for qs in results)
+
+
 def get_results(request, form):
     user = request.user
     results = form.search()
@@ -18,7 +24,7 @@ def get_results(request, form):
         orders = orders.none()
     if not user.has_perm('userprofile.view_user'):
         users = users.none()
-    return products, orders, users
+    return limit_results(products, orders, users)
 
 
 @staff_member_required
