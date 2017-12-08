@@ -16,29 +16,14 @@
 {% endblock %}
 
 {% block menu_catalogue_class %} active{% endblock %}
+{% block body_class %}body-search-results{% endblock %}
 
 {% block content %}
   <div class="row">
-    <div class="col s12">
-      <div class="card search-form">
-        <form class="hide-on-med-and-up" method="get"
-              action="{% url "dashboard:search" %}">
-          <input id="icon_prefix" type="text" class="validate left"
-                 placeholder="{% trans "Search" context "Dashboard search" %}"
-                 name="q" value="{% if query %}{{ query }}{% endif %}">
-          <button class="btn-flat waves-effect" type="submit">
-            <svg data-src="{% static "dashboard/images/search.svg" %}"
-                 width="20" height="20" fill="#E57373" />
-          </button>
-        </form>
-        <form class="hide-on-med-and-up row" method="get"
-              action="{% url "dashboard:search" %}">
-          <input type="hidden" class="validate" name="q"
-                 value="{% if query %}{{ query }}{% endif %}">
-        </form>
-      </div>
-      {% if products or orders or users %}
-        <ul class="collection list">
+    <div class="col s12 l9">
+      {% if products %}
+        <h6>Products</h6>
+        <ul class="collection list card">
           {% for product in products %}
             <li class="collection-item avatar list-item">
               <a href="{% url 'dashboard:product-detail' pk=product.pk %}">
@@ -56,6 +41,11 @@
               </a>
             </li>
           {% endfor %}
+        </ul>
+      {% endif %}
+      {% if orders %}
+        <h6>Orders</h6>
+        <ul class="collection list card">
           {% for order in orders %}
             <li class="collection-item avatar list-item">
               <a href="{% url 'dashboard:order-details' order_pk=order.pk %}">
@@ -78,8 +68,13 @@
                   </small>
                 </p>
               </a>
-            <li class="collection-item avatar list-item">
+            </li>
           {% endfor %}
+        </ul>
+      {% endif %}
+      {% if users %}
+        <h6>Users</h6>
+        <ul class="collection list card">
           {% for user in users %}
             <li class="collection-item avatar list-item">
               <a href="{% url 'dashboard:customer-details' pk=user.pk %}">
@@ -98,8 +93,8 @@
             </li>
           {% endfor %}
         </ul>
-        {% include "dashboard/includes/_pagination.html" with page_obj=results %}
-      {% elif query %}
+      {% endif %}
+      {% if not users and not orders and not products and query %}
         <div class="not-found">
           <p class="grey-text">
             {% blocktrans trimmed with full_name=result.get_full_name context "No Search result message" %}
