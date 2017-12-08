@@ -72,14 +72,14 @@
         </div>
         <div class="card-action">
           {% if perms.product.edit_product %}
-            <a href="{% url "dashboard:product-update" product.pk %}" class="btn-flat">
+            <a href="{% url "dashboard:product-update" product.pk %}" class="btn-flat waves-effect">
               {% trans "Edit product" context "Product action" %}
             </a>
-            <a href="#base-modal" data-href="{% url 'dashboard:product-delete' pk=product.pk %}" class="modal-trigger-custom btn-flat">
+            <a href="#base-modal" data-href="{% url 'dashboard:product-delete' pk=product.pk %}" class="modal-trigger-custom btn-flat waves-effect">
                 {% trans "Remove product" context "Product action" %}
             </a>
           {% endif %}
-          <a href="{{ product.get_absolute_url }}" target="_blank" class="btn-flat">
+          <a href="{{ product.get_absolute_url }}" target="_blank" class="btn-flat waves-effect">
             {% trans "View on site" context "Product action" %}
           </a>
         </div>
@@ -91,7 +91,7 @@
           </div>
           {% if perms.product.edit_product %}
             <div class="data-table-header-action">
-                <a href="{% url 'dashboard:variant-add' product_pk=product.pk %}" class="btn-flat">{% trans "Add" %}</a>
+                <a href="{% url 'dashboard:variant-add' product_pk=product.pk %}" class="btn-flat waves-effect">{% trans "Add" %}</a>
             </div>
           {% endif %}
           <div class="data-table-container">
@@ -126,7 +126,7 @@
                       {% endif %}
                     </td>
                     {% if perms.product.edit_product %}
-                      <td><a href="{% url 'dashboard:variant-update' product_pk=product.pk variant_pk=variant.pk %}" class="btn-flat">{% trans "Edit" %}</a></td>
+                      <td><a href="{% url 'dashboard:variant-update' product_pk=product.pk variant_pk=variant.pk %}" class="btn-flat waves-effect">{% trans "Edit" %}</a></td>
                     {% endif %}
                   </tr>
                 {% empty %}
@@ -145,7 +145,7 @@
             <span class="card-title">{% trans "Stock" context "Dashboard variant details view" %}</span>
           </div>
           <div class="data-table-header-action">
-            <a class="btn-flat" href="{% url "dashboard:variant-stock-add" product_pk=product.pk variant_pk=only_variant.pk %}">
+            <a class="btn-flat waves-effect" href="{% url "dashboard:variant-stock-add" product_pk=product.pk variant_pk=only_variant.pk %}">
               {% trans "Add" context "Dashboard action" %}
             </a>
           </div>
@@ -203,7 +203,7 @@
               </div>
               {% if perms.product.edit_product %}
                 <div class="card-action">
-                  <a href="{% url 'dashboard:product-image-list' product.pk %}" class="btn-flat">{% trans "Edit images" %}</a>
+                  <a href="{% url 'dashboard:product-image-list' product.pk %}" class="btn-flat waves-effect">{% trans "Edit images" %}</a>
                 </div>
               {% endif %}
             </div>
