@@ -21,6 +21,14 @@
       background: unset;
     }
   }
+  &-fab, &-floating {
+    svg {
+      vertical-align: middle;
+    }
+    &.btn-fab-hidden {
+      transform: scaleX(0) scaleY(0);
+    }
+  }
   &-fab {
     &-fixed {
       @extend .fixed-action-btn;
