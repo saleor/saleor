@@ -9,6 +9,11 @@ from django.urls import reverse
 from ..core.utils import build_absolute_uri
 from ..product.models import Category
 
+try:
+    from urllib.parse import urljoin
+except ImportError:
+    from urlparse import urljoin
+
 
 def get_setting_as_dict(name, short_name=None):
     short_name = short_name or name
@@ -44,8 +49,9 @@ def webpage_schema(request):
         'name': site.name,
         'description': site.settings.description}
     if settings.ENABLE_SEARCH:
+        search_url = urljoin(url, reverse('search:search'))
         data['potentialAction'] = {
             '@type': 'SearchAction',
-            'target': '%s%s?q={search_term}' % (url, reverse('search:search')),
+            'target': '%s?q={search_term}' % search_url,
             'query-input': 'required name=search_term'}
     return {'webpage_schema': json.dumps(data)}
