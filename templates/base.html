@@ -100,7 +100,8 @@
                 </div>
                 <input class="form-control" type="text" name="q"
                        value="{% if query %}{{ query }}{% endif %}"
-                       placeholder="{% trans "Search for product" %}">
+                       placeholder="{% trans "Search for product" %}"
+                       required>
                 <button class="btn btn-link" type="submit">
                   <svg data-src="{% static "images/search.svg" %}" width="30" height="30"/>
                 </button>
