@@ -52,6 +52,6 @@ def webpage_schema(request):
         search_url = urljoin(url, reverse('search:search'))
         data['potentialAction'] = {
             '@type': 'SearchAction',
-            'target': '%s?q={search_term}' % search_url,
-            'query-input': 'required name=search_term'}
+            'target': '%s?q={q}' % search_url,
+            'query-input': 'required name=q'}
     return {'webpage_schema': json.dumps(data)}
