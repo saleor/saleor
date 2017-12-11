@@ -1,5 +1,3 @@
-from itertools import zip_longest
-
 from django.contrib.staticfiles.templatetags.staticfiles import static
 from django.template import Library
 from django.utils.http import urlencode

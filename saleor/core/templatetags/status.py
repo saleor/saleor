@@ -2,8 +2,7 @@ from django.template import Library
 from payments import PaymentStatus
 
 from ...order import OrderStatus
-from ...product import (
-    ProductAvailabilityStatus, VariantAvailabilityStatus)
+from ...product import ProductAvailabilityStatus, VariantAvailabilityStatus
 from ...product.utils import (
     get_product_availability_status, get_variant_availability_status)
 
