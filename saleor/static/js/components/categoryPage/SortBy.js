@@ -48,8 +48,8 @@ export default class sortBy extends Component {
           {sortedValue ? (
             sortedValue.search('-') ? (
               <div>
-                <span>{pgettext('Category page filters', 'Sort by:')}
-                  <strong>{sortedValue}</strong>
+                <span>{pgettext('Category page filters', 'Sort by: ')}
+                  <b>{sortedValue}</b>
                 </span>
                 <div className="sort-order-icon">
                   <InlineSVG key="arrowUpIcon" src={arrowUpIcon}/>
@@ -57,8 +57,8 @@ export default class sortBy extends Component {
               </div>
             ) : (
               <div>
-                <span>{pgettext('Category page filters', 'Sort by:')}
-                  <strong>{sortedValue.replace('-', '')}</strong>
+                <span>{pgettext('Category page filters', 'Sort by: ')}
+                  <b>{sortedValue.replace('-', '')}</b>
                 </span>
                 <div className="sort-order-icon">
                   <InlineSVG key="arrowDownIcon" src={arrowDownIcon}/>
@@ -66,8 +66,8 @@ export default class sortBy extends Component {
               </div>
             )
           ) : (
-            <span>{pgettext('Category page filters', 'Sort by:')}
-              <strong>{pgettext('Category page filters', 'default')}</strong>
+            <span>{pgettext('Category page filters', 'Sort by: ')}
+              <b>{pgettext('Category page filters', 'default')}</b>
             </span>
           )}
         </button>
@@ -75,8 +75,8 @@ export default class sortBy extends Component {
           <ul className="sort-list">
             <li className="name">
               <div className="row">
-                <div className="col-6">{pgettext('Category page filters', 'Sort by:')}
-                  <strong>{gettext('Name')}</strong></div>
+                <div className="col-6">{pgettext('Category page filters', 'Sort by: ')}
+                  <b>{gettext('Name')}</b></div>
                 <div className="col-6">
                   <div className="name" onClick={this.setSorting}>
                     <span>{pgettext('Category page filters', 'ascending')}</span>
@@ -100,8 +100,8 @@ export default class sortBy extends Component {
             </li>
             <li className="price">
               <div className="row">
-                <div className="col-6">{pgettext('Category page filters', 'Sort by:')}
-                  <strong>{pgettext('Category page filters', 'Price')}</strong></div>
+                <div className="col-6">{pgettext('Category page filters', 'Sort by: ')}
+                  <b>{pgettext('Category page filters', 'Price')}</b></div>
                 <div className="col-6">
                   <div className="price" onClick={this.setSorting}>
                     <span>{pgettext('Category page filters', 'ascending')}</span>
