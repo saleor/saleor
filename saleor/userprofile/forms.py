@@ -15,6 +15,10 @@ def get_address_form(data, country_code, initial=None, instance=None, **kwargs):
     if country_form.is_valid():
         country_code = country_form.cleaned_data['country']
         preview = country_form.cleaned_data['preview']
+        if initial is None and country_code:
+            initial = {}
+            initial['phone'] = '+{}'.format(
+                country_code_for_region(country_code))
 
     address_form_class = get_address_form_class(country_code)
 

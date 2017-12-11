@@ -8,7 +8,8 @@ from django.forms.forms import BoundField
 from django.forms import Select, TextInput
 from django_countries.data import COUNTRIES
 from django.utils.translation import pgettext_lazy
-from phonenumber_field.widgets import PhoneNumberPrefixWidget
+from phonenumber_field.widgets import (
+    PhoneNumberPrefixWidget, PhonePrefixSelect)
 from phonenumber_field.formfields import PhoneNumberField
 from phonenumbers import COUNTRY_CODE_TO_REGION_CODE
 
@@ -46,6 +47,17 @@ AREA_TYPE_TRANSLATIONS = {
     'townland': pgettext_lazy('Address field', 'Townland'),
     'village_township': pgettext_lazy('Address field', 'Village/township'),
     'zip': pgettext_lazy('Address field', 'ZIP code')}
+
+
+class CustomPhonePrefix(PhonePrefixSelect):
+
+    def __init__(self, initial=None):
+        choices = phone_prefixes
+        if initial:
+            self.initial = phone_prefixes[initial]
+
+        super(PhonePrefixSelect, self).__init__(
+                choices=sorted(choices, key=lambda item: item[1]))
 
 
 class PhonePrefixWidget(PhoneNumberPrefixWidget):
