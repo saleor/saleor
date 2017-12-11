@@ -28,17 +28,13 @@ def sale_list(request):
 @staff_member_required
 @permission_required('discount.edit_sale')
 def sale_edit(request, pk=None):
-    if pk:
-        instance = get_object_or_404(Sale, pk=pk)
-    else:
-        instance = Sale()
-    form = forms.SaleForm(
-        request.POST or None, instance=instance)
+    instance = get_object_or_404(Sale, pk=pk) if pk else Sale()
+    form = forms.SaleForm(request.POST or None, instance=instance)
     if form.is_valid():
         instance = form.save()
-        msg = pgettext_lazy(
-            'Sale (discount) message', 'Updated sale') if pk else pgettext_lazy(
-                'Sale (discount) message', 'Added sale')
+        msg = (
+            pgettext_lazy('Sale (discount) message', 'Updated sale') if pk
+            else pgettext_lazy('Sale (discount) message', 'Added sale'))
         messages.success(request, msg)
         return redirect('dashboard:sale-update', pk=instance.pk)
     ctx = {'sale': instance, 'form': form}
@@ -51,9 +47,9 @@ def sale_delete(request, pk):
     instance = get_object_or_404(Sale, pk=pk)
     if request.method == 'POST':
         instance.delete()
-        messages.success(
-            request,
-            pgettext_lazy('Sale (discount) message', 'Removed sale %s') % (instance.name,))
+        msg = pgettext_lazy(
+            'Sale (discount) message', 'Removed sale %s') % (instance.name,)
+        messages.success(request, msg)
         return redirect('dashboard:sale-list')
     ctx = {'sale': instance}
     return TemplateResponse(

@@ -8,17 +8,17 @@ from django.urls import reverse_lazy
 from django.utils.translation import pgettext_lazy
 from django_prices.forms import PriceField
 
-from ...core.forms import AjaxSelect2ChoiceField
+from ...core.forms import (
+    AjaxSelect2ChoiceField, AjaxSelect2MultipleChoiceField)
 from ...discount.models import Sale, Voucher
 from ...product.models import Product
 from ...shipping.models import ShippingMethodCountry, COUNTRY_CODE_CHOICES
 
 
 class SaleForm(forms.ModelForm):
-    products = AjaxSelect2ChoiceField(
-        queryset=Product.objects.get_available_products(),
-        fetch_data_url=reverse_lazy('dashboard:ajax-products'),
-        required=True, many=True)
+    products = AjaxSelect2MultipleChoiceField(
+        queryset=Product.objects.all(),
+        fetch_data_url=reverse_lazy('dashboard:ajax-products'), required=True)
 
     class Meta:
         model = Sale
@@ -133,7 +133,7 @@ class CommonVoucherForm(forms.ModelForm):
 
 class ProductVoucherForm(CommonVoucherForm):
     product = AjaxSelect2ChoiceField(
-        queryset=Product.objects.get_available_products(),
+        queryset=Product.objects.all(),
         fetch_data_url=reverse_lazy('dashboard:ajax-products'),
         required=True)
 
