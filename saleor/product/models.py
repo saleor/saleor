@@ -56,11 +56,6 @@ class Category(MPTTModel):
                        kwargs={'path': self.get_full_path(ancestors),
                                'category_id': self.id})
 
-    def get_full_absolute_url(self, ancestors=None):
-        return build_absolute_uri(
-            self.get_absolute_url(ancestors=ancestors)
-        )
-
     def get_full_path(self, ancestors=None):
         if not self.parent_id:
             return self.slug
@@ -169,9 +164,6 @@ class Product(models.Model, ItemRange):
         return reverse(
             'product:details',
             kwargs={'slug': self.get_slug(), 'product_id': self.id})
-
-    def get_full_absolute_url(self):
-        return build_absolute_uri(self.get_absolute_url())
 
     def get_slug(self):
         return slugify(smart_text(unidecode(self.name)))
