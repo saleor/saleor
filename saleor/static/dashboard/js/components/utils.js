@@ -23,24 +23,25 @@ export function initSelects() {
   $ajaxSelect2Elements.each(function() {
     let $select = $(this);
 
-    if ($select.attr('data-initial-display') &&
-        $select.attr('data-initial-value')) {
-      let display = $select.data('initial-display');
-      let value = $select.data('initial-value');
-
-      $select.append($('<option></option>').attr('value', value).text(display));
-      $select.val(value);
-    };
-
     if ($select.attr('data-initial')) {
-      let initial = $select.data('initial');
-      let selected = []
-      initial.forEach(function(item) {
+      function appendOption(select, option) {
         $select.append($('<option></option>').attr(
-          'value', item.id).text(item.text));
-        selected.push(item.id);
-      });
-      $select.val(selected);
+          'value', option.id).text(option.text));
+      }
+
+      let initial = $select.data('initial');
+      if (initial instanceof Array) {
+        let selected = []
+        initial.forEach(function(item) {
+          appendOption($select, item);
+          selected.push(item.id);
+        });
+        $select.val(selected);
+      }
+      else {
+        appendOption($select, initial);
+        $select.val(initial.id);
+      }
     };
 
     let url = $select.data('url');

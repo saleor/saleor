@@ -26,7 +26,8 @@ class SaleForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super(SaleForm, self).__init__(*args, **kwargs)
-        self.fields['products'].set_initial(self.instance.products.all())
+        if self.instance.pk:
+            self.fields['products'].set_initial(self.instance.products.all())
 
     def clean(self):
         cleaned_data = super(SaleForm, self).clean()
