@@ -24,7 +24,8 @@ COUNTRY_FORMS = {}
 UNKNOWN_COUNTRIES = set()
 
 phone_prefixes = [
-    ('+{}'.format(k),'+{}'.format(k)) for (k, v) in COUNTRY_CODE_TO_REGION_CODE.items()]
+    ('+{}'.format(k), '+{}'.format(k)) for
+    (k, v) in COUNTRY_CODE_TO_REGION_CODE.items()]
 
 AREA_TYPE_TRANSLATIONS = {
     'area': pgettext_lazy('Address field', 'Area'),
@@ -56,8 +57,7 @@ class CustomPhonePrefix(PhonePrefixSelect):
         if initial:
             self.initial = phone_prefixes[initial]
 
-        super(PhonePrefixSelect, self).__init__(
-                choices=sorted(choices, key=lambda item: item[1]))
+        super(PhonePrefixSelect, self).__init__(choices=choices)
 
 
 class PhonePrefixWidget(PhoneNumberPrefixWidget):
@@ -98,7 +98,6 @@ class AddressForm(forms.ModelForm):
         ('phone', 'tel'),
         ('email', 'email')
     )
-
 
     class Meta:
         model = Address
