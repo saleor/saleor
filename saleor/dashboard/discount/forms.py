@@ -24,6 +24,10 @@ class SaleForm(forms.ModelForm):
         model = Sale
         exclude = []
 
+    def __init__(self, *args, **kwargs):
+        super(SaleForm, self).__init__(*args, **kwargs)
+        self.fields['products'].set_initial(self.instance.products.all())
+
     def clean(self):
         cleaned_data = super(SaleForm, self).clean()
         discount_type = cleaned_data['type']
