@@ -49,10 +49,9 @@
                 <button class="btn btn-link">
                   <div>
                     <span>
-                     {% trans 'Sort by' context 'Category page filters' %}
-                      <strong>
-                        {{ now_sorted_by }}
-                      </strong>
+                     {% blocktrans with sorting_field=now_sorted_by context 'Category page current sort order indicator' trimmed %}
+                       Sort by: <strong>{{ sorting_field }}</strong>
+                     {% endblocktrans %}
                     </span>
                     <div class="sort-order-icon">
                       {% if is_descending %}
