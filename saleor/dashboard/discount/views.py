@@ -20,7 +20,8 @@ def sale_list(request):
     sales = Sale.objects.prefetch_related('products').order_by('name')
     sale_filter = SaleFilter(request.GET, queryset=sales)
     sales = get_paginator_items(
-        sale_filter.qs, settings.DASHBOARD_PAGINATE_BY, request.GET.get('page'))
+        sale_filter.qs, settings.DASHBOARD_PAGINATE_BY,
+        request.GET.get('page'))
     ctx = {'sales': sales, 'filter': sale_filter}
     return TemplateResponse(request, 'dashboard/discount/sale/list.html', ctx)
 
@@ -118,9 +119,9 @@ def voucher_delete(request, pk):
     instance = get_object_or_404(Voucher, pk=pk)
     if request.method == 'POST':
         instance.delete()
-        messages.success(
-            request,
-            pgettext_lazy('Voucher message', 'Removed voucher %s') % (instance,))
+        msg = pgettext_lazy(
+            'Voucher message', 'Removed voucher %s') % (instance,)
+        messages.success(request, msg)
         return redirect('dashboard:voucher-list')
     ctx = {'voucher': instance}
     return TemplateResponse(
