@@ -22,6 +22,7 @@ export function initSelects() {
   let $ajaxSelect2Elements = $('select.enable-ajax-select2');
   $ajaxSelect2Elements.each(function() {
     let $select = $(this);
+
     if ($select.attr('data-initial-display') &&
         $select.attr('data-initial-value')) {
       let display = $select.data('initial-display');
@@ -29,6 +30,17 @@ export function initSelects() {
 
       $select.append($('<option></option>').attr('value', value).text(display));
       $select.val(value);
+    };
+
+    if ($select.attr('data-initial')) {
+      let initial = $select.data('initial');
+      let selected = []
+      initial.forEach(function(item) {
+        $select.append($('<option></option>').attr(
+          'value', item.id).text(item.text));
+        selected.push(item.id);
+      });
+      $select.val(selected);
     };
 
     let url = $select.data('url');
