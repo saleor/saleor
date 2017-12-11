@@ -18,7 +18,7 @@
       background: unset;
     }
     &:focus, &:active {
-      background: unset;
+      background: rgba(0,0,0,0.05);
     }
   }
   &-fab, &-floating {
