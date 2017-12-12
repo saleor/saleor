@@ -58,6 +58,16 @@ def test_login_view_next(client, customer_user):
     assert redirect_location == '/cart/'
 
 
+def test_login_view_redirect(client, customer_user):
+    url = reverse('account_login')
+    data = {
+        'username': 'test@example.com', 'password': 'password',
+        'next': '/cart/'}
+    response = client.post(url, data)
+    redirect_location = get_redirect_location(response)
+    assert redirect_location == '/cart/'
+
+
 def test_logout_view_no_user(client):
     url = reverse('account_logout')
     response = client.get(url)
