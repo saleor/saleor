@@ -24,24 +24,6 @@ from ..product.models import Product
 from ..userprofile.models import Address
 
 
-class OrderManager(models.Manager):
-    def recalculate_order(self, order):
-        prices = [group.get_total() for group in order
-                  if group.status != OrderStatus.CANCELLED]
-        total_net = sum(p.net for p in prices)
-        total_gross = sum(p.gross for p in prices)
-        shipping = [group.shipping_price for group in order]
-        if shipping:
-            total_shipping = sum(shipping[1:], shipping[0])
-        else:
-            total_shipping = Price(0, currency=settings.DEFAULT_CURRENCY)
-        total = Price(net=total_net, gross=total_gross,
-                      currency=settings.DEFAULT_CURRENCY)
-        total += total_shipping
-        order.total = total
-        order.save()
-
-
 @python_2_unicode_compatible
 class Order(models.Model, ItemSet):
     status = models.CharField(
@@ -93,8 +75,6 @@ class Order(models.Model, ItemSet):
     discount_name = models.CharField(
         verbose_name=pgettext_lazy('Order field', 'discount name'),
         max_length=255, default='', blank=True)
-
-    objects = OrderManager()
 
     class Meta:
         ordering = ('-last_status_change',)

@@ -3,11 +3,13 @@ from __future__ import unicode_literals
 import logging
 from functools import wraps
 
+from django.conf import settings
 from django.db.models import F
 from django.dispatch import receiver
 from django.shortcuts import get_object_or_404, redirect
 from django.utils.translation import pgettext_lazy
 from payments.signals import status_changed
+from prices import Price
 from satchless.item import InsufficientStock
 
 from ..core import analytics
@@ -47,6 +49,24 @@ def order_status_change(sender, instance, **kwargs):
         except Exception:
             # Analytics failing should not abort the checkout flow
             logger.exception('Recording order in analytics failed')
+
+
+def order_recalculate(order):
+    prices = [
+        group.get_total() for group in order
+        if group.status != OrderStatus.CANCELLED]
+    total_net = sum(p.net for p in prices)
+    total_gross = sum(p.gross for p in prices)
+    total = Price(
+        net=total_net, gross=total_gross,
+        currency=settings.DEFAULT_CURRENCY)
+    shipping = [group.shipping_price for group in order]
+    total_shipping = (
+        sum(shipping[1:], shipping[0]) if shipping
+        else Price(0, currency=settings.DEFAULT_CURRENCY))
+    total += total_shipping
+    order.total = total
+    order.save()
 
 
 def attach_order_to_user(order, user):
