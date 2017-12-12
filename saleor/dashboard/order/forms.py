@@ -15,8 +15,9 @@ from ...discount.models import Voucher
 from ...order import OrderStatus
 from ...order.models import DeliveryGroup, Order, OrderLine, OrderNote
 from ...order.utils import (
-    add_variant_to_delivery_group, cancel_order, cancel_delivery_group,
-    change_order_line_quantity, merge_duplicated_lines, order_recalculate)
+    delivery_group_add_variant, delivery_group_cancel, order_cancel,
+    order_line_change_quantity, order_line_merge_with_duplicates,
+    order_recalculate)
 from ...product.models import Product, ProductVariant, Stock
 
 
@@ -179,7 +180,7 @@ class ChangeQuantityForm(forms.ModelForm):
             # update stock allocation
             delta = quantity - self.initial_quantity
             Stock.objects.allocate_stock(stock, delta)
-        change_order_line_quantity(self.instance, quantity)
+        order_line_change_quantity(self.instance, quantity)
         order_recalculate(self.instance.delivery_group.order)
         return self.instance
 
@@ -225,7 +226,7 @@ class CancelGroupForm(forms.Form):
         super(CancelGroupForm, self).__init__(*args, **kwargs)
 
     def cancel_group(self):
-        cancel_delivery_group(self.delivery_group)
+        delivery_group_cancel(self.delivery_group)
 
 
 class CancelOrderForm(forms.Form):
@@ -243,8 +244,8 @@ class CancelOrderForm(forms.Form):
                     'This order can\'t be cancelled'))
         return data
 
-    def cancel_order(self):
-        cancel_order(self.order)
+    def order_cancel(self):
+        order_cancel(self.order)
 
 
 class RemoveVoucherForm(forms.Form):
@@ -323,7 +324,7 @@ class ChangeStockForm(forms.ModelForm):
                 stock.location.name if stock.location else '')
             Stock.objects.allocate_stock(stock, quantity)
         super(ChangeStockForm, self).save(commit)
-        merge_duplicated_lines(self.instance)
+        order_line_merge_with_duplicates(self.instance)
         return self.instance
 
 
@@ -364,5 +365,5 @@ class AddVariantToDeliveryGroupForm(forms.Form):
         """ Adds variant to target group. Updates stocks and order. """
         variant = self.cleaned_data.get('variant')
         quantity = self.cleaned_data.get('quantity')
-        add_variant_to_delivery_group(self.group, variant, quantity)
+        delivery_group_add_variant(self.group, variant, quantity)
         order_recalculate(self.group.order)
