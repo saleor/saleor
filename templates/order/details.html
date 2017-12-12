@@ -27,6 +27,10 @@
     {% endif %}
 {% endblock breadcrumb %}
 
+{% block meta_tags %}
+    <meta name="robots" content="noindex, nofollow">
+{% endblock meta_tags %}
+
 {% block content %}
     {# This view is available by just knowing url,          #}
     {# so we don't show all details (like shipping address) #}
