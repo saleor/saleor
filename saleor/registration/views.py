@@ -29,6 +29,7 @@ def logout(request):
 
 
 def signup(request):
+    import ipdb; ipdb.set_trace()
     form = SignupForm(request.POST or None)
     if form.is_valid():
         form.save()

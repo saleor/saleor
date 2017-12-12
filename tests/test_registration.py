@@ -102,6 +102,16 @@ def test_signup_view_create_user(client, db):
     assert redirect_location == '/'
 
 
+def test_signup_view_redirect(client, customer_user):
+    url = reverse('account_signup')
+    data = {
+        'email': 'client@example.com', 'password': 'password',
+        'next': '/cart/'}
+    response = client.post(url, data)
+    redirect_location = get_redirect_location(response)
+    assert redirect_location == '/cart/'
+
+
 def test_signup_view_fail(client, db, customer_user):
     url = reverse('account_signup')
     data = {'email': customer_user.email, 'password': 'password'}
