@@ -711,3 +711,21 @@ def ajax_available_variants_list(request):
         for variant in queryset
     ]
     return JsonResponse({'results': variants})
+
+
+@staff_member_required
+def ajax_products_list(request):
+    """
+    Returns products list filtered by request GET parameters.
+    Response format is as required by select2 field.
+    """
+    queryset = (
+        Product.objects.all() if request.user.has_perm('product.view_product')
+        else Product.objects.get_available_products())
+    search_query = request.GET.get('q', '')
+    if search_query:
+        queryset = queryset.filter(Q(name__icontains=search_query))
+    products = [
+        {'id': product.id, 'text': str(product)} for product in queryset
+    ]
+    return JsonResponse({'results': products})

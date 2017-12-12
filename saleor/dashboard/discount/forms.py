@@ -4,18 +4,30 @@ import uuid
 
 from django import forms
 from django.conf import settings
+from django.urls import reverse_lazy
 from django.utils.translation import pgettext_lazy
 from django_prices.forms import PriceField
 
+from ...core.forms import (
+    AjaxSelect2ChoiceField, AjaxSelect2MultipleChoiceField)
 from ...discount.models import Sale, Voucher
+from ...product.models import Product
 from ...shipping.models import ShippingMethodCountry, COUNTRY_CODE_CHOICES
 
 
 class SaleForm(forms.ModelForm):
+    products = AjaxSelect2MultipleChoiceField(
+        queryset=Product.objects.all(),
+        fetch_data_url=reverse_lazy('dashboard:ajax-products'), required=True)
 
     class Meta:
         model = Sale
         exclude = []
+
+    def __init__(self, *args, **kwargs):
+        super(SaleForm, self).__init__(*args, **kwargs)
+        if self.instance.pk:
+            self.fields['products'].set_initial(self.instance.products.all())
 
     def clean(self):
         cleaned_data = super(SaleForm, self).clean()
@@ -125,6 +137,10 @@ class CommonVoucherForm(forms.ModelForm):
 
 
 class ProductVoucherForm(CommonVoucherForm):
+    product = AjaxSelect2ChoiceField(
+        queryset=Product.objects.all(),
+        fetch_data_url=reverse_lazy('dashboard:ajax-products'),
+        required=True)
 
     class Meta:
         model = Voucher
@@ -132,7 +148,8 @@ class ProductVoucherForm(CommonVoucherForm):
 
     def __init__(self, *args, **kwargs):
         super(ProductVoucherForm, self).__init__(*args, **kwargs)
-        self.fields['product'].required = True
+        if self.instance.product:
+            self.fields['product'].set_initial(self.instance.product)
 
 
 class CategoryVoucherForm(CommonVoucherForm):
