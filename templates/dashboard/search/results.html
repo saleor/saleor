@@ -22,7 +22,7 @@
   <div class="row">
     <div class="col s12 l9">
       {% if products %}
-        <h6>Products</h6>
+        <h6>{% trans 'Products' context 'Search results list products' %}</h6>
         <ul class="collection list card">
           {% for product in products %}
             <li class="collection-item avatar list-item">
@@ -44,7 +44,7 @@
         </ul>
       {% endif %}
       {% if orders %}
-        <h6>Orders</h6>
+        <h6>{% trans 'Orders' context 'Search results list orders' %}</h6>
         <ul class="collection list card">
           {% for order in orders %}
             <li class="collection-item avatar list-item">
@@ -73,7 +73,7 @@
         </ul>
       {% endif %}
       {% if users %}
-        <h6>Users</h6>
+        <h6>{% trans 'Users' context 'Search results list users' %}</h6>
         <ul class="collection list card">
           {% for user in users %}
             <li class="collection-item avatar list-item">
