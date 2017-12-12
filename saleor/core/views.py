@@ -2,7 +2,6 @@ from __future__ import unicode_literals
 
 from django.template.response import TemplateResponse
 from django.contrib import messages
-from django.conf import settings
 from django.utils.translation import pgettext_lazy
 from impersonate.views import impersonate as orig_impersonate
 

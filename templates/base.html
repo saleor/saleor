@@ -18,6 +18,7 @@
   {% render_bundle 'storefront' 'css' %}
 
   {% block stylesheet %}{% endblock stylesheet %}
+  {% block meta_tags %}{% endblock meta_tags %}
 
   <!-- Le HTML5 shim, for IE6-8 support of HTML5 elements -->
   <!--[if lt IE 9]>
@@ -62,11 +63,11 @@
               {% endif %}
             {% else %}
               <li>
-                <a href="{% url "account_signup" %}">
+                <a rel="nofollow" href="{% url "account_signup" %}">
                   {% trans "Register" context "Main navigation item" %}</a>
               </li>
               <li>
-                <a href="{% url "account_login" %}">
+                <a rel="nofollow" href="{% url "account_login" %}">
                   {% trans "Log in" context "Main navigation item" %}
                 </a>
               </li>
@@ -108,7 +109,7 @@
           </div>
           <div class="col-2 col-md-4">
             <div class="navbar__brand__cart float-right">
-              <a class="cart__icon" href="{% url "cart:index" %}">
+              <a rel="nofollow" class="cart__icon" href="{% url "cart:index" %}">
                 <span class="cart-label d-none d-md-inline-block">
                     {% trans "Your Cart" context "Main navigation item" %}
                 </span>
@@ -184,7 +185,7 @@
         <div class="col-md-3 col-sm-6">
           <ul>
             <li>
-              <a href="{% url "cart:index" %}">
+              <a rel="nofollow" href="{% url "cart:index" %}">
                 {% trans "Your Cart" context "Main navigation item" %}
               </a>
             </li>
@@ -220,12 +221,12 @@
               {% endif %}
             {% else %}
               <li>
-                <a href="{% url "account_signup" %}">
+                <a rel="nofollow" href="{% url "account_signup" %}">
                   {% trans "Register" context "Main navigation item" %}
                 </a>
               </li>
               <li>
-                <a href="{% url "account_login" %}">
+                <a rel="nofollow" href="{% url "account_login" %}">
                   {% trans "Log in" context "Main navigation item" %}
                 </a>
               </li>
