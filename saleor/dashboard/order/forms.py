@@ -211,10 +211,12 @@ class ShipGroupForm(forms.ModelForm):
             if stock is not None:
                 # remove and deallocate quantity
                 Stock.objects.decrease_stock(stock, line.quantity)
-        self.instance.change_status(OrderStatus.SHIPPED)
+        self.instance.status = OrderStatus.SHIPPED
+        self.instance.save()
         statuses = [g.status for g in order.groups.all()]
         if OrderStatus.SHIPPED in statuses and OrderStatus.NEW not in statuses:
-            order.change_status(OrderStatus.SHIPPED)
+            order.status = OrderStatus.SHIPPED
+            order.save()
 
 
 class CancelGroupForm(forms.Form):
