@@ -24,9 +24,9 @@
             <h3>{% trans "Create an account" context "Signup form title" %}</h3>
             {% csrf_token %}
             {% bootstrap_form form %}
-            {% if redirect_field_value %}
-              <input type="hidden" name="{{ redirect_field_name }}"
-                     value="{{ redirect_field_value }}"/>
+            {% if REDIRECT_FIELD_VALUE %}
+             <input type="hidden" name="{{ REDIRECT_FIELD_NAME }}"
+                    value="{{ REDIRECT_FIELD_VALUE }}"/>
             {% endif %}
           </fieldset>
           <button type="submit" class="btn primary narrow">
