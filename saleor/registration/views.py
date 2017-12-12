@@ -39,7 +39,11 @@ def signup(request):
         if user:
             auth.login(request, user)
         messages.success(request, _('User has been created'))
-        return redirect(settings.LOGIN_REDIRECT_URL)
+        redirect_url = request.POST.get('next', '')
+        if redirect_url:
+            return redirect(redirect_url)
+        else:
+            return redirect(settings.LOGIN_REDIRECT_URL)
     ctx = {'form': form}
     return TemplateResponse(request, 'account/signup.html', ctx)
 
