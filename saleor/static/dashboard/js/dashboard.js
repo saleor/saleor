@@ -8,6 +8,7 @@ import './components/coupons';
 import './components/datepicker';
 import './components/modal';
 import './components/image-gallery';
+import './components/messages';
 import './components/misc';
 import './components/filters';
 import './components/search';
