@@ -10,15 +10,15 @@ from saleor.order import OrderStatus
 from saleor.order.models import (
     DeliveryGroup, Order, OrderLine, OrderHistoryEntry)
 from saleor.order.utils import (
-    add_variant_to_existing_lines, change_order_line_quantity,
-    fill_group_with_partition)
+    delivery_group_add_variant_to_existing_lines, order_line_change_quantity,
+    delivery_group_fill_with_partition)
 from saleor.product.models import ProductVariant, Stock, StockLocation
 from tests.utils import get_redirect_location, get_url_path
 
 
 @pytest.mark.integration
 @pytest.mark.django_db
-def test_view_cancel_order_line(admin_client, order_with_lines_and_stock):
+def test_view_order_cancel_line(admin_client, order_with_lines_and_stock):
     lines_before = order_with_lines_and_stock.get_lines()
     lines_before_count = lines_before.count()
     line = lines_before.first()
@@ -60,7 +60,7 @@ def test_view_cancel_order_line(admin_client, order_with_lines_and_stock):
 
 @pytest.mark.integration
 @pytest.mark.django_db
-def test_view_change_order_line_quantity(admin_client, order_with_lines_and_stock):
+def test_view_order_line_change_quantity(admin_client, order_with_lines_and_stock):
     """
     user goes to order details page
     user selects first order line with quantity 3 and changes it to 2
@@ -108,7 +108,7 @@ def test_view_change_order_line_quantity(admin_client, order_with_lines_and_stoc
 
 @pytest.mark.integration
 @pytest.mark.django_db
-def test_view_change_order_line_quantity_with_invalid_data(
+def test_view_order_line_change_quantity_with_invalid_data(
         admin_client, order_with_lines_and_stock):
     """
     user goes to order details page
@@ -129,7 +129,7 @@ def test_view_change_order_line_quantity_with_invalid_data(
 def test_dashboard_change_quantity_form(request_cart_with_item, order):
     cart = request_cart_with_item
     group = DeliveryGroup.objects.create(order=order)
-    fill_group_with_partition(group, cart.lines.all())
+    delivery_group_fill_with_partition(group, cart.lines.all())
     order_line = group.lines.get()
 
     # Check max quantity validation
@@ -273,9 +273,9 @@ def test_view_split_order_line_with_invalid_data(admin_client, order_with_lines_
 def test_ordered_item_change_quantity(transactional_db, order_with_lines):
     assert list(order_with_lines.history.all()) == []
     lines = order_with_lines.groups.all()[0].lines.all()
-    change_order_line_quantity(lines[0], 0)
-    change_order_line_quantity(lines[1], 0)
-    change_order_line_quantity(lines[2], 0)
+    order_line_change_quantity(lines[0], 0)
+    order_line_change_quantity(lines[1], 0)
+    order_line_change_quantity(lines[2], 0)
     history = list(order_with_lines.history.all())
     assert len(history) == 1
     assert history[0].status == OrderStatus.CANCELLED
@@ -446,7 +446,7 @@ def test_view_change_order_line_stock_merges_lines(
     assert stock.quantity_allocated == 0
 
 
-def test_add_variant_to_existing_lines_one_line(
+def test_delivery_group_add_variant_to_existing_lines_one_line(
         order_with_variant_from_different_stocks):
     order = order_with_variant_from_different_stocks
     lines = order.get_lines().filter(product_sku='SKU_A')
@@ -455,7 +455,7 @@ def test_add_variant_to_existing_lines_one_line(
     quantity_before = line.quantity
     variant = ProductVariant.objects.get(sku='SKU_A')
 
-    quantity_left = add_variant_to_existing_lines(
+    quantity_left = delivery_group_add_variant_to_existing_lines(
         line.delivery_group, variant, 2)
 
     lines_after = order.get_lines().filter(product_sku='SKU_A').count()
@@ -465,7 +465,7 @@ def test_add_variant_to_existing_lines_one_line(
     assert line.quantity == 4
 
 
-def test_add_variant_to_existing_lines_multiple_lines(
+def test_delivery_group_add_variant_to_existing_lines_multiple_lines(
         order_with_variant_from_different_stocks):
     order = order_with_variant_from_different_stocks
     lines = order.get_lines().filter(product_sku='SKU_A')
@@ -474,7 +474,7 @@ def test_add_variant_to_existing_lines_multiple_lines(
     line_2 = lines.get(stock_location='Warehouse 2')
     variant = ProductVariant.objects.get(sku='SKU_A')
 
-    quantity_left = add_variant_to_existing_lines(
+    quantity_left = delivery_group_add_variant_to_existing_lines(
         line_1.delivery_group, variant, 4)
 
     lines_after = order.get_lines().filter(product_sku='SKU_A').count()
@@ -486,7 +486,7 @@ def test_add_variant_to_existing_lines_multiple_lines(
     assert line_2.quantity == 5
 
 
-def test_add_variant_to_existing_lines_multiple_lines_with_rest(
+def test_delivery_group_add_variant_to_existing_lines_multiple_lines_with_rest(
         order_with_variant_from_different_stocks):
     order = order_with_variant_from_different_stocks
     lines = order.get_lines().filter(product_sku='SKU_A')
@@ -495,7 +495,7 @@ def test_add_variant_to_existing_lines_multiple_lines_with_rest(
     line_2 = lines.get(stock_location='Warehouse 2')
     variant = ProductVariant.objects.get(sku='SKU_A')
 
-    quantity_left = add_variant_to_existing_lines(
+    quantity_left = delivery_group_add_variant_to_existing_lines(
         line_1.delivery_group, variant, 7)
 
     lines_after = order.get_lines().filter(product_sku='SKU_A').count()
@@ -507,7 +507,7 @@ def test_add_variant_to_existing_lines_multiple_lines_with_rest(
     assert line_2.quantity == 5
 
 
-def test_view_add_variant_to_delivery_group(
+def test_view_delivery_group_add_variant(
         admin_client, order_with_variant_from_different_stocks):
     order = order_with_variant_from_different_stocks
     group = order.groups.get()

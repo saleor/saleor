@@ -5,7 +5,7 @@ from prices import Price
 from saleor.cart.models import Cart
 from saleor.order import models
 from saleor.order.utils import (
-    add_variant_to_delivery_group, fill_group_with_partition)
+    delivery_group_add_variant, delivery_group_fill_with_partition)
 
 
 def test_total_property():
@@ -35,7 +35,7 @@ def test_stock_allocation(billing_address, product_in_stock):
     cart.add(variant, quantity=2)
     order = models.Order.objects.create(billing_address=billing_address)
     delivery_group = models.DeliveryGroup.objects.create(order=order)
-    fill_group_with_partition(delivery_group, cart.lines.all())
+    delivery_group_fill_with_partition(delivery_group, cart.lines.all())
     order_line = delivery_group.lines.get()
     stock = order_line.stock
     assert stock.quantity_allocated == 2
@@ -44,19 +44,19 @@ def test_stock_allocation(billing_address, product_in_stock):
 def test_order_discount(sale, order, request_cart_with_item):
     cart = request_cart_with_item
     group = models.DeliveryGroup.objects.create(order=order)
-    fill_group_with_partition(
+    delivery_group_fill_with_partition(
         group, cart.lines.all(), discounts=cart.discounts)
     line = group.lines.first()
     assert line.get_price_per_item() == Price(currency="USD", net=5)
 
 
-def test_add_variant_to_delivery_group_adds_line_for_new_variant(
+def test_delivery_group_add_variant_adds_line_for_new_variant(
         order_with_lines, product_in_stock):
     group = order_with_lines.groups.get()
     variant = product_in_stock.variants.get()
     lines_before = group.lines.count()
 
-    add_variant_to_delivery_group(group, variant, 1)
+    delivery_group_add_variant(group, variant, 1)
 
     line = group.lines.last()
     assert group.lines.count() == lines_before + 1
@@ -64,20 +64,20 @@ def test_add_variant_to_delivery_group_adds_line_for_new_variant(
     assert line.quantity == 1
 
 
-def test_add_variant_to_delivery_group_allocates_stock_for_new_variant(
+def test_delivery_group_add_variant_allocates_stock_for_new_variant(
         order_with_lines, product_in_stock):
     group = order_with_lines.groups.get()
     variant = product_in_stock.variants.get()
     stock = variant.select_stockrecord()
     stock_before = stock.quantity_allocated
 
-    add_variant_to_delivery_group(group, variant, 1)
+    delivery_group_add_variant(group, variant, 1)
 
     stock.refresh_from_db()
     assert stock.quantity_allocated == stock_before + 1
 
 
-def test_add_variant_to_delivery_group_edits_line_for_existing_variant(
+def test_delivery_group_add_variant_edits_line_for_existing_variant(
         order_with_lines_and_stock):
     order = order_with_lines_and_stock
     group = order.groups.get()
@@ -86,7 +86,7 @@ def test_add_variant_to_delivery_group_edits_line_for_existing_variant(
     lines_before = group.lines.count()
     line_quantity_before = existing_line.quantity
 
-    add_variant_to_delivery_group(group, variant, 1)
+    delivery_group_add_variant(group, variant, 1)
 
     existing_line.refresh_from_db()
     assert group.lines.count() == lines_before
@@ -94,7 +94,7 @@ def test_add_variant_to_delivery_group_edits_line_for_existing_variant(
     assert existing_line.quantity == line_quantity_before + 1
 
 
-def test_add_variant_to_delivery_group_allocates_stock_for_existing_variant(
+def test_delivery_group_add_variant_allocates_stock_for_existing_variant(
         order_with_lines_and_stock):
     order = order_with_lines_and_stock
     group = order.groups.get()
@@ -103,7 +103,7 @@ def test_add_variant_to_delivery_group_allocates_stock_for_existing_variant(
     stock = existing_line.stock
     stock_before = stock.quantity_allocated
 
-    add_variant_to_delivery_group(group, variant, 1)
+    delivery_group_add_variant(group, variant, 1)
 
     stock.refresh_from_db()
     assert stock.quantity_allocated == stock_before + 1
