@@ -218,7 +218,9 @@ def order_line_change_quantity(line, new_quantity):
 
 
 def order_line_remove_empty_groups(line, force=False):
-    """Removes empty groups in order starting from given order line."""
+    """Removes order line and associated shipment group and order.
+    Remove is done only if quantity of order line or items in group and order
+    is equal to 0."""
     source_group = line.delivery_group
     order = source_group.order
     if line.quantity:
