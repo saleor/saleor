@@ -54,7 +54,7 @@
               <svg data-src="{% static "/dashboard/images/account_circle.svg" %}" width="24" height="24" fill="#fff" />
             </a>
             {% if SEARCH_IS_ENABLED %}
-              <a href="{% url "dashboard:search" %}" class="hide-on-med-and-up dropdown-button">
+              <a href="{% url "dashboard:search" %}" class="dropdown-button hide-on-med-and-up" id="btn-search">
                 <svg data-src="{% static "dashboard/images/search.svg" %}" width="24" height="24" fill="#fff" />
               </a>
             {% endif %}
@@ -72,13 +72,17 @@
             </li>
             <li class="search">
               {% if SEARCH_IS_ENABLED %}
-                <form method="get" action="{% url "dashboard:search" %}" class="hide-on-small-only">
-                  <div class="input-field">
+                <form method="get" action="{% url "dashboard:search" %}">
+                  <a class="hide-on-med-and-up" id="btn-search-close"></a>
+                  <div class="input-field d-inline">
                     <input id="search" type="search" placeholder="{% trans "Search" context "Dashboard search" %}" name="q" value="{% if query %}{{ query }}{% endif %}">
-                    <label>
+                    <label class="hide-on-small-only">
                       <svg data-src="{% static "dashboard/images/search.svg" %}" width="24" height="24" fill="#fff" />
                     </label>
                   </div>
+                  <a href="{% url "dashboard:search" %}" class="hide-on-med-and-up" id="btn-search-submit">
+                    <svg data-src="{% static "dashboard/images/search.svg" %}" width="24" height="24" fill="#fff" />
+                  </a>
                 </form>
               {% endif %}
             </li>
