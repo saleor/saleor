@@ -20,7 +20,8 @@ def sale_list(request):
     sales = Sale.objects.prefetch_related('products').order_by('name')
     sale_filter = SaleFilter(request.GET, queryset=sales)
     sales = get_paginator_items(
-        sale_filter.qs, settings.DASHBOARD_PAGINATE_BY, request.GET.get('page'))
+        sale_filter.qs, settings.DASHBOARD_PAGINATE_BY,
+        request.GET.get('page'))
     ctx = {'sales': sales, 'filter': sale_filter}
     return TemplateResponse(request, 'dashboard/discount/sale/list.html', ctx)
 
@@ -28,17 +29,13 @@ def sale_list(request):
 @staff_member_required
 @permission_required('discount.edit_sale')
 def sale_edit(request, pk=None):
-    if pk:
-        instance = get_object_or_404(Sale, pk=pk)
-    else:
-        instance = Sale()
-    form = forms.SaleForm(
-        request.POST or None, instance=instance)
+    instance = get_object_or_404(Sale, pk=pk) if pk else Sale()
+    form = forms.SaleForm(request.POST or None, instance=instance)
     if form.is_valid():
         instance = form.save()
-        msg = pgettext_lazy(
-            'Sale (discount) message', 'Updated sale') if pk else pgettext_lazy(
-                'Sale (discount) message', 'Added sale')
+        msg = (
+            pgettext_lazy('Sale (discount) message', 'Updated sale') if pk
+            else pgettext_lazy('Sale (discount) message', 'Added sale'))
         messages.success(request, msg)
         return redirect('dashboard:sale-update', pk=instance.pk)
     ctx = {'sale': instance, 'form': form}
@@ -51,9 +48,9 @@ def sale_delete(request, pk):
     instance = get_object_or_404(Sale, pk=pk)
     if request.method == 'POST':
         instance.delete()
-        messages.success(
-            request,
-            pgettext_lazy('Sale (discount) message', 'Removed sale %s') % (instance.name,))
+        msg = pgettext_lazy(
+            'Sale (discount) message', 'Removed sale %s') % (instance.name,)
+        messages.success(request, msg)
         return redirect('dashboard:sale-list')
     ctx = {'sale': instance}
     return TemplateResponse(
@@ -108,7 +105,7 @@ def voucher_edit(request, pk=None):
                 'Voucher message', 'Updated voucher') if pk else pgettext_lazy(
                     'Voucher message', 'Added voucher')
             messages.success(request, msg)
-            return redirect('dashboard:voucher-update', pk=instance.pk)
+            return redirect('dashboard:voucher-list')
     ctx = {
         'voucher': instance, 'default_currency': settings.DEFAULT_CURRENCY,
         'form': voucher_form, 'type_base_forms': type_base_forms}
@@ -122,9 +119,9 @@ def voucher_delete(request, pk):
     instance = get_object_or_404(Voucher, pk=pk)
     if request.method == 'POST':
         instance.delete()
-        messages.success(
-            request,
-            pgettext_lazy('Voucher message', 'Removed voucher %s') % (instance,))
+        msg = pgettext_lazy(
+            'Voucher message', 'Removed voucher %s') % (instance,)
+        messages.success(request, msg)
         return redirect('dashboard:voucher-list')
     ctx = {'voucher': instance}
     return TemplateResponse(
