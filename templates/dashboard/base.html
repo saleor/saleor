@@ -75,7 +75,7 @@
                 <form method="get" action="{% url "dashboard:search" %}">
                   <a class="hide-on-med-and-up" id="btn-search-close"></a>
                   <div class="input-field d-inline">
-                    <input id="search" type="search" placeholder="{% trans "Search" context "Dashboard search" %}" name="q" value="{% if query %}{{ query }}{% endif %}">
+                    <input id="search" type="search" placeholder="{% trans "Search" context "Dashboard search" %}" name="q" required value="{% if query %}{{ query }}{% endif %}">
                     <label class="hide-on-small-only">
                       <svg data-src="{% static "dashboard/images/search.svg" %}" width="24" height="24" fill="#fff" />
                     </label>
