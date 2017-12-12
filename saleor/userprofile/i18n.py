@@ -17,9 +17,6 @@ from .models import Address
 from .validators import validate_possible_number
 
 
-PhoneNumberField.default_validators = [validate_possible_number]
-PhoneNumberField.to_python = lambda self, value: value
-
 COUNTRY_FORMS = {}
 UNKNOWN_COUNTRIES = set()
 
@@ -50,17 +47,27 @@ AREA_TYPE_TRANSLATIONS = {
     'zip': pgettext_lazy('Address field', 'ZIP code')}
 
 
-class CustomPhonePrefix(PhonePrefixSelect):
+class PossiblePhoneNumberField(PhoneNumberField):
+    """
+    Modify PhoneNumberField form field to allow using phone numbers from
+    countries other than selected one.
+    To achieve this both default_validator attribute and to_python method needs
+    to be overwritten.
+    """
 
-    def __init__(self, initial=None):
-        choices = phone_prefixes
-        if initial:
-            self.initial = phone_prefixes[initial]
+    default_validators = [validate_possible_number]
 
-        super(PhonePrefixSelect, self).__init__(choices=choices)
+    def to_python(self, value):
+        return value
 
 
 class PhonePrefixWidget(PhoneNumberPrefixWidget):
+    """
+    Overwrite widget to use choices with tuple in a simple form of "+XYZ: +XYZ"
+    Workaround for an issue:
+    https://github.com/stefanfoulis/django-phonenumber-field/issues/82
+    """
+
     def __init__(self, attrs=None):
         widgets = (Select(attrs=attrs, choices=phone_prefixes), TextInput())
         super(PhoneNumberPrefixWidget, self).__init__(widgets, attrs)
@@ -103,7 +110,7 @@ class AddressForm(forms.ModelForm):
         model = Address
         exclude = []
 
-    phone = PhoneNumberField(widget=PhonePrefixWidget, required=False)
+    phone = PossiblePhoneNumberField(widget=PhonePrefixWidget, required=False)
 
     def __init__(self, *args, **kwargs):
         autocomplete_type = kwargs.pop('autocomplete_type', None)
