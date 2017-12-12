@@ -134,9 +134,10 @@
     color: $body-color;
     outline: 0;
     svg {
-      vertical-align: middle;
+      vertical-align: baseline;
       margin-left: $global-padding/2;
-      height: 15px;
+      height: 10px;
+      width: 15px;
     }
   }
   ul {
@@ -207,6 +208,9 @@
     display: inline-block;
     width: 15px;
     height: 15px;
+    img {
+      height: 10px;
+    }
   }
 }
 
