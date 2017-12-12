@@ -27,7 +27,6 @@ from ..views import staff_member_required
 from ...core.utils import get_paginator_items
 from ...order import OrderStatus
 from ...order.models import Order, OrderLine, OrderNote
-from ...product.models import ProductVariant
 from ...userprofile.i18n import AddressForm
 
 

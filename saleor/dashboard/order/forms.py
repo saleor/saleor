@@ -13,7 +13,7 @@ from ...cart.forms import QuantityField
 from ...core.forms import AjaxSelect2ChoiceField
 from ...discount.models import Voucher
 from ...order import OrderStatus
-from ...order.models import DeliveryGroup, Order, OrderLine, OrderNote
+from ...order.models import DeliveryGroup, OrderLine, OrderNote
 from ...order.utils import (
     delivery_group_add_variant, delivery_group_cancel, order_cancel,
     order_line_change_quantity, order_line_merge_with_duplicates,
