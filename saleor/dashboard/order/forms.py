@@ -17,6 +17,7 @@ from ...order.models import DeliveryGroup, OrderLine, OrderNote
 from ...order.utils import (
     delivery_group_add_variant, delivery_group_cancel, order_cancel,
     order_line_change_quantity, order_line_merge_with_duplicates,
+    order_line_move_to_group, order_line_remove_empty_groups,
     order_recalculate)
 from ...product.models import Product, ProductVariant, Stock
 
@@ -126,7 +127,7 @@ class MoveLinesForm(forms.Form):
             target_group = self.old_group.order.groups.create(
                 status=self.old_group.status,
                 shipping_method_name=self.old_group.shipping_method_name)
-        OrderLine.objects.move_to_group(self.line, target_group, how_many)
+        order_line_move_to_group(self.line, target_group, how_many)
         return target_group
 
 
@@ -141,7 +142,7 @@ class CancelLinesForm(forms.Form):
             Stock.objects.deallocate_stock(self.line.stock, self.line.quantity)
         order = self.line.delivery_group.order
         self.line.quantity = 0
-        OrderLine.objects.remove_empty_groups(self.line)
+        order_line_remove_empty_groups(self.line)
         order_recalculate(order)
 
 

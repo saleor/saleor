@@ -247,44 +247,6 @@ class DeliveryGroup(models.Model, ItemSet):
         return self.status not in {OrderStatus.CANCELLED, OrderStatus.SHIPPED}
 
 
-class OrderLineManager(models.Manager):
-    def move_to_group(self, line, target_group, quantity):
-        try:
-            target_line = target_group.lines.get(
-                product=line.product, product_name=line.product_name,
-                product_sku=line.product_sku, stock=line.stock)
-        except ObjectDoesNotExist:
-            target_group.lines.create(
-                delivery_group=target_group, product=line.product,
-                product_name=line.product_name, product_sku=line.product_sku,
-                quantity=quantity, unit_price_net=line.unit_price_net,
-                stock=line.stock,
-                stock_location=line.stock_location,
-                unit_price_gross=line.unit_price_gross)
-        else:
-            target_line.quantity += quantity
-            target_line.save()
-        line.quantity -= quantity
-        self.remove_empty_groups(line)
-
-    def remove_empty_groups(self, line, force=False):
-        source_group = line.delivery_group
-        order = source_group.order
-        if line.quantity:
-            line.save()
-        else:
-            line.delete()
-        if not source_group.get_total_quantity() or force:
-            source_group.delete()
-        if not order.get_lines():
-            order.status = OrderStatus.CANCELLED
-            order.save()
-            order.create_history_entry(
-                status=OrderStatus.CANCELLED, comment=pgettext_lazy(
-                    'Order status history entry',
-                    'Order cancelled. No items in order'))
-
-
 @python_2_unicode_compatible
 class OrderLine(models.Model, ItemLine):
     delivery_group = models.ForeignKey(
@@ -314,8 +276,6 @@ class OrderLine(models.Model, ItemLine):
     unit_price_gross = models.DecimalField(
         pgettext_lazy('Ordered line field', 'unit price (gross)'),
         max_digits=12, decimal_places=4)
-
-    objects = OrderLineManager()
 
     class Meta:
         verbose_name = pgettext_lazy('Ordered line model', 'Ordered line')

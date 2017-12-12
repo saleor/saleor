@@ -15,7 +15,7 @@ from satchless.item import InsufficientStock
 from ..core import analytics
 from ..product.models import Stock
 from ..userprofile.utils import store_user_address
-from .models import Order
+from .models import Order, OrderLine
 from . import OrderStatus
 
 logger = logging.getLogger(__name__)
@@ -112,8 +112,9 @@ def delivery_group_add_variant(
     as long as total_quantity of variant will be added.
     """
     quantity_left = (
-        delivery_group_add_variant_to_existing_lines(group, variant, total_quantity)
-        if add_to_existing else total_quantity)
+        delivery_group_add_variant_to_existing_lines(
+            group, variant, total_quantity) if add_to_existing
+        else total_quantity)
     price = variant.get_price_per_item(discounts)
     while quantity_left > 0:
         stock = variant.select_stockrecord()
@@ -139,7 +140,8 @@ def delivery_group_add_variant(
         quantity_left -= quantity
 
 
-def delivery_group_add_variant_to_existing_lines(group, variant, total_quantity):
+def delivery_group_add_variant_to_existing_lines(
+        group, variant, total_quantity):
     """Adds variant to existing lines with same variant.
 
     Variant is added by increasing quantity of lines with same variant,
@@ -213,3 +215,43 @@ def order_line_change_quantity(line, new_quantity):
                 status=OrderStatus.CANCELLED, comment=pgettext_lazy(
                     'Order status history entry',
                     'Order cancelled. No items in order'))
+
+
+def order_line_remove_empty_groups(line, force=False):
+    """Removes empty groups in order starting from given order line."""
+    source_group = line.delivery_group
+    order = source_group.order
+    if line.quantity:
+        line.save()
+    else:
+        line.delete()
+    if not source_group.get_total_quantity() or force:
+        source_group.delete()
+    if not order.get_lines():
+        order.status = OrderStatus.CANCELLED
+        order.save()
+        order.create_history_entry(
+            status=OrderStatus.CANCELLED, comment=pgettext_lazy(
+                'Order status history entry',
+                'Order cancelled. No items in order'))
+
+
+def order_line_move_to_group(line, target_group, quantity):
+    """Moves given quantity of order line to another shipment group."""
+    try:
+        target_line = target_group.lines.get(
+            product=line.product, product_name=line.product_name,
+            product_sku=line.product_sku, stock=line.stock)
+    except OrderLine.DoesNotExist:
+        target_group.lines.create(
+            delivery_group=target_group, product=line.product,
+            product_name=line.product_name, product_sku=line.product_sku,
+            quantity=quantity, unit_price_net=line.unit_price_net,
+            stock=line.stock,
+            stock_location=line.stock_location,
+            unit_price_gross=line.unit_price_gross)
+    else:
+        target_line.quantity += quantity
+        target_line.save()
+    line.quantity -= quantity
+    order_line_remove_empty_groups(line)
