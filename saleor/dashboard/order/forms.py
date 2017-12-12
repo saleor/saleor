@@ -16,7 +16,7 @@ from ...order import OrderStatus
 from ...order.models import DeliveryGroup, Order, OrderLine, OrderNote
 from ...order.utils import (
     add_variant_to_delivery_group, cancel_order, cancel_delivery_group,
-    change_order_line_quantity, merge_duplicated_lines)
+    change_order_line_quantity, merge_duplicated_lines, order_recalculate)
 from ...product.models import Product, ProductVariant, Stock
 
 
@@ -141,7 +141,7 @@ class CancelLinesForm(forms.Form):
         order = self.line.delivery_group.order
         self.line.quantity = 0
         OrderLine.objects.remove_empty_groups(self.line)
-        Order.objects.recalculate_order(order)
+        order_recalculate(order)
 
 
 class ChangeQuantityForm(forms.ModelForm):
@@ -180,7 +180,7 @@ class ChangeQuantityForm(forms.ModelForm):
             delta = quantity - self.initial_quantity
             Stock.objects.allocate_stock(stock, delta)
         change_order_line_quantity(self.instance, quantity)
-        Order.objects.recalculate_order(self.instance.delivery_group.order)
+        order_recalculate(self.instance.delivery_group.order)
         return self.instance
 
 
@@ -268,7 +268,7 @@ class RemoveVoucherForm(forms.Form):
         voucher = self.order.voucher
         Voucher.objects.decrease_usage(voucher)
         self.order.voucher = None
-        Order.objects.recalculate_order(self.order)
+        order_recalculate(self.order)
 
 
 ORDER_STATUS_CHOICES = [
@@ -365,4 +365,4 @@ class AddVariantToDeliveryGroupForm(forms.Form):
         variant = self.cleaned_data.get('variant')
         quantity = self.cleaned_data.get('quantity')
         add_variant_to_delivery_group(self.group, variant, quantity)
-        Order.objects.recalculate_order(self.group.order)
+        order_recalculate(self.group.order)
