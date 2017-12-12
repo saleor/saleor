@@ -445,7 +445,8 @@ def create_fake_order():
             'user_email': get_email(
                 address.first_name, address.last_name)}
     order = Order.objects.create(**user_data)
-    order.change_status(OrderStatus.PAYMENT_PENDING)
+    order.status = OrderStatus.PAYMENT_PENDING
+    order.save()
 
     delivery_group = create_delivery_group(order)
     lines = create_order_lines(delivery_group, random.randrange(1, 5))
@@ -456,9 +457,10 @@ def create_fake_order():
 
     payment = create_payment(delivery_group)
     if payment.status == PaymentStatus.CONFIRMED:
-        order.change_status(OrderStatus.FULLY_PAID)
+        order.status = OrderStatus.FULLY_PAID
         if random.choice([True, False]):
-            order.change_status(OrderStatus.SHIPPED)
+            order.status = OrderStatus.SHIPPED
+        order.save()
     return order
 
 

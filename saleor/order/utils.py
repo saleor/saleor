@@ -36,7 +36,8 @@ def check_order_status(func):
 def order_status_change(sender, instance, **kwargs):
     order = instance.order
     if order.is_fully_paid():
-        order.change_status(OrderStatus.FULLY_PAID)
+        order.status = OrderStatus.FULLY_PAID
+        order.save()
         order.create_history_entry(
             status=OrderStatus.FULLY_PAID, comment=pgettext_lazy(
                 'Order status history entry', 'Order fully paid'))
@@ -181,7 +182,8 @@ def change_order_line_quantity(line, new_quantity):
         line.delivery_group.delete()
         order = line.delivery_group.order
         if not order.get_lines():
-            order.change_status(OrderStatus.CANCELLED)
+            order.status = OrderStatus.CANCELLED
+            order.save()
             order.create_history_entry(
                 status=OrderStatus.CANCELLED, comment=pgettext_lazy(
                     'Order status history entry',

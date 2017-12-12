@@ -109,11 +109,6 @@ class Order(models.Model, ItemSet):
             self.token = str(uuid4())
         return super(Order, self).save(*args, **kwargs)
 
-    def change_status(self, status):
-        if status != self.status:
-            self.status = status
-            self.save()
-
     def get_lines(self):
         return OrderLine.objects.filter(delivery_group__order=self)
 
@@ -125,14 +120,10 @@ class Order(models.Model, ItemSet):
         return total_paid >= total.gross
 
     def get_user_current_email(self):
-        if self.user:
-            return self.user.email
-        else:
-            return self.user_email
+        return self.user.email if self.user else self.user_email
 
     def _index_billing_phone(self):
-        billing_address = self.billing_address
-        return billing_address.phone
+        return self.billing_address.phone
 
     def _index_shipping_phone(self):
         return self.shipping_address.phone
@@ -153,10 +144,6 @@ class Order(models.Model, ItemSet):
 
     def get_total(self):
         return self.total
-
-    @property
-    def billing_full_name(self):
-        return '%s %s' % (self.billing_first_name, self.billing_last_name)
 
     def get_absolute_url(self):
         return reverse('order:details', kwargs={'token': self.token})
@@ -260,10 +247,6 @@ class DeliveryGroup(models.Model, ItemSet):
     def shipping_required(self):
         return self.shipping_method_name is not None
 
-    def change_status(self, status):
-        self.status = status
-        self.save()
-
     def get_total(self, **kwargs):
         subtotal = super(DeliveryGroup, self).get_total(**kwargs)
         return subtotal + self.shipping_price
@@ -280,7 +263,7 @@ class DeliveryGroup(models.Model, ItemSet):
     def can_cancel(self):
         return self.status != OrderStatus.CANCELLED
 
-    def can_edit_items(self):
+    def can_edit_lines(self):
         return self.status not in {OrderStatus.CANCELLED, OrderStatus.SHIPPED}
 
 
@@ -314,7 +297,8 @@ class OrderLineManager(models.Manager):
         if not source_group.get_total_quantity() or force:
             source_group.delete()
         if not order.get_lines():
-            order.change_status(OrderStatus.CANCELLED)
+            order.status = OrderStatus.CANCELLED
+            order.save()
             order.create_history_entry(
                 status=OrderStatus.CANCELLED, comment=pgettext_lazy(
                     'Order status history entry',
