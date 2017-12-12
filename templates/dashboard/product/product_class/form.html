@@ -10,7 +10,7 @@
     {{ product_class }}
   {% else %}
     {% trans "Add new product type" context "Product class page title" %}
-  {% endif %} 
+  {% endif %}
   - {% trans "Products" context "Dashboard products list" %} - {{ block.super }}
 {% endblock %}
 
@@ -97,17 +97,17 @@
           {% if perms.product.edit_properties %}
           <div class="card-action right-align">
             {% if product_class.pk %}
-              <a href="{% url 'dashboard:product-class-list' %}" class="btn btn-flat">
+              <a href="{% url 'dashboard:product-class-list' %}" class="btn-flat waves-effect">
                 {% trans "Cancel" context "Dashboard cancel action" %}
               </a>
-              <button type="submit" class="btn waves-effect waves-light">
+              <button type="submit" class="btn waves-effect">
                 {% trans "Update" context "Dashboard update action" %}
               </button>
             {% else %}
-              <a href="{% url 'dashboard:product-class-list' %}" class="btn btn-flat">
+              <a href="{% url 'dashboard:product-class-list' %}" class="btn-flat waves-effect">
                 {% trans "Cancel" context "Dashboard cancel action" %}
               </a>
-              <button type="submit" class="btn waves-effect waves-light">
+              <button type="submit" class="btn waves-effect">
                 {% trans "Create" context "Dashboard create action" %}
               </button>
             {% endif %}

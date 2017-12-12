@@ -107,10 +107,10 @@
           </div>
           {% if perms.product.edit_category %}
           <div class="card-action">
-            <a class="btn btn-flat" href="{% url 'dashboard:category-edit' root_pk=root.pk %}">
+            <a class="btn-flat waves-effect" href="{% url 'dashboard:category-edit' root_pk=root.pk %}">
               {% trans "Edit category" context "Category detail view action" %}
             </a>
-            <a class="btn btn-flat modal-trigger-custom"
+            <a class="btn-flat waves-effect modal-trigger-custom"
              data-href="{% url 'dashboard:category-delete' pk=root.pk %}"
              href="#base-modal">
               {% trans "Remove category" context "Category detail view action" %}
@@ -125,7 +125,7 @@
             </span>
           </div>
           <div class="data-table-header-action">
-            <a href="{% if root%}{% url 'dashboard:category-add' root_pk=root.pk %}{% else %}{% url 'dashboard:category-add' %}{% endif %}" class="btn-data-table btn btn-flat">
+            <a href="{% if root%}{% url 'dashboard:category-add' root_pk=root.pk %}{% else %}{% url 'dashboard:category-add' %}{% endif %}" class="btn-data-table btn-flat waves-effect">
               {% trans "Add" %}
             </a>
           </div>
@@ -165,10 +165,10 @@
                     </td>
                     {% if perms.product.edit_category %}
                       <td class="right-align ignore-link">
-                        <a href="{% url 'dashboard:category-edit' root_pk=node.pk %}" class="btn btn-flat">
+                        <a href="{% url 'dashboard:category-edit' root_pk=node.pk %}" class="btn-flat waves-effect">
                           {% trans 'Edit' context 'Category edit action' %}
                         </a>
-                        <a class="btn btn-flat modal-trigger-custom"
+                        <a class="btn-flat waves-effect modal-trigger-custom"
                          data-href="{% url 'dashboard:category-delete' pk=node.pk %}"
                          href="#base-modal">
                           {% trans "Remove" context "Category list action link" %}
