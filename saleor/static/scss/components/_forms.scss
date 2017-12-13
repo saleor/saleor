@@ -149,3 +149,13 @@ input#id_quantity {
   right: 0.5rem;
   cursor: pointer;
 }
+
+// ATM there is no better solution to set
+// border-radius on select inputs - 12.2017
+select.form-control {
+  appearance: none;
+  border-radius: 2px;
+  background-image: url('../images/arrow_select.svg');
+  background-position: 100% 50%;
+  background-repeat: no-repeat;
+}
