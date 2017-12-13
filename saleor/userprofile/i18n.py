@@ -68,6 +68,8 @@ class PhonePrefixWidget(PhoneNumberPrefixWidget):
     https://github.com/stefanfoulis/django-phonenumber-field/issues/82
     """
 
+    template_name = 'userprofile/snippets/phone-prefix-widget.html'
+
     def __init__(self, attrs=None):
         widgets = (Select(attrs=attrs, choices=phone_prefixes), TextInput())
         super(PhoneNumberPrefixWidget, self).__init__(widgets, attrs)
