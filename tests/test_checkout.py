@@ -1,6 +1,7 @@
+from unittest.mock import MagicMock, Mock
+
 from django.conf import settings
 from django.contrib.auth.models import AnonymousUser
-from mock import MagicMock, Mock
 from prices import Price
 import pytest
 from satchless.item import InsufficientStock

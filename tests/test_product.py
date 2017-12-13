@@ -1,10 +1,10 @@
 import datetime
 import json
+from unittest.mock import Mock
 
+import pytest
 from django.urls import reverse
 from django.utils.encoding import smart_text
-from mock import Mock
-import pytest
 from tests.utils import filter_products_by_attribute
 
 from saleor.cart import CartStatus, utils

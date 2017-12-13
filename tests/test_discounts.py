@@ -1,10 +1,10 @@
 from datetime import date, datetime, timedelta
 from decimal import Decimal
+from unittest.mock import Mock
 
-from freezegun import freeze_time
-from mock import Mock
-from prices import FixedDiscount, FractionalDiscount, Price
 import pytest
+from freezegun import freeze_time
+from prices import FixedDiscount, FractionalDiscount, Price
 
 from saleor.cart.utils import get_category_variants_and_prices
 from saleor.checkout.core import Checkout

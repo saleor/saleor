@@ -33,7 +33,6 @@ jsonfield>=2.0.2
 Markdown>=2.4
 maxminddb
 maxminddb-geolite2
-mock>=1.3.0
 prices>=0.5.7
 psycopg2>=2.6
 purl>=0.4.1
