@@ -1,8 +1,12 @@
-{% extends "dashboard/base_modal_confirm_delete.html" %}
+{% extends "dashboard/base_modal.html" %}
 
 {% load i18n %}
 
-{% block action_url %}{% url 'dashboard:group-delete' pk=group.pk %}{% endblock %}
+{% block form_class %}{% endblock %}
+
+{% block action_url %}
+{% url 'dashboard:group-delete' pk=group.pk %}
+{% endblock %}
 
 {% block title %}
 {% blocktrans trimmed context "Modal remove group text" %}
@@ -12,9 +16,11 @@
 
 {% block content %}
 {% blocktrans trimmed context "Modal remove group text" %}
-<p>Are you sure you want to remove group {{ group }}?</p>
-<p>Users might lose permissions related to this group.</p>
+  Are you sure you want to remove group {{ group }}?
+  <br> Users might lose permissions related to this group.
 {% endblocktrans %}
 {% endblock content %}
 
-
+{% block primary_action %}
+{% trans "Remove" context "Dashboard delete action" %}
+{% endblock %}

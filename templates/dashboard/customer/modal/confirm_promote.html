@@ -1,23 +1,23 @@
+{% extends "dashboard/base_modal.html" %}
+
 {% load i18n %}
 
-<form action="{% url 'dashboard:customer-promote' pk=customer.pk %}" method="post" novalidate>
-  {% csrf_token %}
-  <div class="modal-content">
-    <div class="row">
-      <div class="col s12">
-        <h5>
-          {% trans "Promote to staff member" context "Dashboard confirmation modal" %}
-        </h5>
-      </div>
-    </div>
-    {% trans "Are you sure?" context "Dashboard confirmation modal" %}
-  </div>
-  <div class="modal-footer">
-    <a href="#!" class="modal-action modal-close btn-flat waves-effect">
-      {% trans "Cancel" context "Dashboard cancel action" %}
-    </a>
-    <button type="submit" class="modal-action btn-flat waves-effect">
-      {% trans "Promote" context "Dashboard promote action" %}
-    </button>
-  </div>
-</form>
+{% block form_class %}{% endblock %}
+
+{% block action_url %}
+{% url 'dashboard:customer-promote' pk=customer.pk %}
+{% endblock %}
+
+{% block title %}
+{% trans "Promote to staff member" context "Dashboard confirmation modal" %}
+{% endblock %}
+
+{% block content %}
+{% blocktrans trimmed with customer=customer context "Modal promote to staff member text" %}
+  Are you sure you want to promote {{ customer }} to staff member?
+{% endblocktrans %}
+{% endblock %}
+
+{% block primary_action %}
+{% trans "Promote" context "Dashboard promote action" %}
+{% endblock %}

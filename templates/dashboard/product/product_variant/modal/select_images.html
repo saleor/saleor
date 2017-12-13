@@ -1,23 +1,23 @@
+{% extends "dashboard/base_modal.html" %}
+
 {% load i18n %}
 {% load materializecss %}
 {% load utils %}
 
-<form action="{% url "dashboard:variant-images" product_pk=product.pk variant_pk=variant.pk %}" method="post" novalidate>
-  {% csrf_token %}
-  <div class="modal-content">
-    <h5>
-      {% trans "Select variant images" context "Dashboard variant images modal" %}
-    </h5>
-    <div class="row">
-      <p>{% render_image_choice form.images %}</p>
-    </div>
-  </div>
-  <div class="modal-footer">
-    <a href="#!" class="modal-action modal-close btn-flat waves-effect">
-      {% trans "Cancel" context "Dashboard cancel action" %}
-    </a>
-    <button type="submit" class="modal-action btn-flat waves-effect">
-      {% trans "Save" context "Dashboard modal action" %}
-    </button>
-  </div>
-</form>
+{% block form_class %}{% endblock %}
+
+{% block action_url %}
+{% url "dashboard:variant-images" product_pk=product.pk variant_pk=variant.pk %}
+{% endblock %}
+
+{% block title %}
+{% trans "Select variant images" context "Dashboard variant images modal" %}
+{% endblock %}
+
+{% block content %}
+  <p>{% render_image_choice form.images %}</p>
+{% endblock content %}
+
+{% block primary_action %}
+{% trans "Save" context "Dashboard modal action" %}
+{% endblock %}
