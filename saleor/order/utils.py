@@ -1,24 +1,18 @@
 from __future__ import unicode_literals
 
-import logging
 from functools import wraps
 
 from django.conf import settings
 from django.db.models import F
-from django.dispatch import receiver
 from django.shortcuts import get_object_or_404, redirect
 from django.utils.translation import pgettext_lazy
-from payments.signals import status_changed
 from prices import Price
 from satchless.item import InsufficientStock
 
-from ..core import analytics
 from ..product.models import Stock
 from ..userprofile.utils import store_user_address
 from .models import Order, OrderLine
 from . import OrderStatus
-
-logger = logging.getLogger(__name__)
 
 
 def check_order_status(func):
@@ -34,24 +28,6 @@ def check_order_status(func):
         return func(*args, **kwargs)
 
     return decorator
-
-
-@receiver(status_changed)
-def order_status_change(sender, instance, **kwargs):
-    """Handles payment status change and sets suitable order status."""
-    order = instance.order
-    if order.is_fully_paid():
-        order.status = OrderStatus.FULLY_PAID
-        order.save()
-        order.create_history_entry(
-            status=OrderStatus.FULLY_PAID, comment=pgettext_lazy(
-                'Order status history entry', 'Order fully paid'))
-        instance.send_confirmation_email()
-        try:
-            analytics.report_order(order.tracking_client_id, order)
-        except Exception:
-            # Analytics failing should not abort the checkout flow
-            logger.exception('Recording order in analytics failed')
 
 
 def cancel_order(order):
