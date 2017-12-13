@@ -3,6 +3,7 @@
 <form
   role="form" method="post" action="{% block action_url %}#!{% endblock %}"
   class="{% block form_class %}form-async{% endblock %}" novalidate>
+  {% comment %}Empty form_class can be used for non-ajax forms with server redirect.{% endcomment %}
   {% csrf_token %}
   <div class="modal-content">
     <div class="row">
