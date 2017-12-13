@@ -3269,7 +3269,8 @@ strong {
   display: block;
   margin: 2rem auto;
   font-weight: 900;
-  padding: 1rem 0; }
+  padding: 1rem 0;
+  text-transform: uppercase; }
 
 header .notice-bar {
   height: 70px;
