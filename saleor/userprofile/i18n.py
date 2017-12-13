@@ -7,10 +7,11 @@ from django import forms
 from django.forms.forms import BoundField
 from django_countries.data import COUNTRIES
 from django.utils.translation import pgettext_lazy
+from phonenumber_field.formfields import PhoneNumberField
 
-from .fields import PossiblePhoneNumberFormField
 from .models import Address
 from .widgets import PhonePrefixWidget
+from .validators import validate_possible_number
 
 
 COUNTRY_FORMS = {}
@@ -38,6 +39,20 @@ AREA_TYPE_TRANSLATIONS = {
     'townland': pgettext_lazy('Address field', 'Townland'),
     'village_township': pgettext_lazy('Address field', 'Village/township'),
     'zip': pgettext_lazy('Address field', 'ZIP code')}
+
+
+class PossiblePhoneNumberFormField(PhoneNumberField):
+    """
+    Modify PhoneNumberField form field to allow using phone numbers from
+    countries other than selected one.
+    To achieve this both default_validator attribute and to_python method needs
+    to be overwritten.
+    """
+
+    default_validators = [validate_possible_number]
+
+    def to_python(self, value):
+        return value
 
 
 class AddressMetaForm(forms.ModelForm):

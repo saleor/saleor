@@ -8,8 +8,16 @@ from django.utils import timezone
 from django.utils.encoding import python_2_unicode_compatible
 from django.utils.translation import pgettext_lazy
 from django_countries.fields import Country, CountryField
+from phonenumber_field.modelfields import PhoneNumberField
 
-from .fields import PossiblePhoneNumberModelField
+from .validators import validate_possible_number
+
+
+class PossiblePhoneNumberField(PhoneNumberField):
+    """
+    Less strict rule for phone numbers written to database.
+    """
+    default_validators = [validate_possible_number]
 
 
 class AddressManager(models.Manager):
@@ -73,7 +81,7 @@ class Address(models.Model):
     country_area = models.CharField(
         pgettext_lazy('Address field', 'state or province'),
         max_length=128, blank=True)
-    phone = PossiblePhoneNumberModelField(
+    phone = PossiblePhoneNumberField(
         verbose_name=pgettext_lazy('Address field', 'phone number'),
         blank=True, default='')
     objects = AddressManager()
