@@ -21,9 +21,6 @@ def customer_list(request):
         User.objects
         .prefetch_related('orders', 'addresses')
         .select_related('default_billing_address', 'default_shipping_address')
-        .annotate(
-            num_orders=Count('orders', distinct=True),
-            last_order=Max('orders', distinct=True))
         .order_by('email'))
     customer_filter = UserFilter(request.GET, queryset=customers)
     customers = get_paginator_items(
