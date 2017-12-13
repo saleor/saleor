@@ -1,17 +1,58 @@
 header {
-  padding-top: $global-padding*2;
-  padding-bottom: $global-padding*2;
+  .notice-bar {
+    height: 70px;
+    background: $blue;
+    color: #fff;
+    .notice-text {
+      padding-top: 26px;
+      font-size: 1.5rem;
+      font-weight: 300;
+      width: calc(100% - 200px);
+      margin: auto;
+      a {
+        color: #fff;
+        text-decoration: underline;
+      }
+    }
+    #notice-bar-close {
+      position: absolute;
+      top: 0;
+      right: $global-margin * 2;
+      width: 70px;
+      height: 70px;
+      cursor: pointer;
+      &:before, &:after {
+        height: 30px;
+        width: 2px;
+        background: #fff;
+        content: '';
+        position: absolute;
+        right: 3.3 * $global-margin;
+        top: 18px;
+        @include transition(opacity 0.3s);
+      }
+      &:before {
+        transform: rotate(-45deg);
+      }
+      &:after {
+        transform: rotate(45deg);
+      }
+      &:hover {
+        &:before, &:after {
+          opacity: .7;
+        }
+      }
+    }
+  }
   .navbar {
     width: 100%;
-    position: absolute;
-    left: 0;
-    top: 1rem;
+    margin-top: 1rem;
     z-index: 999;
     .logo {
       img {
         max-height: 80px;
         opacity: 1;
-        @include transition(opacity 0.3s)
+        @include transition(opacity 0.3s);
         &:hover {
           opacity: 0.7;
         }

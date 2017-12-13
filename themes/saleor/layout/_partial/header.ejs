@@ -1,3 +1,7 @@
+<div class="notice-bar hide">
+  <div class="text-center notice-text">November release is out! <a href="">Read about the new features and fixes.</a></div>
+  <div id="notice-bar-close"></div>
+</div>
 <nav class="navbar navbar-custom">
   <div class="container">
     <div class="navbar-header">
@@ -19,7 +23,6 @@
             <span id="gh-stars"></span>
           </a>
         </li>
-        <!--<li>Great for <a href="#developers">DEVELOPERS</a>, <a href="#store-managers">MANAGERS</a> &amp; <a href="#customers">CUSTOMERS</a></li>-->
         <% for (var i in theme.menu) { %>
             <li><a href="<%- url_for(theme.menu[i]) %>" <% if (theme.menuNewCart[i]) { %>target="_blank"<% } %>><%= i %></a></li>
         <% } %>
