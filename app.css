@@ -3307,6 +3307,8 @@ header {
             header .navbar .navbar-collapse ul li a:hover {
               text-decoration: none;
               color: #D85039; }
+          header .navbar .navbar-collapse ul li.gh-widget img {
+            margin: -3px 5px 0; }
           header .navbar .navbar-collapse ul li:last-child a {
             color: #D85039;
             border: solid 1px #D85039;
