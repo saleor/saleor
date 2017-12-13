@@ -14,7 +14,7 @@ from payments import PaymentStatus, RedirectNeeded
 
 from .forms import PaymentDeleteForm, PaymentMethodsForm, PasswordForm
 from .models import Order, Payment
-from .utils import check_order_status, order_attach_to_user
+from .utils import attach_order_to_user, check_order_status
 from ..core.utils import get_client_ip
 from ..registration.forms import LoginForm
 from ..userprofile.models import User
@@ -148,7 +148,7 @@ def create_password(request, token):
         user = auth.authenticate(request=request, email=email,
                                  password=password)
         auth.login(request, user)
-        order_attach_to_user(order, user)
+        attach_order_to_user(order, user)
         return redirect('order:details', token=token)
     ctx = {'form': register_form, 'email': email, 'order': order,
            'login_form': login_form}
@@ -159,7 +159,7 @@ def create_password(request, token):
 def connect_order_with_user(request, token):
     order = get_object_or_404(
         Order.objects.filter(user_email=request.user.email, token=token))
-    order_attach_to_user(order, request.user)
+    attach_order_to_user(order, request.user)
     messages.success(
         request, pgettext_lazy(
             'storefront message',

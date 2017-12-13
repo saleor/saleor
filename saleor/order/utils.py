@@ -54,15 +54,15 @@ def order_status_change(sender, instance, **kwargs):
             logger.exception('Recording order in analytics failed')
 
 
-def order_cancel(order):
+def cancel_order(order):
     """Cancells order by cancelling all associated shipment groups."""
     for group in order.groups.all():
-        delivery_group_cancel(group, cancel_order=False)
+        cancel_delivery_group(group, cancel_order=False)
     order.status = OrderStatus.CANCELLED
     order.save()
 
 
-def order_recalculate(order):
+def recalculate_order(order):
     """Recalculates and assigns total price of order.
     Total price is a sum of items and shippings in order shipment groups. """
     prices = [
@@ -82,7 +82,7 @@ def order_recalculate(order):
     order.save()
 
 
-def order_attach_to_user(order, user):
+def attach_order_to_user(order, user):
     """Associates existing order with user account."""
     order.user = user
     store_user_address(user, order.billing_address, billing=True)
@@ -91,16 +91,16 @@ def order_attach_to_user(order, user):
     order.save(update_fields=['user'])
 
 
-def delivery_group_fill_with_partition(group, partition, discounts=None):
+def fill_group_with_partition(group, partition, discounts=None):
     """Fills shipment group with order lines created from partition items.
     """
     for item in partition:
-        delivery_group_add_variant(
+        add_variant_to_delivery_group(
             group, item.variant, item.get_quantity(), discounts,
             add_to_existing=False)
 
 
-def delivery_group_add_variant(
+def add_variant_to_delivery_group(
         group, variant, total_quantity, discounts=None, add_to_existing=True):
     """Adds total_quantity of variant to group.
     Raises InsufficientStock exception if quantity could not be fulfilled.
@@ -112,7 +112,7 @@ def delivery_group_add_variant(
     as long as total_quantity of variant will be added.
     """
     quantity_left = (
-        delivery_group_add_variant_to_existing_lines(
+        add_variant_to_existing_lines(
             group, variant, total_quantity) if add_to_existing
         else total_quantity)
     price = variant.get_price_per_item(discounts)
@@ -140,8 +140,7 @@ def delivery_group_add_variant(
         quantity_left -= quantity
 
 
-def delivery_group_add_variant_to_existing_lines(
-        group, variant, total_quantity):
+def add_variant_to_existing_lines(group, variant, total_quantity):
     """Adds variant to existing lines with same variant.
 
     Variant is added by increasing quantity of lines with same variant,
@@ -171,7 +170,7 @@ def delivery_group_add_variant_to_existing_lines(
     return quantity_left
 
 
-def delivery_group_cancel(group, cancel_order=True):
+def cancel_delivery_group(group, cancel_order=True):
     """Cancells shipment group and (optionally) it's order if necessary."""
     for line in group:
         if line.stock:
@@ -187,7 +186,7 @@ def delivery_group_cancel(group, cancel_order=True):
             group.order.save(update_fields=['status'])
 
 
-def order_line_merge_with_duplicates(line):
+def merge_duplicates_into_order_line(line):
     """Merges duplicated lines in shipment group into one (given) line.
     If there are no duplicates, nothing will happen.
     """
@@ -200,7 +199,7 @@ def order_line_merge_with_duplicates(line):
         lines.exclude(pk=line.pk).delete()
 
 
-def order_line_change_quantity(line, new_quantity):
+def change_order_line_quantity(line, new_quantity):
     """Change the quantity of ordered items in a order line."""
     line.quantity = new_quantity
     line.save()
@@ -217,9 +216,9 @@ def order_line_change_quantity(line, new_quantity):
                     'Order cancelled. No items in order'))
 
 
-def order_line_remove_empty_groups(line, force=False):
+def remove_empty_groups(line, force=False):
     """Removes order line and associated shipment group and order.
-    Remove is done only if quantity of order line or items in group and order
+    Remove is done only if quantity of order line or items in group or in order
     is equal to 0."""
     source_group = line.delivery_group
     order = source_group.order
@@ -238,7 +237,7 @@ def order_line_remove_empty_groups(line, force=False):
                 'Order cancelled. No items in order'))
 
 
-def order_line_move_to_group(line, target_group, quantity):
+def move_order_line_to_group(line, target_group, quantity):
     """Moves given quantity of order line to another shipment group."""
     try:
         target_line = target_group.lines.get(
@@ -256,4 +255,4 @@ def order_line_move_to_group(line, target_group, quantity):
         target_line.quantity += quantity
         target_line.save()
     line.quantity -= quantity
-    order_line_remove_empty_groups(line)
+    remove_empty_groups(line)
