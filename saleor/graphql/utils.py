@@ -1,11 +1,8 @@
-from __future__ import unicode_literals
-
+from django.shortcuts import _get_queryset
 import graphene
 
-from django.shortcuts import _get_queryset
 
-
-class CategoryAncestorsCache(object):
+class CategoryAncestorsCache:
     """
     Cache used to store ancestors of a category in GraphQL context in order to
     reduce number of database queries. Categories of the same tree depth level

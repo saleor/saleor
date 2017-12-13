@@ -1,6 +1,4 @@
 """Cart-related views."""
-from __future__ import unicode_literals
-
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.template.response import TemplateResponse

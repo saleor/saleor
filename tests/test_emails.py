@@ -1,8 +1,7 @@
-from __future__ import unicode_literals
 from django.conf import settings
+import mock
 
 import saleor.order.emails as emails
-import mock
 
 EMAIL = "foo@bar.com"
 SITE_NAME = 'mirumee.com'

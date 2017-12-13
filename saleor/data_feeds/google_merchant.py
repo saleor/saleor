@@ -1,5 +1,3 @@
-from __future__ import unicode_literals
-
 import gzip
 import csv
 
@@ -7,7 +5,6 @@ from django.conf import settings
 from django.contrib.sites.models import Site
 from django.contrib.syndication.views import add_domain
 from django.core.files.storage import default_storage
-from django.utils import six
 from django.utils.encoding import smart_text
 
 from ..discount.models import Sale
@@ -221,9 +218,6 @@ def update_feed(file_path=FILE_PATH):
     module as FILE_PATH.
     """
     with default_storage.open(file_path, 'wb') as output_file:
-        if six.PY3:
-            output = gzip.open(output_file, 'wt')
-        else:
-            output = gzip.GzipFile(fileobj=output_file, mode='w')
+        output = gzip.open(output_file, 'wt')
         write_feed(output)
         output.close()

@@ -1,18 +1,15 @@
-from __future__ import unicode_literals
-
 from collections import defaultdict
 
-import i18naddress
 from django import forms
 from django.forms.forms import BoundField
-from django_countries.data import COUNTRIES
 from django.utils.translation import pgettext_lazy
+from django_countries.data import COUNTRIES
+import i18naddress
 from phonenumber_field.formfields import PhoneNumberField
 
 from .models import Address
-from .widgets import PhonePrefixWidget
 from .validators import validate_possible_number
-
+from .widgets import PhonePrefixWidget
 
 COUNTRY_FORMS = {}
 UNKNOWN_COUNTRIES = set()

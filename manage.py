@@ -1,6 +1,4 @@
-#!/usr/bin/env python
-from __future__ import unicode_literals
-
+#!/usr/bin/env python3
 import os
 import sys
 

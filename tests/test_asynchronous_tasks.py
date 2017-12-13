@@ -1,10 +1,9 @@
-from __future__ import unicode_literals
-
 import celery
-import pytest
 import mock
-from saleor.order.emails import (send_order_confirmation,
-                                 send_payment_confirmation)
+import pytest
+
+from saleor.order.emails import (
+    send_order_confirmation, send_payment_confirmation)
 
 
 @celery.shared_task

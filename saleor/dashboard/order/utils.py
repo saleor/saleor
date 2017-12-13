@@ -1,5 +1,3 @@
-from __future__ import unicode_literals
-
 from django.conf import settings
 from django.contrib.sites.shortcuts import get_current_site
 from django.template.loader import get_template

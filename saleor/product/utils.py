@@ -1,9 +1,6 @@
-from __future__ import unicode_literals
-
 from collections import defaultdict, namedtuple
 
 from prices import Price, PriceRange
-from six import iteritems
 
 from django.conf import settings
 from django.contrib.auth.models import AnonymousUser
@@ -195,7 +192,7 @@ def get_variant_picker_data(product, discounts=None, local_currency=None):
             'schemaData': schema_data}
         data['variants'].append(variant_data)
 
-        for variant_key, variant_value in iteritems(variant.attributes):
+        for variant_key, variant_value in variant.attributes.items():
             filter_available_variants[int(variant_key)].append(
                 int(variant_value))
 

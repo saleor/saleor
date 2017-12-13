@@ -1,6 +1,3 @@
-# encoding: utf-8
-from __future__ import unicode_literals
-
 from django.conf import settings
 from django.contrib.auth import forms as django_forms, update_session_auth_hash
 from phonenumbers.phonenumberutil import country_code_for_region

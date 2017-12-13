@@ -1,20 +1,13 @@
-# encoding: utf-8
-from __future__ import unicode_literals
-
-try:
-    # Python 3
-    from urllib.parse import urlencode
-except ImportError:
-    # Python 2
-    from urllib import urlencode
+from urllib.parse import urlencode
 
 import i18naddress
 import pytest
 from django.core.exceptions import ValidationError
 from django.http import QueryDict
 
-from saleor.userprofile import forms, models, i18n
+from saleor.userprofile import forms, i18n, models
 from saleor.userprofile.validators import validate_possible_number
+
 
 @pytest.fixture
 def billing_address(db):
