@@ -5,24 +5,17 @@ from collections import defaultdict
 import i18naddress
 from django import forms
 from django.forms.forms import BoundField
-from django.forms import Select, TextInput
 from django_countries.data import COUNTRIES
 from django.utils.translation import pgettext_lazy
-from phonenumber_field.widgets import (
-    PhoneNumberPrefixWidget, PhonePrefixSelect)
-from phonenumber_field.formfields import PhoneNumberField
-from phonenumbers import COUNTRY_CODE_TO_REGION_CODE
 
+from .fields import PossiblePhoneNumberFormField
 from .models import Address
-from .validators import validate_possible_number
+from .widgets import PhonePrefixWidget
 
 
 COUNTRY_FORMS = {}
 UNKNOWN_COUNTRIES = set()
 
-phone_prefixes = [
-    ('+{}'.format(k), '+{}'.format(k)) for
-    (k, v) in sorted(COUNTRY_CODE_TO_REGION_CODE.items())]
 
 AREA_TYPE_TRANSLATIONS = {
     'area': pgettext_lazy('Address field', 'Area'),
@@ -45,34 +38,6 @@ AREA_TYPE_TRANSLATIONS = {
     'townland': pgettext_lazy('Address field', 'Townland'),
     'village_township': pgettext_lazy('Address field', 'Village/township'),
     'zip': pgettext_lazy('Address field', 'ZIP code')}
-
-
-class PossiblePhoneNumberField(PhoneNumberField):
-    """
-    Modify PhoneNumberField form field to allow using phone numbers from
-    countries other than selected one.
-    To achieve this both default_validator attribute and to_python method needs
-    to be overwritten.
-    """
-
-    default_validators = [validate_possible_number]
-
-    def to_python(self, value):
-        return value
-
-
-class PhonePrefixWidget(PhoneNumberPrefixWidget):
-    """
-    Overwrite widget to use choices with tuple in a simple form of "+XYZ: +XYZ"
-    Workaround for an issue:
-    https://github.com/stefanfoulis/django-phonenumber-field/issues/82
-    """
-
-    template_name = 'userprofile/snippets/phone-prefix-widget.html'
-
-    def __init__(self, attrs=None):
-        widgets = (Select(attrs=attrs, choices=phone_prefixes), TextInput())
-        super(PhoneNumberPrefixWidget, self).__init__(widgets, attrs)
 
 
 class AddressMetaForm(forms.ModelForm):
@@ -112,7 +77,8 @@ class AddressForm(forms.ModelForm):
         model = Address
         exclude = []
 
-    phone = PossiblePhoneNumberField(widget=PhonePrefixWidget, required=False)
+    phone = PossiblePhoneNumberFormField(
+        widget=PhonePrefixWidget, required=False)
 
     def __init__(self, *args, **kwargs):
         autocomplete_type = kwargs.pop('autocomplete_type', None)
