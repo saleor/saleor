@@ -1,6 +1,8 @@
-{% extends "dashboard/base_modal_confirm_delete.html" %}
+{% extends "dashboard/base_modal.html" %}
 
 {% load i18n %}
+
+{% block form_class %}{% endblock %}
 
 {% block action_url %}
 {% url 'dashboard:product-stock-location-delete' location.pk %}
@@ -19,14 +21,17 @@ Remove stock location {{ location }}
 {% endblocktrans %}
 </p>
 {% if stock_count %}
-<p>
-{% blocktrans trimmed count counter=stock_count context "Modal remove stock location text" %}
-  There is one stock associated with this stock location that will be removed.
-  {% plural %}
-  There are {{ counter }} stocks associated with this stock location that will be removed.
-{% endblocktrans %}
-</p>
+  <p>
+  {% blocktrans trimmed count counter=stock_count context "Modal remove stock location text" %}
+    There is one stock associated with this stock location that will be removed.
+    {% plural %}
+    There are {{ counter }} stocks associated with this stock location that will be removed.
+  {% endblocktrans %}
+  </p>
 {% endif %}
-
 {% endblock content %}
+
+{% block primary_action %}
+{% trans "Remove" context "Dashboard delete action" %}
+{% endblock %}
 

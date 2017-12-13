@@ -1,25 +1,27 @@
+{% extends "dashboard/base_modal.html" %}
+
 {% load i18n %}
 {% load materializecss %}
 
-<div class="modal-content">
-  <h5>
-    {% trans "Remove voucher?" context "Modal remove voucher from order title" %}
-  </h5>
-  <p>
-    {% blocktrans trimmed with order=order context "Modal remove voucher from order text" %}
-      Are you sure, you want remove voucher discount from {{ order }}?
-    {% endblocktrans %}
-  </p>
-</div>
-<div class="modal-footer">
-  <form id="release-form" method="post" role="form" class="form-async"
-  action="{% url 'dashboard:order-remove-voucher' order_pk=order.pk %}" novalidate>
-    {% csrf_token %}
-    <a href="#!" aria-hidden="true" class="modal-action modal-close btn-flat waves-effect">
-      {% trans "Abort" context "Dashboard abort action" %}
-    </a>
-    <button type="submit" class="modal-action btn-flat waves-effect">
-      {% trans "Remove voucher" context "Modal remove voucher from order primary action" %}
-    </button>
-  </form>
-</div>
+
+{% block action_url %}
+{% url 'dashboard:order-remove-voucher' order_pk=order.pk %}
+{% endblock %}
+
+{% block title %}
+{% trans "Remove voucher" context "Modal remove voucher from order title" %}
+{% endblock %}
+
+{% block content %}
+{% blocktrans trimmed with order=order context "Modal remove voucher from order text" %}
+  Are you sure you want remove voucher discount from order {{ order }}?
+{% endblocktrans %}
+{% endblock %}
+
+{% block cancel_action %}
+{% trans "Abort" context "Dashboard abort action" %}
+{% endblock %}
+
+{% block primary_action %}
+{% trans "Remove voucher" context "Modal remove voucher from order primary action" %}
+{% endblock %}

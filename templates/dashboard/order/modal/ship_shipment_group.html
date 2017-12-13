@@ -1,26 +1,21 @@
+{% extends "dashboard/base_modal.html" %}
+
 {% load i18n %}
 {% load materializecss %}
 
-<form method="post" role="form" action="{% url 'dashboard:ship-delivery-group' order_pk=order.pk group_pk=group.pk %}" class="form-async" novalidate>
-{% csrf_token %}
-  <div class="modal-content">
-    <h5>
-      {% trans "Dispatch shipment group" context "Modal ship shipment group title" %}
-    </h5>
-    <p>
-      {% trans "Dispatch this shipment to the following address:" context "Modal ship shipment group text" %}
-    </p>
-    {% include 'dashboard/includes/_address.html' with address=group.order.shipping_address only %}
-    <div class="row">
-      {{ form|materializecss }}
-    </div>
-  </div>
-  <div class="modal-footer">
-    <a href="#!" aria-hidden="true" class="modal-action modal-close btn-flat waves-effect">
-      {% trans "Cancel" context "Dashboard cancel action" %}
-    </a>
-    <button type="submit" class="modal-action btn-flat waves-effect">
-      {% trans "Ship" context "Modal ship shipment group primary action" %}
-    </button>
-  </div>
-</form>
+{% block action_url %}
+{% url 'dashboard:ship-delivery-group' order_pk=order.pk group_pk=group.pk %}
+{% endblock %}
+
+{% block title %}
+{% trans "Dispatch shipment group" context "Modal ship shipment group title" %}
+{% endblock %}
+
+{% block content %}
+{% trans "Dispatch this shipment to the following address:" context "Modal ship shipment group text" %}
+{{ form|materializecss }}
+{% endblock %}
+
+{% block primary_action %}
+{% trans "Ship" context "Modal ship shipment group primary action" %}
+{% endblock %}
