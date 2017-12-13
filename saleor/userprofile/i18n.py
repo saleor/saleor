@@ -22,7 +22,7 @@ UNKNOWN_COUNTRIES = set()
 
 phone_prefixes = [
     ('+{}'.format(k), '+{}'.format(k)) for
-    (k, v) in COUNTRY_CODE_TO_REGION_CODE.items()]
+    (k, v) in sorted(COUNTRY_CODE_TO_REGION_CODE.items())]
 
 AREA_TYPE_TRANSLATIONS = {
     'area': pgettext_lazy('Address field', 'Area'),
