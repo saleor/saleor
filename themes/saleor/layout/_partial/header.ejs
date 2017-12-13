@@ -12,7 +12,7 @@
     </div>
     <div id="navbar" class="menu navbar-collapse collapse navbar-right">
       <ul>
-        <li>Great for <a href="#developers">DEVELOPERS</a>, <a href="#store-managers">MANAGERS</a> &amp; <a href="#customers">CUSTOMERS</a></strong></li>
+        <li>Great for <a href="#developers">DEVELOPERS</a>, <a href="#store-managers">MANAGERS</a> &amp; <a href="#customers">CUSTOMERS</a></li>
         <% for (var i in theme.menu) { %>
             <li><a href="<%- url_for(theme.menu[i]) %>" <% if (theme.menuNewCart[i]) { %>target="_blank"<% } %>><%= i %></a></li>
         <% } %>
