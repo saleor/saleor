@@ -1,6 +1,7 @@
 from __future__ import unicode_literals
 
 from django import forms
+from django.db.models import Q
 from django.utils.translation import pgettext_lazy
 from django_filters import (
     CharFilter, ChoiceFilter, DateFromToRangeFilter, NumberFilter, RangeFilter,
@@ -8,10 +9,10 @@ from django_filters import (
 from payments import PaymentStatus
 
 from ...core.filters import SortedFilterSet
-from ..widgets import DateRangeWidget, PriceRangeWidget
-from ...core.utils.filters import filter_by_order_customer
 from ...order import OrderStatus
 from ...order.models import Order
+from ..widgets import DateRangeWidget, PriceRangeWidget
+
 
 SORT_BY_FIELDS = (
     ('pk', 'pk'),
@@ -37,7 +38,7 @@ class OrderFilter(SortedFilterSet):
     name_or_email = CharFilter(
         label=pgettext_lazy(
             'Order list filter label', 'Customer name or email'),
-        method=filter_by_order_customer)
+        method='filter_by_order_customer')
     created = DateFromToRangeFilter(
         label=pgettext_lazy('Order list filter label', 'Placed on'),
         name='created', widget=DateRangeWidget)
@@ -64,3 +65,9 @@ class OrderFilter(SortedFilterSet):
     class Meta:
         model = Order
         fields = []
+
+    def filter_by_order_customer(self, queryset, name, value):
+        return queryset.filter(
+            Q(user__email__icontains=value) |
+            Q(user__default_billing_address__first_name__icontains=value) |
+            Q(user__default_billing_address__last_name__icontains=value))
