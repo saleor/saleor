@@ -1,11 +1,7 @@
+from urllib.parse import urlencode
+
 from django.template.defaultfilters import yesno
 from django.utils.translation import pgettext_lazy
-
-try:
-    from urllib.parse import urlencode
-except ImportError:
-    from urllib import urlencode
-
 
 CHIPS_PATTERN = '%s: %s'
 

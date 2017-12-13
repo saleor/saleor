@@ -1,12 +1,8 @@
-try:
-    from itertools import zip_longest
-except ImportError:
-    from itertools import izip_longest as zip_longest
+from itertools import zip_longest
 
 from django.contrib.staticfiles.templatetags.staticfiles import static
 from django.template import Library
 from django.utils.http import urlencode
-
 
 register = Library()
 

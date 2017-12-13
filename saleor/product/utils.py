@@ -1,21 +1,16 @@
 from collections import defaultdict, namedtuple
-
-from prices import Price, PriceRange
+from urllib.parse import urlencode
 
 from django.conf import settings
 from django.contrib.auth.models import AnonymousUser
 from django.utils.encoding import smart_text
 from django_prices.templatetags import prices_i18n
+from prices import Price, PriceRange
 
+from . import ProductAvailabilityStatus, VariantAvailabilityStatus
 from ..cart.utils import get_cart_from_request, get_or_create_cart_from_request
 from ..core.utils import to_local_currency
 from .forms import ProductForm
-from . import ProductAvailabilityStatus, VariantAvailabilityStatus
-
-try:
-    from urllib.parse import urlencode
-except ImportError:
-    from urllib import urlencode
 
 
 def products_visible_to_user(user):
