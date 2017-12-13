@@ -277,7 +277,7 @@ def ship_delivery_group(request, order_pk, group_pk):
 
 @staff_member_required
 @permission_required('order.edit_order')
-def delivery_group_cancel(request, order_pk, group_pk):
+def cancel_delivery_group(request, order_pk, group_pk):
     order = get_object_or_404(Order, pk=order_pk)
     group = get_object_or_404(order.groups.all(), pk=group_pk)
     form = CancelGroupForm(request.POST or None, delivery_group=group)
@@ -360,14 +360,14 @@ def address_view(request, order_pk, address_type):
 
 @staff_member_required
 @permission_required('order.edit_order')
-def order_cancel(request, order_pk):
+def cancel_order(request, order_pk):
     status = 200
     order = get_object_or_404(Order, pk=order_pk)
     form = CancelOrderForm(request.POST or None, order=order)
     if form.is_valid():
         msg = pgettext_lazy('Dashboard message', 'Cancelled order')
         with transaction.atomic():
-            form.order_cancel()
+            form.cancel_order()
             order.create_history_entry(comment=msg, user=request.user)
         messages.success(request, 'Order cancelled')
         return redirect('dashboard:order-details', order_pk=order.pk)

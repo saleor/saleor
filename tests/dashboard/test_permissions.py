@@ -624,7 +624,7 @@ def test_staff_group_member_can_view_order_add_note(
     assert response.status_code == 200
 
 
-def test_staff_group_member_can_view_order_cancel(
+def test_staff_group_member_can_view_cancel_order(
         staff_client, staff_user, staff_group, permission_edit_order,
         order):
     assert not staff_user.has_perm("order.edit_order")

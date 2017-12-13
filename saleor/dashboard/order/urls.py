@@ -12,7 +12,7 @@ urlpatterns = [
     url(r'^(?P<order_pk>\d+)/add-note/$',
         views.order_add_note, name='order-add-note'),
     url(r'^(?P<order_pk>\d+)/cancel/$',
-        views.order_cancel, name='order-cancel'),
+        views.cancel_order, name='order-cancel'),
     url(r'^(?P<order_pk>\d+)/address/(?P<address_type>billing|shipping)/$',
         views.address_view, name='address-edit'),
 
@@ -36,7 +36,7 @@ urlpatterns = [
     url(r'^(?P<order_pk>\d+)/shipment/(?P<group_pk>\d+)/ship/$',
         views.ship_delivery_group, name='ship-delivery-group'),
     url(r'^(?P<order_pk>\d+)/shipment/(?P<group_pk>\d+)/cancel/$',
-        views.delivery_group_cancel, name='cancel-delivery-group'),
+        views.cancel_delivery_group, name='cancel-delivery-group'),
     url(r'^(?P<order_pk>\d+)/shipment/(?P<group_pk>\d+)/add-variant/$',
         views.add_variant_to_group, name='add-variant-to-group'),
     url(r'^(?P<order_pk>\d+)/invoice/$',

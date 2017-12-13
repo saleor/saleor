@@ -20,7 +20,7 @@ from saleor.cart.models import Cart
 from saleor.checkout.core import Checkout
 from saleor.discount.models import Voucher, Sale
 from saleor.order.models import Order, OrderLine, DeliveryGroup
-from saleor.order.utils import order_recalculate
+from saleor.order.utils import recalculate_order
 from saleor.product.models import (
     AttributeChoiceValue, Category, Product, ProductAttribute, ProductClass,
     ProductVariant, ProductImage, Stock, StockLocation)
@@ -441,7 +441,7 @@ def order_with_lines_and_stock(order, product_class):
         stock=stock,
         stock_location=stock.location.name
     )
-    order_recalculate(order)
+    recalculate_order(order)
     order.refresh_from_db()
     return order
 
