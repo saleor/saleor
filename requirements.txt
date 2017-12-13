@@ -64,10 +64,8 @@ kombu==4.1.0              # via celery
 markdown==2.6.9
 maxminddb-geolite2==2017.803
 maxminddb==1.3.0
-mock==2.0.0
 oauthlib==2.0.4           # via requests-oauthlib, social-auth-core
 olefile==0.44             # via pillow
-pbr==3.1.1                # via mock
 pdfrw==0.4                # via weasyprint
 phonenumberslite==8.8.5   # via django-phonenumber-field
 pillow==4.0.0             # via django-versatileimagefield
@@ -93,7 +91,7 @@ requests==2.18.4
 s3transfer==0.1.10        # via boto3
 satchless==1.1.3
 singledispatch==3.4.0.3   # via graphene-django
-six==1.11.0               # via cryptography, django-templated-email, elasticsearch-dsl, faker, freezegun, graphene, graphene-django, graphql-core, graphql-relay, html5lib, mock, promise, purl, python-dateutil, singledispatch, social-auth-app-django, social-auth-core, vcrpy
+six==1.11.0               # via cryptography, django-templated-email, elasticsearch-dsl, faker, freezegun, graphene, graphene-django, graphql-core, graphql-relay, html5lib, promise, purl, python-dateutil, singledispatch, social-auth-app-django, social-auth-core, vcrpy
 social-auth-app-django==2.0.0
 social-auth-core==1.4.0   # via social-auth-app-django
 stripe==1.65.0            # via django-payments

@@ -1,9 +1,9 @@
 import csv
 from io import StringIO
+from unittest.mock import Mock, patch
 
 from django.contrib.sites.models import Site
 from django.utils.encoding import smart_text
-from mock import Mock, patch
 
 from saleor.data_feeds.google_merchant import (
     get_feed_items, item_attributes, item_google_product_category, write_feed)

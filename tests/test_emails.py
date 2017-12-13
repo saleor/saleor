@@ -1,5 +1,6 @@
+from unittest import mock
+
 from django.conf import settings
-import mock
 
 import saleor.order.emails as emails
 

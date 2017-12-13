@@ -1,5 +1,6 @@
 from decimal import Decimal
 from io import BytesIO
+from unittest.mock import MagicMock
 
 import pytest
 from django.contrib.auth.models import AnonymousUser, Group, Permission
@@ -9,7 +10,6 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from django.utils.encoding import smart_text
 from PIL import Image
 
-from mock import MagicMock
 from saleor.cart import utils
 from saleor.cart.models import Cart
 from saleor.checkout.core import Checkout
