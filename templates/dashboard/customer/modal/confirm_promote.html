@@ -9,15 +9,15 @@
 {% endblock %}
 
 {% block title %}
-{% trans "Promote to staff member" context "Modal promote to staff member title" %}
+{% trans "Promote to staff member" context "Dashboard confirmation modal" %}
 {% endblock %}
 
 {% block content %}
 {% blocktrans trimmed with customer=customer context "Modal promote to staff member text" %}
-Are you sure you want to promote {{ customer }} to staff member?
+  Are you sure you want to promote {{ customer }} to staff member?
 {% endblocktrans %}
 {% endblock %}
 
 {% block primary_action %}
-{% trans "Promote" context "Modal promote to staff member primary action" %}
+{% trans "Promote" context "Dashboard promote action" %}
 {% endblock %}

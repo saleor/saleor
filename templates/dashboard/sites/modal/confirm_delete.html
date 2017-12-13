@@ -9,17 +9,17 @@
 {% endblock %}
 
 {% block title %}
-{% blocktrans trimmed context "Modal remove authorization key title" %}
-Remove authorization key {{ key }}
+{% blocktrans trimmed context "Modal delete authorization key text" %}
+  Delete authorization key {{ key }}
 {% endblocktrans %}
 {% endblock title %}
 
 {% block content %}
-{% blocktrans trimmed context "Modal remove authorization key text" %}
-Are you sure you want to remove authorization key <strong>{{ key }}</strong>?
+{% blocktrans trimmed context "Modal delete authorization key text" %}
+  Are you sure you want to remove authorization key <strong>{{ key }}</strong>?
 {% endblocktrans %}
 {% endblock content %}
 
 {% block primary_action %}
-{% trans "Remove" context "Modal remove authorization key primary action" %}
+{% trans "Remove" context "Dashboard delete action" %}
 {% endblock %}

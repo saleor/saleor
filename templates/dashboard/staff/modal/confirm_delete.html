@@ -9,13 +9,13 @@
 {% endblock %}
 
 {% block title %}
-{% blocktrans trimmed context "Modal remove staff member title" %}
+{% blocktrans trimmed context "Modal remove group text" %}
   Remove staff member <strong>{{ staff }}</strong>
 {% endblocktrans %}
 {% endblock %}
 
 {% block content %}
-{% blocktrans trimmed context "Modal remove staff member text" %}
+{% blocktrans trimmed context "Modal remove group text" %}
 <p>Are you sure you want to remove staff member?</p>
 <p>Deleting staff member also removes him from customer list and removes all his related data (orders, payment etc.).</p>
 <p>We strongly recommend not deleting user accounts that were used for purchases (for example customer which was promoted with staff member status).</p>
@@ -24,5 +24,5 @@
 {% endblock content %}
 
 {% block primary_action %}
-{% trans "Remove" context "Modal remove staff member primary action" %}
+{% trans "Remove" context "Dashboard delete action" %}
 {% endblock %}

@@ -9,17 +9,17 @@
 {% endblock %}
 
 {% block title %}
-{% blocktrans trimmed context "Modal remove attribute value title" %}
+{% blocktrans trimmed context "Modal delete attribute text" %}
 Delete attribute choice value {{ value }}
 {% endblocktrans %}
 {% endblock title %}
 
 {% block content %}
-{% blocktrans trimmed context "Modal remove attribute value text" %}
-    Are you sure you want to remove attribute choice value <strong>{{ value }}</strong>?
+{% blocktrans trimmed context "Modal delete attribute text" %}
+  Are you sure you want to remove attribute choice value <strong>{{ value }}</strong>?
 {% endblocktrans %}
 {% endblock content %}
 
 {% block primary_action %}
-{% trans "Remove" context "Modal remove product primary action" %}
+{% trans "Remove" context "Dashboard delete action" %}
 {% endblock %}

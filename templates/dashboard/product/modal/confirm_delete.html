@@ -10,17 +10,17 @@
 {% endblock %}
 
 {% block title %}
-{% blocktrans trimmed context "Modal remove product title" %}
-    Remove product {{ product }}
+{% blocktrans trimmed context "Modal remove product text" %}
+  Remove product {{ product }}
 {% endblocktrans %}
 {% endblock %}
 
 {% block content %}
 {% blocktrans trimmed context "Modal remove product text" %}
-    Are you sure you want to remove product <strong>{{ product }}</strong>?
+  Are you sure you want to remove product <strong>{{ product }}</strong>?
 {% endblocktrans %}
 {% endblock content %}
 
 {% block primary_action %}
-{% trans "Remove" context "Modal remove product primary action" %}
+{% trans "Remove" context "Dashboard delete action" %}
 {% endblock %}
