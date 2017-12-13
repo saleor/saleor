@@ -1,8 +1,5 @@
-from __future__ import unicode_literals
-
 from django.contrib.sites.models import Site
 from django.db import models
-from django.utils.encoding import python_2_unicode_compatible
 from django.utils.translation import pgettext_lazy
 
 from . import AuthenticationBackends
@@ -11,7 +8,6 @@ from .patch_sites import patch_contrib_sites
 patch_contrib_sites()
 
 
-@python_2_unicode_compatible
 class SiteSettings(models.Model):
     site = models.OneToOneField(
         Site, related_name='settings', on_delete=models.CASCADE)
@@ -37,7 +33,6 @@ class SiteSettings(models.Model):
         return self.authorizationkey_set.values_list('name', flat=True)
 
 
-@python_2_unicode_compatible
 class AuthorizationKey(models.Model):
     site_settings = models.ForeignKey(SiteSettings, on_delete=models.CASCADE)
     name = models.CharField(

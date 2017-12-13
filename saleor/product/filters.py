@@ -1,16 +1,12 @@
-from __future__ import unicode_literals
 from collections import OrderedDict
 
-from django_filters import (
-    MultipleChoiceFilter, RangeFilter, OrderingFilter)
 from django.forms import CheckboxSelectMultiple, ValidationError
 from django.utils.translation import pgettext_lazy
-
+from django_filters import MultipleChoiceFilter, OrderingFilter, RangeFilter
 from django_prices.models import PriceField
 
 from ..core.filters import SortedFilterSet
 from .models import Product, ProductAttribute
-
 
 SORT_BY_FIELDS = {
     'name': pgettext_lazy('Product list sorting option', 'name'),

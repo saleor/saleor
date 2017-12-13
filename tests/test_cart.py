@@ -1,9 +1,6 @@
-from __future__ import unicode_literals
-
 import json
 from uuid import uuid4
 
-import pytest
 from django.contrib.auth.models import AnonymousUser
 from django.core import signing
 from django.core.exceptions import ObjectDoesNotExist
@@ -12,6 +9,7 @@ from django.urls import reverse
 from django_babel.templatetags.babel import currencyfmt
 from mock import MagicMock, Mock
 from prices import Price
+import pytest
 from satchless.item import InsufficientStock
 
 from saleor.cart import CartStatus, forms, utils

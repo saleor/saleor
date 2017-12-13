@@ -1,7 +1,5 @@
-from __future__ import unicode_literals
-
-import pytest
 from mock import Mock
+import pytest
 
 from saleor.core.utils import (
     Country, create_superuser, get_country_by_ip, get_currency_for_country,

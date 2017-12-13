@@ -1,19 +1,17 @@
-from __future__ import unicode_literals
-
 from decimal import Decimal
 
-import pytest
 from django.urls import reverse
+import pytest
+from tests.utils import get_redirect_location, get_url_path
 
 from saleor.dashboard.order.forms import ChangeQuantityForm, MoveLinesForm
 from saleor.order import OrderStatus
 from saleor.order.models import (
-    DeliveryGroup, Order, OrderLine, OrderHistoryEntry)
+    DeliveryGroup, Order, OrderHistoryEntry, OrderLine)
 from saleor.order.utils import (
     add_variant_to_existing_lines, change_order_line_quantity,
     fill_group_with_partition, remove_empty_groups)
 from saleor.product.models import ProductVariant, Stock, StockLocation
-from tests.utils import get_redirect_location, get_url_path
 
 
 @pytest.mark.integration

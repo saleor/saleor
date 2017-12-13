@@ -1,22 +1,20 @@
-from __future__ import unicode_literals
-
 import functools
-import graphene
 import operator
 
 from django.db.models import Q
-from graphene import relay
-from graphene_django import DjangoObjectType, DjangoConnectionField
-from graphene_django.debug import DjangoDebug
 from django_prices.templatetags import prices_i18n
+import graphene
+from graphene import relay
+from graphene_django import DjangoConnectionField, DjangoObjectType
+from graphene_django.debug import DjangoDebug
 
-from ..product.models import (AttributeChoiceValue, Category, Product,
-                              ProductAttribute, ProductImage, ProductVariant)
-from ..product.utils import get_availability, products_for_api
+from ..product.models import (
+    AttributeChoiceValue, Category, Product, ProductAttribute, ProductImage,
+    ProductVariant)
 from ..product.templatetags.product_images import product_first_image
+from ..product.utils import get_availability, products_for_api
 from .scalars import AttributesFilterScalar
-from .utils import (CategoryAncestorsCache, DjangoPkInterface)
-
+from .utils import CategoryAncestorsCache, DjangoPkInterface
 
 CONTEXT_CACHE_NAME = '__cache__'
 CACHE_ANCESTORS = 'ancestors'

@@ -1,5 +1,3 @@
-from __future__ import unicode_literals
-
 import itertools
 import os
 import random
@@ -10,7 +8,6 @@ from django.conf import settings
 from django.contrib.auth.models import Group, Permission
 from django.core.files import File
 from django.template.defaultfilters import slugify
-from django.utils.six import moves
 from faker import Factory
 from faker.providers import BaseProvider
 from payments import PaymentStatus
@@ -19,13 +16,12 @@ from prices import Price
 from ...discount.models import Sale, Voucher
 from ...order import OrderStatus
 from ...order.models import DeliveryGroup, Order, OrderLine, Payment
-from ...product.models import (AttributeChoiceValue, Category, Product,
-                               ProductAttribute, ProductClass, ProductImage,
-                               ProductVariant, Stock, StockLocation)
+from ...product.models import (
+    AttributeChoiceValue, Category, Product, ProductAttribute, ProductClass,
+    ProductImage, ProductVariant, Stock, StockLocation)
 from ...shipping.models import ANY_COUNTRY, ShippingMethod
 from ...userprofile.models import Address, User
 from ...userprofile.utils import store_user_address
-
 
 fake = Factory.create()
 STOCK_LOCATION = 'default'
@@ -188,9 +184,10 @@ def get_variant_combinations(product):
                         for attr
                         in product.product_class.variant_attributes.all()}
     all_combinations = itertools.product(*variant_attr_map.values())
-    return [{str(attr_value.attribute.pk): str(attr_value.pk)
-            for attr_value in combination}
-            for combination in all_combinations]
+    return [
+        {str(attr_value.attribute.pk): str(attr_value.pk)
+         for attr_value in combination}
+        for combination in all_combinations]
 
 
 def get_price_override(schema, combinations_num, current_price):
@@ -221,7 +218,7 @@ def create_products_by_class(product_class, schema,
 
         prices = get_price_override(
             schema, len(variant_combinations), product.price)
-        variants_with_prices = moves.zip_longest(
+        variants_with_prices = itertools.zip_longest(
             variant_combinations, prices)
 
         for i, variant_price in enumerate(variants_with_prices, start=1337):

@@ -1,5 +1,3 @@
-from __future__ import unicode_literals
-
 from django import template
 from django_prices.templatetags.prices_i18n import gross
 from prices import Price

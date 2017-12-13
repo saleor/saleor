@@ -1,6 +1,4 @@
 """Checkout session state management."""
-from __future__ import unicode_literals
-
 from datetime import date
 from functools import wraps
 
@@ -26,7 +24,7 @@ from phonenumber_field.phonenumber import PhoneNumber
 STORAGE_SESSION_KEY = 'checkout_storage'
 
 
-class Checkout(object):
+class Checkout:
     """Represents a checkout session.
 
     This object acts a temporary storage for the entire checkout session. An

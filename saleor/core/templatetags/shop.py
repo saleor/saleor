@@ -1,4 +1,3 @@
-from __future__ import unicode_literals
 try:
     from itertools import zip_longest
 except ImportError:
@@ -50,7 +49,7 @@ def get_sort_by_toggle(context, field):
             # enable ascending sort
             # new_sort_by is used to construct a link with already toggled
             # sort_by value
-            new_sort_by = u'-%s' % field
+            new_sort_by = '-%s' % field
             sorting_icon = static('/images/arrow_up_icon.svg')
             is_active = True
         else:
