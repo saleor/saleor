@@ -1,5 +1,6 @@
 import decimal
 from json import JSONEncoder
+from urllib.parse import urljoin
 
 from babel.numbers import get_territory_currencies
 from django import forms
@@ -15,11 +16,6 @@ from geolite2 import geolite2
 from prices import PriceRange
 
 from ...userprofile.models import User
-
-try:
-    from urllib.parse import urljoin
-except ImportError:
-    from urlparse import urljoin
 
 georeader = geolite2.reader()
 
