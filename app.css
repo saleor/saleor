@@ -3343,16 +3343,16 @@ header .navbar {
         header .navbar .navbar-collapse ul li.gh-widget img {
           margin: -3px 5px 0; }
         header .navbar .navbar-collapse ul li:last-child a {
-          color: #D85039;
-          border: solid 1px #D85039;
+          color: #26A5D4;
+          border: solid 1px #26A5D4;
           padding: 1rem 1rem;
           -webkit-transition: background-color, 0.3s;
           -o-transition: background-color, 0.3s;
           transition: background-color, 0.3s; }
           header .navbar .navbar-collapse ul li:last-child a:hover {
-            background: #D85039;
+            background: #26A5D4;
             color: #fff;
-            border: solid 1px #D85039; }
+            border: solid 1px #26A5D4; }
   header .navbar .navbar-toggle {
     border: solid 1px #333333;
     margin: 4rem 2rem; }
@@ -3397,7 +3397,22 @@ header .navbar {
     .section-top h3 {
       text-transform: uppercase; }
     .section-top img {
-      margin-top: -5rem; }
+      position: relative; }
+    .section-top .btn-get-started {
+      position: absolute;
+      right: 0;
+      left: 0;
+      top: 0;
+      background: #2AB573;
+      color: #fff;
+      border: solid 1px transparent;
+      -webkit-transition: background-color, 0.3s;
+      -o-transition: background-color, 0.3s;
+      transition: background-color, 0.3s; }
+      .section-top .btn-get-started:hover {
+        background: #fff;
+        color: #2AB573;
+        border: solid 1px #2AB573; }
   .section-developers h2 span {
     color: #26A5D4; }
   .section-developers h3 {

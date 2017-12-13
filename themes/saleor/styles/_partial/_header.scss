@@ -84,14 +84,14 @@ header {
           }
           &:last-child {
             a {
-              color: $red;
-              border: solid 1px $red;
+              color: $blue;
+              border: solid 1px $blue;
               padding: $global-padding $global-padding;
               @include transition(background-color, 0.3s);
               &:hover {
-                background: $red;
+                background: $blue;
                 color: $white;
-                border: solid 1px $red;
+                border: solid 1px $blue;
               }
             }
           }

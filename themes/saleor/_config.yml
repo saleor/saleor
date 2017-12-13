@@ -2,7 +2,6 @@ menu:
   Documentation: https://saleor.readthedocs.io/en/latest/
   Services: /#services
   Demo: http://demo.getsaleor.com
-  Get started: https://github.com/mirumee/saleor
 
 menuNewCart:
   Documentation: true

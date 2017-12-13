@@ -46,7 +46,15 @@
       text-transform: uppercase;
     }
     img {
-      margin-top: -$global-margin*5;
+      position: relative;
+      //top: -5 * $global-margin;
+    }
+    .btn-get-started {
+      position: absolute;
+      right: 0;
+      left: 0;
+      top: 0;
+      @include btn-primary($green, $white);
     }
   }
   &-developers {
