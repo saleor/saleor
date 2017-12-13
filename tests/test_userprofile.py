@@ -10,9 +10,11 @@ except ImportError:
 
 import i18naddress
 import pytest
+from django.core.exceptions import ValidationError
 from django.http import QueryDict
 
 from saleor.userprofile import forms, models, i18n
+from saleor.userprofile.validators import validate_possible_number
 
 @pytest.fixture
 def billing_address(db):
@@ -30,7 +32,9 @@ def test_address_form_for_country(country):
     data = {
         'first_name': 'John',
         'last_name': 'Doe',
-        'country': country}
+        'country': country,
+        'phone': '123456789'}
+
     form = forms.get_address_form(data, country_code=country)[0]
     errors = form.errors
     rules = i18naddress.get_validation_rules({'country_code': country})
@@ -105,3 +109,18 @@ def test_country_aware_form_has_only_supported_countries():
     for country in i18n.UNKNOWN_COUNTRIES:
         assert country not in i18n.COUNTRY_FORMS
         assert country not in country_choices
+
+
+@pytest.mark.parametrize("input,exception", [
+    ('123', ValidationError),
+    ('+48123456789', None),
+    ('+12025550169', None),
+    ('+481234567890', ValidationError),
+    ('testext', ValidationError),
+])
+def test_validate_possible_number(input, exception):
+    if exception is not None:
+        with pytest.raises(exception):
+            validate_possible_number(input)
+    else:
+        validate_possible_number(input)
