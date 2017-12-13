@@ -11,26 +11,26 @@
 {% endblock %}
 
 {% block title %}
-{% blocktrans trimmed context "Modal remove product class title" %}
-    Remove product class {{ product_class }}
+{% blocktrans trimmed context "Modal remove product class text" %}
+  Remove product class {{ product_class }}
 {% endblocktrans %}
 {% endblock title %}
 
 {% block content %}
 <p>
-    {% blocktrans trimmed context "Modal remove product class text" %}
+  {% blocktrans trimmed context "Modal remove product class text" %}
     Are you sure you want to remove product class <strong>{{ product_class }}</strong>?
-    {% endblocktrans %}
+  {% endblocktrans %}
 </p>
 <p>
 {% if products %}
-    {% blocktrans trimmed context "Modal remove product class text" with product_count=products.count %}
+  {% blocktrans trimmed context "Modal remove product class text" with product_count=products.count %}
     There are {{ product_count }} products in product class.
-    {% endblocktrans %}
+  {% endblocktrans %}
 {% else %}
-    {% blocktrans trimmed context "Modal remove product class text" %}
+  {% blocktrans trimmed context "Modal remove product class text" %}
     There are no products in this product class.
-    {% endblocktrans %}
+  {% endblocktrans %}
 {% endif %}
 </p>
 {% endblock %}

@@ -9,15 +9,15 @@
 {% endblock %}
 
 {% block title %}
-{% trans "Remove sale" context "Modal remove sale (discount) title" %}
+{% trans "Remove sale" context "Remove sale (discount) text" %}
 {% endblock %}
 
 {% block content %}
-{% blocktrans trimmed context "Modal remove sale (discount) title" %}
-    Are you sure you want to remove <strong>{{ sale }}</strong>?
+{% blocktrans trimmed context "Remove sale (discount) text" %}
+  Are you sure you want to remove <strong>{{ sale }}</strong>?
 {% endblocktrans %}
 {% endblock %}
 
 {% block primary_action %}
-{% trans "Remove" context "Modal remove sale (discount) primary action" %}
+{% trans "Remove" context "Dashboard delete action" %}
 {% endblock %}

@@ -21,7 +21,7 @@ Remove category {{ category }}
 {% endblocktrans %}
 {% if descendants %}
 <p>
-  {% trans "The following child categories will be removed:" context "Remove category modal text about descendant categories" %}
+  {% trans "The following child categories will be removed:" context "Delete category form text about descendant categories" %}
   <ul>
     {% recursetree descendants %}
       {{ node.name }},
@@ -34,7 +34,7 @@ Remove category {{ category }}
 {% endif %}
 {% if products_count %}
 <p>
-  {% blocktrans count counter=products_count trimmed context "Remove category modal text about products" %}
+  {% blocktrans count counter=products_count trimmed context "Remove category form text about products" %}
     There is one product in this category that will be removed.
     {% plural %}
     There are {{ counter }} products in this category that will be removed.
@@ -44,5 +44,5 @@ Remove category {{ category }}
 {% endblock %}
 
 {% block primary_action %}
-{% trans "Remove" context "Modal remove category primary action" %}
+{% trans "Remove" context "Dashboard delete action" %}
 {% endblock %}

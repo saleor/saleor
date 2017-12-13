@@ -9,17 +9,17 @@
 {% endblock %}
 
 {% block title %}
-{% blocktrans trimmed context "Modal remove voucher title" %}
+{% blocktrans trimmed context "Remove voucher text" %}
 Remove voucher {{ voucher }}
 {% endblocktrans %}
 {% endblock %}
 
 {% block content %}
-{% blocktrans trimmed context "Modal remove voucher text" %}
-    Are you sure you want to remove voucher <strong>{{ voucher }}</strong>?
+{% blocktrans trimmed context "Remove voucher text" %}
+Are you sure you want to remove voucher <strong>{{ voucher }}</strong>?
 {% endblocktrans %}
 {% endblock %}
 
 {% block primary_action %}
-{% trans "Remove" context "Modal remove voucher primary action" %}
+{% trans "Remove" context "Dashboard delete action" %}
 {% endblock %}

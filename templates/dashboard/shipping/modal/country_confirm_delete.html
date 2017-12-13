@@ -10,16 +10,16 @@
 
 {% block title %}
 {% blocktrans trimmed context "Modal remove shipping method country title" %}
-Remove shipping {{ country }}
+  Remove shipping {{ country }}
 {% endblocktrans %}
 {% endblock title %}
 
 {% block content %}
 {% blocktrans trimmed context "Modal remove shipping method country text" %}
-Are you sure you want to remove shipping <strong>{{ country }}</strong>?
+  Are you sure you want to remove shipping <strong>{{ country }}</strong>?
 {% endblocktrans %}
 {% endblock content %}
 
 {% block primary_action %}
-{% trans "Remove" context "Modal remove shipping method country primary action" %}
+{% trans "Remove" context "Dashboard delete action" %}
 {% endblock %}
