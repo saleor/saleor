@@ -35,3 +35,8 @@ Currency conversion
 *******************
 
 Saleor can use currency exchange rate data to show price estimations in the visitor's local currency. Please consult :ref:`openexchangerates` for how to set this up for `Open Exchange Rates <https://openexchangerates.org/>`_.
+
+Phone numbers format
+********************
+
+Saleor uses `Google's libphonenumber library <https://github.com/googlei18n/libphonenumber>`_ to ensure provided numbers are correct. You need to choose prefix and type the number separately. No matter what country has been chosen, you may enter phone number belonging to any other country format.
