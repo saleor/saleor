@@ -1,5 +1,3 @@
-from __future__ import unicode_literals
-
 from django.template import Library
 
 from ...product.utils import get_attributes_display_map

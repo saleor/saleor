@@ -1,7 +1,6 @@
-from __future__ import unicode_literals
-
-from ..documents import ProductDocument, OrderDocument, UserDocument
 from elasticsearch_dsl.query import MultiMatch
+
+from ..documents import OrderDocument, ProductDocument, UserDocument
 
 
 def _search_products(phrase):

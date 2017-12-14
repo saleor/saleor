@@ -1,4 +1,3 @@
-from __future__ import unicode_literals
 from . import elasticsearch_dashboard
 
 PHRASE = 'You can go to the west'

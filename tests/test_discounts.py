@@ -1,18 +1,16 @@
-from __future__ import unicode_literals
-
 from datetime import date, datetime, timedelta
 from decimal import Decimal
-from freezegun import freeze_time
+from unittest.mock import Mock
+
 import pytest
-from mock import Mock
+from freezegun import freeze_time
 from prices import FixedDiscount, FractionalDiscount, Price
 
 from saleor.cart.utils import get_category_variants_and_prices
 from saleor.checkout.core import Checkout
 from saleor.discount.forms import CheckoutDiscountForm
 from saleor.discount.models import NotApplicable, Sale, Voucher
-from saleor.product.models import Category
-from saleor.product.models import Product, ProductVariant
+from saleor.product.models import Category, Product, ProductVariant
 
 
 @pytest.mark.parametrize('limit, value', [

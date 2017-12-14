@@ -1,15 +1,12 @@
-# -*- coding: utf-8 -*-
-from __future__ import unicode_literals
-
-import json
 from io import BytesIO
+import json
 
-import pytest
+from PIL import Image
 from django.conf import settings
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.urls import reverse
 from django.utils.encoding import smart_text
-from PIL import Image
+import pytest
 
 from saleor.dashboard.product import ProductBulkAction
 from saleor.dashboard.product.forms import (
@@ -261,7 +258,7 @@ def test_attribute_choice_value_delete(color_attribute, admin_client):
 
 def test_get_formfield_name_with_unicode_characters(db):
     text_attribute = ProductAttribute.objects.create(
-        slug=u'ąęαβδηθλμπ', name=u'ąęαβδηθλμπ')
+        slug='ąęαβδηθλμπ', name='ąęαβδηθλμπ')
     assert text_attribute.get_formfield_name() == 'attribute-ąęαβδηθλμπ'
 
 
@@ -579,7 +576,7 @@ def test_product_list_filters_is_published(
 
 
 def test_product_list_filters_no_results(admin_client, product_list):
-    data = {'price_1': [u''], 'price_0': [''], 'is_featured': [''],
+    data = {'price_1': [''], 'price_0': [''], 'is_featured': [''],
             'name': ['BADTest'], 'sort_by': [''],
             'is_published': ['']}
     url = reverse('dashboard:product-list')

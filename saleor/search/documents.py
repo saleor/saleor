@@ -1,11 +1,9 @@
-from __future__ import unicode_literals
-
 from django_elasticsearch_dsl import DocType, Index, fields
 from elasticsearch_dsl import analyzer, token_filter
+
+from ..order.models import Order
 from ..product.models import Product
 from ..userprofile.models import User
-from ..order.models import Order
-
 
 storefront = Index('storefront')
 storefront.settings(number_of_shards=1, number_of_replicas=0)

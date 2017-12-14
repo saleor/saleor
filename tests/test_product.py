@@ -1,12 +1,11 @@
-from __future__ import unicode_literals
-
 import datetime
 import json
+from unittest.mock import Mock
 
 import pytest
 from django.urls import reverse
 from django.utils.encoding import smart_text
-from mock import Mock
+from tests.utils import filter_products_by_attribute
 
 from saleor.cart import CartStatus, utils
 from saleor.cart.models import Cart
@@ -16,7 +15,6 @@ from saleor.product.utils import (
     get_attributes_display_map, get_availability,
     get_product_availability_status, get_variant_availability_status,
     get_variant_picker_data)
-from tests.utils import filter_products_by_attribute
 
 
 @pytest.fixture()

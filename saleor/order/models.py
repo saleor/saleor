@@ -1,5 +1,3 @@
-from __future__ import unicode_literals
-
 from decimal import Decimal
 from uuid import uuid4
 
@@ -8,7 +6,6 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.urls import reverse
-from django.utils.encoding import python_2_unicode_compatible
 from django.utils.timezone import now
 from django.utils.translation import pgettext_lazy
 from django_prices.models import PriceField
@@ -24,7 +21,6 @@ from ..product.models import Product
 from ..userprofile.models import Address
 
 
-@python_2_unicode_compatible
 class Order(models.Model, ItemSet):
     status = models.CharField(
         pgettext_lazy('Order field', 'order status'),
@@ -247,7 +243,6 @@ class DeliveryGroup(models.Model, ItemSet):
         return self.status not in {OrderStatus.CANCELLED, OrderStatus.SHIPPED}
 
 
-@python_2_unicode_compatible
 class OrderLine(models.Model, ItemLine):
     delivery_group = models.ForeignKey(
         DeliveryGroup, related_name='lines', editable=False,
@@ -262,7 +257,7 @@ class OrderLine(models.Model, ItemLine):
     product_sku = models.CharField(
         pgettext_lazy('Ordered line field', 'sku'), max_length=32)
     stock_location = models.CharField(
-        pgettext_lazy('OrderLine field', 'stock location'), max_length=100,
+        pgettext_lazy('Ordered line field', 'stock location'), max_length=100,
         default='')
     stock = models.ForeignKey(
         'product.Stock', on_delete=models.SET_NULL, null=True,
@@ -276,11 +271,6 @@ class OrderLine(models.Model, ItemLine):
     unit_price_gross = models.DecimalField(
         pgettext_lazy('Ordered line field', 'unit price (gross)'),
         max_digits=12, decimal_places=4)
-
-    class Meta:
-        verbose_name = pgettext_lazy('Ordered line model', 'Ordered line')
-        verbose_name_plural = pgettext_lazy(
-            'Ordered line model', 'Ordered lines')
 
     def __str__(self):
         return self.product_name
@@ -353,7 +343,6 @@ class Payment(BasePayment):
         return Price(self.captured_amount, currency=self.currency)
 
 
-@python_2_unicode_compatible
 class OrderHistoryEntry(models.Model):
     date = models.DateTimeField(
         pgettext_lazy('Order history entry field', 'last history change'),
@@ -382,7 +371,6 @@ class OrderHistoryEntry(models.Model):
             'OrderHistoryEntry for Order #%d') % self.order.pk
 
 
-@python_2_unicode_compatible
 class OrderNote(models.Model):
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL, on_delete=models.CASCADE)

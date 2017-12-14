@@ -1,21 +1,16 @@
-from __future__ import unicode_literals
+from urllib.parse import urlencode
 
 from django import forms
 from django.template import Library
 from django_filters.fields import RangeField
 from versatileimagefield.widgets import VersatileImagePPOIClickWidget
 
-try:
-    from urllib.parse import urlencode
-except ImportError:
-    from urllib import urlencode
-
 from ...product.utils import get_margin_for_variant, get_variant_costs_data
+from ..product.widgets import ImagePreviewWidget
 from .chips import (
     handle_default, handle_multiple_choice, handle_multiple_model_choice,
     handle_nullboolean, handle_range, handle_single_choice,
     handle_single_model_choice)
-from ..product.widgets import ImagePreviewWidget
 
 register = Library()
 
