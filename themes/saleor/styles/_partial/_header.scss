@@ -1,14 +1,19 @@
 header {
   .notice-bar {
-    height: 70px;
+    height: 7rem;
     background: $blue;
     color: #fff;
+    display: flex;
+    align-items: center;
     .notice-text {
-      padding-top: 26px;
       font-size: 1.5rem;
       font-weight: 300;
-      width: calc(100% - 200px);
+      width: calc(100% - 20rem);
       margin: auto;
+      @media (max-width: $screen-sm-max) {
+        width: calc(100% - 100px);
+        margin: unset;
+      }
       a {
         color: #FFFFFF;
         text-decoration: underline;
@@ -18,11 +23,11 @@ header {
       position: absolute;
       top: 0;
       right: $global-margin * 2;
-      width: 70px;
-      height: 70px;
+      width: 7rem;
+      height: 7rem;
       cursor: pointer;
       &:before, &:after {
-        height: 30px;
+        height: 3rem;
         width: 2px;
         background: #fff;
         content: '';

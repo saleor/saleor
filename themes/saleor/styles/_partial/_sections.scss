@@ -47,6 +47,12 @@
     }
     img {
       position: relative;
+      @media (max-width: $screen-sm-max) {
+        margin-top: 5rem;
+      }
+      @media (max-width: $screen-xs-max) {
+        margin-top: 7rem;
+      }
     }
     .btn-get-started {
       position: absolute;
@@ -135,7 +141,7 @@
     }
   }
   &-customers {
-    border-bottom:solid 1px $gray;
+    border-bottom: solid 1px $gray;
     h2 {
       span {
         color: $green;

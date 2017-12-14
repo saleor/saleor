@@ -3273,15 +3273,20 @@ strong {
   text-transform: uppercase; }
 
 header .notice-bar {
-  height: 70px;
+  height: 7rem;
   background: #26A5D4;
-  color: #fff; }
+  color: #fff;
+  display: flex;
+  align-items: center; }
   header .notice-bar .notice-text {
-    padding-top: 26px;
     font-size: 1.5rem;
     font-weight: 300;
-    width: calc(100% - 200px);
+    width: calc(100% - 20rem);
     margin: auto; }
+    @media (max-width: 991px) {
+      header .notice-bar .notice-text {
+        width: calc(100% - 100px);
+        margin: unset; } }
     header .notice-bar .notice-text a {
       color: #FFFFFF;
       text-decoration: underline; }
@@ -3289,11 +3294,11 @@ header .notice-bar {
     position: absolute;
     top: 0;
     right: 2rem;
-    width: 70px;
-    height: 70px;
+    width: 7rem;
+    height: 7rem;
     cursor: pointer; }
     header .notice-bar #notice-bar-close:before, header .notice-bar #notice-bar-close:after {
-      height: 30px;
+      height: 3rem;
       width: 2px;
       background: #fff;
       content: '';
@@ -3399,6 +3404,12 @@ header .navbar {
       text-transform: uppercase; }
     .section-top img {
       position: relative; }
+      @media (max-width: 991px) {
+        .section-top img {
+          margin-top: 5rem; } }
+      @media (max-width: 767px) {
+        .section-top img {
+          margin-top: 7rem; } }
     .section-top .btn-get-started {
       position: absolute;
       right: 0;
