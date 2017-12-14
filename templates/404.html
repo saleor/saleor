@@ -1,7 +1,29 @@
 {% extends "base.html" %}
 {% load i18n %}
+{% load static %}
+
+{% block body-class %}{% endblock %}
 
 {% block content %}
-  <img src="https://user-images.githubusercontent.com/7837760/33432880-ea0b7a6a-d5d9-11e7-86c0-9330fb54daa2.png"
-       class="w-50 d-block text-center">
+  <div class="row no-results">
+    <div class="col-12">
+      {% if variant == 1 %}
+        <img src="{% static 'images/pirate_404_v1.svg' %}">
+        <div class="variant-text">
+          {% trans 'It has to be somewhere else!' %}
+        </div>
+      {% elif variant == 2 %}
+        <img src="{% static 'images/pirate_404_v2.svg' %}">
+        <div class="variant-text">{% trans 'Is it over? ...Hello? ...Did we win?' %}</div>
+      {% else %}
+        <img src="{% static 'images/pirate_404_v3.svg' %}">
+        <div class="variant-text">
+          {% blocktrans %}
+            I can't help but feel I've been ripped off.<br>
+            I'm sure you're feeling something similar, bucko.
+          {% endblocktrans %}
+        </div>
+      {% endif %}
+    </div>
+  </div>
 {% endblock %}
