@@ -71,6 +71,7 @@ class OrderFilter(SortedFilterSet):
             Q(user__default_billing_address__last_name__icontains=value))
 
     def filter_by_status(self, queryset, name, value):
+        """Filter by status using custom querysets."""
         if value == OrderStatus.NEW:
             return Order.objects.new()
         if value == OrderStatus.SHIPPED:
