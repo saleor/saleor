@@ -18,6 +18,8 @@ from .registration.urls import urlpatterns as registration_urls
 from .search.urls import urlpatterns as search_urls
 from .userprofile.urls import urlpatterns as userprofile_urls
 
+handler404 = 'saleor.core.views.handle_404'
+
 urlpatterns = [
     url(r'^', include(core_urls)),
     url(r'^account/', include(registration_urls)),
