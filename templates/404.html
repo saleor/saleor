@@ -1,7 +1,29 @@
 {% extends "base.html" %}
 {% load i18n %}
+{% load static %}
+
+{% block body-class %}{% endblock %}
 
 {% block content %}
-  <h1 class="text-center mt-5">404</h1>
-  <div class="text-center">{% trans 'Page not found' context 'Eror page not found' %}</div>
+  <div class="row no-results">
+    <div class="col-12">
+      {% if variant == 1 %}
+        <img src="{% static 'images/pirate_404_v1.svg' %}">
+        <div class="variant-text">
+          {% trans 'It has to be somewhere else!' %}
+        </div>
+      {% elif variant == 2 %}
+        <img src="{% static 'images/pirate_404_v2.svg' %}">
+        <div class="variant-text">{% trans 'Is it over? ...Hello? ...Did we win?' %}</div>
+      {% else %}
+        <img src="{% static 'images/pirate_404_v3.svg' %}">
+        <div class="variant-text">
+          {% blocktrans %}
+            I can't help but feel I've been ripped off.<br>
+            I'm sure you're feeling something similar, bucko.
+          {% endblocktrans %}
+        </div>
+      {% endif %}
+    </div>
+  </div>
 {% endblock %}

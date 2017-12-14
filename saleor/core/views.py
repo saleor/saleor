@@ -4,6 +4,7 @@ from django.contrib import messages
 from django.template.response import TemplateResponse
 from django.utils.translation import pgettext_lazy
 from impersonate.views import impersonate as orig_impersonate
+from random import randint
 
 from ..account.models import User
 from ..dashboard.views import staff_member_required
@@ -38,8 +39,9 @@ def impersonate(request, uid):
     return response
 
 
-def handle_404(request, exception=None):
-    return TemplateResponse(request, '404.html', status=404)
+def handle_404(request):
+    ctx = {'variant': randint(0, 2)}
+    return TemplateResponse(request, '404.html', ctx, status=404)
 
 
 def manifest(request):
