@@ -11,7 +11,7 @@ from django.utils.translation import pgettext_lazy
 from ...core.utils import get_paginator_items
 from ...userprofile.models import User
 from ..views import staff_member_required
-from .filters import CustomerFilter
+from .filters import UserFilter
 
 
 @staff_member_required
@@ -21,11 +21,8 @@ def customer_list(request):
         User.objects
         .prefetch_related('orders', 'addresses')
         .select_related('default_billing_address', 'default_shipping_address')
-        .annotate(
-            num_orders=Count('orders', distinct=True),
-            last_order=Max('orders', distinct=True))
         .order_by('email'))
-    customer_filter = CustomerFilter(request.GET, queryset=customers)
+    customer_filter = UserFilter(request.GET, queryset=customers)
     customers = get_paginator_items(
         customer_filter.qs, settings.DASHBOARD_PAGINATE_BY,
         request.GET.get('page'))

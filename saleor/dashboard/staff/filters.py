@@ -7,8 +7,9 @@ from django_filters import (
     CharFilter, ChoiceFilter, ModelMultipleChoiceFilter, OrderingFilter)
 
 from ...core.filters import SortedFilterSet
-from ...core.utils.filters import filter_by_customer, filter_by_location
 from ...userprofile.models import User
+from ..customer.filters import UserFilter
+
 
 SORT_BY_FIELDS = (
     ('email', 'email'),
@@ -23,27 +24,12 @@ SORT_BY_FIELDS_LABELS = {
     'default_billing_address__city': pgettext_lazy(
         'Customer list sorting option', 'location')}
 
-IS_ACTIVE_CHOICES = (
-    ('1', pgettext_lazy('Is active filter choice', 'Active')),
-    ('0', pgettext_lazy('Is active filter choice', 'Not active')))
 
-
-class StaffFilter(SortedFilterSet):
-    name_or_email = CharFilter(
-        label=pgettext_lazy('Staff list filter label', 'Name or email'),
-        method=filter_by_customer)
-    location = CharFilter(
-        label=pgettext_lazy('Staff list filter label', 'Location'),
-        method=filter_by_location)
+class StaffFilter(UserFilter):
     groups = ModelMultipleChoiceFilter(
         label=pgettext_lazy('Staff list filter label', 'Groups'),
         name='groups',
         queryset=Group.objects.all())
-    is_active = ChoiceFilter(
-        label=pgettext_lazy('Staff list filter label', 'Is active'),
-        choices=IS_ACTIVE_CHOICES,
-        empty_label=pgettext_lazy('Filter empty choice label', 'All'),
-        widget=forms.Select)
     sort_by = OrderingFilter(
         label=pgettext_lazy('Staff list filter label', 'Sort by'),
         fields=SORT_BY_FIELDS,
