@@ -21,6 +21,23 @@ from ..product.models import Product
 from ..userprofile.models import Address
 
 
+class OrderQuerySet(models.QuerySet):
+    """Filter orders by status deduced from shipment groups."""
+
+    def new(self):
+        statuses = {
+            OrderStatus.NEW, OrderStatus.SHIPPED, OrderStatus.CANCELLED}
+        return self.filter(groups__status__in=statuses).filter(
+            groups__status__in={OrderStatus.NEW})
+
+    def shipped(self):
+        statuses = {OrderStatus.SHIPPED, OrderStatus.CANCELLED}
+        return self.filter(groups__status__in=statuses)
+
+    def cancelled(self):
+        return self.filter(groups__status__in={OrderStatus.CANCELLED})
+
+
 class Order(models.Model, ItemSet):
     created = models.DateTimeField(
         pgettext_lazy('Order field', 'created'),
@@ -68,6 +85,8 @@ class Order(models.Model, ItemSet):
     discount_name = models.CharField(
         verbose_name=pgettext_lazy('Order field', 'discount name'),
         max_length=255, default='', blank=True)
+
+    objects = OrderQuerySet.as_manager()
 
     class Meta:
         ordering = ('-last_status_change',)
