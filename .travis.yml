@@ -4,6 +4,7 @@ python:
   - "3.4"
   - "3.5"
   - "3.6"
+  - "pypy3.5-5.9.0"
 cache:
   pip: true
   directories:
@@ -35,6 +36,10 @@ matrix:
     - python: "3.6"
       env: DJANGO="2.0"
     - python: "3.6"
+      env: DJANGO="master"
+    - python: "pypy3.5-5.9.0"
+      env: DJANGO="2.0"
+    - python: "pypy3.5-5.9.0"
       env: DJANGO="master"
   exclude:
     - python: "3.4"
