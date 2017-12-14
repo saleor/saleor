@@ -22,19 +22,22 @@ from ..userprofile.models import Address
 
 
 class OrderQuerySet(models.QuerySet):
-    """Filter orders by status deduced from shipment groups."""
+    """Filters orders by status deduced from shipment groups."""
 
     def new(self):
+        """Returns queryset containg orders with NEW status."""
         statuses = {
             OrderStatus.NEW, OrderStatus.SHIPPED, OrderStatus.CANCELLED}
         return self.filter(groups__status__in=statuses).filter(
             groups__status__in={OrderStatus.NEW})
 
     def shipped(self):
+        """Returns queryset containg orders with SHIPPED status."""
         statuses = {OrderStatus.SHIPPED, OrderStatus.CANCELLED}
         return self.filter(groups__status__in=statuses)
 
     def cancelled(self):
+        """Returns queryset containg orders with CANCELLED status."""
         return self.filter(groups__status__in={OrderStatus.CANCELLED})
 
 
@@ -174,6 +177,7 @@ class Order(models.Model, ItemSet):
 
     @property
     def status(self):
+        """Order status deduced from shipment groups."""
         statuses = set([group.status for group in self.groups.all()])
         if OrderStatus.NEW in statuses:
             return OrderStatus.NEW
@@ -182,6 +186,7 @@ class Order(models.Model, ItemSet):
         return OrderStatus.CANCELLED
 
     def get_status_display(self):
+        """Order status display text."""
         return dict(OrderStatus.CHOICES)[self.status]
 
     @property
