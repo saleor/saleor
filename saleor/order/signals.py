@@ -13,10 +13,8 @@ def order_status_change(sender, instance, **kwargs):
     """Handles payment status change and sets suitable order status."""
     order = instance.order
     if order.is_fully_paid():
-        order.status = OrderStatus.FULLY_PAID
-        order.save()
         order.create_history_entry(
-            status=OrderStatus.FULLY_PAID, comment=pgettext_lazy(
+            status=OrderStatus.PROCESSING, comment=pgettext_lazy(
                 'Order status history entry', 'Order fully paid'))
         instance.send_confirmation_email()
         try:

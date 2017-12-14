@@ -31,9 +31,7 @@ def check_order_status(func):
 def cancel_order(order):
     """Cancells order by cancelling all associated shipment groups."""
     for group in order.groups.all():
-        cancel_delivery_group(group, cancel_order=False)
-    order.status = OrderStatus.CANCELLED
-    order.save()
+        cancel_delivery_group(group)
 
 
 def recalculate_order(order):
@@ -144,20 +142,12 @@ def add_variant_to_existing_lines(group, variant, total_quantity):
     return quantity_left
 
 
-def cancel_delivery_group(group, cancel_order=True):
+def cancel_delivery_group(group):
     """Cancells shipment group and (optionally) it's order if necessary."""
     for line in group:
-        if line.stock:
-            Stock.objects.deallocate_stock(line.stock, line.quantity)
+        Stock.objects.deallocate_stock(line.stock, line.quantity)
     group.status = OrderStatus.CANCELLED
     group.save()
-    if cancel_order:
-        other_groups = group.order.groups.all()
-        statuses = set(other_groups.values_list('status', flat=True))
-        if statuses == {OrderStatus.CANCELLED}:
-            # Cancel whole order
-            group.order.status = OrderStatus.CANCELLED
-            group.order.save(update_fields=['status'])
 
 
 def merge_duplicates_into_order_line(line):
@@ -182,8 +172,6 @@ def change_order_line_quantity(line, new_quantity):
         line.delivery_group.delete()
         order = line.delivery_group.order
         if not order.get_lines():
-            order.status = OrderStatus.CANCELLED
-            order.save()
             order.create_history_entry(
                 status=OrderStatus.CANCELLED, comment=pgettext_lazy(
                     'Order status history entry',
@@ -203,8 +191,6 @@ def remove_empty_groups(line, force=False):
     if not source_group.get_total_quantity() or force:
         source_group.delete()
     if not order.get_lines():
-        order.status = OrderStatus.CANCELLED
-        order.save()
         order.create_history_entry(
             status=OrderStatus.CANCELLED, comment=pgettext_lazy(
                 'Order status history entry',
