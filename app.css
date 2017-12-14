@@ -3285,8 +3285,10 @@ header .notice-bar {
     margin: auto; }
     @media (max-width: 991px) {
       header .notice-bar .notice-text {
-        width: calc(100% - 100px);
-        margin: unset; } }
+        width: calc(100% - 7rem);
+        margin: unset;
+        text-align: left;
+        padding-left: 1rem; } }
     header .notice-bar .notice-text a {
       color: #FFFFFF;
       text-decoration: underline; }
@@ -3297,6 +3299,9 @@ header .notice-bar {
     width: 7rem;
     height: 7rem;
     cursor: pointer; }
+    @media (max-width: 991px) {
+      header .notice-bar #notice-bar-close {
+        right: 0; } }
     header .notice-bar #notice-bar-close:before, header .notice-bar #notice-bar-close:after {
       height: 3rem;
       width: 2px;

@@ -11,8 +11,10 @@ header {
       width: calc(100% - 20rem);
       margin: auto;
       @media (max-width: $screen-sm-max) {
-        width: calc(100% - 100px);
+        width: calc(100% - 7rem);
         margin: unset;
+        text-align: left;
+        padding-left: 1rem;
       }
       a {
         color: #FFFFFF;
@@ -26,6 +28,9 @@ header {
       width: 7rem;
       height: 7rem;
       cursor: pointer;
+      @media (max-width: $screen-sm-max) {
+        right: 0;
+      }
       &:before, &:after {
         height: 3rem;
         width: 2px;
