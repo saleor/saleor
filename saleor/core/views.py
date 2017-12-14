@@ -33,3 +33,7 @@ def impersonate(request, uid):
             'You are now logged as {}'.format(User.objects.get(pk=uid)))
         messages.success(request, msg)
     return response
+
+
+def handle_404(request):
+    return TemplateResponse(request, '404.html')
