@@ -17,14 +17,14 @@
     <div id="navbar" class="menu navbar-collapse collapse navbar-right">
       <ul>
         <li class="gh-widget">
-          <a href="http://github.com/mirumee/saleor" target="_blank">
+          <a href="http://github.com/mirumee/saleor" target="_blank" rel="nofollow">
             <img src="images/github-icon.svg" />
             <img src="images/github-star.svg" />
             <span id="gh-stars"></span>
           </a>
         </li>
         <% for (var i in theme.menu) { %>
-            <li><a href="<%- url_for(theme.menu[i]) %>" <% if (theme.menuNewCart[i]) { %>target="_blank"<% } %>><%= i %></a></li>
+            <li><a href="<%- url_for(theme.menu[i]) %>" <% if (theme.menuNewCart[i]) { %>target="_blank"<% } %> <% if (theme.noFollow[i]) { %>rel="nofollow"<% } %>><%= i %></a></li>
         <% } %>
       </ul>
     </div>

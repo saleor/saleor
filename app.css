@@ -3283,7 +3283,7 @@ header .notice-bar {
     width: calc(100% - 200px);
     margin: auto; }
     header .notice-bar .notice-text a {
-      color: #fff;
+      color: #FFFFFF;
       text-decoration: underline; }
   header .notice-bar #notice-bar-close {
     position: absolute;
