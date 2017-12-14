@@ -24,24 +24,6 @@ from ..product.models import Product
 from ..userprofile.models import Address
 
 
-class OrderManager(models.Manager):
-    def recalculate_order(self, order):
-        prices = [group.get_total() for group in order
-                  if group.status != OrderStatus.CANCELLED]
-        total_net = sum(p.net for p in prices)
-        total_gross = sum(p.gross for p in prices)
-        shipping = [group.shipping_price for group in order]
-        if shipping:
-            total_shipping = sum(shipping[1:], shipping[0])
-        else:
-            total_shipping = Price(0, currency=settings.DEFAULT_CURRENCY)
-        total = Price(net=total_net, gross=total_gross,
-                      currency=settings.DEFAULT_CURRENCY)
-        total += total_shipping
-        order.total = total
-        order.save()
-
-
 @python_2_unicode_compatible
 class Order(models.Model, ItemSet):
     status = models.CharField(
@@ -94,8 +76,6 @@ class Order(models.Model, ItemSet):
         verbose_name=pgettext_lazy('Order field', 'discount name'),
         max_length=255, default='', blank=True)
 
-    objects = OrderManager()
-
     class Meta:
         ordering = ('-last_status_change',)
         permissions = (
@@ -109,11 +89,6 @@ class Order(models.Model, ItemSet):
             self.token = str(uuid4())
         return super(Order, self).save(*args, **kwargs)
 
-    def change_status(self, status):
-        if status != self.status:
-            self.status = status
-            self.save()
-
     def get_lines(self):
         return OrderLine.objects.filter(delivery_group__order=self)
 
@@ -125,14 +100,10 @@ class Order(models.Model, ItemSet):
         return total_paid >= total.gross
 
     def get_user_current_email(self):
-        if self.user:
-            return self.user.email
-        else:
-            return self.user_email
+        return self.user.email if self.user else self.user_email
 
     def _index_billing_phone(self):
-        billing_address = self.billing_address
-        return billing_address.phone
+        return self.billing_address.phone
 
     def _index_shipping_phone(self):
         return self.shipping_address.phone
@@ -153,10 +124,6 @@ class Order(models.Model, ItemSet):
 
     def get_total(self):
         return self.total
-
-    @property
-    def billing_full_name(self):
-        return '%s %s' % (self.billing_first_name, self.billing_last_name)
 
     def get_absolute_url(self):
         return reverse('order:details', kwargs={'token': self.token})
@@ -260,10 +227,6 @@ class DeliveryGroup(models.Model, ItemSet):
     def shipping_required(self):
         return self.shipping_method_name is not None
 
-    def change_status(self, status):
-        self.status = status
-        self.save()
-
     def get_total(self, **kwargs):
         subtotal = super(DeliveryGroup, self).get_total(**kwargs)
         return subtotal + self.shipping_price
@@ -280,45 +243,8 @@ class DeliveryGroup(models.Model, ItemSet):
     def can_cancel(self):
         return self.status != OrderStatus.CANCELLED
 
-    def can_edit_items(self):
+    def can_edit_lines(self):
         return self.status not in {OrderStatus.CANCELLED, OrderStatus.SHIPPED}
-
-
-class OrderLineManager(models.Manager):
-    def move_to_group(self, line, target_group, quantity):
-        try:
-            target_line = target_group.lines.get(
-                product=line.product, product_name=line.product_name,
-                product_sku=line.product_sku, stock=line.stock)
-        except ObjectDoesNotExist:
-            target_group.lines.create(
-                delivery_group=target_group, product=line.product,
-                product_name=line.product_name, product_sku=line.product_sku,
-                quantity=quantity, unit_price_net=line.unit_price_net,
-                stock=line.stock,
-                stock_location=line.stock_location,
-                unit_price_gross=line.unit_price_gross)
-        else:
-            target_line.quantity += quantity
-            target_line.save()
-        line.quantity -= quantity
-        self.remove_empty_groups(line)
-
-    def remove_empty_groups(self, line, force=False):
-        source_group = line.delivery_group
-        order = source_group.order
-        if line.quantity:
-            line.save()
-        else:
-            line.delete()
-        if not source_group.get_total_quantity() or force:
-            source_group.delete()
-        if not order.get_lines():
-            order.change_status(OrderStatus.CANCELLED)
-            order.create_history_entry(
-                status=OrderStatus.CANCELLED, comment=pgettext_lazy(
-                    'Order status history entry',
-                    'Order cancelled. No items in order'))
 
 
 @python_2_unicode_compatible
@@ -350,8 +276,6 @@ class OrderLine(models.Model, ItemLine):
     unit_price_gross = models.DecimalField(
         pgettext_lazy('Ordered line field', 'unit price (gross)'),
         max_digits=12, decimal_places=4)
-
-    objects = OrderLineManager()
 
     class Meta:
         verbose_name = pgettext_lazy('Ordered line model', 'Ordered line')

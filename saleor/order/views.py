@@ -14,7 +14,7 @@ from payments import PaymentStatus, RedirectNeeded
 
 from .forms import PaymentDeleteForm, PaymentMethodsForm, PasswordForm
 from .models import Order, Payment
-from .utils import check_order_status, attach_order_to_user
+from .utils import attach_order_to_user, check_order_status
 from ..core.utils import get_client_ip
 from ..registration.forms import LoginForm
 from ..userprofile.models import User
@@ -95,7 +95,8 @@ def start_payment(request, order, variant):
     if variant not in [code for code, dummy_name in variant_choices]:
         raise Http404('%r is not a valid payment variant' % (variant,))
     with transaction.atomic():
-        order.change_status(OrderStatus.PAYMENT_PENDING)
+        order.status = OrderStatus.PAYMENT_PENDING
+        order.save()
         payment, dummy_created = Payment.objects.get_or_create(
             variant=variant, status=PaymentStatus.WAITING, order=order,
             defaults=defaults)
