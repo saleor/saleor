@@ -13,10 +13,12 @@ from ...cart.forms import QuantityField
 from ...core.forms import AjaxSelect2ChoiceField
 from ...discount.models import Voucher
 from ...order import OrderStatus
-from ...order.models import DeliveryGroup, Order, OrderLine, OrderNote
+from ...order.models import DeliveryGroup, OrderLine, OrderNote
 from ...order.utils import (
-    add_variant_to_delivery_group, cancel_order, cancel_delivery_group,
-    change_order_line_quantity, merge_duplicated_lines)
+    add_variant_to_delivery_group, cancel_delivery_group, cancel_order,
+    change_order_line_quantity, merge_duplicates_into_order_line,
+    move_order_line_to_group, recalculate_order, remove_empty_groups
+)
 from ...product.models import Product, ProductVariant, Stock
 
 
@@ -125,7 +127,7 @@ class MoveLinesForm(forms.Form):
             target_group = self.old_group.order.groups.create(
                 status=self.old_group.status,
                 shipping_method_name=self.old_group.shipping_method_name)
-        OrderLine.objects.move_to_group(self.line, target_group, how_many)
+        move_order_line_to_group(self.line, target_group, how_many)
         return target_group
 
 
@@ -140,8 +142,8 @@ class CancelLinesForm(forms.Form):
             Stock.objects.deallocate_stock(self.line.stock, self.line.quantity)
         order = self.line.delivery_group.order
         self.line.quantity = 0
-        OrderLine.objects.remove_empty_groups(self.line)
-        Order.objects.recalculate_order(order)
+        remove_empty_groups(self.line)
+        recalculate_order(order)
 
 
 class ChangeQuantityForm(forms.ModelForm):
@@ -180,7 +182,7 @@ class ChangeQuantityForm(forms.ModelForm):
             delta = quantity - self.initial_quantity
             Stock.objects.allocate_stock(stock, delta)
         change_order_line_quantity(self.instance, quantity)
-        Order.objects.recalculate_order(self.instance.delivery_group.order)
+        recalculate_order(self.instance.delivery_group.order)
         return self.instance
 
 
@@ -211,10 +213,12 @@ class ShipGroupForm(forms.ModelForm):
             if stock is not None:
                 # remove and deallocate quantity
                 Stock.objects.decrease_stock(stock, line.quantity)
-        self.instance.change_status(OrderStatus.SHIPPED)
+        self.instance.status = OrderStatus.SHIPPED
+        self.instance.save()
         statuses = [g.status for g in order.groups.all()]
         if OrderStatus.SHIPPED in statuses and OrderStatus.NEW not in statuses:
-            order.change_status(OrderStatus.SHIPPED)
+            order.status = OrderStatus.SHIPPED
+            order.save()
 
 
 class CancelGroupForm(forms.Form):
@@ -266,7 +270,7 @@ class RemoveVoucherForm(forms.Form):
         voucher = self.order.voucher
         Voucher.objects.decrease_usage(voucher)
         self.order.voucher = None
-        Order.objects.recalculate_order(self.order)
+        recalculate_order(self.order)
 
 
 ORDER_STATUS_CHOICES = [
@@ -321,7 +325,7 @@ class ChangeStockForm(forms.ModelForm):
                 stock.location.name if stock.location else '')
             Stock.objects.allocate_stock(stock, quantity)
         super(ChangeStockForm, self).save(commit)
-        merge_duplicated_lines(self.instance)
+        merge_duplicates_into_order_line(self.instance)
         return self.instance
 
 
@@ -363,4 +367,4 @@ class AddVariantToDeliveryGroupForm(forms.Form):
         variant = self.cleaned_data.get('variant')
         quantity = self.cleaned_data.get('quantity')
         add_variant_to_delivery_group(self.group, variant, quantity)
-        Order.objects.recalculate_order(self.group.order)
+        recalculate_order(self.group.order)

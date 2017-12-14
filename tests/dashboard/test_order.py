@@ -11,7 +11,7 @@ from saleor.order.models import (
     DeliveryGroup, Order, OrderLine, OrderHistoryEntry)
 from saleor.order.utils import (
     add_variant_to_existing_lines, change_order_line_quantity,
-    fill_group_with_partition)
+    fill_group_with_partition, remove_empty_groups)
 from saleor.product.models import ProductVariant, Stock, StockLocation
 from tests.utils import get_redirect_location, get_url_path
 
@@ -286,7 +286,7 @@ def test_ordered_item_remove_empty_group_with_force(
         transactional_db, order_with_lines):
     group = order_with_lines.groups.all()[0]
     lines = group.lines.all()
-    OrderLine.objects.remove_empty_groups(lines[0], force=True)
+    remove_empty_groups(lines[0], force=True)
     history = list(order_with_lines.history.all())
     assert len(history) == 1
     assert history[0].status == OrderStatus.CANCELLED

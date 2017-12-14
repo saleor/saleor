@@ -297,7 +297,7 @@
                       {% gross line.get_price_per_item html=True %}
                     </td>
                     <td class="right-align">
-                      {% if group.can_edit_items %}
+                      {% if group.can_edit_lines %}
                         <a class="dropdown-button" href="#" data-activates="line-actions-{{ line.pk }}" data-constrainwidth="false">
                           {{ line.quantity }} {% if line.stock_location %} ({{ line.stock_location|truncatechars:10 }}) {% endif %}
                           <svg data-src="{% static "dashboard/images/arrow_drop_down.svg" %}" width="24" height="24" />
