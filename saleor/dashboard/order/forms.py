@@ -205,7 +205,7 @@ class ShipGroupForm(forms.ModelForm):
                 code='invalid')
 
     def save(self):
-        for line in self.instance.order.lines.all():
+        for line in self.instance.lines.all():
             Stock.objects.decrease_stock(line.stock, line.quantity)
         self.instance.status = OrderStatus.SHIPPED
         self.instance.save()
