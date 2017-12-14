@@ -156,11 +156,14 @@ class Order(models.Model, ItemSet):
     @property
     def status(self):
         statuses = set([group.status for group in self.groups.all()])
-        if statuses == {OrderStatus.CANCELLED}:
-            return OrderStatus.CANCELLED
         if OrderStatus.NEW in statuses:
             return OrderStatus.NEW
-        return OrderStatus.SHIPPED
+        if OrderStatus.SHIPPED in statuses:
+            return OrderStatus.SHIPPED
+        return OrderStatus.CANCELLED
+
+    def get_status_display(self):
+        return dict(OrderStatus.CHOICES)[self.status]
 
     @property
     def total(self):
