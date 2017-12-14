@@ -205,18 +205,11 @@ class ShipGroupForm(forms.ModelForm):
                 code='invalid')
 
     def save(self):
-        order = self.instance.order
-        for line in self.instance.lines.all():
-            stock = line.stock
-            if stock is not None:
-                # remove and deallocate quantity
-                Stock.objects.decrease_stock(stock, line.quantity)
+        for line in self.instance.order.lines.all():
+            Stock.objects.decrease_stock(line.stock, line.quantity)
         self.instance.status = OrderStatus.SHIPPED
         self.instance.save()
-        statuses = [g.status for g in order.groups.all()]
-        if OrderStatus.SHIPPED in statuses and OrderStatus.NEW not in statuses:
-            order.status = OrderStatus.SHIPPED
-            order.save()
+        return self.instance
 
 
 class CancelGroupForm(forms.Form):

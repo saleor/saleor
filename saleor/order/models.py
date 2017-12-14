@@ -22,9 +22,6 @@ from ..userprofile.models import Address
 
 
 class Order(models.Model, ItemSet):
-    status = models.CharField(
-        pgettext_lazy('Order field', 'order status'),
-        max_length=32, choices=OrderStatus.CHOICES, default=OrderStatus.NEW)
     created = models.DateTimeField(
         pgettext_lazy('Order field', 'created'),
         default=now, editable=False)
