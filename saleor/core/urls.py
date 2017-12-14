@@ -6,6 +6,7 @@ from . import views
 urlpatterns = [
     url(r'^$', views.home, name='home'),
     url(r'^style-guide/', views.styleguide, name='styleguide'),
+    url(r'^404', views.handle_404, name='404'),
     url(r'^impersonate/(?P<uid>\d+)/', views.impersonate,
         name='impersonate-start'),
     url(r'^impersonate/stop/$', stop_impersonate,
