@@ -5,6 +5,7 @@ from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
+from django.db.models import Q
 from django.urls import reverse
 from django.utils.timezone import now
 from django.utils.translation import pgettext_lazy
@@ -34,11 +35,13 @@ class OrderQuerySet(models.QuerySet):
     def shipped(self):
         """Returns queryset containg orders with SHIPPED status."""
         statuses = {OrderStatus.SHIPPED, OrderStatus.CANCELLED}
-        return self.filter(groups__status__in=statuses)
+        return self.filter(groups__status__in=statuses).filter(
+            groups__status__in={OrderStatus.SHIPPED})
 
     def cancelled(self):
         """Returns queryset containg orders with CANCELLED status."""
-        return self.filter(groups__status__in={OrderStatus.CANCELLED})
+        return self.filter(
+            Q(groups__status__in={OrderStatus.CANCELLED}) | Q(groups=None))
 
 
 class Order(models.Model, ItemSet):
