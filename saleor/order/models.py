@@ -154,6 +154,15 @@ class Order(models.Model, ItemSet):
         return any(group.is_shipping_required() for group in self.groups.all())
 
     @property
+    def status(self):
+        statuses = set([group.status for group in self.groups.all()])
+        if statuses == {OrderStatus.CANCELLED}:
+            return OrderStatus.CANCELLED
+        if OrderStatus.NEW in statuses:
+            return OrderStatus.NEW
+        return OrderStatus.SHIPPED
+
+    @property
     def total(self):
         if self.total_net is not None:
             gross = self.total_net.net + self.total_tax.gross

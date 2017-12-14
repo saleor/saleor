@@ -74,4 +74,4 @@ class OrderDocument(DocType):
 
     class Meta:
         model = Order
-        fields = ['status', 'user_email', 'discount_name']
+        fields = ['user_email', 'discount_name']
