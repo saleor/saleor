@@ -411,12 +411,19 @@ def create_delivery_group(order):
 def create_order_line(delivery_group):
     product = Product.objects.all().order_by('?')[0]
     variant = product.variants.all()[0]
+    quantity = random.randrange(1, 5)
+    stock = variant.select_stockrecord()
+    stock.quantity += quantity
+    stock.quantity_allocated += quantity
+    stock.save()
     return OrderLine.objects.create(
         delivery_group=delivery_group,
         product=product,
         product_name=product.name,
         product_sku=variant.sku,
-        quantity=random.randrange(1, 5),
+        quantity=quantity,
+        stock=stock,
+        stock_location=stock.location.name,
         unit_price_net=product.price.net,
         unit_price_gross=product.price.gross)
 
