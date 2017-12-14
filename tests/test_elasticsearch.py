@@ -1,11 +1,9 @@
-from __future__ import unicode_literals
-
 from decimal import Decimal
 
 from django.core.urlresolvers import reverse
+from elasticsearch_dsl.connections import connections
 import pytest
 
-from elasticsearch_dsl.connections import connections
 from saleor.order.models import Order
 from saleor.product.models import Product
 from saleor.userprofile.models import User

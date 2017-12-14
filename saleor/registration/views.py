@@ -1,5 +1,3 @@
-from __future__ import unicode_literals
-
 from django.conf import settings
 from django.contrib import auth, messages
 from django.contrib.auth import views as django_views

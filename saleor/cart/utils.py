@@ -1,6 +1,4 @@
 """Cart-related utility functions."""
-from __future__ import unicode_literals
-
 from datetime import timedelta
 from functools import wraps
 from uuid import UUID

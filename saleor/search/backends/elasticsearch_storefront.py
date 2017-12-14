@@ -1,6 +1,5 @@
-from __future__ import unicode_literals
-
 from elasticsearch_dsl.query import MultiMatch
+
 from ..documents import ProductDocument
 
 

@@ -1,5 +1,3 @@
-from __future__ import unicode_literals
-
 from django.template import Library
 from saleor import __version__
 

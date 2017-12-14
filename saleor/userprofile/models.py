@@ -1,11 +1,8 @@
-from __future__ import unicode_literals
-
 from django.contrib.auth.models import (
     AbstractBaseUser, BaseUserManager, PermissionsMixin)
 from django.db import models
 from django.forms.models import model_to_dict
 from django.utils import timezone
-from django.utils.encoding import python_2_unicode_compatible
 from django.utils.translation import pgettext_lazy
 from django_countries.fields import Country, CountryField
 from phonenumber_field.modelfields import PhoneNumberField
@@ -50,7 +47,6 @@ class AddressManager(models.Manager):
         return address
 
 
-@python_2_unicode_compatible
 class Address(models.Model):
     first_name = models.CharField(
         pgettext_lazy('Address field', 'given name'),

@@ -1,31 +1,26 @@
-# coding: utf-8
-from __future__ import unicode_literals
-
 from decimal import Decimal
-import pytest
-
 from io import BytesIO
-from PIL import Image
+from unittest.mock import MagicMock
 
-from django.contrib.sites.models import Site
-from django.core.files.uploadedfile import SimpleUploadedFile
+import pytest
 from django.contrib.auth.models import AnonymousUser, Group, Permission
+from django.contrib.sites.models import Site
 from django.core.files import File
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.utils.encoding import smart_text
-
-from mock import MagicMock
+from PIL import Image
 
 from saleor.cart import utils
 from saleor.cart.models import Cart
 from saleor.checkout.core import Checkout
-from saleor.discount.models import Voucher, Sale
-from saleor.order.models import Order, OrderLine, DeliveryGroup
+from saleor.discount.models import Sale, Voucher
+from saleor.order.models import DeliveryGroup, Order, OrderLine
 from saleor.order.utils import recalculate_order
 from saleor.product.models import (
     AttributeChoiceValue, Category, Product, ProductAttribute, ProductClass,
-    ProductVariant, ProductImage, Stock, StockLocation)
+    ProductImage, ProductVariant, Stock, StockLocation)
 from saleor.shipping.models import ShippingMethod
-from saleor.site.models import SiteSettings, AuthorizationKey
+from saleor.site.models import AuthorizationKey, SiteSettings
 from saleor.userprofile.models import Address, User
 
 

@@ -1,6 +1,5 @@
-from __future__ import unicode_literals
-
 import json
+from urllib.parse import urljoin
 
 from django.conf import settings
 from django.contrib.sites.shortcuts import get_current_site
@@ -8,11 +7,6 @@ from django.urls import reverse
 
 from ..core.utils import build_absolute_uri
 from ..product.models import Category
-
-try:
-    from urllib.parse import urljoin
-except ImportError:
-    from urlparse import urljoin
 
 
 def get_setting_as_dict(name, short_name=None):

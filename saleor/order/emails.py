@@ -1,9 +1,7 @@
-from __future__ import unicode_literals
-
-from templated_email import send_templated_mail
+from celery import shared_task
 from django.conf import settings
 from django.contrib.sites.models import Site
-from celery import shared_task
+from templated_email import send_templated_mail
 
 CONFIRM_ORDER_TEMPLATE = 'order/confirm_order'
 CONFIRM_PAYMENT_TEMPLATE = 'order/payment/confirm_payment'

@@ -1,6 +1,3 @@
-from __future__ import unicode_literals
-
-
 def get_sort_by_choices(filter_set):
     return [(choice[0], choice[1].lower()) for choice in
             filter_set.filters['sort_by'].field.choices[1::2]]

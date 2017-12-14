@@ -1,5 +1,3 @@
-from __future__ import unicode_literals
-
 from celery import shared_task
 from django.conf import settings
 from django.contrib.auth.tokens import default_token_generator

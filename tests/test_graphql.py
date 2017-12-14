@@ -1,6 +1,5 @@
-from __future__ import unicode_literals
-
 import json
+
 import pytest
 
 from saleor.product.models import Category, ProductAttribute
