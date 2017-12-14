@@ -21,6 +21,9 @@ from .search.urls import urlpatterns as search_urls
 
 handler404 = 'saleor.core.views.handle_404'
 
+
+handler404 = 'saleor.core.views.handle_404'
+
 urlpatterns = [
     url(r'^', include(core_urls)),
     url(r'^cart/', include((cart_urls, 'cart'), namespace='cart')),
