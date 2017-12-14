@@ -6,6 +6,9 @@ import dj_email_url
 from django.contrib.messages import constants as messages
 import django_cache_url
 
+from psycopg2cffi import compat
+compat.register()
+
 
 def get_list(text):
     return [item.strip() for item in text.split(',')]

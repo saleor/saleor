@@ -15,7 +15,7 @@ cairocffi==0.8.0          # via cairosvg, weasyprint
 cairosvg==1.0.22
 celery[redis]==4.1.0
 certifi==2017.7.27.1      # via requests
-cffi==1.10.0              # via cairocffi, cryptography, weasyprint
+cffi==1.10.0              # via cairocffi, cryptography, psycopg2cffi, weasyprint
 chardet==3.0.4            # via requests
 cryptography==2.0.3       # via django-payments
 cssselect2==0.2.1         # via weasyprint
@@ -71,7 +71,7 @@ phonenumberslite==8.8.5   # via django-phonenumber-field
 pillow==4.0.0             # via django-versatileimagefield
 prices==0.5.9
 promise==2.0.2            # via graphene, graphql-core, graphql-relay
-psycopg2==2.7.3.1
+psycopg2cffi==2.7.7
 purl==1.3.1
 py==1.4.34                # via pytest
 pycparser==2.18           # via cffi
@@ -91,7 +91,7 @@ requests==2.18.4
 s3transfer==0.1.10        # via boto3
 satchless==1.1.3
 singledispatch==3.4.0.3   # via graphene-django
-six==1.11.0               # via cryptography, django-templated-email, elasticsearch-dsl, faker, freezegun, graphene, graphene-django, graphql-core, graphql-relay, html5lib, promise, purl, python-dateutil, singledispatch, social-auth-app-django, social-auth-core, vcrpy
+six==1.11.0               # via cryptography, django-templated-email, elasticsearch-dsl, faker, freezegun, graphene, graphene-django, graphql-core, graphql-relay, html5lib, promise, psycopg2cffi, purl, python-dateutil, singledispatch, social-auth-app-django, social-auth-core, vcrpy
 social-auth-app-django==2.0.0
 social-auth-core==1.4.0   # via social-auth-app-django
 stripe==1.65.0            # via django-payments

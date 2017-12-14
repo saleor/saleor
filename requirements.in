@@ -34,7 +34,7 @@ Markdown>=2.4
 maxminddb
 maxminddb-geolite2
 prices>=0.5.7
-psycopg2>=2.6
+psycopg2cffi>=2.7.6
 purl>=0.4.1
 pytest
 pytest-django
