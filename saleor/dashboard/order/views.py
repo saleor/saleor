@@ -59,7 +59,7 @@ def order_details(request, order_pk):
             payment.status == PaymentStatus.PREAUTH and
             any([
                 group.status != GroupStatus.CANCELLED
-                for group in order.groupsa.all()]))
+                for group in order.groups.all()]))
         can_release = payment.status == PaymentStatus.PREAUTH
         can_refund = payment.status == PaymentStatus.CONFIRMED
         preauthorized = payment.get_total_price()

@@ -14,7 +14,6 @@ from ..widgets import DateRangeWidget, PriceRangeWidget
 
 SORT_BY_FIELDS = (
     ('pk', 'pk'),
-    ('groups__status', 'status'),
     ('payments__status', 'payment_status'),
     ('user__email', 'email'),
     ('created', 'created'),
@@ -23,7 +22,6 @@ SORT_BY_FIELDS = (
 
 SORT_BY_FIELDS_LABELS = {
     'pk': pgettext_lazy('Order list sorting option', '#'),
-    'status': pgettext_lazy('Order list sorting option', 'status'),
     'payments__status': pgettext_lazy('Order list sorting option', 'payment'),
     'user__email': pgettext_lazy('Order list sorting option', 'email'),
     'created': pgettext_lazy('Order list sorting option', 'created'),
