@@ -119,3 +119,24 @@ def test_order_status_shipped(shipped_orders):
 def test_order_status_cancelled(cancelled_orders):
     assert all([
         order.status == OrderStatus.CANCELLED for order in cancelled_orders])
+
+
+def test_order_queryset_new_orders(
+        new_orders, shipped_orders, cancelled_orders):
+    qs = models.Order.objects.new()
+    assert qs.count() == len(new_orders)
+    assert all([item in qs for item in new_orders])
+
+
+def test_order_queryset_shipped_orders(
+        new_orders, shipped_orders, cancelled_orders):
+    qs = models.Order.objects.shipped()
+    assert qs.count() == len(shipped_orders)
+    assert all([item in qs for item in shipped_orders])
+
+
+def test_order_queryset_cancelled_orders(
+        new_orders, shipped_orders, cancelled_orders):
+    qs = models.Order.objects.cancelled()
+    assert qs.count() == len(cancelled_orders)
+    assert all([item in qs for item in cancelled_orders])

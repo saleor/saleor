@@ -29,19 +29,20 @@ class OrderQuerySet(models.QuerySet):
         """Returns queryset containg orders with NEW status."""
         statuses = {
             OrderStatus.NEW, OrderStatus.SHIPPED, OrderStatus.CANCELLED}
-        return self.filter(groups__status__in=statuses).filter(
-            groups__status__in={OrderStatus.NEW})
+        return self.filter(Q(groups__status=OrderStatus.NEW))
 
     def shipped(self):
         """Returns queryset containg orders with SHIPPED status."""
-        statuses = {OrderStatus.SHIPPED, OrderStatus.CANCELLED}
-        return self.filter(groups__status__in=statuses).filter(
-            groups__status__in={OrderStatus.SHIPPED})
+        return self.filter(
+            ~Q(groups__status=OrderStatus.NEW),
+            Q(groups__status__in={OrderStatus.SHIPPED, OrderStatus.CANCELLED}),
+            Q(groups__status=OrderStatus.SHIPPED))
 
     def cancelled(self):
         """Returns queryset containg orders with CANCELLED status."""
         return self.filter(
-            Q(groups=None) | Q(groups__status=OrderStatus.CANCELLED))
+            ~Q(groups__status__in={OrderStatus.NEW, OrderStatus.SHIPPED}),
+            Q(groups__status=OrderStatus.CANCELLED) | Q(groups=None))
 
 
 class Order(models.Model, ItemSet):
