@@ -41,7 +41,7 @@ class OrderQuerySet(models.QuerySet):
     def cancelled(self):
         """Returns queryset containg orders with CANCELLED status."""
         return self.filter(
-            Q(groups__status__in={OrderStatus.CANCELLED}) | Q(groups=None))
+            Q(groups=None) | Q(groups__status=OrderStatus.CANCELLED))
 
 
 class Order(models.Model, ItemSet):

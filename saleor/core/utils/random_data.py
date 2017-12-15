@@ -412,7 +412,7 @@ def create_order_line(delivery_group):
     product = Product.objects.all().order_by('?')[0]
     variant = product.variants.all()[0]
     quantity = random.randrange(1, 5)
-    stock = variant.select_stockrecord()
+    stock = variant.stock.first()
     stock.quantity += quantity
     stock.quantity_allocated += quantity
     stock.save()

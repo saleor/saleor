@@ -1,7 +1,7 @@
 from prices import Price
 
 from saleor.cart.models import Cart
-from saleor.order import models
+from saleor.order import models, OrderStatus
 from saleor.order.utils import (
     add_variant_to_delivery_group, fill_group_with_partition)
 
@@ -105,3 +105,17 @@ def test_add_variant_to_delivery_group_allocates_stock_for_existing_variant(
 
     stock.refresh_from_db()
     assert stock.quantity_allocated == stock_before + 1
+
+
+def test_order_status_new(new_orders):
+    assert all([order.status == OrderStatus.NEW for order in new_orders])
+
+
+def test_order_status_shipped(shipped_orders):
+    assert all([
+        order.status == OrderStatus.SHIPPED for order in shipped_orders])
+
+
+def test_order_status_cancelled(cancelled_orders):
+    assert all([
+        order.status == OrderStatus.CANCELLED for order in cancelled_orders])

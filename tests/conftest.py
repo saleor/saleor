@@ -14,6 +14,7 @@ from saleor.cart import utils
 from saleor.cart.models import Cart
 from saleor.checkout.core import Checkout
 from saleor.discount.models import Sale, Voucher
+from saleor.order import OrderStatus
 from saleor.order.models import DeliveryGroup, Order, OrderLine
 from saleor.order.utils import recalculate_order
 from saleor.product.models import (
@@ -534,3 +535,56 @@ def permission_edit_settings():
 @pytest.fixture
 def permission_impersonate_user():
     return Permission.objects.get(codename='impersonate_user')
+
+
+@pytest.fixture
+def cancelled_orders(billing_address):
+    orders = []
+    group_data = lambda orders, status: {'order': orders[-1], 'status': status}
+
+    orders.append(Order.objects.create(billing_address=billing_address))
+    DeliveryGroup.objects.create(**group_data(orders, OrderStatus.CANCELLED))
+
+    # empty order is considered as cancelled
+    orders.append(Order.objects.create(billing_address=billing_address))
+
+    return orders
+
+
+@pytest.fixture
+def new_orders(billing_address):
+    orders = []
+    group_data = lambda orders, status: {'order': orders[-1], 'status': status}
+
+    orders.append(Order.objects.create(billing_address=billing_address))
+    DeliveryGroup.objects.create(**group_data(orders, OrderStatus.NEW))
+
+    orders.append(Order.objects.create(billing_address=billing_address))
+    DeliveryGroup.objects.create(**group_data(orders, OrderStatus.NEW))
+    DeliveryGroup.objects.create(**group_data(orders, OrderStatus.CANCELLED))
+
+    orders.append(Order.objects.create(billing_address=billing_address))
+    DeliveryGroup.objects.create(**group_data(orders, OrderStatus.NEW))
+    DeliveryGroup.objects.create(**group_data(orders, OrderStatus.SHIPPED))
+
+    orders.append(Order.objects.create(billing_address=billing_address))
+    DeliveryGroup.objects.create(**group_data(orders, OrderStatus.NEW))
+    DeliveryGroup.objects.create(**group_data(orders, OrderStatus.SHIPPED))
+    DeliveryGroup.objects.create(**group_data(orders, OrderStatus.CANCELLED))
+
+    return orders
+
+
+@pytest.fixture
+def shipped_orders(billing_address):
+    orders = []
+    group_data = lambda orders, status: {'order': orders[-1], 'status': status}
+
+    orders.append(Order.objects.create(billing_address=billing_address))
+    DeliveryGroup.objects.create(**group_data(orders, OrderStatus.SHIPPED))
+
+    orders.append(Order.objects.create(billing_address=billing_address))
+    DeliveryGroup.objects.create(**group_data(orders, OrderStatus.SHIPPED))
+    DeliveryGroup.objects.create(**group_data(orders, OrderStatus.CANCELLED))
+
+    return orders
