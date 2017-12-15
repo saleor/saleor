@@ -72,8 +72,7 @@ class OrderFilter(SortedFilterSet):
 
     def filter_by_status(self, queryset, name, value):
         """Filter by status using custom querysets."""
-        if value == OrderStatus.NEW:
-            return Order.objects.new()
-        if value == OrderStatus.SHIPPED:
-            return Order.objects.shipped()
-        return Order.objects.cancelled()
+        return (
+            Order.objects.new() if value == OrderStatus.OPEN
+            else Order.objects.shipped()
+        )

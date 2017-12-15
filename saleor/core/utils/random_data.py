@@ -14,7 +14,7 @@ from payments import PaymentStatus
 from prices import Price
 
 from ...discount.models import Sale, Voucher
-from ...order import OrderStatus
+from ...order import GroupStatus
 from ...order.models import DeliveryGroup, Order, OrderLine, Payment
 from ...product.models import (
     AttributeChoiceValue, Category, Product, ProductAttribute, ProductClass,
@@ -401,7 +401,7 @@ def create_delivery_group(order):
     shipping_country = shipping_method.price_per_country.get_or_create(
         country_code=region, defaults={'price': fake.price()})[0]
     delivery_group = DeliveryGroup.objects.create(
-        status=random.choice([OrderStatus.NEW, OrderStatus.SHIPPED]),
+        status=random.choice([GroupStatus.NEW, GroupStatus.SHIPPED]),
         order=order,
         shipping_method_name=str(shipping_country),
         shipping_price=shipping_country.price)

@@ -108,17 +108,17 @@ def test_add_variant_to_delivery_group_allocates_stock_for_existing_variant(
 
 
 def test_order_status_new(new_orders):
-    assert all([order.status == OrderStatus.NEW for order in new_orders])
+    assert all([order.status == OrderStatus.OPEN for order in new_orders])
 
 
 def test_order_status_shipped(shipped_orders):
     assert all([
-        order.status == OrderStatus.SHIPPED for order in shipped_orders])
+        order.status == OrderStatus.CLOSED for order in shipped_orders])
 
 
 def test_order_status_cancelled(cancelled_orders):
     assert all([
-        order.status == OrderStatus.CANCELLED for order in cancelled_orders])
+        order.status == OrderStatus.CLOSED for order in cancelled_orders])
 
 
 def test_order_queryset_new_orders(

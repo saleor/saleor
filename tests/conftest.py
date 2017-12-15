@@ -14,7 +14,7 @@ from saleor.cart import utils
 from saleor.cart.models import Cart
 from saleor.checkout.core import Checkout
 from saleor.discount.models import Sale, Voucher
-from saleor.order import OrderStatus
+from saleor.order import GroupStatus
 from saleor.order.models import DeliveryGroup, Order, OrderLine
 from saleor.order.utils import recalculate_order
 from saleor.product.models import (
@@ -543,7 +543,7 @@ def cancelled_orders(billing_address):
     group_data = lambda orders, status: {'order': orders[-1], 'status': status}
 
     orders.append(Order.objects.create(billing_address=billing_address))
-    DeliveryGroup.objects.create(**group_data(orders, OrderStatus.CANCELLED))
+    DeliveryGroup.objects.create(**group_data(orders, GroupStatus.CANCELLED))
 
     # empty order is considered as cancelled
     orders.append(Order.objects.create(billing_address=billing_address))
@@ -557,20 +557,20 @@ def new_orders(billing_address):
     group_data = lambda orders, status: {'order': orders[-1], 'status': status}
 
     orders.append(Order.objects.create(billing_address=billing_address))
-    DeliveryGroup.objects.create(**group_data(orders, OrderStatus.NEW))
+    DeliveryGroup.objects.create(**group_data(orders, GroupStatus.NEW))
 
     orders.append(Order.objects.create(billing_address=billing_address))
-    DeliveryGroup.objects.create(**group_data(orders, OrderStatus.NEW))
-    DeliveryGroup.objects.create(**group_data(orders, OrderStatus.CANCELLED))
+    DeliveryGroup.objects.create(**group_data(orders, GroupStatus.NEW))
+    DeliveryGroup.objects.create(**group_data(orders, GroupStatus.CANCELLED))
 
     orders.append(Order.objects.create(billing_address=billing_address))
-    DeliveryGroup.objects.create(**group_data(orders, OrderStatus.NEW))
-    DeliveryGroup.objects.create(**group_data(orders, OrderStatus.SHIPPED))
+    DeliveryGroup.objects.create(**group_data(orders, GroupStatus.NEW))
+    DeliveryGroup.objects.create(**group_data(orders, GroupStatus.SHIPPED))
 
     orders.append(Order.objects.create(billing_address=billing_address))
-    DeliveryGroup.objects.create(**group_data(orders, OrderStatus.NEW))
-    DeliveryGroup.objects.create(**group_data(orders, OrderStatus.SHIPPED))
-    DeliveryGroup.objects.create(**group_data(orders, OrderStatus.CANCELLED))
+    DeliveryGroup.objects.create(**group_data(orders, GroupStatus.NEW))
+    DeliveryGroup.objects.create(**group_data(orders, GroupStatus.SHIPPED))
+    DeliveryGroup.objects.create(**group_data(orders, GroupStatus.CANCELLED))
 
     return orders
 
@@ -581,10 +581,10 @@ def shipped_orders(billing_address):
     group_data = lambda orders, status: {'order': orders[-1], 'status': status}
 
     orders.append(Order.objects.create(billing_address=billing_address))
-    DeliveryGroup.objects.create(**group_data(orders, OrderStatus.SHIPPED))
+    DeliveryGroup.objects.create(**group_data(orders, GroupStatus.SHIPPED))
 
     orders.append(Order.objects.create(billing_address=billing_address))
-    DeliveryGroup.objects.create(**group_data(orders, OrderStatus.SHIPPED))
-    DeliveryGroup.objects.create(**group_data(orders, OrderStatus.CANCELLED))
+    DeliveryGroup.objects.create(**group_data(orders, GroupStatus.SHIPPED))
+    DeliveryGroup.objects.create(**group_data(orders, GroupStatus.CANCELLED))
 
     return orders
