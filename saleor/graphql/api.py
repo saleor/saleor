@@ -119,8 +119,7 @@ class CategoryType(DjangoObjectType):
     def resolve_products(self, info, **args):
         context = info.context
         qs = products_for_api(context.user)
-        tree = self.get_descendants(include_self=True)
-        qs = qs.filter(categories__in=tree)
+        qs = qs.filter(categories=self)
 
         attributes_filter, order_by, price_lte, price_gte = map(
             args.get, ['attributes', 'order_by', 'price_lte', 'price_gte'])
