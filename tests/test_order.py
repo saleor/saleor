@@ -107,36 +107,21 @@ def test_add_variant_to_delivery_group_allocates_stock_for_existing_variant(
     assert stock.quantity_allocated == stock_before + 1
 
 
-def test_order_status_new(new_orders):
-    assert all([order.status == OrderStatus.OPEN for order in new_orders])
+def test_order_status_open(open_orders):
+    assert all([order.status == OrderStatus.OPEN for order in open_orders])
 
 
-def test_order_status_shipped(shipped_orders):
-    assert all([
-        order.status == OrderStatus.CLOSED for order in shipped_orders])
+def test_order_status_closed(closed_orders):
+    assert all([order.status == OrderStatus.CLOSED for order in closed_orders])
 
 
-def test_order_status_cancelled(cancelled_orders):
-    assert all([
-        order.status == OrderStatus.CLOSED for order in cancelled_orders])
+def test_order_queryset_open_orders(open_orders, closed_orders):
+    qs = models.Order.objects.open()
+    assert qs.count() == len(open_orders)
+    assert all([item in qs for item in open_orders])
 
 
-def test_order_queryset_new_orders(
-        new_orders, shipped_orders, cancelled_orders):
-    qs = models.Order.objects.new()
-    assert qs.count() == len(new_orders)
-    assert all([item in qs for item in new_orders])
-
-
-def test_order_queryset_shipped_orders(
-        new_orders, shipped_orders, cancelled_orders):
-    qs = models.Order.objects.shipped()
-    assert qs.count() == len(shipped_orders)
-    assert all([item in qs for item in shipped_orders])
-
-
-def test_order_queryset_cancelled_orders(
-        new_orders, shipped_orders, cancelled_orders):
-    qs = models.Order.objects.cancelled()
-    assert qs.count() == len(cancelled_orders)
-    assert all([item in qs for item in cancelled_orders])
+def test_order_queryset_closed_orders(open_orders, closed_orders):
+    qs = models.Order.objects.closed()
+    assert qs.count() == len(closed_orders)
+    assert all([item in qs for item in closed_orders])

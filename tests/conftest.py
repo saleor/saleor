@@ -538,21 +538,7 @@ def permission_impersonate_user():
 
 
 @pytest.fixture
-def cancelled_orders(billing_address):
-    orders = []
-    group_data = lambda orders, status: {'order': orders[-1], 'status': status}
-
-    orders.append(Order.objects.create(billing_address=billing_address))
-    DeliveryGroup.objects.create(**group_data(orders, GroupStatus.CANCELLED))
-
-    # empty order is considered as cancelled
-    orders.append(Order.objects.create(billing_address=billing_address))
-
-    return orders
-
-
-@pytest.fixture
-def new_orders(billing_address):
+def open_orders(billing_address):
     orders = []
     group_data = lambda orders, status: {'order': orders[-1], 'status': status}
 
@@ -576,7 +562,7 @@ def new_orders(billing_address):
 
 
 @pytest.fixture
-def shipped_orders(billing_address):
+def closed_orders(billing_address):
     orders = []
     group_data = lambda orders, status: {'order': orders[-1], 'status': status}
 
@@ -586,5 +572,11 @@ def shipped_orders(billing_address):
     orders.append(Order.objects.create(billing_address=billing_address))
     DeliveryGroup.objects.create(**group_data(orders, GroupStatus.SHIPPED))
     DeliveryGroup.objects.create(**group_data(orders, GroupStatus.CANCELLED))
+
+    orders.append(Order.objects.create(billing_address=billing_address))
+    DeliveryGroup.objects.create(**group_data(orders, GroupStatus.CANCELLED))
+
+    # empty order is considered as closed
+    orders.append(Order.objects.create(billing_address=billing_address))
 
     return orders
