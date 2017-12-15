@@ -10,7 +10,7 @@ from satchless.item import InsufficientStock
 from ..product.models import Stock
 from ..userprofile.utils import store_user_address
 from .models import Order, OrderLine
-from . import OrderStatus
+from . import GroupStatus
 
 
 def check_order_status(func):
@@ -39,7 +39,7 @@ def recalculate_order(order):
     Total price is a sum of items and shippings in order shipment groups. """
     prices = [
         group.get_total() for group in order
-        if group.status != OrderStatus.CANCELLED]
+        if group.status != GroupStatus.CANCELLED]
     total_net = sum(p.net for p in prices)
     total_gross = sum(p.gross for p in prices)
     total = Price(
@@ -146,7 +146,7 @@ def cancel_delivery_group(group):
     """Cancells shipment group and (optionally) it's order if necessary."""
     for line in group:
         Stock.objects.deallocate_stock(line.stock, line.quantity)
-    group.status = OrderStatus.CANCELLED
+    group.status = GroupStatus.CANCELLED
     group.save()
 
 
@@ -173,7 +173,7 @@ def change_order_line_quantity(line, new_quantity):
         order = line.delivery_group.order
         if not order.get_lines():
             order.create_history_entry(
-                status=OrderStatus.CANCELLED, comment=pgettext_lazy(
+                status=order.status, comment=pgettext_lazy(
                     'Order status history entry',
                     'Order cancelled. No items in order'))
 
@@ -192,7 +192,7 @@ def remove_empty_groups(line, force=False):
         source_group.delete()
     if not order.get_lines():
         order.create_history_entry(
-            status=OrderStatus.CANCELLED, comment=pgettext_lazy(
+            status=order.status, comment=pgettext_lazy(
                 'Order status history entry',
                 'Order cancelled. No items in order'))
 

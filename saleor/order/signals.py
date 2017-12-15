@@ -3,7 +3,6 @@ from django.dispatch import receiver
 from payments.signals import status_changed
 
 from ..core import analytics
-from . import OrderStatus
 
 logger = logging.getLogger(__name__)
 
@@ -14,7 +13,7 @@ def order_status_change(sender, instance, **kwargs):
     order = instance.order
     if order.is_fully_paid():
         order.create_history_entry(
-            status=OrderStatus.NEW, comment=pgettext_lazy(
+            status=order.status, comment=pgettext_lazy(
                 'Order status history entry', 'Order fully paid'))
         instance.send_confirmation_email()
         try:

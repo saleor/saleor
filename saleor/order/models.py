@@ -15,7 +15,7 @@ from payments.models import BasePayment
 from prices import FixedDiscount, Price
 from satchless.item import ItemLine, ItemSet
 
-from . import OrderStatus, emails
+from . import emails, GroupStatus, OrderStatus
 from ..core.utils import build_absolute_uri
 from ..discount.models import Voucher
 from ..product.models import Product
@@ -28,21 +28,21 @@ class OrderQuerySet(models.QuerySet):
     def new(self):
         """Returns queryset containg orders with NEW status."""
         statuses = {
-            OrderStatus.NEW, OrderStatus.SHIPPED, OrderStatus.CANCELLED}
-        return self.filter(Q(groups__status=OrderStatus.NEW))
+            GroupStatus.NEW, GroupStatus.SHIPPED, GroupStatus.CANCELLED}
+        return self.filter(Q(groups__status=GroupStatus.NEW))
 
     def shipped(self):
         """Returns queryset containg orders with SHIPPED status."""
         return self.filter(
-            ~Q(groups__status=OrderStatus.NEW),
-            Q(groups__status__in={OrderStatus.SHIPPED, OrderStatus.CANCELLED}),
-            Q(groups__status=OrderStatus.SHIPPED))
+            ~Q(groups__status=GroupStatus.NEW),
+            Q(groups__status__in={GroupStatus.SHIPPED, GroupStatus.CANCELLED}),
+            Q(groups__status=GroupStatus.SHIPPED))
 
     def cancelled(self):
         """Returns queryset containg orders with CANCELLED status."""
         return self.filter(
-            ~Q(groups__status__in={OrderStatus.NEW, OrderStatus.SHIPPED}),
-            Q(groups__status=OrderStatus.CANCELLED) | Q(groups=None))
+            ~Q(groups__status__in={GroupStatus.NEW, GroupStatus.SHIPPED}),
+            Q(groups__status=GroupStatus.CANCELLED) | Q(groups=None))
 
 
 class Order(models.Model, ItemSet):
@@ -183,11 +183,10 @@ class Order(models.Model, ItemSet):
     def status(self):
         """Order status deduced from shipment groups."""
         statuses = set([group.status for group in self.groups.all()])
-        if OrderStatus.NEW in statuses:
-            return OrderStatus.NEW
-        if OrderStatus.SHIPPED in statuses:
-            return OrderStatus.SHIPPED
-        return OrderStatus.CANCELLED
+        return (
+            OrderStatus.OPEN if GroupStatus.NEW in statuses
+            else OrderStatus.CLOSED
+        )
 
     def get_status_display(self):
         """Order status display text."""
@@ -217,7 +216,7 @@ class Order(models.Model, ItemSet):
         return Price(net=0, currency=settings.DEFAULT_CURRENCY)
 
     def can_cancel(self):
-        return self.status not in {OrderStatus.CANCELLED, OrderStatus.SHIPPED}
+        return self.status == OrderStatus.OPEN
 
 
 class DeliveryGroup(models.Model, ItemSet):
@@ -227,7 +226,7 @@ class DeliveryGroup(models.Model, ItemSet):
     """
     status = models.CharField(
         pgettext_lazy('Shipment group field', 'shipment status'),
-        max_length=32, default=OrderStatus.NEW, choices=OrderStatus.CHOICES)
+        max_length=32, default=GroupStatus.NEW, choices=GroupStatus.CHOICES)
     order = models.ForeignKey(
         Order, related_name='groups', editable=False, on_delete=models.CASCADE)
     shipping_price = PriceField(
@@ -271,13 +270,13 @@ class DeliveryGroup(models.Model, ItemSet):
         return self.shipping_required
 
     def can_ship(self):
-        return self.is_shipping_required() and self.status == OrderStatus.NEW
+        return self.is_shipping_required() and self.status == GroupStatus.NEW
 
     def can_cancel(self):
-        return self.status != OrderStatus.CANCELLED
+        return self.status != GroupStatus.CANCELLED
 
     def can_edit_lines(self):
-        return self.status not in {OrderStatus.CANCELLED, OrderStatus.SHIPPED}
+        return self.status not in {GroupStatus.CANCELLED, GroupStatus.SHIPPED}
 
 
 class OrderLine(models.Model, ItemLine):

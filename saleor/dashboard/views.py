@@ -38,7 +38,7 @@ def index(request):
         'groups', 'groups__lines', 'payments')
     orders_to_ship = [
         order for order in orders_to_ship
-        if order.status == OrderStatus.NEW and order.is_fully_paid()]
+        if order.status == OrderStatus.OPEN and order.is_fully_paid()]
     payments = Payment.objects.filter(
         status=PaymentStatus.PREAUTH).order_by('-created')
     payments = payments.select_related('order', 'order__user')

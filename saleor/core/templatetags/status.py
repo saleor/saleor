@@ -12,7 +12,7 @@ register = Library()
 
 ERRORS = {PaymentStatus.ERROR, PaymentStatus.REJECTED}
 SUCCESSES = {
-    OrderStatus.SHIPPED, PaymentStatus.CONFIRMED, PaymentStatus.REFUNDED}
+    OrderStatus.CLOSED, PaymentStatus.CONFIRMED, PaymentStatus.REFUNDED}
 
 
 LABEL_DANGER = 'danger'

@@ -16,7 +16,6 @@ from .utils import attach_order_to_user, check_order_status
 from ..core.utils import get_client_ip
 from ..registration.forms import LoginForm
 from ..userprofile.models import User
-from . import OrderStatus
 
 logger = logging.getLogger(__name__)
 
