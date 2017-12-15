@@ -304,7 +304,8 @@ def add_variant_to_group(request, order_pk, group_pk):
     """ Adds variant in given quantity to existing or new group in order. """
     order = get_object_or_404(Order, pk=order_pk)
     group = get_object_or_404(order.groups.all(), pk=group_pk)
-    form = AddVariantToDeliveryGroupForm(request.POST or None, group=group)
+    form = AddVariantToDeliveryGroupForm(
+        request.POST or None, group=group, discounts=request.discounts)
     status = 200
     if form.is_valid():
         msg_dict = {

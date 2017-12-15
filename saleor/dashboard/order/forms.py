@@ -328,6 +328,7 @@ class AddVariantToDeliveryGroupForm(forms.Form):
 
     def __init__(self, *args, **kwargs):
         self.group = kwargs.pop('group')
+        self.discounts = kwargs.pop('discounts')
         super(AddVariantToDeliveryGroupForm, self).__init__(*args, **kwargs)
 
     def clean(self):
@@ -352,5 +353,6 @@ class AddVariantToDeliveryGroupForm(forms.Form):
         """ Adds variant to target group. Updates stocks and order. """
         variant = self.cleaned_data.get('variant')
         quantity = self.cleaned_data.get('quantity')
-        add_variant_to_delivery_group(self.group, variant, quantity)
+        add_variant_to_delivery_group(
+            self.group, variant, quantity, self.discounts)
         recalculate_order(self.group.order)
