@@ -25,24 +25,13 @@ from ..userprofile.models import Address
 class OrderQuerySet(models.QuerySet):
     """Filters orders by status deduced from shipment groups."""
 
-    def new(self):
-        """Returns queryset containg orders with NEW status."""
-        statuses = {
-            GroupStatus.NEW, GroupStatus.SHIPPED, GroupStatus.CANCELLED}
+    def open(self):
+        """Orders having at least one NEW status in shipment groups."""
         return self.filter(Q(groups__status=GroupStatus.NEW))
 
-    def shipped(self):
-        """Returns queryset containg orders with SHIPPED status."""
-        return self.filter(
-            ~Q(groups__status=GroupStatus.NEW),
-            Q(groups__status__in={GroupStatus.SHIPPED, GroupStatus.CANCELLED}),
-            Q(groups__status=GroupStatus.SHIPPED))
-
-    def cancelled(self):
-        """Returns queryset containg orders with CANCELLED status."""
-        return self.filter(
-            ~Q(groups__status__in={GroupStatus.NEW, GroupStatus.SHIPPED}),
-            Q(groups__status=GroupStatus.CANCELLED) | Q(groups=None))
+    def closed(self):
+        """Orders having any NEW status in shipment groups."""
+        return self.filter(~Q(groups__status=GroupStatus.NEW))
 
 
 class Order(models.Model, ItemSet):
