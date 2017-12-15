@@ -248,9 +248,8 @@ class DeliveryGroup(models.Model, ItemSet):
     def shipping_required(self):
         return self.shipping_method_name is not None
 
-    def get_total(self, **kwargs):
-        subtotal = super(DeliveryGroup, self).get_total(**kwargs)
-        return subtotal + self.shipping_price
+    def get_total_with_shipping(self, **kwargs):
+        return self.get_total() + self.shipping_price
 
     def get_total_quantity(self):
         return sum([line.get_quantity() for line in self])

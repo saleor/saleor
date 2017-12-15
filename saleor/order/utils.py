@@ -36,21 +36,14 @@ def cancel_order(order):
 
 def recalculate_order(order):
     """Recalculates and assigns total price of order.
-    Total price is a sum of items and shippings in order shipment groups. """
+    Total price is a sum of items and shippings in order shipment groups."""
     prices = [
-        group.get_total() for group in order
+        group.get_total_with_shipping() for group in order
         if group.status != GroupStatus.CANCELLED]
     total_net = sum(p.net for p in prices)
     total_gross = sum(p.gross for p in prices)
-    total = Price(
-        net=total_net, gross=total_gross,
-        currency=settings.DEFAULT_CURRENCY)
-    shipping = [group.shipping_price for group in order]
-    total_shipping = (
-        sum(shipping[1:], shipping[0]) if shipping
-        else Price(0, currency=settings.DEFAULT_CURRENCY))
-    total += total_shipping
-    order.total = total
+    order.total = Price(
+        net=total_net, gross=total_gross, currency=settings.DEFAULT_CURRENCY)
     order.save()
 
 
@@ -64,8 +57,7 @@ def attach_order_to_user(order, user):
 
 
 def fill_group_with_partition(group, partition, discounts=None):
-    """Fills shipment group with order lines created from partition items.
-    """
+    """Fills shipment group with order lines created from partition items."""
     for item in partition:
         add_variant_to_delivery_group(
             group, item.variant, item.get_quantity(), discounts,

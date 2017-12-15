@@ -457,7 +457,7 @@ def create_fake_order():
         [line.get_total() for line in lines], delivery_group.shipping_price)
     order.save()
 
-    payment = create_payment(delivery_group)
+    create_payment(delivery_group)
     return order
 
 
