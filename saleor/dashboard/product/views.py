@@ -690,10 +690,10 @@ def ajax_available_variants_list(request):
     Returns variants list filtered by request GET parameters.
     Response format is as required by select2 field.
     """
-    def get_variant_label(variant):
+    def get_variant_label(variant, discounts):
         return '%s, %s, %s' % (
             variant.sku, variant.display_product(),
-            gross(variant.product.price))
+            gross(variant.get_price_per_item(discounts)))
 
     available_products = Product.objects.get_available_products()
     queryset = ProductVariant.objects.filter(
@@ -704,8 +704,9 @@ def ajax_available_variants_list(request):
             Q(sku__icontains=search_query) |
             Q(name__icontains=search_query) |
             Q(product__name__icontains=search_query))
+    discounts = request.discounts
     variants = [
-        {'id': variant.id, 'text': get_variant_label(variant)}
+        {'id': variant.id, 'text': get_variant_label(variant, discounts)}
         for variant in queryset
     ]
     return JsonResponse({'results': variants})
