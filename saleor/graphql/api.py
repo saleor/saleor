@@ -12,7 +12,7 @@ from ..product.models import (
     AttributeChoiceValue, Category, Product, ProductAttribute, ProductImage,
     ProductVariant)
 from ..product.templatetags.product_images import product_first_image
-from ..product.utils import get_availability, products_for_api
+from ..product.utils import get_availability, products_visible_to_user
 from .scalars import AttributesFilterScalar
 from .utils import CategoryAncestorsCache, DjangoPkInterface
 
@@ -118,7 +118,8 @@ class CategoryType(DjangoObjectType):
 
     def resolve_products(self, info, **args):
         context = info.context
-        qs = products_for_api(context.user)
+        qs = products_visible_to_user(context.user)
+        qs = qs.prefetch_related('images', 'categories', 'variants__stock')
         qs = qs.filter(categories=self)
 
         attributes_filter, order_by, price_lte, price_gte = map(
