@@ -31,12 +31,6 @@ def products_with_details(user):
     return products
 
 
-def products_for_api(user):
-    products = products_visible_to_user(user)
-    return products.prefetch_related(
-        'images', 'categories', 'variants__stock')
-
-
 def products_for_homepage():
     user = AnonymousUser()
     products = products_with_details(user)
