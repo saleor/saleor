@@ -1,18 +1,34 @@
 Order management
 ================
 
+Orders are created after customers successfully complete the checkout process. The `Order` object itself contains only general information about the customer's order.
+
 Delivery Group
 --------------
 
-Delivery group represent parts of an order consisting of multiple order lines. They are created along with order by splitting cart into parts depending whether product has shipping required or not.
+The delivery group represents a group of ordered items. By default, groups are created along with an order by splitting the cart into parts, depending whether a product requires shipping or not.
 
-Statuses
+Most of the order management actions are taken on the delivery groups and include changing their statuses.
+
+There are three possible delivery group statuses:
+
+- ``NEW``
+    The default status of newly created delivery groups.
+
+- ``SHIPPED``
+    The delivery group has been marked as shipped.
+
+- ``CANCELLED``
+    The delivery group has been cancelled.
+
+
+Order statuses
 --------
 
-Order status is deduced based on related delivery group statuses, which in turn can be ``NEW``, ``SHIPPED`` or ``CANCELLED``. For display there are used two values:
+Order status is deduced based on statuses of its delivery groups. There are two possible statuses:
 
 - ``OPEN``
-    There is at least one delivery group in order having ``NEW`` status.
+    There is at least one delivery group with the ``NEW`` status. An an action by a shop operator is required to continue order processing.
 
 - ``CLOSED``
-    There is no delivery group in order having ``NEW`` status.
+    There are no delivery groups with the ``NEW`` status. Order doesn't require further actions by a shop operator.

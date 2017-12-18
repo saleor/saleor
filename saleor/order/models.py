@@ -26,11 +26,11 @@ class OrderQuerySet(models.QuerySet):
     """Filters orders by status deduced from shipment groups."""
 
     def open(self):
-        """Orders having at least one NEW status in shipment groups."""
+        """Orders having at least one shipment group with status NEW."""
         return self.filter(Q(groups__status=GroupStatus.NEW))
 
     def closed(self):
-        """Orders having any NEW status in shipment groups."""
+        """Orders having no shipment groups with status NEW."""
         return self.filter(~Q(groups__status=GroupStatus.NEW))
 
 
