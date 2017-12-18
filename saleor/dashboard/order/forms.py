@@ -10,7 +10,7 @@ from satchless.item import InsufficientStock
 from ...cart.forms import QuantityField
 from ...core.forms import AjaxSelect2ChoiceField
 from ...discount.models import Voucher
-from ...order import OrderStatus
+from ...order import GroupStatus
 from ...order.models import DeliveryGroup, OrderLine, OrderNote
 from ...order.utils import (
     add_variant_to_delivery_group, cancel_delivery_group, cancel_order,
@@ -114,7 +114,7 @@ class MoveLinesForm(forms.Form):
             'max': self.line.quantity, 'min': 1})
         self.old_group = self.line.delivery_group
         queryset = self.old_group.order.groups.exclude(
-            pk=self.old_group.pk).exclude(status=OrderStatus.CANCELLED)
+            pk=self.old_group.pk).exclude(status=GroupStatus.CANCELLED)
         self.fields['target_group'].queryset = queryset
 
     def move_lines(self):
@@ -197,7 +197,7 @@ class ShipGroupForm(forms.ModelForm):
                 'Parcel tracking number')})
 
     def clean(self):
-        if self.instance.status != OrderStatus.NEW:
+        if self.instance.status != GroupStatus.NEW:
             raise forms.ValidationError(
                 pgettext_lazy(
                     'Ship group form error',
@@ -205,18 +205,11 @@ class ShipGroupForm(forms.ModelForm):
                 code='invalid')
 
     def save(self):
-        order = self.instance.order
         for line in self.instance.lines.all():
-            stock = line.stock
-            if stock is not None:
-                # remove and deallocate quantity
-                Stock.objects.decrease_stock(stock, line.quantity)
-        self.instance.status = OrderStatus.SHIPPED
+            Stock.objects.decrease_stock(line.stock, line.quantity)
+        self.instance.status = GroupStatus.SHIPPED
         self.instance.save()
-        statuses = [g.status for g in order.groups.all()]
-        if OrderStatus.SHIPPED in statuses and OrderStatus.NEW not in statuses:
-            order.status = OrderStatus.SHIPPED
-            order.save()
+        return self.instance
 
 
 class CancelGroupForm(forms.Form):
@@ -269,11 +262,6 @@ class RemoveVoucherForm(forms.Form):
         Voucher.objects.decrease_usage(voucher)
         self.order.voucher = None
         recalculate_order(self.order)
-
-
-ORDER_STATUS_CHOICES = [
-    ('', pgettext_lazy('Order status field value', 'All'))
-] + OrderStatus.CHOICES
 
 
 PAYMENT_STATUS_CHOICES = [
@@ -340,6 +328,7 @@ class AddVariantToDeliveryGroupForm(forms.Form):
 
     def __init__(self, *args, **kwargs):
         self.group = kwargs.pop('group')
+        self.discounts = kwargs.pop('discounts')
         super(AddVariantToDeliveryGroupForm, self).__init__(*args, **kwargs)
 
     def clean(self):
@@ -364,5 +353,6 @@ class AddVariantToDeliveryGroupForm(forms.Form):
         """ Adds variant to target group. Updates stocks and order. """
         variant = self.cleaned_data.get('variant')
         quantity = self.cleaned_data.get('quantity')
-        add_variant_to_delivery_group(self.group, variant, quantity)
+        add_variant_to_delivery_group(
+            self.group, variant, quantity, self.discounts)
         recalculate_order(self.group.order)

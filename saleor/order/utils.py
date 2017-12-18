@@ -10,7 +10,7 @@ from satchless.item import InsufficientStock
 from ..product.models import Stock
 from ..userprofile.utils import store_user_address
 from .models import Order, OrderLine
-from . import OrderStatus
+from . import GroupStatus
 
 
 def check_order_status(func):
@@ -31,28 +31,19 @@ def check_order_status(func):
 def cancel_order(order):
     """Cancells order by cancelling all associated shipment groups."""
     for group in order.groups.all():
-        cancel_delivery_group(group, cancel_order=False)
-    order.status = OrderStatus.CANCELLED
-    order.save()
+        cancel_delivery_group(group)
 
 
 def recalculate_order(order):
     """Recalculates and assigns total price of order.
-    Total price is a sum of items and shippings in order shipment groups. """
+    Total price is a sum of items and shippings in order shipment groups."""
     prices = [
-        group.get_total() for group in order
-        if group.status != OrderStatus.CANCELLED]
+        group.get_total_with_shipping() for group in order
+        if group.status != GroupStatus.CANCELLED]
     total_net = sum(p.net for p in prices)
     total_gross = sum(p.gross for p in prices)
-    total = Price(
-        net=total_net, gross=total_gross,
-        currency=settings.DEFAULT_CURRENCY)
-    shipping = [group.shipping_price for group in order]
-    total_shipping = (
-        sum(shipping[1:], shipping[0]) if shipping
-        else Price(0, currency=settings.DEFAULT_CURRENCY))
-    total += total_shipping
-    order.total = total
+    order.total = Price(
+        net=total_net, gross=total_gross, currency=settings.DEFAULT_CURRENCY)
     order.save()
 
 
@@ -66,8 +57,7 @@ def attach_order_to_user(order, user):
 
 
 def fill_group_with_partition(group, partition, discounts=None):
-    """Fills shipment group with order lines created from partition items.
-    """
+    """Fills shipment group with order lines created from partition items."""
     for item in partition:
         add_variant_to_delivery_group(
             group, item.variant, item.get_quantity(), discounts,
@@ -144,20 +134,12 @@ def add_variant_to_existing_lines(group, variant, total_quantity):
     return quantity_left
 
 
-def cancel_delivery_group(group, cancel_order=True):
+def cancel_delivery_group(group):
     """Cancells shipment group and (optionally) it's order if necessary."""
     for line in group:
-        if line.stock:
-            Stock.objects.deallocate_stock(line.stock, line.quantity)
-    group.status = OrderStatus.CANCELLED
+        Stock.objects.deallocate_stock(line.stock, line.quantity)
+    group.status = GroupStatus.CANCELLED
     group.save()
-    if cancel_order:
-        other_groups = group.order.groups.all()
-        statuses = set(other_groups.values_list('status', flat=True))
-        if statuses == {OrderStatus.CANCELLED}:
-            # Cancel whole order
-            group.order.status = OrderStatus.CANCELLED
-            group.order.save(update_fields=['status'])
 
 
 def merge_duplicates_into_order_line(line):
@@ -182,10 +164,8 @@ def change_order_line_quantity(line, new_quantity):
         line.delivery_group.delete()
         order = line.delivery_group.order
         if not order.get_lines():
-            order.status = OrderStatus.CANCELLED
-            order.save()
             order.create_history_entry(
-                status=OrderStatus.CANCELLED, comment=pgettext_lazy(
+                status=order.status, comment=pgettext_lazy(
                     'Order status history entry',
                     'Order cancelled. No items in order'))
 
@@ -203,10 +183,8 @@ def remove_empty_groups(line, force=False):
     if not source_group.get_total_quantity() or force:
         source_group.delete()
     if not order.get_lines():
-        order.status = OrderStatus.CANCELLED
-        order.save()
         order.create_history_entry(
-            status=OrderStatus.CANCELLED, comment=pgettext_lazy(
+            status=order.status, comment=pgettext_lazy(
                 'Order status history entry',
                 'Order cancelled. No items in order'))
 
