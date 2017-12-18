@@ -456,14 +456,13 @@ CELERY_BROKER_URL = 'amqp://{user}:{password}@{host}:5672//'.format(
     user=os.environ.get('RABBITMQ_USER', 'guest'),
     password=os.environ.get('RABBITMQ_PASSWORD', 'guest'),
     host=os.environ.get('RABBITMQ_HOST', 'localhost')
-    # vhost=os.environ.get('RABBITMQ_VHOST', '/'),
 )
 
 CELERY_BROKER_USER = os.environ.get('RABBITMQ_USER', 'guest')
 CELERY_BROKER_PASSWORD = os.environ.get('RABBITMQ_PASSWORD', 'guest')
 CELERY_BROKER_PORT = 5672
 CELERY_BROKER_HOST = 'localhost'
-CELERY_TASK_ALWAYS_EAGER=DEBUG
+CELERY_TASK_ALWAYS_EAGER=False
 
 
 CORS_ALLOW_HEADERS = (
@@ -487,6 +486,8 @@ ADYEN_PASSWORD = os.environ.get('ADYEN_PASSWORD', None)
 ADYEN_MERCHANT_ACCOUNT = os.environ.get('ADYEN_MERCHANT_ACCOUNT', None)
 ADYEN_HMAC_SECRET = os.environ.get('ADYEN_HMAC_SECRET', None)
 ADYEN_SKIN_CODE = os.environ.get('ADYEN_SKIN_CODE', None)
+ADYEN_ENDPOINT_ROOT= os.environ.get('ADYEN_ENDPOINT_ROOT', None)
+ADYEN_PAYMENT_OPTIONS_HPP = os.environ.get('ADYEN_PAYMENT_OPTIONS_HPP', None)
 
 PASSWORD_CONFIRMATION_TIMEOUT_DAYS = 1
 
