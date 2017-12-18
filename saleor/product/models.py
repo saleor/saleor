@@ -199,7 +199,7 @@ class Product(models.Model, ItemRange):
                 self, self.price, discounts, **kwargs)
             return PriceRange(price, price)
         else:
-            return super(Product, self).get_price_range(
+            return super().get_price_range(
                 discounts=discounts, **kwargs)
 
     def get_gross_price_range(self, **kwargs):
@@ -454,12 +454,12 @@ class ProductImage(models.Model):
             existing_max = qs.aggregate(Max('order'))
             existing_max = existing_max.get('order__max')
             self.order = 0 if existing_max is None else existing_max + 1
-        super(ProductImage, self).save(*args, **kwargs)
+        super().save(*args, **kwargs)
 
     def delete(self, *args, **kwargs):
         qs = self.get_ordering_queryset()
         qs.filter(order__gt=self.order).update(order=F('order') - 1)
-        super(ProductImage, self).delete(*args, **kwargs)
+        super().delete(*args, **kwargs)
 
 
 class VariantImage(models.Model):

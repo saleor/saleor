@@ -61,7 +61,7 @@ class AddressMetaForm(forms.ModelForm):
         fields = ['country', 'preview']
 
     def clean(self):
-        data = super(AddressMetaForm, self).clean()
+        data = super().clean()
         if data.get('preview'):
             self.data = self.data.copy()
             self.data['preview'] = False
@@ -94,7 +94,7 @@ class AddressForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         autocomplete_type = kwargs.pop('autocomplete_type', None)
-        super(AddressForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         autocomplete_dict = defaultdict(
             lambda: 'off', self.AUTOCOMPLETE_MAPPING)
         for field_name, field in self.fields.items():
@@ -149,7 +149,7 @@ class CountryAwareAddressForm(AddressForm):
         return data
 
     def clean(self):
-        data = super(CountryAwareAddressForm, self).clean()
+        data = super().clean()
         return self.validate_address(data)
 
 

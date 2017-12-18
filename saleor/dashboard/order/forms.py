@@ -29,7 +29,7 @@ class OrderNoteForm(forms.ModelForm):
         }
 
     def __init__(self, *args, **kwargs):
-        super(OrderNoteForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
 
 class ManagePaymentForm(forms.Form):
@@ -42,7 +42,7 @@ class ManagePaymentForm(forms.Form):
 
     def __init__(self, *args, **kwargs):
         self.payment = kwargs.pop('payment')
-        super(ManagePaymentForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
     def clean(self):
         if self.payment.status != self.clean_status:
@@ -107,7 +107,7 @@ class MoveLinesForm(forms.Form):
 
     def __init__(self, *args, **kwargs):
         self.line = kwargs.pop('line')
-        super(MoveLinesForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.fields['quantity'].validators.append(
             MaxValueValidator(self.line.quantity))
         self.fields['quantity'].widget.attrs.update({
@@ -133,7 +133,7 @@ class CancelLinesForm(forms.Form):
 
     def __init__(self, *args, **kwargs):
         self.line = kwargs.pop('line')
-        super(CancelLinesForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
     def cancel_line(self):
         if self.line.stock:
@@ -154,7 +154,7 @@ class ChangeQuantityForm(forms.ModelForm):
         fields = ['quantity']
 
     def __init__(self, *args, **kwargs):
-        super(ChangeQuantityForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.initial_quantity = self.instance.quantity
         self.fields['quantity'].initial = self.initial_quantity
 
@@ -190,7 +190,7 @@ class ShipGroupForm(forms.ModelForm):
         fields = ['tracking_number']
 
     def __init__(self, *args, **kwargs):
-        super(ShipGroupForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.fields['tracking_number'].widget.attrs.update(
             {'placeholder': pgettext_lazy(
                 'Ship group form field placeholder',
@@ -222,7 +222,7 @@ class ShipGroupForm(forms.ModelForm):
 class CancelGroupForm(forms.Form):
     def __init__(self, *args, **kwargs):
         self.delivery_group = kwargs.pop('delivery_group')
-        super(CancelGroupForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
     def cancel_group(self):
         cancel_delivery_group(self.delivery_group)
@@ -232,10 +232,10 @@ class CancelOrderForm(forms.Form):
 
     def __init__(self, *args, **kwargs):
         self.order = kwargs.pop('order')
-        super(CancelOrderForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
     def clean(self):
-        data = super(CancelOrderForm, self).clean()
+        data = super().clean()
         if not self.order.can_cancel():
             raise forms.ValidationError(
                 pgettext_lazy(
@@ -251,10 +251,10 @@ class RemoveVoucherForm(forms.Form):
 
     def __init__(self, *args, **kwargs):
         self.order = kwargs.pop('order')
-        super(RemoveVoucherForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
     def clean(self):
-        data = super(RemoveVoucherForm, self).clean()
+        data = super().clean()
         if not self.order.voucher:
             raise forms.ValidationError(
                 pgettext_lazy(
@@ -298,7 +298,7 @@ class ChangeStockForm(forms.ModelForm):
         fields = ['stock']
 
     def __init__(self, *args, **kwargs):
-        super(ChangeStockForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         sku = self.instance.product_sku
         self.fields['stock'].queryset = Stock.objects.filter(variant__sku=sku)
         self.old_stock = self.instance.stock
@@ -322,7 +322,7 @@ class ChangeStockForm(forms.ModelForm):
             self.instance.stock_location = (
                 stock.location.name if stock.location else '')
             Stock.objects.allocate_stock(stock, quantity)
-        super(ChangeStockForm, self).save(commit)
+        super().save(commit)
         merge_duplicates_into_order_line(self.instance)
         return self.instance
 
@@ -340,11 +340,11 @@ class AddVariantToDeliveryGroupForm(forms.Form):
 
     def __init__(self, *args, **kwargs):
         self.group = kwargs.pop('group')
-        super(AddVariantToDeliveryGroupForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
     def clean(self):
         """ Checks if given quantity is available in stocks. """
-        cleaned_data = super(AddVariantToDeliveryGroupForm, self).clean()
+        cleaned_data = super().clean()
         variant = cleaned_data.get('variant')
         quantity = cleaned_data.get('quantity')
         if variant and quantity is not None:
