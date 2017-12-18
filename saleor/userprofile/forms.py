@@ -37,7 +37,7 @@ def get_address_form(data, country_code, initial=None, instance=None, **kwargs):
 
 class ChangePasswordForm(django_forms.PasswordChangeForm):
     def __init__(self, *args, **kwargs):
-        super(ChangePasswordForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.fields['new_password1'].user = self.user
         self.fields['old_password'].widget.attrs['placeholder'] = ''
         self.fields['new_password1'].widget.attrs['placeholder'] = ''

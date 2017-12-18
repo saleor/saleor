@@ -25,7 +25,7 @@ class ProductForm(AddToCartForm):
     variant = VariantChoiceField(queryset=None)
 
     def __init__(self, *args, **kwargs):
-        super(ProductForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         variant_field = self.fields['variant']
         variant_field.queryset = self.product.variants
         variant_field.discounts = self.cart.discounts

@@ -10,7 +10,7 @@ class SortedFilterSet(FilterSet):
     def __init__(self, data, *args, **kwargs):
         data_copy = data.copy() if data else None
         self.is_bound_unsorted = self.set_is_bound_unsorted(data_copy)
-        super(SortedFilterSet, self).__init__(data, *args, **kwargs)
+        super().__init__(data, *args, **kwargs)
 
     def set_is_bound_unsorted(self, data_copy):
         if data_copy and data_copy.get('sort_by', None):

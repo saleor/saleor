@@ -119,7 +119,7 @@ class Cart(models.Model):
 
     def __init__(self, *args, **kwargs):
         self.discounts = kwargs.pop('discounts', None)
-        super(Cart, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
     def update_quantity(self):
         """Recalculate cart quantity based on lines."""
@@ -292,7 +292,7 @@ class CartLine(models.Model, ItemLine):
 
     def get_total(self, **kwargs):
         """Return the total price of this line."""
-        amount = super(CartLine, self).get_total(**kwargs)
+        amount = super().get_total(**kwargs)
         return amount.quantize(CENTS)
 
     def get_quantity(self, **kwargs):

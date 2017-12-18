@@ -7,7 +7,7 @@ class ImagePreviewFileInput(ClearableFileInputWithImagePreview):
     template_name = 'dashboard/product/product_image/versatile_image.html'
 
     def get_context(self, name, value, attrs):
-        context = super(ImagePreviewFileInput, self).get_context(
+        context = super().get_context(
             name, value, attrs)
         value = context['widget']['value']
         if value:
@@ -23,4 +23,4 @@ class ImagePreviewWidget(SizedImageCenterpointWidgetMixIn, MultiWidget):
     def __init__(self, attrs=None):
         widgets = (ImagePreviewFileInput(attrs={'class': 'file-chooser'}),
                    HiddenInput(attrs={'class': 'ppoi-input'}))
-        super(ImagePreviewWidget, self).__init__(widgets, attrs)
+        super().__init__(widgets, attrs)

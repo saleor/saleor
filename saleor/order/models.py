@@ -83,7 +83,7 @@ class Order(models.Model, ItemSet):
     def save(self, *args, **kwargs):
         if not self.token:
             self.token = str(uuid4())
-        return super(Order, self).save(*args, **kwargs)
+        return super().save(*args, **kwargs)
 
     def get_lines(self):
         return OrderLine.objects.filter(delivery_group__order=self)
@@ -170,7 +170,7 @@ class Order(models.Model, ItemSet):
 
     def get_subtotal_without_voucher(self):
         if self.get_lines():
-            return super(Order, self).get_total()
+            return super().get_total()
         return Price(net=0, currency=settings.DEFAULT_CURRENCY)
 
     def get_total_shipping(self):
@@ -217,14 +217,14 @@ class DeliveryGroup(models.Model, ItemSet):
     def __iter__(self):
         if self.id:
             return iter(self.lines.all())
-        return super(DeliveryGroup, self).__iter__()
+        return super().__iter__()
 
     @property
     def shipping_required(self):
         return self.shipping_method_name is not None
 
     def get_total(self, **kwargs):
-        subtotal = super(DeliveryGroup, self).get_total(**kwargs)
+        subtotal = super().get_total(**kwargs)
         return subtotal + self.shipping_price
 
     def get_total_quantity(self):
