@@ -296,12 +296,16 @@ class Checkout:
         self._add_to_user_address_book(
             self.billing_address, is_billing=True)
 
+        shipping_price = (
+            self.shipping_method.get_total() if self.shipping_method
+            else Price(0, currency=settings.DEFAULT_CURRENCY)
+        )
         order_data = {
             'language_code': get_language(),
             'billing_address': billing_address,
             'shipping_address': shipping_address,
             'tracking_client_id': self.tracking_code,
-            'shipping_price': self.shipping_method.get_total(),
+            'shipping_price': shipping_price,
             'total': self.get_total()}
 
         if self.user.is_authenticated:
