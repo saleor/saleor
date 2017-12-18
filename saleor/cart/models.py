@@ -91,7 +91,6 @@ class Cart(models.Model):
         pgettext_lazy('Cart field', 'last status change'), auto_now_add=True)
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL, blank=True, null=True, related_name='carts',
-        verbose_name=pgettext_lazy('Cart field', 'user'),
         on_delete=models.CASCADE)
     email = models.EmailField(
         pgettext_lazy('Cart field', 'email'), blank=True, null=True)
@@ -100,11 +99,9 @@ class Cart(models.Model):
         primary_key=True, default=uuid4, editable=False)
     voucher = models.ForeignKey(
         'discount.Voucher', null=True, related_name='+',
-        on_delete=models.SET_NULL,
-        verbose_name=pgettext_lazy('Cart field', 'token'))
+        on_delete=models.SET_NULL)
     checkout_data = JSONField(
-        verbose_name=pgettext_lazy('Cart field', 'checkout data'), null=True,
-        editable=False,)
+        null=True, editable=False,)
     total = PriceField(
         pgettext_lazy('Cart field', 'total'),
         currency=settings.DEFAULT_CURRENCY, max_digits=12, decimal_places=2,
@@ -249,19 +246,14 @@ class CartLine(models.Model, ItemLine):
     """
 
     cart = models.ForeignKey(
-        Cart, related_name='lines',
-        verbose_name=pgettext_lazy('Cart line field', 'cart'),
-        on_delete=models.CASCADE)
+        Cart, related_name='lines', on_delete=models.CASCADE)
     variant = models.ForeignKey(
-        'product.ProductVariant', related_name='+',
-        verbose_name=pgettext_lazy('Cart line field', 'product'),
-        on_delete=models.CASCADE)
+        'product.ProductVariant', related_name='+', on_delete=models.CASCADE)
     quantity = models.PositiveIntegerField(
         pgettext_lazy('Cart line field', 'quantity'),
         validators=[MinValueValidator(0), MaxValueValidator(999)])
     data = JSONField(
-        blank=True, default={},
-        verbose_name=pgettext_lazy('Cart line field', 'data'))
+        blank=True, default={})
 
     class Meta:
         unique_together = ('cart', 'variant', 'data')

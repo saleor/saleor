@@ -78,7 +78,6 @@ class Address(models.Model):
         pgettext_lazy('Address field', 'state or province'),
         max_length=128, blank=True)
     phone = PossiblePhoneNumberField(
-        verbose_name=pgettext_lazy('Address field', 'phone number'),
         blank=True, default='')
     objects = AddressManager()
 
@@ -126,8 +125,7 @@ class User(PermissionsMixin, AbstractBaseUser):
     email = models.EmailField(
         pgettext_lazy('User field', 'email'), unique=True)
     addresses = models.ManyToManyField(
-        Address, blank=True,
-        verbose_name=pgettext_lazy('User field', 'addresses'))
+        Address, blank=True)
     is_staff = models.BooleanField(
         pgettext_lazy('User field', 'staff status'),
         default=False)
@@ -139,12 +137,10 @@ class User(PermissionsMixin, AbstractBaseUser):
         default=timezone.now, editable=False)
     default_shipping_address = models.ForeignKey(
         Address, related_name='+', null=True, blank=True,
-        on_delete=models.SET_NULL,
-        verbose_name=pgettext_lazy('User field', 'default shipping address'))
+        on_delete=models.SET_NULL)
     default_billing_address = models.ForeignKey(
         Address, related_name='+', null=True, blank=True,
-        on_delete=models.SET_NULL,
-        verbose_name=pgettext_lazy('User field', 'default billing address'))
+        on_delete=models.SET_NULL)
 
     USERNAME_FIELD = 'email'
 

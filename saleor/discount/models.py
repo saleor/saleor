@@ -112,11 +112,9 @@ class Voucher(models.Model):
     # not mandatory fields, usage depends on type
     product = models.ForeignKey(
         'product.Product', blank=True, null=True,
-        verbose_name=pgettext_lazy('Voucher field', 'product'),
         on_delete=models.CASCADE)
     category = models.ForeignKey(
         'product.Category', blank=True, null=True,
-        verbose_name=pgettext_lazy('Voucher field', 'category'),
         on_delete=models.CASCADE)
     apply_to = models.CharField(
         pgettext_lazy('Voucher field', 'apply to'),
@@ -278,11 +276,9 @@ class Sale(models.Model):
         pgettext_lazy('Sale (discount) field', 'value'),
         max_digits=12, decimal_places=2, default=0)
     products = models.ManyToManyField(
-        'product.Product', blank=True,
-        verbose_name=pgettext_lazy('Sale (discount) field', 'products'))
+        'product.Product', blank=True)
     categories = models.ManyToManyField(
-        'product.Category', blank=True,
-        verbose_name=pgettext_lazy('Sale (discount) field', 'categories'))
+        'product.Category', blank=True)
 
     class Meta:
         app_label = 'discount'
