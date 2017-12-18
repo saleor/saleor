@@ -72,50 +72,64 @@
     </div>
   {% endfor %}
   {% if order.is_shipping_required %}
-    <div class="table__row">
-      <div class="row">
-        <div class="col-8 order-details__table-footer">
-          <p>
-            {% blocktrans trimmed with shipping_method_name=item.shipping_method_name context "Order details shipment row text"  %}
-            Shipment ({{ shipping_method_name }})
-            {% endblocktrans %}
-          </p>
-          {% if item.tracking_number %}
-          <p>
-            {% blocktrans trimmed with tracking_number=item.tracking_number context "Order details shipment row text"  %}
-            Tracking number: {{ tracking_number }}
-            {% endblocktrans %}
-          </p>
-          {% endif %}
-        </div>
-        <div class="col-4">
-          <p class="float-right">{% gross item.shipping_price html=True %}</p>
-        </div>
-      </div>
-    </div>
-  {% endif %}
-  {% if order.discount_amount %}
-    <div class="table__row">
-      <div class="row">
-        <div class="col-8 order-details__table-footer">
-          <p>{{ order.discount_name }}</p>
-        </div>
-        <div class="col-4">
-          <p class="float-right">{% discount_as_negative order.discount %}</p>
-        </div>
-      </div>
-    </div>
-  {% endif %}
-  <div class="order-details__total">
+  <div class="table__row">
     <div class="row">
-      <div class="col-8 order-details__table-footer">
-        <div class="total">
-          <h3>{% trans "Total" context "Order details total text" %}</h3>
-        </div>
-      </div>
-      <div class="col-4">
-        <p class="float-right">{% gross order.total html=True %}</p>
+      <div class="col-12 order-details__table-footer">
+        <p>
+          {% blocktrans trimmed with shipping_method_name=item.shipping_method_name context "Order details shipment row text"  %}
+          Shipping ({{ shipping_method_name }})
+          {% endblocktrans %}
+        </p>
+        {% if item.tracking_number %}
+        <p>
+          {% blocktrans trimmed with tracking_number=item.tracking_number context "Order details shipment row text"  %}
+          Tracking number: {{ tracking_number }}
+          {% endblocktrans %}
+        </p>
+        {% endif %}
       </div>
     </div>
   </div>
+{% endif %}
 {% endfor %}
+
+{% if order.is_shipping_required %}
+  <div class="table__row">
+    <div class="row">
+      <div class="col-8 order-details__table-footer">
+        <p>
+          {% trans "Shipping total" context "Order details shipment row text" %}
+        </p>
+      </div>
+      <div class="col-4">
+        <p class="float-right">{% gross order.shipping_price html=True %}</p>
+      </div>
+    </div>
+  </div>
+{% endif %}
+
+{% if order.discount_amount %}
+<div class="table__row">
+  <div class="row">
+    <div class="col-8 order-details__table-footer">
+      <p>{{ order.discount_name }}</p>
+    </div>
+    <div class="col-4">
+      <p class="float-right">{% discount_as_negative order.discount %}</p>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+<div class="order-details__total">
+  <div class="row">
+    <div class="col-8 order-details__table-footer">
+      <div class="total">
+        <h3>{% trans "Total" context "Order details total text" %}</h3>
+      </div>
+    </div>
+    <div class="col-4">
+      <p class="float-right">{% gross order.total html=True %}</p>
+    </div>
+  </div>
+</div>
