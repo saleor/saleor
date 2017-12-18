@@ -1,17 +1,74 @@
 header {
-  padding-top: $global-padding*2;
-  padding-bottom: $global-padding*2;
+  .notice-bar {
+    height: 5rem;
+    background: $blue;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    @media (max-width: $screen-sm-max) {
+      height: 6rem;
+      .notice-text {
+        padding-left: 1rem;
+      }
+    }
+    .notice-text {
+      font-size: 1.5rem;
+      font-weight: 300;
+      width: calc(100% - 20rem);
+      margin: auto;
+      a {
+        color: #FFFFFF;
+        text-decoration: underline;
+      }
+    }
+    #notice-bar-close {
+      position: absolute;
+      top: 0;
+      right: $global-margin * 2;
+      width: 5rem;
+      height: 5rem;
+      cursor: pointer;
+      @media (max-width: $screen-sm-max) {
+        right: 0;
+        width: 6rem;
+        height: 6rem;
+      }
+      &:before, &:after {
+        height: 3rem;
+        width: 2px;
+        background: #fff;
+        content: '';
+        position: absolute;
+        right: 2.5 * $global-margin;
+        top: $global-margin;
+        @include transition(opacity 0.3s);
+        @media (max-width: $screen-sm-max) {
+          right: 2.8 * $global-margin;
+          top: 1.5 * $global-margin;
+        }
+      }
+      &:before {
+        transform: rotate(-45deg);
+      }
+      &:after {
+        transform: rotate(45deg);
+      }
+      &:hover {
+        &:before, &:after {
+          opacity: .7;
+        }
+      }
+    }
+  }
   .navbar {
     width: 100%;
-    position: absolute;
-    left: 0;
-    top: 1rem;
+    margin-top: 1rem;
     z-index: 999;
     .logo {
       img {
         max-height: 80px;
         opacity: 1;
-        @include transition(opacity 0.3s)
+        @include transition(opacity 0.3s);
         &:hover {
           opacity: 0.7;
         }
@@ -36,16 +93,21 @@ header {
               color: $red;
             }
           }
+          &.gh-widget {
+            img {
+              margin: -3px 5px 0;
+            }
+          }
           &:last-child {
             a {
-              color: $red;
-              border: solid 1px $red;
+              color: $blue;
+              border: solid 1px $blue;
               padding: $global-padding $global-padding;
               @include transition(background-color, 0.3s);
               &:hover {
-                background: $red;
+                background: $blue;
                 color: $white;
-                border: solid 1px $red;
+                border: solid 1px $blue;
               }
             }
           }
@@ -57,6 +119,9 @@ header {
       margin: $global-margin*4 $global-margin*2;
       .icon-bar {
         background: $base-color;
+      }
+      @media (max-width: $screen-sm-max) {
+        margin-bottom: 2rem;
       }
     }
   }

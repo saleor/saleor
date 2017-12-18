@@ -36,7 +36,7 @@
     font-style: italic;
   }
   &-top {
-    margin-top: $global-margin*8;
+    margin-top: $global-margin*5;
     padding-top: $global-padding;
     border-top: solid 1px $gray;
     h2 {
@@ -46,7 +46,23 @@
       text-transform: uppercase;
     }
     img {
-      margin-top: -$global-margin*5;
+      position: relative;
+      @media (max-width: $screen-sm-max) {
+        margin-top: 5rem;
+      }
+      @media (max-width: $screen-xs-max) {
+        margin-top: 7rem;
+      }
+    }
+    .btn-get-started {
+      position: absolute;
+      right: 0;
+      left: 0;
+      top: 0;
+      @include btn-primary($green, $white);
+    }
+    @media (max-width: $screen-sm-max) {
+      margin-top: 0;
     }
   }
   &-developers {
@@ -128,7 +144,7 @@
     }
   }
   &-customers {
-    border-bottom:solid 1px $gray;
+    border-bottom: solid 1px $gray;
     h2 {
       span {
         color: $green;

@@ -3269,60 +3269,114 @@ strong {
   display: block;
   margin: 2rem auto;
   font-weight: 900;
-  padding: 1rem 0; }
+  padding: 1rem 0;
+  text-transform: uppercase; }
 
-header {
-  padding-top: 2rem;
-  padding-bottom: 2rem; }
-  header .navbar {
-    width: 100%;
+header .notice-bar {
+  height: 5rem;
+  background: #26A5D4;
+  color: #fff;
+  display: flex;
+  align-items: center; }
+  @media (max-width: 991px) {
+    header .notice-bar {
+      height: 6rem; }
+      header .notice-bar .notice-text {
+        padding-left: 1rem; } }
+  header .notice-bar .notice-text {
+    font-size: 1.5rem;
+    font-weight: 300;
+    width: calc(100% - 20rem);
+    margin: auto; }
+    header .notice-bar .notice-text a {
+      color: #FFFFFF;
+      text-decoration: underline; }
+  header .notice-bar #notice-bar-close {
     position: absolute;
-    left: 0;
-    top: 1rem;
-    z-index: 999; }
-    header .navbar .logo img {
-      max-height: 80px;
-      opacity: 1;
+    top: 0;
+    right: 2rem;
+    width: 5rem;
+    height: 5rem;
+    cursor: pointer; }
+    @media (max-width: 991px) {
+      header .notice-bar #notice-bar-close {
+        right: 0;
+        width: 6rem;
+        height: 6rem; } }
+    header .notice-bar #notice-bar-close:before, header .notice-bar #notice-bar-close:after {
+      height: 3rem;
+      width: 2px;
+      background: #fff;
+      content: '';
+      position: absolute;
+      right: 2.5rem;
+      top: 1rem;
       -webkit-transition: opacity 0.3s;
       -o-transition: opacity 0.3s;
       transition: opacity 0.3s; }
-      header .navbar .logo img:hover {
-        opacity: 0.7; }
-    header .navbar .navbar-collapse {
-      background: #fff;
-      padding-top: 5rem; }
-      header .navbar .navbar-collapse ul {
-        padding-left: 0;
-        list-style: none; }
-        header .navbar .navbar-collapse ul li {
-          display: inline-block;
-          padding: 0 1rem; }
-          header .navbar .navbar-collapse ul li a {
-            text-transform: uppercase;
-            font-weight: 900;
-            color: #333333;
-            -webkit-transition: color, 0.3s;
-            -o-transition: color, 0.3s;
-            transition: color, 0.3s; }
-            header .navbar .navbar-collapse ul li a:hover {
-              text-decoration: none;
-              color: #D85039; }
-          header .navbar .navbar-collapse ul li:last-child a {
-            color: #D85039;
-            border: solid 1px #D85039;
-            padding: 1rem 1rem;
-            -webkit-transition: background-color, 0.3s;
-            -o-transition: background-color, 0.3s;
-            transition: background-color, 0.3s; }
-            header .navbar .navbar-collapse ul li:last-child a:hover {
-              background: #D85039;
-              color: #fff;
-              border: solid 1px #D85039; }
-    header .navbar .navbar-toggle {
-      border: solid 1px #333333;
-      margin: 4rem 2rem; }
-      header .navbar .navbar-toggle .icon-bar {
-        background: #333333; }
+      @media (max-width: 991px) {
+        header .notice-bar #notice-bar-close:before, header .notice-bar #notice-bar-close:after {
+          right: 2.8rem;
+          top: 1.5rem; } }
+    header .notice-bar #notice-bar-close:before {
+      transform: rotate(-45deg); }
+    header .notice-bar #notice-bar-close:after {
+      transform: rotate(45deg); }
+    header .notice-bar #notice-bar-close:hover:before, header .notice-bar #notice-bar-close:hover:after {
+      opacity: .7; }
+
+header .navbar {
+  width: 100%;
+  margin-top: 1rem;
+  z-index: 999; }
+  header .navbar .logo img {
+    max-height: 80px;
+    opacity: 1;
+    -webkit-transition: opacity 0.3s;
+    -o-transition: opacity 0.3s;
+    transition: opacity 0.3s; }
+    header .navbar .logo img:hover {
+      opacity: 0.7; }
+  header .navbar .navbar-collapse {
+    background: #fff;
+    padding-top: 5rem; }
+    header .navbar .navbar-collapse ul {
+      padding-left: 0;
+      list-style: none; }
+      header .navbar .navbar-collapse ul li {
+        display: inline-block;
+        padding: 0 1rem; }
+        header .navbar .navbar-collapse ul li a {
+          text-transform: uppercase;
+          font-weight: 900;
+          color: #333333;
+          -webkit-transition: color, 0.3s;
+          -o-transition: color, 0.3s;
+          transition: color, 0.3s; }
+          header .navbar .navbar-collapse ul li a:hover {
+            text-decoration: none;
+            color: #D85039; }
+        header .navbar .navbar-collapse ul li.gh-widget img {
+          margin: -3px 5px 0; }
+        header .navbar .navbar-collapse ul li:last-child a {
+          color: #26A5D4;
+          border: solid 1px #26A5D4;
+          padding: 1rem 1rem;
+          -webkit-transition: background-color, 0.3s;
+          -o-transition: background-color, 0.3s;
+          transition: background-color, 0.3s; }
+          header .navbar .navbar-collapse ul li:last-child a:hover {
+            background: #26A5D4;
+            color: #fff;
+            border: solid 1px #26A5D4; }
+  header .navbar .navbar-toggle {
+    border: solid 1px #333333;
+    margin: 4rem 2rem; }
+    header .navbar .navbar-toggle .icon-bar {
+      background: #333333; }
+    @media (max-width: 991px) {
+      header .navbar .navbar-toggle {
+        margin-bottom: 2rem; } }
 
 .section {
   padding: 3rem 0; }
@@ -3354,7 +3408,7 @@ header {
     padding: 20px 0 0 0;
     font-style: italic; }
   .section-top {
-    margin-top: 8rem;
+    margin-top: 5rem;
     padding-top: 1rem;
     border-top: solid 1px #BDBDBD; }
     .section-top h2 {
@@ -3362,7 +3416,31 @@ header {
     .section-top h3 {
       text-transform: uppercase; }
     .section-top img {
-      margin-top: -5rem; }
+      position: relative; }
+      @media (max-width: 991px) {
+        .section-top img {
+          margin-top: 5rem; } }
+      @media (max-width: 767px) {
+        .section-top img {
+          margin-top: 7rem; } }
+    .section-top .btn-get-started {
+      position: absolute;
+      right: 0;
+      left: 0;
+      top: 0;
+      background: #2AB573;
+      color: #fff;
+      border: solid 1px transparent;
+      -webkit-transition: background-color, 0.3s;
+      -o-transition: background-color, 0.3s;
+      transition: background-color, 0.3s; }
+      .section-top .btn-get-started:hover {
+        background: #fff;
+        color: #2AB573;
+        border: solid 1px #2AB573; }
+    @media (max-width: 991px) {
+      .section-top {
+        margin-top: 0; } }
   .section-developers h2 span {
     color: #26A5D4; }
   .section-developers h3 {
