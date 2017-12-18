@@ -2,14 +2,15 @@ import Dropzone from 'dropzone';
 import Sortable from 'sortablejs';
 
 export default $(document).ready((e) => {
-  Dropzone.options.productImageForm = {
+  $('#product-image-form').dropzone({
     paramName: 'image_0',
     maxFilesize: 20,
     previewsContainer: '.product-gallery',
     thumbnailWidth: 400,
     thumbnailHeight: 400,
     previewTemplate: $('#template').html(),
-    clickable: false,
+    method: 'POST',
+    clickable: '.dropzone-message',
     init: function () {
       this.on('success', function (e, response) {
         $(e.previewElement).find('.product-gallery-item-desc').html(response.image);
@@ -27,7 +28,7 @@ export default $(document).ready((e) => {
         $('.no-images').addClass('hide');
       });
     }
-  };
+  });
   let el = document.getElementById('product-gallery');
   if (el) {
     Sortable.create(el, {

@@ -47,7 +47,7 @@
 
 {% block content %}
   <div id="images" class="tab-content">
-    <form action="{% url 'dashboard:product-images-upload' product_pk=product.pk %}" class="dropzone" id="product-image-form" novalidate>
+    <form action="{% url 'dashboard:product-images-upload' product_pk=product.pk %}" class="" id="product-image-form" novalidate>
       <div class="dz-message"></div>
       {% csrf_token %}
       <div class="row">
