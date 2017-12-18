@@ -1,7 +1,7 @@
 Order management
 ================
 
-Orders are created after customers successfully complete the checkout process. The `Order` object itself contains only general information about the customer's order.
+Orders are created after customers complete the checkout process. The `Order` object itself contains only general information about the customer's order.
 
 Delivery Group
 --------------
