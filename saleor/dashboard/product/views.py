@@ -126,6 +126,9 @@ def product_list(request):
 @staff_member_required
 @permission_required('product.edit_product')
 def product_select_classes(request):
+    """
+    View for add product modal embedded in the product list view.
+    """
     form = forms.ProductClassSelectorForm(request.POST or None)
     status = 200
     if form.is_valid():
