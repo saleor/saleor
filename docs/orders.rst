@@ -28,7 +28,7 @@ Order statuses
 Order status is deduced based on statuses of its delivery groups. There are two possible statuses:
 
 - ``OPEN``
-    There is at least one delivery group with the ``NEW`` status. An an action by a shop operator is required to continue order processing.
+    There is at least one delivery group with the ``NEW`` status. An action by a shop operator is required to continue order processing.
 
 - ``CLOSED``
     There are no delivery groups with the ``NEW`` status. Order doesn't require further actions by a shop operator.
