@@ -301,6 +301,7 @@ class Checkout:
             'billing_address': billing_address,
             'shipping_address': shipping_address,
             'tracking_client_id': self.tracking_code,
+            'shipping_price': self.shipping_method.get_total(),
             'total': self.get_total()}
 
         if self.user.is_authenticated:
@@ -320,14 +321,10 @@ class Checkout:
 
         for partition in self.cart.partition():
             shipping_required = partition.is_shipping_required()
-            if shipping_required:
-                shipping_price = self.shipping_method.get_total()
-                shipping_method_name = smart_text(self.shipping_method)
-            else:
-                shipping_price = 0
-                shipping_method_name = None
+            shipping_method_name = (
+                smart_text(self.shipping_method) if shipping_required else None
+            )
             group = order.groups.create(
-                shipping_price=shipping_price,
                 shipping_method_name=shipping_method_name)
             fill_group_with_partition(
                 group, partition, discounts=self.cart.discounts)
@@ -381,15 +378,6 @@ class Checkout:
             for shipment, shipping_cost, total in self.deliveries)
         total = sum(cost_iterator, zero)
         return total if self.discount is None else self.discount.apply(total)
-
-    def get_total_shipping(self):
-        """Calculate shipping total."""
-        zero = Price(0, currency=settings.DEFAULT_CURRENCY)
-        cost_iterator = (
-            shipping_cost
-            for shipment, shipping_cost, total in self.deliveries)
-        total = sum(cost_iterator, zero)
-        return total
 
 
 def load_checkout(view):

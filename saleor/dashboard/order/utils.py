@@ -30,8 +30,7 @@ def create_invoice_pdf(order_pk, absolute_url):
         'user', 'shipping_address', 'billing_address', 'voucher',
         'groups').get(pk=order_pk))
     shipping_methods = [
-        {'name': d.shipping_method_name,
-         'price': d.shipping_price} for d in order.groups.all()]
+        {'name': d.shipping_method_name} for d in order.groups.all()]
     ctx = {'order': order, 'shipping_methods': shipping_methods}
     rendered_template = get_template(INVOICE_TEMPLATE).render(ctx)
     pdf_file = _create_pdf(rendered_template, absolute_url)

@@ -20,7 +20,7 @@
       'id': '{{ order.id }}',
       'affiliation': 'Saleor',
       'revenue': '{{ order.get_total.gross }}',
-      'shipping': '{{ order.get_delivery_total.gross }}',
+      'shipping': '{{ order.shipping_price.gross }}',
       'tax': '{{ order.get_total.tax }}'
     });
     {% for item in order.get_lines %}
