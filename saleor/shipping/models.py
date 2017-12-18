@@ -84,8 +84,6 @@ class ShippingMethodCountry(models.Model):
         currency=settings.DEFAULT_CURRENCY, max_digits=12, decimal_places=2)
     shipping_method = models.ForeignKey(
         ShippingMethod, related_name='price_per_country',
-        verbose_name=pgettext_lazy(
-            'Shipping method country field', 'shipping method'),
         on_delete=models.CASCADE)
 
     objects = ShippingMethodCountryQueryset.as_manager()

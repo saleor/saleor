@@ -43,7 +43,6 @@ class Order(models.Model, ItemSet):
         default=now, editable=False)
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL, blank=True, null=True, related_name='orders',
-        verbose_name=pgettext_lazy('Order field', 'user'),
         on_delete=models.SET_NULL)
     language_code = models.CharField(
         max_length=35, default=settings.LANGUAGE_CODE)
@@ -52,11 +51,9 @@ class Order(models.Model, ItemSet):
         max_length=36, blank=True, editable=False)
     billing_address = models.ForeignKey(
         Address, related_name='+', editable=False,
-        verbose_name=pgettext_lazy('Order field', 'billing address'),
         on_delete=models.PROTECT)
     shipping_address = models.ForeignKey(
         Address, related_name='+', editable=False, null=True,
-        verbose_name=pgettext_lazy('Order field', 'shipping address'),
         on_delete=models.PROTECT)
     user_email = models.EmailField(
         pgettext_lazy('Order field', 'user email'),
@@ -76,14 +73,11 @@ class Order(models.Model, ItemSet):
         currency=settings.DEFAULT_CURRENCY, max_digits=12, decimal_places=2,
         blank=True, null=True)
     voucher = models.ForeignKey(
-        Voucher, null=True, related_name='+', on_delete=models.SET_NULL,
-        verbose_name=pgettext_lazy('Order field', 'voucher'))
+        Voucher, null=True, related_name='+', on_delete=models.SET_NULL)
     discount_amount = PriceField(
-        verbose_name=pgettext_lazy('Order field', 'discount amount'),
         currency=settings.DEFAULT_CURRENCY, max_digits=12, decimal_places=2,
         blank=True, null=True)
     discount_name = models.CharField(
-        verbose_name=pgettext_lazy('Order field', 'discount name'),
         max_length=255, default='', blank=True)
 
     objects = OrderQuerySet.as_manager()
@@ -256,12 +250,10 @@ class DeliveryGroup(models.Model, ItemSet):
 class OrderLine(models.Model, ItemLine):
     delivery_group = models.ForeignKey(
         DeliveryGroup, related_name='lines', editable=False,
-        verbose_name=pgettext_lazy('Ordered line field', 'shipment group'),
         on_delete=models.CASCADE)
     product = models.ForeignKey(
         Product, blank=True, null=True, related_name='+',
-        on_delete=models.SET_NULL,
-        verbose_name=pgettext_lazy('Ordered line field', 'product'))
+        on_delete=models.SET_NULL)
     product_name = models.CharField(
         pgettext_lazy('Ordered line field', 'product name'), max_length=128)
     product_sku = models.CharField(
@@ -270,8 +262,7 @@ class OrderLine(models.Model, ItemLine):
         pgettext_lazy('Ordered line field', 'stock location'), max_length=100,
         default='')
     stock = models.ForeignKey(
-        'product.Stock', on_delete=models.SET_NULL, null=True,
-        verbose_name=pgettext_lazy('Ordered line field', 'stock'))
+        'product.Stock', on_delete=models.SET_NULL, null=True)
     quantity = models.IntegerField(
         pgettext_lazy('Ordered line field', 'quantity'),
         validators=[MinValueValidator(0), MaxValueValidator(999)])
@@ -304,7 +295,6 @@ class PaymentManager(models.Manager):
 class Payment(BasePayment):
     order = models.ForeignKey(
         Order, related_name='payments',
-        verbose_name=pgettext_lazy('Payment field', 'order'),
         on_delete=models.PROTECT)
 
     objects = PaymentManager()
@@ -359,7 +349,6 @@ class OrderHistoryEntry(models.Model):
         default=now, editable=False)
     order = models.ForeignKey(
         Order, related_name='history',
-        verbose_name=pgettext_lazy('Order history entry field', 'order'),
         on_delete=models.CASCADE)
     status = models.CharField(
         pgettext_lazy('Order history entry field', 'order status'),
@@ -369,7 +358,6 @@ class OrderHistoryEntry(models.Model):
         max_length=100, default='', blank=True)
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL, blank=True, null=True,
-        verbose_name=pgettext_lazy('Order history entry field', 'user'),
         on_delete=models.SET_NULL)
 
     class Meta:
