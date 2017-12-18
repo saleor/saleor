@@ -28,6 +28,14 @@ def get_ancestors_from_cache(category, context):
         return category.get_ancestors()
 
 
+class TranslatedModel(object):
+
+    @classmethod
+    def get_node(cls, id, context, info):
+        node = super(TranslatedModel, cls).get_node(id, context, info)
+        return node.translated
+
+
 class ProductAvailabilityType(graphene.ObjectType):
     available = graphene.Boolean()
     discount = graphene.Field(lambda: PriceType)
@@ -73,7 +81,7 @@ class ProductType(DjangoObjectType):
         return ProductAvailabilityType(**a._asdict())
 
 
-class CategoryType(DjangoObjectType):
+class CategoryType(TranslatedModel, DjangoObjectType):
     products = DjangoConnectionField(
         ProductType,
         attributes=graphene.Argument(
@@ -179,7 +187,7 @@ class CategoryType(DjangoObjectType):
         return qs
 
 
-class ProductVariantType(DjangoObjectType):
+class ProductVariantType(TranslatedModel, DjangoObjectType):
     stock_quantity = graphene.Int()
     price_override = graphene.Field(lambda: PriceType)
 
@@ -205,7 +213,7 @@ class ProductImageType(DjangoObjectType):
         return self.image.url
 
 
-class ProductAttributeValue(DjangoObjectType):
+class ProductAttributeValue(TranslatedModel, DjangoObjectType):
     class Meta:
         model = AttributeChoiceValue
         interfaces = (relay.Node, DjangoPkInterface)

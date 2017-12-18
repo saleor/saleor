@@ -8,7 +8,9 @@ from django.conf import settings
 from django.contrib.sites.models import Site
 from django.core.paginator import InvalidPage, Paginator
 from django.http import Http404
-from django.utils.encoding import iri_to_uri, smart_text
+from django.utils.encoding import (
+    iri_to_uri, smart_text, python_2_unicode_compatible)
+from django.utils.translation import get_language
 from django_countries import countries
 from django_countries.fields import Country
 from django_prices_openexchangerates import exchange_currency
@@ -121,3 +123,28 @@ def create_superuser(credentials):
     else:
         msg = 'Superuser already exists - %(email)s' % credentials
     return msg
+
+
+@python_2_unicode_compatible
+class TranslationWrapper(object):
+    def __init__(self, instance, locale):
+        self.instance = instance
+        self.translation = next((t for t in instance.translations.all()
+                                 if t.language_code == locale), None)
+
+    def __getattr__(self, item):
+        if self.translation is not None and hasattr(
+                self.translation, item) and item not in ['id', 'pk']:
+            return getattr(self.translation, item)
+        return getattr(self.instance, item)
+
+    def __str__(self):
+        instance = self.translation or self.instance
+        return str(instance)
+
+
+class TranslationProxy(object):
+
+    def __get__(self, instance, owner):
+        locale = get_language()
+        return TranslationWrapper(instance, locale)

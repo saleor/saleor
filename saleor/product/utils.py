@@ -47,7 +47,8 @@ def get_product_images(product):
 
 def products_with_availability(products, discounts, local_currency):
     for product in products:
-        yield product, get_availability(product, discounts, local_currency)
+        yield product.translated, get_availability(
+            product, discounts, local_currency)
 
 
 ProductAvailability = namedtuple(
@@ -191,7 +192,7 @@ def get_variant_picker_data(product, discounts=None, local_currency=None):
         if available_variants:
             data['variantAttributes'].append({
                 'pk': attribute.pk,
-                'name': attribute.name,
+                'name': attribute.translated.name,
                 'slug': attribute.slug,
                 'values': [
                     {'pk': value.pk, 'name': value.name, 'slug': value.slug}
@@ -210,9 +211,10 @@ def get_variant_picker_data(product, discounts=None, local_currency=None):
 
 def get_product_attributes_data(product):
     attributes = product.product_class.product_attributes.all()
-    attributes_map = {attribute.pk: attribute for attribute in attributes}
+    attributes_map = {attribute.pk: attribute.translated
+                      for attribute in attributes}
     values_map = get_attributes_display_map(product, attributes)
-    return {attributes_map.get(attr_pk): value_obj
+    return {attributes_map.get(attr_pk): value_obj.translated
             for (attr_pk, value_obj) in values_map.items()}
 
 
