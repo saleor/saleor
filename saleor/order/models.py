@@ -62,7 +62,7 @@ class Order(models.Model, ItemSet):
         pgettext_lazy('Order field', 'user email'),
         blank=True, default='', editable=False)
     shipping_price = PriceField(
-        pgettext_lazy('Shipment group field', 'shipping price'),
+        pgettext_lazy('Order field', 'shipping price'),
         currency=settings.DEFAULT_CURRENCY, max_digits=12, decimal_places=4,
         default=0, editable=False)
     token = models.CharField(
