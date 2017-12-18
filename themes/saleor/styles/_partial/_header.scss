@@ -1,21 +1,21 @@
 header {
   .notice-bar {
-    height: 7rem;
+    height: 5rem;
     background: $blue;
     color: #fff;
     display: flex;
     align-items: center;
+    @media (max-width: $screen-sm-max) {
+      height: 6rem;
+      .notice-text {
+        padding-left: 1rem;
+      }
+    }
     .notice-text {
       font-size: 1.5rem;
       font-weight: 300;
       width: calc(100% - 20rem);
       margin: auto;
-      @media (max-width: $screen-sm-max) {
-        width: calc(100% - 7rem);
-        margin: unset;
-        text-align: left;
-        padding-left: 1rem;
-      }
       a {
         color: #FFFFFF;
         text-decoration: underline;
@@ -25,11 +25,13 @@ header {
       position: absolute;
       top: 0;
       right: $global-margin * 2;
-      width: 7rem;
-      height: 7rem;
+      width: 5rem;
+      height: 5rem;
       cursor: pointer;
       @media (max-width: $screen-sm-max) {
         right: 0;
+        width: 6rem;
+        height: 6rem;
       }
       &:before, &:after {
         height: 3rem;
@@ -37,9 +39,13 @@ header {
         background: #fff;
         content: '';
         position: absolute;
-        right: 3.3 * $global-margin;
-        top: 18px;
+        right: 2.5 * $global-margin;
+        top: $global-margin;
         @include transition(opacity 0.3s);
+        @media (max-width: $screen-sm-max) {
+          right: 2.8 * $global-margin;
+          top: 1.5 * $global-margin;
+        }
       }
       &:before {
         transform: rotate(-45deg);
@@ -113,6 +119,9 @@ header {
       margin: $global-margin*4 $global-margin*2;
       .icon-bar {
         background: $base-color;
+      }
+      @media (max-width: $screen-sm-max) {
+        margin-bottom: 2rem;
       }
     }
   }

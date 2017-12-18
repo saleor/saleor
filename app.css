@@ -3273,22 +3273,21 @@ strong {
   text-transform: uppercase; }
 
 header .notice-bar {
-  height: 7rem;
+  height: 5rem;
   background: #26A5D4;
   color: #fff;
   display: flex;
   align-items: center; }
+  @media (max-width: 991px) {
+    header .notice-bar {
+      height: 6rem; }
+      header .notice-bar .notice-text {
+        padding-left: 1rem; } }
   header .notice-bar .notice-text {
     font-size: 1.5rem;
     font-weight: 300;
     width: calc(100% - 20rem);
     margin: auto; }
-    @media (max-width: 991px) {
-      header .notice-bar .notice-text {
-        width: calc(100% - 7rem);
-        margin: unset;
-        text-align: left;
-        padding-left: 1rem; } }
     header .notice-bar .notice-text a {
       color: #FFFFFF;
       text-decoration: underline; }
@@ -3296,23 +3295,29 @@ header .notice-bar {
     position: absolute;
     top: 0;
     right: 2rem;
-    width: 7rem;
-    height: 7rem;
+    width: 5rem;
+    height: 5rem;
     cursor: pointer; }
     @media (max-width: 991px) {
       header .notice-bar #notice-bar-close {
-        right: 0; } }
+        right: 0;
+        width: 6rem;
+        height: 6rem; } }
     header .notice-bar #notice-bar-close:before, header .notice-bar #notice-bar-close:after {
       height: 3rem;
       width: 2px;
       background: #fff;
       content: '';
       position: absolute;
-      right: 3.3rem;
-      top: 18px;
+      right: 2.5rem;
+      top: 1rem;
       -webkit-transition: opacity 0.3s;
       -o-transition: opacity 0.3s;
       transition: opacity 0.3s; }
+      @media (max-width: 991px) {
+        header .notice-bar #notice-bar-close:before, header .notice-bar #notice-bar-close:after {
+          right: 2.8rem;
+          top: 1.5rem; } }
     header .notice-bar #notice-bar-close:before {
       transform: rotate(-45deg); }
     header .notice-bar #notice-bar-close:after {
@@ -3369,6 +3374,9 @@ header .navbar {
     margin: 4rem 2rem; }
     header .navbar .navbar-toggle .icon-bar {
       background: #333333; }
+    @media (max-width: 991px) {
+      header .navbar .navbar-toggle {
+        margin-bottom: 2rem; } }
 
 .section {
   padding: 3rem 0; }
@@ -3430,6 +3438,9 @@ header .navbar {
         background: #fff;
         color: #2AB573;
         border: solid 1px #2AB573; }
+    @media (max-width: 991px) {
+      .section-top {
+        margin-top: 0; } }
   .section-developers h2 span {
     color: #26A5D4; }
   .section-developers h3 {
