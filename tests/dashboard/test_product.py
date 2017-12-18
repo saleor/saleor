@@ -621,6 +621,7 @@ def test_product_select_classes(admin_client, product_list):
     assert response.status_code == HTTP_STATUS_OK
 
     data = {'product_cls': product_list[0].product_class.pk}
-    url = reverse('dashboard:product-select-classes')
     response = admin_client.post(url, data)
+    assert response.get('location') == reverse(
+        'dashboard:product-add', args=[product_list[0].product_class.pk])
     assert response.status_code == HTTP_REDIRECTION

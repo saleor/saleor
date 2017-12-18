@@ -126,17 +126,15 @@ def product_list(request):
 @staff_member_required
 @permission_required('product.edit_product')
 def product_select_classes(request):
-    product_classes = ProductClass.objects.all()
-    form = forms.ProductClassSelectorForm(
-        request.POST or None)
+    form = forms.ProductClassSelectorForm(request.POST or None)
     status = 200
     if form.is_valid():
         return redirect(
             'dashboard:product-add',
-            class_pk=form.cleaned_data['product_cls'].pk)
+            class_pk=form.cleaned_data.get('product_cls').pk)
     elif form.errors:
         status = 400
-    ctx = {'form': form, 'product_classes': product_classes}
+    ctx = {'form': form}
     template = 'product/modal/add_product.html'
     return TemplateResponse(request, template, ctx, status=status)
 
