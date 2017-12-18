@@ -111,17 +111,12 @@ def product_list(request):
     products = Product.objects.prefetch_related('images')
     products = products.order_by('name')
     product_classes = ProductClass.objects.all()
-    form = forms.ProductClassSelectorForm(
-        request.POST or None, product_classes=product_classes)
-    if form.is_valid():
-        return redirect(
-            'dashboard:product-add', class_pk=form.cleaned_data['product_cls'])
     product_filter = ProductFilter(request.GET, queryset=products)
     products = get_paginator_items(
         product_filter.qs, settings.DASHBOARD_PAGINATE_BY,
         request.GET.get('page'))
     ctx = {
-        'bulk_action_form': forms.ProductBulkUpdate(), 'form': form,
+        'bulk_action_form': forms.ProductBulkUpdate(),
         'products': products, 'product_classes': product_classes,
         'filter': product_filter,
     }
@@ -133,7 +128,7 @@ def product_list(request):
 def product_select_classes(request):
     product_classes = ProductClass.objects.all()
     form = forms.ProductClassSelectorForm(
-        request.POST or None, product_classes=product_classes)
+        request.POST or None)
     status = 200
     if form.is_valid():
         return redirect(

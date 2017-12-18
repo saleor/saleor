@@ -14,14 +14,10 @@ from . import ProductBulkAction
 
 
 class ProductClassSelectorForm(forms.Form):
-
-    def __init__(self, *args, **kwargs):
-        product_classes = kwargs.pop('product_classes', [])
-        super(ProductClassSelectorForm, self).__init__(*args, **kwargs)
-        choices = [(obj.pk, obj.name) for obj in product_classes]
-        self.fields['product_cls'] = forms.ChoiceField(
-            label=pgettext_lazy('Product class form label', 'Product type'),
-            choices=choices, widget=forms.RadioSelect)
+    product_cls = forms.ModelChoiceField(
+        queryset=ProductClass.objects.all(),
+        label=pgettext_lazy('Product class form label', 'Product type'),
+        widget=forms.RadioSelect, empty_label=None, required=True)
 
 
 class StockForm(forms.ModelForm):
