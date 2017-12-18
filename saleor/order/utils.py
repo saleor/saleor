@@ -38,12 +38,14 @@ def recalculate_order(order):
     """Recalculates and assigns total price of order.
     Total price is a sum of items and shippings in order shipment groups."""
     prices = [
-        group.get_total_with_shipping() for group in order
+        group.get_total() for group in order
         if group.status != GroupStatus.CANCELLED]
     total_net = sum(p.net for p in prices)
     total_gross = sum(p.gross for p in prices)
-    order.total = Price(
+    total = Price(
         net=total_net, gross=total_gross, currency=settings.DEFAULT_CURRENCY)
+    total += order.shipping_price
+    order.total = total
     order.save()
 
 
