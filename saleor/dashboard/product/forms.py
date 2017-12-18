@@ -15,8 +15,7 @@ from . import ProductBulkAction
 
 class ProductClassSelectorForm(forms.Form):
     """
-    Form that creates list of available product classes (types)
-    in circle selection style.
+    Form that allows selecting product class.
     """
     product_cls = forms.ModelChoiceField(
         queryset=ProductClass.objects.all(),
