@@ -61,6 +61,10 @@ class Order(models.Model, ItemSet):
     user_email = models.EmailField(
         pgettext_lazy('Order field', 'user email'),
         blank=True, default='', editable=False)
+    shipping_price = PriceField(
+        pgettext_lazy('Shipment group field', 'shipping price'),
+        currency=settings.DEFAULT_CURRENCY, max_digits=12, decimal_places=4,
+        default=0, editable=False)
     token = models.CharField(
         pgettext_lazy('Order field', 'token'), max_length=36, unique=True)
     total_net = PriceField(
@@ -136,11 +140,6 @@ class Order(models.Model, ItemSet):
     def get_absolute_url(self):
         return reverse('order:details', kwargs={'token': self.token})
 
-    def get_delivery_total(self):
-        return sum(
-            [group.shipping_price for group in self.groups.all()],
-            Price(0, currency=settings.DEFAULT_CURRENCY))
-
     def send_confirmation_email(self):
         email = self.get_user_current_email()
         payment_url = build_absolute_uri(
@@ -198,12 +197,6 @@ class Order(models.Model, ItemSet):
             return super(Order, self).get_total()
         return Price(net=0, currency=settings.DEFAULT_CURRENCY)
 
-    def get_total_shipping(self):
-        costs = [group.shipping_price for group in self]
-        if costs:
-            return sum(costs[1:], costs[0])
-        return Price(net=0, currency=settings.DEFAULT_CURRENCY)
-
     def can_cancel(self):
         return self.status == OrderStatus.OPEN
 
@@ -218,10 +211,6 @@ class DeliveryGroup(models.Model, ItemSet):
         max_length=32, default=GroupStatus.NEW, choices=GroupStatus.CHOICES)
     order = models.ForeignKey(
         Order, related_name='groups', editable=False, on_delete=models.CASCADE)
-    shipping_price = PriceField(
-        pgettext_lazy('Shipment group field', 'shipping price'),
-        currency=settings.DEFAULT_CURRENCY, max_digits=12, decimal_places=4,
-        default=0, editable=False)
     shipping_method_name = models.CharField(
         pgettext_lazy('Shipment group field', 'shipping method name'),
         max_length=255, null=True, default=None, blank=True, editable=False)
@@ -247,9 +236,6 @@ class DeliveryGroup(models.Model, ItemSet):
     @property
     def shipping_required(self):
         return self.shipping_method_name is not None
-
-    def get_total_with_shipping(self, **kwargs):
-        return self.get_total() + self.shipping_price
 
     def get_total_quantity(self):
         return sum([line.get_quantity() for line in self])
