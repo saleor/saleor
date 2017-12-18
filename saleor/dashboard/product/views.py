@@ -132,7 +132,8 @@ def product_select_classes(request):
     status = 200
     if form.is_valid():
         return redirect(
-            'dashboard:product-add', class_pk=form.cleaned_data['product_cls'])
+            'dashboard:product-add',
+            class_pk=form.cleaned_data['product_cls'].pk)
     elif form.errors:
         status = 400
     ctx = {'form': form, 'product_classes': product_classes}
