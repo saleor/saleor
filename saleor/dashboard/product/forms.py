@@ -17,7 +17,7 @@ class ProductClassSelectorForm(forms.Form):
     product_cls = forms.ModelChoiceField(
         queryset=ProductClass.objects.all(),
         label=pgettext_lazy('Product class form label', 'Product type'),
-        widget=forms.RadioSelect, empty_label=None, required=True)
+        widget=forms.RadioSelect, empty_label=None)
 
 
 class StockForm(forms.ModelForm):
