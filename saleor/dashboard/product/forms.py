@@ -14,6 +14,10 @@ from . import ProductBulkAction
 
 
 class ProductClassSelectorForm(forms.Form):
+    """
+    Form that creates list of available product classes (types)
+    in circle selection style.
+    """
     product_cls = forms.ModelChoiceField(
         queryset=ProductClass.objects.all(),
         label=pgettext_lazy('Product class form label', 'Product type'),
