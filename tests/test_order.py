@@ -1,7 +1,7 @@
 from prices import Price
 
 from saleor.cart.models import Cart
-from saleor.order import models
+from saleor.order import models, OrderStatus
 from saleor.order.utils import (
     add_variant_to_delivery_group, fill_group_with_partition)
 
@@ -105,3 +105,23 @@ def test_add_variant_to_delivery_group_allocates_stock_for_existing_variant(
 
     stock.refresh_from_db()
     assert stock.quantity_allocated == stock_before + 1
+
+
+def test_order_status_open(open_orders):
+    assert all([order.status == OrderStatus.OPEN for order in open_orders])
+
+
+def test_order_status_closed(closed_orders):
+    assert all([order.status == OrderStatus.CLOSED for order in closed_orders])
+
+
+def test_order_queryset_open_orders(open_orders, closed_orders):
+    qs = models.Order.objects.open()
+    assert qs.count() == len(open_orders)
+    assert all([item in qs for item in open_orders])
+
+
+def test_order_queryset_closed_orders(open_orders, closed_orders):
+    qs = models.Order.objects.closed()
+    assert qs.count() == len(closed_orders)
+    assert all([item in qs for item in closed_orders])
