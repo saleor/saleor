@@ -342,5 +342,6 @@ def calculate_discounted_price(product, price, discounts, **kwargs):
         discounts = list(
             get_product_discounts(product, discounts, **kwargs))
         if discounts:
-            price = min(discount.calculate_price(price) for discount in discounts)
+            price = min(discount.calculate_price(price)
+                        for discount in discounts)
     return price
