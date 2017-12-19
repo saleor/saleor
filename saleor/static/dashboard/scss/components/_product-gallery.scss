@@ -1,18 +1,22 @@
 @mixin product-gallery {
   margin: 0;
   &-item {
-    margin: 0 $gutter-width/2 $gutter-width !important;
+    margin-left: $gutter-width * .66 !important;
     padding: 0;
     display: block;
     position: relative;
-    width: calc(50% - #{$gutter-width*3/2}) !important;
+    width: calc(100% - #{$gutter-width*3/2}) !important;
 
     @media (min-width: $small-screen-up) {
-      width: calc(33.3% - #{$gutter-width}) !important;
+      width: calc(50% - #{$gutter-width * 0.9}) !important;
     }
 
     @media (min-width: $medium-screen-up) {
-      width: calc(20% - #{$gutter-width}) !important;
+      width: calc(33.3% - #{$gutter-width * 0.9}) !important;
+    }
+
+    @media (min-width: $large-screen-up) {
+      width: calc(25% - #{$gutter-width * 0.8}) !important;
     }
 
     &-reorder {
