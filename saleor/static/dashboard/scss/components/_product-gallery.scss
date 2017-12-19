@@ -3,6 +3,10 @@
   &-item {
     position: relative;
 
+    @media (min-width: 1600px) {
+      width: 25% !important;
+    }
+
     &-reorder {
       position: absolute;
     }
