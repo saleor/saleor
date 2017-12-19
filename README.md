@@ -12,6 +12,18 @@ Avast ye landlubbers! Saleor is an open-source e-commerce storefront for Python 
 [![Requirements Status](https://requires.io/github/mirumee/saleor/requirements.svg?branch=master)](https://requires.io/github/mirumee/saleor/requirements/?branch=master)
 [![codecov.io](http://codecov.io/github/mirumee/saleor/coverage.svg?branch=master)](http://codecov.io/github/mirumee/saleor?branch=master)
 
+* * *
+
+Your feedback
+-------------
+
+Do you use Saleor as an e-commerce platform?
+Fill out this short survey and help us grow. It will take just a minute, but mean a lot!
+
+[Survey](https://mirumee.typeform.com/to/sOIJbJ)
+
+* * *
+
 Usage
 -----
 
