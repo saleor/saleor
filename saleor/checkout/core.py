@@ -298,8 +298,7 @@ class Checkout:
 
         shipping_price = (
             self.shipping_method.get_total() if self.shipping_method
-            else Price(0, currency=settings.DEFAULT_CURRENCY)
-        )
+            else Price(0, currency=settings.DEFAULT_CURRENCY))
         order_data = {
             'language_code': get_language(),
             'billing_address': billing_address,
@@ -326,8 +325,8 @@ class Checkout:
         for partition in self.cart.partition():
             shipping_required = partition.is_shipping_required()
             shipping_method_name = (
-                smart_text(self.shipping_method) if shipping_required else None
-            )
+                smart_text(self.shipping_method) if shipping_required
+                else None)
             group = order.groups.create(
                 shipping_method_name=shipping_method_name)
             fill_group_with_partition(
