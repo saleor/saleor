@@ -9,21 +9,17 @@
     <div class="col-12">
       {% if variant == 1 %}
         <img src="{% static 'images/pirate_404_v1.svg' %}">
-        <div class="variant-text">
-          {% trans 'It has to be somewhere else!' %}
-        </div>
       {% elif variant == 2 %}
         <img src="{% static 'images/pirate_404_v2.svg' %}">
-        <div class="variant-text">{% trans 'Is it over? ...Hello? ...Did we win?' %}</div>
       {% else %}
         <img src="{% static 'images/pirate_404_v3.svg' %}">
-        <div class="variant-text">
-          {% blocktrans %}
-            I can't help but feel I've been ripped off.<br>
-            I'm sure you're feeling something similar, bucko.
-          {% endblocktrans %}
-        </div>
       {% endif %}
+      <div class="variant-text">
+        {% blocktrans %}
+          I can’t help but feel I’ve lost my way, bucko.<br />
+          I’m sure you’re feeling something similar.
+        {% endblocktrans %}
+      </div>
     </div>
   </div>
 {% endblock %}
