@@ -3,7 +3,7 @@ from django.conf import settings
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.urls import reverse_lazy
 from django.utils.translation import npgettext_lazy, pgettext_lazy
-from django_prices.forms import PriceField
+from django_prices.forms import AmountField
 from payments import PaymentError, PaymentStatus
 from satchless.item import InsufficientStock
 
@@ -33,7 +33,7 @@ class OrderNoteForm(forms.ModelForm):
 
 
 class ManagePaymentForm(forms.Form):
-    amount = PriceField(
+    amount = AmountField(
         label=pgettext_lazy(
             'Payment management form (capture, refund, release)', 'Amount'),
         max_digits=12,

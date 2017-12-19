@@ -10,7 +10,7 @@ from django.urls import reverse
 from django.utils.encoding import smart_text
 from django.utils.text import slugify
 from django.utils.translation import pgettext_lazy
-from django_prices.models import Price, PriceField
+from django_prices.models import Amount, AmountField, Price, PriceField
 from mptt.managers import TreeManager
 from mptt.models import MPTTModel
 from prices import PriceRange
@@ -116,9 +116,15 @@ class Product(models.Model, ItemRange):
     categories = models.ManyToManyField(
         Category, verbose_name=pgettext_lazy('Product field', 'categories'),
         related_name='products')
-    price = PriceField(
-        pgettext_lazy('Product field', 'price'),
+
+    price_net = AmountField(
+        pgettext_lazy('Product field', 'price net'),
         currency=settings.DEFAULT_CURRENCY, max_digits=12, decimal_places=2)
+    price_gross = AmountField(
+        pgettext_lazy('Product field', 'price gross'),
+        currency=settings.DEFAULT_CURRENCY, max_digits=12, decimal_places=2)
+    price = PriceField(net_field='price_net', gross_field='price_gross')
+
     available_on = models.DateField(
         pgettext_lazy('Product field', 'available on'), blank=True, null=True)
     is_published = models.BooleanField(
@@ -217,7 +223,7 @@ class ProductVariant(models.Model, Item):
     name = models.CharField(
         pgettext_lazy('Product variant field', 'variant name'), max_length=100,
         blank=True)
-    price_override = PriceField(
+    price_override = AmountField(
         pgettext_lazy('Product variant field', 'price override'),
         currency=settings.DEFAULT_CURRENCY, max_digits=12, decimal_places=2,
         blank=True, null=True)
@@ -299,7 +305,7 @@ class ProductVariant(models.Model, Item):
         stock = [
             stock_item for stock_item in self.stock.all()
             if stock_item.quantity_available >= quantity]
-        zero_price = Price(0, currency=settings.DEFAULT_CURRENCY)
+        zero_price = Amount(0, currency=settings.DEFAULT_CURRENCY)
         stock = sorted(
             stock, key=(lambda s: s.cost_price or zero_price), reverse=False)
         if stock:
@@ -356,7 +362,7 @@ class Stock(models.Model):
     quantity_allocated = models.IntegerField(
         pgettext_lazy('Stock item field', 'allocated quantity'),
         validators=[MinValueValidator(0)], default=Decimal(0))
-    cost_price = PriceField(
+    cost_price = AmountField(
         pgettext_lazy('Stock item field', 'cost price'),
         currency=settings.DEFAULT_CURRENCY, max_digits=12, decimal_places=2,
         blank=True, null=True)

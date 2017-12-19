@@ -4,7 +4,7 @@ from django import forms
 from django.conf import settings
 from django.urls import reverse_lazy
 from django.utils.translation import pgettext_lazy
-from django_prices.forms import PriceField
+from django_prices.forms import AmountField
 
 from ...core.forms import (
     AjaxSelect2ChoiceField, AjaxSelect2MultipleChoiceField)
@@ -71,7 +71,7 @@ def country_choices():
 
 class ShippingVoucherForm(forms.ModelForm):
 
-    limit = PriceField(
+    limit = AmountField(
         min_value=0, required=False, currency=settings.DEFAULT_CURRENCY,
         label=pgettext_lazy(
             'Shipping voucher form label for `limit` field',
@@ -95,7 +95,7 @@ class ShippingVoucherForm(forms.ModelForm):
 
 class ValueVoucherForm(forms.ModelForm):
 
-    limit = PriceField(
+    limit = AmountField(
         min_value=0, required=False, currency=settings.DEFAULT_CURRENCY,
         label=pgettext_lazy(
             'Value voucher form label for `limit` field',

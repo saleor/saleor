@@ -106,7 +106,7 @@
                 {{ product.name }}
               </td>
               <td>
-                {% gross product.price html=True %}
+                {{ product.price.gross|amount:'html' }}
               </td>
             </tr>
           {% endfor %}

@@ -68,9 +68,9 @@
                       {% if not method.price_range %}
                         -
                       {% elif method.price_range.min_price == method.price_range.max_price %}
-                        {% gross method.price_range.min_price html=True %}
+                        {{ method.price_range.min_price.gross|amount:'html' }}
                       {% else %}
-                        {% gross method.price_range.min_price html=True %}&ndash;{% gross method.price_range.max_price html=True %}
+                        {{ method.price_range.min_price.gross|amount:'html' }}&ndash;{{ method.price_range.max_price.gross|amount:'html' }}
                       {% endif %}
                     </td>
                     <td>

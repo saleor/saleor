@@ -59,6 +59,7 @@ ProductAvailability = namedtuple(
 def get_availability(product, discounts=None, local_currency=None):
     # In default currency
     price_range = product.get_price_range(discounts=discounts)
+    print(price_range)
     undiscounted = product.get_price_range()
     if undiscounted.min_price > price_range.min_price:
         discount = undiscounted.min_price - price_range.min_price
@@ -221,9 +222,9 @@ def price_as_dict(price):
         return None
     return {'currency': price.currency,
             'gross': price.gross,
-            'grossLocalized': prices_i18n.gross(price),
+            'grossLocalized': prices_i18n.amount(price.gross),
             'net': price.net,
-            'netLocalized': prices_i18n.net(price)}
+            'netLocalized': prices_i18n.amount(price.net)}
 
 
 def price_range_as_dict(price_range):

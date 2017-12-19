@@ -9,10 +9,10 @@ from django.db.models import Q
 from django.urls import reverse
 from django.utils.timezone import now
 from django.utils.translation import pgettext_lazy
-from django_prices.models import PriceField
+from django_prices.models import AmountField, PriceField
 from payments import PaymentStatus, PurchasedItem
 from payments.models import BasePayment
-from prices import FixedDiscount, Price
+from prices import Amount, FixedDiscount, Price
 from satchless.item import ItemLine, ItemSet
 
 from . import emails, GroupStatus, OrderStatus
@@ -67,18 +67,21 @@ class Order(models.Model, ItemSet):
         default=0, editable=False)
     token = models.CharField(
         pgettext_lazy('Order field', 'token'), max_length=36, unique=True)
-    total_net = PriceField(
+
+    total_net = AmountField(
         pgettext_lazy('Order field', 'total net'),
         currency=settings.DEFAULT_CURRENCY, max_digits=12, decimal_places=2,
         blank=True, null=True)
-    total_tax = PriceField(
-        pgettext_lazy('Order field', 'total tax'),
+    total_gross = AmountField(
+        pgettext_lazy('Order field', 'total gross'),
         currency=settings.DEFAULT_CURRENCY, max_digits=12, decimal_places=2,
         blank=True, null=True)
+    total = PriceField(net_field='total_net', gross_field='total_gross')
+
     voucher = models.ForeignKey(
         Voucher, null=True, related_name='+', on_delete=models.SET_NULL,
         verbose_name=pgettext_lazy('Order field', 'voucher'))
-    discount_amount = PriceField(
+    discount_amount = AmountField(
         verbose_name=pgettext_lazy('Order field', 'discount amount'),
         currency=settings.DEFAULT_CURRENCY, max_digits=12, decimal_places=2,
         blank=True, null=True)
@@ -140,6 +143,12 @@ class Order(models.Model, ItemSet):
     def get_absolute_url(self):
         return reverse('order:details', kwargs={'token': self.token})
 
+    def get_delivery_total(self):
+        return sum(
+            [group.shipping_price for group in self.groups.all()],
+            Price(Amount(0, settings.DEFAULT_CURRENCY),
+                  Amount(0, settings.DEFAULT_CURRENCY)))
+
     def send_confirmation_email(self):
         email = self.get_user_current_email()
         payment_url = build_absolute_uri(
@@ -190,12 +199,20 @@ class Order(models.Model, ItemSet):
     @total.setter
     def total(self, price):
         self.total_net = price
-        self.total_tax = Price(price.tax, currency=price.currency)
+        self.total_tax = price.tax
 
     def get_subtotal_without_voucher(self):
         if self.get_lines():
             return super().get_total()
-        return Price(net=0, currency=settings.DEFAULT_CURRENCY)
+        return Price(Amount(0, settings.DEFAULT_CURRENCY),
+                     Amount(0, settings.DEFAULT_CURRENCY))
+
+    def get_total_shipping(self):
+        costs = [group.shipping_price for group in self]
+        if costs:
+            return sum(costs[1:], costs[0])
+        return Price(Amount(0, settings.DEFAULT_CURRENCY),
+                     Amount(0, settings.DEFAULT_CURRENCY))
 
     def can_cancel(self):
         return self.status == OrderStatus.OPEN
@@ -211,6 +228,10 @@ class DeliveryGroup(models.Model, ItemSet):
         max_length=32, default=GroupStatus.NEW, choices=GroupStatus.CHOICES)
     order = models.ForeignKey(
         Order, related_name='groups', editable=False, on_delete=models.CASCADE)
+    shipping_price = AmountField(
+        pgettext_lazy('Shipment group field', 'shipping price'),
+        currency=settings.DEFAULT_CURRENCY, max_digits=12, decimal_places=4,
+        default=0, editable=False)
     shipping_method_name = models.CharField(
         pgettext_lazy('Shipment group field', 'shipping method name'),
         max_length=255, null=True, default=None, blank=True, editable=False)

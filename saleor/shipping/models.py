@@ -6,7 +6,7 @@ from django.db import models
 from django.db.models import Q
 from django.utils.translation import pgettext_lazy
 from django_countries import countries
-from django_prices.models import PriceField
+from django_prices.models import AmountField, PriceField
 from prices import PriceRange
 
 ANY_COUNTRY = ''
@@ -79,9 +79,15 @@ class ShippingMethodCountry(models.Model):
         pgettext_lazy('Shipping method country field', 'country code'),
         choices=COUNTRY_CODE_CHOICES, max_length=2, blank=True,
         default=ANY_COUNTRY)
-    price = PriceField(
-        pgettext_lazy('Shipping method country field', 'price'),
+
+    price_net = AmountField(
+        pgettext_lazy('Shipping method country field', 'price net'),
         currency=settings.DEFAULT_CURRENCY, max_digits=12, decimal_places=2)
+    price_gross = AmountField(
+        pgettext_lazy('Shipping method country field', 'price gross'),
+        currency=settings.DEFAULT_CURRENCY, max_digits=12, decimal_places=2)
+    price = PriceField(net_field='price_net', gross_field='price_gross')
+
     shipping_method = models.ForeignKey(
         ShippingMethod, related_name='price_per_country',
         verbose_name=pgettext_lazy(

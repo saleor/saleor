@@ -2,7 +2,7 @@
 
 {% load i18n %}
 {% load staticfiles %}
-{% load gross net tax from prices_i18n %}
+{% load prices_i18n %}
 
 {% block title %}{% trans "Checkout" context "Checkout page title" %} — {{ block.super }}{% endblock %}
 
@@ -40,7 +40,7 @@
                       <span class="checkout__review__variant">{{ item.variant }}</span></p>
                   </div>
                   <div class="col-4">
-                    <p class="float-right">{% net item_price_total %}</p>
+                    <p class="float-right">{{ item_price_total.net }}</p>
                   </div>
                 </div>
               {% endfor %}
@@ -51,7 +51,7 @@
               </div>
               <div class="col-4">
                 <p class="float-right">{% if checkout.shipping_method %}
-                  {% net checkout.shipping_method.get_total %}
+                  {{ checkout.shipping_method.get_total.net }}
                 {% else %}
                   &mdash;
                 {% endif %}</p>
@@ -68,7 +68,7 @@
                 <h3>{% trans "Total" context "Order review section title" %}</h3>
               </div>
               <div class="col-4">
-                <h3 class="float-right">{% gross total html=True %}</h3>
+                <h3 class="float-right">{{ total.gross|amount:'html' }}</h3>
               </div>
             </div>
           </div>

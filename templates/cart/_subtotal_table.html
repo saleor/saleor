@@ -1,6 +1,6 @@
 {% load i18n %}
 {% load price_range from price_ranges %}
-{% load gross from prices_i18n %}
+{% load prices_i18n %}
 
 {% if shipping_required %}
   <div class="table__row">
@@ -10,15 +10,15 @@
       </div>
       <div class="col-4">
         <h3 class="text-right cart-subtotal"
-           data-value="{% gross cart_total %}"
-           {% if local_cart_total %}data-value-local="{% gross local_cart_total %}"{% endif %}>
+           data-value="{{ cart_total.gross }}"
+           {% if local_cart_total %}data-value-local="{{ local_cart_total.gross }}"{% endif %}>
           {% spaceless %}
-            {% gross cart_total html=True %}
+            {{ cart_total.gross|amount:'html' }}
             {% if local_cart_total %}
               <br>
               <small>
                 &asymp;
-                {% gross local_cart_total html=True %}
+                {{ local_cart_total.gross|amount:'html' }}
               </small>
             {% endif %}
           {% endspaceless %}

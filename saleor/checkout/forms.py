@@ -68,7 +68,7 @@ class ShippingCountryChoiceField(forms.ModelChoiceField):
 
     def label_from_instance(self, obj):
         """Return a friendly label for the shipping method."""
-        price_html = format_price(obj.price.gross, obj.price.currency)
+        price_html = format_price(obj.price.gross.value, obj.price.gross.currency)
         label = mark_safe('%s %s' % (obj.shipping_method, price_html))
         return label
 
@@ -78,7 +78,7 @@ class ShippingMethodForm(forms.Form):
 
     method = ShippingCountryChoiceField(
         queryset=ShippingMethodCountry.objects.select_related(
-            'shipping_method').order_by('price').all(),
+            'shipping_method').order_by('price_gross').all(),
         label=pgettext_lazy(
             'Shipping method form field label', 'Shipping method'),
         required=True)

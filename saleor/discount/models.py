@@ -7,9 +7,8 @@ from django.db.models import F
 from django.utils.encoding import smart_text
 from django.utils.translation import pgettext, pgettext_lazy
 from django_countries import countries
-from django_prices.models import PriceField
-from django_prices.templatetags.prices_i18n import net
-from prices import FixedDiscount, Price, percentage_discount
+from django_prices.models import AmountField
+from prices import Amount, FixedDiscount, percentage_discount
 
 from ..cart.utils import (
     get_category_variants_and_prices, get_product_variants_and_prices)
@@ -121,7 +120,7 @@ class Voucher(models.Model):
     apply_to = models.CharField(
         pgettext_lazy('Voucher field', 'apply to'),
         max_length=20, blank=True, null=True)
-    limit = PriceField(
+    limit = AmountField(
         pgettext_lazy('Voucher field', 'limit'),
         max_digits=12, decimal_places=2, null=True,
         blank=True, currency=settings.DEFAULT_CURRENCY)
@@ -177,10 +176,10 @@ class Voucher(models.Model):
 
     def get_fixed_discount_for(self, amount):
         if self.discount_value_type == self.DISCOUNT_VALUE_FIXED:
-            discount_price = Price(net=self.discount_value,
-                                   currency=settings.DEFAULT_CURRENCY)
+            discount_amount = Amount(self.discount_value,
+                                     currency=settings.DEFAULT_CURRENCY)
             discount = FixedDiscount(
-                amount=discount_price, name=smart_text(self))
+                amount=discount_amount, name=smart_text(self))
         elif self.discount_value_type == self.DISCOUNT_VALUE_PERCENTAGE:
             discount = percentage_discount(
                 value=self.discount_value, name=smart_text(self))
@@ -200,7 +199,7 @@ class Voucher(models.Model):
             msg = pgettext(
                 'Voucher not applicable',
                 'This offer is only valid for orders over %(amount)s.')
-            raise NotApplicable(msg % {'amount': net(limit)}, limit=limit)
+            raise NotApplicable(msg % {'amount': limit}, limit=limit)
 
     def get_discount_for_checkout(self, checkout):
         if self.type == Voucher.VALUE_TYPE:
@@ -250,11 +249,11 @@ class Voucher(models.Model):
                     self.get_fixed_discount_for(price) for price in prices)
                 discount_total = sum(
                     (discount.amount for discount in discounts),
-                    Price(0, currency=settings.DEFAULT_CURRENCY))
+                    Amount(0, currency=settings.DEFAULT_CURRENCY))
                 return FixedDiscount(discount_total, smart_text(self))
             else:
                 product_total = sum(
-                    prices, Price(0, currency=settings.DEFAULT_CURRENCY))
+                    prices, Amount(0, currency=settings.DEFAULT_CURRENCY))
                 return self.get_fixed_discount_for(product_total)
 
         else:
@@ -301,9 +300,9 @@ class Sale(models.Model):
 
     def get_discount(self):
         if self.type == self.FIXED:
-            discount_price = Price(net=self.value,
-                                   currency=settings.DEFAULT_CURRENCY)
-            return FixedDiscount(amount=discount_price, name=self.name)
+            discount_amount = Amount(self.value,
+                                     currency=settings.DEFAULT_CURRENCY)
+            return FixedDiscount(amount=discount_amount, name=self.name)
         elif self.type == self.PERCENTAGE:
             return percentage_discount(value=self.value, name=self.name)
         raise NotImplementedError('Unknown discount type')
@@ -343,5 +342,5 @@ def calculate_discounted_price(product, price, discounts, **kwargs):
         discounts = list(
             get_product_discounts(product, discounts, **kwargs))
         if discounts:
-            price = min(price | discount for discount in discounts)
+            price = min(discount.calculate_price(price) for discount in discounts)
     return price

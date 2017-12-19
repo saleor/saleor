@@ -15,13 +15,13 @@ from saleor.product.utils import (
     get_attributes_display_map, get_availability,
     get_product_availability_status, get_variant_availability_status,
     get_variant_picker_data)
-
+from prices import Amount
 
 @pytest.fixture()
 def product_with_no_attributes(product_class):
     product = models.Product.objects.create(
-        name='Test product', price='10.00',
-        product_class=product_class)
+        name='Test product', price_net=Amount(10, 'USD'),
+        price_gross=Amount(10, 'USD'), product_class=product_class)
     return product
 
 
@@ -105,11 +105,11 @@ def test_filtering_by_attribute(db, color_attribute):
                                                          has_variants=True)
     product_class_b.variant_attributes.add(color_attribute)
     product_a = models.Product.objects.create(
-        name='Test product a', price=10,
+        name='Test product a', price_net=Amount(10, 'USD'),
         product_class=product_class_a)
     models.ProductVariant.objects.create(product=product_a, sku='1234')
     product_b = models.Product.objects.create(
-        name='Test product b', price=10,
+        name='Test product b', price_net=Amount(10, 'USD'),
         product_class=product_class_b)
     variant_b = models.ProductVariant.objects.create(product=product_b,
                                                      sku='12345')
@@ -376,7 +376,7 @@ def test_product_filter_before_filtering(
         authorized_client, product_in_stock, default_category):
     products = (models.Product.objects.all()
                 .filter(categories__name=default_category)
-                .order_by('-price'))
+                .order_by('-price_gross'))
     url = reverse(
         'product:category', kwargs={'path': default_category.slug,
                                     'category_id': default_category.pk})
@@ -388,11 +388,11 @@ def test_product_filter_product_exists(authorized_client, product_in_stock,
                                        default_category):
     products = (models.Product.objects.all()
                 .filter(categories__name=default_category)
-                .order_by('-price'))
+                .order_by('-price_gross'))
     url = reverse(
         'product:category', kwargs={'path': default_category.slug,
                                     'category_id': default_category.pk})
-    data = {'price_0': [''], 'price_1': ['20']}
+    data = {'price_gross_0': [''], 'price_gross_1': ['20']}
     response = authorized_client.get(url, data)
     assert list(response.context['filter'].qs) == list(products)
 
@@ -402,7 +402,7 @@ def test_product_filter_product_does_not_exists(
     url = reverse(
         'product:category', kwargs={'path': default_category.slug,
                                     'category_id': default_category.pk})
-    data = {'price_0': ['20'], 'price_1': ['']}
+    data = {'price_gross_0': ['20'], 'price_gross_1': ['']}
     response = authorized_client.get(url, data)
     assert not list(response.context['filter'].qs)
 
@@ -411,12 +411,12 @@ def test_product_filter_form(authorized_client, product_in_stock,
                              default_category):
     products = (models.Product.objects.all()
                 .filter(categories__name=default_category)
-                .order_by('-price'))
+                .order_by('-price_gross'))
     url = reverse(
         'product:category', kwargs={'path': default_category.slug,
                                     'category_id': default_category.pk})
     response = authorized_client.get(url)
-    assert 'price' in response.context['filter'].form.fields.keys()
+    assert 'price_gross' in response.context['filter'].form.fields.keys()
     assert 'sort_by' in response.context['filter'].form.fields.keys()
     assert list(response.context['filter'].qs) == list(products)
 
@@ -425,11 +425,11 @@ def test_product_filter_sorted_by_price_descending(
     authorized_client, product_list, default_category):
     products = (models.Product.objects.all()
                 .filter(categories__name=default_category, is_published=True)
-                .order_by('-price'))
+                .order_by('-price_gross'))
     url = reverse(
         'product:category', kwargs={'path': default_category.slug,
                                     'category_id': default_category.pk})
-    data = {'sort_by': '-price'}
+    data = {'sort_by': '-price_gross'}
     response = authorized_client.get(url, data)
     assert list(response.context['filter'].qs) == list(products)
 
@@ -459,7 +459,8 @@ def test_get_variant_picker_data_proper_variant_count(product_in_stock):
 def test_view_ajax_available_variants_list(admin_client, product_in_stock):
     variant = product_in_stock.variants.first()
     variants_list = [
-        {'id': variant.pk, 'text': '123, Test product (Size: Small), $10.00'}
+        {'id': variant.pk,
+         'text': "123, Test product (Size: Small), Amount('12.00', 'USD')"}
     ]
 
     url = reverse('dashboard:ajax-available-variants')

@@ -7,7 +7,7 @@ from django.db import transaction
 from django.forms.models import model_to_dict
 from django.utils.encoding import smart_text
 from django.utils.translation import get_language
-from prices import FixedDiscount, Price
+from prices import Amount, FixedDiscount, Price
 
 from ..cart.models import Cart
 from ..cart.utils import get_or_empty_db_cart
@@ -109,7 +109,8 @@ class Checkout:
             if self.shipping_method and partition.is_shipping_required():
                 shipping_cost = self.shipping_method.get_total()
             else:
-                shipping_cost = Price(0, currency=settings.DEFAULT_CURRENCY)
+                shipping_cost = Price(Amount(0, settings.DEFAULT_CURRENCY),
+                                      Amount(0, settings.DEFAULT_CURRENCY))
             total_with_shipping = partition.get_total(
                 discounts=self.cart.discounts) + shipping_cost
 
@@ -207,7 +208,7 @@ class Checkout:
         currency = self.storage.get('discount_currency')
         name = self.storage.get('discount_name')
         if value is not None and name is not None and currency is not None:
-            amount = Price(value, currency=currency)
+            amount = Amount(value, currency=currency)
             return FixedDiscount(amount, name)
 
     @discount.setter
@@ -296,16 +297,14 @@ class Checkout:
         self._add_to_user_address_book(
             self.billing_address, is_billing=True)
 
-        shipping_price = (
-            self.shipping_method.get_total() if self.shipping_method
-            else Price(0, currency=settings.DEFAULT_CURRENCY))
+        total = self.get_total()
         order_data = {
             'language_code': get_language(),
             'billing_address': billing_address,
             'shipping_address': shipping_address,
             'tracking_client_id': self.tracking_code,
-            'shipping_price': shipping_price,
-            'total': self.get_total()}
+            'total_net': total.net.value,
+            'total_gross': total.gross.value}
 
         if self.user.is_authenticated:
             order_data['user'] = self.user
@@ -366,7 +365,8 @@ class Checkout:
 
     def get_subtotal(self):
         """Calculate order total without shipping."""
-        zero = Price(0, currency=settings.DEFAULT_CURRENCY)
+        zero = Price(Amount(0, settings.DEFAULT_CURRENCY),
+                     Amount(0, settings.DEFAULT_CURRENCY))
         cost_iterator = (
             total - shipping_cost
             for shipment, shipping_cost, total in self.deliveries)
@@ -375,12 +375,23 @@ class Checkout:
 
     def get_total(self):
         """Calculate order total with shipping."""
-        zero = Price(0, currency=settings.DEFAULT_CURRENCY)
+        zero = Price(Amount(0, settings.DEFAULT_CURRENCY),
+                     Amount(0, settings.DEFAULT_CURRENCY))
         cost_iterator = (
             total
             for shipment, shipping_cost, total in self.deliveries)
         total = sum(cost_iterator, zero)
         return total if self.discount is None else self.discount.apply(total)
+
+    def get_total_shipping(self):
+        """Calculate shipping total."""
+        zero = Price(Amount(0, settings.DEFAULT_CURRENCY),
+                     Amount(0, settings.DEFAULT_CURRENCY))
+        cost_iterator = (
+            shipping_cost
+            for shipment, shipping_cost, total in self.deliveries)
+        total = sum(cost_iterator, zero)
+        return total
 
 
 def load_checkout(view):

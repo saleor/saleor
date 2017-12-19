@@ -7,7 +7,6 @@ from django.shortcuts import get_object_or_404, redirect, reverse
 from django.template.response import TemplateResponse
 from django.utils.translation import npgettext_lazy, pgettext_lazy
 from django.views.decorators.http import require_POST
-from django_prices.templatetags.prices_i18n import gross
 
 from ...core.utils import get_paginator_items
 from ...product.models import (
@@ -707,7 +706,7 @@ def ajax_available_variants_list(request):
     def get_variant_label(variant, discounts):
         return '%s, %s, %s' % (
             variant.sku, variant.display_product(),
-            gross(variant.get_price_per_item(discounts)))
+            variant.get_price_per_item(discounts).gross)
 
     available_products = Product.objects.get_available_products()
     queryset = ProductVariant.objects.filter(

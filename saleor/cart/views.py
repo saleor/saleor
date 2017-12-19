@@ -93,16 +93,17 @@ def update(request, cart, variant_id):
         updated_line = cart.get_line(form.cart_line.variant)
         if updated_line:
             response['subtotal'] = currencyfmt(
-                updated_line.get_total(discounts=discounts).gross,
-                updated_line.get_total(discounts=discounts).currency)
+                updated_line.get_total(discounts=discounts).gross.value,
+                updated_line.get_total(discounts=discounts).gross.currency)
         if cart:
             cart_total = cart.get_total(discounts=discounts)
             response['total'] = currencyfmt(
-                cart_total.gross, cart_total.currency)
+                cart_total.gross.value, cart_total.gross.currency)
             local_cart_total = to_local_currency(cart_total, request.currency)
-            if local_cart_total:
+            if local_cart_total.gross:
                 response['localTotal'] = currencyfmt(
-                    local_cart_total.gross, local_cart_total.currency)
+                    local_cart_total.gross.value,
+                    local_cart_total.gross.currency)
         status = 200
     elif request.POST is not None:
         response = {'error': form.errors}
@@ -126,8 +127,8 @@ def summary(request, cart):
             'attributes': line.variant.display_variant(attributes),
             'image': first_image,
             'price_per_item': currencyfmt(
-                price_per_item.gross, price_per_item.currency),
-            'line_total': currencyfmt(line_total.gross, line_total.currency),
+                price_per_item.gross.value, price_per_item.gross.currency),
+            'line_total': currencyfmt(line_total.gross.value, line_total.gross.currency),
             'update_url': reverse(
                 'cart:update-line', kwargs={'variant_id': line.variant_id}),
             'variant_url': line.variant.get_absolute_url()}
@@ -135,9 +136,11 @@ def summary(request, cart):
         data = {'quantity': 0}
     else:
         cart_total = cart.get_total(discounts=request.discounts)
+        print(cart_total)
         data = {
             'quantity': cart.quantity,
-            'total': currencyfmt(cart_total.gross, cart_total.currency),
+            'total': currencyfmt(
+                cart_total.gross.value, cart_total.gross.currency),
             'lines': [prepare_line_data(line) for line in cart.lines.all()]}
 
     return render(request, 'cart-dropdown.html', data)

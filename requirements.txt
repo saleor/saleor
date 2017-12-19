@@ -33,8 +33,8 @@ django-impersonate==1.1
 django-mptt==0.8.7
 django-payments==0.12.1
 django-phonenumber-field==1.3.0
-django-prices-openexchangerates==0.1.15
-django-prices==0.7.0
+django-prices-openexchangerates==1.0.0-beta2
+django-prices==1.0.0-beta
 django-redis==4.8.0
 django-render-block==0.5  # via django-templated-email
 django-storages==1.6.5
@@ -69,7 +69,7 @@ olefile==0.44             # via pillow
 pdfrw==0.4                # via weasyprint
 phonenumberslite==8.8.5   # via django-phonenumber-field
 pillow==4.0.0             # via django-versatileimagefield
-prices==0.5.9
+prices==1.0.1-beta
 promise==2.1              # via graphene, graphene-django, graphql-core, graphql-relay
 psycopg2==2.7.3.1
 purl==1.3.1

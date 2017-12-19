@@ -7,7 +7,6 @@ from django.shortcuts import get_object_or_404, redirect
 from django.template.context_processors import csrf
 from django.template.response import TemplateResponse
 from django.utils.translation import pgettext_lazy
-from django_prices.templatetags.prices_i18n import gross
 from payments import PaymentStatus
 from prices import Price
 from satchless.item import InsufficientStock
@@ -111,7 +110,7 @@ def capture_payment(request, order_pk, payment_pk):
         amount = form.cleaned_data['amount']
         msg = pgettext_lazy(
             'Dashboard message related to a payment',
-            'Captured %(amount)s') % {'amount': gross(amount)}
+            'Captured %(amount)s') % {'amount': amount}
         payment.order.create_history_entry(comment=msg, user=request.user)
         messages.success(request, msg)
         return redirect('dashboard:order-details', order_pk=order.pk)
@@ -134,7 +133,7 @@ def refund_payment(request, order_pk, payment_pk):
         amount = form.cleaned_data['amount']
         msg = pgettext_lazy(
             'Dashboard message related to a payment',
-            'Refunded %(amount)s') % {'amount': gross(amount)}
+            'Refunded %(amount)s') % {'amount': amount}
         payment.order.create_history_entry(comment=msg, user=request.user)
         messages.success(request, msg)
         return redirect('dashboard:order-details', order_pk=order.pk)
