@@ -1,23 +1,7 @@
 @mixin product-gallery {
   margin: 0;
   &-item {
-    margin-left: $gutter-width * .66 !important;
-    padding: 0;
-    display: block;
     position: relative;
-    width: calc(100% - #{$gutter-width*3/2}) !important;
-
-    @media (min-width: $small-screen-up) {
-      width: calc(50% - #{$gutter-width * 0.9}) !important;
-    }
-
-    @media (min-width: $medium-screen-up) {
-      width: calc(33.3% - #{$gutter-width * 0.9}) !important;
-    }
-
-    @media (min-width: $large-screen-up) {
-      width: calc(25% - #{$gutter-width * 0.8}) !important;
-    }
 
     &-reorder {
       position: absolute;
@@ -39,7 +23,7 @@
       white-space: nowrap;
 
       &--noclip {
-        padding: 104px 0 103px;
+        padding: 104px 3rem 103px;
         text-align: center;
         white-space: normal;
       }
