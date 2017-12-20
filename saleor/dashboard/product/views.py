@@ -1,5 +1,3 @@
-from __future__ import unicode_literals
-
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import permission_required
@@ -113,22 +111,35 @@ def product_list(request):
     products = Product.objects.prefetch_related('images')
     products = products.order_by('name')
     product_classes = ProductClass.objects.all()
-
-    form = forms.ProductClassSelectorForm(
-        request.POST or None, product_classes=product_classes)
-    if form.is_valid():
-        return redirect(
-            'dashboard:product-add', class_pk=form.cleaned_data['product_cls'])
     product_filter = ProductFilter(request.GET, queryset=products)
     products = get_paginator_items(
         product_filter.qs, settings.DASHBOARD_PAGINATE_BY,
         request.GET.get('page'))
     ctx = {
-        'bulk_action_form': forms.ProductBulkUpdate(), 'form': form,
+        'bulk_action_form': forms.ProductBulkUpdate(),
         'products': products, 'product_classes': product_classes,
         'filter': product_filter,
     }
     return TemplateResponse(request, 'dashboard/product/list.html', ctx)
+
+
+@staff_member_required
+@permission_required('product.edit_product')
+def product_select_classes(request):
+    """
+    View for add product modal embedded in the product list view.
+    """
+    form = forms.ProductClassSelectorForm(request.POST or None)
+    status = 200
+    if form.is_valid():
+        return redirect(
+            'dashboard:product-add',
+            class_pk=form.cleaned_data.get('product_cls').pk)
+    elif form.errors:
+        status = 400
+    ctx = {'form': form}
+    template = 'product/modal/add_product.html'
+    return TemplateResponse(request, template, ctx, status=status)
 
 
 @staff_member_required
@@ -692,10 +703,10 @@ def ajax_available_variants_list(request):
     Returns variants list filtered by request GET parameters.
     Response format is as required by select2 field.
     """
-    def get_variant_label(variant):
+    def get_variant_label(variant, discounts):
         return '%s, %s, %s' % (
             variant.sku, variant.display_product(),
-            gross(variant.product.price))
+            gross(variant.get_price_per_item(discounts)))
 
     available_products = Product.objects.get_available_products()
     queryset = ProductVariant.objects.filter(
@@ -706,8 +717,27 @@ def ajax_available_variants_list(request):
             Q(sku__icontains=search_query) |
             Q(name__icontains=search_query) |
             Q(product__name__icontains=search_query))
+    discounts = request.discounts
     variants = [
-        {'id': variant.id, 'text': get_variant_label(variant)}
+        {'id': variant.id, 'text': get_variant_label(variant, discounts)}
         for variant in queryset
     ]
     return JsonResponse({'results': variants})
+
+
+@staff_member_required
+def ajax_products_list(request):
+    """
+    Returns products list filtered by request GET parameters.
+    Response format is as required by select2 field.
+    """
+    queryset = (
+        Product.objects.all() if request.user.has_perm('product.view_product')
+        else Product.objects.get_available_products())
+    search_query = request.GET.get('q', '')
+    if search_query:
+        queryset = queryset.filter(Q(name__icontains=search_query))
+    products = [
+        {'id': product.id, 'text': str(product)} for product in queryset
+    ]
+    return JsonResponse({'results': products})

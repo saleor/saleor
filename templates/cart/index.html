@@ -10,18 +10,22 @@
 {% block breadcrumb %}
 <ul class="breadcrumbs list-unstyled">
   <li><a href="/">{% trans "Home" context "Main navigation item" %}</a></li>
-  <li><a href="{% url 'cart:index' %}">{% trans "Cart" context "Cart breadcrumb" %}</a></li>
+  <li><a rel="nofollow" href="{% url 'cart:index' %}">{% trans "Cart" context "Cart breadcrumb" %}</a></li>
 </ul>
 {% endblock breadcrumb %}
 
+{% block meta_tags %}
+  <meta name="robots" content="nofollow">
+{% endblock meta_tags %}
+
 {% block content %}
-<div class="alert alert-success d-block d-sm-none remove-product-alert">
+<div class="alert alert-success remove-product-alert d-none">
   {% trans "Product has been removed from cart" context "Cart message" %}
   <button type="button" class="close close-msg" aria-hidden="true">&times;</button>
 </div>
 <div class="cart">
   {% if cart_lines %}
-    <div class="table__header hidden-sm-down">
+    <div class="table__header d-none d-md-block">
       <div class="row">
         <div class="col-md-7">
           <small>{% trans "Product" context "Cart table header" %}</small>
@@ -73,7 +77,7 @@
     </div>
     <div class="row">
       <div class="col-md-12">
-        <a href="{% url "checkout:login" %}" class="btn primary float-md-right">
+        <a href="{% url "checkout:login" %}" class="btn primary float-right cart__submit">
           {% trans "Checkout" context "Cart primary action" %}
         </a>
       </div>

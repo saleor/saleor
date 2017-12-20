@@ -1,31 +1,27 @@
-# coding: utf-8
-from __future__ import unicode_literals
-
 from decimal import Decimal
-import pytest
-
 from io import BytesIO
-from PIL import Image
+from unittest.mock import MagicMock
 
-from django.contrib.sites.models import Site
-from django.core.files.uploadedfile import SimpleUploadedFile
+import pytest
 from django.contrib.auth.models import AnonymousUser, Group, Permission
+from django.contrib.sites.models import Site
 from django.core.files import File
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.utils.encoding import smart_text
-
-from mock import MagicMock
+from PIL import Image
 
 from saleor.cart import utils
 from saleor.cart.models import Cart
 from saleor.checkout.core import Checkout
-from saleor.discount.models import Voucher, Sale
-from saleor.order.models import Order, OrderLine, DeliveryGroup
-from saleor.product.models import (AttributeChoiceValue, Category, Product,
-                                   ProductAttribute, ProductClass,
-                                   ProductVariant, ProductImage, Stock,
-                                   StockLocation)
+from saleor.discount.models import Sale, Voucher
+from saleor.order import GroupStatus
+from saleor.order.models import DeliveryGroup, Order, OrderLine
+from saleor.order.utils import recalculate_order
+from saleor.product.models import (
+    AttributeChoiceValue, Category, Product, ProductAttribute, ProductClass,
+    ProductImage, ProductVariant, Stock, StockLocation)
 from saleor.shipping.models import ShippingMethod
-from saleor.site.models import SiteSettings, AuthorizationKey
+from saleor.site.models import AuthorizationKey, SiteSettings
 from saleor.userprofile.models import Address, User
 
 
@@ -441,7 +437,7 @@ def order_with_lines_and_stock(order, product_class):
         stock=stock,
         stock_location=stock.location.name
     )
-    Order.objects.recalculate_order(order)
+    recalculate_order(order)
     order.refresh_from_db()
     return order
 
@@ -539,3 +535,48 @@ def permission_edit_settings():
 @pytest.fixture
 def permission_impersonate_user():
     return Permission.objects.get(codename='impersonate_user')
+
+
+@pytest.fixture
+def open_orders(billing_address):
+    orders = []
+    group_data = lambda orders, status: {'order': orders[-1], 'status': status}
+
+    orders.append(Order.objects.create(billing_address=billing_address))
+    DeliveryGroup.objects.create(**group_data(orders, GroupStatus.NEW))
+
+    orders.append(Order.objects.create(billing_address=billing_address))
+    DeliveryGroup.objects.create(**group_data(orders, GroupStatus.NEW))
+    DeliveryGroup.objects.create(**group_data(orders, GroupStatus.CANCELLED))
+
+    orders.append(Order.objects.create(billing_address=billing_address))
+    DeliveryGroup.objects.create(**group_data(orders, GroupStatus.NEW))
+    DeliveryGroup.objects.create(**group_data(orders, GroupStatus.SHIPPED))
+
+    orders.append(Order.objects.create(billing_address=billing_address))
+    DeliveryGroup.objects.create(**group_data(orders, GroupStatus.NEW))
+    DeliveryGroup.objects.create(**group_data(orders, GroupStatus.SHIPPED))
+    DeliveryGroup.objects.create(**group_data(orders, GroupStatus.CANCELLED))
+
+    return orders
+
+
+@pytest.fixture
+def closed_orders(billing_address):
+    orders = []
+    group_data = lambda orders, status: {'order': orders[-1], 'status': status}
+
+    orders.append(Order.objects.create(billing_address=billing_address))
+    DeliveryGroup.objects.create(**group_data(orders, GroupStatus.SHIPPED))
+
+    orders.append(Order.objects.create(billing_address=billing_address))
+    DeliveryGroup.objects.create(**group_data(orders, GroupStatus.SHIPPED))
+    DeliveryGroup.objects.create(**group_data(orders, GroupStatus.CANCELLED))
+
+    orders.append(Order.objects.create(billing_address=billing_address))
+    DeliveryGroup.objects.create(**group_data(orders, GroupStatus.CANCELLED))
+
+    # empty order is considered as closed
+    orders.append(Order.objects.create(billing_address=billing_address))
+
+    return orders

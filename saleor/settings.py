@@ -1,12 +1,10 @@
-from __future__ import unicode_literals
-
 import ast
 import os.path
 
 import dj_database_url
 import dj_email_url
-import django_cache_url
 from django.contrib.messages import constants as messages
+import django_cache_url
 
 
 def get_list(text):
@@ -286,6 +284,7 @@ MAX_CART_LINE_QUANTITY = os.environ.get('MAX_CART_LINE_QUANTITY', 50)
 
 PAGINATE_BY = 16
 DASHBOARD_PAGINATE_BY = 30
+DASHBOARD_SEARCH_LIMIT = 5
 
 BOOTSTRAP3 = {
     'set_placeholder': False,

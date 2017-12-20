@@ -1,24 +1,16 @@
-from __future__ import unicode_literals
-
 from collections import defaultdict, namedtuple
-
-from prices import Price, PriceRange
-from six import iteritems
+from urllib.parse import urlencode
 
 from django.conf import settings
 from django.contrib.auth.models import AnonymousUser
 from django.utils.encoding import smart_text
 from django_prices.templatetags import prices_i18n
+from prices import Price, PriceRange
 
+from . import ProductAvailabilityStatus, VariantAvailabilityStatus
 from ..cart.utils import get_cart_from_request, get_or_create_cart_from_request
 from ..core.utils import to_local_currency
 from .forms import ProductForm
-from . import ProductAvailabilityStatus, VariantAvailabilityStatus
-
-try:
-    from urllib.parse import urlencode
-except ImportError:
-    from urllib import urlencode
 
 
 def products_visible_to_user(user):
@@ -37,12 +29,6 @@ def products_with_details(user):
         'product_class__variant_attributes__values',
         'product_class__product_attributes__values')
     return products
-
-
-def products_for_api(user):
-    products = products_visible_to_user(user)
-    return products.prefetch_related(
-        'images', 'categories', 'variants__stock')
 
 
 def products_for_homepage():
@@ -195,7 +181,7 @@ def get_variant_picker_data(product, discounts=None, local_currency=None):
             'schemaData': schema_data}
         data['variants'].append(variant_data)
 
-        for variant_key, variant_value in iteritems(variant.attributes):
+        for variant_key, variant_value in variant.attributes.items():
             filter_available_variants[int(variant_key)].append(
                 int(variant_value))
 

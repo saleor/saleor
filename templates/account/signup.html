@@ -5,15 +5,19 @@
 
 {% block title %}{% trans "Sign Up" context "Signup page title" %} — {{ block.super }}{% endblock %}
 
+{% block meta_tags %}
+  <meta name="robots" content="nofollow">
+{% endblock meta_tags %}
+
 {% block content %}
-  <div class="col-lg-10 offset-lg-1 col-sm-12">
+  <div class="col-lg-10 col-sm-12 m-auto">
     <div class="row login">
       <div class="col-md-6 login__register">
         <div class="login__register-link">
           <h3>{% trans "Already have an account?" context "Signup form secondary title" %}</h3>
           <img class="signup-img" src="{% static 'images/pirate_login.png' %}"
                srcset="{% static 'images/pirate_login.png' %} 1x, {% static 'images/pirate_login2x.png' %} 2x">
-          <p><a href="{% url 'account_login' %}" class="btn secondary narrow">
+          <p><a rel="nofollow" href="{% url 'account_login' %}" class="btn secondary narrow">
             {% trans "Log in" context "Signup form secondary action" %}
           </a></p>
         </div>
@@ -24,9 +28,9 @@
             <h3>{% trans "Create an account" context "Signup form title" %}</h3>
             {% csrf_token %}
             {% bootstrap_form form %}
-            {% if redirect_field_value %}
-              <input type="hidden" name="{{ redirect_field_name }}"
-                     value="{{ redirect_field_value }}"/>
+            {% if REDIRECT_FIELD_VALUE %}
+             <input type="hidden" name="{{ REDIRECT_FIELD_NAME }}"
+                    value="{{ REDIRECT_FIELD_VALUE }}"/>
             {% endif %}
           </fieldset>
           <button type="submit" class="btn primary narrow">

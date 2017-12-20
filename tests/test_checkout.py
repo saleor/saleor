@@ -1,10 +1,9 @@
-from __future__ import unicode_literals
+from unittest.mock import MagicMock, Mock
 
-import pytest
 from django.conf import settings
 from django.contrib.auth.models import AnonymousUser
-from mock import MagicMock, Mock
 from prices import Price
+import pytest
 from satchless.item import InsufficientStock
 
 from saleor.checkout import views
@@ -123,9 +122,9 @@ def test_checkout_shipping_address_setter():
     checkout.shipping_address = address
     assert checkout._shipping_address == address
     assert checkout.storage['shipping_address'] == {
-        'city': u'', 'city_area': u'', 'company_name': u'', 'country': '', 'phone': u'',
-        'country_area': u'', 'first_name': 'Jan', 'id': None, 'last_name': 'Kowalski',
-        'postal_code': u'', 'street_address_1': u'', 'street_address_2': u''}
+        'city': '', 'city_area': '', 'company_name': '', 'country': '', 'phone': '',
+        'country_area': '', 'first_name': 'Jan', 'id': None, 'last_name': 'Kowalski',
+        'postal_code': '', 'street_address_1': '', 'street_address_2': ''}
 
 
 @pytest.mark.parametrize('shipping_address, shipping_method, value', [

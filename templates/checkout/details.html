@@ -51,7 +51,7 @@
               </div>
               <div class="col-4">
                 <p class="float-right">{% if checkout.shipping_method %}
-                  {% net checkout.get_total_shipping %}
+                  {% net checkout.shipping_method.get_total %}
                 {% else %}
                   &mdash;
                 {% endif %}</p>

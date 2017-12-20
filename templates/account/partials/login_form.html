@@ -6,9 +6,9 @@
   {% csrf_token %}
   <fieldset>
     {% bootstrap_form form %}
-    {% if redirect_field_value %}
-      <input type="hidden" name="next" name="{{ redirect_field_name }}"
-             value="{{ redirect_field_value }}"/>
+    {% if REDIRECT_FIELD_VALUE %}
+      <input type="hidden" name="{{ REDIRECT_FIELD_NAME }}"
+             value="{{ REDIRECT_FIELD_VALUE }}"/>
     {% endif %}
   </fieldset>
   <div class="row login__btn-group">
@@ -16,7 +16,7 @@
       <button class="btn primary narrow">
         {% trans "Log in" context "Login form primary action" %}
       </button>
-      <a class="link--styled" href="{% url 'account_reset_password' %}">
+      <a rel="nofollow" class="link--styled" href="{% url 'account_reset_password' %}">
         {% trans "Forgot password?" context "Login form secondary link" %}
       </a>
       {% with available_backends=settings.available_backends %}

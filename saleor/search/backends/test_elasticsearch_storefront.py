@@ -1,4 +1,3 @@
-from __future__ import unicode_literals
 from . import elasticsearch_storefront
 
 PHRASE = 'How fortunate man with none'

@@ -9,7 +9,7 @@
         {% csrf_token %}
         {% bootstrap_form form layout="horizontal" %}
         <div class="form-group">
-            <div class="col-sm-offset-2 col-sm-10">
+            <div class="col-sm-10 m-auto">
                 <button type="submit" class="btn primary">
                     {% trans "Save changes" context "Payment form (PayPal) primary action" %}
                 </button>

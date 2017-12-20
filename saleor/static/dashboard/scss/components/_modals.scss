@@ -1,8 +1,11 @@
 .modal-content {
-  .row {
+  & > .row {
     margin: {
       left: -.75rem;
       right: -.75rem;
+    }
+    &:last-of-type {
+      margin-bottom: 0;
     }
   }
 }

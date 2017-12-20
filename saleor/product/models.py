@@ -1,17 +1,13 @@
-from __future__ import unicode_literals
-
 import datetime
 from decimal import Decimal
 
 from django.conf import settings
 from django.contrib.postgres.fields import HStoreField
-from django.contrib.postgres.indexes import GinIndex
 from django.core.validators import MinValueValidator, RegexValidator
 from django.db import models
 from django.db.models import F, Max, Q
 from django.urls import reverse
-from django.utils import six
-from django.utils.encoding import python_2_unicode_compatible, smart_text
+from django.utils.encoding import smart_text
 from django.utils.text import slugify
 from django.utils.translation import pgettext_lazy
 from django_prices.models import Price, PriceField
@@ -26,7 +22,6 @@ from ..discount.models import calculate_discounted_price
 from .utils import get_attributes_display_map
 
 
-@python_2_unicode_compatible
 class Category(MPTTModel):
     name = models.CharField(
         pgettext_lazy('Category field', 'name'), max_length=128)
@@ -38,8 +33,8 @@ class Category(MPTTModel):
         'self', null=True, blank=True, related_name='children',
         verbose_name=pgettext_lazy('Category field', 'parent'),
         on_delete=models.CASCADE)
-    hidden = models.BooleanField(
-        pgettext_lazy('Category field', 'hidden'), default=False)
+    is_hidden = models.BooleanField(
+        pgettext_lazy('Category field', 'is hidden'), default=False)
 
     objects = models.Manager()
     tree = TreeManager()
@@ -68,11 +63,10 @@ class Category(MPTTModel):
         nodes = [node for node in ancestors] + [self]
         return '/'.join([node.slug for node in nodes])
 
-    def set_hidden_descendants(self, hidden):
-        self.get_descendants().update(hidden=hidden)
+    def set_is_hidden_descendants(self, is_hidden):
+        self.get_descendants().update(is_hidden=is_hidden)
 
 
-@python_2_unicode_compatible
 class ProductClass(models.Model):
     name = models.CharField(
         pgettext_lazy('Product class field', 'name'), max_length=128)
@@ -110,7 +104,6 @@ class ProductManager(models.Manager):
                 is_published=True)
 
 
-@python_2_unicode_compatible
 class Product(models.Model, ItemRange):
     product_class = models.ForeignKey(
         ProductClass, related_name='products',
@@ -141,7 +134,6 @@ class Product(models.Model, ItemRange):
 
     class Meta:
         app_label = 'product'
-        indexes = [GinIndex(fields=['name', 'description'])]
         permissions = (
             ('view_product',
              pgettext_lazy('Permission description', 'Can view products')),
@@ -180,7 +172,7 @@ class Product(models.Model, ItemRange):
 
     def get_first_category(self):
         for category in self.categories.all():
-            if not category.hidden:
+            if not category.is_hidden:
                 return category
         return None
 
@@ -218,7 +210,6 @@ class Product(models.Model, ItemRange):
         return PriceRange(min(grosses), max(grosses))
 
 
-@python_2_unicode_compatible
 class ProductVariant(models.Model, Item):
     sku = models.CharField(
         pgettext_lazy('Product variant field', 'SKU'), max_length=32,
@@ -292,7 +283,7 @@ class ProductVariant(models.Model, Item):
             return ', '.join(
                 ['%s: %s' % (smart_text(attributes.get(id=int(key))),
                              smart_text(value))
-                 for (key, value) in six.iteritems(values)])
+                 for (key, value) in values.items()])
         else:
             return smart_text(self.sku)
 
@@ -320,7 +311,6 @@ class ProductVariant(models.Model, Item):
             return stock.cost_price
 
 
-@python_2_unicode_compatible
 class StockLocation(models.Model):
     name = models.CharField(
         pgettext_lazy('Stock location field', 'location'), max_length=100)
@@ -353,7 +343,6 @@ class StockManager(models.Manager):
         stock.save(update_fields=['quantity', 'quantity_allocated'])
 
 
-@python_2_unicode_compatible
 class Stock(models.Model):
     variant = models.ForeignKey(
         ProductVariant, related_name='stock',
@@ -386,7 +375,6 @@ class Stock(models.Model):
         return max(self.quantity - self.quantity_allocated, 0)
 
 
-@python_2_unicode_compatible
 class ProductAttribute(models.Model):
     slug = models.SlugField(
         pgettext_lazy('Product attribute field', 'internal name'),
@@ -408,7 +396,6 @@ class ProductAttribute(models.Model):
         return self.values.exists()
 
 
-@python_2_unicode_compatible
 class AttributeChoiceValue(models.Model):
     name = models.CharField(
         pgettext_lazy('Attribute choice value field', 'display name'),

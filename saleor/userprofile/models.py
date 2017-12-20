@@ -1,14 +1,20 @@
-from __future__ import unicode_literals
-
 from django.contrib.auth.models import (
     AbstractBaseUser, BaseUserManager, PermissionsMixin)
 from django.db import models
 from django.forms.models import model_to_dict
 from django.utils import timezone
-from django.utils.encoding import python_2_unicode_compatible
 from django.utils.translation import pgettext_lazy
 from django_countries.fields import Country, CountryField
 from phonenumber_field.modelfields import PhoneNumberField
+
+from .validators import validate_possible_number
+
+
+class PossiblePhoneNumberField(PhoneNumberField):
+    """
+    Less strict rule for phone numbers written to database.
+    """
+    default_validators = [validate_possible_number]
 
 
 class AddressManager(models.Manager):
@@ -41,7 +47,6 @@ class AddressManager(models.Manager):
         return address
 
 
-@python_2_unicode_compatible
 class Address(models.Model):
     first_name = models.CharField(
         pgettext_lazy('Address field', 'given name'),
@@ -72,7 +77,7 @@ class Address(models.Model):
     country_area = models.CharField(
         pgettext_lazy('Address field', 'state or province'),
         max_length=128, blank=True)
-    phone = PhoneNumberField(
+    phone = PossiblePhoneNumberField(
         verbose_name=pgettext_lazy('Address field', 'phone number'),
         blank=True, default='')
     objects = AddressManager()
@@ -94,7 +99,7 @@ class Address(models.Model):
                 self.first_name, self.last_name, self.company_name,
                 self.street_address_1, self.street_address_2, self.city,
                 self.postal_code, self.country, self.country_area,
-                str(self.phone)))
+                self.phone))
 
 
 class UserManager(BaseUserManager):

@@ -1,23 +1,19 @@
-from __future__ import absolute_import, unicode_literals
 from itertools import groupby
 from operator import itemgetter
 
 from django.conf import settings
 from django.db import models
 from django.db.models import Q
-from django.utils.encoding import python_2_unicode_compatible
 from django.utils.translation import pgettext_lazy
+from django_countries import countries
 from django_prices.models import PriceField
 from prices import PriceRange
-from django_countries import countries
-
 
 ANY_COUNTRY = ''
 ANY_COUNTRY_DISPLAY = pgettext_lazy('Country choice', 'Rest of World')
 COUNTRY_CODE_CHOICES = [(ANY_COUNTRY, ANY_COUNTRY_DISPLAY)] + list(countries)
 
 
-@python_2_unicode_compatible
 class ShippingMethod(models.Model):
 
     name = models.CharField(
@@ -77,7 +73,6 @@ class ShippingMethodCountryQueryset(models.QuerySet):
         return self.filter(id__in=ids)
 
 
-@python_2_unicode_compatible
 class ShippingMethodCountry(models.Model):
 
     country_code = models.CharField(

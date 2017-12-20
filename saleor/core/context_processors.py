@@ -1,6 +1,5 @@
-from __future__ import unicode_literals
-
 import json
+from urllib.parse import urljoin
 
 from django.conf import settings
 from django.contrib.sites.shortcuts import get_current_site
@@ -27,7 +26,7 @@ def default_currency(request):
 # request is a required parameter
 # pylint: disable=W0613
 def categories(request):
-    return {'categories': Category.tree.root_nodes().filter(hidden=False)}
+    return {'categories': Category.tree.root_nodes().filter(is_hidden=False)}
 
 
 def search_enabled(request):
@@ -44,8 +43,9 @@ def webpage_schema(request):
         'name': site.name,
         'description': site.settings.description}
     if settings.ENABLE_SEARCH:
+        search_url = urljoin(url, reverse('search:search'))
         data['potentialAction'] = {
             '@type': 'SearchAction',
-            'target': '%s%s?q={search_term}' % (url, reverse('search:search')),
-            'query-input': 'required name=search_term'}
+            'target': '%s?q={q}' % search_url,
+            'query-input': 'required name=q'}
     return {'webpage_schema': json.dumps(data)}

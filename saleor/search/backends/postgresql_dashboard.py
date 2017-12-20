@@ -1,4 +1,5 @@
-from django.contrib.postgres.search import SearchVector
+from django.contrib.postgres.search import (SearchVector, SearchQuery,
+                                            SearchRank)
 
 from ...product.models import Product
 from ...order.models import Order
@@ -7,8 +8,11 @@ from ...userprofile.models import User
 
 def search_products(phrase):
     '''Dashboard full text product search'''
-    sv = SearchVector('name', 'description')
-    return Product.objects.annotate(search=sv).filter(search=phrase)
+    sv = (SearchVector('name', weight='A') +
+          SearchVector('description', weight='B'))
+    rank = SearchRank(sv, SearchQuery(phrase))
+    return Product.objects.annotate(rank=rank).filter(
+        rank__gte=0.2).order_by('-rank')
 
 
 def search_orders(phrase):
@@ -24,18 +28,24 @@ def search_orders(phrase):
     except ValueError:
         pass
 
-    sv = SearchVector('user__default_shipping_address__first_name',
-                      'user__default_shipping_address__last_name',
-                      'user__email')
-    return Order.objects.annotate(search=sv).filter(search=phrase)
+    sv = (
+        SearchVector('user__default_shipping_address__first_name',
+                     weight='B') +
+        SearchVector('user__default_shipping_address__last_name', weight='B') +
+        SearchVector('user__email', weight='A'))
+    rank = SearchRank(sv, SearchQuery(phrase))
+    return Order.objects.annotate(rank=rank).filter(
+        rank__gte=0.2).order_by('-rank')
 
 
 def search_users(phrase):
     '''Dashboard full text user search'''
-    sv = SearchVector('email',
-                      'default_billing_address__first_name',
-                      'default_billing_address__last_name')
-    return User.objects.annotate(search=sv).filter(search=phrase)
+    sv = (SearchVector('email', weight='A') +
+          SearchVector('default_billing_address__first_name', weight='B') +
+          SearchVector('default_billing_address__last_name', weight='B'))
+    rank = SearchRank(sv, SearchQuery(phrase))
+    return User.objects.annotate(rank=rank).filter(
+        rank__gte=0.2).order_by('-rank')
 
 
 def search(phrase):
@@ -47,6 +57,8 @@ def search(phrase):
         phrase (str): searched phrase
 
     '''
-    return {'products': search_products(phrase),
-            'orders': search_orders(phrase),
-            'users': search_users(phrase)}
+    return {
+        'products': search_products(phrase),
+        'orders': search_orders(phrase),
+        'users': search_users(phrase)
+    }

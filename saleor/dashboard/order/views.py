@@ -1,5 +1,3 @@
-from __future__ import unicode_literals
-
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import permission_required
@@ -25,9 +23,8 @@ from .utils import (create_packing_slip_pdf, create_invoice_pdf,
                     get_statics_absolute_url)
 from ..views import staff_member_required
 from ...core.utils import get_paginator_items
-from ...order import OrderStatus
+from ...order import GroupStatus
 from ...order.models import Order, OrderLine, OrderNote
-from ...product.models import ProductVariant
 from ...userprofile.i18n import AddressForm
 
 
@@ -60,7 +57,9 @@ def order_details(request, order_pk):
     if payment:
         can_capture = (
             payment.status == PaymentStatus.PREAUTH and
-            order.status != OrderStatus.CANCELLED)
+            any([
+                group.status != GroupStatus.CANCELLED
+                for group in order.groups.all()]))
         can_release = payment.status == PaymentStatus.PREAUTH
         can_refund = payment.status == PaymentStatus.CONFIRMED
         preauthorized = payment.get_total_price()
@@ -305,7 +304,8 @@ def add_variant_to_group(request, order_pk, group_pk):
     """ Adds variant in given quantity to existing or new group in order. """
     order = get_object_or_404(Order, pk=order_pk)
     group = get_object_or_404(order.groups.all(), pk=group_pk)
-    form = AddVariantToDeliveryGroupForm(request.POST or None, group=group)
+    form = AddVariantToDeliveryGroupForm(
+        request.POST or None, group=group, discounts=request.discounts)
     status = 200
     if form.is_valid():
         msg_dict = {

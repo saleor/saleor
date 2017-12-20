@@ -4,6 +4,9 @@
   h1 {
     font-weight: 300;
     text-transform: uppercase;
+    @include media-breakpoint-down(sm) {
+      font-size: 2.5rem;
+    }
   }
   .btn {
     margin-top: $global-margin;

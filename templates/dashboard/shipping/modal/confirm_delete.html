@@ -1,8 +1,10 @@
-{% extends "dashboard/base_modal_confirm_delete.html" %}
+{% extends "dashboard/base_modal.html" %}
 
 {% load i18n %}
 {% load prices_i18n %}
 {% load staticfiles %}
+
+{% block form_class %}{% endblock %}
 
 {% block action_url %}
 {% url "dashboard:shipping-method-delete" shipping_method.pk %}
@@ -18,4 +20,8 @@ Remove shipping method {{ shipping_method }}
 {% blocktrans context "Dashboard confirmation modal" %}
 Are you sure you want to remove shipping method <strong>{{ shipping_method}}</strong>?
 {% endblocktrans %}
+{% endblock %}
+
+{% block primary_action %}
+{% trans "Remove" context "Dashboard delete action" %}
 {% endblock %}

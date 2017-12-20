@@ -1,9 +1,10 @@
-from __future__ import unicode_literals
+from unittest.mock import Mock
 
 from django.contrib.staticfiles.templatetags.staticfiles import static
-from mock import Mock
+
 from saleor.product.templatetags.product_images import (
-    choose_placeholder, get_thumbnail,product_first_image)
+    choose_placeholder, get_thumbnail, product_first_image)
+
 
 def test_get_thumbnail():
     instance = Mock()

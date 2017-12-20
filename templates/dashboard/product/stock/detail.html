@@ -62,10 +62,10 @@
         </div>
         {% if perms.product.edit_stock_location %}
           <div class="card-action">
-            <a class="btn btn-flat" href="{% url "dashboard:variant-stock-update" product_pk=product.pk variant_pk=variant.pk stock_pk=stock.pk %}">
+            <a class="btn-flat waves-effect" href="{% url "dashboard:variant-stock-update" product_pk=product.pk variant_pk=variant.pk stock_pk=stock.pk %}">
               {% trans "Edit stock" context "Dashboard action" %}
             </a>
-            <a href="#base-modal" class="btn btn-flat modal-trigger-custom" data-href="{% url 'dashboard:variant-stock-delete' product_pk=product.pk variant_pk=variant.pk stock_pk=stock.pk %}">
+            <a href="#base-modal" class="btn-flat waves-effect modal-trigger-custom" data-href="{% url 'dashboard:variant-stock-delete' product_pk=product.pk variant_pk=variant.pk stock_pk=stock.pk %}">
               {% trans "Remove stock" context "Dashboard action" %}
             </a>
           </div>

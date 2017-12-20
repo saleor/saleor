@@ -19,7 +19,7 @@ PostgreSQL search is enabled by default if Elasticsearch is not configured. No e
 Data indexing
 -------------
 
-Index is not essential for postgres search. For performance optimization reasons `PostgreSQL Gin index <https://www.postgresql.org/docs/current/static/gin.html>`_ is created by default on product model for name and description field. Index usage is transparent to user and no additional action is required for index to stay up to date.
+Index is not essential for postgres search and is not configured in Saleor by default. For performance reasons, most likely a `PostgreSQL Gin index <https://www.postgresql.org/docs/current/static/gin.html>`_ should be created on the Product for name and description fields. Reasons for choosing a particular index and configuration strongly depend on particular needs and store size, for each comes with both advantages and limitations. Please read `official PostgreSQL documentation <https://www.postgresql.org/docs/current/static/textsearch-indexes.html>`_ and consider project specifics before making decision.
 
 
 Search integration architecture

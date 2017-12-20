@@ -13,8 +13,8 @@
 
 {% block header_extra %}
   {% if perms.product.edit_stock_location %}
-    <div class="fixed-action-btn">
-      <a class="btn-fab btn-floating btn-large waves-effect waves-light" href="{% url 'dashboard:product-stock-location-add' %}" title="{% trans "Add stock location" context "Stock location list add button text" %}">
+    <div class="btn-fab-fixed">
+      <a class="btn-fab-default waves-effect waves-light" href="{% url 'dashboard:product-stock-location-add' %}" title="{% trans "Add stock location" context "Stock location list add button text" %}">
         <svg data-src="{% static "dashboard/images/add.svg" %}" />
       </a>
     </div>

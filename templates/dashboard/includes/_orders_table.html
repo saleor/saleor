@@ -8,42 +8,37 @@
     <thead>
       <tr>
         {% get_sort_by_toggle 'pk' as toggle %}
-        <th class="wide {% if toggle.is_active %}active{% endif %}">
+        <th class="{% if toggle.is_active %}active{% endif %}">
           <a href="{{ toggle.url }}">
             <svg data-src="{{ toggle.sorting_icon }}" />
             #
           </a>
         </th>
+        <th></th>
         {% get_sort_by_toggle 'email' as toggle %}
-        <th class="wide {% if toggle.is_active %}active{% endif %}">
+        <th class="{% if toggle.is_active %}active{% endif %}">
           <a href="{{ toggle.url }}">
             <svg data-src="{{ toggle.sorting_icon }}" />
             {% trans "Customer" context "Orders table header" %}
           </a>
         </th>
         {% get_sort_by_toggle 'created' as toggle %}
-        <th class="wide {% if toggle.is_active %}active{% endif %}">
+        <th class="{% if toggle.is_active %}active{% endif %}">
           <a href="{{ toggle.url }}">
             <svg data-src="{{ toggle.sorting_icon }}" />
             {% trans "Placed on" context "Orders table header" %}
           </a>
         </th>
         {% get_sort_by_toggle 'status' as toggle %}
-        <th class="wide {% if toggle.is_active %}active{% endif %}">
-          <a href="{{ toggle.url }}">
-            <svg data-src="{{ toggle.sorting_icon }}" />
-            {% trans "Order status" context "Orders table header" %}
-          </a>
-        </th>
         {% get_sort_by_toggle 'payment_status' as toggle %}
-        <th class="wide {% if toggle.is_active %}active{% endif %}">
+        <th class="{% if toggle.is_active %}active{% endif %}">
           <a href="{{ toggle.url }}">
             <svg data-src="{{ toggle.sorting_icon }}" />
             {% trans "Payment status" context "Orders table header" %}
           </a>
         </th>
         {% get_sort_by_toggle 'total' as toggle %}
-        <th class="wide {% if toggle.is_active %}active{% endif %}">
+        <th class="{% if toggle.is_active %}active{% endif %}">
           <a href="{{ toggle.url }}">
             <svg data-src="{{ toggle.sorting_icon }}" />
             {% trans "Total" context "Orders table header" %}
@@ -57,15 +52,15 @@
           <td>
             #{{ order.id }}
           </td>
+          <td>
+            {% render_status order.status order.get_status_display %}
+          </td>
           {% trans "Guest" context "Anonymous user account value" as guest %}
           <td>
             {{ order.user|default:guest }}
           </td>
           <td>
             {{ order.created }}
-          </td>
-          <td>
-            {% render_status order.status order.get_status_display %}
           </td>
           <td>
             {% render_status order.get_last_payment_status order.get_last_payment_status_display %}
