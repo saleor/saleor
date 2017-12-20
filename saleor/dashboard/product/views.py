@@ -34,13 +34,19 @@ def product_class_list(request):
     classes = get_paginator_items(
         class_filter.qs, settings.DASHBOARD_PAGINATE_BY,
         request.GET.get('page'))
+    summary_msg = npgettext_lazy(
+        'Filter set results summary',
+        'Found %(counter)d matching product type',
+        'Found %(counter)d matching product types',
+        'counter') % {'counter': class_filter.qs.count() }
     classes.object_list = [
         (pc.pk, pc.name, pc.has_variants, pc.product_attributes.all(),
          pc.variant_attributes.all())
         for pc in classes.object_list]
     ctx = {
         'form': form, 'product_classes': classes, 'filter': class_filter,
-        'is_empty': not class_filter.queryset.exists()}
+        'is_empty': not class_filter.queryset.exists(),
+        'summary_msg': summary_msg}
     return TemplateResponse(
         request,
         'dashboard/product/product_class/list.html',
@@ -117,10 +123,15 @@ def product_list(request):
     products = get_paginator_items(
         product_filter.qs, settings.DASHBOARD_PAGINATE_BY,
         request.GET.get('page'))
+    summary_msg = npgettext_lazy(
+        'Filter set results summary',
+        'Found %(counter)d matching product',
+        'Found %(counter)d matching products',
+        'counter') % {'counter': product_filter.qs.count() }
     ctx = {
         'bulk_action_form': forms.ProductBulkUpdate(),
         'products': products, 'product_classes': product_classes,
-        'filter': product_filter,
+        'filter': product_filter, 'summary_msg': summary_msg,
         'is_empty': not product_filter.queryset.exists()
     }
     return TemplateResponse(request, 'dashboard/product/list.html', ctx)
@@ -497,13 +508,17 @@ def attribute_list(request):
         for attribute in attribute_filter.qs]
     attributes = get_paginator_items(
         attributes, settings.DASHBOARD_PAGINATE_BY, request.GET.get('page'))
+    summary_msg = npgettext_lazy(
+        'Filter set results summary',
+        'Found %(counter)d matching attribute',
+        'Found %(counter)d matching attributes',
+        'counter') % {'counter': attribute_filter.qs.count() }
     ctx = {
         'attributes': attributes, 'filter': attribute_filter,
-        'is_empty': not attribute_filter.queryset.exists()}
+        'is_empty': not attribute_filter.queryset.exists(),
+        'summary_msg': summary_msg}
     return TemplateResponse(
-        request,
-        'dashboard/product/product_attribute/list.html',
-        ctx)
+        request, 'dashboard/product/product_attribute/list.html', ctx)
 
 
 @staff_member_required
