@@ -5,6 +5,7 @@ from django.contrib import messages
 from django.conf import settings
 from django.utils.translation import pgettext_lazy
 from impersonate.views import impersonate as orig_impersonate
+from random import randint
 
 from ..dashboard.views import staff_member_required
 from ..product.utils import products_with_availability, products_for_homepage
@@ -33,3 +34,8 @@ def impersonate(request, uid):
             'You are now logged as {}'.format(User.objects.get(pk=uid)))
         messages.success(request, msg)
     return response
+
+
+def handle_404(request):
+    ctx = {'variant': randint(0, 2)}
+    return TemplateResponse(request, '404.html', ctx, status=404)

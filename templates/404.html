@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load static %}
+
+{% block body-class %}{% endblock %}
+
+{% block content %}
+  <div class="row no-results">
+    <div class="col-12">
+      {% if variant == 1 %}
+        <img src="{% static 'images/pirate_404_v1.svg' %}">
+      {% elif variant == 2 %}
+        <img src="{% static 'images/pirate_404_v2.svg' %}">
+      {% else %}
+        <img src="{% static 'images/pirate_404_v3.svg' %}">
+      {% endif %}
+      <div class="variant-text">
+        {% blocktrans %}
+          I can’t help but feel I’ve lost my way, bucko.<br />
+          I’m sure you’re feeling something similar.
+        {% endblocktrans %}
+      </div>
+    </div>
+  </div>
+{% endblock %}
