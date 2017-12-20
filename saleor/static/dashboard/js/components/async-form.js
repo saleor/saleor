@@ -32,9 +32,10 @@ const onAsyncFormSubmit = (e) => {
 
 const onModalClose = () => $('.modal').modal('close');
 
-const init = $(document).on('submit', '.form-async', onAsyncFormSubmit)
+// -----
+
+$(document)
+  .on('submit', '.form-async', onAsyncFormSubmit)
   .on('click', '.modal-close', onModalClose);
 
-export {
-  init as default,
-};
+export {};

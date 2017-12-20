@@ -21,15 +21,11 @@ function onDiscountTypeChange (e) {
   $showOnPercentage.toggleClass('hide', $target.val() === 'percentage');
 }
 
-const init = $(() => {
-  $('[name="discount_value_type"]')
-    .on('change', onDiscountTypeChange)
-    .trigger('change');
-  $('[name="type"]')
-    .on('change', onVoucherTypeChange)
-    .trigger('change');
-});
+// -----
 
-export {
-  init as default,
-};
+$('[name="discount_value_type"]')
+  .on('change', onDiscountTypeChange)
+  .trigger('change');
+$('[name="type"]')
+  .on('change', onVoucherTypeChange)
+  .trigger('change');
