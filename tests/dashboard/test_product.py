@@ -613,3 +613,15 @@ def test_product_list_pagination_with_filters(admin_client, product_list):
     response = admin_client.get(url, data)
     assert response.status_code == 200
     assert list(response.context['products'])[0] == product_list[1]
+
+
+def test_product_select_classes(admin_client, product_list):
+    url = reverse('dashboard:product-select-classes')
+    response = admin_client.get(url)
+    assert response.status_code == HTTP_STATUS_OK
+
+    data = {'product_cls': product_list[0].product_class.pk}
+    response = admin_client.post(url, data)
+    assert response.get('location') == reverse(
+        'dashboard:product-add', args=[product_list[0].product_class.pk])
+    assert response.status_code == HTTP_REDIRECTION

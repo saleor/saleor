@@ -403,7 +403,7 @@
                   {% trans "Shipping" context "Order totals header" %}
                 </td>
                 <td class="right-align">
-                  {% gross order.get_total_shipping html=True %}
+                  {% gross order.shipping_price html=True %}
                 </td>
               </tr>
               {% if order.discount_amount.gross %}

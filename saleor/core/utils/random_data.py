@@ -14,7 +14,7 @@ from payments import PaymentStatus
 from prices import Price
 
 from ...discount.models import Sale, Voucher
-from ...order import OrderStatus
+from ...order import GroupStatus
 from ...order.models import DeliveryGroup, Order, OrderLine, Payment
 from ...product.models import (
     AttributeChoiceValue, Category, Product, ProductAttribute, ProductClass,
@@ -379,7 +379,7 @@ def create_payment(delivery_group):
         transaction_id=str(fake.random_int(1, 100000)),
         currency=settings.DEFAULT_CURRENCY,
         total=order.get_total().gross,
-        delivery=delivery_group.shipping_price.gross,
+        delivery=order.shipping_price.gross,
         customer_ip_address=fake.ipv4(),
         billing_first_name=order.billing_address.first_name,
         billing_last_name=order.billing_address.last_name,
@@ -401,22 +401,28 @@ def create_delivery_group(order):
     shipping_country = shipping_method.price_per_country.get_or_create(
         country_code=region, defaults={'price': fake.price()})[0]
     delivery_group = DeliveryGroup.objects.create(
-        status=random.choice([OrderStatus.NEW, OrderStatus.SHIPPED]),
+        status=random.choice([GroupStatus.NEW, GroupStatus.SHIPPED]),
         order=order,
-        shipping_method_name=str(shipping_country),
-        shipping_price=shipping_country.price)
+        shipping_method_name=str(shipping_country))
     return delivery_group
 
 
 def create_order_line(delivery_group):
     product = Product.objects.all().order_by('?')[0]
     variant = product.variants.all()[0]
+    quantity = random.randrange(1, 5)
+    stock = variant.stock.first()
+    stock.quantity += quantity
+    stock.quantity_allocated += quantity
+    stock.save()
     return OrderLine.objects.create(
         delivery_group=delivery_group,
         product=product,
         product_name=product.name,
         product_sku=variant.sku,
-        quantity=random.randrange(1, 5),
+        quantity=quantity,
+        stock=stock,
+        stock_location=stock.location.name,
         unit_price_net=product.price.net,
         unit_price_gross=product.price.gross)
 
@@ -442,22 +448,15 @@ def create_fake_order():
             'user_email': get_email(
                 address.first_name, address.last_name)}
     order = Order.objects.create(**user_data)
-    order.status = OrderStatus.PAYMENT_PENDING
-    order.save()
 
     delivery_group = create_delivery_group(order)
     lines = create_order_lines(delivery_group, random.randrange(1, 5))
 
     order.total = sum(
-        [line.get_total() for line in lines], delivery_group.shipping_price)
+        [line.get_total() for line in lines], order.shipping_price)
     order.save()
 
-    payment = create_payment(delivery_group)
-    if payment.status == PaymentStatus.CONFIRMED:
-        order.status = OrderStatus.FULLY_PAID
-        if random.choice([True, False]):
-            order.status = OrderStatus.SHIPPED
-        order.save()
+    create_payment(delivery_group)
     return order
 
 

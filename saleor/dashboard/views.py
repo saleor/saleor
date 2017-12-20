@@ -34,10 +34,11 @@ def superuser_required(view_func=None, redirect_field_name=REDIRECT_FIELD_NAME,
 
 @staff_member_required
 def index(request):
-    orders_to_ship = Order.objects.filter(status=OrderStatus.FULLY_PAID)
-    orders_to_ship = (orders_to_ship
-                      .select_related('user')
-                      .prefetch_related('groups', 'groups__lines', 'payments'))
+    orders_to_ship = Order.objects.select_related('user').prefetch_related(
+        'groups', 'groups__lines', 'payments')
+    orders_to_ship = [
+        order for order in orders_to_ship
+        if order.status == OrderStatus.OPEN and order.is_fully_paid()]
     payments = Payment.objects.filter(
         status=PaymentStatus.PREAUTH).order_by('-created')
     payments = payments.select_related('order', 'order__user')

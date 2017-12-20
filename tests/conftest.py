@@ -14,6 +14,7 @@ from saleor.cart import utils
 from saleor.cart.models import Cart
 from saleor.checkout.core import Checkout
 from saleor.discount.models import Sale, Voucher
+from saleor.order import GroupStatus
 from saleor.order.models import DeliveryGroup, Order, OrderLine
 from saleor.order.utils import recalculate_order
 from saleor.product.models import (
@@ -534,3 +535,48 @@ def permission_edit_settings():
 @pytest.fixture
 def permission_impersonate_user():
     return Permission.objects.get(codename='impersonate_user')
+
+
+@pytest.fixture
+def open_orders(billing_address):
+    orders = []
+    group_data = lambda orders, status: {'order': orders[-1], 'status': status}
+
+    orders.append(Order.objects.create(billing_address=billing_address))
+    DeliveryGroup.objects.create(**group_data(orders, GroupStatus.NEW))
+
+    orders.append(Order.objects.create(billing_address=billing_address))
+    DeliveryGroup.objects.create(**group_data(orders, GroupStatus.NEW))
+    DeliveryGroup.objects.create(**group_data(orders, GroupStatus.CANCELLED))
+
+    orders.append(Order.objects.create(billing_address=billing_address))
+    DeliveryGroup.objects.create(**group_data(orders, GroupStatus.NEW))
+    DeliveryGroup.objects.create(**group_data(orders, GroupStatus.SHIPPED))
+
+    orders.append(Order.objects.create(billing_address=billing_address))
+    DeliveryGroup.objects.create(**group_data(orders, GroupStatus.NEW))
+    DeliveryGroup.objects.create(**group_data(orders, GroupStatus.SHIPPED))
+    DeliveryGroup.objects.create(**group_data(orders, GroupStatus.CANCELLED))
+
+    return orders
+
+
+@pytest.fixture
+def closed_orders(billing_address):
+    orders = []
+    group_data = lambda orders, status: {'order': orders[-1], 'status': status}
+
+    orders.append(Order.objects.create(billing_address=billing_address))
+    DeliveryGroup.objects.create(**group_data(orders, GroupStatus.SHIPPED))
+
+    orders.append(Order.objects.create(billing_address=billing_address))
+    DeliveryGroup.objects.create(**group_data(orders, GroupStatus.SHIPPED))
+    DeliveryGroup.objects.create(**group_data(orders, GroupStatus.CANCELLED))
+
+    orders.append(Order.objects.create(billing_address=billing_address))
+    DeliveryGroup.objects.create(**group_data(orders, GroupStatus.CANCELLED))
+
+    # empty order is considered as closed
+    orders.append(Order.objects.create(billing_address=billing_address))
+
+    return orders
