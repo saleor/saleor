@@ -26,7 +26,7 @@ def group_list(request):
         'Filter set results summary',
         'Found %(counter)d matching group',
         'Found %(counter)d matching groups',
-        'counter') % {'counter': group_filter.qs.count() }
+        'counter') % {'counter': group_filter.qs.count()}
     ctx = {
         'groups': groups, 'filter': group_filter,
         'is_empty': not group_filter.queryset.exists(),

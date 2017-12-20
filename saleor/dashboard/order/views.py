@@ -41,7 +41,7 @@ def order_list(request):
         'Filter set results summary',
         'Found %(counter)d matching product',
         'Found %(counter)d matching products',
-        'counter') % {'counter': order_filter.qs.count() }
+        'counter') % {'counter': order_filter.qs.count()}
     ctx = {
         'orders': orders, 'filter': order_filter,
         'is_empty': not order_filter.queryset.exists(),

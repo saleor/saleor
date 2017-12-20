@@ -26,7 +26,7 @@ def shipping_method_list(request):
         'Filter set results summary',
         'Found %(counter)d matching shipping method',
         'Found %(counter)d matching shipping methods',
-        'counter') % {'counter': shipping_method_filter.qs.count() }
+        'counter') % {'counter': shipping_method_filter.qs.count()}
     ctx = {
         'shipping_methods': methods, 'filter': shipping_method_filter,
         'is_empty': not shipping_method_filter.queryset.exists(),

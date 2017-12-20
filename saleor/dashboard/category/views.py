@@ -26,7 +26,7 @@ def category_list(request):
         'Filter set results summary',
         'Found %(counter)d matching category',
         'Found %(counter)d matching categories',
-        'counter') % {'counter': category_filter.qs.count() }
+        'counter') % {'counter': category_filter.qs.count()}
     ctx = {
         'categories': categories, 'filter': category_filter,
         'is_empty': not category_filter.queryset.exists(),
@@ -99,7 +99,7 @@ def category_detail(request, pk):
         'Filter set results summary',
         'Found %(counter)d matching subcategory',
         'Found %(counter)d matching subcategories',
-        'counter') % {'counter': category_filter.qs.count() }
+        'counter') % {'counter': category_filter.qs.count()}
     ctx = {'categories': categories, 'path': path, 'root': root,
            'filter': category_filter, 'summary_msg': summary_msg,
            'is_empty': not category_filter.queryset.exists()}
