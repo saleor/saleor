@@ -87,10 +87,10 @@
       border-top: 1px solid $gray;
       padding-top: $global-padding;
       .input-btn {
-        .btn {
-          position: relative;
+          .btn-voucher-remove {
+            position: relative;
+          }
         }
-      }
     }
     &__tittle {
       margin-bottom: $global-margin * 2;
