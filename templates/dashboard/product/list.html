@@ -20,7 +20,7 @@
     {% if perms.product.edit_product %}
       <div class="btn-fab-fixed">
         {% if product_classes|length > 1 %}
-          <a class="btn-fab-default waves-effect waves-light modal-trigger" href="#modal-product-class" title="{% trans "Add product" context "Product list add button text" %}">
+        <a data-href="{% url "dashboard:product-select-classes" %}" class="btn-fab-default waves-effect waves-light modal-trigger-custom" href="#base-modal" title="{% trans "Add product" context "Product list add button text" %}">
             <svg data-src="{% static "dashboard/images/add.svg" %}" />
           </a>
         {% else %}
@@ -134,23 +134,5 @@
     <div class="col s12 l3" id="filters">
       {% add_filters filter %}
     </div>
-  </div>
-  <div id="modal-product-class" class="modal">
-    <form method="post" novalidate>
-      <div class="modal-content">
-        {% csrf_token %}
-        <div class="row">
-          {{ form|materializecss }}
-        </div>
-      </div>
-      <div class="modal-footer">
-        <a href="#!" class="modal-action modal-close btn-flat waves-effect">
-          {% trans "Cancel" context "Dashboard cancel action" %}
-        </a>
-        <button type="submit" class="modal-action btn-flat waves-effect">
-          {% trans "Create new" context "Dashboard add action" %}
-        </button>
-      </div>
-    </form>
   </div>
 {% endblock %}

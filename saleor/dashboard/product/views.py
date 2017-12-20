@@ -111,22 +111,35 @@ def product_list(request):
     products = Product.objects.prefetch_related('images')
     products = products.order_by('name')
     product_classes = ProductClass.objects.all()
-
-    form = forms.ProductClassSelectorForm(
-        request.POST or None, product_classes=product_classes)
-    if form.is_valid():
-        return redirect(
-            'dashboard:product-add', class_pk=form.cleaned_data['product_cls'])
     product_filter = ProductFilter(request.GET, queryset=products)
     products = get_paginator_items(
         product_filter.qs, settings.DASHBOARD_PAGINATE_BY,
         request.GET.get('page'))
     ctx = {
-        'bulk_action_form': forms.ProductBulkUpdate(), 'form': form,
+        'bulk_action_form': forms.ProductBulkUpdate(),
         'products': products, 'product_classes': product_classes,
         'filter': product_filter,
     }
     return TemplateResponse(request, 'dashboard/product/list.html', ctx)
+
+
+@staff_member_required
+@permission_required('product.edit_product')
+def product_select_classes(request):
+    """
+    View for add product modal embedded in the product list view.
+    """
+    form = forms.ProductClassSelectorForm(request.POST or None)
+    status = 200
+    if form.is_valid():
+        return redirect(
+            'dashboard:product-add',
+            class_pk=form.cleaned_data.get('product_cls').pk)
+    elif form.errors:
+        status = 400
+    ctx = {'form': form}
+    template = 'product/modal/add_product.html'
+    return TemplateResponse(request, template, ctx, status=status)
 
 
 @staff_member_required
