@@ -615,13 +615,26 @@ def test_product_list_pagination_with_filters(admin_client, product_list):
     assert list(response.context['products'])[0] == product_list[1]
 
 
-def test_product_select_classes(admin_client, product_list):
-    url = reverse('dashboard:product-select-classes')
+def test_product_select_classes(admin_client, product_class):
+    url = reverse('dashboard:product-add-select-class')
     response = admin_client.get(url)
     assert response.status_code == HTTP_STATUS_OK
 
-    data = {'product_cls': product_list[0].product_class.pk}
+    data = {'product_cls': product_class.pk}
     response = admin_client.post(url, data)
     assert response.get('location') == reverse(
-        'dashboard:product-add', args=[product_list[0].product_class.pk])
+        'dashboard:product-add', kwargs={'class_pk': product_class.pk})
     assert response.status_code == HTTP_REDIRECTION
+
+
+def test_product_select_classes_by_ajax(admin_client, product_class):
+    url = reverse('dashboard:product-add-select-class')
+    data = {'product_cls': product_class.pk}
+
+    response = admin_client.post(
+        url, data, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
+
+    resp_decoded = json.loads(response.content.decode('utf-8'))
+    assert response.status_code == 302
+    assert resp_decoded.get('redirectUrl') == reverse(
+        'dashboard:product-add', kwargs={'class_pk': product_class.pk})
