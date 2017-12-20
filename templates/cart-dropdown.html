@@ -46,7 +46,7 @@
         <a href="{% url "cart:index" %}" class="btn secondary narrow float-md-right">{% trans "Go to cart" context "Cart dropdown secondary action" %}</a>
       </div>
       <div class="col-md-5">
-        <a href="{% url "checkout:login" %}" class="btn primary narrow">{% trans "Checkout" context "Cart dropdown primary action" %}</a>
+        <a href="{% url "checkout:login" %}" class="btn primary narrow float-md-right">{% trans "Checkout" context "Cart dropdown primary action" %}</a>
       </div>
     </div>
   {% else %}
