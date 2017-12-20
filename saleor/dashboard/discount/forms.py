@@ -23,12 +23,12 @@ class SaleForm(forms.ModelForm):
         exclude = []
 
     def __init__(self, *args, **kwargs):
-        super(SaleForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         if self.instance.pk:
             self.fields['products'].set_initial(self.instance.products.all())
 
     def clean(self):
-        cleaned_data = super(SaleForm, self).clean()
+        cleaned_data = super().clean()
         discount_type = cleaned_data['type']
         value = cleaned_data['value']
         if discount_type == Sale.PERCENTAGE and value > 100:
@@ -50,7 +50,7 @@ class VoucherForm(forms.ModelForm):
         if instance and instance.id is None and not initial.get('code'):
             initial['code'] = self._generate_code
         kwargs['initial'] = initial
-        super(VoucherForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
     def _generate_code(self):
         while True:
@@ -90,7 +90,7 @@ class ShippingVoucherForm(forms.ModelForm):
     def save(self, commit=True):
         self.instance.category = None
         self.instance.product = None
-        return super(ShippingVoucherForm, self).save(commit)
+        return super().save(commit)
 
 
 class ValueVoucherForm(forms.ModelForm):
@@ -109,7 +109,7 @@ class ValueVoucherForm(forms.ModelForm):
         self.instance.category = None
         self.instance.apply_to = None
         self.instance.product = None
-        return super(ValueVoucherForm, self).save(commit)
+        return super().save(commit)
 
 
 class CommonVoucherForm(forms.ModelForm):
@@ -119,7 +119,7 @@ class CommonVoucherForm(forms.ModelForm):
         choices=Voucher.APPLY_TO_PRODUCT_CHOICES, required=False)
 
     def __init__(self, *args, **kwargs):
-        super(CommonVoucherForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
     def save(self, commit=True):
         self.instance.category = None
@@ -131,7 +131,7 @@ class CommonVoucherForm(forms.ModelForm):
         if (self.instance.discount_value_type ==
                 Voucher.DISCOUNT_VALUE_PERCENTAGE):
             self.instance.apply_to = None
-        return super(CommonVoucherForm, self).save(commit)
+        return super().save(commit)
 
 
 class ProductVoucherForm(CommonVoucherForm):
@@ -145,7 +145,7 @@ class ProductVoucherForm(CommonVoucherForm):
         fields = ['product', 'apply_to']
 
     def __init__(self, *args, **kwargs):
-        super(ProductVoucherForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         if self.instance.product:
             self.fields['product'].set_initial(self.instance.product)
 
@@ -157,5 +157,5 @@ class CategoryVoucherForm(CommonVoucherForm):
         fields = ['category', 'apply_to']
 
     def __init__(self, *args, **kwargs):
-        super(CategoryVoucherForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.fields['category'].required = True
