@@ -27,7 +27,7 @@ class ShippingAddressesForm(forms.Form):
 
     def __init__(self, *args, **kwargs):
         additional_addresses = kwargs.pop('additional_addresses', [])
-        super(ShippingAddressesForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         address_field = self.fields['address']
         address_choices = [
             (address.id, str(address)) for address in additional_addresses]
@@ -84,7 +84,7 @@ class ShippingMethodForm(forms.Form):
         required=True)
 
     def __init__(self, country_code, *args, **kwargs):
-        super(ShippingMethodForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         method_field = self.fields['method']
         if country_code:
             queryset = method_field.queryset

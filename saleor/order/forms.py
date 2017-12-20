@@ -19,10 +19,10 @@ class PaymentDeleteForm(forms.Form):
 
     def __init__(self, *args, **kwargs):
         self.order = kwargs.pop('order')
-        super(PaymentDeleteForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
     def clean(self):
-        cleaned_data = super(PaymentDeleteForm, self).clean()
+        cleaned_data = super().clean()
         payment_id = cleaned_data.get('payment_id')
         waiting_payments = self.order.payments.filter(
             status=PaymentStatus.WAITING)
@@ -45,5 +45,5 @@ class PaymentDeleteForm(forms.Form):
 
 class PasswordForm(SignupForm):
     def __init__(self, *args, **kwargs):
-        super(PasswordForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.fields['email'].widget = forms.HiddenInput()
