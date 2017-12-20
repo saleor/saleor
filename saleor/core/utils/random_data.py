@@ -379,7 +379,7 @@ def create_payment(delivery_group):
         transaction_id=str(fake.random_int(1, 100000)),
         currency=settings.DEFAULT_CURRENCY,
         total=order.get_total().gross,
-        delivery=delivery_group.shipping_price.gross,
+        delivery=order.shipping_price.gross,
         customer_ip_address=fake.ipv4(),
         billing_first_name=order.billing_address.first_name,
         billing_last_name=order.billing_address.last_name,
@@ -403,8 +403,7 @@ def create_delivery_group(order):
     delivery_group = DeliveryGroup.objects.create(
         status=random.choice([GroupStatus.NEW, GroupStatus.SHIPPED]),
         order=order,
-        shipping_method_name=str(shipping_country),
-        shipping_price=shipping_country.price)
+        shipping_method_name=str(shipping_country))
     return delivery_group
 
 
@@ -454,7 +453,7 @@ def create_fake_order():
     lines = create_order_lines(delivery_group, random.randrange(1, 5))
 
     order.total = sum(
-        [line.get_total() for line in lines], delivery_group.shipping_price)
+        [line.get_total() for line in lines], order.shipping_price)
     order.save()
 
     create_payment(delivery_group)
