@@ -38,7 +38,7 @@ def product_class_list(request):
         'Filter set results summary',
         'Found %(counter)d matching product type',
         'Found %(counter)d matching product types',
-        'counter') % {'counter': class_filter.qs.count() }
+        'counter') % {'counter': class_filter.qs.count()}
     classes.object_list = [
         (pc.pk, pc.name, pc.has_variants, pc.product_attributes.all(),
          pc.variant_attributes.all())
@@ -127,7 +127,7 @@ def product_list(request):
         'Filter set results summary',
         'Found %(counter)d matching product',
         'Found %(counter)d matching products',
-        'counter') % {'counter': product_filter.qs.count() }
+        'counter') % {'counter': product_filter.qs.count()}
     ctx = {
         'bulk_action_form': forms.ProductBulkUpdate(),
         'products': products, 'product_classes': product_classes,
@@ -512,7 +512,7 @@ def attribute_list(request):
         'Filter set results summary',
         'Found %(counter)d matching attribute',
         'Found %(counter)d matching attributes',
-        'counter') % {'counter': attribute_filter.qs.count() }
+        'counter') % {'counter': attribute_filter.qs.count()}
     ctx = {
         'attributes': attributes, 'filter': attribute_filter,
         'is_empty': not attribute_filter.queryset.exists(),

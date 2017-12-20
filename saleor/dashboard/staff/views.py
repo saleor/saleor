@@ -27,7 +27,7 @@ def staff_list(request):
         'Filter set results summary',
         'Found %(counter)d matching staff member',
         'Found %(counter)d matching staff members',
-        'counter') % {'counter': staff_filter.qs.count() }
+        'counter') % {'counter': staff_filter.qs.count()}
     ctx = {
         'staff': staff_members, 'filter': staff_filter,
         'is_empty': not staff_filter.queryset.exists(),

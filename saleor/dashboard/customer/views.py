@@ -28,7 +28,7 @@ def customer_list(request):
         'Filter set results summary',
         'Found %(counter)d matching customer',
         'Found %(counter)d matching customers',
-        'counter') % {'counter': customer_filter.qs.count() }
+        'counter') % {'counter': customer_filter.qs.count()}
     ctx = {
         'customers': customers, 'filter': customer_filter,
         'is_empty': not customer_filter.queryset.exists(),

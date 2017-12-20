@@ -24,7 +24,7 @@ def sale_list(request):
         'Filter set results summary',
         'Found %(counter)d matching sale',
         'Found %(counter)d matching sales',
-        'counter') % {'counter': sale_filter.qs.count() }
+        'counter') % {'counter': sale_filter.qs.count()}
     ctx = {
         'sales': sales, 'filter': sale_filter,
         'is_empty': not sale_filter.queryset.exists(),
@@ -76,7 +76,7 @@ def voucher_list(request):
         'Filter set results summary',
         'Found %(counter)d matching voucher',
         'Found %(counter)d matching vouchers',
-        'counter') % {'counter': voucher_filter.qs.count() }
+        'counter') % {'counter': voucher_filter.qs.count()}
     ctx = {
         'vouchers': vouchers, 'filter': voucher_filter,
         'is_empty': not voucher_filter.queryset.exists(),
