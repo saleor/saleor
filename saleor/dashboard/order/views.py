@@ -37,7 +37,9 @@ def order_list(request):
     orders = get_paginator_items(
         order_filter.qs, settings.DASHBOARD_PAGINATE_BY,
         request.GET.get('page'))
-    ctx = {'orders': orders, 'filter': order_filter}
+    ctx = {
+        'orders': orders, 'filter': order_filter, 
+        'is_empty': not order_filter.queryset.exists()}
     return TemplateResponse(request, 'dashboard/order/list.html', ctx)
 
 

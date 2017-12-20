@@ -22,7 +22,9 @@ def group_list(request):
               for group in group_filter.qs]
     groups = get_paginator_items(
         groups, settings.DASHBOARD_PAGINATE_BY, request.GET.get('page'))
-    ctx = {'groups': groups, 'filter': group_filter}
+    ctx = {
+        'groups': groups, 'filter': group_filter, 
+        'is_empty': not group_filter.queryset.exists()}
     return TemplateResponse(request, 'dashboard/group/list.html', ctx)
 
 

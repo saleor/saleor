@@ -20,7 +20,9 @@ def sale_list(request):
     sales = get_paginator_items(
         sale_filter.qs, settings.DASHBOARD_PAGINATE_BY,
         request.GET.get('page'))
-    ctx = {'sales': sales, 'filter': sale_filter}
+    ctx = {
+        'sales': sales, 'filter': sale_filter,
+        'is_empty': not sale_filter.queryset.exists()}
     return TemplateResponse(request, 'dashboard/discount/sale/list.html', ctx)
 
 
@@ -64,7 +66,9 @@ def voucher_list(request):
     vouchers = get_paginator_items(
         voucher_filter.qs, settings.DASHBOARD_PAGINATE_BY,
         request.GET.get('page'))
-    ctx = {'vouchers': vouchers, 'filter': voucher_filter}
+    ctx = {
+        'vouchers': vouchers, 'filter': voucher_filter,
+        'is_empty': not voucher_filter.queryset.exists()}
     return TemplateResponse(
         request, 'dashboard/discount/voucher/list.html', ctx)
 
