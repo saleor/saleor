@@ -3,7 +3,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import permission_required
 from django.db.models import Q
 from django.http import JsonResponse
-from django.shortcuts import get_object_or_404, redirect
+from django.shortcuts import get_object_or_404, redirect, reverse
 from django.template.response import TemplateResponse
 from django.utils.translation import npgettext_lazy, pgettext_lazy
 from django.views.decorators.http import require_POST
@@ -126,19 +126,20 @@ def product_list(request):
 @staff_member_required
 @permission_required('product.edit_product')
 def product_select_classes(request):
-    """
-    View for add product modal embedded in the product list view.
-    """
+    """View for add product modal embedded in the product list view."""
     form = forms.ProductClassSelectorForm(request.POST or None)
     status = 200
     if form.is_valid():
-        return redirect(
+        redirect_url = reverse(
             'dashboard:product-add',
-            class_pk=form.cleaned_data.get('product_cls').pk)
+            kwargs={'class_pk': form.cleaned_data.get('product_cls').pk})
+        return (
+            JsonResponse({'redirectUrl': redirect_url}, status=302)
+            if request.is_ajax() else redirect(redirect_url))
     elif form.errors:
         status = 400
     ctx = {'form': form}
-    template = 'product/modal/add_product.html'
+    template = 'dashboard/product/modal/select_class.html'
     return TemplateResponse(request, template, ctx, status=status)
 
 
