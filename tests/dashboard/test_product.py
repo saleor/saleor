@@ -635,6 +635,6 @@ def test_product_select_classes_by_ajax(admin_client, product_class):
         url, data, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
 
     resp_decoded = json.loads(response.content.decode('utf-8'))
-    assert response.status_code == 302
+    assert response.status_code == 200
     assert resp_decoded.get('redirectUrl') == reverse(
         'dashboard:product-add', kwargs={'class_pk': product_class.pk})
