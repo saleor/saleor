@@ -19,8 +19,8 @@ from .forms import (
     MoveLinesForm, OrderNoteForm, RefundPaymentForm, ReleasePaymentForm,
     RemoveVoucherForm, ShipGroupForm)
 
-from .utils import (create_packing_slip_pdf, create_invoice_pdf,
-                    get_statics_absolute_url)
+from .utils import (
+    create_invoice_pdf, create_packing_slip_pdf, get_statics_absolute_url)
 from ..views import staff_member_required
 from ...core.utils import get_paginator_items
 from ...order import GroupStatus
@@ -34,14 +34,14 @@ def order_list(request):
     orders = (Order.objects.prefetch_related(
         'payments', 'groups__lines', 'user').order_by('-pk'))
     order_filter = OrderFilter(request.GET, queryset=orders)
+    orders = get_paginator_items(
+        order_filter.qs, settings.DASHBOARD_PAGINATE_BY,
+        request.GET.get('page'))
     summary_msg = npgettext_lazy(
         'Filter set results summary',
         'Found %(counter)d matching product',
         'Found %(counter)d matching products',
         'counter') % {'counter': order_filter.qs.count() }
-    orders = get_paginator_items(
-        order_filter.qs, settings.DASHBOARD_PAGINATE_BY,
-        request.GET.get('page'))
     ctx = {
         'orders': orders, 'filter': order_filter,
         'is_empty': not order_filter.queryset.exists(),

@@ -3,7 +3,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import permission_required
 from django.shortcuts import get_object_or_404, redirect
 from django.template.response import TemplateResponse
-from django.utils.translation import pgettext_lazy
+from django.utils.translation import npgettext_lazy, pgettext_lazy
 
 from ...core.utils import get_paginator_items
 from ...shipping.models import ShippingMethod, ShippingMethodCountry
@@ -22,9 +22,15 @@ def shipping_method_list(request):
     methods = get_paginator_items(
         shipping_method_filter.qs, settings.DASHBOARD_PAGINATE_BY,
         request.GET.get('page'))
+    summary_msg = npgettext_lazy(
+        'Filter set results summary',
+        'Found %(counter)d matching shipping method',
+        'Found %(counter)d matching shipping methods',
+        'counter') % {'counter': shipping_method_filter.qs.count() }
     ctx = {
         'shipping_methods': methods, 'filter': shipping_method_filter,
-        'is_empty': not shipping_method_filter.queryset.exists()}
+        'is_empty': not shipping_method_filter.queryset.exists(),
+        'summary_msg': summary_msg}
     return TemplateResponse(request, 'dashboard/shipping/list.html', ctx)
 
 
