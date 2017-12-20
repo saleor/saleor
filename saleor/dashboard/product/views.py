@@ -134,7 +134,7 @@ def product_select_classes(request):
             'dashboard:product-add',
             kwargs={'class_pk': form.cleaned_data.get('product_cls').pk})
         return (
-            JsonResponse({'redirectUrl': redirect_url}, status=302)
+            JsonResponse({'redirectUrl': redirect_url})
             if request.is_ajax() else redirect(redirect_url))
     elif form.errors:
         status = 400
