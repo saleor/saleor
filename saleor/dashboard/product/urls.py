@@ -18,6 +18,8 @@ urlpatterns = [
         views.product_create, name='product-add'),
     url(r'^bulk-update/$',
         views.product_bulk_update, name='product-bulk-update'),
+    url(r'^product-select-classes/$',
+        views.product_select_classes, name='product-select-classes'),
 
     url(r'^classes/$',
         views.product_class_list, name='product-class-list'),

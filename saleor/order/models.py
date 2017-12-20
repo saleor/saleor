@@ -5,6 +5,7 @@ from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
+from django.db.models import Q
 from django.urls import reverse
 from django.utils.timezone import now
 from django.utils.translation import pgettext_lazy
@@ -14,17 +15,26 @@ from payments.models import BasePayment
 from prices import FixedDiscount, Price
 from satchless.item import ItemLine, ItemSet
 
-from . import OrderStatus, emails
+from . import emails, GroupStatus, OrderStatus
 from ..core.utils import build_absolute_uri
 from ..discount.models import Voucher
 from ..product.models import Product
 from ..userprofile.models import Address
 
 
+class OrderQuerySet(models.QuerySet):
+    """Filters orders by status deduced from shipment groups."""
+
+    def open(self):
+        """Orders having at least one shipment group with status NEW."""
+        return self.filter(Q(groups__status=GroupStatus.NEW))
+
+    def closed(self):
+        """Orders having no shipment groups with status NEW."""
+        return self.filter(~Q(groups__status=GroupStatus.NEW))
+
+
 class Order(models.Model, ItemSet):
-    status = models.CharField(
-        pgettext_lazy('Order field', 'order status'),
-        max_length=32, choices=OrderStatus.CHOICES, default=OrderStatus.NEW)
     created = models.DateTimeField(
         pgettext_lazy('Order field', 'created'),
         default=now, editable=False)
@@ -51,6 +61,10 @@ class Order(models.Model, ItemSet):
     user_email = models.EmailField(
         pgettext_lazy('Order field', 'user email'),
         blank=True, default='', editable=False)
+    shipping_price = PriceField(
+        pgettext_lazy('Order field', 'shipping price'),
+        currency=settings.DEFAULT_CURRENCY, max_digits=12, decimal_places=4,
+        default=0, editable=False)
     token = models.CharField(
         pgettext_lazy('Order field', 'token'), max_length=36, unique=True)
     total_net = PriceField(
@@ -71,6 +85,8 @@ class Order(models.Model, ItemSet):
     discount_name = models.CharField(
         verbose_name=pgettext_lazy('Order field', 'discount name'),
         max_length=255, default='', blank=True)
+
+    objects = OrderQuerySet.as_manager()
 
     class Meta:
         ordering = ('-last_status_change',)
@@ -124,11 +140,6 @@ class Order(models.Model, ItemSet):
     def get_absolute_url(self):
         return reverse('order:details', kwargs={'token': self.token})
 
-    def get_delivery_total(self):
-        return sum(
-            [group.shipping_price for group in self.groups.all()],
-            Price(0, currency=settings.DEFAULT_CURRENCY))
-
     def send_confirmation_email(self):
         email = self.get_user_current_email()
         payment_url = build_absolute_uri(
@@ -157,6 +168,19 @@ class Order(models.Model, ItemSet):
         return any(group.is_shipping_required() for group in self.groups.all())
 
     @property
+    def status(self):
+        """Order status deduced from shipment groups."""
+        statuses = set([group.status for group in self.groups.all()])
+        return (
+            OrderStatus.OPEN if GroupStatus.NEW in statuses
+            else OrderStatus.CLOSED
+        )
+
+    def get_status_display(self):
+        """Order status display text."""
+        return dict(OrderStatus.CHOICES)[self.status]
+
+    @property
     def total(self):
         if self.total_net is not None:
             gross = self.total_net.net + self.total_tax.gross
@@ -173,14 +197,8 @@ class Order(models.Model, ItemSet):
             return super().get_total()
         return Price(net=0, currency=settings.DEFAULT_CURRENCY)
 
-    def get_total_shipping(self):
-        costs = [group.shipping_price for group in self]
-        if costs:
-            return sum(costs[1:], costs[0])
-        return Price(net=0, currency=settings.DEFAULT_CURRENCY)
-
     def can_cancel(self):
-        return self.status not in {OrderStatus.CANCELLED, OrderStatus.SHIPPED}
+        return self.status == OrderStatus.OPEN
 
 
 class DeliveryGroup(models.Model, ItemSet):
@@ -190,13 +208,9 @@ class DeliveryGroup(models.Model, ItemSet):
     """
     status = models.CharField(
         pgettext_lazy('Shipment group field', 'shipment status'),
-        max_length=32, default=OrderStatus.NEW, choices=OrderStatus.CHOICES)
+        max_length=32, default=GroupStatus.NEW, choices=GroupStatus.CHOICES)
     order = models.ForeignKey(
         Order, related_name='groups', editable=False, on_delete=models.CASCADE)
-    shipping_price = PriceField(
-        pgettext_lazy('Shipment group field', 'shipping price'),
-        currency=settings.DEFAULT_CURRENCY, max_digits=12, decimal_places=4,
-        default=0, editable=False)
     shipping_method_name = models.CharField(
         pgettext_lazy('Shipment group field', 'shipping method name'),
         max_length=255, null=True, default=None, blank=True, editable=False)
@@ -223,10 +237,6 @@ class DeliveryGroup(models.Model, ItemSet):
     def shipping_required(self):
         return self.shipping_method_name is not None
 
-    def get_total(self, **kwargs):
-        subtotal = super().get_total(**kwargs)
-        return subtotal + self.shipping_price
-
     def get_total_quantity(self):
         return sum([line.get_quantity() for line in self])
 
@@ -234,13 +244,13 @@ class DeliveryGroup(models.Model, ItemSet):
         return self.shipping_required
 
     def can_ship(self):
-        return self.is_shipping_required() and self.status == OrderStatus.NEW
+        return self.is_shipping_required() and self.status == GroupStatus.NEW
 
     def can_cancel(self):
-        return self.status != OrderStatus.CANCELLED
+        return self.status != GroupStatus.CANCELLED
 
     def can_edit_lines(self):
-        return self.status not in {OrderStatus.CANCELLED, OrderStatus.SHIPPED}
+        return self.status not in {GroupStatus.CANCELLED, GroupStatus.SHIPPED}
 
 
 class OrderLine(models.Model, ItemLine):

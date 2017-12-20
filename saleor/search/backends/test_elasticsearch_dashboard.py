@@ -16,7 +16,7 @@ ORDERS_QUERY = {
     '_source': False,
     'query': {
         'multi_match': {
-            'fields': ['user', 'status', 'discount_name'],
+            'fields': ['user', 'discount_name'],
             'query': PHRASE
         }
     }
