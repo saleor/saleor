@@ -223,10 +223,18 @@ class ProductVariant(models.Model, Item):
     name = models.CharField(
         pgettext_lazy('Product variant field', 'variant name'), max_length=100,
         blank=True)
-    price_override = AmountField(
-        pgettext_lazy('Product variant field', 'price override'),
+
+    price_override_net = AmountField(
+        pgettext_lazy('Product variant field', 'price override net'),
         currency=settings.DEFAULT_CURRENCY, max_digits=12, decimal_places=2,
         blank=True, null=True)
+    price_override_gross = AmountField(
+        pgettext_lazy('Product variant field', 'price override gross'),
+        currency=settings.DEFAULT_CURRENCY, max_digits=12, decimal_places=2,
+        blank=True, null=True)
+    price_override = PriceField(
+        net_field='price_override_net', gross_field='price_override_gross')
+
     product = models.ForeignKey(
         Product, related_name='variants', on_delete=models.CASCADE)
     attributes = HStoreField(

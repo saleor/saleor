@@ -11,7 +11,7 @@ from django.template.defaultfilters import slugify
 from faker import Factory
 from faker.providers import BaseProvider
 from payments import PaymentStatus
-from prices import Price
+from prices import Amount, Price
 
 from ...discount.models import Sale, Voucher
 from ...order import GroupStatus
@@ -226,7 +226,8 @@ def create_products_by_class(product_class, schema,
             sku = '%s-%s' % (product.pk, i)
             create_variant(
                 product, attributes=attr_combination, sku=sku,
-                price_override=price)
+                price_override_net=fake.amount(),
+                price_override_gross=fake.amount())
 
         if not variant_combinations:
             # Create min one variant for products without variant level attrs
@@ -247,8 +248,11 @@ def create_products_by_schema(placeholder_dir, how_many, create_images,
 
 class SaleorProvider(BaseProvider):
     def price(self):
-        return Price(fake.pydecimal(2, 2, positive=True),
-                     currency=settings.DEFAULT_CURRENCY)
+        return Price(fake.amount(), fake.amount())
+
+    def amount(self):
+        return Amount(fake.pydecimal(2, 2, positive=True),
+                      currency=settings.DEFAULT_CURRENCY)
 
     def delivery_region(self):
         return random.choice(DELIVERY_REGIONS)
@@ -281,7 +285,8 @@ def get_or_create_product_class(name, **kwargs):
 def create_product(**kwargs):
     defaults = {
         'name': fake.company(),
-        'price': fake.price(),
+        'price_net': fake.amount(),
+        'price_gross': fake.amount(),
         'description': '\n\n'.join(fake.paragraphs(5))}
     defaults.update(kwargs)
     return Product.objects.create(**defaults)
@@ -378,8 +383,8 @@ def create_payment(delivery_group):
         variant='default',
         transaction_id=str(fake.random_int(1, 100000)),
         currency=settings.DEFAULT_CURRENCY,
-        total=order.get_total().gross,
-        delivery=order.shipping_price.gross,
+        total=order.get_total().gross.value,
+        delivery=delivery_group.shipping_price_gross.value,
         customer_ip_address=fake.ipv4(),
         billing_first_name=order.billing_address.first_name,
         billing_last_name=order.billing_address.last_name,
@@ -399,11 +404,14 @@ def create_delivery_group(order):
         region = ANY_COUNTRY
     shipping_method = fake.shipping_method()
     shipping_country = shipping_method.price_per_country.get_or_create(
-        country_code=region, defaults={'price': fake.price()})[0]
+        country_code=region, defaults={
+            'price_net': fake.amount(), 'price_gross': fake.amount()})[0]
     delivery_group = DeliveryGroup.objects.create(
         status=random.choice([GroupStatus.NEW, GroupStatus.SHIPPED]),
         order=order,
-        shipping_method_name=str(shipping_country))
+        shipping_method_name=str(shipping_country),
+        shipping_price_net=shipping_country.price.net,
+        shipping_price_gross=shipping_country.price.gross)
     return delivery_group
 
 
@@ -452,8 +460,11 @@ def create_fake_order():
     delivery_group = create_delivery_group(order)
     lines = create_order_lines(delivery_group, random.randrange(1, 5))
 
-    order.total = sum(
-        [line.get_total() for line in lines], order.shipping_price)
+    total = sum(
+        [line.get_total() for line in lines],
+        delivery_group.shipping_price)
+    order.total_net = total.net
+    order.total_gross = total.gross
     order.save()
 
     create_payment(delivery_group)
@@ -490,10 +501,12 @@ def create_product_sales(how_many=5):
 
 def create_shipping_methods():
     shipping_method = ShippingMethod.objects.create(name='UPC')
-    shipping_method.price_per_country.create(price=fake.price())
+    shipping_method.price_per_country.create(
+        price_net=fake.amount(), price_gross=fake.amount())
     yield 'Shipping method #%d' % shipping_method.id
     shipping_method = ShippingMethod.objects.create(name='DHL')
-    shipping_method.price_per_country.create(price=fake.price())
+    shipping_method.price_per_country.create(
+        price_net=fake.amount(), price_gross=fake.amount())
     yield 'Shipping method #%d' % shipping_method.id
 
 

@@ -89,7 +89,7 @@
           {% endif %}
         </div>
         <div class="col-4">
-          <p class="float-right">{{ item.shipping_price|amount:'html' }}</p>
+          <p class="float-right">{{ item.shipping_price.gross|amount:'html' }}</p>
         </div>
       </div>
     </div>
@@ -118,7 +118,7 @@
         </p>
       </div>
       <div class="col-4">
-        <p class="float-right">{{ order.total|amount:'html' }}</p>
+        <p class="float-right">{{ order.total.gross|amount:'html' }}</p>
       </div>
     </div>
   </div>

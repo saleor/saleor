@@ -112,7 +112,7 @@ class Order(models.Model, ItemSet):
             [payment.total for payment in
              self.payments.filter(status=PaymentStatus.CONFIRMED)], Decimal())
         total = self.get_total()
-        return total_paid >= total.gross
+        return total_paid >= total.gross.value
 
     def get_user_current_email(self):
         return self.user.email if self.user else self.user_email
@@ -146,8 +146,7 @@ class Order(models.Model, ItemSet):
     def get_delivery_total(self):
         return sum(
             [group.shipping_price for group in self.groups.all()],
-            Price(Amount(0, settings.DEFAULT_CURRENCY),
-                  Amount(0, settings.DEFAULT_CURRENCY)))
+            Amount(0, settings.DEFAULT_CURRENCY))
 
     def send_confirmation_email(self):
         email = self.get_user_current_email()
@@ -192,9 +191,7 @@ class Order(models.Model, ItemSet):
     @property
     def total(self):
         if self.total_net is not None:
-            gross = self.total_net.net + self.total_tax.gross
-            return Price(net=self.total_net.net, gross=gross,
-                         currency=settings.DEFAULT_CURRENCY)
+            return Price(net=self.total_net, gross=self.total_gross)
 
     @total.setter
     def total(self, price):
@@ -228,10 +225,18 @@ class DeliveryGroup(models.Model, ItemSet):
         max_length=32, default=GroupStatus.NEW, choices=GroupStatus.CHOICES)
     order = models.ForeignKey(
         Order, related_name='groups', editable=False, on_delete=models.CASCADE)
-    shipping_price = AmountField(
-        pgettext_lazy('Shipment group field', 'shipping price'),
+
+    shipping_price_net = AmountField(
+        pgettext_lazy('Shipment group field', 'shipping price net'),
         currency=settings.DEFAULT_CURRENCY, max_digits=12, decimal_places=4,
         default=0, editable=False)
+    shipping_price_gross = AmountField(
+        pgettext_lazy('Shipment group field', 'shipping price gross'),
+        currency=settings.DEFAULT_CURRENCY, max_digits=12, decimal_places=4,
+        default=0, editable=False)
+    shipping_price = PriceField(
+        net_field='shipping_price_net', gross_field='shipping_price_gross')
+
     shipping_method_name = models.CharField(
         pgettext_lazy('Shipment group field', 'shipping method name'),
         max_length=255, null=True, default=None, blank=True, editable=False)
@@ -296,19 +301,20 @@ class OrderLine(models.Model, ItemLine):
     quantity = models.IntegerField(
         pgettext_lazy('Ordered line field', 'quantity'),
         validators=[MinValueValidator(0), MaxValueValidator(999)])
-    unit_price_net = models.DecimalField(
+    unit_price_net = AmountField(
         pgettext_lazy('Ordered line field', 'unit price (net)'),
-        max_digits=12, decimal_places=4)
-    unit_price_gross = models.DecimalField(
+        max_digits=12, decimal_places=4, currency=settings.DEFAULT_CURRENCY)
+    unit_price_gross = AmountField(
         pgettext_lazy('Ordered line field', 'unit price (gross)'),
-        max_digits=12, decimal_places=4)
+        max_digits=12, decimal_places=4, currency=settings.DEFAULT_CURRENCY)
+    unit_price = PriceField(
+        net_field='unit_price_net', gross_field='unit_price_gross')
 
     def __str__(self):
         return self.product_name
 
     def get_price_per_item(self, **kwargs):
-        return Price(net=self.unit_price_net, gross=self.unit_price_gross,
-                     currency=settings.DEFAULT_CURRENCY)
+        return self.unit_price
 
     def get_quantity(self):
         return self.quantity

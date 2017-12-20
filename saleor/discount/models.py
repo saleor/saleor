@@ -205,7 +205,7 @@ class Voucher(models.Model):
         if self.type == Voucher.VALUE_TYPE:
             cart_total = checkout.get_subtotal()
             self.validate_limit(cart_total)
-            return self.get_fixed_discount_for(cart_total)
+            return self.get_fixed_discount_for(cart_total.gross)
 
         elif self.type == Voucher.SHIPPING_TYPE:
             if not checkout.is_shipping_required:
