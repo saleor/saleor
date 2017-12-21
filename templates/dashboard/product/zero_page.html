@@ -2,15 +2,17 @@
 {% load i18n %}
 {% load static %}
 
-{% block title %}{% trans "You don't have any products in your store" %}{% endblock %}
+{% block title %}{% trans "No products found." %}{% endblock %}
 {% block content %}
   {% static "dashboard/images/add.svg" as img_path %}
-  {% blocktrans %}
-    You know what products are for, do you? You can create your first product using circular <span class="btn-fab-presentation"><svg data-src="{{ img_path }}" /></span> button.
-  {% endblocktrans %}
-  {% if not product_classes %}
-    <p>
-      {% trans "Create product type first." context "Empty product list without product types message" %}
-    </p>
+  {% url "dashboard:product-class-add" as product_class_url %}
+  {% if product_classes %}
+    {% blocktrans %}
+      You can create products by using the <span class="btn-fab-presentation"><svg data-src="{{ img_path }}" /></span> button.
+    {% endblocktrans %}
+  {% else %}
+    {% blocktrans %}
+      In order to create products, you have to first add a product type (Configuration > [<a href="{{ product_class_url }}">Product types</a>]).
+    {% endblocktrans %}
   {% endif %}
 {% endblock %}
