@@ -20,22 +20,28 @@
   <div class="row">
     <div class="col s12 l9">
       {% if orders %}
-      <div class="card">
-        {% include "dashboard/includes/_orders_table.html" with orders=orders %}
-      </div>
-      <div class="row">
-        {% paginate orders %}
-      </div>
-    {% else %}
-      <div class="not-found">
-        <p class="grey-text">
-          {% trans "No orders found." context "Empty order list message" %}
-        </p>
-      </div>
-    {% endif %}
+        <div class="card">
+          {% include "dashboard/includes/_orders_table.html" with orders=orders %}
+        </div>
+        <div class="row">
+          {% paginate orders %}
+        </div>
+      {% else %}
+        {% if is_empty %}
+          {% include 'dashboard/order/zero_page.html' %}
+        {% else %}
+          <div class="col s12">
+            <div class="not-found">
+              <p class="grey-text">
+                {% trans "No orders found." context "Empty order list message" %}
+              </p>
+            </div>
+          </div>
+        {% endif %}
+      {% endif %}
     </div>
     <div class="col s12 l3" id="filters">
-      {% add_filters filter %}
+      {% if not is_empty %}{% add_filters filter %}{% endif %}
     </div>
   </div>
 {% endblock %}
