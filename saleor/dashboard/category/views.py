@@ -24,7 +24,7 @@ def category_list(request):
         request.GET.get('page'))
     counter = category_filter.qs.count()
     summary_msg = npgettext(
-        'Filter set results summary',
+        'Number of matching records in the dashboard categories list',
         'Found %(counter)d matching category',
         'Found %(counter)d matching categories',
         number=counter) % {'counter': counter}
@@ -98,7 +98,7 @@ def category_detail(request, pk):
         request.GET.get('page'))
     counter = category_filter.qs.count()
     summary_msg = npgettext(
-        'Filter set results summary',
+        'Number of matching records in the dashboard subcategories list',
         'Found %(counter)d matching subcategory',
         'Found %(counter)d matching subcategories',
         number=counter) % {'counter': counter}

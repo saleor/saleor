@@ -26,7 +26,7 @@ def customer_list(request):
         request.GET.get('page'))
     counter = customer_filter.qs.count()
     summary_msg = npgettext(
-        'Filter set results summary',
+        'Number of matching records in the dashboard customers list',
         'Found %(counter)d matching customer',
         'Found %(counter)d matching customers',
         number=counter) % {'counter': counter}

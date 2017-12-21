@@ -22,7 +22,7 @@ def sale_list(request):
         request.GET.get('page'))
     counter = sale_filter.qs.count()
     summary_msg = npgettext(
-        'Filter set results summary',
+        'Number of matching records in the dashboard sales list',
         'Found %(counter)d matching sale',
         'Found %(counter)d matching sales',
         number=counter) % {'counter': counter}
@@ -75,7 +75,7 @@ def voucher_list(request):
         request.GET.get('page'))
     counter = voucher_filter.qs.count()
     summary_msg = npgettext(
-        'Filter set results summary',
+        'Number of matching records in the dashboard vouchers list',
         'Found %(counter)d matching voucher',
         'Found %(counter)d matching vouchers',
         number=counter) % {'counter': counter}

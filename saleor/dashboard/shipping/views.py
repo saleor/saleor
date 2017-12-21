@@ -24,7 +24,7 @@ def shipping_method_list(request):
         request.GET.get('page'))
     counter = shipping_method_filter.qs.count()
     summary_msg = npgettext(
-        'Filter set results summary',
+        'Number of matching records in the dashboard shipping methods list',
         'Found %(counter)d matching shipping method',
         'Found %(counter)d matching shipping methods',
         number=counter) % {'counter': counter}
