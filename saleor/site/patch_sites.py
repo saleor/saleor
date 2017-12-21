@@ -3,8 +3,6 @@ Since django.contrib.sites may not be thread-safe when there are
 multiple instances of the application server, we're patching it with
 a thread-safe structure and methods that use it underneath.
 '''
-from __future__ import unicode_literals
-
 import threading
 
 from django.contrib.sites.models import Site, SiteManager

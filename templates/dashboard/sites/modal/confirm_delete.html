@@ -1,6 +1,8 @@
-{% extends "dashboard/base_modal_confirm_delete.html" %}
+{% extends "dashboard/base_modal.html" %}
 
 {% load i18n %}
+
+{% block form_class %}{% endblock %}
 
 {% block action_url %}
 {% url "dashboard:authorization-key-delete" site_settings_pk=site_settings_pk key_pk=key.pk %}
@@ -8,12 +10,16 @@
 
 {% block title %}
 {% blocktrans trimmed context "Modal delete authorization key text" %}
-Delete authorization key {{ key }}
+  Delete authorization key {{ key }}
 {% endblocktrans %}
 {% endblock title %}
 
 {% block content %}
 {% blocktrans trimmed context "Modal delete authorization key text" %}
-Are you sure you want to delete authorization key <strong>{{ key }}</strong>?
+  Are you sure you want to remove authorization key <strong>{{ key }}</strong>?
 {% endblocktrans %}
 {% endblock content %}
+
+{% block primary_action %}
+{% trans "Remove" context "Dashboard delete action" %}
+{% endblock %}

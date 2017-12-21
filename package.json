@@ -17,7 +17,7 @@
     "npm": "^5.4.2"
   },
   "dependencies": {
-    "bootstrap": "4.0.0-beta",
+    "bootstrap": "4.0.0-beta.2",
     "classnames": "^2.2.5",
     "dropzone": "^5.1.1",
     "favicons-webpack-plugin": "^0.0.7",

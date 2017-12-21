@@ -1,10 +1,6 @@
-# -*- coding: utf-8 -*-
-from __future__ import unicode_literals
-
 import uuid
 
 import google_measurement_protocol as ga
-import six
 from django.conf import settings
 
 FINGERPRINT_PARTS = [
@@ -20,10 +16,6 @@ UUID_NAMESPACE = uuid.UUID('fb4abc05-e2fb-4e3e-8b78-28037ef7d07f')
 def get_client_id(request):
     parts = [request.META.get(key, '') for key in FINGERPRINT_PARTS]
     name = '_'.join(parts)
-    # In Python2 name is unicode type
-    # We encode it to avoid UnicodeDecodeError in uuid package
-    if six.PY2:
-        name = name.encode('utf-8')
     return uuid.uuid5(UUID_NAMESPACE, name)
 
 
@@ -55,5 +47,5 @@ def report_order(client_id, order):
                  for oi in group]
         trans = ga.Transaction('%s-%s' % (order.id, group.id), items,
                                revenue=group.get_total(),
-                               shipping=group.shipping_price)
+                               shipping=group.order.shipping_price)
         _report(client_id, trans, {})

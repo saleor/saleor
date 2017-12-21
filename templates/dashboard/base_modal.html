@@ -1,0 +1,30 @@
+{% load i18n %}
+
+<form
+  role="form" method="post" action="{% block action_url %}#!{% endblock %}"
+  class="{% block form_class %}form-async{% endblock %}" novalidate>
+  {% comment %}Empty form_class can be used for non-ajax forms with server redirect.{% endcomment %}
+  {% csrf_token %}
+  <div class="modal-content">
+    <div class="row">
+      <div class="col s12">
+        <h5>
+          {% block title %}{% endblock %}
+        </h5>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col s12">
+        {% block content %}{% endblock %}
+      </div>
+    </div>
+  </div>
+  <div class="modal-footer">
+    <a href="#!" class="modal-action modal-close btn-flat waves-effect">
+      {% block cancel_action %} {% trans "Cancel" context "Dashboard cancel action" %} {% endblock %}
+    </a>
+    <button type="submit" class="modal-action btn-flat waves-effect">
+      {% block primary_action %}{% endblock %}
+    </button>
+  </div>
+</form>

@@ -1,6 +1,8 @@
-{% extends "dashboard/base_modal_confirm_delete.html" %}
+{% extends "dashboard/base_modal.html" %}
 
 {% load i18n %}
+
+{% block form_class %}{% endblock %}
 
 {% block action_url %}
 {% url "dashboard:product-attribute-delete" pk=attribute.pk %}
@@ -8,12 +10,16 @@
 
 {% block title %}
 {% blocktrans trimmed context "Modal remove attribute text" %}
-Remove attribute {{ attribute }}
+  Remove attribute {{ attribute }}
 {% endblocktrans %}
 {% endblock title %}
 
 {% block content %}
 {% blocktrans trimmed context "Modal remove attribute text" %}
-Are you sure you want to remove attribute <strong>{{ attribute }}</strong>?
+  Are you sure you want to remove attribute <strong>{{ attribute }}</strong>?
 {% endblocktrans %}
 {% endblock content %}
+
+{% block primary_action %}
+{% trans "Remove" context "Dashboard delete action" %}
+{% endblock %}

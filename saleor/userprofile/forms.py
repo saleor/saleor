@@ -1,8 +1,6 @@
-# encoding: utf-8
-from __future__ import unicode_literals
-
 from django.conf import settings
 from django.contrib.auth import forms as django_forms, update_session_auth_hash
+from phonenumbers.phonenumberutil import country_code_for_region
 
 from .i18n import AddressMetaForm, get_address_form_class
 
@@ -10,10 +8,14 @@ from .i18n import AddressMetaForm, get_address_form_class
 def get_address_form(data, country_code, initial=None, instance=None, **kwargs):
     country_form = AddressMetaForm(data, initial=initial)
     preview = False
-
     if country_form.is_valid():
         country_code = country_form.cleaned_data['country']
         preview = country_form.cleaned_data['preview']
+
+    if initial is None and country_code:
+        initial = {}
+    if country_code:
+        initial['phone'] = '+{}'.format(country_code_for_region(country_code))
 
     address_form_class = get_address_form_class(country_code)
 
@@ -21,8 +23,7 @@ def get_address_form(data, country_code, initial=None, instance=None, **kwargs):
         address_form_class = get_address_form_class(
             instance.country.code)
         address_form = address_form_class(
-            data, instance=instance,
-            **kwargs)
+            data, instance=instance, **kwargs)
     else:
         initial_address = (
             initial if not preview
@@ -36,7 +37,7 @@ def get_address_form(data, country_code, initial=None, instance=None, **kwargs):
 
 class ChangePasswordForm(django_forms.PasswordChangeForm):
     def __init__(self, *args, **kwargs):
-        super(ChangePasswordForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.fields['new_password1'].user = self.user
         self.fields['old_password'].widget.attrs['placeholder'] = ''
         self.fields['new_password1'].widget.attrs['placeholder'] = ''

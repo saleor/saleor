@@ -1,6 +1,4 @@
 """Cart-related utility functions."""
-from __future__ import unicode_literals
-
 from datetime import timedelta
 from functools import wraps
 from uuid import UUID
@@ -24,7 +22,7 @@ def set_cart_cookie(simple_cart, response):
     # FIXME: document why session is not used
     ten_years = timedelta(days=(365 * 10))
     response.set_signed_cookie(
-        COOKIE_NAME, simple_cart.token, max_age=ten_years.total_seconds())
+        COOKIE_NAME, simple_cart.token, max_age=int(ten_years.total_seconds()))
 
 
 def contains_unavailable_variants(cart):

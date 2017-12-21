@@ -1,23 +1,13 @@
-from __future__ import unicode_literals
-
 import csv
-
-from mock import Mock, patch
-
-from django.utils import six
-from django.utils.encoding import smart_text
-if six.PY3:
-    from io import StringIO
-else:
-    from StringIO import StringIO
+from io import StringIO
+from unittest.mock import Mock, patch
 
 from django.contrib.sites.models import Site
+from django.utils.encoding import smart_text
 
+from saleor.data_feeds.google_merchant import (
+    get_feed_items, item_attributes, item_google_product_category, write_feed)
 from saleor.product.models import AttributeChoiceValue, Category
-from saleor.data_feeds.google_merchant import (get_feed_items,
-                                               item_attributes,
-                                               item_google_product_category,
-                                               write_feed)
 
 
 def test_saleor_feed_items(product_in_stock):

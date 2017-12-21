@@ -1,5 +1,3 @@
-from __future__ import unicode_literals
-
 from django.contrib import messages
 from django.contrib.auth.decorators import permission_required
 from django.contrib.sites.models import Site

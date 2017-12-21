@@ -10,9 +10,13 @@
 {% block breadcrumb %}
 <ul class="breadcrumbs list-unstyled">
   <li><a href="/">{% trans "Home" context "Main navigation item" %}</a></li>
-  <li><a href="{% url 'cart:index' %}">{% trans "Cart" context "Cart breadcrumb" %}</a></li>
+  <li><a rel="nofollow" href="{% url 'cart:index' %}">{% trans "Cart" context "Cart breadcrumb" %}</a></li>
 </ul>
 {% endblock breadcrumb %}
+
+{% block meta_tags %}
+  <meta name="robots" content="nofollow">
+{% endblock meta_tags %}
 
 {% block content %}
 <div class="alert alert-success remove-product-alert d-none">

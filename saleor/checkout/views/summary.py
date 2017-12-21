@@ -1,5 +1,3 @@
-from __future__ import unicode_literals
-
 from django.contrib import messages
 from django.shortcuts import redirect
 from django.template.response import TemplateResponse
@@ -28,7 +26,7 @@ def create_order(checkout):
     checkout.cart.clear()
     user = None if checkout.user.is_anonymous else checkout.user
     order.create_history_entry(
-        status=OrderStatus.NEW, user=user, comment=pgettext_lazy(
+        status=OrderStatus.OPEN, user=user, comment=pgettext_lazy(
             'Order status history entry', 'Order was placed'))
     order.send_confirmation_email()
     return order, redirect('order:payment', token=order.token)

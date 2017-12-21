@@ -1,11 +1,10 @@
-from __future__ import unicode_literals
-
 from datetime import date
+
 from django import forms
 from django.utils.encoding import smart_text
 from django.utils.translation import pgettext_lazy
 
-from .models import Voucher, NotApplicable
+from .models import NotApplicable, Voucher
 
 
 class VoucherField(forms.ModelChoiceField):
@@ -33,12 +32,12 @@ class CheckoutDiscountForm(forms.Form):
         if 'voucher' not in initial:
             initial['voucher'] = self.checkout.voucher_code
         kwargs['initial'] = initial
-        super(CheckoutDiscountForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.fields['voucher'].queryset = Voucher.objects.active(
             date=date.today())
 
     def clean(self):
-        cleaned_data = super(CheckoutDiscountForm, self).clean()
+        cleaned_data = super().clean()
         if 'voucher' in cleaned_data:
             voucher = cleaned_data['voucher']
             try:

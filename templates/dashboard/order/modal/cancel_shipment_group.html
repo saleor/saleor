@@ -1,24 +1,25 @@
-{% load i18n %}
-{% load materializecss %}
+{% extends "dashboard/base_modal.html" %}
 
-<form method="post" role="form" action="{% url 'dashboard:cancel-delivery-group' order_pk=order.pk group_pk=group.pk %}" class="form-async" novalidate>
-  {% csrf_token %}
-  <div class="modal-content">
-    <h5>
-      {% trans "Cancel shipment group?" context "Modal cancel shipment group title" %}
-    </h5>
-    <p>
-      {% blocktrans trimmed context "Modal cancel shipment group text" %}
-        After this action {{ group }} will be cancelled. Ordered items will be returned to stock.
-      {% endblocktrans %}
-    </p>
-  </div>
-  <div class="modal-footer">
-    <a href="#!" aria-hidden="true" class="modal-action modal-close btn-flat">
-      {% trans "Back" context "Dashboard abort action" %}
-    </a>
-    <button type="submit" class="modal-action btn-flat">
-      {% trans "Cancel this shipment" context "Modal cancel shipment group primary action" %}
-    </button>
-  </div>
-</form>
+{% load i18n %}
+
+{% block action_url %}
+{% url 'dashboard:cancel-delivery-group' order_pk=order.pk group_pk=group.pk %}
+{% endblock %}
+
+{% block title %}
+{% trans "Cancel shipment group?" context "Modal cancel shipment group title" %}
+{% endblock %}
+
+{% block content %}
+{% blocktrans trimmed with shipment=group context "Modal cancel shipment group text" %}
+  After this action {{ shipment }} will be cancelled. Ordered items will be returned to stock.
+{% endblocktrans %}
+{% endblock %}
+
+{% block cancel_action %}
+{% trans "Abort" context "Dashboard abort action" %}
+{% endblock %}
+
+{% block primary_action %}
+{% trans "Cancel this shipment" context "Modal cancel shipment group primary action" %}
+{% endblock %}

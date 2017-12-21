@@ -1,6 +1,4 @@
 """Cart-related ORM models."""
-from __future__ import unicode_literals
-
 from collections import namedtuple
 from decimal import Decimal
 from uuid import uuid4
@@ -8,7 +6,7 @@ from uuid import uuid4
 from django.conf import settings
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
-from django.utils.encoding import python_2_unicode_compatible, smart_str
+from django.utils.encoding import smart_str
 from django.utils.timezone import now
 from django.utils.translation import pgettext_lazy
 from django_prices.models import PriceField
@@ -121,7 +119,7 @@ class Cart(models.Model):
 
     def __init__(self, *args, **kwargs):
         self.discounts = kwargs.pop('discounts', None)
-        super(Cart, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
     def update_quantity(self):
         """Recalculate cart quantity based on lines."""
@@ -243,7 +241,6 @@ class Cart(models.Model):
         return partition(self.lines.all(), grouper, ProductGroup)
 
 
-@python_2_unicode_compatible
 class CartLine(models.Model, ItemLine):
     """A single cart line.
 
@@ -295,7 +292,7 @@ class CartLine(models.Model, ItemLine):
 
     def get_total(self, **kwargs):
         """Return the total price of this line."""
-        amount = super(CartLine, self).get_total(**kwargs)
+        amount = super().get_total(**kwargs)
         return amount.quantize(CENTS)
 
     def get_quantity(self, **kwargs):

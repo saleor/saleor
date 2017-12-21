@@ -18,6 +18,23 @@
 .form-group {
   text-align: left;
   position: relative;
+  .phone-prefix-input {
+    display: grid;
+    grid-template-columns: 6rem calc(100% - 6rem);
+    input {
+      border-left-color: transparent;
+      border: {
+        bottom-left-radius: 0;
+        top-left-radius: 0;
+      }
+    }
+    select {
+      border: {
+        bottom-right-radius: 0;
+        top-right-radius: 0;
+      }
+    }
+  }
 }
 
 .input-btn {
@@ -148,4 +165,12 @@ input#id_quantity {
   top: 2.8rem;
   right: 0.5rem;
   cursor: pointer;
+}
+
+// ATM there is no better solution to set
+// border-radius on select inputs - 12.2017
+select.form-control {
+  appearance: none;
+  border-radius: 2px;
+  background: url('../images/arrow_select.svg') 100% 50% no-repeat / 24px 14px;
 }

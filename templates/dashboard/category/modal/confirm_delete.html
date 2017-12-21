@@ -1,42 +1,48 @@
-{% extends "dashboard/base_modal_confirm_delete.html" %}
+{% extends "dashboard/base_modal.html" %}
 
 {% load i18n %}
 {% load mptt_tags %}
+
+{% block form_class %}{% endblock %}
 
 {% block action_url %}
 {% url "dashboard:category-delete" pk=category.pk %}
 {% endblock %}
 
 {% block title %}
-{% blocktrans with category=category trimmed context "Remove category modal title" %}
+{% blocktrans trimmed with category=category context "Remove category modal title" %}
 Remove category {{ category }}
 {% endblocktrans %}
 {% endblock %}
 
 {% block content %}
-{% blocktrans with category=category trimmed context "Remove category modal title" %}
-Are you sure you want to remove category <strong>{{ category }}</strong>?
+{% blocktrans trimmed with category=category context "Remove category modal title" %}
+  Are you sure you want to remove category <strong>{{ category }}</strong>?
 {% endblocktrans %}
 {% if descendants %}
 <p>
-{% trans "The following child categories will be removed:" context "Delete category form text about descendant categories" %}
-<ul>
-  {% recursetree descendants %}
-    {{ node.name }},
-    {% if not node.is_leaf_node %}
-      {{ children }}
-    {% endif %}
-  {% endrecursetree %}
-</ul>
+  {% trans "The following child categories will be removed:" context "Delete category form text about descendant categories" %}
+  <ul>
+    {% recursetree descendants %}
+      {{ node.name }},
+      {% if not node.is_leaf_node %}
+        {{ children }}
+      {% endif %}
+    {% endrecursetree %}
+  </ul>
 </p>
 {% endif %}
 {% if products_count %}
 <p>
-{% blocktrans count counter=products_count trimmed context "Remove category form text about products" %}
-  There is one product in this category that will be removed.
-  {% plural %}
-  There are {{ counter }} products in this category that will be removed.
-{% endblocktrans %}
+  {% blocktrans count counter=products_count trimmed context "Remove category form text about products" %}
+    There is one product in this category that will be removed.
+    {% plural %}
+    There are {{ counter }} products in this category that will be removed.
+  {% endblocktrans %}
 </p>
 {% endif %}
-{% endblock content %}
+{% endblock %}
+
+{% block primary_action %}
+{% trans "Remove" context "Dashboard delete action" %}
+{% endblock %}

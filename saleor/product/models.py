@@ -1,5 +1,3 @@
-from __future__ import unicode_literals
-
 import datetime
 from decimal import Decimal
 
@@ -9,8 +7,7 @@ from django.core.validators import MinValueValidator, RegexValidator
 from django.db import models
 from django.db.models import F, Max, Q
 from django.urls import reverse
-from django.utils import six
-from django.utils.encoding import python_2_unicode_compatible, smart_text
+from django.utils.encoding import smart_text
 from django.utils.text import slugify
 from django.utils.translation import pgettext_lazy
 from django_prices.models import Price, PriceField
@@ -25,7 +22,6 @@ from ..discount.models import calculate_discounted_price
 from .utils import get_attributes_display_map
 
 
-@python_2_unicode_compatible
 class Category(MPTTModel):
     name = models.CharField(
         pgettext_lazy('Category field', 'name'), max_length=128)
@@ -71,7 +67,6 @@ class Category(MPTTModel):
         self.get_descendants().update(is_hidden=is_hidden)
 
 
-@python_2_unicode_compatible
 class ProductClass(models.Model):
     name = models.CharField(
         pgettext_lazy('Product class field', 'name'), max_length=128)
@@ -109,7 +104,6 @@ class ProductManager(models.Manager):
                 is_published=True)
 
 
-@python_2_unicode_compatible
 class Product(models.Model, ItemRange):
     product_class = models.ForeignKey(
         ProductClass, related_name='products',
@@ -205,7 +199,7 @@ class Product(models.Model, ItemRange):
                 self, self.price, discounts, **kwargs)
             return PriceRange(price, price)
         else:
-            return super(Product, self).get_price_range(
+            return super().get_price_range(
                 discounts=discounts, **kwargs)
 
     def get_gross_price_range(self, **kwargs):
@@ -216,7 +210,6 @@ class Product(models.Model, ItemRange):
         return PriceRange(min(grosses), max(grosses))
 
 
-@python_2_unicode_compatible
 class ProductVariant(models.Model, Item):
     sku = models.CharField(
         pgettext_lazy('Product variant field', 'SKU'), max_length=32,
@@ -290,7 +283,7 @@ class ProductVariant(models.Model, Item):
             return ', '.join(
                 ['%s: %s' % (smart_text(attributes.get(id=int(key))),
                              smart_text(value))
-                 for (key, value) in six.iteritems(values)])
+                 for (key, value) in values.items()])
         else:
             return smart_text(self.sku)
 
@@ -318,7 +311,6 @@ class ProductVariant(models.Model, Item):
             return stock.cost_price
 
 
-@python_2_unicode_compatible
 class StockLocation(models.Model):
     name = models.CharField(
         pgettext_lazy('Stock location field', 'location'), max_length=100)
@@ -351,7 +343,6 @@ class StockManager(models.Manager):
         stock.save(update_fields=['quantity', 'quantity_allocated'])
 
 
-@python_2_unicode_compatible
 class Stock(models.Model):
     variant = models.ForeignKey(
         ProductVariant, related_name='stock',
@@ -384,7 +375,6 @@ class Stock(models.Model):
         return max(self.quantity - self.quantity_allocated, 0)
 
 
-@python_2_unicode_compatible
 class ProductAttribute(models.Model):
     slug = models.SlugField(
         pgettext_lazy('Product attribute field', 'internal name'),
@@ -406,7 +396,6 @@ class ProductAttribute(models.Model):
         return self.values.exists()
 
 
-@python_2_unicode_compatible
 class AttributeChoiceValue(models.Model):
     name = models.CharField(
         pgettext_lazy('Attribute choice value field', 'display name'),
@@ -465,12 +454,12 @@ class ProductImage(models.Model):
             existing_max = qs.aggregate(Max('order'))
             existing_max = existing_max.get('order__max')
             self.order = 0 if existing_max is None else existing_max + 1
-        super(ProductImage, self).save(*args, **kwargs)
+        super().save(*args, **kwargs)
 
     def delete(self, *args, **kwargs):
         qs = self.get_ordering_queryset()
         qs.filter(order__gt=self.order).update(order=F('order') - 1)
-        super(ProductImage, self).delete(*args, **kwargs)
+        super().delete(*args, **kwargs)
 
 
 class VariantImage(models.Model):

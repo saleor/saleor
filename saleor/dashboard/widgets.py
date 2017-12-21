@@ -1,9 +1,7 @@
-from __future__ import unicode_literals
-from django_filters.widgets import RangeWidget
-from django_prices.widgets import PriceInput
-
 from django import forms
 from django.conf import settings
+from django_filters.widgets import RangeWidget
+from django_prices.widgets import PriceInput
 
 
 class DateRangeWidget(RangeWidget):

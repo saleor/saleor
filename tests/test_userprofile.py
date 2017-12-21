@@ -1,18 +1,15 @@
-# encoding: utf-8
-from __future__ import unicode_literals
-
-try:
-    # Python 3
-    from urllib.parse import urlencode
-except ImportError:
-    # Python 2
-    from urllib import urlencode
+from urllib.parse import urlencode
 
 import i18naddress
 import pytest
+from django.conf import settings
+from django.core.exceptions import ValidationError
 from django.http import QueryDict
+from django.urls import reverse
 
-from saleor.userprofile import forms, models, i18n
+from saleor.userprofile import forms, i18n, models
+from saleor.userprofile.validators import validate_possible_number
+
 
 @pytest.fixture
 def billing_address(db):
@@ -30,7 +27,9 @@ def test_address_form_for_country(country):
     data = {
         'first_name': 'John',
         'last_name': 'Doe',
-        'country': country}
+        'country': country,
+        'phone': '123456789'}
+
     form = forms.get_address_form(data, country_code=country)[0]
     errors = form.errors
     rules = i18naddress.get_validation_rules({'country_code': country})
@@ -105,3 +104,31 @@ def test_country_aware_form_has_only_supported_countries():
     for country in i18n.UNKNOWN_COUNTRIES:
         assert country not in i18n.COUNTRY_FORMS
         assert country not in country_choices
+
+
+@pytest.mark.parametrize("input,exception", [
+    ('123', ValidationError),
+    ('+48123456789', None),
+    ('+12025550169', None),
+    ('+481234567890', ValidationError),
+    ('testext', ValidationError),
+])
+def test_validate_possible_number(input, exception):
+    if exception is not None:
+        with pytest.raises(exception):
+            validate_possible_number(input)
+    else:
+        validate_possible_number(input)
+
+
+def test_order_with_lines_pagination(admin_client, order_list):
+    settings.PAGINATE_BY = 1
+    data = {'page': '1'}
+    url = reverse('profile:details')
+    response = admin_client.get(url, data)
+    assert response.status_code == 200
+
+    data = {'page': '2'}
+    url = reverse('profile:details')
+    response = admin_client.get(url, data)
+    assert response.status_code == 200
