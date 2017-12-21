@@ -1,7 +1,6 @@
-from __future__ import unicode_literals
-
-from ..documents import ProductDocument, OrderDocument, UserDocument
 from elasticsearch_dsl.query import MultiMatch
+
+from ..documents import OrderDocument, ProductDocument, UserDocument
 
 
 def _search_products(phrase):
@@ -24,7 +23,7 @@ def _search_users(phrase):
 
 def _search_orders(phrase):
     order_query = MultiMatch(
-        fields=['user', 'status', 'discount_name'], query=phrase)
+        fields=['user', 'discount_name'], query=phrase)
     return OrderDocument.search().query(order_query).source(False)
 
 

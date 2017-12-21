@@ -1,19 +1,17 @@
-from __future__ import unicode_literals
-
 from decimal import Decimal
 
-import pytest
 from django.urls import reverse
+import pytest
+from tests.utils import get_redirect_location, get_url_path
 
 from saleor.dashboard.order.forms import ChangeQuantityForm, MoveLinesForm
 from saleor.order import OrderStatus
 from saleor.order.models import (
-    DeliveryGroup, Order, OrderLine, OrderHistoryEntry)
+    DeliveryGroup, Order, OrderHistoryEntry, OrderLine)
 from saleor.order.utils import (
     add_variant_to_existing_lines, change_order_line_quantity,
-    fill_group_with_partition)
+    fill_group_with_partition, remove_empty_groups)
 from saleor.product.models import ProductVariant, Stock, StockLocation
-from tests.utils import get_redirect_location, get_url_path
 
 
 @pytest.mark.integration
@@ -278,7 +276,7 @@ def test_ordered_item_change_quantity(transactional_db, order_with_lines):
     change_order_line_quantity(lines[2], 0)
     history = list(order_with_lines.history.all())
     assert len(history) == 1
-    assert history[0].status == OrderStatus.CANCELLED
+    assert history[0].status == OrderStatus.CLOSED
     assert history[0].comment == 'Order cancelled. No items in order'
 
 
@@ -286,10 +284,10 @@ def test_ordered_item_remove_empty_group_with_force(
         transactional_db, order_with_lines):
     group = order_with_lines.groups.all()[0]
     lines = group.lines.all()
-    OrderLine.objects.remove_empty_groups(lines[0], force=True)
+    remove_empty_groups(lines[0], force=True)
     history = list(order_with_lines.history.all())
     assert len(history) == 1
-    assert history[0].status == OrderStatus.CANCELLED
+    assert history[0].status == OrderStatus.CLOSED
     assert history[0].comment == 'Order cancelled. No items in order'
 
 

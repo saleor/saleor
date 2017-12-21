@@ -1,21 +1,18 @@
 from __future__ import unicode_literals
+from json import dumps
+from urllib.parse import urlencode
 
 from django import forms
 from django.template import Library
 from django_filters.fields import RangeField
 from versatileimagefield.widgets import VersatileImagePPOIClickWidget
 
-try:
-    from urllib.parse import urlencode
-except ImportError:
-    from urllib import urlencode
-
 from ...product.utils import get_margin_for_variant, get_variant_costs_data
+from ..product.widgets import ImagePreviewWidget
 from .chips import (
     handle_default, handle_multiple_choice, handle_multiple_model_choice,
     handle_nullboolean, handle_range, handle_single_choice,
     handle_single_model_choice)
-from ..product.widgets import ImagePreviewWidget
 
 register = Library()
 
@@ -107,3 +104,13 @@ def add_filters(context, filter_set, sort_by_filter_name='sort_by'):
     return {
         'chips': chips, 'filter': filter_set, 'count': filter_set.qs.count(),
         'sort_by': request_get.get(sort_by_filter_name, None)}
+
+
+@register.simple_tag(takes_context=True)
+def serialize_messages(context):
+    """Serialize django.contrib.messages to JSON"""
+    messages = context.get('messages', [])
+    data = {}
+    for i, message in enumerate(messages):
+        data[i] = str(message)
+    return dumps(data)

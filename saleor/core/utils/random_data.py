@@ -1,5 +1,3 @@
-from __future__ import unicode_literals
-
 import itertools
 import os
 import random
@@ -10,22 +8,20 @@ from django.conf import settings
 from django.contrib.auth.models import Group, Permission
 from django.core.files import File
 from django.template.defaultfilters import slugify
-from django.utils.six import moves
 from faker import Factory
 from faker.providers import BaseProvider
 from payments import PaymentStatus
 from prices import Price
 
 from ...discount.models import Sale, Voucher
-from ...order import OrderStatus
+from ...order import GroupStatus
 from ...order.models import DeliveryGroup, Order, OrderLine, Payment
-from ...product.models import (AttributeChoiceValue, Category, Product,
-                               ProductAttribute, ProductClass, ProductImage,
-                               ProductVariant, Stock, StockLocation)
+from ...product.models import (
+    AttributeChoiceValue, Category, Product, ProductAttribute, ProductClass,
+    ProductImage, ProductVariant, Stock, StockLocation)
 from ...shipping.models import ANY_COUNTRY, ShippingMethod
 from ...userprofile.models import Address, User
 from ...userprofile.utils import store_user_address
-
 
 fake = Factory.create()
 STOCK_LOCATION = 'default'
@@ -188,9 +184,10 @@ def get_variant_combinations(product):
                         for attr
                         in product.product_class.variant_attributes.all()}
     all_combinations = itertools.product(*variant_attr_map.values())
-    return [{str(attr_value.attribute.pk): str(attr_value.pk)
-            for attr_value in combination}
-            for combination in all_combinations]
+    return [
+        {str(attr_value.attribute.pk): str(attr_value.pk)
+         for attr_value in combination}
+        for combination in all_combinations]
 
 
 def get_price_override(schema, combinations_num, current_price):
@@ -221,7 +218,7 @@ def create_products_by_class(product_class, schema,
 
         prices = get_price_override(
             schema, len(variant_combinations), product.price)
-        variants_with_prices = moves.zip_longest(
+        variants_with_prices = itertools.zip_longest(
             variant_combinations, prices)
 
         for i, variant_price in enumerate(variants_with_prices, start=1337):
@@ -382,7 +379,7 @@ def create_payment(delivery_group):
         transaction_id=str(fake.random_int(1, 100000)),
         currency=settings.DEFAULT_CURRENCY,
         total=order.get_total().gross,
-        delivery=delivery_group.shipping_price.gross,
+        delivery=order.shipping_price.gross,
         customer_ip_address=fake.ipv4(),
         billing_first_name=order.billing_address.first_name,
         billing_last_name=order.billing_address.last_name,
@@ -404,22 +401,28 @@ def create_delivery_group(order):
     shipping_country = shipping_method.price_per_country.get_or_create(
         country_code=region, defaults={'price': fake.price()})[0]
     delivery_group = DeliveryGroup.objects.create(
-        status=random.choice([OrderStatus.NEW, OrderStatus.SHIPPED]),
+        status=random.choice([GroupStatus.NEW, GroupStatus.SHIPPED]),
         order=order,
-        shipping_method_name=str(shipping_country),
-        shipping_price=shipping_country.price)
+        shipping_method_name=str(shipping_country))
     return delivery_group
 
 
 def create_order_line(delivery_group):
     product = Product.objects.all().order_by('?')[0]
     variant = product.variants.all()[0]
+    quantity = random.randrange(1, 5)
+    stock = variant.stock.first()
+    stock.quantity += quantity
+    stock.quantity_allocated += quantity
+    stock.save()
     return OrderLine.objects.create(
         delivery_group=delivery_group,
         product=product,
         product_name=product.name,
         product_sku=variant.sku,
-        quantity=random.randrange(1, 5),
+        quantity=quantity,
+        stock=stock,
+        stock_location=stock.location.name,
         unit_price_net=product.price.net,
         unit_price_gross=product.price.gross)
 
@@ -445,20 +448,15 @@ def create_fake_order():
             'user_email': get_email(
                 address.first_name, address.last_name)}
     order = Order.objects.create(**user_data)
-    order.change_status(OrderStatus.PAYMENT_PENDING)
 
     delivery_group = create_delivery_group(order)
     lines = create_order_lines(delivery_group, random.randrange(1, 5))
 
     order.total = sum(
-        [line.get_total() for line in lines], delivery_group.shipping_price)
+        [line.get_total() for line in lines], order.shipping_price)
     order.save()
 
-    payment = create_payment(delivery_group)
-    if payment.status == PaymentStatus.CONFIRMED:
-        order.change_status(OrderStatus.FULLY_PAID)
-        if random.choice([True, False]):
-            order.change_status(OrderStatus.SHIPPED)
+    create_payment(delivery_group)
     return order
 
 

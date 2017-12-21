@@ -1,5 +1,3 @@
-from __future__ import unicode_literals
-
 from django.contrib.auth.tokens import default_token_generator
 from django.contrib.sites.models import Site
 from django.core import mail

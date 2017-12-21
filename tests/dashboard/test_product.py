@@ -1,15 +1,12 @@
-# -*- coding: utf-8 -*-
-from __future__ import unicode_literals
-
-import json
 from io import BytesIO
+import json
 
-import pytest
+from PIL import Image
 from django.conf import settings
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.urls import reverse
 from django.utils.encoding import smart_text
-from PIL import Image
+import pytest
 
 from saleor.dashboard.product import ProductBulkAction
 from saleor.dashboard.product.forms import (
@@ -261,7 +258,7 @@ def test_attribute_choice_value_delete(color_attribute, admin_client):
 
 def test_get_formfield_name_with_unicode_characters(db):
     text_attribute = ProductAttribute.objects.create(
-        slug=u'ąęαβδηθλμπ', name=u'ąęαβδηθλμπ')
+        slug='ąęαβδηθλμπ', name='ąęαβδηθλμπ')
     assert text_attribute.get_formfield_name() == 'attribute-ąęαβδηθλμπ'
 
 
@@ -579,7 +576,7 @@ def test_product_list_filters_is_published(
 
 
 def test_product_list_filters_no_results(admin_client, product_list):
-    data = {'price_1': [u''], 'price_0': [''], 'is_featured': [''],
+    data = {'price_1': [''], 'price_0': [''], 'is_featured': [''],
             'name': ['BADTest'], 'sort_by': [''],
             'is_published': ['']}
     url = reverse('dashboard:product-list')
@@ -594,11 +591,13 @@ def test_product_list_pagination(admin_client, product_list):
     url = reverse('dashboard:product-list')
     response = admin_client.get(url, data)
     assert response.status_code == 200
+    assert not response.context['filter'].is_bound_unsorted
 
     data = {'page': '2'}
     url = reverse('dashboard:product-list')
     response = admin_client.get(url, data)
     assert response.status_code == 200
+    assert not response.context['filter'].is_bound_unsorted
 
 
 def test_product_list_pagination_with_filters(admin_client, product_list):
@@ -616,3 +615,28 @@ def test_product_list_pagination_with_filters(admin_client, product_list):
     response = admin_client.get(url, data)
     assert response.status_code == 200
     assert list(response.context['products'])[0] == product_list[1]
+
+
+def test_product_select_classes(admin_client, product_class):
+    url = reverse('dashboard:product-add-select-class')
+    response = admin_client.get(url)
+    assert response.status_code == HTTP_STATUS_OK
+
+    data = {'product_cls': product_class.pk}
+    response = admin_client.post(url, data)
+    assert response.get('location') == reverse(
+        'dashboard:product-add', kwargs={'class_pk': product_class.pk})
+    assert response.status_code == HTTP_REDIRECTION
+
+
+def test_product_select_classes_by_ajax(admin_client, product_class):
+    url = reverse('dashboard:product-add-select-class')
+    data = {'product_cls': product_class.pk}
+
+    response = admin_client.post(
+        url, data, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
+
+    resp_decoded = json.loads(response.content.decode('utf-8'))
+    assert response.status_code == 200
+    assert resp_decoded.get('redirectUrl') == reverse(
+        'dashboard:product-add', kwargs={'class_pk': product_class.pk})

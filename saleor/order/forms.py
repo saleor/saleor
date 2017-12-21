@@ -1,5 +1,3 @@
-from __future__ import unicode_literals
-
 from django import forms
 from django.conf import settings
 from django.utils.translation import pgettext_lazy
@@ -21,10 +19,10 @@ class PaymentDeleteForm(forms.Form):
 
     def __init__(self, *args, **kwargs):
         self.order = kwargs.pop('order')
-        super(PaymentDeleteForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
     def clean(self):
-        cleaned_data = super(PaymentDeleteForm, self).clean()
+        cleaned_data = super().clean()
         payment_id = cleaned_data.get('payment_id')
         waiting_payments = self.order.payments.filter(
             status=PaymentStatus.WAITING)
@@ -47,5 +45,5 @@ class PaymentDeleteForm(forms.Form):
 
 class PasswordForm(SignupForm):
     def __init__(self, *args, **kwargs):
-        super(PasswordForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.fields['email'].widget = forms.HiddenInput()

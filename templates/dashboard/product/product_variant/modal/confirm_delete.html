@@ -1,8 +1,10 @@
-{% extends "dashboard/base_modal_confirm_delete.html" %}
+{% extends "dashboard/base_modal.html" %}
 
 {% load i18n %}
 {% load prices_i18n %}
 {% load staticfiles %}
+
+{% block form_class %}{% endblock %}
 
 {% block action_url %}
 {% url "dashboard:variant-delete" product_pk=product.pk variant_pk=variant.pk %}
@@ -10,19 +12,23 @@
 
 {% block title %}
 {% blocktrans context "Dashboard confirmation modal" %}
-Remove variant {{ variant }}
+  Remove variant {{ variant }}
 {% endblocktrans %}
 {% endblock %}
 
 {% block content %}
 <p>
 {% blocktrans context "Dashboard confirmation modal" %}
-Are you sure you want to remove variant <strong>{{ variant }}</strong> of product {{ product }}?
+  Are you sure you want to remove variant <strong>{{ variant }}</strong> of product {{ product }}?
 {% endblocktrans %}
 </p>
 {% if is_only_variant %}
-<p>
-{% trans "This is the only variant of this product. If you remove it, the product will become unavailable." context "Dashboard confirmation modal" %}
-</p>
+  <p>
+  {% trans "This is the only variant of this product. If you remove it, the product will become unavailable." context "Dashboard confirmation modal" %}
+  </p>
 {% endif %}
 {% endblock content %}
+
+{% block primary_action %}
+{% trans "Remove" context "Dashboard delete action" %}
+{% endblock %}

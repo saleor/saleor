@@ -1,5 +1,3 @@
-from __future__ import unicode_literals
-
 import logging
 
 from django.conf import settings
@@ -14,11 +12,10 @@ from payments import PaymentStatus, RedirectNeeded
 
 from .forms import PaymentDeleteForm, PaymentMethodsForm, PasswordForm
 from .models import Order, Payment
-from .utils import check_order_status, attach_order_to_user
+from .utils import attach_order_to_user, check_order_status
 from ..core.utils import get_client_ip
 from ..registration.forms import LoginForm
 from ..userprofile.models import User
-from . import OrderStatus
 
 logger = logging.getLogger(__name__)
 
@@ -77,7 +74,7 @@ def start_payment(request, order, variant):
     total = order.get_total()
     defaults = {'total': total.gross,
                 'tax': total.tax, 'currency': total.currency,
-                'delivery': order.get_delivery_total().gross,
+                'delivery': order.shipping_price.gross,
                 'billing_first_name': billing.first_name,
                 'billing_last_name': billing.last_name,
                 'billing_address_1': billing.street_address_1,
@@ -95,7 +92,6 @@ def start_payment(request, order, variant):
     if variant not in [code for code, dummy_name in variant_choices]:
         raise Http404('%r is not a valid payment variant' % (variant,))
     with transaction.atomic():
-        order.change_status(OrderStatus.PAYMENT_PENDING)
         payment, dummy_created = Payment.objects.get_or_create(
             variant=variant, status=PaymentStatus.WAITING, order=order,
             defaults=defaults)

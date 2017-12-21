@@ -1,0 +1,20 @@
+{% extends "dashboard/base_modal.html" %}
+
+{% load i18n %}
+{% load materializecss %}
+
+{% block action_url %}
+  {% url "dashboard:product-add-select-class" %}
+{% endblock %}
+
+{% block title %}
+  {% trans "Product type" context "Modal select product classes title" %}
+{% endblock %}
+
+{% block content %}
+  {{ form|materializecss }}
+{% endblock %}
+
+{% block primary_action %}
+  {% trans "Create" context "Dashboard add action" %}
+{% endblock %}

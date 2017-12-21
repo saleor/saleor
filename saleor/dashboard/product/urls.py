@@ -1,5 +1,3 @@
-from __future__ import unicode_literals
-
 from django.conf.urls import url
 
 from . import views
@@ -20,6 +18,8 @@ urlpatterns = [
         views.product_create, name='product-add'),
     url(r'^bulk-update/$',
         views.product_bulk_update, name='product-bulk-update'),
+    url(r'^add/select-class/$',
+        views.product_select_classes, name='product-add-select-class'),
 
     url(r'^classes/$',
         views.product_class_list, name='product-class-list'),
@@ -98,4 +98,6 @@ urlpatterns = [
 
     url(r'^ajax/variants/$',
         views.ajax_available_variants_list, name='ajax-available-variants'),
+    url(r'^ajax/products/$',
+        views.ajax_products_list, name='ajax-products'),
 ]

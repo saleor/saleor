@@ -5,6 +5,7 @@
 {% load discount_amount_for from prices %}
 {% load status %}
 {% load bootstrap_form from bootstrap3 %}
+{% load bootstrap_pagination from bootstrap3 %}
 
 {% block title %}{% trans "Your profile" context "User profile page title" %} — {{ block.super }}{% endblock %}
 
@@ -85,6 +86,13 @@
                 </div>
               </div>
             {% endfor %}
+            <div class="row mt-4">
+              <div class="m-auto">
+                {% if orders.has_other_pages %}
+                  {% bootstrap_pagination orders extra=request.GET.urlencode %}
+                {% endif %}
+              </div>
+            </div>
           {% else %}
             <h3 class="text-sm-center userprofile__orders-empty">
                 {% trans "There are not any completed orders yet." context "No recent orders text" %}

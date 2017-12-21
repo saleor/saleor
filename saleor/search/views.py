@@ -1,11 +1,10 @@
-from __future__ import unicode_literals
-
-from django.core.paginator import Paginator, InvalidPage
 from django.conf import settings
+from django.core.paginator import InvalidPage, Paginator
 from django.http import Http404
 from django.shortcuts import render
+
+from ..product.utils import products_with_availability, products_with_details
 from .forms import SearchForm
-from ..product.utils import products_with_details, products_with_availability
 
 
 def paginate_results(results, get_data, paginate_by=settings.PAGINATE_BY):

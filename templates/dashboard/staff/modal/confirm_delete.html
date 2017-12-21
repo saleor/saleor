@@ -1,12 +1,16 @@
-{% extends "dashboard/base_modal_confirm_delete.html" %}
+{% extends "dashboard/base_modal.html" %}
 
 {% load i18n %}
 
-{% block action_url %}{% url 'dashboard:staff-delete' pk=staff.pk %}{% endblock %}
+{% block form_class %}{% endblock %}
+
+{% block action_url %}
+{% url 'dashboard:staff-delete' pk=staff.pk %}
+{% endblock %}
 
 {% block title %}
 {% blocktrans trimmed context "Modal remove group text" %}
-  Remove staff member <strong>{{ staff }}</strong>?
+  Remove staff member <strong>{{ staff }}</strong>
 {% endblocktrans %}
 {% endblock %}
 
@@ -18,3 +22,7 @@
 <p>{{ staff }} has <strong>{{ orders }}</strong> orders.</p>
 {% endblocktrans %}
 {% endblock content %}
+
+{% block primary_action %}
+{% trans "Remove" context "Dashboard delete action" %}
+{% endblock %}

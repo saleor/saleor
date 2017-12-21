@@ -1,12 +1,10 @@
-from __future__ import unicode_literals
-
 from datetime import date
 from decimal import Decimal
 
 from django.conf import settings
 from django.db import models
 from django.db.models import F
-from django.utils.encoding import python_2_unicode_compatible, smart_text
+from django.utils.encoding import smart_text
 from django.utils.translation import pgettext, pgettext_lazy
 from django_countries import countries
 from django_prices.models import PriceField
@@ -25,7 +23,7 @@ class NotApplicable(ValueError):
     """
 
     def __init__(self, msg, limit=None):
-        super(NotApplicable, self).__init__(msg)
+        super().__init__(msg)
         self.limit = limit
 
 
@@ -49,7 +47,6 @@ class VoucherQueryset(models.QuerySet):
         voucher.save(update_fields=['used'])
 
 
-@python_2_unicode_compatible
 class Voucher(models.Model):
 
     APPLY_TO_ONE_PRODUCT = 'one'
@@ -264,7 +261,6 @@ class Voucher(models.Model):
             raise NotImplementedError('Unknown discount type')
 
 
-@python_2_unicode_compatible
 class Sale(models.Model):
     FIXED = 'fixed'
     PERCENTAGE = 'percentage'

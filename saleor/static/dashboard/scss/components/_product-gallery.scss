@@ -1,18 +1,10 @@
 @mixin product-gallery {
   margin: 0;
   &-item {
-    margin: 0 $gutter-width/2 $gutter-width !important;
-    padding: 0;
-    display: block;
     position: relative;
-    width: calc(50% - #{$gutter-width*3/2}) !important;
 
-    @media (min-width: $small-screen-up) {
-      width: calc(33.3% - #{$gutter-width}) !important;
-    }
-
-    @media (min-width: $medium-screen-up) {
-      width: calc(20% - #{$gutter-width}) !important;
+    @media (min-width: 1600px) {
+      width: 25% !important;
     }
 
     &-reorder {
@@ -35,7 +27,7 @@
       white-space: nowrap;
 
       &--noclip {
-        padding: 104px 0 103px;
+        padding: 104px 3rem 103px;
         text-align: center;
         white-space: normal;
       }

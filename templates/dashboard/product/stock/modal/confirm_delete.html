@@ -1,7 +1,9 @@
-{% extends "dashboard/base_modal_confirm_delete.html" %}
+{% extends "dashboard/base_modal.html" %}
 
 {% load i18n %}
 {% load prices_i18n %}
+
+{% block form_class %}{% endblock %}
 
 {% block action_url %}
 {% url 'dashboard:variant-stock-delete' product_pk=product.pk variant_pk=variant.pk stock_pk=stock.pk %}
@@ -9,12 +11,16 @@
 
 {% block title %}
 {% blocktrans context "Dashboard confirmation modal" %}
-Remove stock {{ stock }}
+  Remove stock {{ stock }}
 {% endblocktrans %}
 {% endblock title %}
 
 {% block content %}
 {% blocktrans context "Dashboard confirmation modal" %}
-Are you sure you want to remove stock <strong>{{ stock }}</strong>?
+  Are you sure you want to remove stock <strong>{{ stock }}</strong>?
 {% endblocktrans %}
 {% endblock content %}
+
+{% block primary_action %}
+{% trans "Remove" context "Dashboard delete action" %}
+{% endblock %}

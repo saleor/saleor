@@ -99,13 +99,11 @@
     {% if order.shipping_price.gross or order.is_shipping_required %}
       {% for shipping in shipping_methods %}
         <tr>
-          <td colspan="4">
-            {% blocktrans trimmed with shipping_name=shipping.name context "Shipment order table item column data" %}
-              Shipping ({{ shipping_name }})
-            {% endblocktrans %}
+          <td>
+            {% trans "Shipping" context "Shipment order table item column data" %}
           </td>
-          <td class="right-align">
-            {% gross shipping.price html=True %}
+          <td colspan="3">
+            {{ shipping.name }}
           </td>
         </tr>
       {% endfor %}
@@ -126,10 +124,10 @@
   </tr>
   <tr>
     <td>
-      {% trans "Total Shipping Price" context "Order total shipping price header" %}
+      {% trans "Shipping total" context "Order total shipping price header" %}
     </td>
     <td class="right-align">
-      {% gross order.get_total_shipping html=True %}
+      {% gross order.shipping_price html=True %}
     </td>
   </tr>
   {% if order.voucher %}

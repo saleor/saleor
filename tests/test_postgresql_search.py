@@ -1,6 +1,3 @@
-# -*- coding: utf-8 -*-
-from __future__ import unicode_literals
-
 from saleor.product.models import Product
 from saleor.order.models import Order
 from saleor.userprofile.models import Address, User
