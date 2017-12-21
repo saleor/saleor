@@ -52,7 +52,12 @@ USE_TZ = True
 
 FORM_RENDERER = 'django.forms.renderers.TemplatesSetting'
 
+EMAIL_URL_FILE = os.environ.get('EMAIL_URL_FILE')
 EMAIL_URL = os.environ.get('EMAIL_URL')
+if not EMAIL_URL and EMAIL_URL_FILE:
+    EMAIL_URL = open(EMAIL_URL_FILE, 'r').read()
+
+# sendgrid settings
 SENDGRID_USERNAME = os.environ.get('SENDGRID_USERNAME')
 SENDGRID_PASSWORD = os.environ.get('SENDGRID_PASSWORD')
 if not EMAIL_URL and SENDGRID_USERNAME and SENDGRID_PASSWORD:
@@ -122,8 +127,12 @@ TEMPLATES = [{
         'loaders': loaders,
         'string_if_invalid': '<< MISSING VARIABLE "%s" >>' if DEBUG else ''}}]
 
+SECRET_KEY_FILE = os.environ.get('SECRET_KEY_FILE')
+
 # Make this unique, and don't share it with anybody.
 SECRET_KEY = os.environ.get('SECRET_KEY')
+if not SECRET_KEY and SECRET_KEY_FILE:
+    SECRET_KEY = open(SECRET_KEY_FILE, 'r').read()
 
 MIDDLEWARE = [
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -308,6 +317,16 @@ AWS_ACCESS_KEY_ID = os.environ.get('AWS_ACCESS_KEY_ID')
 AWS_SECRET_ACCESS_KEY = os.environ.get('AWS_SECRET_ACCESS_KEY')
 AWS_STORAGE_BUCKET_NAME = os.environ.get('AWS_STORAGE_BUCKET_NAME')
 AWS_MEDIA_BUCKET_NAME = os.environ.get('AWS_MEDIA_BUCKET_NAME')
+
+# Docker secrets feature
+AWS_ACCESS_KEY_ID_FILE = os.environ.get('AWS_ACCESS_KEY_ID_FILE')
+if not AWS_ACCESS_KEY_ID and AWS_ACCESS_KEY_ID_FILE:
+    AWS_ACCESS_KEY_ID = open(AWS_ACCESS_KEY_ID_FILE, 'r').read()
+
+AWS_SECRET_ACCESS_KEY_FILE = os.environ.get('AWS_SECRET_ACCESS_KEY_FILE')
+if not AWS_SECRET_ACCESS_KEY and AWS_SECRET_ACCESS_KEY_FILE:
+    AWS_SECRET_ACCESS_KEY = open(AWS_SECRET_ACCESS_KEY_FILE, 'r').read()
+
 AWS_QUERYSTRING_AUTH = ast.literal_eval(
     os.environ.get('AWS_QUERYSTRING_AUTH', 'False'))
 
@@ -426,3 +445,4 @@ IMPERSONATE_CUSTOM_USER_QUERYSET = \
     'saleor.userprofile.impersonate.get_impersonatable_users'
 IMPERSONATE_USE_HTTP_REFERER = True
 IMPERSONATE_CUSTOM_ALLOW = 'saleor.userprofile.impersonate.can_impersonate'
+

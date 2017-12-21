@@ -3,8 +3,8 @@ services:
   db:
     image: postgres
     environment:
-      - POSTGRES_USER=saleor
-      - POSTGRES_PASSWORD=saleor
+      - POSTGRES_USER=lojel
+      - POSTGRES_PASSWORD=lojel
     ports:
       - '127.0.0.1:5432:5432'
   redis:
