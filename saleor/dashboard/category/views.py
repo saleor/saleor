@@ -5,7 +5,7 @@ from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect
 from django.template.response import TemplateResponse
 from django.urls import reverse
-from django.utils.translation import npgettext_lazy, pgettext_lazy
+from django.utils.translation import npgettext, pgettext_lazy
 
 from ...core.utils import get_paginator_items
 from ...product.models import Category
@@ -22,7 +22,7 @@ def category_list(request):
     categories = get_paginator_items(
         category_filter.qs, settings.DASHBOARD_PAGINATE_BY,
         request.GET.get('page'))
-    summary_msg = npgettext_lazy(
+    summary_msg = npgettext(
         'Filter set results summary',
         'Found %(counter)d matching category',
         'Found %(counter)d matching categories',
@@ -95,7 +95,7 @@ def category_detail(request, pk):
     categories = get_paginator_items(
         category_filter.qs, settings.DASHBOARD_PAGINATE_BY,
         request.GET.get('page'))
-    summary_msg = npgettext_lazy(
+    summary_msg = npgettext(
         'Filter set results summary',
         'Found %(counter)d matching subcategory',
         'Found %(counter)d matching subcategories',
