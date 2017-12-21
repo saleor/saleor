@@ -24,7 +24,7 @@ def group_list(request):
         groups, settings.DASHBOARD_PAGINATE_BY, request.GET.get('page'))
     counter = group_filter.qs.count()
     summary_msg = npgettext(
-        'Filter set results summary',
+        'Number of matching records in the dashboard groups list',
         'Found %(counter)d matching group',
         'Found %(counter)d matching groups',
         number=counter) % {'counter': counter}

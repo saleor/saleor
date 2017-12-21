@@ -39,7 +39,7 @@ def order_list(request):
         request.GET.get('page'))
     counter = order_filter.qs.count()
     summary_msg = npgettext(
-        'Filter set results summary',
+        'Number of matching records in the dashboard orders list',
         'Found %(counter)d matching order',
         'Found %(counter)d matching orders',
         number=counter) % {'counter': counter}

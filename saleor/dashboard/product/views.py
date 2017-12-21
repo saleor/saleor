@@ -36,7 +36,7 @@ def product_class_list(request):
         request.GET.get('page'))
     counter = class_filter.qs.count()
     summary_msg = npgettext(
-        'Filter set results summary',
+        'Number of matching records in the dashboard product types list',
         'Found %(counter)d matching product type',
         'Found %(counter)d matching product types',
         number=counter) % {'counter': counter}
@@ -126,7 +126,7 @@ def product_list(request):
         request.GET.get('page'))
     counter = product_filter.qs.count()
     summary_msg = npgettext(
-        'Filter set results summary',
+        'Number of matching records in the dashboard products list',
         'Found %(counter)d matching product',
         'Found %(counter)d matching products',
         number=counter) % {'counter': counter}
@@ -512,7 +512,7 @@ def attribute_list(request):
         attributes, settings.DASHBOARD_PAGINATE_BY, request.GET.get('page'))
     counter = attribute_filter.qs.count()
     summary_msg = npgettext(
-        'Filter set results summary',
+        'Number of matching records in the dashboard product attributes list',
         'Found %(counter)d matching attribute',
         'Found %(counter)d matching attributes',
         number=counter) % {'counter': counter}

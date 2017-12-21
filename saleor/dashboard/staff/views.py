@@ -25,7 +25,7 @@ def staff_list(request):
         request.GET.get('page'))
     counter = staff_filter.qs.count()
     summary_msg = npgettext(
-        'Filter set results summary',
+        'Number of matching records in the dashboard staff members list',
         'Found %(counter)d matching staff member',
         'Found %(counter)d matching staff members',
         number=counter) % {'counter': counter}
