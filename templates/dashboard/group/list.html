@@ -74,15 +74,21 @@
         </div>
         {% paginate groups %}
       {% else %}
-        <div class="card-content card-content--no-data not-found">
-          <p class="grey-text">
-            {% trans "No groups found." context "Empty group table message" %}
-          </p>
-        </div>
+        {% if is_empty %}
+          {% include 'dashboard/group/zero_page.html' %}
+        {% else %}
+          <div class="col s12">
+            <div class="not-found">
+              <p class="grey-text">
+                {% trans "No groups found." context "Empty group table message" %}
+              </p>
+            </div>
+          </div>
+        {% endif %}
       {% endif %}
     </div>
     <div class="col s12 l3" id="filters">
-      {% add_filters filter %}
+      {% if not is_empty %}{% add_filters filter %}{% endif %}
     </div>
   </div>
 {% endblock %}

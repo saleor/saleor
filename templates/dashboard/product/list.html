@@ -117,22 +117,21 @@
       </div>
       {% paginate products %}
     {% else %}
-      <div class="col s12">
-        <div class="not-found">
-          <p class="grey-text">
-            {% trans "No products found." context "Empty product list message" %}
-          </p>
-          {% if not product_classes %}
+      {% if is_empty %}
+        {% include 'dashboard/product/zero_page.html' %}
+      {% else %}
+        <div class="col s12">
+          <div class="not-found">
             <p class="grey-text">
-              {% trans "Create product type first." context "Empty product list without product types message" %}
+              {% trans "No products found." context "Empty product list message" %}
             </p>
-          {% endif %}
+          </div>
         </div>
-      </div>
+      {% endif %}
     {% endif %}
     </div>
     <div class="col s12 l3" id="filters">
-      {% add_filters filter %}
+      {% if False %}{% add_filters filter %}{% endif %}
     </div>
   </div>
 {% endblock %}

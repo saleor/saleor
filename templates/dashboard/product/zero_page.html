@@ -1,0 +1,16 @@
+{% extends 'dashboard/base_zero_page.html' %}
+{% load i18n %}
+{% load static %}
+
+{% block title %}{% trans "You don't have any products in your store" %}{% endblock %}
+{% block content %}
+  {% static "dashboard/images/add.svg" as img_path %}
+  {% blocktrans %}
+    You know what products are for, do you? You can create your first product using circular <span class="btn-fab-presentation"><svg data-src="{{ img_path }}" /></span> button.
+  {% endblocktrans %}
+  {% if not product_classes %}
+    <p>
+      {% trans "Create product type first." context "Empty product list without product types message" %}
+    </p>
+  {% endif %}
+{% endblock %}

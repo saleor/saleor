@@ -94,17 +94,23 @@
             </table>
           </div>
         </div>
+        {% paginate staff %}
       {% else %}
-        <div class="card-content card-content--no-data not-found">
-          <p class="grey-text">
-            {% trans "No customers found." context "Empty customers table message" %}
-          </p>
-        </div>
+        {% if is_empty %}
+          {% include 'dashboard/staff/zero_page.html' %}
+        {% else %}
+          <div class="col s12">
+            <div class="not-found">
+              <p class="grey-text">
+                {% trans "No staff members found." context "Empty staff table message" %}
+              </p>
+            </div>
+          </div>
+        {% endif %}
       {% endif %}
-      {% paginate staff %}
     </div>
     <div class="col s12 l3" id="filters">
-      {% add_filters filter %}
+      {% if not is_empty %}{% add_filters filter %}{% endif %}
     </div>
   </div>
 {% endblock %}

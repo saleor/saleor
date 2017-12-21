@@ -1,0 +1,11 @@
+{% extends 'dashboard/base_zero_page.html' %}
+{% load i18n %}
+{% load static %}
+
+{% block title %}{% trans "You don't have any staff members" %}{% endblock %}
+{% block content %}
+  {% static "dashboard/images/add.svg" as img_path %}
+  {% blocktrans %}
+    Staff are dashboard users. You can add your first staff member using circular <span class="btn-fab-presentation"><svg data-src="{{ img_path }}" /></span> button.
+  {% endblocktrans %}
+{% endblock %}
