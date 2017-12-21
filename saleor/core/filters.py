@@ -5,16 +5,11 @@ class SortedFilterSet(FilterSet):
     '''
     Base class for filtersets used in dashboard views. Adds flag
     is_bound_unsorted to indicate if FilterSet has data from filters other
-    than sort_by.
+    than sort_by or page.
     '''
     def __init__(self, data, *args, **kwargs):
-        data_copy = data.copy() if data else None
-        self.is_bound_unsorted = self.set_is_bound_unsorted(data_copy)
-        super().__init__(data, *args, **kwargs)
+        self.is_bound_unsorted = self.set_is_bound_unsorted(data)
+        super(SortedFilterSet, self).__init__(data, *args, **kwargs)
 
-    def set_is_bound_unsorted(self, data_copy):
-        if data_copy and data_copy.get('sort_by', None):
-            del data_copy['sort_by']
-        if data_copy:
-            return True
-        return False
+    def set_is_bound_unsorted(self, data):
+        return any([key not in {'sort_by', 'page'} for key in data.keys()])

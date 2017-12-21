@@ -591,11 +591,13 @@ def test_product_list_pagination(admin_client, product_list):
     url = reverse('dashboard:product-list')
     response = admin_client.get(url, data)
     assert response.status_code == 200
+    assert not response.context['filter'].is_bound_unsorted
 
     data = {'page': '2'}
     url = reverse('dashboard:product-list')
     response = admin_client.get(url, data)
     assert response.status_code == 200
+    assert not response.context['filter'].is_bound_unsorted
 
 
 def test_product_list_pagination_with_filters(admin_client, product_list):
