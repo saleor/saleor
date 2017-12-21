@@ -5,7 +5,7 @@ from django.db.models import Q
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, reverse
 from django.template.response import TemplateResponse
-from django.utils.translation import npgettext_lazy, pgettext_lazy
+from django.utils.translation import npgettext, npgettext_lazy, pgettext_lazy
 from django.views.decorators.http import require_POST
 from django_prices.templatetags.prices_i18n import gross
 
@@ -34,7 +34,7 @@ def product_class_list(request):
     classes = get_paginator_items(
         class_filter.qs, settings.DASHBOARD_PAGINATE_BY,
         request.GET.get('page'))
-    summary_msg = npgettext_lazy(
+    summary_msg = npgettext(
         'Filter set results summary',
         'Found %(counter)d matching product type',
         'Found %(counter)d matching product types',
@@ -123,7 +123,7 @@ def product_list(request):
     products = get_paginator_items(
         product_filter.qs, settings.DASHBOARD_PAGINATE_BY,
         request.GET.get('page'))
-    summary_msg = npgettext_lazy(
+    summary_msg = npgettext(
         'Filter set results summary',
         'Found %(counter)d matching product',
         'Found %(counter)d matching products',
@@ -508,7 +508,7 @@ def attribute_list(request):
         for attribute in attribute_filter.qs]
     attributes = get_paginator_items(
         attributes, settings.DASHBOARD_PAGINATE_BY, request.GET.get('page'))
-    summary_msg = npgettext_lazy(
+    summary_msg = npgettext(
         'Filter set results summary',
         'Found %(counter)d matching attribute',
         'Found %(counter)d matching attributes',

@@ -3,7 +3,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import permission_required
 from django.shortcuts import get_object_or_404, redirect
 from django.template.response import TemplateResponse
-from django.utils.translation import npgettext_lazy, pgettext_lazy
+from django.utils.translation import npgettext, pgettext_lazy
 
 from .emails import send_set_password_email
 from .filters import StaffFilter
@@ -23,7 +23,7 @@ def staff_list(request):
     staff_members = get_paginator_items(
         staff_filter.qs, settings.DASHBOARD_PAGINATE_BY,
         request.GET.get('page'))
-    summary_msg = npgettext_lazy(
+    summary_msg = npgettext(
         'Filter set results summary',
         'Found %(counter)d matching staff member',
         'Found %(counter)d matching staff members',

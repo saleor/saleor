@@ -4,7 +4,7 @@ from django.contrib.auth.decorators import permission_required
 from django.contrib.auth.models import Group
 from django.shortcuts import get_object_or_404, redirect
 from django.template.response import TemplateResponse
-from django.utils.translation import npgettext_lazy, pgettext_lazy
+from django.utils.translation import npgettext, pgettext_lazy
 
 from ...core.utils import get_paginator_items
 from ..views import staff_member_required
@@ -22,7 +22,7 @@ def group_list(request):
               for group in group_filter.qs]
     groups = get_paginator_items(
         groups, settings.DASHBOARD_PAGINATE_BY, request.GET.get('page'))
-    summary_msg = npgettext_lazy(
+    summary_msg = npgettext(
         'Filter set results summary',
         'Found %(counter)d matching group',
         'Found %(counter)d matching groups',

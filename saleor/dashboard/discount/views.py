@@ -3,7 +3,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import permission_required
 from django.shortcuts import get_object_or_404, redirect
 from django.template.response import TemplateResponse
-from django.utils.translation import npgettext_lazy, pgettext_lazy
+from django.utils.translation import npgettext, pgettext_lazy
 
 from ...core.utils import get_paginator_items
 from ...discount.models import Sale, Voucher
@@ -20,7 +20,7 @@ def sale_list(request):
     sales = get_paginator_items(
         sale_filter.qs, settings.DASHBOARD_PAGINATE_BY,
         request.GET.get('page'))
-    summary_msg = npgettext_lazy(
+    summary_msg = npgettext(
         'Filter set results summary',
         'Found %(counter)d matching sale',
         'Found %(counter)d matching sales',
@@ -72,7 +72,7 @@ def voucher_list(request):
     vouchers = get_paginator_items(
         voucher_filter.qs, settings.DASHBOARD_PAGINATE_BY,
         request.GET.get('page'))
-    summary_msg = npgettext_lazy(
+    summary_msg = npgettext(
         'Filter set results summary',
         'Found %(counter)d matching voucher',
         'Found %(counter)d matching vouchers',

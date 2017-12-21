@@ -6,7 +6,7 @@ from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect
 from django.template.context_processors import csrf
 from django.template.response import TemplateResponse
-from django.utils.translation import npgettext_lazy, pgettext_lazy
+from django.utils.translation import npgettext, pgettext_lazy
 from django_prices.templatetags.prices_i18n import gross
 from payments import PaymentStatus
 from prices import Price
@@ -37,7 +37,7 @@ def order_list(request):
     orders = get_paginator_items(
         order_filter.qs, settings.DASHBOARD_PAGINATE_BY,
         request.GET.get('page'))
-    summary_msg = npgettext_lazy(
+    summary_msg = npgettext(
         'Filter set results summary',
         'Found %(counter)d matching product',
         'Found %(counter)d matching products',
