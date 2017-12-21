@@ -24,11 +24,12 @@ def customer_list(request):
     customers = get_paginator_items(
         customer_filter.qs, settings.DASHBOARD_PAGINATE_BY,
         request.GET.get('page'))
+    counter = customer_filter.qs.count()
     summary_msg = npgettext(
         'Filter set results summary',
         'Found %(counter)d matching customer',
         'Found %(counter)d matching customers',
-        'counter') % {'counter': customer_filter.qs.count()}
+        number=counter) % {'counter': counter}
     ctx = {
         'customers': customers, 'filter': customer_filter,
         'is_empty': not customer_filter.queryset.exists(),

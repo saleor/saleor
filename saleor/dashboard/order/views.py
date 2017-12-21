@@ -37,11 +37,12 @@ def order_list(request):
     orders = get_paginator_items(
         order_filter.qs, settings.DASHBOARD_PAGINATE_BY,
         request.GET.get('page'))
+    counter = order_filter.qs.count()
     summary_msg = npgettext(
         'Filter set results summary',
-        'Found %(counter)d matching product',
-        'Found %(counter)d matching products',
-        'counter') % {'counter': order_filter.qs.count()}
+        'Found %(counter)d matching order',
+        'Found %(counter)d matching orders',
+        number=counter) % {'counter': counter}
     ctx = {
         'orders': orders, 'filter': order_filter,
         'is_empty': not order_filter.queryset.exists(),

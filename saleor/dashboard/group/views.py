@@ -22,11 +22,12 @@ def group_list(request):
               for group in group_filter.qs]
     groups = get_paginator_items(
         groups, settings.DASHBOARD_PAGINATE_BY, request.GET.get('page'))
+    counter = group_filter.qs.count()
     summary_msg = npgettext(
         'Filter set results summary',
         'Found %(counter)d matching group',
         'Found %(counter)d matching groups',
-        'counter') % {'counter': group_filter.qs.count()}
+        number=counter) % {'counter': counter}
     ctx = {
         'groups': groups, 'filter': group_filter,
         'is_empty': not group_filter.queryset.exists(),

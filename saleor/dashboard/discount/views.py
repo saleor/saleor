@@ -20,11 +20,12 @@ def sale_list(request):
     sales = get_paginator_items(
         sale_filter.qs, settings.DASHBOARD_PAGINATE_BY,
         request.GET.get('page'))
+    counter = sale_filter.qs.count()
     summary_msg = npgettext(
         'Filter set results summary',
         'Found %(counter)d matching sale',
         'Found %(counter)d matching sales',
-        'counter') % {'counter': sale_filter.qs.count()}
+        number=counter) % {'counter': counter}
     ctx = {
         'sales': sales, 'filter': sale_filter,
         'is_empty': not sale_filter.queryset.exists(),
@@ -72,11 +73,12 @@ def voucher_list(request):
     vouchers = get_paginator_items(
         voucher_filter.qs, settings.DASHBOARD_PAGINATE_BY,
         request.GET.get('page'))
+    counter = voucher_filter.qs.count()
     summary_msg = npgettext(
         'Filter set results summary',
         'Found %(counter)d matching voucher',
         'Found %(counter)d matching vouchers',
-        'counter') % {'counter': voucher_filter.qs.count()}
+        number=counter) % {'counter': counter}
     ctx = {
         'vouchers': vouchers, 'filter': voucher_filter,
         'is_empty': not voucher_filter.queryset.exists(),
