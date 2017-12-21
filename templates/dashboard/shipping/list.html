@@ -82,19 +82,23 @@
             </table>
           </div>
         </div>
+        {% paginate shipping_methods %}
       {% else %}
-        <div class="col s12">
-          <div class="not-found">
-            <p class="grey-text">
-              {% trans "No Shipping methods found" context "Empty Shipping methods table message" %}
-            </p>
+        {% if is_empty %}
+          {% include 'dashboard/shipping/zero_page.html' %}
+        {% else %}
+          <div class="col s12">
+            <div class="not-found">
+              <p class="grey-text">
+                {% trans "No shipping methods found." context "Empty shipping list message" %}
+              </p>
+            </div>
           </div>
-        </div>
+        {% endif %}
       {% endif %}
     </div>
     <div class="col s12 l3" id="filters">
-      {% add_filters filter %}
+      {% if not is_empty %}{% add_filters filter %}{% endif %}
     </div>
   </div>
-  {% paginate shipping_methods %}
 {% endblock %}
