@@ -34,11 +34,12 @@ def product_class_list(request):
     classes = get_paginator_items(
         class_filter.qs, settings.DASHBOARD_PAGINATE_BY,
         request.GET.get('page'))
+    counter = class_filter.qs.count()
     summary_msg = npgettext(
         'Filter set results summary',
         'Found %(counter)d matching product type',
         'Found %(counter)d matching product types',
-        'counter') % {'counter': class_filter.qs.count()}
+        number=counter) % {'counter': counter}
     classes.object_list = [
         (pc.pk, pc.name, pc.has_variants, pc.product_attributes.all(),
          pc.variant_attributes.all())
@@ -123,11 +124,12 @@ def product_list(request):
     products = get_paginator_items(
         product_filter.qs, settings.DASHBOARD_PAGINATE_BY,
         request.GET.get('page'))
+    counter = product_filter.qs.count()
     summary_msg = npgettext(
         'Filter set results summary',
         'Found %(counter)d matching product',
         'Found %(counter)d matching products',
-        'counter') % {'counter': product_filter.qs.count()}
+        number=counter) % {'counter': counter}
     ctx = {
         'bulk_action_form': forms.ProductBulkUpdate(),
         'products': products, 'product_classes': product_classes,
@@ -508,11 +510,12 @@ def attribute_list(request):
         for attribute in attribute_filter.qs]
     attributes = get_paginator_items(
         attributes, settings.DASHBOARD_PAGINATE_BY, request.GET.get('page'))
+    counter = attribute_filter.qs.count()
     summary_msg = npgettext(
         'Filter set results summary',
         'Found %(counter)d matching attribute',
         'Found %(counter)d matching attributes',
-        'counter') % {'counter': attribute_filter.qs.count()}
+        number=counter) % {'counter': counter}
     ctx = {
         'attributes': attributes, 'filter': attribute_filter,
         'is_empty': not attribute_filter.queryset.exists(),

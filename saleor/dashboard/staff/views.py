@@ -23,11 +23,12 @@ def staff_list(request):
     staff_members = get_paginator_items(
         staff_filter.qs, settings.DASHBOARD_PAGINATE_BY,
         request.GET.get('page'))
+    counter = staff_filter.qs.count()
     summary_msg = npgettext(
         'Filter set results summary',
         'Found %(counter)d matching staff member',
         'Found %(counter)d matching staff members',
-        'counter') % {'counter': staff_filter.qs.count()}
+        number=counter) % {'counter': counter}
     ctx = {
         'staff': staff_members, 'filter': staff_filter,
         'is_empty': not staff_filter.queryset.exists(),

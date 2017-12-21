@@ -22,11 +22,12 @@ def shipping_method_list(request):
     methods = get_paginator_items(
         shipping_method_filter.qs, settings.DASHBOARD_PAGINATE_BY,
         request.GET.get('page'))
+    counter = shipping_method_filter.qs.count()
     summary_msg = npgettext(
         'Filter set results summary',
         'Found %(counter)d matching shipping method',
         'Found %(counter)d matching shipping methods',
-        'counter') % {'counter': shipping_method_filter.qs.count()}
+        number=counter) % {'counter': counter}
     ctx = {
         'shipping_methods': methods, 'filter': shipping_method_filter,
         'is_empty': not shipping_method_filter.queryset.exists(),
