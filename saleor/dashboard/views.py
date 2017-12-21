@@ -45,8 +45,7 @@ def index(request):
     low_stock = get_low_stock_products()
     ctx = {'preauthorized_payments': payments[:INDEX_PAGINATE_BY],
            'orders_to_ship': orders_to_ship[:INDEX_PAGINATE_BY],
-           'low_stock': low_stock[:INDEX_PAGINATE_BY],
-           'index_paginate_by': INDEX_PAGINATE_BY}
+           'low_stock': low_stock[:INDEX_PAGINATE_BY]}
     return TemplateResponse(request, 'dashboard/index.html', ctx)
 
 
