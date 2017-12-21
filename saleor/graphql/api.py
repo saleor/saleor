@@ -13,6 +13,7 @@ from ..product.models import (
     ProductVariant)
 from ..product.templatetags.product_images import product_first_image
 from ..product.utils import get_availability, products_visible_to_user
+from .fields import DistinctConnectionField
 from .scalars import AttributesFilterScalar
 from .utils import CategoryAncestorsCache, DjangoPkInterface
 
@@ -74,7 +75,7 @@ class ProductType(DjangoObjectType):
 
 
 class CategoryType(DjangoObjectType):
-    products = DjangoConnectionField(
+    products = DistinctConnectionField(
         ProductType,
         attributes=graphene.Argument(
             graphene.List(AttributesFilterScalar),
