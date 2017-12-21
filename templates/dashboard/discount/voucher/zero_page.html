@@ -2,10 +2,11 @@
 {% load i18n %}
 {% load static %}
 
-{% block title %}{% trans "You don't have any vouchers configured in your store" %}{% endblock %}
+{% block title %}{% trans "No vouchers found." %}{% endblock %}
 {% block content %}
   {% static "dashboard/images/add.svg" as img_path %}
   {% blocktrans %}
-    Vouchers are codes that allow your customers to get discount. You can create your first voucher using circular <span class="btn-fab-presentation"><svg data-src="{{ img_path }}" /></span> button.
+    Vouchers allows creating promotional codes for all purchases, specific products or shipping.<br>
+    You can create vouchers by using the <span class="btn-fab-presentation"><svg data-src="{{ img_path }}" /></span> button.
   {% endblocktrans %}
 {% endblock %}

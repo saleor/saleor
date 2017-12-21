@@ -2,10 +2,11 @@
 {% load i18n %}
 {% load static %}
 
-{% block title %}{% trans "You don't have any product types" %}{% endblock %}
+{% block title %}{% trans "No product types found." %}{% endblock %}
 {% block content %}
   {% static "dashboard/images/add.svg" as img_path %}
   {% blocktrans %}
-    Product types allow you to distinguish cups from cars. You can add your first product type using circular <span class="btn-fab-presentation"><svg data-src="{{ img_path }}" /></span> button.
+    Product types are templates used to create new products. They allow assigning custom attributes to the products of the same type.<br>
+    You can add product types by using the <span class="btn-fab-presentation"><svg data-src="{{ img_path }}" /></span> button.
   {% endblocktrans %}
 {% endblock %}

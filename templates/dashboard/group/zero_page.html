@@ -2,10 +2,11 @@
 {% load i18n %}
 {% load static %}
 
-{% block title %}{% trans "You don't have any groups configured in your store" %}{% endblock %}
+{% block title %}{% trans "No groups found." %}{% endblock %}
 {% block content %}
   {% static "dashboard/images/add.svg" as img_path %}
   {% blocktrans %}
-    Groups allow you to grant permissions to dashboard users. You can create your first group using circular <span class="btn-fab-presentation"><svg data-src="{{ img_path }}" /></span> button.
+    Groups are designed to manage staff member roles and their permission.<br>
+    You can create groups by using the <span class="btn-fab-presentation"><svg data-src="{{ img_path }}" /></span> button.
   {% endblocktrans %}
 {% endblock %}
