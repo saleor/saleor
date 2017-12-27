@@ -3,7 +3,6 @@ import json
 from django import forms
 from django.utils.encoding import smart_text
 from django.utils.translation import pgettext_lazy
-from django_prices.templatetags.prices_i18n import gross
 
 from ..cart.forms import AddToCartForm
 
@@ -17,7 +16,7 @@ class VariantChoiceField(forms.ModelChoiceField):
             'Variant choice field label',
             '%(variant_label)s - %(price)s') % {
                 'variant_label': variant_label,
-                'price': gross(obj.get_price(discounts=self.discounts))}
+                'price': obj.get_price(discounts=self.discounts)}
         return label
 
 

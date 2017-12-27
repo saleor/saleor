@@ -9,9 +9,9 @@ from django.db import models
 from django.utils.encoding import smart_str
 from django.utils.timezone import now
 from django.utils.translation import pgettext_lazy
-from django_prices.models import PriceField
+from django_prices.models import AmountField, PriceField
 from jsonfield import JSONField
-from prices import Price
+from prices import Amount, Price
 from satchless.item import ItemLine, ItemList, partition
 
 from . import CartStatus, logger
@@ -105,10 +105,17 @@ class Cart(models.Model):
     checkout_data = JSONField(
         verbose_name=pgettext_lazy('Cart field', 'checkout data'), null=True,
         editable=False,)
-    total = PriceField(
-        pgettext_lazy('Cart field', 'total'),
+
+    total_net = AmountField(
+        pgettext_lazy('Cart field', 'total net'),
         currency=settings.DEFAULT_CURRENCY, max_digits=12, decimal_places=2,
         default=0)
+    total_gross = AmountField(
+        pgettext_lazy('Cart field', 'total gross'),
+        currency=settings.DEFAULT_CURRENCY, max_digits=12, decimal_places=2,
+        default=0)
+    total = PriceField(net_field='total_net', gross_field='total_gross')
+
     quantity = models.PositiveIntegerField(
         pgettext_lazy('Cart field', 'quantity'), default=0)
 
@@ -171,7 +178,8 @@ class Cart(models.Model):
             self.get_subtotal(item, **kwargs) for item in self.lines.all()]
         if not subtotals:
             raise AttributeError('Calling get_total() on an empty item set')
-        zero = Price(0, currency=settings.DEFAULT_CURRENCY)
+        zero = Price(Amount(0, settings.DEFAULT_CURRENCY),
+                     Amount(0, settings.DEFAULT_CURRENCY))
         return sum(subtotals, zero)
 
     def count(self):

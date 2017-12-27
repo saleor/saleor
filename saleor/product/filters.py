@@ -3,14 +3,14 @@ from collections import OrderedDict
 from django.forms import CheckboxSelectMultiple, ValidationError
 from django.utils.translation import pgettext_lazy
 from django_filters import MultipleChoiceFilter, OrderingFilter, RangeFilter
-from django_prices.models import PriceField
+from django_prices.models import AmountField
 
 from ..core.filters import SortedFilterSet
 from .models import Product, ProductAttribute
 
 SORT_BY_FIELDS = {
     'name': pgettext_lazy('Product list sorting option', 'name'),
-    'price': pgettext_lazy('Product list sorting option', 'price')}
+    'price_gross': pgettext_lazy('Product list sorting option', 'price')}
 
 
 class ProductFilter(SortedFilterSet):
@@ -21,8 +21,8 @@ class ProductFilter(SortedFilterSet):
 
     class Meta:
         model = Product
-        fields = ['price']
-        filter_overrides = {PriceField: {'filter_class': RangeFilter}}
+        fields = ['price_net', 'price_gross']
+        filter_overrides = {AmountField: {'filter_class': RangeFilter}}
 
     def __init__(self, *args, **kwargs):
         self.category = kwargs.pop('category')

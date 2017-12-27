@@ -47,6 +47,8 @@ def test_write_feed(product_in_stock, monkeypatch):
     buffer = StringIO()
     write_feed(buffer)
     buffer.seek(0)
+    from pprint import pprint
+    pprint(buffer.getvalue())
     dialect = csv.Sniffer().sniff(buffer.getvalue())
     assert dialect.delimiter == csv.excel_tab.delimiter
     assert dialect.quotechar == csv.excel_tab.quotechar

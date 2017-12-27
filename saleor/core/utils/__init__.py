@@ -13,7 +13,7 @@ from django_countries import countries
 from django_countries.fields import Country
 from django_prices_openexchangerates import exchange_currency
 from geolite2 import geolite2
-from prices import PriceRange
+from prices import Amount, PriceRange
 
 from ...userprofile.models import User
 
@@ -105,6 +105,8 @@ def get_user_shipping_country(request):
 
 
 def serialize_decimal(obj):
+    if isinstance(obj, Amount):
+        return str(obj)
     if isinstance(obj, decimal.Decimal):
         return str(obj)
     return JSONEncoder.default(obj)

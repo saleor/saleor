@@ -47,7 +47,7 @@
                       {{ payment.order.user|default:_("Guest") }}
                     </td>
                     <td class="right-align">
-                      {% gross payment.get_total_price html=True %}
+                      {{ payment.get_total_price|amount:'html' }}
                     </td>
                   </tr>
                 {% endfor %}

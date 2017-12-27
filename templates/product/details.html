@@ -2,7 +2,7 @@
 
 {% load bootstrap_field from bootstrap3 %}
 {% load i18n %}
-{% load gross from prices_i18n %}
+{% load prices_i18n %}
 {% load markdown from markdown %}
 {% load price_range from price_ranges %}
 {% load staticfiles %}
@@ -96,13 +96,13 @@
           <h2 class="product__info__price">
             <span>{% price_range availability.price_range %}</span>
             {% if availability.discount %}
-              <small class="product__info__price__undiscounted">{% gross availability.price_range_undiscounted.min_price html=True %}</small>
+              <small class="product__info__price__undiscounted">{{ availability.price_range_undiscounted.min_price.gross|amount:'html' }}</small>
             {% endif %}
             {% if availability.price_range_local_currency %}
               <br>
               <small class="text-info">
                 &asymp;
-                {% gross availability.price_range_local_currency.min_price html=True %}
+                {{ availability.price_range_local_currency.min_price.gross|amount:'html' }}
               </small>
             {% endif %}
           </h2>
