@@ -258,7 +258,9 @@ class ProductVariant(models.Model, Item):
         return sum([stock.quantity_available for stock in self.stock.all()])
 
     def get_price_per_item(self, discounts=None, **kwargs):
-        price = self.price_override or self.product.price
+        price = self.product.price
+        if self.price_override_gross and self.price_override_net:
+            price = self.price_override
         price = calculate_discounted_price(self.product, price, discounts,
                                            **kwargs)
         return price

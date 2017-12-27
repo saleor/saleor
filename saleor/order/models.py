@@ -146,7 +146,8 @@ class Order(models.Model, ItemSet):
     def get_delivery_total(self):
         return sum(
             [group.shipping_price for group in self.groups.all()],
-            Amount(0, settings.DEFAULT_CURRENCY))
+            Price(Amount(0, settings.DEFAULT_CURRENCY),
+                  Amount(0, settings.DEFAULT_CURRENCY)))
 
     def send_confirmation_email(self):
         email = self.get_user_current_email()

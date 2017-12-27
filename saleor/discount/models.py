@@ -8,7 +8,7 @@ from django.utils.encoding import smart_text
 from django.utils.translation import pgettext, pgettext_lazy
 from django_countries import countries
 from django_prices.models import AmountField
-from prices import Amount, FixedDiscount, percentage_discount
+from prices import Amount, FixedDiscount, percentage_discount, Price
 
 from ..cart.utils import (
     get_category_variants_and_prices, get_product_variants_and_prices)
@@ -176,19 +176,22 @@ class Voucher(models.Model):
 
     def get_fixed_discount_for(self, amount):
         if self.discount_value_type == self.DISCOUNT_VALUE_FIXED:
-            discount_amount = Amount(self.discount_value,
-                                     currency=settings.DEFAULT_CURRENCY)
+            discount_amount = Price(
+                Amount(self.discount_value, settings.DEFAULT_CURRENCY),
+                Amount(self.discount_value, settings.DEFAULT_CURRENCY))
             discount = FixedDiscount(
                 amount=discount_amount, name=smart_text(self))
         elif self.discount_value_type == self.DISCOUNT_VALUE_PERCENTAGE:
             discount = percentage_discount(
                 value=self.discount_value, name=smart_text(self))
+            print(discount)
+
             fixed_discount_value = amount - discount.apply(amount)
             discount = FixedDiscount(
                 amount=fixed_discount_value, name=smart_text(self))
         else:
             raise NotImplementedError('Unknown discount value type')
-        if discount.amount > amount:
+        if discount.amount.gross > amount:
             return FixedDiscount(amount, name=smart_text(self))
         else:
             return discount
@@ -204,7 +207,7 @@ class Voucher(models.Model):
     def get_discount_for_checkout(self, checkout):
         if self.type == Voucher.VALUE_TYPE:
             cart_total = checkout.get_subtotal()
-            self.validate_limit(cart_total)
+            self.validate_limit(cart_total.gross)
             return self.get_fixed_discount_for(cart_total.gross)
 
         elif self.type == Voucher.SHIPPING_TYPE:

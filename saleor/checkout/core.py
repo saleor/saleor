@@ -326,12 +326,15 @@ class Checkout:
         for partition in self.cart.partition():
             shipping_required = partition.is_shipping_required()
             if shipping_required:
-                shipping_price = self.shipping_method.get_total().gross.value
+                shipping_price = self.shipping_method.get_total()
                 shipping_method_name = smart_text(self.shipping_method)
             else:
-                shipping_price = 0
+                shipping_price = Price(Amount(0, settings.DEFAULT_CURRENCY),
+                                       Amount(0, settings.DEFAULT_CURRENCY))
                 shipping_method_name = None
             group = order.groups.create(
+                shipping_price_net=shipping_price.net,
+                shipping_price_gross=shipping_price.gross,
                 shipping_method_name=shipping_method_name)
             fill_group_with_partition(
                 group, partition, discounts=self.cart.discounts)
@@ -386,8 +389,6 @@ class Checkout:
             total
             for shipment, shipping_cost, total in self.deliveries)
         total = sum(cost_iterator, zero)
-        print(total)
-        print(self.discount)
         return total if self.discount is None else self.discount.apply(total)
 
     def get_total_shipping(self):

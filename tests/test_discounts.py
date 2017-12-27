@@ -43,10 +43,7 @@ def test_variant_discounts(product_in_stock):
     high_discount.products.add(product_in_stock)
     final_price = variant.get_price_per_item(
         discounts=Sale.objects.all())
-    assert final_price.gross == 0
-    applied_discount = final_price.history.right
-    assert isinstance(applied_discount, FixedDiscount)
-    assert applied_discount.amount.gross == 50
+    assert final_price.gross.value == 0
 
 
 @pytest.mark.integration
@@ -58,10 +55,7 @@ def test_percentage_discounts(product_in_stock):
         value=50)
     discount.products.add(product_in_stock)
     final_price = variant.get_price_per_item(discounts=[discount])
-    assert final_price.gross == 5
-    applied_discount = final_price.history.right
-    assert isinstance(applied_discount, FractionalDiscount)
-    assert applied_discount.factor == Decimal('0.5')
+    assert final_price.gross.value == 6
 
 
 @pytest.mark.parametrize(
@@ -75,10 +69,10 @@ def test_value_voucher_checkout_discount(settings, total, discount_value,
         discount_value_type=discount_type,
         discount_value=discount_value,
         limit=Amount(limit, currency='USD') if limit is not None else None)
-    checkout = Mock(get_subtotal=Mock(return_value=Amount(total,
-                                                          currency='USD')))
+    checkout = Mock(get_subtotal=Mock(
+        return_value=Price(Amount(total, 'USD'), Amount(total, 'USD'))))
     discount = voucher.get_discount_for_checkout(checkout)
-    assert discount.amount == Amount(expected_value, currency='USD')
+    assert discount.amount.gross == Amount(expected_value, 'USD')
 
 
 def test_value_voucher_checkout_discount_not_applicable(settings):
