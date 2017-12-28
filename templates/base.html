@@ -266,6 +266,10 @@
 {% endblock %}
 {% block footer_scripts %}
   <script type="text/javascript" src="{% url 'javascript-catalog' %}"></script>
+  <script type="text/javascript">
+	var cartURL = "{% url 'cart:cart-summary'%}";
+	var shippingOptionsURL = "{% url 'cart:shipping-options' %}";
+  </script>
   {% render_bundle 'vendor' 'js' %}
   {% render_bundle 'storefront' 'js' %}
 {% endblock footer_scripts %}
