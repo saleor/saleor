@@ -1,6 +1,6 @@
 import {getAjaxError} from './misc';
 
-export const summaryLink = '/cart/summary/';
+export var summaryLink = '/cart/summary/';  /* overriden in base.html to url 'cart:cart-summary' */
 export const $cartDropdown = $('.cart-dropdown');
 export const $cartIcon = $('.cart__icon');
 export const $addToCartError = $('.product__info__form-error small');
@@ -28,7 +28,7 @@ export const onAddToCartSuccess = () => {
 
 export default $(document).ready((e) => {
   // Cart dropdown
-
+  summaryLink = cartURL;	// override from base.html 
   $.get(summaryLink, (data) => {
     $cartDropdown.html(data);
   });
@@ -133,7 +133,7 @@ export default $(document).ready((e) => {
   let deliveryAjax = (e) => {
     let newCountry = $(countrySelect).val();
     $.ajax({
-      url: '/cart/shipingoptions/',
+      url: shippingOptionsURL,			// this is set in base.html to cart:shipping-options
       type: 'POST',
       data: {
         'csrfmiddlewaretoken': crsfToken,
