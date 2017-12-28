@@ -274,7 +274,7 @@ CONSTANCE_CONFIG = {
     'VAT_RATE': (19.0, 'The current VAT tax rate'),
     'SEARCH_PHRASE_PREFIX': (True, 'Use Match Phrase Prefix instead of Match Phrase'),
     'PAYMENTS_RECURRING_ENABLED': (False, 'Enable recurring payments'),
-    'PAYMENTS_ONECLICK_ENABLED': (False, 'Enable recurring payments'),
+    'PAYMENTS_ONECLICK_ENABLED': (False, 'Enable oneclick payments'),
 }
 CONSTANCE_BACKEND = 'constance.backends.database.DatabaseBackend'
 

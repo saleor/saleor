@@ -18,6 +18,7 @@ def get_available_sizes():
             all_sizes.add(size)
     return all_sizes
 
+
 AVAILABLE_SIZES = get_available_sizes()
 
 
