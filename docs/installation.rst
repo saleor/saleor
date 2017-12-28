@@ -11,7 +11,7 @@ Prerequisites
 
 Before you are ready to run Saleor you will need certain software installed on your computer.
 
-#. `Python <https://www.python.org/>`_ version 3.5.x or 2.7.x
+#. `Python <https://www.python.org/>`_ version 3.5.x
 
 #. `pip <https://pip.pypa.io/en/stable/installing/>`_ if you're using an older release of Python 2.7
 
