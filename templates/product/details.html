@@ -14,7 +14,7 @@
 
 {% block breadcrumb %}
   <ul class="breadcrumbs list-unstyled">
-    <li><a href="/">
+    <li><a href="{% url 'home' %}">
         {% trans "Home" context "Main navigation item" %}
     </a></li>
     {% with product.get_first_category as category %}
