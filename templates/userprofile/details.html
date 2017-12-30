@@ -11,7 +11,7 @@
 
 {% block breadcrumb %}
   <ul class="breadcrumbs list-unstyled">
-    <li><a href="/">
+    <li><a href="{% url 'home' %}">
         {% trans "Home" context "Main navigation item" %}
     </a></li>
     <li>{% trans "Your account" context "Main navigation item" %} (<b>{{ user }}</b>)</li>
