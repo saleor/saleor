@@ -3,7 +3,7 @@
 {% load staticfiles %}
 {% load render_bundle from webpack_loader %}
 
-<html lang="{{ LANGUAGE_CODE }}" class="no-js">
+<html lang="{{ LANGUAGE_CODE }}" class="no-js" data-shipping-options-url="{% url 'cart:shipping-options' %}" data-cart-summary-url="{% url 'cart:cart-summary' %}">
 <head>
   <title>{% block title %}{{ site.name }}{% endblock %}</title>
   {% block meta %}
@@ -85,7 +85,7 @@
               <svg data-src="{% static "images/mobile_menu.svg" %}" width="28px" height="20px"/>
               <span>{% trans "menu" context "Hamburger button text" %}</span>
             </div>
-            <a href="/">
+            <a href="{% url 'home' %}">
               <svg data-src="{% static "images/logo.svg" %}" height="38px" width="176px"/>
             </a>
           </div>
@@ -168,7 +168,7 @@
     <div class="container">
       <div class="row">
         <div class="col-md-3">
-          <a href="/" class="footer__logo">
+          <a href="{% url 'home' %}" class="footer__logo">
             <svg data-src="{% static "images/logo.svg" %}" height="38px" width="176px"/>
           </a>
         </div>

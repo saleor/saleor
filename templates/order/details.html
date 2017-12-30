@@ -12,7 +12,7 @@
 {% block breadcrumb %}
     {% if order.user == user %}
       <ul class="breadcrumbs list-unstyled">
-        <li><a href="/">
+        <li><a href="{% url 'home'%}">
             {% trans "Home" context "Main navigation item" %}
         </a></li>
         <li><a href="{% url "profile:details" %}">
