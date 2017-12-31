@@ -9,6 +9,7 @@ urlpatterns = [
         name='shipping-address'),
     url(r'^shipping-method/', views.shipping_method_view,
         name='shipping-method'),
+    url(r'^note/', views.note_view, name='note'),
     url(r'^summary/', views.summary_view, name='summary'),
     url(r'^remove_voucher/', views.discount.remove_voucher_view,
         name='remove-voucher'),

@@ -11,7 +11,7 @@ from .validators import (
     validate_cart, validate_shipping_address,
     validate_shipping_method, validate_is_shipping_required)
 from ..core import load_checkout
-from ..forms import ShippingMethodForm
+from ..forms import ShippingMethodForm, NoteForm
 from ...registration.forms import LoginForm
 
 
@@ -49,7 +49,7 @@ def shipping_method_view(request, checkout):
         initial={'method': checkout.shipping_method})
     if shipping_method_form.is_valid():
         checkout.shipping_method = shipping_method_form.cleaned_data['method']
-        return redirect('checkout:summary')
+        return redirect('checkout:note')
     return TemplateResponse(
         request, 'checkout/shipping_method.html',
         context={
@@ -81,3 +81,21 @@ def login(request, checkout):
         return redirect('checkout:index')
     form = LoginForm()
     return TemplateResponse(request, 'checkout/login.html', {'form': form})
+
+
+@load_checkout
+@validate_voucher
+@validate_cart
+@add_voucher_form
+def note_view(request, checkout):
+    note_form = NoteForm(request.POST or None)
+    if note_form.is_valid():
+        checkout.note = note_form.cleaned_data['note']
+        return redirect('checkout:summary')
+    return TemplateResponse(
+        request, 'checkout/note.html',
+        context={
+            'note_form': note_form,
+            'checkout': checkout})
+
+
