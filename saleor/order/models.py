@@ -151,6 +151,10 @@ class Order(models.Model, ItemSet):
             status = self.status
         self.history.create(status=status, comment=comment, user=user)
 
+    def create_order_note(self, note='', user=None):
+        if note != '':
+            self.notes.create(user=user, content=note)
+
     def is_shipping_required(self):
         return any(group.is_shipping_required() for group in self.groups.all())
 
@@ -359,7 +363,9 @@ class OrderHistoryEntry(models.Model):
 
 class OrderNote(models.Model):
     user = models.ForeignKey(
-        settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+        settings.AUTH_USER_MODEL, blank=True, null=True,
+        verbose_name=pgettext_lazy('Order note field', 'user'),
+        on_delete=models.SET_NULL)
     date = models.DateTimeField(auto_now_add=True)
     order = models.ForeignKey(
         Order, related_name='notes', on_delete=models.CASCADE)
