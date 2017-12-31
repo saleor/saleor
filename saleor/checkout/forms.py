@@ -119,17 +119,4 @@ class AnonymousUserBillingForm(forms.Form):
 class NoteForm(forms.Form):
     """ Form to add a note to an order as it is created for shop staff to see """
     note = forms.CharField(widget=forms.Textarea, max_length=250, required=False)
- 
-#    def __init__(self, *args, **kwargs):
-#        self.checkout = kwargs.pop('checkout')
-#        initial = kwargs.get('initial', {})
-#        if 'note' not in initial:
-#            initial['note'] = self.checkout.note
-#        kwargs['initial'] = initial
-#        super(NoteForm, self).__init__(*args, **kwargs)
-#
-#    def clean(self):
-#        cleaned_data = super(NoteForm, self).clean()
-#        if 'note' in cleaned_data:
-#            self.checkout.note = cleaned_data['note']
-#        return cleaned_data
+
