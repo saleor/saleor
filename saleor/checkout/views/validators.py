@@ -63,11 +63,11 @@ def validate_is_shipping_required(view):
 
     Expects to be decorated with `@validate_cart`.
 
-    If shipping is not needed redirects to the summary step.
+    If shipping is not needed redirects to the note step.
     """
     @wraps(view)
     def func(request, checkout):
         if not checkout.is_shipping_required:
-            return redirect('checkout:summary')
+            return redirect('checkout:note')
         return view(request, checkout)
     return func
