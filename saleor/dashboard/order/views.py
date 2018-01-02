@@ -19,8 +19,8 @@ from .forms import (
     MoveLinesForm, OrderNoteForm, RefundPaymentForm, ReleasePaymentForm,
     RemoveVoucherForm, ShipGroupForm)
 
-from .utils import (create_packing_slip_pdf, create_invoice_pdf,
-                    get_statics_absolute_url)
+from .utils import (
+    create_invoice_pdf, create_packing_slip_pdf, get_statics_absolute_url)
 from ..views import staff_member_required
 from ...core.utils import get_paginator_items
 from ...order import GroupStatus

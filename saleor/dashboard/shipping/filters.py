@@ -1,4 +1,4 @@
-from django.utils.translation import pgettext_lazy
+from django.utils.translation import npgettext, pgettext_lazy
 from django_filters import (
     CharFilter, ChoiceFilter, OrderingFilter, RangeFilter)
 
@@ -30,3 +30,12 @@ class ShippingMethodFilter(SortedFilterSet):
     class Meta:
         model = ShippingMethod
         fields = []
+
+    def get_summary_message(self):
+        counter = self.qs.count()
+        return npgettext(
+            'Number of matching records in the dashboard '
+            'shipping methods list',
+            'Found %(counter)d matching shipping method',
+            'Found %(counter)d matching shipping methods',
+            number=counter) % {'counter': counter}
