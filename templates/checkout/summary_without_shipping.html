@@ -12,6 +12,8 @@
             {% bootstrap_form user_form %}
             {% include "userprofile/snippets/address_form.html" with address_form=address_form only %}
         {% endif %}
+        <h2>{% trans "Add a note to your order" context "Checkout summary without shipping note title" %}</h2>
+        {% bootstrap_form note_form show_label=False %}
         <p class="text-md-right">
           <button type="submit" class="btn primary">
               {% trans "Place order" context "Checkout summary without shipping action" %}
