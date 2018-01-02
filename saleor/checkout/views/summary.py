@@ -6,7 +6,7 @@ from satchless.item import InsufficientStock
 
 from ..forms import (
     AnonymousUserBillingForm, BillingAddressesForm,
-    BillingWithoutShippingAddressForm)
+    BillingWithoutShippingAddressForm, NoteForm)
 from ...userprofile.forms import get_address_form
 from ...userprofile.models import Address
 from ...order import OrderStatus

@@ -118,5 +118,5 @@ class AnonymousUserBillingForm(forms.Form):
 
 class NoteForm(forms.Form):
     """ Form to add a note to an order as it is created for shop staff to see """
-    note = forms.CharField(widget=forms.Textarea, max_length=250, required=False)
+    note = forms.CharField(max_length=250, required=False)
 
