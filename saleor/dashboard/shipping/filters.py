@@ -34,7 +34,8 @@ class ShippingMethodFilter(SortedFilterSet):
     def get_summary_message(self):
         counter = self.qs.count()
         return npgettext(
-            'Number of matching records in the dashboard shipping methods list',
+            'Number of matching records in the dashboard '
+            'shipping methods list',
             'Found %(counter)d matching shipping method',
             'Found %(counter)d matching shipping methods',
             number=counter) % {'counter': counter}
