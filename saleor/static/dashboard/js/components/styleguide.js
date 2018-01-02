@@ -1,11 +1,5 @@
-export default $(document).ready((e) => {
-  let styleGuideMenu = $('.styleguide__menu');
+import { onScroll } from './utils';
 
-  $(window).scroll(function () {
-    if ($(this).scrollTop() > 100) {
-      styleGuideMenu.addClass('fixed');
-    } else {
-      styleGuideMenu.removeClass('fixed');
-    }
-  });
+export default $(document).ready((e) => {
+  onScroll(() => $('.styleguide__menu').toggleClass('fixed', $(window).scrollTop() > 100));
 });
