@@ -16,11 +16,10 @@ def get_sort_by_url(context, field, descending=False):
     return '%s?%s' % (request.path, urlencode(request_get))
 
 
-@register.assignment_tag(takes_context=True)
-def get_sort_by_toggle(context, field):
-    '''
-    This templatetag returns data needed for sorting querysets by links toggle.
-    '''
+@register.inclusion_tag(
+    'dashboard/includes/_sorting_header.html', takes_context=True)
+def render_sorting_header(context, field, label):
+    """This template tag renders table sorting header."""
     request = context['request']
     request_get = request.GET.copy()
     sort_by = request_get.get('sort_by')
@@ -51,4 +50,4 @@ def get_sort_by_toggle(context, field):
     request_get['sort_by'] = new_sort_by
     return {
         'url': '%s?%s' % (request.path, request_get.urlencode()),
-        'is_active': is_active, 'sorting_icon': sorting_icon}
+        'is_active': is_active, 'sorting_icon': sorting_icon, 'label': label}
