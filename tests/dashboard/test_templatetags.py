@@ -2,8 +2,8 @@ import pytest
 
 from django.urls import reverse
 
-from saleor.core.templatetags.shop import (
-    get_sort_by_url, render_sorting_header)
+from saleor.core.templatetags.shop import get_sort_by_url
+from saleor.dashboard.templatetags.utils import render_sorting_header
 
 
 def test_sort_by_url_ascending(admin_client, default_category):
