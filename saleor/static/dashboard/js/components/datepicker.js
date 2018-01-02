@@ -47,5 +47,3 @@ $('.datepicker').pickadate({
   hiddenName: true,
   onClose: () => $(document.activeElement).blur(),
 });
-
-export {};

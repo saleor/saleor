@@ -48,5 +48,3 @@ $('.select-all').on('change', onSelectAll);
 $('.switch-actions').on('change', onSwitchActions);
 $('.select-item').on('change', updateSelectedItemsText);
 $('.bulk-actions a').on('click', onSubmit);
-
-export {};
