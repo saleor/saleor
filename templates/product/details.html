@@ -139,7 +139,7 @@
               {% if has_variants %}
                 {% bootstrap_field form.variant %}
               {% else %}
-                <input type="hidden" value="{{ first_variant.pk }}" name="variant" />
+                <input type="hidden" value="{{ first_variant.pk }}" name="variant" id="id_variant" />
               {% endif %}
               <div class="product__info__quantity">
                 {% bootstrap_field form.quantity %}
