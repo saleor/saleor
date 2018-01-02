@@ -93,6 +93,10 @@ def summary_with_shipping_view(request, checkout):
 
     Will create an order if all data is valid.
     """
+    note_form = NoteForm(request.POST or None)
+    if note_form.is_valid():
+        checkout.note = note_form.cleaned_data['note']
+
     if request.user.is_authenticated:
         additional_addresses = request.user.addresses.all()
     else:
@@ -108,7 +112,8 @@ def summary_with_shipping_view(request, checkout):
         request, 'checkout/summary.html', context={
             'addresses_form': addresses_form, 'address_form': address_form,
             'checkout': checkout,
-            'additional_addresses': additional_addresses})
+            'additional_addresses': additional_addresses,
+            'note_form': note_form})
 
 
 def anonymous_summary_without_shipping(request, checkout):
@@ -116,6 +121,10 @@ def anonymous_summary_without_shipping(request, checkout):
 
     Will create an order if all data is valid.
     """
+    note_form = NoteForm(request.POST or None)
+    if note_form.is_valid():
+        checkout.note = note_form.cleaned_data['note']
+
     user_form = AnonymousUserBillingForm(
         request.POST or None, initial={'email': checkout.email})
     billing_address = checkout.billing_address
@@ -134,7 +143,8 @@ def anonymous_summary_without_shipping(request, checkout):
     return TemplateResponse(
         request, 'checkout/summary_without_shipping.html', context={
             'user_form': user_form, 'address_form': address_form,
-            'checkout': checkout})
+            'checkout': checkout,
+            'note_form': note_form})
 
 
 def summary_without_shipping(request, checkout):
@@ -142,6 +152,10 @@ def summary_without_shipping(request, checkout):
 
     Will create an order if all data is valid.
     """
+    note_form = NoteForm(request.POST or None)
+    if note_form.is_valid():
+        checkout.note = note_form.cleaned_data['note']
+
     billing_address = checkout.billing_address
     user_addresses = request.user.addresses.all()
     if billing_address and billing_address.id:
@@ -179,4 +193,5 @@ def summary_without_shipping(request, checkout):
     return TemplateResponse(
         request, 'checkout/summary_without_shipping.html', context={
             'addresses_form': addresses_form, 'address_form': address_form,
-            'checkout': checkout, 'additional_addresses': user_addresses})
+            'checkout': checkout, 'additional_addresses': user_addresses,
+            'note_form': note_form})

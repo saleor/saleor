@@ -49,7 +49,7 @@ def shipping_method_view(request, checkout):
         initial={'method': checkout.shipping_method})
     if shipping_method_form.is_valid():
         checkout.shipping_method = shipping_method_form.cleaned_data['method']
-        return redirect('checkout:note')
+        return redirect('checkout:summary')
     return TemplateResponse(
         request, 'checkout/shipping_method.html',
         context={
