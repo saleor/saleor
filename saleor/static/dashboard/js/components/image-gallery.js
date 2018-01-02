@@ -1,11 +1,15 @@
 import Dropzone from 'dropzone';
 import Sortable from 'sortablejs';
 
-const createLink = (link, index, replacement) => {
+function createLink (link, index, replacement) {
   const outputLink = link.attr('data-href-template').split('/');
   outputLink[outputLink.length + index] = replacement;
   return outputLink.join('/')
-};
+}
+
+const productGallery = document.getElementById('product-gallery');
+
+// -----
 
 $('#product-image-form').dropzone({
   paramName: 'image_0',
@@ -34,7 +38,7 @@ $('#product-image-form').dropzone({
     });
   }
 });
-const productGallery = document.getElementById('product-gallery');
+
 if (productGallery) {
   Sortable.create(productGallery, {
     handle: '.sortable__drag-area',
