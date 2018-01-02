@@ -1,6 +1,6 @@
 import SVGInjector from 'svg-injector-2';
 
-import { initSelects } from './utils';
+import { initSelects, onScroll } from './utils';
 
 const screenSizes = {
   sm: 600,
@@ -51,6 +51,9 @@ $('#product-is-published').on('click', (e) => {
     })
   }
 });
+
+// Styleguide sticky right menu
+onScroll(() => $('.styleguide__menu').toggleClass('fixed', $(window).scrollTop() > 100));
 
 export {
   screenSizes,
