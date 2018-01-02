@@ -38,5 +38,3 @@ $('.collapse-activate').on('click', (e) => {
     $collapsibleCard.addClass('collapsed');
   }
 });
-
-export {};

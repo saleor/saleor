@@ -37,5 +37,3 @@ const onModalClose = () => $('.modal').modal('close');
 $(document)
   .on('submit', '.form-async', onAsyncFormSubmit)
   .on('click', '.modal-close', onModalClose);
-
-export {};
