@@ -1,8 +1,7 @@
 from django import forms
 from django.db.models import Q
-from django.utils.translation import pgettext_lazy
-from django_filters import (
-    CharFilter, ChoiceFilter, OrderingFilter)
+from django.utils.translation import npgettext, pgettext_lazy
+from django_filters import CharFilter, ChoiceFilter, OrderingFilter
 from django_countries import countries
 
 from ...core.filters import SortedFilterSet
@@ -68,3 +67,11 @@ class UserFilter(SortedFilterSet):
             if value.lower() in country.lower():
                 country_codes.append(code)
         return country_codes
+
+    def get_summary_message(self):
+        counter = self.qs.count()
+        return npgettext(
+            'Number of matching records in the dashboard customers list',
+            'Found %(counter)d matching customer',
+            'Found %(counter)d matching customers',
+            number=counter) % {'counter': counter}

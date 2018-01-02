@@ -5,7 +5,7 @@ from django.db.models import Q
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, reverse
 from django.template.response import TemplateResponse
-from django.utils.translation import npgettext, npgettext_lazy, pgettext_lazy
+from django.utils.translation import npgettext_lazy, pgettext_lazy
 from django.views.decorators.http import require_POST
 from django_prices.templatetags.prices_i18n import gross
 
@@ -34,20 +34,13 @@ def product_class_list(request):
     classes = get_paginator_items(
         class_filter.qs, settings.DASHBOARD_PAGINATE_BY,
         request.GET.get('page'))
-    counter = class_filter.qs.count()
-    summary_msg = npgettext(
-        'Number of matching records in the dashboard product types list',
-        'Found %(counter)d matching product type',
-        'Found %(counter)d matching product types',
-        number=counter) % {'counter': counter}
     classes.object_list = [
         (pc.pk, pc.name, pc.has_variants, pc.product_attributes.all(),
          pc.variant_attributes.all())
         for pc in classes.object_list]
     ctx = {
         'form': form, 'product_classes': classes, 'filter': class_filter,
-        'is_empty': not class_filter.queryset.exists(),
-        'summary_msg': summary_msg}
+        'is_empty': not class_filter.queryset.exists()}
     return TemplateResponse(
         request,
         'dashboard/product/product_class/list.html',
@@ -124,18 +117,11 @@ def product_list(request):
     products = get_paginator_items(
         product_filter.qs, settings.DASHBOARD_PAGINATE_BY,
         request.GET.get('page'))
-    counter = product_filter.qs.count()
-    summary_msg = npgettext(
-        'Number of matching records in the dashboard products list',
-        'Found %(counter)d matching product',
-        'Found %(counter)d matching products',
-        number=counter) % {'counter': counter}
     ctx = {
         'bulk_action_form': forms.ProductBulkUpdate(),
         'products': products, 'product_classes': product_classes,
-        'filter': product_filter, 'summary_msg': summary_msg,
-        'is_empty': not product_filter.queryset.exists()
-    }
+        'filter': product_filter,
+        'is_empty': not product_filter.queryset.exists()}
     return TemplateResponse(request, 'dashboard/product/list.html', ctx)
 
 
@@ -510,16 +496,9 @@ def attribute_list(request):
         for attribute in attribute_filter.qs]
     attributes = get_paginator_items(
         attributes, settings.DASHBOARD_PAGINATE_BY, request.GET.get('page'))
-    counter = attribute_filter.qs.count()
-    summary_msg = npgettext(
-        'Number of matching records in the dashboard product attributes list',
-        'Found %(counter)d matching attribute',
-        'Found %(counter)d matching attributes',
-        number=counter) % {'counter': counter}
     ctx = {
         'attributes': attributes, 'filter': attribute_filter,
-        'is_empty': not attribute_filter.queryset.exists(),
-        'summary_msg': summary_msg}
+        'is_empty': not attribute_filter.queryset.exists()}
     return TemplateResponse(
         request, 'dashboard/product/product_attribute/list.html', ctx)
 

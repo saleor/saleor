@@ -3,7 +3,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import permission_required
 from django.shortcuts import get_object_or_404, redirect
 from django.template.response import TemplateResponse
-from django.utils.translation import npgettext, pgettext_lazy
+from django.utils.translation import pgettext_lazy
 
 from .emails import send_set_password_email
 from .filters import StaffFilter
@@ -16,23 +16,15 @@ from ...userprofile.models import User
 @staff_member_required
 @permission_required('userprofile.view_staff')
 def staff_list(request):
-    staff_members = (User.objects.filter(is_staff=True)
-                     .prefetch_related('default_billing_address')
-                     .order_by('email'))
+    staff_members = User.objects.filter(is_staff=True).prefetch_related(
+        'default_billing_address').order_by('email')
     staff_filter = StaffFilter(request.GET, queryset=staff_members)
     staff_members = get_paginator_items(
         staff_filter.qs, settings.DASHBOARD_PAGINATE_BY,
         request.GET.get('page'))
-    counter = staff_filter.qs.count()
-    summary_msg = npgettext(
-        'Number of matching records in the dashboard staff members list',
-        'Found %(counter)d matching staff member',
-        'Found %(counter)d matching staff members',
-        number=counter) % {'counter': counter}
     ctx = {
         'staff': staff_members, 'filter': staff_filter,
-        'is_empty': not staff_filter.queryset.exists(),
-        'summary_msg': summary_msg}
+        'is_empty': not staff_filter.queryset.exists()}
     return TemplateResponse(request, 'dashboard/staff/list.html', ctx)
 
 

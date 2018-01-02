@@ -5,7 +5,7 @@ from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect
 from django.template.response import TemplateResponse
 from django.urls import reverse
-from django.utils.translation import npgettext, pgettext_lazy
+from django.utils.translation import pgettext_lazy
 
 from ...core.utils import get_paginator_items
 from ...product.models import Category
@@ -22,16 +22,9 @@ def category_list(request):
     categories = get_paginator_items(
         category_filter.qs, settings.DASHBOARD_PAGINATE_BY,
         request.GET.get('page'))
-    counter = category_filter.qs.count()
-    summary_msg = npgettext(
-        'Number of matching records in the dashboard categories list',
-        'Found %(counter)d matching category',
-        'Found %(counter)d matching categories',
-        number=counter) % {'counter': counter}
     ctx = {
         'categories': categories, 'filter': category_filter,
-        'is_empty': not category_filter.queryset.exists(),
-        'summary_msg': summary_msg}
+        'is_empty': not category_filter.queryset.exists()}
     return TemplateResponse(request, 'dashboard/category/list.html', ctx)
 
 
@@ -96,14 +89,8 @@ def category_detail(request, pk):
     categories = get_paginator_items(
         category_filter.qs, settings.DASHBOARD_PAGINATE_BY,
         request.GET.get('page'))
-    counter = category_filter.qs.count()
-    summary_msg = npgettext(
-        'Number of matching records in the dashboard subcategories list',
-        'Found %(counter)d matching subcategory',
-        'Found %(counter)d matching subcategories',
-        number=counter) % {'counter': counter}
     ctx = {'categories': categories, 'path': path, 'root': root,
-           'filter': category_filter, 'summary_msg': summary_msg,
+           'filter': category_filter,
            'is_empty': not category_filter.queryset.exists()}
     return TemplateResponse(request, 'dashboard/category/detail.html', ctx)
 

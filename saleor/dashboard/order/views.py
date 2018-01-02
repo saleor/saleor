@@ -6,7 +6,7 @@ from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect
 from django.template.context_processors import csrf
 from django.template.response import TemplateResponse
-from django.utils.translation import npgettext, pgettext_lazy
+from django.utils.translation import pgettext_lazy
 from django_prices.templatetags.prices_i18n import gross
 from payments import PaymentStatus
 from prices import Price
@@ -37,16 +37,9 @@ def order_list(request):
     orders = get_paginator_items(
         order_filter.qs, settings.DASHBOARD_PAGINATE_BY,
         request.GET.get('page'))
-    counter = order_filter.qs.count()
-    summary_msg = npgettext(
-        'Number of matching records in the dashboard orders list',
-        'Found %(counter)d matching order',
-        'Found %(counter)d matching orders',
-        number=counter) % {'counter': counter}
     ctx = {
         'orders': orders, 'filter': order_filter,
-        'is_empty': not order_filter.queryset.exists(),
-        'summary_msg': summary_msg}
+        'is_empty': not order_filter.queryset.exists()}
     return TemplateResponse(request, 'dashboard/order/list.html', ctx)
 
 
