@@ -11,14 +11,21 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="{% block meta_description %}{% endblock %}">
     <meta name="author" content="{% trans "Mirumee Software" context "Meta author text" %}">
-    <meta name="theme-color" content="#21915a" />
+    <meta name="theme-color" content="#21915a">
+    <meta name="og:type" content="website">
   {% endblock meta %}
+
   {% include 'favicon.html' %}
   {% render_bundle 'vendor' 'css' %}
   {% render_bundle 'storefront' 'css' %}
 
   {% block stylesheet %}{% endblock stylesheet %}
-  {% block meta_tags %}{% endblock meta_tags %}
+
+  {% block meta_tags %}
+    <meta property="og:title" content="{{ site.name }}">
+    <meta property="og:url" content="{{ request.build_absolute_uri }}">
+    <meta property="og:image" content="{% static "images/block1.png" %}">
+  {% endblock meta_tags %}
 
   <!-- Le HTML5 shim, for IE6-8 support of HTML5 elements -->
   <!--[if lt IE 9]>

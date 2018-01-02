@@ -6,11 +6,30 @@
 {% load markdown from markdown %}
 {% load price_range from price_ranges %}
 {% load staticfiles %}
-{% load get_thumbnail from product_images %}
+{% load get_thumbnail product_first_image from product_images %}
+{% load build_absolute_uri from urls %}
 
 {% block title %}{{ product }} — {{ block.super }}{% endblock %}
 
 {% block meta_description %}{{ product.description }}{% endblock %}
+
+{% block meta_tags %}
+  <meta property="og:title" content="{{ product }} — {{ block.super }}">
+  <meta property="og:description" content="{{ product.description }}">
+
+  {% build_absolute_uri request=request location=product.get_absolute_url as product_url %}
+  <meta property="og:url" content="{{ product_url }}">
+  <link rel="canonical" href="{{ product_url }}">
+
+  {% product_first_image product size="510x510" as product_image %}
+  {% if product_image %}
+    <meta property="og:image" content="{{ product_image }}" />
+    <meta property="og:image:width" content="510">
+    <meta property="og:image:height" content="510">
+  {% else %}
+    <meta property="og:image" content="{% static "images/block1.png" %}">
+  {% endif %}
+{% endblock meta_tags %}
 
 {% block breadcrumb %}
   <ul class="breadcrumbs list-unstyled">
