@@ -1,5 +1,5 @@
 from django import forms
-from django.utils.translation import pgettext_lazy
+from django.utils.translation import npgettext, pgettext_lazy
 from django_filters import (
     CharFilter, ChoiceFilter, ModelMultipleChoiceFilter, RangeFilter,
     OrderingFilter)
@@ -63,6 +63,14 @@ class ProductFilter(SortedFilterSet):
         model = Product
         fields = []
 
+    def get_summary_message(self):
+        counter = self.qs.count()
+        return npgettext(
+            'Number of matching records in the dashboard products list',
+            'Found %(counter)d matching product',
+            'Found %(counter)d matching products',
+            number=counter) % {'counter': counter}
+
 
 class ProductAttributeFilter(SortedFilterSet):
     name = CharFilter(
@@ -77,6 +85,15 @@ class ProductAttributeFilter(SortedFilterSet):
         model = ProductAttribute
         fields = []
 
+    def get_summary_message(self):
+        counter = self.qs.count()
+        return npgettext(
+            'Number of matching records in the dashboard '
+            'product attributes list',
+            'Found %(counter)d matching attribute',
+            'Found %(counter)d matching attributes',
+            number=counter) % {'counter': counter}
+
 
 class ProductClassFilter(SortedFilterSet):
     name = CharFilter(
@@ -90,6 +107,14 @@ class ProductClassFilter(SortedFilterSet):
     class Meta:
         model = ProductClass
         fields = ['name', 'product_attributes', 'variant_attributes']
+
+    def get_summary_message(self):
+        counter = self.qs.count()
+        return npgettext(
+            'Number of matching records in the dashboard product types list',
+            'Found %(counter)d matching product type',
+            'Found %(counter)d matching product types',
+            number=counter) % {'counter': counter}
 
 
 class StockLocationFilter(SortedFilterSet):

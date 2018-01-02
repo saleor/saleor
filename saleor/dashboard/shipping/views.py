@@ -15,8 +15,8 @@ from .forms import ShippingMethodCountryForm, ShippingMethodForm
 @staff_member_required
 @permission_required('shipping.view_shipping')
 def shipping_method_list(request):
-    methods = (ShippingMethod.objects.prefetch_related('price_per_country')
-               .order_by('name'))
+    methods = ShippingMethod.objects.prefetch_related(
+        'price_per_country').order_by('name')
     shipping_method_filter = ShippingMethodFilter(
         request.GET, queryset=methods)
     methods = get_paginator_items(

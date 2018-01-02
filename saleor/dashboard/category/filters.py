@@ -1,4 +1,4 @@
-from django.utils.translation import pgettext_lazy
+from django.utils.translation import npgettext, pgettext_lazy
 from django_filters import CharFilter, OrderingFilter
 
 from ...core.filters import SortedFilterSet
@@ -27,3 +27,11 @@ class CategoryFilter(SortedFilterSet):
     class Meta:
         model = Category
         fields = []
+
+    def get_summary_message(self):
+        counter = self.qs.count()
+        return npgettext(
+            'Number of matching records in the dashboard categories list',
+            'Found %(counter)d matching category',
+            'Found %(counter)d matching categories',
+            number=counter) % {'counter': counter}

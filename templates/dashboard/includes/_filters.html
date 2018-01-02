@@ -8,7 +8,7 @@
     <div class="card-content">
       <div class="col s12">
         <span class="card-title">{% trans 'Filters' context 'Dashboard card title' %}</span>
-        <span>{% trans 'Total records found' context 'Dashboard filter' %}: {{ count }}</span>
+        {{ filter.get_summary_message }}
         <span class="collapse-activate hide-on-large-only"><svg data-src="{% static '/images/filter_icon.svg' %}" /></span>
       </div>
       <div class="col s12 hide-on-large-only chips-container">

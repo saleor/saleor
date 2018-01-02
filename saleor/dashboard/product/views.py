@@ -121,8 +121,7 @@ def product_list(request):
         'bulk_action_form': forms.ProductBulkUpdate(),
         'products': products, 'product_classes': product_classes,
         'filter': product_filter,
-        'is_empty': not product_filter.queryset.exists()
-    }
+        'is_empty': not product_filter.queryset.exists()}
     return TemplateResponse(request, 'dashboard/product/list.html', ctx)
 
 
@@ -501,9 +500,7 @@ def attribute_list(request):
         'attributes': attributes, 'filter': attribute_filter,
         'is_empty': not attribute_filter.queryset.exists()}
     return TemplateResponse(
-        request,
-        'dashboard/product/product_attribute/list.html',
-        ctx)
+        request, 'dashboard/product/product_attribute/list.html', ctx)
 
 
 @staff_member_required
