@@ -7,6 +7,7 @@ import './messages';
 import './misc';
 import './modal';
 import './search';
-import './styleguide';
+import './selects';
+import './side-menu';
 import './tab';
 import './vouchers';

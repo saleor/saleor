@@ -1,5 +1,5 @@
-import { initSelects } from './utils';
 import { svgInjector } from './misc';
+import { initSelects } from './selects';
 
 // List of input types that can be autofocused after opening modal
 const focusInputs = [

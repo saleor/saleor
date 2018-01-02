@@ -1,6 +1,7 @@
 import SVGInjector from 'svg-injector-2';
 
-import { initSelects, onScroll } from './utils';
+import { initSelects } from './selects';
+import { onScroll } from './utils';
 
 const screenSizes = {
   sm: 600,
