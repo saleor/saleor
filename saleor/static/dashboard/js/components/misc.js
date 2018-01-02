@@ -8,10 +8,12 @@ const screenSizes = {
   lg: 1200
 };
 
+const svgInjector = new SVGInjector();
+
 // -----
 
-// SVG Injector
-new SVGInjector().inject(document.querySelectorAll('svg[data-src]'));
+// Inject all SVGs
+svgInjector.inject(document.querySelectorAll('svg[data-src]'));
 
 // Custom select inputs
 initSelects();
@@ -51,5 +53,6 @@ $('#product-is-published').on('click', (e) => {
 });
 
 export {
-  screenSizes
+  screenSizes,
+  svgInjector
 };
