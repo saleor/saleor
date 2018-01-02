@@ -1,7 +1,7 @@
 {% extends "dashboard/base.html" %}
 {% load i18n %}
 {% load materializecss %}
-{% load get_sort_by_toggle from shop %}
+{% load render_sorting_header from shop %}
 {% load staticfiles %}
 {% load utils %}
 
@@ -43,13 +43,8 @@
             <table class="bordered highlight data-table data-table-description">
               <thead>
                 <tr>
-                  {% get_sort_by_toggle 'name' as toggle %}
-                  <th class="{% if toggle.is_active %}active{% endif %}">
-                    <a href="{{ toggle.url }}">
-                      <svg data-src="{{ toggle.sorting_icon }}" />
-                      {% trans "Name" context "Dashboard groups list table header name" %}
-                    </a>
-                  </th>
+                  {% trans "Name" context "Dashboard groups list table header name" as label %}
+                  {% render_sorting_header 'name' label %}
                   <th>
                     {% trans "Permissions" context "Dashboard groups list table header permissions" %}
                   </th>
