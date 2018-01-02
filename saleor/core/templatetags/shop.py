@@ -18,7 +18,7 @@ def get_sort_by_url(context, field, descending=False):
 
 @register.inclusion_tag(
     'dashboard/includes/_sorting_header.html', takes_context=True)
-def render_sorting_header(context, field, label):
+def render_sorting_header(context, field, label, is_wide=False):
     """This template tag renders table sorting header."""
     request = context['request']
     request_get = request.GET.copy()
@@ -50,4 +50,5 @@ def render_sorting_header(context, field, label):
     request_get['sort_by'] = new_sort_by
     return {
         'url': '%s?%s' % (request.path, request_get.urlencode()),
-        'is_active': is_active, 'sorting_icon': sorting_icon, 'label': label}
+        'is_active': is_active, 'sorting_icon': sorting_icon, 'label': label,
+        'is_wide': is_wide}

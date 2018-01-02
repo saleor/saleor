@@ -1,7 +1,7 @@
 {% extends "dashboard/base.html" %}
 {% load i18n %}
 {% load prices_i18n %}
-{% load get_sort_by_toggle from shop %}
+{% load render_sorting_header from shop %}
 {% load materializecss %}
 {% load utils %}
 {% load static %}
@@ -44,51 +44,27 @@
             <table class="bordered highlight responsive data-table last-right-align">
               <thead>
                 <tr>
-                  {% get_sort_by_toggle 'name' as toggle %}
-                  <th class="wide {% if toggle.is_active %}active{% endif %}">
-                  <a href="{{ toggle.url }}">
-                    <svg data-src="{{ toggle.sorting_icon }}" />
-                    {% trans "Name" context "Voucher table header" %}
-                  </a>
-                  </th>
-                  {% get_sort_by_toggle 'discount_value' as toggle %}
-                  <th class="wide {% if toggle.is_active %}active{% endif %}">
-                    <a href="{{ toggle.url }}">
-                      <svg data-src="{{ toggle.sorting_icon }}" />
-                      {% trans "Discount" context "Voucher table header" %}
-                    </a>
-                  </th>
+                  {% trans "Name" context "Voucher table header" as label %}
+                  {% render_sorting_header 'name' label is_wide=True %}
+
+                  {% trans "Discount" context "Voucher table header" as label %}
+                  {% render_sorting_header 'discount_value' label is_wide=True %}
+
                   <th>
                     {% trans "Apply to" context "Voucher table header" %}
                   </th>
-                  {% get_sort_by_toggle 'start_date' as toggle %}
-                  <th class="wide {% if toggle.is_active %}active{% endif %}">
-                    <a href="{{ toggle.url }}">
-                      <svg data-src="{{ toggle.sorting_icon }}" />
-                      {% trans "Start date" context "Voucher table header" %}
-                    </a>
-                  </th>
-                  {% get_sort_by_toggle 'end_date' as toggle %}
-                  <th class="wide {% if toggle.is_active %}active{% endif %}">
-                    <a href="{{ toggle.url }}">
-                      <svg data-src="{{ toggle.sorting_icon }}" />
-                      {% trans "End date" context "Voucher table header" %}
-                    </a>
-                  </th>
-                  {% get_sort_by_toggle 'used' as toggle %}
-                  <th class="wide {% if toggle.is_active %}active{% endif %}">
-                    <a href="{{ toggle.url }}">
-                      <svg data-src="{{ toggle.sorting_icon }}" />
-                      {% trans "Used" context "Voucher table header" %}
-                    </a>
-                  </th>
-                  {% get_sort_by_toggle 'limit' as toggle %}
-                  <th class="wide {% if toggle.is_active %}active{% endif %}">
-                    <a href="{{ toggle.url }}">
-                      <svg data-src="{{ toggle.sorting_icon }}" />
-                      {% trans "Limit" context "Voucher table header" %}
-                    </a>
-                  </th>
+
+                  {% trans "Start date" context "Voucher table header" as label %}
+                  {% render_sorting_header 'start_date' label is_wide=True %}
+
+                  {% trans "End date" context "Voucher table header" as label %}
+                  {% render_sorting_header 'end_date' label is_wide=True %}
+
+                  {% trans "Used" context "Voucher table header" as label %}
+                  {% render_sorting_header 'used' label is_wide=True %}
+
+                  {% trans "Limit" context "Voucher table header" as label %}
+                  {% render_sorting_header 'limit' label is_wide=True %}
                 </tr>
               </thead>
               {% for voucher in vouchers %}
