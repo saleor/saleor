@@ -4,9 +4,10 @@
 {% load materializecss %}
 {% load status %}
 {% load staticfiles %}
+{% load obfuscate_string from utils %}
 
 {% block title %}
-  {{ customer }} - {% trans "Customers" context "Dashboard customers list" %} - {{ block.super }}
+  {{ customer|obfuscate_string }} - {% trans "Customers" context "Dashboard customers list" %} - {{ block.super }}
 {% endblock %}
 
 {% block body_class %}body-customers{% endblock %}
@@ -30,9 +31,7 @@
         <svg data-src="{% static "dashboard/images/arrow-left.svg" %}" fill="#fff" width="20px" height="20px" />
       </a>
     </li>
-    <li>
-      <span class="breadcrumbs--elipsed-item">{{ customer }}</span>
-    </li>
+    <li><span class="breadcrumbs--elipsed-item">{{ customer|obfuscate_string }}</span></li>
   </ul>
 {% endblock %}
 
@@ -144,8 +143,8 @@
                 <div>{% trans "No default shipping address." context "Customer without default shipping address message" %}</div>
               {% endif %}
               <svg data-src="{% static "dashboard/images/email.svg" %}" width="14" height="14" />
-              <a href="mailto:{{ customer.email }}">
-                {{ customer.email }}
+              <a href="#">
+                {{ customer.email|obfuscate_string }}
               </a>
             </div>
           </div>

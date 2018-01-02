@@ -62,7 +62,7 @@
                         {% endif %}
                       </td>
                       <td>
-                        {{ customer.email }}
+                        {{ customer.email|obfuscate_string }}
                       </td>
                       <td>
                         {% if default_address %}

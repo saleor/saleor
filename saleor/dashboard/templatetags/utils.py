@@ -38,6 +38,17 @@ def is_versatile_image_ppoi_click_widget(field):
 
 
 @register.filter
+def obfuscate_string(string):
+    '''
+    This filter obfuscates string (or object's __str__() result), returning
+    only its first character followed by ellipsis.
+    '''
+    if not string:
+        return ''
+    return '%s...' % str(string)[0]
+
+
+@register.filter
 def is_image_preview_widget(field):
     """Check if image field widget is used when adding a product image."""
     return isinstance(field.field.widget, ImagePreviewWidget)
