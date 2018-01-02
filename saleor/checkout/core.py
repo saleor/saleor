@@ -342,7 +342,7 @@ class Checkout:
             increase_voucher_usage(voucher)
 
         if self.note is not None:
-            order.create_order_note(note=self.note, user=self.user)	# add a note from the user to the order
+            order.notes.create(user=self.user, content=self.note)
 
         return order
 

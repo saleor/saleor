@@ -151,10 +151,6 @@ class Order(models.Model, ItemSet):
             status = self.status
         self.history.create(status=status, comment=comment, user=user)
 
-    def create_order_note(self, note='', user=None):
-        if note != '':
-            self.notes.create(user=user, content=note)
-
     def is_shipping_required(self):
         return any(group.is_shipping_required() for group in self.groups.all())
 
