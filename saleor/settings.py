@@ -422,8 +422,9 @@ CELERY_RESULT_SERIALIZER = 'json'
 CELERY_RESULT_BACKEND = 'django-db'
 
 # Impersonate module settings
-IMPERSONATE_URI_EXCLUSIONS = [r'^dashboard/']
-IMPERSONATE_CUSTOM_USER_QUERYSET = \
-    'saleor.userprofile.impersonate.get_impersonatable_users'
-IMPERSONATE_USE_HTTP_REFERER = True
-IMPERSONATE_CUSTOM_ALLOW = 'saleor.userprofile.impersonate.can_impersonate'
+IMPERSONATE = {
+    'URI_EXCLUSIONS': [r'^dashboard/'],
+    'CUSTOM_USER_QUERYSET': 'saleor.userprofile.impersonate.get_impersonatable_users',  # noqa
+    'USE_HTTP_REFERER': True,
+    'CUSTOM_ALLOW': 'saleor.userprofile.impersonate.can_impersonate'
+}
