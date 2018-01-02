@@ -1,6 +1,6 @@
 from django import forms
 from django.db.models import Q
-from django.utils.translation import pgettext_lazy
+from django.utils.translation import pgettext_lazy, npgettext
 from django_filters import (
     CharFilter, ChoiceFilter, DateFromToRangeFilter, ModelMultipleChoiceFilter,
     OrderingFilter, RangeFilter)
@@ -53,6 +53,14 @@ class SaleFilter(SortedFilterSet):
         model = Sale
         fields = []
 
+    def get_summary_message(self):
+        counter = self.qs.count()
+        return npgettext(
+            'Number of matching records in the dashboard sales list',
+            'Found %(counter)d matching sale',
+            'Found %(counter)d matching sales',
+            number=counter) % {'counter': counter}
+
 
 class VoucherFilter(SortedFilterSet):
     name = CharFilter(
@@ -93,3 +101,11 @@ class VoucherFilter(SortedFilterSet):
             else:
                 q = Q(end_date__lte=value.stop)
         return queryset.filter(q)
+
+    def get_summary_message(self):
+        counter = self.qs.count()
+        return npgettext(
+            'Number of matching records in the dashboard vouchers list',
+            'Found %(counter)d matching voucher',
+            'Found %(counter)d matching vouchers',
+            number=counter) % {'counter': counter}

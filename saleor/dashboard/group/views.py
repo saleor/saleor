@@ -4,7 +4,7 @@ from django.contrib.auth.decorators import permission_required
 from django.contrib.auth.models import Group
 from django.shortcuts import get_object_or_404, redirect
 from django.template.response import TemplateResponse
-from django.utils.translation import npgettext, pgettext_lazy
+from django.utils.translation import pgettext_lazy
 
 from ...core.utils import get_paginator_items
 from ..views import staff_member_required
@@ -22,16 +22,9 @@ def group_list(request):
               for group in group_filter.qs]
     groups = get_paginator_items(
         groups, settings.DASHBOARD_PAGINATE_BY, request.GET.get('page'))
-    counter = group_filter.qs.count()
-    summary_msg = npgettext(
-        'Number of matching records in the dashboard groups list',
-        'Found %(counter)d matching group',
-        'Found %(counter)d matching groups',
-        number=counter) % {'counter': counter}
     ctx = {
         'groups': groups, 'filter': group_filter,
-        'is_empty': not group_filter.queryset.exists(),
-        'summary_msg': summary_msg}
+        'is_empty': not group_filter.queryset.exists()}
     return TemplateResponse(request, 'dashboard/group/list.html', ctx)
 
 

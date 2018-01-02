@@ -3,7 +3,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import permission_required
 from django.shortcuts import get_object_or_404, redirect
 from django.template.response import TemplateResponse
-from django.utils.translation import npgettext, pgettext_lazy
+from django.utils.translation import pgettext_lazy
 
 from ...core.utils import get_paginator_items
 from ...shipping.models import ShippingMethod, ShippingMethodCountry
@@ -15,23 +15,16 @@ from .forms import ShippingMethodCountryForm, ShippingMethodForm
 @staff_member_required
 @permission_required('shipping.view_shipping')
 def shipping_method_list(request):
-    methods = (ShippingMethod.objects.prefetch_related('price_per_country')
-               .order_by('name'))
+    methods = ShippingMethod.objects.prefetch_related(
+        'price_per_country').order_by('name')
     shipping_method_filter = ShippingMethodFilter(
         request.GET, queryset=methods)
     methods = get_paginator_items(
         shipping_method_filter.qs, settings.DASHBOARD_PAGINATE_BY,
         request.GET.get('page'))
-    counter = shipping_method_filter.qs.count()
-    summary_msg = npgettext(
-        'Number of matching records in the dashboard shipping methods list',
-        'Found %(counter)d matching shipping method',
-        'Found %(counter)d matching shipping methods',
-        number=counter) % {'counter': counter}
     ctx = {
         'shipping_methods': methods, 'filter': shipping_method_filter,
-        'is_empty': not shipping_method_filter.queryset.exists(),
-        'summary_msg': summary_msg}
+        'is_empty': not shipping_method_filter.queryset.exists()}
     return TemplateResponse(request, 'dashboard/shipping/list.html', ctx)
 
 

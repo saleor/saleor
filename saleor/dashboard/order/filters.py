@@ -1,6 +1,6 @@
 from django import forms
 from django.db.models import Q
-from django.utils.translation import pgettext_lazy
+from django.utils.translation import npgettext, pgettext_lazy
 from django_filters import (
     CharFilter, ChoiceFilter, DateFromToRangeFilter, NumberFilter, RangeFilter,
     OrderingFilter)
@@ -74,3 +74,11 @@ class OrderFilter(SortedFilterSet):
             queryset.open() if value == OrderStatus.OPEN
             else queryset.closed()
         )
+
+    def get_summary_message(self):
+        counter = self.qs.count()
+        return npgettext(
+            'Number of matching records in the dashboard orders list',
+            'Found %(counter)d matching order',
+            'Found %(counter)d matching orders',
+            number=counter) % {'counter': counter}

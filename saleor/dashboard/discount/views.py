@@ -3,7 +3,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import permission_required
 from django.shortcuts import get_object_or_404, redirect
 from django.template.response import TemplateResponse
-from django.utils.translation import npgettext, pgettext_lazy
+from django.utils.translation import pgettext_lazy
 
 from ...core.utils import get_paginator_items
 from ...discount.models import Sale, Voucher
@@ -20,16 +20,9 @@ def sale_list(request):
     sales = get_paginator_items(
         sale_filter.qs, settings.DASHBOARD_PAGINATE_BY,
         request.GET.get('page'))
-    counter = sale_filter.qs.count()
-    summary_msg = npgettext(
-        'Number of matching records in the dashboard sales list',
-        'Found %(counter)d matching sale',
-        'Found %(counter)d matching sales',
-        number=counter) % {'counter': counter}
     ctx = {
         'sales': sales, 'filter': sale_filter,
-        'is_empty': not sale_filter.queryset.exists(),
-        'summary_msg': summary_msg}
+        'is_empty': not sale_filter.queryset.exists()}
     return TemplateResponse(request, 'dashboard/discount/sale/list.html', ctx)
 
 
@@ -73,16 +66,9 @@ def voucher_list(request):
     vouchers = get_paginator_items(
         voucher_filter.qs, settings.DASHBOARD_PAGINATE_BY,
         request.GET.get('page'))
-    counter = voucher_filter.qs.count()
-    summary_msg = npgettext(
-        'Number of matching records in the dashboard vouchers list',
-        'Found %(counter)d matching voucher',
-        'Found %(counter)d matching vouchers',
-        number=counter) % {'counter': counter}
     ctx = {
         'vouchers': vouchers, 'filter': voucher_filter,
-        'is_empty': not voucher_filter.queryset.exists(),
-        'summary_msg': summary_msg}
+        'is_empty': not voucher_filter.queryset.exists()}
     return TemplateResponse(
         request, 'dashboard/discount/voucher/list.html', ctx)
 
