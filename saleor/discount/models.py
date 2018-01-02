@@ -23,7 +23,7 @@ class NotApplicable(ValueError):
     """
 
     def __init__(self, msg, limit=None):
-        super(NotApplicable, self).__init__(msg)
+        super().__init__(msg)
         self.limit = limit
 
 

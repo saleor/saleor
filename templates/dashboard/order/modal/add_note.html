@@ -3,16 +3,16 @@
 {% load i18n %}
 {% load materializecss %}
 
-{% block content %}
-  {{ form|materializecss }}
-{% endblock %}
-
 {% block action_url %}
   {% url 'dashboard:order-add-note' order_pk=order.pk %}
 {% endblock %}
 
 {% block title %}
   {% trans "Add note" context "Modal add note title" %}
+{% endblock %}
+
+{% block content %}
+  {{ form|materializecss }}
 {% endblock %}
 
 {% block primary_action %}

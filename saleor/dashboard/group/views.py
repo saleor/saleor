@@ -22,7 +22,9 @@ def group_list(request):
               for group in group_filter.qs]
     groups = get_paginator_items(
         groups, settings.DASHBOARD_PAGINATE_BY, request.GET.get('page'))
-    ctx = {'groups': groups, 'filter': group_filter}
+    ctx = {
+        'groups': groups, 'filter': group_filter,
+        'is_empty': not group_filter.queryset.exists()}
     return TemplateResponse(request, 'dashboard/group/list.html', ctx)
 
 
@@ -33,10 +35,8 @@ def group_create(request):
     form = GroupPermissionsForm(request.POST or None)
     if form.is_valid():
         form.save()
-        messages.success(
-            request,
-            pgettext_lazy('Dashboard message',
-                          'Created group'))
+        msg = pgettext_lazy('Dashboard message', 'Created group')
+        messages.success(request, msg)
         return redirect('dashboard:group-list')
     ctx = {'group': group, 'form': form}
     return TemplateResponse(request, 'dashboard/group/detail.html', ctx)
@@ -49,10 +49,9 @@ def group_details(request, pk):
     form = GroupPermissionsForm(request.POST or None, instance=group)
     if form.is_valid():
         form.save()
-        messages.success(
-            request,
-            pgettext_lazy('Dashboard message', 'Updated group %s') % group.name
-        )
+        msg = pgettext_lazy(
+            'Dashboard message', 'Updated group %s') % group.name
+        messages.success(request, msg)
         return redirect('dashboard:group-list')
     ctx = {'group': group, 'form': form}
     return TemplateResponse(request, 'dashboard/group/detail.html', ctx)
@@ -64,10 +63,8 @@ def group_delete(request, pk):
     group = get_object_or_404(Group, pk=pk)
     if request.method == 'POST':
         group.delete()
-        messages.success(
-            request,
-            pgettext_lazy('Dashboard message', 'Removed group %s') % group
-        )
+        msg = pgettext_lazy('Dashboard message', 'Removed group %s') % group
+        messages.success(request, msg)
         return redirect('dashboard:group-list')
     return TemplateResponse(
         request, 'dashboard/group/modal/confirm_delete.html', {'group': group})

@@ -1,7 +1,6 @@
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import permission_required
-from django.db.models import Count, Max
 from django.shortcuts import get_object_or_404, redirect
 from django.template.response import TemplateResponse
 from django.utils.translation import pgettext_lazy
@@ -24,7 +23,9 @@ def customer_list(request):
     customers = get_paginator_items(
         customer_filter.qs, settings.DASHBOARD_PAGINATE_BY,
         request.GET.get('page'))
-    ctx = {'customers': customers, 'filter': customer_filter}
+    ctx = {
+        'customers': customers, 'filter': customer_filter,
+        'is_empty': not customer_filter.queryset.exists()}
     return TemplateResponse(request, 'dashboard/customer/list.html', ctx)
 
 

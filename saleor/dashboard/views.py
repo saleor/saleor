@@ -34,18 +34,18 @@ def superuser_required(view_func=None, redirect_field_name=REDIRECT_FIELD_NAME,
 
 @staff_member_required
 def index(request):
-    orders_to_ship = Order.objects.select_related('user').prefetch_related(
-        'groups', 'groups__lines', 'payments')
+    INDEX_PAGINATE_BY = 10
+    orders_to_ship = Order.objects.open().select_related(
+        'user').prefetch_related('groups', 'groups__lines', 'payments')
     orders_to_ship = [
-        order for order in orders_to_ship
-        if order.status == OrderStatus.OPEN and order.is_fully_paid()]
+        order for order in orders_to_ship if order.is_fully_paid()]
     payments = Payment.objects.filter(
         status=PaymentStatus.PREAUTH).order_by('-created')
     payments = payments.select_related('order', 'order__user')
     low_stock = get_low_stock_products()
-    ctx = {'preauthorized_payments': payments,
-           'orders_to_ship': orders_to_ship,
-           'low_stock': low_stock}
+    ctx = {'preauthorized_payments': payments[:INDEX_PAGINATE_BY],
+           'orders_to_ship': orders_to_ship[:INDEX_PAGINATE_BY],
+           'low_stock': low_stock[:INDEX_PAGINATE_BY]}
     return TemplateResponse(request, 'dashboard/index.html', ctx)
 
 

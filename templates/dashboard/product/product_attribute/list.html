@@ -71,15 +71,21 @@
         </div>
         {% paginate attributes %}
       {% else %}
-        <div class="not-found">
-          <p class="grey-text">
-            {% trans "No attributes found." context "Empty attribute list message" %}
-          </p>
-        </div>
+        {% if is_empty %}
+          {% include 'dashboard/product/product_attribute/zero_page.html' %}
+        {% else %}
+          <div class="col s12">
+            <div class="not-found">
+              <p class="grey-text">
+                {% trans "No attributes found." context "Empty attribute list message" %}
+              </p>
+            </div>
+          </div>
+        {% endif %}
       {% endif %}
     </div>
     <div class="col s12 l3" id="filters">
-      {% add_filters filter %}
+      {% if not is_empty %}{% add_filters filter %}{% endif %}
     </div>
   </div>
 {% endblock %}

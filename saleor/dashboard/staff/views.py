@@ -16,14 +16,15 @@ from ...userprofile.models import User
 @staff_member_required
 @permission_required('userprofile.view_staff')
 def staff_list(request):
-    staff_members = (User.objects.filter(is_staff=True)
-                     .prefetch_related('default_billing_address')
-                     .order_by('email'))
+    staff_members = User.objects.filter(is_staff=True).prefetch_related(
+        'default_billing_address').order_by('email')
     staff_filter = StaffFilter(request.GET, queryset=staff_members)
     staff_members = get_paginator_items(
         staff_filter.qs, settings.DASHBOARD_PAGINATE_BY,
         request.GET.get('page'))
-    ctx = {'staff': staff_members, 'filter': staff_filter}
+    ctx = {
+        'staff': staff_members, 'filter': staff_filter,
+        'is_empty': not staff_filter.queryset.exists()}
     return TemplateResponse(request, 'dashboard/staff/list.html', ctx)
 
 

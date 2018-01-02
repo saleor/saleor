@@ -294,6 +294,18 @@ def product_list(product_class, default_category):
 
     return [product_1, product_2, product_3]
 
+from prices import Price
+@pytest.fixture
+def order_list(admin_user, billing_address):
+    data = {
+        'billing_address': billing_address, 'user': admin_user,
+        'user_email': admin_user.email, 'total': Price(123, currency='USD')}
+    order = Order.objects.create(**data)
+    order1 = Order.objects.create(**data)
+    order2 = Order.objects.create(**data)
+
+    return [order, order1, order2]
+
 
 @pytest.fixture
 def stock_location():

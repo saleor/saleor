@@ -15,14 +15,16 @@ from .forms import ShippingMethodCountryForm, ShippingMethodForm
 @staff_member_required
 @permission_required('shipping.view_shipping')
 def shipping_method_list(request):
-    methods = (ShippingMethod.objects.prefetch_related('price_per_country')
-               .order_by('name'))
+    methods = ShippingMethod.objects.prefetch_related(
+        'price_per_country').order_by('name')
     shipping_method_filter = ShippingMethodFilter(
         request.GET, queryset=methods)
     methods = get_paginator_items(
         shipping_method_filter.qs, settings.DASHBOARD_PAGINATE_BY,
         request.GET.get('page'))
-    ctx = {'shipping_methods': methods, 'filter': shipping_method_filter}
+    ctx = {
+        'shipping_methods': methods, 'filter': shipping_method_filter,
+        'is_empty': not shipping_method_filter.queryset.exists()}
     return TemplateResponse(request, 'dashboard/shipping/list.html', ctx)
 
 

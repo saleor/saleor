@@ -19,8 +19,8 @@ from .forms import (
     MoveLinesForm, OrderNoteForm, RefundPaymentForm, ReleasePaymentForm,
     RemoveVoucherForm, ShipGroupForm)
 
-from .utils import (create_packing_slip_pdf, create_invoice_pdf,
-                    get_statics_absolute_url)
+from .utils import (
+    create_invoice_pdf, create_packing_slip_pdf, get_statics_absolute_url)
 from ..views import staff_member_required
 from ...core.utils import get_paginator_items
 from ...order import GroupStatus
@@ -37,7 +37,9 @@ def order_list(request):
     orders = get_paginator_items(
         order_filter.qs, settings.DASHBOARD_PAGINATE_BY,
         request.GET.get('page'))
-    ctx = {'orders': orders, 'filter': order_filter}
+    ctx = {
+        'orders': orders, 'filter': order_filter,
+        'is_empty': not order_filter.queryset.exists()}
     return TemplateResponse(request, 'dashboard/order/list.html', ctx)
 
 

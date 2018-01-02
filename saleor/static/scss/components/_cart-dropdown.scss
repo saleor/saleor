@@ -19,6 +19,9 @@
     overflow-x: hidden;
     border-top: solid 1px $gray;
     border-bottom: solid 1px $gray;
+    &:first-child {
+      border-top: none;
+    }
     &.overflow {
       overflow-y: hidden;
     }

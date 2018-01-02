@@ -26,7 +26,7 @@ class ProductFilter(SortedFilterSet):
 
     def __init__(self, *args, **kwargs):
         self.category = kwargs.pop('category')
-        super(ProductFilter, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.product_attributes, self.variant_attributes = (
             self._get_attributes())
         self.filters.update(self._get_product_attributes_filters())

@@ -30,7 +30,7 @@ class StockForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         self.variant = kwargs.pop('variant')
-        super(StockForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
     def clean_location(self):
         location = self.cleaned_data['location']
@@ -46,7 +46,7 @@ class StockForm(forms.ModelForm):
 
     def save(self, commit=True):
         self.instance.variant = self.variant
-        return super(StockForm, self).save(commit)
+        return super().save(commit)
 
 
 class ProductClassForm(forms.ModelForm):
@@ -62,7 +62,7 @@ class ProductClassForm(forms.ModelForm):
                 'Attributes common to all variants')}
 
     def clean(self):
-        data = super(ProductClassForm, self).clean()
+        data = super().clean()
         has_variants = self.cleaned_data['has_variants']
         product_attr = set(self.cleaned_data['product_attributes'])
         variant_attr = set(self.cleaned_data['variant_attributes'])
@@ -106,7 +106,7 @@ class ProductForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         self.product_attributes = []
-        super(ProductForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.fields['categories'].widget.attrs['data-placeholder'] = (
             pgettext_lazy('Product form placeholder', 'Search'))
         product_class = self.instance.product_class
@@ -141,7 +141,7 @@ class ProductForm(forms.ModelForm):
             else:
                 attributes[smart_text(attr.pk)] = value
         self.instance.attributes = attributes
-        instance = super(ProductForm, self).save(commit=commit)
+        instance = super().save(commit=commit)
         return instance
 
 
@@ -151,7 +151,7 @@ class ProductVariantForm(forms.ModelForm):
         exclude = ['attributes', 'product', 'images']
 
     def __init__(self, *args, **kwargs):
-        super(ProductVariantForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         if self.instance.product.pk:
             self.fields['price_override'].widget.attrs[
                 'placeholder'] = self.instance.product.price.gross
@@ -179,7 +179,7 @@ class VariantAttributeForm(forms.ModelForm):
         fields = []
 
     def __init__(self, *args, **kwargs):
-        super(VariantAttributeForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         attrs = self.instance.product.product_class.variant_attributes.all()
         self.available_attrs = attrs.prefetch_related('values')
         for attr in self.available_attrs:
@@ -203,7 +203,7 @@ class VariantAttributeForm(forms.ModelForm):
             else:
                 attributes[smart_text(attr.pk)] = value
         self.instance.attributes = attributes
-        return super(VariantAttributeForm, self).save(commit=commit)
+        return super().save(commit=commit)
 
 
 class VariantBulkDeleteForm(forms.Form):
@@ -234,7 +234,7 @@ class ProductImageForm(forms.ModelForm):
         exclude = ('product', 'order')
 
     def __init__(self, *args, **kwargs):
-        super(ProductImageForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         if self.instance.image:
             self.fields['image'].widget = ImagePreviewWidget()
 
@@ -247,7 +247,7 @@ class VariantImagesSelectForm(forms.Form):
 
     def __init__(self, *args, **kwargs):
         self.variant = kwargs.pop('variant')
-        super(VariantImagesSelectForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.fields['images'].queryset = self.variant.product.images.all()
         self.fields['images'].initial = self.variant.images.all()
 
@@ -279,12 +279,12 @@ class AttributeChoiceValueForm(forms.ModelForm):
 
     def save(self, commit=True):
         self.instance.slug = slugify(self.instance.name)
-        return super(AttributeChoiceValueForm, self).save(commit=commit)
+        return super().save(commit=commit)
 
 
 class OrderedModelMultipleChoiceField(forms.ModelMultipleChoiceField):
     def clean(self, value):
-        qs = super(OrderedModelMultipleChoiceField, self).clean(value)
+        qs = super().clean(value)
         keys = list(map(int, value))
         return sorted(qs, key=lambda v: keys.index(v.pk))
 
@@ -298,7 +298,7 @@ class ReorderProductImagesForm(forms.ModelForm):
         fields = ()
 
     def __init__(self, *args, **kwargs):
-        super(ReorderProductImagesForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         if self.instance:
             self.fields['ordered_images'].queryset = self.instance.images.all()
 
@@ -316,7 +316,7 @@ class UploadImageForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         product = kwargs.pop('product')
-        super(UploadImageForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.instance.product = product
 
 

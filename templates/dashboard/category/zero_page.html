@@ -1,0 +1,12 @@
+{% extends 'dashboard/base_zero_page.html' %}
+{% load i18n %}
+{% load static %}
+
+{% block title %}{% trans "No categories found." %}{% endblock %}
+{% block content %}
+  {% static "dashboard/images/add.svg" as img_path %}
+  {% blocktrans %}
+    Categories are used to organize products into groups that are displayed in the navigation in the storefront.<br>
+    You can create categories by using the <span class="btn-fab-presentation"><svg data-src="{{ img_path }}" /></span> button.
+  {% endblocktrans %}
+{% endblock %}

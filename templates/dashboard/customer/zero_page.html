@@ -1,0 +1,11 @@
+{% extends 'dashboard/base_zero_page.html' %}
+{% load i18n %}
+{% load static %}
+
+{% block title %}{% trans "No customers found." %}{% endblock %}
+{% block content %}
+  {% static "dashboard/images/add.svg" as img_path %}
+  {% blocktrans %}
+    Customer accounts will appear here once users register in the shop.
+  {% endblocktrans %}
+{% endblock %}
