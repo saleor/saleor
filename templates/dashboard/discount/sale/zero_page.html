@@ -1,0 +1,12 @@
+{% extends 'dashboard/base_zero_page.html' %}
+{% load i18n %}
+{% load static %}
+
+{% block title %}{% trans "No sales found." %}{% endblock %}
+{% block content %}
+  {% static "dashboard/images/add.svg" as img_path %}
+  {% blocktrans %}
+    Sales are used to create discounts on particular products or whole categories.<br>
+    You can create sales by using the <span class="btn-fab-presentation"><svg data-src="{{ img_path }}" /></span> button.
+  {% endblocktrans %}
+{% endblock %}

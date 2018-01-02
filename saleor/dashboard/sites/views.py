@@ -46,7 +46,9 @@ def site_settings_detail(request, pk):
     site_settings = get_object_or_404(SiteSettings, pk=pk)
     authorization_keys = AuthorizationKey.objects.filter(
         site_settings=site_settings)
-    ctx = {'site': site_settings, 'authorization_keys': authorization_keys}
+    ctx = {
+        'site': site_settings, 'authorization_keys': authorization_keys,
+        'is_empty': not authorization_keys.exists()}
     return TemplateResponse(request, 'dashboard/sites/detail.html', ctx)
 
 

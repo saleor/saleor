@@ -1,0 +1,11 @@
+{% extends 'dashboard/base_zero_page.html' %}
+{% load i18n %}
+{% load static %}
+
+{% block title %}{% trans "No orders found." %}{% endblock %}
+{% block content %}
+  {% static "dashboard/images/add.svg" as img_path %}
+  {% blocktrans %}
+    Orders will appear here after customers complete the checkout.
+  {% endblocktrans %}
+{% endblock %}
