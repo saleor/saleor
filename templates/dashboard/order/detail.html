@@ -6,6 +6,7 @@
 {% load status %}
 {% load staticfiles %}
 {% load discount_amount_for from prices %}
+{% load obfuscate_string from utils %}
 
 {% block title %}
   {{ order }} - {% trans "Orders" context "Dashboard orders list" %} - {{ block.super }}
@@ -107,7 +108,7 @@
               </h6>
               <p>
                 {% if order.user %}
-                  <a href="{% url "dashboard:customer-details" pk=order.user.pk %}">{{ order.user }}</a>
+                  <a href="{% url "dashboard:customer-details" pk=order.user.pk %}">{{ order.user|obfuscate_string }}</a>
                 {% else %}
                   {% trans "Guest" context "Anonymous user account value" %}
                 {% endif %}
