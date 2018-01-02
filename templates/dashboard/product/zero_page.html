@@ -1,0 +1,18 @@
+{% extends 'dashboard/base_zero_page.html' %}
+{% load i18n %}
+{% load static %}
+
+{% block title %}{% trans "No products found." %}{% endblock %}
+{% block content %}
+  {% static "dashboard/images/add.svg" as img_path %}
+  {% url "dashboard:product-class-add" as product_class_url %}
+  {% if product_classes %}
+    {% blocktrans %}
+      You can create products by using the <span class="btn-fab-presentation"><svg data-src="{{ img_path }}" /></span> button.
+    {% endblocktrans %}
+  {% else %}
+    {% blocktrans %}
+      In order to create products, you have to first <a href="{{ product_class_url }}">add a product type </a>.
+    {% endblocktrans %}
+  {% endif %}
+{% endblock %}

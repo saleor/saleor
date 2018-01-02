@@ -38,7 +38,9 @@ def product_class_list(request):
         (pc.pk, pc.name, pc.has_variants, pc.product_attributes.all(),
          pc.variant_attributes.all())
         for pc in classes.object_list]
-    ctx = {'form': form, 'product_classes': classes, 'filter': class_filter}
+    ctx = {
+        'form': form, 'product_classes': classes, 'filter': class_filter,
+        'is_empty': not class_filter.queryset.exists()}
     return TemplateResponse(
         request,
         'dashboard/product/product_class/list.html',
@@ -119,6 +121,7 @@ def product_list(request):
         'bulk_action_form': forms.ProductBulkUpdate(),
         'products': products, 'product_classes': product_classes,
         'filter': product_filter,
+        'is_empty': not product_filter.queryset.exists()
     }
     return TemplateResponse(request, 'dashboard/product/list.html', ctx)
 
@@ -203,7 +206,8 @@ def product_detail(request, pk):
         'gross_price_range': gross_price_range, 'images': images,
         'no_variants': no_variants, 'only_variant': only_variant,
         'stock': stock, 'purchase_cost': purchase_cost,
-        'gross_margin': gross_margin}
+        'gross_margin': gross_margin,
+        'is_empty': not variants.exists()}
     return TemplateResponse(request, 'dashboard/product/detail.html', ctx)
 
 
@@ -330,10 +334,10 @@ def product_images(request, product_pk):
     product = get_object_or_404(
         Product.objects.prefetch_related('images'), pk=product_pk)
     images = product.images.all()
+    ctx = {
+        'product': product, 'images': images, 'is_empty': not images.exists()}
     return TemplateResponse(
-        request,
-        'dashboard/product/product_image/list.html',
-        {'product': product, 'images': images})
+        request, 'dashboard/product/product_image/list.html', ctx)
 
 
 @staff_member_required
@@ -433,7 +437,8 @@ def variant_details(request, product_pk, variant_pk):
     costs_data = get_variant_costs_data(variant)
     ctx = {'images': images, 'product': product, 'stock': stock,
            'variant': variant, 'costs': costs_data['costs'],
-           'margins': costs_data['margins']}
+           'margins': costs_data['margins'],
+           'is_empty': not stock.exists()}
     return TemplateResponse(
         request,
         'dashboard/product/product_variant/detail.html',
@@ -492,7 +497,9 @@ def attribute_list(request):
         for attribute in attribute_filter.qs]
     attributes = get_paginator_items(
         attributes, settings.DASHBOARD_PAGINATE_BY, request.GET.get('page'))
-    ctx = {'attributes': attributes, 'filter': attribute_filter}
+    ctx = {
+        'attributes': attributes, 'filter': attribute_filter,
+        'is_empty': not attribute_filter.queryset.exists()}
     return TemplateResponse(
         request,
         'dashboard/product/product_attribute/list.html',
@@ -504,10 +511,11 @@ def attribute_list(request):
 def attribute_detail(request, pk):
     attributes = ProductAttribute.objects.prefetch_related('values').all()
     attribute = get_object_or_404(attributes, pk=pk)
+    ctx = {
+        'attribute': attribute,
+        'is_empty': not attributes.exists()}
     return TemplateResponse(
-        request,
-        'dashboard/product/product_attribute/detail.html',
-        {'attribute': attribute})
+        request, 'dashboard/product/product_attribute/detail.html', ctx)
 
 
 @staff_member_required
@@ -603,7 +611,9 @@ def stock_location_list(request):
     stock_locations = get_paginator_items(
         stock_location_filter.qs, settings.DASHBOARD_PAGINATE_BY,
         request.GET.get('page'))
-    ctx = {'locations': stock_locations, 'filter': stock_location_filter}
+    ctx = {
+        'locations': stock_locations, 'filter': stock_location_filter,
+        'is_empty': not stock_location_filter.queryset.exists()}
     return TemplateResponse(
         request,
         'dashboard/product/stock_location/list.html',

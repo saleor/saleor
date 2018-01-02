@@ -24,7 +24,9 @@ def customer_list(request):
     customers = get_paginator_items(
         customer_filter.qs, settings.DASHBOARD_PAGINATE_BY,
         request.GET.get('page'))
-    ctx = {'customers': customers, 'filter': customer_filter}
+    ctx = {
+        'customers': customers, 'filter': customer_filter,
+        'is_empty': not customer_filter.queryset.exists()}
     return TemplateResponse(request, 'dashboard/customer/list.html', ctx)
 
 
