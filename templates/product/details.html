@@ -14,7 +14,7 @@
 {% block meta_description %}{{ product.description }}{% endblock %}
 
 {% block meta_tags %}
-  <meta property="og:title" content="{{ product }} — {{ block.super }}">
+  <meta property="og:title" content="{{ product }}">
   <meta property="og:description" content="{{ product.description }}">
 
   {% build_absolute_uri request=request location=product.get_absolute_url as product_url %}
