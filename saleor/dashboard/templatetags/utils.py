@@ -76,8 +76,7 @@ def margins_for_variant(variant):
 
 
 @register.inclusion_tag('dashboard/includes/_filters.html', takes_context=True)
-def add_filters(
-        context, filter_set, summary_msg, sort_by_filter_name='sort_by'):
+def add_filters(context, filter_set, sort_by_filter_name='sort_by'):
     """Rendering filters template based on FilterSet."""
     chips = []
     request_get = context['request'].GET.copy()
@@ -104,7 +103,7 @@ def add_filters(
                 items = handle_default(field, request_get)
             chips.extend(items)
     return {
-        'chips': chips, 'filter': filter_set, 'summary_msg': summary_msg,
+        'chips': chips, 'filter': filter_set,
         'sort_by': request_get.get(sort_by_filter_name, None)}
 
 
