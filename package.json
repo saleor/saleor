@@ -19,7 +19,7 @@
   "dependencies": {
     "bootstrap": "4.0.0-beta.2",
     "classnames": "^2.2.5",
-    "dropzone": "^5.1.1",
+    "dropzone": "^5.2.0",
     "favicons-webpack-plugin": "^0.0.7",
     "jquery": "^3.1.1",
     "jquery.cookie": "^1.4.1",
