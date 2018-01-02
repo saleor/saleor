@@ -31,7 +31,7 @@ $('body').on('click', '.modal-trigger-custom', (e) => {
 
       // Image checkbox selector
       $('.image_select-item-overlay').on('click', (e) => {
-        const imageId = target.getAttribute('id');
+        const imageId = e.currentTarget.getAttribute('id');
         const checkbox = document.querySelector('input#' + imageId);
         const checkboxState = checkbox.getAttribute('checked');
         checkbox.setAttribute('checked', !checkboxState);
