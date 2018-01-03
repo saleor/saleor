@@ -2,7 +2,6 @@
 {% load i18n %}
 {% load prices_i18n %}
 {% load materializecss %}
-{% load get_sort_by_toggle from shop %}
 {% load staticfiles %}
 {% load utils %}
 
@@ -43,27 +42,14 @@
             <table class="bordered highlight responsive data-table">
               <thead>
                 <tr>
-                  {% get_sort_by_toggle 'name' as toggle %}
-                  <th class="{% if toggle.is_active %}active{% endif %}">
-                    <a href="{{ toggle.url }}">
-                      <svg data-src="{{ toggle.sorting_icon }}" />
-                      {% trans "Name" context "Staff members table header" %}
-                    </a>
-                  </th>
-                  {% get_sort_by_toggle 'email' as toggle %}
-                  <th class="{% if toggle.is_active %}active{% endif %}">
-                    <a href="{{ toggle.url }}">
-                      <svg data-src="{{ toggle.sorting_icon }}" />
-                      {% trans "Email" context "Staff members table header" %}
-                    </a>
-                  </th>
-                  {% get_sort_by_toggle 'location' as toggle %}
-                  <th class="{% if toggle.is_active %}active{% endif %}">
-                    <a href="{{ toggle.url }}">
-                      <svg data-src="{{ toggle.sorting_icon }}" />
-                      {% trans "Location" context "Staff members table header" %}
-                    </a>
-                  </th>
+                  {% trans "Name" context "Staff members table header" as label %}
+                  {% sorting_header 'name' label %}
+
+                  {% trans "Email" context "Staff members table header" as label %}
+                  {% sorting_header 'email' label %}
+
+                  {% trans "Location" context "Staff members table header" as label %}
+                  {% sorting_header 'location' label %}
                 </tr>
               </thead>
               <tbody>
@@ -110,7 +96,7 @@
       {% endif %}
     </div>
     <div class="col s12 l3" id="filters">
-      {% if not is_empty %}{% add_filters filter %}{% endif %}
+      {% if not is_empty %}{% filters filter_set %}{% endif %}
     </div>
   </div>
 {% endblock %}
