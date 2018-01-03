@@ -8,8 +8,8 @@ const onAsyncFormSubmit = (e) => {
     body: new FormData($target[0]),
     credentials: 'same-origin',
     headers: {
-      'X-CSRFToken': $.cookie('csrftoken'),
-    },
+      'X-CSRFToken': $.cookie('csrftoken')
+    }
   }).then((res) => {
     let output;
     if (res.status !== 200) {

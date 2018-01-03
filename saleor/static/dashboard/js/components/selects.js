@@ -35,4 +35,4 @@ function initSelects() {
 
 export {
   initSelects
-}
+};
