@@ -206,7 +206,6 @@ class DeliveryGroup(models.Model, ItemSet):
     order = models.ForeignKey(
         Order, related_name='groups', editable=False, on_delete=models.CASCADE)
     shipping_method_name = models.CharField(
-        pgettext_lazy('Shipment group field', 'shipping method name'),
         max_length=255, null=True, default=None, blank=True, editable=False)
     tracking_number = models.CharField(
         pgettext_lazy('Shipment group field', 'tracking number'),
@@ -264,7 +263,6 @@ class OrderLine(models.Model, ItemLine):
     stock = models.ForeignKey(
         'product.Stock', on_delete=models.SET_NULL, null=True)
     quantity = models.IntegerField(
-        pgettext_lazy('Ordered line field', 'quantity'),
         validators=[MinValueValidator(0), MaxValueValidator(999)])
     unit_price_net = models.DecimalField(
         pgettext_lazy('Ordered line field', 'unit price (net)'),
@@ -376,7 +374,6 @@ class OrderNote(models.Model):
     order = models.ForeignKey(
         Order, related_name='notes', on_delete=models.CASCADE)
     content = models.CharField(
-        pgettext_lazy('Order note model', 'content'),
         max_length=250)
 
     def __str__(self):
