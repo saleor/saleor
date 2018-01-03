@@ -3,7 +3,7 @@
 {% load staticfiles %}
 
 <div class="address">
-	{% format_address address include_phone=False latin=True %}
+	<div class="formatted-address">{% format_address address|obfuscate_address include_phone=False latin=True %}</div>
 	{% if address.phone %}
 		<div>
 			<svg data-src="{% static "dashboard/images/phone.svg" %}" width="16" height="16" class="left" />

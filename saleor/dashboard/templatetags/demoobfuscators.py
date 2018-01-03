@@ -1,8 +1,30 @@
 from __future__ import unicode_literals
 
 from django.template import Library
+from faker import Factory
 
+from saleor.userprofile.models import Address
+
+fake = Factory.create()
 register = Library()
+
+
+@register.filter
+def obfuscate_address(address):
+    '''
+    This filter returns fake Address instance that shares some of its
+    attributes with the original and randomizes address data.
+    '''
+    try:
+        return Address(
+            first_name=address.first_name,
+            last_name=address.last_name,
+            street_address_1=fake.street_address(),
+            city=fake.city(),
+            postal_code=fake.postcode(),
+            country=address.country)
+    except AttributeError:
+        return address
 
 
 @register.filter

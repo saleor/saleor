@@ -1,8 +1,21 @@
 from phonenumber_field.phonenumber import PhoneNumber
 
+from saleor.core.utils import random_data
 from saleor.dashboard.templatetags.demoobfuscators import (
-    obfuscate_email, obfuscate_phone, obfuscate_string)
+    obfuscate_address, obfuscate_email, obfuscate_phone, obfuscate_string)
 from saleor.userprofile.models import User
+
+
+def test_obfuscate_address():
+    address = random_data.create_address()
+    obfuscated_address = obfuscate_address(address)
+
+    assert obfuscated_address != address
+    assert obfuscated_address.pk is None
+    assert obfuscated_address.street_address_2 == ''
+
+    assert obfuscated_address.street_address_1 != address.street_address_1
+    assert obfuscated_address.postal_code != address.postal_code
 
 
 def test_obfuscate_email():
