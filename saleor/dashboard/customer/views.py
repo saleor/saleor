@@ -24,7 +24,7 @@ def customer_list(request):
         customer_filter.qs, settings.DASHBOARD_PAGINATE_BY,
         request.GET.get('page'))
     ctx = {
-        'customers': customers, 'filter': customer_filter,
+        'customers': customers, 'filter_set': customer_filter,
         'is_empty': not customer_filter.queryset.exists()}
     return TemplateResponse(request, 'dashboard/customer/list.html', ctx)
 

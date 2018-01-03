@@ -1,7 +1,6 @@
 {% extends "dashboard/base.html" %}
 {% load i18n %}
 {% load prices_i18n %}
-{% load get_sort_by_toggle from shop %}
 {% load staticfiles %}
 {% load materializecss %}
 {% load utils %}
@@ -43,20 +42,11 @@
             <table class="bordered highlight responsive data-table last-right-align">
               <thead>
                 <tr>
-                  {% get_sort_by_toggle 'name' as toggle %}
-                  <th class="wide {% if toggle.is_active %}active{% endif %}">
-                    <a href="{{ toggle.url }}">
-                      <svg data-src="{{ toggle.sorting_icon }}" />
-                      {% trans "Name" context "Sale (discount) table header" %}
-                    </a>
-                  </th>
-                  {% get_sort_by_toggle 'value' as toggle %}
-                  <th class="wide {% if toggle.is_active %}active{% endif %}">
-                    <a href="{{ toggle.url }}">
-                      <svg data-src="{{ toggle.sorting_icon }}" />
-                      {% trans "Discount" context "Sale (discount) table header" %}
-                    </a>
-                  </th>
+                  {% trans "Name" context "Sale (discount) table header" as label %}
+                  {% sorting_header 'name' label is_wide=True %}
+
+                  {% trans "Discount" context "Sale (discount) table header" as label %}
+                  {% sorting_header 'value' label is_wide=True %}
                 </tr>
               </thead>
               <tbody>
@@ -90,7 +80,7 @@
       {% endif %}
     </div>
     <div class="col s12 l3" id="filters">
-      {% if not is_empty %}{% add_filters filter %}{% endif %}
+      {% if not is_empty %}{% filters filter_set %}{% endif %}
     </div>
   </div>
 {% endblock %}

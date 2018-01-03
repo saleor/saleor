@@ -3,6 +3,7 @@ from json import dumps
 from urllib.parse import urlencode
 
 from django import forms
+from django.contrib.staticfiles.templatetags.staticfiles import static
 from django.template import Library
 from django_filters.fields import RangeField
 from versatileimagefield.widgets import VersatileImagePPOIClickWidget
@@ -76,7 +77,7 @@ def margins_for_variant(variant):
 
 
 @register.inclusion_tag('dashboard/includes/_filters.html', takes_context=True)
-def add_filters(context, filter_set, sort_by_filter_name='sort_by'):
+def filters(context, filter_set, sort_by_filter_name='sort_by'):
     """Rendering filters template based on FilterSet."""
     chips = []
     request_get = context['request'].GET.copy()
@@ -115,3 +116,40 @@ def serialize_messages(context):
     for i, message in enumerate(messages):
         data[i] = str(message)
     return dumps(data)
+
+
+@register.inclusion_tag(
+    'dashboard/includes/_sorting_header.html', takes_context=True)
+def sorting_header(context, field, label, is_wide=False):
+    """This template tag renders table sorting header."""
+    request = context['request']
+    request_get = request.GET.copy()
+    sort_by = request_get.get('sort_by')
+
+    # path to icon indicating applied sorting
+    sorting_icon = ''
+
+    # flag which determines if active sorting is on field
+    is_active = False
+
+    if sort_by:
+        is_active = True
+        if field == sort_by:
+            # enable ascending sort
+            # new_sort_by is used to construct a link with already toggled
+            # sort_by value
+            new_sort_by = '-%s' % field
+            sorting_icon = static('/images/arrow_up_icon.svg')
+        else:
+            # enable descending sort
+            new_sort_by = field
+            if field == sort_by.strip('-'):
+                sorting_icon = static('/images/arrow_down_icon.svg')
+    else:
+        new_sort_by = field
+
+    request_get['sort_by'] = new_sort_by
+    return {
+        'url': '%s?%s' % (request.path, request_get.urlencode()),
+        'is_active': is_active, 'sorting_icon': sorting_icon, 'label': label,
+        'is_wide': is_wide}

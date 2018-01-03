@@ -1,49 +1,26 @@
 {% load i18n %}
 {% load prices_i18n %}
-{% load get_sort_by_toggle from shop %}
 {% load status %}
 
 <div class="data-table-container">
   <table class="bordered highlight responsive data-table last-right-align">
     <thead>
       <tr>
-        {% get_sort_by_toggle 'pk' as toggle %}
-        <th class="{% if toggle.is_active %}active{% endif %}">
-          <a href="{{ toggle.url }}">
-            <svg data-src="{{ toggle.sorting_icon }}" />
-            #
-          </a>
-        </th>
+        {% sorting_header 'pk' '#' %}
+
         <th></th>
-        {% get_sort_by_toggle 'email' as toggle %}
-        <th class="{% if toggle.is_active %}active{% endif %}">
-          <a href="{{ toggle.url }}">
-            <svg data-src="{{ toggle.sorting_icon }}" />
-            {% trans "Customer" context "Orders table header" %}
-          </a>
-        </th>
-        {% get_sort_by_toggle 'created' as toggle %}
-        <th class="{% if toggle.is_active %}active{% endif %}">
-          <a href="{{ toggle.url }}">
-            <svg data-src="{{ toggle.sorting_icon }}" />
-            {% trans "Placed on" context "Orders table header" %}
-          </a>
-        </th>
-        {% get_sort_by_toggle 'status' as toggle %}
-        {% get_sort_by_toggle 'payment_status' as toggle %}
-        <th class="{% if toggle.is_active %}active{% endif %}">
-          <a href="{{ toggle.url }}">
-            <svg data-src="{{ toggle.sorting_icon }}" />
-            {% trans "Payment status" context "Orders table header" %}
-          </a>
-        </th>
-        {% get_sort_by_toggle 'total' as toggle %}
-        <th class="{% if toggle.is_active %}active{% endif %}">
-          <a href="{{ toggle.url }}">
-            <svg data-src="{{ toggle.sorting_icon }}" />
-            {% trans "Total" context "Orders table header" %}
-          </a>
-        </th>
+
+        {% trans "Customer" context "Orders table header" as label %}
+        {% sorting_header 'email' label %}
+
+        {% trans "Placed on" context "Orders table header" as label %}
+        {% sorting_header 'created' label %}
+
+        {% trans "Payment status" context "Orders table header" as label %}
+        {% sorting_header 'payment_status' label %}
+
+        {% trans "Total" context "Orders table header" as label %}
+        {% sorting_header 'total' label %}
       </tr>
     </thead>
     <tbody>

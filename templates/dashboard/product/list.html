@@ -2,7 +2,6 @@
 {% load i18n %}
 {% load prices_i18n %}
 {% load materializecss %}
-{% load get_sort_by_toggle from shop %}
 {% load staticfiles %}
 {% load product_first_image from product_images %}
 {% load utils %}
@@ -74,20 +73,11 @@
                 <label for="select-all-products"></label>
               </th>
               <th></th>
-              {% get_sort_by_toggle 'name' as toggle %}
-              <th class="wide {% if toggle.is_active %}active{% endif %}">
-                <a href="{{ toggle.url }}">
-                  <svg data-src="{{ toggle.sorting_icon }}" />
-                  {% trans "Name" context "Products list table header" %}
-                </a>
-              </th>
-              {% get_sort_by_toggle 'price' as toggle %}
-              <th class="wide {% if toggle.is_active %}active{% endif %}">
-                <a href="{{ toggle.url }}">
-                  <svg data-src="{{ toggle.sorting_icon }}" />
-                  {% trans "Price" context "Products list table header" %}
-                </a>
-              </th>
+              {% trans "Name" context "Products list table header" as label %}
+              {% sorting_header 'name' label is_wide=True %}
+
+              {% trans "Price" context "Products list table header" as label %}
+              {% sorting_header 'price' label is_wide=True %}
             </tr>
           </thead>
           <tbody>
@@ -131,7 +121,7 @@
     {% endif %}
     </div>
     <div class="col s12 l3" id="filters">
-      {% if not is_empty %}{% add_filters filter %}{% endif %}
+      {% if not is_empty %}{% filters filter_set %}{% endif %}
     </div>
   </div>
 {% endblock %}

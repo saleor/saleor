@@ -1,7 +1,6 @@
 {% extends 'dashboard/base.html' %}
 {% load i18n %}
 {% load materializecss %}
-{% load get_sort_by_toggle from shop %}
 {% load staticfiles %}
 {% load utils %}
 
@@ -40,13 +39,8 @@
             <table class="highlight bordered data-table">
               <thead>
                 <tr>
-                  {% get_sort_by_toggle 'name' as toggle %}
-                  <th class="wide {% if toggle.is_active %}active{% endif %}">
-                    <a href="{{ toggle.url }}">
-                      <svg data-src="{{ toggle.sorting_icon }}" />
-                      {% trans "Name" context "Dashboard stock location table header name" %}
-                    </a>
-                  </th>
+                  {% trans "Name" context "Dashboard stock location table header name" as label %}
+                  {% sorting_header 'name' label is_wide=True %}
                 </tr>
               </thead>
               <tbody>
