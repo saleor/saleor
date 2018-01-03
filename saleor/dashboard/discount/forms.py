@@ -21,6 +21,23 @@ class SaleForm(forms.ModelForm):
     class Meta:
         model = Sale
         exclude = []
+        labels = {
+            'name': pgettext_lazy(
+                'Sale (discount) field',
+                'sale\'s name'),
+            'type': pgettext_lazy(
+                'Sale (discount) field',
+                'discount for'),
+            'value': pgettext_lazy(
+                'Sale (discount) field',
+                'value'),
+            'products': pgettext_lazy(
+                'Sale (discount) field',
+                'products in sale'),
+            'categories': pgettext_lazy(
+                'Sale (discount) field',
+                'sale\'s categories'),
+        }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -43,6 +60,29 @@ class VoucherForm(forms.ModelForm):
     class Meta:
         model = Voucher
         exclude = ['limit', 'apply_to', 'product', 'category']
+        labels = {
+            'type': pgettext_lazy(
+                'Voucher field',
+                'discount for'),
+            'name': pgettext_lazy(
+                'Voucher field',
+                'voucher\'s name'),
+            'code': pgettext_lazy(
+                'Voucher field',
+                'voucher\'s code'),
+            'usage_limit': pgettext_lazy(
+                'Voucher field',
+                'usage limit'),
+            'used': pgettext_lazy(
+                'Voucher field',
+                'number of voucher usages'),
+            'start_date': pgettext_lazy(
+                'Voucher field',
+                'start date'),
+            'end_date': pgettext_lazy(
+                'Voucher field',
+                'end date'),
+        }
 
     def __init__(self, *args, **kwargs):
         initial = kwargs.get('initial', {})
@@ -86,6 +126,14 @@ class ShippingVoucherForm(forms.ModelForm):
     class Meta:
         model = Voucher
         fields = ['apply_to', 'limit']
+        labels = {
+            'apply_to': pgettext_lazy(
+                'Voucher field',
+                'apply to'),
+            'limit': pgettext_lazy(
+                'Voucher field',
+                'voucher limit'),
+        }
 
     def save(self, commit=True):
         self.instance.category = None
@@ -104,6 +152,11 @@ class ValueVoucherForm(forms.ModelForm):
     class Meta:
         model = Voucher
         fields = ['limit']
+        labels = {
+            'limit': pgettext_lazy(
+                'Voucher field',
+                'voucher limit'),
+        }
 
     def save(self, commit=True):
         self.instance.category = None
@@ -143,6 +196,14 @@ class ProductVoucherForm(CommonVoucherForm):
     class Meta:
         model = Voucher
         fields = ['product', 'apply_to']
+        labels = {
+            'apply_to': pgettext_lazy(
+                'Voucher field',
+                'apply to'),
+            'product': pgettext_lazy(
+                'Voucher field',
+                'product'),
+        }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -155,6 +216,14 @@ class CategoryVoucherForm(CommonVoucherForm):
     class Meta:
         model = Voucher
         fields = ['category', 'apply_to']
+        labels = {
+            'apply_to': pgettext_lazy(
+                'Voucher field',
+                'apply to'),
+            'category': pgettext_lazy(
+                'Voucher field',
+                'category'),
+        }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

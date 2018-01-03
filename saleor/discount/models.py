@@ -86,41 +86,34 @@ class Voucher(models.Model):
         (SHIPPING_TYPE, pgettext_lazy('Voucher: discount for', 'Shipping'))]
 
     type = models.CharField(
-        pgettext_lazy('Voucher field', 'discount for'), max_length=20,
-        choices=TYPE_CHOICES, default=VALUE_TYPE)
+        max_length=20, choices=TYPE_CHOICES, default=VALUE_TYPE)
     name = models.CharField(
-        pgettext_lazy('Voucher field', 'name'), max_length=255, null=True,
-        blank=True)
+        max_length=255, null=True, blank=True)
     code = models.CharField(
-        pgettext_lazy('Voucher field', 'code'), max_length=12, unique=True,
-        db_index=True)
+        max_length=12, unique=True, db_index=True)
     usage_limit = models.PositiveIntegerField(
-        pgettext_lazy('Voucher field', 'usage limit'), null=True, blank=True)
-    used = models.PositiveIntegerField(default=0, editable=False)
+        null=True, blank=True)
+    used = models.PositiveIntegerField(
+        default=0, editable=False)
     start_date = models.DateField(
-        pgettext_lazy('Voucher field', 'start date'), default=date.today)
+        default=date.today)
     end_date = models.DateField(
-        pgettext_lazy('Voucher field', 'end date'), null=True, blank=True)
+        null=True, blank=True)
 
     discount_value_type = models.CharField(
-        pgettext_lazy('Voucher field', 'discount type'), max_length=10,
-        choices=DISCOUNT_VALUE_TYPE_CHOICES, default=DISCOUNT_VALUE_FIXED)
+        max_length=10, choices=DISCOUNT_VALUE_TYPE_CHOICES,
+        default=DISCOUNT_VALUE_FIXED)
     discount_value = models.DecimalField(
-        pgettext_lazy('Voucher field', 'discount value'), max_digits=12,
-        decimal_places=2)
+        max_digits=12, decimal_places=2)
 
     # not mandatory fields, usage depends on type
     product = models.ForeignKey(
-        'product.Product', blank=True, null=True,
-        on_delete=models.CASCADE)
+        'product.Product', blank=True, null=True, on_delete=models.CASCADE)
     category = models.ForeignKey(
-        'product.Category', blank=True, null=True,
-        on_delete=models.CASCADE)
+        'product.Category', blank=True, null=True, on_delete=models.CASCADE)
     apply_to = models.CharField(
-        pgettext_lazy('Voucher field', 'apply to'),
         max_length=20, blank=True, null=True)
     limit = PriceField(
-        pgettext_lazy('Voucher field', 'limit'),
         max_digits=12, decimal_places=2, null=True,
         blank=True, currency=settings.DEFAULT_CURRENCY)
 
@@ -267,13 +260,10 @@ class Sale(models.Model):
         (FIXED, pgettext_lazy('Discount type', settings.DEFAULT_CURRENCY)),
         (PERCENTAGE, pgettext_lazy('Discount type', '%')))
 
-    name = models.CharField(
-        pgettext_lazy('Sale (discount) field', 'name'), max_length=255)
+    name = models.CharField(max_length=255)
     type = models.CharField(
-        pgettext_lazy('Sale (discount) field', 'type'),
         max_length=10, choices=DISCOUNT_TYPE_CHOICES, default=FIXED)
     value = models.DecimalField(
-        pgettext_lazy('Sale (discount) field', 'value'),
         max_digits=12, decimal_places=2, default=0)
     products = models.ManyToManyField(
         'product.Product', blank=True)
