@@ -1,7 +1,7 @@
 from phonenumber_field.phonenumber import PhoneNumber
 
 from saleor.core.utils import random_data
-from saleor.dashboard.templatetags.demoobfuscators import (
+from saleor.dashboard.templatetags.demo_obfuscators import (
     obfuscate_address, obfuscate_email, obfuscate_phone, obfuscate_string)
 from saleor.userprofile.models import User
 
