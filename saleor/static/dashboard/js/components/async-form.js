@@ -1,4 +1,4 @@
-import { initSelects } from './utils';
+import { initSelects } from './selects';
 
 const onAsyncFormSubmit = (e) => {
   const $target = $(e.currentTarget);
