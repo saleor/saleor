@@ -23,21 +23,20 @@ class SaleForm(forms.ModelForm):
         exclude = []
         labels = {
             'name': pgettext_lazy(
-                'Sale (discount) field',
-                'Sale\'s name'),
+                'Sale form label',
+                'Sale name'),
             'type': pgettext_lazy(
-                'Sale (discount) field',
+                'Sale form label',
                 'Type of products related to the sale'),
             'value': pgettext_lazy(
-                'Sale (discount) field',
-                'Value'),
+                'Sale form label',
+                'Sale value'),
             'products': pgettext_lazy(
-                'Sale (discount) field',
+                'Sale form label',
                 'Products in sale'),
             'categories': pgettext_lazy(
-                'Sale (discount) field',
-                'Sale\'s categories'),
-        }
+                'Sale form label',
+                'Sale categories')}
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -62,25 +61,25 @@ class VoucherForm(forms.ModelForm):
         exclude = ['limit', 'apply_to', 'product', 'category']
         labels = {
             'type': pgettext_lazy(
-                'Voucher field',
+                'Voucher form label',
                 'Discount type'),
             'name': pgettext_lazy(
-                'Voucher field',
-                'Voucher\'s name'),
+                'Voucher form label',
+                'Voucher name'),
             'code': pgettext_lazy(
-                'Voucher field',
+                'Voucher form label',
                 'Voucher code'),
             'usage_limit': pgettext_lazy(
-                'Voucher field',
+                'Voucher form label',
                 'Limit for using the voucher'),
             'used': pgettext_lazy(
-                'Voucher field',
+                'Voucher form label',
                 'Number of voucher usages'),
             'start_date': pgettext_lazy(
-                'Voucher field',
+                'Voucher form label',
                 'Date voucher starts being valid'),
             'end_date': pgettext_lazy(
-                'Voucher field',
+                'Voucher form label',
                 'Date voucher stops being valid'),
         }
 
@@ -122,10 +121,10 @@ class ShippingVoucherForm(forms.ModelForm):
         fields = ['apply_to', 'limit']
         labels = {
             'apply_to': pgettext_lazy(
-                'Shipping voucher form label for `apply_to` field',
+                'Shipping voucher form label',
                 'Country'),
             'limit': pgettext_lazy(
-                'Shipping voucher form label for `limit` field',
+                'Shipping voucher form label',
                 'Only if order is over or equal to'),
         }
 
@@ -145,7 +144,7 @@ class ValueVoucherForm(forms.ModelForm):
         fields = ['limit']
         labels = {
             'limit': pgettext_lazy(
-                'Value voucher form label for `limit` field',
+                'Value voucher form label',
                 'Only if purchase value is greater than or equal to'),
         }
 
@@ -189,10 +188,10 @@ class ProductVoucherForm(CommonVoucherForm):
         fields = ['product', 'apply_to']
         labels = {
             'apply_to': pgettext_lazy(
-                'Shipping voucher form label for `apply_to` field',
+                'Shipping voucher form label',
                 'Country'),
             'product': pgettext_lazy(
-                'Voucher field',
+                'Shipping voucher form label',
                 'product'),
         }
 
@@ -209,10 +208,10 @@ class CategoryVoucherForm(CommonVoucherForm):
         fields = ['category', 'apply_to']
         labels = {
             'apply_to': pgettext_lazy(
-                'Shipping voucher form label for `apply_to` field',
+                'Category voucher form label',
                 'Country'),
             'category': pgettext_lazy(
-                'Voucher field',
+                'Category voucher form label',
                 'category'),
         }
 

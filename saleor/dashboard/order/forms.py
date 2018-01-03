@@ -29,7 +29,7 @@ class OrderNoteForm(forms.ModelForm):
         }
         labels = {
             'content': pgettext_lazy(
-                'Order note model',
+                'Order note form label',
                 'Note for the order'),
         }
 
@@ -197,7 +197,7 @@ class ShipGroupForm(forms.ModelForm):
         fields = ['tracking_number']
         labels = {
             'tracking_number': pgettext_lazy(
-                'Shipment group field', 'tracking number')}
+                'Shipment group form label', 'tracking number')}
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
