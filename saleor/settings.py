@@ -503,3 +503,5 @@ PAYPAL_API_VERSION = os.environ.get('PAYPAL_API_VERSION', None)
 
 
 PDF_STORAGE_ROOT = os.environ.get('PDF_STORAGE_ROOT', '/tmp/')
+
+ENVIRONMENT = os.environ.get('ENVIRONMENT', None)

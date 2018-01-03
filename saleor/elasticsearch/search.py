@@ -1,4 +1,5 @@
 from constance import config
+from django.conf import settings
 from elasticsearch_dsl import DocType, Text, Integer, InnerObjectWrapper, \
     Nested, String, Date, char_filter
 from elasticsearch_dsl import Keyword
@@ -11,6 +12,11 @@ from elasticsearch_dsl.connections import connections
 __author__ = 'tkolter'
 
 connections.create_connection()
+
+
+OYE_RELEASES_INDEX = 'oye-{}releases'.format("" if settings.ENVIRONMENT is None else settings.ENVIRONMENT + "-")
+OYE_ARTISTS_INDEX = 'oye-{}artists'.format("" if settings.ENVIRONMENT is None else settings.ENVIRONMENT + "-")
+OYE_LABELS_INDEX = 'oye-{}labels'.format("" if settings.ENVIRONMENT is None else settings.ENVIRONMENT + "-")
 
 
 MAIN_SEARCH_FIELDS = {
@@ -92,8 +98,7 @@ class Release(DocType):
 
     class Meta:
         all = MetaField(store=True, analyzer=lowercase_analyzer, search_analyzer=lowercase_analyzer)
-        index = 'oye-releases'
-
+        index = OYE_RELEASES_INDEX
 
 class Artist(DocType):
     name = String(
@@ -102,7 +107,7 @@ class Artist(DocType):
     )
 
     class Meta:
-        index = 'oye-artists'
+        index = OYE_ARTISTS_INDEX
 
 
 class Label(DocType):
@@ -112,7 +117,7 @@ class Label(DocType):
     )
 
     class Meta:
-        index = 'oye-labels'
+        index = OYE_LABELS_INDEX
 
 
 QUERY_FIELDS = [
@@ -129,11 +134,11 @@ def search(query, size=10, page=1, doc_type=None, fields=QUERY_FIELDS):
 
     search_params = {}
     if doc_type == 'artist':
-        search_params['index'] = 'oye-artists'
+        search_params['index'] = OYE_ARTISTS_INDEX
     elif doc_type == 'release':
-        search_params['index'] = 'oye-releases'
+        search_params['index'] = OYE_RELEASES_INDEX
     elif doc_type == 'label':
-        search_params['index'] = 'oye-labels'
+        search_params['index'] = OYE_LABELS_INDEX
         fields = ['name']
 
     match_prefix = config.SEARCH_PHRASE_PREFIX
