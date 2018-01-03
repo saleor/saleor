@@ -1,7 +1,7 @@
 from django.test.client import RequestFactory
 from django.urls import reverse
 
-from saleor.dashboard.templatetags.utils import construct_get_query, obfuscate_string, paginate
+from saleor.dashboard.templatetags.utils import construct_get_query, paginate
 from saleor.userprofile.models import User
 
 
@@ -22,13 +22,6 @@ def test_construct_get_query_params():
     context = {'request': request}
     result = construct_get_query(context)
     assert result == ''
-
-
-def test_obfuscate_string():
-    assert obfuscate_string('') == ''
-    assert obfuscate_string('t') == 't...'
-    assert obfuscate_string('test') == 't...'
-    assert obfuscate_string(User(email='test@example.com')) == 't...'
 
 
 def test_paginate():

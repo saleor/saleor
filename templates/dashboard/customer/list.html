@@ -3,6 +3,7 @@
 {% load materializecss %}
 {% load staticfiles %}
 {% load utils %}
+{% load demoobfuscators %}
 
 {% block title %}
   {% trans "Customers" context "Dashboard customers list" %} - {{ block.super }}
@@ -59,7 +60,7 @@
                         {% endif %}
                       </td>
                       <td>
-                        {{ customer.email|obfuscate_string }}
+                        {{ customer.email|obfuscate_email }}
                       </td>
                       <td>
                         {% if default_address %}
