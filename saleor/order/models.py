@@ -9,7 +9,7 @@ from django.db.models import Q
 from django.urls import reverse
 from django.utils.timezone import now
 from django.utils.translation import pgettext_lazy
-from django_fsm import FSMField
+from django_fsm import FSMField, transition
 from django_prices.models import PriceField
 from payments import PaymentStatus, PurchasedItem
 from payments.models import BasePayment
@@ -19,7 +19,7 @@ from satchless.item import ItemLine, ItemSet
 from . import emails, GroupStatus, OrderStatus
 from ..core.utils import build_absolute_uri
 from ..discount.models import Voucher
-from ..product.models import Product
+from ..product.models import Product, Stock
 from ..userprofile.models import Address
 
 
@@ -113,7 +113,7 @@ class Order(models.Model, ItemSet):
         return '<Order #%r>' % (self.id,)
 
     def __str__(self):
-        return '#%d' % (self.id, )
+        return '#%d' % (self.id,)
 
     @property
     def discount(self):
@@ -213,6 +213,24 @@ class DeliveryGroup(models.Model, ItemSet):
         if self.id:
             return iter(self.lines.all())
         return super().__iter__()
+
+    @transition(
+        field=status, source=GroupStatus.NEW, target=GroupStatus.SHIPPED)
+    def ship(self):
+        for line in self.lines.all():
+            Stock.objects.decrease_stock(line.stock, line.quantity)
+
+    @transition(
+        field=status,
+        source=[GroupStatus.NEW, GroupStatus.SHIPPED],
+        target=GroupStatus.CANCELLED)
+    def cancel(self):
+        if self.status == GroupStatus.NEW:
+            for line in self:
+                Stock.objects.deallocate_stock(line.stock, line.quantity)
+        else:
+            for line in self:
+                Stock.objects.increase_stock(line.stock, line.quantity)
 
     @property
     def shipping_required(self):
