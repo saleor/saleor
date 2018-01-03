@@ -93,7 +93,7 @@ class ShippingMethodForm(forms.Form):
 
         if self.initial.get('method') is None:
             self.initial['method'] = method_field.queryset.first()
-	 
+
         method_field.empty_label = None
 
 
