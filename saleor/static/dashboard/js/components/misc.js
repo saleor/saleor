@@ -49,7 +49,7 @@ $('#product-is-published').on('click', (e) => {
       window.location.reload();
     }).catch(() => {
       window.location.reload();
-    })
+    });
   }
 });
 

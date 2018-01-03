@@ -1,10 +1,11 @@
+// eslint-disable-next-line no-unused-vars
 import Dropzone from 'dropzone';
 import Sortable from 'sortablejs';
 
 function createLink (link, index, replacement) {
   const outputLink = link.attr('data-href-template').split('/');
   outputLink[outputLink.length + index] = replacement;
-  return outputLink.join('/')
+  return outputLink.join('/');
 }
 
 const productGallery = document.getElementById('product-gallery');
