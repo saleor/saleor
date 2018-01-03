@@ -31,8 +31,7 @@ class CategoryForm(forms.ModelForm):
                 'Hide in navigation'),
             'parent': pgettext_lazy(
                 'Category field',
-                'category parent')
-        }
+                'category parent')}
 
     def save(self, commit=True):
         self.instance.slug = slugify(unidecode(self.instance.name))
