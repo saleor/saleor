@@ -9,6 +9,7 @@ from django.db.models import Q
 from django.urls import reverse
 from django.utils.timezone import now
 from django.utils.translation import pgettext_lazy
+from django_fsm import FSMField
 from django_prices.models import PriceField
 from payments import PaymentStatus, PurchasedItem
 from payments.models import BasePayment
@@ -191,8 +192,9 @@ class DeliveryGroup(models.Model, ItemSet):
 
     A single order can consist of many shipment groups.
     """
-    status = models.CharField(
-        max_length=32, default=GroupStatus.NEW, choices=GroupStatus.CHOICES)
+    status = FSMField(
+        max_length=32, default=GroupStatus.NEW, choices=GroupStatus.CHOICES,
+        protected=True)
     order = models.ForeignKey(
         Order, related_name='groups', editable=False, on_delete=models.CASCADE)
     shipping_method_name = models.CharField(
