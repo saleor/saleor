@@ -1,4 +1,5 @@
 {% extends "dashboard/base.html" %}
+{% load demo_obfuscators %}
 {% load i18n %}
 {% load prices_i18n %}
 {% load render_status from status %}
@@ -45,7 +46,11 @@
                       {{ payment.created }}
                     </td>
                     <td>
-                      {{ payment.order.user|default:_("Guest") }}
+                      {% if payment.order.user %}
+                        {{ payment.order.user|obfuscate_email }}
+                      {% else %}
+                        {% trans "Guest" context "Anonymous user account value" %}
+                      {% endif %}
                     </td>
                     <td class="right-align">
                       {{ payment.get_total_price.gross|amount:'html' }}
@@ -102,9 +107,13 @@
                     <td>
                       {% render_status order.status order.get_status_display %}
                     </td>
-                    {% trans "Guest" context "Anonymous user account value" as guest %}
+                    {% trans "Guest" context "Anonymous user account value" %}
                     <td>
-                      {{ order.user|default:guest }}
+                      {% if order.user %}
+                        {{ order.user|obfuscate_email }}
+                      {% else %}
+                        {% trans "Guest" context "Anonymous user account value" %}
+                      {% endif %}
                     </td>
                     <td>
                       {{ order.created }}
