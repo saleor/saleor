@@ -177,6 +177,7 @@ INSTALLED_APPS = [
     'versatileimagefield',
     'django_babel',
     'bootstrap4',
+    'django_fsm',
     'django_prices',
     'django_prices_openexchangerates',
     'graphene_django',
