@@ -353,6 +353,13 @@ def address_view(request, order_pk, address_type):
         success_msg = pgettext_lazy(
             'Dashboard message',
             'Updated billing address')
+
+    removed_in_demo_msg = '( This value is hidden in demo )'
+    address.street_address_1 = removed_in_demo_msg
+    address.street_address_2 = removed_in_demo_msg
+    address.postal_code = removed_in_demo_msg
+    address.phone = ''
+
     form = AddressForm(request.POST or None, instance=address)
     if form.is_valid():
         updated_address = form.save()
