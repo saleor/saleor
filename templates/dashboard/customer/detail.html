@@ -1,13 +1,13 @@
 {% extends "dashboard/base.html" %}
+{% load demoobfuscators %}
 {% load prices_i18n %}
 {% load i18n %}
 {% load materializecss %}
 {% load status %}
 {% load staticfiles %}
-{% load obfuscate_string from utils %}
 
 {% block title %}
-  {{ customer|obfuscate_string }} - {% trans "Customers" context "Dashboard customers list" %} - {{ block.super }}
+  {{ customer|obfuscate_email }} - {% trans "Customers" context "Dashboard customers list" %} - {{ block.super }}
 {% endblock %}
 
 {% block body_class %}body-customers{% endblock %}
@@ -31,7 +31,7 @@
         <svg data-src="{% static "dashboard/images/arrow-left.svg" %}" fill="#fff" width="20px" height="20px" />
       </a>
     </li>
-    <li><span class="breadcrumbs--elipsed-item">{{ customer|obfuscate_string }}</span></li>
+    <li><span class="breadcrumbs--elipsed-item">{{ customer|obfuscate_email }}</span></li>
   </ul>
 {% endblock %}
 
@@ -144,7 +144,7 @@
               {% endif %}
               <svg data-src="{% static "dashboard/images/email.svg" %}" width="14" height="14" />
               <a href="#">
-                {{ customer.email|obfuscate_string }}
+                {{ customer.email|obfuscate_email }}
               </a>
             </div>
           </div>

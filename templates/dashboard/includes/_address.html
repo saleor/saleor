@@ -1,14 +1,14 @@
-{% load i18n_address_tags %}
+{% load demoobfuscators %}
+{% load format_address from i18n_address_tags %}
 {% load staticfiles %}
-{% load utils %}
 
 <div class="address">
 	{% format_address address include_phone=False latin=True %}
 	{% if address.phone %}
 		<div>
 			<svg data-src="{% static "dashboard/images/phone.svg" %}" width="16" height="16" class="left" />
-			<a href="tel:{{ address.phone|obfuscate_string }}" class="phone-number">
-				{{ address.phone|obfuscate_string }}
+			<a href="#" class="phone-number">
+				{{ address.phone|obfuscate_phone }}
 			</a>
 		</div>
 	{% endif %}
