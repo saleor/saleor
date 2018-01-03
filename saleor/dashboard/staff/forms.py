@@ -15,3 +15,13 @@ class StaffForm(forms.ModelForm):
     class Meta:
         model = User
         fields = ['email', 'groups', 'is_staff', 'is_active']
+        labels = {
+            'email': pgettext_lazy(
+                'Staff form label', 'Email'),
+            'groups': pgettext_lazy(
+                'Staff form label', 'Groups'),
+            'is_active': pgettext_lazy(
+                'Staff form label', 'Active'),
+            'is_staff': pgettext_lazy(
+                'Staff form label', 'Staff')}
+
