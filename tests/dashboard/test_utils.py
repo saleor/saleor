@@ -2,7 +2,6 @@ from django.test.client import RequestFactory
 from django.urls import reverse
 
 from saleor.dashboard.templatetags.utils import construct_get_query, paginate
-from saleor.userprofile.models import User
 
 
 def test_construct_get_query_get_and_params():
