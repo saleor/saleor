@@ -59,6 +59,11 @@ class AddressMetaForm(forms.ModelForm):
     class Meta:
         model = Address
         fields = ['country', 'preview']
+        labels = {
+            'country': pgettext_lazy(
+                'Address meta form label', 'Country')
+            'preview': pgettext_lazy(
+                'Address meta form label', 'Preview')}
 
     def clean(self):
         data = super().clean()
@@ -88,6 +93,29 @@ class AddressForm(forms.ModelForm):
     class Meta:
         model = Address
         exclude = []
+        labels = {
+            'first_name': pgettext_lazy(
+                'Address form label', 'Given name')
+            'last_name': pgettext_lazy(
+                'Address form label', 'Family name')
+            'company_name': pgettext_lazy(
+                'Address form label', 'Company or organization')
+            'street_address_1': pgettext_lazy(
+                'Address form label', 'Address')
+            'street_address_2': pgettext_lazy(
+                'Address form label', 'Address')
+            'city': pgettext_lazy(
+                'Address form label', 'City')
+            'city_area': pgettext_lazy(
+                'Address form label', 'District')
+            'postal_code': pgettext_lazy(
+                'Address form label', 'Postal code')
+            'country': pgettext_lazy(
+                'Address form label', 'Country')
+            'country_area': pgettext_lazy(
+                'Address form label', 'State or province')
+            'phone': pgettext_lazy(
+                'Address form label', 'Phone number')}
 
     phone = PossiblePhoneNumberFormField(
         widget=PhonePrefixWidget, required=False)

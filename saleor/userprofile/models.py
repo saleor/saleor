@@ -49,33 +49,23 @@ class AddressManager(models.Manager):
 
 class Address(models.Model):
     first_name = models.CharField(
-        pgettext_lazy('Address field', 'given name'),
         max_length=256, blank=True)
     last_name = models.CharField(
-        pgettext_lazy('Address field', 'family name'),
         max_length=256, blank=True)
     company_name = models.CharField(
-        pgettext_lazy('Address field', 'company or organization'),
         max_length=256, blank=True)
     street_address_1 = models.CharField(
-        pgettext_lazy('Address field', 'address'),
         max_length=256, blank=True)
     street_address_2 = models.CharField(
-        pgettext_lazy('Address field', 'address'),
         max_length=256, blank=True)
     city = models.CharField(
-        pgettext_lazy('Address field', 'city'),
         max_length=256, blank=True)
     city_area = models.CharField(
-        pgettext_lazy('Address field', 'district'),
         max_length=128, blank=True)
     postal_code = models.CharField(
-        pgettext_lazy('Address field', 'postal code'),
         max_length=20, blank=True)
-    country = CountryField(
-        pgettext_lazy('Address field', 'country'))
+    country = CountryField()
     country_area = models.CharField(
-        pgettext_lazy('Address field', 'state or province'),
         max_length=128, blank=True)
     phone = PossiblePhoneNumberField(
         blank=True, default='')
@@ -123,14 +113,12 @@ class UserManager(BaseUserManager):
 
 class User(PermissionsMixin, AbstractBaseUser):
     email = models.EmailField(
-        pgettext_lazy('User field', 'email'), unique=True)
+        unique=True)
     addresses = models.ManyToManyField(
         Address, blank=True)
     is_staff = models.BooleanField(
-        pgettext_lazy('User field', 'staff status'),
         default=False)
     is_active = models.BooleanField(
-        pgettext_lazy('User field', 'active'),
         default=True)
     date_joined = models.DateTimeField(
         pgettext_lazy('User field', 'date joined'),

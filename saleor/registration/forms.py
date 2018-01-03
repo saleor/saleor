@@ -22,12 +22,16 @@ class LoginForm(django_forms.AuthenticationForm):
 
 class SignupForm(forms.ModelForm):
     password = forms.CharField(
-        label=pgettext('User form field', 'Password'),
         widget=forms.PasswordInput)
 
     class Meta:
         model = User
         fields = ('email',)
+        labels = {
+            'email': pgettext_lazy(
+                'Signup form label', 'Email')
+            'password': pgettext_lazy(
+                'Signup form label', 'Password')}
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
