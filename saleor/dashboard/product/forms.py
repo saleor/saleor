@@ -27,6 +27,14 @@ class StockForm(forms.ModelForm):
     class Meta:
         model = Stock
         exclude = ['quantity_allocated', 'variant']
+        labels = {
+            'location': pgettext_lazy(
+                'Stock form label', 'location'),
+            'quantity': pgettext_lazy(
+                'Stock form label', 'quantity'),
+            'cost_price': pgettext_lazy(
+                'Stock form label', 'cost price'),
+        }
 
     def __init__(self, *args, **kwargs):
         self.variant = kwargs.pop('variant')
@@ -54,12 +62,21 @@ class ProductClassForm(forms.ModelForm):
         model = ProductClass
         exclude = []
         labels = {
+            'name': pgettext_lazy(
+                'Product class form label',
+                'Product class name'),
+            'has_variants': pgettext_lazy(
+                'Product class form label',
+                'Check if product has more than one variant'),
             'variant_attributes': pgettext_lazy(
                 'Product class form label',
                 'Attributes specific to each variant'),
             'product_attributes': pgettext_lazy(
                 'Product class form label',
-                'Attributes common to all variants')}
+                'Attributes common to all variants'),
+            'is_shipping_required': pgettext_lazy(
+                'Product class form label',
+                'Require shipping')}
 
     def clean(self):
         data = super().clean()
@@ -100,9 +117,16 @@ class ProductForm(forms.ModelForm):
         model = Product
         exclude = ['attributes', 'product_class']
         labels = {
-            'is_published': pgettext_lazy('product form', 'Published'),
+            'name': pgettext_lazy('Product form label', 'Name'),
+            'description': pgettext_lazy('Product form label', 'Description'),
+            'categories': pgettext_lazy('Product form label', 'Categories'),
+            'price': pgettext_lazy('Product form label', 'Price'),
+            'available_on': pgettext_lazy(
+                'Product form label', 'Product availabilty'),
+            'updated_at': pgettext_lazy('Product form label', 'Last update'),
+            'is_published': pgettext_lazy('Product form label', 'Published'),
             'is_featured': pgettext_lazy(
-                'product form', 'Feature this product on homepage')}
+                'Product form label', 'Feature this product on homepage')}
 
     def __init__(self, *args, **kwargs):
         self.product_attributes = []
@@ -149,6 +173,11 @@ class ProductVariantForm(forms.ModelForm):
     class Meta:
         model = ProductVariant
         exclude = ['attributes', 'product', 'images']
+        labels = {
+            'sku': pgettext_lazy('Product variant form label', 'SKU'),
+            'price_override': pgettext_lazy(
+                'Product variant form label', 'Override price'),
+            'name': pgettext_lazy('Product variant form label', 'Name')}
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -232,6 +261,10 @@ class ProductImageForm(forms.ModelForm):
     class Meta:
         model = ProductImage
         exclude = ('product', 'order')
+        labels = {
+            'image': pgettext_lazy('Product image form label', 'Image'),
+            'alt': pgettext_lazy(
+                'Product image form label', 'Short description')}
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -263,12 +296,20 @@ class ProductAttributeForm(forms.ModelForm):
     class Meta:
         model = ProductAttribute
         exclude = []
+        labels = {
+            'name': pgettext_lazy(
+                'Product attribute form label', 'Display name'),
+            'slug': pgettext_lazy(
+                'Product attribute form label', 'Internal name')}
 
 
 class StockLocationForm(forms.ModelForm):
     class Meta:
         model = StockLocation
         exclude = []
+        labels = {
+            'name': pgettext_lazy(
+                'Stock location form label', 'Stock location')}
 
 
 class AttributeChoiceValueForm(forms.ModelForm):
@@ -276,6 +317,13 @@ class AttributeChoiceValueForm(forms.ModelForm):
         model = AttributeChoiceValue
         fields = ['attribute', 'name', 'color']
         widgets = {'attribute': forms.widgets.HiddenInput()}
+        labels = {
+            'name': pgettext_lazy(
+                'Attribute choice value form label', 'Display name'),
+            'name': pgettext_lazy(
+                'Attribute choice value form label', 'Attribute'),
+            'color': pgettext_lazy(
+                'Attribute choice value form label', 'Color')}
 
     def save(self, commit=True):
         self.instance.slug = slugify(self.instance.name)
@@ -313,6 +361,8 @@ class UploadImageForm(forms.ModelForm):
     class Meta:
         model = ProductImage
         fields = ('image', )
+        labels = {
+            'image': pgettext_lazy('Upload image form label', 'Image')}
 
     def __init__(self, *args, **kwargs):
         product = kwargs.pop('product')
