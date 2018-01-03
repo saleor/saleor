@@ -2,7 +2,6 @@
 {% load i18n %}
 {% load mptt_tags %}
 {% load materializecss %}
-{% load get_sort_by_toggle from shop %}
 {% load staticfiles %}
 {% load utils %}
 
@@ -133,21 +132,15 @@
             <table class="bordered highlight responsive data-table data-table-description">
               <thead>
                 <tr>
-                  {% get_sort_by_toggle 'name' as toggle %}
-                  <th class="{% if toggle.is_active %}active{% endif %}">
-                    <a href="{{ toggle.url }}">
-                      <svg data-src="{{ toggle.sorting_icon }}" />
-                      {% trans "Name" context "Category list table header name" %}
-                    </a>
-                  </th>
-                  {% get_sort_by_toggle 'description' as toggle %}
-                  <th class="wide {% if toggle.is_active %}active{% endif %}">
-                    <a href="{{ toggle.url }}">
-                      <svg data-src="{{ toggle.sorting_icon }}" />
-                      {% trans "Description" context "Category list table header description" %}
-                    </a>
-                  </th>
-                  <th></th>
+                  {% trans "Name" context "Category list table header name" as label %}
+                  {% sorting_header 'name' label %}
+
+                  {% trans "Description" context "Category list table header description" as label %}
+                  {% sorting_header 'description' label is_wide=True %}
+
+                  {% if perms.product.edit_category %}
+                    <th></th>
+                  {% endif %}
                 </tr>
               </thead>
               <tbody>
@@ -188,7 +181,7 @@
         {% paginate categories %}
       </div>
       <div class="col s12 l3" id="filters">
-        {% add_filters filter %}
+        {% if not is_empty %}{% filters filter_set %}{% endif %}
       </div>
     </div>
   {% endif %}
