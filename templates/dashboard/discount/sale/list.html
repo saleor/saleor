@@ -43,10 +43,10 @@
               <thead>
                 <tr>
                   {% trans "Name" context "Sale (discount) table header" as label %}
-                  {% render_sorting_header 'name' label is_wide=True %}
+                  {% sorting_header 'name' label is_wide=True %}
 
                   {% trans "Discount" context "Sale (discount) table header" as label %}
-                  {% render_sorting_header 'value' label is_wide=True %}
+                  {% sorting_header 'value' label is_wide=True %}
                 </tr>
               </thead>
               <tbody>
@@ -80,7 +80,7 @@
       {% endif %}
     </div>
     <div class="col s12 l3" id="filters">
-      {% if not is_empty %}{% add_filters filter %}{% endif %}
+      {% if not is_empty %}{% filters filter_set %}{% endif %}
     </div>
   </div>
 {% endblock %}

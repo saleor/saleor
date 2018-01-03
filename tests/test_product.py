@@ -381,7 +381,7 @@ def test_product_filter_before_filtering(
         'product:category', kwargs={'path': default_category.slug,
                                     'category_id': default_category.pk})
     response = authorized_client.get(url)
-    assert list(products) == list(response.context['filter'].qs)
+    assert list(products) == list(response.context['filter_set'].qs)
 
 
 def test_product_filter_product_exists(authorized_client, product_in_stock,
@@ -394,17 +394,17 @@ def test_product_filter_product_exists(authorized_client, product_in_stock,
                                     'category_id': default_category.pk})
     data = {'price_0': [''], 'price_1': ['20']}
     response = authorized_client.get(url, data)
-    assert list(response.context['filter'].qs) == list(products)
+    assert list(response.context['filter_set'].qs) == list(products)
 
 
-def test_product_filter_product_does_not_exists(
+def test_product_filter_product_does_not_exist(
         authorized_client, product_in_stock, default_category):
     url = reverse(
         'product:category', kwargs={'path': default_category.slug,
                                     'category_id': default_category.pk})
     data = {'price_0': ['20'], 'price_1': ['']}
     response = authorized_client.get(url, data)
-    assert not list(response.context['filter'].qs)
+    assert not list(response.context['filter_set'].qs)
 
 
 def test_product_filter_form(authorized_client, product_in_stock,
@@ -416,9 +416,9 @@ def test_product_filter_form(authorized_client, product_in_stock,
         'product:category', kwargs={'path': default_category.slug,
                                     'category_id': default_category.pk})
     response = authorized_client.get(url)
-    assert 'price' in response.context['filter'].form.fields.keys()
-    assert 'sort_by' in response.context['filter'].form.fields.keys()
-    assert list(response.context['filter'].qs) == list(products)
+    assert 'price' in response.context['filter_set'].form.fields.keys()
+    assert 'sort_by' in response.context['filter_set'].form.fields.keys()
+    assert list(response.context['filter_set'].qs) == list(products)
 
 
 def test_product_filter_sorted_by_price_descending(
@@ -431,7 +431,7 @@ def test_product_filter_sorted_by_price_descending(
                                     'category_id': default_category.pk})
     data = {'sort_by': '-price'}
     response = authorized_client.get(url, data)
-    assert list(response.context['filter'].qs) == list(products)
+    assert list(response.context['filter_set'].qs) == list(products)
 
 
 def test_product_filter_sorted_by_wrong_parameter(
@@ -441,7 +441,7 @@ def test_product_filter_sorted_by_wrong_parameter(
                                     'category_id': default_category.pk})
     data = {'sort_by': 'aaa'}
     response = authorized_client.get(url, data)
-    assert not list(response.context['filter'].qs)
+    assert not list(response.context['filter_set'].qs)
 
 
 def test_get_variant_picker_data_proper_variant_count(product_in_stock):

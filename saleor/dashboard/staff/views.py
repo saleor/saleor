@@ -23,7 +23,7 @@ def staff_list(request):
         staff_filter.qs, settings.DASHBOARD_PAGINATE_BY,
         request.GET.get('page'))
     ctx = {
-        'staff': staff_members, 'filter': staff_filter,
+        'staff': staff_members, 'filter_set': staff_filter,
         'is_empty': not staff_filter.queryset.exists()}
     return TemplateResponse(request, 'dashboard/staff/list.html', ctx)
 

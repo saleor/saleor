@@ -77,7 +77,7 @@ def margins_for_variant(variant):
 
 
 @register.inclusion_tag('dashboard/includes/_filters.html', takes_context=True)
-def add_filters(context, filter_set, sort_by_filter_name='sort_by'):
+def filters(context, filter_set, sort_by_filter_name='sort_by'):
     """Rendering filters template based on FilterSet."""
     chips = []
     request_get = context['request'].GET.copy()
@@ -120,7 +120,7 @@ def serialize_messages(context):
 
 @register.inclusion_tag(
     'dashboard/includes/_sorting_header.html', takes_context=True)
-def render_sorting_header(context, field, label, is_wide=False):
+def sorting_header(context, field, label, is_wide=False):
     """This template tag renders table sorting header."""
     request = context['request']
     request_get = request.GET.copy()

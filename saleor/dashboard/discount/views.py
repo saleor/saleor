@@ -21,7 +21,7 @@ def sale_list(request):
         sale_filter.qs, settings.DASHBOARD_PAGINATE_BY,
         request.GET.get('page'))
     ctx = {
-        'sales': sales, 'filter': sale_filter,
+        'sales': sales, 'filter_set': sale_filter,
         'is_empty': not sale_filter.queryset.exists()}
     return TemplateResponse(request, 'dashboard/discount/sale/list.html', ctx)
 
@@ -67,7 +67,7 @@ def voucher_list(request):
         voucher_filter.qs, settings.DASHBOARD_PAGINATE_BY,
         request.GET.get('page'))
     ctx = {
-        'vouchers': vouchers, 'filter': voucher_filter,
+        'vouchers': vouchers, 'filter_set': voucher_filter,
         'is_empty': not voucher_filter.queryset.exists()}
     return TemplateResponse(
         request, 'dashboard/discount/voucher/list.html', ctx)

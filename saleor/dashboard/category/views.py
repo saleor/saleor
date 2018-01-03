@@ -23,7 +23,7 @@ def category_list(request):
         category_filter.qs, settings.DASHBOARD_PAGINATE_BY,
         request.GET.get('page'))
     ctx = {
-        'categories': categories, 'filter': category_filter,
+        'categories': categories, 'filter_set': category_filter,
         'is_empty': not category_filter.queryset.exists()}
     return TemplateResponse(request, 'dashboard/category/list.html', ctx)
 
@@ -90,7 +90,7 @@ def category_detail(request, pk):
         category_filter.qs, settings.DASHBOARD_PAGINATE_BY,
         request.GET.get('page'))
     ctx = {'categories': categories, 'path': path, 'root': root,
-           'filter': category_filter,
+           'filter_set': category_filter,
            'is_empty': not category_filter.queryset.exists()}
     return TemplateResponse(request, 'dashboard/category/detail.html', ctx)
 
