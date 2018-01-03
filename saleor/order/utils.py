@@ -138,9 +138,7 @@ def add_variant_to_existing_lines(group, variant, total_quantity):
 
 def cancel_delivery_group(group):
     """Cancells shipment group and (optionally) it's order if necessary."""
-    for line in group:
-        Stock.objects.deallocate_stock(line.stock, line.quantity)
-    group.status = GroupStatus.CANCELLED
+    group.cancel()
     group.save()
 
 
