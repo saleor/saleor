@@ -1,33 +1,29 @@
 import { initSelects } from './utils';
 
 const onAsyncFormSubmit = (e) => {
-  e.preventDefault();
   const $target = $(e.currentTarget);
-  fetch($target.attr('action'), {
+  $.ajax({
+    url: $target.attr('action'),
     method: 'POST',
-    body: new FormData($target[0]),
-    credentials: 'same-origin',
-    headers: {
-      'X-CSRFToken': $.cookie('csrftoken')
+    data: $target.serialize(),
+    complete: (response) => {
+      // Write HTML if got 400 response, otherwise pretend nothing happened
+      if (response.status === 400) {
+        $target.parent().html(response.responseText);
+        initSelects();
+      } else {
+        $('.modal-close').click();
+      }
+    },
+    success: (response) => {
+      if (response.redirectUrl) {
+        window.location.href = response.redirectUrl;
+      } else {
+        location.reload();
+      }
     }
-  }).then((res) => {
-    let output;
-    if (res.status !== 200) {
-      output = new Error(res.statusText);
-    } else {
-      output = res.text();
-    }
-    return output;
-  }).then((data) => {
-    if (data.redirectUrl) {
-      window.location.href = data.redirectUrl;
-    } else {
-      window.location.reload();
-    }
-  }).catch((err) => {
-    $target.parent().html(err);
-    initSelects();
   });
+  e.preventDefault();
 };
 
 const onModalClose = () => $('.modal').modal('close');
