@@ -176,7 +176,7 @@ INSTALLED_APPS = [
     # External apps
     'versatileimagefield',
     'django_babel',
-    'bootstrap3',
+    'bootstrap4',
     'django_prices',
     'django_prices_openexchangerates',
     'graphene_django',
@@ -289,7 +289,7 @@ PAGINATE_BY = 16
 DASHBOARD_PAGINATE_BY = 30
 DASHBOARD_SEARCH_LIMIT = 5
 
-BOOTSTRAP3 = {
+bootstrap4 = {
     'set_placeholder': False,
     'set_required': False,
     'success_css_class': '',
