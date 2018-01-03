@@ -24,19 +24,19 @@ class SaleForm(forms.ModelForm):
         labels = {
             'name': pgettext_lazy(
                 'Sale (discount) field',
-                'sale\'s name'),
+                'Sale\'s name'),
             'type': pgettext_lazy(
                 'Sale (discount) field',
-                'discount for'),
+                'Type of products related to the sale'),
             'value': pgettext_lazy(
                 'Sale (discount) field',
-                'value'),
+                'Value'),
             'products': pgettext_lazy(
                 'Sale (discount) field',
-                'products in sale'),
+                'Products in sale'),
             'categories': pgettext_lazy(
                 'Sale (discount) field',
-                'sale\'s categories'),
+                'Sale\'s categories'),
         }
 
     def __init__(self, *args, **kwargs):
@@ -63,25 +63,25 @@ class VoucherForm(forms.ModelForm):
         labels = {
             'type': pgettext_lazy(
                 'Voucher field',
-                'discount for'),
+                'Discount type'),
             'name': pgettext_lazy(
                 'Voucher field',
-                'voucher\'s name'),
+                'Voucher\'s name'),
             'code': pgettext_lazy(
                 'Voucher field',
-                'voucher\'s code'),
+                'Voucher code'),
             'usage_limit': pgettext_lazy(
                 'Voucher field',
-                'usage limit'),
+                'Limit for using the voucher'),
             'used': pgettext_lazy(
                 'Voucher field',
-                'number of voucher usages'),
+                'Number of voucher usages'),
             'start_date': pgettext_lazy(
                 'Voucher field',
-                'start date'),
+                'Date voucher starts being valid'),
             'end_date': pgettext_lazy(
                 'Voucher field',
-                'end date'),
+                'Date voucher stops being valid'),
         }
 
     def __init__(self, *args, **kwargs):
@@ -112,14 +112,8 @@ def country_choices():
 class ShippingVoucherForm(forms.ModelForm):
 
     limit = PriceField(
-        min_value=0, required=False, currency=settings.DEFAULT_CURRENCY,
-        label=pgettext_lazy(
-            'Shipping voucher form label for `limit` field',
-            'Only if order is over or equal to'))
+        min_value=0, required=False, currency=settings.DEFAULT_CURRENCY)
     apply_to = forms.ChoiceField(
-        label=pgettext_lazy(
-            'Shipping voucher form label for `apply_to` field',
-            'Country'),
         choices=country_choices,
         required=False)
 
@@ -128,11 +122,11 @@ class ShippingVoucherForm(forms.ModelForm):
         fields = ['apply_to', 'limit']
         labels = {
             'apply_to': pgettext_lazy(
-                'Voucher field',
-                'apply to'),
+                'Shipping voucher form label for `apply_to` field',
+                'Country'),
             'limit': pgettext_lazy(
-                'Voucher field',
-                'voucher limit'),
+                'Shipping voucher form label for `limit` field',
+                'Only if order is over or equal to'),
         }
 
     def save(self, commit=True):
@@ -144,18 +138,15 @@ class ShippingVoucherForm(forms.ModelForm):
 class ValueVoucherForm(forms.ModelForm):
 
     limit = PriceField(
-        min_value=0, required=False, currency=settings.DEFAULT_CURRENCY,
-        label=pgettext_lazy(
-            'Value voucher form label for `limit` field',
-            'Only if purchase value is greater than or equal to'))
+        min_value=0, required=False, currency=settings.DEFAULT_CURRENCY)
 
     class Meta:
         model = Voucher
         fields = ['limit']
         labels = {
             'limit': pgettext_lazy(
-                'Voucher field',
-                'voucher limit'),
+                'Value voucher form label for `limit` field',
+                'Only if purchase value is greater than or equal to'),
         }
 
     def save(self, commit=True):
@@ -198,8 +189,8 @@ class ProductVoucherForm(CommonVoucherForm):
         fields = ['product', 'apply_to']
         labels = {
             'apply_to': pgettext_lazy(
-                'Voucher field',
-                'apply to'),
+                'Shipping voucher form label for `apply_to` field',
+                'Country'),
             'product': pgettext_lazy(
                 'Voucher field',
                 'product'),
@@ -218,8 +209,8 @@ class CategoryVoucherForm(CommonVoucherForm):
         fields = ['category', 'apply_to']
         labels = {
             'apply_to': pgettext_lazy(
-                'Voucher field',
-                'apply to'),
+                'Shipping voucher form label for `apply_to` field',
+                'Country'),
             'category': pgettext_lazy(
                 'Voucher field',
                 'category'),

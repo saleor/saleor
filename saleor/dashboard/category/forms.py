@@ -22,13 +22,16 @@ class CategoryForm(forms.ModelForm):
         labels = {
             'name': pgettext_lazy(
                 'Category field',
-                'Category\'s name'),
+                'category name'),
             'description': pgettext_lazy(
                 'Category field',
-                'Category\'s description'),
+                'category description'),
             'is_hidden': pgettext_lazy(
                 'Category field',
-                'Hide in navigation')
+                'Hide in navigation'),
+            'parent': pgettext_lazy(
+                'Category field',
+                'category parent')
         }
 
     def save(self, commit=True):

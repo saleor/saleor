@@ -23,17 +23,13 @@ from .utils import get_attributes_display_map
 
 
 class Category(MPTTModel):
-    name = models.CharField(
-        pgettext_lazy('Category field', 'name'), max_length=128)
-    slug = models.SlugField(
-        pgettext_lazy('Category field', 'slug'), max_length=50)
-    description = models.TextField(
-        pgettext_lazy('Category field', 'description'), blank=True)
+    name = models.CharField(max_length=128)
+    slug = models.SlugField(max_length=50)
+    description = models.TextField(blank=True)
     parent = models.ForeignKey(
         'self', null=True, blank=True, related_name='children',
         on_delete=models.CASCADE)
-    is_hidden = models.BooleanField(
-        pgettext_lazy('Category field', 'is hidden'), default=False)
+    is_hidden = models.BooleanField(default=False)
 
     objects = models.Manager()
     tree = TreeManager()
