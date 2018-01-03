@@ -30,13 +30,13 @@
               <thead>
                 <tr>
                   {% trans "Name" context "Customers table header" as label %}
-                  {% render_sorting_header 'name' label %}
+                  {% sorting_header 'name' label %}
 
                   {% trans "Email" context "Customers table header" as label %}
-                  {% render_sorting_header 'email' label %}
+                  {% sorting_header 'email' label %}
 
                   {% trans "Location" context "Customers table header" as label %}
-                  {% render_sorting_header 'location' label %}
+                  {% sorting_header 'location' label %}
                 </tr>
               </thead>
               <tbody>
@@ -83,7 +83,7 @@
       {% endif %}
     </div>
     <div class="col s12 l3" id="filters">
-      {% if not is_empty %}{% add_filters filter %}{% endif %}
+      {% if not is_empty %}{% filters filter_set %}{% endif %}
     </div>
   </div>
 {% endblock %}

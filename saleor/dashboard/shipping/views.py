@@ -23,7 +23,7 @@ def shipping_method_list(request):
         shipping_method_filter.qs, settings.DASHBOARD_PAGINATE_BY,
         request.GET.get('page'))
     ctx = {
-        'shipping_methods': methods, 'filter': shipping_method_filter,
+        'shipping_methods': methods, 'filter_set': shipping_method_filter,
         'is_empty': not shipping_method_filter.queryset.exists()}
     return TemplateResponse(request, 'dashboard/shipping/list.html', ctx)
 

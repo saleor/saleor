@@ -544,7 +544,7 @@ def test_product_list_filters(admin_client, product_list):
     url = reverse('dashboard:product-list')
     response = admin_client.get(url, data)
     assert response.status_code == 200
-    assert list(response.context['filter'].qs) == product_list
+    assert list(response.context['filter_set'].qs) == product_list
 
 
 def test_product_list_filters_sort_by(admin_client, product_list):
@@ -553,14 +553,14 @@ def test_product_list_filters_sort_by(admin_client, product_list):
     url = reverse('dashboard:product-list')
     response = admin_client.get(url, data)
     assert response.status_code == 200
-    assert list(response.context['filter'].qs) == product_list
+    assert list(response.context['filter_set'].qs) == product_list
 
     data = {'price_1': [''], 'price_0': [''], 'is_featured': [''],
             'name': ['Test'], 'sort_by': ['-name'], 'is_published': ['']}
     url = reverse('dashboard:product-list')
     response = admin_client.get(url, data)
     assert response.status_code == 200
-    assert list(response.context['filter'].qs) == product_list[::-1]
+    assert list(response.context['filter_set'].qs) == product_list[::-1]
 
 
 def test_product_list_filters_is_published(
@@ -571,7 +571,7 @@ def test_product_list_filters_is_published(
     url = reverse('dashboard:product-list')
     response = admin_client.get(url, data)
     assert response.status_code == 200
-    result = list(response.context['filter'].qs)
+    result = list(response.context['filter_set'].qs)
     assert result == [product_list[0], product_list[2]]
 
 
@@ -582,7 +582,7 @@ def test_product_list_filters_no_results(admin_client, product_list):
     url = reverse('dashboard:product-list')
     response = admin_client.get(url, data)
     assert response.status_code == 200
-    assert list(response.context['filter'].qs) == []
+    assert list(response.context['filter_set'].qs) == []
 
 
 def test_product_list_pagination(admin_client, product_list):
@@ -591,13 +591,13 @@ def test_product_list_pagination(admin_client, product_list):
     url = reverse('dashboard:product-list')
     response = admin_client.get(url, data)
     assert response.status_code == 200
-    assert not response.context['filter'].is_bound_unsorted
+    assert not response.context['filter_set'].is_bound_unsorted
 
     data = {'page': '2'}
     url = reverse('dashboard:product-list')
     response = admin_client.get(url, data)
     assert response.status_code == 200
-    assert not response.context['filter'].is_bound_unsorted
+    assert not response.context['filter_set'].is_bound_unsorted
 
 
 def test_product_list_pagination_with_filters(admin_client, product_list):

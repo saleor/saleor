@@ -51,10 +51,10 @@
               <thead>
                 <tr>
                   {% trans "Name" context "Category list table header name" as label %}
-                  {% render_sorting_header 'name' label %}
+                  {% sorting_header 'name' label %}
 
                   {% trans "Description" context "Category list table header description" as label %}
-                  {% render_sorting_header 'description' label is_wide=True %}
+                  {% sorting_header 'description' label is_wide=True %}
                 </tr>
               </thead>
               <tbody>
@@ -92,7 +92,7 @@
       {% endif %}
     </div>
     <div class="col s12 l3" id="filters">
-      {% if not is_empty %}{% add_filters filter %}{% endif %}
+      {% if not is_empty %}{% filters filter_set %}{% endif %}
     </div>
   </div>
 {% endblock %}

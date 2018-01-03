@@ -133,10 +133,10 @@
               <thead>
                 <tr>
                   {% trans "Name" context "Category list table header name" as label %}
-                  {% render_sorting_header 'name' label %}
+                  {% sorting_header 'name' label %}
 
                   {% trans "Description" context "Category list table header description" as label %}
-                  {% render_sorting_header 'description' label is_wide=True %}
+                  {% sorting_header 'description' label is_wide=True %}
 
                   {% if perms.product.edit_category %}
                     <th></th>
@@ -181,7 +181,7 @@
         {% paginate categories %}
       </div>
       <div class="col s12 l3" id="filters">
-        {% add_filters filter %}
+        {% if not is_empty %}{% filters filter_set %}{% endif %}
       </div>
     </div>
   {% endif %}

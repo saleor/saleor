@@ -39,7 +39,7 @@ def product_class_list(request):
          pc.variant_attributes.all())
         for pc in classes.object_list]
     ctx = {
-        'form': form, 'product_classes': classes, 'filter': class_filter,
+        'form': form, 'product_classes': classes, 'filter_set': class_filter,
         'is_empty': not class_filter.queryset.exists()}
     return TemplateResponse(
         request,
@@ -120,7 +120,7 @@ def product_list(request):
     ctx = {
         'bulk_action_form': forms.ProductBulkUpdate(),
         'products': products, 'product_classes': product_classes,
-        'filter': product_filter,
+        'filter_set': product_filter,
         'is_empty': not product_filter.queryset.exists()}
     return TemplateResponse(request, 'dashboard/product/list.html', ctx)
 
@@ -497,7 +497,7 @@ def attribute_list(request):
     attributes = get_paginator_items(
         attributes, settings.DASHBOARD_PAGINATE_BY, request.GET.get('page'))
     ctx = {
-        'attributes': attributes, 'filter': attribute_filter,
+        'attributes': attributes, 'filter_set': attribute_filter,
         'is_empty': not attribute_filter.queryset.exists()}
     return TemplateResponse(
         request, 'dashboard/product/product_attribute/list.html', ctx)
@@ -609,7 +609,7 @@ def stock_location_list(request):
         stock_location_filter.qs, settings.DASHBOARD_PAGINATE_BY,
         request.GET.get('page'))
     ctx = {
-        'locations': stock_locations, 'filter': stock_location_filter,
+        'locations': stock_locations, 'filter_set': stock_location_filter,
         'is_empty': not stock_location_filter.queryset.exists()}
     return TemplateResponse(
         request,

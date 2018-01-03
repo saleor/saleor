@@ -125,7 +125,7 @@ def category_index(request, path, category_id):
     now_sorted_by = get_now_sorted_by(product_filter)
     arg_sort_by = request.GET.get('sort_by')
     is_descending = arg_sort_by.startswith('-') if arg_sort_by else False
-    ctx = {'category': category, 'filter': product_filter,
+    ctx = {'category': category, 'filter_set': product_filter,
            'products': products_and_availability,
            'products_paginated': products_paginated,
            'sort_by_choices': get_sort_by_choices(product_filter),
