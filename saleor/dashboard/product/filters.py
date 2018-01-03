@@ -123,6 +123,9 @@ class StockLocationFilter(SortedFilterSet):
             'Stock location list filter label', 'Sort by'),
         fields=STOCK_LOCATION_SORT_BY_FIELDS.keys(),
         field_labels=STOCK_LOCATION_SORT_BY_FIELDS)
+    name = CharFilter(
+        label=pgettext_lazy('Stock location list filter label', 'Name'),
+        lookup_expr='icontains')
 
     class Meta:
         model = StockLocation
