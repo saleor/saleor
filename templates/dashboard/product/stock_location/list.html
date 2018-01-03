@@ -69,5 +69,8 @@
         {% endif %}
       {% endif %}
     </div>
+    <div class="col s12 l3" id="filters">
+      {% if not is_empty %}{% filters filter_set %}{% endif %}
+    </div>
   </div>
 {% endblock %}
