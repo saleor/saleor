@@ -16,7 +16,6 @@ class SiteForm(forms.ModelForm):
                 'Site form label', 'Display name')}
 
 
-
 class SiteSettingsForm(forms.ModelForm):
     class Meta:
         model = SiteSettings

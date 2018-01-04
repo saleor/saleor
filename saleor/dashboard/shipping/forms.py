@@ -11,7 +11,7 @@ class ShippingMethodForm(forms.ModelForm):
         exclude = []
         labels = {
             'name': pgettext_lazy(
-                'Shipping  method form label', 'Shipping method')
+                'Shipping  method form label', 'Shipping method'),
             'description': pgettext_lazy(
                 'Shipping  method form label', 'Method description')}
 
