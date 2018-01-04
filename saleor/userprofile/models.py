@@ -121,7 +121,6 @@ class User(PermissionsMixin, AbstractBaseUser):
     is_active = models.BooleanField(
         default=True)
     date_joined = models.DateTimeField(
-        pgettext_lazy('User field', 'date joined'),
         default=timezone.now, editable=False)
     default_shipping_address = models.ForeignKey(
         Address, related_name='+', null=True, blank=True,

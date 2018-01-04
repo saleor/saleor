@@ -335,7 +335,6 @@ class Stock(models.Model):
     quantity = models.IntegerField(
         validators=[MinValueValidator(0)], default=Decimal(1))
     quantity_allocated = models.IntegerField(
-        pgettext_lazy('Stock item field', 'allocated quantity'),
         validators=[MinValueValidator(0)], default=Decimal(0))
     cost_price = PriceField(
         currency=settings.DEFAULT_CURRENCY, max_digits=12, decimal_places=2,
@@ -410,7 +409,7 @@ class ProductImage(models.Model):
     alt = models.CharField(
         max_length=128, blank=True)
     order = models.PositiveIntegerField(
-        pgettext_lazy('Product image field', 'order'), editable=False)
+        editable=False)
 
     objects = ImageManager()
 
