@@ -8,9 +8,9 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2017-11-27 16:26-0600\n"
+"POT-Creation-Date: 2017-12-04 06:59-0600\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"Last-Translator: Cosmin Cosma <cosmingcosma@gmail.com>, 2017\n"
+"Last-Translator: Tibeiru Ichim <tiberiu.ichim@gmail.com>, 2017\n"
 "Language-Team: Romanian (https://www.transifex.com/mirumee/teams/34782/ro/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -48,22 +48,22 @@ msgstr "Selectați un an"
 #: saleor/static/dashboard/js/components/datepicker.js:12
 msgctxt "Datepicker month"
 msgid "January"
-msgstr ""
+msgstr "Ianuarie"
 
 #: saleor/static/dashboard/js/components/datepicker.js:12
 msgctxt "Datepicker month"
 msgid "February"
-msgstr ""
+msgstr "Februarie"
 
 #: saleor/static/dashboard/js/components/datepicker.js:12
 msgctxt "Datepicker month"
 msgid "March"
-msgstr ""
+msgstr "Martie"
 
 #: saleor/static/dashboard/js/components/datepicker.js:12
 msgctxt "Datepicker month"
 msgid "April"
-msgstr ""
+msgstr "Aprilie"
 
 #: saleor/static/dashboard/js/components/datepicker.js:12
 msgctxt "Datepicker month"
@@ -228,12 +228,12 @@ msgstr ""
 #: saleor/static/dashboard/js/components/datepicker.js:15
 msgctxt "Datepicker weekday shortcut"
 msgid "Fri"
-msgstr ""
+msgstr "Vin"
 
 #: saleor/static/dashboard/js/components/datepicker.js:15
 msgctxt "Datepicker weekday shortcut"
 msgid "Sat"
-msgstr ""
+msgstr "Sâm"
 
 #: saleor/static/dashboard/js/components/datepicker.js:18
 msgctxt "Sunday shortcut"
@@ -288,9 +288,9 @@ msgstr "Închide"
 #: saleor/static/js/components/variantPicker/QuantityInput.js:21
 msgctxt "Add to cart form field label"
 msgid "Quantity"
-msgstr ""
+msgstr "Cantitate"
 
 #: saleor/static/js/components/variantPicker/VariantPicker.js:161
 msgctxt "Product details primary action"
 msgid "Add to cart"
-msgstr ""
+msgstr "Adaugă la coș"
