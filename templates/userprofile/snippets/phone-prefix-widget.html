@@ -1,5 +1,7 @@
 <div class="phone-prefix-input">
   {% for widget in widget.subwidgets %}
-    {% include widget.template_name %}
+    <div>
+      {% include widget.template_name %}
+    </div>
   {% endfor %}
 </div>

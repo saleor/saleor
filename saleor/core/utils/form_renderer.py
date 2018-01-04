@@ -1,4 +1,4 @@
-from bootstrap3.renderers import FormRenderer as BaseFormRenderer
+from bootstrap4.renderers import FormRenderer as BaseFormRenderer
 
 
 class FormRenderer(BaseFormRenderer):
