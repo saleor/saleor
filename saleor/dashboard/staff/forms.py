@@ -18,10 +18,10 @@ class StaffForm(forms.ModelForm):
         fields = ['email', 'groups', 'is_staff', 'is_active']
         labels = {
             'email': pgettext_lazy(
-                'Staff form label', 'Email'),
+                'Email', 'Email'),
             'groups': pgettext_lazy(
-                'Staff form label', 'Groups'),
+                'Groups', 'Groups'),
             'is_active': pgettext_lazy(
-                'Staff form label', 'User is active'),
+                'User is active', 'User is active'),
             'is_staff': pgettext_lazy(
-                'Staff form label', 'Has access to dashboard')}
+                'User has access to dashboard', 'Has access to dashboard')}

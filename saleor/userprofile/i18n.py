@@ -61,9 +61,9 @@ class AddressMetaForm(forms.ModelForm):
         fields = ['country', 'preview']
         labels = {
             'country': pgettext_lazy(
-                'Address meta form label', 'Country'),
+                'Country', 'Country'),
             'preview': pgettext_lazy(
-                'Address meta form label', 'Preview')}
+                'Address preview', 'Preview')}
 
     def clean(self):
         data = super().clean()
@@ -95,27 +95,27 @@ class AddressForm(forms.ModelForm):
         exclude = []
         labels = {
             'first_name': pgettext_lazy(
-                'Address form label', 'Given name'),
+                'First name', 'Given name'),
             'last_name': pgettext_lazy(
-                'Address form label', 'Family name'),
+                'Last name', 'Family name'),
             'company_name': pgettext_lazy(
-                'Address form label', 'Company or organization'),
+                'Company or organization', 'Company or organization'),
             'street_address_1': pgettext_lazy(
-                'Address form label', 'Address'),
+                'First address', 'Address'),
             'street_address_2': pgettext_lazy(
-                'Address form label', 'Address'),
+                'Second address', 'Address'),
             'city': pgettext_lazy(
-                'Address form label', 'City'),
+                'City', 'City'),
             'city_area': pgettext_lazy(
-                'Address form label', 'District'),
+                'City area', 'District'),
             'postal_code': pgettext_lazy(
-                'Address form label', 'Postal code'),
+                'Postal code', 'Postal code'),
             'country': pgettext_lazy(
-                'Address form label', 'Country'),
+                'Country', 'Country'),
             'country_area': pgettext_lazy(
-                'Address form label', 'State or province'),
+                'Country area', 'State or province'),
             'phone': pgettext_lazy(
-                'Address form label', 'Phone number')}
+                'Phone number', 'Phone number')}
 
     phone = PossiblePhoneNumberFormField(
         widget=PhonePrefixWidget, required=False)

@@ -10,9 +10,8 @@ class GroupPermissionsForm(forms.ModelForm):
         model = Group
         fields = ['name', 'permissions']
         labels = {
-            'name': pgettext_lazy('Group permission form label', 'Name'),
-            'permissions': pgettext_lazy(
-                'Group permission form label', 'Permission')}
+            'name': pgettext_lazy('Group name', 'Name'),
+            'permissions': pgettext_lazy('Group permission', 'Permission')}
 
     permissions = forms.ModelMultipleChoiceField(
         queryset=get_permissions(),

@@ -11,9 +11,9 @@ class ShippingMethodForm(forms.ModelForm):
         exclude = []
         labels = {
             'name': pgettext_lazy(
-                'Shipping method form label', 'Name'),
+                'Shipping method name', 'Name'),
             'description': pgettext_lazy(
-                'Shipping method form label', 'Description')}
+                'Description', 'Description')}
 
 
 class ShippingMethodCountryForm(forms.ModelForm):
@@ -24,8 +24,8 @@ class ShippingMethodCountryForm(forms.ModelForm):
         widgets = {'shipping_method': forms.widgets.HiddenInput()}
         labels = {
             'country_code': pgettext_lazy(
-                'Shipping method country form label', 'Country code'),
+                'Country code', 'Country code'),
             'shipping_method': pgettext_lazy(
-                'Shipping method country form label', 'Shipping method'),
+                'Shipping method', 'Shipping method'),
             'price': pgettext_lazy(
-                'Shipping method country form label', 'Price')}
+                'Price', 'Price')}

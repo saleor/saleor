@@ -28,8 +28,8 @@ class OrderNoteForm(forms.ModelForm):
             'content': forms.Textarea()}
         labels = {
             'content': pgettext_lazy(
-                'Order note form label',
-                'Note for the order')}
+                'Order note',
+                'Note')}
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -156,7 +156,7 @@ class ChangeQuantityForm(forms.ModelForm):
         fields = ['quantity']
         labels = {
             'quantity': pgettext_lazy(
-                'Change quantity form label', 'Quantity')}
+                'Quantity', 'Quantity')}
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -195,7 +195,7 @@ class ShipGroupForm(forms.ModelForm):
         fields = ['tracking_number']
         labels = {
             'tracking_number': pgettext_lazy(
-                'Shipment group form label', 'Tracking number')}
+                'Shipment tracking number', 'Tracking number')}
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -294,7 +294,7 @@ class ChangeStockForm(forms.ModelForm):
         fields = ['stock']
         labels = {
             'stock': pgettext_lazy(
-                'Change stock form label', 'Stock amount')}
+                'Stock amount', 'Stock amount')}
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

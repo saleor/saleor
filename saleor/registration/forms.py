@@ -29,9 +29,9 @@ class SignupForm(forms.ModelForm):
         fields = ('email',)
         labels = {
             'email': pgettext_lazy(
-                'Signup form label', 'Email'),
+                'Email', 'Email'),
             'password': pgettext_lazy(
-                'Signup form label', 'Password')}
+                'Password', 'Password')}
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
