@@ -282,7 +282,7 @@ def ship_delivery_group(request, order_pk, group_pk):
 def cancel_delivery_group(request, order_pk, group_pk):
     order = get_object_or_404(Order, pk=order_pk)
     group = get_object_or_404(order.groups.all(), pk=group_pk)
-    form = CancelGroupForm(request.POST or None, delivery_group=group)
+    form = CancelGroupForm(request.POST or None, instance=group)
     status = 200
     if form.is_valid():
         with transaction.atomic():

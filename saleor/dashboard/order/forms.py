@@ -219,13 +219,13 @@ class ShipGroupForm(forms.ModelForm):
 
 
 class CancelGroupForm(forms.Form):
-    def __init__(self, *args, **kwargs):
-        self.delivery_group = kwargs.pop('delivery_group')
-        super().__init__(*args, **kwargs)
+    class Meta:
+        model = DeliveryGroup
 
     def cancel_group(self):
-        self.delivery_group.cancel()
-        self.delivery_group.save()
+        self.instance.cancel()
+        self.instance.save()
+        return self.instance
 
 
 class CancelOrderForm(forms.Form):

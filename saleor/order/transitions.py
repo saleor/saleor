@@ -7,7 +7,7 @@ def cancel_delivery_group(group):
     if group.status == GroupStatus.NEW:
         for line in group:
             Stock.objects.deallocate_stock(line.stock, line.quantity)
-    else:
+    elif group.status == GroupStatus.SHIPPED:
         for line in group:
             Stock.objects.increase_stock(line.stock, line.quantity)
 
