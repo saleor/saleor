@@ -1,7 +1,6 @@
+from django.conf import settings
 from django.template import Library
 from faker import Factory
-
-from saleor.userprofile.models import Address
 
 fake = Factory.create()
 register = Library()
@@ -13,6 +12,8 @@ def obfuscate_address(address):
     This filter returns fake Address instance that keeps original's names but
     obfuscates street, city and postal code.
     '''
+    from saleor.userprofile.models import Address
+
     try:
         return Address(
             first_name=address.first_name,
@@ -26,7 +27,7 @@ def obfuscate_address(address):
 
 
 @register.filter
-def obfuscate_email(string):
+def obfuscate_email(value):
     '''
     This filter obfuscates string (or object's __str__() result) with e-mail,
     returning only its first character followed by @example.com hostname.
@@ -34,9 +35,12 @@ def obfuscate_email(string):
     We are using naive e-mail validation here, just checking for @'s presence
     in filtered string, and fallback to obfuscate_string() if its not found.
     '''
-    if '@' not in str(string):
-        return obfuscate_string(string)
-    username = str(string).split('@')[0]
+    string_rep = str(value)
+    if string_rep == settings.DEMO_ADMIN_EMAIL:
+        return string_rep
+    if '@' not in str(string_rep):
+        return obfuscate_string(string_rep)
+    username = str(string_rep).split('@')[0]
     return '%s...@example.com' % str(username)[:3]
 
 
