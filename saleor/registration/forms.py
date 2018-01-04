@@ -1,4 +1,5 @@
 from django import forms
+from django.conf import settings
 from django.contrib.auth import forms as django_forms
 from django.http.request import HttpRequest
 from django.urls import reverse
@@ -19,7 +20,7 @@ class LoginForm(django_forms.AuthenticationForm):
             if email:
                 self.fields['username'].initial = email
             else:
-                self.fields['username'].initial = 'admin@example.com'
+                self.fields['username'].initial = settings.DEMO_ADMIN_EMAIL
                 self.fields['password'].initial = 'admin'
                 self.fields['password'].widget.render_value = True
 

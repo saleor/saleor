@@ -1,3 +1,4 @@
+{% load demo_obfuscators %}
 {% load format_address from i18n_address_tags %}
 {% load staticfiles %}
 
@@ -6,8 +7,8 @@
 	{% if address.phone %}
 		<div>
 			<svg data-src="{% static "dashboard/images/phone.svg" %}" width="16" height="16" class="left" />
-			<a href="tel:{{ address.phone }}" class="phone-number">
-				{{ address.phone }}
+			<a href="#" class="phone-number">
+				{{ address.phone|obfuscate_phone }}
 			</a>
 		</div>
 	{% endif %}

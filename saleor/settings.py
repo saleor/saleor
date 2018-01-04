@@ -428,3 +428,7 @@ IMPERSONATE = {
     'USE_HTTP_REFERER': True,
     'CUSTOM_ALLOW': 'saleor.userprofile.impersonate.can_impersonate'
 }
+
+# Demo-specific settings
+# We obfucate emails if they are different than demo's admin email
+DEMO_ADMIN_EMAIL = 'admin@example.com'

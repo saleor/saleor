@@ -1,4 +1,5 @@
 {% extends "dashboard/base.html" %}
+{% load demo_obfuscators %}
 {% load prices_i18n %}
 {% load i18n %}
 {% load materializecss %}
@@ -133,8 +134,8 @@
                 <div>{% trans "No default shipping address." context "Customer without default shipping address message" %}</div>
               {% endif %}
               <svg data-src="{% static "dashboard/images/email.svg" %}" width="14" height="14" />
-              <a href="mailto:{{ customer.email }}">
-                {{ customer.email }}
+              <a href="#">
+                {{ customer.email|obfuscate_email }}
               </a>
             </div>
           </div>

@@ -22,6 +22,7 @@ from .forms import (
 from .utils import (
     create_invoice_pdf, create_packing_slip_pdf, get_statics_absolute_url)
 from ..views import staff_member_required
+from ...core.templatetags.demo_obfuscators import obfuscate_address
 from ...core.utils import get_paginator_items
 from ...order import GroupStatus
 from ...order.models import Order, OrderLine, OrderNote
@@ -351,7 +352,9 @@ def address_view(request, order_pk, address_type):
         success_msg = pgettext_lazy(
             'Dashboard message',
             'Updated billing address')
-    form = AddressForm(request.POST or None, instance=address)
+
+    obfuscated_address = obfuscate_address(address)
+    form = AddressForm(request.POST or None, instance=obfuscated_address)
     if form.is_valid():
         form.save()
         order.create_history_entry(comment=success_msg, user=request.user)

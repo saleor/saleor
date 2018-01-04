@@ -51,9 +51,12 @@
                     <td>
                       {% render_status order.status order.get_status_display %}
                     </td>
-                    {% trans "Guest" context "Anonymous user account value" as guest %}
                     <td>
-                      {{ order.user|default:guest }}
+                      {% if order.user %}
+                        {{ order.user }}
+                      {% else %}
+                        {% trans "Guest" context "Anonymous user account value" %}
+                      {% endif %}
                     </td>
                     <td>
                       {{ order.created }}

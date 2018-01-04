@@ -7,6 +7,7 @@ from django.utils.translation import pgettext_lazy
 from django_countries.fields import Country, CountryField
 from phonenumber_field.modelfields import PhoneNumberField
 
+from ..core.templatetags.demo_obfuscators import obfuscate_email
 from .validators import validate_possible_number
 
 
@@ -167,8 +168,14 @@ class User(PermissionsMixin, AbstractBaseUser):
             ('impersonate_user',
              pgettext_lazy('Permission description', 'Can impersonate users')))
 
+    def get_obfuscated_username(self):
+        return obfuscate_email(self.email)
+
+    def __str__(self):
+        return self.get_obfuscated_username()
+
     def get_full_name(self):
-        return self.email
+        return self.get_obfuscated_username()
 
     def get_short_name(self):
-        return self.email
+        return self.get_obfuscated_username()
