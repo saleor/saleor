@@ -63,16 +63,13 @@ class Category(MPTTModel):
 
 
 class ProductClass(models.Model):
-    name = models.CharField(
-        max_length=128)
-    has_variants = models.BooleanField(
-        default=True)
+    name = models.CharField(max_length=128)
+    has_variants = models.BooleanField(default=True)
     product_attributes = models.ManyToManyField(
         'ProductAttribute', related_name='products_class', blank=True)
     variant_attributes = models.ManyToManyField(
         'ProductAttribute', related_name='product_variants_class', blank=True)
-    is_shipping_required = models.BooleanField(
-        default=False)
+    is_shipping_required = models.BooleanField(default=False)
 
     class Meta:
         app_label = 'product'
@@ -96,25 +93,17 @@ class ProductManager(models.Manager):
 
 class Product(models.Model, ItemRange):
     product_class = models.ForeignKey(
-        ProductClass, related_name='products',
-        on_delete=models.CASCADE)
-    name = models.CharField(
-        max_length=128)
+        ProductClass, related_name='products', on_delete=models.CASCADE)
+    name = models.CharField(max_length=128)
     description = models.TextField()
-    categories = models.ManyToManyField(
-        Category, related_name='products')
+    categories = models.ManyToManyField(Category, related_name='products')
     price = PriceField(
         currency=settings.DEFAULT_CURRENCY, max_digits=12, decimal_places=2)
-    available_on = models.DateField(
-        blank=True, null=True)
-    is_published = models.BooleanField(
-        default=True)
-    attributes = HStoreField(
-        default={})
-    updated_at = models.DateTimeField(
-        auto_now=True, null=True)
-    is_featured = models.BooleanField(
-        default=False)
+    available_on = models.DateField(blank=True, null=True)
+    is_published = models.BooleanField(default=True)
+    attributes = HStoreField(default={})
+    updated_at = models.DateTimeField(auto_now=True, null=True)
+    is_featured = models.BooleanField(default=False)
 
     objects = ProductManager()
 
@@ -197,21 +186,15 @@ class Product(models.Model, ItemRange):
 
 
 class ProductVariant(models.Model, Item):
-    sku = models.CharField(
-        max_length=32,
-        unique=True)
-    name = models.CharField(
-        max_length=100,
-        blank=True)
+    sku = models.CharField(max_length=32, unique=True)
+    name = models.CharField(max_length=100, blank=True)
     price_override = PriceField(
         currency=settings.DEFAULT_CURRENCY, max_digits=12, decimal_places=2,
         blank=True, null=True)
     product = models.ForeignKey(
         Product, related_name='variants', on_delete=models.CASCADE)
-    attributes = HStoreField(
-        default={})
-    images = models.ManyToManyField(
-        'ProductImage', through='VariantImage')
+    attributes = HStoreField(default={})
+    images = models.ManyToManyField('ProductImage', through='VariantImage')
 
     class Meta:
         app_label = 'product'
@@ -328,8 +311,7 @@ class StockManager(models.Manager):
 
 class Stock(models.Model):
     variant = models.ForeignKey(
-        ProductVariant, related_name='stock',
-        on_delete=models.CASCADE)
+        ProductVariant, related_name='stock', on_delete=models.CASCADE)
     location = models.ForeignKey(
         StockLocation, null=True, on_delete=models.CASCADE)
     quantity = models.IntegerField(
@@ -355,10 +337,8 @@ class Stock(models.Model):
 
 
 class ProductAttribute(models.Model):
-    slug = models.SlugField(
-        max_length=50, unique=True)
-    name = models.CharField(
-        max_length=100)
+    slug = models.SlugField(max_length=50, unique=True)
+    name = models.CharField(max_length=100)
 
     class Meta:
         ordering = ('slug', )
@@ -374,13 +354,11 @@ class ProductAttribute(models.Model):
 
 
 class AttributeChoiceValue(models.Model):
-    name = models.CharField(
-        max_length=100)
+    name = models.CharField(max_length=100)
     slug = models.SlugField()
     color = models.CharField(
-        max_length=7,
-        validators=[RegexValidator('^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$')],
-        blank=True)
+        max_length=7, blank=True,
+        validators=[RegexValidator('^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$')])
     attribute = models.ForeignKey(
         ProductAttribute, related_name='values', on_delete=models.CASCADE)
 
@@ -401,15 +379,12 @@ class ImageManager(models.Manager):
 
 class ProductImage(models.Model):
     product = models.ForeignKey(
-        Product, related_name='images',
-        on_delete=models.CASCADE)
+        Product, related_name='images', on_delete=models.CASCADE)
     image = VersatileImageField(
         upload_to='products', ppoi_field='ppoi', blank=False)
     ppoi = PPOIField()
-    alt = models.CharField(
-        max_length=128, blank=True)
-    order = models.PositiveIntegerField(
-        editable=False)
+    alt = models.CharField(max_length=128, blank=True)
+    order = models.PositiveIntegerField(editable=False)
 
     objects = ImageManager()
 

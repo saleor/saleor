@@ -25,4 +25,3 @@ class StaffForm(forms.ModelForm):
                 'Staff form label', 'Active'),
             'is_staff': pgettext_lazy(
                 'Staff form label', 'Staff')}
-

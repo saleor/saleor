@@ -83,27 +83,21 @@ class Cart(models.Model):
 
     status = models.CharField(
         max_length=32, choices=CartStatus.CHOICES, default=CartStatus.OPEN)
-    created = models.DateTimeField(
-        auto_now_add=True)
-    last_status_change = models.DateTimeField(
-        auto_now_add=True)
+    created = models.DateTimeField(auto_now_add=True)
+    last_status_change = models.DateTimeField(auto_now_add=True)
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL, blank=True, null=True, related_name='carts',
         on_delete=models.CASCADE)
-    email = models.EmailField(
-        blank=True, null=True)
-    token = models.UUIDField(
-        primary_key=True, default=uuid4, editable=False)
+    email = models.EmailField(blank=True, null=True)
+    token = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     voucher = models.ForeignKey(
         'discount.Voucher', null=True, related_name='+',
         on_delete=models.SET_NULL)
-    checkout_data = JSONField(
-        null=True, editable=False,)
+    checkout_data = JSONField(null=True, editable=False)
     total = PriceField(
         currency=settings.DEFAULT_CURRENCY, max_digits=12, decimal_places=2,
         default=0)
-    quantity = models.PositiveIntegerField(
-        default=0)
+    quantity = models.PositiveIntegerField(default=0)
 
     objects = CartQueryset.as_manager()
 
@@ -247,8 +241,7 @@ class CartLine(models.Model, ItemLine):
         'product.ProductVariant', related_name='+', on_delete=models.CASCADE)
     quantity = models.PositiveIntegerField(
         validators=[MinValueValidator(0), MaxValueValidator(999)])
-    data = JSONField(
-        blank=True, default={})
+    data = JSONField(blank=True, default={})
 
     class Meta:
         unique_together = ('cart', 'variant', 'data')

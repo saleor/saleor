@@ -48,27 +48,17 @@ class AddressManager(models.Manager):
 
 
 class Address(models.Model):
-    first_name = models.CharField(
-        max_length=256, blank=True)
-    last_name = models.CharField(
-        max_length=256, blank=True)
-    company_name = models.CharField(
-        max_length=256, blank=True)
-    street_address_1 = models.CharField(
-        max_length=256, blank=True)
-    street_address_2 = models.CharField(
-        max_length=256, blank=True)
-    city = models.CharField(
-        max_length=256, blank=True)
-    city_area = models.CharField(
-        max_length=128, blank=True)
-    postal_code = models.CharField(
-        max_length=20, blank=True)
+    first_name = models.CharField(max_length=256, blank=True)
+    last_name = models.CharField(max_length=256, blank=True)
+    company_name = models.CharField(max_length=256, blank=True)
+    street_address_1 = models.CharField(max_length=256, blank=True)
+    street_address_2 = models.CharField(max_length=256, blank=True)
+    city = models.CharField(max_length=256, blank=True)
+    city_area = models.CharField(max_length=128, blank=True)
+    postal_code = models.CharField(max_length=20, blank=True)
     country = CountryField()
-    country_area = models.CharField(
-        max_length=128, blank=True)
-    phone = PossiblePhoneNumberField(
-        blank=True, default='')
+    country_area = models.CharField(max_length=128, blank=True)
+    phone = PossiblePhoneNumberField(blank=True, default='')
     objects = AddressManager()
 
     @property
@@ -112,16 +102,11 @@ class UserManager(BaseUserManager):
 
 
 class User(PermissionsMixin, AbstractBaseUser):
-    email = models.EmailField(
-        unique=True)
-    addresses = models.ManyToManyField(
-        Address, blank=True)
-    is_staff = models.BooleanField(
-        default=False)
-    is_active = models.BooleanField(
-        default=True)
-    date_joined = models.DateTimeField(
-        default=timezone.now, editable=False)
+    email = models.EmailField(unique=True)
+    addresses = models.ManyToManyField(Address, blank=True)
+    is_staff = models.BooleanField(default=False)
+    is_active = models.BooleanField(default=True)
+    date_joined = models.DateTimeField(default=timezone.now, editable=False)
     default_shipping_address = models.ForeignKey(
         Address, related_name='+', null=True, blank=True,
         on_delete=models.SET_NULL)

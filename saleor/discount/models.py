@@ -87,24 +87,17 @@ class Voucher(models.Model):
 
     type = models.CharField(
         max_length=20, choices=TYPE_CHOICES, default=VALUE_TYPE)
-    name = models.CharField(
-        max_length=255, null=True, blank=True)
-    code = models.CharField(
-        max_length=12, unique=True, db_index=True)
-    usage_limit = models.PositiveIntegerField(
-        null=True, blank=True)
-    used = models.PositiveIntegerField(
-        default=0, editable=False)
-    start_date = models.DateField(
-        default=date.today)
-    end_date = models.DateField(
-        null=True, blank=True)
+    name = models.CharField(max_length=255, null=True, blank=True)
+    code = models.CharField(max_length=12, unique=True, db_index=True)
+    usage_limit = models.PositiveIntegerField(null=True, blank=True)
+    used = models.PositiveIntegerField(default=0, editable=False)
+    start_date = models.DateField(default=date.today)
+    end_date = models.DateField(null=True, blank=True)
 
     discount_value_type = models.CharField(
         max_length=10, choices=DISCOUNT_VALUE_TYPE_CHOICES,
         default=DISCOUNT_VALUE_FIXED)
-    discount_value = models.DecimalField(
-        max_digits=12, decimal_places=2)
+    discount_value = models.DecimalField(max_digits=12, decimal_places=2)
 
     # not mandatory fields, usage depends on type
     product = models.ForeignKey(
@@ -113,8 +106,7 @@ class Voucher(models.Model):
         'product.Category', blank=True, null=True, on_delete=models.CASCADE)
     apply_to = models.CharField(
         max_length=20, blank=True, null=True)
-    limit = PriceField(
-        max_digits=12, decimal_places=2, null=True,
+    limit = PriceField(max_digits=12, decimal_places=2, null=True,
         blank=True, currency=settings.DEFAULT_CURRENCY)
 
     objects = VoucherQueryset.as_manager()
@@ -263,12 +255,9 @@ class Sale(models.Model):
     name = models.CharField(max_length=255)
     type = models.CharField(
         max_length=10, choices=DISCOUNT_TYPE_CHOICES, default=FIXED)
-    value = models.DecimalField(
-        max_digits=12, decimal_places=2, default=0)
-    products = models.ManyToManyField(
-        'product.Product', blank=True)
-    categories = models.ManyToManyField(
-        'product.Category', blank=True)
+    value = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    products = models.ManyToManyField('product.Product', blank=True)
+    categories = models.ManyToManyField('product.Category', blank=True)
 
     class Meta:
         app_label = 'discount'

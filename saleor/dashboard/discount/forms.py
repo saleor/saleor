@@ -27,7 +27,7 @@ class SaleForm(forms.ModelForm):
                 'Sale name'),
             'type': pgettext_lazy(
                 'Sale form label',
-                'Type of products related to the sale'),
+                'Fixed or percentage'),
             'value': pgettext_lazy(
                 'Sale form label',
                 'Sale value'),
@@ -192,7 +192,7 @@ class ProductVoucherForm(CommonVoucherForm):
                 'Country'),
             'product': pgettext_lazy(
                 'Shipping voucher form label',
-                'product'),
+                'Product'),
         }
 
     def __init__(self, *args, **kwargs):
@@ -212,7 +212,7 @@ class CategoryVoucherForm(CommonVoucherForm):
                 'Country'),
             'category': pgettext_lazy(
                 'Category voucher form label',
-                'category'),
+                'Category'),
         }
 
     def __init__(self, *args, **kwargs):
