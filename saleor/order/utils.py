@@ -29,9 +29,10 @@ def check_order_status(func):
 
 
 def cancel_order(order):
-    """Cancells order by cancelling all associated shipment groups."""
+    """Cancels order by cancelling all associated shipment groups."""
     for group in order.groups.all():
-        cancel_delivery_group(group)
+        group.cancel()
+        group.save()
 
 
 def recalculate_order(order):
@@ -134,12 +135,6 @@ def add_variant_to_existing_lines(group, variant, total_quantity):
         if quantity_left == 0:
             break
     return quantity_left
-
-
-def cancel_delivery_group(group):
-    """Cancells shipment group and (optionally) it's order if necessary."""
-    group.cancel()
-    group.save()
 
 
 def merge_duplicates_into_order_line(line):
