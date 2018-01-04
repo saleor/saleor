@@ -359,7 +359,7 @@ class OrderHistoryEntry(models.Model):
 
 class OrderNote(models.Model):
     user = models.ForeignKey(
-        settings.AUTH_USER_MODEL, blank=True, null=True, 
+        settings.AUTH_USER_MODEL, blank=True, null=True,
         on_delete=models.SET_NULL)
     date = models.DateTimeField(auto_now_add=True)
     order = models.ForeignKey(
