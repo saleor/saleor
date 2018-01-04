@@ -2,7 +2,6 @@ from decimal import Decimal
 from uuid import uuid4
 
 from django.conf import settings
-from django.core.exceptions import ObjectDoesNotExist
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.db.models import Q
@@ -16,10 +15,11 @@ from payments.models import BasePayment
 from prices import FixedDiscount, Price
 from satchless.item import ItemLine, ItemSet
 
+from saleor.order.transitions import ship_delivery_group, cancel_delivery_group
 from . import emails, GroupStatus, OrderStatus
 from ..core.utils import build_absolute_uri
 from ..discount.models import Voucher
-from ..product.models import Product, Stock
+from ..product.models import Product
 from ..userprofile.models import Address
 
 
@@ -217,20 +217,14 @@ class DeliveryGroup(models.Model, ItemSet):
     @transition(
         field=status, source=GroupStatus.NEW, target=GroupStatus.SHIPPED)
     def ship(self):
-        for line in self.lines.all():
-            Stock.objects.decrease_stock(line.stock, line.quantity)
+        ship_delivery_group(self)
 
     @transition(
         field=status,
         source=[GroupStatus.NEW, GroupStatus.SHIPPED],
         target=GroupStatus.CANCELLED)
     def cancel(self):
-        if self.status == GroupStatus.NEW:
-            for line in self:
-                Stock.objects.deallocate_stock(line.stock, line.quantity)
-        else:
-            for line in self:
-                Stock.objects.increase_stock(line.stock, line.quantity)
+        cancel_delivery_group(self)
 
     @property
     def shipping_required(self):

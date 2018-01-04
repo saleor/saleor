@@ -13,9 +13,9 @@ from ...discount.models import Voucher
 from ...order import GroupStatus
 from ...order.models import DeliveryGroup, OrderLine, OrderNote
 from ...order.utils import (
-    add_variant_to_delivery_group, cancel_delivery_group, cancel_order,
-    change_order_line_quantity, merge_duplicates_into_order_line,
-    move_order_line_to_group, recalculate_order, remove_empty_groups
+    add_variant_to_delivery_group, cancel_order, change_order_line_quantity,
+    merge_duplicates_into_order_line, move_order_line_to_group,
+    recalculate_order, remove_empty_groups
 )
 from ...product.models import Product, ProductVariant, Stock
 
@@ -224,7 +224,8 @@ class CancelGroupForm(forms.Form):
         super().__init__(*args, **kwargs)
 
     def cancel_group(self):
-        cancel_delivery_group(self.delivery_group)
+        self.delivery_group.cancel()
+        self.delivery_group.save()
 
 
 class CancelOrderForm(forms.Form):
