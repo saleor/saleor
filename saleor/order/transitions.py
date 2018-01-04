@@ -3,11 +3,11 @@ from saleor.order.utils import add_variant_to_delivery_group
 from saleor.product.models import Stock
 
 
-def process_delivery_group(group, partition, discounts=None):
+def process_delivery_group(group, cart_lines, discounts=None):
     """Fills shipment group with order lines created from partition items."""
-    for item in partition:
+    for line in cart_lines:
         add_variant_to_delivery_group(
-            group, item.variant, item.get_quantity(), discounts,
+            group, line.variant, line.get_quantity(), discounts,
             add_to_existing=False)
 
 
