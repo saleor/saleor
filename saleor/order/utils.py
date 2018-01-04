@@ -9,13 +9,14 @@ from satchless.item import InsufficientStock
 
 from ..product.models import Stock
 from ..userprofile.utils import store_user_address
-from .models import Order, OrderLine
 from . import GroupStatus
 
 
 def check_order_status(func):
     """Preserves execution of function if order is fully paid by redirecting
     to order's details page."""
+    from .models import Order
+
     @wraps(func)
     def decorator(*args, **kwargs):
         token = kwargs.pop('token')
@@ -60,7 +61,7 @@ def attach_order_to_user(order, user):
 
 
 def add_variant_to_delivery_group(
-        group, variant, total_quantity, discounts=None):
+        group, variant, total_quantity, discounts=None, add_to_existing=True):
     """Adds total_quantity of variant to group.
     Raises InsufficientStock exception if quantity could not be fulfilled.
 
@@ -70,8 +71,9 @@ def add_variant_to_delivery_group(
     Order lines are created by increasing quantity of lines,
     as long as total_quantity of variant will be added.
     """
-    quantity_left = add_variant_to_existing_lines(
-        group, variant, total_quantity)
+    quantity_left = (
+        add_variant_to_existing_lines(group, variant, total_quantity)
+        if add_to_existing else total_quantity)
     price = variant.get_price_per_item(discounts)
     while quantity_left > 0:
         stock = variant.select_stockrecord()
@@ -175,6 +177,7 @@ def remove_empty_groups(line, force=False):
 
 
 def move_order_line_to_group(line, target_group, quantity):
+    from .models import OrderLine
     """Moves given quantity of order line to another shipment group."""
     try:
         target_line = target_group.lines.get(
