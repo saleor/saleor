@@ -2,15 +2,17 @@ from decimal import Decimal
 
 from django.urls import reverse
 import pytest
+
 from tests.utils import get_redirect_location, get_url_path
 
-from saleor.dashboard.order.forms import ChangeQuantityForm, MoveLinesForm
+from saleor.dashboard.order.forms import ChangeQuantityForm
 from saleor.order import OrderStatus
 from saleor.order.models import (
     DeliveryGroup, Order, OrderHistoryEntry, OrderLine)
+from saleor.order.transitions import process_delivery_group
 from saleor.order.utils import (
     add_variant_to_existing_lines, change_order_line_quantity,
-    fill_group_with_partition, remove_empty_groups)
+    remove_empty_groups)
 from saleor.product.models import ProductVariant, Stock, StockLocation
 
 
@@ -127,7 +129,7 @@ def test_view_change_order_line_quantity_with_invalid_data(
 def test_dashboard_change_quantity_form(request_cart_with_item, order):
     cart = request_cart_with_item
     group = DeliveryGroup.objects.create(order=order)
-    fill_group_with_partition(group, cart.lines.all())
+    process_delivery_group(group, cart.lines.all())
     order_line = group.lines.get()
 
     # Check max quantity validation
