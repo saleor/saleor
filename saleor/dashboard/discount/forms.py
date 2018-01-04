@@ -23,19 +23,19 @@ class SaleForm(forms.ModelForm):
         exclude = []
         labels = {
             'name': pgettext_lazy(
-                'Sale form label',
+                'Sale name',
                 'Name'),
             'type': pgettext_lazy(
-                'Sale form label',
+                'Fixed or percentage',
                 'Fixed or percentage'),
             'value': pgettext_lazy(
-                'Sale form label',
+                'Sale value',
                 'Value'),
             'products': pgettext_lazy(
-                'Sale form label',
+                'Products in sale',
                 'Products in sale'),
             'categories': pgettext_lazy(
-                'Sale form label',
+                'Categories',
                 'Categories')}
 
     def __init__(self, *args, **kwargs):
@@ -61,26 +61,26 @@ class VoucherForm(forms.ModelForm):
         exclude = ['limit', 'apply_to', 'product', 'category']
         labels = {
             'type': pgettext_lazy(
-                'Voucher form label',
+                'Discount type',
                 'Discount type'),
             'name': pgettext_lazy(
-                'Voucher form label',
+                'Voucher name',
                 'Name'),
             'code': pgettext_lazy(
-                'Voucher form label',
+                'Voucher code',
                 'Code'),
             'usage_limit': pgettext_lazy(
-                'Voucher form label',
-                'Limit for using the voucher'),
+                'Usage limit',
+                'Usage limit'),
             'used': pgettext_lazy(
-                'Voucher form label',
-                'Number of voucher usages'),
+                'Number of used vouchers',
+                'Number of used vouchers'),
             'start_date': pgettext_lazy(
-                'Voucher form label',
-                'Date voucher starts being valid'),
+                'Discount start date',
+                'Discount start date'),
             'end_date': pgettext_lazy(
-                'Voucher form label',
-                'Date voucher stops being valid')}
+                'Discount end date',
+                'Discount end date')}
 
     def __init__(self, *args, **kwargs):
         initial = kwargs.get('initial', {})
@@ -120,10 +120,10 @@ class ShippingVoucherForm(forms.ModelForm):
         fields = ['apply_to', 'limit']
         labels = {
             'apply_to': pgettext_lazy(
-                'Shipping voucher form label',
+                'Country',
                 'Country'),
             'limit': pgettext_lazy(
-                'Shipping voucher form label',
+                'Lowest value for order to be able to use the voucher',
                 'Only if order is over or equal to')}
 
     def save(self, commit=True):
@@ -142,7 +142,7 @@ class ValueVoucherForm(forms.ModelForm):
         fields = ['limit']
         labels = {
             'limit': pgettext_lazy(
-                'Value voucher form label',
+                'Lowest value for order to be able to use the voucher',
                 'Only if purchase value is greater than or equal to')}
 
     def save(self, commit=True):
@@ -185,10 +185,10 @@ class ProductVoucherForm(CommonVoucherForm):
         fields = ['product', 'apply_to']
         labels = {
             'apply_to': pgettext_lazy(
-                'Shipping voucher form label',
+                'Country',
                 'Country'),
             'product': pgettext_lazy(
-                'Shipping voucher form label',
+                'Product',
                 'Product')}
 
     def __init__(self, *args, **kwargs):
@@ -204,10 +204,10 @@ class CategoryVoucherForm(CommonVoucherForm):
         fields = ['category', 'apply_to']
         labels = {
             'apply_to': pgettext_lazy(
-                'Category voucher form label',
+                'Country',
                 'Country'),
             'category': pgettext_lazy(
-                'Category voucher form label',
+                'Category',
                 'Category')}
 
     def __init__(self, *args, **kwargs):

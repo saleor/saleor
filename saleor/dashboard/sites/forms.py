@@ -11,9 +11,9 @@ class SiteForm(forms.ModelForm):
         exclude = []
         labels = {
             'domain': pgettext_lazy(
-                'Site form label', 'Domain name'),
+                'Domain name', 'Domain name'),
             'name': pgettext_lazy(
-                'Site form label', 'Display name')}
+                'Display name', 'Display name')}
 
 
 class SiteSettingsForm(forms.ModelForm):
@@ -22,9 +22,9 @@ class SiteSettingsForm(forms.ModelForm):
         exclude = ['site']
         labels = {
             'header_text': pgettext_lazy(
-                'Site settings form label', 'Header text'),
+                'Header text', 'Header text'),
             'description': pgettext_lazy(
-                'Site settings form label', 'Site description')}
+                'Site description', 'Description')}
 
 
 class AuthorizationKeyForm(forms.ModelForm):
@@ -33,13 +33,13 @@ class AuthorizationKeyForm(forms.ModelForm):
         exclude = []
         labels = {
             'site_settings': pgettext_lazy(
-                'Authorization key form label form label', 'Site settings'),
+                'Site settings', 'Settings'),
             'key': pgettext_lazy(
-                'Authorization key form label form label', 'Key'),
+                'Key', 'Key'),
             'password': pgettext_lazy(
-                'Authorization key form label form label', 'Password'),
+                'Password', 'Password'),
             'name': pgettext_lazy(
-                'Authorization key form label form label', 'Name')}
+                'Authorization key name', 'Name')}
         widgets = {'password': forms.PasswordInput(render_value=True),
                    'key': forms.TextInput(),
                    'site_settings': forms.widgets.HiddenInput()}
