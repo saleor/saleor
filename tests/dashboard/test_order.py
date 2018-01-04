@@ -2,11 +2,12 @@ from decimal import Decimal
 
 from django.urls import reverse
 import pytest
+from django_fsm import TransitionNotAllowed
 
 from tests.utils import get_redirect_location, get_url_path
 
 from saleor.dashboard.order.forms import ChangeQuantityForm
-from saleor.order import OrderStatus
+from saleor.order import GroupStatus, OrderStatus
 from saleor.order.models import (
     DeliveryGroup, Order, OrderHistoryEntry, OrderLine)
 from saleor.order.transitions import process_delivery_group
@@ -526,3 +527,78 @@ def test_view_add_variant_to_delivery_group(
     assert get_redirect_location(response) == reverse(
         'dashboard:order-details', kwargs={'order_pk': order.pk})
     assert line.quantity == 4
+
+
+def test_ship_new_delivery_group(delivery_group):
+    line = delivery_group.lines.first()
+    quantity = line.quantity
+    stock = line.stock
+    stock_quantity = stock.quantity
+    stock_quantity_allocated = stock.quantity_allocated
+
+    delivery_group.ship()
+    delivery_group.save()
+
+    stock.refresh_from_db()
+    assert delivery_group.status == GroupStatus.SHIPPED
+    assert stock.quantity == stock_quantity - quantity
+    assert stock.quantity_allocated == stock_quantity_allocated - quantity
+
+
+def test_cant_ship_cancelled_delivery_group(delivery_group):
+    delivery_group.cancel()
+    delivery_group.save()
+
+    with pytest.raises(TransitionNotAllowed):
+        delivery_group.ship()
+
+
+def test_cant_ship_shipped_delivery_group(delivery_group):
+    delivery_group.ship()
+    delivery_group.save()
+
+    with pytest.raises(TransitionNotAllowed):
+        delivery_group.ship()
+
+
+def test_cancel_new_delivery_group(delivery_group):
+    line = delivery_group.lines.first()
+    quantity = line.quantity
+    stock = line.stock
+    stock_quantity = stock.quantity
+    stock_quantity_allocated = stock.quantity_allocated
+
+    delivery_group.cancel()
+    delivery_group.save()
+
+    stock.refresh_from_db()
+    assert delivery_group.status == GroupStatus.CANCELLED
+    assert stock.quantity == stock_quantity
+    assert stock.quantity_allocated == stock_quantity_allocated - quantity
+
+
+def test_cancel_shipped_delivery_group(delivery_group):
+    delivery_group.ship()
+    delivery_group.save()
+
+    line = delivery_group.lines.first()
+    quantity = line.quantity
+    stock = line.stock
+    stock_quantity = stock.quantity
+    stock_quantity_allocated = stock.quantity_allocated
+
+    delivery_group.cancel()
+    delivery_group.save()
+
+    stock.refresh_from_db()
+    assert delivery_group.status == GroupStatus.CANCELLED
+    assert line.stock.quantity == stock_quantity + quantity
+    assert line.stock.quantity_allocated == stock_quantity_allocated
+
+
+def test_cant_cancel_cancelled_delivery_group(delivery_group):
+    delivery_group.cancel()
+    delivery_group.save()
+
+    with pytest.raises(TransitionNotAllowed):
+        delivery_group.cancel()
