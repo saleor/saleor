@@ -3,9 +3,11 @@ from decimal import Decimal
 from django.urls import reverse
 import pytest
 from django_fsm import TransitionNotAllowed
+from prices import Price
 
 from tests.utils import get_redirect_location, get_url_path
 
+from saleor.cart.models import Cart
 from saleor.dashboard.order.forms import ChangeQuantityForm
 from saleor.order import GroupStatus, OrderStatus
 from saleor.order.models import (
@@ -602,3 +604,60 @@ def test_cant_cancel_cancelled_delivery_group(delivery_group):
 
     with pytest.raises(TransitionNotAllowed):
         delivery_group.cancel()
+
+
+def test_process_new_delivery_group(billing_address, product_in_stock):
+    variant = product_in_stock.variants.get()
+    cart = Cart()
+    cart.save()
+    cart.add(variant, quantity=2)
+    order = Order.objects.create(billing_address=billing_address)
+    group = DeliveryGroup.objects.create(order=order)
+
+    group.process(cart.lines.all())
+    group.save()
+
+    assert group.status == GroupStatus.NEW
+    order_line = group.lines.get()
+    stock = order_line.stock
+    assert stock.quantity_allocated == 2
+
+
+def test_process_new_delivery_group_with_discount(
+        sale, order, request_cart_with_item):
+    cart = request_cart_with_item
+    group = DeliveryGroup.objects.create(order=order)
+
+    group.process(cart.lines.all(), cart.discounts)
+    group.save()
+
+    line = group.lines.first()
+    assert line.get_price_per_item() == Price(currency="USD", net=5)
+
+
+def test_cant_process_cancelled_delivery_group(
+        delivery_group, product_in_stock):
+    delivery_group.cancel()
+    delivery_group.save()
+
+    variant = product_in_stock.variants.get()
+    cart = Cart()
+    cart.save()
+    cart.add(variant, quantity=2)
+
+    with pytest.raises(TransitionNotAllowed):
+        delivery_group.process(cart.lines.all())
+
+
+def test_cant_process_shipped_delivery_group(
+        delivery_group, product_in_stock):
+    delivery_group.ship()
+    delivery_group.save()
+
+    variant = product_in_stock.variants.get()
+    cart = Cart()
+    cart.save()
+    cart.add(variant, quantity=2)
+
+    with pytest.raises(TransitionNotAllowed):
+        delivery_group.process(cart.lines.all())
