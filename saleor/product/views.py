@@ -65,9 +65,6 @@ def product_details(request, slug, product_id, form=None):
     product_attributes = get_product_attributes_data(product)
     # show_variant_picker determines if variant picker is used or select input
     show_variant_picker = all([v.attributes for v in product.variants.all()])
-    has_variants = product.variants.count() > 1
-    # first_variant is used in hidden input if has_variants is False
-    first_variant = product.variants.all()[0]
     json_ld_data = product_json_ld(product, availability, product_attributes)
     return TemplateResponse(
         request, 'product/details.html',
@@ -81,9 +78,7 @@ def product_details(request, slug, product_id, form=None):
          'variant_picker_data': json.dumps(
              variant_picker_data, default=serialize_decimal),
          'json_ld_product_data': json.dumps(
-             json_ld_data, default=serialize_decimal),
-         'has_variants': has_variants,
-         'first_variant': first_variant})
+             json_ld_data, default=serialize_decimal)})
 
 
 def product_add_to_cart(request, slug, product_id):
