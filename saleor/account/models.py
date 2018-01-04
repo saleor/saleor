@@ -12,8 +12,7 @@ from django_countries.fields import Country, CountryField
 from phonenumber_field.modelfields import PhoneNumber, PhoneNumberField
 
 from ..core.models import BaseNote
-from saleor.core.templatetags.demo_obfuscators import obfuscate_email
-
+from ..core.templatetags.demo_obfuscators import obfuscate_email
 from .validators import validate_possible_number
 
 
