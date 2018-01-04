@@ -7,6 +7,7 @@ from django.template.response import TemplateResponse
 from django.urls import reverse
 from django.utils.translation import pgettext
 
+from ..core.templatetags.demo_obfuscators import obfuscate_address
 from ..core.utils import get_paginator_items
 from .forms import (
     ChangePasswordForm, get_address_form, logout_on_password_change)
@@ -38,8 +39,9 @@ def get_or_process_password_form(request):
 @login_required
 def address_edit(request, pk):
     address = get_object_or_404(request.user.addresses, pk=pk)
+    obfuscated_address = obfuscate_address(address)
     address_form, preview = get_address_form(
-        request.POST or None, instance=address,
+        request.POST or None, instance=obfuscated_address,
         country_code=address.country.code)
     if address_form.is_valid() and not preview:
         address_form.save()
