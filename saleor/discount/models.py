@@ -106,8 +106,9 @@ class Voucher(models.Model):
         'product.Category', blank=True, null=True, on_delete=models.CASCADE)
     apply_to = models.CharField(
         max_length=20, blank=True, null=True)
-    limit = PriceField(max_digits=12, decimal_places=2, null=True,
-        blank=True, currency=settings.DEFAULT_CURRENCY)
+    limit = PriceField(
+        max_digits=12, decimal_places=2, null=True, blank=True,
+        currency=settings.DEFAULT_CURRENCY)
 
     objects = VoucherQueryset.as_manager()
 
