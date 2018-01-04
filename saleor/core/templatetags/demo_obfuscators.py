@@ -12,7 +12,7 @@ def obfuscate_address(address):
     This filter returns fake Address instance that keeps original's names but
     obfuscates street, city and postal code.
     '''
-    from saleor.userprofile.models import Address
+    from ...userprofile.models import Address
 
     try:
         return Address(
