@@ -55,11 +55,9 @@ class Order(models.Model, ItemSet):
     user_email = models.EmailField(
         blank=True, default='', editable=False)
     shipping_price = PriceField(
-        pgettext_lazy('Order field', 'shipping price'),
         currency=settings.DEFAULT_CURRENCY, max_digits=12, decimal_places=4,
         default=0, editable=False)
-    token = models.CharField(
-        max_length=36, unique=True)
+    token = models.CharField(max_length=36, unique=True)
     total_net = PriceField(
         currency=settings.DEFAULT_CURRENCY, max_digits=12, decimal_places=2,
         blank=True, null=True)
@@ -71,8 +69,7 @@ class Order(models.Model, ItemSet):
     discount_amount = PriceField(
         currency=settings.DEFAULT_CURRENCY, max_digits=12, decimal_places=2,
         blank=True, null=True)
-    discount_name = models.CharField(
-        max_length=255, default='', blank=True)
+    discount_name = models.CharField(max_length=255, default='', blank=True)
 
     objects = OrderQuerySet.as_manager()
 
@@ -200,10 +197,8 @@ class DeliveryGroup(models.Model, ItemSet):
         Order, related_name='groups', editable=False, on_delete=models.CASCADE)
     shipping_method_name = models.CharField(
         max_length=255, null=True, default=None, blank=True, editable=False)
-    tracking_number = models.CharField(
-        max_length=255, default='', blank=True)
-    last_updated = models.DateTimeField(
-        null=True, auto_now=True)
+    tracking_number = models.CharField(max_length=255, default='', blank=True)
+    last_updated = models.DateTimeField(null=True, auto_now=True)
 
     def __str__(self):
         return pgettext_lazy(
@@ -244,21 +239,15 @@ class OrderLine(models.Model, ItemLine):
     product = models.ForeignKey(
         Product, blank=True, null=True, related_name='+',
         on_delete=models.SET_NULL)
-    product_name = models.CharField(
-        max_length=128)
-    product_sku = models.CharField(
-        max_length=32)
-    stock_location = models.CharField(
-        max_length=100,
-        default='')
+    product_name = models.CharField(max_length=128)
+    product_sku = models.CharField(max_length=32)
+    stock_location = models.CharField(max_length=100, default='')
     stock = models.ForeignKey(
         'product.Stock', on_delete=models.SET_NULL, null=True)
     quantity = models.IntegerField(
         validators=[MinValueValidator(0), MaxValueValidator(999)])
-    unit_price_net = models.DecimalField(
-        max_digits=12, decimal_places=4)
-    unit_price_gross = models.DecimalField(
-        max_digits=12, decimal_places=4)
+    unit_price_net = models.DecimalField(max_digits=12, decimal_places=4)
+    unit_price_gross = models.DecimalField(max_digits=12, decimal_places=4)
 
     def __str__(self):
         return self.product_name
@@ -331,15 +320,11 @@ class Payment(BasePayment):
 
 
 class OrderHistoryEntry(models.Model):
-    date = models.DateTimeField(
-        default=now, editable=False)
+    date = models.DateTimeField(default=now, editable=False)
     order = models.ForeignKey(
-        Order, related_name='history',
-        on_delete=models.CASCADE)
-    status = models.CharField(
-        max_length=32, choices=OrderStatus.CHOICES)
-    comment = models.CharField(
-        max_length=100, default='', blank=True)
+        Order, related_name='history', on_delete=models.CASCADE)
+    status = models.CharField(max_length=32, choices=OrderStatus.CHOICES)
+    comment = models.CharField(max_length=100, default='', blank=True)
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL, blank=True, null=True,
         on_delete=models.SET_NULL)
@@ -359,8 +344,7 @@ class OrderNote(models.Model):
     date = models.DateTimeField(auto_now_add=True)
     order = models.ForeignKey(
         Order, related_name='notes', on_delete=models.CASCADE)
-    content = models.CharField(
-        max_length=250)
+    content = models.CharField(max_length=250)
 
     def __str__(self):
         return pgettext_lazy(

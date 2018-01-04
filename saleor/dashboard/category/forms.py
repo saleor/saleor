@@ -22,16 +22,16 @@ class CategoryForm(forms.ModelForm):
         labels = {
             'name': pgettext_lazy(
                 'Category field',
-                'category name'),
+                'Name'),
             'description': pgettext_lazy(
                 'Category field',
-                'category description'),
+                'Description'),
             'is_hidden': pgettext_lazy(
                 'Category field',
                 'Hide in navigation'),
             'parent': pgettext_lazy(
                 'Category field',
-                'category parent')}
+                'Category parent')}
 
     def save(self, commit=True):
         self.instance.slug = slugify(unidecode(self.instance.name))
