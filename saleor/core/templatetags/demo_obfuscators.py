@@ -34,6 +34,9 @@ def obfuscate_email(value):
 
     We are using naive e-mail validation here, just checking for @'s presence
     in filtered string, and fallback to obfuscate_string() if its not found.
+
+    If value to be obfuscated is same as one defined in the DEMO_ADMIN_EMAIL
+    setting, obfuscation will be skipped.
     '''
     string_rep = str(value)
     if string_rep == settings.DEMO_ADMIN_EMAIL:

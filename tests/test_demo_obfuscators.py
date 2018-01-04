@@ -40,7 +40,8 @@ def test_obfuscate_email():
     assert obfuscate_email('t') == obfuscate_string('t')
     assert obfuscate_email('test') == obfuscate_string('test')
 
-    assert obfuscate_email(settings.DEMO_ADMIN_EMAIL) == settings.DEMO_ADMIN_EMAIL
+    assert obfuscate_email(
+        settings.DEMO_ADMIN_EMAIL) == settings.DEMO_ADMIN_EMAIL
 
 
 def test_obfuscate_phone():
