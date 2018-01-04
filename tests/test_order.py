@@ -2,8 +2,8 @@ from prices import Price
 
 from saleor.cart.models import Cart
 from saleor.order import models, OrderStatus
-from saleor.order.utils import (
-    add_variant_to_delivery_group, fill_group_with_partition)
+from saleor.order.transitions import process_delivery_group
+from saleor.order.utils import add_variant_to_delivery_group
 
 
 def test_total_property():
@@ -33,7 +33,7 @@ def test_stock_allocation(billing_address, product_in_stock):
     cart.add(variant, quantity=2)
     order = models.Order.objects.create(billing_address=billing_address)
     delivery_group = models.DeliveryGroup.objects.create(order=order)
-    fill_group_with_partition(delivery_group, cart.lines.all())
+    process_delivery_group(delivery_group, cart.lines.all())
     order_line = delivery_group.lines.get()
     stock = order_line.stock
     assert stock.quantity_allocated == 2
@@ -42,7 +42,7 @@ def test_stock_allocation(billing_address, product_in_stock):
 def test_order_discount(sale, order, request_cart_with_item):
     cart = request_cart_with_item
     group = models.DeliveryGroup.objects.create(order=order)
-    fill_group_with_partition(
+    process_delivery_group(
         group, cart.lines.all(), discounts=cart.discounts)
     line = group.lines.first()
     assert line.get_price_per_item() == Price(currency="USD", net=5)

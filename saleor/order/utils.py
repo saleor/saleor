@@ -59,16 +59,8 @@ def attach_order_to_user(order, user):
     order.save(update_fields=['user'])
 
 
-def fill_group_with_partition(group, partition, discounts=None):
-    """Fills shipment group with order lines created from partition items."""
-    for item in partition:
-        add_variant_to_delivery_group(
-            group, item.variant, item.get_quantity(), discounts,
-            add_to_existing=False)
-
-
 def add_variant_to_delivery_group(
-        group, variant, total_quantity, discounts=None, add_to_existing=True):
+        group, variant, total_quantity, discounts=None):
     """Adds total_quantity of variant to group.
     Raises InsufficientStock exception if quantity could not be fulfilled.
 
@@ -78,10 +70,8 @@ def add_variant_to_delivery_group(
     Order lines are created by increasing quantity of lines,
     as long as total_quantity of variant will be added.
     """
-    quantity_left = (
-        add_variant_to_existing_lines(
-            group, variant, total_quantity) if add_to_existing
-        else total_quantity)
+    quantity_left = add_variant_to_existing_lines(
+        group, variant, total_quantity)
     price = variant.get_price_per_item(discounts)
     while quantity_left > 0:
         stock = variant.select_stockrecord()

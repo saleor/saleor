@@ -15,7 +15,8 @@ from payments.models import BasePayment
 from prices import FixedDiscount, Price
 from satchless.item import ItemLine, ItemSet
 
-from saleor.order.transitions import ship_delivery_group, cancel_delivery_group
+from saleor.order.transitions import (
+    cancel_delivery_group, process_delivery_group, ship_delivery_group)
 from . import emails, GroupStatus, OrderStatus
 from ..core.utils import build_absolute_uri
 from ..discount.models import Voucher
@@ -213,6 +214,11 @@ class DeliveryGroup(models.Model, ItemSet):
         if self.id:
             return iter(self.lines.all())
         return super().__iter__()
+
+    @transition(
+        field=status, source=GroupStatus.NEW, target=GroupStatus.NEW)
+    def process(self, partition, discounts=None):
+        process_delivery_group(self, partition, discounts)
 
     @transition(
         field=status, source=GroupStatus.NEW, target=GroupStatus.SHIPPED)
