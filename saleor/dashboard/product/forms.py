@@ -33,8 +33,7 @@ class StockForm(forms.ModelForm):
             'quantity': pgettext_lazy(
                 'Stock form label', 'Quantity'),
             'cost_price': pgettext_lazy(
-                'Stock form label', 'Cost price'),
-        }
+                'Stock form label', 'Cost price')}
 
     def __init__(self, *args, **kwargs):
         self.variant = kwargs.pop('variant')
@@ -64,10 +63,10 @@ class ProductClassForm(forms.ModelForm):
         labels = {
             'name': pgettext_lazy(
                 'Product class form label',
-                'Product class name'),
+                'Name'),
             'has_variants': pgettext_lazy(
                 'Product class form label',
-                'Check if product has more than one variant'),
+                'Enable variants'),
             'variant_attributes': pgettext_lazy(
                 'Product class form label',
                 'Attributes specific to each variant'),

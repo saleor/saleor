@@ -25,13 +25,11 @@ class OrderNoteForm(forms.ModelForm):
         model = OrderNote
         fields = ['content']
         widgets = {
-            'content': forms.Textarea()
-        }
+            'content': forms.Textarea()}
         labels = {
             'content': pgettext_lazy(
                 'Order note form label',
-                'Note for the order'),
-        }
+                'Note for the order')}
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
