@@ -1,7 +1,7 @@
 from phonenumber_field.phonenumber import PhoneNumber
 
 from saleor.core.utils import random_data
-from saleor.dashboard.templatetags.demo_obfuscators import (
+from saleor.core.templatetags.demo_obfuscators import (
     obfuscate_address, obfuscate_email, obfuscate_phone, obfuscate_string)
 from saleor.userprofile.models import User
 
@@ -15,7 +15,18 @@ def test_obfuscate_address():
     assert obfuscated_address.street_address_2 == ''
 
     assert obfuscated_address.street_address_1 != address.street_address_1
+    assert obfuscated_address.city != address.city
     assert obfuscated_address.postal_code != address.postal_code
+
+    assert obfuscated_address.first_name == address.first_name
+    assert obfuscated_address.last_name == address.last_name
+    assert obfuscated_address.country == address.country
+
+    assert obfuscated_address.street_address_1 == obfuscate_string(
+        address.street_address_1)
+    assert obfuscated_address.city == obfuscate_string(address.city)
+    assert obfuscated_address.postal_code == obfuscate_string(
+        address.postal_code)
 
 
 def test_obfuscate_email():
@@ -31,7 +42,7 @@ def test_obfuscate_email():
 
 def test_obfuscate_phone():
     assert obfuscate_phone(
-        PhoneNumber.from_string('+447446844846')) == '+44...'
+        PhoneNumber.from_string('+447446844846')) == '+44...46'
 
     assert obfuscate_phone('') == ''
     assert obfuscate_phone('abcd') == 'abc...'
@@ -41,4 +52,7 @@ def test_obfuscate_string():
     assert obfuscate_string('') == ''
     assert obfuscate_string('t') == 't...'
     assert obfuscate_string('test') == 'tes...'
-    assert obfuscate_string(User(email='test@example.com')) == 'tes...'
+    assert obfuscate_string('loremi') == 'lor...'
+    assert obfuscate_string('loremip') == 'lor...p'
+    assert obfuscate_string('loremipsum') == 'lor...sum'
+    assert obfuscate_string(User(email='test@example.com')) == 'tes...com'

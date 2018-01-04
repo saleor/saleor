@@ -1,13 +1,18 @@
 import i18naddress
 from django import template
 from django.utils.translation import pgettext
+import i18naddress
+
+from ...core.templatetags.demo_obfuscators import obfuscate_address
+from ...userprofile.models import Address
 
 register = template.Library()
 
 
-@register.inclusion_tag('formatted_address.html')
+@register.simple_tag
 def format_address(address, include_phone=True, inline=False, latin=False):
-    address_data = address.as_data()
+    obfuscaded_address = obfuscate_address(address)
+    address_data = Address.objects.as_data(obfuscaded_address)
     address_data['name'] = pgettext(
         'Address data', '%(first_name)s %(last_name)s') % address_data
     address_data['country_code'] = address_data['country']
