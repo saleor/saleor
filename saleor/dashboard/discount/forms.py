@@ -80,8 +80,7 @@ class VoucherForm(forms.ModelForm):
                 'Date voucher starts being valid'),
             'end_date': pgettext_lazy(
                 'Voucher form label',
-                'Date voucher stops being valid'),
-        }
+                'Date voucher stops being valid')}
 
     def __init__(self, *args, **kwargs):
         initial = kwargs.get('initial', {})
@@ -125,8 +124,7 @@ class ShippingVoucherForm(forms.ModelForm):
                 'Country'),
             'limit': pgettext_lazy(
                 'Shipping voucher form label',
-                'Only if order is over or equal to'),
-        }
+                'Only if order is over or equal to')}
 
     def save(self, commit=True):
         self.instance.category = None
@@ -145,8 +143,7 @@ class ValueVoucherForm(forms.ModelForm):
         labels = {
             'limit': pgettext_lazy(
                 'Value voucher form label',
-                'Only if purchase value is greater than or equal to'),
-        }
+                'Only if purchase value is greater than or equal to')}
 
     def save(self, commit=True):
         self.instance.category = None
@@ -192,8 +189,7 @@ class ProductVoucherForm(CommonVoucherForm):
                 'Country'),
             'product': pgettext_lazy(
                 'Shipping voucher form label',
-                'Product'),
-        }
+                'Product')}
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -212,8 +208,7 @@ class CategoryVoucherForm(CommonVoucherForm):
                 'Country'),
             'category': pgettext_lazy(
                 'Category voucher form label',
-                'Category'),
-        }
+                'Category')}
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
