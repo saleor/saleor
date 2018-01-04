@@ -107,7 +107,6 @@
                     <td>
                       {% render_status order.status order.get_status_display %}
                     </td>
-                    {% trans "Guest" context "Anonymous user account value" %}
                     <td>
                       {% if order.user %}
                         {{ order.user|obfuscate_email }}
