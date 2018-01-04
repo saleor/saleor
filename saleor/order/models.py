@@ -217,8 +217,8 @@ class DeliveryGroup(models.Model, ItemSet):
 
     @transition(
         field=status, source=GroupStatus.NEW, target=GroupStatus.NEW)
-    def process(self, partition, discounts=None):
-        process_delivery_group(self, partition, discounts)
+    def process(self, cart_lines, discounts=None):
+        process_delivery_group(self, cart_lines, discounts)
 
     @transition(
         field=status, source=GroupStatus.NEW, target=GroupStatus.SHIPPED)
