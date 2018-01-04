@@ -24,19 +24,19 @@ class SaleForm(forms.ModelForm):
         labels = {
             'name': pgettext_lazy(
                 'Sale form label',
-                'Sale name'),
+                'Name'),
             'type': pgettext_lazy(
                 'Sale form label',
                 'Fixed or percentage'),
             'value': pgettext_lazy(
                 'Sale form label',
-                'Sale value'),
+                'Value'),
             'products': pgettext_lazy(
                 'Sale form label',
                 'Products in sale'),
             'categories': pgettext_lazy(
                 'Sale form label',
-                'Sale categories')}
+                'Categories')}
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -65,10 +65,10 @@ class VoucherForm(forms.ModelForm):
                 'Discount type'),
             'name': pgettext_lazy(
                 'Voucher form label',
-                'Voucher name'),
+                'Name'),
             'code': pgettext_lazy(
                 'Voucher form label',
-                'Voucher code'),
+                'Code'),
             'usage_limit': pgettext_lazy(
                 'Voucher form label',
                 'Limit for using the voucher'),

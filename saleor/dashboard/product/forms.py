@@ -29,11 +29,11 @@ class StockForm(forms.ModelForm):
         exclude = ['quantity_allocated', 'variant']
         labels = {
             'location': pgettext_lazy(
-                'Stock form label', 'location'),
+                'Stock form label', 'Location'),
             'quantity': pgettext_lazy(
-                'Stock form label', 'quantity'),
+                'Stock form label', 'Quantity'),
             'cost_price': pgettext_lazy(
-                'Stock form label', 'cost price'),
+                'Stock form label', 'Cost price'),
         }
 
     def __init__(self, *args, **kwargs):
