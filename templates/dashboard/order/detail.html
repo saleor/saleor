@@ -1,6 +1,5 @@
 {% extends "dashboard/base.html" %}
 {% load babel %}
-{% load demo_obfuscators %}
 {% load prices_i18n %}
 {% load i18n %}
 {% load i18n_address_tags %}
@@ -8,6 +7,7 @@
 {% load status %}
 {% load staticfiles %}
 {% load voucher %}
+{% load demo_obfuscators %}
 
 {% block title %}
   {{ order }} - {% trans "Orders" context "Dashboard orders list" %} - {{ block.super }}
@@ -119,7 +119,7 @@
               </h6>
               <p>
                 {% if order.user %}
-                  <a href="{% url "dashboard:customer-details" pk=order.user.pk %}">{{ order.user|obfuscate_email }}</a>
+                  <a href="{% url "dashboard:customer-details" pk=order.user.pk %}">{{ order.user }}</a>
                 {% elif order.user_email %}
                   {{ order.user_email|obfuscate_email }}
                 {% else %}

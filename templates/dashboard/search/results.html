@@ -1,4 +1,5 @@
 {% extends "dashboard/base.html" %}
+{% load demo_obfuscators %}
 {% load i18n %}
 {% load prices_i18n %}
 {% load materializecss %}
@@ -57,7 +58,7 @@
                 </span>
                 <p class="list-item-price">
                   <small>
-                    {% blocktrans trimmed context "Dashboard customer" with email=order.user_email %}
+                    {% blocktrans trimmed context "Dashboard customer" with email=order.user_email|obfuscate_email %}
                       Customer: {{ email }}
                     {% endblocktrans %}
                   </small>
@@ -80,7 +81,7 @@
               <a href="{% url 'dashboard:customer-details' pk=user.pk %}">
                 <i class="small material-icons circle">perm_identity</i>
                 <span class="list-item-name">
-                  {% blocktrans trimmed with full_name=user.get_full_name context "Dashboard user" %}
+                  {% blocktrans trimmed with full_name=user context "Dashboard user" %}
                     User {{ full_name }}
                   {% endblocktrans %}
                 </span>

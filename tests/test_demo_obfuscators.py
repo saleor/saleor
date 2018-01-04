@@ -1,3 +1,4 @@
+from django.conf import settings
 from phonenumber_field.phonenumber import PhoneNumber
 
 from saleor.core.utils import random_data
@@ -38,6 +39,8 @@ def test_obfuscate_email():
     assert obfuscate_email('') == obfuscate_string('')
     assert obfuscate_email('t') == obfuscate_string('t')
     assert obfuscate_email('test') == obfuscate_string('test')
+
+    assert obfuscate_email(settings.DEMO_ADMIN_EMAIL) == settings.DEMO_ADMIN_EMAIL
 
 
 def test_obfuscate_phone():

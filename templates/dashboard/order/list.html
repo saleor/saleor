@@ -1,5 +1,4 @@
 {% extends "dashboard/base.html" %}
-{% load demo_obfuscators %}
 {% load i18n %}
 {% load prices_i18n %}
 {% load status %}
@@ -54,7 +53,7 @@
                     </td>
                     <td>
                       {% if order.user %}
-                        {{ order.user|obfuscate_email }}
+                        {{ order.user }}
                       {% else %}
                         {% trans "Guest" context "Anonymous user account value" %}
                       {% endif %}

@@ -7,7 +7,7 @@
 {% load staticfiles %}
 
 {% block title %}
-  {{ customer|obfuscate_email }} - {% trans "Customers" context "Dashboard customers list" %} - {{ block.super }}
+  {{ customer }} - {% trans "Customers" context "Dashboard customers list" %} - {{ block.super }}
 {% endblock %}
 
 {% block body_class %}body-customers{% endblock %}
@@ -31,7 +31,7 @@
         <svg data-src="{% static "dashboard/images/arrow-left.svg" %}" fill="#fff" width="20px" height="20px" />
       </a>
     </li>
-    <li><span class="breadcrumbs--elipsed-item">{{ customer|obfuscate_email }}</span></li>
+    <li><span class="breadcrumbs--elipsed-item">{{ customer }}</span></li>
   </ul>
 {% endblock %}
 
