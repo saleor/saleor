@@ -146,7 +146,7 @@
             <div class="product-filters__attributes" data-icon-up="{% static "images/chevron_up.svg" %}"
                  data-icon-down="{% static "images/chevron_down.svg" %}">
               <form method="get">
-                {% for field in filter.form %}
+                {% for field in filter_set.form %}
                   {% if field.name == 'sort_by' %}
                     {% comment %}
                       Field 'sort_by' is hidden because it is rendered in header.
