@@ -5,6 +5,7 @@ from django.contrib.sitemaps.views import sitemap
 from django.contrib.staticfiles.views import serve
 from django.views.i18n import JavaScriptCatalog
 from graphene_django.views import GraphQLView
+from impersonate.views import impersonate, stop_impersonate
 
 from .cart.urls import urlpatterns as cart_urls
 from .checkout.urls import urlpatterns as checkout_urls
@@ -27,7 +28,8 @@ urlpatterns = [
     url(r'^dashboard/',
         include((dashboard_urls, 'dashboard'), namespace='dashboard')),
     url(r'^graphql', GraphQLView.as_view(graphiql=settings.DEBUG)),
-    url(r'^impersonate/', include('impersonate.urls')),
+    url(r'^impersonate/stop/$', stop_impersonate, name='impersonate-stop'),
+    url(r'^impersonate/(?P<uid>\d+)/$', impersonate, name='impersonate-start'),
     url(r'^jsi18n/$', JavaScriptCatalog.as_view(), name='javascript-catalog'),
     url(r'^order/', include((order_urls, 'order'), namespace='order')),
     url(r'^products/',
