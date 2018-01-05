@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load i18n %}
+{% load i18n_address_tags %}
 {% load staticfiles %}
 {% load gross from prices_i18n %}
 {% load discount_amount_for from prices %}
@@ -118,7 +119,7 @@
               {% for address in addresses %}
                 <div class="col-md-6">
                   <div class="card card-block">
-                    {% include "userprofile/snippets/address_short.html" %}
+                    {% format_address address %}
                     <ul class="icons">
                       <li><a href="{% url "profile:address-edit" pk=address.pk %}">
                         {% trans "Edit" context "User address action" %}

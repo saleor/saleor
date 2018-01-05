@@ -1,4 +1,5 @@
-<div class="radio {% if address or label == _('Same as shipping') %} address_hide{% else %} address_show{% endif %}">
+ {% load i18n_address_tags %}
+ <div class="radio {% if address or label == _('Same as shipping') %} address_hide{% else %} address_show{% endif %}">
   <label>
       <input type="radio"
              name="{{ radio_name }}"
@@ -6,7 +7,7 @@
              id="address_{{ radio_value }}"
              {% if radio_value == value %}checked{% endif %}>
                {% if address %}
-                  {% include "userprofile/snippets/address_short.html" with address=address only %}
+                  {% format_address address %}
                {% else %}
                   {{ label }}
                {% endif %}
