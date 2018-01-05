@@ -32,8 +32,6 @@ class AuthorizationKeyForm(forms.ModelForm):
         model = AuthorizationKey
         exclude = []
         labels = {
-            'site_settings': pgettext_lazy(
-                'Site settings', 'Settings'),
             'key': pgettext_lazy(
                 'Key for chosen authorization method', 'Key'),
             'password': pgettext_lazy(

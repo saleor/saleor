@@ -26,4 +26,4 @@ class ShippingMethodCountryForm(forms.ModelForm):
             'country_code': pgettext_lazy(
                 'List of countries', 'Country'),
             'price': pgettext_lazy(
-                'Decimal number (currency field)', 'Price')}
+                'Currency amount', 'Price')}
