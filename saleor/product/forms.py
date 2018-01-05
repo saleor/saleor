@@ -19,8 +19,8 @@ class VariantChoiceField(forms.ModelChoiceField):
         label = pgettext_lazy(
             'Variant choice field label',
             '%(variant_label)s - %(price)s') % {
-                    'variant_label': variant_label,
-                    'price': gross(obj.get_price(discounts=self.discounts))}
+                'variant_label': variant_label,
+                'price': gross(obj.get_price(discounts=self.discounts))}
         return label
 
     def update_field_data(self, product, cart):
