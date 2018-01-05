@@ -174,6 +174,7 @@ def get_variant_picker_data(product, discounts=None, local_currency=None):
 
         variant_data = {
             'id': variant.id,
+            'availability': variant.is_in_stock(),
             'price': price_as_dict(price),
             'priceUndiscounted': price_as_dict(price_undiscounted),
             'attributes': variant.attributes,
