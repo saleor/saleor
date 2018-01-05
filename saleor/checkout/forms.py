@@ -90,8 +90,10 @@ class ShippingMethodForm(forms.Form):
             queryset = method_field.queryset
             method_field.queryset = queryset.unique_for_country_code(
                 country_code)
+
         if self.initial.get('method') is None:
-            method_field.initial = method_field.queryset.first()
+            self.initial['method'] = method_field.queryset.first()
+
         method_field.empty_label = None
 
 

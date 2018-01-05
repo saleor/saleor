@@ -21,6 +21,7 @@
   .phone-prefix-input {
     display: grid;
     grid-template-columns: 6rem calc(100% - 6rem);
+    align-items: stretch;
     input {
       border-left-color: transparent;
       border: {

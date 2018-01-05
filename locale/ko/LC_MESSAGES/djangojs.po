@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2017-11-27 16:26-0600\n"
+"POT-Creation-Date: 2017-12-04 06:59-0600\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Jihan Chung <jihanchung20@gmail.com>, 2017\n"
 "Language-Team: Korean (https://www.transifex.com/mirumee/teams/34782/ko/)\n"
@@ -21,7 +21,7 @@ msgstr ""
 #: saleor/static/dashboard/js/components/bulk-actions.js:5
 msgid "item selected"
 msgid_plural "items selected"
-msgstr[0] ""
+msgstr[0] "상품이 선택됨"
 
 #: saleor/static/dashboard/js/components/datepicker.js:4
 msgctxt "Datepicker option"
@@ -46,192 +46,192 @@ msgstr "년도 선택"
 #: saleor/static/dashboard/js/components/datepicker.js:12
 msgctxt "Datepicker month"
 msgid "January"
-msgstr ""
+msgstr "1월"
 
 #: saleor/static/dashboard/js/components/datepicker.js:12
 msgctxt "Datepicker month"
 msgid "February"
-msgstr ""
+msgstr "2월"
 
 #: saleor/static/dashboard/js/components/datepicker.js:12
 msgctxt "Datepicker month"
 msgid "March"
-msgstr ""
+msgstr "3월"
 
 #: saleor/static/dashboard/js/components/datepicker.js:12
 msgctxt "Datepicker month"
 msgid "April"
-msgstr ""
+msgstr "4월"
 
 #: saleor/static/dashboard/js/components/datepicker.js:12
 msgctxt "Datepicker month"
 msgid "May"
-msgstr ""
+msgstr "5월"
 
 #: saleor/static/dashboard/js/components/datepicker.js:12
 msgctxt "Datepicker month"
 msgid "June"
-msgstr ""
+msgstr "6월"
 
 #: saleor/static/dashboard/js/components/datepicker.js:12
 msgctxt "Datepicker month"
 msgid "July"
-msgstr ""
+msgstr "7월"
 
 #: saleor/static/dashboard/js/components/datepicker.js:12
 msgctxt "Datepicker month"
 msgid "August"
-msgstr ""
+msgstr "8월"
 
 #: saleor/static/dashboard/js/components/datepicker.js:12
 msgctxt "Datepicker month"
 msgid "September"
-msgstr ""
+msgstr "9월"
 
 #: saleor/static/dashboard/js/components/datepicker.js:12
 msgctxt "Datepicker month"
 msgid "October"
-msgstr ""
+msgstr "10월"
 
 #: saleor/static/dashboard/js/components/datepicker.js:12
 msgctxt "Datepicker month"
 msgid "November"
-msgstr ""
+msgstr "11월"
 
 #: saleor/static/dashboard/js/components/datepicker.js:12
 msgctxt "Datepicker month"
 msgid "December"
-msgstr ""
+msgstr "12월"
 
 #: saleor/static/dashboard/js/components/datepicker.js:13
 msgctxt "Datepicker month shortcut"
 msgid "Jan"
-msgstr ""
+msgstr "1월"
 
 #: saleor/static/dashboard/js/components/datepicker.js:13
 msgctxt "Datepicker month shortcut"
 msgid "Feb"
-msgstr ""
+msgstr "2월"
 
 #: saleor/static/dashboard/js/components/datepicker.js:13
 msgctxt "Datepicker month shortcut"
 msgid "Mar"
-msgstr ""
+msgstr "3월"
 
 #: saleor/static/dashboard/js/components/datepicker.js:13
 msgctxt "Datepicker month shortcut"
 msgid "Apr"
-msgstr ""
+msgstr "4월"
 
 #: saleor/static/dashboard/js/components/datepicker.js:13
 msgctxt "Datepicker month shortcut"
 msgid "May"
-msgstr ""
+msgstr "5월"
 
 #: saleor/static/dashboard/js/components/datepicker.js:13
 msgctxt "Datepicker month shortcut"
 msgid "Jun"
-msgstr ""
+msgstr "6월"
 
 #: saleor/static/dashboard/js/components/datepicker.js:13
 msgctxt "Datepicker month shortcut"
 msgid "Jul"
-msgstr ""
+msgstr "7월"
 
 #: saleor/static/dashboard/js/components/datepicker.js:13
 msgctxt "Datepicker month shortcut"
 msgid "Aug"
-msgstr ""
+msgstr "8월"
 
 #: saleor/static/dashboard/js/components/datepicker.js:13
 msgctxt "Datepicker month shortcut"
 msgid "Sep"
-msgstr ""
+msgstr "9월"
 
 #: saleor/static/dashboard/js/components/datepicker.js:13
 msgctxt "Datepicker month shortcut"
 msgid "Oct"
-msgstr ""
+msgstr "10월"
 
 #: saleor/static/dashboard/js/components/datepicker.js:13
 msgctxt "Datepicker month shortcut"
 msgid "Nov"
-msgstr ""
+msgstr "11월"
 
 #: saleor/static/dashboard/js/components/datepicker.js:13
 msgctxt "Datepicker month shortcut"
 msgid "Dec"
-msgstr ""
+msgstr "12월"
 
 #: saleor/static/dashboard/js/components/datepicker.js:14
 msgctxt "Datepicker weekday"
 msgid "Sunday"
-msgstr ""
+msgstr "일요일"
 
 #: saleor/static/dashboard/js/components/datepicker.js:14
 msgctxt "Datepicker weekday"
 msgid "Monday"
-msgstr ""
+msgstr "월요일"
 
 #: saleor/static/dashboard/js/components/datepicker.js:14
 msgctxt "Datepicker weekday"
 msgid "Tuesday"
-msgstr ""
+msgstr "화요일"
 
 #: saleor/static/dashboard/js/components/datepicker.js:14
 msgctxt "Datepicker weekday"
 msgid "Wednesday"
-msgstr ""
+msgstr "수요일"
 
 #: saleor/static/dashboard/js/components/datepicker.js:14
 msgctxt "Datepicker weekday"
 msgid "Thursday"
-msgstr ""
+msgstr "목요일"
 
 #: saleor/static/dashboard/js/components/datepicker.js:14
 msgctxt "Datepicker weekday"
 msgid "Friday"
-msgstr ""
+msgstr "금요일"
 
 #: saleor/static/dashboard/js/components/datepicker.js:14
 msgctxt "Datepicker weekday"
 msgid "Saturday"
-msgstr ""
+msgstr "토요일"
 
 #: saleor/static/dashboard/js/components/datepicker.js:15
 msgctxt "Datepicker weekday shortcut"
 msgid "Sun"
-msgstr ""
+msgstr "일요일"
 
 #: saleor/static/dashboard/js/components/datepicker.js:15
 msgctxt "Datepicker weekday shortcut"
 msgid "Mon"
-msgstr ""
+msgstr "월요일"
 
 #: saleor/static/dashboard/js/components/datepicker.js:15
 msgctxt "Datepicker weekday shortcut"
 msgid "Tue"
-msgstr ""
+msgstr "화요일"
 
 #: saleor/static/dashboard/js/components/datepicker.js:15
 msgctxt "Datepicker weekday shortcut"
 msgid "Wed"
-msgstr ""
+msgstr "수요일"
 
 #: saleor/static/dashboard/js/components/datepicker.js:15
 msgctxt "Datepicker weekday shortcut"
 msgid "Thu"
-msgstr ""
+msgstr "목요일"
 
 #: saleor/static/dashboard/js/components/datepicker.js:15
 msgctxt "Datepicker weekday shortcut"
 msgid "Fri"
-msgstr ""
+msgstr "금요일"
 
 #: saleor/static/dashboard/js/components/datepicker.js:15
 msgctxt "Datepicker weekday shortcut"
 msgid "Sat"
-msgstr ""
+msgstr "토요일"
 
 #: saleor/static/dashboard/js/components/datepicker.js:18
 msgctxt "Sunday shortcut"
@@ -286,9 +286,9 @@ msgstr "닫기"
 #: saleor/static/js/components/variantPicker/QuantityInput.js:21
 msgctxt "Add to cart form field label"
 msgid "Quantity"
-msgstr "재고"
+msgstr "수량"
 
 #: saleor/static/js/components/variantPicker/VariantPicker.js:161
 msgctxt "Product details primary action"
 msgid "Add to cart"
-msgstr ""
+msgstr "카트에 추가"
