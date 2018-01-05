@@ -1,0 +1,3 @@
+<div class="address-details" data-content="{{ address_lines|slice:'1:'|join:'<br>' }}" data-html="true" title="{{ address_lines.0 }}">
+  {% for line in address_lines %} {{ line }}{% if not forloop.last %}{% if inline %}, {% else %}<br>{% endif %}{% endif %} {% endfor %}
+</div>

@@ -1,5 +1,4 @@
 from django import template
-from django.utils.safestring import mark_safe
 from django.utils.translation import pgettext
 import i18naddress
 
@@ -8,8 +7,8 @@ from ...userprofile.models import Address
 register = template.Library()
 
 
-@register.simple_tag
-def format_address(address, latin=False):
+@register.inclusion_tag('formatted_address.html')
+def format_address(address, include_phone=True, inline=False, latin=False):
     address_data = Address.objects.as_data(address)
     address_data['name'] = pgettext(
         'Address data', '%(first_name)s %(last_name)s') % address_data
@@ -18,5 +17,7 @@ def format_address(address, latin=False):
         'Address data',
         '%(street_address_1)s\n'
         '%(street_address_2)s' % address_data)
-    formatted_address = i18naddress.format_address(address_data, latin)
-    return mark_safe(formatted_address)
+    address_lines = i18naddress.format_address(address_data, latin).split('\n')
+    if include_phone and address.phone:
+        address_lines.append(address.phone)
+    return {'address_lines': address_lines, 'inline': inline}
