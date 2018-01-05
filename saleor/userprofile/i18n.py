@@ -182,6 +182,9 @@ def get_form_i18n_lines(form_instance):
 
 
 def update_base_fields(form_class, i18n_rules):
+    if i18n_rules.country_area_choices:
+        form_class.base_fields['country_area'] = forms.ChoiceField(choices=i18n_rules.country_area_choices)
+
     labels_map = {
         'country_area': i18n_rules.country_area_type,
         'postal_code': i18n_rules.postal_code_type,
