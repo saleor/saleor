@@ -55,7 +55,7 @@ export default class VariantPicker extends Component {
 
   checkVariantAvailability = () => {
     const { store } = this.props;
-    return store.variant.schemaData.availability === 'http://schema.org/InStock';
+    return store.variant.availability;
   };
 
   handleAddToCart = () => {
