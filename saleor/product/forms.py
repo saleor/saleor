@@ -34,10 +34,10 @@ class ProductForm(AddToCartForm):
                                    for vi in variant.variant_images.all()]
                       for variant in self.product.variants.all()}
         variant_field.widget.attrs['data-images'] = json.dumps(images_map)
+        # Don't display select input if there are less than two variants
         if variant_field.queryset.count() < 2:
-            variant_field.widget = forms.HiddenInput({
-                'value': self.product.variants.all()[0].pk
-            })
+            variant_field.widget = forms.HiddenInput(
+                {'value': self.product.variants.all()[0].pk})
 
     def get_variant(self, cleaned_data):
         return cleaned_data.get('variant')
