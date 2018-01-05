@@ -61,9 +61,7 @@ class AddressMetaForm(forms.ModelForm):
         fields = ['country', 'preview']
         labels = {
             'country': pgettext_lazy(
-                'Country', 'Country'),
-            'preview': pgettext_lazy(
-                'Address preview', 'Preview')}
+                'Country', 'Country')}
 
     def clean(self):
         data = super().clean()
@@ -95,15 +93,15 @@ class AddressForm(forms.ModelForm):
         exclude = []
         labels = {
             'first_name': pgettext_lazy(
-                'First name', 'Given name'),
+                'Person\'s name', 'Given name'),
             'last_name': pgettext_lazy(
-                'Last name', 'Family name'),
+                'Person\'s surname', 'Family name'),
             'company_name': pgettext_lazy(
                 'Company or organization', 'Company or organization'),
             'street_address_1': pgettext_lazy(
-                'First address', 'Address'),
+                'Address', 'Address'),
             'street_address_2': pgettext_lazy(
-                'Second address', 'Address'),
+                'Address', 'Address'),
             'city': pgettext_lazy(
                 'City', 'City'),
             'city_area': pgettext_lazy(
