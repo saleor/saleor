@@ -22,6 +22,6 @@ class StaffForm(forms.ModelForm):
             'groups': pgettext_lazy(
                 'Groups', 'Groups'),
             'is_active': pgettext_lazy(
-                'User is active', 'User is active'),
+                'User active toggle', 'User is active'),
             'is_staff': pgettext_lazy(
-                'User has access to dashboard', 'Has access to dashboard')}
+                'User dashboard access toggle', 'Has access to dashboard')}

@@ -26,17 +26,17 @@ class SaleForm(forms.ModelForm):
                 'Sale name',
                 'Name'),
             'type': pgettext_lazy(
-                'Fixed or percentage',
+                'Discount type',
                 'Fixed or percentage'),
             'value': pgettext_lazy(
-                'Sale value',
+                'Percentage or fixed amount value',
                 'Value'),
             'products': pgettext_lazy(
-                'Products in sale',
-                'Products in sale'),
+                'Discounted products',
+                'Discounted products'),
             'categories': pgettext_lazy(
-                'Categories',
-                'Categories')}
+                'Discounted categories',
+                'Discounted categories')}
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -58,29 +58,26 @@ class VoucherForm(forms.ModelForm):
 
     class Meta:
         model = Voucher
-        exclude = ['limit', 'apply_to', 'product', 'category']
+        exclude = ['limit', 'apply_to', 'product', 'category', 'used']
         labels = {
             'type': pgettext_lazy(
                 'Discount type',
                 'Discount type'),
             'name': pgettext_lazy(
-                'Voucher name',
+                'Item name',
                 'Name'),
             'code': pgettext_lazy(
-                'Voucher code',
+                'Coupon code',
                 'Code'),
             'usage_limit': pgettext_lazy(
                 'Usage limit',
                 'Usage limit'),
-            'used': pgettext_lazy(
-                'Number of used vouchers',
-                'Number of used vouchers'),
             'start_date': pgettext_lazy(
-                'Discount start date',
-                'Discount start date'),
+                'Voucher date restrictions',
+                'Start date'),
             'end_date': pgettext_lazy(
-                'Discount end date',
-                'Discount end date')}
+                'Voucher date restrictions',
+                'End date')}
 
     def __init__(self, *args, **kwargs):
         initial = kwargs.get('initial', {})

@@ -11,7 +11,7 @@ class ShippingMethodForm(forms.ModelForm):
         exclude = []
         labels = {
             'name': pgettext_lazy(
-                'Shipping method name', 'Name'),
+                'Item name', 'Name'),
             'description': pgettext_lazy(
                 'Description', 'Description')}
 
@@ -24,8 +24,6 @@ class ShippingMethodCountryForm(forms.ModelForm):
         widgets = {'shipping_method': forms.widgets.HiddenInput()}
         labels = {
             'country_code': pgettext_lazy(
-                'Country code', 'Country code'),
-            'shipping_method': pgettext_lazy(
-                'Shipping method', 'Shipping method'),
+                'List of countries', 'Country'),
             'price': pgettext_lazy(
-                'Price', 'Price')}
+                'Decimal number (currency field)', 'Price')}
