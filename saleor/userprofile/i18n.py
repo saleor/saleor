@@ -93,9 +93,9 @@ class AddressForm(forms.ModelForm):
         exclude = []
         labels = {
             'first_name': pgettext_lazy(
-                'Person\'s name', 'Given name'),
+                'Personal name', 'Given name'),
             'last_name': pgettext_lazy(
-                'Person\'s surname', 'Family name'),
+                'Personal name', 'Family name'),
             'company_name': pgettext_lazy(
                 'Company or organization', 'Company or organization'),
             'street_address_1': pgettext_lazy(

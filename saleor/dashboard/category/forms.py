@@ -28,7 +28,7 @@ class CategoryForm(forms.ModelForm):
                 'Item name',
                 'Name'),
             'description': pgettext_lazy(
-                'Item description',
+                'Description',
                 'Description'),
             'is_hidden': pgettext_lazy(
                 'Hide in site navigation toggle',
