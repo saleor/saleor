@@ -194,8 +194,8 @@ class ShipGroupForm(forms.ModelForm):
         model = DeliveryGroup
         fields = ['tracking_number']
         labels = {
-            'Shipment tracking number': pgettext_lazy(
-                'Integer number', 'Tracking number')}
+            'tracking_number': pgettext_lazy(
+                'Shipment tracking number', 'Tracking number')}
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
