@@ -309,21 +309,38 @@ class Sale(models.Model):
         raise NotImplementedError('Unknown discount type')
 
     def _product_has_category_discount(self, product, discounted_categories):
-        for category in product.categories.all():
+        for category in product._get_all_categories():
             for discounted_category in discounted_categories:
                 if category.is_descendant_of(discounted_category,
                                              include_self=True):
                     return True
         return False
 
-    def modifier_for_product(self, product):
-        discounted_products = {p.pk for p in self.products.all()}
-        discounted_categories = set(self.categories.all())
-        if product.pk in discounted_products:
+    def _discounted_products(self):
+        if not hasattr(self, '_discounted_products_cached'):
+            self._discounted_products_cached = {
+                p['pk']
+                for p in self.products.all().values('pk')
+            }
+        return self._discounted_products_cached
+
+    def _discounted_categories(self):
+        if not hasattr(self, '_discounted_categories_cached'):
+            self._discounted_categories_cached = set(self.categories.all())
+        return self._discounted_categories_cached
+
+    def get_modifier_for_product(self, product):
+        if product.pk in self._discounted_products():
             return self.get_discount()
         if self._product_has_category_discount(
-                product, discounted_categories):
+                product, self._discounted_categories()):
             return self.get_discount()
+        return None
+
+    def modifier_for_product(self, product):
+        modifier = self.get_modifier_for_product(product)
+        if modifier:
+            return modifier
         raise NotApplicable(
             pgettext(
                 'Voucher not applicable',
@@ -332,10 +349,9 @@ class Sale(models.Model):
 
 def get_product_discounts(product, discounts, **kwargs):
     for discount in discounts:
-        try:
-            yield discount.modifier_for_product(product, **kwargs)
-        except NotApplicable:
-            pass
+        modifier = discount.get_modifier_for_product(product, **kwargs)
+        if modifier:
+            yield modifier
 
 
 def calculate_discounted_price(product, price, discounts, **kwargs):

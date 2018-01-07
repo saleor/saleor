@@ -209,6 +209,11 @@ class Product(models.Model, ItemRange):
         grosses = sorted(grosses, key=lambda x: x.tax)
         return PriceRange(min(grosses), max(grosses))
 
+    def _get_all_categories(self):
+        if not hasattr(self, '_get_all_categories_cached'):
+            self._get_all_categories_cached = self.categories.all()
+        return self._get_all_categories_cached
+
 
 class ProductVariant(models.Model, Item):
     sku = models.CharField(
