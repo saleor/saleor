@@ -2,6 +2,7 @@
 {% load i18n %}
 {% load prices_i18n %}
 {% load materializecss %}
+{% load staticfiles %}
 {% load utils %}
 
 {% block title %}
@@ -11,6 +12,18 @@
 {% block body_class %}body-customers{% endblock %}
 
 {% block menu_customers_class %}active{% endblock %}
+
+{% block header_extra %}
+  {% if perms.userprofile.edit_staff %}
+    <div class="btn-fab-fixed">
+      <a class="btn-fab-default waves-effect waves-light"
+        title="{% trans "Add customer" context "Customer list add button text" %}"
+        href="{% url 'dashboard:customer-create' %}">
+        <svg data-src="{% static "dashboard/images/add.svg" %}" />
+      </a>
+    </div>
+  {% endif %}
+{% endblock %}
 
 {% block breadcrumbs %}
   <ul class="breadcrumbs">
