@@ -23,18 +23,13 @@ from .utils import get_attributes_display_map
 
 
 class Category(MPTTModel):
-    name = models.CharField(
-        pgettext_lazy('Category field', 'name'), max_length=128)
-    slug = models.SlugField(
-        pgettext_lazy('Category field', 'slug'), max_length=50)
-    description = models.TextField(
-        pgettext_lazy('Category field', 'description'), blank=True)
+    name = models.CharField(max_length=128)
+    slug = models.SlugField(max_length=50)
+    description = models.TextField(blank=True)
     parent = models.ForeignKey(
         'self', null=True, blank=True, related_name='children',
-        verbose_name=pgettext_lazy('Category field', 'parent'),
         on_delete=models.CASCADE)
-    is_hidden = models.BooleanField(
-        pgettext_lazy('Category field', 'is hidden'), default=False)
+    is_hidden = models.BooleanField(default=False)
 
     objects = models.Manager()
     tree = TreeManager()
@@ -68,21 +63,13 @@ class Category(MPTTModel):
 
 
 class ProductClass(models.Model):
-    name = models.CharField(
-        pgettext_lazy('Product class field', 'name'), max_length=128)
-    has_variants = models.BooleanField(
-        pgettext_lazy('Product class field', 'has variants'), default=True)
+    name = models.CharField(max_length=128)
+    has_variants = models.BooleanField(default=True)
     product_attributes = models.ManyToManyField(
-        'ProductAttribute', related_name='products_class', blank=True,
-        verbose_name=pgettext_lazy('Product class field',
-                                   'product attributes'))
+        'ProductAttribute', related_name='products_class', blank=True)
     variant_attributes = models.ManyToManyField(
-        'ProductAttribute', related_name='product_variants_class', blank=True,
-        verbose_name=pgettext_lazy(
-            'Product class field', 'variant attributes'))
-    is_shipping_required = models.BooleanField(
-        pgettext_lazy('Product class field', 'is shipping required'),
-        default=False)
+        'ProductAttribute', related_name='product_variants_class', blank=True)
+    is_shipping_required = models.BooleanField(default=False)
 
     class Meta:
         app_label = 'product'
@@ -106,29 +93,17 @@ class ProductManager(models.Manager):
 
 class Product(models.Model, ItemRange):
     product_class = models.ForeignKey(
-        ProductClass, related_name='products',
-        verbose_name=pgettext_lazy('Product field', 'product class'),
-        on_delete=models.CASCADE)
-    name = models.CharField(
-        pgettext_lazy('Product field', 'name'), max_length=128)
-    description = models.TextField(
-        verbose_name=pgettext_lazy('Product field', 'description'))
-    categories = models.ManyToManyField(
-        Category, verbose_name=pgettext_lazy('Product field', 'categories'),
-        related_name='products')
+        ProductClass, related_name='products', on_delete=models.CASCADE)
+    name = models.CharField(max_length=128)
+    description = models.TextField()
+    categories = models.ManyToManyField(Category, related_name='products')
     price = PriceField(
-        pgettext_lazy('Product field', 'price'),
         currency=settings.DEFAULT_CURRENCY, max_digits=12, decimal_places=2)
-    available_on = models.DateField(
-        pgettext_lazy('Product field', 'available on'), blank=True, null=True)
-    is_published = models.BooleanField(
-        pgettext_lazy('Product field', 'is published'), default=True)
-    attributes = HStoreField(
-        pgettext_lazy('Product field', 'attributes'), default={})
-    updated_at = models.DateTimeField(
-        pgettext_lazy('Product field', 'updated at'), auto_now=True, null=True)
-    is_featured = models.BooleanField(
-        pgettext_lazy('Product field', 'is featured'), default=False)
+    available_on = models.DateField(blank=True, null=True)
+    is_published = models.BooleanField(default=True)
+    attributes = HStoreField(default={})
+    updated_at = models.DateTimeField(auto_now=True, null=True)
+    is_featured = models.BooleanField(default=False)
 
     objects = ProductManager()
 
@@ -211,23 +186,15 @@ class Product(models.Model, ItemRange):
 
 
 class ProductVariant(models.Model, Item):
-    sku = models.CharField(
-        pgettext_lazy('Product variant field', 'SKU'), max_length=32,
-        unique=True)
-    name = models.CharField(
-        pgettext_lazy('Product variant field', 'variant name'), max_length=100,
-        blank=True)
+    sku = models.CharField(max_length=32, unique=True)
+    name = models.CharField(max_length=100, blank=True)
     price_override = PriceField(
-        pgettext_lazy('Product variant field', 'price override'),
         currency=settings.DEFAULT_CURRENCY, max_digits=12, decimal_places=2,
         blank=True, null=True)
     product = models.ForeignKey(
         Product, related_name='variants', on_delete=models.CASCADE)
-    attributes = HStoreField(
-        pgettext_lazy('Product variant field', 'attributes'), default={})
-    images = models.ManyToManyField(
-        'ProductImage', through='VariantImage',
-        verbose_name=pgettext_lazy('Product variant field', 'images'))
+    attributes = HStoreField(default={})
+    images = models.ManyToManyField('ProductImage', through='VariantImage')
 
     class Meta:
         app_label = 'product'
@@ -312,8 +279,7 @@ class ProductVariant(models.Model, Item):
 
 
 class StockLocation(models.Model):
-    name = models.CharField(
-        pgettext_lazy('Stock location field', 'location'), max_length=100)
+    name = models.CharField(max_length=100)
 
     class Meta:
         permissions = (
@@ -345,19 +311,14 @@ class StockManager(models.Manager):
 
 class Stock(models.Model):
     variant = models.ForeignKey(
-        ProductVariant, related_name='stock',
-        verbose_name=pgettext_lazy('Stock item field', 'variant'),
-        on_delete=models.CASCADE)
+        ProductVariant, related_name='stock', on_delete=models.CASCADE)
     location = models.ForeignKey(
         StockLocation, null=True, on_delete=models.CASCADE)
     quantity = models.IntegerField(
-        pgettext_lazy('Stock item field', 'quantity'),
         validators=[MinValueValidator(0)], default=Decimal(1))
     quantity_allocated = models.IntegerField(
-        pgettext_lazy('Stock item field', 'allocated quantity'),
         validators=[MinValueValidator(0)], default=Decimal(0))
     cost_price = PriceField(
-        pgettext_lazy('Stock item field', 'cost price'),
         currency=settings.DEFAULT_CURRENCY, max_digits=12, decimal_places=2,
         blank=True, null=True)
 
@@ -376,12 +337,8 @@ class Stock(models.Model):
 
 
 class ProductAttribute(models.Model):
-    slug = models.SlugField(
-        pgettext_lazy('Product attribute field', 'internal name'),
-        max_length=50, unique=True)
-    name = models.CharField(
-        pgettext_lazy('Product attribute field', 'display name'),
-        max_length=100)
+    slug = models.SlugField(max_length=50, unique=True)
+    name = models.CharField(max_length=100)
 
     class Meta:
         ordering = ('slug', )
@@ -397,15 +354,11 @@ class ProductAttribute(models.Model):
 
 
 class AttributeChoiceValue(models.Model):
-    name = models.CharField(
-        pgettext_lazy('Attribute choice value field', 'display name'),
-        max_length=100)
+    name = models.CharField(max_length=100)
     slug = models.SlugField()
     color = models.CharField(
-        pgettext_lazy('Attribute choice value field', 'color'),
-        max_length=7,
-        validators=[RegexValidator('^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$')],
-        blank=True)
+        max_length=7, blank=True,
+        validators=[RegexValidator('^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$')])
     attribute = models.ForeignKey(
         ProductAttribute, related_name='values', on_delete=models.CASCADE)
 
@@ -426,18 +379,12 @@ class ImageManager(models.Manager):
 
 class ProductImage(models.Model):
     product = models.ForeignKey(
-        Product, related_name='images',
-        verbose_name=pgettext_lazy('Product image field', 'product'),
-        on_delete=models.CASCADE)
+        Product, related_name='images', on_delete=models.CASCADE)
     image = VersatileImageField(
-        upload_to='products', ppoi_field='ppoi', blank=False,
-        verbose_name=pgettext_lazy('Product image field', 'image'))
-    ppoi = PPOIField(verbose_name=pgettext_lazy('Product image field', 'ppoi'))
-    alt = models.CharField(
-        pgettext_lazy('Product image field', 'short description'),
-        max_length=128, blank=True)
-    order = models.PositiveIntegerField(
-        pgettext_lazy('Product image field', 'order'), editable=False)
+        upload_to='products', ppoi_field='ppoi', blank=False)
+    ppoi = PPOIField()
+    alt = models.CharField(max_length=128, blank=True)
+    order = models.PositiveIntegerField(editable=False)
 
     objects = ImageManager()
 
@@ -465,9 +412,7 @@ class ProductImage(models.Model):
 class VariantImage(models.Model):
     variant = models.ForeignKey(
         'ProductVariant', related_name='variant_images',
-        verbose_name=pgettext_lazy('Variant image field', 'variant'),
         on_delete=models.CASCADE)
     image = models.ForeignKey(
         ProductImage, related_name='variant_images',
-        verbose_name=pgettext_lazy('Variant image field', 'image'),
         on_delete=models.CASCADE)

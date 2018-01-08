@@ -16,12 +16,8 @@ COUNTRY_CODE_CHOICES = [(ANY_COUNTRY, ANY_COUNTRY_DISPLAY)] + list(countries)
 
 class ShippingMethod(models.Model):
 
-    name = models.CharField(
-        pgettext_lazy('Shipping method field', 'name'),
-        max_length=100)
-    description = models.TextField(
-        pgettext_lazy('Shipping method field', 'description'),
-        blank=True, default='')
+    name = models.CharField(max_length=100)
+    description = models.TextField(blank=True, default='')
 
     class Meta:
         permissions = (
@@ -76,16 +72,12 @@ class ShippingMethodCountryQueryset(models.QuerySet):
 class ShippingMethodCountry(models.Model):
 
     country_code = models.CharField(
-        pgettext_lazy('Shipping method country field', 'country code'),
         choices=COUNTRY_CODE_CHOICES, max_length=2, blank=True,
         default=ANY_COUNTRY)
     price = PriceField(
-        pgettext_lazy('Shipping method country field', 'price'),
         currency=settings.DEFAULT_CURRENCY, max_digits=12, decimal_places=2)
     shipping_method = models.ForeignKey(
         ShippingMethod, related_name='price_per_country',
-        verbose_name=pgettext_lazy(
-            'Shipping method country field', 'shipping method'),
         on_delete=models.CASCADE)
 
     objects = ShippingMethodCountryQueryset.as_manager()
