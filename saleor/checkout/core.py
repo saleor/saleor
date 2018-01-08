@@ -13,6 +13,7 @@ from ..cart.models import Cart
 from ..cart.utils import get_or_empty_db_cart
 from ..core import analytics
 from ..discount.models import NotApplicable, Voucher
+from ..discount.utils import increase_voucher_usage
 from ..order.models import Order
 from ..shipping.models import ANY_COUNTRY, ShippingMethodCountry
 from ..userprofile.models import Address
@@ -330,7 +331,7 @@ class Checkout:
             group.save()
 
         if voucher is not None:
-            Voucher.objects.increase_usage(voucher)
+            increase_voucher_usage(voucher)
 
         return order
 

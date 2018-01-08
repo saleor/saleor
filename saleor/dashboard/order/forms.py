@@ -7,11 +7,9 @@ from django_prices.forms import PriceField
 from payments import PaymentError, PaymentStatus
 from satchless.item import InsufficientStock
 
-from saleor.product.utils import (
-    allocate_stock, deallocate_stock, decrease_stock)
 from ...cart.forms import QuantityField
 from ...core.forms import AjaxSelect2ChoiceField
-from ...discount.models import Voucher
+from ...discount.utils import decrease_voucher_usage
 from ...order import GroupStatus
 from ...order.models import DeliveryGroup, OrderLine, OrderNote
 from ...order.utils import (
@@ -20,6 +18,8 @@ from ...order.utils import (
     recalculate_order, remove_empty_groups
 )
 from ...product.models import Product, ProductVariant, Stock
+from ...product.utils import (
+    allocate_stock, deallocate_stock, decrease_stock)
 
 
 class OrderNoteForm(forms.ModelForm):
@@ -270,8 +270,7 @@ class RemoveVoucherForm(forms.Form):
     def remove_voucher(self):
         self.order.discount_amount = 0
         self.order.discount_name = ''
-        voucher = self.order.voucher
-        Voucher.objects.decrease_usage(voucher)
+        decrease_voucher_usage(self.order.voucher)
         self.order.voucher = None
         recalculate_order(self.order)
 
