@@ -14,7 +14,7 @@
 
 {% block content %}
 {% trans "Dispatch this shipment to the following address:" context "Modal ship shipment group text" %}
-{% format_address order.shipping_address %}
+<div class="address">{% format_address order.shipping_address %}</div>
 {{ form|materializecss }}
 {% endblock %}
 
