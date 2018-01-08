@@ -18,7 +18,7 @@ from satchless.item import InsufficientStock, Item, ItemRange
 from text_unidecode import unidecode
 from versatileimagefield.fields import PPOIField, VersatileImageField
 
-from ..discount.models import calculate_discounted_price
+from ..discount.utils import calculate_discounted_price
 from .utils import get_attributes_display_map
 
 

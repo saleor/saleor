@@ -292,20 +292,3 @@ class Sale(models.Model):
             pgettext(
                 'Voucher not applicable',
                 'Discount not applicable for this product'))
-
-
-def get_product_discounts(product, discounts, **kwargs):
-    for discount in discounts:
-        try:
-            yield discount.modifier_for_product(product, **kwargs)
-        except NotApplicable:
-            pass
-
-
-def calculate_discounted_price(product, price, discounts, **kwargs):
-    if discounts:
-        discounts = list(
-            get_product_discounts(product, discounts, **kwargs))
-        if discounts:
-            price = min(price | discount for discount in discounts)
-    return price
