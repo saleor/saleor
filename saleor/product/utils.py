@@ -19,7 +19,7 @@ def products_visible_to_user(user):
     if user.is_authenticated and user.is_active and user.is_staff:
         return Product.objects.all()
     else:
-        return Product.objects.get_available_products()
+        return Product.objects.available_products()
 
 
 def products_with_details(user):

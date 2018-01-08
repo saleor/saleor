@@ -332,7 +332,7 @@ class AddVariantToDeliveryGroupForm(forms.Form):
     """ Adds variant in given quantity to shipment group. """
     variant = AjaxSelect2ChoiceField(
         queryset=ProductVariant.objects.filter(
-            product__in=Product.objects.get_available_products()),
+            product__in=Product.objects.available_products()),
         fetch_data_url=reverse_lazy('dashboard:ajax-available-variants'))
     quantity = QuantityField(
         label=pgettext_lazy(
