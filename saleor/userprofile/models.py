@@ -48,38 +48,17 @@ class AddressManager(models.Manager):
 
 
 class Address(models.Model):
-    first_name = models.CharField(
-        pgettext_lazy('Address field', 'given name'),
-        max_length=256, blank=True)
-    last_name = models.CharField(
-        pgettext_lazy('Address field', 'family name'),
-        max_length=256, blank=True)
-    company_name = models.CharField(
-        pgettext_lazy('Address field', 'company or organization'),
-        max_length=256, blank=True)
-    street_address_1 = models.CharField(
-        pgettext_lazy('Address field', 'address'),
-        max_length=256, blank=True)
-    street_address_2 = models.CharField(
-        pgettext_lazy('Address field', 'address'),
-        max_length=256, blank=True)
-    city = models.CharField(
-        pgettext_lazy('Address field', 'city'),
-        max_length=256, blank=True)
-    city_area = models.CharField(
-        pgettext_lazy('Address field', 'district'),
-        max_length=128, blank=True)
-    postal_code = models.CharField(
-        pgettext_lazy('Address field', 'postal code'),
-        max_length=20, blank=True)
-    country = CountryField(
-        pgettext_lazy('Address field', 'country'))
-    country_area = models.CharField(
-        pgettext_lazy('Address field', 'state or province'),
-        max_length=128, blank=True)
-    phone = PossiblePhoneNumberField(
-        verbose_name=pgettext_lazy('Address field', 'phone number'),
-        blank=True, default='')
+    first_name = models.CharField(max_length=256, blank=True)
+    last_name = models.CharField(max_length=256, blank=True)
+    company_name = models.CharField(max_length=256, blank=True)
+    street_address_1 = models.CharField(max_length=256, blank=True)
+    street_address_2 = models.CharField(max_length=256, blank=True)
+    city = models.CharField(max_length=256, blank=True)
+    city_area = models.CharField(max_length=128, blank=True)
+    postal_code = models.CharField(max_length=20, blank=True)
+    country = CountryField()
+    country_area = models.CharField(max_length=128, blank=True)
+    phone = PossiblePhoneNumberField(blank=True, default='')
     objects = AddressManager()
 
     @property
@@ -123,28 +102,17 @@ class UserManager(BaseUserManager):
 
 
 class User(PermissionsMixin, AbstractBaseUser):
-    email = models.EmailField(
-        pgettext_lazy('User field', 'email'), unique=True)
-    addresses = models.ManyToManyField(
-        Address, blank=True,
-        verbose_name=pgettext_lazy('User field', 'addresses'))
-    is_staff = models.BooleanField(
-        pgettext_lazy('User field', 'staff status'),
-        default=False)
-    is_active = models.BooleanField(
-        pgettext_lazy('User field', 'active'),
-        default=True)
-    date_joined = models.DateTimeField(
-        pgettext_lazy('User field', 'date joined'),
-        default=timezone.now, editable=False)
+    email = models.EmailField(unique=True)
+    addresses = models.ManyToManyField(Address, blank=True)
+    is_staff = models.BooleanField(default=False)
+    is_active = models.BooleanField(default=True)
+    date_joined = models.DateTimeField(default=timezone.now, editable=False)
     default_shipping_address = models.ForeignKey(
         Address, related_name='+', null=True, blank=True,
-        on_delete=models.SET_NULL,
-        verbose_name=pgettext_lazy('User field', 'default shipping address'))
+        on_delete=models.SET_NULL)
     default_billing_address = models.ForeignKey(
         Address, related_name='+', null=True, blank=True,
-        on_delete=models.SET_NULL,
-        verbose_name=pgettext_lazy('User field', 'default billing address'))
+        on_delete=models.SET_NULL)
 
     USERNAME_FIELD = 'email'
 

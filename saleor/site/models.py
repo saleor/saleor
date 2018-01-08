@@ -11,11 +11,8 @@ patch_contrib_sites()
 class SiteSettings(models.Model):
     site = models.OneToOneField(
         Site, related_name='settings', on_delete=models.CASCADE)
-    header_text = models.CharField(
-        pgettext_lazy('Site field', 'header text'), max_length=200, blank=True)
-    description = models.CharField(
-        pgettext_lazy('Site field', 'site description'), max_length=500,
-        blank=True)
+    header_text = models.CharField(max_length=200, blank=True)
+    description = models.CharField(max_length=500, blank=True)
 
     class Meta:
         permissions = (
@@ -36,11 +33,9 @@ class SiteSettings(models.Model):
 class AuthorizationKey(models.Model):
     site_settings = models.ForeignKey(SiteSettings, on_delete=models.CASCADE)
     name = models.CharField(
-        pgettext_lazy('Authentiaction field', 'name'), max_length=20,
-        choices=AuthenticationBackends.BACKENDS)
-    key = models.TextField(pgettext_lazy('Authentication field', 'key'))
-    password = models.TextField(
-        pgettext_lazy('Authentication field', 'password'))
+        max_length=20, choices=AuthenticationBackends.BACKENDS)
+    key = models.TextField()
+    password = models.TextField()
 
     class Meta:
         unique_together = (('site_settings', 'name'),)

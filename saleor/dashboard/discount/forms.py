@@ -21,6 +21,22 @@ class SaleForm(forms.ModelForm):
     class Meta:
         model = Sale
         exclude = []
+        labels = {
+            'name': pgettext_lazy(
+                'Sale name',
+                'Name'),
+            'type': pgettext_lazy(
+                'Discount type',
+                'Fixed or percentage'),
+            'value': pgettext_lazy(
+                'Percentage or fixed amount value',
+                'Value'),
+            'products': pgettext_lazy(
+                'Discounted products',
+                'Discounted products'),
+            'categories': pgettext_lazy(
+                'Discounted categories',
+                'Discounted categories')}
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -42,7 +58,26 @@ class VoucherForm(forms.ModelForm):
 
     class Meta:
         model = Voucher
-        exclude = ['limit', 'apply_to', 'product', 'category']
+        exclude = ['limit', 'apply_to', 'product', 'category', 'used']
+        labels = {
+            'type': pgettext_lazy(
+                'Discount type',
+                'Discount type'),
+            'name': pgettext_lazy(
+                'Item name',
+                'Name'),
+            'code': pgettext_lazy(
+                'Coupon code',
+                'Code'),
+            'usage_limit': pgettext_lazy(
+                'Usage limit',
+                'Usage limit'),
+            'start_date': pgettext_lazy(
+                'Voucher date restrictions',
+                'Start date'),
+            'end_date': pgettext_lazy(
+                'Voucher date restrictions',
+                'End date')}
 
     def __init__(self, *args, **kwargs):
         initial = kwargs.get('initial', {})
@@ -72,20 +107,21 @@ def country_choices():
 class ShippingVoucherForm(forms.ModelForm):
 
     limit = PriceField(
-        min_value=0, required=False, currency=settings.DEFAULT_CURRENCY,
-        label=pgettext_lazy(
-            'Shipping voucher form label for `limit` field',
-            'Only if order is over or equal to'))
+        min_value=0, required=False, currency=settings.DEFAULT_CURRENCY)
     apply_to = forms.ChoiceField(
-        label=pgettext_lazy(
-            'Shipping voucher form label for `apply_to` field',
-            'Country'),
         choices=country_choices,
         required=False)
 
     class Meta:
         model = Voucher
         fields = ['apply_to', 'limit']
+        labels = {
+            'apply_to': pgettext_lazy(
+                'Country',
+                'Country'),
+            'limit': pgettext_lazy(
+                'Lowest value for order to be able to use the voucher',
+                'Only if order is over or equal to')}
 
     def save(self, commit=True):
         self.instance.category = None
@@ -96,14 +132,15 @@ class ShippingVoucherForm(forms.ModelForm):
 class ValueVoucherForm(forms.ModelForm):
 
     limit = PriceField(
-        min_value=0, required=False, currency=settings.DEFAULT_CURRENCY,
-        label=pgettext_lazy(
-            'Value voucher form label for `limit` field',
-            'Only if purchase value is greater than or equal to'))
+        min_value=0, required=False, currency=settings.DEFAULT_CURRENCY)
 
     class Meta:
         model = Voucher
         fields = ['limit']
+        labels = {
+            'limit': pgettext_lazy(
+                'Lowest value for order to be able to use the voucher',
+                'Only if purchase value is greater than or equal to')}
 
     def save(self, commit=True):
         self.instance.category = None
@@ -143,6 +180,13 @@ class ProductVoucherForm(CommonVoucherForm):
     class Meta:
         model = Voucher
         fields = ['product', 'apply_to']
+        labels = {
+            'apply_to': pgettext_lazy(
+                'Country',
+                'Country'),
+            'product': pgettext_lazy(
+                'Product',
+                'Product')}
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -155,6 +199,13 @@ class CategoryVoucherForm(CommonVoucherForm):
     class Meta:
         model = Voucher
         fields = ['category', 'apply_to']
+        labels = {
+            'apply_to': pgettext_lazy(
+                'Country',
+                'Country'),
+            'category': pgettext_lazy(
+                'Category',
+                'Category')}
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
