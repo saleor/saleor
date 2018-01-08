@@ -5,7 +5,7 @@
 
 {% block forms %}
     <h3>{% trans "Shipping address" context "Checkout shipping address title" %}</h3>
-    {% include "userprofile/snippets/address-short.html" with address=checkout.shipping_address only %}
+    {% include "userprofile/snippets/address_short.html" with address=checkout.shipping_address only %}
     <p><a href="{% url 'checkout:shipping-address' %}">{% trans "Select other address" %}</a></p>
     <hr>
     <form method="post" novalidate>

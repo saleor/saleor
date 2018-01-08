@@ -140,4 +140,4 @@ def summary(request, cart):
             'total': currencyfmt(cart_total.gross, cart_total.currency),
             'lines': [prepare_line_data(line) for line in cart.lines.all()]}
 
-    return render(request, 'cart-dropdown.html', data)
+    return render(request, 'cart_dropdown.html', data)

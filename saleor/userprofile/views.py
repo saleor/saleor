@@ -47,7 +47,7 @@ def address_edit(request, pk):
         messages.success(request, message)
         return HttpResponseRedirect(reverse('profile:details') + '#addresses')
     return TemplateResponse(
-        request, 'userprofile/address-edit.html',
+        request, 'userprofile/address_edit.html',
         {'address_form': address_form})
 
 
@@ -61,4 +61,4 @@ def address_delete(request, pk):
             pgettext('Storefront message', 'Address successfully removed'))
         return HttpResponseRedirect(reverse('profile:details') + '#addresses')
     return TemplateResponse(
-        request, 'userprofile/address-delete.html', {'address': address})
+        request, 'userprofile/address_delete.html', {'address': address})
