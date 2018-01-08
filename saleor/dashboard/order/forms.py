@@ -134,7 +134,7 @@ class MoveLinesForm(forms.Form):
         return target_group
 
 
-class CancelLinesForm(forms.Form):
+class CancelOrderLineForm(forms.Form):
 
     def __init__(self, *args, **kwargs):
         self.line = kwargs.pop('line')
