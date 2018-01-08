@@ -118,14 +118,14 @@
               {% for address in addresses %}
                 <div class="col-md-6">
                   <div class="card card-block">
-                    {% include "userprofile/snippets/address-short.html" %}
+                    {% include "userprofile/snippets/address_short.html" %}
                     <ul class="icons">
                       <li><a href="{% url "profile:address-edit" pk=address.pk %}">
                         {% trans "Edit" context "User address action" %}
                       </a></li>
                       <li><a class="delete-icon"><svg data-src="{% static "images/delete.svg" %}" height="20px" width="20px" /></a></li>
                     </ul>
-                    {% include "userprofile/address-delete.html" with pk=address.pk %}
+                    {% include "userprofile/address_delete.html" with pk=address.pk %}
                   </div>
                 </div>
               {% endfor %}
