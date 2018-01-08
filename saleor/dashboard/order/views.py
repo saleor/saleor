@@ -17,7 +17,7 @@ from .forms import (
     AddVariantToDeliveryGroupForm, CancelGroupForm, CancelOrderLineForm,
     CancelOrderForm, CapturePaymentForm, ChangeStockForm, ChangeQuantityForm,
     MoveLinesForm, OrderNoteForm, RefundPaymentForm, ReleasePaymentForm,
-    RemoveVoucherForm, ShipGroupForm)
+    RemoveVoucherForm, ShipGroupForm, DashboardAddressForm)
 
 from .utils import (
     create_invoice_pdf, create_packing_slip_pdf, get_statics_absolute_url)
@@ -25,7 +25,6 @@ from ..views import staff_member_required
 from ...core.utils import get_paginator_items
 from ...order import GroupStatus
 from ...order.models import Order, OrderLine, OrderNote
-from ...userprofile.i18n import AddressForm
 
 
 @staff_member_required
@@ -352,7 +351,7 @@ def address_view(request, order_pk, address_type):
         success_msg = pgettext_lazy(
             'Dashboard message',
             'Updated billing address')
-    form = AddressForm(request.POST or None, instance=address)
+    form = DashboardAddressForm(request.POST or None, instance=address)
     if form.is_valid():
         form.save()
         order.create_history_entry(comment=success_msg, user=request.user)
