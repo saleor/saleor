@@ -83,12 +83,12 @@ class ProductClass(models.Model):
             class_.__module__, class_.__name__, self.pk, self.name)
 
 
-class ProductManager(models.Manager):
-    def get_available_products(self):
+class ProductQuerySet(models.QuerySet):
+    def available_products(self):
         today = datetime.date.today()
-        return self.get_queryset().filter(
-            Q(available_on__lte=today) | Q(available_on__isnull=True)).filter(
-                is_published=True)
+        return self.filter(
+            Q(available_on__lte=today) | Q(available_on__isnull=True),
+            Q(is_published=True))
 
 
 class Product(models.Model, ItemRange):
@@ -105,7 +105,7 @@ class Product(models.Model, ItemRange):
     updated_at = models.DateTimeField(auto_now=True, null=True)
     is_featured = models.BooleanField(default=False)
 
-    objects = ProductManager()
+    objects = ProductQuerySet.as_manager()
 
     class Meta:
         app_label = 'product'
