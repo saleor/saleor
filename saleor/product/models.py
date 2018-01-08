@@ -157,10 +157,7 @@ class Product(models.Model, ItemRange):
 
     def get_first_image(self):
         first_image = self.images.first()
-
-        if first_image:
-            return first_image.image
-        return None
+        return first_image.image if first_image else None
 
     def get_attribute(self, pk):
         return self.attributes.get(smart_text(pk))
@@ -352,14 +349,6 @@ class AttributeChoiceValue(models.Model):
         return self.name
 
 
-class ImageManager(models.Manager):
-    def first(self):
-        try:
-            return self.get_queryset()[0]
-        except IndexError:
-            pass
-
-
 class ProductImage(models.Model):
     product = models.ForeignKey(
         Product, related_name='images', on_delete=models.CASCADE)
@@ -368,8 +357,6 @@ class ProductImage(models.Model):
     ppoi = PPOIField()
     alt = models.CharField(max_length=128, blank=True)
     order = models.PositiveIntegerField(editable=False)
-
-    objects = ImageManager()
 
     class Meta:
         ordering = ('order', )
