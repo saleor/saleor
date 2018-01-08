@@ -25,7 +25,7 @@ HTTP_REDIRECTION = 302
 
 def create_image():
     img_data = BytesIO()
-    image = Image.new('RGBA', size=(1, 1), color=(255, 0, 0, 0))
+    image = Image.new('RGB', size=(1, 1), color=(255, 0, 0, 0))
     image.save(img_data, format='JPEG')
     image_name = 'product2'
     image = SimpleUploadedFile(

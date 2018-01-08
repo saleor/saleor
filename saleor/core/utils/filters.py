@@ -1,6 +1,6 @@
 def get_sort_by_choices(filter_set):
     return [(choice[0], choice[1].lower()) for choice in
-            filter_set.filters['sort_by'].field.choices[1::2]]
+            filter_set.filters['sort_by'].field.choices.choices[0::2]]
 
 
 def get_now_sorted_by(filter_set, default_sort='name'):
