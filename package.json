@@ -19,6 +19,7 @@
   "dependencies": {
     "bootstrap": "4.0.0-beta.2",
     "classnames": "^2.2.5",
+    "detect-passive-events": "^1.0.4",
     "dropzone": "^5.2.0",
     "favicons-webpack-plugin": "^0.0.7",
     "jquery": "^3.1.1",
@@ -48,7 +49,10 @@
     "babel-preset-stage-0": "^6.22.0",
     "css-loader": "^0.28.7",
     "eslint": "^4.6.1",
+    "eslint-config-airbnb-base": "^12.1.0",
     "eslint-config-standard": "^10.2.1",
+    "eslint-plugin-import": "^2.8.0",
+    "eslint-plugin-node": "^5.2.1",
     "eslint-plugin-promise": "^3.4.0",
     "eslint-plugin-react": "^7.3.0",
     "eslint-plugin-standard": "^3.0.1",

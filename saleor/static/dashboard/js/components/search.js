@@ -16,12 +16,8 @@ function closeSearchBar (e) {
   $target.toggleClass('active', !isExpanded);
 }
 
-const init = $(() => {
-  $('#btn-search').on('click', openSearchBar);
-  $('#btn-search-close').on('click', closeSearchBar);
-  $('#btn-search-submit').on('click', submit);
-});
+// -----
 
-export {
-  init as default
-};
+$('#btn-search').on('click', openSearchBar);
+$('#btn-search-close').on('click', closeSearchBar);
+$('#btn-search-submit').on('click', submit);
