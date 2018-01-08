@@ -34,38 +34,52 @@
   </ul>
 {% endblock %}
 
-
-{% block header_extra %}
-  {% if customer.pk and not customer.is_staff and perms.userprofile.edit_staff and perms.userprofile.edit_user or perms.userprofile.impersonate_user %}
-    <a class="dropdown-button right" href="#" data-activates="context-menu" data-constrainwidth="false">
-      <svg data-src="{% static "dashboard/images/more-vert.svg" %}" height="24" width="24" />
-    </a>
-    <ul id="context-menu" class="dropdown-content">
-      {% if perms.userprofile.edit_user and perms.userprofile.edit_staff %}
-        <li>
-          <a href="#base-modal" data-href="{% url 'dashboard:customer-promote' pk=customer.pk %}"
-          class="modal-trigger-custom">
-            {% trans 'Promote to staff' context 'Customer promote to staff member action' %}
-          </a>
-        </li>
-      {% endif %}
-      {% if perms.userprofile.impersonate_user %}
-        <li>
-          <a href="{% url 'impersonate-start' uid=customer.pk %}">Impersonate customer</a>
-        </li>
-      {% endif %}
-    </ul>
-  {% endif %}
-{% endblock %}
-
-
 {% block content %}
   <div class="row">
-    <div class="col s12 l8">
+    <div class="col m12 l8">
+      <div class="card">
+        <div class="card-content">
+          <span class="card-title">
+            {{ customer.email }}
+          </span>
+          <div class="row">
+            {% if customer.date_joined %}
+              <div class="col s12 m4 l12">
+                <h4>
+                  {% trans "Date joined" context "Customer field" %}
+                </h4>
+                <p>
+                  {{ customer.date_joined }}
+                </p>
+              </div>
+            {% endif %}
+          </div>
+        </div>
+        <div class="card-action">
+          {% if perms.userprofile.edit_user %}
+            <a class="btn-flat waves-effect" href="{% url 'dashboard:customer-update' customer.pk %}">
+              {% trans "Edit customer" context "Customer action" %}
+            </a>
+          {% endif %}
+          {% if not customer.is_staff and perms.userprofile.edit_user and perms.userprofile.edit_staff %}
+            <a href="#base-modal" data-href="{% url 'dashboard:customer-promote' pk=customer.pk %}"
+            class="modal-trigger-custom">
+              {% trans 'Promote to staff' context 'Customer promote to staff member action' %}
+            </a>
+          {% endif %}
+          {% if perms.userprofile.impersonate_user %}
+            <a href="{% url 'impersonate-start' uid=customer.pk %}">
+              {% trans 'Impersonate customer' context 'Customer impersonate action' %}
+            </a>
+          {% endif %}
+        </div>
+
+      </div>
+
       <div class="card">
         <div class="data-table-header{% if not customer_orders %} data-table-header--no-data{% endif %}">
           <h5 class="data-table-title">
-            {% trans "Order history" context "Customer orders table title" %}
+            {% trans "Recent orders" context "Customer recent orders table title" %}
           </h5>
         </div>
         {% if customer_orders %}
@@ -116,6 +130,7 @@
         {% endif %}
       </div>
     </div>
+
 
     <div class="col s12 l4">
        <div class="row">

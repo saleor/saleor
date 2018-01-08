@@ -5,9 +5,9 @@ from django.shortcuts import get_object_or_404, redirect
 from django.template.response import TemplateResponse
 from django.utils.translation import pgettext_lazy
 
-from .emails import send_set_password_email
 from .filters import StaffFilter
 from .forms import StaffForm
+from ..emails import send_set_password_email
 from ..views import staff_member_required
 from ...core.utils import get_paginator_items
 from ...userprofile.models import User
