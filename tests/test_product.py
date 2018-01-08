@@ -12,6 +12,7 @@ from saleor.cart.models import Cart
 from saleor.product import (
     ProductAvailabilityStatus, VariantAvailabilityStatus, models)
 from saleor.product.utils import (
+    allocate_stock, deallocate_stock, decrease_stock,
     get_attributes_display_map, get_availability,
     get_product_availability_status, get_variant_availability_status,
     get_variant_picker_data)
@@ -31,12 +32,12 @@ def test_stock_selector(product_in_stock):
     assert preferred_stock.quantity_available >= 5
 
 
-def test_stock_allocator(product_in_stock):
+def test_allocate_stock(product_in_stock):
     variant = product_in_stock.variants.get()
     stock = variant.select_stockrecord(5)
     assert stock.quantity_allocated == 0
-    models.Stock.objects.allocate_stock(stock, 1)
-    stock = models.Stock.objects.get(pk=stock.pk)
+    allocate_stock(stock, 1)
+    stock.refresh_from_db()
     assert stock.quantity_allocated == 1
 
 
@@ -45,7 +46,7 @@ def test_decrease_stock(product_in_stock):
     stock.quantity = 100
     stock.quantity_allocated = 80
     stock.save()
-    models.Stock.objects.decrease_stock(stock, 50)
+    decrease_stock(stock, 50)
     stock.refresh_from_db()
     assert stock.quantity == 50
     assert stock.quantity_allocated == 30
@@ -67,7 +68,7 @@ def test_deallocate_stock(product_in_stock):
     stock.quantity = 100
     stock.quantity_allocated = 80
     stock.save()
-    models.Stock.objects.deallocate_stock(stock, 50)
+    deallocate_stock(stock, 50)
     stock.refresh_from_db()
     assert stock.quantity == 100
     assert stock.quantity_allocated == 30

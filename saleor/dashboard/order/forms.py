@@ -7,6 +7,8 @@ from django_prices.forms import PriceField
 from payments import PaymentError, PaymentStatus
 from satchless.item import InsufficientStock
 
+from saleor.product.utils import (
+    allocate_stock, deallocate_stock, decrease_stock)
 from ...cart.forms import QuantityField
 from ...core.forms import AjaxSelect2ChoiceField
 from ...discount.models import Voucher
@@ -139,8 +141,7 @@ class CancelLinesForm(forms.Form):
         super().__init__(*args, **kwargs)
 
     def cancel_line(self):
-        if self.line.stock:
-            Stock.objects.deallocate_stock(self.line.stock, self.line.quantity)
+        deallocate_stock(self.line.stock, self.line.quantity)
         order = self.line.delivery_group.order
         self.line.quantity = 0
         remove_empty_groups(self.line)
@@ -183,7 +184,7 @@ class ChangeQuantityForm(forms.ModelForm):
         if stock is not None:
             # update stock allocation
             delta = quantity - self.initial_quantity
-            Stock.objects.allocate_stock(stock, delta)
+            allocate_stock(stock, delta)
         change_order_line_quantity(self.instance, quantity)
         recalculate_order(self.instance.delivery_group.order)
         return self.instance
@@ -317,13 +318,11 @@ class ChangeStockForm(forms.ModelForm):
 
     def save(self, commit=True):
         quantity = self.instance.quantity
-        if self.old_stock is not None:
-            Stock.objects.deallocate_stock(self.old_stock, quantity)
         stock = self.instance.stock
-        if stock is not None:
-            self.instance.stock_location = (
-                stock.location.name if stock.location else '')
-            Stock.objects.allocate_stock(stock, quantity)
+        self.instance.stock_location = (
+            stock.location.name if stock.location else '')
+        deallocate_stock(self.old_stock, quantity)
+        allocate_stock(stock, quantity)
         super().save(commit)
         merge_duplicates_into_order_line(self.instance)
         return self.instance
