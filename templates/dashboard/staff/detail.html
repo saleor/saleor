@@ -30,7 +30,7 @@
     </li>
     <li class="back-mobile">
       <a href="{% url "dashboard:staff-list" %}">
-        <svg data-src="{% static "dashboard/images/arrow_left.svg" %}" fill="#fff" width="20px" height="20px" />
+        <svg data-src="{% static "dashboard/images/arrow-left.svg" %}" fill="#fff" width="20px" height="20px" />
       </a>
     </li>
     <li><span class="breadcrumbs--elipsed-item">{% if staff_member %}{{ staff_member }}{% else %}{% trans 'Add staff member' context 'Dashboard add staff member action' %}{% endif %}</span></li>
