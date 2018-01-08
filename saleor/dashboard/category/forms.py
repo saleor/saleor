@@ -10,13 +10,7 @@ from ...product.models import Category
 class CategoryForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         self.parent_pk = kwargs.pop('parent_pk')
-<<<<<<< HEAD
-        super().__init__(*args, **kwargs)
-        self.fields['is_hidden'].label = pgettext_lazy(
-            'Category form field label', 'Hide in site navigation')
-=======
         super(CategoryForm, self).__init__(*args, **kwargs)
->>>>>>> Use useful context descriptions for labels
         if self.instance.parent and self.instance.parent.is_hidden:
             self.fields['is_hidden'].widget.attrs['disabled'] = True
 
