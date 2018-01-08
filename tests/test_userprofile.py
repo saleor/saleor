@@ -145,6 +145,7 @@ def test_format_address(billing_address):
         '{% format_address address %}')
     rendered_html = tpl.render(context)
     assert address_html in rendered_html
+    assert 'address-inline' not in rendered_html
     assert str(billing_address.phone) in rendered_html
 
 
@@ -158,4 +159,5 @@ def test_format_address_all_options(billing_address):
         '{% format_address address include_phone=False inline=True latin=True %}')
     rendered_html = tpl.render(context)
     assert address_html in rendered_html
+    assert 'address-inline' in rendered_html
     assert str(billing_address.phone) not in rendered_html

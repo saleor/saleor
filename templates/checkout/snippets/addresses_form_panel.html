@@ -6,8 +6,10 @@
              value="{{ radio_value }}"
              id="address_{{ radio_value }}"
              {% if radio_value == value %}checked{% endif %}>
-               {% if address %}
-                  {% format_address address %}
+                {% if address %}
+                  <div class="address-details">
+                    {% format_address address %}
+                  </div>
                {% else %}
                   {{ label }}
                {% endif %}
