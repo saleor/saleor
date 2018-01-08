@@ -17,14 +17,16 @@ Product availability
 
 A variant is *in stock* if at least one of its stock records has unallocated quantity.
 
-The highest quantity that can be ordered is the maximum available quantity in any of its stock records. It's *not* the sum of all quantities to allow each order line to be fulfiled by a single stock record.
+The highest quantity that can be ordered is the sum of all available quantities in stock records. It allows each ordered product to be fulfilled in multiple order lines with all stock records.
+
 
 Allocating stock for new orders
 -------------------------------
 
-Once an order is placed, a stock record is selected to fulfil each order line. Default logic will select the stock record with the *lowest cost price* that holds enough stock. Quantity needed to fulfil the order line is immediately marked as *allocated*.
+Once an order is placed, a stock records are selected to fulfil each order line. Default logic will select the stock records with the *lowest cost price* that holds enough stock. Quantity needed to fulfil the order line is immediately marked as *allocated*.
 
 **Example:** A customer places an order for another box of shoes and warehouse A is selected to fulfil the order. The stock records **quantity** is **5**, **quantity allocated** is now **4** and **quantity available** becomes **1**.
+
 
 Decreasing stock after shipment
 -------------------------------
