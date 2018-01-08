@@ -14,7 +14,7 @@ from satchless.item import InsufficientStock
 
 from .filters import OrderFilter
 from .forms import (
-    AddVariantToDeliveryGroupForm, CancelGroupForm, CancelLinesForm,
+    AddVariantToDeliveryGroupForm, CancelGroupForm, CancelOrderLineForm,
     CancelOrderForm, CapturePaymentForm, ChangeStockForm, ChangeQuantityForm,
     MoveLinesForm, OrderNoteForm, RefundPaymentForm, ReleasePaymentForm,
     RemoveVoucherForm, ShipGroupForm)
@@ -235,7 +235,7 @@ def orderline_cancel(request, order_pk, line_pk):
     order = get_object_or_404(Order, pk=order_pk)
     line = get_object_or_404(OrderLine.objects.filter(
         delivery_group__order=order), pk=line_pk)
-    form = CancelLinesForm(data=request.POST or None, line=line)
+    form = CancelOrderLineForm(data=request.POST or None, line=line)
     status = 200
     if form.is_valid():
         msg = pgettext_lazy(
