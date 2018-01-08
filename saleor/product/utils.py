@@ -166,15 +166,15 @@ def get_variant_picker_data(product, discounts=None, local_currency=None):
                        'itemCondition': 'http://schema.org/NewCondition',
                        'priceCurrency': price.currency,
                        'price': price.net}
-
-        if variant.is_in_stock():
+        in_stock = variant.is_in_stock()
+        if in_stock:
             schema_data['availability'] = 'http://schema.org/InStock'
         else:
             schema_data['availability'] = 'http://schema.org/OutOfStock'
 
         variant_data = {
             'id': variant.id,
-            'availability': variant.is_in_stock(),
+            'availability': in_stock,
             'price': price_as_dict(price),
             'priceUndiscounted': price_as_dict(price_undiscounted),
             'attributes': variant.attributes,
