@@ -7,7 +7,8 @@
   "globals": {
     "gettext": true,
     "pgettext": true,
-    "ngettext": true
+    "ngettext": true,
+    "Materialize": true
   },
   "plugins": ["react"],
   "parser": "babel-eslint",
