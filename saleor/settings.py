@@ -264,17 +264,49 @@ LOGGING = {
 
     },
 }
+#
+CONSTANCE_CONFIG_FIELDSETS = {
+    'Public announcement': (
+        'ANNOUNCEMENT_SHOW',
+        'ANNOUNCEMENT_MESSAGE',
+        'ANNOUNCEMENT_PRIORITY',
+    ),
+    'Search': (
+        'SEARCH_FUZZINESS',
+        'SEARCH_PREFIX_LENGTH',
+        'SEARCH_PHRASE_PREFIX'
+    ),
+    'Payments': (
+        'PAYMENTS_RECURRING_ENABLED',
+        'PAYMENTS_ONECLICK_ENABLED',
+    ),
+    'Various': (
+        'MAIN_GENRE_MAP',
+        'RELEASE_INFO_UPTODATE_HOURS',
+        'VAT_RATE',
+        'CHARTS_ALLOWED_ITEMS',
+    )
+}
+CONSTANCE_ADDITIONAL_FIELDS = {
+    'priority_select': ['django.forms.fields.ChoiceField', {
+        'widget': 'django.forms.Select',
+        'choices': (("info", "Info"), ("warning", "Warning"), ("error", "Critical"), )
+    }],
+}
 
 CONSTANCE_CONFIG = {
     'MAIN_GENRE_MAP': ('', 'Holds the artificial meta genre grouping'),
     'RELEASE_INFO_UPTODATE_HOURS': (48, 'Re-evaluate tracks and discogs release after this amount of hours'),
     'SEARCH_FUZZINESS': ('0', 'The maximum number of edits between input and target tokens (see https://www.elastic.co/guide/en/elasticsearch/reference/current/common-options.html#fuzziness)'),
     'SEARCH_PREFIX_LENGTH': (1, 'The minimum number of characters leading the target term'),
+    'SEARCH_PHRASE_PREFIX': (True, 'Use Match Phrase Prefix instead of Match Phrase'),
     'CHARTS_ALLOWED_ITEMS': (10, 'The maximum number of allowed items in charts'),
     'VAT_RATE': (19.0, 'The current VAT tax rate'),
-    'SEARCH_PHRASE_PREFIX': (True, 'Use Match Phrase Prefix instead of Match Phrase'),
     'PAYMENTS_RECURRING_ENABLED': (False, 'Enable recurring payments'),
     'PAYMENTS_ONECLICK_ENABLED': (False, 'Enable oneclick payments'),
+    'ANNOUNCEMENT_SHOW': (True, 'If set to True, the announcement should be shown'),
+    'ANNOUNCEMENT_PRIORITY': ('info', 'Select priority', 'priority_select'),
+    'ANNOUNCEMENT_MESSAGE': ('', 'Displays an announcements'),
 }
 CONSTANCE_BACKEND = 'constance.backends.database.DatabaseBackend'
 
@@ -464,7 +496,7 @@ CELERY_BROKER_USER = os.environ.get('RABBITMQ_USER', 'guest')
 CELERY_BROKER_PASSWORD = os.environ.get('RABBITMQ_PASSWORD', 'guest')
 CELERY_BROKER_PORT = 5672
 CELERY_BROKER_HOST = 'localhost'
-CELERY_TASK_ALWAYS_EAGER=False
+CELERY_TASK_ALWAYS_EAGER = False
 
 
 CORS_ALLOW_HEADERS = (
