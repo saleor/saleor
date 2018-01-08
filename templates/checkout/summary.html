@@ -5,7 +5,7 @@
   <form method="post" novalidate>
     {% csrf_token %}
     <h2>{% trans "Billing address" context "Checkout summary title" %}</h2>
-    {% include "checkout/snippets/addresses-form.html" with addresses_form=addresses_form addresses=additional_addresses address_form=address_form only %}
+    {% include "checkout/snippets/addresses_form.html" with addresses_form=addresses_form addresses=additional_addresses address_form=address_form only %}
     <p class="text-md-right">
       <button type="submit" class="btn primary">
         {% trans "Order &amp Pay" context "Checkout summary primary action" %}
