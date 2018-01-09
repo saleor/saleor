@@ -190,6 +190,8 @@ class ChangeQuantityForm(forms.ModelForm):
 
 
 class ShipGroupForm(forms.ModelForm):
+    """Decreases corresponding stocks ans sets delivery group tracking
+    number."""
     class Meta:
         model = DeliveryGroup
         fields = ['tracking_number']
@@ -218,6 +220,8 @@ class ShipGroupForm(forms.ModelForm):
 
 
 class CancelGroupForm(forms.ModelForm):
+    """Deallocates or increases corresponding stocks, depending whether new
+    or shipped group is cancelled."""
     class Meta:
         model = DeliveryGroup
         fields = []
@@ -228,7 +232,8 @@ class CancelGroupForm(forms.ModelForm):
 
 
 class CancelOrderForm(forms.Form):
-
+    """Deallocates or increases corresponding stocks in each delivery group,
+    depending whether new or shipped group is cancelled."""
     def __init__(self, *args, **kwargs):
         self.order = kwargs.pop('order')
         super().__init__(*args, **kwargs)
