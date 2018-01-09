@@ -286,7 +286,7 @@ def cancel_delivery_group(request, order_pk, group_pk):
     status = 200
     if form.is_valid():
         with transaction.atomic():
-            form.cancel_group()
+            form.save()
         msg = pgettext_lazy(
             'Dashboard message related to a shipment group',
             'Cancelled %s') % group
