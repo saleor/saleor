@@ -951,6 +951,23 @@ def test_staff_with_permissions_can_edit_customer(
     assert customer_user.is_active
 
 
+def test_staff_with_permissions_can_add_customer(
+        staff_client, staff_user, staff_group, permission_edit_user,
+        permission_view_user):
+    staff_group.permissions.add(permission_edit_user)
+    staff_group.permissions.add(permission_view_user)
+    staff_user.groups.add(staff_group)
+    staff_user = User.objects.get(pk=staff_user.pk)
+    assert staff_user.has_perm("userprofile.edit_user")
+    assert staff_user.has_perm("userprofile.view_user")
+    response = staff_client.get(reverse('dashboard:customer-create'))
+    assert response.status_code == 200
+    url = reverse('dashboard:customer-create')
+    data = {'email': 'newcustomer@example.com', 'is_active': True}
+    response = staff_client.post(url, data)
+    customer = User.objects.get(email='newcustomer@example.com')
+    assert customer.is_active
+
 
 def test_staff_group_member_can_view_and_edit_site_settings(
         staff_client, staff_user, staff_group, site_settings,
