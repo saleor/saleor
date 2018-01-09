@@ -1,7 +1,7 @@
 import { computed, observable } from 'mobx';
 
 class VariantPickerStore {
-  @observable variant = {}
+  @observable variant = {};
 
   setVariant(variant) {
     this.variant = variant || {};
