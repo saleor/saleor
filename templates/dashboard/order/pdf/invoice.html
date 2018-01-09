@@ -23,9 +23,13 @@
   <thead>
   <tr>
     {% if order.shipping_address %}
-      <th align="left" width="50%">{% trans "Shipping Details" context "Invoice table header" %}</th>
+      <th align="left" width="50%">
+        {% trans "Shipping Details" context "Invoice table header" %}
+      </th>
     {% endif %}
-    <th align="left" width="50%">{% trans "Billing Details" context "Invoice table header" %}</th>
+    <th align="left" {% if order.shipping_address %} width="50%"{% endif %}>
+      {% trans "Billing Details" context "Invoice table header" %}
+    </th>
   </tr>
   </thead>
   <tbody>
