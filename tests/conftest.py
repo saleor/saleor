@@ -1,6 +1,6 @@
 from decimal import Decimal
 from io import BytesIO
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, Mock
 
 import pytest
 from django.contrib.auth.models import AnonymousUser, Group, Permission
@@ -9,6 +9,7 @@ from django.core.files import File
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.utils.encoding import smart_text
 from PIL import Image
+from prices import Price
 
 from saleor.cart import utils
 from saleor.cart.models import Cart
@@ -17,6 +18,7 @@ from saleor.discount.models import Sale, Voucher
 from saleor.order import GroupStatus
 from saleor.order.models import DeliveryGroup, Order, OrderLine
 from saleor.order.utils import recalculate_order
+from saleor.product.forms import VariantChoiceField
 from saleor.product.models import (
     AttributeChoiceValue, Category, Product, ProductAttribute, ProductClass,
     ProductImage, ProductVariant, Stock, StockLocation)
@@ -294,7 +296,7 @@ def product_list(product_class, default_category):
 
     return [product_1, product_2, product_3]
 
-from prices import Price
+
 @pytest.fixture
 def order_list(admin_user, billing_address):
     data = {
@@ -592,3 +594,9 @@ def closed_orders(billing_address):
     orders.append(Order.objects.create(billing_address=billing_address))
 
     return orders
+
+
+@pytest.fixture
+def variant_choice_field_form():
+    form = VariantChoiceField(Mock)
+    return form
