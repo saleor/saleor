@@ -13,14 +13,14 @@
           <h3>
             {% trans "Shipping address" context "Order details address title" %}
           </h3>
-          <address>{% include "userprofile/snippets/address-short.html" with address=order.shipping_address %}</address>
+          <address>{% include "userprofile/snippets/address_short.html" with address=order.shipping_address %}</address>
         </div>
       {% endif %}
       <div class="col-6">
         <h3>
           {% trans "Billing address" context "Order details address title" %}
         </h3>
-        <address>{% include "userprofile/snippets/address-short.html" with address=order.billing_address %}</address>
+        <address>{% include "userprofile/snippets/address_short.html" with address=order.billing_address %}</address>
       </div>
     </div>
   </div>
