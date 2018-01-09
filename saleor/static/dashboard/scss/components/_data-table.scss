@@ -73,6 +73,9 @@
     line-height: 1;
     margin: 0;
     padding: 0 24px;
+    &--no-data {
+      padding: 0 15px;
+    }
   }
 
   &.last-right-align {

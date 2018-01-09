@@ -81,7 +81,7 @@
 
       <div class="card">
         <div class="data-table-header{% if not customer_orders %} data-table-header--no-data{% endif %}">
-          <h5 class="data-table-title">
+          <h5 class="data-table-title {% if not customer_orders %} data-table-title--no-data{% endif %}">
             {% trans "Recent orders" context "Customer recent orders table title" %}
           </h5>
         </div>
