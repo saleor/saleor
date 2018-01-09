@@ -28,7 +28,7 @@ Delivery Group statuses flow
 
 .. image:: img/delivery_group_statuses.png
 
-Regular flow of statuses is from ``NEW`` to ``SHIPPED``. For managing states saleor uses `django_fsm <https://github.com/kmmbvnr/django-fsm>`_ package. Actions performed within changing status are placed in Delivery Group model and are as follows:
+Regular flow of statuses is from ``NEW`` to ``SHIPPED``. For managing states Saleor uses `django-fsm <https://github.com/kmmbvnr/django-fsm>`_ package. Actions performed within changing status are placed in DeliveryGroup model and are as follows:
 
 - ``process(cart_lines, discounts=None)``
     Adds specified cart lines to a group with optionally charged discounts and allocates quantity in corresponding stocks. Performed during creating order in checkout process.
