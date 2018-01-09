@@ -19,7 +19,7 @@
     {% else %}
       {% url 'dashboard:category-list' as url %}
     {% endif %}
-    {% include "dashboard/includes/_back-link.html" with url=url %}
+    {% include "dashboard/includes/_back_link.html" with url=url %}
   {% else %}
     {{ block.super }}
   {% endif %}
@@ -43,7 +43,7 @@
     {% if path %}
       <li class="back-mobile">
         <a href="{% url 'dashboard:category-list' %}">
-          <svg data-src="{% static 'dashboard/images/arrow_left.svg' %}" fill="#fff"
+          <svg data-src="{% static 'dashboard/images/arrow-left.svg' %}" fill="#fff"
                width="20px" height="20px"/>
         </a>
       </li>

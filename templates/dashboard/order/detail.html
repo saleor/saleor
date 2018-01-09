@@ -17,12 +17,12 @@
 
 {% block header_menu %}
   {% url "dashboard:orders" as url %}
-  {% include "dashboard/includes/_back-link.html" with url=url %}
+  {% include "dashboard/includes/_back_link.html" with url=url %}
 {% endblock %}
 
 {% block header_extra %}
   <a class="dropdown-button right" href="#" data-activates="context-menu" data-constrainwidth="false">
-    <svg data-src="{% static "dashboard/images/more_vert.svg" %}" height="24" width="24" />
+    <svg data-src="{% static "dashboard/images/more-vert.svg" %}" height="24" width="24" />
   </a>
   <ul id="context-menu" class="dropdown-content">
     {% if perms.order.edit_order %}
@@ -51,7 +51,7 @@
     </li>
     <li class="back-mobile">
       <a href="{% url "dashboard:orders" %}">
-        <svg data-src="{% static "dashboard/images/arrow_left.svg" %}" fill="#fff" width="20px" height="20px" />
+        <svg data-src="{% static "dashboard/images/arrow-left.svg" %}" fill="#fff" width="20px" height="20px" />
       </a>
     </li>
     <li>
@@ -300,7 +300,7 @@
                       {% if group.can_edit_lines %}
                         <a class="dropdown-button" href="#" data-activates="line-actions-{{ line.pk }}" data-constrainwidth="false">
                           {{ line.quantity }} {% if line.stock_location %} ({{ line.stock_location|truncatechars:10 }}) {% endif %}
-                          <svg data-src="{% static "dashboard/images/arrow_drop_down.svg" %}" width="24" height="24" />
+                          <svg data-src="{% static "dashboard/images/arrow-drop-down.svg" %}" width="24" height="24" />
                         </a>
                         <ul id="line-actions-{{ line.pk }}" class="dropdown-content">
                           <li>
@@ -413,7 +413,7 @@
                       {% blocktrans trimmed with voucher=order.discount_name context "Order totals header" %}
                         Voucher {{ voucher }}
                       {% endblocktrans %}
-                      <svg data-src="{% static "dashboard/images/arrow_drop_down.svg" %}" />
+                      <svg data-src="{% static "dashboard/images/arrow-drop-down.svg" %}" />
                     </a>
                     <ul id="voucher-actions" class="dropdown-content">
                       <li>

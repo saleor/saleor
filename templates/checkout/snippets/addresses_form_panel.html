@@ -6,7 +6,7 @@
              id="address_{{ radio_value }}"
              {% if radio_value == value %}checked{% endif %}>
                {% if address %}
-                  {% include "userprofile/snippets/address-short.html" with address=address only %}
+                  {% include "userprofile/snippets/address_short.html" with address=address only %}
                {% else %}
                   {{ label }}
                {% endif %}
@@ -15,7 +15,7 @@
 <div>
   {% if address_form %}
     <div class="checkout__new-address">
-        {% include "userprofile/snippets/address-form.html" with address_form=address_form only %}
+        {% include "userprofile/snippets/address_form.html" with address_form=address_form only %}
     </div>
   {% endif %}
 </div>

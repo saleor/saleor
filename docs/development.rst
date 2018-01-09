@@ -153,3 +153,9 @@ Usage
 
 
 By default, the application is started in debug mode, will automatically reload code and is configured to listen on port ``8000``.
+
+
+Naming conventions
+------------------
+
+To keep a consistent code structure we follow some rules of naming files. Templates use underscore as a word separator and static files, as they end up as a part of URL, use dashes.
