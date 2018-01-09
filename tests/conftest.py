@@ -500,8 +500,7 @@ def delivery_group(order, product_class):
         unit_price_net=Decimal('30.00'),
         unit_price_gross=Decimal('30.00'),
         stock=stock,
-        stock_location=stock.location.name
-    )
+        stock_location=stock.location.name)
     recalculate_order(order)
     order.refresh_from_db()
     return group
