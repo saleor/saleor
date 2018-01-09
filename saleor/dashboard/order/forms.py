@@ -212,20 +212,19 @@ class ShipGroupForm(forms.ModelForm):
                     'Cannot ship this group'),
                 code='invalid')
 
-    def save(self):
+    def save(self, commit=True):
         self.instance.ship()
-        self.instance.save()
-        return self.instance
+        return super().save(commit)
 
 
-class CancelGroupForm(forms.Form):
+class CancelGroupForm(forms.ModelForm):
     class Meta:
         model = DeliveryGroup
+        fields = []
 
-    def cancel_group(self):
+    def save(self, commit=True):
         self.instance.cancel()
-        self.instance.save()
-        return self.instance
+        return super().save(commit)
 
 
 class CancelOrderForm(forms.Form):
