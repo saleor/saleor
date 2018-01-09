@@ -18,7 +18,6 @@ from saleor.discount.models import Sale, Voucher
 from saleor.order import GroupStatus
 from saleor.order.models import DeliveryGroup, Order, OrderLine
 from saleor.order.utils import recalculate_order
-from saleor.product.forms import VariantChoiceField
 from saleor.product.models import (
     AttributeChoiceValue, Category, Product, ProductAttribute, ProductClass,
     ProductImage, ProductVariant, Stock, StockLocation)
@@ -594,9 +593,3 @@ def closed_orders(billing_address):
     orders.append(Order.objects.create(billing_address=billing_address))
 
     return orders
-
-
-@pytest.fixture
-def variant_choice_field_form():
-    form = VariantChoiceField(Mock)
-    return form

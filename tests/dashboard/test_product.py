@@ -1,7 +1,7 @@
 from io import BytesIO
 import json
 
-from mock import MagicMock
+from mock import MagicMock, Mock
 
 from PIL import Image
 from django.conf import settings
@@ -14,6 +14,7 @@ import pytest
 from saleor.dashboard.product import ProductBulkAction
 from saleor.dashboard.product.forms import (
     ProductBulkUpdate, ProductClassForm, ProductForm)
+from saleor.product.forms import VariantChoiceField
 from saleor.product.models import (
     AttributeChoiceValue, Product, ProductAttribute, ProductClass,
     ProductImage, ProductVariant, Stock, StockLocation)
@@ -645,10 +646,11 @@ def test_product_select_classes_by_ajax(admin_client, product_class):
         'dashboard:product-add', kwargs={'class_pk': product_class.pk})
 
 
-def test_hide_field_in_variant_choice_field_form(variant_choice_field_form):
+def test_hide_field_in_variant_choice_field_form():
+    form = VariantChoiceField(Mock)
     variants, cart = MagicMock(), MagicMock()
     variants.count.return_value = 1
     variants.all()[0].pk = 'test'
-    variant_choice_field_form.update_field_data(variants, cart)
-    assert isinstance(variant_choice_field_form.widget, HiddenInput)
-    assert variant_choice_field_form.widget.attrs.get('value') == 'test'
+    form.update_field_data(variants, cart)
+    assert isinstance(form.widget, HiddenInput)
+    assert form.widget.attrs.get('value') == 'test'
