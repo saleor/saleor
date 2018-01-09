@@ -45,20 +45,29 @@ def customer_details(request, pk):
 
 @staff_member_required
 @permission_required('userprofile.edit_user')
-def customer_edit(request, pk=None):
-    if pk:
-        customer = get_object_or_404(User, pk=pk)
-    else:
-        customer = User()
+def customer_create(request):
+    customer = User()
     form = CustomerForm(request.POST or None, instance=customer)
     if form.is_valid():
         form.save()
         msg = pgettext_lazy(
-            'Dashboard message', 'Updated customer') \
-            if pk else pgettext_lazy(
-            'Dashboard message', 'Added customer')
-        if not pk:
-            send_set_password_email(customer)
+            'Dashboard message', 'Added customer %s' % customer)
+        send_set_password_email(customer)
+        messages.success(request, msg)
+        return redirect('dashboard:customer-details', pk=customer.pk)
+    ctx = {'form': form, 'customer': customer}
+    return TemplateResponse(request, 'dashboard/customer/form.html', ctx)
+
+
+@staff_member_required
+@permission_required('userprofile.edit_user')
+def customer_edit(request, pk=None):
+    customer = get_object_or_404(User, pk=pk)
+    form = CustomerForm(request.POST or None, instance=customer)
+    if form.is_valid():
+        form.save()
+        msg = pgettext_lazy(
+            'Dashboard message', 'Updated customer %s' % customer)
         messages.success(request, msg)
         return redirect('dashboard:customer-details', pk=customer.pk)
     ctx = {'form': form, 'customer': customer}
