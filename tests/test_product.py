@@ -109,6 +109,22 @@ def test_availability(product_in_stock, monkeypatch, settings):
     assert availability.available
 
 
+def test_available_products_only_published(product_list):
+    available_products = models.Product.objects.available_products()
+    assert available_products.count() == 2
+    assert all([product.is_published for product in available_products])
+
+
+def test_available_products_only_available(product_list):
+    product = product_list[0]
+    date_tomorrow = datetime.date.today() + datetime.timedelta(days=1)
+    product.available_on = date_tomorrow
+    product.save()
+    available_products = models.Product.objects.available_products()
+    assert available_products.count() == 1
+    assert all([product.is_available() for product in available_products])
+
+
 def test_filtering_by_attribute(db, color_attribute):
     product_class_a = models.ProductClass.objects.create(
         name='New class', has_variants=True)
