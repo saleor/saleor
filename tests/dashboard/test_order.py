@@ -316,6 +316,25 @@ def test_view_order_invoice(
 
 @pytest.mark.integration
 @pytest.mark.django_db
+def test_view_order_invoice_without_shipping(
+        admin_client, order_with_lines_and_stock, billing_address):
+    """
+    Regression test for #1536:
+    user downloads the invoice for order without shipping address
+    """
+    order_with_lines_and_stock.billing_address = billing_address
+    order_with_lines_and_stock.save()
+    url = reverse(
+        'dashboard:order-invoice', kwargs={
+            'order_pk': order_with_lines_and_stock.id
+        })
+    response = admin_client.get(url)
+    assert response.status_code == 200
+    assert response['content-type'] == 'application/pdf'
+
+
+@pytest.mark.integration
+@pytest.mark.django_db
 def test_view_order_packing_slips(
         admin_client, order_with_lines_and_stock, billing_address):
     """
@@ -337,6 +356,24 @@ def test_view_order_packing_slips(
         order_with_lines_and_stock.id,
         order_with_lines_and_stock.groups.all()[0].pk)
     assert response['Content-Disposition'] == 'filename=%s' % name
+
+
+@pytest.mark.integration
+@pytest.mark.django_db
+def test_view_order_packing_slips_without_shipping(
+        admin_client, order_with_lines_and_stock, billing_address):
+    """Regression test for #1536:
+    user downloads the packaging slips for order without shipping address
+    """
+    order_with_lines_and_stock.billing_address = billing_address
+    order_with_lines_and_stock.save()
+    url = reverse(
+        'dashboard:order-packing-slips', kwargs={
+            'group_pk': order_with_lines_and_stock.groups.all()[0].pk
+        })
+    response = admin_client.get(url)
+    assert response.status_code == 200
+    assert response['content-type'] == 'application/pdf'
 
 
 @pytest.mark.integration
