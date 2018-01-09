@@ -57,18 +57,21 @@
         </div>
         <div class="card-action">
           {% if perms.userprofile.edit_user %}
-            <a class="btn-flat waves-effect" href="{% url 'dashboard:customer-update' customer.pk %}">
+            <a class="btn-flat waves-effect"
+               href="{% url 'dashboard:customer-update' customer.pk %}">
               {% trans "Edit customer" context "Customer action" %}
             </a>
           {% endif %}
           {% if not customer.is_staff and perms.userprofile.edit_user and perms.userprofile.edit_staff %}
-            <a href="#base-modal" data-href="{% url 'dashboard:customer-promote' pk=customer.pk %}"
-            class="modal-trigger-custom">
+            <a class="btn-flat waves-effect modal-trigger-custom"
+               href="#base-modal"
+               data-href="{% url 'dashboard:customer-promote' pk=customer.pk %}">
               {% trans 'Promote to staff' context 'Customer promote to staff member action' %}
             </a>
           {% endif %}
           {% if perms.userprofile.impersonate_user %}
-            <a href="{% url 'impersonate-start' uid=customer.pk %}">
+            <a class="btn-flat waves-effect"
+               href="{% url 'impersonate-start' uid=customer.pk %}">
               {% trans 'Impersonate customer' context 'Customer impersonate action' %}
             </a>
           {% endif %}
