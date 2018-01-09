@@ -1,9 +1,12 @@
 from io import BytesIO
 import json
 
+from mock import MagicMock
+
 from PIL import Image
 from django.conf import settings
 from django.core.files.uploadedfile import SimpleUploadedFile
+from django.forms import HiddenInput
 from django.urls import reverse
 from django.utils.encoding import smart_text
 import pytest
@@ -640,3 +643,12 @@ def test_product_select_classes_by_ajax(admin_client, product_class):
     assert response.status_code == 200
     assert resp_decoded.get('redirectUrl') == reverse(
         'dashboard:product-add', kwargs={'class_pk': product_class.pk})
+
+
+def test_hide_field_in_variant_choice_field_form(variant_choice_field_form):
+    variants, cart = MagicMock(), MagicMock()
+    variants.count.return_value = 1
+    variants.all()[0].pk = 'test'
+    variant_choice_field_form.update_field_data(variants, cart)
+    assert isinstance(variant_choice_field_form.widget, HiddenInput)
+    assert variant_choice_field_form.widget.attrs.get('value') == 'test'
