@@ -7,8 +7,7 @@ from django.template.response import TemplateResponse
 from django.urls import reverse_lazy
 from django.utils.translation import ugettext_lazy as _
 
-from saleor.cart.utils import find_and_assign_anonymous_cart
-
+from ..cart.utils import find_and_assign_anonymous_cart
 from .forms import LoginForm, PasswordSetUpForm, SignupForm
 
 
