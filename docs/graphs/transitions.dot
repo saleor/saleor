@@ -1,0 +1,14 @@
+digraph {
+	rankdir="LR";
+	subgraph cluster_order_DeliveryGroup_status {
+		style=invis;
+		"order.delivery_group.status._initial" [label="" shape=point]
+		"order.delivery_group.status.new" [label=new shape=circle width=1 fixedsize=true style=filled fillcolor="#32C8FF"]
+		"order.delivery_group.status.shipped" [label=shipped shape=circle width=1 fixedsize=true style=filled fillcolor="#29BF00"]
+		"order.delivery_group.status.cancelled" [label=cancelled shape=circle width=1 fixedsize=true style=filled fillcolor="#E2E2E2"]
+		"order.delivery_group.status._initial" -> "order.delivery_group.status.new" [label=process]
+		"order.delivery_group.status.new" -> "order.delivery_group.status.cancelled" [label=cancel]
+		"order.delivery_group.status.new" -> "order.delivery_group.status.shipped" [label=ship]
+		"order.delivery_group.status.shipped" -> "order.delivery_group.status.cancelled" [label=cancel]
+	}
+}
