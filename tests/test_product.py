@@ -15,7 +15,7 @@ from saleor.product.utils import (
     allocate_stock, deallocate_stock, decrease_stock,
     get_attributes_display_map, get_availability,
     get_product_availability_status, get_variant_availability_status,
-    get_variant_picker_data)
+    get_variant_picker_data, increase_stock)
 
 
 @pytest.fixture()
@@ -57,7 +57,7 @@ def test_increase_stock(product_in_stock):
     stock.quantity = 100
     stock.quantity_allocated = 80
     stock.save()
-    models.Stock.objects.increase_stock(stock, 50)
+    increase_stock(stock, 50)
     stock.refresh_from_db()
     assert stock.quantity == 150
     assert stock.quantity_allocated == 80
