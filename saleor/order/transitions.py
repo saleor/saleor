@@ -16,14 +16,17 @@ def cancel_delivery_group(group):
     """Cancels delivery group by returning products to stocks."""
     if group.status == GroupStatus.NEW:
         for line in group:
-            deallocate_stock(line.stock, line.quantity)
+            if line.stock:
+                deallocate_stock(line.stock, line.quantity)
     elif group.status == GroupStatus.SHIPPED:
         for line in group:
-            increase_stock(line.stock, line.quantity)
+            if line.stock:
+                increase_stock(line.stock, line.quantity)
 
 
 def ship_delivery_group(group, tracking_number=''):
     """Ships delivery group by decreasing products in stocks."""
     for line in group.lines.all():
-        decrease_stock(line.stock, line.quantity)
+        if line.stock:
+            decrease_stock(line.stock, line.quantity)
     group.tracking_number = tracking_number
