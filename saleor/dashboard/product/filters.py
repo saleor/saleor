@@ -7,7 +7,7 @@ from django_filters import (
 from ...core.filters import SortedFilterSet
 from ...product.models import (
     Category, Product, ProductAttribute, ProductType, StockLocation)
-from ..widgets import PriceRangeWidget
+from ..widgets import MoneyRangeWidget
 
 PRODUCT_SORT_BY_FIELDS = {
     'name': pgettext_lazy('Product list sorting option', 'name'),
@@ -46,7 +46,7 @@ class ProductFilter(SortedFilterSet):
     price = RangeFilter(
         label=pgettext_lazy('Product list filter label', 'Price'),
         name='price',
-        widget=PriceRangeWidget)
+        widget=MoneyRangeWidget)
     is_published = ChoiceFilter(
         label=pgettext_lazy('Product list filter label', 'Is published'),
         choices=PUBLISHED_CHOICES,

@@ -19,7 +19,7 @@
     {% trans "Before this action:" context "Modal capture payment title" %}
     <ul class="list">
       <li class="list-item">{% trans "Order total:" context "Modal capture payment list title" %}
-        {% gross payment.order.total html=True %}
+        {{ payment.order.total.gross|amount:'html' }}
       </li>
       <li class="list-item">{% trans "Captured amount:" context "Modal capture payment list title" %}
         {{ captured|currencyfmt:currency }}

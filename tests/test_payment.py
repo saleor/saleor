@@ -1,4 +1,4 @@
-from prices import Price
+from prices import Money
 
 from saleor.order.models import Payment
 
@@ -6,7 +6,7 @@ from saleor.order.models import Payment
 def test_get_purchased_items(order_with_lines, settings, voucher):
 
     payment = Payment.objects.create(order=order_with_lines, variant='paypal')
-    discount = Price('10.0', currency=settings.DEFAULT_CURRENCY)
+    discount = Money('10.0', currency=settings.DEFAULT_CURRENCY)
 
     assert len(payment.get_purchased_items()) == len(
         order_with_lines.get_lines())
@@ -35,5 +35,5 @@ def test_get_purchased_items(order_with_lines, settings, voucher):
 
     assert discounted.name == order_with_lines.discount_name
     assert discounted.sku == 'DISCOUNT'
-    assert discounted.price == -1 * order_with_lines.discount_amount.net
+    assert discounted.price == -1 * order_with_lines.discount_amount.amount
     assert discounted.quantity == 1

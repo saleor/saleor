@@ -92,7 +92,7 @@
                     </td>
                     <td class="right-align">
                       {% if voucher.limit %}
-                        {% gross voucher.limit html=True %}
+                        {{ voucher.limit|amount:'html' }}
                       {% else %}
                         -
                       {% endif %}

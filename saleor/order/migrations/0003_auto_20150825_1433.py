@@ -15,7 +15,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='deliverygroup',
             name='shipping_price',
-            field=django_prices.models.PriceField(verbose_name='shipping price', decimal_places=4, default=0, currency='USD', max_digits=12, editable=False),
+            field=django_prices.models.MoneyField(verbose_name='shipping price', decimal_places=4, default=0, currency='USD', max_digits=12, editable=False),
         ),
         migrations.AlterField(
             model_name='payment',
