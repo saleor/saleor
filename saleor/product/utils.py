@@ -109,26 +109,31 @@ def products_for_cart(user):
     return products
 
 
-def product_json_ld(product, availability=None, attributes=None):
+def product_json_ld(product, attributes=None):
     # type: (saleor.product.models.Product, saleor.product.utils.ProductAvailability, dict) -> dict  # noqa
     """Generates JSON-LD data for product"""
     data = {'@context': 'http://schema.org/',
             '@type': 'Product',
             'name': smart_text(product),
-            'image': smart_text(product.get_first_image()),
+            'image': [
+                product_image.image.url
+                for product_image in product.images.all()],
             'description': product.description,
-            'offers': {'@type': 'Offer',
-                       'itemCondition': 'http://schema.org/NewCondition'}}
+            'offers': []}
 
-    if availability is not None:
-        if availability.price_range:
-            data['offers']['priceCurrency'] = settings.DEFAULT_CURRENCY
-            data['offers']['price'] = availability.price_range.min_price.net
-
-        if availability.available:
-            data['offers']['availability'] = 'http://schema.org/InStock'
-        else:
-            data['offers']['availability'] = 'http://schema.org/OutOfStock'
+    for variant in product.variants.all():
+        price = variant.get_price_per_item()
+        available = 'http://schema.org/InStock'
+        if not product.is_available() or not variant.is_in_stock():
+            available = 'http://schema.org/OutOfStock'
+        variant_data = {
+            '@type': 'Offer',
+            'availability': available,
+            'itemCondition': 'http://schema.org/NewCondition',
+            'price': price.gross,
+            'priceCurrency': price.currency,
+            'sku': variant.sku}
+        data['offers'].append(variant_data)
 
     if attributes is not None:
         brand = ''
