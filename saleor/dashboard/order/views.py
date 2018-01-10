@@ -257,7 +257,8 @@ def orderline_cancel(request, order_pk, line_pk):
 @staff_member_required
 @permission_required('order.edit_order')
 def ship_delivery_group(request, order_pk, group_pk):
-    order = get_object_or_404(Order, pk=order_pk)
+    order = get_object_or_404(
+        Order.objects.select_related('shipping_address'), pk=order_pk)
     group = get_object_or_404(order.groups.all(), pk=group_pk)
     form = ShipGroupForm(request.POST or None, instance=group)
     status = 200
