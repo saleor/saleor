@@ -153,6 +153,23 @@ def test_format_address_all_options(billing_address):
     assert str(billing_address.phone) not in rendered_html
 
 
+def test_address_as_data(billing_address):
+    data = billing_address.as_data()
+    assert data == {
+        'first_name': 'John',
+        'last_name': 'Doe',
+        'company_name': 'Mirumee Software',
+        'street_address_1': 'Tęczowa 7',
+        'street_address_2': '',
+        'city': 'Wrocław',
+        'city_area': '',
+        'postal_code': '53-601',
+        'country': 'PL',
+        'country_area': '',
+        'phone': '+48713988102'
+    }
+
+
 def test_copy_address(billing_address):
     copied_address = billing_address.get_copy()
     assert copied_address.pk != billing_address.pk
