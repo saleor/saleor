@@ -124,7 +124,6 @@ def anonymous_summary_without_shipping(request, checkout):
     note_form = NoteForm(request.POST or None)
     if note_form.is_valid():
         checkout.note = note_form.cleaned_data['note']
-
     user_form = AnonymousUserBillingForm(
         request.POST or None, initial={'email': checkout.email})
     billing_address = checkout.billing_address
