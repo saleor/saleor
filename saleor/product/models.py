@@ -10,10 +10,10 @@ from django.urls import reverse
 from django.utils.encoding import smart_text
 from django.utils.text import slugify
 from django.utils.translation import pgettext_lazy
-from django_prices.models import Price, PriceField
+from django_prices.models import MoneyField
 from mptt.managers import TreeManager
 from mptt.models import MPTTModel
-from prices import PriceRange
+from prices import Money, TaxedMoney, TaxedMoneyRange
 from text_unidecode import unidecode
 from versatileimagefield.fields import PPOIField, VersatileImageField
 
@@ -94,7 +94,7 @@ class Product(models.Model):
     description = models.TextField()
     category = models.ForeignKey(
         Category, related_name='products', on_delete=models.CASCADE)
-    price = PriceField(
+    price = MoneyField(
         currency=settings.DEFAULT_CURRENCY, max_digits=12, decimal_places=2)
     available_on = models.DateField(blank=True, null=True)
     is_published = models.BooleanField(default=True)
@@ -164,9 +164,11 @@ class Product(models.Model):
             prices = [
                 self.get_price_per_item(variant, discounts=discounts)
                 for variant in self]
-            return PriceRange(min(prices), max(prices))
-        price = calculate_discounted_price(self, self.price, discounts)
-        return PriceRange(price, price)
+            return TaxedMoneyRange(min(prices), max(prices))
+        price = TaxedMoney(net=self.price, gross=self.price)
+        discounted_price = calculate_discounted_price(
+            self, price, discounts)
+        return TaxedMoneyRange(start=discounted_price, stop=discounted_price)
 
     def get_gross_price_range(self, discounts=None):
         grosses = [
@@ -175,13 +177,13 @@ class Product(models.Model):
         if not grosses:
             return None
         grosses = sorted(grosses, key=lambda x: x.tax)
-        return PriceRange(min(grosses), max(grosses))
+        return TaxedMoneyRange(min(grosses), max(grosses))
 
 
 class ProductVariant(models.Model):
     sku = models.CharField(max_length=32, unique=True)
     name = models.CharField(max_length=100, blank=True)
-    price_override = PriceField(
+    price_override = MoneyField(
         currency=settings.DEFAULT_CURRENCY, max_digits=12, decimal_places=2,
         blank=True, null=True)
     product = models.ForeignKey(
@@ -205,6 +207,7 @@ class ProductVariant(models.Model):
 
     def get_price_per_item(self, discounts=None):
         price = self.price_override or self.product.price
+        price = TaxedMoney(net=price, gross=price)
         price = calculate_discounted_price(self.product, price, discounts)
         return price
 
@@ -261,7 +264,7 @@ class ProductVariant(models.Model):
         stock = [
             stock_item for stock_item in self.stock.all()
             if stock_item.quantity_available >= quantity]
-        zero_price = Price(0, currency=settings.DEFAULT_CURRENCY)
+        zero_price = Money(0, currency=settings.DEFAULT_CURRENCY)
         stock = sorted(
             stock, key=(lambda s: s.cost_price or zero_price), reverse=False)
         if stock:
@@ -300,7 +303,7 @@ class Stock(models.Model):
         validators=[MinValueValidator(0)], default=Decimal(1))
     quantity_allocated = models.IntegerField(
         validators=[MinValueValidator(0)], default=Decimal(0))
-    cost_price = PriceField(
+    cost_price = MoneyField(
         currency=settings.DEFAULT_CURRENCY, max_digits=12, decimal_places=2,
         blank=True, null=True)
 
@@ -314,6 +317,10 @@ class Stock(models.Model):
     @property
     def quantity_available(self):
         return max(self.quantity - self.quantity_allocated, 0)
+
+    def get_total(self):
+        if self.cost_price:
+            return TaxedMoney(net=self.cost_price, gross=self.cost_price)
 
 
 class ProductAttribute(models.Model):

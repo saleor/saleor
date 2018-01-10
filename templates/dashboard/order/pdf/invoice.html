@@ -1,6 +1,6 @@
 {% load i18n static %}
 {% load prices_i18n %}
-{% load discount_amount_for from prices %}
+{% load discount_as_negative from voucher %}
 {% load render_bundle from webpack_loader %}
 
 <html>
@@ -90,13 +90,13 @@
             {{ item.product_sku }}
           </td>
           <td class="right-align">
-            {% gross item.get_price_per_item html=True %}
+            {{ item.unit_price.gross|amount:'html' }}
           </td>
           <td class="right-align">
             {{ item.quantity }}
           </td>
           <td class="right-align">
-            {% gross item.get_total html=True %}
+            {{ item.get_total.gross|amount:'html' }}
           </td>
         </tr>
       {% endfor %}
@@ -123,7 +123,7 @@
         {% trans "Subtotal" context "Order subtotal price" %}
       </td>
       <td class="right-align">
-        {% gross order.get_subtotal_without_voucher html=True %}
+        {{ order.get_subtotal.gross|amount:'html' }}
       </td>
     </tr>
     <tr>
@@ -131,16 +131,16 @@
         {% trans "Shipping total" context "Order total shipping price header" %}
       </td>
       <td class="right-align">
-        {% gross order.shipping_price html=True %}
+        {{ order.shipping_price.gross|amount:'html' }}
       </td>
     </tr>
-    {% if order.voucher %}
+    {% if order.discount_amount %}
       <tr>
         <td>
-          {% trans "Voucher" context "Order voucher header" %} {{ order.voucher }}
+          {% trans "Voucher" context "Order voucher header" %} {{ order.discount_name }}
         </td>
         <td class="right-align">
-          {% gross order.discount|discount_amount_for:order.total html=True %}
+          {% discount_as_negative order.discount_amount html=True %}
         </td>
       </tr>
     {% endif %}
@@ -151,7 +151,7 @@
         {% trans "Grand total" context "Order total price header" %}
       </td>
       <td class="right-align">
-        {% gross order.total html=True %}
+        {{ order.total.gross|amount:'html' }}
       </td>
     </tr>
   </tfoot>

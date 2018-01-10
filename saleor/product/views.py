@@ -65,18 +65,18 @@ def product_details(request, slug, product_id, form=None):
     show_variant_picker = all([v.attributes for v in product.variants.all()])
     json_ld_data = product_json_ld(product, product_attributes)
     return TemplateResponse(
-        request, 'product/details.html',
-        {'is_visible': is_visible,
-         'form': form,
-         'availability': availability,
-         'product': product,
-         'product_attributes': product_attributes,
-         'product_images': product_images,
-         'show_variant_picker': show_variant_picker,
-         'variant_picker_data': json.dumps(
-             variant_picker_data, default=serialize_decimal),
-         'json_ld_product_data': json.dumps(
-             json_ld_data, default=serialize_decimal)})
+        request, 'product/details.html', {
+            'is_visible': is_visible,
+            'form': form,
+            'availability': availability,
+            'product': product,
+            'product_attributes': product_attributes,
+            'product_images': product_images,
+            'show_variant_picker': show_variant_picker,
+            'variant_picker_data': json.dumps(
+                variant_picker_data, default=serialize_decimal),
+            'json_ld_product_data': json.dumps(
+                json_ld_data, default=serialize_decimal)})
 
 
 def product_add_to_cart(request, slug, product_id):

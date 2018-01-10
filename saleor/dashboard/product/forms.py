@@ -205,7 +205,7 @@ class ProductVariantForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         if self.instance.product.pk:
             self.fields['price_override'].widget.attrs[
-                'placeholder'] = self.instance.product.price.gross
+                'placeholder'] = self.instance.product.price.amount
 
 
 class CachingModelChoiceIterator(ModelChoiceIterator):

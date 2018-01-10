@@ -3,7 +3,7 @@ from django.conf import settings
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.urls import reverse_lazy
 from django.utils.translation import npgettext_lazy, pgettext_lazy
-from django_prices.forms import PriceField
+from django_prices.forms import MoneyField
 from payments import PaymentError, PaymentStatus
 
 from ...account.i18n import (
@@ -42,7 +42,7 @@ class OrderNoteForm(forms.ModelForm):
 
 
 class ManagePaymentForm(forms.Form):
-    amount = PriceField(
+    amount = MoneyField(
         label=pgettext_lazy(
             'Payment management form (capture, refund, release)', 'Amount'),
         max_digits=12,
@@ -60,13 +60,12 @@ class ManagePaymentForm(forms.Form):
     def payment_error(self, message):
         self.add_error(
             None, pgettext_lazy(
-                'Payment form error',
-                'Payment gateway error: %s') % message)
+                'Payment form error', 'Payment gateway error: %s') % message)
 
     def try_payment_action(self, action):
-        amount = self.cleaned_data['amount']
+        money = self.cleaned_data['amount']
         try:
-            action(amount.gross)
+            action(money.amount)
         except (PaymentError, ValueError) as e:
             self.payment_error(str(e))
             return False

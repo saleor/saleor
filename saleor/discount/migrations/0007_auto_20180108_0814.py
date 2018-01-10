@@ -73,7 +73,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='voucher',
             name='limit',
-            field=django_prices.models.PriceField(blank=True, currency='USD', decimal_places=2, max_digits=12, null=True),
+            field=django_prices.models.MoneyField(blank=True, currency='USD', decimal_places=2, max_digits=12, null=True),
         ),
         migrations.AlterField(
             model_name='voucher',

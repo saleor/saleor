@@ -48,7 +48,7 @@ def test_stock_record_update_works(admin_client, product_in_stock):
             'stock_pk': stock.pk})
     admin_client.post(url, {
         'variant': stock.variant_id, 'location': stock.location.id,
-        'cost_price': stock.cost_price.net,
+        'cost_price': stock.cost_price.amount,
         'quantity': quantity + 5})
     new_stock = variant.stock.get(pk=stock.pk)
     assert new_stock.quantity == quantity + 5
@@ -143,7 +143,7 @@ def test_change_attributes_in_product_form(
     new_color = color_value.pk
     data = {
         'name': product.name,
-        'price': product.price.gross,
+        'price': product.price.amount,
         'category': product.category.pk,
         'description': 'description',
         'attribute-author': new_author,
@@ -668,7 +668,7 @@ def test_assign_collection_to_product(product_in_stock):
     collection = Collection.objects.create(name='test_collections')
     data = {
         'name': product.name,
-        'price': product.price.gross,
+        'price': product.price.amount,
         'category': product.category.pk,
         'description': 'description',
         'collections': [collection.pk]}

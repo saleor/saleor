@@ -32,7 +32,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='shippingmethodcountry',
             name='price',
-            field=django_prices.models.PriceField(currency='USD', decimal_places=2, max_digits=12),
+            field=django_prices.models.MoneyField(currency='USD', decimal_places=2, max_digits=12),
         ),
         migrations.AlterField(
             model_name='shippingmethodcountry',

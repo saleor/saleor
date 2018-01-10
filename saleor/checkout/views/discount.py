@@ -28,6 +28,7 @@ def add_voucher_form(view):
                 return redirect(next_url)
             else:
                 del checkout.discount
+                del checkout.discount_name
                 del checkout.voucher_code
                 # if only discount form was used we clear post for other forms
                 request.POST = {}
@@ -72,5 +73,6 @@ def remove_voucher_view(request, checkout, cart):
     """Clear the discount and remove the voucher."""
     next_url = request.GET.get('next', request.META['HTTP_REFERER'])
     del checkout.discount
+    del checkout.discount_name
     del checkout.voucher_code
     return redirect(next_url)

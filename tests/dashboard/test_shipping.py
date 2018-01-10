@@ -1,4 +1,5 @@
 from django.urls import reverse
+from prices import Money
 
 from saleor.shipping.models import ShippingMethod, ShippingMethodCountry
 
@@ -79,7 +80,7 @@ def test_shipping_method_country_add_not_valid(admin_client, shipping_method):
 def test_shipping_method_country_edit(admin_client, shipping_method):
     assert len(ShippingMethodCountry.objects.all()) == 1
     country = shipping_method.price_per_country.all()[0]
-    assert country.price.gross == 10
+    assert country.price == Money(10, 'USD')
     url = reverse('dashboard:shipping-method-country-edit',
                   kwargs={'shipping_method_pk': shipping_method.pk,
                           'country_pk': country.pk})
@@ -88,7 +89,9 @@ def test_shipping_method_country_edit(admin_client, shipping_method):
     response = admin_client.post(url, data, follow=True)
     assert response.status_code == 200
     assert len(ShippingMethodCountry.objects.all()) == 1
-    assert shipping_method.price_per_country.all()[0].price.gross == 50
+
+    shipping_price = shipping_method.price_per_country.all()[0].price
+    assert shipping_price == Money(50, 'USD')
 
 
 def test_shipping_method_country_delete(admin_client, shipping_method):

@@ -1,11 +1,11 @@
 from django import template
-from django_prices.templatetags.prices_i18n import gross
-from prices import Price
+from django_prices.templatetags import prices_i18n
+from prices import Money
 
 register = template.Library()
 
 
 @register.simple_tag
 def discount_as_negative(discount, html=False):
-    zero = Price(0, currency=discount.amount.currency)
-    return gross(zero - discount.amount, html=html)
+    zero = Money(0, currency=discount.currency)
+    return prices_i18n.amount(zero - discount, 'html' if html else 'text')

@@ -1,7 +1,7 @@
 <mj-section css-class="no-display">
   <mj-column>
     <mj-text>
-      {% load gross from prices_i18n %}
+      {% load prices_i18n %}
     </mj-text>
   </mj-column>
 </mj-section>
@@ -14,7 +14,7 @@
             {% trans "Subtotal" context "E-mail order lines summary table" %}
           </td>
           <td style="text-align: right;">
-            {% gross order.get_subtotal_without_voucher html=True %}
+            {{ order.get_subtotal.gross|amount:'html' }}
           </td>
         </tr>
         <tr>
@@ -22,7 +22,7 @@
             {% trans "Shipping" context "E-mail order lines summary table" %}
           </td>
           <td style="text-align: right;">
-            {% gross order.shipping_price html=True %}
+            {{ order.shipping_price.gross|amount:'html' }}
           </td>
         </tr>
         <tr>
@@ -30,7 +30,7 @@
             <strong>{% trans "Total" context "E-mail order lines summary table" %}</strong>
           </td>
           <td style="text-align: right;">
-            <strong>{% gross order.total html=True %}</strong>
+            <strong>{{ order.total.gross|amount:'html' }}</strong>
           </td>
         </tr>
       </tfoot>
@@ -49,9 +49,9 @@
               <td>{{ line.product_name }}</td>
               <td style="text-align: right;">{{ line.quantity }}</td>
               <td style="text-align: right;">
-                {% gross line.get_price_per_item html=True %}
+                {{ line.unit_price.gross|amount:'html' }}
               </td>
-              <td style="text-align: right;">{% gross line.get_total %}</td>
+              <td style="text-align: right;">{{ line.get_total.gross|amount }}</td>
             </tr>
           {% endfor %}
         {% endfor %}

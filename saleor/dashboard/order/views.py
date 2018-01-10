@@ -7,12 +7,12 @@ from django.shortcuts import get_object_or_404, redirect
 from django.template.context_processors import csrf
 from django.template.response import TemplateResponse
 from django.utils.translation import pgettext_lazy
-from django_prices.templatetags.prices_i18n import gross
+from django_prices.templatetags import prices_i18n
 from payments import PaymentStatus
-from prices import Price
+from prices import Money, TaxedMoney
 
 from ...core.exceptions import InsufficientStock
-from ...core.utils import get_paginator_items
+from ...core.utils import ZERO_TAXED_MONEY, get_paginator_items
 from ...order import GroupStatus
 from ...order.models import DeliveryGroup, Order, OrderLine, OrderNote
 from ...product.models import StockLocation
@@ -53,7 +53,7 @@ def order_details(request, order_pk):
     all_payments = order.payments.exclude(status=PaymentStatus.INPUT)
     payment = order.payments.last()
     groups = list(order)
-    captured = preauthorized = Price(0, currency=order.total.currency)
+    captured = preauthorized = ZERO_TAXED_MONEY
     balance = captured - order.total
     if payment:
         can_capture = (
@@ -69,7 +69,6 @@ def order_details(request, order_pk):
             balance = captured - order.total
     else:
         can_capture = can_release = can_refund = False
-
     is_many_stock_locations = StockLocation.objects.count() > 1
     ctx = {'order': order, 'all_payments': all_payments, 'payment': payment,
            'notes': notes, 'groups': groups, 'captured': captured,
@@ -116,7 +115,7 @@ def capture_payment(request, order_pk, payment_pk):
         amount = form.cleaned_data['amount']
         msg = pgettext_lazy(
             'Dashboard message related to a payment',
-            'Captured %(amount)s') % {'amount': gross(amount)}
+            'Captured %(amount)s') % {'amount': prices_i18n.amount(amount)}
         order.history.create(content=msg, user=request.user)
         messages.success(request, msg)
         return redirect('dashboard:order-details', order_pk=order.pk)
@@ -139,7 +138,7 @@ def refund_payment(request, order_pk, payment_pk):
         amount = form.cleaned_data['amount']
         msg = pgettext_lazy(
             'Dashboard message related to a payment',
-            'Refunded %(amount)s') % {'amount': gross(amount)}
+            'Refunded %(amount)s') % {'amount': prices_i18n.amount(amount)}
         order.history.create(content=msg, user=request.user)
         messages.success(request, msg)
         return redirect('dashboard:order-details', order_pk=order.pk)

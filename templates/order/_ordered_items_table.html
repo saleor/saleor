@@ -1,7 +1,6 @@
 {% load i18n %}
 {% load i18n_address_tags %}
-{% load gross from prices_i18n %}
-{% load discount_amount_for from prices %}
+{% load amount from prices_i18n %}
 {% load product_first_image from product_images %}
 {% load discount_as_negative from voucher %}
 {% load placeholder %}
@@ -66,7 +65,7 @@
               <p class="float-right">x {{ line.quantity }}</p>
             </div>
             <div class="col-md-6 col-12">
-              <p class="float-right">{% gross line.get_total html=True %}</p>
+              <p class="float-right">{{ line.get_total.gross|amount:'html' }}</p>
             </div>
           </div>
         </div>
@@ -104,7 +103,7 @@
         </p>
       </div>
       <div class="col-4">
-        <p class="float-right">{% gross order.shipping_price html=True %}</p>
+        <p class="float-right">{{ order.shipping_price.gross|amount:'html' }}</p>
       </div>
     </div>
   </div>
@@ -117,7 +116,9 @@
       <p>{{ order.discount_name }}</p>
     </div>
     <div class="col-4">
-      <p class="float-right">{% discount_as_negative order.discount %}</p>
+      <p class="float-right">
+        {% discount_as_negative order.discount_amount html=True %}
+      </p>
     </div>
   </div>
 </div>
@@ -131,7 +132,7 @@
       </div>
     </div>
     <div class="col-4">
-      <p class="float-right">{% gross order.total html=True %}</p>
+      <p class="float-right">{{ order.total.gross|amount:'html' }}</p>
     </div>
   </div>
 </div>

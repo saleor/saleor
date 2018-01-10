@@ -9,9 +9,9 @@ from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.utils.encoding import smart_str
 from django.utils.timezone import now
-from django_prices.models import PriceField
+from django_prices.models import MoneyField
 from jsonfield import JSONField
-from prices import Price
+from prices import sum as sum_prices
 
 from . import CartStatus, logger
 
@@ -41,7 +41,7 @@ class ProductGroup(list):
         if not subtotals:
             raise AttributeError(
                 'Calling get_total() on an empty product group')
-        return sum(subtotals[1:], subtotals[0])
+        return sum_prices(subtotals)
 
 
 class CartQueryset(models.QuerySet):
@@ -89,7 +89,7 @@ class Cart(models.Model):
         'discount.Voucher', null=True, related_name='+',
         on_delete=models.SET_NULL)
     checkout_data = JSONField(null=True, editable=False)
-    total = PriceField(
+    total = MoneyField(
         currency=settings.DEFAULT_CURRENCY, max_digits=12, decimal_places=2,
         default=0)
     quantity = models.PositiveIntegerField(default=0)
@@ -147,8 +147,7 @@ class Cart(models.Model):
         subtotals = [line.get_total(discounts) for line in self.lines.all()]
         if not subtotals:
             raise AttributeError('Calling get_total() on an empty cart')
-        zero = Price(0, currency=settings.DEFAULT_CURRENCY)
-        return sum(subtotals, zero)
+        return sum_prices(subtotals)
 
     def count(self):
         """Return the total quantity in cart."""

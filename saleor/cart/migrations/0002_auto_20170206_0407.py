@@ -41,7 +41,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='cart',
             name='total',
-            field=django_prices.models.PriceField(currency='USD', decimal_places=2, default=0, max_digits=12, verbose_name='total'),
+            field=django_prices.models.MoneyField(currency='USD', decimal_places=2, default=0, max_digits=12, verbose_name='total'),
         ),
         migrations.AlterField(
             model_name='cart',
