@@ -356,23 +356,14 @@
                   {% trans "Packing Slips" context "Order detail action" %}
                 </a>
               </div>
-            {% else %}
-              {% if group.tracking_number %}
-                <div class="card-action">
-                  {% blocktrans trimmed with tracking=group.tracking_number context "Shipment group table text" %}
-                    Tracking number: {{ tracking }}
-                  {% endblocktrans %}
-                </div>
-              {% else %}
-                {% if group.tracking_number %}
-                  <div class="card-action">
-                    {% blocktrans trimmed with tracking=group.tracking_number context "Shipment group table text" %}
-                      Tracking number: {{ tracking }}
-                    {% endblocktrans %}
-                  </div>
-                {% endif %}
-              {% endif %}
             {% endif %}
+          {% endif %}
+          {% if group.tracking_number %}
+            <div class="card-action">
+              {% blocktrans trimmed with tracking=group.tracking_number context "Shipment group table text" %}
+                Tracking number: {{ tracking }}
+              {% endblocktrans %}
+            </div>
           {% endif %}
         </div>
       {% endfor %}

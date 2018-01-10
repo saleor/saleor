@@ -2,15 +2,20 @@ from decimal import Decimal
 
 from django.urls import reverse
 import pytest
+from django_fsm import TransitionNotAllowed
+from prices import Price
+
 from tests.utils import get_redirect_location, get_url_path
 
-from saleor.dashboard.order.forms import ChangeQuantityForm, MoveLinesForm
-from saleor.order import OrderStatus
+from saleor.cart.models import Cart
+from saleor.dashboard.order.forms import ChangeQuantityForm
+from saleor.order import GroupStatus, OrderStatus
 from saleor.order.models import (
     DeliveryGroup, Order, OrderHistoryEntry, OrderLine)
+from saleor.order.transitions import process_delivery_group
 from saleor.order.utils import (
     add_variant_to_existing_lines, change_order_line_quantity,
-    fill_group_with_partition, remove_empty_groups)
+    remove_empty_groups)
 from saleor.product.models import ProductVariant, Stock, StockLocation
 
 
@@ -127,7 +132,7 @@ def test_view_change_order_line_quantity_with_invalid_data(
 def test_dashboard_change_quantity_form(request_cart_with_item, order):
     cart = request_cart_with_item
     group = DeliveryGroup.objects.create(order=order)
-    fill_group_with_partition(group, cart.lines.all())
+    process_delivery_group(group, cart.lines.all())
     order_line = group.lines.get()
 
     # Check max quantity validation
@@ -561,3 +566,135 @@ def test_view_add_variant_to_delivery_group(
     assert get_redirect_location(response) == reverse(
         'dashboard:order-details', kwargs={'order_pk': order.pk})
     assert line.quantity == 4
+
+
+def test_ship_new_delivery_group(delivery_group):
+    line = delivery_group.lines.first()
+    quantity = line.quantity
+    stock = line.stock
+    stock_quantity = stock.quantity
+    stock_quantity_allocated = stock.quantity_allocated
+
+    delivery_group.ship()
+    delivery_group.save()
+
+    stock.refresh_from_db()
+    assert delivery_group.status == GroupStatus.SHIPPED
+    assert stock.quantity == stock_quantity - quantity
+    assert stock.quantity_allocated == stock_quantity_allocated - quantity
+
+
+def test_cant_ship_cancelled_delivery_group(delivery_group):
+    delivery_group.cancel()
+    delivery_group.save()
+
+    with pytest.raises(TransitionNotAllowed):
+        delivery_group.ship()
+
+
+def test_cant_ship_shipped_delivery_group(delivery_group):
+    delivery_group.ship()
+    delivery_group.save()
+
+    with pytest.raises(TransitionNotAllowed):
+        delivery_group.ship()
+
+
+def test_cancel_new_delivery_group(delivery_group):
+    line = delivery_group.lines.first()
+    quantity = line.quantity
+    stock = line.stock
+    stock_quantity = stock.quantity
+    stock_quantity_allocated = stock.quantity_allocated
+
+    delivery_group.cancel()
+    delivery_group.save()
+
+    stock.refresh_from_db()
+    assert delivery_group.status == GroupStatus.CANCELLED
+    assert stock.quantity == stock_quantity
+    assert stock.quantity_allocated == stock_quantity_allocated - quantity
+
+
+def test_cancel_shipped_delivery_group(delivery_group):
+    delivery_group.ship()
+    delivery_group.save()
+
+    line = delivery_group.lines.first()
+    quantity = line.quantity
+    stock = line.stock
+    stock_quantity = stock.quantity
+    stock_quantity_allocated = stock.quantity_allocated
+
+    delivery_group.cancel()
+    delivery_group.save()
+
+    stock.refresh_from_db()
+    assert delivery_group.status == GroupStatus.CANCELLED
+    assert line.stock.quantity == stock_quantity + quantity
+    assert line.stock.quantity_allocated == stock_quantity_allocated
+
+
+def test_cant_cancel_cancelled_delivery_group(delivery_group):
+    delivery_group.cancel()
+    delivery_group.save()
+
+    with pytest.raises(TransitionNotAllowed):
+        delivery_group.cancel()
+
+
+def test_process_new_delivery_group(billing_address, product_in_stock):
+    variant = product_in_stock.variants.get()
+    cart = Cart()
+    cart.save()
+    cart.add(variant, quantity=2)
+    order = Order.objects.create(billing_address=billing_address)
+    group = DeliveryGroup.objects.create(order=order)
+
+    group.process(cart.lines.all())
+    group.save()
+
+    assert group.status == GroupStatus.NEW
+    order_line = group.lines.get()
+    stock = order_line.stock
+    assert stock.quantity_allocated == 2
+
+
+def test_process_new_delivery_group_with_discount(
+        sale, order, request_cart_with_item):
+    cart = request_cart_with_item
+    group = DeliveryGroup.objects.create(order=order)
+
+    group.process(cart.lines.all(), cart.discounts)
+    group.save()
+
+    line = group.lines.first()
+    assert line.get_price_per_item() == Price(currency="USD", net=5)
+
+
+def test_cant_process_cancelled_delivery_group(
+        delivery_group, product_in_stock):
+    delivery_group.cancel()
+    delivery_group.save()
+
+    variant = product_in_stock.variants.get()
+    cart = Cart()
+    cart.save()
+    cart.add(variant, quantity=2)
+
+    with pytest.raises(TransitionNotAllowed):
+        delivery_group.process(cart.lines.all())
+
+
+def test_cant_process_shipped_delivery_group(
+        delivery_group, product_in_stock):
+    delivery_group.ship()
+    delivery_group.save()
+
+    variant = product_in_stock.variants.get()
+    cart = Cart()
+    cart.save()
+    cart.add(variant, quantity=2)
+
+    with pytest.raises(TransitionNotAllowed):
+        delivery_group.process(cart.lines.all())

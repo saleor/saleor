@@ -2,19 +2,21 @@ from decimal import Decimal
 from uuid import uuid4
 
 from django.conf import settings
-from django.core.exceptions import ObjectDoesNotExist
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.db.models import Q
 from django.urls import reverse
 from django.utils.timezone import now
 from django.utils.translation import pgettext_lazy
+from django_fsm import FSMField, transition
 from django_prices.models import PriceField
 from payments import PaymentStatus, PurchasedItem
 from payments.models import BasePayment
 from prices import FixedDiscount, Price
 from satchless.item import ItemLine, ItemSet
 
+from saleor.order.transitions import (
+    cancel_delivery_group, process_delivery_group, ship_delivery_group)
 from . import emails, GroupStatus, OrderStatus
 from ..core.utils import build_absolute_uri
 from ..discount.models import Voucher
@@ -112,7 +114,7 @@ class Order(models.Model, ItemSet):
         return '<Order #%r>' % (self.id,)
 
     def __str__(self):
-        return '#%d' % (self.id, )
+        return '#%d' % (self.id,)
 
     @property
     def discount(self):
@@ -191,8 +193,9 @@ class DeliveryGroup(models.Model, ItemSet):
 
     A single order can consist of many shipment groups.
     """
-    status = models.CharField(
-        max_length=32, default=GroupStatus.NEW, choices=GroupStatus.CHOICES)
+    status = FSMField(
+        max_length=32, default=GroupStatus.NEW, choices=GroupStatus.CHOICES,
+        protected=True)
     order = models.ForeignKey(
         Order, related_name='groups', editable=False, on_delete=models.CASCADE)
     shipping_method_name = models.CharField(
@@ -211,6 +214,23 @@ class DeliveryGroup(models.Model, ItemSet):
         if self.id:
             return iter(self.lines.all())
         return super().__iter__()
+
+    @transition(
+        field=status, source=GroupStatus.NEW, target=GroupStatus.NEW)
+    def process(self, cart_lines, discounts=None):
+        process_delivery_group(self, cart_lines, discounts)
+
+    @transition(
+        field=status, source=GroupStatus.NEW, target=GroupStatus.SHIPPED)
+    def ship(self, tracking_number=''):
+        ship_delivery_group(self, tracking_number)
+
+    @transition(
+        field=status,
+        source=[GroupStatus.NEW, GroupStatus.SHIPPED],
+        target=GroupStatus.CANCELLED)
+    def cancel(self):
+        cancel_delivery_group(self)
 
     @property
     def shipping_required(self):

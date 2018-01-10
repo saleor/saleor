@@ -13,9 +13,9 @@ from ...discount.models import Voucher
 from ...order import GroupStatus
 from ...order.models import DeliveryGroup, OrderLine, OrderNote
 from ...order.utils import (
-    add_variant_to_delivery_group, cancel_delivery_group, cancel_order,
-    change_order_line_quantity, merge_duplicates_into_order_line,
-    move_order_line_to_group, recalculate_order, remove_empty_groups
+    add_variant_to_delivery_group, cancel_order, change_order_line_quantity,
+    merge_duplicates_into_order_line, move_order_line_to_group,
+    recalculate_order, remove_empty_groups
 )
 from ...product.models import Product, ProductVariant, Stock
 
@@ -190,6 +190,8 @@ class ChangeQuantityForm(forms.ModelForm):
 
 
 class ShipGroupForm(forms.ModelForm):
+    """Decreases corresponding stocks ans sets delivery group tracking
+    number."""
     class Meta:
         model = DeliveryGroup
         fields = ['tracking_number']
@@ -212,25 +214,26 @@ class ShipGroupForm(forms.ModelForm):
                     'Cannot ship this group'),
                 code='invalid')
 
-    def save(self):
-        for line in self.instance.lines.all():
-            Stock.objects.decrease_stock(line.stock, line.quantity)
-        self.instance.status = GroupStatus.SHIPPED
-        self.instance.save()
-        return self.instance
+    def save(self, commit=True):
+        self.instance.ship(self.cleaned_data.get('tracking_number'))
+        return super().save(commit)
 
 
-class CancelGroupForm(forms.Form):
-    def __init__(self, *args, **kwargs):
-        self.delivery_group = kwargs.pop('delivery_group')
-        super().__init__(*args, **kwargs)
+class CancelGroupForm(forms.ModelForm):
+    """Deallocates or increases corresponding stocks, depending whether new
+    or shipped group is cancelled."""
+    class Meta:
+        model = DeliveryGroup
+        fields = []
 
-    def cancel_group(self):
-        cancel_delivery_group(self.delivery_group)
+    def save(self, commit=True):
+        self.instance.cancel()
+        return super().save(commit)
 
 
 class CancelOrderForm(forms.Form):
-
+    """Deallocates or increases corresponding stocks in each delivery group,
+    depending whether new or shipped group is cancelled."""
     def __init__(self, *args, **kwargs):
         self.order = kwargs.pop('order')
         super().__init__(*args, **kwargs)
