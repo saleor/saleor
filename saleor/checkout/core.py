@@ -14,12 +14,9 @@ from ..cart.utils import get_or_empty_db_cart
 from ..core import analytics
 from ..discount.models import NotApplicable, Voucher
 from ..order.models import Order
-from ..order.utils import fill_group_with_partition
 from ..shipping.models import ANY_COUNTRY, ShippingMethodCountry
 from ..userprofile.models import Address
 from ..userprofile.utils import store_user_address
-
-from phonenumber_field.phonenumber import PhoneNumber
 
 STORAGE_SESSION_KEY = 'checkout_storage'
 
@@ -322,15 +319,15 @@ class Checkout:
 
         order = Order.objects.create(**order_data)
 
-        for partition in self.cart.partition():
-            shipping_required = partition.is_shipping_required()
+        for line in self.cart.partition():
+            shipping_required = line.is_shipping_required()
             shipping_method_name = (
                 smart_text(self.shipping_method) if shipping_required
                 else None)
             group = order.groups.create(
                 shipping_method_name=shipping_method_name)
-            fill_group_with_partition(
-                group, partition, discounts=self.cart.discounts)
+            group.process(line, self.cart.discounts)
+            group.save()
 
         if voucher is not None:
             Voucher.objects.increase_usage(voucher)

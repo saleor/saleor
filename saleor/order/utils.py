@@ -9,13 +9,14 @@ from satchless.item import InsufficientStock
 
 from ..product.models import Stock
 from ..userprofile.utils import store_user_address
-from .models import Order, OrderLine
 from . import GroupStatus
 
 
 def check_order_status(func):
     """Preserves execution of function if order is fully paid by redirecting
     to order's details page."""
+    from .models import Order
+
     @wraps(func)
     def decorator(*args, **kwargs):
         token = kwargs.pop('token')
@@ -29,9 +30,10 @@ def check_order_status(func):
 
 
 def cancel_order(order):
-    """Cancells order by cancelling all associated shipment groups."""
+    """Cancels order by cancelling all associated shipment groups."""
     for group in order.groups.all():
-        cancel_delivery_group(group)
+        group.cancel()
+        group.save()
 
 
 def recalculate_order(order):
@@ -58,14 +60,6 @@ def attach_order_to_user(order, user):
     order.save(update_fields=['user'])
 
 
-def fill_group_with_partition(group, partition, discounts=None):
-    """Fills shipment group with order lines created from partition items."""
-    for item in partition:
-        add_variant_to_delivery_group(
-            group, item.variant, item.get_quantity(), discounts,
-            add_to_existing=False)
-
-
 def add_variant_to_delivery_group(
         group, variant, total_quantity, discounts=None, add_to_existing=True):
     """Adds total_quantity of variant to group.
@@ -78,9 +72,8 @@ def add_variant_to_delivery_group(
     as long as total_quantity of variant will be added.
     """
     quantity_left = (
-        add_variant_to_existing_lines(
-            group, variant, total_quantity) if add_to_existing
-        else total_quantity)
+        add_variant_to_existing_lines(group, variant, total_quantity)
+        if add_to_existing else total_quantity)
     price = variant.get_price_per_item(discounts)
     while quantity_left > 0:
         stock = variant.select_stockrecord()
@@ -136,14 +129,6 @@ def add_variant_to_existing_lines(group, variant, total_quantity):
     return quantity_left
 
 
-def cancel_delivery_group(group):
-    """Cancells shipment group and (optionally) it's order if necessary."""
-    for line in group:
-        Stock.objects.deallocate_stock(line.stock, line.quantity)
-    group.status = GroupStatus.CANCELLED
-    group.save()
-
-
 def merge_duplicates_into_order_line(line):
     """Merges duplicated lines in shipment group into one (given) line.
     If there are no duplicates, nothing will happen.
@@ -192,6 +177,7 @@ def remove_empty_groups(line, force=False):
 
 
 def move_order_line_to_group(line, target_group, quantity):
+    from .models import OrderLine
     """Moves given quantity of order line to another shipment group."""
     try:
         target_line = target_group.lines.get(

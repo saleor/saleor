@@ -51,6 +51,17 @@ def test_decrease_stock(product_in_stock):
     assert stock.quantity_allocated == 30
 
 
+def test_increase_stock(product_in_stock):
+    stock = product_in_stock.variants.first().stock.first()
+    stock.quantity = 100
+    stock.quantity_allocated = 80
+    stock.save()
+    models.Stock.objects.increase_stock(stock, 50)
+    stock.refresh_from_db()
+    assert stock.quantity == 150
+    assert stock.quantity_allocated == 80
+
+
 def test_deallocate_stock(product_in_stock):
     stock = product_in_stock.variants.first().stock.first()
     stock.quantity = 100

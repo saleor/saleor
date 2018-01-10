@@ -482,6 +482,32 @@ def order_with_variant_from_different_stocks(order_with_lines_and_stock):
 
 
 @pytest.fixture()
+def delivery_group(order, product_class):
+    group = DeliveryGroup.objects.create(order=order)
+    product = Product.objects.create(
+        name='Test product', price=Decimal('10.00'),
+        product_class=product_class)
+    variant = ProductVariant.objects.create(product=product, sku='SKU_A')
+    warehouse = StockLocation.objects.create(name='Warehouse 1')
+    stock = Stock.objects.create(
+        variant=variant, cost_price=1, quantity=5, quantity_allocated=3,
+        location=warehouse)
+    OrderLine.objects.create(
+        delivery_group=group,
+        product=product,
+        product_name=product.name,
+        product_sku='SKU_A',
+        quantity=3,
+        unit_price_net=Decimal('30.00'),
+        unit_price_gross=Decimal('30.00'),
+        stock=stock,
+        stock_location=stock.location.name)
+    recalculate_order(order)
+    order.refresh_from_db()
+    return group
+
+
+@pytest.fixture()
 def sale(db, default_category):
     sale = Sale.objects.create(name="Sale", value=5)
     sale.categories.add(default_category)
