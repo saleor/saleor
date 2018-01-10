@@ -14,10 +14,10 @@ from satchless.item import InsufficientStock
 
 from .filters import OrderFilter
 from .forms import (
-    AddVariantToDeliveryGroupForm, CancelGroupForm, CancelOrderLineForm,
-    CancelOrderForm, CapturePaymentForm, ChangeStockForm, ChangeQuantityForm,
-    MoveLinesForm, OrderNoteForm, RefundPaymentForm, ReleasePaymentForm,
-    RemoveVoucherForm, ShipGroupForm, DashboardAddressForm)
+    AddressForm, AddVariantToDeliveryGroupForm, CancelGroupForm,
+    CancelOrderLineForm, CancelOrderForm, CapturePaymentForm,
+    ChangeStockForm, ChangeQuantityForm, MoveLinesForm, OrderNoteForm,
+    RefundPaymentForm, ReleasePaymentForm, RemoveVoucherForm, ShipGroupForm)
 
 from .utils import (
     create_invoice_pdf, create_packing_slip_pdf, get_statics_absolute_url)
@@ -351,7 +351,7 @@ def address_view(request, order_pk, address_type):
         success_msg = pgettext_lazy(
             'Dashboard message',
             'Updated billing address')
-    form = DashboardAddressForm(request.POST or None, instance=address)
+    form = AddressForm(request.POST or None, instance=address)
     if form.is_valid():
         form.save()
         order.create_history_entry(comment=success_msg, user=request.user)
