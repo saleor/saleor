@@ -78,6 +78,11 @@ class Address(models.Model):
         """Return `True` if `addr1` and `addr2` are the same address."""
         return Address.objects.as_data(self) == Address.objects.as_data(other)
 
+    def get_copy(self):
+        """Return a new instance of the same address."""
+        data = Address.objects.as_data(self)
+        return Address.objects.create(**data)
+
 
 class UserManager(BaseUserManager):
 
