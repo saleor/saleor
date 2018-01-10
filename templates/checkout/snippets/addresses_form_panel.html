@@ -1,18 +1,18 @@
  {% load i18n_address_tags %}
  <div class="radio {% if address or label == _('Same as shipping') %} address_hide{% else %} address_show{% endif %}">
   <label>
-      <input type="radio"
-             name="{{ radio_name }}"
-             value="{{ radio_value }}"
-             id="address_{{ radio_value }}"
-             {% if radio_value == value %}checked{% endif %}>
-                {% if address %}
-                  <div class="address-details">
-                    {% format_address address %}
-                  </div>
-               {% else %}
-                  {{ label }}
-               {% endif %}
+    <input type="radio"
+            name="{{ radio_name }}"
+            value="{{ radio_value }}"
+            id="address_{{ radio_value }}"
+            {% if radio_value == value %}checked{% endif %}>
+              {% if address %}
+                <div class="address-details">
+                  {% format_address address %}
+                </div>
+              {% else %}
+                {{ label }}
+              {% endif %}
   </label>
 </div>
 <div>
