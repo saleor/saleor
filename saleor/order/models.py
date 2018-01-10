@@ -280,7 +280,7 @@ class OrderLine(models.Model, ItemLine):
         return self.quantity
 
 
-class PaymentManager(models.Manager):
+class PaymentQuerySet(models.QuerySet):
     def last(self):
         # using .all() here reuses data fetched by prefetch_related
         objects = list(self.all()[:1])
@@ -290,10 +290,9 @@ class PaymentManager(models.Manager):
 
 class Payment(BasePayment):
     order = models.ForeignKey(
-        Order, related_name='payments',
-        on_delete=models.PROTECT)
+        Order, related_name='payments', on_delete=models.PROTECT)
 
-    objects = PaymentManager()
+    objects = PaymentQuerySet.as_manager()
 
     class Meta:
         ordering = ('-pk',)
