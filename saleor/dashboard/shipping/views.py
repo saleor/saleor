@@ -44,7 +44,7 @@ def shipping_method_add(request):
 
 @staff_member_required
 @permission_required('shipping.edit_shipping')
-def shipping_method_edit(request, pk=None):
+def shipping_method_edit(request, pk):
     method = get_object_or_404(ShippingMethod, pk=pk)
     form = ShippingMethodForm(request.POST or None, instance=method)
     if form.is_valid():
@@ -106,7 +106,7 @@ def shipping_method_country_add(request, shipping_method_pk):
 
 @staff_member_required
 @permission_required('shipping.edit_shipping')
-def shipping_method_country_edit(request, shipping_method_pk, country_pk=None):
+def shipping_method_country_edit(request, shipping_method_pk, country_pk):
     shipping_method = get_object_or_404(ShippingMethod, pk=shipping_method_pk)
     country = get_object_or_404(ShippingMethodCountry, pk=country_pk)
     form = ShippingMethodCountryForm(request.POST or None, instance=country)
