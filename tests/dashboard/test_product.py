@@ -1,7 +1,7 @@
 from io import BytesIO
 import json
 
-from mock import MagicMock, Mock
+from unittest.mock import Mock, MagicMock
 
 from PIL import Image
 from django.conf import settings
