@@ -13,6 +13,7 @@ from ..cart.models import Cart
 from ..cart.utils import get_or_empty_db_cart
 from ..core import analytics
 from ..discount.models import NotApplicable, Voucher
+from ..discount.utils import increase_voucher_usage
 from ..order.models import Order
 from ..shipping.models import ANY_COUNTRY, ShippingMethodCountry
 from ..userprofile.models import Address
@@ -246,8 +247,7 @@ class Checkout:
     @property
     def is_shipping_same_as_billing(self):
         """Return `True` if shipping and billing addresses are identical."""
-        return Address.objects.are_identical(
-            self.shipping_address, self.billing_address)
+        return self.shipping_address == self.billing_address
 
     def _add_to_user_address_book(self, address, is_billing=False,
                                   is_shipping=False):
@@ -257,10 +257,10 @@ class Checkout:
                 billing=is_billing)
 
     def _save_order_billing_address(self):
-        return Address.objects.copy(self.billing_address)
+        return self.billing_address.get_copy()
 
     def _save_order_shipping_address(self):
-        return Address.objects.copy(self.shipping_address)
+        return self.shipping_address.get_copy()
 
     @transaction.atomic
     def create_order(self):
@@ -330,7 +330,7 @@ class Checkout:
             group.save()
 
         if voucher is not None:
-            Voucher.objects.increase_usage(voucher)
+            increase_voucher_usage(voucher)
 
         return order
 

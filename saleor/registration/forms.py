@@ -5,7 +5,7 @@ from django.urls import reverse
 from django.utils.translation import pgettext, pgettext_lazy
 from templated_email import send_templated_mail
 
-from saleor.userprofile.models import User
+from ..userprofile.models import User
 
 
 class LoginForm(django_forms.AuthenticationForm):

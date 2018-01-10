@@ -716,7 +716,7 @@ def ajax_available_variants_list(request):
             variant.sku, variant.display_product(),
             gross(variant.get_price_per_item(discounts)))
 
-    available_products = Product.objects.get_available_products()
+    available_products = Product.objects.available_products()
     queryset = ProductVariant.objects.filter(
         product__in=available_products).prefetch_related('product')
     search_query = request.GET.get('q', '')
@@ -741,7 +741,7 @@ def ajax_products_list(request):
     """
     queryset = (
         Product.objects.all() if request.user.has_perm('product.view_product')
-        else Product.objects.get_available_products())
+        else Product.objects.available_products())
     search_query = request.GET.get('q', '')
     if search_query:
         queryset = queryset.filter(Q(name__icontains=search_query))

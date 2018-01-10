@@ -17,36 +17,6 @@ class PossiblePhoneNumberField(PhoneNumberField):
     default_validators = [validate_possible_number]
 
 
-class AddressManager(models.Manager):
-
-    def as_data(self, address):
-        """Return the address as a dict suitable for passing as kwargs.
-
-        Result does not contain the primary key or an associated user.
-        """
-        data = model_to_dict(address, exclude=['id', 'user'])
-        if isinstance(data['country'], Country):
-            data['country'] = data['country'].code
-        return data
-
-    def are_identical(self, addr1, addr2):
-        """Return `True` if `addr1` and `addr2` are the same address."""
-        data1 = self.as_data(addr1)
-        data2 = self.as_data(addr2)
-        return data1 == data2
-
-    def copy(self, address):
-        """Return a new instance of the same address."""
-        data = self.as_data(address)
-        return self.model.objects.create(**data)
-
-    def store_address(self, user, address):
-        """Add the address to a user's address book if not already present."""
-        data = self.as_data(address)
-        address, dummy_created = user.addresses.get_or_create(**data)
-        return address
-
-
 class Address(models.Model):
     first_name = models.CharField(max_length=256, blank=True)
     last_name = models.CharField(max_length=256, blank=True)
@@ -59,7 +29,6 @@ class Address(models.Model):
     country = CountryField()
     country_area = models.CharField(max_length=128, blank=True)
     phone = PossiblePhoneNumberField(blank=True, default='')
-    objects = AddressManager()
 
     @property
     def full_name(self):
@@ -79,6 +48,23 @@ class Address(models.Model):
                 self.street_address_1, self.street_address_2, self.city,
                 self.postal_code, self.country, self.country_area,
                 self.phone))
+
+    def __eq__(self, other):
+        return self.as_data() == other.as_data()
+
+    def as_data(self):
+        """Return the address as a dict suitable for passing as kwargs.
+
+        Result does not contain the primary key or an associated user.
+        """
+        data = model_to_dict(self, exclude=['id', 'user'])
+        if isinstance(data['country'], Country):
+            data['country'] = data['country'].code
+        return data
+
+    def get_copy(self):
+        """Return a new instance of the same address."""
+        return Address.objects.create(**self.as_data())
 
 
 class UserManager(BaseUserManager):

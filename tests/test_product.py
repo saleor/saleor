@@ -12,9 +12,10 @@ from saleor.cart.models import Cart
 from saleor.product import (
     ProductAvailabilityStatus, VariantAvailabilityStatus, models)
 from saleor.product.utils import (
+    allocate_stock, deallocate_stock, decrease_stock,
     get_attributes_display_map, get_availability,
     get_product_availability_status, get_variant_availability_status,
-    get_variant_picker_data)
+    get_variant_picker_data, increase_stock)
 
 
 @pytest.fixture()
@@ -31,12 +32,12 @@ def test_stock_selector(product_in_stock):
     assert preferred_stock.quantity_available >= 5
 
 
-def test_stock_allocator(product_in_stock):
+def test_allocate_stock(product_in_stock):
     variant = product_in_stock.variants.get()
     stock = variant.select_stockrecord(5)
     assert stock.quantity_allocated == 0
-    models.Stock.objects.allocate_stock(stock, 1)
-    stock = models.Stock.objects.get(pk=stock.pk)
+    allocate_stock(stock, 1)
+    stock.refresh_from_db()
     assert stock.quantity_allocated == 1
 
 
@@ -45,7 +46,7 @@ def test_decrease_stock(product_in_stock):
     stock.quantity = 100
     stock.quantity_allocated = 80
     stock.save()
-    models.Stock.objects.decrease_stock(stock, 50)
+    decrease_stock(stock, 50)
     stock.refresh_from_db()
     assert stock.quantity == 50
     assert stock.quantity_allocated == 30
@@ -56,7 +57,7 @@ def test_increase_stock(product_in_stock):
     stock.quantity = 100
     stock.quantity_allocated = 80
     stock.save()
-    models.Stock.objects.increase_stock(stock, 50)
+    increase_stock(stock, 50)
     stock.refresh_from_db()
     assert stock.quantity == 150
     assert stock.quantity_allocated == 80
@@ -67,7 +68,7 @@ def test_deallocate_stock(product_in_stock):
     stock.quantity = 100
     stock.quantity_allocated = 80
     stock.save()
-    models.Stock.objects.deallocate_stock(stock, 50)
+    deallocate_stock(stock, 50)
     stock.refresh_from_db()
     assert stock.quantity == 100
     assert stock.quantity_allocated == 30
@@ -106,6 +107,22 @@ def test_availability(product_in_stock, monkeypatch, settings):
     availability = get_availability(product_in_stock, local_currency='PLN')
     assert availability.price_range_local_currency.min_price.currency == 'PLN'
     assert availability.available
+
+
+def test_available_products_only_published(product_list):
+    available_products = models.Product.objects.available_products()
+    assert available_products.count() == 2
+    assert all([product.is_published for product in available_products])
+
+
+def test_available_products_only_available(product_list):
+    product = product_list[0]
+    date_tomorrow = datetime.date.today() + datetime.timedelta(days=1)
+    product.available_on = date_tomorrow
+    product.save()
+    available_products = models.Product.objects.available_products()
+    assert available_products.count() == 1
+    assert all([product.is_available() for product in available_products])
 
 
 def test_filtering_by_attribute(db, color_attribute):

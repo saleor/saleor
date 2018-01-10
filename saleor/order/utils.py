@@ -7,7 +7,7 @@ from django.utils.translation import pgettext_lazy
 from prices import Price
 from satchless.item import InsufficientStock
 
-from ..product.models import Stock
+from ..product.utils import allocate_stock, deallocate_stock
 from ..userprofile.utils import store_user_address
 from . import GroupStatus
 
@@ -93,7 +93,7 @@ def add_variant_to_delivery_group(
             unit_price_gross=price.gross,
             stock=stock,
             stock_location=stock.location.name)
-        Stock.objects.allocate_stock(stock, quantity)
+        allocate_stock(stock, quantity)
         # refresh stock for accessing quantity_allocated
         stock.refresh_from_db()
         quantity_left -= quantity
@@ -122,7 +122,7 @@ def add_variant_to_existing_lines(group, variant, total_quantity):
             else quantity_left)
         line.quantity += quantity
         line.save()
-        Stock.objects.allocate_stock(line.stock, quantity)
+        allocate_stock(line.stock, quantity)
         quantity_left -= quantity
         if quantity_left == 0:
             break

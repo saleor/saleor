@@ -3,7 +3,7 @@ from decimal import Decimal
 
 from django.conf import settings
 from django.db import models
-from django.db.models import F
+from django.db.models import F, Q
 from django.utils.encoding import smart_text
 from django.utils.translation import pgettext, pgettext_lazy
 from django_countries import countries
@@ -28,23 +28,11 @@ class NotApplicable(ValueError):
 
 
 class VoucherQueryset(models.QuerySet):
-
     def active(self, date):
-        queryset = self.filter(
-            models.Q(usage_limit__isnull=True) |
-            models.Q(used__lt=models.F('usage_limit')))
-        queryset = queryset.filter(
-            models.Q(end_date__isnull=True) | models.Q(end_date__gte=date))
-        queryset = queryset.filter(start_date__lte=date)
-        return queryset
-
-    def increase_usage(self, voucher):
-        voucher.used = F('used') + 1
-        voucher.save(update_fields=['used'])
-
-    def decrease_usage(self, voucher):
-        voucher.used = F('used') - 1
-        voucher.save(update_fields=['used'])
+        return self.filter(
+            Q(usage_limit__isnull=True) | Q(used__lt=F('usage_limit')),
+            Q(end_date__isnull=True) | Q(end_date__gte=date),
+            start_date__lte=date)
 
 
 class Voucher(models.Model):
@@ -304,20 +292,3 @@ class Sale(models.Model):
             pgettext(
                 'Voucher not applicable',
                 'Discount not applicable for this product'))
-
-
-def get_product_discounts(product, discounts, **kwargs):
-    for discount in discounts:
-        try:
-            yield discount.modifier_for_product(product, **kwargs)
-        except NotApplicable:
-            pass
-
-
-def calculate_discounted_price(product, price, discounts, **kwargs):
-    if discounts:
-        discounts = list(
-            get_product_discounts(product, discounts, **kwargs))
-        if discounts:
-            price = min(price | discount for discount in discounts)
-    return price

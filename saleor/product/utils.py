@@ -3,6 +3,7 @@ from urllib.parse import urlencode
 
 from django.conf import settings
 from django.contrib.auth.models import AnonymousUser
+from django.db.models import F
 from django.utils.encoding import smart_text
 from django_prices.templatetags import prices_i18n
 from prices import Price, PriceRange
@@ -18,7 +19,7 @@ def products_visible_to_user(user):
     if user.is_authenticated and user.is_active and user.is_staff:
         return Product.objects.all()
     else:
-        return Product.objects.get_available_products()
+        return Product.objects.available_products()
 
 
 def products_with_details(user):
@@ -370,3 +371,24 @@ def get_margin_for_variant(stock):
     margin = price - stock.cost_price
     percent = round((margin.gross / price.gross) * 100, 0)
     return percent
+
+
+def allocate_stock(stock, quantity):
+    stock.quantity_allocated = F('quantity_allocated') + quantity
+    stock.save(update_fields=['quantity_allocated'])
+
+
+def deallocate_stock(stock, quantity):
+    stock.quantity_allocated = F('quantity_allocated') - quantity
+    stock.save(update_fields=['quantity_allocated'])
+
+
+def increase_stock(stock, quantity):
+    stock.quantity = F('quantity') + quantity
+    stock.save(update_fields=['quantity'])
+
+
+def decrease_stock(stock, quantity):
+    stock.quantity = F('quantity') - quantity
+    stock.quantity_allocated = F('quantity_allocated') - quantity
+    stock.save(update_fields=['quantity', 'quantity_allocated'])
