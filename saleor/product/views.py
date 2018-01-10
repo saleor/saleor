@@ -63,6 +63,7 @@ def product_details(request, slug, product_id, form=None):
     variant_picker_data = get_variant_picker_data(
         product, request.discounts, request.currency)
     product_attributes = get_product_attributes_data(product)
+    # show_variant_picker determines if variant picker is used or select input
     show_variant_picker = all([v.attributes for v in product.variants.all()])
     json_ld_data = product_json_ld(product, availability, product_attributes)
     return TemplateResponse(
