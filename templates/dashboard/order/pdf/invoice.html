@@ -81,79 +81,79 @@
     </tr>
     </thead>
     <tbody>
-    {% for item in order.get_lines.all %}
-      <tr>
-        <td>
-          {{ item.product_name|truncatechars:30 }}<br>
-        </td>
-        <td>
-          {{ item.product_sku }}
-        </td>
-        <td class="right-align">
-          {% gross item.get_price_per_item html=True %}
-        </td>
-        <td class="right-align">
-          {{ item.quantity }}
-        </td>
-        <td class="right-align">
-          {% gross item.get_total html=True %}
-        </td>
-      </tr>
-    {% endfor %}
-    {% if order.shipping_price.gross or order.is_shipping_required %}
-      {% for shipping in shipping_methods %}
+      {% for item in order.get_lines.all %}
         <tr>
           <td>
-            {% trans "Shipping" context "Shipment order table item column data" %}
+            {{ item.product_name|truncatechars:30 }}<br>
           </td>
-          <td colspan="3">
-            {{ shipping.name }}
+          <td>
+            {{ item.product_sku }}
+          </td>
+          <td class="right-align">
+            {% gross item.get_price_per_item html=True %}
+          </td>
+          <td class="right-align">
+            {{ item.quantity }}
+          </td>
+          <td class="right-align">
+            {% gross item.get_total html=True %}
           </td>
         </tr>
       {% endfor %}
-    {% endif %}
+      {% if order.shipping_price.gross or order.is_shipping_required %}
+        {% for shipping in shipping_methods %}
+          <tr>
+            <td>
+              {% trans "Shipping" context "Shipment order table item column data" %}
+            </td>
+            <td colspan="3">
+              {{ shipping.name }}
+            </td>
+          </tr>
+        {% endfor %}
+      {% endif %}
     </tbody>
   </table>
 {% endif %}
 
 <table class="bordered highlight responsive data-table">
   <tbody>
-  <tr>
-    <td class="wide">
-      {% trans "Subtotal" context "Order subtotal price" %}
-    </td>
-    <td class="right-align">
-      {% gross order.get_subtotal_without_voucher html=True %}
-    </td>
-  </tr>
-  <tr>
-    <td>
-      {% trans "Shipping total" context "Order total shipping price header" %}
-    </td>
-    <td class="right-align">
-      {% gross order.shipping_price html=True %}
-    </td>
-  </tr>
-  {% if order.voucher %}
     <tr>
-      <td>
-        {% trans "Voucher" context "Order voucher header" %} {{ order.voucher }}
+      <td class="wide">
+        {% trans "Subtotal" context "Order subtotal price" %}
       </td>
       <td class="right-align">
-        {% gross order.discount|discount_amount_for:order.total html=True %}
+        {% gross order.get_subtotal_without_voucher html=True %}
       </td>
     </tr>
-  {% endif %}
+    <tr>
+      <td>
+        {% trans "Shipping total" context "Order total shipping price header" %}
+      </td>
+      <td class="right-align">
+        {% gross order.shipping_price html=True %}
+      </td>
+    </tr>
+    {% if order.voucher %}
+      <tr>
+        <td>
+          {% trans "Voucher" context "Order voucher header" %} {{ order.voucher }}
+        </td>
+        <td class="right-align">
+          {% gross order.discount|discount_amount_for:order.total html=True %}
+        </td>
+      </tr>
+    {% endif %}
   </tbody>
   <tfoot>
-  <tr>
-    <td>
-      {% trans "Grand total" context "Order total price header" %}
-    </td>
-    <td class="right-align">
-      {% gross order.get_total html=True %}
-    </td>
-  </tr>
+    <tr>
+      <td>
+        {% trans "Grand total" context "Order total price header" %}
+      </td>
+      <td class="right-align">
+        {% gross order.get_total html=True %}
+      </td>
+    </tr>
   </tfoot>
 </table>
 </body>

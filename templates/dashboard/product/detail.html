@@ -76,7 +76,7 @@
               {% trans "Edit product" context "Product action" %}
             </a>
             <a href="#base-modal" data-href="{% url 'dashboard:product-delete' pk=product.pk %}" class="modal-trigger-custom btn-flat waves-effect">
-                {% trans "Remove product" context "Product action" %}
+              {% trans "Remove product" context "Product action" %}
             </a>
           {% endif %}
           <a href="{{ product.get_absolute_url }}" target="_blank" class="btn-flat waves-effect">
@@ -91,7 +91,7 @@
           </div>
           {% if perms.product.edit_product %}
             <div class="data-table-header-action">
-                <a href="{% url 'dashboard:variant-add' product_pk=product.pk %}" class="btn-flat waves-effect">{% trans "Add" %}</a>
+              <a href="{% url 'dashboard:variant-add' product_pk=product.pk %}" class="btn-flat waves-effect">{% trans "Add" %}</a>
             </div>
           {% endif %}
           <div class="data-table-container">

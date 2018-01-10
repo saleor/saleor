@@ -13,7 +13,7 @@
 {% block breadcrumb %}
   <ul class="breadcrumbs list-unstyled">
     <li><a href="{% url 'home' %}">
-        {% trans "Home" context "Main navigation item" %}
+      {% trans "Home" context "Main navigation item" %}
     </a></li>
     <li>{% trans "Your account" context "Main navigation item" %} (<b>{{ user }}</b>)</li>
   </ul>
@@ -96,7 +96,7 @@
             </div>
           {% else %}
             <h3 class="text-sm-center userprofile__orders-empty">
-                {% trans "There are not any completed orders yet." context "No recent orders text" %}
+              {% trans "There are not any completed orders yet." context "No recent orders text" %}
             </h3>
           {% endif %}
         </div>
@@ -105,10 +105,10 @@
         <div class="row ">
           <div class="col-md-8 col-lg-6 m-auto userprofile__password">
             <form action="" method="post">
-                {% csrf_token %}
-                {% bootstrap_form change_password_form %}
-                <input type="submit" class="btn primary narrow"
-                       value="{% trans "Change password" context "User profile action" %}">
+              {% csrf_token %}
+              {% bootstrap_form change_password_form %}
+              <input type="submit" class="btn primary narrow"
+                      value="{% trans "Change password" context "User profile action" %}">
             </form>
           </div>
         </div>
@@ -116,26 +116,28 @@
       <div class="tab-pane fade" id="addresses" role="tabpanel">
         <div class="card-deck-wrapper userprofile__addresses">
           <div class="row card-deck">
-              {% for address in addresses %}
-                <div class="col-md-6">
-                  <div class="card card-block">
-                    {% format_address address %}
-                    <ul class="icons">
-                      <li><a href="{% url "profile:address-edit" pk=address.pk %}">
-                        {% trans "Edit" context "User address action" %}
-                      </a></li>
-                      <li><a class="delete-icon"><svg data-src="{% static "images/delete.svg" %}" height="20px" width="20px" /></a></li>
-                    </ul>
-                    {% include "userprofile/address_delete.html" with pk=address.pk %}
-                  </div>
+            {% for address in addresses %}
+              <div class="col-md-6">
+                <div class="card card-block">
+                  {% format_address address %}
+                  <ul class="icons">
+                    <li><a href="{% url "profile:address-edit" pk=address.pk %}">
+                      {% trans "Edit" context "User address action" %}
+                    </a></li>
+                    <li><a class="delete-icon">
+                      <svg data-src="{% static "images/delete.svg" %}" height="20px" width="20px" />
+                    </a></li>
+                  </ul>
+                  {% include "userprofile/address_delete.html" with pk=address.pk %}
                 </div>
-              {% endfor %}
-            </div>
-            {% if addresses|length == 0 %}
-              <h3 class="text-sm-center">
-                  {% trans "You will see new addresses here after first successful checkout." context "No addresses text" %}
-              </h3>
-            {% endif %}
+              </div>
+            {% endfor %}
+          </div>
+          {% if addresses|length == 0 %}
+            <h3 class="text-sm-center">
+              {% trans "You will see new addresses here after first successful checkout." context "No addresses text" %}
+            </h3>
+          {% endif %}
         </div>
       </div>
     </div>

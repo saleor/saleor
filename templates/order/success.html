@@ -13,25 +13,25 @@
 {% endblock content %}
 
 {% block google-analytics-script %}
-    {{ block.super }}
-    __ga('require', 'ecommerce', 'ecommerce.js');
-    __ga('set', 'currencyCode', '{{ DEFAULT_CURRENCY }}');
-    __ga('ecommerce:addTransaction', {
-      'id': '{{ order.id }}',
-      'affiliation': 'Saleor',
-      'revenue': '{{ order.get_total.gross }}',
-      'shipping': '{{ order.shipping_price.gross }}',
-      'tax': '{{ order.get_total.tax }}'
+  {{ block.super }}
+  __ga('require', 'ecommerce', 'ecommerce.js');
+  __ga('set', 'currencyCode', '{{ DEFAULT_CURRENCY }}');
+  __ga('ecommerce:addTransaction', {
+    'id': '{{ order.id }}',
+    'affiliation': 'Saleor',
+    'revenue': '{{ order.get_total.gross }}',
+    'shipping': '{{ order.shipping_price.gross }}',
+    'tax': '{{ order.get_total.tax }}'
+  });
+  {% for item in order.get_lines %}
+    __ga('ecommerce:addItem', {
+      'id': '{{ item.id }}',
+      'name': '{{ item }}',
+      'sku': '{{ item.sku }}',
+      'category': '{{ item.product.category }}',
+      'price': '{{ item.unit_price_gross }}',
+      'quantity': '{{ item.quantity }}'
     });
-    {% for item in order.get_lines %}
-     __ga('ecommerce:addItem', {
-        'id': '{{ item.id }}',
-        'name': '{{ item }}',
-        'sku': '{{ item.sku }}',
-        'category': '{{ item.product.category }}',
-        'price': '{{ item.unit_price_gross }}',
-        'quantity': '{{ item.quantity }}'
-      });
-    {% endfor %}
-    __ga('ecommerce:send');
+  {% endfor %}
+  __ga('ecommerce:send');
 {% endblock google-analytics-script %}
