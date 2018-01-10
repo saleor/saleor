@@ -1,6 +1,6 @@
 from decimal import Decimal
 from io import BytesIO
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, Mock
 
 import pytest
 from django.contrib.auth.models import AnonymousUser, Group, Permission
@@ -9,6 +9,7 @@ from django.core.files import File
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.utils.encoding import smart_text
 from PIL import Image
+from prices import Price
 
 from saleor.cart import utils
 from saleor.cart.models import Cart
@@ -294,7 +295,7 @@ def product_list(product_class, default_category):
 
     return [product_1, product_2, product_3]
 
-from prices import Price
+
 @pytest.fixture
 def order_list(admin_user, billing_address):
     data = {

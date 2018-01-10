@@ -1,9 +1,12 @@
 from io import BytesIO
 import json
 
+from unittest.mock import Mock, MagicMock
+
 from PIL import Image
 from django.conf import settings
 from django.core.files.uploadedfile import SimpleUploadedFile
+from django.forms import HiddenInput
 from django.urls import reverse
 from django.utils.encoding import smart_text
 import pytest
@@ -11,6 +14,7 @@ import pytest
 from saleor.dashboard.product import ProductBulkAction
 from saleor.dashboard.product.forms import (
     ProductBulkUpdate, ProductClassForm, ProductForm)
+from saleor.product.forms import VariantChoiceField
 from saleor.product.models import (
     AttributeChoiceValue, Product, ProductAttribute, ProductClass,
     ProductImage, ProductVariant, Stock, StockLocation)
@@ -640,3 +644,13 @@ def test_product_select_classes_by_ajax(admin_client, product_class):
     assert response.status_code == 200
     assert resp_decoded.get('redirectUrl') == reverse(
         'dashboard:product-add', kwargs={'class_pk': product_class.pk})
+
+
+def test_hide_field_in_variant_choice_field_form():
+    form = VariantChoiceField(Mock)
+    variants, cart = MagicMock(), MagicMock()
+    variants.count.return_value = 1
+    variants.all()[0].pk = 'test'
+    form.update_field_data(variants, cart)
+    assert isinstance(form.widget, HiddenInput)
+    assert form.widget.attrs.get('value') == 'test'
