@@ -34,6 +34,7 @@ jsonfield>=2.0.2
 Markdown>=2.4
 maxminddb
 maxminddb-geolite2
+phonenumberslite>=8.8.8
 prices>=0.5.7
 psycopg2>=2.6
 purl>=0.4.1
