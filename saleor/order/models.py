@@ -222,8 +222,8 @@ class DeliveryGroup(models.Model, ItemSet):
 
     @transition(
         field=status, source=GroupStatus.NEW, target=GroupStatus.SHIPPED)
-    def ship(self):
-        ship_delivery_group(self)
+    def ship(self, tracking_number=''):
+        ship_delivery_group(self, tracking_number)
 
     @transition(
         field=status,
