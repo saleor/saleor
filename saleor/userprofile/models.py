@@ -29,17 +29,6 @@ class AddressManager(models.Manager):
             data['country'] = data['country'].code
         return data
 
-    def copy(self, address):
-        """Return a new instance of the same address."""
-        data = self.as_data(address)
-        return self.model.objects.create(**data)
-
-    def store_address(self, user, address):
-        """Add the address to a user's address book if not already present."""
-        data = self.as_data(address)
-        address, dummy_created = user.addresses.get_or_create(**data)
-        return address
-
 
 class Address(models.Model):
     first_name = models.CharField(max_length=256, blank=True)
