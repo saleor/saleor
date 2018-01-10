@@ -19,7 +19,7 @@ urlpatterns = [
     url(r'^bulk-update/$',
         views.product_bulk_update, name='product-bulk-update'),
     url(r'^add/select-class/$',
-        views.product_select_classes, name='product-add-select-class'),
+        views.product_select_class, name='product-add-select-class'),
 
     url(r'^classes/$',
         views.product_class_list, name='product-class-list'),
@@ -31,7 +31,7 @@ urlpatterns = [
         views.product_class_delete, name='product-class-delete'),
 
     url(r'^(?P<product_pk>[0-9]+)/variants/add/$',
-        views.variant_edit, name='variant-add'),
+        views.variant_add, name='variant-add'),
     url(r'^(?P<product_pk>[0-9]+)/variants/(?P<variant_pk>[0-9]+)/$',
         views.variant_details, name='variant-details'),
     url(r'^(?P<product_pk>[0-9]+)/variants/(?P<variant_pk>[0-9]+)/update/$',
@@ -42,7 +42,7 @@ urlpatterns = [
         views.variant_images, name='variant-images'),
 
     url(r'^(?P<product_pk>[0-9]+)/variants/(?P<variant_pk>[0-9]+)/stock/add/$',
-        views.stock_edit, name='variant-stock-add'),
+        views.stock_add, name='variant-stock-add'),
     url(r'^(?P<product_pk>[0-9]+)/variants/(?P<variant_pk>[0-9]+)/stock/'
         r'(?P<stock_pk>[0-9]+)/$',
         views.stock_details, name='variant-stock-details'),
@@ -55,10 +55,10 @@ urlpatterns = [
 
     url(r'^(?P<product_pk>[0-9]+)/images/$', views.product_images,
         name='product-image-list'),
+    url(r'^(?P<product_pk>[0-9]+)/images/add/$',
+        views.product_image_add, name='product-image-add'),
     url(r'^(?P<product_pk>[0-9]+)/images/(?P<img_pk>[0-9]+)/$',
         views.product_image_edit, name='product-image-update'),
-    url(r'^(?P<product_pk>[0-9]+)/images/add/$',
-        views.product_image_edit, name='product-image-add'),
     url(r'^(?P<product_pk>[0-9]+)/images/(?P<img_pk>[0-9]+)/delete/$',
         views.product_image_delete, name='product-image-delete'),
 
@@ -71,25 +71,25 @@ urlpatterns = [
         views.attribute_list, name='product-attributes'),
     url(r'attributes/(?P<pk>[0-9]+)/$',
         views.attribute_detail, name='product-attribute-detail'),
+    url(r'attributes/add/$',
+        views.attribute_add, name='product-attribute-add'),
     url(r'attributes/(?P<pk>[0-9]+)/update/$',
         views.attribute_edit, name='product-attribute-update'),
-    url(r'attributes/add/$',
-        views.attribute_edit, name='product-attribute-add'),
     url(r'attributes/(?P<pk>[0-9]+)/delete/$',
         views.attribute_delete, name='product-attribute-delete'),
+    url(r'attributes/(?P<attribute_pk>[0-9]+)/value/add/$',
+        views.attribute_choice_value_add,
+        name='product-attribute-value-add'),
     url(r'attributes/(?P<attribute_pk>[0-9]+)/value/(?P<value_pk>[0-9]+)/update/$',  # noqa
         views.attribute_choice_value_edit,
         name='product-attribute-value-update'),
-    url(r'attributes/(?P<attribute_pk>[0-9]+)/value/add/$',
-        views.attribute_choice_value_edit,
-        name='product-attribute-value-add'),
     url(r'attributes/(?P<attribute_pk>[0-9]+)/value/(?P<value_pk>[0-9]+)/delete/$',  # noqa
         views.attribute_choice_value_delete,
         name='product-attribute-value-delete'),
 
     url(r'stocklocations/$', views.stock_location_list,
         name='product-stock-location-list'),
-    url(r'stocklocations/add/$', views.stock_location_edit,
+    url(r'stocklocations/add/$', views.stock_location_add,
         name='product-stock-location-add'),
     url(r'stocklocations/(?P<location_pk>[0-9]+)/$', views.stock_location_edit,
         name='product-stock-location-edit'),

@@ -69,7 +69,7 @@ def authorization_key_add(request, site_settings_pk):
 
 @staff_member_required
 @permission_required('site.edit_settings')
-def authorization_key_edit(request, site_settings_pk, key_pk=None):
+def authorization_key_edit(request, site_settings_pk, key_pk):
     key = get_object_or_404(AuthorizationKey, pk=key_pk)
     form = AuthorizationKeyForm(request.POST or None, instance=key)
     if form.is_valid():
