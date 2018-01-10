@@ -117,7 +117,8 @@ def billing_address(db):  # pylint: disable=W0613
         street_address_1='Tęczowa 7',
         city='Wrocław',
         postal_code='53-601',
-        country='PL')
+        country='PL',
+        phone='+48713988102')
 
 
 @pytest.fixture

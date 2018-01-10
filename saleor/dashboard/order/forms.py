@@ -9,15 +9,15 @@ from satchless.item import InsufficientStock
 
 from ...cart.forms import QuantityField
 from ...core.forms import AjaxSelect2ChoiceField
-from ...discount.models import Voucher
+from ...discount.utils import decrease_voucher_usage
 from ...order import GroupStatus
 from ...order.models import DeliveryGroup, OrderLine, OrderNote
 from ...order.utils import (
     add_variant_to_delivery_group, cancel_order, change_order_line_quantity,
     merge_duplicates_into_order_line, move_order_line_to_group,
-    recalculate_order, remove_empty_groups
-)
+    recalculate_order, remove_empty_groups)
 from ...product.models import Product, ProductVariant, Stock
+from ...product.utils import allocate_stock, deallocate_stock
 
 
 class OrderNoteForm(forms.ModelForm):
@@ -132,7 +132,7 @@ class MoveLinesForm(forms.Form):
         return target_group
 
 
-class CancelLinesForm(forms.Form):
+class CancelOrderLineForm(forms.Form):
 
     def __init__(self, *args, **kwargs):
         self.line = kwargs.pop('line')
@@ -140,7 +140,7 @@ class CancelLinesForm(forms.Form):
 
     def cancel_line(self):
         if self.line.stock:
-            Stock.objects.deallocate_stock(self.line.stock, self.line.quantity)
+            deallocate_stock(self.line.stock, self.line.quantity)
         order = self.line.delivery_group.order
         self.line.quantity = 0
         remove_empty_groups(self.line)
@@ -183,7 +183,7 @@ class ChangeQuantityForm(forms.ModelForm):
         if stock is not None:
             # update stock allocation
             delta = quantity - self.initial_quantity
-            Stock.objects.allocate_stock(stock, delta)
+            allocate_stock(stock, delta)
         change_order_line_quantity(self.instance, quantity)
         recalculate_order(self.instance.delivery_group.order)
         return self.instance
@@ -269,8 +269,7 @@ class RemoveVoucherForm(forms.Form):
     def remove_voucher(self):
         self.order.discount_amount = 0
         self.order.discount_name = ''
-        voucher = self.order.voucher
-        Voucher.objects.decrease_usage(voucher)
+        decrease_voucher_usage(self.order.voucher)
         self.order.voucher = None
         recalculate_order(self.order)
 
@@ -317,13 +316,12 @@ class ChangeStockForm(forms.ModelForm):
 
     def save(self, commit=True):
         quantity = self.instance.quantity
-        if self.old_stock is not None:
-            Stock.objects.deallocate_stock(self.old_stock, quantity)
         stock = self.instance.stock
-        if stock is not None:
-            self.instance.stock_location = (
-                stock.location.name if stock.location else '')
-            Stock.objects.allocate_stock(stock, quantity)
+        self.instance.stock_location = (
+            stock.location.name if stock.location else '')
+        if self.old_stock:
+            deallocate_stock(self.old_stock, quantity)
+        allocate_stock(stock, quantity)
         super().save(commit)
         merge_duplicates_into_order_line(self.instance)
         return self.instance
@@ -333,7 +331,7 @@ class AddVariantToDeliveryGroupForm(forms.Form):
     """ Adds variant in given quantity to shipment group. """
     variant = AjaxSelect2ChoiceField(
         queryset=ProductVariant.objects.filter(
-            product__in=Product.objects.get_available_products()),
+            product__in=Product.objects.available_products()),
         fetch_data_url=reverse_lazy('dashboard:ajax-available-variants'))
     quantity = QuantityField(
         label=pgettext_lazy(

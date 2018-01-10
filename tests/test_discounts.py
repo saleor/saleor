@@ -10,6 +10,8 @@ from saleor.cart.utils import get_category_variants_and_prices
 from saleor.checkout.core import Checkout
 from saleor.discount.forms import CheckoutDiscountForm
 from saleor.discount.models import NotApplicable, Sale, Voucher
+from saleor.discount.utils import (
+    decrease_voucher_usage, increase_voucher_usage)
 from saleor.product.models import Category, Product, ProductVariant
 
 
@@ -317,3 +319,23 @@ def test_get_category_variants_and_prices_product_with_many_categories(
     discount = voucher.get_discount_for_checkout(checkout_mock)
     # 10% of 10.00 is 1.00
     assert discount.amount == Price('1.00', currency=discount.amount.currency)
+
+
+def test_increase_voucher_usage():
+    voucher = Voucher.objects.create(
+        code='unique', type=Voucher.VALUE_TYPE,
+        discount_value_type=Voucher.DISCOUNT_VALUE_FIXED,
+        discount_value=10, usage_limit=100)
+    increase_voucher_usage(voucher)
+    voucher.refresh_from_db()
+    assert voucher.used == 1
+
+
+def test_decrease_voucher_usage():
+    voucher = Voucher.objects.create(
+        code='unique', type=Voucher.VALUE_TYPE,
+        discount_value_type=Voucher.DISCOUNT_VALUE_FIXED,
+        discount_value=10, usage_limit=100, used=10)
+    decrease_voucher_usage(voucher)
+    voucher.refresh_from_db()
+    assert voucher.used == 9

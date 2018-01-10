@@ -18,7 +18,7 @@ from satchless.item import InsufficientStock, Item, ItemRange
 from text_unidecode import unidecode
 from versatileimagefield.fields import PPOIField, VersatileImageField
 
-from ..discount.models import calculate_discounted_price
+from ..discount.utils import calculate_discounted_price
 from .utils import get_attributes_display_map
 
 
@@ -83,12 +83,12 @@ class ProductClass(models.Model):
             class_.__module__, class_.__name__, self.pk, self.name)
 
 
-class ProductManager(models.Manager):
-    def get_available_products(self):
+class ProductQuerySet(models.QuerySet):
+    def available_products(self):
         today = datetime.date.today()
-        return self.get_queryset().filter(
-            Q(available_on__lte=today) | Q(available_on__isnull=True)).filter(
-                is_published=True)
+        return self.filter(
+            Q(available_on__lte=today) | Q(available_on__isnull=True),
+            Q(is_published=True))
 
 
 class Product(models.Model, ItemRange):
@@ -105,7 +105,7 @@ class Product(models.Model, ItemRange):
     updated_at = models.DateTimeField(auto_now=True, null=True)
     is_featured = models.BooleanField(default=False)
 
-    objects = ProductManager()
+    objects = ProductQuerySet.as_manager()
 
     class Meta:
         app_label = 'product'
@@ -157,10 +157,7 @@ class Product(models.Model, ItemRange):
 
     def get_first_image(self):
         first_image = self.images.first()
-
-        if first_image:
-            return first_image.image
-        return None
+        return first_image.image if first_image else None
 
     def get_attribute(self, pk):
         return self.attributes.get(smart_text(pk))
@@ -294,25 +291,6 @@ class StockLocation(models.Model):
         return self.name
 
 
-class StockManager(models.Manager):
-    def allocate_stock(self, stock, quantity):
-        stock.quantity_allocated = F('quantity_allocated') + quantity
-        stock.save(update_fields=['quantity_allocated'])
-
-    def deallocate_stock(self, stock, quantity):
-        stock.quantity_allocated = F('quantity_allocated') - quantity
-        stock.save(update_fields=['quantity_allocated'])
-
-    def increase_stock(self, stock, quantity):
-        stock.quantity = F('quantity') + quantity
-        stock.save(update_fields=['quantity'])
-
-    def decrease_stock(self, stock, quantity):
-        stock.quantity = F('quantity') - quantity
-        stock.quantity_allocated = F('quantity_allocated') - quantity
-        stock.save(update_fields=['quantity', 'quantity_allocated'])
-
-
 class Stock(models.Model):
     variant = models.ForeignKey(
         ProductVariant, related_name='stock', on_delete=models.CASCADE)
@@ -325,8 +303,6 @@ class Stock(models.Model):
     cost_price = PriceField(
         currency=settings.DEFAULT_CURRENCY, max_digits=12, decimal_places=2,
         blank=True, null=True)
-
-    objects = StockManager()
 
     class Meta:
         app_label = 'product'
@@ -373,14 +349,6 @@ class AttributeChoiceValue(models.Model):
         return self.name
 
 
-class ImageManager(models.Manager):
-    def first(self):
-        try:
-            return self.get_queryset()[0]
-        except IndexError:
-            pass
-
-
 class ProductImage(models.Model):
     product = models.ForeignKey(
         Product, related_name='images', on_delete=models.CASCADE)
@@ -389,8 +357,6 @@ class ProductImage(models.Model):
     ppoi = PPOIField()
     alt = models.CharField(max_length=128, blank=True)
     order = models.PositiveIntegerField(editable=False)
-
-    objects = ImageManager()
 
     class Meta:
         ordering = ('order', )

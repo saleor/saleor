@@ -15,9 +15,9 @@ from payments.models import BasePayment
 from prices import FixedDiscount, Price
 from satchless.item import ItemLine, ItemSet
 
-from saleor.order.transitions import (
-    cancel_delivery_group, process_delivery_group, ship_delivery_group)
 from . import emails, GroupStatus, OrderStatus
+from .transitions import (
+    cancel_delivery_group, process_delivery_group, ship_delivery_group)
 from ..core.utils import build_absolute_uri
 from ..discount.models import Voucher
 from ..product.models import Product
@@ -280,7 +280,7 @@ class OrderLine(models.Model, ItemLine):
         return self.quantity
 
 
-class PaymentManager(models.Manager):
+class PaymentQuerySet(models.QuerySet):
     def last(self):
         # using .all() here reuses data fetched by prefetch_related
         objects = list(self.all()[:1])
@@ -290,10 +290,9 @@ class PaymentManager(models.Manager):
 
 class Payment(BasePayment):
     order = models.ForeignKey(
-        Order, related_name='payments',
-        on_delete=models.PROTECT)
+        Order, related_name='payments', on_delete=models.PROTECT)
 
-    objects = PaymentManager()
+    objects = PaymentQuerySet.as_manager()
 
     class Meta:
         ordering = ('-pk',)
