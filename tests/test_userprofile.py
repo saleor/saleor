@@ -166,8 +166,7 @@ def test_address_as_data(billing_address):
         'postal_code': '53-601',
         'country': 'PL',
         'country_area': '',
-        'phone': '+48713988102'
-    }
+        'phone': '+48713988102'}
 
 
 def test_copy_address(billing_address):
