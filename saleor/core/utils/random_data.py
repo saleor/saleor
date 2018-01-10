@@ -13,6 +13,7 @@ from faker.providers import BaseProvider
 from payments import PaymentStatus
 from prices import Price
 
+from ...discount import VoucherType, DiscountValueType
 from ...discount.models import Sale, Voucher
 from ...order import GroupStatus
 from ...order.models import DeliveryGroup, Order, OrderLine, Payment
@@ -463,7 +464,7 @@ def create_fake_order():
 def create_fake_sale():
     sale = Sale.objects.create(
         name='Happy %s day!' % fake.word(),
-        type=Sale.PERCENTAGE,
+        type=DiscountValueType.PERCENTAGE,
         value=random.choice([10, 20, 30, 40, 50]))
     for product in Product.objects.all().order_by('?')[:4]:
         sale.products.add(product)
@@ -500,9 +501,9 @@ def create_shipping_methods():
 def create_vouchers():
     voucher, created = Voucher.objects.get_or_create(
         code='FREESHIPPING', defaults={
-            'type': Voucher.SHIPPING_TYPE,
+            'type': VoucherType.SHIPPING,
             'name': 'Free shipping',
-            'discount_value_type': Voucher.DISCOUNT_VALUE_PERCENTAGE,
+            'discount_value_type': DiscountValueType.PERCENTAGE,
             'discount_value': 100})
     if created:
         yield 'Voucher #%d' % voucher.id
@@ -511,9 +512,9 @@ def create_vouchers():
 
     voucher, created = Voucher.objects.get_or_create(
         code='DISCOUNT', defaults={
-            'type': Voucher.VALUE_TYPE,
+            'type': VoucherType.VALUE,
             'name': 'Big order discount',
-            'discount_value_type': Voucher.DISCOUNT_VALUE_FIXED,
+            'discount_value_type': DiscountValueType.FIXED,
             'discount_value': 25,
             'limit': 200})
     if created:

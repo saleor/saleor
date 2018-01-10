@@ -6,6 +6,7 @@ from django.template.response import TemplateResponse
 from django.utils.translation import pgettext_lazy
 
 from ...core.utils import get_paginator_items
+from ...discount import VoucherType
 from ...discount.models import Sale, Voucher
 from ..views import staff_member_required
 from .filters import SaleFilter, VoucherFilter
@@ -91,18 +92,18 @@ def voucher_add(request):
     instance = Voucher()
     voucher_form = forms.VoucherForm(request.POST or None, instance=instance)
     type_base_forms = {
-        Voucher.SHIPPING_TYPE: forms.ShippingVoucherForm(
+        VoucherType.SHIPPING: forms.ShippingVoucherForm(
             request.POST or None, instance=instance,
-            prefix=Voucher.SHIPPING_TYPE),
-        Voucher.VALUE_TYPE: forms.ValueVoucherForm(
+            prefix=VoucherType.SHIPPING),
+        VoucherType.VALUE: forms.ValueVoucherForm(
             request.POST or None, instance=instance,
-            prefix=Voucher.VALUE_TYPE),
-        Voucher.PRODUCT_TYPE: forms.ProductVoucherForm(
+            prefix=VoucherType.VALUE),
+        VoucherType.PRODUCT: forms.ProductVoucherForm(
             request.POST or None, instance=instance,
-            prefix=Voucher.PRODUCT_TYPE),
-        Voucher.CATEGORY_TYPE: forms.CategoryVoucherForm(
+            prefix=VoucherType.PRODUCT),
+        VoucherType.CATEGORY: forms.CategoryVoucherForm(
             request.POST or None, instance=instance,
-            prefix=Voucher.CATEGORY_TYPE)}
+            prefix=VoucherType.CATEGORY)}
     if voucher_form.is_valid():
         voucher_type = voucher_form.cleaned_data['type']
         form_type = type_base_forms.get(voucher_type)
@@ -128,18 +129,18 @@ def voucher_edit(request, pk):
     instance = get_object_or_404(Voucher, pk=pk)
     voucher_form = forms.VoucherForm(request.POST or None, instance=instance)
     type_base_forms = {
-        Voucher.SHIPPING_TYPE: forms.ShippingVoucherForm(
+        VoucherType.SHIPPING: forms.ShippingVoucherForm(
             request.POST or None, instance=instance,
-            prefix=Voucher.SHIPPING_TYPE),
-        Voucher.VALUE_TYPE: forms.ValueVoucherForm(
+            prefix=VoucherType.SHIPPING),
+        VoucherType.VALUE: forms.ValueVoucherForm(
             request.POST or None, instance=instance,
-            prefix=Voucher.VALUE_TYPE),
-        Voucher.PRODUCT_TYPE: forms.ProductVoucherForm(
+            prefix=VoucherType.VALUE),
+        VoucherType.PRODUCT: forms.ProductVoucherForm(
             request.POST or None, instance=instance,
-            prefix=Voucher.PRODUCT_TYPE),
-        Voucher.CATEGORY_TYPE: forms.CategoryVoucherForm(
+            prefix=VoucherType.PRODUCT),
+        VoucherType.CATEGORY: forms.CategoryVoucherForm(
             request.POST or None, instance=instance,
-            prefix=Voucher.CATEGORY_TYPE)}
+            prefix=VoucherType.CATEGORY)}
     if voucher_form.is_valid():
         voucher_type = voucher_form.cleaned_data['type']
         form_type = type_base_forms.get(voucher_type)
