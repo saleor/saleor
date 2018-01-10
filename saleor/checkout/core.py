@@ -247,8 +247,7 @@ class Checkout:
     @property
     def is_shipping_same_as_billing(self):
         """Return `True` if shipping and billing addresses are identical."""
-        return Address.objects.are_identical(
-            self.shipping_address, self.billing_address)
+        return self.shipping_address == self.billing_address
 
     def _add_to_user_address_book(self, address, is_billing=False,
                                   is_shipping=False):

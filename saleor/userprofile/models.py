@@ -29,12 +29,6 @@ class AddressManager(models.Manager):
             data['country'] = data['country'].code
         return data
 
-    def are_identical(self, addr1, addr2):
-        """Return `True` if `addr1` and `addr2` are the same address."""
-        data1 = self.as_data(addr1)
-        data2 = self.as_data(addr2)
-        return data1 == data2
-
     def copy(self, address):
         """Return a new instance of the same address."""
         data = self.as_data(address)
@@ -79,6 +73,10 @@ class Address(models.Model):
                 self.street_address_1, self.street_address_2, self.city,
                 self.postal_code, self.country, self.country_area,
                 self.phone))
+
+    def __eq__(self, other):
+        """Return `True` if `addr1` and `addr2` are the same address."""
+        return Address.objects.as_data(self) == Address.objects.as_data(other)
 
 
 class UserManager(BaseUserManager):
