@@ -26,7 +26,8 @@ There are three possible delivery group statuses:
 Delivery Group statuses flow
 ----------------------------
 
-.. image:: img/delivery_group_statuses.png
+.. Graph is generated from transitions.dot file in graphs folder. You can edit it and convert to png (with graphviz installed) by executing: dot -Tpng docs/graphs/transitions.dot > docs/img/transitions.png
+.. image:: img/transitions.png
 
 Regular flow of statuses is from ``NEW`` to ``SHIPPED``. For managing states Saleor uses `django-fsm <https://github.com/kmmbvnr/django-fsm>`_ package. Actions performed within changing status are placed in DeliveryGroup model and are as follows:
 
