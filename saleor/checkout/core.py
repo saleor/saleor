@@ -257,10 +257,10 @@ class Checkout:
                 billing=is_billing)
 
     def _save_order_billing_address(self):
-        return Address.objects.copy(self.billing_address)
+        return self.billing_address.get_copy()
 
     def _save_order_shipping_address(self):
-        return Address.objects.copy(self.shipping_address)
+        return self.shipping_address.get_copy()
 
     @transaction.atomic
     def create_order(self):

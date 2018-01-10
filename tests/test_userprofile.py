@@ -153,20 +153,26 @@ def test_format_address_all_options(billing_address):
     assert str(billing_address.phone) not in rendered_html
 
 
+def test_copy_address(billing_address):
+    copied_address = billing_address.get_copy()
+    assert copied_address.pk != billing_address.pk
+    assert copied_address == billing_address
+
+
 def test_compare_addresses(billing_address):
-    copied_address = models.Address.objects.copy(billing_address)
+    copied_address = billing_address.get_copy()
     assert billing_address == copied_address
 
 
 def test_compare_addresses_with_country_object(billing_address):
-    copied_address = models.Address.objects.copy(billing_address)
+    copied_address = billing_address.get_copy()
     copied_address.country = Country('PL')
     copied_address.save()
     assert billing_address == copied_address
 
 
 def test_compare_addresses_different_country(billing_address):
-    copied_address = models.Address.objects.copy(billing_address)
+    copied_address = billing_address.get_copy()
     copied_address.country = Country('FR')
     copied_address.save()
     assert billing_address != copied_address
