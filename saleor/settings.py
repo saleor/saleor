@@ -102,7 +102,6 @@ context_processors = [
     'saleor.cart.context_processors.cart_counter',
     'saleor.core.context_processors.search_enabled',
     'saleor.site.context_processors.site',
-    'saleor.core.context_processors.webpage_schema',
     'social_django.context_processors.backends',
     'social_django.context_processors.login_redirect',
 ]
