@@ -21,7 +21,8 @@ def cancel_delivery_group(group):
             Stock.objects.increase_stock(line.stock, line.quantity)
 
 
-def ship_delivery_group(group):
+def ship_delivery_group(group, tracking_number=''):
     """Ships delivery group by decreasing products in stocks."""
     for line in group.lines.all():
         Stock.objects.decrease_stock(line.stock, line.quantity)
+    group.tracking_number = tracking_number

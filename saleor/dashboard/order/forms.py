@@ -215,7 +215,7 @@ class ShipGroupForm(forms.ModelForm):
                 code='invalid')
 
     def save(self, commit=True):
-        self.instance.ship()
+        self.instance.ship(self.cleaned_data.get('tracking_number'))
         return super().save(commit)
 
 
