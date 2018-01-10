@@ -1,6 +1,5 @@
 from saleor.order import GroupStatus
 from saleor.order.utils import add_variant_to_delivery_group
-from saleor.product.models import Stock
 from saleor.product.utils import (
     deallocate_stock, decrease_stock, increase_stock)
 
