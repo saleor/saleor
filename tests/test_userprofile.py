@@ -7,22 +7,11 @@ from django.core.exceptions import ValidationError
 from django.http import QueryDict
 from django.template import Context, Template
 from django.urls import reverse
+from django_countries.fields import Country
 
 from saleor.userprofile import forms, i18n, models
 from saleor.userprofile.templatetags.i18n_address_tags import format_address
 from saleor.userprofile.validators import validate_possible_number
-
-
-@pytest.fixture
-def billing_address(db):
-    return models.Address.objects.create(
-        first_name='John', last_name='Doe',
-        company_name='Mirumee Software',
-        street_address_1='Tęczowa 7',
-        city='Wrocław',
-        postal_code='53-601',
-        country='PL',
-        phone='+48713988102')
 
 
 @pytest.mark.parametrize('country', ['CN', 'PL', 'US'])
@@ -68,6 +57,7 @@ def test_address_form_postal_code_validation():
     form = forms.get_address_form(data, country_code='PL')[0]
     errors = form.errors
     assert 'postal_code' in errors
+
 
 @pytest.mark.parametrize('form_data, form_valid, expected_preview, expected_country',[
     ({'preview': True}, False, True, 'PL'),
@@ -161,3 +151,22 @@ def test_format_address_all_options(billing_address):
     assert address_html in rendered_html
     assert 'inline-address' in rendered_html
     assert str(billing_address.phone) not in rendered_html
+
+
+def test_compare_addresses(billing_address):
+    copied_address = models.Address.objects.copy(billing_address)
+    assert billing_address == copied_address
+
+
+def test_compare_addresses_with_country_object(billing_address):
+    copied_address = models.Address.objects.copy(billing_address)
+    copied_address.country = Country('PL')
+    copied_address.save()
+    assert billing_address == copied_address
+
+
+def test_compare_addresses_different_country(billing_address):
+    copied_address = models.Address.objects.copy(billing_address)
+    copied_address.country = Country('FR')
+    copied_address.save()
+    assert billing_address != copied_address

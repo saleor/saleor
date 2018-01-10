@@ -50,7 +50,7 @@ def handle_order_placement(request, checkout):
 def get_billing_forms_with_shipping(
         data, addresses, billing_address, shipping_address):
     """Get billing form based on a the current billing and shipping data."""
-    if Address.objects.are_identical(billing_address, shipping_address):
+    if billing_address == shipping_address:
         address_form, preview = get_address_form(
             data, country_code=shipping_address.country.code,
             autocomplete_type='billing',
