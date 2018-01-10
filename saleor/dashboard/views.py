@@ -8,7 +8,6 @@ from django.template.response import TemplateResponse
 from payments import PaymentStatus
 
 from ..order.models import Order, Payment
-from ..order import OrderStatus
 from ..product.models import Product
 
 
