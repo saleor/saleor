@@ -5,9 +5,11 @@ import pytest
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.http import QueryDict
+from django.template import Context, Template
 from django.urls import reverse
 
 from saleor.userprofile import forms, i18n, models
+from saleor.userprofile.templatetags.i18n_address_tags import format_address
 from saleor.userprofile.validators import validate_possible_number
 
 
@@ -19,7 +21,8 @@ def billing_address(db):
         street_address_1='Tęczowa 7',
         city='Wrocław',
         postal_code='53-601',
-        country='PL')
+        country='PL',
+        phone='+48713988102')
 
 
 @pytest.mark.parametrize('country', ['CN', 'PL', 'US'])
@@ -95,7 +98,6 @@ def test_get_address_form(form_data, form_valid, expected_preview, expected_coun
 
 
 def test_country_aware_form_has_only_supported_countries():
-
     default_form = i18n.COUNTRY_FORMS['US']
     instance = default_form()
     country_field = instance.fields['country']
@@ -132,3 +134,30 @@ def test_order_with_lines_pagination(admin_client, order_list):
     url = reverse('profile:details')
     response = admin_client.get(url, data)
     assert response.status_code == 200
+
+
+def test_format_address(billing_address):
+    formatted_address = format_address(billing_address)
+    address_html = '<br>'.join(map(str, formatted_address['address_lines']))
+    context = Context({'address': billing_address})
+    tpl = Template(
+        '{% load i18n_address_tags %}'
+        '{% format_address address %}')
+    rendered_html = tpl.render(context)
+    assert address_html in rendered_html
+    assert 'inline-address' not in rendered_html
+    assert str(billing_address.phone) in rendered_html
+
+
+def test_format_address_all_options(billing_address):
+    formatted_address = format_address(
+        billing_address, include_phone=False, inline=True, latin=True)
+    address_html = ', '.join(map(str, formatted_address['address_lines']))
+    context = Context({'address': billing_address})
+    tpl = Template(
+        '{% load i18n_address_tags %}'
+        '{% format_address address include_phone=False inline=True latin=True %}')
+    rendered_html = tpl.render(context)
+    assert address_html in rendered_html
+    assert 'inline-address' in rendered_html
+    assert str(billing_address.phone) not in rendered_html
