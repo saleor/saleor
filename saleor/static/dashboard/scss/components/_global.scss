@@ -168,3 +168,16 @@ svg {
 .waves-effect.waves-lightgray .waves-ripple {
   background-color: rgba(0, 0, 0, 0.05);
 }
+
+.card {
+  .card-title {
+    overflow-wrap: break-word;
+  }
+}
+
+.row {
+  .col {
+    // Prevent from horizontal scroll on mobile devices
+    max-width: 100%;
+  }
+}

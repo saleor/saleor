@@ -39,7 +39,7 @@ def shipping_method_edit(request, pk=None):
     if form.is_valid():
         method = form.save()
         msg = pgettext_lazy(
-            'dashboard message', 'Updated shipping method') \
+            'Dashboard message', 'Updated shipping method') \
             if pk else pgettext_lazy(
             'Dashboard message', 'Added shipping method')
         messages.success(request, msg)

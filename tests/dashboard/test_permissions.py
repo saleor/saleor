@@ -258,6 +258,16 @@ def test_admin_can_view_customer_detail_view(admin_client, customer_user):
     assert response.status_code == 200
 
 
+def test_admin_can_view_customer_create(admin_client):
+    response = admin_client.get(reverse('dashboard:customer-create'))
+    assert response.status_code == 200
+
+
+def test_staff_cant_view_customer_create(staff_client):
+    response = staff_client.get(reverse('dashboard:customer-create'))
+    assert response.status_code == 302
+
+
 def test_staff_cant_access_product_list(staff_client, staff_user):
     assert not staff_user.has_perm("product.view_product")
     response = staff_client.get(reverse('dashboard:product-list'))
@@ -915,6 +925,48 @@ def test_staff_with_permissions_can_promote_customer(
                                          args=[customer_user.pk]))
     customer_user = User.objects.get(pk=customer_user.pk)
     assert customer_user.is_staff
+
+
+def test_staff_with_permissions_can_edit_customer(
+        staff_client, customer_user, staff_user, staff_group,
+        permission_edit_user, permission_view_user):
+    assert customer_user.email == 'test@example.com'
+    response = staff_client.get(reverse('dashboard:customer-update',
+                                        args=[customer_user.pk]))
+    assert response.status_code == 302
+    staff_group.permissions.add(permission_edit_user)
+    staff_group.permissions.add(permission_view_user)
+    staff_user.groups.add(staff_group)
+    staff_user = User.objects.get(pk=staff_user.pk)
+    assert staff_user.has_perm("userprofile.edit_user")
+    assert staff_user.has_perm("userprofile.view_user")
+    response = staff_client.get(reverse('dashboard:customer-update',
+                                        args=[customer_user.pk]))
+    assert response.status_code == 200
+    url = reverse('dashboard:customer-update', args=[customer_user.pk])
+    data = {'email': 'newemail@example.com', 'is_active': True}
+    response = staff_client.post(url, data)
+    customer_user = User.objects.get(pk=customer_user.pk)
+    assert customer_user.email == 'newemail@example.com'
+    assert customer_user.is_active
+
+
+def test_staff_with_permissions_can_add_customer(
+        staff_client, staff_user, staff_group, permission_edit_user,
+        permission_view_user):
+    staff_group.permissions.add(permission_edit_user)
+    staff_group.permissions.add(permission_view_user)
+    staff_user.groups.add(staff_group)
+    staff_user = User.objects.get(pk=staff_user.pk)
+    assert staff_user.has_perm("userprofile.edit_user")
+    assert staff_user.has_perm("userprofile.view_user")
+    response = staff_client.get(reverse('dashboard:customer-create'))
+    assert response.status_code == 200
+    url = reverse('dashboard:customer-create')
+    data = {'email': 'newcustomer@example.com', 'is_active': True}
+    response = staff_client.post(url, data)
+    customer = User.objects.get(email='newcustomer@example.com')
+    assert customer.is_active
 
 
 def test_staff_group_member_can_view_and_edit_site_settings(

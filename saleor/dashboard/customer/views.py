@@ -8,7 +8,9 @@ from django.utils.translation import pgettext_lazy
 from ...core.utils import get_paginator_items
 from ...userprofile.models import User
 from ..views import staff_member_required
+from ..emails import send_set_password_email
 from .filters import UserFilter
+from .forms import CustomerForm
 
 
 @staff_member_required
@@ -39,6 +41,37 @@ def customer_details(request, pk):
     customer_orders = customer.orders.all()
     ctx = {'customer': customer, 'customer_orders': customer_orders}
     return TemplateResponse(request, 'dashboard/customer/detail.html', ctx)
+
+
+@staff_member_required
+@permission_required('userprofile.edit_user')
+def customer_create(request):
+    customer = User()
+    form = CustomerForm(request.POST or None, instance=customer)
+    if form.is_valid():
+        form.save()
+        msg = pgettext_lazy(
+            'Dashboard message', 'Added customer %s' % customer)
+        send_set_password_email(customer)
+        messages.success(request, msg)
+        return redirect('dashboard:customer-details', pk=customer.pk)
+    ctx = {'form': form, 'customer': customer}
+    return TemplateResponse(request, 'dashboard/customer/form.html', ctx)
+
+
+@staff_member_required
+@permission_required('userprofile.edit_user')
+def customer_edit(request, pk=None):
+    customer = get_object_or_404(User, pk=pk)
+    form = CustomerForm(request.POST or None, instance=customer)
+    if form.is_valid():
+        form.save()
+        msg = pgettext_lazy(
+            'Dashboard message', 'Updated customer %s' % customer)
+        messages.success(request, msg)
+        return redirect('dashboard:customer-details', pk=customer.pk)
+    ctx = {'form': form, 'customer': customer}
+    return TemplateResponse(request, 'dashboard/customer/form.html', ctx)
 
 
 @staff_member_required
