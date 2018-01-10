@@ -1,8 +1,5 @@
-from .models import Address
-
-
 def store_user_address(user, address, billing=False, shipping=False):
-    data = Address.objects.as_data(address)
+    data = address.as_data()
     entry = user.addresses.get_or_create(**data)[0]
     changed = False
     if billing and not user.default_billing_address_id:

@@ -17,19 +17,6 @@ class PossiblePhoneNumberField(PhoneNumberField):
     default_validators = [validate_possible_number]
 
 
-class AddressManager(models.Manager):
-
-    def as_data(self, address):
-        """Return the address as a dict suitable for passing as kwargs.
-
-        Result does not contain the primary key or an associated user.
-        """
-        data = model_to_dict(address, exclude=['id', 'user'])
-        if isinstance(data['country'], Country):
-            data['country'] = data['country'].code
-        return data
-
-
 class Address(models.Model):
     first_name = models.CharField(max_length=256, blank=True)
     last_name = models.CharField(max_length=256, blank=True)
@@ -42,7 +29,6 @@ class Address(models.Model):
     country = CountryField()
     country_area = models.CharField(max_length=128, blank=True)
     phone = PossiblePhoneNumberField(blank=True, default='')
-    objects = AddressManager()
 
     @property
     def full_name(self):
@@ -64,13 +50,21 @@ class Address(models.Model):
                 self.phone))
 
     def __eq__(self, other):
-        """Return `True` if `addr1` and `addr2` are the same address."""
-        return Address.objects.as_data(self) == Address.objects.as_data(other)
+        return self.as_data() == other.as_data()
+
+    def as_data(self):
+        """Return the address as a dict suitable for passing as kwargs.
+
+        Result does not contain the primary key or an associated user.
+        """
+        data = model_to_dict(self, exclude=['id', 'user'])
+        if isinstance(data['country'], Country):
+            data['country'] = data['country'].code
+        return data
 
     def get_copy(self):
         """Return a new instance of the same address."""
-        data = Address.objects.as_data(self)
-        return Address.objects.create(**data)
+        return Address.objects.create(**self.as_data())
 
 
 class UserManager(BaseUserManager):
