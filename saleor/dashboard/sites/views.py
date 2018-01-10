@@ -1,6 +1,5 @@
 from django.contrib import messages
 from django.contrib.auth.decorators import permission_required
-from django.contrib.sites.models import Site
 from django.contrib.sites.shortcuts import get_current_site
 from django.shortcuts import get_object_or_404, redirect
 from django.template.response import TemplateResponse
@@ -54,22 +53,31 @@ def site_settings_detail(request, pk):
 
 @staff_member_required
 @permission_required('site.edit_settings')
-def authorization_key_edit(request, site_settings_pk, key_pk=None):
-    if key_pk:
-        key = get_object_or_404(AuthorizationKey, pk=key_pk)
-    else:
-        key = AuthorizationKey(site_settings_id=site_settings_pk)
+def authorization_key_add(request, site_settings_pk):
+    key = AuthorizationKey(site_settings_id=site_settings_pk)
     form = AuthorizationKeyForm(request.POST or None, instance=key)
     if form.is_valid():
         key = form.save()
         msg = pgettext_lazy(
-            'dashboard message',
-            'Updated authorization key %s') % (key,) \
-            if key_pk else pgettext_lazy(
             'Dashboard message', 'Added authorization key %s') % (key,)
         messages.success(request, msg)
-        return redirect(
-            'dashboard:site-detail', pk=site_settings_pk)
+        return redirect('dashboard:site-detail', pk=site_settings_pk)
+    ctx = {'form': form, 'site_settings_pk': site_settings_pk, 'key': key}
+    return TemplateResponse(
+        request, 'dashboard/sites/authorization_keys/form.html', ctx)
+
+
+@staff_member_required
+@permission_required('site.edit_settings')
+def authorization_key_edit(request, site_settings_pk, key_pk=None):
+    key = get_object_or_404(AuthorizationKey, pk=key_pk)
+    form = AuthorizationKeyForm(request.POST or None, instance=key)
+    if form.is_valid():
+        key = form.save()
+        msg = pgettext_lazy(
+            'dashboard message', 'Updated authorization key %s') % (key,)
+        messages.success(request, msg)
+        return redirect('dashboard:site-detail', pk=site_settings_pk)
     ctx = {'form': form, 'site_settings_pk': site_settings_pk, 'key': key}
     return TemplateResponse(
         request, 'dashboard/sites/authorization_keys/form.html', ctx)

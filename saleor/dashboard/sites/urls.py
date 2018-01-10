@@ -12,7 +12,7 @@ urlpatterns = [
         name='site-delete'),
 
     url(r'^(?P<site_settings_pk>\d+)/authorization_key/add/$',
-        views.authorization_key_edit, name='authorization-key-add'),
+        views.authorization_key_add, name='authorization-key-add'),
     url(r'^(?P<site_settings_pk>\d+)/authorization_key/'
         r'(?P<key_pk>\d+)/update/$',
         views.authorization_key_edit, name='authorization-key-edit'),
