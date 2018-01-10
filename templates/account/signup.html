@@ -29,8 +29,8 @@
             {% csrf_token %}
             {% bootstrap_form form %}
             {% if REDIRECT_FIELD_VALUE %}
-             <input type="hidden" name="{{ REDIRECT_FIELD_NAME }}"
-                    value="{{ REDIRECT_FIELD_VALUE }}"/>
+              <input type="hidden" name="{{ REDIRECT_FIELD_NAME }}"
+                     value="{{ REDIRECT_FIELD_VALUE }}"/>
             {% endif %}
           </fieldset>
           <button type="submit" class="btn primary narrow">

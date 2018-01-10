@@ -31,8 +31,8 @@
                      srcset="{% product_first_image product size="60x60" method="crop" %} 1x, {% product_first_image product size="120x120" method="crop" %} 2x"
                      class="circle" alt="{{ product.name }}">
                 <span class="list-item-name">
-                      {{ product.name }}
-                    </span>
+                  {{ product.name }}
+                </span>
                 <p class="list-item-price">
                   <small>
                     {% gross product.price html=True %}
@@ -51,10 +51,10 @@
               <a href="{% url 'dashboard:order-details' order_pk=order.pk %}">
                 <i class="small material-icons circle">payment</i>
                 <span class="list-item-name">
-                        {% blocktrans trimmed with order_number=order.pk context "Dashboard order" %}
-                          Order #{{ order_number }}
-                        {% endblocktrans %}
-                      </span>
+                  {% blocktrans trimmed with order_number=order.pk context "Dashboard order" %}
+                    Order #{{ order_number }}
+                  {% endblocktrans %}
+                </span>
                 <p class="list-item-price">
                   <small>
                     {% blocktrans trimmed context "Dashboard customer" with email=order.user_email %}
@@ -80,10 +80,10 @@
               <a href="{% url 'dashboard:customer-details' pk=user.pk %}">
                 <i class="small material-icons circle">perm_identity</i>
                 <span class="list-item-name">
-                        {% blocktrans trimmed with full_name=user.get_full_name context "Dashboard user" %}
-                          User {{ full_name }}
-                        {% endblocktrans %}
-                      </span>
+                  {% blocktrans trimmed with full_name=user.get_full_name context "Dashboard user" %}
+                    User {{ full_name }}
+                  {% endblocktrans %}
+                </span>
                 <p class="list-item-price">
                   <small>
                     {% trans "Customer" context "Dashboard customer" %}

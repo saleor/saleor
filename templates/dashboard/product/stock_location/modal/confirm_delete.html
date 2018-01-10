@@ -15,20 +15,20 @@ Remove stock location {{ location }}
 {% endblock title %}
 
 {% block content %}
-<p>
-{% blocktrans trimmed context "Modal remove stock location text" %}
-    Are you sure you want to remove stock location <strong>{{ location }}</strong>?
-{% endblocktrans %}
-</p>
-{% if stock_count %}
   <p>
-  {% blocktrans trimmed count counter=stock_count context "Modal remove stock location text" %}
-    There is one stock associated with this stock location that will be removed.
-    {% plural %}
-    There are {{ counter }} stocks associated with this stock location that will be removed.
-  {% endblocktrans %}
+    {% blocktrans trimmed context "Modal remove stock location text" %}
+      Are you sure you want to remove stock location <strong>{{ location }}</strong>?
+    {% endblocktrans %}
   </p>
-{% endif %}
+  {% if stock_count %}
+    <p>
+      {% blocktrans trimmed count counter=stock_count context "Modal remove stock location text" %}
+        There is one stock associated with this stock location that will be removed.
+        {% plural %}
+        There are {{ counter }} stocks associated with this stock location that will be removed.
+      {% endblocktrans %}
+    </p>
+  {% endif %}
 {% endblock content %}
 
 {% block primary_action %}

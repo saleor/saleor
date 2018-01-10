@@ -24,13 +24,13 @@
 
 {% block header_extra %}
   {% if perms.discount.edit_sale %}
-      <div class="btn-fab-fixed">
-        <a href="{% url 'dashboard:sale-add' %}" class="btn-fab-default waves-effect waves-light"
-           title="{% trans "Add sale" context "Sale (discount) list add button text" %}">
-          <svg data-src="{% static "dashboard/images/add.svg" %}" />
-        </a>
-      </div>
-    {% endif %}
+    <div class="btn-fab-fixed">
+      <a href="{% url 'dashboard:sale-add' %}" class="btn-fab-default waves-effect waves-light"
+          title="{% trans "Add sale" context "Sale (discount) list add button text" %}">
+        <svg data-src="{% static "dashboard/images/add.svg" %}" />
+      </a>
+    </div>
+  {% endif %}
 {% endblock %}
 
 {% block content %}

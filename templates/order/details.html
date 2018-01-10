@@ -4,57 +4,57 @@
 {% load staticfiles %}
 
 {% block title %}
-    {% blocktrans trimmed context "Order details page title" %}
-        Order {{ order }}
-    {% endblocktrans %} — {{ block.super }}
+  {% blocktrans trimmed context "Order details page title" %}
+    Order {{ order }}
+  {% endblocktrans %} — {{ block.super }}
 {% endblock %}
 
 {% block breadcrumb %}
-    {% if order.user == user %}
-      <ul class="breadcrumbs list-unstyled">
-        <li><a href="{% url 'home'%}">
-            {% trans "Home" context "Main navigation item" %}
-        </a></li>
-        <li><a href="{% url "profile:details" %}">
-            {% trans "Your account" context "Main navigation item" %}
-        </a></li>
-        <li><a href="{{ order.get_absolute_url }}">
-            {% blocktrans trimmed context "Order details breadcrumb" %}
-                Order {{ order }}
-            {% endblocktrans %}
-        </a></li>
-      </ul>
-    {% endif %}
+  {% if order.user == user %}
+    <ul class="breadcrumbs list-unstyled">
+      <li><a href="{% url 'home'%}">
+        {% trans "Home" context "Main navigation item" %}
+      </a></li>
+      <li><a href="{% url "profile:details" %}">
+        {% trans "Your account" context "Main navigation item" %}
+      </a></li>
+      <li><a href="{{ order.get_absolute_url }}">
+        {% blocktrans trimmed context "Order details breadcrumb" %}
+          Order {{ order }}
+        {% endblocktrans %}
+      </a></li>
+    </ul>
+  {% endif %}
 {% endblock breadcrumb %}
 
 {% block meta_tags %}
-    <meta name="robots" content="noindex, nofollow">
+  <meta name="robots" content="noindex, nofollow">
 {% endblock meta_tags %}
 
 {% block content %}
-    {# This view is available by just knowing url,          #}
-    {# so we don't show all details (like shipping address) #}
-    {# unless current user is owner of the order.           #}
+  {# This view is available by just knowing url,          #}
+  {# so we don't show all details (like shipping address) #}
+  {# unless current user is owner of the order.           #}
 
-    <div class="row order-details">
-        <div class="col-lg-10 m-auto">
-            <h2 class="order-details__header">
-                {% blocktrans trimmed with order_status=order.get_status_display context "Order detail text" %}
-                    Order {{ order }}: {{ order_status }}
-                {% endblocktrans %}
-            </h2>
-            {% if not order.is_fully_paid %}
-                {% if order.is_pre_authorized %}
-                    <a href="{% url "order:payment" token=order.token %}" class="btn btn-link">
-                        {% trans "Payment details" context "Order details link text" %}
-                    </a>
-                {% else %}
-                    <a href="{% url "order:payment" token=order.token %}" class="btn primary">
-                        {% trans "Pay for order" context "Order details primary action" %}
-                    </a>
-                {% endif %}
-            {% endif %}
-            {% include "order/_ordered_items_table.html" %}
-        </div>
+  <div class="row order-details">
+    <div class="col-lg-10 m-auto">
+      <h2 class="order-details__header">
+        {% blocktrans trimmed with order_status=order.get_status_display context "Order detail text" %}
+          Order {{ order }}: {{ order_status }}
+        {% endblocktrans %}
+      </h2>
+      {% if not order.is_fully_paid %}
+        {% if order.is_pre_authorized %}
+          <a href="{% url "order:payment" token=order.token %}" class="btn btn-link">
+            {% trans "Payment details" context "Order details link text" %}
+          </a>
+        {% else %}
+          <a href="{% url "order:payment" token=order.token %}" class="btn primary">
+            {% trans "Pay for order" context "Order details primary action" %}
+          </a>
+        {% endif %}
+      {% endif %}
+      {% include "order/_ordered_items_table.html" %}
     </div>
+  </div>
 {% endblock content %}

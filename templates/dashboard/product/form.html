@@ -35,22 +35,22 @@
       </a>
     </li>
     <li>
-        {% if product.pk %}
+      {% if product.pk %}
         <a href="{% url "dashboard:product-detail" pk=product.pk %}" class="breadcrumbs--ellipsed-item">
           {{ product }}
         </a>
-        {% else %}
-          <span class="breadcrumbs--ellipsed-item">
-            {% trans "Add new product" context "Product form breadcrumbs" %}
-          </span>
-        {% endif %}
+      {% else %}
+        <span class="breadcrumbs--ellipsed-item">
+          {% trans "Add new product" context "Product form breadcrumbs" %}
+        </span>
+      {% endif %}
     </li>
     {% if product.pk %}
-    <li>
-      <span class="breadcrumbs--ellipsed-item">
-        {% trans "Edit" context "Product form breadcrumbs" %}
-      </span>
-    </li>
+      <li>
+        <span class="breadcrumbs--ellipsed-item">
+          {% trans "Edit" context "Product form breadcrumbs" %}
+        </span>
+      </li>
     {% endif %}
   </ul>
 {% endblock %}

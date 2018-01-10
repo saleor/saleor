@@ -39,11 +39,11 @@
       <div class="card-action">
         <div class="right-align">
           <div class="col s12">
-              {% if filter.is_bound_unsorted %}
-                <a href="." class="clear-filters btn-flat waves-effect">
-                  {% trans 'Clear' context 'Category page filters' %}
-                </a>
-              {% endif %}
+            {% if filter.is_bound_unsorted %}
+              <a href="." class="clear-filters btn-flat waves-effect">
+                {% trans 'Clear' context 'Category page filters' %}
+              </a>
+            {% endif %}
             <button class="btn-flat waves-effect" type="submit">
               {% trans 'Filter' context 'Category price filter' %}
             </button>
