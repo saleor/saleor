@@ -141,7 +141,8 @@ class CancelOrderLineForm(forms.Form):
         super().__init__(*args, **kwargs)
 
     def cancel_line(self):
-        deallocate_stock(self.line.stock, self.line.quantity)
+        if self.line.stock:
+            deallocate_stock(self.line.stock, self.line.quantity)
         order = self.line.delivery_group.order
         self.line.quantity = 0
         remove_empty_groups(self.line)
@@ -320,7 +321,8 @@ class ChangeStockForm(forms.ModelForm):
         stock = self.instance.stock
         self.instance.stock_location = (
             stock.location.name if stock.location else '')
-        deallocate_stock(self.old_stock, quantity)
+        if self.old_stock:
+            deallocate_stock(self.old_stock, quantity)
         allocate_stock(stock, quantity)
         super().save(commit)
         merge_duplicates_into_order_line(self.instance)
