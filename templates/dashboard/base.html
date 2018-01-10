@@ -193,7 +193,7 @@
                 </ul>
               </li>
             {% endif %}
-            {% if perms.site.edit_settings or perms.product.view_properties or perms.shipping.view_shipping or perms.product.view_properties %}
+            {% if perms.site.edit_settings or perms.shipping.view_shipping or perms.product.view_properties %}
               <li class="side-nav-section">
                 <p>
                   {% trans "Configuration"  context "Dashboard configuration" %}
