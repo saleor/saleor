@@ -232,6 +232,16 @@
   }
 }
 
+.medium-editor-element {
+  padding-bottom: 1rem;
+  border-bottom: 1px $grey-color solid;
+  outline: none;
+  &:focus, &:active {
+    border-bottom-color: $secondary-color;
+    box-shadow: 2px 0 0 $secondary-color;
+  }
+}
+
 .main form, .modal form {
   @include form;
 }

@@ -1,4 +1,5 @@
 import SVGInjector from 'svg-injector-2';
+import MediumEditor from 'medium-editor';
 
 import { initSelects } from './selects';
 import { onScroll } from './utils';
@@ -58,6 +59,9 @@ $('#product-is-published').on('click', (e) => {
     });
   }
 });
+
+// WYSIWYG editor
+const editor = new MediumEditor('#id_description');
 
 // Styleguide sticky right menu
 onScroll(() => $('.styleguide__menu').toggleClass('fixed', $(window).scrollTop() > 100));
