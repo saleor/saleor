@@ -2,6 +2,7 @@ from unittest.mock import MagicMock, Mock, patch
 
 from django.conf import settings
 from django.contrib.auth.models import AnonymousUser
+from django_countries.fields import Country
 from django.test.client import RequestFactory
 from prices import Price
 import pytest
@@ -9,13 +10,14 @@ from satchless.item import InsufficientStock
 
 from saleor.checkout import views
 from saleor.checkout.core import STORAGE_SESSION_KEY, Checkout
+from saleor.checkout.forms import NoteForm
 from saleor.checkout.views.summary import (
     anonymous_summary_without_shipping,
     summary_with_shipping_view,
     summary_without_shipping)
 
 from saleor.shipping.models import ShippingMethodCountry
-from saleor.userprofile.models import Address
+from saleor.userprofile.models import Address, User
 
 
 def test_checkout_version():
@@ -226,29 +228,11 @@ def test_checkout_create_order_insufficient_stock(
         checkout.create_order()
 
 
-@pytest.mark.parametrize('view', [
-    summary_without_shipping,
-    summary_with_shipping_view,
-    anonymous_summary_without_shipping,
-])
-@patch('saleor.checkout.views.summary.get_address_form',
-       return_value=(Mock(), Mock()))
-@patch('saleor.checkout.views.summary.BillingWithoutShippingAddressForm')
-@patch('saleor.checkout.views.summary.get_billing_forms_with_shipping',
-       return_value=(Mock(), Mock(), None))
-def test_note_ins_summary_views(
-        mock_get_billing_forms_with_shipping,
-        mock_BillingWithoutShippingAddressForm, mock_get_address_form, view):
-    checkout = Checkout(Mock(), Mock(
-        default_billing_address=Mock(),
-        addresses=Mock(is_authenticated=Mock(return_value=True))),
-        'tracking_code')
-    rf = RequestFactory()
-    request = rf.post('/test/', {'note': 'test_note'})
-    request.user = Mock()
-    request.country = Mock()
-    mock_BillingWithoutShippingAddressForm().is_valid.return_value = False
-    view(request, checkout)
+def test_note_form():
+    checkout = Checkout(Mock(), AnonymousUser(), 'tracking_code')
+    form = NoteForm({'note': 'test_note'}, checkout=checkout)
+    form.is_valid()
+    form.update_checkout()
     assert checkout.note == 'test_note'
 
 

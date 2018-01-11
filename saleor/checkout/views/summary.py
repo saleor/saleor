@@ -93,9 +93,9 @@ def summary_with_shipping_view(request, checkout):
 
     Will create an order if all data is valid.
     """
-    note_form = NoteForm(request.POST or None)
+    note_form = NoteForm(request.POST or None, checkout=checkout)
     if note_form.is_valid():
-        checkout.note = note_form.cleaned_data['note']
+        note_form.update_checkout()
 
     if request.user.is_authenticated:
         additional_addresses = request.user.addresses.all()
@@ -121,9 +121,9 @@ def anonymous_summary_without_shipping(request, checkout):
 
     Will create an order if all data is valid.
     """
-    note_form = NoteForm(request.POST or None)
+    note_form = NoteForm(request.POST or None, checkout=checkout)
     if note_form.is_valid():
-        checkout.note = note_form.cleaned_data['note']
+        note_form.update_checkout()
     user_form = AnonymousUserBillingForm(
         request.POST or None, initial={'email': checkout.email})
     billing_address = checkout.billing_address
@@ -151,9 +151,9 @@ def summary_without_shipping(request, checkout):
 
     Will create an order if all data is valid.
     """
-    note_form = NoteForm(request.POST or None)
+    note_form = NoteForm(request.POST or None, checkout=checkout)
     if note_form.is_valid():
-        checkout.note = note_form.cleaned_data['note']
+        note_form.update_checkout()
 
     billing_address = checkout.billing_address
     user_addresses = request.user.addresses.all()
