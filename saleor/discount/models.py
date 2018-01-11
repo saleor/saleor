@@ -13,6 +13,7 @@ from prices import FixedDiscount, Price, percentage_discount
 
 from ..cart.utils import (
     get_category_variants_and_prices, get_product_variants_and_prices)
+from . import DiscountValueType, VoucherApplyToProduct, VoucherType
 
 
 class NotApplicable(ValueError):
@@ -36,45 +37,8 @@ class VoucherQueryset(models.QuerySet):
 
 
 class Voucher(models.Model):
-
-    APPLY_TO_ONE_PRODUCT = 'one'
-    APPLY_TO_ALL_PRODUCTS = 'all'
-
-    APPLY_TO_PRODUCT_CHOICES = [
-        (
-            APPLY_TO_ONE_PRODUCT,
-            pgettext_lazy('Voucher application', 'Apply to a single item')),
-        (
-            APPLY_TO_ALL_PRODUCTS,
-            pgettext_lazy(
-                'Voucher application', 'Apply to all matching products'))]
-
-    DISCOUNT_VALUE_FIXED = 'fixed'
-    DISCOUNT_VALUE_PERCENTAGE = 'percentage'
-
-    DISCOUNT_VALUE_TYPE_CHOICES = [
-        (
-            DISCOUNT_VALUE_FIXED,
-            pgettext_lazy('Voucher discount type', settings.DEFAULT_CURRENCY)),
-        (
-            DISCOUNT_VALUE_PERCENTAGE,
-            pgettext_lazy('Voucher discount type', '%'))]
-
-    PRODUCT_TYPE = 'product'
-    CATEGORY_TYPE = 'category'
-    SHIPPING_TYPE = 'shipping'
-    VALUE_TYPE = 'value'
-
-    TYPE_CHOICES = [
-        (VALUE_TYPE, pgettext_lazy('Voucher: discount for', 'All purchases')),
-        (PRODUCT_TYPE, pgettext_lazy('Voucher: discount for', 'One product')),
-        (
-            CATEGORY_TYPE,
-            pgettext_lazy('Voucher: discount for', 'A category of products')),
-        (SHIPPING_TYPE, pgettext_lazy('Voucher: discount for', 'Shipping'))]
-
     type = models.CharField(
-        max_length=20, choices=TYPE_CHOICES, default=VALUE_TYPE)
+        max_length=20, choices=VoucherType.CHOICES, default=VoucherType.VALUE)
     name = models.CharField(max_length=255, null=True, blank=True)
     code = models.CharField(max_length=12, unique=True, db_index=True)
     usage_limit = models.PositiveIntegerField(null=True, blank=True)
@@ -83,8 +47,8 @@ class Voucher(models.Model):
     end_date = models.DateField(null=True, blank=True)
 
     discount_value_type = models.CharField(
-        max_length=10, choices=DISCOUNT_VALUE_TYPE_CHOICES,
-        default=DISCOUNT_VALUE_FIXED)
+        max_length=10, choices=DiscountValueType.CHOICES,
+        default=DiscountValueType.FIXED)
     discount_value = models.DecimalField(max_digits=12, decimal_places=2)
 
     # not mandatory fields, usage depends on type
@@ -92,8 +56,7 @@ class Voucher(models.Model):
         'product.Product', blank=True, null=True, on_delete=models.CASCADE)
     category = models.ForeignKey(
         'product.Category', blank=True, null=True, on_delete=models.CASCADE)
-    apply_to = models.CharField(
-        max_length=20, blank=True, null=True)
+    apply_to = models.CharField(max_length=20, blank=True, null=True)
     limit = PriceField(
         max_digits=12, decimal_places=2, null=True, blank=True,
         currency=settings.DEFAULT_CURRENCY)
@@ -102,8 +65,9 @@ class Voucher(models.Model):
 
     @property
     def is_free(self):
-        return (self.discount_value == Decimal(100) and
-                self.discount_value_type == Voucher.DISCOUNT_VALUE_PERCENTAGE)
+        return (
+            self.discount_value == Decimal(100) and
+            self.discount_value_type == DiscountValueType.PERCENTAGE)
 
     class Meta:
         permissions = (
@@ -117,19 +81,19 @@ class Voucher(models.Model):
             return self.name
         discount = '%s %s' % (
             self.discount_value, self.get_discount_value_type_display())
-        if self.type == Voucher.SHIPPING_TYPE:
+        if self.type == VoucherType.SHIPPING:
             if self.is_free:
                 return pgettext('Voucher type', 'Free shipping')
             else:
                 return pgettext(
                     'Voucher type',
                     '%(discount)s off shipping') % {'discount': discount}
-        if self.type == Voucher.PRODUCT_TYPE:
+        if self.type == VoucherType.PRODUCT:
             return pgettext(
                 'Voucher type',
                 '%(discount)s off %(product)s') % {
                     'discount': discount, 'product': self.product}
-        if self.type == Voucher.CATEGORY_TYPE:
+        if self.type == VoucherType.CATEGORY:
             return pgettext(
                 'Voucher type',
                 '%(discount)s off %(category)s') % {
@@ -138,22 +102,22 @@ class Voucher(models.Model):
             'Voucher type', '%(discount)s off') % {'discount': discount}
 
     def get_apply_to_display(self):
-        if self.type == Voucher.SHIPPING_TYPE and self.apply_to:
+        if self.type == VoucherType.SHIPPING and self.apply_to:
             return countries.name(self.apply_to)
-        if self.type == Voucher.SHIPPING_TYPE:
+        if self.type == VoucherType.SHIPPING:
             return pgettext('Voucher', 'Any country')
         if self.apply_to and self.type in {
-                Voucher.PRODUCT_TYPE, Voucher.CATEGORY_TYPE}:
-            choices = dict(self.APPLY_TO_PRODUCT_CHOICES)
+                VoucherType.PRODUCT, VoucherType.CATEGORY}:
+            choices = dict(VoucherApplyToProduct.CHOICES)
             return choices[self.apply_to]
 
     def get_fixed_discount_for(self, amount):
-        if self.discount_value_type == self.DISCOUNT_VALUE_FIXED:
+        if self.discount_value_type == DiscountValueType.FIXED:
             discount_price = Price(net=self.discount_value,
                                    currency=settings.DEFAULT_CURRENCY)
             discount = FixedDiscount(
                 amount=discount_price, name=smart_text(self))
-        elif self.discount_value_type == self.DISCOUNT_VALUE_PERCENTAGE:
+        elif self.discount_value_type == DiscountValueType.PERCENTAGE:
             discount = percentage_discount(
                 value=self.discount_value, name=smart_text(self))
             fixed_discount_value = amount - discount.apply(amount)
@@ -175,12 +139,12 @@ class Voucher(models.Model):
             raise NotApplicable(msg % {'amount': net(limit)}, limit=limit)
 
     def get_discount_for_checkout(self, checkout):
-        if self.type == Voucher.VALUE_TYPE:
+        if self.type == VoucherType.VALUE:
             cart_total = checkout.get_subtotal()
             self.validate_limit(cart_total)
             return self.get_fixed_discount_for(cart_total)
 
-        elif self.type == Voucher.SHIPPING_TYPE:
+        elif self.type == VoucherType.SHIPPING:
             if not checkout.is_shipping_required:
                 msg = pgettext(
                     'Voucher not applicable',
@@ -203,8 +167,8 @@ class Voucher(models.Model):
             self.validate_limit(cart_total)
             return self.get_fixed_discount_for(shipping_method.price)
 
-        elif self.type in (Voucher.PRODUCT_TYPE, Voucher.CATEGORY_TYPE):
-            if self.type == Voucher.PRODUCT_TYPE:
+        elif self.type in (VoucherType.PRODUCT, VoucherType.CATEGORY):
+            if self.type == VoucherType.PRODUCT:
                 prices = list(
                     (item[1] for item in get_product_variants_and_prices(
                         checkout.cart, self.product)))
@@ -217,7 +181,7 @@ class Voucher(models.Model):
                     'Voucher not applicable',
                     'This offer is only valid for selected items.')
                 raise NotApplicable(msg)
-            if self.apply_to == Voucher.APPLY_TO_ALL_PRODUCTS:
+            if self.apply_to == VoucherApplyToProduct.ALL_PRODUCTS:
                 discounts = (
                     self.get_fixed_discount_for(price) for price in prices)
                 discount_total = sum(
@@ -234,16 +198,10 @@ class Voucher(models.Model):
 
 
 class Sale(models.Model):
-    FIXED = 'fixed'
-    PERCENTAGE = 'percentage'
-
-    DISCOUNT_TYPE_CHOICES = (
-        (FIXED, pgettext_lazy('Discount type', settings.DEFAULT_CURRENCY)),
-        (PERCENTAGE, pgettext_lazy('Discount type', '%')))
-
     name = models.CharField(max_length=255)
     type = models.CharField(
-        max_length=10, choices=DISCOUNT_TYPE_CHOICES, default=FIXED)
+        max_length=10, choices=DiscountValueType.CHOICES,
+        default=DiscountValueType.FIXED)
     value = models.DecimalField(max_digits=12, decimal_places=2, default=0)
     products = models.ManyToManyField('product.Product', blank=True)
     categories = models.ManyToManyField('product.Category', blank=True)
@@ -264,11 +222,11 @@ class Sale(models.Model):
         return self.name
 
     def get_discount(self):
-        if self.type == self.FIXED:
+        if self.type == DiscountValueType.FIXED:
             discount_price = Price(net=self.value,
                                    currency=settings.DEFAULT_CURRENCY)
             return FixedDiscount(amount=discount_price, name=self.name)
-        elif self.type == self.PERCENTAGE:
+        elif self.type == DiscountValueType.PERCENTAGE:
             return percentage_discount(value=self.value, name=self.name)
         raise NotImplementedError('Unknown discount type')
 

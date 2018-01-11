@@ -6,10 +6,24 @@ from django.template.response import TemplateResponse
 from django.utils.translation import pgettext_lazy
 
 from ...core.utils import get_paginator_items
+from ...discount import VoucherType
 from ...discount.models import Sale, Voucher
 from ..views import staff_member_required
 from .filters import SaleFilter, VoucherFilter
 from . import forms
+
+
+def get_voucher_type_forms(voucher, data):
+    """Returns dict consisting of specific due to voucher type forms."""
+    return {
+        VoucherType.SHIPPING: forms.ShippingVoucherForm(
+            data or None, instance=voucher, prefix=VoucherType.SHIPPING),
+        VoucherType.VALUE: forms.ValueVoucherForm(
+            data or None, instance=voucher, prefix=VoucherType.VALUE),
+        VoucherType.PRODUCT: forms.ProductVoucherForm(
+            data or None, instance=voucher, prefix=VoucherType.PRODUCT),
+        VoucherType.CATEGORY: forms.CategoryVoucherForm(
+            data, instance=voucher, prefix=VoucherType.CATEGORY)}
 
 
 @staff_member_required
@@ -28,17 +42,29 @@ def sale_list(request):
 
 @staff_member_required
 @permission_required('discount.edit_sale')
-def sale_edit(request, pk=None):
-    instance = get_object_or_404(Sale, pk=pk) if pk else Sale()
-    form = forms.SaleForm(request.POST or None, instance=instance)
+def sale_add(request):
+    sale = Sale()
+    form = forms.SaleForm(request.POST or None, instance=sale)
     if form.is_valid():
-        instance = form.save()
-        msg = (
-            pgettext_lazy('Sale (discount) message', 'Updated sale') if pk
-            else pgettext_lazy('Sale (discount) message', 'Added sale'))
+        sale = form.save()
+        msg = pgettext_lazy('Sale (discount) message', 'Added sale')
         messages.success(request, msg)
-        return redirect('dashboard:sale-update', pk=instance.pk)
-    ctx = {'sale': instance, 'form': form}
+        return redirect('dashboard:sale-update', pk=sale.pk)
+    ctx = {'sale': sale, 'form': form}
+    return TemplateResponse(request, 'dashboard/discount/sale/form.html', ctx)
+
+
+@staff_member_required
+@permission_required('discount.edit_sale')
+def sale_edit(request, pk):
+    sale = get_object_or_404(Sale, pk=pk)
+    form = forms.SaleForm(request.POST or None, instance=sale)
+    if form.is_valid():
+        sale = form.save()
+        msg = pgettext_lazy('Sale (discount) message', 'Updated sale')
+        messages.success(request, msg)
+        return redirect('dashboard:sale-update', pk=sale.pk)
+    ctx = {'sale': sale, 'form': form}
     return TemplateResponse(request, 'dashboard/discount/sale/form.html', ctx)
 
 
@@ -75,41 +101,51 @@ def voucher_list(request):
 
 @staff_member_required
 @permission_required('discount.edit_voucher')
-def voucher_edit(request, pk=None):
-    if pk is not None:
-        instance = get_object_or_404(Voucher, pk=pk)
-    else:
-        instance = Voucher()
-    voucher_form = forms.VoucherForm(request.POST or None, instance=instance)
-    type_base_forms = {
-        Voucher.SHIPPING_TYPE: forms.ShippingVoucherForm(
-            request.POST or None, instance=instance,
-            prefix=Voucher.SHIPPING_TYPE),
-        Voucher.VALUE_TYPE: forms.ValueVoucherForm(
-            request.POST or None, instance=instance,
-            prefix=Voucher.VALUE_TYPE),
-        Voucher.PRODUCT_TYPE: forms.ProductVoucherForm(
-            request.POST or None, instance=instance,
-            prefix=Voucher.PRODUCT_TYPE),
-        Voucher.CATEGORY_TYPE: forms.CategoryVoucherForm(
-            request.POST or None, instance=instance,
-            prefix=Voucher.CATEGORY_TYPE)}
+def voucher_add(request):
+    voucher = Voucher()
+    type_base_forms = get_voucher_type_forms(voucher, request.POST)
+    voucher_form = forms.VoucherForm(request.POST or None, instance=voucher)
     if voucher_form.is_valid():
-        voucher_type = voucher_form.cleaned_data['type']
+        voucher_type = voucher_form.cleaned_data.get('type')
         form_type = type_base_forms.get(voucher_type)
+
         if form_type is None:
-            instance = voucher_form.save()
+            voucher = voucher_form.save()
         elif form_type.is_valid():
-            instance = form_type.save()
+            voucher = form_type.save()
 
         if form_type is None or form_type.is_valid():
-            msg = pgettext_lazy(
-                'Voucher message', 'Updated voucher') if pk else pgettext_lazy(
-                    'Voucher message', 'Added voucher')
+            msg = pgettext_lazy('Voucher message', 'Added voucher')
             messages.success(request, msg)
             return redirect('dashboard:voucher-list')
     ctx = {
-        'voucher': instance, 'default_currency': settings.DEFAULT_CURRENCY,
+        'voucher': voucher, 'default_currency': settings.DEFAULT_CURRENCY,
+        'form': voucher_form, 'type_base_forms': type_base_forms}
+    return TemplateResponse(
+        request, 'dashboard/discount/voucher/form.html', ctx)
+
+
+@staff_member_required
+@permission_required('discount.edit_voucher')
+def voucher_edit(request, pk):
+    voucher = get_object_or_404(Voucher, pk=pk)
+    type_base_forms = get_voucher_type_forms(voucher, request.POST)
+    voucher_form = forms.VoucherForm(request.POST or None, instance=voucher)
+    if voucher_form.is_valid():
+        voucher_type = voucher_form.cleaned_data.get('type')
+        form_type = type_base_forms.get(voucher_type)
+
+        if form_type is None:
+            voucher = voucher_form.save()
+        elif form_type.is_valid():
+            voucher = form_type.save()
+
+        if form_type is None or form_type.is_valid():
+            msg = pgettext_lazy('Voucher message', 'Updated voucher')
+            messages.success(request, msg)
+            return redirect('dashboard:voucher-list')
+    ctx = {
+        'voucher': voucher, 'default_currency': settings.DEFAULT_CURRENCY,
         'form': voucher_form, 'type_base_forms': type_base_forms}
     return TemplateResponse(
         request, 'dashboard/discount/voucher/form.html', ctx)
