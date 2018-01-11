@@ -124,5 +124,5 @@ class NoteForm(forms.Form):
         self.checkout = kwargs.pop('checkout', None)
         super().__init__(*args, **kwargs)
 
-    def update_checkout(self):
+    def set_checkout_note(self):
         self.checkout.note = self.cleaned_data.get('note', '')
