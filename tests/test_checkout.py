@@ -1,15 +1,23 @@
-from unittest.mock import MagicMock, Mock
+from unittest.mock import MagicMock, Mock, patch
 
 from django.conf import settings
 from django.contrib.auth.models import AnonymousUser
+from django_countries.fields import Country
+from django.test.client import RequestFactory
 from prices import Price
 import pytest
 from satchless.item import InsufficientStock
 
 from saleor.checkout import views
 from saleor.checkout.core import STORAGE_SESSION_KEY, Checkout
+from saleor.checkout.forms import NoteForm
+from saleor.checkout.views.summary import (
+    anonymous_summary_without_shipping,
+    summary_with_shipping_view,
+    summary_without_shipping)
+
 from saleor.shipping.models import ShippingMethodCountry
-from saleor.userprofile.models import Address
+from saleor.userprofile.models import Address, User
 
 
 def test_checkout_version():
@@ -218,3 +226,19 @@ def test_checkout_create_order_insufficient_stock(
     checkout = Checkout(request_cart, customer_user, 'tracking_code')
     with pytest.raises(InsufficientStock):
         checkout.create_order()
+
+
+def test_note_form():
+    checkout = Checkout(Mock(), AnonymousUser(), 'tracking_code')
+    form = NoteForm({'note': 'test_note'}, checkout=checkout)
+    form.is_valid()
+    form.set_checkout_note()
+    assert checkout.note == 'test_note'
+
+
+def test_note_in_created_order(request_cart, customer_user, billing_address):
+    customer_user.default_billing_address = billing_address
+    checkout = Checkout(request_cart, customer_user, 'tracking_code')
+    checkout.note = 'test_note'
+    order = checkout.create_order()
+    assert order.notes.values()[0].get('content') == 'test_note'
