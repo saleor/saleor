@@ -180,6 +180,15 @@ class Checkout:
         self.modified = True
 
     @property
+    def note(self):
+        return self.storage.get('note')
+
+    @note.setter
+    def note(self, note):
+        self.storage['note'] = note
+        self.modified = True
+
+    @property
     def billing_address(self):
         """Return the billing addres if any."""
         address = self._get_address_from_storage('billing_address')
@@ -331,6 +340,9 @@ class Checkout:
 
         if voucher is not None:
             increase_voucher_usage(voucher)
+
+        if self.note is not None:
+            order.notes.create(user=order.user, content=self.note)
 
         return order
 
