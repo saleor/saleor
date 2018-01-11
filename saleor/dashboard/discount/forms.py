@@ -8,6 +8,7 @@ from django_prices.forms import PriceField
 
 from ...core.forms import (
     AjaxSelect2ChoiceField, AjaxSelect2MultipleChoiceField)
+from ...discount import DiscountValueType, VoucherApplyToProduct
 from ...discount.models import Sale, Voucher
 from ...product.models import Product
 from ...shipping.models import ShippingMethodCountry, COUNTRY_CODE_CHOICES
@@ -47,7 +48,7 @@ class SaleForm(forms.ModelForm):
         cleaned_data = super().clean()
         discount_type = cleaned_data['type']
         value = cleaned_data['value']
-        if discount_type == Sale.PERCENTAGE and value > 100:
+        if discount_type == DiscountValueType.PERCENTAGE and value > 100:
             self.add_error('value', pgettext_lazy(
                 'Sale (discount) error',
                 'Sale cannot exceed 100%'))
@@ -153,7 +154,7 @@ class CommonVoucherForm(forms.ModelForm):
 
     use_required_attribute = False
     apply_to = forms.ChoiceField(
-        choices=Voucher.APPLY_TO_PRODUCT_CHOICES, required=False)
+        choices=VoucherApplyToProduct.CHOICES, required=False)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -166,7 +167,7 @@ class CommonVoucherForm(forms.ModelForm):
         # Percentage case is limited to the all value and the apply_to field
         # is not used in this case so we set it to None.
         if (self.instance.discount_value_type ==
-                Voucher.DISCOUNT_VALUE_PERCENTAGE):
+                DiscountValueType.PERCENTAGE):
             self.instance.apply_to = None
         return super().save(commit)
 

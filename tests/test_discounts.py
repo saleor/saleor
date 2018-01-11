@@ -8,6 +8,8 @@ from prices import FixedDiscount, FractionalDiscount, Price
 
 from saleor.cart.utils import get_category_variants_and_prices
 from saleor.checkout.core import Checkout
+from saleor.discount import (
+    DiscountValueType, VoucherApplyToProduct, VoucherType)
 from saleor.discount.forms import CheckoutDiscountForm
 from saleor.discount.models import NotApplicable, Sale, Voucher
 from saleor.discount.utils import (
@@ -20,8 +22,8 @@ from saleor.product.models import Category, Product, ProductVariant
     (Price(10, currency='USD'), Price(10, currency='USD'))])
 def test_valid_voucher_limit(settings, limit, value):
     voucher = Voucher(
-        code='unique', type=Voucher.SHIPPING_TYPE,
-        discount_value_type=Voucher.DISCOUNT_VALUE_FIXED,
+        code='unique', type=VoucherType.SHIPPING,
+        discount_value_type=DiscountValueType.FIXED,
         discount_value=Price(10, currency='USD'),
         limit=limit)
     voucher.validate_limit(value)
@@ -32,15 +34,15 @@ def test_valid_voucher_limit(settings, limit, value):
 def test_variant_discounts(product_in_stock):
     variant = product_in_stock.variants.get()
     low_discount = Sale.objects.create(
-        type=Sale.FIXED,
+        type=DiscountValueType.FIXED,
         value=5)
     low_discount.products.add(product_in_stock)
     discount = Sale.objects.create(
-        type=Sale.FIXED,
+        type=DiscountValueType.FIXED,
         value=8)
     discount.products.add(product_in_stock)
     high_discount = Sale.objects.create(
-        type=Sale.FIXED,
+        type=DiscountValueType.FIXED,
         value=50)
     high_discount.products.add(product_in_stock)
     final_price = variant.get_price_per_item(
@@ -56,7 +58,7 @@ def test_variant_discounts(product_in_stock):
 def test_percentage_discounts(product_in_stock):
     variant = product_in_stock.variants.get()
     discount = Sale.objects.create(
-        type=Sale.PERCENTAGE,
+        type=DiscountValueType.PERCENTAGE,
         value=50)
     discount.products.add(product_in_stock)
     final_price = variant.get_price_per_item(discounts=[discount])
@@ -68,12 +70,12 @@ def test_percentage_discounts(product_in_stock):
 
 @pytest.mark.parametrize(
     'total, discount_value, discount_type, limit, expected_value', [
-        ('100', 10, Voucher.DISCOUNT_VALUE_FIXED, None, 10),
-        ('100.05', 10, Voucher.DISCOUNT_VALUE_PERCENTAGE, 100, 10)])
+        ('100', 10, DiscountValueType.FIXED, None, 10),
+        ('100.05', 10, DiscountValueType.PERCENTAGE, 100, 10)])
 def test_value_voucher_checkout_discount(settings, total, discount_value,
                                          discount_type, limit, expected_value):
     voucher = Voucher(
-        code='unique', type=Voucher.VALUE_TYPE,
+        code='unique', type=VoucherType.VALUE,
         discount_value_type=discount_type,
         discount_value=discount_value,
         limit=Price(limit, currency='USD') if limit is not None else None)
@@ -85,8 +87,8 @@ def test_value_voucher_checkout_discount(settings, total, discount_value,
 
 def test_value_voucher_checkout_discount_not_applicable(settings):
     voucher = Voucher(
-        code='unique', type=Voucher.VALUE_TYPE,
-        discount_value_type=Voucher.DISCOUNT_VALUE_FIXED,
+        code='unique', type=VoucherType.VALUE,
+        discount_value_type=DiscountValueType.FIXED,
         discount_value=10,
         limit=100)
     checkout = Mock(get_subtotal=Mock(
@@ -98,10 +100,10 @@ def test_value_voucher_checkout_discount_not_applicable(settings):
 
 @pytest.mark.parametrize(
     'shipping_cost, shipping_country_code, discount_value, discount_type, apply_to, expected_value', [  # noqa
-        (10, None, 50, Voucher.DISCOUNT_VALUE_PERCENTAGE, None, 5),
-        (10, None, 20, Voucher.DISCOUNT_VALUE_FIXED, None, 10),
-        (10, 'PL', 20, Voucher.DISCOUNT_VALUE_FIXED, '', 10),
-        (5, 'PL', 5, Voucher.DISCOUNT_VALUE_FIXED, 'PL', 5)])
+        (10, None, 50, DiscountValueType.PERCENTAGE, None, 5),
+        (10, None, 20, DiscountValueType.FIXED, None, 10),
+        (10, 'PL', 20, DiscountValueType.FIXED, '', 10),
+        (5, 'PL', 5, DiscountValueType.FIXED, 'PL', 5)])
 def test_shipping_voucher_checkout_discount(
         settings, shipping_cost, shipping_country_code, discount_value,
         discount_type, apply_to, expected_value):
@@ -111,7 +113,7 @@ def test_shipping_voucher_checkout_discount(
             price=Price(shipping_cost, currency='USD'),
             country_code=shipping_country_code))
     voucher = Voucher(
-        code='unique', type=Voucher.SHIPPING_TYPE,
+        code='unique', type=VoucherType.SHIPPING,
         discount_value_type=discount_type,
         discount_value=discount_value,
         apply_to=apply_to,
@@ -123,17 +125,17 @@ def test_shipping_voucher_checkout_discount(
 @pytest.mark.parametrize(
     'is_shipping_required, shipping_method, discount_value, discount_type, '
     'apply_to, limit, subtotal, error_msg', [
-        (True, Mock(country_code='PL'), 10, Voucher.DISCOUNT_VALUE_FIXED,
+        (True, Mock(country_code='PL'), 10, DiscountValueType.FIXED,
          'US', None, Price(10, currency='USD'),
          'This offer is only valid in United States of America.'),
-        (True, None, 10, Voucher.DISCOUNT_VALUE_FIXED,
+        (True, None, 10, DiscountValueType.FIXED,
          None, None, Price(10, currency='USD'),
          'Please select a shipping method first.'),
-        (False, None, 10, Voucher.DISCOUNT_VALUE_FIXED,
+        (False, None, 10, DiscountValueType.FIXED,
          None, None, Price(10, currency='USD'),
          'Your order does not require shipping.'),
         (True, Mock(price=Price(10, currency='USD')), 10,
-         Voucher.DISCOUNT_VALUE_FIXED, None, 5, Price(2, currency='USD'),
+         DiscountValueType.FIXED, None, 5, Price(2, currency='USD'),
          'This offer is only valid for orders over $5.00.')])
 def test_shipping_voucher_checkout_discountnot_applicable(
         settings, is_shipping_required, shipping_method, discount_value,
@@ -142,7 +144,7 @@ def test_shipping_voucher_checkout_discountnot_applicable(
                     shipping_method=shipping_method,
                     get_subtotal=Mock(return_value=subtotal))
     voucher = Voucher(
-        code='unique', type=Voucher.SHIPPING_TYPE,
+        code='unique', type=VoucherType.SHIPPING,
         discount_value_type=discount_type,
         discount_value=discount_value,
         limit=Price(limit, currency='USD') if limit is not None else None,
@@ -158,8 +160,8 @@ def test_product_voucher_checkout_discount_not_applicable(settings,
         'saleor.discount.models.get_product_variants_and_prices',
         lambda cart, product: [])
     voucher = Voucher(
-        code='unique', type=Voucher.PRODUCT_TYPE,
-        discount_value_type=Voucher.DISCOUNT_VALUE_FIXED,
+        code='unique', type=VoucherType.PRODUCT,
+        discount_value_type=DiscountValueType.FIXED,
         discount_value=10)
     checkout = Mock(cart=Mock())
 
@@ -174,8 +176,8 @@ def test_category_voucher_checkout_discount_not_applicable(settings,
         'saleor.discount.models.get_category_variants_and_prices',
         lambda cart, product: [])
     voucher = Voucher(
-        code='unique', type=Voucher.CATEGORY_TYPE,
-        discount_value_type=Voucher.DISCOUNT_VALUE_FIXED,
+        code='unique', type=VoucherType.CATEGORY,
+        discount_value_type=DiscountValueType.FIXED,
         discount_value=10)
     checkout = Mock(cart=Mock())
     with pytest.raises(NotApplicable) as e:
@@ -246,17 +248,31 @@ def test_checkout_discount_form_active_queryset_after_some_time(voucher):
 
 @pytest.mark.parametrize(
     'prices, discount_value, discount_type, apply_to, expected_value', [
-        ([10], 10, Voucher.DISCOUNT_VALUE_FIXED, Voucher.APPLY_TO_ONE_PRODUCT, 10),  # noqa
-        ([5], 10, Voucher.DISCOUNT_VALUE_FIXED, Voucher.APPLY_TO_ONE_PRODUCT, 5),  # noqa
-        ([5, 5], 10, Voucher.DISCOUNT_VALUE_FIXED, Voucher.APPLY_TO_ONE_PRODUCT, 10),  # noqa
-        ([2, 3], 10, Voucher.DISCOUNT_VALUE_FIXED, Voucher.APPLY_TO_ONE_PRODUCT, 5),  # noqa
+        (
+            [10], 10, DiscountValueType.FIXED,
+            VoucherApplyToProduct.ONE_PRODUCT, 10),
+        (
+            [5], 10, DiscountValueType.FIXED,
+            VoucherApplyToProduct.ONE_PRODUCT, 5),
+        (
+            [5, 5], 10, DiscountValueType.FIXED,
+            VoucherApplyToProduct.ONE_PRODUCT, 10),
+        (
+            [2, 3], 10, DiscountValueType.FIXED,
+            VoucherApplyToProduct.ONE_PRODUCT, 5),
 
-        ([10, 10], 5, Voucher.DISCOUNT_VALUE_FIXED, Voucher.APPLY_TO_ALL_PRODUCTS, 10),  # noqa
-        ([5, 2], 5, Voucher.DISCOUNT_VALUE_FIXED, Voucher.APPLY_TO_ALL_PRODUCTS, 7),  # noqa
-        ([10, 10, 10], 5, Voucher.DISCOUNT_VALUE_FIXED, Voucher.APPLY_TO_ALL_PRODUCTS, 15),  # noqa
+        (
+            [10, 10], 5, DiscountValueType.FIXED,
+            VoucherApplyToProduct.ALL_PRODUCTS, 10),
+        (
+            [5, 2], 5, DiscountValueType.FIXED,
+            VoucherApplyToProduct.ALL_PRODUCTS, 7),
+        (
+            [10, 10, 10], 5, DiscountValueType.FIXED,
+            VoucherApplyToProduct.ALL_PRODUCTS, 15),
 
-        ([10], 10, Voucher.DISCOUNT_VALUE_PERCENTAGE, None, 1),
-        ([10, 10], 10, Voucher.DISCOUNT_VALUE_PERCENTAGE, None, 2)])
+        ([10], 10, DiscountValueType.PERCENTAGE, None, 1),
+        ([10, 10], 10, DiscountValueType.PERCENTAGE, None, 2)])
 def test_products_voucher_checkout_discount_not(settings, monkeypatch, prices,
                                                 discount_value, discount_type,
                                                 apply_to, expected_value):
@@ -265,7 +281,7 @@ def test_products_voucher_checkout_discount_not(settings, monkeypatch, prices,
         lambda cart, product: (
             (None, Price(p, currency='USD')) for p in prices))
     voucher = Voucher(
-        code='unique', type=Voucher.PRODUCT_TYPE,
+        code='unique', type=VoucherType.PRODUCT,
         discount_value_type=discount_type,
         discount_value=discount_value,
         apply_to=apply_to)
@@ -285,7 +301,8 @@ def test_sale_applies_to_correct_products(product_class):
         product_class=product_class)
     sec_variant = ProductVariant.objects.create(
         product=product2, sku='secvar', pk=10)
-    sale = Sale.objects.create(name='Test sale', value=5, type=Sale.FIXED)
+    sale = Sale.objects.create(
+        name='Test sale', value=5, type=DiscountValueType.FIXED)
     sale.products.add(product)
     assert product2 not in sale.products.all()
     assert sale.modifier_for_product(variant.product).amount == Price(
@@ -312,9 +329,9 @@ def test_get_category_variants_and_prices_product_with_many_categories(
     assert len(discounted_products) == 1
 
     voucher = Voucher.objects.create(
-        category=default_category, type=Voucher.CATEGORY_TYPE,
+        category=default_category, type=VoucherType.CATEGORY,
         discount_value='10.0', code='foobar',
-        discount_value_type=Voucher.DISCOUNT_VALUE_PERCENTAGE)
+        discount_value_type=DiscountValueType.PERCENTAGE)
     checkout_mock = Mock(spec=Checkout, cart=cart)
     discount = voucher.get_discount_for_checkout(checkout_mock)
     # 10% of 10.00 is 1.00
@@ -323,8 +340,8 @@ def test_get_category_variants_and_prices_product_with_many_categories(
 
 def test_increase_voucher_usage():
     voucher = Voucher.objects.create(
-        code='unique', type=Voucher.VALUE_TYPE,
-        discount_value_type=Voucher.DISCOUNT_VALUE_FIXED,
+        code='unique', type=VoucherType.VALUE,
+        discount_value_type=DiscountValueType.FIXED,
         discount_value=10, usage_limit=100)
     increase_voucher_usage(voucher)
     voucher.refresh_from_db()
@@ -333,8 +350,8 @@ def test_increase_voucher_usage():
 
 def test_decrease_voucher_usage():
     voucher = Voucher.objects.create(
-        code='unique', type=Voucher.VALUE_TYPE,
-        discount_value_type=Voucher.DISCOUNT_VALUE_FIXED,
+        code='unique', type=VoucherType.VALUE,
+        discount_value_type=VoucherType.VALUE,
         discount_value=10, usage_limit=100, used=10)
     decrease_voucher_usage(voucher)
     voucher.refresh_from_db()
