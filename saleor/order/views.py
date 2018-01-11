@@ -124,6 +124,8 @@ def cancel_payment(request, order):
 
 
 def checkout_success(request, token):
+    """Redirects user to checkout success page or, in case of successful
+    registration, to order details page with attaching order to an account."""
     order = get_object_or_404(Order, token=token)
     email = order.user_email
     ctx = {'email': email, 'order': order}
@@ -133,10 +135,6 @@ def checkout_success(request, token):
     if form_data:
         form_data.update({'email': email})
     register_form = PasswordForm(form_data or None)
-    if User.objects.filter(email=email).exists():
-        login_form = LoginForm(initial={'login': email})
-    else:
-        login_form = None
     if register_form.is_valid():
         register_form.save()
         password = register_form.cleaned_data.get('password')
@@ -145,6 +143,9 @@ def checkout_success(request, token):
         auth.login(request, user)
         attach_order_to_user(order, user)
         return redirect('order:details', token=token)
+    user_exists = User.objects.filter(email=email).exists()
+    login_form = LoginForm(
+        initial={'username': email}) if user_exists else None
     ctx.update({'form': register_form, 'login_form': login_form})
     return TemplateResponse(
         request, 'order/checkout_success_anonymous.html', ctx)
