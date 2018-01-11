@@ -7,7 +7,6 @@ from saleor.dashboard.templatetags.chips import (
     CHIPS_PATTERN, handle_default, handle_single_choice,
     handle_multiple_choice, handle_nullboolean, handle_single_model_choice,
     handle_multiple_model_choice, handle_range)
-from saleor.dashboard.product.filters import ProductFilter
 from saleor.dashboard.widgets import PriceRangeWidget
 from saleor.product.models import Category, Product
 
