@@ -63,7 +63,7 @@ def test_checkout_flow(request_cart_with_item, client, shipping_method):
     payment_response = client.post(payment_page_url, data=payment_data)
     assert payment_response.status_code == 302
     order_password = reverse(
-        'order:create-password', kwargs={'token': order.token})
+        'order:checkout-success-anonymous', kwargs={'token': order.token})
     assert get_redirect_location(payment_response) == order_password
 
 
@@ -117,7 +117,7 @@ def test_checkout_flow_authenticated_user(
 
     assert payment_response.status_code == 302
     order_password = reverse(
-        'order:create-password', kwargs={'token': order.token})
+        'order:checkout-success-anonymous', kwargs={'token': order.token})
     assert get_redirect_location(payment_response) == order_password
 
 
@@ -347,7 +347,8 @@ def test_create_user_after_order(order, client):
     order.save()
     assert not User.objects.filter(email='hello@mirumee.com').exists()
     data = {'password': 'password'}
-    url = reverse('order:create-password', kwargs={'token': order.token})
+    url = reverse(
+        'order:checkout-success-anonymous', kwargs={'token': order.token})
     response = client.post(url, data=data)
     redirect_location = get_redirect_location(response)
     detail_url = reverse('order:details', kwargs={'token': order.token})

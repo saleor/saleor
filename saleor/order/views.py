@@ -124,7 +124,7 @@ def cancel_payment(request, order):
     return HttpResponseForbidden()
 
 
-def create_password(request, token):
+def checkout_success_anonymous(request, token):
     if request.user.is_authenticated:
         return redirect('order:details', token=token)
     order = get_object_or_404(Order, token=token)
@@ -145,9 +145,11 @@ def create_password(request, token):
         auth.login(request, user)
         attach_order_to_user(order, user)
         return redirect('order:details', token=token)
-    ctx = {'form': register_form, 'email': email, 'order': order,
-           'login_form': login_form}
-    return TemplateResponse(request, 'order/create_password.html', ctx)
+    ctx = {
+        'form': register_form, 'email': email, 'order': order,
+        'login_form': login_form}
+    return TemplateResponse(
+        request, 'order/checkout_success_anonymous.html', ctx)
 
 
 @login_required
