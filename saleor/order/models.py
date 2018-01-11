@@ -304,8 +304,7 @@ class Payment(BasePayment):
     def get_success_url(self):
         return build_absolute_uri(
             reverse(
-                'order:checkout-success-anonymous',
-                kwargs={'token': self.order.token}))
+                'order:checkout-success', kwargs={'token': self.order.token}))
 
     def send_confirmation_email(self):
         email = self.order.get_user_current_email()
