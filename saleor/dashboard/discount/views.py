@@ -13,6 +13,19 @@ from .filters import SaleFilter, VoucherFilter
 from . import forms
 
 
+def get_voucher_type_forms(voucher, data):
+    """Returns dict consisting of specific due to voucher type forms."""
+    return {
+        VoucherType.SHIPPING: forms.ShippingVoucherForm(
+            data or None, instance=voucher, prefix=VoucherType.SHIPPING),
+        VoucherType.VALUE: forms.ValueVoucherForm(
+            data or None, instance=voucher, prefix=VoucherType.VALUE),
+        VoucherType.PRODUCT: forms.ProductVoucherForm(
+            data or None, instance=voucher, prefix=VoucherType.PRODUCT),
+        VoucherType.CATEGORY: forms.CategoryVoucherForm(
+            data, instance=voucher, prefix=VoucherType.CATEGORY)}
+
+
 @staff_member_required
 @permission_required('discount.view_sale')
 def sale_list(request):
@@ -89,35 +102,24 @@ def voucher_list(request):
 @staff_member_required
 @permission_required('discount.edit_voucher')
 def voucher_add(request):
-    instance = Voucher()
-    voucher_form = forms.VoucherForm(request.POST or None, instance=instance)
-    type_base_forms = {
-        VoucherType.SHIPPING: forms.ShippingVoucherForm(
-            request.POST or None, instance=instance,
-            prefix=VoucherType.SHIPPING),
-        VoucherType.VALUE: forms.ValueVoucherForm(
-            request.POST or None, instance=instance,
-            prefix=VoucherType.VALUE),
-        VoucherType.PRODUCT: forms.ProductVoucherForm(
-            request.POST or None, instance=instance,
-            prefix=VoucherType.PRODUCT),
-        VoucherType.CATEGORY: forms.CategoryVoucherForm(
-            request.POST or None, instance=instance,
-            prefix=VoucherType.CATEGORY)}
+    voucher = Voucher()
+    type_base_forms = get_voucher_type_forms(voucher, request.POST)
+    voucher_form = forms.VoucherForm(request.POST or None, instance=voucher)
     if voucher_form.is_valid():
-        voucher_type = voucher_form.cleaned_data['type']
+        voucher_type = voucher_form.cleaned_data.get('type')
         form_type = type_base_forms.get(voucher_type)
+
         if form_type is None:
-            instance = voucher_form.save()
+            voucher = voucher_form.save()
         elif form_type.is_valid():
-            instance = form_type.save()
+            voucher = form_type.save()
 
         if form_type is None or form_type.is_valid():
             msg = pgettext_lazy('Voucher message', 'Added voucher')
             messages.success(request, msg)
             return redirect('dashboard:voucher-list')
     ctx = {
-        'voucher': instance, 'default_currency': settings.DEFAULT_CURRENCY,
+        'voucher': voucher, 'default_currency': settings.DEFAULT_CURRENCY,
         'form': voucher_form, 'type_base_forms': type_base_forms}
     return TemplateResponse(
         request, 'dashboard/discount/voucher/form.html', ctx)
@@ -126,35 +128,24 @@ def voucher_add(request):
 @staff_member_required
 @permission_required('discount.edit_voucher')
 def voucher_edit(request, pk):
-    instance = get_object_or_404(Voucher, pk=pk)
-    voucher_form = forms.VoucherForm(request.POST or None, instance=instance)
-    type_base_forms = {
-        VoucherType.SHIPPING: forms.ShippingVoucherForm(
-            request.POST or None, instance=instance,
-            prefix=VoucherType.SHIPPING),
-        VoucherType.VALUE: forms.ValueVoucherForm(
-            request.POST or None, instance=instance,
-            prefix=VoucherType.VALUE),
-        VoucherType.PRODUCT: forms.ProductVoucherForm(
-            request.POST or None, instance=instance,
-            prefix=VoucherType.PRODUCT),
-        VoucherType.CATEGORY: forms.CategoryVoucherForm(
-            request.POST or None, instance=instance,
-            prefix=VoucherType.CATEGORY)}
+    voucher = get_object_or_404(Voucher, pk=pk)
+    type_base_forms = get_voucher_type_forms(voucher, request.POST)
+    voucher_form = forms.VoucherForm(request.POST or None, instance=voucher)
     if voucher_form.is_valid():
-        voucher_type = voucher_form.cleaned_data['type']
+        voucher_type = voucher_form.cleaned_data.get('type')
         form_type = type_base_forms.get(voucher_type)
+
         if form_type is None:
-            instance = voucher_form.save()
+            voucher = voucher_form.save()
         elif form_type.is_valid():
-            instance = form_type.save()
+            voucher = form_type.save()
 
         if form_type is None or form_type.is_valid():
             msg = pgettext_lazy('Voucher message', 'Updated voucher')
             messages.success(request, msg)
             return redirect('dashboard:voucher-list')
     ctx = {
-        'voucher': instance, 'default_currency': settings.DEFAULT_CURRENCY,
+        'voucher': voucher, 'default_currency': settings.DEFAULT_CURRENCY,
         'form': voucher_form, 'type_base_forms': type_base_forms}
     return TemplateResponse(
         request, 'dashboard/discount/voucher/form.html', ctx)
