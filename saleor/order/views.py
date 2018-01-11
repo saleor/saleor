@@ -152,15 +152,16 @@ def checkout_success(request, token):
 
 @login_required
 def connect_order_with_user(request, token):
+    """Connects newly created order to just logged in user."""
     try:
         order = Order.objects.get(user_email=request.user.email, token=token)
     except Order.DoesNotExist:
         order = None
     if not order:
         msg = pgettext_lazy(
-            'storefront message',
-            'You cannot connect order with this account due to e-mail '
-            'difference')
+            'Connect order with user warning message',
+            'We cannot connect order with this account due to difference '
+            'of e-mail given in checkout')
         messages.warning(request, msg)
         return redirect('profile:details')
     attach_order_to_user(order, request.user)
