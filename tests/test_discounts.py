@@ -340,8 +340,8 @@ def test_get_category_variants_and_prices_product_with_many_categories(
 
 def test_increase_voucher_usage():
     voucher = Voucher.objects.create(
-        code='unique', type=Voucher.VALUE_TYPE,
-        discount_value_type=Voucher.DISCOUNT_VALUE_FIXED,
+        code='unique', type=VoucherType.VALUE,
+        discount_value_type=DiscountValueType.FIXED,
         discount_value=10, usage_limit=100)
     increase_voucher_usage(voucher)
     voucher.refresh_from_db()
@@ -350,8 +350,8 @@ def test_increase_voucher_usage():
 
 def test_decrease_voucher_usage():
     voucher = Voucher.objects.create(
-        code='unique', type=Voucher.VALUE_TYPE,
-        discount_value_type=Voucher.DISCOUNT_VALUE_FIXED,
+        code='unique', type=VoucherType.VALUE,
+        discount_value_type=VoucherType.VALUE,
         discount_value=10, usage_limit=100, used=10)
     decrease_voucher_usage(voucher)
     voucher.refresh_from_db()
