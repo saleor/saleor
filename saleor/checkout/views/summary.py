@@ -95,7 +95,7 @@ def summary_with_shipping_view(request, checkout):
     """
     note_form = NoteForm(request.POST or None, checkout=checkout)
     if note_form.is_valid():
-        note_form.update_checkout()
+        note_form.set_checkout_note()
 
     if request.user.is_authenticated:
         additional_addresses = request.user.addresses.all()
@@ -123,7 +123,7 @@ def anonymous_summary_without_shipping(request, checkout):
     """
     note_form = NoteForm(request.POST or None, checkout=checkout)
     if note_form.is_valid():
-        note_form.update_checkout()
+        note_form.set_checkout_note()
     user_form = AnonymousUserBillingForm(
         request.POST or None, initial={'email': checkout.email})
     billing_address = checkout.billing_address
@@ -153,7 +153,7 @@ def summary_without_shipping(request, checkout):
     """
     note_form = NoteForm(request.POST or None, checkout=checkout)
     if note_form.is_valid():
-        note_form.update_checkout()
+        note_form.set_checkout_note()
 
     billing_address = checkout.billing_address
     user_addresses = request.user.addresses.all()

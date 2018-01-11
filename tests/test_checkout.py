@@ -232,7 +232,7 @@ def test_note_form():
     checkout = Checkout(Mock(), AnonymousUser(), 'tracking_code')
     form = NoteForm({'note': 'test_note'}, checkout=checkout)
     form.is_valid()
-    form.update_checkout()
+    form.set_checkout_note()
     assert checkout.note == 'test_note'
 
 
