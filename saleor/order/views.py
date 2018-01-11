@@ -32,8 +32,8 @@ def details(request, token):
 
 def payment(request, token):
     orders = Order.objects.prefetch_related('groups__lines__product')
-    orders = orders.select_related('billing_address', 'shipping_address',
-                                   'user')
+    orders = orders.select_related(
+        'billing_address', 'shipping_address', 'user')
     order = get_object_or_404(orders, token=token)
     groups = order.groups.all()
     payments = order.payments.all()
@@ -55,14 +55,13 @@ def payment(request, token):
         # FIXME: redirect if there is only one payment method
         if payment_form.is_valid():
             payment_method = payment_form.cleaned_data['method']
-            return redirect('order:payment', token=order.token,
-                            variant=payment_method)
-    return TemplateResponse(request, 'order/payment.html',
-                            {'order': order, 'groups': groups,
-                             'payment_form': payment_form,
-                             'waiting_payment': waiting_payment,
-                             'waiting_payment_form': waiting_payment_form,
-                             'payments': payments})
+            return redirect(
+                'order:payment', token=order.token, variant=payment_method)
+    ctx = {
+        'order': order, 'groups': groups, 'payment_form': payment_form,
+        'payments': payments, 'waiting_payment': waiting_payment,
+        'waiting_payment_form': waiting_payment_form}
+    return TemplateResponse(request, 'order/payment.html', ctx)
 
 
 @check_order_status
@@ -101,17 +100,17 @@ def start_payment(request, order, variant):
             return redirect(str(redirect_to))
         except Exception:
             logger.exception('Error communicating with the payment gateway')
-            messages.error(
-                request,
-                pgettext_lazy(
-                    'Payment gateway error',
-                    'Oops, it looks like we were unable to contact the selected'
-                    ' payment service'))
+            msg = pgettext_lazy(
+                'Payment gateway error',
+                'Oops, it looks like we were unable to contact the selected '
+                'payment service')
+            messages.error(request, msg)
             payment.change_status(PaymentStatus.ERROR)
             return redirect('order:payment', token=order.token)
     template = 'order/payment/%s.html' % variant
-    return TemplateResponse(request, [template, 'order/payment/default.html'],
-                            {'form': form, 'payment': payment})
+    ctx = {'form': form, 'payment': payment}
+    return TemplateResponse(
+        request, [template, 'order/payment/default.html'], ctx)
 
 
 @check_order_status
@@ -124,11 +123,12 @@ def cancel_payment(request, order):
     return HttpResponseForbidden()
 
 
-def checkout_success_anonymous(request, token):
-    if request.user.is_authenticated:
-        return redirect('order:details', token=token)
+def checkout_success(request, token):
     order = get_object_or_404(Order, token=token)
     email = order.user_email
+    ctx = {'email': email, 'order': order}
+    if request.user.is_authenticated:
+        return TemplateResponse(request, 'order/checkout_success.html', ctx)
     form_data = request.POST.copy()
     if form_data:
         form_data.update({'email': email})
@@ -140,14 +140,12 @@ def checkout_success_anonymous(request, token):
     if register_form.is_valid():
         register_form.save()
         password = register_form.cleaned_data.get('password')
-        user = auth.authenticate(request=request, email=email,
-                                 password=password)
+        user = auth.authenticate(
+            request=request, email=email, password=password)
         auth.login(request, user)
         attach_order_to_user(order, user)
         return redirect('order:details', token=token)
-    ctx = {
-        'form': register_form, 'email': email, 'order': order,
-        'login_form': login_form}
+    ctx.update({'form': register_form, 'login_form': login_form})
     return TemplateResponse(
         request, 'order/checkout_success_anonymous.html', ctx)
 
@@ -157,8 +155,8 @@ def connect_order_with_user(request, token):
     order = get_object_or_404(
         Order.objects.filter(user_email=request.user.email, token=token))
     attach_order_to_user(order, request.user)
-    messages.success(
-        request, pgettext_lazy(
-            'storefront message',
-            'You\'ve successfully connected order with your account'))
+    msg = pgettext_lazy(
+        'storefront message',
+        'You\'ve successfully connected order with your account')
+    messages.success(request, msg)
     return redirect('order:details', token=order.token)
