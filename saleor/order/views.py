@@ -153,7 +153,7 @@ def checkout_success(request, token):
 
 @login_required
 def connect_order_with_user(request, token):
-    """Connects newly created order to just logged in user."""
+    """Connects newly created order to authenticated user."""
     try:
         order = Order.objects.get(user_email=request.user.email, token=token)
     except Order.DoesNotExist:
