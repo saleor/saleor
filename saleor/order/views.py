@@ -152,8 +152,17 @@ def checkout_success(request, token):
 
 @login_required
 def connect_order_with_user(request, token):
-    order = get_object_or_404(
-        Order.objects.filter(user_email=request.user.email, token=token))
+    try:
+        order = Order.objects.get(user_email=request.user.email, token=token)
+    except Order.DoesNotExist:
+        order = None
+    if not order:
+        msg = pgettext_lazy(
+            'storefront message',
+            'You cannot connect order with this account due to e-mail '
+            'difference')
+        messages.warning(request, msg)
+        return redirect('profile:details')
     attach_order_to_user(order, request.user)
     msg = pgettext_lazy(
         'storefront message',
