@@ -33,15 +33,21 @@
 
 {% block breadcrumb %}
   <ul class="breadcrumbs list-unstyled">
-    <li><a href="{% url 'home' %}">
+    <li>
+      <a href="{% url 'home' %}">
         {% trans "Home" context "Main navigation item" %}
-    </a></li>
+      </a>
+    </li>
     {% with product.get_first_category as category %}
       {% if category %}
-        <li><a href="{{ category.get_absolute_url }}">{{ category }}</a></li>
+        <li>
+          <a href="{{ category.get_absolute_url }}">{{ category }}</a>
+        </li>
       {% endif %}
     {% endwith %}
-    <li><a href="{{ product.get_absolute_url }}">{{ product }}</a></li>
+    <li>
+      <a href="{{ product.get_absolute_url }}">{{ product }}</a>
+    </li>
   </ul>
 {% endblock breadcrumb %}
 
@@ -102,9 +108,11 @@
         {{ product }}
       </h1>
       {% if user.is_staff %}
-        <p><a href="{% url "dashboard:product-detail" pk=product.pk %}">
+        <p>
+          <a href="{% url "dashboard:product-detail" pk=product.pk %}">
             {% trans "Edit in dashboard" context "Product details link text" %}
-        </a></p>
+          </a>
+        </p>
       {% endif %}
       {% if availability.available %}
         {% if show_variant_picker %}
@@ -131,8 +139,7 @@
             {% csrf_token %}
             <div id="variant-picker" data-variant-picker-data="{{ variant_picker_data }}" data-action="{% url 'product:add-to-cart' product_id=product.pk slug=product.get_slug %}"></div>
           {% else %}
-            <form id="product-form" role="form" class="product-form clearfix" method="post"
-                  action="{% url 'product:add-to-cart' product_id=product.pk slug=product.get_slug %}" novalidate>
+            <form id="product-form" role="form" class="product-form clearfix" method="post" action="{% url 'product:add-to-cart' product_id=product.pk slug=product.get_slug %}" novalidate>
               {% csrf_token %}
               {% bootstrap_field form.variant %}
               <div class="product__info__quantity">

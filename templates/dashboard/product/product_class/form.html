@@ -54,8 +54,7 @@
     <ul id="context-menu" class="dropdown-content">
       {% if perms.product.edit_properties %}
       <li>
-        <a href="#base-modal" data-href="{% url 'dashboard:product-class-delete' pk=product_class.pk %}"
-        class="modal-trigger-custom">
+        <a href="#base-modal" data-href="{% url 'dashboard:product-class-delete' pk=product_class.pk %}" class="modal-trigger-custom">
           {% trans "Remove product type" context "Product class action" %}
         </a>
       </li>

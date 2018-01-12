@@ -16,9 +16,7 @@
 {% block header_extra %}
   {% if perms.userprofile.edit_staff %}
     <div class="btn-fab-fixed">
-      <a class="btn-fab-default waves-effect waves-light"
-        title="{% trans "Add customer" context "Customer list add button text" %}"
-        href="{% url 'dashboard:customer-create' %}">
+      <a href="{% url 'dashboard:customer-create' %}" class="btn-fab-default waves-effect waves-light" title="{% trans "Add customer" context "Customer list add button text" %}" >
         <svg data-src="{% static "dashboard/images/add.svg" %}" />
       </a>
     </div>

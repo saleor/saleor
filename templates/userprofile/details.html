@@ -12,9 +12,11 @@
 
 {% block breadcrumb %}
   <ul class="breadcrumbs list-unstyled">
-    <li><a href="{% url 'home' %}">
-      {% trans "Home" context "Main navigation item" %}
-    </a></li>
+    <li>
+      <a href="{% url 'home' %}">
+        {% trans "Home" context "Main navigation item" %}
+      </a>
+    </li>
     <li>{% trans "Your account" context "Main navigation item" %} (<b>{{ user }}</b>)</li>
   </ul>
 {% endblock breadcrumb %}
@@ -25,21 +27,21 @@
       <h2>{% trans "My account" %}</h2>
       <ul class="nav nav-tabs col-lg-10 m-auto" role="tablist">
         <li class="nav-item">
-          <a class="nav-link active" data-toggle="tab" href="#orders" role="tab"><h3>
-            {% trans "Recent Orders" context "User profile tab" %}
-          </h3></a>
+          <a class="nav-link active" data-toggle="tab" href="#orders" role="tab">
+            <h3>{% trans "Recent Orders" context "User profile tab" %}</h3>
+          </a>
         </li>
         {% if user.password %}
         <li class="nav-item">
-          <a class="nav-link " data-toggle="tab" href="#password" role="tab"><h3>
-            {% trans "Change password" context "User profile tab" %}
-          </h3></a>
+          <a class="nav-link " data-toggle="tab" href="#password" role="tab">
+            <h3>{% trans "Change password" context "User profile tab" %}</h3>
+          </a>
         </li>
         {% endif %}
         <li class="nav-item">
-          <a class="nav-link" data-toggle="tab" href="#addresses" role="tab"><h3>
-            {% trans "Addresses book" context "User profile tab" %}
-          </h3></a>
+          <a class="nav-link" data-toggle="tab" href="#addresses" role="tab">
+            <h3>{% trans "Addresses book" context "User profile tab" %}</h3>
+          </a>
         </li>
       </ul>
     </div>
@@ -49,18 +51,18 @@
           {% if orders|length %}
             <div class="table__header">
               <div class="row">
-                <div class="col-md-2 col-3"><small>
-                  {% trans "Order" context "Recent orders column title" %}
-                </small></div>
-                <div class="col-md-3 d-none d-md-block"><small>
-                  {% trans "Date" context "Recent orders column title" %}
-                </small></div>
-                <div class="col-md-2 col-4 text-right"><small>
-                  {% trans "Summary" context "Recent orders column title" %}
-                </small></div>
-                <div class="col-md-4 d-none d-md-block"><small>
-                  {% trans "Status" context "Recent orders column title" %}
-                </small></div>
+                <div class="col-md-2 col-3">
+                  <small>{% trans "Order" context "Recent orders column title" %}</small>
+                </div>
+                <div class="col-md-3 d-none d-md-block">
+                  <small>{% trans "Date" context "Recent orders column title" %}</small>
+                </div>
+                <div class="col-md-2 col-4 text-right">
+                  <small>{% trans "Summary" context "Recent orders column title" %}</small>
+                </div>
+                <div class="col-md-4 d-none d-md-block">
+                  <small>{% trans "Status" context "Recent orders column title" %}</small>
+                </div>
                 <div class="col-md-1 col-5"></div>
               </div>
             </div>
@@ -107,8 +109,7 @@
             <form action="" method="post">
               {% csrf_token %}
               {% bootstrap_form change_password_form %}
-              <input type="submit" class="btn primary narrow"
-                      value="{% trans "Change password" context "User profile action" %}">
+              <input type="submit" class="btn primary narrow" value="{% trans "Change password" context "User profile action" %}">
             </form>
           </div>
         </div>
@@ -121,12 +122,16 @@
                 <div class="card card-block">
                   {% format_address address %}
                   <ul class="icons">
-                    <li><a href="{% url "profile:address-edit" pk=address.pk %}">
-                      {% trans "Edit" context "User address action" %}
-                    </a></li>
-                    <li><a class="delete-icon">
-                      <svg data-src="{% static "images/delete.svg" %}" height="20px" width="20px" />
-                    </a></li>
+                    <li>
+                      <a href="{% url "profile:address-edit" pk=address.pk %}">
+                        {% trans "Edit" context "User address action" %}
+                      </a>
+                    </li>
+                    <li>
+                      <a class="delete-icon">
+                        <svg data-src="{% static "images/delete.svg" %}" height="20px" width="20px" />
+                      </a>
+                    </li>
                   </ul>
                   {% include "userprofile/address_delete.html" with pk=address.pk %}
                 </div>

@@ -45,8 +45,7 @@
               </thead>
               <tbody>
                 {% for location in locations %}
-                  <tr data-action-go="
-                      {% if perms.product.edit_stock_location %}{% url 'dashboard:product-stock-location-edit' location.pk %}{% endif %}">
+                  <tr data-action-go="{% if perms.product.edit_stock_location %}{% url 'dashboard:product-stock-location-edit' location.pk %}{% endif %}">
                     <td>{{ location }}</td>
                   </tr>
                 {% endfor %}

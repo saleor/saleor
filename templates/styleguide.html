@@ -577,15 +577,21 @@
           <p>Click and edit any item below to see how the component looks with different text</p>
         </div>
         <ul class="breadcrumbs list-unstyled styleguide__section">
-          <li><a href="/" contenteditable="true">
-            Home
-          </a></li>
-          <li><a href="{% url "profile:details" %}" contenteditable="true">
-            Your profile
-          </a></li>
-          <li><a href="#" contenteditable="true">
-            Edit address
-          </a></li>
+          <li>
+            <a href="/" contenteditable="true">
+              Home
+            </a>
+          </li>
+          <li>
+            <a href="{% url "profile:details" %}" contenteditable="true">
+              Your profile
+            </a>
+          </li>
+          <li>
+            <a href="#" contenteditable="true">
+              Edit address
+            </a>
+          </li>
         </ul>
       </div>
       <div id="notifications" class="styleguide__content__block">
@@ -752,8 +758,12 @@
                   </p>
                 </div>
                 <ul class="icons">
-                  <li><a href="#" contenteditable="true">Edit</a></li>
-                  <li><a class="delete-icon"><svg data-src="{% static "images/delete.svg" %}" height="20px" width="20px" /></a></li>
+                  <li>
+                    <a href="#" contenteditable="true">Edit</a>
+                  </li>
+                  <li>
+                    <a class="delete-icon"><svg data-src="{% static "images/delete.svg" %}" height="20px" width="20px" /></a>
+                  </li>
                 </ul>
                 <div class="address-delete none">
                   <form>

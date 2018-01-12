@@ -23,14 +23,12 @@
 
 {% block header_extra %}
   {% if sale.pk %}
-    <a class="dropdown-button right" href="#" data-activates="sale-delete"
-    data-constrainwidth="false">
+    <a class="dropdown-button right" href="#" data-activates="sale-delete" data-constrainwidth="false">
       <svg data-src="{% static "dashboard/images/more-vert.svg" %}" height="24" width="24" />
     </a>
     <ul id="sale-delete" class="dropdown-content">
       <li>
-        <a class="modal-trigger-custom" href="#base-modal"
-        data-href="{% url 'dashboard:sale-delete' pk=sale.pk %}">
+        <a class="modal-trigger-custom" href="#base-modal" data-href="{% url 'dashboard:sale-delete' pk=sale.pk %}">
           {% trans "Remove sale" context "Sale (discount) action" %}
         </a>
       </li>
