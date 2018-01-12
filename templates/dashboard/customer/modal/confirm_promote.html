@@ -13,9 +13,11 @@
 {% endblock %}
 
 {% block content %}
-{% blocktrans trimmed with customer=customer context "Modal promote to staff member text" %}
-  Are you sure you want to promote {{ customer }} to staff member?
-{% endblocktrans %}
+  <div class="col s12">
+    {% blocktrans trimmed with customer=customer context "Modal promote to staff member text" %}
+      Are you sure you want to promote {{ customer }} to staff member?
+    {% endblocktrans %}
+  </div>
 {% endblock %}
 
 {% block primary_action %}
