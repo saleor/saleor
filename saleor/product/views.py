@@ -9,7 +9,7 @@ from django.urls import reverse
 
 from ..cart.utils import set_cart_cookie
 from ..core.utils import get_paginator_items, serialize_decimal
-from ..core.utils.filters import get_now_sorted_by, get_sort_by_choices
+from ..core.utils.filters import get_now_sorted_by
 from .filters import ProductFilter, SORT_BY_FIELDS
 from .models import Category
 from .utils import (
@@ -129,7 +129,7 @@ def category_index(request, path, category_id):
     ctx = {'category': category, 'filter_set': product_filter,
            'products': products_and_availability,
            'products_paginated': products_paginated,
-           'sort_by_choices': get_sort_by_choices(product_filter),
+           'sort_by_choices': SORT_BY_FIELDS,
            'now_sorted_by': now_sorted_by,
            'is_descending': is_descending}
     return TemplateResponse(request, 'category/index.html', ctx)
