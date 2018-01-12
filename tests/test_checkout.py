@@ -242,6 +242,9 @@ def test_note_form(note_value):
 def test_note_in_created_order(request_cart, customer_user, billing_address):
     customer_user.default_billing_address = billing_address
     checkout = Checkout(request_cart, customer_user, 'tracking_code')
+    checkout.note = ''
+    order = checkout.create_order()
+    assert not order.notes.all()
     checkout.note = 'test_note'
     order = checkout.create_order()
     assert order.notes.values()[0].get('content') == 'test_note'
