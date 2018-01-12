@@ -9,7 +9,7 @@ from phonenumber_field.formfields import PhoneNumberField
 
 from .models import Address
 from .validators import validate_possible_number
-from .widgets import PhonePrefixWidget
+from .widgets import PhonePrefixWidget, DatalistTextWidget
 
 COUNTRY_FORMS = {}
 UNKNOWN_COUNTRIES = set()
@@ -50,6 +50,9 @@ class PossiblePhoneNumberFormField(PhoneNumberField):
 
     def to_python(self, value):
         return value
+
+class CountryAreaChoiceField(forms.ChoiceField):
+    widget = DatalistTextWidget
 
 
 class AddressMetaForm(forms.ModelForm):
@@ -183,7 +186,7 @@ def get_form_i18n_lines(form_instance):
 
 def update_base_fields(form_class, i18n_rules):
     if i18n_rules.country_area_choices:
-        form_class.base_fields['country_area'] = forms.ChoiceField(choices=i18n_rules.country_area_choices)
+        form_class.base_fields['country_area'] = CountryAreaChoiceField(choices=i18n_rules.country_area_choices)
 
     labels_map = {
         'country_area': i18n_rules.country_area_type,
