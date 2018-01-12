@@ -230,6 +230,22 @@ def test_checkout_create_order_insufficient_stock(
 
 def test_note_form():
     checkout = Checkout(Mock(), AnonymousUser(), 'tracking_code')
+    form = NoteForm({'note': ''}, checkout=checkout)
+    form.is_valid()
+    form.set_checkout_note()
+    assert checkout.note == ''
+
+    form = NoteForm({'note': '    '}, checkout=checkout)
+    form.is_valid()
+    form.set_checkout_note()
+    assert checkout.note == ''
+
+    form = NoteForm({'note': '   test_note  '}, checkout=checkout)
+    form.is_valid()
+    form.set_checkout_note()
+    assert checkout.note == 'test_note'
+
+    checkout = Checkout(Mock(), AnonymousUser(), 'tracking_code')
     form = NoteForm({'note': 'test_note'}, checkout=checkout)
     form.is_valid()
     form.set_checkout_note()
