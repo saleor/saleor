@@ -11,20 +11,28 @@
 
 {% block breadcrumb %}
   <ul class="breadcrumbs list-unstyled">
-    <li><a href="{% url 'home' %}">
-      {% trans "Home" context "Main navigation item" %}
-    </a></li>
-    <li><a href="{% url "profile:details" %}">
-      {% trans "Your profile" context "Edit/new address breadcrumb" %}
-    </a></li>
+    <li>
+      <a href="{% url 'home' %}">
+        {% trans "Home" context "Main navigation item" %}
+      </a>
+    </li>
+    <li>
+      <a href="{% url "profile:details" %}">
+        {% trans "Your profile" context "Edit/new address breadcrumb" %}
+      </a>
+    </li>
     {% if address_form.instance.pk %}
-      <li><a href=".">
-        {% trans "Edit address" context "Edit address breadcrumb" %}
-      </a></li>
+      <li>
+        <a href=".">
+          {% trans "Edit address" context "Edit address breadcrumb" %}
+        </a>
+      </li>
     {% else %}
-      <li><a href=".">
-        {% trans "New address" context "New address breadcrumb" %}
-      </a></li>
+      <li>
+        <a href=".">
+          {% trans "New address" context "New address breadcrumb" %}
+        </a>
+      </li>
     {% endif %}
   </ul>
 {% endblock breadcrumb %}

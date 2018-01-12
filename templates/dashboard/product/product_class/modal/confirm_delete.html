@@ -23,15 +23,15 @@
   {% endblocktrans %}
 </p>
 <p>
-{% if products %}
-  {% blocktrans trimmed context "Modal remove product class text" with product_count=products.count %}
-    There are {{ product_count }} products in product class.
-  {% endblocktrans %}
-{% else %}
-  {% blocktrans trimmed context "Modal remove product class text" %}
-    There are no products in this product class.
-  {% endblocktrans %}
-{% endif %}
+  {% if products %}
+    {% blocktrans trimmed context "Modal remove product class text" with product_count=products.count %}
+      There are {{ product_count }} products in product class.
+    {% endblocktrans %}
+  {% else %}
+    {% blocktrans trimmed context "Modal remove product class text" %}
+      There are no products in this product class.
+    {% endblocktrans %}
+  {% endif %}
 </p>
 {% endblock %}
 

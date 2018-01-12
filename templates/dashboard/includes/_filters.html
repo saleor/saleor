@@ -26,8 +26,7 @@
               {% if field.name == 'sort_by' %}
                 <!--Field 'sort_by' is hidden because it is rendered in header.
                 This is required if you want to have sorting to be kept during further filtering.-->
-                <input type="hidden" name="sort_by"
-                       value="{% if sort_by %}{{ sort_by }}{% endif %}">
+                <input type="hidden" name="sort_by" value="{% if sort_by %}{{ sort_by }}{% endif %}">
               {% else %}
                 {{ field|materializecss }}
               {% endif %}

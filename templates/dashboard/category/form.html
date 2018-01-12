@@ -65,9 +65,7 @@
           {% endif %}
         {% else %}
           <li class="hide-on-med-and-down">
-            <a title="{{ node.name }}"
-               href="{% url 'dashboard:category-detail' pk=node.pk %}"
-               class="breadcrumbs--ellipsed-item">
+            <a href="{% url 'dashboard:category-detail' pk=node.pk %}" title="{{ node.name }}" class="breadcrumbs--ellipsed-item">
               {{ node.name }}
             </a>
           </li>

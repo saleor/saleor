@@ -20,8 +20,7 @@
       {% discount_as_negative discount %}
     </div>
   {% else %}
-    <form action="{{ request.path }}?next={{ request.path }}"
-          method="post">
+    <form action="{{ request.path }}?next={{ request.path }}" method="post">
       {% csrf_token %}
       <div class="form-group input-btn">
         {% trans "Use" context "Checkout voucher form action" as use_voucher %}
