@@ -16,7 +16,7 @@
         <div class="login__register-link">
           <h3>{% trans "Already have an account?" context "Signup form secondary title" %}</h3>
           <img class="signup-img" src="{% static 'images/login-bg.png' %}"
-               srcset="{% static 'images/login-bg.png' %} 1x, {% static 'images/login-bg2x.png' %} 2x">
+            srcset="{% static 'images/login-bg.png' %} 1x, {% static 'images/login-bg2x.png' %} 2x">
           <p><a rel="nofollow" href="{% url 'account_login' %}" class="btn secondary narrow">
             {% trans "Log in" context "Signup form secondary action" %}
           </a></p>
@@ -29,8 +29,7 @@
             {% csrf_token %}
             {% bootstrap_form form %}
             {% if REDIRECT_FIELD_VALUE %}
-             <input type="hidden" name="{{ REDIRECT_FIELD_NAME }}"
-                    value="{{ REDIRECT_FIELD_VALUE }}"/>
+              <input type="hidden" name="{{ REDIRECT_FIELD_NAME }}" value="{{ REDIRECT_FIELD_VALUE }}"/>
             {% endif %}
           </fieldset>
           <button type="submit" class="btn primary narrow">

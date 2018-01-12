@@ -9,9 +9,7 @@
         <h3>{% trans "Subtotal" context "Order subtotal" %}</h3>
       </div>
       <div class="col-4">
-        <h3 class="text-right cart-subtotal"
-           data-value="{% gross cart_total %}"
-           {% if local_cart_total %}data-value-local="{% gross local_cart_total %}"{% endif %}>
+        <h3 class="text-right cart-subtotal" data-value="{% gross cart_total %}" {% if local_cart_total %}data-value-local="{% gross local_cart_total %}"{% endif %}>
           {% spaceless %}
             {% gross cart_total html=True %}
             {% if local_cart_total %}

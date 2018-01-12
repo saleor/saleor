@@ -14,16 +14,16 @@
 {% endblock %}
 
 {% block content %}
-{{ form|materializecss }}
-{% trans "Before this action:" context "Modal capture payment title" %}
-<ul class="list">
-  <li class="list-item">{% trans "Order total:" context "Modal capture payment list title" %}
-    {% gross payment.order.get_total html=True %}
-  </li>
-  <li class="list-item">{% trans "Captured amount:" context "Modal capture payment list title" %}
-    {{ captured|currencyfmt:currency }}
-  </li>
-</ul>
+  {{ form|materializecss }}
+  {% trans "Before this action:" context "Modal capture payment title" %}
+  <ul class="list">
+    <li class="list-item">{% trans "Order total:" context "Modal capture payment list title" %}
+      {% gross payment.order.get_total html=True %}
+    </li>
+    <li class="list-item">{% trans "Captured amount:" context "Modal capture payment list title" %}
+      {{ captured|currencyfmt:currency }}
+    </li>
+  </ul>
 {% endblock %}
 
 {% block primary_action %}

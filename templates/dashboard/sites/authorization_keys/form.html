@@ -26,7 +26,7 @@
   <ul class="breadcrumbs breadcrumbs--history">
     <li>
       <a href="{% url 'dashboard:site-index' %}" class="breadcrumbs--ellipsed-item">
-      {% trans "Site settings" context "Dashboard site setting detail" %}
+        {% trans "Site settings" context "Dashboard site setting detail" %}
       </a>
     </li>
     <li class="back-mobile">
@@ -35,17 +35,17 @@
       </a>
     </li>
     {% if key.pk %}
-    <li>
-      <span class="breadcrumbs--ellipsed-item">
-        {% trans "Edit" context "Authorization key breadcrumbs" %}
-      </span>
-    </li>
+      <li>
+        <span class="breadcrumbs--ellipsed-item">
+          {% trans "Edit" context "Authorization key breadcrumbs" %}
+        </span>
+      </li>
     {% else %}
-    <li>
-      <span class="breadcrumbs--ellipsed-item">
-        {% trans "Add new authorization key" context "Authorization key breadcrumbs" %}
-      </span>
-    </li>
+      <li>
+        <span class="breadcrumbs--ellipsed-item">
+          {% trans "Add new authorization key" context "Authorization key breadcrumbs" %}
+        </span>
+      </li>
     {% endif %}
   </ul>
 {% endblock %}

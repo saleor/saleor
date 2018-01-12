@@ -61,32 +61,32 @@
 {% if group %}
   <table class="bordered data-table">
     <thead>
-    <tr>
-      <th class="wide">
-        {% trans "Item" context "Shipment group table header" %}
-      </th>
-      <th>
-        {% trans "SKU" context "Shipment group table header" %}
-      </th>
-      <th class="right-align">
-        {% trans "Quantity" context "Shipment group table header" %}
-      </th>
-    </tr>
+      <tr>
+        <th class="wide">
+          {% trans "Item" context "Shipment group table header" %}
+        </th>
+        <th>
+          {% trans "SKU" context "Shipment group table header" %}
+        </th>
+        <th class="right-align">
+          {% trans "Quantity" context "Shipment group table header" %}
+        </th>
+      </tr>
     </thead>
     <tbody>
-    {% for line in group.lines.all %}
-      <tr>
-        <td>
-          {{ line.product_name }}<br>
-        </td>
-        <td>
-          {{ line.product_sku }}
-        </td>
-        <td class="right-align">
-          {{ line.quantity }}
-        </td>
-      </tr>
-    {% endfor %}
+      {% for line in group.lines.all %}
+        <tr>
+          <td>
+            {{ line.product_name }}<br>
+          </td>
+          <td>
+            {{ line.product_sku }}
+          </td>
+          <td class="right-align">
+            {{ line.quantity }}
+          </td>
+        </tr>
+      {% endfor %}
     </tbody>
   </table>
 {% endif %}

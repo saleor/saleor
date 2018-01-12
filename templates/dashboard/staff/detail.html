@@ -45,8 +45,7 @@
     <ul id="context-menu" class="dropdown-content">
       {% if perms.userprofile.edit_staff %}
       <li>
-        <a href="#base-modal" data-href="{% url 'dashboard:staff-delete' pk=staff_member.pk %}"
-        class="modal-trigger-custom">
+        <a href="#base-modal" data-href="{% url 'dashboard:staff-delete' pk=staff_member.pk %}" class="modal-trigger-custom">
           {% trans 'Remove staff member' context 'Staff member form action' %}
         </a>
       </li>

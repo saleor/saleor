@@ -48,9 +48,8 @@
           <a class="btn-flat waves-effect" href="{% url "dashboard:product-attribute-update" attribute.pk %}">
             {% trans "Edit attribute" context "Attribute detail action" %}
           </a>
-          <a class="btn-flat waves-effect modal-trigger-custom" href="#base-modal"
-            data-href="{% url 'dashboard:product-attribute-delete' pk=attribute.pk %}">
-              {% trans "Remove attribute" context "Attribute detail action" %}
+          <a class="btn-flat waves-effect modal-trigger-custom" href="#base-modal" data-href="{% url 'dashboard:product-attribute-delete' pk=attribute.pk %}">
+            {% trans "Remove attribute" context "Attribute detail action" %}
           </a>
         </div>
         {% endif %}
@@ -63,9 +62,9 @@
         </div>
         {% if perms.product.edit_product %}
           <div class="data-table-header-action">
-              <a href="{% url 'dashboard:product-attribute-value-add' attribute_pk=attribute.pk %}" class="btn-flat waves-effect">
-                {% trans "Add" %}
-              </a>
+            <a href="{% url 'dashboard:product-attribute-value-add' attribute_pk=attribute.pk %}" class="btn-flat waves-effect">
+              {% trans "Add" %}
+            </a>
           </div>
         {% endif %}
         <div class="data-table-container">

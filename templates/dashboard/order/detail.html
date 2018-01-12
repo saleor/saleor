@@ -71,7 +71,7 @@
             <span>
               {% trans "Details" context "Order detail tab" %}
             </span>
-            <svg data-src="{% static "dashboard/images/description.svg" %}" class="fill-secondary"/>
+            <svg data-src="{% static "dashboard/images/description.svg" %}" class="fill-secondary" />
           </a>
         </li>
         <li role="presentation" class="tab col s4">
@@ -187,24 +187,21 @@
           {% if can_capture or can_refund or can_release %}
             <div class="data-table-action">
               {% if can_capture %}
-                <a href="#base-modal" data-href="{% url 'dashboard:capture-payment' order_pk=order.pk payment_pk=payment.pk %}"
-              class="btn-flat modal-trigger-custom waves-effect">
+                <a href="#base-modal" data-href="{% url 'dashboard:capture-payment' order_pk=order.pk payment_pk=payment.pk %}" class="btn-flat modal-trigger-custom waves-effect">
                   {% trans "Capture" context "Order summary card action" %}
                 </a>
               {% elif can_refund %}
-                <a href="#base-modal" data-href="{% url 'dashboard:refund-payment' order_pk=order.pk payment_pk=payment.pk %}"
-              class="btn-flat modal-trigger-custom waves-effect">
+                <a href="#base-modal" data-href="{% url 'dashboard:refund-payment' order_pk=order.pk payment_pk=payment.pk %}" class="btn-flat modal-trigger-custom waves-effect">
                   {% trans "Refund" context "Order summary card action" %}
                 </a>
               {% endif %}
               {% if can_release %}
-                <a href="#base-modal" data-href="{% url 'dashboard:release-payment' order_pk=order.pk payment_pk=payment.pk %}"
-              class="btn-flat modal-trigger-custom waves-effect">
+                <a href="#base-modal" data-href="{% url 'dashboard:release-payment' order_pk=order.pk payment_pk=payment.pk %}" class="btn-flat modal-trigger-custom waves-effect">
                   {% trans "Release" context "Order summary card action" %}
                 </a>
               {% endif %}
               <a href="{% url 'dashboard:order-invoice' order_pk=order.pk %}" data-href="" class="btn-flat waves-effect" target="_blank">
-                  {% trans "Invoice" context "Order detail action" %}
+                {% trans "Invoice" context "Order detail action" %}
               </a>
             </div>
           {% endif %}
@@ -244,7 +241,8 @@
               {% if perms.order.edit_order %}
                 <div class="card-action">
                   <a href="{% url "dashboard:address-edit" order_pk=order.pk address_type="billing" %}" class="btn-flat waves-effect">
-                    {% trans "Edit" context "Dashboard edit action" %}</a>
+                    {% trans "Edit" context "Dashboard edit action" %}
+                  </a>
                 </div>
               {% endif %}
             </div>
