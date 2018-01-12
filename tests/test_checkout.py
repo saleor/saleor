@@ -228,17 +228,23 @@ def test_checkout_create_order_insufficient_stock(
         checkout.create_order()
 
 
-def test_note_form():
+@pytest.mark.parametrize('note_value', [
+    '', '    ', '   test_note  ','test_note'
+])
+def test_note_form(note_value):
     checkout = Checkout(Mock(), AnonymousUser(), 'tracking_code')
-    form = NoteForm({'note': 'test_note'}, checkout=checkout)
+    form = NoteForm({'note': note_value}, checkout=checkout)
     form.is_valid()
     form.set_checkout_note()
-    assert checkout.note == 'test_note'
+    assert checkout.note == note_value.strip()
 
 
 def test_note_in_created_order(request_cart, customer_user, billing_address):
     customer_user.default_billing_address = billing_address
     checkout = Checkout(request_cart, customer_user, 'tracking_code')
+    checkout.note = ''
+    order = checkout.create_order()
+    assert not order.notes.all()
     checkout.note = 'test_note'
     order = checkout.create_order()
     assert order.notes.values()[0].get('content') == 'test_note'
