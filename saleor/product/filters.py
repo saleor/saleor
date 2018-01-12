@@ -11,8 +11,7 @@ from .models import Product, ProductAttribute
 
 SORT_BY_FIELDS = OrderedDict([
     ('name', pgettext_lazy('Product list sorting option', 'name')),
-     ('price', pgettext_lazy('Product list sorting option', 'price'))])
-
+    ('price', pgettext_lazy('Product list sorting option', 'price'))])
 
 
 class ProductFilter(SortedFilterSet):
