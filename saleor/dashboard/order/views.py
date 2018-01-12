@@ -14,10 +14,10 @@ from satchless.item import InsufficientStock
 
 from .filters import OrderFilter
 from .forms import (
-    AddVariantToDeliveryGroupForm, CancelGroupForm, CancelOrderLineForm,
-    CancelOrderForm, CapturePaymentForm, ChangeStockForm, ChangeQuantityForm,
-    MoveLinesForm, OrderNoteForm, RefundPaymentForm, ReleasePaymentForm,
-    RemoveVoucherForm, ShipGroupForm)
+    AddressForm, AddVariantToDeliveryGroupForm, CancelGroupForm,
+    CancelOrderLineForm, CancelOrderForm, CapturePaymentForm,
+    ChangeStockForm, ChangeQuantityForm, MoveLinesForm, OrderNoteForm,
+    RefundPaymentForm, ReleasePaymentForm, RemoveVoucherForm, ShipGroupForm)
 
 from .utils import (
     create_invoice_pdf, create_packing_slip_pdf, get_statics_absolute_url)
@@ -25,7 +25,6 @@ from ..views import staff_member_required
 from ...core.utils import get_paginator_items
 from ...order import GroupStatus
 from ...order.models import Order, OrderLine, OrderNote
-from ...userprofile.i18n import AddressForm
 
 
 @staff_member_required
