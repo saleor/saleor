@@ -8,9 +8,10 @@ from django_prices.models import PriceField
 from ..core.filters import SortedFilterSet
 from .models import Product, ProductAttribute
 
-SORT_BY_FIELDS = {
-    'name': pgettext_lazy('Product list sorting option', 'name'),
-    'price': pgettext_lazy('Product list sorting option', 'price')}
+
+SORT_BY_FIELDS = OrderedDict([
+    ('name', pgettext_lazy('Product list sorting option', 'name')),
+    ('price', pgettext_lazy('Product list sorting option', 'price'))])
 
 
 class ProductFilter(SortedFilterSet):
