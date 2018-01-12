@@ -1,4 +1,5 @@
 .card .card-action {
+  padding: 10px 8px;
   a:not(.btn):not(.btn-large):not(.btn-large):not(.btn-floating) {
     @extend .btn-flat;
     &:hover {
