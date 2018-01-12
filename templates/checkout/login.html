@@ -9,11 +9,12 @@
     <div class="col-12 col-md-6">
       <div class="checkout__login__continue">
         <h3>{% trans "New customer?" context "Checkout login page title" %}</h3>
-        <img class="checkout-pirate" src="{% static 'images/login-bg.png' %}"
-             srcset="{% static 'images/login-bg.png' %} 1x, {% static 'images/login-bg2x.png' %} 2x">
-        <p><a href="{% url 'checkout:index' %}" class="btn secondary narrow">
-          {% trans "Continue" context "Checkout login page new users action" %}
-        </a></p>
+        <img class="checkout-pirate" src="{% static 'images/login-bg.png' %}" srcset="{% static 'images/login-bg.png' %} 1x, {% static 'images/login-bg2x.png' %} 2x">
+        <p>
+          <a href="{% url 'checkout:index' %}" class="btn secondary narrow">
+            {% trans "Continue" context "Checkout login page new users action" %}
+          </a>
+        </p>
         <small>{% trans "Registration is not required!" context "Checkout login page new users message" %}</small>
       </div>
     </div>

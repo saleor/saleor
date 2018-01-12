@@ -47,10 +47,10 @@
               {% trans 'Customer details' context 'Customer details header' %}
             </span>
             <div class="data">
-                {% csrf_token %}
-                <div class="row">
-                  {{ form|materializecss }}
-                </div>
+              {% csrf_token %}
+              <div class="row">
+                {{ form|materializecss }}
+              </div>
             </div>
           </div>
           {% if perms.userprofile.edit_user %}

@@ -13,8 +13,8 @@
 {% endblock %}
 
 {% block content %}
-{% trans "Are you sure you want remove this order line?" context "Modal remove order line text" %}
-{{ form|materializecss }}
+  {% trans "Are you sure you want remove this order line?" context "Modal remove order line text" %}
+  {{ form|materializecss }}
   <table>
     <thead>
       <tr>

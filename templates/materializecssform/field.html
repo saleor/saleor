@@ -202,10 +202,8 @@
       <span>
         {% trans "File" %}
       </span>
-      <input class="file-chooser" id="{{ field.auto_id }}_0"
-             name="{{ field.name }}_0" type="file">
-      <input class="ppoi-input" id="{{ field.auto_id }}_1"
-             name="{{ field.name }}_1" type="hidden">
+      <input class="file-chooser" id="{{ field.auto_id }}_0" name="{{ field.name }}_0" type="file">
+      <input class="ppoi-input" id="{{ field.auto_id }}_1" name="{{ field.name }}_1" type="hidden">
     </div>
     <div class="file-path-wrapper">
       <input class="file-path" type="text">
@@ -238,8 +236,7 @@
       <span>
         {% trans "File" %}
       </span>
-      <input class="file-chooser" id="{{ field.auto_id }}_0"
-             name="{{ field.name }}_0" type="file">
+      <input class="file-chooser" id="{{ field.auto_id }}_0" name="{{ field.name }}_0" type="file">
     </div>
     <div class="file-path-wrapper">
       <input class="file-path" type="text" value="{{ field.value.display_value }}">
@@ -289,13 +286,11 @@
         {% trans "(optional)" context "Dashboard form labels" %}
       {% endif %}
     </label>
-    <div class="">
+    <div>
       {% for value in field.value %}
         <div class="input-range--field">
           <div class="input-with-suffix">
-            <input type="number" class=""
-                   name="{{ field.name }}_{{ forloop.counter0 }}"
-                   value="{{ value }}"
+            <input type="number" name="{{ field.name }}_{{ forloop.counter0 }}" value="{{ value }}"
                    id="{{ field.auto_id }}_{{ forloop.counter0 }}">
             <div class="input-text-suffix">{{ field.field.widget.currency }}</div>
           </div>

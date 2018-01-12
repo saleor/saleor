@@ -30,7 +30,9 @@
         <svg data-src="{% static "dashboard/images/arrow-left.svg" %}" fill="#fff" width="20px" height="20px" />
       </a>
     </li>
-    <li><span class="breadcrumbs--elipsed-item">{{ customer }}</span></li>
+    <li>
+      <span class="breadcrumbs--elipsed-item">{{ customer }}</span>
+    </li>
   </ul>
 {% endblock %}
 
@@ -57,21 +59,17 @@
         </div>
         <div class="card-action">
           {% if perms.userprofile.edit_user %}
-            <a class="btn-flat waves-effect"
-               href="{% url 'dashboard:customer-update' customer.pk %}">
+            <a href="{% url 'dashboard:customer-update' customer.pk %}" class="btn-flat waves-effect">
               {% trans "Edit customer" context "Customer action" %}
             </a>
           {% endif %}
           {% if not customer.is_staff and perms.userprofile.edit_user and perms.userprofile.edit_staff %}
-            <a class="btn-flat waves-effect modal-trigger-custom"
-               href="#base-modal"
-               data-href="{% url 'dashboard:customer-promote' pk=customer.pk %}">
+            <a href="#base-modal" class="btn-flat waves-effect modal-trigger-custom" data-href="{% url 'dashboard:customer-promote' pk=customer.pk %}">
               {% trans 'Promote to staff' context 'Customer promote to staff member action' %}
             </a>
           {% endif %}
           {% if perms.userprofile.impersonate_user %}
-            <a class="btn-flat waves-effect"
-               href="{% url 'impersonate-start' uid=customer.pk %}">
+            <a href="{% url 'impersonate-start' uid=customer.pk %}" class="btn-flat waves-effect">
               {% trans 'Impersonate customer' context 'Customer impersonate action' %}
             </a>
           {% endif %}

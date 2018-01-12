@@ -13,21 +13,21 @@
 {% block title %}{{ category }} — {{ block.super }}{% endblock %}
 
 {% block meta_tags %}
-    <meta property="og:title" content="{{ category }}">
-    <meta property="og:description" content="{{ category.description }}">
-    <meta property="og:image" content="{% static "images/block1.png" %}">
+  <meta property="og:title" content="{{ category }}">
+  <meta property="og:description" content="{{ category.description }}">
+  <meta property="og:image" content="{% static "images/block1.png" %}">
 
-    {% build_absolute_uri request=request location=category.get_absolute_url as category_url %}
-    <meta property="og:url" content="{{ category_url }}">
-    <link rel="canonical" href="{{ category_url }}?page={{ products_paginated.number }}">
+  {% build_absolute_uri request=request location=category.get_absolute_url as category_url %}
+  <meta property="og:url" content="{{ category_url }}">
+  <link rel="canonical" href="{{ category_url }}?page={{ products_paginated.number }}">
 
-    {% if products_paginated.has_previous %}
-      <link rel="prev" href="{{ category_url }}?page={{ products_paginated.previous_page_number }}">
-    {% endif %}
+  {% if products_paginated.has_previous %}
+    <link rel="prev" href="{{ category_url }}?page={{ products_paginated.previous_page_number }}">
+  {% endif %}
 
-    {% if products_paginated.has_next %}
-      <link rel="next" href="{{ category_url }}?page={{ products_paginated.next_page_number }}">
-    {% endif %}
+  {% if products_paginated.has_next %}
+    <link rel="next" href="{{ category_url }}?page={{ products_paginated.next_page_number }}">
+  {% endif %}
 {% endblock meta_tags %}
 
 {% block breadcrumb %}
@@ -128,7 +128,9 @@
             </h2>
             <ul class="product-filters__categories__childs no-parent">
               {% for child in category.get_children %}
-                <li><a href="{{ child.get_absolute_url }}">{{ child.name }}</a></li>
+                <li>
+                  <a href="{{ child.get_absolute_url }}">{{ child.name }}</a>
+                </li>
               {% endfor %}
             </ul>
           </div>
@@ -143,8 +145,7 @@
             {% endif %}
           </h2>
           <div class="product-filters">
-            <div class="product-filters__attributes" data-icon-up="{% static "images/chevron-up.svg" %}"
-                 data-icon-down="{% static "images/chevron-down.svg" %}">
+            <div class="product-filters__attributes" data-icon-up="{% static "images/chevron-up.svg" %}" data-icon-down="{% static "images/chevron-down.svg" %}">
               <form method="get">
                 {% for field in filter_set.form %}
                   {% if field.name == 'sort_by' %}
@@ -152,9 +153,7 @@
                       Field 'sort_by' is hidden because it is rendered in header.
                       This is required if you want to have sorting to be kept during further filtering.
                     {% endcomment %}
-
-                    <input type="hidden" name="sort_by"
-                           value="{% if request.GET.sort_by %}{{ request.GET.sort_by }}{% endif %}">
+                    <input type="hidden" name="sort_by" value="{% if request.GET.sort_by %}{{ request.GET.sort_by }}{% endif %}">
                   {% elif field.name == 'price' %}
                     <div class="toggle-filter product-filters__price-range">
                       <h3 class="filter-label">
@@ -201,7 +200,7 @@
           <div>
             {% if products %}
               <div class="row">
-                  {% include "category/_items.html" with products=products %}
+                {% include "category/_items.html" with products=products %}
               </div>
               <div class="row">
                 <div class="m-auto">

@@ -24,9 +24,7 @@
 {% block header_extra %}
   {% if perms.shipping.edit_shipping %}
   <div class="btn-fab-fixed">
-    <a href="{% url 'dashboard:shipping-method-add' %}"
-       class="btn-fab-default waves-effect waves-light"
-       title="{% trans "Add method" context "Shipping method list add button text" %}">
+    <a href="{% url 'dashboard:shipping-method-add' %}" class="btn-fab-default waves-effect waves-light" title="{% trans "Add method" context "Shipping method list add button text" %}">
       <svg data-src="{% static "dashboard/images/add.svg" %}" />
     </a>
   </div>

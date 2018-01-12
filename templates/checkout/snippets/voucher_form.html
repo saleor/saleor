@@ -15,14 +15,12 @@
               aria-label="{% trans "Remove" context "Checkout voucher form action" %}">
         {% trans "(Remove)" context "Checkout voucher form action" %}
       </button>
-
     </form>
     <div class="float-right">
       {% discount_as_negative discount %}
     </div>
   {% else %}
-    <form action="{{ request.path }}?next={{ request.path }}"
-          method="post">
+    <form action="{{ request.path }}?next={{ request.path }}" method="post">
       {% csrf_token %}
       <div class="form-group input-btn">
         {% trans "Use" context "Checkout voucher form action" as use_voucher %}

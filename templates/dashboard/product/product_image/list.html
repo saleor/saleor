@@ -48,7 +48,7 @@
 {% block content %}
   <div class="row">
     <div id="images" class="tab-content col s12 m9">
-      <form action="{% url 'dashboard:product-images-upload' product_pk=product.pk %}" class="" id="product-image-form" novalidate>
+      <form action="{% url 'dashboard:product-images-upload' product_pk=product.pk %}" id="product-image-form" novalidate>
         <div class="dz-message"></div>
         {% csrf_token %}
         <div class="row">
@@ -65,8 +65,7 @@
                            alt="">
                     </div>
                     <div class="card-content">
-                      <span class="product-gallery-item-title card-title black-text"
-                            title="{{ image.alt }}">
+                      <span class="product-gallery-item-title card-title black-text" title="{{ image.alt }}">
                         {% if image.alt %}
                           {{ image.alt }}
                         {% else %}

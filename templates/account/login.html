@@ -9,14 +9,13 @@
 {% endblock meta_tags %}
 
 {% block content %}
-
   <div class="col-lg-10 col-sm-12 m-auto">
     <div class="row login">
       <div class="col-md-6 login__register">
         <div class="login__register-link">
           <h3>{% trans "Don't have an account yet?" context "Login form secondary title" %}</h3>
           <img src="{% static 'images/login-bg.png' %}"
-               srcset="{% static 'images/login-bg.png' %} 1x, {% static 'images/login-bg2x.png' %} 2x">
+            srcset="{% static 'images/login-bg.png' %} 1x, {% static 'images/login-bg2x.png' %} 2x">
           <a rel="nofollow" href="{% url 'account_signup' %}" class="btn secondary narrow">
             {% trans "Register" context "Login form secondary action" %}
           </a>
@@ -28,5 +27,4 @@
       </div>
     </div>
   </div>
-
 {% endblock %}
