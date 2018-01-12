@@ -21,4 +21,4 @@ class PriceRangeWidget(RangeWidget):
 
 
 class PhonePrefixWidget(StorefrontPhonePrefixWidget):
-    template_name = 'dashboard/order/widget/phone-prefix-widget.html'
+    template_name = 'dashboard/order/widget/phone_prefix_widget.html'
