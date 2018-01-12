@@ -341,7 +341,7 @@ class Checkout:
         if voucher is not None:
             increase_voucher_usage(voucher)
 
-        if self.note is not None:
+        if self.note is not None and self.note:
             order.notes.create(user=order.user, content=self.note)
 
         return order
