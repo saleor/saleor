@@ -54,6 +54,9 @@ class PossiblePhoneNumberFormField(PhoneNumberField):
 class CountryAreaChoiceField(forms.ChoiceField):
     widget = DatalistTextWidget
 
+    def valid_value(self, value):
+        return True
+
 
 class AddressMetaForm(forms.ModelForm):
     # This field is never visible in UI
