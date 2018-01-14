@@ -37,15 +37,4 @@ class DatalistTextWidget(Select):
 
     def format_value(self, value):
         value = super(DatalistTextWidget, self).format_value(value)
-        value = value[0]
-        if value:
-            for choice in self.choices:
-                if any(c.lower() == value.lower() for c in choice):
-                    return choice[0]
-            for choice in self.choices:
-                if any(c.lower().startswith(value.lower()) for c in choice):
-                    return choice[0]
-            for choice in self.choices:
-                if any(value.lower() in c.lower() for c in choice):
-                    return choice[0]
-        return value
+        return value[0]
