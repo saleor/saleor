@@ -49,6 +49,21 @@
           Order {{ order }}: {{ order_status }}
         {% endblocktrans %}
       </h2>
+
+      {% if order.notes.count %}
+        <h2>{% trans "Notes" context "Order notes list" %}</h2>
+        {% for note in notes %}
+          <p>{{note.content}}</p>
+        {% endfor %}
+      {% endif %}
+      {% if order.status == 'open' %}
+        <h2>{% trans "Add a note to your order" context "Order summary add note title" %}</h2>
+        <form method="post">
+          {% csrf_token %}
+          {{ note_form }}
+          <input type="submit" value="Submit" />
+        </form>
+      {% endif %}
       {% if not order.is_fully_paid %}
         {% if order.is_pre_authorized %}
           <a href="{% url "order:payment" token=order.token %}" class="btn btn-link">

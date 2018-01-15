@@ -366,8 +366,9 @@ class OrderNote(models.Model):
     order = models.ForeignKey(
         Order, related_name='notes', on_delete=models.CASCADE)
     content = models.CharField(max_length=250)
+    is_public = models.BooleanField(default=True)
 
     def __str__(self):
-        return pgettext_lazy(
+        return str((pgettext_lazy(
             'Order note str',
-            'OrderNote for Order #%d' % self.order.pk)
+            'OrderNote for Order #%d' % self.order.pk)))
