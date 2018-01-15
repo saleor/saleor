@@ -21,9 +21,10 @@ def get_client_id(request):
 
 
 @shared_task
-def ga_report(tracking_id, client_id, what, extra_info, extra_headers):
+def ga_report(tracking_id, client_id, what, extra_info=None, extra_headers=None):
     ga.report(tracking_id, client_id, what, extra_info=extra_info,
               extra_headers=extra_headers)
+
 
 def _report(client_id, what, extra_info=None, extra_headers=None):
     tracking_id = getattr(settings, 'GOOGLE_ANALYTICS_TRACKING_ID', None)
