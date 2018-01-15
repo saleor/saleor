@@ -7,7 +7,7 @@ from django_filters import (
 from ...core.filters import SortedFilterSet
 from ..widgets import PriceRangeWidget
 from ...product.models import (
-    Category, Product, ProductAttribute, ProductClass, StockLocation)
+    Category, Product, ProductAttribute, ProductType, StockLocation)
 
 PRODUCT_SORT_BY_FIELDS = {
     'name': pgettext_lazy('Product list sorting option', 'name'),
@@ -42,7 +42,7 @@ class ProductFilter(SortedFilterSet):
     product_class = ModelMultipleChoiceFilter(
         label=pgettext_lazy('Product list filter label', 'Product type'),
         name='product_class',
-        queryset=ProductClass.objects.all())
+        queryset=ProductType.objects.all())
     price = RangeFilter(
         label=pgettext_lazy('Product list filter label', 'Price'),
         name='price',
@@ -109,7 +109,7 @@ class ProductClassFilter(SortedFilterSet):
         field_labels=PRODUCT_CLASS_SORT_BY_FIELDS)
 
     class Meta:
-        model = ProductClass
+        model = ProductType
         fields = ['name', 'product_attributes', 'variant_attributes']
 
     def get_summary_message(self):

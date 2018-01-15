@@ -16,8 +16,8 @@ from saleor.dashboard.product.forms import (
     ProductBulkUpdate, ProductClassForm, ProductForm)
 from saleor.product.forms import VariantChoiceField
 from saleor.product.models import (
-    AttributeChoiceValue, Product, ProductAttribute, ProductClass,
-    ProductImage, ProductVariant, Stock, StockLocation)
+    AttributeChoiceValue, Product, ProductAttribute, ProductImage, ProductType,
+    ProductVariant, Stock, StockLocation)
 
 HTTP_STATUS_OK = 200
 HTTP_REDIRECTION = 302
@@ -91,7 +91,7 @@ def test_variantless_product_class_form(color_attribute, size_attribute):
 
 
 def test_edit_used_product_class(db, default_category):
-    product_class = ProductClass.objects.create(
+    product_class = ProductType.objects.create(
         name='New class', has_variants=True)
     product = Product.objects.create(
         name='Test product', price=10, product_class=product_class,
@@ -303,7 +303,7 @@ def test_view_product_class_not_deleted_before_confirmation(
         'dashboard:product-class-delete', kwargs={'pk': product_class.pk})
     response = admin_client.get(url)
     assert response.status_code == HTTP_STATUS_OK
-    assert ProductClass.objects.filter(pk=product_class.pk)
+    assert ProductType.objects.filter(pk=product_class.pk)
 
 
 def test_view_product_class_delete(db, admin_client, product_in_stock):
@@ -312,7 +312,7 @@ def test_view_product_class_delete(db, admin_client, product_in_stock):
         'dashboard:product-class-delete', kwargs={'pk': product_class.pk})
     response = admin_client.post(url)
     assert response.status_code == HTTP_REDIRECTION
-    assert not ProductClass.objects.filter(pk=product_class.pk)
+    assert not ProductType.objects.filter(pk=product_class.pk)
 
 
 def test_view_product_variant_not_deleted_before_confirmation(

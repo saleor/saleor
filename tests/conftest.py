@@ -1,6 +1,6 @@
 from decimal import Decimal
 from io import BytesIO
-from unittest.mock import MagicMock, Mock
+from unittest.mock import MagicMock
 
 import pytest
 from django.contrib.auth.models import AnonymousUser, Group, Permission
@@ -19,8 +19,8 @@ from saleor.order import GroupStatus
 from saleor.order.models import DeliveryGroup, Order, OrderLine
 from saleor.order.utils import recalculate_order
 from saleor.product.models import (
-    AttributeChoiceValue, Category, Product, ProductAttribute, ProductClass,
-    ProductImage, ProductVariant, Stock, StockLocation)
+    AttributeChoiceValue, Category, Product, ProductAttribute, ProductImage,
+    ProductType, ProductVariant, Stock, StockLocation)
 from saleor.shipping.models import ShippingMethod
 from saleor.site.models import AuthorizationKey, SiteSettings
 from saleor.userprofile.models import Address, User
@@ -231,9 +231,8 @@ def permission_view_user():
 
 @pytest.fixture
 def product_class(color_attribute, size_attribute):
-    product_class = ProductClass.objects.create(name='Default Class',
-                                                has_variants=False,
-                                                is_shipping_required=True)
+    product_class = ProductType.objects.create(
+        name='Default Class', has_variants=False, is_shipping_required=True)
     product_class.product_attributes.add(color_attribute)
     product_class.variant_attributes.add(size_attribute)
     return product_class

@@ -18,8 +18,8 @@ from ...discount.models import Sale, Voucher
 from ...order import GroupStatus
 from ...order.models import DeliveryGroup, Order, OrderLine, Payment
 from ...product.models import (
-    AttributeChoiceValue, Category, Product, ProductAttribute, ProductClass,
-    ProductImage, ProductVariant, Stock, StockLocation)
+    AttributeChoiceValue, Category, Product, ProductAttribute, ProductImage,
+    ProductType, ProductVariant, Stock, StockLocation)
 from ...shipping.models import ANY_COUNTRY, ShippingMethod
 from ...userprofile.models import Address, User
 from ...userprofile.utils import store_user_address
@@ -276,7 +276,7 @@ def get_or_create_category(name, **kwargs):
 
 
 def get_or_create_product_class(name, **kwargs):
-    return ProductClass.objects.get_or_create(name=name, defaults=kwargs)[0]
+    return ProductType.objects.get_or_create(name=name, defaults=kwargs)[0]
 
 
 def create_product(**kwargs):
