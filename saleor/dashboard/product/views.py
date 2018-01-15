@@ -24,13 +24,13 @@ from . import forms
 
 @staff_member_required
 @permission_required('product.view_properties')
-def product_class_list(request):
+def product_type_list(request):
     classes = ProductType.objects.all().prefetch_related(
         'product_attributes', 'variant_attributes').order_by('name')
     class_filter = ProductTypeFilter(request.GET, queryset=classes)
     form = forms.ProductTypeForm(request.POST or None)
     if form.is_valid():
-        return redirect('dashboard:product-class-add')
+        return redirect('dashboard:product-type-add')
     classes = get_paginator_items(
         class_filter.qs, settings.DASHBOARD_PAGINATE_BY,
         request.GET.get('page'))
@@ -49,7 +49,7 @@ def product_class_list(request):
 
 @staff_member_required
 @permission_required('product.edit_properties')
-def product_class_create(request):
+def product_type_create(request):
     product_class = ProductType()
     form = forms.ProductTypeForm(
         request.POST or None, instance=product_class)
@@ -58,7 +58,7 @@ def product_class_create(request):
         msg = pgettext_lazy(
             'Dashboard message', 'Added product type %s') % (product_class,)
         messages.success(request, msg)
-        return redirect('dashboard:product-class-list')
+        return redirect('dashboard:product-type-list')
     ctx = {'form': form, 'product_class': product_class}
     return TemplateResponse(
         request,
@@ -68,7 +68,7 @@ def product_class_create(request):
 
 @staff_member_required
 @permission_required('product.edit_properties')
-def product_class_edit(request, pk):
+def product_type_edit(request, pk):
     product_class = get_object_or_404(ProductType, pk=pk)
     form = forms.ProductTypeForm(
         request.POST or None, instance=product_class)
@@ -77,7 +77,7 @@ def product_class_edit(request, pk):
         msg = pgettext_lazy(
             'Dashboard message', 'Updated product type %s') % (product_class,)
         messages.success(request, msg)
-        return redirect('dashboard:product-class-update', pk=pk)
+        return redirect('dashboard:product-type-update', pk=pk)
     ctx = {'form': form, 'product_class': product_class}
     return TemplateResponse(
         request,
@@ -87,14 +87,14 @@ def product_class_edit(request, pk):
 
 @staff_member_required
 @permission_required('product.edit_properties')
-def product_class_delete(request, pk):
+def product_type_delete(request, pk):
     product_class = get_object_or_404(ProductType, pk=pk)
     if request.method == 'POST':
         product_class.delete()
         msg = pgettext_lazy(
             'Dashboard message', 'Removed product type %s') % (product_class,)
         messages.success(request, msg)
-        return redirect('dashboard:product-class-list')
+        return redirect('dashboard:product-type-list')
     ctx = {
         'product_class': product_class,
         'products': product_class.products.all()}
@@ -124,28 +124,28 @@ def product_list(request):
 
 @staff_member_required
 @permission_required('product.edit_product')
-def product_select_class(request):
+def product_select_type(request):
     """View for add product modal embedded in the product list view."""
     form = forms.ProductTypeSelectorForm(request.POST or None)
     status = 200
     if form.is_valid():
         redirect_url = reverse(
             'dashboard:product-add',
-            kwargs={'class_pk': form.cleaned_data.get('product_cls').pk})
+            kwargs={'type_pk': form.cleaned_data.get('product_type').pk})
         return (
             JsonResponse({'redirectUrl': redirect_url})
             if request.is_ajax() else redirect(redirect_url))
     elif form.errors:
         status = 400
     ctx = {'form': form}
-    template = 'dashboard/product/modal/select_class.html'
+    template = 'dashboard/product/modal/select_type.html'
     return TemplateResponse(request, template, ctx, status=status)
 
 
 @staff_member_required
 @permission_required('product.edit_product')
-def product_create(request, class_pk):
-    product_class = get_object_or_404(ProductType, pk=class_pk)
+def product_create(request, type_pk):
+    product_class = get_object_or_404(ProductType, pk=type_pk)
     create_variant = not product_class.has_variants
     product = Product()
     product.product_class = product_class
