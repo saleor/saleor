@@ -489,10 +489,11 @@ JWT_AUTH = {
 }
 
 
-CELERY_BROKER_URL = 'amqp://{user}:{password}@{host}:5672//'.format(
+CELERY_BROKER_URL = 'amqp://{user}:{password}@{host}:5672/{vhost}'.format(
     user=os.environ.get('RABBITMQ_USER', 'guest'),
     password=os.environ.get('RABBITMQ_PASSWORD', 'guest'),
-    host=os.environ.get('RABBITMQ_HOST', 'localhost')
+    host=os.environ.get('RABBITMQ_HOST', 'localhost'),
+    vhost=os.environ.get('RABBITMQ_VHOST', '/'),
 )
 
 CELERY_BROKER_USER = os.environ.get('RABBITMQ_USER', 'guest')
