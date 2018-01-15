@@ -73,8 +73,8 @@ class CartQueryset(models.QuerySet):
         return self.prefetch_related(
             'lines__variant__product__category',
             'lines__variant__product__images',
-            'lines__variant__product__product_class__product_attributes__values',  # noqa
-            'lines__variant__product__product_class__variant_attributes__values',  # noqa
+            'lines__variant__product__product_type__product_attributes__values',  # noqa
+            'lines__variant__product__product_type__variant_attributes__values',  # noqa
             'lines__variant__stock')
 
 

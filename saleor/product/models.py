@@ -62,9 +62,9 @@ class ProductType(models.Model):
     name = models.CharField(max_length=128)
     has_variants = models.BooleanField(default=True)
     product_attributes = models.ManyToManyField(
-        'ProductAttribute', related_name='products_class', blank=True)
+        'ProductAttribute', related_name='product_types', blank=True)
     variant_attributes = models.ManyToManyField(
-        'ProductAttribute', related_name='product_variants_class', blank=True)
+        'ProductAttribute', related_name='product_variant_types', blank=True)
     is_shipping_required = models.BooleanField(default=False)
 
     class Meta:
@@ -88,7 +88,7 @@ class ProductQuerySet(models.QuerySet):
 
 
 class Product(models.Model, ItemRange):
-    product_class = models.ForeignKey(
+    product_type = models.ForeignKey(
         ProductType, related_name='products', on_delete=models.CASCADE)
     name = models.CharField(max_length=128)
     description = models.TextField()
@@ -217,7 +217,7 @@ class ProductVariant(models.Model, Item):
             'unit_price': str(self.get_price_per_item().gross)}
 
     def is_shipping_required(self):
-        return self.product.product_class.is_shipping_required
+        return self.product.product_type.is_shipping_required
 
     def is_in_stock(self):
         return any(
@@ -231,7 +231,7 @@ class ProductVariant(models.Model, Item):
 
     def display_variant(self, attributes=None):
         if attributes is None:
-            attributes = self.product.product_class.variant_attributes.all()
+            attributes = self.product.product_type.variant_attributes.all()
         values = get_attributes_display_map(self, attributes)
         if values:
             return ', '.join(

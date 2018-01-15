@@ -5,8 +5,8 @@
 {% load staticfiles %}
 
 {% block title %}
-  {% if product_class.pk %}
-    {{ product_class }}
+  {% if product_type.pk %}
+    {{ product_type }}
   {% else %}
     {% trans "Add new product type" context "Product class page title" %}
   {% endif %}
@@ -15,7 +15,7 @@
 
 {% block body_class %}body-products{% endblock %}
 
-{% block menu_product_classes_class %}active{% endblock %}
+{% block menu_product_types_class %}active{% endblock %}
 
 {% block header_menu %}
   {% url "dashboard:product-type-list" as url %}
@@ -36,8 +36,8 @@
     </li>
     <li>
       <span class="breadcrumbs--ellipsed-item">
-        {% if product_class.pk %}
-          {{ product_class }}
+        {% if product_type.pk %}
+          {{ product_type }}
         {% else %}
           {% trans 'Add new product type' context "Product class breadcrumbs" %}
         {% endif %}
@@ -47,14 +47,14 @@
 {% endblock %}
 
 {% block header_extra %}
-  {% if product_class.pk %}
+  {% if product_type.pk %}
     <a class="dropdown-button right" href="#" data-activates="context-menu" data-constrainwidth="false">
       <svg data-src="{% static "dashboard/images/more-vert.svg" %}" height="24" width="24" />
     </a>
     <ul id="context-menu" class="dropdown-content">
       {% if perms.product.edit_properties %}
       <li>
-        <a href="#base-modal" data-href="{% url 'dashboard:product-type-delete' pk=product_class.pk %}" class="modal-trigger-custom">
+        <a href="#base-modal" data-href="{% url 'dashboard:product-type-delete' pk=product_type.pk %}" class="modal-trigger-custom">
           {% trans "Remove product type" context "Product class action" %}
         </a>
       </li>
@@ -94,7 +94,7 @@
           </div>
           {% if perms.product.edit_properties %}
           <div class="card-action right-align">
-            {% if product_class.pk %}
+            {% if product_type.pk %}
               <a href="{% url 'dashboard:product-type-list' %}" class="btn-flat waves-effect">
                 {% trans "Cancel" context "Dashboard cancel action" %}
               </a>
