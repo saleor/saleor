@@ -17,7 +17,7 @@ from ...product.utils import (
     get_availability, get_product_costs_data, get_variant_costs_data)
 from ..views import staff_member_required
 from .filters import (
-    ProductFilter, ProductAttributeFilter, ProductClassFilter,
+    ProductFilter, ProductAttributeFilter, ProductTypeFilter,
     StockLocationFilter)
 from . import forms
 
@@ -27,8 +27,8 @@ from . import forms
 def product_class_list(request):
     classes = ProductType.objects.all().prefetch_related(
         'product_attributes', 'variant_attributes').order_by('name')
-    class_filter = ProductClassFilter(request.GET, queryset=classes)
-    form = forms.ProductClassForm(request.POST or None)
+    class_filter = ProductTypeFilter(request.GET, queryset=classes)
+    form = forms.ProductTypeForm(request.POST or None)
     if form.is_valid():
         return redirect('dashboard:product-class-add')
     classes = get_paginator_items(
@@ -51,7 +51,7 @@ def product_class_list(request):
 @permission_required('product.edit_properties')
 def product_class_create(request):
     product_class = ProductType()
-    form = forms.ProductClassForm(
+    form = forms.ProductTypeForm(
         request.POST or None, instance=product_class)
     if form.is_valid():
         product_class = form.save()
@@ -70,7 +70,7 @@ def product_class_create(request):
 @permission_required('product.edit_properties')
 def product_class_edit(request, pk):
     product_class = get_object_or_404(ProductType, pk=pk)
-    form = forms.ProductClassForm(
+    form = forms.ProductTypeForm(
         request.POST or None, instance=product_class)
     if form.is_valid():
         product_class = form.save()
@@ -126,7 +126,7 @@ def product_list(request):
 @permission_required('product.edit_product')
 def product_select_class(request):
     """View for add product modal embedded in the product list view."""
-    form = forms.ProductClassSelectorForm(request.POST or None)
+    form = forms.ProductTypeSelectorForm(request.POST or None)
     status = 200
     if form.is_valid():
         redirect_url = reverse(

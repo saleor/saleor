@@ -14,7 +14,7 @@ from . import ProductBulkAction
 from ..widgets import RichTextEditorWidget
 
 
-class ProductClassSelectorForm(forms.Form):
+class ProductTypeSelectorForm(forms.Form):
     """
     Form that allows selecting product class.
     """
@@ -57,7 +57,7 @@ class StockForm(forms.ModelForm):
         return super().save(commit)
 
 
-class ProductClassForm(forms.ModelForm):
+class ProductTypeForm(forms.ModelForm):
     class Meta:
         model = ProductType
         exclude = []

@@ -13,7 +13,7 @@ import pytest
 
 from saleor.dashboard.product import ProductBulkAction
 from saleor.dashboard.product.forms import (
-    ProductBulkUpdate, ProductClassForm, ProductForm)
+    ProductBulkUpdate, ProductTypeForm, ProductForm)
 from saleor.product.forms import VariantChoiceField
 from saleor.product.models import (
     AttributeChoiceValue, Product, ProductAttribute, ProductImage, ProductType,
@@ -61,13 +61,13 @@ def test_valid_product_class_form(color_attribute, size_attribute):
         'product_attributes': [color_attribute.pk],
         'variant_attributes': [size_attribute.pk],
         'has_variants': True}
-    form = ProductClassForm(data)
+    form = ProductTypeForm(data)
     assert form.is_valid()
 
     # Don't allow same attribute in both fields
     data['variant_attributes'] = [color_attribute.pk, size_attribute.pk]
     data['product_attributes'] = [size_attribute.pk]
-    form = ProductClassForm(data)
+    form = ProductTypeForm(data)
     assert not form.is_valid()
 
 
@@ -77,7 +77,7 @@ def test_variantless_product_class_form(color_attribute, size_attribute):
         'product_attributes': [color_attribute.pk],
         'variant_attributes': [],
         'has_variants': False}
-    form = ProductClassForm(data)
+    form = ProductTypeForm(data)
     assert form.is_valid()
 
     # Don't allow variant attributes when no variants
@@ -86,7 +86,7 @@ def test_variantless_product_class_form(color_attribute, size_attribute):
         'product_attributes': [color_attribute.pk],
         'variant_attributes': [size_attribute.pk],
         'has_variants': False}
-    form = ProductClassForm(data)
+    form = ProductTypeForm(data)
     assert not form.is_valid()
 
 
@@ -106,7 +106,7 @@ def test_edit_used_product_class(db, default_category):
         'product_attributes': product_class.product_attributes.all(),
         'variant_attributes': product_class.variant_attributes.all(),
         'has_variants': False}
-    form = ProductClassForm(data, instance=product_class)
+    form = ProductTypeForm(data, instance=product_class)
     assert form.is_valid()
 
     data = {
@@ -114,7 +114,7 @@ def test_edit_used_product_class(db, default_category):
         'product_attributes': product_class.product_attributes.all(),
         'variant_attributes': product_class.variant_attributes.all(),
         'has_variants': True}
-    form = ProductClassForm(data, instance=product_class)
+    form = ProductTypeForm(data, instance=product_class)
     assert form.is_valid()
 
     # Test has_variants validator which prevents turning off when product
@@ -126,7 +126,7 @@ def test_edit_used_product_class(db, default_category):
         'product_attributes': product_class.product_attributes.all(),
         'variant_attributes': product_class.variant_attributes.all(),
         'has_variants': False}
-    form = ProductClassForm(data, instance=product_class)
+    form = ProductTypeForm(data, instance=product_class)
     assert not form.is_valid()
     assert 'has_variants' in form.errors.keys()
 
