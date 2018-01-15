@@ -29,13 +29,16 @@ INTERNAL_IPS = os.environ.get('INTERNAL_IPS', '127.0.0.1').split()
 
 redis_host = os.environ.get('REDIS_HOST', None)
 redis_port = os.environ.get('REDIS_PORT', 6379)
+redis_db = os.environ.get('REDIS_DB', 0)
+
 if redis_host:
     CACHES = {
         'default': {
             'BACKEND': 'django_redis.cache.RedisCache',
-            'LOCATION': 'redis://{host}:{port}'.format(
+            'LOCATION': 'redis://{host}:{port}/{db}'.format(
                 host=redis_host,
                 port=redis_port,
+                db=redis_db,
             )
         }
     }
