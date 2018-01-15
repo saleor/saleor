@@ -8,7 +8,7 @@
   {% if product_type.pk %}
     {{ product_type }}
   {% else %}
-    {% trans "Add new product type" context "Product class page title" %}
+    {% trans "Add new product type" context "Product type page title" %}
   {% endif %}
   - {% trans "Products" context "Dashboard products list" %} - {{ block.super }}
 {% endblock %}
@@ -39,7 +39,7 @@
         {% if product_type.pk %}
           {{ product_type }}
         {% else %}
-          {% trans 'Add new product type' context "Product class breadcrumbs" %}
+          {% trans 'Add new product type' context "Product type breadcrumbs" %}
         {% endif %}
       </span>
     </li>
@@ -55,7 +55,7 @@
       {% if perms.product.edit_properties %}
       <li>
         <a href="#base-modal" data-href="{% url 'dashboard:product-type-delete' pk=product_type.pk %}" class="modal-trigger-custom">
-          {% trans "Remove product type" context "Product class action" %}
+          {% trans "Remove product type" context "Product type action" %}
         </a>
       </li>
       {% endif %}
@@ -117,7 +117,7 @@
     <div class="col m12 l3 help-box">
       <p class="grey-text">
         <svg data-src="{% static "dashboard/images/help.svg" %}" width="18" height="18" />
-        {% blocktrans trimmed context "Product class help text" %}
+        {% blocktrans trimmed context "Product type help text" %}
         Product Type is a template used for creating new products.
         It also controls which attributes can be used during product creation process.
         {% endblocktrans %}
