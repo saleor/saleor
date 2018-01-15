@@ -99,7 +99,7 @@ class ProductAttributeFilter(SortedFilterSet):
             number=counter) % {'counter': counter}
 
 
-class ProductClassFilter(SortedFilterSet):
+class ProductTypeFilter(SortedFilterSet):
     name = CharFilter(
         label=pgettext_lazy('Product type list filter label', 'Name'),
         lookup_expr='icontains')
