@@ -406,8 +406,11 @@ def remove_order_voucher(request, order_pk):
 @staff_member_required
 @permission_required('order.edit_order')
 def order_invoice(request, order_pk):
+    orders = Order.objects.prefetch_related(
+        'user', 'shipping_address', 'billing_address', 'voucher', 'groups')
+    order = get_object_or_404(orders, pk=order_pk)
     absolute_url = get_statics_absolute_url(request)
-    pdf_file, order = create_invoice_pdf(order_pk, absolute_url)
+    pdf_file, order = create_invoice_pdf(order, absolute_url)
     response = HttpResponse(pdf_file, content_type='application/pdf')
     name = "invoice-%s" % order.id
     response['Content-Disposition'] = 'filename=%s' % name
