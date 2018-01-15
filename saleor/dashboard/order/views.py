@@ -24,7 +24,7 @@ from .utils import (
 from ..views import staff_member_required
 from ...core.utils import get_paginator_items
 from ...order import GroupStatus
-from ...order.models import Order, OrderLine, OrderNote
+from ...order.models import DeliveryGroup, Order, OrderLine, OrderNote
 
 
 @staff_member_required
@@ -420,8 +420,12 @@ def order_invoice(request, order_pk):
 @staff_member_required
 @permission_required('order.edit_order')
 def order_packing_slip(request, group_pk):
+    groups = DeliveryGroup.objects.prefetch_related(
+        'lines', 'order', 'order__user', 'order__shipping_address',
+        'order__billing_address')
+    group = get_object_or_404(groups, pk=group_pk)
     absolute_url = get_statics_absolute_url(request)
-    pdf_file, group = create_packing_slip_pdf(group_pk, absolute_url)
+    pdf_file, group = create_packing_slip_pdf(group, absolute_url)
     response = HttpResponse(pdf_file, content_type='application/pdf')
     name = "packing-slip-%s-%s" % (group.order.id, group.id)
     response['Content-Disposition'] = 'filename=%s' % name
