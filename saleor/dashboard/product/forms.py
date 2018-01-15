@@ -16,7 +16,7 @@ from ..widgets import RichTextEditorWidget
 
 class ProductTypeSelectorForm(forms.Form):
     """
-    Form that allows selecting product class.
+    Form that allows selecting product type.
     """
     product_type = forms.ModelChoiceField(
         queryset=ProductType.objects.all(),
@@ -115,7 +115,7 @@ class ProductForm(forms.ModelForm):
 
     class Meta:
         model = Product
-        exclude = ['attributes', 'product_class', 'updated_at']
+        exclude = ['attributes', 'product_type', 'updated_at']
         labels = {
             'name': pgettext_lazy('Item name', 'Name'),
             'description': pgettext_lazy('Description', 'Description'),
@@ -131,8 +131,8 @@ class ProductForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         self.product_attributes = []
         super().__init__(*args, **kwargs)
-        product_class = self.instance.product_class
-        self.product_attributes = product_class.product_attributes.all()
+        product_type = self.instance.product_type
+        self.product_attributes = product_type.product_attributes.all()
         self.product_attributes = self.product_attributes.prefetch_related(
             'values')
         self.prepare_fields_for_attributes()
@@ -208,7 +208,7 @@ class VariantAttributeForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        attrs = self.instance.product.product_class.variant_attributes.all()
+        attrs = self.instance.product.product_type.variant_attributes.all()
         self.available_attrs = attrs.prefetch_related('values')
         for attr in self.available_attrs:
             field_defaults = {

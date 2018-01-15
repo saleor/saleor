@@ -12,7 +12,7 @@ from saleor.shipping.models import ShippingMethod
 from saleor.userprofile.models import Address, User
 
 
-class_schema = {'Vegetable': {
+type_schema = {'Vegetable': {
                    'category': 'Food',
                    'product_attributes': {
                        'Sweetness': ['Sweet', 'Sour'],
@@ -102,21 +102,23 @@ def test_create_attribute(db):
     assert attribute.slug == data['slug']
 
 
-def test_create_product_classes_by_schema(db):
-    p_class = random_data.create_product_classes_by_schema(class_schema)[0][0]
-    assert p_class.name == 'Vegetable'
-    assert p_class.product_attributes.count() == 2
-    assert p_class.variant_attributes.count() == 1
-    assert p_class.is_shipping_required
+def test_create_product_types_by_schema(db):
+    product_type = random_data.create_product_types_by_schema(
+        type_schema)[0][0]
+    assert product_type.name == 'Vegetable'
+    assert product_type.product_attributes.count() == 2
+    assert product_type.variant_attributes.count() == 1
+    assert product_type.is_shipping_required
 
 
-def test_create_products_by_class(db):
+def test_create_products_by_type(db):
     assert Product.objects.all().count() == 0
     how_many = 5
-    p_class = random_data.create_product_classes_by_schema(class_schema)[0][0]
-    random_data.create_products_by_class(p_class, class_schema['Vegetable'],
+    product_type = random_data.create_product_types_by_schema(
+        type_schema)[0][0]
+    random_data.create_products_by_type(product_type, type_schema['Vegetable'],
                                          '/', how_many=how_many,
-                                         create_images=False)
+                                        create_images=False)
     assert Product.objects.all().count() == how_many
 
 

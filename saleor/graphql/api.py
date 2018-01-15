@@ -266,16 +266,16 @@ class Query(graphene.ObjectType):
         category_pk = args.get('category_pk')
         queryset = ProductAttribute.objects.prefetch_related('values')
         if category_pk:
-            # Get attributes that are used with product classes
+            # Get attributes that are used with product types
             # within the given category.
             tree = Category.objects.get(
                 pk=category_pk).get_descendants(include_self=True)
-            product_classes = set(
+            product_types = set(
                 [obj[0] for obj in Product.objects.filter(
-                    category__in=tree).values_list('product_class_id')])
+                    category__in=tree).values_list('product_type_id')])
             queryset = queryset.filter(
-                Q(products_class__in=product_classes) |
-                Q(product_variants_class__in=product_classes))
+                Q(product_types__in=product_types) |
+                Q(product_variant_types__in=product_types))
         return queryset.distinct()
 
     def resolve_root(self, info):

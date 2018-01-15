@@ -215,9 +215,9 @@ def test_checkout_discount(request_cart, sale, product_in_stock):
 def test_checkout_create_order_insufficient_stock(
         request_cart, customer_user, product_in_stock, billing_address,
         shipping_method):
-    product_class = product_in_stock.product_class
-    product_class.is_shipping_required = False
-    product_class.save()
+    product_type = product_in_stock.product_type
+    product_type.is_shipping_required = False
+    product_type.save()
     customer_user.default_billing_address = billing_address
     customer_user.save()
     variant = product_in_stock.variants.get()

@@ -114,8 +114,8 @@ def update(request, cart, variant_id):
 def summary(request, cart):
     """Display a cart summary suitable for displaying on all pages."""
     def prepare_line_data(line):
-        product_class = line.variant.product.product_class
-        attributes = product_class.variant_attributes.all()
+        product_type = line.variant.product.product_type
+        attributes = product_type.variant_attributes.all()
         first_image = line.variant.get_first_image()
         price_per_item = line.get_price_per_item(discounts=request.discounts)
         line_total = line.get_total(discounts=request.discounts)

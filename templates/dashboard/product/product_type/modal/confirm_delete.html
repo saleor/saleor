@@ -7,12 +7,12 @@
 {% block form_class %}{% endblock %}
 
 {% block action_url %}
-{% url "dashboard:product-type-delete" pk=product_class.pk %}
+{% url "dashboard:product-type-delete" pk=product_type.pk %}
 {% endblock %}
 
 {% block title %}
 {% blocktrans trimmed context "Modal remove product class text" %}
-  Remove product class {{ product_class }}
+  Remove product class {{ product_type }}
 {% endblocktrans %}
 {% endblock title %}
 
@@ -20,7 +20,7 @@
   <div class="col s12">
     <p>
       {% blocktrans trimmed context "Modal remove product class text" %}
-        Are you sure you want to remove product class <strong>{{ product_class }}</strong>?
+        Are you sure you want to remove product class <strong>{{ product_type }}</strong>?
       {% endblocktrans %}
     </p>
     <p>

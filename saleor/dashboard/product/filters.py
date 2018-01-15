@@ -16,7 +16,7 @@ PRODUCT_SORT_BY_FIELDS = {
 PRODUCT_ATTRIBUTE_SORT_BY_FIELDS = {
     'name': pgettext_lazy('Product attribute list sorting option', 'name')}
 
-PRODUCT_CLASS_SORT_BY_FIELDS = {
+PRODUCT_TYPE_SORT_BY_FIELDS = {
     'name': pgettext_lazy('Product type list sorting option', 'name')}
 
 STOCK_LOCATION_SORT_BY_FIELDS = {
@@ -39,9 +39,9 @@ class ProductFilter(SortedFilterSet):
         label=pgettext_lazy('Product list filter label', 'Category'),
         name='category',
         queryset=Category.objects.all())
-    product_class = ModelMultipleChoiceFilter(
+    product_type = ModelMultipleChoiceFilter(
         label=pgettext_lazy('Product list filter label', 'Product type'),
-        name='product_class',
+        name='product_type',
         queryset=ProductType.objects.all())
     price = RangeFilter(
         label=pgettext_lazy('Product list filter label', 'Price'),
@@ -82,8 +82,8 @@ class ProductAttributeFilter(SortedFilterSet):
         lookup_expr='icontains')
     sort_by = OrderingFilter(
         label=pgettext_lazy('Product attribute list filter label', 'Sort by'),
-        fields=PRODUCT_CLASS_SORT_BY_FIELDS.keys(),
-        field_labels=PRODUCT_CLASS_SORT_BY_FIELDS)
+        fields=PRODUCT_TYPE_SORT_BY_FIELDS.keys(),
+        field_labels=PRODUCT_TYPE_SORT_BY_FIELDS)
 
     class Meta:
         model = ProductAttribute
@@ -105,8 +105,8 @@ class ProductTypeFilter(SortedFilterSet):
         lookup_expr='icontains')
     sort_by = OrderingFilter(
         label=pgettext_lazy('Product class list filter label', 'Sort by'),
-        fields=PRODUCT_CLASS_SORT_BY_FIELDS.keys(),
-        field_labels=PRODUCT_CLASS_SORT_BY_FIELDS)
+        fields=PRODUCT_TYPE_SORT_BY_FIELDS.keys(),
+        field_labels=PRODUCT_TYPE_SORT_BY_FIELDS)
 
     class Meta:
         model = ProductType

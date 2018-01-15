@@ -104,7 +104,7 @@ def test_product_query(client, product_in_stock):
 @pytest.mark.django_db()
 def test_filter_product_by_attributes(client, product_in_stock):
     category = Category.objects.first()
-    product_attr = product_in_stock.product_class.product_attributes.first()
+    product_attr = product_in_stock.product_type.product_attributes.first()
     attr_value = product_attr.values.first()
     filter_by = "%s:%s" % (product_attr.name, attr_value.slug)
     query = """

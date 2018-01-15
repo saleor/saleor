@@ -25,82 +25,82 @@ from . import forms
 @staff_member_required
 @permission_required('product.view_properties')
 def product_type_list(request):
-    classes = ProductType.objects.all().prefetch_related(
+    types = ProductType.objects.all().prefetch_related(
         'product_attributes', 'variant_attributes').order_by('name')
-    class_filter = ProductTypeFilter(request.GET, queryset=classes)
+    type_filter = ProductTypeFilter(request.GET, queryset=types)
     form = forms.ProductTypeForm(request.POST or None)
     if form.is_valid():
         return redirect('dashboard:product-type-add')
-    classes = get_paginator_items(
-        class_filter.qs, settings.DASHBOARD_PAGINATE_BY,
+    types = get_paginator_items(
+        type_filter.qs, settings.DASHBOARD_PAGINATE_BY,
         request.GET.get('page'))
-    classes.object_list = [
+    types.object_list = [
         (pc.pk, pc.name, pc.has_variants, pc.product_attributes.all(),
          pc.variant_attributes.all())
-        for pc in classes.object_list]
+        for pc in types.object_list]
     ctx = {
-        'form': form, 'product_classes': classes, 'filter_set': class_filter,
-        'is_empty': not class_filter.queryset.exists()}
+        'form': form, 'product_types': types, 'filter_set': type_filter,
+        'is_empty': not type_filter.queryset.exists()}
     return TemplateResponse(
         request,
-        'dashboard/product/product_class/list.html',
+        'dashboard/product/product_type/list.html',
         ctx)
 
 
 @staff_member_required
 @permission_required('product.edit_properties')
 def product_type_create(request):
-    product_class = ProductType()
+    product_type = ProductType()
     form = forms.ProductTypeForm(
-        request.POST or None, instance=product_class)
+        request.POST or None, instance=product_type)
     if form.is_valid():
-        product_class = form.save()
+        product_type = form.save()
         msg = pgettext_lazy(
-            'Dashboard message', 'Added product type %s') % (product_class,)
+            'Dashboard message', 'Added product type %s') % (product_type,)
         messages.success(request, msg)
         return redirect('dashboard:product-type-list')
-    ctx = {'form': form, 'product_class': product_class}
+    ctx = {'form': form, 'product_type': product_type}
     return TemplateResponse(
         request,
-        'dashboard/product/product_class/form.html',
+        'dashboard/product/product_type/form.html',
         ctx)
 
 
 @staff_member_required
 @permission_required('product.edit_properties')
 def product_type_edit(request, pk):
-    product_class = get_object_or_404(ProductType, pk=pk)
+    product_type = get_object_or_404(ProductType, pk=pk)
     form = forms.ProductTypeForm(
-        request.POST or None, instance=product_class)
+        request.POST or None, instance=product_type)
     if form.is_valid():
-        product_class = form.save()
+        product_type = form.save()
         msg = pgettext_lazy(
-            'Dashboard message', 'Updated product type %s') % (product_class,)
+            'Dashboard message', 'Updated product type %s') % (product_type,)
         messages.success(request, msg)
         return redirect('dashboard:product-type-update', pk=pk)
-    ctx = {'form': form, 'product_class': product_class}
+    ctx = {'form': form, 'product_type': product_type}
     return TemplateResponse(
         request,
-        'dashboard/product/product_class/form.html',
+        'dashboard/product/product_type/form.html',
         ctx)
 
 
 @staff_member_required
 @permission_required('product.edit_properties')
 def product_type_delete(request, pk):
-    product_class = get_object_or_404(ProductType, pk=pk)
+    product_type = get_object_or_404(ProductType, pk=pk)
     if request.method == 'POST':
-        product_class.delete()
+        product_type.delete()
         msg = pgettext_lazy(
-            'Dashboard message', 'Removed product type %s') % (product_class,)
+            'Dashboard message', 'Removed product type %s') % (product_type,)
         messages.success(request, msg)
         return redirect('dashboard:product-type-list')
     ctx = {
-        'product_class': product_class,
-        'products': product_class.products.all()}
+        'product_type': product_type,
+        'products': product_type.products.all()}
     return TemplateResponse(
         request,
-        'dashboard/product/product_class/modal/confirm_delete.html',
+        'dashboard/product/product_type/modal/confirm_delete.html',
         ctx)
 
 
@@ -109,14 +109,14 @@ def product_type_delete(request, pk):
 def product_list(request):
     products = Product.objects.prefetch_related('images')
     products = products.order_by('name')
-    product_classes = ProductType.objects.all()
+    product_types = ProductType.objects.all()
     product_filter = ProductFilter(request.GET, queryset=products)
     products = get_paginator_items(
         product_filter.qs, settings.DASHBOARD_PAGINATE_BY,
         request.GET.get('page'))
     ctx = {
         'bulk_action_form': forms.ProductBulkUpdate(),
-        'products': products, 'product_classes': product_classes,
+        'products': products, 'product_types': product_types,
         'filter_set': product_filter,
         'is_empty': not product_filter.queryset.exists()}
     return TemplateResponse(request, 'dashboard/product/list.html', ctx)
@@ -145,10 +145,10 @@ def product_select_type(request):
 @staff_member_required
 @permission_required('product.edit_product')
 def product_create(request, type_pk):
-    product_class = get_object_or_404(ProductType, pk=type_pk)
-    create_variant = not product_class.has_variants
+    product_type = get_object_or_404(ProductType, pk=type_pk)
+    create_variant = not product_type.has_variants
     product = Product()
-    product.product_class = product_class
+    product.product_type = product_type
     product_form = forms.ProductForm(request.POST or None, instance=product)
     if create_variant:
         variant = ProductVariant(product=product)
@@ -179,7 +179,7 @@ def product_create(request, type_pk):
 def product_detail(request, pk):
     products = Product.objects.prefetch_related(
         'variants__stock', 'images',
-        'product_class__variant_attributes__values').all()
+        'product_type__variant_attributes__values').all()
     product = get_object_or_404(products, pk=pk)
     variants = product.variants.all()
     images = product.images.all()
@@ -188,10 +188,10 @@ def product_detail(request, pk):
     purchase_cost, gross_margin = get_product_costs_data(product)
     gross_price_range = product.get_gross_price_range()
 
-    # no_variants is True for product classes that doesn't require variant.
+    # no_variants is True for product types that doesn't require variant.
     # In this case we're using the first variant under the hood to allow stock
     # management.
-    no_variants = not product.product_class.has_variants
+    no_variants = not product.product_type.has_variants
     only_variant = variants.first() if no_variants else None
     stock = only_variant.stock.all() if only_variant else Stock.objects.none()
     ctx = {
@@ -220,7 +220,7 @@ def product_edit(request, pk):
     product = get_object_or_404(
         Product.objects.prefetch_related('variants'), pk=pk)
 
-    edit_variant = not product.product_class.has_variants
+    edit_variant = not product.product_type.has_variants
     form = forms.ProductForm(request.POST or None, instance=product)
 
     if edit_variant:
@@ -463,13 +463,13 @@ def variant_details(request, product_pk, variant_pk):
     product = get_object_or_404(Product, pk=product_pk)
     qs = product.variants.prefetch_related(
         'stock__location',
-        'product__product_class__variant_attributes__values')
+        'product__product_type__variant_attributes__values')
     variant = get_object_or_404(qs, pk=variant_pk)
 
-    # If the product class of this product assumes no variants, redirect to
+    # If the product type of this product assumes no variants, redirect to
     # product details page that has special UI for products without variants.
 
-    if not product.product_class.has_variants:
+    if not product.product_type.has_variants:
         return redirect('dashboard:product-detail', pk=product.pk)
 
     stock = variant.stock.all()

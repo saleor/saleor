@@ -200,7 +200,7 @@
                 </p>
                 <ul>
                   {% if perms.product.view_properties %}
-                    <li class="{% block menu_product_classes_class %}{% endblock %}">
+                    <li class="{% block menu_product_types_class %}{% endblock %}">
                       <a href="{% url 'dashboard:product-type-list' %}">
                         {% trans "Product types" context "Dashboard product types list" %}
                       </a>
