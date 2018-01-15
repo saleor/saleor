@@ -42,7 +42,7 @@ services:
     network_mode: "host"
 
   web: &web
-    image: oyelogic:${OYE_IMAGE_TAG:-latest}
+    image: oyelogic:${OYE_IMAGE_TAG}
     restart: always
     entrypoint: /app/docker-entrypoint.sh
     env_file: .env
@@ -59,7 +59,7 @@ services:
     network_mode: "host"
 
   celeryworker:
-    image: oyelogic:${OYE_IMAGE_TAG:-latest}
+    image: oyelogic:${OYE_IMAGE_TAG}
     restart: always
     env_file: .env
     depends_on:
@@ -74,7 +74,7 @@ services:
     network_mode: "host"
 
   celerybeat:
-    image: oyelogic:${OYE_IMAGE_TAG:-latest}
+    image: oyelogic:${OYE_IMAGE_TAG}
     restart: always
     env_file: .env
     depends_on:
