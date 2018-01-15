@@ -4,6 +4,7 @@
       &-under:after {
         border-color: $medium-editor-bgcolor transparent transparent transparent;
         top: $medium-editor-button-size;
+        z-index: -1;
       }
       &-over:before {
         border-color: transparent transparent $medium-editor-bgcolor transparent;
@@ -64,6 +65,7 @@
         a {
           color: $medium-editor-link-color;
           transform: translateY(2px);
+          float: right;
         }
       }
 
@@ -72,8 +74,14 @@
         box-sizing: border-box;
         color: $medium-editor-link-color;
         height: $medium-editor-button-size;
-        padding-left: 16px;
         width: 220px;
+        border-bottom: 1px $grey-color solid !important;
+        margin-bottom: .5rem !important;
+        padding: 0 1rem !important;
+        &:active, &:focus {
+          border-bottom-color: $secondary-color !important;
+          box-shadow: 0 0 0 1px $secondary-color;
+        }
 
         &::placeholder {
           color: rgba($medium-editor-placeholder-color, .8);
