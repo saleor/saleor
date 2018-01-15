@@ -16,6 +16,10 @@ then
 
    rabbitmqctl add_user ${RABBITMQ_USER} ${RABBITMQ_PASSWORD}
    rabbitmqctl set_permissions -p / ${RABBITMQ_USER}  ".*" ".*" ".*"
+
+   rabbitmqctl add_vhost staging
+   rabbitmqctl add_vhost production
+
    echo "setup completed"
 else
    echo "already setup"
