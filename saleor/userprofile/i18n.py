@@ -51,6 +51,7 @@ class PossiblePhoneNumberFormField(PhoneNumberField):
     def to_python(self, value):
         return value
 
+
 class CountryAreaChoiceField(forms.ChoiceField):
     widget = DatalistTextWidget
 
