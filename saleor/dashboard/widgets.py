@@ -26,8 +26,11 @@ class PhonePrefixWidget(StorefrontPhonePrefixWidget):
 
 
 class RichTextEditorWidget(Textarea):
+    """
+    This widget is used to initialize medium-editor out-of-the-box
+    """
     def __init__(self, attrs=None):
         default_attrs = {'class': 'rich-text-editor'}
         if attrs:
             default_attrs.update(attrs)
-        super(Textarea, self).__init__(default_attrs)
+        super().__init__(default_attrs)
