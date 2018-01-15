@@ -284,7 +284,7 @@ def get_product_availability_status(product):
         return ProductAvailabilityStatus.NOT_PUBLISHED
     elif requires_variants and not product.variants.exists():
         # We check the requires_variants flag here in order to not show this
-        # status with product classes that don't require variants, as in that
+        # status with product types that don't require variants, as in that
         # case variants are hidden from the UI and user doesn't manage them.
         return ProductAvailabilityStatus.VARIANTS_MISSSING
     elif not has_stock_records:

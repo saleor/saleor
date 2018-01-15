@@ -104,7 +104,7 @@ class ProductTypeFilter(SortedFilterSet):
         label=pgettext_lazy('Product type list filter label', 'Name'),
         lookup_expr='icontains')
     sort_by = OrderingFilter(
-        label=pgettext_lazy('Product class list filter label', 'Sort by'),
+        label=pgettext_lazy('Product type list filter label', 'Sort by'),
         fields=PRODUCT_TYPE_SORT_BY_FIELDS.keys(),
         field_labels=PRODUCT_TYPE_SORT_BY_FIELDS)
 

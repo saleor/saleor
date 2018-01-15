@@ -20,7 +20,7 @@ class ProductTypeSelectorForm(forms.Form):
     """
     product_type = forms.ModelChoiceField(
         queryset=ProductType.objects.all(),
-        label=pgettext_lazy('Product class form label', 'Product type'),
+        label=pgettext_lazy('Product type form label', 'Product type'),
         widget=forms.RadioSelect, empty_label=None)
 
 
@@ -85,12 +85,12 @@ class ProductTypeForm(forms.ModelForm):
         variant_attr = set(self.cleaned_data['variant_attributes'])
         if not has_variants and len(variant_attr) > 0:
             msg = pgettext_lazy(
-                'Product class form error',
+                'Product type form error',
                 'Product variants are disabled.')
             self.add_error('variant_attributes', msg)
         if len(product_attr & variant_attr) > 0:
             msg = pgettext_lazy(
-                'Product class form error',
+                'Product type form error',
                 'A single attribute can\'t belong to both a product '
                 'and its variant.')
             self.add_error('variant_attributes', msg)
@@ -104,7 +104,7 @@ class ProductTypeForm(forms.ModelForm):
                 query = query.filter(variants_counter__gt=1)
                 if query.exists():
                     msg = pgettext_lazy(
-                        'Product class form error',
+                        'Product type form error',
                         'Some products of this type have more than '
                         'one variant.')
                     self.add_error('has_variants', msg)
