@@ -28,7 +28,7 @@ export default $(document).ready((e) => {
           countryAreaTimeout = setTimeout(() => {
             let lowerCaseValue = $countryAreaField.val().toLowerCase();
             if (lowerCaseValue) {
-              let value = countryAreaOptions.find(val => val.toLowerCase() == lowerCaseValue);
+              let value = countryAreaOptions.find(val => val.toLowerCase() === lowerCaseValue);
               if (value) {
                 $countryAreaField.val(value);
               } else {
