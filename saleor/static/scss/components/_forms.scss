@@ -128,9 +128,14 @@ input#id_quantity {
 }
 
 .help-block {
-  color: $red;
   font-size: 0.8rem;
   margin-top: $global-margin / 2;
+}
+
+.has-error {
+  .help-block {
+    color: $red;
+  }
 }
 
 .radio {
