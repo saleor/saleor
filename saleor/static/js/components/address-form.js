@@ -10,14 +10,14 @@ export default $(document).ready((e) => {
         $form.submit();
       });
       const $countryAreaList = $form.find('#country_area_list');
-      if ($countryAreaList){
+      if ($countryAreaList) {
         const $countryAreaField = $form.find('input[name=country_area]');
         const countryAreaOptions = $countryAreaList.find('option').toArray().reduce((options, option) => {
           option = $(option);
           let value = option.val();
           let text = option.text();
           options.push(value);
-          if (option != text) {
+          if (option !== text) {
             options.push(text);
           }
           return options;
@@ -27,15 +27,15 @@ export default $(document).ready((e) => {
           clearTimeout(countryAreaTimeout);
           countryAreaTimeout = setTimeout(() => {
             let lowerCaseValue = $countryAreaField.val().toLowerCase();
-            if (lowerCaseValue){
+            if (lowerCaseValue) {
               let value = countryAreaOptions.find(val => val.toLowerCase() == lowerCaseValue);
               if (value) {
                 $countryAreaField.val(value);
-              }else {
+              } else {
                 let value = countryAreaOptions.find(val => val.toLowerCase().startsWith(lowerCaseValue));
                 if (value) {
                   $countryAreaField.val(value);
-                }else {
+                } else {
                   let value = countryAreaOptions.find(val => val.toLowerCase().includes(lowerCaseValue));
                   if (value) {
                     $countryAreaField.val(value);
@@ -43,8 +43,8 @@ export default $(document).ready((e) => {
                 }
               }
             }
-           }, 500)
-        })
+          }, 500);
+        });
         $countryAreaField.trigger('change');
       };
     });
