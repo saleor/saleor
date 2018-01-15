@@ -1,7 +1,7 @@
 Product structure
 =================
 
-Before filling your shop with products we need to introduce 3 product concepts - *product classes*, *products*, *product variants*.
+Before filling your shop with products we need to introduce 3 product concepts - *product types*, *products*, *product variants*.
 
 Overview
 --------
@@ -10,7 +10,7 @@ Consider a book store. One of your *products* is a book titled "Introduction to 
 
 The book is available in hard and soft cover, so there would be 2 *product variants*.
 
-Type of cover is the only attribute which creates separate variants in our store, so we use *product class* named "Book" with variants enabled and a "Cover type" *variant attribute*.
+Type of cover is the only attribute which creates separate variants in our store, so we use *product type* named "Book" with variants enabled and a "Cover type" *variant attribute*.
 
 Class diagram
 -------------
@@ -34,10 +34,10 @@ Describes common details of a few *product variants*. When the shop displays the
     Featured products are displayed on the front page.
 
 
-Product classes
+Product types
 ---------------
 
-Think about classes as templates for your products. Multiple *products* can use the same product class.
+Think about types as templates for your products. Multiple *products* can use the same product type.
 
 - ``product_attributes``
     Attributes shared among all *product variants*. Example: publisher; all book variants are published by same company.
@@ -54,11 +54,9 @@ Think about classes as templates for your products. Multiple *products* can use 
     This option mainly simplifies product management in the dashboard. There is always at least one *variant* created under the hood.
 
 
-.. note:: In the admin interface a product class is called a "product type".
+.. warning:: Changing a product type affects all products of this type.
 
-.. warning:: Changing a product class affects all products of this type.
-
-.. warning:: You can't remove a product class if there are products of that type.
+.. warning:: You can't remove a product type if there are products of that type.
 
 
 Attributes
@@ -94,7 +92,7 @@ Your shop sells Coffee from around the world. Customer can order 1kg, 500g and 2
                       * 250g
    =================  ===========
 
-.. table:: Product class
+.. table:: Product type
 
    ======  ===================  =========  ==================  =========
    Name    Product attributes   Variants?  Variant attributes  Shipping?
@@ -104,11 +102,11 @@ Your shop sells Coffee from around the world. Customer can order 1kg, 500g and 2
 
 .. table:: Product
 
-   =============  ================  =================  =================================
-   Product class  Name              Country of origin  Description
-   =============  ================  =================  =================================
+   ============  ================  =================  =================================
+   Product type  Name              Country of origin  Description
+   ============  ================  =================  =================================
    Coffee         Best Java Coffee  Indonesia          Best coffee found on Java island!
-   =============  ================  =================  =================================
+   ============  ================  =================  =================================
 
 .. table:: Variants
 
@@ -137,7 +135,7 @@ You have great selection of online games items. Each item is unique, important d
    Max attack  ---
    ==========  ================
 
-.. table:: Product class
+.. table:: Product type
 
    =========  ==================  =========  ==================  =========
    Name       Product attributes  Variants?  Variant attributes  Shipping?
@@ -148,9 +146,9 @@ You have great selection of online games items. Each item is unique, important d
 
 .. table:: Products
 
-   =============  ================  =====  ==============  ===========  =======================================================
-   Product class  Name              Price  Game            Max attack   Description
-   =============  ================  =====  ==============  ===========  =======================================================
+   ============  ================  =====  ==============  ===========  =======================================================
+   Product type  Name              Price  Game            Max attack   Description
+   ============  ================  =====  ==============  ===========  =======================================================
    Game item      Magic Fire Sword  $199   Kings Online    8000         Unique sword for any fighter. Set your enemies on fire!
    Game item      Rapid Pistol      $2500  Target Shooter  250          Fastest pistol in the whole game.
    =============  ================  =====  ==============  ===========  =======================================================
