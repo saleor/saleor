@@ -3,7 +3,7 @@ build:
   version: 2016-03-14 # version of the build schema.
   steps:
     builder:
-      name: oyelogic:_env(OYE_IMAGE_TAG)
+      name: oyelogic
       dockerfile: Dockerfile
       secrets:
         id_rsa:
