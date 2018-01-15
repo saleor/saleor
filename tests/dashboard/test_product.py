@@ -300,7 +300,7 @@ def test_view_product_class_not_deleted_before_confirmation(
         admin_client, product_in_stock):
     product_class = product_in_stock.product_class
     url = reverse(
-        'dashboard:product-class-delete', kwargs={'pk': product_class.pk})
+        'dashboard:product-type-delete', kwargs={'pk': product_class.pk})
     response = admin_client.get(url)
     assert response.status_code == HTTP_STATUS_OK
     assert ProductType.objects.filter(pk=product_class.pk)
@@ -309,7 +309,7 @@ def test_view_product_class_not_deleted_before_confirmation(
 def test_view_product_class_delete(db, admin_client, product_in_stock):
     product_class = product_in_stock.product_class
     url = reverse(
-        'dashboard:product-class-delete', kwargs={'pk': product_class.pk})
+        'dashboard:product-type-delete', kwargs={'pk': product_class.pk})
     response = admin_client.post(url)
     assert response.status_code == HTTP_REDIRECTION
     assert not ProductType.objects.filter(pk=product_class.pk)
@@ -623,20 +623,20 @@ def test_product_list_pagination_with_filters(admin_client, product_list):
 
 
 def test_product_select_classes(admin_client, product_class):
-    url = reverse('dashboard:product-add-select-class')
+    url = reverse('dashboard:product-add-select-type')
     response = admin_client.get(url)
     assert response.status_code == HTTP_STATUS_OK
 
-    data = {'product_cls': product_class.pk}
+    data = {'product_type': product_class.pk}
     response = admin_client.post(url, data)
     assert response.get('location') == reverse(
-        'dashboard:product-add', kwargs={'class_pk': product_class.pk})
+        'dashboard:product-add', kwargs={'type_pk': product_class.pk})
     assert response.status_code == HTTP_REDIRECTION
 
 
 def test_product_select_classes_by_ajax(admin_client, product_class):
-    url = reverse('dashboard:product-add-select-class')
-    data = {'product_cls': product_class.pk}
+    url = reverse('dashboard:product-add-select-type')
+    data = {'product_type': product_class.pk}
 
     response = admin_client.post(
         url, data, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
@@ -644,7 +644,7 @@ def test_product_select_classes_by_ajax(admin_client, product_class):
     resp_decoded = json.loads(response.content.decode('utf-8'))
     assert response.status_code == 200
     assert resp_decoded.get('redirectUrl') == reverse(
-        'dashboard:product-add', kwargs={'class_pk': product_class.pk})
+        'dashboard:product-add', kwargs={'type_pk': product_class.pk})
 
 
 def test_hide_field_in_variant_choice_field_form():

@@ -18,7 +18,7 @@ class ProductTypeSelectorForm(forms.Form):
     """
     Form that allows selecting product class.
     """
-    product_cls = forms.ModelChoiceField(
+    product_type = forms.ModelChoiceField(
         queryset=ProductType.objects.all(),
         label=pgettext_lazy('Product class form label', 'Product type'),
         widget=forms.RadioSelect, empty_label=None)

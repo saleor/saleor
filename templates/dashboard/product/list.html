@@ -19,7 +19,7 @@
     {% if perms.product.edit_product %}
       <div class="btn-fab-fixed">
         {% if product_classes|length > 1 %}
-        <a data-href="{% url "dashboard:product-add-select-class" %}" class="btn-fab-default waves-effect waves-light modal-trigger-custom" href="#base-modal" title="{% trans "Add product" context "Product list add button text" %}">
+        <a data-href="{% url "dashboard:product-add-select-type" %}" class="btn-fab-default waves-effect waves-light modal-trigger-custom" href="#base-modal" title="{% trans "Add product" context "Product list add button text" %}">
             <svg data-src="{% static "dashboard/images/add.svg" %}" />
           </a>
         {% else %}

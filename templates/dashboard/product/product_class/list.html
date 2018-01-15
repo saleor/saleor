@@ -16,7 +16,7 @@
 {% block header_extra %}
   {% if perms.product.edit_properties %}
   <div class="btn-fab-fixed">
-    <a class="btn-fab-default waves-effect waves-light" title="{% trans "Add product type" context "Product type list add button text" %}" href="{% url 'dashboard:product-class-add' %}">
+    <a class="btn-fab-default waves-effect waves-light" title="{% trans "Add product type" context "Product type list add button text" %}" href="{% url 'dashboard:product-type-add' %}">
       <svg data-src="{% static "dashboard/images/add.svg" %}" />
     </a>
   </div>
@@ -55,7 +55,7 @@
               </thead>
               <tbody>
               {% for pk, name, has_variants, product_attributes, variant_attributes in product_classes %}
-                <tr data-action-go="{% if perms.product.edit_properties %}{% url 'dashboard:product-class-update' pk=pk %}{% endif %}">
+                <tr data-action-go="{% if perms.product.edit_properties %}{% url 'dashboard:product-type-update' pk=pk %}{% endif %}">
                   <td>
                     {{ name }}
                   </td>
