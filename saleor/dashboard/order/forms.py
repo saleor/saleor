@@ -26,13 +26,14 @@ from ..widgets import PhonePrefixWidget
 class OrderNoteForm(forms.ModelForm):
     class Meta:
         model = OrderNote
-        fields = ['content']
+        fields = ['content', 'is_public']
         widgets = {
             'content': forms.Textarea()}
         labels = {
-            'content': pgettext_lazy(
-                'Order note',
-                'Note')}
+            'content': pgettext_lazy('Order note', 'Note'),
+            'is_public': pgettext_lazy(
+                'Allow customers to see note toggle',
+                'Customer can see this note ')}
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
