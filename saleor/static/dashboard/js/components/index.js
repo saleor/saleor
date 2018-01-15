@@ -1,6 +1,7 @@
 import './async-form';
 import './bulk-actions';
 import './datepicker';
+import './editor';
 import './filters';
 import './image-gallery';
 import './messages';

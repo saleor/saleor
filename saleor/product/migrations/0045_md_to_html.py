@@ -19,5 +19,5 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RunPython(md_to_html),
+        migrations.RunPython(md_to_html, migrations.RunPython.noop),
     ]
