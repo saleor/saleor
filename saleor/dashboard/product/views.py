@@ -11,8 +11,8 @@ from django_prices.templatetags.prices_i18n import gross
 
 from ...core.utils import get_paginator_items
 from ...product.models import (
-    AttributeChoiceValue, Product, ProductAttribute, ProductClass,
-    ProductImage, ProductVariant, Stock, StockLocation)
+    AttributeChoiceValue, Product, ProductAttribute, ProductImage, ProductType,
+    ProductVariant, Stock, StockLocation)
 from ...product.utils import (
     get_availability, get_product_costs_data, get_variant_costs_data)
 from ..views import staff_member_required
@@ -25,7 +25,7 @@ from . import forms
 @staff_member_required
 @permission_required('product.view_properties')
 def product_class_list(request):
-    classes = ProductClass.objects.all().prefetch_related(
+    classes = ProductType.objects.all().prefetch_related(
         'product_attributes', 'variant_attributes').order_by('name')
     class_filter = ProductClassFilter(request.GET, queryset=classes)
     form = forms.ProductClassForm(request.POST or None)
@@ -50,7 +50,7 @@ def product_class_list(request):
 @staff_member_required
 @permission_required('product.edit_properties')
 def product_class_create(request):
-    product_class = ProductClass()
+    product_class = ProductType()
     form = forms.ProductClassForm(
         request.POST or None, instance=product_class)
     if form.is_valid():
@@ -69,7 +69,7 @@ def product_class_create(request):
 @staff_member_required
 @permission_required('product.edit_properties')
 def product_class_edit(request, pk):
-    product_class = get_object_or_404(ProductClass, pk=pk)
+    product_class = get_object_or_404(ProductType, pk=pk)
     form = forms.ProductClassForm(
         request.POST or None, instance=product_class)
     if form.is_valid():
@@ -88,7 +88,7 @@ def product_class_edit(request, pk):
 @staff_member_required
 @permission_required('product.edit_properties')
 def product_class_delete(request, pk):
-    product_class = get_object_or_404(ProductClass, pk=pk)
+    product_class = get_object_or_404(ProductType, pk=pk)
     if request.method == 'POST':
         product_class.delete()
         msg = pgettext_lazy(
@@ -109,7 +109,7 @@ def product_class_delete(request, pk):
 def product_list(request):
     products = Product.objects.prefetch_related('images')
     products = products.order_by('name')
-    product_classes = ProductClass.objects.all()
+    product_classes = ProductType.objects.all()
     product_filter = ProductFilter(request.GET, queryset=products)
     products = get_paginator_items(
         product_filter.qs, settings.DASHBOARD_PAGINATE_BY,
@@ -145,7 +145,7 @@ def product_select_class(request):
 @staff_member_required
 @permission_required('product.edit_product')
 def product_create(request, class_pk):
-    product_class = get_object_or_404(ProductClass, pk=class_pk)
+    product_class = get_object_or_404(ProductType, pk=class_pk)
     create_variant = not product_class.has_variants
     product = Product()
     product.product_class = product_class

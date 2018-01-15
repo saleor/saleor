@@ -58,7 +58,7 @@ class Category(MPTTModel):
         return '/'.join([node.slug for node in nodes])
 
 
-class ProductClass(models.Model):
+class ProductType(models.Model):
     name = models.CharField(max_length=128)
     has_variants = models.BooleanField(default=True)
     product_attributes = models.ManyToManyField(
@@ -89,7 +89,7 @@ class ProductQuerySet(models.QuerySet):
 
 class Product(models.Model, ItemRange):
     product_class = models.ForeignKey(
-        ProductClass, related_name='products', on_delete=models.CASCADE)
+        ProductType, related_name='products', on_delete=models.CASCADE)
     name = models.CharField(max_length=128)
     description = models.TextField()
     category = models.ForeignKey(Category, related_name='products')

@@ -126,10 +126,10 @@ def test_available_products_only_available(product_list):
 
 
 def test_filtering_by_attribute(db, color_attribute, default_category):
-    product_class_a = models.ProductClass.objects.create(
+    product_class_a = models.ProductType.objects.create(
         name='New class', has_variants=True)
     product_class_a.product_attributes.add(color_attribute)
-    product_class_b = models.ProductClass.objects.create(
+    product_class_b = models.ProductType.objects.create(
         name='New class', has_variants=True)
     product_class_b.variant_attributes.add(color_attribute)
     product_a = models.Product.objects.create(

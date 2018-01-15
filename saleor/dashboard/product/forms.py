@@ -7,8 +7,8 @@ from django.utils.text import slugify
 from django.utils.translation import pgettext_lazy
 
 from ...product.models import (
-    AttributeChoiceValue, Product, ProductAttribute, ProductClass,
-    ProductImage, ProductVariant, Stock, StockLocation, VariantImage)
+    AttributeChoiceValue, Product, ProductAttribute, ProductImage, ProductType,
+    ProductVariant, Stock, StockLocation, VariantImage)
 from .widgets import ImagePreviewWidget
 from . import ProductBulkAction
 from ..widgets import RichTextEditorWidget
@@ -19,7 +19,7 @@ class ProductClassSelectorForm(forms.Form):
     Form that allows selecting product class.
     """
     product_cls = forms.ModelChoiceField(
-        queryset=ProductClass.objects.all(),
+        queryset=ProductType.objects.all(),
         label=pgettext_lazy('Product class form label', 'Product type'),
         widget=forms.RadioSelect, empty_label=None)
 
@@ -59,7 +59,7 @@ class StockForm(forms.ModelForm):
 
 class ProductClassForm(forms.ModelForm):
     class Meta:
-        model = ProductClass
+        model = ProductType
         exclude = []
         labels = {
             'name': pgettext_lazy(
