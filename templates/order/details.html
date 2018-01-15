@@ -50,7 +50,7 @@
         {% endblocktrans %}
       </h2>
 
-      {% if order.notes.count %}
+      {% if notes %}
         <h2>{% trans "Notes" context "Order notes list" %}</h2>
         {% for note in notes %}
           <p>{{note.content}}</p>
