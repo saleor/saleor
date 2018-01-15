@@ -61,7 +61,7 @@ $('#product-is-published').on('click', (e) => {
 });
 
 // WYSIWYG editor
-const editor = new MediumEditor('#id_description');
+new MediumEditor('.rich-text-editor');
 
 // Styleguide sticky right menu
 onScroll(() => $('.styleguide__menu').toggleClass('fixed', $(window).scrollTop() > 100));
