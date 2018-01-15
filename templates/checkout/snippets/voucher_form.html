@@ -24,7 +24,11 @@
       {% csrf_token %}
       <div class="form-group input-btn">
         {% trans "Use" context "Checkout voucher form action" as use_voucher %}
-        {% bootstrap_field form.voucher show_label=False %} {% bootstrap_button use_voucher button_type="submit" button_class="btn secondary narrow" %}
+        {% if form.errors %}
+          {% bootstrap_field form.voucher show_label=False show_help=False placeholder=False %}
+        {% else %}
+          {% bootstrap_field form.voucher show_label=False show_help=True placeholder=False %}
+        {% endif %} {% bootstrap_button use_voucher button_type="submit" button_class="btn secondary narrow" %}
       </div>
     </form>
   {% endif %}

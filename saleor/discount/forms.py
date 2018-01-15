@@ -21,7 +21,7 @@ class CheckoutDiscountForm(forms.Form):
     voucher = VoucherField(
         queryset=Voucher.objects.none(),
         to_field_name='code',
-        label=pgettext_lazy(
+        help_text=pgettext_lazy(
             'Checkout discount form label for voucher field',
             'Gift card or discount code'),
         widget=forms.TextInput)
