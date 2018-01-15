@@ -25,10 +25,7 @@ def _create_pdf(rendered_template, absolute_url):
     return pdf_file
 
 
-def create_invoice_pdf(order_pk, absolute_url):
-    order = (Order.objects.prefetch_related(
-        'user', 'shipping_address', 'billing_address', 'voucher',
-        'groups').get(pk=order_pk))
+def create_invoice_pdf(order, absolute_url):
     shipping_methods = [
         {'name': d.shipping_method_name} for d in order.groups.all()]
     ctx = {'order': order, 'shipping_methods': shipping_methods}
