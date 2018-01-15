@@ -23,6 +23,7 @@ class PhonePrefixWidget(PhoneNumberPrefixWidget):
         widgets = (Select(attrs=attrs, choices=phone_prefixes), TextInput())
         super(PhoneNumberPrefixWidget, self).__init__(widgets, attrs)
 
+
 class DatalistTextWidget(Select):
     template_name = "userprofile/snippets/datalist.html"
     input_type = "text"
@@ -30,8 +31,8 @@ class DatalistTextWidget(Select):
     def render(self, *args, **kwargs):
         return super(DatalistTextWidget, self).render(*args, **kwargs)
 
-    def get_context(self, name, value, attrs):
-        context = super(DatalistTextWidget, self).get_context(name, value, attrs)
+    def get_context(self, *args):
+        context = super(DatalistTextWidget, self).get_context(*args)
         context['widget']['type'] = self.input_type
         return context
 
