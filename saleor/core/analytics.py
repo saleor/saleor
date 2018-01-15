@@ -21,7 +21,8 @@ def get_client_id(request):
 
 
 @shared_task
-def ga_report(tracking_id, client_id, what, extra_info=None, extra_headers=None):
+def ga_report(tracking_id, client_id, what, extra_info=None,
+              extra_headers=None):
     ga.report(tracking_id, client_id, what, extra_info=extra_info,
               extra_headers=extra_headers)
 
