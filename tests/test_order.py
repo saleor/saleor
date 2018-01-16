@@ -1,7 +1,9 @@
+from django.urls import reverse
 from prices import Price
 
 from saleor.order import models, OrderStatus
 from saleor.order.utils import add_variant_to_delivery_group
+from tests.utils import get_redirect_location
 
 
 def test_total_property():
@@ -101,3 +103,30 @@ def test_order_queryset_closed_orders(open_orders, closed_orders):
     qs = models.Order.objects.closed()
     assert qs.count() == len(closed_orders)
     assert all([item in qs for item in closed_orders])
+
+
+def test_view_connect_order_with_user_authorized_user(
+        order, authorized_client, customer_user):
+    order.user_email = customer_user.email
+    order.save()
+
+    url = reverse(
+        'order:connect-order-with-user', kwargs={'token': order.token})
+    response = authorized_client.post(url)
+
+    redirect_location = get_redirect_location(response)
+    assert redirect_location == reverse('order:details', args=[order.token])
+    order.refresh_from_db()
+    assert order.user == customer_user
+
+
+def test_view_connect_order_with_user_different_email(
+        order, authorized_client):
+    url = reverse(
+        'order:connect-order-with-user', kwargs={'token': order.token})
+    response = authorized_client.post(url)
+
+    redirect_location = get_redirect_location(response)
+    assert redirect_location == reverse('profile:details')
+    order.refresh_from_db()
+    assert order.user is None
