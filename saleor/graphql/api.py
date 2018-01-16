@@ -119,8 +119,8 @@ class CategoryType(DjangoObjectType):
     def resolve_products(self, info, **args):
         context = info.context
         qs = products_visible_to_user(context.user)
-        qs = qs.prefetch_related('images', 'categories', 'variants__stock')
-        qs = qs.filter(categories=self)
+        qs = qs.prefetch_related('images', 'category', 'variants__stock')
+        qs = qs.filter(category=self)
 
         attributes_filter, order_by, price_lte, price_gte = map(
             args.get, ['attributes', 'order_by', 'price_lte', 'price_gte'])
@@ -272,7 +272,7 @@ class Query(graphene.ObjectType):
                 pk=category_pk).get_descendants(include_self=True)
             product_classes = set(
                 [obj[0] for obj in Product.objects.filter(
-                    categories__in=tree).values_list('product_class_id')])
+                    category__in=tree).values_list('product_class_id')])
             queryset = queryset.filter(
                 Q(products_class__in=product_classes) |
                 Q(product_variants_class__in=product_classes))

@@ -207,9 +207,9 @@ def create_products_by_class(product_class, schema,
     category = get_or_create_category(category_name)
 
     for dummy in range(how_many):
-        product = create_product(product_class=product_class)
+        product = create_product(
+            product_class=product_class, category=category)
         set_product_attributes(product, product_class)
-        product.categories.add(category)
         if create_images:
             class_placeholders = os.path.join(
                 placeholder_dir, schema['images_dir'])

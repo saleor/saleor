@@ -25,8 +25,8 @@ def named_products(default_category, product_class):
             name=name,
             description=description,
             price=Decimal(6.6),
-            product_class=product_class)
-        product.categories.add(default_category)
+            product_class=product_class,
+            category=default_category)
         return product
     return [gen_product(name, desc) for name, desc in PRODUCTS]
 

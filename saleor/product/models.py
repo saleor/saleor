@@ -96,7 +96,7 @@ class Product(models.Model, ItemRange):
         ProductClass, related_name='products', on_delete=models.CASCADE)
     name = models.CharField(max_length=128)
     description = models.TextField()
-    categories = models.ManyToManyField(Category, related_name='products')
+    category = models.ForeignKey(Category, related_name='products')
     price = PriceField(
         currency=settings.DEFAULT_CURRENCY, max_digits=12, decimal_places=2)
     available_on = models.DateField(blank=True, null=True)
@@ -146,10 +146,7 @@ class Product(models.Model, ItemRange):
         return any(variant.is_in_stock() for variant in self)
 
     def get_first_category(self):
-        for category in self.categories.all():
-            if not category.is_hidden:
-                return category
-        return None
+        return self.category if not self.category.is_hidden else None
 
     def is_available(self):
         today = datetime.date.today()

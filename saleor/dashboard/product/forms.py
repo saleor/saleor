@@ -119,7 +119,7 @@ class ProductForm(forms.ModelForm):
         labels = {
             'name': pgettext_lazy('Item name', 'Name'),
             'description': pgettext_lazy('Description', 'Description'),
-            'categories': pgettext_lazy('Categories', 'Categories'),
+            'category': pgettext_lazy('Category', 'Category'),
             'price': pgettext_lazy('Currency amount', 'Price'),
             'available_on': pgettext_lazy(
                 'Availability date', 'Availability date'),
@@ -131,8 +131,6 @@ class ProductForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         self.product_attributes = []
         super().__init__(*args, **kwargs)
-        self.fields['categories'].widget.attrs['data-placeholder'] = (
-            pgettext_lazy('Product form placeholder', 'Search'))
         product_class = self.instance.product_class
         self.product_attributes = product_class.product_attributes.all()
         self.product_attributes = self.product_attributes.prefetch_related(
