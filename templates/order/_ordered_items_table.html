@@ -52,8 +52,8 @@
       <div class="row">
         <div class="col-md-6 col-9">
           <a class="link--clean" href="{{ item_line.product.get_absolute_url }}">
-            <img src="{% product_first_image item_line.product size="60x60" method="crop" %}" 
-            srcset="{% product_first_image item_line.product size="60x60" method="crop" %} 1x, {% product_first_image item_line.product size="120x120" method="crop" %} 2x" 
+            <img src="{% product_first_image item_line.product size="60x60" method="crop" %}"
+            srcset="{% product_first_image item_line.product size="60x60" method="crop" %} 1x, {% product_first_image item_line.product size="120x120" method="crop" %} 2x"
             class="float-left">
             <p>{{ item_line.product }}<br>
               <small>{{ item_line.product_name }}</small></p>
