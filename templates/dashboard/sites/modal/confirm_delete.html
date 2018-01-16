@@ -15,9 +15,11 @@
 {% endblock title %}
 
 {% block content %}
-{% blocktrans trimmed context "Modal delete authorization key text" %}
-  Are you sure you want to remove authorization key <strong>{{ key }}</strong>?
-{% endblocktrans %}
+  <div class="col s12">
+    {% blocktrans trimmed context "Modal delete authorization key text" %}
+      Are you sure you want to remove authorization key <strong>{{ key }}</strong>?
+    {% endblocktrans %}
+  </div>
 {% endblock content %}
 
 {% block primary_action %}

@@ -15,9 +15,11 @@
 {% endblock title %}
 
 {% block content %}
-{% blocktrans trimmed context "Modal remove shipping method country text" %}
-  Are you sure you want to remove shipping <strong>{{ country }}</strong>?
-{% endblocktrans %}
+  <div class="col s12">
+    {% blocktrans trimmed context "Modal remove shipping method country text" %}
+      Are you sure you want to remove shipping <strong>{{ country }}</strong>?
+    {% endblocktrans %}
+  </div>
 {% endblock content %}
 
 {% block primary_action %}

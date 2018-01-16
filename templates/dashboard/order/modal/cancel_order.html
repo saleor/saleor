@@ -8,13 +8,15 @@
 {% endblock %}
 
 {% block title %}
-{% trans "Cancel order" trimmed with order=order context "Modal cancel order title" %}
+{% trans "Cancel order" context "Modal cancel order title" %}
 {% endblock %}
 
 {% block content %}
-{% blocktrans trimmed with order=order context "Modal cancel order text" %}
-  Are you sure you want cancel order {{ order }}?
-{% endblocktrans %}
+  <div class="col s12">
+    {% blocktrans trimmed with order=order context "Modal cancel order text" %}
+      Are you sure you want cancel order {{ order }}?
+    {% endblocktrans %}
+  </div>
 {% endblock %}
 
 {% block cancel_action %}

@@ -16,15 +16,17 @@
 
 {% block content %}
   {{ form|materializecss }}
-  {% trans "Before this action:" context "Modal refund payment title" %}
-  <ul class="list">
-    <li class="list-item">{% trans "Order total:" context "Modal refund payment list title" %}
-      {% gross payment.order.get_total html=True %}
-    </li>
-    <li class="list-item">{% trans "Captured amount:" context "Modal refund payment list title" %}
-      {{ captured|currencyfmt:currency }}
-    </li>
-  </ul>
+  <div class="col s12">
+    {% trans "Before this action:" context "Modal refund payment title" %}
+    <ul class="list">
+      <li class="list-item">{% trans "Order total:" context "Modal refund payment list title" %}
+        {% gross payment.order.get_total html=True %}
+      </li>
+      <li class="list-item">{% trans "Captured amount:" context "Modal refund payment list title" %}
+        {{ captured|currencyfmt:currency }}
+      </li>
+    </ul>
+  </div>
 {% endblock %}
 
 {% block primary_action %}
