@@ -1,6 +1,7 @@
 import MediumEditor from 'medium-editor';
 
-MediumEditor('.rich-text-editor', {
+// eslint-disable
+const editor = new MediumEditor('.rich-text-editor', {
   toolbar: {
     buttons: [
       {
