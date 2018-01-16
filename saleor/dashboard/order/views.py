@@ -6,6 +6,7 @@ from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect
 from django.template.context_processors import csrf
 from django.template.response import TemplateResponse
+from django.urls import reverse
 from django.utils.translation import pgettext_lazy
 from django_prices.templatetags.prices_i18n import gross
 from payments import PaymentStatus
@@ -22,8 +23,9 @@ from .forms import (
 from .utils import (
     create_invoice_pdf, create_packing_slip_pdf, get_statics_absolute_url)
 from ..views import staff_member_required
-from ...core.utils import get_paginator_items
+from ...core.utils import get_paginator_items, build_absolute_uri
 from ...order import GroupStatus
+from ...order.emails import send_note_confirmation
 from ...order.models import DeliveryGroup, Order, OrderLine, OrderNote
 
 
@@ -92,6 +94,11 @@ def order_add_note(request, order_pk):
             'Added note')
         order.create_history_entry(comment=msg, user=request.user)
         messages.success(request, msg)
+        if note.is_public:
+            order_url = build_absolute_uri(
+                reverse('order:details', kwargs={'token': order.token}))
+            email = order.get_user_current_email()
+            send_note_confirmation.delay(email, order_url)
     elif form.errors:
         status = 400
     ctx = {'order': order, 'form': form}
