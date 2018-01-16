@@ -348,7 +348,7 @@ class OrderHistoryEntry(models.Model):
     order = models.ForeignKey(
         Order, related_name='history', on_delete=models.CASCADE)
     status = models.CharField(max_length=32, choices=OrderStatus.CHOICES)
-    comment = models.CharField(max_length=100, default='', blank=True)
+    comment = models.CharField(max_length=255, default='', blank=True)
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL, blank=True, null=True,
         on_delete=models.SET_NULL)
