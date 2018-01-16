@@ -7,14 +7,16 @@ from django.db import transaction
 from django.http import Http404, HttpResponseForbidden, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, redirect
 from django.template.response import TemplateResponse
+from django.urls import reverse
 from django.utils.translation import pgettext_lazy
 from payments import PaymentStatus, RedirectNeeded
 
+from .emails import send_note_confirmation
 from .forms import PaymentDeleteForm, PaymentMethodsForm, PasswordForm
 from .models import Order, Payment
 from .utils import attach_order_to_user, check_order_status
 from ..checkout.forms import NoteForm
-from ..core.utils import get_client_ip
+from ..core.utils import get_client_ip, build_absolute_uri
 from ..registration.forms import LoginForm
 from ..userprofile.models import User
 
@@ -35,12 +37,17 @@ def details(request, token):
                 order.notes.create(
                     user=request.user,
                     content=note_form.cleaned_data.get('note', ''))
+                order_url = build_absolute_uri(
+                    reverse('order:details', kwargs={'token': order.token}))
+                email = order.get_user_current_email()
+                send_note_confirmation.delay(email, order_url)
                 return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
-    return TemplateResponse(request, 'order/details.html', {
-                            'order': order,
-                            'groups': groups,
-                            'notes': notes,
-                            'note_form': note_form})
+    ctx = {
+        'order': order,
+        'groups': groups,
+        'notes': notes,
+        'note_form': note_form}
+    return TemplateResponse(request, 'order/details.html', ctx)
 
 
 def payment(request, token):
