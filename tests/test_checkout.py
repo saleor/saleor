@@ -3,7 +3,6 @@ from unittest.mock import MagicMock, Mock, patch
 from django.conf import settings
 from django.contrib.auth.models import AnonymousUser
 from django_countries.fields import Country
-from django.test.client import RequestFactory
 from prices import Price
 import pytest
 from satchless.item import InsufficientStock

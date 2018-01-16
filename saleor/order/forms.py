@@ -3,7 +3,7 @@ from django.conf import settings
 from django.utils.translation import pgettext_lazy
 from payments import PaymentStatus
 
-from .models import Payment
+from .models import Payment, OrderNote
 from ..registration.forms import SignupForm
 
 
@@ -47,3 +47,17 @@ class PasswordForm(SignupForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['email'].widget = forms.HiddenInput()
+
+
+class OrderNoteForm(forms.ModelForm):
+    class Meta:
+        model = OrderNote
+        fields = ['content']
+        widgets = {
+            'content': forms.Textarea()}
+        labels = {
+            'content': pgettext_lazy('Order note', 'Add note to order')
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
