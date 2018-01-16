@@ -72,4 +72,3 @@ def customer_edit(request, pk=None):
         return redirect('dashboard:customer-details', pk=customer.pk)
     ctx = {'form': form, 'customer': customer}
     return TemplateResponse(request, 'dashboard/customer/form.html', ctx)
-

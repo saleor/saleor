@@ -63,6 +63,19 @@ def test_delete_staff_no_POST(admin_client, staff_user):
     assert User.objects.all().count() == 2
 
 
+def test_delete_staff_with_orders(admin_client, staff_user, order):
+    order.user = staff_user
+    order.save()
+    assert User.objects.all().count() == 2
+    url = reverse('dashboard:staff-delete', kwargs={'pk': staff_user.pk})
+    data = {'pk': staff_user.pk}
+    response = admin_client.post(url, data)
+    assert User.objects.all().count() == 2
+    staff_user.refresh_from_db()
+    assert not staff_user.is_staff
+    assert response['Location'] == '/dashboard/staff/'
+
+
 def test_staff_create_email_with_set_link_password(
         admin_client, staff_group):
     url = reverse('dashboard:staff-create')

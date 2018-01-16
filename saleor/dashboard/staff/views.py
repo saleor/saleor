@@ -7,7 +7,8 @@ from django.utils.translation import pgettext_lazy
 
 from .filters import StaffFilter
 from .forms import StaffForm
-from ..emails import send_promote_customer_to_staff_email, send_set_password_email
+from ..emails import (
+    send_promote_customer_to_staff_email, send_set_password_email)
 from ..views import staff_member_required
 from ...core.utils import get_paginator_items
 from ...userprofile.models import User
@@ -75,7 +76,12 @@ def staff_delete(request, pk):
     queryset = User.objects.prefetch_related('orders')
     staff = get_object_or_404(queryset, pk=pk)
     if request.method == 'POST':
-        staff.delete()
+        # do not remove staff with related orders if any
+        if staff.orders.exists():
+            staff.is_staff = False
+            staff.save()
+        else:
+            staff.delete()
         msg = pgettext_lazy(
             'Dashboard message', 'Removed staff member %s') % (staff,)
         messages.success(request, msg)
