@@ -161,13 +161,13 @@ def connect_order_with_user(request, token):
     if not order:
         msg = pgettext_lazy(
             'Connect order with user warning message',
-            'We cannot connect order with this account due to difference '
-            'of e-mail given in checkout')
+            'We couldn\'t assign the order to your account as the email'
+            ' addresses don\'t match')
         messages.warning(request, msg)
         return redirect('profile:details')
     attach_order_to_user(order, request.user)
     msg = pgettext_lazy(
         'storefront message',
-        'You\'ve successfully connected order with your account')
+        'The order is now assigned to your account')
     messages.success(request, msg)
     return redirect('order:details', token=order.token)
