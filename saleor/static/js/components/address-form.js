@@ -9,44 +9,6 @@ export default $(document).ready((e) => {
         $previewField.val('on');
         $form.submit();
       });
-      const $countryAreaList = $form.find('#country_area_list');
-      if ($countryAreaList) {
-        const $countryAreaField = $form.find('input[name=country_area]');
-        const countryAreaOptions = $countryAreaList.find('option').toArray().reduce((options, option) => {
-          option = $(option);
-          let value = option.val();
-          let text = option.text();
-          options.push(value);
-          if (option !== text) {
-            options.push(text);
-          }
-          return options;
-        }, []);
-        let countryAreaTimeout = null;
-        $countryAreaField.on('change', () => {
-          clearTimeout(countryAreaTimeout);
-          countryAreaTimeout = setTimeout(() => {
-            let lowerCaseValue = $countryAreaField.val().toLowerCase();
-            if (lowerCaseValue) {
-              let value = countryAreaOptions.find(val => val.toLowerCase() === lowerCaseValue);
-              if (value) {
-                $countryAreaField.val(value);
-              } else {
-                let value = countryAreaOptions.find(val => val.toLowerCase().startsWith(lowerCaseValue));
-                if (value) {
-                  $countryAreaField.val(value);
-                } else {
-                  let value = countryAreaOptions.find(val => val.toLowerCase().includes(lowerCaseValue));
-                  if (value) {
-                    $countryAreaField.val(value);
-                  }
-                }
-              }
-            }
-          }, 500);
-        });
-        $countryAreaField.trigger('change');
-      };
     });
   });
 
