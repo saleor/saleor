@@ -4,7 +4,7 @@
 {% load staticfiles %}
 {% load i18n %}
 
-{% block title %}{% trans "Create password" context "Checkout create password page title" %} — {{ block.super }}{% endblock %}
+{% block title %}{% trans "Thank you" context "Checkout success page title" %} — {{ block.super }}{% endblock %}
 
 
 {% block content %}
@@ -35,8 +35,8 @@
               <fieldset>
                 <h3>{% trans "Why not to create an account" context "Checkout title" %}</h3>
                 <p>{% blocktrans trimmed %}
-                    Make your shopping experience even better!
-                    Save your shipping and payment details for faster checkout.
+                  Make your shopping experience even better!
+                  Save your shipping and payment details for faster checkout.
                 {% endblocktrans %}</p>
                 {% bootstrap_form form %}
               </fieldset>
@@ -54,7 +54,7 @@
           <h3>...</h3>
           <img class="checkout-pirate" src="{% static 'images/checkout-bg.png' %}"
                srcset="{% static 'images/checkout-bg.png' %} 1x, {% static 'images/checkout-bg2x.png' %} 2x">
-          <p><a href="{% url 'checkout:index' %}" class="btn secondary">
+          <p><a href="{% url 'home' %}" class="btn secondary">
               {% trans "Continue shopping" context "Checkout secondary action" %}
           </a></p>
         </div>
