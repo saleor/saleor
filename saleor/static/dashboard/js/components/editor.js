@@ -1,6 +1,6 @@
 import MediumEditor from 'medium-editor';
 
-new MediumEditor('.rich-text-editor', {
+MediumEditor('.rich-text-editor', {
   toolbar: {
     buttons: [
       {
@@ -52,8 +52,7 @@ new MediumEditor('.rich-text-editor', {
         meta: true,
         shift: false,
         alt: false
-      },
-
+      }
     ]
   }
 });
