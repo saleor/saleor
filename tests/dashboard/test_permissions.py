@@ -903,30 +903,6 @@ def test_staff_with_permissions_can_update_add_and_delete_shipping_method(
     assert response.status_code == 200
 
 
-def test_staff_with_permissions_can_promote_customer(
-        staff_client, staff_user, staff_group, customer_user,
-        permission_edit_staff, permission_edit_user):
-    assert not staff_user.has_perm("userprofile.edit_user")
-    assert not staff_user.has_perm("userprofile.edit_staff")
-    assert not customer_user.is_staff
-    response = staff_client.get(reverse('dashboard:customer-promote',
-                                        args=[customer_user.pk]))
-    assert response.status_code == 302
-    staff_group.permissions.add(permission_edit_user)
-    staff_group.permissions.add(permission_edit_staff)
-    staff_user.groups.add(staff_group)
-    staff_user = User.objects.get(pk=staff_user.pk)
-    assert staff_user.has_perm("userprofile.edit_user")
-    assert staff_user.has_perm("userprofile.edit_staff")
-    response = staff_client.get(reverse('dashboard:customer-promote',
-                                        args=[customer_user.pk]))
-    assert response.status_code == 200
-    response = staff_client.post(reverse('dashboard:customer-promote',
-                                         args=[customer_user.pk]))
-    customer_user = User.objects.get(pk=customer_user.pk)
-    assert customer_user.is_staff
-
-
 def test_staff_with_permissions_can_edit_customer(
         staff_client, customer_user, staff_user, staff_group,
         permission_edit_user, permission_view_user):
