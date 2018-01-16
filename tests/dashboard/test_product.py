@@ -90,11 +90,12 @@ def test_variantless_product_class_form(color_attribute, size_attribute):
     assert not form.is_valid()
 
 
-def test_edit_used_product_class(db):
+def test_edit_used_product_class(db, default_category):
     product_class = ProductClass.objects.create(
         name='New class', has_variants=True)
     product = Product.objects.create(
-        name='Test product', price=10, product_class=product_class)
+        name='Test product', price=10, product_class=product_class,
+        category=default_category)
     ProductVariant.objects.create(product=product, sku='1234')
 
     # When all products have only one variant you can change
@@ -143,7 +144,7 @@ def test_change_attributes_in_product_form(
     data = {
         'name': product.name,
         'price': product.price.gross,
-        'categories': [c.pk for c in product.categories.all()],
+        'category': product.category.pk,
         'description': 'description',
         'attribute-author': new_author,
         'attribute-color': new_color}

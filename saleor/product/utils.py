@@ -25,7 +25,7 @@ def products_visible_to_user(user):
 def products_with_details(user):
     products = products_visible_to_user(user)
     products = products.prefetch_related(
-        'categories', 'images', 'variants__stock',
+        'category', 'images', 'variants__stock',
         'variants__variant_images__image', 'attributes__values',
         'product_class__variant_attributes__values',
         'product_class__product_attributes__values')

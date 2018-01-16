@@ -19,10 +19,10 @@ from saleor.product.utils import (
 
 
 @pytest.fixture()
-def product_with_no_attributes(product_class):
+def product_with_no_attributes(product_class, default_category):
     product = models.Product.objects.create(
         name='Test product', price='10.00',
-        product_class=product_class)
+        product_class=product_class, category=default_category)
     return product
 
 
@@ -125,20 +125,20 @@ def test_available_products_only_available(product_list):
     assert all([product.is_available() for product in available_products])
 
 
-def test_filtering_by_attribute(db, color_attribute):
+def test_filtering_by_attribute(db, color_attribute, default_category):
     product_class_a = models.ProductClass.objects.create(
         name='New class', has_variants=True)
     product_class_a.product_attributes.add(color_attribute)
-    product_class_b = models.ProductClass.objects.create(name='New class',
-                                                         has_variants=True)
+    product_class_b = models.ProductClass.objects.create(
+        name='New class', has_variants=True)
     product_class_b.variant_attributes.add(color_attribute)
     product_a = models.Product.objects.create(
-        name='Test product a', price=10,
-        product_class=product_class_a)
+        name='Test product a', price=10, product_class=product_class_a,
+        category=default_category)
     models.ProductVariant.objects.create(product=product_a, sku='1234')
     product_b = models.Product.objects.create(
-        name='Test product b', price=10,
-        product_class=product_class_b)
+        name='Test product b', price=10, product_class=product_class_b,
+        category=default_category)
     variant_b = models.ProductVariant.objects.create(product=product_b,
                                                      sku='12345')
     color = color_attribute.values.first()
@@ -402,9 +402,8 @@ def test_variant_availability_status(unavailable_product):
 
 def test_product_filter_before_filtering(
         authorized_client, product_in_stock, default_category):
-    products = (models.Product.objects.all()
-                .filter(categories__name=default_category)
-                .order_by('-price'))
+    products = models.Product.objects.all().filter(
+        category__name=default_category).order_by('-price')
     url = reverse(
         'product:category', kwargs={'path': default_category.slug,
                                     'category_id': default_category.pk})
@@ -415,7 +414,7 @@ def test_product_filter_before_filtering(
 def test_product_filter_product_exists(authorized_client, product_in_stock,
                                        default_category):
     products = (models.Product.objects.all()
-                .filter(categories__name=default_category)
+                .filter(category__name=default_category)
                 .order_by('-price'))
     url = reverse(
         'product:category', kwargs={'path': default_category.slug,
@@ -438,7 +437,7 @@ def test_product_filter_product_does_not_exist(
 def test_product_filter_form(authorized_client, product_in_stock,
                              default_category):
     products = (models.Product.objects.all()
-                .filter(categories__name=default_category)
+                .filter(category__name=default_category)
                 .order_by('-price'))
     url = reverse(
         'product:category', kwargs={'path': default_category.slug,
@@ -452,7 +451,7 @@ def test_product_filter_form(authorized_client, product_in_stock,
 def test_product_filter_sorted_by_price_descending(
     authorized_client, product_list, default_category):
     products = (models.Product.objects.all()
-                .filter(categories__name=default_category, is_published=True)
+                .filter(category__name=default_category, is_published=True)
                 .order_by('-price'))
     url = reverse(
         'product:category', kwargs={'path': default_category.slug,

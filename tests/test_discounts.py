@@ -291,14 +291,14 @@ def test_products_voucher_checkout_discount_not(settings, monkeypatch, prices,
 
 
 @pytest.mark.django_db
-def test_sale_applies_to_correct_products(product_class):
+def test_sale_applies_to_correct_products(product_class, default_category):
     product = Product.objects.create(
         name='Test Product', price=10, description='', pk=10,
-        product_class=product_class)
+        product_class=product_class, category=default_category)
     variant = ProductVariant.objects.create(product=product, sku='firstvar')
     product2 = Product.objects.create(
         name='Second product', price=15, description='',
-        product_class=product_class)
+        product_class=product_class, category=default_category)
     sec_variant = ProductVariant.objects.create(
         product=product2, sku='secvar', pk=10)
     sale = Sale.objects.create(
@@ -309,33 +309,6 @@ def test_sale_applies_to_correct_products(product_class):
         net=5, currency='USD')
     with pytest.raises(NotApplicable):
         sale.modifier_for_product(sec_variant.product)
-
-
-@pytest.mark.django_db
-def test_get_category_variants_and_prices_product_with_many_categories(
-        cart, default_category, product_in_stock):
-    # Test: don't duplicate percentage voucher
-    # when product is in more than one category with discount
-    category = Category.objects.create(
-        name='Foobar', slug='foo', parent=default_category)
-    product_in_stock.price = Decimal('10.00')
-    product_in_stock.save()
-    product_in_stock.categories.add(category)
-    variant = product_in_stock.variants.first()
-    cart.add(variant, check_quantity=False)
-
-    discounted_products = list(
-        get_category_variants_and_prices(cart, default_category))
-    assert len(discounted_products) == 1
-
-    voucher = Voucher.objects.create(
-        category=default_category, type=VoucherType.CATEGORY,
-        discount_value='10.0', code='foobar',
-        discount_value_type=DiscountValueType.PERCENTAGE)
-    checkout_mock = Mock(spec=Checkout, cart=cart)
-    discount = voucher.get_discount_for_checkout(checkout_mock)
-    # 10% of 10.00 is 1.00
-    assert discount.amount == Price('1.00', currency=discount.amount.currency)
 
 
 def test_increase_voucher_usage():

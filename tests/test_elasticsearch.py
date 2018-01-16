@@ -53,8 +53,8 @@ def indexed_products(product_class, default_category):
             pk=object_id,
             name='Test product ' + str(object_id),
             price=Decimal(10.0),
-            product_class=product_class)
-        product.categories.add(default_category)
+            product_class=product_class,
+            category=default_category)
         return product
     return [gen_product_with_id(prod) for prod in PRODUCTS_INDEXED]
 
