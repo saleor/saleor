@@ -5,23 +5,29 @@ from templated_email import send_templated_mail
 
 CONFIRM_ORDER_TEMPLATE = 'order/confirm_order'
 CONFIRM_PAYMENT_TEMPLATE = 'order/payment/confirm_payment'
+CONFIRM_NOTE_TEMPLATE = 'order/note/confirm_note'
 
 
-def _send_confirmation(address, url, template):
+def _send_confirmation(email, url, template):
     site = Site.objects.get_current()
     send_templated_mail(
         from_email=settings.ORDER_FROM_EMAIL,
-        recipient_list=[address],
+        recipient_list=[email],
         context={'site_name': site.name,
                  'url': url},
         template_name=template)
 
 
 @shared_task
-def send_order_confirmation(address, url):
-    _send_confirmation(address, url, CONFIRM_ORDER_TEMPLATE)
+def send_order_confirmation(email, url):
+    _send_confirmation(email, url, CONFIRM_ORDER_TEMPLATE)
 
 
 @shared_task
-def send_payment_confirmation(address, url):
-    _send_confirmation(address, url, CONFIRM_PAYMENT_TEMPLATE)
+def send_payment_confirmation(email, url):
+    _send_confirmation(email, url, CONFIRM_PAYMENT_TEMPLATE)
+
+
+@shared_task
+def send_note_confirmation(email, url):
+    _send_confirmation(email, url, CONFIRM_NOTE_TEMPLATE)
