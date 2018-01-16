@@ -73,20 +73,3 @@ def customer_edit(request, pk=None):
     ctx = {'form': form, 'customer': customer}
     return TemplateResponse(request, 'dashboard/customer/form.html', ctx)
 
-
-@staff_member_required
-@permission_required('userprofile.edit_staff')
-@permission_required('userprofile.edit_user')
-def customer_promote_to_staff(request, pk):
-    customer = get_object_or_404(User, pk=pk)
-    if request.method == 'POST':
-        customer.is_staff = True
-        customer.save()
-        msg = pgettext_lazy(
-            'Dashboard message',
-            'Customer %s promoted to staff member') % customer
-        messages.success(request, msg)
-        return redirect('dashboard:customer-details', pk=customer.pk)
-    return TemplateResponse(
-        request, 'dashboard/customer/modal/confirm_promote.html',
-        {'customer': customer})
