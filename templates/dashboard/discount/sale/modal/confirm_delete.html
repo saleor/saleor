@@ -13,9 +13,11 @@
 {% endblock %}
 
 {% block content %}
-{% blocktrans trimmed context "Remove sale (discount) text" %}
-  Are you sure you want to remove <strong>{{ sale }}</strong>?
-{% endblocktrans %}
+  <div class="col s12">
+    {% blocktrans trimmed context "Remove sale (discount) text" %}
+      Are you sure you want to remove <strong>{{ sale }}</strong>?
+    {% endblocktrans %}
+  </div>
 {% endblock %}
 
 {% block primary_action %}
