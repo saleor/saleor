@@ -2,6 +2,7 @@
 
 {% load i18n %}
 {% load staticfiles %}
+{% load bootstrap_form from bootstrap4 %}
 
 {% block title %}
   {% blocktrans trimmed context "Order details page title" %}
@@ -49,21 +50,6 @@
           Order {{ order }}: {{ order_status }}
         {% endblocktrans %}
       </h2>
-
-      {% if notes %}
-        <h2>{% trans "Notes" context "Order notes list" %}</h2>
-        {% for note in notes %}
-          <p>{{note.content}}</p>
-        {% endfor %}
-      {% endif %}
-      {% if order.status == 'open' %}
-        <h2>{% trans "Add a note to your order" context "Order summary add note title" %}</h2>
-        <form method="post">
-          {% csrf_token %}
-          {{ note_form }}
-          <input type="submit" value="Submit" />
-        </form>
-      {% endif %}
       {% if not order.is_fully_paid %}
         {% if order.is_pre_authorized %}
           <a href="{% url "order:payment" token=order.token %}" class="btn btn-link">
@@ -76,6 +62,20 @@
         {% endif %}
       {% endif %}
       {% include "order/_ordered_items_table.html" %}
+      {% if notes %}
+        <h2 class="mt-5">{% trans "Notes" context "Order notes list" %}</h2>
+        {% for note in notes %}
+          <p>{{note.content}}</p>
+        {% endfor %}
+      {% endif %}
+      {% if order.status == 'open' %}
+        <h2>{% trans "Add a note to your order" context "Order summary add note title" %}</h2>
+        <form method="post" class="form-group">
+          {% csrf_token %}
+          {% bootstrap_form note_form %}
+          <input type="submit" value="Submit" class="btn primary" />
+        </form>
+      {% endif %}
     </div>
   </div>
 {% endblock content %}
