@@ -216,7 +216,7 @@
                 <span class="card-title black-text">
                   {% trans "Shipping address" context "" %}
                 </span>
-                {% if order.shippig_address %}
+                {% if order.shipping_address %}
                   {% format_address order.shipping_address %}
                 {% else %}
                   {% trans "No shipping address" context "Missing shipping address message" %}
