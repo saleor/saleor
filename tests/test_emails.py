@@ -30,3 +30,14 @@ def test_send_order_payment_confirmation(mocked_templated_email):
         context=context,
         from_email=EMAIL_FROM,
         template_name=emails.CONFIRM_PAYMENT_TEMPLATE)
+
+
+@mock.patch('saleor.order.emails.send_templated_mail')
+def test_send_note_confirmation(mocked_templated_email):
+    emails.send_note_confirmation(EMAIL, URL)
+    context = {'site_name': SITE_NAME, 'url': URL}
+    mocked_templated_email.assert_called_once_with(
+        recipient_list=[EMAIL],
+        context=context,
+        from_email=EMAIL_FROM,
+        template_name=emails.CONFIRM_NOTE_TEMPLATE)

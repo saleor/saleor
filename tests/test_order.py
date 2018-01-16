@@ -1,7 +1,9 @@
+from django.test.client import RequestFactory
 from django.urls import reverse
 from prices import Price
 
 from saleor.order import models, OrderStatus
+from saleor.order.forms import OrderNoteForm
 from saleor.order.utils import add_variant_to_delivery_group
 from tests.utils import get_redirect_location
 
@@ -130,3 +132,12 @@ def test_view_connect_order_with_user_different_email(
     assert redirect_location == reverse('profile:details')
     order.refresh_from_db()
     assert order.user is None
+
+
+def test_add_order_to_note(order_with_lines_and_stock):
+    order = order_with_lines_and_stock
+    note = models.OrderNote(order=order, user=order.user)
+    note_form = OrderNoteForm({'content': 'test_note'}, instance=note)
+    note_form.is_valid()
+    note_form.save()
+    assert order.notes.first().content == 'test_note'

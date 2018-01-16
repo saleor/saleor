@@ -11,9 +11,14 @@ from django.urls import reverse
 from django.utils.translation import pgettext_lazy
 from payments import PaymentStatus, RedirectNeeded
 
+from . import OrderStatus
 from .emails import send_note_confirmation
-from .forms import PaymentDeleteForm, PaymentMethodsForm, PasswordForm
-from .models import Order, Payment
+from .forms import (
+    PaymentDeleteForm,
+    PaymentMethodsForm,
+    PasswordForm,
+    OrderNoteForm)
+from .models import Order, OrderNote, Payment
 from .utils import attach_order_to_user, check_order_status
 from ..checkout.forms import NoteForm
 from ..core.utils import get_client_ip, build_absolute_uri
@@ -25,28 +30,24 @@ logger = logging.getLogger(__name__)
 
 def details(request, token):
     orders = Order.objects.prefetch_related('groups__lines__product')
-    orders = orders.select_related('billing_address', 'shipping_address',
-                                   'user')
+    orders = orders.select_related(
+        'billing_address', 'shipping_address', 'user')
     order = get_object_or_404(orders, token=token)
     groups = order.groups.all()
     notes = order.notes.filter(is_public=True)
-    if order.status == 'open':
-        note_form = NoteForm(request.POST or None)
+    ctx = {'order': order, 'groups': groups, 'notes': notes}
+    if order.status == OrderStatus.OPEN:
+        note = OrderNote(order=order, user=request.user)
+        note_form = OrderNoteForm(request.POST or None, instance=note)
+        ctx.update({'note_form': note_form})
         if request.method == 'POST':
             if note_form.is_valid():
-                order.notes.create(
-                    user=request.user,
-                    content=note_form.cleaned_data.get('note', ''))
+                note_form.save()
                 order_url = build_absolute_uri(
                     reverse('order:details', kwargs={'token': order.token}))
                 email = order.get_user_current_email()
                 send_note_confirmation.delay(email, order_url)
-                return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
-    ctx = {
-        'order': order,
-        'groups': groups,
-        'notes': notes,
-        'note_form': note_form}
+                return redirect('order:details', token=order.token)
     return TemplateResponse(request, 'order/details.html', ctx)
 
 

@@ -33,7 +33,7 @@ class OrderNoteForm(forms.ModelForm):
             'content': pgettext_lazy('Order note', 'Note'),
             'is_public': pgettext_lazy(
                 'Allow customers to see note toggle',
-                'Customer can see this note ')}
+                'Customer can see this note')}
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
