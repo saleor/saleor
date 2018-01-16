@@ -111,3 +111,11 @@ def test_create_staff_and_set_password(admin_client, staff_group):
     assert response['Location'] == reverse('account_reset_password_complete')
     new_user = User.objects.get(email='staff3@example.com')
     assert new_user.has_usable_password()
+
+
+def test_create_staff_from_customer(admin_client, staff_group, customer_user):
+    url = reverse('dashboard:staff-create')
+    data = {'email': customer_user.email, 'groups': staff_group.pk}
+    admin_client.post(url, data)
+    customer_user.refresh_from_db()
+    assert customer_user.is_staff
