@@ -16,12 +16,7 @@
 
 {% block content %}
   <div class="col s12">
-    {% blocktrans trimmed context "Modal remove group text" %}
-      <p>Are you sure you want to remove staff member?</p>
-      <p>Deleting staff member also removes him from customer list and removes all his related data (orders, payment etc.).</p>
-      <p>We strongly recommend not deleting user accounts that were used for purchases (for example customer which was promoted with staff member status).</p>
-      <p>{{ staff }} has <strong>{{ orders }}</strong> orders.</p>
-    {% endblocktrans %}
+    {% trans "Are you sure you want to remove staff member?" context "Modal remove group text" %}
   </div>
 {% endblock content %}
 
