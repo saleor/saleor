@@ -42,7 +42,7 @@ services:
     network_mode: "host"
 
   web: &web
-    image: oyelogic
+    image: oyelogic:latest
     restart: always
     entrypoint: /app/docker-entrypoint.sh
     env_file: .env
@@ -56,10 +56,11 @@ services:
       - ${DOCKER_HOST_OYE_MEDIA_ROOT}:${MEDIA_ROOT}
       - ${DOCKER_HOST_OYE_STATIC_ROOT}:${STATIC_ROOT}
       - ${DOCKER_HOST_OYE_INVOICES_ROOT}:${PDF_STORAGE_ROOT}
+      - ${DOCKER_HOST_ORIGINAL_IMAGES_ROOT}:/var/www/images/
     network_mode: "host"
 
   celeryworker:
-    image: oyelogic
+    image: oyelogic:latest
     restart: always
     env_file: .env
     depends_on:
@@ -74,7 +75,7 @@ services:
     network_mode: "host"
 
   celerybeat:
-    image: oyelogic
+    image: oyelogic:latest
     restart: always
     env_file: .env
     depends_on:

@@ -539,5 +539,6 @@ PAYPAL_API_VERSION = os.environ.get('PAYPAL_API_VERSION', None)
 
 
 PDF_STORAGE_ROOT = os.environ.get('PDF_STORAGE_ROOT', '/tmp/')
+ORIGINAL_IMAGES_ROOT = os.environ.get('ORIGINAL_IMAGES_ROOT', '/var/www/images/')
 
 ENVIRONMENT = os.environ.get('ENVIRONMENT', None)
