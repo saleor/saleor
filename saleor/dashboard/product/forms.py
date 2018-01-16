@@ -11,6 +11,7 @@ from ...product.models import (
     ProductImage, ProductVariant, Stock, StockLocation, VariantImage)
 from .widgets import ImagePreviewWidget
 from . import ProductBulkAction
+from ..widgets import RichTextEditorWidget
 
 
 class ProductClassSelectorForm(forms.Form):
@@ -137,6 +138,7 @@ class ProductForm(forms.ModelForm):
         self.product_attributes = self.product_attributes.prefetch_related(
             'values')
         self.prepare_fields_for_attributes()
+        self.fields['description'].widget = RichTextEditorWidget()
 
     def prepare_fields_for_attributes(self):
         for attribute in self.product_attributes:
