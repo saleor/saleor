@@ -62,19 +62,21 @@
         {% endif %}
       {% endif %}
       {% include "order/_ordered_items_table.html" %}
-      {% if notes %}
-        <h2 class="mt-5">{% trans "Notes" context "Order notes list" %}</h2>
-        {% for note in notes %}
-          <p>{{note.content}}</p>
-        {% endfor %}
-      {% endif %}
       {% if order.status == 'open' %}
-        <h2>{% trans "Add a note to your order" context "Order summary add note title" %}</h2>
-        <form method="post" class="form-group">
-          {% csrf_token %}
-          {% bootstrap_form note_form %}
-          <input type="submit" value="Submit" class="btn primary" />
-        </form>
+        {% if notes %}
+          <h2 class="order-notes__header">{% trans "Notes" context "Order notes list" %}</h2>
+          {% for note in notes %}
+            <p>{{note.content}}</p>
+          {% endfor %}
+        {% endif %}
+        <div class="order-notes">
+          <h2 class="order-notes__header">{% trans "Add a note to your order" context "Order summary add note title" %}</h2>
+          <form method="post" class="form-group">
+            {% csrf_token %}
+            {% bootstrap_form note_form display_labels=False %}
+            <input type="submit" value="Submit" class="btn primary" />
+          </form>
+        </div>
       {% endif %}
     </div>
   </div>
