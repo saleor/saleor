@@ -57,9 +57,6 @@ class Category(MPTTModel):
         nodes = [node for node in ancestors] + [self]
         return '/'.join([node.slug for node in nodes])
 
-    def set_is_hidden_descendants(self, is_hidden):
-        self.get_descendants().update(is_hidden=is_hidden)
-
 
 class ProductClass(models.Model):
     name = models.CharField(max_length=128)
