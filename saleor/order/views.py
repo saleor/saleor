@@ -12,12 +12,8 @@ from django.utils.translation import pgettext_lazy
 from payments import PaymentStatus, RedirectNeeded
 
 from . import OrderStatus
-from .emails import send_note_confirmation
 from .forms import (
-    PaymentDeleteForm,
-    PaymentMethodsForm,
-    PasswordForm,
-    OrderNoteForm)
+    PaymentDeleteForm, PaymentMethodsForm, PasswordForm, OrderNoteForm)
 from .models import Order, OrderNote, Payment
 from .utils import attach_order_to_user, check_order_status
 from ..checkout.forms import NoteForm

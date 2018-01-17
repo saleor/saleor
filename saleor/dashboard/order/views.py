@@ -25,7 +25,6 @@ from .utils import (
 from ..views import staff_member_required
 from ...core.utils import get_paginator_items, build_absolute_uri
 from ...order import GroupStatus
-from ...order.emails import send_note_confirmation
 from ...order.models import DeliveryGroup, Order, OrderLine, OrderNote
 
 
@@ -95,10 +94,7 @@ def order_add_note(request, order_pk):
         order.create_history_entry(comment=msg, user=request.user)
         messages.success(request, msg)
         if note.is_public:
-            order_url = build_absolute_uri(
-                reverse('order:details', kwargs={'token': order.token}))
-            email = order.get_user_current_email()
-            send_note_confirmation.delay(email, order_url)
+            form.send_confirmation_email()
     elif form.errors:
         status = 400
     ctx = {'order': order, 'form': form}
