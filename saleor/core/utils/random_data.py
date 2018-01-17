@@ -420,6 +420,7 @@ def create_order_line(delivery_group):
         delivery_group=delivery_group,
         product=product,
         product_name=product.name,
+        variant=variant,
         product_sku=variant.sku,
         quantity=quantity,
         stock=stock,

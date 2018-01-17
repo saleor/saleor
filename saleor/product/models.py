@@ -255,7 +255,8 @@ class ProductVariant(models.Model, Item):
         return '%s (%s)' % (smart_text(self.product), smart_text(self))
 
     def get_first_image(self):
-        return self.product.get_first_image()
+        first_image = self.images.first()
+        return first_image.image if first_image else self.product.get_first_image()
 
     def select_stockrecord(self, quantity=1):
         # By default selects stock with lowest cost price. If stock cost price

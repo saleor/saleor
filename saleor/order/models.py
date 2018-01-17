@@ -260,6 +260,10 @@ class OrderLine(models.Model, ItemLine):
         Product, blank=True, null=True, related_name='+',
         on_delete=models.SET_NULL)
     product_name = models.CharField(max_length=128)
+    variant = models.ForeignKey(
+        'product.ProductVariant', blank=True, null=True, related_name='variant',
+        on_delete=models.SET_NULL,
+        verbose_name=pgettext_lazy('Ordered item field', 'variant'))
     product_sku = models.CharField(max_length=32)
     stock_location = models.CharField(max_length=100, default='')
     stock = models.ForeignKey(

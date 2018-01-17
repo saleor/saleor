@@ -87,6 +87,7 @@ def add_variant_to_delivery_group(
         group.lines.create(
             product=variant.product,
             product_name=variant.display_product(),
+            variant=variant,
             product_sku=variant.sku,
             quantity=quantity,
             unit_price_net=price.net,
@@ -188,7 +189,7 @@ def move_order_line_to_group(line, target_group, quantity):
             delivery_group=target_group, product=line.product,
             product_name=line.product_name, product_sku=line.product_sku,
             quantity=quantity, unit_price_net=line.unit_price_net,
-            stock=line.stock,
+            stock=line.stock, variant=product_variant,
             stock_location=line.stock_location,
             unit_price_gross=line.unit_price_gross)
     else:
