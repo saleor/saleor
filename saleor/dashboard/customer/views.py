@@ -1,6 +1,7 @@
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import permission_required
+from django.db.models import Q
 from django.shortcuts import get_object_or_404, redirect
 from django.template.response import TemplateResponse
 from django.utils.translation import pgettext_lazy
@@ -18,6 +19,9 @@ from .forms import CustomerForm
 def customer_list(request):
     customers = (
         User.objects
+        .filter(
+            Q(is_staff=False) | (Q(is_staff=True) & Q(orders__isnull=False)))
+        .distinct()
         .prefetch_related('orders', 'addresses')
         .select_related('default_billing_address', 'default_shipping_address')
         .order_by('email'))
