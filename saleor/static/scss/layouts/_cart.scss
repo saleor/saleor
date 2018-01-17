@@ -58,6 +58,10 @@
       svg {
         vertical-align: text-top;
       }
+      svg:hover path{
+        transition: 0.3s;
+        fill: $blue;
+      }
     }
   }
   &__total {
