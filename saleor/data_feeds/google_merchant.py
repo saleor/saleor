@@ -133,7 +133,7 @@ def item_google_product_category(item, category_paths):
     Read more:
     https://support.google.com/merchants/answer/6324436
     """
-    category = item.product.get_first_category()
+    category = item.product.get_category()
     if category:
         if category.pk in category_paths:
             return category_paths[category.pk]

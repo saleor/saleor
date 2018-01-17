@@ -32,11 +32,11 @@ def test_category_formatter(db):
     main_category = Category(name='Main', slug='main')
     main_category.save()
     main_category_item = Mock(
-        product=Mock(get_first_category=lambda: main_category))
+        product=Mock(get_category=lambda: main_category))
     sub_category = Category(name='Sub', slug='sub', parent=main_category)
     sub_category.save()
     sub_category_item = Mock(
-        product=Mock(get_first_category=lambda: sub_category))
+        product=Mock(get_category=lambda: sub_category))
     assert item_google_product_category(
         main_category_item, {}) == 'Main'
     assert item_google_product_category(

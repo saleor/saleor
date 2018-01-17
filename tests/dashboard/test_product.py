@@ -572,7 +572,7 @@ def test_product_list_filters_is_published(
         admin_client, product_list, default_category):
     data = {'price_1': [''], 'price_0': [''], 'is_featured': [''],
             'name': ['Test'], 'sort_by': ['name'],
-            'categories': [default_category.pk], 'is_published': ['1']}
+            'category': default_category.pk, 'is_published': ['1']}
     url = reverse('dashboard:product-list')
     response = admin_client.get(url, data)
     assert response.status_code == 200
