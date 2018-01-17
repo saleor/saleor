@@ -29,7 +29,6 @@ class Category(MPTTModel):
     parent = models.ForeignKey(
         'self', null=True, blank=True, related_name='children',
         on_delete=models.CASCADE)
-    is_hidden = models.BooleanField(default=False)
 
     objects = models.Manager()
     tree = TreeManager()
