@@ -43,10 +43,6 @@ def details(request, token):
         if request.method == 'POST':
             if note_form.is_valid():
                 note_form.save()
-                order_url = build_absolute_uri(
-                    reverse('order:details', kwargs={'token': order.token}))
-                email = order.get_user_current_email()
-                send_note_confirmation.delay(email, order_url)
                 return redirect('order:details', token=order.token)
     return TemplateResponse(request, 'order/details.html', ctx)
 
