@@ -8,7 +8,6 @@ ADD requirements.txt /app/
 # add the authorized host key for github (avoids "Host key verification failed")
 RUN mkdir ~/.ssh && ssh-keyscan -t rsa github.com >> ~/.ssh/known_hosts
 
-ADD . /app
 
 ARG host
 
@@ -20,6 +19,8 @@ RUN wget -O $PRIVATE_KEY http://$host:8080/v1/secrets/file/id_rsa \
 && rm $PRIVATE_KEY
 
 RUN pip install gunicorn
+
+ADD . /app
 
 EXPOSE 8000
 
