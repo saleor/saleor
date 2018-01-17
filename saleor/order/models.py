@@ -369,6 +369,6 @@ class OrderNote(models.Model):
     is_public = models.BooleanField(default=True)
 
     def __str__(self):
-        return str((pgettext_lazy(
+        return pgettext_lazy(
             'Order note str',
-            'OrderNote for Order #%d' % self.order.pk)))
+            'OrderNote for Order #%d' % self.order.pk)
