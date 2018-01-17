@@ -133,17 +133,14 @@ def item_google_product_category(item, category_paths):
     Read more:
     https://support.google.com/merchants/answer/6324436
     """
-    category = item.product.get_category()
-    if category:
-        if category.pk in category_paths:
-            return category_paths[category.pk]
-        ancestors = [ancestor.name for ancestor
-                     in list(category.get_ancestors())]
-        category_path = CATEGORY_SEPARATOR.join(ancestors + [category.name])
-        category_paths[category.pk] = category_path
-        return category_path
-    else:
-        return ''
+    category = item.product.category
+    if category.pk in category_paths:
+        return category_paths[category.pk]
+    ancestors = [
+        ancestor.name for ancestor in list(category.get_ancestors())]
+    category_path = CATEGORY_SEPARATOR.join(ancestors + [category.name])
+    category_paths[category.pk] = category_path
+    return category_path
 
 
 def item_price(item):

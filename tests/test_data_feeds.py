@@ -31,16 +31,12 @@ def test_saleor_feed_items(product_in_stock):
 def test_category_formatter(db):
     main_category = Category(name='Main', slug='main')
     main_category.save()
-    main_category_item = Mock(
-        product=Mock(get_category=lambda: main_category))
+    main_category_item = Mock(product=Mock(category=main_category))
     sub_category = Category(name='Sub', slug='sub', parent=main_category)
     sub_category.save()
-    sub_category_item = Mock(
-        product=Mock(get_category=lambda: sub_category))
-    assert item_google_product_category(
-        main_category_item, {}) == 'Main'
-    assert item_google_product_category(
-        sub_category_item, {}) == 'Main > Sub'
+    sub_category_item = Mock(product=Mock(category=sub_category))
+    assert item_google_product_category(main_category_item, {}) == 'Main'
+    assert item_google_product_category(sub_category_item, {}) == 'Main > Sub'
 
 
 def test_write_feed(product_in_stock, monkeypatch):
