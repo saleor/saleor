@@ -6,12 +6,12 @@ from django.urls import reverse_lazy
 from django.utils.translation import pgettext_lazy
 from django_prices.forms import PriceField
 
-from ...core.forms import (
-    AjaxSelect2ChoiceField, AjaxSelect2MultipleChoiceField)
 from ...discount import DiscountValueType, VoucherApplyToProduct
 from ...discount.models import Sale, Voucher
 from ...product.models import Product
 from ...shipping.models import ShippingMethodCountry, COUNTRY_CODE_CHOICES
+from ..forms import (
+    AjaxSelect2ChoiceField, AjaxSelect2MultipleChoiceField)
 
 
 class SaleForm(forms.ModelForm):
