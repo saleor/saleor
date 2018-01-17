@@ -54,7 +54,7 @@ class OrderNoteForm(forms.ModelForm):
         model = OrderNote
         fields = ['content']
         widgets = {
-            'content': forms.Textarea()}
+            'content': forms.Textarea({'rows': 3, 'placeholder': False})}
         labels = {
             'content': pgettext_lazy('Order note', 'Add note to order')
         }
