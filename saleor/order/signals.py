@@ -13,7 +13,7 @@ def order_status_change(sender, instance, **kwargs):
     order = instance.order
     if order.is_fully_paid():
         order.create_history_entry(
-            status=order.status, comment=pgettext_lazy(
+            status=order.status, content=pgettext_lazy(
                 'Order status history entry', 'Order fully paid'))
         instance.send_confirmation_email()
         try:
