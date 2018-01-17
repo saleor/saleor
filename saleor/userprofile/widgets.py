@@ -28,9 +28,6 @@ class DatalistTextWidget(Select):
     template_name = "userprofile/snippets/datalist.html"
     input_type = "text"
 
-    def render(self, *args, **kwargs):
-        return super(DatalistTextWidget, self).render(*args, **kwargs)
-
     def get_context(self, *args):
         context = super(DatalistTextWidget, self).get_context(*args)
         context['widget']['type'] = self.input_type
