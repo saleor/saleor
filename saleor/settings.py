@@ -288,6 +288,7 @@ CONSTANCE_CONFIG_FIELDSETS = {
         'RELEASE_INFO_UPTODATE_HOURS',
         'VAT_RATE',
         'CHARTS_ALLOWED_ITEMS',
+        'OYE_ORDERS_MAIL', 'orders@oye-records.com'
     )
 }
 CONSTANCE_ADDITIONAL_FIELDS = {
