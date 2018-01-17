@@ -49,7 +49,7 @@ def test_view_cancel_order_line(admin_client, order_with_lines_and_stock):
     assert Stock.objects.first().quantity_allocated == quantity_allocated_before - line_quantity
     # check note in the order's history
     assert OrderHistoryEntry.objects.get(
-        order=order_with_lines_and_stock).comment == 'Cancelled item %s' % product
+        order=order_with_lines_and_stock).content == 'Cancelled item %s' % product
     url = reverse(
         'dashboard:orderline-cancel', kwargs={
             'order_pk': order_with_lines_and_stock.pk,
@@ -103,7 +103,7 @@ def test_view_change_order_line_quantity(admin_client, order_with_lines_and_stoc
     assert order_with_lines_and_stock.groups.count() == 1
     # a note in the order's history should be created
     assert OrderHistoryEntry.objects.get(
-        order=order_with_lines_and_stock).comment == (
+        order=order_with_lines_and_stock).content == (
             'Changed quantity for product %(product)s from'
             ' %(old_quantity)s to %(new_quantity)s') % {
                     'product': line.product,
@@ -223,7 +223,7 @@ def test_view_split_order_line(admin_client, order_with_lines_and_stock):
     # a note in the order's history should be created
     new_group = DeliveryGroup.objects.last()
     assert OrderHistoryEntry.objects.get(
-        order=order_with_lines_and_stock).comment == (
+        order=order_with_lines_and_stock).content == (
                 'Moved 2 items %(item)s from '
                 '%(old_group)s to %(new_group)s') % {
                     'item': line,
@@ -240,7 +240,7 @@ def test_view_split_order_line(admin_client, order_with_lines_and_stock):
         url, {'quantity': 2, 'target_group': old_delivery_group.pk})
     # an other note in the order's history should be created
     assert OrderHistoryEntry.objects.filter(
-        order=order_with_lines_and_stock).last().comment ==(
+        order=order_with_lines_and_stock).last().content ==(
             'Moved 2 items %(item)s from removed '
             'group to %(new_group)s') % {
                 'item': line,
@@ -284,7 +284,7 @@ def test_ordered_item_change_quantity(transactional_db, order_with_lines):
     history = list(order_with_lines.history.all())
     assert len(history) == 1
     assert history[0].status == OrderStatus.CLOSED
-    assert history[0].comment == 'Order cancelled. No items in order'
+    assert history[0].content == 'Order cancelled. No items in order'
 
 
 def test_ordered_item_remove_empty_group_with_force(
@@ -295,7 +295,7 @@ def test_ordered_item_remove_empty_group_with_force(
     history = list(order_with_lines.history.all())
     assert len(history) == 1
     assert history[0].status == OrderStatus.CLOSED
-    assert history[0].comment == 'Order cancelled. No items in order'
+    assert history[0].content == 'Order cancelled. No items in order'
 
 
 @pytest.mark.integration
