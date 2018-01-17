@@ -45,7 +45,6 @@ class OrderNoteForm(forms.ModelForm):
         send_note_confirmation.delay(email, url)
 
 
-
 class ManagePaymentForm(forms.Form):
     amount = PriceField(
         label=pgettext_lazy(
