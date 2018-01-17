@@ -7,6 +7,7 @@ from django.utils.translation import pgettext_lazy
 
 from .filters import StaffFilter
 from .forms import StaffForm
+from .utils import remove_staff_member
 from ..emails import (
     send_promote_customer_to_staff_email, send_set_password_email)
 from ..views import staff_member_required
@@ -76,12 +77,7 @@ def staff_delete(request, pk):
     queryset = User.objects.prefetch_related('orders')
     staff = get_object_or_404(queryset, pk=pk)
     if request.method == 'POST':
-        # do not remove staff with related orders if any
-        if staff.orders.exists():
-            staff.is_staff = False
-            staff.save()
-        else:
-            staff.delete()
+        remove_staff_member(staff)
         msg = pgettext_lazy(
             'Dashboard message', 'Removed staff member %s') % (staff,)
         messages.success(request, msg)
