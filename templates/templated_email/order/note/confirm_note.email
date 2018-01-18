@@ -1,7 +1,7 @@
 {% load i18n %}
 
 {% block subject %}
-  {% trans "New note" context "Note confirmation email subject" %}
+  {% trans "New note has been added to your order" context "Note confirmation email subject" %}
 {% endblock %}
 
 {% block plain %}
