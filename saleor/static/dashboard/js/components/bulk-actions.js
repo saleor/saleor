@@ -54,4 +54,5 @@ function onSubmit (e) {
 updateSelectedItemsText();
 $('.select-all').on('click', onSelectAll);
 $('.select-item').on('change', updateSelectedItemsText);
-$('.bulk-actions a').on('click', onSubmit);
+$('.data-table-bulk-actions__action-choice a').on('click', onSubmit);
+$('.data-table-bulk-actions__dropdown-container .dropdown-content a').on('click', onSubmit);
