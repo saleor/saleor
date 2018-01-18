@@ -7,9 +7,7 @@ from django_prices.forms import PriceField
 from payments import PaymentError, PaymentStatus
 from satchless.item import InsufficientStock
 
-from ..widgets import PhonePrefixWidget
 from ...cart.forms import QuantityField
-from ...core.forms import AjaxSelect2ChoiceField
 from ...discount.utils import decrease_voucher_usage
 from ...order import GroupStatus
 from ...order.models import DeliveryGroup, OrderLine, OrderNote
@@ -19,8 +17,10 @@ from ...order.utils import (
     recalculate_order, remove_empty_groups)
 from ...product.models import Product, ProductVariant, Stock
 from ...product.utils import allocate_stock, deallocate_stock
-from ...userprofile.i18n import (AddressForm as StorefrontAddressForm,
-                                 PossiblePhoneNumberFormField)
+from ...userprofile.i18n import (
+    AddressForm as StorefrontAddressForm, PossiblePhoneNumberFormField)
+from ..forms import AjaxSelect2ChoiceField
+from ..widgets import PhonePrefixWidget
 
 
 class OrderNoteForm(forms.ModelForm):
