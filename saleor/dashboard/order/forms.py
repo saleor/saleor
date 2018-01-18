@@ -38,10 +38,11 @@ class OrderNoteForm(forms.ModelForm):
                 'Customer can see this note')}
 
     def send_confirmation_email(self):
-        email = self.instance.order.get_user_current_email()
+        order = self.instance.order
+        email = order.get_user_current_email()
         url = build_absolute_uri(
             reverse(
-                'order:details', kwargs={'token': self.instance.order.token}))
+                'order:details', kwargs={'token': order.token}))
         send_note_confirmation.delay(email, url)
 
 
