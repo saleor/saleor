@@ -9,8 +9,8 @@ asn1crypto==0.24.0        # via cryptography
 attrs==17.4.0             # via pytest
 babel==2.5.3
 billiard==3.5.0.3         # via celery
-boto3==1.5.9
-botocore==1.8.23          # via boto3, s3transfer
+boto3==1.5.18
+botocore==1.8.32          # via boto3, s3transfer
 braintree==3.39.1         # via django-payments
 cairocffi==0.8.0          # via cairosvg, weasyprint
 cairosvg==2.1.3
