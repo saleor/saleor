@@ -11,6 +11,8 @@ Hi!
 Thank you for your order. To see your payment details please visit:
 {{ url }}
 
+This is an automatically generated email, please do not reply.
+
 Sincerely,
 {{ site_name }}
 {% endblocktrans %}

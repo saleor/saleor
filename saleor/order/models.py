@@ -163,6 +163,10 @@ class Order(models.Model, ItemSet):
             else OrderStatus.CLOSED
         )
 
+    @property
+    def is_open(self):
+        return self.status == OrderStatus.OPEN
+
     def get_status_display(self):
         """Order status display text."""
         return dict(OrderStatus.CHOICES)[self.status]
@@ -362,10 +366,14 @@ class OrderNote(models.Model):
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL, blank=True, null=True,
         on_delete=models.SET_NULL)
-    date = models.DateTimeField(auto_now_add=True)
+    date = models.DateTimeField(db_index=True, auto_now_add=True)
     order = models.ForeignKey(
         Order, related_name='notes', on_delete=models.CASCADE)
     content = models.CharField(max_length=250)
+    is_public = models.BooleanField(default=True)
+
+    class Meta:
+        ordering = ('date', )
 
     def __str__(self):
         return pgettext_lazy(

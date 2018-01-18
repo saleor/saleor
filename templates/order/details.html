@@ -2,6 +2,7 @@
 
 {% load i18n %}
 {% load staticfiles %}
+{% load bootstrap_form from bootstrap4 %}
 
 {% block title %}
   {% blocktrans trimmed context "Order details page title" %}
@@ -61,6 +62,37 @@
         {% endif %}
       {% endif %}
       {% include "order/_ordered_items_table.html" %}
+        {% if notes %}
+          <h2 class="order-notes__header">{% trans "Notes" context "Order notes list" %}</h2>
+          {% for note in notes %}
+              <small>
+                {% if note.user == user %}
+                  {% blocktrans with date=note.date %}
+                    {{ date }} by you
+                  {% endblocktrans %}
+                {% elif note.user.is_staff %}
+                  {% trans 'staff' context 'Order note author is staff' as note_author_staff%}
+                  {% blocktrans with author=note_author_staff date=note.date %}
+                    {{ date }} by <span class="text-muted">{{ author }}</span>
+                  {% endblocktrans %}
+                {% else %}
+                  {% blocktrans with author=note.author date=note.date %}
+                    {{ date }} by {{ author }}
+                  {% endblocktrans %}
+                {% endif %}
+              </small>
+              <p>{{note.content}}</p>
+          {% endfor %}
+        {% endif %}
+      {% if order.is_open %}
+        <div class="order-notes">
+          <form method="post" class="form-group">
+            {% csrf_token %}
+            {% bootstrap_form note_form display_labels=False %}
+            <input type="submit" value="Submit" class="btn primary" />
+          </form>
+        </div>
+      {% endif %}
     </div>
   </div>
 {% endblock content %}

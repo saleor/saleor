@@ -34,11 +34,17 @@
     color: $skull-gray;
   }
   &__last-row {
-    border-bottom-color: $skull-gray; 
+    border-bottom-color: $skull-gray;
   }
   &__table-footer {
     @include media-breakpoint-up(sm) {
       padding-left: calc(60px + #{$global-padding} * 2);
     }
+  }
+}
+
+.order-notes {
+  &__header {
+    margin-top: 2 * $global-margin;
   }
 }
