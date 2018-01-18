@@ -38,13 +38,11 @@
         {% trans "Home" context "Main navigation item" %}
       </a>
     </li>
-    {% with product.get_first_category as category %}
-      {% if category %}
-        <li>
-          <a href="{{ category.get_absolute_url }}">{{ category }}</a>
-        </li>
-      {% endif %}
-    {% endwith %}
+    {% if product.category %}
+      <li>
+        <a href="{{ product.category.get_absolute_url }}">{{ product.category }}</a>
+      </li>
+    {% endif %}
     <li>
       <a href="{{ product.get_absolute_url }}">{{ product }}</a>
     </li>
