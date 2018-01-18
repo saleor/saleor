@@ -231,12 +231,9 @@ class Sale(models.Model):
         raise NotImplementedError('Unknown discount type')
 
     def _product_has_category_discount(self, product, discounted_categories):
-        for category in product.categories.all():
-            for discounted_category in discounted_categories:
-                if category.is_descendant_of(discounted_category,
-                                             include_self=True):
-                    return True
-        return False
+        return any([
+            product.category.is_descendant_of(category, include_self=True)
+            for category in discounted_categories])
 
     def modifier_for_product(self, product):
         discounted_products = {p.pk for p in self.products.all()}
