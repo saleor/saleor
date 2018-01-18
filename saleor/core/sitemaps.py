@@ -34,7 +34,7 @@ class ChartsSitemap(Sitemap):
     priority = 0.5
 
     def items(self):
-        x_month_ago = timezone.now() - timedelta(month=12)
+        x_month_ago = timezone.now() - timedelta(days=12*30)
         return Chart.objects.filter(created_at__gte=x_month_ago)
 
 
