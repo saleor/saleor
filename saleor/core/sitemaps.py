@@ -5,12 +5,10 @@ from django.utils import timezone
 from saleor_oye.models import Chart
 from saleor_oye.utils import visible_products, get_month_condition
 
-from ..product.models import Product
-
 
 class NewReleasesSitemap(Sitemap):
 
-    changefreq = "daily"
+    changefreq = "monthly"
 
     priority = "0.5"
 
@@ -20,7 +18,7 @@ class NewReleasesSitemap(Sitemap):
 
 class UpcomingReleasesSitemap(Sitemap):
 
-    changefreq = "daily"
+    changefreq = "monthly"
 
     priority = "0.5"
 
@@ -30,7 +28,7 @@ class UpcomingReleasesSitemap(Sitemap):
 
 class ChartsSitemap(Sitemap):
 
-    changefreq = "weekly"
+    changefreq = "monthly"
     priority = 0.5
 
     def items(self):
