@@ -1,4 +1,5 @@
 from decimal import Decimal
+from unittest.mock import MagicMock, patch
 
 from django.urls import reverse
 import pytest
@@ -10,8 +11,9 @@ from tests.utils import get_redirect_location, get_url_path
 from saleor.cart.models import Cart
 from saleor.dashboard.order.forms import ChangeQuantityForm
 from saleor.order import GroupStatus, OrderStatus
+from saleor.dashboard.order.forms import OrderNoteForm
 from saleor.order.models import (
-    DeliveryGroup, Order, OrderHistoryEntry, OrderLine)
+    DeliveryGroup, Order, OrderHistoryEntry, OrderLine, OrderNote)
 from saleor.order.transitions import process_delivery_group
 from saleor.order.utils import (
     add_variant_to_existing_lines, change_order_line_quantity,
@@ -698,3 +700,13 @@ def test_cant_process_shipped_delivery_group(
 
     with pytest.raises(TransitionNotAllowed):
         delivery_group.process(cart.lines.all())
+
+
+@patch('saleor.dashboard.order.forms.send_note_confirmation')
+def test_note_form_sent_email(
+    mock_send_note_confirmation, order_with_lines_and_stock):
+    order = order_with_lines_and_stock
+    note = OrderNote(order=order, user=order.user)
+    form = OrderNoteForm({'content': 'test_note'}, instance=note)
+    form.send_confirmation_email()
+    assert mock_send_note_confirmation.called_once()

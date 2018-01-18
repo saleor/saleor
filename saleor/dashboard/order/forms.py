@@ -1,15 +1,17 @@
 from django import forms
 from django.conf import settings
 from django.core.validators import MinValueValidator, MaxValueValidator
-from django.urls import reverse_lazy
+from django.urls import reverse_lazy, reverse
 from django.utils.translation import npgettext_lazy, pgettext_lazy
 from django_prices.forms import PriceField
 from payments import PaymentError, PaymentStatus
 from satchless.item import InsufficientStock
 
 from ...cart.forms import QuantityField
+from ...core.utils import build_absolute_uri
 from ...discount.utils import decrease_voucher_usage
 from ...order import GroupStatus
+from ...order.emails import send_note_confirmation
 from ...order.models import DeliveryGroup, OrderLine, OrderNote
 from ...order.utils import (
     add_variant_to_delivery_group, cancel_order, change_order_line_quantity,
@@ -26,16 +28,22 @@ from ..widgets import PhonePrefixWidget
 class OrderNoteForm(forms.ModelForm):
     class Meta:
         model = OrderNote
-        fields = ['content']
+        fields = ['content', 'is_public']
         widgets = {
             'content': forms.Textarea()}
         labels = {
-            'content': pgettext_lazy(
-                'Order note',
-                'Note')}
+            'content': pgettext_lazy('Order note', 'Note'),
+            'is_public': pgettext_lazy(
+                'Allow customers to see note toggle',
+                'Customer can see this note')}
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    def send_confirmation_email(self):
+        order = self.instance.order
+        email = order.get_user_current_email()
+        url = build_absolute_uri(
+            reverse(
+                'order:details', kwargs={'token': order.token}))
+        send_note_confirmation.delay(email, url)
 
 
 class ManagePaymentForm(forms.Form):
