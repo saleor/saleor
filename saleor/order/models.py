@@ -163,6 +163,10 @@ class Order(models.Model, ItemSet):
             else OrderStatus.CLOSED
         )
 
+    @property
+    def is_open(self):
+        return self.status == OrderStatus.OPEN
+
     def get_status_display(self):
         """Order status display text."""
         return dict(OrderStatus.CHOICES)[self.status]
