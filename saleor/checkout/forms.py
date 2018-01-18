@@ -118,8 +118,8 @@ class AnonymousUserBillingForm(forms.Form):
 class NoteForm(forms.Form):
     """ Form to add a note to an order as it is
     created for shop staff to see """
-    note = forms.CharField(max_length=250, required=False, strip=True,
-                           label=False)
+    note = forms.CharField(
+        max_length=250, required=False, strip=True, label=False)
     note.widget = forms.Textarea({'rows': 3})
 
     def __init__(self, *args, **kwargs):
