@@ -19,28 +19,23 @@
     padding: 14px 8px;
   }
 
-  &-header-alternative {
+  &-bulk-actions {
     box-shadow: none;
     transition: $transition-duration;
-    max-height: 0;
     overflow: hidden;
-    .show-single, .show-bulk {
-      display: none;
+    display: none;
+    position: absolute;
+    right: 0;
+    z-index: 1;
+    padding: 0 24px 0 0;
+    @media (max-width: $small-screen) {
+      height: 56px;
+      overflow: visible;
     }
     &.bulk {
       background: #fff;
       color: $off-black;
-      max-height: 100px;
-      border-bottom: 1px #d0d0d0 solid;
-      .show-bulk {
-        display: block;
-      }
-      th, a {
-        color: color('teal', 'base');
-      }
-      .data-table-header-action-selected-items {
-        margin-left: 13px;
-      }
+      display: block;
     }
     &.single {
       background: #fff;
@@ -49,6 +44,49 @@
       }
       th, a {
         color: $secondary-color;
+      }
+    }
+    a {
+      color: $secondary-color;
+    }
+    &__selected-items {
+      margin-left: -10px;
+      line-height: 56px;
+    }
+    &__action-choice {
+      width: calc(100% - 60px);
+      position: absolute;
+      right: 0;
+      ul {
+        li {
+          a {
+            margin: 0;
+          }
+        }
+      }
+      @media (max-width: $small-screen) {
+        display: none;
+      }
+    }
+    &__dropdown-container {
+      right: -5px;
+      position: relative;
+      display: none;
+      svg {
+        fill: $grey-color;
+      }
+      a {
+        line-height: 70px;
+      }
+      @media (max-width: $small-screen) {
+        display: block;
+      }
+    }
+    &__select-all {
+      float: left;
+      margin: 11px 8px 0 24px;
+      @media (max-width: $small-screen) {
+        margin: 6px 8px 0 24px;
       }
     }
   }
