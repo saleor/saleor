@@ -70,11 +70,10 @@ def payment(request, token):
             payment_method = payment_form.cleaned_data['method']
             return redirect(
                 'order:payment', token=order.token, variant=payment_method)
-    notes = order.notes.filter(is_public=True)
     ctx = {
         'order': order, 'groups': groups, 'payment_form': payment_form,
         'payments': payments, 'waiting_payment': waiting_payment,
-        'waiting_payment_form': waiting_payment_form, 'notes': notes}
+        'waiting_payment_form': waiting_payment_form}
     return TemplateResponse(request, 'order/payment.html', ctx)
 
 
