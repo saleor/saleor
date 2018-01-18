@@ -7,7 +7,7 @@
 amqp==2.2.2               # via kombu
 asn1crypto==0.24.0        # via cryptography
 attrs==17.4.0             # via pytest
-babel==2.5.1
+babel==2.5.3
 billiard==3.5.0.3         # via celery
 boto3==1.5.9
 botocore==1.8.23          # via boto3, s3transfer
