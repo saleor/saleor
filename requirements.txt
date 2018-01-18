@@ -98,7 +98,7 @@ singledispatch==3.4.0.3   # via graphene-django
 six==1.11.0               # via cryptography, django-templated-email, elasticsearch-dsl, faker, freezegun, graphene, graphene-django, graphql-core, graphql-relay, html5lib, promise, purl, pytest, python-dateutil, singledispatch, social-auth-app-django, social-auth-core, vcrpy
 social-auth-app-django==2.1.0
 social-auth-core==1.6.0   # via social-auth-app-django
-stripe==1.77.0            # via django-payments
+stripe==1.77.1            # via django-payments
 suds-jurko==0.6           # via django-payments
 text-unidecode==1.1
 tinycss2==0.6.1           # via cairosvg, cssselect2, weasyprint
