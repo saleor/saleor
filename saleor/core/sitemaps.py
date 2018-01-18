@@ -10,7 +10,7 @@ from ..product.models import Product
 
 class NewReleasesSitemap(Sitemap):
 
-    changefreq = "never"
+    changefreq = "daily"
 
     priority = "0.5"
 
@@ -20,7 +20,7 @@ class NewReleasesSitemap(Sitemap):
 
 class UpcomingReleasesSitemap(Sitemap):
 
-    changefreq = "never"
+    changefreq = "daily"
 
     priority = "0.5"
 
@@ -30,7 +30,7 @@ class UpcomingReleasesSitemap(Sitemap):
 
 class ChartsSitemap(Sitemap):
 
-    changefreq = "daily"
+    changefreq = "weekly"
     priority = 0.5
 
     def items(self):
@@ -63,4 +63,5 @@ sitemaps = {
     'new': NewReleasesSitemap,
     'pre': UpcomingReleasesSitemap,
     'static': StaticViewSitemap,
+    'charts': ChartsSitemap,
 }
