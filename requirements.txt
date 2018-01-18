@@ -47,7 +47,7 @@ django-webpack-loader==0.5.0
 django==1.11.9
 docutils==0.14            # via botocore
 elasticsearch-dsl==5.4.0
-elasticsearch==5.5.1
+elasticsearch==5.5.2
 faker==0.8.8
 freezegun==0.3.9
 google-i18n-address==2.2.1
@@ -103,7 +103,7 @@ suds-jurko==0.6           # via django-payments
 text-unidecode==1.1
 tinycss2==0.6.1           # via cairosvg, cssselect2, weasyprint
 typing==3.6.2             # via promise
-urllib3==1.21.1           # via elasticsearch, requests
+urllib3==1.22             # via elasticsearch, requests
 uwsgi==2.0.15
 vcrpy==1.11.1
 vine==1.1.4               # via amqp
