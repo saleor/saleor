@@ -62,7 +62,6 @@
         {% endif %}
       {% endif %}
       {% include "order/_ordered_items_table.html" %}
-      {% if order.status == 'open' %}
         {% if notes %}
           <h2 class="order-notes__header">{% trans "Notes" context "Order notes list" %}</h2>
           {% for note in notes %}
@@ -87,6 +86,7 @@
             {% endif %}
           {% endfor %}
         {% endif %}
+      {% if order.is_open %}
         <div class="order-notes">
           <form method="post" class="form-group">
             {% csrf_token %}

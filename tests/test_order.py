@@ -134,8 +134,9 @@ def test_view_connect_order_with_user_different_email(
     assert order.user is None
 
 
-def test_add_order_to_note(order_with_lines_and_stock):
+def test_add_note_to_order(order_with_lines_and_stock):
     order = order_with_lines_and_stock
+    assert order.is_open
     note = models.OrderNote(order=order, user=order.user)
     note_form = OrderNoteForm({'content': 'test_note'}, instance=note)
     note_form.is_valid()
