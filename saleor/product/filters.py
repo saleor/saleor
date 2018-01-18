@@ -39,12 +39,12 @@ class ProductFilter(SortedFilterSet):
         product_attributes = (
             ProductAttribute.objects.all()
             .prefetch_related('values')
-            .filter(products_class__products__categories=self.category)
+            .filter(products_class__products__category=self.category)
             .distinct())
         variant_attributes = (
             ProductAttribute.objects.all()
             .prefetch_related('values')
-            .filter(product_variants_class__products__categories=self.category)
+            .filter(product_variants_class__products__category=self.category)
             .distinct())
         return product_attributes, variant_attributes
 

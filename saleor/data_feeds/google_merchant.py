@@ -29,7 +29,7 @@ def get_feed_items():
     items = ProductVariant.objects.all()
     items = items.select_related('product')
     items = items.prefetch_related(
-        'images', 'stock', 'product__categories',
+        'images', 'stock', 'product__category',
         'product__images', 'product__product_class__product_attributes',
         'product__product_class__variant_attributes')
     return items
@@ -133,17 +133,14 @@ def item_google_product_category(item, category_paths):
     Read more:
     https://support.google.com/merchants/answer/6324436
     """
-    category = item.product.get_first_category()
-    if category:
-        if category.pk in category_paths:
-            return category_paths[category.pk]
-        ancestors = [ancestor.name for ancestor
-                     in list(category.get_ancestors())]
-        category_path = CATEGORY_SEPARATOR.join(ancestors + [category.name])
-        category_paths[category.pk] = category_path
-        return category_path
-    else:
-        return ''
+    category = item.product.category
+    if category.pk in category_paths:
+        return category_paths[category.pk]
+    ancestors = [
+        ancestor.name for ancestor in list(category.get_ancestors())]
+    category_path = CATEGORY_SEPARATOR.join(ancestors + [category.name])
+    category_paths[category.pk] = category_path
+    return category_path
 
 
 def item_price(item):

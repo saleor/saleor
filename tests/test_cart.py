@@ -699,13 +699,9 @@ def test_cart_line_state(product_in_stock, request_cart_with_item):
 
 def test_get_category_variants_and_prices(
         default_category, product_in_stock, request_cart_with_item):
-    variant = product_in_stock.variants.get()
-    top_category = Category.objects.create(name='foo', slug='bar')
-    product_in_stock.categories.add(top_category)
-    default_category.parent = top_category
-    default_category.save()
     result = list(utils.get_category_variants_and_prices(
-        request_cart_with_item, top_category))
+        request_cart_with_item, default_category))
+    variant = product_in_stock.variants.get()
     assert result[0][0] == variant
 
 

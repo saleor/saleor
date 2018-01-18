@@ -29,7 +29,6 @@ class Category(MPTTModel):
     parent = models.ForeignKey(
         'self', null=True, blank=True, related_name='children',
         on_delete=models.CASCADE)
-    is_hidden = models.BooleanField(default=False)
 
     objects = models.Manager()
     tree = TreeManager()
@@ -57,9 +56,6 @@ class Category(MPTTModel):
             ancestors = self.get_ancestors()
         nodes = [node for node in ancestors] + [self]
         return '/'.join([node.slug for node in nodes])
-
-    def set_is_hidden_descendants(self, is_hidden):
-        self.get_descendants().update(is_hidden=is_hidden)
 
 
 class ProductClass(models.Model):
@@ -96,7 +92,7 @@ class Product(models.Model, ItemRange):
         ProductClass, related_name='products', on_delete=models.CASCADE)
     name = models.CharField(max_length=128)
     description = models.TextField()
-    categories = models.ManyToManyField(Category, related_name='products')
+    category = models.ForeignKey(Category, related_name='products')
     price = PriceField(
         currency=settings.DEFAULT_CURRENCY, max_digits=12, decimal_places=2)
     available_on = models.DateField(blank=True, null=True)
@@ -144,12 +140,6 @@ class Product(models.Model, ItemRange):
 
     def is_in_stock(self):
         return any(variant.is_in_stock() for variant in self)
-
-    def get_first_category(self):
-        for category in self.categories.all():
-            if not category.is_hidden:
-                return category
-        return None
 
     def is_available(self):
         today = datetime.date.today()

@@ -35,9 +35,9 @@ class ProductFilter(SortedFilterSet):
     name = CharFilter(
         label=pgettext_lazy('Product list filter label', 'Name'),
         lookup_expr='icontains')
-    categories = ModelMultipleChoiceFilter(
-        label=pgettext_lazy('Product list filter label', 'Categories'),
-        name='categories',
+    category = ModelMultipleChoiceFilter(
+        label=pgettext_lazy('Product list filter label', 'Category'),
+        name='category',
         queryset=Category.objects.all())
     product_class = ModelMultipleChoiceFilter(
         label=pgettext_lazy('Product list filter label', 'Product type'),
