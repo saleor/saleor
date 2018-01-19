@@ -283,7 +283,6 @@ def test_ordered_item_change_quantity(transactional_db, order_with_lines):
     change_order_line_quantity(lines[2], 0)
     history = list(order_with_lines.history.all())
     assert len(history) == 1
-    assert history[0].status == OrderStatus.CLOSED
     assert history[0].content == 'Order cancelled. No items in order'
 
 
@@ -294,7 +293,6 @@ def test_ordered_item_remove_empty_group_with_force(
     remove_empty_groups(lines[0], force=True)
     history = list(order_with_lines.history.all())
     assert len(history) == 1
-    assert history[0].status == OrderStatus.CLOSED
     assert history[0].content == 'Order cancelled. No items in order'
 
 
