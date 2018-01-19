@@ -2,7 +2,6 @@ import functools
 import operator
 
 from django.db.models import Q
-from django_prices.templatetags import prices_i18n
 import graphene
 from graphene import relay
 from graphene_django import DjangoConnectionField, DjangoObjectType
@@ -14,7 +13,7 @@ from ...product.templatetags.product_images import product_first_image
 from ...product.utils import get_availability, products_visible_to_user
 from ..scalars import AttributesFilterScalar
 from ..types.userprofile import AddressType, UserType
-from ..utils import CategoryAncestorsCache, DjangoPkInterface
+from ..utils import CategoryAncestorsCache, DjangoPkInterface, PriceField, PriceRangeField
 
 
 CONTEXT_CACHE_NAME = '__cache__'
@@ -31,11 +30,11 @@ def get_ancestors_from_cache(category, context):
 
 class ProductAvailabilityType(graphene.ObjectType):
     available = graphene.Boolean()
-    discount = graphene.Field(lambda: PriceType)
-    discount_local_currency = graphene.Field(lambda: PriceType)
-    price_range = graphene.Field(lambda: PriceRangeType)
-    price_range_undiscounted = graphene.Field(lambda: PriceRangeType)
-    price_range_local_currency = graphene.Field(lambda: PriceRangeType)
+    discount = PriceField()
+    discount_local_currency = PriceField()
+    price_range = PriceRangeField()
+    price_range_undiscounted = PriceRangeField()
+    price_range_local_currency = PriceRangeField()
 
 
 class ProductType(DjangoObjectType):
@@ -47,7 +46,7 @@ class ProductType(DjangoObjectType):
     images = graphene.List(lambda: ProductImageType)
     variants = graphene.List(lambda: ProductVariantType)
     availability = graphene.Field(lambda: ProductAvailabilityType)
-    price = graphene.Field(lambda: PriceType)
+    price = PriceField()
 
     class Meta:
         model = Product
@@ -181,7 +180,7 @@ class CategoryType(DjangoObjectType):
 
 class ProductVariantType(DjangoObjectType):
     stock_quantity = graphene.Int()
-    price_override = graphene.Field(lambda: PriceType)
+    price_override = PriceField()
 
     class Meta:
         model = ProductVariant
@@ -220,25 +219,6 @@ class ProductAttributeType(DjangoObjectType):
 
     def resolve_values(self, info):
         return self.values.all()
-
-
-class PriceType(graphene.ObjectType):
-    currency = graphene.String()
-    gross = graphene.Float()
-    gross_localized = graphene.String()
-    net = graphene.Float()
-    net_localized = graphene.String()
-
-    def resolve_gross_localized(self, info):
-        return prices_i18n.gross(self)
-
-    def resolve_net_localized(self, info):
-        return prices_i18n.net(self)
-
-
-class PriceRangeType(graphene.ObjectType):
-    max_price = graphene.Field(lambda: PriceType)
-    min_price = graphene.Field(lambda: PriceType)
 
 
 def resolve_category(pk, info):

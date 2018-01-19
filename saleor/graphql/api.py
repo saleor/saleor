@@ -6,7 +6,7 @@ from graphene_django.debug import DjangoDebug
 from .types.cart import CartType, resolve_cart
 from .types.product import (
     resolve_category, resolve_attributes, CategoryType, ProductAttributeType)
-from .types.shipping import ShippingMethodType, resolve_shipping
+from .types.shipping import resolve_shipping, ShippingMethodCountryType
 from .types.userprofile import UserType, resolve_user
 
 
@@ -21,7 +21,9 @@ class Query(graphene.ObjectType):
     debug = graphene.Field(DjangoDebug, name='_debug')
     node = relay.Node.Field()
     root = graphene.Field(lambda: Query)
-    shipping = DjangoConnectionField(ShippingMethodType)
+    shipping = DjangoConnectionField(
+        ShippingMethodCountryType,
+        country_code=graphene.Argument(graphene.String))
     user = graphene.Field(UserType)
 
     def resolve_attributes(self, info, **args):
@@ -32,10 +34,6 @@ class Query(graphene.ObjectType):
         pk = args.get('pk')
         return resolve_category(pk, info)
 
-    def resolve_attributes(self, info, **args):
-        category_pk = args.get('category_pk')
-        return resolve_attributes(category_pk)
-
     def resolve_cart(self, info):
         return resolve_cart(info)
 
@@ -44,8 +42,9 @@ class Query(graphene.ObjectType):
         # https://github.com/facebook/relay/issues/112
         return Query()
 
-    def resolve_shipping(self, info):
-        return resolve_shipping()
+    def resolve_shipping(self, info, **args):
+        country_code = args.get('country_code')
+        return resolve_shipping(country_code)
 
     def resolve_user(self, info):
         user = info.context.user
