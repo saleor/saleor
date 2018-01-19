@@ -142,3 +142,11 @@ def test_add_note_to_order(order_with_lines_and_stock):
     note_form.is_valid()
     note_form.save()
     assert order.notes.first().content == 'test_note'
+
+
+def test_create_order_history(order_with_lines):
+    order = order_with_lines
+    order.create_history_entry(content='test_entry')
+    history_entry = models.OrderHistoryEntry.objects.get(order=order)
+    assert history_entry == order.history.first()
+    assert history_entry.content == 'test_entry'
