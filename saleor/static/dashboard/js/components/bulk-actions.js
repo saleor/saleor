@@ -4,13 +4,18 @@
  * in browsing history and some rows are checked but have no .highlight class.
  */
 function initCheckedRows () {
-  $('.select-item:checked:not(#select-all-products)').each((itemIndex, item) => {
-    $(item).parent().parent().addClass('highlight');
-  })
+  $('.select-item:checked:not(#select-all-products)')
+    .each((itemIndex, item) => {
+      $(item)
+        .parent()
+        .parent()
+        .addClass('highlight');
+    });
 }
 
-function moveSelectAllCheckbox(bulk, selectAllState) {
-  const $selectAll = $('#select-all-products').parent()[0].innerHTML;
+function moveSelectAllCheckbox (bulk, selectAllState) {
+  const $selectAll = $('#select-all-products')
+    .parent()[0].innerHTML;
   const $headerContainer = $('thead .bulk-checkbox');
   const $actionBarContainer = $('.data-table-bulk-actions__select-all');
   if (bulk) {
@@ -20,15 +25,19 @@ function moveSelectAllCheckbox(bulk, selectAllState) {
     $actionBarContainer.html('');
     $headerContainer[0].innerHTML = $selectAll;
   }
-  $actionBarContainer.find('#select-all-products').prop('checked', selectAllState);
-  $('.select-all').on('change', onSelectAll);
+  $actionBarContainer.find('#select-all-products')
+    .prop('checked', selectAllState);
+  $('.select-all')
+    .on('change', onSelectAll);
 }
 
 function onItemSelect (e) {
   const count = $('.select-item:checked').length - $('#select-all-products:checked').length;
   const maxCount = $('.select-item').length - 1;
   const $target = $(e.currentTarget);
-  $target.parent().parent().toggleClass('highlight', $target.checked);
+  $target.parent()
+    .parent()
+    .toggleClass('highlight', $target.checked);
   updateSelectedItemsText(count === maxCount);
 }
 
@@ -36,10 +45,14 @@ function onPageInit () {
   if (document.querySelector('#bulk-action')) {
     initCheckedRows();
     updateSelectedItemsText();
-    $('.select-all').on('click', onSelectAll);
-    $('.select-item').on('change', onItemSelect);
-    $('.data-table-bulk-actions__action-choice a').on('click', onSubmit);
-    $('.data-table-bulk-actions__dropdown-container .dropdown-content a').on('click', onSubmit);
+    $('.select-all')
+      .on('click', onSelectAll);
+    $('.select-item')
+      .on('change', onItemSelect);
+    $('.data-table-bulk-actions__action-choice a')
+      .on('click', onSubmit);
+    $('.data-table-bulk-actions__dropdown-container .dropdown-content a')
+      .on('click', onSubmit);
   }
 }
 
@@ -55,8 +68,10 @@ function onSelectAll (e) {
 function onSubmit (e) {
   const a = $(e.currentTarget);
   e.preventDefault();
-  $('#bulk-action').val(a.attr('data-action'));
-  $('#bulk-actions-form').submit();
+  $('#bulk-action')
+    .val(a.attr('data-action'));
+  $('#bulk-actions-form')
+    .submit();
 }
 
 function updateSelectedItemsText (selectAllState) {
