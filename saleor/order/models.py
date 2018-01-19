@@ -146,10 +146,8 @@ class Order(models.Model, ItemSet):
     def is_pre_authorized(self):
         return self.payments.filter(status=PaymentStatus.PREAUTH).exists()
 
-    def create_history_entry(self, comment='', status=None, user=None):
-        if not status:
-            status = self.status
-        self.history.create(status=status, comment=comment, user=user)
+    def create_history_entry(self, content, user=None):
+        self.history.create(content=content, user=user)
 
     def is_shipping_required(self):
         return any(group.is_shipping_required() for group in self.groups.all())
@@ -347,8 +345,7 @@ class OrderHistoryEntry(models.Model):
     date = models.DateTimeField(default=now, editable=False)
     order = models.ForeignKey(
         Order, related_name='history', on_delete=models.CASCADE)
-    status = models.CharField(max_length=32, choices=OrderStatus.CHOICES)
-    comment = models.CharField(max_length=100, default='', blank=True)
+    content = models.TextField()
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL, blank=True, null=True,
         on_delete=models.SET_NULL)
@@ -369,7 +366,7 @@ class OrderNote(models.Model):
     date = models.DateTimeField(db_index=True, auto_now_add=True)
     order = models.ForeignKey(
         Order, related_name='notes', on_delete=models.CASCADE)
-    content = models.CharField(max_length=250)
+    content = models.TextField()
     is_public = models.BooleanField(default=True)
 
     class Meta:
