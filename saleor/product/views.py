@@ -115,7 +115,6 @@ def category_index(request, path, category_id):
     if actual_path != path:
         return redirect('product:category', permanent=True, path=actual_path,
                         category_id=category_id)
-<<<<<<< HEAD
     products = products_with_details(user=request.user).filter(
         category__id=category.id).order_by('name')
     product_filter = ProductFilter(
@@ -134,12 +133,6 @@ def category_index(request, path, category_id):
            'now_sorted_by': now_sorted_by,
            'is_descending': is_descending}
     return TemplateResponse(request, 'category/index.html', ctx)
-=======
-    return TemplateResponse(request, 'category/index.html',
-                            {'category': category})
-<<<<<<< HEAD
->>>>>>> Remove display collection view
-=======
 
 
 def products_from_collections(request, product_id):
@@ -155,4 +148,3 @@ def products_from_collections(request, product_id):
 
     ctx = {'products': products[index:index + 6]}
     return TemplateResponse(request, 'product/_product_collections.html', ctx)
->>>>>>> Partial view with related products to display on product details page
