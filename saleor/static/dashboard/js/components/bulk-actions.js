@@ -4,7 +4,7 @@
  * in browsing history and some rows are checked but have no .highlight class.
  */
 function initCheckedRows () {
-  $('.select-item:checked:not(#select-all-products)')
+  $('.select-item:checked:not(#select-all-items)')
     .each((itemIndex, item) => {
       $(item)
         .parent()
@@ -14,7 +14,7 @@ function initCheckedRows () {
 }
 
 function moveSelectAllCheckbox (bulk, selectAllState) {
-  const $selectAll = $('#select-all-products')
+  const $selectAll = $('#select-all-items')
     .parent()[0].innerHTML;
   const $headerContainer = $('thead .bulk-checkbox');
   const $actionBarContainer = $('.data-table-bulk-actions__select-all');
@@ -25,14 +25,14 @@ function moveSelectAllCheckbox (bulk, selectAllState) {
     $actionBarContainer.html('');
     $headerContainer[0].innerHTML = $selectAll;
   }
-  $actionBarContainer.find('#select-all-products')
+  $actionBarContainer.find('#select-all-items')
     .prop('checked', selectAllState);
   $('.select-all')
     .on('change', onSelectAll);
 }
 
 function onItemSelect (e) {
-  const count = $('.select-item:checked').length - $('#select-all-products:checked').length;
+  const count = $('.select-item:checked').length - $('#select-all-items:checked').length;
   const maxCount = $('.select-item').length - 1;
   const $target = $(e.currentTarget);
   $target.parent()
@@ -75,7 +75,7 @@ function onSubmit (e) {
 }
 
 function updateSelectedItemsText (selectAllState) {
-  const count = $('.select-item:checked').length - $('#select-all-products:checked').length;
+  const count = $('.select-item:checked').length - $('#select-all-items:checked').length;
   const $counterTextNode = $('.data-table-bulk-actions__selected-items');
   const $header = $('.data-table-bulk-actions');
   const counterText = ngettext('item selected', 'items selected', count);

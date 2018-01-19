@@ -15,10 +15,10 @@
     </ul>
   </div>
   <div class="data-table-bulk-actions__dropdown-container">
-    <a class="dropdown-button right" href="#!" data-activates="dropdown1" data-constrainwidth="false" data-gutter="-19" data-alignment="right">
+    <a class="dropdown-button right" href="#!" data-activates="dropdown-bulk-actions" data-constrainwidth="false" data-gutter="-19" data-alignment="right">
       <svg data-src="{% static "dashboard/images/more-vert.svg" %}" height="24" width="24" />
     </a>
-    <ul id="dropdown1" class="dropdown-content">
+    <ul id="dropdown-bulk-actions" class="dropdown-content">
     {% for action, label in bulk_action_form.action.field.widget.choices %}
       <li>
         <a href=""
