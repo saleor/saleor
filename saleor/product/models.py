@@ -377,7 +377,6 @@ class VariantImage(models.Model):
         ProductImage, related_name='variant_images', on_delete=models.CASCADE)
 
 
-@python_2_unicode_compatible
 class Collection(models.Model):
     name = models.CharField(
         pgettext_lazy('Product collection field', 'name'), max_length=128,
