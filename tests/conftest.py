@@ -273,6 +273,18 @@ def product_in_stock(product_type, default_category):
 
 
 @pytest.fixture
+def product_without_shipping(default_category):
+    product_type = ProductType.objects.create(
+        name='Type with no shipping', has_variants=False,
+        is_shipping_required=False)
+    product = Product.objects.create(
+        name='Test product', price=Decimal('10.00'),
+        product_type=product_type, category=default_category)
+    variant = ProductVariant.objects.create(product=product, sku='SKU_B')
+    return product
+
+
+@pytest.fixture
 def product_list(product_type, default_category):
     product_attr = product_type.product_attributes.first()
     attr_value = product_attr.values.first()
@@ -486,7 +498,7 @@ def delivery_group(order, product_type, default_category):
         name='Test product', price=Decimal('10.00'),
         product_type=product_type, category=default_category)
     variant = ProductVariant.objects.create(product=product, sku='SKU_A')
-    warehouse = StockLocation.objects.create(name='Warehouse 1')
+    warehouse = StockLocation.objects.create(name='Warehouse 2')
     stock = Stock.objects.create(
         variant=variant, cost_price=1, quantity=5, quantity_allocated=3,
         location=warehouse)
