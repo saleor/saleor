@@ -65,7 +65,7 @@
           {% csrf_token %}
           <div class="card-content">
             <span class="card-title">
-              {{ product.product_class }}
+              {{ product.product_type }}
             </span>
             <div class="row">
               <div class="col s12 l8" >
@@ -85,7 +85,7 @@
                 <div class="row">
                   {{ product_form.price|materializecss }}
                 </div>
-                {% if not product.product_class.has_variants %}
+                {% if not product.product_type.has_variants %}
                   <div class="row">
                     {{ variant_form.sku|materializecss }}
                   </div>

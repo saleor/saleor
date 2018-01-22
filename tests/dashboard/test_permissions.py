@@ -67,47 +67,47 @@ def test_staff_cant_view_group_create(staff_client):
     assert response.status_code == 302
 
 
-def test_admin_can_view_products_class_list(admin_client):
-    response = admin_client.get(reverse('dashboard:product-class-list'))
+def test_admin_can_view_product_types_list(admin_client):
+    response = admin_client.get(reverse('dashboard:product-type-list'))
     assert response.status_code == 200
 
 
-def test_staff_cant_view_products_class_list(staff_client):
-    response = staff_client.get(reverse('dashboard:product-class-list'))
+def test_staff_cant_view_product_types_list(staff_client):
+    response = staff_client.get(reverse('dashboard:product-type-list'))
     assert response.status_code == 302
 
 
-def test_admin_can_view_products_class_add(admin_client):
-    response = admin_client.get(reverse('dashboard:product-class-add'))
+def test_admin_can_view_product_type_add(admin_client):
+    response = admin_client.get(reverse('dashboard:product-type-add'))
     assert response.status_code == 200
 
 
-def test_staff_cant_view_products_class_add(staff_client):
-    response = staff_client.get(reverse('dashboard:product-class-add'))
+def test_staff_cant_view_product_type_add(staff_client):
+    response = staff_client.get(reverse('dashboard:product-type-add'))
     assert response.status_code == 302
 
 
-def test_admin_can_view_products_class_update(admin_client, product_class):
-    response = admin_client.get(reverse('dashboard:product-class-update',
-                                        args=[product_class.pk]))
+def test_admin_can_view_product_type_update(admin_client, product_type):
+    response = admin_client.get(reverse('dashboard:product-type-update',
+                                        args=[product_type.pk]))
     assert response.status_code == 200
 
 
-def test_staff_cant_view_products_class_update(staff_client, product_class):
-    response = staff_client.get(reverse('dashboard:product-class-update',
-                                        args=[product_class.pk]))
+def test_staff_cant_view_product_type_update(staff_client, product_type):
+    response = staff_client.get(reverse('dashboard:product-type-update',
+                                        args=[product_type.pk]))
     assert response.status_code == 302
 
 
-def test_admin_can_view_products_class_delete(admin_client, product_class):
-    response = admin_client.get(reverse('dashboard:product-class-delete',
-                                        args=[product_class.pk]))
+def test_admin_can_view_product_type_delete(admin_client, product_type):
+    response = admin_client.get(reverse('dashboard:product-type-delete',
+                                        args=[product_type.pk]))
     assert response.status_code == 200
 
 
-def test_staff_cant_view_products_class_delete(staff_client, product_class):
-    response = staff_client.get(reverse('dashboard:product-class-delete',
-                                        args=[product_class.pk]))
+def test_staff_cant_view_product_type_delete(staff_client, product_type):
+    response = staff_client.get(reverse('dashboard:product-type-delete',
+                                        args=[product_type.pk]))
     assert response.status_code == 302
 
 
@@ -772,42 +772,42 @@ def test_staff_with_permission_can_create_and_delete_group(
     assert response.status_code == 200
 
 
-def test_staff_with_permissions_can_view_products_classes_list(
+def test_staff_with_permissions_can_view_product_typeses_list(
         staff_client, staff_user, staff_group, permission_view_properties):
     assert not staff_user.has_perm("product.view_properties")
-    response = staff_client.get(reverse('dashboard:product-class-list'))
+    response = staff_client.get(reverse('dashboard:product-type-list'))
     assert response.status_code == 302
     staff_group.permissions.add(permission_view_properties)
     staff_user.groups.add(staff_group)
     staff_user = User.objects.get(pk=staff_user.pk)
     assert staff_user.has_perm("product.view_properties")
-    response = staff_client.get(reverse('dashboard:product-class-list'))
+    response = staff_client.get(reverse('dashboard:product-type-list'))
     assert response.status_code == 200
 
 
-def test_staff_with_permissions_can_edit_add_and_delete_products_classes_list(
+def test_staff_with_permissions_can_edit_add_and_delete_product_types_list(
         staff_client, staff_user, staff_group, permission_edit_properties,
-        product_class):
+        product_type):
     assert not staff_user.has_perm("product.edit_properties")
-    response = staff_client.get(reverse('dashboard:product-class-update',
-                                        args=[product_class.pk]))
+    response = staff_client.get(reverse('dashboard:product-type-update',
+                                        args=[product_type.pk]))
     assert response.status_code == 302
-    response = staff_client.get(reverse('dashboard:product-class-delete',
-                                        args=[product_class.pk]))
+    response = staff_client.get(reverse('dashboard:product-type-delete',
+                                        args=[product_type.pk]))
     assert response.status_code == 302
-    response = staff_client.get(reverse('dashboard:product-class-add'))
+    response = staff_client.get(reverse('dashboard:product-type-add'))
     assert response.status_code == 302
     staff_group.permissions.add(permission_edit_properties)
     staff_user.groups.add(staff_group)
     staff_user = User.objects.get(pk=staff_user.pk)
     assert staff_user.has_perm("product.edit_properties")
-    response = staff_client.get(reverse('dashboard:product-class-update',
-                                        args=[product_class.pk]))
+    response = staff_client.get(reverse('dashboard:product-type-update',
+                                        args=[product_type.pk]))
     assert response.status_code == 200
-    response = staff_client.get(reverse('dashboard:product-class-delete',
-                                        args=[product_class.pk]))
+    response = staff_client.get(reverse('dashboard:product-type-delete',
+                                        args=[product_type.pk]))
     assert response.status_code == 200
-    response = staff_client.get(reverse('dashboard:product-class-add'))
+    response = staff_client.get(reverse('dashboard:product-type-add'))
     assert response.status_code == 200
 
 
