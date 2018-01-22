@@ -287,6 +287,7 @@ CONSTANCE_CONFIG_FIELDSETS = {
     'Various': (
         'MAIN_GENRE_MAP',
         'RELEASE_INFO_UPTODATE_HOURS',
+        'DISCOGS_RELEASE_UPTODATE_HOURS',
         'VAT_RATE',
         'CHARTS_ALLOWED_ITEMS',
         'OYE_ORDERS_MAIL',
@@ -314,6 +315,7 @@ CONSTANCE_CONFIG = {
     'ANNOUNCEMENT_MESSAGE': ('', 'Displays an announcements'),
     'OYE_ORDERS_MAIL': ('orders@oye-records.com', 'Support order mail'),
     'PAYPAL_PAYMENT_ENABLED': (False, 'If set to True Paypal payment is enabled'),
+    'DISCOGS_RELEASE_UPTODATE_HOURS': (48, 'Re-evaluate discogs release after this amount of hours')
 }
 CONSTANCE_BACKEND = 'constance.backends.database.DatabaseBackend'
 
