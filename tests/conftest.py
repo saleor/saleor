@@ -363,7 +363,7 @@ def voucher(db):  # pylint: disable=W0613
 
 
 @pytest.fixture()
-def order_with_lines(order, product_class, default_category):
+def order_with_lines(order, product_type, default_category):
     group = DeliveryGroup.objects.create(order=order)
     product = Product.objects.create(
         name='Test product', price=Decimal('10.00'),
@@ -409,7 +409,7 @@ def order_with_lines(order, product_class, default_category):
 
 
 @pytest.fixture()
-def order_with_lines_and_stock(order, product_class, default_category):
+def order_with_lines_and_stock(order, product_type, default_category):
     group = DeliveryGroup.objects.create(order=order)
     product = Product.objects.create(
         name='Test product', price=Decimal('10.00'),

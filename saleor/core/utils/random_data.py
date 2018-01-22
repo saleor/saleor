@@ -209,7 +209,7 @@ def create_products_by_type(
     for dummy in range(how_many):
         product = create_product(
             product_type=product_type, category=category)
-        set_product_attributes(product, product_class)
+        set_product_attributes(product, product_type)
         if create_images:
             type_placeholders = os.path.join(
                 placeholder_dir, schema['images_dir'])
