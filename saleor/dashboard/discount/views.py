@@ -23,7 +23,7 @@ def get_voucher_type_forms(voucher, data):
         VoucherType.PRODUCT: forms.ProductVoucherForm(
             data or None, instance=voucher, prefix=VoucherType.PRODUCT),
         VoucherType.CATEGORY: forms.CategoryVoucherForm(
-            data, instance=voucher, prefix=VoucherType.CATEGORY)}
+            data or None, instance=voucher, prefix=VoucherType.CATEGORY)}
 
 
 @staff_member_required
