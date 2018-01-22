@@ -7,20 +7,20 @@ from django.utils.text import slugify
 from django.utils.translation import pgettext_lazy
 
 from ...product.models import (
-    AttributeChoiceValue, Product, ProductAttribute, ProductClass,
-    ProductImage, ProductVariant, Stock, StockLocation, VariantImage)
+    AttributeChoiceValue, Product, ProductAttribute, ProductImage, ProductType,
+    ProductVariant, Stock, StockLocation, VariantImage)
 from .widgets import ImagePreviewWidget
 from . import ProductBulkAction
 from ..widgets import RichTextEditorWidget
 
 
-class ProductClassSelectorForm(forms.Form):
+class ProductTypeSelectorForm(forms.Form):
     """
-    Form that allows selecting product class.
+    Form that allows selecting product type.
     """
-    product_cls = forms.ModelChoiceField(
-        queryset=ProductClass.objects.all(),
-        label=pgettext_lazy('Product class form label', 'Product type'),
+    product_type = forms.ModelChoiceField(
+        queryset=ProductType.objects.all(),
+        label=pgettext_lazy('Product type form label', 'Product type'),
         widget=forms.RadioSelect, empty_label=None)
 
 
@@ -57,9 +57,9 @@ class StockForm(forms.ModelForm):
         return super().save(commit)
 
 
-class ProductClassForm(forms.ModelForm):
+class ProductTypeForm(forms.ModelForm):
     class Meta:
-        model = ProductClass
+        model = ProductType
         exclude = []
         labels = {
             'name': pgettext_lazy(
@@ -85,12 +85,12 @@ class ProductClassForm(forms.ModelForm):
         variant_attr = set(self.cleaned_data['variant_attributes'])
         if not has_variants and len(variant_attr) > 0:
             msg = pgettext_lazy(
-                'Product class form error',
+                'Product type form error',
                 'Product variants are disabled.')
             self.add_error('variant_attributes', msg)
         if len(product_attr & variant_attr) > 0:
             msg = pgettext_lazy(
-                'Product class form error',
+                'Product type form error',
                 'A single attribute can\'t belong to both a product '
                 'and its variant.')
             self.add_error('variant_attributes', msg)
@@ -104,7 +104,7 @@ class ProductClassForm(forms.ModelForm):
                 query = query.filter(variants_counter__gt=1)
                 if query.exists():
                     msg = pgettext_lazy(
-                        'Product class form error',
+                        'Product type form error',
                         'Some products of this type have more than '
                         'one variant.')
                     self.add_error('has_variants', msg)
@@ -115,7 +115,7 @@ class ProductForm(forms.ModelForm):
 
     class Meta:
         model = Product
-        exclude = ['attributes', 'product_class', 'updated_at']
+        exclude = ['attributes', 'product_type', 'updated_at']
         labels = {
             'name': pgettext_lazy('Item name', 'Name'),
             'description': pgettext_lazy('Description', 'Description'),
@@ -131,8 +131,8 @@ class ProductForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         self.product_attributes = []
         super().__init__(*args, **kwargs)
-        product_class = self.instance.product_class
-        self.product_attributes = product_class.product_attributes.all()
+        product_type = self.instance.product_type
+        self.product_attributes = product_type.product_attributes.all()
         self.product_attributes = self.product_attributes.prefetch_related(
             'values')
         self.prepare_fields_for_attributes()
@@ -208,7 +208,7 @@ class VariantAttributeForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        attrs = self.instance.product.product_class.variant_attributes.all()
+        attrs = self.instance.product.product_type.variant_attributes.all()
         self.available_attrs = attrs.prefetch_related('values')
         for attr in self.available_attrs:
             field_defaults = {

@@ -27,8 +27,8 @@ def products_with_details(user):
     products = products.prefetch_related(
         'category', 'images', 'variants__stock',
         'variants__variant_images__image', 'attributes__values',
-        'product_class__variant_attributes__values',
-        'product_class__product_attributes__values')
+        'product_type__variant_attributes__values',
+        'product_type__product_attributes__values')
     return products
 
 
@@ -155,7 +155,7 @@ def get_variant_picker_data(product, discounts=None, local_currency=None):
     variants = product.variants.all()
     data = {'variantAttributes': [], 'variants': []}
 
-    variant_attributes = product.product_class.variant_attributes.all()
+    variant_attributes = product.product_type.variant_attributes.all()
 
     # Collect only available variants
     filter_available_variants = defaultdict(list)
@@ -216,7 +216,7 @@ def get_variant_picker_data(product, discounts=None, local_currency=None):
 
 
 def get_product_attributes_data(product):
-    attributes = product.product_class.product_attributes.all()
+    attributes = product.product_type.product_attributes.all()
     attributes_map = {attribute.pk: attribute for attribute in attributes}
     values_map = get_attributes_display_map(product, attributes)
     return {attributes_map.get(attr_pk): value_obj
@@ -247,7 +247,7 @@ def get_variant_url_from_product(product, attributes):
 def get_variant_url(variant):
     attributes = {}
     values = {}
-    for attribute in variant.product.product_class.variant_attributes.all():
+    for attribute in variant.product.product_type.variant_attributes.all():
         attributes[str(attribute.pk)] = attribute
         for value in attribute.values.all():
             values[str(value.pk)] = value
@@ -278,13 +278,13 @@ def get_product_availability_status(product):
         variant.is_in_stock() for variant in product.variants.all())
     is_in_stock = any(
         variant.is_in_stock() for variant in product.variants.all())
-    requires_variants = product.product_class.has_variants
+    requires_variants = product.product_type.has_variants
 
     if not product.is_published:
         return ProductAvailabilityStatus.NOT_PUBLISHED
     elif requires_variants and not product.variants.exists():
         # We check the requires_variants flag here in order to not show this
-        # status with product classes that don't require variants, as in that
+        # status with product types that don't require variants, as in that
         # case variants are hidden from the UI and user doesn't manage them.
         return ProductAvailabilityStatus.VARIANTS_MISSSING
     elif not has_stock_records:

@@ -30,8 +30,8 @@ def get_feed_items():
     items = items.select_related('product')
     items = items.prefetch_related(
         'images', 'stock', 'product__category',
-        'product__images', 'product__product_class__product_attributes',
-        'product__product_class__variant_attributes')
+        'product__images', 'product__product_type__product_attributes',
+        'product__product_type__variant_attributes')
     return items
 
 

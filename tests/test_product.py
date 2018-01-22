@@ -19,10 +19,10 @@ from saleor.product.utils import (
 
 
 @pytest.fixture()
-def product_with_no_attributes(product_class, default_category):
+def product_with_no_attributes(product_type, default_category):
     product = models.Product.objects.create(
-        name='Test product', price='10.00',
-        product_class=product_class, category=default_category)
+        name='Test product', price='10.00', product_type=product_type,
+        category=default_category)
     return product
 
 
@@ -126,18 +126,18 @@ def test_available_products_only_available(product_list):
 
 
 def test_filtering_by_attribute(db, color_attribute, default_category):
-    product_class_a = models.ProductClass.objects.create(
+    product_type_a = models.ProductType.objects.create(
         name='New class', has_variants=True)
-    product_class_a.product_attributes.add(color_attribute)
-    product_class_b = models.ProductClass.objects.create(
+    product_type_a.product_attributes.add(color_attribute)
+    product_type_b = models.ProductType.objects.create(
         name='New class', has_variants=True)
-    product_class_b.variant_attributes.add(color_attribute)
+    product_type_b.variant_attributes.add(color_attribute)
     product_a = models.Product.objects.create(
-        name='Test product a', price=10, product_class=product_class_a,
+        name='Test product a', price=10, product_type=product_type_a,
         category=default_category)
     models.ProductVariant.objects.create(product=product_a, sku='1234')
     product_b = models.Product.objects.create(
-        name='Test product b', price=10, product_class=product_class_b,
+        name='Test product b', price=10, product_type=product_type_b,
         category=default_category)
     variant_b = models.ProductVariant.objects.create(product=product_b,
                                                      sku='12345')
@@ -307,11 +307,11 @@ def test_adding_to_cart_with_closed_cart_token(
 
 
 def test_get_attributes_display_map(product_in_stock):
-    attributes = product_in_stock.product_class.product_attributes.all()
+    attributes = product_in_stock.product_type.product_attributes.all()
     attributes_display_map = get_attributes_display_map(
         product_in_stock, attributes)
 
-    product_attr = product_in_stock.product_class.product_attributes.first()
+    product_attr = product_in_stock.product_type.product_attributes.first()
     attr_value = product_attr.values.first()
 
     assert len(attributes_display_map) == 1
@@ -320,13 +320,13 @@ def test_get_attributes_display_map(product_in_stock):
 
 def test_get_attributes_display_map_empty(product_with_no_attributes):
     product = product_with_no_attributes
-    attributes = product.product_class.product_attributes.all()
+    attributes = product.product_type.product_attributes.all()
 
     assert get_attributes_display_map(product, attributes) == {}
 
 
 def test_get_attributes_display_map_no_choices(product_in_stock):
-    attributes = product_in_stock.product_class.product_attributes.all()
+    attributes = product_in_stock.product_type.product_attributes.all()
     product_attr = attributes.first()
 
     product_in_stock.set_attribute(product_attr.pk, -1)
@@ -338,7 +338,7 @@ def test_get_attributes_display_map_no_choices(product_in_stock):
 
 def test_product_availability_status(unavailable_product):
     product = unavailable_product
-    product.product_class.has_variants = True
+    product.product_type.has_variants = True
 
     # product is not published
     status = get_product_availability_status(product)
@@ -384,7 +384,7 @@ def test_product_availability_status(unavailable_product):
 
 def test_variant_availability_status(unavailable_product):
     product = unavailable_product
-    product.product_class.has_variants = True
+    product.product_type.has_variants = True
 
     variant = product.variants.create(sku='test')
     status = get_variant_availability_status(variant)
@@ -475,7 +475,7 @@ def test_get_variant_picker_data_proper_variant_count(product_in_stock):
     """
     test checks if get_variant_picker_data provide proper count of
     variant information from available product variants and not count
-    of variant attributes from product class
+    of variant attributes from product type
     """
     data = get_variant_picker_data(
         product_in_stock, discounts=None, local_currency=None)

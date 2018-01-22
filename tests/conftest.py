@@ -1,6 +1,6 @@
 from decimal import Decimal
 from io import BytesIO
-from unittest.mock import MagicMock, Mock
+from unittest.mock import MagicMock
 
 import pytest
 from django.contrib.auth.models import AnonymousUser, Group, Permission
@@ -19,8 +19,8 @@ from saleor.order import GroupStatus
 from saleor.order.models import DeliveryGroup, Order, OrderLine
 from saleor.order.utils import recalculate_order
 from saleor.product.models import (
-    AttributeChoiceValue, Category, Product, ProductAttribute, ProductClass,
-    ProductImage, ProductVariant, Stock, StockLocation)
+    AttributeChoiceValue, Category, Product, ProductAttribute, ProductImage,
+    ProductType, ProductVariant, Stock, StockLocation)
 from saleor.shipping.models import ShippingMethod
 from saleor.site.models import AuthorizationKey, SiteSettings
 from saleor.userprofile.models import Address, User
@@ -230,27 +230,26 @@ def permission_view_user():
 
 
 @pytest.fixture
-def product_class(color_attribute, size_attribute):
-    product_class = ProductClass.objects.create(name='Default Class',
-                                                has_variants=False,
-                                                is_shipping_required=True)
-    product_class.product_attributes.add(color_attribute)
-    product_class.variant_attributes.add(size_attribute)
-    return product_class
+def product_type(color_attribute, size_attribute):
+    product_type = ProductType.objects.create(
+        name='Default Type', has_variants=False, is_shipping_required=True)
+    product_type.product_attributes.add(color_attribute)
+    product_type.variant_attributes.add(size_attribute)
+    return product_type
 
 
 @pytest.fixture
-def product_in_stock(product_class, default_category):
-    product_attr = product_class.product_attributes.first()
+def product_in_stock(product_type, default_category):
+    product_attr = product_type.product_attributes.first()
     attr_value = product_attr.values.first()
     attributes = {smart_text(product_attr.pk): smart_text(attr_value.pk)}
 
     product = Product.objects.create(
         name='Test product', price=Decimal('10.00'),
-        product_class=product_class, attributes=attributes,
+        product_type=product_type, attributes=attributes,
         category=default_category)
 
-    variant_attr = product_class.variant_attributes.first()
+    variant_attr = product_type.variant_attributes.first()
     variant_attr_value = variant_attr.values.first()
     variant_attributes = {
         smart_text(variant_attr.pk): smart_text(variant_attr_value.pk)
@@ -274,24 +273,24 @@ def product_in_stock(product_class, default_category):
 
 
 @pytest.fixture
-def product_list(product_class, default_category):
-    product_attr = product_class.product_attributes.first()
+def product_list(product_type, default_category):
+    product_attr = product_type.product_attributes.first()
     attr_value = product_attr.values.first()
     attributes = {smart_text(product_attr.pk): smart_text(attr_value.pk)}
 
     product_1 = Product.objects.create(
         name='Test product 1', price=Decimal('10.00'),
-        product_class=product_class, attributes=attributes, is_published=True,
+        product_type=product_type, attributes=attributes, is_published=True,
         category=default_category)
 
     product_2 = Product.objects.create(
         name='Test product 2', price=Decimal('20.00'),
-        product_class=product_class, attributes=attributes, is_published=False,
+        product_type=product_type, attributes=attributes, is_published=False,
         category=default_category)
 
     product_3 = Product.objects.create(
         name='Test product 3', price=Decimal('20.00'),
-        product_class=product_class, attributes=attributes, is_published=True,
+        product_type=product_type, attributes=attributes, is_published=True,
         category=default_category)
 
     return [product_1, product_2, product_3]
@@ -331,19 +330,19 @@ def product_with_image(product_in_stock, product_image):
 
 
 @pytest.fixture
-def unavailable_product(product_class, default_category):
+def unavailable_product(product_type, default_category):
     product = Product.objects.create(
         name='Test product', price=Decimal('10.00'),
-        product_class=product_class, is_published=False,
+        product_type=product_type, is_published=False,
         category=default_category)
     return product
 
 
 @pytest.fixture
-def product_with_images(product_class, default_category):
+def product_with_images(product_type, default_category):
     product = Product.objects.create(
         name='Test product', price=Decimal('10.00'),
-        product_class=product_class, category=default_category)
+        product_type=product_type, category=default_category)
     file_mock_0 = MagicMock(spec=File, name='FileMock0')
     file_mock_0.name = 'image0.jpg'
     file_mock_1 = MagicMock(spec=File, name='FileMock1')
@@ -364,11 +363,11 @@ def voucher(db):  # pylint: disable=W0613
 
 
 @pytest.fixture()
-def order_with_lines(order, product_class, default_category):
+def order_with_lines(order, product_type, default_category):
     group = DeliveryGroup.objects.create(order=order)
     product = Product.objects.create(
         name='Test product', price=Decimal('10.00'),
-        product_class=product_class, category=default_category)
+        product_type=product_type, category=default_category)
 
     OrderLine.objects.create(
         delivery_group=group,
@@ -381,7 +380,7 @@ def order_with_lines(order, product_class, default_category):
     )
     product = Product.objects.create(
         name='Test product 2', price=Decimal('20.00'),
-        product_class=product_class, category=default_category)
+        product_type=product_type, category=default_category)
 
     OrderLine.objects.create(
         delivery_group=group,
@@ -394,7 +393,7 @@ def order_with_lines(order, product_class, default_category):
     )
     product = Product.objects.create(
         name='Test product 3', price=Decimal('30.00'),
-        product_class=product_class, category=default_category)
+        product_type=product_type, category=default_category)
 
     OrderLine.objects.create(
         delivery_group=group,
@@ -410,11 +409,11 @@ def order_with_lines(order, product_class, default_category):
 
 
 @pytest.fixture()
-def order_with_lines_and_stock(order, product_class, default_category):
+def order_with_lines_and_stock(order, product_type, default_category):
     group = DeliveryGroup.objects.create(order=order)
     product = Product.objects.create(
         name='Test product', price=Decimal('10.00'),
-        product_class=product_class, category=default_category)
+        product_type=product_type, category=default_category)
     variant = ProductVariant.objects.create(product=product, sku='SKU_A')
     warehouse = StockLocation.objects.create(name='Warehouse 1')
     stock = Stock.objects.create(
@@ -433,7 +432,7 @@ def order_with_lines_and_stock(order, product_class, default_category):
     )
     product = Product.objects.create(
         name='Test product 2', price=Decimal('20.00'),
-        product_class=product_class, category=default_category)
+        product_type=product_type, category=default_category)
     variant = ProductVariant.objects.create(product=product, sku='SKU_B')
     stock = Stock.objects.create(
         variant=variant, cost_price=2, quantity=2, quantity_allocated=2,
@@ -481,11 +480,11 @@ def order_with_variant_from_different_stocks(order_with_lines_and_stock):
 
 
 @pytest.fixture()
-def delivery_group(order, product_class, default_category):
+def delivery_group(order, product_type, default_category):
     group = DeliveryGroup.objects.create(order=order)
     product = Product.objects.create(
         name='Test product', price=Decimal('10.00'),
-        product_class=product_class, category=default_category)
+        product_type=product_type, category=default_category)
     variant = ProductVariant.objects.create(product=product, sku='SKU_A')
     warehouse = StockLocation.objects.create(name='Warehouse 1')
     stock = Stock.objects.create(
