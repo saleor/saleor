@@ -282,6 +282,7 @@ CONSTANCE_CONFIG_FIELDSETS = {
     'Payments': (
         'PAYMENTS_RECURRING_ENABLED',
         'PAYMENTS_ONECLICK_ENABLED',
+        'PAYPAL_PAYMENT_ENABLED',
     ),
     'Various': (
         'MAIN_GENRE_MAP',
@@ -311,7 +312,8 @@ CONSTANCE_CONFIG = {
     'ANNOUNCEMENT_SHOW': (True, 'If set to True, the announcement should be shown'),
     'ANNOUNCEMENT_PRIORITY': ('info', 'Select priority', 'priority_select'),
     'ANNOUNCEMENT_MESSAGE': ('', 'Displays an announcements'),
-    'OYE_ORDERS_MAIL': ('orders@oye-records.com', 'Support order mail')
+    'OYE_ORDERS_MAIL': ('orders@oye-records.com', 'Support order mail'),
+    'PAYPAL_PAYMENT_ENABLED': (False, 'If set to True Paypal payment is enabled'),
 }
 CONSTANCE_BACKEND = 'constance.backends.database.DatabaseBackend'
 
