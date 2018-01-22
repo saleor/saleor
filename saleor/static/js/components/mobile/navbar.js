@@ -1,7 +1,7 @@
 const $toogleIcon = $('.navbar__brand__menu-toggle');
 const $mobileNav = $('nav');
 
-const renderLoginBar = (e) => {
+const renderLoginBar = () => {
   const $desktopLinkBar = $('.navbar__login');
   const $mobileLinkBar = $('.navbar__menu__login');
   const windowWidth = window.innerWidth;
@@ -30,8 +30,14 @@ const renderLoginBar = (e) => {
   }
 };
 
+// -----
+
 renderLoginBar();
-$toogleIcon.on('click', () => $mobileNav.addClass('open'));
+$toogleIcon
+  .on('click', (e) => {
+    $mobileNav.toggleClass('open');
+    e.stopPropagation();
+  });
 $(document)
   .on('click', () => $mobileNav.removeClass('open'));
 $(window)
