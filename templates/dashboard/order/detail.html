@@ -511,18 +511,16 @@
   </div>
   <div class="tab-content" id="order-history">
     <p class="print-show print-tabs">{% trans "History" context "Order detail tab" %}</p>
-  <div class="timeline-outer">
-    <ul class="timeline">
-      {% for event in order.history.all %}
-        <li class="event" data-date="{{ event.date }}">
-          <div class="content">
-            {{ event.comment|default:"" }}{% if event.user %} by {{ event.user }}{% endif %}
-            <div class="status">
-              {% render_status event.status event.get_status_display %}
+    <div class="timeline-outer">
+      <ul class="timeline">
+        {% for event in order.history.all %}
+          <li class="event" data-date="{{ event.date }}">
+            <div class="content">
+              {{ event.content|default:"" }}{% if event.user %} by {{ event.user }}{% endif %}
             </div>
-          </div>
-        </li>
-      {% endfor %}
-    </ul>
+          </li>
+        {% endfor %}
+      </ul>
+    </div>
   </div>
 {% endblock %}
