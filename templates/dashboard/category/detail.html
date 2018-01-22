@@ -78,7 +78,7 @@
             </span>
             <div class="row">
               {% if root.description %}
-                <div class="col s12 l8">
+                <div class="col s12">
                   <h4>
                     {% trans "Description" context "Category field" %}
                   </h4>
@@ -88,18 +88,6 @@
                 </div>
               {% endif %}
             </div>
-            {% if root.is_hidden %}
-              <div class="row">
-                <div class="col s12 l8">
-                  <h4>
-                    {% trans "Hidden" context "Category field" %}
-                  </h4>
-                  {% blocktrans trimmed context "Category detail is hidden text" %}
-                    This category is hidden on storefront
-                  {% endblocktrans %}
-                </div>
-              </div>
-            {% endif %}
           </div>
           {% if perms.product.edit_category %}
           <div class="card-action">
