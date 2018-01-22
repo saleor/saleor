@@ -46,7 +46,7 @@ function onPageInit () {
     initCheckedRows();
     updateSelectedItemsText();
     $('.select-all')
-      .on('click', onSelectAll);
+      .on('change', onSelectAll);
     $('.select-item')
       .on('change', onItemSelect);
     $('.data-table-bulk-actions__action-choice a')
@@ -59,7 +59,7 @@ function onPageInit () {
 function onSelectAll (e) {
   const $target = $(e.currentTarget);
   const $targetForm = $target.parents('form');
-  const $items = $targetForm.find('.switch-actions');
+  const $items = $targetForm.find('.select-item:not(.select-all)');
   $items.prop('checked', $target[0].checked);
   $target.off('change');
   updateSelectedItemsText($target[0].checked);
