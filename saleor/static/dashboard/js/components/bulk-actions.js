@@ -1,7 +1,7 @@
 /**
- * This function adds .highlight class on checked table rows on page load.
- * Fixes bug when user checks some items, goes to another page, then goes back
- * in browsing history and some rows are checked but have no .highlight class.
+ * This function adds .highlight class on checked table rows on page load and select all action.
+ * Fixes bug when user checks some items, goes to another page, then goes back in browsing history
+ * and some rows are checked but have no .highlight class.
  */
 function initCheckedRows () {
   $('.select-item:checked:not(#select-all-items)')
@@ -10,6 +10,13 @@ function initCheckedRows () {
         .parent()
         .parent()
         .addClass('highlight');
+    });
+  $('.select-item:not(:checked):not(#select-all-items)')
+    .each((itemIndex, item) => {
+      $(item)
+        .parent()
+        .parent()
+        .removeClass('highlight');
     });
 }
 
@@ -61,6 +68,7 @@ function onSelectAll (e) {
   const $targetForm = $target.parents('form');
   const $items = $targetForm.find('.select-item:not(.select-all)');
   $items.prop('checked', $target[0].checked);
+  initCheckedRows();
   $target.off('change');
   updateSelectedItemsText($target[0].checked);
 }
