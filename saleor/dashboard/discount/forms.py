@@ -160,7 +160,6 @@ class CommonVoucherForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
 
     def save(self, commit=True):
-        self.instance.category = None
         self.instance.limit = None
         # Apply to one with percentage discount is more complicated case.
         # On which product we should apply it? On first, last or cheapest?
