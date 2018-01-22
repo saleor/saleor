@@ -286,7 +286,7 @@ CONSTANCE_CONFIG_FIELDSETS = {
     ),
     'Various': (
         'MAIN_GENRE_MAP',
-        'RELEASE_INFO_UPTODATE_HOURS',
+        'TRACK_RELEASES_UPTODATE_MINUTES',
         'DISCOGS_RELEASE_UPTODATE_HOURS',
         'VAT_RATE',
         'CHARTS_ALLOWED_ITEMS',
@@ -303,6 +303,7 @@ CONSTANCE_ADDITIONAL_FIELDS = {
 CONSTANCE_CONFIG = {
     'MAIN_GENRE_MAP': ('', 'Holds the artificial meta genre grouping'),
     'RELEASE_INFO_UPTODATE_HOURS': (48, 'Re-evaluate tracks and discogs release after this amount of hours'),
+    'TRACK_RELEASES_UPTODATE_MINUTES': (10, 'Re-evaluate tracks after this amount of hours'),
     'SEARCH_FUZZINESS': ('0', 'The maximum number of edits between input and target tokens (see https://www.elastic.co/guide/en/elasticsearch/reference/current/common-options.html#fuzziness)'),
     'SEARCH_PREFIX_LENGTH': (1, 'The minimum number of characters leading the target term'),
     'SEARCH_PHRASE_PREFIX': (True, 'Use Match Phrase Prefix instead of Match Phrase'),
