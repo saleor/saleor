@@ -378,16 +378,15 @@ class VariantImage(models.Model):
 
 
 class Collection(models.Model):
-    name = models.CharField(
-        pgettext_lazy('Product collection field', 'name'), max_length=128,
-        unique=True)
-    slug = models.SlugField(pgettext_lazy('Product collection field', 'slug'))
-    products = models.ManyToManyField(Product, blank=True,
-                                      related_name='collections')
+    name = models.CharField(max_length=128, unique=True)
+    slug = models.SlugField()
+    products = models.ManyToManyField(
+        Product, blank=True, related_name='collections')
 
     def __str__(self):
         return self.name
 
     def get_absolute_url(self):
-        return reverse('product:collection',
-                       kwargs={'slug': self.slug, 'collection_id': self.id})
+        return reverse(
+            'product:collection',
+            kwargs={'slug': self.slug, 'collection_id': self.id})
