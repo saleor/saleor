@@ -283,7 +283,12 @@
                 {% for line in group.lines.all %}
                   <tr class="last-no-border">
                     <td>
-                      {{ line.product_name }}<br>
+                      {% if line.product %}
+                        <a href="{% url 'dashboard:product-detail' pk=line.product.pk %}">{{ line.product_name }}</a>
+                      {% else %}
+                        {{ line.product_name }}
+                      {% endif %}
+                      <br>
                       <span class="grey-text">
                         {% blocktrans trimmed with sku=line.product_sku context "Shipment group table text" %}
                           SKU: {{ sku }}
