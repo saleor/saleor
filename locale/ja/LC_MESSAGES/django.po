@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: master\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2017-12-04 06:59-0600\n"
+"POT-Creation-Date: 2018-01-04 11:16-0600\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Saito Kotaro <kotaro_saito@backroot.net>, 2017\n"
 "Language-Team: Japanese (https://www.transifex.com/mirumee/teams/34782/ja/)\n"
@@ -18,161 +18,161 @@ msgstr ""
 "Language: ja\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
 
-#: saleor/cart/__init__.py:22
+#: saleor/cart/__init__.py:20
 msgctxt "cart status"
 msgid "Open - currently active"
 msgstr "オープン"
 
-#: saleor/cart/__init__.py:24
+#: saleor/cart/__init__.py:22
 msgctxt "cart status"
 msgid "Waiting for payment"
 msgstr "支払い待ち"
 
-#: saleor/cart/__init__.py:26
+#: saleor/cart/__init__.py:24
 msgctxt "cart status"
 msgid "Saved - for items to be purchased later"
 msgstr "保存済 - あとで買う商品"
 
-#: saleor/cart/__init__.py:28
+#: saleor/cart/__init__.py:26
 msgctxt "cart status"
 msgid "Submitted - an order was placed"
 msgstr "確定済 - 注文が受け付けられた"
 
-#: saleor/cart/__init__.py:30
+#: saleor/cart/__init__.py:28
 msgctxt "cart status"
 msgid "Checkout - processed in checkout"
 msgstr "支払い手続き - 支払い手続きを行いました。"
 
-#: saleor/cart/__init__.py:32
+#: saleor/cart/__init__.py:30
 msgctxt "cart status"
 msgid "Canceled - canceled by user"
 msgstr "キャンセル済 - ユーザーによってキャンセルされました。"
 
-#: saleor/cart/forms.py:32
+#: saleor/cart/forms.py:30
 msgctxt "Add to cart form field label"
 msgid "Quantity"
 msgstr "数量"
 
-#: saleor/cart/forms.py:36
+#: saleor/cart/forms.py:34
 msgctxt "Add to cart form error"
 msgid "Sorry. This product is currently not available."
 msgstr "申し訳ございません。この商品は現在お取り扱いできません。"
 
-#: saleor/cart/forms.py:39
+#: saleor/cart/forms.py:37
 msgctxt "Add to cart form error"
 msgid "Sorry. This product is currently out of stock."
 msgstr "申し訳ございません。この商品は現在在庫切れです。"
 
-#: saleor/cart/forms.py:42
+#: saleor/cart/forms.py:40
 msgctxt "Add to cart form error"
 msgid "Oops. We could not find that product."
 msgstr ""
 
-#: saleor/cart/forms.py:45
+#: saleor/cart/forms.py:43
 #, python-format
 msgctxt "Add to cart form error"
 msgid "Only %d remaining in stock."
 msgid_plural "Only %d remaining in stock."
 msgstr[0] ""
 
-#: saleor/cart/forms.py:155
+#: saleor/cart/forms.py:153
 msgctxt "Country form field label"
 msgid "Country"
 msgstr "国"
 
-#: saleor/cart/models.py:88
+#: saleor/cart/models.py:86
 msgctxt "Cart field"
 msgid "order status"
 msgstr "注文の状況"
 
-#: saleor/cart/models.py:91
+#: saleor/cart/models.py:89
 msgctxt "Cart field"
 msgid "created"
 msgstr "作成済"
 
-#: saleor/cart/models.py:93
+#: saleor/cart/models.py:91
 msgctxt "Cart field"
 msgid "last status change"
 msgstr "最終ステータス変更"
 
-#: saleor/cart/models.py:96
+#: saleor/cart/models.py:94
 msgctxt "Cart field"
 msgid "user"
 msgstr "ユーザー"
 
-#: saleor/cart/models.py:99
+#: saleor/cart/models.py:97
 msgctxt "Cart field"
 msgid "email"
 msgstr "メール"
 
-#: saleor/cart/models.py:101 saleor/cart/models.py:106
+#: saleor/cart/models.py:99 saleor/cart/models.py:104
 msgctxt "Cart field"
 msgid "token"
 msgstr "トークン"
 
-#: saleor/cart/models.py:108
+#: saleor/cart/models.py:106
 msgctxt "Cart field"
 msgid "checkout data"
 msgstr "支払いデータ"
 
-#: saleor/cart/models.py:111
+#: saleor/cart/models.py:109
 msgctxt "Cart field"
 msgid "total"
 msgstr "合計"
 
-#: saleor/cart/models.py:115
+#: saleor/cart/models.py:113
 msgctxt "Cart field"
 msgid "quantity"
 msgstr "数量"
 
-#: saleor/cart/models.py:256
+#: saleor/cart/models.py:253
 msgctxt "Cart line field"
 msgid "cart"
 msgstr "カート"
 
-#: saleor/cart/models.py:260
+#: saleor/cart/models.py:257
 msgctxt "Cart line field"
 msgid "product"
 msgstr "商品"
 
-#: saleor/cart/models.py:263
+#: saleor/cart/models.py:260
 msgctxt "Cart line field"
 msgid "quantity"
 msgstr "数量"
 
-#: saleor/cart/models.py:267
+#: saleor/cart/models.py:264
 msgctxt "Cart line field"
 msgid "data"
 msgstr "データ"
 
-#: saleor/cart/utils.py:97
+#: saleor/cart/utils.py:95
 msgctxt "Cart warning message"
 msgid ""
 "Sorry. We don't have that many items in stock. Quantity was set to maximum "
 "available for now."
 msgstr ""
 
-#: saleor/checkout/forms.py:24
+#: saleor/checkout/forms.py:22
 msgctxt "Shipping addresses form choice"
 msgid "Enter a new address"
 msgstr ""
 
-#: saleor/checkout/forms.py:27
+#: saleor/checkout/forms.py:25
 msgctxt "Shipping addresses form field label"
 msgid "Address"
 msgstr "住所"
 
-#: saleor/checkout/forms.py:46
+#: saleor/checkout/forms.py:44
 msgctxt "Billing addresses form choice"
 msgid "Enter a new address"
 msgstr ""
 
-#: saleor/checkout/forms.py:48
+#: saleor/checkout/forms.py:46
 msgctxt "Billing addresses form choice"
 msgid "Same as shipping"
 msgstr ""
 
-#: saleor/checkout/forms.py:85
+#: saleor/checkout/forms.py:83
 msgctxt "Shipping method form field label"
 msgid "Shipping method"
 msgstr "配送方法"
@@ -187,1173 +187,1166 @@ msgctxt "Billing form field label"
 msgid "Email"
 msgstr "メールアドレス"
 
-#: saleor/checkout/views/discount.py:64
+#: saleor/checkout/views/discount.py:62
 msgctxt "Checkout warning"
 msgid "This voucher has expired. Please review your checkout."
 msgstr ""
 
-#: saleor/checkout/views/summary.py:32
+#: saleor/checkout/views/summary.py:30
 msgctxt "Order status history entry"
 msgid "Order was placed"
 msgstr ""
 
-#: saleor/checkout/views/summary.py:47
+#: saleor/checkout/views/summary.py:45
 msgctxt "Checkout warning"
 msgid "Please review your checkout."
 msgstr ""
 
-#: saleor/core/views.py:33
+#: saleor/core/filters.py:24
+#, python-format
+msgctxt "Number of matching records in the dashboard list"
+msgid "Found %(counter)d matching record"
+msgid_plural "Found %(counter)d matching records"
+msgstr[0] ""
+
+#: saleor/core/views.py:30
 msgctxt "Impersonation message"
 msgid "You are now logged as {}"
 msgstr ""
 
-#: saleor/discount/forms.py:16
+#: saleor/discount/forms.py:15
 msgctxt "Voucher form error"
 msgid "Discount code incorrect or expired"
 msgstr ""
 
-#: saleor/discount/forms.py:27
+#: saleor/discount/forms.py:26
 msgctxt "Checkout discount form label for voucher field"
 msgid "Gift card or discount code"
 msgstr ""
 
-#: saleor/discount/models.py:61
+#: saleor/discount/models.py:58
 msgctxt "Voucher application"
 msgid "Apply to a single item"
 msgstr ""
 
-#: saleor/discount/models.py:65
+#: saleor/discount/models.py:62
 msgctxt "Voucher application"
 msgid "Apply to all matching products"
 msgstr ""
 
-#: saleor/discount/models.py:76
+#: saleor/discount/models.py:73
 msgctxt "Voucher discount type"
 msgid "%"
 msgstr "％"
 
-#: saleor/discount/models.py:84
+#: saleor/discount/models.py:81
 msgctxt "Voucher: discount for"
 msgid "All purchases"
 msgstr ""
 
-#: saleor/discount/models.py:85
+#: saleor/discount/models.py:82
 msgctxt "Voucher: discount for"
 msgid "One product"
 msgstr "単品"
 
-#: saleor/discount/models.py:88
+#: saleor/discount/models.py:85
 msgctxt "Voucher: discount for"
 msgid "A category of products"
 msgstr ""
 
-#: saleor/discount/models.py:89
+#: saleor/discount/models.py:86
 msgctxt "Voucher: discount for"
 msgid "Shipping"
 msgstr "配送"
 
-#: saleor/discount/models.py:92
+#: saleor/discount/models.py:89
 msgctxt "Voucher field"
 msgid "discount for"
 msgstr "割引"
 
-#: saleor/discount/models.py:95
+#: saleor/discount/models.py:92
 msgctxt "Voucher field"
 msgid "name"
 msgstr "名前"
 
-#: saleor/discount/models.py:98
+#: saleor/discount/models.py:95
 msgctxt "Voucher field"
 msgid "code"
 msgstr "コード"
 
-#: saleor/discount/models.py:101
+#: saleor/discount/models.py:98
 msgctxt "Voucher field"
 msgid "usage limit"
 msgstr "利用制限"
 
-#: saleor/discount/models.py:104
+#: saleor/discount/models.py:101
 msgctxt "Voucher field"
 msgid "start date"
 msgstr "開始日"
 
-#: saleor/discount/models.py:106
+#: saleor/discount/models.py:103
 msgctxt "Voucher field"
 msgid "end date"
 msgstr "終了日"
 
-#: saleor/discount/models.py:109
+#: saleor/discount/models.py:106
 msgctxt "Voucher field"
 msgid "discount type"
 msgstr "割引タイプ"
 
-#: saleor/discount/models.py:112
+#: saleor/discount/models.py:109
 msgctxt "Voucher field"
 msgid "discount value"
 msgstr "割引額"
 
-#: saleor/discount/models.py:118
+#: saleor/discount/models.py:115
 msgctxt "Voucher field"
 msgid "product"
 msgstr "商品"
 
-#: saleor/discount/models.py:122
+#: saleor/discount/models.py:119
 msgctxt "Voucher field"
 msgid "category"
 msgstr "カテゴリー"
 
-#: saleor/discount/models.py:125
+#: saleor/discount/models.py:122
 msgctxt "Voucher field"
 msgid "apply to"
 msgstr ""
 
-#: saleor/discount/models.py:128
+#: saleor/discount/models.py:125
 msgctxt "Voucher field"
 msgid "limit"
 msgstr "制限"
 
-#: saleor/discount/models.py:142
+#: saleor/discount/models.py:139
 msgctxt "Permission description"
 msgid "Can view vouchers"
 msgstr ""
 
-#: saleor/discount/models.py:144
+#: saleor/discount/models.py:141
 msgctxt "Permission description"
 msgid "Can edit vouchers"
 msgstr ""
 
-#: saleor/discount/models.py:153
+#: saleor/discount/models.py:150
 msgctxt "Voucher type"
 msgid "Free shipping"
 msgstr "送料無料"
 
-#: saleor/discount/models.py:157
+#: saleor/discount/models.py:154
 #, python-format
 msgctxt "Voucher type"
 msgid "%(discount)s off shipping"
 msgstr ""
 
-#: saleor/discount/models.py:161
+#: saleor/discount/models.py:158
 #, python-format
 msgctxt "Voucher type"
 msgid "%(discount)s off %(product)s"
 msgstr ""
 
-#: saleor/discount/models.py:166
+#: saleor/discount/models.py:163
 #, python-format
 msgctxt "Voucher type"
 msgid "%(discount)s off %(category)s"
 msgstr ""
 
-#: saleor/discount/models.py:169
+#: saleor/discount/models.py:166
 #, python-format
 msgctxt "Voucher type"
 msgid "%(discount)s off"
 msgstr ""
 
-#: saleor/discount/models.py:175
+#: saleor/discount/models.py:172
 msgctxt "Voucher"
 msgid "Any country"
 msgstr ""
 
-#: saleor/discount/models.py:205
+#: saleor/discount/models.py:202
 #, python-format
 msgctxt "Voucher not applicable"
 msgid "This offer is only valid for orders over %(amount)s."
 msgstr ""
 
-#: saleor/discount/models.py:218
+#: saleor/discount/models.py:215
 msgctxt "Voucher not applicable"
 msgid "Your order does not require shipping."
 msgstr ""
 
-#: saleor/discount/models.py:224
+#: saleor/discount/models.py:221
 msgctxt "Voucher not applicable"
 msgid "Please select a shipping method first."
 msgstr ""
 
-#: saleor/discount/models.py:230
+#: saleor/discount/models.py:227
 #, python-format
 msgctxt "Voucher not applicable"
 msgid "This offer is only valid in %(country)s."
 msgstr ""
 
-#: saleor/discount/models.py:249
+#: saleor/discount/models.py:246
 msgctxt "Voucher not applicable"
 msgid "This offer is only valid for selected items."
 msgstr ""
 
-#: saleor/discount/models.py:274
+#: saleor/discount/models.py:270
 msgctxt "Discount type"
 msgid "%"
 msgstr "％"
 
-#: saleor/discount/models.py:277
+#: saleor/discount/models.py:273
 msgctxt "Sale (discount) field"
 msgid "name"
 msgstr "名前"
 
-#: saleor/discount/models.py:279
+#: saleor/discount/models.py:275
 msgctxt "Sale (discount) field"
 msgid "type"
 msgstr "タイプ"
 
-#: saleor/discount/models.py:282
+#: saleor/discount/models.py:278
 msgctxt "Sale (discount) field"
 msgid "value"
 msgstr "値"
 
-#: saleor/discount/models.py:286
+#: saleor/discount/models.py:282
 msgctxt "Sale (discount) field"
 msgid "products"
 msgstr "商品"
 
-#: saleor/discount/models.py:289
+#: saleor/discount/models.py:285
 msgctxt "Sale (discount) field"
 msgid "categories"
 msgstr "カテゴリー"
 
-#: saleor/discount/models.py:295
+#: saleor/discount/models.py:291
 msgctxt "Permission description"
 msgid "Can view sales"
 msgstr ""
 
-#: saleor/discount/models.py:297
+#: saleor/discount/models.py:293
 msgctxt "Permission description"
 msgid "Can edit sales"
 msgstr ""
 
-#: saleor/discount/models.py:334
+#: saleor/discount/models.py:330
 msgctxt "Voucher not applicable"
 msgid "Discount not applicable for this product"
 msgstr ""
 
-#: saleor/order/__init__.py:14
+#: saleor/order/__init__.py:9
 msgctxt "order status"
+msgid "Open"
+msgstr ""
+
+#: saleor/order/__init__.py:10
+msgctxt "order status"
+msgid "Closed"
+msgstr ""
+
+#: saleor/order/__init__.py:19
+msgctxt "group status"
 msgid "Processing"
-msgstr "進行中"
+msgstr ""
 
-#: saleor/order/__init__.py:15
-msgctxt "order status"
+#: saleor/order/__init__.py:20
+msgctxt "group status"
 msgid "Cancelled"
-msgstr "キャンセル済"
+msgstr ""
 
-#: saleor/order/__init__.py:16
-msgctxt "order status"
+#: saleor/order/__init__.py:21
+msgctxt "group status"
 msgid "Shipped"
-msgstr "発送済"
+msgstr ""
 
-#: saleor/order/__init__.py:17
-msgctxt "order status"
-msgid "Payment pending"
-msgstr "支払い保留中"
-
-#: saleor/order/__init__.py:18
-msgctxt "order status"
-msgid "Fully paid"
-msgstr "支払済"
-
-#: saleor/order/forms.py:14
+#: saleor/order/forms.py:12
 msgctxt "Payment methods form label"
 msgid "Method"
 msgstr "方法"
 
-#: saleor/order/forms.py:37
+#: saleor/order/forms.py:35
 msgctxt "Payment delete form error"
 msgid "Payment does not exist"
 msgstr "未払い"
 
-#: saleor/order/models.py:48
-msgctxt "Order field"
-msgid "order status"
-msgstr "注文の状況"
-
-#: saleor/order/models.py:51
+#: saleor/order/models.py:39
 msgctxt "Order field"
 msgid "created"
 msgstr "作成済"
 
-#: saleor/order/models.py:54
+#: saleor/order/models.py:42
 msgctxt "Order field"
 msgid "last status change"
 msgstr "最終ステータス変更"
 
-#: saleor/order/models.py:58
+#: saleor/order/models.py:46
 msgctxt "Order field"
 msgid "user"
 msgstr "ユーザー"
 
-#: saleor/order/models.py:63
+#: saleor/order/models.py:51
 msgctxt "Order field"
 msgid "tracking client id"
 msgstr "顧客追跡ID"
 
-#: saleor/order/models.py:67
+#: saleor/order/models.py:55
 msgctxt "Order field"
 msgid "billing address"
 msgstr "請求先住所"
 
-#: saleor/order/models.py:71
+#: saleor/order/models.py:59
 msgctxt "Order field"
 msgid "shipping address"
 msgstr "配送先住所"
 
-#: saleor/order/models.py:74
+#: saleor/order/models.py:62
 msgctxt "Order field"
 msgid "user email"
 msgstr "メールアドレス"
 
-#: saleor/order/models.py:77
+#: saleor/order/models.py:65
+msgctxt "Order field"
+msgid "shipping price"
+msgstr ""
+
+#: saleor/order/models.py:69
 msgctxt "Order field"
 msgid "token"
 msgstr "トークン"
 
-#: saleor/order/models.py:79
+#: saleor/order/models.py:71
 msgctxt "Order field"
 msgid "total net"
 msgstr ""
 
-#: saleor/order/models.py:83
+#: saleor/order/models.py:75
 msgctxt "Order field"
 msgid "total tax"
 msgstr ""
 
-#: saleor/order/models.py:88
+#: saleor/order/models.py:80
 msgctxt "Order field"
 msgid "voucher"
 msgstr "クーポン"
 
-#: saleor/order/models.py:90
+#: saleor/order/models.py:82
 msgctxt "Order field"
 msgid "discount amount"
 msgstr "割引額"
 
-#: saleor/order/models.py:94
+#: saleor/order/models.py:86
 msgctxt "Order field"
 msgid "discount name"
 msgstr "割引名"
 
-#: saleor/order/models.py:103
+#: saleor/order/models.py:95
 msgctxt "Permission description"
 msgid "Can view orders"
 msgstr ""
 
-#: saleor/order/models.py:105
+#: saleor/order/models.py:97
 msgctxt "Permission description"
 msgid "Can edit orders"
 msgstr ""
 
-#: saleor/order/models.py:229
-msgctxt "Delivery group field"
-msgid "delivery status"
+#: saleor/order/models.py:210
+msgctxt "Shipment group field"
+msgid "shipment status"
 msgstr ""
 
-#: saleor/order/models.py:234
-msgctxt "Delivery group field"
-msgid "shipping price"
-msgstr "送料"
-
-#: saleor/order/models.py:238
-msgctxt "Delivery group field"
+#: saleor/order/models.py:215
+msgctxt "Shipment group field"
 msgid "shipping method name"
-msgstr "発送方法名"
+msgstr ""
 
-#: saleor/order/models.py:241
-msgctxt "Delivery group field"
+#: saleor/order/models.py:218
+msgctxt "Shipment group field"
 msgid "tracking number"
-msgstr "追跡番号"
+msgstr ""
 
-#: saleor/order/models.py:244
-msgctxt "Delivery group field"
+#: saleor/order/models.py:221
+msgctxt "Shipment group field"
 msgid "last updated"
-msgstr "最終更新"
+msgstr ""
 
-#: saleor/order/models.py:249
+#: saleor/order/models.py:226
 #, python-format
-msgctxt "Delivery group str"
+msgctxt "Shipment group str"
 msgid "Shipment #%s"
 msgstr ""
 
-#: saleor/order/models.py:321 saleor/order/utils.py:188
-msgctxt "Order status history entry"
-msgid "Order cancelled. No items in order"
-msgstr ""
-
-#: saleor/order/models.py:328
+#: saleor/order/models.py:259
 msgctxt "Ordered line field"
-msgid "delivery group"
+msgid "shipment group"
 msgstr ""
 
-#: saleor/order/models.py:333
+#: saleor/order/models.py:264
 msgctxt "Ordered line field"
 msgid "product"
 msgstr ""
 
-#: saleor/order/models.py:335
+#: saleor/order/models.py:266
 msgctxt "Ordered line field"
 msgid "product name"
 msgstr ""
 
-#: saleor/order/models.py:337
+#: saleor/order/models.py:268
 msgctxt "Ordered line field"
 msgid "sku"
 msgstr ""
 
-#: saleor/order/models.py:339
-msgctxt "OrderLine field"
+#: saleor/order/models.py:270
+msgctxt "Ordered line field"
 msgid "stock location"
 msgstr ""
 
-#: saleor/order/models.py:343
+#: saleor/order/models.py:274
 msgctxt "Ordered line field"
 msgid "stock"
 msgstr ""
 
-#: saleor/order/models.py:345
+#: saleor/order/models.py:276
 msgctxt "Ordered line field"
 msgid "quantity"
 msgstr ""
 
-#: saleor/order/models.py:348
+#: saleor/order/models.py:279
 msgctxt "Ordered line field"
 msgid "unit price (net)"
 msgstr ""
 
-#: saleor/order/models.py:351
+#: saleor/order/models.py:282
 msgctxt "Ordered line field"
 msgid "unit price (gross)"
 msgstr ""
 
-#: saleor/order/models.py:357
-msgctxt "Ordered line model"
-msgid "Ordered line"
-msgstr ""
-
-#: saleor/order/models.py:359
-msgctxt "Ordered line model"
-msgid "Ordered lines"
-msgstr ""
-
-#: saleor/order/models.py:383
+#: saleor/order/models.py:307
 msgctxt "Payment field"
 msgid "order"
 msgstr "注文"
 
-#: saleor/order/models.py:435
+#: saleor/order/models.py:358
 msgctxt "Order history entry field"
 msgid "last history change"
 msgstr ""
 
-#: saleor/order/models.py:439
+#: saleor/order/models.py:362
 msgctxt "Order history entry field"
 msgid "order"
 msgstr "注文"
 
-#: saleor/order/models.py:442
+#: saleor/order/models.py:365
 msgctxt "Order history entry field"
 msgid "order status"
 msgstr "注文の状況"
 
-#: saleor/order/models.py:445
+#: saleor/order/models.py:368
 msgctxt "Order history entry field"
 msgid "comment"
 msgstr "コメント"
 
-#: saleor/order/models.py:449
+#: saleor/order/models.py:372
 msgctxt "Order history entry field"
 msgid "user"
 msgstr "ユーザー"
 
-#: saleor/order/models.py:458
+#: saleor/order/models.py:381
 #, python-format
 msgctxt "Order history entry str"
 msgid "OrderHistoryEntry for Order #%d"
 msgstr ""
 
-#: saleor/order/models.py:469
+#: saleor/order/models.py:391
 msgctxt "Order note model"
 msgid "content"
 msgstr "内容"
 
-#: saleor/order/models.py:475
+#: saleor/order/models.py:397
 #, python-format
 msgctxt "Order note str"
 msgid "OrderNote for Order #%d"
 msgstr ""
 
-#: saleor/order/utils.py:42
+#: saleor/order/signals.py:17
 msgctxt "Order status history entry"
 msgid "Order fully paid"
 msgstr ""
 
-#: saleor/order/views.py:90
+#: saleor/order/utils.py:172 saleor/order/utils.py:191
+msgctxt "Order status history entry"
+msgid "Order cancelled. No items in order"
+msgstr ""
+
+#: saleor/order/views.py:87
 #, python-format
 msgctxt "Payment description"
 msgid "Order %(order_number)s"
 msgstr ""
 
-#: saleor/order/views.py:112
+#: saleor/order/views.py:108
 msgctxt "Payment gateway error"
 msgid ""
 "Oops, it looks like we were unable to contact the selected payment service"
 msgstr ""
 
-#: saleor/order/views.py:165
+#: saleor/order/views.py:161
 msgctxt "storefront message"
 msgid "You've successfully connected order with your account"
 msgstr ""
 
-#: saleor/product/__init__.py:18
+#: saleor/product/__init__.py:16
 msgctxt "Product status"
 msgid "not published"
 msgstr "非公開"
 
-#: saleor/product/__init__.py:20
+#: saleor/product/__init__.py:18
 msgctxt "Product status"
 msgid "variants missing"
 msgstr ""
 
-#: saleor/product/__init__.py:22
+#: saleor/product/__init__.py:20
 msgctxt "Product status"
 msgid "not carried"
 msgstr ""
 
-#: saleor/product/__init__.py:24
+#: saleor/product/__init__.py:22
 msgctxt "Product status"
 msgid "out of stock"
 msgstr "在庫切れ"
 
-#: saleor/product/__init__.py:26
+#: saleor/product/__init__.py:24
 msgctxt "Product status"
 msgid "stock running low"
 msgstr ""
 
-#: saleor/product/__init__.py:28
+#: saleor/product/__init__.py:26
 msgctxt "Product status"
 msgid "not yet available"
 msgstr ""
 
-#: saleor/product/__init__.py:30
+#: saleor/product/__init__.py:28
 msgctxt "Product status"
 msgid "ready for purchase"
 msgstr ""
 
-#: saleor/product/__init__.py:43
+#: saleor/product/__init__.py:41
 msgctxt "Variant status"
 msgid "available"
 msgstr ""
 
-#: saleor/product/__init__.py:45
+#: saleor/product/__init__.py:43
 msgctxt "Variant status"
 msgid "not carried"
 msgstr ""
 
-#: saleor/product/__init__.py:47
+#: saleor/product/__init__.py:45
 msgctxt "Variant status"
 msgid "out of stock"
 msgstr "在庫切れ"
 
-#: saleor/product/filters.py:14
+#: saleor/product/filters.py:12
 msgctxt "Product list sorting option"
 msgid "name"
 msgstr "名前"
 
-#: saleor/product/filters.py:16
+#: saleor/product/filters.py:13
 msgctxt "Product list sorting option"
 msgid "price"
 msgstr "価格"
 
-#: saleor/product/filters.py:31
+#: saleor/product/filters.py:18
 msgctxt "Product list sorting form"
 msgid "Sort by"
 msgstr "並び順"
 
-#: saleor/product/filters.py:84
+#: saleor/product/filters.py:78
 #, python-format
+msgctxt "Validation error for sort_by filter"
 msgid "%(value)s is not a valid sorting option"
 msgstr ""
 
-#: saleor/product/forms.py:20
+#: saleor/product/forms.py:18
 #, python-format
 msgctxt "Variant choice field label"
 msgid "%(variant_label)s - %(price)s"
 msgstr ""
 
-#: saleor/product/models.py:32
+#: saleor/product/models.py:27
 msgctxt "Category field"
 msgid "name"
 msgstr "名前"
 
-#: saleor/product/models.py:34
+#: saleor/product/models.py:29
 msgctxt "Category field"
 msgid "slug"
 msgstr ""
 
-#: saleor/product/models.py:36
+#: saleor/product/models.py:31
 msgctxt "Category field"
 msgid "description"
 msgstr "説明"
 
-#: saleor/product/models.py:39
+#: saleor/product/models.py:34
 msgctxt "Category field"
 msgid "parent"
 msgstr ""
 
-#: saleor/product/models.py:42
+#: saleor/product/models.py:37
 msgctxt "Category field"
-msgid "hidden"
-msgstr "隠す"
+msgid "is hidden"
+msgstr ""
 
-#: saleor/product/models.py:51
+#: saleor/product/models.py:46
 msgctxt "Permission description"
 msgid "Can view categories"
 msgstr ""
 
-#: saleor/product/models.py:53
+#: saleor/product/models.py:48
 msgctxt "Permission description"
 msgid "Can edit categories"
 msgstr ""
 
-#: saleor/product/models.py:78
+#: saleor/product/models.py:72
 msgctxt "Product class field"
 msgid "name"
 msgstr "名前"
 
-#: saleor/product/models.py:80
+#: saleor/product/models.py:74
 msgctxt "Product class field"
 msgid "has variants"
 msgstr ""
 
-#: saleor/product/models.py:84
+#: saleor/product/models.py:78
 msgctxt "Product class field"
 msgid "product attributes"
 msgstr ""
 
-#: saleor/product/models.py:88
+#: saleor/product/models.py:82
 msgctxt "Product class field"
 msgid "variant attributes"
 msgstr ""
 
-#: saleor/product/models.py:90
+#: saleor/product/models.py:84
 msgctxt "Product class field"
 msgid "is shipping required"
 msgstr ""
 
-#: saleor/product/models.py:117
+#: saleor/product/models.py:110
 msgctxt "Product field"
 msgid "product class"
 msgstr ""
 
-#: saleor/product/models.py:120
+#: saleor/product/models.py:113
 msgctxt "Product field"
 msgid "name"
 msgstr "名前"
 
-#: saleor/product/models.py:122
+#: saleor/product/models.py:115
 msgctxt "Product field"
 msgid "description"
 msgstr "説明"
 
-#: saleor/product/models.py:124
+#: saleor/product/models.py:117
 msgctxt "Product field"
 msgid "categories"
 msgstr "カテゴリー"
 
-#: saleor/product/models.py:127
+#: saleor/product/models.py:120
 msgctxt "Product field"
 msgid "price"
 msgstr "価格"
 
-#: saleor/product/models.py:130
+#: saleor/product/models.py:123
 msgctxt "Product field"
 msgid "available on"
 msgstr ""
 
-#: saleor/product/models.py:132
+#: saleor/product/models.py:125
 msgctxt "Product field"
 msgid "is published"
 msgstr ""
 
-#: saleor/product/models.py:134
+#: saleor/product/models.py:127
 msgctxt "Product field"
 msgid "attributes"
 msgstr "属性"
 
-#: saleor/product/models.py:136
+#: saleor/product/models.py:129
 msgctxt "Product field"
 msgid "updated at"
 msgstr ""
 
-#: saleor/product/models.py:138
+#: saleor/product/models.py:131
 msgctxt "Product field"
 msgid "is featured"
 msgstr ""
 
-#: saleor/product/models.py:147
+#: saleor/product/models.py:139
 msgctxt "Permission description"
 msgid "Can view products"
 msgstr ""
 
-#: saleor/product/models.py:149
+#: saleor/product/models.py:141
 msgctxt "Permission description"
 msgid "Can edit products"
 msgstr ""
 
-#: saleor/product/models.py:152
+#: saleor/product/models.py:144
 msgctxt "Permission description"
 msgid "Can view product properties"
 msgstr ""
 
-#: saleor/product/models.py:155
+#: saleor/product/models.py:147
 msgctxt "Permission description"
 msgid "Can edit product properties"
 msgstr ""
 
-#: saleor/product/models.py:224
+#: saleor/product/models.py:215
 msgctxt "Product variant field"
 msgid "SKU"
 msgstr "SKU"
 
-#: saleor/product/models.py:227
+#: saleor/product/models.py:218
 msgctxt "Product variant field"
 msgid "variant name"
 msgstr "バリエーション名"
 
-#: saleor/product/models.py:230
+#: saleor/product/models.py:221
 msgctxt "Product variant field"
 msgid "price override"
 msgstr ""
 
-#: saleor/product/models.py:236
+#: saleor/product/models.py:227
 msgctxt "Product variant field"
 msgid "attributes"
 msgstr "属性"
 
-#: saleor/product/models.py:239
+#: saleor/product/models.py:230
 msgctxt "Product variant field"
 msgid "images"
 msgstr "イメージ"
 
-#: saleor/product/models.py:326
+#: saleor/product/models.py:316
 msgctxt "Stock location field"
 msgid "location"
 msgstr "場所"
 
-#: saleor/product/models.py:332
+#: saleor/product/models.py:322
 msgctxt "Permission description"
 msgid "Can view stock location"
 msgstr ""
 
-#: saleor/product/models.py:335
+#: saleor/product/models.py:325
 msgctxt "Permission description"
 msgid "Can edit stock location"
 msgstr ""
 
-#: saleor/product/models.py:360
+#: saleor/product/models.py:349
 msgctxt "Stock item field"
 msgid "variant"
 msgstr "バリエーション"
 
-#: saleor/product/models.py:365
+#: saleor/product/models.py:354
 msgctxt "Stock item field"
 msgid "quantity"
 msgstr "数量"
 
-#: saleor/product/models.py:368
+#: saleor/product/models.py:357
 msgctxt "Stock item field"
 msgid "allocated quantity"
 msgstr "割当量"
 
-#: saleor/product/models.py:371
+#: saleor/product/models.py:360
 msgctxt "Stock item field"
 msgid "cost price"
 msgstr "原価"
 
-#: saleor/product/models.py:392
+#: saleor/product/models.py:380
 msgctxt "Product attribute field"
 msgid "internal name"
 msgstr "内部名"
 
-#: saleor/product/models.py:395
+#: saleor/product/models.py:383
 msgctxt "Product attribute field"
 msgid "display name"
 msgstr "表示名"
 
-#: saleor/product/models.py:414
+#: saleor/product/models.py:401
 msgctxt "Attribute choice value field"
 msgid "display name"
 msgstr "表示名"
 
-#: saleor/product/models.py:418
+#: saleor/product/models.py:405
 msgctxt "Attribute choice value field"
 msgid "color"
 msgstr "色"
 
-#: saleor/product/models.py:443
+#: saleor/product/models.py:430
 msgctxt "Product image field"
 msgid "product"
 msgstr "商品"
 
-#: saleor/product/models.py:447
+#: saleor/product/models.py:434
 msgctxt "Product image field"
 msgid "image"
 msgstr "イメージ"
 
-#: saleor/product/models.py:448
+#: saleor/product/models.py:435
 msgctxt "Product image field"
 msgid "ppoi"
 msgstr "PPOI"
 
-#: saleor/product/models.py:450
+#: saleor/product/models.py:437
 msgctxt "Product image field"
 msgid "short description"
 msgstr "簡単な説明"
 
-#: saleor/product/models.py:453
+#: saleor/product/models.py:440
 msgctxt "Product image field"
 msgid "order"
 msgstr "注文"
 
-#: saleor/product/models.py:481
+#: saleor/product/models.py:468
 msgctxt "Variant image field"
 msgid "variant"
 msgstr "バリエーション"
 
-#: saleor/product/models.py:485
+#: saleor/product/models.py:472
 msgctxt "Variant image field"
 msgid "image"
 msgstr "イメージ"
 
-#: saleor/registration/forms.py:15
+#: saleor/registration/forms.py:13
 msgctxt "Form field"
 msgid "Email"
 msgstr "メールアドレス"
 
-#: saleor/registration/forms.py:27
+#: saleor/registration/forms.py:25
 msgctxt "User form field"
 msgid "Password"
 msgstr "パスワード"
 
-#: saleor/registration/views.py:27
+#: saleor/registration/views.py:25
 msgid "You have been successfully logged out."
 msgstr "ログアウトしました。"
 
-#: saleor/registration/views.py:41
+#: saleor/registration/views.py:39
 msgid "User has been created"
 msgstr "ユーザーが作成されました。"
 
-#: saleor/search/forms.py:10
+#: saleor/search/forms.py:9
 msgctxt "Search form label"
 msgid "Query"
 msgstr "クエリー"
 
-#: saleor/shipping/models.py:16
+#: saleor/shipping/models.py:13
 msgctxt "Country choice"
 msgid "Rest of World"
 msgstr "世界のその他地域"
 
-#: saleor/shipping/models.py:24
+#: saleor/shipping/models.py:20
 msgctxt "Shipping method field"
 msgid "name"
 msgstr "名前"
 
-#: saleor/shipping/models.py:27
+#: saleor/shipping/models.py:23
 msgctxt "Shipping method field"
 msgid "description"
 msgstr "説明"
 
-#: saleor/shipping/models.py:34
+#: saleor/shipping/models.py:30
 msgctxt "Permission description"
 msgid "Can view shipping method"
 msgstr ""
 
-#: saleor/shipping/models.py:37
+#: saleor/shipping/models.py:33
 msgctxt "Permission description"
 msgid "Can edit shipping method"
 msgstr ""
 
-#: saleor/shipping/models.py:84
+#: saleor/shipping/models.py:79
 msgctxt "Shipping method country field"
 msgid "country code"
 msgstr "国コード"
 
-#: saleor/shipping/models.py:88
+#: saleor/shipping/models.py:83
 msgctxt "Shipping method country field"
 msgid "price"
 msgstr "価格"
 
-#: saleor/shipping/models.py:93
+#: saleor/shipping/models.py:88
 msgctxt "Shipping method country field"
 msgid "shipping method"
 msgstr "配送方法"
 
-#: saleor/site/models.py:19
+#: saleor/site/models.py:15
 msgctxt "Site field"
 msgid "header text"
 msgstr "ヘッダー文字"
 
-#: saleor/site/models.py:21
+#: saleor/site/models.py:17
 msgctxt "Site field"
 msgid "site description"
 msgstr "サイトの説明"
 
-#: saleor/site/models.py:28
+#: saleor/site/models.py:24
 msgctxt "Permission description"
 msgid "Can edit site settings"
 msgstr ""
 
-#: saleor/site/models.py:31
+#: saleor/site/models.py:27
 msgctxt "Permission description"
 msgid "Can view site settings"
 msgstr ""
 
-#: saleor/site/models.py:44
+#: saleor/site/models.py:39
 msgctxt "Authentiaction field"
 msgid "name"
 msgstr "名前"
 
-#: saleor/site/models.py:46
+#: saleor/site/models.py:41
 msgctxt "Authentication field"
 msgid "key"
 msgstr "キー"
 
-#: saleor/site/models.py:48
+#: saleor/site/models.py:43
 msgctxt "Authentication field"
 msgid "password"
 msgstr "パスワード"
 
-#: saleor/userprofile/i18n.py:18
+#: saleor/userprofile/i18n.py:19
 msgctxt "Address field"
 msgid "Area"
 msgstr "地域"
 
-#: saleor/userprofile/i18n.py:19
+#: saleor/userprofile/i18n.py:20
 msgctxt "Address field"
 msgid "County"
 msgstr "国"
 
-#: saleor/userprofile/i18n.py:20
+#: saleor/userprofile/i18n.py:21
 msgctxt "Address field"
 msgid "Department"
 msgstr "部門"
 
-#: saleor/userprofile/i18n.py:21
+#: saleor/userprofile/i18n.py:22
 msgctxt "Address field"
 msgid "District"
 msgstr ""
 
-#: saleor/userprofile/i18n.py:22
+#: saleor/userprofile/i18n.py:23
 msgctxt "Address field"
 msgid "Do/si"
 msgstr ""
 
-#: saleor/userprofile/i18n.py:23
+#: saleor/userprofile/i18n.py:24
 msgctxt "Address field"
 msgid "Eircode"
 msgstr ""
 
-#: saleor/userprofile/i18n.py:24
+#: saleor/userprofile/i18n.py:25
 msgctxt "Address field"
 msgid "Emirate"
 msgstr ""
 
-#: saleor/userprofile/i18n.py:25
+#: saleor/userprofile/i18n.py:26
 msgctxt "Address field"
 msgid "Island"
 msgstr "島"
 
-#: saleor/userprofile/i18n.py:26
+#: saleor/userprofile/i18n.py:27
 msgctxt "Address field"
 msgid "Neighborhood"
 msgstr ""
 
-#: saleor/userprofile/i18n.py:27
+#: saleor/userprofile/i18n.py:28
 msgctxt "Address field"
 msgid "Oblast"
 msgstr ""
 
-#: saleor/userprofile/i18n.py:28
+#: saleor/userprofile/i18n.py:29
 msgctxt "Address field"
 msgid "Parish"
 msgstr ""
 
-#: saleor/userprofile/i18n.py:29
+#: saleor/userprofile/i18n.py:30
 msgctxt "Address field"
 msgid "PIN"
 msgstr "PIN"
 
-#: saleor/userprofile/i18n.py:30
+#: saleor/userprofile/i18n.py:31
 msgctxt "Address field"
 msgid "Postal code"
 msgstr ""
 
-#: saleor/userprofile/i18n.py:31
+#: saleor/userprofile/i18n.py:32
 msgctxt "Address field"
 msgid "Prefecture"
 msgstr ""
 
-#: saleor/userprofile/i18n.py:32
+#: saleor/userprofile/i18n.py:33
 msgctxt "Address field"
 msgid "Province"
 msgstr ""
 
-#: saleor/userprofile/i18n.py:33
+#: saleor/userprofile/i18n.py:34
 msgctxt "Address field"
 msgid "State"
 msgstr "都道府県"
 
-#: saleor/userprofile/i18n.py:34
+#: saleor/userprofile/i18n.py:35
 msgctxt "Address field"
 msgid "Suburb"
 msgstr ""
 
-#: saleor/userprofile/i18n.py:35
+#: saleor/userprofile/i18n.py:36
 msgctxt "Address field"
 msgid "Townland"
 msgstr ""
 
-#: saleor/userprofile/i18n.py:36
+#: saleor/userprofile/i18n.py:37
 msgctxt "Address field"
 msgid "Village/township"
 msgstr ""
 
-#: saleor/userprofile/i18n.py:37
+#: saleor/userprofile/i18n.py:38
 msgctxt "Address field"
 msgid "ZIP code"
 msgstr "郵便番号"
 
-#: saleor/userprofile/i18n.py:118
+#: saleor/userprofile/i18n.py:136
 msgctxt "Address form"
 msgid "This value is invalid for selected country"
 msgstr ""
 
-#: saleor/userprofile/models.py:47
+#: saleor/userprofile/models.py:52
 msgctxt "Address field"
 msgid "given name"
 msgstr "名"
 
-#: saleor/userprofile/models.py:50
+#: saleor/userprofile/models.py:55
 msgctxt "Address field"
 msgid "family name"
 msgstr "姓"
 
-#: saleor/userprofile/models.py:53
+#: saleor/userprofile/models.py:58
 msgctxt "Address field"
 msgid "company or organization"
 msgstr "会社または組織"
 
-#: saleor/userprofile/models.py:56 saleor/userprofile/models.py:59
+#: saleor/userprofile/models.py:61 saleor/userprofile/models.py:64
 msgctxt "Address field"
 msgid "address"
 msgstr "住所"
 
-#: saleor/userprofile/models.py:62
+#: saleor/userprofile/models.py:67
 msgctxt "Address field"
 msgid "city"
 msgstr "都市"
 
-#: saleor/userprofile/models.py:65
+#: saleor/userprofile/models.py:70
 msgctxt "Address field"
 msgid "district"
 msgstr ""
 
-#: saleor/userprofile/models.py:68
+#: saleor/userprofile/models.py:73
 msgctxt "Address field"
 msgid "postal code"
 msgstr "郵便番号"
 
-#: saleor/userprofile/models.py:71
+#: saleor/userprofile/models.py:76
 msgctxt "Address field"
 msgid "country"
 msgstr "国"
 
-#: saleor/userprofile/models.py:73
+#: saleor/userprofile/models.py:78
 msgctxt "Address field"
 msgid "state or province"
 msgstr "都道府県"
 
-#: saleor/userprofile/models.py:76
+#: saleor/userprofile/models.py:81
 msgctxt "Address field"
 msgid "phone number"
 msgstr "電話番号"
 
-#: saleor/userprofile/models.py:122
+#: saleor/userprofile/models.py:127
 msgctxt "User field"
 msgid "email"
 msgstr "メール"
 
-#: saleor/userprofile/models.py:125
+#: saleor/userprofile/models.py:130
 msgctxt "User field"
 msgid "addresses"
 msgstr "住所"
 
-#: saleor/userprofile/models.py:127
+#: saleor/userprofile/models.py:132
 msgctxt "User field"
 msgid "staff status"
 msgstr ""
 
-#: saleor/userprofile/models.py:130
+#: saleor/userprofile/models.py:135
 msgctxt "User field"
 msgid "active"
 msgstr "有効"
 
-#: saleor/userprofile/models.py:133
+#: saleor/userprofile/models.py:138
 msgctxt "User field"
 msgid "date joined"
 msgstr ""
 
-#: saleor/userprofile/models.py:138
+#: saleor/userprofile/models.py:143
 msgctxt "User field"
 msgid "default shipping address"
 msgstr "初期設定の配送先住所"
 
-#: saleor/userprofile/models.py:142
+#: saleor/userprofile/models.py:147
 msgctxt "User field"
 msgid "default billing address"
 msgstr "初期設定の請求先住所"
 
-#: saleor/userprofile/models.py:151
+#: saleor/userprofile/models.py:156
 msgctxt "Permission description"
 msgid "Can view users"
 msgstr ""
 
-#: saleor/userprofile/models.py:153
+#: saleor/userprofile/models.py:158
 msgctxt "Permission description"
 msgid "Can edit users"
 msgstr ""
 
-#: saleor/userprofile/models.py:155
+#: saleor/userprofile/models.py:160
 msgctxt "Permission description"
 msgid "Can view groups"
 msgstr ""
 
-#: saleor/userprofile/models.py:157
+#: saleor/userprofile/models.py:162
 msgctxt "Permission description"
 msgid "Can edit groups"
 msgstr ""
 
-#: saleor/userprofile/models.py:159
+#: saleor/userprofile/models.py:164
 msgctxt "Permission description"
 msgid "Can view staff"
 msgstr ""
 
-#: saleor/userprofile/models.py:161
+#: saleor/userprofile/models.py:166
 msgctxt "Permission description"
 msgid "Can edit staff"
 msgstr ""
 
-#: saleor/userprofile/models.py:163
+#: saleor/userprofile/models.py:168
 msgctxt "Permission description"
 msgid "Can impersonate users"
 msgstr ""
 
-#: saleor/userprofile/templatetags/i18n_address_tags.py:17
+#: saleor/userprofile/templatetags/i18n_address_tags.py:15
 #, python-format
 msgctxt "Address data"
 msgid "%(first_name)s %(last_name)s"
 msgstr ""
 
-#: saleor/userprofile/templatetags/i18n_address_tags.py:21
+#: saleor/userprofile/templatetags/i18n_address_tags.py:19
 #, python-format
 msgctxt "Address data"
 msgid ""
@@ -1361,17 +1354,21 @@ msgid ""
 "%(street_address_2)s"
 msgstr ""
 
-#: saleor/userprofile/views.py:31
+#: saleor/userprofile/validators.py:11
+msgid "The phone number entered is not valid."
+msgstr ""
+
+#: saleor/userprofile/views.py:34
 msgctxt "Storefront message"
 msgid "Password successfully changed."
 msgstr "パスワードが変更されました。"
 
-#: saleor/userprofile/views.py:43
+#: saleor/userprofile/views.py:46
 msgctxt "Storefront message"
 msgid "Address successfully updated."
 msgstr "住所が更新されました。"
 
-#: saleor/userprofile/views.py:58
+#: saleor/userprofile/views.py:61
 msgctxt "Storefront message"
 msgid "Address successfully removed"
 msgstr "住所が削除されました。"
@@ -1401,17 +1398,17 @@ msgctxt "Login page title"
 msgid "Log in"
 msgstr "ログイン"
 
-#: templates/account/login.html:13
+#: templates/account/login.html:17
 msgctxt "Login form secondary title"
 msgid "Don't have an account yet?"
 msgstr "まだアカウントを登録していませんか？"
 
-#: templates/account/login.html:17
+#: templates/account/login.html:21
 msgctxt "Login form secondary action"
 msgid "Register"
 msgstr "登録"
 
-#: templates/account/login.html:22
+#: templates/account/login.html:26
 msgctxt "Login form title"
 msgid "Log in"
 msgstr "ログイン"
@@ -1440,18 +1437,18 @@ msgstr "Facebook"
 msgid "Google"
 msgstr "Google"
 
-#: templates/account/password_change.html:7 templates/cart/index.html:12
+#: templates/account/password_change.html:7 templates/cart/index.html:11
 #: templates/order/details.html:16 templates/order/payment.html:19
-#: templates/product/details.html:18
+#: templates/product/details.html:37
 #: templates/userprofile/address-edit.html:15
-#: templates/userprofile/details.html:14
+#: templates/userprofile/details.html:15
 msgctxt "Main navigation item"
 msgid "Home"
 msgstr "ホーム"
 
-#: templates/account/password_change.html:8 templates/base.html:49
-#: templates/base.html:206 templates/order/details.html:19
-#: templates/order/payment.html:22 templates/userprofile/details.html:16
+#: templates/account/password_change.html:8 templates/base.html:57
+#: templates/base.html:215 templates/order/details.html:19
+#: templates/order/payment.html:22 templates/userprofile/details.html:17
 msgctxt "Main navigation item"
 msgid "Your account"
 msgstr "アカウント"
@@ -1476,19 +1473,19 @@ msgctxt "Password reset page title"
 msgid "Password reset"
 msgstr "パスワードリセット"
 
-#: templates/account/password_reset.html:13
+#: templates/account/password_reset.html:17
 msgctxt "Password reset form title"
 msgid "Forgot your password?"
 msgstr "パスワードを忘れましたか？"
 
-#: templates/account/password_reset.html:14
+#: templates/account/password_reset.html:18
 msgctxt "Password reset form help text"
 msgid ""
 "Please let us know the email you have used to register or purchase at our "
 "store."
 msgstr ""
 
-#: templates/account/password_reset.html:25
+#: templates/account/password_reset.html:29
 msgctxt "Password reset primary action"
 msgid "Continue"
 msgstr "続ける"
@@ -1595,22 +1592,22 @@ msgctxt "Signup page title"
 msgid "Sign Up"
 msgstr "サインアップ"
 
-#: templates/account/signup.html:13
+#: templates/account/signup.html:17
 msgctxt "Signup form secondary title"
 msgid "Already have an account?"
 msgstr "アカウントを登録済みですか？"
 
-#: templates/account/signup.html:17
+#: templates/account/signup.html:21
 msgctxt "Signup form secondary action"
 msgid "Log in"
 msgstr "ログイン"
 
-#: templates/account/signup.html:24
+#: templates/account/signup.html:28
 msgctxt "Signup form title"
 msgid "Create an account"
 msgstr "アカウント作成"
 
-#: templates/account/signup.html:33
+#: templates/account/signup.html:37
 msgctxt "Signup form primary action"
 msgid "Create an account"
 msgstr "アカウント作成"
@@ -1620,77 +1617,77 @@ msgctxt "Meta author text"
 msgid "Mirumee Software"
 msgstr "ミルミソフトウェア"
 
-#: templates/base.html:43 templates/base.html:195
+#: templates/base.html:51 templates/base.html:204
 msgctxt "Main navigation item"
 msgid "Dashboard"
 msgstr "ダッシュボード"
 
-#: templates/base.html:54 templates/base.html:212
+#: templates/base.html:62 templates/base.html:221
 msgctxt "Main navigation item"
 msgid "Stop impersonating"
 msgstr ""
 
-#: templates/base.html:60 templates/base.html:218
+#: templates/base.html:68 templates/base.html:227
 msgctxt "Main navigation item"
 msgid "Log out"
 msgstr "ログアウト"
 
-#: templates/base.html:66 templates/base.html:224
+#: templates/base.html:74 templates/base.html:233
 msgctxt "Main navigation item"
 msgid "Register"
 msgstr "登録"
 
-#: templates/base.html:70 templates/base.html:229
+#: templates/base.html:78 templates/base.html:238
 msgctxt "Main navigation item"
 msgid "Log in"
 msgstr "ログイン"
 
-#: templates/base.html:85
+#: templates/base.html:93
 msgctxt "Hamburger button text"
 msgid "menu"
 msgstr "メニュー"
 
-#: templates/base.html:102
+#: templates/base.html:110
 msgid "Search for product"
 msgstr "商品検索"
 
-#: templates/base.html:113 templates/base.html:188
+#: templates/base.html:122 templates/base.html:197
 msgctxt "Main navigation item"
 msgid "Your Cart"
 msgstr "カート"
 
-#: templates/base.html:200
+#: templates/base.html:209
 msgctxt "Main navigation item"
 msgid "Style guide"
 msgstr "スタイルガイド"
 
 #: templates/cart-dropdown.html:33 templates/cart/_subtotal_table.html:9
-#: templates/dashboard/order/detail.html:409
+#: templates/dashboard/order/detail.html:395
 msgctxt "Order subtotal"
 msgid "Subtotal"
 msgstr "小計"
 
 #: templates/cart-dropdown.html:35
 msgctxt "Cart dropdown text"
-msgid "(Delivery calculated at checkout)"
+msgid "(Shipment calculated at checkout)"
 msgstr ""
 
-#: templates/cart-dropdown.html:45
+#: templates/cart-dropdown.html:46
 msgctxt "Cart dropdown secondary action"
 msgid "Go to cart"
 msgstr "カートへ"
 
-#: templates/cart-dropdown.html:48
+#: templates/cart-dropdown.html:49
 msgctxt "Cart dropdown primary action"
 msgid "Checkout"
 msgstr "支払い手続き"
 
-#: templates/cart-dropdown.html:53 templates/cart/index.html:85
+#: templates/cart-dropdown.html:54 templates/cart/index.html:88
 msgctxt "Empty cart message"
 msgid "There are no products in your shopping cart."
 msgstr ""
 
-#: templates/cart-dropdown.html:55 templates/cart/index.html:86
+#: templates/cart-dropdown.html:56 templates/cart/index.html:89
 msgctxt "Empty cart link"
 msgid "Check out our sales"
 msgstr ""
@@ -1705,37 +1702,37 @@ msgctxt "Order subtotal"
 msgid "Total"
 msgstr "合計"
 
-#: templates/cart/index.html:8
+#: templates/cart/index.html:7
 msgctxt "Cart page title"
 msgid "Your cart"
 msgstr "カート"
 
-#: templates/cart/index.html:13
+#: templates/cart/index.html:12
 msgctxt "Cart breadcrumb"
 msgid "Cart"
 msgstr "カート"
 
-#: templates/cart/index.html:19
+#: templates/cart/index.html:22
 msgctxt "Cart message"
 msgid "Product has been removed from cart"
 msgstr ""
 
-#: templates/cart/index.html:27
+#: templates/cart/index.html:30
 msgctxt "Cart table header"
 msgid "Product"
 msgstr "商品"
 
-#: templates/cart/index.html:30
+#: templates/cart/index.html:33
 msgctxt "Cart table header"
 msgid "Quantity"
 msgstr "数量"
 
-#: templates/cart/index.html:33
+#: templates/cart/index.html:36
 msgctxt "Cart table header"
 msgid "Price"
 msgstr "価格"
 
-#: templates/cart/index.html:77
+#: templates/cart/index.html:80
 msgctxt "Cart primary action"
 msgid "Checkout"
 msgstr "支払い手続き"
@@ -1746,57 +1743,65 @@ msgctxt "Sale (discount) label for item in product list"
 msgid "Sale"
 msgstr "販売"
 
-#: templates/category/index.html:34
+#: templates/category/index.html:52
 msgctxt "Category breadcrumbs home"
 msgid "Home"
 msgstr "ホーム"
 
-#: templates/category/index.html:52 templates/category/index.html:71
+#: templates/category/index.html:71
+msgid "Sort by: <b>name</b>"
+msgstr ""
+
+#: templates/category/index.html:75
+msgid "Sort by: <b>price</b>"
+msgstr ""
+
+#: templates/category/index.html:94
 msgctxt "Category page filters"
 msgid "Sort by"
 msgstr "並び順"
 
-#: templates/category/index.html:76
+#: templates/category/index.html:99
 msgctxt "sort by option"
 msgid "ascending"
 msgstr "昇順"
 
-#: templates/category/index.html:82
+#: templates/category/index.html:105
 msgctxt "sort by option"
 msgid "descending"
 msgstr "降順"
 
-#: templates/category/index.html:115
+#: templates/category/index.html:138
 msgctxt "Filter heading title"
 msgid "Filters"
 msgstr "フィルタ"
 
-#: templates/category/index.html:117
+#: templates/category/index.html:141
 msgctxt "Category page filters"
 msgid "Clear filters"
 msgstr "フィルタ解除"
 
-#: templates/category/index.html:147
+#: templates/category/index.html:172
 msgctxt "Category price filter"
 msgid "from"
 msgstr "から"
 
-#: templates/category/index.html:149
+#: templates/category/index.html:174
 msgctxt "Category price filter"
 msgid "to"
 msgstr "まで"
 
-#: templates/category/index.html:168
+#: templates/category/index.html:193
 msgctxt "Category price filter"
 msgid "Update"
 msgstr "更新"
 
-#: templates/category/index.html:193 templates/search/results.html:35
+#: templates/category/index.html:218 templates/search/results.html:34
 msgctxt "Search without results text"
 msgid "Sorry, no matches found for your request."
 msgstr ""
 
-#: templates/category/index.html:194 templates/search/results.html:36
+#: templates/category/index.html:219 templates/search/results.html:35
 msgctxt "Search without results text"
 msgid "Try again or shop new arrivals."
 msgstr ""
@@ -1823,7 +1828,7 @@ msgstr ""
 
 #: templates/checkout/details.html:50
 msgctxt "Order review section"
-msgid "Delivery"
+msgid "Shipment"
 msgstr ""
 
 #: templates/checkout/details.html:62
@@ -1945,91 +1950,92 @@ msgctxt "Checkout summary without shipping action"
 msgid "Place order"
 msgstr ""
 
-#: templates/dashboard/base.html:10
+#: templates/dashboard/base.html:11
 msgctxt "Dashboard default page title"
 msgid "Dashboard - Saleor"
 msgstr ""
 
-#: templates/dashboard/base.html:39
+#: templates/dashboard/base.html:40
 msgctxt "Dashboard top navigation action"
 msgid "Visit storefront"
 msgstr ""
 
-#: templates/dashboard/base.html:44
+#: templates/dashboard/base.html:45
 msgctxt "Dashboard top navigation action"
 msgid "Style guide"
 msgstr "スタイルガイド"
 
-#: templates/dashboard/base.html:49
+#: templates/dashboard/base.html:50
 msgctxt "Dashboard top navigation action"
 msgid "Log out"
 msgstr "ログアウト"
 
-#: templates/dashboard/base.html:77 templates/dashboard/search/results.html:27
+#: templates/dashboard/base.html:79
 msgctxt "Dashboard search"
 msgid "Search"
 msgstr "検索"
 
-#: templates/dashboard/base.html:89 templates/dashboard/base.html:243
+#: templates/dashboard/base.html:94 templates/dashboard/base.html:248
 msgctxt "Dashboard homepage"
 msgid "Home"
 msgstr "ホーム"
 
-#: templates/dashboard/base.html:95
+#: templates/dashboard/base.html:100
 msgctxt "Dashboard catalogue"
 msgid "Catalogue"
 msgstr "カタログ"
 
-#: templates/dashboard/base.html:101 templates/dashboard/product/form.html:30
-#: templates/dashboard/product/list.html:11
-#: templates/dashboard/product/list.html:39
-#: templates/dashboard/product/product_class/form.html:14
-#: templates/dashboard/product/product_image/list.html:18
+#: templates/dashboard/base.html:106 templates/dashboard/product/form.html:29
+#: templates/dashboard/product/list.html:10
+#: templates/dashboard/product/list.html:38
+#: templates/dashboard/product/product_class/form.html:13
+#: templates/dashboard/product/product_image/list.html:29
 #: templates/dashboard/product/product_variant/form.html:26
 #: templates/dashboard/product/stock/form.html:30
 msgctxt "Dashboard products list"
 msgid "Products"
 msgstr "商品"
 
-#: templates/dashboard/base.html:108
-#: templates/dashboard/category/detail.html:13
-#: templates/dashboard/category/detail.html:32
-#: templates/dashboard/category/list.html:70
-#: templates/dashboard/category/list.html:76
+#: templates/dashboard/base.html:113
+#: templates/dashboard/category/detail.html:33
+#: templates/dashboard/category/detail.html:39
+#: templates/dashboard/category/form.html:13
+#: templates/dashboard/category/form.html:32
+#: templates/dashboard/category/list.html:36
 msgctxt "Dashboard categories list"
 msgid "Categories"
 msgstr "カテゴリー"
 
-#: templates/dashboard/base.html:115
+#: templates/dashboard/base.html:120
 msgctxt "Dashboard stock loactions list"
 msgid "Stock locations"
 msgstr "在庫保管場所"
 
-#: templates/dashboard/base.html:125
+#: templates/dashboard/base.html:130
 msgctxt "Dashboard discounts list"
 msgid "Discounts"
 msgstr "割引"
 
-#: templates/dashboard/base.html:131
+#: templates/dashboard/base.html:136
 msgctxt "Dashboard sales (discounts) list"
 msgid "Sales"
 msgstr "販売"
 
-#: templates/dashboard/base.html:138
+#: templates/dashboard/base.html:143
 #: templates/dashboard/discount/voucher/form.html:12
 #: templates/dashboard/discount/voucher/form.html:44
-#: templates/dashboard/discount/voucher/list.html:10
-#: templates/dashboard/discount/voucher/list.html:20
+#: templates/dashboard/discount/voucher/list.html:9
+#: templates/dashboard/discount/voucher/list.html:19
 msgctxt "Dashboard vouchers list"
 msgid "Vouchers"
 msgstr "クーポン"
 
-#: templates/dashboard/base.html:148
+#: templates/dashboard/base.html:153
 msgctxt "Dashboard sales. `Sales' is noun of to sell"
 msgid "Sales"
 msgstr "販売"
 
-#: templates/dashboard/base.html:154
+#: templates/dashboard/base.html:159
 #: templates/dashboard/order/address_form.html:7
 #: templates/dashboard/order/address_form.html:23
 #: templates/dashboard/order/detail.html:11
@@ -2040,116 +2046,92 @@ msgctxt "Dashboard orders list"
 msgid "Orders"
 msgstr "注文"
 
-#: templates/dashboard/base.html:161
+#: templates/dashboard/base.html:166
 #: templates/dashboard/customer/detail.html:9
 #: templates/dashboard/customer/detail.html:25
-#: templates/dashboard/customer/list.html:9
-#: templates/dashboard/customer/list.html:19
+#: templates/dashboard/customer/list.html:8
+#: templates/dashboard/customer/list.html:18
 msgctxt "Dashboard customers list"
 msgid "Customers"
 msgstr "顧客"
 
-#: templates/dashboard/base.html:171
+#: templates/dashboard/base.html:176
 msgctxt "Management section"
 msgid "Staff management"
 msgstr "スタッフ管理"
 
-#: templates/dashboard/base.html:177
+#: templates/dashboard/base.html:182
 msgctxt "Dashboard staff members list"
 msgid "Staff members"
 msgstr "スタッフ"
 
-#: templates/dashboard/base.html:184 templates/dashboard/group/detail.html:28
-#: templates/dashboard/group/list.html:9
-#: templates/dashboard/group/list.html:32
+#: templates/dashboard/base.html:189 templates/dashboard/group/detail.html:28
+#: templates/dashboard/group/list.html:8
+#: templates/dashboard/group/list.html:31
 msgctxt "Dashboard groups list"
 msgid "Groups"
 msgstr "グループ"
 
-#: templates/dashboard/base.html:194
+#: templates/dashboard/base.html:199
 msgctxt "Dashboard configuration"
 msgid "Configuration"
 msgstr "設定"
 
-#: templates/dashboard/base.html:200
-#: templates/dashboard/product/product_class/form.html:30
-#: templates/dashboard/product/product_class/list.html:10
-#: templates/dashboard/product/product_class/list.html:30
+#: templates/dashboard/base.html:205
+#: templates/dashboard/product/product_class/form.html:29
+#: templates/dashboard/product/product_class/list.html:9
+#: templates/dashboard/product/product_class/list.html:29
 msgctxt "Dashboard product types list"
 msgid "Product types"
 msgstr "商品タイプ"
 
-#: templates/dashboard/base.html:207
+#: templates/dashboard/base.html:212
 #: templates/dashboard/product/product_attribute/form.html:29
-#: templates/dashboard/product/product_attribute/list.html:9
-#: templates/dashboard/product/product_attribute/list.html:29
+#: templates/dashboard/product/product_attribute/list.html:8
+#: templates/dashboard/product/product_attribute/list.html:28
 #: templates/dashboard/product/product_attribute/values/form.html:29
 msgctxt "Dashboard attributes list"
 msgid "Attributes"
 msgstr ""
 
-#: templates/dashboard/base.html:214 templates/dashboard/shipping/list.html:10
-#: templates/dashboard/shipping/list.html:20
+#: templates/dashboard/base.html:219 templates/dashboard/shipping/list.html:9
+#: templates/dashboard/shipping/list.html:19
 msgctxt "Dashboard shipping methods list"
 msgid "Shipping methods"
 msgstr "配送方法"
 
-#: templates/dashboard/base.html:221 templates/dashboard/sites/form.html:11
+#: templates/dashboard/base.html:226 templates/dashboard/sites/form.html:11
 msgctxt "Dashboard site settings"
 msgid "Site settings"
 msgstr "サイト設定"
 
-#: templates/dashboard/base.html:229
+#: templates/dashboard/base.html:234
 msgctxt "Dashboard software version"
 msgid "Release:"
 msgstr ""
 
-#: templates/dashboard/base_modal_confirm_delete.html:10
-msgctxt "Dashboard confirmation modal"
-msgid "Remove"
-msgstr "削除"
-
-#: templates/dashboard/base_modal_confirm_delete.html:16
-#: templates/dashboard/customer/modal/confirm_promote.html:13
-msgctxt "Dashboard confirmation modal"
-msgid "Are you sure?"
-msgstr "よろしいですか？"
-
+#: templates/dashboard/base_modal.html:25
 #: templates/dashboard/base_modal_confirm_delete.html:22
-#: templates/dashboard/category/detail.html:80
-#: templates/dashboard/category/detail.html:84
-#: templates/dashboard/category/modal/edit.html:25
-#: templates/dashboard/customer/modal/confirm_promote.html:17
+#: templates/dashboard/category/form.html:114
+#: templates/dashboard/category/form.html:118
 #: templates/dashboard/discount/sale/form.html:98
 #: templates/dashboard/discount/sale/form.html:105
 #: templates/dashboard/discount/voucher/form.html:127
 #: templates/dashboard/discount/voucher/form.html:134
 #: templates/dashboard/group/detail.html:85
 #: templates/dashboard/order/address_form.html:61
-#: templates/dashboard/order/modal/add_note.html:20
-#: templates/dashboard/order/modal/add_variant_to_group.html:25
-#: templates/dashboard/order/modal/cancel_line.html:60
-#: templates/dashboard/order/modal/capture.html:29
-#: templates/dashboard/order/modal/change_quantity.html:16
-#: templates/dashboard/order/modal/delivery_group_stock.html:20
-#: templates/dashboard/order/modal/refund.html:29
-#: templates/dashboard/order/modal/release.html:16
-#: templates/dashboard/order/modal/ship_delivery_group.html:20
-#: templates/dashboard/order/modal/split_order_line.html:16
-#: templates/dashboard/product/form.html:112
-#: templates/dashboard/product/form.html:119
-#: templates/dashboard/product/list.html:148
+#: templates/dashboard/product/form.html:111
+#: templates/dashboard/product/form.html:118
 #: templates/dashboard/product/product_attribute/form.html:77
 #: templates/dashboard/product/product_attribute/form.html:84
 #: templates/dashboard/product/product_attribute/values/form.html:79
 #: templates/dashboard/product/product_attribute/values/form.html:86
-#: templates/dashboard/product/product_class/form.html:101
-#: templates/dashboard/product/product_class/form.html:108
+#: templates/dashboard/product/product_class/form.html:100
+#: templates/dashboard/product/product_class/form.html:107
 #: templates/dashboard/product/product_image/form.html:80
 #: templates/dashboard/product/product_image/form.html:87
 #: templates/dashboard/product/product_variant/form.html:104
 #: templates/dashboard/product/product_variant/form.html:111
-#: templates/dashboard/product/product_variant/modal/select_images.html:17
 #: templates/dashboard/product/stock/form.html:99
 #: templates/dashboard/product/stock/form.html:106
 #: templates/dashboard/product/stock_location/form.html:74
@@ -2166,30 +2148,141 @@ msgctxt "Dashboard cancel action"
 msgid "Cancel"
 msgstr "キャンセル"
 
+#: templates/dashboard/base_modal_confirm_delete.html:10
+msgctxt "Dashboard confirmation modal"
+msgid "Remove"
+msgstr "削除"
+
+#: templates/dashboard/base_modal_confirm_delete.html:16
+msgctxt "Dashboard confirmation modal"
+msgid "Are you sure?"
+msgstr "よろしいですか？"
+
 #: templates/dashboard/base_modal_confirm_delete.html:25
+#: templates/dashboard/category/modal/confirm_delete.html:47
+#: templates/dashboard/discount/sale/modal/confirm_delete.html:22
+#: templates/dashboard/discount/voucher/modal/confirm_delete.html:24
+#: templates/dashboard/group/modal/confirm_delete.html:25
+#: templates/dashboard/order/modal/cancel_line.html:61
+#: templates/dashboard/product/modal/confirm_delete.html:25
+#: templates/dashboard/product/product_attribute/modal/attribute_confirm_delete.html:24
+#: templates/dashboard/product/product_attribute/values/modal/confirm_delete.html:24
+#: templates/dashboard/product/product_image/modal/confirm_delete.html:24
+#: templates/dashboard/product/product_variant/modal/confirm_delete.html:33
+#: templates/dashboard/product/stock/modal/confirm_delete.html:25
+#: templates/dashboard/product/stock_location/modal/confirm_delete.html:35
+#: templates/dashboard/shipping/modal/confirm_delete.html:26
+#: templates/dashboard/shipping/modal/country_confirm_delete.html:24
+#: templates/dashboard/sites/modal/confirm_delete.html:24
+#: templates/dashboard/staff/modal/confirm_delete.html:27
 msgctxt "Dashboard delete action"
 msgid "Remove"
 msgstr "削除"
 
-#: templates/dashboard/category/detail.html:11
-#: templates/dashboard/category/detail.html:24
+#: templates/dashboard/category/detail.html:8
+#: templates/dashboard/category/list.html:9
+msgctxt "Category list page title"
+msgid "Categories"
+msgstr "カテゴリー"
+
+#: templates/dashboard/category/detail.html:86
+msgctxt "Category field"
+msgid "Description"
+msgstr ""
+
+#: templates/dashboard/category/detail.html:98
+msgctxt "Category field"
+msgid "Hidden"
+msgstr ""
+
+#: templates/dashboard/category/detail.html:100
+msgctxt "Category detail is hidden text"
+msgid "This category is hidden on storefront"
+msgstr ""
+
+#: templates/dashboard/category/detail.html:110
+msgctxt "Category detail view action"
+msgid "Edit category"
+msgstr ""
+
+#: templates/dashboard/category/detail.html:115
+msgctxt "Category detail view action"
+msgid "Remove category"
+msgstr ""
+
+#: templates/dashboard/category/detail.html:123
+msgctxt "Title of the subcategories list"
+msgid "Subcategories"
+msgstr ""
+
+#: templates/dashboard/category/detail.html:128
+#: templates/dashboard/product/detail.html:94
+#: templates/dashboard/product/product_attribute/detail.html:67
+#: templates/dashboard/shipping/detail.html:78
+#: templates/dashboard/sites/detail.html:82
+msgid "Add"
+msgstr "追加"
+
+#: templates/dashboard/category/detail.html:135
+#: templates/dashboard/category/list.html:53
+msgctxt "Category list table header name"
+msgid "Name"
+msgstr "名前"
+
+#: templates/dashboard/category/detail.html:138
+#: templates/dashboard/category/list.html:56
+msgctxt "Category list table header description"
+msgid "Description"
+msgstr "説明"
+
+#: templates/dashboard/category/detail.html:162
+msgctxt "Category edit action"
+msgid "Edit"
+msgstr ""
+
+#: templates/dashboard/category/detail.html:167
+msgctxt "Category list action link"
+msgid "Remove"
+msgstr ""
+
+#: templates/dashboard/category/detail.html:174
+msgctxt "Empty list of categories"
+msgid "No categories"
+msgstr ""
+
+#: templates/dashboard/category/form.html:9
+msgctxt "Category form page title"
+msgid "Edit category"
+msgstr ""
+
+#: templates/dashboard/category/form.html:11
 msgctxt "Category detail page title"
 msgid "Add new category"
 msgstr ""
 
-#: templates/dashboard/category/detail.html:45
+#: templates/dashboard/category/form.html:24
+msgctxt "Category form page title"
+msgid "Add new category"
+msgstr ""
+
+#: templates/dashboard/category/form.html:55
+msgctxt "Category form page title"
+msgid "Edit"
+msgstr ""
+
+#: templates/dashboard/category/form.html:61
+#: templates/dashboard/category/form.html:79
 msgctxt "Category detail breadcrumbs"
 msgid "Add new category"
 msgstr ""
 
-#: templates/dashboard/category/detail.html:89
-#: templates/dashboard/category/modal/edit.html:28
+#: templates/dashboard/category/form.html:123
 #: templates/dashboard/discount/sale/form.html:101
 #: templates/dashboard/discount/voucher/form.html:130
 #: templates/dashboard/group/detail.html:89
 #: templates/dashboard/order/address_form.html:64
 #: templates/dashboard/order/modal/change_quantity.html:19
-#: templates/dashboard/product/product_class/form.html:104
+#: templates/dashboard/product/product_class/form.html:103
 #: templates/dashboard/product/stock_location/form.html:77
 #: templates/dashboard/sites/form.html:58
 #: templates/dashboard/staff/detail.html:81
@@ -2197,13 +2290,13 @@ msgctxt "Dashboard update action"
 msgid "Update"
 msgstr "更新"
 
-#: templates/dashboard/category/detail.html:93
+#: templates/dashboard/category/form.html:127
 #: templates/dashboard/discount/sale/form.html:108
 #: templates/dashboard/discount/voucher/form.html:137
-#: templates/dashboard/product/form.html:122
+#: templates/dashboard/product/form.html:121
 #: templates/dashboard/product/product_attribute/form.html:87
 #: templates/dashboard/product/product_attribute/values/form.html:89
-#: templates/dashboard/product/product_class/form.html:111
+#: templates/dashboard/product/product_class/form.html:110
 #: templates/dashboard/product/product_image/form.html:90
 #: templates/dashboard/product/product_variant/form.html:114
 #: templates/dashboard/product/stock/form.html:109
@@ -2215,65 +2308,35 @@ msgctxt "Dashboard create action"
 msgid "Create"
 msgstr "作成"
 
-#: templates/dashboard/category/list.html:9
-msgctxt "Category list page title"
-msgid "Categories"
-msgstr "カテゴリー"
-
-#: templates/dashboard/category/list.html:33
+#: templates/dashboard/category/list.html:24
 msgctxt "Category list add button text"
 msgid "Add category"
 msgstr "カテゴリー追加"
 
-#: templates/dashboard/category/list.html:50
-msgctxt "Dashboard edit action"
-msgid "Edit category"
-msgstr "カテゴリー編集"
+#: templates/dashboard/category/list.html:87
+msgctxt "Empty category list message"
+msgid "No categories found."
+msgstr ""
 
-#: templates/dashboard/category/list.html:57
-msgctxt "Category list action link"
-msgid "Remove category"
-msgstr "カテゴリー削除"
-
-#: templates/dashboard/category/list.html:123
-msgctxt "Category list table header name"
-msgid "Name"
-msgstr "名前"
-
-#: templates/dashboard/category/list.html:130
-msgctxt "Category list table header description"
-msgid "Description"
-msgstr "説明"
-
-#: templates/dashboard/category/list.html:159
-msgctxt "Empty Category list message"
-msgid "No subcategories."
-msgstr "サブカテゴリーなし"
-
-#: templates/dashboard/category/list.html:163
-msgctxt "Empty Category list message"
-msgid "No categories."
-msgstr "カテゴリーなし"
-
-#: templates/dashboard/category/modal/confirm_delete.html:11
+#: templates/dashboard/category/modal/confirm_delete.html:13
 #, python-format
 msgctxt "Remove category modal title"
 msgid "Remove category %(category)s"
 msgstr "カテゴリー「 %(category)s」を削除"
 
-#: templates/dashboard/category/modal/confirm_delete.html:17
+#: templates/dashboard/category/modal/confirm_delete.html:19
 #, python-format
 msgctxt "Remove category modal title"
 msgid ""
 "Are you sure you want to remove category <strong>%(category)s</strong>?"
 msgstr ""
 
-#: templates/dashboard/category/modal/confirm_delete.html:22
+#: templates/dashboard/category/modal/confirm_delete.html:24
 msgctxt "Delete category form text about descendant categories"
 msgid "The following child categories will be removed:"
 msgstr ""
 
-#: templates/dashboard/category/modal/confirm_delete.html:39
+#: templates/dashboard/category/modal/confirm_delete.html:37
 #, python-format
 msgctxt "Remove category form text about products"
 msgid "There is one product in this category that will be removed."
@@ -2281,11 +2344,18 @@ msgid_plural ""
 "There are %(counter)s products in this category that will be removed."
 msgstr[0] ""
 
-#: templates/dashboard/category/modal/edit.html:11
+#: templates/dashboard/category/zero_page.html:5
+msgid "No categories found."
+msgstr ""
+
+#: templates/dashboard/category/zero_page.html:8
 #, python-format
-msgctxt "Edit category modal title"
-msgid "Edit %(category)s"
-msgstr "「%(category)s」編集"
+msgid ""
+"\n"
+"    Categories are used to organize products into groups that are displayed in the navigation in the storefront.<br>\n"
+"    You can create categories by using the <span class=\"btn-fab-presentation\"><svg data-src=\"%(img_path)s\" /></span> button.\n"
+"  "
+msgstr ""
 
 #: templates/dashboard/customer/detail.html:48
 msgctxt "Customer promote to staff member action"
@@ -2342,35 +2412,51 @@ msgctxt "Customer without default billing address message"
 msgid "No default billing address."
 msgstr ""
 
-#: templates/dashboard/customer/list.html:37
+#: templates/dashboard/customer/list.html:32
 msgctxt "Customers table header"
 msgid "Name"
 msgstr "名前"
 
-#: templates/dashboard/customer/list.html:44
+#: templates/dashboard/customer/list.html:35
 msgctxt "Customers table header"
 msgid "Email"
 msgstr "メールアドレス"
 
-#: templates/dashboard/customer/list.html:51
+#: templates/dashboard/customer/list.html:38
 msgctxt "Customers table header"
 msgid "Location"
 msgstr "場所"
 
-#: templates/dashboard/customer/list.html:87
-#: templates/dashboard/staff/list.html:96
+#: templates/dashboard/customer/list.html:78
 msgctxt "Empty customers table message"
 msgid "No customers found."
 msgstr ""
 
-#: templates/dashboard/customer/modal/confirm_promote.html:9
+#: templates/dashboard/customer/modal/confirm_promote.html:12
 msgctxt "Dashboard confirmation modal"
 msgid "Promote to staff member"
 msgstr ""
 
-#: templates/dashboard/customer/modal/confirm_promote.html:20
+#: templates/dashboard/customer/modal/confirm_promote.html:16
+#, python-format
+msgctxt "Modal promote to staff member text"
+msgid "Are you sure you want to promote %(customer)s to staff member?"
+msgstr ""
+
+#: templates/dashboard/customer/modal/confirm_promote.html:22
 msgctxt "Dashboard promote action"
 msgid "Promote"
+msgstr ""
+
+#: templates/dashboard/customer/zero_page.html:5
+msgid "No customers found."
+msgstr ""
+
+#: templates/dashboard/customer/zero_page.html:8
+msgid ""
+"\n"
+"    Customer accounts will appear here once users register in the shop.\n"
+"  "
 msgstr ""
 
 #: templates/dashboard/discount/sale/form.html:10
@@ -2380,7 +2466,7 @@ msgstr "新しい販売を追加"
 
 #: templates/dashboard/discount/sale/form.html:12
 #: templates/dashboard/discount/sale/form.html:45
-#: templates/dashboard/discount/sale/list.html:20
+#: templates/dashboard/discount/sale/list.html:19
 msgctxt "Dashboard sales (discounts) list."
 msgid "Sales"
 msgstr "販売"
@@ -2395,40 +2481,52 @@ msgctxt "Sale (discount) breadcrumbs"
 msgid "Add new sale"
 msgstr "新しい販売を追加"
 
-#: templates/dashboard/discount/sale/list.html:11
+#: templates/dashboard/discount/sale/list.html:10
 msgid "Sales"
 msgstr "販売"
 
-#: templates/dashboard/discount/sale/list.html:30
+#: templates/dashboard/discount/sale/list.html:29
 msgctxt "Sale (discount) list add button text"
 msgid "Add sale"
 msgstr "販売を追加"
 
-#: templates/dashboard/discount/sale/list.html:46
+#: templates/dashboard/discount/sale/list.html:45
 msgctxt "Sale (discount) table header"
 msgid "Name"
 msgstr "名前"
 
-#: templates/dashboard/discount/sale/list.html:53
+#: templates/dashboard/discount/sale/list.html:48
 msgctxt "Sale (discount) table header"
 msgid "Discount"
 msgstr "割引"
 
-#: templates/dashboard/discount/sale/list.html:74
+#: templates/dashboard/discount/sale/list.html:75
 msgctxt "Empty sales table message"
 msgid "No sales found"
 msgstr "販売が見つかりませんでした。"
 
-#: templates/dashboard/discount/sale/modal/confirm_delete.html:8
-#, python-format
+#: templates/dashboard/discount/sale/modal/confirm_delete.html:12
 msgctxt "Remove sale (discount) text"
-msgid "Remove sale %(sale)s"
+msgid "Remove sale"
 msgstr ""
 
-#: templates/dashboard/discount/sale/modal/confirm_delete.html:14
+#: templates/dashboard/discount/sale/modal/confirm_delete.html:16
 #, python-format
 msgctxt "Remove sale (discount) text"
-msgid "Are you sure you want to selete <strong>%(sale)s</strong>?"
+msgid "Are you sure you want to remove <strong>%(sale)s</strong>?"
+msgstr ""
+
+#: templates/dashboard/discount/sale/zero_page.html:5
+msgid "No sales found."
+msgstr ""
+
+#: templates/dashboard/discount/sale/zero_page.html:8
+#, python-format
+msgid ""
+"\n"
+"    Sales are used to create discounts on particular products or whole categories.<br>\n"
+"    You can create sales by using the <span class=\"btn-fab-presentation\"><svg data-src=\"%(img_path)s\" /></span> button.\n"
+"  "
 msgstr ""
 
 #: templates/dashboard/discount/voucher/form.html:10
@@ -2446,61 +2544,74 @@ msgctxt "Voucher breadcrumbs"
 msgid "Add new voucher"
 msgstr "新しいクーポンを追加"
 
-#: templates/dashboard/discount/voucher/list.html:31
+#: templates/dashboard/discount/voucher/list.html:30
 msgctxt "Voucher list add button text"
 msgid "Add voucher"
 msgstr "クーポン追加"
 
-#: templates/dashboard/discount/voucher/list.html:48
+#: templates/dashboard/discount/voucher/list.html:46
 msgctxt "Voucher table header"
 msgid "Name"
 msgstr "名前"
 
-#: templates/dashboard/discount/voucher/list.html:55
+#: templates/dashboard/discount/voucher/list.html:49
 msgctxt "Voucher table header"
 msgid "Discount"
 msgstr "割引"
 
-#: templates/dashboard/discount/voucher/list.html:59
+#: templates/dashboard/discount/voucher/list.html:53
 msgctxt "Voucher table header"
 msgid "Apply to"
 msgstr ""
 
-#: templates/dashboard/discount/voucher/list.html:65
+#: templates/dashboard/discount/voucher/list.html:56
 msgctxt "Voucher table header"
 msgid "Start date"
 msgstr "開始日"
 
-#: templates/dashboard/discount/voucher/list.html:72
+#: templates/dashboard/discount/voucher/list.html:59
 msgctxt "Voucher table header"
 msgid "End date"
 msgstr "終了日"
 
-#: templates/dashboard/discount/voucher/list.html:79
+#: templates/dashboard/discount/voucher/list.html:62
 msgctxt "Voucher table header"
 msgid "Used"
 msgstr "使用済"
 
-#: templates/dashboard/discount/voucher/list.html:86
+#: templates/dashboard/discount/voucher/list.html:65
 msgctxt "Voucher table header"
 msgid "Limit"
 msgstr "制限"
 
-#: templates/dashboard/discount/voucher/list.html:131
+#: templates/dashboard/discount/voucher/list.html:115
 msgctxt "Empty vouchers table message"
 msgid "No vouchers found"
 msgstr "クーポンが見つかりません。"
 
-#: templates/dashboard/discount/voucher/modal/confirm_delete.html:10
+#: templates/dashboard/discount/voucher/modal/confirm_delete.html:12
 #, python-format
 msgctxt "Remove voucher text"
 msgid "Remove voucher %(voucher)s"
 msgstr "クーポン「%(voucher)s」を削除しました。"
 
-#: templates/dashboard/discount/voucher/modal/confirm_delete.html:16
+#: templates/dashboard/discount/voucher/modal/confirm_delete.html:18
 #, python-format
 msgctxt "Remove voucher text"
 msgid "Are you sure you want to remove voucher <strong>%(voucher)s</strong>?"
+msgstr ""
+
+#: templates/dashboard/discount/voucher/zero_page.html:5
+msgid "No vouchers found."
+msgstr ""
+
+#: templates/dashboard/discount/voucher/zero_page.html:8
+#, python-format
+msgid ""
+"\n"
+"    Vouchers allows creating promotional codes for all purchases, specific products or shipping.<br>\n"
+"    You can create vouchers by using the <span class=\"btn-fab-presentation\"><svg data-src=\"%(img_path)s\" /></span> button.\n"
+"  "
 msgstr ""
 
 #: templates/dashboard/group/detail.html:10
@@ -2529,48 +2640,56 @@ msgctxt "Dashboard add action"
 msgid "Add"
 msgstr "追加"
 
-#: templates/dashboard/group/list.html:21
+#: templates/dashboard/group/list.html:20
 msgctxt "Group list add button text"
 msgid "Add group"
 msgstr "グループ追加"
 
-#: templates/dashboard/group/list.html:50
+#: templates/dashboard/group/list.html:45
 msgctxt "Dashboard groups list table header name"
 msgid "Name"
 msgstr "名前"
 
-#: templates/dashboard/group/list.html:54
+#: templates/dashboard/group/list.html:48
 msgctxt "Dashboard groups list table header permissions"
 msgid "Permissions"
 msgstr "許可"
 
-#: templates/dashboard/group/list.html:79
+#: templates/dashboard/group/list.html:77
 msgctxt "Empty group table message"
 msgid "No groups found."
 msgstr "グループが見つかりません。"
 
-#: templates/dashboard/group/modal/confirm_delete.html:8
+#: templates/dashboard/group/modal/confirm_delete.html:12
 #, python-format
 msgctxt "Modal remove group text"
 msgid "Remove group <strong>%(group)s</strong>?"
 msgstr "グループ「 <strong>%(group)s</strong>」を削除しますか？"
 
-#: templates/dashboard/group/modal/confirm_delete.html:14
+#: templates/dashboard/group/modal/confirm_delete.html:18
 #, python-format
 msgctxt "Modal remove group text"
 msgid ""
-"<p>Are you sure you want to remove group %(group)s?</p> <p>Users might lose "
-"permissions related to this group.</p>"
+"Are you sure you want to remove group %(group)s? <br> Users might lose "
+"permissions related to this group."
+msgstr ""
+
+#: templates/dashboard/group/zero_page.html:5
+msgid "No groups found."
+msgstr ""
+
+#: templates/dashboard/group/zero_page.html:8
+#, python-format
+msgid ""
+"\n"
+"    Groups are designed to manage staff member roles and their permission.<br>\n"
+"    You can create groups by using the <span class=\"btn-fab-presentation\"><svg data-src=\"%(img_path)s\" /></span> button.\n"
+"  "
 msgstr ""
 
 #: templates/dashboard/includes/_filters.html:10
 msgctxt "Dashboard card title"
 msgid "Filters"
-msgstr ""
-
-#: templates/dashboard/includes/_filters.html:11
-msgctxt "Dashboard filter"
-msgid "Total records found"
 msgstr ""
 
 #: templates/dashboard/includes/_filters.html:44
@@ -2583,106 +2702,100 @@ msgctxt "Category price filter"
 msgid "Filter"
 msgstr ""
 
-#: templates/dashboard/includes/_orders_table.html:21
-msgctxt "Orders table header"
-msgid "Customer"
-msgstr "顧客"
+#: templates/dashboard/index.html:15 templates/dashboard/index.html:69
+#: templates/dashboard/index.html:133
+#, python-format
+msgctxt "Dashboard homepage summary header title"
+msgid "Showing last %(counter)s results"
+msgstr ""
 
-#: templates/dashboard/includes/_orders_table.html:28
-msgctxt "Orders table header"
-msgid "Placed on"
-msgstr "置かれた"
-
-#: templates/dashboard/includes/_orders_table.html:35
-msgctxt "Orders table header"
-msgid "Order status"
-msgstr "注文状況"
-
-#: templates/dashboard/includes/_orders_table.html:42
-msgctxt "Orders table header"
-msgid "Payment status"
-msgstr "支払い状況"
-
-#: templates/dashboard/includes/_orders_table.html:49
-msgctxt "Orders table header"
-msgid "Total"
-msgstr "合計"
-
-#: templates/dashboard/includes/_orders_table.html:60
-#: templates/dashboard/order/detail.html:112
-msgctxt "Anonymous user account value"
-msgid "Guest"
-msgstr "ゲスト"
-
-#: templates/dashboard/includes/address_short.html:3
-#: templates/dashboard/order/detail.html:227
-#: templates/dashboard/order/detail.html:247
-#: templates/dashboard/product/product_image/list.html:69
-#: templates/dashboard/product/product_image/list.html:114
-msgctxt "Dashboard edit action"
-msgid "Edit"
-msgstr "編集"
-
-#: templates/dashboard/index.html:15
+#: templates/dashboard/index.html:16
 msgctxt "Dashboard homepage table title"
 msgid "Preauthorized payments"
 msgstr ""
 
-#: templates/dashboard/index.html:24
+#: templates/dashboard/index.html:25
 msgctxt "Preauthorized payments table header"
 msgid "Order"
 msgstr "注文"
 
-#: templates/dashboard/index.html:27
+#: templates/dashboard/index.html:28
 msgctxt "Preauthorized payments table header"
 msgid "Date"
 msgstr "日付"
 
-#: templates/dashboard/index.html:30
+#: templates/dashboard/index.html:31
 msgctxt "Preauthorized payments table header"
 msgid "Customer"
 msgstr "顧客"
 
-#: templates/dashboard/index.html:33
+#: templates/dashboard/index.html:34
 msgctxt "Preauthorized payments table header"
 msgid "Amount"
 msgstr "金額"
 
-#: templates/dashboard/index.html:47
+#: templates/dashboard/index.html:48
 msgid "Guest"
 msgstr "ゲスト"
 
-#: templates/dashboard/index.html:60
+#: templates/dashboard/index.html:61
 msgctxt "Empty Preauthorized payments table message"
 msgid "No preauthorized payments."
 msgstr ""
 
-#: templates/dashboard/index.html:69
+#: templates/dashboard/index.html:70
 msgctxt "Dashboard homepage table title"
 msgid "Orders ready for shipment"
 msgstr ""
 
-#: templates/dashboard/index.html:77
+#: templates/dashboard/index.html:83 templates/dashboard/order/list.html:32
+msgctxt "Orders table header"
+msgid "Customer"
+msgstr "顧客"
+
+#: templates/dashboard/index.html:86 templates/dashboard/order/list.html:35
+msgctxt "Orders table header"
+msgid "Placed on"
+msgstr "置かれた"
+
+#: templates/dashboard/index.html:89 templates/dashboard/order/list.html:38
+msgctxt "Orders table header"
+msgid "Payment status"
+msgstr "支払い状況"
+
+#: templates/dashboard/index.html:92 templates/dashboard/order/list.html:41
+msgctxt "Orders table header"
+msgid "Total"
+msgstr "合計"
+
+#: templates/dashboard/index.html:105
+#: templates/dashboard/order/detail.html:112
+#: templates/dashboard/order/list.html:54
+msgctxt "Anonymous user account value"
+msgid "Guest"
+msgstr "ゲスト"
+
+#: templates/dashboard/index.html:126
 msgctxt "Empty order table message"
 msgid "No orders are ready for shipment."
 msgstr ""
 
-#: templates/dashboard/index.html:85
+#: templates/dashboard/index.html:134
 msgctxt "Dashboard homepage table title"
 msgid "Products with low stock"
 msgstr ""
 
-#: templates/dashboard/index.html:94
+#: templates/dashboard/index.html:143
 msgctxt "Low stock product list"
 msgid "Product name"
 msgstr "商品名"
 
-#: templates/dashboard/index.html:97
+#: templates/dashboard/index.html:146
 msgctxt "Low stock product list"
 msgid "Stock left"
 msgstr ""
 
-#: templates/dashboard/index.html:118
+#: templates/dashboard/index.html:167
 msgctxt "Empty low stock table message"
 msgid "No products are low in stock."
 msgstr ""
@@ -2720,13 +2833,13 @@ msgid "Details"
 msgstr "詳細"
 
 #: templates/dashboard/order/detail.html:80
-#: templates/dashboard/order/detail.html:482
+#: templates/dashboard/order/detail.html:468
 msgctxt "Order detail tab"
 msgid "Payments"
 msgstr "支払い"
 
 #: templates/dashboard/order/detail.html:88
-#: templates/dashboard/order/detail.html:538
+#: templates/dashboard/order/detail.html:524
 msgctxt "Order detail tab"
 msgid "History"
 msgstr "履歴"
@@ -2737,7 +2850,7 @@ msgid "Order summary"
 msgstr "注文概要"
 
 #: templates/dashboard/order/detail.html:106
-#: templates/dashboard/search/results.html:95
+#: templates/dashboard/search/results.html:89
 msgctxt "Dashboard customer"
 msgid "Customer"
 msgstr "顧客"
@@ -2802,10 +2915,18 @@ msgctxt "Order detail action"
 msgid "Invoice"
 msgstr ""
 
+#: templates/dashboard/order/detail.html:227
+#: templates/dashboard/order/detail.html:247
+#: templates/dashboard/product/product_image/list.html:83
+#: templates/dashboard/product/product_image/list.html:128
+msgctxt "Dashboard edit action"
+msgid "Edit"
+msgstr "編集"
+
 #: templates/dashboard/order/detail.html:260
 #, python-format
 msgctxt "Shipment group table title"
-msgid "Shipment #%(shipment)s"
+msgid "Shipment #%(shipment)s - %(group_shipping_method_name)s"
 msgstr ""
 
 #: templates/dashboard/order/detail.html:271
@@ -2836,387 +2957,366 @@ msgctxt "Shipment group table header"
 msgid "Total"
 msgstr "合計"
 
-#: templates/dashboard/order/detail.html:291
-#, python-format
-msgctxt "Shipment group table item column data"
-msgid "Shipping (%(group_shipping_method_name)s)"
-msgstr "配送 (%(group_shipping_method_name)s)"
-
-#: templates/dashboard/order/detail.html:321
-#: templates/dashboard/order/detail.html:322
+#: templates/dashboard/order/detail.html:307
+#: templates/dashboard/order/detail.html:308
 msgctxt "Shipment group table row action"
 msgid "Change quantity"
 msgstr "数量変更"
 
-#: templates/dashboard/order/detail.html:326
+#: templates/dashboard/order/detail.html:312
 msgctxt "Shipment group table row action"
 msgid "Change stock location"
 msgstr "在庫保管場所変更"
 
-#: templates/dashboard/order/detail.html:327
+#: templates/dashboard/order/detail.html:313
 msgctxt "Shipment group table row action"
 msgid "Change stock"
 msgstr "在庫変更"
 
-#: templates/dashboard/order/detail.html:331
+#: templates/dashboard/order/detail.html:317
 msgctxt "Shipment group table row action"
 msgid "Split line"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:332
+#: templates/dashboard/order/detail.html:318
 msgctxt "Shipment group table row action"
 msgid "Split order line"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:336
-#: templates/dashboard/order/detail.html:337
+#: templates/dashboard/order/detail.html:322
+#: templates/dashboard/order/detail.html:323
 msgctxt "Shipment group table row action"
 msgid "Remove line"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:358
+#: templates/dashboard/order/detail.html:344
 msgctxt "Shipment group table action"
 msgid "Dispatch"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:362
+#: templates/dashboard/order/detail.html:348
 msgctxt "Shipment group table action"
 msgid "Cancel group"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:363
+#: templates/dashboard/order/detail.html:349
 msgctxt "Shipment group table action"
-msgid "Cancel this shipment"
+msgid "Cancel shipment"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:366
+#: templates/dashboard/order/detail.html:352
 msgctxt "Order summary card action title"
 msgid "Add product to order"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:367
+#: templates/dashboard/order/detail.html:353
 msgctxt "Order summary card action"
 msgid "Add product"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:370
+#: templates/dashboard/order/detail.html:356
 msgctxt "Order detail action"
 msgid "Packing Slips"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:376
-#: templates/dashboard/order/detail.html:383
+#: templates/dashboard/order/detail.html:362
+#: templates/dashboard/order/detail.html:369
 #, python-format
 msgctxt "Shipment group table text"
 msgid "Tracking number: %(tracking)s"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:399
+#: templates/dashboard/order/detail.html:385
 msgctxt "Order totals header"
 msgid "Grand total"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:417
+#: templates/dashboard/order/detail.html:403
 msgctxt "Order totals header"
 msgid "Shipping"
 msgstr "配送"
 
-#: templates/dashboard/order/detail.html:427
+#: templates/dashboard/order/detail.html:413
 #, python-format
 msgctxt "Order totals header"
 msgid "Voucher %(voucher)s"
 msgstr "クーポン %(voucher)s"
 
-#: templates/dashboard/order/detail.html:435
-#: templates/dashboard/order/detail.html:436
+#: templates/dashboard/order/detail.html:421
+#: templates/dashboard/order/detail.html:422
 msgctxt "Order totals action"
 msgid "Remove voucher"
 msgstr "クーポンを削除"
 
-#: templates/dashboard/order/detail.html:453
+#: templates/dashboard/order/detail.html:439
 msgctxt "Order notes card title"
 msgid "Order notes"
 msgstr "注文備考"
 
-#: templates/dashboard/order/detail.html:466
+#: templates/dashboard/order/detail.html:452
 msgctxt "Empty order notes card message"
 msgid "There are no notes associated with this order."
 msgstr ""
 
-#: templates/dashboard/order/detail.html:473
+#: templates/dashboard/order/detail.html:459
 msgctxt "Order notes card action"
 msgid "Add note"
 msgstr "備考追加"
 
-#: templates/dashboard/order/detail.html:489
+#: templates/dashboard/order/detail.html:475
 msgctxt "Payment history table header"
 msgid "Transaction ID"
 msgstr "トランザクションID"
 
-#: templates/dashboard/order/detail.html:492
+#: templates/dashboard/order/detail.html:478
 msgctxt "Payment history table header"
 msgid "Date"
 msgstr "日付"
 
-#: templates/dashboard/order/detail.html:495
+#: templates/dashboard/order/detail.html:481
 msgctxt "Payment history table header"
 msgid "Payment status"
 msgstr "支払い状況"
 
-#: templates/dashboard/order/detail.html:498
+#: templates/dashboard/order/detail.html:484
 msgctxt "Payment history table header"
 msgid "Fraud status"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:501
+#: templates/dashboard/order/detail.html:487
 msgctxt "Payment history table header"
 msgid "Amount"
 msgstr "金額"
 
-#: templates/dashboard/order/detail.html:509
+#: templates/dashboard/order/detail.html:495
 #, python-format
 msgctxt "Payment item column data"
 msgid "#%(payment_id)s"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:533
+#: templates/dashboard/order/detail.html:519
 msgctxt "Empty payment history table message"
 msgid "No payments made for this order."
 msgstr ""
 
-#: templates/dashboard/order/list.html:32
+#: templates/dashboard/order/list.html:83
 msgctxt "Empty order list message"
 msgid "No orders found."
 msgstr "注文が見つかりません。"
 
-#: templates/dashboard/order/modal/add_note.html:10
+#: templates/dashboard/order/modal/add_note.html:11
 msgctxt "Modal add note title"
 msgid "Add note"
 msgstr "備考追加"
 
-#: templates/dashboard/order/modal/add_note.html:23
+#: templates/dashboard/order/modal/add_note.html:19
 msgctxt "Modal add note primary action"
 msgid "Save note"
 msgstr "備考保存"
 
-#: templates/dashboard/order/modal/add_variant_to_group.html:10
+#: templates/dashboard/order/modal/add_variant_to_group.html:11
 #, python-format
 msgctxt "Modal group add variant title"
-msgid ""
-"\n"
-"            Add product to %(shipment)s\n"
-"          "
+msgid "Add product to %(shipment)s"
 msgstr ""
 
-#: templates/dashboard/order/modal/add_variant_to_group.html:28
+#: templates/dashboard/order/modal/add_variant_to_group.html:22
 msgctxt "Modal group add variant primary action"
 msgid "Add"
 msgstr ""
 
-#: templates/dashboard/order/modal/cancel_delivery_group.html:8
-msgctxt "Modal cancel delivery group title"
-msgid "Cancel delivery group?"
-msgstr ""
-
-#: templates/dashboard/order/modal/cancel_delivery_group.html:11
-#, python-format
-msgctxt "Modal cancel delivery group text"
-msgid ""
-"After this action %(group)s will be cancelled. Ordered items will be "
-"returned to stock."
-msgstr ""
-
-#: templates/dashboard/order/modal/cancel_delivery_group.html:18
-#: templates/dashboard/order/modal/cancel_order.html:20
-#: templates/dashboard/order/modal/order_remove_voucher.html:19
-msgctxt "Dashboard abort action"
-msgid "Abort"
-msgstr "中止"
-
-#: templates/dashboard/order/modal/cancel_delivery_group.html:21
-msgctxt "Modal cancel delivery group primary action"
-msgid "Cancel this shipment"
-msgstr ""
-
-#: templates/dashboard/order/modal/cancel_line.html:9
-msgctxt "Modal remove order line title"
-msgid "Remove order line?"
-msgstr ""
-
 #: templates/dashboard/order/modal/cancel_line.html:12
+msgctxt "Modal remove order line title"
+msgid "Remove order line"
+msgstr ""
+
+#: templates/dashboard/order/modal/cancel_line.html:16
 msgctxt "Modal remove order line text"
 msgid "Are you sure you want remove this order line?"
 msgstr ""
 
-#: templates/dashboard/order/modal/cancel_line.html:21
+#: templates/dashboard/order/modal/cancel_line.html:22
 msgctxt "Modal remove order line table header"
 msgid "Item"
 msgstr "アイテム"
 
-#: templates/dashboard/order/modal/cancel_line.html:24
+#: templates/dashboard/order/modal/cancel_line.html:25
 msgctxt "Modal remove order line table header"
 msgid "SKU"
 msgstr "SKU"
 
-#: templates/dashboard/order/modal/cancel_line.html:27
+#: templates/dashboard/order/modal/cancel_line.html:28
 msgctxt "Modal remove order line table header"
 msgid "Price"
 msgstr "価格"
 
-#: templates/dashboard/order/modal/cancel_line.html:30
+#: templates/dashboard/order/modal/cancel_line.html:31
 msgctxt "Modal remove order line table header"
 msgid "Quantity"
 msgstr "数量"
 
-#: templates/dashboard/order/modal/cancel_line.html:33
+#: templates/dashboard/order/modal/cancel_line.html:34
 msgctxt "Modal remove order line table header"
 msgid "Total"
 msgstr "合計"
 
-#: templates/dashboard/order/modal/cancel_line.html:63
-#: templates/dashboard/product/product_image/list.html:72
-#: templates/dashboard/product/product_image/list.html:118
-msgctxt "Dashboard remove action"
-msgid "Remove"
-msgstr "削除"
-
-#: templates/dashboard/order/modal/cancel_order.html:6
+#: templates/dashboard/order/modal/cancel_order.html:11
 msgctxt "Modal cancel order title"
-msgid "Cancel order?"
-msgstr "注文をキャンセルしますか？"
-
-#: templates/dashboard/order/modal/cancel_order.html:9
-#, python-format
-msgctxt "Modal cancel order text"
-msgid "Are you sure, you want cancel order %(order)s?"
+msgid "Cancel order"
 msgstr ""
 
-#: templates/dashboard/order/modal/cancel_order.html:23
+#: templates/dashboard/order/modal/cancel_order.html:15
+#, python-format
+msgctxt "Modal cancel order text"
+msgid "Are you sure you want cancel order %(order)s?"
+msgstr ""
+
+#: templates/dashboard/order/modal/cancel_order.html:21
+msgctxt "Modal cancel order cancel action"
+msgid "Abort"
+msgstr ""
+
+#: templates/dashboard/order/modal/cancel_order.html:25
 msgctxt "Modal cancel order primary action"
 msgid "Cancel Order"
 msgstr "注文キャンセル"
 
-#: templates/dashboard/order/modal/capture.html:10
+#: templates/dashboard/order/modal/cancel_shipment_group.html:10
+msgctxt "Modal cancel shipment group title"
+msgid "Cancel shipment group?"
+msgstr ""
+
+#: templates/dashboard/order/modal/cancel_shipment_group.html:14
+#, python-format
+msgctxt "Modal cancel shipment group text"
+msgid ""
+"After this action %(shipment)s will be cancelled. Ordered items will be "
+"returned to stock."
+msgstr ""
+
+#: templates/dashboard/order/modal/cancel_shipment_group.html:20
+#: templates/dashboard/order/modal/order_remove_voucher.html:22
+msgctxt "Dashboard abort action"
+msgid "Abort"
+msgstr "中止"
+
+#: templates/dashboard/order/modal/cancel_shipment_group.html:24
+msgctxt "Modal cancel shipment group primary action"
+msgid "Cancel this shipment"
+msgstr ""
+
+#: templates/dashboard/order/modal/capture.html:13
 msgctxt "Modal capture payment title"
 msgid "Capture payment"
 msgstr ""
 
-#: templates/dashboard/order/modal/capture.html:16
+#: templates/dashboard/order/modal/capture.html:18
 msgctxt "Modal capture payment title"
-msgid "Before this action"
+msgid "Before this action:"
 msgstr ""
 
-#: templates/dashboard/order/modal/capture.html:19
+#: templates/dashboard/order/modal/capture.html:20
 msgctxt "Modal capture payment list title"
 msgid "Order total:"
 msgstr "注文合計："
 
-#: templates/dashboard/order/modal/capture.html:22
+#: templates/dashboard/order/modal/capture.html:23
 msgctxt "Modal capture payment list title"
 msgid "Captured amount:"
 msgstr ""
 
-#: templates/dashboard/order/modal/capture.html:32
+#: templates/dashboard/order/modal/capture.html:30
 msgctxt "Modal capture payment primary action"
 msgid "Capture"
 msgstr ""
 
-#: templates/dashboard/order/modal/change_quantity.html:8
+#: templates/dashboard/order/modal/change_quantity.html:11
 msgctxt "Modal change quantity title"
 msgid "Change quantity"
 msgstr "数量変更"
 
-#: templates/dashboard/order/modal/delivery_group_stock.html:10
-msgctxt "Modal change stock title"
-msgid "Change stock"
-msgstr "在庫変更"
-
-#: templates/dashboard/order/modal/delivery_group_stock.html:23
-#: templates/dashboard/product/form.html:115
-#: templates/dashboard/product/product_attribute/form.html:80
-#: templates/dashboard/product/product_attribute/values/form.html:82
-#: templates/dashboard/product/product_image/form.html:83
-#: templates/dashboard/product/product_variant/form.html:107
-#: templates/dashboard/product/stock/form.html:102
-#: templates/dashboard/shipping/country/form.html:84
-#: templates/dashboard/shipping/form.html:81
-#: templates/dashboard/sites/authorization_keys/form.html:75
-msgctxt "Dashboard update action"
-msgid "Save"
-msgstr "保存"
-
-#: templates/dashboard/order/modal/order_remove_voucher.html:6
+#: templates/dashboard/order/modal/order_remove_voucher.html:12
 msgctxt "Modal remove voucher from order title"
-msgid "Remove voucher?"
-msgstr "クーポンを削除しますか？"
-
-#: templates/dashboard/order/modal/order_remove_voucher.html:9
-#, python-format
-msgctxt "Modal remove voucher from order text"
-msgid "Are you sure, you want remove voucher discount from %(order)s?"
+msgid "Remove voucher"
 msgstr ""
 
-#: templates/dashboard/order/modal/order_remove_voucher.html:22
+#: templates/dashboard/order/modal/order_remove_voucher.html:16
+#, python-format
+msgctxt "Modal remove voucher from order text"
+msgid "Are you sure you want remove voucher discount from order %(order)s?"
+msgstr ""
+
+#: templates/dashboard/order/modal/order_remove_voucher.html:26
 msgctxt "Modal remove voucher from order primary action"
 msgid "Remove voucher"
 msgstr "クーポンを削除"
 
-#: templates/dashboard/order/modal/refund.html:10
+#: templates/dashboard/order/modal/refund.html:14
 msgctxt "Modal refund payment title"
 msgid "Refund payment"
 msgstr ""
 
-#: templates/dashboard/order/modal/refund.html:16
+#: templates/dashboard/order/modal/refund.html:19
 msgctxt "Modal refund payment title"
-msgid "Before this action"
+msgid "Before this action:"
 msgstr ""
 
-#: templates/dashboard/order/modal/refund.html:19
+#: templates/dashboard/order/modal/refund.html:21
 msgctxt "Modal refund payment list title"
 msgid "Order total:"
 msgstr "注文合計："
 
-#: templates/dashboard/order/modal/refund.html:22
+#: templates/dashboard/order/modal/refund.html:24
 msgctxt "Modal refund payment list title"
 msgid "Captured amount:"
 msgstr ""
 
-#: templates/dashboard/order/modal/refund.html:32
+#: templates/dashboard/order/modal/refund.html:31
 msgctxt "Modal refund payment primary action"
 msgid "Refund"
 msgstr ""
 
-#: templates/dashboard/order/modal/release.html:6
+#: templates/dashboard/order/modal/release.html:11
 msgctxt "Modal release payment text"
 msgid "Release payment"
 msgstr ""
 
-#: templates/dashboard/order/modal/release.html:9
+#: templates/dashboard/order/modal/release.html:15
 msgctxt "Modal release payment text"
 msgid "Do you want to release the payment?"
 msgstr ""
 
-#: templates/dashboard/order/modal/release.html:19
+#: templates/dashboard/order/modal/release.html:20
 msgctxt "Modal release payment primary action"
 msgid "Release"
 msgstr ""
 
-#: templates/dashboard/order/modal/ship_delivery_group.html:8
-msgctxt "Modal ship delivery group title"
-msgid "Dispatch delivery group"
+#: templates/dashboard/order/modal/ship_shipment_group.html:11
+msgctxt "Modal ship shipment group title"
+msgid "Dispatch shipment group"
 msgstr ""
 
-#: templates/dashboard/order/modal/ship_delivery_group.html:11
-msgctxt "Modal ship delivery group text"
+#: templates/dashboard/order/modal/ship_shipment_group.html:15
+msgctxt "Modal ship shipment group text"
 msgid "Dispatch this shipment to the following address:"
 msgstr ""
 
-#: templates/dashboard/order/modal/ship_delivery_group.html:23
-msgctxt "Modal ship delivery group primary action"
+#: templates/dashboard/order/modal/ship_shipment_group.html:20
+msgctxt "Modal ship shipment group primary action"
 msgid "Ship"
-msgstr "配送"
+msgstr ""
 
-#: templates/dashboard/order/modal/split_order_line.html:8
+#: templates/dashboard/order/modal/shipment_group_stock.html:11
+msgctxt "Modal change stock title"
+msgid "Change stock"
+msgstr "在庫変更"
+
+#: templates/dashboard/order/modal/shipment_group_stock.html:19
+msgctxt "Modal change stock primary action"
+msgid "Change"
+msgstr ""
+
+#: templates/dashboard/order/modal/split_order_line.html:11
 msgctxt "Modal split order line title"
 msgid "Split order line"
 msgstr ""
@@ -3292,27 +3392,26 @@ msgid "Total"
 msgstr "合計"
 
 #: templates/dashboard/order/pdf/invoice.html:103
-#, python-format
 msgctxt "Shipment order table item column data"
-msgid "Shipping (%(shipping_name)s)"
-msgstr "配送 (%(shipping_name)s)"
+msgid "Shipping"
+msgstr ""
 
-#: templates/dashboard/order/pdf/invoice.html:121
+#: templates/dashboard/order/pdf/invoice.html:119
 msgctxt "Order subtotal price"
 msgid "Subtotal"
 msgstr "小計"
 
-#: templates/dashboard/order/pdf/invoice.html:129
+#: templates/dashboard/order/pdf/invoice.html:127
 msgctxt "Order total shipping price header"
-msgid "Total Shipping Price"
+msgid "Shipping total"
 msgstr ""
 
-#: templates/dashboard/order/pdf/invoice.html:138
+#: templates/dashboard/order/pdf/invoice.html:136
 msgctxt "Order voucher header"
 msgid "Voucher"
 msgstr "クーポン"
 
-#: templates/dashboard/order/pdf/invoice.html:149
+#: templates/dashboard/order/pdf/invoice.html:147
 msgctxt "Order total price header"
 msgid "Grand total"
 msgstr ""
@@ -3351,6 +3450,17 @@ msgstr "請求先住所"
 msgctxt "Order invoice"
 msgid "Items Ordered"
 msgstr "注文されたアイテム"
+
+#: templates/dashboard/order/zero_page.html:5
+msgid "No orders found."
+msgstr ""
+
+#: templates/dashboard/order/zero_page.html:8
+msgid ""
+"\n"
+"    Orders will appear here after customers complete the checkout.\n"
+"  "
+msgstr ""
 
 #: templates/dashboard/product/_stock_table.html:8
 msgid "Location"
@@ -3419,13 +3529,6 @@ msgstr ""
 msgid "Variant"
 msgstr ""
 
-#: templates/dashboard/product/detail.html:94
-#: templates/dashboard/product/product_attribute/detail.html:67
-#: templates/dashboard/shipping/detail.html:78
-#: templates/dashboard/sites/detail.html:82
-msgid "Add"
-msgstr "追加"
-
 #: templates/dashboard/product/detail.html:101
 msgid "SKU"
 msgstr "SKU"
@@ -3475,7 +3578,7 @@ msgstr ""
 
 #: templates/dashboard/product/detail.html:195
 #: templates/dashboard/product/product_image/list.html:7
-#: templates/dashboard/product/product_image/list.html:30
+#: templates/dashboard/product/product_image/list.html:41
 msgid "Images"
 msgstr ""
 
@@ -3483,67 +3586,80 @@ msgstr ""
 msgid "Edit images"
 msgstr ""
 
-#: templates/dashboard/product/form.html:10
+#: templates/dashboard/product/form.html:9
 msgctxt "Dashboard products list"
 msgid "Edit"
 msgstr "編集"
 
-#: templates/dashboard/product/form.html:12
+#: templates/dashboard/product/form.html:11
 msgctxt "Product form page title"
 msgid "Add new product"
 msgstr ""
 
-#: templates/dashboard/product/form.html:45
+#: templates/dashboard/product/form.html:44
 msgctxt "Product form breadcrumbs"
 msgid "Add new product"
 msgstr ""
 
-#: templates/dashboard/product/form.html:52
+#: templates/dashboard/product/form.html:51
 msgctxt "Product form breadcrumbs"
 msgid "Edit"
 msgstr "編集"
 
-#: templates/dashboard/product/list.html:23
-#: templates/dashboard/product/list.html:27
+#: templates/dashboard/product/form.html:114
+#: templates/dashboard/product/product_attribute/form.html:80
+#: templates/dashboard/product/product_attribute/values/form.html:82
+#: templates/dashboard/product/product_image/form.html:83
+#: templates/dashboard/product/product_variant/form.html:107
+#: templates/dashboard/product/stock/form.html:102
+#: templates/dashboard/shipping/country/form.html:84
+#: templates/dashboard/shipping/form.html:81
+#: templates/dashboard/sites/authorization_keys/form.html:75
+msgctxt "Dashboard update action"
+msgid "Save"
+msgstr "保存"
+
+#: templates/dashboard/product/list.html:22
+#: templates/dashboard/product/list.html:26
 msgctxt "Product list add button text"
 msgid "Add product"
 msgstr ""
 
-#: templates/dashboard/product/list.html:81
+#: templates/dashboard/product/list.html:76
 msgctxt "Products list table header"
 msgid "Name"
 msgstr "名前"
 
-#: templates/dashboard/product/list.html:88
+#: templates/dashboard/product/list.html:79
 msgctxt "Products list table header"
 msgid "Price"
 msgstr "価格"
 
-#: templates/dashboard/product/list.html:123
+#: templates/dashboard/product/list.html:116
 msgctxt "Empty product list message"
 msgid "No products found."
 msgstr ""
 
-#: templates/dashboard/product/list.html:127
-msgctxt "Empty product list without product types message"
-msgid "Create product type first."
-msgstr ""
-
-#: templates/dashboard/product/list.html:151
-msgctxt "Dashboard add action"
-msgid "Create new"
-msgstr ""
-
-#: templates/dashboard/product/modal/confirm_delete.html:9
+#: templates/dashboard/product/modal/confirm_delete.html:13
 #, python-format
 msgctxt "Modal remove product text"
 msgid "Remove product %(product)s"
 msgstr ""
 
-#: templates/dashboard/product/modal/confirm_delete.html:15
+#: templates/dashboard/product/modal/confirm_delete.html:19
 #, python-format
 msgctxt "Modal remove product text"
 msgid "Are you sure you want to remove product <strong>%(product)s</strong>?"
+msgstr ""
+
+#: templates/dashboard/product/modal/select_class.html:11
+msgctxt "Modal select product classes title"
+msgid "Product type"
+msgstr ""
+
+#: templates/dashboard/product/modal/select_class.html:19
+msgctxt "Dashboard add action"
+msgid "Create"
 msgstr ""
 
 #: templates/dashboard/product/product_attribute/detail.html:18
@@ -3609,33 +3725,33 @@ msgctxt "Attribute detail breadcrumbs"
 msgid "Add new attribute"
 msgstr ""
 
-#: templates/dashboard/product/product_attribute/list.html:19
+#: templates/dashboard/product/product_attribute/list.html:18
 msgctxt "Attribute list add button text"
 msgid "Add attribute"
 msgstr ""
 
-#: templates/dashboard/product/product_attribute/list.html:49
+#: templates/dashboard/product/product_attribute/list.html:44
 msgctxt "Dashboard attributes list table header name"
 msgid "Name"
 msgstr "名前"
 
-#: templates/dashboard/product/product_attribute/list.html:53
+#: templates/dashboard/product/product_attribute/list.html:47
 msgctxt "Dashboard attributes list table header values"
 msgid "Values"
 msgstr ""
 
-#: templates/dashboard/product/product_attribute/list.html:76
+#: templates/dashboard/product/product_attribute/list.html:74
 msgctxt "Empty attribute list message"
 msgid "No attributes found."
 msgstr ""
 
-#: templates/dashboard/product/product_attribute/modal/attribute_confirm_delete.html:10
+#: templates/dashboard/product/product_attribute/modal/attribute_confirm_delete.html:12
 #, python-format
 msgctxt "Modal remove attribute text"
 msgid "Remove attribute %(attribute)s"
 msgstr ""
 
-#: templates/dashboard/product/product_attribute/modal/attribute_confirm_delete.html:16
+#: templates/dashboard/product/product_attribute/modal/attribute_confirm_delete.html:18
 #, python-format
 msgctxt "Modal remove attribute text"
 msgid ""
@@ -3647,79 +3763,92 @@ msgctxt "Attribute values form title"
 msgid "Attribute values"
 msgstr ""
 
-#: templates/dashboard/product/product_attribute/values/modal/confirm_delete.html:10
+#: templates/dashboard/product/product_attribute/values/modal/confirm_delete.html:12
 #, python-format
 msgctxt "Modal delete attribute text"
 msgid "Delete attribute choice value %(value)s"
 msgstr ""
 
-#: templates/dashboard/product/product_attribute/values/modal/confirm_delete.html:16
+#: templates/dashboard/product/product_attribute/values/modal/confirm_delete.html:18
 #, python-format
 msgctxt "Modal delete attribute text"
 msgid ""
-"Are you sure you want to delete attribute choice value "
+"Are you sure you want to remove attribute choice value "
 "<strong>%(value)s</strong>?"
 msgstr ""
 
-#: templates/dashboard/product/product_class/form.html:12
+#: templates/dashboard/product/product_attribute/zero_page.html:5
+msgid "No attributes found."
+msgstr ""
+
+#: templates/dashboard/product/product_attribute/zero_page.html:8
+#, python-format
+msgid ""
+"\n"
+"    Attributes are used to define custom properties of products and variants, that can be used for filtering purposes in the storefront.<br>\n"
+"    You can add attributes by using the <span class=\"btn-fab-presentation\"><svg data-src=\"%(img_path)s\" /></span> button.\n"
+"  "
+msgstr ""
+
+#: templates/dashboard/product/product_class/form.html:11
 msgctxt "Product class page title"
 msgid "Add new product type"
 msgstr ""
 
-#: templates/dashboard/product/product_class/form.html:43
+#: templates/dashboard/product/product_class/form.html:42
 msgctxt "Product class breadcrumbs"
 msgid "Add new product type"
 msgstr ""
 
-#: templates/dashboard/product/product_class/form.html:60
+#: templates/dashboard/product/product_class/form.html:59
 msgctxt "Product class action"
 msgid "Remove product type"
 msgstr ""
 
-#: templates/dashboard/product/product_class/form.html:122
+#: templates/dashboard/product/product_class/form.html:121
 msgctxt "Product class help text"
 msgid ""
 "Product Type is a template used for creating new products. It also controls "
 "which attributes can be used during product creation process."
 msgstr ""
 
-#: templates/dashboard/product/product_class/list.html:20
+#: templates/dashboard/product/product_class/list.html:19
 msgctxt "Product type list add button text"
 msgid "Add product type"
 msgstr ""
 
-#: templates/dashboard/product/product_class/list.html:50
+#: templates/dashboard/product/product_class/list.html:45
 msgctxt "Dashboard product types list table header name"
 msgid "Name"
 msgstr "名前"
 
-#: templates/dashboard/product/product_class/list.html:54
+#: templates/dashboard/product/product_class/list.html:49
 msgctxt "Product type item list text"
 msgid "Product attributes"
 msgstr ""
 
-#: templates/dashboard/product/product_class/list.html:57
+#: templates/dashboard/product/product_class/list.html:52
 msgctxt "Product type item list text"
 msgid "Variant attributes"
 msgstr ""
 
-#: templates/dashboard/product/product_class/list.html:91
+#: templates/dashboard/product/product_class/list.html:90
 msgctxt "Empty product type list message"
 msgid "No product types found."
 msgstr ""
 
-#: templates/dashboard/product/product_class/list.html:110
+#: templates/dashboard/product/product_class/list.html:111
 msgctxt "Dashboard create new action"
 msgid "Create new"
 msgstr ""
 
-#: templates/dashboard/product/product_class/modal/confirm_delete.html:10
+#: templates/dashboard/product/product_class/modal/confirm_delete.html:14
 #, python-format
 msgctxt "Modal remove product class text"
 msgid "Remove product class %(product_class)s"
 msgstr ""
 
-#: templates/dashboard/product/product_class/modal/confirm_delete.html:17
+#: templates/dashboard/product/product_class/modal/confirm_delete.html:21
 #, python-format
 msgctxt "Modal remove product class text"
 msgid ""
@@ -3727,15 +3856,28 @@ msgid ""
 "<strong>%(product_class)s</strong>?"
 msgstr ""
 
-#: templates/dashboard/product/product_class/modal/confirm_delete.html:23
+#: templates/dashboard/product/product_class/modal/confirm_delete.html:27
 #, python-format
 msgctxt "Modal remove product class text"
 msgid "There are %(product_count)s products in product class."
 msgstr ""
 
-#: templates/dashboard/product/product_class/modal/confirm_delete.html:27
+#: templates/dashboard/product/product_class/modal/confirm_delete.html:31
 msgctxt "Modal remove product class text"
 msgid "There are no products in this product class."
+msgstr ""
+
+#: templates/dashboard/product/product_class/zero_page.html:5
+msgid "No product types found."
+msgstr ""
+
+#: templates/dashboard/product/product_class/zero_page.html:8
+#, python-format
+msgid ""
+"\n"
+"    Product types are templates used to create new products. They allow assigning custom attributes to the products of the same type.<br>\n"
+"    You can add product types by using the <span class=\"btn-fab-presentation\"><svg data-src=\"%(img_path)s\" /></span> button.\n"
+"  "
 msgstr ""
 
 #: templates/dashboard/product/product_image/form.html:8
@@ -3769,32 +3911,38 @@ msgctxt "Image form breadcrumbs"
 msgid "Add image for %(product)s"
 msgstr ""
 
-#: templates/dashboard/product/product_image/list.html:61
-msgctxt "Image card text"
-msgid "No description"
-msgstr ""
-
-#: templates/dashboard/product/product_image/list.html:87
-msgctxt "Image gallery upload box text"
-msgid "Drop images here to upload"
-msgstr ""
-
-#: templates/dashboard/product/product_image/list.html:107
-msgctxt "Empty image gallery message"
-msgid "No description"
-msgstr ""
-
-#: templates/dashboard/product/product_image/list.html:127
+#: templates/dashboard/product/product_image/list.html:19
 msgctxt "Add image button text"
 msgid "Add image"
 msgstr ""
 
-#: templates/dashboard/product/product_image/modal/confirm_delete.html:11
+#: templates/dashboard/product/product_image/list.html:74
+msgctxt "Image card text"
+msgid "No description"
+msgstr ""
+
+#: templates/dashboard/product/product_image/list.html:88
+#: templates/dashboard/product/product_image/list.html:132
+msgctxt "Dashboard remove action"
+msgid "Remove"
+msgstr "削除"
+
+#: templates/dashboard/product/product_image/list.html:102
+msgctxt "Image gallery upload box text"
+msgid "Drop images here to upload"
+msgstr ""
+
+#: templates/dashboard/product/product_image/list.html:121
+msgctxt "Empty image gallery message"
+msgid "No description"
+msgstr ""
+
+#: templates/dashboard/product/product_image/modal/confirm_delete.html:13
 msgctxt "Modal remove image text"
 msgid "Remove product image"
 msgstr ""
 
-#: templates/dashboard/product/product_image/modal/confirm_delete.html:18
+#: templates/dashboard/product/product_image/modal/confirm_delete.html:20
 msgctxt "Modal remove image text"
 msgid "Are you sure you want to remove product image?"
 msgstr ""
@@ -3883,35 +4031,35 @@ msgctxt "Variant form text"
 msgid "This product has no attributes."
 msgstr ""
 
-#: templates/dashboard/product/product_variant/modal/confirm_delete.html:12
+#: templates/dashboard/product/product_variant/modal/confirm_delete.html:14
 #, python-format
 msgctxt "Dashboard confirmation modal"
 msgid ""
 "\n"
-"Remove variant %(variant)s\n"
+"  Remove variant %(variant)s\n"
 msgstr ""
 
-#: templates/dashboard/product/product_variant/modal/confirm_delete.html:19
+#: templates/dashboard/product/product_variant/modal/confirm_delete.html:21
 #, python-format
 msgctxt "Dashboard confirmation modal"
 msgid ""
 "\n"
-"Are you sure you want to remove variant <strong>%(variant)s</strong> of product %(product)s?\n"
+"  Are you sure you want to remove variant <strong>%(variant)s</strong> of product %(product)s?\n"
 msgstr ""
 
-#: templates/dashboard/product/product_variant/modal/confirm_delete.html:25
+#: templates/dashboard/product/product_variant/modal/confirm_delete.html:27
 msgctxt "Dashboard confirmation modal"
 msgid ""
 "This is the only variant of this product. If you remove it, the product will"
 " become unavailable."
 msgstr ""
 
-#: templates/dashboard/product/product_variant/modal/select_images.html:9
+#: templates/dashboard/product/product_variant/modal/select_images.html:14
 msgctxt "Dashboard variant images modal"
 msgid "Select variant images"
 msgstr "バリエーションイメージ選択"
 
-#: templates/dashboard/product/product_variant/modal/select_images.html:20
+#: templates/dashboard/product/product_variant/modal/select_images.html:22
 msgctxt "Dashboard modal action"
 msgid "Save"
 msgstr "保存"
@@ -3974,20 +4122,20 @@ msgctxt "Stock form breadcrumbs"
 msgid "Add stock for %(product)s"
 msgstr "%(product)sの在庫追加"
 
-#: templates/dashboard/product/stock/modal/confirm_delete.html:11
+#: templates/dashboard/product/stock/modal/confirm_delete.html:13
 #, python-format
 msgctxt "Dashboard confirmation modal"
 msgid ""
 "\n"
-"Remove stock %(stock)s\n"
+"  Remove stock %(stock)s\n"
 msgstr ""
 
-#: templates/dashboard/product/stock/modal/confirm_delete.html:17
+#: templates/dashboard/product/stock/modal/confirm_delete.html:19
 #, python-format
 msgctxt "Dashboard confirmation modal"
 msgid ""
 "\n"
-"Are you sure you want to remove stock <strong>%(stock)s</strong>?\n"
+"  Are you sure you want to remove stock <strong>%(stock)s</strong>?\n"
 msgstr ""
 
 #: templates/dashboard/product/stock_location/form.html:11
@@ -4011,34 +4159,34 @@ msgctxt "Stock location detail breadcrumbs"
 msgid "Add new stock location"
 msgstr "新しい在庫保管場所追加"
 
-#: templates/dashboard/product/stock_location/list.html:9
-#: templates/dashboard/product/stock_location/list.html:27
+#: templates/dashboard/product/stock_location/list.html:8
+#: templates/dashboard/product/stock_location/list.html:26
 msgctxt "Dashboard stock location"
 msgid "Stock locations"
 msgstr "在庫保管場所"
 
-#: templates/dashboard/product/stock_location/list.html:17
+#: templates/dashboard/product/stock_location/list.html:16
 msgctxt "Stock location list add button text"
 msgid "Add stock location"
 msgstr "在庫保管場所追加"
 
-#: templates/dashboard/product/stock_location/list.html:47
+#: templates/dashboard/product/stock_location/list.html:42
 msgctxt "Dashboard stock location table header name"
 msgid "Name"
 msgstr "名前"
 
-#: templates/dashboard/product/stock_location/list.html:67
+#: templates/dashboard/product/stock_location/list.html:65
 msgctxt "Empty stock location list message"
 msgid "No locations found."
 msgstr "場所が見つかりません。"
 
-#: templates/dashboard/product/stock_location/modal/confirm_delete.html:10
+#: templates/dashboard/product/stock_location/modal/confirm_delete.html:12
 #, python-format
 msgctxt "Modal remove stock location text"
 msgid "Remove stock location %(location)s"
 msgstr "在庫保管場所%(location)sを削除しました。"
 
-#: templates/dashboard/product/stock_location/modal/confirm_delete.html:17
+#: templates/dashboard/product/stock_location/modal/confirm_delete.html:19
 #, python-format
 msgctxt "Modal remove stock location text"
 msgid ""
@@ -4046,7 +4194,7 @@ msgid ""
 "<strong>%(location)s</strong>?"
 msgstr ""
 
-#: templates/dashboard/product/stock_location/modal/confirm_delete.html:23
+#: templates/dashboard/product/stock_location/modal/confirm_delete.html:25
 #, python-format
 msgctxt "Modal remove stock location text"
 msgid ""
@@ -4056,7 +4204,40 @@ msgid_plural ""
 "be removed."
 msgstr[0] ""
 
-#: templates/dashboard/search/results.html:9 templates/search/results.html:7
+#: templates/dashboard/product/stock_location/zero_page.html:5
+msgid "No stock locations found."
+msgstr ""
+
+#: templates/dashboard/product/stock_location/zero_page.html:8
+#, python-format
+msgid ""
+"\n"
+"    Stock locations are the warehouses that you're sending the products from.<br>\n"
+"    You can create stock locations by using the <span class=\"btn-fab-presentation\"><svg data-src=\"%(img_path)s\" /></span> button.\n"
+"  "
+msgstr ""
+
+#: templates/dashboard/product/zero_page.html:5
+msgid "No products found."
+msgstr ""
+
+#: templates/dashboard/product/zero_page.html:10
+#, python-format
+msgid ""
+"\n"
+"      You can create products by using the <span class=\"btn-fab-presentation\"><svg data-src=\"%(img_path)s\" /></span> button.\n"
+"    "
+msgstr ""
+
+#: templates/dashboard/product/zero_page.html:14
+#, python-format
+msgid ""
+"\n"
+"      In order to create products, you have to first <a href=\"%(product_class_url)s\">add a product type </a>.\n"
+"    "
+msgstr ""
+
+#: templates/dashboard/search/results.html:9 templates/search/results.html:6
 msgctxt "Search page title"
 msgid "Search results"
 msgstr "検索結果"
@@ -4066,31 +4247,46 @@ msgctxt "Dashboard search"
 msgid "Search results"
 msgstr "検索結果"
 
-#: templates/dashboard/search/results.html:65
+#: templates/dashboard/search/results.html:25
+msgctxt "Search results list products"
+msgid "Products"
+msgstr ""
+
+#: templates/dashboard/search/results.html:47
+msgctxt "Search results list orders"
+msgid "Orders"
+msgstr ""
+
+#: templates/dashboard/search/results.html:54
 #, python-format
 msgctxt "Dashboard order"
 msgid "Order #%(order_number)s"
 msgstr ""
 
-#: templates/dashboard/search/results.html:71
+#: templates/dashboard/search/results.html:60
 #, python-format
 msgctxt "Dashboard customer"
 msgid "Customer: %(email)s"
 msgstr ""
 
-#: templates/dashboard/search/results.html:76
+#: templates/dashboard/search/results.html:65
 #, python-format
 msgctxt "Dashboard order info"
 msgid "Placed on: %(placed)s"
 msgstr ""
 
-#: templates/dashboard/search/results.html:89
+#: templates/dashboard/search/results.html:76
+msgctxt "Search results list users"
+msgid "Users"
+msgstr ""
+
+#: templates/dashboard/search/results.html:83
 #, python-format
 msgctxt "Dashboard user"
 msgid "User %(full_name)s"
 msgstr ""
 
-#: templates/dashboard/search/results.html:106
+#: templates/dashboard/search/results.html:100
 #, python-format
 msgctxt "No Search result message"
 msgid "No results for query \"%(query)s\"."
@@ -4192,32 +4388,32 @@ msgctxt "Shipping method form breadcrumbs"
 msgid "Add new method"
 msgstr ""
 
-#: templates/dashboard/shipping/list.html:30
+#: templates/dashboard/shipping/list.html:29
 msgctxt "Shipping method list add button text"
 msgid "Add method"
 msgstr ""
 
-#: templates/dashboard/shipping/list.html:47
+#: templates/dashboard/shipping/list.html:45
 msgctxt "Shipping methods table header"
 msgid "Name"
 msgstr "名前"
 
-#: templates/dashboard/shipping/list.html:51
+#: templates/dashboard/shipping/list.html:49
 msgctxt "Shipping methods table header"
 msgid "Price range"
 msgstr "価格帯"
 
-#: templates/dashboard/shipping/list.html:54
+#: templates/dashboard/shipping/list.html:52
 msgctxt "Shipping methods table header"
 msgid "Countries"
 msgstr ""
 
-#: templates/dashboard/shipping/list.html:86
-msgctxt "Empty Shipping methods table message"
-msgid "No Shipping methods found"
+#: templates/dashboard/shipping/list.html:88
+msgctxt "Empty shipping list message"
+msgid "No shipping methods found."
 msgstr ""
 
-#: templates/dashboard/shipping/modal/confirm_delete.html:12
+#: templates/dashboard/shipping/modal/confirm_delete.html:14
 #, python-format
 msgctxt "Dashboard confirmation modal"
 msgid ""
@@ -4225,7 +4421,7 @@ msgid ""
 "Remove shipping method %(shipping_method)s\n"
 msgstr ""
 
-#: templates/dashboard/shipping/modal/confirm_delete.html:18
+#: templates/dashboard/shipping/modal/confirm_delete.html:20
 #, python-format
 msgctxt "Dashboard confirmation modal"
 msgid ""
@@ -4233,16 +4429,29 @@ msgid ""
 "Are you sure you want to remove shipping method <strong>%(shipping_method)s</strong>?\n"
 msgstr ""
 
-#: templates/dashboard/shipping/modal/country_confirm_delete.html:10
+#: templates/dashboard/shipping/modal/country_confirm_delete.html:12
 #, python-format
-msgctxt "Modal delete attribute text"
-msgid "Delete shipping %(country)s"
+msgctxt "Modal remove shipping method country title"
+msgid "Remove shipping %(country)s"
 msgstr ""
 
-#: templates/dashboard/shipping/modal/country_confirm_delete.html:16
+#: templates/dashboard/shipping/modal/country_confirm_delete.html:18
 #, python-format
-msgctxt "Modal delete attribute text"
-msgid "Are you sure you want to delete shipping <strong>%(country)s</strong>?"
+msgctxt "Modal remove shipping method country text"
+msgid "Are you sure you want to remove shipping <strong>%(country)s</strong>?"
+msgstr ""
+
+#: templates/dashboard/shipping/zero_page.html:5
+msgid "No shipping methods found."
+msgstr ""
+
+#: templates/dashboard/shipping/zero_page.html:8
+#, python-format
+msgid ""
+"\n"
+"    Shipping methods allows defining shipping methods that are available in the shop.<br>\n"
+"    You can add shipping methods by using the <span class=\"btn-fab-presentation\"><svg data-src=\"%(img_path)s\" /></span> button.\n"
+"  "
 msgstr ""
 
 #: templates/dashboard/sites/authorization_keys/form.html:8
@@ -4340,17 +4549,17 @@ msgctxt "Dashboard site settings"
 msgid "Edit"
 msgstr "編集"
 
-#: templates/dashboard/sites/modal/confirm_delete.html:10
+#: templates/dashboard/sites/modal/confirm_delete.html:12
 #, python-format
 msgctxt "Modal delete authorization key text"
 msgid "Delete authorization key %(key)s"
 msgstr ""
 
-#: templates/dashboard/sites/modal/confirm_delete.html:16
+#: templates/dashboard/sites/modal/confirm_delete.html:18
 #, python-format
 msgctxt "Modal delete authorization key text"
 msgid ""
-"Are you sure you want to delete authorization key <strong>%(key)s</strong>?"
+"Are you sure you want to remove authorization key <strong>%(key)s</strong>?"
 msgstr ""
 
 #: templates/dashboard/staff/detail.html:10
@@ -4383,39 +4592,44 @@ msgctxt "Staff member details header"
 msgid "Staff member details"
 msgstr ""
 
-#: templates/dashboard/staff/list.html:10
-#: templates/dashboard/staff/list.html:32
+#: templates/dashboard/staff/list.html:9
+#: templates/dashboard/staff/list.html:31
 msgctxt "Dashboard staff members list"
 msgid "Staff"
 msgstr ""
 
-#: templates/dashboard/staff/list.html:21
+#: templates/dashboard/staff/list.html:20
 msgctxt "Staff members list add button text"
 msgid "Add staff member"
 msgstr ""
 
-#: templates/dashboard/staff/list.html:50
-msgctxt "Staff members table header"
-msgid "Email"
-msgstr ""
-
-#: templates/dashboard/staff/list.html:57
+#: templates/dashboard/staff/list.html:45
 msgctxt "Staff members table header"
 msgid "Name"
 msgstr ""
 
-#: templates/dashboard/staff/list.html:64
+#: templates/dashboard/staff/list.html:48
+msgctxt "Staff members table header"
+msgid "Email"
+msgstr ""
+
+#: templates/dashboard/staff/list.html:51
 msgctxt "Staff members table header"
 msgid "Location"
 msgstr ""
 
-#: templates/dashboard/staff/modal/confirm_delete.html:8
-#, python-format
-msgctxt "Modal remove group text"
-msgid "Remove staff member <strong>%(staff)s</strong>?"
+#: templates/dashboard/staff/list.html:91
+msgctxt "Empty staff table message"
+msgid "No staff members found."
 msgstr ""
 
-#: templates/dashboard/staff/modal/confirm_delete.html:14
+#: templates/dashboard/staff/modal/confirm_delete.html:12
+#, python-format
+msgctxt "Modal remove group text"
+msgid "Remove staff member <strong>%(staff)s</strong>"
+msgstr ""
+
+#: templates/dashboard/staff/modal/confirm_delete.html:18
 #, python-format
 msgctxt "Modal remove group text"
 msgid ""
@@ -4425,6 +4639,19 @@ msgid ""
 "accounts that were used for purchases (for example customer which was "
 "promoted with staff member status).</p> <p>%(staff)s has "
 "<strong>%(orders)s</strong> orders.</p>"
+msgstr ""
+
+#: templates/dashboard/staff/zero_page.html:5
+msgid "No staff members found."
+msgstr ""
+
+#: templates/dashboard/staff/zero_page.html:8
+#, python-format
+msgid ""
+"\n"
+"    Staff members are users who have access to the dashboard.<br>\n"
+"    You can create staff members by using the <span class=\"btn-fab-presentation\"><svg data-src=\"%(img_path)s\" /></span> button or by using option \"Promote to staff\" in the customer details view.\n"
+"  "
 msgstr ""
 
 #: templates/home.html:13
@@ -4506,17 +4733,22 @@ msgstr "価格"
 
 #: templates/order/_ordered_items_table.html:79
 #, python-format
-msgctxt "Order details delivery row text"
-msgid "Delivery (%(shipping_method_name)s)"
+msgctxt "Order details shipment row text"
+msgid "Shipping (%(shipping_method_name)s)"
 msgstr ""
 
 #: templates/order/_ordered_items_table.html:85
 #, python-format
-msgctxt "Order details delivery row text"
+msgctxt "Order details shipment row text"
 msgid "Tracking number: %(tracking_number)s"
 msgstr ""
 
-#: templates/order/_ordered_items_table.html:113
+#: templates/order/_ordered_items_table.html:101
+msgctxt "Order details shipment row text"
+msgid "Shipping total"
+msgstr ""
+
+#: templates/order/_ordered_items_table.html:128
 msgctxt "Order details total text"
 msgid "Total"
 msgstr "合計"
@@ -4580,18 +4812,18 @@ msgctxt "Order details breadcrumb"
 msgid "Order %(order)s"
 msgstr ""
 
-#: templates/order/details.html:38
+#: templates/order/details.html:42
 #, python-format
 msgctxt "Order detail text"
 msgid "Order %(order)s: %(order_status)s"
 msgstr ""
 
-#: templates/order/details.html:45
+#: templates/order/details.html:49
 msgctxt "Order details link text"
 msgid "Payment details"
 msgstr ""
 
-#: templates/order/details.html:49
+#: templates/order/details.html:53
 msgctxt "Order details primary action"
 msgid "Pay for order"
 msgstr ""
@@ -4655,8 +4887,8 @@ msgctxt "Payment details text"
 msgid "You've authorized transaction. Order is in processing"
 msgstr ""
 
-#: templates/order/payment/default.html:13
-#: templates/order/payment/stripe.html:18
+#: templates/order/payment/default.html:14
+#: templates/order/payment/stripe.html:19
 msgctxt "Payment form primary action"
 msgid "Save changes"
 msgstr "変更保存"
@@ -4666,7 +4898,7 @@ msgctxt "Payment form page title"
 msgid "Payment"
 msgstr "支払い"
 
-#: templates/order/payment/details.html:9
+#: templates/order/payment/details.html:10
 msgctxt "Payment form title"
 msgid "Payment"
 msgstr "支払い"
@@ -4702,7 +4934,7 @@ msgctxt "product price range"
 msgid "from"
 msgstr "から"
 
-#: templates/product/details.html:32
+#: templates/product/details.html:51
 #, python-format
 msgctxt "Product details text"
 msgid ""
@@ -4710,27 +4942,27 @@ msgid ""
 "visible on <strong>%(date)s</strong>."
 msgstr ""
 
-#: templates/product/details.html:89
+#: templates/product/details.html:108
 msgctxt "Product details link text"
 msgid "Edit in dashboard"
 msgstr "ダッシュボードで編集"
 
-#: templates/product/details.html:127
+#: templates/product/details.html:146
 msgctxt "Product details primary action"
 msgid "Add to cart"
 msgstr "カートへ追加"
 
-#: templates/product/details.html:139
+#: templates/product/details.html:158
 msgctxt "Product details text"
 msgid "This product is currently <strong>unavailable</strong>."
 msgstr "この商品は現在 <strong>無効</strong>です。"
 
-#: templates/product/details.html:143
+#: templates/product/details.html:162
 msgctxt "Product details title"
 msgid "Description"
 msgstr "説明"
 
-#: templates/search/results.html:33
+#: templates/search/results.html:32
 msgid "Search:"
 msgstr "検索："
 
@@ -4784,71 +5016,71 @@ msgctxt "Edit/new address primary action"
 msgid "Save changes"
 msgstr "変更保存"
 
-#: templates/userprofile/details.html:9
+#: templates/userprofile/details.html:10
 msgctxt "User profile page title"
 msgid "Your profile"
 msgstr "プロフィール"
 
-#: templates/userprofile/details.html:23
+#: templates/userprofile/details.html:24
 msgid "My account"
 msgstr "アカウント"
 
-#: templates/userprofile/details.html:27
+#: templates/userprofile/details.html:28
 msgctxt "User profile tab"
 msgid "Recent Orders"
 msgstr "最近の注文"
 
-#: templates/userprofile/details.html:33
+#: templates/userprofile/details.html:34
 msgctxt "User profile tab"
 msgid "Change password"
 msgstr "パスワード変更"
 
-#: templates/userprofile/details.html:39
+#: templates/userprofile/details.html:40
 msgctxt "User profile tab"
 msgid "Addresses book"
 msgstr "住所録"
 
-#: templates/userprofile/details.html:51
+#: templates/userprofile/details.html:52
 msgctxt "Recent orders column title"
 msgid "Order"
 msgstr "注文"
 
-#: templates/userprofile/details.html:54
+#: templates/userprofile/details.html:55
 msgctxt "Recent orders column title"
 msgid "Date"
 msgstr "日付"
 
-#: templates/userprofile/details.html:57
+#: templates/userprofile/details.html:58
 msgctxt "Recent orders column title"
 msgid "Summary"
 msgstr "概要"
 
-#: templates/userprofile/details.html:60
+#: templates/userprofile/details.html:61
 msgctxt "Recent orders column title"
 msgid "Status"
 msgstr "状態"
 
-#: templates/userprofile/details.html:82
+#: templates/userprofile/details.html:83
 msgctxt "Recent orders link text"
 msgid "Details"
 msgstr "詳細"
 
-#: templates/userprofile/details.html:90
+#: templates/userprofile/details.html:98
 msgctxt "No recent orders text"
 msgid "There are not any completed orders yet."
 msgstr "完了した注文はまだありません。"
 
-#: templates/userprofile/details.html:102
+#: templates/userprofile/details.html:110
 msgctxt "User profile action"
 msgid "Change password"
 msgstr "パスワード変更"
 
-#: templates/userprofile/details.html:116
+#: templates/userprofile/details.html:124
 msgctxt "User address action"
 msgid "Edit"
 msgstr "編集"
 
-#: templates/userprofile/details.html:127
+#: templates/userprofile/details.html:135
 msgctxt "No addresses text"
 msgid "You will see new addresses here after first successful checkout."
 msgstr "最初の注文手続きが成功した後、ここに新しい住所が表示されます。"
