@@ -159,20 +159,21 @@ def test_delivery_group_is_shipping_required(delivery_group):
 
 def test_delivery_group_is_shipping_required_no_shipping(delivery_group):
     line = delivery_group.lines.first()
-    product_type = line.product.product_type
-    product_type.is_shipping_required = False
-    product_type.save()
+    line.is_shipping_required = False
+    line.save()
     assert not delivery_group.is_shipping_required()
 
 
 def test_delivery_group_is_shipping_required_partially_required(
         delivery_group, product_without_shipping):
     variant = product_without_shipping.variants.get()
+    product_type = product_without_shipping.product_type
     delivery_group.lines.create(
         delivery_group=delivery_group,
         product=product_without_shipping,
         product_name=product_without_shipping.name,
         product_sku=variant.sku,
+        is_shipping_required=product_type.is_shipping_required,
         quantity=3,
         unit_price_net=Decimal('30.00'),
         unit_price_gross=Decimal('30.00'))

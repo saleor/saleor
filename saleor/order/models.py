@@ -238,9 +238,7 @@ class DeliveryGroup(models.Model, ItemSet):
         return sum([line.get_quantity() for line in self])
 
     def is_shipping_required(self):
-        return any([
-            line.product.product_type.is_shipping_required
-            if line.product else True for line in self.lines.all()])
+        return any([line.is_shipping_required for line in self.lines.all()])
 
     def can_ship(self):
         return self.is_shipping_required() and self.status == GroupStatus.NEW
