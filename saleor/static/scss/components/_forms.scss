@@ -66,6 +66,10 @@
 .search-form {
   width: 100%;
   position: relative;
+  transition: $transition-base;
+  &.search-form--hidden {
+    transform: translateX(-100vw);
+  }
   &__close-icon {
     position: absolute;
     cursor: pointer;
@@ -97,7 +101,7 @@
   }
   @include media-breakpoint-down(sm) {
     display: block;
-    left: -100vw;
+    left: 0;
     position: absolute;
     max-width: 100%;
     float: right;
