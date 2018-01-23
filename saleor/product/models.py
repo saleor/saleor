@@ -238,11 +238,13 @@ class ProductVariant(models.Model, Item):
                 ['%s: %s' % (smart_text(attributes.get(id=int(key))),
                              smart_text(value))
                  for (key, value) in values.items()])
-        else:
-            return smart_text(self.sku)
+        return ''
 
     def display_product(self):
-        return '%s (%s)' % (smart_text(self.product), smart_text(self))
+        variant_display = smart_text(self)
+        if variant_display:
+            return '%s (%s)' % (smart_text(self.product), smart_text(self))
+        return '%s' % (smart_text(self.product),)
 
     def get_first_image(self):
         return self.product.get_first_image()
