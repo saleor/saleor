@@ -1,11 +1,8 @@
-export default $(document).ready((e) => {
-  let $searchIcon = $('.mobile-search-icon');
-  let $closeSearchIcon = $('.mobile-close-search');
-  let $searchForm = $('.search-form');
-  $searchIcon.click((e) => {
-    $searchForm.animate({left: 0}, {duration: 500});
-  });
-  $closeSearchIcon.click((e) => {
-    $searchForm.animate({left: '-100vw'}, {duration: 500});
-  });
-});
+const $searchIcon = $('.mobile-search-icon');
+const $closeSearchIcon = $('.mobile-close-search');
+const $searchForm = $('.search-form');
+
+// -----
+
+$searchIcon.on('click', () => $searchForm.removeClass('search-form--hidden'));
+$closeSearchIcon.on('click', () => $searchForm.addClass('search-form--hidden'));
