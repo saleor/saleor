@@ -4,6 +4,7 @@ from graphene_django import DjangoConnectionField
 from graphene_django.debug import DjangoDebug
 
 from .types.cart import CartType, resolve_cart
+from .types.order import CreateOrderMutation
 from .types.product import (
     resolve_category, resolve_attributes, CategoryType, ProductAttributeType)
 from .types.shipping import resolve_shipping, ShippingMethodCountryType
@@ -51,4 +52,8 @@ class Query(graphene.ObjectType):
         return resolve_user(user)
 
 
-schema = graphene.Schema(Query)
+class Mutations(graphene.ObjectType):
+    create_order = CreateOrderMutation.Field()
+
+
+schema = graphene.Schema(Query, Mutations)

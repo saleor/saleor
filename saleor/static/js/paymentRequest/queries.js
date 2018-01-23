@@ -28,3 +28,22 @@ export const ShippingQuery = gql`
     }
   }
 `;
+
+export const CreateOrderMutation = gql`
+  mutation CreateOrder(
+    $details: DetailsInput!,
+    $methodName: String!,
+    $shippingOption: String!,
+    $shippingAddress: AddressInput!,
+  ) {
+    createOrder(
+      details: $details,
+      methodName: $methodName,
+      shippingOption: $shippingOption,
+      shippingAddress: $shippingAddress
+    ) {
+      ok
+      redirectUrl
+    }
+  }
+`;

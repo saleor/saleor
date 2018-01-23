@@ -3,6 +3,7 @@ from functools import wraps
 from django.conf import settings
 from django.db.models import F
 from django.shortcuts import get_object_or_404, redirect
+from django.utils.encoding import smart_text
 from django.utils.translation import pgettext_lazy
 from prices import Price
 from satchless.item import InsufficientStock
@@ -201,3 +202,14 @@ def move_order_line_to_group(line, target_group, quantity):
         target_line.save()
     line.quantity -= quantity
     remove_empty_groups(line)
+
+
+def create_groups_from_cart(order, cart, shipping_method):
+    for line in cart.partition():
+        shipping_required = line.is_shipping_required()
+        shipping_method_name = (
+            smart_text(shipping_method) if shipping_required else None)
+        group = order.groups.create(
+            shipping_method_name=shipping_method_name)
+        group.process(line, cart.discounts)
+        group.save()

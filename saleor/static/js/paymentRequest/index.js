@@ -1,5 +1,5 @@
 import client from '../client';
-import { CartQuery, ShippingQuery } from './queries';
+import { CartQuery, ShippingQuery, CreateOrderMutation } from './queries';
 
 const getShippingOptions = (shippingQueryResponse, countryCode = '') => {
   let edges = shippingQueryResponse.data.shipping.edges;
@@ -31,6 +31,18 @@ const getPaymentDetails = (cart, shippingOption = undefined) => {
       }
     }
   };
+};
+
+const doCreateOrderMutation = async (paymentResponse) => {
+  return client.mutate({
+    mutation: CreateOrderMutation,
+    variables: {
+      details: paymentResponse.details,
+      methodName: paymentResponse.methodName,
+      shippingOption: paymentResponse.shippingOption,
+      shippingAddress: paymentResponse.shippingAddress.toJSON()
+    }
+  });
 };
 
 export async function initializePaymentRequest() {
@@ -77,8 +89,16 @@ export async function initializePaymentRequest() {
 
   try {
     const paymentResponse = await request.show();
-    await paymentResponse.complete('success');
-    // use paymentResponse to create order and redirect to order details
+    const createOrderResponse = await doCreateOrderMutation(paymentResponse);
+    const { ok, redirectUrl } = createOrderResponse.data.createOrder;
+    if (ok) {
+      await paymentResponse.complete('success');
+      if (redirectUrl) {
+        window.location.href = redirectUrl;
+      }
+    } else {
+      await paymentResponse.complete('fail');
+    }
   } catch (err) {
     console.log(err);
   }
