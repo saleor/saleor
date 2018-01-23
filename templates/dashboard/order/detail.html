@@ -284,7 +284,7 @@
                   <tr class="last-no-border">
                     <td>
                       {{ line.product_name }}<br>
-                      <span class="sku">{{ line.product_sku }}</span>
+                      <span class="sku">SKU: {{ line.product_sku }}</span>
                     </td>
                     <td class="right-align">
                       {% gross line.get_price_per_item html=True %}
