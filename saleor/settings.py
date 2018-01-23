@@ -549,3 +549,5 @@ PDF_STORAGE_ROOT = os.environ.get('PDF_STORAGE_ROOT', '/tmp/')
 ORIGINAL_IMAGES_ROOT = os.environ.get('ORIGINAL_IMAGES_ROOT', '/var/www/images/')
 
 ENVIRONMENT = os.environ.get('ENVIRONMENT', None)
+
+REMOTE = ast.literal_eval(os.environ.get('REMOTE', 'False'))
