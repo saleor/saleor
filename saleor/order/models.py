@@ -261,6 +261,7 @@ class OrderLine(models.Model, ItemLine):
         on_delete=models.SET_NULL)
     product_name = models.CharField(max_length=128)
     product_sku = models.CharField(max_length=32)
+    is_shipping_required = models.BooleanField()
     stock_location = models.CharField(max_length=100, default='')
     stock = models.ForeignKey(
         'product.Stock', on_delete=models.SET_NULL, null=True)
