@@ -6,13 +6,13 @@ from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect
 from django.template.context_processors import csrf
 from django.template.response import TemplateResponse
-from django.urls import reverse
 from django.utils.translation import pgettext_lazy
 from django_prices.templatetags.prices_i18n import gross
 from payments import PaymentStatus
 from prices import Price
 from satchless.item import InsufficientStock
 
+from saleor.product.models import StockLocation
 from .filters import OrderFilter
 from .forms import (
     AddressForm, AddVariantToDeliveryGroupForm, CancelGroupForm,
@@ -23,7 +23,7 @@ from .forms import (
 from .utils import (
     create_invoice_pdf, create_packing_slip_pdf, get_statics_absolute_url)
 from ..views import staff_member_required
-from ...core.utils import get_paginator_items, build_absolute_uri
+from ...core.utils import get_paginator_items
 from ...order import GroupStatus
 from ...order.models import DeliveryGroup, Order, OrderLine, OrderNote
 
@@ -71,10 +71,12 @@ def order_details(request, order_pk):
     else:
         can_capture = can_release = can_refund = False
 
+    is_many_stock_locations = StockLocation.objects.count() > 1
     ctx = {'order': order, 'all_payments': all_payments, 'payment': payment,
            'notes': notes, 'groups': groups, 'captured': captured,
            'preauthorized': preauthorized, 'can_capture': can_capture,
            'can_release': can_release, 'can_refund': can_refund,
+           'is_many_stock_locations': is_many_stock_locations,
            'balance': balance}
     return TemplateResponse(request, 'dashboard/order/detail.html', ctx)
 
