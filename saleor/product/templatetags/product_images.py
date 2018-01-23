@@ -70,6 +70,6 @@ def product_first_image(product, size, method='crop'):
     """
     Returns main product image
     """
-    all_images = product.images.all()
+    all_images = product.images.all() if product else []
     main_image = all_images[0].image if all_images else None
     return get_thumbnail(main_image, size, method)

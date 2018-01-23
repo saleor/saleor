@@ -28,6 +28,9 @@
         margin-right: $global-margin;
       }
     }
+    &__description {
+      line-height: 60px;
+    }
   }
   &__total {
     padding-top: $global-padding;
