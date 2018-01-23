@@ -187,7 +187,7 @@ class ProductVariant(models.Model, Item):
         app_label = 'product'
 
     def __str__(self):
-        return self.name or self.display_variant()
+        return self.name or self.display_variant_attributes()
 
     def check_quantity(self, quantity):
         total_available_quantity = self.get_stock_quantity()
@@ -229,7 +229,7 @@ class ProductVariant(models.Model, Item):
     def set_attribute(self, pk, value_pk):
         self.attributes[smart_text(pk)] = smart_text(value_pk)
 
-    def display_variant(self, attributes=None):
+    def display_variant_attributes(self, attributes=None):
         if attributes is None:
             attributes = self.product.product_type.variant_attributes.all()
         values = get_attributes_display_map(self, attributes)
