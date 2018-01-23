@@ -241,10 +241,11 @@ class ProductVariant(models.Model, Item):
         return ''
 
     def display_product(self):
-        variant_display = smart_text(self)
-        if variant_display:
-            return '%s (%s)' % (smart_text(self.product), smart_text(self))
-        return '%s' % (smart_text(self.product),)
+        variant_display = str(self)
+        product_display = (
+            '%s (%s)' % (self.product, variant_display)
+            if variant_display else str(self.product))
+        return smart_text(product_display)
 
     def get_first_image(self):
         return self.product.get_first_image()
