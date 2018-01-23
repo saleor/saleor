@@ -1,5 +1,6 @@
 from django.template.response import TemplateResponse
 from django.contrib import messages
+from django.contrib.auth.decorators import permission_required
 from django.core.urlresolvers import reverse
 from django.http import JsonResponse
 from django.shortcuts import redirect, get_object_or_404
@@ -12,6 +13,7 @@ from .forms import CollectionForm
 
 
 @staff_member_required
+@permission_required('product.view_product')
 def collection_list(request):
     collections = Collection.objects.prefetch_related('products').all()
     collections = get_paginator_items(collections, 30, request.GET.get('page'))
@@ -21,6 +23,7 @@ def collection_list(request):
 
 
 @staff_member_required
+@permission_required('product.edit_product')
 def collection_create(request):
     collection = Collection()
     form = CollectionForm(request.POST or None)
@@ -33,6 +36,7 @@ def collection_create(request):
 
 
 @staff_member_required
+@permission_required('product.edit_product')
 def collection_update(request, collection_pk=None):
     collection = get_object_or_404(Collection, pk=collection_pk)
     form = CollectionForm(request.POST or None, instance=collection)
@@ -44,6 +48,7 @@ def collection_update(request, collection_pk=None):
 
 
 @staff_member_required
+@permission_required('product.edit_product')
 def collection_delete(request, collection_pk=None):
     collection = get_object_or_404(Collection, pk=collection_pk)
     if request.method == 'POST':
