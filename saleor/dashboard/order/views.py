@@ -12,20 +12,19 @@ from payments import PaymentStatus
 from prices import Price
 from satchless.item import InsufficientStock
 
-from saleor.product.models import StockLocation
-from .filters import OrderFilter
-from .forms import (
-    AddressForm, AddVariantToDeliveryGroupForm, CancelGroupForm,
-    CancelOrderLineForm, CancelOrderForm, CapturePaymentForm,
-    ChangeStockForm, ChangeQuantityForm, MoveLinesForm, OrderNoteForm,
-    RefundPaymentForm, ReleasePaymentForm, RemoveVoucherForm, ShipGroupForm)
-
-from .utils import (
-    create_invoice_pdf, create_packing_slip_pdf, get_statics_absolute_url)
-from ..views import staff_member_required
 from ...core.utils import get_paginator_items
 from ...order import GroupStatus
 from ...order.models import DeliveryGroup, Order, OrderLine, OrderNote
+from ...product.models import StockLocation
+from ..views import staff_member_required
+from .filters import OrderFilter
+from .forms import (
+    AddressForm, AddVariantToDeliveryGroupForm, CancelGroupForm,
+    CancelOrderForm, CancelOrderLineForm, CapturePaymentForm,
+    ChangeQuantityForm, ChangeStockForm, MoveLinesForm, OrderNoteForm,
+    RefundPaymentForm, ReleasePaymentForm, RemoveVoucherForm, ShipGroupForm)
+from .utils import (
+    create_invoice_pdf, create_packing_slip_pdf, get_statics_absolute_url)
 
 
 @staff_member_required
