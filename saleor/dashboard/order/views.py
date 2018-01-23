@@ -356,7 +356,13 @@ def address_view(request, order_pk, address_type):
             'Updated billing address')
     form = AddressForm(request.POST or None, instance=address)
     if form.is_valid():
-        form.save()
+        updated_address = form.save()
+        if address is None:
+            if address_type == 'shipping':
+                order.shipping_address = updated_address
+            else:
+                order.billing_address = updated_address
+            order.save()
         order.create_history_entry(content=success_msg, user=request.user)
         messages.success(request, success_msg)
         return redirect('dashboard:order-details', order_pk=order_pk)
