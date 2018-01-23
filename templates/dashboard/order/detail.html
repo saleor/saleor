@@ -284,7 +284,11 @@
                   <tr class="last-no-border">
                     <td>
                       {{ line.product_name }}<br>
-                      <span class="sku">SKU: {{ line.product_sku }}</span>
+                      <span class="sku">
+                        {% blocktrans trimmed with sku=line.product_sku context "Shipment group table text" %}
+                          SKU: {{ sku }}
+                        {% endblocktrans %}
+                      </span>
                     </td>
                     <td class="right-align">
                       {% gross line.get_price_per_item html=True %}
