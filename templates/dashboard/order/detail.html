@@ -347,9 +347,11 @@
                     {% trans "Cancel shipment" context "Shipment group table action" %}
                   </a>
                 {% endif %}
-                <a href="#base-modal" data-href="{% url 'dashboard:add-variant-to-group' order_pk=order.pk group_pk=group.pk %}" class="btn-flat waves-effect modal-trigger-custom" title="{% trans "Add product to order" context "Order summary card action title" %}">
-                  {% trans "Add product" context "Order summary card action" %}
-                </a>
+                {% if group.can_edit_lines %}
+                  <a href="#base-modal" data-href="{% url 'dashboard:add-variant-to-group' order_pk=order.pk group_pk=group.pk %}" class="btn-flat waves-effect modal-trigger-custom" title="{% trans "Add product to order" context "Order summary card action title" %}">
+                    {% trans "Add product" context "Order summary card action" %}
+                  </a>
+                {% endif %}
                 <a href="{% url 'dashboard:order-packing-slips' group_pk=group.pk %}" data-href="" class="btn-flat waves-effect" target="_blank">
                   {% trans "Packing Slips" context "Order detail action" %}
                 </a>
