@@ -6,9 +6,10 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <meta name="viewport" content="width=device-width" />
+    <link rel="stylesheet" href="{% static 'assets/emails.css' %}">
   </head>
   <body>
-    <table>
+    <table class="main-table" align="center">
       <tfoot>
         <tr>
           <td>
@@ -24,6 +25,7 @@
           <td>
             <header>
               {% block header %}
+                <img class="logo" src='{% static 'images/logo.png' %}' alt="{% trans "Saleor" %}" width="200" />
               {% endblock header %}
             </header>
           </td>
