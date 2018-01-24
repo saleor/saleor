@@ -35,6 +35,7 @@ Markdown>=2.4
 maxminddb
 maxminddb-geolite2
 phonenumberslite>=8.8.8
+premailer>=3.1.1
 prices>=0.5.7
 psycopg2>=2.6
 purl>=0.4.1
