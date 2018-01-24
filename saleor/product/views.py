@@ -134,17 +134,3 @@ def category_index(request, path, category_id):
            'is_descending': is_descending}
     return TemplateResponse(request, 'category/index.html', ctx)
 
-
-def products_from_collections(request, product_id):
-    products = Product.objects.prefetch_related(
-        'collections', 'images').filter(
-        collections__products__id=product_id).exclude(
-        id=product_id).distinct()
-    products_count = products.count()
-    if products_count > 6:
-        index = randint(0, products_count - 6)
-    else:
-        index = 0
-
-    ctx = {'products': products[index:index + 6]}
-    return TemplateResponse(request, 'product/_product_collections.html', ctx)
