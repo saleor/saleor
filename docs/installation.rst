@@ -11,25 +11,47 @@ Prerequisites
 
 Before you are ready to run Saleor you will need certain software installed on your computer.
 
-#. `Python <https://www.python.org/>`_ version 3.4 or higher
 
-#. ``wheel`` Python package if you're using pip older than 8.1.2
+Python 3
+~~~~~~~~
 
-#. `Node.js <https://nodejs.org/>`_ version 8 or above
+Saleor requires Python 3.4 or later. To install the latest version visit the `Python download page <https://www.python.org/downloads/>`_ and follow the instructions.
+
+   .. note::
+
+       Saleor does work with PyPy 3.5 but you'll need to replace the default PostgreSQL driver with a ``cffi``-based one.
+
+
+Node.js
+~~~~~~~
+
+Version 8 or later is required.
+
+**Windows** users can `download an official Node.js installer <https://nodejs.org/en/download/>`_.
+
+**macOS** and **Linux** users can `install Node.js using a package manager <https://nodejs.org/en/download/package-manager/>`_.
 
    .. note::
 
        Debian and Ubuntu users who install Node.js using system packages will also need to install the ``nodejs-legacy`` package.
 
-#. `webpack module bundler <https://webpack.github.io/>`_ installed globally with:
 
-   .. code-block:: bash
+PostgreSQL
+~~~~~~~~~~
 
-    $ npm i webpack -g
+Saleor needs PostgreSQL version 9.4 or above to work. Please visit `the project's download page <https://www.postgresql.org/download/>`_ for details.
 
-#. `PostgreSQL <https://www.postgresql.org/>`_ version 9.4 or above
 
-We also strongly recommend creating a virtual environment before proceeding with installation.
+System dependencies
+~~~~~~~~~~~~~~~~~~~
+
+Some features like PDF creation require that additional system libraries are present.
+
+**Windows** users should follow the `WeasyPrint instructions for Windows <http://weasyprint.readthedocs.io/en/latest/install.html#windows>`_.
+
+**macOS** users should follow the `WeasyPrint instructions for OS X <http://weasyprint.readthedocs.io/en/latest/install.html#os-x>`_.
+
+**Linux** users should follow the `WeasyPrint instructions for Linux <http://weasyprint.readthedocs.io/en/latest/install.html#linux>`_.
 
 
 Installation
@@ -51,6 +73,8 @@ Installation
 
 #. Install all dependencies:
 
+   We strongly recommend `creating a virtual environment <https://docs.python.org/3/tutorial/venv.html>`_ before installing any Python packages.
+
    .. code-block:: bash
 
     $ pip install -r requirements.txt
@@ -61,7 +85,7 @@ Installation
    .. note::
 
        Secret key should be a unique string only your team knows.
-       It's serious as this key is used to ensure security of your installation.
+       Tthis key is used to ensure security of your installation.
        Consult `Django's documentation <https://docs.djangoproject.com/en/1.10/ref/settings/#secret-key>`_ for details.
 
        We try to provide usable default values for all of the settings.
@@ -72,14 +96,29 @@ Installation
     $ export SECRET_KEY='<mysecretkey>'
 
 
-#. Create PostgreSQL user:
+#. Create a PostgreSQL user:
+
+   See `PostgreSQL's createuser command <https://www.postgresql.org/docs/current/static/app-createuser.html>`_ for details.
 
    .. note::
 
        You need to create the user to use within your project.
-       Username and password are extracted from ``DATABASE_URL`` environmental variable.
-       If absent, defaults to ``saleor`` and ``saleor``.
-       Consult `PostgreSQL's documentation <https://www.postgresql.org/docs/current/static/app-createuser.html>`_ for details.
+       Username and password are extracted from the ``DATABASE_URL`` environmental variable. If absent they both default to ``saleor``.
+
+   .. warning::
+
+       While creating the database Django will need to create some PostgreSQL extensions if not already present in the database. This requires a superuser privilege.
+
+       For local development you can grant your database user the ``SUPERUSER`` privilege. For publicly available systems we recommend using a separate privileged user to perform database migrations.
+
+
+#. Create a PostgreSQL database
+
+   See `PostgreSQL's createdb command <https://www.postgresql.org/docs/current/static/app-createdb.html>`_ for details.
+
+   .. note::
+
+       Database name is extracted from the ``DATABASE_URL`` environmental variable. If absent it defaults to ``saleor``.
 
 
 #. Prepare the database:
@@ -88,6 +127,9 @@ Installation
 
     $ python manage.py migrate
 
+    .. warning::
+
+       This command will need to be able to create database extensions. If you get an error related to the ``CREATE EXTENSION`` command please review the notes from the user creation step.
 
 #. Install front-end dependencies:
 
@@ -106,7 +148,7 @@ Installation
     $ npm run build-assets
 
 
-#. Run like a normal django project:
+#. Start the development server:
 
    .. code-block:: bash
 
