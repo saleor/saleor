@@ -70,6 +70,9 @@ EMAIL_USE_SSL = email_config['EMAIL_USE_SSL']
 ENABLE_SSL = ast.literal_eval(
     os.environ.get('ENABLE_SSL', 'False'))
 
+# django templated email
+TEMPLATED_EMAIL_BACKEND = 'saleor.core.utils.email_backend.CustomTemplateBackend'
+
 DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL')
 ORDER_FROM_EMAIL = os.getenv('ORDER_FROM_EMAIL', DEFAULT_FROM_EMAIL)
 
