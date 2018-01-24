@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: master\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2017-12-04 06:59-0600\n"
+"POT-Creation-Date: 2018-01-04 11:16-0600\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Yevhenii Dehtiar <yevhenii.dehtiar@gmail.com>, 2017\n"
 "Language-Team: Ukrainian (https://www.transifex.com/mirumee/teams/34782/uk/)\n"
@@ -18,375 +18,435 @@ msgstr ""
 "Language: uk\n"
 "Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
 
-#: saleor/dashboard/category/filters.py:11
+#: saleor/dashboard/category/filters.py:8
 msgctxt "Category list sorting option"
 msgid "name"
 msgstr "назва"
 
-#: saleor/dashboard/category/filters.py:13
+#: saleor/dashboard/category/filters.py:10
 msgctxt "Category list sorting option"
 msgid "description"
 msgstr "опис"
 
-#: saleor/dashboard/category/filters.py:18
-#: saleor/dashboard/shipping/filters.py:29
-msgctxt "Product list sorting filter label"
-msgid "Sort by"
-msgstr "Сортувати по"
+#: saleor/dashboard/category/filters.py:11
+msgctxt "Category list sorting option"
+msgid "is hidden"
+msgstr ""
 
-#: saleor/dashboard/category/views.py:48
+#: saleor/dashboard/category/filters.py:14
+msgctxt "Is hidden filter choice"
+msgid "Hidden"
+msgstr ""
+
+#: saleor/dashboard/category/filters.py:15
+msgctxt "Is hidden filter choice"
+msgid "Not hidden"
+msgstr ""
+
+#: saleor/dashboard/category/filters.py:20
+msgctxt "Category list filter label"
+msgid "Name"
+msgstr ""
+
+#: saleor/dashboard/category/filters.py:23
+msgctxt "Category list sorting filter label"
+msgid "Sort by"
+msgstr ""
+
+#: saleor/dashboard/category/filters.py:35
+#, python-format
+msgctxt "Number of matching records in the dashboard categories list"
+msgid "Found %(counter)d matching category"
+msgid_plural "Found %(counter)d matching categories"
+msgstr[0] ""
+msgstr[1] ""
+msgstr[2] ""
+
+#: saleor/dashboard/category/forms.py:15
+msgctxt "Category form field label"
+msgid "Hide in site navigation"
+msgstr ""
+
+#: saleor/dashboard/category/views.py:45
 #, python-format
 msgctxt "Dashboard message"
 msgid "Added category %s"
 msgstr "Додати категорію %s"
 
-#: saleor/dashboard/category/views.py:69
+#: saleor/dashboard/category/views.py:70
 #, python-format
 msgctxt "Dashboard message"
 msgid "Updated category %s"
 msgstr "Оновити категорію %s"
 
-#: saleor/dashboard/category/views.py:90
+#: saleor/dashboard/category/views.py:107
 #, python-format
 msgctxt "Dashboard message"
 msgid "Removed category %s"
 msgstr "Видалити категорію %s"
 
-#: saleor/dashboard/customer/filters.py:23
-#: saleor/dashboard/staff/filters.py:21
+#: saleor/dashboard/customer/filters.py:18
+#: saleor/dashboard/staff/filters.py:16
 msgctxt "Customer list sorting option"
 msgid "email"
 msgstr "email"
 
-#: saleor/dashboard/customer/filters.py:25
-#: saleor/dashboard/staff/filters.py:23
+#: saleor/dashboard/customer/filters.py:20
+#: saleor/dashboard/staff/filters.py:18
 msgctxt "Customer list sorting option"
 msgid "name"
 msgstr "назва"
 
-#: saleor/dashboard/customer/filters.py:27
-#: saleor/dashboard/staff/filters.py:25
+#: saleor/dashboard/customer/filters.py:22
+#: saleor/dashboard/staff/filters.py:20
 msgctxt "Customer list sorting option"
 msgid "location"
 msgstr "розташування"
 
-#: saleor/dashboard/customer/filters.py:29
-msgctxt "Customer list sorting option"
-msgid "number of orders"
-msgstr "Номер замовлення"
-
-#: saleor/dashboard/customer/filters.py:31
-msgctxt "Customer list sorting option"
-msgid "last order"
-msgstr "Останнє замовлення"
-
-#: saleor/dashboard/customer/filters.py:34
-#: saleor/dashboard/staff/filters.py:28
+#: saleor/dashboard/customer/filters.py:25
 msgctxt "Is active filter choice"
 msgid "Active"
 msgstr "Активний"
 
-#: saleor/dashboard/customer/filters.py:35
-#: saleor/dashboard/staff/filters.py:29
+#: saleor/dashboard/customer/filters.py:26
 msgctxt "Is active filter choice"
 msgid "Not active"
 msgstr "Не активний"
 
-#: saleor/dashboard/customer/filters.py:40
+#: saleor/dashboard/customer/filters.py:31
 msgctxt "Customer name or email filter"
 msgid "Name or email"
 msgstr "Ім'я або електронна пошта"
 
-#: saleor/dashboard/customer/filters.py:43
+#: saleor/dashboard/customer/filters.py:34
 msgctxt "Customer list filter label"
 msgid "Location"
 msgstr "Розташування"
 
-#: saleor/dashboard/customer/filters.py:46
+#: saleor/dashboard/customer/filters.py:37
 msgctxt "Customer list filter label"
 msgid "Is active"
 msgstr "Активний"
 
-#: saleor/dashboard/customer/filters.py:48
-#: saleor/dashboard/discount/filters.py:46
-#: saleor/dashboard/discount/filters.py:69
-#: saleor/dashboard/order/filters.py:49 saleor/dashboard/order/filters.py:55
-#: saleor/dashboard/product/filters.py:51
-#: saleor/dashboard/product/filters.py:57 saleor/dashboard/staff/filters.py:46
+#: saleor/dashboard/customer/filters.py:39
+#: saleor/dashboard/discount/filters.py:43
+#: saleor/dashboard/discount/filters.py:74
+#: saleor/dashboard/order/filters.py:45 saleor/dashboard/order/filters.py:51
+#: saleor/dashboard/product/filters.py:49
+#: saleor/dashboard/product/filters.py:55
 msgctxt "Filter empty choice label"
 msgid "All"
 msgstr "Все "
 
-#: saleor/dashboard/customer/filters.py:51
+#: saleor/dashboard/customer/filters.py:42
 msgctxt "Customer list filter label"
 msgid "Sort by"
 msgstr "Сортувати по"
 
-#: saleor/dashboard/customer/views.py:58
+#: saleor/dashboard/customer/filters.py:75
+#, python-format
+msgctxt "Number of matching records in the dashboard customers list"
+msgid "Found %(counter)d matching customer"
+msgid_plural "Found %(counter)d matching customers"
+msgstr[0] ""
+msgstr[1] ""
+msgstr[2] ""
+
+#: saleor/dashboard/customer/views.py:54
 #, python-format
 msgctxt "Dashboard message"
 msgid "Customer %s promoted to staff member"
 msgstr "Покупець %s запрошений стати користувачем"
 
-#: saleor/dashboard/discount/filters.py:17
+#: saleor/dashboard/discount/filters.py:14
 msgctxt "Sale list sorting option"
 msgid "name"
 msgstr "назва"
 
-#: saleor/dashboard/discount/filters.py:18
+#: saleor/dashboard/discount/filters.py:15
 msgctxt "Sale list sorting option"
 msgid "value"
 msgstr "значення"
 
-#: saleor/dashboard/discount/filters.py:21
+#: saleor/dashboard/discount/filters.py:18
 msgctxt "Voucher list sorting option"
 msgid "name"
 msgstr "назва"
 
-#: saleor/dashboard/discount/filters.py:23
+#: saleor/dashboard/discount/filters.py:20
 msgctxt "Voucher list sorting option"
 msgid "discount_value"
 msgstr "розмір знижки"
 
-#: saleor/dashboard/discount/filters.py:24
+#: saleor/dashboard/discount/filters.py:21
 msgctxt "Voucher list sorting option"
 msgid "apply_to"
 msgstr "примінити для"
 
-#: saleor/dashboard/discount/filters.py:25
+#: saleor/dashboard/discount/filters.py:22
 msgctxt "Voucher list sorting option"
 msgid "start_date"
 msgstr "дата початку"
 
-#: saleor/dashboard/discount/filters.py:26
+#: saleor/dashboard/discount/filters.py:23
 msgctxt "Voucher list sorting option"
 msgid "end_date"
 msgstr "дата закінчення"
 
-#: saleor/dashboard/discount/filters.py:27
+#: saleor/dashboard/discount/filters.py:24
 msgctxt "Voucher list sorting option"
 msgid "used"
 msgstr "використано"
 
-#: saleor/dashboard/discount/filters.py:28
+#: saleor/dashboard/discount/filters.py:25
 msgctxt "Voucher list sorting option"
 msgid "limit"
 msgstr "ліміт"
 
-#: saleor/dashboard/discount/filters.py:31
+#: saleor/dashboard/discount/filters.py:28
 msgctxt "Sale type filter choice"
 msgid "USD"
 msgstr "дол."
 
-#: saleor/dashboard/discount/filters.py:32
+#: saleor/dashboard/discount/filters.py:29
 msgctxt "Sale type filter choice"
 msgid "%"
 msgstr "%"
 
-#: saleor/dashboard/discount/filters.py:37
+#: saleor/dashboard/discount/filters.py:34
 msgctxt "Sale list filter label"
 msgid "Name"
 msgstr "Назва"
 
-#: saleor/dashboard/discount/filters.py:40
+#: saleor/dashboard/discount/filters.py:37
 msgctxt "Sale list filter label"
 msgid "Categories"
 msgstr "Категорії"
 
-#: saleor/dashboard/discount/filters.py:44
+#: saleor/dashboard/discount/filters.py:41
 msgctxt "Sale list filter label"
 msgid "Discount type"
 msgstr "Тип знижки"
 
-#: saleor/dashboard/discount/filters.py:49
+#: saleor/dashboard/discount/filters.py:46
 msgctxt "Sale list filter label"
 msgid "Value"
 msgstr "Значення"
 
-#: saleor/dashboard/discount/filters.py:51
+#: saleor/dashboard/discount/filters.py:48
 msgctxt "Sale list filter label"
 msgid "Sort by"
 msgstr "Сортувати по"
 
-#: saleor/dashboard/discount/filters.py:62
+#: saleor/dashboard/discount/filters.py:60
+#, python-format
+msgctxt "Number of matching records in the dashboard sales list"
+msgid "Found %(counter)d matching sale"
+msgid_plural "Found %(counter)d matching sales"
+msgstr[0] ""
+msgstr[1] ""
+msgstr[2] ""
+
+#: saleor/dashboard/discount/filters.py:67
 msgctxt "Voucher list name filter label"
 msgid "Name"
 msgstr "Назва"
 
-#: saleor/dashboard/discount/filters.py:67
+#: saleor/dashboard/discount/filters.py:72
 msgctxt "Sale list is sale type filter label"
 msgid "Discount type"
 msgstr "Тип знижки"
 
-#: saleor/dashboard/discount/filters.py:72
+#: saleor/dashboard/discount/filters.py:77
 msgctxt "Sale list filter label"
 msgid "Discount_value"
 msgstr "Розмір знижки"
 
-#: saleor/dashboard/discount/filters.py:75
+#: saleor/dashboard/discount/filters.py:80
 msgctxt "Order list sorting filter label"
 msgid "Period of validity"
 msgstr "Період дії"
 
-#: saleor/dashboard/discount/filters.py:78
+#: saleor/dashboard/discount/filters.py:83
 msgctxt "Voucher list sorting filter"
 msgid "Limit"
 msgstr "Ліміт"
 
-#: saleor/dashboard/discount/filters.py:81
+#: saleor/dashboard/discount/filters.py:86
 msgctxt "Voucher list sorting filter label"
 msgid "Sort by"
 msgstr "Сортувати по"
 
-#: saleor/dashboard/discount/forms.py:27
+#: saleor/dashboard/discount/filters.py:109
+#, python-format
+msgctxt "Number of matching records in the dashboard vouchers list"
+msgid "Found %(counter)d matching voucher"
+msgid_plural "Found %(counter)d matching vouchers"
+msgstr[0] ""
+msgstr[1] ""
+msgstr[2] ""
+
+#: saleor/dashboard/discount/forms.py:37
 msgctxt "Sale (discount) error"
 msgid "Sale cannot exceed 100%"
 msgstr "Знижка не може перевищувати 100%"
 
-#: saleor/dashboard/discount/forms.py:68
+#: saleor/dashboard/discount/forms.py:78
 msgctxt "Shipping voucher form label for `limit` field"
 msgid "Only if order is over or equal to"
 msgstr "Лише якщо замовлення більше або рівне"
 
-#: saleor/dashboard/discount/forms.py:72
+#: saleor/dashboard/discount/forms.py:82
 msgctxt "Shipping voucher form label for `apply_to` field"
 msgid "Country"
 msgstr "Країна"
 
-#: saleor/dashboard/discount/forms.py:92
+#: saleor/dashboard/discount/forms.py:102
 msgctxt "Value voucher form label for `limit` field"
 msgid "Only if purchase value is greater than or equal to"
 msgstr "Лише якщо вартість більша або рівна "
 
-#: saleor/dashboard/discount/views.py:40
+#: saleor/dashboard/discount/views.py:37
 msgctxt "Sale (discount) message"
 msgid "Updated sale"
 msgstr "Оновлений розпродаж"
 
-#: saleor/dashboard/discount/views.py:41
+#: saleor/dashboard/discount/views.py:38
 msgctxt "Sale (discount) message"
 msgid "Added sale"
 msgstr "Доданий розпродаж"
 
-#: saleor/dashboard/discount/views.py:56
+#: saleor/dashboard/discount/views.py:52
 #, python-format
 msgctxt "Sale (discount) message"
 msgid "Removed sale %s"
 msgstr "Видалений розпродаж %s"
 
-#: saleor/dashboard/discount/views.py:108
+#: saleor/dashboard/discount/views.py:107
 msgctxt "Voucher message"
 msgid "Updated voucher"
 msgstr "Оновлений ваучер"
 
-#: saleor/dashboard/discount/views.py:109
+#: saleor/dashboard/discount/views.py:108
 msgctxt "Voucher message"
 msgid "Added voucher"
 msgstr "Доданий ваучер"
 
-#: saleor/dashboard/discount/views.py:127
+#: saleor/dashboard/discount/views.py:125
 #, python-format
 msgctxt "Voucher message"
 msgid "Removed voucher %s"
 msgstr "Видалений ваучер%s"
 
-#: saleor/dashboard/group/filters.py:13
-#: saleor/dashboard/shipping/filters.py:12
+#: saleor/dashboard/group/filters.py:10 saleor/dashboard/shipping/filters.py:9
 msgctxt "Group list sorting option"
 msgid "name"
 msgstr "назва"
 
-#: saleor/dashboard/group/filters.py:18
+#: saleor/dashboard/group/filters.py:15
 msgctxt "Group list filter label"
 msgid "Name"
 msgstr "Назва"
 
-#: saleor/dashboard/group/filters.py:21
+#: saleor/dashboard/group/filters.py:18
 msgctxt "Group list filter label"
 msgid "Permissions"
 msgstr "Дозволи"
 
-#: saleor/dashboard/group/filters.py:25
+#: saleor/dashboard/group/filters.py:22
 msgctxt "Group list filter label"
 msgid "Sort by"
 msgstr "Сортувати по"
 
-#: saleor/dashboard/group/views.py:41
+#: saleor/dashboard/group/filters.py:34
+#, python-format
+msgctxt "Number of matching records in the dashboard groups list"
+msgid "Found %(counter)d matching group"
+msgid_plural "Found %(counter)d matching groups"
+msgstr[0] ""
+msgstr[1] ""
+msgstr[2] ""
+
+#: saleor/dashboard/group/views.py:38
 msgctxt "Dashboard message"
 msgid "Created group"
 msgstr "Створена група"
 
-#: saleor/dashboard/group/views.py:56
+#: saleor/dashboard/group/views.py:53
 #, python-format
 msgctxt "Dashboard message"
 msgid "Updated group %s"
 msgstr "Оновлена група %s"
 
-#: saleor/dashboard/group/views.py:71
+#: saleor/dashboard/group/views.py:66
 #, python-format
 msgctxt "Dashboard message"
 msgid "Removed group %s"
 msgstr "Видалена група %s"
 
-#: saleor/dashboard/order/filters.py:27
+#: saleor/dashboard/order/filters.py:24
 msgctxt "Order list sorting option"
 msgid "#"
 msgstr "№"
 
-#: saleor/dashboard/order/filters.py:28
-msgctxt "Order list sorting option"
-msgid "status"
-msgstr "статус"
-
-#: saleor/dashboard/order/filters.py:29
+#: saleor/dashboard/order/filters.py:25
 msgctxt "Order list sorting option"
 msgid "payment"
 msgstr "платіж"
 
-#: saleor/dashboard/order/filters.py:30
+#: saleor/dashboard/order/filters.py:26
 msgctxt "Order list sorting option"
 msgid "email"
 msgstr "email"
 
-#: saleor/dashboard/order/filters.py:31 saleor/dashboard/order/filters.py:32
+#: saleor/dashboard/order/filters.py:27 saleor/dashboard/order/filters.py:28
 msgctxt "Order list sorting option"
 msgid "created"
 msgstr "створено"
 
-#: saleor/dashboard/order/filters.py:37
+#: saleor/dashboard/order/filters.py:33
 msgctxt "Order list filter label"
 msgid "ID"
 msgstr "ID"
 
-#: saleor/dashboard/order/filters.py:40
+#: saleor/dashboard/order/filters.py:36
 msgctxt "Order list filter label"
 msgid "Customer name or email"
 msgstr "Ім'я або електронна пошта покупця"
 
-#: saleor/dashboard/order/filters.py:43
+#: saleor/dashboard/order/filters.py:39
 msgctxt "Order list filter label"
 msgid "Placed on"
 msgstr "Розміщено на"
 
-#: saleor/dashboard/order/filters.py:47
+#: saleor/dashboard/order/filters.py:43
 msgctxt "Order list filter label"
 msgid "Order status"
 msgstr "Статус замовлення"
 
-#: saleor/dashboard/order/filters.py:52
+#: saleor/dashboard/order/filters.py:48
 msgctxt "Order list filter label"
 msgid "Payment status"
 msgstr "Статус оплати "
 
-#: saleor/dashboard/order/filters.py:58
+#: saleor/dashboard/order/filters.py:54
 msgctxt "Order list filter label"
 msgid "Total"
 msgstr "Підсумок "
 
-#: saleor/dashboard/order/filters.py:61
+#: saleor/dashboard/order/filters.py:57
 msgctxt "Order list filter label"
 msgid "Sort by"
 msgstr "Сортувати по"
+
+#: saleor/dashboard/order/filters.py:82
+#, python-format
+msgctxt "Number of matching records in the dashboard orders list"
+msgid "Found %(counter)d matching order"
+msgid_plural "Found %(counter)d matching orders"
+msgstr[0] ""
+msgstr[1] ""
+msgstr[2] ""
 
 #: saleor/dashboard/order/forms.py:38
 msgctxt "Payment management form (capture, refund, release)"
@@ -420,9 +480,9 @@ msgid "Quantity"
 msgstr "Кількість"
 
 #: saleor/dashboard/order/forms.py:105
-msgctxt "Delivery group value for `target_group` field"
+msgctxt "Shipment group value for `target_group` field"
 msgid "New shipment"
-msgstr "Нове відправлення"
+msgstr ""
 
 #: saleor/dashboard/order/forms.py:106
 msgctxt "Move lines form label"
@@ -453,66 +513,61 @@ msgctxt "Ship group form error"
 msgid "Cannot ship this group"
 msgstr "Неможливо доставити цю групу"
 
-#: saleor/dashboard/order/forms.py:241
+#: saleor/dashboard/order/forms.py:236
 msgctxt "Cancel order form error"
 msgid "This order can't be cancelled"
 msgstr "Це замовлення не може бути відмінене"
 
-#: saleor/dashboard/order/forms.py:260
+#: saleor/dashboard/order/forms.py:255
 msgctxt "Remove voucher form error"
 msgid "This order has no voucher"
 msgstr "Це замовлення не містить ваучера"
 
-#: saleor/dashboard/order/forms.py:273
-msgctxt "Order status field value"
-msgid "All"
-msgstr "Все"
-
-#: saleor/dashboard/order/forms.py:278
+#: saleor/dashboard/order/forms.py:268
 msgctxt "Payment status field value"
 msgid "All"
 msgstr "Все "
 
-#: saleor/dashboard/order/forms.py:310
+#: saleor/dashboard/order/forms.py:300
 #, python-format
 msgctxt "Change stock form error"
 msgid "Only %(remaining)d remaining in this stock."
 msgstr "Залишилось %(remaining)d на складі."
 
-#: saleor/dashboard/order/forms.py:336
-msgctxt "Add variant to delivery group form label"
+#: saleor/dashboard/order/forms.py:326
+msgctxt "Add variant to shipment group form label"
 msgid "Quantity"
-msgstr "Кількість"
+msgstr ""
 
-#: saleor/dashboard/order/forms.py:355
+#: saleor/dashboard/order/forms.py:346
 #, python-format
 msgctxt "Add item form error"
 msgid "Could not add item. Only %(remaining)d remaining in stock."
 msgstr "Неможливо додати продукт. Лише %(remaining)d залишилось на складі."
 
-#: saleor/dashboard/order/views.py:92
+#: saleor/dashboard/order/views.py:93
 msgctxt "Dashboard message related to an order"
 msgid "Added note"
 msgstr "Додана помітка"
 
-#: saleor/dashboard/order/views.py:115
+#: saleor/dashboard/order/views.py:116
 #, python-format
 msgctxt "Dashboard message related to a payment"
 msgid "Captured %(amount)s"
 msgstr "Списаний %(amount)s"
 
-#: saleor/dashboard/order/views.py:138
+#: saleor/dashboard/order/views.py:139
 #, python-format
 msgctxt "Dashboard message related to a payment"
 msgid "Refunded %(amount)s"
 msgstr "Відшкодовано%(amount)s"
 
-#: saleor/dashboard/order/views.py:156
+#: saleor/dashboard/order/views.py:157
 msgctxt "Dashboard message"
 msgid "Released payment"
 msgstr "Відпущена оплата"
 
-#: saleor/dashboard/order/views.py:179
+#: saleor/dashboard/order/views.py:180
 #, python-format
 msgctxt "Dashboard message related to an order line"
 msgid ""
@@ -521,232 +576,262 @@ msgid ""
 msgstr ""
 "Змінена кількість продукта%(product)sз%(old_quantity)sдо%(new_quantity)s"
 
-#: saleor/dashboard/order/views.py:214
-msgctxt "Dashboard message related to a delivery group"
+#: saleor/dashboard/order/views.py:215
+msgctxt "Dashboard message related to a shipment group"
 msgid "removed group"
-msgstr "видалена група"
+msgstr ""
 
-#: saleor/dashboard/order/views.py:217
+#: saleor/dashboard/order/views.py:218
 #, python-format
-msgctxt "Dashboard message related to delivery groups"
+msgctxt "Dashboard message related to shipment groups"
 msgid "Moved %(how_many)s items %(item)s from %(old_group)s to %(new_group)s"
-msgstr "Переміщені %(how_many)sпозиції%(item)sз%(old_group)sдо%(new_group)s"
+msgstr ""
 
-#: saleor/dashboard/order/views.py:242
+#: saleor/dashboard/order/views.py:243
 #, python-format
 msgctxt "Dashboard message related to an order line"
 msgid "Cancelled item %s"
 msgstr "Відмінена позиція%s"
 
-#: saleor/dashboard/order/views.py:268
+#: saleor/dashboard/order/views.py:269
 #, python-format
-msgctxt "Dashboard message related to a delivery group"
+msgctxt "Dashboard message related to a shipment group"
 msgid "Shipped %s"
-msgstr "Відправлено%s"
+msgstr ""
 
-#: saleor/dashboard/order/views.py:291
+#: saleor/dashboard/order/views.py:292
 #, python-format
-msgctxt "Dashboard message related to a delivery group"
+msgctxt "Dashboard message related to a shipment group"
 msgid "Cancelled %s"
-msgstr "Відмінено%s"
+msgstr ""
 
-#: saleor/dashboard/order/views.py:321
+#: saleor/dashboard/order/views.py:323
 #, python-format
-msgctxt "Dashboard message related to a delivery group"
+msgctxt "Dashboard message related to a shipment group"
 msgid "Added %(quantity)d x %(variant)s to %(group)s"
-msgstr "Додано %(quantity)d x %(variant)s до %(group)s"
+msgstr ""
 
-#: saleor/dashboard/order/views.py:327
+#: saleor/dashboard/order/views.py:329
 #, python-format
-msgctxt "Dashboard message related to a delivery group"
+msgctxt "Dashboard message related to a shipment group"
 msgid ""
 "Insufficient stock: could not add %(quantity)d x %(variant)s to %(group)s"
 msgstr ""
-"Недостатньо залишку: неможливо додати %(quantity)d x %(variant)s до "
-"%(group)s"
 
-#: saleor/dashboard/order/views.py:346
+#: saleor/dashboard/order/views.py:348
 msgctxt "Dashboard message"
 msgid "Updated shipping address"
 msgstr "Оновлена адреса доставки"
 
-#: saleor/dashboard/order/views.py:351
+#: saleor/dashboard/order/views.py:353
 msgctxt "Dashboard message"
 msgid "Updated billing address"
 msgstr "Оновлена платіжна адреса"
 
-#: saleor/dashboard/order/views.py:369
+#: saleor/dashboard/order/views.py:371
 msgctxt "Dashboard message"
 msgid "Cancelled order"
 msgstr "Відмінене замовлення"
 
-#: saleor/dashboard/order/views.py:390
+#: saleor/dashboard/order/views.py:392
 msgctxt "Dashboard message"
 msgid "Removed voucher from order"
 msgstr "Ваучер видалений з замовлення"
 
-#: saleor/dashboard/order/views.py:436
+#: saleor/dashboard/order/views.py:438
 #, python-format
 msgctxt "Dashboard message"
 msgid "Stock location changed for %s"
 msgstr "Розташування складу змінено для %s"
 
-#: saleor/dashboard/product/__init__.py:12
+#: saleor/dashboard/product/__init__.py:10
 msgctxt "product bulk action"
 msgid "Publish"
 msgstr "Опублікувати"
 
-#: saleor/dashboard/product/__init__.py:13
+#: saleor/dashboard/product/__init__.py:11
 msgctxt "product bulk action"
 msgid "Unpublish"
 msgstr "Сховати"
 
-#: saleor/dashboard/product/filters.py:15
+#: saleor/dashboard/product/filters.py:13
 msgctxt "Product list sorting option"
 msgid "name"
 msgstr "назва"
 
-#: saleor/dashboard/product/filters.py:16
+#: saleor/dashboard/product/filters.py:14
 msgctxt "Product type list sorting option"
 msgid "price"
 msgstr "ціна"
 
-#: saleor/dashboard/product/filters.py:19
+#: saleor/dashboard/product/filters.py:17
 msgctxt "Product attribute list sorting option"
 msgid "name"
 msgstr "назва"
 
-#: saleor/dashboard/product/filters.py:22
+#: saleor/dashboard/product/filters.py:20
 msgctxt "Product type list sorting option"
 msgid "name"
 msgstr "назва"
 
-#: saleor/dashboard/product/filters.py:25
+#: saleor/dashboard/product/filters.py:23
 msgctxt "Stock location list sorting option"
 msgid "name"
 msgstr "назва"
 
-#: saleor/dashboard/product/filters.py:28
+#: saleor/dashboard/product/filters.py:26
 msgctxt "Is publish filter choice"
 msgid "Published"
 msgstr "Опубліковано"
 
-#: saleor/dashboard/product/filters.py:29
+#: saleor/dashboard/product/filters.py:27
 msgctxt "Is publish filter choice"
 msgid "Not published"
 msgstr "Неопубліковано"
 
-#: saleor/dashboard/product/filters.py:32
+#: saleor/dashboard/product/filters.py:30
 msgctxt "Is featured filter choice"
 msgid "Featured"
 msgstr "Рекламовано"
 
-#: saleor/dashboard/product/filters.py:33
+#: saleor/dashboard/product/filters.py:31
 msgctxt "Is featured filter choice"
 msgid "Not featured"
 msgstr "Не рекламовано"
 
-#: saleor/dashboard/product/filters.py:38
+#: saleor/dashboard/product/filters.py:36
 msgctxt "Product list filter label"
 msgid "Name"
 msgstr "Назва"
 
-#: saleor/dashboard/product/filters.py:41
+#: saleor/dashboard/product/filters.py:39
 msgctxt "Product list filter label"
 msgid "Categories"
 msgstr "Категорії"
 
-#: saleor/dashboard/product/filters.py:45
+#: saleor/dashboard/product/filters.py:43
 msgctxt "Product list filter label"
 msgid "Price"
 msgstr "Ціна"
 
-#: saleor/dashboard/product/filters.py:49
+#: saleor/dashboard/product/filters.py:47
 msgctxt "Product list filter label"
 msgid "Is published"
 msgstr "Опублікований"
 
-#: saleor/dashboard/product/filters.py:55
+#: saleor/dashboard/product/filters.py:53
 msgctxt "Product list is featured filter label"
 msgid "Is featured"
 msgstr "Рекламований"
 
-#: saleor/dashboard/product/filters.py:60
+#: saleor/dashboard/product/filters.py:58
 msgctxt "Product list filter label"
 msgid "Sort by"
 msgstr "Сортувати по"
 
-#: saleor/dashboard/product/filters.py:71
+#: saleor/dashboard/product/filters.py:70
+#, python-format
+msgctxt "Number of matching records in the dashboard products list"
+msgid "Found %(counter)d matching product"
+msgid_plural "Found %(counter)d matching products"
+msgstr[0] ""
+msgstr[1] ""
+msgstr[2] ""
+
+#: saleor/dashboard/product/filters.py:77
 msgctxt "Product attribute list filter label"
 msgid "Name"
 msgstr "Назва"
 
-#: saleor/dashboard/product/filters.py:74
+#: saleor/dashboard/product/filters.py:80
 msgctxt "Product attribute list filter label"
 msgid "Sort by"
 msgstr "Сортувати по"
 
-#: saleor/dashboard/product/filters.py:85
+#: saleor/dashboard/product/filters.py:93
+#, python-format
+msgctxt "Number of matching records in the dashboard product attributes list"
+msgid "Found %(counter)d matching attribute"
+msgid_plural "Found %(counter)d matching attributes"
+msgstr[0] ""
+msgstr[1] ""
+msgstr[2] ""
+
+#: saleor/dashboard/product/filters.py:100
 msgctxt "Product type list filter label"
 msgid "Name"
 msgstr "Назва"
 
-#: saleor/dashboard/product/filters.py:88
+#: saleor/dashboard/product/filters.py:103
 msgctxt "Product class list filter label"
 msgid "Sort by"
 msgstr "Сортувати по"
 
-#: saleor/dashboard/product/filters.py:100
+#: saleor/dashboard/product/filters.py:115
+#, python-format
+msgctxt "Number of matching records in the dashboard product types list"
+msgid "Found %(counter)d matching product type"
+msgid_plural "Found %(counter)d matching product types"
+msgstr[0] ""
+msgstr[1] ""
+msgstr[2] ""
+
+#: saleor/dashboard/product/filters.py:123
 msgctxt "Stock location list filter label"
 msgid "Sort by"
 msgstr "Сортувати по"
 
-#: saleor/dashboard/product/forms.py:25
+#: saleor/dashboard/product/filters.py:127
+msgctxt "Stock location list filter label"
+msgid "Name"
+msgstr ""
+
+#: saleor/dashboard/product/forms.py:22
 msgctxt "Product class form label"
 msgid "Product type"
 msgstr "Тип товару"
 
-#: saleor/dashboard/product/forms.py:47
+#: saleor/dashboard/product/forms.py:44
 msgctxt "stock form error"
 msgid "Stock item for this location and variant already exists"
 msgstr "Залишки уже розміщені для цієї локації та варіанту "
 
-#: saleor/dashboard/product/forms.py:62
+#: saleor/dashboard/product/forms.py:59
 msgctxt "Product class form label"
 msgid "Attributes specific to each variant"
 msgstr "Специфічні властивості для кожного варіанта"
 
-#: saleor/dashboard/product/forms.py:65
+#: saleor/dashboard/product/forms.py:62
 msgctxt "Product class form label"
 msgid "Attributes common to all variants"
 msgstr "Однакові властивості для всіх варіантів"
 
-#: saleor/dashboard/product/forms.py:75
+#: saleor/dashboard/product/forms.py:72
 msgctxt "Product class form error"
 msgid "Product variants are disabled."
 msgstr "Варіанти продукта вимкнено"
 
-#: saleor/dashboard/product/forms.py:80
+#: saleor/dashboard/product/forms.py:77
 msgctxt "Product class form error"
 msgid "A single attribute can't belong to both a product and its variant."
 msgstr "Одна властивість не може належати одночасно продукту і його варіанту"
 
-#: saleor/dashboard/product/forms.py:94
+#: saleor/dashboard/product/forms.py:91
 msgctxt "Product class form error"
 msgid "Some products of this type have more than one variant."
 msgstr "Деякі продукти цього типу мають понад один варіант"
 
-#: saleor/dashboard/product/forms.py:106
+#: saleor/dashboard/product/forms.py:103
 msgctxt "product form"
 msgid "Published"
 msgstr "Опубліковано"
 
-#: saleor/dashboard/product/forms.py:108
+#: saleor/dashboard/product/forms.py:105
 msgctxt "product form"
 msgid "Feature this product on homepage"
 msgstr "Розмістити цей продукт на головній"
 
-#: saleor/dashboard/product/forms.py:114
+#: saleor/dashboard/product/forms.py:111
 msgctxt "Product form placeholder"
 msgid "Search"
 msgstr "Пошук"
@@ -769,113 +854,113 @@ msgctxt "Dashboard message"
 msgid "Removed product type %s"
 msgstr "Видалений тип продукта%s"
 
-#: saleor/dashboard/product/views.py:157
+#: saleor/dashboard/product/views.py:171
 #, python-format
 msgctxt "Dashboard message"
 msgid "Added product %s"
 msgstr "Доданий продукт%s"
 
-#: saleor/dashboard/product/views.py:232
+#: saleor/dashboard/product/views.py:247
 #, python-format
 msgctxt "Dashboard message"
 msgid "Updated product %s"
 msgstr "Оновлений продукт%s"
 
-#: saleor/dashboard/product/views.py:248
+#: saleor/dashboard/product/views.py:263
 #, python-format
 msgctxt "Dashboard message"
 msgid "Removed product %s"
 msgstr "Видалений продукт%s"
 
-#: saleor/dashboard/product/views.py:283
+#: saleor/dashboard/product/views.py:298
 msgctxt "Dashboard message"
 msgid "Saved stock"
 msgstr "Збережена наявність"
 
-#: saleor/dashboard/product/views.py:304
+#: saleor/dashboard/product/views.py:319
 msgctxt "Dashboard message"
 msgid "Removed stock"
 msgstr "Видалена наявність"
 
-#: saleor/dashboard/product/views.py:342
+#: saleor/dashboard/product/views.py:357
 #, python-format
 msgctxt "Dashboard message"
 msgid "Updated image %s"
 msgstr "Оновлене зображення%s"
 
-#: saleor/dashboard/product/views.py:346
+#: saleor/dashboard/product/views.py:361
 #, python-format
 msgctxt "Dashboard message"
 msgid "Added image %s"
 msgstr "Додане зображення %s"
 
-#: saleor/dashboard/product/views.py:367
+#: saleor/dashboard/product/views.py:382
 #, python-format
 msgctxt "Dashboard message"
 msgid "Removed image %s"
 msgstr "Видалене зображення%s"
 
-#: saleor/dashboard/product/views.py:391
+#: saleor/dashboard/product/views.py:406
 #, python-format
 msgctxt "Dashboard message"
 msgid "Saved variant %s"
 msgstr "Варіант%s збережено"
 
-#: saleor/dashboard/product/views.py:460
+#: saleor/dashboard/product/views.py:476
 #, python-format
 msgctxt "Dashboard message"
 msgid "Removed variant %s"
 msgstr "Видалений варіант%s"
 
-#: saleor/dashboard/product/views.py:512
+#: saleor/dashboard/product/views.py:529
 msgctxt "Dashboard message"
 msgid "Updated attribute"
 msgstr "Оновлена властивість"
 
-#: saleor/dashboard/product/views.py:513
+#: saleor/dashboard/product/views.py:530
 msgctxt "Dashboard message"
 msgid "Added attribute"
 msgstr "Додана властивість"
 
-#: saleor/dashboard/product/views.py:533
+#: saleor/dashboard/product/views.py:550
 #, python-format
 msgctxt "Dashboard message"
 msgid "Removed attribute %s"
 msgstr "Видалена властивість%s"
 
-#: saleor/dashboard/product/views.py:555
+#: saleor/dashboard/product/views.py:572
 msgctxt "Dashboard message"
 msgid "Updated attribute's value"
 msgstr "Оновлено значення властивості"
 
-#: saleor/dashboard/product/views.py:557
+#: saleor/dashboard/product/views.py:574
 msgctxt "Dashboard message"
 msgid "Added attribute's value"
 msgstr "Додано значення властивості"
 
-#: saleor/dashboard/product/views.py:577
+#: saleor/dashboard/product/views.py:594
 #, python-format
 msgctxt "Dashboard message"
 msgid "Removed attribute's value %s"
 msgstr "Видалено значення властивості %s"
 
-#: saleor/dashboard/product/views.py:613
+#: saleor/dashboard/product/views.py:632
 msgctxt "Dashboard message for stock location"
 msgid "Updated location"
 msgstr "Оновлена локація"
 
-#: saleor/dashboard/product/views.py:614
+#: saleor/dashboard/product/views.py:633
 msgctxt "Dashboard message for stock location"
 msgid "Added location"
 msgstr "Додана локація"
 
-#: saleor/dashboard/product/views.py:633
+#: saleor/dashboard/product/views.py:652
 #, python-format
 msgctxt "Dashboard message for stock location"
 msgid "Removed location %s"
 msgstr "Видалено локацію%s"
 
-#: saleor/dashboard/product/views.py:682
+#: saleor/dashboard/product/views.py:701
 #, python-format
 msgctxt "Dashboard message"
 msgid "%(count)d product has been updated"
@@ -884,20 +969,34 @@ msgstr[0] "%(count)d продукт буде оновлено"
 msgstr[1] "%(count)d продуктів буде оновлено"
 msgstr[2] "%(count)d продуктів буде оновлено"
 
-#: saleor/dashboard/shipping/filters.py:18
+#: saleor/dashboard/shipping/filters.py:15
 msgctxt "Shipping method list filter label"
 msgid "Name"
 msgstr "Назва"
 
-#: saleor/dashboard/shipping/filters.py:22
+#: saleor/dashboard/shipping/filters.py:19
 msgctxt "Shipping method list filter label"
 msgid "Price range"
 msgstr "Діапазон цін"
 
-#: saleor/dashboard/shipping/filters.py:25
+#: saleor/dashboard/shipping/filters.py:22
 msgctxt "Shipping method filter label"
 msgid "Country"
 msgstr "Країна"
+
+#: saleor/dashboard/shipping/filters.py:26
+msgctxt "Product list sorting filter label"
+msgid "Sort by"
+msgstr "Сортувати по"
+
+#: saleor/dashboard/shipping/filters.py:39
+#, python-format
+msgctxt "Number of matching records in the dashboard shipping methods list"
+msgid "Found %(counter)d matching shipping method"
+msgid_plural "Found %(counter)d matching shipping methods"
+msgstr[0] ""
+msgstr[1] ""
+msgstr[2] ""
 
 #: saleor/dashboard/shipping/views.py:42
 msgctxt "dashboard message"
@@ -933,7 +1032,7 @@ msgctxt "Dashboard message"
 msgid "Removed shipping method %s"
 msgstr "Видалено спосіб доставки %s"
 
-#: saleor/dashboard/sites/views.py:38
+#: saleor/dashboard/sites/views.py:36
 msgctxt "Dashboard message"
 msgid "Updated site settings"
 msgstr "Налаштування сайту оновлені"
@@ -956,60 +1055,54 @@ msgctxt "Dashboard message"
 msgid "Removed site authorization key %s"
 msgstr "Видалено ключ авторизації%s"
 
-#: saleor/dashboard/staff/filters.py:34
-msgctxt "Staff list filter label"
-msgid "Name or email"
-msgstr "Ім'я або електронна пошта"
-
-#: saleor/dashboard/staff/filters.py:37
-msgctxt "Staff list filter label"
-msgid "Location"
-msgstr "Розташування"
-
-#: saleor/dashboard/staff/filters.py:40
+#: saleor/dashboard/staff/filters.py:25
 msgctxt "Staff list filter label"
 msgid "Groups"
 msgstr "Групи"
 
-#: saleor/dashboard/staff/filters.py:44
-msgctxt "Staff list filter label"
-msgid "Is active"
-msgstr "Активний"
-
-#: saleor/dashboard/staff/filters.py:49
+#: saleor/dashboard/staff/filters.py:29
 msgctxt "Staff list filter label"
 msgid "Sort by"
 msgstr "Сортувати по"
 
-#: saleor/dashboard/staff/views.py:42
+#: saleor/dashboard/staff/filters.py:41
+#, python-format
+msgctxt "Number of matching records in the dashboard staff members list"
+msgid "Found %(counter)d matching staff member"
+msgid_plural "Found %(counter)d matching staff members"
+msgstr[0] ""
+msgstr[1] ""
+msgstr[2] ""
+
+#: saleor/dashboard/staff/views.py:41
 #, python-format
 msgctxt "Dashboard message"
 msgid "Updated staff member %s"
 msgstr "Оновлено користувача%s"
 
-#: saleor/dashboard/staff/views.py:57
+#: saleor/dashboard/staff/views.py:56
 #, python-format
 msgctxt "Dashboard message"
 msgid "Added staff member %s"
 msgstr "Додано користувача%s"
 
-#: saleor/dashboard/staff/views.py:75
+#: saleor/dashboard/staff/views.py:74
 #, python-format
 msgctxt "Dashboard message"
 msgid "Removed staff member %s"
 msgstr "Видалено користувача%s"
 
-#: saleor/dashboard/templatetags/chips.py:72
+#: saleor/dashboard/templatetags/chips.py:66
 msgctxt "Possible values of boolean filter"
 msgid "yes,no,all"
 msgstr "так, ні, усі"
 
-#: saleor/dashboard/templatetags/chips.py:83
+#: saleor/dashboard/templatetags/chips.py:77
 msgctxt "Label of first value in range filter"
 msgid "From"
 msgstr "Від"
 
-#: saleor/dashboard/templatetags/chips.py:84
+#: saleor/dashboard/templatetags/chips.py:78
 msgctxt "Label of second value in range filter"
 msgid "To"
 msgstr "Для"
