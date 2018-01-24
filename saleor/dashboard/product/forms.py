@@ -7,8 +7,8 @@ from django.utils.text import slugify
 from django.utils.translation import pgettext_lazy
 
 from ...product.models import (
-    Collection, AttributeChoiceValue, Product, ProductAttribute,
-    ProductImage, ProductVariant, Stock, StockLocation, VariantImage)
+    Collection, AttributeChoiceValue, Product, ProductAttribute, ProductImage,
+    ProductType, ProductVariant, Stock, StockLocation, VariantImage)
 from .widgets import ImagePreviewWidget
 from . import ProductBulkAction
 from ..widgets import RichTextEditorWidget
@@ -181,7 +181,6 @@ class ProductForm(forms.ModelForm):
         if commit:
             instance.save()
             self.save_collections()
-
         return instance
 
 

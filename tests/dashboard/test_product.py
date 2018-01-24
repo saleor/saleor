@@ -16,8 +16,8 @@ from saleor.dashboard.product.forms import (
     ProductBulkUpdate, ProductTypeForm, ProductForm)
 from saleor.product.forms import VariantChoiceField
 from saleor.product.models import (
-    AttributeChoiceValue, Product, ProductAttribute, ProductImage, ProductType,
-    ProductVariant, Stock, StockLocation)
+    Collection, AttributeChoiceValue, Product, ProductAttribute, ProductImage,
+    ProductType, ProductVariant, Stock, StockLocation)
 
 HTTP_STATUS_OK = 200
 HTTP_REDIRECTION = 302
@@ -655,3 +655,21 @@ def test_hide_field_in_variant_choice_field_form():
     form.update_field_data(variants, cart)
     assert isinstance(form.widget, HiddenInput)
     assert form.widget.attrs.get('value') == 'test'
+
+
+def test_assign_collection_to_product(product_in_stock):
+    product = product_in_stock
+    collection = Collection.objects.create(name='test_collections')
+    data = product.__dict__
+    data = {
+        'name': product.name,
+        'price': product.price.gross,
+        'category': product.category.pk,
+        'description': 'description',
+        'collections': [collection.pk]
+    }
+    form = ProductForm(data, instance=product)
+    assert form.is_valid()
+    form.save()
+    assert product.collections.first().name == 'test_collections'
+    assert collection.products.first().name == product.name
