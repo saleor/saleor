@@ -8,6 +8,9 @@ from templated_email import send_templated_mail
 
 
 def send_activation_mail(request, user):
+    """Sends the e-mail from which a newly registered
+    user can verify their e-mail addreess
+    """
     token_generator = default_token_generator
     current_site = get_current_site(request)
 

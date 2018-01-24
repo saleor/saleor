@@ -1,4 +1,5 @@
 from django import forms
+from django.conf import settings
 from django.contrib.auth import forms as django_forms
 from django.http.request import HttpRequest
 from django.urls import reverse
@@ -6,7 +7,6 @@ from django.utils.translation import pgettext, pgettext_lazy
 from templated_email import send_templated_mail
 
 from ..userprofile.models import User
-from django.conf import settings
 from .utils import send_activation_mail
 
 
