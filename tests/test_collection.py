@@ -22,7 +22,7 @@ def test_list_view(admin_client, collection):
 
 @pytest.mark.django_db
 def test_collection_form_name():
-    data = {'name': 'Test Collection'}
+    data = {'name': 'Test Collection', 'products': []}
     form = CollectionForm(data)
     assert form.is_valid()
 
@@ -58,14 +58,14 @@ def test_collection_create_view(admin_client):
 
 def test_collection_update_view(admin_client, collection, product_in_stock):
     url = reverse('dashboard:collection-update',
-                  kwargs={'collection_pk': collection.id})
+                  kwargs={'pk': collection.id})
     response = admin_client.get(url)
     assert response.status_code == 200
 
     current_name = collection.name
     data = {'name': 'New name', 'products': [product_in_stock.id]}
     response = admin_client.post(url, data)
-    assert response.status_code == 200
+    assert response.status_code == 302
 
     collection.refresh_from_db()
     assert not current_name == collection.name
@@ -76,14 +76,14 @@ def test_collection_delete_view(admin_client, collection):
     # Test Http404 when collection doesn't exist
     pk = 500
     url404 = reverse('dashboard:collection-delete',
-                     kwargs={'collection_pk': pk})
+                     kwargs={'pk': pk})
     response404 = admin_client.post(url404)
     assert response404.status_code == 404
 
     # Test deleting object
     collections_count = Collection.objects.count()
     url = reverse('dashboard:collection-delete',
-                  kwargs={'collection_pk': collection.id})
+                  kwargs={'pk': collection.id})
     response = admin_client.post(url)
     assert response.status_code == 302
     assert Collection.objects.count() == (collections_count - 1)

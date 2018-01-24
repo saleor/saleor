@@ -133,4 +133,3 @@ def category_index(request, path, category_id):
            'now_sorted_by': now_sorted_by,
            'is_descending': is_descending}
     return TemplateResponse(request, 'category/index.html', ctx)
-
