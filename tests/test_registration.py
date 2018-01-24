@@ -3,6 +3,7 @@ from django.contrib.auth.models import AnonymousUser
 from django.urls import reverse
 import pytest
 
+from django.test import override_settings
 from saleor.registration.backends import BaseBackend
 from saleor.registration.forms import LoginForm, SignupForm
 
@@ -125,6 +126,40 @@ def test_signup_view_fail(client, db, customer_user):
     data = {'email': customer_user.email, 'password': 'password'}
     client.post(url, data)
     assert User.objects.count() == 1
+
+@override_settings(EMAIL_VERIFICATION_REQUIRED=True)
+def test_signup_view_register_email_activation(client, db, email):
+    signup_url = reverse('account_signup')
+    signup_data = {'email': 'client@example.com', 'password': 'password'}
+    client.post(signup_url, signup_data)
+    assert User.objects.count() == 1
+    user = User.objects.get(email='client@example.com')
+    assert not user.email_verified
+    assert len(email.outbox) == 1
+    login_url = reverse('account_login')
+    login_data = {'username': 'client@example.com', 'password': 'password'}
+    response = client.post(login_url, login_data)
+    assert response.status_code == 200
+    assert len(email.outbox) == 2
+    sent_mail = email.outbox[1]
+    assert sent_mail.subject == "Please Confirm Your E-mail Address"
+    base_url = "http://testserver"
+    activation_url = next(filter(lambda x: x.startswith(base_url), sent_mail.body.split('\n'))).split(base_url)[1]
+    wrong_activation_url = activation_url[:-6] + "1234a/"
+    response = client.get(wrong_activation_url)
+    redirect_location = get_redirect_location(response)
+    assert redirect_location == login_url
+    user = User.objects.get(email='client@example.com')
+    assert not user.email_verified
+    response = client.get(activation_url)
+    redirect_location = get_redirect_location(response)
+    assert redirect_location == login_url
+    user = User.objects.get(email='client@example.com')
+    assert user.email_verified
+    response = client.post(login_url, login_data)
+    assert response.status_code == 302
+    redirect_location = get_redirect_location(response)
+    assert redirect_location == '/'
 
 
 def test_password_reset_view_post(client, db):

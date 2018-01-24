@@ -6,7 +6,8 @@ from django.utils.translation import pgettext, pgettext_lazy
 from templated_email import send_templated_mail
 
 from ..userprofile.models import User
-
+from django.conf import settings
+from .utils import send_activation_mail
 
 class LoginForm(django_forms.AuthenticationForm):
     username = forms.EmailField(
@@ -18,6 +19,17 @@ class LoginForm(django_forms.AuthenticationForm):
             email = request.GET.get('email')
             if email:
                 self.fields['username'].initial = email
+
+    def confirm_login_allowed(self, user):
+        super().confirm_login_allowed(user)
+
+        if settings.EMAIL_VERIFICATION_REQUIRED and not user.is_staff and not user.email_verified:
+            send_activation_mail(self.request, user)
+
+            raise forms.ValidationError(pgettext('Login Error',
+                    'E-mail address has not been confirmed for this account. Activation e-mail has been resent.'),
+                    code='inactive',
+            )
 
 
 class SignupForm(forms.ModelForm):
@@ -45,6 +57,8 @@ class SignupForm(forms.ModelForm):
         user.set_password(password)
         if commit:
             user.save()
+        if settings.EMAIL_VERIFICATION_REQUIRED:
+            send_activation_mail(request, user)
         return user
 
 

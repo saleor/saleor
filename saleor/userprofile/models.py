@@ -99,6 +99,10 @@ class User(PermissionsMixin, AbstractBaseUser):
     default_billing_address = models.ForeignKey(
         Address, related_name='+', null=True, blank=True,
         on_delete=models.SET_NULL)
+    email_verified = models.BooleanField(
+        pgettext_lazy('User field', 'e-mail verified'),
+        default=False, editable=False)
+
 
     USERNAME_FIELD = 'email'
 

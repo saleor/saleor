@@ -18,4 +18,6 @@ urlpatterns = [
     url(r'password/reset/complete/$', django_views.PasswordResetCompleteView.as_view(  # noqa
         template_name='account/password_reset_from_key_done.html'),
         name='account_reset_password_complete'),
+    url(r'^email/verify/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/$',  # noqa
+        views.email_confirmation, name='account_confirm_email'),
 ]
