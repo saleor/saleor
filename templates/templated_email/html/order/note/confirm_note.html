@@ -1,0 +1,13 @@
+{% extends "templated_email/html/base.html" %}
+{% load i18n %}
+
+{% block content %}
+{% blocktrans context "Note confirmation email text" %}
+<p>Hi!</p>
+
+<p>A new note has been added to your order. To see details please visit:
+<br>{{ url }}</p>
+
+<p>This is an automatically generated email, please do not reply.</p>
+{% endblocktrans %}
+{% endblock content %}
