@@ -57,6 +57,9 @@ class AjaxSelect2MultipleChoiceField(forms.MultipleChoiceField):
         self.widget.attrs['multiple'] = True
 
     def to_python(self, value):
+        # Allow to set empty list for non required case
+        if value == []:
+            return value
         if value in self.empty_values:
             return None
         elif not isinstance(value, (list, tuple)):

@@ -127,11 +127,11 @@ class ProductForm(forms.ModelForm):
                 'Product published toggle', 'Published'),
             'is_featured': pgettext_lazy(
                 'Featured product toggle', 'Feature this product on homepage'),
-            'collections' :pgettext_lazy(
+            'collections': pgettext_lazy(
                 'Include in collection select', 'Collections')}
 
-    collections = forms.ModelMultipleChoiceField(required=False,
-        queryset=Collection.objects.all())
+    collections = forms.ModelMultipleChoiceField(
+        required=False, queryset=Collection.objects.all())
 
     def __init__(self, *args, **kwargs):
         self.product_attributes = []
@@ -142,7 +142,8 @@ class ProductForm(forms.ModelForm):
             'values')
         self.prepare_fields_for_attributes()
         self.fields['description'].widget = RichTextEditorWidget()
-        self.fields["collections"].initial = Collection.objects.filter(products__name=self.instance)
+        self.fields["collections"].initial = Collection.objects.filter(
+            products__name=self.instance)
 
     def prepare_fields_for_attributes(self):
         for attribute in self.product_attributes:
@@ -173,9 +174,9 @@ class ProductForm(forms.ModelForm):
         instance = super().save(commit=False)
 
         def save_collections():
-           instance.collections.clear()
-           for collections in self.cleaned_data['collections']:
-               instance.collections.add(collections)
+            instance.collections.clear()
+            for collections in self.cleaned_data['collections']:
+                instance.collections.add(collections)
         self.save_collections = save_collections
 
         if commit:
