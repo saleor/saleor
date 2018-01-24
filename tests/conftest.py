@@ -624,6 +624,7 @@ def closed_orders(billing_address):
 
     return orders
 
+
 @pytest.fixture
 def email():
     mail.outbox = []

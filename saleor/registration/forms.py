@@ -9,6 +9,7 @@ from ..userprofile.models import User
 from django.conf import settings
 from .utils import send_activation_mail
 
+
 class LoginForm(django_forms.AuthenticationForm):
     username = forms.EmailField(
         label=pgettext('Form field', 'Email'), max_length=75)
@@ -28,8 +29,7 @@ class LoginForm(django_forms.AuthenticationForm):
 
             raise forms.ValidationError(pgettext('Login Error',
                     'E-mail address has not been confirmed for this account. Activation e-mail has been resent.'),
-                    code='inactive',
-            )
+                    code='inactive')
 
 
 class SignupForm(forms.ModelForm):

@@ -103,7 +103,6 @@ class User(PermissionsMixin, AbstractBaseUser):
         pgettext_lazy('User field', 'e-mail verified'),
         default=False, editable=False)
 
-
     USERNAME_FIELD = 'email'
 
     objects = UserManager()

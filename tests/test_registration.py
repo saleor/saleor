@@ -127,6 +127,7 @@ def test_signup_view_fail(client, db, customer_user):
     client.post(url, data)
     assert User.objects.count() == 1
 
+
 @override_settings(EMAIL_VERIFICATION_REQUIRED=True)
 def test_signup_view_register_email_activation(client, db, email):
     signup_url = reverse('account_signup')

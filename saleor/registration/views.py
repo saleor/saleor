@@ -84,6 +84,7 @@ def password_reset_confirm(request, uidb64=None, token=None):
     return PasswordResetConfirm.as_view(**kwargs)(
         request, **kwargs)
 
+
 class EmailVerificationView(View):
     success_url = reverse_lazy('account_login')
     token_generator = default_token_generator
@@ -93,30 +94,30 @@ class EmailVerificationView(View):
     def dispatch(self, *args, **kwargs):
         assert 'uidb64' in kwargs and 'token' in kwargs
 
-        self.validlink = False
-        self.user = self.get_user(kwargs['uidb64'])
+        user = self.get_user(kwargs['uidb64'])
 
-        if self.user is not None:
-            if self.user.email_verified:
+        if user is not None:
+            if user.email_verified:
                 messages.error(self.request, _("This e-mail address has already been verified."))
             else:
                 token = kwargs['token']
-                if self.token_generator.check_token(self.user, token):
-                    self.user.email_verified = True
-                    self.user.save()
+                if self.token_generator.check_token(user, token):
+                    user.email_verified = True
+                    user.save()
                     messages.success(self.request, _("E-mail verification successful. You may now login."))
                 else:
-                    send_activation_mail(self.request, self.user)
+                    send_activation_mail(self.request, user)
                     messages.error(self.request, _("E-mail verification failed. Activation e-mail resent."))
         else:
             messages.error(self.request, _("E-mail verification failed. User not found."))
         return redirect(reverse_lazy('account_login'))
 
-    def get_user(self, uidb64):
+    @staticmethod
+    def get_user(uidb64):
         try:
             # urlsafe_base64_decode() decodes to bytestring on Python 3
             uid = force_text(urlsafe_base64_decode(uidb64))
-            user = UserModel._default_manager.get(pk=uid)
+            user = UserModel.objects.get(pk=uid)
         except (TypeError, ValueError, OverflowError, UserModel.DoesNotExist):
             user = None
         return user
