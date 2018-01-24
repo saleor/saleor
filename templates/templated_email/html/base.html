@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+{% load staticfiles %}
+{% load i18n %}
+
+<html class="no-js">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta name="viewport" content="width=device-width" />
+  </head>
+  <body>
+    <table>
+      <tfoot>
+        <tr>
+          <td>
+            <footer>
+              {% block footer %}
+              {% endblock footer %}
+            </footer>
+          </td>
+        </tr>
+      </tfoot>
+      <thead>
+        <tr>
+          <td>
+            <header>
+              {% block header %}
+              {% endblock header %}
+            </header>
+          </td>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>
+            <main>
+              {% block content %}
+              {% endblock content %}
+            </main>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </body>
+</html>
