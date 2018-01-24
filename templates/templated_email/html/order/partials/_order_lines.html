@@ -1,0 +1,40 @@
+{% load gross from prices_i18n %}
+
+<table class="center-table">
+  <tfoot>
+    <tr>
+      <td colspan="3" class="right-align">
+        <p class="right-align">Subtotal</p>
+        <p class="right-align">Shipping</p>
+        <p class="right-align"><strong>Total</strong></p>
+      </td>
+      <td class="table-summary right-align">
+        <p class="right-align">{% gross order.get_total html=True %}</p>
+        <p class="right-align">{% gross order.shipping_price html=True %}</p>
+        <p class="right-align"><strong>{% gross order.get_total html=True %}</strong></p>
+      </td>
+    </tr>
+  </tfoot>
+  <thead>
+    <tr>
+        <th class="table-title">Item</th>
+        <th class="table-title">Quantity</th>
+        <th class="table-title">Per unit</th>
+        <th class="table-title">Subtotal</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for group in order.groups.all %}
+      {% for line in group.lines.all %}
+        <tr class="{% if forloop.last %}last-item-row{% endif %}">
+          <td class="table-list-item">{{ line.product_name }}</td>
+          <td class="table-list-item right-align">{{ line.quantity }}</td>
+          <td class="table-list-item right-align">
+            {% gross line.get_price_per_item html=True %}
+          </td>
+          <td class="table-list-item right-align">{% gross line.get_total %}</td>
+        </tr>
+      {% endfor %}
+    {% endfor %}
+  </tbody>
+</table>

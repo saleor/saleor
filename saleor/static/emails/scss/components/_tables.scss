@@ -7,7 +7,18 @@ body {
         margin: auto;
     }
 
-    header .logo {
-        fill: black;
+    header {
+        padding: 0.75em;
+        background-color: $light-gray;
+    }
+
+    .right-align {
+        text-align: right;
+    }
+
+    footer {
+        text-align: center;
+        padding: 0.75em;
+        background-color: $gray;
     }
 }

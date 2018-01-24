@@ -15,6 +15,9 @@
           <td>
             <footer>
               {% block footer %}
+                {% blocktrans trimmed context "Base e-mail footer" %}
+                  Sincerely, {{ site_name }}
+                {% endblocktrans %}
               {% endblock footer %}
             </footer>
           </td>
@@ -25,7 +28,7 @@
           <td>
             <header>
               {% block header %}
-                <img class="logo" src='{% static 'images/logo.png' %}' alt="{% trans "Saleor" %}" width="200" />
+                <svg data-src="{% static "images/logo.svg" %}" height="38px" width="176px"/>
               {% endblock header %}
             </header>
           </td>
