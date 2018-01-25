@@ -2,6 +2,7 @@ import uuid
 
 import google_measurement_protocol as ga
 from django.conf import settings
+from celery import shared_task
 
 FINGERPRINT_PARTS = [
     'HTTP_ACCEPT_ENCODING',
@@ -19,10 +20,17 @@ def get_client_id(request):
     return uuid.uuid5(UUID_NAMESPACE, name)
 
 
+@shared_task
+def ga_report(tracking_id, client_id, what, extra_info=None,
+              extra_headers=None):
+    ga.report(tracking_id, client_id, what, extra_info=extra_info,
+              extra_headers=extra_headers)
+
+
 def _report(client_id, what, extra_info=None, extra_headers=None):
     tracking_id = getattr(settings, 'GOOGLE_ANALYTICS_TRACKING_ID', None)
     if tracking_id and client_id:
-        ga.report(tracking_id, client_id, what, extra_info=extra_info,
+        ga_report(tracking_id, client_id, what, extra_info=extra_info,
                   extra_headers=extra_headers)
 
 
