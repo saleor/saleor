@@ -30,7 +30,7 @@
 
 {% block content %}
   <div class="row">
-    <div class="col s12">
+    <div class="col s12 l9">
       {% if collections %}
         <div class="card">
           <div class="data-table-container">
@@ -44,8 +44,8 @@
                   {% sorting_header 'description' label is_wide=True %}
                 </tr>
               </thead>
-              <tbody>
-                {% for node in collections %}
+              {% for node in collections %}
+                <tbody>
                   <tr data-action-go="{% if perms.product.edit_product %}{% url 'dashboard:collection-update' node.pk %}{% endif %}">
                     <td>
                       {{ node.name }}
@@ -54,15 +54,31 @@
                       {% if node.products %}
                     {% trans "Products in collection:" %} {{ node.products.count }}
                       {% else %}
-                        &nbsp;
+                        -
                       {% endif %}
                     </td>
                   </tr>
-                {% endfor %}
-              </tbody>
+                </tbody>
+              {% endfor %}
+          </table>
           </div>
         </div>
+      {% else %}
+        {% if is_empty %}
+          {% include 'dashboard/category/zero_page.html' %}
+        {% else %}
+          <div class="col s12">
+            <div class="not-found">
+              <p class="grey-text">
+                {% trans "No collections found." context "Empty category list message" %}
+              </p>
+            </div>
+          </div>
+        {% endif %}
       {% endif %}
+    </div>
+    <div class="col s12 l3" id="filters">
+      {% if not is_empty %}{% filters filter_set %}{% endif %}
     </div>
   </div>
 {% endblock %}
