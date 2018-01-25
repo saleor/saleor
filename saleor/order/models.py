@@ -234,15 +234,11 @@ class DeliveryGroup(models.Model, ItemSet):
     def cancel(self):
         cancel_delivery_group(self)
 
-    @property
-    def shipping_required(self):
-        return self.shipping_method_name is not None
-
     def get_total_quantity(self):
         return sum([line.get_quantity() for line in self])
 
     def is_shipping_required(self):
-        return self.shipping_required
+        return any([line.is_shipping_required for line in self.lines.all()])
 
     def can_ship(self):
         return self.is_shipping_required() and self.status == GroupStatus.NEW
@@ -263,6 +259,7 @@ class OrderLine(models.Model, ItemLine):
         on_delete=models.SET_NULL)
     product_name = models.CharField(max_length=128)
     product_sku = models.CharField(max_length=32)
+    is_shipping_required = models.BooleanField()
     stock_location = models.CharField(max_length=100, default='')
     stock = models.ForeignKey(
         'product.Stock', on_delete=models.SET_NULL, null=True)

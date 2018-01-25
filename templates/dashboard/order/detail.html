@@ -99,9 +99,19 @@
       <div class="card">
         <div class="card-content">
           <span class="card-title">
-            {% trans "Order summary" context "Order summary title" %}
+            {% blocktrans trimmed with order_id=order.id context "Order summary title" %}
+              Order #{{ order_id }}
+            {% endblocktrans %}
           </span>
           <div class="row">
+              <div class="col s12 m4 l12">
+                <h6>
+                  {% trans "Placed on" context "Order placed on date" %}
+                </h6>
+                <p>
+                  {{ order.created }}
+                </p>
+              </div>
             <div class="col s12 m4 l12">
               <h6>
                 {% trans "Customer" context "Dashboard customer" %}
@@ -153,14 +163,6 @@
               </tr>
             </tfoot>
             <tbody>
-              <tr>
-                <td>
-                  {% trans "Order total" context "Order summary card header" %}
-                </td>
-                <td class="right-align">
-                  {% gross order.get_total html=True %}
-                </td>
-              </tr>
               <tr>
                 <td>
                   {% trans "Preauthorized amount" context "Order summary card header" %}
@@ -268,9 +270,6 @@
                   <th class="wide">
                     {% trans "Item" context "Shipment group table header" %}
                   </th>
-                  <th>
-                    {% trans "SKU" context "Shipment group table header" %}
-                  </th>
                   <th class="right-align">
                     {% trans "Price" context "Shipment group table header" %}
                   </th>
@@ -286,10 +285,17 @@
                 {% for line in group.lines.all %}
                   <tr class="last-no-border">
                     <td>
-                      {{ line.product_name }}<br>
-                    </td>
-                    <td>
-                      {{ line.product_sku }}
+                      {% if line.product %}
+                        <a href="{% url 'dashboard:product-detail' pk=line.product.pk %}">{{ line.product_name }}</a>
+                      {% else %}
+                        {{ line.product_name }}
+                      {% endif %}
+                      <br>
+                      <span class="grey-text">
+                        {% blocktrans trimmed with sku=line.product_sku context "Shipment group table text" %}
+                          SKU: {{ sku }}
+                        {% endblocktrans %}
+                      </span>
                     </td>
                     <td class="right-align">
                       {% gross line.get_price_per_item html=True %}
@@ -297,7 +303,7 @@
                     <td class="right-align">
                       {% if group.can_edit_lines %}
                         <a class="dropdown-button" href="#" data-activates="line-actions-{{ line.pk }}" data-constrainwidth="false">
-                          {{ line.quantity }} {% if line.stock_location %} ({{ line.stock_location|truncatechars:10 }}) {% endif %}
+                          {{ line.quantity }} {% if line.stock_location and is_many_stock_locations %} ({{ line.stock_location|truncatechars:10 }}) {% endif %}
                           <svg data-src="{% static "dashboard/images/arrow-drop-down.svg" %}" width="24" height="24" />
                         </a>
                         <ul id="line-actions-{{ line.pk }}" class="dropdown-content">
@@ -306,11 +312,13 @@
                               {% trans "Change quantity" context "Shipment group table row action" %}
                             </a>
                           </li>
-                          <li>
-                            <a href="#base-modal" data-href="{% url 'dashboard:orderline-change-stock' order_pk=order.pk line_pk=line.pk %}" class="modal-trigger-custom" title="{% trans "Change stock location" context "Shipment group table row action" %}">
-                              {% trans "Change stock" context "Shipment group table row action" %}
-                            </a>
-                          </li>
+                          {% if is_many_stock_locations %}
+                            <li>
+                              <a href="#base-modal" data-href="{% url 'dashboard:orderline-change-stock' order_pk=order.pk line_pk=line.pk %}" class="modal-trigger-custom" title="{% trans "Change stock location" context "Shipment group table row action" %}">
+                                {% trans "Change stock" context "Shipment group table row action" %}
+                              </a>
+                            </li>
+                          {% endif %}
                           <li>
                             <a href="#base-modal" data-href="{% url 'dashboard:orderline-split' order_pk=order.pk line_pk=line.pk %}" class="modal-trigger-custom" title="{% trans "Split line" context "Shipment group table row action" %}">
                               {% trans "Split order line" context "Shipment group table row action" %}
@@ -347,9 +355,11 @@
                     {% trans "Cancel shipment" context "Shipment group table action" %}
                   </a>
                 {% endif %}
-                <a href="#base-modal" data-href="{% url 'dashboard:add-variant-to-group' order_pk=order.pk group_pk=group.pk %}" class="btn-flat waves-effect modal-trigger-custom" title="{% trans "Add product to order" context "Order summary card action title" %}">
-                  {% trans "Add product" context "Order summary card action" %}
-                </a>
+                {% if group.can_edit_lines %}
+                  <a href="#base-modal" data-href="{% url 'dashboard:add-variant-to-group' order_pk=order.pk group_pk=group.pk %}" class="btn-flat waves-effect modal-trigger-custom" title="{% trans "Add product to order" context "Order summary card action title" %}">
+                    {% trans "Add product" context "Order summary card action" %}
+                  </a>
+                {% endif %}
                 <a href="{% url 'dashboard:order-packing-slips' group_pk=group.pk %}" data-href="" class="btn-flat waves-effect" target="_blank">
                   {% trans "Packing Slips" context "Order detail action" %}
                 </a>

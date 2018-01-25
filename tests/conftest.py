@@ -273,6 +273,18 @@ def product_in_stock(product_type, default_category):
 
 
 @pytest.fixture
+def product_without_shipping(default_category):
+    product_type = ProductType.objects.create(
+        name='Type with no shipping', has_variants=False,
+        is_shipping_required=False)
+    product = Product.objects.create(
+        name='Test product', price=Decimal('10.00'),
+        product_type=product_type, category=default_category)
+    variant = ProductVariant.objects.create(product=product, sku='SKU_B')
+    return product
+
+
+@pytest.fixture
 def product_list(product_type, default_category):
     product_attr = product_type.product_attributes.first()
     attr_value = product_attr.values.first()
@@ -374,6 +386,7 @@ def order_with_lines(order, product_type, default_category):
         product=product,
         product_name=product.name,
         product_sku='SKU_%d' % (product.pk,),
+        is_shipping_required=product.product_type.is_shipping_required,
         quantity=1,
         unit_price_net=Decimal('10.00'),
         unit_price_gross=Decimal('10.00'),
@@ -387,6 +400,7 @@ def order_with_lines(order, product_type, default_category):
         product=product,
         product_name=product.name,
         product_sku='SKU_%d' % (product.pk,),
+        is_shipping_required=product.product_type.is_shipping_required,
         quantity=1,
         unit_price_net=Decimal('20.00'),
         unit_price_gross=Decimal('20.00'),
@@ -400,6 +414,7 @@ def order_with_lines(order, product_type, default_category):
         product=product,
         product_name=product.name,
         product_sku='SKU_%d' % (product.pk,),
+        is_shipping_required=product.product_type.is_shipping_required,
         quantity=1,
         unit_price_net=Decimal('30.00'),
         unit_price_gross=Decimal('30.00'),
@@ -424,6 +439,7 @@ def order_with_lines_and_stock(order, product_type, default_category):
         product=product,
         product_name=product.name,
         product_sku='SKU_A',
+        is_shipping_required=product.product_type.is_shipping_required,
         quantity=3,
         unit_price_net=Decimal('30.00'),
         unit_price_gross=Decimal('30.00'),
@@ -442,6 +458,7 @@ def order_with_lines_and_stock(order, product_type, default_category):
         product=product,
         product_name=product.name,
         product_sku='SKU_B',
+        is_shipping_required=product.product_type.is_shipping_required,
         quantity=2,
         unit_price_net=Decimal('20.00'),
         unit_price_gross=Decimal('20.00'),
@@ -466,6 +483,7 @@ def order_with_variant_from_different_stocks(order_with_lines_and_stock):
         product=variant.product,
         product_name=variant.product.name,
         product_sku=line.product_sku,
+        is_shipping_required=variant.product.product_type.is_shipping_required,
         quantity=2,
         unit_price_net=Decimal('30.00'),
         unit_price_gross=Decimal('30.00'),
@@ -486,7 +504,7 @@ def delivery_group(order, product_type, default_category):
         name='Test product', price=Decimal('10.00'),
         product_type=product_type, category=default_category)
     variant = ProductVariant.objects.create(product=product, sku='SKU_A')
-    warehouse = StockLocation.objects.create(name='Warehouse 1')
+    warehouse = StockLocation.objects.create(name='Warehouse 2')
     stock = Stock.objects.create(
         variant=variant, cost_price=1, quantity=5, quantity_allocated=3,
         location=warehouse)
@@ -495,6 +513,7 @@ def delivery_group(order, product_type, default_category):
         product=product,
         product_name=product.name,
         product_sku='SKU_A',
+        is_shipping_required=product.product_type.is_shipping_required,
         quantity=3,
         unit_price_net=Decimal('30.00'),
         unit_price_gross=Decimal('30.00'),
