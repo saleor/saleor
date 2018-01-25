@@ -350,11 +350,6 @@ class OrderHistoryEntry(models.Model):
     class Meta:
         ordering = ('date', )
 
-    def __str__(self):
-        return pgettext_lazy(
-            'Order history entry str',
-            'OrderHistoryEntry for Order #%d') % self.order.pk
-
 
 class OrderNote(models.Model):
     user = models.ForeignKey(
@@ -368,8 +363,3 @@ class OrderNote(models.Model):
 
     class Meta:
         ordering = ('date', )
-
-    def __str__(self):
-        return pgettext_lazy(
-            'Order note str',
-            'OrderNote for Order #%d' % self.order.pk)
