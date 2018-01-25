@@ -171,17 +171,10 @@ class ProductForm(forms.ModelForm):
             else:
                 attributes[smart_text(attr.pk)] = value
         self.instance.attributes = attributes
-        instance = super().save(commit=False)
-
-        def save_collections():
-            instance.collections.clear()
-            for collections in self.cleaned_data['collections']:
-                instance.collections.add(collections)
-        self.save_collections = save_collections
-
-        if commit:
-            instance.save()
-            self.save_collections()
+        instance = super().save()
+        instance.collections.clear()
+        for collection in self.cleaned_data['collections']:
+            instance.collections.add(collection)
         return instance
 
 
