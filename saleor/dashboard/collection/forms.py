@@ -30,7 +30,6 @@ class CollectionForm(forms.ModelForm):
         if self.instance.pk:
             self.fields['products'].set_initial(self.instance.products.all())
 
-
     def save(self, commit=True):
         self.instance.slug = slugify(unidecode(self.instance.name))
         super().save(commit=commit)

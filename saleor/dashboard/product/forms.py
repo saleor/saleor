@@ -128,7 +128,7 @@ class ProductForm(forms.ModelForm):
             'is_featured': pgettext_lazy(
                 'Featured product toggle', 'Feature this product on homepage'),
             'collections': pgettext_lazy(
-                'Include in collection select', 'Collections')}
+                'Add to collection select', 'Collections')}
 
     collections = forms.ModelMultipleChoiceField(
         required=False, queryset=Collection.objects.all())
