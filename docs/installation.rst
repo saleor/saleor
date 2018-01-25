@@ -127,7 +127,7 @@ Installation
 
     $ python manage.py migrate
 
-    .. warning::
+   .. warning::
 
        This command will need to be able to create database extensions. If you get an error related to the ``CREATE EXTENSION`` command please review the notes from the user creation step.
 
