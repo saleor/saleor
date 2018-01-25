@@ -1,4 +1,5 @@
 from django.template.response import TemplateResponse
+from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import permission_required
 from django.core.urlresolvers import reverse
@@ -9,6 +10,7 @@ from django.utils.translation import pgettext_lazy
 from ...product.models import Collection
 from ...core.utils import get_paginator_items
 from ..views import staff_member_required
+from .filters import CollectionFilter
 from .forms import CollectionForm
 
 
@@ -16,8 +18,13 @@ from .forms import CollectionForm
 @permission_required('product.view_product')
 def collection_list(request):
     collections = Collection.objects.prefetch_related('products').all()
-    collections = get_paginator_items(collections, 30, request.GET.get('page'))
-    ctx = {'collections': collections}
+    collection_filter = CollectionFilter(request.GET, queryset=collections)
+    collections = get_paginator_items(
+        collection_filter.qs, settings.DASHBOARD_PAGINATE_BY,
+        request.GET.get('page'))
+    ctx = {
+        'collections': collections,'filter_set': collection_filter,
+        'is_empty': not collection_filter.queryset.exists()}
     return TemplateResponse(
         request, 'dashboard/collection/list.html', ctx)
 
