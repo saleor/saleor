@@ -23,7 +23,7 @@ def collection_list(request):
         collection_filter.qs, settings.DASHBOARD_PAGINATE_BY,
         request.GET.get('page'))
     ctx = {
-        'collections': collections,'filter_set': collection_filter,
+        'collections': collections, 'filter_set': collection_filter,
         'is_empty': not collection_filter.queryset.exists()}
     return TemplateResponse(
         request, 'dashboard/collection/list.html', ctx)
