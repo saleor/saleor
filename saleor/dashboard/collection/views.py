@@ -18,15 +18,15 @@ def collection_list(request):
     collections = Collection.objects.prefetch_related('products').all()
     collections = get_paginator_items(collections, 30, request.GET.get('page'))
     ctx = {'collections': collections}
-    return TemplateResponse(request,
-                            'dashboard/collection/list.html', ctx)
+    return TemplateResponse(
+        request, 'dashboard/collection/list.html', ctx)
 
 
 @staff_member_required
 @permission_required('product.edit_product')
 def collection_create(request):
     collection = Collection()
-    form = CollectionForm(request.POST or None)
+    form = CollectionForm(request.POST or None, instance=collection)
     if form.is_valid():
         collection = form.save()
         msg = pgettext_lazy('Collection message', 'Added collection')
@@ -63,5 +63,5 @@ def collection_delete(request, pk=None):
             return JsonResponse(response)
         return redirect('dashboard:collection-list')
     ctx = {'collection': collection}
-    return TemplateResponse(request, 'dashboard/collection/modal_delete.html',
-                            ctx)
+    return TemplateResponse(
+        request, 'dashboard/collection/confirm_delete.html', ctx)
