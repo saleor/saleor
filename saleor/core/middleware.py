@@ -19,7 +19,6 @@ class GoogleAnalytics(MiddlewareMixin):
         path = request.path
         language = get_language()
         headers = request.META
-        # FIXME: on production you might want to run this in background
         try:
             analytics.report_view(client_id, path=path, language=language,
                                   headers=headers)
