@@ -1,6 +1,5 @@
 import datetime
 import json
-from random import randint
 
 from django.conf import settings
 from django.http import HttpResponsePermanentRedirect, JsonResponse
@@ -12,7 +11,7 @@ from ..cart.utils import set_cart_cookie
 from ..core.utils import get_paginator_items, serialize_decimal
 from ..core.utils.filters import get_now_sorted_by
 from .filters import ProductFilter, SORT_BY_FIELDS
-from .models import Category, Product
+from .models import Category
 from .utils import (
     get_availability, get_product_attributes_data, get_product_images,
     get_variant_picker_data, handle_cart_form, product_json_ld,

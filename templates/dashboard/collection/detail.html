@@ -1,6 +1,7 @@
 {% extends 'dashboard/base.html' %}
 {% load materializecss %}
 {% load i18n %}
+{% load staticfiles %}
 
 {% block title %}
   {% if collection.pk %}{{ collection }}{% else %}{% trans 'Add new collection' %}{% endif %} - {% trans 'Collections' %} - {{ block.super }}{% endblock %}
@@ -19,18 +20,35 @@
   </ul>
 {% endblock %}
 
+{#{% block header_extra %}#}
+{#  {% if collection.pk %}#}
+{#    <a class="dropdown-button right" href="#" data-activates="collection-delete" data-constrainwidth="false">#}
+{#      <i class="material-icons">more_vert</i>#}
+{#    </a>#}
+{#    <ul id="collection-delete" class="dropdown-content">#}
+{#      <li>#}
+{#        <a class="modal-trigger-custom" data-href="{% url 'dashboard:collection-delete' collection.pk %}" href="#base-modal">#}
+{#          {% trans "Remove collection" context "Collection detail action" %}#}
+{#        </a>#}
+{#      </li>#}
+{#    </ul>#}
+{#  {% endif %}#}
+{#{% endblock %}#}
+
 {% block header_extra %}
   {% if collection.pk %}
-    <a class="dropdown-button right" href="#" data-activates="collection-delete" data-constrainwidth="false">
-      <i class="material-icons">more_vert</i>
-    </a>
-    <ul id="collection-delete" class="dropdown-content">
-      <li>
-        <a class="modal-trigger-custom" data-href="{% url 'dashboard:collection-delete' collection.pk %}" href="#base-modal">
-          {% trans "Remove collection" context "Collection detail action" %}
-        </a>
-      </li>
-    </ul>
+    {% if perms.product.edit_product %}
+      <a class="dropdown-button right" href="#" data-activates="collection-delete" data-constrainwidth="false">
+        <svg data-src="{% static "dashboard/images/more-vert.svg" %}" height="24" width="24" />
+      </a>
+      <ul id="collection-delete" class="dropdown-content">
+        <li>
+          <a class="modal-trigger-custom" href="#base-modal" data-href="{% url 'dashboard:collection-delete' pk=collection.pk %}">
+            {% trans "Remove collection" context "Collection action" %}
+          </a>
+        </li>
+      </ul>
+    {% endif %}
   {% endif %}
 {% endblock %}
 
