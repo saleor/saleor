@@ -461,6 +461,7 @@ def test_view_change_order_line_stock_merges_lines(
         product=line.product,
         product_name=line.product.name,
         product_sku='SKU_A',
+        is_shipping_required=line.is_shipping_required,
         quantity=2,
         unit_price_net=Decimal('30.00'),
         unit_price_gross=Decimal('30.00'),

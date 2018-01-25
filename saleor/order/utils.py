@@ -88,6 +88,8 @@ def add_variant_to_delivery_group(
             product=variant.product,
             product_name=variant.display_product(),
             product_sku=variant.sku,
+            is_shipping_required=(
+                variant.product.product_type.is_shipping_required),
             quantity=quantity,
             unit_price_net=price.net,
             unit_price_gross=price.gross,
@@ -135,7 +137,8 @@ def merge_duplicates_into_order_line(line):
     """
     lines = line.delivery_group.lines.filter(
         product=line.product, product_name=line.product_name,
-        product_sku=line.product_sku, stock=line.stock)
+        product_sku=line.product_sku, stock=line.stock,
+        is_shipping_required=line.is_shipping_required)
     if lines.count() > 1:
         line.quantity = sum([line.quantity for line in lines])
         line.save()
@@ -182,11 +185,13 @@ def move_order_line_to_group(line, target_group, quantity):
     try:
         target_line = target_group.lines.get(
             product=line.product, product_name=line.product_name,
-            product_sku=line.product_sku, stock=line.stock)
+            product_sku=line.product_sku, stock=line.stock,
+            is_shipping_required=line.is_shipping_required)
     except OrderLine.DoesNotExist:
         target_group.lines.create(
             delivery_group=target_group, product=line.product,
             product_name=line.product_name, product_sku=line.product_sku,
+            is_shipping_required=line.is_shipping_required,
             quantity=quantity, unit_price_net=line.unit_price_net,
             stock=line.stock,
             stock_location=line.stock_location,

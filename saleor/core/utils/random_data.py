@@ -421,6 +421,7 @@ def create_order_line(delivery_group):
         product=product,
         product_name=product.name,
         product_sku=variant.sku,
+        is_shipping_required=product.product_type.is_shipping_required,
         quantity=quantity,
         stock=stock,
         stock_location=stock.location.name,

@@ -187,7 +187,7 @@ class ProductVariant(models.Model, Item):
         app_label = 'product'
 
     def __str__(self):
-        return self.name or self.display_variant()
+        return self.name or self.display_variant_attributes()
 
     def check_quantity(self, quantity):
         total_available_quantity = self.get_stock_quantity()
@@ -229,7 +229,7 @@ class ProductVariant(models.Model, Item):
     def set_attribute(self, pk, value_pk):
         self.attributes[smart_text(pk)] = smart_text(value_pk)
 
-    def display_variant(self, attributes=None):
+    def display_variant_attributes(self, attributes=None):
         if attributes is None:
             attributes = self.product.product_type.variant_attributes.all()
         values = get_attributes_display_map(self, attributes)
@@ -238,11 +238,14 @@ class ProductVariant(models.Model, Item):
                 ['%s: %s' % (smart_text(attributes.get(id=int(key))),
                              smart_text(value))
                  for (key, value) in values.items()])
-        else:
-            return smart_text(self.sku)
+        return ''
 
     def display_product(self):
-        return '%s (%s)' % (smart_text(self.product), smart_text(self))
+        variant_display = str(self)
+        product_display = (
+            '%s (%s)' % (self.product, variant_display)
+            if variant_display else str(self.product))
+        return smart_text(product_display)
 
     def get_first_image(self):
         return self.product.get_first_image()
