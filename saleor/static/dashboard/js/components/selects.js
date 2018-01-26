@@ -9,7 +9,7 @@ function initSelects() {
   $('select:not(.browser-default):not(.enable-ajax-select2):not([multiple])').material_select();
   $('select[multiple]:not(.browser-default):not(.enable-ajax-select2)').select2({width: '100%'});
 
-  $('select.enable-ajax-select2').each((i, select) => {
+  $('select.enable-ajax-select2:not(.select2-enabled)').each((i, select) => {
     const $select = $(select);
     const initial = $select.data('initial');
 
@@ -30,6 +30,7 @@ function initSelects() {
       width: '100%',
       minimumInputLength: 2
     });
+    $select.addClass('select2-enabled')
   });
 }
 
