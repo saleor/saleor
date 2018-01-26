@@ -10,8 +10,8 @@ from django.urls import reverse
 from ..cart.utils import set_cart_cookie
 from ..core.utils import get_paginator_items, serialize_decimal
 from ..core.utils.filters import get_now_sorted_by
-from .filters import SORT_BY_FIELDS, ProductFilter
-from .models import Category
+from .filters import ProductFilter, ProductCollectionFilter, SORT_BY_FIELDS
+from .models import Category, Collection
 from .utils import (
     get_availability, get_product_attributes_data, get_product_images,
     get_variant_picker_data, handle_cart_form, product_json_ld,
@@ -132,3 +132,25 @@ def category_index(request, path, category_id):
            'now_sorted_by': now_sorted_by,
            'is_descending': is_descending}
     return TemplateResponse(request, 'category/index.html', ctx)
+
+
+def collection_index(request, pk):
+    collection = get_object_or_404(Collection, id=pk)
+    products = products_with_details(user=request.user).filter(
+        collections__id=collection.id).order_by('name')
+    product_filter = ProductCollectionFilter(
+        request.GET, queryset=products, collection=collection)
+    products_paginated = get_paginator_items(
+        product_filter.qs, settings.PAGINATE_BY, request.GET.get('page'))
+    products_and_availability = list(products_with_availability(
+        products_paginated, request.discounts, request.currency))
+    now_sorted_by = get_now_sorted_by(product_filter)
+    arg_sort_by = request.GET.get('sort_by')
+    is_descending = arg_sort_by.startswith('-') if arg_sort_by else False
+    ctx = {'collection': collection, 'filter_set': product_filter,
+           'products': products_and_availability,
+           'products_paginated': products_paginated,
+           'sort_by_choices': SORT_BY_FIELDS,
+           'now_sorted_by': now_sorted_by,
+           'is_descending': is_descending}
+    return TemplateResponse(request, 'collection/index.html', ctx)
