@@ -25,7 +25,6 @@ class ProductFilter(SortedFilterSet):
         filter_overrides = {PriceField: {'filter_class': RangeFilter}}
 
     def __init__(self, *args, **kwargs):
-        self.category = kwargs.pop('category', None)
         super().__init__(*args, **kwargs)
         self.product_attributes, self.variant_attributes = (
             self._get_attributes())
@@ -35,17 +34,7 @@ class ProductFilter(SortedFilterSet):
         self.form.fields['sort_by'].validators.append(self.validate_sort_by)
 
     def _get_attributes(self):
-        product_attributes = (
-            ProductAttribute.objects.all()
-            .prefetch_related('values')
-            .filter(product_types__products__category=self.category)
-            .distinct())
-        variant_attributes = (
-            ProductAttribute.objects.all()
-            .prefetch_related('values')
-            .filter(product_variant_types__products__category=self.category)
-            .distinct())
-        return product_attributes, variant_attributes
+        raise NotImplementedError()
 
     def _get_product_attributes_filters(self):
         filters = {}
@@ -79,10 +68,29 @@ class ProductFilter(SortedFilterSet):
                 params={'value': value})
 
 
+class ProductCategoryFilter(ProductFilter):
+    def __init__(self, *args, **kwargs):
+        self.category = kwargs.pop('category')
+        super().__init__(*args, **kwargs)
+
+    def _get_attributes(self):
+        product_attributes = (
+            ProductAttribute.objects.all()
+            .prefetch_related('values')
+            .filter(product_types__products__category=self.category)
+            .distinct())
+        variant_attributes = (
+            ProductAttribute.objects.all()
+            .prefetch_related('values')
+            .filter(product_variant_types__products__category=self.category)
+            .distinct())
+        return product_attributes, variant_attributes
+
+
 class ProductCollectionFilter(ProductFilter):
 
     def __init__(self, *args, **kwargs):
-        self.collection = kwargs.pop('collection', None)
+        self.collection = kwargs.pop('collection')
         super().__init__(*args, **kwargs)
 
     def _get_attributes(self):

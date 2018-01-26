@@ -10,7 +10,7 @@ from django.urls import reverse
 from ..cart.utils import set_cart_cookie
 from ..core.utils import get_paginator_items, serialize_decimal
 from ..core.utils.filters import get_now_sorted_by
-from .filters import ProductFilter, ProductCollectionFilter, SORT_BY_FIELDS
+from .filters import ProductCategoryFilter, ProductCollectionFilter, SORT_BY_FIELDS
 from .models import Category, Collection
 from .utils import (
     get_availability, get_product_attributes_data, get_product_images,
@@ -116,7 +116,7 @@ def category_index(request, path, category_id):
                         category_id=category_id)
     products = products_with_details(user=request.user).filter(
         category__id=category.id).order_by('name')
-    product_filter = ProductFilter(
+    product_filter = ProductCategoryFilter(
         request.GET, queryset=products, category=category)
     products_paginated = get_paginator_items(
         product_filter.qs, settings.PAGINATE_BY, request.GET.get('page'))
