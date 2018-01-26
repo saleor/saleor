@@ -39,9 +39,9 @@
                 <tr>
                   {% trans "Name" context "Collections list table header name" as label %}
                   {% sorting_header 'name' label %}
-
-                  {% trans "Products" context "Collections list table header description" as label %}
-                  {% sorting_header 'description' label is_wide=True %}
+                  <th>
+                    {% trans "Number of products" context "Voucher table header" %}
+                  </th>
                 </tr>
               </thead>
               {% for node in collections %}
