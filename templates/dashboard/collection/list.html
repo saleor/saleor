@@ -65,12 +65,12 @@
         </div>
       {% else %}
         {% if is_empty %}
-          {% include 'dashboard/category/zero_page.html' %}
+          {% include 'dashboard/collection/zero_page.html' %}
         {% else %}
           <div class="col s12">
             <div class="not-found">
               <p class="grey-text">
-                {% trans "No collections found." context "Empty category list message" %}
+                {% trans "No collections found." context "Empty collection list message" %}
               </p>
             </div>
           </div>

@@ -5,7 +5,7 @@ from ...core.filters import SortedFilterSet
 from ...product.models import Collection
 
 SORT_BY_FIELDS = {
-    'name': pgettext_lazy('Category list sorting option', 'name')}
+    'name': pgettext_lazy('Collection list sorting option', 'name')}
 
 
 class CollectionFilter(SortedFilterSet):
