@@ -377,5 +377,19 @@ class VariantImage(models.Model):
         'ProductVariant', related_name='variant_images',
         on_delete=models.CASCADE)
     image = models.ForeignKey(
-        ProductImage, related_name='variant_images',
-        on_delete=models.CASCADE)
+        ProductImage, related_name='variant_images', on_delete=models.CASCADE)
+
+
+class Collection(models.Model):
+    name = models.CharField(max_length=128, unique=True)
+    slug = models.SlugField()
+    products = models.ManyToManyField(
+        Product, blank=True, related_name='collections')
+
+    def __str__(self):
+        return self.name
+
+    def get_absolute_url(self):
+        return reverse(
+            'product:collection',
+            kwargs={'slug': self.slug, 'collection_id': self.id})
