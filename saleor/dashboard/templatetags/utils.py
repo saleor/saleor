@@ -133,8 +133,8 @@ def sorting_header(context, field, label, is_wide=False):
     is_active = False
 
     if sort_by:
-        is_active = True
         if field == sort_by:
+            is_active = True
             # enable ascending sort
             # new_sort_by is used to construct a link with already toggled
             # sort_by value
@@ -144,6 +144,7 @@ def sorting_header(context, field, label, is_wide=False):
             # enable descending sort
             new_sort_by = field
             if field == sort_by.strip('-'):
+                is_active = True
                 sorting_icon = static('/images/arrow-down-icon.svg')
     else:
         new_sort_by = field
