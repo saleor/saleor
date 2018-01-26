@@ -7,8 +7,8 @@ from django.utils.text import slugify
 from django.utils.translation import pgettext_lazy
 
 from ...product.models import (
-    AttributeChoiceValue, Product, ProductAttribute, ProductImage, ProductType,
-    ProductVariant, Stock, StockLocation, VariantImage)
+    Collection, AttributeChoiceValue, Product, ProductAttribute, ProductImage,
+    ProductType, ProductVariant, Stock, StockLocation, VariantImage)
 from .widgets import ImagePreviewWidget
 from . import ProductBulkAction
 from ..widgets import RichTextEditorWidget
@@ -126,7 +126,12 @@ class ProductForm(forms.ModelForm):
             'is_published': pgettext_lazy(
                 'Product published toggle', 'Published'),
             'is_featured': pgettext_lazy(
-                'Featured product toggle', 'Feature this product on homepage')}
+                'Featured product toggle', 'Feature this product on homepage'),
+            'collections': pgettext_lazy(
+                'Add to collection select', 'Collections')}
+
+    collections = forms.ModelMultipleChoiceField(
+        required=False, queryset=Collection.objects.all())
 
     def __init__(self, *args, **kwargs):
         self.product_attributes = []
@@ -137,6 +142,8 @@ class ProductForm(forms.ModelForm):
             'values')
         self.prepare_fields_for_attributes()
         self.fields['description'].widget = RichTextEditorWidget()
+        self.fields["collections"].initial = Collection.objects.filter(
+            products__name=self.instance)
 
     def prepare_fields_for_attributes(self):
         for attribute in self.product_attributes:
@@ -164,7 +171,10 @@ class ProductForm(forms.ModelForm):
             else:
                 attributes[smart_text(attr.pk)] = value
         self.instance.attributes = attributes
-        instance = super().save(commit=commit)
+        instance = super().save()
+        instance.collections.clear()
+        for collection in self.cleaned_data['collections']:
+            instance.collections.add(collection)
         return instance
 
 
