@@ -396,4 +396,5 @@ class Collection(models.Model):
     def get_absolute_url(self):
         return reverse(
             'product:collection',
-            kwargs={'slug': self.slug, 'collection_id': self.id})
+            kwargs={'pk': self.id})
+

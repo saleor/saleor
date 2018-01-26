@@ -25,7 +25,7 @@ class ProductFilter(SortedFilterSet):
         filter_overrides = {PriceField: {'filter_class': RangeFilter}}
 
     def __init__(self, *args, **kwargs):
-        self.category = kwargs.pop('category')
+        self.category = kwargs.pop('category', None)
         super().__init__(*args, **kwargs)
         self.product_attributes, self.variant_attributes = (
             self._get_attributes())
@@ -77,3 +77,24 @@ class ProductFilter(SortedFilterSet):
                     'Validation error for sort_by filter',
                     '%(value)s is not a valid sorting option'),
                 params={'value': value})
+
+
+class ProductCollectionFilter(ProductFilter):
+
+    def __init__(self, *args, **kwargs):
+        self.collection = kwargs.pop('collection', None)
+        super().__init__(*args, **kwargs)
+
+    def _get_attributes(self):
+        product_attributes = (
+            ProductAttribute.objects.all()
+            .prefetch_related('values')
+            .filter(product_types__products__collections=self.collection)
+            .distinct())
+        variant_attributes = (
+            ProductAttribute.objects.all()
+            .prefetch_related('values')
+            .filter(
+                product_variant_types__products__collections=self.collection)
+            .distinct())
+        return product_attributes, variant_attributes
