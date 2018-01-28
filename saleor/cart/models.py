@@ -62,6 +62,7 @@ class AbstractCartModel(models.Model):
         max_length=32, choices=CartStatus.CHOICES, default=CartStatus.OPEN)
     created = models.DateTimeField(
         pgettext_lazy('Cart field', 'created'), auto_now_add=True)
+
     last_status_change = models.DateTimeField(
         pgettext_lazy('Cart field', 'last status change'), auto_now_add=True)
     user = models.ForeignKey(

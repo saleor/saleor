@@ -6,7 +6,7 @@ from uuid import UUID
 
 from django.contrib import messages
 from django.contrib.auth import get_user_model
-from django.core import signing
+from django.core import signing, cache
 from django.db import transaction
 from django.utils.timezone import now
 from django.utils.translation import pgettext_lazy
@@ -16,6 +16,8 @@ from . import CartStatus
 from .models import Cart
 
 COOKIE_NAME = 'cart'
+
+redis = cache.caches['default']
 
 
 def set_cart_cookie(simple_cart, response):
@@ -151,7 +153,12 @@ def get_or_create_user_cart(user, cart_queryset=Cart.objects.all()):
     :type user: User
     :rtype: Cart
     """
-    return cart_queryset.open().get_or_create(user=user)[0]
+    with redis.log('get_user_cart_{}'.format(user.pk)):
+        open_carts = cart_queryset.open().filter(user=user).order_by('-pk')
+        # In case of canceled orders stacking up
+        for cart in open_carts[1:]:
+            cart.change_status(CartStatus.CANCELED)
+        return cart_queryset.open().get_or_create(user=user)[0]
 
 
 def get_anonymous_cart_from_token(token, cart_queryset=Cart.objects.all()):

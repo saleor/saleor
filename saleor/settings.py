@@ -291,6 +291,7 @@ CONSTANCE_CONFIG_FIELDSETS = {
         'VAT_RATE',
         'CHARTS_ALLOWED_ITEMS',
         'OYE_ORDERS_MAIL',
+        'UNPAID_ORDER_RESERVATION_TIMEOUT_MINUTES',
     )
 }
 CONSTANCE_ADDITIONAL_FIELDS = {
@@ -316,7 +317,8 @@ CONSTANCE_CONFIG = {
     'ANNOUNCEMENT_MESSAGE': ('', 'Displays an announcements'),
     'OYE_ORDERS_MAIL': ('orders@oye-records.com', 'Support order mail'),
     'PAYPAL_PAYMENT_ENABLED': (False, 'If set to True Paypal payment is enabled'),
-    'DISCOGS_RELEASE_UPTODATE_HOURS': (48, 'Re-evaluate discogs release after this amount of hours')
+    'DISCOGS_RELEASE_UPTODATE_HOURS': (48, 'Re-evaluate discogs release after this amount of hours'),
+    'UNPAID_ORDER_RESERVATION_TIMEOUT_MINUTES': (30, 'Cancel an unpaid order after this amount of minutes')
 }
 CONSTANCE_BACKEND = 'constance.backends.database.DatabaseBackend'
 
