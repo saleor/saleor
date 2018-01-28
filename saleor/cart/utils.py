@@ -153,7 +153,7 @@ def get_or_create_user_cart(user, cart_queryset=Cart.objects.all()):
     :type user: User
     :rtype: Cart
     """
-    with redis.lock('get_user_cart_{}'.format(user.pk)):
+    with redis.lock('get_user_cart_{}'.format(user.pk), timeout=5):
         open_carts = cart_queryset.open().filter(user=user).order_by('-pk')
         # In case of canceled orders stacking up
         for cart in open_carts[1:]:
