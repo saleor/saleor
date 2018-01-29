@@ -77,7 +77,6 @@ DEFAULT_SCHEMA = {
             'Candy Box Size': ['100g', '250g', '500g']
         },
         'images_dir': 'candy/',
-        'different_variant_prices': True,
         'is_shipping_required': True
     },
     'E-books': {
@@ -102,7 +101,6 @@ DEFAULT_SCHEMA = {
             'Cover': ['Soft', 'Hard']
         },
         'images_dir': 'books/',
-        'different_variant_prices': True,
         'is_shipping_required': True
     }
 }
