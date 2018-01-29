@@ -121,7 +121,7 @@ class User(PermissionsMixin, AbstractBaseUser, index.Indexed):
         default=True)
     date_joined = models.DateTimeField(
         pgettext_lazy('User field', 'date joined'),
-        default=timezone.now, editable=False)
+        default=timezone.now, editable=False, null=True)
     default_shipping_address = models.ForeignKey(
         Address, related_name='+', null=True, blank=True,
         on_delete=models.SET_NULL,
