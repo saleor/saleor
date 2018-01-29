@@ -11,9 +11,10 @@ EMAIL_FROM = settings.ORDER_FROM_EMAIL
 
 
 @mock.patch('saleor.order.emails.send_templated_mail')
-def test_send_confirmation_using_templated_email(mocked_templated_email):
-    emails.send_order_confirmation(EMAIL, URL)
-    context = {'site_name': SITE_NAME, 'url': URL}
+def test_send_confirmation_using_templated_email(
+        mocked_templated_email, order):
+    emails.send_order_confirmation(EMAIL, URL, order.pk)
+    context = {'site_name': SITE_NAME, 'url': URL, 'order': order}
     mocked_templated_email.assert_called_once_with(
         recipient_list=[EMAIL],
         context=context,
