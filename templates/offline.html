@@ -1,0 +1,7 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block content %}
+  <h1 class="text-center mt-5">Offline mode</h1>
+  <div class="text-center">{% trans 'You need internet connection to use this app' context 'Eror no internet connection' %}</div>
+{% endblock %}

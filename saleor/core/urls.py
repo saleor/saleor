@@ -1,4 +1,5 @@
 from django.conf.urls import url
+from django.views.generic import TemplateView
 
 from . import views
 
@@ -11,4 +12,7 @@ urlpatterns = [
     url(r'^impersonate/stop/$', views.stop_impersonate,
         name='impersonate-stop'),
     url(r'^404', views.handle_404, name='handle-404')
+    url(r'^offline$', views.offline, name='offline'),
+    url(r'^manifest\.json$', TemplateView.as_view(
+        template_name='manifest.json', content_type='application/json')),
 ]

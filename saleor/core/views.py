@@ -38,5 +38,9 @@ def impersonate(request, uid):
     return response
 
 
+def offline(request):
+    return TemplateResponse(request, 'offline.html', {})
+
+
 def handle_404(request):
     return TemplateResponse(request, '404.html', status=404)
