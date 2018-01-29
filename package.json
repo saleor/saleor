@@ -24,6 +24,7 @@
     "favicons-webpack-plugin": "^0.0.7",
     "jquery": "^3.1.1",
     "jquery.cookie": "^1.4.1",
+    "lazysizes": "^4.0.1",
     "materialize-css": "^0.100.2",
     "medium-editor": "^5.23.3",
     "mobx": "^3.0.2",
@@ -85,8 +86,8 @@
     }
   },
   "scripts": {
-    "build-assets": "node ./node_modules/webpack/bin/webpack.js -p",
+    "build-assets": "node ./node_modules/webpack/bin/webpack.js -p --progress",
     "heroku-postbuild": "npm run build-assets",
-    "start": "UV_THREADPOOL_SIZE=8 node ./node_modules/webpack/bin/webpack.js -d --watch"
+    "start": "UV_THREADPOOL_SIZE=8 node ./node_modules/webpack/bin/webpack.js -d --watch --progress"
   }
 }
