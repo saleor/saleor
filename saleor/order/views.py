@@ -33,7 +33,8 @@ def details(request, token):
     notes = order.notes.filter(is_public=True)
     ctx = {'order': order, 'groups': groups, 'notes': notes}
     if order.status == OrderStatus.OPEN:
-        note = OrderNote(order=order, user=request.user)
+        user = request.user if request.user.is_authenticated else None
+        note = OrderNote(order=order, user=user)
         note_form = OrderNoteForm(request.POST or None, instance=note)
         ctx.update({'note_form': note_form})
         if request.method == 'POST':
