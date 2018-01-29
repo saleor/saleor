@@ -2,7 +2,7 @@ Payments
 ========
 
 
-Supported gateways
+Supported Gateways
 ------------------
 
 Saleor uses `django-payments <http://django-payments.readthedocs.io/en/latest/>`_ library to process payments.
@@ -41,14 +41,14 @@ In practice it greatly lowers the probability of a chargeback.
 Saleor supports 3-D Secure but whether it's used depends on the payment processor and the card being used.
 
 
-Fraud protection
+Fraud Protection
 ----------------
 
 Some of the payment backends provide automatic fraud protection heuristics.
 If such information is available Saleor will show it in the order management panel.
 
 
-Authorisation and capture
+Authorisation and Capture
 -------------------------
 
 Some of the payment backends support pre-authorising payments.
