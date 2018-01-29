@@ -155,7 +155,7 @@ def get_variant_picker_data(product, discounts=None, local_currency=None):
     variants = product.variants.all()
     data = {'variantAttributes': [], 'variants': []}
 
-    product_class_variant_attributes = product.product_type.variant_attributes.all()
+    product_type_variant_attributes = product.product_type.variant_attributes.all()
 
     # Collect only available variants
     filter_available_variants = defaultdict(list)
@@ -197,7 +197,7 @@ def get_variant_picker_data(product, discounts=None, local_currency=None):
             'schemaData': schema_data}
         data['variants'].append(variant_data)
 
-    for attribute in product_class_variant_attributes:
+    for attribute in product_type_variant_attributes:
         available_variants = filter_available_variants.get(attribute.pk, None)
 
         if available_variants:
