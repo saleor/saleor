@@ -35,7 +35,7 @@ First steps
  $ heroku addons:create heroku-postgresql:hobby-dev
  $ heroku addons:create heroku-redis:hobby-dev
  $ heroku addons:create sendgrid:starter
- $ heroku addons:create bonsai:sandbox-6 
+ $ heroku addons:create bonsai:sandbox-6 --version=5.4
  $ heroku config:set ALLOWED_HOSTS='<your hosts here>'
  $ heroku config:set NODE_MODULES_CACHE=false
  $ heroku config:set NPM_CONFIG_PRODUCTION=false
