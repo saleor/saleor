@@ -21,11 +21,11 @@
     <tr>
       <td>
         {% trans "Billing address" context "Order confirmation e-mail billing address" %}
-        <br>{{ order.billing_address }}
+        <br>{% format_address order.billing_address %}
       </td>
       <td>
         {% trans "Shipping address" context "Order confirmation e-mail shipping address" %}
-        <br>{{ order.shipping_address }}
+        <br>{% format_address order.shipping_address %}
       </td>
     </tr>
     <tr>
