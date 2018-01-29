@@ -1,4 +1,4 @@
-Order management
+Order Management
 ================
 
 Orders are created after customers complete the checkout process. The `Order` object itself contains only general information about the customer's order.
