@@ -1,4 +1,4 @@
-Working With Python Code
+Working with Python Code
 ========================
 
 Python dependencies
