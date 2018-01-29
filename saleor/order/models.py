@@ -131,7 +131,7 @@ class Order(models.Model, ItemSet):
         email = self.get_user_current_email()
         payment_url = build_absolute_uri(
             reverse('order:details', kwargs={'token': self.token}))
-        emails.send_order_confirmation.delay(email, payment_url, self)
+        emails.send_order_confirmation.delay(email, payment_url, self.pk)
 
     def get_last_payment_status(self):
         last_payment = self.payments.last()
