@@ -25,7 +25,7 @@
       </td>
       <td>
         {% trans "Shipping address" context "Order confirmation e-mail shipping address" %}
-        <br>{% format_address order.shipping_address %}
+        <br>{% if order.shipping_address %}{% format_address order.shipping_address %}{% endif %}
       </td>
     </tr>
     <tr>
