@@ -155,7 +155,7 @@ def get_variant_picker_data(product, discounts=None, local_currency=None):
     variants = product.variants.all()
     data = {'variantAttributes': [], 'variants': []}
 
-    variant_attributes = product.product_type.variant_attributes.all()
+    product_class_variant_attributes = product.product_type.variant_attributes.all()
 
     # Collect only available variants
     filter_available_variants = defaultdict(list)
@@ -178,21 +178,26 @@ def get_variant_picker_data(product, discounts=None, local_currency=None):
         else:
             schema_data['availability'] = 'http://schema.org/OutOfStock'
 
+        # Attributes only available in product type
+        variant_attributes = defaultdict(list)
+
+        for variant_key, variant_value in variant.attributes.items():
+            filter_available_variants[int(variant_key)].append(
+                int(variant_value))
+            if product_class_variant_attributes.filter(pk=variant_key):
+                variant_attributes[variant_key] = variant_value
+ 
         variant_data = {
             'id': variant.id,
             'availability': in_stock,
             'price': price_as_dict(price),
             'priceUndiscounted': price_as_dict(price_undiscounted),
-            'attributes': variant.attributes,
+            'attributes': variant_attributes,
             'priceLocalCurrency': price_as_dict(price_local_currency),
             'schemaData': schema_data}
         data['variants'].append(variant_data)
 
-        for variant_key, variant_value in variant.attributes.items():
-            filter_available_variants[int(variant_key)].append(
-                int(variant_value))
-
-    for attribute in variant_attributes:
+    for attribute in product_class_variant_attributes:
         available_variants = filter_available_variants.get(attribute.pk, None)
 
         if available_variants:
