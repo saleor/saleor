@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2018-01-04 11:16-0600\n"
+"POT-Creation-Date: 2018-01-23 09:24-0600\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: benoit barthelet <benoit.barthelet@gmail.com>, 2017\n"
 "Language-Team: French (https://www.transifex.com/mirumee/teams/34782/fr/)\n"
@@ -18,278 +18,83 @@ msgstr ""
 "Language: fr\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
 
-#: saleor/static/dashboard/js/components/bulk-actions.js:5
+#: saleor/static/dashboard/js/components/bulk-actions.js:89
 msgid "item selected"
 msgid_plural "items selected"
 msgstr[0] ""
 msgstr[1] ""
 
-#: saleor/static/dashboard/js/components/datepicker.js:4
+#: saleor/static/dashboard/js/components/datepicker.js:25
 msgctxt "Datepicker option"
 msgid "Next month"
 msgstr "Mois prochain"
 
-#: saleor/static/dashboard/js/components/datepicker.js:5
+#: saleor/static/dashboard/js/components/datepicker.js:26
 msgctxt "Datepicker option"
 msgid "Previous month"
 msgstr "Mois précédant"
 
-#: saleor/static/dashboard/js/components/datepicker.js:8
+#: saleor/static/dashboard/js/components/datepicker.js:29
 msgctxt "Datepicker option"
 msgid "Select a month"
 msgstr "Choisis un mois"
 
-#: saleor/static/dashboard/js/components/datepicker.js:9
+#: saleor/static/dashboard/js/components/datepicker.js:30
 msgctxt "Datepicker option"
 msgid "Select a year"
 msgstr "Choisis une année"
 
-#: saleor/static/dashboard/js/components/datepicker.js:12
-msgctxt "Datepicker month"
-msgid "January"
-msgstr ""
-
-#: saleor/static/dashboard/js/components/datepicker.js:12
-msgctxt "Datepicker month"
-msgid "February"
-msgstr ""
-
-#: saleor/static/dashboard/js/components/datepicker.js:12
-msgctxt "Datepicker month"
-msgid "March"
-msgstr ""
-
-#: saleor/static/dashboard/js/components/datepicker.js:12
-msgctxt "Datepicker month"
-msgid "April"
-msgstr ""
-
-#: saleor/static/dashboard/js/components/datepicker.js:12
-msgctxt "Datepicker month"
-msgid "May"
-msgstr ""
-
-#: saleor/static/dashboard/js/components/datepicker.js:12
-msgctxt "Datepicker month"
-msgid "June"
-msgstr ""
-
-#: saleor/static/dashboard/js/components/datepicker.js:12
-msgctxt "Datepicker month"
-msgid "July"
-msgstr ""
-
-#: saleor/static/dashboard/js/components/datepicker.js:12
-msgctxt "Datepicker month"
-msgid "August"
-msgstr ""
-
-#: saleor/static/dashboard/js/components/datepicker.js:12
-msgctxt "Datepicker month"
-msgid "September"
-msgstr ""
-
-#: saleor/static/dashboard/js/components/datepicker.js:12
-msgctxt "Datepicker month"
-msgid "October"
-msgstr ""
-
-#: saleor/static/dashboard/js/components/datepicker.js:12
-msgctxt "Datepicker month"
-msgid "November"
-msgstr ""
-
-#: saleor/static/dashboard/js/components/datepicker.js:12
-msgctxt "Datepicker month"
-msgid "December"
-msgstr ""
-
-#: saleor/static/dashboard/js/components/datepicker.js:13
-msgctxt "Datepicker month shortcut"
-msgid "Jan"
-msgstr ""
-
-#: saleor/static/dashboard/js/components/datepicker.js:13
-msgctxt "Datepicker month shortcut"
-msgid "Feb"
-msgstr ""
-
-#: saleor/static/dashboard/js/components/datepicker.js:13
-msgctxt "Datepicker month shortcut"
-msgid "Mar"
-msgstr ""
-
-#: saleor/static/dashboard/js/components/datepicker.js:13
-msgctxt "Datepicker month shortcut"
-msgid "Apr"
-msgstr ""
-
-#: saleor/static/dashboard/js/components/datepicker.js:13
-msgctxt "Datepicker month shortcut"
-msgid "May"
-msgstr ""
-
-#: saleor/static/dashboard/js/components/datepicker.js:13
-msgctxt "Datepicker month shortcut"
-msgid "Jun"
-msgstr ""
-
-#: saleor/static/dashboard/js/components/datepicker.js:13
-msgctxt "Datepicker month shortcut"
-msgid "Jul"
-msgstr ""
-
-#: saleor/static/dashboard/js/components/datepicker.js:13
-msgctxt "Datepicker month shortcut"
-msgid "Aug"
-msgstr ""
-
-#: saleor/static/dashboard/js/components/datepicker.js:13
-msgctxt "Datepicker month shortcut"
-msgid "Sep"
-msgstr ""
-
-#: saleor/static/dashboard/js/components/datepicker.js:13
-msgctxt "Datepicker month shortcut"
-msgid "Oct"
-msgstr ""
-
-#: saleor/static/dashboard/js/components/datepicker.js:13
-msgctxt "Datepicker month shortcut"
-msgid "Nov"
-msgstr ""
-
-#: saleor/static/dashboard/js/components/datepicker.js:13
-msgctxt "Datepicker month shortcut"
-msgid "Dec"
-msgstr ""
-
-#: saleor/static/dashboard/js/components/datepicker.js:14
-msgctxt "Datepicker weekday"
-msgid "Sunday"
-msgstr ""
-
-#: saleor/static/dashboard/js/components/datepicker.js:14
-msgctxt "Datepicker weekday"
-msgid "Monday"
-msgstr ""
-
-#: saleor/static/dashboard/js/components/datepicker.js:14
-msgctxt "Datepicker weekday"
-msgid "Tuesday"
-msgstr ""
-
-#: saleor/static/dashboard/js/components/datepicker.js:14
-msgctxt "Datepicker weekday"
-msgid "Wednesday"
-msgstr ""
-
-#: saleor/static/dashboard/js/components/datepicker.js:14
-msgctxt "Datepicker weekday"
-msgid "Thursday"
-msgstr ""
-
-#: saleor/static/dashboard/js/components/datepicker.js:14
-msgctxt "Datepicker weekday"
-msgid "Friday"
-msgstr ""
-
-#: saleor/static/dashboard/js/components/datepicker.js:14
-msgctxt "Datepicker weekday"
-msgid "Saturday"
-msgstr ""
-
-#: saleor/static/dashboard/js/components/datepicker.js:15
-msgctxt "Datepicker weekday shortcut"
-msgid "Sun"
-msgstr ""
-
-#: saleor/static/dashboard/js/components/datepicker.js:15
-msgctxt "Datepicker weekday shortcut"
-msgid "Mon"
-msgstr ""
-
-#: saleor/static/dashboard/js/components/datepicker.js:15
-msgctxt "Datepicker weekday shortcut"
-msgid "Tue"
-msgstr ""
-
-#: saleor/static/dashboard/js/components/datepicker.js:15
-msgctxt "Datepicker weekday shortcut"
-msgid "Wed"
-msgstr ""
-
-#: saleor/static/dashboard/js/components/datepicker.js:15
-msgctxt "Datepicker weekday shortcut"
-msgid "Thu"
-msgstr ""
-
-#: saleor/static/dashboard/js/components/datepicker.js:15
-msgctxt "Datepicker weekday shortcut"
-msgid "Fri"
-msgstr ""
-
-#: saleor/static/dashboard/js/components/datepicker.js:15
-msgctxt "Datepicker weekday shortcut"
-msgid "Sat"
-msgstr ""
-
-#: saleor/static/dashboard/js/components/datepicker.js:18
-msgctxt "Sunday shortcut"
-msgid "S"
-msgstr "D"
-
-#: saleor/static/dashboard/js/components/datepicker.js:18
-msgctxt "Monday shortcut"
-msgid "M"
-msgstr "L"
-
-#: saleor/static/dashboard/js/components/datepicker.js:18
-msgctxt "Tuesday shortcut"
-msgid "T"
-msgstr "M"
-
-#: saleor/static/dashboard/js/components/datepicker.js:18
-msgctxt "Wednesday shortcut"
-msgid "W"
-msgstr "Me"
-
-#: saleor/static/dashboard/js/components/datepicker.js:18
-msgctxt "Thursday shortcut"
-msgid "T"
-msgstr "MeJ"
-
-#: saleor/static/dashboard/js/components/datepicker.js:18
-msgctxt "Friday shortcut"
-msgid "F"
-msgstr "V"
-
-#: saleor/static/dashboard/js/components/datepicker.js:18
-msgctxt "Saturday shortcut"
-msgid "S"
-msgstr "LS"
-
-#: saleor/static/dashboard/js/components/datepicker.js:19
+#: saleor/static/dashboard/js/components/datepicker.js:40
 msgctxt "Datepicker option"
 msgid "Today"
 msgstr "Aujourd'hui"
 
-#: saleor/static/dashboard/js/components/datepicker.js:20
+#: saleor/static/dashboard/js/components/datepicker.js:41
 msgctxt "Datepicker option"
 msgid "Clear"
 msgstr "Effacer"
 
-#: saleor/static/dashboard/js/components/datepicker.js:21
+#: saleor/static/dashboard/js/components/datepicker.js:42
 msgctxt "Datepicker option"
 msgid "Close"
 msgstr "Fermer"
+
+#: saleor/static/dashboard/js/components/editor.js:9
+msgctxt "Rich text editor option"
+msgid "Bold text"
+msgstr ""
+
+#: saleor/static/dashboard/js/components/editor.js:13
+msgctxt "Rich text editor option"
+msgid "Italic text"
+msgstr ""
+
+#: saleor/static/dashboard/js/components/editor.js:17
+msgctxt "Rich text editor option"
+msgid "Header"
+msgstr ""
+
+#: saleor/static/dashboard/js/components/editor.js:24
+msgctxt "Rich text editor option"
+msgid "Subheader"
+msgstr ""
+
+#: saleor/static/dashboard/js/components/editor.js:31
+msgctxt "Rich text editor option"
+msgid "Quote"
+msgstr ""
+
+#: saleor/static/dashboard/js/components/editor.js:35
+msgctxt "Rich text editor option"
+msgid "Link"
+msgstr ""
 
 #: saleor/static/js/components/variantPicker/QuantityInput.js:21
 msgctxt "Add to cart form field label"
 msgid "Quantity"
 msgstr ""
 
-#: saleor/static/js/components/variantPicker/VariantPicker.js:161
+#: saleor/static/js/components/variantPicker/VariantPicker.js:168
 msgctxt "Product details primary action"
 msgid "Add to cart"
 msgstr ""
