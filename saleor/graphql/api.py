@@ -3,12 +3,12 @@ from graphene import relay
 from graphene_django import DjangoConnectionField
 from graphene_django.debug import DjangoDebug
 
-from .types.cart import CartType, resolve_cart
-from .types.order import CreateOrderMutation
-from .types.product import (
+from .cart.types import resolve_cart, CartType
+from .order.mutations import CreateOrderMutation
+from .product.types import (
     resolve_category, resolve_attributes, CategoryType, ProductAttributeType)
-from .types.shipping import resolve_shipping, ShippingMethodCountryType
-from .types.userprofile import UserType, resolve_user
+from .shipping.types import resolve_shipping, ShippingMethodCountryType
+from .userprofile.types import resolve_user, UserType
 
 
 class Query(graphene.ObjectType):

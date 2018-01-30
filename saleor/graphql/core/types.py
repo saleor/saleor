@@ -16,6 +16,16 @@ class PriceType(graphene.ObjectType):
         return prices_i18n.net(self)
 
 
+class PriceField(graphene.Field):
+    def __init__(self, *args, **kwargs):
+        super().__init__(lambda: PriceType, *args, **kwargs)
+
+
 class PriceRangeType(graphene.ObjectType):
-    max_price = graphene.Field(lambda: PriceType)
-    min_price = graphene.Field(lambda: PriceType)
+    max_price = PriceField()
+    min_price = PriceField()
+
+
+class PriceRangeField(graphene.Field):
+    def __init__(self, *args, **kwargs):
+        super().__init__(lambda: PriceRangeType, *args, **kwargs)

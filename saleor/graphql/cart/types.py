@@ -4,10 +4,11 @@ from graphene_django import DjangoConnectionField, DjangoObjectType
 
 from ...cart.models import Cart, CartLine
 from ...cart.utils import get_cart_from_request
-from ..utils import DjangoPkInterface, PriceField
+from ..core.types import PriceField
+from ..utils import DjangoPkInterface
 
 
-class CartLine(DjangoObjectType):
+class CartLineType(DjangoObjectType):
     item_name = graphene.String()
     total = PriceField()
 
@@ -23,7 +24,7 @@ class CartLine(DjangoObjectType):
 
 
 class CartType(DjangoObjectType):
-    lines = DjangoConnectionField(CartLine)
+    lines = DjangoConnectionField(CartLineType)
     total = PriceField()
 
     class Meta:

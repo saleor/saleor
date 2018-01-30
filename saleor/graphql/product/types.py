@@ -12,7 +12,7 @@ from ...product.models import (
 from ...product.templatetags.product_images import product_first_image
 from ...product.utils import get_availability, products_visible_to_user
 from ..utils import CategoryAncestorsCache, DjangoPkInterface
-from ..core.types import PriceRangeType, PriceType
+from ..core.types import PriceRangeField, PriceField
 from .scalars import AttributesFilterScalar
 
 
@@ -30,11 +30,11 @@ def get_ancestors_from_cache(category, context):
 
 class ProductAvailabilityType(graphene.ObjectType):
     available = graphene.Boolean()
-    discount = graphene.Field(lambda: PriceType)
-    discount_local_currency = graphene.Field(lambda: PriceType)
-    price_range = graphene.Field(lambda: PriceRangeType)
-    price_range_undiscounted = graphene.Field(lambda: PriceRangeType)
-    price_range_local_currency = graphene.Field(lambda: PriceRangeType)
+    discount = PriceField()
+    discount_local_currency = PriceField()
+    price_range = PriceRangeField()
+    price_range_undiscounted = PriceRangeField()
+    price_range_local_currency = PriceRangeField()
 
 
 class ProductType(DjangoObjectType):
@@ -46,7 +46,7 @@ class ProductType(DjangoObjectType):
     images = graphene.List(lambda: ProductImageType)
     variants = graphene.List(lambda: ProductVariantType)
     availability = graphene.Field(lambda: ProductAvailabilityType)
-    price = graphene.Field(lambda: PriceType)
+    price = PriceField()
 
     class Meta:
         model = Product
@@ -181,7 +181,7 @@ class CategoryType(DjangoObjectType):
 
 class ProductVariantType(DjangoObjectType):
     stock_quantity = graphene.Int()
-    price_override = graphene.Field(lambda: PriceType)
+    price_override = PriceField()
 
     class Meta:
         model = ProductVariant

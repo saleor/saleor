@@ -3,7 +3,8 @@ from graphene import relay
 from graphene_django import DjangoConnectionField, DjangoObjectType
 
 from ...shipping.models import ShippingMethod, ShippingMethodCountry
-from ..utils import DjangoPkInterface, PriceField
+from ..core.types import PriceField
+from ..utils import DjangoPkInterface
 
 
 class ShippingMethodType(DjangoObjectType):
