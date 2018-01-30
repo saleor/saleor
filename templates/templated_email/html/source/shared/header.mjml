@@ -3,7 +3,7 @@
     <mj-text>{% load staticfiles %}</mj-text>
   </mj-column>
 </mj-section>
-<mj-section background-color="#F2F2F2">
+<mj-section background-color="#2BB673">
   <mj-column>
     <mj-image src="{{ protocol}}://{{ domain }}{% static 'images/logo.svg' %}" height="38px" width="176px"></mj-image>
   </mj-column>

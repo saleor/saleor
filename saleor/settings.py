@@ -56,7 +56,8 @@ SENDGRID_PASSWORD = os.environ.get('SENDGRID_PASSWORD')
 if not EMAIL_URL and SENDGRID_USERNAME and SENDGRID_PASSWORD:
     EMAIL_URL = 'smtp://%s:%s@smtp.sendgrid.net:587/?tls=True' % (
         SENDGRID_USERNAME, SENDGRID_PASSWORD)
-email_config = dj_email_url.parse(EMAIL_URL or 'console://')
+# email_config = dj_email_url.parse(EMAIL_URL or 'console://')
+email_config = dj_email_url.parse('smtp://feddd56f2815d5:c3bea2ed138237@smtp.mailtrap.io:2525/')
 
 EMAIL_FILE_PATH = email_config['EMAIL_FILE_PATH']
 EMAIL_HOST_USER = email_config['EMAIL_HOST_USER']
@@ -69,9 +70,6 @@ EMAIL_USE_SSL = email_config['EMAIL_USE_SSL']
 
 ENABLE_SSL = ast.literal_eval(
     os.environ.get('ENABLE_SSL', 'False'))
-
-# django templated email
-TEMPLATED_EMAIL_BACKEND = 'saleor.core.utils.email_backend.CustomTemplateBackend'
 
 DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL')
 ORDER_FROM_EMAIL = os.getenv('ORDER_FROM_EMAIL', DEFAULT_FROM_EMAIL)
