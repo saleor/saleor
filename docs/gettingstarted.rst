@@ -8,4 +8,5 @@ Getting Started
    gettingstarted/installation-windows
    gettingstarted/installation-linux
    gettingstarted/configuration
+   gettingstarted/superuser
    gettingstarted/example-data
