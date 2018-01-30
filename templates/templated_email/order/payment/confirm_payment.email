@@ -19,5 +19,5 @@ Sincerely,
 {% endblock %}
 
 {% block html %}
-{% include 'templated_email/html/order/payment/confirm_payment.html' %}
+{% include 'templated_email/html/compiled/order/payment/confirm_payment.html' %}
 {% endblock %}
