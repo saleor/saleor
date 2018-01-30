@@ -4,7 +4,7 @@
 <div class="product-filters">
   <div class="product-filters__title">
     <h2>
-      <strong>{{ wrap }}</strong>
+      <strong>{{ object }}</strong>
     </h2>
     {% block title_tree %}{% endblock title_tree %}
   </div>
@@ -13,7 +13,7 @@
   <h2>
     {% trans 'Filters' context 'Filter heading title' %}
     {% if filter.is_bound_unsorted %}
-      <a href=".">
+      <a href="../">
         <span class="clear-filters float-right">{% trans 'Clear filters' context 'Product list page filters' %}</span>
       </a>
     {% endif %}

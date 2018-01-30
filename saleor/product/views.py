@@ -125,12 +125,13 @@ def category_index(request, path, category_id):
     now_sorted_by = get_now_sorted_by(product_filter)
     arg_sort_by = request.GET.get('sort_by')
     is_descending = arg_sort_by.startswith('-') if arg_sort_by else False
-    ctx = {'wrap': category, 'filter_set': product_filter,
-           'products': products_and_availability,
-           'products_paginated': products_paginated,
-           'sort_by_choices': SORT_BY_FIELDS,
-           'now_sorted_by': now_sorted_by,
-           'is_descending': is_descending}
+    ctx = {
+        'object': category, 'filter_set': product_filter,
+        'products': products_and_availability,
+        'products_paginated': products_paginated,
+        'sort_by_choices': SORT_BY_FIELDS,
+        'now_sorted_by': now_sorted_by,
+        'is_descending': is_descending}
     return TemplateResponse(request, 'category/index.html', ctx)
 
 
@@ -147,10 +148,11 @@ def collection_index(request, pk):
     now_sorted_by = get_now_sorted_by(product_filter)
     arg_sort_by = request.GET.get('sort_by')
     is_descending = arg_sort_by.startswith('-') if arg_sort_by else False
-    ctx = {'wrap': collection, 'filter_set': product_filter,
-           'products': products_and_availability,
-           'products_paginated': products_paginated,
-           'sort_by_choices': SORT_BY_FIELDS,
-           'now_sorted_by': now_sorted_by,
-           'is_descending': is_descending}
+    ctx = {
+        'object': collection, 'filter_set': product_filter,
+        'products': products_and_availability,
+        'products_paginated': products_paginated,
+        'sort_by_choices': SORT_BY_FIELDS,
+        'now_sorted_by': now_sorted_by,
+        'is_descending': is_descending}
     return TemplateResponse(request, 'collection/index.html', ctx)

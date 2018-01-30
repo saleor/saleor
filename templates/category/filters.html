@@ -1,9 +1,9 @@
-{% extends "../product_filters.html" %}
+{% extends "product/_filters.html"%}
 
 {% block title_tree %}
   <div class="product-filters__categories">
     <ul class="product-filters__categories__childs no-parent">
-      {% for child in wrap.get_children %}
+      {% for child in category.get_children %}
         <li>
           <a href="{{ child.get_absolute_url }}">{{ child.name }}</a>
         </li>

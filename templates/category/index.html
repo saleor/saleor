@@ -2,6 +2,18 @@
 {% load i18n %}
 {% load staticfiles %}
 
+{% block breadcrumb %}
+  <div class="col-md-7">
+    <ul class="breadcrumbs list-unstyled d-none d-md-block">
+      <li><a href="{% url 'home' %}">{% trans "Home"  context 'Category breadcrumbs home' %}</a></li>
+      {% for ancestor in object.get_ancestors %}
+        <li><a href='{{ ancestor.get_absolute_url }}'>{{ ancestor.name }}</a></li>
+      {% endfor %}
+      <li><a href='{{ object.get_absolute_url }}'>{{ object.name }}</a></li>
+    </ul>
+  </div>
+{% endblock breadcrumb %}
+
 {% block filters %}
-  {% include "category/category_filters.html" %}
+  {% include "category/filters.html" with category=object %}
 {%  endblock filters %}
