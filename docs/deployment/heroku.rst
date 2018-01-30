@@ -1,32 +1,8 @@
-Deployment
-==========
-
-.. _docker_deployment:
-
-Docker
-------
-
-You will need to install Docker first.
-
-Before building the image make sure you have all of the front-end assets prepared for production:
-
-.. code-block:: bash
-
- $ npm run build-assets --production
- $ python manage.py collectstatic
-
-Then use Docker to build the image:
-
-.. code-block:: bash
-
- $ docker build -t mystorefront .
-
-
 Heroku
-------
+======
 
-First steps
-***********
+Configuration
+-------------
 
 .. code-block:: bash
 
@@ -46,24 +22,24 @@ First steps
  Heroku's storage is volatile. This means that all instances of your application will have separate disks and will lose all changes made to the local disk each time the application is restarted. The best approach is to use cloud storage such as Amazon S3. See :ref:`amazon_s3` for configuration details.
 
 
-Deploy
-******
+Deployment
+----------
 
 .. code-block:: bash
 
  $ git push heroku master
 
 
-Prepare the database
-********************
+Preparing the Database
+----------------------
 
 .. code-block:: bash
 
  $ heroku run python manage.py migrate
 
 
-Updating currency exchange rates
-********************************
+Updating Currency Exchange Rates
+--------------------------------
 
 This needs to be run periodically. The best way to achieve this is using Heroku's Scheduler service. Let's add it to our application:
 
