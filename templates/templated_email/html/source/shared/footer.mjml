@@ -7,7 +7,7 @@
     </mj-text>
   </mj-column>
 </mj-section>
-<mj-section background-color="#D3D1D0">
+<mj-section background-color="#F2F2F2">
   <mj-column>
     <mj-text align="center">
       {% blocktrans trimmed context "Base e-mail footer" %}
