@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2018-01-04 11:16-0600\n"
+"POT-Creation-Date: 2018-01-23 09:24-0600\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: ax003d <ax003d@gmail.com>, 2017\n"
 "Language-Team: Chinese (https://www.transifex.com/mirumee/teams/34782/zh/)\n"
@@ -18,277 +18,82 @@ msgstr ""
 "Language: zh\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
 
-#: saleor/static/dashboard/js/components/bulk-actions.js:5
+#: saleor/static/dashboard/js/components/bulk-actions.js:89
 msgid "item selected"
 msgid_plural "items selected"
 msgstr[0] "已选项"
 
-#: saleor/static/dashboard/js/components/datepicker.js:4
+#: saleor/static/dashboard/js/components/datepicker.js:25
 msgctxt "Datepicker option"
 msgid "Next month"
 msgstr "下个月"
 
-#: saleor/static/dashboard/js/components/datepicker.js:5
+#: saleor/static/dashboard/js/components/datepicker.js:26
 msgctxt "Datepicker option"
 msgid "Previous month"
 msgstr "上个月"
 
-#: saleor/static/dashboard/js/components/datepicker.js:8
+#: saleor/static/dashboard/js/components/datepicker.js:29
 msgctxt "Datepicker option"
 msgid "Select a month"
 msgstr "选择月份"
 
-#: saleor/static/dashboard/js/components/datepicker.js:9
+#: saleor/static/dashboard/js/components/datepicker.js:30
 msgctxt "Datepicker option"
 msgid "Select a year"
 msgstr "选择年份"
 
-#: saleor/static/dashboard/js/components/datepicker.js:12
-msgctxt "Datepicker month"
-msgid "January"
-msgstr "一月"
-
-#: saleor/static/dashboard/js/components/datepicker.js:12
-msgctxt "Datepicker month"
-msgid "February"
-msgstr "二月"
-
-#: saleor/static/dashboard/js/components/datepicker.js:12
-msgctxt "Datepicker month"
-msgid "March"
-msgstr "三月"
-
-#: saleor/static/dashboard/js/components/datepicker.js:12
-msgctxt "Datepicker month"
-msgid "April"
-msgstr "四月"
-
-#: saleor/static/dashboard/js/components/datepicker.js:12
-msgctxt "Datepicker month"
-msgid "May"
-msgstr "五月"
-
-#: saleor/static/dashboard/js/components/datepicker.js:12
-msgctxt "Datepicker month"
-msgid "June"
-msgstr "六月"
-
-#: saleor/static/dashboard/js/components/datepicker.js:12
-msgctxt "Datepicker month"
-msgid "July"
-msgstr "七月"
-
-#: saleor/static/dashboard/js/components/datepicker.js:12
-msgctxt "Datepicker month"
-msgid "August"
-msgstr "八月"
-
-#: saleor/static/dashboard/js/components/datepicker.js:12
-msgctxt "Datepicker month"
-msgid "September"
-msgstr "九月"
-
-#: saleor/static/dashboard/js/components/datepicker.js:12
-msgctxt "Datepicker month"
-msgid "October"
-msgstr "十月"
-
-#: saleor/static/dashboard/js/components/datepicker.js:12
-msgctxt "Datepicker month"
-msgid "November"
-msgstr "十一月"
-
-#: saleor/static/dashboard/js/components/datepicker.js:12
-msgctxt "Datepicker month"
-msgid "December"
-msgstr "十二月"
-
-#: saleor/static/dashboard/js/components/datepicker.js:13
-msgctxt "Datepicker month shortcut"
-msgid "Jan"
-msgstr "一月"
-
-#: saleor/static/dashboard/js/components/datepicker.js:13
-msgctxt "Datepicker month shortcut"
-msgid "Feb"
-msgstr "二月"
-
-#: saleor/static/dashboard/js/components/datepicker.js:13
-msgctxt "Datepicker month shortcut"
-msgid "Mar"
-msgstr "三月"
-
-#: saleor/static/dashboard/js/components/datepicker.js:13
-msgctxt "Datepicker month shortcut"
-msgid "Apr"
-msgstr "四月"
-
-#: saleor/static/dashboard/js/components/datepicker.js:13
-msgctxt "Datepicker month shortcut"
-msgid "May"
-msgstr "五月"
-
-#: saleor/static/dashboard/js/components/datepicker.js:13
-msgctxt "Datepicker month shortcut"
-msgid "Jun"
-msgstr "六月"
-
-#: saleor/static/dashboard/js/components/datepicker.js:13
-msgctxt "Datepicker month shortcut"
-msgid "Jul"
-msgstr "七月"
-
-#: saleor/static/dashboard/js/components/datepicker.js:13
-msgctxt "Datepicker month shortcut"
-msgid "Aug"
-msgstr "八月"
-
-#: saleor/static/dashboard/js/components/datepicker.js:13
-msgctxt "Datepicker month shortcut"
-msgid "Sep"
-msgstr "九月"
-
-#: saleor/static/dashboard/js/components/datepicker.js:13
-msgctxt "Datepicker month shortcut"
-msgid "Oct"
-msgstr "十月"
-
-#: saleor/static/dashboard/js/components/datepicker.js:13
-msgctxt "Datepicker month shortcut"
-msgid "Nov"
-msgstr "十一月"
-
-#: saleor/static/dashboard/js/components/datepicker.js:13
-msgctxt "Datepicker month shortcut"
-msgid "Dec"
-msgstr "十二月"
-
-#: saleor/static/dashboard/js/components/datepicker.js:14
-msgctxt "Datepicker weekday"
-msgid "Sunday"
-msgstr "星期日"
-
-#: saleor/static/dashboard/js/components/datepicker.js:14
-msgctxt "Datepicker weekday"
-msgid "Monday"
-msgstr "星期一"
-
-#: saleor/static/dashboard/js/components/datepicker.js:14
-msgctxt "Datepicker weekday"
-msgid "Tuesday"
-msgstr "星期二"
-
-#: saleor/static/dashboard/js/components/datepicker.js:14
-msgctxt "Datepicker weekday"
-msgid "Wednesday"
-msgstr "星期三"
-
-#: saleor/static/dashboard/js/components/datepicker.js:14
-msgctxt "Datepicker weekday"
-msgid "Thursday"
-msgstr "星期四"
-
-#: saleor/static/dashboard/js/components/datepicker.js:14
-msgctxt "Datepicker weekday"
-msgid "Friday"
-msgstr "星期五"
-
-#: saleor/static/dashboard/js/components/datepicker.js:14
-msgctxt "Datepicker weekday"
-msgid "Saturday"
-msgstr "星期六"
-
-#: saleor/static/dashboard/js/components/datepicker.js:15
-msgctxt "Datepicker weekday shortcut"
-msgid "Sun"
-msgstr "星期日"
-
-#: saleor/static/dashboard/js/components/datepicker.js:15
-msgctxt "Datepicker weekday shortcut"
-msgid "Mon"
-msgstr "星期一"
-
-#: saleor/static/dashboard/js/components/datepicker.js:15
-msgctxt "Datepicker weekday shortcut"
-msgid "Tue"
-msgstr "星期二"
-
-#: saleor/static/dashboard/js/components/datepicker.js:15
-msgctxt "Datepicker weekday shortcut"
-msgid "Wed"
-msgstr "星期三"
-
-#: saleor/static/dashboard/js/components/datepicker.js:15
-msgctxt "Datepicker weekday shortcut"
-msgid "Thu"
-msgstr "星期四"
-
-#: saleor/static/dashboard/js/components/datepicker.js:15
-msgctxt "Datepicker weekday shortcut"
-msgid "Fri"
-msgstr "星期五"
-
-#: saleor/static/dashboard/js/components/datepicker.js:15
-msgctxt "Datepicker weekday shortcut"
-msgid "Sat"
-msgstr "星期六"
-
-#: saleor/static/dashboard/js/components/datepicker.js:18
-msgctxt "Sunday shortcut"
-msgid "S"
-msgstr ""
-
-#: saleor/static/dashboard/js/components/datepicker.js:18
-msgctxt "Monday shortcut"
-msgid "M"
-msgstr ""
-
-#: saleor/static/dashboard/js/components/datepicker.js:18
-msgctxt "Tuesday shortcut"
-msgid "T"
-msgstr ""
-
-#: saleor/static/dashboard/js/components/datepicker.js:18
-msgctxt "Wednesday shortcut"
-msgid "W"
-msgstr ""
-
-#: saleor/static/dashboard/js/components/datepicker.js:18
-msgctxt "Thursday shortcut"
-msgid "T"
-msgstr ""
-
-#: saleor/static/dashboard/js/components/datepicker.js:18
-msgctxt "Friday shortcut"
-msgid "F"
-msgstr ""
-
-#: saleor/static/dashboard/js/components/datepicker.js:18
-msgctxt "Saturday shortcut"
-msgid "S"
-msgstr ""
-
-#: saleor/static/dashboard/js/components/datepicker.js:19
+#: saleor/static/dashboard/js/components/datepicker.js:40
 msgctxt "Datepicker option"
 msgid "Today"
 msgstr "今天"
 
-#: saleor/static/dashboard/js/components/datepicker.js:20
+#: saleor/static/dashboard/js/components/datepicker.js:41
 msgctxt "Datepicker option"
 msgid "Clear"
 msgstr "清空"
 
-#: saleor/static/dashboard/js/components/datepicker.js:21
+#: saleor/static/dashboard/js/components/datepicker.js:42
 msgctxt "Datepicker option"
 msgid "Close"
 msgstr "关闭"
+
+#: saleor/static/dashboard/js/components/editor.js:9
+msgctxt "Rich text editor option"
+msgid "Bold text"
+msgstr ""
+
+#: saleor/static/dashboard/js/components/editor.js:13
+msgctxt "Rich text editor option"
+msgid "Italic text"
+msgstr ""
+
+#: saleor/static/dashboard/js/components/editor.js:17
+msgctxt "Rich text editor option"
+msgid "Header"
+msgstr ""
+
+#: saleor/static/dashboard/js/components/editor.js:24
+msgctxt "Rich text editor option"
+msgid "Subheader"
+msgstr ""
+
+#: saleor/static/dashboard/js/components/editor.js:31
+msgctxt "Rich text editor option"
+msgid "Quote"
+msgstr ""
+
+#: saleor/static/dashboard/js/components/editor.js:35
+msgctxt "Rich text editor option"
+msgid "Link"
+msgstr ""
 
 #: saleor/static/js/components/variantPicker/QuantityInput.js:21
 msgctxt "Add to cart form field label"
 msgid "Quantity"
 msgstr "数量"
 
-#: saleor/static/js/components/variantPicker/VariantPicker.js:161
+#: saleor/static/js/components/variantPicker/VariantPicker.js:168
 msgctxt "Product details primary action"
 msgid "Add to cart"
 msgstr "添加到购物车"
