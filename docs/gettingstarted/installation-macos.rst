@@ -26,6 +26,12 @@ Command Line Tools for Xcode
 
 Download and install the latest version of "Command Line Tools (macOS 10.x) for Xcode 9.x" from the `Downloads for Apple Developers page <https://developer.apple.com/download/more/>`_.
 
+Then run:
+
+.. code-block:: console
+
+ $ xcode-select --install
+
 
 Homebrew
 ~~~~~~~~
