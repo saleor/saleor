@@ -26,7 +26,7 @@ Environment variables
 
 
 ``DATABASE_URL``
-  Defaults to a local PostgreSQL instance. See :ref:`docker-compose` for how to get a local database running inside a Docker container.
+  Defaults to a local PostgreSQL instance. See :ref:`docker-dev` for how to get a local database running inside a Docker container.
 
   Most Heroku databases will export this setting automatically.
 

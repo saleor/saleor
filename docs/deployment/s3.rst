@@ -1,4 +1,4 @@
-.. _amazon_s3:
+.. _amazon-s3:
 
 Storing Files on Amazon S3
 ==========================

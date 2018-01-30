@@ -1,8 +1,8 @@
 Working with Python Code
 ========================
 
-Python dependencies
-~~~~~~~~~~~~~~~~~~~
+Managing Dependencies
+---------------------
 
 To guarantee repeatable installations all project dependencies are managed using `pip-tools <https://github.com/nvie/pip-tools>`_.
 Project's direct dependencies are listed in ``requirements.in`` and running :code:`pip-compile` generates ``requirements.txt`` that has all versions pinned.
