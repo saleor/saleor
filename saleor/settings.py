@@ -56,8 +56,7 @@ SENDGRID_PASSWORD = os.environ.get('SENDGRID_PASSWORD')
 if not EMAIL_URL and SENDGRID_USERNAME and SENDGRID_PASSWORD:
     EMAIL_URL = 'smtp://%s:%s@smtp.sendgrid.net:587/?tls=True' % (
         SENDGRID_USERNAME, SENDGRID_PASSWORD)
-# email_config = dj_email_url.parse(EMAIL_URL or 'console://')
-email_config = dj_email_url.parse('smtp://feddd56f2815d5:c3bea2ed138237@smtp.mailtrap.io:2525/')
+email_config = dj_email_url.parse(EMAIL_URL or 'console://')
 
 EMAIL_FILE_PATH = email_config['EMAIL_FILE_PATH']
 EMAIL_HOST_USER = email_config['EMAIL_HOST_USER']
