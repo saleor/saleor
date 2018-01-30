@@ -1,4 +1,4 @@
-Product structure
+Product Structure
 =================
 
 Before filling your shop with products we need to introduce 3 product concepts - *product types*, *products*, *product variants*.
@@ -12,12 +12,12 @@ The book is available in hard and soft cover, so there would be 2 *product varia
 
 Type of cover is the only attribute which creates separate variants in our store, so we use *product type* named "Book" with variants enabled and a "Cover type" *variant attribute*.
 
-Class diagram
+Class Diagram
 -------------
 
-.. image:: img/product_class_tree.png
+.. image:: ../img/product_class_tree.png
 
-Product variants
+Product Variants
 ----------------
 
 Variants are the most important objects in your shop. All cart and stock operations use variants. Even if a product doesn't have multiple variants, the store will create one under the hood.
@@ -34,7 +34,7 @@ Describes common details of a few *product variants*. When the shop displays the
     Featured products are displayed on the front page.
 
 
-Product types
+Product Types
 ---------------
 
 Think about types as templates for your products. Multiple *products* can use the same product type.
@@ -105,7 +105,7 @@ Your shop sells Coffee from around the world. Customer can order 1kg, 500g and 2
    ============  ================  =================  =================================
    Product type  Name              Country of origin  Description
    ============  ================  =================  =================================
-   Coffee         Best Java Coffee  Indonesia          Best coffee found on Java island!
+   Coffee        Best Java Coffee  Indonesia          Best coffee found on Java island!
    ============  ================  =================  =================================
 
 .. table:: Variants
@@ -149,6 +149,6 @@ You have great selection of online games items. Each item is unique, important d
    ============  ================  =====  ==============  ===========  =======================================================
    Product type  Name              Price  Game            Max attack   Description
    ============  ================  =====  ==============  ===========  =======================================================
-   Game item      Magic Fire Sword  $199   Kings Online    8000         Unique sword for any fighter. Set your enemies on fire!
-   Game item      Rapid Pistol      $2500  Target Shooter  250          Fastest pistol in the whole game.
-   =============  ================  =====  ==============  ===========  =======================================================
+   Game item     Magic Fire Sword  $199   Kings Online    8000         Unique sword for any fighter. Set your enemies on fire!
+   Game item     Rapid Pistol      $2500  Target Shooter  250          Fastest pistol in the whole game.
+   ============  ================  =====  ==============  ===========  =======================================================
