@@ -1,4 +1,4 @@
-.. _docker_dev:
+.. _docker-dev:
 
 Using Docker for Development
 ============================
@@ -8,7 +8,7 @@ Using Docker to build software allows you to run and test code without having to
 .. warning::
 
   The following setup is only meant for local development.
-  See :ref:`docker_deployment` for production use of Docker.
+  See :ref:`docker-deployment` for production use of Docker.
 
 
 Local Prerequisites
