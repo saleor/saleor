@@ -1,4 +1,4 @@
-.. _docker_deployment:
+.. _docker-deployment:
 
 Docker
 ======

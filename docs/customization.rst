@@ -10,3 +10,4 @@ Customizing Saleor
    customization/backend
    customization/tests
    customization/ci
+   customization/pypy
