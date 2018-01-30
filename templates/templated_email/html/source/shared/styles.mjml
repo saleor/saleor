@@ -1,0 +1,5 @@
+<mj-style inline="inline">
+  .no-display {
+    display: none;
+  }
+</mj-style>

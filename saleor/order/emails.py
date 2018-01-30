@@ -10,7 +10,11 @@ CONFIRM_NOTE_TEMPLATE = 'order/note/confirm_note'
 
 def _send_confirmation(email, url, template, context=None):
     site = Site.objects.get_current()
-    ctx = {'site_name': site.name, 'url': url}
+    ctx = {
+        'protocol': 'http',
+        'site_name': site.name,
+        'domain': site.domain,
+        'url': url}
     if context:
         ctx.update(context)
     send_templated_mail(
