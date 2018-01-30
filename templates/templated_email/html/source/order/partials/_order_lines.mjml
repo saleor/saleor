@@ -14,7 +14,7 @@
             {% trans "Subtotal" context "E-mail order lines summary table" %}
           </td>
           <td style="text-align: right;">
-            {% gross order.get_total html=True %}
+            {% gross order.get_subtotal_without_voucher html=True %}
           </td>
         </tr>
         <tr>
