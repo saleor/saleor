@@ -64,7 +64,6 @@ var config = {
     dashboard: './saleor/static/dashboard/js/dashboard.js',
     document: './saleor/static/dashboard/js/document.js',
     storefront: './saleor/static/js/storefront.js',
-    emails: './saleor/static/emails/js/emails.js',
     vendor: [
       'babel-es6-polyfill',
       'bootstrap',
