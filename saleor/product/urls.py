@@ -11,4 +11,3 @@ urlpatterns = [
         views.product_add_to_cart, name="add-to-cart"),
     url(r'^collection/(?P<pk>[0-9]+)/$',
         views.collection_index, name='collection')]
-

@@ -397,4 +397,3 @@ class Collection(models.Model):
         return reverse(
             'product:collection',
             kwargs={'pk': self.id})
-
