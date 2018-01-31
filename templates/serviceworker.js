@@ -9,29 +9,31 @@ self.addEventListener('install', (e) => {
         return cache.addAll([
           '/',
           '/offline'
-        ])
-          .then(() => {
+        ]).then(() => {
             self.skipWaiting();
           })
-          .catch(e => console.log(e));
+          .catch(e => console.error(e));
       })
-      .catch(e => console.log(e))
+      .catch(e => console.error(e))
   );
 });
 
 // when the browser fetches a url
 self.addEventListener('fetch', (event) => {
-  if (event.request.url.match(/\.(css|js|svg)$/)) {
-    console.log(`caching ${event.request.url}`);
+  if (event.request.url.match(/http:\/\/.*((\.(css|js|svg)$)|(placeholder\d+x\d+\.png$))/)) {
+    console.log(event.request.url);
     caches.open(cacheName)
       .then(cache => cache.add(event.request.url))
       .then(() => self.skipWaiting())
-      .catch(e => console.log(e));
+      .catch(e => {
+        console.log(event.request.url);
+        console.error(e)
+      });
   }
   event.respondWith(
     fetch(event.request)
       .catch(() => {
-        if (!event.request.url.match(/\.(js|css|eot|otf|png|svg|jpg|ttf|woff|woff2)(\?v=[0-9.]+)?$/)) {
+        if (!event.request.url.match(/\.(js|css|eot|otf|png|svg|ttf|woff|woff2)(\?v=[0-9.]+)?$/)) {
           console.log(event.request.url);
           return caches.match('/offline')
             .then(res => res);
