@@ -24,4 +24,12 @@ Homepage and product pages contain semantic descriptions in JSON-LD `Structured 
 
 It does not directly affect the search engine ranking but it allows search engines to better understand the data ("this is a product, it's available, it costs $10").
 
-It allows search engines like Google to show product photos, prices, ratings etc. along with their search results.
+It allows search engines like Google to show product photos, prices, availability, ratings etc. along with their search results.
+
+
+Open Graph
+-------
+
+For more effective and efficient social media engagement, we've added `Open Graph Protocol<http://ogp.me/>`_ to the Homepage and all products/categories.
+
+Open Graph meta tags allows to control what content shows up (description, title, url, photo, etc.) when page is shared on social media, turning your web page into a rich object in a social graph.
