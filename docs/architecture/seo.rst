@@ -17,10 +17,10 @@ Meta keywords are not used as they are ignored by all major search engines becau
 Meta description will be set to the product's description field. This does not affect the search engine ranking but it affects the snippet of text shown along with the search result.
 
 
-JSON-LD
+Structured Data
 -------
 
-All product pages contain semantic descriptions in JSON-LD `Structured Data <https://developers.google.com/search/docs/guides/intro-structured-data>`_ format.
+Homepage and product pages contain semantic descriptions in JSON-LD `Structured Data <https://developers.google.com/search/docs/guides/intro-structured-data>`_ format.
 
 It does not directly affect the search engine ranking but it allows search engines to better understand the data ("this is a product, it's available, it costs $10").
 
