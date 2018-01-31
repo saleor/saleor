@@ -14,6 +14,7 @@ machine:
 dependencies:
   pre:
     - npm install
+    - pip install -U pip
     - pip install -r requirements.txt
   override:
     - npm run build-assets --production
