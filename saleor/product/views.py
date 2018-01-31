@@ -10,7 +10,8 @@ from django.urls import reverse
 from ..cart.utils import set_cart_cookie
 from ..core.utils import get_paginator_items, serialize_decimal
 from ..core.utils.filters import get_now_sorted_by
-from .filters import ProductCategoryFilter, ProductCollectionFilter, SORT_BY_FIELDS
+from .filters import (
+    ProductCategoryFilter, ProductCollectionFilter, SORT_BY_FIELDS)
 from .models import Category, Collection
 from .utils import (
     get_availability, get_product_attributes_data, get_product_images,
