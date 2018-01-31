@@ -72,7 +72,7 @@ class ManagePaymentForm(forms.Form):
         try:
             action(amount.gross)
         except (PaymentError, ValueError) as e:
-            self.payment_error(e.message)
+            self.payment_error(str(e))
             return False
         return True
 
