@@ -17,6 +17,14 @@ Meta keywords are not used as they are ignored by all major search engines becau
 Meta description will be set to the product's description field. This does not affect the search engine ranking but it affects the snippet of text shown along with the search result.
 
 
+Robots Meta Tag
+---------
+
+The robots meta tag utilize a page-specific approach to controlling how an individual page should be indexed and served to users in search results.
+
+We've restricted Dashboard Admin Panel from crawling and indexation, content-less pages (eg. cart, sign up, login) are not crawled.
+
+
 Structured Data
 ---------
 
@@ -41,7 +49,3 @@ Nofollow links
 Search engine crawlers can’t sign in or register as a member on your site, no reason to invite them to follow “register here” or “sign in” links, as there will be little to none valuable content.
 
 This will optimize time spent by the crawler on the website, giving it time it to index more content-related pages.
-
-
-Robots Meta Tag
----------
