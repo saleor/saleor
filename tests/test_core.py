@@ -1,6 +1,7 @@
 from unittest.mock import Mock
 
 import pytest
+from django.shortcuts import reverse
 
 from saleor.core.utils import (
     Country, create_superuser, get_country_by_ip, get_currency_for_country,
@@ -146,3 +147,12 @@ def test_create_vouchers(db):
     for _ in random_data.create_vouchers():
         pass
     assert Voucher.objects.all().count() == 2
+
+
+def test_manifest(client, site_settings):
+    response = client.get(reverse('manifest'))
+    assert response.status_code == 200
+    content = response.json()
+    assert content['name'] == site_settings.site.name
+    assert content['short_name'] == site_settings.site.name
+    assert content['description'] == site_settings.description
