@@ -57,7 +57,8 @@
       <h3>{% trans "There are no products in your shopping cart." context "Empty cart message" %}</h3>
       <img data-src="{% static 'images/empty-cart-bg.png' %}"
            data-srcset="{% static 'images/empty-cart-bg.png' %} 1x, {% static 'images/empty-cart-bg2x.png' %} 2x"
-           src="{% placeholder size=255 %}">
+           src="{% placeholder size=255 %}"
+           class="lazyload">
       <a href="{% url 'home' %}" class="btn primary">{% trans "Check out our sales" context "Empty cart link" %}</a>
     </div>
   {% endif %}
