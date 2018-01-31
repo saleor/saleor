@@ -4,6 +4,7 @@
 {% load discount_amount_for from prices %}
 {% load product_first_image from product_images %}
 {% load discount_as_negative from voucher %}
+{% load placeholder %}
 
 
 {% if order.user == user %}
@@ -53,8 +54,9 @@
         <div class="col-md-6 col-9">
           <a class="link--clean" href="{% if item_line.product %}{{ item_line.product.get_absolute_url }}{% endif %}">
             <img data-src="{% product_first_image item_line.product size="60x60" method="crop" %}"
-            data-srcset="{% product_first_image item_line.product size="60x60" method="crop" %} 1x, {% product_first_image item_line.product size="120x120" method="crop" %} 2x"
-            class="float-left lazyload">
+                 data-srcset="{% product_first_image item_line.product size="60x60" method="crop" %} 1x, {% product_first_image item_line.product size="120x120" method="crop" %} 2x"
+                 class="float-left lazyload"
+                 src="{% placeholder size=60 %}">
             <span class="order-details__product__description">{{ item_line.product_name }}</span>
           </a>
         </div>

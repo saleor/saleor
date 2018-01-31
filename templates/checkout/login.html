@@ -1,6 +1,7 @@
 {% extends "checkout/details.html" %}
 {% load staticfiles %}
 {% load i18n %}
+{% load placeholder %}
 
 {% block title %}{% trans "Login" context "Checkout login page title" %} — {{ block.super }}{% endblock %}
 
@@ -9,7 +10,9 @@
     <div class="col-12 col-md-6">
       <div class="checkout__login__continue">
         <h3>{% trans "New customer?" context "Checkout login page title" %}</h3>
-        <img class="checkout-pirate lazyload" data-src="{% static 'images/login-bg.png' %}" data-srcset="{% static 'images/login-bg.png' %} 1x, {% static 'images/login-bg2x.png' %} 2x">
+        <img class="checkout-pirate lazyload"
+             data-src="{% static 'images/login-bg.png' %}"
+             data-srcset="{% static 'images/login-bg.png' %} 1x, {% static 'images/login-bg2x.png' %} 2x">
         <p>
           <a href="{% url 'checkout:index' %}" class="btn secondary narrow">
             {% trans "Continue" context "Checkout login page new users action" %}
