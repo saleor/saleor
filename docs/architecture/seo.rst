@@ -18,7 +18,7 @@ Meta description will be set to the product's description field. This does not a
 
 
 Structured Data
--------
+---------
 
 Homepage and product pages contain semantic descriptions in JSON-LD `Structured Data <https://developers.google.com/search/docs/guides/intro-structured-data>`_ format.
 
@@ -28,7 +28,7 @@ It allows search engines like Google to show product photos, prices, availabilit
 
 
 Open Graph
--------
+---------
 
 For more effective and efficient social media engagement, we've added `Open Graph Protocol<http://ogp.me/>`_ to the Homepage and all products/categories.
 
@@ -36,8 +36,12 @@ Open Graph meta tags allows to control what content shows up (description, title
 
 
 Nofollow links
--------
+---------
 
 Search engine crawlers can’t sign in or register as a member on your site, no reason to invite them to follow “register here” or “sign in” links, as there will be little to none valuable content.
 
 This will optimize time spent by the crawler on the website, giving it time it to index more content-related pages.
+
+
+Robots Meta Tag
+---------
