@@ -9,7 +9,8 @@ self.addEventListener('install', (e) => {
         return cache.addAll([
           '/',
           '/offline'
-        ]).then(() => {
+        ])
+          .then(() => {
             self.skipWaiting();
           })
           .catch(e => console.error(e));
@@ -27,7 +28,7 @@ self.addEventListener('fetch', (event) => {
       .then(() => self.skipWaiting())
       .catch(e => {
         console.log(event.request.url);
-        console.error(e)
+        console.error(e);
       });
   }
   event.respondWith(
