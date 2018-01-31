@@ -37,6 +37,8 @@ urlpatterns = [
         include((userprofile_urls, 'profile'), namespace='profile')),
     url(r'^feeds/',
         include((feed_urls, 'data_feeds'), namespace='data_feeds')),
+    url('^robots\.txt$', TemplateView.as_view(
+        template_name='robots.txt', content_type='text/plain')),
     url(r'^search/', include((search_urls, 'search'), namespace='search')),
     url(r'^sitemap\.xml$', sitemap, {'sitemaps': sitemaps},
         name='django.contrib.sitemaps.views.sitemap'),

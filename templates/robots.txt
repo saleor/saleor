@@ -1,0 +1,7 @@
+{% spaceless %}
+{% load full_url from urls %}
+
+User-Agent: *
+Disallow: /dashboard
+Sitemap: {% full_url 'django.contrib.sitemaps.views.sitemap' %}
+{% endspaceless %}
