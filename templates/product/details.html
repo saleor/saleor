@@ -68,7 +68,7 @@
             <div class="carousel-inner" role="listbox">
               {% for image in images %}
                 <div class="carousel-item{% if forloop.first %} active{% endif %}">
-                  <img class="d-block img-fluid lazyload"
+                  <img class="d-block img-fluid lazyload lazypreload"
                        data-src="{% get_thumbnail image.image method="crop" size="540x540" %}"
                        data-srcset="{% get_thumbnail image.image method="crop" size="540x540" %} 1x, {% get_thumbnail image.image method="crop" size="1080x1080" %} 2x"
                        alt=""
@@ -91,7 +91,7 @@
                     <img data-src="{% get_thumbnail image.image method="crop" size="60x60" %}"
                          data-srcset="{% get_thumbnail image.image method="crop" size="60x60" %} 1x, {% get_thumbnail image.image method="crop" size="120x120" %} 2x"
                          alt=""
-                         class="lazyload"
+                         class="lazyload lazypreload"
                          src="{% placeholder size=60 %}">
                   </li>
                 {% endif %}
@@ -102,7 +102,7 @@
           <img data-src="{% placeholder size=540 %}"
                data-srcset="{% placeholder size=540 %} 1x, {% placeholder size=1080 %} 2x"
                alt=""
-               class="img-fluid lazyload">
+               class="img-fluid lazyload lazypreload">
         {% endif %}
       {% endwith %}
     </div>
