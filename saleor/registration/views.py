@@ -8,7 +8,7 @@ from django.urls import reverse_lazy
 from django.utils.translation import ugettext_lazy as _
 
 from ..cart.utils import find_and_assign_anonymous_cart
-from .forms import LoginForm, PasswordSetUpForm, SignupForm
+from .forms import LoginForm, PasswordResetForm, PasswordSetUpForm, SignupForm
 
 
 @find_and_assign_anonymous_cart()
@@ -47,8 +47,7 @@ def password_reset(request):
     kwargs = {
         'template_name': 'account/password_reset.html',
         'success_url': reverse_lazy('account_reset_password_done'),
-        'email_template_name': 'account/email/password_reset_message.txt',
-        'subject_template_name': 'account/email/password_reset_subject.txt'}
+        'form_class': PasswordResetForm}
     return django_views.PasswordResetView.as_view(**kwargs)(request, **kwargs)
 
 

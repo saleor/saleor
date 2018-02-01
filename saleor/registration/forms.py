@@ -5,6 +5,7 @@ from django.urls import reverse
 from django.utils.translation import pgettext, pgettext_lazy
 from templated_email import send_templated_mail
 
+from ..core.utils import build_absolute_uri
 from ..userprofile.models import User
 
 
@@ -68,4 +69,25 @@ class PasswordSetUpForm(django_forms.PasswordResetForm):
         context['reset_url'] = reset_url
         send_templated_mail(
             'account/password_set', from_email=from_email,
+            recipient_list=[to_email], context=context)
+
+
+class PasswordResetForm(django_forms.PasswordResetForm):
+    """PasswordResetForm that overrides sending emails to use templated email.
+    """
+
+    def get_users(self, email):
+        active_users = User.objects.filter(email__iexact=email, is_active=True)
+        return active_users
+
+    def send_mail(
+            self, subject_template_name, email_template_name, context,
+            from_email, to_email, html_email_template_name=None):
+        reset_url = build_absolute_uri(
+            reverse(
+                'account_reset_password_confirm',
+                kwargs={'uidb64': context['uid'], 'token': context['token']}))
+        context['reset_url'] = reset_url
+        send_templated_mail(
+            'account/password_reset', from_email=from_email,
             recipient_list=[to_email], context=context)
