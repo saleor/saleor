@@ -1,7 +1,7 @@
 Babel>=2.5
 boto3
 cairosvg
-Django<2.0.0
+Django>=1.11
 dj_database_url>=0.3.0
 dj_email_url>=0.0.4
 django-babel>=0.6.1
