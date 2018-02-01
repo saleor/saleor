@@ -17,11 +17,8 @@
       </div>
 
       <div class="panel-footer">
-        {% if product.is_available %}
-          {% price_range availability.price_range %}
-        {% else %}
-          &nbsp;
-        {% endif %}
+        {% price_range availability.price_range %}
+
         {% if availability.on_sale %}
           <div class="product-list__sale">
             <svg data-src="{% static "images/sale-bg.svg" %}" />
