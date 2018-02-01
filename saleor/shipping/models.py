@@ -15,7 +15,6 @@ COUNTRY_CODE_CHOICES = [(ANY_COUNTRY, ANY_COUNTRY_DISPLAY)] + list(countries)
 
 
 class ShippingMethod(models.Model):
-
     name = models.CharField(max_length=100)
     description = models.TextField(blank=True, default='')
 

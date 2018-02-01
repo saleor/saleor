@@ -15,6 +15,7 @@ from ..core import analytics
 from ..discount.models import NotApplicable, Voucher
 from ..discount.utils import increase_voucher_usage
 from ..order.models import Order
+from ..order.utils import create_groups_from_cart
 from ..shipping.models import ANY_COUNTRY, ShippingMethodCountry
 from ..userprofile.models import Address
 from ..userprofile.utils import store_user_address
@@ -327,16 +328,7 @@ class Checkout:
             order_data['discount_name'] = discount.name
 
         order = Order.objects.create(**order_data)
-
-        for line in self.cart.partition():
-            shipping_required = line.is_shipping_required()
-            shipping_method_name = (
-                smart_text(self.shipping_method) if shipping_required
-                else None)
-            group = order.groups.create(
-                shipping_method_name=shipping_method_name)
-            group.process(line, self.cart.discounts)
-            group.save()
+        create_groups_from_cart(order, self.cart, self.shipping_method)
 
         if voucher is not None:
             increase_voucher_usage(voucher)

@@ -1,4 +1,3 @@
-from django.shortcuts import _get_queryset
 import graphene
 
 
