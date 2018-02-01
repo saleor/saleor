@@ -42,9 +42,9 @@ django-redis==4.8.0
 django-render-block==0.5  # via django-templated-email
 django-storages==1.6.5
 django-templated-email==2.2.0
-django-versatileimagefield==1.8.1
+django-versatileimagefield==1.9
 django-webpack-loader==0.5.0
-django==1.11.9
+django==2.0.1
 docutils==0.14            # via botocore
 elasticsearch-dsl==5.4.0
 elasticsearch==5.5.2
@@ -83,7 +83,7 @@ pyphen==0.9.4             # via weasyprint
 pytest-django==3.1.2
 pytest-mock==1.6.3
 pytest-vcr==0.3.0
-pytest==3.3.2
+pytest==3.4.0
 python-dateutil==2.6.1    # via botocore, elasticsearch-dsl, faker, freezegun
 python3-openid==3.1.0     # via social-auth-core
 pytz==2017.3              # via babel, celery, django

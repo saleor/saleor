@@ -79,8 +79,9 @@ def test_delete_staff_with_orders(admin_client, staff_user, order):
 def test_staff_create_email_with_set_link_password(
         admin_client, staff_group):
     url = reverse('dashboard:staff-create')
-    data = {'email': 'staff3@example.com', 'groups': staff_group.pk,
-            'is_staff': True}
+    data = {
+        'email': 'staff3@example.com', 'groups': staff_group.pk,
+        'is_staff': True}
     response = admin_client.post(url, data)
     assert User.objects.count() == 2
     assert len(mail.outbox) == 1
@@ -89,34 +90,40 @@ def test_staff_create_email_with_set_link_password(
 
 def test_send_set_password_email(staff_user):
     site = Site.objects.get_current()
-    ctx = {'protocol': 'http',
-           'domain': site.domain,
-           'site_name': site.name,
-           'uid': urlsafe_base64_encode(force_bytes(staff_user.pk)),
-           'token': default_token_generator.make_token(staff_user)}
-    send_templated_mail(template_name='dashboard/staff/set_password',
-                        from_email=DEFAULT_FROM_EMAIL,
-                        recipient_list=[staff_user.email],
-                        context=ctx)
+    ctx = {
+        'protocol': 'http',
+        'domain': site.domain,
+        'site_name': site.name,
+        'uid': urlsafe_base64_encode(force_bytes(staff_user.pk)).decode(),
+        'token': default_token_generator.make_token(staff_user)}
+    send_templated_mail(
+        template_name='dashboard/staff/set_password',
+        from_email=DEFAULT_FROM_EMAIL,
+        recipient_list=[staff_user.email],
+        context=ctx)
     assert len(mail.outbox) == 1
-    generated_link = ('http://%s/account/password/reset/%s/%s/' %
-                      (ctx['domain'], ctx['uid'].decode('utf-8'), ctx['token']))
+    generated_link = (
+        'http://%s/account/password/reset/%s/%s/' % (
+            ctx['domain'], ctx['uid'], ctx['token']))
     sended_message = mail.outbox[0].body
     assert generated_link in sended_message
 
 
 def test_create_staff_and_set_password(admin_client, staff_group):
     url = reverse('dashboard:staff-create')
-    data = {'email': 'staff3@example.com', 'groups': staff_group.pk,
-            'is_staff': True}
+    data = {
+        'email': 'staff3@example.com', 'groups': staff_group.pk,
+        'is_staff': True}
     response = admin_client.post(url, data)
     assert response.status_code == 302
     new_user = User.objects.get(email='staff3@example.com')
     assert not new_user.has_usable_password()
-    uid = urlsafe_base64_encode(force_bytes(new_user.pk)),
+    uid = urlsafe_base64_encode(force_bytes(new_user.pk)).decode()
     token = default_token_generator.make_token(new_user)
-    response = admin_client.get(reverse('account_reset_password_confirm',
-                                kwargs={'uidb64': uid[0], 'token': token}))
+    response = admin_client.get(
+        reverse(
+            'account_reset_password_confirm',
+            kwargs={'uidb64': uid, 'token': token}))
     assert response.status_code == 302
     post_data = {'new_password1': 'password', 'new_password2': 'password'}
     response = admin_client.post(response['Location'], post_data)

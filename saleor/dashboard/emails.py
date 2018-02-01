@@ -13,7 +13,7 @@ def send_set_password_email(staff):
     ctx = {'protocol': 'http',
            'domain': site.domain,
            'site_name': site.name,
-           'uid': urlsafe_base64_encode(force_bytes(staff.pk)),
+           'uid': urlsafe_base64_encode(force_bytes(staff.pk)).decode(),
            'token': default_token_generator.make_token(staff)}
     send_templated_mail(
         template_name='dashboard/staff/set_password',

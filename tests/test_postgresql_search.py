@@ -2,7 +2,7 @@ from saleor.product.models import Product
 from saleor.order.models import Order
 from saleor.userprofile.models import Address, User
 
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from decimal import Decimal
 import pytest
 
