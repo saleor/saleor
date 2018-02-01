@@ -36,13 +36,16 @@ class ProductFilter(SortedFilterSet):
         self.form.fields['sort_by'].validators.append(self.validate_sort_by)
 
     def _get_attributes(self):
-        q = Q(**{"product_types__products__%s" % self.lookup: self.filter_field})
+        q = Q(
+            **{"product_types__products__%s" % self.lookup: self.filter_field})
         product_attributes = (
             ProductAttribute.objects.all()
             .prefetch_related('values')
             .filter(q)
             .distinct())
-        q = Q(**{"product_variant_types__products__%s" % self.lookup: self.filter_field})
+        q = Q(
+            **{"product_variant_types__products__%s" % self.lookup:
+                   self.filter_field})
         variant_attributes = (
             ProductAttribute.objects.all()
             .prefetch_related('values')
@@ -80,4 +83,3 @@ class ProductFilter(SortedFilterSet):
                     'Validation error for sort_by filter',
                     '%(value)s is not a valid sorting option'),
                 params={'value': value})
-
