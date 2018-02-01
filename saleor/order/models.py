@@ -22,6 +22,7 @@ from ..core.utils import build_absolute_uri
 from ..discount.models import Voucher
 from ..product.models import Product
 from ..userprofile.models import Address
+from .signals import order_status_change
 
 
 class OrderQuerySet(models.QuerySet):
