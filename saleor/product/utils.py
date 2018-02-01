@@ -83,8 +83,8 @@ def get_availability(product, discounts=None, local_currency=None):
 
     is_available = product.is_in_stock() and product.is_available()
     is_on_sale = (
-        product.is_available() and discount is not None
-        and undiscounted.min_price != price_range.min_price)
+        product.is_available() and discount is not None and
+        undiscounted.min_price != price_range.min_price)
 
     return ProductAvailability(
         available=is_available,
