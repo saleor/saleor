@@ -1,6 +1,82 @@
 {% extends "product_list_base.html" %}
 {% load i18n %}
 {% load staticfiles %}
+{% load get_sort_by_url from shop %}
+
+{% block breadcrumb %}
+  <div class="row">
+    <div class="col-md-7">
+      <ul class="breadcrumbs list-unstyled d-none d-md-block">
+        <li>
+          <a href="{% url 'home' %}">{% trans "Home" context 'Site breadcrumbs home' %}</a>
+        </li>
+        <li><a href='{{ object.get_absolute_url }}'>{{ object.name }}</a></li>
+      </ul>
+    </div>
+    <div class="col-md-5 filters-menu__wrapper">
+      <div class="row">
+        <div class="col-6 col-md-2 col-lg-6 filters-menu">
+          <span class="filters-menu__label d-md-none">Filters</span>
+        </div>
+        <div class="col-6 col-md-10 col-lg-6">
+          <div class="sort-by">
+            <div class="click-area d-none"></div>
+            <button class="btn btn-link">
+              <div>
+                    <span>
+                      {% if now_sorted_by == 'name' %}
+                        {% blocktrans trimmed %}
+                          Sort by: <b>name</b>
+                        {% endblocktrans %}
+                      {% elif now_sorted_by == 'price' %}
+                        {% blocktrans trimmed %}
+                          Sort by: <b>price</b>
+                        {% endblocktrans %}
+                      {% endif %}
+                    </span>
+                <div class="sort-order-icon">
+                  {% if is_descending %}
+                    <svg data-src="{% static "images/arrow-down.svg" %}" />
+                  {% else %}
+                    <svg data-src="{% static "images/arrow-up.svg" %}" />
+                  {% endif %}
+                </div>
+              </div>
+            </button>
+            <ul class="sort-list d-none">
+              {% for choice, label in sort_by_choices.items %}
+                <li>
+                  <div class="row">
+                    <div class="col-6">
+                      {% trans 'Sort by' context 'Product list filters' %}:
+                      <strong>{{ label }}</strong>
+                    </div>
+                    <div class="col-6">
+                      <div>
+                        <a href="{% get_sort_by_url choice %}">
+                          <span>{% trans 'ascending' context 'sort by option' %}</span>
+                          <div class="sort-order-icon float-right">
+                            <img src="{% static "images/arrow-up.svg" %}">
+                          </div>
+                        </a>
+                        <a href="{% get_sort_by_url choice descending=True %}">
+                          <span>{% trans 'descending' context 'sort by option' %}</span>
+                          <div class="sort-order-icon float-right">
+                            <img src="{% static "images/arrow-down.svg" %}">
+                          </div>
+                        </a>
+                      </div>
+                    </div>
+                  </div>
+                </li>
+              {% endfor %}
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}
 
 {% block filters %}
   {% include "product/_filters.html" %}
