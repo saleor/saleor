@@ -26,32 +26,29 @@ class ProductFilter(SortedFilterSet):
         filter_overrides = {PriceField: {'filter_class': RangeFilter}}
 
     def __init__(self, *args, **kwargs):
-        self.filter_field, self.lookup = kwargs.pop('filter_by')
         super().__init__(*args, **kwargs)
         self.product_attributes, self.variant_attributes = (
             self._get_attributes())
         self.filters.update(self._get_product_attributes_filters())
         self.filters.update(self._get_product_variants_attributes_filters())
         self.filters = OrderedDict(sorted(self.filters.items()))
-        self.form.fields['sort_by'].validators.append(self.validate_sort_by)
 
     def _get_attributes(self):
-        q = Q(
-            **{"product_types__products__%s" % self.lookup: self.filter_field})
+        q = self._get_attributes_lookup()
         product_attributes = (
             ProductAttribute.objects.all()
             .prefetch_related('values')
-            .filter(q)
+            .filter(q[0])
             .distinct())
-        q = Q(
-            **{"product_variant_types__products__%s" % self.lookup:
-                   self.filter_field})
         variant_attributes = (
             ProductAttribute.objects.all()
             .prefetch_related('values')
-            .filter(q)
+            .filter(q[1])
             .distinct())
         return product_attributes, variant_attributes
+
+    def _get_attributes_lookup(self):
+        raise NotImplementedError()
 
     def _get_product_attributes_filters(self):
         filters = {}
@@ -83,3 +80,25 @@ class ProductFilter(SortedFilterSet):
                     'Validation error for sort_by filter',
                     '%(value)s is not a valid sorting option'),
                 params={'value': value})
+
+
+class ProductCategoryFilter(ProductFilter):
+    def __init__(self, *args, **kwargs):
+        self.category = kwargs.pop('category')
+        super().__init__(*args, **kwargs)
+
+    def _get_attributes_lookup(self):
+        return (Q(**{"product_types__products__category": self.category}),
+                Q(**{"product_variant_types__products__category":
+                         self.category}))
+
+
+class ProductCollectionFilter(ProductFilter):
+    def __init__(self, *args, **kwargs):
+        self.collection = kwargs.pop('collection')
+        super().__init__(*args, **kwargs)
+
+    def _get_attributes_lookup(self):
+        return (Q(**{"product_types__products__collections": self.collection}),
+                Q(**{"product_variant_types__products__collections":
+                         self.collection}))
