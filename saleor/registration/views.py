@@ -14,7 +14,8 @@ from .forms import LoginForm, PasswordSetUpForm, SignupForm
 @find_and_assign_anonymous_cart()
 def login(request):
     kwargs = {
-        'template_name': 'account/login.html', 'authentication_form': LoginForm}
+        'template_name': 'account/login.html',
+        'authentication_form': LoginForm}
     return django_views.LoginView.as_view(**kwargs)(request, **kwargs)
 
 
