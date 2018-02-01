@@ -1,6 +1,6 @@
 from decimal import Decimal
 
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from elasticsearch_dsl.connections import connections
 import pytest
 

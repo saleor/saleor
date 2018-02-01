@@ -1,6 +1,6 @@
 import pytest
 
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 
 from .utils import get_redirect_location
 from saleor.product.models import Collection

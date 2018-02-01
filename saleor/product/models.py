@@ -92,7 +92,8 @@ class Product(models.Model, ItemRange):
         ProductType, related_name='products', on_delete=models.CASCADE)
     name = models.CharField(max_length=128)
     description = models.TextField()
-    category = models.ForeignKey(Category, related_name='products')
+    category = models.ForeignKey(
+        Category, related_name='products', on_delete=models.CASCADE)
     price = PriceField(
         currency=settings.DEFAULT_CURRENCY, max_digits=12, decimal_places=2)
     available_on = models.DateField(blank=True, null=True)
@@ -385,6 +386,9 @@ class Collection(models.Model):
     slug = models.SlugField()
     products = models.ManyToManyField(
         Product, blank=True, related_name='collections')
+
+    class Meta:
+        ordering = ['pk']
 
     def __str__(self):
         return self.name
