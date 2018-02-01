@@ -13,3 +13,4 @@ def get_shipment_options(country_code):
         shipping_methods = shipping_methods.values_list('price', flat=True)
         return PriceRange(
             min_price=min(shipping_methods), max_price=max(shipping_methods))
+    return None

@@ -157,13 +157,11 @@ class Product(models.Model, ItemRange):
         self.attributes[smart_text(pk)] = smart_text(value_pk)
 
     def get_price_range(self, discounts=None, **kwargs):
-        if not self.variants.exists():
-            price = calculate_discounted_price(
-                self, self.price, discounts, **kwargs)
-            return PriceRange(price, price)
-        else:
-            return super().get_price_range(
-                discounts=discounts, **kwargs)
+        if self.variants.exists():
+            return super().get_price_range(discounts=discounts, **kwargs)
+        price = calculate_discounted_price(
+            self, self.price, discounts, **kwargs)
+        return PriceRange(price, price)
 
     def get_gross_price_range(self, **kwargs):
         grosses = [self.get_price_per_item(item, **kwargs) for item in self]
@@ -262,11 +260,13 @@ class ProductVariant(models.Model, Item):
             stock, key=(lambda s: s.cost_price or zero_price), reverse=False)
         if stock:
             return stock[0]
+        return None
 
     def get_cost_price(self):
         stock = self.select_stockrecord()
         if stock:
             return stock.cost_price
+        return None
 
 
 class StockLocation(models.Model):

@@ -40,6 +40,7 @@ class ShippingMethod(models.Model):
         prices = [country.price for country in self.price_per_country.all()]
         if prices:
             return PriceRange(min(prices), max(prices))
+        return None
 
 
 class ShippingMethodCountryQueryset(models.QuerySet):

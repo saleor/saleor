@@ -5,14 +5,14 @@ from django.shortcuts import get_object_or_404, redirect
 from django.template.response import TemplateResponse
 from django.utils.translation import pgettext_lazy
 
-from .filters import StaffFilter
-from .forms import StaffForm
-from .utils import remove_staff_member
+from ...core.utils import get_paginator_items
+from ...userprofile.models import User
 from ..emails import (
     send_promote_customer_to_staff_email, send_set_password_email)
 from ..views import staff_member_required
-from ...core.utils import get_paginator_items
-from ...userprofile.models import User
+from .filters import StaffFilter
+from .forms import StaffForm
+from .utils import remove_staff_member
 
 
 @staff_member_required

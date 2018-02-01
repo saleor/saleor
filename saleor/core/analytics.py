@@ -1,8 +1,8 @@
 import uuid
 
-import google_measurement_protocol as ga
-from django.conf import settings
 from celery import shared_task
+from django.conf import settings
+import google_measurement_protocol as ga
 
 FINGERPRINT_PARTS = [
     'HTTP_ACCEPT_ENCODING',

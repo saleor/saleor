@@ -1,10 +1,9 @@
 from django.contrib.auth.models import Group
-from django.utils.translation import pgettext_lazy, npgettext
+from django.utils.translation import npgettext, pgettext_lazy
 from django_filters import ModelMultipleChoiceFilter, OrderingFilter
 
 from ...userprofile.models import User
 from ..customer.filters import UserFilter
-
 
 SORT_BY_FIELDS = (
     ('email', 'email'),

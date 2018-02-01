@@ -1,13 +1,12 @@
 import logging
-from django.dispatch import receiver
-from payments.signals import status_changed
+
+from django.utils.translation import pgettext_lazy
 
 from ..core import analytics
 
 logger = logging.getLogger(__name__)
 
 
-@receiver(status_changed)
 def order_status_change(sender, instance, **kwargs):
     """Handles payment status change and sets suitable order status."""
     order = instance.order

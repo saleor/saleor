@@ -18,8 +18,7 @@ def validate_cart(view):
     def func(request, checkout, cart):
         if cart:
             return view(request, checkout)
-        else:
-            return redirect('cart:index')
+        return redirect('cart:index')
     return func
 
 

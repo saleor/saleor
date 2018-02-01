@@ -11,8 +11,8 @@ from prices import PriceRange
 from satchless.item import InsufficientStock
 
 from . import CartStatus
-from .models import Cart
 from ..core.utils import to_local_currency
+from .models import Cart
 
 COOKIE_NAME = 'cart'
 

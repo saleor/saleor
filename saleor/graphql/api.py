@@ -1,10 +1,9 @@
 import graphene
 from graphene import relay
-from graphene_django import DjangoConnectionField
 from graphene_django.debug import DjangoDebug
 
 from .product.types import (
-    resolve_category, resolve_attributes, CategoryType, ProductAttributeType)
+    CategoryType, ProductAttributeType, resolve_attributes, resolve_category)
 
 
 class Query(graphene.ObjectType):

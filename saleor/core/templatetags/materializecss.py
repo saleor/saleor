@@ -1,14 +1,14 @@
-from django import forms
+from django import forms, template
 from django.template.loader import get_template
-from django import template
 from django_filters.widgets import RangeWidget
+
 from ...dashboard.widgets import DateRangeWidget, PriceRangeWidget
 
 register = template.Library()
 
 
 @register.filter
-def materializecss(element, label_cols={}):
+def materializecss(element, label_cols=None):
     if not label_cols:
         label_cols = 's12'
 

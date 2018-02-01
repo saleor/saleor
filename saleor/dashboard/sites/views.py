@@ -5,9 +5,9 @@ from django.shortcuts import get_object_or_404, redirect
 from django.template.response import TemplateResponse
 from django.utils.translation import pgettext_lazy
 
-from .forms import AuthorizationKeyForm, SiteForm, SiteSettingsForm
-from ..views import staff_member_required
 from ...site.models import AuthorizationKey, SiteSettings
+from ..views import staff_member_required
+from .forms import AuthorizationKeyForm, SiteForm, SiteSettingsForm
 
 
 @staff_member_required

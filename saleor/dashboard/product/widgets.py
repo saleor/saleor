@@ -1,6 +1,6 @@
-from django.forms import MultiWidget, HiddenInput
-from versatileimagefield.widgets import (ClearableFileInputWithImagePreview,
-                                         SizedImageCenterpointWidgetMixIn)
+from django.forms import HiddenInput, MultiWidget
+from versatileimagefield.widgets import (
+    ClearableFileInputWithImagePreview, SizedImageCenterpointWidgetMixIn)
 
 
 class ImagePreviewFileInput(ClearableFileInputWithImagePreview):

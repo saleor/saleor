@@ -6,18 +6,17 @@ from django.utils.encoding import smart_text
 from django.utils.text import slugify
 from django.utils.translation import pgettext_lazy
 
-from ...product.models import (
-    Collection, AttributeChoiceValue, Product, ProductAttribute, ProductImage,
-    ProductType, ProductVariant, Stock, StockLocation, VariantImage)
-from .widgets import ImagePreviewWidget
 from . import ProductBulkAction
+from ...product.models import (
+    AttributeChoiceValue, Collection, Product, ProductAttribute, ProductImage,
+    ProductType, ProductVariant, Stock, StockLocation, VariantImage)
 from ..widgets import RichTextEditorWidget
+from .widgets import ImagePreviewWidget
 
 
 class ProductTypeSelectorForm(forms.Form):
-    """
-    Form that allows selecting product type.
-    """
+    """Form that allows selecting product type."""
+
     product_type = forms.ModelChoiceField(
         queryset=ProductType.objects.all(),
         label=pgettext_lazy('Product type form label', 'Product type'),
@@ -43,7 +42,7 @@ class StockForm(forms.ModelForm):
     def clean_location(self):
         location = self.cleaned_data['location']
         if (
-            not self.instance.pk and
+                not self.instance.pk and
                 self.variant.stock.filter(location=location).exists()):
             self.add_error(
                 'location',
@@ -83,12 +82,12 @@ class ProductTypeForm(forms.ModelForm):
         has_variants = self.cleaned_data['has_variants']
         product_attr = set(self.cleaned_data['product_attributes'])
         variant_attr = set(self.cleaned_data['variant_attributes'])
-        if not has_variants and len(variant_attr) > 0:
+        if not has_variants and variant_attr:
             msg = pgettext_lazy(
                 'Product type form error',
                 'Product variants are disabled.')
             self.add_error('variant_attributes', msg)
-        if len(product_attr & variant_attr) > 0:
+        if product_attr & variant_attr:
             msg = pgettext_lazy(
                 'Product type form error',
                 'A single attribute can\'t belong to both a product '
@@ -96,8 +95,8 @@ class ProductTypeForm(forms.ModelForm):
             self.add_error('variant_attributes', msg)
 
         if self.instance.pk:
-            variants_changed = not (self.fields['has_variants'].initial ==
-                                    has_variants)
+            variants_changed = (
+                self.fields['has_variants'].initial != has_variants)
             if variants_changed:
                 query = self.instance.products.all()
                 query = query.annotate(variants_counter=Count('variants'))
@@ -379,6 +378,7 @@ class UploadImageForm(forms.ModelForm):
 
 class ProductBulkUpdate(forms.Form):
     """Performs one selected bulk action on all selected products."""
+
     action = forms.ChoiceField(choices=ProductBulkAction.CHOICES)
     products = forms.ModelMultipleChoiceField(queryset=Product.objects.all())
 
