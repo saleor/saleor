@@ -10,7 +10,7 @@
   <a href="{{ product.get_absolute_url }}" class="link--clean">
     <div class="text-center">
       <div>
-        <img class="img-responsive lazyload"
+        <img class="img-responsive lazyload lazypreload"
              data-src="{% product_first_image product method="crop" size="255x255" %}"
              data-srcset="{% product_first_image product method="crop" size="255x255" %} 1x, {% product_first_image product method="crop" size="510x510" %} 2x"
              alt=""

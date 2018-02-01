@@ -42,7 +42,7 @@
           <div class="row">
             <div class="col-7 cart__line__product">
               <a class="link--clean" href="{{ line.variant.get_absolute_url }}">
-                <img class="lazyload" data-src="{% get_thumbnail line.variant.product.images.first.image method="crop" size="60x60" %}"
+                <img class="lazyload lazypreload" data-src="{% get_thumbnail line.variant.product.images.first.image method="crop" size="60x60" %}"
                      data-srcset="{% get_thumbnail line.variant.product.images.first.image method="crop" size="60x60" %} 1x, {% get_thumbnail line.variant.product.images.first.image method="crop" size="120x120" %} 2x"
                      alt="">
                 <p>{{ line.variant.product }}<br><small>{{ line.variant }}</small></p>
@@ -82,7 +82,7 @@
       </div>
     {% else %}
       <div class="cart__empty">
-        <img class="lazyload" data-src="{% static 'images/empty-cart-bg.png' %}" data-srcset="{% static 'images/empty-cart-bg.png' %} 1x, {% static 'images/empty-cart-bg2x.png' %} 2x">
+        <img class="lazyload lazypreload" data-src="{% static 'images/empty-cart-bg.png' %}" data-srcset="{% static 'images/empty-cart-bg.png' %} 1x, {% static 'images/empty-cart-bg2x.png' %} 2x">
         <h2>{% trans "There are no products in your shopping cart." context "Empty cart message" %}</h2>
         <a href="{% url 'home' %}" class="btn primary">{% trans "Check out our sales" context "Empty cart link" %}</a>
       </div>

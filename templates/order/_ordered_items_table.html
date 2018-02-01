@@ -55,7 +55,7 @@
           <a class="link--clean" href="{% if item_line.product %}{{ item_line.product.get_absolute_url }}{% endif %}">
             <img data-src="{% product_first_image item_line.product size="60x60" method="crop" %}"
                  data-srcset="{% product_first_image item_line.product size="60x60" method="crop" %} 1x, {% product_first_image item_line.product size="120x120" method="crop" %} 2x"
-                 class="float-left lazyload"
+                 class="float-left lazyload lazypreload"
                  src="{% placeholder size=60 %}">
             <span class="order-details__product__description">{{ item_line.product_name }}</span>
           </a>
