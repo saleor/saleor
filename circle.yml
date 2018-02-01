@@ -14,6 +14,7 @@ machine:
 dependencies:
   pre:
     - npm install
+    - npm run build-emails
     - pip install -U pip
     - pip install -r requirements.txt
   override:

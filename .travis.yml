@@ -14,6 +14,7 @@ install:
   - nvm install 8
   - npm i
   - npm run build-assets --production
+  - npm run build-emails
 script:
   - tox
 env:
