@@ -20,21 +20,6 @@
   </ul>
 {% endblock %}
 
-{#{% block header_extra %}#}
-{#  {% if collection.pk %}#}
-{#    <a class="dropdown-button right" href="#" data-activates="collection-delete" data-constrainwidth="false">#}
-{#      <i class="material-icons">more_vert</i>#}
-{#    </a>#}
-{#    <ul id="collection-delete" class="dropdown-content">#}
-{#      <li>#}
-{#        <a class="modal-trigger-custom" data-href="{% url 'dashboard:collection-delete' collection.pk %}" href="#base-modal">#}
-{#          {% trans "Remove collection" context "Collection detail action" %}#}
-{#        </a>#}
-{#      </li>#}
-{#    </ul>#}
-{#  {% endif %}#}
-{#{% endblock %}#}
-
 {% block header_extra %}
   {% if collection.pk %}
     {% if perms.product.edit_product %}
@@ -45,6 +30,11 @@
         <li>
           <a class="modal-trigger-custom" href="#base-modal" data-href="{% url 'dashboard:collection-delete' pk=collection.pk %}">
             {% trans "Remove collection" context "Collection action" %}
+          </a>
+        </li>
+        <li>
+          <a href="{{ collection.get_absolute_url }}">
+            {% trans "View on site" context "Collection action" %}
           </a>
         </li>
       </ul>
