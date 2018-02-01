@@ -1,13 +1,13 @@
+from django.conf import settings
 from django.core.management import call_command
 from django.core.management.base import BaseCommand
-from django.conf import settings
 from django.db import connection
 
-from ...utils.random_data import (
-    create_orders, create_users, create_shipping_methods,
-    create_products_by_schema, create_product_sales, create_vouchers,
-    create_groups, set_featured_products, add_address_to_admin)
 from ...utils import create_superuser
+from ...utils.random_data import (
+    add_address_to_admin, create_groups, create_orders, create_product_sales,
+    create_products_by_schema, create_shipping_methods, create_users,
+    create_vouchers, set_featured_products)
 
 
 class Command(BaseCommand):

@@ -8,8 +8,8 @@ from django.utils.translation import pgettext_lazy
 
 from ...core.utils import get_paginator_items
 from ...userprofile.models import User
-from ..views import staff_member_required
 from ..emails import send_set_password_email
+from ..views import staff_member_required
 from .filters import UserFilter
 from .forms import CustomerForm
 
@@ -40,7 +40,7 @@ def customer_list(request):
 def customer_details(request, pk):
     queryset = User.objects.prefetch_related(
         'orders', 'addresses').select_related(
-        'default_billing_address', 'default_shipping_address')
+            'default_billing_address', 'default_shipping_address')
     customer = get_object_or_404(queryset, pk=pk)
     customer_orders = customer.orders.all()
     ctx = {'customer': customer, 'customer_orders': customer_orders}

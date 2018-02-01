@@ -1,8 +1,8 @@
+from collections import defaultdict
 import itertools
 import os
 import random
 import unicodedata
-from collections import defaultdict
 
 from django.conf import settings
 from django.contrib.auth.models import Group, Permission
@@ -13,7 +13,7 @@ from faker.providers import BaseProvider
 from payments import PaymentStatus
 from prices import Price
 
-from ...discount import VoucherType, DiscountValueType
+from ...discount import DiscountValueType, VoucherType
 from ...discount.models import Sale, Voucher
 from ...order import GroupStatus
 from ...order.models import DeliveryGroup, Order, OrderLine, Payment

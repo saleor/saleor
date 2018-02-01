@@ -199,6 +199,7 @@ class Checkout:
             return self.user.default_billing_address
         elif self.shipping_address:
             return self.shipping_address
+        return None
 
     @billing_address.setter
     def billing_address(self, address):
@@ -216,6 +217,7 @@ class Checkout:
         if value is not None and name is not None and currency is not None:
             amount = Price(value, currency=currency)
             return FixedDiscount(amount, name)
+        return None
 
     @discount.setter
     def discount(self, discount):
@@ -287,10 +289,10 @@ class Checkout:
         # FIXME: save locale along with the language
         voucher = self._get_voucher(
             vouchers=Voucher.objects.active(date=date.today())
-                            .select_for_update())
+            .select_for_update())
         if self.voucher_code is not None and voucher is None:
             # Voucher expired in meantime, abort order placement
-            return
+            return None
 
         if self.is_shipping_required:
             shipping_address = self._save_order_shipping_address()
@@ -316,7 +318,6 @@ class Checkout:
         if self.user.is_authenticated:
             order_data['user'] = self.user
             order_data['user_email'] = self.user.email
-
         else:
             order_data['user_email'] = self.email
 
@@ -355,6 +356,7 @@ class Checkout:
                 return vouchers.get(code=self.voucher_code)
             except Voucher.DoesNotExist:
                 return None
+        return None
 
     def recalculate_discount(self):
         """Recalculate `self.discount` based on the voucher.

@@ -10,6 +10,7 @@ class AttributesFilterScalar(Scalar):
             splitted = node.value.split(":")
             if len(splitted) == 2:
                 return tuple(splitted)
+        return None
 
     @staticmethod
     def parse_value(value):
@@ -17,8 +18,10 @@ class AttributesFilterScalar(Scalar):
             splitted = value.split(":")
             if len(splitted) == 2:
                 return tuple(splitted)
+        return None
 
     @staticmethod
     def serialize(value):
         if isinstance(value, tuple) and len(value) == 2:
             return ":".join(value)
+        return None

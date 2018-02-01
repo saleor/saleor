@@ -14,5 +14,4 @@ urlpatterns = [
     url(r'^(?P<root_pk>[0-9]+)/edit/$',
         views.category_edit, name='category-edit'),
     url(r'^(?P<pk>[0-9]+)/delete/$',
-        views.category_delete, name='category-delete')
-]
+        views.category_delete, name='category-delete')]

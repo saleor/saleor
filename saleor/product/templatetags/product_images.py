@@ -14,8 +14,8 @@ register = template.Library()
 def get_available_sizes():
     all_sizes = set()
     keys = settings.VERSATILEIMAGEFIELD_RENDITION_KEY_SETS
-    for size_group, sizes in keys.items():
-        for size_name, size in sizes:
+    for dummy_size_group, sizes in keys.items():
+        for dummy_size_name, size in sizes:
             all_sizes.add(size)
     return all_sizes
 
@@ -36,7 +36,7 @@ def choose_placeholder(size=''):
         x_size, y_size = parsed_sizes.groups()
         max_size = max([int(x_size), int(y_size)])
         bigger_or_eq = list(filter(lambda x: x >= max_size, available_sizes))
-        if len(bigger_or_eq) > 0:
+        if bigger_or_eq:
             placeholder = settings.PLACEHOLDER_IMAGES[bigger_or_eq[0]]
         else:
             placeholder = settings.PLACEHOLDER_IMAGES[available_sizes[-1]]
@@ -57,7 +57,7 @@ def get_thumbnail(instance, size, method='crop'):
                 thumbnail = instance.crop[size]
             else:
                 thumbnail = instance.thumbnail[size]
-        except:
+        except Exception:
             logger.exception('Thumbnail fetch failed',
                              extra={'instance': instance, 'size': size})
         else:

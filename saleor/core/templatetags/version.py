@@ -1,5 +1,6 @@
 from django.template import Library
-from saleor import __version__
+
+from ... import __version__
 
 register = Library()
 
