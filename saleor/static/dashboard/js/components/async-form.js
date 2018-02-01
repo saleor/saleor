@@ -1,17 +1,17 @@
-import { initSelects } from './selects';
-
 export default $(document).on('submit', '.form-async', function (e) {
+  const $target = $(e.currentTarget);
   $.ajax({
-    url: $(e.currentTarget).attr('action'),
+    url: $target.attr('action'),
     method: 'post',
-    data: $(e.currentTarget).serialize(),
+    data: $target.serialize(),
     success: function (data) {
       const $message = $(data).find('div');
       $message.find('a').remove();
-      $(e.currentTarget).find('.row').last().html($message);
-      $(e.currentTarget).find('.row').last().css('text-align', 'center');
-      $(e.currentTarget).find('svg').height('160px');
-      $(e.currentTarget).find('button').remove();
+      const $lastRow = $target.find('.row').last();
+      $lastRow.html($message);
+      $lastRow.css('text-align', 'center');
+      $lastRow.find('svg').height('160px');
+      $target.find('button').remove();
     }
   });
   e.preventDefault();
