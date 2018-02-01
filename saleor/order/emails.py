@@ -11,7 +11,7 @@ CONFIRM_NOTE_TEMPLATE = 'order/note/confirm_note'
 def _send_confirmation(email, url, template, context=None):
     site = Site.objects.get_current()
     ctx = {
-        'protocol': 'http',
+        'protocol': 'https' if settings.ENABLE_SSL else 'http',
         'site_name': site.name,
         'domain': site.domain,
         'url': url}

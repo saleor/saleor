@@ -14,7 +14,7 @@ from ..core.utils import build_absolute_uri
 def send_set_password_email(staff):
     site = Site.objects.get_current()
     ctx = {
-        'protocol': 'http',
+        'protocol': 'https' if settings.ENABLE_SSL else 'http',
         'domain': site.domain,
         'site_name': site.name,
         'uid': urlsafe_base64_encode(force_bytes(staff.pk)).decode(),
@@ -30,7 +30,7 @@ def send_set_password_email(staff):
 def send_promote_customer_to_staff_email(staff):
     site = Site.objects.get_current()
     ctx = {
-        'protocol': 'http',
+        'protocol': 'https' if settings.ENABLE_SSL else 'http',
         'domain': site.domain,
         'url': build_absolute_uri(reverse('dashboard:index')),
         'site_name': site.name}
