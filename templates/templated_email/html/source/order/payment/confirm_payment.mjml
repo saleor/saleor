@@ -18,7 +18,7 @@
             {% trans "Hi!" context "Payment confirmation e-mail text" %}
           </mj-text>
           <mj-text>
-            {% blocktrans context "Payment confirmation e-mail text" %}
+            {% blocktrans trimmed context "Payment confirmation e-mail text" %}
               Thank you for your payment. To see your payment details please visit: <a href="{{ url }}">{{ url }}</a>
             {% endblocktrans %}
           </mj-text>

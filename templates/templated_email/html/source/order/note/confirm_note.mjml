@@ -18,7 +18,7 @@
             {% trans "Hi!" context "Note confirmation e-mail text" %}
           </mj-text>
           <mj-text>
-            {% blocktrans context "Note confirmation e-mail text" %}
+            {% blocktrans trimmed context "Note confirmation e-mail text" %}
               A new note has been added to your order. To see details please visit: <a href="{{ url }}">{{ url }}</a>
             {% endblocktrans %}
           </mj-text>

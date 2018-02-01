@@ -1,7 +1,7 @@
 <mj-section>
   <mj-column>
     <mj-text>
-      {% blocktrans context "Base e-mail text" %}
+      {% blocktrans trimmed context "Base e-mail text" %}
         This is an automatically generated e-mail, please do not reply.
       {% endblocktrans %}
     </mj-text>
