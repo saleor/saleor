@@ -15,7 +15,7 @@ braintree==3.39.1         # via django-payments
 cairocffi==0.8.0          # via cairosvg, weasyprint
 cairosvg==2.1.3
 celery[redis]==4.1.0
-certifi==2017.11.5        # via requests
+certifi==2018.1.18        # via requests
 cffi==1.11.4              # via cairocffi, cryptography, weasyprint
 chardet==3.0.4            # via requests
 cryptography==2.1.4       # via django-payments
