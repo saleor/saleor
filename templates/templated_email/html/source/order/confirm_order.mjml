@@ -15,7 +15,7 @@
       <mj-include path="../shared/header" />
       <mj-section>
         <mj-column>
-          <mj-text  font-size="16px">
+          <mj-text font-size="16px">
             {% trans "Hi!" context "Order confirmation e-mail text" %}
           </mj-text>
           <mj-text>
