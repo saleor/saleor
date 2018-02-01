@@ -4,6 +4,7 @@ from django.urls import reverse
 
 from .utils import get_redirect_location
 from saleor.dashboard.collection.forms import CollectionForm
+from saleor.product.models import Collection
 
 
 def test_list_view(admin_client, collection):
@@ -81,9 +82,8 @@ def test_collection_delete_view(admin_client, collection):
     assert response.status_code == 302
     assert Collection.objects.count() == (collections_count - 1)
 
-from unittest.mock import Mock, MagicMock
+
 def test_collection_index_in_storefront(admin_client, collection):
-    collection.products = MagicMock()
     response = admin_client.get(
         reverse('product:collection',
                 kwargs={'pk': collection.id, 'slug': collection.slug}))
