@@ -8,7 +8,6 @@ Architecture
    architecture/stock
    architecture/orders
    architecture/i18n
-   architecture/seo
    architecture/search
    architecture/payments
    architecture/settings
