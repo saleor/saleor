@@ -1,5 +1,6 @@
 from collections import OrderedDict
 
+from django.db.models import Q
 from django.forms import CheckboxSelectMultiple, ValidationError
 from django.utils.translation import pgettext_lazy
 from django_filters import MultipleChoiceFilter, OrderingFilter, RangeFilter
@@ -25,6 +26,7 @@ class ProductFilter(SortedFilterSet):
         filter_overrides = {PriceField: {'filter_class': RangeFilter}}
 
     def __init__(self, *args, **kwargs):
+        self.filter_field, self.lookup = kwargs.pop('filter_by')
         super().__init__(*args, **kwargs)
         self.product_attributes, self.variant_attributes = (
             self._get_attributes())
@@ -34,7 +36,19 @@ class ProductFilter(SortedFilterSet):
         self.form.fields['sort_by'].validators.append(self.validate_sort_by)
 
     def _get_attributes(self):
-        raise NotImplementedError()
+        q = Q(**{"product_types__products__%s" % self.lookup: self.filter_field})
+        product_attributes = (
+            ProductAttribute.objects.all()
+            .prefetch_related('values')
+            .filter(q)
+            .distinct())
+        q = Q(**{"product_variant_types__products__%s" % self.lookup: self.filter_field})
+        variant_attributes = (
+            ProductAttribute.objects.all()
+            .prefetch_related('values')
+            .filter(q)
+            .distinct())
+        return product_attributes, variant_attributes
 
     def _get_product_attributes_filters(self):
         filters = {}
@@ -67,42 +81,3 @@ class ProductFilter(SortedFilterSet):
                     '%(value)s is not a valid sorting option'),
                 params={'value': value})
 
-
-class ProductCategoryFilter(ProductFilter):
-    def __init__(self, *args, **kwargs):
-        self.category = kwargs.pop('category')
-        super().__init__(*args, **kwargs)
-
-    def _get_attributes(self):
-        product_attributes = (
-            ProductAttribute.objects.all()
-            .prefetch_related('values')
-            .filter(product_types__products__category=self.category)
-            .distinct())
-        variant_attributes = (
-            ProductAttribute.objects.all()
-            .prefetch_related('values')
-            .filter(product_variant_types__products__category=self.category)
-            .distinct())
-        return product_attributes, variant_attributes
-
-
-class ProductCollectionFilter(ProductFilter):
-
-    def __init__(self, *args, **kwargs):
-        self.collection = kwargs.pop('collection')
-        super().__init__(*args, **kwargs)
-
-    def _get_attributes(self):
-        product_attributes = (
-            ProductAttribute.objects.all()
-            .prefetch_related('values')
-            .filter(product_types__products__collections=self.collection)
-            .distinct())
-        variant_attributes = (
-            ProductAttribute.objects.all()
-            .prefetch_related('values')
-            .filter(
-                product_variant_types__products__collections=self.collection)
-            .distinct())
-        return product_attributes, variant_attributes
