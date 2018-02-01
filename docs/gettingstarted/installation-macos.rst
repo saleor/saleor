@@ -152,6 +152,11 @@ Installation
 
     $ npm run build-assets
 
+#. Compile e-mails:
+
+   .. code-block:: bash
+
+    $ npm run build-emails
 
 #. Start the development server:
 

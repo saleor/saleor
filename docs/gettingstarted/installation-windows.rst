@@ -124,6 +124,11 @@ All commands need to be performed in either PowerShell or a Command Shell.
 
     npm run build-assets
 
+#. Compile e-mails:
+
+   .. code-block:: powershell
+
+    $ npm run build-emails
 
 #. Start the development server:
 
