@@ -10,7 +10,8 @@ from prices import Price, PriceRange
 
 from . import ProductAvailabilityStatus, VariantAvailabilityStatus
 from ..cart.utils import get_cart_from_request, get_or_create_cart_from_request
-from ..core.utils import to_local_currency
+from ..core.utils import get_paginator_items, to_local_currency
+from ..core.utils.filters import get_now_sorted_by
 from .forms import ProductForm
 
 
@@ -389,3 +390,22 @@ def decrease_stock(stock, quantity):
     stock.quantity = F('quantity') - quantity
     stock.quantity_allocated = F('quantity_allocated') - quantity
     stock.save(update_fields=['quantity', 'quantity_allocated'])
+
+
+def get_product_list_context(request, object, filter_set):
+    # Avoiding circular dependency
+    from .filters import SORT_BY_FIELDS
+    products_paginated = get_paginator_items(
+        filter_set.qs, settings.PAGINATE_BY, request.GET.get('page'))
+    products_and_availability = list(products_with_availability(
+        products_paginated, request.discounts, request.currency))
+    now_sorted_by = get_now_sorted_by(filter_set)
+    arg_sort_by = request.GET.get('sort_by')
+    is_descending = arg_sort_by.startswith('-') if arg_sort_by else False
+    return {
+        'object': object, 'filter_set': filter_set,
+        'products': products_and_availability,
+        'products_paginated': products_paginated,
+        'sort_by_choices': SORT_BY_FIELDS,
+        'now_sorted_by': now_sorted_by,
+        'is_descending': is_descending}
