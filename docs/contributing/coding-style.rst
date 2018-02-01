@@ -50,6 +50,8 @@ Please break multi-line code immediately after the parenthesis and avoid relying
 Linters
 ~~~~~~~
 
+Use `isort <https://github.com/timothycrosley/isort>`_ to maintain consistent imports.
+
 Use `pylint <https://www.pylint.org/>`_ with the ``pylint-django`` plugin to catch errors in your code.
 
 Use `pycodestyle <http://pycodestyle.pycqa.org/en/latest/>`_ to make sure your code adheres to PEP 8.
