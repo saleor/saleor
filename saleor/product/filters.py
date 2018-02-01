@@ -90,7 +90,7 @@ class ProductCategoryFilter(ProductFilter):
     def _get_attributes_lookup(self):
         return (Q(**{"product_types__products__category": self.category}),
                 Q(**{"product_variant_types__products__category":
-                         self.category}))
+                     self.category}))
 
 
 class ProductCollectionFilter(ProductFilter):
@@ -101,4 +101,4 @@ class ProductCollectionFilter(ProductFilter):
     def _get_attributes_lookup(self):
         return (Q(**{"product_types__products__collections": self.collection}),
                 Q(**{"product_variant_types__products__collections":
-                         self.collection}))
+                     self.collection}))
