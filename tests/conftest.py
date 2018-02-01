@@ -19,8 +19,8 @@ from saleor.order import GroupStatus
 from saleor.order.models import DeliveryGroup, Order, OrderLine
 from saleor.order.utils import recalculate_order
 from saleor.product.models import (
-    AttributeChoiceValue, Category, Product, ProductAttribute, ProductImage,
-    ProductType, ProductVariant, Stock, StockLocation)
+    AttributeChoiceValue, Category, Collection, Product, ProductAttribute,
+    ProductImage, ProductType, ProductVariant, Stock, StockLocation)
 from saleor.shipping.models import ShippingMethod
 from saleor.site.models import AuthorizationKey, SiteSettings
 from saleor.userprofile.models import Address, User
@@ -641,3 +641,9 @@ def closed_orders(billing_address):
     orders.append(Order.objects.create(billing_address=billing_address))
 
     return orders
+
+
+@pytest.fixture
+def collection(db):
+    collection = Collection.objects.create(name="Collection", slug='collection')
+    return collection

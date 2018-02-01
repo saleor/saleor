@@ -392,7 +392,12 @@ def decrease_stock(stock, quantity):
     stock.save(update_fields=['quantity', 'quantity_allocated'])
 
 
-def get_product_list_context(request, object, filter_set):
+def get_product_list_context(request, filter_set):
+    """
+    :param request: request object
+    :param filter_set: filter set for product list
+    :return: context dictionary
+    """
     # Avoiding circular dependency
     from .filters import SORT_BY_FIELDS
     products_paginated = get_paginator_items(
@@ -403,7 +408,7 @@ def get_product_list_context(request, object, filter_set):
     arg_sort_by = request.GET.get('sort_by')
     is_descending = arg_sort_by.startswith('-') if arg_sort_by else False
     return {
-        'object': object, 'filter_set': filter_set,
+        'filter_set': filter_set,
         'products': products_and_availability,
         'products_paginated': products_paginated,
         'sort_by_choices': SORT_BY_FIELDS,

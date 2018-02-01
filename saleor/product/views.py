@@ -116,7 +116,8 @@ def category_index(request, path, category_id):
         category__id=category.id).order_by('name')
     product_filter = ProductCategoryFilter(
         request.GET, queryset=products, category=category)
-    ctx = get_product_list_context(request, category, product_filter)
+    ctx = get_product_list_context(request, product_filter)
+    ctx.update({'object': category})
     return TemplateResponse(request, 'category/index.html', ctx)
 
 
@@ -126,5 +127,6 @@ def collection_index(request, slug, pk):
         collections__id=collection.id).order_by('name')
     product_filter = ProductCollectionFilter(
         request.GET, queryset=products, collection=collection)
-    ctx = get_product_list_context(request, collection, product_filter)
+    ctx = get_product_list_context(request, product_filter)
+    ctx.update({'object': collection})
     return TemplateResponse(request, 'collection/index.html', ctx)
