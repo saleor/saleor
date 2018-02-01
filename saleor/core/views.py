@@ -5,10 +5,10 @@ from django.contrib import messages
 from django.utils.translation import pgettext_lazy
 from impersonate.views import impersonate as orig_impersonate, stop_impersonate
 
-from .utils.schema import get_webpage_schema
 from ..dashboard.views import staff_member_required
 from ..product.utils import products_with_availability, products_for_homepage
 from ..userprofile.models import User
+from .utils.schema import get_webpage_schema
 
 
 def home(request):
@@ -40,3 +40,13 @@ def impersonate(request, uid):
 
 def handle_404(request):
     return TemplateResponse(request, '404.html', status=404)
+
+
+def manifest(request):
+    site = request.site
+    ctx = {
+        'description': site.settings.description,
+        'name': site.name,
+        'short_name': site.name}
+    return TemplateResponse(
+        request, 'manifest.json', ctx, content_type='application/json')

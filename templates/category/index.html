@@ -5,6 +5,7 @@
 {% load staticfiles %}
 {% load prices_i18n %}
 {% load build_absolute_uri from urls %}
+{% load placeholder %}
 
 {% block footer_scripts %}
   {{ block.super }}
@@ -98,13 +99,13 @@
                             <a href="{% get_sort_by_url choice %}">
                               <span>{% trans 'ascending' context 'sort by option' %}</span>
                               <div class="sort-order-icon float-right">
-                                <img src="{% static "images/arrow-up.svg" %}">
+                                <img class="lazyload lazypreload" data-src="{% static "images/arrow-up.svg" %}">
                               </div>
                             </a>
                             <a href="{% get_sort_by_url choice descending=True %}">
                               <span>{% trans 'descending' context 'sort by option' %}</span>
                               <div class="sort-order-icon float-right">
-                                <img src="{% static "images/arrow-down.svg" %}">
+                                <img class="lazyload lazypreload" data-src="{% static "images/arrow-down.svg" %}">
                               </div>
                             </a>
                           </div>
@@ -159,7 +160,7 @@
                       <h3 class="filter-label">
                         {{ field.label }}
                         <div class="collapse-filters-icon">
-                          <img src="{% static "images/chevron-up.svg" %}">
+                          <img class="lazyload lazypreload" data-src="{% static "images/chevron-up.svg" %}">
                         </div>
                       </h3>
                       <div class="filter-form-field" style="display:block">
@@ -178,7 +179,7 @@
                       <h3 class="filter-label">
                         {{ field.label }}
                         <div class="collapse-filters-icon">
-                          <img src="{% static "images/chevron-up.svg" %}">
+                          <img class="lazyload lazypreload" data-src="{% static "images/chevron-up.svg" %}">
                         </div>
                       </h3>
                       <div class="filter-form-field" style="display:block">
