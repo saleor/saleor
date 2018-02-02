@@ -1,9 +1,8 @@
-from text_unidecode import unidecode
-
 from django import forms
 from django.urls import reverse_lazy
 from django.utils.text import slugify
 from django.utils.translation import pgettext_lazy
+from text_unidecode import unidecode
 
 from ...product.models import Collection, Product
 from ..forms import AjaxSelect2MultipleChoiceField

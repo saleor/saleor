@@ -7,9 +7,9 @@ from django.template.response import TemplateResponse
 from django.utils.translation import pgettext
 from django.views.decorators.http import require_POST
 
-from ..core import load_checkout
 from ...discount.forms import CheckoutDiscountForm
 from ...discount.models import Voucher
+from ..core import load_checkout
 
 
 def add_voucher_form(view):

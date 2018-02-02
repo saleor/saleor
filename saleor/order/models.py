@@ -15,13 +15,13 @@ from payments.models import BasePayment
 from prices import FixedDiscount, Price
 from satchless.item import ItemLine, ItemSet
 
-from . import emails, GroupStatus, OrderStatus
-from .transitions import (
-    cancel_delivery_group, process_delivery_group, ship_delivery_group)
+from . import GroupStatus, OrderStatus, emails
 from ..core.utils import build_absolute_uri
 from ..discount.models import Voucher
 from ..product.models import Product
 from ..userprofile.models import Address
+from .transitions import (
+    cancel_delivery_group, process_delivery_group, ship_delivery_group)
 
 
 class OrderQuerySet(models.QuerySet):
@@ -137,11 +137,13 @@ class Order(models.Model, ItemSet):
         last_payment = self.payments.last()
         if last_payment:
             return last_payment.status
+        return None
 
     def get_last_payment_status_display(self):
         last_payment = self.payments.last()
         if last_payment:
             return last_payment.get_status_display()
+        return None
 
     def is_pre_authorized(self):
         return self.payments.filter(status=PaymentStatus.PREAUTH).exists()
@@ -158,8 +160,7 @@ class Order(models.Model, ItemSet):
         statuses = set([group.status for group in self.groups.all()])
         return (
             OrderStatus.OPEN if GroupStatus.NEW in statuses
-            else OrderStatus.CLOSED
-        )
+            else OrderStatus.CLOSED)
 
     @property
     def is_open(self):
@@ -173,8 +174,10 @@ class Order(models.Model, ItemSet):
     def total(self):
         if self.total_net is not None:
             gross = self.total_net.net + self.total_tax.gross
-            return Price(net=self.total_net.net, gross=gross,
-                         currency=settings.DEFAULT_CURRENCY)
+            return Price(
+                net=self.total_net.net, gross=gross,
+                currency=settings.DEFAULT_CURRENCY)
+        return None
 
     @total.setter
     def total(self, price):
@@ -285,6 +288,7 @@ class PaymentQuerySet(models.QuerySet):
         objects = list(self.all()[:1])
         if objects:
             return objects[0]
+        return None
 
 
 class Payment(BasePayment):

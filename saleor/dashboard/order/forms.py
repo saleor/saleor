@@ -1,7 +1,7 @@
 from django import forms
 from django.conf import settings
-from django.core.validators import MinValueValidator, MaxValueValidator
-from django.urls import reverse_lazy, reverse
+from django.core.validators import MaxValueValidator, MinValueValidator
+from django.urls import reverse, reverse_lazy
 from django.utils.translation import npgettext_lazy, pgettext_lazy
 from django_prices.forms import PriceField
 from payments import PaymentError, PaymentStatus

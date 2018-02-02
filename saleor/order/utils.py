@@ -7,9 +7,9 @@ from django.utils.translation import pgettext_lazy
 from prices import Price
 from satchless.item import InsufficientStock
 
-from ..product.utils import allocate_stock, deallocate_stock
-from ..userprofile.utils import store_user_address
 from . import GroupStatus
+from ..product.utils import allocate_stock
+from ..userprofile.utils import store_user_address
 
 
 def check_order_status(func):

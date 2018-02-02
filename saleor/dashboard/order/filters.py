@@ -2,15 +2,14 @@ from django import forms
 from django.db.models import Q
 from django.utils.translation import npgettext, pgettext_lazy
 from django_filters import (
-    CharFilter, ChoiceFilter, DateFromToRangeFilter, NumberFilter, RangeFilter,
-    OrderingFilter)
+    CharFilter, ChoiceFilter, DateFromToRangeFilter, NumberFilter,
+    OrderingFilter, RangeFilter)
 from payments import PaymentStatus
 
 from ...core.filters import SortedFilterSet
 from ...order import OrderStatus
 from ...order.models import Order
 from ..widgets import DateRangeWidget, PriceRangeWidget
-
 
 SORT_BY_FIELDS = (
     ('pk', 'pk'),

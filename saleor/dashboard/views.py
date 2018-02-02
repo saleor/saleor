@@ -1,7 +1,6 @@
 from django.conf import settings
-from django.contrib.admin.views.decorators import \
-    staff_member_required as _staff_member_required
-from django.contrib.admin.views.decorators import user_passes_test
+from django.contrib.admin.views.decorators import (
+    staff_member_required as _staff_member_required, user_passes_test)
 from django.contrib.auth import REDIRECT_FIELD_NAME
 from django.db.models import Q, Sum
 from django.template.response import TemplateResponse

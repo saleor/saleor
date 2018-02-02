@@ -1,5 +1,5 @@
-from django_filters import CharFilter, OrderingFilter
 from django.utils.translation import npgettext, pgettext_lazy
+from django_filters import CharFilter, OrderingFilter
 
 from ...core.filters import SortedFilterSet
 from ...product.models import Collection

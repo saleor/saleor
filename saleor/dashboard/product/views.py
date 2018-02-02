@@ -9,6 +9,7 @@ from django.utils.translation import npgettext_lazy, pgettext_lazy
 from django.views.decorators.http import require_POST
 from django_prices.templatetags.prices_i18n import gross
 
+from . import forms
 from ...core.utils import get_paginator_items
 from ...product.models import (
     AttributeChoiceValue, Product, ProductAttribute, ProductImage, ProductType,
@@ -17,9 +18,8 @@ from ...product.utils import (
     get_availability, get_product_costs_data, get_variant_costs_data)
 from ..views import staff_member_required
 from .filters import (
-    ProductFilter, ProductAttributeFilter, ProductTypeFilter,
+    ProductAttributeFilter, ProductFilter, ProductTypeFilter,
     StockLocationFilter)
-from . import forms
 
 
 @staff_member_required

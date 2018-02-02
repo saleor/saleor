@@ -4,7 +4,6 @@ from phonenumbers import COUNTRY_CODE_TO_REGION_CODE
 
 from .validators import validate_possible_number
 
-
 phone_prefixes = [
     ('+{}'.format(k), '+{}'.format(k)) for
     (k, v) in sorted(COUNTRY_CODE_TO_REGION_CODE.items())]

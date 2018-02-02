@@ -2,7 +2,7 @@ from django import forms
 from django.contrib.sites.models import Site
 from django.utils.translation import pgettext_lazy
 
-from ...site.models import SiteSettings, AuthorizationKey
+from ...site.models import AuthorizationKey, SiteSettings
 
 
 class SiteForm(forms.ModelForm):

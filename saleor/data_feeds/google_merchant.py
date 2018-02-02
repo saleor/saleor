@@ -1,5 +1,5 @@
-import gzip
 import csv
+import gzip
 
 from django.conf import settings
 from django.contrib.sites.models import Site
@@ -8,8 +8,8 @@ from django.core.files.storage import default_storage
 from django.utils.encoding import smart_text
 
 from ..discount.models import Sale
-from ..product.models import (AttributeChoiceValue, Category, ProductAttribute,
-                              ProductVariant)
+from ..product.models import (
+    AttributeChoiceValue, Category, ProductAttribute, ProductVariant)
 
 CATEGORY_SEPARATOR = ' > '
 
@@ -62,8 +62,9 @@ def item_description(item):
 
 
 def item_condition(item):
-    """
-    Allowed values: new, refurbished, or used
+    """Return a valid item condition.
+
+    Allowed values: new, refurbished, and used.
     Read more:
     https://support.google.com/merchants/answer/6324469
     """
@@ -71,7 +72,8 @@ def item_condition(item):
 
 
 def item_brand(item, attributes_dict, attribute_values_dict):
-    """
+    """Return an item brand.
+
     This field is required.
     Read more:
     https://support.google.com/merchants/answer/6324351?hl=en&ref_topic=6324338
@@ -98,7 +100,8 @@ def item_brand(item, attributes_dict, attribute_values_dict):
 
 
 def item_tax(item, discounts):
-    """
+    """Return item tax.
+
     For some countries you need to set tax info
     Read more:
     https://support.google.com/merchants/answer/6324454
@@ -115,19 +118,18 @@ def item_image_link(item, current_site):
     image = item.get_first_image()
     if image:
         return add_domain(current_site.domain, image.url, False)
-    else:
-        return None
+    return None
 
 
 def item_availability(item):
     if item.get_stock_quantity():
         return 'in stock'
-    else:
-        return 'out of stock'
+    return 'out of stock'
 
 
 def item_google_product_category(item, category_paths):
-    """
+    """Return a canonical product category.
+
     To have your categories accepted, please use names accepted by Google or
     write custom function which maps your category names into to Google codes.
     Read more:
@@ -189,9 +191,7 @@ def item_attributes(item, categories, category_paths, current_site,
 
 
 def write_feed(file_obj):
-    """
-    Writes feed contents info provided file object
-    """
+    """Write feed contents info provided file object."""
     writer = csv.DictWriter(file_obj, ATTRIBUTES, dialect=csv.excel_tab)
     writer.writeheader()
     categories = Category.objects.all()
@@ -210,9 +210,9 @@ def write_feed(file_obj):
 
 
 def update_feed(file_path=FILE_PATH):
-    """
-    Save updated feed into path provided as argument. Default path is defined in
-    module as FILE_PATH.
+    """Save updated feed into path provided as argument.
+
+    Default path is defined in module as FILE_PATH.
     """
     with default_storage.open(file_path, 'wb') as output_file:
         output = gzip.open(output_file, 'wt')
