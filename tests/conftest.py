@@ -7,7 +7,6 @@ from django.contrib.auth.models import AnonymousUser, Group, Permission
 from django.contrib.sites.models import Site
 from django.core.files import File
 from django.core.files.uploadedfile import SimpleUploadedFile
-from django.core import mail
 from django.utils.encoding import smart_text
 from PIL import Image
 from prices import Price
@@ -20,8 +19,8 @@ from saleor.order import GroupStatus
 from saleor.order.models import DeliveryGroup, Order, OrderLine
 from saleor.order.utils import recalculate_order
 from saleor.product.models import (
-    AttributeChoiceValue, Category, Product, ProductAttribute, ProductImage,
-    ProductType, ProductVariant, Stock, StockLocation)
+    AttributeChoiceValue, Category, Collection, Product, ProductAttribute,
+    ProductImage, ProductType, ProductVariant, Stock, StockLocation)
 from saleor.shipping.models import ShippingMethod
 from saleor.site.models import AuthorizationKey, SiteSettings
 from saleor.userprofile.models import Address, User
@@ -29,12 +28,14 @@ from saleor.userprofile.models import Address, User
 
 @pytest.fixture(autouse=True)
 def site_settings(db, settings):
-    '''
-    This fixture is autouse set to True because
-    django.contrib.sites.models.Site and saleor.site.models.SiteSettings has
-    OneToOne relationship and Site should never exist without SiteSettings.
-    '''
-    site = Site.objects.get_or_create(name="mirumee.com", domain="mirumee.com")[0]
+    """Create a site and matching site settings.
+
+    This fixture is autouse because django.contrib.sites.models.Site and
+    saleor.site.models.SiteSettings have a one-to-one relationship and a site
+    should never exist without a matching settings object.
+    """
+    site = Site.objects.get_or_create(
+        name="mirumee.com", domain="mirumee.com")[0]
     obj = SiteSettings.objects.get_or_create(site=site)[0]
     settings.SITE_ID = site.pk
     return obj
@@ -74,15 +75,14 @@ def order(billing_address):
 
 
 @pytest.fixture()
-def admin_user(db):  # pylint: disable=W0613
-    """A Django admin user.
-    """
+def admin_user(db):
+    """Return a Django admin user."""
     return User.objects.create_superuser('admin@example.com', 'password')
 
 
 @pytest.fixture()
 def admin_client(admin_user):
-    """A Django test client logged in as an admin user."""
+    """Return a Django test client logged in as an admin user."""
     from django.test.client import Client
     client = Client()
     client.login(username=admin_user.email, password='password')
@@ -91,7 +91,7 @@ def admin_client(admin_user):
 
 @pytest.fixture()
 def staff_user(db):
-    """A Django staff user"""
+    """Return a staff member."""
     return User.objects.create_user(
         email='staff_test@example.com', password='password', is_staff=True,
         is_active=True)
@@ -99,7 +99,7 @@ def staff_user(db):
 
 @pytest.fixture()
 def staff_client(client, staff_user):
-    """A Django test client logged in as an staff member"""
+    """Return a Django test client logged in as an staff member."""
     client.login(username=staff_user.email, password='password')
     return client
 
@@ -226,11 +226,6 @@ def permission_edit_order():
 
 
 @pytest.fixture
-def permission_view_user():
-    return Permission.objects.get(codename='view_user')
-
-
-@pytest.fixture
 def product_type(color_attribute, size_attribute):
     product_type = ProductType.objects.create(
         name='Default Type', has_variants=False, is_shipping_required=True)
@@ -253,8 +248,7 @@ def product_in_stock(product_type, default_category):
     variant_attr = product_type.variant_attributes.first()
     variant_attr_value = variant_attr.values.first()
     variant_attributes = {
-        smart_text(variant_attr.pk): smart_text(variant_attr_value.pk)
-    }
+        smart_text(variant_attr.pk): smart_text(variant_attr_value.pk)}
 
     variant = ProductVariant.objects.create(
         product=product, sku='123', attributes=variant_attributes)
@@ -270,6 +264,18 @@ def product_in_stock(product_type, default_category):
     Stock.objects.create(
         variant=variant, cost_price=10, quantity=5, quantity_allocated=0,
         location=warehouse_3)
+    return product
+
+
+@pytest.fixture
+def product_without_shipping(default_category):
+    product_type = ProductType.objects.create(
+        name='Type with no shipping', has_variants=False,
+        is_shipping_required=False)
+    product = Product.objects.create(
+        name='Test product', price=Decimal('10.00'),
+        product_type=product_type, category=default_category)
+    ProductVariant.objects.create(product=product, sku='SKU_B')
     return product
 
 
@@ -375,10 +381,10 @@ def order_with_lines(order, product_type, default_category):
         product=product,
         product_name=product.name,
         product_sku='SKU_%d' % (product.pk,),
+        is_shipping_required=product.product_type.is_shipping_required,
         quantity=1,
         unit_price_net=Decimal('10.00'),
-        unit_price_gross=Decimal('10.00'),
-    )
+        unit_price_gross=Decimal('10.00'))
     product = Product.objects.create(
         name='Test product 2', price=Decimal('20.00'),
         product_type=product_type, category=default_category)
@@ -388,10 +394,10 @@ def order_with_lines(order, product_type, default_category):
         product=product,
         product_name=product.name,
         product_sku='SKU_%d' % (product.pk,),
+        is_shipping_required=product.product_type.is_shipping_required,
         quantity=1,
         unit_price_net=Decimal('20.00'),
-        unit_price_gross=Decimal('20.00'),
-    )
+        unit_price_gross=Decimal('20.00'))
     product = Product.objects.create(
         name='Test product 3', price=Decimal('30.00'),
         product_type=product_type, category=default_category)
@@ -401,11 +407,12 @@ def order_with_lines(order, product_type, default_category):
         product=product,
         product_name=product.name,
         product_sku='SKU_%d' % (product.pk,),
+        is_shipping_required=product.product_type.is_shipping_required,
         quantity=1,
         unit_price_net=Decimal('30.00'),
-        unit_price_gross=Decimal('30.00'),
-    )
+        unit_price_gross=Decimal('30.00'))
 
+    recalculate_order(order)
     return order
 
 
@@ -425,12 +432,12 @@ def order_with_lines_and_stock(order, product_type, default_category):
         product=product,
         product_name=product.name,
         product_sku='SKU_A',
+        is_shipping_required=product.product_type.is_shipping_required,
         quantity=3,
         unit_price_net=Decimal('30.00'),
         unit_price_gross=Decimal('30.00'),
         stock=stock,
-        stock_location=stock.location.name
-    )
+        stock_location=stock.location.name)
     product = Product.objects.create(
         name='Test product 2', price=Decimal('20.00'),
         product_type=product_type, category=default_category)
@@ -443,12 +450,12 @@ def order_with_lines_and_stock(order, product_type, default_category):
         product=product,
         product_name=product.name,
         product_sku='SKU_B',
+        is_shipping_required=product.product_type.is_shipping_required,
         quantity=2,
         unit_price_net=Decimal('20.00'),
         unit_price_gross=Decimal('20.00'),
         stock=stock,
-        stock_location=stock.location.name
-    )
+        stock_location=stock.location.name)
     recalculate_order(order)
     order.refresh_from_db()
     return order
@@ -467,16 +474,17 @@ def order_with_variant_from_different_stocks(order_with_lines_and_stock):
         product=variant.product,
         product_name=variant.product.name,
         product_sku=line.product_sku,
+        is_shipping_required=variant.product.product_type.is_shipping_required,
         quantity=2,
         unit_price_net=Decimal('30.00'),
         unit_price_gross=Decimal('30.00'),
         stock=stock,
-        stock_location=stock.location.name
-    )
+        stock_location=stock.location.name)
     warehouse_2 = StockLocation.objects.create(name='Warehouse 3')
     Stock.objects.create(
         variant=variant, cost_price=1, quantity=5, quantity_allocated=0,
         location=warehouse_2)
+    recalculate_order(order_with_lines_and_stock)
     return order_with_lines_and_stock
 
 
@@ -487,7 +495,7 @@ def delivery_group(order, product_type, default_category):
         name='Test product', price=Decimal('10.00'),
         product_type=product_type, category=default_category)
     variant = ProductVariant.objects.create(product=product, sku='SKU_A')
-    warehouse = StockLocation.objects.create(name='Warehouse 1')
+    warehouse = StockLocation.objects.create(name='Warehouse 2')
     stock = Stock.objects.create(
         variant=variant, cost_price=1, quantity=5, quantity_allocated=3,
         location=warehouse)
@@ -496,6 +504,7 @@ def delivery_group(order, product_type, default_category):
         product=product,
         product_name=product.name,
         product_sku='SKU_A',
+        is_shipping_required=product.product_type.is_shipping_required,
         quantity=3,
         unit_price_net=Decimal('30.00'),
         unit_price_gross=Decimal('30.00'),
@@ -582,8 +591,10 @@ def permission_impersonate_user():
 
 @pytest.fixture
 def open_orders(billing_address):
+    def group_data(orders, status):
+        return {'order': orders[-1], 'status': status}
+
     orders = []
-    group_data = lambda orders, status: {'order': orders[-1], 'status': status}
 
     orders.append(Order.objects.create(billing_address=billing_address))
     DeliveryGroup.objects.create(**group_data(orders, GroupStatus.NEW))
@@ -606,8 +617,10 @@ def open_orders(billing_address):
 
 @pytest.fixture
 def closed_orders(billing_address):
+    def group_data(orders, status):
+        return {'order': orders[-1], 'status': status}
+
     orders = []
-    group_data = lambda orders, status: {'order': orders[-1], 'status': status}
 
     orders.append(Order.objects.create(billing_address=billing_address))
     DeliveryGroup.objects.create(**group_data(orders, GroupStatus.SHIPPED))
@@ -626,6 +639,6 @@ def closed_orders(billing_address):
 
 
 @pytest.fixture
-def email():
-    mail.outbox = []
-    return mail
+def collection(db):
+    collection = Collection.objects.create(name='Collection', slug='collection')
+    return collection

@@ -123,7 +123,7 @@ def summary(request, cart):
             'product': line.variant.product,
             'variant': line.variant.name,
             'quantity': line.quantity,
-            'attributes': line.variant.display_variant(attributes),
+            'attributes': line.variant.display_variant_attributes(attributes),
             'image': first_image,
             'price_per_item': currencyfmt(
                 price_per_item.gross, price_per_item.currency),

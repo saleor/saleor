@@ -92,7 +92,8 @@ class Product(models.Model, ItemRange):
         ProductType, related_name='products', on_delete=models.CASCADE)
     name = models.CharField(max_length=128)
     description = models.TextField()
-    category = models.ForeignKey(Category, related_name='products')
+    category = models.ForeignKey(
+        Category, related_name='products', on_delete=models.CASCADE)
     price = PriceField(
         currency=settings.DEFAULT_CURRENCY, max_digits=12, decimal_places=2)
     available_on = models.DateField(blank=True, null=True)
@@ -156,13 +157,11 @@ class Product(models.Model, ItemRange):
         self.attributes[smart_text(pk)] = smart_text(value_pk)
 
     def get_price_range(self, discounts=None, **kwargs):
-        if not self.variants.exists():
-            price = calculate_discounted_price(
-                self, self.price, discounts, **kwargs)
-            return PriceRange(price, price)
-        else:
-            return super().get_price_range(
-                discounts=discounts, **kwargs)
+        if self.variants.exists():
+            return super().get_price_range(discounts=discounts, **kwargs)
+        price = calculate_discounted_price(
+            self, self.price, discounts, **kwargs)
+        return PriceRange(price, price)
 
     def get_gross_price_range(self, **kwargs):
         grosses = [self.get_price_per_item(item, **kwargs) for item in self]
@@ -187,7 +186,7 @@ class ProductVariant(models.Model, Item):
         app_label = 'product'
 
     def __str__(self):
-        return self.name or self.display_variant()
+        return self.name or self.display_variant_attributes()
 
     def check_quantity(self, quantity):
         total_available_quantity = self.get_stock_quantity()
@@ -229,7 +228,7 @@ class ProductVariant(models.Model, Item):
     def set_attribute(self, pk, value_pk):
         self.attributes[smart_text(pk)] = smart_text(value_pk)
 
-    def display_variant(self, attributes=None):
+    def display_variant_attributes(self, attributes=None):
         if attributes is None:
             attributes = self.product.product_type.variant_attributes.all()
         values = get_attributes_display_map(self, attributes)
@@ -238,11 +237,14 @@ class ProductVariant(models.Model, Item):
                 ['%s: %s' % (smart_text(attributes.get(id=int(key))),
                              smart_text(value))
                  for (key, value) in values.items()])
-        else:
-            return smart_text(self.sku)
+        return ''
 
     def display_product(self):
-        return '%s (%s)' % (smart_text(self.product), smart_text(self))
+        variant_display = str(self)
+        product_display = (
+            '%s (%s)' % (self.product, variant_display)
+            if variant_display else str(self.product))
+        return smart_text(product_display)
 
     def get_first_image(self):
         return self.product.get_first_image()
@@ -258,11 +260,13 @@ class ProductVariant(models.Model, Item):
             stock, key=(lambda s: s.cost_price or zero_price), reverse=False)
         if stock:
             return stock[0]
+        return None
 
     def get_cost_price(self):
         stock = self.select_stockrecord()
         if stock:
             return stock.cost_price
+        return None
 
 
 class StockLocation(models.Model):
@@ -374,5 +378,22 @@ class VariantImage(models.Model):
         'ProductVariant', related_name='variant_images',
         on_delete=models.CASCADE)
     image = models.ForeignKey(
-        ProductImage, related_name='variant_images',
-        on_delete=models.CASCADE)
+        ProductImage, related_name='variant_images', on_delete=models.CASCADE)
+
+
+class Collection(models.Model):
+    name = models.CharField(max_length=128, unique=True)
+    slug = models.SlugField(max_length=255)
+    products = models.ManyToManyField(
+        Product, blank=True, related_name='collections')
+
+    class Meta:
+        ordering = ['pk']
+
+    def __str__(self):
+        return self.name
+
+    def get_absolute_url(self):
+        return reverse(
+            'product:collection',
+            kwargs={'pk': self.id, 'slug': self.slug})

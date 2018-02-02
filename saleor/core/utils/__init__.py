@@ -53,15 +53,19 @@ def get_client_ip(request):
 
 def get_country_by_ip(ip_address):
     geo_data = georeader.get(ip_address)
-    if geo_data and 'country' in geo_data and 'iso_code' in geo_data['country']:
+    if (
+            geo_data and
+            'country' in geo_data and
+            'iso_code' in geo_data['country']):
         country_iso_code = geo_data['country']['iso_code']
         if country_iso_code in countries:
             return Country(country_iso_code)
+    return None
 
 
 def get_currency_for_country(country):
     currencies = get_territory_currencies(country.code)
-    if len(currencies):
+    if currencies:
         return currencies[0]
     return settings.DEFAULT_CURRENCY
 
@@ -85,7 +89,7 @@ def get_paginator_items(items, paginate_by, page_number):
 
 def to_local_currency(price, currency):
     if not settings.OPENEXCHANGERATES_API_KEY:
-        return
+        return None
     if isinstance(price, PriceRange):
         from_currency = price.min_price.currency
     else:
@@ -95,6 +99,7 @@ def to_local_currency(price, currency):
             return exchange_currency(price, currency)
         except ValueError:
             pass
+    return None
 
 
 def get_user_shipping_country(request):
@@ -108,7 +113,7 @@ def get_user_shipping_country(request):
 def serialize_decimal(obj):
     if isinstance(obj, decimal.Decimal):
         return str(obj)
-    return JSONEncoder.default(obj)
+    return JSONEncoder().default(obj)
 
 
 def create_superuser(credentials):

@@ -1,0 +1,70 @@
+{% load i18n %}
+{% load staticfiles %}
+
+<div class="product-filters">
+  <div class="product-filters__title">
+    <h2>
+      <strong>{{ object }}</strong>
+    </h2>
+    {% block title_tree %}{% endblock title_tree %}
+  </div>
+</div>
+<div class="filters-menu__body d-none d-md-block">
+  <h2>
+    {% trans 'Filters' context 'Filter heading title' %}
+    {% if filter.is_bound_unsorted %}
+      <a href="../">
+        <span class="clear-filters float-right">{% trans 'Clear filters' context 'Product list page filters' %}</span>
+      </a>
+    {% endif %}
+  </h2>
+  <div class="product-filters">
+    <div class="product-filters__attributes" data-icon-up="{% static "images/chevron-up.svg" %}" data-icon-down="{% static "images/chevron-down.svg" %}">
+      <form method="get">
+        {% for field in filter_set.form %}
+          {% if field.name == 'sort_by' %}
+            {% comment %}
+              Field 'sort_by' is hidden because it is rendered in header.
+              This is required if you want to have sorting to be kept during further filtering.
+            {% endcomment %}
+            <input type="hidden" name="sort_by" value="{% if request.GET.sort_by %}{{ request.GET.sort_by }}{% endif %}">
+          {% elif field.name == 'price' %}
+            <div class="toggle-filter product-filters__price-range">
+              <h3 class="filter-label">
+                {{ field.label }}
+                <div class="collapse-filters-icon">
+                  <img class="lazyload lazypreload" data-src="{% static "images/chevron-up.svg" %}">
+                </div>
+              </h3>
+              <div class="filter-form-field" style="display:block">
+                <div class="mb-3">
+                  <input id="{{ field.auto_id }}_0" name="{{ field.name }}_0"
+                        value="{% if field.value.0 %}{{ field.value.0 }}{% endif %}" type="number" min="0"
+                        class="form-control d-inline"
+                        placeholder="{% trans 'from' context 'Product price filter' %}"><span>-</span><input id="{{ field.auto_id }}_1" name="{{ field.name }}_1"
+                        value="{% if field.value.1 %}{{ field.value.1 }}{% endif %}" type="number" min="0"
+                        class="form-control d-inline" placeholder="{% trans 'to' context 'Product price filter' %}">
+                </div>
+              </div>
+            </div>
+          {% else %}
+            <div class="toggle-filter">
+              <h3 class="filter-label">
+                {{ field.label }}
+                <div class="collapse-filters-icon">
+                  <img class="lazyload lazypreload" data-src="{% static "images/chevron-up.svg" %}">
+                </div>
+              </h3>
+              <div class="filter-form-field" style="display:block">
+                {{ field }}
+              </div>
+            </div>
+          {% endif %}
+        {% endfor %}
+        <div class="product-filters">
+          <button class="btn primary" type="submit">{% trans 'Update' context 'Product price filter' %}</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

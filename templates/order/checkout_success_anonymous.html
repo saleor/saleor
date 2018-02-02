@@ -3,6 +3,7 @@
 {% load bootstrap_form from bootstrap4 %}
 {% load staticfiles %}
 {% load i18n %}
+{% load placeholder %}
 
 {% block title %}{% trans "Thank you" context "Checkout success page title" %} — {{ block.super }}{% endblock %}
 
@@ -10,8 +11,8 @@
 {% block content %}
   <div class="row checkout__thankyoupage">
     <div class="col-xl-10 m-auto">
-      <img class="checkout__thankyoupage__parrot" src="{% static 'images/confirm-order-bg.png' %}"
-           srcset="{% static 'images/confirm-order-bg.png' %} 1x, {% static 'images/confirm-order-bg2x.png' %} 2x">
+      <img class="checkout__thankyoupage__parrot lazyload lazypreload" data-src="{% static 'images/confirm-order-bg.png' %}"
+           data-srcset="{% static 'images/confirm-order-bg.png' %} 1x, {% static 'images/confirm-order-bg2x.png' %} 2x">
       <h1>{% blocktrans trimmed with order_url=order.get_absolute_url context "Checkout title" %}
           Thank you for your <a href="{{ order_url }}">order</a>!
       {% endblocktrans %}</h1>
@@ -51,8 +52,8 @@
           {% endif %}
         </div>
         <div class="col-md-6 pull-md-6">
-          <img class="checkout-pirate" src="{% static 'images/checkout-bg.png' %}"
-               srcset="{% static 'images/checkout-bg.png' %} 1x, {% static 'images/checkout-bg2x.png' %} 2x">
+          <img class="checkout-pirate lazyload lazypreload" data-src="{% static 'images/checkout-bg.png' %}"
+               data-srcset="{% static 'images/checkout-bg.png' %} 1x, {% static 'images/checkout-bg2x.png' %} 2x">
           <p><a href="{% url 'home' %}" class="btn secondary">
               {% trans "Continue shopping" context "Checkout secondary action" %}
           </a></p>

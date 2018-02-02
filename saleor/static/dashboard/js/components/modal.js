@@ -17,7 +17,7 @@ $('body').on('click', '.modal-trigger-custom', (e) => {
     url: target.dataset.href,
     method: 'GET',
     success: (response) => {
-      let $modal = $(target.getAttribute('href'));
+      const $modal = $(target.getAttribute('href'));
       $modal
         .html(response)
         .modal('open');

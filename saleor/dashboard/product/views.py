@@ -9,6 +9,7 @@ from django.utils.translation import npgettext_lazy, pgettext_lazy
 from django.views.decorators.http import require_POST
 from django_prices.templatetags.prices_i18n import gross
 
+from . import forms
 from ...core.utils import get_paginator_items
 from ...product.models import (
     AttributeChoiceValue, Product, ProductAttribute, ProductImage, ProductType,
@@ -17,9 +18,8 @@ from ...product.utils import (
     get_availability, get_product_costs_data, get_variant_costs_data)
 from ..views import staff_member_required
 from .filters import (
-    ProductFilter, ProductAttributeFilter, ProductTypeFilter,
+    ProductAttributeFilter, ProductFilter, ProductTypeFilter,
     StockLocationFilter)
-from . import forms
 
 
 @staff_member_required
@@ -779,9 +779,9 @@ def product_bulk_update(request):
 
 @staff_member_required
 def ajax_available_variants_list(request):
-    """
-    Returns variants list filtered by request GET parameters.
-    Response format is as required by select2 field.
+    """Return variants filtered by request GET parameters.
+
+    Response format is that of a Select2 JS widget.
     """
     def get_variant_label(variant, discounts):
         return '%s, %s, %s' % (
@@ -807,9 +807,9 @@ def ajax_available_variants_list(request):
 
 @staff_member_required
 def ajax_products_list(request):
-    """
-    Returns products list filtered by request GET parameters.
-    Response format is as required by select2 field.
+    """Return products filtered by request GET parameters.
+
+    Response format is that of a Select2 JS widget.
     """
     queryset = (
         Product.objects.all() if request.user.has_perm('product.view_product')

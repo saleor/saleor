@@ -1,14 +1,14 @@
 import json
 
-from django.template.response import TemplateResponse
 from django.contrib import messages
+from django.template.response import TemplateResponse
 from django.utils.translation import pgettext_lazy
-from impersonate.views import impersonate as orig_impersonate, stop_impersonate
+from impersonate.views import impersonate as orig_impersonate
 
-from .utils.schema import get_webpage_schema
 from ..dashboard.views import staff_member_required
-from ..product.utils import products_with_availability, products_for_homepage
+from ..product.utils import products_for_homepage, products_with_availability
 from ..userprofile.models import User
+from .utils.schema import get_webpage_schema
 
 
 def home(request):
@@ -36,3 +36,17 @@ def impersonate(request, uid):
             'You are now logged as {}'.format(User.objects.get(pk=uid)))
         messages.success(request, msg)
     return response
+
+
+def handle_404(request, exception=None):
+    return TemplateResponse(request, '404.html', status=404)
+
+
+def manifest(request):
+    site = request.site
+    ctx = {
+        'description': site.settings.description,
+        'name': site.name,
+        'short_name': site.name}
+    return TemplateResponse(
+        request, 'manifest.json', ctx, content_type='application/json')

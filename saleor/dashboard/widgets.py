@@ -4,13 +4,14 @@ from django.forms import Textarea
 from django_filters.widgets import RangeWidget
 from django_prices.widgets import PriceInput
 
-from ..userprofile.widgets import (PhonePrefixWidget as
-                                   StorefrontPhonePrefixWidget)
+from ..userprofile.widgets import (
+    PhonePrefixWidget as StorefrontPhonePrefixWidget)
 
 
 class DateRangeWidget(RangeWidget):
     def __init__(self, attrs=None):
         widgets = (forms.DateInput, forms.DateInput)
+        # pylint: disable=bad-super-call
         super(RangeWidget, self).__init__(widgets, attrs)
 
 
@@ -18,6 +19,7 @@ class PriceRangeWidget(RangeWidget):
     def __init__(self, attrs=None):
         self.currency = getattr(settings, 'DEFAULT_CURRENCY')
         widgets = (PriceInput(self.currency), PriceInput(self.currency))
+        # pylint: disable=bad-super-call
         super(RangeWidget, self).__init__(widgets, attrs)
 
 
@@ -26,9 +28,8 @@ class PhonePrefixWidget(StorefrontPhonePrefixWidget):
 
 
 class RichTextEditorWidget(Textarea):
-    """
-    This widget is used to initialize medium-editor out-of-the-box
-    """
+    """A WYSIWYG editor widget using medium-editor."""
+
     def __init__(self, attrs=None):
         default_attrs = {'class': 'rich-text-editor'}
         if attrs:

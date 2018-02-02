@@ -1,13 +1,13 @@
+from django.conf import settings
 from django.core.management import call_command
 from django.core.management.base import BaseCommand
-from django.conf import settings
 from django.db import connection
 
-from ...utils.random_data import (
-    create_orders, create_users, create_shipping_methods,
-    create_products_by_schema, create_product_sales, create_vouchers,
-    create_groups, set_featured_products, add_address_to_admin)
 from ...utils import create_superuser
+from ...utils.random_data import (
+    add_address_to_admin, create_groups, create_orders, create_product_sales,
+    create_products_by_schema, create_shipping_methods, create_users,
+    create_vouchers, set_featured_products)
 
 
 class Command(BaseCommand):
@@ -35,11 +35,11 @@ class Command(BaseCommand):
             help='Don\'t update search index')
 
     def make_database_faster(self):
-        '''Sacrifices some of the safeguards of sqlite3 for speed
+        """Sacrifice some of the safeguards of sqlite3 for speed.
 
         Users are not likely to run this command in a production environment.
         They are even less likely to run it in production while using sqlite3.
-        '''
+        """
         if 'sqlite3' in connection.settings_dict['ENGINE']:
             cursor = connection.cursor()
             cursor.execute('PRAGMA temp_store = MEMORY;')

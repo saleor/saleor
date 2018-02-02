@@ -8,6 +8,7 @@
 {% load staticfiles %}
 {% load get_thumbnail product_first_image from product_images %}
 {% load build_absolute_uri from urls %}
+{% load placeholder %}
 
 {% block title %}{{ product }} — {{ block.super }}{% endblock %}
 
@@ -67,9 +68,11 @@
             <div class="carousel-inner" role="listbox">
               {% for image in images %}
                 <div class="carousel-item{% if forloop.first %} active{% endif %}">
-                  <img class="d-block img-fluid"
-                       src="{% get_thumbnail image.image method="crop" size="540x540" %}"
-                       srcset="{% get_thumbnail image.image method="crop" size="540x540" %} 1x, {% get_thumbnail image.image method="crop" size="1080x1080" %} 2x" alt="">
+                  <img class="d-block img-fluid lazyload lazypreload"
+                       data-src="{% get_thumbnail image.image method="crop" size="540x540" %}"
+                       data-srcset="{% get_thumbnail image.image method="crop" size="540x540" %} 1x, {% get_thumbnail image.image method="crop" size="1080x1080" %} 2x"
+                       alt=""
+                       src="{% placeholder size=540 %}">
                 </div>
               {% endfor %}
             </div>
@@ -85,19 +88,21 @@
               {% for image in images %}
                 {% if images|length > 1 %}
                   <li data-target="#carousel-example-generic" data-slide-to="{{ forloop.counter0 }}"{% if forloop.first %} class="active"{% endif %}>
-                    <img src="{% get_thumbnail image.image method="crop" size="60x60" %}"
-                         srcset="{% get_thumbnail image.image method="crop" size="60x60" %} 1x, {% get_thumbnail image.image method="crop" size="120x120" %} 2x"
-                         alt="">
+                    <img data-src="{% get_thumbnail image.image method="crop" size="60x60" %}"
+                         data-srcset="{% get_thumbnail image.image method="crop" size="60x60" %} 1x, {% get_thumbnail image.image method="crop" size="120x120" %} 2x"
+                         alt=""
+                         class="lazyload lazypreload"
+                         src="{% placeholder size=60 %}">
                   </li>
                 {% endif %}
               {% endfor %}
             </ol>
           </div>
         {% else %}
-          <img src="{% static 'images/placeholder540x540.png' %}"
-               srcset="{% static 'images/placeholder540x540.png' %} 1x, {% static 'images/placeholder1080x1080.png' %} 2x"
+          <img data-src="{% placeholder size=540 %}"
+               data-srcset="{% placeholder size=540 %} 1x, {% placeholder size=1080 %} 2x"
                alt=""
-               class="img-fluid">
+               class="img-fluid lazyload lazypreload">
         {% endif %}
       {% endwith %}
     </div>

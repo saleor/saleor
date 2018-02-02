@@ -222,12 +222,11 @@
   display: grid;
   grid-template-columns: 8rem calc(100% - 8rem);
   align-items: stretch;
-  &__field{
-    overflow: hidden;
+  &__field {
     &:last-of-type {
       input[type="text"] {
-      margin-left: .5rem !important;
-    }
+        margin-left: .5rem !important;
+      }
     }
   }
 }

@@ -9,7 +9,7 @@ from phonenumber_field.formfields import PhoneNumberField
 
 from .models import Address
 from .validators import validate_possible_number
-from .widgets import PhonePrefixWidget, DatalistTextWidget
+from .widgets import DatalistTextWidget, PhonePrefixWidget
 
 COUNTRY_FORMS = {}
 UNKNOWN_COUNTRIES = set()
@@ -39,12 +39,7 @@ AREA_TYPE_TRANSLATIONS = {
 
 
 class PossiblePhoneNumberFormField(PhoneNumberField):
-    """
-    Modify PhoneNumberField form field to allow using phone numbers from
-    countries other than selected one.
-    To achieve this both default_validator attribute and to_python method needs
-    to be overwritten.
-    """
+    """A PhoneNumberField that allows phone numbers from other countries."""
 
     default_validators = [validate_possible_number]
 
@@ -80,7 +75,7 @@ class AddressMetaForm(forms.ModelForm):
 
 class AddressForm(forms.ModelForm):
 
-    AUTOCOMPLETE_MAPPING = (
+    AUTOCOMPLETE_MAPPING = [
         ('first_name', 'given-name'),
         ('last_name', 'family-name'),
         ('company_name', 'organization'),
@@ -92,8 +87,7 @@ class AddressForm(forms.ModelForm):
         ('country', 'country'),
         ('city_area', 'address-level3'),
         ('phone', 'tel'),
-        ('email', 'email')
-    )
+        ('email', 'email')]
 
     class Meta:
         model = Address
@@ -141,7 +135,7 @@ class AddressForm(forms.ModelForm):
 
 class CountryAwareAddressForm(AddressForm):
 
-    I18N_MAPPING = (
+    I18N_MAPPING = [
         ('name', ['first_name', 'last_name']),
         ('street_address', ['street_address_1', 'street_address_2']),
         ('city_area', ['city_area']),
@@ -150,7 +144,7 @@ class CountryAwareAddressForm(AddressForm):
         ('postal_code', ['postal_code']),
         ('city', ['city']),
         ('sorting_code', []),
-        ('country_code', ['country']))
+        ('country_code', ['country'])]
 
     class Meta:
         model = Address
@@ -216,7 +210,8 @@ def get_form_i18n_lines(form_instance):
 
 def update_base_fields(form_class, i18n_rules):
     if i18n_rules.country_area_choices:
-        form_class.base_fields['country_area'] = CountryAreaChoiceField(choices=i18n_rules.country_area_choices)
+        form_class.base_fields['country_area'] = CountryAreaChoiceField(
+            choices=i18n_rules.country_area_choices)
 
     labels_map = {
         'country_area': i18n_rules.country_area_type,

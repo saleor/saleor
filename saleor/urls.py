@@ -1,5 +1,5 @@
 from django.conf import settings
-from django.conf.urls import url, include
+from django.conf.urls import include, url
 from django.conf.urls.static import static
 from django.contrib.sitemaps.views import sitemap
 from django.contrib.staticfiles.views import serve
@@ -17,6 +17,8 @@ from .product.urls import urlpatterns as product_urls
 from .registration.urls import urlpatterns as registration_urls
 from .search.urls import urlpatterns as search_urls
 from .userprofile.urls import urlpatterns as userprofile_urls
+
+handler404 = 'saleor.core.views.handle_404'
 
 urlpatterns = [
     url(r'^', include(core_urls)),
@@ -39,11 +41,10 @@ urlpatterns = [
     url(r'^sitemap\.xml$', sitemap, {'sitemaps': sitemaps},
         name='django.contrib.sitemaps.views.sitemap'),
     url(r'', include('payments.urls')),
-    url('', include('social_django.urls', namespace='social')),
-]
+    url('', include('social_django.urls', namespace='social'))]
 
 if settings.DEBUG:
     # static files (images, css, javascript, etc.)
     urlpatterns += [
-        url(r'^static/(?P<path>.*)$', serve)
-    ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+        url(r'^static/(?P<path>.*)$', serve)] + static(
+            settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

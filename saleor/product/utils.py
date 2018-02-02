@@ -10,16 +10,17 @@ from prices import Price, PriceRange
 
 from . import ProductAvailabilityStatus, VariantAvailabilityStatus
 from ..cart.utils import get_cart_from_request, get_or_create_cart_from_request
-from ..core.utils import to_local_currency
+from ..core.utils import get_paginator_items, to_local_currency
+from ..core.utils.filters import get_now_sorted_by
 from .forms import ProductForm
 
 
 def products_visible_to_user(user):
+    # pylint: disable=cyclic-import
     from .models import Product
     if user.is_authenticated and user.is_active and user.is_staff:
         return Product.objects.all()
-    else:
-        return Product.objects.available_products()
+    return Product.objects.available_products()
 
 
 def products_with_details(user):
@@ -40,9 +41,7 @@ def products_for_homepage():
 
 
 def get_product_images(product):
-    """
-    Returns list of product images that will be placed in product gallery
-    """
+    """Return list of product images that will be placed in product gallery."""
     return list(product.images.all())
 
 
@@ -112,7 +111,7 @@ def products_for_cart(user):
 
 def product_json_ld(product, attributes=None):
     # type: (saleor.product.models.Product, saleor.product.utils.ProductAvailability, dict) -> dict  # noqa
-    """Generates JSON-LD data for product"""
+    """Generate JSON-LD data for product."""
     data = {'@context': 'http://schema.org/',
             '@type': 'Product',
             'name': smart_text(product),
@@ -282,31 +281,29 @@ def get_product_availability_status(product):
 
     if not product.is_published:
         return ProductAvailabilityStatus.NOT_PUBLISHED
-    elif requires_variants and not product.variants.exists():
+    if requires_variants and not product.variants.exists():
         # We check the requires_variants flag here in order to not show this
         # status with product types that don't require variants, as in that
         # case variants are hidden from the UI and user doesn't manage them.
         return ProductAvailabilityStatus.VARIANTS_MISSSING
-    elif not has_stock_records:
+    if not has_stock_records:
         return ProductAvailabilityStatus.NOT_CARRIED
-    elif not is_in_stock:
+    if not is_in_stock:
         return ProductAvailabilityStatus.OUT_OF_STOCK
-    elif not are_all_variants_in_stock:
+    if not are_all_variants_in_stock:
         return ProductAvailabilityStatus.LOW_STOCK
-    elif not is_available and product.available_on is not None:
+    if not is_available and product.available_on is not None:
         return ProductAvailabilityStatus.NOT_YET_AVAILABLE
-    else:
-        return ProductAvailabilityStatus.READY_FOR_PURCHASE
+    return ProductAvailabilityStatus.READY_FOR_PURCHASE
 
 
 def get_variant_availability_status(variant):
     has_stock_records = variant.stock.exists()
     if not has_stock_records:
         return VariantAvailabilityStatus.NOT_CARRIED
-    elif not variant.is_in_stock():
+    if not variant.is_in_stock():
         return VariantAvailabilityStatus.OUT_OF_STOCK
-    else:
-        return VariantAvailabilityStatus.AVAILABLE
+    return VariantAvailabilityStatus.AVAILABLE
 
 
 def get_product_costs_data(product):
@@ -392,3 +389,27 @@ def decrease_stock(stock, quantity):
     stock.quantity = F('quantity') - quantity
     stock.quantity_allocated = F('quantity_allocated') - quantity
     stock.save(update_fields=['quantity', 'quantity_allocated'])
+
+
+def get_product_list_context(request, filter_set):
+    """
+    :param request: request object
+    :param filter_set: filter set for product list
+    :return: context dictionary
+    """
+    # Avoiding circular dependency
+    from .filters import SORT_BY_FIELDS
+    products_paginated = get_paginator_items(
+        filter_set.qs, settings.PAGINATE_BY, request.GET.get('page'))
+    products_and_availability = list(products_with_availability(
+        products_paginated, request.discounts, request.currency))
+    now_sorted_by = get_now_sorted_by(filter_set)
+    arg_sort_by = request.GET.get('sort_by')
+    is_descending = arg_sort_by.startswith('-') if arg_sort_by else False
+    return {
+        'filter_set': filter_set,
+        'products': products_and_availability,
+        'products_paginated': products_paginated,
+        'sort_by_choices': SORT_BY_FIELDS,
+        'now_sorted_by': now_sorted_by,
+        'is_descending': is_descending}

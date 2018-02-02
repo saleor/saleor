@@ -1,0 +1,61 @@
+<mj-section css-class="no-display">
+  <mj-column>
+    <mj-text>
+      {% load gross from prices_i18n %}
+    </mj-text>
+  </mj-column>
+</mj-section>
+<mj-section>
+  <mj-column>
+    <mj-table>
+      <tfoot>
+        <tr>
+          <td colspan="3" style="text-align: right;">
+            {% trans "Subtotal" context "E-mail order lines summary table" %}
+          </td>
+          <td style="text-align: right;">
+            {% gross order.get_subtotal_without_voucher html=True %}
+          </td>
+        </tr>
+        <tr>
+          <td colspan="3" style="text-align: right;">
+            {% trans "Shipping" context "E-mail order lines summary table" %}
+          </td>
+          <td style="text-align: right;">
+            {% gross order.shipping_price html=True %}
+          </td>
+        </tr>
+        <tr>
+          <td colspan="3" style="text-align: right;">
+            <strong>{% trans "Total" context "E-mail order lines summary table" %}</strong>
+          </td>
+          <td style="text-align: right;">
+            <strong>{% gross order.get_total html=True %}</strong>
+          </td>
+        </tr>
+      </tfoot>
+      <thead class="table-header-row">
+        <tr>
+          <th>Item</th>
+          <th>Quantity</th>
+          <th>Per unit</th>
+          <th>Subtotal</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for group in order.groups.all %}
+          {% for line in group.lines.all %}
+            <tr class="table-item-row">
+              <td>{{ line.product_name }}</td>
+              <td style="text-align: right;">{{ line.quantity }}</td>
+              <td style="text-align: right;">
+                {% gross line.get_price_per_item html=True %}
+              </td>
+              <td style="text-align: right;">{% gross line.get_total %}</td>
+            </tr>
+          {% endfor %}
+        {% endfor %}
+      </tbody>
+    </mj-table>
+  </mj-column>
+</mj-section>

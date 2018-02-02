@@ -2,7 +2,6 @@ from django.conf.urls import url
 
 from . import views
 
-
 urlpatterns = [
     url(r'^$', views.index_view, name='index'),
     url(r'^shipping-address/', views.shipping_address_view,
