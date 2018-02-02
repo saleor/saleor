@@ -1,11 +1,12 @@
 from decimal import Decimal
+
 from django.urls import reverse
 from prices import Price
+from tests.utils import get_redirect_location
 
-from saleor.order import models, OrderStatus
+from saleor.order import OrderStatus, models
 from saleor.order.forms import OrderNoteForm
 from saleor.order.utils import add_variant_to_delivery_group
-from tests.utils import get_redirect_location
 
 
 def test_total_property():

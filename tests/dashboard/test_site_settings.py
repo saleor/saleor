@@ -1,9 +1,9 @@
+import pytest
 from django.contrib.sites.models import Site
 from django.db.utils import IntegrityError
 from django.test.client import RequestFactory
 from django.urls import reverse
 from django.utils.encoding import smart_text
-import pytest
 
 from saleor.dashboard.sites.forms import SiteForm, SiteSettingsForm
 from saleor.site import utils
