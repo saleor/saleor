@@ -9,7 +9,7 @@ from phonenumber_field.formfields import PhoneNumberField
 
 from .models import Address
 from .validators import validate_possible_number
-from .widgets import PhonePrefixWidget, DatalistTextWidget
+from .widgets import DatalistTextWidget, PhonePrefixWidget
 
 COUNTRY_FORMS = {}
 UNKNOWN_COUNTRIES = set()

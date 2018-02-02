@@ -11,9 +11,6 @@ from ..cart.forms import AddToCartForm
 class VariantChoiceField(forms.ModelChoiceField):
     discounts = None
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
     def label_from_instance(self, obj):
         variant_label = smart_text(obj)
         label = pgettext_lazy(

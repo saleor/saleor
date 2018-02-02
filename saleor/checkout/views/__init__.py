@@ -67,10 +67,9 @@ def summary_view(request, checkout):
         view = validate_shipping_address(summary_with_shipping_view)
         view = validate_shipping_method(view)
         return view(request, checkout)
-    elif request.user.is_authenticated:
+    if request.user.is_authenticated:
         return summary_without_shipping(request, checkout)
-    else:
-        return anonymous_summary_without_shipping(request, checkout)
+    return anonymous_summary_without_shipping(request, checkout)
 
 
 @load_checkout

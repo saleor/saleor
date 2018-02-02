@@ -18,8 +18,7 @@ def products_visible_to_user(user):
     from .models import Product
     if user.is_authenticated and user.is_active and user.is_staff:
         return Product.objects.all()
-    else:
-        return Product.objects.available_products()
+    return Product.objects.available_products()
 
 
 def products_with_details(user):
@@ -282,31 +281,29 @@ def get_product_availability_status(product):
 
     if not product.is_published:
         return ProductAvailabilityStatus.NOT_PUBLISHED
-    elif requires_variants and not product.variants.exists():
+    if requires_variants and not product.variants.exists():
         # We check the requires_variants flag here in order to not show this
         # status with product types that don't require variants, as in that
         # case variants are hidden from the UI and user doesn't manage them.
         return ProductAvailabilityStatus.VARIANTS_MISSSING
-    elif not has_stock_records:
+    if not has_stock_records:
         return ProductAvailabilityStatus.NOT_CARRIED
-    elif not is_in_stock:
+    if not is_in_stock:
         return ProductAvailabilityStatus.OUT_OF_STOCK
-    elif not are_all_variants_in_stock:
+    if not are_all_variants_in_stock:
         return ProductAvailabilityStatus.LOW_STOCK
-    elif not is_available and product.available_on is not None:
+    if not is_available and product.available_on is not None:
         return ProductAvailabilityStatus.NOT_YET_AVAILABLE
-    else:
-        return ProductAvailabilityStatus.READY_FOR_PURCHASE
+    return ProductAvailabilityStatus.READY_FOR_PURCHASE
 
 
 def get_variant_availability_status(variant):
     has_stock_records = variant.stock.exists()
     if not has_stock_records:
         return VariantAvailabilityStatus.NOT_CARRIED
-    elif not variant.is_in_stock():
+    if not variant.is_in_stock():
         return VariantAvailabilityStatus.OUT_OF_STOCK
-    else:
-        return VariantAvailabilityStatus.AVAILABLE
+    return VariantAvailabilityStatus.AVAILABLE
 
 
 def get_product_costs_data(product):

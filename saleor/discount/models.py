@@ -11,9 +11,9 @@ from django_prices.models import PriceField
 from django_prices.templatetags.prices_i18n import net
 from prices import FixedDiscount, Price, percentage_discount
 
+from . import DiscountValueType, VoucherApplyToProduct, VoucherType
 from ..cart.utils import (
     get_category_variants_and_prices, get_product_variants_and_prices)
-from . import DiscountValueType, VoucherApplyToProduct, VoucherType
 
 
 class NotApplicable(ValueError):
@@ -84,10 +84,9 @@ class Voucher(models.Model):
         if self.type == VoucherType.SHIPPING:
             if self.is_free:
                 return pgettext('Voucher type', 'Free shipping')
-            else:
-                return pgettext(
-                    'Voucher type',
-                    '%(discount)s off shipping') % {'discount': discount}
+            return pgettext(
+                'Voucher type',
+                '%(discount)s off shipping') % {'discount': discount}
         if self.type == VoucherType.PRODUCT:
             return pgettext(
                 'Voucher type',
@@ -110,6 +109,7 @@ class Voucher(models.Model):
                 VoucherType.PRODUCT, VoucherType.CATEGORY}:
             choices = dict(VoucherApplyToProduct.CHOICES)
             return choices[self.apply_to]
+        return None
 
     def get_fixed_discount_for(self, amount):
         if self.discount_value_type == DiscountValueType.FIXED:
@@ -127,8 +127,7 @@ class Voucher(models.Model):
             raise NotImplementedError('Unknown discount value type')
         if discount.amount > amount:
             return FixedDiscount(amount, name=smart_text(self))
-        else:
-            return discount
+        return discount
 
     def validate_limit(self, value):
         limit = self.limit if self.limit is not None else value
@@ -143,8 +142,7 @@ class Voucher(models.Model):
             cart_total = checkout.get_subtotal()
             self.validate_limit(cart_total)
             return self.get_fixed_discount_for(cart_total)
-
-        elif self.type == VoucherType.SHIPPING:
+        if self.type == VoucherType.SHIPPING:
             if not checkout.is_shipping_required:
                 msg = pgettext(
                     'Voucher not applicable',
@@ -166,17 +164,16 @@ class Voucher(models.Model):
             cart_total = checkout.get_subtotal()
             self.validate_limit(cart_total)
             return self.get_fixed_discount_for(shipping_method.price)
-
-        elif self.type in (VoucherType.PRODUCT, VoucherType.CATEGORY):
+        if self.type in (VoucherType.PRODUCT, VoucherType.CATEGORY):
             if self.type == VoucherType.PRODUCT:
-                prices = list(
-                    (item[1] for item in get_product_variants_and_prices(
-                        checkout.cart, self.product)))
+                prices = [
+                    item[1] for item in get_product_variants_and_prices(
+                        checkout.cart, self.product)]
             else:
-                prices = list(
-                    (item[1] for item in get_category_variants_and_prices(
-                        checkout.cart, self.category)))
-            if len(prices) == 0:
+                prices = [
+                    item[1] for item in get_category_variants_and_prices(
+                        checkout.cart, self.category)]
+            if not prices:
                 msg = pgettext(
                     'Voucher not applicable',
                     'This offer is only valid for selected items.')
@@ -188,13 +185,10 @@ class Voucher(models.Model):
                     (discount.amount for discount in discounts),
                     Price(0, currency=settings.DEFAULT_CURRENCY))
                 return FixedDiscount(discount_total, smart_text(self))
-            else:
-                product_total = sum(
-                    prices, Price(0, currency=settings.DEFAULT_CURRENCY))
-                return self.get_fixed_discount_for(product_total)
-
-        else:
-            raise NotImplementedError('Unknown discount type')
+            product_total = sum(
+                prices, Price(0, currency=settings.DEFAULT_CURRENCY))
+            return self.get_fixed_discount_for(product_total)
+        raise NotImplementedError('Unknown discount type')
 
 
 class Sale(models.Model):

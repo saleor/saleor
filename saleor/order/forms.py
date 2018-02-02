@@ -3,8 +3,8 @@ from django.conf import settings
 from django.utils.translation import pgettext_lazy
 from payments import PaymentStatus
 
-from .models import Payment, OrderNote
 from ..registration.forms import SignupForm
+from .models import OrderNote, Payment
 
 
 class PaymentMethodsForm(forms.Form):

@@ -1,25 +1,23 @@
 import logging
 
 from django.conf import settings
-from django.contrib import messages, auth
+from django.contrib import auth, messages
 from django.contrib.auth.decorators import login_required
 from django.db import transaction
-from django.http import Http404, HttpResponseForbidden, HttpResponseRedirect
+from django.http import Http404, HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect
 from django.template.response import TemplateResponse
-from django.urls import reverse
 from django.utils.translation import pgettext_lazy
 from payments import PaymentStatus, RedirectNeeded
 
 from . import OrderStatus
-from .forms import (
-    PaymentDeleteForm, PaymentMethodsForm, PasswordForm, OrderNoteForm)
-from .models import Order, OrderNote, Payment
-from .utils import attach_order_to_user, check_order_status
-from ..checkout.forms import NoteForm
-from ..core.utils import get_client_ip, build_absolute_uri
+from ..core.utils import get_client_ip
 from ..registration.forms import LoginForm
 from ..userprofile.models import User
+from .forms import (
+    OrderNoteForm, PasswordForm, PaymentDeleteForm, PaymentMethodsForm)
+from .models import Order, OrderNote, Payment
+from .utils import attach_order_to_user, check_order_status
 
 logger = logging.getLogger(__name__)
 

@@ -184,10 +184,12 @@ class Cart(models.Model):
         all_lines = self.lines.all()
         if data is None:
             data = {}
-        line = [line for line in all_lines
-                if line.variant_id == variant.id and line.data == data]
+        line = [
+            line for line in all_lines
+            if line.variant_id == variant.id and line.data == data]
         if line:
             return line[0]
+        return None
 
     def add(self, variant, quantity=1, data=None, replace=False,
             check_quantity=True):
@@ -253,9 +255,10 @@ class CartLine(models.Model, ItemLine):
         if not isinstance(other, CartLine):
             return NotImplemented
 
-        return (self.variant == other.variant and
-                self.quantity == other.quantity and
-                self.data == other.data)
+        return (
+            self.variant == other.variant and
+            self.quantity == other.quantity and
+            self.data == other.data)
 
     def __ne__(self, other):
         return not self == other  # pragma: no cover

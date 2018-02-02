@@ -1,18 +1,17 @@
-from django.conf.urls import url, include
+from django.conf.urls import include, url
 
 from . import views as core_views
 from .category.urls import urlpatterns as category_urls
 from .collection.urls import urlpatterns as collection_urls
 from .customer.urls import urlpatterns as customer_urls
-from .staff.urls import urlpatterns as staff_urls
+from .discount.urls import urlpatterns as discount_urls
 from .group.urls import urlpatterns as groups_urls
 from .order.urls import urlpatterns as order_urls
 from .product.urls import urlpatterns as product_urls
-from .discount.urls import urlpatterns as discount_urls
 from .search.urls import urlpatterns as search_urls
-from .sites.urls import urlpatterns as site_urls
 from .shipping.urls import urlpatterns as shipping_urls
-
+from .sites.urls import urlpatterns as site_urls
+from .staff.urls import urlpatterns as staff_urls
 
 urlpatterns = [
     url(r'^$', core_views.index, name='index'),

@@ -2,7 +2,6 @@ from django.conf.urls import url
 
 from . import views
 
-
 urlpatterns = [
     url(r'^$',
         views.product_list, name='product-list'),
@@ -99,5 +98,4 @@ urlpatterns = [
     url(r'^ajax/variants/$',
         views.ajax_available_variants_list, name='ajax-available-variants'),
     url(r'^ajax/products/$',
-        views.ajax_products_list, name='ajax-products'),
-]
+        views.ajax_products_list, name='ajax-products')]
