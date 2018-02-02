@@ -68,11 +68,6 @@ def test_get_authorization_key_for_backend(site_settings, authorization_key):
 
 
 @pytest.mark.django_db
-def test_get_authorization_key_for_backend(site_settings):
-    assert utils.get_authorization_key_for_backend('Backend') is None
-
-
-@pytest.mark.django_db
 def test_get_authorization_key_no_settings_site(settings, authorization_key):
     settings.SITE_ID = None
     assert utils.get_authorization_key_for_backend('Backend') is None

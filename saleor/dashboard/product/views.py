@@ -779,9 +779,9 @@ def product_bulk_update(request):
 
 @staff_member_required
 def ajax_available_variants_list(request):
-    """
-    Returns variants list filtered by request GET parameters.
-    Response format is as required by select2 field.
+    """Return variants filtered by request GET parameters.
+
+    Response format is that of a Select2 JS widget.
     """
     def get_variant_label(variant, discounts):
         return '%s, %s, %s' % (
@@ -807,9 +807,9 @@ def ajax_available_variants_list(request):
 
 @staff_member_required
 def ajax_products_list(request):
-    """
-    Returns products list filtered by request GET parameters.
-    Response format is as required by select2 field.
+    """Return products filtered by request GET parameters.
+
+    Response format is that of a Select2 JS widget.
     """
     queryset = (
         Product.objects.all() if request.user.has_perm('product.view_product')

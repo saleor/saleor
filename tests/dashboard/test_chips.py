@@ -1,5 +1,3 @@
-import pytest
-
 import django_filters
 from django.http import QueryDict
 

@@ -78,27 +78,29 @@ def payment(request, token):
 
 @check_order_status
 def start_payment(request, order, variant):
-    waiting_payments = order.payments.filter(status=PaymentStatus.WAITING).exists()
+    waiting_payments = order.payments.filter(
+        status=PaymentStatus.WAITING).exists()
     if waiting_payments:
         return redirect('order:payment', token=order.token)
     billing = order.billing_address
     total = order.get_total()
-    defaults = {'total': total.gross,
-                'tax': total.tax, 'currency': total.currency,
-                'delivery': order.shipping_price.gross,
-                'billing_first_name': billing.first_name,
-                'billing_last_name': billing.last_name,
-                'billing_address_1': billing.street_address_1,
-                'billing_address_2': billing.street_address_2,
-                'billing_city': billing.city,
-                'billing_postcode': billing.postal_code,
-                'billing_country_code': billing.country.code,
-                'billing_email': order.user_email,
-                'description': pgettext_lazy(
-                    'Payment description', 'Order %(order_number)s') % {
-                        'order_number': order},
-                'billing_country_area': billing.country_area,
-                'customer_ip_address': get_client_ip(request)}
+    defaults = {
+        'total': total.gross,
+        'tax': total.tax, 'currency': total.currency,
+        'delivery': order.shipping_price.gross,
+        'billing_first_name': billing.first_name,
+        'billing_last_name': billing.last_name,
+        'billing_address_1': billing.street_address_1,
+        'billing_address_2': billing.street_address_2,
+        'billing_city': billing.city,
+        'billing_postcode': billing.postal_code,
+        'billing_country_code': billing.country.code,
+        'billing_email': order.user_email,
+        'description': pgettext_lazy(
+            'Payment description', 'Order %(order_number)s') % {
+                'order_number': order},
+        'billing_country_area': billing.country_area,
+        'customer_ip_address': get_client_ip(request)}
     variant_choices = settings.CHECKOUT_PAYMENT_CHOICES
     if variant not in [code for code, dummy_name in variant_choices]:
         raise Http404('%r is not a valid payment variant' % (variant,))
@@ -136,8 +138,12 @@ def cancel_payment(request, order):
 
 
 def checkout_success(request, token):
-    """Redirects user to checkout success page or, in case of successful
-    registration, to order details page with attaching order to an account."""
+    """Redirect user after placing an order.
+
+    Anonymous users are redirected to the checkout success page.
+    Registered users are redirected to order details page and the order
+    is attached to their account.
+    """
     order = get_object_or_404(Order, token=token)
     email = order.user_email
     ctx = {'email': email, 'order': order}
@@ -165,7 +171,7 @@ def checkout_success(request, token):
 
 @login_required
 def connect_order_with_user(request, token):
-    """Connects newly created order to authenticated user."""
+    """Connect newly created order to an authenticated user."""
     try:
         order = Order.objects.get(user_email=request.user.email, token=token)
     except Order.DoesNotExist:
@@ -173,8 +179,8 @@ def connect_order_with_user(request, token):
     if not order:
         msg = pgettext_lazy(
             'Connect order with user warning message',
-            'We couldn\'t assign the order to your account as the email'
-            ' addresses don\'t match')
+            "We couldn't assign the order to your account as the email"
+            " addresses don't match")
         messages.warning(request, msg)
         return redirect('profile:details')
     attach_order_to_user(order, request.user)

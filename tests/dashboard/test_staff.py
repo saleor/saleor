@@ -57,7 +57,7 @@ def test_delete_staff(admin_client, staff_user):
     assert response['Location'] == '/dashboard/staff/'
 
 
-def test_delete_staff_no_POST(admin_client, staff_user):
+def test_delete_staff_no_post(admin_client, staff_user):
     url = reverse('dashboard:staff-delete', kwargs={'pk': staff_user.pk})
     admin_client.get(url)
     assert User.objects.all().count() == 2

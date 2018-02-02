@@ -307,7 +307,7 @@ def cancel_delivery_group(request, order_pk, group_pk):
 @staff_member_required
 @permission_required('order.edit_order')
 def add_variant_to_group(request, order_pk, group_pk):
-    """ Adds variant in given quantity to existing or new group in order. """
+    """Add variant in given quantity to an existing or new order group."""
     order = get_object_or_404(Order, pk=order_pk)
     group = get_object_or_404(order.groups.all(), pk=group_pk)
     form = AddVariantToDeliveryGroupForm(
@@ -317,8 +317,7 @@ def add_variant_to_group(request, order_pk, group_pk):
         msg_dict = {
             'quantity': form.cleaned_data.get('quantity'),
             'variant': form.cleaned_data.get('variant'),
-            'group': group
-        }
+            'group': group}
         try:
             with transaction.atomic():
                 form.save()
