@@ -8,6 +8,7 @@
 !.flowconfig
 !.github
 !.gitignore
+!.landscape.yml
 !.nvmrc
 !.pylintrc
 !.travis*
