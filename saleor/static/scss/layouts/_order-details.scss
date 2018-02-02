@@ -1,6 +1,6 @@
 .order-details {
   &__header {
-    margin-bottom: $global-margin * 2;
+    margin: $global-margin 0 $global-margin * 2;
   }
   &__addresses {
     margin-top: $global-margin * 2;
@@ -28,17 +28,29 @@
         margin-right: $global-margin;
       }
     }
+    &__description {
+      line-height: 60px;
+    }
   }
   &__total {
     padding-top: $global-padding;
     color: $skull-gray;
   }
   &__last-row {
-    border-bottom-color: $skull-gray; 
+    border-bottom-color: $skull-gray;
   }
   &__table-footer {
     @include media-breakpoint-up(sm) {
       padding-left: calc(60px + #{$global-padding} * 2);
     }
+  }
+  &__table-header {
+    margin-top: 2rem;
+  }
+}
+
+.order-notes {
+  &__header {
+    margin-top: 2 * $global-margin;
   }
 }

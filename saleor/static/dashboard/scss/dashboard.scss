@@ -3,6 +3,7 @@
 @import "~materialize-css/sass/materialize";
 @import "~dropzone/dist/dropzone";
 @import "~select2/src/scss/core";
+@import "~medium-editor/src/sass/medium-editor";
 
 @import "components/global";
 @import "components/breadcrumbs";
@@ -18,12 +19,14 @@
 @import "components/modals";
 @import "components/product-gallery";
 @import "components/ppoi";
+@import "components/rich-text-editor";
 @import "components/select2";
 @import "components/search";
 @import "components/tabs";
 @import "components/timeline";
-@import "components/zero_page";
+@import "components/zero-page";
 
+@import "layouts/orders";
 @import "layouts/search-results";
 @import "layouts/style-guide";
 @import "print";

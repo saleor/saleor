@@ -18,70 +18,18 @@ class PossiblePhoneNumberField(PhoneNumberField):
     default_validators = [validate_possible_number]
 
 
-class AddressManager(models.Manager):
-
-    def as_data(self, address):
-        """Return the address as a dict suitable for passing as kwargs.
-
-        Result does not contain the primary key or an associated user.
-        """
-        data = model_to_dict(address, exclude=['id', 'user'])
-        if isinstance(data['country'], Country):
-            data['country'] = data['country'].code
-        return data
-
-    def are_identical(self, addr1, addr2):
-        """Return `True` if `addr1` and `addr2` are the same address."""
-        data1 = self.as_data(addr1)
-        data2 = self.as_data(addr2)
-        return data1 == data2
-
-    def copy(self, address):
-        """Return a new instance of the same address."""
-        data = self.as_data(address)
-        return self.model.objects.create(**data)
-
-    def store_address(self, user, address):
-        """Add the address to a user's address book if not already present."""
-        data = self.as_data(address)
-        address, dummy_created = user.addresses.get_or_create(**data)
-        return address
-
-
 class Address(models.Model):
-    first_name = models.CharField(
-        pgettext_lazy('Address field', 'given name'),
-        max_length=256, blank=True)
-    last_name = models.CharField(
-        pgettext_lazy('Address field', 'family name'),
-        max_length=256, blank=True)
-    company_name = models.CharField(
-        pgettext_lazy('Address field', 'company or organization'),
-        max_length=256, blank=True)
-    street_address_1 = models.CharField(
-        pgettext_lazy('Address field', 'address'),
-        max_length=256, blank=True)
-    street_address_2 = models.CharField(
-        pgettext_lazy('Address field', 'address'),
-        max_length=256, blank=True)
-    city = models.CharField(
-        pgettext_lazy('Address field', 'city'),
-        max_length=256, blank=True)
-    city_area = models.CharField(
-        pgettext_lazy('Address field', 'district'),
-        max_length=128, blank=True)
-    postal_code = models.CharField(
-        pgettext_lazy('Address field', 'postal code'),
-        max_length=20, blank=True)
-    country = CountryField(
-        pgettext_lazy('Address field', 'country'))
-    country_area = models.CharField(
-        pgettext_lazy('Address field', 'state or province'),
-        max_length=128, blank=True)
-    phone = PossiblePhoneNumberField(
-        verbose_name=pgettext_lazy('Address field', 'phone number'),
-        blank=True, default='')
-    objects = AddressManager()
+    first_name = models.CharField(max_length=256, blank=True)
+    last_name = models.CharField(max_length=256, blank=True)
+    company_name = models.CharField(max_length=256, blank=True)
+    street_address_1 = models.CharField(max_length=256, blank=True)
+    street_address_2 = models.CharField(max_length=256, blank=True)
+    city = models.CharField(max_length=256, blank=True)
+    city_area = models.CharField(max_length=128, blank=True)
+    postal_code = models.CharField(max_length=20, blank=True)
+    country = CountryField()
+    country_area = models.CharField(max_length=128, blank=True)
+    phone = PossiblePhoneNumberField(blank=True, default='')
 
     @property
     def full_name(self):
@@ -101,6 +49,23 @@ class Address(models.Model):
                 self.street_address_1, self.street_address_2, self.city,
                 self.postal_code, self.country, self.country_area,
                 self.phone))
+
+    def __eq__(self, other):
+        return self.as_data() == other.as_data()
+
+    def as_data(self):
+        """Return the address as a dict suitable for passing as kwargs.
+
+        Result does not contain the primary key or an associated user.
+        """
+        data = model_to_dict(self, exclude=['id', 'user'])
+        if isinstance(data['country'], Country):
+            data['country'] = data['country'].code
+        return data
+
+    def get_copy(self):
+        """Return a new instance of the same address."""
+        return Address.objects.create(**self.as_data())
 
 
 class UserManager(BaseUserManager):
@@ -124,28 +89,17 @@ class UserManager(BaseUserManager):
 
 
 class User(PermissionsMixin, AbstractBaseUser):
-    email = models.EmailField(
-        pgettext_lazy('User field', 'email'), unique=True)
-    addresses = models.ManyToManyField(
-        Address, blank=True,
-        verbose_name=pgettext_lazy('User field', 'addresses'))
-    is_staff = models.BooleanField(
-        pgettext_lazy('User field', 'staff status'),
-        default=False)
-    is_active = models.BooleanField(
-        pgettext_lazy('User field', 'active'),
-        default=True)
-    date_joined = models.DateTimeField(
-        pgettext_lazy('User field', 'date joined'),
-        default=timezone.now, editable=False)
+    email = models.EmailField(unique=True)
+    addresses = models.ManyToManyField(Address, blank=True)
+    is_staff = models.BooleanField(default=False)
+    is_active = models.BooleanField(default=True)
+    date_joined = models.DateTimeField(default=timezone.now, editable=False)
     default_shipping_address = models.ForeignKey(
         Address, related_name='+', null=True, blank=True,
-        on_delete=models.SET_NULL,
-        verbose_name=pgettext_lazy('User field', 'default shipping address'))
+        on_delete=models.SET_NULL)
     default_billing_address = models.ForeignKey(
         Address, related_name='+', null=True, blank=True,
-        on_delete=models.SET_NULL,
-        verbose_name=pgettext_lazy('User field', 'default billing address'))
+        on_delete=models.SET_NULL)
 
     USERNAME_FIELD = 'email'
 

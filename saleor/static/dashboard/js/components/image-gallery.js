@@ -1,57 +1,64 @@
+// eslint-disable-next-line no-unused-vars
 import Dropzone from 'dropzone';
 import Sortable from 'sortablejs';
 
-export default $(document).ready((e) => {
-  $('#product-image-form').dropzone({
-    paramName: 'image_0',
-    maxFilesize: 20,
-    previewsContainer: '.product-gallery',
-    thumbnailWidth: 400,
-    thumbnailHeight: 400,
-    previewTemplate: $('#template').html(),
-    method: 'POST',
-    clickable: '.dropzone-message',
-    init: function () {
-      this.on('success', function (e, response) {
-        $(e.previewElement).find('.product-gallery-item-desc').html(response.image);
-        $(e.previewElement).attr('data-id', response.id);
-        let editLinkHref = $(e.previewElement).find('.card-action-edit').attr('href');
-        editLinkHref = editLinkHref.split('/');
-        editLinkHref[editLinkHref.length - 2] = response.id;
-        $(e.previewElement).find('.card-action-edit').attr('href', editLinkHref.join('/'));
-        $(e.previewElement).find('.card-action-edit').show();
-        let deleteLinkHref = $(e.previewElement).find('.card-action-delete').attr('data-href');
-        deleteLinkHref = deleteLinkHref.split('/');
-        deleteLinkHref[deleteLinkHref.length - 3] = response.id;
-        $(e.previewElement).find('.card-action-delete').attr('data-href', deleteLinkHref.join('/'));
-        $(e.previewElement).find('.card-action-delete').show();
-        $('.no-images').addClass('hide');
-      });
-    }
-  });
-  let el = document.getElementById('product-gallery');
-  if (el) {
-    Sortable.create(el, {
-      handle: '.sortable__drag-area',
-      onUpdate: function () {
-        let orderedImages = (function() {
-          let postData = [];
-          $(el).find('.product-gallery-item[data-id]').each(function() {
-            postData.push($(this).data('id'));
-          });
-          return postData;
-        })();
+function createLink (link, index, replacement) {
+  const outputLink = link.attr('data-href-template').split('/');
+  outputLink[outputLink.length + index] = replacement;
+  return outputLink.join('/');
+}
 
-        $.ajax({
-          method: 'POST',
-          url: $(el).data('post-url'),
-          data: {ordered_images: orderedImages},
-          traditional: true,
-          headers: {
-            'X-CSRFToken': $('[name=csrfmiddlewaretoken]').val()
-          }
-        });
-      }
+const productGallery = document.getElementById('product-gallery');
+
+// -----
+
+$('#product-image-form').dropzone({
+  paramName: 'image_0',
+  maxFilesize: 20,
+  previewsContainer: '.product-gallery',
+  thumbnailWidth: 400,
+  thumbnailHeight: 400,
+  previewTemplate: $('#template').html(),
+  method: 'POST',
+  clickable: '.dropzone-message',
+  init: function () {
+    this.on('success', (e, response) => {
+      const $previewElement = $(e.previewElement);
+      $previewElement.find('.product-gallery-item-desc').html(response.image);
+      $previewElement.attr('data-id', response.id);
+
+      const $editLinkElement = $previewElement.find('.card-action-edit');
+      const editLinkHref = createLink($editLinkElement, -2, response.id);
+      $editLinkElement.attr('href', editLinkHref);
+
+      const $deleteLinkElement = $previewElement.find('.card-action-delete');
+      const deleteLinkHref = createLink($deleteLinkElement, -3, response.id);
+      $deleteLinkElement.attr('data-href', deleteLinkHref);
+
+      $('.no-images').addClass('hide');
     });
   }
 });
+
+if (productGallery) {
+  Sortable.create(productGallery, {
+    handle: '.sortable__drag-area',
+    onUpdate: () => {
+      const orderedImages = $(productGallery)
+        .find('.product-gallery-item[data-id]')
+        .map((index, item) => item.dataset.id)
+        .toArray();
+
+      // TODO: Get rid of ajax() in favour of fetch()
+      $.ajax({
+        method: 'POST',
+        url: $(productGallery).data('post-url'),
+        data: {ordered_images: orderedImages},
+        traditional: true,
+        headers: {
+          'X-CSRFToken': $.cookie('csrftoken')
+        }
+      });
+    }
+  });
+}

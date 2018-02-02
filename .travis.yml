@@ -14,6 +14,7 @@ install:
   - nvm install 8
   - npm i
   - npm run build-assets --production
+  - npm run build-emails
 script:
   - tox
 env:
@@ -26,14 +27,8 @@ env:
   - DJANGO="master"
 matrix:
   allow_failures:
-    - python: "3.4"
-      env: DJANGO="2.0"
-    - python: "3.5"
-      env: DJANGO="2.0"
     - python: "3.5"
       env: DJANGO="master"
-    - python: "3.6"
-      env: DJANGO="2.0"
     - python: "3.6"
       env: DJANGO="master"
   exclude:

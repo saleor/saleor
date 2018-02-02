@@ -1,5 +1,5 @@
-import passwordIvisible from '../../images/pass_invisible.svg';
-import passwordVisible from '../../images/pass_visible.svg';
+import passwordIvisible from '../../images/pass-invisible.svg';
+import passwordVisible from '../../images/pass-visible.svg';
 
 export default $(document).ready((e) => {
   let $inputPassword = $('input[type=password]');

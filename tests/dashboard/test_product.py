@@ -1,19 +1,23 @@
 from io import BytesIO
 import json
 
+from unittest.mock import Mock, MagicMock
+
 from PIL import Image
 from django.conf import settings
 from django.core.files.uploadedfile import SimpleUploadedFile
+from django.forms import HiddenInput
 from django.urls import reverse
 from django.utils.encoding import smart_text
 import pytest
 
 from saleor.dashboard.product import ProductBulkAction
 from saleor.dashboard.product.forms import (
-    ProductBulkUpdate, ProductClassForm, ProductForm)
+    ProductBulkUpdate, ProductTypeForm, ProductForm)
+from saleor.product.forms import VariantChoiceField
 from saleor.product.models import (
-    AttributeChoiceValue, Product, ProductAttribute, ProductClass,
-    ProductImage, ProductVariant, Stock, StockLocation)
+    Collection, AttributeChoiceValue, Product, ProductAttribute, ProductImage,
+    ProductType, ProductVariant, Stock, StockLocation)
 
 HTTP_STATUS_OK = 200
 HTTP_REDIRECTION = 302
@@ -21,7 +25,7 @@ HTTP_REDIRECTION = 302
 
 def create_image():
     img_data = BytesIO()
-    image = Image.new('RGBA', size=(1, 1), color=(255, 0, 0, 0))
+    image = Image.new('RGB', size=(1, 1), color=(255, 0, 0, 0))
     image.save(img_data, format='JPEG')
     image_name = 'product2'
     image = SimpleUploadedFile(
@@ -51,65 +55,66 @@ def test_stock_record_update_works(admin_client, product_in_stock):
     assert new_stock.quantity_allocated == quantity_allocated
 
 
-def test_valid_product_class_form(color_attribute, size_attribute):
+def test_valid_product_type_form(color_attribute, size_attribute):
     data = {
-        'name': "Testing Class",
+        'name': "Testing Type",
         'product_attributes': [color_attribute.pk],
         'variant_attributes': [size_attribute.pk],
         'has_variants': True}
-    form = ProductClassForm(data)
+    form = ProductTypeForm(data)
     assert form.is_valid()
 
     # Don't allow same attribute in both fields
     data['variant_attributes'] = [color_attribute.pk, size_attribute.pk]
     data['product_attributes'] = [size_attribute.pk]
-    form = ProductClassForm(data)
+    form = ProductTypeForm(data)
     assert not form.is_valid()
 
 
-def test_variantless_product_class_form(color_attribute, size_attribute):
+def test_variantless_product_type_form(color_attribute, size_attribute):
     data = {
-        'name': "Testing Class",
+        'name': "Testing Type",
         'product_attributes': [color_attribute.pk],
         'variant_attributes': [],
         'has_variants': False}
-    form = ProductClassForm(data)
+    form = ProductTypeForm(data)
     assert form.is_valid()
 
     # Don't allow variant attributes when no variants
     data = {
-        'name': "Testing Class",
+        'name': "Testing Type",
         'product_attributes': [color_attribute.pk],
         'variant_attributes': [size_attribute.pk],
         'has_variants': False}
-    form = ProductClassForm(data)
+    form = ProductTypeForm(data)
     assert not form.is_valid()
 
 
-def test_edit_used_product_class(db):
-    product_class = ProductClass.objects.create(
+def test_edit_used_product_type(db, default_category):
+    product_type = ProductType.objects.create(
         name='New class', has_variants=True)
     product = Product.objects.create(
-        name='Test product', price=10, product_class=product_class)
+        name='Test product', price=10, product_type=product_type,
+        category=default_category)
     ProductVariant.objects.create(product=product, sku='1234')
 
     # When all products have only one variant you can change
     # has_variants to false
     assert product.variants.all().count() == 1
     data = {
-        'name': product_class.name,
-        'product_attributes': product_class.product_attributes.all(),
-        'variant_attributes': product_class.variant_attributes.all(),
+        'name': product_type.name,
+        'product_attributes': product_type.product_attributes.all(),
+        'variant_attributes': product_type.variant_attributes.all(),
         'has_variants': False}
-    form = ProductClassForm(data, instance=product_class)
+    form = ProductTypeForm(data, instance=product_type)
     assert form.is_valid()
 
     data = {
-        'name': product_class.name,
-        'product_attributes': product_class.product_attributes.all(),
-        'variant_attributes': product_class.variant_attributes.all(),
+        'name': product_type.name,
+        'product_attributes': product_type.product_attributes.all(),
+        'variant_attributes': product_type.variant_attributes.all(),
         'has_variants': True}
-    form = ProductClassForm(data, instance=product_class)
+    form = ProductTypeForm(data, instance=product_type)
     assert form.is_valid()
 
     # Test has_variants validator which prevents turning off when product
@@ -117,11 +122,11 @@ def test_edit_used_product_class(db):
     ProductVariant.objects.create(product=product, sku='12345')
     assert product.variants.all().count() == 2
     data = {
-        'name': product_class.name,
-        'product_attributes': product_class.product_attributes.all(),
-        'variant_attributes': product_class.variant_attributes.all(),
+        'name': product_type.name,
+        'product_attributes': product_type.product_attributes.all(),
+        'variant_attributes': product_type.variant_attributes.all(),
         'has_variants': False}
-    form = ProductClassForm(data, instance=product_class)
+    form = ProductTypeForm(data, instance=product_type)
     assert not form.is_valid()
     assert 'has_variants' in form.errors.keys()
 
@@ -129,17 +134,17 @@ def test_edit_used_product_class(db):
 def test_change_attributes_in_product_form(
         db, product_in_stock, color_attribute):
     product = product_in_stock
-    product_class = product.product_class
+    product_type = product.product_type
     text_attribute = ProductAttribute.objects.create(
         slug='author', name='Author')
-    product_class.product_attributes.add(text_attribute)
+    product_type.product_attributes.add(text_attribute)
     color_value = color_attribute.values.first()
     new_author = 'Main Tester'
     new_color = color_value.pk
     data = {
         'name': product.name,
         'price': product.price.gross,
-        'categories': [c.pk for c in product.categories.all()],
+        'category': product.category.pk,
         'description': 'description',
         'attribute-author': new_author,
         'attribute-color': new_color}
@@ -291,23 +296,23 @@ def test_view_product_delete(db, admin_client, product_in_stock):
     assert not Product.objects.filter(pk=product.pk)
 
 
-def test_view_product_class_not_deleted_before_confirmation(
+def test_view_product_type_not_deleted_before_confirmation(
         admin_client, product_in_stock):
-    product_class = product_in_stock.product_class
+    product_type = product_in_stock.product_type
     url = reverse(
-        'dashboard:product-class-delete', kwargs={'pk': product_class.pk})
+        'dashboard:product-type-delete', kwargs={'pk': product_type.pk})
     response = admin_client.get(url)
     assert response.status_code == HTTP_STATUS_OK
-    assert ProductClass.objects.filter(pk=product_class.pk)
+    assert ProductType.objects.filter(pk=product_type.pk)
 
 
-def test_view_product_class_delete(db, admin_client, product_in_stock):
-    product_class = product_in_stock.product_class
+def test_view_product_type_delete(db, admin_client, product_in_stock):
+    product_type = product_in_stock.product_type
     url = reverse(
-        'dashboard:product-class-delete', kwargs={'pk': product_class.pk})
+        'dashboard:product-type-delete', kwargs={'pk': product_type.pk})
     response = admin_client.post(url)
     assert response.status_code == HTTP_REDIRECTION
-    assert not ProductClass.objects.filter(pk=product_class.pk)
+    assert not ProductType.objects.filter(pk=product_type.pk)
 
 
 def test_view_product_variant_not_deleted_before_confirmation(
@@ -567,7 +572,7 @@ def test_product_list_filters_is_published(
         admin_client, product_list, default_category):
     data = {'price_1': [''], 'price_0': [''], 'is_featured': [''],
             'name': ['Test'], 'sort_by': ['name'],
-            'categories': [default_category.pk], 'is_published': ['1']}
+            'category': default_category.pk, 'is_published': ['1']}
     url = reverse('dashboard:product-list')
     response = admin_client.get(url, data)
     assert response.status_code == 200
@@ -617,21 +622,21 @@ def test_product_list_pagination_with_filters(admin_client, product_list):
     assert list(response.context['products'])[0] == product_list[1]
 
 
-def test_product_select_classes(admin_client, product_class):
-    url = reverse('dashboard:product-add-select-class')
+def test_product_select_types(admin_client, product_type):
+    url = reverse('dashboard:product-add-select-type')
     response = admin_client.get(url)
     assert response.status_code == HTTP_STATUS_OK
 
-    data = {'product_cls': product_class.pk}
+    data = {'product_type': product_type.pk}
     response = admin_client.post(url, data)
     assert response.get('location') == reverse(
-        'dashboard:product-add', kwargs={'class_pk': product_class.pk})
+        'dashboard:product-add', kwargs={'type_pk': product_type.pk})
     assert response.status_code == HTTP_REDIRECTION
 
 
-def test_product_select_classes_by_ajax(admin_client, product_class):
-    url = reverse('dashboard:product-add-select-class')
-    data = {'product_cls': product_class.pk}
+def test_product_select_types_by_ajax(admin_client, product_type):
+    url = reverse('dashboard:product-add-select-type')
+    data = {'product_type': product_type.pk}
 
     response = admin_client.post(
         url, data, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
@@ -639,4 +644,32 @@ def test_product_select_classes_by_ajax(admin_client, product_class):
     resp_decoded = json.loads(response.content.decode('utf-8'))
     assert response.status_code == 200
     assert resp_decoded.get('redirectUrl') == reverse(
-        'dashboard:product-add', kwargs={'class_pk': product_class.pk})
+        'dashboard:product-add', kwargs={'type_pk': product_type.pk})
+
+
+def test_hide_field_in_variant_choice_field_form():
+    form = VariantChoiceField(Mock)
+    variants, cart = MagicMock(), MagicMock()
+    variants.count.return_value = 1
+    variants.all()[0].pk = 'test'
+    form.update_field_data(variants, cart)
+    assert isinstance(form.widget, HiddenInput)
+    assert form.widget.attrs.get('value') == 'test'
+
+
+def test_assign_collection_to_product(product_in_stock):
+    product = product_in_stock
+    collection = Collection.objects.create(name='test_collections')
+    data = product.__dict__
+    data = {
+        'name': product.name,
+        'price': product.price.gross,
+        'category': product.category.pk,
+        'description': 'description',
+        'collections': [collection.pk]
+    }
+    form = ProductForm(data, instance=product)
+    assert form.is_valid()
+    form.save()
+    assert product.collections.first().name == 'test_collections'
+    assert collection.products.first().name == product.name

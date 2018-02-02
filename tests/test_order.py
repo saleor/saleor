@@ -1,9 +1,12 @@
+from decimal import Decimal
+from django.test.client import RequestFactory
+from django.urls import reverse
 from prices import Price
 
-from saleor.cart.models import Cart
 from saleor.order import models, OrderStatus
-from saleor.order.utils import (
-    add_variant_to_delivery_group, fill_group_with_partition)
+from saleor.order.forms import OrderNoteForm
+from saleor.order.utils import add_variant_to_delivery_group
+from tests.utils import get_redirect_location
 
 
 def test_total_property():
@@ -24,28 +27,6 @@ def test_total_setter():
     order.total = price
     assert order.total_net.net == 10
     assert order.total_tax.net == 10
-
-
-def test_stock_allocation(billing_address, product_in_stock):
-    variant = product_in_stock.variants.get()
-    cart = Cart()
-    cart.save()
-    cart.add(variant, quantity=2)
-    order = models.Order.objects.create(billing_address=billing_address)
-    delivery_group = models.DeliveryGroup.objects.create(order=order)
-    fill_group_with_partition(delivery_group, cart.lines.all())
-    order_line = delivery_group.lines.get()
-    stock = order_line.stock
-    assert stock.quantity_allocated == 2
-
-
-def test_order_discount(sale, order, request_cart_with_item):
-    cart = request_cart_with_item
-    group = models.DeliveryGroup.objects.create(order=order)
-    fill_group_with_partition(
-        group, cart.lines.all(), discounts=cart.discounts)
-    line = group.lines.first()
-    assert line.get_price_per_item() == Price(currency="USD", net=5)
 
 
 def test_add_variant_to_delivery_group_adds_line_for_new_variant(
@@ -125,3 +106,75 @@ def test_order_queryset_closed_orders(open_orders, closed_orders):
     qs = models.Order.objects.closed()
     assert qs.count() == len(closed_orders)
     assert all([item in qs for item in closed_orders])
+
+
+def test_view_connect_order_with_user_authorized_user(
+        order, authorized_client, customer_user):
+    order.user_email = customer_user.email
+    order.save()
+
+    url = reverse(
+        'order:connect-order-with-user', kwargs={'token': order.token})
+    response = authorized_client.post(url)
+
+    redirect_location = get_redirect_location(response)
+    assert redirect_location == reverse('order:details', args=[order.token])
+    order.refresh_from_db()
+    assert order.user == customer_user
+
+
+def test_view_connect_order_with_user_different_email(
+        order, authorized_client):
+    url = reverse(
+        'order:connect-order-with-user', kwargs={'token': order.token})
+    response = authorized_client.post(url)
+
+    redirect_location = get_redirect_location(response)
+    assert redirect_location == reverse('profile:details')
+    order.refresh_from_db()
+    assert order.user is None
+
+
+def test_add_note_to_order(order_with_lines_and_stock):
+    order = order_with_lines_and_stock
+    assert order.is_open
+    note = models.OrderNote(order=order, user=order.user)
+    note_form = OrderNoteForm({'content': 'test_note'}, instance=note)
+    note_form.is_valid()
+    note_form.save()
+    assert order.notes.first().content == 'test_note'
+
+
+def test_create_order_history(order_with_lines):
+    order = order_with_lines
+    order.create_history_entry(content='test_entry')
+    history_entry = models.OrderHistoryEntry.objects.get(order=order)
+    assert history_entry == order.history.first()
+    assert history_entry.content == 'test_entry'
+
+
+def test_delivery_group_is_shipping_required(delivery_group):
+    assert delivery_group.is_shipping_required()
+
+
+def test_delivery_group_is_shipping_required_no_shipping(delivery_group):
+    line = delivery_group.lines.first()
+    line.is_shipping_required = False
+    line.save()
+    assert not delivery_group.is_shipping_required()
+
+
+def test_delivery_group_is_shipping_required_partially_required(
+        delivery_group, product_without_shipping):
+    variant = product_without_shipping.variants.get()
+    product_type = product_without_shipping.product_type
+    delivery_group.lines.create(
+        delivery_group=delivery_group,
+        product=product_without_shipping,
+        product_name=product_without_shipping.name,
+        product_sku=variant.sku,
+        is_shipping_required=product_type.is_shipping_required,
+        quantity=3,
+        unit_price_net=Decimal('30.00'),
+        unit_price_gross=Decimal('30.00'))
+    assert delivery_group.is_shipping_required()

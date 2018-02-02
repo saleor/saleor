@@ -18,7 +18,7 @@
 
 {% block header_menu %}
   {% url "dashboard:product-attributes" as url %}
-  {% include "dashboard/includes/_back-link.html" with url=url %}
+  {% include "dashboard/includes/_back_link.html" with url=url %}
 {% endblock %}
 
 
@@ -31,7 +31,7 @@
     </li>
     <li class="back-mobile">
       <a href="{% url 'dashboard:product-attributes' %}">
-        <svg data-src="{% static "dashboard/images/arrow_left.svg" %}" fill="#fff" width="20px" height="20px" />
+        <svg data-src="{% static "dashboard/images/arrow-left.svg" %}" fill="#fff" width="20px" height="20px" />
       </a>
     </li>
     {% if attribute.pk %}

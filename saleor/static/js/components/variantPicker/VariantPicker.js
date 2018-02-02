@@ -18,9 +18,9 @@ export default class VariantPicker extends Component {
     url: PropTypes.string.isRequired,
     variantAttributes: PropTypes.array.isRequired,
     variants: PropTypes.array.isRequired
-  }
+  };
 
-  constructor(props) {
+  constructor (props) {
     super(props);
     const { variants } = this.props;
 
@@ -28,19 +28,20 @@ export default class VariantPicker extends Component {
     const params = queryString.parse(location.search);
     let selection = {};
     if (Object.keys(params).length) {
-      Object.keys(params).some((name) => {
-        const valueName = params[name];
-        const attribute = this.matchAttributeBySlug(name);
-        const value = this.matchAttributeValueByName(attribute, valueName);
-        if (attribute && value) {
-          selection[attribute.pk] = value.pk.toString();
-        } else {
-          // if attribute doesn't exist - show variant
-          selection = variant ? variant.attributes : {};
-          // break
-          return true;
-        }
-      });
+      Object.keys(params)
+        .some((name) => {
+          const valueName = params[name];
+          const attribute = this.matchAttributeBySlug(name);
+          const value = this.matchAttributeValueByName(attribute, valueName);
+          if (attribute && value) {
+            selection[attribute.pk] = value.pk.toString();
+          } else {
+            // if attribute doesn't exist - show variant
+            selection = variant ? variant.attributes : {};
+            // break
+            return true;
+          }
+        });
     } else if (Object.keys(variant).length) {
       selection = variant.attributes;
     }
@@ -51,6 +52,11 @@ export default class VariantPicker extends Component {
     };
     this.matchVariantFromSelection();
   }
+
+  checkVariantAvailability = () => {
+    const { store } = this.props;
+    return store.variant.availability;
+  };
 
   handleAddToCart = () => {
     const { onAddToCartSuccess, onAddToCartError, store } = this.props;
@@ -71,7 +77,7 @@ export default class VariantPicker extends Component {
         }
       });
     }
-  }
+  };
 
   handleAttributeChange = (attrId, valueId) => {
     this.setState({
@@ -79,44 +85,45 @@ export default class VariantPicker extends Component {
     }, () => {
       this.matchVariantFromSelection();
       let params = {};
-      Object.keys(this.state.selection).forEach(attrId => {
-        const attribute = this.matchAttribute(attrId);
-        const value = this.matchAttributeValue(attribute, this.state.selection[attrId]);
-        if (attribute && value) {
-          params[attribute.slug] = value.slug;
-        }
-      });
+      Object.keys(this.state.selection)
+        .forEach(attrId => {
+          const attribute = this.matchAttribute(attrId);
+          const value = this.matchAttributeValue(attribute, this.state.selection[attrId]);
+          if (attribute && value) {
+            params[attribute.slug] = value.slug;
+          }
+        });
       history.pushState(null, null, '?' + queryString.stringify(params));
     });
-  }
+  };
 
   handleQuantityChange = (event) => {
-    this.setState({quantity: parseInt(event.target.value)});
-  }
+    this.setState({ quantity: parseInt(event.target.value) });
+  };
 
   matchAttribute = (id) => {
     const { variantAttributes } = this.props;
     const match = variantAttributes.filter(attribute => attribute.pk.toString() === id);
     return match.length > 0 ? match[0] : null;
-  }
+  };
 
   matchAttributeBySlug = (slug) => {
     const { variantAttributes } = this.props;
     const match = variantAttributes.filter(attribute => attribute.slug === slug);
     return match.length > 0 ? match[0] : null;
-  }
+  };
 
   matchAttributeValue = (attribute, id) => {
     const match = attribute.values.filter(attribute => attribute.pk.toString() === id);
     return match.length > 0 ? match[0] : null;
-  }
+  };
 
   matchAttributeValueByName = (attribute, name) => {
     const match = attribute ? attribute.values.filter(value => value.slug === name) : [];
     return match.length > 0 ? match[0] : null;
-  }
+  };
 
-  matchVariantFromSelection() {
+  matchVariantFromSelection () {
     const { store, variants } = this.props;
     let matchedVariant = null;
     variants.forEach(variant => {
@@ -127,10 +134,10 @@ export default class VariantPicker extends Component {
     store.setVariant(matchedVariant);
   }
 
-  render() {
+  render () {
     const { store, variantAttributes } = this.props;
     const { errors, selection, quantity } = this.state;
-    const disableAddToCart = store.isEmpty;
+    const disableAddToCart = store.isEmpty || !this.checkVariantAvailability();
 
     const addToCartBtnClasses = classNames({
       'btn primary': true,

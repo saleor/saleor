@@ -1,0 +1,28 @@
+<mj-style inline="inline">
+  .no-display {
+    display: none;
+  }
+
+  .no-padding td {
+    padding: 0px;
+  }
+
+  td, th {
+    padding: 5px;
+  }
+
+  .table-header-row {
+     border-bottom: 2px solid #000;
+  }
+
+  .table-item-row {
+    border-bottom: 1px solid #D3D1D0;
+  }
+</mj-style>
+<mj-style>
+
+  address {
+    font-style: inherit;
+    font-family: Ubuntu, Helvetica, Arial;
+  }
+</mj-style>

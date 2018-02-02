@@ -1,16 +1,23 @@
 from decimal import Decimal
+from unittest.mock import MagicMock, patch
 
 from django.urls import reverse
 import pytest
+from django_fsm import TransitionNotAllowed
+from prices import Price
+
 from tests.utils import get_redirect_location, get_url_path
 
-from saleor.dashboard.order.forms import ChangeQuantityForm, MoveLinesForm
-from saleor.order import OrderStatus
+from saleor.cart.models import Cart
+from saleor.dashboard.order.forms import ChangeQuantityForm
+from saleor.order import GroupStatus, OrderStatus
+from saleor.dashboard.order.forms import OrderNoteForm
 from saleor.order.models import (
-    DeliveryGroup, Order, OrderHistoryEntry, OrderLine)
+    DeliveryGroup, Order, OrderHistoryEntry, OrderLine, OrderNote)
+from saleor.order.transitions import process_delivery_group
 from saleor.order.utils import (
     add_variant_to_existing_lines, change_order_line_quantity,
-    fill_group_with_partition, remove_empty_groups)
+    remove_empty_groups)
 from saleor.product.models import ProductVariant, Stock, StockLocation
 
 
@@ -42,7 +49,7 @@ def test_view_cancel_order_line(admin_client, order_with_lines_and_stock):
     assert Stock.objects.first().quantity_allocated == quantity_allocated_before - line_quantity
     # check note in the order's history
     assert OrderHistoryEntry.objects.get(
-        order=order_with_lines_and_stock).comment == 'Cancelled item %s' % product
+        order=order_with_lines_and_stock).content == 'Cancelled item %s' % product
     url = reverse(
         'dashboard:orderline-cancel', kwargs={
             'order_pk': order_with_lines_and_stock.pk,
@@ -96,7 +103,7 @@ def test_view_change_order_line_quantity(admin_client, order_with_lines_and_stoc
     assert order_with_lines_and_stock.groups.count() == 1
     # a note in the order's history should be created
     assert OrderHistoryEntry.objects.get(
-        order=order_with_lines_and_stock).comment == (
+        order=order_with_lines_and_stock).content == (
             'Changed quantity for product %(product)s from'
             ' %(old_quantity)s to %(new_quantity)s') % {
                     'product': line.product,
@@ -127,7 +134,7 @@ def test_view_change_order_line_quantity_with_invalid_data(
 def test_dashboard_change_quantity_form(request_cart_with_item, order):
     cart = request_cart_with_item
     group = DeliveryGroup.objects.create(order=order)
-    fill_group_with_partition(group, cart.lines.all())
+    process_delivery_group(group, cart.lines.all())
     order_line = group.lines.get()
 
     # Check max quantity validation
@@ -216,7 +223,7 @@ def test_view_split_order_line(admin_client, order_with_lines_and_stock):
     # a note in the order's history should be created
     new_group = DeliveryGroup.objects.last()
     assert OrderHistoryEntry.objects.get(
-        order=order_with_lines_and_stock).comment == (
+        order=order_with_lines_and_stock).content == (
                 'Moved 2 items %(item)s from '
                 '%(old_group)s to %(new_group)s') % {
                     'item': line,
@@ -233,7 +240,7 @@ def test_view_split_order_line(admin_client, order_with_lines_and_stock):
         url, {'quantity': 2, 'target_group': old_delivery_group.pk})
     # an other note in the order's history should be created
     assert OrderHistoryEntry.objects.filter(
-        order=order_with_lines_and_stock).last().comment ==(
+        order=order_with_lines_and_stock).last().content ==(
             'Moved 2 items %(item)s from removed '
             'group to %(new_group)s') % {
                 'item': line,
@@ -276,8 +283,7 @@ def test_ordered_item_change_quantity(transactional_db, order_with_lines):
     change_order_line_quantity(lines[2], 0)
     history = list(order_with_lines.history.all())
     assert len(history) == 1
-    assert history[0].status == OrderStatus.CLOSED
-    assert history[0].comment == 'Order cancelled. No items in order'
+    assert history[0].content == 'Order cancelled. No items in order'
 
 
 def test_ordered_item_remove_empty_group_with_force(
@@ -287,8 +293,7 @@ def test_ordered_item_remove_empty_group_with_force(
     remove_empty_groups(lines[0], force=True)
     history = list(order_with_lines.history.all())
     assert len(history) == 1
-    assert history[0].status == OrderStatus.CLOSED
-    assert history[0].comment == 'Order cancelled. No items in order'
+    assert history[0].content == 'Order cancelled. No items in order'
 
 
 @pytest.mark.integration
@@ -316,6 +321,25 @@ def test_view_order_invoice(
 
 @pytest.mark.integration
 @pytest.mark.django_db
+def test_view_order_invoice_without_shipping(
+        admin_client, order_with_lines_and_stock, billing_address):
+    """
+    Regression test for #1536:
+    user downloads the invoice for order without shipping address
+    """
+    order_with_lines_and_stock.billing_address = billing_address
+    order_with_lines_and_stock.save()
+    url = reverse(
+        'dashboard:order-invoice', kwargs={
+            'order_pk': order_with_lines_and_stock.id
+        })
+    response = admin_client.get(url)
+    assert response.status_code == 200
+    assert response['content-type'] == 'application/pdf'
+
+
+@pytest.mark.integration
+@pytest.mark.django_db
 def test_view_order_packing_slips(
         admin_client, order_with_lines_and_stock, billing_address):
     """
@@ -337,6 +361,24 @@ def test_view_order_packing_slips(
         order_with_lines_and_stock.id,
         order_with_lines_and_stock.groups.all()[0].pk)
     assert response['Content-Disposition'] == 'filename=%s' % name
+
+
+@pytest.mark.integration
+@pytest.mark.django_db
+def test_view_order_packing_slips_without_shipping(
+        admin_client, order_with_lines_and_stock, billing_address):
+    """Regression test for #1536:
+    user downloads the packaging slips for order without shipping address
+    """
+    order_with_lines_and_stock.billing_address = billing_address
+    order_with_lines_and_stock.save()
+    url = reverse(
+        'dashboard:order-packing-slips', kwargs={
+            'group_pk': order_with_lines_and_stock.groups.all()[0].pk
+        })
+    response = admin_client.get(url)
+    assert response.status_code == 200
+    assert response['content-type'] == 'application/pdf'
 
 
 @pytest.mark.integration
@@ -419,6 +461,7 @@ def test_view_change_order_line_stock_merges_lines(
         product=line.product,
         product_name=line.product.name,
         product_sku='SKU_A',
+        is_shipping_required=line.is_shipping_required,
         quantity=2,
         unit_price_net=Decimal('30.00'),
         unit_price_gross=Decimal('30.00'),
@@ -524,3 +567,145 @@ def test_view_add_variant_to_delivery_group(
     assert get_redirect_location(response) == reverse(
         'dashboard:order-details', kwargs={'order_pk': order.pk})
     assert line.quantity == 4
+
+
+def test_ship_new_delivery_group(delivery_group):
+    line = delivery_group.lines.first()
+    quantity = line.quantity
+    stock = line.stock
+    stock_quantity = stock.quantity
+    stock_quantity_allocated = stock.quantity_allocated
+
+    delivery_group.ship()
+    delivery_group.save()
+
+    stock.refresh_from_db()
+    assert delivery_group.status == GroupStatus.SHIPPED
+    assert stock.quantity == stock_quantity - quantity
+    assert stock.quantity_allocated == stock_quantity_allocated - quantity
+
+
+def test_cant_ship_cancelled_delivery_group(delivery_group):
+    delivery_group.cancel()
+    delivery_group.save()
+
+    with pytest.raises(TransitionNotAllowed):
+        delivery_group.ship()
+
+
+def test_cant_ship_shipped_delivery_group(delivery_group):
+    delivery_group.ship()
+    delivery_group.save()
+
+    with pytest.raises(TransitionNotAllowed):
+        delivery_group.ship()
+
+
+def test_cancel_new_delivery_group(delivery_group):
+    line = delivery_group.lines.first()
+    quantity = line.quantity
+    stock = line.stock
+    stock_quantity = stock.quantity
+    stock_quantity_allocated = stock.quantity_allocated
+
+    delivery_group.cancel()
+    delivery_group.save()
+
+    stock.refresh_from_db()
+    assert delivery_group.status == GroupStatus.CANCELLED
+    assert stock.quantity == stock_quantity
+    assert stock.quantity_allocated == stock_quantity_allocated - quantity
+
+
+def test_cancel_shipped_delivery_group(delivery_group):
+    delivery_group.ship()
+    delivery_group.save()
+
+    line = delivery_group.lines.first()
+    quantity = line.quantity
+    stock = line.stock
+    stock_quantity = stock.quantity
+    stock_quantity_allocated = stock.quantity_allocated
+
+    delivery_group.cancel()
+    delivery_group.save()
+
+    stock.refresh_from_db()
+    assert delivery_group.status == GroupStatus.CANCELLED
+    assert line.stock.quantity == stock_quantity + quantity
+    assert line.stock.quantity_allocated == stock_quantity_allocated
+
+
+def test_cant_cancel_cancelled_delivery_group(delivery_group):
+    delivery_group.cancel()
+    delivery_group.save()
+
+    with pytest.raises(TransitionNotAllowed):
+        delivery_group.cancel()
+
+
+def test_process_new_delivery_group(billing_address, product_in_stock):
+    variant = product_in_stock.variants.get()
+    cart = Cart()
+    cart.save()
+    cart.add(variant, quantity=2)
+    order = Order.objects.create(billing_address=billing_address)
+    group = DeliveryGroup.objects.create(order=order)
+
+    group.process(cart.lines.all())
+    group.save()
+
+    assert group.status == GroupStatus.NEW
+    order_line = group.lines.get()
+    stock = order_line.stock
+    assert stock.quantity_allocated == 2
+
+
+def test_process_new_delivery_group_with_discount(
+        sale, order, request_cart_with_item):
+    cart = request_cart_with_item
+    group = DeliveryGroup.objects.create(order=order)
+
+    group.process(cart.lines.all(), cart.discounts)
+    group.save()
+
+    line = group.lines.first()
+    assert line.get_price_per_item() == Price(currency="USD", net=5)
+
+
+def test_cant_process_cancelled_delivery_group(
+        delivery_group, product_in_stock):
+    delivery_group.cancel()
+    delivery_group.save()
+
+    variant = product_in_stock.variants.get()
+    cart = Cart()
+    cart.save()
+    cart.add(variant, quantity=2)
+
+    with pytest.raises(TransitionNotAllowed):
+        delivery_group.process(cart.lines.all())
+
+
+def test_cant_process_shipped_delivery_group(
+        delivery_group, product_in_stock):
+    delivery_group.ship()
+    delivery_group.save()
+
+    variant = product_in_stock.variants.get()
+    cart = Cart()
+    cart.save()
+    cart.add(variant, quantity=2)
+
+    with pytest.raises(TransitionNotAllowed):
+        delivery_group.process(cart.lines.all())
+
+
+@patch('saleor.dashboard.order.forms.send_note_confirmation')
+def test_note_form_sent_email(
+    mock_send_note_confirmation, order_with_lines_and_stock):
+    order = order_with_lines_and_stock
+    note = OrderNote(order=order, user=order.user)
+    form = OrderNoteForm({'content': 'test_note'}, instance=note)
+    form.send_confirmation_email()
+    assert mock_send_note_confirmation.called_once()

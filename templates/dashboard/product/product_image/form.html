@@ -17,7 +17,7 @@
 
 {% block header_menu %}
   {% url "dashboard:product-detail" pk=product.pk as url %}
-  {% include "dashboard/includes/_back-link.html" with url=url %}
+  {% include "dashboard/includes/_back_link.html" with url=url %}
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -29,7 +29,7 @@
     </li>
     <li class="back-mobile">
       <a href="{% url "dashboard:product-detail" pk=product.pk %}" class="breadcrumb">
-        <svg data-src="{% static "dashboard/images/arrow_left.svg" %}" fill="#fff" width="20px" height="20px" />
+        <svg data-src="{% static "dashboard/images/arrow-left.svg" %}" fill="#fff" width="20px" height="20px" />
       </a>
     </li>
     {% if product_image.pk %}

@@ -1,0 +1,134 @@
+{% extends "base.html" %}
+{% load bootstrap_pagination from bootstrap4 %}
+{% load i18n %}
+{% load shop %}
+{% load staticfiles %}
+{% load prices_i18n %}
+{% load build_absolute_uri from urls %}
+
+{% block footer_scripts %}
+  {{ block.super }}
+{% endblock footer_scripts %}
+
+{% block title %}{{ object }} — {{ block.super }}{% endblock %}
+
+{% block meta_tags %}
+  <meta property="og:title" content="{{ object }}">
+  <meta property="og:description" content="{{ object.description }}">
+  <meta property="og:image" content="{% static "images/block1.png" %}">
+
+  {% build_absolute_uri request=request location=object.get_absolute_url as object_url %}
+  <meta property="og:url" content="{{ object_url }}">
+  <link rel="canonical" href="{{ object_url }}?page={{ products_paginated.number }}">
+
+  {% if products_paginated.has_previous %}
+    <link rel="prev" href="{{ object_url }}?page={{ products_paginated.previous_page_number }}">
+  {% endif %}
+
+  {% if products_paginated.has_next %}
+    <link rel="next" href="{{ object_url }}?page={{ products_paginated.next_page_number }}">
+  {% endif %}
+{% endblock meta_tags %}
+
+{% block breadcrumb %}
+  <div class="row">
+    <div class="col-md-7">
+      <ul class="breadcrumbs list-unstyled d-none d-md-block">
+        {% block breadcrumb_part %}{% endblock %}
+      </ul>
+    </div>
+    <div class="col-md-5">
+      <div class="sort-by">
+        <div class="click-area d-none"></div>
+        <button class="btn btn-link">
+          <div>
+            <span>
+              {% if now_sorted_by == 'name' %}
+                {% blocktrans trimmed %}
+                  Sort by: <b>name</b>
+                {% endblocktrans %}
+              {% elif now_sorted_by == 'price' %}
+                {% blocktrans trimmed %}
+                  Sort by: <b>price</b>
+                {% endblocktrans %}
+              {% endif %}
+            </span>
+            <div class="sort-order-icon">
+              {% if is_descending %}
+                <svg data-src="{% static "images/arrow-down.svg" %}" />
+              {% else %}
+                <svg data-src="{% static "images/arrow-up.svg" %}" />
+              {% endif %}
+            </div>
+          </div>
+        </button>
+        <ul class="sort-list d-none">
+          {% for choice, label in sort_by_choices.items %}
+            <li>
+              <div class="row">
+                <div class="col-6">
+                  {% trans 'Sort by' context 'Product list filters' %}:
+                  <strong>{{ label }}</strong>
+                </div>
+                <div class="col-6">
+                  <div>
+                    <a href="{% get_sort_by_url choice %}">
+                      <span>{% trans 'ascending' context 'sort by option' %}</span>
+                      <div class="sort-order-icon float-right">
+                        <img class="lazyload lazypreload" data-src="{% static "images/arrow-up.svg" %}">
+                      </div>
+                    </a>
+                    <a href="{% get_sort_by_url choice descending=True %}">
+                      <span>{% trans 'descending' context 'sort by option' %}</span>
+                      <div class="sort-order-icon float-right">
+                        <img class="lazyload lazypreload" data-src="{% static "images/arrow-down.svg" %}">
+                      </div>
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+  </div>
+{% endblock %}
+
+{% block content %}
+  <div id="product-list-page">
+    <div class="row">
+      <div class="col-md-4 col-lg-3">
+        {% block filters %}{% endblock filters %}
+      </div>
+      <div class="col-md-8 col-lg-9 product-list">
+        <div>
+          <div>
+            {% if products %}
+              <div class="row">
+                {% include "_items.html" with products=products %}
+              </div>
+              <div class="row">
+                <div class="m-auto">
+                  {% if products_paginated.has_other_pages %}
+                    {% bootstrap_pagination products_paginated extra=request.GET.urlencode %}
+                  {% endif %}
+                </div>
+              </div>
+            {% else %}
+              <div class="row no-results">
+                <div class="col-12">
+                  <svg data-src="{% static "images/no-results-bg.svg" %}"
+                       width="360"
+                       height="360" />
+                  <p>{% trans "Sorry, no matches found for your request." context "Search without results text" %}</p>
+                  <p>{% trans "Try again or shop new arrivals." context "Search without results text" %}</p>
+                </div>
+              </div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock content %}

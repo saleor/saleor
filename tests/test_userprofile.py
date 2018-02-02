@@ -5,21 +5,13 @@ import pytest
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.http import QueryDict
+from django.template import Context, Template
 from django.urls import reverse
+from django_countries.fields import Country
 
 from saleor.userprofile import forms, i18n, models
+from saleor.userprofile.templatetags.i18n_address_tags import format_address
 from saleor.userprofile.validators import validate_possible_number
-
-
-@pytest.fixture
-def billing_address(db):
-    return models.Address.objects.create(
-        first_name='John', last_name='Doe',
-        company_name='Mirumee Software',
-        street_address_1='Tęczowa 7',
-        city='Wrocław',
-        postal_code='53-601',
-        country='PL')
 
 
 @pytest.mark.parametrize('country', ['CN', 'PL', 'US'])
@@ -66,6 +58,7 @@ def test_address_form_postal_code_validation():
     errors = form.errors
     assert 'postal_code' in errors
 
+
 @pytest.mark.parametrize('form_data, form_valid, expected_preview, expected_country',[
     ({'preview': True}, False, True, 'PL'),
     ({'preview': False,
@@ -95,7 +88,6 @@ def test_get_address_form(form_data, form_valid, expected_preview, expected_coun
 
 
 def test_country_aware_form_has_only_supported_countries():
-
     default_form = i18n.COUNTRY_FORMS['US']
     instance = default_form()
     country_field = instance.fields['country']
@@ -132,3 +124,71 @@ def test_order_with_lines_pagination(admin_client, order_list):
     url = reverse('profile:details')
     response = admin_client.get(url, data)
     assert response.status_code == 200
+
+
+def test_format_address(billing_address):
+    formatted_address = format_address(billing_address)
+    address_html = '<br>'.join(map(str, formatted_address['address_lines']))
+    context = Context({'address': billing_address})
+    tpl = Template(
+        '{% load i18n_address_tags %}'
+        '{% format_address address %}')
+    rendered_html = tpl.render(context)
+    assert address_html in rendered_html
+    assert 'inline-address' not in rendered_html
+    assert str(billing_address.phone) in rendered_html
+
+
+def test_format_address_all_options(billing_address):
+    formatted_address = format_address(
+        billing_address, include_phone=False, inline=True, latin=True)
+    address_html = ', '.join(map(str, formatted_address['address_lines']))
+    context = Context({'address': billing_address})
+    tpl = Template(
+        '{% load i18n_address_tags %}'
+        '{% format_address address include_phone=False inline=True latin=True %}')
+    rendered_html = tpl.render(context)
+    assert address_html in rendered_html
+    assert 'inline-address' in rendered_html
+    assert str(billing_address.phone) not in rendered_html
+
+
+def test_address_as_data(billing_address):
+    data = billing_address.as_data()
+    assert data == {
+        'first_name': 'John',
+        'last_name': 'Doe',
+        'company_name': 'Mirumee Software',
+        'street_address_1': 'Tęczowa 7',
+        'street_address_2': '',
+        'city': 'Wrocław',
+        'city_area': '',
+        'postal_code': '53-601',
+        'country': 'PL',
+        'country_area': '',
+        'phone': '+48713988102'}
+
+
+def test_copy_address(billing_address):
+    copied_address = billing_address.get_copy()
+    assert copied_address.pk != billing_address.pk
+    assert copied_address == billing_address
+
+
+def test_compare_addresses(billing_address):
+    copied_address = billing_address.get_copy()
+    assert billing_address == copied_address
+
+
+def test_compare_addresses_with_country_object(billing_address):
+    copied_address = billing_address.get_copy()
+    copied_address.country = Country('PL')
+    copied_address.save()
+    assert billing_address == copied_address
+
+
+def test_compare_addresses_different_country(billing_address):
+    copied_address = billing_address.get_copy()
+    copied_address.country = Country('FR')
+    copied_address.save()
+    assert billing_address != copied_address

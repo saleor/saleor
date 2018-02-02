@@ -1,7 +1,5 @@
-{% extends "base.html" %}
-{% load bootstrap_pagination from bootstrap4 %}
+{% extends "product/product_list_base.html" %}
 {% load i18n %}
-{% load shop %}
 {% load staticfiles %}
 {% load build_absolute_uri from urls %}
 {% load render_bundle from webpack_loader %}
@@ -11,14 +9,12 @@
   {% render_bundle 'category' 'js' %}
 {% endblock footer_scripts %}
 
-{% block title %}{{ category }} — {{ block.super }}{% endblock %}
-
 {% block meta_tags %}
-    <meta property="og:title" content="{{ category }}">
-    <meta property="og:description" content="{{ category.description }}">
+    <meta property="og:title" content="{{ object }}">
+    <meta property="og:description" content="{{ object.description }}">
     <meta property="og:image" content="{% static "images/block1.png" %}">
 
-    {% build_absolute_uri request=request location=category.get_absolute_url as category_url %}
+    {% build_absolute_uri request=request location=object.get_absolute_url as category_url %}
     <meta property="og:url" content="{{ category_url }}">
     <link rel="canonical" href="{{ category_url }}?page={{ products_paginated.number }}">
 
@@ -31,21 +27,10 @@
     {% endif %}
 {% endblock meta_tags %}
 
-{% block breadcrumb %}
-    {{ block.super }}
-    {% for breadcrumb in breadcrumbs %}
-        <li{% if forloop.last %} class="active"{% endif %}>
-            {% if not forloop.last %}
-                <a href="{{ breadcrumb.get_absolute_url }}">{{ breadcrumb }}</a>
-            {% else %}
-                <span>{{ breadcrumb }}</span>
-            {% endif %}
-        </li>
-    {% endfor %}
-{% endblock breadcrumb %}
+{% block breadcrumb %}{% endblock %}
 
 {% block content %}
     {% comment %} NOTE: This implementation of category page uses React for rendering the product list. See saleor/static/js/category.js file. {% endcomment %}
     {% csrf_token %}
-    <div id="category-page" data-category='{"id":{{category.id}}}'></div>
+    <div id="category-page" data-category='{"id":{{object.id}}}'></div>
 {% endblock content %}

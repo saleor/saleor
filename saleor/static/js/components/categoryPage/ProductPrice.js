@@ -2,7 +2,7 @@ import React, {Component, PropTypes} from 'react';
 import InlineSVG from 'react-inlinesvg';
 import {gql} from 'react-apollo';
 
-import SaleImg from '../../../images/sale_bg.svg';
+import SaleImg from '../../../images/sale-bg.svg';
 
 
 class ProductPrice extends Component {
@@ -19,8 +19,8 @@ class ProductPrice extends Component {
     availability: gql`
       fragment ProductPriceFragmentQuery on ProductAvailabilityType {
         available
-        discount { 
-          gross 
+        discount {
+          gross
         }
         priceRange {
           maxPrice {

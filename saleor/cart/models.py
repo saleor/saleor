@@ -8,7 +8,6 @@ from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.utils.encoding import smart_str
 from django.utils.timezone import now
-from django.utils.translation import pgettext_lazy
 from django_prices.models import PriceField
 from jsonfield import JSONField
 from prices import Price
@@ -72,10 +71,10 @@ class CartQueryset(models.QuerySet):
         problem.
         """
         return self.prefetch_related(
-            'lines__variant__product__categories',
+            'lines__variant__product__category',
             'lines__variant__product__images',
-            'lines__variant__product__product_class__product_attributes__values',  # noqa
-            'lines__variant__product__product_class__variant_attributes__values',  # noqa
+            'lines__variant__product__product_type__product_attributes__values',  # noqa
+            'lines__variant__product__product_type__variant_attributes__values',  # noqa
             'lines__variant__stock')
 
 
@@ -83,34 +82,22 @@ class Cart(models.Model):
     """A shopping cart."""
 
     status = models.CharField(
-        pgettext_lazy('Cart field', 'order status'),
         max_length=32, choices=CartStatus.CHOICES, default=CartStatus.OPEN)
-    created = models.DateTimeField(
-        pgettext_lazy('Cart field', 'created'), auto_now_add=True)
-    last_status_change = models.DateTimeField(
-        pgettext_lazy('Cart field', 'last status change'), auto_now_add=True)
+    created = models.DateTimeField(auto_now_add=True)
+    last_status_change = models.DateTimeField(auto_now_add=True)
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL, blank=True, null=True, related_name='carts',
-        verbose_name=pgettext_lazy('Cart field', 'user'),
         on_delete=models.CASCADE)
-    email = models.EmailField(
-        pgettext_lazy('Cart field', 'email'), blank=True, null=True)
-    token = models.UUIDField(
-        pgettext_lazy('Cart field', 'token'),
-        primary_key=True, default=uuid4, editable=False)
+    email = models.EmailField(blank=True, null=True)
+    token = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     voucher = models.ForeignKey(
         'discount.Voucher', null=True, related_name='+',
-        on_delete=models.SET_NULL,
-        verbose_name=pgettext_lazy('Cart field', 'token'))
-    checkout_data = JSONField(
-        verbose_name=pgettext_lazy('Cart field', 'checkout data'), null=True,
-        editable=False,)
+        on_delete=models.SET_NULL)
+    checkout_data = JSONField(null=True, editable=False)
     total = PriceField(
-        pgettext_lazy('Cart field', 'total'),
         currency=settings.DEFAULT_CURRENCY, max_digits=12, decimal_places=2,
         default=0)
-    quantity = models.PositiveIntegerField(
-        pgettext_lazy('Cart field', 'quantity'), default=0)
+    quantity = models.PositiveIntegerField(default=0)
 
     objects = CartQueryset.as_manager()
 
@@ -197,10 +184,12 @@ class Cart(models.Model):
         all_lines = self.lines.all()
         if data is None:
             data = {}
-        line = [line for line in all_lines
-                if line.variant_id == variant.id and line.data == data]
+        line = [
+            line for line in all_lines
+            if line.variant_id == variant.id and line.data == data]
         if line:
             return line[0]
+        return None
 
     def add(self, variant, quantity=1, data=None, replace=False,
             check_quantity=True):
@@ -249,19 +238,12 @@ class CartLine(models.Model, ItemLine):
     """
 
     cart = models.ForeignKey(
-        Cart, related_name='lines',
-        verbose_name=pgettext_lazy('Cart line field', 'cart'),
-        on_delete=models.CASCADE)
+        Cart, related_name='lines', on_delete=models.CASCADE)
     variant = models.ForeignKey(
-        'product.ProductVariant', related_name='+',
-        verbose_name=pgettext_lazy('Cart line field', 'product'),
-        on_delete=models.CASCADE)
+        'product.ProductVariant', related_name='+', on_delete=models.CASCADE)
     quantity = models.PositiveIntegerField(
-        pgettext_lazy('Cart line field', 'quantity'),
         validators=[MinValueValidator(0), MaxValueValidator(999)])
-    data = JSONField(
-        blank=True, default={},
-        verbose_name=pgettext_lazy('Cart line field', 'data'))
+    data = JSONField(blank=True, default={})
 
     class Meta:
         unique_together = ('cart', 'variant', 'data')
@@ -273,9 +255,10 @@ class CartLine(models.Model, ItemLine):
         if not isinstance(other, CartLine):
             return NotImplemented
 
-        return (self.variant == other.variant and
-                self.quantity == other.quantity and
-                self.data == other.data)
+        return (
+            self.variant == other.variant and
+            self.quantity == other.quantity and
+            self.data == other.data)
 
     def __ne__(self, other):
         return not self == other  # pragma: no cover

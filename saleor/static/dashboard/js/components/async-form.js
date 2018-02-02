@@ -15,6 +15,12 @@ export default $(document).on('submit', '.form-async', function (e) {
     }
   });
   e.preventDefault();
-}).on('click', '.modal-close', function () {
-  $('.modal').modal('close');
 });
+
+const onModalClose = () => $('.modal').modal('close');
+
+// -----
+
+$(document)
+  .on('submit', '.form-async', onAsyncFormSubmit)
+  .on('click', '.modal-close', onModalClose);

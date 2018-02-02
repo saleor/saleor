@@ -34,13 +34,13 @@
     </li>
     <li class="back-mobile">
       <a href="{% url 'dashboard:category-list' %}" class="breadcrumbs--ellipsed-item">
-        <svg data-src="{% static "dashboard/images/arrow_left.svg" %}" fill="#fff" width="20px" height="20px" />
+        <svg data-src="{% static "dashboard/images/arrow-left.svg" %}" fill="#fff" width="20px" height="20px" />
       </a>
     </li>
     {% if path %}
       <li class="back-mobile">
         <a href="{% url 'dashboard:category-list' %}">
-          <svg data-src="{% static "dashboard/images/arrow_left.svg" %}" fill="#fff" width="20px" height="20px"/>
+          <svg data-src="{% static "dashboard/images/arrow-left.svg" %}" fill="#fff" width="20px" height="20px"/>
         </a>
       </li>
       {% for node in path %}
@@ -65,9 +65,7 @@
           {% endif %}
         {% else %}
           <li class="hide-on-med-and-down">
-            <a title="{{ node.name }}"
-               href="{% url 'dashboard:category-detail' pk=node.pk %}"
-               class="breadcrumbs--ellipsed-item">
+            <a href="{% url 'dashboard:category-detail' pk=node.pk %}" title="{{ node.name }}" class="breadcrumbs--ellipsed-item">
               {{ node.name }}
             </a>
           </li>
@@ -96,14 +94,9 @@
               {{ form.name|materializecss }}
             </div>
             <div class="row">
-              <div class="col s12 m8">
+              <div class="col s12">
                 <div class="row">
                   {{ form.description|materializecss }}
-                </div>
-              </div>
-              <div class="col s12 m4">
-                <div class="row">
-                  {{ form.is_hidden|materializecss:"input-field s12" }}
                 </div>
               </div>
             </div>

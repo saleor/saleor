@@ -1,4 +1,5 @@
 from __future__ import unicode_literals
+
 from json import dumps
 from urllib.parse import urlencode
 
@@ -133,18 +134,19 @@ def sorting_header(context, field, label, is_wide=False):
     is_active = False
 
     if sort_by:
-        is_active = True
         if field == sort_by:
+            is_active = True
             # enable ascending sort
             # new_sort_by is used to construct a link with already toggled
             # sort_by value
             new_sort_by = '-%s' % field
-            sorting_icon = static('/images/arrow_up_icon.svg')
+            sorting_icon = static('/images/arrow-up-icon.svg')
         else:
             # enable descending sort
             new_sort_by = field
             if field == sort_by.strip('-'):
-                sorting_icon = static('/images/arrow_down_icon.svg')
+                is_active = True
+                sorting_icon = static('/images/arrow-down-icon.svg')
     else:
         new_sort_by = field
 

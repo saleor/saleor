@@ -2,7 +2,7 @@ from saleor.product.models import Product
 from saleor.order.models import Order
 from saleor.userprofile.models import Address, User
 
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from decimal import Decimal
 import pytest
 
@@ -19,14 +19,14 @@ PRODUCTS = [('Arabica Coffee', 'The best grains in galactic'),
 
 
 @pytest.fixture
-def named_products(default_category, product_class):
+def named_products(default_category, product_type):
     def gen_product(name, description):
         product = Product.objects.create(
             name=name,
             description=description,
             price=Decimal(6.6),
-            product_class=product_class)
-        product.categories.add(default_category)
+            product_type=product_type,
+            category=default_category)
         return product
     return [gen_product(name, desc) for name, desc in PRODUCTS]
 

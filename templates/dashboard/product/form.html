@@ -19,7 +19,7 @@
 
 {% block header_menu %}
   {% url "dashboard:product-list" as url %}
-  {% include "dashboard/includes/_back-link.html" with url=url %}
+  {% include "dashboard/includes/_back_link.html" with url=url %}
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -31,26 +31,26 @@
     </li>
     <li class="back-mobile">
       <a href="{% url "dashboard:product-list" %}">
-        <svg data-src="{% static "dashboard/images/arrow_left.svg" %}" fill="#fff" width="20px" height="20px" />
+        <svg data-src="{% static "dashboard/images/arrow-left.svg" %}" fill="#fff" width="20px" height="20px" />
       </a>
     </li>
     <li>
-        {% if product.pk %}
+      {% if product.pk %}
         <a href="{% url "dashboard:product-detail" pk=product.pk %}" class="breadcrumbs--ellipsed-item">
           {{ product }}
         </a>
-        {% else %}
-          <span class="breadcrumbs--ellipsed-item">
-            {% trans "Add new product" context "Product form breadcrumbs" %}
-          </span>
-        {% endif %}
+      {% else %}
+        <span class="breadcrumbs--ellipsed-item">
+          {% trans "Add new product" context "Product form breadcrumbs" %}
+        </span>
+      {% endif %}
     </li>
     {% if product.pk %}
-    <li>
-      <span class="breadcrumbs--ellipsed-item">
-        {% trans "Edit" context "Product form breadcrumbs" %}
-      </span>
-    </li>
+      <li>
+        <span class="breadcrumbs--ellipsed-item">
+          {% trans "Edit" context "Product form breadcrumbs" %}
+        </span>
+      </li>
     {% endif %}
   </ul>
 {% endblock %}
@@ -65,7 +65,7 @@
           {% csrf_token %}
           <div class="card-content">
             <span class="card-title">
-              {{ product.product_class }}
+              {{ product.product_type }}
             </span>
             <div class="row">
               <div class="col s12 l8" >
@@ -85,16 +85,19 @@
                 <div class="row">
                   {{ product_form.price|materializecss }}
                 </div>
-                {% if not product.product_class.has_variants %}
+                {% if not product.product_type.has_variants %}
                   <div class="row">
                     {{ variant_form.sku|materializecss }}
                   </div>
                 {% endif %}
                 <div class="row">
-                  {{ product_form.categories|materializecss }}
+                  {{ product_form.category|materializecss }}
                 </div>
                 <div class="row">
                   {{ product_form.available_on|materializecss }}
+                </div>
+                <div class="row">
+                  {{ product_form.collections|materializecss }}
                 </div>
                 <div class="row">
                   {{ product_form.is_featured|materializecss }}

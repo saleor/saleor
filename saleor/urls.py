@@ -1,11 +1,10 @@
 from django.conf import settings
-from django.conf.urls import url, include
+from django.conf.urls import include, url
 from django.conf.urls.static import static
 from django.contrib.sitemaps.views import sitemap
 from django.contrib.staticfiles.views import serve
 from django.views.i18n import JavaScriptCatalog
 from graphene_django.views import GraphQLView
-from impersonate.views import impersonate, stop_impersonate
 
 from .cart.urls import urlpatterns as cart_urls
 from .checkout.urls import urlpatterns as checkout_urls
@@ -19,7 +18,6 @@ from .registration.urls import urlpatterns as registration_urls
 from .search.urls import urlpatterns as search_urls
 from .userprofile.urls import urlpatterns as userprofile_urls
 
-
 handler404 = 'saleor.core.views.handle_404'
 
 urlpatterns = [
@@ -31,8 +29,6 @@ urlpatterns = [
     url(r'^dashboard/',
         include((dashboard_urls, 'dashboard'), namespace='dashboard')),
     url(r'^graphql', GraphQLView.as_view(graphiql=settings.DEBUG)),
-    url(r'^impersonate/stop/$', stop_impersonate, name='impersonate-stop'),
-    url(r'^impersonate/(?P<uid>\d+)/$', impersonate, name='impersonate-start'),
     url(r'^jsi18n/$', JavaScriptCatalog.as_view(), name='javascript-catalog'),
     url(r'^order/', include((order_urls, 'order'), namespace='order')),
     url(r'^products/',

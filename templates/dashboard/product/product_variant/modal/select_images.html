@@ -15,7 +15,9 @@
 {% endblock %}
 
 {% block content %}
-  <p>{% render_image_choice form.images %}</p>
+  <div class="col s12">
+    <p>{% render_image_choice form.images %}</p>
+  </div>
 {% endblock content %}
 
 {% block primary_action %}

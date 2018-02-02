@@ -3,13 +3,15 @@ from urllib.parse import urlencode
 
 from django.conf import settings
 from django.contrib.auth.models import AnonymousUser
+from django.db.models import F
 from django.utils.encoding import smart_text
 from django_prices.templatetags import prices_i18n
 from prices import Price, PriceRange
 
 from . import ProductAvailabilityStatus, VariantAvailabilityStatus
 from ..cart.utils import get_cart_from_request, get_or_create_cart_from_request
-from ..core.utils import to_local_currency
+from ..core.utils import get_paginator_items, to_local_currency
+from ..core.utils.filters import get_now_sorted_by
 from .forms import ProductForm
 
 
@@ -17,17 +19,16 @@ def products_visible_to_user(user):
     from .models import Product
     if user.is_authenticated and user.is_active and user.is_staff:
         return Product.objects.all()
-    else:
-        return Product.objects.get_available_products()
+    return Product.objects.available_products()
 
 
 def products_with_details(user):
     products = products_visible_to_user(user)
     products = products.prefetch_related(
-        'categories', 'images', 'variants__stock',
+        'category', 'images', 'variants__stock',
         'variants__variant_images__image', 'attributes__values',
-        'product_class__variant_attributes__values',
-        'product_class__product_attributes__values')
+        'product_type__variant_attributes__values',
+        'product_type__product_attributes__values')
     return products
 
 
@@ -109,26 +110,31 @@ def products_for_cart(user):
     return products
 
 
-def product_json_ld(product, availability=None, attributes=None):
+def product_json_ld(product, attributes=None):
     # type: (saleor.product.models.Product, saleor.product.utils.ProductAvailability, dict) -> dict  # noqa
     """Generates JSON-LD data for product"""
     data = {'@context': 'http://schema.org/',
             '@type': 'Product',
             'name': smart_text(product),
-            'image': smart_text(product.get_first_image()),
+            'image': [
+                product_image.image.url
+                for product_image in product.images.all()],
             'description': product.description,
-            'offers': {'@type': 'Offer',
-                       'itemCondition': 'http://schema.org/NewCondition'}}
+            'offers': []}
 
-    if availability is not None:
-        if availability.price_range:
-            data['offers']['priceCurrency'] = settings.DEFAULT_CURRENCY
-            data['offers']['price'] = availability.price_range.min_price.net
-
-        if availability.available:
-            data['offers']['availability'] = 'http://schema.org/InStock'
-        else:
-            data['offers']['availability'] = 'http://schema.org/OutOfStock'
+    for variant in product.variants.all():
+        price = variant.get_price_per_item()
+        available = 'http://schema.org/InStock'
+        if not product.is_available() or not variant.is_in_stock():
+            available = 'http://schema.org/OutOfStock'
+        variant_data = {
+            '@type': 'Offer',
+            'availability': available,
+            'itemCondition': 'http://schema.org/NewCondition',
+            'price': price.gross,
+            'priceCurrency': price.currency,
+            'sku': variant.sku}
+        data['offers'].append(variant_data)
 
     if attributes is not None:
         brand = ''
@@ -149,7 +155,7 @@ def get_variant_picker_data(product, discounts=None, local_currency=None):
     variants = product.variants.all()
     data = {'variantAttributes': [], 'variants': []}
 
-    variant_attributes = product.product_class.variant_attributes.all()
+    variant_attributes = product.product_type.variant_attributes.all()
 
     # Collect only available variants
     filter_available_variants = defaultdict(list)
@@ -166,14 +172,15 @@ def get_variant_picker_data(product, discounts=None, local_currency=None):
                        'itemCondition': 'http://schema.org/NewCondition',
                        'priceCurrency': price.currency,
                        'price': price.net}
-
-        if variant.is_in_stock():
+        in_stock = variant.is_in_stock()
+        if in_stock:
             schema_data['availability'] = 'http://schema.org/InStock'
         else:
             schema_data['availability'] = 'http://schema.org/OutOfStock'
 
         variant_data = {
             'id': variant.id,
+            'availability': in_stock,
             'price': price_as_dict(price),
             'priceUndiscounted': price_as_dict(price_undiscounted),
             'attributes': variant.attributes,
@@ -209,7 +216,7 @@ def get_variant_picker_data(product, discounts=None, local_currency=None):
 
 
 def get_product_attributes_data(product):
-    attributes = product.product_class.product_attributes.all()
+    attributes = product.product_type.product_attributes.all()
     attributes_map = {attribute.pk: attribute for attribute in attributes}
     values_map = get_attributes_display_map(product, attributes)
     return {attributes_map.get(attr_pk): value_obj
@@ -240,7 +247,7 @@ def get_variant_url_from_product(product, attributes):
 def get_variant_url(variant):
     attributes = {}
     values = {}
-    for attribute in variant.product.product_class.variant_attributes.all():
+    for attribute in variant.product.product_type.variant_attributes.all():
         attributes[str(attribute.pk)] = attribute
         for value in attribute.values.all():
             values[str(value.pk)] = value
@@ -271,35 +278,33 @@ def get_product_availability_status(product):
         variant.is_in_stock() for variant in product.variants.all())
     is_in_stock = any(
         variant.is_in_stock() for variant in product.variants.all())
-    requires_variants = product.product_class.has_variants
+    requires_variants = product.product_type.has_variants
 
     if not product.is_published:
         return ProductAvailabilityStatus.NOT_PUBLISHED
-    elif requires_variants and not product.variants.exists():
+    if requires_variants and not product.variants.exists():
         # We check the requires_variants flag here in order to not show this
-        # status with product classes that don't require variants, as in that
+        # status with product types that don't require variants, as in that
         # case variants are hidden from the UI and user doesn't manage them.
         return ProductAvailabilityStatus.VARIANTS_MISSSING
-    elif not has_stock_records:
+    if not has_stock_records:
         return ProductAvailabilityStatus.NOT_CARRIED
-    elif not is_in_stock:
+    if not is_in_stock:
         return ProductAvailabilityStatus.OUT_OF_STOCK
-    elif not are_all_variants_in_stock:
+    if not are_all_variants_in_stock:
         return ProductAvailabilityStatus.LOW_STOCK
-    elif not is_available and product.available_on is not None:
+    if not is_available and product.available_on is not None:
         return ProductAvailabilityStatus.NOT_YET_AVAILABLE
-    else:
-        return ProductAvailabilityStatus.READY_FOR_PURCHASE
+    return ProductAvailabilityStatus.READY_FOR_PURCHASE
 
 
 def get_variant_availability_status(variant):
     has_stock_records = variant.stock.exists()
     if not has_stock_records:
         return VariantAvailabilityStatus.NOT_CARRIED
-    elif not variant.is_in_stock():
+    if not variant.is_in_stock():
         return VariantAvailabilityStatus.OUT_OF_STOCK
-    else:
-        return VariantAvailabilityStatus.AVAILABLE
+    return VariantAvailabilityStatus.AVAILABLE
 
 
 def get_product_costs_data(product):
@@ -364,3 +369,48 @@ def get_margin_for_variant(stock):
     margin = price - stock.cost_price
     percent = round((margin.gross / price.gross) * 100, 0)
     return percent
+
+
+def allocate_stock(stock, quantity):
+    stock.quantity_allocated = F('quantity_allocated') + quantity
+    stock.save(update_fields=['quantity_allocated'])
+
+
+def deallocate_stock(stock, quantity):
+    stock.quantity_allocated = F('quantity_allocated') - quantity
+    stock.save(update_fields=['quantity_allocated'])
+
+
+def increase_stock(stock, quantity):
+    stock.quantity = F('quantity') + quantity
+    stock.save(update_fields=['quantity'])
+
+
+def decrease_stock(stock, quantity):
+    stock.quantity = F('quantity') - quantity
+    stock.quantity_allocated = F('quantity_allocated') - quantity
+    stock.save(update_fields=['quantity', 'quantity_allocated'])
+
+
+def get_product_list_context(request, filter_set):
+    """
+    :param request: request object
+    :param filter_set: filter set for product list
+    :return: context dictionary
+    """
+    # Avoiding circular dependency
+    from .filters import SORT_BY_FIELDS
+    products_paginated = get_paginator_items(
+        filter_set.qs, settings.PAGINATE_BY, request.GET.get('page'))
+    products_and_availability = list(products_with_availability(
+        products_paginated, request.discounts, request.currency))
+    now_sorted_by = get_now_sorted_by(filter_set)
+    arg_sort_by = request.GET.get('sort_by')
+    is_descending = arg_sort_by.startswith('-') if arg_sort_by else False
+    return {
+        'filter_set': filter_set,
+        'products': products_and_availability,
+        'products_paginated': products_paginated,
+        'sort_by_choices': SORT_BY_FIELDS,
+        'now_sorted_by': now_sorted_by,
+        'is_descending': is_descending}

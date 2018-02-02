@@ -19,12 +19,14 @@
   "dependencies": {
     "bootstrap": "4.0.0-beta.2",
     "classnames": "^2.2.5",
-    "eslint-plugin-import": "^2.7.0",
+    "detect-passive-events": "^1.0.4",
     "dropzone": "^5.2.0",
     "favicons-webpack-plugin": "^0.0.7",
     "jquery": "^3.1.1",
     "jquery.cookie": "^1.4.1",
+    "lazysizes": "^4.0.1",
     "materialize-css": "^0.100.2",
+    "medium-editor": "^5.23.3",
     "mobx": "^3.0.2",
     "mobx-react": "^4.1.0",
     "popper.js": "^1.12.5",
@@ -51,13 +53,17 @@
     "babel-preset-stage-0": "^6.22.0",
     "css-loader": "^0.28.7",
     "eslint": "^4.6.1",
+    "eslint-config-airbnb-base": "^12.1.0",
     "eslint-config-standard": "^10.2.1",
+    "eslint-plugin-import": "^2.8.0",
+    "eslint-plugin-node": "^5.2.1",
     "eslint-plugin-promise": "^3.4.0",
     "eslint-plugin-react": "^7.3.0",
     "eslint-plugin-standard": "^3.0.1",
     "extract-text-webpack-plugin": "^3.0.0",
     "file-loader": "^0.11.2",
-    "node-sass": "^4.3.0",
+    "mjml": "^3.3.5",
+    "node-sass": "^4.7.2",
     "postcss": "^6.0.11",
     "postcss-loader": "^2.0.6",
     "sass-loader": "^6.0.6",
@@ -78,8 +84,9 @@
     ]
   },
   "scripts": {
-    "build-assets": "node ./node_modules/webpack/bin/webpack.js -p",
+    "build-assets": "node ./node_modules/webpack/bin/webpack.js -p --progress",
     "heroku-postbuild": "npm run build-assets",
-    "start": "UV_THREADPOOL_SIZE=8 node ./node_modules/webpack/bin/webpack.js -d --watch"
+    "start": "UV_THREADPOOL_SIZE=8 node ./node_modules/webpack/bin/webpack.js -d --watch --progress",
+    "build-emails": "mkdir -p templates/templated_email/html/compiled/ && find templates -name \"*.mjml\" -not -path \"templates/templated_email/html/source/*partials/*\" -not -path \"templates/templated_email/html/source/*shared/*\" -exec ./node_modules/.bin/mjml -l skip {} -o templates/templated_email/html/compiled/ \\;"
   }
 }

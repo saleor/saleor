@@ -1,8 +1,8 @@
+from collections import defaultdict
 import itertools
 import os
 import random
 import unicodedata
-from collections import defaultdict
 
 from django.conf import settings
 from django.contrib.auth.models import Group, Permission
@@ -13,12 +13,13 @@ from faker.providers import BaseProvider
 from payments import PaymentStatus
 from prices import Price
 
+from ...discount import DiscountValueType, VoucherType
 from ...discount.models import Sale, Voucher
 from ...order import GroupStatus
 from ...order.models import DeliveryGroup, Order, OrderLine, Payment
 from ...product.models import (
-    AttributeChoiceValue, Category, Product, ProductAttribute, ProductClass,
-    ProductImage, ProductVariant, Stock, StockLocation)
+    AttributeChoiceValue, Category, Product, ProductAttribute, ProductImage,
+    ProductType, ProductVariant, Stock, StockLocation)
 from ...shipping.models import ANY_COUNTRY, ShippingMethod
 from ...userprofile.models import Address, User
 from ...userprofile.utils import store_user_address
@@ -76,7 +77,6 @@ DEFAULT_SCHEMA = {
             'Candy Box Size': ['100g', '250g', '500g']
         },
         'images_dir': 'candy/',
-        'different_variant_prices': True,
         'is_shipping_required': True
     },
     'E-books': {
@@ -101,7 +101,6 @@ DEFAULT_SCHEMA = {
             'Cover': ['Soft', 'Hard']
         },
         'images_dir': 'books/',
-        'different_variant_prices': True,
         'is_shipping_required': True
     }
 }
@@ -118,49 +117,49 @@ def create_attributes_and_values(attribute_data):
     return attributes
 
 
-def create_product_class_with_attributes(name, schema):
+def create_product_type_with_attributes(name, schema):
     product_attributes_schema = schema.get('product_attributes', {})
     variant_attributes_schema = schema.get('variant_attributes', {})
     is_shipping_required = schema.get('is_shipping_required', True)
-    product_class = get_or_create_product_class(
+    product_type = get_or_create_product_type(
         name=name, is_shipping_required=is_shipping_required)
     product_attributes = create_attributes_and_values(
         product_attributes_schema)
     variant_attributes = create_attributes_and_values(
         variant_attributes_schema)
-    product_class.product_attributes.add(*product_attributes)
-    product_class.variant_attributes.add(*variant_attributes)
-    return product_class
+    product_type.product_attributes.add(*product_attributes)
+    product_type.variant_attributes.add(*variant_attributes)
+    return product_type
 
 
-def create_product_classes_by_schema(root_schema):
+def create_product_types_by_schema(root_schema):
     results = []
-    for product_class_name, schema in root_schema.items():
-        product_class = create_product_class_with_attributes(
-            product_class_name, schema)
-        results.append((product_class, schema))
+    for product_type_name, schema in root_schema.items():
+        product_type = create_product_type_with_attributes(
+            product_type_name, schema)
+        results.append((product_type, schema))
     return results
 
 
-def set_product_attributes(product, product_class):
+def set_product_attributes(product, product_type):
     attr_dict = {}
-    for product_attribute in product_class.product_attributes.all():
+    for product_attribute in product_type.product_attributes.all():
         value = random.choice(product_attribute.values.all())
         attr_dict[str(product_attribute.pk)] = str(value.pk)
     product.attributes = attr_dict
     product.save(update_fields=['attributes'])
 
 
-def set_variant_attributes(variant, product_class):
+def set_variant_attributes(variant, product_type):
     attr_dict = {}
-    existing_variants = variant.product.variants.values_list('attributes',
-                                                             flat=True)
+    existing_variants = variant.product.variants.values_list(
+        'attributes', flat=True)
     existing_variant_attributes = defaultdict(list)
     for variant_attrs in existing_variants:
         for attr_id, value_id in variant_attrs.items():
             existing_variant_attributes[attr_id].append(value_id)
 
-    for product_attribute in product_class.variant_attributes.all():
+    for product_attribute in product_type.variant_attributes.all():
         available_values = product_attribute.values.exclude(
             pk__in=[int(pk) for pk
                     in existing_variant_attributes[str(product_attribute.pk)]])
@@ -174,15 +173,15 @@ def set_variant_attributes(variant, product_class):
 
 def get_variant_combinations(product):
     # Returns all possible variant combinations
-    # For example: product class has two variant attributes: Size, Color
+    # For example: product type has two variant attributes: Size, Color
     # Size has available values: [S, M], Color has values [Red, Green]
     # All combinations will be generated (S, Red), (S, Green), (M, Red),
     # (M, Green)
     # Output is list of dicts, where key is product attribute id and value is
     # attribute value id. Casted to string.
-    variant_attr_map = {attr: attr.values.all()
-                        for attr
-                        in product.product_class.variant_attributes.all()}
+    variant_attr_map = {
+        attr: attr.values.all()
+        for attr in product.product_type.variant_attributes.all()}
     all_combinations = itertools.product(*variant_attr_map.values())
     return [
         {str(attr_value.attribute.pk): str(attr_value.pk)
@@ -199,21 +198,21 @@ def get_price_override(schema, combinations_num, current_price):
     return prices
 
 
-def create_products_by_class(product_class, schema,
-                             placeholder_dir, how_many=10, create_images=True,
-                             stdout=None):
+def create_products_by_type(
+        product_type, schema, placeholder_dir, how_many=10, create_images=True,
+        stdout=None):
     category_name = schema.get('category') or DEFAULT_CATEGORY
     category = get_or_create_category(category_name)
 
     for dummy in range(how_many):
-        product = create_product(product_class=product_class)
-        set_product_attributes(product, product_class)
-        product.categories.add(category)
+        product = create_product(
+            product_type=product_type, category=category)
+        set_product_attributes(product, product_type)
         if create_images:
-            class_placeholders = os.path.join(
+            type_placeholders = os.path.join(
                 placeholder_dir, schema['images_dir'])
             create_product_images(
-                product, random.randrange(1, 5), class_placeholders)
+                product, random.randrange(1, 5), type_placeholders)
         variant_combinations = get_variant_combinations(product)
 
         prices = get_price_override(
@@ -234,14 +233,14 @@ def create_products_by_class(product_class, schema,
             create_variant(product, sku=sku)
         if stdout is not None:
             stdout.write('Product: %s (%s), %s variant(s)' % (
-                product, product_class.name, len(variant_combinations) or 1))
+                product, product_type.name, len(variant_combinations) or 1))
 
 
 def create_products_by_schema(placeholder_dir, how_many, create_images,
                               stdout=None, schema=DEFAULT_SCHEMA):
-    for product_class, class_schema in create_product_classes_by_schema(schema):
-        create_products_by_class(
-            product_class, class_schema, placeholder_dir,
+    for product_type, type_schema in create_product_types_by_schema(schema):
+        create_products_by_type(
+            product_type, type_schema, placeholder_dir,
             how_many=how_many, create_images=create_images, stdout=stdout)
 
 
@@ -274,8 +273,8 @@ def get_or_create_category(name, **kwargs):
     return Category.objects.get_or_create(name=name, defaults=defaults)[0]
 
 
-def get_or_create_product_class(name, **kwargs):
-    return ProductClass.objects.get_or_create(name=name, defaults=kwargs)[0]
+def get_or_create_product_type(name, **kwargs):
+    return ProductType.objects.get_or_create(name=name, defaults=kwargs)[0]
 
 
 def create_product(**kwargs):
@@ -420,6 +419,7 @@ def create_order_line(delivery_group):
         product=product,
         product_name=product.name,
         product_sku=variant.sku,
+        is_shipping_required=product.product_type.is_shipping_required,
         quantity=quantity,
         stock=stock,
         stock_location=stock.location.name,
@@ -463,7 +463,7 @@ def create_fake_order():
 def create_fake_sale():
     sale = Sale.objects.create(
         name='Happy %s day!' % fake.word(),
-        type=Sale.PERCENTAGE,
+        type=DiscountValueType.PERCENTAGE,
         value=random.choice([10, 20, 30, 40, 50]))
     for product in Product.objects.all().order_by('?')[:4]:
         sale.products.add(product)
@@ -500,9 +500,9 @@ def create_shipping_methods():
 def create_vouchers():
     voucher, created = Voucher.objects.get_or_create(
         code='FREESHIPPING', defaults={
-            'type': Voucher.SHIPPING_TYPE,
+            'type': VoucherType.SHIPPING,
             'name': 'Free shipping',
-            'discount_value_type': Voucher.DISCOUNT_VALUE_PERCENTAGE,
+            'discount_value_type': DiscountValueType.PERCENTAGE,
             'discount_value': 100})
     if created:
         yield 'Voucher #%d' % voucher.id
@@ -511,9 +511,9 @@ def create_vouchers():
 
     voucher, created = Voucher.objects.get_or_create(
         code='DISCOUNT', defaults={
-            'type': Voucher.VALUE_TYPE,
+            'type': VoucherType.VALUE,
             'name': 'Big order discount',
-            'discount_value_type': Voucher.DISCOUNT_VALUE_FIXED,
+            'discount_value_type': DiscountValueType.FIXED,
             'discount_value': 25,
             'limit': 200})
     if created:

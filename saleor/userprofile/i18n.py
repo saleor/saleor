@@ -9,7 +9,7 @@ from phonenumber_field.formfields import PhoneNumberField
 
 from .models import Address
 from .validators import validate_possible_number
-from .widgets import PhonePrefixWidget
+from .widgets import DatalistTextWidget, PhonePrefixWidget
 
 COUNTRY_FORMS = {}
 UNKNOWN_COUNTRIES = set()
@@ -52,6 +52,13 @@ class PossiblePhoneNumberFormField(PhoneNumberField):
         return value
 
 
+class CountryAreaChoiceField(forms.ChoiceField):
+    widget = DatalistTextWidget
+
+    def valid_value(self, value):
+        return True
+
+
 class AddressMetaForm(forms.ModelForm):
     # This field is never visible in UI
     preview = forms.BooleanField(initial=False, required=False)
@@ -59,6 +66,9 @@ class AddressMetaForm(forms.ModelForm):
     class Meta:
         model = Address
         fields = ['country', 'preview']
+        labels = {
+            'country': pgettext_lazy(
+                'Country', 'Country')}
 
     def clean(self):
         data = super().clean()
@@ -88,6 +98,29 @@ class AddressForm(forms.ModelForm):
     class Meta:
         model = Address
         exclude = []
+        labels = {
+            'first_name': pgettext_lazy(
+                'Personal name', 'Given name'),
+            'last_name': pgettext_lazy(
+                'Personal name', 'Family name'),
+            'company_name': pgettext_lazy(
+                'Company or organization', 'Company or organization'),
+            'street_address_1': pgettext_lazy(
+                'Address', 'Address'),
+            'street_address_2': pgettext_lazy(
+                'Address', 'Address'),
+            'city': pgettext_lazy(
+                'City', 'City'),
+            'city_area': pgettext_lazy(
+                'City area', 'District'),
+            'postal_code': pgettext_lazy(
+                'Postal code', 'Postal code'),
+            'country': pgettext_lazy(
+                'Country', 'Country'),
+            'country_area': pgettext_lazy(
+                'Country area', 'State or province'),
+            'phone': pgettext_lazy(
+                'Phone number', 'Phone number')}
 
     phone = PossiblePhoneNumberFormField(
         widget=PhonePrefixWidget, required=False)
@@ -182,6 +215,9 @@ def get_form_i18n_lines(form_instance):
 
 
 def update_base_fields(form_class, i18n_rules):
+    if i18n_rules.country_area_choices:
+        form_class.base_fields['country_area'] = CountryAreaChoiceField(choices=i18n_rules.country_area_choices)
+
     labels_map = {
         'country_area': i18n_rules.country_area_type,
         'postal_code': i18n_rules.postal_code_type,

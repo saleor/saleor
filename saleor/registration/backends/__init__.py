@@ -9,3 +9,4 @@ class BaseBackend:
         authorization_key = get_authorization_key_for_backend(self.DB_NAME)
         if authorization_key:
             return authorization_key.key_and_secret()
+        return None
