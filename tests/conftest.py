@@ -645,5 +645,5 @@ def closed_orders(billing_address):
 
 @pytest.fixture
 def collection(db):
-    collection = Collection.objects.create(name="Collection", slug='collection')
+    collection = Collection.objects.create(name='Collection', slug='collection')
     return collection

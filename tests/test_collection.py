@@ -85,6 +85,7 @@ def test_collection_delete_view(admin_client, collection):
 
 def test_collection_index_in_storefront(admin_client, collection):
     response = admin_client.get(
-        reverse('product:collection',
-                kwargs={'pk': collection.id, 'slug': collection.slug}))
+        reverse(
+            'product:collection', kwargs={
+                'pk': collection.id, 'slug': collection.slug}))
     assert response.status_code == 200
