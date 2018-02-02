@@ -25,7 +25,6 @@ env:
   - DJANGO="1.11"
   - DJANGO="2.0"
   - DJANGO="master"
-  - LINTER="isort"
 matrix:
   allow_failures:
     - python: "3.5"
@@ -35,6 +34,9 @@ matrix:
   exclude:
     - python: "3.4"
       env: DJANGO="master"
+  include:
+    - python: "3.6"
+      env: LINTER="isort"
 after_success:
   - codecov
 services:
