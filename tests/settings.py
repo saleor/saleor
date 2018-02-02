@@ -7,7 +7,7 @@ DEFAULT_CURRENCY = 'USD'
 
 LANGUAGE_CODE = 'en-us'
 
-if 'sqlite' in DATABASES['default']['ENGINE']:
+if 'sqlite' in DATABASES['default']['ENGINE']:  # noqa
     DATABASES['default']['TEST'] = {  # noqa
         'SERIALIZE': False,
         'NAME': ':memory:',

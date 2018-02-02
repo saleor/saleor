@@ -14,7 +14,7 @@ from .filters import SaleFilter, VoucherFilter
 
 
 def get_voucher_type_forms(voucher, data):
-    """Returns dict consisting of specific due to voucher type forms."""
+    """Return a dict of specific voucher type forms."""
     return {
         VoucherType.SHIPPING: forms.ShippingVoucherForm(
             data or None, instance=voucher, prefix=VoucherType.SHIPPING),

@@ -92,7 +92,8 @@ def get_cancel_url(request_get, param_name, param_value=None):
     `request_get` - dictionary of query parameters
     `param_name` - name of a parameter to exclude
     `param_value` - value of a parameter value to exclude (in case a parameter
-    has multiple values)"""
+    has multiple values)
+    """
     new_request_get = {
         k: request_get.getlist(k) for k in request_get if k != param_name}
     param_values_list = request_get.getlist(param_name)

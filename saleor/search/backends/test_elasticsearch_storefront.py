@@ -11,17 +11,10 @@ QUERY = {
             'must': [{
                 'multi_match': {
                     'query': PHRASE,
-                    'fields': FIELDS
-                }
-            }],
+                    'fields': FIELDS}}],
             'filter': [{
                 'term': {
-                    'is_published': True
-                }
-            }]
-        }
-    }
-}
+                    'is_published': True}}]}}}
 
 
 def test_storefront_product_search_query_syntax():

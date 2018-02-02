@@ -5,7 +5,7 @@ from django.core.exceptions import ValidationError
 
 
 class AjaxSelect2ChoiceField(forms.ChoiceField):
-    """ This field enables usage of select2 with ajax fetched data.
+    """An AJAX-based choice field using Select2.
 
     fetch_data_url - specifies url, from which select2 will fetch data
     initial - initial object
@@ -34,14 +34,13 @@ class AjaxSelect2ChoiceField(forms.ChoiceField):
         return True
 
     def set_initial(self, obj):
-        """ Sets initially selected objects on field's widget. """
+        """Set initially selected objects on field's widget."""
         selected = {'id': obj.pk, 'text': str(obj)}
         self.widget.attrs['data-initial'] = json.dumps(selected)
 
 
 class AjaxSelect2MultipleChoiceField(forms.MultipleChoiceField):
-    """ This field enables selecting multiple values in select2
-    with ajax fetched data.
+    """An AJAX-base multiple choice field using Select2.
 
     fetch_data_url - specifies url, from which select2 will fetch data
     initial - list of initial objects
@@ -79,6 +78,6 @@ class AjaxSelect2MultipleChoiceField(forms.MultipleChoiceField):
         return True
 
     def set_initial(self, objects):
-        """ Sets initially selected objects on field's widget. """
+        """Set initially selected objects on field's widget."""
         selected = [{'id': obj.pk, 'text': str(obj)} for obj in objects]
         self.widget.attrs['data-initial'] = json.dumps(selected)

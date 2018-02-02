@@ -5,7 +5,8 @@ from phonenumbers.phonenumberutil import country_code_for_region
 from .i18n import AddressMetaForm, get_address_form_class
 
 
-def get_address_form(data, country_code, initial=None, instance=None, **kwargs):
+def get_address_form(
+        data, country_code, initial=None, instance=None, **kwargs):
     country_form = AddressMetaForm(data, initial=initial)
     preview = False
     if country_form.is_valid():

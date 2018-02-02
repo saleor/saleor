@@ -3,18 +3,16 @@ from django.utils.module_loading import import_module
 
 
 def pick_backend():
-    '''Get storefront search function of configured backend
+    """Return the currently configured storefront search function.
 
-    :rtype: callable with one argument of type str
-
-    '''
+    Returns a callable that accepts the search phrase.
+    """
     return import_module(settings.SEARCH_BACKEND).search_storefront
 
 
 def pick_dashboard_backend():
-    '''Get dashboard search function of configured backend
+    """Return the currently configured dashboard search function.
 
-    :rtype: callable with one argument of type str
-
-    '''
+    Returns a callable that accepts the search phrase.
+    """
     return import_module(settings.SEARCH_BACKEND).search_dashboard

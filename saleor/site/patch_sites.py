@@ -1,8 +1,9 @@
-'''
+"""A hack to allow safe clearing of the cache in django.contrib.sites.
+
 Since django.contrib.sites may not be thread-safe when there are
 multiple instances of the application server, we're patching it with
 a thread-safe structure and methods that use it underneath.
-'''
+"""
 import threading
 
 from django.contrib.sites.models import Site, SiteManager
@@ -44,11 +45,10 @@ def new_get_current(self, request=None):
         return THREADED_SITE_CACHE[domain]
 
     raise ImproperlyConfigured(
-        "You're using the Django \"sites framework\" without having "
-        "set the SITE_ID setting. Create a site in your database and "
-        "set the SITE_ID setting or pass a request to "
-        "Site.objects.get_current() to fix this error."
-    )
+        "You're using the Django sites framework without having"
+        " set the SITE_ID setting. Create a site in your database and"
+        " set the SITE_ID setting or pass a request to"
+        " Site.objects.get_current() to fix this error.")
 
 
 def new_clear_cache(self):

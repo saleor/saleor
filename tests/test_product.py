@@ -413,12 +413,13 @@ def test_product_filter_before_filtering(
 
 def test_product_filter_product_exists(authorized_client, product_in_stock,
                                        default_category):
-    products = (models.Product.objects.all()
-                .filter(category__name=default_category)
-                .order_by('-price'))
+    products = (
+        models.Product.objects.all()
+        .filter(category__name=default_category)
+        .order_by('-price'))
     url = reverse(
-        'product:category', kwargs={'path': default_category.slug,
-                                    'category_id': default_category.pk})
+        'product:category', kwargs={
+            'path': default_category.slug, 'category_id': default_category.pk})
     data = {'price_0': [''], 'price_1': ['20']}
     response = authorized_client.get(url, data)
     assert list(response.context['filter_set'].qs) == list(products)
@@ -427,8 +428,8 @@ def test_product_filter_product_exists(authorized_client, product_in_stock,
 def test_product_filter_product_does_not_exist(
         authorized_client, product_in_stock, default_category):
     url = reverse(
-        'product:category', kwargs={'path': default_category.slug,
-                                    'category_id': default_category.pk})
+        'product:category', kwargs={
+            'path': default_category.slug, 'category_id': default_category.pk})
     data = {'price_0': ['20'], 'price_1': ['']}
     response = authorized_client.get(url, data)
     assert not list(response.context['filter_set'].qs)
@@ -436,12 +437,13 @@ def test_product_filter_product_does_not_exist(
 
 def test_product_filter_form(authorized_client, product_in_stock,
                              default_category):
-    products = (models.Product.objects.all()
-                .filter(category__name=default_category)
-                .order_by('-price'))
+    products = (
+        models.Product.objects.all()
+        .filter(category__name=default_category)
+        .order_by('-price'))
     url = reverse(
-        'product:category', kwargs={'path': default_category.slug,
-                                    'category_id': default_category.pk})
+        'product:category', kwargs={
+            'path': default_category.slug, 'category_id': default_category.pk})
     response = authorized_client.get(url)
     assert 'price' in response.context['filter_set'].form.fields.keys()
     assert 'sort_by' in response.context['filter_set'].form.fields.keys()
@@ -449,13 +451,14 @@ def test_product_filter_form(authorized_client, product_in_stock,
 
 
 def test_product_filter_sorted_by_price_descending(
-    authorized_client, product_list, default_category):
-    products = (models.Product.objects.all()
-                .filter(category__name=default_category, is_published=True)
-                .order_by('-price'))
+        authorized_client, product_list, default_category):
+    products = (
+        models.Product.objects.all()
+        .filter(category__name=default_category, is_published=True)
+        .order_by('-price'))
     url = reverse(
-        'product:category', kwargs={'path': default_category.slug,
-                                    'category_id': default_category.pk})
+        'product:category', kwargs={
+            'path': default_category.slug, 'category_id': default_category.pk})
     data = {'sort_by': '-price'}
     response = authorized_client.get(url, data)
     assert list(response.context['filter_set'].qs) == list(products)
@@ -464,19 +467,14 @@ def test_product_filter_sorted_by_price_descending(
 def test_product_filter_sorted_by_wrong_parameter(
         authorized_client, product_in_stock, default_category):
     url = reverse(
-        'product:category', kwargs={'path': default_category.slug,
-                                    'category_id': default_category.pk})
+        'product:category', kwargs={
+            'path': default_category.slug, 'category_id': default_category.pk})
     data = {'sort_by': 'aaa'}
     response = authorized_client.get(url, data)
     assert not list(response.context['filter_set'].qs)
 
 
 def test_get_variant_picker_data_proper_variant_count(product_in_stock):
-    """
-    test checks if get_variant_picker_data provide proper count of
-    variant information from available product variants and not count
-    of variant attributes from product type
-    """
     data = get_variant_picker_data(
         product_in_stock, discounts=None, local_currency=None)
 
@@ -485,24 +483,23 @@ def test_get_variant_picker_data_proper_variant_count(product_in_stock):
 
 def test_view_ajax_available_variants_list(admin_client, product_in_stock):
     variant = product_in_stock.variants.first()
-    variants_list = [
-        {'id': variant.pk, 'text': '123, Test product (Size: Small), $10.00'}
-    ]
+    variant_list = [
+        {'id': variant.pk, 'text': '123, Test product (Size: Small), $10.00'}]
 
     url = reverse('dashboard:ajax-available-variants')
     response = admin_client.get(url, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
     resp_decoded = json.loads(response.content.decode('utf-8'))
 
     assert response.status_code == 200
-    assert resp_decoded == {'results': variants_list}
+    assert resp_decoded == {'results': variant_list}
 
 
 def test_view_ajax_available_products_list(admin_client, product_in_stock):
-    products_list = [{'id': product_in_stock.pk, 'text': 'Test product'}]
+    product_list = [{'id': product_in_stock.pk, 'text': 'Test product'}]
 
     url = reverse('dashboard:ajax-products')
     response = admin_client.get(url, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
     resp_decoded = json.loads(response.content.decode('utf-8'))
 
     assert response.status_code == 200
-    assert resp_decoded == {'results': products_list}
+    assert resp_decoded == {'results': product_list}

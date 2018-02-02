@@ -33,19 +33,13 @@ def construct_get_query(context, **params):
 
 @register.filter
 def is_versatile_image_ppoi_click_widget(field):
-    '''
-    This filter checks if image field widget is used when user wants to edit
-    existing product image.
-    '''
+    """Check if image field widget is used when editing a product image."""
     return isinstance(field.field.widget, VersatileImagePPOIClickWidget)
 
 
 @register.filter
 def is_image_preview_widget(field):
-    '''
-    This filter checks if image field widget is used when user wants to add new
-    product image.
-    '''
+    """Check if image field widget is used when adding a product image."""
     return isinstance(field.field.widget, ImagePreviewWidget)
 
 
@@ -79,7 +73,7 @@ def margins_for_variant(variant):
 
 @register.inclusion_tag('dashboard/includes/_filters.html', takes_context=True)
 def filters(context, filter_set, sort_by_filter_name='sort_by'):
-    """Rendering filters template based on FilterSet."""
+    """Render the filtering template based on the filter set."""
     chips = []
     request_get = context['request'].GET.copy()
     for filter_name in filter_set.form.cleaned_data.keys():
@@ -111,7 +105,7 @@ def filters(context, filter_set, sort_by_filter_name='sort_by'):
 
 @register.simple_tag(takes_context=True)
 def serialize_messages(context):
-    """Serialize django.contrib.messages to JSON"""
+    """Serialize django.contrib.messages to JSON."""
     messages = context.get('messages', [])
     data = {}
     for i, message in enumerate(messages):
@@ -122,7 +116,7 @@ def serialize_messages(context):
 @register.inclusion_tag(
     'dashboard/includes/_sorting_header.html', takes_context=True)
 def sorting_header(context, field, label, is_wide=False):
-    """This template tag renders table sorting header."""
+    """Render a table sorting header."""
     request = context['request']
     request_get = request.GET.copy()
     sort_by = request_get.get('sort_by')

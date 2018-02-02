@@ -7,20 +7,14 @@ PRODUCT_QUERY = {
         'multi_match': {
             'fields': ['name', 'title', 'description'],
             'query': PHRASE,
-            'type': 'cross_fields'
-        }
-    },
-    'sort': ['_score']
-}
+            'type': 'cross_fields'}},
+    'sort': ['_score']}
 ORDERS_QUERY = {
     '_source': False,
     'query': {
         'multi_match': {
             'fields': ['user', 'discount_name'],
-            'query': PHRASE
-        }
-    }
-}
+            'query': PHRASE}}}
 USERS_QUERY = {
     '_source': False,
     'query': {
@@ -28,10 +22,7 @@ USERS_QUERY = {
             'fields': ['user', 'email', 'first_name', 'last_name'],
             'operator': 'and',
             'query': PHRASE,
-            'type': 'cross_fields'
-        }
-    }
-}
+            'type': 'cross_fields'}}}
 
 
 def test_dashboard_search_query_syntax():
