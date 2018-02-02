@@ -7,6 +7,13 @@ from saleor.dashboard.collection.forms import CollectionForm
 from saleor.product.models import Collection
 
 
+@pytest.fixture
+def collection(db):
+    collection = Collection.objects.create(
+        name="Collection", slug='collection')
+    return collection
+
+
 def test_list_view(admin_client, collection):
     response = admin_client.get(reverse('dashboard:collection-list'))
     assert response.status_code == 200

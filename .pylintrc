@@ -2,4 +2,8 @@
 load-plugins=pylint_django
 
 [MESSAGES CONTROL]
-disable = C0103, C0111, I0011, W0621
+disable=C0103, C0111, I0011, W0621
+
+[SIMILARITIES]
+ignore-imports=yes
+min-similarity-lines=8

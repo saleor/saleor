@@ -41,11 +41,10 @@ urlpatterns = [
     url(r'^sitemap\.xml$', sitemap, {'sitemaps': sitemaps},
         name='django.contrib.sitemaps.views.sitemap'),
     url(r'', include('payments.urls')),
-    url('', include('social_django.urls', namespace='social')),
-]
+    url('', include('social_django.urls', namespace='social'))]
 
 if settings.DEBUG:
     # static files (images, css, javascript, etc.)
     urlpatterns += [
-        url(r'^static/(?P<path>.*)$', serve)
-    ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+        url(r'^static/(?P<path>.*)$', serve)] + static(
+            settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

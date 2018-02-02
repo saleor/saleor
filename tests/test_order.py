@@ -1,5 +1,4 @@
 from decimal import Decimal
-from django.test.client import RequestFactory
 from django.urls import reverse
 from prices import Price
 

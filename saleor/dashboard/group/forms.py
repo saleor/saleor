@@ -15,5 +15,4 @@ class GroupPermissionsForm(forms.ModelForm):
 
     permissions = forms.ModelMultipleChoiceField(
         queryset=get_permissions(),
-        widget=forms.CheckboxSelectMultiple
-    )
+        widget=forms.CheckboxSelectMultiple)

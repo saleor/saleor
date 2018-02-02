@@ -1,5 +1,5 @@
 from decimal import Decimal
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 from django.urls import reverse
 import pytest
@@ -10,7 +10,7 @@ from tests.utils import get_redirect_location, get_url_path
 
 from saleor.cart.models import Cart
 from saleor.dashboard.order.forms import ChangeQuantityForm
-from saleor.order import GroupStatus, OrderStatus
+from saleor.order import GroupStatus
 from saleor.dashboard.order.forms import OrderNoteForm
 from saleor.order.models import (
     DeliveryGroup, Order, OrderHistoryEntry, OrderLine, OrderNote)
@@ -46,10 +46,12 @@ def test_view_cancel_order_line(admin_client, order_with_lines_and_stock):
     lines_after = Order.objects.get().get_lines()
     assert lines_before_count - 1 == lines_after.count()
     # check stock deallocation
-    assert Stock.objects.first().quantity_allocated == quantity_allocated_before - line_quantity
+    assert Stock.objects.first().quantity_allocated == (
+        quantity_allocated_before - line_quantity)
     # check note in the order's history
     assert OrderHistoryEntry.objects.get(
-        order=order_with_lines_and_stock).content == 'Cancelled item %s' % product
+        order=order_with_lines_and_stock).content == (
+            'Cancelled item %s' % product)
     url = reverse(
         'dashboard:orderline-cancel', kwargs={
             'order_pk': order_with_lines_and_stock.pk,
@@ -65,11 +67,8 @@ def test_view_cancel_order_line(admin_client, order_with_lines_and_stock):
 
 @pytest.mark.integration
 @pytest.mark.django_db
-def test_view_change_order_line_quantity(admin_client, order_with_lines_and_stock):
-    """
-    user goes to order details page
-    user selects first order line with quantity 3 and changes it to 2
-    """
+def test_view_change_order_line_quantity(
+        admin_client, order_with_lines_and_stock):
     lines_before_quantity_change = order_with_lines_and_stock.get_lines()
     lines_before_quantity_change_count = lines_before_quantity_change.count()
     line = lines_before_quantity_change.first()
@@ -106,20 +105,15 @@ def test_view_change_order_line_quantity(admin_client, order_with_lines_and_stoc
         order=order_with_lines_and_stock).content == (
             'Changed quantity for product %(product)s from'
             ' %(old_quantity)s to %(new_quantity)s') % {
-                    'product': line.product,
-                    'old_quantity': line_quantity_before_quantity_change,
-                    'new_quantity': 2}
+                'product': line.product,
+                'old_quantity': line_quantity_before_quantity_change,
+                'new_quantity': 2}
 
 
 @pytest.mark.integration
 @pytest.mark.django_db
 def test_view_change_order_line_quantity_with_invalid_data(
         admin_client, order_with_lines_and_stock):
-    """
-    user goes to order details page
-    user selects the first order line with quantity 3 and try to change it to 0 and -1
-    user gets an error.
-    """
     lines = order_with_lines_and_stock.get_lines()
     line = lines.first()
     url = reverse(
@@ -178,13 +172,6 @@ def test_dashboard_change_quantity_form(request_cart_with_item, order):
 @pytest.mark.integration
 @pytest.mark.django_db
 def test_view_split_order_line(admin_client, order_with_lines_and_stock):
-    """
-    user goes to order details page
-    user selects first order line with quantity 3 and moves 2 items
-      to a new shipment
-    user selects the line from the new shipment and moves all items
-      back to the first shipment
-    """
     lines_before_split = order_with_lines_and_stock.get_lines()
     lines_before_split_count = lines_before_split.count()
     line = lines_before_split.first()
@@ -214,7 +201,8 @@ def test_view_split_order_line(admin_client, order_with_lines_and_stock):
     # order should have one more line
     assert lines_before_split_count + 1 == lines_after.count()
     # stock allocation should not be changed
-    assert Stock.objects.first().quantity_allocated == quantity_allocated_before_split
+    assert Stock.objects.first().quantity_allocated == (
+        quantity_allocated_before_split)
     line.refresh_from_db()
     # source line quantity should be decreased to 1
     assert line.quantity == line_quantity_before_split - 2
@@ -224,11 +212,11 @@ def test_view_split_order_line(admin_client, order_with_lines_and_stock):
     new_group = DeliveryGroup.objects.last()
     assert OrderHistoryEntry.objects.get(
         order=order_with_lines_and_stock).content == (
-                'Moved 2 items %(item)s from '
-                '%(old_group)s to %(new_group)s') % {
-                    'item': line,
-                    'old_group': old_delivery_group,
-                    'new_group': new_group}
+            'Moved 2 items %(item)s from '
+            '%(old_group)s to %(new_group)s') % {
+                'item': line,
+                'old_group': old_delivery_group,
+                'new_group': new_group}
     new_line = new_group.lines.get()
     # the new line should contain the moved quantity
     assert new_line.quantity == 2
@@ -240,7 +228,7 @@ def test_view_split_order_line(admin_client, order_with_lines_and_stock):
         url, {'quantity': 2, 'target_group': old_delivery_group.pk})
     # an other note in the order's history should be created
     assert OrderHistoryEntry.objects.filter(
-        order=order_with_lines_and_stock).last().content ==(
+        order=order_with_lines_and_stock).last().content == (
             'Moved 2 items %(item)s from removed '
             'group to %(new_group)s') % {
                 'item': line,
@@ -257,12 +245,8 @@ def test_view_split_order_line(admin_client, order_with_lines_and_stock):
 @pytest.mark.integration
 @pytest.mark.django_db
 @pytest.mark.parametrize('quantity', [0, 4])
-def test_view_split_order_line_with_invalid_data(admin_client, order_with_lines_and_stock, quantity):
-    """
-    user goes to order details page
-    user selects first order line with quantity 3 and try move 0 and 4 items to a new shipment
-    user gets an error and no shipment groups are created.
-    """
+def test_view_split_order_line_with_invalid_data(
+        admin_client, order_with_lines_and_stock, quantity):
     lines = order_with_lines_and_stock.get_lines()
     line = lines.first()
     url = reverse(
@@ -300,18 +284,12 @@ def test_ordered_item_remove_empty_group_with_force(
 @pytest.mark.django_db
 def test_view_order_invoice(
         admin_client, order_with_lines_and_stock, billing_address):
-    """
-    user goes to order details page
-    user clicks on Invoice button
-    user downloads the invoice as PDF file
-    """
     order_with_lines_and_stock.shipping_address = billing_address
     order_with_lines_and_stock.billing_address = billing_address
     order_with_lines_and_stock.save()
     url = reverse(
         'dashboard:order-invoice', kwargs={
-            'order_pk': order_with_lines_and_stock.id
-        })
+            'order_pk': order_with_lines_and_stock.id})
     response = admin_client.get(url)
     assert response.status_code == 200
     assert response['content-type'] == 'application/pdf'
@@ -323,16 +301,12 @@ def test_view_order_invoice(
 @pytest.mark.django_db
 def test_view_order_invoice_without_shipping(
         admin_client, order_with_lines_and_stock, billing_address):
-    """
-    Regression test for #1536:
-    user downloads the invoice for order without shipping address
-    """
+    # Regression test for #1536:
     order_with_lines_and_stock.billing_address = billing_address
     order_with_lines_and_stock.save()
     url = reverse(
         'dashboard:order-invoice', kwargs={
-            'order_pk': order_with_lines_and_stock.id
-        })
+            'order_pk': order_with_lines_and_stock.id})
     response = admin_client.get(url)
     assert response.status_code == 200
     assert response['content-type'] == 'application/pdf'
@@ -342,18 +316,12 @@ def test_view_order_invoice_without_shipping(
 @pytest.mark.django_db
 def test_view_order_packing_slips(
         admin_client, order_with_lines_and_stock, billing_address):
-    """
-    user goes to order details page
-    user clicks on Packing Slips button
-    user downloads the packing slips as PDF file
-    """
     order_with_lines_and_stock.shipping_address = billing_address
     order_with_lines_and_stock.billing_address = billing_address
     order_with_lines_and_stock.save()
     url = reverse(
         'dashboard:order-packing-slips', kwargs={
-            'group_pk': order_with_lines_and_stock.groups.all()[0].pk
-        })
+            'group_pk': order_with_lines_and_stock.groups.all()[0].pk})
     response = admin_client.get(url)
     assert response.status_code == 200
     assert response['content-type'] == 'application/pdf'
@@ -367,15 +335,12 @@ def test_view_order_packing_slips(
 @pytest.mark.django_db
 def test_view_order_packing_slips_without_shipping(
         admin_client, order_with_lines_and_stock, billing_address):
-    """Regression test for #1536:
-    user downloads the packaging slips for order without shipping address
-    """
+    # Regression test for #1536
     order_with_lines_and_stock.billing_address = billing_address
     order_with_lines_and_stock.save()
     url = reverse(
         'dashboard:order-packing-slips', kwargs={
-            'group_pk': order_with_lines_and_stock.groups.all()[0].pk
-        })
+            'group_pk': order_with_lines_and_stock.groups.all()[0].pk})
     response = admin_client.get(url)
     assert response.status_code == 200
     assert response['content-type'] == 'application/pdf'
@@ -466,8 +431,7 @@ def test_view_change_order_line_stock_merges_lines(
         unit_price_net=Decimal('30.00'),
         unit_price_gross=Decimal('30.00'),
         stock=stock,
-        stock_location=stock.location.name
-    )
+        stock_location=stock.location.name)
     lines_before = group.lines.count()
 
     url = reverse(
@@ -493,7 +457,6 @@ def test_add_variant_to_existing_lines_one_line(
     lines = order.get_lines().filter(product_sku='SKU_A')
     variant_lines_before = lines.count()
     line = lines.get(stock_location='Warehouse 2')
-    quantity_before = line.quantity
     variant = ProductVariant.objects.get(sku='SKU_A')
 
     quantity_left = add_variant_to_existing_lines(
@@ -703,7 +666,7 @@ def test_cant_process_shipped_delivery_group(
 
 @patch('saleor.dashboard.order.forms.send_note_confirmation')
 def test_note_form_sent_email(
-    mock_send_note_confirmation, order_with_lines_and_stock):
+        mock_send_note_confirmation, order_with_lines_and_stock):
     order = order_with_lines_and_stock
     note = OrderNote(order=order, user=order.user)
     form = OrderNoteForm({'content': 'test_note'}, instance=note)

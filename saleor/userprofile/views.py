@@ -43,7 +43,8 @@ def address_edit(request, pk):
         country_code=address.country.code)
     if address_form.is_valid() and not preview:
         address_form.save()
-        message = pgettext('Storefront message', 'Address successfully updated.')
+        message = pgettext(
+            'Storefront message', 'Address successfully updated.')
         messages.success(request, message)
         return HttpResponseRedirect(reverse('profile:details') + '#addresses')
     return TemplateResponse(
