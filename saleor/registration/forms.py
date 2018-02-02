@@ -49,7 +49,9 @@ class SignupForm(forms.ModelForm):
 
 
 class PasswordResetForm(django_forms.PasswordResetForm):
-    """PasswordResetForm that overrides sending emails to use templated email.
+    """Allow resetting passwords.
+
+    This subclass overrides sending emails to use templated email.
     """
 
     def get_users(self, email):

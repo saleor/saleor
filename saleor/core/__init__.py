@@ -16,6 +16,7 @@ def check_session_caching(app_configs, **kwargs):  # pragma: no cover
         errors.append(
             Warning(
                 'Session caching cannot work with locmem backend',
-                'User sessions need to be globally shared, use a cache server like Redis.',
+                'User sessions need to be globally shared, use a cache server'
+                ' like Redis.',
                 'saleor.W001'))
     return errors

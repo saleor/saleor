@@ -32,7 +32,7 @@ def named_products(default_category, product_type):
 
 
 def search_storefront(client, phrase):
-    '''Execute storefront search on client mathing phrase'''
+    """Execute storefront search on client matching phrase."""
     resp = client.get(reverse('search:search'), {'q': phrase})
     return [prod for prod, _ in resp.context['results'].object_list]
 
@@ -64,7 +64,7 @@ def test_storefront_filter_published_products(client, named_products):
 
 
 def search_dashboard(client, phrase):
-    '''Execute dashboard search on client mathing phrase'''
+    """Execute dashboard search on client matching phrase."""
     response = client.get(reverse('dashboard:search'), {'q': phrase})
     assert response.context['query'] in phrase
     context = response.context
@@ -109,13 +109,13 @@ ORDERS = [[pk] + list(user) for pk, user in zip(ORDER_IDS, USERS)]
 
 def gen_address_for_user(first_name, last_name):
     return Address.objects.create(
-            first_name=first_name,
-            last_name=last_name,
-            company_name='Mirumee Software',
-            street_address_1='Tęczowa 7',
-            city='Wrocław',
-            postal_code='53-601',
-            country='PL')
+        first_name=first_name,
+        last_name=last_name,
+        company_name='Mirumee Software',
+        street_address_1='Tęczowa 7',
+        city='Wrocław',
+        postal_code='53-601',
+        country='PL')
 
 
 @pytest.fixture

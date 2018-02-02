@@ -5,7 +5,7 @@ from saleor.product.utils import (
 
 
 def process_delivery_group(group, cart_lines, discounts=None):
-    """Fills shipment group with order lines created from partition items."""
+    """Fill shipment group with order lines created from partition items."""
     for line in cart_lines:
         add_variant_to_delivery_group(
             group, line.variant, line.get_quantity(), discounts,
@@ -13,7 +13,7 @@ def process_delivery_group(group, cart_lines, discounts=None):
 
 
 def cancel_delivery_group(group):
-    """Cancels delivery group by returning products to stocks."""
+    """Cancel delivery group and return products to stock."""
     if group.status == GroupStatus.NEW:
         for line in group:
             if line.stock:
@@ -25,7 +25,7 @@ def cancel_delivery_group(group):
 
 
 def ship_delivery_group(group, tracking_number=''):
-    """Ships delivery group by decreasing products in stocks."""
+    """Ship delivery group and decrease stock levels."""
     for line in group.lines.all():
         if line.stock:
             decrease_stock(line.stock, line.quantity)

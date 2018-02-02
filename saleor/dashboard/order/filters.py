@@ -11,13 +11,12 @@ from ...order import OrderStatus
 from ...order.models import Order
 from ..widgets import DateRangeWidget, PriceRangeWidget
 
-SORT_BY_FIELDS = (
+SORT_BY_FIELDS = [
     ('pk', 'pk'),
     ('payments__status', 'payment_status'),
     ('user__email', 'email'),
     ('created', 'created'),
-    ('total_net', 'total')
-)
+    ('total_net', 'total')]
 
 SORT_BY_FIELDS_LABELS = {
     'pk': pgettext_lazy('Order list sorting option', '#'),

@@ -13,8 +13,11 @@ from ..userprofile.utils import store_user_address
 
 
 def check_order_status(func):
-    """Preserves execution of function if order is fully paid by redirecting
-    to order's details page."""
+    """Prevent execution of decorated function if order is fully paid.
+
+    Instead redirects to order details page.
+    """
+    # pylint: disable=cyclic-import
     from .models import Order
 
     @wraps(func)
@@ -30,15 +33,17 @@ def check_order_status(func):
 
 
 def cancel_order(order):
-    """Cancels order by cancelling all associated shipment groups."""
+    """Cancel order by cancelling all associated shipment groups."""
     for group in order.groups.all():
         group.cancel()
         group.save()
 
 
 def recalculate_order(order):
-    """Recalculates and assigns total price of order.
-    Total price is a sum of items and shippings in order shipment groups."""
+    """Recalculate and assigns total price of order.
+
+    Total price is a sum of items and shippings in order shipment groups.
+    """
     prices = [
         group.get_total() for group in order
         if group.status != GroupStatus.CANCELLED]
@@ -62,7 +67,8 @@ def attach_order_to_user(order, user):
 
 def add_variant_to_delivery_group(
         group, variant, total_quantity, discounts=None, add_to_existing=True):
-    """Adds total_quantity of variant to group.
+    """Add total_quantity of variant to group.
+
     Raises InsufficientStock exception if quantity could not be fulfilled.
 
     By default, first adds variant to existing lines with same variant.
@@ -102,7 +108,7 @@ def add_variant_to_delivery_group(
 
 
 def add_variant_to_existing_lines(group, variant, total_quantity):
-    """Adds variant to existing lines with same variant.
+    """Add variant to existing lines with same variant.
 
     Variant is added by increasing quantity of lines with same variant,
     as long as total_quantity of variant will be added
@@ -132,7 +138,8 @@ def add_variant_to_existing_lines(group, variant, total_quantity):
 
 
 def merge_duplicates_into_order_line(line):
-    """Merges duplicated lines in shipment group into one (given) line.
+    """Merge duplicated lines in shipment group into one (given) line.
+
     If there are no duplicates, nothing will happen.
     """
     lines = line.delivery_group.lines.filter(
@@ -161,9 +168,11 @@ def change_order_line_quantity(line, new_quantity):
 
 
 def remove_empty_groups(line, force=False):
-    """Removes order line and associated shipment group and order.
+    """Remove order line and associated shipment group and order.
+
     Remove is done only if quantity of order line or items in group or in order
-    is equal to 0."""
+    is equal to 0.
+    """
     source_group = line.delivery_group
     order = source_group.order
     if line.quantity:
@@ -181,7 +190,7 @@ def remove_empty_groups(line, force=False):
 
 def move_order_line_to_group(line, target_group, quantity):
     from .models import OrderLine
-    """Moves given quantity of order line to another shipment group."""
+    """Split given quantity of order line to another shipment group."""
     try:
         target_line = target_group.lines.get(
             product=line.product, product_name=line.product_name,

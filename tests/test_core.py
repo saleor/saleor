@@ -13,17 +13,16 @@ from saleor.shipping.models import ShippingMethod
 from saleor.userprofile.models import Address, User
 
 
-type_schema = {'Vegetable': {
-                   'category': 'Food',
-                   'product_attributes': {
-                       'Sweetness': ['Sweet', 'Sour'],
-                       'Healthiness': ['Healthy', 'Not really']
-                   },
-                   'variant_attributes': {
-                       'GMO': ['Yes', 'No']
-                   },
-                   'images_dir': 'candy/',
-                   'is_shipping_required': True}}
+type_schema = {
+    'Vegetable': {
+        'category': 'Food',
+        'product_attributes': {
+            'Sweetness': ['Sweet', 'Sour'],
+            'Healthiness': ['Healthy', 'Not really']},
+        'variant_attributes': {
+            'GMO': ['Yes', 'No']},
+        'images_dir': 'candy/',
+        'is_shipping_required': True}}
 
 
 @pytest.mark.parametrize('ip_data, expected_country', [
@@ -117,9 +116,9 @@ def test_create_products_by_type(db):
     how_many = 5
     product_type = random_data.create_product_types_by_schema(
         type_schema)[0][0]
-    random_data.create_products_by_type(product_type, type_schema['Vegetable'],
-                                         '/', how_many=how_many,
-                                        create_images=False)
+    random_data.create_products_by_type(
+        product_type, type_schema['Vegetable'], '/',
+        how_many=how_many, create_images=False)
     assert Product.objects.all().count() == how_many
 
 

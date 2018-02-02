@@ -182,7 +182,8 @@ def test_admin_can_view_product_image_update(admin_client, product_with_image):
     assert response.status_code == 200
 
 
-def test_staff_cant_view_product_image_update(staff_client, product_with_image):
+def test_staff_cant_view_product_image_update(
+        staff_client, product_with_image):
     product_image = product_with_image.images.all()[0]
     url = reverse('dashboard:product-image-update',
                   kwargs={'img_pk': product_image.pk,
@@ -217,7 +218,8 @@ def test_admin_can_view_shipping_methods_update(admin_client, shipping_method):
     assert response.status_code == 200
 
 
-def test_staff_cant_view_shipping_methods_update(staff_client, shipping_method):
+def test_staff_cant_view_shipping_methods_update(
+        staff_client, shipping_method):
     response = staff_client.get(reverse('dashboard:shipping-method-update',
                                         args=[shipping_method.pk]))
     assert response.status_code == 302
@@ -229,7 +231,8 @@ def test_admin_can_view_shipping_methods_detail(admin_client, shipping_method):
     assert response.status_code == 200
 
 
-def test_staff_cant_view_shipping_methods_detail(staff_client, shipping_method):
+def test_staff_cant_view_shipping_methods_detail(
+        staff_client, shipping_method):
     response = staff_client.get(reverse('dashboard:shipping-method-detail',
                                         args=[shipping_method.pk]))
     assert response.status_code == 302
@@ -241,7 +244,8 @@ def test_admin_can_view_shipping_methods_delete(admin_client, shipping_method):
     assert response.status_code == 200
 
 
-def test_staff_cant_view_shipping_methods_delete(staff_client, shipping_method):
+def test_staff_cant_view_shipping_methods_delete(
+        staff_client, shipping_method):
     response = staff_client.get(reverse('dashboard:shipping-method-delete',
                                         args=[shipping_method.pk]))
     assert response.status_code == 302
@@ -603,7 +607,8 @@ def test_staff_group_member_can_view_order_list(
 
 
 def test_staff_group_member_can_view_order_details(
-        staff_client, staff_user, staff_group, permission_view_order, order_with_lines_and_stock):
+        staff_client, staff_user, staff_group, permission_view_order,
+        order_with_lines_and_stock):
     assert not staff_user.has_perm("order.view_order")
     response = staff_client.get(reverse('dashboard:order-details',
                                         args=[order_with_lines_and_stock.pk]))

@@ -15,7 +15,7 @@ class CategorySitemap(Sitemap):
         categories = Category.objects.all().order_by('id')
         return categories.only('id', 'name', 'slug')
 
+
 sitemaps = {
     'categories': CategorySitemap,
-    'products': ProductSitemap
-}
+    'products': ProductSitemap}
