@@ -259,7 +259,7 @@ def test_view_split_order_line_with_invalid_data(
     assert DeliveryGroup.objects.count() == 1
 
 
-def test_ordered_item_change_quantity(db, order_with_lines):
+def test_ordered_item_change_quantity(transactional_db, order_with_lines):
     assert list(order_with_lines.history.all()) == []
     lines = order_with_lines.groups.all()[0].lines.all()
     change_order_line_quantity(lines[0], 0)
@@ -270,7 +270,8 @@ def test_ordered_item_change_quantity(db, order_with_lines):
     assert history[0].content == 'Order cancelled. No items in order'
 
 
-def test_ordered_item_remove_empty_group_with_force(db, order_with_lines):
+def test_ordered_item_remove_empty_group_with_force(
+        transactional_db, order_with_lines):
     group = order_with_lines.groups.all()[0]
     lines = group.lines.all()
     remove_empty_groups(lines[0], force=True)
