@@ -34,20 +34,25 @@ class ProductFilter(SortedFilterSet):
         self.filters = OrderedDict(sorted(self.filters.items()))
 
     def _get_attributes(self):
-        q = self._get_attributes_lookup()
+        q_product_attributes = self._get_product_attributes_lookup()
+        q_variant_attributes = self._get_variant_attributes_lookup()
         product_attributes = (
             ProductAttribute.objects.all()
             .prefetch_related('values')
-            .filter(q[0])
+            .filter(q_product_attributes)
             .distinct())
         variant_attributes = (
             ProductAttribute.objects.all()
             .prefetch_related('values')
-            .filter(q[1])
+            .filter(q_variant_attributes)
             .distinct())
         return product_attributes, variant_attributes
 
-    def _get_attributes_lookup(self):
+
+    def _get_product_attributes_lookup(self):
+        raise NotImplementedError()
+
+    def _get_variant_attributes_lookup(self):
         raise NotImplementedError()
 
     def _get_product_attributes_filters(self):
@@ -87,10 +92,12 @@ class ProductCategoryFilter(ProductFilter):
         self.category = kwargs.pop('category')
         super().__init__(*args, **kwargs)
 
-    def _get_attributes_lookup(self):
-        return (Q(**{"product_types__products__category": self.category}),
-                Q(**{"product_variant_types__products__category":
-                     self.category}))
+    def _get_product_attributes_lookup(self):
+        return Q(**{'product_types__products__category': self.category})
+
+    def _get_variant_attributes_lookup(self):
+        return Q(**{'product_variant_types__products__category':
+                     self.category})
 
 
 class ProductCollectionFilter(ProductFilter):
@@ -98,7 +105,9 @@ class ProductCollectionFilter(ProductFilter):
         self.collection = kwargs.pop('collection')
         super().__init__(*args, **kwargs)
 
-    def _get_attributes_lookup(self):
-        return (Q(**{"product_types__products__collections": self.collection}),
-                Q(**{"product_variant_types__products__collections":
-                     self.collection}))
+    def _get_product_attributes_lookup(self):
+        return Q(**{'product_types__products__collections': self.collection})
+
+    def _get_variant_attributes_lookup(self):
+        return Q(**{'product_variant_types__products__collections':
+                     self.collection})
