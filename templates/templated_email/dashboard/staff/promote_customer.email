@@ -2,9 +2,16 @@
 {% block subject %}{% blocktrans %}Hello from {{ site_name }}!{% endblocktrans %}{% endblock %}
 
 {% block plain %}
-{% blocktrans %}You're receiving this e-mail because you have been promoted to staff member at {{ domain }}.{% endblocktrans %}
+{% blocktrans context "Promote customer to staff member confirmation e-mail text" %}
+Hi!
 
-{% blocktrans %}Thank you for using {{ site_name }}!
-{{ domain }}
+You're receiving this e-mail because you have been promoted to staff member at {{ domain }}.{% endblocktrans %}
+
+{% blocktrans context "Promote customer to staff member confirmation e-mail text" %}
+This is an automatically generated email, please do not reply.
 {% endblocktrans %}
+{% endblock %}
+
+{% block html %}
+{% include 'templated_email/html/compiled/promote_customer.html' %}
 {% endblock %}

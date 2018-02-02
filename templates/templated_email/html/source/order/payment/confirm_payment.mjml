@@ -1,0 +1,30 @@
+<mjml>
+  <mj-head>
+    <mj-include path="../../shared/styles" />
+  </mj-head>
+  <mj-body>
+    <mj-container>
+      <mj-section css-class="no-display">
+        <mj-column>
+          <mj-text>
+            {% load i18n %}
+          </mj-text>
+        </mj-column>
+      </mj-section>
+      <mj-include path="../../shared/header" />
+      <mj-section>
+        <mj-column>
+          <mj-text font-size="16px">
+            {% trans "Hi!" context "Payment confirmation e-mail text" %}
+          </mj-text>
+          <mj-text>
+            {% blocktrans trimmed context "Payment confirmation e-mail text" %}
+              Thank you for your payment. To see your payment details please visit: <a href="{{ url }}">{{ url }}</a>
+            {% endblocktrans %}
+          </mj-text>
+        </mj-column>
+      </mj-section>
+      <mj-include path="../../shared/footer" />
+    </mj-container>
+  </mj-body>
+</mjml>
