@@ -133,11 +133,11 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.locale.LocaleMiddleware',
     'django_babel.middleware.LocaleMiddleware',
-    'saleor.core.middleware.DiscountMiddleware',
-    'saleor.core.middleware.GoogleAnalytics',
-    'saleor.core.middleware.CountryMiddleware',
-    'saleor.core.middleware.CurrencyMiddleware',
-    'saleor.core.middleware.ClearSiteCacheMiddleware',
+    'saleor.core.middleware.discounts',
+    'saleor.core.middleware.google_analytics',
+    'saleor.core.middleware.country',
+    'saleor.core.middleware.currency',
+    'saleor.core.middleware.site',
     'social_django.middleware.SocialAuthExceptionMiddleware',
     'impersonate.middleware.ImpersonateMiddleware'
 ]
