@@ -1,25 +1,17 @@
-import {initSelects} from './utils';
-
 export default $(document).on('submit', '.form-async', function (e) {
-  let that = this;
+  const $target = $(e.currentTarget);
   $.ajax({
-    url: $(that).attr('action'),
+    url: $target.attr('action'),
     method: 'post',
-    data: $(that).serialize(),
-    complete: function (response) {
-      if (response.status === 400) {
-        $(that).parent().html(response.responseText);
-        initSelects();
-      } else {
-        $('.modal-close').click();
-      }
-    },
-    success: function (response) {
-      if (response.redirectUrl) {
-        window.location.href = response.redirectUrl;
-      } else {
-        location.reload();
-      }
+    data: $target.serialize(),
+    success: function (data) {
+      const $message = $(data).find('div');
+      $message.find('a').remove();
+      const $lastRow = $target.find('.row').last();
+      $lastRow.html($message);
+      $lastRow.css('text-align', 'center');
+      $lastRow.find('svg').height('160px');
+      $target.find('button').remove();
     }
   });
   e.preventDefault();
