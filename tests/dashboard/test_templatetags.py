@@ -1,6 +1,5 @@
-import pytest
-
 from django.urls import reverse
+import pytest
 
 from saleor.dashboard.templatetags.utils import sorting_header
 

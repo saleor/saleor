@@ -1,10 +1,10 @@
+from django.urls import reverse
 import pytest
 
-from django.urls import reverse
+from saleor.dashboard.collection.forms import CollectionForm
+from saleor.product.models import Collection
 
 from .utils import get_redirect_location
-from saleor.product.models import Collection
-from saleor.dashboard.collection.forms import CollectionForm
 
 
 @pytest.fixture

@@ -11,10 +11,8 @@ from saleor.checkout import views
 from saleor.checkout.core import STORAGE_SESSION_KEY, Checkout
 from saleor.checkout.forms import NoteForm
 from saleor.checkout.views.summary import (
-    anonymous_summary_without_shipping,
-    summary_with_shipping_view,
+    anonymous_summary_without_shipping, summary_with_shipping_view,
     summary_without_shipping)
-
 from saleor.shipping.models import ShippingMethodCountry
 from saleor.userprofile.models import Address, User
 

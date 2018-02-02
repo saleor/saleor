@@ -1,13 +1,13 @@
 from urllib.parse import urlencode
 
-import i18naddress
-import pytest
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.http import QueryDict
 from django.template import Context, Template
 from django.urls import reverse
 from django_countries.fields import Country
+import i18naddress
+import pytest
 
 from saleor.userprofile import forms, i18n, models
 from saleor.userprofile.templatetags.i18n_address_tags import format_address

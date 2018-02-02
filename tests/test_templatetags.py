@@ -1,6 +1,5 @@
-import pytest
-
 from django.urls import reverse
+import pytest
 
 from saleor.core.templatetags.shop import get_sort_by_url
 

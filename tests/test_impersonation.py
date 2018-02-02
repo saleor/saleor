@@ -1,6 +1,6 @@
-import pytest
 from django.urls import reverse
 from django.urls.exceptions import NoReverseMatch
+import pytest
 
 from saleor.userprofile.models import User
 

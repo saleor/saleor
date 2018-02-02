@@ -2,14 +2,14 @@ from decimal import Decimal
 from io import BytesIO
 from unittest.mock import MagicMock
 
-import pytest
+from PIL import Image
 from django.contrib.auth.models import AnonymousUser, Group, Permission
 from django.contrib.sites.models import Site
 from django.core.files import File
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.utils.encoding import smart_text
-from PIL import Image
 from prices import Price
+import pytest
 
 from saleor.cart import utils
 from saleor.cart.models import Cart

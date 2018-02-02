@@ -1,7 +1,6 @@
 from io import BytesIO
 import json
-
-from unittest.mock import Mock, MagicMock
+from unittest.mock import MagicMock, Mock
 
 from PIL import Image
 from django.conf import settings
@@ -13,10 +12,10 @@ import pytest
 
 from saleor.dashboard.product import ProductBulkAction
 from saleor.dashboard.product.forms import (
-    ProductBulkUpdate, ProductTypeForm, ProductForm)
+    ProductBulkUpdate, ProductForm, ProductTypeForm)
 from saleor.product.forms import VariantChoiceField
 from saleor.product.models import (
-    Collection, AttributeChoiceValue, Product, ProductAttribute, ProductImage,
+    AttributeChoiceValue, Collection, Product, ProductAttribute, ProductImage,
     ProductType, ProductVariant, Stock, StockLocation)
 
 HTTP_STATUS_OK = 200

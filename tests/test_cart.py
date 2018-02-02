@@ -1,6 +1,6 @@
 import json
-from uuid import uuid4
 from unittest.mock import MagicMock, Mock
+from uuid import uuid4
 
 from django.contrib.auth.models import AnonymousUser
 from django.core import signing

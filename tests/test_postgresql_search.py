@@ -1,10 +1,11 @@
-from saleor.product.models import Product
-from saleor.order.models import Order
-from saleor.userprofile.models import Address, User
+from decimal import Decimal
 
 from django.urls import reverse
-from decimal import Decimal
 import pytest
+
+from saleor.order.models import Order
+from saleor.product.models import Product
+from saleor.userprofile.models import Address, User
 
 
 @pytest.fixture(scope='function', autouse=True)
