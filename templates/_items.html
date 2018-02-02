@@ -3,18 +3,16 @@
 {% load price_range from price_ranges %}
 {% load product_first_image from product_images %}
 {% load get_thumbnail from product_images %}
-{% load placeholder %}
 
 {% for product, availability in products %}
 <div class="col-6 col-lg-3 product-list">
   <a href="{{ product.get_absolute_url }}" class="link--clean">
     <div class="text-center">
       <div>
-        <img class="img-responsive lazyload lazypreload"
-             data-src="{% product_first_image product method="crop" size="255x255" %}"
-             data-srcset="{% product_first_image product method="crop" size="255x255" %} 1x, {% product_first_image product method="crop" size="510x510" %} 2x"
-             alt=""
-             src="{% placeholder size=255 %}">
+        <img class="img-responsive"
+             src="{% product_first_image product method="crop" size="255x255" %}"
+             srcset="{% product_first_image product method="crop" size="255x255" %} 1x, {% product_first_image product method="crop" size="510x510" %} 2x"
+             alt="">
         <span class="product-list-item-name" title="{{ product }}">{{ product }}</span>
       </div>
 

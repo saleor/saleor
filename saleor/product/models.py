@@ -383,7 +383,7 @@ class VariantImage(models.Model):
 
 class Collection(models.Model):
     name = models.CharField(max_length=128, unique=True)
-    slug = models.SlugField()
+    slug = models.SlugField(max_length=255)
     products = models.ManyToManyField(
         Product, blank=True, related_name='collections')
 
@@ -396,4 +396,4 @@ class Collection(models.Model):
     def get_absolute_url(self):
         return reverse(
             'product:collection',
-            kwargs={'slug': self.slug, 'collection_id': self.id})
+            kwargs={'pk': self.id, 'slug': self.slug})
