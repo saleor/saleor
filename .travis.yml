@@ -37,6 +37,9 @@ matrix:
   include:
     - python: "3.6"
       env: LINTER="isort"
+  include:
+    - python: "3.6"
+      env: LINTER="pycodestyle"
 after_success:
   - codecov
 services:
