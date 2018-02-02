@@ -48,7 +48,6 @@ class ProductFilter(SortedFilterSet):
             .distinct())
         return product_attributes, variant_attributes
 
-
     def _get_product_attributes_lookup(self):
         raise NotImplementedError()
 
@@ -97,7 +96,7 @@ class ProductCategoryFilter(ProductFilter):
 
     def _get_variant_attributes_lookup(self):
         return Q(**{'product_variant_types__products__category':
-                     self.category})
+                    self.category})
 
 
 class ProductCollectionFilter(ProductFilter):
@@ -110,4 +109,4 @@ class ProductCollectionFilter(ProductFilter):
 
     def _get_variant_attributes_lookup(self):
         return Q(**{'product_variant_types__products__collections':
-                     self.collection})
+                    self.collection})
