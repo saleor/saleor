@@ -7,6 +7,7 @@ from django.contrib.auth.models import AnonymousUser, Group, Permission
 from django.contrib.sites.models import Site
 from django.core.files import File
 from django.core.files.uploadedfile import SimpleUploadedFile
+from django.core import mail
 from django.utils.encoding import smart_text
 from PIL import Image
 from prices import Price
@@ -642,3 +643,9 @@ def closed_orders(billing_address):
 def collection(db):
     collection = Collection.objects.create(name='Collection', slug='collection')
     return collection
+
+
+@pytest.fixture
+def email():
+    mail.outbox = []
+    return mail
