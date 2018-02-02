@@ -1,19 +1,38 @@
 {% load i18n %}
+{% load gross from prices_i18n %}
 
 {% block subject %}
-  {% trans "Order details" context "Order confirmation email subject" %}
+  {% trans "Order details" context "Order confirmation e-mail subject" %}
 {% endblock %}
 
 {% block plain %}
-{% blocktrans context "Order confirmation email text" %}
+{% blocktrans context "Order confirmation e-mail text" %}
 Hi!
 
-Thank you for your order. To see your payment details please visit:
-{{ url }}
+Thank you for your order. Below is the list of ordered products. To see your payment details please visit:
+{{ url }}{% endblocktrans %}
+{% for group in order.groups.all %}{% for line in group.lines.all %}
+{{ line.quantity }} x {{ line.product_name }}, {% gross line.get_total %}
+{% endfor %}{% endfor %}
+{% trans "Order summary" context "Order confirmation e-mail table header" %}:
+{% trans "Subtotal" context "Order confirmation e-mail table header" %}:           {% gross order.get_subtotal_without_voucher %}
+{% trans "Shipping" context "Order confirmation e-mail table header" %}:           {% gross order.shipping_price %}
+{% trans "Total" context "Order confirmation e-mail table header" %}:              {% gross order.get_total %}
 
-This is an automatically generated email, please do not reply.
+{% trans "Billing address" context "Order confirmation e-mail billing address" %}
+{{ order.billing_address }}
+
+{% trans "Shipping address" context "Order confirmation e-mail shipping address" %}
+{% if order.shipping_address %}{{ order.shipping_address }}{% else %}{% trans "No shipping required" context "Order confirmation e-mail text" %}{% endif %}
+
+{% blocktrans context "Order confirmation e-mail text" %}
+This is an automatically generated e-mail, please do not reply.
 
 Sincerely,
 {{ site_name }}
 {% endblocktrans %}
+{% endblock %}
+
+{% block html %}
+{% include 'templated_email/html/compiled/confirm_order.html' %}
 {% endblock %}

@@ -420,6 +420,7 @@ def order_with_lines(order, product_type, default_category):
         unit_price_gross=Decimal('30.00'),
     )
 
+    recalculate_order(order)
     return order
 
 
@@ -494,6 +495,7 @@ def order_with_variant_from_different_stocks(order_with_lines_and_stock):
     Stock.objects.create(
         variant=variant, cost_price=1, quantity=5, quantity_allocated=0,
         location=warehouse_2)
+    recalculate_order(order_with_lines_and_stock)
     return order_with_lines_and_stock
 
 

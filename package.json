@@ -60,6 +60,7 @@
     "eslint-plugin-standard": "^3.0.1",
     "extract-text-webpack-plugin": "^3.0.0",
     "file-loader": "^0.11.2",
+    "mjml": "^3.3.5",
     "node-sass": "^4.7.2",
     "postcss": "^6.0.11",
     "postcss-loader": "^2.0.6",
@@ -88,6 +89,7 @@
   "scripts": {
     "build-assets": "node ./node_modules/webpack/bin/webpack.js -p --progress",
     "heroku-postbuild": "npm run build-assets",
-    "start": "UV_THREADPOOL_SIZE=8 node ./node_modules/webpack/bin/webpack.js -d --watch --progress"
+    "start": "UV_THREADPOOL_SIZE=8 node ./node_modules/webpack/bin/webpack.js -d --watch --progress",
+    "build-emails": "mkdir -p templates/templated_email/html/compiled/ && find templates -name \"*.mjml\" -not -path \"templates/templated_email/html/source/*partials/*\" -not -path \"templates/templated_email/html/source/*shared/*\" -exec ./node_modules/.bin/mjml -l skip {} -o templates/templated_email/html/compiled/ \\;"
   }
 }
