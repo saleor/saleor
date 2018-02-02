@@ -1,8 +1,8 @@
 from decimal import Decimal
 
+import pytest
 from django.urls import reverse
 from elasticsearch_dsl.connections import connections
-import pytest
 
 from saleor.order.models import Order
 from saleor.product.models import Product

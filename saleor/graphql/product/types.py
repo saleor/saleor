@@ -1,8 +1,8 @@
 import functools
 import operator
 
-from django.db.models import Q
 import graphene
+from django.db.models import Q
 from graphene import relay
 from graphene_django import DjangoConnectionField, DjangoObjectType
 

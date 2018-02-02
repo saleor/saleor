@@ -3,8 +3,8 @@ import os.path
 
 import dj_database_url
 import dj_email_url
-from django.contrib.messages import constants as messages
 import django_cache_url
+from django.contrib.messages import constants as messages
 
 
 def get_list(text):
