@@ -17,7 +17,7 @@ from django.utils.translation import ugettext_lazy as _
 
 from ..cart.utils import find_and_assign_anonymous_cart
 from .forms import LoginForm, PasswordSetUpForm, SignupForm
-from .utils import send_activation_mail
+from .emails import send_activation_mail
 
 UserModel = get_user_model()
 
@@ -25,7 +25,9 @@ UserModel = get_user_model()
 @find_and_assign_anonymous_cart()
 def login(request):
     kwargs = {
-        'template_name': 'account/login.html', 'authentication_form': LoginForm}
+        'template_name': 'account/login.html',
+        'authentication_form': LoginForm
+    }
     return django_views.LoginView.as_view(**kwargs)(request, **kwargs)
 
 
@@ -41,8 +43,9 @@ def signup(request):
     if form.is_valid():
         form.save(request)
         if settings.EMAIL_VERIFICATION_REQUIRED:
-            messages.success(request, _('User has been created. Check your e-mail to verify your e-mail address.'))
-            redirect_url = reverse_lazy("account_login")
+            messages.success(request, _('User has been created. '
+                        'Check your e-mail to verify your e-mail address.'))
+            redirect_url = reverse_lazy('account_login')
         else:
             password = form.cleaned_data.get('password')
             email = form.cleaned_data.get('email')
@@ -85,42 +88,28 @@ def password_reset_confirm(request, uidb64=None, token=None):
         request, **kwargs)
 
 
-class EmailVerificationView(View):
-    success_url = reverse_lazy('account_login')
-    token_generator = default_token_generator
-
-    @method_decorator(sensitive_post_parameters())
-    @method_decorator(never_cache)
-    def dispatch(self, *args, **kwargs):
-        assert 'uidb64' in kwargs and 'token' in kwargs
-
-        user = self.get_user(kwargs['uidb64'])
-
-        if user is not None:
-            if user.email_verified:
-                messages.error(self.request, _("This e-mail address has already been verified."))
-            else:
-                token = kwargs['token']
-                if self.token_generator.check_token(user, token):
-                    user.email_verified = True
-                    user.save()
-                    messages.success(self.request, _("E-mail verification successful. You may now login."))
-                else:
-                    send_activation_mail(self.request, user)
-                    messages.error(self.request, _("E-mail verification failed. Activation e-mail resent."))
+#@method_decorator(sensitive_post_parameters())
+#@method_decorator(never_cache)
+def email_confirmation(request, uidb64=None, token=None):
+    assert uidb64 and token
+    try:
+        # urlsafe_base64_decode() decodes to bytestring on Python 3
+        uid = force_text(urlsafe_base64_decode(uidb64))
+        user = UserModel.objects.get(pk=uid)
+        if user.email_verified:
+            messages.error(request, _(
+                'This e-mail address has already been verified.'))
         else:
-            messages.error(self.request, _("E-mail verification failed. User not found."))
-        return redirect(reverse_lazy('account_login'))
-
-    @staticmethod
-    def get_user(uidb64):
-        try:
-            # urlsafe_base64_decode() decodes to bytestring on Python 3
-            uid = force_text(urlsafe_base64_decode(uidb64))
-            user = UserModel.objects.get(pk=uid)
-        except (TypeError, ValueError, OverflowError, UserModel.DoesNotExist):
-            user = None
-        return user
-
-
-email_confirmation = EmailVerificationView.as_view()
+            if default_token_generator.check_token(user, token):
+                user.email_verified = True
+                user.save()
+                messages.success(request, _(
+                    'E-mail verification successful. You may now login.'))
+            else:
+                send_activation_mail(request, user)
+                messages.error(request, _(
+                    'E-mail verification failed. Activation e-mail resent.'))
+    except (TypeError, ValueError, OverflowError, UserModel.DoesNotExist):
+        messages.error(request, _(
+            'E-mail verification failed. User not found.'))
+    return redirect(reverse_lazy('account_login'))

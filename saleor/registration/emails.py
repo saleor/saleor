@@ -1,5 +1,5 @@
 from django.contrib.auth.tokens import default_token_generator
-from django.contrib.sites.shortcuts import get_current_site
+from django.contrib.sites.models import Site
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode
 from django.conf import settings
@@ -12,7 +12,7 @@ def send_activation_mail(request, user):
     user can verify their e-mail addreess
     """
     token_generator = default_token_generator
-    current_site = get_current_site(request)
+    current_site = Site.objects.get_current()
 
     context = {'domain': current_site.domain,
                'site_name': current_site.name,
