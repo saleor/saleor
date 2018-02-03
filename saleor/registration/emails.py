@@ -3,23 +3,22 @@ from django.contrib.sites.models import Site
 from django.utils.encoding import force_bytes, force_text
 from django.utils.http import urlsafe_base64_encode
 from django.conf import settings
-from django.urls import reverse
 from templated_email import send_templated_mail
 
 
-def send_activation_mail(request, user):
+def send_activation_mail(user):
     """Sends the e-mail from which a newly registered
     user can verify their e-mail addreess
     """
     token_generator = default_token_generator
     current_site = Site.objects.get_current()
 
-    context = {'domain': current_site.domain,
+    context = {
+               'protocol': 'https' if settings.ENABLE_SSL else 'http',
+               'domain': current_site.domain,
+               'uid': urlsafe_base64_encode(force_bytes(user.pk)),
+               'token': token_generator.make_token(user),
                'site_name': current_site.name,
-               'activation_url': request.build_absolute_uri(
-                   reverse('account_confirm_email',
-                           kwargs={'uidb64': force_text(urlsafe_base64_encode(force_bytes(user.pk))),
-                                   'token': token_generator.make_token(user)}))
                }
 
     send_templated_mail(
