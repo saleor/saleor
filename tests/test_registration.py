@@ -143,8 +143,8 @@ def test_signup_view_register_email_activation(client, db, email):
     assert response.status_code == 200
     assert len(email.outbox) == 2
     sent_mail = email.outbox[1]
-    assert sent_mail.subject == 'Please Confirm Your E-mail Address'
-    base_url = 'http://testserver'
+    assert sent_mail.subject == '  Please Confirm Your E-mail Address'
+    base_url = 'http://mirumee.com'
     activation_url = next(filter(lambda x: x.startswith(base_url), sent_mail.body.split('\n'))).split(base_url)[1]
     wrong_activation_url = activation_url[:-6] + '12345/'
     response = client.get(wrong_activation_url)

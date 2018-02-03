@@ -9,7 +9,6 @@ from django.urls import reverse_lazy
 from django.utils.translation import ugettext_lazy as _
 from django.utils.encoding import force_text
 from django.utils.http import urlsafe_base64_decode
-from django.utils.decorators import method_decorator
 from django.views.decorators.cache import never_cache
 from django.views.decorators.debug import sensitive_post_parameters
 
@@ -98,7 +97,7 @@ def email_confirmation(request, uidb64=None, token=None):
                 messages.success(request, _(
                      'E-mail verification successful. You may now login.'))
             else:
-                send_activation_mail(request, user)
+                send_activation_mail(user)
                 messages.error(request, _(
                     'E-mail verification failed. Activation e-mail resent.'))
     except (TypeError, ValueError, OverflowError, UserModel.DoesNotExist):

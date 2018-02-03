@@ -26,7 +26,7 @@ class LoginForm(django_forms.AuthenticationForm):
 
         if (settings.EMAIL_VERIFICATION_REQUIRED and not user.is_staff
             and not user.email_verified):
-            send_activation_mail(self.request, user)
+            send_activation_mail(user)
 
             raise forms.ValidationError(pgettext('Login Error',
                     'E-mail address has not been confirmed for this account.'
@@ -60,7 +60,7 @@ class SignupForm(forms.ModelForm):
         if commit:
             user.save()
         if settings.EMAIL_VERIFICATION_REQUIRED:
-            send_activation_mail(request, user)
+            send_activation_mail(user)
         return user
 
 

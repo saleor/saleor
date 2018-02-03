@@ -25,8 +25,8 @@
             {% endblocktrans %}
           </mj-text>
           <mj-text>
-            <a href="{{ protocol}}://{{ domain }}{% url 'account_confirm_email' uidb64=uid token=token %}">
-              {{ protocol}}://{{ domain }}{% url 'account_confirm_email' uidb64=uid token=token %}
+            <a href="{{ protocol }}://{{ domain }}{% url 'account_confirm_email' uidb64=uid token=token %}">
+              {{ protocol }}://{{ domain }}{% url 'account_confirm_email' uidb64=uid token=token %}
             </a>
           </mj-text>
         </mj-column>

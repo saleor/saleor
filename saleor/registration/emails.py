@@ -16,13 +16,13 @@ def send_activation_mail(user):
     context = {
                'protocol': 'https' if settings.ENABLE_SSL else 'http',
                'domain': current_site.domain,
-               'uid': urlsafe_base64_encode(force_bytes(user.pk)),
+               'uid': force_text(urlsafe_base64_encode(force_bytes(user.pk))),
                'token': token_generator.make_token(user),
                'site_name': current_site.name,
                }
 
     send_templated_mail(
-        'registration/email_confirmation',
+        'account/email_confirmation',
         from_email=settings.DEFAULT_FROM_EMAIL,
         recipient_list=[user.email],
         context=context)
