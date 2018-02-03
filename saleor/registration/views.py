@@ -38,7 +38,7 @@ def logout(request):
 def signup(request):
     form = SignupForm(request.POST or None)
     if form.is_valid():
-        form.save()
+        form.save(request)
         if settings.EMAIL_VERIFICATION_REQUIRED:
             messages.success(request, _('User has been created. '
                         'Check your e-mail to verify your e-mail address.'))
