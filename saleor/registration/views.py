@@ -40,7 +40,7 @@ def signup(request):
         form.save(request)
         if settings.EMAIL_VERIFICATION_REQUIRED:
             messages.success(request, _('User has been created. '
-                        'Check your e-mail to verify your e-mail address.'))
+                     'Check your e-mail to verify your e-mail address.'))
             redirect_url = reverse_lazy('account_login')
         else:
             password = form.cleaned_data.get('password')
@@ -79,6 +79,7 @@ def password_reset_confirm(request, uidb64=None, token=None):
         'uidb64': uidb64}
     return PasswordResetConfirm.as_view(**kwargs)(request, **kwargs)
 
+
 @sensitive_post_parameters()
 @never_cache
 def email_confirmation(request, uidb64=None, token=None):
@@ -95,7 +96,7 @@ def email_confirmation(request, uidb64=None, token=None):
                 user.email_verified = True
                 user.save()
                 messages.success(request, _(
-                     'E-mail verification successful. You may now login.'))
+                    'E-mail verification successful. You may now login.'))
             else:
                 send_activation_mail(user)
                 messages.error(request, _(

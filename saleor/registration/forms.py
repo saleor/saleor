@@ -25,13 +25,13 @@ class LoginForm(django_forms.AuthenticationForm):
         super().confirm_login_allowed(user)
 
         if (settings.EMAIL_VERIFICATION_REQUIRED and not user.is_staff
-            and not user.email_verified):
+                and not user.email_verified):
             send_activation_mail(user)
 
             raise forms.ValidationError(pgettext('Login Error',
-                    'E-mail address has not been confirmed for this account.'
-                    'Activation e-mail has been resent.'),
-                    code='inactive')
+                                                 'E-mail address has not been confirmed for this account.'
+                                                 'Activation e-mail has been resent.'),
+                                        code='inactive')
 
 
 class SignupForm(forms.ModelForm):
@@ -75,8 +75,8 @@ class PasswordResetForm(django_forms.PasswordResetForm):
         return active_users
 
     def send_mail(
-            self, subject_template_name, email_template_name, context,
-            from_email, to_email, html_email_template_name=None):
+        self, subject_template_name, email_template_name, context,
+        from_email, to_email, html_email_template_name=None):
         reset_url = build_absolute_uri(
             reverse(
                 'account_reset_password_confirm',

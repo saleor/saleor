@@ -18,8 +18,7 @@ def send_activation_mail(user):
                'domain': current_site.domain,
                'uid': force_text(urlsafe_base64_encode(force_bytes(user.pk))),
                'token': token_generator.make_token(user),
-               'site_name': current_site.name,
-               }
+               'site_name': current_site.name}
 
     send_templated_mail(
         'account/email_confirmation',
