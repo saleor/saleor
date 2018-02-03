@@ -80,8 +80,8 @@ def password_reset_confirm(request, uidb64=None, token=None):
         'uidb64': uidb64}
     return PasswordResetConfirm.as_view(**kwargs)(request, **kwargs)
 
-@method_decorator(sensitive_post_parameters())
-@method_decorator(never_cache)
+@sensitive_post_parameters()
+@never_cache
 def email_confirmation(request, uidb64=None, token=None):
     assert uidb64 and token
     try:
