@@ -137,59 +137,6 @@ class Voucher(models.Model):
                 'This offer is only valid for orders over %(amount)s.')
             raise NotApplicable(msg % {'amount': net(limit)}, limit=limit)
 
-    def get_discount_for_checkout(self, checkout):
-        if self.type == VoucherType.VALUE:
-            cart_total = checkout.get_subtotal()
-            self.validate_limit(cart_total)
-            return self.get_fixed_discount_for(cart_total)
-        if self.type == VoucherType.SHIPPING:
-            if not checkout.is_shipping_required:
-                msg = pgettext(
-                    'Voucher not applicable',
-                    'Your order does not require shipping.')
-                raise NotApplicable(msg)
-            shipping_method = checkout.shipping_method
-            if not shipping_method:
-                msg = pgettext(
-                    'Voucher not applicable',
-                    'Please select a shipping method first.')
-                raise NotApplicable(msg)
-            if (self.apply_to and
-                    shipping_method.country_code != self.apply_to):
-                msg = pgettext(
-                    'Voucher not applicable',
-                    'This offer is only valid in %(country)s.')
-                raise NotApplicable(
-                    msg % {'country': self.get_apply_to_display()})
-            cart_total = checkout.get_subtotal()
-            self.validate_limit(cart_total)
-            return self.get_fixed_discount_for(shipping_method.price)
-        if self.type in (VoucherType.PRODUCT, VoucherType.CATEGORY):
-            if self.type == VoucherType.PRODUCT:
-                prices = [
-                    item[1] for item in get_product_variants_and_prices(
-                        checkout.cart, self.product)]
-            else:
-                prices = [
-                    item[1] for item in get_category_variants_and_prices(
-                        checkout.cart, self.category)]
-            if not prices:
-                msg = pgettext(
-                    'Voucher not applicable',
-                    'This offer is only valid for selected items.')
-                raise NotApplicable(msg)
-            if self.apply_to == VoucherApplyToProduct.ALL_PRODUCTS:
-                discounts = (
-                    self.get_fixed_discount_for(price) for price in prices)
-                discount_total = sum(
-                    (discount.amount for discount in discounts),
-                    Price(0, currency=settings.DEFAULT_CURRENCY))
-                return FixedDiscount(discount_total, smart_text(self))
-            product_total = sum(
-                prices, Price(0, currency=settings.DEFAULT_CURRENCY))
-            return self.get_fixed_discount_for(product_total)
-        raise NotImplementedError('Unknown discount type')
-
 
 class Sale(models.Model):
     name = models.CharField(max_length=255)
