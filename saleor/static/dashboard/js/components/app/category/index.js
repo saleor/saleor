@@ -15,9 +15,12 @@ const CategorySection = (props) => {
   } else {
     return (
       <Switch>
-        <Route path={''} render={() => <CategoryDetails category={props.data.category}
-                                                        children={props.data.categories} />} />
-        <Route path={'edit'} render={() => <CategoryEdit category={props.data.category} />} />
+        <Route exact path={'/categories/:pk/edit'} render={() => <CategoryEdit category={props.data.category} />} />
+        <Route exact path={'/categories/:pk/add'} render={() => <CategoryEdit />} />
+        <Route exact path={'/categories'} render={() => <CategoryDetails children={props.data.categories} />} />
+        <Route exact path={'/categories/add'} render={() => <CategoryEdit />} />
+        <Route exact path={'/categories/:pk'} render={() => <CategoryDetails category={props.data.category}
+                                                                             children={props.data.categories} />} />
       </Switch>
     );
   }
@@ -30,8 +33,12 @@ query CategoryPage ($pk: Int!) {
     description
   }
   category(pk: $pk) {
+    pk
     name
     description
+    parent {
+      pk
+    }
   }
 }`;
 const CategorySectionGraphQLProvider = graphql(query, {

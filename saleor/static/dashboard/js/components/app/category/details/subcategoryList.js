@@ -40,16 +40,23 @@ const styles = {
     marginLeft: '7px'
   }
 };
-const handleRowClick = (pk, history) => {
-  history.push(pk);
-};
+function handleRowClick (pk, history) {
+  history.push(pk + '/');
+}
+function handleNewCategoryClick (history) {
+  return () => history.push('add');
+}
 export default withRouter((props) => (
   <Card style={styles.cardSubcategories}>
     <CardContent>
       {props.category && (
         <div>
           <CardTitle>Subcategories</CardTitle>
-          <FlatButton color={'secondary'} style={{ margin: '2rem 0 1rem' }}>Dodaj</FlatButton>
+          <FlatButton color={'secondary'}
+                      style={{ margin: '2rem 0 1rem' }}
+                      onClick={handleNewCategoryClick(props.history)}>
+            Dodaj
+          </FlatButton>
         </div>
       )}
       <Table style={props.category ? styles.table.childCategory : styles.table.rootCategory}>
