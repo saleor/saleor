@@ -28,6 +28,7 @@ def get_ancestors_from_cache(category, context):
 
 class ProductAvailabilityType(graphene.ObjectType):
     available = graphene.Boolean()
+    on_sale = graphene.Boolean()
     discount = graphene.Field(lambda: PriceType)
     discount_local_currency = graphene.Field(lambda: PriceType)
     price_range = graphene.Field(lambda: PriceRangeType)
