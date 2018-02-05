@@ -8,9 +8,9 @@ msgid ""
 msgstr ""
 "Project-Id-Version: master\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2018-01-23 09:24-0600\n"
+"POT-Creation-Date: 2018-01-30 09:47-0600\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"Last-Translator: Martin Janšto <mato@jansto.sk>, 2017\n"
+"Last-Translator: Stanislav Pavlovic <stanislav.pavlovic@gmail.com>, 2018\n"
 "Language-Team: Slovak (https://www.transifex.com/mirumee/teams/34782/sk/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -36,7 +36,7 @@ msgstr ""
 #: saleor/dashboard/category/filters.py:18
 msgctxt "Category list sorting filter label"
 msgid "Sort by"
-msgstr ""
+msgstr "Zoradiť podľa"
 
 #: saleor/dashboard/category/filters.py:30
 #, python-format
@@ -47,17 +47,18 @@ msgstr[0] ""
 msgstr[1] ""
 msgstr[2] ""
 
-#: saleor/dashboard/category/forms.py:21 saleor/dashboard/discount/forms.py:69
-#: saleor/dashboard/group/forms.py:13 saleor/dashboard/product/forms.py:67
-#: saleor/dashboard/product/forms.py:120 saleor/dashboard/product/forms.py:311
-#: saleor/dashboard/product/forms.py:321 saleor/dashboard/shipping/forms.py:14
-#: saleor/dashboard/sites/forms.py:40
+#: saleor/dashboard/category/forms.py:21
+#: saleor/dashboard/collection/forms.py:23
+#: saleor/dashboard/discount/forms.py:69 saleor/dashboard/group/forms.py:13
+#: saleor/dashboard/product/forms.py:67 saleor/dashboard/product/forms.py:120
+#: saleor/dashboard/product/forms.py:321 saleor/dashboard/product/forms.py:331
+#: saleor/dashboard/shipping/forms.py:14 saleor/dashboard/sites/forms.py:40
 msgctxt "Item name"
 msgid "Name"
 msgstr ""
 
 #: saleor/dashboard/category/forms.py:24 saleor/dashboard/product/forms.py:121
-#: saleor/dashboard/product/forms.py:266 saleor/dashboard/shipping/forms.py:16
+#: saleor/dashboard/product/forms.py:276 saleor/dashboard/shipping/forms.py:16
 #: saleor/dashboard/sites/forms.py:27
 msgctxt "Description"
 msgid "Description"
@@ -79,6 +80,50 @@ msgstr "Upravená kategória %s"
 #, python-format
 msgctxt "Dashboard message"
 msgid "Removed category %s"
+msgstr ""
+
+#: saleor/dashboard/collection/filters.py:8
+msgctxt "Collection list sorting option"
+msgid "name"
+msgstr "meno"
+
+#: saleor/dashboard/collection/filters.py:13
+msgctxt "Collection list name filter label"
+msgid "Name"
+msgstr "Meno"
+
+#: saleor/dashboard/collection/filters.py:16
+msgctxt "Collection list sorting filter label"
+msgid "Sort by"
+msgstr "Zoradiť podľa"
+
+#: saleor/dashboard/collection/filters.py:28
+#, python-format
+msgctxt "Number of matching records in the dashboard collections list"
+msgid "Found %(counter)d matching collection"
+msgid_plural "Found %(counter)d matching collections"
+msgstr[0] ""
+msgstr[1] ""
+msgstr[2] ""
+
+#: saleor/dashboard/collection/forms.py:26
+msgctxt "Products selection"
+msgid "Products"
+msgstr "Produkty"
+
+#: saleor/dashboard/collection/views.py:39
+msgctxt "Collection message"
+msgid "Added collection"
+msgstr ""
+
+#: saleor/dashboard/collection/views.py:53
+msgctxt "Collection message"
+msgid "Updated collection"
+msgstr ""
+
+#: saleor/dashboard/collection/views.py:66
+msgctxt "Collection message"
+msgid "Deleted collection"
 msgstr ""
 
 #: saleor/dashboard/customer/filters.py:18
@@ -137,7 +182,7 @@ msgstr "Všetky"
 #: saleor/dashboard/customer/filters.py:42
 msgctxt "Customer list filter label"
 msgid "Sort by"
-msgstr ""
+msgstr "Zoradiť podľa"
 
 #: saleor/dashboard/customer/filters.py:75
 #, python-format
@@ -238,7 +283,7 @@ msgstr ""
 #: saleor/dashboard/discount/filters.py:48
 msgctxt "Sale list filter label"
 msgid "Sort by"
-msgstr ""
+msgstr "Zoradiť podľa"
 
 #: saleor/dashboard/discount/filters.py:60
 #, python-format
@@ -277,7 +322,7 @@ msgstr "Limit"
 #: saleor/dashboard/discount/filters.py:86
 msgctxt "Voucher list sorting filter label"
 msgid "Sort by"
-msgstr ""
+msgstr "Zoradiť podľa"
 
 #: saleor/dashboard/discount/filters.py:109
 #, python-format
@@ -348,7 +393,7 @@ msgstr ""
 #: saleor/dashboard/discount/forms.py:205
 msgctxt "Country"
 msgid "Country"
-msgstr ""
+msgstr "Krajina"
 
 #: saleor/dashboard/discount/forms.py:125
 msgctxt "Lowest value for order to be able to use the voucher"
@@ -421,7 +466,7 @@ msgstr ""
 #: saleor/dashboard/group/filters.py:22
 msgctxt "Group list filter label"
 msgid "Sort by"
-msgstr ""
+msgstr "Zoradiť podľa"
 
 #: saleor/dashboard/group/filters.py:34
 #, python-format
@@ -507,7 +552,7 @@ msgstr "Súčet"
 #: saleor/dashboard/order/filters.py:57
 msgctxt "Order list filter label"
 msgid "Sort by"
-msgstr ""
+msgstr "Zoradiť podľa"
 
 #: saleor/dashboard/order/filters.py:82
 #, python-format
@@ -635,29 +680,29 @@ msgctxt "Add item form error"
 msgid "Could not add item. Only %(remaining)d remaining in stock."
 msgstr ""
 
-#: saleor/dashboard/order/views.py:93
+#: saleor/dashboard/order/views.py:94
 msgctxt "Dashboard message related to an order"
 msgid "Added note"
 msgstr "Pridaná poznámka"
 
-#: saleor/dashboard/order/views.py:118
+#: saleor/dashboard/order/views.py:119
 #, python-format
 msgctxt "Dashboard message related to a payment"
 msgid "Captured %(amount)s"
 msgstr "Zachytená %(amount)s"
 
-#: saleor/dashboard/order/views.py:141
+#: saleor/dashboard/order/views.py:142
 #, python-format
 msgctxt "Dashboard message related to a payment"
 msgid "Refunded %(amount)s"
 msgstr "Vrátená %(amount)s"
 
-#: saleor/dashboard/order/views.py:159
+#: saleor/dashboard/order/views.py:160
 msgctxt "Dashboard message"
 msgid "Released payment"
 msgstr "Uvolnená platba"
 
-#: saleor/dashboard/order/views.py:182
+#: saleor/dashboard/order/views.py:183
 #, python-format
 msgctxt "Dashboard message related to an order line"
 msgid ""
@@ -665,69 +710,69 @@ msgid ""
 "%(new_quantity)s"
 msgstr "Upravený počet pre %(product)s z %(old_quantity)s na %(new_quantity)s"
 
-#: saleor/dashboard/order/views.py:217
+#: saleor/dashboard/order/views.py:218
 msgctxt "Dashboard message related to a shipment group"
 msgid "removed group"
 msgstr ""
 
-#: saleor/dashboard/order/views.py:220
+#: saleor/dashboard/order/views.py:221
 #, python-format
 msgctxt "Dashboard message related to shipment groups"
 msgid "Moved %(how_many)s items %(item)s from %(old_group)s to %(new_group)s"
 msgstr ""
 
-#: saleor/dashboard/order/views.py:245
+#: saleor/dashboard/order/views.py:246
 #, python-format
 msgctxt "Dashboard message related to an order line"
 msgid "Cancelled item %s"
 msgstr "Zrušený %s"
 
-#: saleor/dashboard/order/views.py:272
+#: saleor/dashboard/order/views.py:273
 #, python-format
 msgctxt "Dashboard message related to a shipment group"
 msgid "Shipped %s"
 msgstr ""
 
-#: saleor/dashboard/order/views.py:295
+#: saleor/dashboard/order/views.py:296
 #, python-format
 msgctxt "Dashboard message related to a shipment group"
 msgid "Cancelled %s"
 msgstr ""
 
-#: saleor/dashboard/order/views.py:326
+#: saleor/dashboard/order/views.py:327
 #, python-format
 msgctxt "Dashboard message related to a shipment group"
 msgid "Added %(quantity)d x %(variant)s to %(group)s"
 msgstr ""
 
-#: saleor/dashboard/order/views.py:332
+#: saleor/dashboard/order/views.py:333
 #, python-format
 msgctxt "Dashboard message related to a shipment group"
 msgid ""
 "Insufficient stock: could not add %(quantity)d x %(variant)s to %(group)s"
 msgstr ""
 
-#: saleor/dashboard/order/views.py:351
+#: saleor/dashboard/order/views.py:352
 msgctxt "Dashboard message"
 msgid "Updated shipping address"
 msgstr "Zmenená doručovacia adresa"
 
-#: saleor/dashboard/order/views.py:356
+#: saleor/dashboard/order/views.py:357
 msgctxt "Dashboard message"
 msgid "Updated billing address"
 msgstr "Zmenená fakturovacia adresa"
 
-#: saleor/dashboard/order/views.py:374
+#: saleor/dashboard/order/views.py:381
 msgctxt "Dashboard message"
 msgid "Cancelled order"
 msgstr "Zrušená objednávka"
 
-#: saleor/dashboard/order/views.py:395
+#: saleor/dashboard/order/views.py:402
 msgctxt "Dashboard message"
 msgid "Removed voucher from order"
 msgstr "Vymazaný kupón s objednávky"
 
-#: saleor/dashboard/order/views.py:448
+#: saleor/dashboard/order/views.py:455
 #, python-format
 msgctxt "Dashboard message"
 msgid "Stock location changed for %s"
@@ -821,7 +866,7 @@ msgstr ""
 #: saleor/dashboard/product/filters.py:62
 msgctxt "Product list filter label"
 msgid "Sort by"
-msgstr ""
+msgstr "Zoradiť podľa"
 
 #: saleor/dashboard/product/filters.py:74
 #, python-format
@@ -840,7 +885,7 @@ msgstr "Meno"
 #: saleor/dashboard/product/filters.py:84
 msgctxt "Product attribute list filter label"
 msgid "Sort by"
-msgstr ""
+msgstr "Zoradiť podľa"
 
 #: saleor/dashboard/product/filters.py:97
 #, python-format
@@ -859,7 +904,7 @@ msgstr "Meno"
 #: saleor/dashboard/product/filters.py:107
 msgctxt "Product type list filter label"
 msgid "Sort by"
-msgstr ""
+msgstr "Zoradiť podľa"
 
 #: saleor/dashboard/product/filters.py:119
 #, python-format
@@ -873,7 +918,7 @@ msgstr[2] ""
 #: saleor/dashboard/product/filters.py:127
 msgctxt "Stock location list filter label"
 msgid "Sort by"
-msgstr ""
+msgstr "Zoradiť podľa"
 
 #: saleor/dashboard/product/filters.py:131
 msgctxt "Stock location list filter label"
@@ -955,37 +1000,42 @@ msgctxt "Featured product toggle"
 msgid "Feature this product on homepage"
 msgstr ""
 
-#: saleor/dashboard/product/forms.py:176
+#: saleor/dashboard/product/forms.py:131
+msgctxt "Add to collection select"
+msgid "Collections"
+msgstr ""
+
+#: saleor/dashboard/product/forms.py:186
 msgctxt "SKU"
 msgid "SKU"
 msgstr ""
 
-#: saleor/dashboard/product/forms.py:178
+#: saleor/dashboard/product/forms.py:188
 msgctxt "Override price"
 msgid "Override price"
 msgstr ""
 
-#: saleor/dashboard/product/forms.py:179
+#: saleor/dashboard/product/forms.py:189
 msgctxt "Product variant name"
 msgid "Name"
 msgstr ""
 
-#: saleor/dashboard/product/forms.py:264 saleor/dashboard/product/forms.py:362
+#: saleor/dashboard/product/forms.py:274 saleor/dashboard/product/forms.py:372
 msgctxt "Product image"
 msgid "Image"
 msgstr ""
 
-#: saleor/dashboard/product/forms.py:300
+#: saleor/dashboard/product/forms.py:310
 msgctxt "Product display name"
 msgid "Display name"
 msgstr ""
 
-#: saleor/dashboard/product/forms.py:302
+#: saleor/dashboard/product/forms.py:312
 msgctxt "Product internal name"
 msgid "Internal name"
 msgstr ""
 
-#: saleor/dashboard/product/forms.py:323
+#: saleor/dashboard/product/forms.py:333
 msgctxt "Color"
 msgid "Color"
 msgstr ""
@@ -1141,7 +1191,7 @@ msgstr "Krajina"
 #: saleor/dashboard/shipping/filters.py:26
 msgctxt "Product list sorting filter label"
 msgid "Sort by"
-msgstr ""
+msgstr "Zoradiť podľa"
 
 #: saleor/dashboard/shipping/filters.py:39
 #, python-format
@@ -1155,7 +1205,7 @@ msgstr[2] ""
 #: saleor/dashboard/shipping/forms.py:27
 msgctxt "List of countries"
 msgid "Country"
-msgstr ""
+msgstr "Krajina"
 
 #: saleor/dashboard/shipping/views.py:38
 msgctxt "Dashboard message"
@@ -1214,7 +1264,7 @@ msgstr ""
 #: saleor/dashboard/sites/forms.py:38
 msgctxt "Password"
 msgid "Password"
-msgstr ""
+msgstr "Heslo"
 
 #: saleor/dashboard/sites/views.py:35
 msgctxt "Dashboard message"
@@ -1247,7 +1297,7 @@ msgstr ""
 #: saleor/dashboard/staff/filters.py:29
 msgctxt "Staff list filter label"
 msgid "Sort by"
-msgstr ""
+msgstr "Zoradiť podľa"
 
 #: saleor/dashboard/staff/filters.py:41
 #, python-format
@@ -1261,7 +1311,7 @@ msgstr[2] ""
 #: saleor/dashboard/staff/forms.py:20
 msgctxt "Email"
 msgid "Email"
-msgstr ""
+msgstr "Email"
 
 #: saleor/dashboard/staff/forms.py:22
 msgctxt "Groups"
