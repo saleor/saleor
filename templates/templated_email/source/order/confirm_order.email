@@ -34,5 +34,5 @@ Sincerely,
 {% endblock %}
 
 {% block html %}
-{% include 'templated_email/html/compiled/confirm_order.html' %}
+{% include 'templated_email/compiled/confirm_order.html' %}
 {% endblock %}

@@ -3,9 +3,9 @@ from django.conf import settings
 from django.contrib.sites.models import Site
 from templated_email import send_templated_mail
 
-CONFIRM_ORDER_TEMPLATE = 'order/confirm_order'
-CONFIRM_PAYMENT_TEMPLATE = 'order/payment/confirm_payment'
-CONFIRM_NOTE_TEMPLATE = 'order/note/confirm_note'
+CONFIRM_ORDER_TEMPLATE = 'source/order/confirm_order'
+CONFIRM_PAYMENT_TEMPLATE = 'source/order/payment/confirm_payment'
+CONFIRM_NOTE_TEMPLATE = 'source/order/note/confirm_note'
 
 
 def _send_confirmation(email, url, template, context=None):
