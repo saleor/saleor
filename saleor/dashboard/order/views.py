@@ -13,6 +13,7 @@ from prices import Money, TaxedMoney
 
 from ...core.exceptions import InsufficientStock
 from ...core.utils import ZERO_TAXED_MONEY, get_paginator_items
+from ...core.templatetags.demo_obfuscators import obfuscate_address
 from ...order import GroupStatus
 from ...order.models import DeliveryGroup, Order, OrderLine, OrderNote
 from ...product.models import StockLocation
