@@ -11,9 +11,9 @@ from django_prices.models import PriceField
 from django_prices.templatetags.prices_i18n import net
 from prices import FixedDiscount, Price, percentage_discount
 
-from . import DiscountValueType, VoucherApplyToProduct, VoucherType
 from ..cart.utils import (
     get_category_variants_and_prices, get_product_variants_and_prices)
+from . import DiscountValueType, VoucherApplyToProduct, VoucherType
 
 
 class NotApplicable(ValueError):
@@ -217,27 +217,10 @@ class Sale(models.Model):
 
     def get_discount(self):
         if self.type == DiscountValueType.FIXED:
-            discount_price = Price(net=self.value,
-                                   currency=settings.DEFAULT_CURRENCY)
+            discount_price = Price(
+                net=self.value, currency=settings.DEFAULT_CURRENCY)
             return FixedDiscount(amount=discount_price, name=self.name)
-        elif self.type == DiscountValueType.PERCENTAGE:
+        if self.type == DiscountValueType.PERCENTAGE:
             return percentage_discount(value=self.value, name=self.name)
         raise NotImplementedError('Unknown discount type')
 
-    def _product_has_category_discount(self, product, discounted_categories):
-        return any([
-            product.category.is_descendant_of(category, include_self=True)
-            for category in discounted_categories])
-
-    def modifier_for_product(self, product):
-        discounted_products = {p.pk for p in self.products.all()}
-        discounted_categories = set(self.categories.all())
-        if product.pk in discounted_products:
-            return self.get_discount()
-        if self._product_has_category_discount(
-                product, discounted_categories):
-            return self.get_discount()
-        raise NotApplicable(
-            pgettext(
-                'Voucher not applicable',
-                'Discount not applicable for this product'))
