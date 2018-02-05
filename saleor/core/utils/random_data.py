@@ -18,8 +18,8 @@ from ...discount.models import Sale, Voucher
 from ...order import GroupStatus
 from ...order.models import DeliveryGroup, Order, OrderLine, Payment
 from ...product.models import (
-    AttributeChoiceValue, Category, Product, ProductAttribute, ProductImage,
-    ProductType, ProductVariant, Stock, StockLocation)
+    AttributeChoiceValue, Category, Collection, Product, ProductAttribute,
+    ProductImage, ProductType, ProductVariant, Stock, StockLocation)
 from ...shipping.models import ANY_COUNTRY, ShippingMethod
 from ...userprofile.models import Address, User
 from ...userprofile.utils import store_user_address
@@ -260,6 +260,11 @@ def get_or_create_category(name, **kwargs):
 
 def get_or_create_product_type(name, **kwargs):
     return ProductType.objects.get_or_create(name=name, defaults=kwargs)[0]
+
+
+def get_or_create_collection(name, **kwargs):
+    kwargs['slug'] = fake.slug(name)
+    return Collection.objects.get_or_create(name=name, defaults=kwargs)[0]
 
 
 def create_product(**kwargs):
@@ -533,3 +538,16 @@ def add_address_to_admin(email):
     address = create_address()
     user = User.objects.get(email=email)
     store_user_address(user, address, True, True)
+
+
+def create_fake_collection():
+    collection = get_or_create_collection(name='%s collection' % fake.word())
+    products = Product.objects.order_by('?')[:4]
+    collection.products.add(*products)
+    return collection
+
+
+def create_collections(how_many=2):
+    for dummy in range(how_many):
+        collection = create_fake_collection()
+        yield 'Collection: %s' % (collection,)
