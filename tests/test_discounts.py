@@ -11,7 +11,8 @@ from saleor.discount import (
 from saleor.discount.forms import CheckoutDiscountForm
 from saleor.discount.models import NotApplicable, Sale, Voucher
 from saleor.discount.utils import (
-    decrease_voucher_usage, increase_voucher_usage)
+    decrease_voucher_usage, increase_voucher_usage,
+    get_product_discount_on_sale)
 from saleor.product.models import Product, ProductVariant
 
 
@@ -303,10 +304,10 @@ def test_sale_applies_to_correct_products(product_type, default_category):
         name='Test sale', value=5, type=DiscountValueType.FIXED)
     sale.products.add(product)
     assert product2 not in sale.products.all()
-    assert sale.modifier_for_product(variant.product).amount == Price(
-        net=5, currency='USD')
+    product_discount = get_product_discount_on_sale(sale, variant.product)
+    assert product_discount.amount == Price(net=5, currency='USD')
     with pytest.raises(NotApplicable):
-        sale.modifier_for_product(sec_variant.product)
+        get_product_discount_on_sale(sale, sec_variant.product)
 
 
 def test_increase_voucher_usage():
