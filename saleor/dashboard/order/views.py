@@ -12,8 +12,8 @@ from payments import PaymentStatus
 from prices import Price
 from satchless.item import InsufficientStock
 
-from ...core.utils import get_paginator_items
 from ...core.templatetags.demo_obfuscators import obfuscate_address
+from ...core.utils import get_paginator_items
 from ...order import GroupStatus
 from ...order.models import DeliveryGroup, Order, OrderLine, OrderNote
 from ...product.models import StockLocation

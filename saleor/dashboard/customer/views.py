@@ -6,6 +6,7 @@ from django.shortcuts import get_object_or_404, redirect
 from django.template.response import TemplateResponse
 from django.utils.translation import pgettext_lazy
 
+from ...core.templatetags.demo_obfuscators import obfuscate_email
 from ...core.utils import get_paginator_items
 from ...userprofile.models import User
 from ..emails import send_set_password_email
@@ -67,6 +68,7 @@ def customer_create(request):
 @permission_required('userprofile.edit_user')
 def customer_edit(request, pk=None):
     customer = get_object_or_404(User, pk=pk)
+    customer.email = obfuscate_email(customer.email)
     form = CustomerForm(request.POST or None, instance=customer)
     if form.is_valid():
         form.save()
