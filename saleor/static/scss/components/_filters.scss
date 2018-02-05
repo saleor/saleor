@@ -1,4 +1,5 @@
 .product-filters {
+  padding-bottom: $global-padding * 2;
   .hide {
     display: none;
   }
@@ -58,8 +59,6 @@
     }
   }
   &__title {
-    padding: 0;
-    padding-top: $global-padding*1;
     @include media-breakpoint-down(sm) {
       padding: $global-padding*3 0 $global-padding*2;
     }
@@ -73,8 +72,7 @@
     }
   }
   &__categories {
-    padding: 0;
-    padding-bottom: $global-padding*2;
+    padding: $global-padding 0 0;
     @include media-breakpoint-down(sm) {
       padding: $global-padding*3 0 $global-padding*2;
     }
