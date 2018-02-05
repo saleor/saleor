@@ -542,8 +542,8 @@ def add_address_to_admin(email):
 
 def create_fake_collection():
     collection = get_or_create_collection(name='%s collection' % fake.word())
-    for product in Product.objects.all().order_by('?')[:4]:
-        collection.products.add(product)
+    products = Product.objects.order_by('?')[:4]
+    collection.products.add(*products)
     return collection
 
 
