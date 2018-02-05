@@ -196,8 +196,9 @@ class Order(models.Model, ItemSet):
 class DeliveryGroup(models.Model, ItemSet):
     """Represents a single shipment.
 
-    A single order can consist of many shipment groups.
+    A single order can consist of multiple shipment groups.
     """
+
     status = FSMField(
         max_length=32, default=GroupStatus.NEW, choices=GroupStatus.CHOICES,
         protected=True)

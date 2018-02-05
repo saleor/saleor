@@ -63,9 +63,10 @@ class ManagePaymentForm(forms.Form):
             raise forms.ValidationError(self.clean_error)
 
     def payment_error(self, message):
-        self.add_error(None,
-                       pgettext_lazy('Payment form error',
-                                     'Payment gateway error: %s') % message)
+        self.add_error(
+            None, pgettext_lazy(
+                'Payment form error',
+                'Payment gateway error: %s') % message)
 
     def try_payment_action(self, action):
         amount = self.cleaned_data['amount']
@@ -100,23 +101,23 @@ class RefundPaymentForm(ManagePaymentForm):
 class ReleasePaymentForm(ManagePaymentForm):
 
     clean_status = PaymentStatus.PREAUTH
-    clean_error = pgettext_lazy('Payment form error',
-                                'Only pre-authorized payments can be released')
+    clean_error = pgettext_lazy(
+        'Payment form error', 'Only pre-authorized payments can be released')
 
     def release(self):
         return self.try_payment_action(self.payment.release)
 
 
 class MoveLinesForm(forms.Form):
-    """ Moves part of products in order line to existing or new group.  """
+    """Allows splitting an order line into an existing or new group."""
+
     quantity = QuantityField(
         label=pgettext_lazy('Move lines form label', 'Quantity'),
         validators=[MinValueValidator(1)])
     target_group = forms.ModelChoiceField(
         queryset=DeliveryGroup.objects.none(), required=False,
         empty_label=pgettext_lazy(
-            'Shipment group value for `target_group` field',
-            'New shipment'),
+            'Shipment group value for `target_group` field', 'New shipment'),
         label=pgettext_lazy('Move lines form label', 'Target shipment'))
 
     def __init__(self, *args, **kwargs):
@@ -184,8 +185,9 @@ class ChangeQuantityForm(forms.ModelForm):
                     'Change quantity form error',
                     'Only %(remaining)d remaining in stock.',
                     'Only %(remaining)d remaining in stock.',
-                    'remaining') % {'remaining': (
-                        self.initial_quantity + stock.quantity_available)})
+                    'remaining') % {
+                        'remaining': (
+                            self.initial_quantity + stock.quantity_available)})
         return quantity
 
     def save(self):
@@ -201,8 +203,12 @@ class ChangeQuantityForm(forms.ModelForm):
 
 
 class ShipGroupForm(forms.ModelForm):
-    """Decreases corresponding stocks ans sets delivery group tracking
-    number."""
+    """Dispatch a group and optionally assigns a tracking number.
+
+    This process involves permanently decreasing the previously allocated
+    stock.
+    """
+
     class Meta:
         model = DeliveryGroup
         fields = ['tracking_number']
@@ -231,8 +237,12 @@ class ShipGroupForm(forms.ModelForm):
 
 
 class CancelGroupForm(forms.ModelForm):
-    """Deallocates or increases corresponding stocks, depending whether new
-    or shipped group is cancelled."""
+    """Allow canceling a single group in an order.
+
+    Deallocates or increases corresponding stocks, depending whether new
+    or shipped group is cancelled.
+    """
+
     class Meta:
         model = DeliveryGroup
         fields = []
@@ -243,8 +253,12 @@ class CancelGroupForm(forms.ModelForm):
 
 
 class CancelOrderForm(forms.Form):
-    """Deallocates or increases corresponding stocks in each delivery group,
-    depending whether new or shipped group is cancelled."""
+    """Allow canceling an entire order.
+
+    Deallocates or increases corresponding stocks in each delivery group,
+    depending whether new or shipped group is cancelled.
+    """
+
     def __init__(self, *args, **kwargs):
         self.order = kwargs.pop('order')
         super().__init__(*args, **kwargs)
@@ -255,7 +269,7 @@ class CancelOrderForm(forms.Form):
             raise forms.ValidationError(
                 pgettext_lazy(
                     'Cancel order form error',
-                    'This order can\'t be cancelled'))
+                    "This order can't be cancelled"))
         return data
 
     def cancel_order(self):
@@ -285,9 +299,9 @@ class RemoveVoucherForm(forms.Form):
         recalculate_order(self.order)
 
 
-PAYMENT_STATUS_CHOICES = [
-    ('', pgettext_lazy('Payment status field value', 'All')),
-] + PaymentStatus.CHOICES
+PAYMENT_STATUS_CHOICES = (
+    [('', pgettext_lazy('Payment status field value', 'All'))] +
+    PaymentStatus.CHOICES)
 
 
 class PaymentFilterForm(forms.Form):
@@ -339,7 +353,8 @@ class ChangeStockForm(forms.ModelForm):
 
 
 class AddVariantToDeliveryGroupForm(forms.Form):
-    """ Adds variant in given quantity to shipment group. """
+    """Allow adding lines with given quantity to a shipment group."""
+
     variant = AjaxSelect2ChoiceField(
         queryset=ProductVariant.objects.filter(
             product__in=Product.objects.available_products()),
@@ -355,7 +370,7 @@ class AddVariantToDeliveryGroupForm(forms.Form):
         super().__init__(*args, **kwargs)
 
     def clean(self):
-        """ Checks if given quantity is available in stocks. """
+        """Check if given quantity is available in stocs."""
         cleaned_data = super().clean()
         variant = cleaned_data.get('variant')
         quantity = cleaned_data.get('quantity')
@@ -373,7 +388,10 @@ class AddVariantToDeliveryGroupForm(forms.Form):
         return cleaned_data
 
     def save(self):
-        """ Adds variant to target group. Updates stocks and order. """
+        """Add variant to target group.
+
+        Updates stocks and order.
+        """
         variant = self.cleaned_data.get('variant')
         quantity = self.cleaned_data.get('quantity')
         add_variant_to_delivery_group(

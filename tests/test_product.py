@@ -401,11 +401,6 @@ def test_variant_availability_status(unavailable_product):
 
 
 def test_get_variant_picker_data_proper_variant_count(product_in_stock):
-    """
-    test checks if get_variant_picker_data provide proper count of
-    variant information from available product variants and not count
-    of variant attributes from product type
-    """
     data = get_variant_picker_data(
         product_in_stock, discounts=None, local_currency=None)
 
@@ -414,24 +409,23 @@ def test_get_variant_picker_data_proper_variant_count(product_in_stock):
 
 def test_view_ajax_available_variants_list(admin_client, product_in_stock):
     variant = product_in_stock.variants.first()
-    variants_list = [
-        {'id': variant.pk, 'text': '123, Test product (Size: Small), $10.00'}
-    ]
+    variant_list = [
+        {'id': variant.pk, 'text': '123, Test product (Size: Small), $10.00'}]
 
     url = reverse('dashboard:ajax-available-variants')
     response = admin_client.get(url, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
     resp_decoded = json.loads(response.content.decode('utf-8'))
 
     assert response.status_code == 200
-    assert resp_decoded == {'results': variants_list}
+    assert resp_decoded == {'results': variant_list}
 
 
 def test_view_ajax_available_products_list(admin_client, product_in_stock):
-    products_list = [{'id': product_in_stock.pk, 'text': 'Test product'}]
+    product_list = [{'id': product_in_stock.pk, 'text': 'Test product'}]
 
     url = reverse('dashboard:ajax-products')
     response = admin_client.get(url, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
     resp_decoded = json.loads(response.content.decode('utf-8'))
 
     assert response.status_code == 200
-    assert resp_decoded == {'results': products_list}
+    assert resp_decoded == {'results': product_list}

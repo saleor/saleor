@@ -16,6 +16,7 @@ from .forms import ProductForm
 
 
 def products_visible_to_user(user):
+    # pylint: disable=cyclic-import
     from .models import Product
     if user.is_authenticated and user.is_active and user.is_staff:
         return Product.objects.all()
@@ -40,9 +41,7 @@ def products_for_homepage():
 
 
 def get_product_images(product):
-    """
-    Returns list of product images that will be placed in product gallery
-    """
+    """Return list of product images that will be placed in product gallery."""
     return list(product.images.all())
 
 
@@ -112,7 +111,7 @@ def products_for_cart(user):
 
 def product_json_ld(product, attributes=None):
     # type: (saleor.product.models.Product, saleor.product.utils.ProductAvailability, dict) -> dict  # noqa
-    """Generates JSON-LD data for product"""
+    """Generate JSON-LD data for product."""
     data = {'@context': 'http://schema.org/',
             '@type': 'Product',
             'name': smart_text(product),

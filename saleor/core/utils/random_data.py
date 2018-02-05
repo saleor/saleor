@@ -37,73 +37,56 @@ DEFAULT_SCHEMA = {
         'product_attributes': {
             'Color': ['Blue', 'White'],
             'Collar': ['Round', 'V-Neck', 'Polo'],
-            'Brand': ['Saleor']
-        },
+            'Brand': ['Saleor']},
         'variant_attributes': {
-            'Size': ['XS', 'S', 'M', 'L', 'XL', 'XXL']
-        },
+            'Size': ['XS', 'S', 'M', 'L', 'XL', 'XXL']},
         'images_dir': 't-shirts/',
-        'is_shipping_required': True
-    },
+        'is_shipping_required': True},
     'Mugs': {
         'category': 'Accessories',
         'product_attributes': {
-            'Brand': ['Saleor']
-        },
+            'Brand': ['Saleor']},
         'variant_attributes': {},
         'images_dir': 'mugs/',
-        'is_shipping_required': True
-    },
+        'is_shipping_required': True},
     'Coffee': {
         'category': 'Groceries',
         'product_attributes': {
             'Coffee Genre': ['Arabica', 'Robusta'],
-            'Brand': ['Saleor']
-        },
+            'Brand': ['Saleor']},
         'variant_attributes': {
-            'Box Size': ['100g', '250g', '500g', '1kg']
-        },
+            'Box Size': ['100g', '250g', '500g', '1kg']},
         'different_variant_prices': True,
         'images_dir': 'coffee/',
-        'is_shipping_required': True
-    },
+        'is_shipping_required': True},
     'Candy': {
         'category': 'Groceries',
         'product_attributes': {
             'Flavor': ['Sour', 'Sweet'],
-            'Brand': ['Saleor']
-        },
+            'Brand': ['Saleor']},
         'variant_attributes': {
-            'Candy Box Size': ['100g', '250g', '500g']
-        },
+            'Candy Box Size': ['100g', '250g', '500g']},
         'images_dir': 'candy/',
-        'is_shipping_required': True
-    },
+        'is_shipping_required': True},
     'E-books': {
         'category': 'Books',
         'product_attributes': {
             'Author': ['John Doe', 'Milionare Pirate'],
             'Publisher': ['Mirumee Press', 'Saleor Publishing'],
-            'Language': ['English', 'Pirate']
-        },
+            'Language': ['English', 'Pirate']},
         'variant_attributes': {},
         'images_dir': 'books/',
-        'is_shipping_required': False
-    },
+        'is_shipping_required': False},
     'Books': {
         'category': 'Books',
         'product_attributes': {
             'Author': ['John Doe', 'Milionare Pirate'],
             'Publisher': ['Mirumee Press', 'Saleor Publishing'],
-            'Language': ['English', 'Pirate']
-        },
+            'Language': ['English', 'Pirate']},
         'variant_attributes': {
-            'Cover': ['Soft', 'Hard']
-        },
+            'Cover': ['Soft', 'Hard']},
         'images_dir': 'books/',
-        'is_shipping_required': True
-    }
-}
+        'is_shipping_required': True}}
 
 
 def create_attributes_and_values(attribute_data):
@@ -254,6 +237,8 @@ class SaleorProvider(BaseProvider):
 
     def shipping_method(self):
         return random.choice(ShippingMethod.objects.all())
+
+
 fake.add_provider(SaleorProvider)
 
 
@@ -370,7 +355,10 @@ def create_fake_user():
 def create_payment(delivery_group):
     order = delivery_group.order
     status = random.choice(
-        [PaymentStatus.WAITING, PaymentStatus.PREAUTH, PaymentStatus.CONFIRMED])
+        [
+            PaymentStatus.WAITING,
+            PaymentStatus.PREAUTH,
+            PaymentStatus.CONFIRMED])
     payment = Payment.objects.create(
         order=order,
         status=status,

@@ -12,9 +12,8 @@ from .validators import validate_possible_number
 
 
 class PossiblePhoneNumberField(PhoneNumberField):
-    """
-    Less strict rule for phone numbers written to database.
-    """
+    """Less strict field for phone numbers written to database."""
+
     default_validators = [validate_possible_number]
 
 

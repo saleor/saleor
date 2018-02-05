@@ -65,13 +65,11 @@ def currency(get_response):
 
 
 def site(get_response):
-    """
-    This middleware clears the Sites cache, refetches the current Site
-    and sets it as attribute in request object for future uses in this
-    request cycle.
+    """Clear the Sites cache and assign the current site to `request.site`.
+
     By default django.contrib.sites caches Site instances at the module
-    level, which leads to problems when updating Site instances, such
-    as necessity to restart the application server in order to invalidate
+    level. This leads to problems when updating Site instances, as it's
+    required to restart all application servers in order to invalidate
     the cache. Using this middleware solves this problem.
     """
     def middleware(request):

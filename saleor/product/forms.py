@@ -21,13 +21,14 @@ class VariantChoiceField(forms.ModelChoiceField):
         return label
 
     def update_field_data(self, variants, cart):
-        """ Function initializing fields custom data """
+        """Initialize variant picker metadata."""
         self.queryset = variants
         self.discounts = cart.discounts
         self.empty_label = None
-        images_map = {variant.pk: [vi.image.image.url
-                                   for vi in variant.variant_images.all()]
-                      for variant in variants.all()}
+        images_map = {
+            variant.pk: [
+                vi.image.image.url for vi in variant.variant_images.all()]
+            for variant in variants.all()}
         self.widget.attrs['data-images'] = json.dumps(images_map)
         # Don't display select input if there are less than two variants
         if self.queryset.count() < 2:

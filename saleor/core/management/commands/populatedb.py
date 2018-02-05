@@ -35,11 +35,11 @@ class Command(BaseCommand):
             help='Don\'t update search index')
 
     def make_database_faster(self):
-        '''Sacrifices some of the safeguards of sqlite3 for speed
+        """Sacrifice some of the safeguards of sqlite3 for speed.
 
         Users are not likely to run this command in a production environment.
         They are even less likely to run it in production while using sqlite3.
-        '''
+        """
         if 'sqlite3' in connection.settings_dict['ENGINE']:
             cursor = connection.cursor()
             cursor.execute('PRAGMA temp_store = MEMORY;')

@@ -33,7 +33,7 @@ def elasticsearch_enabled(settings):
 
 @pytest.fixture(scope='function', autouse=True)
 def elasticsearch_autosync_disabled(settings):
-    ''' Prevent ES index from being refreshed every time obj is saved '''
+    """Prevent ES index from being refreshed every time objects are saved."""
     settings.ELASTICSEARCH_DSL_AUTO_REFRESH = False
     settings.ELASTICSEARCH_DSL_AUTOSYNC = False
 
@@ -41,13 +41,13 @@ def elasticsearch_autosync_disabled(settings):
 @pytest.mark.vcr()
 @pytest.fixture
 def indexed_products(product_type, default_category):
-    ''' Products to be found by search backend
+    """Products to be found by search backend.
 
     We need existing objects with primary keys same as search service
     returned in response. Otherwise search view won't find anything.
     Purpose of this fixture is for integration with search service only!
     pks must be in response in appropiate recorded cassette.
-    '''
+    """
     def gen_product_with_id(object_id):
         product = Product.objects.create(
             pk=object_id,
@@ -69,21 +69,20 @@ def execute_search(client, phrase):
 @pytest.mark.integration
 @pytest.mark.vcr(record_mode='once', match_on=MATCH_SEARCH_REQUEST)
 def test_new_search_with_empty_results(db, client):
-    ''' no products found with foo '''
     assert 0 == len(execute_search(client, PHRASE_WITHOUT_RESULTS))
 
 
 @pytest.mark.integration
 @pytest.mark.vcr(record_mode='once', match_on=MATCH_SEARCH_REQUEST)
 def test_new_search_with_result(db, indexed_products, client):
-    ''' some products founds, only those both in search result and objects '''
     found_products = execute_search(client, PHRASE_WITH_RESULTS)
     assert STOREFRONT_PRODUCTS == set(found_products)
 
 
 @pytest.fixture
 def products_with_mixed_publishing(indexed_products):
-    products_to_unpublish = Product.objects.filter(pk__in=PRODUCTS_TO_UNPUBLISH)
+    products_to_unpublish = Product.objects.filter(
+        pk__in=PRODUCTS_TO_UNPUBLISH)
     for prod in products_to_unpublish:
         prod.is_published = False
         prod.save()
@@ -92,8 +91,8 @@ def products_with_mixed_publishing(indexed_products):
 
 @pytest.mark.integration
 @pytest.mark.vcr(record_mode='once', match_on=MATCH_SEARCH_REQUEST)
-def test_new_search_doesnt_show_unpublished(db, products_with_mixed_publishing,
-                                            client):
+def test_new_search_doesnt_show_unpublished(
+        db, products_with_mixed_publishing, client):
     published_products = STOREFRONT_PRODUCTS - PRODUCTS_TO_UNPUBLISH
     found_products = execute_search(client, PHRASE_WITH_RESULTS)
     assert published_products == set(found_products)
@@ -111,9 +110,8 @@ def execute_dashboard_search(client, phrase):
 @pytest.mark.integration
 @pytest.mark.vcr(record_mode='once', match_on=MATCH_SEARCH_REQUEST)
 def test_dashboard_search_with_empty_results(db, admin_client):
-    ''' no products found with foo '''
-    products, users, orders = execute_dashboard_search(admin_client,
-                                                       PHRASE_WITHOUT_RESULTS)
+    products, users, orders = execute_dashboard_search(
+        admin_client, PHRASE_WITHOUT_RESULTS)
     assert 0 == len(products)
     assert 0 == len(users)
     assert 0 == len(orders)
@@ -121,9 +119,8 @@ def test_dashboard_search_with_empty_results(db, admin_client):
 
 @pytest.mark.integration
 @pytest.mark.vcr(record_mode='once', match_on=MATCH_SEARCH_REQUEST)
-def test_dashboard_search_with_product_result(db, indexed_products,
-                                              admin_client):
-    ''' products found in dashboard search view  '''
+def test_dashboard_search_with_product_result(
+        db, indexed_products, admin_client):
     products, _, _ = execute_dashboard_search(admin_client,
                                               PHRASE_WITH_RESULTS)
     assert DASHBOARD_PRODUCTS == products
@@ -151,7 +148,6 @@ def customers(db):
 @pytest.mark.integration
 @pytest.mark.vcr(record_mode='once', match_on=MATCH_SEARCH_REQUEST)
 def test_dashboard_search_user_by_email(db, admin_client, customers):
-    ''' user can be found in dashboard search by email address '''
     _, users, _ = execute_dashboard_search(admin_client, EXISTING_EMAIL)
     assert {USERS[EXISTING_EMAIL]} == users
 
@@ -159,7 +155,6 @@ def test_dashboard_search_user_by_email(db, admin_client, customers):
 @pytest.mark.integration
 @pytest.mark.vcr(record_mode='once', match_on=MATCH_SEARCH_REQUEST)
 def test_dashboard_search_user_name(db, admin_client, customers):
-    ''' user can be found in dashboard search by partial name match  '''
     _, users, _ = execute_dashboard_search(admin_client, EXISTING_NAME)
     assert USERS[EXISTING_NAME_FULL] in users
 
@@ -178,6 +173,5 @@ def orders(db, billing_address):
 @pytest.mark.integration
 @pytest.mark.vcr(record_mode='once', match_on=MATCH_SEARCH_REQUEST)
 def test_dashboard_search_orders_by_user(db, admin_client, customers, orders):
-    ''' order can be found in dashboard search by customers email '''
     _, _, orders = execute_dashboard_search(admin_client, USER_WITH_ORDER)
     assert ORDERS[USER_WITH_ORDER] == orders

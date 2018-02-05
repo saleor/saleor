@@ -25,9 +25,11 @@ AVAILABLE_SIZES = get_available_sizes()
 
 def choose_placeholder(size=''):
     # type: (str) -> str
-    """Assign placeholder at least as big as provided size if possible.
+    """Assign a placeholder at least as big as provided size if possible.
+
     When size is bigger than available, return the biggest.
-    If size is invalid or not provided, return DEFAULT_PLACEHOLDER"""
+    If size is invalid or not provided, return DEFAULT_PLACEHOLDER.
+    """
     placeholder = settings.DEFAULT_PLACEHOLDER
     parsed_sizes = re.match(r'(\d+)x(\d+)', size)
     available_sizes = sorted(settings.PLACEHOLDER_IMAGES.keys())
@@ -46,11 +48,13 @@ def choose_placeholder(size=''):
 @register.simple_tag()
 def get_thumbnail(instance, size, method='crop'):
     size_name = '%s__%s' % (method, size)
+    on_demand = settings.VERSATILEIMAGEFIELD_SETTINGS[
+        'create_images_on_demand']
     if instance:
-        if (size_name not in AVAILABLE_SIZES and not
-                settings.VERSATILEIMAGEFIELD_SETTINGS['create_images_on_demand']):
-            msg = ('Thumbnail size %s is not defined in settings '
-                   'and it won\'t be generated automatically' % size_name)
+        if (size_name not in AVAILABLE_SIZES and not on_demand):
+            msg = (
+                "Thumbnail size %s is not defined in settings "
+                "and it won't be generated automatically" % size_name)
             warnings.warn(msg)
         try:
             if method == 'crop':
@@ -58,8 +62,9 @@ def get_thumbnail(instance, size, method='crop'):
             else:
                 thumbnail = instance.thumbnail[size]
         except Exception:
-            logger.exception('Thumbnail fetch failed',
-                             extra={'instance': instance, 'size': size})
+            logger.exception(
+                'Thumbnail fetch failed',
+                extra={'instance': instance, 'size': size})
         else:
             return thumbnail.url
     return static(choose_placeholder(size))
@@ -67,9 +72,7 @@ def get_thumbnail(instance, size, method='crop'):
 
 @register.simple_tag()
 def product_first_image(product, size, method='crop'):
-    """
-    Returns main product image
-    """
+    """Return the main image of the given product."""
     all_images = product.images.all() if product else []
     main_image = all_images[0].image if all_images else None
     return get_thumbnail(main_image, size, method)

@@ -8,7 +8,7 @@ logger = logging.getLogger(__name__)
 
 
 def order_status_change(sender, instance, **kwargs):
-    """Handles payment status change and sets suitable order status."""
+    """Handle payment status change and set suitable order status."""
     order = instance.order
     if order.is_fully_paid():
         order.create_history_entry(

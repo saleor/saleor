@@ -17,7 +17,7 @@ from .utils import (
 
 
 def product_details(request, slug, product_id, form=None):
-    """Product details page
+    """Product details page.
 
     The following variables are available to the template:
 
@@ -93,7 +93,8 @@ def product_add_to_cart(request, slug, product_id):
     if form.is_valid():
         form.save()
         if request.is_ajax():
-            response = JsonResponse({'next': reverse('cart:index')}, status=200)
+            response = JsonResponse(
+                {'next': reverse('cart:index')}, status=200)
         else:
             response = redirect('cart:index')
     else:

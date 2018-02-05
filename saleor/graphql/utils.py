@@ -2,10 +2,11 @@ import graphene
 
 
 class CategoryAncestorsCache:
-    """
-    Cache used to store ancestors of a category in GraphQL context in order to
-    reduce number of database queries. Categories of the same tree depth level
-    have common ancestors, which allows us to cache them by the level.
+    """Cache used to store ancestors of a category in GraphQL context.
+
+    Allows to reduce the number of database queries. Categories of the same
+    tree depth level have common ancestors, which allows us to cache them by
+    the level.
     """
 
     def __init__(self, category):
@@ -18,9 +19,8 @@ class CategoryAncestorsCache:
 
 
 class DjangoPkInterface(graphene.Interface):
-    """
-    Exposes the Django model primary key
-    """
+    """Exposes the Django model primary key."""
+
     pk = graphene.ID(description="Primary key")
 
     def resolve_pk(self, info):
