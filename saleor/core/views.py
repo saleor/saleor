@@ -39,7 +39,7 @@ def impersonate(request, uid):
     return response
 
 
-def handle_404(request):
+def handle_404(request, exception=None):
     ctx = {'variant': randint(0, 2)}
     return TemplateResponse(request, '404.html', ctx, status=404)
 
