@@ -11,9 +11,11 @@
 {% endblock %}
 
 {% block content %}
-{% blocktrans trimmed with shipment=group context "Modal cancel shipment group text" %}
-  After this action {{ shipment }} will be cancelled. Ordered items will be returned to stock.
-{% endblocktrans %}
+  <div class="col s12">
+    {% blocktrans trimmed with shipment=group context "Modal cancel shipment group text" %}
+      After this action {{ shipment }} will be cancelled. Ordered items will be returned to stock.
+    {% endblocktrans %}
+  </div>
 {% endblock %}
 
 {% block cancel_action %}

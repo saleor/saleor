@@ -12,21 +12,20 @@ from payments import PaymentStatus
 from prices import Price
 from satchless.item import InsufficientStock
 
-from .filters import OrderFilter
-from .forms import (
-    AddVariantToDeliveryGroupForm, CancelGroupForm, CancelLinesForm,
-    CancelOrderForm, CapturePaymentForm, ChangeStockForm, ChangeQuantityForm,
-    MoveLinesForm, OrderNoteForm, RefundPaymentForm, ReleasePaymentForm,
-    RemoveVoucherForm, ShipGroupForm)
-
-from .utils import (
-    create_invoice_pdf, create_packing_slip_pdf, get_statics_absolute_url)
-from ..views import staff_member_required
 from ...core.templatetags.demo_obfuscators import obfuscate_address
 from ...core.utils import get_paginator_items
 from ...order import GroupStatus
-from ...order.models import Order, OrderLine, OrderNote
-from ...userprofile.i18n import AddressForm
+from ...order.models import DeliveryGroup, Order, OrderLine, OrderNote
+from ...product.models import StockLocation
+from ..views import staff_member_required
+from .filters import OrderFilter
+from .forms import (
+    AddressForm, AddVariantToDeliveryGroupForm, CancelGroupForm,
+    CancelOrderForm, CancelOrderLineForm, CapturePaymentForm,
+    ChangeQuantityForm, ChangeStockForm, MoveLinesForm, OrderNoteForm,
+    RefundPaymentForm, ReleasePaymentForm, RemoveVoucherForm, ShipGroupForm)
+from .utils import (
+    create_invoice_pdf, create_packing_slip_pdf, get_statics_absolute_url)
 
 
 @staff_member_required
@@ -72,10 +71,12 @@ def order_details(request, order_pk):
     else:
         can_capture = can_release = can_refund = False
 
+    is_many_stock_locations = StockLocation.objects.count() > 1
     ctx = {'order': order, 'all_payments': all_payments, 'payment': payment,
            'notes': notes, 'groups': groups, 'captured': captured,
            'preauthorized': preauthorized, 'can_capture': can_capture,
            'can_release': can_release, 'can_refund': can_refund,
+           'is_many_stock_locations': is_many_stock_locations,
            'balance': balance}
     return TemplateResponse(request, 'dashboard/order/detail.html', ctx)
 
@@ -92,8 +93,10 @@ def order_add_note(request, order_pk):
         msg = pgettext_lazy(
             'Dashboard message related to an order',
             'Added note')
-        order.create_history_entry(comment=msg, user=request.user)
+        order.create_history_entry(content=msg, user=request.user)
         messages.success(request, msg)
+        if note.is_public:
+            form.send_confirmation_email()
     elif form.errors:
         status = 400
     ctx = {'order': order, 'form': form}
@@ -115,7 +118,7 @@ def capture_payment(request, order_pk, payment_pk):
         msg = pgettext_lazy(
             'Dashboard message related to a payment',
             'Captured %(amount)s') % {'amount': gross(amount)}
-        payment.order.create_history_entry(comment=msg, user=request.user)
+        payment.order.create_history_entry(content=msg, user=request.user)
         messages.success(request, msg)
         return redirect('dashboard:order-details', order_pk=order.pk)
     status = 400 if form.errors else 200
@@ -138,7 +141,7 @@ def refund_payment(request, order_pk, payment_pk):
         msg = pgettext_lazy(
             'Dashboard message related to a payment',
             'Refunded %(amount)s') % {'amount': gross(amount)}
-        payment.order.create_history_entry(comment=msg, user=request.user)
+        payment.order.create_history_entry(content=msg, user=request.user)
         messages.success(request, msg)
         return redirect('dashboard:order-details', order_pk=order.pk)
     status = 400 if form.errors else 200
@@ -156,7 +159,7 @@ def release_payment(request, order_pk, payment_pk):
     form = ReleasePaymentForm(request.POST or None, payment=payment)
     if form.is_valid() and form.release():
         msg = pgettext_lazy('Dashboard message', 'Released payment')
-        payment.order.create_history_entry(comment=msg, user=request.user)
+        payment.order.create_history_entry(content=msg, user=request.user)
         messages.success(request, msg)
         return redirect('dashboard:order-details', order_pk=order.pk)
     status = 400 if form.errors else 200
@@ -183,7 +186,7 @@ def orderline_change_quantity(request, order_pk, line_pk):
                 'product': line.product, 'old_quantity': old_quantity,
                 'new_quantity': line.quantity}
         with transaction.atomic():
-            order.create_history_entry(comment=msg, user=request.user)
+            order.create_history_entry(content=msg, user=request.user)
             form.save()
             messages.success(request, msg)
         return redirect('dashboard:order-details', order_pk=order.pk)
@@ -220,7 +223,7 @@ def orderline_split(request, order_pk, line_pk):
             ' to %(new_group)s') % {
                 'how_many': how_many, 'item': line, 'old_group': old_group,
                 'new_group': target_group}
-        order.create_history_entry(comment=msg, user=request.user)
+        order.create_history_entry(content=msg, user=request.user)
         messages.success(request, msg)
         return redirect('dashboard:order-details', order_pk=order.pk)
     elif form.errors:
@@ -236,14 +239,14 @@ def orderline_cancel(request, order_pk, line_pk):
     order = get_object_or_404(Order, pk=order_pk)
     line = get_object_or_404(OrderLine.objects.filter(
         delivery_group__order=order), pk=line_pk)
-    form = CancelLinesForm(data=request.POST or None, line=line)
+    form = CancelOrderLineForm(data=request.POST or None, line=line)
     status = 200
     if form.is_valid():
         msg = pgettext_lazy(
             'Dashboard message related to an order line',
             'Cancelled item %s') % line
         with transaction.atomic():
-            order.create_history_entry(comment=msg, user=request.user)
+            order.create_history_entry(content=msg, user=request.user)
             form.cancel_line()
             messages.success(request, msg)
         return redirect('dashboard:order-details', order_pk=order.pk)
@@ -258,7 +261,8 @@ def orderline_cancel(request, order_pk, line_pk):
 @staff_member_required
 @permission_required('order.edit_order')
 def ship_delivery_group(request, order_pk, group_pk):
-    order = get_object_or_404(Order, pk=order_pk)
+    order = get_object_or_404(
+        Order.objects.select_related('shipping_address'), pk=order_pk)
     group = get_object_or_404(order.groups.all(), pk=group_pk)
     form = ShipGroupForm(request.POST or None, instance=group)
     status = 200
@@ -269,7 +273,7 @@ def ship_delivery_group(request, order_pk, group_pk):
             'Dashboard message related to a shipment group',
             'Shipped %s') % group
         messages.success(request, msg)
-        group.order.create_history_entry(comment=msg, user=request.user)
+        group.order.create_history_entry(content=msg, user=request.user)
         return redirect('dashboard:order-details', order_pk=order_pk)
     elif form.errors:
         status = 400
@@ -283,16 +287,16 @@ def ship_delivery_group(request, order_pk, group_pk):
 def cancel_delivery_group(request, order_pk, group_pk):
     order = get_object_or_404(Order, pk=order_pk)
     group = get_object_or_404(order.groups.all(), pk=group_pk)
-    form = CancelGroupForm(request.POST or None, delivery_group=group)
+    form = CancelGroupForm(request.POST or None, instance=group)
     status = 200
     if form.is_valid():
         with transaction.atomic():
-            form.cancel_group()
+            form.save()
         msg = pgettext_lazy(
             'Dashboard message related to a shipment group',
             'Cancelled %s') % group
         messages.success(request, msg)
-        group.order.create_history_entry(comment=msg, user=request.user)
+        group.order.create_history_entry(content=msg, user=request.user)
         return redirect('dashboard:order-details', order_pk=order_pk)
     elif form.errors:
         status = 400
@@ -304,7 +308,7 @@ def cancel_delivery_group(request, order_pk, group_pk):
 @staff_member_required
 @permission_required('order.edit_order')
 def add_variant_to_group(request, order_pk, group_pk):
-    """ Adds variant in given quantity to existing or new group in order. """
+    """Add variant in given quantity to an existing or new order group."""
     order = get_object_or_404(Order, pk=order_pk)
     group = get_object_or_404(order.groups.all(), pk=group_pk)
     form = AddVariantToDeliveryGroupForm(
@@ -314,15 +318,14 @@ def add_variant_to_group(request, order_pk, group_pk):
         msg_dict = {
             'quantity': form.cleaned_data.get('quantity'),
             'variant': form.cleaned_data.get('variant'),
-            'group': group
-        }
+            'group': group}
         try:
             with transaction.atomic():
                 form.save()
             msg = pgettext_lazy(
                 'Dashboard message related to a shipment group',
                 'Added %(quantity)d x %(variant)s to %(group)s') % msg_dict
-            order.create_history_entry(comment=msg, user=request.user)
+            order.create_history_entry(content=msg, user=request.user)
             messages.success(request, msg)
         except InsufficientStock:
             msg = pgettext_lazy(
@@ -356,8 +359,14 @@ def address_view(request, order_pk, address_type):
     obfuscated_address = obfuscate_address(address)
     form = AddressForm(request.POST or None, instance=obfuscated_address)
     if form.is_valid():
-        form.save()
-        order.create_history_entry(comment=success_msg, user=request.user)
+        updated_address = form.save()
+        if address is None:
+            if address_type == 'shipping':
+                order.shipping_address = updated_address
+            else:
+                order.billing_address = updated_address
+            order.save()
+        order.create_history_entry(content=success_msg, user=request.user)
         messages.success(request, success_msg)
         return redirect('dashboard:order-details', order_pk=order_pk)
     ctx = {'order': order, 'address_type': address_type, 'form': form}
@@ -374,7 +383,7 @@ def cancel_order(request, order_pk):
         msg = pgettext_lazy('Dashboard message', 'Cancelled order')
         with transaction.atomic():
             form.cancel_order()
-            order.create_history_entry(comment=msg, user=request.user)
+            order.create_history_entry(content=msg, user=request.user)
         messages.success(request, 'Order cancelled')
         return redirect('dashboard:order-details', order_pk=order.pk)
         # TODO: send status confirmation email
@@ -395,7 +404,7 @@ def remove_order_voucher(request, order_pk):
         msg = pgettext_lazy('Dashboard message', 'Removed voucher from order')
         with transaction.atomic():
             form.remove_voucher()
-            order.create_history_entry(comment=msg, user=request.user)
+            order.create_history_entry(content=msg, user=request.user)
         messages.success(request, msg)
         return redirect('dashboard:order-details', order_pk=order.pk)
     elif form.errors:
@@ -409,8 +418,11 @@ def remove_order_voucher(request, order_pk):
 @staff_member_required
 @permission_required('order.edit_order')
 def order_invoice(request, order_pk):
+    orders = Order.objects.prefetch_related(
+        'user', 'shipping_address', 'billing_address', 'voucher', 'groups')
+    order = get_object_or_404(orders, pk=order_pk)
     absolute_url = get_statics_absolute_url(request)
-    pdf_file, order = create_invoice_pdf(order_pk, absolute_url)
+    pdf_file, order = create_invoice_pdf(order, absolute_url)
     response = HttpResponse(pdf_file, content_type='application/pdf')
     name = "invoice-%s" % order.id
     response['Content-Disposition'] = 'filename=%s' % name
@@ -420,8 +432,12 @@ def order_invoice(request, order_pk):
 @staff_member_required
 @permission_required('order.edit_order')
 def order_packing_slip(request, group_pk):
+    groups = DeliveryGroup.objects.prefetch_related(
+        'lines', 'order', 'order__user', 'order__shipping_address',
+        'order__billing_address')
+    group = get_object_or_404(groups, pk=group_pk)
     absolute_url = get_statics_absolute_url(request)
-    pdf_file, group = create_packing_slip_pdf(group_pk, absolute_url)
+    pdf_file, group = create_packing_slip_pdf(group, absolute_url)
     response = HttpResponse(pdf_file, content_type='application/pdf')
     name = "packing-slip-%s-%s" % (group.order.id, group.id)
     response['Content-Disposition'] = 'filename=%s' % name

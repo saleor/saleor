@@ -57,8 +57,24 @@
       display: inline-block;
     }
   }
+  &__title {
+    padding: 0;
+    padding-top: $global-padding*1;
+    @include media-breakpoint-down(sm) {
+      padding: $global-padding*3 0 $global-padding*2;
+    }
+    @media (max-width: 370px) {
+      padding-top: 5rem;
+    }
+    h2 {
+      font-size: 1.8rem;
+      color: $body-color;
+      padding-bottom: 0;
+    }
+  }
   &__categories {
-    padding: $global-padding*2 0;
+    padding: 0;
+    padding-bottom: $global-padding*2;
     @include media-breakpoint-down(sm) {
       padding: $global-padding*3 0 $global-padding*2;
     }
@@ -129,6 +145,7 @@
 .sort-by {
   text-align: right;
   position: relative;
+  margin: 1rem 0;
   .btn-link {
     padding-right: $global-padding;
     color: $body-color;

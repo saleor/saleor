@@ -7,12 +7,7 @@ from ...product.models import Category
 SORT_BY_FIELDS = {
     'name': pgettext_lazy('Category list sorting option', 'name'),
     'description': pgettext_lazy(
-        'Category list sorting option', 'description'),
-    'is_hidden': pgettext_lazy('Category list sorting option', 'is hidden')}
-
-IS_HIDDEN_CHOICES = (
-    ('1', pgettext_lazy('Is hidden filter choice', 'Hidden')),
-    ('0', pgettext_lazy('Is hidden filter choice', 'Not hidden')))
+        'Category list sorting option', 'description')}
 
 
 class CategoryFilter(SortedFilterSet):

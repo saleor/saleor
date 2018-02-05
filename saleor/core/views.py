@@ -1,21 +1,27 @@
-from django.template.response import TemplateResponse
+import json
+
 from django.contrib import messages
+from django.template.response import TemplateResponse
 from django.utils.translation import pgettext_lazy
 from impersonate.views import impersonate as orig_impersonate
 from random import randint
 
 from ..dashboard.views import staff_member_required
-from ..product.utils import products_with_availability, products_for_homepage
+from ..product.utils import products_for_homepage, products_with_availability
 from ..userprofile.models import User
+from .utils.schema import get_webpage_schema
 
 
 def home(request):
     products = products_for_homepage()[:8]
     products = products_with_availability(
         products, discounts=request.discounts, local_currency=request.currency)
+    webpage_schema = get_webpage_schema(request)
     return TemplateResponse(
-        request, 'home.html',
-        {'products': products, 'parent': None})
+        request, 'home.html', {
+            'parent': None,
+            'products': products,
+            'webpage_schema': json.dumps(webpage_schema)})
 
 
 @staff_member_required
@@ -33,6 +39,16 @@ def impersonate(request, uid):
     return response
 
 
-def handle_404(request):
+def handle_404(request, exception=None):
     ctx = {'variant': randint(0, 2)}
     return TemplateResponse(request, '404.html', ctx, status=404)
+
+
+def manifest(request):
+    site = request.site
+    ctx = {
+        'description': site.settings.description,
+        'name': site.name,
+        'short_name': site.name}
+    return TemplateResponse(
+        request, 'manifest.json', ctx, content_type='application/json')

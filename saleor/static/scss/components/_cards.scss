@@ -3,10 +3,8 @@
     width: 100%;
     border-radius: 3px;
     margin-bottom: $global-margin * 2;
-    @include transition(background, 0.3s)
-    &:hover {
-      background: $light-gray;
-    }
+    padding: $global-padding;
+    @include transition(background, 0.3s);
     @include media-breakpoint-down(sm) {
       width: 100%;
       display: inline-block;
@@ -18,10 +16,9 @@
       margin-bottom: 0;
     }
     ul.icons {
-      padding-left: 0;
-      padding-top: $global-padding;
       list-style: none;
       margin-bottom: 0;
+      padding: 0;
       li {
         width: 49%;
         display: inline-block;
@@ -30,6 +27,9 @@
           svg {
             float: right;
             cursor: pointer;
+          }
+          svg:hover path{
+            fill: $darken-blue;
           }
         }
       }

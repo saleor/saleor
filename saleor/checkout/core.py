@@ -13,13 +13,11 @@ from ..cart.models import Cart
 from ..cart.utils import get_or_empty_db_cart
 from ..core import analytics
 from ..discount.models import NotApplicable, Voucher
+from ..discount.utils import increase_voucher_usage
 from ..order.models import Order
-from ..order.utils import fill_group_with_partition
 from ..shipping.models import ANY_COUNTRY, ShippingMethodCountry
 from ..userprofile.models import Address
 from ..userprofile.utils import store_user_address
-
-from phonenumber_field.phonenumber import PhoneNumber
 
 STORAGE_SESSION_KEY = 'checkout_storage'
 
@@ -182,6 +180,15 @@ class Checkout:
         self.modified = True
 
     @property
+    def note(self):
+        return self.storage.get('note')
+
+    @note.setter
+    def note(self, note):
+        self.storage['note'] = note
+        self.modified = True
+
+    @property
     def billing_address(self):
         """Return the billing addres if any."""
         address = self._get_address_from_storage('billing_address')
@@ -192,6 +199,7 @@ class Checkout:
             return self.user.default_billing_address
         elif self.shipping_address:
             return self.shipping_address
+        return None
 
     @billing_address.setter
     def billing_address(self, address):
@@ -209,6 +217,7 @@ class Checkout:
         if value is not None and name is not None and currency is not None:
             amount = Price(value, currency=currency)
             return FixedDiscount(amount, name)
+        return None
 
     @discount.setter
     def discount(self, discount):
@@ -249,8 +258,7 @@ class Checkout:
     @property
     def is_shipping_same_as_billing(self):
         """Return `True` if shipping and billing addresses are identical."""
-        return Address.objects.are_identical(
-            self.shipping_address, self.billing_address)
+        return self.shipping_address == self.billing_address
 
     def _add_to_user_address_book(self, address, is_billing=False,
                                   is_shipping=False):
@@ -260,10 +268,10 @@ class Checkout:
                 billing=is_billing)
 
     def _save_order_billing_address(self):
-        return Address.objects.copy(self.billing_address)
+        return self.billing_address.get_copy()
 
     def _save_order_shipping_address(self):
-        return Address.objects.copy(self.shipping_address)
+        return self.shipping_address.get_copy()
 
     @transaction.atomic
     def create_order(self):
@@ -281,10 +289,10 @@ class Checkout:
         # FIXME: save locale along with the language
         voucher = self._get_voucher(
             vouchers=Voucher.objects.active(date=date.today())
-                            .select_for_update())
+            .select_for_update())
         if self.voucher_code is not None and voucher is None:
             # Voucher expired in meantime, abort order placement
-            return
+            return None
 
         if self.is_shipping_required:
             shipping_address = self._save_order_shipping_address()
@@ -310,7 +318,6 @@ class Checkout:
         if self.user.is_authenticated:
             order_data['user'] = self.user
             order_data['user_email'] = self.user.email
-
         else:
             order_data['user_email'] = self.email
 
@@ -322,18 +329,21 @@ class Checkout:
 
         order = Order.objects.create(**order_data)
 
-        for partition in self.cart.partition():
-            shipping_required = partition.is_shipping_required()
+        for line in self.cart.partition():
+            shipping_required = line.is_shipping_required()
             shipping_method_name = (
                 smart_text(self.shipping_method) if shipping_required
                 else None)
             group = order.groups.create(
                 shipping_method_name=shipping_method_name)
-            fill_group_with_partition(
-                group, partition, discounts=self.cart.discounts)
+            group.process(line, self.cart.discounts)
+            group.save()
 
         if voucher is not None:
-            Voucher.objects.increase_usage(voucher)
+            increase_voucher_usage(voucher)
+
+        if self.note is not None and self.note:
+            order.notes.create(user=order.user, content=self.note)
 
         return order
 
@@ -346,6 +356,7 @@ class Checkout:
                 return vouchers.get(code=self.voucher_code)
             except Voucher.DoesNotExist:
                 return None
+        return None
 
     def recalculate_discount(self):
         """Recalculate `self.discount` based on the voucher.

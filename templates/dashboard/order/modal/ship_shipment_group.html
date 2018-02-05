@@ -1,6 +1,7 @@
 {% extends "dashboard/base_modal.html" %}
 
 {% load i18n %}
+{% load i18n_address_tags %}
 {% load materializecss %}
 
 {% block action_url %}
@@ -12,7 +13,10 @@
 {% endblock %}
 
 {% block content %}
-{% trans "Dispatch this shipment to the following address:" context "Modal ship shipment group text" %}
+  <div class="col s12">
+    {% trans "Dispatch this shipment to the following address:" context "Modal ship shipment group text" %}
+    <div class="address">{% format_address order.shipping_address %}</div>
+  </div>
 {{ form|materializecss }}
 {% endblock %}
 

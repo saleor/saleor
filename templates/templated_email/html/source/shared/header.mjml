@@ -1,0 +1,10 @@
+<mj-section css-class="no-display">
+  <mj-column>
+    <mj-text>{% load staticfiles %}</mj-text>
+  </mj-column>
+</mj-section>
+<mj-section>
+  <mj-column>
+    <mj-image src="{{ protocol}}://{{ domain }}{% static 'images/logo-document.svg' %}" height="38px" width="176px"/>
+  </mj-column>
+</mj-section>

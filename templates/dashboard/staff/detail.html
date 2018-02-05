@@ -7,7 +7,7 @@
   {% if staff_member %}
     {{ staff_member }}
   {% else %}
-    {% trans "Add new staff member" context "Dashboard add group" %}
+    {% trans "Add new staff member" context "Dashboard add staff member" %}
   {% endif %}
      - {% trans "Staff" context "Dashboard staff" %} - {{ block.super }}
 {% endblock %}
@@ -18,7 +18,7 @@
 
 {% block header_menu %}
   {% url "dashboard:staff" as url %}
-  {% include "dashboard/includes/_back-link.html" with url=url %}
+  {% include "dashboard/includes/_back_link.html" with url=url %}
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -30,7 +30,7 @@
     </li>
     <li class="back-mobile">
       <a href="{% url "dashboard:staff-list" %}">
-        <svg data-src="{% static "dashboard/images/arrow_left.svg" %}" fill="#fff" width="20px" height="20px" />
+        <svg data-src="{% static "dashboard/images/arrow-left.svg" %}" fill="#fff" width="20px" height="20px" />
       </a>
     </li>
     <li><span class="breadcrumbs--elipsed-item">{% if staff_member %}{{ staff_member }}{% else %}{% trans 'Add staff member' context 'Dashboard add staff member action' %}{% endif %}</span></li>
@@ -40,13 +40,12 @@
 {% block header_extra %}
   {% if user != staff_member and staff_member.pk %}
     <a class="dropdown-button right" href="#" data-activates="context-menu" data-constrainwidth="false">
-      <svg data-src="{% static "dashboard/images/more_vert.svg" %}" height="24" width="24" />
+      <svg data-src="{% static "dashboard/images/more-vert.svg" %}" height="24" width="24" />
     </a>
     <ul id="context-menu" class="dropdown-content">
       {% if perms.userprofile.edit_staff %}
       <li>
-        <a href="#base-modal" data-href="{% url 'dashboard:staff-delete' pk=staff_member.pk %}"
-        class="modal-trigger-custom">
+        <a href="#base-modal" data-href="{% url 'dashboard:staff-delete' pk=staff_member.pk %}" class="modal-trigger-custom">
           {% trans 'Remove staff member' context 'Staff member form action' %}
         </a>
       </li>

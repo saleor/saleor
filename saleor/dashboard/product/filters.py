@@ -1,13 +1,13 @@
 from django import forms
 from django.utils.translation import npgettext, pgettext_lazy
 from django_filters import (
-    CharFilter, ChoiceFilter, ModelMultipleChoiceFilter, RangeFilter,
-    OrderingFilter)
+    CharFilter, ChoiceFilter, ModelMultipleChoiceFilter, OrderingFilter,
+    RangeFilter)
 
 from ...core.filters import SortedFilterSet
-from ..widgets import PriceRangeWidget
 from ...product.models import (
-    Category, Product, ProductAttribute, ProductClass, StockLocation)
+    Category, Product, ProductAttribute, ProductType, StockLocation)
+from ..widgets import PriceRangeWidget
 
 PRODUCT_SORT_BY_FIELDS = {
     'name': pgettext_lazy('Product list sorting option', 'name'),
@@ -16,7 +16,7 @@ PRODUCT_SORT_BY_FIELDS = {
 PRODUCT_ATTRIBUTE_SORT_BY_FIELDS = {
     'name': pgettext_lazy('Product attribute list sorting option', 'name')}
 
-PRODUCT_CLASS_SORT_BY_FIELDS = {
+PRODUCT_TYPE_SORT_BY_FIELDS = {
     'name': pgettext_lazy('Product type list sorting option', 'name')}
 
 STOCK_LOCATION_SORT_BY_FIELDS = {
@@ -35,10 +35,14 @@ class ProductFilter(SortedFilterSet):
     name = CharFilter(
         label=pgettext_lazy('Product list filter label', 'Name'),
         lookup_expr='icontains')
-    categories = ModelMultipleChoiceFilter(
-        label=pgettext_lazy('Product list filter label', 'Categories'),
-        name='categories',
+    category = ModelMultipleChoiceFilter(
+        label=pgettext_lazy('Product list filter label', 'Category'),
+        name='category',
         queryset=Category.objects.all())
+    product_type = ModelMultipleChoiceFilter(
+        label=pgettext_lazy('Product list filter label', 'Product type'),
+        name='product_type',
+        queryset=ProductType.objects.all())
     price = RangeFilter(
         label=pgettext_lazy('Product list filter label', 'Price'),
         name='price',
@@ -78,8 +82,8 @@ class ProductAttributeFilter(SortedFilterSet):
         lookup_expr='icontains')
     sort_by = OrderingFilter(
         label=pgettext_lazy('Product attribute list filter label', 'Sort by'),
-        fields=PRODUCT_CLASS_SORT_BY_FIELDS.keys(),
-        field_labels=PRODUCT_CLASS_SORT_BY_FIELDS)
+        fields=PRODUCT_TYPE_SORT_BY_FIELDS.keys(),
+        field_labels=PRODUCT_TYPE_SORT_BY_FIELDS)
 
     class Meta:
         model = ProductAttribute
@@ -95,17 +99,17 @@ class ProductAttributeFilter(SortedFilterSet):
             number=counter) % {'counter': counter}
 
 
-class ProductClassFilter(SortedFilterSet):
+class ProductTypeFilter(SortedFilterSet):
     name = CharFilter(
         label=pgettext_lazy('Product type list filter label', 'Name'),
         lookup_expr='icontains')
     sort_by = OrderingFilter(
-        label=pgettext_lazy('Product class list filter label', 'Sort by'),
-        fields=PRODUCT_CLASS_SORT_BY_FIELDS.keys(),
-        field_labels=PRODUCT_CLASS_SORT_BY_FIELDS)
+        label=pgettext_lazy('Product type list filter label', 'Sort by'),
+        fields=PRODUCT_TYPE_SORT_BY_FIELDS.keys(),
+        field_labels=PRODUCT_TYPE_SORT_BY_FIELDS)
 
     class Meta:
-        model = ProductClass
+        model = ProductType
         fields = ['name', 'product_attributes', 'variant_attributes']
 
     def get_summary_message(self):

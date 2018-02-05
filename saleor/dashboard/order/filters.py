@@ -2,8 +2,8 @@ from django import forms
 from django.db.models import Q
 from django.utils.translation import npgettext, pgettext_lazy
 from django_filters import (
-    CharFilter, ChoiceFilter, DateFromToRangeFilter, NumberFilter, RangeFilter,
-    OrderingFilter)
+    CharFilter, ChoiceFilter, DateFromToRangeFilter, NumberFilter,
+    OrderingFilter, RangeFilter)
 from payments import PaymentStatus
 
 from ...core.filters import SortedFilterSet
@@ -11,14 +11,12 @@ from ...order import OrderStatus
 from ...order.models import Order
 from ..widgets import DateRangeWidget, PriceRangeWidget
 
-
-SORT_BY_FIELDS = (
+SORT_BY_FIELDS = [
     ('pk', 'pk'),
     ('payments__status', 'payment_status'),
     ('user__email', 'email'),
     ('created', 'created'),
-    ('total_net', 'total')
-)
+    ('total_net', 'total')]
 
 SORT_BY_FIELDS_LABELS = {
     'pk': pgettext_lazy('Order list sorting option', '#'),

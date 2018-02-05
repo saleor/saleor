@@ -95,4 +95,11 @@
       }
     }
   }
+  &__collections {
+    padding-top: $global-padding * 4;
+    h2 {
+      text-align: center;
+      text-transform: uppercase;
+    }
+  }
 }

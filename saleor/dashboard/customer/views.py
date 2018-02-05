@@ -1,14 +1,18 @@
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import permission_required
+from django.db.models import Q
 from django.shortcuts import get_object_or_404, redirect
 from django.template.response import TemplateResponse
 from django.utils.translation import pgettext_lazy
 
+from ...core.templatetags.demo_obfuscators import obfuscate_email
 from ...core.utils import get_paginator_items
 from ...userprofile.models import User
+from ..emails import send_set_password_email
 from ..views import staff_member_required
 from .filters import UserFilter
+from .forms import CustomerForm
 
 
 @staff_member_required
@@ -16,6 +20,9 @@ from .filters import UserFilter
 def customer_list(request):
     customers = (
         User.objects
+        .filter(
+            Q(is_staff=False) | (Q(is_staff=True) & Q(orders__isnull=False)))
+        .distinct()
         .prefetch_related('orders', 'addresses')
         .select_related('default_billing_address', 'default_shipping_address')
         .order_by('email'))
@@ -34,7 +41,7 @@ def customer_list(request):
 def customer_details(request, pk):
     queryset = User.objects.prefetch_related(
         'orders', 'addresses').select_related(
-        'default_billing_address', 'default_shipping_address')
+            'default_billing_address', 'default_shipping_address')
     customer = get_object_or_404(queryset, pk=pk)
     customer_orders = customer.orders.all()
     ctx = {'customer': customer, 'customer_orders': customer_orders}
@@ -42,18 +49,32 @@ def customer_details(request, pk):
 
 
 @staff_member_required
-@permission_required('userprofile.edit_staff')
 @permission_required('userprofile.edit_user')
-def customer_promote_to_staff(request, pk):
-    customer = get_object_or_404(User, pk=pk)
-    if request.method == 'POST':
-        customer.is_staff = True
-        customer.save()
+def customer_create(request):
+    customer = User()
+    form = CustomerForm(request.POST or None, instance=customer)
+    if form.is_valid():
+        form.save()
         msg = pgettext_lazy(
-            'Dashboard message',
-            'Customer %s promoted to staff member') % customer
+            'Dashboard message', 'Added customer %s' % customer)
+        send_set_password_email(customer)
         messages.success(request, msg)
         return redirect('dashboard:customer-details', pk=customer.pk)
-    return TemplateResponse(
-        request, 'dashboard/customer/modal/confirm_promote.html',
-        {'customer': customer})
+    ctx = {'form': form, 'customer': customer}
+    return TemplateResponse(request, 'dashboard/customer/form.html', ctx)
+
+
+@staff_member_required
+@permission_required('userprofile.edit_user')
+def customer_edit(request, pk=None):
+    customer = get_object_or_404(User, pk=pk)
+    customer.email = obfuscate_email(customer.email)
+    form = CustomerForm(request.POST or None, instance=customer)
+    if form.is_valid():
+        form.save()
+        msg = pgettext_lazy(
+            'Dashboard message', 'Updated customer %s' % customer)
+        messages.success(request, msg)
+        return redirect('dashboard:customer-details', pk=customer.pk)
+    ctx = {'form': form, 'customer': customer}
+    return TemplateResponse(request, 'dashboard/customer/form.html', ctx)

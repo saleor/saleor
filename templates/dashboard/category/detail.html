@@ -19,7 +19,7 @@
     {% else %}
       {% url 'dashboard:category-list' as url %}
     {% endif %}
-    {% include "dashboard/includes/_back-link.html" with url=url %}
+    {% include "dashboard/includes/_back_link.html" with url=url %}
   {% else %}
     {{ block.super }}
   {% endif %}
@@ -43,8 +43,7 @@
     {% if path %}
       <li class="back-mobile">
         <a href="{% url 'dashboard:category-list' %}">
-          <svg data-src="{% static 'dashboard/images/arrow_left.svg' %}" fill="#fff"
-               width="20px" height="20px"/>
+          <svg data-src="{% static 'dashboard/images/arrow-left.svg' %}" fill="#fff" width="20px" height="20px"/>
         </a>
       </li>
       {% for node in path %}
@@ -56,9 +55,7 @@
           </li>
         {% else %}
           <li class="hide-on-med-and-down">
-            <a title="{{ node.name }}"
-               href="{% url 'dashboard:category-detail' pk=node.pk %}"
-               class="breadcrumbs--ellipsed-item">
+            <a href="{% url 'dashboard:category-detail' pk=node.pk %}" title="{{ node.name }}" class="breadcrumbs--ellipsed-item">
               {{ node.name }}
             </a>
           </li>
@@ -81,7 +78,7 @@
             </span>
             <div class="row">
               {% if root.description %}
-                <div class="col s12 l8">
+                <div class="col s12">
                   <h4>
                     {% trans "Description" context "Category field" %}
                   </h4>
@@ -91,27 +88,13 @@
                 </div>
               {% endif %}
             </div>
-            {% if root.is_hidden %}
-              <div class="row">
-                <div class="col s12 l8">
-                  <h4>
-                    {% trans "Hidden" context "Category field" %}
-                  </h4>
-                  {% blocktrans trimmed context "Category detail is hidden text" %}
-                    This category is hidden on storefront
-                  {% endblocktrans %}
-                </div>
-              </div>
-            {% endif %}
           </div>
           {% if perms.product.edit_category %}
           <div class="card-action">
             <a class="btn-flat waves-effect" href="{% url 'dashboard:category-edit' root_pk=root.pk %}">
               {% trans "Edit category" context "Category detail view action" %}
             </a>
-            <a class="btn-flat waves-effect modal-trigger-custom"
-             data-href="{% url 'dashboard:category-delete' pk=root.pk %}"
-             href="#base-modal">
+            <a href="#base-modal" class="btn-flat waves-effect modal-trigger-custom" data-href="{% url 'dashboard:category-delete' pk=root.pk %}">
               {% trans "Remove category" context "Category detail view action" %}
             </a>
           </div>
@@ -161,9 +144,7 @@
                         <a href="{% url 'dashboard:category-edit' root_pk=node.pk %}" class="btn-flat waves-effect">
                           {% trans 'Edit' context 'Category edit action' %}
                         </a>
-                        <a class="btn-flat waves-effect modal-trigger-custom"
-                         data-href="{% url 'dashboard:category-delete' pk=node.pk %}"
-                         href="#base-modal">
+                        <a href="#base-modal" class="btn-flat waves-effect modal-trigger-custom" data-href="{% url 'dashboard:category-delete' pk=node.pk %}">
                           {% trans "Remove" context "Category list action link" %}
                         </a>
                       </td>

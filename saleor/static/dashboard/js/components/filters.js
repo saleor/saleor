@@ -1,4 +1,4 @@
-import {screenSizes} from './misc';
+import { screenSizes } from './misc';
 
 let prevWindowWidth = null;
 let initialized = false;
@@ -22,19 +22,19 @@ const moveFilters = () => {
   }
 };
 
-export default $(document).ready(() => {
-  $list = $filters.prev();
-  if ($filters.length) {
-    moveFilters();
-    $(window).on('resize', moveFilters);
-  }
+// -----
 
-  $('.collapse-activate').on('click', (e) => {
-    const $collapsibleCard = $('.collapse');
-    if ($collapsibleCard.hasClass('collapsed')) {
-      $collapsibleCard.removeClass('collapsed');
-    } else {
-      $collapsibleCard.addClass('collapsed');
-    }
-  });
+$list = $filters.prev();
+if ($filters.length) {
+  moveFilters();
+  $(window).on('resize', moveFilters);
+}
+
+$('.collapse-activate').on('click', (e) => {
+  const $collapsibleCard = $('.collapse');
+  if ($collapsibleCard.hasClass('collapsed')) {
+    $collapsibleCard.removeClass('collapsed');
+  } else {
+    $collapsibleCard.addClass('collapsed');
+  }
 });

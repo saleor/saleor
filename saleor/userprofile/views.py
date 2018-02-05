@@ -45,11 +45,12 @@ def address_edit(request, pk):
         country_code=address.country.code)
     if address_form.is_valid() and not preview:
         address_form.save()
-        message = pgettext('Storefront message', 'Address successfully updated.')
+        message = pgettext(
+            'Storefront message', 'Address successfully updated.')
         messages.success(request, message)
         return HttpResponseRedirect(reverse('profile:details') + '#addresses')
     return TemplateResponse(
-        request, 'userprofile/address-edit.html',
+        request, 'userprofile/address_edit.html',
         {'address_form': address_form})
 
 
@@ -63,4 +64,4 @@ def address_delete(request, pk):
             pgettext('Storefront message', 'Address successfully removed'))
         return HttpResponseRedirect(reverse('profile:details') + '#addresses')
     return TemplateResponse(
-        request, 'userprofile/address-delete.html', {'address': address})
+        request, 'userprofile/address_delete.html', {'address': address})

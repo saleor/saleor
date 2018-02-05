@@ -1,0 +1,30 @@
+<mjml>
+  <mj-head>
+    <mj-include path="../../shared/styles" />
+  </mj-head>
+  <mj-body>
+    <mj-container>
+      <mj-section css-class="no-display">
+        <mj-column>
+          <mj-text>
+            {% load i18n %}
+          </mj-text>
+        </mj-column>
+      </mj-section>
+      <mj-include path="../../shared/header" />
+      <mj-section>
+        <mj-column>
+          <mj-text font-size="16px">
+            {% trans "Hi!" context "Note confirmation e-mail text" %}
+          </mj-text>
+          <mj-text>
+            {% blocktrans trimmed context "Note confirmation e-mail text" %}
+              A new note has been added to your order. To see details please visit: <a href="{{ url }}">{{ url }}</a>
+            {% endblocktrans %}
+          </mj-text>
+        </mj-column>
+      </mj-section>
+      <mj-include path="../../shared/footer" />
+    </mj-container>
+  </mj-body>
+</mjml>

@@ -1,19 +1,18 @@
 import logging
-from django.dispatch import receiver
-from payments.signals import status_changed
+
+from django.utils.translation import pgettext_lazy
 
 from ..core import analytics
 
 logger = logging.getLogger(__name__)
 
 
-@receiver(status_changed)
 def order_status_change(sender, instance, **kwargs):
-    """Handles payment status change and sets suitable order status."""
+    """Handle payment status change and set suitable order status."""
     order = instance.order
     if order.is_fully_paid():
         order.create_history_entry(
-            status=order.status, comment=pgettext_lazy(
+            content=pgettext_lazy(
                 'Order status history entry', 'Order fully paid'))
         instance.send_confirmation_email()
         try:

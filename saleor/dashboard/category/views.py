@@ -45,8 +45,7 @@ def category_create(request, root_pk=None):
                 'Dashboard message', 'Added category %s') % category)
         if root_pk:
             return redirect('dashboard:category-detail', pk=root_pk)
-        else:
-            return redirect('dashboard:category-list')
+        return redirect('dashboard:category-list')
     ctx = {'category': category, 'form': form, 'path': path}
     return TemplateResponse(request, 'dashboard/category/form.html', ctx)
 
@@ -70,8 +69,7 @@ def category_edit(request, root_pk=None):
                 'Dashboard message', 'Updated category %s') % category)
         if root_pk:
             return redirect('dashboard:category-detail', pk=root_pk)
-        else:
-            return redirect('dashboard:category-list')
+        return redirect('dashboard:category-list')
     elif form.errors:
         status = 400
     ctx = {'category': category, 'form': form, 'status': status, 'path': path}

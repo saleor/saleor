@@ -1,13 +1,13 @@
-from django.contrib.postgres.search import (SearchVector, SearchQuery,
-                                            SearchRank)
+from django.contrib.postgres.search import (
+    SearchQuery, SearchRank, SearchVector)
 
-from ...product.models import Product
 from ...order.models import Order
+from ...product.models import Product
 from ...userprofile.models import User
 
 
 def search_products(phrase):
-    '''Dashboard full text product search'''
+    """Return matching products for dashboard views."""
     sv = (SearchVector('name', weight='A') +
           SearchVector('description', weight='B'))
     rank = SearchRank(sv, SearchQuery(phrase))
@@ -16,12 +16,11 @@ def search_products(phrase):
 
 
 def search_orders(phrase):
-    '''Dashboard full text order search
+    """Return matching orders for dashboard views.
 
     When phrase is convertable to int, no full text search is performed,
-    just order with according id is looked up.
-
-    '''
+    just order with matching id is looked up.
+    """
     try:
         order_id = int(phrase.strip())
         return Order.objects.filter(id=order_id)
@@ -29,8 +28,8 @@ def search_orders(phrase):
         pass
 
     sv = (
-        SearchVector('user__default_shipping_address__first_name',
-                     weight='B') +
+        SearchVector(
+            'user__default_shipping_address__first_name', weight='B') +
         SearchVector('user__default_shipping_address__last_name', weight='B') +
         SearchVector('user__email', weight='A'))
     rank = SearchRank(sv, SearchQuery(phrase))
@@ -39,7 +38,7 @@ def search_orders(phrase):
 
 
 def search_users(phrase):
-    '''Dashboard full text user search'''
+    """Return matching users for dashboard views."""
     sv = (SearchVector('email', weight='A') +
           SearchVector('default_billing_address__first_name', weight='B') +
           SearchVector('default_billing_address__last_name', weight='B'))
@@ -49,16 +48,14 @@ def search_users(phrase):
 
 
 def search(phrase):
-    '''Dashboard full text postgres products, orders and users search
+    """Return all matching objects for dashboard views.
 
-    Composes independent search querysets into dictionary result.
+    Composes independent search querysets into a single dictionary.
 
     Args:
         phrase (str): searched phrase
-
-    '''
+    """
     return {
         'products': search_products(phrase),
         'orders': search_orders(phrase),
-        'users': search_users(phrase)
-    }
+        'users': search_users(phrase)}

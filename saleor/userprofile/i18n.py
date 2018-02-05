@@ -9,7 +9,7 @@ from phonenumber_field.formfields import PhoneNumberField
 
 from .models import Address
 from .validators import validate_possible_number
-from .widgets import PhonePrefixWidget
+from .widgets import DatalistTextWidget, PhonePrefixWidget
 
 COUNTRY_FORMS = {}
 UNKNOWN_COUNTRIES = set()
@@ -39,17 +39,19 @@ AREA_TYPE_TRANSLATIONS = {
 
 
 class PossiblePhoneNumberFormField(PhoneNumberField):
-    """
-    Modify PhoneNumberField form field to allow using phone numbers from
-    countries other than selected one.
-    To achieve this both default_validator attribute and to_python method needs
-    to be overwritten.
-    """
+    """A PhoneNumberField that allows phone numbers from other countries."""
 
     default_validators = [validate_possible_number]
 
     def to_python(self, value):
         return value
+
+
+class CountryAreaChoiceField(forms.ChoiceField):
+    widget = DatalistTextWidget
+
+    def valid_value(self, value):
+        return True
 
 
 class AddressMetaForm(forms.ModelForm):
@@ -59,6 +61,9 @@ class AddressMetaForm(forms.ModelForm):
     class Meta:
         model = Address
         fields = ['country', 'preview']
+        labels = {
+            'country': pgettext_lazy(
+                'Country', 'Country')}
 
     def clean(self):
         data = super().clean()
@@ -70,7 +75,7 @@ class AddressMetaForm(forms.ModelForm):
 
 class AddressForm(forms.ModelForm):
 
-    AUTOCOMPLETE_MAPPING = (
+    AUTOCOMPLETE_MAPPING = [
         ('first_name', 'given-name'),
         ('last_name', 'family-name'),
         ('company_name', 'organization'),
@@ -82,12 +87,34 @@ class AddressForm(forms.ModelForm):
         ('country', 'country'),
         ('city_area', 'address-level3'),
         ('phone', 'tel'),
-        ('email', 'email')
-    )
+        ('email', 'email')]
 
     class Meta:
         model = Address
         exclude = []
+        labels = {
+            'first_name': pgettext_lazy(
+                'Personal name', 'Given name'),
+            'last_name': pgettext_lazy(
+                'Personal name', 'Family name'),
+            'company_name': pgettext_lazy(
+                'Company or organization', 'Company or organization'),
+            'street_address_1': pgettext_lazy(
+                'Address', 'Address'),
+            'street_address_2': pgettext_lazy(
+                'Address', 'Address'),
+            'city': pgettext_lazy(
+                'City', 'City'),
+            'city_area': pgettext_lazy(
+                'City area', 'District'),
+            'postal_code': pgettext_lazy(
+                'Postal code', 'Postal code'),
+            'country': pgettext_lazy(
+                'Country', 'Country'),
+            'country_area': pgettext_lazy(
+                'Country area', 'State or province'),
+            'phone': pgettext_lazy(
+                'Phone number', 'Phone number')}
 
     phone = PossiblePhoneNumberFormField(
         widget=PhonePrefixWidget, required=False)
@@ -108,7 +135,7 @@ class AddressForm(forms.ModelForm):
 
 class CountryAwareAddressForm(AddressForm):
 
-    I18N_MAPPING = (
+    I18N_MAPPING = [
         ('name', ['first_name', 'last_name']),
         ('street_address', ['street_address_1', 'street_address_2']),
         ('city_area', ['city_area']),
@@ -117,7 +144,7 @@ class CountryAwareAddressForm(AddressForm):
         ('postal_code', ['postal_code']),
         ('city', ['city']),
         ('sorting_code', []),
-        ('country_code', ['country']))
+        ('country_code', ['country'])]
 
     class Meta:
         model = Address
@@ -182,6 +209,10 @@ def get_form_i18n_lines(form_instance):
 
 
 def update_base_fields(form_class, i18n_rules):
+    if i18n_rules.country_area_choices:
+        form_class.base_fields['country_area'] = CountryAreaChoiceField(
+            choices=i18n_rules.country_area_choices)
+
     labels_map = {
         'country_area': i18n_rules.country_area_type,
         'postal_code': i18n_rules.postal_code_type,

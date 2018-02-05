@@ -1,0 +1,19 @@
+{% extends "order/payment/details.html" %}
+
+{% load bootstrap_form from bootstrap4 %}
+{% load gross from prices_i18n %}
+{% load i18n %}
+
+{% block forms %}
+  <form method="post" class="form-horizontal" novalidate>
+    {% csrf_token %}
+    {% bootstrap_form form layout="horizontal" %}
+    <div class="form-group">
+      <div class="col-sm-10 m-auto">
+        <button type="submit" class="btn primary">
+          {% trans "Save changes" context "Payment form (PayPal) primary action" %}
+        </button>
+      </div>
+    </div>
+  </form>
+{% endblock forms %}

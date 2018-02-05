@@ -1,7 +1,7 @@
 import React from 'react';
 import InlineSVG from 'react-inlinesvg';
 
-import noResultsImg from '../../../images/pirate.svg';
+import noResultsImg from '../../../images/pirate_404_v1.svg';
 
 const NoResults = () => {
   return (

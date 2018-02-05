@@ -1,0 +1,31 @@
+{% load static %}
+
+<nav class="data-table-bulk-actions">
+  <div class="data-table-bulk-actions__select-all"></div>
+  <div class="data-table-bulk-actions__selected-items col inline"></div>
+  <div class="data-table-bulk-actions__action-choice">
+    <ul class="right">
+      {% for action, label in bulk_action_form.action.field.widget.choices %}
+        <li>
+          <a href=""
+             data-action="{{ action }}"
+             class="btn-flat waves-effect">{{ label|upper }}</a>
+        </li>
+      {% endfor %}
+    </ul>
+  </div>
+  <div class="data-table-bulk-actions__dropdown-container">
+    <a class="dropdown-button right" href="#!" data-activates="dropdown-bulk-actions" data-constrainwidth="false" data-gutter="-19" data-alignment="right">
+      <svg data-src="{% static "dashboard/images/more-vert.svg" %}" height="24" width="24" />
+    </a>
+    <ul id="dropdown-bulk-actions" class="dropdown-content">
+    {% for action, label in bulk_action_form.action.field.widget.choices %}
+      <li>
+        <a href=""
+           data-action="{{ action }}"
+           class="btn-flat waves-effect">{{ label|upper }}</a>
+      </li>
+    {% endfor %}
+  </ul>
+  </div>
+</nav>

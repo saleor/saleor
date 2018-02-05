@@ -12,7 +12,7 @@
 <body>
 <header>
   <div style="float:left">
-    <img src="{% static '/images/logo_document.svg' %}">
+    <img src="{% static '/images/logo-document.svg' %}">
   </div>
   <div
       style="float:right">{{ group.order.created }}<br>{% trans "Order ID:" context "Packing slip header" %} {{ group.order.id }}
@@ -22,21 +22,29 @@
 <h2>{% trans "Packing Slips" context "Packing slips header" %}</h2>
 <table width="100%" border="1" cellspacing="0">
   <thead>
-  <tr>
-    <th align="left" width="50%">{% trans "Shipping Details" context "Packing slip shipping details" %}</th>
-    <th align="left" width="50%">{% trans "Billing Details" context "Packing slip shipping details" %}</th>
-  </tr>
-  </thead>
+    <tr>
+      {% if group.order.shipping_address %}
+        <th align="left" width="50%">
+          {% trans "Shipping Details" context "Packing slip shipping details" %}
+        </th>
+      {% endif %}
+      <th align="left"{% if group.order.shipping_address %} width="50%"{% endif %}>
+        {% trans "Billing Details" context "Packing slip shipping details" %}
+      </th>
+    </tr>
+    </thead>
   <tbody>
   <tr>
-    <td valign="top">
-      {% with group.order.shipping_address as address %}
-        <h2>
-          {% trans "Shipping address" context "Packing slip shipping address" %}
-        </h2>
-        {% include 'dashboard/includes/_address.html' with address=address only %}
-      {% endwith %}
-    </td>
+    {% if group.order.shipping_address %}
+      <td valign="top">
+        {% with group.order.shipping_address as address %}
+          <h2>
+            {% trans "Shipping address" context "Packing slip shipping address" %}
+          </h2>
+          {% include 'dashboard/includes/_address.html' with address=address only %}
+        {% endwith %}
+      </td>
+    {% endif %}
     <td valign="top">
       {% with group.order.billing_address as address %}
         <h2>
@@ -53,32 +61,32 @@
 {% if group %}
   <table class="bordered data-table">
     <thead>
-    <tr>
-      <th class="wide">
-        {% trans "Item" context "Shipment group table header" %}
-      </th>
-      <th>
-        {% trans "SKU" context "Shipment group table header" %}
-      </th>
-      <th class="right-align">
-        {% trans "Quantity" context "Shipment group table header" %}
-      </th>
-    </tr>
+      <tr>
+        <th class="wide">
+          {% trans "Item" context "Shipment group table header" %}
+        </th>
+        <th>
+          {% trans "SKU" context "Shipment group table header" %}
+        </th>
+        <th class="right-align">
+          {% trans "Quantity" context "Shipment group table header" %}
+        </th>
+      </tr>
     </thead>
     <tbody>
-    {% for line in group.lines.all %}
-      <tr>
-        <td>
-          {{ line.product_name }}<br>
-        </td>
-        <td>
-          {{ line.product_sku }}
-        </td>
-        <td class="right-align">
-          {{ line.quantity }}
-        </td>
-      </tr>
-    {% endfor %}
+      {% for line in group.lines.all %}
+        <tr>
+          <td>
+            {{ line.product_name }}<br>
+          </td>
+          <td>
+            {{ line.product_sku }}
+          </td>
+          <td class="right-align">
+            {{ line.quantity }}
+          </td>
+        </tr>
+      {% endfor %}
     </tbody>
   </table>
 {% endif %}

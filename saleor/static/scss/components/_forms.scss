@@ -66,6 +66,10 @@
 .search-form {
   width: 100%;
   position: relative;
+  transition: $transition-base;
+  &.search-form--hidden {
+    transform: translateX(-100vw);
+  }
   &__close-icon {
     position: absolute;
     cursor: pointer;
@@ -97,7 +101,7 @@
   }
   @include media-breakpoint-down(sm) {
     display: block;
-    left: -100vw;
+    left: 0;
     position: absolute;
     max-width: 100%;
     float: right;
@@ -128,9 +132,14 @@ input#id_quantity {
 }
 
 .help-block {
-  color: $red;
   font-size: 0.8rem;
   margin-top: $global-margin / 2;
+}
+
+.has-error {
+  .help-block {
+    color: $red;
+  }
 }
 
 .radio {
@@ -173,5 +182,5 @@ input#id_quantity {
 select.form-control {
   appearance: none;
   border-radius: 2px;
-  background: url('../images/arrow_select.svg') 100% 50% no-repeat / 24px 14px;
+  background: url('../images/arrow-select.svg') 100% 50% no-repeat / 24px 14px;
 }

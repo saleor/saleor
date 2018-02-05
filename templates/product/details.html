@@ -8,6 +8,7 @@
 {% load staticfiles %}
 {% load get_thumbnail product_first_image from product_images %}
 {% load build_absolute_uri from urls %}
+{% load placeholder %}
 
 {% block title %}{{ product }} — {{ block.super }}{% endblock %}
 
@@ -33,15 +34,19 @@
 
 {% block breadcrumb %}
   <ul class="breadcrumbs list-unstyled">
-    <li><a href="{% url 'home' %}">
+    <li>
+      <a href="{% url 'home' %}">
         {% trans "Home" context "Main navigation item" %}
-    </a></li>
-    {% with product.get_first_category as category %}
-      {% if category %}
-        <li><a href="{{ category.get_absolute_url }}">{{ category }}</a></li>
-      {% endif %}
-    {% endwith %}
-    <li><a href="{{ product.get_absolute_url }}">{{ product }}</a></li>
+      </a>
+    </li>
+    {% if product.category %}
+      <li>
+        <a href="{{ product.category.get_absolute_url }}">{{ product.category }}</a>
+      </li>
+    {% endif %}
+    <li>
+      <a href="{{ product.get_absolute_url }}">{{ product }}</a>
+    </li>
   </ul>
 {% endblock breadcrumb %}
 
@@ -49,15 +54,13 @@
   {% if not is_visible %}
     <div class="alert alert-warning" role="alert">
       {% blocktrans trimmed with date=product.available_on|date context "Product details text" %}
-          <strong>Warning!</strong>
-          You are previewing a product that will become visible on <strong>{{ date }}</strong>.
+        <strong>Warning!</strong>
+        You are previewing a product that will become visible on <strong>{{ date }}</strong>.
       {% endblocktrans %}
     </div>
   {% endif %}
   <div class="row product">
-    <div id="product-schema-component">
-      <script type="application/ld+json">{{ json_ld_product_data|safe }}</script>
-    </div>
+    <script type="application/ld+json">{{ json_ld_product_data|safe }}</script>
     <div class="col-md-6 col-12 product__gallery">
       {% with images=product_images %}
         {% if images %}
@@ -65,37 +68,41 @@
             <div class="carousel-inner" role="listbox">
               {% for image in images %}
                 <div class="carousel-item{% if forloop.first %} active{% endif %}">
-                  <img class="d-block img-fluid"
-                       src="{% get_thumbnail image.image method="crop" size="540x540" %}"
-                       srcset="{% get_thumbnail image.image method="crop" size="540x540" %} 1x, {% get_thumbnail image.image method="crop" size="1080x1080" %} 2x" alt="">
+                  <img class="d-block img-fluid lazyload lazypreload"
+                       data-src="{% get_thumbnail image.image method="crop" size="540x540" %}"
+                       data-srcset="{% get_thumbnail image.image method="crop" size="540x540" %} 1x, {% get_thumbnail image.image method="crop" size="1080x1080" %} 2x"
+                       alt=""
+                       src="{% placeholder size=540 %}">
                 </div>
               {% endfor %}
             </div>
             {% if images|length > 1 %}
               <a class="carousel-control-prev" href="#carousel-example-generic" role="button" data-slide="prev">
-                <svg data-src="{% static "images/gallery_arrow.svg" %}" />
+                <svg data-src="{% static "images/gallery-arrow.svg" %}" />
               </a>
               <a class="carousel-control-next" href="#carousel-example-generic" role="button" data-slide="next">
-                <svg data-src="{% static "images/gallery_arrow.svg" %}" />
+                <svg data-src="{% static "images/gallery-arrow.svg" %}" />
               </a>
             {% endif %}
             <ol class="carousel-indicators d-none d-md-block">
               {% for image in images %}
                 {% if images|length > 1 %}
                   <li data-target="#carousel-example-generic" data-slide-to="{{ forloop.counter0 }}"{% if forloop.first %} class="active"{% endif %}>
-                    <img src="{% get_thumbnail image.image method="crop" size="60x60" %}"
-                         srcset="{% get_thumbnail image.image method="crop" size="60x60" %} 1x, {% get_thumbnail image.image method="crop" size="120x120" %} 2x"
-                         alt="">
+                    <img data-src="{% get_thumbnail image.image method="crop" size="60x60" %}"
+                         data-srcset="{% get_thumbnail image.image method="crop" size="60x60" %} 1x, {% get_thumbnail image.image method="crop" size="120x120" %} 2x"
+                         alt=""
+                         class="lazyload lazypreload"
+                         src="{% placeholder size=60 %}">
                   </li>
                 {% endif %}
               {% endfor %}
             </ol>
           </div>
         {% else %}
-          <img src="{% static 'images/placeholder540x540.png' %}"
-               srcset="{% static 'images/placeholder540x540.png' %} 1x, {% static 'images/placeholder1080x1080.png' %} 2x"
+          <img data-src="{% placeholder size=540 %}"
+               data-srcset="{% placeholder size=540 %} 1x, {% placeholder size=1080 %} 2x"
                alt=""
-               class="img-fluid">
+               class="img-fluid lazyload lazypreload">
         {% endif %}
       {% endwith %}
     </div>
@@ -104,9 +111,11 @@
         {{ product }}
       </h1>
       {% if user.is_staff %}
-        <p><a href="{% url "dashboard:product-detail" pk=product.pk %}">
+        <p>
+          <a href="{% url "dashboard:product-detail" pk=product.pk %}">
             {% trans "Edit in dashboard" context "Product details link text" %}
-        </a></p>
+          </a>
+        </p>
       {% endif %}
       {% if availability.available %}
         {% if show_variant_picker %}
@@ -133,8 +142,7 @@
             {% csrf_token %}
             <div id="variant-picker" data-variant-picker-data="{{ variant_picker_data }}" data-action="{% url 'product:add-to-cart' product_id=product.pk slug=product.get_slug %}"></div>
           {% else %}
-            <form id="product-form" role="form" class="product-form clearfix" method="post"
-                  action="{% url 'product:add-to-cart' product_id=product.pk slug=product.get_slug %}" novalidate>
+            <form id="product-form" role="form" class="product-form clearfix" method="post" action="{% url 'product:add-to-cart' product_id=product.pk slug=product.get_slug %}" novalidate>
               {% csrf_token %}
               {% bootstrap_field form.variant %}
               <div class="product__info__quantity">
@@ -161,7 +169,7 @@
       <div class="product__info__description">
         <h3>{% trans "Description" context "Product details title" %}</h3>
         <hr>
-        {{ product.description|markdown }}
+        {{ product.description|safe }}
       </div>
       <hr>
       <table>

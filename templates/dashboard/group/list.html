@@ -14,11 +14,8 @@
 
 {% block header_extra %}
   {% if perms.userprofile.edit_group %}
-
     <div class="btn-fab-fixed">
-      <a class="btn-fab-default waves-effect waves-light"
-        title="{% trans "Add group" context "Group list add button text" %}"
-        href="{% url 'dashboard:group-create' %}">
+      <a href="{% url 'dashboard:group-create' %}" class="btn-fab-default waves-effect waves-light" title="{% trans "Add group" context "Group list add button text" %}">
         <svg data-src="{% static "dashboard/images/add.svg" %}" />
       </a>
     </div>
@@ -50,18 +47,18 @@
                 </tr>
               </thead>
               <tbody>
-              {% for group in groups %}
-                <tr data-action-go="{% if perms.userprofile.edit_group %}{% url 'dashboard:group-details' pk=group.name.pk %}{% endif %}">
-                  <td>
-                    {{ group.name }}
-                  </td>
-                  <td class="nowrap">
-                    {% for permission in group.permissions %}
-                      {{ permission.name }},
-                    {% endfor %}
-                  </td>
-                </tr>
-              {% endfor %}
+                {% for group in groups %}
+                  <tr data-action-go="{% if perms.userprofile.edit_group %}{% url 'dashboard:group-details' pk=group.name.pk %}{% endif %}">
+                    <td>
+                      {{ group.name }}
+                    </td>
+                    <td class="nowrap">
+                      {% for permission in group.permissions %}
+                        {{ permission.name }},
+                      {% endfor %}
+                    </td>
+                  </tr>
+                {% endfor %}
               </tbody>
             </table>
           </div>

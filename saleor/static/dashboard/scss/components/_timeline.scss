@@ -37,7 +37,6 @@
       }
       .content {
         margin-left: 3rem;
-        padding-left: $timeline-status-width;
         min-height: 1.5rem;
         position: relative;
         top: calc(#{$timeline-circle-radius} + #{$timeline-width} + .5px - #{$label-font-size} + .1rem);
@@ -69,7 +68,7 @@
         .content {
           position: relative;
           top: calc(#{$timeline-circle-radius} + #{$timeline-width} + .5px - #{$label-font-size} - .5rem);
-          padding-left: if($timeline-date-width > $timeline-status-width, $timeline-date-width, $timeline-status-width);
+          padding-left: $timeline-date-width;
         }
       }
     }

@@ -11,8 +11,8 @@ from prices import PriceRange
 from satchless.item import InsufficientStock
 
 from . import CartStatus
-from .models import Cart
 from ..core.utils import to_local_currency
+from .models import Cart
 
 COOKIE_NAME = 'cart'
 
@@ -77,11 +77,8 @@ def get_category_variants_and_prices(cart, root_category):
     products = {cart_line.variant.product for cart_line in cart.lines.all()}
     matching_products = set()
     for product in products:
-        for category in product.categories.all():
-            is_descendant = category.is_descendant_of(
-                root_category, include_self=True)
-            if is_descendant:
-                matching_products.add(product)
+        if product.category.is_descendant_of(root_category, include_self=True):
+            matching_products.add(product)
     for product in matching_products:
         for line in get_product_variants_and_prices(cart, product):
             yield line

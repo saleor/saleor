@@ -1,0 +1,3 @@
+<address class="formatted-address{% if inline %} inline-address{% endif %}">
+  {% if inline %}{{ address_lines|join:', ' }}{% else %}{{ address_lines|join:'<br>' }}{% endif %}
+</address>

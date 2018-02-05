@@ -47,11 +47,13 @@ class UserDocument(DocType):
         address = instance.default_billing_address
         if address:
             return address.first_name
+        return None
 
     def prepare_last_name(self, instance):
         address = instance.default_billing_address
         if address:
             return address.last_name
+        return None
 
     class Meta:
         model = User
@@ -69,8 +71,7 @@ class OrderDocument(DocType):
     def prepare_user(self, instance):
         if instance.user:
             return instance.user.email
-        else:
-            return instance.user_email
+        return instance.user_email
 
     class Meta:
         model = Order

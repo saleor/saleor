@@ -1,6 +1,7 @@
 from unittest.mock import Mock
 
 import pytest
+from django.shortcuts import reverse
 
 from saleor.core.utils import (
     Country, create_superuser, get_country_by_ip, get_currency_for_country,
@@ -12,17 +13,16 @@ from saleor.shipping.models import ShippingMethod
 from saleor.userprofile.models import Address, User
 
 
-class_schema = {'Vegetable': {
-                   'category': 'Food',
-                   'product_attributes': {
-                       'Sweetness': ['Sweet', 'Sour'],
-                       'Healthiness': ['Healthy', 'Not really']
-                   },
-                   'variant_attributes': {
-                       'GMO': ['Yes', 'No']
-                   },
-                   'images_dir': 'candy/',
-                   'is_shipping_required': True}}
+type_schema = {
+    'Vegetable': {
+        'category': 'Food',
+        'product_attributes': {
+            'Sweetness': ['Sweet', 'Sour'],
+            'Healthiness': ['Healthy', 'Not really']},
+        'variant_attributes': {
+            'GMO': ['Yes', 'No']},
+        'images_dir': 'candy/',
+        'is_shipping_required': True}}
 
 
 @pytest.mark.parametrize('ip_data, expected_country', [
@@ -102,21 +102,23 @@ def test_create_attribute(db):
     assert attribute.slug == data['slug']
 
 
-def test_create_product_classes_by_schema(db):
-    p_class = random_data.create_product_classes_by_schema(class_schema)[0][0]
-    assert p_class.name == 'Vegetable'
-    assert p_class.product_attributes.count() == 2
-    assert p_class.variant_attributes.count() == 1
-    assert p_class.is_shipping_required
+def test_create_product_types_by_schema(db):
+    product_type = random_data.create_product_types_by_schema(
+        type_schema)[0][0]
+    assert product_type.name == 'Vegetable'
+    assert product_type.product_attributes.count() == 2
+    assert product_type.variant_attributes.count() == 1
+    assert product_type.is_shipping_required
 
 
-def test_create_products_by_class(db):
+def test_create_products_by_type(db):
     assert Product.objects.all().count() == 0
     how_many = 5
-    p_class = random_data.create_product_classes_by_schema(class_schema)[0][0]
-    random_data.create_products_by_class(p_class, class_schema['Vegetable'],
-                                         '/', how_many=how_many,
-                                         create_images=False)
+    product_type = random_data.create_product_types_by_schema(
+        type_schema)[0][0]
+    random_data.create_products_by_type(
+        product_type, type_schema['Vegetable'], '/',
+        how_many=how_many, create_images=False)
     assert Product.objects.all().count() == how_many
 
 
@@ -144,3 +146,12 @@ def test_create_vouchers(db):
     for _ in random_data.create_vouchers():
         pass
     assert Voucher.objects.all().count() == 2
+
+
+def test_manifest(client, site_settings):
+    response = client.get(reverse('manifest'))
+    assert response.status_code == 200
+    content = response.json()
+    assert content['name'] == site_settings.site.name
+    assert content['short_name'] == site_settings.site.name
+    assert content['description'] == site_settings.description
