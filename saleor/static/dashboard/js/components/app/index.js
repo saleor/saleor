@@ -54,9 +54,8 @@ render(
                        component={route.component}
                        exact />
                 {route.param && (
-                  <Route path={(() => `/${route.path}/${route.param ? (':' + route.param) : ''}`)()}
-                         component={route.component}
-                         exact />
+                  <Route path={(() => `/${route.path}/:${route.param}`)()}
+                         component={route.component} />
                 )}
               </div>
             ))}
