@@ -1,4 +1,4 @@
-export default $(document).on('submit', '.form-async', function (e) {
+const onAsyncFormSubmit = (e) => {
   const $target = $(e.currentTarget);
   $.ajax({
     url: $target.attr('action'),
@@ -15,7 +15,7 @@ export default $(document).on('submit', '.form-async', function (e) {
     }
   });
   e.preventDefault();
-});
+};
 
 const onModalClose = () => $('.modal').modal('close');
 
