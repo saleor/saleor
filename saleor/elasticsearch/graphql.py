@@ -14,7 +14,7 @@ class SearchableType(graphene.Interface):
 
     @classmethod
     def resolve_type(cls, instance, context, info):
-        type = instance.meta.doc_type
+        type = instance.hit.meta.doc_type
         if type == 'release':
             return ReleaseSearchResult
         if type == 'artist':
@@ -23,11 +23,11 @@ class SearchableType(graphene.Interface):
             return LabelSearchResult
 
     def resolve_highlight(self, *args):
-        if hasattr(self.meta, "highlight"):
-            return self.meta.highlight.to_dict()
+        if hasattr(self.hit.meta, "highlight"):
+            return self.hit.meta.highlight.to_dict()
 
     def resolve_score(self, *args):
-        return self.meta.score
+        return self.hit.meta.score
 
 
 class ReleaseSearchResult(graphene.ObjectType):
@@ -37,10 +37,7 @@ class ReleaseSearchResult(graphene.ObjectType):
     release = graphene.Field(lambda: ArtikelType)
 
     def resolve_release(self, *args):
-        try:
-            return Artikel.objects.get(pk=self.meta.id, webready=1)
-        except Artikel.DoesNotExist:
-            pass
+        return self.instance
 
 
 class ArtistSearchResult(graphene.ObjectType):
@@ -50,10 +47,7 @@ class ArtistSearchResult(graphene.ObjectType):
     artist = graphene.Field(lambda: ArtistType)
 
     def resolve_artist(self, *args):
-        try:
-            return Artist.objects.get(pk=self.meta.id)
-        except Artist.DoesNotExist:
-            pass
+        return self.instance
 
 
 class LabelSearchResult(graphene.ObjectType):
@@ -63,10 +57,7 @@ class LabelSearchResult(graphene.ObjectType):
     label = graphene.Field(lambda: LabelType)
 
     def resolve_label(self, *args):
-        try:
-            return Label.objects.get(pk=self.meta.id)
-        except Label.DoesNotExist:
-            pass
+        return self.instance
 
 
 class SearchResult(graphene.ObjectType):

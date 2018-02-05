@@ -100,6 +100,7 @@ class Release(DocType):
         all = MetaField(store=True, analyzer=lowercase_analyzer, search_analyzer=lowercase_analyzer)
         index = OYE_RELEASES_INDEX
 
+
 class Artist(DocType):
     name = String(
         search_analyzer=lowercase_analyzer,
@@ -123,7 +124,7 @@ class Label(DocType):
 QUERY_FIELDS = [
     'title.token',
     'artist_name',
-    'description',
+    # 'description',
     'label',
     '_all',
 ]
