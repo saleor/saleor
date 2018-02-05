@@ -46,7 +46,7 @@
     "react-router-dom": "^4.2.2",
     "redux": "^3.7.2",
     "redux-form": "^7.2.1",
-    "redux-form-material-ui": "^4.3.3",
+    "redux-form-material-ui": "^5.0.0-beta.2",
     "select2": "^4.0.3",
     "sortablejs": "^1.5.0-rc1",
     "svg-injector-2": "^2.0.35"
