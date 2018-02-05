@@ -25,7 +25,7 @@ class LoginForm(django_forms.AuthenticationForm):
         super().confirm_login_allowed(user)
 
         msg = ('E-mail address has not been confirmed for this account.'
-                    'Activation e-mail has been resent.')
+                'Activation e-mail has been resent.')
         no_activation = pgettext('Login Error', msg),
 
         if (settings.EMAIL_VERIFICATION_REQUIRED and not user.is_staff and not
