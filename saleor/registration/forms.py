@@ -24,14 +24,14 @@ class LoginForm(django_forms.AuthenticationForm):
     def confirm_login_allowed(self, user):
         super().confirm_login_allowed(user)
 
-        if (settings.EMAIL_VERIFICATION_REQUIRED and not user.is_staff
-                and not user.email_verified):
+        if (settings.EMAIL_VERIFICATION_REQUIRED and not user.is_staff and not
+        user.email_verified):
             send_activation_mail(user)
 
             raise forms.ValidationError(pgettext('Login Error',
-                                                 'E-mail address has not been confirmed for this account.'
-                                                 'Activation e-mail has been resent.'),
-                                        code='inactive')
+                    'E-mail address has not been confirmed for this account.'
+                    'Activation e-mail has been resent.'),
+                    code='inactive')
 
 
 class SignupForm(forms.ModelForm):

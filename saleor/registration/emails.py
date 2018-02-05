@@ -14,11 +14,11 @@ def send_activation_mail(user):
     current_site = Site.objects.get_current()
 
     context = {
-               'protocol': 'https' if settings.ENABLE_SSL else 'http',
-               'domain': current_site.domain,
-               'uid': force_text(urlsafe_base64_encode(force_bytes(user.pk))),
-               'token': token_generator.make_token(user),
-               'site_name': current_site.name}
+       'protocol': 'https' if settings.ENABLE_SSL else 'http',
+       'domain': current_site.domain,
+       'uid': force_text(urlsafe_base64_encode(force_bytes(user.pk))),
+       'token': token_generator.make_token(user),
+       'site_name': current_site.name}
 
     send_templated_mail(
         'account/email_confirmation',

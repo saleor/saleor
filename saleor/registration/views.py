@@ -40,7 +40,7 @@ def signup(request):
         form.save(request)
         if settings.EMAIL_VERIFICATION_REQUIRED:
             messages.success(request, _('User has been created. '
-                     'Check your e-mail to verify your e-mail address.'))
+                            'Check your e-mail to verify your e-mail address.'))
             redirect_url = reverse_lazy('account_login')
         else:
             password = form.cleaned_data.get('password')
@@ -50,7 +50,8 @@ def signup(request):
             if user:
                 auth.login(request, user)
             messages.success(request, _('User has been created'))
-            redirect_url = request.POST.get('next', settings.LOGIN_REDIRECT_URL)
+            redirect_url = request.POST.get('next',
+                                            settings.LOGIN_REDIRECT_URL)
         return redirect(redirect_url)
     ctx = {'form': form}
     return TemplateResponse(request, 'account/signup.html', ctx)
