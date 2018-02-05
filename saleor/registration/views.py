@@ -39,7 +39,7 @@ def signup(request):
     if form.is_valid():
         form.save(request)
         if settings.EMAIL_VERIFICATION_REQUIRED:
-            msg = _('User has been created. ' 
+            msg = _('User has been created.'
                     'Check your e-mail to verify your e-mail address.')
             messages.success(request, msg)
             redirect_url = reverse_lazy('account_login')
