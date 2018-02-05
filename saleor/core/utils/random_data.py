@@ -549,5 +549,5 @@ def create_fake_collection():
 
 def create_collections(how_many=2):
     for dummy in range(how_many):
-        sale = create_fake_collection()
-        yield 'Collection: %s' % (sale,)
+        collection = create_fake_collection()
+        yield 'Collection: %s' % (collection,)
