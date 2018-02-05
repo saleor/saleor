@@ -15,6 +15,7 @@ from django_prices.templatetags import prices_i18n
 from payments import PaymentStatus
 
 from ...core.exceptions import InsufficientStock
+from ...core.templatetags.demo_obfuscators import obfuscate_address
 from ...core.utils import get_paginator_items
 from ...core.utils.taxes import (
     ZERO_MONEY, ZERO_TAXED_MONEY, get_taxes_for_address)
