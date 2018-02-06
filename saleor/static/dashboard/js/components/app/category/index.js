@@ -1,4 +1,5 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 import { graphql } from 'react-apollo';
 import gql from 'graphql-tag';
 import { Route, Switch } from 'react-router-dom';
@@ -27,6 +28,11 @@ const CategorySection = (props) => {
         />
         <Route
           exact
+          path={'/categories/add'}
+          component={CategoryEdit}
+        />
+        <Route
+          exact
           path={'/categories/:pk'}
           render={
             () => (
@@ -39,17 +45,30 @@ const CategorySection = (props) => {
         />
         <Route
           exact
-          path={'/categories/add'}
-          component={CategoryEdit}
-        />
-        <Route
-          exact
           path={'/categories'}
           render={() => <CategoryDetails categoryChildren={props.data.categories} />}
         />
       </Switch>
     );
   }
+};
+CategorySection.propTypes = {
+  data: PropTypes.shape({
+    category: PropTypes.shape({
+      pk: PropTypes.number,
+      name: PropTypes.string,
+      description: PropTypes.string,
+      parent: PropTypes.shape({
+        pk: PropTypes.number
+      })
+    }),
+    categories: PropTypes.arrayOf(PropTypes.shape({
+      pk: PropTypes.number,
+      name: PropTypes.string,
+      description: PropTypes.string
+    })),
+    loading: PropTypes.bool
+  })
 };
 const query = gql`
 query CategoryPage ($pk: Int!) {
