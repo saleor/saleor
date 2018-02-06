@@ -15,18 +15,38 @@ const CategorySection = (props) => {
   } else {
     return (
       <Switch>
-        <Route exact path={'/categories/:pk/edit'} render={() => <CategoryEdit category={props.data.category} />} />
-        <Route exact path={'/categories/:pk/add'} render={() => <CategoryEdit />} />
-        <Route exact path={'/categories'} render={() => <CategoryDetails categoryChildren={props.data.categories} />} />
-        <Route exact path={'/categories/add'} render={() => <CategoryEdit />} />
-        <Route exact path={'/categories/:pk'} render={
-          () => (
-            <CategoryDetails
-              category={props.data.category}
-              categoryChildren={props.data.categories}
-            />
-          )
-        } />
+        <Route
+          exact
+          path={'/categories/:pk/edit'}
+          render={() => <CategoryEdit category={props.data.category} />}
+        />
+        <Route
+          exact
+          path={'/categories/:pk/add'}
+          component={CategoryEdit}
+        />
+        <Route
+          exact
+          path={'/categories/:pk'}
+          render={
+            () => (
+              <CategoryDetails
+                category={props.data.category}
+                categoryChildren={props.data.categories}
+              />
+            )
+          }
+        />
+        <Route
+          exact
+          path={'/categories/add'}
+          component={CategoryEdit}
+        />
+        <Route
+          exact
+          path={'/categories'}
+          render={() => <CategoryDetails categoryChildren={props.data.categories} />}
+        />
       </Switch>
     );
   }
