@@ -76,7 +76,8 @@ const Component = (props) => (
         </TableHead>
         <TableBody displayRowCheckbox={false}>
           {props.categoryChildren.map((category) => (
-            <TableRow style={{ cursor: 'pointer' }}
+            <TableRow
+              style={{ cursor: 'pointer' }}
               onClick={() => handleRowClick(category.pk, props.history)}
               key={category.pk}
             >
