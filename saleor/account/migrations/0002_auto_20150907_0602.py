@@ -7,13 +7,13 @@ from django.db import models, migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('userprofile', '0001_initial'),
+        ('account', '0001_initial'),
     ]
 
     operations = [
         migrations.AlterField(
             model_name='user',
             name='addresses',
-            field=models.ManyToManyField(to='userprofile.Address', blank=True),
+            field=models.ManyToManyField(to='account.Address', blank=True),
         ),
     ]

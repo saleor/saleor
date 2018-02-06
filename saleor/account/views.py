@@ -22,7 +22,7 @@ def details(request):
            'orders': orders_paginated,
            'change_password_form': password_form}
 
-    return TemplateResponse(request, 'userprofile/details.html', ctx)
+    return TemplateResponse(request, 'account/details.html', ctx)
 
 
 def get_or_process_password_form(request):
@@ -48,7 +48,7 @@ def address_edit(request, pk):
         messages.success(request, message)
         return HttpResponseRedirect(reverse('profile:details') + '#addresses')
     return TemplateResponse(
-        request, 'userprofile/address_edit.html',
+        request, 'account/address_edit.html',
         {'address_form': address_form})
 
 
@@ -62,4 +62,4 @@ def address_delete(request, pk):
             pgettext('Storefront message', 'Address successfully removed'))
         return HttpResponseRedirect(reverse('profile:details') + '#addresses')
     return TemplateResponse(
-        request, 'userprofile/address_delete.html', {'address': address})
+        request, 'account/address_delete.html', {'address': address})

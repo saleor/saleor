@@ -154,7 +154,7 @@ INSTALLED_APPS = [
     'django.forms',
 
     # Local apps
-    'saleor.userprofile',
+    'saleor.account',
     'saleor.discount',
     'saleor.product',
     'saleor.cart',
@@ -225,7 +225,7 @@ LOGGING = {
             'level': 'DEBUG',
             'propagate': True}}}
 
-AUTH_USER_MODEL = 'userprofile.User'
+AUTH_USER_MODEL = 'account.User'
 
 LOGIN_URL = '/account/login/'
 
@@ -396,6 +396,6 @@ CELERY_RESULT_BACKEND = 'django-db'
 # Impersonate module settings
 IMPERSONATE = {
     'URI_EXCLUSIONS': [r'^dashboard/'],
-    'CUSTOM_USER_QUERYSET': 'saleor.userprofile.impersonate.get_impersonatable_users',  # noqa
+    'CUSTOM_USER_QUERYSET': 'saleor.account.impersonate.get_impersonatable_users',  # noqa
     'USE_HTTP_REFERER': True,
-    'CUSTOM_ALLOW': 'saleor.userprofile.impersonate.can_impersonate'}
+    'CUSTOM_ALLOW': 'saleor.account.impersonate.can_impersonate'}

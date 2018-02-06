@@ -7,7 +7,7 @@ from django.template.response import TemplateResponse
 from django.utils.translation import pgettext_lazy
 
 from ...core.utils import get_paginator_items
-from ...userprofile.models import User
+from ...account.models import User
 from ..emails import send_set_password_email
 from ..views import staff_member_required
 from .filters import UserFilter
@@ -15,7 +15,7 @@ from .forms import CustomerForm
 
 
 @staff_member_required
-@permission_required('userprofile.view_user')
+@permission_required('account.view_user')
 def customer_list(request):
     customers = (
         User.objects
@@ -36,7 +36,7 @@ def customer_list(request):
 
 
 @staff_member_required
-@permission_required('userprofile.view_user')
+@permission_required('account.view_user')
 def customer_details(request, pk):
     queryset = User.objects.prefetch_related(
         'orders', 'addresses').select_related(
@@ -48,7 +48,7 @@ def customer_details(request, pk):
 
 
 @staff_member_required
-@permission_required('userprofile.edit_user')
+@permission_required('account.edit_user')
 def customer_create(request):
     customer = User()
     form = CustomerForm(request.POST or None, instance=customer)
@@ -64,7 +64,7 @@ def customer_create(request):
 
 
 @staff_member_required
-@permission_required('userprofile.edit_user')
+@permission_required('account.edit_user')
 def customer_edit(request, pk=None):
     customer = get_object_or_404(User, pk=pk)
     form = CustomerForm(request.POST or None, instance=customer)

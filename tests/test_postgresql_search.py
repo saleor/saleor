@@ -5,7 +5,7 @@ from django.urls import reverse
 
 from saleor.order.models import Order
 from saleor.product.models import Product
-from saleor.userprofile.models import Address, User
+from saleor.account.models import Address, User
 
 
 @pytest.fixture(scope='function', autouse=True)
@@ -227,7 +227,7 @@ def test_find_user_by_name(admin_client, users_with_addresses, phrase,
 
 
 USER_PHRASE_WITH_RESULT = 'adreas.knop@example.com'
-USER_RESULTS_PERMISSION = 'userprofile.view_user'
+USER_RESULTS_PERMISSION = 'account.view_user'
 
 
 @pytest.mark.integration

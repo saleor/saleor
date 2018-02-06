@@ -1,8 +1,8 @@
 from django.shortcuts import redirect
 from django.template.response import TemplateResponse
 
-from ...userprofile.forms import get_address_form
-from ...userprofile.models import Address
+from ...account.forms import get_address_form
+from ...account.models import Address
 from ..forms import AnonymousUserShippingForm, ShippingAddressesForm
 
 

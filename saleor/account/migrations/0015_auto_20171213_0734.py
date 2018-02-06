@@ -3,19 +3,19 @@
 from __future__ import unicode_literals
 
 from django.db import migrations
-import saleor.userprofile.models
+import saleor.account.models
 
 
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('userprofile', '0014_auto_20171129_1004'),
+        ('account', '0014_auto_20171129_1004'),
     ]
 
     operations = [
         migrations.AlterField(
             model_name='address',
             name='phone',
-            field=saleor.userprofile.models.PossiblePhoneNumberField(blank=True, default='', max_length=128, verbose_name='phone number'),
+            field=saleor.account.models.PossiblePhoneNumberField(blank=True, default='', max_length=128, verbose_name='phone number'),
         ),
     ]

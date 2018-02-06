@@ -10,7 +10,7 @@ from saleor.discount.models import Sale, Voucher
 from saleor.order.models import Order
 from saleor.product.models import Product
 from saleor.shipping.models import ShippingMethod
-from saleor.userprofile.models import Address, User
+from saleor.account.models import Address, User
 
 type_schema = {
     'Vegetable': {

@@ -13,7 +13,7 @@ from .forms import GroupPermissionsForm
 
 
 @staff_member_required
-@permission_required('userprofile.view_group')
+@permission_required('account.view_group')
 def group_list(request):
     groups = (Group.objects.all().prefetch_related('permissions')
               .order_by('name'))
@@ -29,7 +29,7 @@ def group_list(request):
 
 
 @staff_member_required
-@permission_required('userprofile.edit_group')
+@permission_required('account.edit_group')
 def group_create(request):
     group = Group()
     form = GroupPermissionsForm(request.POST or None)
@@ -43,7 +43,7 @@ def group_create(request):
 
 
 @staff_member_required
-@permission_required('userprofile.edit_group')
+@permission_required('account.edit_group')
 def group_details(request, pk):
     group = Group.objects.get(pk=pk)
     form = GroupPermissionsForm(request.POST or None, instance=group)
@@ -58,7 +58,7 @@ def group_details(request, pk):
 
 
 @staff_member_required
-@permission_required('userprofile.edit_group')
+@permission_required('account.edit_group')
 def group_delete(request, pk):
     group = get_object_or_404(Group, pk=pk)
     if request.method == 'POST':

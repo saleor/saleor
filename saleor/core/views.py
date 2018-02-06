@@ -7,7 +7,7 @@ from impersonate.views import impersonate as orig_impersonate
 
 from ..dashboard.views import staff_member_required
 from ..product.utils import products_for_homepage, products_with_availability
-from ..userprofile.models import User
+from ..account.models import User
 from .utils.schema import get_webpage_schema
 
 

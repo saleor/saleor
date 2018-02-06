@@ -9,7 +9,7 @@ import phonenumbers
 
 
 def convert_phone_number_to_phonenumberfield(apps, schema_editor):
-    Address = apps.get_model("userprofile", "Address")
+    Address = apps.get_model("account", "Address")
     for address in Address.objects.all():
         if address.phone:
             try:
@@ -25,7 +25,7 @@ def convert_phone_number_to_phonenumberfield(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('userprofile', '0012_auto_20171117_0846'),
+        ('account', '0012_auto_20171117_0846'),
     ]
 
     operations = [
