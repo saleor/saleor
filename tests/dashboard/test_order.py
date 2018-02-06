@@ -1,17 +1,15 @@
 from decimal import Decimal
 from unittest.mock import patch
 
-from django.urls import reverse
 import pytest
+from django.urls import reverse
 from django_fsm import TransitionNotAllowed
 from prices import Price
-
 from tests.utils import get_redirect_location, get_url_path
 
 from saleor.cart.models import Cart
-from saleor.dashboard.order.forms import ChangeQuantityForm
+from saleor.dashboard.order.forms import ChangeQuantityForm, OrderNoteForm
 from saleor.order import GroupStatus
-from saleor.dashboard.order.forms import OrderNoteForm
 from saleor.order.models import (
     DeliveryGroup, Order, OrderHistoryEntry, OrderLine, OrderNote)
 from saleor.order.transitions import process_delivery_group
