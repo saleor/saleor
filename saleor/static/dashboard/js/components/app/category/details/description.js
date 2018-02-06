@@ -1,11 +1,12 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 import { Link } from 'react-router-dom';
-import Card, { CardContent } from 'material-ui/Card';
+import Card, { CardContent, CardActions } from 'material-ui/Card';
 import Button from 'material-ui/Button';
 
-import { CardTitle, CardSubtitle, CardActions } from '../../../components/cards';
+import { CardTitle, CardSubtitle } from '../../../components/cards';
 
-const description = (props) => (
+const Component = (props) => (
   <Card>
     <CardContent>
       <CardTitle>
@@ -26,5 +27,16 @@ const description = (props) => (
     </CardContent>
   </Card>
 );
+Component.propTypes = {
+  category: PropTypes.shape({
+    pk: PropTypes.number,
+    name: PropTypes.string,
+    description: PropTypes.string,
+    parent: PropTypes.shape({
+      pk: PropTypes.number
+    })
+  }).isRequired,
+  history: PropTypes.object.isRequired
+};
 
-export default description;
+export default Component;
