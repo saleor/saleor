@@ -170,4 +170,3 @@ class Sale(models.Model):
         if self.type == DiscountValueType.PERCENTAGE:
             return percentage_discount(value=self.value, name=self.name)
         raise NotImplementedError('Unknown discount type')
-
