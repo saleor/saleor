@@ -38,4 +38,10 @@ class Query(graphene.ObjectType):
         return resolve_attributes(in_category, info)
 
 
-schema = graphene.Schema(Query)
+class Mutations(graphene.ObjectType):
+    category_create = CategoryCreate.Field()
+    category_delete = CategoryDelete.Field()
+    category_update = CategoryUpdate.Field()
+
+
+schema = graphene.Schema(Query, Mutations)
