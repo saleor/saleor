@@ -1,5 +1,4 @@
 import React from 'react';
-import { CardActions as MuiCardActions } from 'material-ui/Card';
 import { withStyles } from 'material-ui/styles';
 
 const styles = {
@@ -11,7 +10,7 @@ const styles = {
     fontSize: '1.3rem',
     lineHeight: '110%',
     margin: '0.65rem 0 0.52rem 0'
-  },
+  }
 };
 const CardTitle = withStyles(styles)(
   (props) => {

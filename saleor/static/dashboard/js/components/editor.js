@@ -1,6 +1,6 @@
 import MediumEditor from 'medium-editor';
 
-// eslint-disable
+// eslint-disable-next-line
 const editor = new MediumEditor('.rich-text-editor', {
   toolbar: {
     buttons: [
