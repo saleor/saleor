@@ -1,4 +1,4 @@
-from ...site.utils import get_authorization_key_for_backend
+from saleor.site.utils import get_authorization_key_for_backend
 
 
 class BaseBackend:

@@ -364,8 +364,8 @@ GRAPHENE = {
         PROJECT_ROOT, 'saleor', 'static', 'schema.json')}
 
 AUTHENTICATION_BACKENDS = [
-    'saleor.registration.backends.facebook.CustomFacebookOAuth2',
-    'saleor.registration.backends.google.CustomGoogleOAuth2',
+    'saleor.account.backends.facebook.CustomFacebookOAuth2',
+    'saleor.account.backends.google.CustomGoogleOAuth2',
     'django.contrib.auth.backends.ModelBackend']
 
 SOCIAL_AUTH_PIPELINE = [
