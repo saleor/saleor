@@ -1,4 +1,5 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 import { withRouter } from 'react-router-dom';
 import Table, {
   TableBody,
@@ -41,14 +42,14 @@ const styles = {
 };
 
 function handleRowClick(pk, history) {
-  history.push(`/categories/${pk}`);
+  history.push(`/categories/${pk}/`);
 }
 
 function handleNewCategoryClick(history) {
   return () => history.push('add');
 }
 
-export default withRouter((props) => (
+const Component = (props) => (
   <Card style={styles.cardSubcategories}>
     <CardContent>
       {props.category && (
@@ -64,8 +65,10 @@ export default withRouter((props) => (
         </div>
       )}
       <Table style={props.category ? styles.table.childCategory : styles.table.rootCategory}>
-        <TableHead adjustForCheckbox={false}
-          displaySelectAll={false}>
+        <TableHead
+          adjustForCheckbox={false}
+          displaySelectAll={false}
+        >
           <TableRow>
             <TableCell>Name</TableCell>
             <TableCell wide>Description</TableCell>
@@ -91,4 +94,21 @@ export default withRouter((props) => (
       )}
     </CardContent>
   </Card>
-));
+);
+Component.propTypes = {
+  category: PropTypes.shape({
+    pk: PropTypes.number,
+    name: PropTypes.string,
+    description: PropTypes.string,
+    parent: PropTypes.shape({
+      pk: PropTypes.number
+    })
+  }),
+  categoryChildren: PropTypes.arrayOf(PropTypes.shape({
+    pk: PropTypes.number,
+    name: PropTypes.string,
+    description: PropTypes.string
+  })).isRequired,
+  history: PropTypes.object.isRequired
+};
+export default withRouter(Component);

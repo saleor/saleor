@@ -34,6 +34,13 @@ export default createMuiTheme({
           backgroundColor: '#26A5D4'
         }
       }
+    },
+    MuiCardActions: {
+      root: {
+        borderTop: '1px solid rgba(160, 160, 160, 0.2)',
+        margin: '24px -16px -24px',
+        padding: '0 8px'
+      }
     }
   }
 });
