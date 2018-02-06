@@ -12,6 +12,10 @@ class Migration(migrations.Migration):
         ('account', '0014_auto_20171129_1004'),
     ]
 
+    replaces = [
+        ('userprofile', '0015_auto_20171213_0734'),
+    ]
+
     operations = [
         migrations.AlterField(
             model_name='address',
