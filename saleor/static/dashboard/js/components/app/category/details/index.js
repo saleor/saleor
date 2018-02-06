@@ -1,22 +1,19 @@
-import React, { Component } from 'react';
+import React from 'react';
+import PropTypes from 'prop-types';
 
 import Description from './description';
 import Subcategories from './subcategoryList';
 
-class CategoryDetails extends Component {
-  render() {
-    return (
-      <div>
-        {this.props.category && (
-          <Description category={this.props.category} />
-        )}
-        <Subcategories
-          category={this.props.category}
-          categoryChildren={this.props.categoryChildren}
-        />
-      </div>
-    );
-  }
-}
+const CategoryDetails = (props) => (
+  <div>
+    {props.pk && (
+      <Description pk={props.pk} />
+    )}
+    <Subcategories pk={props.pk} />
+  </div>
+);
+CategoryDetails.propTypes = {
+  pk: PropTypes.int
+};
 
 export default CategoryDetails;
