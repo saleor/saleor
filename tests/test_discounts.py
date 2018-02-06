@@ -136,7 +136,7 @@ def test_shipping_voucher_checkout_discount(
         (True, Mock(price=Price(10, currency='USD')), 10,
          DiscountValueType.FIXED, None, 5, Price(2, currency='USD'),
          'This offer is only valid for orders over $5.00.')])
-def test_shipping_voucher_checkout_discountnot_applicable(
+def test_shipping_voucher_checkout_discount_not_applicable(
         settings, is_shipping_required, shipping_method, discount_value,
         discount_type, apply_to, limit, subtotal, error_msg):
     checkout = Mock(is_shipping_required=is_shipping_required,
