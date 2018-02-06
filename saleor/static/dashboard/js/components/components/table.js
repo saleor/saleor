@@ -2,11 +2,10 @@ import React from 'react';
 import { TableCell } from 'material-ui/Table';
 import { withStyles } from 'material-ui/styles';
 
-
 const styles = {
   wideTableCell: {
-    width: '99%',
-  },
+    width: '99%'
+  }
 };
 
 export default withStyles(styles)(
