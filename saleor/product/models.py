@@ -159,8 +159,7 @@ class Product(models.Model, ItemRange):
     def get_price_range(self, discounts=None, **kwargs):
         if self.variants.exists():
             return super().get_price_range(discounts=discounts, **kwargs)
-        price = calculate_discounted_price(
-            self, self.price, discounts, **kwargs)
+        price = calculate_discounted_price(self, self.price, discounts)
         return PriceRange(price, price)
 
     def get_gross_price_range(self, **kwargs):
@@ -198,8 +197,7 @@ class ProductVariant(models.Model, Item):
 
     def get_price_per_item(self, discounts=None, **kwargs):
         price = self.price_override or self.product.price
-        price = calculate_discounted_price(self.product, price, discounts,
-                                           **kwargs)
+        price = calculate_discounted_price(self.product, price, discounts)
         return price
 
     def get_absolute_url(self):

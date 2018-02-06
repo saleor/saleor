@@ -21,7 +21,7 @@ def decrease_voucher_usage(voucher):
     voucher.save(update_fields=['used'])
 
 
-def get_product_discounts(product, discounts, **kwargs):
+def get_product_discounts(product, discounts):
     for discount in discounts:
         try:
             yield get_product_discount_on_sale(discount, product)
@@ -29,10 +29,10 @@ def get_product_discounts(product, discounts, **kwargs):
             pass
 
 
-def calculate_discounted_price(product, price, discounts, **kwargs):
+def calculate_discounted_price(product, price, discounts):
     if discounts:
         discounts = list(
-            get_product_discounts(product, discounts, **kwargs))
+            get_product_discounts(product, discounts))
         if discounts:
             price = min(price | discount for discount in discounts)
     return price
