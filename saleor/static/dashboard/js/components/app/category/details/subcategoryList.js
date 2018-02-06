@@ -6,22 +6,21 @@ import Table, {
   TableRow
 } from 'material-ui/Table';
 import Card, { CardContent } from 'material-ui/Card';
+import Button from 'material-ui/Button';
 
-import { FlatButton } from '../../../components/buttons';
 import { CardTitle } from '../../../components/cards';
-import { TableCell, WideTableCell } from '../../../components/table';
-
+import TableCell from '../../../components/table';
 
 const styleFragments = {
   table: {
     tableLayout: 'auto',
     width: 'calc(100% + 32px)'
-  },
+  }
 };
 const styles = {
   cardSubcategories: {
     marginTop: '16px',
-    paddingBottom: 0,
+    paddingBottom: 0
   },
   table: {
     rootCategory: {
@@ -40,48 +39,54 @@ const styles = {
     marginLeft: '7px'
   }
 };
-function handleRowClick (pk, history) {
-  history.push(pk + '/');
+
+function handleRowClick(pk, history) {
+  history.push(`/categories/${pk}`);
 }
-function handleNewCategoryClick (history) {
+
+function handleNewCategoryClick(history) {
   return () => history.push('add');
 }
+
 export default withRouter((props) => (
   <Card style={styles.cardSubcategories}>
     <CardContent>
       {props.category && (
         <div>
           <CardTitle>Subcategories</CardTitle>
-          <FlatButton color={'secondary'}
-                      style={{ margin: '2rem 0 1rem' }}
-                      onClick={handleNewCategoryClick(props.history)}>
+          <Button
+            color={'secondary'}
+            style={{ margin: '2rem 0 1rem' }}
+            onClick={handleNewCategoryClick(props.history)}
+          >
             Dodaj
-          </FlatButton>
+          </Button>
         </div>
       )}
       <Table style={props.category ? styles.table.childCategory : styles.table.rootCategory}>
         <TableHead adjustForCheckbox={false}
-                   displaySelectAll={false}>
+          displaySelectAll={false}>
           <TableRow>
             <TableCell>Name</TableCell>
-            <WideTableCell wide>Description</WideTableCell>
+            <TableCell wide>Description</TableCell>
           </TableRow>
         </TableHead>
         <TableBody displayRowCheckbox={false}>
-          {props.children.map((category) => (
+          {props.categoryChildren.map((category) => (
             <TableRow style={{ cursor: 'pointer' }}
-                      onClick={() => handleRowClick(category.pk, props.history)}
-                      key={category.pk}>
+              onClick={() => handleRowClick(category.pk, props.history)}
+              key={category.pk}
+            >
               <TableCell>{category.name}</TableCell>
-              <WideTableCell>{category.description}</WideTableCell>
+              <TableCell wide>{category.description}</TableCell>
             </TableRow>
           ))}
-          {!props.children.length && (
+          {!props.categoryChildren.length && (
             <TableRow style={{ height: '32px' }} />
           )}
         </TableBody>
       </Table>
-      {!props.children.length && (
+      {!props.categoryChildren.length && (
         <div style={styles.noSubcategoriesLabel}>No categories</div>
       )}
     </CardContent>
