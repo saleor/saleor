@@ -17,7 +17,7 @@ echo Starting Gunicorn.
 exec gunicorn saleor.wsgi:application \
     --name saleor \
     --bind 127.0.0.1:8000 \
-    --workers 3 \
+    --workers 10 \
     --log-level=info \
     --timeout $TIMEOUT \
     --log-file=/srv/logs/gunicorn.log \
