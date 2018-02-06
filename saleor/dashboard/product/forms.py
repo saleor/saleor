@@ -1,3 +1,4 @@
+from bleach.sanitizer import ALLOWED_TAGS
 from django import forms
 from django.db.models import Count
 from django.forms.models import ModelChoiceIterator
@@ -5,6 +6,7 @@ from django.forms.widgets import CheckboxSelectMultiple
 from django.utils.encoding import smart_text
 from django.utils.text import slugify
 from django.utils.translation import pgettext_lazy
+import bleach
 
 from . import ProductBulkAction
 from ...product.models import (
@@ -12,6 +14,20 @@ from ...product.models import (
     ProductType, ProductVariant, Stock, StockLocation, VariantImage)
 from ..widgets import RichTextEditorWidget
 from .widgets import ImagePreviewWidget
+
+
+class RichTextField(forms.CharField):
+    """
+    A field for rich text editor, providing backend sanitization
+    """
+
+    widget = RichTextEditorWidget
+    ALLOWED_TAGS.extend([u'br', u'p', u'h2', u'h3'])
+
+    def to_python(self, value):
+        value = super().to_python(value)
+        value = bleach.clean(value, tags=ALLOWED_TAGS)
+        return value
 
 
 class ProductTypeSelectorForm(forms.Form):
@@ -131,6 +147,7 @@ class ProductForm(forms.ModelForm):
 
     collections = forms.ModelMultipleChoiceField(
         required=False, queryset=Collection.objects.all())
+    description = RichTextField()
 
     def __init__(self, *args, **kwargs):
         self.product_attributes = []
@@ -140,7 +157,6 @@ class ProductForm(forms.ModelForm):
         self.product_attributes = self.product_attributes.prefetch_related(
             'values')
         self.prepare_fields_for_attributes()
-        self.fields['description'].widget = RichTextEditorWidget()
         self.fields["collections"].initial = Collection.objects.filter(
             products__name=self.instance)
 
