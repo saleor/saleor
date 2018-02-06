@@ -57,6 +57,7 @@ services:
       - ${DOCKER_HOST_OYE_STATIC_ROOT}:${STATIC_ROOT}
       - ${DOCKER_HOST_OYE_INVOICES_ROOT}:${PDF_STORAGE_ROOT}
       - ${DOCKER_HOST_ORIGINAL_IMAGES_ROOT}:/var/www/images/
+      - ./logs/:/srv/logs/
     network_mode: "host"
 
   celeryworker:
