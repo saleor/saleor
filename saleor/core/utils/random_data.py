@@ -1,8 +1,8 @@
-from collections import defaultdict
 import itertools
 import os
 import random
 import unicodedata
+from collections import defaultdict
 
 from django.conf import settings
 from django.contrib.auth.models import Group, Permission

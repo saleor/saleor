@@ -1,22 +1,21 @@
-from io import BytesIO
 import json
+from io import BytesIO
+from unittest.mock import MagicMock, Mock
 
-from unittest.mock import Mock, MagicMock
-
-from PIL import Image
+import pytest
 from django.conf import settings
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.forms import HiddenInput
 from django.urls import reverse
 from django.utils.encoding import smart_text
-import pytest
+from PIL import Image
 
 from saleor.dashboard.product import ProductBulkAction
 from saleor.dashboard.product.forms import (
-    ProductBulkUpdate, ProductTypeForm, ProductForm)
+    ProductBulkUpdate, ProductForm, ProductTypeForm)
 from saleor.product.forms import VariantChoiceField
 from saleor.product.models import (
-    Collection, AttributeChoiceValue, Product, ProductAttribute, ProductImage,
+    AttributeChoiceValue, Collection, Product, ProductAttribute, ProductImage,
     ProductType, ProductVariant, Stock, StockLocation)
 
 HTTP_STATUS_OK = 200

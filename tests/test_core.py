@@ -12,7 +12,6 @@ from saleor.product.models import Product
 from saleor.shipping.models import ShippingMethod
 from saleor.userprofile.models import Address, User
 
-
 type_schema = {
     'Vegetable': {
         'category': 'Food',
