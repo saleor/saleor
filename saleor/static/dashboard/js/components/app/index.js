@@ -9,8 +9,8 @@ import { InMemoryCache } from 'apollo-cache-inmemory';
 import { ApolloProvider } from 'react-apollo';
 import { BrowserRouter, Route, Switch } from 'react-router-dom';
 import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider';
-import { createMuiTheme } from 'material-ui/styles';
 
+import theme from './theme';
 
 import CategorySection from './category/index';
 
@@ -21,7 +21,7 @@ const apolloClient = new ApolloClient({
       'X-CSRFToken': $.cookie('csrftoken')
     }
   }),
-  cache: new InMemoryCache(),
+  cache: new InMemoryCache()
 });
 const routerMapping = [
   {
@@ -31,16 +31,6 @@ const routerMapping = [
   }
 ];
 const store = createStore(() => {});
-const theme = createMuiTheme({
-  palette: {
-    primary: {
-      main: '#2bb673',
-    },
-    secondary: {
-      main: '#26A5D4',
-    },
-  }
-});
 
 render(
   <Provider store={store}>
@@ -49,13 +39,15 @@ render(
         <MuiThemeProvider theme={theme}>
           <Switch>
             {routerMapping.map(route => (
-              <div>
-                <Route path={(() => `/${route.path}/`)()}
-                       component={route.component}
-                       exact />
+              <div key={route.path}>
+                <Route path={`/${route.path}/`}
+                  component={route.component}
+                  exact
+                />
                 {route.param && (
-                  <Route path={(() => `/${route.path}/:${route.param}`)()}
-                         component={route.component} />
+                  <Route path={`/${route.path}/:${route.param}`}
+                    component={route.component}
+                  />
                 )}
               </div>
             ))}
