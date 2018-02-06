@@ -1,10 +1,9 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import Card, { CardContent } from 'material-ui/Card';
+import Button from 'material-ui/Button';
 
-import { FlatButton } from '../../../components/buttons';
 import { CardTitle, CardSubtitle, CardActions } from '../../../components/cards';
-
 
 const description = (props) => (
   <Card>
@@ -18,10 +17,10 @@ const description = (props) => (
       {props.category.description}
       <CardActions>
         <Link to={`/categories/${props.category.pk}/edit/`}>
-          <FlatButton color={'secondary'}>Edytuj</FlatButton>
+          <Button color={'secondary'}>Edytuj</Button>
         </Link>
         <Link to={`/categories/${props.category.parent ? props.category.parent.pk : ''}`}>
-          <FlatButton color={'secondary'}>Usuń</FlatButton>
+          <Button color={'secondary'}>Usuń</Button>
         </Link>
       </CardActions>
     </CardContent>
