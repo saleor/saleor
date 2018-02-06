@@ -9,6 +9,8 @@ from django.utils.encoding import smart_text
 from django.utils.translation import get_language
 from prices import FixedDiscount, Price
 
+from ..account.models import Address
+from ..account.utils import store_user_address
 from ..cart.models import Cart
 from ..cart.utils import get_or_empty_db_cart
 from ..core import analytics
@@ -16,8 +18,6 @@ from ..discount.models import NotApplicable, Voucher
 from ..discount.utils import increase_voucher_usage
 from ..order.models import Order
 from ..shipping.models import ANY_COUNTRY, ShippingMethodCountry
-from ..account.models import Address
-from ..account.utils import store_user_address
 
 STORAGE_SESSION_KEY = 'checkout_storage'
 

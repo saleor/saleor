@@ -6,9 +6,9 @@ from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode
 from templated_email import send_templated_mail
 
+from saleor.account.models import User
 from saleor.dashboard.staff.forms import StaffForm
 from saleor.settings import DEFAULT_FROM_EMAIL
-from saleor.account.models import User
 
 
 def test_staff_form_not_valid(db):
