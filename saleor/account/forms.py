@@ -112,7 +112,7 @@ class PasswordResetForm(django_forms.PasswordResetForm):
             from_email, to_email, html_email_template_name=None):
         reset_url = build_absolute_uri(
             reverse(
-                'account_reset_password_confirm',
+                'account:reset-password-confirm',
                 kwargs={'uidb64': context['uid'], 'token': context['token']}))
         context['reset_url'] = reset_url
         send_templated_mail(
