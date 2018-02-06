@@ -21,8 +21,8 @@ from ...product.models import (
     AttributeChoiceValue, Category, Collection, Product, ProductAttribute,
     ProductImage, ProductType, ProductVariant, Stock, StockLocation)
 from ...shipping.models import ANY_COUNTRY, ShippingMethod
-from ...userprofile.models import Address, User
-from ...userprofile.utils import store_user_address
+from ...account.models import Address, User
+from ...account.utils import store_user_address
 
 fake = Factory.create()
 STOCK_LOCATION = 'default'

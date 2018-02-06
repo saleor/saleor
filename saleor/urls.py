@@ -16,7 +16,7 @@ from .order.urls import urlpatterns as order_urls
 from .product.urls import urlpatterns as product_urls
 from .registration.urls import urlpatterns as registration_urls
 from .search.urls import urlpatterns as search_urls
-from .userprofile.urls import urlpatterns as userprofile_urls
+from .account.urls import urlpatterns as userprofile_urls
 
 handler404 = 'saleor.core.views.handle_404'
 

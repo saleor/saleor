@@ -9,7 +9,7 @@ import django_countries.fields
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('userprofile', '0003_auto_20151104_1102'),
+        ('account', '0003_auto_20151104_1102'),
     ]
 
     operations = [

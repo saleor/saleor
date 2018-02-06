@@ -6,13 +6,13 @@ from django.db import migrations, models
 import django.db.models.deletion
 import django.utils.timezone
 import django_countries.fields
-import saleor.userprofile.models
+import saleor.account.models
 
 
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('userprofile', '0015_auto_20171213_0734'),
+        ('account', '0015_auto_20171213_0734'),
     ]
 
     operations = [
@@ -54,7 +54,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='address',
             name='phone',
-            field=saleor.userprofile.models.PossiblePhoneNumberField(blank=True, default='', max_length=128),
+            field=saleor.account.models.PossiblePhoneNumberField(blank=True, default='', max_length=128),
         ),
         migrations.AlterField(
             model_name='address',
@@ -74,7 +74,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='user',
             name='addresses',
-            field=models.ManyToManyField(blank=True, to='userprofile.Address'),
+            field=models.ManyToManyField(blank=True, to='account.Address'),
         ),
         migrations.AlterField(
             model_name='user',
@@ -84,12 +84,12 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='user',
             name='default_billing_address',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='+', to='userprofile.Address'),
+            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='+', to='account.Address'),
         ),
         migrations.AlterField(
             model_name='user',
             name='default_shipping_address',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='+', to='userprofile.Address'),
+            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='+', to='account.Address'),
         ),
         migrations.AlterField(
             model_name='user',

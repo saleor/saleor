@@ -9,9 +9,9 @@ from django.template import Context, Template
 from django.urls import reverse
 from django_countries.fields import Country
 
-from saleor.userprofile import forms, i18n
-from saleor.userprofile.templatetags.i18n_address_tags import format_address
-from saleor.userprofile.validators import validate_possible_number
+from saleor.account import forms, i18n
+from saleor.account.templatetags.i18n_address_tags import format_address
+from saleor.account.validators import validate_possible_number
 
 
 @pytest.mark.parametrize('country', ['CN', 'PL', 'US'])

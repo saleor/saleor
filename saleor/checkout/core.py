@@ -16,8 +16,8 @@ from ..discount.models import NotApplicable, Voucher
 from ..discount.utils import increase_voucher_usage
 from ..order.models import Order
 from ..shipping.models import ANY_COUNTRY, ShippingMethodCountry
-from ..userprofile.models import Address
-from ..userprofile.utils import store_user_address
+from ..account.models import Address
+from ..account.utils import store_user_address
 
 STORAGE_SESSION_KEY = 'checkout_storage'
 

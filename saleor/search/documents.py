@@ -3,7 +3,7 @@ from elasticsearch_dsl import analyzer, token_filter
 
 from ..order.models import Order
 from ..product.models import Product
-from ..userprofile.models import User
+from ..account.models import User
 
 storefront = Index('storefront')
 storefront.settings(number_of_shards=1, number_of_replicas=0)

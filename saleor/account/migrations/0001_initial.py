@@ -48,17 +48,17 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='user',
             name='addresses',
-            field=models.ManyToManyField(to='userprofile.Address'),
+            field=models.ManyToManyField(to='account.Address'),
         ),
         migrations.AddField(
             model_name='user',
             name='default_billing_address',
-            field=models.ForeignKey(related_name='+', on_delete=django.db.models.deletion.SET_NULL, verbose_name='default billing address', blank=True, to='userprofile.Address', null=True),
+            field=models.ForeignKey(related_name='+', on_delete=django.db.models.deletion.SET_NULL, verbose_name='default billing address', blank=True, to='account.Address', null=True),
         ),
         migrations.AddField(
             model_name='user',
             name='default_shipping_address',
-            field=models.ForeignKey(related_name='+', on_delete=django.db.models.deletion.SET_NULL, verbose_name='default shipping address', blank=True, to='userprofile.Address', null=True),
+            field=models.ForeignKey(related_name='+', on_delete=django.db.models.deletion.SET_NULL, verbose_name='default shipping address', blank=True, to='account.Address', null=True),
         ),
         migrations.AddField(
             model_name='user',

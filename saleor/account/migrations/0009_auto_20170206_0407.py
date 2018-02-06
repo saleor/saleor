@@ -8,7 +8,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('userprofile', '0008_auto_20161115_1011'),
+        ('account', '0008_auto_20161115_1011'),
     ]
 
     operations = [
@@ -23,7 +23,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='user',
             name='addresses',
-            field=models.ManyToManyField(blank=True, to='userprofile.Address', verbose_name='addresses'),
+            field=models.ManyToManyField(blank=True, to='account.Address', verbose_name='addresses'),
         ),
         migrations.AlterField(
             model_name='user',

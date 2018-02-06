@@ -19,7 +19,7 @@ from . import GroupStatus, OrderStatus, emails
 from ..core.utils import build_absolute_uri
 from ..discount.models import Voucher
 from ..product.models import Product
-from ..userprofile.models import Address
+from ..account.models import Address
 from .transitions import (
     cancel_delivery_group, process_delivery_group, ship_delivery_group)
 

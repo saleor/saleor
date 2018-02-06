@@ -2,7 +2,7 @@ from django import forms
 from django.contrib.auth import forms as django_forms
 from django.utils.translation import pgettext, pgettext_lazy
 
-from ..userprofile.models import User
+from ..account.models import User
 from . import emails
 
 
