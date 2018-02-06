@@ -12,7 +12,7 @@ from payments import PaymentStatus, RedirectNeeded
 
 from ..account.models import User
 from ..core.utils import get_client_ip
-from ..registration.forms import LoginForm
+from ..account.forms import LoginForm
 from .forms import (
     OrderNoteForm, PasswordForm, PaymentDeleteForm, PaymentMethodsForm)
 from .models import Order, OrderNote, Payment

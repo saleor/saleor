@@ -15,14 +15,12 @@ from .dashboard.urls import urlpatterns as dashboard_urls
 from .data_feeds.urls import urlpatterns as feed_urls
 from .order.urls import urlpatterns as order_urls
 from .product.urls import urlpatterns as product_urls
-from .registration.urls import urlpatterns as registration_urls
 from .search.urls import urlpatterns as search_urls
 
 handler404 = 'saleor.core.views.handle_404'
 
 urlpatterns = [
     url(r'^', include(core_urls)),
-    url(r'^account/', include(registration_urls)),
     url(r'^cart/', include((cart_urls, 'cart'), namespace='cart')),
     url(r'^checkout/',
         include((checkout_urls, 'checkout'), namespace='checkout')),
