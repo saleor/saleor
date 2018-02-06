@@ -117,12 +117,12 @@ def test_validate_possible_number(input, exception):
 def test_order_with_lines_pagination(admin_client, order_list):
     settings.PAGINATE_BY = 1
     data = {'page': '1'}
-    url = reverse('profile:details')
+    url = reverse('account:details')
     response = admin_client.get(url, data)
     assert response.status_code == 200
 
     data = {'page': '2'}
-    url = reverse('profile:details')
+    url = reverse('account:details')
     response = admin_client.get(url, data)
     assert response.status_code == 200
 

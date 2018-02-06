@@ -46,7 +46,7 @@ def address_edit(request, pk):
         message = pgettext(
             'Storefront message', 'Address successfully updated.')
         messages.success(request, message)
-        return HttpResponseRedirect(reverse('profile:details') + '#addresses')
+        return HttpResponseRedirect(reverse('account:details') + '#addresses')
     return TemplateResponse(
         request, 'account/address_edit.html',
         {'address_form': address_form})
@@ -60,6 +60,6 @@ def address_delete(request, pk):
         messages.success(
             request,
             pgettext('Storefront message', 'Address successfully removed'))
-        return HttpResponseRedirect(reverse('profile:details') + '#addresses')
+        return HttpResponseRedirect(reverse('account:details') + '#addresses')
     return TemplateResponse(
         request, 'account/address_delete.html', {'address': address})

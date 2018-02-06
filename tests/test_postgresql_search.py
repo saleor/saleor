@@ -3,9 +3,9 @@ from decimal import Decimal
 import pytest
 from django.urls import reverse
 
+from saleor.account.models import Address, User
 from saleor.order.models import Order
 from saleor.product.models import Product
-from saleor.account.models import Address, User
 
 
 @pytest.fixture(scope='function', autouse=True)
