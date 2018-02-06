@@ -12,6 +12,10 @@ class Migration(migrations.Migration):
         ('auth', '0006_require_contenttypes_0002'),
     ]
 
+    replaces = [
+        ('userprofile', '0001_initial'),
+    ]
+
     operations = [
         migrations.CreateModel(
             name='User',
@@ -26,6 +30,7 @@ class Migration(migrations.Migration):
                 ('last_login', models.DateTimeField(default=django.utils.timezone.now, verbose_name='last login', editable=False)),
             ],
             options={
+                'db_table': 'userprofile_user',
                 'abstract': False,
             },
         ),
@@ -44,6 +49,9 @@ class Migration(migrations.Migration):
                 ('country_area', models.CharField(max_length=128, verbose_name='state or province', blank=True)),
                 ('phone', models.CharField(max_length=30, verbose_name='phone number', blank=True)),
             ],
+            options={
+                'db_table': 'userprofile_address',
+            },
         ),
         migrations.AddField(
             model_name='user',
