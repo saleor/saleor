@@ -1,11 +1,10 @@
 import React from 'react';
 import { withRouter } from 'react-router-dom';
 import { withStyles } from 'material-ui/styles';
-import Card, { CardContent } from 'material-ui/Card';
+import Card, { CardContent, CardActions } from 'material-ui/Card';
 import Button from 'material-ui/Button';
 
 import { TextField } from '../../components/inputs';
-import { CardActions } from '../../components/cards';
 
 const styles = theme => ({
   cardActions: {
