@@ -16,21 +16,19 @@ const CategoryDetails = (props) => (
   </div>
 );
 CategoryDetails.propTypes = {
-  data: PropTypes.shape({
-    category: PropTypes.shape({
-      pk: PropTypes.number,
-      name: PropTypes.string,
-      description: PropTypes.string,
-      parent: PropTypes.shape({
-        pk: PropTypes.number
-      })
-    }),
-    categoryChildren: PropTypes.arrayOf(PropTypes.shape({
-      pk: PropTypes.number,
-      name: PropTypes.string,
-      description: PropTypes.string
-    }))
-  })
+  category: PropTypes.shape({
+    pk: PropTypes.number,
+    name: PropTypes.string,
+    description: PropTypes.string,
+    parent: PropTypes.shape({
+      pk: PropTypes.number
+    })
+  }),
+  categoryChildren: PropTypes.arrayOf(PropTypes.shape({
+    pk: PropTypes.number,
+    name: PropTypes.string,
+    description: PropTypes.string
+  }))
 };
 
 export default CategoryDetails;
