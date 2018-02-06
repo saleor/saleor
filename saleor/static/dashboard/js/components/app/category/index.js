@@ -11,7 +11,11 @@ import CategoryDetails from './details/index';
 const CategorySection = (props) => {
   if (props.data.loading && !props.data.categories) {
     return (
-      <CircularProgress size={80} thickness={5} style={{ margin: 'auto' }} />
+      <CircularProgress
+        size={80}
+        thickness={5}
+        style={{ margin: 'auto' }}
+      />
     );
   } else {
     return (
