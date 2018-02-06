@@ -11,8 +11,6 @@ from django_prices.models import PriceField
 from django_prices.templatetags.prices_i18n import net
 from prices import FixedDiscount, Price, percentage_discount
 
-from ..cart.utils import (
-    get_category_variants_and_prices, get_product_variants_and_prices)
 from . import DiscountValueType, VoucherApplyToProduct, VoucherType
 
 
@@ -63,12 +61,6 @@ class Voucher(models.Model):
 
     objects = VoucherQueryset.as_manager()
 
-    @property
-    def is_free(self):
-        return (
-            self.discount_value == Decimal(100) and
-            self.discount_value_type == DiscountValueType.PERCENTAGE)
-
     class Meta:
         permissions = (
             ('view_voucher',
@@ -100,6 +92,12 @@ class Voucher(models.Model):
         return pgettext(
             'Voucher type', '%(discount)s off') % {'discount': discount}
 
+    @property
+    def is_free(self):
+        return (
+            self.discount_value == Decimal(100) and
+            self.discount_value_type == DiscountValueType.PERCENTAGE)
+
     def get_apply_to_display(self):
         if self.type == VoucherType.SHIPPING and self.apply_to:
             return countries.name(self.apply_to)
@@ -113,8 +111,8 @@ class Voucher(models.Model):
 
     def get_fixed_discount_for(self, amount):
         if self.discount_value_type == DiscountValueType.FIXED:
-            discount_price = Price(net=self.discount_value,
-                                   currency=settings.DEFAULT_CURRENCY)
+            discount_price = Price(
+                net=self.discount_value, currency=settings.DEFAULT_CURRENCY)
             discount = FixedDiscount(
                 amount=discount_price, name=smart_text(self))
         elif self.discount_value_type == DiscountValueType.PERCENTAGE:
@@ -130,7 +128,7 @@ class Voucher(models.Model):
         return discount
 
     def validate_limit(self, value):
-        limit = self.limit if self.limit is not None else value
+        limit = self.limit or value
         if value < limit:
             msg = pgettext(
                 'Voucher not applicable',
