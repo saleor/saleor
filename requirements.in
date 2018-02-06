@@ -1,4 +1,5 @@
 Babel>=2.5
+bleach<3.0
 boto3
 cairosvg
 Django>=1.11
