@@ -6,21 +6,21 @@ const styles = {
   cardTitle: {
     root: {
       fontWeight: 300,
-      fontSize: '24px',
+      fontSize: '24px'
     }
   },
   cardSubtitle: {
     root: {
       fontSize: '1.3rem',
       lineHeight: '110%',
-      margin: '0.65rem 0 0.52rem 0',
+      margin: '0.65rem 0 0.52rem 0'
     }
   },
   cardActions: {
     root: {
       borderTop: '1px solid rgba(160, 160, 160, 0.2)',
       margin: '24px -16px -24px',
-      padding: '0 8px',
+      padding: '0 8px'
     }
   }
 };
