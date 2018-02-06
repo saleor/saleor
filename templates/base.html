@@ -67,17 +67,17 @@
                 </li>
               {% else %}
                 <li>
-                  <a href="{% url "account_logout" %}">
+                  <a href="{% url "account:logout" %}">
                     {% trans "Log out" context "Main navigation item" %}</a>
                 </li>
               {% endif %}
             {% else %}
               <li>
-                <a rel="nofollow" href="{% url "account_signup" %}">
+                <a rel="nofollow" href="{% url "account:signup" %}">
                   {% trans "Register" context "Main navigation item" %}</a>
               </li>
               <li>
-                <a rel="nofollow" href="{% url "account_login" %}">
+                <a rel="nofollow" href="{% url "account:login" %}">
                   {% trans "Log in" context "Main navigation item" %}
                 </a>
               </li>
@@ -226,18 +226,18 @@
                 </li>
               {% else %}
                 <li>
-                  <a href="{% url "account_logout" %}">
+                  <a href="{% url "account:logout" %}">
                     {% trans "Log out" context "Main navigation item" %}</a>
                 </li>
               {% endif %}
             {% else %}
               <li>
-                <a rel="nofollow" href="{% url "account_signup" %}">
+                <a rel="nofollow" href="{% url "account:signup" %}">
                   {% trans "Register" context "Main navigation item" %}
                 </a>
               </li>
               <li>
-                <a rel="nofollow" href="{% url "account_login" %}">
+                <a rel="nofollow" href="{% url "account:login" %}">
                   {% trans "Log in" context "Main navigation item" %}
                 </a>
               </li>

@@ -50,14 +50,14 @@ def signup(request):
 def password_reset(request):
     kwargs = {
         'template_name': 'account/password_reset.html',
-        'success_url': reverse_lazy('account_reset_password_done'),
+        'success_url': reverse_lazy('account:reset-password-done'),
         'form_class': PasswordResetForm}
     return django_views.PasswordResetView.as_view(**kwargs)(request, **kwargs)
 
 
 class PasswordResetConfirm(django_views.PasswordResetConfirmView):
     template_name = 'account/password_reset_from_key.html'
-    success_url = reverse_lazy('account_reset_password_complete')
+    success_url = reverse_lazy('account:reset-password-complete')
     token = None
     uidb64 = None
 
@@ -65,7 +65,7 @@ class PasswordResetConfirm(django_views.PasswordResetConfirmView):
 def password_reset_confirm(request, uidb64=None, token=None):
     kwargs = {
         'template_name': 'account/password_reset_from_key.html',
-        'success_url': reverse_lazy('account_reset_password_complete'),
+        'success_url': reverse_lazy('account:reset-password-complete'),
         'token': token,
         'uidb64': uidb64}
     return PasswordResetConfirm.as_view(**kwargs)(request, **kwargs)
