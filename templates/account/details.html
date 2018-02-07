@@ -76,7 +76,7 @@
                     {{ order.created }}
                   </div>
                   <div class="col-md-2 col-4">
-                    <span class="float-right">{% gross order.get_total html=True %}</span>
+                    <span class="float-right">{% gross order.total html=True %}</span>
                   </div>
                   <div class="col-md-4 d-none d-md-block">
                     {% render_status order.status order.get_status_display %}

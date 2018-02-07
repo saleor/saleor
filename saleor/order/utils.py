@@ -40,9 +40,9 @@ def cancel_order(order):
 
 
 def recalculate_order(order):
-    """Recalculate and assigns total price of order.
+    """Recalculate and assign total price of order.
 
-    Total price is a sum of items and shippings in order shipment groups.
+    Total price is a sum of items in shipment groups and order shipping price.
     """
     prices = [
         group.get_total() for group in order

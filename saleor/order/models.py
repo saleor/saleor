@@ -94,8 +94,7 @@ class Order(models.Model):
         total_paid = sum(
             [payment.total for payment in
              self.payments.filter(status=PaymentStatus.CONFIRMED)], Decimal())
-        total = self.get_total()
-        return total_paid >= total.gross
+        return total_paid >= self.total.gross
 
     def get_user_current_email(self):
         return self.user.email if self.user else self.user_email
@@ -119,9 +118,6 @@ class Order(models.Model):
     def discount(self):
         return FixedDiscount(
             amount=self.discount_amount, name=self.discount_name)
-
-    def get_total(self):
-        return self.total
 
     def get_absolute_url(self):
         return reverse('order:details', kwargs={'token': self.token})
@@ -183,15 +179,9 @@ class Order(models.Model):
         self.total_net = price
         self.total_tax = Price(price.tax, currency=price.currency)
 
-    def get_total(self):
-        subtotals = [group.get_total() for group in self]
-        if not subtotals:
-            raise AttributeError('Calling get_total() on an empty order')
-        return sum(subtotals[1:], subtotals[0])
-
     def get_subtotal_without_voucher(self):
         if self.get_lines():
-            return self.get_total()
+            return self.total
         return Price(net=0, currency=settings.DEFAULT_CURRENCY)
 
     def can_cancel(self):

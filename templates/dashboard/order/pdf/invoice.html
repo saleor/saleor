@@ -151,7 +151,7 @@
         {% trans "Grand total" context "Order total price header" %}
       </td>
       <td class="right-align">
-        {% gross order.get_total html=True %}
+        {% gross order.total html=True %}
       </td>
     </tr>
   </tfoot>
