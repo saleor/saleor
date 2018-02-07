@@ -8,6 +8,9 @@ import Table, {
 } from 'material-ui/Table';
 import Card, { CardContent } from 'material-ui/Card';
 import Button from 'material-ui/Button';
+import gql from 'graphql-tag';
+import { graphql } from 'react-apollo';
+import { CircularProgress } from 'material-ui/Progress';
 
 import { CardTitle } from '../../../components/cards';
 import TableCell from '../../../components/table';
@@ -51,65 +54,96 @@ function handleNewCategoryClick(history) {
 
 const Component = (props) => (
   <Card style={styles.cardSubcategories}>
-    <CardContent>
-      {props.category && (
-        <div>
-          <CardTitle>Subcategories</CardTitle>
-          <Button
-            color={'secondary'}
-            style={{ margin: '2rem 0 1rem' }}
-            onClick={handleNewCategoryClick(props.history)}
-          >
-            Dodaj
-          </Button>
-        </div>
-      )}
-      <Table style={props.category ? styles.table.childCategory : styles.table.rootCategory}>
-        <TableHead
-          adjustForCheckbox={false}
-          displaySelectAll={false}
-        >
-          <TableRow>
-            <TableCell>Name</TableCell>
-            <TableCell wide>Description</TableCell>
-          </TableRow>
-        </TableHead>
-        <TableBody displayRowCheckbox={false}>
-          {props.categoryChildren.map((category) => (
-            <TableRow
-              style={{ cursor: 'pointer' }}
-              onClick={() => handleRowClick(category.pk, props.history)}
-              key={category.pk}
+    {props.data.loading && (
+      <CircularProgress
+        size={80}
+        thickness={5}
+        style={{ margin: 'auto' }}
+      />
+    )}
+    {!props.data.loading && (
+      <CardContent>
+        {props.pk && (
+          <div>
+            <CardTitle>Subcategories</CardTitle>
+            <Button
+              color={'secondary'}
+              style={{ margin: '2rem 0 1rem' }}
+              onClick={handleNewCategoryClick(props.history)}
             >
-              <TableCell>{category.name}</TableCell>
-              <TableCell wide>{category.description}</TableCell>
+              Dodaj
+            </Button>
+          </div>
+        )}
+        <Table style={props.pk ? styles.table.childCategory : styles.table.rootCategory}>
+          <TableHead
+            adjustForCheckbox={false}
+            displaySelectAll={false}
+          >
+            <TableRow>
+              <TableCell>Name</TableCell>
+              <TableCell wide>Description</TableCell>
             </TableRow>
-          ))}
-          {!props.categoryChildren.length && (
-            <TableRow style={{ height: '32px' }} />
-          )}
-        </TableBody>
-      </Table>
-      {!props.categoryChildren.length && (
-        <div style={styles.noSubcategoriesLabel}>No categories</div>
-      )}
-    </CardContent>
+          </TableHead>
+          <TableBody displayRowCheckbox={false}>
+            {props.data.categories.edges.map((edge) => (
+              <TableRow
+                style={{ cursor: 'pointer' }}
+                onClick={() => handleRowClick(edge.node.pk, props.history)}
+                key={edge.node.pk}
+              >
+                <TableCell>{edge.node.name}</TableCell>
+                <TableCell wide>{edge.node.description}</TableCell>
+              </TableRow>
+            ))}
+            {!props.data.categories.edges.length && (
+              <TableRow style={{ height: '32px' }} />
+            )}
+          </TableBody>
+        </Table>
+        {!props.data.categories.edges.length && (
+          <div style={styles.noSubcategoriesLabel}>No categories</div>
+        )}
+      </CardContent>
+    )}
   </Card>
 );
 Component.propTypes = {
-  category: PropTypes.shape({
-    pk: PropTypes.number,
-    name: PropTypes.string,
-    description: PropTypes.string,
-    parent: PropTypes.shape({
-      pk: PropTypes.number
-    })
+  data: PropTypes.shape({
+    categories: PropTypes.shape({
+      edges: PropTypes.arrayOf(
+        PropTypes.shape({
+          node: PropTypes.shape({
+            pk: PropTypes.number,
+            name: PropTypes.string,
+            description: PropTypes.string
+          })
+        })
+      )
+    }),
+    loading: PropTypes.bool
   }),
-  categoryChildren: PropTypes.arrayOf(PropTypes.shape({
-    pk: PropTypes.number,
-    name: PropTypes.string,
-    description: PropTypes.string
-  })).isRequired,
+  pk: PropTypes.number,
   history: PropTypes.object.isRequired
 };
-export default withRouter(Component);
+const query = gql`
+  query CategoryPage ($pk: Int) {
+    categories(parent: $pk) {
+      edges {
+        node {
+          pk
+          name
+          description
+        }
+      }
+    }
+  }
+`;
+
+export default withRouter(
+  graphql(query, {
+    options: (props) => ({
+      pk: props.pk
+    })
+  })(Component)
+);
