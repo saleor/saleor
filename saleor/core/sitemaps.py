@@ -12,6 +12,8 @@ class NewReleasesSitemap(Sitemap):
 
     priority = "0.5"
 
+    protocol = "https"
+
     def items(self):
         return visible_products().filter(get_month_condition(months=2))
 
@@ -22,6 +24,8 @@ class UpcomingReleasesSitemap(Sitemap):
 
     priority = "0.5"
 
+    protocol = "https"
+
     def items(self):
         return visible_products().filter(get_month_condition(months=2))
 
@@ -30,6 +34,7 @@ class ChartsSitemap(Sitemap):
 
     changefreq = "monthly"
     priority = 0.5
+    protocol = "https"
 
     def items(self):
         x_month_ago = timezone.now() - timedelta(days=12*30)
@@ -49,6 +54,7 @@ class StaticViewSitemap(sitemaps.Sitemap):
 
     priority = 0.7
     changefreq = 'daily'
+    protocol = "https"
 
     def items(self):
         return ['main', 'new', 'upcoming', 'used', 'charts', 'genres']
