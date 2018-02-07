@@ -6,7 +6,6 @@ import django.db.models.deletion
 from django.conf import settings
 import django.core.validators
 import django_prices.models
-import satchless.item
 import uuid
 
 
@@ -36,7 +35,6 @@ class Migration(migrations.Migration):
             options={
                 'ordering': ('-last_status_change',),
             },
-            bases=(models.Model, satchless.item.ItemSet),
         ),
         migrations.CreateModel(
             name='CartLine',
@@ -47,7 +45,6 @@ class Migration(migrations.Migration):
                 ('cart', models.ForeignKey(related_name='lines', to='cart.Cart', on_delete=django.db.models.deletion.CASCADE)),
                 ('product', models.ForeignKey(related_name='+', verbose_name='product', to='product.ProductVariant', on_delete=django.db.models.deletion.CASCADE)),
             ],
-            bases=(models.Model, satchless.item.ItemLine),
         ),
         migrations.AlterUniqueTogether(
             name='cartline',

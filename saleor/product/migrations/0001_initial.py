@@ -7,7 +7,6 @@ import versatileimagefield.fields
 from decimal import Decimal
 import django.core.validators
 import django_prices.models
-import satchless.item
 
 
 class Migration(migrations.Migration):
@@ -61,7 +60,6 @@ class Migration(migrations.Migration):
                 ('weight', models.DecimalField(verbose_name='weight', max_digits=6, decimal_places=2)),
                 ('available_on', models.DateField(null=True, verbose_name='available on', blank=True)),
             ],
-            bases=(models.Model, satchless.item.ItemRange),
         ),
         migrations.CreateModel(
             name='ProductAttribute',
@@ -99,7 +97,6 @@ class Migration(migrations.Migration):
                 ('attributes', models.TextField(default='{}', verbose_name='attributes')),
                 ('product', models.ForeignKey(related_name='variants', to='product.Product', on_delete=django.db.models.deletion.CASCADE)),
             ],
-            bases=(models.Model, satchless.item.Item),
         ),
         migrations.CreateModel(
             name='Stock',
