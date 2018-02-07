@@ -56,7 +56,6 @@ const query = gql`
 
 Component.propTypes = {
   pk: PropTypes.number.isRequired,
-  setLoadingStatus: PropTypes.func.isRequired,
   data: PropTypes.shape({
     category: PropTypes.shape({
       pk: PropTypes.number,
