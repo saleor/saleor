@@ -13,7 +13,7 @@ from django_prices.models import PriceField
 from payments import PaymentStatus, PurchasedItem
 from payments.models import BasePayment
 from prices import FixedDiscount, Price
-from satchless.item import ItemLine, ItemSet
+from satchless.item import ItemSet
 
 from ..account.models import Address
 from ..core.utils import build_absolute_uri
@@ -239,7 +239,7 @@ class DeliveryGroup(models.Model, ItemSet):
         cancel_delivery_group(self)
 
     def get_total_quantity(self):
-        return sum([line.get_quantity() for line in self])
+        return sum([line.quantity for line in self])
 
     def is_shipping_required(self):
         return any([line.is_shipping_required for line in self.lines.all()])
@@ -254,7 +254,7 @@ class DeliveryGroup(models.Model, ItemSet):
         return self.status not in {GroupStatus.CANCELLED, GroupStatus.SHIPPED}
 
 
-class OrderLine(models.Model, ItemLine):
+class OrderLine(models.Model):
     delivery_group = models.ForeignKey(
         DeliveryGroup, related_name='lines', editable=False,
         on_delete=models.CASCADE)
@@ -275,12 +275,13 @@ class OrderLine(models.Model, ItemLine):
     def __str__(self):
         return self.product_name
 
-    def get_price_per_item(self, **kwargs):
-        return Price(net=self.unit_price_net, gross=self.unit_price_gross,
-                     currency=settings.DEFAULT_CURRENCY)
+    def get_price_per_item(self):
+        return Price(
+            net=self.unit_price_net, gross=self.unit_price_gross,
+            currency=settings.DEFAULT_CURRENCY)
 
-    def get_quantity(self):
-        return self.quantity
+    def get_total(self):
+        return self.get_price_per_item() * self.quantity
 
 
 class PaymentQuerySet(models.QuerySet):
