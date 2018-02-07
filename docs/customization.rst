@@ -6,6 +6,7 @@ Customizing Saleor
 
    customization/docker
    customization/templates
+   customization/emails
    customization/frontend
    customization/backend
    customization/tests
