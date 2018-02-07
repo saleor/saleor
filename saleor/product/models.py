@@ -14,10 +14,10 @@ from django_prices.models import Price, PriceField
 from mptt.managers import TreeManager
 from mptt.models import MPTTModel
 from prices import PriceRange
-from satchless.item import InsufficientStock
 from text_unidecode import unidecode
 from versatileimagefield.fields import PPOIField, VersatileImageField
 
+from ..core.exceptions import InsufficientStock
 from ..discount.utils import calculate_discounted_price
 from .utils import get_attributes_display_map
 
