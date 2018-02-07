@@ -93,7 +93,6 @@ requests-oauthlib==0.8.0  # via social-auth-core
 requests==2.18.4
 rx==1.6.0                 # via graphql-core
 s3transfer==0.1.12        # via boto3
-satchless==1.1.3
 singledispatch==3.4.0.3   # via graphene-django
 six==1.11.0               # via bleach, cryptography, django-templated-email, elasticsearch-dsl, faker, freezegun, graphene, graphene-django, graphql-core, graphql-relay, html5lib, promise, purl, pytest, python-dateutil, singledispatch, social-auth-app-django, social-auth-core, vcrpy
 social-auth-app-django==2.1.0
