@@ -13,5 +13,5 @@ This is an automatically generated email, please do not reply.
 {% endblock %}
 
 {% block html %}
-{% include 'templated_email/html/compiled/promote_customer.html' %}
+{% include 'templated_email/compiled/promote_customer.html' %}
 {% endblock %}
