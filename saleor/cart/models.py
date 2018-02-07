@@ -147,9 +147,9 @@ class Cart(models.Model):
     def __len__(self):
         return self.lines.count()
 
-    def get_total(self):
+    def get_total(self, discounts=None):
         """Return the total cost of the cart prior to shipping."""
-        subtotals = [line.get_total() for line in self.lines.all()]
+        subtotals = [line.get_total(discounts) for line in self.lines.all()]
         if not subtotals:
             raise AttributeError('Calling get_total() on an empty cart')
         zero = Price(0, currency=settings.DEFAULT_CURRENCY)
@@ -267,9 +267,9 @@ class CartLine(models.Model):
     def __setstate__(self, data):
         self.variant, self.quantity, self.data = data
 
-    def get_total(self):
+    def get_total(self, discounts=None):
         """Return the total price of this line."""
-        amount = self.get_price_per_item() * self.quantity
+        amount = self.get_price_per_item(discounts) * self.quantity
         return amount.quantize(CENTS)
 
     # pylint: disable=W0221
