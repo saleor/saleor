@@ -1,14 +1,12 @@
 from django import forms
 from django.conf import settings
 from django.contrib.auth import forms as django_forms, update_session_auth_hash
-from django.urls import reverse
 from django.utils.translation import pgettext, pgettext_lazy
 from phonenumbers.phonenumberutil import country_code_for_region
-from templated_email import send_templated_mail
 
 from ..account.models import User
-from ..core.utils import build_absolute_uri
 from .i18n import AddressMetaForm, get_address_form_class
+from . import emails
 
 
 def get_address_form(
@@ -110,11 +108,4 @@ class PasswordResetForm(django_forms.PasswordResetForm):
     def send_mail(
             self, subject_template_name, email_template_name, context,
             from_email, to_email, html_email_template_name=None):
-        reset_url = build_absolute_uri(
-            reverse(
-                'account:reset-password-confirm',
-                kwargs={'uidb64': context['uid'], 'token': context['token']}))
-        context['reset_url'] = reset_url
-        send_templated_mail(
-            'account/password_reset', from_email=from_email,
-            recipient_list=[to_email], context=context)
+        emails.send_password_reset_email.delay(context, to_email)
