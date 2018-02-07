@@ -10,12 +10,12 @@ from django.http import HttpResponse
 from django.urls import reverse
 from django_babel.templatetags.babel import currencyfmt
 from prices import Price
-from satchless.item import InsufficientStock
 
 from saleor.cart import CartStatus, forms, utils
 from saleor.cart.context_processors import cart_counter
 from saleor.cart.models import Cart, ProductGroup, find_open_cart_for_user
 from saleor.cart.views import update
+from saleor.core.exceptions import InsufficientStock
 from saleor.discount.models import Sale
 from saleor.shipping.utils import get_shipment_options
 

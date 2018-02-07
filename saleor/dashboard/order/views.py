@@ -10,8 +10,8 @@ from django.utils.translation import pgettext_lazy
 from django_prices.templatetags.prices_i18n import gross
 from payments import PaymentStatus
 from prices import Price
-from satchless.item import InsufficientStock
 
+from ...core.exceptions import InsufficientStock
 from ...core.utils import get_paginator_items
 from ...order import GroupStatus
 from ...order.models import DeliveryGroup, Order, OrderLine, OrderNote
