@@ -5,6 +5,7 @@ from django.utils.encoding import smart_text
 from django.utils.translation import pgettext_lazy
 
 from .models import NotApplicable, Voucher
+from .utils import get_voucher_discount_for_checkout
 
 
 class VoucherField(forms.ModelChoiceField):
@@ -41,7 +42,8 @@ class CheckoutDiscountForm(forms.Form):
         if 'voucher' in cleaned_data:
             voucher = cleaned_data['voucher']
             try:
-                discount = voucher.get_discount_for_checkout(self.checkout)
+                discount = get_voucher_discount_for_checkout(
+                    voucher, self.checkout)
                 cleaned_data['discount'] = discount
             except NotApplicable as e:
                 self.add_error('voucher', smart_text(e))
