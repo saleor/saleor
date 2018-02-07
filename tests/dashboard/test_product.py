@@ -686,17 +686,19 @@ def test_sanitize_product_description(product_type, default_category):
         name='Test Product', price=10, description='', pk=10,
         product_type=product_type, category=default_category)
     data = model_to_dict(product)
-    data['description'] = '<b>bold</b><p><i>italic</i></p><h2>Header</h2>' \
-                          '<h3>subheader</h3><blockquote>quote</blockquote>' \
-                          '<p><a href="www.mirumee.com">link</a></p>' \
-                          '<p>an <script>evil()</script> example</p>'
+    data['description'] = (
+                          '<b>bold</b><p><i>italic</i></p><h2>Header</h2>'
+                          '<h3>subheader</h3><blockquote>quote</blockquote>'
+                          '<p><a href="www.mirumee.com">link</a></p>'
+                          '<p>an <script>evil()</script>example</p>')
     data['price'] = 20
     form = ProductForm(data, instance=product)
     assert form.is_valid()
     form.save()
-    assert product.description == '<b>bold</b><p><i>italic</i></p>' \
-                                  '<h2>Header</h2><h3>subheader</h3>' \
-                                  '<blockquote>quote</blockquote>' \
-                                  '<p><a href="www.mirumee.com">link</a></p>' \
-                                  '<p>an &lt;script&gt;evil()&lt;/script&gt;' \
-                                  ' example</p>'
+    assert product.description == (
+                                  '<b>bold</b><p><i>italic</i></p>'
+                                  '<h2>Header</h2><h3>subheader</h3>'
+                                  '<blockquote>quote</blockquote>'
+                                  '<p><a href="www.mirumee.com">link</a></p>'
+                                  '<p>an &lt;script&gt;evil()&lt;/script&gt;'
+                                  'example</p>')
