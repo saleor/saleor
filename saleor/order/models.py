@@ -13,7 +13,6 @@ from django_prices.models import PriceField
 from payments import PaymentStatus, PurchasedItem
 from payments.models import BasePayment
 from prices import FixedDiscount, Price
-from satchless.item import ItemSet
 
 from ..account.models import Address
 from ..core.utils import build_absolute_uri
@@ -36,7 +35,7 @@ class OrderQuerySet(models.QuerySet):
         return self.filter(~Q(groups__status=GroupStatus.NEW))
 
 
-class Order(models.Model, ItemSet):
+class Order(models.Model):
     created = models.DateTimeField(
         default=now, editable=False)
     last_status_change = models.DateTimeField(
@@ -193,7 +192,7 @@ class Order(models.Model, ItemSet):
         return self.status == OrderStatus.OPEN
 
 
-class DeliveryGroup(models.Model, ItemSet):
+class DeliveryGroup(models.Model):
     """Represents a single shipment.
 
     A single order can consist of multiple shipment groups.
@@ -219,7 +218,7 @@ class DeliveryGroup(models.Model, ItemSet):
     def __iter__(self):
         if self.id:
             return iter(self.lines.all())
-        return super().__iter__()
+        raise NotImplementedError()
 
     @transition(
         field=status, source=GroupStatus.NEW, target=GroupStatus.NEW)
@@ -252,6 +251,13 @@ class DeliveryGroup(models.Model, ItemSet):
 
     def can_edit_lines(self):
         return self.status not in {GroupStatus.CANCELLED, GroupStatus.SHIPPED}
+
+    def get_total(self):
+        subtotals = [item.get_total() for item in self]
+        if not subtotals:
+            raise AttributeError(
+                'Calling get_total() on an empty shipment group')
+        return sum(subtotals[1:], subtotals[0])
 
 
 class OrderLine(models.Model):
