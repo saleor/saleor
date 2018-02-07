@@ -147,17 +147,11 @@ class Cart(models.Model):
     def __len__(self):
         return self.lines.count()
 
-    # pylint: disable=R0201
-    def get_subtotal(self, item, **kwargs):
-        """Return the cost of a cart line."""
-        return item.get_total(**kwargs)
-
-    def get_total(self, **kwargs):
+    def get_total(self):
         """Return the total cost of the cart prior to shipping."""
-        subtotals = [
-            self.get_subtotal(item, **kwargs) for item in self.lines.all()]
+        subtotals = [line.get_total() for line in self.lines.all()]
         if not subtotals:
-            raise AttributeError('Calling get_total() on an empty item set')
+            raise AttributeError('Calling get_total() on an empty cart')
         zero = Price(0, currency=settings.DEFAULT_CURRENCY)
         return sum(subtotals, zero)
 

@@ -370,7 +370,7 @@ def create_payment(delivery_group):
         variant='default',
         transaction_id=str(fake.random_int(1, 100000)),
         currency=settings.DEFAULT_CURRENCY,
-        total=order.get_total().gross,
+        total=order.total.gross,
         delivery=order.shipping_price.gross,
         customer_ip_address=fake.ipv4(),
         billing_first_name=order.billing_address.first_name,

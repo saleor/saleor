@@ -183,9 +183,15 @@ class Order(models.Model):
         self.total_net = price
         self.total_tax = Price(price.tax, currency=price.currency)
 
+    def get_total(self):
+        subtotals = [group.get_total() for group in self]
+        if not subtotals:
+            raise AttributeError('Calling get_total() on an empty order')
+        return sum(subtotals[1:], subtotals[0])
+
     def get_subtotal_without_voucher(self):
         if self.get_lines():
-            return super().get_total()
+            return self.get_total()
         return Price(net=0, currency=settings.DEFAULT_CURRENCY)
 
     def can_cancel(self):
@@ -253,7 +259,7 @@ class DeliveryGroup(models.Model):
         return self.status not in {GroupStatus.CANCELLED, GroupStatus.SHIPPED}
 
     def get_total(self):
-        subtotals = [item.get_total() for item in self]
+        subtotals = [line.get_total() for line in self]
         if not subtotals:
             raise AttributeError(
                 'Calling get_total() on an empty shipment group')
