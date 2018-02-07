@@ -10,7 +10,7 @@ from ..core.utils import build_absolute_uri
 def send_password_reset_email(context, recipient):
     reset_url = build_absolute_uri(
         reverse(
-            'account_reset_password_confirm',
+            'account:reset-password-confirm',
             kwargs={'uidb64': context['uid'], 'token': context['token']}))
     context['reset_url'] = reset_url
     send_templated_mail(
