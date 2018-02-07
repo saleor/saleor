@@ -4,15 +4,16 @@ import operator
 import graphene
 from django.db.models import Q
 from graphene import relay
-from graphene_django import DjangoConnectionField, DjangoObjectType
+from graphene.relay.node import from_global_id
+from graphene_django import DjangoObjectType
+from graphene_django.filter import DjangoFilterConnectionField
 
-from ...product.models import (
-    AttributeChoiceValue, Category, Product, ProductAttribute, ProductImage,
-    ProductVariant)
+from ...product import models
 from ...product.templatetags.product_images import product_first_image
 from ...product.utils import get_availability, products_visible_to_user
-from ..core.types import PriceRangeType, PriceType
-from ..utils import CategoryAncestorsCache, DjangoPkInterface
+from ..core.types import Price, PriceRange
+from ..utils import CategoryAncestorsCache
+from .filters import ProductFilterSet
 from .scalars import AttributesFilterScalar
 
 CONTEXT_CACHE_NAME = '__cache__'
@@ -26,33 +27,32 @@ def get_ancestors_from_cache(category, context):
     return category.get_ancestors()
 
 
-class ProductAvailabilityType(graphene.ObjectType):
+class ProductAvailability(graphene.ObjectType):
     available = graphene.Boolean()
     on_sale = graphene.Boolean()
-    discount = graphene.Field(lambda: PriceType)
-    discount_local_currency = graphene.Field(lambda: PriceType)
-    price_range = graphene.Field(lambda: PriceRangeType)
-    price_range_undiscounted = graphene.Field(lambda: PriceRangeType)
-    price_range_local_currency = graphene.Field(lambda: PriceRangeType)
+    discount = graphene.Field(Price)
+    discount_local_currency = graphene.Field(Price)
+    price_range = graphene.Field(PriceRange)
+    price_range_undiscounted = graphene.Field(PriceRange)
+    price_range_local_currency = graphene.Field(PriceRange)
 
 
-class ProductType(DjangoObjectType):
+class Product(DjangoObjectType):
     url = graphene.String()
     thumbnail_url = graphene.String(
         size=graphene.Argument(
             graphene.String,
             description="The size of a thumbnail, for example 255x255"))
-    images = graphene.List(lambda: ProductImageType)
-    variants = graphene.List(lambda: ProductVariantType)
-    availability = graphene.Field(lambda: ProductAvailabilityType)
-    price = graphene.Field(lambda: PriceType)
+    images = graphene.List(lambda: ProductImage)
+    variants = graphene.List(lambda: ProductVariant)
+    availability = graphene.Field(lambda: ProductAvailability)
+    price = graphene.Field(lambda: Price)
 
     class Meta:
-        model = Product
-        interfaces = (relay.Node, DjangoPkInterface)
+        model = models.Product
+        interfaces = [relay.Node]
 
-    def resolve_thumbnail_url(self, info, **args):
-        size = args.get('size')
+    def resolve_thumbnail_url(self, info, *, size=None):
         if not size:
             size = '255x255'
         return product_first_image(self, size)
@@ -68,36 +68,24 @@ class ProductType(DjangoObjectType):
 
     def resolve_availability(self, info):
         context = info.context
-        a = get_availability(self, context.discounts, context.currency)
-        return ProductAvailabilityType(**a._asdict())
+        availability = get_availability(
+            self, context.discounts, context.currency)
+        return ProductAvailability(**availability._asdict())
 
 
-class CategoryType(DjangoObjectType):
-    products = DjangoConnectionField(
-        ProductType,
-        attributes=graphene.Argument(
-            graphene.List(AttributesFilterScalar),
-            description="""A list of attribute:value pairs to filter
-                the products by"""),
-        order_by=graphene.Argument(
-            graphene.String,
-            description="""A name of field to sort the products by. The negative
-                sign in front of name implies descending order."""),
-        price_lte=graphene.Argument(
-            graphene.Float, description="""Get the products with price lower
-                than or equal to the given value"""),
-        price_gte=graphene.Argument(
-            graphene.Float, description="""Get the products with price greater
-                than or equal to the given value"""))
+class Category(DjangoObjectType):
+    products = DjangoFilterConnectionField(
+        Product, filterset_class=ProductFilterSet)
     products_count = graphene.Int()
     url = graphene.String()
-    ancestors = graphene.List(lambda: CategoryType)
-    children = graphene.List(lambda: CategoryType)
-    siblings = graphene.List(lambda: CategoryType)
+    ancestors = DjangoFilterConnectionField(lambda: Category)
+    children = DjangoFilterConnectionField(lambda: Category)
+    siblings = DjangoFilterConnectionField(lambda: Category)
 
     class Meta:
-        model = Category
-        interfaces = (relay.Node, DjangoPkInterface)
+        model = models.Category
+        filter_fields = ['id', 'name']
+        interfaces = [relay.Node]
 
     def resolve_ancestors(self, info):
         return get_ancestors_from_cache(self, info.context)
@@ -120,85 +108,29 @@ class CategoryType(DjangoObjectType):
         qs = products_visible_to_user(context.user)
         qs = qs.prefetch_related('images', 'category', 'variants__stock')
         qs = qs.filter(category=self)
-
-        attributes_filter, order_by, price_lte, price_gte = map(
-            args.get, ['attributes', 'order_by', 'price_lte', 'price_gte'])
-
-        if attributes_filter:
-            attributes = ProductAttribute.objects.prefetch_related('values')
-            attributes_map = {attribute.slug: attribute.pk
-                              for attribute in attributes}
-            values_map = {attr.slug: {value.slug: value.pk
-                                      for value in attr.values.all()}
-                          for attr in attributes}
-            queries = {}
-            # Convert attribute:value pairs into a dictionary where
-            # attributes are keys and values are grouped in lists
-            for attr_name, val_slug in attributes_filter:
-                try:
-                    attr_pk = attributes_map[attr_name]
-                except KeyError:
-                    attr_pk = None
-                else:
-                    try:
-                        attr_val_pk = values_map[attr_name][val_slug]
-                    except KeyError:
-                        attr_val_pk = None
-                    else:
-                        if attr_val_pk is not None and attr_pk not in queries:
-                            queries[attr_pk] = [attr_val_pk]
-                        else:
-                            queries[attr_pk].append(attr_val_pk)
-            if queries:
-                # Combine filters of the same attribute with OR operator
-                # and then combine full query with AND operator.
-                combine_and = [functools.reduce(operator.or_, [
-                    Q(**{'variants__attributes__%s' % key: v}) |
-                    Q(**{'attributes__%s' % key: v})
-                    for v in values]) for key, values in queries.items()]
-                query = functools.reduce(operator.and_, combine_and)
-                qs = qs.filter(query).distinct()
-
-        if order_by:
-            qs = qs.order_by(order_by)
-
-        def filter_by_price(queryset, value, operator):
-            return [
-                obj for obj in queryset
-                if operator(
-                    get_availability(obj, context.discounts)
-                    .price_range.min_price.gross, value)
-            ]
-
-        if price_lte:
-            qs = filter_by_price(qs, price_lte, operator.le)
-
-        if price_gte:
-            qs = filter_by_price(qs, price_gte, operator.ge)
         return qs
 
 
-class ProductVariantType(DjangoObjectType):
+class ProductVariant(DjangoObjectType):
     stock_quantity = graphene.Int()
-    price_override = graphene.Field(lambda: PriceType)
+    price_override = graphene.Field(lambda: Price)
 
     class Meta:
-        model = ProductVariant
-        interfaces = (relay.Node, DjangoPkInterface)
+        model = models.ProductVariant
+        interfaces = [relay.Node]
 
     def resolve_stock_quantity(self, info):
         return self.get_stock_quantity()
 
 
-class ProductImageType(DjangoObjectType):
+class ProductImage(DjangoObjectType):
     url = graphene.String(size=graphene.String())
 
     class Meta:
-        model = ProductImage
-        interfaces = (relay.Node, DjangoPkInterface)
+        model = models.ProductImage
+        interfaces = [relay.Node]
 
-    def resolve_url(self, info, **args):
-        size = args.get('size')
+    def resolve_url(self, info, *, size=None):
         if size:
             return self.image.crop[size].url
         return self.image.url
@@ -206,23 +138,23 @@ class ProductImageType(DjangoObjectType):
 
 class ProductAttributeValue(DjangoObjectType):
     class Meta:
-        model = AttributeChoiceValue
-        interfaces = (relay.Node, DjangoPkInterface)
+        model = models.AttributeChoiceValue
+        interfaces = [relay.Node]
 
 
-class ProductAttributeType(DjangoObjectType):
+class ProductAttribute(DjangoObjectType):
     values = graphene.List(lambda: ProductAttributeValue)
 
     class Meta:
-        model = ProductAttribute
-        interfaces = (relay.Node, DjangoPkInterface)
+        model = models.ProductAttribute
+        interfaces = [relay.Node]
 
     def resolve_values(self, info):
         return self.values.all()
 
 
-def resolve_category(pk, info):
-    categories = Category.tree.filter(pk=pk).get_cached_trees()
+def resolve_category(id, info):
+    categories = models.Category.tree.filter(id=id).get_cached_trees()
     if categories:
         category = categories[0]
         cache = {CACHE_ANCESTORS: CategoryAncestorsCache(category)}
@@ -231,15 +163,20 @@ def resolve_category(pk, info):
     return None
 
 
+def resolve_product(id, info):
+    products = products_visible_to_user(info.context.user).filter(id=id)
+    return products.first()
+
+
 def resolve_attributes(category_pk):
-    queryset = ProductAttribute.objects.prefetch_related('values')
+    queryset = models.ProductAttribute.objects.prefetch_related('values')
     if category_pk:
         # Get attributes that are used with product types
         # within the given category.
-        tree = Category.objects.get(
+        tree = models.Category.objects.get(
             pk=category_pk).get_descendants(include_self=True)
         product_types = set(
-            [obj[0] for obj in Product.objects.filter(
+            [obj[0] for obj in models.Product.objects.filter(
                 category__in=tree).values_list('product_type_id')])
         queryset = queryset.filter(
             Q(product_types__in=product_types) |
