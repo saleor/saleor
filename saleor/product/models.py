@@ -14,7 +14,7 @@ from django_prices.models import Price, PriceField
 from mptt.managers import TreeManager
 from mptt.models import MPTTModel
 from prices import PriceRange
-from satchless.item import InsufficientStock, Item, ItemRange
+from satchless.item import InsufficientStock
 from text_unidecode import unidecode
 from versatileimagefield.fields import PPOIField, VersatileImageField
 
@@ -87,7 +87,7 @@ class ProductQuerySet(models.QuerySet):
             Q(is_published=True))
 
 
-class Product(models.Model, ItemRange):
+class Product(models.Model):
     product_type = models.ForeignKey(
         ProductType, related_name='products', on_delete=models.CASCADE)
     name = models.CharField(max_length=128)
@@ -158,19 +158,27 @@ class Product(models.Model, ItemRange):
 
     def get_price_range(self, discounts=None, **kwargs):
         if self.variants.exists():
-            return super().get_price_range(discounts=discounts, **kwargs)
+            prices = [
+                self.get_price_per_item(variant, discounts=discounts)
+                for variant in self]
+            if not prices:
+                raise AttributeError(
+                    'Calling get_price_range() on a product without variants')
+            return PriceRange(min(prices), max(prices))
         price = calculate_discounted_price(self, self.price, discounts)
         return PriceRange(price, price)
 
-    def get_gross_price_range(self, **kwargs):
-        grosses = [self.get_price_per_item(item, **kwargs) for item in self]
+    def get_gross_price_range(self, discounts=None):
+        grosses = [
+            self.get_price_per_item(variant, discounts=discounts)
+            for variant in self]
         if not grosses:
             return None
         grosses = sorted(grosses, key=lambda x: x.tax)
         return PriceRange(min(grosses), max(grosses))
 
 
-class ProductVariant(models.Model, Item):
+class ProductVariant(models.Model):
     sku = models.CharField(max_length=32, unique=True)
     name = models.CharField(max_length=100, blank=True)
     price_override = PriceField(
@@ -195,7 +203,7 @@ class ProductVariant(models.Model, Item):
     def get_stock_quantity(self):
         return sum([stock.quantity_available for stock in self.stock.all()])
 
-    def get_price_per_item(self, discounts=None, **kwargs):
+    def get_price_per_item(self, discounts=None):
         price = self.price_override or self.product.price
         price = calculate_discounted_price(self.product, price, discounts)
         return price

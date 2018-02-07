@@ -5,7 +5,7 @@ register = template.Library()
 
 @register.filter
 def discounted_price(item, discounts):
-    return item.get_price(discounts=discounts)
+    return item.get_price_per_item(discounts=discounts)
 
 
 @register.filter
