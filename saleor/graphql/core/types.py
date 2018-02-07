@@ -2,7 +2,7 @@ import graphene
 from django_prices.templatetags import prices_i18n
 
 
-class PriceType(graphene.ObjectType):
+class Price(graphene.ObjectType):
     currency = graphene.String()
     gross = graphene.Float()
     gross_localized = graphene.String()
@@ -16,6 +16,6 @@ class PriceType(graphene.ObjectType):
         return prices_i18n.net(self)
 
 
-class PriceRangeType(graphene.ObjectType):
-    max_price = graphene.Field(lambda: PriceType)
-    min_price = graphene.Field(lambda: PriceType)
+class PriceRange(graphene.ObjectType):
+    max_price = graphene.Field(Price)
+    min_price = graphene.Field(Price)
