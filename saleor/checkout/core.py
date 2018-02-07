@@ -13,7 +13,8 @@ from ..cart.models import Cart
 from ..cart.utils import get_or_empty_db_cart
 from ..core import analytics
 from ..discount.models import NotApplicable, Voucher
-from ..discount.utils import increase_voucher_usage
+from ..discount.utils import (
+    increase_voucher_usage, get_voucher_discount_for_checkout)
 from ..order.models import Order
 from ..shipping.models import ANY_COUNTRY, ShippingMethodCountry
 from ..userprofile.models import Address
@@ -367,7 +368,8 @@ class Checkout:
         voucher = self._get_voucher()
         if voucher is not None:
             try:
-                self.discount = voucher.get_discount_for_checkout(self)
+                self.discount = get_voucher_discount_for_checkout(
+                    voucher, self)
             except NotApplicable:
                 del self.discount
                 del self.voucher_code
