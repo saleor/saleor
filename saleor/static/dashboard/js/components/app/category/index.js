@@ -1,101 +1,70 @@
-import React from 'react';
+import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import { graphql } from 'react-apollo';
-import gql from 'graphql-tag';
 import { Route, Switch } from 'react-router-dom';
-import { CircularProgress } from 'material-ui/Progress';
 
 import CategoryEdit from './edit';
 import CategoryDetails from './details/index';
 
-const CategorySection = (props) => {
-  if (props.data.loading && !props.data.categories) {
-    return (
-      <CircularProgress
-        size={80}
-        thickness={5}
-        style={{ margin: 'auto' }}
+class CategorySection extends Component {
+  static propTypes = {
+    match: PropTypes.object
+  };
+
+  constructor(props) {
+    super(props);
+    this.state = { loading: true };
+  }
+
+  setLoadingStatus(status) {
+    this.setState({ loading: status });
+  }
+
+  render() {
+    const CategoryEditComponent = () => (
+      <CategoryEdit
+        pk={this.props.match.params.pk}
+        setLoadingStatus={this.setLoadingStatus}
       />
     );
-  } else {
+    const CategoryDetailsComponent = () => (
+      <CategoryDetails
+        pk={this.props.match.params.pk}
+        setLoadingStatus={this.setLoadingStatus}
+      />
+    );
+
     return (
-      <Switch>
-        <Route
-          exact
-          path={'/categories/:pk/edit'}
-          render={() => <CategoryEdit category={props.data.category} />}
-        />
-        <Route
-          exact
-          path={'/categories/:pk/add'}
-          component={CategoryEdit}
-        />
-        <Route
-          exact
-          path={'/categories/add'}
-          component={CategoryEdit}
-        />
-        <Route
-          exact
-          path={'/categories/:pk'}
-          render={
-            () => (
-              <CategoryDetails
-                category={props.data.category}
-                categoryChildren={props.data.categories}
-              />
-            )
-          }
-        />
-        <Route
-          exact
-          path={'/categories'}
-          render={() => <CategoryDetails categoryChildren={props.data.categories} />}
-        />
-      </Switch>
+      <div>
+        <Switch>
+          <Route
+            exact
+            path={'/categories/:pk/edit'}
+            component={CategoryEditComponent}
+          />
+          <Route
+            exact
+            path={'/categories/:pk/add'}
+            component={CategoryEdit}
+          />
+          <Route
+            exact
+            path={'/categories/add'}
+            component={CategoryEdit}
+          />
+          <Route
+            exact
+            path={'/categories/:pk'}
+            component={CategoryDetailsComponent}
+          />
+          <Route
+            exact
+            path={'/categories'}
+            component={CategoryDetailsComponent}
+          />
+        </Switch>
+      </div>
     );
   }
-};
-CategorySection.propTypes = {
-  data: PropTypes.shape({
-    category: PropTypes.shape({
-      pk: PropTypes.number,
-      name: PropTypes.string,
-      description: PropTypes.string,
-      parent: PropTypes.shape({
-        pk: PropTypes.number
-      })
-    }),
-    categories: PropTypes.arrayOf(PropTypes.shape({
-      pk: PropTypes.number,
-      name: PropTypes.string,
-      description: PropTypes.string
-    })),
-    loading: PropTypes.bool
-  })
-};
-const query = gql`
-query CategoryPage ($pk: Int!) {
-  categories(parent: $pk) {
-    pk
-    name
-    description
-  }
-  category(pk: $pk) {
-    pk
-    name
-    description
-    parent {
-      pk
-    }
-  }
-}`;
-const CategorySectionGraphQLProvider = graphql(query, {
-  options: ({ match }) => ({
-    variables: {
-      pk: match.params.pk || -1
-    }
-  })
-})(CategorySection);
+}
 
-export default CategorySectionGraphQLProvider;
+export default CategorySection;
