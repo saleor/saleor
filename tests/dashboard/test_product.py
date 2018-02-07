@@ -667,7 +667,6 @@ def test_hide_field_in_variant_choice_field_form():
 def test_assign_collection_to_product(product_in_stock):
     product = product_in_stock
     collection = Collection.objects.create(name='test_collections')
-    data = product.__dict__
     data = {
         'name': product.name,
         'price': product.price.gross,
@@ -687,18 +686,15 @@ def test_sanitize_product_description(product_type, default_category):
         product_type=product_type, category=default_category)
     data = model_to_dict(product)
     data['description'] = (
-                          '<b>bold</b><p><i>italic</i></p><h2>Header</h2>'
-                          '<h3>subheader</h3><blockquote>quote</blockquote>'
-                          '<p><a href="www.mirumee.com">link</a></p>'
-                          '<p>an <script>evil()</script>example</p>')
+        '<b>bold</b><p><i>italic</i></p><h2>Header</h2><h3>subheader</h3>'
+        '<blockquote>quote</blockquote>'
+        '<p><a href="www.mirumee.com">link</a></p>'
+        '<p>an <script>evil()</script>example</p>')
     data['price'] = 20
     form = ProductForm(data, instance=product)
     assert form.is_valid()
     form.save()
     assert product.description == (
-                                  '<b>bold</b><p><i>italic</i></p>'
-                                  '<h2>Header</h2><h3>subheader</h3>'
-                                  '<blockquote>quote</blockquote>'
-                                  '<p><a href="www.mirumee.com">link</a></p>'
-                                  '<p>an &lt;script&gt;evil()&lt;/script&gt;'
-                                  'example</p>')
+        '<b>bold</b><p><i>italic</i></p><h2>Header</h2><h3>subheader</h3>'
+        '<blockquote>quote</blockquote><p><a href="www.mirumee.com">link</a></p>'
+        '<p>an &lt;script&gt;evil()&lt;/script&gt;example</p>')
