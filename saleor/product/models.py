@@ -156,14 +156,14 @@ class Product(models.Model):
     def set_attribute(self, pk, value_pk):
         self.attributes[smart_text(pk)] = smart_text(value_pk)
 
-    def get_price_range(self, discounts=None, **kwargs):
+    def get_price_per_item(self, item, discounts=None):
+        return item.get_price_per_item(discounts)
+
+    def get_price_range(self, discounts=None):
         if self.variants.exists():
             prices = [
                 self.get_price_per_item(variant, discounts=discounts)
                 for variant in self]
-            if not prices:
-                raise AttributeError(
-                    'Calling get_price_range() on a product without variants')
             return PriceRange(min(prices), max(prices))
         price = calculate_discounted_price(self, self.price, discounts)
         return PriceRange(price, price)

@@ -44,8 +44,7 @@ def test_variant_discounts(product_in_stock):
         type=DiscountValueType.FIXED,
         value=50)
     high_discount.products.add(product_in_stock)
-    final_price = variant.get_price_per_item(
-        discounts=Sale.objects.all())
+    final_price = variant.get_price_per_item(discounts=Sale.objects.all())
     assert final_price.gross == 0
     applied_discount = final_price.history.right
     assert isinstance(applied_discount, FixedDiscount)
