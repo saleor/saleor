@@ -11,7 +11,7 @@ from django.utils.timezone import now
 from django_prices.models import PriceField
 from jsonfield import JSONField
 from prices import Price
-from satchless.item import ItemLine, ItemList, partition
+from satchless.item import ItemList, partition
 
 from . import CartStatus, logger
 
@@ -230,7 +230,7 @@ class Cart(models.Model):
         return partition(self.lines.all(), grouper, ProductGroup)
 
 
-class CartLine(models.Model, ItemLine):
+class CartLine(models.Model):
     """A single cart line.
 
     Multiple lines in the same cart can refer to the same product variant if
@@ -273,19 +273,15 @@ class CartLine(models.Model, ItemLine):
     def __setstate__(self, data):
         self.variant, self.quantity, self.data = data
 
-    def get_total(self, **kwargs):
+    def get_total(self):
         """Return the total price of this line."""
-        amount = super().get_total(**kwargs)
+        amount = self.get_price_per_item() * self.quantity
         return amount.quantize(CENTS)
 
-    def get_quantity(self, **kwargs):
-        """Return the line's quantity."""
-        return self.quantity
-
     # pylint: disable=W0221
-    def get_price_per_item(self, discounts=None, **kwargs):
+    def get_price_per_item(self, discounts=None):
         """Return the unit price of the line."""
-        return self.variant.get_price_per_item(discounts=discounts, **kwargs)
+        return self.variant.get_price_per_item(discounts=discounts)
 
     def is_shipping_required(self):
         """Return `True` if the related product variant requires shipping."""
