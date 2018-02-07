@@ -7,7 +7,6 @@ from django.conf import settings
 import django.utils.timezone
 import django_prices.models
 import django.core.validators
-import satchless.item
 
 
 class Migration(migrations.Migration):
@@ -27,7 +26,6 @@ class Migration(migrations.Migration):
                 ('shipping_required', models.BooleanField(default=True, verbose_name='shipping required')),
                 ('shipping_price', django_prices.models.PriceField(decimal_places=4, default=0, editable=False, currency=b'USD', max_digits=12, verbose_name='shipping price')),
             ],
-            bases=(models.Model, satchless.item.ItemSet),
         ),
         migrations.CreateModel(
             name='Order',
@@ -47,7 +45,6 @@ class Migration(migrations.Migration):
             options={
                 'ordering': ('-last_status_change',),
             },
-            bases=(models.Model, satchless.item.ItemSet),
         ),
         migrations.CreateModel(
             name='OrderedItem',
@@ -61,7 +58,6 @@ class Migration(migrations.Migration):
                 ('delivery_group', models.ForeignKey(related_name='items', editable=False, to='order.DeliveryGroup', on_delete=django.db.models.deletion.CASCADE)),
                 ('product', models.ForeignKey(related_name='+', on_delete=django.db.models.deletion.SET_NULL, verbose_name='product', blank=True, to='product.Product', null=True)),
             ],
-            bases=(models.Model, satchless.item.ItemLine),
         ),
         migrations.CreateModel(
             name='OrderHistoryEntry',
