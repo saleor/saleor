@@ -17,7 +17,7 @@ Thank you for your order. Below is the list of ordered products. To see your pay
 {% trans "Order summary" context "Order confirmation e-mail table header" %}:
 {% trans "Subtotal" context "Order confirmation e-mail table header" %}:           {% gross order.get_subtotal_without_voucher %}
 {% trans "Shipping" context "Order confirmation e-mail table header" %}:           {% gross order.shipping_price %}
-{% trans "Total" context "Order confirmation e-mail table header" %}:              {% gross order.get_total %}
+{% trans "Total" context "Order confirmation e-mail table header" %}:              {% gross order.total %}
 
 {% trans "Billing address" context "Order confirmation e-mail billing address" %}
 {{ order.billing_address }}

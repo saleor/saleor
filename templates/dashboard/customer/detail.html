@@ -110,7 +110,7 @@
                       {% render_status order.status order.get_status_display %}
                     </td>
                     <td class="right-align">
-                      {% gross order.get_total html=True %}
+                      {% gross order.total html=True %}
                     </td>
                   </tr>
                 {% endfor %}
