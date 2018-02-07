@@ -1,6 +1,7 @@
 """Cart-related ORM models."""
 from collections import namedtuple
 from decimal import Decimal
+from itertools import groupby
 from uuid import uuid4
 
 from django.conf import settings
@@ -11,7 +12,6 @@ from django.utils.timezone import now
 from django_prices.models import PriceField
 from jsonfield import JSONField
 from prices import Price
-from satchless.item import ItemList, partition
 
 from . import CartStatus, logger
 
@@ -29,7 +29,7 @@ def find_open_cart_for_user(user):
     return carts.first()
 
 
-class ProductGroup(ItemList):
+class ProductGroup(list):
     """A group of products."""
 
     def is_shipping_required(self):
@@ -218,10 +218,12 @@ class Cart(models.Model):
         self.update_quantity()
 
     def partition(self):
-        """Split the card into a list of groups for shipping."""
+        """Split the cart into a list of groups for shipping."""
         grouper = (
             lambda p: 'physical' if p.is_shipping_required() else 'digital')
-        return partition(self.lines.all(), grouper, ProductGroup)
+        subject = sorted(self.lines.all(), key=grouper)
+        for _, lines in groupby(subject, key=grouper):
+            yield ProductGroup(lines)
 
 
 class CartLine(models.Model):
