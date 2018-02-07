@@ -1,7 +1,7 @@
 from social_core.backends.facebook import FacebookOAuth2
 
+from ...site import AuthenticationBackends
 from . import BaseBackend
-from saleor.site import AuthenticationBackends
 
 
 class CustomFacebookOAuth2(BaseBackend, FacebookOAuth2):
