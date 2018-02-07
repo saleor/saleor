@@ -36,6 +36,13 @@ class ProductGroup(list):
         """Return `True` if any product in group requires shipping."""
         return any(p.is_shipping_required() for p in self)
 
+    def get_total(self, discounts=None):
+        subtotals = [line.get_total(discounts) for line in self]
+        if not subtotals:
+            raise AttributeError(
+                'Calling get_total() on an empty product group')
+        return sum(subtotals[1:], subtotals[0])
+
 
 class CartQueryset(models.QuerySet):
     """A specialized queryset for dealing with carts."""
