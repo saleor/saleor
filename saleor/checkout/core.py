@@ -330,14 +330,14 @@ class Checkout:
 
         order = Order.objects.create(**order_data)
 
-        for line in self.cart.partition():
-            shipping_required = line.is_shipping_required()
+        for partition in self.cart.partition():
+            shipping_required = partition.is_shipping_required()
             shipping_method_name = (
                 smart_text(self.shipping_method) if shipping_required
                 else None)
             group = order.groups.create(
                 shipping_method_name=shipping_method_name)
-            group.process(line, self.cart.discounts)
+            group.process(partition, self.cart.discounts)
             group.save()
 
         if voucher is not None:

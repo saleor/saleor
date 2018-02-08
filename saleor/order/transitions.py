@@ -8,7 +8,7 @@ def process_delivery_group(group, cart_lines, discounts=None):
     """Fill shipment group with order lines created from partition items."""
     for line in cart_lines:
         add_variant_to_delivery_group(
-            group, line.variant, line.get_quantity(), discounts,
+            group, line.variant, line.quantity, discounts,
             add_to_existing=False)
 
 

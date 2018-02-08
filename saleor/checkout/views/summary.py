@@ -2,8 +2,8 @@ from django.contrib import messages
 from django.shortcuts import redirect
 from django.template.response import TemplateResponse
 from django.utils.translation import pgettext, pgettext_lazy
-from satchless.item import InsufficientStock
 
+from ...core.exceptions import InsufficientStock
 from ...account.forms import get_address_form
 from ...account.models import Address
 from ..forms import (

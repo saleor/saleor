@@ -4,12 +4,12 @@ import pytest
 from django.conf import settings
 from django.contrib.auth.models import AnonymousUser
 from prices import Price
-from satchless.item import InsufficientStock
 
 from saleor.account.models import Address
 from saleor.checkout import views
 from saleor.checkout.core import STORAGE_SESSION_KEY, Checkout
 from saleor.checkout.forms import NoteForm
+from saleor.core.exceptions import InsufficientStock
 from saleor.shipping.models import ShippingMethodCountry
 
 

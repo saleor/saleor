@@ -28,7 +28,7 @@ def index(request, cart):
         pass
 
     for line in cart.lines.all():
-        initial = {'quantity': line.get_quantity()}
+        initial = {'quantity': line.quantity}
         form = ReplaceCartLineForm(None, cart=cart, variant=line.variant,
                                    initial=initial, discounts=discounts)
         cart_lines.append({
