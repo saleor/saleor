@@ -25,7 +25,7 @@ const Component = (props) => (
             {props.data.category.name}
           </CardTitle>
           <CardSubtitle>
-          Opis
+            Opis
           </CardSubtitle>
           {props.data.category.description}
           <CardActions>
