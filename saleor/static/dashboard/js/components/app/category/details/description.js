@@ -44,6 +44,7 @@ const Component = (props) => (
 const query = gql`
   query CategoryDetails($pk: Int!) {
     category(pk: $pk) {
+      id
       pk
       name
       description
