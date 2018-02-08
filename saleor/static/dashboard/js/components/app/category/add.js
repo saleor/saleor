@@ -9,9 +9,9 @@ export default (props) => (
         name: '',
         description: '',
         pk: props.pk,
-        loading: false,
-      },
+        loading: false
+      }
     }}
     action="ADD"
   />
-)
+);

@@ -49,12 +49,13 @@ class SubmitButton extends Component {
         name: this.props.name,
         description: this.props.description,
         parent: this.props.parent,
-        pk: this.props.pk,
-      },
-    }).then(({ data }) => {
-      const queryName = this.props.action === 'ADD' ? 'categoryCreate' : 'categoryUpdate';
-      this.props.history.push(`/categories/${data[queryName].category.pk}/`)
-    });
+        pk: this.props.pk
+      }
+    })
+      .then(({ data }) => {
+        const queryName = this.props.action === 'ADD' ? 'categoryCreate' : 'categoryUpdate';
+        this.props.history.push(`/categories/${data[queryName].category.pk}/`);
+      });
   }
 
   render() {
@@ -63,14 +64,15 @@ class SubmitButton extends Component {
         onClick={this.handleClick}
         color="secondary"
         variant="raised"
-      />
+      >
+        {this.props.children}
+      </Button>
     );
   }
-
 }
 
 const QuerySwitch = (props) => {
-  const { action, ...componentProps } = props;
+  const { action } = props;
   let query;
   switch (action) {
     case 'ADD':
@@ -80,9 +82,16 @@ const QuerySwitch = (props) => {
       query = updateCategoryQuery;
       break;
   }
-  const EnhancedSubmitButton = graphql(query)(SubmitButton);
+  const EnhancedSubmitButton = graphql(query, {
+    options: {
+      refetchQueries: [
+        'CategoryPage',
+        'CategoryDetails'
+      ]
+    }
+  })(SubmitButton);
   return (
-    <EnhancedSubmitButton {...componentProps} />
+    <EnhancedSubmitButton {...props} />
   );
 };
 
