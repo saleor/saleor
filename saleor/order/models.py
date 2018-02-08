@@ -212,9 +212,7 @@ class DeliveryGroup(models.Model):
         return '%s(%r)' % (self.__class__.__name__, list(self))
 
     def __iter__(self):
-        if self.id:
-            return iter(self.lines.all())
-        raise NotImplementedError()
+        return iter(self.lines.all())
 
     @transition(
         field=status, source=GroupStatus.NEW, target=GroupStatus.NEW)
