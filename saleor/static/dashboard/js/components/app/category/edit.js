@@ -2,11 +2,12 @@ import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import gql from 'graphql-tag';
 import { graphql } from 'react-apollo';
-import CategoryPropertiesForm from '../categoryPropertiesForm';
+import CategoryPropertiesForm from './categoryPropertiesForm';
 
 const query = gql`
   query CategoryDetails($pk: Int!) {
     category(pk: $pk) {
+      id
       pk
       name
       description

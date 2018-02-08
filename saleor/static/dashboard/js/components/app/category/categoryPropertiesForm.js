@@ -47,12 +47,12 @@ class CategoryEdit extends Component {
     this.handleFieldChange = this.handleFieldChange.bind(this);
     this.state = {
       name: '',
-      description: '',
+      description: ''
     };
   }
 
   handleBack() {
-    this.props.history.push(`/categories/${this.props.pk}`);
+    this.props.history.goBack();
   }
 
   handleFieldChange(event) {
@@ -64,7 +64,7 @@ class CategoryEdit extends Component {
   componentWillReceiveProps(props) {
     this.setState({
       name: props.data.category.name,
-      description: props.data.category.description,
+      description: props.data.category.description
     });
   }
 
