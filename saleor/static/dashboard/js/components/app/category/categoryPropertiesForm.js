@@ -113,6 +113,7 @@ class CategoryEdit extends Component {
                 name={this.state.name}
                 description={this.state.description}
                 parent={this.props.data.category.pk}
+                pk={this.props.data.category.pk}
               >
                 {this.props.action === 'ADD' ? 'Utwórz' : 'Aktualizuj'}
               </SubmitButton>
