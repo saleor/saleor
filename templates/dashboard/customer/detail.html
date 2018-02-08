@@ -58,12 +58,12 @@
           </div>
         </div>
         <div class="card-action">
-          {% if perms.userprofile.edit_user %}
+          {% if perms.account.edit_user %}
             <a href="{% url 'dashboard:customer-update' customer.pk %}" class="btn-flat waves-effect">
               {% trans "Edit customer" context "Customer action" %}
             </a>
           {% endif %}
-          {% if perms.userprofile.impersonate_user %}
+          {% if perms.account.impersonate_user %}
             <a href="{% url 'impersonate-start' uid=customer.pk %}" class="btn-flat waves-effect">
               {% trans 'Impersonate customer' context 'Customer impersonate action' %}
             </a>
