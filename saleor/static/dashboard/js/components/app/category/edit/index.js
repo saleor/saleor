@@ -21,4 +21,4 @@ export default graphql(query, {
   options: (props) => ({
     pk: props.pk
   })
-})(() => <CategoryPropertiesForm action="UPDATE"/>);
+})((props) => <CategoryPropertiesForm {...props} action="UPDATE"/>);
