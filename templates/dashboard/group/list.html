@@ -13,7 +13,7 @@
 {% block menu_groups_class %}active{% endblock %}
 
 {% block header_extra %}
-  {% if perms.userprofile.edit_group %}
+  {% if perms.account.edit_group %}
     <div class="btn-fab-fixed">
       <a href="{% url 'dashboard:group-create' %}" class="btn-fab-default waves-effect waves-light" title="{% trans "Add group" context "Group list add button text" %}">
         <svg data-src="{% static "dashboard/images/add.svg" %}" />
@@ -48,7 +48,7 @@
               </thead>
               <tbody>
                 {% for group in groups %}
-                  <tr data-action-go="{% if perms.userprofile.edit_group %}{% url 'dashboard:group-details' pk=group.name.pk %}{% endif %}">
+                  <tr data-action-go="{% if perms.account.edit_group %}{% url 'dashboard:group-details' pk=group.name.pk %}{% endif %}">
                     <td>
                       {{ group.name }}
                     </td>
