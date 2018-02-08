@@ -49,4 +49,4 @@ social-auth-app-django>=2.0.0
 text-unidecode
 uwsgi>=2.0.0 ; platform_system != "Windows"
 celery[redis]
-weasyprint>=0.40
+weasyprint>=0.42.2
