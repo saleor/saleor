@@ -15,7 +15,7 @@ class Migration(migrations.Migration):
     dependencies = [
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
         ('product', '0001_initial'),
-        ('userprofile', '__first__'),
+        ('account', '__first__'),
     ]
 
     operations = [
@@ -40,8 +40,8 @@ class Migration(migrations.Migration):
                 ('shipping_method', models.CharField(max_length=255, verbose_name='Delivery method', blank=True)),
                 ('anonymous_user_email', models.EmailField(default='', max_length=254, editable=False, blank=True)),
                 ('token', models.CharField(unique=True, max_length=36, verbose_name='token')),
-                ('billing_address', models.ForeignKey(related_name='+', editable=False, to='userprofile.Address', on_delete=django.db.models.deletion.CASCADE)),
-                ('shipping_address', models.ForeignKey(related_name='+', editable=False, to='userprofile.Address', null=True, on_delete=django.db.models.deletion.CASCADE)),
+                ('billing_address', models.ForeignKey(related_name='+', editable=False, to='account.Address', on_delete=django.db.models.deletion.CASCADE)),
+                ('shipping_address', models.ForeignKey(related_name='+', editable=False, to='account.Address', null=True, on_delete=django.db.models.deletion.CASCADE)),
                 ('user', models.ForeignKey(related_name='orders', verbose_name='user', blank=True, to=settings.AUTH_USER_MODEL, null=True, on_delete=django.db.models.deletion.CASCADE)),
             ],
             options={

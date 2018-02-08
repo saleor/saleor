@@ -57,7 +57,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='order',
             name='billing_address',
-            field=models.ForeignKey(editable=False, on_delete=django.db.models.deletion.CASCADE, related_name='+', to='userprofile.Address', verbose_name='billing address'),
+            field=models.ForeignKey(editable=False, on_delete=django.db.models.deletion.CASCADE, related_name='+', to='account.Address', verbose_name='billing address'),
         ),
         migrations.AlterField(
             model_name='order',
@@ -72,7 +72,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='order',
             name='shipping_address',
-            field=models.ForeignKey(editable=False, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='+', to='userprofile.Address', verbose_name='shipping address'),
+            field=models.ForeignKey(editable=False, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='+', to='account.Address', verbose_name='shipping address'),
         ),
         migrations.AlterField(
             model_name='order',

@@ -6,6 +6,7 @@ from django.contrib.staticfiles.views import serve
 from django.views.i18n import JavaScriptCatalog
 from graphene_django.views import GraphQLView
 
+from .account.urls import urlpatterns as account_urls
 from .cart.urls import urlpatterns as cart_urls
 from .checkout.urls import urlpatterns as checkout_urls
 from .core.sitemaps import sitemaps
@@ -14,15 +15,12 @@ from .dashboard.urls import urlpatterns as dashboard_urls
 from .data_feeds.urls import urlpatterns as feed_urls
 from .order.urls import urlpatterns as order_urls
 from .product.urls import urlpatterns as product_urls
-from .registration.urls import urlpatterns as registration_urls
 from .search.urls import urlpatterns as search_urls
-from .userprofile.urls import urlpatterns as userprofile_urls
 
 handler404 = 'saleor.core.views.handle_404'
 
 urlpatterns = [
     url(r'^', include(core_urls)),
-    url(r'^account/', include(registration_urls)),
     url(r'^cart/', include((cart_urls, 'cart'), namespace='cart')),
     url(r'^checkout/',
         include((checkout_urls, 'checkout'), namespace='checkout')),
@@ -33,8 +31,8 @@ urlpatterns = [
     url(r'^order/', include((order_urls, 'order'), namespace='order')),
     url(r'^products/',
         include((product_urls, 'product'), namespace='product')),
-    url(r'^profile/',
-        include((userprofile_urls, 'profile'), namespace='profile')),
+    url(r'^account/',
+        include((account_urls, 'account'), namespace='account')),
     url(r'^feeds/',
         include((feed_urls, 'data_feeds'), namespace='data_feeds')),
     url(r'^search/', include((search_urls, 'search'), namespace='search')),

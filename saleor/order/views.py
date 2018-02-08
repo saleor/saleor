@@ -10,14 +10,14 @@ from django.template.response import TemplateResponse
 from django.utils.translation import pgettext_lazy
 from payments import PaymentStatus, RedirectNeeded
 
-from . import OrderStatus
+from ..account.models import User
 from ..core.utils import get_client_ip
-from ..registration.forms import LoginForm
-from ..userprofile.models import User
+from ..account.forms import LoginForm
 from .forms import (
     OrderNoteForm, PasswordForm, PaymentDeleteForm, PaymentMethodsForm)
 from .models import Order, OrderNote, Payment
 from .utils import attach_order_to_user, check_order_status
+from . import OrderStatus
 
 logger = logging.getLogger(__name__)
 
@@ -182,7 +182,7 @@ def connect_order_with_user(request, token):
             "We couldn't assign the order to your account as the email"
             " addresses don't match")
         messages.warning(request, msg)
-        return redirect('profile:details')
+        return redirect('account:details')
     attach_order_to_user(order, request.user)
     msg = pgettext_lazy(
         'storefront message',

@@ -3,6 +3,7 @@ from unittest.mock import Mock
 import pytest
 from django.shortcuts import reverse
 
+from saleor.account.models import Address, User
 from saleor.core.utils import (
     Country, create_superuser, get_country_by_ip, get_currency_for_country,
     random_data)
@@ -10,7 +11,6 @@ from saleor.discount.models import Sale, Voucher
 from saleor.order.models import Order
 from saleor.product.models import Product
 from saleor.shipping.models import ShippingMethod
-from saleor.userprofile.models import Address, User
 
 type_schema = {
     'Vegetable': {

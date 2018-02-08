@@ -17,13 +17,13 @@
           <h3>{% trans "Already have an account?" context "Signup form secondary title" %}</h3>
           <img class="signup-img lazyload lazypreload" data-src="{% static 'images/login-bg.png' %}"
             srcset="{% static 'images/login-bg.png' %} 1x, {% static 'images/login-bg2x.png' %} 2x">
-          <p><a rel="nofollow" href="{% url 'account_login' %}" class="btn secondary narrow">
+          <p><a rel="nofollow" href="{% url 'account:login' %}" class="btn secondary narrow">
             {% trans "Log in" context "Signup form secondary action" %}
           </a></p>
         </div>
       </div>
       <div class="col-md-6 login__form">
-        <form method="post" action="{% url 'account_signup' %}">
+        <form method="post" action="{% url 'account:signup' %}">
           <fieldset>
             <h3>{% trans "Create an account" context "Signup form title" %}</h3>
             {% csrf_token %}

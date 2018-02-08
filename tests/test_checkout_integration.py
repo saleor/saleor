@@ -1,7 +1,7 @@
 from django.urls import reverse
 from payments import FraudStatus, PaymentStatus
 
-from saleor.userprofile.models import User
+from saleor.account.models import User
 
 from .utils import get_redirect_location
 

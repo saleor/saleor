@@ -3,8 +3,8 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.models import AnonymousUser
 from django.urls import reverse
 
-from saleor.registration.backends import BaseBackend
-from saleor.registration.forms import LoginForm, SignupForm
+from saleor.account.backends import BaseBackend
+from saleor.account.forms import LoginForm, SignupForm
 
 from .utils import get_redirect_location
 
@@ -33,7 +33,7 @@ def test_login_form_not_valid(customer_user):
 
 
 def test_login_view_valid(client, customer_user):
-    url = reverse('account_login')
+    url = reverse('account:login')
     response = client.post(
         url, {'username': 'test@example.com', 'password': 'password'},
         follow=True)
@@ -41,7 +41,7 @@ def test_login_view_valid(client, customer_user):
 
 
 def test_login_view_not_valid(client, customer_user):
-    url = reverse('account_login')
+    url = reverse('account:login')
     response = client.post(
         url, {'username': 'test@example.com', 'password': 'wrong'},
         follow=True)
@@ -49,7 +49,7 @@ def test_login_view_not_valid(client, customer_user):
 
 
 def test_login_view_next(client, customer_user):
-    url = reverse('account_login') + '?next=/cart/'
+    url = reverse('account:login') + '?next=/cart/'
     response = client.post(
         url, {'username': 'test@example.com', 'password': 'password'})
     redirect_location = get_redirect_location(response)
@@ -57,7 +57,7 @@ def test_login_view_next(client, customer_user):
 
 
 def test_login_view_redirect(client, customer_user):
-    url = reverse('account_login')
+    url = reverse('account:login')
     data = {
         'username': 'test@example.com', 'password': 'password',
         'next': '/cart/'}
@@ -67,7 +67,7 @@ def test_login_view_redirect(client, customer_user):
 
 
 def test_logout_view_no_user(client):
-    url = reverse('account_logout')
+    url = reverse('account:logout')
     response = client.get(url)
     redirect_location = get_redirect_location(response)
     location = '/account/login/'
@@ -75,7 +75,7 @@ def test_logout_view_no_user(client):
 
 
 def test_logout_with_user(authorized_client):
-    url = reverse('account_logout')
+    url = reverse('account:logout')
     response = authorized_client.get(url, follow=True)
     assert isinstance(response.context['user'], AnonymousUser)
 
@@ -101,7 +101,7 @@ def test_signup_form_user_exists(customer_user):
 
 
 def test_signup_view_create_user(client, db):
-    url = reverse('account_signup')
+    url = reverse('account:signup')
     data = {'email': 'client@example.com', 'password': 'password'}
     response = client.post(url, data)
     assert User.objects.count() == 1
@@ -111,7 +111,7 @@ def test_signup_view_create_user(client, db):
 
 
 def test_signup_view_redirect(client, customer_user):
-    url = reverse('account_signup')
+    url = reverse('account:signup')
     data = {
         'email': 'client@example.com', 'password': 'password',
         'next': '/cart/'}
@@ -121,22 +121,22 @@ def test_signup_view_redirect(client, customer_user):
 
 
 def test_signup_view_fail(client, db, customer_user):
-    url = reverse('account_signup')
+    url = reverse('account:signup')
     data = {'email': customer_user.email, 'password': 'password'}
     client.post(url, data)
     assert User.objects.count() == 1
 
 
 def test_password_reset_view_post(client, db):
-    url = reverse('account_reset_password')
+    url = reverse('account:reset-password')
     data = {'email': 'test@examle.com'}
     response = client.post(url, data)
     redirect_location = get_redirect_location(response)
-    assert redirect_location == reverse('account_reset_password_done')
+    assert redirect_location == reverse('account:reset-password-done')
 
 
 def test_password_reset_view_get(client, db):
-    url = reverse('account_reset_password')
+    url = reverse('account:reset-password')
     response = client.get(url)
     assert response.status_code == 200
     assert response.template_name == ['account/password_reset.html']
