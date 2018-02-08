@@ -20,6 +20,22 @@ const addCategoryQuery = gql`
     }
   }
 `;
+const updateCategoryQuery = gql`
+  mutation categoryUpdateMutation($pk: Int!, $name: String!, $description: String!) {
+    categoryUpdate(pk: $pk, input: {name: $name, description: $description}) {
+      errors
+      category {
+        id
+        pk
+        name
+        description
+        parent {
+          pk
+        }
+      }
+    }
+  }
+`;
 
 class SubmitButton extends Component {
   constructor(props) {
@@ -33,10 +49,11 @@ class SubmitButton extends Component {
         name: this.props.name,
         description: this.props.description,
         parent: this.props.parent,
+        pk: this.props.pk,
       },
     }).then(({ data }) => {
-      console.log(data);
-      this.props.history.push(`/categories/${data.categoryCreate.category.pk}/`)
+      const queryName = this.props.action === 'ADD' ? 'categoryCreate' : 'categoryUpdate';
+      this.props.history.push(`/categories/${data[queryName].category.pk}/`)
     });
   }
 
