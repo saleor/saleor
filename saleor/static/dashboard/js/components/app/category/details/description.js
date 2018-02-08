@@ -4,11 +4,12 @@ import { Link, withRouter } from 'react-router-dom';
 import Card, { CardContent, CardActions } from 'material-ui/Card';
 import Button from 'material-ui/Button';
 import { graphql, compose } from 'react-apollo';
-import gql from 'graphql-tag';
 import { CircularProgress } from 'material-ui/Progress';
 
 import { CardTitle, CardSubtitle } from '../../../components/cards';
 import { ConfirmRemoval } from '../../../components/modals';
+import { CategoryDetails as query } from '../queries';
+import { deleteCategory as mutation } from '../mutations';
 
 class CategoryDescription extends Component {
   constructor(props) {
@@ -84,27 +85,6 @@ class CategoryDescription extends Component {
     );
   }
 }
-
-const query = gql`
-  query CategoryDetails($pk: Int!) {
-    category(pk: $pk) {
-      id
-      pk
-      name
-      description
-      parent {
-        pk
-      }
-    }
-  }
-`;
-const mutation = gql`
-  mutation CategoryDelete($pk: Int!) {
-    categoryDelete(pk: $pk) {
-      errors
-    }
-  }
-`;
 
 Component.propTypes = {
   pk: PropTypes.number.isRequired,
