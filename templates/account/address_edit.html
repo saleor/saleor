@@ -38,7 +38,7 @@
 {% endblock breadcrumb %}
 
 {% block content %}
-  <div class="row userprofile__address-edit">
+  <div class="row account__address-edit">
     <div class="col-sm-8 col-lg-6 m-auto">
       <form method="post" novalidate>
         {% csrf_token %}
@@ -49,7 +49,7 @@
             {% trans "New address" context "New address title" %}
           {% endif %}
         </h2>
-        <div class="userprofile__address-edit__form">
+        <div class="account__address-edit__form">
           {% include "account/snippets/address_form.html" %}
         </div>
         <p class="text-right">
