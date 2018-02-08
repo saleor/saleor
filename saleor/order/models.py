@@ -13,7 +13,6 @@ from django_prices.models import PriceField
 from payments import PaymentStatus, PurchasedItem
 from payments.models import BasePayment
 from prices import FixedDiscount, Price
-from satchless.item import ItemLine, ItemSet
 
 from ..account.models import Address
 from ..core.utils import build_absolute_uri
@@ -36,7 +35,7 @@ class OrderQuerySet(models.QuerySet):
         return self.filter(~Q(groups__status=GroupStatus.NEW))
 
 
-class Order(models.Model, ItemSet):
+class Order(models.Model):
     created = models.DateTimeField(
         default=now, editable=False)
     last_status_change = models.DateTimeField(
@@ -95,8 +94,7 @@ class Order(models.Model, ItemSet):
         total_paid = sum(
             [payment.total for payment in
              self.payments.filter(status=PaymentStatus.CONFIRMED)], Decimal())
-        total = self.get_total()
-        return total_paid >= total.gross
+        return total_paid >= self.total.gross
 
     def get_user_current_email(self):
         return self.user.email if self.user else self.user_email
@@ -120,9 +118,6 @@ class Order(models.Model, ItemSet):
     def discount(self):
         return FixedDiscount(
             amount=self.discount_amount, name=self.discount_name)
-
-    def get_total(self):
-        return self.total
 
     def get_absolute_url(self):
         return reverse('order:details', kwargs={'token': self.token})
@@ -186,14 +181,14 @@ class Order(models.Model, ItemSet):
 
     def get_subtotal_without_voucher(self):
         if self.get_lines():
-            return super().get_total()
+            return self.total
         return Price(net=0, currency=settings.DEFAULT_CURRENCY)
 
     def can_cancel(self):
         return self.status == OrderStatus.OPEN
 
 
-class DeliveryGroup(models.Model, ItemSet):
+class DeliveryGroup(models.Model):
     """Represents a single shipment.
 
     A single order can consist of multiple shipment groups.
@@ -217,9 +212,7 @@ class DeliveryGroup(models.Model, ItemSet):
         return '%s(%r)' % (self.__class__.__name__, list(self))
 
     def __iter__(self):
-        if self.id:
-            return iter(self.lines.all())
-        return super().__iter__()
+        return iter(self.lines.all())
 
     @transition(
         field=status, source=GroupStatus.NEW, target=GroupStatus.NEW)
@@ -239,7 +232,7 @@ class DeliveryGroup(models.Model, ItemSet):
         cancel_delivery_group(self)
 
     def get_total_quantity(self):
-        return sum([line.get_quantity() for line in self])
+        return sum([line.quantity for line in self])
 
     def is_shipping_required(self):
         return any([line.is_shipping_required for line in self.lines.all()])
@@ -253,8 +246,15 @@ class DeliveryGroup(models.Model, ItemSet):
     def can_edit_lines(self):
         return self.status not in {GroupStatus.CANCELLED, GroupStatus.SHIPPED}
 
+    def get_total(self):
+        subtotals = [line.get_total() for line in self]
+        if not subtotals:
+            raise AttributeError(
+                'Calling get_total() on an empty shipment group')
+        return sum(subtotals[1:], subtotals[0])
 
-class OrderLine(models.Model, ItemLine):
+
+class OrderLine(models.Model):
     delivery_group = models.ForeignKey(
         DeliveryGroup, related_name='lines', editable=False,
         on_delete=models.CASCADE)
@@ -275,12 +275,13 @@ class OrderLine(models.Model, ItemLine):
     def __str__(self):
         return self.product_name
 
-    def get_price_per_item(self, **kwargs):
-        return Price(net=self.unit_price_net, gross=self.unit_price_gross,
-                     currency=settings.DEFAULT_CURRENCY)
+    def get_price_per_item(self):
+        return Price(
+            net=self.unit_price_net, gross=self.unit_price_gross,
+            currency=settings.DEFAULT_CURRENCY)
 
-    def get_quantity(self):
-        return self.quantity
+    def get_total(self):
+        return self.get_price_per_item() * self.quantity
 
 
 class PaymentQuerySet(models.QuerySet):

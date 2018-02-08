@@ -5,9 +5,9 @@ from django.db.models import F
 from django.shortcuts import get_object_or_404, redirect
 from django.utils.translation import pgettext_lazy
 from prices import Price
-from satchless.item import InsufficientStock
 
 from ..account.utils import store_user_address
+from ..core.exceptions import InsufficientStock
 from ..product.utils import allocate_stock
 from . import GroupStatus
 
@@ -40,9 +40,9 @@ def cancel_order(order):
 
 
 def recalculate_order(order):
-    """Recalculate and assigns total price of order.
+    """Recalculate and assign total price of order.
 
-    Total price is a sum of items and shippings in order shipment groups.
+    Total price is a sum of items in shipment groups and order shipping price.
     """
     prices = [
         group.get_total() for group in order

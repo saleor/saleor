@@ -30,7 +30,7 @@
             <strong>{% trans "Total" context "E-mail order lines summary table" %}</strong>
           </td>
           <td style="text-align: right;">
-            <strong>{% gross order.get_total html=True %}</strong>
+            <strong>{% gross order.total html=True %}</strong>
           </td>
         </tr>
       </tfoot>
