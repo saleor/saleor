@@ -8,12 +8,12 @@ import Table, {
 } from 'material-ui/Table';
 import Card, { CardContent } from 'material-ui/Card';
 import Button from 'material-ui/Button';
-import gql from 'graphql-tag';
 import { graphql } from 'react-apollo';
 import { CircularProgress } from 'material-ui/Progress';
 
 import { CardTitle } from '../../../components/cards';
 import TableCell from '../../../components/table';
+import { CategoryChildren as query } from '../queries';
 
 const styleFragments = {
   table: {
@@ -126,20 +126,6 @@ Component.propTypes = {
   pk: PropTypes.number,
   history: PropTypes.object.isRequired
 };
-const query = gql`
-  query CategoryPage ($pk: Int) {
-    categories(parent: $pk) {
-      edges {
-        node {
-          id
-          pk
-          name
-          description
-        }
-      }
-    }
-  }
-`;
 
 export default withRouter(
   graphql(query, {
