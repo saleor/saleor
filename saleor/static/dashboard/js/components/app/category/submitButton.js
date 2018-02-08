@@ -1,41 +1,9 @@
 import React, { Component } from 'react';
 import { withRouter } from 'react-router-dom';
 import Button from 'material-ui/Button';
-import gql from 'graphql-tag';
 import { graphql } from 'react-apollo';
+import { updateCategory, addCategory } from './mutations';
 
-const addCategoryQuery = gql`
-  mutation categoryCreateMutation($name: String!, $description: String!, $parent: Int!) {
-    categoryCreate(input: {name: $name, description: $description, parent: $parent}) {
-      errors
-      category {
-        id
-        pk
-        name
-        description
-        parent {
-          pk
-        }
-      }
-    }
-  }
-`;
-const updateCategoryQuery = gql`
-  mutation categoryUpdateMutation($pk: Int!, $name: String!, $description: String!) {
-    categoryUpdate(pk: $pk, input: {name: $name, description: $description}) {
-      errors
-      category {
-        id
-        pk
-        name
-        description
-        parent {
-          pk
-        }
-      }
-    }
-  }
-`;
 
 class SubmitButton extends Component {
   constructor(props) {
@@ -76,10 +44,10 @@ const QuerySwitch = (props) => {
   let query;
   switch (action) {
     case 'ADD':
-      query = addCategoryQuery;
+      query = addCategory;
       break;
     case 'UPDATE':
-      query = updateCategoryQuery;
+      query = updateCategory;
       break;
   }
   const EnhancedSubmitButton = graphql(query, {
