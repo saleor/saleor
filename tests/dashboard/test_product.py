@@ -6,6 +6,7 @@ import pytest
 from django.conf import settings
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.forms import HiddenInput
+from django.forms.models import model_to_dict
 from django.urls import reverse
 from django.utils.encoding import smart_text
 from PIL import Image
@@ -665,7 +666,6 @@ def test_hide_field_in_variant_choice_field_form():
 def test_assign_collection_to_product(product_in_stock):
     product = product_in_stock
     collection = Collection.objects.create(name='test_collections')
-    data = product.__dict__
     data = {
         'name': product.name,
         'price': product.price.gross,
@@ -677,3 +677,23 @@ def test_assign_collection_to_product(product_in_stock):
     form.save()
     assert product.collections.first().name == 'test_collections'
     assert collection.products.first().name == product.name
+
+
+def test_sanitize_product_description(product_type, default_category):
+    product = Product.objects.create(
+        name='Test Product', price=10, description='', pk=10,
+        product_type=product_type, category=default_category)
+    data = model_to_dict(product)
+    data['description'] = (
+        '<b>bold</b><p><i>italic</i></p><h2>Header</h2><h3>subheader</h3>'
+        '<blockquote>quote</blockquote>'
+        '<p><a href="www.mirumee.com">link</a></p>'
+        '<p>an <script>evil()</script>example</p>')
+    data['price'] = 20
+    form = ProductForm(data, instance=product)
+    assert form.is_valid()
+    form.save()
+    assert product.description == (
+        '<b>bold</b><p><i>italic</i></p><h2>Header</h2><h3>subheader</h3>'
+        '<blockquote>quote</blockquote><p><a href="www.mirumee.com">link</a></p>'
+        '<p>an &lt;script&gt;evil()&lt;/script&gt;example</p>')
