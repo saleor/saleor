@@ -15,7 +15,7 @@ from django_prices_openexchangerates import exchange_currency
 from geolite2 import geolite2
 from prices import PriceRange
 
-from ...userprofile.models import User
+from ...account.models import User
 
 georeader = geolite2.reader()
 

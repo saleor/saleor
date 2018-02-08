@@ -2,7 +2,7 @@
 {% load i18n %}
 {% load staticfiles %}
 
-<form method="post" action="{% url 'account_login' %}" novalidate>
+<form method="post" action="{% url 'account:login' %}" novalidate>
   {% csrf_token %}
   <fieldset>
     {% bootstrap_form form %}
@@ -15,7 +15,7 @@
       <button class="btn primary narrow">
         {% trans "Log in" context "Login form primary action" %}
       </button>
-      <a rel="nofollow" class="link--styled" href="{% url 'account_reset_password' %}">
+      <a rel="nofollow" class="link--styled" href="{% url 'account:reset-password' %}">
         {% trans "Forgot password?" context "Login form secondary link" %}
       </a>
       {% with available_backends=site.settings.available_backends %}

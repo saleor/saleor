@@ -130,7 +130,7 @@ def test_view_connect_order_with_user_different_email(
     response = authorized_client.post(url)
 
     redirect_location = get_redirect_location(response)
-    assert redirect_location == reverse('profile:details')
+    assert redirect_location == reverse('account:details')
     order.refresh_from_db()
     assert order.user is None
 

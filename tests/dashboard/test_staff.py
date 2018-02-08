@@ -6,9 +6,9 @@ from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode
 from templated_email import send_templated_mail
 
+from saleor.account.models import User
 from saleor.dashboard.staff.forms import StaffForm
 from saleor.settings import DEFAULT_FROM_EMAIL
-from saleor.userprofile.models import User
 
 
 def test_staff_form_not_valid(db):
@@ -122,13 +122,13 @@ def test_create_staff_and_set_password(admin_client, staff_group):
     token = default_token_generator.make_token(new_user)
     response = admin_client.get(
         reverse(
-            'account_reset_password_confirm',
+            'account:reset-password-confirm',
             kwargs={'uidb64': uid, 'token': token}))
     assert response.status_code == 302
     post_data = {'new_password1': 'password', 'new_password2': 'password'}
     response = admin_client.post(response['Location'], post_data)
     assert response.status_code == 302
-    assert response['Location'] == reverse('account_reset_password_complete')
+    assert response['Location'] == reverse('account:reset-password-complete')
     new_user = User.objects.get(email='staff3@example.com')
     assert new_user.has_usable_password()
 

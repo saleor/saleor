@@ -19,7 +19,7 @@ from ...order.utils import (
     recalculate_order, remove_empty_groups)
 from ...product.models import Product, ProductVariant, Stock
 from ...product.utils import allocate_stock, deallocate_stock
-from ...userprofile.i18n import (
+from ...account.i18n import (
     AddressForm as StorefrontAddressForm, PossiblePhoneNumberFormField)
 from ..forms import AjaxSelect2ChoiceField
 from ..widgets import PhonePrefixWidget

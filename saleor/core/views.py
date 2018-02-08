@@ -5,9 +5,9 @@ from django.template.response import TemplateResponse
 from django.utils.translation import pgettext_lazy
 from impersonate.views import impersonate as orig_impersonate
 
+from ..account.models import User
 from ..dashboard.views import staff_member_required
 from ..product.utils import products_for_homepage, products_with_availability
-from ..userprofile.models import User
 from .utils.schema import get_webpage_schema
 
 

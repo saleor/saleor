@@ -4,9 +4,9 @@ import pytest
 from django.urls import reverse
 from elasticsearch_dsl.connections import connections
 
+from saleor.account.models import User
 from saleor.order.models import Order
 from saleor.product.models import Product
-from saleor.userprofile.models import User
 
 MATCH_SEARCH_REQUEST = ['method', 'host', 'port', 'path']
 STOREFRONT_PRODUCTS = {15, 56}  # same as in recorded data!
