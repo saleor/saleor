@@ -44,9 +44,9 @@ DATABASES = {
 TIME_ZONE = 'America/Chicago'
 LANGUAGE_CODE = 'en-us'
 LOCALE_PATHS = [os.path.join(PROJECT_ROOT, 'locale')]
-USE_I18N = True
-USE_L10N = True
-USE_TZ = True
+USE_I18N = False
+USE_L10N = False
+USE_TZ = False
 
 FORM_RENDERER = 'django.forms.renderers.TemplatesSetting'
 

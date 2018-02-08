@@ -3,14 +3,18 @@ import PropTypes from 'prop-types';
 import { Route, Switch } from 'react-router-dom';
 
 import CategoryEdit from './edit';
+import CategoryAdd from './add'
 import CategoryDetails from './details/index';
 
-const Component = () => {
+const Component = (props) => {
   const CategoryEditComponent = () => (
-    <CategoryEdit pk={this.props.match.params.pk} />
+    <CategoryEdit pk={props.match.params.pk} />
+  );
+  const CategoryAddComponent = () => (
+    <CategoryAdd pk={props.match.params.pk} />
   );
   const CategoryDetailsComponent = () => (
-    <CategoryDetails pk={this.props.match.params.pk} />
+    <CategoryDetails pk={props.match.params.pk} />
   );
 
   return (
@@ -19,34 +23,34 @@ const Component = () => {
         <Route
           exact
           path={'/categories/:pk/edit'}
-          component={CategoryEditComponent}
+          render={CategoryEditComponent}
         />
         <Route
           exact
           path={'/categories/:pk/add'}
-          component={CategoryEdit}
+          render={CategoryAddComponent}
         />
         <Route
           exact
           path={'/categories/add'}
-          component={CategoryEdit}
+          render={CategoryAddComponent}
         />
         <Route
           exact
           path={'/categories/:pk'}
-          component={CategoryDetailsComponent}
+          render={CategoryDetailsComponent}
         />
         <Route
           exact
           path={'/categories'}
-          component={CategoryDetailsComponent}
+          render={CategoryDetailsComponent}
         />
       </Switch>
     </div>
   );
 };
 Component.propTypes = {
-  match: PropTypes.object,
+  match: PropTypes.object
 };
 
 export default Component;
