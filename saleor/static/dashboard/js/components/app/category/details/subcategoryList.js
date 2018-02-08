@@ -131,6 +131,7 @@ const query = gql`
     categories(parent: $pk) {
       edges {
         node {
+          id
           pk
           name
           description
