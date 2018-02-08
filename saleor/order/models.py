@@ -264,6 +264,23 @@ class OrderLine(models.Model):
         return self.unit_price * self.quantity
 
 
+class Fulfillment(models.Model):
+    order = models.ForeignKey(
+        Order, related_name='fulfillments', editable=False,
+        on_delete=models.CASCADE)
+    tracking_number = models.CharField(max_length=255, default='', blank=True)
+    shipping_date = models.DateTimeField(default=now, editable=False)
+
+
+class FulfillmentLine(models.Model):
+    order_line = models.ForeignKey(
+        OrderLine, related_name='+', on_delete=models.CASCADE)
+    fulfillment = models.ForeignKey(
+        Fulfillment, related_name='lines', on_delete=models.CASCADE)
+    quantity = models.IntegerField(
+        validators=[MinValueValidator(0), MaxValueValidator(999)])
+
+
 class PaymentQuerySet(models.QuerySet):
     def last(self):
         # using .all() here reuses data fetched by prefetch_related
