@@ -1,73 +1,74 @@
 import graphene
+from django.shortcuts import get_object_or_404
 
 from ...dashboard.category.forms import CategoryForm
 from ...product.models import Category
-from .types import CategoryType
+from ..utils import get_object_or_none
+from .types import CategoryType, ErrorType
 
 
-class Mutation(graphene.Mutation):
-    errors = graphene.List(graphene.String)
+def convert_form_errors(form):
+    """Convert ModelForm errors into a list of ErrorType objects"""
+    errors = []
+    for field in form.errors:
+        for message in form.errors[field]:
+            errors.append(ErrorType(field=field, message=message))
+    return errors
+
+
+class CategoryMutation(graphene.Mutation):
+    category = graphene.Field(CategoryType)
+    errors = graphene.List(ErrorType)
 
     def mutate(self, info):
         raise NotImplementedError
 
 
-class CategoryCreateInput(graphene.InputObjectType):
+class CategoryInput(graphene.InputObjectType):
     name = graphene.String()
     description = graphene.String()
     parent = graphene.Int()
 
 
-class CategoryCreate(Mutation):
-    category = graphene.Field(CategoryType)
-
+class CategoryCreate(CategoryMutation):
     class Arguments:
-        input = CategoryCreateInput()
+        data = CategoryInput()
 
-    def mutate(self, info, input):
+    def mutate(self, info, data):
         category = Category()
-        form = CategoryForm(input, instance=category, parent_pk=input.parent)
+        errors = []
+        form = CategoryForm(data, instance=category, parent_pk=data.parent)
         if form.is_valid():
             category = form.save()
-            errors = []
         else:
-            errors = form.errors
+            errors = convert_form_errors(form)
         return CategoryCreate(category=category, errors=errors)
 
 
-class CategoryUpdate(Mutation):
-    category = graphene.Field(CategoryType)
-
+class CategoryUpdate(CategoryMutation):
     class Arguments:
-        input = CategoryCreateInput()
+        data = CategoryInput()
         pk = graphene.Int()
 
-    def mutate(self, info, input, pk):
-        try:
-            category = Category.objects.get(pk=pk)
-        except Category.DoesNotExist:
-            errors = ['not-found']
-            category = None
-        else:
-            form = CategoryForm(input, instance=category, parent_pk=input.parent)
+    def mutate(self, info, data, pk):
+        category = get_object_or_none(Category, pk=pk)
+        errors = []
+        if category:
+            form = CategoryForm(
+                data, instance=category, parent_pk=category.parent_id)
             if form.is_valid():
                 category = form.save()
-                errors = []
             else:
-                errors = form.errors
-        return CategoryUpdate(category=category, errors=errors)
+                errors = convert_form_errors(form)
+        return CategoryCreate(category=category, errors=errors)
 
 
-class CategoryDelete(Mutation):
+class CategoryDelete(CategoryMutation):
     class Arguments:
         pk = graphene.Int()
 
     def mutate(self, info, pk):
-        try:
-            category = Category.objects.get(pk=pk)
-        except Category.DoesNotExist:
-            errors = ['not-found']
-        else:
+        category = get_object_or_none(Category, pk=pk)
+        if category:
             category.delete()
-            errors = []
-        return CategoryDelete(errors=errors)
+        return CategoryCreate(category=category)

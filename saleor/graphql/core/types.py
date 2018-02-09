@@ -28,6 +28,11 @@ class CountableDjangoObjectType(DjangoObjectType):
             *args, connection=countable_conn, **kwargs)
 
 
+class ErrorType(graphene.ObjectType):
+    field = graphene.String()
+    message = graphene.String()
+
+
 class Price(graphene.ObjectType):
     currency = graphene.String()
     gross = graphene.Float()
