@@ -1,10 +1,10 @@
 import graphene
-from django.shortcuts import get_object_or_404
 
 from ...dashboard.category.forms import CategoryForm
 from ...product.models import Category
+from ..core.types import ErrorType
 from ..utils import get_object_or_none
-from .types import CategoryType, ErrorType
+from .types import CategoryType
 
 
 def convert_form_errors(form):
