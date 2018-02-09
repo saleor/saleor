@@ -13,7 +13,7 @@ import { CircularProgress } from 'material-ui/Progress';
 
 import { CardTitle } from '../../../components/cards';
 import TableCell from '../../../components/table';
-import { CategoryChildren as query } from '../queries';
+import { categoryChildren as query } from '../queries';
 
 const styleFragments = {
   table: {
