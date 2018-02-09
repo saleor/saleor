@@ -3,6 +3,7 @@ import json
 import graphene
 import pytest
 
+from saleor.dashboard.category.forms import CategoryForm
 from saleor.product.models import Category, Product, ProductAttribute
 
 
@@ -422,3 +423,129 @@ def test_real_query(client, product_in_stock):
                     'attributesFilter': [filter_by]})})
     content = get_content(response)
     assert 'errors' not in content
+
+
+def test_category_create_mutation(client):
+    query = """
+        mutation($name: String, $description: String, $parent: Int) {
+            categoryCreate(data: {
+                name: $name
+                description: $description
+                parent: $parent}
+            ) {
+                category {
+                    pk
+                    name
+                    slug
+                    description
+                    parent {
+                        pk
+                    }
+                }
+                errors {
+                    field
+                    message
+                }
+            }
+        }
+    """
+
+    category_name = 'Test category'
+    category_description = 'Test description'
+
+    # test creating root category
+    variables = json.dumps({
+        'name': category_name, 'description': category_description})
+    response = client.post(
+        '/graphql/', {'query': query, 'variables': variables})
+    content = get_content(response)
+    assert 'errors' not in content
+    data = content['data']['categoryCreate']
+    assert data['errors'] == []
+    assert data['category']['name'] == category_name
+    assert data['category']['description'] == category_description
+    assert not data['category']['parent']
+
+    # test creating subcategory
+    parent_pk = data['category']['pk']
+    variables = json.dumps({
+        'name': category_name, 'description': category_description,
+        'parent': int(parent_pk)})
+    response = client.post(
+        '/graphql/', {'query': query, 'variables': variables})
+    content = get_content(response)
+    assert 'errors' not in content
+    data = content['data']['categoryCreate']
+    assert data['errors'] == []
+    assert data['category']['parent']['pk'] == parent_pk
+
+
+def test_category_update_mutation(client, default_category):
+    query = """
+        mutation($pk: Int, $name: String, $description: String, $parent: Int) {
+            categoryUpdate(
+                pk: $pk,
+                data: {
+                    name: $name
+                    description: $description
+                    parent: $parent}
+            ) {
+                category {
+                    pk
+                    name
+                    slug
+                    description
+                    parent {
+                        pk
+                    }
+                }
+                errors {
+                    field
+                    message
+                }
+            }
+        }
+    """
+
+    category_name = 'Updated name'
+    category_description = 'Updated description'
+
+    # test creating root category
+    variables = json.dumps({
+        'name': category_name, 'description': category_description,
+        'pk': default_category.pk})
+    response = client.post(
+        '/graphql/', {'query': query, 'variables': variables})
+    content = get_content(response)
+    assert 'errors' not in content
+    data = content['data']['categoryUpdate']
+    assert data['errors'] == []
+    assert data['category']['pk'] == str(default_category.pk)
+    assert data['category']['name'] == category_name
+    assert data['category']['description'] == category_description
+    assert not data['category']['parent']
+
+
+def test_category_delete_mutation(client, default_category):
+    query = """
+        mutation($pk: Int) {
+            categoryDelete(pk: $pk) {
+                category {
+                    name
+                    pk
+                }
+                errors {
+                    field
+                    message
+                }
+            }
+        }
+    """
+    variables = json.dumps({'pk': default_category.pk})
+    response = client.post(
+        '/graphql/', {'query': query, 'variables': variables})
+    content = get_content(response)
+    assert 'errors' not in content
+    data = content['data']['categoryDelete']
+    assert data['category']['pk'] is None
+    assert data['category']['name'] == default_category.name
