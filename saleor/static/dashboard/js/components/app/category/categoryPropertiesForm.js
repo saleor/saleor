@@ -20,7 +20,7 @@ const styles = theme => ({
   },
   largeTextInput: {
     '& input': {
-      fontSize: '2.2rem'
+      fontSize: theme.typography.display1.fontSize,
     }
   }
 });
