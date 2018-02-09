@@ -8,10 +8,27 @@ import { CircularProgress } from 'material-ui/Progress';
 
 import { CardTitle, CardSubtitle } from '../../../components/cards';
 import { ConfirmRemoval } from '../../../components/modals';
-import { CategoryDetails as query } from '../queries';
-import { deleteCategory as mutation } from '../mutations';
+import { categoryDetails as query, categoryChildren } from '../queries';
+import { categoryDelete as mutation } from '../mutations';
 
 class CategoryDescription extends Component {
+  static propTypes = {
+    pk: PropTypes.number.isRequired,
+    data: PropTypes.shape({
+      category: PropTypes.shape({
+        pk: PropTypes.number,
+        name: PropTypes.string,
+        description: PropTypes.string,
+        parent: PropTypes.shape({
+          pk: PropTypes.number
+        })
+      }),
+      loading: PropTypes.bool
+    }),
+    mutate: PropTypes.func,
+    history: PropTypes.object
+  };
+
   constructor(props) {
     super(props);
     this.state = { opened: false };
@@ -29,11 +46,13 @@ class CategoryDescription extends Component {
   }
 
   handleRemoval() {
-    const parentPk = this.props.data.category.parent.pk;
+    const { category } = this.props.data;
+    const backLink = category.parent ? `/categories/${category.parent.pk}/` : '/categories/';
     this.props.mutate({
       pk: this.props.data.category.pk
-    }).then(this.handleModalClose)
-      .then(() => this.props.history.push(`/categories/${parentPk}/`))
+    })
+      .then(this.handleModalClose)
+      .then(() => this.props.history.push(backLink));
   }
 
   render() {
@@ -61,9 +80,6 @@ class CategoryDescription extends Component {
                   <Link to={`/categories/${this.props.data.category.pk}/edit/`}>
                     <Button color={'secondary'}>Edytuj</Button>
                   </Link>
-                  {/*<Link to={`/categories/${props.data.category.parent ? props.data.category.parent.pk : ''}`}>*/}
-                  {/*<Button color={'secondary'}>Usuń</Button>*/}
-                  {/*</Link>*/}
                   <Button
                     color={'secondary'}
                     onClick={this.handleModalOpen}
@@ -86,21 +102,6 @@ class CategoryDescription extends Component {
   }
 }
 
-Component.propTypes = {
-  pk: PropTypes.number.isRequired,
-  data: PropTypes.shape({
-    category: PropTypes.shape({
-      pk: PropTypes.number,
-      name: PropTypes.string,
-      description: PropTypes.string,
-      parent: PropTypes.shape({
-        pk: PropTypes.number
-      })
-    }),
-    loading: PropTypes.bool
-  })
-};
-
 export default compose(
   withRouter,
   graphql(query, {
@@ -109,11 +110,16 @@ export default compose(
     })
   }),
   graphql(mutation, {
-    options: {
-      refetchQueries: [
-        'CategoryPage',
-        'CategoryDetails',
-      ]
+    options: (props) => {
+      const { data } = props;
+      return {
+        refetchQueries: [
+          {
+            query: categoryChildren,
+            variables: { pk: (data.category && data.category.parent) ? data.category.parent.pk : '' }
+          }
+        ]
+      };
     }
   })
 )(CategoryDescription);

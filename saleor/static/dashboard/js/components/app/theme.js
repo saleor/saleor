@@ -21,7 +21,10 @@ export default createMuiTheme({
     },
     MuiTableCell: {
       root: {
-        fontSize: '1rem !important'
+        fontSize: '1rem !important',
+        '&:first-child': {
+          whiteSpace: 'nowrap'
+        }
       },
       typeHead: {
         fontSize: '.9rem !important',
