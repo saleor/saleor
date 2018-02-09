@@ -1,17 +1,17 @@
 import React from 'react';
 import { withStyles } from 'material-ui/styles';
 
-const styles = {
+const styles = (theme) => ({
   cardTitle: {
     fontWeight: 300,
-    fontSize: '24px'
+    fontSize: theme.typography.display1.fontSize
   },
   cardSubtitle: {
-    fontSize: '1.3rem',
+    fontSize: theme.typography.title.fontSize,
     lineHeight: '110%',
     margin: '0.65rem 0 0.52rem 0'
   }
-};
+});
 const CardTitle = withStyles(styles)(
   (props) => {
     const { classes, children, componentProps } = props;

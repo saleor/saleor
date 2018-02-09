@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import { compose, graphql } from 'react-apollo';
 import PropTypes from 'prop-types';
 import { withRouter } from 'react-router-dom';
 import { withStyles } from 'material-ui/styles';
@@ -7,7 +8,8 @@ import Button from 'material-ui/Button';
 import { CircularProgress } from 'material-ui/Progress';
 
 import { TextField } from '../../components/inputs';
-import SubmitButton from './submitButton';
+import { categoryCreate, categoryUpdate } from './mutations';
+import { categoryChildren, categoryDetails } from './queries';
 
 const styles = theme => ({
   cardActions: {
@@ -20,11 +22,40 @@ const styles = theme => ({
   },
   largeTextInput: {
     '& input': {
-      fontSize: '2.2rem'
+      fontSize: theme.typography.display1.fontSize
     }
   }
 });
+const createMutation = graphql(categoryCreate, {
+  options: (props) => ({
+    refetchQueries: [
+      {
+        query: categoryChildren,
+        variables: { pk: props.data.category.parent ? props.data.category.parent.pk : '' }
+      }
+    ]
+  }),
+  name: 'categoryCreate'
+});
+const updateMutation = graphql(categoryUpdate, {
+  options: (props) => ({
+    refetchQueries: [
+      {
+        query: categoryChildren,
+        variables: { pk: props.pk }
+      },
+      {
+        query: categoryDetails,
+        variables: { pk: props.pk }
+      }
+    ]
+  }),
+  name: 'categoryUpdate'
+});
 
+@withStyles(styles)
+@withRouter
+@compose(createMutation, updateMutation)
 class CategoryEdit extends Component {
   static propTypes = {
     pk: PropTypes.number.isRequired,
@@ -38,13 +69,17 @@ class CategoryEdit extends Component {
         })
       }),
       loading: PropTypes.bool
-    })
+    }),
+    classes: PropTypes.object,
+    action: PropTypes.string,
+    history: PropTypes.object
   };
 
   constructor(props) {
     super(props);
     this.handleBack = this.handleBack.bind(this);
     this.handleFieldChange = this.handleFieldChange.bind(this);
+    this.handleSubmit = this.handleSubmit.bind(this);
     this.state = {
       name: '',
       description: ''
@@ -59,6 +94,31 @@ class CategoryEdit extends Component {
     this.setState({
       [event.target.name]: event.target.value
     });
+  }
+
+  handleSubmit() {
+    let mutation;
+    switch (this.props.action) {
+      case 'CREATE':
+        mutation = 'categoryCreate';
+        break;
+      case 'UPDATE':
+        mutation = 'categoryUpdate';
+        break;
+    }
+    if (mutation) {
+      this.props[mutation]({
+        variables: {
+          name: this.state.name,
+          description: this.state.description,
+          parent: this.props.data.category.parent.pk,
+          pk: this.props.pk
+        }
+      })
+        .then(({ data }) => {
+          this.props.history.push(`/categories/${data[mutation].category.pk}/`);
+        });
+    }
   }
 
   componentWillReceiveProps(props) {
@@ -108,15 +168,13 @@ class CategoryEdit extends Component {
               >
                 Anuluj
               </Button>
-              <SubmitButton
-                action={this.props.action}
-                name={this.state.name}
-                description={this.state.description}
-                parent={this.props.data.category.pk}
-                pk={this.props.data.category.pk}
+              <Button
+                onClick={this.handleSubmit}
+                color="secondary"
+                variant="raised"
               >
                 {this.props.action === 'ADD' ? 'Utwórz' : 'Aktualizuj'}
-              </SubmitButton>
+              </Button>
             </CardActions>
           </Card>
         )}
@@ -125,4 +183,4 @@ class CategoryEdit extends Component {
   }
 }
 
-export default withStyles(styles)(withRouter(CategoryEdit));
+export default CategoryEdit;
