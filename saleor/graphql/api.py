@@ -2,11 +2,11 @@ import graphene
 from graphene_django.debug import DjangoDebug
 from graphene_django.filter import DjangoFilterConnectionField
 
-from .product.types import (
-    Category, ProductAttribute, Product, resolve_attributes,
-    resolve_products)
 from .core.filters import DistinctFilterSet
 from .product.filters import ProductFilterSet
+from .product.mutations import CategoryCreate, CategoryDelete, CategoryUpdate
+from .product.types import (
+    Category, Product, ProductAttribute, resolve_attributes, resolve_products)
 
 
 class Query(graphene.ObjectType):
