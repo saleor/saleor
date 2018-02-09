@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import { Route, Switch } from 'react-router-dom';
 
 import CategoryEdit from './edit';
-import CategoryAdd from './add';
+import CategoryAdd from './create';
 import CategoryDetails from './details';
 
 const Component = (props) => {

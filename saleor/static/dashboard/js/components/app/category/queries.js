@@ -1,6 +1,6 @@
 import gql from 'graphql-tag';
 
-const CategoryChildren = gql`
+const categoryChildren = gql`
   query CategoryChildren ($pk: Int) {
     categories(parent: $pk) {
       edges {
@@ -14,7 +14,7 @@ const CategoryChildren = gql`
     }
   }
 `;
-const CategoryDetails = gql`
+const categoryDetails = gql`
   query CategoryDetails($pk: Int!) {
     category(pk: $pk) {
       id
@@ -29,6 +29,6 @@ const CategoryDetails = gql`
 `;
 
 export {
-  CategoryChildren,
-  CategoryDetails
+  categoryChildren,
+  categoryDetails
 };

@@ -5,24 +5,27 @@ import Typography from 'material-ui/Typography';
 import Card, { CardContent, CardActions } from 'material-ui/Card';
 import { withStyles } from 'material-ui/styles';
 
-const styles = {
+const styles = (theme) => ({
   card: {
     outline: 'none',
     // height: '11rem',
     top: '40%',
     left: 'calc(50% - 17rem)',
     position: 'absolute',
-    width: '35rem',
+    width: '35rem'
   },
   cardActions: {
     margin: 0,
-    flexDirection: 'row-reverse',
+    flexDirection: 'row-reverse'
   },
   title: {
-    marginBottom: '1rem',
-    textTransform: 'uppercase',
+    marginBottom: theme.spacing.unit,
+    textTransform: 'uppercase'
   },
-};
+  button: {
+    marginLeft: theme.spacing.unit / 2
+  }
+});
 const ConfirmRemoval = withStyles(styles)((props) => {
   const { content, classes, ...modalProps } = props;
   return (
@@ -34,7 +37,7 @@ const ConfirmRemoval = withStyles(styles)((props) => {
             className={classes.title}
           >
             Confirm removal
-            </Typography>
+          </Typography>
           <Typography variant="body1">{content}</Typography>
         </CardContent>
         <CardActions className={classes.cardActions}>
@@ -42,12 +45,14 @@ const ConfirmRemoval = withStyles(styles)((props) => {
             color="secondary"
             variant="raised"
             onClick={props.onConfirm}
+            className={classes.button}
           >
             Do it!
           </Button>
           <Button
             color="secondary"
             onClick={props.onClose}
+            className={classes.button}
           >
             nope
           </Button>
@@ -58,5 +63,5 @@ const ConfirmRemoval = withStyles(styles)((props) => {
 });
 
 export {
-  ConfirmRemoval,
+  ConfirmRemoval
 };

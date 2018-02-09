@@ -4,7 +4,7 @@ import { withStyles } from 'material-ui/styles';
 const styles = (theme) => ({
   cardTitle: {
     fontWeight: 300,
-    fontSize: theme.typography.display1.fontSize,
+    fontSize: theme.typography.display1.fontSize
   },
   cardSubtitle: {
     fontSize: theme.typography.title.fontSize,

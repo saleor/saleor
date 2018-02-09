@@ -1,13 +1,13 @@
 import gql from 'graphql-tag';
 
-const deleteCategory = gql`
+const categoryDelete = gql`
   mutation CategoryDelete($pk: Int!) {
     categoryDelete(pk: $pk) {
       errors
     }
   }
 `;
-const addCategory = gql`
+const categoryCreate = gql`
   mutation categoryCreateMutation($name: String!, $description: String!, $parent: Int!) {
     categoryCreate(input: {name: $name, description: $description, parent: $parent}) {
       errors
@@ -23,9 +23,9 @@ const addCategory = gql`
     }
   }
 `;
-const updateCategory = gql`
-  mutation categoryUpdateMutation($pk: Int!, $name: String!, $description: String!) {
-    categoryUpdate(pk: $pk, input: {name: $name, description: $description}) {
+const categoryUpdate = gql`
+  mutation categoryUpdateMutation($pk: Int!, $name: String!, $description: String!, $parent: Int!) {
+    categoryUpdate(pk: $pk, input: {name: $name, description: $description, parent: $parent}) {
       errors
       category {
         id
@@ -41,7 +41,7 @@ const updateCategory = gql`
 `;
 
 export {
-  addCategory,
-  deleteCategory,
-  updateCategory
+  categoryCreate,
+  categoryDelete,
+  categoryUpdate
 };
