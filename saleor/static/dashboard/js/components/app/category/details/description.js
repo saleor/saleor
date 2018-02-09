@@ -73,18 +73,20 @@ class CategoryDescription extends Component {
                   {this.props.data.category.name}
                 </CardTitle>
                 <CardSubtitle>
-                  Opis
+                  {pgettext('Category field', 'Description')}
                 </CardSubtitle>
                 {this.props.data.category.description}
                 <CardActions>
                   <Link to={`/categories/${this.props.data.category.pk}/edit/`}>
-                    <Button color={'secondary'}>Edytuj</Button>
+                    <Button color={'secondary'}>
+                      {pgettext('Category detail view action', 'Edit category')}
+                    </Button>
                   </Link>
                   <Button
                     color={'secondary'}
                     onClick={this.handleModalOpen}
                   >
-                    Usuń
+                    {pgettext('Category detail view action', 'Remove category')}
                   </Button>
                 </CardActions>
               </CardContent>
