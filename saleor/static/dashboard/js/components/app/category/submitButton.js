@@ -3,6 +3,7 @@ import { withRouter } from 'react-router-dom';
 import Button from 'material-ui/Button';
 import { graphql } from 'react-apollo';
 import { updateCategory, addCategory } from './mutations';
+import { CategoryChildren, CategoryDetails } from './queries';
 
 
 class SubmitButton extends Component {
@@ -50,12 +51,25 @@ const QuerySwitch = (props) => {
       query = updateCategory;
       break;
   }
+  const refetchQueries = [
+    {
+      query: CategoryChildren,
+      variables: {
+        pk: props.pk
+      }
+    },
+  ];
+  if (action === 'UPDATE') {
+    refetchQueries.push({
+      query: CategoryDetails,
+      variables: {
+        pk: props.pk
+      }
+    });
+  }
   const EnhancedSubmitButton = graphql(query, {
     options: {
-      refetchQueries: [
-        'CategoryPage',
-        'CategoryDetails'
-      ]
+      refetchQueries,
     }
   })(SubmitButton);
   return (
