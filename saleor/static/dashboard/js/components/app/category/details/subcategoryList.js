@@ -71,7 +71,7 @@ const Component = (props) => (
               style={{ margin: '2rem 0 1rem' }}
               onClick={handleNewCategoryClick(props.history)}
             >
-              Dodaj
+              {pgettext('Category list add category', 'Add')}
             </Button>
           </div>
         )}
@@ -81,8 +81,12 @@ const Component = (props) => (
             displaySelectAll={false}
           >
             <TableRow>
-              <TableCell>Name</TableCell>
-              <TableCell wide>Description</TableCell>
+              <TableCell>
+                {pgettext('Category list table header name', 'Name')}
+              </TableCell>
+              <TableCell wide>
+                {pgettext('Category list table header description', 'Description')}
+              </TableCell>
             </TableRow>
           </TableHead>
           <TableBody displayRowCheckbox={false}>
@@ -102,7 +106,9 @@ const Component = (props) => (
           </TableBody>
         </Table>
         {!props.data.categories.edges.length && (
-          <div style={styles.noSubcategoriesLabel}>No categories</div>
+          <div style={styles.noSubcategoriesLabel}>
+            {pgettext('Empty category list message', 'No categories found.')}
+          </div>
         )}
       </CardContent>
     )}

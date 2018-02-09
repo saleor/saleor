@@ -166,14 +166,14 @@ class CategoryEdit extends Component {
                 color="secondary"
                 onClick={this.handleBack}
               >
-                Anuluj
+                {pgettext('Dashboard cancel action', 'Cancel')}
               </Button>
               <Button
                 onClick={this.handleSubmit}
                 color="secondary"
                 variant="raised"
               >
-                {this.props.action === 'ADD' ? 'Utwórz' : 'Aktualizuj'}
+                {this.props.action === 'ADD' ? pgettext('Dashboard update action', 'Create') : pgettext('Dashboard update action', 'Update')}
               </Button>
             </CardActions>
           </Card>
