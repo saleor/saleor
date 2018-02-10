@@ -23,6 +23,7 @@ from .forms import (
 
 UserModel = get_user_model()
 
+
 @find_and_assign_anonymous_cart()
 def login(request):
     kwargs = {
@@ -138,6 +139,7 @@ def address_delete(request, pk):
     return TemplateResponse(
         request, 'account/address_delete.html', {'address': address})
 
+
 @never_cache
 def resend_confirmation_email(request, uidb64=None):
     try:
@@ -166,11 +168,12 @@ def email_confirmation(request, uidb64=None, token=None):
         # urlsafe_base64_decode() decodes to bytestring on Python 3
         uid = force_text(urlsafe_base64_decode(uidb64))
         user = UserModel.objects.get(pk=uid)
-        resend_url = reverse('account:resend_confirm_email', kwargs={'uidb64': uidb64})
+        resend_url = reverse('account:resend-confirm-email',
+                             kwargs={'uidb64': uidb64})
         resend_message = mark_safe(_('Activation failed. '
             'Click <a href="%s">here</a> to resend activation e-mail'
-            % resend_url)
-        )
+                % resend_url)
+            )
         if user.email_verified:
             messages.error(request, _(
                 'This e-mail address has already been verified.'))
