@@ -1,13 +1,18 @@
 from django import forms
 from django.conf import settings
 from django.contrib.auth import forms as django_forms
+from django.contrib import messages
 from django.urls import reverse
-from django.utils.translation import pgettext, pgettext_lazy
+from django.utils.encoding import force_bytes, force_text
+from django.utils.http import urlsafe_base64_encode
+from django.utils.safestring import mark_safe
+from django.utils.translation import (
+    pgettext, pgettext_lazy, ugettext_lazy as _
+)
 from templated_email import send_templated_mail
 
 from ..core.utils import build_absolute_uri
 from ..userprofile.models import User
-from .emails import send_activation_mail
 
 
 class LoginForm(django_forms.AuthenticationForm):
@@ -20,19 +25,6 @@ class LoginForm(django_forms.AuthenticationForm):
             email = request.GET.get('email')
             if email:
                 self.fields['username'].initial = email
-
-    def confirm_login_allowed(self, user):
-        super().confirm_login_allowed(user)
-
-        msg = ('E-mail address has not been confirmed for this account.'
-               'Activation e-mail has been resent.')
-        no_activation = pgettext('Login Error', msg),
-
-        if (settings.EMAIL_VERIFICATION_REQUIRED and not user.is_staff and not
-                user.email_verified):
-            send_activation_mail(user)
-            raise forms.ValidationError(no_activation, code='inactive')
-
 
 class SignupForm(forms.ModelForm):
     password = forms.CharField(
@@ -59,8 +51,6 @@ class SignupForm(forms.ModelForm):
         user.set_password(password)
         if commit:
             user.save()
-        if settings.EMAIL_VERIFICATION_REQUIRED:
-            send_activation_mail(user)
         return user
 
 

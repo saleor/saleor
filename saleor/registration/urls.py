@@ -19,4 +19,6 @@ urlpatterns = [
         name='account_reset_password_complete'),
     url(r'^email/verify/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/$',  # noqa
         views.email_confirmation, name='account_confirm_email'),
+    url(r'^email/resend/(?P<uidb64>[0-9A-Za-z_\-]+)/$',
+        views.resend_confirmation_email, name='account_resend_confirm_email'),
 ]

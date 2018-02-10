@@ -127,9 +127,8 @@ def test_signup_view_fail(client, db, customer_user):
     client.post(url, data)
     assert User.objects.count() == 1
 
-
 @override_settings(EMAIL_VERIFICATION_REQUIRED=True)
-def test_signup_view_register_email_activation(client, db, email):
+def test_email_confirmation(client, db, email):
     signup_url = reverse('account_signup')
     signup_data = {'email': 'client@example.com', 'password': 'password'}
     client.post(signup_url, signup_data)
@@ -137,31 +136,60 @@ def test_signup_view_register_email_activation(client, db, email):
     user = User.objects.get(email='client@example.com')
     assert not user.email_verified
     assert len(email.outbox) == 1
-    login_url = reverse('account_login')
-    login_data = {'username': 'client@example.com', 'password': 'password'}
-    response = client.post(login_url, login_data)
-    assert response.status_code == 200
-    assert len(email.outbox) == 2
-    sent_mail = email.outbox[1]
+    sent_mail = email.outbox[0]
+    assert sent_mail.subject == '  Please Confirm Your E-mail Address'
+    email_body = sent_mail.body
+    base_url = 'http://mirumee.com'
+    activation_url = next(filter(lambda x: x.startswith(base_url),
+                                 email_body.split('\n'))).split(base_url)[1]
+    response = client.get(activation_url)
+    redirect_location = get_redirect_location(response)
+    assert redirect_location == "/"
+    user = User.objects.get(email='client@example.com')
+    assert user.email_verified
+
+
+@override_settings(EMAIL_VERIFICATION_REQUIRED=True)
+def test_email_confirmation_resend(client, db, email):
+    signup_url = reverse('account_signup')
+    signup_data = {'email': 'client@example.com', 'password': 'password'}
+    client.post(signup_url, signup_data)
+    assert User.objects.count() == 1
+    user = User.objects.get(email='client@example.com')
+    assert not user.email_verified
+    assert len(email.outbox) == 1
+    sent_mail = email.outbox[0]
+    assert sent_mail.subject == '  Please Confirm Your E-mail Address'
+    email_body = sent_mail.body
+    base_url = 'http://mirumee.com'
+    activation_url = next(filter(lambda x: x.startswith(base_url),
+                                 email_body.split('\n'))).split(base_url)[1]
+    response = client.get(activation_url)
+    redirect_location = get_redirect_location(response)
+    assert redirect_location == "/"
+    user = User.objects.get(email='client@example.com')
+    assert user.email_verified
+
+@override_settings(EMAIL_VERIFICATION_REQUIRED=True)
+def test_email_wrong_confirmation_url(client, db, email):
+    signup_url = reverse('account_signup')
+    signup_data = {'email': 'client@example.com', 'password': 'password'}
+    client.post(signup_url, signup_data)
+    assert User.objects.count() == 1
+    user = User.objects.get(email='client@example.com')
+    assert not user.email_verified
+    assert len(email.outbox) == 1
+    sent_mail = email.outbox[0]
     assert sent_mail.subject == '  Please Confirm Your E-mail Address'
     base_url = 'http://mirumee.com'
-    activation_url = next(filter(lambda x: x.startswith(base_url), sent_mail.body.split('\n'))).split(base_url)[1]
+    activation_url = next(filter(lambda x: x.startswith(base_url),
+                                sent_mail.body.split('\n'))).split(base_url)[1]
     wrong_activation_url = activation_url[:-6] + '12345/'
     response = client.get(wrong_activation_url)
     redirect_location = get_redirect_location(response)
-    assert redirect_location == login_url
+    assert redirect_location == "/"
     user = User.objects.get(email='client@example.com')
     assert not user.email_verified
-    response = client.get(activation_url)
-    redirect_location = get_redirect_location(response)
-    assert redirect_location == login_url
-    user = User.objects.get(email='client@example.com')
-    assert user.email_verified
-    response = client.post(login_url, login_data)
-    assert response.status_code == 302
-    redirect_location = get_redirect_location(response)
-    assert redirect_location == '/'
-
 
 def test_password_reset_view_post(client, db):
     url = reverse('account_reset_password')
