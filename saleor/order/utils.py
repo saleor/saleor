@@ -46,14 +46,12 @@ def recalculate_order(order):
     Total price is a sum of items in shipment groups and order shipping price
     minus discount amount.
     """
-    prices = [
-        group.get_total() for group in order
-        if group.status != GroupStatus.CANCELLED]
+    prices = [line.get_total() for line in order]
     total = sum(prices, order.shipping_price)
     if order.discount_amount:
         total -= order.discount_amount
     order.total = total
-    order.save()
+    order.save(update_fields=['total'])
 
 
 def attach_order_to_user(order, user):
@@ -98,6 +96,45 @@ def add_variant_to_delivery_group(
                 variant.product.product_type.is_shipping_required),
             quantity=quantity,
             unit_price=price,
+            stock=stock,
+            stock_location=stock.location.name)
+        allocate_stock(stock, quantity)
+        # refresh stock for accessing quantity_allocated
+        stock.refresh_from_db()
+        quantity_left -= quantity
+
+
+def add_variant_to_order(order, variant, total_quantity, discounts=None):
+    """Add total_quantity of variant to group.
+
+    Raises InsufficientStock exception if quantity could not be fulfilled.
+
+    By default, first adds variant to existing lines with same variant.
+    It can be disabled with setting add_to_existing to False.
+
+    Order lines are created by increasing quantity of lines,
+    as long as total_quantity of variant will be added.
+    """
+    quantity_left = total_quantity
+    price = variant.get_price_per_item(discounts)
+    while quantity_left > 0:
+        stock = variant.select_stockrecord()
+        if not stock:
+            raise InsufficientStock(variant)
+        quantity = (
+            stock.quantity_available
+            if quantity_left > stock.quantity_available
+            else quantity_left
+        )
+        order.lines.create(
+            product=variant.product,
+            product_name=variant.display_product(),
+            product_sku=variant.sku,
+            is_shipping_required=(
+                variant.product.product_type.is_shipping_required),
+            quantity=quantity,
+            unit_price_net=price.net,
+            unit_price_gross=price.gross,
             stock=stock,
             stock_location=stock.location.name)
         allocate_stock(stock, quantity)

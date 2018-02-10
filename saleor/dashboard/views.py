@@ -34,7 +34,7 @@ def superuser_required(
 def index(request):
     paginate_by = 10
     orders_to_ship = Order.objects.open().select_related(
-        'user').prefetch_related('groups', 'groups__lines', 'payments')
+        'user').prefetch_related('lines', 'payments')
     orders_to_ship = [
         order for order in orders_to_ship if order.is_fully_paid()]
     payments = Payment.objects.filter(

@@ -197,7 +197,7 @@ class ChangeQuantityForm(forms.ModelForm):
 
 
 class ShipGroupForm(forms.ModelForm):
-    """Dispatch a group and optionally assigns a tracking number.
+    """Dispatch a group and optionally assign a tracking number.
 
     This process involves permanently decreasing the previously allocated
     stock.

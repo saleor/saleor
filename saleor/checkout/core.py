@@ -19,6 +19,7 @@ from ..discount.models import NotApplicable, Voucher
 from ..discount.utils import (
     get_voucher_discount_for_checkout, increase_voucher_usage)
 from ..order.models import Order
+from ..order.utils import add_variant_to_order
 from ..shipping.models import ANY_COUNTRY, ShippingMethodCountry
 
 STORAGE_SESSION_KEY = 'checkout_storage'
@@ -343,15 +344,9 @@ class Checkout:
 
         order = Order.objects.create(**order_data)
 
-        for partition in self.cart.partition():
-            shipping_required = partition.is_shipping_required()
-            shipping_method_name = (
-                smart_text(self.shipping_method) if shipping_required
-                else None)
-            group = order.groups.create(
-                shipping_method_name=shipping_method_name)
-            group.process(partition, self.cart.discounts)
-            group.save()
+        for line in self.cart.lines.all():
+            add_variant_to_order(
+                order, line.variant, line.quantity, self.cart.discounts)
 
         if voucher is not None:
             increase_voucher_usage(voucher)

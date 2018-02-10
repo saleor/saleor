@@ -116,7 +116,7 @@ class Order(models.Model):
         return self.shipping_address.phone
 
     def __iter__(self):
-        return iter(self.groups.all())
+        return iter(self.lines.all())
 
     def __repr__(self):
         return '<Order #%r>' % (self.id,)
@@ -143,7 +143,7 @@ class Order(models.Model):
         return self.payments.filter(status=PaymentStatus.PREAUTH).exists()
 
     def is_shipping_required(self):
-        return any(group.is_shipping_required() for group in self.groups.all())
+        return any(line.is_shipping_required for line in self)
 
     @property
     def status(self):
