@@ -4,12 +4,12 @@
 {% load materializecss %}
 
 {% block action_url %}
-{% url 'dashboard:add-variant-to-group' order_pk=order.pk group_pk=group.pk %}
+{% url 'dashboard:add-variant-to-order' order_pk=order.pk %}
 {% endblock %}
 
 {% block title %}
-{% blocktrans trimmed with shipment=group context "Modal group add variant title" %}
-  Add product to {{ shipment }}
+{% blocktrans trimmed with shipment=group context "Modal order add variant title" %}
+  Add product to {{ order }}
 {% endblocktrans %}
 {% endblock %}
 
@@ -19,5 +19,5 @@
 {% endblock %}
 
 {% block primary_action %}
-{% trans "Add" context "Modal group add variant primary action" %}
+{% trans "Add" context "Modal order add variant primary action" %}
 {% endblock %}

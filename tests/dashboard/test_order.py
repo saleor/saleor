@@ -14,10 +14,9 @@ from saleor.dashboard.order.forms import ChangeQuantityForm, OrderNoteForm
 from saleor.order import GroupStatus
 from saleor.order.models import (
     DeliveryGroup, Order, OrderHistoryEntry, OrderLine, OrderNote)
-from saleor.order.transitions import process_delivery_group
 from saleor.order.utils import (
-    add_variant_to_existing_lines, change_order_line_quantity,
-    remove_empty_groups)
+    add_variant_to_existing_lines, add_variant_to_order,
+    change_order_line_quantity, remove_empty_groups)
 from saleor.product.models import ProductVariant, Stock, StockLocation
 
 
@@ -173,7 +172,8 @@ def test_view_change_order_line_quantity_with_invalid_data(
 def test_dashboard_change_quantity_form(request_cart_with_item, order):
     cart = request_cart_with_item
     group = DeliveryGroup.objects.create(order=order)
-    process_delivery_group(group, cart.lines.all())
+    for line in cart.lines.all():
+        add_variant_to_order(order, line.variant, line.quantity)
     order_line = group.lines.get()
 
     # Check max quantity validation
@@ -564,8 +564,7 @@ def test_view_add_variant_to_delivery_group(
     line = OrderLine.objects.get(
         product_sku='SKU_A', stock_location='Warehouse 2')
     url = reverse(
-        'dashboard:add-variant-to-group', kwargs={
-            'order_pk': order.pk, 'group_pk': group.pk})
+        'dashboard:add-variant-to-order', kwargs={'order_pk': order.pk})
     data = {'variant': variant.pk, 'quantity': 2}
 
     response = admin_client.post(url, data)

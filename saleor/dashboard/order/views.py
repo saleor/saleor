@@ -19,7 +19,7 @@ from ...product.models import StockLocation
 from ..views import staff_member_required
 from .filters import OrderFilter
 from .forms import (
-    AddressForm, AddVariantToDeliveryGroupForm, CancelGroupForm,
+    AddressForm, AddVariantToOrderForm, CancelGroupForm,
     CancelOrderForm, CancelOrderLineForm, CapturePaymentForm,
     ChangeQuantityForm, ChangeStockForm, MoveLinesForm, OrderNoteForm,
     RefundPaymentForm, ReleasePaymentForm, RemoveVoucherForm, ShipGroupForm)
@@ -305,36 +305,34 @@ def cancel_delivery_group(request, order_pk, group_pk):
 
 @staff_member_required
 @permission_required('order.edit_order')
-def add_variant_to_group(request, order_pk, group_pk):
-    """Add variant in given quantity to an existing or new order group."""
+def add_variant_to_order(request, order_pk):
+    """Add variant in given quantity to an order."""
     order = get_object_or_404(Order, pk=order_pk)
-    group = get_object_or_404(order.groups.all(), pk=group_pk)
-    form = AddVariantToDeliveryGroupForm(
-        request.POST or None, group=group, discounts=request.discounts)
+    form = AddVariantToOrderForm(
+        request.POST or None, order=order, discounts=request.discounts)
     status = 200
     if form.is_valid():
         msg_dict = {
             'quantity': form.cleaned_data.get('quantity'),
-            'variant': form.cleaned_data.get('variant'),
-            'group': group}
+            'variant': form.cleaned_data.get('variant')}
         try:
             with transaction.atomic():
                 form.save()
             msg = pgettext_lazy(
-                'Dashboard message related to a shipment group',
-                'Added %(quantity)d x %(variant)s to %(group)s') % msg_dict
+                'Dashboard message related to an order',
+                'Added %(quantity)d x %(variant)s') % msg_dict
             order.history.create(content=msg, user=request.user)
             messages.success(request, msg)
         except InsufficientStock:
             msg = pgettext_lazy(
-                'Dashboard message related to a shipment group',
-                'Insufficient stock: could not add %(quantity)d x '
-                '%(variant)s to %(group)s') % msg_dict
+                'Dashboard message related to an order',
+                'Insufficient stock: could not add %(quantity)d x %(variant)s'
+            ) % msg_dict
             messages.warning(request, msg)
         return redirect('dashboard:order-details', order_pk=order_pk)
     elif form.errors:
         status = 400
-    ctx = {'order': order, 'group': group, 'form': form}
+    ctx = {'order': order, 'form': form}
     template = 'dashboard/order/modal/add_variant_to_group.html'
     return TemplateResponse(request, template, ctx, status=status)
 

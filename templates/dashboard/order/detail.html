@@ -324,9 +324,9 @@
             </tbody>
           </table>
         </div>
-        {% if perms.order.edit_order %}
-          {% if group.can_ship or group.can_cancel %}
-            <div class="data-table-action">
+        {% if perms.order.edit_order and order.is_open %}
+          <div class="data-table-action">
+            {% if false %}
               {% if group.can_ship %}
                 <a href="#base-modal" data-href="{% url 'dashboard:ship-delivery-group' order_pk=order.pk group_pk=group.pk %}" class="btn-flat waves-effect modal-trigger-custom">
                   {% trans "Dispatch" context "Shipment group table action" %}
@@ -337,19 +337,19 @@
                   {% trans "Cancel shipment" context "Shipment group table action" %}
                 </a>
               {% endif %}
-              {% if group.can_edit_lines %}
-                <a href="#base-modal" data-href="{% url 'dashboard:add-variant-to-group' order_pk=order.pk group_pk=group.pk %}" class="btn-flat waves-effect modal-trigger-custom" title="{% trans "Add product to order" context "Order summary card action title" %}">
-                  {% trans "Add product" context "Order summary card action" %}
-                </a>
-              {% endif %}
+            {% endif %}
+            <a href="#base-modal" data-href="{% url 'dashboard:add-variant-to-order' order_pk=order.pk %}" class="btn-flat waves-effect modal-trigger-custom" title="{% trans "Add product to order" context "Order summary card action title" %}">
+              {% trans "Add product" context "Order summary card action" %}
+            </a>
+            {% if false %}
               <a href="{% url 'dashboard:order-packing-slips' group_pk=group.pk %}" data-href="" class="btn-flat waves-effect" target="_blank">
                 {% trans "Packing Slips" context "Order detail action" %}
               </a>
-            </div>
-          {% endif %}
+            {% endif %}
+          </div>
         {% endif %}
       </div>
-            <div class="card" id="order-totals">
+      <div class="card" id="order-totals">
         <div class="data-table-container">
           <table class="bordered highlight responsive data-table">
             <tfoot>
