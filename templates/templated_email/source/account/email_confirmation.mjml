@@ -19,14 +19,15 @@
           </mj-text>
           <mj-text>
             {% blocktrans trimmed context "Email confirmation e-mail text" %}
-              You're receiving this e-mail because you or someone else has registered a new user account at
-              {{ domain }} with this e-mail address.<br/>
+              Thanks for signing up to {{ domain }}!
+              You're receiving this e-mail because you or someone else has registered a new user account
+              with this e-mail address.<br/>
               Click the link below to confirm your e-mail address and activate your account:
             {% endblocktrans %}
           </mj-text>
           <mj-text>
-            <a href="{{ protocol }}://{{ domain }}{% url 'account_confirm_email' uidb64=uid token=token %}">
-              {{ protocol }}://{{ domain }}{% url 'account_confirm_email' uidb64=uid token=token %}
+            <a href="{{ protocol }}://{{ domain }}{% url 'account:confirm-email' uidb64=uid token=token %}">
+              {{ protocol }}://{{ domain }}{% url 'account:confirm-email' uidb64=uid token=token %}
             </a>
           </mj-text>
         </mj-column>

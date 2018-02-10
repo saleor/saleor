@@ -10,15 +10,15 @@ from django.template.response import TemplateResponse
 from django.utils.translation import pgettext_lazy, ugettext_lazy as _
 from payments import PaymentStatus, RedirectNeeded
 
-from . import OrderStatus
+from ..account.models import User
 from ..core.utils import get_client_ip
-from ..registration.forms import LoginForm
-from ..registration.emails import send_activation_mail
-from ..userprofile.models import User
+from ..account.emails import send_activation_mail
+from ..account.forms import LoginForm
 from .forms import (
     OrderNoteForm, PasswordForm, PaymentDeleteForm, PaymentMethodsForm)
 from .models import Order, OrderNote, Payment
 from .utils import attach_order_to_user, check_order_status
+from . import OrderStatus
 
 logger = logging.getLogger(__name__)
 
@@ -84,10 +84,11 @@ def start_payment(request, order, variant):
     if waiting_payments:
         return redirect('order:payment', token=order.token)
     billing = order.billing_address
-    total = order.get_total()
+    total = order.total
     defaults = {
         'total': total.gross,
-        'tax': total.tax, 'currency': total.currency,
+        'tax': total.tax,
+        'currency': total.currency,
         'delivery': order.shipping_price.gross,
         'billing_first_name': billing.first_name,
         'billing_last_name': billing.last_name,
@@ -140,7 +141,6 @@ def cancel_payment(request, order):
 
 def checkout_success(request, token):
     """Redirect user after placing an order.
-
     Anonymous users are redirected to the checkout success page.
     Registered users are redirected to order details page and the order
     is attached to their account.
@@ -160,6 +160,7 @@ def checkout_success(request, token):
         user = auth.authenticate(
             request=request, email=email, password=password)
         auth.login(request, user)
+        attach_order_to_user(order, user)
         if settings.EMAIL_VERIFICATION_REQUIRED:
             send_activation_mail(user)
             msg = _('User has been created. '
@@ -190,7 +191,7 @@ def connect_order_with_user(request, token):
             "We couldn't assign the order to your account as the email"
             " addresses don't match")
         messages.warning(request, msg)
-        return redirect('profile:details')
+        return redirect('account:details')
     attach_order_to_user(order, request.user)
     msg = pgettext_lazy(
         'storefront message',

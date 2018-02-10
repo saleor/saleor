@@ -8,12 +8,13 @@
 {% blocktrans context "Email confirmation e-mail text" %}
 Hi,
 
-You're receiving this e-mail because you or someone else has registered a new user account at
-{{ domain }} with this e-mail address. Thank you for signing up to {{site_name}}<br/>
+Thanks for signing up to {{ domain }}!.
+You're receiving this e-mail because you or someone else has registered a new user account
+with this e-mail address. Thank you for signing up to {{site_name}}<br/>
 Click the link below to confirm your e-mail address and activate your account:
 {% endblocktrans %}
 
-{{ protocol }}://{{ domain }}{% url 'account_confirm_email' uidb64=uid token=token %}
+{{ protocol }}://{{ domain }}{% url 'account:confirm-email' uidb64=uid token=token %}
 
 This is an automatically generated email, please do not reply.
 
@@ -24,5 +25,5 @@ Sincerely,
 {% endblock %}
 
 {% block html %}
-{% include 'templated_email/html/compiled/email_confirmation.html' %}
+{% include 'templated_email/compiled/email_confirmation.html' %}
 {% endblock %}
