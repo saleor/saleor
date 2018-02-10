@@ -1,8 +1,11 @@
 from celery import shared_task
+from django.conf import settings
 from django.contrib.auth.tokens import default_token_generator
+from django.contrib import messages
 from django.contrib.sites.models import Site
 from django.utils.encoding import force_bytes, force_text
 from django.utils.http import urlsafe_base64_encode
+from django.utils.translation import ugettext_lazy as _
 from django.conf import settings
 from django.urls import reverse
 from templated_email import send_templated_mail
@@ -44,3 +47,12 @@ def send_activation_mail(user):
         from_email=settings.DEFAULT_FROM_EMAIL,
         recipient_list=[user.email],
         context=context)
+
+def send_confirmation_mail_if_required(request, user):
+    if settings.EMAIL_VERIFICATION_REQUIRED:
+        send_activation_mail(user)
+        msg = _('User has been created. '
+                'Check your e-mail to verify your e-mail address.')
+        messages.success(request, msg)
+    else:
+        messages.success(request, _('User has been created'))

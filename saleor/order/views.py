@@ -7,12 +7,12 @@ from django.db import transaction
 from django.http import Http404, HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect
 from django.template.response import TemplateResponse
-from django.utils.translation import pgettext_lazy, ugettext_lazy as _
+from django.utils.translation import pgettext_lazy
 from payments import PaymentStatus, RedirectNeeded
 
 from ..account.models import User
 from ..core.utils import get_client_ip
-from ..account.emails import send_activation_mail
+from ..account.emails import send_confirmation_mail_if_required
 from ..account.forms import LoginForm
 from .forms import (
     OrderNoteForm, PasswordForm, PaymentDeleteForm, PaymentMethodsForm)
@@ -161,13 +161,7 @@ def checkout_success(request, token):
             request=request, email=email, password=password)
         auth.login(request, user)
         attach_order_to_user(order, user)
-        if settings.EMAIL_VERIFICATION_REQUIRED:
-            send_activation_mail(user)
-            msg = _('User has been created. '
-                    'Check your e-mail to verify your e-mail address.')
-            messages.success(request, msg)
-        else:
-            messages.success(request, _('User has been created'))
+        send_confirmation_mail_if_required(request, user)
         attach_order_to_user(order, user)
         return redirect('order:details', token=token)
     user_exists = User.objects.filter(email=email).exists()

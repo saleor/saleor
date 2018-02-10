@@ -16,7 +16,7 @@ from django.views.decorators.debug import sensitive_post_parameters
 
 from ..cart.utils import find_and_assign_anonymous_cart
 from ..core.utils import get_paginator_items
-from .emails import send_activation_mail
+from .emails import send_confirmation_mail_if_required, send_activation_mail
 from .forms import (
     ChangePasswordForm, get_address_form, LoginForm, logout_on_password_change,
     PasswordResetForm, SignupForm)
@@ -49,13 +49,7 @@ def signup(request):
             request=request, email=email, password=password)
         if user:
             auth.login(request, user)
-        if settings.EMAIL_VERIFICATION_REQUIRED:
-            send_activation_mail(user)
-            msg = _('User has been created. '
-                    'Check your e-mail to verify your e-mail address.')
-            messages.success(request, msg)
-        else:
-            messages.success(request, _('User has been created'))
+        send_confirmation_mail_if_required(request, user)
         redirect_url = request.POST.get('next',
                                         settings.LOGIN_REDIRECT_URL)
         return redirect(redirect_url)
@@ -171,9 +165,9 @@ def email_confirmation(request, uidb64=None, token=None):
         resend_url = reverse('account:resend-confirm-email',
                              kwargs={'uidb64': uidb64})
         resend_message = mark_safe(_('Activation failed. '
-                                    'Click <a href="%s">here</a> '
-                                     'to resend activation e-mail'
-                                     % resend_url))
+                                        'Click <a href="%s">here</a> '
+                                            'to resend activation e-mail'
+                                                % resend_url))
         if user.email_verified:
             messages.error(request, _(
                 'This e-mail address has already been verified.'))
