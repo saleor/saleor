@@ -51,7 +51,7 @@ def recalculate_order(order):
     if order.discount_amount:
         total -= order.discount_amount
     order.total = total
-    order.save(update_fields=['total'])
+    order.save()
 
 
 def attach_order_to_user(order, user):
@@ -115,7 +115,8 @@ def add_variant_to_order(order, variant, total_quantity, discounts=None):
     Order lines are created by increasing quantity of lines,
     as long as total_quantity of variant will be added.
     """
-    quantity_left = total_quantity
+    quantity_left = add_variant_to_existing_lines(
+        order, variant, total_quantity)
     price = variant.get_price_per_item(discounts)
     while quantity_left > 0:
         stock = variant.select_stockrecord()
@@ -143,7 +144,7 @@ def add_variant_to_order(order, variant, total_quantity, discounts=None):
         quantity_left -= quantity
 
 
-def add_variant_to_existing_lines(group, variant, total_quantity):
+def add_variant_to_existing_lines(order, variant, total_quantity):
     """Add variant to existing lines with same variant.
 
     Variant is added by increasing quantity of lines with same variant,
@@ -153,7 +154,7 @@ def add_variant_to_existing_lines(group, variant, total_quantity):
     Returns quantity that could not be fulfilled with existing lines.
     """
     # order descending by lines' stock available quantity
-    lines = group.lines.filter(
+    lines = order.lines.filter(
         product=variant.product, product_sku=variant.sku,
         stock__isnull=False).order_by(
             F('stock__quantity_allocated') - F('stock__quantity'))

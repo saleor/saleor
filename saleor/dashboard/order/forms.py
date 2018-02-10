@@ -15,7 +15,7 @@ from ...order import GroupStatus
 from ...order.emails import send_note_confirmation
 from ...order.models import DeliveryGroup, OrderLine, OrderNote
 from ...order.utils import (
-    add_variant_to_delivery_group, cancel_order, change_order_line_quantity,
+    add_variant_to_order, cancel_order, change_order_line_quantity,
     merge_duplicates_into_order_line, move_order_line_to_group,
     recalculate_order, remove_empty_groups)
 from ...product.models import Product, ProductVariant, Stock
@@ -346,7 +346,7 @@ class ChangeStockForm(forms.ModelForm):
         return self.instance
 
 
-class AddVariantToDeliveryGroupForm(forms.Form):
+class AddVariantToOrderForm(forms.Form):
     """Allow adding lines with given quantity to a shipment group."""
 
     variant = AjaxSelect2ChoiceField(
@@ -359,12 +359,12 @@ class AddVariantToDeliveryGroupForm(forms.Form):
         validators=[MinValueValidator(1)])
 
     def __init__(self, *args, **kwargs):
-        self.group = kwargs.pop('group')
+        self.order = kwargs.pop('order')
         self.discounts = kwargs.pop('discounts')
         super().__init__(*args, **kwargs)
 
     def clean(self):
-        """Check if given quantity is available in stocs."""
+        """Check if given quantity is available in stocks."""
         cleaned_data = super().clean()
         variant = cleaned_data.get('variant')
         quantity = cleaned_data.get('quantity')
@@ -382,15 +382,15 @@ class AddVariantToDeliveryGroupForm(forms.Form):
         return cleaned_data
 
     def save(self):
-        """Add variant to target group.
+        """Add variant to order.
 
         Updates stocks and order.
         """
         variant = self.cleaned_data.get('variant')
         quantity = self.cleaned_data.get('quantity')
-        add_variant_to_delivery_group(
-            self.group, variant, quantity, self.discounts)
-        recalculate_order(self.group.order)
+        add_variant_to_order(
+            self.order, variant, quantity, self.discounts)
+        recalculate_order(self.order)
 
 
 class AddressForm(StorefrontAddressForm):
