@@ -4,7 +4,7 @@ from uuid import uuid4
 from django.conf import settings
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
-from django.db.models import Q
+from django.db.models import F, Sum, Q
 from django.urls import reverse
 from django.utils.timezone import now
 from django.utils.translation import pgettext_lazy
@@ -24,7 +24,7 @@ from .transitions import (
 
 
 class OrderQuerySet(models.QuerySet):
-    """Filters orders by status deduced from shipment groups."""
+    """Filter orders by status deduced from fulfillment quantities."""
 
     def open(self):
         """Orders having at least one shipment group with status NEW."""
@@ -147,11 +147,9 @@ class Order(models.Model):
 
     @property
     def status(self):
-        """Order status deduced from shipment groups."""
-        statuses = set([group.status for group in self.groups.all()])
-        return (
-            OrderStatus.OPEN if GroupStatus.NEW in statuses
-            else OrderStatus.CLOSED)
+        """Order status deduced from fulfillment lines."""
+        is_fulfilled = all(line.is_fulfilled() for line in self.lines.all())
+        return OrderStatus.CLOSED if is_fulfilled else OrderStatus.OPEN
 
     @property
     def is_open(self):
@@ -261,6 +259,10 @@ class OrderLine(models.Model):
 
     def get_total(self):
         return self.unit_price * self.quantity
+
+    def is_fulfilled(self):
+        lines = FulfillmentLine.objects.filter(order_line=self)
+        return sum([line.quantity for line in lines]) >= self.quantity
 
 
 class Fulfillment(models.Model):
