@@ -159,15 +159,12 @@ def resend_confirmation_email(request, uidb64=None):
 def email_confirmation(request, uidb64=None, token=None):
     assert uidb64 and token
     try:
-        # urlsafe_base64_decode() decodes to bytestring on Python 3
         uid = force_text(urlsafe_base64_decode(uidb64))
         user = UserModel.objects.get(pk=uid)
         resend_url = reverse('account:resend-confirm-email',
                              kwargs={'uidb64': uidb64})
         resend_message = mark_safe(_('Activation failed. '
-                                        'Click <a href="%s">here</a> '
-                                            'to resend activation e-mail'
-                                                % resend_url))
+            'Click <a href="%s">here</a> to resend activation e-mail' % resend_url))
         if user.email_verified:
             messages.error(request, _(
                 'This e-mail address has already been verified.'))

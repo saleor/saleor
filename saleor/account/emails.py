@@ -48,6 +48,7 @@ def send_activation_mail(user):
         recipient_list=[user.email],
         context=context)
 
+
 def send_confirmation_mail_if_required(request, user):
     if settings.EMAIL_VERIFICATION_REQUIRED:
         send_activation_mail(user)
