@@ -11,12 +11,12 @@ from ..product.models import Product
 
 
 def staff_member_required(f):
-    return _staff_member_required(f, login_url='account_login')
+    return _staff_member_required(f, login_url='account:login')
 
 
 def superuser_required(
         view_func=None, redirect_field_name=REDIRECT_FIELD_NAME,
-        login_url='account_login'):
+        login_url='account:login'):
     """Check if the user is logged in and is a superuser.
 
     Otherwise redirects to the login page.

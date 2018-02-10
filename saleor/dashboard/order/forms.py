@@ -5,9 +5,9 @@ from django.urls import reverse, reverse_lazy
 from django.utils.translation import npgettext_lazy, pgettext_lazy
 from django_prices.forms import PriceField
 from payments import PaymentError, PaymentStatus
-from satchless.item import InsufficientStock
 
 from ...cart.forms import QuantityField
+from ...core.exceptions import InsufficientStock
 from ...core.utils import build_absolute_uri
 from ...discount.utils import decrease_voucher_usage
 from ...order import GroupStatus
@@ -19,7 +19,7 @@ from ...order.utils import (
     recalculate_order, remove_empty_groups)
 from ...product.models import Product, ProductVariant, Stock
 from ...product.utils import allocate_stock, deallocate_stock
-from ...userprofile.i18n import (
+from ...account.i18n import (
     AddressForm as StorefrontAddressForm, PossiblePhoneNumberFormField)
 from ..forms import AjaxSelect2ChoiceField
 from ..widgets import PhonePrefixWidget

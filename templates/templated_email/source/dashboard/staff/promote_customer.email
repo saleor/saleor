@@ -1,0 +1,17 @@
+{% load i18n %}
+{% block subject %}{% blocktrans %}Hello from {{ site_name }}!{% endblocktrans %}{% endblock %}
+
+{% block plain %}
+{% blocktrans context "Promote customer to staff member confirmation e-mail text" %}
+Hi!
+
+You're receiving this e-mail because you have been promoted to staff member at {{ domain }}.{% endblocktrans %}
+
+{% blocktrans context "Promote customer to staff member confirmation e-mail text" %}
+This is an automatically generated email, please do not reply.
+{% endblocktrans %}
+{% endblock %}
+
+{% block html %}
+{% include 'templated_email/compiled/promote_customer.html' %}
+{% endblock %}

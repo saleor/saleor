@@ -17,7 +17,7 @@
           <img class="lazyload lazypreload"
                data-src="{% static 'images/login-bg.png' %}"
                data-srcset="{% static 'images/login-bg.png' %} 1x, {% static 'images/login-bg2x.png' %} 2x">
-          <a rel="nofollow" href="{% url 'account_signup' %}" class="btn secondary narrow">
+          <a rel="nofollow" href="{% url 'account:signup' %}" class="btn secondary narrow">
             {% trans "Register" context "Login form secondary action" %}
           </a>
         </div>

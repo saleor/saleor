@@ -1,6 +1,6 @@
 from django.urls import reverse
 
-from saleor.userprofile.models import User
+from saleor.account.models import User
 
 
 def test_admin_can_view_staff_list(admin_client):
@@ -671,13 +671,13 @@ def test_staff_group_member_can_view_billing_address_edit(
 
 def test_staff_group_member_can_view_customers_list(
         staff_client, staff_user, staff_group, permission_view_user):
-    assert not staff_user.has_perm("userprofile.view_user")
+    assert not staff_user.has_perm("account.view_user")
     response = staff_client.get(reverse('dashboard:customers'))
     assert response.status_code == 302
     staff_group.permissions.add(permission_view_user)
     staff_user.groups.add(staff_group)
     staff_user = User.objects.get(pk=staff_user.pk)
-    assert staff_user.has_perm("userprofile.view_user")
+    assert staff_user.has_perm("account.view_user")
     response = staff_client.get(reverse('dashboard:customers'))
     assert response.status_code == 200
 
@@ -685,14 +685,14 @@ def test_staff_group_member_can_view_customers_list(
 def test_staff_group_member_can_view_customer_details(
         staff_client, staff_user, staff_group, permission_view_user,
         customer_user, order_with_lines_and_stock):
-    assert not staff_user.has_perm("userprofile.view_user")
+    assert not staff_user.has_perm("account.view_user")
     response = staff_client.get(reverse('dashboard:customer-details',
                                         args=[customer_user.pk]))
     assert response.status_code == 302
     staff_group.permissions.add(permission_view_user)
     staff_user.groups.add(staff_group)
     staff_user = User.objects.get(pk=staff_user.pk)
-    assert staff_user.has_perm("userprofile.view_user")
+    assert staff_user.has_perm("account.view_user")
     response = staff_client.get(reverse('dashboard:customer-details',
                                         args=[customer_user.pk]))
     assert response.status_code == 200
@@ -703,20 +703,20 @@ def test_staff_group_member_can_view_customer_details(
 
 def test_staff_group_member_can_view_staff_members_list(
         staff_client, staff_user, staff_group, permission_view_staff):
-    assert not staff_user.has_perm("userprofile.view_staff")
+    assert not staff_user.has_perm("account.view_staff")
     response = staff_client.get(reverse('dashboard:staff-list'))
     assert response.status_code == 302
     staff_group.permissions.add(permission_view_staff)
     staff_user.groups.add(staff_group)
     staff_user = User.objects.get(pk=staff_user.pk)
-    assert staff_user.has_perm("userprofile.view_staff")
+    assert staff_user.has_perm("account.view_staff")
     response = staff_client.get(reverse('dashboard:staff-list'))
     assert response.status_code == 200
 
 
 def test_staff_group_member_can_view_detail_create_and_delete_staff_members(
         staff_client, staff_user, staff_group, permission_edit_staff):
-    assert not staff_user.has_perm("userprofile.edit_staff")
+    assert not staff_user.has_perm("account.edit_staff")
     response = staff_client.get(reverse('dashboard:staff-create'))
     assert response.status_code == 302
     response = staff_client.get(reverse('dashboard:staff-delete',
@@ -728,7 +728,7 @@ def test_staff_group_member_can_view_detail_create_and_delete_staff_members(
     staff_group.permissions.add(permission_edit_staff)
     staff_user.groups.add(staff_group)
     staff_user = User.objects.get(pk=staff_user.pk)
-    assert staff_user.has_perm("userprofile.edit_staff")
+    assert staff_user.has_perm("account.edit_staff")
     response = staff_client.get(reverse('dashboard:staff-create'))
     assert response.status_code == 200
     response = staff_client.get(reverse('dashboard:staff-delete',
@@ -741,20 +741,20 @@ def test_staff_group_member_can_view_detail_create_and_delete_staff_members(
 
 def test_staff_group_member_can_view_group_list_and_details(
         staff_client, staff_user, staff_group, permission_view_group):
-    assert not staff_user.has_perm("userprofile.view_group")
+    assert not staff_user.has_perm("account.view_group")
     response = staff_client.get(reverse('dashboard:group-list'))
     assert response.status_code == 302
     staff_group.permissions.add(permission_view_group)
     staff_user.groups.add(staff_group)
     staff_user = User.objects.get(pk=staff_user.pk)
-    assert staff_user.has_perm("userprofile.view_group")
+    assert staff_user.has_perm("account.view_group")
     response = staff_client.get(reverse('dashboard:group-list'))
     assert response.status_code == 200
 
 
 def test_staff_with_permission_can_create_and_delete_group(
         staff_client, staff_user, staff_group, permission_edit_group):
-    assert not staff_user.has_perm("userprofile.edit_group")
+    assert not staff_user.has_perm("account.edit_group")
     response = staff_client.get(reverse('dashboard:group-delete',
                                         args=[staff_group.pk]))
     assert response.status_code == 302
@@ -766,7 +766,7 @@ def test_staff_with_permission_can_create_and_delete_group(
     staff_group.permissions.add(permission_edit_group)
     staff_user.groups.add(staff_group)
     staff_user = User.objects.get(pk=staff_user.pk)
-    assert staff_user.has_perm("userprofile.edit_group")
+    assert staff_user.has_perm("account.edit_group")
     response = staff_client.get(reverse('dashboard:group-details',
                                         args=[staff_group.pk]))
     assert response.status_code == 200
@@ -919,8 +919,8 @@ def test_staff_with_permissions_can_edit_customer(
     staff_group.permissions.add(permission_view_user)
     staff_user.groups.add(staff_group)
     staff_user = User.objects.get(pk=staff_user.pk)
-    assert staff_user.has_perm("userprofile.edit_user")
-    assert staff_user.has_perm("userprofile.view_user")
+    assert staff_user.has_perm("account.edit_user")
+    assert staff_user.has_perm("account.view_user")
     response = staff_client.get(reverse('dashboard:customer-update',
                                         args=[customer_user.pk]))
     assert response.status_code == 200
@@ -939,8 +939,8 @@ def test_staff_with_permissions_can_add_customer(
     staff_group.permissions.add(permission_view_user)
     staff_user.groups.add(staff_group)
     staff_user = User.objects.get(pk=staff_user.pk)
-    assert staff_user.has_perm("userprofile.edit_user")
-    assert staff_user.has_perm("userprofile.view_user")
+    assert staff_user.has_perm("account.edit_user")
+    assert staff_user.has_perm("account.view_user")
     response = staff_client.get(reverse('dashboard:customer-create'))
     assert response.status_code == 200
     url = reverse('dashboard:customer-create')

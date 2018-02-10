@@ -47,7 +47,7 @@
       <svg data-src="{% static "dashboard/images/more-vert.svg" %}" height="24" width="24" />
     </a>
     <ul id="context-menu" class="dropdown-content">
-        {% if perms.userprofile.edit_group %}
+        {% if perms.account.edit_group %}
       <li>
         <a href="#base-modal" data-href="{% url 'dashboard:group-delete' pk=group.pk %}"
         class="modal-trigger-custom">
@@ -79,7 +79,7 @@
                 </div>
               </div>
             </div>
-            {% if perms.userprofile.edit_group %}
+            {% if perms.account.edit_group %}
             <div class="card-action right-align">
               <a href="{% url 'dashboard:group-list' %}" class="btn-flat waves-effect">
                 {% trans "Cancel" context "Dashboard cancel action" %}

@@ -1,7 +1,8 @@
 import json
-from uuid import uuid4
 from unittest.mock import MagicMock, Mock
+from uuid import uuid4
 
+import pytest
 from django.contrib.auth.models import AnonymousUser
 from django.core import signing
 from django.core.exceptions import ObjectDoesNotExist
@@ -9,13 +10,12 @@ from django.http import HttpResponse
 from django.urls import reverse
 from django_babel.templatetags.babel import currencyfmt
 from prices import Price
-import pytest
-from satchless.item import InsufficientStock
 
 from saleor.cart import CartStatus, forms, utils
 from saleor.cart.context_processors import cart_counter
 from saleor.cart.models import Cart, ProductGroup, find_open_cart_for_user
 from saleor.cart.views import update
+from saleor.core.exceptions import InsufficientStock
 from saleor.discount.models import Sale
 from saleor.shipping.utils import get_shipment_options
 
@@ -229,7 +229,7 @@ def test_find_and_assign_anonymous_cart(
     client.cookies[utils.COOKIE_NAME] = value
     # Anonymous logs in
     response = client.post(
-        reverse('account_login'),
+        reverse('account:login'),
         {'username': customer_user.email, 'password': 'password'}, follow=True)
     assert response.context['user'] == customer_user
     # User should have only one cart, the same as he had previously in
@@ -243,7 +243,7 @@ def test_find_and_assign_anonymous_cart(
 def test_login_without_a_cart(customer_user, client):
     assert utils.COOKIE_NAME not in client.cookies
     response = client.post(
-        reverse('account_login'),
+        reverse('account:login'),
         {'username': customer_user.email, 'password': 'password'}, follow=True)
     assert response.context['user'] == customer_user
     authenticated_user_carts = customer_user.carts.filter(
@@ -255,7 +255,7 @@ def test_login_with_incorrect_cookie_token(customer_user, client):
     value = signing.get_cookie_signer(salt=utils.COOKIE_NAME).sign('incorrect')
     client.cookies[utils.COOKIE_NAME] = value
     response = client.post(
-        reverse('account_login'),
+        reverse('account:login'),
         {'username': customer_user.email, 'password': 'password'}, follow=True)
     assert response.context['user'] == customer_user
     authenticated_user_carts = customer_user.carts.filter(

@@ -1,6 +1,7 @@
 """Cart-related ORM models."""
 from collections import namedtuple
 from decimal import Decimal
+from itertools import groupby
 from uuid import uuid4
 
 from django.conf import settings
@@ -11,7 +12,6 @@ from django.utils.timezone import now
 from django_prices.models import PriceField
 from jsonfield import JSONField
 from prices import Price
-from satchless.item import ItemLine, ItemList, partition
 
 from . import CartStatus, logger
 
@@ -29,12 +29,19 @@ def find_open_cart_for_user(user):
     return carts.first()
 
 
-class ProductGroup(ItemList):
+class ProductGroup(list):
     """A group of products."""
 
     def is_shipping_required(self):
         """Return `True` if any product in group requires shipping."""
         return any(p.is_shipping_required() for p in self)
+
+    def get_total(self, discounts=None):
+        subtotals = [line.get_total(discounts) for line in self]
+        if not subtotals:
+            raise AttributeError(
+                'Calling get_total() on an empty product group')
+        return sum(subtotals[1:], subtotals[0])
 
 
 class CartQueryset(models.QuerySet):
@@ -147,17 +154,11 @@ class Cart(models.Model):
     def __len__(self):
         return self.lines.count()
 
-    # pylint: disable=R0201
-    def get_subtotal(self, item, **kwargs):
-        """Return the cost of a cart line."""
-        return item.get_total(**kwargs)
-
-    def get_total(self, **kwargs):
+    def get_total(self, discounts=None):
         """Return the total cost of the cart prior to shipping."""
-        subtotals = [
-            self.get_subtotal(item, **kwargs) for item in self.lines.all()]
+        subtotals = [line.get_total(discounts) for line in self.lines.all()]
         if not subtotals:
-            raise AttributeError('Calling get_total() on an empty item set')
+            raise AttributeError('Calling get_total() on an empty cart')
         zero = Price(0, currency=settings.DEFAULT_CURRENCY)
         return sum(subtotals, zero)
 
@@ -224,13 +225,15 @@ class Cart(models.Model):
         self.update_quantity()
 
     def partition(self):
-        """Split the card into a list of groups for shipping."""
+        """Split the cart into a list of groups for shipping."""
         grouper = (
             lambda p: 'physical' if p.is_shipping_required() else 'digital')
-        return partition(self.lines.all(), grouper, ProductGroup)
+        subject = sorted(self.lines.all(), key=grouper)
+        for _, lines in groupby(subject, key=grouper):
+            yield ProductGroup(lines)
 
 
-class CartLine(models.Model, ItemLine):
+class CartLine(models.Model):
     """A single cart line.
 
     Multiple lines in the same cart can refer to the same product variant if
@@ -273,19 +276,15 @@ class CartLine(models.Model, ItemLine):
     def __setstate__(self, data):
         self.variant, self.quantity, self.data = data
 
-    def get_total(self, **kwargs):
+    def get_total(self, discounts=None):
         """Return the total price of this line."""
-        amount = super().get_total(**kwargs)
+        amount = self.get_price_per_item(discounts) * self.quantity
         return amount.quantize(CENTS)
 
-    def get_quantity(self, **kwargs):
-        """Return the line's quantity."""
-        return self.quantity
-
     # pylint: disable=W0221
-    def get_price_per_item(self, discounts=None, **kwargs):
+    def get_price_per_item(self, discounts=None):
         """Return the unit price of the line."""
-        return self.variant.get_price_per_item(discounts=discounts, **kwargs)
+        return self.variant.get_price_per_item(discounts=discounts)
 
     def is_shipping_required(self):
         """Return `True` if the related product variant requires shipping."""

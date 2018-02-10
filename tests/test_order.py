@@ -1,11 +1,12 @@
 from decimal import Decimal
+
 from django.urls import reverse
 from prices import Price
+from tests.utils import get_redirect_location
 
-from saleor.order import models, OrderStatus
+from saleor.order import OrderStatus, models
 from saleor.order.forms import OrderNoteForm
 from saleor.order.utils import add_variant_to_delivery_group
-from tests.utils import get_redirect_location
 
 
 def test_total_property():
@@ -129,7 +130,7 @@ def test_view_connect_order_with_user_different_email(
     response = authorized_client.post(url)
 
     redirect_location = get_redirect_location(response)
-    assert redirect_location == reverse('profile:details')
+    assert redirect_location == reverse('account:details')
     order.refresh_from_db()
     assert order.user is None
 

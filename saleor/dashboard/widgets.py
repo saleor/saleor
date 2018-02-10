@@ -4,7 +4,7 @@ from django.forms import Textarea
 from django_filters.widgets import RangeWidget
 from django_prices.widgets import PriceInput
 
-from ..userprofile.widgets import (
+from ..account.widgets import (
     PhonePrefixWidget as StorefrontPhonePrefixWidget)
 
 
