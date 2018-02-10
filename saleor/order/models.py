@@ -162,7 +162,7 @@ class Order(models.Model):
         return dict(OrderStatus.CHOICES)[self.status]
 
     def get_subtotal(self):
-        subtotal_iterator = (line.get_total() for line in self.get_lines())
+        subtotal_iterator = (line.get_total() for line in self)
         return sum(subtotal_iterator, ZERO_TAXED_MONEY)
 
     def can_cancel(self):
