@@ -236,9 +236,8 @@ class DeliveryGroup(models.Model):
 
 
 class OrderLine(models.Model):
-    delivery_group = models.ForeignKey(
-        DeliveryGroup, related_name='lines', editable=False,
-        on_delete=models.CASCADE)
+    order = models.ForeignKey(
+        Order, related_name='lines', editable=False, on_delete=models.CASCADE)
     product = models.ForeignKey(
         Product, blank=True, null=True, related_name='+',
         on_delete=models.SET_NULL)
