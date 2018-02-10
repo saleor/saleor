@@ -171,9 +171,9 @@ def email_confirmation(request, uidb64=None, token=None):
         resend_url = reverse('account:resend-confirm-email',
                              kwargs={'uidb64': uidb64})
         resend_message = mark_safe(_('Activation failed. '
-            'Click <a href="%s">here</a> to resend activation e-mail'
-                % resend_url)
-            )
+                                    'Click <a href="%s">here</a> '
+                                     'to resend activation e-mail'
+                                     % resend_url))
         if user.email_verified:
             messages.error(request, _(
                 'This e-mail address has already been verified.'))

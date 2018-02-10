@@ -9,6 +9,7 @@ from templated_email import send_templated_mail
 
 from ..core.utils import build_absolute_uri
 
+
 @shared_task
 def send_password_reset_email(context, recipient):
     reset_url = build_absolute_uri(
@@ -21,6 +22,7 @@ def send_password_reset_email(context, recipient):
         from_email=settings.DEFAULT_FROM_EMAIL,
         recipient_list=[recipient],
         context=context)
+
 
 @shared_task
 def send_activation_mail(user):
