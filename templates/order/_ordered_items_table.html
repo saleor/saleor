@@ -46,54 +46,32 @@
   </div>
 </div>
 
-{% for group in order %}
-  {% for line in group %}
-    <div class="table__row order-details__product{% if forloop.last %} order-details__last-row{% endif %}">
-      <div class="row">
-        <div class="col-md-6 col-9">
-          <a class="link--clean" href="{% if line.product %}{{ line.product.get_absolute_url }}{% endif %}">
-            <img data-src="{% product_first_image line.product size="60x60" method="crop" %}"
-                 data-srcset="{% product_first_image line.product size="60x60" method="crop" %} 1x, {% product_first_image line.product size="120x120" method="crop" %} 2x"
-                 class="float-left lazyload lazypreload"
-                 src="{% placeholder size=60 %}">
-            <span class="order-details__product__description">{{ line.product_name }}</span>
-          </a>
-        </div>
-        <div class="col-md-6 col-3">
-          <div class="row">
-            <div class="col-md-6 col-12">
-              <p class="float-right">x {{ line.quantity }}</p>
-            </div>
-            <div class="col-md-6 col-12">
-              <p class="float-right">{{ line.get_total.gross|amount:'html' }}</p>
-            </div>
+{% for line in order %}
+  <div class="table__row order-details__product{% if forloop.last %} order-details__last-row{% endif %}">
+    <div class="row">
+      <div class="col-md-6 col-9">
+        <a class="link--clean" href="{% if line.product %}{{ line.product.get_absolute_url }}{% endif %}">
+          <img data-src="{% product_first_image line.product size="60x60" method="crop" %}"
+                data-srcset="{% product_first_image line.product size="60x60" method="crop" %} 1x, {% product_first_image line.product size="120x120" method="crop" %} 2x"
+                class="float-left lazyload lazypreload"
+                src="{% placeholder size=60 %}">
+          <span class="order-details__product__description">{{ line.product_name }}</span>
+        </a>
+      </div>
+      <div class="col-md-6 col-3">
+        <div class="row">
+          <div class="col-md-6 col-12">
+            <p class="float-right">x {{ line.quantity }}</p>
+          </div>
+          <div class="col-md-6 col-12">
+            <p class="float-right">{{ line.get_total.gross|amount:'html' }}</p>
+          </div>
           </div>
         </div>
       </div>
     </div>
-  {% endfor %}
-  {% if order.is_shipping_required %}
-  <div class="table__row">
-    <div class="row">
-      <div class="col-12 order-details__table-footer">
-        <p>
-          {% blocktrans trimmed with shipping_method_name=group.shipping_method_name context "Order details shipment row text"  %}
-          Shipping ({{ shipping_method_name }})
-          {% endblocktrans %}
-        </p>
-        {% if group.tracking_number %}
-        <p>
-          {% blocktrans trimmed with tracking_number=group.tracking_number context "Order details shipment row text"  %}
-          Tracking number: {{ tracking_number }}
-          {% endblocktrans %}
-        </p>
-        {% endif %}
-      </div>
-    </div>
   </div>
-{% endif %}
 {% endfor %}
-
 {% if order.is_shipping_required %}
   <div class="table__row">
     <div class="row">
