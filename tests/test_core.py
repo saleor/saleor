@@ -130,7 +130,7 @@ def test_create_fake_order(db):
     how_many = 5
     for _ in random_data.create_orders(how_many):
         pass
-    Order.objects.all().count() == 5
+    assert Order.objects.all().count() == 5
 
 
 def test_create_product_sales(db):
