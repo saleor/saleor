@@ -11,6 +11,7 @@ from django.utils.encoding import smart_text
 from PIL import Image
 from prices import Price
 
+from saleor.account.models import Address, User
 from saleor.cart import utils
 from saleor.cart.models import Cart
 from saleor.checkout.core import Checkout
@@ -23,7 +24,6 @@ from saleor.product.models import (
     ProductImage, ProductType, ProductVariant, Stock, StockLocation)
 from saleor.shipping.models import ShippingMethod
 from saleor.site.models import AuthorizationKey, SiteSettings
-from saleor.userprofile.models import Address, User
 
 
 @pytest.fixture(autouse=True)

@@ -1,5 +1,5 @@
-from django_prices.templatetags import prices_i18n
 import graphene
+from django_prices.templatetags import prices_i18n
 
 
 class PriceType(graphene.ObjectType):

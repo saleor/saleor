@@ -1,0 +1,23 @@
+{% load i18n %}
+
+{% block subject %}
+	{% trans "Payment details" context "Payment confirmation subject" %}
+{% endblock %}
+
+{% block plain %}
+{% blocktrans context "Payment confirmation email text" %}
+Hi!
+
+Thank you for your payment. To see your payment details please visit:
+{{ url }}
+
+This is an automatically generated email, please do not reply.
+
+Sincerely,
+{{ site_name }}
+{% endblocktrans %}
+{% endblock %}
+
+{% block html %}
+{% include 'templated_email/compiled/confirm_payment.html' %}
+{% endblock %}

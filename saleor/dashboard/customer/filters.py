@@ -5,7 +5,7 @@ from django_countries import countries
 from django_filters import CharFilter, ChoiceFilter, OrderingFilter
 
 from ...core.filters import SortedFilterSet
-from ...userprofile.models import User
+from ...account.models import User
 
 SORT_BY_FIELDS = (
     ('email', 'email'),

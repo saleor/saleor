@@ -1,7 +1,7 @@
 from django import forms
 from django.utils.translation import pgettext_lazy
 
-from ...userprofile.models import User
+from ...account.models import User
 
 
 class StaffForm(forms.ModelForm):

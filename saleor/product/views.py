@@ -12,8 +12,8 @@ from .filters import ProductCategoryFilter, ProductCollectionFilter
 from .models import Category, Collection
 from .utils import (
     get_availability, get_product_attributes_data, get_product_images,
-    get_variant_picker_data, handle_cart_form, product_json_ld,
-    products_for_cart, get_product_list_context, products_with_details)
+    get_product_list_context, get_variant_picker_data, handle_cart_form,
+    product_json_ld, products_for_cart, products_with_details)
 
 
 def product_details(request, slug, product_id, form=None):

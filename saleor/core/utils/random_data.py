@@ -1,8 +1,8 @@
-from collections import defaultdict
 import itertools
 import os
 import random
 import unicodedata
+from collections import defaultdict
 
 from django.conf import settings
 from django.contrib.auth.models import Group, Permission
@@ -18,11 +18,11 @@ from ...discount.models import Sale, Voucher
 from ...order import GroupStatus
 from ...order.models import DeliveryGroup, Order, OrderLine, Payment
 from ...product.models import (
-    AttributeChoiceValue, Category, Product, ProductAttribute, ProductImage,
-    ProductType, ProductVariant, Stock, StockLocation)
+    AttributeChoiceValue, Category, Collection, Product, ProductAttribute,
+    ProductImage, ProductType, ProductVariant, Stock, StockLocation)
 from ...shipping.models import ANY_COUNTRY, ShippingMethod
-from ...userprofile.models import Address, User
-from ...userprofile.utils import store_user_address
+from ...account.models import Address, User
+from ...account.utils import store_user_address
 
 fake = Factory.create()
 STOCK_LOCATION = 'default'
@@ -262,6 +262,11 @@ def get_or_create_product_type(name, **kwargs):
     return ProductType.objects.get_or_create(name=name, defaults=kwargs)[0]
 
 
+def get_or_create_collection(name, **kwargs):
+    kwargs['slug'] = fake.slug(name)
+    return Collection.objects.get_or_create(name=name, defaults=kwargs)[0]
+
+
 def create_product(**kwargs):
     defaults = {
         'name': fake.company(),
@@ -365,7 +370,7 @@ def create_payment(delivery_group):
         variant='default',
         transaction_id=str(fake.random_int(1, 100000)),
         currency=settings.DEFAULT_CURRENCY,
-        total=order.get_total().gross,
+        total=order.total.gross,
         delivery=order.shipping_price.gross,
         customer_ip_address=fake.ipv4(),
         billing_first_name=order.billing_address.first_name,
@@ -533,3 +538,16 @@ def add_address_to_admin(email):
     address = create_address()
     user = User.objects.get(email=email)
     store_user_address(user, address, True, True)
+
+
+def create_fake_collection():
+    collection = get_or_create_collection(name='%s collection' % fake.word())
+    products = Product.objects.order_by('?')[:4]
+    collection.products.add(*products)
+    return collection
+
+
+def create_collections(how_many=2):
+    for dummy in range(how_many):
+        collection = create_fake_collection()
+        yield 'Collection: %s' % (collection,)

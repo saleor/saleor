@@ -8,9 +8,9 @@ msgid ""
 msgstr ""
 "Project-Id-Version: master\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2018-01-23 09:24-0600\n"
+"POT-Creation-Date: 2018-01-30 09:47-0600\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"Last-Translator: Yevhenii Dehtiar <yevhenii.dehtiar@gmail.com>, 2017\n"
+"Last-Translator: Николай Инкогнито <mmmsvit@gmail.com>, 2018\n"
 "Language-Team: Ukrainian (https://www.transifex.com/mirumee/teams/34782/uk/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -148,9 +148,9 @@ msgstr "Будь ласка перегляньте Ваш розрахунок"
 msgctxt "Number of matching records in the dashboard list"
 msgid "Found %(counter)d matching record"
 msgid_plural "Found %(counter)d matching records"
-msgstr[0] ""
-msgstr[1] ""
-msgstr[2] ""
+msgstr[0] "Знайдено %(counter)d запис"
+msgstr[1] "Знайдено %(counter)d записів"
+msgstr[2] "Знайдено %(counter)d записів"
 
 #: saleor/core/views.py:36
 msgctxt "Impersonation message"
@@ -291,27 +291,27 @@ msgstr "На цей продукт знижка не дійсна"
 #: saleor/order/__init__.py:9
 msgctxt "order status"
 msgid "Open"
-msgstr ""
+msgstr "Відкрити"
 
 #: saleor/order/__init__.py:10
 msgctxt "order status"
 msgid "Closed"
-msgstr ""
+msgstr "Закрито"
 
 #: saleor/order/__init__.py:19
 msgctxt "group status"
 msgid "Processing"
-msgstr ""
+msgstr "В обробці"
 
 #: saleor/order/__init__.py:20
 msgctxt "group status"
 msgid "Cancelled"
-msgstr ""
+msgstr "Відмінено"
 
 #: saleor/order/__init__.py:21
 msgctxt "group status"
 msgid "Shipped"
-msgstr ""
+msgstr "Надіслано"
 
 #: saleor/order/forms.py:12
 msgctxt "Payment methods form label"
@@ -326,7 +326,7 @@ msgstr "Цієї оплати немає"
 #: saleor/order/forms.py:59
 msgctxt "Order note"
 msgid "Add note to order"
-msgstr ""
+msgstr "Додати помітку до замовлення"
 
 #: saleor/order/models.py:82
 msgctxt "Permission description"
@@ -342,53 +342,41 @@ msgstr "Може редагувати замовлення"
 #, python-format
 msgctxt "Shipment group str"
 msgid "Shipment #%s"
-msgstr ""
-
-#: saleor/order/models.py:359
-#, python-format
-msgctxt "Order history entry str"
-msgid "OrderHistoryEntry for Order #%d"
-msgstr "Елемент історії замовлень для Замовлення №%d"
-
-#: saleor/order/models.py:378
-#, python-format
-msgctxt "Order note str"
-msgid "OrderNote for Order #%d"
-msgstr "Нотатка для Замовлення №%d"
+msgstr "Відправлення %s"
 
 #: saleor/order/signals.py:17
 msgctxt "Order status history entry"
 msgid "Order fully paid"
 msgstr "Замовлення повністю оплачено"
 
-#: saleor/order/utils.py:157 saleor/order/utils.py:176
+#: saleor/order/utils.py:160 saleor/order/utils.py:179
 msgctxt "Order status history entry"
 msgid "Order cancelled. No items in order"
 msgstr "Замовлення скасовано. Жодного товару в замовленні"
 
-#: saleor/order/views.py:99
+#: saleor/order/views.py:100
 #, python-format
 msgctxt "Payment description"
 msgid "Order %(order_number)s"
 msgstr "Замовлення%(order_number)s"
 
-#: saleor/order/views.py:118
+#: saleor/order/views.py:119
 msgctxt "Payment gateway error"
 msgid ""
 "Oops, it looks like we were unable to contact the selected payment service"
 msgstr "Ой, ми не можемо вийти на зв’язок з обраною службою оплати"
 
-#: saleor/order/views.py:177
+#: saleor/order/views.py:178
 msgctxt "Connect order with user warning message"
 msgid ""
 "We couldn't assign the order to your account as the email addresses don't "
 "match"
 msgstr ""
 
-#: saleor/order/views.py:184
+#: saleor/order/views.py:185
 msgctxt "storefront message"
 msgid "The order is now assigned to your account"
-msgstr ""
+msgstr "Тепер замовлення прив'язано до вашого профілю"
 
 #: saleor/product/__init__.py:16
 msgctxt "Product status"
@@ -459,7 +447,7 @@ msgstr "Сортувати по"
 #, python-format
 msgctxt "Validation error for sort_by filter"
 msgid "%(value)s is not a valid sorting option"
-msgstr ""
+msgstr "%(value)s невірна опція сортування"
 
 #: saleor/product/forms.py:21
 #, python-format
@@ -497,12 +485,12 @@ msgctxt "Permission description"
 msgid "Can edit product properties"
 msgstr "Може редагувати опції товару"
 
-#: saleor/product/models.py:275
+#: saleor/product/models.py:278
 msgctxt "Permission description"
 msgid "Can view stock location"
 msgstr "Може переглядати розташування складу"
 
-#: saleor/product/models.py:278
+#: saleor/product/models.py:281
 msgctxt "Permission description"
 msgid "Can edit stock location"
 msgstr "Може редагувати розташування складу"
@@ -515,12 +503,12 @@ msgstr "Email"
 #: saleor/registration/forms.py:32
 msgctxt "Email"
 msgid "Email"
-msgstr ""
+msgstr "Email"
 
 #: saleor/registration/forms.py:34
 msgctxt "Password"
 msgid "Password"
-msgstr ""
+msgstr "Пароль"
 
 #: saleor/registration/views.py:24
 msgid "You have been successfully logged out."
@@ -663,52 +651,52 @@ msgstr "Індекс"
 #: saleor/userprofile/i18n.py:71 saleor/userprofile/i18n.py:119
 msgctxt "Country"
 msgid "Country"
-msgstr ""
+msgstr "Країна"
 
 #: saleor/userprofile/i18n.py:103
 msgctxt "Personal name"
 msgid "Given name"
-msgstr ""
+msgstr "ім’я"
 
 #: saleor/userprofile/i18n.py:105
 msgctxt "Personal name"
 msgid "Family name"
-msgstr ""
+msgstr "Прізвище"
 
 #: saleor/userprofile/i18n.py:107
 msgctxt "Company or organization"
 msgid "Company or organization"
-msgstr ""
+msgstr "Компанія або організація"
 
 #: saleor/userprofile/i18n.py:109 saleor/userprofile/i18n.py:111
 msgctxt "Address"
 msgid "Address"
-msgstr ""
+msgstr "Адреса"
 
 #: saleor/userprofile/i18n.py:113
 msgctxt "City"
 msgid "City"
-msgstr ""
+msgstr "місто"
 
 #: saleor/userprofile/i18n.py:115
 msgctxt "City area"
 msgid "District"
-msgstr ""
+msgstr "Район"
 
 #: saleor/userprofile/i18n.py:117
 msgctxt "Postal code"
 msgid "Postal code"
-msgstr ""
+msgstr "Індекс"
 
 #: saleor/userprofile/i18n.py:121
 msgctxt "Country area"
 msgid "State or province"
-msgstr ""
+msgstr "область"
 
 #: saleor/userprofile/i18n.py:123
 msgctxt "Phone number"
 msgid "Phone number"
-msgstr ""
+msgstr "номер телефону"
 
 #: saleor/userprofile/i18n.py:169
 msgctxt "Address form"
@@ -718,32 +706,32 @@ msgstr "Це значення невірне для обраної країни"
 #: saleor/userprofile/models.py:110
 msgctxt "Permission description"
 msgid "Can view users"
-msgstr ""
+msgstr "Може переглядати користувачів"
 
 #: saleor/userprofile/models.py:112
 msgctxt "Permission description"
 msgid "Can edit users"
-msgstr ""
+msgstr "Може редагувати користувачів"
 
 #: saleor/userprofile/models.py:114
 msgctxt "Permission description"
 msgid "Can view groups"
-msgstr ""
+msgstr "Може переглядати групи"
 
 #: saleor/userprofile/models.py:116
 msgctxt "Permission description"
 msgid "Can edit groups"
-msgstr ""
+msgstr "Може редагувати групи"
 
 #: saleor/userprofile/models.py:118
 msgctxt "Permission description"
 msgid "Can view staff"
-msgstr ""
+msgstr "Може переглядати співробітників"
 
 #: saleor/userprofile/models.py:120
 msgctxt "Permission description"
 msgid "Can edit staff"
-msgstr ""
+msgstr "Може редагувати співробітників"
 
 #: saleor/userprofile/models.py:122
 msgctxt "Permission description"
@@ -768,7 +756,7 @@ msgstr ""
 
 #: saleor/userprofile/validators.py:11
 msgid "The phone number entered is not valid."
-msgstr ""
+msgstr "Некоректно ведений номер телефону."
 
 #: saleor/userprofile/views.py:34
 msgctxt "Storefront message"
@@ -783,6 +771,11 @@ msgstr "Адресу оновлено успішно."
 #: saleor/userprofile/views.py:61
 msgctxt "Storefront message"
 msgid "Address successfully removed"
+msgstr "Адресу видалено успішно"
+
+#: templates/404.html:6
+msgctxt "Eror page not found"
+msgid "Page not found"
 msgstr ""
 
 #: templates/account/email/password_reset_message.txt:1
@@ -969,7 +962,7 @@ msgstr "Продовжити"
 #: templates/account/password_reset_from_key.html:39
 msgctxt "Password reset link expired from key form title"
 msgid "Password Reset Link Expired"
-msgstr ""
+msgstr "Посилання на скидання паролю не вже дійсне"
 
 #: templates/account/password_reset_from_key.html:40
 msgctxt "Password reset from key form title"
@@ -981,7 +974,7 @@ msgstr ""
 #: templates/account/password_reset_from_key.html:42
 msgctxt "Reset my password link"
 msgid "Reset my password"
-msgstr ""
+msgstr "Скинути пароль"
 
 #: templates/account/password_reset_from_key_done.html:4
 msgctxt "Password reset from key done page title"
@@ -1090,7 +1083,7 @@ msgid "Style guide"
 msgstr "Гід стилю"
 
 #: templates/cart/_subtotal_table.html:9 templates/cart_dropdown.html:33
-#: templates/dashboard/order/detail.html:384
+#: templates/dashboard/order/detail.html:394
 msgctxt "Order subtotal"
 msgid "Subtotal"
 msgstr "Загалом"
@@ -1103,7 +1096,7 @@ msgstr ""
 #: templates/cart/_subtotal_table.html:56
 msgctxt "Order subtotal"
 msgid "Total"
-msgstr ""
+msgstr "Разом"
 
 #: templates/cart/index.html:7
 msgctxt "Cart page title"
@@ -1174,15 +1167,15 @@ msgstr "Розпродаж"
 #: templates/category/index.html:52
 msgctxt "Category breadcrumbs home"
 msgid "Home"
-msgstr ""
+msgstr "Дім "
 
 #: templates/category/index.html:71
 msgid "Sort by: <b>name</b>"
-msgstr ""
+msgstr "Сортувати по: <b>імені</b>"
 
 #: templates/category/index.html:75
 msgid "Sort by: <b>price</b>"
-msgstr ""
+msgstr "Сортувати по: <b>ціні</b>"
 
 #: templates/category/index.html:94
 msgctxt "Category page filters"
@@ -1192,37 +1185,37 @@ msgstr "Сортувати по"
 #: templates/category/index.html:99
 msgctxt "sort by option"
 msgid "ascending"
-msgstr ""
+msgstr "висхідний"
 
 #: templates/category/index.html:105
 msgctxt "sort by option"
 msgid "descending"
-msgstr ""
+msgstr "спускаєтся"
 
 #: templates/category/index.html:140
 msgctxt "Filter heading title"
 msgid "Filters"
-msgstr ""
+msgstr "Фільтр"
 
 #: templates/category/index.html:143
 msgctxt "Category page filters"
 msgid "Clear filters"
-msgstr ""
+msgstr "Очистити фільтри"
 
 #: templates/category/index.html:171
 msgctxt "Category price filter"
 msgid "from"
-msgstr ""
+msgstr "від"
 
 #: templates/category/index.html:173
 msgctxt "Category price filter"
 msgid "to"
-msgstr ""
+msgstr "до"
 
 #: templates/category/index.html:192
 msgctxt "Category price filter"
 msgid "Update"
-msgstr ""
+msgstr "Оновити"
 
 #: templates/category/index.html:217 templates/search/results.html:34
 msgctxt "Search without results text"
@@ -1257,7 +1250,7 @@ msgstr "Перегляд замовлення"
 #: templates/checkout/details.html:50
 msgctxt "Order review section"
 msgid "Shipment"
-msgstr ""
+msgstr "Відправлення "
 
 #: templates/checkout/details.html:62
 msgctxt "Order review section title"
@@ -1366,7 +1359,7 @@ msgstr "Платіжна адреса"
 #: templates/checkout/summary.html:10
 msgctxt "Checkout summary note title"
 msgid "Add a note to your order"
-msgstr ""
+msgstr "Додати помітку до замовлення"
 
 #: templates/checkout/summary.html:14
 msgctxt "Checkout summary primary action"
@@ -1381,7 +1374,7 @@ msgstr "Платіжна адреса"
 #: templates/checkout/summary_without_shipping.html:15
 msgctxt "Checkout summary without shipping note title"
 msgid "Add a note to your order"
-msgstr ""
+msgstr "Додати помітку до замовлення"
 
 #: templates/checkout/summary_without_shipping.html:19
 msgctxt "Checkout summary without shipping action"
@@ -1413,7 +1406,7 @@ msgctxt "Dashboard search"
 msgid "Search"
 msgstr "Пошук"
 
-#: templates/dashboard/base.html:94 templates/dashboard/base.html:248
+#: templates/dashboard/base.html:94 templates/dashboard/base.html:255
 msgctxt "Dashboard homepage"
 msgid "Home"
 msgstr "Дім "
@@ -1449,17 +1442,22 @@ msgctxt "Dashboard stock loactions list"
 msgid "Stock locations"
 msgstr "Розташування запасів"
 
-#: templates/dashboard/base.html:130
+#: templates/dashboard/base.html:127
+msgctxt "Dashboard side navigation link"
+msgid "Collections"
+msgstr "Колекції"
+
+#: templates/dashboard/base.html:137
 msgctxt "Dashboard discounts list"
 msgid "Discounts"
 msgstr "Знижки "
 
-#: templates/dashboard/base.html:136
+#: templates/dashboard/base.html:143
 msgctxt "Dashboard sales (discounts) list"
 msgid "Sales"
 msgstr "Розпродажі"
 
-#: templates/dashboard/base.html:143
+#: templates/dashboard/base.html:150
 #: templates/dashboard/discount/voucher/form.html:12
 #: templates/dashboard/discount/voucher/form.html:43
 #: templates/dashboard/discount/voucher/list.html:9
@@ -1468,12 +1466,12 @@ msgctxt "Dashboard vouchers list"
 msgid "Vouchers"
 msgstr "Ваучери"
 
-#: templates/dashboard/base.html:153
+#: templates/dashboard/base.html:160
 msgctxt "Dashboard sales. `Sales' is noun of to sell"
 msgid "Sales"
 msgstr "Розпродажі "
 
-#: templates/dashboard/base.html:159
+#: templates/dashboard/base.html:166
 #: templates/dashboard/order/address_form.html:7
 #: templates/dashboard/order/address_form.html:23
 #: templates/dashboard/order/detail.html:12
@@ -1484,7 +1482,7 @@ msgctxt "Dashboard orders list"
 msgid "Orders"
 msgstr "Замовлення"
 
-#: templates/dashboard/base.html:166
+#: templates/dashboard/base.html:173
 #: templates/dashboard/customer/detail.html:9
 #: templates/dashboard/customer/detail.html:25
 #: templates/dashboard/customer/form.html:28
@@ -1494,29 +1492,29 @@ msgctxt "Dashboard customers list"
 msgid "Customers"
 msgstr "Покупці"
 
-#: templates/dashboard/base.html:176
+#: templates/dashboard/base.html:183
 msgctxt "Management section"
 msgid "Staff management"
-msgstr ""
+msgstr "Управління персоналом"
 
-#: templates/dashboard/base.html:182
+#: templates/dashboard/base.html:189
 msgctxt "Dashboard staff members list"
 msgid "Staff members"
-msgstr ""
+msgstr "Персонал"
 
-#: templates/dashboard/base.html:189 templates/dashboard/group/detail.html:28
+#: templates/dashboard/base.html:196 templates/dashboard/group/detail.html:28
 #: templates/dashboard/group/list.html:8
 #: templates/dashboard/group/list.html:28
 msgctxt "Dashboard groups list"
 msgid "Groups"
 msgstr "Групи"
 
-#: templates/dashboard/base.html:199
+#: templates/dashboard/base.html:206
 msgctxt "Dashboard configuration"
 msgid "Configuration"
 msgstr "Конфігурація"
 
-#: templates/dashboard/base.html:205
+#: templates/dashboard/base.html:212
 #: templates/dashboard/product/product_type/form.html:29
 #: templates/dashboard/product/product_type/list.html:9
 #: templates/dashboard/product/product_type/list.html:29
@@ -1524,7 +1522,7 @@ msgctxt "Dashboard product types list"
 msgid "Product types"
 msgstr "Типи товару"
 
-#: templates/dashboard/base.html:212
+#: templates/dashboard/base.html:219
 #: templates/dashboard/product/product_attribute/form.html:29
 #: templates/dashboard/product/product_attribute/list.html:8
 #: templates/dashboard/product/product_attribute/list.html:28
@@ -1533,18 +1531,18 @@ msgctxt "Dashboard attributes list"
 msgid "Attributes"
 msgstr "Атрибути"
 
-#: templates/dashboard/base.html:219 templates/dashboard/shipping/list.html:9
+#: templates/dashboard/base.html:226 templates/dashboard/shipping/list.html:9
 #: templates/dashboard/shipping/list.html:19
 msgctxt "Dashboard shipping methods list"
 msgid "Shipping methods"
 msgstr "Методи доставки"
 
-#: templates/dashboard/base.html:226 templates/dashboard/sites/form.html:11
+#: templates/dashboard/base.html:233 templates/dashboard/sites/form.html:11
 msgctxt "Dashboard site settings"
 msgid "Site settings"
 msgstr "Налаштування сайту"
 
-#: templates/dashboard/base.html:234
+#: templates/dashboard/base.html:241
 msgctxt "Dashboard software version"
 msgid "Release:"
 msgstr "Версія:"
@@ -1561,8 +1559,8 @@ msgstr "Версія:"
 #: templates/dashboard/discount/voucher/form.html:133
 #: templates/dashboard/group/detail.html:85
 #: templates/dashboard/order/address_form.html:61
-#: templates/dashboard/product/form.html:111
-#: templates/dashboard/product/form.html:118
+#: templates/dashboard/product/form.html:114
+#: templates/dashboard/product/form.html:121
 #: templates/dashboard/product/product_attribute/form.html:77
 #: templates/dashboard/product/product_attribute/form.html:84
 #: templates/dashboard/product/product_attribute/values/form.html:79
@@ -1592,7 +1590,7 @@ msgstr "Відмінити"
 #: templates/dashboard/base_modal_confirm_delete.html:10
 msgctxt "Dashboard confirmation modal"
 msgid "Remove"
-msgstr ""
+msgstr "Видалити"
 
 #: templates/dashboard/base_modal_confirm_delete.html:16
 msgctxt "Dashboard confirmation modal"
@@ -1601,6 +1599,7 @@ msgstr "Ви впевнені? "
 
 #: templates/dashboard/base_modal_confirm_delete.html:25
 #: templates/dashboard/category/modal/confirm_delete.html:49
+#: templates/dashboard/collection/confirm_delete.html:26
 #: templates/dashboard/discount/sale/modal/confirm_delete.html:24
 #: templates/dashboard/discount/voucher/modal/confirm_delete.html:26
 #: templates/dashboard/group/modal/confirm_delete.html:27
@@ -1619,7 +1618,7 @@ msgstr "Ви впевнені? "
 #: templates/dashboard/staff/modal/confirm_delete.html:24
 msgctxt "Dashboard delete action"
 msgid "Remove"
-msgstr ""
+msgstr "Видалити"
 
 #: templates/dashboard/category/detail.html:8
 #: templates/dashboard/category/list.html:9
@@ -1630,22 +1629,22 @@ msgstr "Категорії"
 #: templates/dashboard/category/detail.html:83
 msgctxt "Category field"
 msgid "Description"
-msgstr ""
+msgstr "Опис"
 
 #: templates/dashboard/category/detail.html:95
 msgctxt "Category detail view action"
 msgid "Edit category"
-msgstr ""
+msgstr "Редагувати категорію"
 
 #: templates/dashboard/category/detail.html:98
 msgctxt "Category detail view action"
 msgid "Remove category"
-msgstr ""
+msgstr "Видалити категорію"
 
 #: templates/dashboard/category/detail.html:106
 msgctxt "Title of the subcategories list"
 msgid "Subcategories"
-msgstr ""
+msgstr "Підкатегорії"
 
 #: templates/dashboard/category/detail.html:111
 #: templates/dashboard/product/detail.html:94
@@ -1653,7 +1652,7 @@ msgstr ""
 #: templates/dashboard/shipping/detail.html:78
 #: templates/dashboard/sites/detail.html:82
 msgid "Add"
-msgstr ""
+msgstr "Додати"
 
 #: templates/dashboard/category/detail.html:118
 #: templates/dashboard/category/list.html:51
@@ -1670,22 +1669,22 @@ msgstr "Опис"
 #: templates/dashboard/category/detail.html:145
 msgctxt "Category edit action"
 msgid "Edit"
-msgstr ""
+msgstr "Редагувати"
 
 #: templates/dashboard/category/detail.html:148
 msgctxt "Category list action link"
 msgid "Remove"
-msgstr ""
+msgstr "Видалити"
 
 #: templates/dashboard/category/detail.html:155
 msgctxt "Empty list of categories"
 msgid "No categories"
-msgstr ""
+msgstr "Нема категорій"
 
 #: templates/dashboard/category/form.html:9
 msgctxt "Category form page title"
 msgid "Edit category"
-msgstr ""
+msgstr "Редагувати категорію"
 
 #: templates/dashboard/category/form.html:11
 msgctxt "Category detail page title"
@@ -1695,12 +1694,12 @@ msgstr "Додати нову категорію"
 #: templates/dashboard/category/form.html:24
 msgctxt "Category form page title"
 msgid "Add new category"
-msgstr ""
+msgstr "Додати нову категорію"
 
 #: templates/dashboard/category/form.html:55
 msgctxt "Category form page title"
 msgid "Edit"
-msgstr ""
+msgstr "Редагувати"
 
 #: templates/dashboard/category/form.html:61
 #: templates/dashboard/category/form.html:77
@@ -1726,7 +1725,7 @@ msgstr "Оновити"
 #: templates/dashboard/category/form.html:120
 #: templates/dashboard/discount/sale/form.html:106
 #: templates/dashboard/discount/voucher/form.html:136
-#: templates/dashboard/product/form.html:121
+#: templates/dashboard/product/form.html:124
 #: templates/dashboard/product/product_attribute/form.html:87
 #: templates/dashboard/product/product_attribute/values/form.html:89
 #: templates/dashboard/product/product_image/form.html:90
@@ -1749,7 +1748,7 @@ msgstr "Додати категорію"
 #: templates/dashboard/category/list.html:85
 msgctxt "Empty category list message"
 msgid "No categories found."
-msgstr ""
+msgstr "Нема категорій."
 
 #: templates/dashboard/category/modal/confirm_delete.html:13
 #, python-format
@@ -1781,7 +1780,7 @@ msgstr[2] ""
 
 #: templates/dashboard/category/zero_page.html:5
 msgid "No categories found."
-msgstr ""
+msgstr "Нема категорій."
 
 #: templates/dashboard/category/zero_page.html:8
 #, python-format
@@ -1792,15 +1791,103 @@ msgid ""
 "  "
 msgstr ""
 
+#: templates/dashboard/collection/confirm_delete.html:12
+#, python-format
+msgctxt "Modal remove collection text"
+msgid "Remove collection %(collection)s"
+msgstr ""
+
+#: templates/dashboard/collection/confirm_delete.html:19
+#, python-format
+msgctxt "Modal remove collection text"
+msgid ""
+"Are you sure you want to remove collection <strong>%(collection)s</strong>?"
+msgstr ""
+
+#: templates/dashboard/collection/detail.html:7
+#: templates/dashboard/collection/detail.html:13
+#: templates/dashboard/collection/detail.html:19
+msgid "Add new collection"
+msgstr ""
+
+#: templates/dashboard/collection/detail.html:7
+#: templates/dashboard/collection/detail.html:17
+#: templates/dashboard/collection/list.html:17
+msgid "Collections"
+msgstr "Колекції"
+
+#: templates/dashboard/collection/detail.html:47
+msgctxt "Collection action"
+msgid "Remove collection"
+msgstr ""
+
+#: templates/dashboard/collection/detail.html:72
+#: templates/dashboard/collection/detail.html:78
+msgctxt "Collection secondary action"
+msgid "Cancel"
+msgstr "Відмінити"
+
+#: templates/dashboard/collection/detail.html:74
+msgctxt "Collection detail action"
+msgid "Update"
+msgstr "Оновити"
+
+#: templates/dashboard/collection/detail.html:80
+msgctxt "Collection detail action"
+msgid "Create"
+msgstr "Створити"
+
+#: templates/dashboard/collection/list.html:8
+msgctxt "Collections list page title "
+msgid "Collections"
+msgstr "Колекції"
+
+#: templates/dashboard/collection/list.html:24
+msgctxt "Collections list add button text"
+msgid "Add collection"
+msgstr ""
+
+#: templates/dashboard/collection/list.html:40
+msgctxt "Collections list table header name"
+msgid "Name"
+msgstr "Назва"
+
+#: templates/dashboard/collection/list.html:43
+msgctxt "Voucher table header"
+msgid "Number of products"
+msgstr ""
+
+#: templates/dashboard/collection/list.html:55
+msgid "Products in collection:"
+msgstr ""
+
+#: templates/dashboard/collection/list.html:73
+msgctxt "Empty collection list message"
+msgid "No collections found."
+msgstr ""
+
+#: templates/dashboard/collection/zero_page.html:5
+msgid "No collections found."
+msgstr ""
+
+#: templates/dashboard/collection/zero_page.html:8
+#, python-format
+msgid ""
+"\n"
+"    Collections are used to organize products into custom groups.<br>\n"
+"    You can create collections by using the <span class=\"btn-fab-presentation\"><svg data-src=\"%(img_path)s\" /></span> button.\n"
+"  "
+msgstr ""
+
 #: templates/dashboard/customer/detail.html:51
 msgctxt "Customer field"
 msgid "Date joined"
-msgstr ""
+msgstr "Дата приєднання"
 
 #: templates/dashboard/customer/detail.html:63
 msgctxt "Customer action"
 msgid "Edit customer"
-msgstr ""
+msgstr "Редагувати покупця"
 
 #: templates/dashboard/customer/detail.html:68
 msgctxt "Customer impersonate action"
@@ -1810,7 +1897,7 @@ msgstr ""
 #: templates/dashboard/customer/detail.html:78
 msgctxt "Customer recent orders table title"
 msgid "Recent orders"
-msgstr ""
+msgstr "Нещодавні замовлення"
 
 #: templates/dashboard/customer/detail.html:87
 msgctxt "Customer orders table header"
@@ -1860,10 +1947,10 @@ msgstr "Немає платіжної адреси за замовчування
 #: templates/dashboard/customer/form.html:10
 msgctxt "Dashboard add customer"
 msgid "Add new customer"
-msgstr ""
+msgstr "Додати нового покупця"
 
 #: templates/dashboard/customer/form.html:12
-#: templates/dashboard/order/detail.html:107
+#: templates/dashboard/order/detail.html:117
 #: templates/dashboard/search/results.html:89
 msgctxt "Dashboard customer"
 msgid "Customer"
@@ -1872,12 +1959,12 @@ msgstr "Покупець "
 #: templates/dashboard/customer/form.html:36
 msgctxt "Dashboard add customer action"
 msgid "Add customer"
-msgstr ""
+msgstr "Додати покупця"
 
 #: templates/dashboard/customer/form.html:47
 msgctxt "Customer details header"
 msgid "Customer details"
-msgstr ""
+msgstr "Деталі покупця"
 
 #: templates/dashboard/customer/form.html:70
 #: templates/dashboard/group/detail.html:91
@@ -1889,7 +1976,7 @@ msgstr "Додати"
 #: templates/dashboard/customer/list.html:19
 msgctxt "Customer list add button text"
 msgid "Add customer"
-msgstr ""
+msgstr "Додати покупця"
 
 #: templates/dashboard/customer/list.html:43
 msgctxt "Customers table header"
@@ -1925,11 +2012,11 @@ msgstr ""
 #: templates/dashboard/customer/modal/confirm_promote.html:24
 msgctxt "Dashboard promote action"
 msgid "Promote"
-msgstr ""
+msgstr "Рекламувати"
 
 #: templates/dashboard/customer/zero_page.html:5
 msgid "No customers found."
-msgstr ""
+msgstr "Покупці не знайдені."
 
 #: templates/dashboard/customer/zero_page.html:8
 msgid ""
@@ -1987,7 +2074,7 @@ msgstr "Жодного розпродажу не знайдено"
 #: templates/dashboard/discount/sale/modal/confirm_delete.html:12
 msgctxt "Remove sale (discount) text"
 msgid "Remove sale"
-msgstr ""
+msgstr "Видалити розпродаж"
 
 #: templates/dashboard/discount/sale/modal/confirm_delete.html:17
 #, python-format
@@ -1997,7 +2084,7 @@ msgstr ""
 
 #: templates/dashboard/discount/sale/zero_page.html:5
 msgid "No sales found."
-msgstr ""
+msgstr "Жодного розпродажу не знайдено"
 
 #: templates/dashboard/discount/sale/zero_page.html:8
 #, python-format
@@ -2072,7 +2159,7 @@ msgstr "Жодного ваучера не знайдено"
 #, python-format
 msgctxt "Remove voucher text"
 msgid "Remove voucher %(voucher)s"
-msgstr ""
+msgstr "Видалений ваучер %(voucher)s"
 
 #: templates/dashboard/discount/voucher/modal/confirm_delete.html:19
 #, python-format
@@ -2082,7 +2169,7 @@ msgstr ""
 
 #: templates/dashboard/discount/voucher/zero_page.html:5
 msgid "No vouchers found."
-msgstr ""
+msgstr "Жодного ваучера не знайдено."
 
 #: templates/dashboard/discount/voucher/zero_page.html:8
 #, python-format
@@ -2096,27 +2183,27 @@ msgstr ""
 #: templates/dashboard/group/detail.html:10
 msgctxt "Dashboard add group"
 msgid "Add new group"
-msgstr ""
+msgstr "Додати нову групу"
 
 #: templates/dashboard/group/detail.html:12
 msgctxt "Dashboard group"
 msgid "Group"
-msgstr ""
+msgstr "Групи"
 
 #: templates/dashboard/group/detail.html:38
 msgctxt "Dashboard add new group"
 msgid "Add new group"
-msgstr ""
+msgstr "Додати нову групу"
 
 #: templates/dashboard/group/detail.html:54
 msgctxt "Group form action"
 msgid "Remove group"
-msgstr ""
+msgstr "Видалити групу"
 
 #: templates/dashboard/group/list.html:18
 msgctxt "Group list add button text"
 msgid "Add group"
-msgstr ""
+msgstr "Додати групу"
 
 #: templates/dashboard/group/list.html:42
 msgctxt "Dashboard groups list table header name"
@@ -2131,7 +2218,7 @@ msgstr "Дозволи"
 #: templates/dashboard/group/list.html:74
 msgctxt "Empty group table message"
 msgid "No groups found."
-msgstr ""
+msgstr "Групу не знайдено."
 
 #: templates/dashboard/group/modal/confirm_delete.html:12
 #, python-format
@@ -2149,7 +2236,7 @@ msgstr ""
 
 #: templates/dashboard/group/zero_page.html:5
 msgid "No groups found."
-msgstr ""
+msgstr "Групу не знайдено."
 
 #: templates/dashboard/group/zero_page.html:8
 #, python-format
@@ -2163,17 +2250,17 @@ msgstr ""
 #: templates/dashboard/includes/_filters.html:10
 msgctxt "Dashboard card title"
 msgid "Filters"
-msgstr ""
+msgstr "Фільтр"
 
 #: templates/dashboard/includes/_filters.html:43
 msgctxt "Category page filters"
 msgid "Clear"
-msgstr ""
+msgstr "Очистити"
 
 #: templates/dashboard/includes/_filters.html:47
 msgctxt "Category price filter"
 msgid "Filter"
-msgstr ""
+msgstr "Фільтр"
 
 #: templates/dashboard/index.html:15 templates/dashboard/index.html:69
 #: templates/dashboard/index.html:133
@@ -2242,7 +2329,7 @@ msgid "Total"
 msgstr "Підсумок "
 
 #: templates/dashboard/index.html:105
-#: templates/dashboard/order/detail.html:113
+#: templates/dashboard/order/detail.html:123
 #: templates/dashboard/order/list.html:54
 msgctxt "Anonymous user account value"
 msgid "Guest"
@@ -2279,13 +2366,13 @@ msgid "Edit address"
 msgstr "Редагувати адресу"
 
 #: templates/dashboard/order/address_form.html:39
-#: templates/dashboard/order/detail.html:217
+#: templates/dashboard/order/detail.html:219
 msgctxt ""
 msgid "Shipping address"
 msgstr "Адреса доставки "
 
 #: templates/dashboard/order/address_form.html:41
-#: templates/dashboard/order/detail.html:239
+#: templates/dashboard/order/detail.html:241
 msgctxt ""
 msgid "Billing address"
 msgstr "Платіжна адреса"
@@ -2298,7 +2385,7 @@ msgstr "Відмінити замовлення"
 #: templates/dashboard/order/detail.html:40
 msgctxt "Order detail action"
 msgid "Print"
-msgstr ""
+msgstr "Друк"
 
 #: templates/dashboard/order/detail.html:73
 msgctxt "Order detail tab"
@@ -2306,266 +2393,267 @@ msgid "Details"
 msgstr "Деталі"
 
 #: templates/dashboard/order/detail.html:81
-#: templates/dashboard/order/detail.html:457
+#: templates/dashboard/order/detail.html:467
 msgctxt "Order detail tab"
 msgid "Payments"
 msgstr "Платежі"
 
 #: templates/dashboard/order/detail.html:89
-#: templates/dashboard/order/detail.html:513
+#: templates/dashboard/order/detail.html:523
 msgctxt "Order detail tab"
 msgid "History"
 msgstr "Історія"
 
 #: templates/dashboard/order/detail.html:102
+#, python-format
 msgctxt "Order summary title"
-msgid "Order summary"
-msgstr "Підсумок замовлення"
+msgid "Order #%(order_id)s"
+msgstr ""
 
-#: templates/dashboard/order/detail.html:119
+#: templates/dashboard/order/detail.html:109
+msgctxt "Order placed on date"
+msgid "Placed on"
+msgstr "Розміщено на"
+
+#: templates/dashboard/order/detail.html:129
 msgctxt "Order summary card header"
 msgid "Order status"
 msgstr "Статус замовлення"
 
-#: templates/dashboard/order/detail.html:127
+#: templates/dashboard/order/detail.html:137
 msgctxt "Order summary card header"
 msgid "Payment status"
 msgstr "Статус оплати "
 
-#: templates/dashboard/order/detail.html:133
+#: templates/dashboard/order/detail.html:143
 msgctxt "Payment status not available"
 msgid "N/A"
 msgstr "N/A"
 
-#: templates/dashboard/order/detail.html:145
+#: templates/dashboard/order/detail.html:155
 msgctxt "Order summary card header"
 msgid "Outstanding balance"
 msgstr "Залишок до олати"
 
-#: templates/dashboard/order/detail.html:158
-msgctxt "Order summary card header"
-msgid "Order total"
-msgstr "Підсумок замовлення"
-
-#: templates/dashboard/order/detail.html:166
+#: templates/dashboard/order/detail.html:168
 msgctxt "Order summary card header"
 msgid "Preauthorized amount"
 msgstr "Попередньо авторизована оплата"
 
-#: templates/dashboard/order/detail.html:172
+#: templates/dashboard/order/detail.html:174
 msgctxt "Preauthorized amount not available"
 msgid "N/A"
 msgstr "N/A"
 
-#: templates/dashboard/order/detail.html:178
+#: templates/dashboard/order/detail.html:180
 msgctxt "Order summary card header"
 msgid "Captured amount"
 msgstr "Зарахований обсяг"
 
-#: templates/dashboard/order/detail.html:192
+#: templates/dashboard/order/detail.html:194
 msgctxt "Order summary card action"
 msgid "Capture"
 msgstr "Зарахувати"
 
-#: templates/dashboard/order/detail.html:196
+#: templates/dashboard/order/detail.html:198
 msgctxt "Order summary card action"
 msgid "Refund"
 msgstr "Відшкодування"
 
-#: templates/dashboard/order/detail.html:201
+#: templates/dashboard/order/detail.html:203
 msgctxt "Order summary card action"
 msgid "Release"
 msgstr "Відпустити оплату"
 
-#: templates/dashboard/order/detail.html:205
+#: templates/dashboard/order/detail.html:207
 msgctxt "Order detail action"
 msgid "Invoice"
-msgstr ""
+msgstr "Рахунок"
 
-#: templates/dashboard/order/detail.html:222
+#: templates/dashboard/order/detail.html:224
 msgctxt "Missing shipping address message"
 msgid "No shipping address"
-msgstr ""
+msgstr "Немає адреси доставки"
 
-#: templates/dashboard/order/detail.html:228
-#: templates/dashboard/order/detail.html:246
+#: templates/dashboard/order/detail.html:230
+#: templates/dashboard/order/detail.html:248
 #: templates/dashboard/product/product_image/list.html:82
 #: templates/dashboard/product/product_image/list.html:127
 msgctxt "Dashboard edit action"
 msgid "Edit"
 msgstr "Редагувати"
 
-#: templates/dashboard/order/detail.html:258
+#: templates/dashboard/order/detail.html:260
 #, python-format
 msgctxt "Shipment group table title"
 msgid "Shipment #%(shipment)s - %(group_shipping_method_name)s"
-msgstr ""
+msgstr "Доставка № %(shipment)s - %(group_shipping_method_name)s"
 
-#: templates/dashboard/order/detail.html:269
+#: templates/dashboard/order/detail.html:271
 #: templates/dashboard/order/pdf/packing_slip.html:66
 msgctxt "Shipment group table header"
 msgid "Item"
 msgstr "Позиція"
 
-#: templates/dashboard/order/detail.html:272
-#: templates/dashboard/order/pdf/packing_slip.html:69
-msgctxt "Shipment group table header"
-msgid "SKU"
-msgstr "SKU"
-
-#: templates/dashboard/order/detail.html:275
+#: templates/dashboard/order/detail.html:274
 msgctxt "Shipment group table header"
 msgid "Price"
 msgstr "Ціна"
 
-#: templates/dashboard/order/detail.html:278
+#: templates/dashboard/order/detail.html:277
 #: templates/dashboard/order/pdf/packing_slip.html:72
 msgctxt "Shipment group table header"
 msgid "Quantity"
 msgstr "Кількість"
 
-#: templates/dashboard/order/detail.html:281
+#: templates/dashboard/order/detail.html:280
 msgctxt "Shipment group table header"
 msgid "Total"
 msgstr "Підсумок "
 
-#: templates/dashboard/order/detail.html:305
-#: templates/dashboard/order/detail.html:306
+#: templates/dashboard/order/detail.html:295
+#, python-format
+msgctxt "Shipment group table text"
+msgid "SKU: %(sku)s"
+msgstr ""
+
+#: templates/dashboard/order/detail.html:311
+#: templates/dashboard/order/detail.html:312
 msgctxt "Shipment group table row action"
 msgid "Change quantity"
 msgstr "Змінити кількість"
 
-#: templates/dashboard/order/detail.html:310
+#: templates/dashboard/order/detail.html:317
 msgctxt "Shipment group table row action"
 msgid "Change stock location"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:311
+#: templates/dashboard/order/detail.html:318
 msgctxt "Shipment group table row action"
 msgid "Change stock"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:315
+#: templates/dashboard/order/detail.html:323
 msgctxt "Shipment group table row action"
 msgid "Split line"
 msgstr "Розділити запис"
 
-#: templates/dashboard/order/detail.html:316
+#: templates/dashboard/order/detail.html:324
 msgctxt "Shipment group table row action"
 msgid "Split order line"
 msgstr "Розділити замовлення"
 
-#: templates/dashboard/order/detail.html:320
-#: templates/dashboard/order/detail.html:321
+#: templates/dashboard/order/detail.html:328
+#: templates/dashboard/order/detail.html:329
 msgctxt "Shipment group table row action"
 msgid "Remove line"
 msgstr "Видалити запис"
 
-#: templates/dashboard/order/detail.html:342
+#: templates/dashboard/order/detail.html:350
 msgctxt "Shipment group table action"
 msgid "Dispatch"
 msgstr "Відправити"
 
-#: templates/dashboard/order/detail.html:346
+#: templates/dashboard/order/detail.html:354
 msgctxt "Shipment group table action"
 msgid "Cancel group"
 msgstr "Відмінити групу"
 
-#: templates/dashboard/order/detail.html:347
+#: templates/dashboard/order/detail.html:355
 msgctxt "Shipment group table action"
 msgid "Cancel shipment"
-msgstr ""
+msgstr "Відмінити доставку"
 
-#: templates/dashboard/order/detail.html:350
+#: templates/dashboard/order/detail.html:359
 msgctxt "Order summary card action title"
 msgid "Add product to order"
-msgstr ""
+msgstr "Додати продукт до замовлення"
 
-#: templates/dashboard/order/detail.html:351
+#: templates/dashboard/order/detail.html:360
 msgctxt "Order summary card action"
 msgid "Add product"
-msgstr ""
+msgstr "Додати продукт"
 
-#: templates/dashboard/order/detail.html:354
+#: templates/dashboard/order/detail.html:364
 msgctxt "Order detail action"
 msgid "Packing Slips"
-msgstr ""
+msgstr "Упаковки"
 
-#: templates/dashboard/order/detail.html:361
+#: templates/dashboard/order/detail.html:371
 #, python-format
 msgctxt "Shipment group table text"
 msgid "Tracking number: %(tracking)s"
 msgstr "Номер відслідковування:%(tracking)s"
 
-#: templates/dashboard/order/detail.html:374
+#: templates/dashboard/order/detail.html:384
 msgctxt "Order totals header"
 msgid "Grand total"
 msgstr "Повна сума"
 
-#: templates/dashboard/order/detail.html:392
+#: templates/dashboard/order/detail.html:402
 msgctxt "Order totals header"
 msgid "Shipping"
 msgstr "Доставка"
 
-#: templates/dashboard/order/detail.html:402
+#: templates/dashboard/order/detail.html:412
 #, python-format
 msgctxt "Order totals header"
 msgid "Voucher %(voucher)s"
 msgstr "Ваучер %(voucher)s"
 
-#: templates/dashboard/order/detail.html:410
-#: templates/dashboard/order/detail.html:411
+#: templates/dashboard/order/detail.html:420
+#: templates/dashboard/order/detail.html:421
 msgctxt "Order totals action"
 msgid "Remove voucher"
 msgstr "Видалити ваучер "
 
-#: templates/dashboard/order/detail.html:428
+#: templates/dashboard/order/detail.html:438
 msgctxt "Order notes card title"
 msgid "Order notes"
 msgstr "Помітки про замовлення  "
 
-#: templates/dashboard/order/detail.html:441
+#: templates/dashboard/order/detail.html:451
 msgctxt "Empty order notes card message"
 msgid "There are no notes associated with this order."
 msgstr "Немає поміток, пов’язаних з цим замовленням."
 
-#: templates/dashboard/order/detail.html:448
+#: templates/dashboard/order/detail.html:458
 msgctxt "Order notes card action"
 msgid "Add note"
 msgstr "Додати помітку "
 
-#: templates/dashboard/order/detail.html:464
+#: templates/dashboard/order/detail.html:474
 msgctxt "Payment history table header"
 msgid "Transaction ID"
 msgstr "Транзакція"
 
-#: templates/dashboard/order/detail.html:467
+#: templates/dashboard/order/detail.html:477
 msgctxt "Payment history table header"
 msgid "Date"
 msgstr "Дата"
 
-#: templates/dashboard/order/detail.html:470
+#: templates/dashboard/order/detail.html:480
 msgctxt "Payment history table header"
 msgid "Payment status"
 msgstr "Статус оплати"
 
-#: templates/dashboard/order/detail.html:473
+#: templates/dashboard/order/detail.html:483
 msgctxt "Payment history table header"
 msgid "Fraud status"
 msgstr "Статус шахрайства"
 
-#: templates/dashboard/order/detail.html:476
+#: templates/dashboard/order/detail.html:486
 msgctxt "Payment history table header"
 msgid "Amount"
 msgstr "Обсяг"
 
-#: templates/dashboard/order/detail.html:484
+#: templates/dashboard/order/detail.html:494
 #, python-format
 msgctxt "Payment item column data"
 msgid "#%(payment_id)s"
 msgstr "#%(payment_id)s"
 
-#: templates/dashboard/order/detail.html:508
+#: templates/dashboard/order/detail.html:518
 msgctxt "Empty payment history table message"
 msgid "No payments made for this order."
 msgstr "Оплата не здійснена за це замовлення"
@@ -2589,17 +2677,17 @@ msgstr "Зберегти помітку"
 #, python-format
 msgctxt "Modal group add variant title"
 msgid "Add product to %(shipment)s"
-msgstr ""
+msgstr "Додати продукт до %(shipment)s"
 
 #: templates/dashboard/order/modal/add_variant_to_group.html:22
 msgctxt "Modal group add variant primary action"
 msgid "Add"
-msgstr ""
+msgstr "Додати"
 
 #: templates/dashboard/order/modal/cancel_line.html:12
 msgctxt "Modal remove order line title"
 msgid "Remove order line"
-msgstr ""
+msgstr "Видалити рядок замовлення"
 
 #: templates/dashboard/order/modal/cancel_line.html:17
 msgctxt "Modal remove order line text"
@@ -2634,18 +2722,18 @@ msgstr "Підсумок"
 #: templates/dashboard/order/modal/cancel_order.html:11
 msgctxt "Modal cancel order title"
 msgid "Cancel order"
-msgstr ""
+msgstr "Відмінити замовлення"
 
 #: templates/dashboard/order/modal/cancel_order.html:16
 #, python-format
 msgctxt "Modal cancel order text"
 msgid "Are you sure you want cancel order %(order)s?"
-msgstr ""
+msgstr "Ви впевнені, що бажаєте відмінити замовлення %(order)s?"
 
 #: templates/dashboard/order/modal/cancel_order.html:23
 msgctxt "Modal cancel order cancel action"
 msgid "Abort"
-msgstr ""
+msgstr "Перервати"
 
 #: templates/dashboard/order/modal/cancel_order.html:27
 msgctxt "Modal cancel order primary action"
@@ -2655,7 +2743,7 @@ msgstr "Відмінити замовлення"
 #: templates/dashboard/order/modal/cancel_shipment_group.html:10
 msgctxt "Modal cancel shipment group title"
 msgid "Cancel shipment group?"
-msgstr ""
+msgstr "Відмінити групу доставки?"
 
 #: templates/dashboard/order/modal/cancel_shipment_group.html:15
 #, python-format
@@ -2674,7 +2762,7 @@ msgstr "Перервати"
 #: templates/dashboard/order/modal/cancel_shipment_group.html:26
 msgctxt "Modal cancel shipment group primary action"
 msgid "Cancel this shipment"
-msgstr ""
+msgstr "Відмінити цю доставку"
 
 #: templates/dashboard/order/modal/capture.html:13
 msgctxt "Modal capture payment title"
@@ -2684,7 +2772,7 @@ msgstr "Зарахування платежу"
 #: templates/dashboard/order/modal/capture.html:19
 msgctxt "Modal capture payment title"
 msgid "Before this action:"
-msgstr ""
+msgstr "Перед цією дією:"
 
 #: templates/dashboard/order/modal/capture.html:21
 msgctxt "Modal capture payment list title"
@@ -2709,7 +2797,7 @@ msgstr "Змінити кількість"
 #: templates/dashboard/order/modal/order_remove_voucher.html:12
 msgctxt "Modal remove voucher from order title"
 msgid "Remove voucher"
-msgstr ""
+msgstr "Видалити ваучер"
 
 #: templates/dashboard/order/modal/order_remove_voucher.html:17
 #, python-format
@@ -2730,7 +2818,7 @@ msgstr "Відшкодування оплати"
 #: templates/dashboard/order/modal/refund.html:20
 msgctxt "Modal refund payment title"
 msgid "Before this action:"
-msgstr ""
+msgstr "Перед цією дією:"
 
 #: templates/dashboard/order/modal/refund.html:22
 msgctxt "Modal refund payment list title"
@@ -2765,7 +2853,7 @@ msgstr "Відпустити оплату"
 #: templates/dashboard/order/modal/ship_shipment_group.html:12
 msgctxt "Modal ship shipment group title"
 msgid "Dispatch shipment group"
-msgstr ""
+msgstr "Відправити групу доставки"
 
 #: templates/dashboard/order/modal/ship_shipment_group.html:17
 msgctxt "Modal ship shipment group text"
@@ -2775,7 +2863,7 @@ msgstr ""
 #: templates/dashboard/order/modal/ship_shipment_group.html:24
 msgctxt "Modal ship shipment group primary action"
 msgid "Ship"
-msgstr ""
+msgstr "Відправити"
 
 #: templates/dashboard/order/modal/shipment_group_stock.html:11
 msgctxt "Modal change stock title"
@@ -2785,7 +2873,7 @@ msgstr ""
 #: templates/dashboard/order/modal/shipment_group_stock.html:19
 msgctxt "Modal change stock primary action"
 msgid "Change"
-msgstr ""
+msgstr "Змінити"
 
 #: templates/dashboard/order/modal/split_order_line.html:11
 msgctxt "Modal split order line title"
@@ -2800,57 +2888,57 @@ msgstr "Розділити"
 #: templates/dashboard/order/pdf/invoice.html:8
 msgctxt "Invoice title"
 msgid "Invoice for Order"
-msgstr ""
+msgstr "Рахунок для замовлення"
 
 #: templates/dashboard/order/pdf/invoice.html:17
 msgctxt "Invoice header"
 msgid "Order"
-msgstr ""
+msgstr "Замовлення"
 
 #: templates/dashboard/order/pdf/invoice.html:21
 msgctxt "Order invoice"
 msgid "Invoice"
-msgstr ""
+msgstr "Рахунок"
 
 #: templates/dashboard/order/pdf/invoice.html:27
 msgctxt "Invoice table header"
 msgid "Shipping Details"
-msgstr ""
+msgstr "Деталі доставки"
 
 #: templates/dashboard/order/pdf/invoice.html:31
 msgctxt "Invoice table header"
 msgid "Billing Details"
-msgstr ""
+msgstr "Деталі оплати"
 
 #: templates/dashboard/order/pdf/invoice.html:41
 msgctxt "Invoice shipping address"
 msgid "Shipping address"
-msgstr ""
+msgstr "Адреса доставки "
 
 #: templates/dashboard/order/pdf/invoice.html:50
 msgctxt "Invoice billing address"
 msgid "Billing address"
-msgstr ""
+msgstr "Адреса оплати"
 
 #: templates/dashboard/order/pdf/invoice.html:59
 msgctxt "Invoice ordered items header"
 msgid "Items Ordered"
-msgstr ""
+msgstr "Позиція замовлень"
 
 #: templates/dashboard/order/pdf/invoice.html:66
 msgctxt "Shipment order table header"
 msgid "Item"
-msgstr ""
+msgstr "Позиція"
 
 #: templates/dashboard/order/pdf/invoice.html:70
 msgctxt "Shipment order table header"
 msgid "SKU"
-msgstr ""
+msgstr "SKU"
 
 #: templates/dashboard/order/pdf/invoice.html:73
 msgctxt "Shipment order table header"
 msgid "Price"
-msgstr ""
+msgstr "Ціна"
 
 #: templates/dashboard/order/pdf/invoice.html:76
 msgctxt "Shipment order table header"
@@ -2860,7 +2948,7 @@ msgstr "Кількість"
 #: templates/dashboard/order/pdf/invoice.html:79
 msgctxt "Shipment order table header"
 msgid "Total"
-msgstr ""
+msgstr "Разом"
 
 #: templates/dashboard/order/pdf/invoice.html:107
 msgctxt "Shipment order table item column data"
@@ -2870,7 +2958,7 @@ msgstr ""
 #: templates/dashboard/order/pdf/invoice.html:123
 msgctxt "Order subtotal price"
 msgid "Subtotal"
-msgstr ""
+msgstr "Загалом"
 
 #: templates/dashboard/order/pdf/invoice.html:131
 msgctxt "Order total shipping price header"
@@ -2880,51 +2968,56 @@ msgstr ""
 #: templates/dashboard/order/pdf/invoice.html:140
 msgctxt "Order voucher header"
 msgid "Voucher"
-msgstr ""
+msgstr "Ваучер"
 
 #: templates/dashboard/order/pdf/invoice.html:151
 msgctxt "Order total price header"
 msgid "Grand total"
-msgstr ""
+msgstr "Повна сума"
 
 #: templates/dashboard/order/pdf/packing_slip.html:18
 msgctxt "Packing slip header"
 msgid "Order ID:"
-msgstr ""
+msgstr "Замовлення №:"
 
 #: templates/dashboard/order/pdf/packing_slip.html:22
 msgctxt "Packing slips header"
 msgid "Packing Slips"
-msgstr ""
+msgstr "Упаковки"
 
 #: templates/dashboard/order/pdf/packing_slip.html:28
 msgctxt "Packing slip shipping details"
 msgid "Shipping Details"
-msgstr ""
+msgstr "Деталі доставки"
 
 #: templates/dashboard/order/pdf/packing_slip.html:32
 msgctxt "Packing slip shipping details"
 msgid "Billing Details"
-msgstr ""
+msgstr "Деталі оплати"
 
 #: templates/dashboard/order/pdf/packing_slip.html:42
 msgctxt "Packing slip shipping address"
 msgid "Shipping address"
-msgstr ""
+msgstr "Адреса доставки "
 
 #: templates/dashboard/order/pdf/packing_slip.html:51
 msgctxt "Packing slip billing address"
 msgid "Billing address"
-msgstr ""
+msgstr "Адреса оплати"
 
 #: templates/dashboard/order/pdf/packing_slip.html:60
 msgctxt "Order invoice"
 msgid "Items Ordered"
-msgstr ""
+msgstr "Позиція замовлення"
+
+#: templates/dashboard/order/pdf/packing_slip.html:69
+msgctxt "Shipment group table header"
+msgid "SKU"
+msgstr "SKU"
 
 #: templates/dashboard/order/zero_page.html:5
 msgid "No orders found."
-msgstr ""
+msgstr "Замовлення не знайдено."
 
 #: templates/dashboard/order/zero_page.html:8
 msgid ""
@@ -2935,7 +3028,7 @@ msgstr ""
 
 #: templates/dashboard/product/_stock_table.html:8
 msgid "Location"
-msgstr ""
+msgstr "Розташування"
 
 #: templates/dashboard/product/_stock_table.html:9
 msgid "Quantity"
@@ -2943,16 +3036,16 @@ msgstr "Кількість"
 
 #: templates/dashboard/product/_stock_table.html:10
 msgid "Allocated"
-msgstr ""
+msgstr "Зарезервовано"
 
 #: templates/dashboard/product/_stock_table.html:11
 msgid "Cost"
-msgstr ""
+msgstr "Вартість"
 
 #: templates/dashboard/product/_stock_table.html:12
 #: templates/dashboard/product/detail.html:105
 msgid "Gross margin"
-msgstr ""
+msgstr "Дохід"
 
 #: templates/dashboard/product/_stock_table.html:33
 msgctxt "Dashboard variant details page"
@@ -2964,78 +3057,78 @@ msgstr ""
 #: templates/dashboard/product/stock/detail.html:19
 msgctxt "Product form breadcrumbs"
 msgid "Products"
-msgstr ""
+msgstr "Продукти"
 
 #: templates/dashboard/product/detail.html:42
 msgctxt "Product field"
 msgid "Sale price"
-msgstr ""
+msgstr "Ціна продажу"
 
 #: templates/dashboard/product/detail.html:52
 msgctxt "Product field"
 msgid "Purchase cost"
-msgstr ""
+msgstr "Вартість покупки"
 
 #: templates/dashboard/product/detail.html:62
 msgctxt "Product field"
 msgid "Gross margin"
-msgstr ""
+msgstr "Дохід"
 
 #: templates/dashboard/product/detail.html:76
 msgctxt "Product action"
 msgid "Edit product"
-msgstr ""
+msgstr "Змінити товар"
 
 #: templates/dashboard/product/detail.html:79
 msgctxt "Product action"
 msgid "Remove product"
-msgstr ""
+msgstr "Видалити товар"
 
 #: templates/dashboard/product/detail.html:83
 msgctxt "Product action"
 msgid "View on site"
-msgstr ""
+msgstr "Подивитися на сайті"
 
 #: templates/dashboard/product/detail.html:90
 msgid "Variant"
-msgstr ""
+msgstr "Варіант"
 
 #: templates/dashboard/product/detail.html:101
 msgid "SKU"
-msgstr ""
+msgstr "SKU"
 
 #: templates/dashboard/product/detail.html:102
 msgid "Name"
-msgstr ""
+msgstr "Назва"
 
 #: templates/dashboard/product/detail.html:103
 msgid "Status"
-msgstr ""
+msgstr "Статус"
 
 #: templates/dashboard/product/detail.html:104
 msgid "Price"
-msgstr ""
+msgstr "Ціна"
 
 #: templates/dashboard/product/detail.html:129
 msgid "Edit"
-msgstr ""
+msgstr "Редагувати"
 
 #: templates/dashboard/product/detail.html:134
 msgctxt "Dashboard product details page"
 msgid "No variants found"
-msgstr ""
+msgstr "Варіантів не знайдено"
 
 #: templates/dashboard/product/detail.html:145
 #: templates/dashboard/product/product_variant/detail.html:104
 msgctxt "Dashboard variant details view"
 msgid "Stock"
-msgstr ""
+msgstr "Склад"
 
 #: templates/dashboard/product/detail.html:149
 #: templates/dashboard/product/product_variant/detail.html:109
 msgctxt "Dashboard action"
 msgid "Add"
-msgstr ""
+msgstr "Додати"
 
 #: templates/dashboard/product/detail.html:172
 msgctxt "Product field"
@@ -3045,22 +3138,22 @@ msgstr "Опубліковано"
 #: templates/dashboard/product/detail.html:174
 msgctxt "Product field"
 msgid "Draft"
-msgstr ""
+msgstr "Чернетка"
 
 #: templates/dashboard/product/detail.html:195
 #: templates/dashboard/product/product_image/list.html:7
 #: templates/dashboard/product/product_image/list.html:41
 msgid "Images"
-msgstr ""
+msgstr "Зображення"
 
 #: templates/dashboard/product/detail.html:206
 msgid "Edit images"
-msgstr ""
+msgstr "Редагувати зображення"
 
 #: templates/dashboard/product/form.html:9
 msgctxt "Dashboard products list"
 msgid "Edit"
-msgstr ""
+msgstr "Редагувати"
 
 #: templates/dashboard/product/form.html:11
 msgctxt "Product form page title"
@@ -3075,9 +3168,9 @@ msgstr "Додати новий товар"
 #: templates/dashboard/product/form.html:51
 msgctxt "Product form breadcrumbs"
 msgid "Edit"
-msgstr ""
+msgstr "Редагувати"
 
-#: templates/dashboard/product/form.html:114
+#: templates/dashboard/product/form.html:117
 #: templates/dashboard/product/product_attribute/form.html:80
 #: templates/dashboard/product/product_attribute/values/form.html:82
 #: templates/dashboard/product/product_image/form.html:83
@@ -3088,7 +3181,7 @@ msgstr ""
 #: templates/dashboard/sites/authorization_keys/form.html:75
 msgctxt "Dashboard update action"
 msgid "Save"
-msgstr ""
+msgstr "Зберегти"
 
 #: templates/dashboard/product/list.html:22
 #: templates/dashboard/product/list.html:26
@@ -3099,12 +3192,12 @@ msgstr "Додати продукт"
 #: templates/dashboard/product/list.html:63
 msgctxt "Products list table header"
 msgid "Name"
-msgstr ""
+msgstr "Назва"
 
 #: templates/dashboard/product/list.html:66
 msgctxt "Products list table header"
 msgid "Price"
-msgstr ""
+msgstr "Ціна"
 
 #: templates/dashboard/product/list.html:103
 msgctxt "Empty product list message"
@@ -3115,33 +3208,33 @@ msgstr "Жодного продукта не знайдено"
 #, python-format
 msgctxt "Modal remove product text"
 msgid "Remove product %(product)s"
-msgstr ""
+msgstr "Видалити продукт %(product)s"
 
 #: templates/dashboard/product/modal/confirm_delete.html:20
 #, python-format
 msgctxt "Modal remove product text"
 msgid "Are you sure you want to remove product <strong>%(product)s</strong>?"
-msgstr ""
+msgstr "Ви впевнені, що хочете видалити продкт <strong>%(product)s</strong>?"
 
 #: templates/dashboard/product/modal/select_type.html:11
 msgctxt "Modal select product types title"
 msgid "Product type"
-msgstr ""
+msgstr "Тип товару"
 
 #: templates/dashboard/product/modal/select_type.html:19
 msgctxt "Dashboard add action"
 msgid "Create"
-msgstr ""
+msgstr "Створити"
 
 #: templates/dashboard/product/product_attribute/detail.html:18
 msgctxt "Attribute detail breadcrumbs"
 msgid "Attributes"
-msgstr ""
+msgstr "Атрибути"
 
 #: templates/dashboard/product/product_attribute/detail.html:49
 msgctxt "Attribute detail action"
 msgid "Edit attribute"
-msgstr ""
+msgstr "Редагувати атрибут"
 
 #: templates/dashboard/product/product_attribute/detail.html:52
 msgctxt "Attribute detail action"
@@ -3150,32 +3243,32 @@ msgstr "Видалити властивість"
 
 #: templates/dashboard/product/product_attribute/detail.html:61
 msgid "Attribute values"
-msgstr ""
+msgstr "Значення атрибутів"
 
 #: templates/dashboard/product/product_attribute/detail.html:74
 msgid "Display name"
-msgstr ""
+msgstr "Назва для відображення"
 
 #: templates/dashboard/product/product_attribute/detail.html:75
 msgid "Color"
-msgstr ""
+msgstr "Колір"
 
 #: templates/dashboard/product/product_attribute/detail.html:97
 #: templates/dashboard/shipping/detail.html:100
 msgctxt "Attribute choice value edit action"
 msgid "Edit"
-msgstr ""
+msgstr "Редагувати"
 
 #: templates/dashboard/product/product_attribute/detail.html:100
 msgctxt "Attribute choice value edit action"
 msgid "Remove"
-msgstr ""
+msgstr "Видалити"
 
 #: templates/dashboard/product/product_attribute/form.html:8
 #: templates/dashboard/product/product_attribute/values/form.html:8
 msgctxt "Dashboard attributes list"
 msgid "Edit"
-msgstr ""
+msgstr "Редагувати"
 
 #: templates/dashboard/product/product_attribute/form.html:10
 #: templates/dashboard/product/product_attribute/values/form.html:10
@@ -3188,7 +3281,7 @@ msgstr "Додати нову властивість "
 #: templates/dashboard/shipping/country/form.html:49
 msgctxt "Attribute detail breadcrumbs"
 msgid "Edit"
-msgstr ""
+msgstr "Редагувати"
 
 #: templates/dashboard/product/product_attribute/form.html:51
 #: templates/dashboard/product/product_attribute/values/form.html:53
@@ -3209,7 +3302,7 @@ msgstr "Назва"
 #: templates/dashboard/product/product_attribute/list.html:47
 msgctxt "Dashboard attributes list table header values"
 msgid "Values"
-msgstr ""
+msgstr "Значення"
 
 #: templates/dashboard/product/product_attribute/list.html:74
 msgctxt "Empty attribute list message"
@@ -3220,7 +3313,7 @@ msgstr "Жодної властивості не знайдено"
 #, python-format
 msgctxt "Modal remove attribute text"
 msgid "Remove attribute %(attribute)s"
-msgstr ""
+msgstr "Видалити атрибут %(attribute)s"
 
 #: templates/dashboard/product/product_attribute/modal/attribute_confirm_delete.html:19
 #, python-format
@@ -3228,11 +3321,12 @@ msgctxt "Modal remove attribute text"
 msgid ""
 "Are you sure you want to remove attribute <strong>%(attribute)s</strong>?"
 msgstr ""
+"Ви впевнені, що хочете видалити атрибут<strong>%(attribute)s</strong>?"
 
 #: templates/dashboard/product/product_attribute/values/form.html:70
 msgctxt "Attribute values form title"
 msgid "Attribute values"
-msgstr ""
+msgstr "Значення атрибутів"
 
 #: templates/dashboard/product/product_attribute/values/modal/confirm_delete.html:12
 #, python-format
@@ -3250,7 +3344,7 @@ msgstr ""
 
 #: templates/dashboard/product/product_attribute/zero_page.html:5
 msgid "No attributes found."
-msgstr ""
+msgstr "Атрибути не знайдено."
 
 #: templates/dashboard/product/product_attribute/zero_page.html:8
 #, python-format
@@ -3264,22 +3358,22 @@ msgstr ""
 #: templates/dashboard/product/product_image/form.html:8
 msgctxt "Image form text"
 msgid "Edit - Image"
-msgstr ""
+msgstr "Редагувати - Зображення"
 
 #: templates/dashboard/product/product_image/form.html:10
 msgctxt "Image form text"
 msgid "Add image"
-msgstr ""
+msgstr "Додати зображення"
 
 #: templates/dashboard/product/product_image/form.html:38
 msgctxt "Image form text"
 msgid "Image"
-msgstr ""
+msgstr "Зображення"
 
 #: templates/dashboard/product/product_image/form.html:43
 msgctxt "Image form text"
 msgid "Edit"
-msgstr ""
+msgstr "Редагувати"
 
 #: templates/dashboard/product/product_image/form.html:49
 msgctxt "Image form breadcrumbs"
@@ -3321,12 +3415,12 @@ msgstr "Нема опису"
 #: templates/dashboard/product/product_image/modal/confirm_delete.html:13
 msgctxt "Modal remove image text"
 msgid "Remove product image"
-msgstr ""
+msgstr "Видалити зображення продукту"
 
 #: templates/dashboard/product/product_image/modal/confirm_delete.html:21
 msgctxt "Modal remove image text"
 msgid "Are you sure you want to remove product image?"
-msgstr ""
+msgstr "Ви впевнені, що бажаєте видалити зображення продукту?"
 
 #: templates/dashboard/product/product_image/versatile_image.html:7
 msgid "Primary Point of Interest"
@@ -3342,17 +3436,17 @@ msgstr ""
 #: templates/dashboard/product/product_type/form.html:11
 msgctxt "Product type page title"
 msgid "Add new product type"
-msgstr ""
+msgstr "Додати новий тип продукту"
 
 #: templates/dashboard/product/product_type/form.html:42
 msgctxt "Product type breadcrumbs"
 msgid "Add new product type"
-msgstr ""
+msgstr "Додати новий тип продукту"
 
 #: templates/dashboard/product/product_type/form.html:58
 msgctxt "Product type action"
 msgid "Remove product type"
-msgstr ""
+msgstr "Видалити тип продукту"
 
 #: templates/dashboard/product/product_type/form.html:120
 msgctxt "Product type help text"
@@ -3395,7 +3489,7 @@ msgstr "Створити новий"
 #, python-format
 msgctxt "Modal remove product type text"
 msgid "Remove product type %(product_type)s"
-msgstr ""
+msgstr "Видалений тип продукту %(product_type)s"
 
 #: templates/dashboard/product/product_type/modal/confirm_delete.html:22
 #, python-format
@@ -3414,11 +3508,11 @@ msgstr ""
 #: templates/dashboard/product/product_type/modal/confirm_delete.html:32
 msgctxt "Modal remove product type text"
 msgid "There are no products in this product type."
-msgstr ""
+msgstr "Немає продуктів цього типу."
 
 #: templates/dashboard/product/product_type/zero_page.html:5
 msgid "No product types found."
-msgstr ""
+msgstr "Тип продукту не знайдено."
 
 #: templates/dashboard/product/product_type/zero_page.html:8
 #, python-format
@@ -3432,51 +3526,51 @@ msgstr ""
 #: templates/dashboard/product/product_variant/detail.html:49
 msgctxt "Dashboard variant details view"
 msgid "SKU"
-msgstr ""
+msgstr "SKU"
 
 #: templates/dashboard/product/product_variant/detail.html:53
 msgctxt "Dashboard variant details view"
 msgid "Sale price"
-msgstr ""
+msgstr "Ціна продажу"
 
 #: templates/dashboard/product/product_variant/detail.html:59
 msgctxt "Dashboard variant details view"
 msgid "Cost price range"
-msgstr ""
+msgstr "Діапазон цін"
 
 #: templates/dashboard/product/product_variant/detail.html:73
 msgctxt "Dashboard variant details view"
 msgid "Gross margin"
-msgstr ""
+msgstr "Дохід"
 
 #: templates/dashboard/product/product_variant/detail.html:93
 msgctxt "Dashboard action"
 msgid "Edit variant"
-msgstr ""
+msgstr "Редагувати варіант"
 
 #: templates/dashboard/product/product_variant/detail.html:96
 msgctxt "Dashboard action"
 msgid "Remove variant"
-msgstr ""
+msgstr "Видалити варіант"
 
 #: templates/dashboard/product/product_variant/detail.html:127
 msgctxt "Dashboard variant details view"
 msgid "Images"
-msgstr ""
+msgstr "Зображення"
 
 #: templates/dashboard/product/product_variant/detail.html:132
 msgid "No images"
-msgstr ""
+msgstr "Немає зображення"
 
 #: templates/dashboard/product/product_variant/detail.html:139
 msgctxt "Dashboard action"
 msgid "Select images"
-msgstr ""
+msgstr "Вибрати зображення"
 
 #: templates/dashboard/product/product_variant/form.html:8
 msgctxt "Variant form page title"
 msgid "Edit"
-msgstr ""
+msgstr "Редагувати"
 
 #: templates/dashboard/product/product_variant/form.html:10
 msgctxt "Variant form page title"
@@ -3486,7 +3580,7 @@ msgstr "Додати варіант"
 #: templates/dashboard/product/product_variant/form.html:47
 msgctxt "Variant form breadcrumbs"
 msgid "Edit"
-msgstr ""
+msgstr "Редагувати"
 
 #: templates/dashboard/product/product_variant/form.html:53
 msgctxt "Variant form breadcrumbs"
@@ -3511,6 +3605,8 @@ msgid ""
 "\n"
 "  Remove variant %(variant)s\n"
 msgstr ""
+"\n"
+"Видалити варіант %(variant)s\n"
 
 #: templates/dashboard/product/product_variant/modal/confirm_delete.html:22
 #, python-format
@@ -3531,17 +3627,17 @@ msgstr ""
 #: templates/dashboard/product/product_variant/modal/select_images.html:14
 msgctxt "Dashboard variant images modal"
 msgid "Select variant images"
-msgstr ""
+msgstr "Вибрати варіант зображення"
 
 #: templates/dashboard/product/product_variant/modal/select_images.html:24
 msgctxt "Dashboard modal action"
 msgid "Save"
-msgstr ""
+msgstr "Зберегти"
 
 #: templates/dashboard/product/stock/detail.html:57
 msgctxt "Dashboard stock details view"
 msgid "Location"
-msgstr ""
+msgstr "Розташування"
 
 #: templates/dashboard/product/stock/detail.html:58
 msgctxt "Dashboard stock details view"
@@ -3551,12 +3647,12 @@ msgstr "Кількість"
 #: templates/dashboard/product/stock/detail.html:59
 msgctxt "Dashboard stock details view"
 msgid "Allocated"
-msgstr ""
+msgstr "Зарезервовано"
 
 #: templates/dashboard/product/stock/detail.html:66
 msgctxt "Dashboard action"
 msgid "Edit stock"
-msgstr ""
+msgstr "Редагувати склад"
 
 #: templates/dashboard/product/stock/detail.html:69
 msgctxt "Dashboard action"
@@ -3583,7 +3679,7 @@ msgstr "Склад %(variant)s"
 #: templates/dashboard/product/stock/form.html:53
 msgctxt "Stock form breadcrumbs"
 msgid "Edit"
-msgstr ""
+msgstr "Редагувати"
 
 #: templates/dashboard/product/stock/form.html:59
 msgctxt "Stock form breadcrumbs"
@@ -3696,7 +3792,7 @@ msgstr ""
 
 #: templates/dashboard/product/zero_page.html:5
 msgid "No products found."
-msgstr ""
+msgstr "Продукт не знайдено."
 
 #: templates/dashboard/product/zero_page.html:10
 #, python-format
@@ -3727,12 +3823,12 @@ msgstr ""
 #: templates/dashboard/search/results.html:25
 msgctxt "Search results list products"
 msgid "Products"
-msgstr ""
+msgstr "Продукти"
 
 #: templates/dashboard/search/results.html:47
 msgctxt "Search results list orders"
 msgid "Orders"
-msgstr ""
+msgstr "Замовлення"
 
 #: templates/dashboard/search/results.html:54
 #, python-format
@@ -3755,7 +3851,7 @@ msgstr "Розміщено: %(placed)s"
 #: templates/dashboard/search/results.html:76
 msgctxt "Search results list users"
 msgid "Users"
-msgstr ""
+msgstr "Користувачі"
 
 #: templates/dashboard/search/results.html:83
 #, python-format
@@ -3772,7 +3868,7 @@ msgstr "Немає результатів запиту \"%(query)s\"."
 #: templates/dashboard/shipping/country/form.html:8
 msgctxt "Dashboard price per country edit page"
 msgid "Edit"
-msgstr ""
+msgstr "Редагувати"
 
 #: templates/dashboard/shipping/country/form.html:10
 msgctxt "Shipping price per country edit page title"
@@ -3802,7 +3898,7 @@ msgstr ""
 #: templates/dashboard/shipping/detail.html:47
 msgctxt "Shipping method field"
 msgid "Description"
-msgstr ""
+msgstr "Опис"
 
 #: templates/dashboard/shipping/detail.html:59
 msgctxt "Shipping method action"
@@ -3832,7 +3928,7 @@ msgstr "Ціна"
 #: templates/dashboard/shipping/detail.html:103
 msgctxt "Attribute choice value remove action"
 msgid "Remove"
-msgstr ""
+msgstr "Видалити"
 
 #: templates/dashboard/shipping/detail.html:109
 msgctxt "Empty list of per-country shipping prices"
@@ -3842,7 +3938,7 @@ msgstr ""
 #: templates/dashboard/shipping/form.html:9
 msgctxt "Dashboard shipping methods"
 msgid "Edit"
-msgstr ""
+msgstr "Редагувати"
 
 #: templates/dashboard/shipping/form.html:12
 #: templates/dashboard/shipping/form.html:25
@@ -3858,7 +3954,7 @@ msgstr "Методи доставки"
 #: templates/dashboard/shipping/form.html:49
 msgctxt "Shipping method form page title"
 msgid "Edit"
-msgstr ""
+msgstr "Редагувати"
 
 #: templates/dashboard/shipping/form.html:55
 msgctxt "Shipping method form breadcrumbs"
@@ -3888,7 +3984,7 @@ msgstr "Країни"
 #: templates/dashboard/shipping/list.html:86
 msgctxt "Empty shipping list message"
 msgid "No shipping methods found."
-msgstr ""
+msgstr "Жодного способу доставки не знайдено"
 
 #: templates/dashboard/shipping/modal/confirm_delete.html:14
 #, python-format
@@ -3921,7 +4017,7 @@ msgstr ""
 
 #: templates/dashboard/shipping/zero_page.html:5
 msgid "No shipping methods found."
-msgstr ""
+msgstr "Жодного способу доставки не знайдено"
 
 #: templates/dashboard/shipping/zero_page.html:8
 #, python-format
@@ -3935,47 +4031,47 @@ msgstr ""
 #: templates/dashboard/sites/authorization_keys/form.html:8
 msgctxt "Dashboard authorization key list"
 msgid "Edit"
-msgstr ""
+msgstr "Редагувати"
 
 #: templates/dashboard/sites/authorization_keys/form.html:10
 msgctxt "Add new authorization key page title"
 msgid "Add new authorization key"
-msgstr ""
+msgstr "Додати ключ авторизації"
 
 #: templates/dashboard/sites/authorization_keys/form.html:29
 msgctxt "Dashboard site setting detail"
 msgid "Site settings"
-msgstr ""
+msgstr "Налаштування сайту"
 
 #: templates/dashboard/sites/authorization_keys/form.html:40
 msgctxt "Authorization key breadcrumbs"
 msgid "Edit"
-msgstr ""
+msgstr "Редагувати"
 
 #: templates/dashboard/sites/authorization_keys/form.html:46
 msgctxt "Authorization key breadcrumbs"
 msgid "Add new authorization key"
-msgstr ""
+msgstr "Додати ключ авторизації"
 
 #: templates/dashboard/sites/authorization_keys/form.html:63
 msgctxt "Authorization key form title"
 msgid "Authorization key"
-msgstr ""
+msgstr "Ключі авторизації"
 
 #: templates/dashboard/sites/detail.html:34
 msgctxt "Site settings field"
 msgid "Domain"
-msgstr ""
+msgstr "Домен"
 
 #: templates/dashboard/sites/detail.html:44
 msgctxt "Site settings field"
 msgid "Header text"
-msgstr ""
+msgstr "Текст заголовку"
 
 #: templates/dashboard/sites/detail.html:54
 msgctxt "Site settings field"
 msgid "Description"
-msgstr ""
+msgstr "Опис"
 
 #: templates/dashboard/sites/detail.html:68
 msgctxt "Shipping method action"
@@ -3990,22 +4086,22 @@ msgstr ""
 #: templates/dashboard/sites/detail.html:90
 msgctxt "Header of authorization keys list"
 msgid "Name"
-msgstr ""
+msgstr "Назва"
 
 #: templates/dashboard/sites/detail.html:93
 msgctxt "Header of authorization keys list"
 msgid "Key"
-msgstr ""
+msgstr "Ключ"
 
 #: templates/dashboard/sites/detail.html:104
 msgctxt "Authorization key edit action"
 msgid "Edit"
-msgstr ""
+msgstr "Редагувати"
 
 #: templates/dashboard/sites/detail.html:107
 msgctxt "Authorization key remove action"
 msgid "Remove"
-msgstr ""
+msgstr "Видалити"
 
 #: templates/dashboard/sites/detail.html:113
 msgctxt "Empty list of authorization keys"
@@ -4020,12 +4116,12 @@ msgstr "Додати нові налаштування сайту"
 #: templates/dashboard/sites/form.html:22
 msgctxt "Dashboard attributes list"
 msgid "Site settings"
-msgstr ""
+msgstr "Налаштування сайту"
 
 #: templates/dashboard/sites/form.html:27
 msgctxt "Dashboard site settings"
 msgid "Edit"
-msgstr ""
+msgstr "Редагувати"
 
 #: templates/dashboard/sites/modal/confirm_delete.html:12
 #, python-format
@@ -4043,7 +4139,7 @@ msgstr ""
 #: templates/dashboard/staff/detail.html:10
 msgctxt "Dashboard add staff member"
 msgid "Add new staff member"
-msgstr ""
+msgstr "Додати нового співробітника"
 
 #: templates/dashboard/staff/detail.html:12
 msgctxt "Dashboard staff"
@@ -4084,17 +4180,17 @@ msgstr ""
 #: templates/dashboard/staff/list.html:45
 msgctxt "Staff members table header"
 msgid "Name"
-msgstr ""
+msgstr "Назва"
 
 #: templates/dashboard/staff/list.html:48
 msgctxt "Staff members table header"
 msgid "Email"
-msgstr ""
+msgstr "Email"
 
 #: templates/dashboard/staff/list.html:51
 msgctxt "Staff members table header"
 msgid "Location"
-msgstr ""
+msgstr "Розташування"
 
 #: templates/dashboard/staff/list.html:91
 msgctxt "Empty staff table message"
@@ -4202,24 +4298,24 @@ msgctxt "Order details column title"
 msgid "Price"
 msgstr "Ціна"
 
-#: templates/order/_ordered_items_table.html:80
+#: templates/order/_ordered_items_table.html:79
 #, python-format
 msgctxt "Order details shipment row text"
 msgid "Shipping (%(shipping_method_name)s)"
 msgstr ""
 
-#: templates/order/_ordered_items_table.html:86
+#: templates/order/_ordered_items_table.html:85
 #, python-format
 msgctxt "Order details shipment row text"
 msgid "Tracking number: %(tracking_number)s"
 msgstr ""
 
-#: templates/order/_ordered_items_table.html:102
+#: templates/order/_ordered_items_table.html:101
 msgctxt "Order details shipment row text"
 msgid "Shipping total"
 msgstr ""
 
-#: templates/order/_ordered_items_table.html:129
+#: templates/order/_ordered_items_table.html:128
 msgctxt "Order details total text"
 msgid "Total"
 msgstr "Підсумок"
@@ -4228,7 +4324,7 @@ msgstr "Підсумок"
 #: templates/order/checkout_success_anonymous.html:7
 msgctxt "Checkout success page title"
 msgid "Thank you"
-msgstr ""
+msgstr "Дякую"
 
 #: templates/order/checkout_success.html:15
 #: templates/order/checkout_success_anonymous.html:15
@@ -4312,7 +4408,7 @@ msgstr "Заплатіть за замовлення"
 #: templates/order/details.html:66
 msgctxt "Order notes list"
 msgid "Notes"
-msgstr ""
+msgstr "Помітка"
 
 #: templates/order/details.html:70
 #, python-format
@@ -4480,7 +4576,7 @@ msgstr ""
 #: templates/userprofile/address_delete.html:9
 msgctxt "Remove address form action"
 msgid "Cancel"
-msgstr ""
+msgstr "Відмінити"
 
 #: templates/userprofile/address_edit.html:7
 msgctxt "Edit address page title"

@@ -6,7 +6,7 @@ from django.template.response import TemplateResponse
 from django.utils.translation import pgettext_lazy
 
 from ...core.utils import get_paginator_items
-from ...userprofile.models import User
+from ...account.models import User
 from ..emails import (
     send_promote_customer_to_staff_email, send_set_password_email)
 from ..views import staff_member_required
@@ -16,7 +16,7 @@ from .utils import remove_staff_member
 
 
 @staff_member_required
-@permission_required('userprofile.view_staff')
+@permission_required('account.view_staff')
 def staff_list(request):
     staff_members = User.objects.filter(is_staff=True).prefetch_related(
         'default_billing_address').order_by('email')
@@ -31,7 +31,7 @@ def staff_list(request):
 
 
 @staff_member_required
-@permission_required('userprofile.edit_staff')
+@permission_required('account.edit_staff')
 def staff_details(request, pk):
     queryset = User.objects.filter(is_staff=True)
     staff_member = get_object_or_404(queryset, pk=pk)
@@ -48,7 +48,7 @@ def staff_details(request, pk):
 
 
 @staff_member_required
-@permission_required('userprofile.edit_staff')
+@permission_required('account.edit_staff')
 def staff_create(request):
     try:
         staff = User.objects.get(email=request.POST.get('email'))
@@ -72,7 +72,7 @@ def staff_create(request):
 
 
 @staff_member_required
-@permission_required('userprofile.edit_staff')
+@permission_required('account.edit_staff')
 def staff_delete(request, pk):
     queryset = User.objects.prefetch_related('orders')
     staff = get_object_or_404(queryset, pk=pk)

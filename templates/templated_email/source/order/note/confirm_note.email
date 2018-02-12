@@ -1,0 +1,23 @@
+{% load i18n %}
+
+{% block subject %}
+  {% trans "New note has been added to your order" context "Note confirmation email subject" %}
+{% endblock %}
+
+{% block plain %}
+{% blocktrans context "Note confirmation email text" %}
+Hi!
+
+A new note has been added to your order. To see details please visit:
+{{ url }}
+
+This is an automatically generated email, please do not reply.
+
+Sincerely,
+{{ site_name }}
+{% endblocktrans %}
+{% endblock %}
+
+{% block html %}
+{% include 'templated_email/compiled/confirm_note.html' %}
+{% endblock %}

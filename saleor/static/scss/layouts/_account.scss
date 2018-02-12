@@ -1,0 +1,47 @@
+.account {
+  h2 {
+    text-align: center;
+    text-transform: uppercase;
+  }
+  &__user {
+    h2 {
+      margin-right: $global-margin;
+      margin-bottom: $global-margin * 2;
+    }
+    img {
+      margin-top: $global-margin / 2;
+    }
+  }
+  &__nav {
+    margin-top: $global-margin * 2;
+  }
+  &__orders {
+    &-empty {
+      margin-top: $global-margin * 2;
+    }
+  }
+  &__password {
+    margin-top: $global-margin * 2;
+    .btn {
+      margin-top: $global-margin;
+      float: right;
+    }
+  }
+  &__addresses {
+    display: table;
+    min-width: 100%;
+    border-spacing: $global-margin;
+    margin: 0;
+  }
+  &__address-edit {
+    h2 {
+      text-align: center;
+      text-transform: uppercase;
+      padding-bottom: $global-padding;
+      font-size: 1.3rem;
+    }
+  }
+  h3 {
+    font-size: 1rem;
+  }
+}

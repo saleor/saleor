@@ -8,9 +8,9 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2018-01-23 09:24-0600\n"
+"POT-Creation-Date: 2018-01-30 09:47-0600\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"Last-Translator: Yevhenii Dehtiar <yevhenii.dehtiar@gmail.com>, 2017\n"
+"Last-Translator: Николай Инкогнито <mmmsvit@gmail.com>, 2018\n"
 "Language-Team: Ukrainian (https://www.transifex.com/mirumee/teams/34782/uk/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -25,37 +25,262 @@ msgstr[0] "вибрана позиція"
 msgstr[1] "вибрані позиції"
 msgstr[2] "вибрані позиції"
 
-#: saleor/static/dashboard/js/components/datepicker.js:25
+#: saleor/static/dashboard/js/components/datepicker.js:4
 msgctxt "Datepicker option"
 msgid "Next month"
 msgstr "за наступний місяць"
 
-#: saleor/static/dashboard/js/components/datepicker.js:26
+#: saleor/static/dashboard/js/components/datepicker.js:5
 msgctxt "Datepicker option"
 msgid "Previous month"
 msgstr "за минулий місяць"
 
-#: saleor/static/dashboard/js/components/datepicker.js:29
+#: saleor/static/dashboard/js/components/datepicker.js:8
 msgctxt "Datepicker option"
 msgid "Select a month"
 msgstr "виберіть місяць"
 
-#: saleor/static/dashboard/js/components/datepicker.js:30
+#: saleor/static/dashboard/js/components/datepicker.js:9
 msgctxt "Datepicker option"
 msgid "Select a year"
 msgstr "виберіть рік"
 
+#: saleor/static/dashboard/js/components/datepicker.js:13
+msgctxt "Datepicker month"
+msgid "January"
+msgstr "Січень"
+
+#: saleor/static/dashboard/js/components/datepicker.js:14
+msgctxt "Datepicker month"
+msgid "February"
+msgstr "Лютий"
+
+#: saleor/static/dashboard/js/components/datepicker.js:15
+msgctxt "Datepicker month"
+msgid "March"
+msgstr "Березень"
+
+#: saleor/static/dashboard/js/components/datepicker.js:16
+msgctxt "Datepicker month"
+msgid "April"
+msgstr "Квітень"
+
+#: saleor/static/dashboard/js/components/datepicker.js:17
+msgctxt "Datepicker month"
+msgid "May"
+msgstr "Травень"
+
+#: saleor/static/dashboard/js/components/datepicker.js:18
+msgctxt "Datepicker month"
+msgid "June"
+msgstr "Червень"
+
+#: saleor/static/dashboard/js/components/datepicker.js:19
+msgctxt "Datepicker month"
+msgid "July"
+msgstr "Липень"
+
+#: saleor/static/dashboard/js/components/datepicker.js:20
+msgctxt "Datepicker month"
+msgid "August"
+msgstr "Серпень"
+
+#: saleor/static/dashboard/js/components/datepicker.js:21
+msgctxt "Datepicker month"
+msgid "September"
+msgstr "Вересень"
+
+#: saleor/static/dashboard/js/components/datepicker.js:22
+msgctxt "Datepicker month"
+msgid "October"
+msgstr "Жовтень"
+
+#: saleor/static/dashboard/js/components/datepicker.js:23
+msgctxt "Datepicker month"
+msgid "November"
+msgstr "Листопад"
+
+#: saleor/static/dashboard/js/components/datepicker.js:24
+msgctxt "Datepicker month"
+msgid "December"
+msgstr "Грудень"
+
+#: saleor/static/dashboard/js/components/datepicker.js:26
+msgctxt "Datepicker month shortcut"
+msgid "Jan"
+msgstr "Січ"
+
+#: saleor/static/dashboard/js/components/datepicker.js:27
+msgctxt "Datepicker month shortcut"
+msgid "Feb"
+msgstr "Лют"
+
+#: saleor/static/dashboard/js/components/datepicker.js:28
+msgctxt "Datepicker month shortcut"
+msgid "Mar"
+msgstr "Бер"
+
+#: saleor/static/dashboard/js/components/datepicker.js:29
+msgctxt "Datepicker month shortcut"
+msgid "Apr"
+msgstr "Кві"
+
+#: saleor/static/dashboard/js/components/datepicker.js:30
+msgctxt "Datepicker month shortcut"
+msgid "May"
+msgstr "Травень"
+
+#: saleor/static/dashboard/js/components/datepicker.js:31
+msgctxt "Datepicker month shortcut"
+msgid "Jun"
+msgstr "Чер"
+
+#: saleor/static/dashboard/js/components/datepicker.js:32
+msgctxt "Datepicker month shortcut"
+msgid "Jul"
+msgstr "Лип"
+
+#: saleor/static/dashboard/js/components/datepicker.js:33
+msgctxt "Datepicker month shortcut"
+msgid "Aug"
+msgstr "Сер"
+
+#: saleor/static/dashboard/js/components/datepicker.js:34
+msgctxt "Datepicker month shortcut"
+msgid "Sep"
+msgstr "Вер"
+
+#: saleor/static/dashboard/js/components/datepicker.js:35
+msgctxt "Datepicker month shortcut"
+msgid "Oct"
+msgstr "Жов"
+
+#: saleor/static/dashboard/js/components/datepicker.js:36
+msgctxt "Datepicker month shortcut"
+msgid "Nov"
+msgstr "Лис"
+
+#: saleor/static/dashboard/js/components/datepicker.js:37
+msgctxt "Datepicker month shortcut"
+msgid "Dec"
+msgstr "Гру"
+
+#: saleor/static/dashboard/js/components/datepicker.js:39
+msgctxt "Datepicker weekday"
+msgid "Sunday"
+msgstr "Неділя"
+
 #: saleor/static/dashboard/js/components/datepicker.js:40
+msgctxt "Datepicker weekday"
+msgid "Monday"
+msgstr "Понеділок"
+
+#: saleor/static/dashboard/js/components/datepicker.js:41
+msgctxt "Datepicker weekday"
+msgid "Tuesday"
+msgstr "Вівторок"
+
+#: saleor/static/dashboard/js/components/datepicker.js:42
+msgctxt "Datepicker weekday"
+msgid "Wednesday"
+msgstr "Середа"
+
+#: saleor/static/dashboard/js/components/datepicker.js:43
+msgctxt "Datepicker weekday"
+msgid "Thursday"
+msgstr "Четвер"
+
+#: saleor/static/dashboard/js/components/datepicker.js:44
+msgctxt "Datepicker weekday"
+msgid "Friday"
+msgstr "П'ятниця"
+
+#: saleor/static/dashboard/js/components/datepicker.js:45
+msgctxt "Datepicker weekday"
+msgid "Saturday"
+msgstr "Субота"
+
+#: saleor/static/dashboard/js/components/datepicker.js:47
+msgctxt "Datepicker weekday shortcut"
+msgid "Sun"
+msgstr "Нд"
+
+#: saleor/static/dashboard/js/components/datepicker.js:48
+msgctxt "Datepicker weekday shortcut"
+msgid "Mon"
+msgstr "Пн"
+
+#: saleor/static/dashboard/js/components/datepicker.js:49
+msgctxt "Datepicker weekday shortcut"
+msgid "Tue"
+msgstr "Вт"
+
+#: saleor/static/dashboard/js/components/datepicker.js:50
+msgctxt "Datepicker weekday shortcut"
+msgid "Wed"
+msgstr "Ср"
+
+#: saleor/static/dashboard/js/components/datepicker.js:51
+msgctxt "Datepicker weekday shortcut"
+msgid "Thu"
+msgstr "Чт"
+
+#: saleor/static/dashboard/js/components/datepicker.js:52
+msgctxt "Datepicker weekday shortcut"
+msgid "Fri"
+msgstr "Пт"
+
+#: saleor/static/dashboard/js/components/datepicker.js:53
+msgctxt "Datepicker weekday shortcut"
+msgid "Sat"
+msgstr "Сб"
+
+#: saleor/static/dashboard/js/components/datepicker.js:57
+msgctxt "Sunday shortcut"
+msgid "S"
+msgstr "Сб"
+
+#: saleor/static/dashboard/js/components/datepicker.js:58
+msgctxt "Monday shortcut"
+msgid "M"
+msgstr "Пн"
+
+#: saleor/static/dashboard/js/components/datepicker.js:59
+msgctxt "Tuesday shortcut"
+msgid "T"
+msgstr "Чт"
+
+#: saleor/static/dashboard/js/components/datepicker.js:60
+msgctxt "Wednesday shortcut"
+msgid "W"
+msgstr "Ср"
+
+#: saleor/static/dashboard/js/components/datepicker.js:61
+msgctxt "Thursday shortcut"
+msgid "T"
+msgstr "Чт"
+
+#: saleor/static/dashboard/js/components/datepicker.js:62
+msgctxt "Friday shortcut"
+msgid "F"
+msgstr "Пт"
+
+#: saleor/static/dashboard/js/components/datepicker.js:63
+msgctxt "Saturday shortcut"
+msgid "S"
+msgstr "Сб"
+
+#: saleor/static/dashboard/js/components/datepicker.js:64
 msgctxt "Datepicker option"
 msgid "Today"
 msgstr "Сьогодні"
 
-#: saleor/static/dashboard/js/components/datepicker.js:41
+#: saleor/static/dashboard/js/components/datepicker.js:65
 msgctxt "Datepicker option"
 msgid "Clear"
 msgstr "Очистити"
 
-#: saleor/static/dashboard/js/components/datepicker.js:42
+#: saleor/static/dashboard/js/components/datepicker.js:66
 msgctxt "Datepicker option"
 msgid "Close"
 msgstr "Закрити"
@@ -63,32 +288,32 @@ msgstr "Закрити"
 #: saleor/static/dashboard/js/components/editor.js:9
 msgctxt "Rich text editor option"
 msgid "Bold text"
-msgstr ""
+msgstr "Жирний текст"
 
 #: saleor/static/dashboard/js/components/editor.js:13
 msgctxt "Rich text editor option"
 msgid "Italic text"
-msgstr ""
+msgstr "Курсивний текст"
 
 #: saleor/static/dashboard/js/components/editor.js:17
 msgctxt "Rich text editor option"
 msgid "Header"
-msgstr ""
+msgstr "Текст заголовку"
 
 #: saleor/static/dashboard/js/components/editor.js:24
 msgctxt "Rich text editor option"
 msgid "Subheader"
-msgstr ""
+msgstr "Підзаголовок"
 
 #: saleor/static/dashboard/js/components/editor.js:31
 msgctxt "Rich text editor option"
 msgid "Quote"
-msgstr ""
+msgstr "Цитувати"
 
 #: saleor/static/dashboard/js/components/editor.js:35
 msgctxt "Rich text editor option"
 msgid "Link"
-msgstr ""
+msgstr "Посилання"
 
 #: saleor/static/js/components/variantPicker/QuantityInput.js:21
 msgctxt "Add to cart form field label"
@@ -98,4 +323,4 @@ msgstr "Кількість"
 #: saleor/static/js/components/variantPicker/VariantPicker.js:168
 msgctxt "Product details primary action"
 msgid "Add to cart"
-msgstr ""
+msgstr "Купити"

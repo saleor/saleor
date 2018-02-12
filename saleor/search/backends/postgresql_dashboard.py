@@ -3,7 +3,7 @@ from django.contrib.postgres.search import (
 
 from ...order.models import Order
 from ...product.models import Product
-from ...userprofile.models import User
+from ...account.models import User
 
 
 def search_products(phrase):

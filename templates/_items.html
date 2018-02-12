@@ -17,21 +17,16 @@
       </div>
 
       <div class="panel-footer">
-        {% if availability.available %}
-          {% price_range availability.price_range %}
-          {% if availability.discount %}
-            {% if availability.price_range_undiscounted.min_price != availability.price_range.min_price %}
-              <div class="product-list__sale">
-                <svg data-src="{% static "images/sale-bg.svg" %}" />
-                <span class="product-list__sale__text">
-                  {% comment %}Translators: Layout may break if character length is different than four.{% endcomment %}
-                  {% trans "Sale" context "Sale (discount) label for item in product list" %}
-                </span>
-              </div>
-            {% endif %}
-          {% endif %}
-        {% else %}
-          &nbsp;
+        {% price_range availability.price_range %}
+
+        {% if availability.on_sale %}
+          <div class="product-list__sale">
+            <svg data-src="{% static "images/sale-bg.svg" %}" />
+            <span class="product-list__sale__text">
+              {% comment %}Translators: Layout may break if character length is different than four.{% endcomment %}
+              {% trans "Sale" context "Sale (discount) label for item in product list" %}
+            </span>
+          </div>
         {% endif %}
       </div>
     </div>

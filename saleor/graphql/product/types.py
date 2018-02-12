@@ -1,8 +1,8 @@
 import functools
 import operator
 
-from django.db.models import Q
 import graphene
+from django.db.models import Q
 from graphene import relay
 from graphene_django import DjangoConnectionField, DjangoObjectType
 
@@ -28,6 +28,7 @@ def get_ancestors_from_cache(category, context):
 
 class ProductAvailabilityType(graphene.ObjectType):
     available = graphene.Boolean()
+    on_sale = graphene.Boolean()
     discount = graphene.Field(lambda: PriceType)
     discount_local_currency = graphene.Field(lambda: PriceType)
     price_range = graphene.Field(lambda: PriceRangeType)

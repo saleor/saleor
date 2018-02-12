@@ -113,7 +113,7 @@
                       {% render_status order.get_last_payment_status order.get_last_payment_status_display %}
                     </td>
                     <td class="right-align">
-                      {% gross order.get_total html=True %}
+                      {% gross order.total html=True %}
                     </td>
                   </tr>
                 {% endfor %}
