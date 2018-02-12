@@ -60,6 +60,8 @@ class Order(models.Model):
         default=0, editable=False)
     shipping_price = TaxedMoneyField(
         net_field='shipping_price_net', gross_field='shipping_price_gross')
+    shipping_method_name = models.CharField(
+        max_length=255, null=True, default=None, blank=True, editable=False)
     token = models.CharField(max_length=36, unique=True)
     total_net = MoneyField(
         currency=settings.DEFAULT_CURRENCY, max_digits=12, decimal_places=2,
