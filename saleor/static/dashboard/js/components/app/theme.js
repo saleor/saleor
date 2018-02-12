@@ -40,6 +40,11 @@ export default createMuiTheme({
         }
       }
     },
+    MuiPaper: {
+      root: {
+        marginTop: '16px',
+      }
+    },
     MuiCardActions: {
       root: {
         borderTop: '1px solid rgba(160, 160, 160, 0.2)',
