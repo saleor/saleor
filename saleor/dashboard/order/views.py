@@ -2,6 +2,7 @@ from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import permission_required
 from django.db import transaction
+from django.forms import modelformset_factory
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect
 from django.template.context_processors import csrf
@@ -14,14 +15,15 @@ from prices import Money, TaxedMoney
 from ...core.exceptions import InsufficientStock
 from ...core.utils import ZERO_TAXED_MONEY, get_paginator_items
 from ...order import OrderStatus
-from ...order.models import Fulfillment, Order, OrderLine, OrderNote
+from ...order.models import Fulfillment, Order, OrderLine, OrderNote, FulfillmentLine
 from ...product.models import StockLocation
 from ..views import staff_member_required
 from .filters import OrderFilter
 from .forms import (
     AddressForm, AddVariantToOrderForm, CancelOrderForm, CancelOrderLineForm,
     CapturePaymentForm, ChangeQuantityForm, ChangeStockForm, FulfillmentForm,
-    OrderNoteForm, RefundPaymentForm, ReleasePaymentForm, RemoveVoucherForm)
+    OrderNoteForm, RefundPaymentForm, ReleasePaymentForm, RemoveVoucherForm,
+    FulfillmentLineForm)
 from .utils import (
     create_invoice_pdf, create_packing_slip_pdf, get_statics_absolute_url)
 
@@ -371,13 +373,23 @@ def orderline_change_stock(request, order_pk, line_pk):
 def fulfill_order_lines(request, order_pk):
     qs = Order.objects.prefetch_related('lines')
     order = get_object_or_404(qs, pk=order_pk)
+    lines = order.lines.all()
     status = 200
     form = FulfillmentForm(
         request.POST or None, order=order, instance=Fulfillment())
+    FulfillmentLineFormSet = modelformset_factory(
+        FulfillmentLine, form=FulfillmentLineForm, extra=lines.count())
+    initial_kwargs = [
+        {'order_line': line, 'quantity': line.quantity} for line in lines]
+    formset = FulfillmentLineFormSet(
+        request.POST or None, initial=initial_kwargs)
     if form.is_valid():
         fulfillment = form.save()
+        for form in formset:
+            # TODO: save forms with fulfillment (only if quantity > 0)
+            pass
     elif form.errors:
         status = 400
-    ctx = {'form': form, 'order': order}
+    ctx = {'form': form, 'formset': formset, 'order': order}
     template = 'dashboard/order/modal/fulfill_order_lines.html'
     return TemplateResponse(request, template, ctx, status=status)

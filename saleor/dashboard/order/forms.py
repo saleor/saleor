@@ -12,7 +12,7 @@ from ...cart.forms import QuantityField
 from ...core.exceptions import InsufficientStock
 from ...discount.utils import decrease_voucher_usage
 from ...order.emails import send_note_confirmation
-from ...order.models import Fulfillment, OrderLine, OrderNote
+from ...order.models import Fulfillment, FulfillmentLine, OrderLine, OrderNote
 from ...order.utils import (
     add_variant_to_order, cancel_order, change_order_line_quantity,
     merge_duplicates_into_order_line, recalculate_order)
@@ -322,3 +322,9 @@ class FulfillmentForm(forms.ModelForm):
         order = kwargs.pop('order')
         super().__init__(*args, **kwargs)
         self.instance.order = order
+
+
+class FulfillmentLineForm(forms.ModelForm):
+    class Meta:
+        model = FulfillmentLine
+        fields = ['fulfillment', 'order_line', 'quantity']

@@ -13,6 +13,46 @@
 {% endblock %}
 
 {% block content %}
+  {{ formset.management_form }}
+  <div class="col s12">
+   <table>
+     <thead>
+       <tr>
+         <th class="wide">
+           {% trans "Item" context "Modal remove order line table header" %}
+         </th>
+         <th>
+           {% trans "SKU" context "Modal remove order line table header" %}
+         </th>
+         <th class="right-align">
+           {% trans "Quantity" context "Modal remove order line table header" %}
+         </th>
+       </tr>
+     </thead>
+     <tbody>
+       {% for line in order %}
+         <tr>
+           <td>
+             {{ line.product_name }}<br>
+           </td>
+           <td>
+             {{ line.product_sku }}
+           </td>
+           <td class="right-align">
+             {% get_formset_form formset forloop.counter0 as line_form %}
+              <input id="{{ line_form.quantity.auto_id }}"
+                     max="{{ line.quantity }}"
+                     min="0"
+                     name="{{ line_form.quantity.html_name }}"
+                     required="{{ line_form.quantity.field.required }}"
+                     type="number"
+                     value="{% if line_form.quantity.value %}{{ line_form.quantity.value }}{% endif %}">
+           </td>
+         </tr>
+       {% endfor %}
+     </tbody>
+   </table>
+  </div>
   {{ form }}
 {% endblock %}
 

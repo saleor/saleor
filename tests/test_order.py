@@ -97,18 +97,6 @@ def test_order_status_closed(closed_orders):
     assert all([order.status == OrderStatus.CLOSED for order in closed_orders])
 
 
-def test_order_queryset_open_orders(open_orders):
-    qs = models.Order.objects.open()
-    assert qs.count() == len(open_orders)
-    assert all([item in qs for item in open_orders])
-
-
-def test_order_queryset_closed_orders(closed_orders):
-    qs = models.Order.objects.closed()
-    assert qs.count() == len(closed_orders)
-    assert all([item in qs for item in closed_orders])
-
-
 def test_view_connect_order_with_user_authorized_user(
         order, authorized_client, customer_user):
     order.user_email = customer_user.email
