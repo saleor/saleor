@@ -1,4 +1,5 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 import { withRouter } from 'react-router-dom';
 import MuiTable, {
   TableHead,
@@ -41,7 +42,7 @@ const TableCell = withStyles(styles)(
 );
 
 function handleRowClick(pk, href, history) {
-  return () => history.push(`${href}/${pk}`);
+  return () => history.push(`${href}/${pk}/`);
 }
 
 const Table = (props) => {
@@ -50,7 +51,6 @@ const Table = (props) => {
     <div style={style}>
       <MuiTable
         className={classes.childCategory}
-        style={props.hideTopBorder && {borderTop: 'none'}}
       >
         <TableHead>
           <TableRow>
@@ -81,6 +81,17 @@ const Table = (props) => {
       )}
     </div>
   );
+};
+Table.propTypes = {
+  classes: PropTypes.object,
+  headers: PropTypes.array.isRequired,
+  handlePrev: PropTypes.func,
+  handleNext: PropTypes.func,
+  href: PropTypes.string,
+  history: PropTypes.object,
+  style: PropTypes.object,
+  data: PropTypes.array.isRequired,
+  noDataLabel: PropTypes.string.isRequired,
 };
 
 export default withStyles(styles)(withRouter(Table));
