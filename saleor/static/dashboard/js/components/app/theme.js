@@ -44,7 +44,10 @@ export default createMuiTheme({
       root: {
         borderTop: '1px solid rgba(160, 160, 160, 0.2)',
         margin: '24px -16px -24px',
-        padding: '0 8px'
+        padding: '0 8px',
+        '@media (max-width: 480px)': {
+          padding: '32px 8px'
+        }
       }
     },
     MuiTableRow: {
