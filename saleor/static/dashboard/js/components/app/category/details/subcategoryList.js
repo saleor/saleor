@@ -92,7 +92,8 @@ Component.propTypes = {
     loading: PropTypes.bool
   }),
   pk: PropTypes.number,
-  history: PropTypes.object.isRequired
+  history: PropTypes.object.isRequired,
+  classes: PropTypes.object,
 };
 
 export default withStyles(styles)(
