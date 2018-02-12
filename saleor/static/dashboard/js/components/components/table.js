@@ -1,4 +1,5 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 import { withRouter } from 'react-router-dom';
 import MuiTable, {
   TableHead,
@@ -41,7 +42,7 @@ const TableCell = withStyles(styles)(
 );
 
 function handleRowClick(pk, href, history) {
-  return () => history.push(`${href}/${pk}`);
+  return () => history.push(`${href}/${pk}/`);
 }
 
 const Table = (props) => {
@@ -50,12 +51,14 @@ const Table = (props) => {
     <div style={style}>
       <MuiTable
         className={classes.childCategory}
-        style={props.hideTopBorder && {borderTop: 'none'}}
       >
         <TableHead>
           <TableRow>
             {headers.map((header) => (
-              <TableCell wide={header.wide}>{header.label}</TableCell>
+              <TableCell
+                wide={header.wide}
+                key={header.name}
+              >{header.label}</TableCell>
             ))}
           </TableRow>
         </TableHead>
@@ -64,9 +67,13 @@ const Table = (props) => {
             <TableRow
               onClick={handleRowClick(row.pk, href, history)}
               style={{ cursor: 'pointer' }}
+              key={row.id}
             >
               {headers.map((header) => (
-                <TableCell wide={header.wide}>
+                <TableCell
+                  wide={header.wide}
+                  key={header.name}
+                >
                   {row[header.name] ? row[header.name] : header.noDataText}
                 </TableCell>
               ))}
@@ -81,6 +88,17 @@ const Table = (props) => {
       )}
     </div>
   );
+};
+Table.propTypes = {
+  classes: PropTypes.object,
+  headers: PropTypes.array.isRequired,
+  handlePrev: PropTypes.func,
+  handleNext: PropTypes.func,
+  href: PropTypes.string,
+  history: PropTypes.object,
+  style: PropTypes.object,
+  data: PropTypes.array.isRequired,
+  noDataLabel: PropTypes.string.isRequired
 };
 
 export default withStyles(styles)(withRouter(Table));
