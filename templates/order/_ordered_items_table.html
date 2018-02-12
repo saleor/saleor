@@ -77,7 +77,7 @@
     <div class="row">
       <div class="col-8 order-details__table-footer">
         <p>
-          {% trans "Shipping total" context "Order details shipment row text" %} ({{ order.shipping_method_name }})
+          {% trans "Shipping total" context "Order details shipment row text" %} ({{ order.shipping_method_name|default:"-" }})
         </p>
       </div>
       <div class="col-4">

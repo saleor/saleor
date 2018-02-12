@@ -323,12 +323,16 @@ class Checkout:
                 net=Money(0, settings.DEFAULT_CURRENCY),
                 gross=Money(0, settings.DEFAULT_CURRENCY))
 
+        shipping_method_name = (
+            smart_text(self.shipping_method) if self.is_shipping_required
+            else None)
         order_data = {
             'language_code': get_language(),
             'billing_address': billing_address,
             'shipping_address': shipping_address,
             'tracking_client_id': self.tracking_code,
             'shipping_price': shipping_price,
+            'shipping_method_name': shipping_method_name,
             'total': self.get_total()}
 
         if self.user.is_authenticated:
