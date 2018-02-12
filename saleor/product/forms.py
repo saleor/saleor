@@ -31,8 +31,8 @@ class VariantChoiceField(forms.ModelChoiceField):
                 vi.image.image.url for vi in variant.variant_images.all()]
             for variant in variants.all()}
         self.widget.attrs['data-images'] = json.dumps(images_map)
-        # Don't display select input if there are less than two variants
-        if self.queryset.count() < 2:
+        # Don't display select input if there is only one variant.
+        if self.queryset.count() == 1:
             self.widget = forms.HiddenInput(
                 {'value': variants.all()[0].pk})
 
