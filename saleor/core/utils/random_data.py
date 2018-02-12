@@ -432,9 +432,13 @@ def create_fake_order():
             'shipping_address': address,
             'user_email': get_email(
                 address.first_name, address.last_name)}
+
     shipping_method = ShippingMethod.objects.order_by('?').first()
     shipping_price = shipping_method.price_per_country.first().price
-    order_data.update({'shipping_price': shipping_price})
+    order_data.update({
+        'shipping_method_name': shipping_method.name,
+        'shipping_price': shipping_price})
+
     order = Order.objects.create(**order_data)
 
     lines = create_order_lines(order, random.randrange(1, 5))
