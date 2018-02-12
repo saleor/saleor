@@ -12,7 +12,7 @@ from ...cart.forms import QuantityField
 from ...core.exceptions import InsufficientStock
 from ...discount.utils import decrease_voucher_usage
 from ...order.emails import send_note_confirmation
-from ...order.models import OrderLine, OrderNote
+from ...order.models import Fulfillment, OrderLine, OrderNote
 from ...order.utils import (
     add_variant_to_order, cancel_order, change_order_line_quantity,
     merge_duplicates_into_order_line, recalculate_order)
@@ -311,3 +311,14 @@ class AddVariantToOrderForm(forms.Form):
 class AddressForm(StorefrontAddressForm):
     phone = PossiblePhoneNumberFormField(
         widget=PhonePrefixWidget, required=False)
+
+
+class FulfillmentForm(forms.ModelForm):
+    class Meta:
+        model = Fulfillment
+        fields = ['tracking_number']
+
+    def __init__(self, *args, **kwargs):
+        order = kwargs.pop('order')
+        super().__init__(*args, **kwargs)
+        self.instance.order = order

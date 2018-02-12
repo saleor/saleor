@@ -1,0 +1,21 @@
+{% extends "dashboard/base_modal.html" %}
+
+{% load i18n %}
+{% load materializecss %}
+{% load dashboard %}
+
+{% block action_url %}
+{% url 'dashboard:fulfill-order-lines' order_pk=order.pk %}
+{% endblock %}
+
+{% block title %}
+{% trans "Fulfill order" context "Modal fulfill order title" %}
+{% endblock %}
+
+{% block content %}
+  {{ form }}
+{% endblock %}
+
+{% block primary_action %}
+{% trans "Fulfill" context "Modal fulfill order primary action" %}
+{% endblock %}
