@@ -16,7 +16,7 @@ const styles = {
     paddingBottom: 0
   },
   cardActions: {
-    paddingBottom: 0,
+    paddingBottom: 0
   }
 };
 
