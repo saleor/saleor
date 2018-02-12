@@ -1,59 +1,45 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { withRouter } from 'react-router-dom';
-import Table, {
-  TableBody,
-  TableHead,
-  TableRow
-} from 'material-ui/Table';
 import Card, { CardContent } from 'material-ui/Card';
 import Button from 'material-ui/Button';
 import { graphql } from 'react-apollo';
 import { CircularProgress } from 'material-ui/Progress';
+import { withStyles } from 'material-ui/styles';
 
 import { CardTitle } from '../../../components/cards';
-import TableCell from '../../../components/table';
+import Table from '../../../components/table';
 import { categoryChildren as query } from '../queries';
 
-const styleFragments = {
-  table: {
-    tableLayout: 'auto',
-    width: 'calc(100% + 32px)'
-  }
-};
 const styles = {
-  cardSubcategories: {
-    marginTop: '16px',
+  card: {
     paddingBottom: 0
   },
-  table: {
-    rootCategory: {
-      ...styleFragments.table,
-      margin: '-16px'
-    },
-    childCategory: {
-      ...styleFragments.table,
-      borderTop: '1px solid rgba(160, 160, 160, 0.2)',
-      margin: '0 -16px -24px'
-    }
-  },
-  noSubcategoriesLabel: {
-    top: '8px',
-    position: 'relative',
-    marginLeft: '7px'
+  cardActions: {
+    paddingBottom: 0,
   }
 };
-
-function handleRowClick(pk, history) {
-  history.push(`/categories/${pk}/`);
-}
 
 function handleNewCategoryClick(history) {
   return () => history.push('add');
 }
 
+const headers = [
+  {
+    name: 'name',
+    label: 'Name',
+    noDataText: 'No name'
+  },
+  {
+    name: 'description',
+    label: 'Description',
+    wide: true,
+    noDataText: 'No description'
+  }
+];
+
 const Component = (props) => (
-  <Card style={styles.cardSubcategories}>
+  <Card className={props.classes.card}>
     {props.data.loading && (
       <CircularProgress
         size={80}
@@ -62,9 +48,9 @@ const Component = (props) => (
       />
     )}
     {!props.data.loading && (
-      <CardContent>
+      <div>
         {props.pk && (
-          <div>
+          <CardContent className={props.classes.cardActions}>
             <CardTitle>Subcategories</CardTitle>
             <Button
               color={'secondary'}
@@ -73,46 +59,20 @@ const Component = (props) => (
             >
               {pgettext('Category list add category', 'Add')}
             </Button>
-          </div>
+          </CardContent>
         )}
-        <Table style={props.pk ? styles.table.childCategory : styles.table.rootCategory}>
-          <TableHead
-            adjustForCheckbox={false}
-            displaySelectAll={false}
-          >
-            <TableRow>
-              <TableCell>
-                {pgettext('Category list table header name', 'Name')}
-              </TableCell>
-              <TableCell wide>
-                {pgettext('Category list table header description', 'Description')}
-              </TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody displayRowCheckbox={false}>
-            {props.data.categories.edges.map((edge) => (
-              <TableRow
-                style={{ cursor: 'pointer' }}
-                onClick={() => handleRowClick(edge.node.pk, props.history)}
-                key={edge.node.pk}
-              >
-                <TableCell>{edge.node.name}</TableCell>
-                <TableCell wide>
-                  {`${edge.node.description.split(' ').splice(0, 10).join(' ')} [...]`}
-                  </TableCell>
-              </TableRow>
-            ))}
-            {!props.data.categories.edges.length && (
-              <TableRow style={{ height: '32px' }} />
-            )}
-          </TableBody>
-        </Table>
-        {!props.data.categories.edges.length && (
-          <div style={styles.noSubcategoriesLabel}>
-            {pgettext('Empty category list message', 'No categories found.')}
-          </div>
-        )}
-      </CardContent>
+        <CardContent style={{
+          borderTop: props.pk ? '1px solid rgba(160, 160, 160, 0.2)' : 'none',
+          padding: 0
+        }}>
+          <Table
+            data={props.data.categories.edges.map((edge) => edge.node)}
+            noDataLabel={pgettext('Empty category list message', 'No categories found.')}
+            headers={headers}
+            href="/categories"
+          />
+        </CardContent>
+      </div>
     )}
   </Card>
 );
@@ -135,10 +95,12 @@ Component.propTypes = {
   history: PropTypes.object.isRequired
 };
 
-export default withRouter(
-  graphql(query, {
-    options: (props) => ({
-      pk: props.pk
-    })
-  })(Component)
+export default withStyles(styles)(
+  withRouter(
+    graphql(query, {
+      options: (props) => ({
+        pk: props.pk
+      })
+    })(Component)
+  )
 );
