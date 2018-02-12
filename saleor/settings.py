@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 import ast
 import datetime
 import os.path
+import raven
 
 import dj_email_url
 import django_cache_url
@@ -218,7 +219,7 @@ INSTALLED_APPS = [
     'django_celery_beat',
 
     'robots',
-    'raven.contrib.django.raven_compat,
+    'raven.contrib.django.raven_compat',
 
 ]
 
