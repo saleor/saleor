@@ -64,9 +64,13 @@ const Table = (props) => {
             <TableRow
               onClick={handleRowClick(row.pk, href, history)}
               style={{ cursor: 'pointer' }}
+              key={row.id}
             >
               {headers.map((header) => (
-                <TableCell wide={header.wide}>
+                <TableCell
+                  wide={header.wide}
+                  key={header.name}
+                >
                   {row[header.name] ? row[header.name] : header.noDataText}
                 </TableCell>
               ))}
@@ -91,7 +95,7 @@ Table.propTypes = {
   history: PropTypes.object,
   style: PropTypes.object,
   data: PropTypes.array.isRequired,
-  noDataLabel: PropTypes.string.isRequired,
+  noDataLabel: PropTypes.string.isRequired
 };
 
 export default withStyles(styles)(withRouter(Table));
