@@ -9,7 +9,9 @@ from prices import Money, TaxedMoney
 from tests.utils import get_redirect_location, get_url_path
 
 from saleor.dashboard.order.forms import ChangeQuantityForm, OrderNoteForm
-from saleor.order.models import Order, OrderHistoryEntry, OrderLine, OrderNote
+from saleor.dashboard.order.utils import fulfill_order_line
+from saleor.order.models import (
+    Fulfillment, Order, OrderHistoryEntry, OrderLine, OrderNote)
 from saleor.order.utils import (
     add_variant_to_existing_lines, add_variant_to_order,
     change_order_line_quantity)
@@ -467,3 +469,14 @@ def test_note_form_sent_email(
     form = OrderNoteForm({'content': 'test_note'}, instance=note)
     form.send_confirmation_email()
     assert mock_send_note_confirmation.called_once()
+
+
+def test_fulfill_order_line(order_with_lines_and_stock):
+    order = order_with_lines_and_stock
+    fulfillment = Fulfillment.objects.create(order=order)
+    line = order.lines.first()
+    stock = line.stock
+    stock_quantity_after = stock.quantity - line.quantity
+    fulfill_order_line(line, line.quantity, fulfillment)
+    stock.refresh_from_db()
+    assert stock.quantity == stock_quantity_after
