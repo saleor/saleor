@@ -1,5 +1,6 @@
 import { createMuiTheme } from 'material-ui/styles/index';
 
+const transition = '200ms';
 export default createMuiTheme({
   palette: {
     primary: {
@@ -21,6 +22,7 @@ export default createMuiTheme({
     },
     MuiTableCell: {
       root: {
+        paddingRight: '24px !important',
         fontSize: '1rem !important',
         '&:first-child': {
           whiteSpace: 'nowrap'
@@ -43,6 +45,19 @@ export default createMuiTheme({
         borderTop: '1px solid rgba(160, 160, 160, 0.2)',
         margin: '24px -16px -24px',
         padding: '0 8px'
+      }
+    },
+    MuiTableRow: {
+      root: {
+        transition,
+        '&:hover': {
+          backgroundColor: '#fafafa',
+        }
+      },
+      typeHead: {
+        '&:hover': {
+          backgroundColor: 'inherit'
+        }
       }
     }
   }
