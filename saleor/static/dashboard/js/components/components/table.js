@@ -55,7 +55,10 @@ const Table = (props) => {
         <TableHead>
           <TableRow>
             {headers.map((header) => (
-              <TableCell wide={header.wide}>{header.label}</TableCell>
+              <TableCell
+                wide={header.wide}
+                key={header.name}
+              >{header.label}</TableCell>
             ))}
           </TableRow>
         </TableHead>
