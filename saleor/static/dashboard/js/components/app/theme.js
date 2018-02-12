@@ -42,7 +42,7 @@ export default createMuiTheme({
     },
     MuiPaper: {
       root: {
-        marginTop: '16px',
+        marginTop: '16px'
       }
     },
     MuiCardActions: {
@@ -59,7 +59,7 @@ export default createMuiTheme({
       root: {
         transition,
         '&:hover': {
-          backgroundColor: '#fafafa',
+          backgroundColor: '#fafafa'
         }
       },
       typeHead: {
