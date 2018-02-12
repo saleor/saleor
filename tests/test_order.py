@@ -1,5 +1,4 @@
-from decimal import Decimal
-from unittest.mock import Mock, patch
+from unittest.mock import Mock
 
 from django.urls import reverse
 from prices import Money, TaxedMoney
@@ -8,7 +7,7 @@ from tests.utils import get_redirect_location
 from saleor.order import OrderStatus, models
 from saleor.order.emails import collect_data_for_email
 from saleor.order.forms import OrderNoteForm
-from saleor.order.utils import add_variant_to_delivery_group, recalculate_order
+from saleor.order.utils import recalculate_order
 
 
 def test_total_setter():
@@ -33,60 +32,58 @@ def test_order_get_subtotal(order_with_lines):
     assert order_with_lines.get_subtotal() == target_subtotal
 
 
-def test_add_variant_to_delivery_group_adds_line_for_new_variant(
+def test_add_variant_to_order_adds_line_for_new_variant(
         order_with_lines, product_in_stock):
-    group = order_with_lines.groups.get()
+    order = order_with_lines
     variant = product_in_stock.variants.get()
-    lines_before = group.lines.count()
+    lines_before = order.lines.count()
 
-    add_variant_to_delivery_group(group, variant, 1)
+    add_variant_to_order(order, variant, 1)
 
-    line = group.lines.last()
-    assert group.lines.count() == lines_before + 1
+    line = order.lines.last()
+    assert order.lines.count() == lines_before + 1
     assert line.product_sku == variant.sku
     assert line.quantity == 1
 
 
-def test_add_variant_to_delivery_group_allocates_stock_for_new_variant(
+def test_add_variant_to_order_allocates_stock_for_new_variant(
         order_with_lines, product_in_stock):
-    group = order_with_lines.groups.get()
+    order = order_with_lines
     variant = product_in_stock.variants.get()
     stock = variant.select_stockrecord()
     stock_before = stock.quantity_allocated
 
-    add_variant_to_delivery_group(group, variant, 1)
+    add_variant_to_order(order, variant, 1)
 
     stock.refresh_from_db()
     assert stock.quantity_allocated == stock_before + 1
 
 
-def test_add_variant_to_delivery_group_edits_line_for_existing_variant(
+def test_add_variant_to_order_edits_line_for_existing_variant(
         order_with_lines_and_stock):
     order = order_with_lines_and_stock
-    group = order.groups.get()
-    existing_line = group.lines.first()
+    existing_line = order.lines.first()
     variant = existing_line.product.variants.get()
-    lines_before = group.lines.count()
+    lines_before = order.lines.count()
     line_quantity_before = existing_line.quantity
 
-    add_variant_to_delivery_group(group, variant, 1)
+    add_variant_to_order(order, variant, 1)
 
     existing_line.refresh_from_db()
-    assert group.lines.count() == lines_before
+    assert order.lines.count() == lines_before
     assert existing_line.product_sku == variant.sku
     assert existing_line.quantity == line_quantity_before + 1
 
 
-def test_add_variant_to_delivery_group_allocates_stock_for_existing_variant(
+def test_add_variant_to_order_allocates_stock_for_existing_variant(
         order_with_lines_and_stock):
     order = order_with_lines_and_stock
-    group = order.groups.get()
-    existing_line = group.lines.first()
+    existing_line = order.lines.first()
     variant = existing_line.product.variants.get()
     stock = existing_line.stock
     stock_before = stock.quantity_allocated
 
-    add_variant_to_delivery_group(group, variant, 1)
+    add_variant_to_order(order, variant, 1)
 
     stock.refresh_from_db()
     assert stock.quantity_allocated == stock_before + 1
@@ -155,33 +152,6 @@ def test_create_order_history(order_with_lines):
     history_entry = models.OrderHistoryEntry.objects.get(order=order)
     assert history_entry == order.history.first()
     assert history_entry.content == 'test_entry'
-
-
-def test_delivery_group_is_shipping_required(delivery_group):
-    assert delivery_group.is_shipping_required()
-
-
-def test_delivery_group_is_shipping_required_no_shipping(delivery_group):
-    line = delivery_group.lines.first()
-    line.is_shipping_required = False
-    line.save()
-    assert not delivery_group.is_shipping_required()
-
-
-def test_delivery_group_is_shipping_required_partially_required(
-        delivery_group, product_without_shipping):
-    variant = product_without_shipping.variants.get()
-    product_type = product_without_shipping.product_type
-    delivery_group.lines.create(
-        delivery_group=delivery_group,
-        product=product_without_shipping,
-        product_name=product_without_shipping.name,
-        product_sku=variant.sku,
-        is_shipping_required=product_type.is_shipping_required,
-        quantity=3,
-        unit_price_net=Decimal('30.00'),
-        unit_price_gross=Decimal('30.00'))
-    assert delivery_group.is_shipping_required()
 
 
 def test_collect_data_for_email(order):

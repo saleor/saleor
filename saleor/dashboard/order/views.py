@@ -13,16 +13,15 @@ from prices import Money, TaxedMoney
 
 from ...core.exceptions import InsufficientStock
 from ...core.utils import ZERO_TAXED_MONEY, get_paginator_items
-from ...order import GroupStatus
-from ...order.models import DeliveryGroup, Order, OrderLine, OrderNote
+from ...order import OrderStatus
+from ...order.models import Order, OrderLine, OrderNote
 from ...product.models import StockLocation
 from ..views import staff_member_required
 from .filters import OrderFilter
 from .forms import (
-    AddressForm, AddVariantToOrderForm, CancelGroupForm,
-    CancelOrderForm, CancelOrderLineForm, CapturePaymentForm,
-    ChangeQuantityForm, ChangeStockForm, MoveLinesForm, OrderNoteForm,
-    RefundPaymentForm, ReleasePaymentForm, RemoveVoucherForm, ShipGroupForm)
+    AddressForm, AddVariantToOrderForm, CancelOrderForm, CancelOrderLineForm,
+    CapturePaymentForm, ChangeQuantityForm, ChangeStockForm, OrderNoteForm,
+    RefundPaymentForm, ReleasePaymentForm, RemoveVoucherForm)
 from .utils import (
     create_invoice_pdf, create_packing_slip_pdf, get_statics_absolute_url)
 
@@ -52,15 +51,12 @@ def order_details(request, order_pk):
     notes = order.notes.all()
     all_payments = order.payments.exclude(status=PaymentStatus.INPUT)
     payment = order.payments.last()
-    groups = list(order)
     captured = preauthorized = ZERO_TAXED_MONEY
     balance = captured - order.total
     if payment:
         can_capture = (
             payment.status == PaymentStatus.PREAUTH and
-            any([
-                group.status != GroupStatus.CANCELLED
-                for group in order.groups.all()]))
+            order.status != OrderStatus.CANCELLED)
         can_release = payment.status == PaymentStatus.PREAUTH
         can_refund = payment.status == PaymentStatus.CONFIRMED
         preauthorized = payment.get_total_price()
@@ -71,11 +67,10 @@ def order_details(request, order_pk):
         can_capture = can_release = can_refund = False
     is_many_stock_locations = StockLocation.objects.count() > 1
     ctx = {'order': order, 'all_payments': all_payments, 'payment': payment,
-           'notes': notes, 'groups': groups, 'captured': captured,
+           'notes': notes, 'captured': captured, 'balance': balance,
            'preauthorized': preauthorized, 'can_capture': can_capture,
            'can_release': can_release, 'can_refund': can_refund,
-           'is_many_stock_locations': is_many_stock_locations,
-           'balance': balance}
+           'is_many_stock_locations': is_many_stock_locations}
     return TemplateResponse(request, 'dashboard/order/detail.html', ctx)
 
 
@@ -171,8 +166,7 @@ def release_payment(request, order_pk, payment_pk):
 @permission_required('order.edit_order')
 def orderline_change_quantity(request, order_pk, line_pk):
     order = get_object_or_404(Order, pk=order_pk)
-    line = get_object_or_404(OrderLine.objects.filter(
-        delivery_group__order=order), pk=line_pk)
+    line = get_object_or_404(order.lines.all(), pk=line_pk)
     form = ChangeQuantityForm(request.POST or None, instance=line)
     status = 200
     old_quantity = line.quantity
@@ -197,46 +191,9 @@ def orderline_change_quantity(request, order_pk, line_pk):
 
 @staff_member_required
 @permission_required('order.edit_order')
-def orderline_split(request, order_pk, line_pk):
-    order = get_object_or_404(Order, pk=order_pk)
-    line = get_object_or_404(OrderLine.objects.filter(
-        delivery_group__order=order), pk=line_pk)
-    form = MoveLinesForm(request.POST or None, line=line)
-    line_pk = None
-    if line:
-        line_pk = line.pk
-    status = 200
-    if form.is_valid():
-        old_group = line.delivery_group
-        how_many = form.cleaned_data.get('quantity')
-        with transaction.atomic():
-            target_group = form.move_lines()
-        if not old_group.pk:
-            old_group = pgettext_lazy(
-                'Dashboard message related to a shipment group',
-                'removed group')
-        msg = pgettext_lazy(
-            'Dashboard message related to shipment groups',
-            'Moved %(how_many)s items %(item)s from %(old_group)s'
-            ' to %(new_group)s') % {
-                'how_many': how_many, 'item': line, 'old_group': old_group,
-                'new_group': target_group}
-        order.history.create(content=msg, user=request.user)
-        messages.success(request, msg)
-        return redirect('dashboard:order-details', order_pk=order.pk)
-    elif form.errors:
-        status = 400
-    ctx = {'order': order, 'object': line, 'form': form, 'line_pk': line_pk}
-    template = 'dashboard/order/modal/split_order_line.html'
-    return TemplateResponse(request, template, ctx, status=status)
-
-
-@staff_member_required
-@permission_required('order.edit_order')
 def orderline_cancel(request, order_pk, line_pk):
     order = get_object_or_404(Order, pk=order_pk)
-    line = get_object_or_404(OrderLine.objects.filter(
-        delivery_group__order=order), pk=line_pk)
+    line = get_object_or_404(order.lines.all(), pk=line_pk)
     form = CancelOrderLineForm(data=request.POST or None, line=line)
     status = 200
     if form.is_valid():
@@ -254,53 +211,6 @@ def orderline_cancel(request, order_pk, line_pk):
     return TemplateResponse(
         request, 'dashboard/order/modal/cancel_line.html',
         ctx, status=status)
-
-
-@staff_member_required
-@permission_required('order.edit_order')
-def ship_delivery_group(request, order_pk, group_pk):
-    order = get_object_or_404(
-        Order.objects.select_related('shipping_address'), pk=order_pk)
-    group = get_object_or_404(order.groups.all(), pk=group_pk)
-    form = ShipGroupForm(request.POST or None, instance=group)
-    status = 200
-    if form.is_valid():
-        with transaction.atomic():
-            form.save()
-        msg = pgettext_lazy(
-            'Dashboard message related to a shipment group',
-            'Shipped %s') % group
-        messages.success(request, msg)
-        order.history.create(content=msg, user=request.user)
-        return redirect('dashboard:order-details', order_pk=order_pk)
-    elif form.errors:
-        status = 400
-    ctx = {'order': order, 'group': group, 'form': form}
-    template = 'dashboard/order/modal/ship_shipment_group.html'
-    return TemplateResponse(request, template, ctx, status=status)
-
-
-@staff_member_required
-@permission_required('order.edit_order')
-def cancel_delivery_group(request, order_pk, group_pk):
-    order = get_object_or_404(Order, pk=order_pk)
-    group = get_object_or_404(order.groups.all(), pk=group_pk)
-    form = CancelGroupForm(request.POST or None, instance=group)
-    status = 200
-    if form.is_valid():
-        with transaction.atomic():
-            form.save()
-        msg = pgettext_lazy(
-            'Dashboard message related to a shipment group',
-            'Cancelled %s') % group
-        messages.success(request, msg)
-        order.history.create(content=msg, user=request.user)
-        return redirect('dashboard:order-details', order_pk=order_pk)
-    elif form.errors:
-        status = 400
-    ctx = {'order': order, 'group': group}
-    template = 'dashboard/order/modal/cancel_shipment_group.html'
-    return TemplateResponse(request, template, ctx, status=status)
 
 
 @staff_member_required
@@ -333,7 +243,7 @@ def add_variant_to_order(request, order_pk):
     elif form.errors:
         status = 400
     ctx = {'order': order, 'form': form}
-    template = 'dashboard/order/modal/add_variant_to_group.html'
+    template = 'dashboard/order/modal/add_variant_to_order.html'
     return TemplateResponse(request, template, ctx, status=status)
 
 
@@ -413,7 +323,7 @@ def remove_order_voucher(request, order_pk):
 @permission_required('order.edit_order')
 def order_invoice(request, order_pk):
     orders = Order.objects.prefetch_related(
-        'user', 'shipping_address', 'billing_address', 'voucher', 'groups')
+        'user', 'shipping_address', 'billing_address', 'voucher')
     order = get_object_or_404(orders, pk=order_pk)
     absolute_url = get_statics_absolute_url(request)
     pdf_file, order = create_invoice_pdf(order, absolute_url)
@@ -425,15 +335,14 @@ def order_invoice(request, order_pk):
 
 @staff_member_required
 @permission_required('order.edit_order')
-def order_packing_slip(request, group_pk):
-    groups = DeliveryGroup.objects.prefetch_related(
-        'lines', 'order', 'order__user', 'order__shipping_address',
-        'order__billing_address')
-    group = get_object_or_404(groups, pk=group_pk)
+def order_packing_slip(request, order_pk):
+    orders = Order.objects.prefetch_related(
+        'lines', 'user', 'shipping_address', 'billing_address')
+    order = get_object_or_404(orders, pk=order_pk)
     absolute_url = get_statics_absolute_url(request)
-    pdf_file, group = create_packing_slip_pdf(group, absolute_url)
+    pdf_file, order = create_packing_slip_pdf(order, absolute_url)
     response = HttpResponse(pdf_file, content_type='application/pdf')
-    name = "packing-slip-%s-%s" % (group.order.id, group.id)
+    name = "packing-slip-%s" % (order.id,)
     response['Content-Disposition'] = 'filename=%s' % name
     return response
 
@@ -453,5 +362,5 @@ def orderline_change_stock(request, order_pk, line_pk):
     elif form.errors:
         status = 400
     ctx = {'order_pk': order_pk, 'line_pk': line_pk, 'form': form}
-    template = 'dashboard/order/modal/shipment_group_stock.html'
+    template = 'dashboard/order/modal/order_line_stock.html'
     return TemplateResponse(request, template, ctx, status=status)

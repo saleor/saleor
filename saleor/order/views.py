@@ -27,9 +27,8 @@ def details(request, token):
     orders = orders.select_related(
         'billing_address', 'shipping_address', 'user')
     order = get_object_or_404(orders, token=token)
-    groups = order.groups.all()
     notes = order.notes.filter(is_public=True)
-    ctx = {'order': order, 'groups': groups, 'notes': notes}
+    ctx = {'order': order, 'notes': notes}
     if order.status == OrderStatus.OPEN:
         user = request.user if request.user.is_authenticated else None
         note = OrderNote(order=order, user=user)
@@ -47,7 +46,6 @@ def payment(request, token):
     orders = orders.select_related(
         'billing_address', 'shipping_address', 'user')
     order = get_object_or_404(orders, token=token)
-    groups = order.groups.all()
     payments = order.payments.all()
     form_data = request.POST or None
     try:
@@ -70,8 +68,8 @@ def payment(request, token):
             return redirect(
                 'order:payment', token=order.token, variant=payment_method)
     ctx = {
-        'order': order, 'groups': groups, 'payment_form': payment_form,
-        'payments': payments, 'waiting_payment': waiting_payment,
+        'order': order, 'payment_form': payment_form, 'payments': payments,
+        'waiting_payment': waiting_payment,
         'waiting_payment_form': waiting_payment_form}
     return TemplateResponse(request, 'order/payment.html', ctx)
 

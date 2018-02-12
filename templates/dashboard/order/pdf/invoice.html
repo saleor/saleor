@@ -81,36 +81,34 @@
     </tr>
     </thead>
     <tbody>
-      {% for item in order.get_lines.all %}
+      {% for line in order %}
         <tr>
           <td>
-            {{ item.product_name|truncatechars:30 }}<br>
+            {{ line.product_name|truncatechars:30 }}<br>
           </td>
           <td>
-            {{ item.product_sku }}
+            {{ line.product_sku }}
           </td>
           <td class="right-align">
-            {{ item.unit_price.gross|amount:'html' }}
+            {{ line.unit_price.gross|amount:'html' }}
           </td>
           <td class="right-align">
-            {{ item.quantity }}
+            {{ line.quantity }}
           </td>
           <td class="right-align">
-            {{ item.get_total.gross|amount:'html' }}
+            {{ line.get_total.gross|amount:'html' }}
           </td>
         </tr>
       {% endfor %}
       {% if order.shipping_price.gross or order.is_shipping_required %}
-        {% for shipping in shipping_methods %}
-          <tr>
-            <td>
-              {% trans "Shipping" context "Shipment order table item column data" %}
-            </td>
-            <td colspan="3">
-              {{ shipping.name }}
-            </td>
-          </tr>
-        {% endfor %}
+        <tr>
+          <td>
+            {% trans "Shipping" context "Shipment order table item column data" %}
+          </td>
+          <td colspan="3">
+            {{ order.shipping_method_name }}
+          </td>
+        </tr>
       {% endif %}
     </tbody>
   </table>

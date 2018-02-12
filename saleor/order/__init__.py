@@ -13,19 +13,10 @@ class OrderAppConfig(AppConfig):
 
 class OrderStatus:
     OPEN = 'open'
+    CANCELLED = 'cancelled'
     CLOSED = 'closed'
 
     CHOICES = [
         (OPEN, pgettext_lazy('order status', 'Open')),
+        (CANCELLED, pgettext_lazy('order status', 'Cancelled')),
         (CLOSED, pgettext_lazy('order status', 'Closed'))]
-
-
-class GroupStatus:
-    NEW = 'new'
-    CANCELLED = 'cancelled'
-    SHIPPED = 'shipped'
-
-    CHOICES = [
-        (NEW, pgettext_lazy('group status', 'Processing')),
-        (CANCELLED, pgettext_lazy('group status', 'Cancelled')),
-        (SHIPPED, pgettext_lazy('group status', 'Shipped'))]

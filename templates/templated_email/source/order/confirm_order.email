@@ -11,9 +11,9 @@ Hi!
 
 Thank you for your order. Below is the list of ordered products. To see your payment details please visit:
 {{ url }}{% endblocktrans %}
-{% for group in order.groups.all %}{% for line in group.lines.all %}
+{% for line in order %}
 {{ line.quantity }} x {{ line.product_name }}, {{ line.get_total.gross|amount }}
-{% endfor %}{% endfor %}
+{% endfor %}
 {% trans "Order summary" context "Order confirmation e-mail table header" %}:
 {% trans "Subtotal" context "Order confirmation e-mail table header" %}:           {{ order.get_subtotal.gross|amount }}
 {% trans "Shipping" context "Order confirmation e-mail table header" %}:           {{ order.shipping_price.gross|amount }}

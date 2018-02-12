@@ -294,7 +294,7 @@
                     {{ line.unit_price.gross|amount:'html' }}
                   </td>
                   <td class="right-align">
-                    {% if group.can_edit_lines %}
+                    {% if order.can_edit_lines %}
                       <a class="dropdown-button" href="#" data-activates="line-actions-{{ line.pk }}" data-constrainwidth="false">
                         {{ line.quantity }} {% if line.stock_location and is_many_stock_locations %} ({{ line.stock_location|truncatechars:10 }}) {% endif %}
                         <svg data-src="{% static "dashboard/images/arrow-drop-down.svg" %}" width="24" height="24" />
@@ -311,6 +311,12 @@
                               {% trans "Change stock" context "Order table row action" %}
                             </a>
                           </li>
+                        {% endif %}
+                        <li>
+                          <a href="#base-modal" data-href="{% url 'dashboard:orderline-cancel' order_pk=order.pk line_pk=line.pk %}" class="modal-trigger-custom" title="{% trans "Remove line" context "Order table row action" %}">
+                            {% trans "Remove line" context "Order table row action" %}
+                          </a>
+                        </li>
                       </ul>
                     {% else %}
                       {{ line.quantity }}
@@ -326,26 +332,12 @@
         </div>
         {% if perms.order.edit_order and order.is_open %}
           <div class="data-table-action">
-            {% if false %}
-              {% if group.can_ship %}
-                <a href="#base-modal" data-href="{% url 'dashboard:ship-delivery-group' order_pk=order.pk group_pk=group.pk %}" class="btn-flat waves-effect modal-trigger-custom">
-                  {% trans "Dispatch" context "Shipment group table action" %}
-                </a>
-              {% endif %}
-              {% if group.can_cancel %}
-                <a href="#base-modal" data-href="{% url 'dashboard:cancel-delivery-group' order_pk=order.pk group_pk=group.pk %}" class="btn-flat waves-effect modal-trigger-custom" title="{% trans 'Cancel group' context 'Shipment group table action' %}">
-                  {% trans "Cancel shipment" context "Shipment group table action" %}
-                </a>
-              {% endif %}
-            {% endif %}
             <a href="#base-modal" data-href="{% url 'dashboard:add-variant-to-order' order_pk=order.pk %}" class="btn-flat waves-effect modal-trigger-custom" title="{% trans "Add product to order" context "Order summary card action title" %}">
               {% trans "Add product" context "Order summary card action" %}
             </a>
-            {% if false %}
-              <a href="{% url 'dashboard:order-packing-slips' group_pk=group.pk %}" data-href="" class="btn-flat waves-effect" target="_blank">
-                {% trans "Packing Slips" context "Order detail action" %}
-              </a>
-            {% endif %}
+            <a href="{% url 'dashboard:order-packing-slips' order_pk=order.pk %}" data-href="" class="btn-flat waves-effect" target="_blank">
+              {% trans "Packing Slips" context "Order detail action" %}
+            </a>
           </div>
         {% endif %}
       </div>
@@ -420,10 +412,10 @@
               <thead>
                 <tr>
                   <th class="wide">
-                    {% trans "Item" context "Shipment group table header" %}
+                    {% trans "Item" context "Order table header" %}
                   </th>
                   <th class="right-align">
-                    {% trans "Quantity" context "Shipment group table header" %}
+                    {% trans "Quantity" context "Order table header" %}
                   </th>
                 </tr>
               </thead>

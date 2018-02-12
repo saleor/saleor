@@ -47,5 +47,5 @@ class Migration(migrations.Migration):
             name='order_line',
             field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='+', to='order.OrderLine'),
         ),
-        migrations.RunPython(assign_order_to_lines)
+        migrations.RunPython(assign_order_to_lines, migrations.RunPython.noop)
     ]
