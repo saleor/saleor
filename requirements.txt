@@ -142,3 +142,6 @@ WeasyPrint==0.41
 
 # Django Robots
 django-robots==3.0
+
+# Sentry/Raven
+raven==6.5.0

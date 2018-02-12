@@ -218,6 +218,7 @@ INSTALLED_APPS = [
     'django_celery_beat',
 
     'robots',
+    'raven.contrib.django.raven_compat,
 
 ]
 
@@ -553,3 +554,15 @@ ORIGINAL_IMAGES_ROOT = os.environ.get('ORIGINAL_IMAGES_ROOT', '/var/www/images/'
 ENVIRONMENT = os.environ.get('ENVIRONMENT', None)
 
 REMOTE = ast.literal_eval(os.environ.get('REMOTE', 'False'))
+
+RAVEN_CONFIG = {
+    'dsn': 'https://{public_key}:{secret}@{host}/{project_id}'.format(
+        public_key=os.environ.get('SENTRY_PUBLIC_KEY'),
+        secret=os.environ.get('SENTRY_SECRET_KEY'),
+        host=os.environ.get('SENTRY_HOST'),
+        project_id=os.environ.get('SENTRY_PROJECT_ID'),
+    ),
+    # If you are using git, you can also automatically configure the
+    # release based on the git info.
+    'release': raven.fetch_git_sha(os.path.abspath(os.pardir)),
+}
