@@ -330,6 +330,9 @@
         </div>
         {% if perms.order.edit_order and order.is_open %}
           <div class="data-table-action">
+            <a href="#base-modal" data-href="{% url 'dashboard:fulfill-order-lines' order_pk=order.pk %}" class="btn-flat waves-effect modal-trigger-custom" title="{% trans "Fulfill order" context "Order summary card action title" %}">
+              {% trans "Fulfill" context "Order summary card action" %}
+            </a>
             <a href="#base-modal" data-href="{% url 'dashboard:add-variant-to-order' order_pk=order.pk %}" class="btn-flat waves-effect modal-trigger-custom" title="{% trans "Add product to order" context "Order summary card action title" %}">
               {% trans "Add product" context "Order summary card action" %}
             </a>

@@ -14,14 +14,14 @@ from prices import Money, TaxedMoney
 from ...core.exceptions import InsufficientStock
 from ...core.utils import ZERO_TAXED_MONEY, get_paginator_items
 from ...order import OrderStatus
-from ...order.models import Order, OrderLine, OrderNote
+from ...order.models import Fulfillment, Order, OrderLine, OrderNote
 from ...product.models import StockLocation
 from ..views import staff_member_required
 from .filters import OrderFilter
 from .forms import (
     AddressForm, AddVariantToOrderForm, CancelOrderForm, CancelOrderLineForm,
-    CapturePaymentForm, ChangeQuantityForm, ChangeStockForm, OrderNoteForm,
-    RefundPaymentForm, ReleasePaymentForm, RemoveVoucherForm)
+    CapturePaymentForm, ChangeQuantityForm, ChangeStockForm, FulfillmentForm,
+    OrderNoteForm, RefundPaymentForm, ReleasePaymentForm, RemoveVoucherForm)
 from .utils import (
     create_invoice_pdf, create_packing_slip_pdf, get_statics_absolute_url)
 
@@ -363,4 +363,21 @@ def orderline_change_stock(request, order_pk, line_pk):
         status = 400
     ctx = {'order_pk': order_pk, 'line_pk': line_pk, 'form': form}
     template = 'dashboard/order/modal/order_line_stock.html'
+    return TemplateResponse(request, template, ctx, status=status)
+
+
+@staff_member_required
+@permission_required('order.edit_order')
+def fulfill_order_lines(request, order_pk):
+    qs = Order.objects.prefetch_related('lines')
+    order = get_object_or_404(qs, pk=order_pk)
+    status = 200
+    form = FulfillmentForm(
+        request.POST or None, order=order, instance=Fulfillment())
+    if form.is_valid():
+        fulfillment = form.save()
+    elif form.errors:
+        status = 400
+    ctx = {'form': form, 'order': order}
+    template = 'dashboard/order/modal/fulfill_order_lines.html'
     return TemplateResponse(request, template, ctx, status=status)
