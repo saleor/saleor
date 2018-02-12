@@ -17,8 +17,7 @@ from ...account.models import Address, User
 from ...account.utils import store_user_address
 from ...discount import DiscountValueType, VoucherType
 from ...discount.models import Sale, Voucher
-from ...order import GroupStatus
-from ...order.models import DeliveryGroup, Order, OrderLine, Payment
+from ...order.models import Order, OrderLine, Payment
 from ...product.models import (
     AttributeChoiceValue, Category, Collection, Product, ProductAttribute,
     ProductImage, ProductType, ProductVariant, Stock, StockLocation)
@@ -357,8 +356,7 @@ def create_fake_user():
     return user
 
 
-def create_payment(delivery_group):
-    order = delivery_group.order
+def create_payment(order):
     status = random.choice(
         [
             PaymentStatus.WAITING,
@@ -385,21 +383,7 @@ def create_payment(delivery_group):
     return payment
 
 
-def create_delivery_group(order):
-    region = order.shipping_address.country
-    if region not in DELIVERY_REGIONS:
-        region = ANY_COUNTRY
-    shipping_method = fake.shipping_method()
-    shipping_country = shipping_method.price_per_country.get_or_create(
-        country_code=region, defaults={'price': fake.money()})[0]
-    delivery_group = DeliveryGroup.objects.create(
-        status=random.choice([GroupStatus.NEW, GroupStatus.SHIPPED]),
-        order=order,
-        shipping_method_name=str(shipping_country))
-    return delivery_group
-
-
-def create_order_line(delivery_group):
+def create_order_line(order):
     product = Product.objects.all().order_by('?')[0]
     variant = product.variants.all()[0]
     quantity = random.randrange(1, 5)
@@ -408,7 +392,7 @@ def create_order_line(delivery_group):
     stock.quantity_allocated += quantity
     stock.save()
     return OrderLine.objects.create(
-        delivery_group=delivery_group,
+        order=order,
         product=product,
         product_name=product.name,
         product_sku=variant.sku,
@@ -419,9 +403,9 @@ def create_order_line(delivery_group):
         unit_price=TaxedMoney(net=product.price, gross=product.price))
 
 
-def create_order_lines(delivery_group, how_many=10):
+def create_order_lines(order, how_many=10):
     for dummy in range(how_many):
-        yield create_order_line(delivery_group)
+        yield create_order_line(order)
 
 
 def create_fake_order():
@@ -441,14 +425,13 @@ def create_fake_order():
                 address.first_name, address.last_name)}
     order = Order.objects.create(**user_data)
 
-    delivery_group = create_delivery_group(order)
-    lines = create_order_lines(delivery_group, random.randrange(1, 5))
+    lines = create_order_lines(order, random.randrange(1, 5))
 
     order.total = sum(
         [line.get_total() for line in lines], order.shipping_price)
     order.save()
 
-    create_payment(delivery_group)
+    create_payment(order)
     return order
 
 

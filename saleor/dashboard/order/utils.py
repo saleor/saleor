@@ -24,16 +24,14 @@ def _create_pdf(rendered_template, absolute_url):
 
 
 def create_invoice_pdf(order, absolute_url):
-    shipping_methods = [
-        {'name': d.shipping_method_name} for d in order.groups.all()]
-    ctx = {'order': order, 'shipping_methods': shipping_methods}
+    ctx = {'order': order}
     rendered_template = get_template(INVOICE_TEMPLATE).render(ctx)
     pdf_file = _create_pdf(rendered_template, absolute_url)
     return pdf_file, order
 
 
-def create_packing_slip_pdf(group, absolute_url):
-    ctx = {'group': group}
+def create_packing_slip_pdf(order, absolute_url):
+    ctx = {'order': order}
     rendered_template = get_template(PACKING_SLIP_TEMPLATE).render(ctx)
     pdf_file = _create_pdf(rendered_template, absolute_url)
-    return pdf_file, group
+    return pdf_file, order
