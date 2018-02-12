@@ -11,6 +11,27 @@ import { ConfirmRemoval } from '../../../components/modals';
 import { categoryDetails as query, categoryChildren } from '../queries';
 import { categoryDelete as mutation } from '../mutations';
 
+const categoryDeleteMutation = graphql(mutation, {
+  options: (props) => {
+    const { data } = props;
+    return {
+      refetchQueries: [
+        {
+          query: categoryChildren,
+          variables: { pk: (data.category && data.category.parent) ? data.category.parent.pk : '' }
+        }
+      ]
+    };
+  }
+});
+const categoryDetailsQuery = graphql(query, {
+  options: (props) => ({
+    pk: props.pk
+  })
+});
+
+@withRouter
+@compose(categoryDetailsQuery, categoryDeleteMutation)
 class CategoryDescription extends Component {
   static propTypes = {
     pk: PropTypes.number.isRequired,
@@ -104,24 +125,4 @@ class CategoryDescription extends Component {
   }
 }
 
-export default compose(
-  withRouter,
-  graphql(query, {
-    options: (props) => ({
-      pk: props.pk
-    })
-  }),
-  graphql(mutation, {
-    options: (props) => {
-      const { data } = props;
-      return {
-        refetchQueries: [
-          {
-            query: categoryChildren,
-            variables: { pk: (data.category && data.category.parent) ? data.category.parent.pk : '' }
-          }
-        ]
-      };
-    }
-  })
-)(CategoryDescription);
+export default CategoryDescription;

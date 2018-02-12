@@ -34,7 +34,7 @@ const styles = {
     childCategory: {
       ...styleFragments.table,
       borderTop: '1px solid rgba(160, 160, 160, 0.2)',
-      margin: '0 -16px -26px'
+      margin: '0 -16px -24px'
     }
   },
   noSubcategoriesLabel: {
@@ -97,7 +97,9 @@ const Component = (props) => (
                 key={edge.node.pk}
               >
                 <TableCell>{edge.node.name}</TableCell>
-                <TableCell wide>{edge.node.description}</TableCell>
+                <TableCell wide>
+                  {`${edge.node.description.split(' ').splice(0, 10).join(' ')} [...]`}
+                  </TableCell>
               </TableRow>
             ))}
             {!props.data.categories.edges.length && (
