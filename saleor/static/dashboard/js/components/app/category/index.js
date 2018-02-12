@@ -20,7 +20,7 @@ const Component = (props) => {
 
   return (
     <Grid container spacing={16}>
-      <Grid item sm={12} md={9}>
+      <Grid item xs={12} sm={12} md={9}>
         <Switch>
           <Route
             exact
