@@ -17,7 +17,7 @@ from ...account.models import Address, User
 from ...account.utils import store_user_address
 from ...discount import DiscountValueType, VoucherType
 from ...discount.models import Sale, Voucher
-from ...order.models import Order, OrderLine, Payment
+from ...order.models import Fulfillment, Order, OrderLine, Payment
 from ...product.models import (
     AttributeChoiceValue, Category, Collection, Product, ProductAttribute,
     ProductImage, ProductType, ProductVariant, Stock, StockLocation)
@@ -408,28 +408,42 @@ def create_order_lines(order, how_many=10):
         yield create_order_line(order)
 
 
+def create_fulfillments(order):
+    for line in order:
+        if random.choice([False, True]):
+            fulfillment, _ = Fulfillment.objects.get_or_create(order=order)
+            quantity = random.randrange(0, line.quantity) + 1
+            fulfillment.lines.create(
+                order_line=line, quantity=quantity)
+
+
 def create_fake_order():
     user = random.choice([None, User.objects.filter(
         is_superuser=False).order_by('?').first()])
     if user:
-        user_data = {
+        order_data = {
             'user': user,
             'billing_address': user.default_billing_address,
             'shipping_address': user.default_shipping_address}
     else:
         address = create_address()
-        user_data = {
+        order_data = {
             'billing_address': address,
             'shipping_address': address,
             'user_email': get_email(
                 address.first_name, address.last_name)}
-    order = Order.objects.create(**user_data)
+    shipping_method = ShippingMethod.objects.order_by('?').first()
+    shipping_price = shipping_method.price_per_country.first().price
+    order_data.update({'shipping_price': shipping_price})
+    order = Order.objects.create(**order_data)
 
     lines = create_order_lines(order, random.randrange(1, 5))
 
     order.total = sum(
         [line.get_total() for line in lines], order.shipping_price)
     order.save()
+
+    create_fulfillments(order)
 
     create_payment(order)
     return order
