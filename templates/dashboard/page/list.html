@@ -1,0 +1,68 @@
+{% extends "dashboard/base.html" %}
+{% load i18n %}
+{% load embed_video_tags %}
+{% load staticfiles %}
+
+{% block page_title %}{% trans "Pages" %} - {{ block.super }}{% endblock %}
+
+{% block title %}{% trans "Pages" %} - {{ block.super }}{% endblock %}
+
+{% block body_class %}body-page{% endblock %}
+
+{% block header_extra %}
+    <div class="fixed-action-btn">
+        <a class="btn-fab btn-floating btn-large waves-effect waves-light teal modal-trigger"
+           href="{% url 'dashboard:page-add' %}"
+           title="{% trans "Add page page" %}">
+            <svg data-src="{% static "images/add_icon.svg" %}" width="30px" height="30px" />
+        </a>
+    </div>
+{% endblock %}
+
+{% block breadcrumbs %}
+    <ul class="breadcrumbs">
+        <li>{% trans "Pages" %}</li>
+    </ul>
+{% endblock %}
+
+{% block menu_cms_class %} active{% endblock %}
+
+{% block content %}
+    <div class="row">
+        <div class="col s12">
+            {% if pages %}
+                <div class="card">
+                    <div class="data-table-container">
+                        <table class="bordered hoverable responsive data-table">
+                            <thead>
+                            <tr>
+                                <th>{% trans "Title" %}</th>
+                                <th>{% trans "Url" %}</th>
+                                <th>{% trans "Created at" %}</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {% for page in pages %}
+                                <tr>
+                                    <td>
+                                        <a href="{% url 'dashboard:page-edit' pk=page.pk %}">{{ page }}</a>
+                                    </td>
+                                    <td>
+                                        <a href="{{ page.get_absolute_url }}">{{ page.get_absolute_url }}</a>
+                                    </td>
+                                    <td>
+                                        {{ page.created }}
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                {% include "dashboard/includes/_pagination.html" with page_obj=pages %}
+            {% else %}
+                <p>{% trans "No pages found." %}</p>
+            {% endif %}
+        </div>
+    </div>
+{% endblock %}
