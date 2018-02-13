@@ -5,9 +5,9 @@ from django.utils.translation import ugettext_lazy as _
 
 from ...core.utils import (get_paginator_items, invalidate_etag,
                            redirect_after_save)
-from ...page.models import HomepageBlock, Page
+from ...page.models import Page
 from ..views import staff_member_required
-from .forms import AssetUploadFormset, HomepageBlockForm, PageForm
+from .forms import AssetUploadFormset, PageForm
 
 
 @staff_member_required
@@ -59,54 +59,3 @@ def page_delete(request, pk):
         return redirect('dashboard:page-list')
     ctx = {'page': page}
     return TemplateResponse(request, 'dashboard/page/modal-delete.html', ctx)
-
-
-@staff_member_required
-def homepage_block_list(request):
-    blocks = HomepageBlock.objects.all()
-    ctx = {'homepage_blocks': blocks}
-    return TemplateResponse(
-        request, 'dashboard/page/homepage_block/list.html', ctx)
-
-
-@staff_member_required
-def homepage_block_add(request):
-    block = HomepageBlock()
-    return _homepage_block_edit(request, block)
-
-
-@staff_member_required
-def homepage_block_edit(request, pk):
-    block = get_object_or_404(HomepageBlock, pk=pk)
-    return _homepage_block_edit(request, block)
-
-
-def _homepage_block_edit(request, block):
-    form = HomepageBlockForm(
-        request.POST or None, request.FILES or None, instance=block)
-    stay, redirect_form = redirect_after_save(request.POST or None)
-    if form.is_valid():
-        block = form.save()
-        invalidate_etag('home')
-        messages.success(request, _('Saved block %s' % block))
-        if stay:
-            return redirect('dashboard:homepage-block-edit', pk=block.pk)
-        else:
-            return redirect('dashboard:homepage-block-list')
-    ctx = {
-        'homepage_block': block, 'form': form, 'redirect_form': redirect_form}
-    return TemplateResponse(
-        request, 'dashboard/page/homepage_block/form.html', ctx)
-
-
-@staff_member_required
-def homepage_block_delete(request, pk):
-    block = get_object_or_404(HomepageBlock, pk=pk)
-    if request.POST:
-        block.delete()
-        invalidate_etag('home')
-        messages.success(request, _('Deleted block %s' % block))
-        return redirect('dashboard:homepage-block-list')
-    ctx = {'homepage_block': block}
-    return TemplateResponse(
-        request, 'dashboard/page/homepage_block/modal-delete.html', ctx)
