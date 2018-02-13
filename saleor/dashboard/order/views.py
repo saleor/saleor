@@ -15,15 +15,16 @@ from prices import Money, TaxedMoney
 from ...core.exceptions import InsufficientStock
 from ...core.utils import ZERO_TAXED_MONEY, get_paginator_items
 from ...order import OrderStatus
-from ...order.models import Fulfillment, Order, OrderLine, OrderNote, FulfillmentLine
+from ...order.models import (
+    FulfillmentLine, Fulfillment, Order, OrderLine, OrderNote)
 from ...product.models import StockLocation
 from ..views import staff_member_required
 from .filters import OrderFilter
 from .forms import (
-    AddressForm, AddVariantToOrderForm, CancelOrderForm, CancelOrderLineForm,
-    CapturePaymentForm, ChangeQuantityForm, ChangeStockForm, FulfillmentForm,
-    OrderNoteForm, RefundPaymentForm, ReleasePaymentForm, RemoveVoucherForm,
-    FulfillmentLineForm)
+    AddressForm, AddVariantToOrderForm, BaseFulfillmentLineFormSet,
+    CancelOrderForm, CancelOrderLineForm, CapturePaymentForm,
+    ChangeQuantityForm, ChangeStockForm, FulfillmentForm, FulfillmentLineForm,
+    OrderNoteForm, RefundPaymentForm, ReleasePaymentForm, RemoveVoucherForm)
 from .utils import (
     create_invoice_pdf, create_packing_slip_pdf, get_statics_absolute_url)
 
@@ -373,21 +374,26 @@ def orderline_change_stock(request, order_pk, line_pk):
 def fulfill_order_lines(request, order_pk):
     qs = Order.objects.prefetch_related('lines')
     order = get_object_or_404(qs, pk=order_pk)
-    lines = order.lines.all()
+    lines = order.get_unfulfilled_lines()
     status = 200
     form = FulfillmentForm(
         request.POST or None, order=order, instance=Fulfillment())
     FulfillmentLineFormSet = modelformset_factory(
-        FulfillmentLine, form=FulfillmentLineForm, extra=lines.count())
-    initial_kwargs = [
-        {'order_line': line, 'quantity': line.quantity} for line in lines]
+        FulfillmentLine, form=FulfillmentLineForm, extra=len(lines),
+        formset=BaseFulfillmentLineFormSet)
+    initial = [
+        {'order_line': line, 'quantity': line.quantity_unfulfilled}
+        for line in lines]
     formset = FulfillmentLineFormSet(
-        request.POST or None, initial=initial_kwargs)
-    if form.is_valid():
+        request.POST or None, queryset=FulfillmentLine.objects.none(),
+        initial=initial)
+    valid_forms = [line_form for line_form in formset if line_form.is_valid()]
+    if valid_forms and form.is_valid():
         fulfillment = form.save()
-        for form in formset:
-            # TODO: save forms with fulfillment (only if quantity > 0)
-            pass
+        for line_form in valid_forms:
+            line = line_form.save(commit=False)
+            line.fulfillment = fulfillment
+            line.save()
     elif form.errors:
         status = 400
     ctx = {'form': form, 'formset': formset, 'order': order}

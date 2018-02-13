@@ -120,6 +120,9 @@ class Order(models.Model):
     def __str__(self):
         return '#%d' % (self.id,)
 
+    def get_unfulfilled_lines(self):
+        return [line for line in self if not line.is_fulfilled()]
+
     def get_absolute_url(self):
         return reverse('order:details', kwargs={'token': self.token})
 
@@ -192,6 +195,11 @@ class OrderLine(models.Model):
 
     def get_total(self):
         return self.unit_price * self.quantity
+
+    @property
+    def quantity_unfulfilled(self):
+        lines = FulfillmentLine.objects.filter(order_line=self)
+        return self.quantity - sum([line.quantity for line in lines])
 
     def is_fulfilled(self):
         lines = FulfillmentLine.objects.filter(order_line=self)

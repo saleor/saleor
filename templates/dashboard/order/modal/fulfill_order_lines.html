@@ -30,7 +30,7 @@
        </tr>
      </thead>
      <tbody>
-       {% for line in order %}
+       {% for line in order.get_unfulfilled_lines %}
          <tr>
            <td>
              {{ line.product_name }}<br>
@@ -40,13 +40,18 @@
            </td>
            <td class="right-align">
              {% get_formset_form formset forloop.counter0 as line_form %}
+              <input id="{{ line_form.order_line.auto_id }}"
+                     type="hidden"
+                     name="{{ line_form.order_line.html_name }}"
+                     required="{{ line_form.order_line.field.required }}"
+                     value="{{ line_form.order_line.value }}">
               <input id="{{ line_form.quantity.auto_id }}"
-                     max="{{ line.quantity }}"
+                     max="{{ line.quantity_unfulfilled }}"
                      min="0"
                      name="{{ line_form.quantity.html_name }}"
                      required="{{ line_form.quantity.field.required }}"
                      type="number"
-                     value="{% if line_form.quantity.value %}{{ line_form.quantity.value }}{% endif %}">
+                     value="{{ line_form.quantity.value }}">
            </td>
          </tr>
        {% endfor %}
