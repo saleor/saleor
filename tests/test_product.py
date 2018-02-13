@@ -503,3 +503,18 @@ def test_view_ajax_available_products_list(admin_client, product_in_stock):
 
     assert response.status_code == 200
     assert resp_decoded == {'results': product_list}
+
+
+def test_render_product_page_with_no_variant(
+        unavailable_product, admin_client):
+    product = unavailable_product
+    product.is_published = True
+    product.product_type.has_variants = True
+    product.save()
+    status = get_product_availability_status(product)
+    assert status == ProductAvailabilityStatus.VARIANTS_MISSSING
+    url = reverse(
+            'product:details',
+            kwargs={'product_id': product.pk, 'slug': product.get_slug()})
+    response = admin_client.get(url)
+    assert response.status_code == 200
