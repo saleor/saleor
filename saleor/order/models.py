@@ -122,11 +122,11 @@ class Order(models.Model):
     def get_absolute_url(self):
         return reverse('order:details', kwargs={'token': self.token})
 
-    def send_confirmation_email(self):
-        email = self.get_user_current_email()
-        payment_url = build_absolute_uri(
-            reverse('order:details', kwargs={'token': self.token}))
-        emails.send_order_confirmation.delay(email, payment_url, self.pk)
+    # def send_confirmation_email(self):
+    #     email = self.get_user_current_email()
+    #     payment_url = build_absolute_uri(
+    #         reverse('order:details', kwargs={'token': self.token}))
+    #     emails.send_order_confirmation.delay(email, payment_url, self.pk)
 
     def get_last_payment_status(self):
         last_payment = self.payments.last()
