@@ -35,3 +35,23 @@ class RichTextEditorWidget(Textarea):
         if attrs:
             default_attrs.update(attrs)
         super().__init__(default_attrs)
+
+
+class AceWidget(forms.Widget):
+    HTML = 'html'
+    JS = 'javascript'
+    ALLOWED_MODS = [HTML, JS]
+    template_name = 'dashboard/includes/_ace.html'
+
+    def __init__(self, *args, **kwargs):
+        self.mode = kwargs.pop('mode', 'html')
+        super(AceWidget, self).__init__(*args, **kwargs)
+
+    def get_context(self, name, value, attrs=None):
+        return {
+            'widget': {
+                'name': name,
+                'value': value,
+                'attrs': attrs,
+                'mode': self.mode
+            }}
