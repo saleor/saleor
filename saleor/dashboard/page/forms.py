@@ -2,7 +2,7 @@ from django import forms
 from django.forms import inlineformset_factory
 
 from ...page.models import Page, PostAsset
-from ..widgets import AceWidget, ImagePreviewWidget
+from ..widgets import AceWidget
 
 
 class PageForm(forms.ModelForm):
@@ -15,9 +15,6 @@ class PageForm(forms.ModelForm):
             'content': AceWidget(mode=AceWidget.HTML),
             'javascript': AceWidget(mode=AceWidget.JS)
         }
-
-    def __init__(self, *args, **kwargs):
-        super(PageForm, self).__init__(*args, **kwargs)
 
 
 AssetUploadFormset = inlineformset_factory(

@@ -1,6 +1,6 @@
 from django.db import models
 from django.urls import get_script_prefix
-from django.utils.encoding import iri_to_uri, python_2_unicode_compatible
+from django.utils.encoding import iri_to_uri
 from django.utils.translation import ugettext_lazy as _
 
 
@@ -14,7 +14,6 @@ class PageManager(models.QuerySet):
         return self
 
 
-@python_2_unicode_compatible
 class Page(models.Model):
     DRAFT = 'draft'
     PUBLIC = 'public'

@@ -4,10 +4,8 @@ from django.shortcuts import get_object_or_404
 from django.template.response import TemplateResponse
 
 from .models import Page
-from ..core.utils import http_cache
 
 
-@http_cache(kwargs_to_save=['url'])
 def page_detail(request, url):
     if not url.startswith('/'):
         url = '/' + url
