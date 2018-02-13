@@ -15,7 +15,7 @@ from ...order.emails import send_note_confirmation
 from ...order.models import Fulfillment, FulfillmentLine, OrderLine, OrderNote
 from ...order.utils import (
     add_variant_to_order, cancel_order, change_order_line_quantity,
-    merge_duplicates_into_order_line, recalculate_order)
+    fulfill_order_line, merge_duplicates_into_order_line, recalculate_order)
 from ...product.models import Product, ProductVariant, Stock
 from ...product.utils import allocate_stock, deallocate_stock
 from ..forms import AjaxSelect2ChoiceField
@@ -324,7 +324,22 @@ class FulfillmentForm(forms.ModelForm):
         self.instance.order = order
 
 
+class BaseFulfillmentLineFormSet(forms.BaseModelFormSet):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for form in self.forms:
+            form.empty_permitted = False
+
+
 class FulfillmentLineForm(forms.ModelForm):
     class Meta:
         model = FulfillmentLine
-        fields = ['fulfillment', 'order_line', 'quantity']
+        fields = ['order_line', 'quantity']
+
+    def clean_quantity(self):
+        quantity = self.cleaned_data.get('quantity')
+        if quantity == 0:
+            raise forms.ValidationError(pgettext_lazy(
+                'Fulfill order line form error',
+                'Order line could not be fulfilled with zero quantity.'))
+        return quantity
