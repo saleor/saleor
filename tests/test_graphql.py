@@ -427,11 +427,11 @@ def test_real_query(client, product_in_stock):
 
 def test_category_create_mutation(client):
     query = """
-        mutation($name: String, $description: String, $parent: Int) {
-            categoryCreate(data: {
+        mutation($name: String!, $description: String, $parent: Int) {
+            categoryCreate(
                 name: $name
                 description: $description
-                parent: $parent}
+                parentPk: $parent
             ) {
                 category {
                     pk
@@ -482,13 +482,12 @@ def test_category_create_mutation(client):
 
 def test_category_update_mutation(client, default_category):
     query = """
-        mutation($pk: Int, $name: String, $description: String, $parent: Int) {
+        mutation($pk: Int, $name: String!, $description: String, $parent: Int) {
             categoryUpdate(
-                pk: $pk,
-                data: {
-                    name: $name
-                    description: $description
-                    parent: $parent}
+                pk: $pk
+                name: $name
+                description: $description
+                parentPk: $parent
             ) {
                 category {
                     pk

@@ -4,9 +4,9 @@ from graphene_django.filter import DjangoFilterConnectionField
 
 from .core.filters import DistinctFilterSet
 from .product.filters import ProductFilterSet
-from .product.mutations import CategoryCreate, CategoryDelete, CategoryUpdate
 from .product.types import (
-    Category, Product, ProductAttribute, resolve_attributes, resolve_products)
+    Category, ProductAttribute, Product, resolve_attributes, resolve_products)
+from .product.mutations import CategoryMutation, CategoryDelete
 
 
 class Query(graphene.ObjectType):
@@ -39,9 +39,9 @@ class Query(graphene.ObjectType):
 
 
 class Mutations(graphene.ObjectType):
-    category_create = CategoryCreate.Field()
+    category_create = CategoryMutation.Field()
     category_delete = CategoryDelete.Field()
-    category_update = CategoryUpdate.Field()
+    category_update = CategoryMutation.Field()
 
 
 schema = graphene.Schema(Query, Mutations)
