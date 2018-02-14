@@ -9,7 +9,7 @@ from .product.filters import ProductFilterSet
 
 
 class Query(graphene.ObjectType):
-    attributes = graphene.List(
+    attributes = DjangoFilterConnectionField(
         ProductAttribute,
         in_category=graphene.Argument(graphene.ID))
     categories = DjangoFilterConnectionField(Category)

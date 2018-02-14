@@ -1,10 +1,6 @@
-import functools
-import operator
-
 import graphene
 from django.db.models import Q
 from graphene import relay
-from graphene.relay.node import from_global_id
 from graphene_django import DjangoObjectType
 from graphene_django.filter import DjangoFilterConnectionField
 
@@ -14,7 +10,6 @@ from ...product.utils import get_availability, products_visible_to_user
 from ..core.types import Price, PriceRange
 from ..utils import CategoryAncestorsCache
 from .filters import ProductFilterSet
-from .scalars import AttributesFilterScalar
 
 CONTEXT_CACHE_NAME = '__cache__'
 CACHE_ANCESTORS = 'ancestors'
@@ -42,11 +37,11 @@ class Product(DjangoObjectType):
     thumbnail_url = graphene.String(
         size=graphene.Argument(
             graphene.String,
-            description="The size of a thumbnail, for example 255x255"))
+            description='The size of a thumbnail, for example 255x255'))
     images = graphene.List(lambda: ProductImage)
     variants = graphene.List(lambda: ProductVariant)
-    availability = graphene.Field(lambda: ProductAvailability)
-    price = graphene.Field(lambda: Price)
+    availability = graphene.Field(ProductAvailability)
+    price = graphene.Field(Price)
 
     class Meta:
         model = models.Product
@@ -108,12 +103,12 @@ class Category(DjangoObjectType):
         qs = products_visible_to_user(context.user)
         qs = qs.prefetch_related('images', 'category', 'variants__stock')
         qs = qs.filter(category=self)
-        return qs
+        return qs.distinct()
 
 
 class ProductVariant(DjangoObjectType):
     stock_quantity = graphene.Int()
-    price_override = graphene.Field(lambda: Price)
+    price_override = graphene.Field(Price)
 
     class Meta:
         model = models.ProductVariant
@@ -143,10 +138,11 @@ class ProductAttributeValue(DjangoObjectType):
 
 
 class ProductAttribute(DjangoObjectType):
-    values = graphene.List(lambda: ProductAttributeValue)
+    values = graphene.List(ProductAttributeValue)
 
     class Meta:
         model = models.ProductAttribute
+        filter_fields = ['id', 'slug']
         interfaces = [relay.Node]
 
     def resolve_values(self, info):
@@ -173,12 +169,13 @@ def resolve_attributes(category_pk):
     if category_pk:
         # Get attributes that are used with product types
         # within the given category.
-        tree = models.Category.objects.get(
-            pk=category_pk).get_descendants(include_self=True)
-        product_types = set(
-            [obj[0] for obj in models.Product.objects.filter(
-                category__in=tree).values_list('product_type_id')])
+        tree = models.Category.objects.get(pk=category_pk).get_descendants(
+            include_self=True)
+        product_types = {
+            obj[0]
+            for obj in models.Product.objects.filter(
+                category__in=tree).values_list('product_type_id')}
         queryset = queryset.filter(
-            Q(product_types__in=product_types) |
-            Q(product_variant_types__in=product_types))
+            Q(product_types__in=product_types)
+            | Q(product_variant_types__in=product_types))
     return queryset.distinct()

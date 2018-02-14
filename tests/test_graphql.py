@@ -204,13 +204,17 @@ def test_attributes_query(client, product_in_stock):
     query = """
         query {
             attributes {
-                id
-                name
-                slug
-                values {
-                    id
-                    name
-                    slug
+                edges {
+                    node {
+                        id
+                        name
+                        slug
+                        values {
+                            id
+                            name
+                            slug
+                        }
+                    }
                 }
             }
         }
@@ -228,13 +232,17 @@ def test_attributes_in_category_query(client, product_in_stock):
     query = """
         query {
             attributes(inCategory: %(category_pk)s) {
-                id
-                name
-                slug
-                values {
-                    id
-                    name
-                    slug
+                edges {
+                    node {
+                        id
+                        name
+                        slug
+                        values {
+                            id
+                            name
+                            slug
+                        }
+                    }
                 }
             }
         }
