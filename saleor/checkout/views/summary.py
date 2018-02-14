@@ -28,8 +28,8 @@ def create_order(checkout):
     order.create_history_entry(user=user, content=pgettext_lazy(
         'Order status history entry', 'Order was placed'))
     email_data = collect_data_for_email(order)
-    import pdb; pdb.set_trace()
-    send_order_confirmation.delay(email_data)
+    email_data.update({'order_pk': order.pk})
+    send_order_confirmation.delay(**email_data)
     return order, redirect('order:payment', token=order.token)
 
 

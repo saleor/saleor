@@ -31,7 +31,8 @@ def collect_data_for_email(order):
     email = order.get_user_current_email()
     url = build_absolute_uri(
         reverse('order:details', kwargs={'token': order.token}))
-    return {'email': email, 'url': url, 'order_pk': order.pk}
+    return {'email': email, 'url': url}
+
 
 @shared_task
 def send_order_confirmation(email, url, order_pk):
@@ -39,14 +40,6 @@ def send_order_confirmation(email, url, order_pk):
     order = Order.objects.get(pk=order_pk)
     _send_confirmation(email, url, CONFIRM_ORDER_TEMPLATE, {'order': order})
 
-
-@shared_task
-def send_order_confirmation(order):
-    import pdb; pdb.set_trace()
-    email = order.get_user_current_email()
-    url = build_absolute_uri(
-        reverse('order:details', kwargs={'token': order.token}))
-    _send_confirmation(email, url, CONFIRM_ORDER_TEMPLATE, {'order': order})
 
 @shared_task
 def send_payment_confirmation(email, url):
