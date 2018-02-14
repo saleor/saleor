@@ -6,10 +6,10 @@ from django.shortcuts import get_object_or_404, redirect
 from django.utils.translation import pgettext_lazy
 from prices import Price
 
+from . import GroupStatus
 from ..account.utils import store_user_address
 from ..core.exceptions import InsufficientStock
 from ..product.utils import allocate_stock
-from . import GroupStatus
 
 
 def check_order_status(func):
@@ -37,6 +37,10 @@ def cancel_order(order):
     for group in order.groups.all():
         group.cancel()
         group.save()
+
+
+def create_history_entry(order, content, user=None):
+    order.history.create(content=content, user=user)
 
 
 def recalculate_order(order):
@@ -161,7 +165,8 @@ def change_order_line_quantity(line, new_quantity):
         line.delivery_group.delete()
         order = line.delivery_group.order
         if not order.get_lines():
-            order.create_history_entry(
+            create_history_entry(
+                order=order,
                 content=pgettext_lazy(
                     'Order status history entry',
                     'Order cancelled. No items in order'))
@@ -182,7 +187,8 @@ def remove_empty_groups(line, force=False):
     if not source_group.get_total_quantity() or force:
         source_group.delete()
     if not order.get_lines():
-        order.create_history_entry(
+        create_history_entry(
+            order=order,
             content=pgettext_lazy(
                 'Order status history entry',
                 'Order cancelled. No items in order'))

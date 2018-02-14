@@ -14,13 +14,13 @@ from payments import PaymentStatus, PurchasedItem
 from payments.models import BasePayment
 from prices import FixedDiscount, Price
 
+from . import GroupStatus, OrderStatus
 from ..account.models import Address
 from ..core.utils import build_absolute_uri
 from ..discount.models import Voucher
 from ..product.models import Product
 from .transitions import (
     cancel_delivery_group, process_delivery_group, ship_delivery_group)
-from . import GroupStatus, OrderStatus, emails
 
 
 class OrderQuerySet(models.QuerySet):
@@ -136,9 +136,6 @@ class Order(models.Model):
 
     def is_pre_authorized(self):
         return self.payments.filter(status=PaymentStatus.PREAUTH).exists()
-
-    def create_history_entry(self, content, user=None):
-        self.history.create(content=content, user=user)
 
     def is_shipping_required(self):
         return any(group.is_shipping_required() for group in self.groups.all())

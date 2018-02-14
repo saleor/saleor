@@ -6,7 +6,8 @@ from tests.utils import get_redirect_location
 
 from saleor.order import OrderStatus, models
 from saleor.order.forms import OrderNoteForm
-from saleor.order.utils import add_variant_to_delivery_group
+from saleor.order.utils import (
+    add_variant_to_delivery_group, create_history_entry)
 
 
 def test_total_property():
@@ -96,13 +97,13 @@ def test_order_status_closed(closed_orders):
     assert all([order.status == OrderStatus.CLOSED for order in closed_orders])
 
 
-def test_order_queryset_open_orders(open_orders, closed_orders):
+def test_order_queryset_open_orders(open_orders):
     qs = models.Order.objects.open()
     assert qs.count() == len(open_orders)
     assert all([item in qs for item in open_orders])
 
 
-def test_order_queryset_closed_orders(open_orders, closed_orders):
+def test_order_queryset_closed_orders(closed_orders):
     qs = models.Order.objects.closed()
     assert qs.count() == len(closed_orders)
     assert all([item in qs for item in closed_orders])
@@ -147,7 +148,7 @@ def test_add_note_to_order(order_with_lines_and_stock):
 
 def test_create_order_history(order_with_lines):
     order = order_with_lines
-    order.create_history_entry(content='test_entry')
+    create_history_entry(order=order, content='test_entry')
     history_entry = models.OrderHistoryEntry.objects.get(order=order)
     assert history_entry == order.history.first()
     assert history_entry.content == 'test_entry'
