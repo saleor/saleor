@@ -3,10 +3,11 @@ from django.shortcuts import redirect
 from django.template.response import TemplateResponse
 from django.utils.translation import pgettext, pgettext_lazy
 
-from ...core.exceptions import InsufficientStock
 from ...account.forms import get_address_form
 from ...account.models import Address
+from ...core.exceptions import InsufficientStock
 from ...order.emails import collect_data_for_email, send_order_confirmation
+from ...order.utils import create_history_entry
 from ..forms import (
     AnonymousUserBillingForm, BillingAddressesForm,
     BillingWithoutShippingAddressForm, NoteForm)
@@ -25,8 +26,9 @@ def create_order(checkout):
     checkout.clear_storage()
     checkout.cart.clear()
     user = None if checkout.user.is_anonymous else checkout.user
-    order.create_history_entry(user=user, content=pgettext_lazy(
-        'Order status history entry', 'Order was placed'))
+    create_history_entry(
+        order=order, user=user, content=pgettext_lazy(
+            'Order status history entry', 'Order was placed'))
     email_data = collect_data_for_email(order)
     email_data.update({'order_pk': order.pk})
     send_order_confirmation.delay(**email_data)
