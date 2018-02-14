@@ -5,7 +5,9 @@ import MuiTable, {
   TableHead,
   TableBody,
   TableRow,
-  TableCell as MuiTableCell
+  TableCell as MuiTableCell,
+  TableFooter,
+  TablePagination
 } from 'material-ui/Table';
 import { withStyles } from 'material-ui/styles';
 
@@ -46,7 +48,19 @@ function handleRowClick(pk, href, history) {
 }
 
 const Table = (props) => {
-  const { headers, data, handlePrev, handleNext, href, history, style, noDataLabel, classes } = props;
+  const {
+    headers,
+    list,
+    href,
+    history,
+    style,
+    noDataLabel,
+    classes,
+    rowsPerPage,
+    rowsPerPageOptions,
+    page,
+    count
+  } = props;
   return (
     <div style={style}>
       <MuiTable
@@ -63,7 +77,7 @@ const Table = (props) => {
           </TableRow>
         </TableHead>
         <TableBody>
-          {data.map((row) => (
+          {list.map((row) => (
             <TableRow
               onClick={handleRowClick(row.pk, href, history)}
               style={{ cursor: 'pointer' }}
@@ -80,8 +94,23 @@ const Table = (props) => {
             </TableRow>
           ))}
         </TableBody>
+        {list.length > 0 && (
+          <TableFooter>
+            <TableRow>
+              <TablePagination
+                colSpan={5}
+                count={count}
+                rowsPerPage={rowsPerPage}
+                rowsPerPageOptions={rowsPerPageOptions || [5, 10, 20]}
+                page={page}
+                onChangePage={props.handleChangePage}
+                onChangeRowsPerPage={props.handleChangeRowsPerPage}
+              />
+            </TableRow>
+          </TableFooter>
+        )}
       </MuiTable>
-      {!data.length && (
+      {!list.length && (
         <div className={classes.noDataText}>
           {noDataLabel}
         </div>
@@ -97,7 +126,7 @@ Table.propTypes = {
   href: PropTypes.string,
   history: PropTypes.object,
   style: PropTypes.object,
-  data: PropTypes.array.isRequired,
+  list: PropTypes.array.isRequired,
   noDataLabel: PropTypes.string.isRequired
 };
 
