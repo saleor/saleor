@@ -1,15 +1,13 @@
 import functools
 import operator
-from collections import OrderedDict, defaultdict
+from collections import defaultdict
 
 from django.db.models import Q
 from django_filters.fields import Lookup
 from graphene_django.filter.filterset import Filter, FilterSet
 
 from ..fields import AttributeField
-from ...product.models import (
-    AttributeChoiceValue, Category, Product, ProductAttribute, ProductImage,
-    ProductVariant)
+from ...product.models import Product, ProductAttribute
 
 
 class ProduductAttributeFilter(Filter):
@@ -34,16 +32,18 @@ class ProduductAttributeFilter(Filter):
         for pair in value:
             attr_name, val_slug = pair.split(':', 1)
             if attr_name not in attributes_map:
-                raise ValueError('Unknown attribute name: %r' % (attr_name,))
+                raise ValueError('Unknown attribute name: %r' % (attr_name, ))
             attr_pk = attributes_map[attr_name]
             attr_val_pk = values_map[attr_name].get(val_slug, val_slug)
             queries[attr_pk].append(attr_val_pk)
         # Combine filters of the same attribute with OR operator
         # and then combine full query with AND operator.
-        combine_and = [functools.reduce(operator.or_, [
-            Q(**{'variants__attributes__%s' % key: v}) |
-            Q(**{'attributes__%s' % key: v})
-            for v in values]) for key, values in queries.items()]
+        combine_and = [
+            functools.reduce(
+                operator.or_, [
+                    Q(**{'variants__attributes__%s' % (key, ): v}) |
+                    Q(**{'attributes__%s' % (key, ): v}) for v in values])
+            for key, values in queries.items()]
         query = functools.reduce(operator.and_, combine_and)
         qs = self.get_method(qs)(query)
         return qs.distinct() if self.distinct else qs
@@ -61,5 +61,5 @@ class ProductFilterSet(FilterSet):
     def filter_for_field(cls, f, field_name, lookup_expr='exact'):
         if field_name == 'attributes':
             return ProduductAttributeFilter(
-                field_name=field_name, lookup_expr=lookup_expr)
+                field_name=field_name, lookup_expr=lookup_expr, distinct=True)
         return super().filter_for_field(f, field_name, lookup_expr=lookup_expr)
