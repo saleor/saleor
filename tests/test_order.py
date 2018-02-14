@@ -5,6 +5,7 @@ from prices import Price
 from tests.utils import get_redirect_location
 
 from saleor.order import OrderStatus, models
+from saleor.order.emails import collect_data_for_email
 from saleor.order.forms import OrderNoteForm
 from saleor.order.utils import (
     add_variant_to_delivery_group, create_history_entry)
@@ -179,3 +180,12 @@ def test_delivery_group_is_shipping_required_partially_required(
         unit_price_net=Decimal('30.00'),
         unit_price_gross=Decimal('30.00'))
     assert delivery_group.is_shipping_required()
+
+
+def test_collect_data_for_email(order):
+    order = order
+    order.user_mail = 'test@example.com'
+    email_data = collect_data_for_email(order)
+    order_url = reverse('order:details', kwargs={'token': order.token})
+    assert order_url in email_data['url']
+    assert email_data['email'] == order.user_email
