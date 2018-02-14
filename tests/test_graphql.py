@@ -2,9 +2,46 @@ import json
 
 import graphene
 import pytest
+from django import forms
 
 from saleor.dashboard.category.forms import CategoryForm
+from saleor.graphql.core.mutations import ModelFormMutation
 from saleor.product.models import Category, Product, ProductAttribute
+
+
+class CategoryForm(forms.ModelForm):
+    class Meta:
+        model = Category
+        fields = ['name']
+
+
+def test_model_form_mutation():
+    class CategoryMutation(ModelFormMutation):
+        test_field = graphene.String()
+
+        class Arguments:
+            test_input = graphene.String()
+
+        class Meta:
+            form_class = CategoryForm
+            return_field_name = 'category'
+
+    meta = CategoryMutation._meta
+    assert meta.form_class == CategoryForm
+    assert meta.model == CategoryForm._meta.model
+    assert meta.return_field_name == 'category'
+
+    arguments = meta.arguments
+    # check if declarative arguments are present
+    assert 'test_input' in arguments
+    # check if model form field is present
+    assert 'name' in arguments
+    # check if pk mean for updates is present
+    assert 'pk' in arguments
+
+    output_fields = meta.fields
+    assert 'category' in output_fields
+    assert 'errors' in output_fields
 
 
 def get_content(response):
