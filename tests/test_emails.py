@@ -17,7 +17,7 @@ EMAIL_FROM = settings.ORDER_FROM_EMAIL
     (emails.send_payment_confirmation, emails.CONFIRM_PAYMENT_TEMPLATE, False),
     (emails.send_note_confirmation, emails.CONFIRM_NOTE_TEMPLATE, False)])
 @mock.patch('saleor.order.emails.send_templated_mail')
-def test_send_triple(
+def test_send_emails(
         mocked_templated_email, update_context, order, template, fun):
     with mock.patch('saleor.order.emails.collect_data_for_email',
                     return_value={
