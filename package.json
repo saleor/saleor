@@ -88,7 +88,7 @@
   },
   "scripts": {
     "build-assets": "node ./node_modules/webpack/bin/webpack.js -p --progress",
-    "heroku-postbuild": "npm run build-assets",
+    "heroku-postbuild": "npm run build-assets && npm run build-emails",
     "start": "UV_THREADPOOL_SIZE=8 node ./node_modules/webpack/bin/webpack.js -d --watch --progress",
     "build-emails": "mkdir -p templates/templated_email/compiled/ && find templates -name \"*.mjml\" -not -path \"templates/templated_email/source/*partials/*\" -not -path \"templates/templated_email/source/*shared/*\" -exec ./node_modules/.bin/mjml -l skip {} -o templates/templated_email/compiled/ \\;"
   }
