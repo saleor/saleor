@@ -36,10 +36,10 @@
       </tfoot>
       <thead class="table-header-row">
         <tr>
-          <th>Item</th>
-          <th>Quantity</th>
-          <th>Per unit</th>
-          <th>Subtotal</th>
+          <th>{% trans "Item" context "E-mail order line summary header" %}</th>
+          <th>{% trans "Quantity" context "E-mail order line summary header" %}</th>
+          <th>{% trans "Per unit" context "E-mail order line summary header" %}</th>
+          <th>{% trans "Subtotal" context "E-mail order line summary header" %}</th>
         </tr>
       </thead>
       <tbody>
