@@ -11,6 +11,7 @@ CONFIRM_PAYMENT_TEMPLATE = 'source/order/payment/confirm_payment'
 CONFIRM_NOTE_TEMPLATE = 'source/order/note/confirm_note'
 
 
+@shared_task
 def _send_confirmation(email, url, template, context=None):
     site = Site.objects.get_current()
     ctx = {
@@ -27,25 +28,24 @@ def _send_confirmation(email, url, template, context=None):
         template_name=template)
 
 
-def collect_data_for_email(order):
+def collect_data_for_email(order, template):
     email = order.get_user_current_email()
     url = build_absolute_uri(
         reverse('order:details', kwargs={'token': order.token}))
-    return {'email': email, 'url': url}
+    return {'email': email, 'url': url, 'template': template}
 
 
-@shared_task
-def send_order_confirmation(email, url, order_pk):
-    from .models import Order
-    order = Order.objects.get(pk=order_pk)
-    _send_confirmation(email, url, CONFIRM_ORDER_TEMPLATE, {'order': order})
+def send_order_confirmation(order):
+    email_data = collect_data_for_email(order, CONFIRM_ORDER_TEMPLATE)
+    email_data.update({'context': {'order': order}})
+    _send_confirmation.delay(**email_data)
 
 
-@shared_task
-def send_payment_confirmation(email, url):
-    _send_confirmation(email, url, CONFIRM_PAYMENT_TEMPLATE)
+def send_payment_confirmation(order):
+    email_data = collect_data_for_email(order, CONFIRM_PAYMENT_TEMPLATE)
+    _send_confirmation.delay(**email_data)
 
 
-@shared_task
-def send_note_confirmation(email, url):
-    _send_confirmation(email, url, CONFIRM_NOTE_TEMPLATE)
+def send_note_confirmation(order):
+    email_data = collect_data_for_email(order, CONFIRM_NOTE_TEMPLATE)
+    _send_confirmation.delay(**email_data)

@@ -6,7 +6,7 @@ from django.utils.translation import pgettext, pgettext_lazy
 from ...account.forms import get_address_form
 from ...account.models import Address
 from ...core.exceptions import InsufficientStock
-from ...order.emails import collect_data_for_email, send_order_confirmation
+from ...order.emails import send_order_confirmation
 from ...order.utils import create_history_entry
 from ..forms import (
     AnonymousUserBillingForm, BillingAddressesForm,
@@ -29,9 +29,7 @@ def create_order(checkout):
     create_history_entry(
         order=order, user=user, content=pgettext_lazy(
             'Order status history entry', 'Order was placed'))
-    email_data = collect_data_for_email(order)
-    email_data.update({'order_pk': order.pk})
-    send_order_confirmation.delay(**email_data)
+    send_order_confirmation(order)
     return order, redirect('order:payment', token=order.token)
 
 
