@@ -12,7 +12,7 @@ from ...cart.forms import QuantityField
 from ...core.exceptions import InsufficientStock
 from ...discount.utils import decrease_voucher_usage
 from ...order import GroupStatus
-from ...order.emails import collect_data_for_email, send_note_confirmation
+from ...order.emails import send_note_confirmation
 from ...order.models import DeliveryGroup, OrderLine, OrderNote
 from ...order.utils import (
     add_variant_to_delivery_group, cancel_order, change_order_line_quantity,
@@ -38,8 +38,7 @@ class OrderNoteForm(forms.ModelForm):
 
     def send_confirmation_email(self):
         order = self.instance.order
-        email_data = collect_data_for_email(order)
-        send_note_confirmation.delay(**email_data)
+        send_note_confirmation(order)
 
 
 class ManagePaymentForm(forms.Form):

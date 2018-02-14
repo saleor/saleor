@@ -1,4 +1,5 @@
 from decimal import Decimal
+from unittest.mock import Mock
 
 from django.urls import reverse
 from prices import Price
@@ -183,9 +184,9 @@ def test_delivery_group_is_shipping_required_partially_required(
 
 
 def test_collect_data_for_email(order):
-    order = order
+    template = Mock(spec=str)
     order.user_mail = 'test@example.com'
-    email_data = collect_data_for_email(order)
+    email_data = collect_data_for_email(order, template)
     order_url = reverse('order:details', kwargs={'token': order.token})
     assert order_url in email_data['url']
     assert email_data['email'] == order.user_email
