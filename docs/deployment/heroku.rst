@@ -48,9 +48,9 @@ This needs to be run periodically. The best way to achieve this is using Heroku'
 
 Then log into your Heroku account, find the Heroku Scheduler addon in the active addon list, and have it run the following command on a daily basis:
 
-.. code-block:: console
+.. code-block::
 
- $ python manage.py update_exchange_rates --all
+ python manage.py update_exchange_rates --all
 
 
 Enabling Elasticsearch
