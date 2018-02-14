@@ -67,6 +67,12 @@ export default createMuiTheme({
           backgroundColor: 'inherit'
         }
       }
+    },
+    MuiCircularProgress: {
+      root: {
+        display: 'block',
+        margin: '0 auto'
+      }
     }
   }
 });

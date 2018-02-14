@@ -1,13 +1,11 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import { Link, withRouter } from 'react-router-dom';
-import Card, { CardContent, CardActions } from 'material-ui/Card';
-import Button from 'material-ui/Button';
+import { withRouter } from 'react-router-dom';
 import { graphql, compose } from 'react-apollo';
 import { CircularProgress } from 'material-ui/Progress';
 
-import { CardTitle, CardSubtitle } from '../../../components/cards';
 import { ConfirmRemoval } from '../../../components/modals';
+import { DescriptionCard } from '../../../components/cards';
 import { categoryDetails as query, categoryChildren } from '../queries';
 import { categoryDelete as mutation } from '../mutations';
 
@@ -83,35 +81,19 @@ class CategoryDescription extends Component {
           <CircularProgress
             size={80}
             thickness={5}
-            style={{ margin: 'auto' }}
+            color={'secondary'}
           />
         )}
         {!this.props.data.loading && (
           <div>
-            <Card>
-              <CardContent>
-                <CardTitle>
-                  {this.props.data.category.name}
-                </CardTitle>
-                <CardSubtitle>
-                  {pgettext('Category field', 'Description')}
-                </CardSubtitle>
-                {this.props.data.category.description}
-                <CardActions>
-                  <Link to={`/categories/${this.props.data.category.pk}/edit/`}>
-                    <Button color={'secondary'}>
-                      {pgettext('Category detail view action', 'Edit category')}
-                    </Button>
-                  </Link>
-                  <Button
-                    color={'secondary'}
-                    onClick={this.handleModalOpen}
-                  >
-                    {pgettext('Category detail view action', 'Remove category')}
-                  </Button>
-                </CardActions>
-              </CardContent>
-            </Card>
+            <DescriptionCard
+              title={this.props.data.category.name}
+              description={this.props.data.category.description}
+              editButtonHref={`/categories/${this.props.data.category.pk}/edit/`}
+              editButtonLabel={pgettext('Category detail view action', 'Edit category')}
+              removeButtonLabel={pgettext('Category detail view action', 'Remove category')}
+              handleRemoveButtonClick={this.handleModalOpen}
+            />
             <ConfirmRemoval
               open={this.state.opened}
               onClose={this.handleModalClose}
