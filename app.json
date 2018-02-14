@@ -47,7 +47,6 @@
     "heroku-postgresql:hobby-dev",
     "heroku-redis:hobby-dev",
     "sendgrid:starter",
-    "bonsai:sandbox-6",
     "scheduler:standard"
   ],
   "buildpacks": [
