@@ -16,8 +16,8 @@ def order_status_change(sender, instance, **kwargs):
             content=pgettext_lazy(
                 'Order status history entry', 'Order fully paid'))
         email_data = collect_data_for_email(order)
+        email_data.update({'order_pk': order.pk})
         send_order_confirmation.delay(**email_data)
-        # instance.send_confirmation_email()
         try:
             analytics.report_order(order.tracking_client_id, order)
         except Exception:
