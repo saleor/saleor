@@ -42,14 +42,21 @@ Usage
     $ npm run build-assets
 
 
-3. Build the containers using ``docker-compose``
+3. Build emails
+
+   .. code-block:: bash
+
+    $ npm run build-emails
+
+
+4. Build the containers using ``docker-compose``
 
    .. code-block:: bash
 
     $ docker-compose build
 
 
-4. Prepare the database
+5. Prepare the database
 
    .. code-block:: bash
 
@@ -61,7 +68,7 @@ Usage
    ``admin@example.com`` with the password set to ``admin``.
 
 
-5. Run the containers
+6. Run the containers
 
    .. code-block:: bash
 
