@@ -4,7 +4,7 @@ Heroku
 Configuration
 -------------
 
-.. code-block:: bash
+.. code-block:: console
 
  $ heroku create --buildpack https://github.com/heroku/heroku-buildpack-nodejs.git
  $ heroku buildpacks:add https://github.com/heroku/heroku-buildpack-python.git
@@ -24,7 +24,7 @@ Configuration
 Deployment
 ----------
 
-.. code-block:: bash
+.. code-block:: console
 
  $ git push heroku master
 
@@ -32,7 +32,7 @@ Deployment
 Preparing the Database
 ----------------------
 
-.. code-block:: bash
+.. code-block:: console
 
  $ heroku run python manage.py migrate
 
@@ -42,15 +42,15 @@ Updating Currency Exchange Rates
 
 This needs to be run periodically. The best way to achieve this is using Heroku's Scheduler service. Let's add it to our application:
 
-.. code-block:: bash
+.. code-block:: console
 
  $ heroku addons:create scheduler
 
 Then log into your Heroku account, find the Heroku Scheduler addon in the active addon list, and have it run the following command on a daily basis:
 
-.. code-block:: bash
+.. code-block:: console
 
- python manage.py update_exchange_rates --all
+ $ python manage.py update_exchange_rates --all
 
 
 Enabling Elasticsearch
@@ -58,7 +58,7 @@ Enabling Elasticsearch
 
 By default, Saleor uses Postgres as a search backend, but if you want to switch to Elasticsearch, it can be easily achieved using the Bonsai plugin. In order to do that, run the following commands:
 
-.. code-block:: bash
+.. code-block:: console
 
- heroku addons:create bonsai:sandbox-6 --version=5.4
- heroku run python manage.py search_index --create
+ $ heroku addons:create bonsai:sandbox-6 --version=5.4
+ $ heroku run python manage.py search_index --create
