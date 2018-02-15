@@ -83,7 +83,7 @@ const DescriptionCard = (props) => {
   );
 };
 
-const ListCard = withStyles(styles)((props) => {
+const ListCardComponent = (props) => {
   const {
     displayLabel,
     headers,
@@ -137,11 +137,13 @@ const ListCard = withStyles(styles)((props) => {
       </div>
     </Card>
   );
-});
+};
+const ListCard = withStyles(styles)(ListCardComponent);
 
 export {
   CardTitle,
   CardSubtitle,
   DescriptionCard,
-  ListCard
+  ListCard,
+  ListCardComponent
 };
