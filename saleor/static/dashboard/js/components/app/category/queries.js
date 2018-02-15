@@ -23,6 +23,7 @@ const categoryDetails = gql`
       name
       description
       parent {
+        id
         pk
       }
     }
