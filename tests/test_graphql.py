@@ -10,13 +10,6 @@ def get_content(response):
     return json.loads(response.content.decode('utf8'))
 
 
-def assert_corresponding_fields(iterable_data, queryset, fields):
-    assert len(iterable_data) == queryset.count()
-    for data, obj in zip(iterable_data, queryset):
-        for field in fields:
-            assert str(data[field]) == str(getattr(obj, field))
-
-
 @pytest.mark.django_db()
 def test_category_query(client, product_in_stock):
     category = Category.objects.first()
@@ -222,8 +215,8 @@ def test_attributes_query(client, product_in_stock):
     response = client.post('/graphql/', {'query': query})
     content = get_content(response)
     assert 'errors' not in content
-    attributes_data = content['data']['attributes']
-    assert_corresponding_fields(attributes_data, attributes, ['name'])
+    attributes_data = content['data']['attributes']['edges']
+    assert len(attributes_data) == attributes.count()
 
 
 @pytest.mark.django_db()
