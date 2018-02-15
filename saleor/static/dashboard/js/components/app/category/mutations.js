@@ -11,7 +11,7 @@ const categoryDelete = gql`
   }
 `;
 const categoryCreate = gql`
-  mutation categoryCreateMutation($name: String!, $description: String!, $parent: Int!) {
+  mutation categoryCreateMutation($name: String!, $description: String!, $parent: Int) {
     categoryCreate(data: {name: $name, description: $description, parent: $parent}) {
       errors {
         field
@@ -30,7 +30,7 @@ const categoryCreate = gql`
   }
 `;
 const categoryUpdate = gql`
-  mutation categoryUpdateMutation($pk: Int!, $name: String!, $description: String!, $parent: Int!) {
+  mutation categoryUpdateMutation($pk: Int!, $name: String!, $description: String!, $parent: Int) {
     categoryUpdate(pk: $pk, data: {name: $name, description: $description, parent: $parent}) {
       errors {
         field
