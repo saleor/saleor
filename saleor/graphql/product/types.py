@@ -9,7 +9,7 @@ from ...product.templatetags.product_images import product_first_image
 from ...product.utils import get_availability, products_visible_to_user
 from ..core.types import Price, PriceRange
 from ..utils import CategoryAncestorsCache
-from .filters import ProductFilterSet
+from .filters import DistinctFilterSet, ProductFilterSet
 
 CONTEXT_CACHE_NAME = '__cache__'
 CACHE_ANCESTORS = 'ancestors'
@@ -19,7 +19,7 @@ def get_ancestors_from_cache(category, context):
     cache = getattr(context, CONTEXT_CACHE_NAME, None)
     if cache and CACHE_ANCESTORS in cache:
         return cache[CACHE_ANCESTORS].get(category)
-    return category.get_ancestors()
+    return category.get_ancestors().distinct()
 
 
 class ProductAvailability(graphene.ObjectType):
@@ -73,9 +73,12 @@ class Category(DjangoObjectType):
         Product, filterset_class=ProductFilterSet)
     products_count = graphene.Int()
     url = graphene.String()
-    ancestors = DjangoFilterConnectionField(lambda: Category)
-    children = DjangoFilterConnectionField(lambda: Category)
-    siblings = DjangoFilterConnectionField(lambda: Category)
+    ancestors = DjangoFilterConnectionField(
+        lambda: Category, filterset_class=DistinctFilterSet)
+    children = DjangoFilterConnectionField(
+        lambda: Category, filterset_class=DistinctFilterSet)
+    siblings = DjangoFilterConnectionField(
+        lambda: Category, filterset_class=DistinctFilterSet)
 
     class Meta:
         model = models.Category
@@ -86,10 +89,10 @@ class Category(DjangoObjectType):
         return get_ancestors_from_cache(self, info.context)
 
     def resolve_children(self, info):
-        return self.children.all()
+        return self.children.distinct()
 
     def resolve_siblings(self, info):
-        return self.get_siblings()
+        return self.get_siblings().distinct()
 
     def resolve_products_count(self, info):
         return self.products.count()

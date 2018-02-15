@@ -3,22 +3,20 @@ from graphene_django.debug import DjangoDebug
 from graphene_django.filter import DjangoFilterConnectionField
 
 from .product.types import (
-    Category, ProductAttribute, Product, resolve_attributes,
-    resolve_category, resolve_product)
-from .product.filters import ProductFilterSet
+    Category, ProductAttribute, Product, resolve_attributes, resolve_category,
+    resolve_product)
+from .product.filters import DistinctFilterSet, ProductFilterSet
 
 
 class Query(graphene.ObjectType):
     attributes = DjangoFilterConnectionField(
         ProductAttribute,
+        filterset_class=DistinctFilterSet,
         in_category=graphene.Argument(graphene.ID))
-    categories = DjangoFilterConnectionField(Category)
-    category = graphene.Field(
-        Category,
-        id=graphene.Argument(graphene.ID))
-    product = graphene.Field(
-        Product,
-        id=graphene.Argument(graphene.ID))
+    categories = DjangoFilterConnectionField(
+        Category, filterset_class=DistinctFilterSet)
+    category = graphene.Field(Category, id=graphene.Argument(graphene.ID))
+    product = graphene.Field(Product, id=graphene.Argument(graphene.ID))
     products = DjangoFilterConnectionField(
         Product, filterset_class=ProductFilterSet)
     node = graphene.Node.Field()
