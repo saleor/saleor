@@ -15,6 +15,7 @@ install:
   - npm i
   - npm run build-assets --production
   - npm run build-emails
+  - npm run test
 script:
   - tox
 env:
