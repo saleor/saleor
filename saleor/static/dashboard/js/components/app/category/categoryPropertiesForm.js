@@ -31,7 +31,7 @@ const createMutation = graphql(categoryCreate, {
     refetchQueries: [
       {
         query: categoryChildren,
-        variables: { pk: props.data.category.parent ? props.data.category.parent.pk : '' }
+        variables: { pk: (props.data.category && props.data.category.parent) ? props.data.category.parent.pk : '' }
       }
     ]
   }),
@@ -56,7 +56,7 @@ const updateMutation = graphql(categoryUpdate, {
 @withStyles(styles)
 @withRouter
 @compose(createMutation, updateMutation)
-class CategoryEdit extends Component {
+class CategoryPropertiesForm extends Component {
   static propTypes = {
     pk: PropTypes.number.isRequired,
     data: PropTypes.shape({
@@ -97,26 +97,26 @@ class CategoryEdit extends Component {
   }
 
   handleSubmit() {
-    let mutation;
+    let mutationType;
     switch (this.props.action) {
       case 'CREATE':
-        mutation = 'categoryCreate';
+        mutationType = 'categoryCreate';
         break;
       case 'UPDATE':
-        mutation = 'categoryUpdate';
+        mutationType = 'categoryUpdate';
         break;
     }
-    if (mutation) {
-      this.props[mutation]({
+    if (mutationType) {
+      this.props[mutationType]({
         variables: {
           name: this.state.name,
           description: this.state.description,
-          parent: this.props.data.category.parent.pk,
+          parent: this.props.data.category.parent ? this.props.data.category.parent.pk : null,
           pk: this.props.pk
         }
       })
         .then(({ data }) => {
-          this.props.history.push(`/categories/${data[mutation].category.pk}/`);
+          this.props.history.push(`/categories/${data[mutationType].category.pk}/`);
         });
     }
   }
@@ -183,4 +183,4 @@ class CategoryEdit extends Component {
   }
 }
 
-export default CategoryEdit;
+export default CategoryPropertiesForm;
