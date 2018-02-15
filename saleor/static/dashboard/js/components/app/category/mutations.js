@@ -23,6 +23,7 @@ const categoryCreate = gql`
         name
         description
         parent {
+          id
           pk
         }
       }
@@ -42,6 +43,7 @@ const categoryUpdate = gql`
         name
         description
         parent {
+          id
           pk
         }
       }
