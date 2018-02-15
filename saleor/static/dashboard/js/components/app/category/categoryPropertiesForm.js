@@ -26,28 +26,11 @@ const styles = theme => ({
     }
   }
 });
-const createMutation = graphql(categoryCreate, {
-  options: (props) => ({
-    refetchQueries: [
-      {
-        query: categoryChildren,
-        variables: { pk: (props.data.category && props.data.category.parent) ? props.data.category.parent.pk : '' }
-      }
-    ]
-  }),
-  name: 'categoryCreate'
-});
+const createMutation = graphql(categoryCreate, { name: 'categoryCreate' });
 const updateMutation = graphql(categoryUpdate, {
   options: (props) => ({
     refetchQueries: [
-      {
-        query: categoryChildren,
-        variables: { pk: props.pk }
-      },
-      {
-        query: categoryDetails,
-        variables: { pk: props.pk }
-      }
+      `CategoryDetails(pk: ${props.pk})`,
     ]
   }),
   name: 'categoryUpdate'
