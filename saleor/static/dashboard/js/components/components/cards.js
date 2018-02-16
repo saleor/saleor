@@ -140,6 +140,10 @@ const ListCardComponent = (props) => {
 };
 const ListCard = withStyles(styles)(ListCardComponent);
 
+const FilterCardComponent = (props) => {
+  const { label } = props;
+};
+
 export {
   CardTitle,
   CardSubtitle,
