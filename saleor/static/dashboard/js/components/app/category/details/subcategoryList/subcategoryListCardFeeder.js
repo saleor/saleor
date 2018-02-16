@@ -14,20 +14,26 @@ const categoryChildrenQuery = graphql(query, {
       },
       fetchPolicy: 'network-only'
     };
+    let variables;
     switch (action) {
       case 'prev':
-        options.variables.last = rowsPerPage;
-        options.variables.before = cursor;
-        options.variables.first = null;
-        options.variables.after = null;
+        variables = {
+          last: rowsPerPage,
+          before: cursor,
+          first: null,
+          after: null
+        };
         break;
       case 'next':
-        options.variables.first = rowsPerPage;
-        options.variables.after = cursor;
-        options.variables.last = null;
-        options.variables.before = null;
+        variables = {
+          first: rowsPerPage,
+          after: cursor,
+          last: null,
+          before: null
+        };
         break;
     }
+    options.variables = Object.assign({}, options.variables, variables);
     return options;
   }
 });
