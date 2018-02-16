@@ -167,13 +167,16 @@ def resolve_product(id, info):
     return products.first()
 
 
-def resolve_attributes(category_pk):
+def resolve_attributes(category_id, info):
     queryset = models.ProductAttribute.objects.prefetch_related('values')
-    if category_pk:
+    if category_id:
         # Get attributes that are used with product types
         # within the given category.
-        tree = models.Category.objects.get(pk=category_pk).get_descendants(
-            include_self=True)
+        category = graphene.Node.get_node_from_global_id(
+            info, category_id, only_type=Category)
+        if category is None:
+            return queryset.none()
+        tree = category.get_descendants(include_self=True)
         product_types = {
             obj[0]
             for obj in models.Product.objects.filter(

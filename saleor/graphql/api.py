@@ -31,7 +31,7 @@ class Query(graphene.ObjectType):
             info, id, only_type=Product)
 
     def resolve_attributes(self, info, in_category=None):
-        return resolve_attributes(in_category)
+        return resolve_attributes(in_category, info)
 
 
 schema = graphene.Schema(Query)

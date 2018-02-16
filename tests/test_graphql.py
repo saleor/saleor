@@ -217,7 +217,7 @@ def test_attributes_in_category_query(client, product_in_stock):
     category = Category.objects.first()
     query = """
         query {
-            attributes(inCategory: %(category_pk)s) {
+            attributes(inCategory: "%(category_id)s") {
                 edges {
                     node {
                         id
@@ -232,7 +232,9 @@ def test_attributes_in_category_query(client, product_in_stock):
                 }
             }
         }
-    """ % {'category_pk': category.pk}
+    """ % {'category_id': graphene.Node.to_global_id('Category', category.id)}
     response = client.post('/graphql/', {'query': query})
     content = get_content(response)
     assert 'errors' not in content
+    attributes_data = content['data']['attributes']['edges']
+    assert len(attributes_data) == ProductAttribute.objects.count()
