@@ -46,6 +46,7 @@
     "react-dom": "^15.6.2",
     "react-jss": "^8.2.1",
     "react-redux": "^5.0.6",
+    "react-responsive": "^4.0.4",
     "react-router": "^4.2.0",
     "react-router-dom": "^4.2.2",
     "redux": "^3.7.2",
