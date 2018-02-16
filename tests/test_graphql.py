@@ -10,7 +10,6 @@ def get_content(response):
     return json.loads(response.content.decode('utf8'))
 
 
-@pytest.mark.django_db()
 def test_category_query(client, product_in_stock):
     category = Category.objects.first()
     query = """
@@ -61,7 +60,6 @@ def test_category_query(client, product_in_stock):
         category.get_siblings().count())
 
 
-@pytest.mark.django_db()
 def test_product_query(client, product_in_stock):
     category = Category.objects.first()
     product = category.products.first()
@@ -109,7 +107,6 @@ def test_product_query(client, product_in_stock):
     assert float(gross) == float(product.price.gross)
 
 
-@pytest.mark.django_db()
 def test_filter_product_by_category(client, product_in_stock):
     category = product_in_stock.category
     query = """
@@ -138,7 +135,6 @@ def test_filter_product_by_category(client, product_in_stock):
     assert product_data['name'] == product_in_stock.name
 
 
-@pytest.mark.django_db()
 def test_fetch_product_by_id(client, product_in_stock):
     query = """
         query ($productId: ID!) {
@@ -163,7 +159,6 @@ def test_fetch_product_by_id(client, product_in_stock):
     assert product_data['name'] == product_in_stock.name
 
 
-@pytest.mark.django_db()
 def test_filter_product_by_attributes(client, product_in_stock):
     product_attr = product_in_stock.product_type.product_attributes.first()
     category = product_in_stock.category
@@ -191,7 +186,6 @@ def test_filter_product_by_attributes(client, product_in_stock):
     assert product_data['name'] == product_in_stock.name
 
 
-@pytest.mark.django_db()
 def test_attributes_query(client, product_in_stock):
     attributes = ProductAttribute.objects.prefetch_related('values')
     query = """
@@ -219,7 +213,6 @@ def test_attributes_query(client, product_in_stock):
     assert len(attributes_data) == attributes.count()
 
 
-@pytest.mark.django_db()
 def test_attributes_in_category_query(client, product_in_stock):
     category = Category.objects.first()
     query = """
