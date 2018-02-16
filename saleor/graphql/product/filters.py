@@ -94,4 +94,8 @@ class ProductFilterSet(DistinctFilterSet):
         if field_name == 'attributes':
             return ProduductAttributeFilter(
                 field_name=field_name, lookup_expr=lookup_expr, distinct=True)
-        return super().filter_for_field(f, field_name, lookup_expr=lookup_expr)
+        # this class method is called during class construction so we can't
+        # reference ProductFilterSet here yet
+        # pylint: disable=E1003
+        return super(DistinctFilterSet, cls).filter_for_field(
+            f, field_name, lookup_expr)
