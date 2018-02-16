@@ -4,7 +4,7 @@ from graphene_django.filter import DjangoFilterConnectionField
 
 from .product.types import (
     Category, ProductAttribute, Product, resolve_attributes, resolve_category,
-    resolve_product)
+    resolve_product, resolve_products)
 from .product.filters import DistinctFilterSet, ProductFilterSet
 
 
@@ -29,6 +29,9 @@ class Query(graphene.ObjectType):
     def resolve_product(self, info, id):
         return graphene.Node.get_node_from_global_id(
             info, id, only_type=Product)
+
+    def resolve_products(self, info, **kwargs):
+        return resolve_products(info)
 
     def resolve_attributes(self, info, in_category=None):
         return resolve_attributes(in_category, info)

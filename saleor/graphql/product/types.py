@@ -6,7 +6,7 @@ from graphene_django.filter import DjangoFilterConnectionField
 
 from ...product import models
 from ...product.templatetags.product_images import product_first_image
-from ...product.utils import get_availability, products_visible_to_user
+from ...product.utils import get_availability
 from ..core.types import Price, PriceRange
 from ..utils import CategoryAncestorsCache
 from .filters import DistinctFilterSet, ProductFilterSet
@@ -101,10 +101,8 @@ class Category(DjangoObjectType):
         ancestors = get_ancestors_from_cache(self, info.context)
         return self.get_absolute_url(ancestors)
 
-    def resolve_products(self, info, **args):
-        context = info.context
-        qs = products_visible_to_user(context.user)
-        qs = qs.prefetch_related('images', 'category', 'variants__stock')
+    def resolve_products(self, info, **kwargs):
+        qs = models.Product.objects.available_products()
         qs = qs.filter(category=self)
         return qs.distinct()
 
@@ -163,8 +161,12 @@ def resolve_category(id, info):
 
 
 def resolve_product(id, info):
-    products = products_visible_to_user(info.context.user).filter(id=id)
+    products = models.Product.objects.available_products().filter(id=id)
     return products.first()
+
+
+def resolve_products(info):
+    return models.Product.objects.available_products().distinct()
 
 
 def resolve_attributes(category_id, info):
