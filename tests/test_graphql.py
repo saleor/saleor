@@ -3,7 +3,7 @@ import json
 import graphene
 import pytest
 
-from saleor.product.models import Category, ProductAttribute
+from saleor.product.models import Category, Product, ProductAttribute
 
 
 def get_content(response):
@@ -12,36 +12,36 @@ def get_content(response):
 
 def test_category_query(client, product_in_stock):
     category = Category.objects.first()
-    query = """
-        query {
-            category(id: "%(category_pk)s") {
-                id
-                name
-                productsCount
-                ancestors {
-                    edges {
-                        node {
-                            name
-                        }
+    query = '''
+    query {
+        category(id: "%(category_pk)s") {
+            id
+            name
+            productsCount
+            ancestors {
+                edges {
+                    node {
+                        name
                     }
                 }
-                children {
-                    edges {
-                        node {
-                            name
-                        }
+            }
+            children {
+                edges {
+                    node {
+                        name
                     }
                 }
-                siblings {
-                    edges {
-                        node {
-                            name
-                        }
+            }
+            siblings {
+                edges {
+                    node {
+                        name
                     }
                 }
             }
         }
-    """ % {'category_pk': graphene.Node.to_global_id('Category', category.pk)}
+    }
+    ''' % {'category_pk': graphene.Node.to_global_id('Category', category.pk)}
     response = client.post('/graphql/', {'query': query})
     content = get_content(response)
     assert 'errors' not in content
@@ -60,32 +60,70 @@ def test_category_query(client, product_in_stock):
         category.get_siblings().count())
 
 
+def test_fetch_all_products(client, product_in_stock):
+    query = '''
+    query {
+        products {
+            edges {
+                node {
+                    id
+                }
+            }
+        }
+    }
+    '''
+    response = client.post('/graphql/', {'query': query})
+    content = get_content(response)
+    assert 'errors' not in content
+    assert (
+        len(content['data']['products']['edges']) == Product.objects.count())
+
+
+@pytest.mark.djangodb
+def test_fetch_unavailable_products(client, product_in_stock):
+    Product.objects.update(is_published=False)
+    query = '''
+    query {
+        products {
+            edges {
+                node {
+                    id
+                }
+            }
+        }
+    }
+    '''
+    response = client.post('/graphql/', {'query': query})
+    content = get_content(response)
+    assert 'errors' not in content
+    assert not content['data']['products']['edges']
+
+
 def test_product_query(client, product_in_stock):
     category = Category.objects.first()
     product = category.products.first()
-    query = """
-        query {
-            category(id: "%(category_id)s") {
-                products {
-                    edges {
-                        node {
-                            id
+    query = '''
+    query {
+        category(id: "%(category_id)s") {
+            products {
+                edges {
+                    node {
+                        id
+                        name
+                        url
+                        thumbnailUrl
+                        images { url }
+                        variants {
                             name
-                            url
-                            thumbnailUrl
-                            images { url }
-                            variants {
-                                name
-                                stockQuantity
-                            }
-                            availability {
-                                available,
-                                priceRange {
-                                    minPrice {
-                                        gross
-                                        net
-                                        currency
-                                    }
+                            stockQuantity
+                        }
+                        availability {
+                            available,
+                            priceRange {
+                                minPrice {
+                                    gross
+                                    net
+                                    currency
                                 }
                             }
                         }
@@ -93,7 +131,8 @@ def test_product_query(client, product_in_stock):
                 }
             }
         }
-    """ % {'category_id': graphene.Node.to_global_id('Category', category.id)}
+    }
+    ''' % {'category_id': graphene.Node.to_global_id('Category', category.id)}
     response = client.post('/graphql/', {'query': query})
     content = get_content(response)
     assert 'errors' not in content
@@ -109,17 +148,17 @@ def test_product_query(client, product_in_stock):
 
 def test_filter_product_by_category(client, product_in_stock):
     category = product_in_stock.category
-    query = """
-        query getProducts($categoryId: ID) {
-            products(category: $categoryId) {
-                edges {
-                    node {
-                        name
-                    }
+    query = '''
+    query getProducts($categoryId: ID) {
+        products(category: $categoryId) {
+            edges {
+                node {
+                    name
                 }
             }
         }
-    """
+    }
+    '''
     response = client.post(
         '/graphql/',
         {
@@ -136,15 +175,15 @@ def test_filter_product_by_category(client, product_in_stock):
 
 
 def test_fetch_product_by_id(client, product_in_stock):
-    query = """
-        query ($productId: ID!) {
-            node(id: $productId) {
-                ... on Product {
-                    name
-                }
+    query = '''
+    query ($productId: ID!) {
+        node(id: $productId) {
+            ... on Product {
+                name
             }
         }
-    """
+    }
+    '''
     response = client.post(
         '/graphql/',
         {
@@ -163,20 +202,20 @@ def test_filter_product_by_attributes(client, product_in_stock):
     product_attr = product_in_stock.product_type.product_attributes.first()
     category = product_in_stock.category
     attr_value = product_attr.values.first()
-    filter_by = "%s:%s" % (product_attr.slug, attr_value.slug)
-    query = """
-        query {
-            category(id: "%(category_id)s") {
-                products(attributes: ["%(filter_by)s"]) {
-                    edges {
-                        node {
-                            name
-                        }
+    filter_by = '%s:%s' % (product_attr.slug, attr_value.slug)
+    query = '''
+    query {
+        category(id: "%(category_id)s") {
+            products(attributes: ["%(filter_by)s"]) {
+                edges {
+                    node {
+                        name
                     }
                 }
             }
         }
-    """ % {
+    }
+    ''' % {
         'category_id': graphene.Node.to_global_id('Category', category.id),
         'filter_by': filter_by}
     response = client.post('/graphql/', {'query': query})
@@ -188,24 +227,24 @@ def test_filter_product_by_attributes(client, product_in_stock):
 
 def test_attributes_query(client, product_in_stock):
     attributes = ProductAttribute.objects.prefetch_related('values')
-    query = """
-        query {
-            attributes {
-                edges {
-                    node {
+    query = '''
+    query {
+        attributes {
+            edges {
+                node {
+                    id
+                    name
+                    slug
+                    values {
                         id
                         name
                         slug
-                        values {
-                            id
-                            name
-                            slug
-                        }
                     }
                 }
             }
         }
-    """
+    }
+    '''
     response = client.post('/graphql/', {'query': query})
     content = get_content(response)
     assert 'errors' not in content
@@ -215,24 +254,24 @@ def test_attributes_query(client, product_in_stock):
 
 def test_attributes_in_category_query(client, product_in_stock):
     category = Category.objects.first()
-    query = """
-        query {
-            attributes(inCategory: "%(category_id)s") {
-                edges {
-                    node {
+    query = '''
+    query {
+        attributes(inCategory: "%(category_id)s") {
+            edges {
+                node {
+                    id
+                    name
+                    slug
+                    values {
                         id
                         name
                         slug
-                        values {
-                            id
-                            name
-                            slug
-                        }
                     }
                 }
             }
         }
-    """ % {'category_id': graphene.Node.to_global_id('Category', category.id)}
+    }
+    ''' % {'category_id': graphene.Node.to_global_id('Category', category.id)}
     response = client.post('/graphql/', {'query': query})
     content = get_content(response)
     assert 'errors' not in content
