@@ -29,7 +29,7 @@ def create_order(checkout):
     create_history_entry(
         order=order, user=user, content=pgettext_lazy(
             'Order status history entry', 'Order was placed'))
-    send_order_confirmation(order)
+    send_order_confirmation.delay(order)
     return order, redirect('order:payment', token=order.token)
 
 

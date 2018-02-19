@@ -38,7 +38,7 @@ class OrderNoteForm(forms.ModelForm):
 
     def send_confirmation_email(self):
         order = self.instance.order
-        send_note_confirmation(order)
+        send_note_confirmation.delay(order.pk)
 
 
 class ManagePaymentForm(forms.Form):
