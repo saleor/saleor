@@ -9,6 +9,7 @@ Customizing Saleor
    customization/emails
    customization/frontend
    customization/backend
+   customization/i18n
    customization/tests
    customization/ci
    customization/pypy
