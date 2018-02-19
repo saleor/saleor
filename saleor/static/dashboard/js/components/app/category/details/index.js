@@ -5,35 +5,45 @@ import Grid from 'material-ui/Grid';
 
 import Description from './description';
 import Subcategories from './subcategoryList';
+import { FilterCard } from '../../../components/cards';
 import { screenSizes } from '../../../misc';
+
+const filterInputs = [
+  {
+    inputType: 'text',
+    name: 'name',
+    label: 'Name',
+    placeholder: 'Name'
+  }
+];
 
 const CategoryDetails = (props) => (
   <div>
     <MediaQuery minWidth={screenSizes.md}>
-      <div>
-        <Grid item xs={12} sm={12} md={9} lg={9}>
+      <Grid container spacing={16}>
+        <Grid item md={9} lg={9}>
           {props.pk && (
             <Description pk={props.pk} />
           )}
           <Subcategories pk={props.pk} />
         </Grid>
-        <Grid item xs={12} sm={12} md={3} lg={3}>
-          sd
+        <Grid item md={3} lg={3}>
+          <FilterCard inputs={filterInputs} />
         </Grid>
-      </div>
+      </Grid>
     </MediaQuery>
     <MediaQuery maxWidth={screenSizes.md}>
-      <div>
-        <Grid item xs={12} sm={12} md={3} lg={3}>
-          sd
+      <Grid container spacing={16}>
+        <Grid item xs={12} sm={12}>
+          <FilterCard inputs={filterInputs} />
         </Grid>
-        <Grid item xs={12} sm={12} md={9} lg={9}>
+        <Grid item xs={12} sm={12}>
           {props.pk && (
             <Description pk={props.pk} />
           )}
           <Subcategories pk={props.pk} />
         </Grid>
-      </div>
+      </Grid>
     </MediaQuery>
   </div>
 );
