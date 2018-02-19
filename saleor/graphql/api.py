@@ -5,7 +5,8 @@ from graphene_django.filter import DjangoFilterConnectionField
 from .product.types import (
     Category, ProductAttribute, Product, resolve_attributes, resolve_category,
     resolve_product, resolve_products)
-from .product.filters import DistinctFilterSet, ProductFilterSet
+from .core.filters import DistinctFilterSet
+from .product.filters import ProductFilterSet
 
 
 class Query(graphene.ObjectType):
