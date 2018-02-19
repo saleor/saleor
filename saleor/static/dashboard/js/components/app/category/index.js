@@ -1,7 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { Route, Switch } from 'react-router-dom';
-import Grid from 'material-ui/Grid';
 
 import CategoryEdit from './edit';
 import CategoryAdd from './create';
@@ -19,35 +18,33 @@ const Component = (props) => {
   );
 
   return (
-    <Grid container spacing={16}>
-      <Switch>
-        <Route
-          exact
-          path={'/categories/:pk/edit'}
-          render={CategoryEditComponent}
-        />
-        <Route
-          exact
-          path={'/categories/:pk/add'}
-          render={CategoryAddComponent}
-        />
-        <Route
-          exact
-          path={'/categories/add'}
-          render={CategoryAddComponent}
-        />
-        <Route
-          exact
-          path={'/categories/:pk'}
-          render={CategoryDetailsComponent}
-        />
-        <Route
-          exact
-          path={'/categories'}
-          render={CategoryDetailsComponent}
-        />
-      </Switch>
-    </Grid>
+    <Switch>
+      <Route
+        exact
+        path={'/categories/:pk/edit'}
+        render={CategoryEditComponent}
+      />
+      <Route
+        exact
+        path={'/categories/:pk/add'}
+        render={CategoryAddComponent}
+      />
+      <Route
+        exact
+        path={'/categories/add'}
+        render={CategoryAddComponent}
+      />
+      <Route
+        exact
+        path={'/categories/:pk'}
+        render={CategoryDetailsComponent}
+      />
+      <Route
+        exact
+        path={'/categories'}
+        render={CategoryDetailsComponent}
+      />
+    </Switch>
   );
 };
 Component.propTypes = {
