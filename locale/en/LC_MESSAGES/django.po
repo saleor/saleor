@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: master\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2018-02-12 05:00-0600\n"
+"POT-Creation-Date: 2018-02-19 09:05-0600\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -4650,135 +4650,182 @@ msgstr ""
 msgid "Search:"
 msgstr ""
 
-#: templates/templated_email/html/compiled/confirm_note.html:112
-msgctxt "Note confirmation e-mail text"
-msgid "Hi!"
+#: templates/templated_email/source/account/password_reset.email:4
+msgctxt "Password reset e-mail subject"
+msgid "Password reset e-mail"
 msgstr ""
 
-#: templates/templated_email/html/compiled/confirm_note.html:112
+#: templates/templated_email/source/account/password_reset.email:8
 #, python-format
-msgctxt "Note confirmation e-mail text"
+msgctxt "Password reset e-mail text"
 msgid ""
-"A new note has been added to your order. To see details please visit: <a "
-"href=\"%(url)s\">%(url)s</a>"
+"\n"
+"Hi!\n"
+"\n"
+"You're receiving this e-mail because you or someone else has requested a "
+"password for your user account at %(domain)s.\n"
+"It can be safely ignored if you did not request a password reset. Click the "
+"link below to reset your password.\n"
 msgstr ""
 
-#: templates/templated_email/html/compiled/confirm_note.html:127
-#: templates/templated_email/html/compiled/confirm_order.html:233
-#: templates/templated_email/html/compiled/confirm_payment.html:127
-#: templates/templated_email/html/compiled/password_reset.html:130
-#: templates/templated_email/html/compiled/promote_customer.html:128
-#: templates/templated_email/html/compiled/set_password.html:130
-msgctxt "Base e-mail text"
-msgid "This is an automatically generated e-mail, please do not reply."
-msgstr ""
-
-#: templates/templated_email/html/compiled/confirm_note.html:142
-#: templates/templated_email/html/compiled/confirm_order.html:248
-#: templates/templated_email/html/compiled/confirm_payment.html:142
-#: templates/templated_email/html/compiled/password_reset.html:145
-#: templates/templated_email/html/compiled/promote_customer.html:143
-#: templates/templated_email/html/compiled/set_password.html:145
+#: templates/templated_email/source/account/password_reset.email:19
 #, python-format
-msgctxt "Base e-mail footer"
-msgid "Sincerely, %(site_name)s"
+msgctxt "Password reset e-mail text"
+msgid ""
+"\n"
+"Sincerely,\n"
+"%(site_name)s\n"
 msgstr ""
 
-#: templates/templated_email/html/compiled/confirm_order.html:113
-msgctxt "Order confirmation e-mail text"
-msgid "Hi!"
+#: templates/templated_email/source/dashboard/staff/promote_customer.email:2
+#, python-format
+msgid "Hello from %(site_name)s!"
 msgstr ""
 
-#: templates/templated_email/html/compiled/confirm_order.html:113
+#: templates/templated_email/source/dashboard/staff/promote_customer.email:5
+#, python-format
+msgctxt "Promote customer to staff member confirmation e-mail text"
+msgid ""
+"\n"
+"Hi!\n"
+"\n"
+"You're receiving this e-mail because you have been promoted to staff member "
+"at %(domain)s."
+msgstr ""
+
+#: templates/templated_email/source/dashboard/staff/promote_customer.email:10
+msgctxt "Promote customer to staff member confirmation e-mail text"
+msgid ""
+"\n"
+"This is an automatically generated email, please do not reply.\n"
+msgstr ""
+
+#: templates/templated_email/source/dashboard/staff/set_password.email:2
+#, python-format
+msgctxt "Set password for staff member e-mail title"
+msgid "Hello from %(site_name)s!"
+msgstr ""
+
+#: templates/templated_email/source/dashboard/staff/set_password.email:5
+#, python-format
+msgctxt "Set password for staff member e-mail text"
+msgid ""
+"\n"
+"Hi!\n"
+"\n"
+"You're receiving this e-mail because you have to set password for your staff "
+"member account at %(domain)s.\n"
+"Click the link below to reset your password.\n"
+msgstr ""
+
+#: templates/templated_email/source/dashboard/staff/set_password.email:14
+msgctxt "Set password for staff member e-mail text"
+msgid ""
+"\n"
+"This is an automatically generated email, please do not reply.\n"
+msgstr ""
+
+#: templates/templated_email/source/order/confirm_order.email:5
+msgctxt "Order confirmation e-mail subject"
+msgid "Order details"
+msgstr ""
+
+#: templates/templated_email/source/order/confirm_order.email:9
 #, python-format
 msgctxt "Order confirmation e-mail text"
 msgid ""
+"\n"
+"Hi!\n"
+"\n"
 "Thank you for your order. Below is the list of ordered products. To see your "
-"payment details please visit: <a href=\"%(url)s\">%(url)s</a>"
+"payment details please visit:\n"
+"%(url)s"
 msgstr ""
 
-#: templates/templated_email/html/compiled/confirm_order.html:144
-msgctxt "E-mail order lines summary table"
+#: templates/templated_email/source/order/confirm_order.email:17
+msgctxt "Order confirmation e-mail table header"
+msgid "Order summary"
+msgstr ""
+
+#: templates/templated_email/source/order/confirm_order.email:18
+msgctxt "Order confirmation e-mail table header"
 msgid "Subtotal"
 msgstr ""
 
-#: templates/templated_email/html/compiled/confirm_order.html:152
-msgctxt "E-mail order lines summary table"
+#: templates/templated_email/source/order/confirm_order.email:19
+msgctxt "Order confirmation e-mail table header"
 msgid "Shipping"
 msgstr ""
 
-#: templates/templated_email/html/compiled/confirm_order.html:160
-msgctxt "E-mail order lines summary table"
+#: templates/templated_email/source/order/confirm_order.email:20
+msgctxt "Order confirmation e-mail table header"
 msgid "Total"
 msgstr ""
 
-#: templates/templated_email/html/compiled/confirm_order.html:203
+#: templates/templated_email/source/order/confirm_order.email:22
 msgctxt "Order confirmation e-mail billing address"
 msgid "Billing address"
 msgstr ""
 
-#: templates/templated_email/html/compiled/confirm_order.html:204
+#: templates/templated_email/source/order/confirm_order.email:25
 msgctxt "Order confirmation e-mail shipping address"
 msgid "Shipping address"
 msgstr ""
 
-#: templates/templated_email/html/compiled/confirm_order.html:216
+#: templates/templated_email/source/order/confirm_order.email:26
 msgctxt "Order confirmation e-mail text"
 msgid "No shipping required"
 msgstr ""
 
-#: templates/templated_email/html/compiled/confirm_payment.html:112
-msgctxt "Payment confirmation e-mail text"
-msgid "Hi!"
-msgstr ""
-
-#: templates/templated_email/html/compiled/confirm_payment.html:112
+#: templates/templated_email/source/order/confirm_order.email:28
 #, python-format
-msgctxt "Payment confirmation e-mail text"
+msgctxt "Order confirmation e-mail text"
 msgid ""
-"Thank you for your payment. To see your payment details please visit: <a "
-"href=\"%(url)s\">%(url)s</a>"
+"\n"
+"This is an automatically generated e-mail, please do not reply.\n"
+"\n"
+"Sincerely,\n"
+"%(site_name)s\n"
 msgstr ""
 
-#: templates/templated_email/html/compiled/password_reset.html:112
-msgctxt "Password reset e-mail text"
-msgid "Hi!"
+#: templates/templated_email/source/order/note/confirm_note.email:4
+msgctxt "Note confirmation email subject"
+msgid "New note has been added to your order"
 msgstr ""
 
-#: templates/templated_email/html/compiled/password_reset.html:112
+#: templates/templated_email/source/order/note/confirm_note.email:8
 #, python-format
-msgctxt "Password reset e-mail text"
+msgctxt "Note confirmation email text"
 msgid ""
-"You're receiving this e-mail because you or someone else has requested a "
-"password for your user account at %(domain)s.<br> It can be safely ignored "
-"if you did not request a password reset. Click the link below to reset your "
-"password."
+"\n"
+"Hi!\n"
+"\n"
+"A new note has been added to your order. To see details please visit:\n"
+"%(url)s\n"
+"\n"
+"This is an automatically generated email, please do not reply.\n"
+"\n"
+"Sincerely,\n"
+"%(site_name)s\n"
 msgstr ""
 
-#: templates/templated_email/html/compiled/promote_customer.html:112
-msgctxt "Promote customer to staff member confirmation e-mail text"
-msgid "Hi!"
+#: templates/templated_email/source/order/payment/confirm_payment.email:4
+msgctxt "Payment confirmation subject"
+msgid "Payment details"
 msgstr ""
 
-#: templates/templated_email/html/compiled/promote_customer.html:112
+#: templates/templated_email/source/order/payment/confirm_payment.email:8
 #, python-format
-msgctxt "Promote customer to staff member confirmation e-mail text"
+msgctxt "Payment confirmation email text"
 msgid ""
-"You're receiving this e-mail because you have been promoted to staff member "
-"at %(domain)s.<br> To access dashboard please visit: <a href=\"%(url)s\">"
-"%(url)s</a>"
-msgstr ""
-
-#: templates/templated_email/html/compiled/set_password.html:112
-msgctxt "Set password for staff member e-mail text"
-msgid "Hi!"
-msgstr ""
-
-#: templates/templated_email/html/compiled/set_password.html:112
-#, python-format
-msgctxt "Set password for staff member e-mail text"
-msgid ""
-"You're receiving this e-mail because you have to set password for your staff "
-"member account at %(domain)s.<br> Click the link below to set up your "
-"password."
+"\n"
+"Hi!\n"
+"\n"
+"Thank you for your payment. To see your payment details please visit:\n"
+"%(url)s\n"
+"\n"
+"This is an automatically generated email, please do not reply.\n"
+"\n"
+"Sincerely,\n"
+"%(site_name)s\n"
 msgstr ""
