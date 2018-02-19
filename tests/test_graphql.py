@@ -64,6 +64,7 @@ def test_fetch_all_products(client, product_in_stock):
     query = '''
     query {
         products {
+            totalCount
             edges {
                 node {
                     id
@@ -75,8 +76,9 @@ def test_fetch_all_products(client, product_in_stock):
     response = client.post('/graphql/', {'query': query})
     content = get_content(response)
     assert 'errors' not in content
-    assert (
-        len(content['data']['products']['edges']) == Product.objects.count())
+    num_products = Product.objects.count()
+    assert content['data']['products']['totalCount'] == num_products
+    assert len(content['data']['products']['edges']) == num_products
 
 
 @pytest.mark.djangodb
@@ -85,6 +87,7 @@ def test_fetch_unavailable_products(client, product_in_stock):
     query = '''
     query {
         products {
+            totalCount
             edges {
                 node {
                     id
@@ -96,6 +99,7 @@ def test_fetch_unavailable_products(client, product_in_stock):
     response = client.post('/graphql/', {'query': query})
     content = get_content(response)
     assert 'errors' not in content
+    assert content['data']['products']['totalCount'] == 0
     assert not content['data']['products']['edges']
 
 
