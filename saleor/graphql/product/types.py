@@ -7,9 +7,10 @@ from graphene_django.filter import DjangoFilterConnectionField
 from ...product import models
 from ...product.templatetags.product_images import product_first_image
 from ...product.utils import get_availability
-from ..core.types import Price, PriceRange
+from ..core.filters import DistinctFilterSet
+from ..core.types import CountableDjangoObjectType, Price, PriceRange
 from ..utils import CategoryAncestorsCache
-from .filters import DistinctFilterSet, ProductFilterSet
+from .filters import ProductFilterSet
 
 CONTEXT_CACHE_NAME = '__cache__'
 CACHE_ANCESTORS = 'ancestors'
@@ -32,7 +33,7 @@ class ProductAvailability(graphene.ObjectType):
     price_range_local_currency = graphene.Field(PriceRange)
 
 
-class Product(DjangoObjectType):
+class Product(CountableDjangoObjectType):
     url = graphene.String()
     thumbnail_url = graphene.String(
         size=graphene.Argument(
@@ -68,7 +69,7 @@ class Product(DjangoObjectType):
         return ProductAvailability(**availability._asdict())
 
 
-class Category(DjangoObjectType):
+class Category(CountableDjangoObjectType):
     products = DjangoFilterConnectionField(
         Product, filterset_class=ProductFilterSet)
     products_count = graphene.Int()
@@ -107,7 +108,7 @@ class Category(DjangoObjectType):
         return qs.distinct()
 
 
-class ProductVariant(DjangoObjectType):
+class ProductVariant(CountableDjangoObjectType):
     stock_quantity = graphene.Int()
     price_override = graphene.Field(Price)
 
@@ -119,7 +120,7 @@ class ProductVariant(DjangoObjectType):
         return self.get_stock_quantity()
 
 
-class ProductImage(DjangoObjectType):
+class ProductImage(CountableDjangoObjectType):
     url = graphene.String(size=graphene.String())
 
     class Meta:
@@ -132,13 +133,13 @@ class ProductImage(DjangoObjectType):
         return self.image.url
 
 
-class ProductAttributeValue(DjangoObjectType):
+class ProductAttributeValue(CountableDjangoObjectType):
     class Meta:
         model = models.AttributeChoiceValue
         interfaces = [relay.Node]
 
 
-class ProductAttribute(DjangoObjectType):
+class ProductAttribute(CountableDjangoObjectType):
     values = graphene.List(ProductAttributeValue)
 
     class Meta:
