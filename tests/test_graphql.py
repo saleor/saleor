@@ -1,84 +1,129 @@
 import json
 
+import graphene
 import pytest
 
-from saleor.product.models import Category, ProductAttribute
+from saleor.product.models import Category, Product, ProductAttribute
 
 
 def get_content(response):
     return json.loads(response.content.decode('utf8'))
 
 
-def assert_success(content):
-    assert 'errors' not in content
-    assert 'data' in content
-
-
-def assert_corresponding_fields(iterable_data, queryset, fields):
-    assert len(iterable_data) == queryset.count()
-    for (data, obj) in zip(iterable_data, queryset):
-        for field in fields:
-            assert str(data[field]) == str(getattr(obj, field))
-
-
-@pytest.mark.django_db()
 def test_category_query(client, product_in_stock):
     category = Category.objects.first()
-    query = """
-        query {
-            category(pk: %(category_pk)s) {
-                pk
-                name
-                productsCount
-                ancestors { name }
-                children { name }
-                siblings { name }
+    query = '''
+    query {
+        category(id: "%(category_pk)s") {
+            id
+            name
+            productsCount
+            ancestors {
+                edges {
+                    node {
+                        name
+                    }
+                }
+            }
+            children {
+                edges {
+                    node {
+                        name
+                    }
+                }
+            }
+            siblings {
+                edges {
+                    node {
+                        name
+                    }
+                }
             }
         }
-    """ % {'category_pk': category.pk}
+    }
+    ''' % {'category_pk': graphene.Node.to_global_id('Category', category.pk)}
     response = client.post('/graphql/', {'query': query})
     content = get_content(response)
-    assert_success(content)
+    assert 'errors' not in content
     category_data = content['data']['category']
     assert category_data is not None
-    assert int(category_data['pk']) == category.pk
     assert category_data['name'] == category.name
     assert category_data['productsCount'] == category.products.count()
-    assert_corresponding_fields(
-        category_data['ancestors'], category.get_ancestors(), ['name'])
-    assert_corresponding_fields(
-        category_data['children'], category.get_children(), ['name'])
-    assert_corresponding_fields(
-        category_data['siblings'], category.get_siblings(), ['name'])
+    assert (
+        len(category_data['ancestors']['edges']) ==
+        category.get_ancestors().count())
+    assert (
+        len(category_data['children']['edges']) ==
+        category.get_children().count())
+    assert (
+        len(category_data['siblings']['edges']) ==
+        category.get_siblings().count())
 
 
-@pytest.mark.django_db()
+def test_fetch_all_products(client, product_in_stock):
+    query = '''
+    query {
+        products {
+            edges {
+                node {
+                    id
+                }
+            }
+        }
+    }
+    '''
+    response = client.post('/graphql/', {'query': query})
+    content = get_content(response)
+    assert 'errors' not in content
+    assert (
+        len(content['data']['products']['edges']) == Product.objects.count())
+
+
+@pytest.mark.djangodb
+def test_fetch_unavailable_products(client, product_in_stock):
+    Product.objects.update(is_published=False)
+    query = '''
+    query {
+        products {
+            edges {
+                node {
+                    id
+                }
+            }
+        }
+    }
+    '''
+    response = client.post('/graphql/', {'query': query})
+    content = get_content(response)
+    assert 'errors' not in content
+    assert not content['data']['products']['edges']
+
+
 def test_product_query(client, product_in_stock):
     category = Category.objects.first()
     product = category.products.first()
-    query = """
-        query {
-            category(pk: %(category_pk)s) {
-                products {
-                    edges {
-                        node {
-                            pk
+    query = '''
+    query {
+        category(id: "%(category_id)s") {
+            products {
+                edges {
+                    node {
+                        id
+                        name
+                        url
+                        thumbnailUrl
+                        images { url }
+                        variants {
                             name
-                            url
-                            thumbnailUrl
-                            images { url }
-                            variants {
-                                name
-                                stockQuantity
-                            }
-                            availability {
-                                available,
-                                priceRange {
-                                    minPrice {
-                                        gross
-                                        net
-                                        currency
-                                    }
+                            stockQuantity
+                        }
+                        availability {
+                            available,
+                            priceRange {
+                                minPrice {
+                                    gross
+                                    net
+                                    currency
                                 }
                             }
                         }
@@ -86,88 +131,149 @@ def test_product_query(client, product_in_stock):
                 }
             }
         }
-    """ % {'category_pk': category.pk}
+    }
+    ''' % {'category_id': graphene.Node.to_global_id('Category', category.id)}
     response = client.post('/graphql/', {'query': query})
     content = get_content(response)
-    assert_success(content)
+    assert 'errors' not in content
     assert content['data']['category'] is not None
     product_edges_data = content['data']['category']['products']['edges']
     assert len(product_edges_data) == category.products.count()
     product_data = product_edges_data[0]['node']
-    assert int(product_data['pk']) == product.pk
     assert product_data['name'] == product.name
     assert product_data['url'] == product.get_absolute_url()
     gross = product_data['availability']['priceRange']['minPrice']['gross']
     assert float(gross) == float(product.price.gross)
 
 
-@pytest.mark.django_db()
+def test_filter_product_by_category(client, product_in_stock):
+    category = product_in_stock.category
+    query = '''
+    query getProducts($categoryId: ID) {
+        products(category: $categoryId) {
+            edges {
+                node {
+                    name
+                }
+            }
+        }
+    }
+    '''
+    response = client.post(
+        '/graphql/',
+        {
+            'query': query,
+            'variables': json.dumps(
+                {
+                    'categoryId': graphene.Node.to_global_id(
+                        'Category', category.id)}),
+            'operationName': 'getProducts'})
+    content = get_content(response)
+    assert 'errors' not in content
+    product_data = content['data']['products']['edges'][0]['node']
+    assert product_data['name'] == product_in_stock.name
+
+
+def test_fetch_product_by_id(client, product_in_stock):
+    query = '''
+    query ($productId: ID!) {
+        node(id: $productId) {
+            ... on Product {
+                name
+            }
+        }
+    }
+    '''
+    response = client.post(
+        '/graphql/',
+        {
+            'query': query,
+            'variables': json.dumps(
+                {
+                    'productId': graphene.Node.to_global_id(
+                        'Product', product_in_stock.id)})})
+    content = get_content(response)
+    assert 'errors' not in content
+    product_data = content['data']['node']
+    assert product_data['name'] == product_in_stock.name
+
+
 def test_filter_product_by_attributes(client, product_in_stock):
-    category = Category.objects.first()
     product_attr = product_in_stock.product_type.product_attributes.first()
+    category = product_in_stock.category
     attr_value = product_attr.values.first()
-    filter_by = "%s:%s" % (product_attr.name, attr_value.slug)
-    query = """
-        query {
-            category(pk: %(category_pk)s) {
-                products(attributes: ["%(filter_by)s"]) {
-                    edges {
-                        node {
-                            name
-                        }
+    filter_by = '%s:%s' % (product_attr.slug, attr_value.slug)
+    query = '''
+    query {
+        category(id: "%(category_id)s") {
+            products(attributes: ["%(filter_by)s"]) {
+                edges {
+                    node {
+                        name
                     }
                 }
             }
         }
-    """ % {'category_pk': category.pk, 'filter_by': filter_by}
+    }
+    ''' % {
+        'category_id': graphene.Node.to_global_id('Category', category.id),
+        'filter_by': filter_by}
     response = client.post('/graphql/', {'query': query})
     content = get_content(response)
-    assert_success(content)
+    assert 'errors' not in content
     product_data = content['data']['category']['products']['edges'][0]['node']
     assert product_data['name'] == product_in_stock.name
 
 
-@pytest.mark.django_db()
 def test_attributes_query(client, product_in_stock):
     attributes = ProductAttribute.objects.prefetch_related('values')
-    query = """
-        query {
-            attributes {
-                pk
-                name
-                slug
-                values {
-                    pk
+    query = '''
+    query {
+        attributes {
+            edges {
+                node {
+                    id
                     name
                     slug
+                    values {
+                        id
+                        name
+                        slug
+                    }
                 }
             }
         }
-    """
+    }
+    '''
     response = client.post('/graphql/', {'query': query})
     content = get_content(response)
-    assert_success(content)
-    attributes_data = content['data']['attributes']
-    assert_corresponding_fields(attributes_data, attributes, ['pk', 'name'])
+    assert 'errors' not in content
+    attributes_data = content['data']['attributes']['edges']
+    assert len(attributes_data) == attributes.count()
 
 
-@pytest.mark.django_db()
 def test_attributes_in_category_query(client, product_in_stock):
     category = Category.objects.first()
-    query = """
-        query {
-            attributes(categoryPk: %(category_pk)s) {
-                pk
-                name
-                slug
-                values {
-                    pk
+    query = '''
+    query {
+        attributes(inCategory: "%(category_id)s") {
+            edges {
+                node {
+                    id
                     name
                     slug
+                    values {
+                        id
+                        name
+                        slug
+                    }
                 }
             }
         }
-    """ % {'category_pk': category.pk}
+    }
+    ''' % {'category_id': graphene.Node.to_global_id('Category', category.id)}
     response = client.post('/graphql/', {'query': query})
     content = get_content(response)
-    assert_success(content)
+    assert 'errors' not in content
+    attributes_data = content['data']['attributes']['edges']
+    assert len(attributes_data) == ProductAttribute.objects.count()
