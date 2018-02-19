@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: master\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2018-02-12 05:00-0600\n"
+"POT-Creation-Date: 2018-02-19 08:48-0600\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -4650,12 +4650,12 @@ msgstr ""
 msgid "Search:"
 msgstr ""
 
-#: templates/templated_email/html/compiled/confirm_note.html:112
+#: templates/templated_email/compiled/confirm_note.html:112
 msgctxt "Note confirmation e-mail text"
 msgid "Hi!"
 msgstr ""
 
-#: templates/templated_email/html/compiled/confirm_note.html:112
+#: templates/templated_email/compiled/confirm_note.html:112
 #, python-format
 msgctxt "Note confirmation e-mail text"
 msgid ""
@@ -4663,33 +4663,33 @@ msgid ""
 "href=\"%(url)s\">%(url)s</a>"
 msgstr ""
 
-#: templates/templated_email/html/compiled/confirm_note.html:127
-#: templates/templated_email/html/compiled/confirm_order.html:233
-#: templates/templated_email/html/compiled/confirm_payment.html:127
-#: templates/templated_email/html/compiled/password_reset.html:130
-#: templates/templated_email/html/compiled/promote_customer.html:128
-#: templates/templated_email/html/compiled/set_password.html:130
+#: templates/templated_email/compiled/confirm_note.html:127
+#: templates/templated_email/compiled/confirm_order.html:233
+#: templates/templated_email/compiled/confirm_payment.html:127
+#: templates/templated_email/compiled/password_reset.html:130
+#: templates/templated_email/compiled/promote_customer.html:128
+#: templates/templated_email/compiled/set_password.html:130
 msgctxt "Base e-mail text"
 msgid "This is an automatically generated e-mail, please do not reply."
 msgstr ""
 
-#: templates/templated_email/html/compiled/confirm_note.html:142
-#: templates/templated_email/html/compiled/confirm_order.html:248
-#: templates/templated_email/html/compiled/confirm_payment.html:142
-#: templates/templated_email/html/compiled/password_reset.html:145
-#: templates/templated_email/html/compiled/promote_customer.html:143
-#: templates/templated_email/html/compiled/set_password.html:145
+#: templates/templated_email/compiled/confirm_note.html:142
+#: templates/templated_email/compiled/confirm_order.html:248
+#: templates/templated_email/compiled/confirm_payment.html:142
+#: templates/templated_email/compiled/password_reset.html:145
+#: templates/templated_email/compiled/promote_customer.html:143
+#: templates/templated_email/compiled/set_password.html:145
 #, python-format
 msgctxt "Base e-mail footer"
 msgid "Sincerely, %(site_name)s"
 msgstr ""
 
-#: templates/templated_email/html/compiled/confirm_order.html:113
+#: templates/templated_email/compiled/confirm_order.html:113
 msgctxt "Order confirmation e-mail text"
 msgid "Hi!"
 msgstr ""
 
-#: templates/templated_email/html/compiled/confirm_order.html:113
+#: templates/templated_email/compiled/confirm_order.html:113
 #, python-format
 msgctxt "Order confirmation e-mail text"
 msgid ""
@@ -4697,42 +4697,42 @@ msgid ""
 "payment details please visit: <a href=\"%(url)s\">%(url)s</a>"
 msgstr ""
 
-#: templates/templated_email/html/compiled/confirm_order.html:144
+#: templates/templated_email/compiled/confirm_order.html:144
 msgctxt "E-mail order lines summary table"
 msgid "Subtotal"
 msgstr ""
 
-#: templates/templated_email/html/compiled/confirm_order.html:152
+#: templates/templated_email/compiled/confirm_order.html:152
 msgctxt "E-mail order lines summary table"
 msgid "Shipping"
 msgstr ""
 
-#: templates/templated_email/html/compiled/confirm_order.html:160
+#: templates/templated_email/compiled/confirm_order.html:160
 msgctxt "E-mail order lines summary table"
 msgid "Total"
 msgstr ""
 
-#: templates/templated_email/html/compiled/confirm_order.html:203
+#: templates/templated_email/compiled/confirm_order.html:203
 msgctxt "Order confirmation e-mail billing address"
 msgid "Billing address"
 msgstr ""
 
-#: templates/templated_email/html/compiled/confirm_order.html:204
+#: templates/templated_email/compiled/confirm_order.html:204
 msgctxt "Order confirmation e-mail shipping address"
 msgid "Shipping address"
 msgstr ""
 
-#: templates/templated_email/html/compiled/confirm_order.html:216
+#: templates/templated_email/compiled/confirm_order.html:216
 msgctxt "Order confirmation e-mail text"
 msgid "No shipping required"
 msgstr ""
 
-#: templates/templated_email/html/compiled/confirm_payment.html:112
+#: templates/templated_email/compiled/confirm_payment.html:112
 msgctxt "Payment confirmation e-mail text"
 msgid "Hi!"
 msgstr ""
 
-#: templates/templated_email/html/compiled/confirm_payment.html:112
+#: templates/templated_email/compiled/confirm_payment.html:112
 #, python-format
 msgctxt "Payment confirmation e-mail text"
 msgid ""
@@ -4740,12 +4740,12 @@ msgid ""
 "href=\"%(url)s\">%(url)s</a>"
 msgstr ""
 
-#: templates/templated_email/html/compiled/password_reset.html:112
+#: templates/templated_email/compiled/password_reset.html:112
 msgctxt "Password reset e-mail text"
 msgid "Hi!"
 msgstr ""
 
-#: templates/templated_email/html/compiled/password_reset.html:112
+#: templates/templated_email/compiled/password_reset.html:112
 #, python-format
 msgctxt "Password reset e-mail text"
 msgid ""
@@ -4755,12 +4755,12 @@ msgid ""
 "password."
 msgstr ""
 
-#: templates/templated_email/html/compiled/promote_customer.html:112
+#: templates/templated_email/compiled/promote_customer.html:112
 msgctxt "Promote customer to staff member confirmation e-mail text"
 msgid "Hi!"
 msgstr ""
 
-#: templates/templated_email/html/compiled/promote_customer.html:112
+#: templates/templated_email/compiled/promote_customer.html:112
 #, python-format
 msgctxt "Promote customer to staff member confirmation e-mail text"
 msgid ""
@@ -4769,12 +4769,12 @@ msgid ""
 "%(url)s</a>"
 msgstr ""
 
-#: templates/templated_email/html/compiled/set_password.html:112
+#: templates/templated_email/compiled/set_password.html:112
 msgctxt "Set password for staff member e-mail text"
 msgid "Hi!"
 msgstr ""
 
-#: templates/templated_email/html/compiled/set_password.html:112
+#: templates/templated_email/compiled/set_password.html:112
 #, python-format
 msgctxt "Set password for staff member e-mail text"
 msgid ""
