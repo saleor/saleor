@@ -28,7 +28,6 @@ def _send_confirmation(email, url, template, context=None):
         template_name=template)
 
 
-
 def collect_data_for_email(order_pk, template):
     order = Order.objects.get(pk=order_pk)
     email = order.get_user_current_email()
