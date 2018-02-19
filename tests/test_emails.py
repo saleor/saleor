@@ -24,7 +24,7 @@ def test_send_emails(
                         'email': EMAIL,
                         'url': URL,
                         'template': template}):
-        fun(order)
+        fun(order.pk)
         context = {
             'protocol': 'http',
             'domain': DOMAIN,
