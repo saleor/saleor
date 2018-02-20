@@ -59,7 +59,7 @@ def order_details(request, order_pk):
     if payment:
         can_capture = (
             payment.status == PaymentStatus.PREAUTH and
-            order.status != OrderStatus.CANCELLED)
+            order.status != OrderStatus.CANCELED)
         can_release = payment.status == PaymentStatus.PREAUTH
         can_refund = payment.status == PaymentStatus.CONFIRMED
         preauthorized = payment.get_total_price()
@@ -394,6 +394,10 @@ def fulfill_order_lines(request, order_pk):
             line = line_form.save(commit=False)
             line.fulfillment = fulfillment
             line.save()
+        order.status = (
+            OrderStatus.FULFILLED if order.is_fulfilled()
+            else OrderStatus.PARTIALLY_FULFILLED)
+        order.save(update_fields=['status'])
     elif form.errors:
         status = 400
     ctx = {'form': form, 'formset': formset, 'order': order}

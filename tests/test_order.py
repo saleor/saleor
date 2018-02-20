@@ -4,7 +4,7 @@ from django.urls import reverse
 from prices import Money, TaxedMoney
 from tests.utils import get_redirect_location
 
-from saleor.order import OrderStatus, models
+from saleor.order import models
 from saleor.order.emails import collect_data_for_email
 from saleor.order.forms import OrderNoteForm
 from saleor.order.utils import recalculate_order
@@ -89,14 +89,6 @@ def test_add_variant_to_order_allocates_stock_for_existing_variant(
     assert stock.quantity_allocated == stock_before + 1
 
 
-def test_order_status_open(open_orders):
-    assert all([order.status == OrderStatus.OPEN for order in open_orders])
-
-
-def test_order_status_closed(closed_orders):
-    assert all([order.status == OrderStatus.CLOSED for order in closed_orders])
-
-
 def test_view_connect_order_with_user_authorized_user(
         order, authorized_client, customer_user):
     order.user_email = customer_user.email
@@ -126,7 +118,6 @@ def test_view_connect_order_with_user_different_email(
 
 def test_add_note_to_order(order_with_lines_and_stock):
     order = order_with_lines_and_stock
-    assert order.is_open
     note = models.OrderNote(order=order, user=order.user)
     note_form = OrderNoteForm({'content': 'test_note'}, instance=note)
     note_form.is_valid()
