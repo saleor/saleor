@@ -1,0 +1,121 @@
+{% extends "dashboard/base.html" %}
+{% load babel %}
+{% load prices_i18n %}
+{% load i18n %}
+{% load i18n_address_tags %}
+{% load materializecss %}
+{% load status %}
+{% load staticfiles %}
+{% load dashboard %}
+{% load discount_amount_for from prices %}
+
+{% block title %}
+  {% trans "Fulfill" context "Dashboard order fulfillment" %} {{ order }} - {% trans "Orders" context "Dashboard orders list" %} - {{ block.super }}
+{% endblock %}
+
+{% block body_class %}body-orders{% endblock %}
+
+{% block menu_orders_class %}active{% endblock %}
+
+{% block header_menu %}
+  {% url "dashboard:orders" as url %}
+  {% include "dashboard/includes/_back_link.html" with url=url %}
+{% endblock %}
+
+{% block breadcrumbs %}
+  <ul class="breadcrumbs breadcrumbs--history">
+    <li>
+      <a href="{% url "dashboard:orders" %}">
+        {% trans "Orders" context "Dashboard orders list" %}
+      </a>
+    </li>
+    <li class="back-mobile">
+      <a href="{% url "dashboard:orders" %}">
+        <svg data-src="{% static "dashboard/images/arrow-left.svg" %}" fill="#fff" width="20px" height="20px" />
+      </a>
+    </li>
+    <li>
+      <a href="{% url 'dashboard:order-details' order_pk=order.pk %}" class="breadcrumbs--ellipsed-item">
+        {{ order }}
+      </a>
+    </li>
+    <li>
+      <span>
+        {% trans "Fulfill" context "Dashboard order fulfillment" %}
+      </span>
+    </li>
+  </ul>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+  <div class="col s12 l9">
+    <form role="form" class="card" method="post" action="{% block action_url %}#!{% endblock %}" novalidate>
+    {% csrf_token %}
+    {{ formset.management_form }}
+      <div class="card-content">
+        <span class="card-title">
+          {% trans "Fulfill order" context "Fulfill order title" %}
+        </span>
+        <div class="row">
+          <div class="col s12">
+            <table>
+              <thead>
+                <tr>
+                  <th class="wide">
+                    {% trans "Item" context "Modal remove order line table header" %}
+                  </th>
+                  <th>
+                    {% trans "SKU" context "Modal remove order line table header" %}
+                  </th>
+                  <th class="right-align">
+                    {% trans "Quantity" context "Modal remove order line table header" %}
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for line in order.get_unfulfilled_lines %}
+                  <tr>
+                    <td>
+                      {{ line.product_name }}<br>
+                    </td>
+                    <td>
+                      {{ line.product_sku }}
+                    </td>
+                    <td class="right-align">
+                      {% get_formset_form formset forloop.counter0 as line_form %}
+                      <input id="{{ line_form.order_line.auto_id }}"
+                             type="hidden"
+                             name="{{ line_form.order_line.html_name }}"
+                             required="{{ line_form.order_line.field.required }}"
+                             value="{{ line_form.order_line.value }}">
+                      <input id="{{ line_form.quantity.auto_id }}"
+                             max="{{ line.quantity_unfulfilled }}"
+                             min="0"
+                             name="{{ line_form.quantity.html_name }}"
+                             required="{{ line_form.quantity.field.required }}"
+                             type="number"
+                             value="{{ line_form.quantity.value }}">
+                    </td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+          <div class="col s12 m6">
+            {{ form }}
+          </div>
+        </div>
+      </div>
+      <div class="card-action right-align">
+        <a href="{% url 'dashboard:order-details' order.pk %}" class="btn-flat waves-effect">
+          {% trans "Cancel" context "Dashboard cancel action" %}
+        </a>
+        <button type="submit" class="btn waves-effect">
+          {% trans "Save" context "Dashboard update action" %}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

@@ -398,8 +398,9 @@ def fulfill_order_lines(request, order_pk):
             OrderStatus.FULFILLED if order.is_fulfilled()
             else OrderStatus.PARTIALLY_FULFILLED)
         order.save(update_fields=['status'])
+        return redirect('dashboard:order-details', order_pk=order.pk)
     elif form.errors:
         status = 400
     ctx = {'form': form, 'formset': formset, 'order': order}
-    template = 'dashboard/order/modal/fulfill_order_lines.html'
+    template = 'dashboard/order/fulfillment.html'
     return TemplateResponse(request, template, ctx, status=status)
