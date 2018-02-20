@@ -1,9 +1,10 @@
 import graphene
 
-from ...dashboard.category.forms import CategoryForm
-from ..core.mutations import BaseMutation, ModelFormMutation, ModelFormUpdateMutation
-from ..utils import get_node
-from .types import Category
+from ....graphql.product.types import Category
+from ....graphql.utils import get_node
+from ...category.forms import CategoryForm
+from ..mutations import (
+    BaseMutation, ModelFormMutation, ModelFormUpdateMutation)
 
 
 class CategoryCreateMutation(ModelFormMutation):

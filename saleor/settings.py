@@ -358,10 +358,7 @@ if ES_URL:
 
 GRAPHENE = {
     'MIDDLEWARE': [
-        'graphene_django.debug.DjangoDebugMiddleware'],
-    'SCHEMA': 'saleor.graphql.api.schema',
-    'SCHEMA_OUTPUT': os.path.join(
-        PROJECT_ROOT, 'saleor', 'static', 'schema.json')}
+        'graphene_django.debug.DjangoDebugMiddleware'],}
 
 AUTHENTICATION_BACKENDS = [
     'saleor.account.backends.facebook.CustomFacebookOAuth2',

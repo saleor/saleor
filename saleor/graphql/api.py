@@ -7,8 +7,6 @@ from .product.filters import ProductFilterSet
 from .product.types import (
     Category, ProductAttribute, Product, resolve_attributes, resolve_products,
     resolve_categories)
-from .product.mutations import (
-    CategoryCreateMutation, CategoryUpdateMutation, CategoryDelete)
 from .utils import get_node
 
 
@@ -43,10 +41,4 @@ class Query(graphene.ObjectType):
         return resolve_attributes(in_category, info)
 
 
-class Mutations(graphene.ObjectType):
-    category_create = CategoryCreateMutation.Field()
-    category_delete = CategoryDelete.Field()
-    category_update = CategoryUpdateMutation.Field()
-
-
-schema = graphene.Schema(Query, Mutations)
+schema = graphene.Schema(Query)
