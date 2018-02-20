@@ -5,7 +5,8 @@ import pytest
 from django import forms
 
 from saleor.dashboard.category.forms import CategoryForm
-from saleor.graphql.core.mutations import ModelFormMutation
+from saleor.graphql.core.mutations import (
+    ModelFormMutation, ModelFormUpdateMutation)
 from saleor.product.models import Category, Product, ProductAttribute
 
 
@@ -36,12 +37,19 @@ def test_model_form_mutation():
     assert 'test_input' in arguments
     # check if model form field is present
     assert 'name' in arguments
-    # check if pk mean for updates is present
-    assert 'pk' in arguments
 
     output_fields = meta.fields
     assert 'category' in output_fields
     assert 'errors' in output_fields
+
+
+def test_model_form_update_mutation():
+    class CategoryUpdateMutation(ModelFormUpdateMutation):
+        class Meta:
+            form_class = CategoryForm
+
+    meta = CategoryUpdateMutation._meta
+    assert 'id' in meta.arguments
 
 
 def get_content(response):
@@ -464,19 +472,20 @@ def test_real_query(client, product_in_stock):
 
 def test_category_create_mutation(client):
     query = """
-        mutation($name: String!, $description: String, $parent: Int) {
+        mutation($name: String!, $description: String, $parentId: ID) {
             categoryCreate(
                 name: $name
                 description: $description
-                parentPk: $parent
+                parentId: $parentId
             ) {
                 category {
-                    pk
+                    id
                     name
                     slug
                     description
                     parent {
-                        pk
+                        name
+                        id
                     }
                 }
                 errors {
@@ -504,35 +513,33 @@ def test_category_create_mutation(client):
     assert not data['category']['parent']
 
     # test creating subcategory
-    parent_pk = data['category']['pk']
+    parent_id = data['category']['id']
     variables = json.dumps({
         'name': category_name, 'description': category_description,
-        'parent': int(parent_pk)})
+        'parentId': parent_id})
     response = client.post(
         '/graphql/', {'query': query, 'variables': variables})
     content = get_content(response)
     assert 'errors' not in content
     data = content['data']['categoryCreate']
     assert data['errors'] == []
-    assert data['category']['parent']['pk'] == parent_pk
+    assert data['category']['parent']['id'] == parent_id
 
 
 def test_category_update_mutation(client, default_category):
     query = """
-        mutation($pk: Int, $name: String!, $description: String, $parent: Int) {
+        mutation($id: ID, $name: String!, $description: String) {
             categoryUpdate(
-                pk: $pk
+                id: $id
                 name: $name
                 description: $description
-                parentPk: $parent
             ) {
                 category {
-                    pk
+                    id
                     name
-                    slug
                     description
                     parent {
-                        pk
+                        id
                     }
                 }
                 errors {
@@ -542,33 +549,37 @@ def test_category_update_mutation(client, default_category):
             }
         }
     """
+    # create child category and test that the update mutation won't change
+    # it's parent
+    child_category = default_category.children.create(name='child')
 
     category_name = 'Updated name'
     category_description = 'Updated description'
 
-    # test creating root category
+    category_id = graphene.Node.to_global_id('Category', child_category.pk)
     variables = json.dumps({
         'name': category_name, 'description': category_description,
-        'pk': default_category.pk})
+        'id': category_id})
     response = client.post(
         '/graphql/', {'query': query, 'variables': variables})
     content = get_content(response)
     assert 'errors' not in content
     data = content['data']['categoryUpdate']
     assert data['errors'] == []
-    assert data['category']['pk'] == str(default_category.pk)
+    assert data['category']['id'] == category_id
     assert data['category']['name'] == category_name
     assert data['category']['description'] == category_description
-    assert not data['category']['parent']
+
+    parent_id = graphene.Node.to_global_id('Category', default_category.pk)
+    assert data['category']['parent']['id'] == parent_id
 
 
 def test_category_delete_mutation(client, default_category):
     query = """
-        mutation($pk: Int) {
-            categoryDelete(pk: $pk) {
+        mutation($id: ID!) {
+            categoryDelete(id: $id) {
                 category {
                     name
-                    pk
                 }
                 errors {
                     field
@@ -577,11 +588,13 @@ def test_category_delete_mutation(client, default_category):
             }
         }
     """
-    variables = json.dumps({'pk': default_category.pk})
+    variables = json.dumps({
+        'id': graphene.Node.to_global_id('Category', default_category.id)})
     response = client.post(
         '/graphql/', {'query': query, 'variables': variables})
     content = get_content(response)
     assert 'errors' not in content
     data = content['data']['categoryDelete']
-    assert data['category']['pk'] is None
     assert data['category']['name'] == default_category.name
+    with pytest.raises(Category.DoesNotExist):
+        default_category.refresh_from_db()

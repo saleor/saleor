@@ -28,7 +28,7 @@ class CountableDjangoObjectType(DjangoObjectType):
             *args, connection=countable_conn, **kwargs)
 
 
-class ErrorType(graphene.ObjectType):
+class Error(graphene.ObjectType):
     field = graphene.String()
     message = graphene.String()
 
