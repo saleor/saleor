@@ -356,9 +356,7 @@ if ES_URL:
             'hosts': ES_URL}}
 
 
-GRAPHENE = {
-    'MIDDLEWARE': [
-        'graphene_django.debug.DjangoDebugMiddleware'],}
+GRAPHENE = {'MIDDLEWARE': ['graphene_django.debug.DjangoDebugMiddleware']}
 
 AUTHENTICATION_BACKENDS = [
     'saleor.account.backends.facebook.CustomFacebookOAuth2',
