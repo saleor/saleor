@@ -134,7 +134,8 @@ const ListCardComponent = (props) => {
     rowsPerPage,
     label,
     addActionLabel,
-    noDataLabel
+    noDataLabel,
+    count
   } = props;
   return (
     <Card className={classes.listCard}>
@@ -164,8 +165,8 @@ const ListCardComponent = (props) => {
             href="/categories"
             page={page}
             rowsPerPage={rowsPerPage}
-            rowsPerPageOptions={[5, 10]}
-            count={10}
+            rowsPerPageOptions={[2, 5, 10]}
+            count={count}
             handleChangePage={handleChangePage(firstCursor, lastCursor)}
             handleChangeRowsPerPage={handleChangeRowsPerPage}
           />
@@ -282,7 +283,6 @@ class FilterCardComponent extends Component {
     );
   };
 }
-
 const FilterCard = withRouter(withStyles(styles)(FilterCardComponent));
 
 export {

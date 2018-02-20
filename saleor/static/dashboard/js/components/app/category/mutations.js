@@ -1,8 +1,8 @@
 import gql from 'graphql-tag';
 
 const categoryDelete = gql`
-  mutation CategoryDelete($pk: Int!) {
-    categoryDelete(pk: $pk) {
+  mutation CategoryDelete(#id: ID!) {
+    categoryDelete(id: $id) {
       errors {
         field
         message
@@ -11,7 +11,7 @@ const categoryDelete = gql`
   }
 `;
 const categoryCreate = gql`
-  mutation categoryCreateMutation($name: String!, $description: String!, $parent: Int) {
+  mutation categoryCreateMutation($name: String!, $description: String!, $parent: ID) {
     categoryCreate(data: {name: $name, description: $description, parent: $parent}) {
       errors {
         field
@@ -19,12 +19,10 @@ const categoryCreate = gql`
       }
       category {
         id
-        pk
         name
         description
         parent {
           id
-          pk
         }
       }
     }
@@ -39,12 +37,10 @@ const categoryUpdate = gql`
       }
       category {
         id
-        pk
         name
         description
         parent {
           id
-          pk
         }
       }
     }
