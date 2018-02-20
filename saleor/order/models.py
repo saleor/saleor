@@ -216,6 +216,10 @@ class Fulfillment(models.Model):
     tracking_number = models.CharField(max_length=255, default='', blank=True)
     shipping_date = models.DateTimeField(default=now, editable=False)
 
+    def __str__(self):
+        return pgettext_lazy(
+            'Fulfillment str', 'Fulfillment #%d') % (self.id,)
+
 
 class FulfillmentLine(models.Model):
     order_line = models.ForeignKey(
