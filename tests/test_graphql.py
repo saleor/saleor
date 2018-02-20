@@ -2,12 +2,11 @@ import json
 
 import graphene
 import pytest
+from django.shortcuts import reverse
 
 from saleor.product.models import Category, Product, ProductAttribute
 
-
-def get_content(response):
-    return json.loads(response.content.decode('utf8'))
+from .utils import get_graphql_content
 
 
 def test_category_query(client, product_in_stock):
@@ -42,8 +41,8 @@ def test_category_query(client, product_in_stock):
         }
     }
     ''' % {'category_pk': graphene.Node.to_global_id('Category', category.pk)}
-    response = client.post('/graphql/', {'query': query})
-    content = get_content(response)
+    response = client.post(reverse('api'), {'query': query})
+    content = get_graphql_content(response)
     assert 'errors' not in content
     category_data = content['data']['category']
     assert category_data is not None
@@ -73,8 +72,8 @@ def test_fetch_all_products(client, product_in_stock):
         }
     }
     '''
-    response = client.post('/graphql/', {'query': query})
-    content = get_content(response)
+    response = client.post(reverse('api'), {'query': query})
+    content = get_graphql_content(response)
     assert 'errors' not in content
     num_products = Product.objects.count()
     assert content['data']['products']['totalCount'] == num_products
@@ -96,8 +95,8 @@ def test_fetch_unavailable_products(client, product_in_stock):
         }
     }
     '''
-    response = client.post('/graphql/', {'query': query})
-    content = get_content(response)
+    response = client.post(reverse('api'), {'query': query})
+    content = get_graphql_content(response)
     assert 'errors' not in content
     assert content['data']['products']['totalCount'] == 0
     assert not content['data']['products']['edges']
@@ -137,8 +136,8 @@ def test_product_query(client, product_in_stock):
         }
     }
     ''' % {'category_id': graphene.Node.to_global_id('Category', category.id)}
-    response = client.post('/graphql/', {'query': query})
-    content = get_content(response)
+    response = client.post(reverse('api'), {'query': query})
+    content = get_graphql_content(response)
     assert 'errors' not in content
     assert content['data']['category'] is not None
     product_edges_data = content['data']['category']['products']['edges']
@@ -164,7 +163,7 @@ def test_filter_product_by_category(client, product_in_stock):
     }
     '''
     response = client.post(
-        '/graphql/',
+        reverse('api'),
         {
             'query': query,
             'variables': json.dumps(
@@ -172,7 +171,7 @@ def test_filter_product_by_category(client, product_in_stock):
                     'categoryId': graphene.Node.to_global_id(
                         'Category', category.id)}),
             'operationName': 'getProducts'})
-    content = get_content(response)
+    content = get_graphql_content(response)
     assert 'errors' not in content
     product_data = content['data']['products']['edges'][0]['node']
     assert product_data['name'] == product_in_stock.name
@@ -189,14 +188,14 @@ def test_fetch_product_by_id(client, product_in_stock):
     }
     '''
     response = client.post(
-        '/graphql/',
+        reverse('api'),
         {
             'query': query,
             'variables': json.dumps(
                 {
                     'productId': graphene.Node.to_global_id(
                         'Product', product_in_stock.id)})})
-    content = get_content(response)
+    content = get_graphql_content(response)
     assert 'errors' not in content
     product_data = content['data']['node']
     assert product_data['name'] == product_in_stock.name
@@ -222,8 +221,8 @@ def test_filter_product_by_attributes(client, product_in_stock):
     ''' % {
         'category_id': graphene.Node.to_global_id('Category', category.id),
         'filter_by': filter_by}
-    response = client.post('/graphql/', {'query': query})
-    content = get_content(response)
+    response = client.post(reverse('api'), {'query': query})
+    content = get_graphql_content(response)
     assert 'errors' not in content
     product_data = content['data']['category']['products']['edges'][0]['node']
     assert product_data['name'] == product_in_stock.name
@@ -249,8 +248,8 @@ def test_attributes_query(client, product_in_stock):
         }
     }
     '''
-    response = client.post('/graphql/', {'query': query})
-    content = get_content(response)
+    response = client.post(reverse('api'), {'query': query})
+    content = get_graphql_content(response)
     assert 'errors' not in content
     attributes_data = content['data']['attributes']['edges']
     assert len(attributes_data) == attributes.count()
@@ -276,8 +275,8 @@ def test_attributes_in_category_query(client, product_in_stock):
         }
     }
     ''' % {'category_id': graphene.Node.to_global_id('Category', category.id)}
-    response = client.post('/graphql/', {'query': query})
-    content = get_content(response)
+    response = client.post(reverse('api'), {'query': query})
+    content = get_graphql_content(response)
     assert 'errors' not in content
     attributes_data = content['data']['attributes']['edges']
     assert len(attributes_data) == ProductAttribute.objects.count()
@@ -420,5 +419,5 @@ def test_real_query(client, product_in_stock):
                     'sortBy': 'name',
                     'first': 1,
                     'attributesFilter': [filter_by]})})
-    content = get_content(response)
+    content = get_graphql_content(response)
     assert 'errors' not in content
