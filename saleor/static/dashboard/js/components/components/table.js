@@ -22,7 +22,6 @@ const styles = {
     marginTop: -8,
     top: 8,
     position: 'relative',
-    borderTop: '1px solid rgba(160, 160, 160, 0.2)',
     padding: '16px 0 24px 24px'
   }
 };
