@@ -76,13 +76,13 @@ class Category(CountableDjangoObjectType):
         filter_fields = ['id', 'name']
         interfaces = [relay.Node]
 
-    def resolve_ancestors(self, info):
+    def resolve_ancestors(self, info, **kwargs):
         return self.get_ancestors().distinct()
 
-    def resolve_children(self, info):
+    def resolve_children(self, info, **kwargs):
         return self.children.distinct()
 
-    def resolve_siblings(self, info):
+    def resolve_siblings(self, info, **kwargs):
         return self.get_siblings().distinct()
 
     def resolve_products_count(self, info):
