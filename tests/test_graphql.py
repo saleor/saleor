@@ -281,3 +281,144 @@ def test_attributes_in_category_query(client, product_in_stock):
     assert 'errors' not in content
     attributes_data = content['data']['attributes']['edges']
     assert len(attributes_data) == ProductAttribute.objects.count()
+
+
+def test_real_query(client, product_in_stock):
+    category = product_in_stock.category
+    product_attr = product_in_stock.product_type.product_attributes.first()
+    category = product_in_stock.category
+    attr_value = product_attr.values.first()
+    filter_by = '%s:%s' % (product_attr.slug, attr_value.slug)
+    query = '''
+    query Root($categoryId: ID!, $sortBy: String, $first: Int, $attributesFilter: [AttributeScalar], $minPrice: Float, $maxPrice: Float) {
+        category(id: $categoryId) {
+            ...CategoryPageFragmentQuery
+            __typename
+        }
+        attributes(inCategory: $categoryId) {
+            edges {
+                node {
+                    ...ProductFiltersFragmentQuery
+                    __typename
+                }
+            }
+        }
+    }
+
+    fragment CategoryPageFragmentQuery on Category {
+        id
+        name
+        url
+        ancestors {
+            edges {
+                node {
+                    name
+                    id
+                    url
+                    __typename
+                }
+            }
+        }
+        children {
+            edges {
+                node {
+                    name
+                    id
+                    url
+                    slug
+                    __typename
+                }
+            }
+        }
+        products(first: $first, sortBy: $sortBy, attributes: $attributesFilter, price_Gte: $minPrice, price_Lte: $maxPrice) {
+            ...ProductListFragmentQuery
+            __typename
+        }
+        __typename
+    }
+
+    fragment ProductListFragmentQuery on ProductCountableConnection {
+        edges {
+            node {
+                ...ProductFragmentQuery
+                __typename
+            }
+            __typename
+        }
+        pageInfo {
+            hasNextPage
+            __typename
+        }
+        __typename
+    }
+
+    fragment ProductFragmentQuery on Product {
+        id
+        name
+        price {
+            currency
+            gross
+            grossLocalized
+            net
+            __typename
+        }
+        availability {
+            ...ProductPriceFragmentQuery
+            __typename
+        }
+        thumbnailUrl1x: thumbnailUrl(size: "255x255")
+        thumbnailUrl2x: thumbnailUrl(size: "510x510")
+        url
+        __typename
+    }
+
+    fragment ProductPriceFragmentQuery on ProductAvailability {
+        available
+        discount {
+            gross
+            __typename
+        }
+        priceRange {
+            maxPrice {
+                gross
+                grossLocalized
+                currency
+                __typename
+            }
+            minPrice {
+                gross
+                grossLocalized
+                currency
+                __typename
+            }
+            __typename
+        }
+        __typename
+    }
+
+    fragment ProductFiltersFragmentQuery on ProductAttribute {
+        id
+        name
+        slug
+        values {
+            id
+            name
+            slug
+            color
+            __typename
+        }
+        __typename
+    }
+    '''
+    response = client.post(
+        '/graphql/', {
+            'query': query,
+            'variables': json.dumps(
+                {
+                    'categoryId': graphene.Node.to_global_id(
+                        'Category', category.id),
+                    'sortBy': 'name',
+                    'first': 1,
+                    'attributesFilter': [filter_by]})})
+    content = get_content(response)
+    assert 'errors' not in content
