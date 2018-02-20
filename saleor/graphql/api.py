@@ -5,8 +5,11 @@ from graphene_django.filter import DjangoFilterConnectionField
 from .core.filters import DistinctFilterSet
 from .product.filters import ProductFilterSet
 from .product.types import (
-    Category, ProductAttribute, Product, resolve_attributes, resolve_products)
-from .product.mutations import CategoryMutation, CategoryDelete
+    Category, ProductAttribute, Product, resolve_attributes, resolve_products,
+    resolve_categories)
+from .product.mutations import (
+    CategoryCreateMutation, CategoryUpdateMutation, CategoryDelete)
+from .utils import get_node
 
 
 class Query(graphene.ObjectType):
@@ -15,7 +18,8 @@ class Query(graphene.ObjectType):
         filterset_class=DistinctFilterSet,
         in_category=graphene.Argument(graphene.ID))
     categories = DjangoFilterConnectionField(
-        Category, filterset_class=DistinctFilterSet)
+        Category, filterset_class=DistinctFilterSet,
+        level=graphene.Argument(graphene.Int))
     category = graphene.Field(Category, id=graphene.Argument(graphene.ID))
     product = graphene.Field(Product, id=graphene.Argument(graphene.ID))
     products = DjangoFilterConnectionField(
@@ -24,12 +28,13 @@ class Query(graphene.ObjectType):
     debug = graphene.Field(DjangoDebug, name='__debug')
 
     def resolve_category(self, info, id):
-        return graphene.Node.get_node_from_global_id(
-            info, id, only_type=Category)
+        return get_node(info, id, only_type=Category)
+
+    def resolve_categories(self, info, level=None):
+        return resolve_categories(info, level)
 
     def resolve_product(self, info, id):
-        return graphene.Node.get_node_from_global_id(
-            info, id, only_type=Product)
+        return get_node(info, id, only_type=Product)
 
     def resolve_products(self, info, **kwargs):
         return resolve_products(info)
@@ -39,9 +44,9 @@ class Query(graphene.ObjectType):
 
 
 class Mutations(graphene.ObjectType):
-    category_create = CategoryMutation.Field()
+    category_create = CategoryCreateMutation.Field()
     category_delete = CategoryDelete.Field()
-    category_update = CategoryMutation.Field()
+    category_update = CategoryUpdateMutation.Field()
 
 
 schema = graphene.Schema(Query, Mutations)

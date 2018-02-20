@@ -8,6 +8,7 @@ from ...product.templatetags.product_images import product_first_image
 from ...product.utils import get_availability
 from ..core.filters import DistinctFilterSet
 from ..core.types import CountableDjangoObjectType, Price, PriceRange
+from ..utils import CategoryAncestorsCache, get_node
 from .filters import ProductFilterSet
 
 
@@ -142,6 +143,28 @@ class ProductAttribute(CountableDjangoObjectType):
         return self.values.all()
 
 
+def resolve_category(id, info):
+    categories = models.Category.tree.filter(id=id).get_cached_trees()
+    if categories:
+        category = categories[0]
+        cache = {CACHE_ANCESTORS: CategoryAncestorsCache(category)}
+        setattr(info.context, CONTEXT_CACHE_NAME, cache)
+        return category
+    return None
+
+
+def resolve_categories(info, level=None):
+    qs = models.Category.objects.all()
+    if level is not None:
+        qs = qs.filter(level=level)
+    return qs.distinct()
+
+
+def resolve_product(id, info):
+    products = models.Product.objects.available_products().filter(id=id)
+    return products.first()
+
+
 def resolve_products(info):
     return models.Product.objects.available_products().distinct()
 
@@ -151,8 +174,7 @@ def resolve_attributes(category_id, info):
     if category_id:
         # Get attributes that are used with product types
         # within the given category.
-        category = graphene.Node.get_node_from_global_id(
-            info, category_id, only_type=Category)
+        category = get_node(info, category_id, only_type=Category)
         if category is None:
             return queryset.none()
         tree = category.get_descendants(include_self=True)
