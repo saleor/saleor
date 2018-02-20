@@ -12,7 +12,7 @@ import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider';
 
 import theme from './theme';
 
-import CategorySection from './category/index';
+import CategorySection from './category';
 
 const apolloClient = new ApolloClient({
   link: new HttpLink({
@@ -26,8 +26,7 @@ const apolloClient = new ApolloClient({
 const routerMapping = [
   {
     component: CategorySection,
-    path: 'categories',
-    param: 'pk'
+    path: 'categories'
   }
 ];
 const store = createStore(() => {});
@@ -44,11 +43,6 @@ render(
                   component={route.component}
                   exact
                 />
-                {route.param && (
-                  <Route path={`/${route.path}/:${route.param}`}
-                    component={route.component}
-                  />
-                )}
               </div>
             ))}
           </Switch>
