@@ -6,9 +6,9 @@ from django.db.models import Q
 from django_filters.fields import Lookup
 from graphene_django.filter.filterset import Filter
 
-from ..core.filters import DistinctFilterSet
-from ..fields import AttributeField
 from ...product.models import Product, ProductAttribute
+from ..core.filters import DistinctFilterSet
+from .fields import AttributeField
 
 
 class ProduductAttributeFilter(Filter):
@@ -30,8 +30,7 @@ class ProduductAttributeFilter(Filter):
         queries = defaultdict(list)
         # Convert attribute:value pairs into a dictionary where
         # attributes are keys and values are grouped in lists
-        for pair in value:
-            attr_name, val_slug = pair.split(':', 1)
+        for attr_name, val_slug in value:
             if attr_name not in attributes_map:
                 raise ValueError('Unknown attribute name: %r' % (attr_name, ))
             attr_pk = attributes_map[attr_name]
