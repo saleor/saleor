@@ -20,7 +20,6 @@ class CategoryAncestorsCache:
 
 def get_node(info, id, only_type=None):
     node = graphene.Node.get_node_from_global_id(info, id, only_type=only_type)
-    print("NODE: ", node)
     if not node:
         raise Exception(
             "Could not resolve to a node with the global id of '%s'." % id)
