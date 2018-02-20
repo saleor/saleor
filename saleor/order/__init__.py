@@ -12,11 +12,12 @@ class OrderAppConfig(AppConfig):
 
 
 class OrderStatus:
-    OPEN = 'open'
-    CANCELLED = 'cancelled'
-    CLOSED = 'closed'
+    UNFULFILLED = 'unfulfilled'
+    PARTIALLY_FULFILLED = 'partially fulfilled'
+    FULFILLED = 'fulfilled'
 
     CHOICES = [
-        (OPEN, pgettext_lazy('order status', 'Open')),
-        (CANCELLED, pgettext_lazy('order status', 'Cancelled')),
-        (CLOSED, pgettext_lazy('order status', 'Closed'))]
+        (UNFULFILLED, pgettext_lazy('order status', 'Unfulfilled')),
+        (PARTIALLY_FULFILLED, pgettext_lazy(
+            'order status', 'Partially fulfilled')),
+        (FULFILLED, pgettext_lazy('order status', 'Fulfilled'))]

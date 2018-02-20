@@ -4,7 +4,6 @@ from uuid import uuid4
 from django.conf import settings
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
-from django.db.models import F, Sum, Q
 from django.urls import reverse
 from django.utils.timezone import now
 from django.utils.translation import pgettext_lazy
@@ -37,6 +36,9 @@ class Order(models.Model):
         default=now, editable=False)
     last_status_change = models.DateTimeField(
         default=now, editable=False)
+    status = models.CharField(
+        max_length=32, default=OrderStatus.UNFULFILLED,
+        choices=OrderStatus.CHOICES)
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL, blank=True, null=True, related_name='orders',
         on_delete=models.SET_NULL)
