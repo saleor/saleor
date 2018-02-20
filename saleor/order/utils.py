@@ -62,7 +62,8 @@ def attach_order_to_user(order, user):
     order.save(update_fields=['user'])
 
 
-def add_variant_to_order(order, variant, total_quantity, discounts=None):
+def add_variant_to_order(
+        order, variant, total_quantity, discounts=None, add_to_existing=True):
     """Add total_quantity of variant to order.
 
     Raises InsufficientStock exception if quantity could not be fulfilled.
@@ -74,7 +75,7 @@ def add_variant_to_order(order, variant, total_quantity, discounts=None):
     as long as total_quantity of variant will be added.
     """
     quantity_left = add_variant_to_existing_lines(
-        order, variant, total_quantity)
+        order, variant, total_quantity) if add_to_existing else total_quantity
     price = variant.get_price_per_item(discounts)
     while quantity_left > 0:
         stock = variant.select_stockrecord()
