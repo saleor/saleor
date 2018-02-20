@@ -19,6 +19,7 @@ class CategoryAncestorsCache:
 
 
 def get_node(info, id, only_type=None):
+    """Return node or throw an error if the node with given ID does not exist."""
     node = graphene.Node.get_node_from_global_id(info, id, only_type=only_type)
     if not node:
         raise Exception(

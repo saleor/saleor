@@ -13,7 +13,8 @@ from .types import Error
 registry = get_global_registry()
 
 
-def fields_for_form(form_class):
+def convert_form_fields(form_class):
+    """Convert form fields to Graphene fields"""
     fields = OrderedDict()
     for name, field in form_class.base_fields.items():
         fields[name] = convert_form_field(field)
@@ -62,7 +63,7 @@ class ModelFormMutation(BaseMutation):
             return_field_name = model_name[:1].lower() + model_name[1:]
 
         # get mutation arguments based on model form
-        arguments = fields_for_form(form_class)
+        arguments = convert_form_fields(form_class)
 
         # get mutation output field for model instance
         fields = {return_field_name: graphene.Field(model_type)}
