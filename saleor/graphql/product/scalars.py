@@ -2,7 +2,7 @@ from graphene.types import Scalar
 from graphql.language import ast
 
 
-class AttributesFilterScalar(Scalar):
+class AttributeScalar(Scalar):
     @staticmethod
     def parse_literal(node):
         if isinstance(node, ast.StringValue):
