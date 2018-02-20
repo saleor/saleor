@@ -558,38 +558,6 @@ def permission_impersonate_user():
 
 
 @pytest.fixture
-def open_orders(billing_address):
-    order_1 = Order.objects.create(billing_address=billing_address)
-    order_1.lines.create(
-        quantity=2, unit_price_net=Decimal('10.00'),
-        unit_price_gross=Decimal('10.00'), is_shipping_required=True)
-
-    order_2 = Order.objects.create(billing_address=billing_address)
-    line = order_2.lines.create(
-        quantity=2, unit_price_net=Decimal('10.00'),
-        unit_price_gross=Decimal('10.00'), is_shipping_required=True)
-    fulfillment = Fulfillment.objects.create(order=order_2)
-    fulfillment.lines.create(order_line=line, quantity=1)
-
-    return [order_1, order_2]
-
-
-@pytest.fixture
-def closed_orders(billing_address):
-    # empty order is considered as closed
-    order_1 = Order.objects.create(billing_address=billing_address)
-
-    order_2 = Order.objects.create(billing_address=billing_address)
-    line = order_2.lines.create(
-        quantity=2, unit_price_net=Decimal('10.00'),
-        unit_price_gross=Decimal('10.00'), is_shipping_required=True)
-    fulfillment = Fulfillment.objects.create(order=order_2)
-    fulfillment.lines.create(order_line=line, quantity=2)
-
-    return [order_1, order_2]
-
-
-@pytest.fixture
 def collection(db):
     collection = Collection.objects.create(
         name='Collection', slug='collection')

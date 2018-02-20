@@ -143,18 +143,11 @@ class Order(models.Model):
     def is_pre_authorized(self):
         return self.payments.filter(status=PaymentStatus.PREAUTH).exists()
 
+    def is_fulfilled(self):
+        return all([line.is_fulfilled() for line in self])
+
     def is_shipping_required(self):
         return any(line.is_shipping_required for line in self)
-
-    @property
-    def status(self):
-        """Order status deduced from fulfillment lines."""
-        is_fulfilled = all(line.is_fulfilled() for line in self.lines.all())
-        return OrderStatus.CLOSED if is_fulfilled else OrderStatus.OPEN
-
-    @property
-    def is_open(self):
-        return self.status == OrderStatus.OPEN
 
     def get_status_display(self):
         """Order status display text."""
@@ -164,11 +157,15 @@ class Order(models.Model):
         subtotal_iterator = (line.get_total() for line in self)
         return sum(subtotal_iterator, ZERO_TAXED_MONEY)
 
-    def can_cancel(self):
-        return self.status == OrderStatus.OPEN
+    def can_edit(self):
+        return self.status == OrderStatus.UNFULFILLED
 
-    def can_edit_lines(self):
-        return self.status == OrderStatus.OPEN
+    def can_fulfill(self):
+        statuses = {OrderStatus.UNFULFILLED, OrderStatus.PARTIALLY_FULFILLED}
+        return self.status in statuses
+
+    def can_cancel(self):
+        return self.status == OrderStatus.UNFULFILLED
 
 
 class OrderLine(models.Model):

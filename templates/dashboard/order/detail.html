@@ -292,7 +292,7 @@
                     {{ line.unit_price.gross|amount:'html' }}
                   </td>
                   <td class="right-align">
-                    {% if order.can_edit_lines %}
+                    {% if order.can_edit %}
                       <a class="dropdown-button" href="#" data-activates="line-actions-{{ line.pk }}" data-constrainwidth="false">
                         {{ line.quantity }} {% if line.stock_location and is_many_stock_locations %} ({{ line.stock_location|truncatechars:10 }}) {% endif %}
                         <svg data-src="{% static "dashboard/images/arrow-drop-down.svg" %}" width="24" height="24" />
@@ -328,17 +328,21 @@
             </tbody>
           </table>
         </div>
-        {% if perms.order.edit_order and order.is_open %}
+        {% if perms.order.edit_order and order.can_edit or order.can_fulfill %}
           <div class="data-table-action">
-            <a href="#base-modal" data-href="{% url 'dashboard:fulfill-order-lines' order_pk=order.pk %}" class="btn-flat waves-effect modal-trigger-custom" title="{% trans "Fulfill order" context "Order summary card action title" %}">
-              {% trans "Fulfill" context "Order summary card action" %}
-            </a>
-            <a href="#base-modal" data-href="{% url 'dashboard:add-variant-to-order' order_pk=order.pk %}" class="btn-flat waves-effect modal-trigger-custom" title="{% trans "Add product to order" context "Order summary card action title" %}">
-              {% trans "Add product" context "Order summary card action" %}
-            </a>
-            <a href="{% url 'dashboard:order-packing-slips' order_pk=order.pk %}" data-href="" class="btn-flat waves-effect" target="_blank">
-              {% trans "Packing Slips" context "Order detail action" %}
-            </a>
+            {% if order.can_fulfill %}
+              <a href="#base-modal" data-href="{% url 'dashboard:fulfill-order-lines' order_pk=order.pk %}" class="btn-flat waves-effect modal-trigger-custom" title="{% trans "Fulfill order" context "Order summary card action title" %}">
+                {% trans "Fulfill" context "Order summary card action" %}
+              </a>
+            {% endif %}
+            {% if order.can_edit %}
+              <a href="#base-modal" data-href="{% url 'dashboard:add-variant-to-order' order_pk=order.pk %}" class="btn-flat waves-effect modal-trigger-custom" title="{% trans "Add product to order" context "Order summary card action title" %}">
+                {% trans "Add product" context "Order summary card action" %}
+              </a>
+              <a href="{% url 'dashboard:order-packing-slips' order_pk=order.pk %}" data-href="" class="btn-flat waves-effect" target="_blank">
+                {% trans "Packing Slips" context "Order detail action" %}
+              </a>
+            {% endif %}
           </div>
         {% endif %}
       </div>
