@@ -78,7 +78,7 @@ const Table = (props) => {
         <TableBody>
           {list.map((row) => (
             <TableRow
-              onClick={handleRowClick(row.pk, href, history)}
+              onClick={handleRowClick(row.id, href, history)}
               style={{ cursor: 'pointer' }}
               key={row.id}
             >
