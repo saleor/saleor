@@ -288,7 +288,6 @@ def test_adding_to_cart_with_closed_cart_token(
     cart = Cart.objects.create(user=admin_user)
     variant = product_in_stock.variants.first()
     cart.add(variant, 1)
-    cart.change_status(CartStatus.ORDERED)
 
     response = client.get('/cart/')
     utils.set_cart_cookie(cart, response)
@@ -302,8 +301,6 @@ def test_adding_to_cart_with_closed_cart_token(
 
     assert Cart.objects.filter(
         user=admin_user, status=CartStatus.OPEN).count() == 1
-    assert Cart.objects.filter(
-        user=admin_user, status=CartStatus.ORDERED).count() == 1
 
 
 def test_get_attributes_display_map(product_in_stock):
@@ -514,7 +511,7 @@ def test_render_product_page_with_no_variant(
     status = get_product_availability_status(product)
     assert status == ProductAvailabilityStatus.VARIANTS_MISSSING
     url = reverse(
-            'product:details',
-            kwargs={'product_id': product.pk, 'slug': product.get_slug()})
+        'product:details',
+        kwargs={'product_id': product.pk, 'slug': product.get_slug()})
     response = admin_client.get(url)
     assert response.status_code == 200
