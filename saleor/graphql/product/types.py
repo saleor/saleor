@@ -1,7 +1,6 @@
 import graphene
 from django.db.models import Q
 from graphene import relay
-from graphene_django import DjangoObjectType
 from graphene_django.filter import DjangoFilterConnectionField
 
 from ...product import models
@@ -9,18 +8,7 @@ from ...product.templatetags.product_images import product_first_image
 from ...product.utils import get_availability
 from ..core.filters import DistinctFilterSet
 from ..core.types import CountableDjangoObjectType, Price, PriceRange
-from ..utils import CategoryAncestorsCache
 from .filters import ProductFilterSet
-
-CONTEXT_CACHE_NAME = '__cache__'
-CACHE_ANCESTORS = 'ancestors'
-
-
-def get_ancestors_from_cache(category, context):
-    cache = getattr(context, CONTEXT_CACHE_NAME, None)
-    if cache and CACHE_ANCESTORS in cache:
-        return cache[CACHE_ANCESTORS].get(category)
-    return category.get_ancestors().distinct()
 
 
 class ProductAvailability(graphene.ObjectType):
@@ -71,7 +59,8 @@ class Product(CountableDjangoObjectType):
 
 class Category(CountableDjangoObjectType):
     products = DjangoFilterConnectionField(
-        Product, filterset_class=ProductFilterSet)
+        Product, filterset_class=ProductFilterSet,
+        sort_by=graphene.Argument(graphene.String))
     products_count = graphene.Int()
     url = graphene.String()
     ancestors = DjangoFilterConnectionField(
@@ -87,7 +76,7 @@ class Category(CountableDjangoObjectType):
         interfaces = [relay.Node]
 
     def resolve_ancestors(self, info):
-        return get_ancestors_from_cache(self, info.context)
+        return self.get_ancestors().distinct()
 
     def resolve_children(self, info):
         return self.children.distinct()
@@ -99,12 +88,14 @@ class Category(CountableDjangoObjectType):
         return self.products.count()
 
     def resolve_url(self, info):
-        ancestors = get_ancestors_from_cache(self, info.context)
+        ancestors = self.get_ancestors().distinct()
         return self.get_absolute_url(ancestors)
 
-    def resolve_products(self, info, **kwargs):
+    def resolve_products(self, info, sort_by=None, **kwargs):
         qs = models.Product.objects.available_products()
         qs = qs.filter(category=self)
+        if sort_by == 'name':
+            qs = qs.order_by('name')
         return qs.distinct()
 
 
@@ -149,21 +140,6 @@ class ProductAttribute(CountableDjangoObjectType):
 
     def resolve_values(self, info):
         return self.values.all()
-
-
-def resolve_category(id, info):
-    categories = models.Category.tree.filter(id=id).get_cached_trees()
-    if categories:
-        category = categories[0]
-        cache = {CACHE_ANCESTORS: CategoryAncestorsCache(category)}
-        setattr(info.context, CONTEXT_CACHE_NAME, cache)
-        return category
-    return None
-
-
-def resolve_product(id, info):
-    products = models.Product.objects.available_products().filter(id=id)
-    return products.first()
 
 
 def resolve_products(info):
