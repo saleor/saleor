@@ -1,4 +1,5 @@
 import { createMuiTheme } from 'material-ui/styles/index';
+import grey from 'material-ui/colors/grey';
 
 const transition = '200ms';
 export default createMuiTheme({
@@ -47,7 +48,7 @@ export default createMuiTheme({
     },
     MuiCardActions: {
       root: {
-        borderTop: '1px solid rgba(160, 160, 160, 0.2)',
+        borderTop: `1px solid ${grey[300]}`,
         margin: '24px -16px -24px',
         padding: '0 8px',
         '@media (max-width: 480px)': {
@@ -59,10 +60,15 @@ export default createMuiTheme({
       root: {
         transition,
         '&:hover': {
-          backgroundColor: '#fafafa'
+          backgroundColor: grey[100]
         }
       },
       typeHead: {
+        '&:hover': {
+          backgroundColor: 'inherit'
+        }
+      },
+      typeFooter: {
         '&:hover': {
           backgroundColor: 'inherit'
         }
