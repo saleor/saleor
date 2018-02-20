@@ -8,6 +8,7 @@ from ...product.templatetags.product_images import product_first_image
 from ...product.utils import get_availability
 from ..core.filters import DistinctFilterSet
 from ..core.types import CountableDjangoObjectType, Price, PriceRange
+from ..utils import get_node
 from .filters import ProductFilterSet
 
 
@@ -75,13 +76,13 @@ class Category(CountableDjangoObjectType):
         filter_fields = ['id', 'name']
         interfaces = [relay.Node]
 
-    def resolve_ancestors(self, info):
+    def resolve_ancestors(self, info, **kwargs):
         return self.get_ancestors().distinct()
 
-    def resolve_children(self, info):
+    def resolve_children(self, info, **kwargs):
         return self.children.distinct()
 
-    def resolve_siblings(self, info):
+    def resolve_siblings(self, info, **kwargs):
         return self.get_siblings().distinct()
 
     def resolve_products_count(self, info):
@@ -142,6 +143,13 @@ class ProductAttribute(CountableDjangoObjectType):
         return self.values.all()
 
 
+def resolve_categories(info, level=None):
+    qs = models.Category.objects.all()
+    if level is not None:
+        qs = qs.filter(level=level)
+    return qs.distinct()
+
+
 def resolve_products(info):
     return models.Product.objects.available_products().distinct()
 
@@ -151,8 +159,7 @@ def resolve_attributes(category_id, info):
     if category_id:
         # Get attributes that are used with product types
         # within the given category.
-        category = graphene.Node.get_node_from_global_id(
-            info, category_id, only_type=Category)
+        category = get_node(info, category_id, only_type=Category)
         if category is None:
             return queryset.none()
         tree = category.get_descendants(include_self=True)
