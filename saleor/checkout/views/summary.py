@@ -7,7 +7,6 @@ from ...account.forms import get_address_form
 from ...account.models import Address
 from ...core.exceptions import InsufficientStock
 from ...order.emails import send_order_confirmation
-from ...order.utils import create_history_entry
 from ..forms import (
     AnonymousUserBillingForm, BillingAddressesForm,
     BillingWithoutShippingAddressForm, NoteForm)
@@ -26,7 +25,7 @@ def create_order(checkout):
     checkout.clear_storage()
     checkout.cart.clear()
     user = None if checkout.user.is_anonymous else checkout.user
-    create_history_entry(
+    order.history.create(
         order=order, user=user, content=pgettext_lazy(
             'Order status history entry', 'Order was placed'))
     send_order_confirmation.delay(order)

@@ -39,10 +39,6 @@ def cancel_order(order):
         group.save()
 
 
-def create_history_entry(order, content, user=None):
-    order.history.create(content=content, user=user)
-
-
 def recalculate_order(order):
     """Recalculate and assign total price of order.
 
@@ -165,7 +161,7 @@ def change_order_line_quantity(line, new_quantity):
         line.delivery_group.delete()
         order = line.delivery_group.order
         if not order.get_lines():
-            create_history_entry(
+            order.history.create(
                 order=order,
                 content=pgettext_lazy(
                     'Order status history entry',
@@ -187,7 +183,7 @@ def remove_empty_groups(line, force=False):
     if not source_group.get_total_quantity() or force:
         source_group.delete()
     if not order.get_lines():
-        create_history_entry(
+        order.history.create(
             order=order,
             content=pgettext_lazy(
                 'Order status history entry',
