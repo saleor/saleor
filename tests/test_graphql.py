@@ -419,5 +419,5 @@ def test_real_query(client, product_in_stock):
                     'sortBy': 'name',
                     'first': 1,
                     'attributesFilter': [filter_by]})})
-    content = get_content(response)
+    content = get_graphql_content(response)
     assert 'errors' not in content
