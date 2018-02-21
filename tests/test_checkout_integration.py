@@ -8,7 +8,7 @@ from saleor.account.models import User
 from .utils import get_redirect_location
 
 
-@patch('saleor.checkout.views.summary.order_send_confirmation')
+@patch('saleor.checkout.views.summary.send_order_confirmation')
 def test_checkout_flow(
         mock_send_confirmation, request_cart_with_item, client, shipping_method):
     # Enter checkout
@@ -69,7 +69,7 @@ def test_checkout_flow(
     order_password = reverse(
         'order:checkout-success', kwargs={'token': order.token})
     assert get_redirect_location(payment_response) == order_password
-    mock_send_confirmation.assert_called_once_with(order.pk)
+    mock_send_confirmation.delay.assert_called_once_with(order.pk)
 
 
 def test_checkout_flow_authenticated_user(

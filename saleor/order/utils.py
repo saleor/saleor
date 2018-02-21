@@ -210,4 +210,3 @@ def move_order_line_to_group(line, target_group, quantity):
         target_line.save()
     line.quantity -= quantity
     remove_empty_groups(line)
-
