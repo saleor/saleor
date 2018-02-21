@@ -13,7 +13,6 @@ def order_status_change(sender, instance, **kwargs):
     order = instance.order
     if order.is_fully_paid():
         order.history.create(
-            order=order,
             content=pgettext_lazy(
                 'Order status history entry', 'Order fully paid'))
         send_order_confirmation.delay(order.pk)

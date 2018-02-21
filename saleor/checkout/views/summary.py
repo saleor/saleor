@@ -26,7 +26,7 @@ def create_order(checkout):
     checkout.cart.clear()
     user = None if checkout.user.is_anonymous else checkout.user
     order.history.create(
-        order=order, user=user, content=pgettext_lazy(
+        user=user, content=pgettext_lazy(
             'Order status history entry', 'Order was placed'))
     send_order_confirmation.delay(order)
     return order, redirect('order:payment', token=order.token)

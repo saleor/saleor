@@ -162,7 +162,6 @@ def change_order_line_quantity(line, new_quantity):
         order = line.delivery_group.order
         if not order.get_lines():
             order.history.create(
-                order=order,
                 content=pgettext_lazy(
                     'Order status history entry',
                     'Order cancelled. No items in order'))
@@ -184,7 +183,6 @@ def remove_empty_groups(line, force=False):
         source_group.delete()
     if not order.get_lines():
         order.history.create(
-            order=order,
             content=pgettext_lazy(
                 'Order status history entry',
                 'Order cancelled. No items in order'))
