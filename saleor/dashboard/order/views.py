@@ -387,17 +387,21 @@ def fulfill_order_lines(request, order_pk):
     formset = FulfillmentLineFormSet(
         request.POST or None, queryset=FulfillmentLine.objects.none(),
         initial=initial)
-    valid_forms = [line_form for line_form in formset if line_form.is_valid()]
-    if valid_forms and form.is_valid():
-        fulfillment = form.save()
-        for line_form in valid_forms:
-            line = line_form.save(commit=False)
-            line.fulfillment = fulfillment
-            line.save()
-        order.status = (
-            OrderStatus.FULFILLED if order.is_fulfilled()
-            else OrderStatus.PARTIALLY_FULFILLED)
-        order.save(update_fields=['status'])
+    all_forms_valid = all([line_form.is_valid() for line_form in formset])
+    if all_forms_valid and form.is_valid():
+        forms_to_save = [
+            line_form for line_form in formset
+            if line_form.cleaned_data.get('quantity') > 0]
+        if forms_to_save:
+            fulfillment = form.save()
+            for line_form in forms_to_save:
+                line = line_form.save(commit=False)
+                line.fulfillment = fulfillment
+                line.save()
+            order.status = (
+                OrderStatus.FULFILLED if order.is_fulfilled()
+                else OrderStatus.PARTIALLY_FULFILLED)
+            order.save(update_fields=['status'])
         return redirect('dashboard:order-details', order_pk=order.pk)
     elif form.errors:
         status = 400

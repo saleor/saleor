@@ -324,6 +324,7 @@ class AddressForm(StorefrontAddressForm):
 
 
 class FulfillmentForm(forms.ModelForm):
+    """Create fulfillment group for a given order."""
     class Meta:
         model = Fulfillment
         fields = ['tracking_number']
@@ -342,16 +343,22 @@ class BaseFulfillmentLineFormSet(forms.BaseModelFormSet):
 
 
 class FulfillmentLineForm(forms.ModelForm):
+    """Fulfill order line with given quantity by decreasing stock."""
     class Meta:
         model = FulfillmentLine
         fields = ['order_line', 'quantity']
 
     def clean_quantity(self):
         quantity = self.cleaned_data.get('quantity')
-        if quantity == 0:
-            raise forms.ValidationError(pgettext_lazy(
+        order_line = self.cleaned_data.get('order_line')
+        if quantity > order_line.quantity_unfulfilled:
+            raise forms.ValidationError(npgettext_lazy(
                 'Fulfill order line form error',
-                'Order line could not be fulfilled with zero quantity.'))
+                '%(quantity)d item remaining to fulfill.',
+                '%(quantity)d items remaining to fulfill.',
+                'quantity') % {
+                    'quantity': order_line.quantity_unfulfilled,
+                    'order_line': order_line})
         return quantity
 
     def save(self, commit=True):

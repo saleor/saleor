@@ -96,6 +96,16 @@
                              required="{{ line_form.quantity.field.required }}"
                              type="number"
                              value="{{ line_form.quantity.value }}">
+                      <label for="{{ line_form.quantity.auto_id }}">
+                        {% for error in line_form.quantity.errors %}
+                          <p class="help-block materialize-red-text">{{ error }}</p>
+                        {% endfor %}
+                        {% if line_form.quantity.help_text %}
+                          <p class="help-block">
+                            {{ line_form.quantity.field.help_text|safe }}
+                          </p>
+                        {% endif %}
+                      </label>
                     </td>
                   </tr>
                 {% endfor %}
@@ -112,7 +122,7 @@
           {% trans "Cancel" context "Dashboard cancel action" %}
         </a>
         <button type="submit" class="btn waves-effect">
-          {% trans "Save" context "Dashboard update action" %}
+          {% trans "Fulfill" context "Dashboard update action" %}
         </button>
       </div>
     </form>
