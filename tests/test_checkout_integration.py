@@ -1,3 +1,5 @@
+from unittest.mock import patch
+
 from django.urls import reverse
 from payments import FraudStatus, PaymentStatus
 
@@ -6,7 +8,9 @@ from saleor.account.models import User
 from .utils import get_redirect_location
 
 
-def test_checkout_flow(request_cart_with_item, client, shipping_method):
+@patch('saleor.checkout.views.summary.order_send_confirmation')
+def test_checkout_flow(
+        mock_send_confirmation, request_cart_with_item, client, shipping_method):
     # Enter checkout
     checkout_index = client.get(reverse('checkout:index'), follow=True)
     # Checkout index redirects directly to shipping address step
@@ -65,6 +69,7 @@ def test_checkout_flow(request_cart_with_item, client, shipping_method):
     order_password = reverse(
         'order:checkout-success', kwargs={'token': order.token})
     assert get_redirect_location(payment_response) == order_password
+    assert mock_send_confirmation.called_once_with(order.pk)
 
 
 def test_checkout_flow_authenticated_user(
