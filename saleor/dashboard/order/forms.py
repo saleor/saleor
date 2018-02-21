@@ -176,7 +176,7 @@ class ChangeQuantityForm(forms.ModelForm):
 class CancelOrderForm(forms.Form):
     """Allow canceling an entire order.
 
-    Deallocates corresponding stocks for each order line.
+    Deallocate or increase corresponding stocks for each order line.
     """
     restock = forms.BooleanField(initial=True, required=False)
 
