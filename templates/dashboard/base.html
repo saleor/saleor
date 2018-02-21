@@ -236,6 +236,13 @@
                       </a>
                     </li>
                   {% endif %}
+                  {% if perms.site.edit_settings %}
+                    <li class="{% block menu_pages_class %}{% endblock %}">
+                      <a href="{% url 'dashboard:page-list' %}">
+                        {% trans "Pages" context "Dashboard static pages" %}
+                      </a>
+                    </li>
+                  {% endif %}
                 </ul>
               </li>
               <li class="side-nav-section" id="version-indicator">

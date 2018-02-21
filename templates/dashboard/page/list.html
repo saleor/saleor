@@ -1,6 +1,5 @@
 {% extends "dashboard/base.html" %}
 {% load i18n %}
-{% load embed_video_tags %}
 {% load staticfiles %}
 
 {% block page_title %}{% trans "Pages" %} - {{ block.super }}{% endblock %}
@@ -14,7 +13,7 @@
         <a class="btn-fab btn-floating btn-large waves-effect waves-light teal modal-trigger"
            href="{% url 'dashboard:page-add' %}"
            title="{% trans "Add page page" %}">
-            <svg data-src="{% static "images/add_icon.svg" %}" width="30px" height="30px" />
+            <svg data-src="{% static "dashboard/images/add.svg" %}" />
         </a>
     </div>
 {% endblock %}

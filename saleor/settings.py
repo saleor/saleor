@@ -137,8 +137,7 @@ MIDDLEWARE = [
     'saleor.core.middleware.currency',
     'saleor.core.middleware.site',
     'social_django.middleware.SocialAuthExceptionMiddleware',
-    'impersonate.middleware.ImpersonateMiddleware',
-    'saleor.page.middleware.PageFallbackMiddleware']
+    'impersonate.middleware.ImpersonateMiddleware']
 
 INSTALLED_APPS = [
     # External apps that need to go before django's

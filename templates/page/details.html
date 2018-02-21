@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+
+
+{% load i18n %}
+
+
+{% block breadcrumb %}
+  <ul class="breadcrumbs list-unstyled">
+    <li>
+      <a href="{% url 'home' %}">
+        {% trans "Home" context "Main navigation item" %}
+      </a>
+    </li>
+    {% if page %}
+      <li>
+        <a href="{{ page.get_absolute_url }}">{{ page.title }}</a>
+      </li>
+    {% endif %}
+  </ul>
+{% endblock breadcrumb %}
+
+{% block content %}
+<p>{{ page.content|safe }}</p>
+{% endblock %}
