@@ -23,17 +23,13 @@
 
 {% block header_extra %}
     {% if page.pk %}
-    <a class="dropdown-button" href="#" data-activates="context-menu" data-constrainwidth="false">
-        <svg data-src="{% static "images/more_icon.svg" %}" width="25px" height="25px" />
+    <a class="dropdown-button right" href="#" data-activates="page-delete" data-constrainwidth="false">
+        <svg data-src="{% static "dashboard/images/more-vert.svg" %}" height="24" width="24" />
     </a>
-    <ul id="context-menu" class="dropdown-content">
+    <ul id="page-delete" class="dropdown-content">
         <li>
-            <a href="{{ page.get_absolute_url }}">{% trans 'View on site' %}</a>
-        </li>
-        <li>
-            <a href="#base-modal" data-href="{% url 'dashboard:page-delete' pk=page.pk %}"
-               class="modal-trigger-custom">
-                {% trans "Remove page" %}
+            <a class="modal-trigger-custom" href="#base-modal" data-href="{% url 'dashboard:page-delete' pk=page.pk %}">
+                {% trans "Delete page" context "Page action" %}
             </a>
         </li>
     </ul>
@@ -45,35 +41,16 @@
 {% block content %}
     <form method="post" enctype="multipart/form-data">
         {% csrf_token %}
-        {{ redirect_form }}
         <div class="row">
             <div class="col s12 l8">
                 {{ form.title|materializecss }}
                 {{ form.content|materializecss }}
-                {{ form.javascript|materializecss }}
-                {{ form.head_tags|materializecss }}
             </div>
             <div class="col s12 l4">
                 {{ form.status|materializecss }}
                 {{ form.url|materializecss }}
-                {{ form.meta_tags|materializecss:"input-field s12" }}
-                {{ form.meta_description|materializecss:"input-field s12" }}
             </div>
         </div>
-
-        <div class="row">
-            <div class="col s12 l8">
-                <h4 class="light">{% trans "Upload page assets" %}</h4>
-                {{ asset_formset.management_form }}
-                {% for form in asset_formset %}
-                    <div class="item">
-                        {{ form|materializecss }}
-                    </div>
-                {% endfor %}
-            </div>
-
-        </div>
-
         <div class="row">
             <div class="col s12">
                 <div class="left">
@@ -83,7 +60,6 @@
                 <div class="right">
                 {% if page.pk %}
                     <a href="{% url 'dashboard:page-list' %}" class="btn-flat">{% trans "Cancel" %}</a>
-                    <button type="submit" class="btn submit-stay">{% trans "Save and continue editing" %}</button>
                     <button type="submit" class="btn">{% trans "Save" %}</button>
                 {% else %}
                     <a href="{% url 'dashboard:page-list' %}" class="btn-flat">{% trans "Cancel" %}</a>

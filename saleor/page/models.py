@@ -1,12 +1,13 @@
 from django.db import models
-from django.urls import get_script_prefix
-from django.utils.encoding import iri_to_uri
-from django.utils.translation import ugettext_lazy as _
+from django.urls import reverse
+from django.core.validators import validate_slug
+
+from . import PageStatus
 
 
 class PageManager(models.QuerySet):
     def public(self):
-        return self.filter(status=Page.PUBLIC)
+        return self.filter(status=PageStatus.PUBLIC)
 
     def get_available(self, allow_draft=False):
         if not allow_draft:
@@ -15,27 +16,13 @@ class PageManager(models.QuerySet):
 
 
 class Page(models.Model):
-    DRAFT = 'draft'
-    PUBLIC = 'public'
-
-    STATUS_CHOICES = (
-        (DRAFT, _('Draft')),
-        (PUBLIC, _('Public')))
-
-    url = models.CharField(_('URL'), max_length=100, db_index=True)
-    title = models.CharField(_('title'), max_length=200)
-    content = models.TextField(_('content'))
-    javascript = models.TextField(_('javascript'), blank=True, default='')
-    meta_tags = models.CharField(_('meta tags'), max_length=255, blank=True,
-                                 help_text=_('Separated by comma.'))
-    meta_description = models.TextField(_('meta description'), blank=True)
-    created = models.DateTimeField(_('created'), auto_now_add=True)
-    modified = models.DateTimeField(_('modified'), auto_now=True)
+    url = models.CharField(
+        max_length=100, db_index=True, validators=[validate_slug])
+    title = models.CharField(max_length=200)
+    content = models.TextField()
+    created = models.DateTimeField(auto_now_add=True)
     status = models.CharField(
-        max_length=255, choices=STATUS_CHOICES, default=DRAFT)
-    head_tags = models.TextField(
-        _('head tags'), blank=True, default='',
-        help_text='Meta tags to be placed in head section')
+        max_length=255, choices=PageStatus.CHOICES, default=PageStatus.DRAFT)
 
     objects = PageManager.as_manager()
 
@@ -46,8 +33,17 @@ class Page(models.Model):
         return self.title
 
     def get_absolute_url(self):
-        # Handle script prefix manually because we bypass reverse()
-        return iri_to_uri(get_script_prefix().rstrip('/') + self.url)
+        return reverse('page:details', kwargs={'url': self.url})
+
+    def is_public(self):
+        return self.status == PageStatus.PUBLIC
+
+    def save(self, *args, **kwargs):
+        """
+        Make sure url is not being written to database with uppercase.
+        """
+        self.url = self.url.lower()
+        return super(Page, self).save(*args, **kwargs)
 
 
 class PostAsset(models.Model):
