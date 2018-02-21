@@ -39,7 +39,6 @@ def create_packing_slip_pdf(order, absolute_url):
     return pdf_file, order
 
 
-def fulfill_order_line(order_line, quantity, fulfillment):
+def fulfill_order_line(order_line, quantity):
     """Fulfill order line with given quantity."""
     decrease_stock(order_line.stock, quantity)
-    return fulfillment.lines.create(order_line=order_line, quantity=quantity)

@@ -353,3 +353,7 @@ class FulfillmentLineForm(forms.ModelForm):
                 'Fulfill order line form error',
                 'Order line could not be fulfilled with zero quantity.'))
         return quantity
+
+    def save(self, commit=True):
+        fulfill_order_line(self.instance.order_line, self.instance.quantity)
+        return super().save(commit)
