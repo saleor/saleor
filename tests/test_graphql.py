@@ -16,7 +16,6 @@ def test_category_query(client, product_in_stock):
         category(id: "%(category_pk)s") {
             id
             name
-            productsCount
             ancestors {
                 edges {
                     node {
@@ -47,7 +46,6 @@ def test_category_query(client, product_in_stock):
     category_data = content['data']['category']
     assert category_data is not None
     assert category_data['name'] == category.name
-    assert category_data['productsCount'] == category.products.count()
     assert (
         len(category_data['ancestors']['edges']) ==
         category.get_ancestors().count())
