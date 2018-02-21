@@ -54,3 +54,7 @@ def send_payment_confirmation(order_pk):
 def send_note_confirmation(order_pk):
     email_data = collect_data_for_email(order_pk, CONFIRM_NOTE_TEMPLATE)
     _send_confirmation(**email_data)
+
+
+def order_send_confirmation(order_pk):
+    send_order_confirmation.delay(order_pk)
