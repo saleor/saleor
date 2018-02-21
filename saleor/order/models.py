@@ -19,18 +19,6 @@ from ..discount.models import Voucher
 from ..product.models import Product
 
 
-class OrderQuerySet(models.QuerySet):
-    """Filter orders by status deduced from fulfillment quantities."""
-
-    def open(self):
-        # TODO: specify new order statuses
-        return self
-
-    def closed(self):
-        # TODO: specify new order statuses
-        return self
-
-
 class Order(models.Model):
     created = models.DateTimeField(
         default=now, editable=False)
@@ -78,8 +66,6 @@ class Order(models.Model):
         currency=settings.DEFAULT_CURRENCY, max_digits=12, decimal_places=2,
         blank=True, null=True)
     discount_name = models.CharField(max_length=255, default='', blank=True)
-
-    objects = OrderQuerySet.as_manager()
 
     class Meta:
         ordering = ('-last_status_change',)
