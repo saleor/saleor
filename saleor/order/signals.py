@@ -3,7 +3,7 @@ import logging
 from django.utils.translation import pgettext_lazy
 
 from ..core import analytics
-from .emails import send_order_confirmation
+from .utils import order_send_confirmation
 
 logger = logging.getLogger(__name__)
 
@@ -15,7 +15,7 @@ def order_status_change(sender, instance, **kwargs):
         order.history.create(
             content=pgettext_lazy(
                 'Order status history entry', 'Order fully paid'))
-        send_order_confirmation.delay(order.pk)
+        order_send_confirmation(order.pk)
         try:
             analytics.report_order(order.tracking_client_id, order)
         except Exception:
