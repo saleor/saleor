@@ -62,7 +62,6 @@ class Category(CountableDjangoObjectType):
     products = DjangoFilterConnectionField(
         Product, filterset_class=ProductFilterSet,
         sort_by=graphene.Argument(graphene.String))
-    products_count = graphene.Int()
     url = graphene.String()
     ancestors = DjangoFilterConnectionField(
         lambda: Category, filterset_class=DistinctFilterSet)
@@ -84,9 +83,6 @@ class Category(CountableDjangoObjectType):
 
     def resolve_siblings(self, info, **kwargs):
         return self.get_siblings().distinct()
-
-    def resolve_products_count(self, info):
-        return self.products.count()
 
     def resolve_url(self, info):
         ancestors = self.get_ancestors().distinct()
