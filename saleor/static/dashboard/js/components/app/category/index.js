@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import { Route, Switch } from 'react-router-dom';
 
 // import CategoryEdit from './edit';
-// import CategoryAdd from './create';
+import { CategoryCreateForm } from './form';
 import CategoryDetails from './details';
 
 const Component = (props) => {
@@ -14,9 +14,6 @@ const Component = (props) => {
   // const CategoryAddComponent = () => (
   //   <CategoryAdd categoryId={id} />
   // );
-  const CategoryDetailsComponent = () => (
-    <CategoryDetails categoryId={id} />
-  );
 
   return (
     <Switch>
@@ -25,20 +22,19 @@ const Component = (props) => {
         {/*path={'/categories/:id/edit'}*/}
         {/*render={CategoryEditComponent}*/}
       {/*/>*/}
-      {/*<Route*/}
-        {/*exact*/}
-        {/*path={'/categories/:id/add'}*/}
-        {/*render={CategoryAddComponent}*/}
-      {/*/>*/}
       <Route
         exact
-        path={'/categories/:id'}
-        render={CategoryDetailsComponent}
+        path={'/categories/:id/add'}
+        render={CategoryCreateForm}
       />
       <Route
         exact
-        path={'/categories'}
-        render={CategoryDetailsComponent}
+        path={'/categories/:id'}
+        render={CategoryDetails}
+      />
+      <Route
+        path={'/categories/'}
+        render={CategoryDetails}
       />
     </Switch>
   );
