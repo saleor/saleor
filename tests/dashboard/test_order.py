@@ -10,8 +10,7 @@ from tests.utils import get_redirect_location, get_url_path
 
 from saleor.dashboard.order.forms import ChangeQuantityForm, OrderNoteForm
 from saleor.dashboard.order.utils import fulfill_order_line
-from saleor.order.models import (
-    Fulfillment, Order, OrderHistoryEntry, OrderLine, OrderNote)
+from saleor.order.models import Order, OrderHistoryEntry, OrderLine, OrderNote
 from saleor.order.utils import (
     add_variant_to_existing_lines, add_variant_to_order,
     change_order_line_quantity)
@@ -213,9 +212,7 @@ def test_ordered_item_change_quantity(transactional_db, order_with_lines):
     change_order_line_quantity(lines[2], 0)
     change_order_line_quantity(lines[1], 0)
     change_order_line_quantity(lines[0], 0)
-    history = list(order_with_lines.history.all())
-    assert len(history) == 1
-    assert history[0].content == 'Order cancelled. No items in order'
+    assert order_with_lines.get_total_quantity() == 0
 
 
 @pytest.mark.integration
