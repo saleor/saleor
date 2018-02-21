@@ -9,7 +9,7 @@ from prices import Money, TaxedMoney, fixed_discount
 from . import GroupStatus
 from ..account.utils import store_user_address
 from ..core.exceptions import InsufficientStock
-from ..product.utils import allocate_stock, deallocate_stock
+from ..product.utils import allocate_stock, deallocate_stock, increase_stock
 
 
 def check_order_status(func):
@@ -30,13 +30,6 @@ def check_order_status(func):
         return func(*args, **kwargs)
 
     return decorator
-
-
-def cancel_order(order):
-    """Cancel order by deallocating stock for all order lines."""
-    for line in order:
-        if line.stock:
-            deallocate_stock(line.stock, line.quantity)
 
 
 def recalculate_order(order):
@@ -156,3 +149,13 @@ def change_order_line_quantity(line, new_quantity):
         line.save()
     else:
         line.delete()
+
+
+def restock_order_lines(order):
+    """Return ordered products to corresponding stocks."""
+    for line in order:
+        if line.stock:
+            if line.quantity_fulfilled > 0:
+                increase_stock(line.stock, line.quantity_fulfilled)
+            if line.quantity_unfulfilled > 0:
+                deallocate_stock(line.stock, line.quantity_unfulfilled)

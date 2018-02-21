@@ -16,7 +16,7 @@ from saleor.product.utils import (
     allocate_stock, deallocate_stock, decrease_stock,
     get_attributes_display_map, get_availability,
     get_product_availability_status, get_variant_availability_status,
-    get_variant_picker_data)
+    get_variant_picker_data, increase_stock)
 
 
 @pytest.fixture()
@@ -42,6 +42,17 @@ def test_allocate_stock(product_in_stock):
     assert stock.quantity_allocated == 1
 
 
+def test_deallocate_stock(product_in_stock):
+    stock = product_in_stock.variants.first().stock.first()
+    stock.quantity = 100
+    stock.quantity_allocated = 80
+    stock.save()
+    deallocate_stock(stock, 50)
+    stock.refresh_from_db()
+    assert stock.quantity == 100
+    assert stock.quantity_allocated == 30
+
+
 def test_decrease_stock(product_in_stock):
     stock = product_in_stock.variants.first().stock.first()
     stock.quantity = 100
@@ -53,15 +64,15 @@ def test_decrease_stock(product_in_stock):
     assert stock.quantity_allocated == 30
 
 
-def test_deallocate_stock(product_in_stock):
+def test_increase_stock(product_in_stock):
     stock = product_in_stock.variants.first().stock.first()
     stock.quantity = 100
     stock.quantity_allocated = 80
     stock.save()
-    deallocate_stock(stock, 50)
+    increase_stock(stock, 50)
     stock.refresh_from_db()
-    assert stock.quantity == 100
-    assert stock.quantity_allocated == 30
+    assert stock.quantity == 150
+    assert stock.quantity_allocated == 80
 
 
 def test_product_page_redirects_to_correct_slug(client, product_in_stock):

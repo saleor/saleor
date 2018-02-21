@@ -15,8 +15,9 @@ from saleor.account.models import Address, User
 from saleor.cart import utils
 from saleor.cart.models import Cart
 from saleor.checkout.core import Checkout
+from saleor.dashboard.order.utils import fulfill_order_line
 from saleor.discount.models import Sale, Voucher
-from saleor.order.models import Fulfillment, Order, OrderLine
+from saleor.order.models import Order, OrderLine
 from saleor.order.utils import recalculate_order
 from saleor.page.models import Page
 from saleor.product.models import (
@@ -454,6 +455,19 @@ def order_with_lines_and_stock(order, product_type, default_category):
         stock_location=stock.location.name)
     recalculate_order(order)
     order.refresh_from_db()
+    return order
+
+
+@pytest.fixture()
+def fulfilled_order(order_with_lines_and_stock):
+    order = order_with_lines_and_stock
+    fulfillment = order.fulfillments.create()
+    line_1 = order.lines.first()
+    line_2 = order.lines.last()
+    fulfillment.lines.create(order_line=line_1, quantity=line_1.quantity)
+    fulfill_order_line(line_1, line_1.quantity)
+    fulfillment.lines.create(order_line=line_2, quantity=line_2.quantity)
+    fulfill_order_line(line_2, line_2.quantity)
     return order
 
 
