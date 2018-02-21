@@ -18,7 +18,7 @@ from ...account.utils import store_user_address
 from ...discount import DiscountValueType, VoucherType
 from ...discount.models import Sale, Voucher
 from ...order import OrderStatus
-from ...order.models import Fulfillment, Order, OrderLine, Payment
+from ...order.models import Fulfillment, Order, Payment
 from ...product.models import (
     AttributeChoiceValue, Category, Collection, Product, ProductAttribute,
     ProductImage, ProductType, ProductVariant, Stock, StockLocation)
@@ -392,8 +392,7 @@ def create_order_line(order):
     stock.quantity += quantity
     stock.quantity_allocated += quantity
     stock.save()
-    return OrderLine.objects.create(
-        order=order,
+    return order.lines.create(
         product=product,
         product_name=product.name,
         product_sku=variant.sku,
