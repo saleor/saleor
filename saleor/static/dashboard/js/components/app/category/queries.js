@@ -1,8 +1,9 @@
 import gql from 'graphql-tag';
 
 const categoryChildren = gql`
-  query CategoryChildren ($id: ID!, $first: Int, $after: ID, $last: Int, $before: ID) {
+  query CategoryChildren ($id: ID!, $first: Int, $after: String, $last: Int, $before: String) {
     category(id: $id) {
+      id
       children(first: $first, after: $after, last: $last, before: $before) {
         totalCount
         edges {

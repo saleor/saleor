@@ -16,6 +16,7 @@ import CategorySection from './category';
 
 const apolloClient = new ApolloClient({
   link: new HttpLink({
+    uri: '/dashboard/graphql/',
     credentials: 'same-origin',
     headers: {
       'X-CSRFToken': $.cookie('csrftoken')
@@ -41,7 +42,6 @@ render(
               <div key={route.path}>
                 <Route path={`/${route.path}/`}
                   component={route.component}
-                  exact
                 />
               </div>
             ))}
