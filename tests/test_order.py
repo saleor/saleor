@@ -149,7 +149,7 @@ def test_add_note_to_order(order_with_lines_and_stock):
 
 def test_create_order_history(order_with_lines):
     order = order_with_lines
-    order.history.create(order=order, content='test_entry')
+    order.history.create(content='test_entry', user=order.user)
     history_entry = models.OrderHistoryEntry.objects.get(order=order)
     assert history_entry == order.history.first()
     assert history_entry.content == 'test_entry'
