@@ -194,8 +194,7 @@ class OrderLine(models.Model):
         return sum([line.quantity for line in lines])
 
     def is_fulfilled(self):
-        lines = FulfillmentLine.objects.filter(order_line=self)
-        return sum([line.quantity for line in lines]) >= self.quantity
+        return self.quantity_fulfilled >= self.quantity
 
 
 class Fulfillment(models.Model):
