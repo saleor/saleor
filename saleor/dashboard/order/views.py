@@ -402,14 +402,27 @@ def fulfill_order_lines(request, order_pk):
             if line_form.cleaned_data.get('quantity') > 0]
         if forms_to_save:
             fulfillment = form.save()
+            quantity_fulfilled = 0
             for line_form in forms_to_save:
                 line = line_form.save(commit=False)
                 line.fulfillment = fulfillment
                 line.save()
+                quantity_fulfilled += line_form.cleaned_data.get('quantity')
             order.status = (
                 OrderStatus.FULFILLED if order.is_fulfilled()
                 else OrderStatus.PARTIALLY_FULFILLED)
             order.save(update_fields=['status'])
+            msg = npgettext_lazy(
+                'Dashboard message related to an order',
+                'Fulfilled %(quantity_fulfilled)d item',
+                'Fulfilled %(quantity_fulfilled)d items',
+                'quantity_fulfilled') % {
+                    'quantity_fulfilled': quantity_fulfilled}
+            order.history.create(content=msg, user=request.user)
+        else:
+            msg = pgettext_lazy(
+                'Dashboard message related to an order', 'No items fulfilled')
+        messages.success(request, msg)
         return redirect('dashboard:order-details', order_pk=order.pk)
     elif form.errors:
         status = 400
