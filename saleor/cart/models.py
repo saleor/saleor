@@ -55,18 +55,6 @@ class CartQueryset(models.QuerySet):
         """Return `OPEN` carts."""
         return self.filter(status=CartStatus.OPEN)
 
-    def saved(self):
-        """Return `SAVED` carts."""
-        return self.filter(status=CartStatus.SAVED)
-
-    def waiting_for_payment(self):
-        """Return `SAVED_FOR_PAYMENT` carts."""
-        return self.filter(status=CartStatus.WAITING_FOR_PAYMENT)
-
-    def checkout(self):
-        """Return carts in `CHECKOUT` state."""
-        return self.filter(status=CartStatus.CHECKOUT)
-
     def canceled(self):
         """Return `CANCELED` carts."""
         return self.filter(status=CartStatus.CANCELED)

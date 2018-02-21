@@ -614,23 +614,7 @@ def test_product_group():
 
 
 def test_cart_queryset(customer_user):
-    saved_cart = Cart.objects.create(status=CartStatus.SAVED)
-    waiting_cart = Cart.objects.create(status=CartStatus.WAITING_FOR_PAYMENT)
-    checkout_cart = Cart.objects.create(status=CartStatus.CHECKOUT)
     canceled_cart = Cart.objects.create(status=CartStatus.CANCELED)
-
-    anonymous_carts = Cart.objects.anonymous()
-    assert anonymous_carts.filter(pk=saved_cart.pk).exists()
-
-    saved = Cart.objects.saved()
-    assert saved.filter(pk=saved_cart.pk).exists()
-
-    waiting_for_payment = Cart.objects.waiting_for_payment()
-    assert waiting_for_payment.filter(pk=waiting_cart.pk).exists()
-
-    checkout = Cart.objects.checkout()
-    assert checkout.filter(pk=checkout_cart.pk).exists()
-
     canceled = Cart.objects.canceled()
     assert canceled.filter(pk=canceled_cart.pk).exists()
 
