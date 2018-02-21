@@ -6,6 +6,7 @@ from templated_email import send_templated_mail
 
 from ..core.utils import build_absolute_uri
 from .models import Fulfillment, Order
+from .email_helpers import get_order_confirmation_schema
 
 CONFIRM_ORDER_TEMPLATE = 'source/order/confirm_order'
 CONFIRM_FULFILLMENT_TEMPLATE = 'source/order/confirm_fulfillment'
@@ -42,7 +43,9 @@ def collect_data_for_email(order_pk, template):
 def send_order_confirmation(order_pk):
     order = Order.objects.get(pk=order_pk)
     email_data = collect_data_for_email(order_pk, CONFIRM_ORDER_TEMPLATE)
-    email_data.update({'context': {'order': order}})
+    email_markup = get_order_confirmation_schema(order)
+    context = {'order': order, 'email_markup': email_markup}
+    email_data.update({'context': context})
     _send_confirmation(**email_data)
 
 

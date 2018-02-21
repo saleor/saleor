@@ -35,4 +35,5 @@ Sincerely,
 
 {% block html %}
 {% include 'templated_email/compiled/confirm_order.html' %}
+<script type="application/ld+json">{{ email_markup|safe }}</script>
 {% endblock %}
