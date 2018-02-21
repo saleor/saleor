@@ -473,10 +473,9 @@ def test_note_form_sent_email(
 
 def test_fulfill_order_line(order_with_lines_and_stock):
     order = order_with_lines_and_stock
-    fulfillment = Fulfillment.objects.create(order=order)
     line = order.lines.first()
     stock = line.stock
     stock_quantity_after = stock.quantity - line.quantity
-    fulfill_order_line(line, line.quantity, fulfillment)
+    fulfill_order_line(line, line.quantity)
     stock.refresh_from_db()
     assert stock.quantity == stock_quantity_after
