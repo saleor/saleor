@@ -27,9 +27,9 @@ const styles = (theme) => ({
   }
 });
 const ConfirmRemoval = withStyles(styles)((props) => {
-  const { content, classes, ...modalProps } = props;
+  const { content, classes, opened, ...modalProps } = props;
   return (
-    <Modal open={true} {...modalProps}>
+    <Modal open={opened} {...modalProps}>
       <Card className={classes.card}>
         <CardContent>
           <Typography
