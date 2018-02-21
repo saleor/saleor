@@ -143,6 +143,9 @@ class Order(models.Model):
         subtotal_iterator = (line.get_total() for line in self)
         return sum(subtotal_iterator, ZERO_TAXED_MONEY)
 
+    def get_total_quantity(self):
+        return sum([line.quantity for line in self])
+
     def can_edit(self):
         return self.status == OrderStatus.UNFULFILLED
 

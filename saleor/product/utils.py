@@ -393,6 +393,11 @@ def decrease_stock(stock, quantity):
     stock.save(update_fields=['quantity', 'quantity_allocated'])
 
 
+def increase_stock(stock, quantity):
+    stock.quantity = F('quantity') + quantity
+    stock.save(update_fields=['quantity'])
+
+
 def get_product_list_context(request, filter_set):
     """
     :param request: request object

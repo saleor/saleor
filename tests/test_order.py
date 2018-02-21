@@ -7,7 +7,8 @@ from tests.utils import get_redirect_location
 from saleor.order import models
 from saleor.order.emails import collect_data_for_email
 from saleor.order.forms import OrderNoteForm
-from saleor.order.utils import recalculate_order
+from saleor.order.utils import (
+    add_variant_to_order, recalculate_order, restock_order_lines)
 
 
 def test_total_setter():
@@ -140,3 +141,44 @@ def test_collect_data_for_email(order):
     order_url = reverse('order:details', kwargs={'token': order.token})
     assert order_url in email_data['url']
     assert email_data['email'] == order.user_email
+
+
+def test_restock_order_lines(order_with_lines_and_stock):
+    order = order_with_lines_and_stock
+    line_1 = order.lines.first()
+    line_2 = order.lines.last()
+    stock_1_quantity_allocated_before = line_1.stock.quantity_allocated
+    stock_2_quantity_allocated_before = line_2.stock.quantity_allocated
+    stock_1_quantity_before = line_1.stock.quantity
+    stock_2_quantity_before = line_2.stock.quantity
+
+    restock_order_lines(order)
+
+    line_1.stock.refresh_from_db()
+    line_2.stock.refresh_from_db()
+    assert line_1.stock.quantity_allocated == (
+        stock_1_quantity_allocated_before - line_1.quantity)
+    assert line_2.stock.quantity_allocated == (
+        stock_2_quantity_allocated_before - line_2.quantity)
+    assert line_1.stock.quantity == stock_1_quantity_before
+    assert line_2.stock.quantity == stock_2_quantity_before
+
+
+def test_restock_fulfilled_order_lines(fulfilled_order):
+    line_1 = fulfilled_order.lines.first()
+    line_2 = fulfilled_order.lines.last()
+    stock_1_quantity_allocated_before = line_1.stock.quantity_allocated
+    stock_2_quantity_allocated_before = line_2.stock.quantity_allocated
+    stock_1_quantity_before = line_1.stock.quantity
+    stock_2_quantity_before = line_2.stock.quantity
+
+    restock_order_lines(fulfilled_order)
+
+    line_1.stock.refresh_from_db()
+    line_2.stock.refresh_from_db()
+    assert line_1.stock.quantity_allocated == (
+        stock_1_quantity_allocated_before)
+    assert line_2.stock.quantity_allocated == (
+        stock_2_quantity_allocated_before)
+    assert line_1.stock.quantity == stock_1_quantity_before + line_1.quantity
+    assert line_2.stock.quantity == stock_2_quantity_before + line_2.quantity

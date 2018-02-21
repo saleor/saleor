@@ -11,11 +11,12 @@ from ...account.i18n import (
 from ...cart.forms import QuantityField
 from ...core.exceptions import InsufficientStock
 from ...discount.utils import decrease_voucher_usage
+from ...order import OrderStatus
 from ...order.emails import send_note_confirmation
 from ...order.models import Fulfillment, FulfillmentLine, OrderLine, OrderNote
 from ...order.utils import (
-    add_variant_to_order, cancel_order, change_order_line_quantity,
-    fulfill_order_line, merge_duplicates_into_order_line, recalculate_order)
+    add_variant_to_order, change_order_line_quantity, fulfill_order_line,
+    merge_duplicates_into_order_line, recalculate_order, restock_order_lines)
 from ...product.models import Product, ProductVariant, Stock
 from ...product.utils import allocate_stock, deallocate_stock
 from ..forms import AjaxSelect2ChoiceField
@@ -177,10 +178,16 @@ class CancelOrderForm(forms.Form):
 
     Deallocates corresponding stocks for each order line.
     """
+    restock = forms.BooleanField(initial=True, required=False)
 
     def __init__(self, *args, **kwargs):
         self.order = kwargs.pop('order')
         super().__init__(*args, **kwargs)
+        self.fields['restock'].label = npgettext_lazy(
+            'Cancel order form action',
+            'Restock %(quantity)d item',
+            'Restock %(quantity)d items',
+            'quantity') % {'quantity': self.order.get_total_quantity()}
 
     def clean(self):
         data = super().clean()
@@ -192,7 +199,10 @@ class CancelOrderForm(forms.Form):
         return data
 
     def cancel_order(self):
-        cancel_order(self.order)
+        if self.cleaned_data.get('restock'):
+            restock_order_lines(self.order)
+        self.order.status = OrderStatus.CANCELED
+        self.order.save(update_fields=['status'])
 
 
 class RemoveVoucherForm(forms.Form):
@@ -325,6 +335,7 @@ class AddressForm(StorefrontAddressForm):
 
 class FulfillmentForm(forms.ModelForm):
     """Create fulfillment group for a given order."""
+
     class Meta:
         model = Fulfillment
         fields = ['tracking_number']

@@ -7,7 +7,7 @@ from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect
 from django.template.context_processors import csrf
 from django.template.response import TemplateResponse
-from django.utils.translation import pgettext_lazy
+from django.utils.translation import npgettext_lazy, pgettext_lazy
 from django_prices.templatetags import prices_i18n
 from payments import PaymentStatus
 from prices import Money, TaxedMoney
@@ -287,18 +287,26 @@ def cancel_order(request, order_pk):
     order = get_object_or_404(Order, pk=order_pk)
     form = CancelOrderForm(request.POST or None, order=order)
     if form.is_valid():
-        msg = pgettext_lazy('Dashboard message', 'Cancelled order')
+        msg = pgettext_lazy('Dashboard message', 'Order canceled')
         with transaction.atomic():
             form.cancel_order()
+            if form.cleaned_data.get('restock'):
+                restock_msg = npgettext_lazy(
+                    'Dashboard message',
+                    'Restocked %(quantity)d item',
+                    'Restocked %(quantity)d items',
+                    'quantity') % {'quantity': order.get_total_quantity()}
+                order.history.create(content=restock_msg, user=request.user)
             order.history.create(content=msg, user=request.user)
-        messages.success(request, 'Order cancelled')
+        messages.success(request, msg)
         return redirect('dashboard:order-details', order_pk=order.pk)
         # TODO: send status confirmation email
     elif form.errors:
         status = 400
-    ctx = {'order': order}
-    return TemplateResponse(request, 'dashboard/order/modal/cancel_order.html',
-                            ctx, status=status)
+    ctx = {'form': form, 'order': order}
+    return TemplateResponse(
+        request, 'dashboard/order/modal/cancel_order.html', ctx,
+        status=status)
 
 
 @staff_member_required
