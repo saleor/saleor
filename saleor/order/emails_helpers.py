@@ -1,6 +1,5 @@
 import json
 
-from django.conf import settings
 from django.contrib.sites.models import Site
 from django.core.serializers.json import DjangoJSONEncoder
 
@@ -41,7 +40,7 @@ def get_product_data(line, currency, organization):
     return product_data
 
 
-def get_order_confirmation_schema(order):
+def get_order_confirmation_markup(order):
     """Generates schema.org markup for order confirmation e-mail message."""
     organization = get_organization()
     order_url = build_absolute_uri(order.get_absolute_url())
