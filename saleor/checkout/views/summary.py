@@ -6,7 +6,7 @@ from django.utils.translation import pgettext, pgettext_lazy
 from ...account.forms import get_address_form
 from ...account.models import Address
 from ...core.exceptions import InsufficientStock
-from ...order.utils import order_send_confirmation
+from ...order.emails import order_send_confirmation
 from ..forms import (
     AnonymousUserBillingForm, BillingAddressesForm,
     BillingWithoutShippingAddressForm, NoteForm)

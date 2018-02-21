@@ -211,7 +211,3 @@ def move_order_line_to_group(line, target_group, quantity):
     line.quantity -= quantity
     remove_empty_groups(line)
 
-
-def order_send_confirmation(order_pk):
-    from .emails import send_order_confirmation
-    send_order_confirmation.delay(order_pk)

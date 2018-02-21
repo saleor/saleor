@@ -1,12 +1,12 @@
 from decimal import Decimal
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
 
 from django.urls import reverse
 from prices import Price
 from tests.utils import get_redirect_location
 
 from saleor.order import OrderStatus, models
-from saleor.order.emails import collect_data_for_email
+from saleor.order.emails import collect_data_for_email, order_send_confirmation
 from saleor.order.forms import OrderNoteForm
 from saleor.order.utils import add_variant_to_delivery_group
 
@@ -189,3 +189,10 @@ def test_collect_data_for_email(order):
     order_url = reverse('order:details', kwargs={'token': order.token})
     assert order_url in email_data['url']
     assert email_data['email'] == order.user_email
+
+
+@patch('saleor.order.emails.send_order_confirmation')
+def test_order_send_confirmation(mocked_task_function, order):
+    pk = order.pk
+    order_send_confirmation(pk)
+    mocked_task_function.delay.assert_called_with(pk)

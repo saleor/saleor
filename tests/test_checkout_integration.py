@@ -69,7 +69,7 @@ def test_checkout_flow(
     order_password = reverse(
         'order:checkout-success', kwargs={'token': order.token})
     assert get_redirect_location(payment_response) == order_password
-    assert mock_send_confirmation.called_once_with(order.pk)
+    mock_send_confirmation.assert_called_once_with(order.pk)
 
 
 def test_checkout_flow_authenticated_user(

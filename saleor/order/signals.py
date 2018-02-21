@@ -3,7 +3,7 @@ import logging
 from django.utils.translation import pgettext_lazy
 
 from ..core import analytics
-from .utils import order_send_confirmation
+from .emails import order_send_confirmation
 
 logger = logging.getLogger(__name__)
 
