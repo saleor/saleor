@@ -15,12 +15,13 @@ from ...order import OrderStatus
 from ...order.emails import send_note_confirmation
 from ...order.models import Fulfillment, FulfillmentLine, OrderLine, OrderNote
 from ...order.utils import (
-    add_variant_to_order, change_order_line_quantity, fulfill_order_line,
+    add_variant_to_order, change_order_line_quantity,
     merge_duplicates_into_order_line, recalculate_order, restock_order_lines)
 from ...product.models import Product, ProductVariant, Stock
 from ...product.utils import allocate_stock, deallocate_stock
 from ..forms import AjaxSelect2ChoiceField
 from ..widgets import PhonePrefixWidget
+from .utils import fulfill_order_line
 
 
 class OrderNoteForm(forms.ModelForm):
@@ -112,11 +113,6 @@ class CancelOrderLineForm(forms.Form):
             deallocate_stock(self.line.stock, self.line.quantity)
         order = self.line.order
         self.line.delete()
-        if not order.lines.exists():
-            order.create_history_entry(
-                content=pgettext_lazy(
-                    'Order status history entry',
-                    'Order cancelled. No items in order'))
         recalculate_order(order)
 
 

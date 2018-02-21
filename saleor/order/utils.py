@@ -3,10 +3,7 @@ from functools import wraps
 from django.conf import settings
 from django.db.models import F
 from django.shortcuts import get_object_or_404, redirect
-from django.utils.translation import pgettext_lazy
-from prices import Money, TaxedMoney, fixed_discount
 
-from . import GroupStatus
 from ..account.utils import store_user_address
 from ..core.exceptions import InsufficientStock
 from ..product.utils import allocate_stock, deallocate_stock, increase_stock
