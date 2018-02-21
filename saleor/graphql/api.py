@@ -28,7 +28,7 @@ class Query(graphene.ObjectType):
     def resolve_category(self, info, id):
         return get_node(info, id, only_type=Category)
 
-    def resolve_categories(self, info, level=None):
+    def resolve_categories(self, info, level=None, **kwargs):
         return resolve_categories(info, level)
 
     def resolve_product(self, info, id):
