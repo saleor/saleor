@@ -73,7 +73,7 @@
       </tr>
     </thead>
     <tbody>
-      {% for line in order %}
+      {% for line in order.get_unfulfilled_lines %}
         <tr>
           <td>
             {{ line.product_name }}<br>
@@ -82,7 +82,9 @@
             {{ line.product_sku }}
           </td>
           <td class="right-align">
-            {{ line.quantity }}
+            {% blocktrans trimmed with quantity_unfulfilled=line.quantity_unfulfilled quantity=line.quantity %}
+              {{ quantity_unfulfilled }} (of {{ quantity }})
+            {% endblocktrans %}
           </td>
         </tr>
       {% endfor %}
