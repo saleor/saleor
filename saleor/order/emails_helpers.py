@@ -10,7 +10,7 @@ def get_organization():
     site = Site.objects.get_current()
     return {
         '@type': 'Organization',
-        'name': site.settings.name}
+        'name': site.name}
 
 
 def get_product_data(line, currency, organization):
