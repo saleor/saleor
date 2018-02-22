@@ -436,20 +436,28 @@
                     </td>
                   </tr>
                 {% endfor %}
-              <tr>
-                <td colspan="2">
-                  {% if fulfillment.tracking_number %}
-                    {% blocktrans trimmed with tracking=fulfillment.tracking_number context "Fulfillment table text" %}
-                      Tracking number: {{ tracking }}
-                    {% endblocktrans %}
-                  {% else %}
-                    {% trans "Tracking number: -" context "Fulfillment table text" %}
-                  {% endif %}
-                </td>
-              </tr>
+                <tr>
+                  <td colspan="2">
+                    {% if fulfillment.tracking_number %}
+                      {% blocktrans trimmed with tracking=fulfillment.tracking_number context "Fulfillment table text" %}
+                        Tracking number: {{ tracking }}
+                      {% endblocktrans %}
+                    {% else %}
+                      {% trans "Tracking number: -" context "Fulfillment table text" %}
+                    {% endif %}
+                  </td>
+                </tr>
               </tbody>
             </table>
           </div>
+          {% if perms.order.edit_order and fulfillment.can_cancel %}
+            <div class="data-table-action">
+              <a href="#base-modal" data-href="{% url 'dashboard:fulfillment-cancel' order_pk=order.pk fulfillment_pk=fulfillment.pk %}"
+                 class="btn-flat waves-effect modal-trigger-custom" title="{% trans "Cancel fulfillment" context "Fulfillment summary card action title" %}">
+                {% trans "Cancel" context "Fulfillment summary card action" %}
+              </a>
+            </div>
+          {% endif %}
         </div>
       {% endfor %}
       <div class="card order-notes{% if not notes %} print-hide{% endif %}" id="order-notes">

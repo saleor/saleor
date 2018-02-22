@@ -22,9 +22,10 @@ from ..views import staff_member_required
 from .filters import OrderFilter
 from .forms import (
     AddressForm, AddVariantToOrderForm, BaseFulfillmentLineFormSet,
-    CancelOrderForm, CancelOrderLineForm, CapturePaymentForm,
-    ChangeQuantityForm, ChangeStockForm, FulfillmentForm, FulfillmentLineForm,
-    OrderNoteForm, RefundPaymentForm, ReleasePaymentForm, RemoveVoucherForm)
+    CancelOrderForm, CancelFulfillmentForm, CancelOrderLineForm,
+    CapturePaymentForm, ChangeQuantityForm, ChangeStockForm, FulfillmentForm,
+    FulfillmentLineForm, OrderNoteForm, RefundPaymentForm, ReleasePaymentForm,
+    RemoveVoucherForm)
 from .utils import (
     create_invoice_pdf, create_packing_slip_pdf, get_statics_absolute_url)
 
@@ -429,3 +430,36 @@ def fulfill_order_lines(request, order_pk):
     ctx = {'form': form, 'formset': formset, 'order': order}
     template = 'dashboard/order/fulfillment.html'
     return TemplateResponse(request, template, ctx, status=status)
+
+
+@staff_member_required
+@permission_required('order.edit_order')
+def cancel_fulfillment(request, order_pk, fulfillment_pk):
+    status = 200
+    order = get_object_or_404(Order, pk=order_pk)
+    fulfillment = get_object_or_404(
+        order.fulfillments.all(), pk=fulfillment_pk)
+    form = CancelFulfillmentForm(request.POST or None, fulfillment=fulfillment)
+    if form.is_valid():
+        msg = pgettext_lazy(
+            'Dashboard message', 'Fulfillment #%(fulfillment)s canceled') % {
+                'fulfillment': fulfillment.composed_id}
+        with transaction.atomic():
+            form.cancel_fulfillment()
+            if form.cleaned_data.get('restock'):
+                restock_msg = npgettext_lazy(
+                    'Dashboard message',
+                    'Restocked %(quantity)d item',
+                    'Restocked %(quantity)d items',
+                    'quantity') % {
+                        'quantity': fulfillment.get_total_quantity()}
+                order.history.create(content=restock_msg, user=request.user)
+            order.history.create(content=msg, user=request.user)
+        messages.success(request, msg)
+        return redirect('dashboard:order-details', order_pk=order.pk)
+    elif form.errors:
+        status = 400
+    ctx = {'form': form, 'order': order, 'fulfillment': fulfillment}
+    return TemplateResponse(
+        request, 'dashboard/order/modal/cancel_fulfillment.html', ctx,
+        status=status)
