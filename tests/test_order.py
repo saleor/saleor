@@ -8,7 +8,7 @@ from saleor.order import FulfillmentStatus, models, OrderStatus
 from saleor.order.emails import collect_data_for_email
 from saleor.order.forms import OrderNoteForm
 from saleor.order.utils import (
-    add_variant_to_order, cancel_order, recalculate_order,
+    add_variant_to_order, cancel_fulfillment, cancel_order, recalculate_order,
     restock_fulfillment_lines, restock_order_lines)
 
 
@@ -212,3 +212,10 @@ def test_cancel_order(fulfilled_order):
         f.status == FulfillmentStatus.CANCELED
         for f in fulfilled_order.fulfillments.all()])
     assert fulfilled_order.status == OrderStatus.CANCELED
+
+
+def test_cancel_fulfillment(fulfilled_order):
+    fulfillment = fulfilled_order.fulfillments.first()
+    cancel_fulfillment(fulfillment, restock=False)
+    assert fulfillment.status == FulfillmentStatus.CANCELED
+    assert fulfilled_order.status == OrderStatus.UNFULFILLED
