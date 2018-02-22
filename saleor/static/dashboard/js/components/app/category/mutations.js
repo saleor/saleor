@@ -29,8 +29,8 @@ const categoryCreate = gql`
   }
 `;
 const categoryUpdate = gql`
-  mutation categoryUpdateMutation($pk: Int!, $name: String!, $description: String!, $parent: Int) {
-    categoryUpdate(pk: $pk, data: {name: $name, description: $description, parent: $parent}) {
+  mutation categoryUpdateMutation($id: ID!, $name: String!, $description: String!) {
+    categoryUpdate(id: $id, name: $name, description: $description) {
       errors {
         field
         message
