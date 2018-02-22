@@ -23,3 +23,12 @@ class OrderStatus:
             'order status', 'Partially fulfilled')),
         (FULFILLED, pgettext_lazy('order status', 'Fulfilled')),
         (CANCELED, pgettext_lazy('order status', 'Canceled'))]
+
+
+class FulfillmentStatus:
+    FULFILLED = 'fulfilled'
+    CANCELED = 'canceled'
+
+    CHOICES = [
+        (FULFILLED, pgettext_lazy('order status', 'Fulfilled')),
+        (CANCELED, pgettext_lazy('order status', 'Canceled'))]
