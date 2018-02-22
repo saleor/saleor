@@ -1,10 +1,11 @@
-import React, { Component } from 'react';
+import React, { Component, Fragment } from 'react';
 import { graphql } from 'react-apollo';
 import { withRouter } from 'react-router-dom';
 import Grid from 'material-ui/Grid';
 
 import BaseCategoryForm from './base';
-import { categoryCreate } from '../mutations';
+import { categoryCreate, categoryUpdate } from '../mutations';
+import { categoryDetails } from '../queries';
 
 @withRouter
 @graphql(categoryCreate)
@@ -22,7 +23,7 @@ class CategoryCreateForm extends Component {
           parentId: this.props.match.params.id
         }
       })
-        .then(({ data }) => this.props.history.push(`/categories/${data.categoryCreate.category.id}/`))
+        .then(({ data }) => this.props.history.push(`/categories/${data.categoryCreate.category.id}/`));
     };
   }
 
@@ -43,6 +44,53 @@ class CategoryCreateForm extends Component {
   }
 }
 
+@withRouter
+@graphql(categoryUpdate)
+@graphql(categoryDetails, { options: (props) => ({ variables: { id: props.match.params.id } }) })
+class CategoryUpdateForm extends Component {
+  constructor(props) {
+    super(props);
+    this.handleConfirm = this.handleConfirm.bind(this);
+  }
+
+  handleConfirm(formData) {
+    return () => {
+      this.props.mutate({
+        variables: {
+          ...formData,
+          id: this.props.match.params.id
+        }
+      })
+        .then(({ data }) => this.props.history.push(`/categories/${data.categoryUpdate.category.id}/`))
+        .catch(error => console.error(error));
+    };
+  }
+
+  render() {
+    const { loading, category } = this.props.data;
+    return (
+      <Fragment>
+      {loading ? (
+        loading
+      ) : (
+        <Grid container spacing={16}>
+          <Grid item xs={12} md={9}>
+            <BaseCategoryForm
+              title={category.name}
+              name={category.name}
+              description={category.description}
+              handleConfirm={this.handleConfirm}
+              confirmButtonLabel={pgettext('Update category submit action button label', 'Update category')}
+            />
+          </Grid>
+        </Grid>
+      )}
+      </Fragment>
+    );
+  }
+}
+
 export {
-  CategoryCreateForm
+  CategoryCreateForm,
+  CategoryUpdateForm
 };
