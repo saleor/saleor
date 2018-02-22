@@ -8,7 +8,8 @@ from saleor.order import models
 from saleor.order.emails import collect_data_for_email
 from saleor.order.forms import OrderNoteForm
 from saleor.order.utils import (
-    add_variant_to_order, recalculate_order, restock_order_lines)
+    add_variant_to_order, recalculate_order, restock_fulfillment_lines,
+    restock_order_lines)
 
 
 def test_total_setter():
@@ -182,3 +183,24 @@ def test_restock_fulfilled_order_lines(fulfilled_order):
         stock_2_quantity_allocated_before)
     assert line_1.stock.quantity == stock_1_quantity_before + line_1.quantity
     assert line_2.stock.quantity == stock_2_quantity_before + line_2.quantity
+
+
+def test_restock_fulfillment_lines(fulfilled_order):
+    fulfillment = fulfilled_order.fulfillments.first()
+    line_1 = fulfillment.lines.first()
+    line_2 = fulfillment.lines.last()
+    stock_1 = line_1.order_line.stock
+    stock_2 = line_2.order_line.stock
+    stock_1_quantity_allocated_before = stock_1.quantity_allocated
+    stock_2_quantity_allocated_before = stock_2.quantity_allocated
+    stock_1_quantity_before = stock_1.quantity
+    stock_2_quantity_before = stock_2.quantity
+
+    restock_fulfillment_lines(fulfillment)
+
+    stock_1.refresh_from_db()
+    stock_2.refresh_from_db()
+    assert stock_1.quantity_allocated == stock_1_quantity_allocated_before
+    assert stock_1.quantity_allocated == stock_2_quantity_allocated_before
+    assert stock_1.quantity == stock_1_quantity_before + line_1.quantity
+    assert stock_2.quantity == stock_2_quantity_before + line_2.quantity
