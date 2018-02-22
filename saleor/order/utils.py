@@ -6,6 +6,7 @@ from django.shortcuts import get_object_or_404, redirect
 
 from ..account.utils import store_user_address
 from ..core.exceptions import InsufficientStock
+from ..order import FulfillmentStatus, OrderStatus
 from ..product.utils import allocate_stock, deallocate_stock, increase_stock
 
 
@@ -41,6 +42,19 @@ def recalculate_order(order):
         total -= order.discount_amount
     order.total = total
     order.save()
+
+
+def cancel_order(order, restock):
+    """Cancel order and associated fulfillments.
+
+    Return products to corresponding stocks if restock is set to True."""
+    if restock:
+        restock_order_lines(order)
+    for fulfillment in order.fulfillments.all():
+        fulfillment.status = FulfillmentStatus.CANCELED
+        fulfillment.save(update_fields=['status'])
+    order.status = OrderStatus.CANCELED
+    order.save(update_fields=['status'])
 
 
 def attach_order_to_user(order, user):

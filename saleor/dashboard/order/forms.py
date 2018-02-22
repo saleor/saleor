@@ -11,13 +11,13 @@ from ...account.i18n import (
 from ...cart.forms import QuantityField
 from ...core.exceptions import InsufficientStock
 from ...discount.utils import decrease_voucher_usage
-from ...order import FulfillmentStatus, OrderStatus
+from ...order import FulfillmentStatus
 from ...order.emails import send_note_confirmation
 from ...order.models import Fulfillment, FulfillmentLine, OrderLine, OrderNote
 from ...order.utils import (
     add_variant_to_order, change_order_line_quantity,
     merge_duplicates_into_order_line, recalculate_order,
-    restock_fulfillment_lines, restock_order_lines)
+    restock_fulfillment_lines, cancel_order)
 from ...product.models import Product, ProductVariant, Stock
 from ...product.utils import allocate_stock, deallocate_stock
 from ..forms import AjaxSelect2ChoiceField
@@ -196,10 +196,7 @@ class CancelOrderForm(forms.Form):
         return data
 
     def cancel_order(self):
-        if self.cleaned_data.get('restock'):
-            restock_order_lines(self.order)
-        self.order.status = OrderStatus.CANCELED
-        self.order.save(update_fields=['status'])
+        cancel_order(self.order, self.cleaned_data.get('restock'))
 
 
 class CancelFulfillmentForm(forms.Form):
