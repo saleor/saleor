@@ -19,7 +19,10 @@ class SwapChildrenRWD extends Component {
   }
 
   updateDimensions() {
-    this.setState({ order: _.inRange(window.innerWidth, this.props.up, this.props.down) });
+    const swap = _.inRange(window.innerWidth, this.props.up, this.props.down);
+    if (swap !== this.state.order) {
+      this.setState({ order: swap });
+    }
   }
 
   componentWillMount() {
@@ -35,7 +38,9 @@ class SwapChildrenRWD extends Component {
   }
 
   render() {
-    const children = this.state.order ? this.props.children.reverse() : this.props.children;
+    // This is kind of a hack - Array.prototype.reverse() operates on variable state instead of copying it.
+    // So, since this.props is read-only, we need to manually copy and reverse Array.
+    const children = this.state.order ? [].concat(this.props.children).reverse() : this.props.children;
     return (
       <Fragment>
         {children}
