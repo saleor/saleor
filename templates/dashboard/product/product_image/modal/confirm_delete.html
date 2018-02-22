@@ -16,7 +16,7 @@
 {% block content %}
   <div class="col s12">
     <div class="center-align">
-      <img class="responsive-img" src="{{ image.image.crop.255x255 }}"  srcset="{{ image.image.crop.255x255 }} 1x, {{ image.image.crop.510x510 }} 2x" alt="">
+      <img class="responsive-img" src="{{ image.image.fit.255x255 }}"  srcset="{{ image.image.fit.255x255 }} 1x, {{ image.image.fit.510x510 }} 2x" alt="">
     </div>
     <p>{% trans "Are you sure you want to remove product image?" context "Modal remove image text" %}</p>
   </div>

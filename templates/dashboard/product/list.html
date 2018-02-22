@@ -75,8 +75,8 @@
                 <label for="id_products_{{ product.pk }}"></label>
               </td>
               <td class="avatar">
-                <img src="{% product_first_image product size="60x60" method="crop" %}"
-                    srcset="{% product_first_image product size="60x60" method="crop" %} 1x, {% product_first_image product size="120x120" method="crop" %} 2x"
+                <img src="{% product_first_image product size="60x60" method="fit" %}"
+                    srcset="{% product_first_image product size="60x60" method="fit" %} 1x, {% product_first_image product size="120x120" method="fit" %} 2x"
                     alt="">
               </td>
               <td>

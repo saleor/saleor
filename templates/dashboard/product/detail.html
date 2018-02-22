@@ -196,7 +196,7 @@
                 <div class="row">
                   {% for image in images %}
                     <div class="col s4">
-                      <img class="responsive-img" src="{{ image.image.crop.255x255 }}" srcset="{{ image.image.crop.255x255 }} 1x, {{ image.image.crop.510x510 }} 2x" alt="{{ image.alt }}">
+                      <img class="responsive-img" src="{{ image.image.fit.255x255 }}" srcset="{{ image.image.fit.255x255 }} 1x, {{ image.image.fit.510x510 }} 2x" alt="{{ image.alt }}">
                     </div>
                   {% endfor %}
                 </div>

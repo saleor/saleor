@@ -6,8 +6,46 @@ from django import template
 from django.conf import settings
 from django.contrib.staticfiles.templatetags.staticfiles import static
 
+from io import BytesIO
+from PIL import Image
+from versatileimagefield.datastructures import SizedImage
+from versatileimagefield.registry import versatileimagefield_registry
+
 logger = logging.getLogger(__name__)
 register = template.Library()
+
+
+class ThumbnailImage(SizedImage):
+    filename_key = 'fitted'
+
+    def __init__(self, *args, **kwargs):
+        super(ThumbnailImage, self).__init__(*args, **kwargs)
+        self.rgb = (255, 255, 255)
+
+    def process_image(self, image, image_format, save_kwargs, width, height):
+        imagefile = BytesIO()
+
+        size = (width, height)
+
+        image.thumbnail(size, Image.ANTIALIAS)
+
+        offset_x = max((size[0] - image.size[0]) // 2, 0)
+        offset_y = max((size[1] - image.size[1]) // 2, 0)
+        offset_tuple = (offset_x, offset_y)  # pack x and y into a tuple
+
+        # create the image object to be the final product
+        final_thumb = Image.new(mode='RGB', size=size, color=self.rgb)
+
+        # paste the thumbnail into the full sized image
+        final_thumb.paste(image, offset_tuple)
+
+        # save (the PNG format will retain the alpha band unlike JPEG)
+        final_thumb.save(imagefile, **save_kwargs)
+
+        return imagefile
+
+
+versatileimagefield_registry.register_sizer('fit', ThumbnailImage)
 
 
 # cache available sizes at module level
@@ -51,16 +89,13 @@ def get_thumbnail(instance, size, method='crop'):
     on_demand = settings.VERSATILEIMAGEFIELD_SETTINGS[
         'create_images_on_demand']
     if instance:
-        if (size_name not in AVAILABLE_SIZES and not on_demand):
+        if size_name not in AVAILABLE_SIZES and not on_demand:
             msg = (
                 "Thumbnail size %s is not defined in settings "
                 "and it won't be generated automatically" % size_name)
             warnings.warn(msg)
         try:
-            if method == 'crop':
-                thumbnail = instance.crop[size]
-            else:
-                thumbnail = instance.thumbnail[size]
+            thumbnail = getattr(instance, method)[size]
         except Exception:
             logger.exception(
                 'Thumbnail fetch failed',

@@ -1,9 +1,34 @@
+from io import BytesIO
 from unittest.mock import Mock
 
+from PIL import Image
 from django.contrib.staticfiles.templatetags.staticfiles import static
 
 from saleor.product.templatetags.product_images import (
-    choose_placeholder, get_thumbnail, product_first_image)
+    choose_placeholder, get_thumbnail, product_first_image, ThumbnailImage)
+
+
+def test_get_fill_crop_thumbnail():
+    image_size = (3, 3)
+    image_format = 'JPEG'
+    imagefile = BytesIO()
+    image = Image.new('RGB', (1, 1), (0, 0, 0))
+
+    image.save(imagefile, format=image_format)
+
+    instance = ThumbnailImage(None, None, None)
+    cropped_file = instance.process_image(
+        image, image_format, {'format': image_format}, *image_size)
+
+    cropped_pic = Image.open(cropped_file)
+    pixels = cropped_pic.load()
+
+    assert pixels[1, 1] == (0, 0, 0)
+    pixels[1, 1] = (255, 255, 255)
+
+    for i in range(0, image_size[0]):
+        for j in range(0, image_size[1]):
+            assert (240, 240, 240) <= pixels[i, j] <= (255, 255, 255)
 
 
 def test_get_thumbnail():
