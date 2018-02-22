@@ -27,7 +27,14 @@ const styles = (theme) => ({
   }
 });
 const ConfirmRemoval = withStyles(styles)((props) => {
-  const { content, classes, opened, ...modalProps } = props;
+  const {
+    content,
+    classes,
+    opened,
+    onConfirm,
+    onClose,
+    ...modalProps
+  } = props;
   return (
     <Modal open={opened} {...modalProps}>
       <Card className={classes.card}>
@@ -44,14 +51,14 @@ const ConfirmRemoval = withStyles(styles)((props) => {
           <Button
             color="secondary"
             variant="raised"
-            onClick={props.onConfirm}
+            onClick={onConfirm}
             className={classes.button}
           >
             Do it!
           </Button>
           <Button
             color="secondary"
-            onClick={props.onClose}
+            onClick={onClose}
             className={classes.button}
           >
             nope
