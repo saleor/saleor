@@ -9,8 +9,12 @@ var resolve = path.resolve.bind(path, __dirname);
 var extractTextPlugin;
 var fileLoaderPath;
 var output;
+var reactPath;
+var reactDomPath;
 
 if (process.env.NODE_ENV === 'production') {
+  reactPath = 'node_modules/react/umd/react.production.min.js';
+  reactDomPath = 'node_modules/react-dom/umd/react-dom.production.min.js';
   output = {
     path: resolve('saleor/static/assets/'),
     filename: '[name].[chunkhash].js',
@@ -20,6 +24,8 @@ if (process.env.NODE_ENV === 'production') {
   fileLoaderPath = 'file-loader?name=[name].[hash].[ext]';
   extractTextPlugin = new ExtractTextPlugin('[name].[contenthash].css');
 } else {
+  reactPath = 'node_modules/react/umd/react.development.js';
+  reactDomPath = 'node_modules/react-dom/umd/react-dom.development.js';
   output = {
     path: resolve('saleor/static/assets/'),
     filename: '[name].js',
@@ -62,14 +68,10 @@ var config = {
           use: [
             {
               loader: 'css-loader',
-              options: {
-                'sourceMap': true
-              }
             },
             {
               loader: 'postcss-loader',
               options: {
-                'sourceMap': true,
                 'plugins': function () {
                   return [autoprefixer];
                 }
@@ -77,9 +79,6 @@ var config = {
             },
             {
               loader: 'sass-loader',
-              options: {
-                'sourceMap': true
-              }
             }
           ]
         })
@@ -104,10 +103,11 @@ var config = {
   resolve: {
     alias: {
       'jquery': resolve('node_modules/jquery/dist/jquery.js'),
-      'react': resolve('node_modules/react/dist/react.min.js'),
-      'react-dom': resolve('node_modules/react-dom/dist/react-dom.min.js')
+      'react': resolve(reactPath),
+      'react-dom': resolve(reactDomPath)
     }
-  }
+  },
+  devtool: 'sourceMap'
 };
 
 module.exports = config;

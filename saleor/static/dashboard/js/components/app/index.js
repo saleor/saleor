@@ -1,5 +1,5 @@
 import 'jquery.cookie';
-import React from 'react';
+import React, { Fragment } from 'react';
 import { render } from 'react-dom';
 import { createStore } from 'redux';
 import { Provider } from 'react-redux';
@@ -39,11 +39,11 @@ render(
         <MuiThemeProvider theme={theme}>
           <Switch>
             {routerMapping.map(route => (
-              <div key={route.path}>
+              <Fragment key={route.path}>
                 <Route path={`/${route.path}/`}
                   component={route.component}
                 />
-              </div>
+              </Fragment>
             ))}
           </Switch>
         </MuiThemeProvider>
