@@ -213,6 +213,9 @@ class Fulfillment(models.Model):
         return pgettext_lazy(
             'Fulfillment str', 'Fulfillment #%s') % (self.composed_id,)
 
+    def __iter__(self):
+        return iter(self.lines.all())
+
     def save(self, *args, **kwargs):
         """"Assign an auto incremented value as a fulfillment order."""
         if not self.pk:
@@ -226,6 +229,12 @@ class Fulfillment(models.Model):
     @property
     def composed_id(self):
         return '%s-%s' % (self.order.id, self.fulfillment_order)
+
+    def can_cancel(self):
+        return self.status != FulfillmentStatus.CANCELED
+
+    def get_total_quantity(self):
+        return sum([line.quantity for line in self])
 
 
 class FulfillmentLine(models.Model):

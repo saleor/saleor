@@ -32,6 +32,8 @@ urlpatterns = [
         views.add_variant_to_order, name='add-variant-to-order'),
     url(r'^(?P<order_pk>\d+)/fulfill/$',
         views.fulfill_order_lines, name='fulfill-order-lines'),
+    url(r'^(?P<order_pk>\d+)/fulfillment/(?P<fulfillment_pk>\d+)/cancel/$',
+        views.cancel_fulfillment, name='fulfillment-cancel'),
     url(r'^(?P<order_pk>\d+)/invoice/$',
         views.order_invoice, name='order-invoice'),
     url(r'^(?P<order_pk>\d+)/packing-slips/$',

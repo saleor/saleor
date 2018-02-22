@@ -11,12 +11,13 @@ from ...account.i18n import (
 from ...cart.forms import QuantityField
 from ...core.exceptions import InsufficientStock
 from ...discount.utils import decrease_voucher_usage
-from ...order import OrderStatus
+from ...order import FulfillmentStatus, OrderStatus
 from ...order.emails import send_note_confirmation
 from ...order.models import Fulfillment, FulfillmentLine, OrderLine, OrderNote
 from ...order.utils import (
     add_variant_to_order, change_order_line_quantity,
-    merge_duplicates_into_order_line, recalculate_order, restock_order_lines)
+    merge_duplicates_into_order_line, recalculate_order,
+    restock_fulfillment_lines, restock_order_lines)
 from ...product.models import Product, ProductVariant, Stock
 from ...product.utils import allocate_stock, deallocate_stock
 from ..forms import AjaxSelect2ChoiceField
@@ -199,6 +200,38 @@ class CancelOrderForm(forms.Form):
             restock_order_lines(self.order)
         self.order.status = OrderStatus.CANCELED
         self.order.save(update_fields=['status'])
+
+
+class CancelFulfillmentForm(forms.Form):
+    """Allow canceling an entire fulfillment.
+
+    Increase corresponding stocks for each fulfillment line.
+    """
+    restock = forms.BooleanField(initial=True, required=False)
+
+    def __init__(self, *args, **kwargs):
+        self.fulfillment = kwargs.pop('fulfillment')
+        super().__init__(*args, **kwargs)
+        self.fields['restock'].label = npgettext_lazy(
+            'Cancel fulfillment form action',
+            'Restock %(quantity)d item',
+            'Restock %(quantity)d items',
+            'quantity') % {'quantity': self.fulfillment.get_total_quantity()}
+
+    def clean(self):
+        data = super().clean()
+        if not self.fulfillment.can_cancel():
+            raise forms.ValidationError(
+                pgettext_lazy(
+                    'Cancel fulfillment form error',
+                    'This fulfillment can\'t be canceled'))
+        return data
+
+    def cancel_fulfillment(self):
+        if self.cleaned_data.get('restock'):
+            restock_fulfillment_lines(self.fulfillment)
+        self.fulfillment.status = FulfillmentStatus.CANCELED
+        self.fulfillment.save(update_fields=['status'])
 
 
 class RemoveVoucherForm(forms.Form):

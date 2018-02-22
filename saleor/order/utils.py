@@ -156,3 +156,10 @@ def restock_order_lines(order):
                 increase_stock(line.stock, line.quantity_fulfilled)
             if line.quantity_unfulfilled > 0:
                 deallocate_stock(line.stock, line.quantity_unfulfilled)
+
+
+def restock_fulfillment_lines(fulfillment):
+    """Return fulfilled products to corresponding stocks."""
+    for line in fulfillment:
+        if line.order_line.stock:
+            increase_stock(line.order_line.stock, line.quantity)
