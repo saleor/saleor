@@ -4,6 +4,7 @@ from uuid import uuid4
 from django.conf import settings
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
+from django.db.models import Max
 from django.urls import reverse
 from django.utils.timezone import now
 from django.utils.translation import pgettext_lazy
@@ -198,6 +199,7 @@ class OrderLine(models.Model):
 
 
 class Fulfillment(models.Model):
+    fulfillment_order = models.PositiveIntegerField(editable=False, null=True)
     order = models.ForeignKey(
         Order, related_name='fulfillments', editable=False,
         on_delete=models.CASCADE)
@@ -206,7 +208,21 @@ class Fulfillment(models.Model):
 
     def __str__(self):
         return pgettext_lazy(
-            'Fulfillment str', 'Fulfillment #%d') % (self.id,)
+            'Fulfillment str', 'Fulfillment #%s') % (self.composed_id,)
+
+    def save(self, *args, **kwargs):
+        """"Assign an auto incremented value as a fulfillment order."""
+        if not self.pk:
+            groups = self.order.fulfillments.all()
+            existing_max = groups.aggregate(Max('fulfillment_order'))
+            existing_max = existing_max.get('fulfillment_order__max')
+            self.fulfillment_order = (
+                existing_max + 1 if existing_max is not None else 1)
+        return super().save(*args, **kwargs)
+
+    @property
+    def composed_id(self):
+        return '%s-%s' % (self.order.id, self.fulfillment_order)
 
 
 class FulfillmentLine(models.Model):
