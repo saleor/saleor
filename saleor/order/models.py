@@ -23,8 +23,6 @@ from ..product.models import Product
 class Order(models.Model):
     created = models.DateTimeField(
         default=now, editable=False)
-    last_status_change = models.DateTimeField(
-        default=now, editable=False)
     status = models.CharField(
         max_length=32, default=OrderStatus.UNFULFILLED,
         choices=OrderStatus.CHOICES)
@@ -69,7 +67,6 @@ class Order(models.Model):
     discount_name = models.CharField(max_length=255, default='', blank=True)
 
     class Meta:
-        ordering = ('-last_status_change',)
         permissions = (
             ('view_order',
              pgettext_lazy('Permission description', 'Can view orders')),
