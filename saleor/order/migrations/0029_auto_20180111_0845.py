@@ -5,7 +5,6 @@ from __future__ import unicode_literals
 from django.conf import settings
 from django.db import migrations, models
 import django.db.models.deletion
-import django_fsm
 
 
 class Migration(migrations.Migration):
@@ -18,7 +17,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='deliverygroup',
             name='status',
-            field=django_fsm.FSMField(choices=[('new', 'Processing'), ('cancelled', 'Cancelled'), ('shipped', 'Shipped')], default='new', max_length=32, protected=True),
+            field=models.CharField(choices=[('new', 'Processing'), ('cancelled', 'Cancelled'), ('shipped', 'Shipped')], default='new', max_length=32),
         ),
         migrations.AlterField(
             model_name='ordernote',
