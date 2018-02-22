@@ -1,12 +1,12 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import MediaQuery from 'react-responsive';
 import Grid from 'material-ui/Grid';
 
 import Details from './details';
 import { CategoryList, RootCategoryList } from './categoryList';
 import { FilterCard } from '../../../components/cards';
 import { screenSizes } from '../../../misc';
+import { SwapChildrenRWD } from '../../../components/utils';
 
 const filterInputs = [
   {
@@ -23,9 +23,9 @@ const CategoryDetails = (props) => {
 
   return (
     <div>
-      <MediaQuery minWidth={screenSizes.md}>
-        <Grid container spacing={16}>
-          <Grid item md={9} lg={9}>
+      <Grid container spacing={16}>
+        <SwapChildrenRWD down={screenSizes.md}>
+          <Grid item xs={12} md={9}>
             {categoryId ? (
               <div>
                 <Details categoryId={categoryId} />
@@ -35,28 +35,11 @@ const CategoryDetails = (props) => {
               <RootCategoryList />
             )}
           </Grid>
-          <Grid item md={3} lg={3}>
+          <Grid item xs={12} md={3}>
             <FilterCard inputs={filterInputs} />
           </Grid>
-        </Grid>
-      </MediaQuery>
-      <MediaQuery maxWidth={screenSizes.md}>
-        <Grid container spacing={16}>
-          <Grid item xs={12} sm={12}>
-            <FilterCard inputs={filterInputs} />
-          </Grid>
-          <Grid item xs={12} sm={12}>
-            {categoryId ? (
-              <div>
-                <Details categoryId={categoryId} />
-                <CategoryList categoryId={categoryId} />
-              </div>
-            ) : (
-              <RootCategoryList />
-            )}
-          </Grid>
-        </Grid>
-      </MediaQuery>
+        </SwapChildrenRWD>
+      </Grid>
     </div>
   );
 };

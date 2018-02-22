@@ -1,5 +1,6 @@
 import { observer } from 'mobx-react';
-import React, { Component, PropTypes } from 'react';
+import React, { Component } from 'react';
+import PropTypes from 'prop-types';
 
 @observer
 export default class VariantPrice extends Component {

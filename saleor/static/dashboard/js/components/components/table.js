@@ -27,15 +27,10 @@ const styles = {
 };
 const TableCell = withStyles(styles)(
   (props) => {
-    let wideComponent = false;
-    if (props.wide) {
-      wideComponent = true;
-      delete props.wide;
-    }
-    const { classes, ...componentProps } = props;
+    const { classes, wide, ...componentProps } = props;
     return (
       <MuiTableCell
-        classes={wideComponent ? { root: classes.wideTableCell } : {}}
+        classes={wide ? { root: classes.wideTableCell } : {}}
         {...componentProps}
       />
     );

@@ -2,7 +2,8 @@ import _ from 'lodash';
 import $ from 'jquery';
 import classNames from 'classnames';
 import { observer } from 'mobx-react';
-import React, { Component, PropTypes } from 'react';
+import React, { Component } from 'react';
+import PropTypes from 'prop-types';
 
 import AttributeSelectionWidget from './AttributeSelectionWidget';
 import QuantityInput from './QuantityInput';
