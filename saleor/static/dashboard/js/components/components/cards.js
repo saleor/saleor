@@ -271,7 +271,7 @@ class FilterCardComponent extends Component {
                 {pgettext('Filter bar submit', 'Filter')}
               </Button>
               <Button
-                color="red"
+                color="default"
                 onClick={this.handleClear}
               >
                 {pgettext('Filter bar clear fields', 'Clear')}
