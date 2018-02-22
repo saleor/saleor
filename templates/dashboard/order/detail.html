@@ -427,7 +427,7 @@
               </thead>
               <tbody>
                 {% for line in fulfillment.lines.all %}
-                  <tr class="last-no-border">
+                  <tr>
                     <td>
                       {{ line.order_line.product_name }}
                     </td>
@@ -436,7 +436,7 @@
                     </td>
                   </tr>
                 {% endfor %}
-                <tr>
+                <tr class="last-no-border">
                   <td colspan="2">
                     {% if fulfillment.tracking_number %}
                       {% blocktrans trimmed with tracking=fulfillment.tracking_number context "Fulfillment table text" %}
