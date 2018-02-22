@@ -4,12 +4,12 @@ from django.urls import reverse
 from prices import Money, TaxedMoney
 from tests.utils import get_redirect_location
 
-from saleor.order import models
+from saleor.order import FulfillmentStatus, models, OrderStatus
 from saleor.order.emails import collect_data_for_email
 from saleor.order.forms import OrderNoteForm
 from saleor.order.utils import (
-    add_variant_to_order, recalculate_order, restock_fulfillment_lines,
-    restock_order_lines)
+    add_variant_to_order, cancel_order, recalculate_order,
+    restock_fulfillment_lines, restock_order_lines)
 
 
 def test_total_setter():
@@ -204,3 +204,11 @@ def test_restock_fulfillment_lines(fulfilled_order):
     assert stock_1.quantity_allocated == stock_2_quantity_allocated_before
     assert stock_1.quantity == stock_1_quantity_before + line_1.quantity
     assert stock_2.quantity == stock_2_quantity_before + line_2.quantity
+
+
+def test_cancel_order(fulfilled_order):
+    cancel_order(fulfilled_order, restock=False)
+    assert all([
+        f.status == FulfillmentStatus.CANCELED
+        for f in fulfilled_order.fulfillments.all()])
+    assert fulfilled_order.status == OrderStatus.CANCELED
