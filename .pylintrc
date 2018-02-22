@@ -1,8 +1,11 @@
 [MASTER]
-load-plugins=pylint_django
+load-plugins=pylint.extensions.bad_builtin, pylint.extensions.mccabe, pylint_celery, pylint_django
 
 [MESSAGES CONTROL]
-disable=C0103, C0111, I0011, W0621
+disable=C0103, C0111, C0412, I0011, R0903, W0621
+
+[DESIGN]
+max-complexity=5
 
 [SIMILARITIES]
 ignore-imports=yes
