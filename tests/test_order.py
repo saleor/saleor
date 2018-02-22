@@ -1,5 +1,5 @@
 from decimal import Decimal
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
 
 from django.urls import reverse
 from prices import Price
