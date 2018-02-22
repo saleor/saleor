@@ -13,7 +13,7 @@ from payments import PaymentStatus, PurchasedItem
 from payments.models import BasePayment
 from prices import Money, TaxedMoney
 
-from . import OrderStatus
+from . import FulfillmentStatus, OrderStatus
 from ..account.models import Address
 from ..core.utils import ZERO_TAXED_MONEY, build_absolute_uri
 from ..discount.models import Voucher
@@ -203,6 +203,9 @@ class Fulfillment(models.Model):
     order = models.ForeignKey(
         Order, related_name='fulfillments', editable=False,
         on_delete=models.CASCADE)
+    status = models.CharField(
+        max_length=32, default=FulfillmentStatus.FULFILLED,
+        choices=FulfillmentStatus.CHOICES)
     tracking_number = models.CharField(max_length=255, default='', blank=True)
     shipping_date = models.DateTimeField(default=now, editable=False)
 
