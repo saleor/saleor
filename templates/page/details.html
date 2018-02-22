@@ -1,7 +1,6 @@
 {% extends "base.html" %}
-
-
 {% load i18n %}
+{% load materializecss %}
 
 
 {% block breadcrumb %}
@@ -20,5 +19,5 @@
 {% endblock breadcrumb %}
 
 {% block content %}
-<p>{{ page.content|safe }}</p>
+<div class="">{{ page.content|safe }}</div>
 {% endblock %}

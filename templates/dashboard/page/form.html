@@ -10,63 +10,66 @@
 {% block body_class %}body-page{% endblock %}
 
 {% block header_menu %}
-    {% url "dashboard:page-list" as url %}
-    {% include "dashboard/includes/_back-link.html" with url=url %}
+  {% url "dashboard:page-list" as url %}
+  {% include "dashboard/includes/_back-link.html" with url=url %}
 {% endblock %}
 
 {% block breadcrumbs %}
-    <ul class="breadcrumbs breadcrumbs--with-menu">
-        <li><a href="{% url 'dashboard:page-list' %}" class="breadcrumbs--ellipsed-item">{% trans "Pages" %}</a></li>
-        <li><span class="breadcrumbs--ellipsed-item">{% if page.pk %}{{ page }}{% else %}{% trans 'Add new page' %}{% endif %}</span></li>
-    </ul>
+ <ul class="breadcrumbs breadcrumbs--history">
+    <li>
+      <a href="{% url 'dashboard:page-list' %}" class="breadcrumbs">{% trans "Pages" %}</a>
+    </li>
+   <li class="back-mobile">
+     <a href="{% url "dashboard:page-list" %}" class="breadcrumb"><i class="material-icons">arrow_back</i></a>
+   </li>
+  <li><span class="breadcrumbs--ellipsed-item">
+    {% if page.pk %}{{ page }}{% else %}{% trans 'Add new page' %}{% endif %}</span>
+  </li>
+  </ul>
 {% endblock %}
 
 {% block header_extra %}
-    {% if page.pk %}
-    <a class="dropdown-button right" href="#" data-activates="page-delete" data-constrainwidth="false">
-        <svg data-src="{% static "dashboard/images/more-vert.svg" %}" height="24" width="24" />
-    </a>
-    <ul id="page-delete" class="dropdown-content">
-        <li>
-            <a class="modal-trigger-custom" href="#base-modal" data-href="{% url 'dashboard:page-delete' pk=page.pk %}">
-                {% trans "Delete page" context "Page action" %}
-            </a>
-        </li>
-    </ul>
-    {% endif %}
+  {% if page.pk %}
+  <a class="dropdown-button right" href="#" data-activates="page-delete" data-constrainwidth="false">
+    <svg data-src="{% static "dashboard/images/more-vert.svg" %}" height="24" width="24" />
+  </a>
+  <ul id="page-delete" class="dropdown-content">
+    <li>
+      <a class="modal-trigger-custom" href="#base-modal" data-href="{% url 'dashboard:page-delete' pk=page.pk %}">
+        {% trans "Delete page" context "Page action" %}
+      </a>
+    </li>
+</ul>
+  {% endif %}
 {% endblock %}
 
-{% block menu_cms_class %} active{% endblock %}
+{% block menu_pages_class %}active{% endblock %}
 
 {% block content %}
-    <form method="post" enctype="multipart/form-data">
-        {% csrf_token %}
-        <div class="row">
-            <div class="col s12 l8">
-                {{ form.title|materializecss }}
-                {{ form.content|materializecss }}
-            </div>
-            <div class="col s12 l4">
-                {{ form.visible|materializecss }}
-                {{ form.url|materializecss }}
-                {{ form.available_on|materializecss }}
-            </div>
-        </div>
-        <div class="row">
-            <div class="col s12">
-                <div class="left">
-                    <button type="button" class="btn green small-padding" value="Add More" id="add_more">
-                     {% trans "Add more files" %}</button>
-                </div>
-                <div class="right">
-                {% if page.pk %}
-                    <a href="{% url 'dashboard:page-list' %}" class="btn-flat">{% trans "Cancel" %}</a>
-                    <button type="submit" class="btn">{% trans "Save" %}</button>
-                {% else %}
-                    <a href="{% url 'dashboard:page-list' %}" class="btn-flat">{% trans "Cancel" %}</a>
-                    <button type="submit" class="btn submit-stay">{% trans "Create" %}</button>
-                {% endif %}
-            </div>
-        </div>
-    </form>
+  <form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    <div class="row">
+      <div class="col s12 l8">
+        {{ form.title|materializecss }}
+        {{ form.content|materializecss }}
+      </div>
+      <div class="col s12 l4">
+        {{ form.url|materializecss }}
+        {{ form.available_on|materializecss }}
+        {{ form.visible|materializecss }}
+      </div>
+    </div>
+    <div class="row">
+      <div class="col s12">
+        <div class="right">
+        {% if page.pk %}
+          <a href="{% url 'dashboard:page-list' %}" class="btn-flat">{% trans "Cancel" %}</a>
+          <button type="submit" class="btn">{% trans "Save" %}</button>
+        {% else %}
+          <a href="{% url 'dashboard:page-list' %}" class="btn-flat">{% trans "Cancel" %}</a>
+          <button type="submit" class="btn submit-stay">{% trans "Create" %}</button>
+        {% endif %}
+      </div>
+    </div>
+  </form>
 {% endblock %}

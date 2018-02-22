@@ -1,6 +1,7 @@
 {% extends "dashboard/base.html" %}
 {% load i18n %}
 {% load staticfiles %}
+{% load utils %}
 
 {% block page_title %}{% trans "Pages" %} - {{ block.super }}{% endblock %}
 
@@ -9,13 +10,14 @@
 {% block body_class %}body-page{% endblock %}
 
 {% block header_extra %}
-    <div class="fixed-action-btn">
-        <a class="btn-fab btn-floating btn-large waves-effect waves-light teal modal-trigger"
-           href="{% url 'dashboard:page-add' %}"
-           title="{% trans "Add page page" %}">
-            <svg data-src="{% static "dashboard/images/add.svg" %}" />
-        </a>
+  {% if perms.product.edit_settings %}
+    <div class="btn-fab-fixed">
+      <a class="btn-fab-default waves-effect waves-light"
+       href="{% url 'dashboard:page-add' %}"
+       title="{% trans "Add page page" %}"><svg data-src="{% static "dashboard/images/add.svg" %}" />
+      </a>
     </div>
+  {% endif %}
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -24,44 +26,51 @@
     </ul>
 {% endblock %}
 
-{% block menu_cms_class %} active{% endblock %}
-
 {% block content %}
-    <div class="row">
-        <div class="col s12">
-            {% if pages %}
-                <div class="card">
-                    <div class="data-table-container">
-                        <table class="bordered hoverable responsive data-table">
-                            <thead>
-                            <tr>
-                                <th>{% trans "Title" %}</th>
-                                <th>{% trans "Url" %}</th>
-                                <th>{% trans "Created at" %}</th>
-                            </tr>
-                            </thead>
-                            <tbody>
-                            {% for page in pages %}
-                                <tr>
-                                    <td>
-                                        <a href="{% url 'dashboard:page-edit' pk=page.pk %}">{{ page }}</a>
-                                    </td>
-                                    <td>
-                                        <a href="{{ page.get_absolute_url }}">{{ page.get_absolute_url }}</a>
-                                    </td>
-                                    <td>
-                                        {{ page.created }}
-                                    </td>
-                                </tr>
-                            {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-                {% include "dashboard/includes/_pagination.html" with page_obj=pages %}
-            {% else %}
-                <p>{% trans "No pages found." %}</p>
-            {% endif %}
+  <div class="row">
+  <div class="col s12 l9">
+    {% if pages %}
+      <div class="card">
+        <div class="data-table-container">
+          <table class="bordered highlight responsive data-table data-table-description">
+            <thead>
+              <tr>
+                {% trans "Title" context "Static pages table header name" as label %}
+                {% sorting_header 'title' label %}
+
+                {% trans "URL" context "Static pages table header url" as label %}
+                {% sorting_header 'url' label is_wide=True %}
+              </tr>
+            </thead>
+            <tbody>
+              {% for page in pages %}
+                <tr data-action-go="{% url 'dashboard:page-detail' pk=page.pk %}">
+                  <td>
+                    {{ page.title }}
+                  </td>
+                  <td>
+                      {{ page.get_absolute_url }}
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
         </div>
-    </div>
+      </div>
+      {% paginate pages %}
+    {% else %}
+      {% if is_empty %}
+        {% include 'dashboard/page/zero_page.html' %}
+      {% else %}
+        <div class="col s12">
+          <div class="not-found">
+            <p class="grey-text">
+              {% trans "No pages found." context "Empty pages list message" %}
+            </p>
+          </div>
+        </div>
+      {% endif %}
+    {% endif %}
+  </div>
+  </div>
 {% endblock %}

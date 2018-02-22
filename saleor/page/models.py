@@ -1,9 +1,9 @@
 import datetime
 
+from django.core.validators import validate_slug
 from django.db import models
 from django.db.models import Q
 from django.urls import reverse
-from django.core.validators import validate_slug
 
 
 class PageManager(models.QuerySet):
