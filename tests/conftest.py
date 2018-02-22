@@ -17,6 +17,7 @@ from saleor.cart.models import Cart
 from saleor.checkout.core import Checkout
 from saleor.dashboard.order.utils import fulfill_order_line
 from saleor.discount.models import Sale, Voucher
+from saleor.order import OrderStatus
 from saleor.order.models import Order, OrderLine
 from saleor.order.utils import recalculate_order
 from saleor.page.models import Page
@@ -468,6 +469,8 @@ def fulfilled_order(order_with_lines_and_stock):
     fulfill_order_line(line_1, line_1.quantity)
     fulfillment.lines.create(order_line=line_2, quantity=line_2.quantity)
     fulfill_order_line(line_2, line_2.quantity)
+    order.status = OrderStatus.FULFILLED
+    order.save(update_fields=['status'])
     return order
 
 

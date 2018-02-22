@@ -57,6 +57,20 @@ def cancel_order(order, restock):
     order.save(update_fields=['status'])
 
 
+def cancel_fulfillment(fulfillment, restock):
+    """Cancel fulfillment.
+
+    Return products to corresponding stocks if restock is set to True."""
+    if restock:
+        restock_fulfillment_lines(fulfillment)
+    fulfillment.status = FulfillmentStatus.CANCELED
+    fulfillment.save(update_fields=['status'])
+    order = fulfillment.order
+    if order.is_unfulfilled():
+        order.status = OrderStatus.UNFULFILLED
+        order.save(update_fields=['status'])
+
+
 def attach_order_to_user(order, user):
     """Associates existing order with user account."""
     order.user = user
