@@ -407,7 +407,7 @@
         <div class="card shipment-table">
           <div class="data-table-header">
             <h5 class="data-table-title">
-              {% blocktrans trimmed with fulfillment=fulfillment.id context "Fulfillment table title"  %}
+              {% blocktrans trimmed with fulfillment=fulfillment.composed_id context "Fulfillment table title"  %}
                 Fulfillment #{{ fulfillment }}
               {% endblocktrans %}
             </h5>
