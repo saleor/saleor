@@ -131,6 +131,7 @@ const ListCardComponent = (props) => {
     handleChangePage,
     handleChangeRowsPerPage,
     page,
+    href,
     rowsPerPage,
     label,
     addActionLabel,
@@ -162,7 +163,7 @@ const ListCardComponent = (props) => {
             list={list}
             noDataLabel={noDataLabel}
             headers={headers}
-            href="/categories"
+            href={href}
             page={page}
             rowsPerPage={rowsPerPage}
             rowsPerPageOptions={[2, 5, 10]}
