@@ -9,27 +9,27 @@ const Component = () => (
   <Switch>
     <Route
       exact
-      path={'/categories/:id/edit'}
+      path="/categories/:id/edit"
       render={CategoryUpdateForm}
     />
     <Route
       exact
-      path={'/categories/:id/add'}
+      path="/categories/:id/add"
       render={CategoryCreateForm}
     />
     <Route
       exact
-      path={'/categories/:id'}
+      path="/categories/:id"
       render={CategoryDetails}
     />
     <Route
-      path={'/categories/'}
+      path="/categories/"
       render={CategoryDetails}
     />
   </Switch>
 );
 Component.propTypes = {
-  match: PropTypes.object
+  match: PropTypes.object,
 };
 
 export default Component;
