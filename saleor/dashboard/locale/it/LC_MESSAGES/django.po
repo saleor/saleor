@@ -8,9 +8,9 @@ msgid ""
 msgstr ""
 "Project-Id-Version: master\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2018-02-12 05:00-0600\n"
+"POT-Creation-Date: 2018-02-19 09:05-0600\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"Last-Translator: Leonardo Paci <leonardo.paci@netfarm.it>, 2017\n"
+"Last-Translator: Theo Satloff <theo@europiste.com>, 2018\n"
 "Language-Team: Italian (https://www.transifex.com/mirumee/teams/34782/it/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -31,12 +31,12 @@ msgstr "descrizione"
 #: saleor/dashboard/category/filters.py:15
 msgctxt "Category list filter label"
 msgid "Name"
-msgstr ""
+msgstr "Nome"
 
 #: saleor/dashboard/category/filters.py:18
 msgctxt "Category list sorting filter label"
 msgid "Sort by"
-msgstr ""
+msgstr "Ordina per"
 
 #: saleor/dashboard/category/filters.py:30
 #, python-format
@@ -54,14 +54,14 @@ msgstr[1] ""
 #: saleor/dashboard/shipping/forms.py:14 saleor/dashboard/sites/forms.py:40
 msgctxt "Item name"
 msgid "Name"
-msgstr ""
+msgstr "Nome"
 
 #: saleor/dashboard/category/forms.py:24 saleor/dashboard/product/forms.py:134
 #: saleor/dashboard/product/forms.py:289 saleor/dashboard/shipping/forms.py:16
 #: saleor/dashboard/sites/forms.py:27
 msgctxt "Description"
 msgid "Description"
-msgstr ""
+msgstr "Descrizione"
 
 #: saleor/dashboard/category/views.py:45
 #, python-format
