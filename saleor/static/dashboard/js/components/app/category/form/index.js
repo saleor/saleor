@@ -36,7 +36,7 @@ class CategoryCreateForm extends Component {
             name=""
             description=""
             handleConfirm={this.handleConfirm}
-            confirmButtonLabel={pgettext('Add category submit action button label', 'Add category')}
+            confirmButtonLabel={pgettext('Dashboard create action', 'Add')}
           />
         </Grid>
       </Grid>
@@ -80,7 +80,7 @@ class CategoryUpdateForm extends Component {
               name={category.name}
               description={category.description}
               handleConfirm={this.handleConfirm}
-              confirmButtonLabel={pgettext('Update category submit action button label', 'Update category')}
+              confirmButtonLabel={pgettext('Dashboard update action', 'Update ')}
             />
           </Grid>
         </Grid>

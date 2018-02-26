@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { Component, Fragment } from 'react';
 import { graphql, compose } from 'react-apollo';
 import { withRouter } from 'react-router-dom';
 
@@ -41,26 +41,43 @@ class CategoryProperties extends Component {
 
   render() {
     const { categoryId, data } = this.props;
+    const titleFmt = pgettext('Remove category modal title', 'Remove category %s');
+    const contentFmt = pgettext('Remove category modal title', 'Are you sure you want to remove category <strong>%s</strong>?');
     return (
       <div>
         {data.loading ? (
           <span>loading</span>
         ) : (
-          <DescriptionCard
-            title={data.category.name}
-            description={data.category.description}
-            editButtonHref={`/categories/${categoryId}/edit`}
-            editButtonLabel={pgettext('Category edit action button label', 'Edit category')}
-            removeButtonLabel={pgettext('Category remove action button label', 'Remove category')}
-            handleRemoveButtonClick={this.handleRemoveButtonClick}
-          />
+          <Fragment>
+            <DescriptionCard
+              title={data.category.name}
+              description={data.category.description}
+              editButtonHref={`/categories/${categoryId}/edit`}
+              editButtonLabel={pgettext('Category edit action', 'Edit')}
+              removeButtonLabel={pgettext('Category list action link', 'Remove')}
+              handleRemoveButtonClick={this.handleRemoveButtonClick}
+            />
+            <ConfirmRemoval
+              opened={this.state.opened}
+              title={interpolate(titleFmt, [data.category.name])}
+              onConfirm={this.handleRemoveAction}
+              onClose={this.handleRemoveButtonClick}
+            >
+              <p dangerouslySetInnerHTML={{ __html: interpolate(contentFmt, [data.category.name]) }} />
+              {data.category.products && data.category.products.totalCount > 0 && (
+                <p>
+                  {interpolate(
+                    ngettext(
+                      'There is one product in this category that will be removed.',
+                      'There are %s products in this category that will be removed.',
+                      data.category.products.totalCount
+                    ), [data.category.products.totalCount]
+                  )}
+                </p>
+              )}
+            </ConfirmRemoval>
+          </Fragment>
         )}
-        <ConfirmRemoval
-          opened={this.state.opened}
-          content={'u sure bruh?'}
-          onConfirm={this.handleRemoveAction}
-          onClose={this.handleRemoveButtonClick}
-        />
       </div>
     );
   };

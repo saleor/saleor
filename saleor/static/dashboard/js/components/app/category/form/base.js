@@ -99,7 +99,7 @@ class BaseCategoryForm extends Component {
               color="secondary"
               onClick={this.handleBack}
             >
-              {gettext('Back')}
+              {pgettext('Dashboard cancel action', 'Cancel')}
             </Button>
           </CardActions>
         </CardContent>

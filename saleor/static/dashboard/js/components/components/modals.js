@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { Fragment } from 'react';
 import Button from 'material-ui/Button';
 import Modal from 'material-ui/Modal';
 import Typography from 'material-ui/Typography';
@@ -8,7 +8,6 @@ import { withStyles } from 'material-ui/styles';
 const styles = (theme) => ({
   card: {
     outline: 'none',
-    // height: '11rem',
     top: '40%',
     left: 'calc(50% - 17rem)',
     position: 'absolute',
@@ -28,7 +27,8 @@ const styles = (theme) => ({
 });
 const ConfirmRemoval = withStyles(styles)((props) => {
   const {
-    content,
+    title,
+    children,
     classes,
     opened,
     onConfirm,
@@ -43,9 +43,11 @@ const ConfirmRemoval = withStyles(styles)((props) => {
             variant="headline"
             className={classes.title}
           >
-            Confirm removal
+            {title}
           </Typography>
-          <Typography variant="body1">{content}</Typography>
+          <Fragment>
+            {children}
+          </Fragment>
         </CardContent>
         <CardActions className={classes.cardActions}>
           <Button
@@ -54,14 +56,14 @@ const ConfirmRemoval = withStyles(styles)((props) => {
             onClick={onConfirm}
             className={classes.button}
           >
-            Do it!
+            {pgettext('Dashboard delete action', 'Remove')}
           </Button>
           <Button
             color="secondary"
             onClick={onClose}
             className={classes.button}
           >
-            nope
+            {pgettext('Dashboard cancel action', 'Cancel')}
           </Button>
         </CardActions>
       </Card>
