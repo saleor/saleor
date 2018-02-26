@@ -27,6 +27,9 @@ const categoryDetails = gql`
       parent {
         id
       }
+      products {
+        totalCount
+      }
     }
   }
 `;

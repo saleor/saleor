@@ -10,11 +10,11 @@ import { createQueryString } from '../../../utils';
 const tableHeaders = [
   {
     name: 'name',
-    label: 'Name',
+    label: pgettext('Category list table header name', 'Name'),
   },
   {
     name: 'description',
-    label: 'Description',
+    label: pgettext('Category list table header description', 'Description'),
     wide: true,
   }
 ];
@@ -110,9 +110,10 @@ class CategoryList extends BaseCategoryList {
         ) : (
           <ListCard
             displayLabel={true}
-            label={pgettext('Category list card title', 'Subcategories')}
-            addActionLabel={pgettext('Category list add category action', 'Add category')}
+            label={pgettext('Title of the subcategories list', 'Subcategories')}
+            addActionLabel={gettext('Add category')}
             headers={tableHeaders}
+            href="/categories"
             list={categories.edges.map(edge => edge.node)}
             handleAddAction={this.handleAddAction}
             handleChangePage={this.handleChangePage}
@@ -122,7 +123,7 @@ class CategoryList extends BaseCategoryList {
             count={categories.totalCount}
             firstCursor={firstCursor}
             lastCursor={lastCursor}
-            noDataLabel={pgettext('Category list no categories found', 'No categories found')}
+            noDataLabel={pgettext('Empty category list message', 'No categories found.')}
           />
         )}
       </div>

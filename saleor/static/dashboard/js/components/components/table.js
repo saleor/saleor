@@ -23,6 +23,9 @@ const styles = {
     top: 8,
     position: 'relative',
     padding: '16px 0 24px 24px'
+  },
+  tableRow: {
+    cursor: 'pointer'
   }
 };
 const TableCell = withStyles(styles)(
@@ -47,7 +50,7 @@ const Table = (props) => {
     list,
     href,
     history,
-    style,
+    className,
     noDataLabel,
     classes,
     rowsPerPage,
@@ -56,17 +59,17 @@ const Table = (props) => {
     count
   } = props;
   return (
-    <div style={style}>
-      <MuiTable
-        className={classes.childCategory}
-      >
+    <div className={className}>
+      <MuiTable className={classes.childCategory}>
         <TableHead>
           <TableRow>
             {headers.map((header) => (
               <TableCell
                 wide={header.wide}
                 key={header.name}
-              >{header.label}</TableCell>
+              >
+                {header.label}
+              </TableCell>
             ))}
           </TableRow>
         </TableHead>
@@ -74,7 +77,7 @@ const Table = (props) => {
           {list.map((row) => (
             <TableRow
               onClick={handleRowClick(row.id, href, history)}
-              style={{ cursor: 'pointer' }}
+              className={classes.tableRow}
               key={row.id}
             >
               {headers.map((header) => (
@@ -119,7 +122,7 @@ Table.propTypes = {
   handleNext: PropTypes.func,
   href: PropTypes.string,
   history: PropTypes.object,
-  style: PropTypes.object,
+  style: PropTypes.string,
   list: PropTypes.array.isRequired,
   noDataLabel: PropTypes.string.isRequired
 };
