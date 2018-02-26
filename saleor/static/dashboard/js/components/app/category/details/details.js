@@ -1,11 +1,12 @@
 import React, { Component, Fragment } from 'react';
+import PropTypes from 'prop-types';
 import { graphql, compose } from 'react-apollo';
 import { withRouter } from 'react-router-dom';
 
-import { DescriptionCard } from '../../../components/cards';
-import { categoryDetails } from '../queries';
-import { categoryDelete } from '../mutations';
 import { ConfirmRemoval } from '../../../components/modals';
+import { DescriptionCard } from '../../../components/cards';
+import { categoryDelete } from '../mutations';
+import { categoryDetails } from '../queries';
 
 const categoryDetailsQueryFeeder = graphql(categoryDetails, {
   options: props => ({
@@ -19,6 +20,19 @@ const categoryRemoveMutationFeeder = graphql(categoryDelete);
 @withRouter
 @compose(categoryDetailsQueryFeeder, categoryRemoveMutationFeeder)
 class CategoryProperties extends Component {
+  static propTypes = {
+    categoryId: PropTypes.string,
+    data: PropTypes.shape({
+      category: PropTypes.shape({
+        parent: PropTypes.shape({
+          id: PropTypes.string,
+        }),
+      }),
+    }),
+    history: PropTypes.object,
+    mutate: PropTypes.func,
+  };
+
   constructor(props) {
     super(props);
     this.handleRemoveButtonClick = this.handleRemoveButtonClick.bind(this);

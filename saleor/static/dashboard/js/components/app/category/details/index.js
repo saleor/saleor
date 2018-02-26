@@ -33,6 +33,7 @@ const CategoryDetails = (props) => {
 };
 CategoryDetails.propTypes = {
   id: PropTypes.string,
+  match: PropTypes.object,
 };
 
 export default CategoryDetails;
