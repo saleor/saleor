@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import Grid from 'material-ui/Grid';
 import PropTypes from 'prop-types';
-import { graphql } from 'react-apollo/index';
+import { graphql } from 'react-apollo';
 import { withRouter } from 'react-router-dom';
 
 import BaseCategoryForm from './base';
