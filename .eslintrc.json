@@ -98,7 +98,7 @@
 
     // disallow else after a return in an if
     // https://eslint.org/docs/rules/no-else-return
-    "no-else-return": "error",
+    "no-else-return": ["error", { "allowElseIf": true }],
 
     // disallow empty functions, except for standalone funcs/arrows
     // http://eslint.org/docs/rules/no-empty-function
@@ -183,7 +183,9 @@
     }],
 
     // disallow use of multiple spaces
-    "no-multi-spaces": "error",
+    "no-multi-spaces": ["error", {
+      "ignoreEOLComments": false
+    }],
 
     // disallow use of multiline strings
     "no-multi-str": "error",
