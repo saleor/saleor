@@ -71,6 +71,7 @@ class BaseCategoryList extends Component {
       totalCount: PropTypes.number,
     }).isRequired,
     history: PropTypes.object,
+    location: PropTypes.object,
     label: PropTypes.string.isRequired,
   };
 
@@ -108,8 +109,8 @@ class BaseCategoryList extends Component {
       label,
       categories
     } = this.props;
-    const firstCursor = categories.edges[0].cursor || '';
-    const lastCursor = categories.edges.slice(-1)[0].cursor || '';
+    const firstCursor = categories.edges.length > 0 ? categories.edges[0].cursor : '';
+    const lastCursor = categories.edges.length > 0 ? categories.edges.slice(-1)[0].cursor : '';
     const qs = parseQs(this.props.location.search.substr(1));
     return (
       <ListCard
@@ -133,7 +134,7 @@ class BaseCategoryList extends Component {
   }
 }
 
-const CategoryList = withRouter(categoryListFeeder((props) => {
+const CategoryListComponent = (props) => {
   const { data } = props;
   const categories = data.category ? data.category.children : [];
   return (
@@ -150,9 +151,23 @@ const CategoryList = withRouter(categoryListFeeder((props) => {
       )}
     </div>
   );
-}));
+};
+CategoryListComponent.propTypes = {
+  data: PropTypes.shape({
+    loading: PropTypes.boolean,
+    category: PropTypes.shape({
+      children: PropTypes.shape({
+        edges: PropTypes.array,
+        totalCount: PropTypes.number,
+      }),
+    })
+  }),
+  history: PropTypes.object,
+  location: PropTypes.object
+};
+const CategoryList = withRouter(categoryListFeeder(CategoryListComponent));
 
-const RootCategoryList = withRouter(rootCategoryListFeeder((props) => {
+const RootCategoryListComponent = (props) => {
   const { data } = props;
   const categories = data.categories || [];
   return (
@@ -169,7 +184,19 @@ const RootCategoryList = withRouter(rootCategoryListFeeder((props) => {
       )}
     </div>
   );
-}));
+};
+RootCategoryListComponent.propTypes = {
+  data: PropTypes.shape({
+    loading: PropTypes.boolean,
+    categories: PropTypes.shape({
+      edges: PropTypes.array,
+      totalCount: PropTypes.number,
+    }),
+  }),
+  history: PropTypes.object,
+  location: PropTypes.object
+};
+const RootCategoryList = withRouter(rootCategoryListFeeder(RootCategoryListComponent));
 
 export {
   CategoryList,
