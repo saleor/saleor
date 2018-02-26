@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: master\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2018-02-12 05:00-0600\n"
+"POT-Creation-Date: 2018-02-19 09:05-0600\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Filip Kucharczyk, 2017\n"
 "Language-Team: Polish (https://www.transifex.com/mirumee/teams/34782/pl/)\n"
@@ -31,7 +31,7 @@ msgstr "opis"
 #: saleor/dashboard/category/filters.py:15
 msgctxt "Category list filter label"
 msgid "Name"
-msgstr ""
+msgstr "Nazwa"
 
 #: saleor/dashboard/category/filters.py:18
 msgctxt "Category list sorting filter label"
@@ -56,14 +56,14 @@ msgstr[3] ""
 #: saleor/dashboard/shipping/forms.py:14 saleor/dashboard/sites/forms.py:40
 msgctxt "Item name"
 msgid "Name"
-msgstr ""
+msgstr "Nazwa"
 
 #: saleor/dashboard/category/forms.py:24 saleor/dashboard/product/forms.py:134
 #: saleor/dashboard/product/forms.py:289 saleor/dashboard/shipping/forms.py:16
 #: saleor/dashboard/sites/forms.py:27
 msgctxt "Description"
 msgid "Description"
-msgstr ""
+msgstr "Opis"
 
 #: saleor/dashboard/category/views.py:45
 #, python-format
@@ -81,7 +81,7 @@ msgstr "Zaktualizowano kategorię %s"
 #, python-format
 msgctxt "Dashboard message"
 msgid "Removed category %s"
-msgstr ""
+msgstr "Usunięto kategorię %s"
 
 #: saleor/dashboard/collection/filters.py:8
 msgctxt "Collection list sorting option"
@@ -341,7 +341,7 @@ msgstr[3] ""
 #: saleor/dashboard/discount/forms.py:27
 msgctxt "Sale name"
 msgid "Name"
-msgstr ""
+msgstr "Nazwa"
 
 #: saleor/dashboard/discount/forms.py:30
 msgctxt "Discount type"
@@ -413,13 +413,13 @@ msgstr ""
 #: saleor/dashboard/discount/forms.py:188
 msgctxt "Product"
 msgid "Product"
-msgstr ""
+msgstr "Produkt"
 
 #: saleor/dashboard/discount/forms.py:207
 #: saleor/dashboard/product/forms.py:135
 msgctxt "Category"
 msgid "Category"
-msgstr ""
+msgstr "Kategoria"
 
 #: saleor/dashboard/discount/views.py:50
 msgctxt "Sale (discount) message"
@@ -513,7 +513,7 @@ msgstr ""
 #: saleor/dashboard/order/filters.py:23
 msgctxt "Order list sorting option"
 msgid "payment"
-msgstr ""
+msgstr "Płatność"
 
 #: saleor/dashboard/order/filters.py:24
 msgctxt "Order list sorting option"
@@ -528,7 +528,7 @@ msgstr "utworzone"
 #: saleor/dashboard/order/filters.py:31
 msgctxt "Order list filter label"
 msgid "ID"
-msgstr ""
+msgstr "ID"
 
 #: saleor/dashboard/order/filters.py:34
 msgctxt "Order list filter label"
@@ -624,7 +624,7 @@ msgstr ""
 #: saleor/dashboard/order/forms.py:171 saleor/dashboard/product/forms.py:48
 msgctxt "Integer number"
 msgid "Quantity"
-msgstr ""
+msgstr "Liczba"
 
 #: saleor/dashboard/order/forms.py:186
 #, python-format
@@ -669,7 +669,7 @@ msgstr "Wszystkie"
 #: saleor/dashboard/order/forms.py:324
 msgctxt "Stock record"
 msgid "Stock"
-msgstr ""
+msgstr "Stan magazynowy"
 
 #: saleor/dashboard/order/forms.py:338
 #, python-format
@@ -680,7 +680,7 @@ msgstr ""
 #: saleor/dashboard/order/forms.py:364
 msgctxt "Add variant to shipment group form label"
 msgid "Quantity"
-msgstr ""
+msgstr "Liczba"
 
 #: saleor/dashboard/order/forms.py:384
 #, python-format
@@ -794,7 +794,7 @@ msgstr "Opublikuj"
 #: saleor/dashboard/product/__init__.py:12
 msgctxt "product bulk action"
 msgid "Unpublish"
-msgstr ""
+msgstr "Cofnij publikację"
 
 #: saleor/dashboard/product/filters.py:13
 msgctxt "Product list sorting option"
@@ -834,12 +834,12 @@ msgstr ""
 #: saleor/dashboard/product/filters.py:30
 msgctxt "Is featured filter choice"
 msgid "Featured"
-msgstr ""
+msgstr "Wyróżniony"
 
 #: saleor/dashboard/product/filters.py:31
 msgctxt "Is featured filter choice"
 msgid "Not featured"
-msgstr ""
+msgstr "Niewyróżniony"
 
 #: saleor/dashboard/product/filters.py:36
 msgctxt "Product list filter label"
@@ -849,7 +849,7 @@ msgstr "Nazwa"
 #: saleor/dashboard/product/filters.py:39
 msgctxt "Product list filter label"
 msgid "Category"
-msgstr ""
+msgstr "Kategoria"
 
 #: saleor/dashboard/product/filters.py:43
 msgctxt "Product list filter label"
@@ -864,12 +864,12 @@ msgstr "Cena"
 #: saleor/dashboard/product/filters.py:51
 msgctxt "Product list filter label"
 msgid "Is published"
-msgstr ""
+msgstr "Opublikowany"
 
 #: saleor/dashboard/product/filters.py:57
 msgctxt "Product list is featured filter label"
 msgid "Is featured"
-msgstr ""
+msgstr "Niewyróżniony"
 
 #: saleor/dashboard/product/filters.py:62
 msgctxt "Product list filter label"
@@ -934,7 +934,7 @@ msgstr "Sortuj według"
 #: saleor/dashboard/product/filters.py:131
 msgctxt "Stock location list filter label"
 msgid "Name"
-msgstr ""
+msgstr "Nazwa"
 
 #: saleor/dashboard/product/forms.py:36
 msgctxt "Product type form label"
@@ -994,7 +994,7 @@ msgstr ""
 #: saleor/dashboard/product/forms.py:136 saleor/dashboard/shipping/forms.py:29
 msgctxt "Currency amount"
 msgid "Price"
-msgstr ""
+msgstr "Cena"
 
 #: saleor/dashboard/product/forms.py:138
 msgctxt "Availability date"
@@ -1004,7 +1004,7 @@ msgstr ""
 #: saleor/dashboard/product/forms.py:140
 msgctxt "Product published toggle"
 msgid "Published"
-msgstr ""
+msgstr "Opublikowany"
 
 #: saleor/dashboard/product/forms.py:142
 msgctxt "Featured product toggle"
@@ -1029,7 +1029,7 @@ msgstr ""
 #: saleor/dashboard/product/forms.py:202
 msgctxt "Product variant name"
 msgid "Name"
-msgstr ""
+msgstr "Nazwa"
 
 #: saleor/dashboard/product/forms.py:287 saleor/dashboard/product/forms.py:385
 msgctxt "Product image"
@@ -1049,7 +1049,7 @@ msgstr ""
 #: saleor/dashboard/product/forms.py:346
 msgctxt "Color"
 msgid "Color"
-msgstr ""
+msgstr "Kolor"
 
 #: saleor/dashboard/product/views.py:59
 #, python-format
@@ -1277,7 +1277,7 @@ msgstr ""
 #: saleor/dashboard/sites/forms.py:38
 msgctxt "Password"
 msgid "Password"
-msgstr ""
+msgstr "Hasło"
 
 #: saleor/dashboard/sites/views.py:35
 msgctxt "Dashboard message"
