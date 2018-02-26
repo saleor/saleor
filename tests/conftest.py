@@ -642,3 +642,16 @@ def closed_orders(billing_address):
 def collection(db):
     collection = Collection.objects.create(name='Collection', slug='collection')
     return collection
+
+
+@pytest.fixture
+def product(product_type, default_category):
+    product_attr = product_type.product_attributes.first()
+    attr_value = product_attr.values.first()
+    attributes = {smart_text(product_attr.pk): smart_text(attr_value.pk)}
+
+    product = Product.objects.create(
+        name='Test product 1', price=Decimal('10.00'),
+        product_type=product_type, attributes=attributes, is_published=True,
+        category=default_category)
+    return product
