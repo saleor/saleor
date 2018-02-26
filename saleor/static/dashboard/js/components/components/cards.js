@@ -1,15 +1,15 @@
 import React, { Component } from 'react';
-import PropTypes from 'prop-types';
-import { withRouter, Link } from 'react-router-dom';
-import Card, { CardContent, CardActions } from 'material-ui/Card';
 import Button from 'material-ui/Button';
-import { TextField } from './inputs';
+import Card, { CardContent, CardActions } from 'material-ui/Card';
 import FilterListIcon from 'material-ui-icons/FilterList';
-import { withStyles } from 'material-ui/styles';
+import PropTypes from 'prop-types';
 import grey from 'material-ui/colors/grey';
 import { parse as parseQs } from 'qs';
+import { withRouter, Link } from 'react-router-dom';
+import { withStyles } from 'material-ui/styles';
 
 import Table from './table';
+import { TextField } from './inputs';
 import { createQueryString } from '../utils';
 
 const styles = (theme) => ({
@@ -40,7 +40,7 @@ const styles = (theme) => ({
     top: 21,
     right: 20,
     [theme.breakpoints.up('md')]: {
-      display: 'none',
+      display: 'none'
     },
     '& svg': {
       width: 24,
@@ -53,10 +53,10 @@ const styles = (theme) => ({
     position: 'relative',
     borderBottomColor: grey[300],
     borderBottomStyle: 'solid',
-    borderBottomWidth: 1,
+    borderBottomWidth: 1
   },
   filterCardActions: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row-reverse'
   }
 });
 const CardTitle = withStyles(styles)(
@@ -82,12 +82,12 @@ const CardSubtitle = withStyles(styles)(
 
 const DescriptionCard = (props) => {
   const {
-    title,
     description,
-    editButtonLabel,
-    removeButtonLabel,
     editButtonHref,
-    handleRemoveButtonClick
+    editButtonLabel,
+    handleRemoveButtonClick,
+    removeButtonLabel,
+    title
   } = props;
   return (
     <div>
@@ -118,25 +118,33 @@ const DescriptionCard = (props) => {
     </div>
   );
 };
+DescriptionCard.propTypes = {
+  description: PropTypes.string,
+  editButtonHref: PropTypes.string,
+  editButtonLabel: PropTypes.string,
+  handleRemoveButtonClick: PropTypes.func,
+  removeButtonLabel: PropTypes.string,
+  title: PropTypes.string
+};
 
 const ListCardComponent = (props) => {
   const {
-    displayLabel,
-    headers,
-    list,
-    firstCursor,
-    lastCursor,
+    addActionLabel,
     classes,
+    count,
+    displayLabel,
+    firstCursor,
     handleAddAction,
     handleChangePage,
     handleChangeRowsPerPage,
-    page,
+    headers,
     href,
-    rowsPerPage,
     label,
-    addActionLabel,
+    lastCursor,
+    list,
     noDataLabel,
-    count
+    page,
+    rowsPerPage
   } = props;
   return (
     <Card className={classes.listCard}>
@@ -148,48 +156,70 @@ const ListCardComponent = (props) => {
             </CardTitle>
             <Button
               color={'secondary'}
-              style={{ margin: '2rem 0 1rem' }}
               onClick={handleAddAction}
+              style={{ margin: '2rem 0 1rem' }}
             >
               {addActionLabel}
             </Button>
           </CardContent>
         )}
         <CardContent style={{
-          borderTop: props.pk ? '1px solid rgba(160, 160, 160, 0.2)' : 'none',
+          borderTop: 'none',
           padding: 0
         }}>
           <Table
-            list={list}
-            noDataLabel={noDataLabel}
-            headers={headers}
-            href={href}
-            page={page}
-            rowsPerPage={rowsPerPage}
-            rowsPerPageOptions={[2, 5, 10]}
             count={count}
             handleChangePage={handleChangePage(firstCursor, lastCursor)}
             handleChangeRowsPerPage={handleChangeRowsPerPage}
+            headers={headers}
+            href={href}
+            list={list}
+            noDataLabel={noDataLabel}
+            page={page}
+            rowsPerPage={rowsPerPage}
+            rowsPerPageOptions={[2, 5, 10]}
           />
         </CardContent>
       </div>
     </Card>
   );
 };
+ListCardComponent.propTypes = {
+  addActionLabel: PropTypes.string,
+  classes: PropTypes.object,
+  count: PropTypes.number,
+  displayLabel: PropTypes.bool,
+  firstCursor: PropTypes.string,
+  handleAddAction: PropTypes.func,
+  handleChangePage: PropTypes.func,
+  handleChangeRowsPerPage: PropTypes.func,
+  headers: PropTypes.arrayOf(PropTypes.shape({
+    name: PropTypes.string,
+    label: PropTypes.string,
+    wide: PropTypes.bool
+  })),
+  href: PropTypes.string,
+  label: PropTypes.string,
+  lastCursor: PropTypes.string,
+  list: PropTypes.array.isRequired,
+  noDataLabel: PropTypes.string.isRequired,
+  page: PropTypes.number,
+  rowsPerPage: PropTypes.number
+};
 const ListCard = withStyles(styles)(ListCardComponent);
 
 class FilterCardComponent extends Component {
   static propTypes = {
-    label: PropTypes.string,
     classes: PropTypes.object,
+    history: PropTypes.object,
     inputs: PropTypes.arrayOf(PropTypes.shape({
-      inputType: PropTypes.string.isRequired,
-      name: PropTypes.string.isRequired,
-      label: PropTypes.string.isRequired,
       id: PropTypes.string,
+      inputType: PropTypes.string.isRequired,
+      label: PropTypes.string.isRequired,
+      name: PropTypes.string.isRequired,
       placeholder: PropTypes.string
     })).isRequired,
-    history: PropTypes.object,
+    label: PropTypes.string
   };
 
   static defaultProps = {
@@ -200,12 +230,12 @@ class FilterCardComponent extends Component {
     super(props);
     this.state = {
       collapsed: true,
-      formData: parseQs(this.props.location.search.substr(1)),
+      formData: parseQs(this.props.location.search.substr(1))
     };
-    this.handleFilterListIconClick = this.handleFilterListIconClick.bind(this);
-    this.handleSubmit = this.handleSubmit.bind(this);
-    this.handleInputChange = this.handleInputChange.bind(this);
     this.handleClear = this.handleClear.bind(this);
+    this.handleFilterListIconClick = this.handleFilterListIconClick.bind(this);
+    this.handleInputChange = this.handleInputChange.bind(this);
+    this.handleSubmit = this.handleSubmit.bind(this);
   }
 
   handleFilterListIconClick() {
@@ -232,9 +262,10 @@ class FilterCardComponent extends Component {
 
   handleClear() {
     this.setState((prevState) => {
-      const formData = Object.keys(prevState.formData).reduce((prev, curr) => {
-        return Object.assign({}, prev, { [curr]: '' });
-      }, {});
+      const formData = Object.keys(prevState.formData)
+        .reduce((prev, curr) => {
+          return Object.assign({}, prev, { [curr]: '' });
+        }, {});
       return { formData };
     });
   }
@@ -256,10 +287,10 @@ class FilterCardComponent extends Component {
                 case 'text':
                   return (
                     <TextField
-                      {...input}
                       key={inputIndex}
-                      value={this.state.formData[input.name] || ''}
                       onChange={this.handleInputChange}
+                      value={this.state.formData[input.name] || ''}
+                      {...input}
                     />
                   );
               }
@@ -284,14 +315,15 @@ class FilterCardComponent extends Component {
     );
   };
 }
+
 const FilterCard = withRouter(withStyles(styles)(FilterCardComponent));
 
 export {
-  CardTitle,
   CardSubtitle,
+  CardTitle,
   DescriptionCard,
-  ListCard,
-  ListCardComponent,
   FilterCard,
-  FilterCardComponent
+  FilterCardComponent,
+  ListCard,
+  ListCardComponent
 };
