@@ -4,7 +4,7 @@ import _ from 'lodash';
 
 class SwapChildrenRWD extends Component {
   static propTypes = {
-    children: PropTypes.array,
+    children: PropTypes.object,
     down: PropTypes.number,
     up: PropTypes.number
   };
