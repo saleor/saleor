@@ -35,9 +35,6 @@ const CategoryDetails = (props) => {
               <RootCategoryList />
             )}
           </Grid>
-          <Grid item xs={12} md={3}>
-            <FilterCard inputs={filterInputs} />
-          </Grid>
         </SwapChildrenRWD>
       </Grid>
     </div>
