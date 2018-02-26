@@ -19,6 +19,7 @@ from saleor.discount.models import Sale, Voucher
 from saleor.order import GroupStatus
 from saleor.order.models import DeliveryGroup, Order, OrderLine
 from saleor.order.utils import recalculate_order
+from saleor.page.models import Page
 from saleor.product.models import (
     AttributeChoiceValue, Category, Collection, Product, ProductAttribute,
     ProductImage, ProductType, ProductVariant, Stock, StockLocation)
@@ -641,5 +642,16 @@ def closed_orders(billing_address):
 
 @pytest.fixture
 def collection(db):
-    collection = Collection.objects.create(name='Collection', slug='collection')
+    collection = Collection.objects.create(
+        name='Collection', slug='collection')
     return collection
+
+
+@pytest.fixture
+def page(db):
+    data = {
+        'url': 'test-url',
+        'title': 'Test page',
+        'content': 'test content'}
+    page = Page.objects.create(**data)
+    return page

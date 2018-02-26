@@ -10,19 +10,17 @@ def test_page_list(admin_client):
     assert response.status_code == 200
 
 
-def test_page_edit(admin_client):
-    page = Page.objects.create(url='aaaa', title='foo', content='bar')
+def test_page_edit(admin_client, page):
+    # page = Page.objects.create(url='example-url', title='foo', content='bar')
     url = reverse('dashboard:page-edit', args=[page.pk])
 
     response = admin_client.get(url)
     assert response.status_code == 200
     data = {
-        'url': 'aaaa',
+        'url': 'changed-url',
         'title': 'foo',
         'content': 'bar',
-        'status': Page.PUBLIC,
-        'assets-TOTAL_FORMS': 0,
-        'assets-INITIAL_FORMS': 0}
+        'visible': True}
 
     response = admin_client.post(url, data=data)
     assert response.status_code == 302
@@ -38,16 +36,14 @@ def test_page_add(admin_client):
         'url': 'aaaa',
         'title': 'foo',
         'content': 'bar',
-        'status': Page.DRAFT,
-        'assets-TOTAL_FORMS': 0,
-        'assets-INITIAL_FORMS': 0}
+        'visible': False}
 
     response = admin_client.post(url, data=data)
     assert response.status_code == 302
 
 
-def test_page_delete(admin_client):
-    page = Page.objects.create(url='aaaa', title='foo', content='bar')
+def test_page_delete(admin_client, page):
+    # page = Page.objects.create(url='aaaa', title='foo', content='bar')
     url = reverse('dashboard:page-delete', args=[page.pk])
 
     response = admin_client.get(url)
