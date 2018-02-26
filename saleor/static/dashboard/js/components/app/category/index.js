@@ -8,6 +8,11 @@ const Component = () => (
   <Switch>
     <Route
       exact
+      path="/categories/add"
+      render={CategoryCreateForm}
+    />
+    <Route
+      exact
       path="/categories/:id/edit"
       render={CategoryUpdateForm}
     />
