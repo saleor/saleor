@@ -10,13 +10,8 @@ class PageQuerySet(models.QuerySet):
     def public(self):
         today = datetime.date.today()
         return self.filter(
-            Q(visible=True),
+            Q(is_visible=True),
             Q(available_on__lte=today) | Q(available_on__isnull=True))
-
-    def get_available(self, allow_draft=False):
-        if not allow_draft:
-            return self.public()
-        return self
 
 
 class Page(models.Model):
