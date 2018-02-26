@@ -23,7 +23,7 @@ def page_list(request):
 
 @staff_member_required
 @permission_required('site.edit_settings')
-def page_edit(request, pk):
+def page_update(request, pk):
     page = get_object_or_404(Page, pk=pk)
     return _page_edit(request, page)
 
@@ -41,10 +41,9 @@ def _page_edit(request, page):
         form.save()
         msg = pgettext_lazy('Dashboard message', 'Saved page')
         messages.success(request, msg)
-        return redirect('dashboard:page-list')
+        return redirect('dashboard:page-detail', pk=page.pk)
     ctx = {
         'page': page, 'form': form}
-        # 'redirect_form': redirect_form}
     return TemplateResponse(request, 'dashboard/page/form.html', ctx)
 
 
@@ -59,7 +58,7 @@ def page_delete(request, pk):
         messages.success(request, msg)
         return redirect('dashboard:page-list')
     ctx = {'page': page}
-    return TemplateResponse(request, 'dashboard/page/modal-delete.html', ctx)
+    return TemplateResponse(request, 'dashboard/page/modal_delete.html', ctx)
 
 
 @staff_member_required

@@ -6,7 +6,7 @@ from django.db.models import Q
 from django.urls import reverse
 
 
-class PageManager(models.QuerySet):
+class PageQuerySet(models.QuerySet):
     def public(self):
         today = datetime.date.today()
         return self.filter(
@@ -25,10 +25,10 @@ class Page(models.Model):
     title = models.CharField(max_length=200)
     content = models.TextField()
     created = models.DateTimeField(auto_now_add=True)
-    visible = models.BooleanField(default=False)
+    is_visible = models.BooleanField(default=False)
     available_on = models.DateField(blank=True, null=True)
 
-    objects = PageManager.as_manager()
+    objects = PageQuerySet.as_manager()
 
     class Meta:
         ordering = ('url',)

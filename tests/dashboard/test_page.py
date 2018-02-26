@@ -12,7 +12,7 @@ def test_page_list(admin_client):
 
 def test_page_edit(admin_client, page):
     # page = Page.objects.create(url='example-url', title='foo', content='bar')
-    url = reverse('dashboard:page-edit', args=[page.pk])
+    url = reverse('dashboard:page-update', args=[page.pk])
 
     response = admin_client.get(url)
     assert response.status_code == 200

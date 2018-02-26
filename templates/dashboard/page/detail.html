@@ -49,7 +49,7 @@
         </div>
         <div class="card-action">
           {% if perms.site.edit_settings %}
-            <a href="{% url "dashboard:page-edit" page.pk %}" class="btn-flat waves-effect">
+            <a href="{% url "dashboard:page-update" page.pk %}" class="btn-flat waves-effect">
               {% trans "Edit page" context "Page action" %}
             </a>
             <a href="#base-modal" data-href="{% url 'dashboard:page-delete' pk=page.pk %}" class="modal-trigger-custom btn-flat waves-effect">
