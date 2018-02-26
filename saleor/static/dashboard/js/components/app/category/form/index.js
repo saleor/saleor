@@ -20,8 +20,8 @@ class CategoryCreateForm extends Component {
       this.props.mutate({
         variables: {
           ...formData,
-          parentId: this.props.match.params.id
-        }
+          parentId: this.props.match.params.id,
+        },
       })
         .then(({ data }) => this.props.history.push(`/categories/${data.categoryCreate.category.id}/`));
     };
@@ -46,7 +46,7 @@ class CategoryCreateForm extends Component {
 
 @withRouter
 @graphql(categoryUpdate)
-@graphql(categoryDetails, { options: (props) => ({ variables: { id: props.match.params.id } }) })
+@graphql(categoryDetails, { options: props => ({ variables: { id: props.match.params.id } }) })
 class CategoryUpdateForm extends Component {
   constructor(props) {
     super(props);
@@ -58,8 +58,8 @@ class CategoryUpdateForm extends Component {
       this.props.mutate({
         variables: {
           ...formData,
-          id: this.props.match.params.id
-        }
+          id: this.props.match.params.id,
+        },
       })
         .then(({ data }) => this.props.history.push(`/categories/${data.categoryUpdate.category.id}/`))
         .catch(error => console.error(error));
@@ -70,9 +70,7 @@ class CategoryUpdateForm extends Component {
     const { loading, category } = this.props.data;
     return (
       <Fragment>
-      {loading ? (
-        loading
-      ) : (
+        {loading || (
         <Grid container spacing={16}>
           <Grid item xs={12} md={9}>
             <BaseCategoryForm
@@ -92,5 +90,5 @@ class CategoryUpdateForm extends Component {
 
 export {
   CategoryCreateForm,
-  CategoryUpdateForm
+  CategoryUpdateForm,
 };
