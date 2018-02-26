@@ -11,6 +11,7 @@ from saleor.cart import CartStatus, utils
 from saleor.cart.models import Cart
 from saleor.product import (
     ProductAvailabilityStatus, VariantAvailabilityStatus, models)
+from saleor.product.models import Category
 from saleor.product.utils import (
     allocate_stock, deallocate_stock, decrease_stock,
     get_attributes_display_map, get_availability,
@@ -515,3 +516,18 @@ def test_render_product_page_with_no_variant(
         kwargs={'product_id': product.pk, 'slug': product.get_slug()})
     response = admin_client.get(url)
     assert response.status_code == 200
+
+
+def test_include_products_from_subcategories_in_main_view(
+        default_category, product, authorized_client):
+    subcategory = Category.objects.create(
+        name='sub', slug='test', parent=default_category)
+    product.category = subcategory
+    product.save()
+    path = default_category.get_full_path()
+    # URL to parent category view
+    url = reverse(
+        'product:category', kwargs={
+            'path': path, 'category_id': default_category.pk})
+    response = authorized_client.get(url)
+    assert product in response.context_data['products'][0]
