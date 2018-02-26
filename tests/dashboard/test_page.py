@@ -1,6 +1,6 @@
 from django.urls import reverse
 
-from ..page.models import Page
+from saleor.page.models import Page
 
 
 def test_page_list(admin_client):
