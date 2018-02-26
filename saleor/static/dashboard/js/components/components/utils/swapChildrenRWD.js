@@ -4,12 +4,13 @@ import _ from 'lodash';
 
 class SwapChildrenRWD extends Component {
   static propTypes = {
-    up: PropTypes.number,
-    down: PropTypes.number
+    children: PropTypes.array,
+    down: PropTypes.number,
+    up: PropTypes.number
   };
   static defaultProps = {
-    up: 0,
-    down: Infinity
+    down: Infinity,
+    up: 0
   };
 
   constructor(props) {
@@ -45,7 +46,7 @@ class SwapChildrenRWD extends Component {
       <Fragment>
         {children}
       </Fragment>
-    )
+    );
   }
 }
 

@@ -61,5 +61,5 @@ describe('<ListCard />', () => {
 });
 
 describe('<DescriptionCard />', () => {
-  it('')
+  it('');
 });

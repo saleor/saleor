@@ -1,14 +1,14 @@
 import React from 'react';
-import PropTypes from 'prop-types';
-import { withRouter } from 'react-router-dom';
 import MuiTable, {
-  TableHead,
   TableBody,
-  TableRow,
   TableCell as MuiTableCell,
   TableFooter,
-  TablePagination
+  TableHead,
+  TablePagination,
+  TableRow
 } from 'material-ui/Table';
+import PropTypes from 'prop-types';
+import { withRouter } from 'react-router-dom';
 import { withStyles } from 'material-ui/styles';
 
 const styles = {
@@ -46,17 +46,19 @@ function handleRowClick(pk, href, history) {
 
 const Table = (props) => {
   const {
-    headers,
-    list,
-    href,
-    history,
     className,
-    noDataLabel,
     classes,
-    rowsPerPage,
-    rowsPerPageOptions,
+    count,
+    handleChangePage,
+    handleChangeRowsPerPage,
+    headers,
+    history,
+    href,
+    list,
+    noDataLabel,
     page,
-    count
+    rowsPerPage,
+    rowsPerPageOptions
   } = props;
   return (
     <div className={className}>
@@ -65,8 +67,8 @@ const Table = (props) => {
           <TableRow>
             {headers.map((header) => (
               <TableCell
-                wide={header.wide}
                 key={header.name}
+                wide={header.wide}
               >
                 {header.label}
               </TableCell>
@@ -76,14 +78,14 @@ const Table = (props) => {
         <TableBody>
           {list.map((row) => (
             <TableRow
-              onClick={handleRowClick(row.id, href, history)}
               className={classes.tableRow}
               key={row.id}
+              onClick={handleRowClick(row.id, href, history)}
             >
               {headers.map((header) => (
                 <TableCell
-                  wide={header.wide}
                   key={header.name}
+                  wide={header.wide}
                 >
                   {row[header.name] ? row[header.name] : header.noDataText}
                 </TableCell>
@@ -97,11 +99,11 @@ const Table = (props) => {
               <TablePagination
                 colSpan={5}
                 count={count}
+                onChangePage={handleChangePage}
+                onChangeRowsPerPage={handleChangeRowsPerPage}
+                page={page}
                 rowsPerPage={rowsPerPage}
                 rowsPerPageOptions={rowsPerPageOptions || [5, 10, 20]}
-                page={page}
-                onChangePage={props.handleChangePage}
-                onChangeRowsPerPage={props.handleChangeRowsPerPage}
               />
             </TableRow>
           </TableFooter>
@@ -116,15 +118,20 @@ const Table = (props) => {
   );
 };
 Table.propTypes = {
+  className: PropTypes.string,
   classes: PropTypes.object,
+  count: PropTypes.number,
+  handleChangePage: PropTypes.func,
+  handleChangeRowsPerPage: PropTypes.func,
   headers: PropTypes.array.isRequired,
-  handlePrev: PropTypes.func,
-  handleNext: PropTypes.func,
-  href: PropTypes.string,
   history: PropTypes.object,
-  style: PropTypes.string,
+  href: PropTypes.string,
   list: PropTypes.array.isRequired,
-  noDataLabel: PropTypes.string.isRequired
+  noDataLabel: PropTypes.string.isRequired,
+  style: PropTypes.string,
+  page: PropTypes.number,
+  rowsPerPage: PropTypes.number,
+  rowsPerPageOptions: PropTypes.arrayOf(PropTypes.number)
 };
 
 export default withStyles(styles)(withRouter(Table));
