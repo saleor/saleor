@@ -8,9 +8,9 @@ msgid ""
 msgstr ""
 "Project-Id-Version: master\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2018-02-12 05:00-0600\n"
+"POT-Creation-Date: 2018-02-19 09:05-0600\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"Last-Translator: Nicolás Pinzón <n.pinzon.hernandez@gmail.com>, 2017\n"
+"Last-Translator: Fabiola Ampuero <fabi.ampuero.chalco@gmail.com>, 2018\n"
 "Language-Team: Spanish (https://www.transifex.com/mirumee/teams/34782/es/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -112,17 +112,17 @@ msgstr "Productos"
 #: saleor/dashboard/collection/views.py:39
 msgctxt "Collection message"
 msgid "Added collection"
-msgstr ""
+msgstr "Colección agregada"
 
 #: saleor/dashboard/collection/views.py:53
 msgctxt "Collection message"
 msgid "Updated collection"
-msgstr ""
+msgstr "Colección actualizada"
 
 #: saleor/dashboard/collection/views.py:66
 msgctxt "Collection message"
 msgid "Deleted collection"
-msgstr ""
+msgstr "Colección eliminada"
 
 #: saleor/dashboard/customer/filters.py:17
 #: saleor/dashboard/staff/filters.py:15
@@ -194,7 +194,7 @@ msgstr[1] "Se encontraron %(counter)d clientes que coinciden"
 #, python-format
 msgctxt "Dashboard message"
 msgid "Added customer %s"
-msgstr ""
+msgstr "Se agregó %s cliente"
 
 #: saleor/dashboard/customer/views.py:74
 #, python-format
