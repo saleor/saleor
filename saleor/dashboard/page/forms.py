@@ -1,7 +1,7 @@
 from django import forms
 from django.forms import inlineformset_factory
 
-from ...page.models import Page, PostAsset
+from ...page.models import Page
 from ..product.forms import RichTextField
 
 
@@ -12,6 +12,3 @@ class PageForm(forms.ModelForm):
         exclude = []
 
     content = RichTextField()
-
-AssetUploadFormset = inlineformset_factory(
-    Page, PostAsset, fields=['page', 'asset'], extra=3)

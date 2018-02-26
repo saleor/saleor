@@ -45,9 +45,3 @@ class Page(models.Model):
         """
         self.url = self.url.lower()
         return super(Page, self).save(*args, **kwargs)
-
-
-class PostAsset(models.Model):
-    page = models.ForeignKey(
-        Page, related_name='assets', on_delete=models.CASCADE)
-    asset = models.FileField(upload_to='page', blank=False)
