@@ -17,7 +17,7 @@ const tableHeaders = [
     label: pgettext('Category list table header description', 'Description'),
     name: 'description',
     wide: true,
-  }
+  },
 ];
 const PAGINATE_BY = 5;
 
@@ -25,9 +25,9 @@ const feederOptions = {
   options: (props) => {
     const options = {
       variables: {
-        id: props.categoryId
+        id: props.categoryId,
       },
-      fetchPolicy: 'network-only'
+      fetchPolicy: 'network-only',
     };
     const qs = parseQs(props.location.search.substr(1));
     let variables;
@@ -37,14 +37,14 @@ const feederOptions = {
           after: null,
           before: qs.firstCursor,
           first: null,
-          last: parseInt(qs.rowsPerPage) || PAGINATE_BY,
+          last: parseInt(qs.rowsPerPage, 10) || PAGINATE_BY,
         };
         break;
       case 'next':
         variables = {
           after: qs.lastCursor,
           before: null,
-          first: parseInt(qs.rowsPerPage) || PAGINATE_BY,
+          first: parseInt(qs.rowsPerPage, 10) || PAGINATE_BY,
           last: null,
         };
         break;
@@ -52,14 +52,14 @@ const feederOptions = {
         variables = {
           after: qs.lastCursor,
           before: null,
-          first: parseInt(qs.rowsPerPage) || PAGINATE_BY,
+          first: parseInt(qs.rowsPerPage, 10) || PAGINATE_BY,
           last: null,
         };
         break;
     }
     options.variables = Object.assign({}, options.variables, variables);
     return options;
-  }
+  },
 };
 const categoryListFeeder = graphql(categoryChildren, feederOptions);
 const rootCategoryListFeeder = graphql(rootCategoryChildren, feederOptions);
@@ -78,19 +78,17 @@ class BaseCategoryList extends Component {
   handleAddAction = () => {
     this.props.history.push('add');
   };
-  handleChangePage = (firstCursor, lastCursor) => {
-    return (event, currentPage) => {
-      const prevPage = parseQs(this.props.location.search.substr(1)).currentPage || 0;
-      const action = (parseInt(prevPage) < parseInt(currentPage)) ? 'next' : 'prev';
-      this.props.history.push({
-        search: createQueryString(this.props.location.search, {
-          action,
-          currentPage,
-          firstCursor,
-          lastCursor,
-        })
-      });
-    };
+  handleChangePage = (firstCursor, lastCursor) => (event, currentPage) => {
+    const prevPage = parseQs(this.props.location.search.substr(1)).currentPage || 0;
+    const action = (parseInt(prevPage, 10) < parseInt(currentPage, 10)) ? 'next' : 'prev';
+    this.props.history.push({
+      search: createQueryString(this.props.location.search, {
+        action,
+        currentPage,
+        firstCursor,
+        lastCursor,
+      }),
+    });
   };
   handleChangeRowsPerPage = (event) => {
     this.props.history.push({
@@ -100,14 +98,14 @@ class BaseCategoryList extends Component {
         firstCursor: null,
         lastCursor: null,
         rowsPerPage: event.target.value,
-      })
+      }),
     });
   };
 
   render() {
     const {
       label,
-      categories
+      categories,
     } = this.props;
     const firstCursor = categories.edges.length > 0 ? categories.edges[0].cursor : '';
     const lastCursor = categories.edges.length > 0 ? categories.edges.slice(-1)[0].cursor : '';
@@ -116,7 +114,7 @@ class BaseCategoryList extends Component {
       <ListCard
         addActionLabel={gettext('Add')}
         count={categories.totalCount}
-        displayLabel={true}
+        displayLabel
         firstCursor={firstCursor}
         handleAddAction={this.handleAddAction}
         handleChangePage={this.handleChangePage}
@@ -127,8 +125,8 @@ class BaseCategoryList extends Component {
         lastCursor={lastCursor}
         list={categories.edges.map(edge => edge.node)}
         noDataLabel={pgettext('Empty category list message', 'No categories found.')}
-        page={parseInt(qs.currentPage) || 0}
-        rowsPerPage={parseInt(qs.rowsPerPage) || PAGINATE_BY}
+        page={parseInt(qs.currentPage, 10) || 0}
+        rowsPerPage={parseInt(qs.rowsPerPage, 10) || PAGINATE_BY}
       />
     );
   }
@@ -154,16 +152,16 @@ const CategoryListComponent = (props) => {
 };
 CategoryListComponent.propTypes = {
   data: PropTypes.shape({
-    loading: PropTypes.boolean,
+    loading: PropTypes.bool,
     category: PropTypes.shape({
       children: PropTypes.shape({
         edges: PropTypes.array,
         totalCount: PropTypes.number,
       }),
-    })
+    }),
   }),
   history: PropTypes.object,
-  location: PropTypes.object
+  location: PropTypes.object,
 };
 const CategoryList = withRouter(categoryListFeeder(CategoryListComponent));
 
@@ -187,18 +185,18 @@ const RootCategoryListComponent = (props) => {
 };
 RootCategoryListComponent.propTypes = {
   data: PropTypes.shape({
-    loading: PropTypes.boolean,
+    loading: PropTypes.bool,
     categories: PropTypes.shape({
       edges: PropTypes.array,
       totalCount: PropTypes.number,
     }),
   }),
   history: PropTypes.object,
-  location: PropTypes.object
+  location: PropTypes.object,
 };
 const RootCategoryList = withRouter(rootCategoryListFeeder(RootCategoryListComponent));
 
 export {
   CategoryList,
-  RootCategoryList
+  RootCategoryList,
 };

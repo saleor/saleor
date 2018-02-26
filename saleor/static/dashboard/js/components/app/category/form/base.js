@@ -1,20 +1,20 @@
 import React, { Component } from 'react';
+import Button from 'material-ui/Button';
+import Card, { CardContent, CardActions } from 'material-ui/Card';
 import PropTypes from 'prop-types';
 import { withRouter } from 'react-router-dom';
-import { TextField } from '../../../components/inputs';
-import Card, { CardContent, CardActions } from 'material-ui/Card';
 import { withStyles } from 'material-ui/styles';
-import Button from 'material-ui/Button';
 
 import { CardTitle } from '../../../components/cards';
+import { TextField } from '../../../components/inputs';
 
 const styles = {
   cardActions: {
-    flexDirection: 'row-reverse'
+    flexDirection: 'row-reverse',
   },
   textField: {
-    marginBottom: '2rem'
-  }
+    marginBottom: '2rem',
+  },
 };
 
 @withRouter
@@ -23,7 +23,7 @@ class BaseCategoryForm extends Component {
   static propTypes = {
     name: PropTypes.string,
     description: PropTypes.string,
-    handleConfirm: PropTypes.func
+    handleConfirm: PropTypes.func,
   };
 
   constructor(props) {
@@ -33,8 +33,8 @@ class BaseCategoryForm extends Component {
     this.state = {
       formData: {
         name: this.props.name,
-        description: this.props.description
-      }
+        description: this.props.description,
+      },
     };
   }
 
@@ -44,12 +44,12 @@ class BaseCategoryForm extends Component {
 
   handleInputChange(event) {
     const { target } = event;
-    this.setState((prevState) => ({
+    this.setState(prevState => ({
       formData: Object.assign(
         {},
         prevState.formData,
-        { [target.name]: target.value }
-      )
+        { [target.name]: target.value },
+      ),
     }));
   }
 
@@ -60,7 +60,7 @@ class BaseCategoryForm extends Component {
       description,
       confirmButtonLabel,
       handleConfirm,
-      classes
+      classes,
     } = this.props;
 
     return (
@@ -82,7 +82,7 @@ class BaseCategoryForm extends Component {
             name="description"
             label={`${pgettext('Category form description field label', 'Description')} (${gettext('Optional')})`}
             defaultValue={description}
-            multiline={true}
+            multiline
             onChange={this.handleInputChange}
           />
         </CardContent>
@@ -105,7 +105,7 @@ class BaseCategoryForm extends Component {
         </CardContent>
       </Card>
     );
-  };
+  }
 }
 
 export default BaseCategoryForm;

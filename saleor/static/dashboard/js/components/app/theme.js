@@ -5,46 +5,46 @@ const transition = '200ms';
 export default createMuiTheme({
   palette: {
     primary: {
-      main: '#2bb673'
+      main: '#2bb673',
     },
     secondary: {
-      main: '#26A5D4'
-    }
+      main: '#26A5D4',
+    },
   },
   overrides: {
     MuiButton: {
       root: {
         fontWeight: 400,
-        fontSize: '1rem'
+        fontSize: '1rem',
       },
       raised: {
-        color: '#ffffff !important'
-      }
+        color: '#ffffff !important',
+      },
     },
     MuiTableCell: {
       root: {
         paddingRight: '24px !important',
         fontSize: '1rem !important',
         '&:first-child': {
-          whiteSpace: 'nowrap'
-        }
+          whiteSpace: 'nowrap',
+        },
       },
       typeHead: {
         fontSize: '.9rem !important',
-        fontWeight: 400
-      }
+        fontWeight: 400,
+      },
     },
     MuiTextField: {
       inkbar: {
         '&:after': {
-          backgroundColor: '#26A5D4'
-        }
-      }
+          backgroundColor: '#26A5D4',
+        },
+      },
     },
     MuiPaper: {
       root: {
-        marginTop: '16px'
-      }
+        marginTop: '16px',
+      },
     },
     MuiCardActions: {
       root: {
@@ -52,33 +52,33 @@ export default createMuiTheme({
         margin: '24px -16px -24px',
         padding: '0 8px',
         '@media (max-width: 480px)': {
-          padding: '32px 8px'
-        }
-      }
+          padding: '32px 8px',
+        },
+      },
     },
     MuiTableRow: {
       root: {
         transition,
         '&:hover': {
-          backgroundColor: grey[100]
-        }
+          backgroundColor: grey[100],
+        },
       },
       typeHead: {
         '&:hover': {
-          backgroundColor: 'inherit'
-        }
+          backgroundColor: 'inherit',
+        },
       },
       typeFooter: {
         '&:hover': {
-          backgroundColor: 'inherit'
-        }
-      }
+          backgroundColor: 'inherit',
+        },
+      },
     },
     MuiCircularProgress: {
       root: {
         display: 'block',
-        margin: '0 auto'
-      }
-    }
-  }
+        margin: '0 auto',
+      },
+    },
+  },
 });

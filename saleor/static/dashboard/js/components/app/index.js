@@ -19,28 +19,29 @@ const apolloClient = new ApolloClient({
     uri: '/dashboard/graphql/',
     credentials: 'same-origin',
     headers: {
-      'X-CSRFToken': $.cookie('csrftoken')
-    }
+      'X-CSRFToken': $.cookie('csrftoken'),
+    },
   }),
-  cache: new InMemoryCache()
+  cache: new InMemoryCache(),
 });
 const routerMapping = [
   {
     component: CategorySection,
-    path: 'categories'
-  }
+    path: 'categories',
+  },
 ];
 const store = createStore(() => {});
 
 render(
   <Provider store={store}>
     <ApolloProvider client={apolloClient}>
-      <BrowserRouter basename={'/dashboard'}>
+      <BrowserRouter basename="/dashboard">
         <MuiThemeProvider theme={theme}>
           <Switch>
             {routerMapping.map(route => (
               <Fragment key={route.path}>
-                <Route path={`/${route.path}/`}
+                <Route
+                  path={`/${route.path}/`}
                   component={route.component}
                 />
               </Fragment>
@@ -50,5 +51,5 @@ render(
       </BrowserRouter>
     </ApolloProvider>
   </Provider>,
-  document.querySelector('#dashboard-app')
+  document.querySelector('#dashboard-app'),
 );

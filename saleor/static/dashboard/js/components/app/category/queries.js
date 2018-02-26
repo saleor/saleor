@@ -52,5 +52,5 @@ const rootCategoryChildren = gql`
 export {
   categoryChildren,
   categoryDetails,
-  rootCategoryChildren
+  rootCategoryChildren,
 };

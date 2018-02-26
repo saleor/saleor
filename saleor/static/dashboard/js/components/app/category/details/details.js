@@ -8,11 +8,11 @@ import { categoryDelete } from '../mutations';
 import { ConfirmRemoval } from '../../../components/modals';
 
 const categoryDetailsQueryFeeder = graphql(categoryDetails, {
-  options: (props) => ({
+  options: props => ({
     variables: {
-      id: props.categoryId
-    }
-  })
+      id: props.categoryId,
+    },
+  }),
 });
 const categoryRemoveMutationFeeder = graphql(categoryDelete);
 
@@ -27,14 +27,14 @@ class CategoryProperties extends Component {
   }
 
   handleRemoveButtonClick() {
-    this.setState((prevState) => ({ opened: !prevState.opened }));
+    this.setState(prevState => ({ opened: !prevState.opened }));
   }
 
   handleRemoveAction() {
     this.props.mutate({
       variables: {
-        id: this.props.categoryId
-      }
+        id: this.props.categoryId,
+      },
     })
       .then(() => this.props.history.push(`/categories/${this.props.data.category.parent ? this.props.data.category.parent.id : ''}/`));
   }
@@ -66,13 +66,11 @@ class CategoryProperties extends Component {
               <p dangerouslySetInnerHTML={{ __html: interpolate(contentFmt, [data.category.name]) }} />
               {data.category.products && data.category.products.totalCount > 0 && (
                 <p>
-                  {interpolate(
-                    ngettext(
+                  {interpolate(ngettext(
                       'There is one product in this category that will be removed.',
                       'There are %s products in this category that will be removed.',
-                      data.category.products.totalCount
-                    ), [data.category.products.totalCount]
-                  )}
+                      data.category.products.totalCount,
+                    ), [data.category.products.totalCount])}
                 </p>
               )}
             </ConfirmRemoval>
@@ -80,7 +78,7 @@ class CategoryProperties extends Component {
         )}
       </div>
     );
-  };
+  }
 }
 
 export default CategoryProperties;
