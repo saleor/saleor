@@ -50,5 +50,5 @@ const categoryUpdate = gql`
 export {
   categoryCreate,
   categoryDelete,
-  categoryUpdate
+  categoryUpdate,
 };

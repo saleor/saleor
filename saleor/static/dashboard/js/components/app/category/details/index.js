@@ -4,18 +4,9 @@ import Grid from 'material-ui/Grid';
 
 import Details from './details';
 import { CategoryList, RootCategoryList } from './categoryList';
-import { FilterCard } from '../../../components/cards';
 import { screenSizes } from '../../../misc';
 import { SwapChildrenRWD } from '../../../components/utils';
 
-const filterInputs = [
-  {
-    inputType: 'text',
-    name: 'name',
-    label: 'Name',
-    placeholder: 'Name'
-  }
-];
 
 // TODO: Plug-in filters
 const CategoryDetails = (props) => {
@@ -41,7 +32,7 @@ const CategoryDetails = (props) => {
   );
 };
 CategoryDetails.propTypes = {
-  pk: PropTypes.int
+  id: PropTypes.string,
 };
 
 export default CategoryDetails;
