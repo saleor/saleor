@@ -18,7 +18,9 @@
     "gettext": true,
     "pgettext": true,
     "ngettext": true,
-    "interpolate": true
+    "interpolate": true,
+    "it": true,
+    "describe": true
   },
   "plugins": [
     "import",
