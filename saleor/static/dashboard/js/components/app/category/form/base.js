@@ -21,9 +21,13 @@ const styles = {
 @withStyles(styles)
 class BaseCategoryForm extends Component {
   static propTypes = {
-    name: PropTypes.string,
+    classes: PropTypes.object,
+    confirmButtonLabel: PropTypes.string,
     description: PropTypes.string,
     handleConfirm: PropTypes.func,
+    history: PropTypes.object,
+    name: PropTypes.string,
+    title: PropTypes.string,
   };
 
   constructor(props) {
@@ -32,8 +36,8 @@ class BaseCategoryForm extends Component {
     this.handleInputChange = this.handleInputChange.bind(this);
     this.state = {
       formData: {
-        name: this.props.name,
         description: this.props.description,
+        name: this.props.name,
       },
     };
   }
@@ -55,12 +59,12 @@ class BaseCategoryForm extends Component {
 
   render() {
     const {
-      title,
-      name,
-      description,
-      confirmButtonLabel,
-      handleConfirm,
       classes,
+      confirmButtonLabel,
+      description,
+      handleConfirm,
+      name,
+      title,
     } = this.props;
 
     return (
