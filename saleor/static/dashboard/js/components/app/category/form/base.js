@@ -6,7 +6,7 @@ import Typography from 'material-ui/Typography';
 import { withRouter } from 'react-router-dom';
 import { withStyles } from 'material-ui/styles';
 
-import { TextField } from '../../../components/inputs';
+import { TextField } from '../../components/inputs';
 
 const styles = {
   cardActions: {

@@ -9,39 +9,39 @@ import { withRouter } from 'react-router-dom';
 import { withStyles } from 'material-ui/styles';
 
 import { TextField } from '../inputs';
-import { createQueryString } from '../../utils';
+import { createQueryString } from '../../../utils';
 
-const styles = (theme) => ({
+const styles = theme => ({
   filterCard: {
     transitionDuration: '200ms',
     [theme.breakpoints.down('sm')]: {
       maxHeight: 76,
-      overflow: 'hidden'
-    }
+      overflow: 'hidden',
+    },
   },
   filterCardExpandIconContainer: {
     position: 'absolute',
     top: 21,
     right: 20,
     [theme.breakpoints.up('md')]: {
-      display: 'none'
+      display: 'none',
     },
     '& svg': {
       width: 24,
       height: 24,
       fill: '#9e9e9e',
-      cursor: 'pointer'
-    }
+      cursor: 'pointer',
+    },
   },
   filterCardContent: {
     position: 'relative',
     borderBottomColor: grey[300],
     borderBottomStyle: 'solid',
-    borderBottomWidth: 1
+    borderBottomWidth: 1,
   },
   filterCardActions: {
-    flexDirection: 'row-reverse'
-  }
+    flexDirection: 'row-reverse',
+  },
 });
 
 class FilterCardComponent extends Component {
@@ -53,20 +53,20 @@ class FilterCardComponent extends Component {
       inputType: PropTypes.string.isRequired,
       label: PropTypes.string.isRequired,
       name: PropTypes.string.isRequired,
-      placeholder: PropTypes.string
+      placeholder: PropTypes.string,
     })).isRequired,
-    label: PropTypes.string
+    label: PropTypes.string,
   };
 
   static defaultProps = {
-    label: pgettext('Filter menu label', 'Filters')
+    label: pgettext('Filter menu label', 'Filters'),
   };
 
   constructor(props) {
     super(props);
     this.state = {
       collapsed: true,
-      formData: parseQs(this.props.location.search.substr(1))
+      formData: parseQs(this.props.location.search.substr(1)),
     };
     this.handleClear = this.handleClear.bind(this);
     this.handleFilterListIconClick = this.handleFilterListIconClick.bind(this);
@@ -75,7 +75,7 @@ class FilterCardComponent extends Component {
   }
 
   handleFilterListIconClick() {
-    this.setState((prevState) => ({ collapsed: !prevState.collapsed }));
+    this.setState(prevState => ({ collapsed: !prevState.collapsed }));
   }
 
   handleSubmit(event) {
@@ -85,23 +85,19 @@ class FilterCardComponent extends Component {
 
   handleInputChange(event) {
     const target = event.target;
-    this.setState((prevState) => {
-      return {
-        formData: Object.assign(
-          {},
-          prevState.formData,
-          { [target.name]: target.value }
-        )
-      };
-    });
+    this.setState(prevState => ({
+      formData: Object.assign(
+        {},
+        prevState.formData,
+        { [target.name]: target.value },
+      ),
+    }));
   }
 
   handleClear() {
     this.setState((prevState) => {
       const formData = Object.keys(prevState.formData)
-        .reduce((prev, curr) => {
-          return Object.assign({}, prev, { [curr]: '' });
-        }, {});
+        .reduce((prev, curr) => Object.assign({}, prev, { [curr]: '' }), {});
       return { formData };
     });
   }
@@ -149,7 +145,7 @@ class FilterCardComponent extends Component {
         </form>
       </Card>
     );
-  };
+  }
 }
 
 const FilterCard = withRouter(withStyles(styles)(FilterCardComponent));
