@@ -427,7 +427,7 @@
               </thead>
               <tbody>
                 {% for line in fulfillment.lines.all %}
-                  <tr>
+                  <tr class="last-no-border">
                     <td>
                       {{ line.order_line.product_name }}
                     </td>
@@ -436,25 +436,31 @@
                     </td>
                   </tr>
                 {% endfor %}
-                <tr class="last-no-border">
-                  <td colspan="2">
-                    {% if fulfillment.tracking_number %}
+                {% if fulfillment.tracking_number %}
+                  <tr class="last-no-border">
+                    <td colspan="2">
                       {% blocktrans trimmed with tracking=fulfillment.tracking_number context "Fulfillment table text" %}
                         Tracking number: {{ tracking }}
                       {% endblocktrans %}
-                    {% else %}
-                      {% trans "Tracking number: -" context "Fulfillment table text" %}
-                    {% endif %}
-                  </td>
-                </tr>
+                    </td>
+                  </tr>
+                {% endif %}
               </tbody>
             </table>
           </div>
-          {% if perms.order.edit_order and fulfillment.can_cancel %}
+          {% if perms.order.edit_order and fulfillment.can_edit %}
             <div class="data-table-action">
               <a href="#base-modal" data-href="{% url 'dashboard:fulfillment-cancel' order_pk=order.pk fulfillment_pk=fulfillment.pk %}"
                  class="btn-flat waves-effect modal-trigger-custom" title="{% trans "Cancel fulfillment" context "Fulfillment summary card action title" %}">
                 {% trans "Cancel" context "Fulfillment summary card action" %}
+              </a>
+              <a href="#base-modal" data-href="{% url 'dashboard:fulfillment-change-tracking' order_pk=order.pk fulfillment_pk=fulfillment.pk %}"
+                 class="btn-flat waves-effect modal-trigger-custom" title="{% trans "Edit tracking number" context "Fulfillment summary card action title" %}">
+                {% if fulfillment.tracking_number %}
+                  {% trans "Edit tracking" context "Fulfillment summary card action" %}
+                {% else %}
+                  {% trans "Add tracking" context "Fulfillment summary card action" %}
+                {% endif %}
               </a>
             </div>
           {% endif %}

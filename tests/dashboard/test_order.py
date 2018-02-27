@@ -476,3 +476,21 @@ def test_fulfill_order_line(order_with_lines_and_stock):
     fulfill_order_line(line, line.quantity)
     stock.refresh_from_db()
     assert stock.quantity == stock_quantity_after
+
+
+def test_view_change_fulfillment_tracking(admin_client, fulfilled_order):
+    fulfillment = fulfilled_order.fulfillments.first()
+    url = reverse(
+        'dashboard:fulfillment-change-tracking', kwargs={
+            'order_pk': fulfilled_order.pk,
+            'fulfillment_pk': fulfillment.pk})
+    tracking_number = '1234-5678AF'
+    data = {'tracking_number': tracking_number}
+
+    response = admin_client.post(url, data)
+
+    fulfillment.refresh_from_db()
+    assert response.status_code == 302
+    assert get_redirect_location(response) == reverse(
+        'dashboard:order-details', kwargs={'order_pk': fulfilled_order.pk})
+    assert fulfillment.tracking_number == tracking_number

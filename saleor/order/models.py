@@ -231,7 +231,7 @@ class Fulfillment(models.Model):
     def composed_id(self):
         return '%s-%s' % (self.order.id, self.fulfillment_order)
 
-    def can_cancel(self):
+    def can_edit(self):
         return self.status != FulfillmentStatus.CANCELED
 
     def get_total_quantity(self):
