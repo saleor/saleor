@@ -3,6 +3,7 @@ import Button from 'material-ui/Button';
 import Card, { CardContent, CardActions } from 'material-ui/Card';
 import FilterListIcon from 'material-ui-icons/FilterList';
 import PropTypes from 'prop-types';
+import Typography from 'material-ui/Typography';
 import grey from 'material-ui/colors/grey';
 import { parse as parseQs } from 'qs';
 import { withRouter } from 'react-router-dom';
@@ -110,7 +111,9 @@ class FilterCardComponent extends Component {
           <div className={classes.filterCardExpandIconContainer}>
             <FilterListIcon onClick={this.handleFilterListIconClick} />
           </div>
-          <CardTitle>{label}</CardTitle>
+          <Typography variant="display1">
+            {label}
+          </Typography>
         </CardContent>
         <form onSubmit={this.handleSubmit}>
           <CardContent>
