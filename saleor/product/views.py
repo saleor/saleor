@@ -115,7 +115,7 @@ def category_index(request, path, category_id):
                         category_id=category_id)
     # Check for subcategories
     categories = category.get_descendants(include_self=True)
-    ids = [c.id for c in categories]
+    ids = categories.values_list('id', flat=True)
     products = products_with_details(user=request.user).filter(
         category__id__in=ids).order_by('name')
     product_filter = ProductCategoryFilter(
