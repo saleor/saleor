@@ -227,6 +227,15 @@ class CancelFulfillmentForm(forms.Form):
         cancel_fulfillment(self.fulfillment, self.cleaned_data.get('restock'))
 
 
+class FulfillmentTrackingNumberForm(forms.ModelForm):
+    class Meta:
+        model = Fulfillment
+        fields = ['tracking_number']
+        labels = {
+            'tracking_number': pgettext_lazy(
+                'Fulfillment record', 'Tracking number')}
+
+
 class RemoveVoucherForm(forms.Form):
 
     def __init__(self, *args, **kwargs):

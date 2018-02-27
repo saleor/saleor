@@ -34,6 +34,8 @@ urlpatterns = [
         views.fulfill_order_lines, name='fulfill-order-lines'),
     url(r'^(?P<order_pk>\d+)/fulfillment/(?P<fulfillment_pk>\d+)/cancel/$',
         views.cancel_fulfillment, name='fulfillment-cancel'),
+    url(r'^(?P<order_pk>\d+)/fulfillment/(?P<fulfillment_pk>\d+)/tracking/$',
+        views.change_fulfillment_tracking, name='fulfillment-change-tracking'),
     url(r'^(?P<order_pk>\d+)/invoice/$',
         views.order_invoice, name='order-invoice'),
     url(r'^(?P<order_pk>\d+)/packing-slips/$',

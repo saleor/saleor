@@ -24,8 +24,8 @@ from .forms import (
     AddressForm, AddVariantToOrderForm, BaseFulfillmentLineFormSet,
     CancelOrderForm, CancelFulfillmentForm, CancelOrderLineForm,
     CapturePaymentForm, ChangeQuantityForm, ChangeStockForm, FulfillmentForm,
-    FulfillmentLineForm, OrderNoteForm, RefundPaymentForm, ReleasePaymentForm,
-    RemoveVoucherForm)
+    FulfillmentLineForm, FulfillmentTrackingNumberForm, OrderNoteForm,
+    RefundPaymentForm, ReleasePaymentForm, RemoveVoucherForm)
 from .utils import (
     create_invoice_pdf, create_packing_slip_pdf, get_statics_absolute_url)
 
@@ -462,4 +462,38 @@ def cancel_fulfillment(request, order_pk, fulfillment_pk):
     ctx = {'form': form, 'order': order, 'fulfillment': fulfillment}
     return TemplateResponse(
         request, 'dashboard/order/modal/cancel_fulfillment.html', ctx,
+        status=status)
+
+
+@staff_member_required
+@permission_required('order.edit_order')
+def change_fulfillment_tracking(request, order_pk, fulfillment_pk):
+    status = 200
+    order = get_object_or_404(Order, pk=order_pk)
+    fulfillment = get_object_or_404(
+        order.fulfillments.all(), pk=fulfillment_pk)
+    form = FulfillmentTrackingNumberForm(
+        request.POST or None, instance=fulfillment)
+    if form.is_valid():
+        form.save()
+        if fulfillment.tracking_number:
+            msg = pgettext_lazy(
+                'Dashboard message',
+                'Fulfillment #%(fulfillment)s tracking number changed to: '
+                '#%(tracking_number)s') % {
+                    'fulfillment': fulfillment.composed_id,
+                    'tracking_number': fulfillment.tracking_number}
+        else:
+            msg = pgettext_lazy(
+                'Dashboard message',
+                'Fulfillment #%(fulfillment)s tracking number removed') % {
+                    'fulfillment': fulfillment.composed_id}
+        order.history.create(content=msg, user=request.user)
+        messages.success(request, msg)
+        return redirect('dashboard:order-details', order_pk=order.pk)
+    elif form.errors:
+        status = 400
+    ctx = {'form': form, 'order': order, 'fulfillment': fulfillment}
+    return TemplateResponse(
+        request, 'dashboard/order/modal/change_fulfillment_tracking.html', ctx,
         status=status)
