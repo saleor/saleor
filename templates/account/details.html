@@ -78,7 +78,7 @@
                     <span class="float-right">{{ order.total.gross|amount:'html' }}</span>
                   </div>
                   <div class="col-md-4 d-none d-md-block">
-                    {% render_status order.status order.get_status_display %}
+                    {% render_order_status order.status order.get_status_display %}
                   </div>
                   <div class="col-md-1 col-5">
                     <a href="{{ order.get_absolute_url }}" class="float-right link--styled">
