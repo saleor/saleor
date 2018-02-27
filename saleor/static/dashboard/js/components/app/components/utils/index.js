@@ -1,5 +1,3 @@
 import SwapChildrenRWD from './swapChildrenRWD';
 
-export {
-  SwapChildrenRWD
-};
+export { SwapChildrenRWD };

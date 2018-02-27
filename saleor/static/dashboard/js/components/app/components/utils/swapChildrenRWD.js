@@ -6,11 +6,11 @@ class SwapChildrenRWD extends Component {
   static propTypes = {
     children: PropTypes.object,
     down: PropTypes.number,
-    up: PropTypes.number
+    up: PropTypes.number,
   };
   static defaultProps = {
     down: Infinity,
-    up: 0
+    up: 0,
   };
 
   constructor(props) {
