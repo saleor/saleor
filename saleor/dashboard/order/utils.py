@@ -32,8 +32,8 @@ def create_invoice_pdf(order, absolute_url):
     return pdf_file, order
 
 
-def create_packing_slip_pdf(order, absolute_url):
-    ctx = {'order': order}
+def create_packing_slip_pdf(order, fulfillment, absolute_url):
+    ctx = {'order': order, 'fulfillment': fulfillment}
     rendered_template = get_template(PACKING_SLIP_TEMPLATE).render(ctx)
     pdf_file = _create_pdf(rendered_template, absolute_url)
     return pdf_file, order
