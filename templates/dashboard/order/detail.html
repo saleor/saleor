@@ -252,7 +252,7 @@
               Order #{{ order }}
             {% endblocktrans %}
           </h5>
-          {% render_status order.status order.get_status_display %}
+          {% render_order_status order.status order.get_status_display %}
         </div>
         <div class="data-table-container">
           <table class="bordered highlight responsive data-table">
@@ -411,7 +411,7 @@
                 Fulfillment #{{ fulfillment }}
               {% endblocktrans %}
             </h5>
-            {% render_status fulfillment.status fulfillment.get_status_display %}
+            {% render_order_status fulfillment.status fulfillment.get_status_display %}
           </div>
           <div class="data-table-container">
             <table class="bordered highlight responsive data-table">
