@@ -59,17 +59,7 @@
       </div>
       {% paginate pages %}
     {% else %}
-      {% if is_empty %}
-        {% include 'dashboard/page/zero_page.html' %}
-      {% else %}
-        <div class="col s12">
-          <div class="not-found">
-            <p class="grey-text">
-              {% trans "No pages found." context "Empty pages list message" %}
-            </p>
-          </div>
-        </div>
-      {% endif %}
+      {% include 'dashboard/page/zero_page.html' %}
     {% endif %}
   </div>
   </div>

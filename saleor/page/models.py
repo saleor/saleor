@@ -33,10 +33,3 @@ class Page(models.Model):
 
     def get_absolute_url(self):
         return reverse('page:details', kwargs={'url': self.url})
-
-    def save(self, *args, **kwargs):
-        """
-        Make sure url is not being written to database with uppercase.
-        """
-        self.url = self.url.lower()
-        return super(Page, self).save(*args, **kwargs)
