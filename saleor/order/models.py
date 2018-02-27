@@ -192,7 +192,8 @@ class OrderLine(models.Model):
 
     @property
     def quantity_fulfilled(self):
-        lines = FulfillmentLine.objects.filter(order_line=self)
+        lines = FulfillmentLine.objects.filter(
+            order_line=self, fulfillment__status=FulfillmentStatus.FULFILLED)
         return sum([line.quantity for line in lines])
 
     def is_fulfilled(self):

@@ -216,7 +216,7 @@ class CancelFulfillmentForm(forms.Form):
 
     def clean(self):
         data = super().clean()
-        if not self.fulfillment.can_cancel():
+        if not self.fulfillment.can_edit():
             raise forms.ValidationError(
                 pgettext_lazy(
                     'Cancel fulfillment form error',
