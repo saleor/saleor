@@ -6,13 +6,6 @@ import django.db.models.deletion
 import django.utils.timezone
 
 
-def assign_order_to_lines(apps, schema_editor):
-    OrderLine = apps.get_model('order', 'OrderLine')
-    for line in OrderLine.objects.all():
-        line.order = line.delivery_group.order
-        line.save(update_fields=['order'])
-
-
 class Migration(migrations.Migration):
 
     dependencies = [
@@ -63,5 +56,10 @@ class Migration(migrations.Migration):
             model_name='order',
             name='last_status_change',
         ),
-        migrations.RunPython(assign_order_to_lines, migrations.RunPython.noop)
+        migrations.AlterField(
+            model_name='orderline',
+            name='delivery_group',
+            field=models.ForeignKey(editable=False, null=True, on_delete=django.db.models.deletion.CASCADE,
+                                    related_name='lines', to='order.DeliveryGroup'),
+        ),
     ]
