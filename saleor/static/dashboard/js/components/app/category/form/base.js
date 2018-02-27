@@ -2,10 +2,10 @@ import React, { Component } from 'react';
 import Button from 'material-ui/Button';
 import Card, { CardContent, CardActions } from 'material-ui/Card';
 import PropTypes from 'prop-types';
+import Typography from 'material-ui/Typography';
 import { withRouter } from 'react-router-dom';
 import { withStyles } from 'material-ui/styles';
 
-import { CardTitle } from '../../../components/cards';
 import { TextField } from '../../../components/inputs';
 
 const styles = {
@@ -70,9 +70,9 @@ class BaseCategoryForm extends Component {
     return (
       <Card>
         <CardContent>
-          <CardTitle>
+          <Typography variant="headline">
             {title}
-          </CardTitle>
+          </Typography>
         </CardContent>
         <CardContent>
           <TextField
