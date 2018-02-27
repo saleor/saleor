@@ -201,7 +201,7 @@ class OrderLine(models.Model):
 
 
 class Fulfillment(models.Model):
-    fulfillment_order = models.PositiveIntegerField(editable=False, null=True)
+    fulfillment_order = models.PositiveIntegerField(editable=False)
     order = models.ForeignKey(
         Order, related_name='fulfillments', editable=False,
         on_delete=models.CASCADE)

@@ -4,6 +4,16 @@ from django.db import migrations, models
 import django.db.models.deletion
 
 
+def assign_delivery_group_to_lines(apps, schema_editor):
+    Order = apps.get_model('order', 'Order')
+    OrderLine = apps.get_model('order', 'OrderLine')
+    for order in Order.objects.all():
+        delivery_group = order.groups.create()
+        for line in OrderLine.objects.filter(order=order):
+            line.delivery_group = delivery_group
+            line.save(update_fields=['delivery_group'])
+
+
 class Migration(migrations.Migration):
 
     dependencies = [
@@ -11,48 +21,11 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RemoveField(
-            model_name='deliverygroup',
-            name='order',
-        ),
-        migrations.AlterModelOptions(
-            name='order',
-            options={'permissions': (('view_order', 'Can view orders'), ('edit_order', 'Can edit orders'))},
-        ),
-        migrations.RemoveField(
-            model_name='order',
-            name='last_status_change',
-        ),
-        migrations.RemoveField(
-            model_name='orderline',
-            name='delivery_group',
-        ),
-        migrations.AddField(
-            model_name='fulfillment',
-            name='fulfillment_order',
-            field=models.PositiveIntegerField(editable=False, null=True),
-        ),
-        migrations.AddField(
-            model_name='fulfillment',
-            name='status',
-            field=models.CharField(choices=[('fulfilled', 'Fulfilled'), ('canceled', 'Canceled')], default='fulfilled', max_length=32),
-        ),
-        migrations.AddField(
-            model_name='order',
-            name='shipping_method_name',
-            field=models.CharField(blank=True, default=None, editable=False, max_length=255, null=True),
-        ),
-        migrations.AddField(
-            model_name='order',
-            name='status',
-            field=models.CharField(choices=[('unfulfilled', 'Unfulfilled'), ('partially fulfilled', 'Partially fulfilled'), ('fulfilled', 'Fulfilled'), ('canceled', 'Canceled')], default='unfulfilled', max_length=32),
-        ),
         migrations.AlterField(
             model_name='orderline',
-            name='order',
-            field=models.ForeignKey(editable=False, on_delete=django.db.models.deletion.CASCADE, related_name='lines', to='order.Order'),
+            name='delivery_group',
+            field=models.ForeignKey(editable=False, null=True, on_delete=django.db.models.deletion.CASCADE,
+                                    related_name='lines', to='order.DeliveryGroup'),
         ),
-        migrations.DeleteModel(
-            name='DeliveryGroup',
-        ),
+        migrations.RunPython(migrations.RunPython.noop, assign_delivery_group_to_lines)
     ]
