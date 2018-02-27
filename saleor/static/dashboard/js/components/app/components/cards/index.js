@@ -5,5 +5,5 @@ import ListCard from './listCard';
 export {
   DescriptionCard,
   FilterCard,
-  ListCard
-}
+  ListCard,
+};

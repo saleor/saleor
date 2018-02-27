@@ -5,25 +5,25 @@ import Typography from 'material-ui/Typography';
 import Card, { CardContent, CardActions } from 'material-ui/Card';
 import { withStyles } from 'material-ui/styles';
 
-const styles = (theme) => ({
+const styles = theme => ({
   card: {
     outline: 'none',
     top: '40%',
     left: 'calc(50% - 17rem)',
     position: 'absolute',
-    width: '35rem'
+    width: '35rem',
   },
   cardActions: {
     margin: 0,
-    flexDirection: 'row-reverse'
+    flexDirection: 'row-reverse',
   },
   title: {
     marginBottom: theme.spacing.unit,
-    textTransform: 'uppercase'
+    textTransform: 'uppercase',
   },
   button: {
-    marginLeft: theme.spacing.unit / 2
-  }
+    marginLeft: theme.spacing.unit / 2,
+  },
 });
 const ConfirmRemoval = withStyles(styles)((props) => {
   const {
@@ -71,6 +71,4 @@ const ConfirmRemoval = withStyles(styles)((props) => {
   );
 });
 
-export {
-  ConfirmRemoval
-};
+export { ConfirmRemoval };

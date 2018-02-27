@@ -4,7 +4,7 @@ import { graphql } from 'react-apollo';
 import { parse as parseQs } from 'qs';
 import { withRouter } from 'react-router-dom';
 
-import { ListCard } from '../../../components/cards';
+import { ListCard } from '../../components/cards';
 import { categoryChildren, rootCategoryChildren } from '../queries';
 import { createQueryString } from '../../../utils';
 

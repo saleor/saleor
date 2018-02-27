@@ -1,6 +1,6 @@
 import React from 'react';
 import Button from 'material-ui/Button';
-import Card, { CardActions , CardContent } from 'material-ui/Card';
+import Card, { CardActions, CardContent } from 'material-ui/Card';
 import PropTypes from 'prop-types';
 import Typography from 'material-ui/Typography';
 import { Link } from 'react-router-dom';
@@ -12,7 +12,7 @@ const DescriptionCard = (props) => {
     editButtonLabel,
     handleRemoveButtonClick,
     removeButtonLabel,
-    title
+    title,
   } = props;
   return (
     <div>
@@ -27,12 +27,12 @@ const DescriptionCard = (props) => {
           {description}
           <CardActions>
             <Link to={editButtonHref}>
-              <Button color={'secondary'}>
+              <Button color="secondary">
                 {editButtonLabel}
               </Button>
             </Link>
             <Button
-              color={'secondary'}
+              color="secondary"
               onClick={handleRemoveButtonClick}
             >
               {removeButtonLabel}
@@ -49,7 +49,7 @@ DescriptionCard.propTypes = {
   editButtonLabel: PropTypes.string,
   handleRemoveButtonClick: PropTypes.func,
   removeButtonLabel: PropTypes.string,
-  title: PropTypes.string
+  title: PropTypes.string,
 };
 
 export default DescriptionCard;

@@ -14,14 +14,14 @@ const listCardProps = {
   headers: [
     {
       name: 'prop1',
-      label: 'Prop1'
-    }
+      label: 'Prop1',
+    },
   ],
   list: [
     {
       prop1: 'value1',
-      prop2: 'value2'
-    }
+      prop2: 'value2',
+    },
   ],
   // firstCursor,
   // lastCursor,
@@ -32,7 +32,7 @@ const listCardProps = {
   rowsPerPage: 5,
   label: 'Title',
   addActionLabel: 'Add',
-  noDataLabel: 'No data'
+  noDataLabel: 'No data',
 };
 
 describe('<ListCard />', () => {

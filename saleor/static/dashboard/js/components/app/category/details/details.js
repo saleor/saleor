@@ -3,8 +3,8 @@ import PropTypes from 'prop-types';
 import { graphql, compose } from 'react-apollo';
 import { withRouter } from 'react-router-dom';
 
-import { ConfirmRemoval } from '../../../components/modals';
-import { DescriptionCard } from '../../../components/cards';
+import { ConfirmRemoval } from '../../components/modals';
+import { DescriptionCard } from '../../components/cards';
 import { categoryDelete } from '../mutations';
 import { categoryDetails } from '../queries';
 

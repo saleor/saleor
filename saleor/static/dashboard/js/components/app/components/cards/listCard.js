@@ -9,10 +9,10 @@ import Table from '../table';
 
 const styles = {
   listCard: {
-    paddingBottom: 0
+    paddingBottom: 0,
   },
   listCardActions: {
-    paddingBottom: 0
+    paddingBottom: 0,
   },
 };
 const ListCardComponent = (props) => {
@@ -32,7 +32,7 @@ const ListCardComponent = (props) => {
     list,
     noDataLabel,
     page,
-    rowsPerPage
+    rowsPerPage,
   } = props;
   return (
     <Card className={classes.listCard}>
@@ -43,7 +43,7 @@ const ListCardComponent = (props) => {
               {label}
             </Typography>
             <Button
-              color={'secondary'}
+              color="secondary"
               onClick={handleAddAction}
               style={{ margin: '2rem 0 1rem' }}
             >
@@ -53,8 +53,9 @@ const ListCardComponent = (props) => {
         )}
         <CardContent style={{
           borderTop: 'none',
-          padding: 0
-        }}>
+          padding: 0,
+        }}
+        >
           <Table
             count={count}
             handleChangePage={handleChangePage(firstCursor, lastCursor)}
@@ -84,7 +85,7 @@ ListCardComponent.propTypes = {
   headers: PropTypes.arrayOf(PropTypes.shape({
     name: PropTypes.string,
     label: PropTypes.string,
-    wide: PropTypes.bool
+    wide: PropTypes.bool,
   })),
   href: PropTypes.string,
   label: PropTypes.string,
@@ -92,11 +93,11 @@ ListCardComponent.propTypes = {
   list: PropTypes.array.isRequired,
   noDataLabel: PropTypes.string.isRequired,
   page: PropTypes.number,
-  rowsPerPage: PropTypes.number
+  rowsPerPage: PropTypes.number,
 };
 const ListCard = withStyles(styles)(ListCardComponent);
 
 export {
   ListCard as default,
-  ListCardComponent
-}
+  ListCardComponent,
+};

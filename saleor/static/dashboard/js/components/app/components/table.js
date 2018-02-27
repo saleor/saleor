@@ -5,7 +5,7 @@ import MuiTable, {
   TableFooter,
   TableHead,
   TablePagination,
-  TableRow
+  TableRow,
 } from 'material-ui/Table';
 import PropTypes from 'prop-types';
 import { withRouter } from 'react-router-dom';
@@ -13,32 +13,30 @@ import { withStyles } from 'material-ui/styles';
 
 const styles = {
   wideTableCell: {
-    width: '99%'
+    width: '99%',
   },
   childCategory: {
-    tableLayout: 'auto'
+    tableLayout: 'auto',
   },
   noDataText: {
     marginTop: -8,
     top: 8,
     position: 'relative',
-    padding: '16px 0 24px 24px'
+    padding: '16px 0 24px 24px',
   },
   tableRow: {
-    cursor: 'pointer'
-  }
+    cursor: 'pointer',
+  },
 };
-const TableCell = withStyles(styles)(
-  (props) => {
-    const { classes, wide, ...componentProps } = props;
-    return (
-      <MuiTableCell
-        classes={wide ? { root: classes.wideTableCell } : {}}
-        {...componentProps}
-      />
-    );
-  }
-);
+const TableCell = withStyles(styles)((props) => {
+  const { classes, wide, ...componentProps } = props;
+  return (
+    <MuiTableCell
+      classes={wide ? { root: classes.wideTableCell } : {}}
+      {...componentProps}
+    />
+  );
+});
 
 function handleRowClick(pk, href, history) {
   return () => history.push(`${href}/${pk}/`);
@@ -58,14 +56,14 @@ const Table = (props) => {
     noDataLabel,
     page,
     rowsPerPage,
-    rowsPerPageOptions
+    rowsPerPageOptions,
   } = props;
   return (
     <div className={className}>
       <MuiTable className={classes.childCategory}>
         <TableHead>
           <TableRow>
-            {headers.map((header) => (
+            {headers.map(header => (
               <TableCell
                 key={header.name}
                 wide={header.wide}
@@ -76,13 +74,13 @@ const Table = (props) => {
           </TableRow>
         </TableHead>
         <TableBody>
-          {list.map((row) => (
+          {list.map(row => (
             <TableRow
               className={classes.tableRow}
               key={row.id}
               onClick={handleRowClick(row.id, href, history)}
             >
-              {headers.map((header) => (
+              {headers.map(header => (
                 <TableCell
                   key={header.name}
                   wide={header.wide}
@@ -131,7 +129,7 @@ Table.propTypes = {
   style: PropTypes.string,
   page: PropTypes.number,
   rowsPerPage: PropTypes.number,
-  rowsPerPageOptions: PropTypes.arrayOf(PropTypes.number)
+  rowsPerPageOptions: PropTypes.arrayOf(PropTypes.number),
 };
 
 export default withStyles(styles)(withRouter(Table));
