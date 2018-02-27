@@ -3,7 +3,7 @@
 {% load materializecss %}
 {% load staticfiles %}
 
-{% block page_title %}{% if page.pk %}{{ page }}{% else %}{% trans 'Add new page' %}{% endif %} - {% trans 'CMS' %} - {{ block.super }}{% endblock %}
+{% block page_title %}{% if page.pk %}{{ page }}{% else %}{% trans 'Add new page' %}{% endif %}{{ block.super }}{% endblock %}
 
 {% block title %}{% if page.pk %}{{ page }}{% else %}{% trans 'Add new page' %}{% endif %} - {{ block.super }}{% endblock %}
 
@@ -56,7 +56,7 @@
       <div class="col s12 l4">
         {{ form.url|materializecss }}
         {{ form.available_on|materializecss }}
-        {{ form.visible|materializecss }}
+        {{ form.is_visible|materializecss }}
       </div>
     </div>
     <div class="row">
