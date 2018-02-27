@@ -347,12 +347,15 @@ def order_invoice(request, order_pk):
 
 @staff_member_required
 @permission_required('order.edit_order')
-def order_packing_slip(request, order_pk):
+def fulfillment_packing_slips(request, order_pk, fulfillment_pk):
     orders = Order.objects.prefetch_related(
-        'lines', 'user', 'shipping_address', 'billing_address')
+        'user', 'shipping_address', 'billing_address')
     order = get_object_or_404(orders, pk=order_pk)
+    fulfillments = order.fulfillments.prefetch_related(
+        'lines', 'lines__order_line')
+    fulfillment = get_object_or_404(fulfillments, pk=fulfillment_pk)
     absolute_url = get_statics_absolute_url(request)
-    pdf_file, order = create_packing_slip_pdf(order, absolute_url)
+    pdf_file, order = create_packing_slip_pdf(order, fulfillment, absolute_url)
     response = HttpResponse(pdf_file, content_type='application/pdf')
     name = "packing-slip-%s" % (order.id,)
     response['Content-Disposition'] = 'filename=%s' % name

@@ -73,18 +73,16 @@
       </tr>
     </thead>
     <tbody>
-      {% for line in order.get_unfulfilled_lines %}
+      {% for line in fulfillment %}
         <tr>
           <td>
-            {{ line.product_name }}<br>
+            {{ line.order_line.product_name }}<br>
           </td>
           <td>
-            {{ line.product_sku }}
+            {{ line.order_line.product_sku }}
           </td>
           <td class="right-align">
-            {% blocktrans trimmed with quantity_unfulfilled=line.quantity_unfulfilled quantity=line.quantity %}
-              {{ quantity_unfulfilled }} (of {{ quantity }})
-            {% endblocktrans %}
+            {{ line.quantity }}
           </td>
         </tr>
       {% endfor %}

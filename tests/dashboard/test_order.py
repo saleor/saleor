@@ -249,31 +249,33 @@ def test_view_order_invoice_without_shipping(
 
 @pytest.mark.integration
 @pytest.mark.django_db
-def test_view_order_packing_slips(
-        admin_client, order_with_lines_and_stock, billing_address):
-    order_with_lines_and_stock.shipping_address = billing_address
-    order_with_lines_and_stock.billing_address = billing_address
-    order_with_lines_and_stock.save()
+def test_view_fulfillment_packing_slips(
+        admin_client, fulfilled_order, billing_address):
+    fulfilled_order.shipping_address = billing_address
+    fulfilled_order.billing_address = billing_address
+    fulfilled_order.save()
+    fulfillment = fulfilled_order.fulfillments.first()
     url = reverse(
-        'dashboard:order-packing-slips', kwargs={
-            'order_pk': order_with_lines_and_stock.pk})
+        'dashboard:fulfillment-packing-slips', kwargs={
+            'order_pk': fulfilled_order.pk, 'fulfillment_pk': fulfillment.pk})
     response = admin_client.get(url)
     assert response.status_code == 200
     assert response['content-type'] == 'application/pdf'
-    name = "packing-slip-%s" % (order_with_lines_and_stock.id,)
+    name = "packing-slip-%s" % (fulfilled_order.id,)
     assert response['Content-Disposition'] == 'filename=%s' % name
 
 
 @pytest.mark.integration
 @pytest.mark.django_db
-def test_view_order_packing_slips_without_shipping(
-        admin_client, order_with_lines_and_stock, billing_address):
+def test_view_fulfillment_packing_slips_without_shipping(
+        admin_client, fulfilled_order, billing_address):
     # Regression test for #1536
-    order_with_lines_and_stock.billing_address = billing_address
-    order_with_lines_and_stock.save()
+    fulfilled_order.billing_address = billing_address
+    fulfilled_order.save()
+    fulfillment = fulfilled_order.fulfillments.first()
     url = reverse(
-        'dashboard:order-packing-slips', kwargs={
-            'order_pk': order_with_lines_and_stock.pk})
+        'dashboard:fulfillment-packing-slips', kwargs={
+            'order_pk': fulfilled_order.pk, 'fulfillment_pk': fulfillment.pk})
     response = admin_client.get(url)
     assert response.status_code == 200
     assert response['content-type'] == 'application/pdf'
