@@ -5,35 +5,19 @@ import FilterListIcon from 'material-ui-icons/FilterList';
 import PropTypes from 'prop-types';
 import grey from 'material-ui/colors/grey';
 import { parse as parseQs } from 'qs';
-import { withRouter, Link } from 'react-router-dom';
+import { withRouter } from 'react-router-dom';
 import { withStyles } from 'material-ui/styles';
 
-import Table from './table';
-import { TextField } from './inputs';
-import { createQueryString } from '../utils';
+import { TextField } from '../inputs';
+import { createQueryString } from '../../utils';
 
 const styles = (theme) => ({
-  cardTitle: {
-    fontWeight: 300,
-    fontSize: theme.typography.display1.fontSize
-  },
-  cardSubtitle: {
-    fontSize: theme.typography.title.fontSize,
-    lineHeight: '110%',
-    margin: '0.65rem 0 0.52rem 0'
-  },
-  listCard: {
-    paddingBottom: 0
-  },
   filterCard: {
     transitionDuration: '200ms',
     [theme.breakpoints.down('sm')]: {
       maxHeight: 76,
       overflow: 'hidden'
     }
-  },
-  listCardActions: {
-    paddingBottom: 0
   },
   filterCardExpandIconContainer: {
     position: 'absolute',
@@ -59,154 +43,6 @@ const styles = (theme) => ({
     flexDirection: 'row-reverse'
   }
 });
-const CardTitle = withStyles(styles)(
-  (props) => {
-    const { classes, children, componentProps } = props;
-    return (
-      <div className={classes.cardTitle} {...componentProps}>
-        {children}
-      </div>
-    );
-  }
-);
-const CardSubtitle = withStyles(styles)(
-  (props) => {
-    const { classes, children, componentProps } = props;
-    return (
-      <div className={classes.cardSubtitle} {...componentProps}>
-        {children}
-      </div>
-    );
-  }
-);
-
-const DescriptionCard = (props) => {
-  const {
-    description,
-    editButtonHref,
-    editButtonLabel,
-    handleRemoveButtonClick,
-    removeButtonLabel,
-    title
-  } = props;
-  return (
-    <div>
-      <Card>
-        <CardContent>
-          <CardTitle>
-            {title}
-          </CardTitle>
-          <CardSubtitle>
-            {pgettext('Description card widget description text label', 'Description')}
-          </CardSubtitle>
-          {description}
-          <CardActions>
-            <Link to={editButtonHref}>
-              <Button color={'secondary'}>
-                {editButtonLabel}
-              </Button>
-            </Link>
-            <Button
-              color={'secondary'}
-              onClick={handleRemoveButtonClick}
-            >
-              {removeButtonLabel}
-            </Button>
-          </CardActions>
-        </CardContent>
-      </Card>
-    </div>
-  );
-};
-DescriptionCard.propTypes = {
-  description: PropTypes.string,
-  editButtonHref: PropTypes.string,
-  editButtonLabel: PropTypes.string,
-  handleRemoveButtonClick: PropTypes.func,
-  removeButtonLabel: PropTypes.string,
-  title: PropTypes.string
-};
-
-const ListCardComponent = (props) => {
-  const {
-    addActionLabel,
-    classes,
-    count,
-    displayLabel,
-    firstCursor,
-    handleAddAction,
-    handleChangePage,
-    handleChangeRowsPerPage,
-    headers,
-    href,
-    label,
-    lastCursor,
-    list,
-    noDataLabel,
-    page,
-    rowsPerPage
-  } = props;
-  return (
-    <Card className={classes.listCard}>
-      <div>
-        {displayLabel && (
-          <CardContent className={classes.listCardActions}>
-            <CardTitle>
-              {label}
-            </CardTitle>
-            <Button
-              color={'secondary'}
-              onClick={handleAddAction}
-              style={{ margin: '2rem 0 1rem' }}
-            >
-              {addActionLabel}
-            </Button>
-          </CardContent>
-        )}
-        <CardContent style={{
-          borderTop: 'none',
-          padding: 0
-        }}>
-          <Table
-            count={count}
-            handleChangePage={handleChangePage(firstCursor, lastCursor)}
-            handleChangeRowsPerPage={handleChangeRowsPerPage}
-            headers={headers}
-            href={href}
-            list={list}
-            noDataLabel={noDataLabel}
-            page={page}
-            rowsPerPage={rowsPerPage}
-            rowsPerPageOptions={[2, 5, 10]}
-          />
-        </CardContent>
-      </div>
-    </Card>
-  );
-};
-ListCardComponent.propTypes = {
-  addActionLabel: PropTypes.string,
-  classes: PropTypes.object,
-  count: PropTypes.number,
-  displayLabel: PropTypes.bool,
-  firstCursor: PropTypes.string,
-  handleAddAction: PropTypes.func,
-  handleChangePage: PropTypes.func,
-  handleChangeRowsPerPage: PropTypes.func,
-  headers: PropTypes.arrayOf(PropTypes.shape({
-    name: PropTypes.string,
-    label: PropTypes.string,
-    wide: PropTypes.bool
-  })),
-  href: PropTypes.string,
-  label: PropTypes.string,
-  lastCursor: PropTypes.string,
-  list: PropTypes.array.isRequired,
-  noDataLabel: PropTypes.string.isRequired,
-  page: PropTypes.number,
-  rowsPerPage: PropTypes.number
-};
-const ListCard = withStyles(styles)(ListCardComponent);
 
 class FilterCardComponent extends Component {
   static propTypes = {
@@ -319,11 +155,6 @@ class FilterCardComponent extends Component {
 const FilterCard = withRouter(withStyles(styles)(FilterCardComponent));
 
 export {
-  CardSubtitle,
-  CardTitle,
-  DescriptionCard,
-  FilterCard,
+  FilterCard as default,
   FilterCardComponent,
-  ListCard,
-  ListCardComponent
 };
