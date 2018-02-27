@@ -80,5 +80,18 @@ export default createMuiTheme({
         margin: '0 auto',
       },
     },
+    MuiTypography: {
+      display1: {
+        fontSize: 24,
+        marginBottom: '1rem',
+        fontWeight: 300,
+        color: '#000000'
+      },
+      title: {
+        fontSize: 16,
+        fontWeight: 400,
+        marginBottom: '.75rem',
+      }
+    }
   },
 });
