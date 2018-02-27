@@ -73,7 +73,7 @@
     "chai": "^4.1.2",
     "css-loader": "^0.28.10",
     "enzyme": "^3.3.0",
-    "enzyme-adapter-react-15": "^1.0.5",
+    "enzyme-adapter-react-16": "^1.1.1",
     "eslint": "^4.18.1",
     "eslint-config-airbnb": "^16.1.0",
     "eslint-config-airbnb-base": "^12.1.0",
@@ -116,11 +116,14 @@
       "schema": "./saleor/static/schema.json"
     }
   },
+  "jest": {
+    "globals": {}
+  },
   "scripts": {
     "build-assets": "node ./node_modules/webpack/bin/webpack.js -p --progress",
     "heroku-postbuild": "npm run build-assets && npm run build-emails",
     "start": "node ./node_modules/webpack/bin/webpack.js -d --watch --progress",
     "build-emails": "mkdir -p templates/templated_email/compiled/ && find templates -name \"*.mjml\" -not -path \"templates/templated_email/source/*partials/*\" -not -path \"templates/templated_email/source/*shared/*\" -exec ./node_modules/.bin/mjml -l skip {} -o templates/templated_email/compiled/ \\;",
-    "test": "jest saleor/static/dashboard/js/components/test"
+    "test": "jest saleor/static/dashboard/js/components/app/test"
   }
 }
