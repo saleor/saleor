@@ -70,7 +70,7 @@ class BaseCategoryForm extends Component {
     return (
       <Card>
         <CardContent>
-          <Typography variant="headline">
+          <Typography variant="display1">
             {title}
           </Typography>
         </CardContent>

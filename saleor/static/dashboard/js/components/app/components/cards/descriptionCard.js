@@ -3,13 +3,15 @@ import Button from 'material-ui/Button';
 import Card, { CardActions, CardContent } from 'material-ui/Card';
 import PropTypes from 'prop-types';
 import Typography from 'material-ui/Typography';
-import { Link } from 'react-router-dom';
+
+import { pgettext } from '../../i18n';
 
 const DescriptionCard = (props) => {
   const {
     description,
-    editButtonHref,
+    descriptionTextLabel,
     editButtonLabel,
+    handleEditButtonClick,
     handleRemoveButtonClick,
     removeButtonLabel,
     title,
@@ -22,15 +24,18 @@ const DescriptionCard = (props) => {
             {title}
           </Typography>
           <Typography variant="title">
-            {pgettext('Description card widget description text label', 'Description')}
+            {descriptionTextLabel}
           </Typography>
-          {description}
+          <Typography>
+            {description}
+          </Typography>
           <CardActions>
-            <Link to={editButtonHref}>
-              <Button color="secondary">
-                {editButtonLabel}
-              </Button>
-            </Link>
+            <Button
+              color="secondary"
+              onClick={handleEditButtonClick}
+            >
+              {editButtonLabel}
+            </Button>
             <Button
               color="secondary"
               onClick={handleRemoveButtonClick}
@@ -45,11 +50,17 @@ const DescriptionCard = (props) => {
 };
 DescriptionCard.propTypes = {
   description: PropTypes.string,
-  editButtonHref: PropTypes.string,
+  descriptionTextLabel: PropTypes.string,
   editButtonLabel: PropTypes.string,
+  handleEditButtonClick: PropTypes.func,
   handleRemoveButtonClick: PropTypes.func,
   removeButtonLabel: PropTypes.string,
   title: PropTypes.string,
+};
+DescriptionCard.defaultProps = {
+  descriptionTextLabel: pgettext('Description card widget description text label', 'Description'),
+  removeButtonLabel: pgettext('Category list action link', 'Remove'),
+  editButtonLabel: pgettext('Category edit action', 'Edit'),
 };
 
 export default DescriptionCard;
