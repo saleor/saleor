@@ -9,6 +9,7 @@ from .models import Fulfillment, Order
 
 CONFIRM_ORDER_TEMPLATE = 'source/order/confirm_order'
 CONFIRM_FULFILLMENT_TEMPLATE = 'source/order/confirm_fulfillment'
+UPDATE_FULFILLMENT_TEMPLATE = 'source/order/update_fulfillment'
 CONFIRM_PAYMENT_TEMPLATE = 'source/order/payment/confirm_payment'
 CONFIRM_NOTE_TEMPLATE = 'source/order/note/confirm_note'
 
@@ -48,6 +49,14 @@ def send_order_confirmation(order_pk):
 @shared_task
 def send_fulfillment_confirmation(order_pk, fulfillment_pk):
     email_data = collect_data_for_email(order_pk, CONFIRM_FULFILLMENT_TEMPLATE)
+    fulfillment = Fulfillment.objects.get(pk=fulfillment_pk)
+    email_data.update({'context': {'fulfillment': fulfillment}})
+    _send_confirmation(**email_data)
+
+
+@shared_task
+def send_fulfillment_update(order_pk, fulfillment_pk):
+    email_data = collect_data_for_email(order_pk, UPDATE_FULFILLMENT_TEMPLATE)
     fulfillment = Fulfillment.objects.get(pk=fulfillment_pk)
     email_data.update({'context': {'fulfillment': fulfillment}})
     _send_confirmation(**email_data)
