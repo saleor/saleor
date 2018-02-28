@@ -149,6 +149,7 @@
   }
   &__payments {
     &-card-expiry-slash {
+      pointer-events: none;
       font-size: 1.5rem;
       font-weight: 100;
     }
