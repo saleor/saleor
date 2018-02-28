@@ -102,7 +102,7 @@ class BaseCategoryList extends Component {
     });
   };
   handleRowClick = (id) => {
-    return () => this.props.history.push(`/categories/${id}`);
+    return () => this.props.history.push(`/categories/${id}/`);
   };
 
   render() {
