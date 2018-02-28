@@ -54,7 +54,10 @@ class CategoryProperties extends Component {
         id: this.props.categoryId,
       },
     })
-      .then(() => this.props.history.replace(`/categories/${this.props.data.category.parent ? this.props.data.category.parent.id : ''}/`));
+      .then(() => {
+        this.handleRemoveButtonClick();
+        this.props.history.replace(`/categories/${this.props.data.category.parent ? this.props.data.category.parent.id : ''}/`);
+      });
   }
 
   render() {
@@ -83,10 +86,10 @@ class CategoryProperties extends Component {
               {data.category.products && data.category.products.totalCount > 0 && (
                 <p>
                   {interpolate(ngettext(
-                      'There is one product in this category that will be removed.',
-                      'There are %s products in this category that will be removed.',
-                      data.category.products.totalCount,
-                    ), [data.category.products.totalCount])}
+                    'There is one product in this category that will be removed.',
+                    'There are %s products in this category that will be removed.',
+                    data.category.products.totalCount,
+                  ), [data.category.products.totalCount])}
                 </p>
               )}
             </ConfirmRemoval>
