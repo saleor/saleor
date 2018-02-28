@@ -5,7 +5,6 @@ import pytest
 from django.urls import reverse
 from payments import FraudStatus, PaymentStatus
 from prices import Money, TaxedMoney
-
 from tests.utils import get_redirect_location, get_url_path
 
 from saleor.dashboard.order.forms import ChangeQuantityForm, OrderNoteForm
