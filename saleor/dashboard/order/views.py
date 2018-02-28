@@ -15,8 +15,10 @@ from prices import Money, TaxedMoney
 from ...core.exceptions import InsufficientStock
 from ...core.utils import ZERO_TAXED_MONEY, get_paginator_items
 from ...order import OrderStatus
+from ...order.emails import send_fulfillment_confirmation
 from ...order.models import (
     FulfillmentLine, Fulfillment, Order, OrderLine, OrderNote)
+from ...order.utils import update_order_status
 from ...product.models import StockLocation
 from ..views import staff_member_required
 from .filters import OrderFilter
@@ -412,10 +414,7 @@ def fulfill_order_lines(request, order_pk):
                 line.fulfillment = fulfillment
                 line.save()
                 quantity_fulfilled += line_form.cleaned_data.get('quantity')
-            order.status = (
-                OrderStatus.FULFILLED if order.is_fulfilled()
-                else OrderStatus.PARTIALLY_FULFILLED)
-            order.save(update_fields=['status'])
+            update_order_status(order)
             msg = npgettext_lazy(
                 'Dashboard message related to an order',
                 'Fulfilled %(quantity_fulfilled)d item',
@@ -423,6 +422,13 @@ def fulfill_order_lines(request, order_pk):
                 'quantity_fulfilled') % {
                     'quantity_fulfilled': quantity_fulfilled}
             order.history.create(content=msg, user=request.user)
+            if form.cleaned_data.get('send_mail'):
+                send_fulfillment_confirmation.delay(order.pk, fulfillment.pk)
+                send_mail_msg = pgettext_lazy(
+                    'Dashboard message related to an order',
+                    'Shipping confirmation email was sent to user'
+                    '(%(email)s)') % {'email': order.get_user_current_email()}
+                order.history.create(content=send_mail_msg, user=request.user)
         else:
             msg = pgettext_lazy(
                 'Dashboard message related to an order', 'No items fulfilled')

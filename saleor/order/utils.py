@@ -57,6 +57,23 @@ def cancel_order(order, restock):
     order.save(update_fields=['status'])
 
 
+def update_order_status(order):
+    """Update order status depending on fulfillments."""
+    quantity_fulfilled = order.quantity_fulfilled
+    total_quantity = order.get_total_quantity()
+
+    if quantity_fulfilled <= 0:
+        status = OrderStatus.UNFULFILLED
+    elif quantity_fulfilled < total_quantity:
+        status = OrderStatus.PARTIALLY_FULFILLED
+    else:
+        status = OrderStatus.FULFILLED
+
+    if status != order.status:
+        order.status = status
+        order.save(update_fields=['status'])
+
+
 def cancel_fulfillment(fulfillment, restock):
     """Cancel fulfillment.
 
@@ -65,10 +82,7 @@ def cancel_fulfillment(fulfillment, restock):
         restock_fulfillment_lines(fulfillment)
     fulfillment.status = FulfillmentStatus.CANCELED
     fulfillment.save(update_fields=['status'])
-    order = fulfillment.order
-    if order.is_unfulfilled():
-        order.status = OrderStatus.UNFULFILLED
-        order.save(update_fields=['status'])
+    update_order_status(fulfillment.order)
 
 
 def attach_order_to_user(order, user):

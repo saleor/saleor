@@ -366,10 +366,18 @@ class AddressForm(StorefrontAddressForm):
 
 class FulfillmentForm(forms.ModelForm):
     """Create fulfillment group for a given order."""
+    send_mail = forms.BooleanField(
+        initial=True, required=False, label=pgettext_lazy(
+            'Send mail to customer',
+            'Send shipment details to your customer now'))
 
     class Meta:
         model = Fulfillment
         fields = ['tracking_number']
+        labels = {
+            'tracking_number': pgettext_lazy(
+                'Order tracking number',
+                'Tracking number')}
 
     def __init__(self, *args, **kwargs):
         order = kwargs.pop('order')

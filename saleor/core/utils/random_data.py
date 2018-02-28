@@ -17,8 +17,8 @@ from ...account.models import Address, User
 from ...account.utils import store_user_address
 from ...discount import DiscountValueType, VoucherType
 from ...discount.models import Sale, Voucher
-from ...order import OrderStatus
 from ...order.models import Fulfillment, Order, Payment
+from ...order.utils import update_order_status
 from ...product.models import (
     AttributeChoiceValue, Category, Collection, Product, ProductAttribute,
     ProductImage, ProductType, ProductVariant, Stock, StockLocation)
@@ -409,20 +409,13 @@ def create_order_lines(order, how_many=10):
 
 
 def create_fulfillments(order):
-    is_fulfilled = True
     for line in order:
         if random.choice([False, True]):
             fulfillment, _ = Fulfillment.objects.get_or_create(order=order)
             quantity = random.randrange(0, line.quantity) + 1
             fulfillment.lines.create(order_line=line, quantity=quantity)
-        is_fulfilled = is_fulfilled and line.is_fulfilled()
 
-    if is_fulfilled:
-        order.status = OrderStatus.FULFILLED
-        order.save()
-    elif order.fulfillments.exists():
-        order.status = OrderStatus.PARTIALLY_FULFILLED
-        order.save()
+    update_order_status(order)
 
 
 def create_fake_order():

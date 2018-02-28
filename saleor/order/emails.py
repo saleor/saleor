@@ -5,9 +5,10 @@ from django.urls import reverse
 from templated_email import send_templated_mail
 
 from ..core.utils import build_absolute_uri
-from .models import Order
+from .models import Fulfillment, Order
 
 CONFIRM_ORDER_TEMPLATE = 'source/order/confirm_order'
+CONFIRM_FULFILLMENT_TEMPLATE = 'source/order/confirm_fulfillment'
 CONFIRM_PAYMENT_TEMPLATE = 'source/order/payment/confirm_payment'
 CONFIRM_NOTE_TEMPLATE = 'source/order/note/confirm_note'
 
@@ -41,6 +42,14 @@ def send_order_confirmation(order_pk):
     order = Order.objects.get(pk=order_pk)
     email_data = collect_data_for_email(order_pk, CONFIRM_ORDER_TEMPLATE)
     email_data.update({'context': {'order': order}})
+    _send_confirmation(**email_data)
+
+
+@shared_task
+def send_fulfillment_confirmation(order_pk, fulfillment_pk):
+    email_data = collect_data_for_email(order_pk, CONFIRM_FULFILLMENT_TEMPLATE)
+    fulfillment = Fulfillment.objects.get(pk=fulfillment_pk)
+    email_data.update({'context': {'fulfillment': fulfillment}})
     _send_confirmation(**email_data)
 
 
