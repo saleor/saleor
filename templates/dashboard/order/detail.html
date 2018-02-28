@@ -119,6 +119,8 @@
               <p>
                 {% if order.user %}
                   <a href="{% url "dashboard:customer-details" pk=order.user.pk %}">{{ order.user }}</a>
+                {% elif order.user_email %}
+                  {{ order.user_email }}
                 {% else %}
                   {% trans "Guest" context "Anonymous user account value" %}
                 {% endif %}
