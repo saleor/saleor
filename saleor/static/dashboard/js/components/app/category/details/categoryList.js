@@ -101,6 +101,9 @@ class BaseCategoryList extends Component {
       }),
     });
   };
+  handleRowClick = (id) => {
+    return () => this.props.history.push(`/categories/${id}`);
+  };
 
   render() {
     const {
@@ -112,15 +115,14 @@ class BaseCategoryList extends Component {
     const qs = parseQs(this.props.location.search.substr(1));
     return (
       <ListCard
-        addActionLabel={gettext('Add')}
         count={categories.totalCount}
-        displayLabel
+        displayLabel={true}
         firstCursor={firstCursor}
         handleAddAction={this.handleAddAction}
         handleChangePage={this.handleChangePage}
         handleChangeRowsPerPage={this.handleChangeRowsPerPage}
+        handleRowClick={this.handleRowClick}
         headers={tableHeaders}
-        href="/categories"
         label={label}
         lastCursor={lastCursor}
         list={categories.edges.map(edge => edge.node)}
