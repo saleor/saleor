@@ -21,7 +21,6 @@
     "classnames": "^2.2.5",
     "detect-passive-events": "^1.0.4",
     "dropzone": "^5.2.0",
-    "favicons-webpack-plugin": "^0.0.7",
     "jquery": "^3.1.1",
     "jquery.cookie": "^1.4.1",
     "lazysizes": "^4.0.1",
@@ -38,18 +37,17 @@
     "svg-injector-2": "^2.0.35"
   },
   "devDependencies": {
+    "@babel/core": "^7.0.0-beta.40",
+    "@babel/plugin-proposal-class-properties": "^7.0.0-beta.40",
+    "@babel/plugin-proposal-decorators": "^7.0.0-beta.40",
+    "@babel/plugin-proposal-object-rest-spread": "^7.0.0-beta.40",
+    "@babel/preset-es2015": "^7.0.0-beta.40",
+    "@babel/preset-react": "^7.0.0-beta.40",
+    "@babel/preset-stage-0": "^7.0.0-beta.40",
     "autoprefixer": "^7.1.4",
-    "babel-core": "^6.22.1",
-    "babel-es6-polyfill": "^1.1.0",
-    "babel-eslint": "^8.0.0",
-    "babel-loader": "^7.1.2",
-    "babel-plugin-transform-class-properties": "^6.22.0",
-    "babel-plugin-transform-decorators-legacy": "^1.3.4",
-    "babel-plugin-transform-object-rest-spread": "^6.22.0",
-    "babel-preset-es2015": "^6.22.0",
-    "babel-preset-react": "^6.22.0",
-    "babel-preset-stage-0": "^6.22.0",
-    "css-loader": "^0.28.7",
+    "babel-eslint": "^8.2.2",
+    "babel-loader": "^8.0.0-beta.2",
+    "css-loader": "^0.28.10",
     "eslint": "^4.6.1",
     "eslint-config-airbnb-base": "^12.1.0",
     "eslint-config-standard": "^10.2.1",
@@ -58,27 +56,28 @@
     "eslint-plugin-promise": "^3.4.0",
     "eslint-plugin-react": "^7.3.0",
     "eslint-plugin-standard": "^3.0.1",
-    "extract-text-webpack-plugin": "^3.0.0",
-    "file-loader": "^0.11.2",
+    "extract-text-webpack-plugin": "^4.0.0-beta.0",
+    "file-loader": "^1.1.10",
     "mjml": "^3.3.5",
     "node-sass": "^4.7.2",
     "postcss": "^6.0.11",
     "postcss-loader": "^2.0.6",
     "sass-loader": "^6.0.6",
-    "webpack": "^3.5.6",
+    "webpack": "^4.0.1",
     "webpack-bundle-tracker": "0.2.0",
-    "webpack-dev-server": "^2.7.1"
+    "webpack-cli": "^2.0.9",
+    "webpack-dev-server": "^3.1.0"
   },
   "babel": {
     "presets": [
-      "stage-0",
-      "es2015",
-      "react"
+      "@babel/preset-stage-0",
+      "@babel/preset-es2015",
+      "@babel/preset-react"
     ],
     "plugins": [
-      "transform-decorators-legacy",
-      "transform-class-properties",
-      "transform-object-rest-spread"
+      "@babel/plugin-proposal-class-properties",
+      "@babel/plugin-proposal-decorators",
+      "@babel/plugin-proposal-object-rest-spread"
     ]
   },
   "metadata": {
@@ -89,7 +88,7 @@
   "scripts": {
     "build-assets": "node ./node_modules/webpack/bin/webpack.js -p --progress",
     "heroku-postbuild": "npm run build-assets && npm run build-emails",
-    "start": "UV_THREADPOOL_SIZE=8 node ./node_modules/webpack/bin/webpack.js -d --watch --progress",
+    "start": "node ./node_modules/webpack/bin/webpack.js -d --watch --progress",
     "build-emails": "mkdir -p templates/templated_email/compiled/ && find templates -name \"*.mjml\" -not -path \"templates/templated_email/source/*partials/*\" -not -path \"templates/templated_email/source/*shared/*\" -exec ./node_modules/.bin/mjml -l skip {} -o templates/templated_email/compiled/ \\;"
   }
 }
