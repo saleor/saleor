@@ -35,6 +35,9 @@
 .navbar {
   padding: 0;
   @include media-breakpoint-down(sm) {
+    > .container-fluid {
+      padding: 0;
+    }
     svg {
       max-height: 30px;
       width: auto;
@@ -72,6 +75,8 @@
   }
   &__logo {
     padding: $global-padding * 2 0;
+    display: flex;
+    align-items: center;
     .menu-icon-mobile {
       position: relative;
       display: inline-block;
@@ -115,6 +120,7 @@
     @include media-breakpoint-down(sm) {
       position: fixed;
       top: 0;
+      left: 0;
       width: 100vw;
       background-color: $white;
       z-index: 4;
