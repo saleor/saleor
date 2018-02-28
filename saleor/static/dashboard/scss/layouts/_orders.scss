@@ -2,6 +2,9 @@
   .order-notes {
     .list-item {
       margin-bottom: 1rem;
+      p {
+        white-space: pre-wrap;
+      }
     }
   }
 }
