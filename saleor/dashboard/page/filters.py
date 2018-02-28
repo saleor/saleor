@@ -8,6 +8,7 @@ SORT_BY_FIELDS = {
     'title': pgettext_lazy('Page list sorting option', 'title'),
     'url': pgettext_lazy('Page list sorting option', 'url')}
 
+
 class PageFilter(SortedFilterSet):
     title = CharFilter(
         label=pgettext_lazy('Page list title filter label', 'Title'),
