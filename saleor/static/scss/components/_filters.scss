@@ -8,10 +8,13 @@
     padding: $global-padding;
     font-weight: bold;
     cursor: pointer;
+    display: flex;
+    align-items: center;
     .collapse-filters-icon {
-      float: right !important;
-      width: 20px;
-      height: 20px;
+      margin: 0 0 0 auto;
+      img {
+        width: 20px;
+      }
     }
   }
   ul {
