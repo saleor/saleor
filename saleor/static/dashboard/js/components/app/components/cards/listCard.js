@@ -6,6 +6,7 @@ import Typography from 'material-ui/Typography';
 import { withStyles } from 'material-ui/styles';
 
 import Table from '../table';
+import { gettext } from '../../i18n';
 
 const styles = {
   listCard: {
@@ -13,6 +14,9 @@ const styles = {
   },
   listCardActions: {
     paddingBottom: 0,
+  },
+  listCardAddActionButton: {
+    margin: '1rem 0',
   },
 };
 const ListCardComponent = (props) => {
@@ -25,8 +29,8 @@ const ListCardComponent = (props) => {
     handleAddAction,
     handleChangePage,
     handleChangeRowsPerPage,
+    handleRowClick,
     headers,
-    href,
     label,
     lastCursor,
     list,
@@ -45,7 +49,7 @@ const ListCardComponent = (props) => {
             <Button
               color="secondary"
               onClick={handleAddAction}
-              style={{ margin: '2rem 0 1rem' }}
+              className={classes.listCardAddActionButton}
             >
               {addActionLabel}
             </Button>
@@ -60,13 +64,13 @@ const ListCardComponent = (props) => {
             count={count}
             handleChangePage={handleChangePage(firstCursor, lastCursor)}
             handleChangeRowsPerPage={handleChangeRowsPerPage}
+            handleRowClick={handleRowClick}
             headers={headers}
-            href={href}
             list={list}
             noDataLabel={noDataLabel}
             page={page}
             rowsPerPage={rowsPerPage}
-            rowsPerPageOptions={[2, 5, 10]}
+            rowsPerPageOptions={[10, 30, 50]}
           />
         </CardContent>
       </div>
@@ -82,18 +86,22 @@ ListCardComponent.propTypes = {
   handleAddAction: PropTypes.func,
   handleChangePage: PropTypes.func,
   handleChangeRowsPerPage: PropTypes.func,
+  handleRowClick: PropTypes.func,
   headers: PropTypes.arrayOf(PropTypes.shape({
     name: PropTypes.string,
     label: PropTypes.string,
     wide: PropTypes.bool,
-  })),
-  href: PropTypes.string,
+  })).isRequired,
   label: PropTypes.string,
   lastCursor: PropTypes.string,
   list: PropTypes.array.isRequired,
   noDataLabel: PropTypes.string.isRequired,
   page: PropTypes.number,
   rowsPerPage: PropTypes.number,
+};
+ListCardComponent.defaultProps = {
+  addActionLabel: gettext('Add'),
+  displayLabel: false,
 };
 const ListCard = withStyles(styles)(ListCardComponent);
 
