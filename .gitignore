@@ -10,6 +10,7 @@
 !.gitignore
 !.nvmrc
 !.pylintrc
+!.storybook
 !.travis*
 !.tx
 *.css
