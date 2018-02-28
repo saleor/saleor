@@ -519,9 +519,10 @@ def test_render_product_page_with_no_variant(
 
 
 def test_include_products_from_subcategories_in_main_view(
-        default_category, product, authorized_client):
+        default_category, product_in_stock, authorized_client):
     subcategory = Category.objects.create(
         name='sub', slug='test', parent=default_category)
+    product = product_in_stock
     product.category = subcategory
     product.save()
     path = default_category.get_full_path()
