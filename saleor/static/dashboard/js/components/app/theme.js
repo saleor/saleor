@@ -11,11 +11,15 @@ export default createMuiTheme({
       main: '#26A5D4',
     },
   },
+  typography: {
+    htmlFontSize: 16,
+    fontFamily: 'Roboto, sans-serif',
+  },
   overrides: {
     MuiButton: {
       root: {
         fontWeight: 400,
-        fontSize: '1rem',
+        fontSize: '0.875rem',
       },
       raised: {
         color: '#ffffff !important',
@@ -23,14 +27,12 @@ export default createMuiTheme({
     },
     MuiTableCell: {
       root: {
-        paddingRight: '24px !important',
-        fontSize: '1rem !important',
+        paddingRight: '1.5rem !important',
         '&:first-child': {
           whiteSpace: 'nowrap',
         },
       },
       typeHead: {
-        fontSize: '.9rem !important',
         fontWeight: 400,
       },
     },
@@ -41,9 +43,19 @@ export default createMuiTheme({
         },
       },
     },
+    MuiInput: {
+      root: {
+        fontSize: '0.875rem',
+      },
+    },
+    MuiFormLabel: {
+      root: {
+        fontSize: '0.875rem',
+      },
+    },
     MuiPaper: {
       root: {
-        marginTop: '16px',
+        marginTop: '1rem',
       },
     },
     MuiCardActions: {
@@ -82,13 +94,13 @@ export default createMuiTheme({
     },
     MuiTypography: {
       display1: {
-        fontSize: 24,
+        fontSize: '1.5rem',
         marginBottom: '1rem',
         fontWeight: 300,
         color: '#000000',
       },
       title: {
-        fontSize: 16,
+        fontSize: '1rem',
         fontWeight: 400,
         marginBottom: '.75rem',
       },
