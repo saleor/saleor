@@ -1,11 +1,6 @@
 html {
   background: $body-bg;
-  @media only screen and (min-width: 0) {
-    font-size: 14px;
-  }
-  @media only screen and (min-width: $large-screen) {
-    font-size: 13px;
-  }
+  font-size: 16px;
 }
 
 strong {
