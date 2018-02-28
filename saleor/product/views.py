@@ -113,8 +113,10 @@ def category_index(request, path, category_id):
     if actual_path != path:
         return redirect('product:category', permanent=True, path=actual_path,
                         category_id=category_id)
+    # Check for subcategories
+    categories = category.get_descendants(include_self=True)
     products = products_with_details(user=request.user).filter(
-        category__id=category.id).order_by('name')
+        category__in=categories).order_by('name')
     product_filter = ProductCategoryFilter(
         request.GET, queryset=products, category=category)
     ctx = get_product_list_context(request, product_filter)
