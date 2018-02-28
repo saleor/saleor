@@ -16,22 +16,22 @@
 
 {% block breadcrumbs %}
  <ul class="breadcrumbs breadcrumbs--history">
-    <li>
-      <a href="{% url 'dashboard:page-list' %}" class="breadcrumbs">{% trans "Pages" %}</a>
-    </li>
-   <li class="back-mobile">
-     <a href="{% url "dashboard:page-list" %}" class="breadcrumb"><i class="material-icons">arrow_back</i></a>
+   <li>
+     <a href="{% url 'dashboard:page-list' %}" class="breadcrumbs">{% trans "Pages" %}</a>
    </li>
-  <li><span class="breadcrumbs--ellipsed-item">
-    {% if page.pk %}{{ page }}{% else %}{% trans 'Add new page' %}{% endif %}</span>
-  </li>
+   <li class="back-mobile">
+     <a href="{% url 'dashboard:page-list' %}" class="breadcrumb"><i class="material-icons">arrow_back</i></a>
+   </li>
+   <li><span class="breadcrumbs--ellipsed-item">
+     {% if page.pk %}{{ page }}{% else %}{% trans 'Add new page' %}{% endif %}</span>
+   </li>
   </ul>
 {% endblock %}
 
 {% block header_extra %}
   {% if page.pk %}
   <a class="dropdown-button right" href="#" data-activates="page-delete" data-constrainwidth="false">
-    <svg data-src="{% static "dashboard/images/more-vert.svg" %}" height="24" width="24" />
+    <svg data-src="{% static 'dashboard/images/more-vert.svg' %}" height="24" width="24" />
   </a>
   <ul id="page-delete" class="dropdown-content">
     <li>
@@ -39,7 +39,7 @@
         {% trans "Delete page" context "Page action" %}
       </a>
     </li>
-</ul>
+  </ul>
   {% endif %}
 {% endblock %}
 

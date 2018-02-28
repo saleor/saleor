@@ -19,5 +19,15 @@
 {% endblock breadcrumb %}
 
 {% block content %}
-<div class="">{{ page.content|safe }}</div>
+  {% if not is_visible %}
+    <div class="alert alert-warning" role="alert">
+      {% blocktrans trimmed with date=page.available_on|date context "Page details text" %}
+        <strong>Warning!</strong>
+        You are previewing a page that will become visible on <strong>{{ date }}</strong>.
+      {% endblocktrans %}
+    </div>
+  {% endif %}
+  <div class="">
+    {{ page.content|safe }}
+  </div>
 {% endblock %}
