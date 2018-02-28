@@ -127,12 +127,9 @@ class Order(models.Model):
     def is_pre_authorized(self):
         return self.payments.filter(status=PaymentStatus.PREAUTH).exists()
 
-    def is_unfulfilled(self):
-        return not self.fulfillments.filter(
-            status=FulfillmentStatus.FULFILLED).exists()
-
-    def is_fulfilled(self):
-        return all([line.is_fulfilled() for line in self])
+    @property
+    def quantity_fulfilled(self):
+        return sum([line.quantity_fulfilled for line in self])
 
     def is_shipping_required(self):
         return any(line.is_shipping_required for line in self)
