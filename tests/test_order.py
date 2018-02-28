@@ -9,7 +9,7 @@ from saleor.order.emails import collect_data_for_email
 from saleor.order.forms import OrderNoteForm
 from saleor.order.utils import (
     add_variant_to_order, cancel_fulfillment, cancel_order, recalculate_order,
-    restock_fulfillment_lines, restock_order_lines)
+    restock_fulfillment_lines, restock_order_lines, update_order_status)
 
 
 def test_total_setter():
@@ -218,4 +218,19 @@ def test_cancel_fulfillment(fulfilled_order):
     fulfillment = fulfilled_order.fulfillments.first()
     cancel_fulfillment(fulfillment, restock=False)
     assert fulfillment.status == FulfillmentStatus.CANCELED
+    assert fulfilled_order.status == OrderStatus.UNFULFILLED
+
+
+def test_update_order_status(fulfilled_order):
+    fulfillment = fulfilled_order.fulfillments.first()
+
+    fulfillment.lines.first().delete()
+    update_order_status(fulfilled_order)
+
+    assert fulfilled_order.status == OrderStatus.PARTIALLY_FULFILLED
+
+    fulfillment.status = FulfillmentStatus.CANCELED
+    fulfillment.save()
+    update_order_status(fulfilled_order)
+
     assert fulfilled_order.status == OrderStatus.UNFULFILLED
