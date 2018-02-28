@@ -15,7 +15,7 @@ from prices import Money, TaxedMoney
 from ...core.exceptions import InsufficientStock
 from ...core.utils import ZERO_TAXED_MONEY, get_paginator_items
 from ...order import OrderStatus
-from ...order.emails import send_fulfillment_confirmation
+from ...order.emails import send_fulfillment_confirmation, send_fulfillment_update
 from ...order.models import (
     FulfillmentLine, Fulfillment, Order, OrderLine, OrderNote)
 from ...order.utils import update_order_status
@@ -498,6 +498,13 @@ def change_fulfillment_tracking(request, order_pk, fulfillment_pk):
                 'Fulfillment #%(fulfillment)s tracking number removed') % {
                     'fulfillment': fulfillment.composed_id}
         order.history.create(content=msg, user=request.user)
+        if form.cleaned_data.get('send_mail'):
+            send_fulfillment_update.delay(order.pk, fulfillment.pk)
+            send_mail_msg = pgettext_lazy(
+                'Dashboard message related to an order',
+                'Shipping update email was sent to user (%(email)s)') % {
+                    'email': order.get_user_current_email()}
+            order.history.create(content=send_mail_msg, user=request.user)
         messages.success(request, msg)
         return redirect('dashboard:order-details', order_pk=order.pk)
     elif form.errors:

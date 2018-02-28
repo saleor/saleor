@@ -228,6 +228,12 @@ class CancelFulfillmentForm(forms.Form):
 
 
 class FulfillmentTrackingNumberForm(forms.ModelForm):
+    """Update tracking number in fulfillment group."""
+    send_mail = forms.BooleanField(
+        initial=True, required=False, label=pgettext_lazy(
+            'Send mail to customer',
+            'Send notification email to customer'))
+
     class Meta:
         model = Fulfillment
         fields = ['tracking_number']
