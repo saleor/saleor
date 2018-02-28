@@ -13,13 +13,13 @@
 {% block breadcrumbs %}
   <ul class="breadcrumbs breadcrumbs--history">
     <li>
-      <a href="{% url "dashboard:page-list" %}" class="breadcrumb">
+      <a href="{% url 'dashboard:page-list' %}" class="breadcrumb">
         {% trans "Pages" context "Pages form breadcrumbs" %}
       </a>
     </li>
     <li class="back-mobile">
-      <a href="{% url "dashboard:page-list" %}">
-        <svg data-src="{% static "dashboard/images/arrow-left.svg" %}" fill="#fff" width="20px" height="20px" />
+      <a href="{% url 'dashboard:page-list' %}">
+        <svg data-src="{% static 'dashboard/images/arrow-left.svg' %}" fill="#fff" width="20px" height="20px" />
       </a>
     </li>
     <li>
@@ -48,7 +48,7 @@
           </div>
         </div>
         <div class="card-action">
-          {% if perms.site.edit_settings %}
+          {% if perms.page.edit_page %}
             <a href="{% url "dashboard:page-update" page.pk %}" class="btn-flat waves-effect">
               {% trans "Edit page" context "Page action" %}
             </a>

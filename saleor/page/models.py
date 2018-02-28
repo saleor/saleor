@@ -4,6 +4,7 @@ from django.core.validators import validate_slug
 from django.db import models
 from django.db.models import Q
 from django.urls import reverse
+from django.utils.translation import pgettext_lazy
 
 
 class PageQuerySet(models.QuerySet):
@@ -27,6 +28,11 @@ class Page(models.Model):
 
     class Meta:
         ordering = ('url',)
+        permissions = (
+            ('view_page',
+             pgettext_lazy('Permission description', 'Can view pages')),
+            ('edit_page',
+             pgettext_lazy('Permission description', 'Can edit pages')))
 
     def __str__(self):
         return self.title

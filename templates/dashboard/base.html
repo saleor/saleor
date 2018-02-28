@@ -236,7 +236,7 @@
                       </a>
                     </li>
                   {% endif %}
-                  {% if perms.site.view_settings %}
+                  {% if perms.page.view_page %}
                     <li class="{% block menu_pages_class %}{% endblock %}">
                       <a href="{% url 'dashboard:page-list' %}">
                         {% trans "Pages" context "Dashboard static pages" %}
