@@ -40,6 +40,9 @@
 
                   {% trans "URL" context "Static pages table header url" as label %}
                   {% sorting_header 'url' label is_wide=True %}
+                  <th>
+                      {% trans "Status" context "Pages table header" %}
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -49,7 +52,19 @@
                       {{ page.title }}
                     </td>
                     <td>
-                        {{ page.get_absolute_url }}
+                      {{ page.get_absolute_url }}
+                    </td>
+                    <td>
+                      {% page_published page=page as is_published %}
+                      {% if is_published %}
+                        <div>
+                          PUBLISHED
+                        </div>
+                      {% else %}
+                        <div>
+                          HIDDEN
+                        </div>
+                      {% endif %}
                     </td>
                   </tr>
                 {% endfor %}

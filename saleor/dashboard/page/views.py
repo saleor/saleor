@@ -20,7 +20,8 @@ def page_list(request):
     pages = get_paginator_items(
         pages_filter.qs, settings.DASHBOARD_PAGINATE_BY,
         request.GET.get('page'))
-    ctx = {'pages': pages, 'filter_set': pages_filter,
+    ctx = {
+        'pages': pages, 'filter_set': pages_filter,
         'is_empty': not pages_filter.queryset.exists()}
     return TemplateResponse(request, 'dashboard/page/list.html', ctx)
 
