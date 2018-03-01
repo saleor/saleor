@@ -322,29 +322,32 @@ def get_product_costs_data(product):
         return purchase_costs_range, gross_margin
 
     variants = product.variants.all()
-    costs, margins = get_cost_data_from_variants(variants)
+    costs_data = get_cost_data_from_variants(variants)
 
-    if costs:
-        purchase_costs_range = TaxedMoneyRange(min(costs), max(costs))
-    if margins:
-        gross_margin = (margins[0], margins[-1])
+    if costs_data.costs:
+        purchase_costs_range = TaxedMoneyRange(
+            min(costs_data.costs), max(costs_data.costs))
+    if costs_data.margins:
+        gross_margin = (costs_data.margins[0], costs_data.margins[-1])
     return purchase_costs_range, gross_margin
 
 
-def sort_cost_data(costs, margins):
-    costs = sorted(costs, key=lambda x: x.gross)
-    margins = sorted(margins)
-    return costs, margins
+class CostsData:
+    __slots__ = ('costs', 'margins')
 
+    def __init__(self, costs, margins):
+        self.costs = sorted(costs, key=lambda x: x.gross)
+        self.margins = sorted(margins)
+        
 
 def get_cost_data_from_variants(variants):
     costs = []
     margins = []
     for variant in variants:
         costs_data = get_variant_costs_data(variant)
-        costs += costs_data['costs']
-        margins += costs_data['margins']
-    return sort_cost_data(costs, margins)
+        costs += costs_data.costs
+        margins += costs_data.margins
+    return CostsData(costs, margins)
 
 
 def get_variant_costs_data(variant):
@@ -355,9 +358,7 @@ def get_variant_costs_data(variant):
         margin = get_margin_for_variant(stock)
         if margin:
             margins.append(margin)
-    costs = sorted(costs, key=lambda x: x.gross)
-    margins = sorted(margins)
-    return {'costs': costs, 'margins': margins}
+    return CostsData(costs, margins)
 
 
 def get_cost_price(stock):
