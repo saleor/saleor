@@ -80,6 +80,7 @@ STATIC_ROOT = os.path.join(PROJECT_ROOT, 'static')
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [
     ('assets', os.path.join(PROJECT_ROOT, 'saleor', 'static', 'assets')),
+    ('favicons', os.path.join(PROJECT_ROOT, 'saleor', 'static', 'favicons')),
     ('images', os.path.join(PROJECT_ROOT, 'saleor', 'static', 'images')),
     ('dashboard', os.path.join(PROJECT_ROOT, 'saleor', 'static', 'dashboard'))]
 STATICFILES_FINDERS = [
@@ -356,12 +357,7 @@ if ES_URL:
             'hosts': ES_URL}}
 
 
-GRAPHENE = {
-    'MIDDLEWARE': [
-        'graphene_django.debug.DjangoDebugMiddleware'],
-    'SCHEMA': 'saleor.graphql.api.schema',
-    'SCHEMA_OUTPUT': os.path.join(
-        PROJECT_ROOT, 'saleor', 'static', 'schema.json')}
+GRAPHENE = {'MIDDLEWARE': ['graphene_django.debug.DjangoDebugMiddleware']}
 
 AUTHENTICATION_BACKENDS = [
     'saleor.account.backends.facebook.CustomFacebookOAuth2',

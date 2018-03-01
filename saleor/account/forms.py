@@ -70,6 +70,11 @@ class LoginForm(django_forms.AuthenticationForm):
 class SignupForm(forms.ModelForm):
     password = forms.CharField(
         widget=forms.PasswordInput)
+    email = forms.EmailField(
+        error_messages={
+            'unique': pgettext_lazy(
+                'Registration error',
+                'This email has already been registered.')})
 
     class Meta:
         model = User

@@ -1,34 +1,44 @@
 import graphene
-from graphene import relay
 from graphene_django.debug import DjangoDebug
+from graphene_django.filter import DjangoFilterConnectionField
 
+from .core.filters import DistinctFilterSet
+from .product.filters import ProductFilterSet
 from .product.types import (
-    CategoryType, ProductAttributeType, resolve_attributes, resolve_category)
+    Category, ProductAttribute, Product, resolve_attributes, resolve_products,
+    resolve_categories)
+from .utils import get_node
 
 
 class Query(graphene.ObjectType):
-    attributes = graphene.List(
-        ProductAttributeType,
-        category_pk=graphene.Argument(graphene.Int, required=False))
-    category = graphene.Field(
-        CategoryType,
-        pk=graphene.Argument(graphene.Int, required=True))
-    node = relay.Node.Field()
-    root = graphene.Field(lambda: Query)
-    debug = graphene.Field(DjangoDebug, name='_debug')
+    attributes = DjangoFilterConnectionField(
+        ProductAttribute,
+        filterset_class=DistinctFilterSet,
+        in_category=graphene.Argument(graphene.ID))
+    categories = DjangoFilterConnectionField(
+        Category, filterset_class=DistinctFilterSet,
+        level=graphene.Argument(graphene.Int))
+    category = graphene.Field(Category, id=graphene.Argument(graphene.ID))
+    product = graphene.Field(Product, id=graphene.Argument(graphene.ID))
+    products = DjangoFilterConnectionField(
+        Product, filterset_class=ProductFilterSet)
+    node = graphene.Node.Field()
+    debug = graphene.Field(DjangoDebug, name='__debug')
 
-    def resolve_category(self, info, **args):
-        pk = args.get('pk')
-        return resolve_category(pk, info)
+    def resolve_category(self, info, id):
+        return get_node(info, id, only_type=Category)
 
-    def resolve_attributes(self, info, **args):
-        category_pk = args.get('category_pk')
-        return resolve_attributes(category_pk)
+    def resolve_categories(self, info, level=None, **kwargs):
+        return resolve_categories(info, level)
 
-    def resolve_root(self, info):
-        # Re-expose the root query object. Workaround for the issue in Relay:
-        # https://github.com/facebook/relay/issues/112
-        return Query()
+    def resolve_product(self, info, id):
+        return get_node(info, id, only_type=Product)
+
+    def resolve_products(self, info, **kwargs):
+        return resolve_products(info)
+
+    def resolve_attributes(self, info, in_category=None, **kwargs):
+        return resolve_attributes(in_category, info)
 
 
 schema = graphene.Schema(Query)

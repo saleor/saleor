@@ -1,10 +1,12 @@
 from decimal import Decimal
+from unittest.mock import Mock, patch
 
 from django.urls import reverse
 from prices import Price
 from tests.utils import get_redirect_location
 
 from saleor.order import OrderStatus, models
+from saleor.order.emails import collect_data_for_email
 from saleor.order.forms import OrderNoteForm
 from saleor.order.utils import add_variant_to_delivery_group
 
@@ -96,13 +98,13 @@ def test_order_status_closed(closed_orders):
     assert all([order.status == OrderStatus.CLOSED for order in closed_orders])
 
 
-def test_order_queryset_open_orders(open_orders, closed_orders):
+def test_order_queryset_open_orders(open_orders):
     qs = models.Order.objects.open()
     assert qs.count() == len(open_orders)
     assert all([item in qs for item in open_orders])
 
 
-def test_order_queryset_closed_orders(open_orders, closed_orders):
+def test_order_queryset_closed_orders(closed_orders):
     qs = models.Order.objects.closed()
     assert qs.count() == len(closed_orders)
     assert all([item in qs for item in closed_orders])
@@ -147,7 +149,7 @@ def test_add_note_to_order(order_with_lines_and_stock):
 
 def test_create_order_history(order_with_lines):
     order = order_with_lines
-    order.create_history_entry(content='test_entry')
+    order.history.create(content='test_entry', user=order.user)
     history_entry = models.OrderHistoryEntry.objects.get(order=order)
     assert history_entry == order.history.first()
     assert history_entry.content == 'test_entry'
@@ -178,3 +180,12 @@ def test_delivery_group_is_shipping_required_partially_required(
         unit_price_net=Decimal('30.00'),
         unit_price_gross=Decimal('30.00'))
     assert delivery_group.is_shipping_required()
+
+
+def test_collect_data_for_email(order):
+    template = Mock(spec=str)
+    order.user_mail = 'test@example.com'
+    email_data = collect_data_for_email(order.pk, template)
+    order_url = reverse('order:details', kwargs={'token': order.token})
+    assert order_url in email_data['url']
+    assert email_data['email'] == order.user_email
