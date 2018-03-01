@@ -154,5 +154,6 @@ def sorting_header(context, field, label, is_wide=False):
 @register.simple_tag
 def page_published(page):
     today = datetime.date.today()
-    return page.is_visible and \
-        (page.available_on is None or page.available_on <= today)
+    return (
+        page.is_visible
+        and (page.available_on is None or page.available_on <= today))
