@@ -475,16 +475,16 @@ def variant_details(request, product_pk, variant_pk):
     stock = variant.stock.all()
     images = variant.images.all()
     costs_data = get_variant_costs_data(variant)
-    if costs_data['costs']:
+    if costs_data.costs:
         costs = {
-            'min': costs_data['costs'][0],
-            'max': costs_data['costs'][-1]}
+            'min': costs_data.costs[0],
+            'max': costs_data.costs[-1]}
     else:
         costs = {}
 
     ctx = {
         'images': images, 'product': product, 'stock': stock,
-        'variant': variant, 'costs': costs, 'margins': costs_data['margins'],
+        'variant': variant, 'costs': costs, 'margins': costs_data.margins,
         'is_empty': not stock.exists()}
     return TemplateResponse(
         request,
