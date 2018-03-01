@@ -3,6 +3,7 @@
 {% load mptt_tags %}
 {% load materializecss %}
 {% load staticfiles %}
+{% load status %}
 {% load utils %}
 
 {% block title %}{% trans "Pages" context "Pages list page title" %} -
@@ -37,15 +38,7 @@
     <div class="col s12 l9">
       <div class="card">
         <div class="card-content">
-            {% page_published page=page as is_published %}
-            {% if is_published %}
-              <span class="right label label-success">PUBLISHED</span>
-            {% else %}
-              <div class="right align label">
-                HIDDEN<br>
-                WILL BE AVAILABLE AT {{ page.available_on }}
-              </div>
-            {% endif %}
+          <span class="right">{% render_page_availability page %}</span>
           <span class="card-title">{{ page }}<br></span>
             <h4>
               {% trans "Page URL" context "Page field" %}
@@ -54,7 +47,7 @@
         </div>
         <div class="card-action">
           {% if perms.page.edit_page %}
-            <a href="{% url "dashboard:page-update" page.pk %}" class="btn-flat waves-effect">
+            <a href="{% url 'dashboard:page-update' page.pk %}" class="btn-flat waves-effect">
               {% trans "Edit page" context "Page action" %}
             </a>
             <a href="#base-modal" data-href="{% url 'dashboard:page-delete' pk=page.pk %}" class="modal-trigger-custom btn-flat waves-effect">

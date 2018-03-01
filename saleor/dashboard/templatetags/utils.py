@@ -1,6 +1,5 @@
 from __future__ import unicode_literals
 
-import datetime
 from json import dumps
 from urllib.parse import urlencode
 
@@ -149,11 +148,3 @@ def sorting_header(context, field, label, is_wide=False):
         'url': '%s?%s' % (request.path, request_get.urlencode()),
         'is_active': is_active, 'sorting_icon': sorting_icon, 'label': label,
         'is_wide': is_wide}
-
-
-@register.simple_tag
-def page_published(page):
-    today = datetime.date.today()
-    return (
-        page.is_visible
-        and (page.available_on is None or page.available_on <= today))
