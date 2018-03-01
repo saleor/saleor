@@ -4,7 +4,7 @@ import Grid from 'material-ui/Grid';
 
 import Details from './details';
 import { CategoryList, RootCategoryList } from './categoryList';
-import { screenSizes } from '../../../misc';
+import { screenSizes } from '../../misc';
 import { SwapChildrenRWD } from '../../components/utils';
 
 

@@ -35,7 +35,7 @@ const store = createStore(() => {});
 render(
   <Provider store={store}>
     <ApolloProvider client={apolloClient}>
-      <BrowserRouter basename="/dashboard">
+      <BrowserRouter basename="/dashboard/next/">
         <MuiThemeProvider theme={theme}>
           <Reboot />
           <Switch>
