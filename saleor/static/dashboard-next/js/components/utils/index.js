@@ -1,3 +1,3 @@
-import SwapChildrenRWD from './swapChildrenRWD';
+import SwapChildrenRWD from "./swapChildrenRWD";
 
 export { SwapChildrenRWD };

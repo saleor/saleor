@@ -1,51 +1,51 @@
-import React, { Component } from 'react';
-import PropTypes from 'prop-types';
-import { graphql } from 'react-apollo';
-import { parse as parseQs } from 'qs';
-import { withRouter } from 'react-router-dom';
+import React, { Component } from "react";
+import PropTypes from "prop-types";
+import { graphql } from "react-apollo";
+import { parse as parseQs } from "qs";
+import { withRouter } from "react-router-dom";
 
-import { ListCard } from '../../components/cards';
-import { categoryChildren, rootCategoryChildren } from '../queries';
-import { createQueryString } from '../../misc';
+import { ListCard } from "../../components/cards";
+import { categoryChildren, rootCategoryChildren } from "../queries";
+import { createQueryString } from "../../misc";
 
 const tableHeaders = [
   {
-    label: pgettext('Category list table header name', 'Name'),
-    name: 'name',
+    label: pgettext("Category list table header name", "Name"),
+    name: "name"
   },
   {
-    label: pgettext('Category list table header description', 'Description'),
-    name: 'description',
-    wide: true,
-  },
+    label: pgettext("Category list table header description", "Description"),
+    name: "description",
+    wide: true
+  }
 ];
 const PAGINATE_BY = 5;
 
 const feederOptions = {
-  options: (props) => {
+  options: props => {
     const options = {
       variables: {
-        id: props.categoryId,
+        id: props.categoryId
       },
-      fetchPolicy: 'network-only',
+      fetchPolicy: "network-only"
     };
     const qs = parseQs(props.location.search.substr(1));
     let variables;
     switch (qs.action) {
-      case 'prev':
+      case "prev":
         variables = {
           after: null,
           before: qs.firstCursor,
           first: null,
-          last: parseInt(qs.rowsPerPage, 10) || PAGINATE_BY,
+          last: parseInt(qs.rowsPerPage, 10) || PAGINATE_BY
         };
         break;
-      case 'next':
+      case "next":
         variables = {
           after: qs.lastCursor,
           before: null,
           first: parseInt(qs.rowsPerPage, 10) || PAGINATE_BY,
-          last: null,
+          last: null
         };
         break;
       default:
@@ -53,13 +53,13 @@ const feederOptions = {
           after: qs.lastCursor,
           before: null,
           first: parseInt(qs.rowsPerPage, 10) || PAGINATE_BY,
-          last: null,
+          last: null
         };
         break;
     }
     options.variables = Object.assign({}, options.variables, variables);
     return options;
-  },
+  }
 };
 const categoryListFeeder = graphql(categoryChildren, feederOptions);
 const rootCategoryListFeeder = graphql(rootCategoryChildren, feederOptions);
@@ -68,50 +68,51 @@ class BaseCategoryList extends Component {
   static propTypes = {
     categories: PropTypes.shape({
       edges: PropTypes.array,
-      totalCount: PropTypes.number,
+      totalCount: PropTypes.number
     }).isRequired,
     history: PropTypes.object,
     location: PropTypes.object,
-    label: PropTypes.string.isRequired,
+    label: PropTypes.string.isRequired
   };
 
   handleAddAction = () => {
-    this.props.history.push('add');
+    this.props.history.push("add");
   };
   handleChangePage = (firstCursor, lastCursor) => (event, currentPage) => {
-    const prevPage = parseQs(this.props.location.search.substr(1)).currentPage || 0;
-    const action = (parseInt(prevPage, 10) < parseInt(currentPage, 10)) ? 'next' : 'prev';
+    const prevPage =
+      parseQs(this.props.location.search.substr(1)).currentPage || 0;
+    const action =
+      parseInt(prevPage, 10) < parseInt(currentPage, 10) ? "next" : "prev";
     this.props.history.push({
       search: createQueryString(this.props.location.search, {
         action,
         currentPage,
         firstCursor,
-        lastCursor,
-      }),
+        lastCursor
+      })
     });
   };
-  handleChangeRowsPerPage = (event) => {
+  handleChangeRowsPerPage = event => {
     this.props.history.push({
       search: createQueryString(this.props.location.search, {
-        action: 'next',
+        action: "next",
         currentPage: 0,
         firstCursor: null,
         lastCursor: null,
-        rowsPerPage: event.target.value,
-      }),
+        rowsPerPage: event.target.value
+      })
     });
   };
-  handleRowClick = (id) => {
+  handleRowClick = id => {
     return () => this.props.history.push(`/categories/${id}/`);
   };
 
   render() {
-    const {
-      label,
-      categories,
-    } = this.props;
-    const firstCursor = categories.edges.length > 0 ? categories.edges[0].cursor : '';
-    const lastCursor = categories.edges.length > 0 ? categories.edges.slice(-1)[0].cursor : '';
+    const { label, categories } = this.props;
+    const firstCursor =
+      categories.edges.length > 0 ? categories.edges[0].cursor : "";
+    const lastCursor =
+      categories.edges.length > 0 ? categories.edges.slice(-1)[0].cursor : "";
     const qs = parseQs(this.props.location.search.substr(1));
     return (
       <ListCard
@@ -126,7 +127,10 @@ class BaseCategoryList extends Component {
         label={label}
         lastCursor={lastCursor}
         list={categories.edges.map(edge => edge.node)}
-        noDataLabel={pgettext('Empty category list message', 'No categories found.')}
+        noDataLabel={pgettext(
+          "Empty category list message",
+          "No categories found."
+        )}
         page={parseInt(qs.currentPage, 10) || 0}
         rowsPerPage={parseInt(qs.rowsPerPage, 10) || PAGINATE_BY}
       />
@@ -134,7 +138,7 @@ class BaseCategoryList extends Component {
   }
 }
 
-const CategoryListComponent = (props) => {
+const CategoryListComponent = props => {
   const { data } = props;
   const categories = data.category ? data.category.children : [];
   return (
@@ -145,7 +149,7 @@ const CategoryListComponent = (props) => {
         <BaseCategoryList
           categories={categories}
           history={props.history}
-          label={pgettext('Title of the subcategories list', 'Subcategories')}
+          label={pgettext("Title of the subcategories list", "Subcategories")}
           location={props.location}
         />
       )}
@@ -158,16 +162,16 @@ CategoryListComponent.propTypes = {
     category: PropTypes.shape({
       children: PropTypes.shape({
         edges: PropTypes.array,
-        totalCount: PropTypes.number,
-      }),
-    }),
+        totalCount: PropTypes.number
+      })
+    })
   }),
   history: PropTypes.object,
-  location: PropTypes.object,
+  location: PropTypes.object
 };
 const CategoryList = withRouter(categoryListFeeder(CategoryListComponent));
 
-const RootCategoryListComponent = (props) => {
+const RootCategoryListComponent = props => {
   const { data } = props;
   const categories = data.categories || [];
   return (
@@ -178,7 +182,7 @@ const RootCategoryListComponent = (props) => {
         <BaseCategoryList
           categories={categories}
           history={props.history}
-          label={pgettext('Title of the categories list', 'Categories')}
+          label={pgettext("Title of the categories list", "Categories")}
           location={props.location}
         />
       )}
@@ -190,15 +194,14 @@ RootCategoryListComponent.propTypes = {
     loading: PropTypes.bool,
     categories: PropTypes.shape({
       edges: PropTypes.array,
-      totalCount: PropTypes.number,
-    }),
+      totalCount: PropTypes.number
+    })
   }),
   history: PropTypes.object,
-  location: PropTypes.object,
+  location: PropTypes.object
 };
-const RootCategoryList = withRouter(rootCategoryListFeeder(RootCategoryListComponent));
+const RootCategoryList = withRouter(
+  rootCategoryListFeeder(RootCategoryListComponent)
+);
 
-export {
-  CategoryList,
-  RootCategoryList,
-};
+export { CategoryList, RootCategoryList };

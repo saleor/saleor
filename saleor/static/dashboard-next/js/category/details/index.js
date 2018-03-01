@@ -1,15 +1,14 @@
-import React from 'react';
-import PropTypes from 'prop-types';
-import Grid from 'material-ui/Grid';
+import React from "react";
+import PropTypes from "prop-types";
+import Grid from "material-ui/Grid";
 
-import Details from './details';
-import { CategoryList, RootCategoryList } from './categoryList';
-import { screenSizes } from '../../misc';
-import { SwapChildrenRWD } from '../../components/utils';
-
+import Details from "./details";
+import { CategoryList, RootCategoryList } from "./categoryList";
+import { screenSizes } from "../../misc";
+import { SwapChildrenRWD } from "../../components/utils";
 
 // TODO: Plug-in filters
-const CategoryDetails = (props) => {
+const CategoryDetails = props => {
   const categoryId = props.match.params.id;
 
   return (
@@ -33,7 +32,7 @@ const CategoryDetails = (props) => {
 };
 CategoryDetails.propTypes = {
   id: PropTypes.string,
-  match: PropTypes.object,
+  match: PropTypes.object
 };
 
 export default CategoryDetails;

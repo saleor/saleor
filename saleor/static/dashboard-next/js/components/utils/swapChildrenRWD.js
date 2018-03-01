@@ -1,16 +1,16 @@
-import React, { Component, Fragment } from 'react';
-import PropTypes from 'prop-types';
-import _ from 'lodash';
+import React, { Component, Fragment } from "react";
+import PropTypes from "prop-types";
+import _ from "lodash";
 
 class SwapChildrenRWD extends Component {
   static propTypes = {
     children: PropTypes.object,
     down: PropTypes.number,
-    up: PropTypes.number,
+    up: PropTypes.number
   };
   static defaultProps = {
     down: Infinity,
-    up: 0,
+    up: 0
   };
 
   constructor(props) {
@@ -31,22 +31,20 @@ class SwapChildrenRWD extends Component {
   }
 
   componentDidMount() {
-    window.addEventListener('resize', this.updateDimensions);
+    window.addEventListener("resize", this.updateDimensions);
   }
 
   componentWillUnmount() {
-    window.removeEventListener('resize', this.updateDimensions);
+    window.removeEventListener("resize", this.updateDimensions);
   }
 
   render() {
     // This is kind of a hack - Array.prototype.reverse() operates on variable state instead of copying it.
     // So, since this.props is read-only, we need to manually copy and reverse Array.
-    const children = this.state.order ? [].concat(this.props.children).reverse() : this.props.children;
-    return (
-      <Fragment>
-        {children}
-      </Fragment>
-    );
+    const children = this.state.order
+      ? [].concat(this.props.children).reverse()
+      : this.props.children;
+    return <Fragment>{children}</Fragment>;
   }
 }
 

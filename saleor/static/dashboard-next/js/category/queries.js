@@ -1,7 +1,13 @@
-import gql from 'graphql-tag';
+import gql from "graphql-tag";
 
 const categoryChildren = gql`
-  query CategoryChildren ($id: ID!, $first: Int, $after: String, $last: Int, $before: String) {
+  query CategoryChildren(
+    $id: ID!
+    $first: Int
+    $after: String
+    $last: Int
+    $before: String
+  ) {
     category(id: $id) {
       id
       children(first: $first, after: $after, last: $last, before: $before) {
@@ -34,8 +40,19 @@ const categoryDetails = gql`
   }
 `;
 const rootCategoryChildren = gql`
-  query RootCategoryChildren($first: Int, $after: String, $last: Int, $before: String) {
-    categories(level: 0, first: $first, after: $after, last: $last, before: $before) {
+  query RootCategoryChildren(
+    $first: Int
+    $after: String
+    $last: Int
+    $before: String
+  ) {
+    categories(
+      level: 0
+      first: $first
+      after: $after
+      last: $last
+      before: $before
+    ) {
       totalCount
       edges {
         cursor
@@ -49,8 +66,4 @@ const rootCategoryChildren = gql`
   }
 `;
 
-export {
-  categoryChildren,
-  categoryDetails,
-  rootCategoryChildren,
-};
+export { categoryChildren, categoryDetails, rootCategoryChildren };
