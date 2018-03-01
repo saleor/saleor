@@ -1,9 +1,5 @@
-import DescriptionCard from './descriptionCard';
-import FilterCard from './filterCard';
-import ListCard from './listCard';
+import DescriptionCard from "./descriptionCard";
+import FilterCard from "./filterCard";
+import ListCard from "./listCard";
 
-export {
-  DescriptionCard,
-  FilterCard,
-  ListCard,
-};
+export { DescriptionCard, FilterCard, ListCard };

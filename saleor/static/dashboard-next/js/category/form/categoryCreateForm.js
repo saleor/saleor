@@ -1,11 +1,11 @@
-import React, { Component } from 'react';
-import Grid from 'material-ui/Grid';
-import PropTypes from 'prop-types';
-import { graphql } from 'react-apollo';
-import { withRouter } from 'react-router-dom';
+import React, { Component } from "react";
+import Grid from "material-ui/Grid";
+import PropTypes from "prop-types";
+import { graphql } from "react-apollo";
+import { withRouter } from "react-router-dom";
 
-import BaseCategoryForm from './base';
-import { categoryCreate } from '../mutations';
+import BaseCategoryForm from "./base";
+import { categoryCreate } from "../mutations";
 
 @withRouter
 @graphql(categoryCreate)
@@ -13,7 +13,7 @@ class CategoryCreateForm extends Component {
   static propTypes = {
     history: PropTypes.object,
     match: PropTypes.object,
-    mutate: PropTypes.func,
+    mutate: PropTypes.func
   };
 
   constructor(props) {
@@ -23,13 +23,18 @@ class CategoryCreateForm extends Component {
 
   handleConfirm(formData) {
     return () => {
-      this.props.mutate({
-        variables: {
-          ...formData,
-          parentId: this.props.match.params.id,
-        },
-      })
-        .then(({ data }) => this.props.history.replace(`/categories/${data.categoryCreate.category.id}/`));
+      this.props
+        .mutate({
+          variables: {
+            ...formData,
+            parentId: this.props.match.params.id
+          }
+        })
+        .then(({ data }) =>
+          this.props.history.replace(
+            `/categories/${data.categoryCreate.category.id}/`
+          )
+        );
     };
   }
 
@@ -38,11 +43,11 @@ class CategoryCreateForm extends Component {
       <Grid container spacing={16}>
         <Grid item xs={12} md={9}>
           <BaseCategoryForm
-            title={pgettext('Add category form card title', 'Add category')}
+            title={pgettext("Add category form card title", "Add category")}
             name=""
             description=""
             handleConfirm={this.handleConfirm}
-            confirmButtonLabel={pgettext('Dashboard create action', 'Add')}
+            confirmButtonLabel={pgettext("Dashboard create action", "Add")}
           />
         </Grid>
       </Grid>
