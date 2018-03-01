@@ -1,34 +1,34 @@
-import React, { Fragment } from 'react';
-import Button from 'material-ui/Button';
-import Modal from 'material-ui/Modal';
-import Typography from 'material-ui/Typography';
-import Card, { CardContent, CardActions } from 'material-ui/Card';
-import { withStyles } from 'material-ui/styles';
+import React, { Fragment } from "react";
+import Button from "material-ui/Button";
+import Modal from "material-ui/Modal";
+import Typography from "material-ui/Typography";
+import Card, { CardContent, CardActions } from "material-ui/Card";
+import { withStyles } from "material-ui/styles";
 
-import { pgettext } from '../i18n';
+import { pgettext } from "../i18n";
 
 const styles = theme => ({
   card: {
-    outline: 'none',
-    top: '40%',
-    left: 'calc(50% - 17rem)',
-    position: 'absolute',
-    width: '35rem',
-    fontSize: theme.typography.body1.fontSize,
+    outline: "none",
+    top: "40%",
+    left: "calc(50% - 17rem)",
+    position: "absolute",
+    width: "35rem",
+    fontSize: theme.typography.body1.fontSize
   },
   cardActions: {
     margin: 0,
-    flexDirection: 'row-reverse',
+    flexDirection: "row-reverse"
   },
   title: {
     marginBottom: theme.spacing.unit * 4,
-    textTransform: 'uppercase',
+    textTransform: "uppercase"
   },
   button: {
-    marginLeft: theme.spacing.unit / 2,
-  },
+    marginLeft: theme.spacing.unit / 2
+  }
 });
-const ConfirmRemoval = withStyles(styles)((props) => {
+const ConfirmRemoval = withStyles(styles)(props => {
   const {
     title,
     children,
@@ -42,15 +42,10 @@ const ConfirmRemoval = withStyles(styles)((props) => {
     <Modal open={opened} {...modalProps}>
       <Card className={classes.card}>
         <CardContent>
-          <Typography
-            variant="title"
-            className={classes.title}
-          >
+          <Typography variant="title" className={classes.title}>
             {title}
           </Typography>
-          <Fragment>
-            {children}
-          </Fragment>
+          <Fragment>{children}</Fragment>
         </CardContent>
         <CardActions className={classes.cardActions}>
           <Button
@@ -59,14 +54,14 @@ const ConfirmRemoval = withStyles(styles)((props) => {
             onClick={onConfirm}
             className={classes.button}
           >
-            {pgettext('Dashboard delete action', 'Remove')}
+            {pgettext("Dashboard delete action", "Remove")}
           </Button>
           <Button
             color="secondary"
             onClick={onClose}
             className={classes.button}
           >
-            {pgettext('Dashboard cancel action', 'Cancel')}
+            {pgettext("Dashboard cancel action", "Cancel")}
           </Button>
         </CardActions>
       </Card>

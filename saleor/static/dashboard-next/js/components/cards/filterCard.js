@@ -1,45 +1,45 @@
-import React, { Component, Fragment } from 'react';
-import Button from 'material-ui/Button';
-import Card, { CardContent, CardActions } from 'material-ui/Card';
-import FilterListIcon from 'material-ui-icons/FilterList';
-import PropTypes from 'prop-types';
-import Typography from 'material-ui/Typography';
-import grey from 'material-ui/colors/grey';
-import { withStyles } from 'material-ui/styles';
+import React, { Component, Fragment } from "react";
+import Button from "material-ui/Button";
+import Card, { CardContent, CardActions } from "material-ui/Card";
+import FilterListIcon from "material-ui-icons/FilterList";
+import PropTypes from "prop-types";
+import Typography from "material-ui/Typography";
+import grey from "material-ui/colors/grey";
+import { withStyles } from "material-ui/styles";
 
-import { pgettext } from '../../i18n';
+import { pgettext } from "../../i18n";
 
 const styles = theme => ({
   filterCard: {
-    transitionDuration: '200ms',
-    [theme.breakpoints.down('sm')]: {
+    transitionDuration: "200ms",
+    [theme.breakpoints.down("sm")]: {
       maxHeight: 76,
-      overflow: 'hidden',
-    },
+      overflow: "hidden"
+    }
   },
   filterCardExpandIconContainer: {
-    position: 'absolute',
+    position: "absolute",
     top: 21,
     right: 20,
-    [theme.breakpoints.up('md')]: {
-      display: 'none',
+    [theme.breakpoints.up("md")]: {
+      display: "none"
     },
-    '& svg': {
+    "& svg": {
       width: 24,
       height: 24,
-      fill: '#9e9e9e',
-      cursor: 'pointer',
-    },
+      fill: "#9e9e9e",
+      cursor: "pointer"
+    }
   },
   filterCardContent: {
-    position: 'relative',
+    position: "relative",
     borderBottomColor: grey[300],
-    borderBottomStyle: 'solid',
-    borderBottomWidth: 1,
+    borderBottomStyle: "solid",
+    borderBottomWidth: 1
   },
   filterCardActions: {
-    flexDirection: 'row-reverse',
-  },
+    flexDirection: "row-reverse"
+  }
 });
 
 class FilterCardComponent extends Component {
@@ -51,20 +51,23 @@ class FilterCardComponent extends Component {
     classes: PropTypes.object,
     handleClear: PropTypes.func,
     handleSubmit: PropTypes.func,
-    noFiltersAvailableLabel: PropTypes.string,
+    noFiltersAvailableLabel: PropTypes.string
   };
 
   static defaultProps = {
-    buttonClearLabel: pgettext('Filter bar clear fields', 'Clear'),
-    buttonSubmitLabel: pgettext('Filter bar submit', 'Filter'),
-    cardTitle: pgettext('Filter menu label', 'Filters'),
-    noFiltersAvailableLabel: pgettext('Filter bar no filters', 'No filters available'),
+    buttonClearLabel: pgettext("Filter bar clear fields", "Clear"),
+    buttonSubmitLabel: pgettext("Filter bar submit", "Filter"),
+    cardTitle: pgettext("Filter menu label", "Filters"),
+    noFiltersAvailableLabel: pgettext(
+      "Filter bar no filters",
+      "No filters available"
+    )
   };
 
   constructor(props) {
     super(props);
     this.state = {
-      collapsed: true,
+      collapsed: true
     };
     this.handleFilterListIconClick = this.handleFilterListIconClick.bind(this);
   }
@@ -82,7 +85,7 @@ class FilterCardComponent extends Component {
       classes,
       handleClear,
       handleSubmit,
-      noFiltersAvailableLabel,
+      noFiltersAvailableLabel
     } = this.props;
     return (
       <Card
@@ -93,9 +96,7 @@ class FilterCardComponent extends Component {
           <div className={classes.filterCardExpandIconContainer}>
             <FilterListIcon onClick={this.handleFilterListIconClick} />
           </div>
-          <Typography variant="display1">
-            {cardTitle}
-          </Typography>
+          <Typography variant="display1">{cardTitle}</Typography>
         </CardContent>
         <form onSubmit={handleSubmit}>
           <CardContent>
@@ -103,24 +104,16 @@ class FilterCardComponent extends Component {
               <Fragment>
                 {children}
                 <CardActions className={classes.filterCardActions}>
-                  <Button
-                    color="secondary"
-                    onClick={handleSubmit}
-                  >
+                  <Button color="secondary" onClick={handleSubmit}>
                     {buttonSubmitLabel}
                   </Button>
-                  <Button
-                    color="default"
-                    onClick={handleClear}
-                  >
+                  <Button color="default" onClick={handleClear}>
                     {buttonClearLabel}
                   </Button>
                 </CardActions>
               </Fragment>
             ) : (
-              <Typography>
-                {noFiltersAvailableLabel}
-              </Typography>
+              <Typography>{noFiltersAvailableLabel}</Typography>
             )}
           </CardContent>
         </form>
@@ -131,7 +124,4 @@ class FilterCardComponent extends Component {
 
 const FilterCard = withStyles(styles)(FilterCardComponent);
 
-export {
-  FilterCard as default,
-  FilterCardComponent,
-};
+export { FilterCard as default, FilterCardComponent };
