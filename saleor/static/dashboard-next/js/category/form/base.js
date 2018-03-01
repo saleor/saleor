@@ -1,20 +1,20 @@
-import React, { Component } from 'react';
-import Button from 'material-ui/Button';
-import Card, { CardContent, CardActions } from 'material-ui/Card';
-import PropTypes from 'prop-types';
-import Typography from 'material-ui/Typography';
-import { withRouter } from 'react-router-dom';
-import { withStyles } from 'material-ui/styles';
+import React, { Component } from "react";
+import Button from "material-ui/Button";
+import Card, { CardContent, CardActions } from "material-ui/Card";
+import PropTypes from "prop-types";
+import Typography from "material-ui/Typography";
+import { withRouter } from "react-router-dom";
+import { withStyles } from "material-ui/styles";
 
-import { TextField } from '../../components/inputs';
+import { TextField } from "../../components/inputs";
 
 const styles = {
   cardActions: {
-    flexDirection: 'row-reverse',
+    flexDirection: "row-reverse"
   },
   textField: {
-    marginBottom: '2rem',
-  },
+    marginBottom: "2rem"
+  }
 };
 
 @withRouter
@@ -27,7 +27,7 @@ class BaseCategoryForm extends Component {
     handleConfirm: PropTypes.func,
     history: PropTypes.object,
     name: PropTypes.string,
-    title: PropTypes.string,
+    title: PropTypes.string
   };
 
   constructor(props) {
@@ -37,8 +37,8 @@ class BaseCategoryForm extends Component {
     this.state = {
       formData: {
         description: this.props.description,
-        name: this.props.name,
-      },
+        name: this.props.name
+      }
     };
   }
 
@@ -49,11 +49,9 @@ class BaseCategoryForm extends Component {
   handleInputChange(event) {
     const { target } = event;
     this.setState(prevState => ({
-      formData: Object.assign(
-        {},
-        prevState.formData,
-        { [target.name]: target.value },
-      ),
+      formData: Object.assign({}, prevState.formData, {
+        [target.name]: target.value
+      })
     }));
   }
 
@@ -64,27 +62,28 @@ class BaseCategoryForm extends Component {
       description,
       handleConfirm,
       name,
-      title,
+      title
     } = this.props;
 
     return (
       <Card>
         <CardContent>
-          <Typography variant="display1">
-            {title}
-          </Typography>
+          <Typography variant="display1">{title}</Typography>
         </CardContent>
         <CardContent>
           <TextField
             name="name"
-            label={pgettext('Category form name field label', 'Name')}
+            label={pgettext("Category form name field label", "Name")}
             defaultValue={name}
             className={classes.textField}
             onChange={this.handleInputChange}
           />
           <TextField
             name="description"
-            label={`${pgettext('Category form description field label', 'Description')} (${gettext('Optional')})`}
+            label={`${pgettext(
+              "Category form description field label",
+              "Description"
+            )} (${gettext("Optional")})`}
             defaultValue={description}
             multiline
             onChange={this.handleInputChange}
@@ -99,11 +98,8 @@ class BaseCategoryForm extends Component {
             >
               {confirmButtonLabel}
             </Button>
-            <Button
-              color="secondary"
-              onClick={this.handleBack}
-            >
-              {pgettext('Dashboard cancel action', 'Cancel')}
+            <Button color="secondary" onClick={this.handleBack}>
+              {pgettext("Dashboard cancel action", "Cancel")}
             </Button>
           </CardActions>
         </CardContent>
