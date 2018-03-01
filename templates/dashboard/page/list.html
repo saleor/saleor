@@ -1,6 +1,7 @@
 {% extends "dashboard/base.html" %}
 {% load i18n %}
 {% load staticfiles %}
+{% load status %}
 {% load utils %}
 
 {% block title %}
@@ -41,7 +42,7 @@
                   {% trans "URL" context "Static pages table header url" as label %}
                   {% sorting_header 'url' label is_wide=True %}
                   <th>
-                      {% trans "Status" context "Pages table header" %}
+                    {% trans "Visibility" context "Pages table header" %}
                   </th>
                 </tr>
               </thead>
@@ -55,16 +56,7 @@
                       {{ page.get_absolute_url }}
                     </td>
                     <td>
-                      {% page_published page=page as is_published %}
-                      {% if is_published %}
-                        <div>
-                          PUBLISHED
-                        </div>
-                      {% else %}
-                        <div>
-                          HIDDEN
-                        </div>
-                      {% endif %}
+                      {% render_page_availability page %}
                     </td>
                   </tr>
                 {% endfor %}
