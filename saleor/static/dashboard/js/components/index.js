@@ -1,4 +1,3 @@
-import './app';
 import './async-form';
 import './bulk-actions';
 import './datepicker';
