@@ -10,6 +10,7 @@ Before building the image make sure you have all of the front-end assets prepare
 .. code-block:: bash
 
  $ npm run build-assets --production
+ $ npm run build-emails
  $ python manage.py collectstatic
 
 Then use Docker to build the image:

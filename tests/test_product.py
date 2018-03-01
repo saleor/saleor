@@ -11,6 +11,7 @@ from saleor.cart import CartStatus, utils
 from saleor.cart.models import Cart
 from saleor.product import (
     ProductAvailabilityStatus, VariantAvailabilityStatus, models)
+from saleor.product.models import Category
 from saleor.product.utils import (
     allocate_stock, deallocate_stock, decrease_stock,
     get_attributes_display_map, get_availability,
@@ -288,7 +289,6 @@ def test_adding_to_cart_with_closed_cart_token(
     cart = Cart.objects.create(user=admin_user)
     variant = product_in_stock.variants.first()
     cart.add(variant, 1)
-    cart.change_status(CartStatus.ORDERED)
 
     response = client.get('/cart/')
     utils.set_cart_cookie(cart, response)
@@ -302,8 +302,6 @@ def test_adding_to_cart_with_closed_cart_token(
 
     assert Cart.objects.filter(
         user=admin_user, status=CartStatus.OPEN).count() == 1
-    assert Cart.objects.filter(
-        user=admin_user, status=CartStatus.ORDERED).count() == 1
 
 
 def test_get_attributes_display_map(product_in_stock):
@@ -503,3 +501,34 @@ def test_view_ajax_available_products_list(admin_client, product_in_stock):
 
     assert response.status_code == 200
     assert resp_decoded == {'results': product_list}
+
+
+def test_render_product_page_with_no_variant(
+        unavailable_product, admin_client):
+    product = unavailable_product
+    product.is_published = True
+    product.product_type.has_variants = True
+    product.save()
+    status = get_product_availability_status(product)
+    assert status == ProductAvailabilityStatus.VARIANTS_MISSSING
+    url = reverse(
+        'product:details',
+        kwargs={'product_id': product.pk, 'slug': product.get_slug()})
+    response = admin_client.get(url)
+    assert response.status_code == 200
+
+
+def test_include_products_from_subcategories_in_main_view(
+        default_category, product_in_stock, authorized_client):
+    subcategory = Category.objects.create(
+        name='sub', slug='test', parent=default_category)
+    product = product_in_stock
+    product.category = subcategory
+    product.save()
+    path = default_category.get_full_path()
+    # URL to parent category view
+    url = reverse(
+        'product:category', kwargs={
+            'path': path, 'category_id': default_category.pk})
+    response = authorized_client.get(url)
+    assert product in response.context_data['products'][0]

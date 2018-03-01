@@ -53,4 +53,7 @@
   &__header {
     margin-top: 2 * $global-margin;
   }
+  > p {
+    white-space: pre-wrap;
+  }
 }

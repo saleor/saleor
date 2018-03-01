@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: master\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2018-02-05 07:20-0600\n"
+"POT-Creation-Date: 2018-02-19 09:05-0600\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Magnus Lund <mgnusl@gmail.com>, 2017\n"
 "Language-Team: Norwegian Bokmål (https://www.transifex.com/mirumee/teams/34782/nb/)\n"
@@ -17,6 +17,252 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Language: nb\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: saleor/account/forms.py:60
+msgctxt "Form field"
+msgid "Email"
+msgstr "Email"
+
+#: saleor/account/forms.py:79
+msgctxt "Email"
+msgid "Email"
+msgstr ""
+
+#: saleor/account/forms.py:81
+msgctxt "Password"
+msgid "Password"
+msgstr ""
+
+#: saleor/account/i18n.py:19
+msgctxt "Address field"
+msgid "Area"
+msgstr ""
+
+#: saleor/account/i18n.py:20
+msgctxt "Address field"
+msgid "County"
+msgstr ""
+
+#: saleor/account/i18n.py:21
+msgctxt "Address field"
+msgid "Department"
+msgstr ""
+
+#: saleor/account/i18n.py:22
+msgctxt "Address field"
+msgid "District"
+msgstr ""
+
+#: saleor/account/i18n.py:23
+msgctxt "Address field"
+msgid "Do/si"
+msgstr ""
+
+#: saleor/account/i18n.py:24
+msgctxt "Address field"
+msgid "Eircode"
+msgstr ""
+
+#: saleor/account/i18n.py:25
+msgctxt "Address field"
+msgid "Emirate"
+msgstr ""
+
+#: saleor/account/i18n.py:26
+msgctxt "Address field"
+msgid "Island"
+msgstr ""
+
+#: saleor/account/i18n.py:27
+msgctxt "Address field"
+msgid "Neighborhood"
+msgstr ""
+
+#: saleor/account/i18n.py:28
+msgctxt "Address field"
+msgid "Oblast"
+msgstr ""
+
+#: saleor/account/i18n.py:29
+msgctxt "Address field"
+msgid "Parish"
+msgstr ""
+
+#: saleor/account/i18n.py:30
+msgctxt "Address field"
+msgid "PIN"
+msgstr ""
+
+#: saleor/account/i18n.py:31
+msgctxt "Address field"
+msgid "Postal code"
+msgstr ""
+
+#: saleor/account/i18n.py:32
+msgctxt "Address field"
+msgid "Prefecture"
+msgstr ""
+
+#: saleor/account/i18n.py:33
+msgctxt "Address field"
+msgid "Province"
+msgstr ""
+
+#: saleor/account/i18n.py:34
+msgctxt "Address field"
+msgid "State"
+msgstr ""
+
+#: saleor/account/i18n.py:35
+msgctxt "Address field"
+msgid "Suburb"
+msgstr ""
+
+#: saleor/account/i18n.py:36
+msgctxt "Address field"
+msgid "Townland"
+msgstr ""
+
+#: saleor/account/i18n.py:37
+msgctxt "Address field"
+msgid "Village/township"
+msgstr ""
+
+#: saleor/account/i18n.py:38
+msgctxt "Address field"
+msgid "ZIP code"
+msgstr ""
+
+#: saleor/account/i18n.py:66 saleor/account/i18n.py:113
+msgctxt "Country"
+msgid "Country"
+msgstr ""
+
+#: saleor/account/i18n.py:97
+msgctxt "Personal name"
+msgid "Given name"
+msgstr ""
+
+#: saleor/account/i18n.py:99
+msgctxt "Personal name"
+msgid "Family name"
+msgstr ""
+
+#: saleor/account/i18n.py:101
+msgctxt "Company or organization"
+msgid "Company or organization"
+msgstr ""
+
+#: saleor/account/i18n.py:103 saleor/account/i18n.py:105
+msgctxt "Address"
+msgid "Address"
+msgstr ""
+
+#: saleor/account/i18n.py:107
+msgctxt "City"
+msgid "City"
+msgstr ""
+
+#: saleor/account/i18n.py:109
+msgctxt "City area"
+msgid "District"
+msgstr ""
+
+#: saleor/account/i18n.py:111
+msgctxt "Postal code"
+msgid "Postal code"
+msgstr ""
+
+#: saleor/account/i18n.py:115
+msgctxt "Country area"
+msgid "State or province"
+msgstr ""
+
+#: saleor/account/i18n.py:117
+msgctxt "Phone number"
+msgid "Phone number"
+msgstr ""
+
+#: saleor/account/i18n.py:163
+msgctxt "Address form"
+msgid "This value is invalid for selected country"
+msgstr ""
+
+#: saleor/account/models.py:109
+msgctxt "Permission description"
+msgid "Can view users"
+msgstr ""
+
+#: saleor/account/models.py:111
+msgctxt "Permission description"
+msgid "Can edit users"
+msgstr ""
+
+#: saleor/account/models.py:113
+msgctxt "Permission description"
+msgid "Can view groups"
+msgstr ""
+
+#: saleor/account/models.py:115
+msgctxt "Permission description"
+msgid "Can edit groups"
+msgstr ""
+
+#: saleor/account/models.py:117
+msgctxt "Permission description"
+msgid "Can view staff"
+msgstr ""
+
+#: saleor/account/models.py:119
+msgctxt "Permission description"
+msgid "Can edit staff"
+msgstr ""
+
+#: saleor/account/models.py:121
+msgctxt "Permission description"
+msgid "Can impersonate users"
+msgstr ""
+
+#: saleor/account/templatetags/i18n_address_tags.py:12
+#, python-format
+msgctxt "Address data"
+msgid "%(first_name)s %(last_name)s"
+msgstr ""
+
+#: saleor/account/templatetags/i18n_address_tags.py:16
+#, python-format
+msgctxt "Address data"
+msgid ""
+"%(street_address_1)s\n"
+"%(street_address_2)s"
+msgstr ""
+
+#: saleor/account/validators.py:11
+msgid "The phone number entered is not valid."
+msgstr ""
+
+#: saleor/account/views.py:29
+msgid "You have been successfully logged out."
+msgstr ""
+
+#: saleor/account/views.py:43
+msgid "User has been created"
+msgstr ""
+
+#: saleor/account/views.py:93
+msgctxt "Storefront message"
+msgid "Password successfully changed."
+msgstr ""
+
+#: saleor/account/views.py:106
+msgctxt "Storefront message"
+msgid "Address successfully updated."
+msgstr ""
+
+#: saleor/account/views.py:121
+msgctxt "Storefront message"
+msgid "Address successfully removed"
+msgstr ""
 
 #: saleor/cart/__init__.py:20
 msgctxt "cart status"
@@ -188,101 +434,101 @@ msgctxt "Voucher application"
 msgid "Apply to all matching products"
 msgstr ""
 
-#: saleor/discount/forms.py:15
+#: saleor/discount/forms.py:16
 msgctxt "Voucher form error"
 msgid "Discount code incorrect or expired"
 msgstr "Feil eller utløpt rabattkode"
 
-#: saleor/discount/forms.py:26
+#: saleor/discount/forms.py:27
 msgctxt "Checkout discount form label for voucher field"
 msgid "Gift card or discount code"
 msgstr "Gavekort eller rabattkode"
 
-#: saleor/discount/models.py:75
+#: saleor/discount/models.py:67
 msgctxt "Permission description"
 msgid "Can view vouchers"
 msgstr "Kan se kuponger"
 
-#: saleor/discount/models.py:77
+#: saleor/discount/models.py:69
 msgctxt "Permission description"
 msgid "Can edit vouchers"
 msgstr "Kan redigere kuponger"
 
-#: saleor/discount/models.py:86
+#: saleor/discount/models.py:78
 msgctxt "Voucher type"
 msgid "Free shipping"
 msgstr "Gratis frakt"
 
-#: saleor/discount/models.py:89
+#: saleor/discount/models.py:81
 #, python-format
 msgctxt "Voucher type"
 msgid "%(discount)s off shipping"
 msgstr "%(discount)s rabatt på frakt"
 
-#: saleor/discount/models.py:93
+#: saleor/discount/models.py:85
 #, python-format
 msgctxt "Voucher type"
 msgid "%(discount)s off %(product)s"
 msgstr "%(discount)s rabatt på %(product)s"
 
-#: saleor/discount/models.py:98
+#: saleor/discount/models.py:90
 #, python-format
 msgctxt "Voucher type"
 msgid "%(discount)s off %(category)s"
 msgstr "%(discount)s rabatt på %(category)s"
 
-#: saleor/discount/models.py:101
+#: saleor/discount/models.py:93
 #, python-format
 msgctxt "Voucher type"
 msgid "%(discount)s off"
 msgstr "%(discount)s rabatt"
 
-#: saleor/discount/models.py:107
+#: saleor/discount/models.py:105
 msgctxt "Voucher"
 msgid "Any country"
 msgstr "Hvilket som helst land"
 
-#: saleor/discount/models.py:137
+#: saleor/discount/models.py:135
 #, python-format
 msgctxt "Voucher not applicable"
 msgid "This offer is only valid for orders over %(amount)s."
 msgstr "Dette tilbudet er bare gyldig for ordre over %(amount)s"
 
-#: saleor/discount/models.py:149
+#: saleor/discount/models.py:152
+msgctxt "Permission description"
+msgid "Can view sales"
+msgstr "Kan se salg"
+
+#: saleor/discount/models.py:154
+msgctxt "Permission description"
+msgid "Can edit sales"
+msgstr "Kan redigere salg"
+
+#: saleor/discount/utils.py:45
+msgctxt "Voucher not applicable"
+msgid "Discount not applicable for this product"
+msgstr "Rabatt gjelder ikke for dette produktet"
+
+#: saleor/discount/utils.py:79
 msgctxt "Voucher not applicable"
 msgid "Your order does not require shipping."
 msgstr "Din ordre krever ikke frakt."
 
-#: saleor/discount/models.py:155
+#: saleor/discount/utils.py:85
 msgctxt "Voucher not applicable"
 msgid "Please select a shipping method first."
 msgstr "Vennligst velg en fraktmetode først."
 
-#: saleor/discount/models.py:161
+#: saleor/discount/utils.py:92
 #, python-format
 msgctxt "Voucher not applicable"
 msgid "This offer is only valid in %(country)s."
 msgstr "Dette tilbudet er bare gyldig i %(country)s."
 
-#: saleor/discount/models.py:179
+#: saleor/discount/utils.py:113
 msgctxt "Voucher not applicable"
 msgid "This offer is only valid for selected items."
 msgstr "Dette tilbudet er bare gyldig for utvalgte produkter."
-
-#: saleor/discount/models.py:207
-msgctxt "Permission description"
-msgid "Can view sales"
-msgstr "Kan se salg"
-
-#: saleor/discount/models.py:209
-msgctxt "Permission description"
-msgid "Can edit sales"
-msgstr "Kan redigere salg"
-
-#: saleor/discount/models.py:243
-msgctxt "Voucher not applicable"
-msgid "Discount not applicable for this product"
-msgstr "Rabatt gjelder ikke for dette produktet"
 
 #: saleor/order/__init__.py:19
 msgctxt "order status"
@@ -324,17 +570,17 @@ msgctxt "Order note"
 msgid "Add note to order"
 msgstr ""
 
-#: saleor/order/models.py:82
+#: saleor/order/models.py:81
 msgctxt "Permission description"
 msgid "Can view orders"
 msgstr ""
 
-#: saleor/order/models.py:84
+#: saleor/order/models.py:83
 msgctxt "Permission description"
 msgid "Can edit orders"
 msgstr ""
 
-#: saleor/order/models.py:214
+#: saleor/order/models.py:209
 #, python-format
 msgctxt "Shipment group str"
 msgid "Shipment #%s"
@@ -350,26 +596,26 @@ msgctxt "Order status history entry"
 msgid "Order cancelled. No items in order"
 msgstr ""
 
-#: saleor/order/views.py:100
+#: saleor/order/views.py:101
 #, python-format
 msgctxt "Payment description"
 msgid "Order %(order_number)s"
 msgstr ""
 
-#: saleor/order/views.py:119
+#: saleor/order/views.py:120
 msgctxt "Payment gateway error"
 msgid ""
 "Oops, it looks like we were unable to contact the selected payment service"
 msgstr ""
 
-#: saleor/order/views.py:182
+#: saleor/order/views.py:183
 msgctxt "Connect order with user warning message"
 msgid ""
 "We couldn't assign the order to your account as the email addresses don't "
 "match"
 msgstr ""
 
-#: saleor/order/views.py:189
+#: saleor/order/views.py:190
 msgctxt "storefront message"
 msgid "The order is now assigned to your account"
 msgstr ""
@@ -481,37 +727,14 @@ msgctxt "Permission description"
 msgid "Can edit product properties"
 msgstr ""
 
-#: saleor/product/models.py:279
+#: saleor/product/models.py:285
 msgctxt "Permission description"
 msgid "Can view stock location"
 msgstr ""
 
-#: saleor/product/models.py:282
+#: saleor/product/models.py:288
 msgctxt "Permission description"
 msgid "Can edit stock location"
-msgstr ""
-
-#: saleor/registration/forms.py:13
-msgctxt "Form field"
-msgid "Email"
-msgstr "Email"
-
-#: saleor/registration/forms.py:32
-msgctxt "Email"
-msgid "Email"
-msgstr ""
-
-#: saleor/registration/forms.py:34
-msgctxt "Password"
-msgid "Password"
-msgstr ""
-
-#: saleor/registration/views.py:25
-msgid "You have been successfully logged out."
-msgstr ""
-
-#: saleor/registration/views.py:39
-msgid "User has been created"
 msgstr ""
 
 #: saleor/search/forms.py:9
@@ -544,238 +767,149 @@ msgctxt "Permission description"
 msgid "Can view site settings"
 msgstr ""
 
-#: saleor/userprofile/i18n.py:19
-msgctxt "Address field"
-msgid "Area"
-msgstr ""
-
-#: saleor/userprofile/i18n.py:20
-msgctxt "Address field"
-msgid "County"
-msgstr ""
-
-#: saleor/userprofile/i18n.py:21
-msgctxt "Address field"
-msgid "Department"
-msgstr ""
-
-#: saleor/userprofile/i18n.py:22
-msgctxt "Address field"
-msgid "District"
-msgstr ""
-
-#: saleor/userprofile/i18n.py:23
-msgctxt "Address field"
-msgid "Do/si"
-msgstr ""
-
-#: saleor/userprofile/i18n.py:24
-msgctxt "Address field"
-msgid "Eircode"
-msgstr ""
-
-#: saleor/userprofile/i18n.py:25
-msgctxt "Address field"
-msgid "Emirate"
-msgstr ""
-
-#: saleor/userprofile/i18n.py:26
-msgctxt "Address field"
-msgid "Island"
-msgstr ""
-
-#: saleor/userprofile/i18n.py:27
-msgctxt "Address field"
-msgid "Neighborhood"
-msgstr ""
-
-#: saleor/userprofile/i18n.py:28
-msgctxt "Address field"
-msgid "Oblast"
-msgstr ""
-
-#: saleor/userprofile/i18n.py:29
-msgctxt "Address field"
-msgid "Parish"
-msgstr ""
-
-#: saleor/userprofile/i18n.py:30
-msgctxt "Address field"
-msgid "PIN"
-msgstr ""
-
-#: saleor/userprofile/i18n.py:31
-msgctxt "Address field"
-msgid "Postal code"
-msgstr ""
-
-#: saleor/userprofile/i18n.py:32
-msgctxt "Address field"
-msgid "Prefecture"
-msgstr ""
-
-#: saleor/userprofile/i18n.py:33
-msgctxt "Address field"
-msgid "Province"
-msgstr ""
-
-#: saleor/userprofile/i18n.py:34
-msgctxt "Address field"
-msgid "State"
-msgstr ""
-
-#: saleor/userprofile/i18n.py:35
-msgctxt "Address field"
-msgid "Suburb"
-msgstr ""
-
-#: saleor/userprofile/i18n.py:36
-msgctxt "Address field"
-msgid "Townland"
-msgstr ""
-
-#: saleor/userprofile/i18n.py:37
-msgctxt "Address field"
-msgid "Village/township"
-msgstr ""
-
-#: saleor/userprofile/i18n.py:38
-msgctxt "Address field"
-msgid "ZIP code"
-msgstr ""
-
-#: saleor/userprofile/i18n.py:66 saleor/userprofile/i18n.py:113
-msgctxt "Country"
-msgid "Country"
-msgstr ""
-
-#: saleor/userprofile/i18n.py:97
-msgctxt "Personal name"
-msgid "Given name"
-msgstr ""
-
-#: saleor/userprofile/i18n.py:99
-msgctxt "Personal name"
-msgid "Family name"
-msgstr ""
-
-#: saleor/userprofile/i18n.py:101
-msgctxt "Company or organization"
-msgid "Company or organization"
-msgstr ""
-
-#: saleor/userprofile/i18n.py:103 saleor/userprofile/i18n.py:105
-msgctxt "Address"
-msgid "Address"
-msgstr ""
-
-#: saleor/userprofile/i18n.py:107
-msgctxt "City"
-msgid "City"
-msgstr ""
-
-#: saleor/userprofile/i18n.py:109
-msgctxt "City area"
-msgid "District"
-msgstr ""
-
-#: saleor/userprofile/i18n.py:111
-msgctxt "Postal code"
-msgid "Postal code"
-msgstr ""
-
-#: saleor/userprofile/i18n.py:115
-msgctxt "Country area"
-msgid "State or province"
-msgstr ""
-
-#: saleor/userprofile/i18n.py:117
-msgctxt "Phone number"
-msgid "Phone number"
-msgstr ""
-
-#: saleor/userprofile/i18n.py:163
-msgctxt "Address form"
-msgid "This value is invalid for selected country"
-msgstr ""
-
-#: saleor/userprofile/models.py:109
-msgctxt "Permission description"
-msgid "Can view users"
-msgstr ""
-
-#: saleor/userprofile/models.py:111
-msgctxt "Permission description"
-msgid "Can edit users"
-msgstr ""
-
-#: saleor/userprofile/models.py:113
-msgctxt "Permission description"
-msgid "Can view groups"
-msgstr ""
-
-#: saleor/userprofile/models.py:115
-msgctxt "Permission description"
-msgid "Can edit groups"
-msgstr ""
-
-#: saleor/userprofile/models.py:117
-msgctxt "Permission description"
-msgid "Can view staff"
-msgstr ""
-
-#: saleor/userprofile/models.py:119
-msgctxt "Permission description"
-msgid "Can edit staff"
-msgstr ""
-
-#: saleor/userprofile/models.py:121
-msgctxt "Permission description"
-msgid "Can impersonate users"
-msgstr ""
-
-#: saleor/userprofile/templatetags/i18n_address_tags.py:12
-#, python-format
-msgctxt "Address data"
-msgid "%(first_name)s %(last_name)s"
-msgstr ""
-
-#: saleor/userprofile/templatetags/i18n_address_tags.py:16
-#, python-format
-msgctxt "Address data"
-msgid ""
-"%(street_address_1)s\n"
-"%(street_address_2)s"
-msgstr ""
-
-#: saleor/userprofile/validators.py:11
-msgid "The phone number entered is not valid."
-msgstr ""
-
-#: saleor/userprofile/views.py:34
-msgctxt "Storefront message"
-msgid "Password successfully changed."
-msgstr ""
-
-#: saleor/userprofile/views.py:47
-msgctxt "Storefront message"
-msgid "Address successfully updated."
-msgstr ""
-
-#: saleor/userprofile/views.py:62
-msgctxt "Storefront message"
-msgid "Address successfully removed"
-msgstr ""
-
 #: templates/404.html:6
 msgctxt "Eror page not found"
 msgid "Page not found"
 msgstr ""
 
 #. Translators: Layout may break if character length is different than four.
-#: templates/_items.html:28 templates/product/_items.html:29
+#: templates/_items.html:27 templates/product/_items.html:29
 msgctxt "Sale (discount) label for item in product list"
 msgid "Sale"
+msgstr ""
+
+#: templates/account/address_delete.html:6
+msgctxt "Remove address form action"
+msgid "Remove Address"
+msgstr ""
+
+#: templates/account/address_delete.html:9
+msgctxt "Remove address form action"
+msgid "Cancel"
+msgstr ""
+
+#: templates/account/address_edit.html:7
+msgctxt "Edit address page title"
+msgid "Edit address"
+msgstr ""
+
+#: templates/account/address_edit.html:9
+msgctxt "New address page title"
+msgid "New address"
+msgstr ""
+
+#: templates/account/address_edit.html:16 templates/account/details.html:17
+#: templates/account/password_change.html:7 templates/cart/index.html:11
+#: templates/order/details.html:18 templates/order/payment.html:20
+#: templates/product/details.html:39
+msgctxt "Main navigation item"
+msgid "Home"
+msgstr ""
+
+#: templates/account/address_edit.html:21
+msgctxt "Edit/new address breadcrumb"
+msgid "Your profile"
+msgstr ""
+
+#: templates/account/address_edit.html:27
+msgctxt "Edit address breadcrumb"
+msgid "Edit address"
+msgstr ""
+
+#: templates/account/address_edit.html:33
+msgctxt "New address breadcrumb"
+msgid "New address"
+msgstr ""
+
+#: templates/account/address_edit.html:47
+msgctxt "Edit address title"
+msgid "Edit address"
+msgstr ""
+
+#: templates/account/address_edit.html:49
+msgctxt "New address title"
+msgid "New address"
+msgstr ""
+
+#: templates/account/address_edit.html:57
+msgctxt "Edit/new address primary action"
+msgid "Save changes"
+msgstr ""
+
+#: templates/account/details.html:11
+msgctxt "User profile page title"
+msgid "Your profile"
+msgstr ""
+
+#: templates/account/details.html:20 templates/account/password_change.html:8
+#: templates/base.html:60 templates/base.html:218
+#: templates/order/details.html:23 templates/order/payment.html:25
+msgctxt "Main navigation item"
+msgid "Your account"
+msgstr ""
+
+#: templates/account/details.html:27
+msgid "My account"
+msgstr ""
+
+#: templates/account/details.html:31
+msgctxt "User profile tab"
+msgid "Recent Orders"
+msgstr ""
+
+#: templates/account/details.html:37
+msgctxt "User profile tab"
+msgid "Change password"
+msgstr ""
+
+#: templates/account/details.html:43
+msgctxt "User profile tab"
+msgid "Addresses book"
+msgstr ""
+
+#: templates/account/details.html:55
+msgctxt "Recent orders column title"
+msgid "Order"
+msgstr ""
+
+#: templates/account/details.html:58
+msgctxt "Recent orders column title"
+msgid "Date"
+msgstr ""
+
+#: templates/account/details.html:61
+msgctxt "Recent orders column title"
+msgid "Summary"
+msgstr ""
+
+#: templates/account/details.html:64
+msgctxt "Recent orders column title"
+msgid "Status"
+msgstr ""
+
+#: templates/account/details.html:86
+msgctxt "Recent orders link text"
+msgid "Details"
+msgstr ""
+
+#: templates/account/details.html:101
+msgctxt "No recent orders text"
+msgid "There are not any completed orders yet."
+msgstr ""
+
+#: templates/account/details.html:112
+msgctxt "User profile action"
+msgid "Change password"
+msgstr ""
+
+#: templates/account/details.html:127
+msgctxt "User address action"
+msgid "Edit"
+msgstr ""
+
+#: templates/account/details.html:143
+msgctxt "No addresses text"
+msgid "You will see new addresses here after first successful checkout."
 msgstr ""
 
 #: templates/account/login.html:5
@@ -820,22 +954,6 @@ msgstr ""
 
 #: templates/account/partials/login_form.html:37
 msgid "Google"
-msgstr ""
-
-#: templates/account/password_change.html:7 templates/cart/index.html:11
-#: templates/order/details.html:18 templates/order/payment.html:20
-#: templates/product/details.html:39
-#: templates/userprofile/address_edit.html:16
-#: templates/userprofile/details.html:17
-msgctxt "Main navigation item"
-msgid "Home"
-msgstr ""
-
-#: templates/account/password_change.html:8 templates/base.html:60
-#: templates/base.html:218 templates/order/details.html:23
-#: templates/order/payment.html:25 templates/userprofile/details.html:20
-msgctxt "Main navigation item"
-msgid "Your account"
 msgstr ""
 
 #: templates/account/password_change.html:9
@@ -960,16 +1078,6 @@ msgstr ""
 #, python-format
 msgctxt "Password reset from key done text"
 msgid "You can now <a href=\"%(login_url)s\">sign in</a> using your new password"
-msgstr ""
-
-#: templates/account/password_set.html:14
-msgctxt "Password set form legend"
-msgid "Password Reset"
-msgstr ""
-
-#: templates/account/password_set.html:21
-msgctxt "Password set form primary action"
-msgid "Continue"
 msgstr ""
 
 #: templates/account/signup.html:6
@@ -4526,254 +4634,177 @@ msgstr ""
 msgid "Search:"
 msgstr ""
 
-#: templates/templated_email/html/compiled/confirm_note.html:112
-msgctxt "Note confirmation e-mail text"
-msgid "Hi!"
+#: templates/templated_email/source/account/password_reset.email:4
+msgctxt "Password reset e-mail subject"
+msgid "Password reset e-mail"
 msgstr ""
 
-#: templates/templated_email/html/compiled/confirm_note.html:112
+#: templates/templated_email/source/account/password_reset.email:8
 #, python-format
-msgctxt "Note confirmation e-mail text"
+msgctxt "Password reset e-mail text"
 msgid ""
-"A new note has been added to your order. To see details please visit: <a "
-"href=\"%(url)s\">%(url)s</a>"
+"\n"
+"Hi!\n"
+"\n"
+"You're receiving this e-mail because you or someone else has requested a password for your user account at %(domain)s.\n"
+"It can be safely ignored if you did not request a password reset. Click the link below to reset your password.\n"
 msgstr ""
 
-#: templates/templated_email/html/compiled/confirm_note.html:127
-#: templates/templated_email/html/compiled/confirm_order.html:233
-#: templates/templated_email/html/compiled/confirm_payment.html:127
-#: templates/templated_email/html/compiled/password_reset.html:130
-#: templates/templated_email/html/compiled/promote_customer.html:128
-#: templates/templated_email/html/compiled/set_password.html:130
-msgctxt "Base e-mail text"
-msgid "This is an automatically generated e-mail, please do not reply."
-msgstr ""
-
-#: templates/templated_email/html/compiled/confirm_note.html:142
-#: templates/templated_email/html/compiled/confirm_order.html:248
-#: templates/templated_email/html/compiled/confirm_payment.html:142
-#: templates/templated_email/html/compiled/password_reset.html:145
-#: templates/templated_email/html/compiled/promote_customer.html:143
-#: templates/templated_email/html/compiled/set_password.html:145
+#: templates/templated_email/source/account/password_reset.email:19
 #, python-format
-msgctxt "Base e-mail footer"
-msgid "Sincerely, %(site_name)s"
+msgctxt "Password reset e-mail text"
+msgid ""
+"\n"
+"Sincerely,\n"
+"%(site_name)s\n"
 msgstr ""
 
-#: templates/templated_email/html/compiled/confirm_order.html:113
-msgctxt "Order confirmation e-mail text"
-msgid "Hi!"
+#: templates/templated_email/source/dashboard/staff/promote_customer.email:2
+#, python-format
+msgid "Hello from %(site_name)s!"
 msgstr ""
 
-#: templates/templated_email/html/compiled/confirm_order.html:113
+#: templates/templated_email/source/dashboard/staff/promote_customer.email:5
+#, python-format
+msgctxt "Promote customer to staff member confirmation e-mail text"
+msgid ""
+"\n"
+"Hi!\n"
+"\n"
+"You're receiving this e-mail because you have been promoted to staff member at %(domain)s."
+msgstr ""
+
+#: templates/templated_email/source/dashboard/staff/promote_customer.email:10
+msgctxt "Promote customer to staff member confirmation e-mail text"
+msgid ""
+"\n"
+"This is an automatically generated email, please do not reply.\n"
+msgstr ""
+
+#: templates/templated_email/source/dashboard/staff/set_password.email:2
+#, python-format
+msgctxt "Set password for staff member e-mail title"
+msgid "Hello from %(site_name)s!"
+msgstr ""
+
+#: templates/templated_email/source/dashboard/staff/set_password.email:5
+#, python-format
+msgctxt "Set password for staff member e-mail text"
+msgid ""
+"\n"
+"Hi!\n"
+"\n"
+"You're receiving this e-mail because you have to set password for your staff member account at %(domain)s.\n"
+"Click the link below to reset your password.\n"
+msgstr ""
+
+#: templates/templated_email/source/dashboard/staff/set_password.email:14
+msgctxt "Set password for staff member e-mail text"
+msgid ""
+"\n"
+"This is an automatically generated email, please do not reply.\n"
+msgstr ""
+
+#: templates/templated_email/source/order/confirm_order.email:5
+msgctxt "Order confirmation e-mail subject"
+msgid "Order details"
+msgstr ""
+
+#: templates/templated_email/source/order/confirm_order.email:9
 #, python-format
 msgctxt "Order confirmation e-mail text"
 msgid ""
-"Thank you for your order. Below is the list of ordered products. To see your"
-" payment details please visit: <a href=\"%(url)s\">%(url)s</a>"
+"\n"
+"Hi!\n"
+"\n"
+"Thank you for your order. Below is the list of ordered products. To see your payment details please visit:\n"
+"%(url)s"
 msgstr ""
 
-#: templates/templated_email/html/compiled/confirm_order.html:144
-msgctxt "E-mail order lines summary table"
+#: templates/templated_email/source/order/confirm_order.email:17
+msgctxt "Order confirmation e-mail table header"
+msgid "Order summary"
+msgstr ""
+
+#: templates/templated_email/source/order/confirm_order.email:18
+msgctxt "Order confirmation e-mail table header"
 msgid "Subtotal"
 msgstr ""
 
-#: templates/templated_email/html/compiled/confirm_order.html:152
-msgctxt "E-mail order lines summary table"
+#: templates/templated_email/source/order/confirm_order.email:19
+msgctxt "Order confirmation e-mail table header"
 msgid "Shipping"
 msgstr "Frakt"
 
-#: templates/templated_email/html/compiled/confirm_order.html:160
-msgctxt "E-mail order lines summary table"
+#: templates/templated_email/source/order/confirm_order.email:20
+msgctxt "Order confirmation e-mail table header"
 msgid "Total"
 msgstr ""
 
-#: templates/templated_email/html/compiled/confirm_order.html:203
+#: templates/templated_email/source/order/confirm_order.email:22
 msgctxt "Order confirmation e-mail billing address"
 msgid "Billing address"
 msgstr ""
 
-#: templates/templated_email/html/compiled/confirm_order.html:204
+#: templates/templated_email/source/order/confirm_order.email:25
 msgctxt "Order confirmation e-mail shipping address"
 msgid "Shipping address"
 msgstr ""
 
-#: templates/templated_email/html/compiled/confirm_order.html:216
+#: templates/templated_email/source/order/confirm_order.email:26
 msgctxt "Order confirmation e-mail text"
 msgid "No shipping required"
 msgstr ""
 
-#: templates/templated_email/html/compiled/confirm_payment.html:112
-msgctxt "Payment confirmation e-mail text"
-msgid "Hi!"
-msgstr ""
-
-#: templates/templated_email/html/compiled/confirm_payment.html:112
+#: templates/templated_email/source/order/confirm_order.email:28
 #, python-format
-msgctxt "Payment confirmation e-mail text"
+msgctxt "Order confirmation e-mail text"
 msgid ""
-"Thank you for your payment. To see your payment details please visit: <a "
-"href=\"%(url)s\">%(url)s</a>"
+"\n"
+"This is an automatically generated e-mail, please do not reply.\n"
+"\n"
+"Sincerely,\n"
+"%(site_name)s\n"
 msgstr ""
 
-#: templates/templated_email/html/compiled/password_reset.html:112
-msgctxt "Password reset e-mail text"
-msgid "Hi!"
+#: templates/templated_email/source/order/note/confirm_note.email:4
+msgctxt "Note confirmation email subject"
+msgid "New note has been added to your order"
 msgstr ""
 
-#: templates/templated_email/html/compiled/password_reset.html:112
+#: templates/templated_email/source/order/note/confirm_note.email:8
 #, python-format
-msgctxt "Password reset e-mail text"
+msgctxt "Note confirmation email text"
 msgid ""
-"You're receiving this e-mail because you or someone else has requested a "
-"password for your user account at %(domain)s.<br> It can be safely ignored "
-"if you did not request a password reset. Click the link below to reset your "
-"password."
+"\n"
+"Hi!\n"
+"\n"
+"A new note has been added to your order. To see details please visit:\n"
+"%(url)s\n"
+"\n"
+"This is an automatically generated email, please do not reply.\n"
+"\n"
+"Sincerely,\n"
+"%(site_name)s\n"
 msgstr ""
 
-#: templates/templated_email/html/compiled/promote_customer.html:112
-msgctxt "Promote customer to staff member confirmation e-mail text"
-msgid "Hi!"
+#: templates/templated_email/source/order/payment/confirm_payment.email:4
+msgctxt "Payment confirmation subject"
+msgid "Payment details"
 msgstr ""
 
-#: templates/templated_email/html/compiled/promote_customer.html:112
+#: templates/templated_email/source/order/payment/confirm_payment.email:8
 #, python-format
-msgctxt "Promote customer to staff member confirmation e-mail text"
+msgctxt "Payment confirmation email text"
 msgid ""
-"You're receiving this e-mail because you have been promoted to staff member "
-"at %(domain)s.<br> To access dashboard please visit: <a "
-"href=\"%(url)s\">%(url)s</a>"
-msgstr ""
-
-#: templates/templated_email/html/compiled/set_password.html:112
-msgctxt "Set password for staff member e-mail text"
-msgid "Hi!"
-msgstr ""
-
-#: templates/templated_email/html/compiled/set_password.html:112
-#, python-format
-msgctxt "Set password for staff member e-mail text"
-msgid ""
-"You're receiving this e-mail because you have to set password for your staff"
-" member account at %(domain)s.<br> Click the link below to set up your "
-"password."
-msgstr ""
-
-#: templates/userprofile/address_delete.html:6
-msgctxt "Remove address form action"
-msgid "Remove Address"
-msgstr ""
-
-#: templates/userprofile/address_delete.html:9
-msgctxt "Remove address form action"
-msgid "Cancel"
-msgstr ""
-
-#: templates/userprofile/address_edit.html:7
-msgctxt "Edit address page title"
-msgid "Edit address"
-msgstr ""
-
-#: templates/userprofile/address_edit.html:9
-msgctxt "New address page title"
-msgid "New address"
-msgstr ""
-
-#: templates/userprofile/address_edit.html:21
-msgctxt "Edit/new address breadcrumb"
-msgid "Your profile"
-msgstr ""
-
-#: templates/userprofile/address_edit.html:27
-msgctxt "Edit address breadcrumb"
-msgid "Edit address"
-msgstr ""
-
-#: templates/userprofile/address_edit.html:33
-msgctxt "New address breadcrumb"
-msgid "New address"
-msgstr ""
-
-#: templates/userprofile/address_edit.html:47
-msgctxt "Edit address title"
-msgid "Edit address"
-msgstr ""
-
-#: templates/userprofile/address_edit.html:49
-msgctxt "New address title"
-msgid "New address"
-msgstr ""
-
-#: templates/userprofile/address_edit.html:57
-msgctxt "Edit/new address primary action"
-msgid "Save changes"
-msgstr ""
-
-#: templates/userprofile/details.html:11
-msgctxt "User profile page title"
-msgid "Your profile"
-msgstr ""
-
-#: templates/userprofile/details.html:27
-msgid "My account"
-msgstr ""
-
-#: templates/userprofile/details.html:31
-msgctxt "User profile tab"
-msgid "Recent Orders"
-msgstr ""
-
-#: templates/userprofile/details.html:37
-msgctxt "User profile tab"
-msgid "Change password"
-msgstr ""
-
-#: templates/userprofile/details.html:43
-msgctxt "User profile tab"
-msgid "Addresses book"
-msgstr ""
-
-#: templates/userprofile/details.html:55
-msgctxt "Recent orders column title"
-msgid "Order"
-msgstr ""
-
-#: templates/userprofile/details.html:58
-msgctxt "Recent orders column title"
-msgid "Date"
-msgstr ""
-
-#: templates/userprofile/details.html:61
-msgctxt "Recent orders column title"
-msgid "Summary"
-msgstr ""
-
-#: templates/userprofile/details.html:64
-msgctxt "Recent orders column title"
-msgid "Status"
-msgstr ""
-
-#: templates/userprofile/details.html:86
-msgctxt "Recent orders link text"
-msgid "Details"
-msgstr ""
-
-#: templates/userprofile/details.html:101
-msgctxt "No recent orders text"
-msgid "There are not any completed orders yet."
-msgstr ""
-
-#: templates/userprofile/details.html:112
-msgctxt "User profile action"
-msgid "Change password"
-msgstr ""
-
-#: templates/userprofile/details.html:127
-msgctxt "User address action"
-msgid "Edit"
-msgstr ""
-
-#: templates/userprofile/details.html:143
-msgctxt "No addresses text"
-msgid "You will see new addresses here after first successful checkout."
+"\n"
+"Hi!\n"
+"\n"
+"Thank you for your payment. To see your payment details please visit:\n"
+"%(url)s\n"
+"\n"
+"This is an automatically generated email, please do not reply.\n"
+"\n"
+"Sincerely,\n"
+"%(site_name)s\n"
 msgstr ""

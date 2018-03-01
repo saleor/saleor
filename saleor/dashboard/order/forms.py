@@ -1,14 +1,15 @@
 from django import forms
 from django.conf import settings
 from django.core.validators import MaxValueValidator, MinValueValidator
-from django.urls import reverse, reverse_lazy
+from django.urls import reverse_lazy
 from django.utils.translation import npgettext_lazy, pgettext_lazy
 from django_prices.forms import PriceField
 from payments import PaymentError, PaymentStatus
 
+from ...account.i18n import (
+    AddressForm as StorefrontAddressForm, PossiblePhoneNumberFormField)
 from ...cart.forms import QuantityField
 from ...core.exceptions import InsufficientStock
-from ...core.utils import build_absolute_uri
 from ...discount.utils import decrease_voucher_usage
 from ...order import GroupStatus
 from ...order.emails import send_note_confirmation
@@ -19,8 +20,6 @@ from ...order.utils import (
     recalculate_order, remove_empty_groups)
 from ...product.models import Product, ProductVariant, Stock
 from ...product.utils import allocate_stock, deallocate_stock
-from ...account.i18n import (
-    AddressForm as StorefrontAddressForm, PossiblePhoneNumberFormField)
 from ..forms import AjaxSelect2ChoiceField
 from ..widgets import PhonePrefixWidget
 
@@ -39,11 +38,7 @@ class OrderNoteForm(forms.ModelForm):
 
     def send_confirmation_email(self):
         order = self.instance.order
-        email = order.get_user_current_email()
-        url = build_absolute_uri(
-            reverse(
-                'order:details', kwargs={'token': order.token}))
-        send_note_confirmation.delay(email, url)
+        send_note_confirmation.delay(order.pk)
 
 
 class ManagePaymentForm(forms.Form):

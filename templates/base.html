@@ -11,13 +11,18 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="{% block meta_description %}{% endblock %}">
-    <meta name="author" content="{% trans "Mirumee Software" context "Meta author text" %}">
+    <meta name="generator" content="Saleor">
     <meta name="theme-color" content="#333333">
+    <meta name="msapplication-TileColor" content="#2b5797">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta name="apple-mobile-web-app-title" content="{{ site.name }}">
     <meta name="og:type" content="website">
   {% endblock meta %}
 
   {% include 'favicon.html' %}
-  {% render_bundle 'vendor' 'css' attrs='async' %}
+  {% render_bundle 'vendors~dashboard~storefront' 'css' attrs='async' %}
+  {% render_bundle 'vendors~storefront' 'css' attrs='async' %}
   {% render_bundle 'storefront' 'css' attrs='async' %}
 
   {% block stylesheet %}{% endblock stylesheet %}
@@ -276,7 +281,8 @@
 {% endblock %}
 {% block footer_scripts %}
   <script type="text/javascript" src="{% url 'javascript-catalog' %}"></script>
-  {% render_bundle 'vendor' 'js' %}
+  {% render_bundle 'vendors~dashboard~storefront' 'js' %}
+  {% render_bundle 'vendors~storefront' 'js' %}
   {% render_bundle 'storefront' 'js' %}
 {% endblock footer_scripts %}
 </body>

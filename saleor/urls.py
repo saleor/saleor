@@ -13,6 +13,7 @@ from .core.sitemaps import sitemaps
 from .core.urls import urlpatterns as core_urls
 from .dashboard.urls import urlpatterns as dashboard_urls
 from .data_feeds.urls import urlpatterns as feed_urls
+from .graphql.api import schema
 from .order.urls import urlpatterns as order_urls
 from .product.urls import urlpatterns as product_urls
 from .search.urls import urlpatterns as search_urls
@@ -26,7 +27,8 @@ urlpatterns = [
         include((checkout_urls, 'checkout'), namespace='checkout')),
     url(r'^dashboard/',
         include((dashboard_urls, 'dashboard'), namespace='dashboard')),
-    url(r'^graphql', GraphQLView.as_view(graphiql=settings.DEBUG)),
+    url(r'^graphql', GraphQLView.as_view(
+        schema=schema, graphiql=settings.DEBUG), name='api'),
     url(r'^jsi18n/$', JavaScriptCatalog.as_view(), name='javascript-catalog'),
     url(r'^order/', include((order_urls, 'order'), namespace='order')),
     url(r'^products/',
