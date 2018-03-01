@@ -5,6 +5,8 @@ import Typography from 'material-ui/Typography';
 import Card, { CardContent, CardActions } from 'material-ui/Card';
 import { withStyles } from 'material-ui/styles';
 
+import { pgettext } from '../i18n';
+
 const styles = theme => ({
   card: {
     outline: 'none',
@@ -12,13 +14,14 @@ const styles = theme => ({
     left: 'calc(50% - 17rem)',
     position: 'absolute',
     width: '35rem',
+    fontSize: theme.typography.body1.fontSize,
   },
   cardActions: {
     margin: 0,
     flexDirection: 'row-reverse',
   },
   title: {
-    marginBottom: theme.spacing.unit,
+    marginBottom: theme.spacing.unit * 4,
     textTransform: 'uppercase',
   },
   button: {
@@ -40,7 +43,7 @@ const ConfirmRemoval = withStyles(styles)((props) => {
       <Card className={classes.card}>
         <CardContent>
           <Typography
-            variant="headline"
+            variant="title"
             className={classes.title}
           >
             {title}

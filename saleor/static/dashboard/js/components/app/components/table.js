@@ -8,7 +8,7 @@ import MuiTable, {
   TableRow,
 } from 'material-ui/Table';
 import PropTypes from 'prop-types';
-import { withRouter } from 'react-router-dom';
+import Typography from 'material-ui/Typography';
 import { withStyles } from 'material-ui/styles';
 
 const styles = {
@@ -38,10 +38,6 @@ const TableCell = withStyles(styles)((props) => {
   );
 });
 
-function handleRowClick(pk, href, history) {
-  return () => history.push(`${href}/${pk}/`);
-}
-
 const Table = (props) => {
   const {
     className,
@@ -49,9 +45,8 @@ const Table = (props) => {
     count,
     handleChangePage,
     handleChangeRowsPerPage,
+    handleRowClick,
     headers,
-    history,
-    href,
     list,
     noDataLabel,
     page,
@@ -78,7 +73,7 @@ const Table = (props) => {
             <TableRow
               className={classes.tableRow}
               key={row.id}
-              onClick={handleRowClick(row.id, href, history)}
+              onClick={handleRowClick(row.id)}
             >
               {headers.map(header => (
                 <TableCell
@@ -101,16 +96,16 @@ const Table = (props) => {
                 onChangeRowsPerPage={handleChangeRowsPerPage}
                 page={page}
                 rowsPerPage={rowsPerPage}
-                rowsPerPageOptions={rowsPerPageOptions || [5, 10, 20]}
+                rowsPerPageOptions={rowsPerPageOptions}
               />
             </TableRow>
           </TableFooter>
         )}
       </MuiTable>
       {!list.length && (
-        <div className={classes.noDataText}>
+        <Typography className={classes.noDataText}>
           {noDataLabel}
-        </div>
+        </Typography>
       )}
     </div>
   );
@@ -121,9 +116,12 @@ Table.propTypes = {
   count: PropTypes.number,
   handleChangePage: PropTypes.func,
   handleChangeRowsPerPage: PropTypes.func,
-  headers: PropTypes.array.isRequired,
-  history: PropTypes.object,
-  href: PropTypes.string,
+  handleRowClick: PropTypes.func,
+  headers: PropTypes.arrayOf(PropTypes.shape({
+    name: PropTypes.string,
+    label: PropTypes.string,
+    wide: PropTypes.bool,
+  })).isRequired,
   list: PropTypes.array.isRequired,
   noDataLabel: PropTypes.string.isRequired,
   style: PropTypes.string,
@@ -132,4 +130,4 @@ Table.propTypes = {
   rowsPerPageOptions: PropTypes.arrayOf(PropTypes.number),
 };
 
-export default withStyles(styles)(withRouter(Table));
+export default withStyles(styles)(Table);

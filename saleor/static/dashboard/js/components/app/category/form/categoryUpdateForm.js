@@ -17,7 +17,7 @@ class CategoryUpdateForm extends Component {
       category: PropTypes.object,
       loading: PropTypes.bool,
     }),
-    history: PropTypes.history,
+    history: PropTypes.object,
     match: PropTypes.object,
     mutate: PropTypes.func,
   };
@@ -48,11 +48,11 @@ class CategoryUpdateForm extends Component {
         <Grid container spacing={16}>
           <Grid item xs={12} md={9}>
             <BaseCategoryForm
-              title={category.name}
+              title={pgettext('Edit category form card title', 'Edit category')}
               name={category.name}
               description={category.description}
               handleConfirm={this.handleConfirm}
-              confirmButtonLabel={pgettext('Dashboard update action', 'Update ')}
+              confirmButtonLabel={pgettext('Dashboard update action', 'Update')}
             />
           </Grid>
         </Grid>

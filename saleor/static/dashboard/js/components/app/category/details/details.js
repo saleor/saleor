@@ -40,6 +40,10 @@ class CategoryProperties extends Component {
     this.state = { opened: false };
   }
 
+  handleEditButtonClick = () => {
+    this.props.history.push(`/categories/${this.props.categoryId}/edit`);
+  };
+
   handleRemoveButtonClick() {
     this.setState(prevState => ({ opened: !prevState.opened }));
   }
@@ -50,11 +54,14 @@ class CategoryProperties extends Component {
         id: this.props.categoryId,
       },
     })
-      .then(() => this.props.history.push(`/categories/${this.props.data.category.parent ? this.props.data.category.parent.id : ''}/`));
+      .then(() => {
+        this.handleRemoveButtonClick();
+        this.props.history.replace(`/categories/${this.props.data.category.parent ? this.props.data.category.parent.id : ''}/`);
+      });
   }
 
   render() {
-    const { categoryId, data } = this.props;
+    const { data } = this.props;
     const titleFmt = pgettext('Remove category modal title', 'Remove category %s');
     const contentFmt = pgettext('Remove category modal title', 'Are you sure you want to remove category <strong>%s</strong>?');
     return (
@@ -64,27 +71,25 @@ class CategoryProperties extends Component {
         ) : (
           <Fragment>
             <DescriptionCard
-              title={data.category.name}
               description={data.category.description}
-              editButtonHref={`/categories/${categoryId}/edit`}
-              editButtonLabel={pgettext('Category edit action', 'Edit')}
-              removeButtonLabel={pgettext('Category list action link', 'Remove')}
+              handleEditButtonClick={this.handleEditButtonClick}
               handleRemoveButtonClick={this.handleRemoveButtonClick}
+              title={data.category.name}
             />
             <ConfirmRemoval
+              onClose={this.handleRemoveButtonClick}
+              onConfirm={this.handleRemoveAction}
               opened={this.state.opened}
               title={interpolate(titleFmt, [data.category.name])}
-              onConfirm={this.handleRemoveAction}
-              onClose={this.handleRemoveButtonClick}
             >
               <p dangerouslySetInnerHTML={{ __html: interpolate(contentFmt, [data.category.name]) }} />
               {data.category.products && data.category.products.totalCount > 0 && (
                 <p>
                   {interpolate(ngettext(
-                      'There is one product in this category that will be removed.',
-                      'There are %s products in this category that will be removed.',
-                      data.category.products.totalCount,
-                    ), [data.category.products.totalCount])}
+                    'There is one product in this category that will be removed.',
+                    'There are %s products in this category that will be removed.',
+                    data.category.products.totalCount,
+                  ), [data.category.products.totalCount])}
                 </p>
               )}
             </ConfirmRemoval>

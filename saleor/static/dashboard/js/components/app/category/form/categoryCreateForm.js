@@ -11,7 +11,7 @@ import { categoryCreate } from '../mutations';
 @graphql(categoryCreate)
 class CategoryCreateForm extends Component {
   static propTypes = {
-    history: PropTypes.history,
+    history: PropTypes.object,
     match: PropTypes.object,
     mutate: PropTypes.func,
   };
@@ -29,7 +29,7 @@ class CategoryCreateForm extends Component {
           parentId: this.props.match.params.id,
         },
       })
-        .then(({ data }) => this.props.history.push(`/categories/${data.categoryCreate.category.id}/`));
+        .then(({ data }) => this.props.history.replace(`/categories/${data.categoryCreate.category.id}/`));
     };
   }
 

@@ -1,18 +1,18 @@
 import 'jquery.cookie';
+import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider';
 import React, { Fragment } from 'react';
-import { render } from 'react-dom';
-import { createStore } from 'redux';
-import { Provider } from 'react-redux';
+import Reboot from 'material-ui/Reboot';
 import { ApolloClient } from 'apollo-client';
-import { HttpLink } from 'apollo-link-http';
-import { InMemoryCache } from 'apollo-cache-inmemory';
 import { ApolloProvider } from 'react-apollo';
 import { BrowserRouter, Route, Switch } from 'react-router-dom';
-import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider';
-
-import theme from './theme';
+import { HttpLink } from 'apollo-link-http';
+import { InMemoryCache } from 'apollo-cache-inmemory';
+import { Provider } from 'react-redux';
+import { createStore } from 'redux';
+import { render } from 'react-dom';
 
 import CategorySection from './category';
+import theme from './theme';
 
 const apolloClient = new ApolloClient({
   link: new HttpLink({
@@ -37,6 +37,7 @@ render(
     <ApolloProvider client={apolloClient}>
       <BrowserRouter basename="/dashboard">
         <MuiThemeProvider theme={theme}>
+          <Reboot />
           <Switch>
             {routerMapping.map(route => (
               <Fragment key={route.path}>
