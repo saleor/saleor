@@ -338,7 +338,7 @@ class CostsData:
     def __init__(self, costs, margins):
         self.costs = sorted(costs, key=lambda x: x.gross)
         self.margins = sorted(margins)
-        
+
 
 def get_cost_data_from_variants(variants):
     costs = []
