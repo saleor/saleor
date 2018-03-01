@@ -13,9 +13,7 @@ class PageForm(forms.ModelForm):
     content = RichTextField()
 
     def clean_url(self):
-        """
-        Make sure url is not being written to database with uppercase.
-        """
+        # Make sure url is not being written to database with uppercase.
         url = self.cleaned_data.get('url')
         url = url.lower()
         return url
