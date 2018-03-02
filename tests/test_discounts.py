@@ -183,7 +183,14 @@ def test_category_voucher_checkout_discount_not_applicable(settings,
     assert str(e.value) == 'This offer is only valid for selected items.'
 
 
-def test_invalid_checkout_discount_form(monkeypatch, voucher):
+def test_checkout_discount_form_invalid_voucher_code(monkeypatch):
+    checkout = Mock(cart=Mock())
+    form = CheckoutDiscountForm({'voucher': 'invalid'}, checkout=checkout)
+    assert not form.is_valid()
+    assert 'voucher' in form.errors
+
+
+def test_checkout_discount_form_not_applicable_voucher(monkeypatch, voucher):
     checkout = Mock(cart=Mock())
     form = CheckoutDiscountForm({'voucher': voucher.code}, checkout=checkout)
     monkeypatch.setattr(
