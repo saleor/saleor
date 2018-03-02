@@ -11,8 +11,8 @@ from saleor.discount import (
 from saleor.discount.forms import CheckoutDiscountForm
 from saleor.discount.models import NotApplicable, Sale, Voucher
 from saleor.discount.utils import (
-    decrease_voucher_usage, increase_voucher_usage,
-    get_product_discount_on_sale, get_voucher_discount_for_checkout)
+    decrease_voucher_usage, get_product_discount_on_sale,
+    get_voucher_discount_for_checkout, increase_voucher_usage)
 from saleor.product.models import Product, ProductVariant
 
 

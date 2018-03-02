@@ -4,8 +4,8 @@ from django.utils.translation import npgettext, pgettext_lazy
 from django_countries import countries
 from django_filters import CharFilter, ChoiceFilter, OrderingFilter
 
-from ...core.filters import SortedFilterSet
 from ...account.models import User
+from ...core.filters import SortedFilterSet
 
 SORT_BY_FIELDS = (
     ('email', 'email'),

@@ -17,7 +17,7 @@ from ..core import analytics
 from ..core.utils import ZERO_TAXED_MONEY
 from ..discount.models import NotApplicable, Voucher
 from ..discount.utils import (
-    increase_voucher_usage, get_voucher_discount_for_checkout)
+    get_voucher_discount_for_checkout, increase_voucher_usage)
 from ..order.models import Order
 from ..shipping.models import ANY_COUNTRY, ShippingMethodCountry
 

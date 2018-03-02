@@ -5,8 +5,8 @@ from graphene_django.filter import DjangoFilterConnectionField
 from .core.filters import DistinctFilterSet
 from .product.filters import ProductFilterSet
 from .product.types import (
-    Category, ProductAttribute, Product, resolve_attributes, resolve_products,
-    resolve_categories)
+    Category, Product, ProductAttribute, resolve_attributes,
+    resolve_categories, resolve_products)
 from .utils import get_node
 
 
