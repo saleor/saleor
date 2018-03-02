@@ -1,6 +1,7 @@
-import "jquery.cookie";
+import * as Cookies from "universal-cookie";
 import MuiThemeProvider from "material-ui/styles/MuiThemeProvider";
-import React, { Fragment } from "react";
+import * as React from "react";
+import { Fragment } from "react";
 import Reboot from "material-ui/Reboot";
 import { ApolloClient } from "apollo-client";
 import { ApolloProvider } from "react-apollo";
@@ -14,12 +15,14 @@ import { render } from "react-dom";
 import CategorySection from "./category";
 import theme from "./theme";
 
+const cookies = new Cookies();
+
 const apolloClient = new ApolloClient({
   link: new HttpLink({
     uri: "/dashboard/graphql/",
     credentials: "same-origin",
     headers: {
-      "X-CSRFToken": $.cookie("csrftoken")
+      "X-CSRFToken": cookies.get("csrftoken")
     }
   }),
   cache: new InMemoryCache()
@@ -40,9 +43,11 @@ render(
           <Reboot />
           <Switch>
             {routerMapping.map(route => (
-              <Fragment key={route.path}>
-                <Route path={`/${route.path}/`} component={route.component} />
-              </Fragment>
+              <Route
+                key={route.path}
+                path={`/${route.path}/`}
+                component={route.component}
+              />
             ))}
           </Switch>
         </MuiThemeProvider>
