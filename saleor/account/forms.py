@@ -113,4 +113,5 @@ class PasswordResetForm(django_forms.PasswordResetForm):
     def send_mail(
             self, subject_template_name, email_template_name, context,
             from_email, to_email, html_email_template_name=None):
+        del context['user']
         emails.send_password_reset_email.delay(context, to_email)
