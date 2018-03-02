@@ -6,10 +6,10 @@ from django.template.response import TemplateResponse
 from django.utils.translation import pgettext_lazy
 
 from ...core.utils import get_paginator_items
-from ...menu.models import Menu
+from ...menu.models import Menu, MenuItem
 from ..views import staff_member_required
-from .filters import MenuItemFilter, MenuFilter
-from .forms import MenuForm
+from .filters import MenuFilter, MenuItemFilter
+from .forms import MenuForm, MenuItemForm
 
 
 @staff_member_required
@@ -32,8 +32,7 @@ def menu_create(request):
     form = MenuForm(request.POST or None, instance=menu)
     if form.is_valid():
         menu = form.save()
-        msg = pgettext_lazy(
-            'Dashboard message', 'Add menu %s') % (menu,)
+        msg = pgettext_lazy('Dashboard message', 'Added menu %s') % (menu,)
         messages.success(request, msg)
         return redirect('dashboard:menu-list')
     ctx = {'form': form, 'menu': menu}
@@ -82,3 +81,26 @@ def menu_delete(request, pk):
     ctx = {'menu': menu, 'menu_items_count': menu.items.count()}
     return TemplateResponse(
         request, 'dashboard/menu/modal/confirm_delete.html', ctx)
+
+
+@staff_member_required
+@permission_required('menu.edit_menu')
+def menu_item_create(request, menu_pk, root_pk=None):
+    menu = get_object_or_404(Menu, pk=menu_pk)
+    path = None
+    if root_pk:
+        root = get_object_or_404(MenuItem, pk=root_pk)
+        path = root.get_ancestors(include_self=True)
+        menu_item = MenuItem(menu=menu, parent=root)
+    else:
+        menu_item = MenuItem(menu=menu)
+    form = MenuItemForm(request.POST or None, instance=menu_item)
+    if form.is_valid():
+        menu_item = form.save()
+        msg = pgettext_lazy(
+            'Dashboard message', 'Added menu item %s') % (menu_item,)
+        messages.success(request, msg)
+        return redirect('dashboard:menu-detail', pk=menu.pk)
+    ctx = {
+        'form': form, 'menu': menu, 'menu_item': menu_item, 'path': path}
+    return TemplateResponse(request, 'dashboard/menu/item/form.html', ctx)
