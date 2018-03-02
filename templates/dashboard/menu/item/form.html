@@ -4,21 +4,21 @@
 {% load staticfiles %}
 
 {% block title %}
-  {% if menu.pk %}
-    {% trans "Edit menu" context "Menu form page title" %} {{ menu }}
+  {% if menu_item.pk %}
+    {% trans "Edit menu item" context "Menu item page title" %} {{ menu }}
   {% else %}
-    {% trans "Add new menu" context "Menu form page title" %}
+    {% trans "Add new menu item" context "Menu item page title" %}
   {% endif %}
-  - {% trans "Menus" context "Dashboard menus list" %} - {{ block.super }}
+  - {% trans "Menu items" context "Dashboard menu items list" %} - {{ block.super }}
 {% endblock %}
 
 {% block menu_menus_class %}active{% endblock %}
 
 {% block page_title %}
-  {% if menu.pk %}
-    {{ menu }}
+  {% if menu_item.pk %}
+    {{ menu_item }}
   {% else %}
-    {% trans "Add new menu" context "Menu form page title" %}
+    {% trans "Add new menu item" context "Menu item page title" %}
   {% endif %}
 {% endblock %}
 
@@ -29,16 +29,29 @@
         {% trans "Menus" context "Dashboard menus list" %}
       </a>
     </li>
+    <li>
+      <a href="{% url 'dashboard:menu-detail' pk=menu.pk %}" class="breadcrumbs--ellipsed-item">
+        {{ menu }}
+      </a>
+    </li>
     <li class="back-mobile">
       <a href="{% url 'dashboard:menu-list' %}" class="breadcrumbs--ellipsed-item">
         <svg data-src="{% static "dashboard/images/arrow-left.svg" %}" fill="#fff" width="20px" height="20px" />
       </a>
     </li>
-    <li>
-      <span class="breadcrumbs--ellipsed-item">
-        {% trans "Add new menu" context "Menu detail breadcrumbs" %}
-      </span>
-    </li>
+    {% if menu_item.pk %}
+      <li>
+        <span class="breadcrumbs--ellipsed-item">
+          {% trans "Edit" context "Menu form page title" %}
+        </span>
+      </li>
+    {% else %}
+      <li>
+        <span class="breadcrumbs--ellipsed-item">
+          {% trans "Add new menu item" context "Menu form page title" %}
+        </span>
+      </li>
+    {% endif %}
   </ul>
 {% endblock %}
 
@@ -50,14 +63,15 @@
           <div class="card-content">
             {% csrf_token %}
             <div class="row">
-              {{ form.slug|materializecss }}
+              {{ form.name|materializecss }}
+              {{ form.url|materializecss }}
             </div>
           </div>
           <div class="card-action right-align">
             <a href="{% url 'dashboard:menu-list' %}" class="btn btn-flat">
               {% trans "Cancel" context "Dashboard cancel action" %}
             </a>
-            {% if menu.pk %}
+            {% if menu_item.pk %}
               <button type="submit" class="btn waves-effect">
                 {% trans "Update" context "Dashboard update action" %}
               </button>
