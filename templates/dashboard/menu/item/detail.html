@@ -4,7 +4,7 @@
 {% load staticfiles %}
 {% load utils %}
 
-{% block title %}{% trans "Menus" context "Menu list page title" %} -
+{% block title %}{% trans "Menu items" context "Menu item list page title" %} -
   {{ block.super }}{% endblock %}
 
 {% block menu_menus_class %}active{% endblock %}
@@ -16,6 +16,19 @@
 
 {% block breadcrumbs %}
   <ul class="breadcrumbs breadcrumbs--history">
+    {% if path %}
+      <li>
+        <a href="{% url 'dashboard:menu-list' %}">
+          {% trans "Menus" context "Dashboard menus list" %}
+        </a>
+      </li>
+    {% else %}
+      <li class="visible-s">
+        <span>
+          {% trans "Categories" context "Dashboard categories list" %}
+        </span>
+      </li>
+    {% endif %}
     <li>
       <a href="{% url 'dashboard:menu-list' %}">
         {% trans "Menus" context "Dashboard menus list" %}
@@ -40,16 +53,26 @@
       <div class="card">
         <div class="card-content">
           <span class="card-title">
-            {{ menu.slug }}
+            {{ menu_item.name }}
           </span>
+          <div class="row">
+            <div class="col s12">
+              <h4>
+                {% trans "URL" context "Menu item field" %}
+              </h4>
+              <p>
+                {{ menu_item.url }}
+              </p>
+            </div>
+          </div>
         </div>
         {% if perms.product.edit_menu %}
         <div class="card-action">
-          <a class="btn-flat waves-effect" href="{% url "dashboard:menu-edit" pk=menu.pk %}">
-            {% trans "Edit menu" context "Menu detail view action" %}
+          <a class="btn-flat waves-effect" href="">
+            {% trans "Edit menu item" context "Menu item detail view action" %}
           </a>
-          <a href="#base-modal" class="btn-flat waves-effect modal-trigger-custom" data-href="{% url "dashboard:menu-delete" pk=menu.pk %}">
-            {% trans "Remove menu" context "Menu detail view action" %}
+          <a href="#base-modal" class="btn-flat waves-effect modal-trigger-custom" data-href="">
+            {% trans "Remove menu item" context "Menu item detail view action" %}
           </a>
         </div>
         {% endif %}
