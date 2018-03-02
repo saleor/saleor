@@ -1,36 +1,43 @@
-import React, { Component, Fragment } from "react";
-import PropTypes from "prop-types";
-import _ from "lodash";
+import * as React from "react";
+import { Component, Fragment } from "react";
 
-class SwapChildrenRWD extends Component {
-  static propTypes = {
-    children: PropTypes.object,
-    down: PropTypes.number,
-    up: PropTypes.number
-  };
+interface SwapChildrenProps {
+  down?: number;
+  up?: number;
+}
+
+interface SwapChildrenState {
+  order: boolean;
+}
+
+export class SwapChildrenRWD extends Component<
+  SwapChildrenProps,
+  SwapChildrenState
+> {
   static defaultProps = {
     down: Infinity,
     up: 0
   };
+  state = {
+    order:
+      window.innerWidth >= this.props.up && window.innerWidth < this.props.down
+  };
 
   constructor(props) {
     super(props);
-    this.state = { order: _.inRange(window.innerWidth, props.up, props.down) };
     this.updateDimensions = this.updateDimensions.bind(this);
   }
 
   updateDimensions() {
-    const swap = _.inRange(window.innerWidth, this.props.up, this.props.down);
-    if (swap !== this.state.order) {
-      this.setState({ order: swap });
+    const order =
+      window.innerWidth >= this.props.up && window.innerWidth < this.props.down;
+    if (order !== this.state.order) {
+      this.setState({ order });
     }
   }
 
-  componentWillMount() {
-    this.updateDimensions();
-  }
-
   componentDidMount() {
+    this.updateDimensions();
     window.addEventListener("resize", this.updateDimensions);
   }
 
@@ -47,5 +54,3 @@ class SwapChildrenRWD extends Component {
     return <Fragment>{children}</Fragment>;
   }
 }
-
-export default SwapChildrenRWD;
