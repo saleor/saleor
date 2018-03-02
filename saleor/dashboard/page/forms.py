@@ -9,11 +9,14 @@ class PageForm(forms.ModelForm):
     class Meta:
         model = Page
         exclude = []
+        widgets = {
+            'slug': forms.TextInput(attrs={'placeholder': 'example-slug'})}
 
     content = RichTextField()
 
-    def clean_url(self):
-        # Make sure url is not being written to database with uppercase.
-        url = self.cleaned_data.get('url')
-        url = url.lower()
-        return url
+    def clean_slug(self):
+        # Make sure slug is not being written to database with uppercase.
+        slug = self.cleaned_data.get('slug')
+        slug = slug.lower()
+        return slug
+

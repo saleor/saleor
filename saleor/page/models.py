@@ -1,6 +1,5 @@
 import datetime
 
-from django.core.validators import validate_slug
 from django.db import models
 from django.db.models import Q
 from django.urls import reverse
@@ -16,8 +15,7 @@ class PageQuerySet(models.QuerySet):
 
 
 class Page(models.Model):
-    url = models.CharField(
-        max_length=100, db_index=True, validators=[validate_slug])
+    slug = models.SlugField(unique=True, max_length=100)
     title = models.CharField(max_length=200)
     content = models.TextField()
     created = models.DateTimeField(auto_now_add=True)
@@ -27,7 +25,7 @@ class Page(models.Model):
     objects = PageQuerySet.as_manager()
 
     class Meta:
-        ordering = ('url',)
+        ordering = ('slug',)
         permissions = (
             ('view_page',
              pgettext_lazy('Permission description', 'Can view pages')),
@@ -38,4 +36,4 @@ class Page(models.Model):
         return self.title
 
     def get_absolute_url(self):
-        return reverse('page:details', kwargs={'url': self.url})
+        return reverse('page:details', kwargs={'slug': self.slug})
