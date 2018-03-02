@@ -4,4 +4,6 @@ from . import views
 
 urlpatterns = [
     url(r'^$',
-        views.menu_list, name='menu-list'),]
+        views.menu_list, name='menu-list'),
+    url(r'^add/$',
+        views.menu_create, name='menu-add')]
