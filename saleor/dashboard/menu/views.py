@@ -68,3 +68,17 @@ def menu_detail(request, pk):
         'menu': menu, 'menu_items': menu_items, 'filter_set': menu_item_filter,
         'is_empty': not menu_item_filter.queryset.exists()}
     return TemplateResponse(request, 'dashboard/menu/detail.html', ctx)
+
+
+@staff_member_required
+@permission_required('menu.edit_menu')
+def menu_delete(request, pk):
+    menu = get_object_or_404(Menu, pk=pk)
+    if request.method == 'POST':
+        menu.delete()
+        msg = pgettext_lazy('Dashboard message', 'Removed menu %s') % (menu,)
+        messages.success(request, msg)
+        return redirect('dashboard:menu-list')
+    ctx = {'menu': menu, 'menu_items_count': menu.items.count()}
+    return TemplateResponse(
+        request, 'dashboard/menu/modal/confirm_delete.html', ctx)
