@@ -227,6 +227,11 @@
                       </a>
                     </li>
                   {% endif %}
+                  <li class="{% block menu_menus_class %}{% endblock %}">
+                    <a href="{% url 'dashboard:menu-list' %}">
+                      {% trans "Menus" context "Dashboard menus list" %}
+                    </a>
+                  </li>
                   {% if perms.site.edit_settings %}
                     <li class="{% block menu_settings_class %}{% endblock %}">
                       <a href="{% url 'dashboard:site-index' %}">
