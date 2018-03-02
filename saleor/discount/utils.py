@@ -4,11 +4,11 @@ from django.utils.encoding import smart_text
 from django.utils.translation import pgettext
 from prices import Money, TaxedMoney
 
+from . import VoucherApplyToProduct, VoucherType
 from ..cart.utils import (
     get_category_variants_and_prices, get_product_variants_and_prices)
 from ..core.utils import ZERO_TAXED_MONEY
 from .models import NotApplicable
-from . import VoucherApplyToProduct, VoucherType
 
 
 def increase_voucher_usage(voucher):
