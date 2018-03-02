@@ -162,6 +162,7 @@ INSTALLED_APPS = [
     'saleor.checkout',
     'saleor.core',
     'saleor.graphql',
+    'saleor.menu',
     'saleor.order.OrderAppConfig',
     'saleor.dashboard',
     'saleor.schema',
