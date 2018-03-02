@@ -36,13 +36,13 @@ export default createMuiTheme({
         fontWeight: 400
       }
     },
-    MuiTextField: {
-      inkbar: {
-        "&:after": {
-          backgroundColor: "#26A5D4"
-        }
-      }
-    },
+    // MuiTextField: {
+    //   inkbar: {
+    //     "&:after": {
+    //       backgroundColor: "#26A5D4"
+    //     }
+    //   }
+    // },
     MuiInput: {
       root: {
         fontSize: "0.875rem"

@@ -8,6 +8,6 @@ export const screenSizes = {
 
 export function createQueryString(currentQs, newData) {
   const currentData = parse(currentQs.substr(1));
-  const data = stringify(Object.assign({}, currentData, newData));
+  const data = stringify({...currentData, ...newData});
   return `?${data}`;
 }
