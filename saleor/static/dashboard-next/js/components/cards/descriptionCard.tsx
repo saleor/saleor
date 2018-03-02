@@ -1,12 +1,34 @@
-import React from "react";
+import * as React from "react";
 import Button from "material-ui/Button";
 import Card, { CardActions, CardContent } from "material-ui/Card";
-import PropTypes from "prop-types";
 import Typography from "material-ui/Typography";
 
 import { pgettext } from "../../i18n";
 
-const DescriptionCard = props => {
+interface DescriptionCardProps {
+  description: string;
+  descriptionTextLabel?: string;
+  editButtonLabel?: string;
+  handleEditButtonClick?();
+  handleRemoveButtonClick?();
+  removeButtonLabel?: string;
+  title: string;
+}
+
+const defaultProps = {
+  description: undefined,
+  descriptionTextLabel: pgettext(
+    "Description card widget description text label",
+    "Description"
+  ),
+  editButtonLabel: pgettext("Category edit action", "Edit"),
+  removeButtonLabel: pgettext("Category list action link", "Remove"),
+  title: undefined
+};
+
+export const DescriptionCard: React.StatelessComponent<DescriptionCardProps> = (
+  props = defaultProps
+) => {
   const {
     description,
     descriptionTextLabel,
@@ -36,22 +58,3 @@ const DescriptionCard = props => {
     </div>
   );
 };
-DescriptionCard.propTypes = {
-  description: PropTypes.string,
-  descriptionTextLabel: PropTypes.string,
-  editButtonLabel: PropTypes.string,
-  handleEditButtonClick: PropTypes.func,
-  handleRemoveButtonClick: PropTypes.func,
-  removeButtonLabel: PropTypes.string,
-  title: PropTypes.string
-};
-DescriptionCard.defaultProps = {
-  descriptionTextLabel: pgettext(
-    "Description card widget description text label",
-    "Description"
-  ),
-  removeButtonLabel: pgettext("Category list action link", "Remove"),
-  editButtonLabel: pgettext("Category edit action", "Edit")
-};
-
-export default DescriptionCard;
