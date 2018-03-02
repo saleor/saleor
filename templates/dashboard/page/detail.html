@@ -41,9 +41,9 @@
           <span class="right">{% render_page_availability page %}</span>
           <span class="card-title">{{ page }}<br></span>
             <h4>
-              {% trans "Page URL" context "Page field" %}
+              {% trans "Page Slug" context "Page field" %}
             </h4>
-            {{ page.url }}
+            {{ page.slug }}
         </div>
         <div class="card-action">
           {% if perms.page.edit_page %}

@@ -6,9 +6,9 @@ from django.template.response import TemplateResponse
 from .utils import pages_visible_to_user
 
 
-def page_detail(request, url):
+def page_detail(request, slug):
     page = get_object_or_404(
-        pages_visible_to_user(user=request.user).filter(url=url))
+        pages_visible_to_user(user=request.user).filter(slug=slug))
     today = datetime.date.today()
     is_visible = (
         page.available_on is None or page.available_on <= today)
