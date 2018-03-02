@@ -5,8 +5,8 @@ from django.shortcuts import get_object_or_404, redirect
 from django.template.response import TemplateResponse
 from django.utils.translation import pgettext_lazy
 
-from ...core.utils import get_paginator_items
 from ...account.models import User
+from ...core.utils import get_paginator_items
 from ..emails import (
     send_promote_customer_to_staff_email, send_set_password_email)
 from ..views import staff_member_required
