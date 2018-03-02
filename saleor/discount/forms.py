@@ -12,8 +12,7 @@ class VoucherField(forms.ModelChoiceField):
 
     default_error_messages = {
         'invalid_choice': pgettext_lazy(
-            'voucher', pgettext_lazy(
-                'Voucher form error', 'Discount code incorrect or expired')),
+            'Voucher form error', 'Discount code incorrect or expired'),
     }
 
 
