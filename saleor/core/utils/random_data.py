@@ -15,8 +15,10 @@ from prices import Money, TaxedMoney
 
 from ...account.models import Address, User
 from ...account.utils import store_user_address
+from ...core.utils import build_absolute_uri
 from ...discount import DiscountValueType, VoucherType
 from ...discount.models import Sale, Voucher
+from ...menu.models import Menu, MenuItem
 from ...order.models import Fulfillment, Order, Payment
 from ...order.utils import update_order_status
 from ...product.models import (
@@ -87,6 +89,25 @@ DEFAULT_SCHEMA = {
             'Cover': ['Soft', 'Hard']},
         'images_dir': 'books/',
         'is_shipping_required': True}}
+
+DEFAULT_MENU_SCHEMA = {
+    'Apparel': {
+        'sort_order': 1,
+        'category': 'Apparel'
+    },
+    'Accessories': {
+        'sort_order': 2,
+        'category': 'Accessories'
+    },
+    'Groceries': {
+        'sort_order': 3,
+        'category': 'Groceries'
+    },
+    'Books': {
+        'sort_order': 4,
+        'category': 'Books'
+    }
+}
 
 
 def create_attributes_and_values(attribute_data):
@@ -556,3 +577,24 @@ def create_collections(how_many=2):
     for dummy in range(how_many):
         collection = create_fake_collection()
         yield 'Collection: %s' % (collection,)
+
+
+def create_menus():
+    menu = Menu.objects.get_or_create(slug='default')[0]
+    create_menu_items_by_schema(menu, DEFAULT_MENU_SCHEMA)
+    yield 'Menu created'
+
+
+def create_menu_items_by_schema(menu, root_schema):
+    def get_category_url(category_name):
+        category = Category.objects.get(name=category_name)
+        return build_absolute_uri(category.get_absolute_url())
+
+    for menu_item_name, schema in root_schema.items():
+        sort_order = schema.get('sort_order')
+        url = get_category_url(schema.get('category'))
+        MenuItem.objects.get_or_create(
+            menu=menu,
+            name=menu_item_name,
+            sort_order=sort_order,
+            url=url)
