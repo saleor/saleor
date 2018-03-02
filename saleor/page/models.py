@@ -5,6 +5,8 @@ from django.db.models import Q
 from django.urls import reverse
 from django.utils.translation import pgettext_lazy
 
+from ..core.utils import build_absolute_uri
+
 
 class PageQuerySet(models.QuerySet):
     def public(self):
@@ -37,3 +39,6 @@ class Page(models.Model):
 
     def get_absolute_url(self):
         return reverse('page:details', kwargs={'slug': self.slug})
+
+    def get_full_url(self):
+        return build_absolute_uri(self.get_absolute_url())
