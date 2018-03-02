@@ -41,6 +41,21 @@ def menu_create(request):
 
 
 @staff_member_required
+@permission_required('menu.edit_menu')
+def menu_edit(request, pk):
+    menu = get_object_or_404(Menu, pk=pk)
+    form = MenuForm(request.POST or None, instance=menu)
+    if form.is_valid():
+        menu = form.save()
+        msg = pgettext_lazy('Dashboard message', 'Updated menu %s') % (menu,)
+        messages.success(request, msg)
+        return redirect('dashboard:menu-detail', pk=menu.pk)
+    ctx = {'form': form, 'menu': menu}
+    template = 'dashboard/menu/form.html'
+    return TemplateResponse(request, template, ctx)
+
+
+@staff_member_required
 @permission_required('menu.view_menu')
 def menu_detail(request, pk):
     menu = get_object_or_404(Menu, pk=pk)
