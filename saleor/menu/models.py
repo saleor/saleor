@@ -1,10 +1,21 @@
 from django.db import models
+from django.utils.translation import pgettext_lazy
 from mptt.managers import TreeManager
 from mptt.models import MPTTModel
 
 
 class Menu(models.Model):
     slug = models.SlugField(max_length=50)
+
+    class Meta:
+        permissions = (
+            ('view_menu',
+             pgettext_lazy('Permission description', 'Can view menus')),
+            ('edit_menu',
+             pgettext_lazy('Permission description', 'Can edit menus')))
+
+    def __str__(self):
+        return self.slug
 
 
 class MenuItem(MPTTModel):
