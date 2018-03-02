@@ -1,6 +1,8 @@
 from django.contrib.auth.models import Permission
 
 MODELS_PERMISSIONS = [
+    'menu.view_menu',
+    'menu.edit_menu',
     'order.view_order',
     'order.edit_order',
     'page.view_page',

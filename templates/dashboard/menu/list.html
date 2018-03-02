@@ -52,17 +52,7 @@
         </div>
         {% paginate menus %}
       {% else %}
-        {% if is_empty %}
-          {% include 'dashboard/menu/zero_page.html' %}
-        {% else %}
-          <div class="col s12">
-            <div class="not-found">
-              <p class="grey-text">
-                {% trans "No menus found." context "Empty menu list message" %}
-              </p>
-            </div>
-          </div>
-        {% endif %}
+        {% include 'dashboard/menu/zero_page.html' %}
       {% endif %}
     </div>
   </div>
