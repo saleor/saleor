@@ -1,6 +1,3 @@
-from saleor.page.models import Page
-
-
 def test_draft_page_detail(client, admin_client, page):
     page_url = page.get_absolute_url()
     response = client.get(page_url)

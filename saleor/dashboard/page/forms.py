@@ -19,4 +19,3 @@ class PageForm(forms.ModelForm):
         slug = self.cleaned_data.get('slug')
         slug = slug.lower()
         return slug
-

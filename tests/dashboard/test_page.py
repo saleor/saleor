@@ -1,7 +1,5 @@
 from django.urls import reverse
 
-from saleor.page.models import Page
-
 
 def test_page_list(admin_client):
     url = reverse('dashboard:page-list')
@@ -11,13 +9,12 @@ def test_page_list(admin_client):
 
 
 def test_page_edit(admin_client, page):
-    # page = Page.objects.create(url='example-url', title='foo', content='bar')
     url = reverse('dashboard:page-update', args=[page.pk])
 
     response = admin_client.get(url)
     assert response.status_code == 200
     data = {
-        'url': 'changed-url',
+        'slug': 'changed-url',
         'title': 'foo',
         'content': 'bar',
         'visible': True}
@@ -33,7 +30,7 @@ def test_page_add(admin_client):
     assert response.status_code == 200
 
     data = {
-        'url': 'aaaa',
+        'slug': 'aaaa',
         'title': 'foo',
         'content': 'bar',
         'visible': False}
@@ -43,7 +40,6 @@ def test_page_add(admin_client):
 
 
 def test_page_delete(admin_client, page):
-    # page = Page.objects.create(url='aaaa', title='foo', content='bar')
     url = reverse('dashboard:page-delete', args=[page.pk])
 
     response = admin_client.get(url)
