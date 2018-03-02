@@ -49,7 +49,7 @@
           <a class="btn-flat waves-effect" href="{% url "dashboard:menu-edit" pk=menu.pk %}">
             {% trans "Edit menu" context "Menu detail view action" %}
           </a>
-          <a href="#base-modal" class="btn-flat waves-effect modal-trigger-custom" data-href="">
+          <a href="#base-modal" class="btn-flat waves-effect modal-trigger-custom" data-href="{% url "dashboard:menu-delete" pk=menu.pk %}">
             {% trans "Remove menu" context "Menu detail view action" %}
           </a>
         </div>
