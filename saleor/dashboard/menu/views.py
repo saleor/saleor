@@ -104,3 +104,21 @@ def menu_item_create(request, menu_pk, root_pk=None):
     ctx = {
         'form': form, 'menu': menu, 'menu_item': menu_item, 'path': path}
     return TemplateResponse(request, 'dashboard/menu/item/form.html', ctx)
+
+
+@staff_member_required
+@permission_required('menu.view_menu')
+def menu_item_detail(request, menu_pk, item_pk):
+    menu = get_object_or_404(Menu, pk=menu_pk)
+    menu_item = get_object_or_404(menu.items.all(), pk=item_pk)
+    path = menu_item.get_ancestors(include_self=True)
+    menu_items = menu_item.get_descendants()
+    menu_item_filter = MenuItemFilter(request.GET, queryset=menu_items)
+    menu_items = get_paginator_items(
+        menu_item_filter.qs, settings.DASHBOARD_PAGINATE_BY,
+        request.GET.get('page'))
+    ctx = {
+        'menu': menu, 'menu_item': menu_item, 'menu_items': menu_items,
+        'path': path, 'filter_set': menu_item_filter,
+        'is_empty': not menu_item_filter.queryset.exists()}
+    return TemplateResponse(request, 'dashboard/menu/item/detail.html', ctx)
