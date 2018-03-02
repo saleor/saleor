@@ -8,9 +8,7 @@ import AttributeSelectionWidget from './AttributeSelectionWidget';
 import QuantityInput from './QuantityInput';
 import * as queryString from 'query-string';
 
-@observer
-export default class VariantPicker extends Component {
-
+export default observer(class VariantPicker extends Component {
   static propTypes = {
     onAddToCartError: PropTypes.func.isRequired,
     onAddToCartSuccess: PropTypes.func.isRequired,
@@ -172,4 +170,4 @@ export default class VariantPicker extends Component {
       </div>
     );
   }
-}
+});
