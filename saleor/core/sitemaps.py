@@ -21,7 +21,7 @@ class PageSitemap(Sitemap):
 
     def items(self):
         posts = Page.objects.public()
-        return posts.only('id', 'title', 'url')
+        return posts.only('id', 'title', 'slug')
 
 
 sitemaps = {
