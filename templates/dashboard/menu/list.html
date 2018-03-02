@@ -15,6 +15,16 @@
   {{ block.super }}
 {% endblock %}
 
+{% block header_extra %}
+  {% if perms.product.edit_menu %}
+    <div class="btn-fab-fixed">
+      <a href="{% url 'dashboard:menu-add' %}" class="btn-fab-default waves-effect waves-light" title="{% trans 'Add menu' context 'Menu list add button text' %}">
+        <svg data-src="{% static 'dashboard/images/add.svg' %}"/>
+      </a>
+    </div>
+  {% endif %}
+{% endblock %}
+
 {% block breadcrumbs %}
   <ul class="breadcrumbs breadcrumbs--history">
     <li class="visible-s">
