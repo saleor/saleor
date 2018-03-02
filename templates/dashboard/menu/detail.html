@@ -46,7 +46,7 @@
         </div>
         {% if perms.product.edit_menu %}
         <div class="card-action">
-          <a class="btn-flat waves-effect" href="">
+          <a class="btn-flat waves-effect" href="{% url "dashboard:menu-edit" pk=menu.pk %}">
             {% trans "Edit menu" context "Menu detail view action" %}
           </a>
           <a href="#base-modal" class="btn-flat waves-effect modal-trigger-custom" data-href="">
