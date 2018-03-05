@@ -54,7 +54,7 @@
               {% trans "Remove page" context "Page action" %}
             </a>
           {% endif %}
-          <a href="{{ page.get_absolute_url }}" target="_blank" class="btn-flat waves-effect">
+          <a href="{% url "page:details" slug=page.slug %}" target="_blank" class="btn-flat waves-effect">
             {% trans "View on site" context "Page action" %}
           </a>
         </div>
