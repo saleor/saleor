@@ -15,6 +15,10 @@ class PageForm(forms.ModelForm):
         labels = {
             'is_visible': pgettext_lazy(
                 'Visibility status indicator', 'Publish')}
+        help_texts = {
+            'slug': pgettext_lazy(
+                'Form field help text',
+                'Slug is being used to create page URL')}
 
     content = RichTextField()
 
