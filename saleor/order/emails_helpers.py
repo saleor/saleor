@@ -8,9 +8,7 @@ from ..core.utils import build_absolute_uri
 
 def get_organization():
     site = Site.objects.get_current()
-    return {
-        '@type': 'Organization',
-        'name': site.name}
+    return {'@type': 'Organization', 'name': site.name}
 
 
 def get_product_data(line, currency, organization):
