@@ -4,7 +4,7 @@ from phonenumber_field.phonenumber import PhoneNumber
 from saleor.core.utils import random_data
 from saleor.core.templatetags.demo_obfuscators import (
     obfuscate_address, obfuscate_email, obfuscate_phone, obfuscate_string)
-from saleor.userprofile.models import User
+from saleor.account.models import User
 
 
 def test_obfuscate_address():
