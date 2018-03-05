@@ -6,6 +6,7 @@ Integrations
 
    integrations/seo
    integrations/smo
+   integrations/gmailemailmarkup   
    integrations/elasticsearch
    integrations/googleanalytics
    integrations/googleforretail
