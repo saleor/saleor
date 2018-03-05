@@ -24,7 +24,7 @@ from .utils import get_attributes_display_map
 
 class Category(MPTTModel):
     name = models.CharField(max_length=128)
-    slug = models.SlugField(max_length=50)
+    slug = models.SlugField(max_length=128)
     description = models.TextField(blank=True)
     parent = models.ForeignKey(
         'self', null=True, blank=True, related_name='children',
@@ -342,7 +342,7 @@ class ProductAttribute(models.Model):
 
 class AttributeChoiceValue(models.Model):
     name = models.CharField(max_length=100)
-    slug = models.SlugField()
+    slug = models.SlugField(max_length=100)
     color = models.CharField(
         max_length=7, blank=True,
         validators=[RegexValidator('^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$')])
@@ -396,7 +396,7 @@ class VariantImage(models.Model):
 
 class Collection(models.Model):
     name = models.CharField(max_length=128, unique=True)
-    slug = models.SlugField(max_length=255)
+    slug = models.SlugField(max_length=128)
     products = models.ManyToManyField(
         Product, blank=True, related_name='collections')
 
