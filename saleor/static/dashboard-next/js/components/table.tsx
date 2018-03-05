@@ -4,40 +4,37 @@ import MuiTable, {
   TableCell,
   TableFooter,
   TableHead,
-  TablePagination,
   TableRow
 } from "material-ui/Table";
 import Typography from "material-ui/Typography";
 import { withStyles } from "material-ui/styles";
+import { TablePagination } from "./TablePagination";
+
+interface PageInfo {
+  hasNextPage: boolean;
+  hasPreviousPage: boolean;
+}
 
 interface TableProps {
-  count: number;
-  handleChangePage(
-    event: React.MouseEvent<HTMLButtonElement> | null,
-    page: number
-  );
   handleRowClick(rowId: number);
   headers: Array<{
     label: string;
     name: string;
     wide?: boolean;
   }>;
-  page: number;
-  rowsPerPage: number;
-  rowsPerPageOptions: Array<number>;
+  onNextPage(event);
+  onPreviousPage(event);
+  page: PageInfo;
 }
 
-export const Table = props => {
+export const Table: React.StatelessComponent<TableProps> = props => {
   const {
     children,
-    classes,
-    count,
-    handleChangePage,
     handleRowClick,
     headers,
-    page,
-    rowsPerPage,
-    rowsPerPageOptions
+    onNextPage,
+    onPreviousPage,
+    page
   } = props;
   return (
     <MuiTable>
@@ -53,11 +50,10 @@ export const Table = props => {
         <TableRow>
           <TablePagination
             colSpan={5}
-            count={count}
-            onChangePage={handleChangePage}
-            page={page}
-            rowsPerPage={rowsPerPage}
-            rowsPerPageOptions={rowsPerPageOptions}
+            hasNextPage={page.hasNextPage}
+            hasPreviousPage={page.hasPreviousPage}
+            onNextPage={onNextPage}
+            onPreviousPage={onPreviousPage}
           />
         </TableRow>
       </TableFooter>

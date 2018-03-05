@@ -26,24 +26,15 @@ interface ListCardProps {
   label: string;
 }
 
-const defaultProps = {
-  addActionLabel: gettext("Add"),
-  classes: undefined,
-  displayLabel: false,
-  handleAddAction: undefined,
-  label: undefined
-};
-
-export const ListCard = decorate<ListCardProps>((props = defaultProps) => {
-  const {
+export const ListCard = decorate<ListCardProps>(
+  ({
     addActionLabel,
     children,
     classes,
     displayLabel,
     handleAddAction,
     label
-  } = props;
-  return (
+  }) => (
     <Card className={classes.listCard}>
       <div>
         {displayLabel && (
@@ -68,5 +59,9 @@ export const ListCard = decorate<ListCardProps>((props = defaultProps) => {
         </CardContent>
       </div>
     </Card>
-  );
-});
+  )
+);
+ListCard.defaultProps = {
+  addActionLabel: gettext("Add"),
+  displayLabel: false
+};

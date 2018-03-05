@@ -11,7 +11,6 @@ const categoryChildren = gql`
     category(id: $id) {
       id
       children(first: $first, after: $after, last: $last, before: $before) {
-        totalCount
         edges {
           cursor
           node {
@@ -19,6 +18,10 @@ const categoryChildren = gql`
             name
             description
           }
+        }
+        pageInfo {
+          hasNextPage
+          hasPreviousPage
         }
       }
     }
@@ -53,7 +56,6 @@ const rootCategoryChildren = gql`
       last: $last
       before: $before
     ) {
-      totalCount
       edges {
         cursor
         node {
@@ -61,6 +63,10 @@ const rootCategoryChildren = gql`
           name
           description
         }
+      }
+      pageInfo {
+        hasNextPage
+        hasPreviousPage
       }
     }
   }
