@@ -21,7 +21,7 @@ def get_product_data(line, currency, organization):
             'name': line.product_name,
             'sku': line.product_sku,
         },
-        'price': line.unit_price_gross * line.quantity,
+        'price': line.get_total(),
         'priceCurrency': currency,
         'eligibleQuantity': {
             '@type': 'QuantitativeValue',
