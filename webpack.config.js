@@ -96,11 +96,6 @@ var config = {
       }
     ]
   },
-  optimization: {
-    splitChunks: {
-      chunks: 'all'
-    }
-  },
   plugins: [
     bundleTrackerPlugin,
     extractTextPlugin,
