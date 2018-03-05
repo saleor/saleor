@@ -43,7 +43,7 @@ def collect_data_for_email(order_pk, template):
 def send_order_confirmation(order_pk):
     order = Order.objects.get(pk=order_pk)
     email_markup = get_order_confirmation_markup(order)
-    context = {'order': order, 'email_markup': email_markup}
+    context = {'order': order, 'schema_markup': email_markup}
     email_data = collect_data_for_email(order_pk, CONFIRM_ORDER_TEMPLATE)
     email_data.update({'context': context})
     _send_confirmation(**email_data)
