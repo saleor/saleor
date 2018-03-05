@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: master\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2018-02-19 09:05-0600\n"
+"POT-Creation-Date: 2018-02-26 07:41-0600\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Jihan Chung <jihanchung20@gmail.com>, 2017\n"
 "Language-Team: Korean (https://www.transifex.com/mirumee/teams/34782/ko/)\n"
@@ -266,32 +266,12 @@ msgctxt "Storefront message"
 msgid "Address successfully removed"
 msgstr "주소가 성공적으로 삭제 되었습니다."
 
-#: saleor/cart/__init__.py:20
+#: saleor/cart/__init__.py:16
 msgctxt "cart status"
 msgid "Open - currently active"
 msgstr "현재 열림 상태"
 
-#: saleor/cart/__init__.py:22
-msgctxt "cart status"
-msgid "Waiting for payment"
-msgstr "결제 대기"
-
-#: saleor/cart/__init__.py:24
-msgctxt "cart status"
-msgid "Saved - for items to be purchased later"
-msgstr "추후 결제할 상품 저장"
-
-#: saleor/cart/__init__.py:26
-msgctxt "cart status"
-msgid "Submitted - an order was placed"
-msgstr "주문 전송"
-
-#: saleor/cart/__init__.py:28
-msgctxt "cart status"
-msgid "Checkout - processed in checkout"
-msgstr "체크아웃 진행"
-
-#: saleor/cart/__init__.py:30
+#: saleor/cart/__init__.py:18
 msgctxt "cart status"
 msgid "Canceled - canceled by user"
 msgstr "사용자에 의한 취소"
@@ -377,12 +357,12 @@ msgctxt "Checkout warning"
 msgid "This voucher has expired. Please review your checkout."
 msgstr "이 바우처는 기한이 초과되었습니다. 당신의 체크아웃을 다시 확인하여 주세요."
 
-#: saleor/checkout/views/summary.py:28
+#: saleor/checkout/views/summary.py:30
 msgctxt "Order status history entry"
 msgid "Order was placed"
 msgstr "주문되었습니다"
 
-#: saleor/checkout/views/summary.py:43
+#: saleor/checkout/views/summary.py:45
 msgctxt "Checkout warning"
 msgid "Please review your checkout."
 msgstr "당신의 체크아웃을 확인하여 주세요."
@@ -580,13 +560,13 @@ msgctxt "Permission description"
 msgid "Can edit orders"
 msgstr "주문을 수정할 수 있습니다"
 
-#: saleor/order/models.py:209
+#: saleor/order/models.py:200
 #, python-format
 msgctxt "Shipment group str"
 msgid "Shipment #%s"
 msgstr ""
 
-#: saleor/order/signals.py:16
+#: saleor/order/signals.py:17
 msgctxt "Order status history entry"
 msgid "Order fully paid"
 msgstr "주문한 상품이 모두 결제 되었습니다"

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: master\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2018-02-19 09:05-0600\n"
+"POT-Creation-Date: 2018-02-26 07:41-0600\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: KOCAK Mikail <specialwibberry@gmail.com>, 2018\n"
 "Language-Team: French (https://www.transifex.com/mirumee/teams/34782/fr/)\n"
@@ -266,32 +266,12 @@ msgctxt "Storefront message"
 msgid "Address successfully removed"
 msgstr "L'adresse a été supprimée"
 
-#: saleor/cart/__init__.py:20
+#: saleor/cart/__init__.py:16
 msgctxt "cart status"
 msgid "Open - currently active"
 msgstr "Ouvert - actif"
 
-#: saleor/cart/__init__.py:22
-msgctxt "cart status"
-msgid "Waiting for payment"
-msgstr "En attente de paiement"
-
-#: saleor/cart/__init__.py:24
-msgctxt "cart status"
-msgid "Saved - for items to be purchased later"
-msgstr "Sauvegardé - pour un futur achat"
-
-#: saleor/cart/__init__.py:26
-msgctxt "cart status"
-msgid "Submitted - an order was placed"
-msgstr "Envoyé - une commande a été effectuée"
-
-#: saleor/cart/__init__.py:28
-msgctxt "cart status"
-msgid "Checkout - processed in checkout"
-msgstr "Panier - passage en caisse"
-
-#: saleor/cart/__init__.py:30
+#: saleor/cart/__init__.py:18
 msgctxt "cart status"
 msgid "Canceled - canceled by user"
 msgstr "Annulé - annulé par l'utilisateur"
@@ -378,12 +358,12 @@ msgctxt "Checkout warning"
 msgid "This voucher has expired. Please review your checkout."
 msgstr "Ce bon d'achat a expiré. Merci de revoir votre panier."
 
-#: saleor/checkout/views/summary.py:28
+#: saleor/checkout/views/summary.py:30
 msgctxt "Order status history entry"
 msgid "Order was placed"
 msgstr "La commande a été passée"
 
-#: saleor/checkout/views/summary.py:43
+#: saleor/checkout/views/summary.py:45
 msgctxt "Checkout warning"
 msgid "Please review your checkout."
 msgstr "Merci de revoir votre panier."
@@ -585,13 +565,13 @@ msgctxt "Permission description"
 msgid "Can edit orders"
 msgstr "Peut modifier les commandes"
 
-#: saleor/order/models.py:209
+#: saleor/order/models.py:200
 #, python-format
 msgctxt "Shipment group str"
 msgid "Shipment #%s"
 msgstr "Livraison #%s"
 
-#: saleor/order/signals.py:16
+#: saleor/order/signals.py:17
 msgctxt "Order status history entry"
 msgid "Order fully paid"
 msgstr "Commande payée intégralement"
@@ -4845,6 +4825,11 @@ msgid ""
 "You're receiving this e-mail because you have to set password for your staff member account at %(domain)s.\n"
 "Click the link below to reset your password.\n"
 msgstr ""
+"\n"
+"Bonjour !\n"
+"\n"
+"Vous recevez ce mail car vous avez à créer un mot de passe pour votre compte de membre de l'équipe de chez %(domain)s.\n"
+"Pour créer votre mot de passe, cliquez le lien ci-dessous.\n"
 
 #: templates/templated_email/source/dashboard/staff/set_password.email:14
 msgctxt "Set password for staff member e-mail text"
@@ -4870,6 +4855,11 @@ msgid ""
 "Thank you for your order. Below is the list of ordered products. To see your payment details please visit:\n"
 "%(url)s"
 msgstr ""
+"\n"
+"Bonjour !\n"
+"\n"
+"Merci pour votre commande. La liste des produits commandés sont disponibles ci-dessous. Pour voir les informations de paiement, visitez :\n"
+"%(url)s"
 
 #: templates/templated_email/source/order/confirm_order.email:17
 msgctxt "Order confirmation e-mail table header"
@@ -4916,11 +4906,16 @@ msgid ""
 "Sincerely,\n"
 "%(site_name)s\n"
 msgstr ""
+"\n"
+"Ceci est un courriel automatiquement généré, merci de ne pas y répondre.\n"
+"\n"
+"Cordialement,\n"
+"%(site_name)s\n"
 
 #: templates/templated_email/source/order/note/confirm_note.email:4
 msgctxt "Note confirmation email subject"
 msgid "New note has been added to your order"
-msgstr ""
+msgstr "Une nouvelle note a été ajoutée à votre commande."
 
 #: templates/templated_email/source/order/note/confirm_note.email:8
 #, python-format
@@ -4937,6 +4932,15 @@ msgid ""
 "Sincerely,\n"
 "%(site_name)s\n"
 msgstr ""
+"\n"
+"Bonjour !\n"
+"\n"
+"Une nouvelle note a été ajoutée à votre commande. Pour voir les détails, visitez %(url)s\n"
+"\n"
+"Ceci est un courriel automatiquement généré, merci de ne pas y répondre.\n"
+"\n"
+"Cordialement,\n"
+"%(site_name)s\n"
 
 #: templates/templated_email/source/order/payment/confirm_payment.email:4
 msgctxt "Payment confirmation subject"

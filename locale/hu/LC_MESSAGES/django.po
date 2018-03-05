@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: master\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2018-02-19 09:05-0600\n"
+"POT-Creation-Date: 2018-02-26 07:41-0600\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Marci Wéber <webermarton@gmail.com>, 2017\n"
 "Language-Team: Hungarian (https://www.transifex.com/mirumee/teams/34782/hu/)\n"
@@ -264,32 +264,12 @@ msgctxt "Storefront message"
 msgid "Address successfully removed"
 msgstr ""
 
-#: saleor/cart/__init__.py:20
+#: saleor/cart/__init__.py:16
 msgctxt "cart status"
 msgid "Open - currently active"
 msgstr "Nyitva - jelenleg aktív"
 
-#: saleor/cart/__init__.py:22
-msgctxt "cart status"
-msgid "Waiting for payment"
-msgstr "Fizetésre vár"
-
-#: saleor/cart/__init__.py:24
-msgctxt "cart status"
-msgid "Saved - for items to be purchased later"
-msgstr "Elmentve - a későbbi vásárláshoz"
-
-#: saleor/cart/__init__.py:26
-msgctxt "cart status"
-msgid "Submitted - an order was placed"
-msgstr "Elküldve - rendelés leadva"
-
-#: saleor/cart/__init__.py:28
-msgctxt "cart status"
-msgid "Checkout - processed in checkout"
-msgstr "Fizetés - feldolgozás alatt"
-
-#: saleor/cart/__init__.py:30
+#: saleor/cart/__init__.py:18
 msgctxt "cart status"
 msgid "Canceled - canceled by user"
 msgstr "Lemondva"
@@ -374,12 +354,12 @@ msgctxt "Checkout warning"
 msgid "This voucher has expired. Please review your checkout."
 msgstr ""
 
-#: saleor/checkout/views/summary.py:28
+#: saleor/checkout/views/summary.py:30
 msgctxt "Order status history entry"
 msgid "Order was placed"
 msgstr "Rendelés leadva"
 
-#: saleor/checkout/views/summary.py:43
+#: saleor/checkout/views/summary.py:45
 msgctxt "Checkout warning"
 msgid "Please review your checkout."
 msgstr ""
@@ -578,13 +558,13 @@ msgctxt "Permission description"
 msgid "Can edit orders"
 msgstr ""
 
-#: saleor/order/models.py:209
+#: saleor/order/models.py:200
 #, python-format
 msgctxt "Shipment group str"
 msgid "Shipment #%s"
 msgstr ""
 
-#: saleor/order/signals.py:16
+#: saleor/order/signals.py:17
 msgctxt "Order status history entry"
 msgid "Order fully paid"
 msgstr ""

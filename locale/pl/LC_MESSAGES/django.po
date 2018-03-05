@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: master\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2018-02-19 09:05-0600\n"
+"POT-Creation-Date: 2018-02-26 07:41-0600\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Radosław Trojanowski <trojanowski.radek@gmail.com>, 2018\n"
 "Language-Team: Polish (https://www.transifex.com/mirumee/teams/34782/pl/)\n"
@@ -266,32 +266,12 @@ msgctxt "Storefront message"
 msgid "Address successfully removed"
 msgstr "Adres został usunięty."
 
-#: saleor/cart/__init__.py:20
+#: saleor/cart/__init__.py:16
 msgctxt "cart status"
 msgid "Open - currently active"
 msgstr "Otwarte - aktualnie aktywne"
 
-#: saleor/cart/__init__.py:22
-msgctxt "cart status"
-msgid "Waiting for payment"
-msgstr "Oczekiwanie na płatność"
-
-#: saleor/cart/__init__.py:24
-msgctxt "cart status"
-msgid "Saved - for items to be purchased later"
-msgstr "Zapisano - dla przedmiotów do zakupienia później"
-
-#: saleor/cart/__init__.py:26
-msgctxt "cart status"
-msgid "Submitted - an order was placed"
-msgstr "Wysłano - zamówienie zostało umieszczone"
-
-#: saleor/cart/__init__.py:28
-msgctxt "cart status"
-msgid "Checkout - processed in checkout"
-msgstr ""
-
-#: saleor/cart/__init__.py:30
+#: saleor/cart/__init__.py:18
 msgctxt "cart status"
 msgid "Canceled - canceled by user"
 msgstr "Anulowano - przez użytkownika"
@@ -380,12 +360,12 @@ msgctxt "Checkout warning"
 msgid "This voucher has expired. Please review your checkout."
 msgstr "Ten kupon wygasł. Przejrzyj swoje zamówienie."
 
-#: saleor/checkout/views/summary.py:28
+#: saleor/checkout/views/summary.py:30
 msgctxt "Order status history entry"
 msgid "Order was placed"
 msgstr "Zamówienie zostało złożone"
 
-#: saleor/checkout/views/summary.py:43
+#: saleor/checkout/views/summary.py:45
 msgctxt "Checkout warning"
 msgid "Please review your checkout."
 msgstr "Przejrzyj swoje zamówienie."
@@ -586,13 +566,13 @@ msgctxt "Permission description"
 msgid "Can edit orders"
 msgstr "Może edytować zamówienia"
 
-#: saleor/order/models.py:209
+#: saleor/order/models.py:200
 #, python-format
 msgctxt "Shipment group str"
 msgid "Shipment #%s"
 msgstr "Wysyłka #%s"
 
-#: saleor/order/signals.py:16
+#: saleor/order/signals.py:17
 msgctxt "Order status history entry"
 msgid "Order fully paid"
 msgstr "Zamówienie w pełni opłacone"
