@@ -21,8 +21,6 @@
   {% endblock meta %}
 
   {% include 'favicon.html' %}
-  {% render_bundle 'vendors~dashboard~storefront' 'css' attrs='async' %}
-  {% render_bundle 'vendors~storefront' 'css' attrs='async' %}
   {% render_bundle 'storefront' 'css' attrs='async' %}
 
   {% block stylesheet %}{% endblock stylesheet %}
@@ -281,8 +279,6 @@
 {% endblock %}
 {% block footer_scripts %}
   <script type="text/javascript" src="{% url 'javascript-catalog' %}"></script>
-  {% render_bundle 'vendors~dashboard~storefront' 'js' %}
-  {% render_bundle 'vendors~storefront' 'js' %}
   {% render_bundle 'storefront' 'js' %}
 {% endblock footer_scripts %}
 </body>
