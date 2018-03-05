@@ -1,5 +1,7 @@
-
 import json
+
+import pytest
+
 from django.contrib.sites.models import Site
 
 from saleor.order.emails_helpers import (
@@ -42,9 +44,13 @@ def test_get_product_data_with_image(delivery_group, product_with_image):
 
 
 def test_get_order_confirmation_markup(order_with_lines):
-    result = get_order_confirmation_markup(order_with_lines)
     try:
-        # Response should be returned as valid json
+        result = get_order_confirmation_markup(order_with_lines)
+    except TypeError:
+        pytest.fail('Function output is not JSON serializable')
+
+    try:
+        # Response should be returned as a valid json
         json.loads(result)
     except ValueError:
-        assert False
+        pytest.fail('Response is not a valid json')
