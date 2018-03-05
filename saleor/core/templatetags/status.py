@@ -58,5 +58,8 @@ def render_page_availability(page):
     is_published = (
         page.is_visible and (
             page.available_on is None or page.available_on <= today))
-    return {
-        'is_published': is_published, 'page': page}
+    ctx = {'is_published': is_published, 'page': page}
+    if is_published:
+        label_cls = LABEL_SUCCESS
+        ctx.update({'label_cls': label_cls})
+    return ctx
