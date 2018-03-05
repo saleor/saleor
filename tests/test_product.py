@@ -106,7 +106,7 @@ def test_availability(product_in_stock, monkeypatch, settings):
     settings.DEFAULT_COUNTRY = 'PL'
     settings.OPENEXCHANGERATES_API_KEY = 'fake-key'
     availability = get_availability(product_in_stock, local_currency='PLN')
-    assert availability.price_range_local_currency.min_price.currency == 'PLN'
+    assert availability.price_range_local_currency.start.currency == 'PLN'
     assert availability.available
 
 

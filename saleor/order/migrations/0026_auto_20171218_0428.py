@@ -24,7 +24,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='order',
             name='shipping_price',
-            field=django_prices.models.PriceField(currency='USD', decimal_places=4, default=0, editable=False, max_digits=12, verbose_name='shipping price'),
+            field=django_prices.models.MoneyField(currency='USD', decimal_places=4, default=0, editable=False, max_digits=12, verbose_name='shipping price'),
         ),
         migrations.AlterField(
             model_name='orderhistoryentry',

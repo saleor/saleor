@@ -85,10 +85,10 @@ def start_payment(request, order, variant):
     billing = order.billing_address
     total = order.total
     defaults = {
-        'total': total.gross,
-        'tax': total.tax,
+        'total': total.gross.amount,
+        'tax': total.tax.amount,
         'currency': total.currency,
-        'delivery': order.shipping_price.gross,
+        'delivery': order.shipping_price.gross.amount,
         'billing_first_name': billing.first_name,
         'billing_last_name': billing.last_name,
         'billing_address_1': billing.street_address_1,

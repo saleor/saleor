@@ -5,7 +5,7 @@ from saleor.dashboard.templatetags.chips import (
     CHIPS_PATTERN, handle_default, handle_multiple_choice,
     handle_multiple_model_choice, handle_nullboolean, handle_range,
     handle_single_choice, handle_single_model_choice)
-from saleor.dashboard.widgets import PriceRangeWidget
+from saleor.dashboard.widgets import MoneyRangeWidget
 from saleor.product.models import Category, Product
 
 
@@ -45,7 +45,7 @@ class ModelMultipleChoiceFieldFilterSet(django_filters.FilterSet):
 
 class RangeFieldFilterSet(django_filters.FilterSet):
     price = django_filters.RangeFilter(
-        label='Price', name='price', widget=PriceRangeWidget)
+        label='Price', name='price', widget=MoneyRangeWidget)
 
 
 def test_char_field_chip():
