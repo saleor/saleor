@@ -4,7 +4,7 @@ from django.utils.translation import pgettext
 import i18naddress
 
 from ...core.templatetags.demo_obfuscators import obfuscate_address
-from ...userprofile.models import Address
+from ...account.models import Address
 
 register = template.Library()
 
