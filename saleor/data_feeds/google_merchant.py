@@ -147,12 +147,12 @@ def item_google_product_category(item, category_paths):
 
 def item_price(item):
     price = item.get_price_per_item(discounts=None)
-    return '%s %s' % (price.gross, price.currency)
+    return '%s %s' % (price.gross.amount, price.currency)
 
 
 def item_sale_price(item, discounts):
     sale_price = item.get_price_per_item(discounts=discounts)
-    return '%s %s' % (sale_price.gross, sale_price.currency)
+    return '%s %s' % (sale_price.gross.amount, sale_price.currency)
 
 
 def item_attributes(item, categories, category_paths, current_site,

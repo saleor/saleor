@@ -4,11 +4,12 @@ from django.conf import settings
 from django.db.models import F
 from django.shortcuts import get_object_or_404, redirect
 from django.utils.translation import pgettext_lazy
-from prices import Price
+from prices import Money, TaxedMoney, fixed_discount
 
 from . import GroupStatus
 from ..account.utils import store_user_address
 from ..core.exceptions import InsufficientStock
+from ..core.utils import ZERO_TAXED_MONEY
 from ..product.utils import allocate_stock
 
 
@@ -42,16 +43,15 @@ def cancel_order(order):
 def recalculate_order(order):
     """Recalculate and assign total price of order.
 
-    Total price is a sum of items in shipment groups and order shipping price.
+    Total price is a sum of items in shipment groups and order shipping price
+    minus discount amount.
     """
     prices = [
         group.get_total() for group in order
         if group.status != GroupStatus.CANCELLED]
-    total_net = sum(p.net for p in prices)
-    total_gross = sum(p.gross for p in prices)
-    total = Price(
-        net=total_net, gross=total_gross, currency=settings.DEFAULT_CURRENCY)
-    total += order.shipping_price
+    total = sum(prices, order.shipping_price)
+    if order.discount_amount:
+        total -= order.discount_amount
     order.total = total
     order.save()
 
@@ -97,8 +97,7 @@ def add_variant_to_delivery_group(
             is_shipping_required=(
                 variant.product.product_type.is_shipping_required),
             quantity=quantity,
-            unit_price_net=price.net,
-            unit_price_gross=price.gross,
+            unit_price=price,
             stock=stock,
             stock_location=stock.location.name)
         allocate_stock(stock, quantity)

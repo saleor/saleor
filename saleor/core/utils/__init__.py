@@ -9,13 +9,18 @@ from django.contrib.sites.models import Site
 from django.core.paginator import InvalidPage, Paginator
 from django.http import Http404
 from django.utils.encoding import iri_to_uri, smart_text
+from django_babel.templatetags.babel import currencyfmt
 from django_countries import countries
 from django_countries.fields import Country
 from django_prices_openexchangerates import exchange_currency
 from geolite2 import geolite2
-from prices import PriceRange
+from prices import Money, TaxedMoney, MoneyRange
 
 from ...account.models import User
+
+ZERO_TAXED_MONEY = TaxedMoney(
+    net=Money(0, currency=settings.DEFAULT_CURRENCY),
+    gross=Money(0, currency=settings.DEFAULT_CURRENCY))
 
 georeader = geolite2.reader()
 
@@ -87,11 +92,15 @@ def get_paginator_items(items, paginate_by, page_number):
     return items
 
 
+def format_money(money):
+    return currencyfmt(money.amount, money.currency)
+
+
 def to_local_currency(price, currency):
     if not settings.OPENEXCHANGERATES_API_KEY:
         return None
-    if isinstance(price, PriceRange):
-        from_currency = price.min_price.currency
+    if isinstance(price, MoneyRange):
+        from_currency = price.start.currency
     else:
         from_currency = price.currency
     if currency != from_currency:

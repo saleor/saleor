@@ -1,9 +1,8 @@
 {% extends "base.html" %}
 {% load i18n %}
 {% load i18n_address_tags %}
+{% load prices_i18n %}
 {% load staticfiles %}
-{% load gross from prices_i18n %}
-{% load discount_amount_for from prices %}
 {% load status %}
 {% load bootstrap_form from bootstrap4 %}
 {% load bootstrap_pagination from bootstrap4 %}
@@ -76,7 +75,7 @@
                     {{ order.created }}
                   </div>
                   <div class="col-md-2 col-4">
-                    <span class="float-right">{% gross order.total html=True %}</span>
+                    <span class="float-right">{{ order.total.gross|amount:'html' }}</span>
                   </div>
                   <div class="col-md-4 d-none d-md-block">
                     {% render_status order.status order.get_status_display %}

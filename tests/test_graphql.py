@@ -121,9 +121,17 @@ def test_product_query(client, product_in_stock):
                         availability {
                             available,
                             priceRange {
-                                minPrice {
-                                    gross
-                                    net
+                                start {
+                                    gross {
+                                        amount
+                                        currency
+                                        localized
+                                    }
+                                    net {
+                                        amount
+                                        currency
+                                        localized
+                                    }
                                     currency
                                 }
                             }
@@ -143,8 +151,8 @@ def test_product_query(client, product_in_stock):
     product_data = product_edges_data[0]['node']
     assert product_data['name'] == product.name
     assert product_data['url'] == product.get_absolute_url()
-    gross = product_data['availability']['priceRange']['minPrice']['gross']
-    assert float(gross) == float(product.price.gross)
+    gross = product_data['availability']['priceRange']['start']['gross']
+    assert float(gross['amount']) == float(product.price.amount)
 
 
 def test_filter_product_by_category(client, product_in_stock):
@@ -353,10 +361,9 @@ def test_real_query(client, product_in_stock):
         id
         name
         price {
+            amount
             currency
-            gross
-            grossLocalized
-            net
+            localized
             __typename
         }
         availability {
@@ -372,19 +379,31 @@ def test_real_query(client, product_in_stock):
     fragment ProductPriceFragmentQuery on ProductAvailability {
         available
         discount {
-            gross
-            __typename
-        }
-        priceRange {
-            maxPrice {
-                gross
-                grossLocalized
+            gross {
+                amount
                 currency
                 __typename
             }
-            minPrice {
-                gross
-                grossLocalized
+            __typename
+        }
+        priceRange {
+            stop {
+                gross {
+                    amount
+                    currency
+                    localized
+                    __typename
+                }
+                currency
+                __typename
+            }
+            start {
+                gross {
+                    amount
+                    currency
+                    localized
+                    __typename
+                }
                 currency
                 __typename
             }

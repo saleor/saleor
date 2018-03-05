@@ -35,7 +35,7 @@
                 </span>
                 <p class="list-item-price">
                   <small>
-                    {% gross product.price html=True %}
+                    {{ product.price|amount:'html' }}
                   </small>
                 </p>
               </a>

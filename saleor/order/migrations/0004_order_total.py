@@ -15,6 +15,6 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='order',
             name='total',
-            field=django_prices.models.PriceField(decimal_places=2, currency=b'USD', max_digits=12, blank=True, null=True, verbose_name='total'),
+            field=django_prices.models.MoneyField(decimal_places=2, currency='USD', max_digits=12, blank=True, null=True, verbose_name='total'),
         ),
     ]
