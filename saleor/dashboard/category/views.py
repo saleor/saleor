@@ -36,7 +36,8 @@ def category_create(request, root_pk=None):
     if root_pk:
         root = get_object_or_404(Category, pk=root_pk)
         path = root.get_ancestors(include_self=True) if root else []
-    form = CategoryForm(request.POST or None, parent_pk=root_pk)
+    form = CategoryForm(
+        request.POST or None, request.FILES or None, parent_pk=root_pk)
     if form.is_valid():
         category = form.save()
         messages.success(
@@ -58,8 +59,9 @@ def category_edit(request, root_pk=None):
     if root_pk:
         root = get_object_or_404(Category, pk=root_pk)
         path = root.get_ancestors(include_self=True) if root else []
-    form = CategoryForm(request.POST or None, instance=category,
-                        parent_pk=category.parent_id)
+    form = CategoryForm(
+        request.POST or None, request.FILES or None, instance=category,
+        parent_pk=category.parent_id)
     status = 200
     if form.is_valid():
         category = form.save()

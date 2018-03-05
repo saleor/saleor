@@ -33,7 +33,8 @@ def collection_list(request):
 @permission_required('product.edit_product')
 def collection_create(request):
     collection = Collection()
-    form = CollectionForm(request.POST or None, instance=collection)
+    form = CollectionForm(
+        request.POST or None, request.FILES or None, instance=collection)
     if form.is_valid():
         collection = form.save()
         msg = pgettext_lazy('Collection message', 'Added collection')
@@ -47,7 +48,8 @@ def collection_create(request):
 @permission_required('product.edit_product')
 def collection_update(request, pk=None):
     collection = get_object_or_404(Collection, pk=pk)
-    form = CollectionForm(request.POST or None, instance=collection)
+    form = CollectionForm(
+        request.POST or None, request.FILES or None, instance=collection)
     if form.is_valid():
         collection = form.save()
         msg = pgettext_lazy('Collection message', 'Updated collection')
