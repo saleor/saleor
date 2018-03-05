@@ -22,7 +22,7 @@ const tableHeaders = [
     wide: true
   }
 ];
-const PAGINATE_BY = 2;
+const PAGINATE_BY = 4;
 
 const feederOptions = {
   options: props => {
@@ -70,7 +70,10 @@ const rootCategoryListFeeder = graphql(rootCategoryChildren, feederOptions);
 interface BaseCategoryListProps {
   categories: {
     edges: Array<any>;
-    totalCount: number;
+    pageInfo: {
+      hasNextPage: boolean;
+      hasPreviousPage: boolean;
+    };
   };
   location: any;
   label: string;
@@ -81,10 +84,7 @@ class BaseCategoryList extends Component<BaseCategoryListProps> {
     // this.props.history.push("add");
   };
 
-  handleChangePage = (firstCursor, lastCursor) => (event, currentPage) => {
-    const prevPage = parseQs("").currentPage || 0;
-    const action =
-      parseInt(prevPage, 10) < parseInt(currentPage, 10) ? "next" : "prev";
+  handleChangePage = event => {
     // this.props.history.push({
     //   search: createQueryString(this.props.location.search, {
     //     action,
@@ -114,13 +114,11 @@ class BaseCategoryList extends Component<BaseCategoryListProps> {
         label={label}
       >
         <Table
-          count={categories.totalCount}
-          handleChangePage={this.handleChangePage}
           handleRowClick={this.handleRowClick}
           headers={tableHeaders}
-          page={parseInt(qs.currentPage, 10) || 0}
-          rowsPerPage={PAGINATE_BY}
-          rowsPerPageOptions={[PAGINATE_BY]}
+          onNextPage={this.handleChangePage}
+          onPreviousPage={this.handleChangePage}
+          page={categories.pageInfo}
         >
           {categories.edges.map(({ node }) => (
             <TableRow key={node.id}>
@@ -141,7 +139,10 @@ interface CategoryListComponentProps {
     category: {
       children: {
         edges: Array<any>;
-        totalCount: number;
+        pageInfo: {
+          hasNextPage: boolean;
+          hasPreviousPage: boolean;
+        };
       };
     };
   };
@@ -154,7 +155,7 @@ const CategoryListComponent: React.StatelessComponent<
   const { data } = props;
   const categories = data.category
     ? data.category.children
-    : { edges: [], totalCount: 0 };
+    : { edges: [], pageInfo: { hasNextPage: false, hasPreviousPage: false } };
   return (
     <div>
       {data.loading ? (
@@ -176,7 +177,10 @@ interface RootCategoryListComponentProps {
     loading: boolean;
     categories: {
       edges: Array<any>;
-      totalCount: number;
+      pageInfo: {
+        hasNextPage: boolean;
+        hasPreviousPage: boolean;
+      };
     };
   };
   location: any;
@@ -186,7 +190,10 @@ const RootCategoryListComponent: React.StatelessComponent<
   RootCategoryListComponentProps
 > = props => {
   const { data } = props;
-  const categories = data.categories || { edges: [], totalCount: 0 };
+  const categories = data.categories || {
+    edges: [],
+    pageInfo: { hasNextPage: false, hasPreviousPage: false }
+  };
   return (
     <div>
       {data.loading ? (
