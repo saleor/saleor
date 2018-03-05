@@ -19,7 +19,7 @@ def get_product_data(line, currency, organization):
             'name': line.product_name,
             'sku': line.product_sku,
         },
-        'price': line.get_total(),
+        'price': line.get_total().gross,
         'priceCurrency': currency,
         'eligibleQuantity': {
             '@type': 'QuantitativeValue',
