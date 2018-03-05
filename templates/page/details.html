@@ -2,6 +2,7 @@
 {% load i18n %}
 {% load materializecss %}
 
+{% block title %}{{ page.title }} - {{ block.super }}{% endblock %}
 
 {% block breadcrumb %}
   <ul class="breadcrumbs list-unstyled">
