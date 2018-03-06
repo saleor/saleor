@@ -419,6 +419,7 @@ def create_fulfillments(order):
 
 
 def create_fake_order():
+
     user = random.choice([None, User.objects.filter(
         is_superuser=False).order_by('?').first()])
     if user:
@@ -438,7 +439,8 @@ def create_fake_order():
     shipping_price = shipping_method.price_per_country.first().price
     order_data.update({
         'shipping_method_name': shipping_method.name,
-        'shipping_price': shipping_price})
+        'shipping_price_net': shipping_price,
+        'shipping_price_gross': shipping_price})
 
     order = Order.objects.create(**order_data)
 

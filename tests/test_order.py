@@ -1,3 +1,4 @@
+from decimal import Decimal
 from unittest.mock import Mock
 
 from django.urls import reverse
