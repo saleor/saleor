@@ -91,21 +91,23 @@
                   </td>
                   <td class="right-align">
                     {% get_formset_form formset forloop.counter0 as line_form %}
-                    <input id="{{ line_form.order_line.auto_id }}"
-                           type="hidden"
-                           name="{{ line_form.order_line.html_name }}"
-                           required="{{ line_form.order_line.field.required }}"
-                           value="{{ line_form.order_line.value }}">
-                    <input id="{{ line_form.quantity.auto_id }}"
-                           max="{{ line.quantity_unfulfilled }}"
-                           min="0"
-                           name="{{ line_form.quantity.html_name }}"
-                           required="{{ line_form.quantity.field.required }}"
-                           type="number"
-                           value="{{ line_form.quantity.value }}">
-                    {% blocktrans trimmed with quantity_unfulfilled=line.quantity_unfulfilled context "Fulfill order table quantity unfulfilled" %}
-                      of {{ quantity_unfulfilled }}
-                    {% endblocktrans %}
+                    <div class="fulfillment-quantity">
+                      <input id="{{ line_form.order_line.auto_id }}"
+                             type="hidden"
+                             name="{{ line_form.order_line.html_name }}"
+                             required="{{ line_form.order_line.field.required }}"
+                             value="{{ line_form.order_line.value }}">
+                      <input id="{{ line_form.quantity.auto_id }}"
+                             max="{{ line.quantity_unfulfilled }}"
+                             min="0"
+                             name="{{ line_form.quantity.html_name }}"
+                             required="{{ line_form.quantity.field.required }}"
+                             type="number"
+                             value="{{ line_form.quantity.value }}">
+                      {% blocktrans trimmed with quantity_unfulfilled=line.quantity_unfulfilled context "Fulfill order table quantity unfulfilled" %}
+                        of {{ quantity_unfulfilled }}
+                      {% endblocktrans %}
+                    </div>
                     <label for="{{ line_form.quantity.auto_id }}">
                       {% for error in line_form.quantity.errors %}
                         <p class="help-block materialize-red-text">{{ error }}</p>

@@ -190,6 +190,15 @@
         vertical-align: bottom;
       }
     }
+
+    .fulfillment-quantity {
+      display: flex;
+      align-items: center;
+
+      input {
+        width: 64px;
+      }
+    }
   }
 
   th {
