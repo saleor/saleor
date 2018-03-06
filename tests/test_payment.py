@@ -1,10 +1,11 @@
+from decimal import Decimal
+
 from prices import Money
 
 from saleor.order.models import Payment
 
 
 def test_get_purchased_items(order_with_lines, settings, voucher):
-
     payment = Payment.objects.create(order=order_with_lines, variant='paypal')
     discount = Money('10.0', currency=settings.DEFAULT_CURRENCY)
 
@@ -15,6 +16,7 @@ def test_get_purchased_items(order_with_lines, settings, voucher):
             payment.get_purchased_items(), order_with_lines.get_lines()):
         assert p.sku == o.product_sku
         assert p.quantity == o.quantity
+        assert p.price == o.unit_price_gross.quantize(Decimal('0.01')).amount
 
     order_with_lines.discount_name = 'Test'
     order_with_lines.discount_amount = discount
@@ -30,6 +32,7 @@ def test_get_purchased_items(order_with_lines, settings, voucher):
             payment.get_purchased_items()[:-1], order_with_lines.get_lines()):
         assert p.sku == o.product_sku
         assert p.quantity == o.quantity
+        assert p.price == o.unit_price_gross.quantize(Decimal('0.01')).amount
 
     discounted = payment.get_purchased_items()[-1]
 
