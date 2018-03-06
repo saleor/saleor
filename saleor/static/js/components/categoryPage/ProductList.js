@@ -17,7 +17,7 @@ class ProductList extends Component {
 
   static fragments = {
     products: gql`
-      fragment ProductListFragmentQuery on ProductTypeConnection {
+      fragment ProductListFragmentQuery on ProductCountableConnection {
         edges {
           node {
             ...ProductFragmentQuery

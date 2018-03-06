@@ -19,7 +19,7 @@ class ProductItem extends Component {
       "offers": {
         "@type": "Offer",
         "priceCurrency": product.price.currency,
-        "price": product.price.net,
+        "price": product.price.amount,
       }
     };
     return JSON.stringify(data);
@@ -27,14 +27,13 @@ class ProductItem extends Component {
 
   static fragments = {
     product: gql`
-      fragment ProductFragmentQuery on ProductType {
+      fragment ProductFragmentQuery on Product {
         id
         name
         price {
           currency
-          gross
-          grossLocalized
-          net
+          amount
+          localized
         }
         availability {
           ...ProductPriceFragmentQuery

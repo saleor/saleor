@@ -46,27 +46,35 @@ class CategoryPage extends Component {
 
   static fragments = {
     category: gql`
-      fragment CategoryPageFragmentQuery on CategoryType {
-        pk
+      fragment CategoryPageFragmentQuery on Category {
+        id
         name
         url
         ancestors {
-          name
-          pk
-          url
+          edges {
+            node {
+              name
+              id
+              url
+            }
+          }
         }
         children {
-          name
-          pk
-          url
-          slug
+          edges {
+            node {
+              name
+              id
+              url
+              slug
+            }
+          }
         }
         products (
           first: $first
-          orderBy: $sortBy
+          sortBy: $sortBy
           attributes: $attributesFilter
-          priceGte: $minPrice,
-          priceLte: $maxPrice,
+          price_Gte: $minPrice,
+          price_Lte: $maxPrice,
         ) {
           ...ProductListFragmentQuery
         }
@@ -152,6 +160,7 @@ class CategoryPage extends Component {
   render () {
     const attributes = this.props.data.attributes;
     const category = this.props.data.category;
+    const ancestors = category.ancestors.edges;
     const variables = this.props.data.variables;
     const pendingVariables = {};
     const {filtersMenu} = this.state;
@@ -162,10 +171,10 @@ class CategoryPage extends Component {
             <div className="col-md-7">
               <ul className="breadcrumbs list-unstyled d-none d-md-block">
                 <li><a href="/">{pgettext('Main navigation item', 'Home')}</a></li>
-                {category.ancestors && (category.ancestors.map((ancestor) => {
+                {ancestors && (ancestors.map((node) => {
+                  let ancestor = node.node;
                   return (
-                    <li key={ancestor.pk}><a href={ancestor.url}>{ancestor.name}</a>
-                    </li>
+                    <li key={ancestor.id}><a href={ancestor.url}>{ancestor.name}</a></li>
                   );
                 }))}
                 <li><a href={category.url}>{category.name}</a></li>
@@ -175,14 +184,13 @@ class CategoryPage extends Component {
               <div className="row">
                 <div className="col-6 col-md-2 col-lg-6 filters-menu">
                   <span className="filters-menu__label d-sm-none"
-                        onClick={() => this.toggleMenu(filtersMenu)}>{pgettext('Category page filters', 'Filters')}</span>
+                    onClick={() => this.toggleMenu(filtersMenu)}>{pgettext('Category page filters', 'Filters')}</span>
                   {(variables.attributesFilter.length || variables.minPrice || variables.maxPrice) && (
                     <span className="filters-menu__icon d-sm-none"></span>
                   )}
                 </div>
                 <div className="col-6 col-md-10 col-lg-6">
-                  <SortBy sortedValue={variables.sortBy}
-                          setSorting={this.setSorting}/>
+                  <SortBy sortedValue={variables.sortBy} setSorting={this.setSorting}/>
                 </div>
               </div>
             </div>
@@ -198,7 +206,7 @@ class CategoryPage extends Component {
                 <h2>
                   {pgettext('Category page filters', 'Filters')}
                   <span className="clear-filters float-right"
-                        onClick={this.clearFilters}>{pgettext('Category page filters', 'Clear filters')}</span>
+                    onClick={this.clearFilters}>{pgettext('Category page filters', 'Clear filters')}</span>
                 </h2>
                 <div className="product-filters">
                   <ProductFilters

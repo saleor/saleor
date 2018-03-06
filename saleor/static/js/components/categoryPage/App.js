@@ -1,19 +1,15 @@
-import React, {PropTypes} from 'react';
+import React, { PropTypes } from 'react';
 import {gql, graphql} from 'react-apollo';
 
 import Loading from '../Loading';
 import CategoryPage from './CategoryPage';
-import ProductFilters from "./ProductFilters";
+import ProductFilters from './ProductFilters';
 
 
 class App extends React.Component {
   static propTypes = {
     root: PropTypes.object
   };
-
-  constructor(props) {
-    super(props);
-  }
 
   render() {
     if (this.props.data.loading && !this.props.data.category) {
@@ -26,19 +22,22 @@ class App extends React.Component {
 
 const rootQuery = gql`
   query Root(
-    $categoryId: Int!,
+    $categoryId: ID!,
     $sortBy: String,
     $first: Int,
-    $attributesFilter: [AttributesFilterScalar],
+    $attributesFilter: [AttributeScalar],
     $minPrice: Float,
     $maxPrice: Float
   ) {
-    category(pk: $categoryId) {
+    category(id: $categoryId) {
       ...CategoryPageFragmentQuery
-
     }
-    attributes(categoryPk: $categoryId) {
-      ...ProductFiltersFragmentQuery
+    attributes(inCategory: $categoryId) {
+      edges {
+        node {
+          ...ProductFiltersFragmentQuery
+        }
+      }
     }
   }
   ${CategoryPage.fragments.category}
