@@ -39,7 +39,7 @@ export const ListCard = decorate<ListCardProps>(
       <div>
         {displayLabel && (
           <CardContent className={classes.listCardActions}>
-            <Typography variant="display1">{label}</Typography>
+            <Typography variant="title">{label}</Typography>
             <Button
               color="secondary"
               onClick={handleAddAction}
