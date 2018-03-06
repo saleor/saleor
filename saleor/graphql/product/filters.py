@@ -3,12 +3,15 @@ import operator
 from collections import defaultdict
 
 from django.db.models import Q
+from django_filters import OrderingFilter
 from django_filters.fields import Lookup
 from graphene_django.filter.filterset import Filter
 
+from ...product.filters import SORT_BY_FIELDS
 from ...product.models import Product, ProductAttribute
 from ..core.filters import DistinctFilterSet
 from .fields import AttributeField
+
 
 
 class ProduductAttributeFilter(Filter):
@@ -50,6 +53,9 @@ class ProduductAttributeFilter(Filter):
 
 
 class ProductFilterSet(DistinctFilterSet):
+    sort_by = OrderingFilter(
+        fields=SORT_BY_FIELDS.keys(), field_labels=SORT_BY_FIELDS)
+
     class Meta:
         model = Product
         fields = {

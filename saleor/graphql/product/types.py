@@ -61,8 +61,7 @@ class Product(CountableDjangoObjectType):
 
 class Category(CountableDjangoObjectType):
     products = DjangoFilterConnectionField(
-        Product, filterset_class=ProductFilterSet,
-        sort_by=graphene.Argument(graphene.String))
+        Product, filterset_class=ProductFilterSet)
     url = graphene.String()
     ancestors = DjangoFilterConnectionField(
         lambda: Category, filterset_class=DistinctFilterSet)
@@ -89,11 +88,9 @@ class Category(CountableDjangoObjectType):
         ancestors = self.get_ancestors().distinct()
         return self.get_absolute_url(ancestors)
 
-    def resolve_products(self, info, sort_by=None, **kwargs):
+    def resolve_products(self, info, **kwargs):
         qs = models.Product.objects.available_products()
         qs = qs.filter(category=self)
-        if sort_by == 'name':
-            qs = qs.order_by('name')
         return qs.distinct()
 
 
