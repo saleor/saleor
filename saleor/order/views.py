@@ -10,14 +10,14 @@ from django.template.response import TemplateResponse
 from django.utils.translation import pgettext_lazy
 from payments import PaymentStatus, RedirectNeeded
 
+from . import OrderStatus
+from ..account.forms import LoginForm
 from ..account.models import User
 from ..core.utils import get_client_ip
-from ..account.forms import LoginForm
 from .forms import (
     OrderNoteForm, PasswordForm, PaymentDeleteForm, PaymentMethodsForm)
 from .models import Order, OrderNote, Payment
 from .utils import attach_order_to_user, check_order_status
-from . import OrderStatus
 
 logger = logging.getLogger(__name__)
 
