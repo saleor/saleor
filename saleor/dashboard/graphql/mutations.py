@@ -1,5 +1,4 @@
 from collections import OrderedDict
-from itertools import chain
 
 import graphene
 from django.core.exceptions import ImproperlyConfigured
@@ -7,8 +6,8 @@ from graphene.types.mutation import MutationOptions
 from graphene_django.form_converter import convert_form_field
 from graphene_django.registry import get_global_registry
 
-from ...graphql.utils import get_node
 from ...graphql.core.types import Error
+from ...graphql.utils import get_node
 
 registry = get_global_registry()
 
@@ -90,9 +89,8 @@ class ModelFormMutation(BaseMutation):
             instance = form.save()
             kwargs = {cls._meta.return_field_name: instance}
             return cls(errors=[], **kwargs)
-        else:
-            errors = convert_form_errors(form)
-            return cls(errors=errors)
+        errors = convert_form_errors(form)
+        return cls(errors=errors)
 
 
 class ModelFormUpdateMutation(ModelFormMutation):
