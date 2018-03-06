@@ -26,44 +26,18 @@ const tableHeaders = [
 const PAGINATE_BY = 4;
 
 const feederOptions = {
-  options: props => {
-    const options = {
-      variables: {
-        id: props.categoryId
-      },
-      fetchPolicy: "network-only"
-    };
-    const qs = parseQs("");
-    let variables;
-    switch (qs.action) {
-      case "prev":
-        variables = {
-          after: null,
-          before: qs.firstCursor,
-          first: null,
-          last: PAGINATE_BY
-        };
-        break;
-      case "next":
-        variables = {
-          after: qs.lastCursor,
-          before: null,
-          first: PAGINATE_BY,
-          last: null
-        };
-        break;
-      default:
-        variables = {
-          after: qs.lastCursor,
-          before: null,
-          first: PAGINATE_BY,
-          last: null
-        };
-        break;
-    }
-    options.variables = { ...options.variables, ...variables };
-    return options;
-  }
+  options: props => ({
+    variables: {
+      id: props.categoryId,
+      first: props.filters.after
+        ? PAGINATE_BY
+        : props.filters.before ? null : PAGINATE_BY,
+      last: props.filters.before ? PAGINATE_BY : null,
+      before: props.filters.before,
+      after: props.filters.after
+    },
+    fetchPolicy: "network-only"
+  })
 };
 const categoryListFeeder = graphql(categoryChildren, feederOptions);
 const rootCategoryListFeeder = graphql(rootCategoryChildren, feederOptions);
@@ -74,10 +48,18 @@ interface BaseCategoryListProps {
     pageInfo: {
       hasNextPage: boolean;
       hasPreviousPage: boolean;
+      startCursor: string;
+      endCursor: string;
     };
   };
   location: any;
   label: string;
+  filters: {
+    first: number;
+    last: number;
+    after: string;
+    before: string;
+  };
 }
 
 class BaseCategoryList extends Component<BaseCategoryListProps> {
@@ -85,28 +67,18 @@ class BaseCategoryList extends Component<BaseCategoryListProps> {
     // this.props.history.push("add");
   };
 
-  handleChangePage = event => {
-    // this.props.history.push({
-    //   search: createQueryString(this.props.location.search, {
-    //     action,
-    //     currentPage,
-    //     firstCursor,
-    //     lastCursor
-    //   })
-    // });
-  };
-
   handleRowClick = id => {
     // return () => this.props.history.push(`/categories/${id}/`);
   };
 
   render() {
-    const { label, categories } = this.props;
-    const firstCursor =
-      categories.edges.length > 0 ? categories.edges[0].cursor : "";
-    const lastCursor =
-      categories.edges.length > 0 ? categories.edges.slice(-1)[0].cursor : "";
-    const qs = parseQs("");
+    const { label, categories, filters } = this.props;
+    const pageInfo = {
+      hasPreviousPage: filters.after
+        ? true
+        : categories.pageInfo.hasPreviousPage,
+      hasNextPage: filters.before ? true : categories.pageInfo.hasNextPage
+    };
     return (
       <Navigator>
         {navigate => (
@@ -118,9 +90,13 @@ class BaseCategoryList extends Component<BaseCategoryListProps> {
           >
             <Table
               headers={tableHeaders}
-              onNextPage={this.handleChangePage}
-              onPreviousPage={this.handleChangePage}
-              page={categories.pageInfo}
+              onNextPage={() =>
+                navigate(`?after=${categories.pageInfo.endCursor}`)
+              }
+              onPreviousPage={() =>
+                navigate(`?before=${categories.pageInfo.startCursor}`)
+              }
+              page={pageInfo}
             >
               {categories.edges.map(({ node }) => (
                 <TableRow
@@ -149,11 +125,19 @@ interface CategoryListComponentProps {
         pageInfo: {
           hasNextPage: boolean;
           hasPreviousPage: boolean;
+          startCursor: string;
+          endCursor: string;
         };
       };
     };
   };
   location: any;
+  filters: {
+    first: number;
+    last: number;
+    after: string;
+    before: string;
+  };
 }
 
 const CategoryListComponent: React.StatelessComponent<
@@ -162,7 +146,15 @@ const CategoryListComponent: React.StatelessComponent<
   const { data } = props;
   const categories = data.category
     ? data.category.children
-    : { edges: [], pageInfo: { hasNextPage: false, hasPreviousPage: false } };
+    : {
+        edges: [],
+        pageInfo: {
+          hasNextPage: false,
+          hasPreviousPage: false,
+          startCursor: "",
+          endCursor: ""
+        }
+      };
   return (
     <div>
       {data.loading ? (
@@ -172,6 +164,7 @@ const CategoryListComponent: React.StatelessComponent<
           categories={categories}
           label={pgettext("Title of the subcategories list", "Subcategories")}
           location={props.location}
+          filters={props.filters}
         />
       )}
     </div>
@@ -187,10 +180,18 @@ interface RootCategoryListComponentProps {
       pageInfo: {
         hasNextPage: boolean;
         hasPreviousPage: boolean;
+        startCursor: string;
+        endCursor: string;
       };
     };
   };
   location: any;
+  filters: {
+    first: number;
+    last: number;
+    after: string;
+    before: string;
+  };
 }
 
 const RootCategoryListComponent: React.StatelessComponent<
@@ -199,7 +200,12 @@ const RootCategoryListComponent: React.StatelessComponent<
   const { data } = props;
   const categories = data.categories || {
     edges: [],
-    pageInfo: { hasNextPage: false, hasPreviousPage: false }
+    pageInfo: {
+      hasNextPage: false,
+      hasPreviousPage: false,
+      startCursor: "",
+      endCursor: ""
+    }
   };
   return (
     <div>
@@ -210,6 +216,7 @@ const RootCategoryListComponent: React.StatelessComponent<
           categories={categories}
           label={pgettext("Title of the categories list", "Categories")}
           location={props.location}
+          filters={props.filters}
         />
       )}
     </div>
