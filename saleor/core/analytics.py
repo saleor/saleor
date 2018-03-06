@@ -48,7 +48,7 @@ def report_view(client_id, path, language, headers):
 
 def report_order(client_id, order):
     items = [
-        ga.Item(
+        ga.item(
             ol.product_name, ol.get_price_per_item(), quantity=ol.quantity,
             item_id=ol.product_sku)
         for ol in order]
