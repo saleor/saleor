@@ -1,3 +1,3 @@
-export { DescriptionCard } from "./descriptionCard";
-export { FilterCard } from "./filterCard";
-export { ListCard } from "./listCard";
+export { DescriptionCard } from "./DescriptionCard";
+export { FilterCard } from "./FilterCard";
+export { ListCard } from "./ListCard";
