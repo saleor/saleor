@@ -445,22 +445,20 @@
               </tbody>
             </table>
           </div>
-          {% if perms.order.edit_order %}
+          {% if perms.order.edit_order and fulfillment.can_edit %}
             <div class="data-table-action">
-              {% if fulfillment.can_edit %}
-                <a href="#base-modal" data-href="{% url 'dashboard:fulfillment-cancel' order_pk=order.pk fulfillment_pk=fulfillment.pk %}"
-                   class="btn-flat waves-effect modal-trigger-custom" title="{% trans "Cancel fulfillment" context "Fulfillment summary card action title" %}">
-                  {% trans "Cancel" context "Fulfillment summary card action" %}
-                </a>
-                <a href="#base-modal" data-href="{% url 'dashboard:fulfillment-change-tracking' order_pk=order.pk fulfillment_pk=fulfillment.pk %}"
-                   class="btn-flat waves-effect modal-trigger-custom" title="{% trans "Edit tracking number" context "Fulfillment summary card action title" %}">
-                  {% if fulfillment.tracking_number %}
-                    {% trans "Edit tracking" context "Fulfillment summary card action" %}
-                  {% else %}
-                    {% trans "Add tracking" context "Fulfillment summary card action" %}
-                  {% endif %}
-                </a>
-              {% endif %}
+              <a href="#base-modal" data-href="{% url 'dashboard:fulfillment-cancel' order_pk=order.pk fulfillment_pk=fulfillment.pk %}"
+                 class="btn-flat waves-effect modal-trigger-custom" title="{% trans "Cancel fulfillment" context "Fulfillment summary card action title" %}">
+                {% trans "Cancel" context "Fulfillment summary card action" %}
+              </a>
+              <a href="#base-modal" data-href="{% url 'dashboard:fulfillment-change-tracking' order_pk=order.pk fulfillment_pk=fulfillment.pk %}"
+                 class="btn-flat waves-effect modal-trigger-custom" title="{% trans "Edit tracking number" context "Fulfillment summary card action title" %}">
+                {% if fulfillment.tracking_number %}
+                  {% trans "Edit tracking" context "Fulfillment summary card action" %}
+                {% else %}
+                  {% trans "Add tracking" context "Fulfillment summary card action" %}
+                {% endif %}
+              </a>
               <a href="{% url 'dashboard:fulfillment-packing-slips' order_pk=order.pk fulfillment_pk=fulfillment.pk %}"
                  data-href="" class="btn-flat waves-effect" target="_blank">
                 {% trans "Packing Slips" context "Order detail action" %}
