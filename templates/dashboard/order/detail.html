@@ -97,46 +97,15 @@
   <div class="row tab-content" id="order-details">
     <div class="col s12 l4 switch-two-columns">
       <div class="card">
-        <div class="card-content">
-          <span class="card-title">
-            {% trans "Details" context "Order summary title" %}
-          </span>
-          <div class="row">
-              <div class="col s12 m4 l12">
-                <h6>
-                  {% trans "Placed on" context "Order placed on date" %}
-                </h6>
-                <p>
-                  {{ order.created }}
-                </p>
-              </div>
-            <div class="col s12 m4 l12">
-              <h6>
-                {% trans "Customer" context "Dashboard customer" %}
-              </h6>
-              <p>
-                {% if order.user %}
-                  <a href="{% url "dashboard:customer-details" pk=order.user.pk %}">{{ order.user }}</a>
-                {% elif order.user_email %}
-                  {{ order.user_email }}
-                {% else %}
-                  {% trans "Guest" context "Anonymous user account value" %}
-                {% endif %}
-              </p>
-            </div>
-            <div class="col s12 m4 l12">
-              <h6>
-                {% trans "Payment status" context "Order summary card header" %}
-              </h6>
-              <p>
-                {% if payment %}
-                  {% render_status payment.status payment.get_status_display %}
-                {% else %}
-                  {% trans "N/A" context "Payment status not available" %}
-                {% endif %}
-              </p>
-            </div>
-          </div>
+        <div class="data-table-header">
+          <h5 class="data-table-title">
+            {% trans "Payments" context "Order summary card header" %}
+          </h5>
+          {% if payment %}
+            {% render_status payment.status payment.get_status_display %}
+          {% else %}
+            {% trans "N/A" context "Payment status not available" %}
+          {% endif %}
         </div>
         <div class="data-table-container">
           <table class="data-table bordered highlight">
@@ -203,12 +172,31 @@
         {% endif %}
       </div>
       <div class="row">
-        {% if order.is_shipping_required %}
-          <div class="col s12 m6 l12 p6">
-            <div class="card">
-              <div class="card-content">
+        <div class="col s12 {% if order.shipping_address %}m6{% else %}m12{% endif %} l12 p6">
+          <div class="card">
+            <div class="card-content card-border">
+              <span class="card-title black-text">
+                {% trans "Customer" context "" %}
+              </span>
+              {% if order.user %}
+                <a href="{% url "dashboard:customer-details" pk=order.user.pk %}">{{ order.user }}</a>
+              {% elif order.user_email %}
+                {{ order.user_email }}
+              {% else %}
+                {% trans "Guest" context "Anonymous user account value" %}
+              {% endif %}
+            </div>
+            {% if order.is_shipping_required %}
+              <div class="card-content card-border">
                 <span class="card-title black-text">
                   {% trans "Shipping address" context "" %}
+                  {% if perms.order.edit_order %}
+                    <span class="right">
+                      <a href="{% url "dashboard:address-edit" order_pk=order.pk address_type="shipping" %}" class="btn-flat waves-effect">
+                        {% trans "Edit" context "Dashboard edit action" %}
+                      </a>
+                    </span>
+                  {% endif %}
                 </span>
                 {% if order.shipping_address %}
                   {% format_address order.shipping_address %}
@@ -216,30 +204,20 @@
                   {% trans "No shipping address" context "Missing shipping address message" %}
                 {% endif %}
               </div>
-              {% if perms.order.edit_order %}
-                <div class="card-action">
-                  <a href="{% url "dashboard:address-edit" order_pk=order.pk address_type="shipping" %}" class="btn-flat waves-effect">
-                    {% trans "Edit" context "Dashboard edit action" %}
-                  </a>
-                </div>
-              {% endif %}
-            </div>
-          </div>
-        {% endif %}
-        <div class="col s12 {% if order.shipping_address %}m6{% else %}m12{% endif %} l12 p6">
-          <div class="card">
+            {% endif %}
             <div class="card-content">
               <span class="card-title black-text">
                   {% trans "Billing address" context "" %}
+                  {% if perms.order.edit_order %}
+                    <span class="right">
+                      <a href="{% url "dashboard:address-edit" order_pk=order.pk address_type="billing" %}" class="btn-flat waves-effect">
+                        {% trans "Edit" context "Dashboard edit action" %}
+                      </a>
+                    </span>
+                  {% endif %}
               </span>
               {% format_address order.billing_address %}
             </div>
-            {% if perms.order.edit_order %}
-              <div class="card-action">
-                <a href="{% url "dashboard:address-edit" order_pk=order.pk address_type="billing" %}" class="btn-flat waves-effect">
-                  {% trans "Edit" context "Dashboard edit action" %}</a>
-              </div>
-            {% endif %}
           </div>
         </div>
       </div>
@@ -247,11 +225,16 @@
     <div class="col s12 l8 switch-two-columns">
       <div class="card shipment-table">
         <div class="data-table-header">
-          <h5 class="data-table-title">
-            {% blocktrans trimmed with order=order.id context "Order table title"  %}
-              Order #{{ order }}
-            {% endblocktrans %}
-          </h5>
+          <div class="data-table-title">
+            <h5>
+              {% blocktrans trimmed with order=order.id context "Order table title"  %}
+                Order #{{ order }}
+              {% endblocktrans %}
+            </h5>
+            <h6>
+              {% trans "Placed on" context "Order placed on date" %} {{ order.created }}
+            </h6>
+          </div>
           {% render_order_status order.status order.get_status_display %}
         </div>
         <div class="data-table-container">
