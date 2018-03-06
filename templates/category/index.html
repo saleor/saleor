@@ -2,6 +2,7 @@
 {% load staticfiles %}
 {% load build_absolute_uri from urls %}
 {% load render_bundle from webpack_loader %}
+{% load graphql %}
 
 {% block footer_scripts %}
   {{ block.super }}
@@ -26,5 +27,5 @@
 {% block content %}
     {% comment %} NOTE: This implementation of category page uses React for rendering the product list. See saleor/static/js/category.js file. {% endcomment %}
     {% csrf_token %}
-    <div id="category-page" data-category='{"id":{{category.id}}}'></div>
+    <div id="category-page" data-category='{"id": "{% pk_to_global_id 'Category' category.id %}"}'></div>
 {% endblock content %}

@@ -22,9 +22,10 @@ export default class CategoryFilter extends Component {
           </div>
         )}
         <ul className={category.parent ? ('product-filters__categories__childs') : ('product-filters__categories__childs no-parent')}>
-          {category.children && (category.children.map((child) => {
+          {category.children && (category.children.edges.map((node) => {
+            let child = node.node;
             return (
-              <li key={child.pk} className="item">
+              <li key={child.id} className="item">
                 <a href={child.url}>{child.name}</a>
               </li>
             );

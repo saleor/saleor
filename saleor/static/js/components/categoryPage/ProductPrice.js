@@ -17,21 +17,28 @@ class ProductPrice extends Component {
 
   static fragments = {
     availability: gql`
-      fragment ProductPriceFragmentQuery on ProductAvailabilityType {
+      fragment ProductPriceFragmentQuery on ProductAvailability {
         available
         discount {
-          gross
-        }
-        priceRange {
-          maxPrice {
-            gross
-            grossLocalized
+          gross {
+            amount
             currency
           }
-          minPrice {
-            gross
-            grossLocalized
-            currency
+        }
+        priceRange {
+          stop {
+            gross {
+              amount
+              currency
+              localized
+            }
+          }
+          start {
+            gross {
+              amount
+              currency
+              localized
+            }
           }
         }
       }
@@ -39,13 +46,13 @@ class ProductPrice extends Component {
   };
 
   render() {
-    const {discount, priceRange} = this.props.availability;
-    const isPriceRange = priceRange && priceRange.minPrice.gross !== priceRange.maxPrice.gross;
+    const { discount, priceRange } = this.props.availability;
+    const isPriceRange = priceRange && priceRange.start.gross.amount !== priceRange.stop.gross.amount;
     return (
       <div>
-      <span itemProp="price">
-        {isPriceRange && <span>{pgettext('product price range', 'from')} </span>} {priceRange.minPrice.grossLocalized}
-      </span>
+        <span itemProp="price">
+          {isPriceRange && <span>{pgettext('product price range', 'from')} </span>} {priceRange.start.gross.localized}
+        </span>
         {discount && (
           <div className="product-list__sale"><InlineSVG src={SaleImg}/><span
             className="product-list__sale__text">{pgettext('Sale (discount) label for item in product list', 'Sale')}</span>

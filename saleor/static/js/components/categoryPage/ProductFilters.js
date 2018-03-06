@@ -35,7 +35,8 @@ class ProductFilters extends Component {
   };
 
   componentWillMount() {
-    this.props.attributes.map((attribute) => {
+    this.props.attributes.edges.map((node) => {
+      let attribute = node.node;
       const attrValue = `${attribute.slug}`;
       this.setState({
         visibility: Object.assign(this.state.visibility, {[attrValue]: !isMobile()})
@@ -45,9 +46,8 @@ class ProductFilters extends Component {
 
   static fragments = {
     attributes: gql`
-      fragment ProductFiltersFragmentQuery on ProductAttributeType {
+      fragment ProductFiltersFragmentQuery on ProductAttribute {
         id
-        pk
         name
         slug
         values {
@@ -65,7 +65,8 @@ class ProductFilters extends Component {
     const { visibility } = this.state;
     return (
       <div className="product-filters__attributes">
-        {attributes && (attributes.map((attribute) => {
+        {attributes && (attributes.edges.map((node) => {
+          let attribute = node.node;
           return (
             <div key={attribute.id}>
               <FilterHeader
