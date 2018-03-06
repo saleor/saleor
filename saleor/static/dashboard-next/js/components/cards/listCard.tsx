@@ -65,3 +65,5 @@ ListCard.defaultProps = {
   addActionLabel: gettext("Add"),
   displayLabel: false
 };
+
+export default ListCard;
