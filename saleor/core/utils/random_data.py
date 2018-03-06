@@ -13,6 +13,8 @@ from faker.providers import BaseProvider
 from payments import PaymentStatus
 from prices import Money, TaxedMoney
 
+from ...account.models import Address, User
+from ...account.utils import store_user_address
 from ...discount import DiscountValueType, VoucherType
 from ...discount.models import Sale, Voucher
 from ...order import GroupStatus
@@ -21,8 +23,6 @@ from ...product.models import (
     AttributeChoiceValue, Category, Collection, Product, ProductAttribute,
     ProductImage, ProductType, ProductVariant, Stock, StockLocation)
 from ...shipping.models import ANY_COUNTRY, ShippingMethod
-from ...account.models import Address, User
-from ...account.utils import store_user_address
 
 fake = Factory.create()
 STOCK_LOCATION = 'default'

@@ -6,7 +6,7 @@ from ...graphql.core.filters import DistinctFilterSet
 from ...graphql.product.types import Category, resolve_categories
 from ...graphql.utils import get_node
 from .product.mutations import (
-    CategoryCreateMutation, CategoryUpdateMutation, CategoryDelete)
+    CategoryCreateMutation, CategoryDelete, CategoryUpdateMutation)
 
 
 class Query(graphene.ObjectType):
