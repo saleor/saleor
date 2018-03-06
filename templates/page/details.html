@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load materializecss %}
+
+{% block title %}{{ page.title }} - {{ block.super }}{% endblock %}
+
+{% block breadcrumb %}
+  <ul class="breadcrumbs list-unstyled">
+    <li>
+      <a href="{% url 'home' %}">
+        {% trans "Home" context "Main navigation item" %}
+      </a>
+    </li>
+    {% if page %}
+      <li>
+        <a href="{{ page.get_absolute_url }}">{{ page.title }}</a>
+      </li>
+    {% endif %}
+  </ul>
+{% endblock breadcrumb %}
+
+{% block content %}
+  {% if not is_visible %}
+    <div class="alert alert-warning" role="alert">
+      {% blocktrans trimmed with date=page.available_on|date context "Page details text" %}
+        <strong>Warning!</strong>
+        You are previewing a page that will become visible on <strong>{{ date }}</strong>.
+      {% endblocktrans %}
+    </div>
+  {% endif %}
+  <div class="">
+    {{ page.content|safe }}
+  </div>
+{% endblock %}

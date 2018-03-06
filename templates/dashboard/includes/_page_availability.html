@@ -1,0 +1,21 @@
+{% load i18n %}
+
+{% if is_published %}
+  <div class="label label-{{ label_cls }}">
+    {% trans "Published" context "Page availability status" %}
+  </div>
+{% elif not page.is_visible %}
+  <div class="label">
+    {% trans "Hidden" context "Page availability status" %}
+  </div>
+{% elif page.available_on %}
+  <div class="label">
+    {% blocktrans with date=page.available_on context "Page availability status" %}
+      Hidden (will become visible on {{ date }})
+    {% endblocktrans %}
+  </div>
+{% else %}
+  <div class="label">
+    {% trans "Hidden" context "Page availability status" %}
+  </div>
+{% endif %}
