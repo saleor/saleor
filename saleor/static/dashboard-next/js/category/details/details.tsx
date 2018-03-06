@@ -45,7 +45,6 @@ class CategoryProperties extends Component<
           return (
             <Mutation mutation={categoryDelete} variables={{ id: categoryId }}>
               {deleteCategory => {
-                console.log(result);
                 const { data: { category } } = result;
                 const handleRemoveAction = async () => {
                   await deleteCategory();
