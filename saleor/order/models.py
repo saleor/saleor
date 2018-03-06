@@ -296,18 +296,19 @@ class Payment(BasePayment):
             PurchasedItem(
                 name=line.product_name, sku=line.product_sku,
                 quantity=line.quantity,
-                price=line.unit_price_gross.quantize(Decimal('0.01')),
-                currency=settings.DEFAULT_CURRENCY)
+                price=line.unit_price_gross.quantize(Decimal('0.01')).amount,
+                currency=line.unit_price.currency)
             for line in self.order.get_lines()]
 
         voucher = self.order.voucher
         if voucher is not None:
-            lines.append(PurchasedItem(
-                name=self.order.discount_name,
-                sku='DISCOUNT',
-                quantity=1,
-                price=-self.order.discount_amount.amount,
-                currency=self.currency))
+            lines.append(
+                PurchasedItem(
+                    name=self.order.discount_name,
+                    sku='DISCOUNT',
+                    quantity=1,
+                    price=-self.order.discount_amount.amount,
+                    currency=self.order.discount_amount.currency))
         return lines
 
     def get_total_price(self):
