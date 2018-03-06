@@ -125,6 +125,14 @@ def test_checkout_flow_authenticated_user(
         'order:checkout-success', kwargs={'token': order.token})
     assert get_redirect_location(payment_response) == order_password
 
+    # Assert that payment object was created and contains correct data
+    payment = order.payments.all()[0]
+    assert payment.total == order.total.gross.amount
+    assert payment.tax == order.total.tax.amount
+    assert payment.currency == order.total.currency
+    assert payment.delivery == order.shipping_price.gross.amount
+    assert len(payment.get_purchased_items()) == len(order.get_lines())
+
 
 def test_address_without_shipping(request_cart_with_item, client, monkeypatch):
     monkeypatch.setattr(
