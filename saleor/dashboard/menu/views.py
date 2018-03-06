@@ -58,7 +58,7 @@ def menu_edit(request, pk):
 @permission_required('menu.view_menu')
 def menu_detail(request, pk):
     menu = get_object_or_404(Menu, pk=pk)
-    menu_items = menu.items.all()
+    menu_items = menu.items.filter(parent=None)
     menu_item_filter = MenuItemFilter(request.GET, queryset=menu_items)
     menu_items = get_paginator_items(
         menu_item_filter.qs, settings.DASHBOARD_PAGINATE_BY,
@@ -100,6 +100,9 @@ def menu_item_create(request, menu_pk, root_pk=None):
         msg = pgettext_lazy(
             'Dashboard message', 'Added menu item %s') % (menu_item,)
         messages.success(request, msg)
+        if root_pk:
+            return redirect(
+                'dashboard:menu-item-detail', menu_pk=menu.pk, item_pk=root_pk)
         return redirect('dashboard:menu-detail', pk=menu.pk)
     ctx = {
         'form': form, 'menu': menu, 'menu_item': menu_item, 'path': path}
