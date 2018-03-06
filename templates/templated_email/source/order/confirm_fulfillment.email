@@ -1,5 +1,4 @@
 {% load i18n %}
-{% load gross from prices_i18n %}
 
 {% block subject %}
   {% blocktrans trimmed with order=fulfillment.order context "Fulfillment confirmation email subject" %}
