@@ -1,16 +1,16 @@
-Saleor Pages
-===================
+Pages
+=====
 
 
 Setting up custom pages
 -----------------------
 
-You can set up your own pages such as "About us" or "Important Announcement!" in the Pages menu in dashboard.
+You can set up pages such as "About us" or "Important Announcement!" in the Pages menu in dashboard.
 Note that if you are not an admin, you need to be in group with proper permissions.
 
 
-Providing an URL to your page in storefront
--------------------------------------------
+Referencing pages in storefront
+-------------------------------
 
 If you want to add a link to recently created page in storefront, all you need to do is to put the following code:
 
