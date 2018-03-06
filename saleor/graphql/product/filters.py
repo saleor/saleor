@@ -13,8 +13,7 @@ from ..core.filters import DistinctFilterSet
 from .fields import AttributeField
 
 
-
-class ProduductAttributeFilter(Filter):
+class ProductAttributeFilter(Filter):
     field_class = AttributeField
 
     def filter(self, qs, value):
@@ -66,7 +65,7 @@ class ProductFilterSet(DistinctFilterSet):
     @classmethod
     def filter_for_field(cls, f, field_name, lookup_expr='exact'):
         if field_name == 'attributes':
-            return ProduductAttributeFilter(
+            return ProductAttributeFilter(
                 field_name=field_name, lookup_expr=lookup_expr, distinct=True)
         # this class method is called during class construction so we can't
         # reference ProductFilterSet here yet
