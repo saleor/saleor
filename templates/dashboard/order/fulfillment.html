@@ -49,82 +49,91 @@
 
 {% block content %}
 <div class="row">
-  <div class="col s12 l9">
-    <form role="form" class="card" method="post" action="{% block action_url %}#!{% endblock %}" novalidate>
+  <div class="col s12 l8">
+    <form role="form" class="card" method="post" novalidate>
     {% csrf_token %}
     {{ formset.management_form }}
-      <div class="card-content">
-        <span class="card-title">
-          {% trans "Fulfill order" context "Fulfill order title" %}
-        </span>
-        <div class="row">
-          <div class="col s12">
-            <table>
-              <thead>
-                <tr>
-                  <th class="wide">
-                    {% trans "Item" context "Modal remove order line table header" %}
-                  </th>
-                  <th>
-                    {% trans "SKU" context "Modal remove order line table header" %}
-                  </th>
-                  <th class="right-align">
-                    {% trans "Quantity" context "Modal remove order line table header" %}
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {% for line in order.get_unfulfilled_lines %}
-                  <tr>
-                    <td>
-                      {{ line.product_name }}<br>
-                    </td>
-                    <td>
-                      {{ line.product_sku }}
-                    </td>
-                    <td class="right-align">
-                      {% get_formset_form formset forloop.counter0 as line_form %}
-                      <input id="{{ line_form.order_line.auto_id }}"
-                             type="hidden"
-                             name="{{ line_form.order_line.html_name }}"
-                             required="{{ line_form.order_line.field.required }}"
-                             value="{{ line_form.order_line.value }}">
-                      <input id="{{ line_form.quantity.auto_id }}"
-                             max="{{ line.quantity_unfulfilled }}"
-                             min="0"
-                             name="{{ line_form.quantity.html_name }}"
-                             required="{{ line_form.quantity.field.required }}"
-                             type="number"
-                             value="{{ line_form.quantity.value }}">
-                      <label for="{{ line_form.quantity.auto_id }}">
-                        {% for error in line_form.quantity.errors %}
-                          <p class="help-block materialize-red-text">{{ error }}</p>
-                        {% endfor %}
-                        {% if line_form.quantity.help_text %}
-                          <p class="help-block">
-                            {{ line_form.quantity.field.help_text|safe }}
-                          </p>
-                        {% endif %}
-                      </label>
-                    </td>
-                  </tr>
-                {% endfor %}
-              </tbody>
-            </table>
-          </div>
-          <div class="col s12 m6">
-            {{ form.tracking_number|materializecss }}
-            {{ form.send_mail|materializecss }}
+      <div class="card shipment-table">
+        <div class="data-table-header">
+          <div class="data-table-title">
+            <h5>
+              {% trans "Fulfill order" context "Fulfill order title" %}
+            </h5>
           </div>
         </div>
-      </div>
-      <div class="card-action right-align">
-        <a href="{% url 'dashboard:order-details' order.pk %}" class="btn-flat waves-effect">
-          {% trans "Cancel" context "Dashboard cancel action" %}
-        </a>
-        <button type="submit" class="btn waves-effect">
-          {% trans "Fulfill" context "Dashboard update action" %}
-        </button>
+        <div class="data-table-container">
+          <table class="bordered highlight responsive data-table">
+            <thead>
+              <tr>
+                <th class="wide">
+                  {% trans "Item" context "Modal remove order line table header" %}
+                </th>
+                <th class="right-align">
+                  {% trans "Quantity" context "Modal remove order line table header" %}
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for line in order.get_unfulfilled_lines %}
+                <tr>
+                  <td>
+                    {% if line.product %}
+                      <a href="{% url 'dashboard:product-detail' pk=line.product.pk %}">{{ line.product_name }}</a>
+                    {% else %}
+                      {{ line.product_name }}
+                    {% endif %}
+                    <br>
+                    <span class="grey-text">
+                      {% blocktrans trimmed with sku=line.product_sku context "Order table text" %}
+                        SKU: {{ sku }}
+                      {% endblocktrans %}
+                    </span>
+                  </td>
+                  <td class="right-align">
+                    {% get_formset_form formset forloop.counter0 as line_form %}
+                    <input id="{{ line_form.order_line.auto_id }}"
+                           type="hidden"
+                           name="{{ line_form.order_line.html_name }}"
+                           required="{{ line_form.order_line.field.required }}"
+                           value="{{ line_form.order_line.value }}">
+                    <input id="{{ line_form.quantity.auto_id }}"
+                           max="{{ line.quantity_unfulfilled }}"
+                           min="0"
+                           name="{{ line_form.quantity.html_name }}"
+                           required="{{ line_form.quantity.field.required }}"
+                           type="number"
+                           value="{{ line_form.quantity.value }}">
+                    {% blocktrans trimmed with quantity_unfulfilled=line.quantity_unfulfilled context "Fulfill order table quantity unfulfilled" %}
+                      of {{ quantity_unfulfilled }}
+                    {% endblocktrans %}
+                    <label for="{{ line_form.quantity.auto_id }}">
+                      {% for error in line_form.quantity.errors %}
+                        <p class="help-block materialize-red-text">{{ error }}</p>
+                      {% endfor %}
+                      {% if line_form.quantity.help_text %}
+                        <p class="help-block">
+                          {{ line_form.quantity.field.help_text|safe }}
+                        </p>
+                      {% endif %}
+                    </label>
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        <div class="data-table-content">
+          {{ form.tracking_number|materializecss }}
+          {{ form.send_mail|materializecss }}
+        </div>
+        <div class="data-table-action right-align">
+          <a href="{% url 'dashboard:order-details' order.pk %}" class="btn-flat waves-effect">
+            {% trans "Cancel" context "Dashboard cancel action" %}
+          </a>
+          <button type="submit" class="btn waves-effect">
+            {% trans "Fulfill" context "Dashboard update action" %}
+          </button>
+        </div>
       </div>
     </form>
   </div>
