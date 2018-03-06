@@ -68,3 +68,5 @@ export const TablePaginationActions = decorate<TablePaginationActionsProps>(
     </div>
   )
 );
+
+export default TablePaginationActions;

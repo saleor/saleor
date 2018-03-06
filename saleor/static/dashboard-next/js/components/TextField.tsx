@@ -8,3 +8,5 @@ export const TextField: React.StatelessComponent<TextFieldProps> = props => (
     {...props}
   />
 );
+
+export default TextField;

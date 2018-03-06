@@ -9,7 +9,8 @@ import { createQueryString } from "../../misc";
 import { pgettext } from "../../i18n";
 import { TableRow, TableCell } from "material-ui";
 import { Link } from "react-router-dom";
-import { Table } from "../../components/table";
+import { Navigator } from "../../components/Navigator";
+import { Table } from "../../components/Table";
 
 const tableHeaders = [
   {
@@ -107,28 +108,34 @@ class BaseCategoryList extends Component<BaseCategoryListProps> {
       categories.edges.length > 0 ? categories.edges.slice(-1)[0].cursor : "";
     const qs = parseQs("");
     return (
-      <ListCard
-        addActionLabel="Add"
-        displayLabel={true}
-        handleAddAction={this.handleAddAction}
-        label={label}
-      >
-        <Table
-          handleRowClick={this.handleRowClick}
-          headers={tableHeaders}
-          onNextPage={this.handleChangePage}
-          onPreviousPage={this.handleChangePage}
-          page={categories.pageInfo}
-        >
-          {categories.edges.map(({ node }) => (
-            <TableRow key={node.id}>
-              {tableHeaders.map(header => (
-                <TableCell key={header.name}>{node[header.name]}</TableCell>
+      <Navigator>
+        {navigate => (
+          <ListCard
+            addActionLabel="Add"
+            displayLabel={true}
+            handleAddAction={this.handleAddAction}
+            label={label}
+          >
+            <Table
+              headers={tableHeaders}
+              onNextPage={this.handleChangePage}
+              onPreviousPage={this.handleChangePage}
+              page={categories.pageInfo}
+            >
+              {categories.edges.map(({ node }) => (
+                <TableRow
+                  key={node.id}
+                  onClick={() => navigate(`/categories/${node.id}/`)}
+                >
+                  {tableHeaders.map(header => (
+                    <TableCell key={header.name}>{node[header.name]}</TableCell>
+                  ))}
+                </TableRow>
               ))}
-            </TableRow>
-          ))}
-        </Table>
-      </ListCard>
+            </Table>
+          </ListCard>
+        )}
+      </Navigator>
     );
   }
 }

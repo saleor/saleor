@@ -103,3 +103,5 @@ TablePagination.defaultProps = {
   Actions: TablePaginationActions,
   component: TableCell
 };
+
+export default TablePagination;

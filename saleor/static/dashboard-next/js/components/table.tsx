@@ -16,7 +16,6 @@ interface PageInfo {
 }
 
 interface TableProps {
-  handleRowClick(rowId: number);
   headers: Array<{
     label: string;
     name: string;
@@ -27,36 +26,34 @@ interface TableProps {
   page: PageInfo;
 }
 
-export const Table: React.StatelessComponent<TableProps> = props => {
-  const {
-    children,
-    handleRowClick,
-    headers,
-    onNextPage,
-    onPreviousPage,
-    page
-  } = props;
-  return (
-    <MuiTable>
-      <TableHead>
-        <TableRow>
-          {headers.map(header => (
-            <TableCell key={header.name}>{header.label}</TableCell>
-          ))}
-        </TableRow>
-      </TableHead>
-      <TableBody>{children}</TableBody>
-      <TableFooter>
-        <TableRow>
-          <TablePagination
-            colSpan={5}
-            hasNextPage={page.hasNextPage}
-            hasPreviousPage={page.hasPreviousPage}
-            onNextPage={onNextPage}
-            onPreviousPage={onPreviousPage}
-          />
-        </TableRow>
-      </TableFooter>
-    </MuiTable>
-  );
-};
+export const Table: React.StatelessComponent<TableProps> = ({
+  children,
+  headers,
+  onNextPage,
+  onPreviousPage,
+  page
+}) => (
+  <MuiTable>
+    <TableHead>
+      <TableRow>
+        {headers.map(header => (
+          <TableCell key={header.name}>{header.label}</TableCell>
+        ))}
+      </TableRow>
+    </TableHead>
+    <TableBody>{children}</TableBody>
+    <TableFooter>
+      <TableRow>
+        <TablePagination
+          colSpan={5}
+          hasNextPage={page.hasNextPage}
+          hasPreviousPage={page.hasPreviousPage}
+          onNextPage={onNextPage}
+          onPreviousPage={onPreviousPage}
+        />
+      </TableRow>
+    </TableFooter>
+  </MuiTable>
+);
+
+export default Table;

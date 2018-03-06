@@ -5,7 +5,7 @@ import Card, { CardContent, CardActions } from "material-ui/Card";
 import Typography from "material-ui/Typography";
 import { withStyles, WithStyles } from "material-ui/styles";
 
-import { TextField } from "../../components/inputs";
+import { TextField } from "../../components/TextField";
 import { pgettext, gettext } from "../../i18n";
 
 const decorate = withStyles(theme => ({

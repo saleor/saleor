@@ -38,13 +38,15 @@ class CategoryProperties extends Component<
     );
     return (
       <Query query={categoryDetails} variables={{ id: categoryId }}>
-        {({ data }) => {
-          if (data.loading) {
+        {result => {
+          if (result.loading) {
             return <span>loading</span>;
           }
           return (
             <Mutation mutation={categoryDelete} variables={{ id: categoryId }}>
               {deleteCategory => {
+                console.log(result);
+                const { data: { category } } = result;
                 const handleRemoveAction = async () => {
                   await deleteCategory();
                   this.handleRemoveButtonClick;
@@ -53,32 +55,32 @@ class CategoryProperties extends Component<
                 return (
                   <>
                     <DescriptionCard
-                      description={data.category.description}
+                      description={category.description}
                       handleEditButtonClick={handleRemoveAction}
                       handleRemoveButtonClick={this.handleRemoveButtonClick}
-                      title={data.category.name}
+                      title={category.name}
                     />
                     <ConfirmRemoval
                       onClose={this.handleRemoveButtonClick}
                       onConfirm={handleRemoveAction}
                       opened={this.state.opened}
-                      title={interpolate(titleFmt, [data.category.name])}
+                      title={interpolate(titleFmt, [category.name])}
                     >
                       <p
                         dangerouslySetInnerHTML={{
-                          __html: interpolate(contentFmt, [data.category.name])
+                          __html: interpolate(contentFmt, [category.name])
                         }}
                       />
-                      {data.category.products &&
-                        data.category.products.totalCount > 0 && (
+                      {category.products &&
+                        category.products.totalCount > 0 && (
                           <p>
                             {interpolate(
                               ngettext(
                                 "There is one product in this category that will be removed.",
                                 "There are %s products in this category that will be removed.",
-                                data.category.products.totalCount
+                                category.products.totalCount
                               ),
-                              [data.category.products.totalCount]
+                              [category.products.totalCount]
                             )}
                           </p>
                         )}
