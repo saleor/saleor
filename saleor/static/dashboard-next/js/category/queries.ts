@@ -22,6 +22,8 @@ const categoryChildren = gql`
         pageInfo {
           hasNextPage
           hasPreviousPage
+          startCursor
+          endCursor
         }
       }
     }
@@ -67,6 +69,8 @@ const rootCategoryChildren = gql`
       pageInfo {
         hasNextPage
         hasPreviousPage
+        startCursor
+        endCursor
       }
     }
   }
