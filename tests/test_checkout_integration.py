@@ -129,6 +129,8 @@ def test_checkout_flow_authenticated_user(
     payment = order.payments.all()[0]
     assert payment.total == order.total.gross.amount
     assert payment.tax == order.total.tax.amount
+    assert payment.currency == order.total.currency
+    assert payment.delivery == order.shipping_price.gross.amount
     assert len(payment.get_purchased_items()) == len(order.get_lines())
 
 

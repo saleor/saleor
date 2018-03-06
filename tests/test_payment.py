@@ -17,6 +17,7 @@ def test_get_purchased_items(order_with_lines, settings, voucher):
         assert p.sku == o.product_sku
         assert p.quantity == o.quantity
         assert p.price == o.unit_price_gross.quantize(Decimal('0.01')).amount
+        assert p.currency == o.unit_price.currency
 
     order_with_lines.discount_name = 'Test'
     order_with_lines.discount_amount = discount
@@ -33,10 +34,12 @@ def test_get_purchased_items(order_with_lines, settings, voucher):
         assert p.sku == o.product_sku
         assert p.quantity == o.quantity
         assert p.price == o.unit_price_gross.quantize(Decimal('0.01')).amount
+        assert p.currency == o.unit_price.currency
 
     discounted = payment.get_purchased_items()[-1]
 
     assert discounted.name == order_with_lines.discount_name
     assert discounted.sku == 'DISCOUNT'
     assert discounted.price == -1 * order_with_lines.discount_amount.amount
+    assert discounted.currency == order_with_lines.discount_amount.currency
     assert discounted.quantity == 1
