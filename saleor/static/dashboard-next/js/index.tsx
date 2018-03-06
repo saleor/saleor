@@ -12,6 +12,7 @@ import { Provider } from "react-redux";
 import { createStore } from "redux";
 import { render } from "react-dom";
 
+import { AppRoot } from "./AppRoot";
 import CategorySection from "./category";
 import theme from "./theme";
 
@@ -41,15 +42,17 @@ render(
       <BrowserRouter basename="/dashboard/next/">
         <MuiThemeProvider theme={theme}>
           <Reboot />
-          <Switch>
-            {routerMapping.map(route => (
-              <Route
-                key={route.path}
-                path={`/${route.path}/`}
-                component={route.component}
-              />
-            ))}
-          </Switch>
+          <AppRoot>
+            <Switch>
+              {routerMapping.map(route => (
+                <Route
+                  key={route.path}
+                  path={`/${route.path}/`}
+                  component={route.component}
+                />
+              ))}
+            </Switch>
+          </AppRoot>
         </MuiThemeProvider>
       </BrowserRouter>
     </ApolloProvider>
