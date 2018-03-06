@@ -25,25 +25,32 @@
     {% else %}
       <li class="visible-s">
         <span>
-          {% trans "Categories" context "Dashboard categories list" %}
+          {% trans "Menus" context "Dashboard menus list" %}
         </span>
       </li>
     {% endif %}
-    <li>
-      <a href="{% url 'dashboard:menu-list' %}">
-        {% trans "Menus" context "Dashboard menus list" %}
-      </a>
-    </li>
-    <li class="back-mobile">
-      <a href="{% url 'dashboard:menu-list' %}">
-        <svg data-src="{% static 'dashboard/images/arrow-left.svg' %}" fill="#fff" width="20px" height="20px"/>
-      </a>
-    </li>
-    <li title="{{ menu.slug }}">
-      <span class="breadcrumbs--ellipsed-item">
-        {{ menu.slug }}
-      </span>
-    </li>
+    {% if path %}
+      <li class="back-mobile">
+        <a href="{% url 'dashboard:menu-list' %}">
+          <svg data-src="{% static 'dashboard/images/arrow-left.svg' %}" fill="#fff" width="20px" height="20px"/>
+        </a>
+      </li>
+      {% for node in path %}
+        {% if forloop.last %}
+          <li title="{{ node.name }}">
+            <span class="breadcrumbs--ellipsed-item">
+              {{ node.name }}
+            </span>
+          </li>
+        {% else %}
+          <li class="hide-on-med-and-down">
+            <a href="{% url 'dashboard:menu-item-detail' menu_pk=menu.pk item_pk=node.pk %}" title="{{ node.name }}" class="breadcrumbs--ellipsed-item">
+              {{ node.name }}
+            </a>
+          </li>
+        {% endif %}
+      {% endfor %}
+    {% endif %}
   </ul>
 {% endblock %}
 
@@ -84,7 +91,7 @@
           </span>
         </div>
         <div class="data-table-header-action">
-          <a href="{% url "dashboard:menu-item-add" menu_pk=menu.pk %}" class="btn-data-table btn-flat waves-effect">
+          <a href="{% url "dashboard:menu-item-add" menu_pk=menu.pk root_pk=menu_item.pk %}" class="btn-data-table btn-flat waves-effect">
             {% trans "Add" %}
           </a>
         </div>
