@@ -95,6 +95,17 @@
     }
   }
 
+  &-content {
+    align-items: center;
+    display: flex;
+    flex-direction: column;
+    padding: 24px;
+
+    .input {
+      padding: 0;
+    }
+  }
+
   &-title {
     flex-grow: 1;
     font-size: 20px;
