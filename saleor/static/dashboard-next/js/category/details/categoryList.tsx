@@ -6,7 +6,7 @@ import { parse as parseQs } from "qs";
 import { ListCard } from "../../components/cards";
 import { categoryChildren, rootCategoryChildren } from "../queries";
 import { createQueryString } from "../../misc";
-import { pgettext } from "../../i18n";
+import { pgettext, gettext } from "../../i18n";
 import { TableRow, TableCell } from "material-ui";
 import { Link } from "react-router-dom";
 import { Navigator } from "../../components/Navigator";
@@ -84,8 +84,7 @@ class BaseCategoryList extends Component<BaseCategoryListProps> {
       <Navigator>
         {navigate => (
           <ListCard
-            addActionLabel="Add"
-            displayLabel={true}
+            addActionLabel={gettext("Create category")}
             handleAddAction={this.handleAddAction}
             label={label}
           >
