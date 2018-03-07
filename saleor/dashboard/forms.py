@@ -4,6 +4,13 @@ from django import forms
 from django.core.exceptions import ValidationError
 
 
+class OrderedModelMultipleChoiceField(forms.ModelMultipleChoiceField):
+    def clean(self, value):
+        qs = super().clean(value)
+        keys = list(map(int, value))
+        return sorted(qs, key=lambda v: keys.index(v.pk))
+
+
 class AjaxSelect2ChoiceField(forms.ChoiceField):
     """An AJAX-based choice field using Select2.
 
