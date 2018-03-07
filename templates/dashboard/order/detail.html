@@ -308,7 +308,7 @@
                   </td>
                 </tr>
               {% endfor %}
-              <tr>
+              <tr class="last-no-border">
                 <td class="right-align" colspan="3">
                   <p>{% trans "Subtotal" context "Order subtotal" %}</p>
                   <p>{% trans "Shipping" context "Order totals header" %} ({{ order.shipping_method_name|default:"-" }})</p>
@@ -330,6 +330,7 @@
                       </li>
                     </ul>
                   {% endif %}
+                  <p><strong>{% trans "Grand total" context "Order totals header" %}</strong></p>
                 </td>
                 <td class="right-align">
                   <p>{{ order.get_subtotal.gross|amount:'html' }}</p>
@@ -337,19 +338,10 @@
                   {% if order.discount_amount %}
                     <p>{% discount_as_negative order.discount_amount html=True %}</p>
                   {% endif %}
+                  <p><strong>{{ order.total.gross|amount:'html' }}</strong></p>
                 </td>
               </tr>
             </tbody>
-            <tfoot>
-              <tr>
-                <td class="right-align" colspan="3">
-                  {% trans "Grand total" context "Order totals header" %}
-                </td>
-                <td>
-                  {{ order.total.gross|amount:'html' }}
-                </td>
-              </tr>
-            </tfoot>
           </table>
         </div>
         {% if perms.order.edit_order and order.can_edit or order.can_fulfill %}
