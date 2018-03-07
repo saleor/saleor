@@ -53,7 +53,7 @@ class CategoryProperties extends Component<
                     description={result.loading ? "" : category.description}
                     handleEditButtonClick={handleRemoveAction}
                     handleRemoveButtonClick={this.handleRemoveButtonClick}
-                    loading={result.loading || true}
+                    loading={result.loading}
                     title={result.loading ? "" : category.name}
                   />
                   {!result.loading ? (

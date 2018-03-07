@@ -14,6 +14,7 @@ const decorate = withStyles(theme => ({
     animation: "skeleton-animation 1.4s ease-in-out infinite",
     backgroundImage:
       "linear-gradient(90deg, #eee, #eee 40%, #f5f5f5, #eee 60%, #eee)",
+    backgroundPosition: "-400px 0",
     borderRadius: 4,
     display: "block",
     height: "0.8em",
