@@ -12,11 +12,20 @@ const CategoryPaginator: React.StatelessComponent<RouteComponentProps<any>> = ({
   const qs = parseQs(location.search.substr(1));
   return <CategoryDetails id={match.params.id} filters={qs} />;
 };
+const SubcategoryUpdateForm: React.StatelessComponent<
+  RouteComponentProps<any>
+> = ({ match }) => {
+  return <CategoryUpdateForm id={match.params.id} />;
+};
 
 const Component = () => (
   <Switch>
     <Route exact path="/categories/add" component={CategoryCreateForm} />
-    <Route exact path="/categories/:id/edit" component={CategoryUpdateForm} />
+    <Route
+      exact
+      path="/categories/:id/edit"
+      component={SubcategoryUpdateForm}
+    />
     <Route exact path="/categories/:id/add" component={CategoryCreateForm} />
     <Route exact path="/categories/:id" component={CategoryPaginator} />
     <Route path="/categories/" component={CategoryPaginator} />
