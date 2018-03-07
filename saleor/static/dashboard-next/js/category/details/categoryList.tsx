@@ -11,6 +11,7 @@ import { TableRow, TableCell } from "material-ui";
 import { Link } from "react-router-dom";
 import { Navigator } from "../../components/Navigator";
 import { Table } from "../../components/Table";
+import { Skeleton } from "../../components/Skeleton";
 
 const tableHeaders = [
   {
@@ -52,13 +53,13 @@ interface BaseCategoryListProps {
       endCursor: string;
     };
   };
-  location: any;
   label: string;
+  loading: boolean;
   filters: {
-    first: number;
-    last: number;
-    after: string;
-    before: string;
+    first?: string;
+    last?: string;
+    after?: string;
+    before?: string;
   };
 }
 
@@ -72,7 +73,7 @@ class BaseCategoryList extends Component<BaseCategoryListProps> {
   };
 
   render() {
-    const { label, categories, filters } = this.props;
+    const { label, loading, categories, filters } = this.props;
     const pageInfo = {
       hasPreviousPage: filters.after
         ? true
@@ -98,16 +99,28 @@ class BaseCategoryList extends Component<BaseCategoryListProps> {
               }
               page={pageInfo}
             >
-              {categories.edges.map(({ node }) => (
-                <TableRow
-                  key={node.id}
-                  onClick={() => navigate(`/categories/${node.id}/`)}
-                >
+              {loading ? (
+                <TableRow>
                   {tableHeaders.map(header => (
-                    <TableCell key={header.name}>{node[header.name]}</TableCell>
+                    <TableCell key={header.name}>
+                      <Skeleton style={{ width: "80%" }} />
+                    </TableCell>
                   ))}
                 </TableRow>
-              ))}
+              ) : (
+                categories.edges.map(({ node }) => (
+                  <TableRow
+                    key={node.id}
+                    onClick={() => navigate(`/categories/${node.id}/`)}
+                  >
+                    {tableHeaders.map(header => (
+                      <TableCell key={header.name}>
+                        {node[header.name]}
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                ))
+              )}
             </Table>
           </ListCard>
         )}
@@ -131,12 +144,11 @@ interface CategoryListComponentProps {
       };
     };
   };
-  location: any;
   filters: {
-    first: number;
-    last: number;
-    after: string;
-    before: string;
+    first?: string;
+    last?: string;
+    after?: string;
+    before?: string;
   };
 }
 
@@ -156,18 +168,12 @@ const CategoryListComponent: React.StatelessComponent<
         }
       };
   return (
-    <div>
-      {data.loading ? (
-        <span>loading</span>
-      ) : (
-        <BaseCategoryList
-          categories={categories}
-          label={pgettext("Title of the subcategories list", "Subcategories")}
-          location={props.location}
-          filters={props.filters}
-        />
-      )}
-    </div>
+    <BaseCategoryList
+      categories={categories}
+      label={pgettext("Title of the subcategories list", "Subcategories")}
+      loading={data.loading}
+      filters={props.filters}
+    />
   );
 };
 const CategoryList = categoryListFeeder(CategoryListComponent);
@@ -185,12 +191,11 @@ interface RootCategoryListComponentProps {
       };
     };
   };
-  location: any;
   filters: {
-    first: number;
-    last: number;
-    after: string;
-    before: string;
+    first?: string;
+    last?: string;
+    after?: string;
+    before?: string;
   };
 }
 
@@ -208,18 +213,12 @@ const RootCategoryListComponent: React.StatelessComponent<
     }
   };
   return (
-    <div>
-      {data.loading ? (
-        <span>loading</span>
-      ) : (
-        <BaseCategoryList
-          categories={categories}
-          label={pgettext("Title of the categories list", "Categories")}
-          location={props.location}
-          filters={props.filters}
-        />
-      )}
-    </div>
+    <BaseCategoryList
+      categories={categories}
+      label={pgettext("Title of the categories list", "Categories")}
+      loading={data.loading}
+      filters={props.filters}
+    />
   );
 };
 const RootCategoryList = rootCategoryListFeeder(RootCategoryListComponent);
