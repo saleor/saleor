@@ -32,7 +32,7 @@ STOCK_LOCATION = 'default'
 DEFAULT_CATEGORY = 'Default'
 
 DELIVERY_REGIONS = [ANY_COUNTRY, 'US', 'PL', 'DE', 'GB']
-
+PRODUCTS_LIST_DIR = 'products_list/'
 DEFAULT_SCHEMA = {
     'T-Shirt': {
         'category': 'Apparel',
@@ -186,8 +186,7 @@ def get_price_override(schema, combinations_num, current_price):
 def create_products_by_type(
         product_type, schema, placeholder_dir, how_many=10, create_images=True,
         stdout=None):
-    category_name = schema.get('category') or DEFAULT_CATEGORY
-    category = get_or_create_category(category_name)
+    category = get_or_create_category(schema, placeholder_dir)
 
     for dummy in range(how_many):
         product = create_product(
@@ -251,21 +250,32 @@ def get_email(first_name, last_name):
         _first.lower().decode('utf-8'), _last.lower().decode('utf-8'))
 
 
-def get_or_create_category(name, **kwargs):
+def get_or_create_category(schema, placeholder_dir):
+    category_name = schema.get('category') or DEFAULT_CATEGORY
+    image_dir = get_product_list_images_dir(placeholder_dir)
+
     defaults = {
-        'description': fake.text()}
-    defaults.update(kwargs)
-    defaults['slug'] = fake.slug(name)
+        'description': fake.text(),
+        'slug': fake.slug(category_name),
+        'background_image': get_product_list_image(image_dir)}
 
-    return Category.objects.get_or_create(name=name, defaults=defaults)[0]
+    return Category.objects.get_or_create(
+        name=category_name, defaults=defaults)[0]
 
+def get_product_list_image(image_dir):
+    image_root_dir = os.path.join(settings.PROJECT_ROOT, image_dir)
+    random_img_path = random.choice(os.listdir(image_root_dir))
+    img_path = os.path.join(image_dir, random_img_path)
+    return File(open(img_path, 'rb'))
 
 def get_or_create_product_type(name, **kwargs):
     return ProductType.objects.get_or_create(name=name, defaults=kwargs)[0]
 
 
-def get_or_create_collection(name, **kwargs):
-    kwargs['slug'] = fake.slug(name)
+def get_or_create_collection(name, placeholder_dir):
+    defaults = {
+        'slug': fake.slug(name),
+        'background_image': get_product_list_image(placeholder_dir)}
     return Collection.objects.get_or_create(name=name, defaults=kwargs)[0]
 
 
@@ -547,16 +557,20 @@ def add_address_to_admin(email):
     store_user_address(user, address, True, True)
 
 
-def create_fake_collection():
-    collection = get_or_create_collection(name='%s collection' % fake.word())
+def create_fake_collection(placeholder_dir):
+    image_dir = get_product_list_images_dir(
+        placeholder_dir)
+    collection_name = '%s collection' % fake.word()
+    collection = get_or_create_collection(
+        name=collection_name, placeholder_dir=image_dir)
     products = Product.objects.order_by('?')[:4]
     collection.products.add(*products)
     return collection
 
 
-def create_collections(how_many=2):
+def create_collections(placeholder_dir, how_many=2):
     for dummy in range(how_many):
-        collection = create_fake_collection()
+        collection = create_fake_collection(placeholder_dir)
         yield 'Collection: %s' % (collection,)
 
 
@@ -605,3 +619,9 @@ def create_menu_items_by_schema(menu):
     menu.items.get_or_create(
         name=page.title,
         page=page)
+
+
+def get_product_list_images_dir(placeholder_dir):
+    product_list_images_dir = os.path.join(
+        placeholder_dir, PRODUCTS_LIST_DIR)
+    return product_list_images_dir
