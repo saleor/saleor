@@ -580,8 +580,10 @@ def create_collections(how_many=2):
 
 
 def create_menus():
-    menu = Menu.objects.get_or_create(slug='default')[0]
-    create_menu_items_by_schema(menu, DEFAULT_MENU_SCHEMA)
+    navbar_menu = Menu.objects.get_or_create(slug='navbar')[0]
+    footer_menu = Menu.objects.get_or_create(slug='footer')[0]
+    create_menu_items_by_schema(navbar_menu, DEFAULT_MENU_SCHEMA)
+    create_menu_items_by_schema(footer_menu, DEFAULT_MENU_SCHEMA)
     yield 'Menu created'
 
 

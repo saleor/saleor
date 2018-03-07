@@ -2,6 +2,7 @@
 {% load i18n %}
 {% load staticfiles %}
 {% load render_bundle from webpack_loader %}
+{% load shop %}
 {% load placeholder %}
 
 <html lang="{{ LANGUAGE_CODE }}" class="no-js" data-shipping-options-url="{% url 'cart:shipping-options' %}" data-cart-summary-url="{% url 'cart:cart-summary' %}">
@@ -146,20 +147,7 @@
         </div>
       </div>
     </div>
-    <div class="navbar__menu container d-block">
-      <nav class="navigation">
-        {% url 'home' as home_url %}
-        <ul class="nav navbar-nav mb-4 mb-md-0{% if request.get_full_path == home_url %} no-border{% endif %}">
-          {% for category in categories %}
-            <li class="nav-item">
-              <a class="nav-link" href="{{ category.get_absolute_url }}">
-                {{ category }}
-              </a>
-            </li>
-          {% endfor %}
-        </ul>
-      </nav>
-    </div>
+    {% navbar_menu %}
   </header>
 {% endblock %}
 <div class="container maincontent">
@@ -185,17 +173,7 @@
             <svg data-src="{% static "images/logo.svg" %}" height="38px" width="176px"/>
           </a>
         </div>
-        <div class="col-md-3 col-sm-6">
-          <ul>
-            {% for category in categories %}
-              <li>
-                <a href="{{ category.get_absolute_url }}">
-                  {{ category|capfirst }}
-                </a>
-              </li>
-            {% endfor %}
-          </ul>
-        </div>
+        {% footer_menu %}
         <div class="col-md-3 col-sm-6">
           <ul>
             <li>
