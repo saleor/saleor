@@ -1,16 +1,13 @@
 import * as React from "react";
 import { Component } from "react";
 import { graphql } from "react-apollo";
-import { parse as parseQs } from "qs";
 
 import { ListCard } from "../../components/cards";
-import { categoryChildren, rootCategoryChildren } from "../queries";
-import { createQueryString } from "../../misc";
-import { pgettext, gettext } from "../../i18n";
-import { TableRow, TableCell } from "material-ui";
-import { Link } from "react-router-dom";
 import { Navigator } from "../../components/Navigator";
 import { Table } from "../../components/Table";
+import { TableRow, TableCell } from "material-ui";
+import { categoryChildren, rootCategoryChildren } from "../queries";
+import { gettext, pgettext } from "../../i18n";
 import { Skeleton } from "../../components/Skeleton";
 
 const tableHeaders = [
@@ -44,6 +41,7 @@ const categoryListFeeder = graphql(categoryChildren, feederOptions);
 const rootCategoryListFeeder = graphql(rootCategoryChildren, feederOptions);
 
 interface BaseCategoryListProps {
+  categoryId?: string;
   categories: {
     edges: Array<any>;
     pageInfo: {
@@ -64,16 +62,8 @@ interface BaseCategoryListProps {
 }
 
 class BaseCategoryList extends Component<BaseCategoryListProps> {
-  handleAddAction = () => {
-    // this.props.history.push("add");
-  };
-
-  handleRowClick = id => {
-    // return () => this.props.history.push(`/categories/${id}/`);
-  };
-
   render() {
-    const { label, loading, categories, filters } = this.props;
+    const { label, loading, categories, filters, categoryId } = this.props;
     const pageInfo = {
       hasPreviousPage: filters.after
         ? true
@@ -85,7 +75,9 @@ class BaseCategoryList extends Component<BaseCategoryListProps> {
         {navigate => (
           <ListCard
             addActionLabel={gettext("Create category")}
-            handleAddAction={this.handleAddAction}
+            addActionLink={
+              categoryId ? `/categories/${categoryId}/add` : "/categories/add"
+            }
             label={label}
           >
             <Table
@@ -129,6 +121,7 @@ class BaseCategoryList extends Component<BaseCategoryListProps> {
 }
 
 interface CategoryListComponentProps {
+  categoryId: string;
   data: {
     loading: boolean;
     category: {
@@ -168,11 +161,12 @@ const CategoryListComponent: React.StatelessComponent<
       };
   return (
     <BaseCategoryList
-      categories={categories}
-      label={pgettext("Title of the subcategories list", "Subcategories")}
-      loading={data.loading}
-      filters={props.filters}
-    />
+          categories={categories}
+          label={pgettext("Title of the subcategories list", "Subcategories")}
+          loading={data.loading}
+          filters={props.filters}
+        categoryId={props.categoryId}/>
+
   );
 };
 const CategoryList = categoryListFeeder(CategoryListComponent);

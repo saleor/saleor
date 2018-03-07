@@ -1,9 +1,10 @@
 import * as React from "react";
-import { Component, Fragment } from "react";
-import { graphql, compose, Mutation, Query } from "react-apollo";
+import { Component } from "react";
+import { Mutation, Query } from "react-apollo";
 
 import { ConfirmRemoval } from "../../components/modals";
 import { DescriptionCard } from "../../components/cards";
+import { Navigator } from "../../components/Navigator";
 import { categoryDelete } from "../mutations";
 import { categoryDetails } from "../queries";
 import { pgettext, interpolate, ngettext } from "../../i18n";
@@ -23,7 +24,7 @@ class CategoryProperties extends Component<
   state = { opened: false };
 
   handleRemoveButtonClick = () => {
-    this.setState({ opened: false });
+    this.setState(prevState => ({ opened: !prevState.opened }));
   };
 
   render() {
@@ -37,6 +38,8 @@ class CategoryProperties extends Component<
       "Are you sure you want to remove category <strong>%s</strong>?"
     );
     return (
+      <Navigator>
+        {navigate => (
       <Query query={categoryDetails} variables={{ id: categoryId }}>
         {result => (
           <Mutation mutation={categoryDelete} variables={{ id: categoryId }}>
@@ -51,7 +54,7 @@ class CategoryProperties extends Component<
                 <>
                   <DescriptionCard
                     description={result.loading ? "" : category.description}
-                    handleEditButtonClick={handleRemoveAction}
+                    editButtonLink={`/categories/${categoryId}/edit`}
                     handleRemoveButtonClick={this.handleRemoveButtonClick}
                     loading={result.loading}
                     title={result.loading ? "" : category.name}
@@ -89,6 +92,8 @@ class CategoryProperties extends Component<
           </Mutation>
         )}
       </Query>
+        )}
+      </Navigator>
     );
   }
 }

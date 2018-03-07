@@ -1,9 +1,10 @@
 import * as React from "react";
-import { Component, Fragment } from "react";
 import Grid from "material-ui/Grid";
-import { graphql, Mutation, Query } from "react-apollo";
+import { Mutation, Query } from "react-apollo";
 
 import { BaseCategoryForm } from "./base";
+import { ErrorMessageCard } from "../../components/cards";
+import { Navigator } from "../../components/Navigator";
 import { categoryDetails } from "../queries";
 import { categoryUpdate } from "../mutations";
 import { pgettext } from "../../i18n";
@@ -11,47 +12,83 @@ import { pgettext } from "../../i18n";
 interface CategoryUpdateFormProps {
   id: string;
 }
+interface CategoryUpdateResult {
+  data: {
+    categoryUpdate: {
+      errors: Array<{
+        field: string;
+        message: string;
+      }>;
+      category: {
+        id: string;
+        name: string;
+        description: string;
+        parent: {
+          id?: string;
+        };
+      };
+    };
+  };
+}
 
 export const CategoryUpdateForm: React.StatelessComponent<
   CategoryUpdateFormProps
 > = ({ id }) => (
-  <Query query={categoryDetails}>
-    {({ data, loading }) => {
-      if (loading) {
-        return;
+  <Query query={categoryDetails} variables={{ id }}>
+    {({ data, loading, error }) => {
+      if (error) {
+        console.error(error.message);
+        return <ErrorMessageCard message={error.message} />;
       }
-      const { categories } = data;
+      if (loading) {
+        return <span>loading</span>;
+      }
+      const { category } = data;
 
-      return categories.map(category => (
+      return (
         <Grid container spacing={16}>
           <Grid item xs={12} md={9}>
-            <Mutation mutation={categoryUpdate} variables={{ id }}>
-              {mutate => (
-                <BaseCategoryForm
-                  title={pgettext(
-                    "Edit category form card title",
-                    "Edit category"
+            <Navigator>
+              {navigate => (
+                <Mutation mutation={categoryUpdate} variables={{ id }}>
+                  {mutate => (
+                    <BaseCategoryForm
+                      title={pgettext(
+                        "Edit category form card title",
+                        "Edit category"
+                      )}
+                      name={category.name}
+                      description={category.description}
+                      handleConfirm={formData => async () => {
+                        const result = (await mutate({
+                          variables: {
+                            ...formData,
+                            id
+                          }
+                        })) as CategoryUpdateResult;
+                        if (result.data.categoryUpdate.errors.length > 0) {
+                          return result.data.categoryUpdate.errors.map(err => (
+                            <ErrorMessageCard message={err.message} />
+                          ));
+                        }
+                        navigate(
+                          `/categories/${
+                            result.data.categoryUpdate.category.id
+                          }/`
+                        );
+                      }}
+                      confirmButtonLabel={pgettext(
+                        "Dashboard update action",
+                        "Update"
+                      )}
+                    />
                   )}
-                  name={category.name}
-                  description={category.description}
-                  handleConfirm={formData => {
-                    mutate({
-                      variables: {
-                        ...formData,
-                        id
-                      }
-                    });
-                  }}
-                  confirmButtonLabel={pgettext(
-                    "Dashboard update action",
-                    "Update"
-                  )}
-                />
+                </Mutation>
               )}
-            </Mutation>
+            </Navigator>
           </Grid>
         </Grid>
-      ));
+      );
     }}
   </Query>
 );
