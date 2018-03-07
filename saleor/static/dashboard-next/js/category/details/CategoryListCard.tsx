@@ -25,7 +25,7 @@ interface ListCardProps {
   label: string;
 }
 
-export const ListCard = decorate<ListCardProps>(
+export const CategoryListCard = decorate<ListCardProps>(
   ({ addActionLabel, addActionLink, children, classes, label }) => (
     <Paper>
       <Toolbar>
@@ -46,4 +46,4 @@ export const ListCard = decorate<ListCardProps>(
   )
 );
 
-export default ListCard;
+export default CategoryListCard;

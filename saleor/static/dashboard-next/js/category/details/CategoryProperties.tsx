@@ -3,7 +3,7 @@ import { Component } from "react";
 import { Mutation, Query } from "react-apollo";
 
 import { ConfirmRemoval } from "../../components/modals";
-import { DescriptionCard } from "../../components/cards";
+import { CategoryDetails } from "./CategoryDetails";
 import { Navigator } from "../../components/Navigator";
 import { categoryDelete } from "../mutations";
 import { categoryDetails } from "../queries";
@@ -18,7 +18,7 @@ interface CategoryPropertiesState {
   opened: boolean;
 }
 
-class CategoryProperties extends Component<
+export class CategoryProperties extends Component<
   CategoryPropertiesProps,
   CategoryPropertiesState
 > {
@@ -62,7 +62,7 @@ class CategoryProperties extends Component<
 
                   return (
                     <>
-                      <DescriptionCard
+                      <CategoryDetails
                         description={result.loading ? "" : category.description}
                         editButtonLink={
                           result.loading ? "" : categoryEditUrl(category.id)

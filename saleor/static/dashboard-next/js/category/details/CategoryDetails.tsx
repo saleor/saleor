@@ -5,9 +5,9 @@ import Typography from "material-ui/Typography";
 import { Link } from "react-router-dom";
 
 import { pgettext } from "../../i18n";
-import { Skeleton } from "../Skeleton";
+import { Skeleton } from "../../components/Skeleton";
 
-interface DescriptionCardProps {
+interface CategoryDetailsProps {
   description: string;
   editButtonLabel?: string;
   editButtonLink: string;
@@ -17,8 +17,8 @@ interface DescriptionCardProps {
   title: string;
 }
 
-export const DescriptionCard: React.StatelessComponent<
-  DescriptionCardProps
+export const CategoryDetails: React.StatelessComponent<
+  CategoryDetailsProps
 > = ({
   description,
   editButtonLabel,
@@ -56,7 +56,7 @@ export const DescriptionCard: React.StatelessComponent<
     </CardActions>
   </Card>
 );
-DescriptionCard.defaultProps = {
+CategoryDetails.defaultProps = {
   editButtonLabel: pgettext("Category edit action", "Edit"),
   removeButtonLabel: pgettext("Category list action link", "Remove")
 };

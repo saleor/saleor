@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`<ListCard /> displays children 1`] = `
+exports[`<CategoryListCard /> displays children 1`] = `
 <div
   className="MuiPaper-root-4 MuiPaper-elevation2-8 MuiPaper-rounded-5"
 >
@@ -52,7 +52,7 @@ exports[`<ListCard /> displays children 1`] = `
 </div>
 `;
 
-exports[`<ListCard /> displays properly 1`] = `
+exports[`<CategoryListCard /> displays properly 1`] = `
 <div
   className="MuiPaper-root-4 MuiPaper-elevation2-8 MuiPaper-rounded-5"
 >

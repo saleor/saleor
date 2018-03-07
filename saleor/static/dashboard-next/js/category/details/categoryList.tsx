@@ -2,26 +2,22 @@ import * as React from "react";
 import { Component } from "react";
 import { graphql } from "react-apollo";
 
-import { ListCard } from "../../components/cards";
+import { CategoryListCard } from "./CategoryListCard";
 import { Navigator } from "../../components/Navigator";
 import { Skeleton } from "../../components/Skeleton";
-import { Table } from "../../components/Table";
-import { TableRow, TableCell } from "material-ui";
+import {
+  Table,
+  TableRow,
+  TableCell,
+  TableHead,
+  TableBody,
+  TableFooter
+} from "material-ui";
 import { categoryAddUrl, categoryShowUrl } from "../index";
 import { categoryChildren, rootCategoryChildren } from "../queries";
 import { gettext, pgettext } from "../../i18n";
+import TablePagination from "../../components/TablePagination";
 
-const tableHeaders = [
-  {
-    label: pgettext("Category list table header name", "Name"),
-    name: "name"
-  },
-  {
-    label: pgettext("Category list table header description", "Description"),
-    name: "description",
-    wide: true
-  }
-];
 const PAGINATE_BY = 4;
 
 const feederOptions = {
@@ -74,45 +70,67 @@ class BaseCategoryList extends Component<BaseCategoryListProps> {
     return (
       <Navigator>
         {navigate => (
-          <ListCard
+          <CategoryListCard
             addActionLabel={gettext("Create category")}
             addActionLink={categoryAddUrl(categoryId)}
             label={label}
           >
-            <Table
-              headers={tableHeaders}
-              onNextPage={() =>
-                navigate(`?after=${categories.pageInfo.endCursor}`)
-              }
-              onPreviousPage={() =>
-                navigate(`?before=${categories.pageInfo.startCursor}`)
-              }
-              page={pageInfo}
-            >
-              {loading ? (
+            <Table>
+              <TableHead>
                 <TableRow>
-                  {tableHeaders.map(header => (
-                    <TableCell key={header.name}>
+                  <TableCell>
+                    {pgettext("Category list table header name", "Name")}
+                  </TableCell>
+                  <TableCell>
+                    {pgettext(
+                      "Category list table header description",
+                      "Description"
+                    )}
+                  </TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {loading ? (
+                  <TableRow>
+                    <TableCell>
+                      <Skeleton style={{ width: "60%" }} />
+                    </TableCell>
+                    <TableCell>
                       <Skeleton style={{ width: "80%" }} />
                     </TableCell>
-                  ))}
-                </TableRow>
-              ) : (
-                categories.edges.map(({ node }) => (
-                  <TableRow
-                    key={node.id}
-                    onClick={() => navigate(categoryShowUrl(node.id))}
-                  >
-                    {tableHeaders.map(header => (
-                      <TableCell key={header.name}>
-                        {node[header.name]}
-                      </TableCell>
-                    ))}
                   </TableRow>
-                ))
-              )}
+                ) : (
+                  categories.edges.map(
+                    ({ node: { id, name, description } }) => (
+                      <TableRow
+                        hover
+                        key={id}
+                        onClick={() => navigate(categoryShowUrl(id))}
+                      >
+                        <TableCell>{name}</TableCell>
+                        <TableCell>{description}</TableCell>
+                      </TableRow>
+                    )
+                  )
+                )}
+              </TableBody>
+              <TableFooter>
+                <TableRow>
+                  <TablePagination
+                    colSpan={5}
+                    hasNextPage={pageInfo.hasNextPage}
+                    hasPreviousPage={pageInfo.hasPreviousPage}
+                    onNextPage={() =>
+                      navigate(`?after=${categories.pageInfo.endCursor}`)
+                    }
+                    onPreviousPage={() =>
+                      navigate(`?before=${categories.pageInfo.startCursor}`)
+                    }
+                  />
+                </TableRow>
+              </TableFooter>
             </Table>
-          </ListCard>
+          </CategoryListCard>
         )}
       </Navigator>
     );
