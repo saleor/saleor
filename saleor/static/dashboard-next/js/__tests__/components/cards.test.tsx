@@ -2,8 +2,7 @@ import * as React from "react";
 import { MemoryRouter } from "react-router-dom";
 import * as renderer from "react-test-renderer";
 
-import { ListCard } from "../../components/cards";
-import Table from "../../components/Table";
+import { CategoryListCard } from "../../category/details/CategoryListCard";
 
 const listCardProps = {
   displayLabel: true,
@@ -24,11 +23,11 @@ const listCardProps = {
   addActionLink: "/link/"
 };
 
-describe("<ListCard />", () => {
+describe("<CategoryListCard />", () => {
   it("displays properly", () => {
     const component = renderer.create(
       <MemoryRouter>
-        <ListCard {...listCardProps} />
+        <CategoryListCard {...listCardProps} />
       </MemoryRouter>
     );
     const tree = component.toJSON();
@@ -37,9 +36,9 @@ describe("<ListCard />", () => {
   it("displays children", () => {
     const component = renderer.create(
       <MemoryRouter>
-        <ListCard {...listCardProps}>
+        <CategoryListCard {...listCardProps}>
           <b>test</b>
-        </ListCard>
+        </CategoryListCard>
       </MemoryRouter>
     );
     const tree = component.toJSON();
