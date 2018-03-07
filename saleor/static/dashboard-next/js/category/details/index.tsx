@@ -1,8 +1,8 @@
 import * as React from "react";
 import Grid from "material-ui/Grid";
 
-import Details from "./details";
-import { CategoryList, RootCategoryList } from "./categoryList";
+import { CategoryProperties } from "./CategoryProperties";
+import { CategoryList, RootCategoryList } from "./CategoryList";
 import { screenSizes } from "../../misc";
 
 interface CategoryDetailsProps {
@@ -15,24 +15,22 @@ const CategoryDetails: React.StatelessComponent<CategoryDetailsProps> = ({
   filters,
   id
 }) => (
-  <div>
-    <Grid container spacing={24}>
-      <Grid item xs={12} md={9}>
-        {id ? (
-          <Grid container spacing={24}>
-            <Grid item xs={12}>
-              <Details categoryId={id} />
-            </Grid>
-            <Grid item xs={12}>
-              <CategoryList categoryId={id} filters={filters} />
-            </Grid>
+  <Grid container spacing={24}>
+    <Grid item xs={12} md={9}>
+      {id ? (
+        <Grid container spacing={24}>
+          <Grid item xs={12}>
+            <CategoryProperties categoryId={id} />
           </Grid>
-        ) : (
-          <RootCategoryList filters={filters} />
-        )}
-      </Grid>
+          <Grid item xs={12}>
+            <CategoryList categoryId={id} filters={filters} />
+          </Grid>
+        </Grid>
+      ) : (
+        <RootCategoryList filters={filters} />
+      )}
     </Grid>
-  </div>
+  </Grid>
 );
 
 export default CategoryDetails;

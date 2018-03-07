@@ -1,0 +1,102 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`<CategoryListCard /> displays children 1`] = `
+<div
+  className="MuiPaper-root-4 MuiPaper-elevation2-8 MuiPaper-rounded-5"
+>
+  <div
+    className="MuiToolbar-root-31 MuiToolbar-gutters-32"
+  >
+    <div
+      className="Component-title-3"
+    >
+      <h2
+        className="MuiTypography-root-33 MuiTypography-title-39"
+      >
+        Title
+      </h2>
+    </div>
+    <div
+      className="Component-spacer-1"
+    />
+    <a
+      className="MuiButtonBase-root-72 MuiButton-root-57 MuiButton-flatPrimary-59 Component-actions-2"
+      href="/link/"
+      onBlur={[Function]}
+      onClick={[Function]}
+      onFocus={[Function]}
+      onKeyDown={[Function]}
+      onKeyUp={[Function]}
+      onMouseDown={[Function]}
+      onMouseLeave={[Function]}
+      onMouseUp={[Function]}
+      onTouchEnd={[Function]}
+      onTouchMove={[Function]}
+      onTouchStart={[Function]}
+      role="button"
+      tabIndex="0"
+    >
+      <span
+        className="MuiButton-label-58"
+      >
+        Add
+      </span>
+      <span
+        className="MuiTouchRipple-root-74"
+      />
+    </a>
+  </div>
+  <b>
+    test
+  </b>
+</div>
+`;
+
+exports[`<CategoryListCard /> displays properly 1`] = `
+<div
+  className="MuiPaper-root-4 MuiPaper-elevation2-8 MuiPaper-rounded-5"
+>
+  <div
+    className="MuiToolbar-root-31 MuiToolbar-gutters-32"
+  >
+    <div
+      className="Component-title-3"
+    >
+      <h2
+        className="MuiTypography-root-33 MuiTypography-title-39"
+      >
+        Title
+      </h2>
+    </div>
+    <div
+      className="Component-spacer-1"
+    />
+    <a
+      className="MuiButtonBase-root-72 MuiButton-root-57 MuiButton-flatPrimary-59 Component-actions-2"
+      href="/link/"
+      onBlur={[Function]}
+      onClick={[Function]}
+      onFocus={[Function]}
+      onKeyDown={[Function]}
+      onKeyUp={[Function]}
+      onMouseDown={[Function]}
+      onMouseLeave={[Function]}
+      onMouseUp={[Function]}
+      onTouchEnd={[Function]}
+      onTouchMove={[Function]}
+      onTouchStart={[Function]}
+      role="button"
+      tabIndex="0"
+    >
+      <span
+        className="MuiButton-label-58"
+      >
+        Add
+      </span>
+      <span
+        className="MuiTouchRipple-root-74"
+      />
+    </a>
+  </div>
+</div>
+`;
