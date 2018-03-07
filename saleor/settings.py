@@ -415,7 +415,7 @@ ALLOWED_TAGS = [
     'strong',
     'ul']
 ALLOWED_ATTRIBUTES = {
-    '*': 'style',
+    '*': ['align', 'style'],
     'a': ['href', 'title'],
     'img': ['src']}
 ALLOWED_STYLES = ['text-align']
