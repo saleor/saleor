@@ -4,7 +4,7 @@ import { expect } from "chai";
 import Adapter from "enzyme-adapter-react-15";
 
 import { ListCardComponent, CardTitle } from "../../components/cards";
-import Table from "../../components/table";
+import Table from "../../components/Table";
 
 Enzyme.configure({ adapter: new Adapter() });
 
