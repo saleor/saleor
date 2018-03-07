@@ -4,6 +4,7 @@ import './datepicker';
 import './editor';
 import './filters';
 import './image-gallery';
+import './menu';
 import './messages';
 import './misc';
 import './modal';

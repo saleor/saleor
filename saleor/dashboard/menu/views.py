@@ -11,7 +11,7 @@ from ...core.utils import get_paginator_items
 from ...menu.models import Menu, MenuItem
 from ..views import staff_member_required
 from .filters import MenuFilter, MenuItemFilter
-from .forms import MenuForm, MenuItemForm
+from .forms import MenuForm, MenuItemForm, ReorderMenuItemsForm
 
 
 @staff_member_required
@@ -164,7 +164,7 @@ def menu_item_detail(request, menu_pk, item_pk):
     menu = get_object_or_404(Menu, pk=menu_pk)
     menu_item = get_object_or_404(menu.items.all(), pk=item_pk)
     path = menu_item.get_ancestors(include_self=True)
-    menu_items = menu_item.get_descendants()
+    menu_items = menu_item.get_descendants().order_by('sort_order')
     menu_item_filter = MenuItemFilter(request.GET, queryset=menu_items)
     menu_items = get_paginator_items(
         menu_item_filter.qs, settings.DASHBOARD_PAGINATE_BY,
@@ -174,3 +174,22 @@ def menu_item_detail(request, menu_pk, item_pk):
         'path': path, 'filter_set': menu_item_filter,
         'is_empty': not menu_item_filter.queryset.exists()}
     return TemplateResponse(request, 'dashboard/menu/item/detail.html', ctx)
+
+
+@staff_member_required
+@permission_required('menu.edit_menu')
+def ajax_reorder_menu_items(request, menu_pk, root_pk=None):
+    menu = get_object_or_404(Menu, pk=menu_pk)
+    if root_pk:
+        root = get_object_or_404(MenuItem, pk=root_pk)
+        form = ReorderMenuItemsForm(request.POST, instance=menu, parent=root)
+    else:
+        form = ReorderMenuItemsForm(request.POST, instance=menu)
+    status = 200
+    ctx = {}
+    if form.is_valid():
+        form.save()
+    elif form.errors:
+        status = 400
+        ctx = {'error': form.errors}
+    return JsonResponse(ctx, status=status)
