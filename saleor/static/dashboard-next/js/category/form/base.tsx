@@ -1,8 +1,8 @@
 import * as React from "react";
-import { Component } from "react";
 import Button from "material-ui/Button";
 import Card, { CardContent, CardActions } from "material-ui/Card";
 import Typography from "material-ui/Typography";
+import { Component } from "react";
 import { withStyles, WithStyles } from "material-ui/styles";
 
 import { TextField } from "../../components/TextField";
@@ -94,7 +94,7 @@ export const BaseCategoryForm = decorate(
               >
                 {confirmButtonLabel}
               </Button>
-              <Button color="secondary">
+              <Button color="secondary" onClick={() => window.history.back()}>
                 {pgettext("Dashboard cancel action", "Cancel")}
               </Button>
             </CardActions>
