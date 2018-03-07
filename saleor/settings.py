@@ -310,18 +310,7 @@ VERSATILEIMAGEFIELD_RENDITION_KEY_SETS = {
         ('product_small', 'crop__60x60'),
         ('product_small_2x', 'crop__120x120'),
         ('product_list', 'crop__255x255'),
-        ('product_list_2x', 'crop__510x510')],
-    'category': [
-        ('background_image_small', 'crop__425x410'),
-        ('background_image_small_placeholder', 'crop__50x49'),
-        ('background_image_small2x', 'crop__850x820'),
-        ('background_image_medium', 'crop__768x303'),
-        ('background_image_medium_placeholder', 'crop__48x10'),
-        ('background_image_medium2x', 'crop__1536x606'),
-        ('background_image_large', 'crop__1440x303'),
-        ('background_image_large_placeholder', 'crop__50x20'),
-        ('background_image_large2x', 'crop__2880x606'),
-    ]}
+        ('product_list_2x', 'crop__510x510')]}
 
 VERSATILEIMAGEFIELD_SETTINGS = {
     # Images should be pre-generated on Production environment
