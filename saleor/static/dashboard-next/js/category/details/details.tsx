@@ -8,6 +8,7 @@ import { Navigator } from "../../components/Navigator";
 import { categoryDelete } from "../mutations";
 import { categoryDetails } from "../queries";
 import { pgettext, interpolate, ngettext } from "../../i18n";
+import { categoryEditUrl, categoryShowUrl } from "../index";
 
 interface CategoryPropertiesProps {
   categoryId: string;
@@ -48,13 +49,19 @@ class CategoryProperties extends Component<
               const handleRemoveAction = async () => {
                 await deleteCategory();
                 this.handleRemoveButtonClick;
+                navigate(
+                  categoryShowUrl(
+                    category.parent ? category.parent.url : null
+                  ),
+                  true
+                );
               };
 
               return (
                 <>
                   <DescriptionCard
                     description={result.loading ? "" : category.description}
-                    editButtonLink={`/categories/${categoryId}/edit`}
+                    editButtonLink={categoryEditUrl(category.id)}
                     handleRemoveButtonClick={this.handleRemoveButtonClick}
                     loading={result.loading}
                     title={result.loading ? "" : category.name}

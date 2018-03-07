@@ -8,6 +8,7 @@ import { Navigator } from "../../components/Navigator";
 import { categoryDetails } from "../queries";
 import { categoryUpdate } from "../mutations";
 import { pgettext } from "../../i18n";
+import { categoryShowUrl } from "../index";
 
 interface CategoryUpdateFormProps {
   id: string;
@@ -72,9 +73,9 @@ export const CategoryUpdateForm: React.StatelessComponent<
                           ));
                         }
                         navigate(
-                          `/categories/${
+                          categoryShowUrl(
                             result.data.categoryUpdate.category.id
-                          }/`
+                          )
                         );
                       }}
                       confirmButtonLabel={pgettext(
