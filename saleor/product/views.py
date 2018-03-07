@@ -127,6 +127,8 @@ def category_index(request, path, category_id):
 
 def collection_index(request, slug, pk):
     collection = get_object_or_404(Collection, id=pk)
+    if collection.slug != slug:
+        return HttpResponsePermanentRedirect(collection.get_absolute_url())
     products = products_with_details(user=request.user).filter(
         collections__id=collection.id).order_by('name')
     product_filter = ProductCollectionFilter(
