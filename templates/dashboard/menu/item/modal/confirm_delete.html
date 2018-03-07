@@ -1,0 +1,37 @@
+{% extends "dashboard/base_modal.html" %}
+
+{% load i18n %}
+{% load mptt_tags %}
+
+{% block form_class %}{% endblock %}
+
+{% block action_url %}
+{% url "dashboard:menu-item-delete" menu_pk=menu_item.menu.pk item_pk=menu_item.pk %}
+{% endblock %}
+
+{% block title %}
+{% blocktrans trimmed with menu=menu context "Remove menu item modal title" %}
+  Remove menu item {{ menu_item }}
+{% endblocktrans %}
+{% endblock %}
+
+{% block content %}
+  <div class="col s12">
+    {% blocktrans trimmed with menu_item=menu_item menu=menu_item.menu context "Remove menu item modal title" %}
+      Are you sure you want to remove menu item <strong>{{ menu_item }}</strong> from {{ menu }} menu?
+    {% endblocktrans %}
+    {% if menu_items_count %}
+      <p>
+        {% blocktrans count counter=menu_items_count trimmed context "Remove menu item form text about menu items" %}
+          There is one menu item in this menu item that will be removed.
+          {% plural %}
+          There are {{ counter }} menu items in this menu item that will be removed.
+        {% endblocktrans %}
+      </p>
+    {% endif %}
+  </div>
+{% endblock %}
+
+{% block primary_action %}
+{% trans "Remove" context "Dashboard delete action" %}
+{% endblock %}
