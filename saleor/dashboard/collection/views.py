@@ -36,7 +36,7 @@ def collection_create(request):
     form = CollectionForm(
         request.POST or None, request.FILES or None, instance=collection)
     if form.is_valid():
-        collection = form.save()
+        form.save()
         msg = pgettext_lazy('Collection message', 'Added collection')
         messages.success(request, msg)
         return redirect('dashboard:collection-list')

@@ -6,7 +6,6 @@ from text_unidecode import unidecode
 
 from ...product.models import Collection, Product
 from ..forms import AjaxSelect2MultipleChoiceField
-from ..product.widgets import ImagePreviewWidget
 
 
 class CollectionForm(forms.ModelForm):
