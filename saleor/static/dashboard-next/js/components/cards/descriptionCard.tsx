@@ -9,7 +9,6 @@ import { Skeleton } from "../Skeleton";
 
 interface DescriptionCardProps {
   description: string;
-  descriptionTextLabel?: string;
   editButtonLabel?: string;
   handleEditButtonClick?();
   handleRemoveButtonClick?();
@@ -22,7 +21,6 @@ export const DescriptionCard: React.StatelessComponent<
   DescriptionCardProps
 > = ({
   description,
-  descriptionTextLabel,
   editButtonLabel,
   handleEditButtonClick,
   handleRemoveButtonClick,
@@ -30,39 +28,32 @@ export const DescriptionCard: React.StatelessComponent<
   removeButtonLabel,
   title
 }) => (
-  <div>
-    <Card>
-      <CardContent>
-        <Typography variant="display1">
-          {loading ? <Skeleton style={{ width: "10em" }} /> : title}
-        </Typography>
-        <Typography variant="title">{descriptionTextLabel}</Typography>
-        <Typography>
-          {loading
-            ? [
-                <Skeleton key="skel-1" style={{ width: "80%" }} />,
-                <Skeleton key="skel-1" style={{ width: "75%" }} />,
-                <Skeleton key="skel-1" style={{ width: "60%" }} />
-              ]
-            : description}
-        </Typography>
-        <CardActions>
-          <Button color="secondary" onClick={handleEditButtonClick}>
-            {editButtonLabel}
-          </Button>
-          <Button color="secondary" onClick={handleRemoveButtonClick}>
-            {removeButtonLabel}
-          </Button>
-        </CardActions>
-      </CardContent>
-    </Card>
-  </div>
+  <Card>
+    <CardContent>
+      <Typography variant="headline" component="h2">
+        {loading ? <Skeleton style={{ width: "10em" }} /> : title}
+      </Typography>
+      <Typography component="p">
+        {loading
+          ? [
+              <Skeleton key="skel-1" style={{ width: "80%" }} />,
+              <Skeleton key="skel-2" style={{ width: "75%" }} />,
+              <Skeleton key="skel-3" style={{ width: "60%" }} />
+            ]
+          : description}
+      </Typography>
+    </CardContent>
+    <CardActions>
+      <Button color="primary" onClick={handleEditButtonClick}>
+        {editButtonLabel}
+      </Button>
+      <Button color="primary" onClick={handleRemoveButtonClick}>
+        {removeButtonLabel}
+      </Button>
+    </CardActions>
+  </Card>
 );
 DescriptionCard.defaultProps = {
-  descriptionTextLabel: pgettext(
-    "Description card widget description text label",
-    "Description"
-  ),
   editButtonLabel: pgettext("Category edit action", "Edit"),
   removeButtonLabel: pgettext("Category list action link", "Remove")
 };

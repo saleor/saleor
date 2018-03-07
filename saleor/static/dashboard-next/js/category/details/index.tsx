@@ -4,7 +4,6 @@ import Grid from "material-ui/Grid";
 import Details from "./details";
 import { CategoryList, RootCategoryList } from "./categoryList";
 import { screenSizes } from "../../misc";
-import { SwapChildrenRWD } from "../../components/utils";
 
 interface CategoryDetailsProps {
   filters: any;
@@ -17,19 +16,21 @@ const CategoryDetails: React.StatelessComponent<CategoryDetailsProps> = ({
   id
 }) => (
   <div>
-    <Grid container spacing={16}>
-      <SwapChildrenRWD down={screenSizes.md}>
-        <Grid item xs={12} md={9}>
-          {id ? (
-            <div>
+    <Grid container spacing={24}>
+      <Grid item xs={12} md={9}>
+        {id ? (
+          <Grid container spacing={24}>
+            <Grid item xs={12}>
               <Details categoryId={id} />
+            </Grid>
+            <Grid item xs={12}>
               <CategoryList categoryId={id} filters={filters} />
-            </div>
-          ) : (
-            <RootCategoryList filters={filters} />
-          )}
-        </Grid>
-      </SwapChildrenRWD>
+            </Grid>
+          </Grid>
+        ) : (
+          <RootCategoryList filters={filters} />
+        )}
+      </Grid>
     </Grid>
   </div>
 );
