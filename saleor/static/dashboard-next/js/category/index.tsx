@@ -12,24 +12,42 @@ const CategoryPaginator: React.StatelessComponent<RouteComponentProps<any>> = ({
   const qs = parseQs(location.search.substr(1));
   return <CategoryDetails id={match.params.id} filters={qs} />;
 };
+const SubcategoryCreateForm: React.StatelessComponent<
+  RouteComponentProps<any>
+> = ({ match }) => {
+  return <CategoryCreateForm parentId={match.params.id} />;
+};
 const SubcategoryUpdateForm: React.StatelessComponent<
   RouteComponentProps<any>
 > = ({ match }) => {
   return <CategoryUpdateForm id={match.params.id} />;
 };
 
-const Component = () => (
+const Component = ({ match }) => (
   <Switch>
-    <Route exact path="/categories/add" component={CategoryCreateForm} />
+    <Route exact path={match.url} component={CategoryPaginator} />
+    <Route exact path={`${match.url}/add/`} component={CategoryCreateForm} />
     <Route
       exact
-      path="/categories/:id/edit"
+      path={`${match.url}/:id/edit/`}
       component={SubcategoryUpdateForm}
     />
-    <Route exact path="/categories/:id/add" component={CategoryCreateForm} />
-    <Route exact path="/categories/:id" component={CategoryPaginator} />
-    <Route path="/categories/" component={CategoryPaginator} />
+    <Route
+      exact
+      path={`${match.url}/:id/add/`}
+      component={SubcategoryCreateForm}
+    />
+    <Route exact path={`${match.url}/:id/`} component={CategoryPaginator} />
   </Switch>
 );
 
+export const categoryAddUrl = (parentId?: string) => {
+  return `/categories/${parentId ? `${parentId}/add` : "add"}/`;
+};
+export const categoryEditUrl = (id: string) => {
+  return `/categories/${id}/edit/`;
+};
+export const categoryShowUrl = (id?: string) => {
+  return `/categories/${id ? `${id}/` : ""}`;
+};
 export default Component;
