@@ -19,8 +19,8 @@ from prices import Money, TaxedMoney, MoneyRange
 from ...account.models import User
 
 ZERO_TAXED_MONEY = TaxedMoney(
-    net=Money(0, currency=settings.DEFAULT_CURRENCY),
-    gross=Money(0, currency=settings.DEFAULT_CURRENCY))
+    net=Money(0, settings.DEFAULT_CURRENCY),
+    gross=Money(0, settings.DEFAULT_CURRENCY))
 
 georeader = geolite2.reader()
 

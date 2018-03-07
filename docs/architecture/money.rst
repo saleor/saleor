@@ -17,7 +17,7 @@ Money and TaxedMoney
 
 In Saleor's codebase, money amounts exist either as `Money` or `TaxedMoney` instances.
 
-`Money` is a type representing amount of money in specific currency: 100 USD is represented by `Money(100, currency='USD')`. This type doesn't hold any additional information useful for commerce but, unlike `Decimal`, it implements safeguards and checks for calculations and comparisions of monetary values. Money amounts are stored on model using `MoneyField` that provides its own safechecks on currency and precision of stored amount. If you ever need to get to the `Decimal` of your `Money` object, you'll find it on the `amount` property.
+`Money` is a type representing amount of money in specific currency: 100 USD is represented by `Money(100, 'USD')`. This type doesn't hold any additional information useful for commerce but, unlike `Decimal`, it implements safeguards and checks for calculations and comparisions of monetary values. Money amounts are stored on model using `MoneyField` that provides its own safechecks on currency and precision of stored amount. If you ever need to get to the `Decimal` of your `Money` object, you'll find it on the `amount` property.
 
 Products and shipping methods prices are stored using `MoneyField` and are assumed to be gross amounts. Those amounts are then naively converted to `TaxedMoney` objects using the `TaxedAmount(net=item.price, gross=item.price)` approach with conversion happening before resolving item's final price (before taxes and discounts).
 

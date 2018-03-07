@@ -68,8 +68,8 @@ def test_checkout_deliveries():
 
 
 def test_checkout_deliveries_with_shipping_method(monkeypatch):
-    shipping_cost = Money(3, currency=settings.DEFAULT_CURRENCY)
-    items_cost = Money(5, currency=settings.DEFAULT_CURRENCY)
+    shipping_cost = Money(3, settings.DEFAULT_CURRENCY)
+    items_cost = Money(5, settings.DEFAULT_CURRENCY)
     cost_with_shipping = items_cost + shipping_cost
 
     items_price = TaxedMoney(net=items_cost, gross=items_cost)
@@ -233,7 +233,7 @@ def test_checkout_discount(request_cart, sale, product_in_stock):
     request_cart.add(variant, 1)
     checkout = Checkout(request_cart, AnonymousUser(), 'tracking_code')
     assert checkout.get_total() == TaxedMoney(
-        net=Money(5, currency="USD"), gross=Money(5, currency="USD"))
+        net=Money(5, 'USD'), gross=Money(5, 'USD'))
 
 
 def test_checkout_create_order_insufficient_stock(

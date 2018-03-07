@@ -102,8 +102,8 @@ class Order(models.Model):
                 payment.get_total_price() for payment in
                 self.payments.filter(status=PaymentStatus.CONFIRMED)],
             TaxedMoney(
-                net=Money(0, currency=settings.DEFAULT_CURRENCY),
-                gross=Money(0, currency=settings.DEFAULT_CURRENCY)))
+                net=Money(0, settings.DEFAULT_CURRENCY),
+                gross=Money(0, settings.DEFAULT_CURRENCY)))
         return total_paid.gross >= self.total.gross
 
     def get_user_current_email(self):
@@ -313,13 +313,13 @@ class Payment(BasePayment):
 
     def get_total_price(self):
         return TaxedMoney(
-            net=Money(self.total - self.tax, currency=self.currency),
-            gross=Money(self.total, currency=self.currency))
+            net=Money(self.total - self.tax, self.currency),
+            gross=Money(self.total, self.currency))
 
     def get_captured_price(self):
         return TaxedMoney(
-            net=Money(self.captured_amount, currency=self.currency),
-            gross=Money(self.captured_amount, currency=self.currency))
+            net=Money(self.captured_amount, self.currency),
+            gross=Money(self.captured_amount, self.currency))
 
 
 class OrderHistoryEntry(models.Model):

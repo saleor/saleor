@@ -230,8 +230,7 @@ def create_products_by_schema(placeholder_dir, how_many, create_images,
 class SaleorProvider(BaseProvider):
     def money(self):
         return Money(
-            fake.pydecimal(2, 2, positive=True),
-            currency=settings.DEFAULT_CURRENCY)
+            fake.pydecimal(2, 2, positive=True), settings.DEFAULT_CURRENCY)
 
     def delivery_region(self):
         return random.choice(DELIVERY_REGIONS)

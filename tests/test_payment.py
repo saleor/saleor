@@ -7,7 +7,7 @@ from saleor.order.models import Payment
 
 def test_get_purchased_items(order_with_lines, settings, voucher):
     payment = Payment.objects.create(order=order_with_lines, variant='paypal')
-    discount = Money('10.0', currency=settings.DEFAULT_CURRENCY)
+    discount = Money('10.0', settings.DEFAULT_CURRENCY)
 
     assert len(payment.get_purchased_items()) == len(
         order_with_lines.get_lines())

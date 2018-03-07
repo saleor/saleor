@@ -41,4 +41,4 @@ def test_voucher_shipping_add(admin_client):
     assert voucher.end_date == date(2018, 6, 1)
     assert voucher.discount_value_type == DiscountValueType.FIXED
     assert voucher.discount_value == Decimal('15.99')
-    assert voucher.limit == Money('59.99', currency='USD')
+    assert voucher.limit == Money('59.99', 'USD')
