@@ -1,0 +1,11 @@
+<div class="col-md-3 col-sm-6">
+  <ul>
+    {% for item in menu_items %}
+      <li>
+        <a href="{{ item.url }}">
+          {{ item|capfirst }}
+        </a>
+      </li>
+    {% endfor %}
+  </ul>
+</div>
