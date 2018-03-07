@@ -216,7 +216,7 @@ class Checkout:
         value = self.storage.get('discount_value')
         currency = self.storage.get('discount_currency')
         if value is not None and currency is not None:
-            return Money(value, currency=currency)
+            return Money(value, currency)
         return None
 
     @discount.setter
@@ -319,8 +319,8 @@ class Checkout:
             shipping_price = self.shipping_method.get_total_price()
         else:
             shipping_price = TaxedMoney(
-                net=Money(0, currency=settings.DEFAULT_CURRENCY),
-                gross=Money(0, currency=settings.DEFAULT_CURRENCY))
+                net=Money(0, settings.DEFAULT_CURRENCY),
+                gross=Money(0, settings.DEFAULT_CURRENCY))
 
         order_data = {
             'language_code': get_language(),

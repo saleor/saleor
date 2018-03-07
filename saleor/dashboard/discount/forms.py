@@ -108,7 +108,7 @@ def country_choices():
 class ShippingVoucherForm(forms.ModelForm):
 
     limit = MoneyField(
-        min_value=Money(0, currency=settings.DEFAULT_CURRENCY),
+        min_value=Money(0, settings.DEFAULT_CURRENCY),
         required=False, currency=settings.DEFAULT_CURRENCY)
     apply_to = forms.ChoiceField(
         choices=country_choices,
@@ -134,7 +134,7 @@ class ShippingVoucherForm(forms.ModelForm):
 class ValueVoucherForm(forms.ModelForm):
 
     limit = MoneyField(
-        min_value=Money(0, currency=settings.DEFAULT_CURRENCY),
+        min_value=Money(0, settings.DEFAULT_CURRENCY),
         required=False, currency=settings.DEFAULT_CURRENCY)
 
     class Meta:
