@@ -175,14 +175,13 @@ def merge_duplicates_into_order_line(line):
         is_shipping_required=line.is_shipping_required)
     if lines.count() > 1:
         line.quantity = sum([line.quantity for line in lines])
-        line.save()
+        line.save(update_fields=['quantity_fulfilled'])
         lines.exclude(pk=line.pk).delete()
 
 
 def change_order_line_quantity(line, new_quantity):
     """Change the quantity of ordered items in a order line."""
     line.quantity = new_quantity
-    order = line.order
 
     if line.quantity:
         line.save()
@@ -196,6 +195,8 @@ def restock_order_lines(order):
         if line.stock:
             if line.quantity_fulfilled > 0:
                 increase_stock(line.stock, line.quantity_fulfilled)
+                line.quantity_fulfilled = 0
+                line.save()
             if line.quantity_unfulfilled > 0:
                 deallocate_stock(line.stock, line.quantity_unfulfilled)
 
@@ -203,5 +204,8 @@ def restock_order_lines(order):
 def restock_fulfillment_lines(fulfillment):
     """Return fulfilled products to corresponding stocks."""
     for line in fulfillment:
-        if line.order_line.stock:
+        order_line = line.order_line
+        if order_line.stock:
             increase_stock(line.order_line.stock, line.quantity)
+            order_line.quantity_fulfilled -= line.quantity
+            order_line.save(update_fields=['quantity_fulfilled'])

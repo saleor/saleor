@@ -2,6 +2,7 @@ from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import permission_required
 from django.db import transaction
+from django.db.models import F
 from django.forms import modelformset_factory
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect
@@ -386,18 +387,18 @@ def orderline_change_stock(request, order_pk, line_pk):
 @staff_member_required
 @permission_required('order.edit_order')
 def fulfill_order_lines(request, order_pk):
-    qs = Order.objects.prefetch_related('lines')
-    order = get_object_or_404(qs, pk=order_pk)
-    lines = order.get_unfulfilled_lines()
+    order = get_object_or_404(Order, pk=order_pk)
+    unfulfilled_lines = order.lines.filter(
+        quantity_fulfilled__lt=F('quantity'))
     status = 200
     form = FulfillmentForm(
         request.POST or None, order=order, instance=Fulfillment())
     FulfillmentLineFormSet = modelformset_factory(
-        FulfillmentLine, form=FulfillmentLineForm, extra=len(lines),
+        FulfillmentLine, form=FulfillmentLineForm, extra=len(unfulfilled_lines),
         formset=BaseFulfillmentLineFormSet)
     initial = [
         {'order_line': line, 'quantity': line.quantity_unfulfilled}
-        for line in lines]
+        for line in unfulfilled_lines]
     formset = FulfillmentLineFormSet(
         request.POST or None, queryset=FulfillmentLine.objects.none(),
         initial=initial)
@@ -436,7 +437,9 @@ def fulfill_order_lines(request, order_pk):
         return redirect('dashboard:order-details', order_pk=order.pk)
     elif form.errors:
         status = 400
-    ctx = {'form': form, 'formset': formset, 'order': order}
+    ctx = {
+        'form': form, 'formset': formset, 'order': order,
+        'unfulfilled_lines': unfulfilled_lines}
     template = 'dashboard/order/fulfillment.html'
     return TemplateResponse(request, template, ctx, status=status)
 

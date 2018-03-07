@@ -43,6 +43,11 @@ class Migration(migrations.Migration):
             field=models.ForeignKey(editable=False, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='lines', to='order.Order'),
         ),
         migrations.AddField(
+            model_name='orderline',
+            name='quantity_fulfilled',
+            field=models.IntegerField(default=0, validators=[django.core.validators.MinValueValidator(0), django.core.validators.MaxValueValidator(999)]),
+        ),
+        migrations.AddField(
             model_name='order',
             name='status',
             field=models.CharField(choices=[('unfulfilled', 'Unfulfilled'), ('partially fulfilled', 'Partially fulfilled'), ('fulfilled', 'Fulfilled'), ('canceled', 'Canceled')], default='unfulfilled', max_length=32),

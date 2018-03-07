@@ -106,9 +106,6 @@ class Order(models.Model):
     def __str__(self):
         return '#%d' % (self.id,)
 
-    def get_unfulfilled_lines(self):
-        return [line for line in self if not line.is_fulfilled()]
-
     def get_absolute_url(self):
         return reverse('order:details', kwargs={'token': self.token})
 
@@ -170,6 +167,8 @@ class OrderLine(models.Model):
         'product.Stock', on_delete=models.SET_NULL, null=True)
     quantity = models.IntegerField(
         validators=[MinValueValidator(0), MaxValueValidator(999)])
+    quantity_fulfilled = models.IntegerField(
+        validators=[MinValueValidator(0), MaxValueValidator(999)], default=0)
     unit_price_net = MoneyField(
         currency=settings.DEFAULT_CURRENCY, max_digits=12, decimal_places=4)
     unit_price_gross = MoneyField(
@@ -186,15 +185,6 @@ class OrderLine(models.Model):
     @property
     def quantity_unfulfilled(self):
         return self.quantity - self.quantity_fulfilled
-
-    @property
-    def quantity_fulfilled(self):
-        lines = FulfillmentLine.objects.filter(
-            order_line=self, fulfillment__status=FulfillmentStatus.FULFILLED)
-        return sum([line.quantity for line in lines])
-
-    def is_fulfilled(self):
-        return self.quantity_fulfilled >= self.quantity
 
 
 class Fulfillment(models.Model):

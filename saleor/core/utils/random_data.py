@@ -414,6 +414,8 @@ def create_fulfillments(order):
             fulfillment, _ = Fulfillment.objects.get_or_create(order=order)
             quantity = random.randrange(0, line.quantity) + 1
             fulfillment.lines.create(order_line=line, quantity=quantity)
+            line.quantity_fulfilled = quantity
+            line.save(update_fields=['quantity_fulfilled'])
 
     update_order_status(order)
 
