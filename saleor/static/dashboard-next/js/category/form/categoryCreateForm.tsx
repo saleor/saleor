@@ -7,6 +7,7 @@ import { ErrorMessageCard } from "../../components/cards";
 import { Navigator } from "../../components/Navigator";
 import { categoryCreate } from "../mutations";
 import { pgettext } from "../../i18n";
+import { categoryShowUrl } from "../index";
 
 type CategoryCreateFormProps = {
   parentId: string;
@@ -37,7 +38,7 @@ export const CategoryCreateForm: React.StatelessComponent<
     <Grid item xs={12} md={9}>
       <Navigator>
         {navigate => (
-          <Mutation mutation={categoryCreate} variables={{ parentId }}>
+          <Mutation mutation={categoryCreate}>
             {mutate => (
               <BaseCategoryForm
                 title={pgettext("Add category form card title", "Add category")}
@@ -46,7 +47,8 @@ export const CategoryCreateForm: React.StatelessComponent<
                 handleConfirm={formData => async () => {
                   const result = (await mutate({
                     variables: {
-                      ...formData
+                      ...formData,
+                      parentId
                     }
                   })) as CategoryCreateResult;
                   if (result.data.categoryCreate.errors.length > 0) {
@@ -55,7 +57,7 @@ export const CategoryCreateForm: React.StatelessComponent<
                     ));
                   }
                   navigate(
-                    `/categories/${result.data.categoryCreate.category.id}`,
+                    categoryShowUrl(result.data.categoryCreate.category.id),
                     true
                   );
                 }}

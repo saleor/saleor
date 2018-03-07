@@ -4,11 +4,12 @@ import { graphql } from "react-apollo";
 
 import { ListCard } from "../../components/cards";
 import { Navigator } from "../../components/Navigator";
+import { Skeleton } from "../../components/Skeleton";
 import { Table } from "../../components/Table";
 import { TableRow, TableCell } from "material-ui";
+import { categoryAddUrl, categoryShowUrl } from "../index";
 import { categoryChildren, rootCategoryChildren } from "../queries";
 import { gettext, pgettext } from "../../i18n";
-import { Skeleton } from "../../components/Skeleton";
 
 const tableHeaders = [
   {
@@ -75,9 +76,7 @@ class BaseCategoryList extends Component<BaseCategoryListProps> {
         {navigate => (
           <ListCard
             addActionLabel={gettext("Create category")}
-            addActionLink={
-              categoryId ? `/categories/${categoryId}/add` : "/categories/add"
-            }
+            addActionLink={categoryAddUrl(categoryId)}
             label={label}
           >
             <Table
@@ -102,7 +101,7 @@ class BaseCategoryList extends Component<BaseCategoryListProps> {
                 categories.edges.map(({ node }) => (
                   <TableRow
                     key={node.id}
-                    onClick={() => navigate(`/categories/${node.id}/`)}
+                    onClick={() => navigate(categoryShowUrl(node.id))}
                   >
                     {tableHeaders.map(header => (
                       <TableCell key={header.name}>
