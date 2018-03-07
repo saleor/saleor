@@ -74,7 +74,7 @@
               </tr>
             </thead>
             <tbody>
-              {% for line in order.get_unfulfilled_lines %}
+              {% for line in unfulfilled_lines %}
                 <tr>
                   <td>
                     {% if line.product %}
