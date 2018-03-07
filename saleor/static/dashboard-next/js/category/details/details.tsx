@@ -38,27 +38,25 @@ class CategoryProperties extends Component<
     );
     return (
       <Query query={categoryDetails} variables={{ id: categoryId }}>
-        {result => {
-          if (result.loading) {
-            return <span>loading</span>;
-          }
-          return (
-            <Mutation mutation={categoryDelete} variables={{ id: categoryId }}>
-              {deleteCategory => {
-                const { data: { category } } = result;
-                const handleRemoveAction = async () => {
-                  await deleteCategory();
-                  this.handleRemoveButtonClick;
-                };
+        {result => (
+          <Mutation mutation={categoryDelete} variables={{ id: categoryId }}>
+            {deleteCategory => {
+              const { data: { category } } = result;
+              const handleRemoveAction = async () => {
+                await deleteCategory();
+                this.handleRemoveButtonClick;
+              };
 
-                return (
-                  <>
-                    <DescriptionCard
-                      description={category.description}
-                      handleEditButtonClick={handleRemoveAction}
-                      handleRemoveButtonClick={this.handleRemoveButtonClick}
-                      title={category.name}
-                    />
+              return (
+                <>
+                  <DescriptionCard
+                    description={result.loading ? "" : category.description}
+                    handleEditButtonClick={handleRemoveAction}
+                    handleRemoveButtonClick={this.handleRemoveButtonClick}
+                    loading={result.loading || true}
+                    title={result.loading ? "" : category.name}
+                  />
+                  {!result.loading ? (
                     <ConfirmRemoval
                       onClose={this.handleRemoveButtonClick}
                       onConfirm={handleRemoveAction}
@@ -84,12 +82,12 @@ class CategoryProperties extends Component<
                           </p>
                         )}
                     </ConfirmRemoval>
-                  </>
-                );
-              }}
-            </Mutation>
-          );
-        }}
+                  ) : null}
+                </>
+              );
+            }}
+          </Mutation>
+        )}
       </Query>
     );
   }

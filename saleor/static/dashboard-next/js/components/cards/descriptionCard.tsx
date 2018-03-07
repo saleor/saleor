@@ -4,6 +4,8 @@ import Card, { CardActions, CardContent } from "material-ui/Card";
 import Typography from "material-ui/Typography";
 
 import { pgettext } from "../../i18n";
+import { loadavg } from "os";
+import { Skeleton } from "../Skeleton";
 
 interface DescriptionCardProps {
   description: string;
@@ -11,6 +13,7 @@ interface DescriptionCardProps {
   editButtonLabel?: string;
   handleEditButtonClick?();
   handleRemoveButtonClick?();
+  loading: boolean;
   removeButtonLabel?: string;
   title: string;
 }
@@ -23,15 +26,26 @@ export const DescriptionCard: React.StatelessComponent<
   editButtonLabel,
   handleEditButtonClick,
   handleRemoveButtonClick,
+  loading,
   removeButtonLabel,
   title
 }) => (
   <div>
     <Card>
       <CardContent>
-        <Typography variant="display1">{title}</Typography>
+        <Typography variant="display1">
+          {loading ? <Skeleton style={{ width: "10em" }} /> : title}
+        </Typography>
         <Typography variant="title">{descriptionTextLabel}</Typography>
-        <Typography>{description}</Typography>
+        <Typography>
+          {loading
+            ? [
+                <Skeleton key="skel-1" style={{ width: "80%" }} />,
+                <Skeleton key="skel-1" style={{ width: "75%" }} />,
+                <Skeleton key="skel-1" style={{ width: "60%" }} />
+              ]
+            : description}
+        </Typography>
         <CardActions>
           <Button color="secondary" onClick={handleEditButtonClick}>
             {editButtonLabel}
