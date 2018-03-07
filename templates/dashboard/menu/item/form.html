@@ -34,11 +34,28 @@
         {{ menu }}
       </a>
     </li>
-    <li class="back-mobile">
-      <a href="{% url 'dashboard:menu-list' %}" class="breadcrumbs--ellipsed-item">
-        <svg data-src="{% static "dashboard/images/arrow-left.svg" %}" fill="#fff" width="20px" height="20px" />
-      </a>
-    </li>
+    {% if path %}
+      <li class="back-mobile">
+        <a href="{% url 'dashboard:menu-list' %}" class="breadcrumbs--ellipsed-item">
+          <svg data-src="{% static "dashboard/images/arrow-left.svg" %}" fill="#fff" width="20px" height="20px" />
+        </a>
+      </li>
+      {% for node in path %}
+        {% if forloop.last %}
+          <li title="{{ node.name }}">
+            <span class="breadcrumbs--ellipsed-item">
+              {{ node.name }}
+            </span>
+          </li>
+        {% else %}
+          <li class="hide-on-med-and-down">
+            <a href="{% url 'dashboard:menu-item-detail' menu_pk=menu.pk item_pk=node.pk %}" title="{{ node.name }}" class="breadcrumbs--ellipsed-item">
+              {{ node.name }}
+            </a>
+          </li>
+        {% endif %}
+      {% endfor %}
+    {% endif %}
     {% if menu_item.pk %}
       <li>
         <span class="breadcrumbs--ellipsed-item">
@@ -68,7 +85,7 @@
             </div>
           </div>
           <div class="card-action right-align">
-            <a href="{% url 'dashboard:menu-list' %}" class="btn btn-flat">
+            <a href="{% if menu_item.pk %}{% url 'dashboard:menu-item-detail' menu_pk=menu.pk item_pk=menu_item.pk %}{% elif menu_item.parent %}{% url 'dashboard:menu-item-detail' menu_pk=menu.pk item_pk=menu_item.parent.pk %}{% else %}{% url 'dashboard:menu-detail' pk=menu.pk %}{% endif %}" class="btn btn-flat">
               {% trans "Cancel" context "Dashboard cancel action" %}
             </a>
             {% if menu_item.pk %}

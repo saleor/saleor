@@ -1,8 +1,10 @@
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import permission_required
+from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect
 from django.template.response import TemplateResponse
+from django.urls import reverse
 from django.utils.translation import pgettext_lazy
 
 from ...core.utils import get_paginator_items
@@ -126,6 +128,34 @@ def menu_item_edit(request, menu_pk, item_pk):
     ctx = {
         'form': form, 'menu': menu, 'menu_item': menu_item, 'path': path}
     return TemplateResponse(request, 'dashboard/menu/item/form.html', ctx)
+
+
+@staff_member_required
+@permission_required('menu.edit_menu')
+def menu_item_delete(request, menu_pk, item_pk):
+    menu = get_object_or_404(Menu, pk=menu_pk)
+    menu_item = get_object_or_404(menu.items.all(), pk=item_pk)
+    if request.method == 'POST':
+        menu_item.delete()
+        msg = pgettext_lazy(
+            'Dashboard message', 'Removed menu item %s') % (menu_item,)
+        messages.success(request, msg)
+        root_pk = menu_item.parent.pk if menu_item.parent else None
+        if root_pk:
+            redirect_url = reverse(
+                'dashboard:menu-item-detail', kwargs={
+                    'menu_pk': menu_item.menu.pk, 'item_pk': root_pk})
+        else:
+            redirect_url = reverse(
+                'dashboard:menu-detail', kwargs={'pk': menu.pk})
+        return (
+            JsonResponse({'redirectUrl': redirect_url}) if request.is_ajax()
+            else redirect(redirect_url))
+    ctx = {
+        'menu_item': menu_item,
+        'menu_items_count': len(menu_item.get_descendants())}
+    return TemplateResponse(
+        request, 'dashboard/menu/item/modal/confirm_delete.html', ctx)
 
 
 @staff_member_required

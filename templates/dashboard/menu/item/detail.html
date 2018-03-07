@@ -29,6 +29,11 @@
         </span>
       </li>
     {% endif %}
+    <li title="{{ menu.slug }}" class="breadcrumbs--ellipsed-item">
+      <a href="{% url 'dashboard:menu-detail' pk=menu.pk %}">
+        {{ menu.slug }}
+      </a>
+    </li>
     {% if path %}
       <li class="back-mobile">
         <a href="{% url 'dashboard:menu-list' %}">
@@ -78,7 +83,7 @@
           <a class="btn-flat waves-effect" href="{% url "dashboard:menu-item-edit" menu_pk=menu.pk item_pk=menu_item.pk %}">
             {% trans "Edit menu item" context "Menu item detail view action" %}
           </a>
-          <a href="#base-modal" class="btn-flat waves-effect modal-trigger-custom" data-href="">
+          <a href="#base-modal" class="btn-flat waves-effect modal-trigger-custom" data-href="{% url 'dashboard:menu-item-delete' menu_pk=menu.pk item_pk=menu_item.pk %}">
             {% trans "Remove menu item" context "Menu item detail view action" %}
           </a>
         </div>
@@ -127,10 +132,10 @@
                   </td>
                   {% if perms.menu.edit_menu %}
                     <td class="right-align ignore-link">
-                      <a href="" class="btn-flat waves-effect">
+                      <a href="{% url 'dashboard:menu-item-edit' menu_pk=menu.pk item_pk=item.pk %}" class="btn-flat waves-effect">
                         {% trans 'Edit' context 'Menu item edit action' %}
                       </a>
-                      <a href="#base-modal" class="btn-flat waves-effect modal-trigger-custom" data-href="">
+                      <a href="#base-modal" class="btn-flat waves-effect modal-trigger-custom" data-href="{% url 'dashboard:menu-item-delete' menu_pk=menu.pk item_pk=item.pk %}">
                         {% trans "Remove" context "Menu item list action link" %}
                       </a>
                     </td>
