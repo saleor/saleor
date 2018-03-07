@@ -98,10 +98,13 @@
   </div>
 {% endblock %}
 
+{% block topcontent %}
+  {% if object.background_image %}
+    <div class="row" id="category-image" style="background-image: url('{{ object.background_image.url }}')"></div>
+  {% endif %}
+{% endblock topcontent %}
+
 {% block content %}
-  <div class="row">
-    
-  </div>
   <div id="product-list-page">
     <div class="row">
       <div class="col-md-4 col-lg-3">
