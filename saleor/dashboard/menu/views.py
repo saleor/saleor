@@ -110,6 +110,25 @@ def menu_item_create(request, menu_pk, root_pk=None):
 
 
 @staff_member_required
+@permission_required('menu.edit_menu')
+def menu_item_edit(request, menu_pk, item_pk):
+    menu = get_object_or_404(Menu, pk=menu_pk)
+    menu_item = get_object_or_404(menu.items.all(), pk=item_pk)
+    path = menu_item.get_ancestors(include_self=True)
+    form = MenuItemForm(request.POST or None, instance=menu_item)
+    if form.is_valid():
+        menu_item = form.save()
+        msg = pgettext_lazy(
+            'Dashboard message', 'Saved menu item %s') % (menu_item,)
+        messages.success(request, msg)
+        return redirect(
+            'dashboard:menu-item-detail', menu_pk=menu.pk, item_pk=item_pk)
+    ctx = {
+        'form': form, 'menu': menu, 'menu_item': menu_item, 'path': path}
+    return TemplateResponse(request, 'dashboard/menu/item/form.html', ctx)
+
+
+@staff_member_required
 @permission_required('menu.view_menu')
 def menu_item_detail(request, menu_pk, item_pk):
     menu = get_object_or_404(Menu, pk=menu_pk)
