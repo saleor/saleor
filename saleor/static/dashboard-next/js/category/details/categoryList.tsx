@@ -160,12 +160,12 @@ const CategoryListComponent: React.StatelessComponent<
       };
   return (
     <BaseCategoryList
-          categories={categories}
-          label={pgettext("Title of the subcategories list", "Subcategories")}
-          loading={data.loading}
-          filters={props.filters}
-        categoryId={props.categoryId}/>
-
+      categories={categories}
+      label={pgettext("Title of the subcategories list", "Subcategories")}
+      loading={data.loading}
+      filters={props.filters}
+      categoryId={props.categoryId}
+    />
   );
 };
 const CategoryList = categoryListFeeder(CategoryListComponent);
