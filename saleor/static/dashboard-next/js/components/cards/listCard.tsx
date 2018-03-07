@@ -1,8 +1,8 @@
 import * as React from "react";
 import Typography from "material-ui/Typography";
+import { Link } from "react-router-dom";
 import { withStyles } from "material-ui/styles";
 
-import { Table } from "../table";
 import { gettext } from "../../i18n";
 import { Button, Toolbar, Paper } from "material-ui";
 
@@ -21,12 +21,12 @@ const decorate = withStyles(theme => ({
 
 interface ListCardProps {
   addActionLabel: string;
-  handleAddAction();
+  addActionLink: string;
   label: string;
 }
 
 export const ListCard = decorate<ListCardProps>(
-  ({ addActionLabel, children, classes, handleAddAction, label }) => (
+  ({ addActionLabel, addActionLink, children, classes, label }) => (
     <Paper>
       <Toolbar>
         <div className={classes.title}>
@@ -36,7 +36,7 @@ export const ListCard = decorate<ListCardProps>(
         <Button
           className={classes.actions}
           color="primary"
-          onClick={handleAddAction}
+          component={props => <Link to={addActionLink} {...props} />}
         >
           {addActionLabel}
         </Button>

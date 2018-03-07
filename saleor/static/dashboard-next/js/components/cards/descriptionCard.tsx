@@ -2,15 +2,15 @@ import * as React from "react";
 import Button from "material-ui/Button";
 import Card, { CardActions, CardContent } from "material-ui/Card";
 import Typography from "material-ui/Typography";
+import { Link } from "react-router-dom";
 
 import { pgettext } from "../../i18n";
-import { loadavg } from "os";
 import { Skeleton } from "../Skeleton";
 
 interface DescriptionCardProps {
   description: string;
   editButtonLabel?: string;
-  handleEditButtonClick?();
+  editButtonLink: string;
   handleRemoveButtonClick?();
   loading: boolean;
   removeButtonLabel?: string;
@@ -22,7 +22,7 @@ export const DescriptionCard: React.StatelessComponent<
 > = ({
   description,
   editButtonLabel,
-  handleEditButtonClick,
+  editButtonLink,
   handleRemoveButtonClick,
   loading,
   removeButtonLabel,
@@ -44,7 +44,9 @@ export const DescriptionCard: React.StatelessComponent<
       </Typography>
     </CardContent>
     <CardActions>
-      <Button color="primary" onClick={handleEditButtonClick}>
+      <Button color="primary"
+              component={props => <Link to={editButtonLink} {...props} />}
+>
         {editButtonLabel}
       </Button>
       <Button color="primary" onClick={handleRemoveButtonClick}>
