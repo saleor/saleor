@@ -1,22 +1,27 @@
+{% extends "dashboard/base_modal.html" %}
+
 {% load i18n %}
 
-<form action="{% url 'dashboard:page-delete' pk=page.pk %}" method="post">
-    {% csrf_token %}
-    <div class="modal-content">
-        <div class="row">
-            <div class="col s12">
-                <h5>{% trans "Are you sure?" %}</h5>
-            </div>
-        </div>
-        <p>
-            {% blocktrans with page=page %}
-                Are you sure you want to delete the page {{ page }}?
-            {% endblocktrans %}
-        </p>
-    </div>
+{% block form_class %}{% endblock %}
 
-    <div class="modal-footer">
-        <button type="submit" class="modal-action btn-flat blue-text">{% trans "Delete" %}</button>
-        <a href="#" class="modal-action modal-close btn-flat blue-text">{% trans "Cancel" %}</a>
-    </div>
-</form>
+{% block action_url %}
+{% url 'dashboard:page-delete' pk=page.pk %}
+{% endblock %}
+
+{% block title %}
+{% blocktrans trimmed context "Modal remove page text" %}
+  Remove page {{ page }}
+{% endblocktrans %}
+{% endblock %}
+
+{% block content %}
+  <div class="col s12">
+    {% blocktrans trimmed context "Modal remove page text" %}
+      Are you sure you want to remove page <strong>{{ page }}</strong>?
+    {% endblocktrans %}
+  </div>
+{% endblock content %}
+
+{% block primary_action %}
+{% trans "Remove" context "Dashboard delete action" %}
+{% endblock %}

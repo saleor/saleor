@@ -12,3 +12,4 @@ Architecture
    architecture/search
    architecture/payments
    architecture/settings
+   architecture/page

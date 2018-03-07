@@ -3,9 +3,14 @@
 {% load materializecss %}
 {% load staticfiles %}
 
-{% block page_title %}{% if page.pk %}{{ page }}{% else %}{% trans 'Add new page' %}{% endif %}{{ block.super }}{% endblock %}
-
-{% block title %}{% if page.pk %}{{ page }}{% else %}{% trans 'Add new page' %}{% endif %} - {{ block.super }}{% endblock %}
+{% block title %}
+  {% if page.pk %}
+    {% trans "Edit" context "Page form page title" %} - {{ page }}
+  {% else %}
+    {% trans "Add new page" context "Page form page title" %}
+  {% endif %}
+    {{ block.super }}
+{% endblock %}
 
 {% block body_class %}body-page{% endblock %}
 
@@ -15,32 +20,36 @@
 {% endblock %}
 
 {% block breadcrumbs %}
- <ul class="breadcrumbs breadcrumbs--history">
-   <li>
-     <a href="{% url 'dashboard:page-list' %}" class="breadcrumbs">{% trans "Pages" %}</a>
-   </li>
-   <li class="back-mobile">
-     <a href="{% url 'dashboard:page-list' %}" class="breadcrumb"><i class="material-icons">arrow_back</i></a>
-   </li>
-   <li><span class="breadcrumbs--ellipsed-item">
-     {% if page.pk %}{{ page }}{% else %}{% trans 'Add new page' %}{% endif %}</span>
-   </li>
-  </ul>
-{% endblock %}
-
-{% block header_extra %}
-  {% if page.pk %}
-  <a class="dropdown-button right" href="#" data-activates="page-delete" data-constrainwidth="false">
-    <svg data-src="{% static 'dashboard/images/more-vert.svg' %}" height="24" width="24" />
-  </a>
-  <ul id="page-delete" class="dropdown-content">
+  <ul class="breadcrumbs breadcrumbs--history">
     <li>
-      <a class="modal-trigger-custom" href="#base-modal" data-href="{% url 'dashboard:page-delete' pk=page.pk %}">
-        {% trans "Delete page" context "Page action" %}
+       <a href="{% url 'dashboard:page-list' %}" class="breadcrumb">
+         {% trans "Pages" context "Dashboard pages list" %}
+       </a>
+    </li>
+    <li class="back-mobile">
+      <a href="{% url 'dashboard:page-list' %}">
+        <svg data-src="{% static 'dashboard/images/arrow-left.svg' %}" fill="#fff" width="20px" height="20px" />
       </a>
     </li>
+    <li>
+      {% if page.pk %}
+        <a href="{% url 'dashboard:page-detail' pk=page.pk %}" class="breadcrumbs--ellipsed-item">
+          {{ page }}
+        </a>
+      {% else %}
+        <span class="breadcrumbs--ellipsed-item">
+          {% trans "Add new page" context "Page form breadcrumbs" %}
+        </span>
+      {% endif %}
+    </li>
+    {% if page.pk %}
+      <li>
+        <span class="breadcrumbs--ellipsed-item">
+          {% trans "Edit" context "Page form breadcrumbs" %}
+        </span>
+      </li>
+   {% endif %}
   </ul>
-  {% endif %}
 {% endblock %}
 
 {% block menu_pages_class %}active{% endblock %}
