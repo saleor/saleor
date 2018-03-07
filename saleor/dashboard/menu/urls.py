@@ -19,4 +19,6 @@ urlpatterns = [
     url(r'^(?P<menu_pk>[0-9]+)/add/$',
         views.menu_item_create, name='menu-item-add'),
     url(r'^(?P<menu_pk>[0-9]+)/item/(?P<root_pk>[0-9]+)/add/$',
-        views.menu_item_create, name='menu-item-add')]
+        views.menu_item_create, name='menu-item-add'),
+    url(r'^(?P<menu_pk>[0-9]+)/item/(?P<item_pk>[0-9]+)/edit/$',
+        views.menu_item_edit, name='menu-item-edit')]
