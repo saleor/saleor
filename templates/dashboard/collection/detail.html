@@ -46,7 +46,7 @@
   <div class="row">
     <div class="col m12 l9">
       <div class="card">
-        <form method="post" id="form-collection" action="" novalidate>
+        <form method="post" id="form-collection" enctype="multipart/form-data" novalidate>
           <div class="card-content card-content-form">
             {% csrf_token %}
             <div class="row">
@@ -60,15 +60,13 @@
             </div>
           </div>
           <div class="card-action right-align">
+            <a href="{% url 'dashboard:collection-list' %}" class="btn btn-flat">
+              {% trans "Cancel" context "Collection secondary action" %}</a>
             {% if collection.pk %}
-              <a href="{% url 'dashboard:collection-list' %}" class="btn btn-flat">
-                {% trans "Cancel" context "Collection secondary action" %}</a>
               <button type="submit" class="btn btn-flat primary">
                 {% trans "Update" context "Collection detail action" %}
               </button>
             {% else %}
-              <a href="{% url 'dashboard:collection-list' %}" class="btn btn-flat">
-                {% trans "Cancel" context "Collection secondary action" %}</a>
               <button type="submit" class="btn btn-flat primary">
                 {% trans "Create" context "Collection detail action" %}
               </button>

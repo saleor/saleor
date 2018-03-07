@@ -5,7 +5,6 @@ from django.utils.translation import pgettext_lazy
 from text_unidecode import unidecode
 
 from ...product.models import Category
-from ..product.widgets import ImagePreviewWidget
 
 
 class CategoryForm(forms.ModelForm):
