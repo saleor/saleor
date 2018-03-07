@@ -28,12 +28,6 @@ const apolloClient = new ApolloClient({
   }),
   cache: new InMemoryCache()
 });
-const routerMapping = [
-  {
-    component: CategorySection,
-    path: "categories"
-  }
-];
 const store = createStore(() => {});
 
 render(
@@ -44,13 +38,7 @@ render(
           <Reboot />
           <AppRoot>
             <Switch>
-              {routerMapping.map(route => (
-                <Route
-                  key={route.path}
-                  path={`/${route.path}/`}
-                  component={route.component}
-                />
-              ))}
+              <Route path={"/categories"} component={CategorySection} />
             </Switch>
           </AppRoot>
         </MuiThemeProvider>
