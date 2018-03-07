@@ -44,9 +44,10 @@ export const DescriptionCard: React.StatelessComponent<
       </Typography>
     </CardContent>
     <CardActions>
-      <Button color="primary"
-              component={props => <Link to={editButtonLink} {...props} />}
->
+      <Button
+        color="primary"
+        component={props => <Link to={editButtonLink} {...props} />}
+      >
         {editButtonLabel}
       </Button>
       <Button color="primary" onClick={handleRemoveButtonClick}>
