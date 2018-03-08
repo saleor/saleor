@@ -1,10 +1,12 @@
-import * as React from "react";
+import Button from "material-ui/Button";
+import Paper from "material-ui/Paper";
+import Toolbar from "material-ui/Toolbar";
 import Typography from "material-ui/Typography";
-import { Link } from "react-router-dom";
 import { withStyles } from "material-ui/styles";
+import * as React from "react";
+import { Link } from "react-router-dom";
 
 import { gettext } from "../../i18n";
-import { Button, Toolbar, Paper } from "material-ui";
 
 const decorate = withStyles(theme => ({
   spacer: {
