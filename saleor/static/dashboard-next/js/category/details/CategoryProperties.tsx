@@ -2,8 +2,9 @@ import * as React from "react";
 import { Component } from "react";
 import { Query } from "react-apollo";
 import { Redirect } from "react-router-dom";
+import { DialogContentText } from "material-ui/Dialog";
 
-import { ConfirmRemoval } from "../../components/modals";
+import { CategoryDeleteDialog } from "./CategoryDeleteDialog";
 import { CategoryDetails } from "./CategoryDetails";
 import { Navigator } from "../../components/Navigator";
 import {
@@ -78,20 +79,20 @@ export class CategoryProperties extends Component<
                     title={result.loading ? "" : category.name}
                   />
                   {!result.loading ? (
-                    <ConfirmRemoval
+                    <CategoryDeleteDialog
                       onClose={this.handleRemoveButtonClick}
                       onConfirm={() => deleteCategory()}
                       opened={this.state.opened}
                       title={interpolate(titleFmt, [category.name])}
                     >
-                      <p
+                      <DialogContentText
                         dangerouslySetInnerHTML={{
                           __html: interpolate(contentFmt, [category.name])
                         }}
                       />
                       {category.products &&
                         category.products.totalCount > 0 && (
-                          <p>
+                          <DialogContentText>
                             {interpolate(
                               ngettext(
                                 "There is one product in this category that will be removed.",
@@ -100,9 +101,9 @@ export class CategoryProperties extends Component<
                               ),
                               [category.products.totalCount]
                             )}
-                          </p>
+                          </DialogContentText>
                         )}
-                    </ConfirmRemoval>
+                    </CategoryDeleteDialog>
                   ) : null}
                 </>
               );
