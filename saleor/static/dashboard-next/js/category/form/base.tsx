@@ -90,7 +90,7 @@ export const BaseCategoryForm = decorate(
               <Button
                 variant="raised"
                 color="secondary"
-                onClick={handleConfirm(this.state.formData)}
+                onClick={() => handleConfirm(this.state.formData)}
               >
                 {confirmButtonLabel}
               </Button>
