@@ -1,4 +1,3 @@
-import * as React from "react";
 import Button from "material-ui/Button";
 import Dialog, {
   DialogActions,
@@ -7,6 +6,7 @@ import Dialog, {
 } from "material-ui/Dialog";
 import Typography from "material-ui/Typography";
 import { withStyles } from "material-ui/styles";
+import * as React from "react";
 
 import { pgettext } from "../../i18n";
 

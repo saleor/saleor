@@ -1,11 +1,11 @@
-import * as React from "react";
-import { Component, Fragment } from "react";
 import Button from "material-ui/Button";
 import Card, { CardContent, CardActions } from "material-ui/Card";
 import FilterListIcon from "material-ui-icons/FilterList";
 import Typography from "material-ui/Typography";
 import grey from "material-ui/colors/grey";
 import { withStyles, WithStyles } from "material-ui/styles";
+import * as React from "react";
+import { Component, Fragment } from "react";
 
 import { pgettext } from "../../i18n";
 
