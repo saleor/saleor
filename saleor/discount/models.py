@@ -113,7 +113,7 @@ class Voucher(models.Model):
     def get_discount(self):
         if self.discount_value_type == DiscountValueType.FIXED:
             discount_amount = Money(
-                self.discount_value, currency=settings.DEFAULT_CURRENCY)
+                self.discount_value, settings.DEFAULT_CURRENCY)
             return partial(fixed_discount, discount=discount_amount)
         if self.discount_value_type == DiscountValueType.PERCENTAGE:
             return partial(percentage_discount, percentage=self.discount_value)
@@ -162,8 +162,7 @@ class Sale(models.Model):
 
     def get_discount(self):
         if self.type == DiscountValueType.FIXED:
-            discount_amount = Money(
-                self.value, currency=settings.DEFAULT_CURRENCY)
+            discount_amount = Money(self.value, settings.DEFAULT_CURRENCY)
             return partial(fixed_discount, discount=discount_amount)
         if self.type == DiscountValueType.PERCENTAGE:
             return partial(percentage_discount, percentage=self.value)

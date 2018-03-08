@@ -264,7 +264,7 @@ class ProductVariant(models.Model):
         stock = [
             stock_item for stock_item in self.stock.all()
             if stock_item.quantity_available >= quantity]
-        zero_price = Money(0, currency=settings.DEFAULT_CURRENCY)
+        zero_price = Money(0, settings.DEFAULT_CURRENCY)
         stock = sorted(
             stock, key=(lambda s: s.cost_price or zero_price), reverse=False)
         if stock:
