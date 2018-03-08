@@ -4,7 +4,6 @@ import pytest
 from django.conf import settings
 
 import saleor.order.emails as emails
-from saleor.order.emails_helpers import get_order_confirmation_markup
 
 
 @pytest.mark.parametrize('send_email,template', [
