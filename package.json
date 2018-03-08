@@ -139,9 +139,9 @@
   "scripts": {
     "build-schema": "python manage.py graphql_schema --schema saleor.dashboard.graphql.api.schema --out saleor/static/dashboard-next/js/schema.json",
     "generate-types": "apollo-codegen generate 'saleor/static/dashboard-next/js/category/**/*.ts*' --schema saleor/static/dashboard-next/js/schema.json --target typescript --output saleor/static/dashboard-next/js/category/gql-types.ts",
-    "build-assets": "node ./node_modules/webpack/bin/webpack.js -p --progress",
+    "build-assets": "webpack -p --progress",
     "heroku-postbuild": "npm run build-assets && npm run build-emails",
-    "start": "node ./node_modules/webpack/bin/webpack.js -d --watch --progress",
+    "start": "webpack -d --watch --progress",
     "build-emails": "mkdir -p templates/templated_email/compiled/ && find templates -name \"*.mjml\" -not -path \"templates/templated_email/source/*partials/*\" -not -path \"templates/templated_email/source/*shared/*\" -exec ./node_modules/.bin/mjml -l skip {} -o templates/templated_email/compiled/ \\;",
     "test": "jest saleor/static/dashboard-next/js/"
   }
