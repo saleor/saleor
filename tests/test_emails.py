@@ -3,22 +3,24 @@ from unittest import mock
 import pytest
 from django.conf import settings
 from django.contrib.sites.models import Site
+from django.urls import reverse
 
 import saleor.order.emails as emails
+from saleor.core.utils import build_absolute_uri
 
 
 def test_get_email_context(order):
     site = Site.objects.get_current()
     order_url = build_absolute_uri(
-        reverse('order:details', kwargs={'token': order_token}))
-    expected_ctx = {
+        reverse('order:details', kwargs={'token': order.token}))
+    proper_context = {
         'protocol': 'https' if settings.ENABLE_SSL else 'http',
         'site_name': site.name,
         'domain': site.domain,
         'url': order_url}
 
     received_context = emails.get_email_context(order.token)
-    assert expected_context == received_context
+    assert proper_context == received_context
 
 
 def test_collect_data_for_order_confirmation_email(order):
