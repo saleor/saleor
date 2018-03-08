@@ -472,11 +472,15 @@ def test_note_form_sent_email(
 def test_fulfill_order_line(order_with_lines_and_stock):
     order = order_with_lines_and_stock
     line = order.lines.first()
+    quantity_fulfilled_before = line.quantity_fulfilled
     stock = line.stock
     stock_quantity_after = stock.quantity - line.quantity
+
     fulfill_order_line(line, line.quantity)
+
     stock.refresh_from_db()
     assert stock.quantity == stock_quantity_after
+    assert line.quantity_fulfilled == quantity_fulfilled_before + line.quantity
 
 
 def test_view_change_fulfillment_tracking(admin_client, fulfilled_order):

@@ -164,6 +164,8 @@ def test_restock_order_lines(order_with_lines_and_stock):
         stock_2_quantity_allocated_before - line_2.quantity)
     assert line_1.stock.quantity == stock_1_quantity_before
     assert line_2.stock.quantity == stock_2_quantity_before
+    assert line_1.quantity_fulfilled == 0
+    assert line_2.quantity_fulfilled == 0
 
 
 def test_restock_fulfilled_order_lines(fulfilled_order):
@@ -217,9 +219,15 @@ def test_cancel_order(fulfilled_order):
 
 def test_cancel_fulfillment(fulfilled_order):
     fulfillment = fulfilled_order.fulfillments.first()
+    line_1 = fulfillment.lines.first()
+    line_2 = fulfillment.lines.first()
+
     cancel_fulfillment(fulfillment, restock=False)
+
     assert fulfillment.status == FulfillmentStatus.CANCELED
     assert fulfilled_order.status == OrderStatus.UNFULFILLED
+    assert line_1.order_line.quantity_fulfilled == 0
+    assert line_2.order_line.quantity_fulfilled == 0
 
 
 def test_update_order_status(fulfilled_order):

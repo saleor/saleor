@@ -178,7 +178,7 @@ def merge_duplicates_into_order_line(line):
         is_shipping_required=line.is_shipping_required)
     if lines.count() > 1:
         line.quantity = sum([line.quantity for line in lines])
-        line.save(update_fields=['quantity_fulfilled'])
+        line.save(update_fields=['quantity'])
         lines.exclude(pk=line.pk).delete()
 
 
