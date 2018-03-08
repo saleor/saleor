@@ -1,6 +1,5 @@
 from functools import wraps
 
-from django.conf import settings
 from django.db.models import F
 from django.shortcuts import get_object_or_404, redirect
 
@@ -80,6 +79,10 @@ def cancel_fulfillment(fulfillment, restock):
     Return products to corresponding stocks if restock is set to True."""
     if restock:
         restock_fulfillment_lines(fulfillment)
+    for line in fulfillment:
+        order_line = line.order_line
+        order_line.quantity_fulfilled -= line.quantity
+        order_line.save(update_fields=['quantity_fulfilled'])
     fulfillment.status = FulfillmentStatus.CANCELED
     fulfillment.save(update_fields=['status'])
     update_order_status(fulfillment.order)
@@ -193,12 +196,12 @@ def restock_order_lines(order):
     """Return ordered products to corresponding stocks."""
     for line in order:
         if line.stock:
+            if line.quantity_unfulfilled > 0:
+                deallocate_stock(line.stock, line.quantity_unfulfilled)
             if line.quantity_fulfilled > 0:
                 increase_stock(line.stock, line.quantity_fulfilled)
                 line.quantity_fulfilled = 0
-                line.save()
-            if line.quantity_unfulfilled > 0:
-                deallocate_stock(line.stock, line.quantity_unfulfilled)
+                line.save(update_fields=['quantity_fulfilled'])
 
 
 def restock_fulfillment_lines(fulfillment):
@@ -207,5 +210,3 @@ def restock_fulfillment_lines(fulfillment):
         order_line = line.order_line
         if order_line.stock:
             increase_stock(line.order_line.stock, line.quantity)
-            order_line.quantity_fulfilled -= line.quantity
-            order_line.save(update_fields=['quantity_fulfilled'])

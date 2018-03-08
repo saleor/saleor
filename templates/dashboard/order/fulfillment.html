@@ -89,9 +89,9 @@
                       {% endblocktrans %}
                     </span>
                   </td>
-                  <td class="right-align">
+                  <td class="right-align fulfillment-quantity">
                     {% get_formset_form formset forloop.counter0 as line_form %}
-                    <div class="fulfillment-quantity">
+                    <div class="fulfillment-quantity-input">
                       <input id="{{ line_form.order_line.auto_id }}"
                              type="hidden"
                              name="{{ line_form.order_line.html_name }}"
