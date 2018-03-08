@@ -3,25 +3,15 @@ import * as React from "react";
 import { Query, QueryProps } from "react-apollo";
 
 import {
+  CategoryChildrenQuery,
+  CategoryChildrenQueryVariables,
   CategoryDetailsQuery,
-  CategoryDetailsQueryVariables
+  CategoryDetailsQueryVariables,
+  RootCategoryChildrenQuery,
+  RootCategoryChildrenQueryVariables
 } from "./gql-types";
 
-const createTypedQuery = <TData, TVariables>(query) => ({
-  children,
-  ...other
-}) => {
-  const TypedQuery = Query as React.ComponentType<
-    QueryProps<TData, TVariables>
-  >;
-  return (
-    <TypedQuery query={query} {...other}>
-      {children}
-    </TypedQuery>
-  );
-};
-
-export const categoryChildren = gql`
+export const categoryChildrenQuery = gql`
   query CategoryChildren(
     $id: ID!
     $first: Int
@@ -51,6 +41,10 @@ export const categoryChildren = gql`
   }
 `;
 
+export const TypedCategoryChildrenQuery = Query as React.ComponentType<
+  QueryProps<CategoryChildrenQuery, CategoryChildrenQueryVariables>
+>;
+
 export const categoryDetailsQuery = gql`
   query CategoryDetails($id: ID!) {
     category(id: $id) {
@@ -71,7 +65,7 @@ export const TypedCategoryDetailsQuery = Query as React.ComponentType<
   QueryProps<CategoryDetailsQuery, CategoryDetailsQueryVariables>
 >;
 
-export const rootCategoryChildren = gql`
+export const rootCategoryChildrenQuery = gql`
   query RootCategoryChildren(
     $first: Int
     $after: String
@@ -102,3 +96,7 @@ export const rootCategoryChildren = gql`
     }
   }
 `;
+
+export const TypedRootCategoryChildrenQuery = Query as React.ComponentType<
+  QueryProps<RootCategoryChildrenQuery, RootCategoryChildrenQueryVariables>
+>;
