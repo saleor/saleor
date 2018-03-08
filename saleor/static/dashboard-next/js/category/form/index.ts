@@ -1,2 +1,2 @@
-export { CategoryUpdateForm } from "./categoryUpdateForm";
-export { CategoryCreateForm } from "./categoryCreateForm";
+export { CategoryUpdateForm } from "./CategoryUpdateForm";
+export { CategoryCreateForm } from "./CategoryCreateForm";

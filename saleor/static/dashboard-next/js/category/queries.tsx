@@ -1,6 +1,26 @@
 import gql from "graphql-tag";
+import * as React from "react";
+import { Query, QueryProps } from "react-apollo";
+import {
+  CategoryDetailsQuery,
+  CategoryDetailsQueryVariables
+} from "./gql-types";
 
-const categoryChildren = gql`
+const createTypedQuery = <TData, TVariables>(query) => ({
+  children,
+  ...other
+}) => {
+  const TypedQuery = Query as React.ComponentType<
+    QueryProps<TData, TVariables>
+  >;
+  return (
+    <TypedQuery query={query} {...other}>
+      {children}
+    </TypedQuery>
+  );
+};
+
+export const categoryChildren = gql`
   query CategoryChildren(
     $id: ID!
     $first: Int
@@ -29,7 +49,8 @@ const categoryChildren = gql`
     }
   }
 `;
-const categoryDetails = gql`
+
+export const categoryDetailsQuery = gql`
   query CategoryDetails($id: ID!) {
     category(id: $id) {
       id
@@ -44,7 +65,12 @@ const categoryDetails = gql`
     }
   }
 `;
-const rootCategoryChildren = gql`
+
+export const TypedCategoryDetailsQuery = Query as React.ComponentType<
+  QueryProps<CategoryDetailsQuery, CategoryDetailsQueryVariables>
+>;
+
+export const rootCategoryChildren = gql`
   query RootCategoryChildren(
     $first: Int
     $after: String
@@ -75,5 +101,3 @@ const rootCategoryChildren = gql`
     }
   }
 `;
-
-export { categoryChildren, categoryDetails, rootCategoryChildren };
