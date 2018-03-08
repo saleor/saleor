@@ -115,7 +115,7 @@ def _get_product_or_category_voucher_discount_for_checkout(voucher, checkout):
         discounts = (
             voucher.get_discount_amount_for(price) for price in prices)
         total_amount = sum(
-            discounts, Money(0, currency=settings.DEFAULT_CURRENCY))
+            discounts, Money(0, settings.DEFAULT_CURRENCY))
         return total_amount
     product_total = sum(prices, ZERO_TAXED_MONEY)
     return voucher.get_discount_amount_for(product_total)
