@@ -1,7 +1,7 @@
 from django.contrib.sitemaps import Sitemap
 
 from ..page.models import Page
-from ..product.models import Category, Product
+from ..product.models import Category, Collection, Product
 
 
 class ProductSitemap(Sitemap):
@@ -17,6 +17,13 @@ class CategorySitemap(Sitemap):
         return categories.only('id', 'name', 'slug')
 
 
+class CollectionSitemap(Sitemap):
+
+    def items(self):
+        collections = Collection.objects.all().order_by('id')
+        return collections.only('id', 'name', 'slug')
+
+
 class PageSitemap(Sitemap):
 
     def items(self):
@@ -26,5 +33,6 @@ class PageSitemap(Sitemap):
 
 sitemaps = {
     'categories': CategorySitemap,
+    'collections': CollectionSitemap,
     'products': ProductSitemap,
     'pages': PageSitemap}
