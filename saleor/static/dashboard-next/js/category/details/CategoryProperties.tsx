@@ -6,7 +6,6 @@ import { Redirect } from "react-router-dom";
 
 import { CategoryDeleteDialog } from "./CategoryDeleteDialog";
 import { CategoryDetails } from "./CategoryDetails";
-import { Navigator } from "../../components/Navigator";
 import {
   TypedCategoryDeleteMutation,
   categoryDeleteMutation

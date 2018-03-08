@@ -4,7 +4,6 @@ import { Redirect } from "react-router-dom";
 
 import { BaseCategoryForm } from "./base";
 import { ErrorMessageCard } from "../../components/cards";
-import { Navigator } from "../../components/Navigator";
 import { TypedCategoryDetailsQuery, categoryDetailsQuery } from "../queries";
 import {
   TypedCategoryUpdateMutation,
