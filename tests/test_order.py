@@ -1,5 +1,8 @@
 from decimal import Decimal
+<<<<<<< HEAD
 from unittest.mock import Mock
+=======
+>>>>>>> Move emails test from test_order to test_emails
 
 from django.urls import reverse
 from prices import Money, TaxedMoney
@@ -108,7 +111,15 @@ def test_view_connect_order_with_user_authorized_user(
 
 
 def test_view_connect_order_with_user_different_email(
-        order, authorized_client):
+        order, authorized_client, customer_user):
+    """Order was placed from different email, than user's
+    we are trying to assign it to."""
+    order.user = None
+    order.user_email = 'example_email@email.email'
+    order.save()
+
+    assert order.user_email != customer_user.email
+
     url = reverse(
         'order:connect-order-with-user', kwargs={'token': order.token})
     response = authorized_client.post(url)
@@ -134,15 +145,6 @@ def test_create_order_history(order_with_lines):
     history_entry = models.OrderHistoryEntry.objects.get(order=order)
     assert history_entry == order.history.first()
     assert history_entry.content == 'test_entry'
-
-
-def test_collect_data_for_email(order):
-    template = Mock(spec=str)
-    order.user_mail = 'test@example.com'
-    email_data = collect_data_for_email(order.pk, template)
-    order_url = reverse('order:details', kwargs={'token': order.token})
-    assert order_url in email_data['url']
-    assert email_data['email'] == order.user_email
 
 
 def test_restock_order_lines(order_with_lines_and_stock):
@@ -251,3 +253,30 @@ def test_update_order_status(fulfilled_order):
     update_order_status(fulfilled_order)
 
     assert fulfilled_order.status == OrderStatus.UNFULFILLED
+
+
+def test_delivery_group_is_shipping_required(delivery_group):
+    assert delivery_group.is_shipping_required()
+
+
+def test_delivery_group_is_shipping_required_no_shipping(delivery_group):
+    line = delivery_group.lines.first()
+    line.is_shipping_required = False
+    line.save()
+    assert not delivery_group.is_shipping_required()
+
+
+def test_delivery_group_is_shipping_required_partially_required(
+        delivery_group, product_without_shipping):
+    variant = product_without_shipping.variants.get()
+    product_type = product_without_shipping.product_type
+    delivery_group.lines.create(
+        delivery_group=delivery_group,
+        product=product_without_shipping,
+        product_name=product_without_shipping.name,
+        product_sku=variant.sku,
+        is_shipping_required=product_type.is_shipping_required,
+        quantity=3,
+        unit_price_net=Decimal('30.00'),
+        unit_price_gross=Decimal('30.00'))
+    assert delivery_group.is_shipping_required()
