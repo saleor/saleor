@@ -1,6 +1,7 @@
 import gql from "graphql-tag";
 import * as React from "react";
 import { Query, QueryProps } from "react-apollo";
+
 import {
   CategoryDetailsQuery,
   CategoryDetailsQueryVariables

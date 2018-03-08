@@ -1,6 +1,6 @@
+import { parse as parseQs } from "qs";
 import * as React from "react";
 import { Route, Switch, RouteComponentProps } from "react-router-dom";
-import { parse as parseQs } from "qs";
 
 import CategoryDetails from "./details";
 import { CategoryCreateForm, CategoryUpdateForm } from "./form";

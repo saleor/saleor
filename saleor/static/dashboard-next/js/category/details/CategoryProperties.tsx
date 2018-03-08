@@ -1,8 +1,8 @@
+import { DialogContentText } from "material-ui/Dialog";
 import * as React from "react";
 import { Component } from "react";
 import { Query } from "react-apollo";
 import { Redirect } from "react-router-dom";
-import { DialogContentText } from "material-ui/Dialog";
 
 import { CategoryDeleteDialog } from "./CategoryDeleteDialog";
 import { CategoryDetails } from "./CategoryDetails";
