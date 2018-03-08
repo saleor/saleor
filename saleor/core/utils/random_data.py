@@ -262,11 +262,13 @@ def get_or_create_category(schema, placeholder_dir):
     return Category.objects.get_or_create(
         name=category_name, defaults=defaults)[0]
 
+
 def get_product_list_image(image_dir):
     image_root_dir = os.path.join(settings.PROJECT_ROOT, image_dir)
     random_img_path = random.choice(os.listdir(image_root_dir))
     img_path = os.path.join(image_dir, random_img_path)
     return File(open(img_path, 'rb'))
+
 
 def get_or_create_product_type(name, **kwargs):
     return ProductType.objects.get_or_create(name=name, defaults=kwargs)[0]
