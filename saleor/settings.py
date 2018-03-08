@@ -396,3 +396,26 @@ IMPERSONATE = {
     'CUSTOM_USER_QUERYSET': 'saleor.account.impersonate.get_impersonatable_users',  # noqa
     'USE_HTTP_REFERER': True,
     'CUSTOM_ALLOW': 'saleor.account.impersonate.can_impersonate'}
+
+
+# Rich-text editor
+ALLOWED_TAGS = [
+    'a',
+    'b',
+    'blockquote',
+    'br',
+    'em',
+    'h2',
+    'h3',
+    'i',
+    'img',
+    'li',
+    'ol',
+    'p',
+    'strong',
+    'ul']
+ALLOWED_ATTRIBUTES = {
+    '*': ['align', 'style'],
+    'a': ['href', 'title'],
+    'img': ['src']}
+ALLOWED_STYLES = ['text-align']

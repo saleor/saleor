@@ -1,7 +1,22 @@
 import MediumEditor from 'medium-editor';
 
+import alignCenterIcon from '../../images/editor/align_center.svg';
+import alignJustifyIcon from '../../images/editor/align_justify.svg';
+import alignLeftIcon from '../../images/editor/align_left.svg';
+import alignRightIcon from '../../images/editor/align_right.svg';
+import insertLinkIcon from '../../images/editor/insert_link.svg';
+import insertPhotoIcon from '../../images/editor/insert_photo.svg';
+import quoteIcon from '../../images/editor/quote.svg';
+import formatClear from '../../images/editor/format_clear.svg';
+
+import doneIcon from '../../images/done.svg';
+import closeIcon from '../../images/close.svg';
+
 // eslint-disable
 const editor = new MediumEditor('.rich-text-editor', {
+  paste: {
+    forcePlainText: true
+  },
   toolbar: {
     buttons: [
       {
@@ -28,13 +43,45 @@ const editor = new MediumEditor('.rich-text-editor', {
       },
       {
         name: 'quote',
-        aria: pgettext('Rich text editor option', 'Quote')
+        aria: pgettext('Rich text editor option', 'Quote'),
+        contentDefault: `<img src="${quoteIcon}">`
       },
       {
         name: 'anchor',
         aria: pgettext('Rich text editor option', 'Link'),
-        formSaveLabel: '<img src="/static/dashboard/images/done.svg">',
-        formCloseLabel: '<img src="/static/dashboard/images/close.svg">'
+        contentDefault: `<img src="${insertLinkIcon}">`,
+        formSaveLabel: `<img src="${doneIcon}"`,
+        formCloseLabel: `<img src="${closeIcon}">`
+      },
+      {
+        name: 'image',
+        aria: pgettext('Rich text editor option', 'Image (converts selected text to an image tag)'),
+        contentDefault: `<img src="${insertPhotoIcon}">`
+      },
+      {
+        name: 'justifyLeft',
+        aria: pgettext('Rich text editor option', 'Left align'),
+        contentDefault: `<img src="${alignLeftIcon}">`
+      },
+      {
+        name: 'justifyCenter',
+        aria: pgettext('Rich text editor option', 'Center align'),
+        contentDefault: `<img src="${alignCenterIcon}">`
+      },
+      {
+        name: 'justifyRight',
+        aria: pgettext('Rich text editor option', 'Right align'),
+        contentDefault: `<img src="${alignRightIcon}">`
+      },
+      {
+        name: 'justifyFull',
+        aria: pgettext('Rich text editor option', 'Justify'),
+        contentDefault: `<img src="${alignJustifyIcon}">`
+      },
+      {
+        name: 'removeFormat',
+        aria: pgettext('Rich text editor option', 'Remove formatting'),
+        contentDefault: `<img src="${formatClear}">`
       }
     ]
   },
