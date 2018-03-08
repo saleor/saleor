@@ -1,5 +1,5 @@
+import { withStyles } from "material-ui/styles";
 import * as React from "react";
-import { withStyles } from "material-ui";
 
 const decorate = withStyles(theme => ({
   "@keyframes skeleton-animation": {

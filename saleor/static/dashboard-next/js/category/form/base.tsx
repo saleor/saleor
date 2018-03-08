@@ -1,9 +1,9 @@
-import * as React from "react";
 import Button from "material-ui/Button";
 import Card, { CardContent, CardActions } from "material-ui/Card";
 import Typography from "material-ui/Typography";
-import { Component } from "react";
 import { withStyles, WithStyles } from "material-ui/styles";
+import * as React from "react";
+import { Component } from "react";
 
 import { TextField } from "../../components/TextField";
 import { pgettext, gettext } from "../../i18n";

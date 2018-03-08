@@ -1,5 +1,5 @@
-import * as React from "react";
 import Grid from "material-ui/Grid";
+import * as React from "react";
 
 import { CategoryProperties } from "./CategoryProperties";
 import { CategoryList, RootCategoryList } from "./CategoryList";

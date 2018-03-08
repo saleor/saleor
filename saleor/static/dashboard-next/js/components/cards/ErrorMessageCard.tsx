@@ -1,6 +1,6 @@
-import * as React from "react";
 import Card, { CardContent } from "material-ui/Card";
 import Typography from "material-ui/Typography";
+import * as React from "react";
 
 import { pgettext } from "../../i18n";
 

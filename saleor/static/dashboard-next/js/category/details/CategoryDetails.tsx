@@ -1,7 +1,7 @@
-import * as React from "react";
 import Button from "material-ui/Button";
 import Card, { CardActions, CardContent } from "material-ui/Card";
 import Typography from "material-ui/Typography";
+import * as React from "react";
 import { Link } from "react-router-dom";
 
 import { pgettext } from "../../i18n";

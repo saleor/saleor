@@ -1,3 +1,10 @@
+import Table, {
+  TableRow,
+  TableCell,
+  TableHead,
+  TableBody,
+  TableFooter
+} from "material-ui/Table";
 import * as React from "react";
 import { Component } from "react";
 import { graphql } from "react-apollo";
@@ -5,14 +12,6 @@ import { graphql } from "react-apollo";
 import { CategoryListCard } from "./CategoryListCard";
 import { Navigator } from "../../components/Navigator";
 import { Skeleton } from "../../components/Skeleton";
-import {
-  Table,
-  TableRow,
-  TableCell,
-  TableHead,
-  TableBody,
-  TableFooter
-} from "material-ui";
 import { categoryAddUrl, categoryShowUrl } from "../index";
 import { categoryChildren, rootCategoryChildren } from "../queries";
 import { gettext, pgettext } from "../../i18n";

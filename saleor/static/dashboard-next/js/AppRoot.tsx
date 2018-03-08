@@ -1,18 +1,13 @@
 import * as classNames from "classnames";
 import * as React from "react";
-import {
-  AppBar,
-  Toolbar,
-  IconButton,
-  Typography,
-  Drawer,
-  Divider,
-  List,
-  withStyles,
-  WithStyles,
-  ListItem,
-  ListItemText
-} from "material-ui";
+import AppBar from "material-ui/AppBar";
+import Divider from "material-ui/Divider";
+import Drawer from "material-ui/Drawer";
+import IconButton from "material-ui/IconButton";
+import List, { ListItem, ListItemText } from "material-ui/List";
+import Toolbar from "material-ui/Toolbar";
+import Typography from "material-ui/Typography";
+import { withStyles, WithStyles } from "material-ui/styles";
 import MenuIcon from "material-ui-icons/Menu";
 import ChevronLeftIcon from "material-ui-icons/ChevronLeft";
 import { Link, LinkProps } from "react-router-dom";

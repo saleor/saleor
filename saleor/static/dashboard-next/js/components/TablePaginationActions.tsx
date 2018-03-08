@@ -1,9 +1,11 @@
-import * as React from "react";
-import PropTypes from "prop-types";
-import theme from "../theme";
+import IconButton from "material-ui/IconButton";
 import KeyboardArrowLeft from "material-ui/internal/svg-icons/KeyboardArrowLeft";
 import KeyboardArrowRight from "material-ui/internal/svg-icons/KeyboardArrowRight";
-import { IconButton, withStyles } from "material-ui";
+import { withStyles } from "material-ui/styles";
+import * as React from "react";
+import PropTypes from "prop-types";
+
+import theme from "../theme";
 
 const decorate = withStyles(
   theme => ({
