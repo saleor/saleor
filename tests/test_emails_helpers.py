@@ -8,7 +8,7 @@ from saleor.order.emails_helpers import (
     get_order_confirmation_markup, get_organization, get_product_data)
 
 
-def test_get_organization(site_settings):
+def test_get_organization():
     example_name = 'Saleor Brand Name'
     site = Site.objects.get_current()
     site.name = example_name
@@ -21,10 +21,9 @@ def test_get_organization(site_settings):
 def test_get_product_data_without_image(order_with_lines):
     """Tested OrderLine Product has no image assigned."""
     order_line = order_with_lines.get_lines()[0]
-    currency = order_with_lines.total.currency
     organization = get_organization()
 
-    result = get_product_data(order_line, currency, organization)
+    result = get_product_data(order_line, organization)
     assert 'image' not in result['itemOffered']
 
 
@@ -38,7 +37,7 @@ def test_get_product_data_with_image(delivery_group, product_with_image):
     currency = order.total.currency
     organization = get_organization()
 
-    result = get_product_data(order_line, currency, organization)
+    result = get_product_data(order_line, organization)
     assert 'image' in result['itemOffered']
     assert result['itemOffered']['name'] == product_with_image.name
 
