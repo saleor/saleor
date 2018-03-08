@@ -4,17 +4,15 @@ import { withStyles } from "material-ui";
 const decorate = withStyles(theme => ({
   "@keyframes skeleton-animation": {
     "0%": {
-      backgroundPosition: "-400px 0"
+      opacity: 0.6
     },
     "100%": {
-      backgroundPosition: "calc(200px + 100%) 0"
+      opacity: 1
     }
   },
   skeleton: {
-    animation: "skeleton-animation 1.4s ease-in-out infinite",
-    backgroundImage:
-      "linear-gradient(90deg, #eee, #eee 40%, #f5f5f5, #eee 60%, #eee)",
-    backgroundPosition: "-400px 0",
+    animation: "skeleton-animation .75s linear infinite forwards alternate",
+    background: "#eee",
     borderRadius: 4,
     display: "block",
     height: "0.8em",
