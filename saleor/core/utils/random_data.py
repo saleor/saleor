@@ -563,7 +563,7 @@ def create_example_page():
     <p><img src="http://getsaleor.com/images/main-pic.svg"></p>
     <p style="text-align: center;">
         <a href="https://github.com/mirumee/saleor/">Get Saleor</a> today!
-    </p>'
+    </p>
     """
     page_data = {'content': content, 'title': 'About', 'is_visible': True}
     Page.objects.get_or_create(slug='about', **page_data)
