@@ -21,6 +21,12 @@ class RichTextField(forms.CharField):
 
     widget = RichTextEditorWidget
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.help_text = pgettext_lazy(
+            'Help text in rich-text editor field',
+            'Select text to enable text-formatting tools.')
+
     def to_python(self, value):
         tags = settings.ALLOWED_TAGS or bleach.ALLOWED_TAGS
         attributes = settings.ALLOWED_ATTRIBUTES or bleach.ALLOWED_ATTRIBUTES
