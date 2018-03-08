@@ -250,6 +250,10 @@
                 </a>
               </li>
             {% endif %}
+            {% if about_page %}
+              {% comment %} DEMO - include link to example page if exists {% endcomment %}
+              <li><a href="{% url "page:details" "about" %}">About</a></li>
+            {% endif %}
           </ul>
         </div>
         <div class="col-md-3 col-sm-12">
