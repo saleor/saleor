@@ -1,6 +1,7 @@
 from django.conf import settings
 
 from ..product.models import Category
+from ..page.models import Page
 
 
 def get_setting_as_dict(name, short_name=None):
@@ -25,3 +26,8 @@ def categories(request):
 
 def search_enabled(request):
     return {'SEARCH_IS_ENABLED': settings.ENABLE_SEARCH}
+
+
+def demo_example_page(request):
+    page = Page.objects.filter(slug='about').first()
+    return {'about_page': page}

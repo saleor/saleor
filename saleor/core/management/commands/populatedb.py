@@ -7,7 +7,7 @@ from ...utils import create_superuser
 from ...utils.random_data import (
     add_address_to_admin, create_collections, create_groups, create_orders,
     create_product_sales, create_products_by_schema, create_shipping_methods,
-    create_users, create_vouchers, set_featured_products)
+    create_users, create_vouchers, set_featured_products, create_example_page)
 
 
 class Command(BaseCommand):
@@ -69,6 +69,9 @@ class Command(BaseCommand):
         for msg in create_collections(2):
             self.stdout.write(msg)
         self.stdout.write(create_groups())
+
+        # create example page on demo
+        create_example_page()
 
         if options['createsuperuser']:
             credentials = {'email': 'admin@example.com', 'password': 'admin'}

@@ -22,6 +22,7 @@ from ...order.models import DeliveryGroup, Order, OrderLine, Payment
 from ...product.models import (
     AttributeChoiceValue, Category, Collection, Product, ProductAttribute,
     ProductImage, ProductType, ProductVariant, Stock, StockLocation)
+from ...page.models import Page
 from ...shipping.models import ANY_COUNTRY, ShippingMethod
 
 fake = Factory.create()
@@ -551,3 +552,18 @@ def create_collections(how_many=2):
     for dummy in range(how_many):
         collection = create_fake_collection()
         yield 'Collection: %s' % (collection,)
+
+
+def create_example_page():
+    # Used on demo to create example page
+    content = """
+    <h2 align="center">AN OPENSOURCE STOREFRONT PLATFORM FOR PERFECTIONISTS</h2>
+    <h3 align="center">WRITTEN IN PYTHON, BEST SERVED AS A BESPOKE, HIGH-PERFORMANCE E-COMMERCE SOLUTION</h3>
+    <p><br></p>
+    <p><img src="http://getsaleor.com/images/main-pic.svg"></p>
+    <p style="text-align: center;">
+        <a href="https://github.com/mirumee/saleor/">Get Saleor</a> today!
+    </p>'
+    """
+    page_data = {'content': content, 'title': 'About', 'is_visible': True}
+    Page.objects.get_or_create(slug='about', **page_data)
