@@ -11,7 +11,8 @@ def get_organization():
     return {'@type': 'Organization', 'name': site.name}
 
 
-def get_product_data(line, currency, organization):
+def get_product_data(line, organization):
+    gross_product_price = line.get_total().gross
     product_data = {
         '@type': 'Offer',
         'itemOffered': {
@@ -19,8 +20,8 @@ def get_product_data(line, currency, organization):
             'name': line.product_name,
             'sku': line.product_sku,
         },
-        'price': line.get_total().gross,
-        'priceCurrency': currency,
+        'price': gross_product_price.amount,
+        'priceCurrency': gross_product_price.currency,
         'eligibleQuantity': {
             '@type': 'QuantitativeValue',
             'value': line.quantity
@@ -47,8 +48,8 @@ def get_order_confirmation_markup(order):
         '@type': 'Order',
         'merchant': organization,
         'orderNumber': order.pk,
-        'priceCurrency': order.total.currency,
-        'price': order.total.gross,
+        'priceCurrency': order.total.gross.currency,
+        'price': order.total.gross.amount,
         'acceptedOffer': [],
         'url': order_url,
         'potentialAction': {
@@ -59,8 +60,6 @@ def get_order_confirmation_markup(order):
         'orderDate': order.created}
 
     for line in order.get_lines():
-        product_data = get_product_data(
-            line=line, currency=order.total.currency,
-            organization=organization)
+        product_data = get_product_data(line=line, organization=organization)
         data['acceptedOffer'].append(product_data)
     return json.dumps(data, cls=DjangoJSONEncoder)
