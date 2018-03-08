@@ -131,8 +131,6 @@ class ChangeQuantityForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         self.initial_quantity = self.instance.quantity
         self.fields['quantity'].initial = self.initial_quantity
-        self.fields['quantity'].widget.attrs['min'] = (
-            self.instance.quantity_fulfilled)
 
     def clean_quantity(self):
         quantity = self.cleaned_data['quantity']
@@ -147,14 +145,6 @@ class ChangeQuantityForm(forms.ModelForm):
                     'remaining') % {
                         'remaining': (
                             self.initial_quantity + stock.quantity_available)})
-        if quantity < self.instance.quantity_fulfilled:
-            raise forms.ValidationError(
-                npgettext_lazy(
-                    'Change quantity form error',
-                    '%(quantity)d is already fulfilled.',
-                    '%(quantity)d are already fulfilled.',
-                    'quantity') % {
-                        'quantity': self.instance.quantity_fulfilled})
         return quantity
 
     def save(self):

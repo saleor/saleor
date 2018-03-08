@@ -196,14 +196,19 @@
       }
     }
 
-    .fulfillment-quantity {
-      display: flex;
-      align-items: center;
+    &.fulfillment-quantity {
+      .fulfillment-quantity-input {
+        display: flex;
+        align-items: center;
 
-      input {
-        width: 64px;
-        margin-bottom: 0;
-        text-align: right;
+        input {
+          width: 64px;
+          margin-bottom: 0;
+          text-align: right;
+        }
+      }
+      label p {
+        margin: 8px 0;
       }
     }
   }

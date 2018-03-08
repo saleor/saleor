@@ -224,14 +224,22 @@ def test_cancel_fulfillment(fulfilled_order):
 
 def test_update_order_status(fulfilled_order):
     fulfillment = fulfilled_order.fulfillments.first()
+    line = fulfillment.lines.first()
+    order_line = line.order_line
 
-    fulfillment.lines.first().delete()
+    order_line.quantity_fulfilled -= line.quantity
+    order_line.save()
+    line.delete()
     update_order_status(fulfilled_order)
 
     assert fulfilled_order.status == OrderStatus.PARTIALLY_FULFILLED
 
-    fulfillment.status = FulfillmentStatus.CANCELED
-    fulfillment.save()
+    line = fulfillment.lines.first()
+    order_line = line.order_line
+
+    order_line.quantity_fulfilled -= line.quantity
+    order_line.save()
+    line.delete()
     update_order_status(fulfilled_order)
 
     assert fulfilled_order.status == OrderStatus.UNFULFILLED
