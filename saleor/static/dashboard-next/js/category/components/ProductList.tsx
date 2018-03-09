@@ -6,8 +6,8 @@ import { Link } from "react-router-dom";
 
 import { CategoryPropertiesQuery } from "../gql-types";
 import { ProductChildElement } from "./ProductChildElement";
-import { gettext, pgettext } from "../../i18n";
 import { categoryAddUrl } from "../";
+import i18n from "../../i18n";
 
 interface ProductListProps {
   products: CategoryPropertiesQuery["category"]["products"]["edges"];
@@ -26,14 +26,14 @@ export const ProductList: React.StatelessComponent<ProductListProps> = ({
 }) => (
   <>
     <Typography variant="display1">
-      {pgettext("Dashboard categories product list", "Products")}
+      {i18n.t("Products", { context: "title" })}
     </Typography>
     <Button
       color="primary"
       component={props => <Link to={"#"} {...props} />}
       disabled={loading}
     >
-      {gettext("Add product")}
+      {i18n.t("Add product", { context: "button" })}
     </Button>
     <Grid container>
       {loading ? (
@@ -60,10 +60,7 @@ export const ProductList: React.StatelessComponent<ProductListProps> = ({
             </>
           ) : (
             <Typography variant="headline">
-              {pgettext(
-                "Dashboard categories no products found",
-                "No products found"
-              )}
+              {i18n.t("No products found")}
             </Typography>
           )}
         </>
@@ -71,7 +68,7 @@ export const ProductList: React.StatelessComponent<ProductListProps> = ({
     </Grid>
     {canLoadMore && (
       <Button color="primary" onClick={handleLoadMore}>
-        {gettext("Load more")}
+        {i18n.t("Load more", { context: "button" })}
       </Button>
     )}
   </>
