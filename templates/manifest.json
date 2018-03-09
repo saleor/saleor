@@ -1,9 +1,9 @@
 {% load static %}{
   "lang": "en",
   "dir": "ltr",
-  "name": "{{ name }}",
-  "description": "{{ description }}",
-  "short_name": "{{ short_name }}",
+  "name": "{{ site.name }}",
+  "description": "{{ site.settings.description }}",
+  "short_name": "{{ site.name }}",
   "icons": [
     {
       "src": "{% static 'favicons/android-chrome-192x192.png' %}",
