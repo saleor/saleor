@@ -3,6 +3,7 @@ from unittest.mock import MagicMock, Mock
 import pytest
 from django.conf import settings
 from django.contrib.auth.models import AnonymousUser
+from django.urls import reverse
 from prices import Money, TaxedMoney
 
 from saleor.account.models import Address
@@ -199,22 +200,22 @@ def test_checkout_billing_address(user, address):
 
 
 @pytest.mark.parametrize('cart, status_code, url', [
-    (Mock(__len__=Mock(return_value=0)), 302, '/cart/'),
+    (Mock(__len__=Mock(return_value=0)), 302, reverse('cart:index')),
     (
         Mock(
             __len__=Mock(return_value=1),
             is_shipping_required=Mock(return_value=True)),
-        302, '/checkout/shipping-address/'),
+        302, reverse('checkout:shipping-address')),
     (
         Mock(
             __len__=Mock(return_value=1),
             is_shipping_required=Mock(return_value=False)),
-        302, '/checkout/summary/'),
+        302, reverse('checkout:summary')),
     (
         Mock(
             __len__=Mock(return_value=0),
             is_shipping_required=Mock(return_value=False)),
-        302, '/cart/')])
+        302, reverse('cart:index'))])
 def test_index_view(cart, status_code, url, rf, monkeypatch):
     checkout = Checkout(cart, AnonymousUser(), 'tracking_code')
     request = rf.get('checkout:index')

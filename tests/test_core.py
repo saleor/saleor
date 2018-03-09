@@ -65,7 +65,7 @@ def test_create_superuser(db, client):
     create_superuser(credentials)
     assert User.objects.all().count() == 1
     # Test logging in
-    response = client.post('/account/login/',
+    response = client.post(reverse('account:login'),
                            {'username': credentials['email'],
                             'password': credentials['password']},
                            follow=True)
