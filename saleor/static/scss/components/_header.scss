@@ -123,7 +123,7 @@
       left: 0;
       width: 100vw;
       background-color: $white;
-      z-index: 4;
+      z-index: 5;
       border-bottom: 1px solid $gray;
     }
     .static {
@@ -209,7 +209,7 @@
         top: 75px;
         height: 100vh;
         width: 180px;
-        z-index: 3;
+        z-index: 4;
         background-color: $white;
         padding-left: 0;
         padding-right: $global-padding;
