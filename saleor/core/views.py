@@ -43,10 +43,5 @@ def handle_404(request, exception=None):
 
 
 def manifest(request):
-    site = request.site
-    ctx = {
-        'description': site.settings.description,
-        'name': site.name,
-        'short_name': site.name}
     return TemplateResponse(
-        request, 'manifest.json', ctx, content_type='application/json')
+        request, 'manifest.json', content_type='application/json')
