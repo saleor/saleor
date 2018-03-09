@@ -1,5 +1,4 @@
 from django.contrib.auth.tokens import default_token_generator
-from django.contrib.sites.models import Site
 from django.core import mail
 from django.urls import reverse
 from django.utils.encoding import force_bytes
@@ -96,8 +95,8 @@ def test_staff_create_email_with_set_link_password(
     assert response['Location'] == reverse('dashboard:staff-list')
 
 
-def test_send_set_password_email(staff_user):
-    site = Site.objects.get_current()
+def test_send_set_password_email(staff_user, site_settings):
+    site = site_settings.site
     ctx = {
         'protocol': 'http',
         'domain': site.domain,

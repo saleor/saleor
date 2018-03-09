@@ -1,9 +1,9 @@
-from django.contrib.sites.models import Site
 from django.urls import reverse
 
 
-def test_sitemap_uses_site_settings_domain(client, product_in_stock):
-    domain = Site.objects.get_current().domain
+def test_sitemap_uses_site_settings_domain(
+        client, product_in_stock, site_settings):
+    domain = site_settings.site.domain
     product_url = 'http://%(domain)s%(product_url)s' % {
         'domain': domain,
         'product_url': product_in_stock.get_absolute_url()}

@@ -2,15 +2,14 @@ from unittest import mock
 
 import pytest
 from django.conf import settings
-from django.contrib.sites.models import Site
 from django.urls import reverse
 
 import saleor.order.emails as emails
 from saleor.core.utils import build_absolute_uri
 
 
-def test_get_email_context(order):
-    site = Site.objects.get_current()
+def test_get_email_context(order, site_settings):
+    site = site_settings.site
     order_url = build_absolute_uri(
         reverse('order:details', kwargs={'token': order.token}))
     proper_context = {
