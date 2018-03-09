@@ -24,7 +24,9 @@ handler404 = 'saleor.core.views.handle_404'
 
 urlpatterns = [
     url(r'^sitemap\.xml$', sitemap, {'sitemaps': sitemaps},
-        name='django.contrib.sitemaps.views.sitemap')]
+        name='django.contrib.sitemaps.views.sitemap'),
+    url(r'^graphql', GraphQLView.as_view(
+        schema=schema, graphiql=settings.DEBUG), name='api')]
 
 new_urlpatterns = [
     url(r'^', include(core_urls)),
@@ -33,8 +35,6 @@ new_urlpatterns = [
         include((checkout_urls, 'checkout'), namespace='checkout')),
     url(r'^dashboard/',
         include((dashboard_urls, 'dashboard'), namespace='dashboard')),
-    url(r'^graphql', GraphQLView.as_view(
-        schema=schema, graphiql=settings.DEBUG), name='api'),
     url(r'^jsi18n/$', JavaScriptCatalog.as_view(), name='javascript-catalog'),
     url(r'^order/', include((order_urls, 'order'), namespace='order')),
     url(r'^page/', include((page_urls, 'page'), namespace='page')),
