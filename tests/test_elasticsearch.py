@@ -3,6 +3,7 @@ from decimal import Decimal
 import pytest
 from django.urls import reverse
 from elasticsearch_dsl.connections import connections
+from prices import Money, TaxedMoney
 
 from saleor.account.models import User
 from saleor.order.models import Order
@@ -165,7 +166,8 @@ def orders(db, billing_address):
     for email, pks in ORDERS.items():
         for pk in pks:
             Order.objects.create(
-                billing_address=billing_address, user_email=email, pk=pk)
+                billing_address=billing_address, user_email=email, pk=pk,
+                total=TaxedMoney(net=Money(0, 'USD'), gross=Money(0, 'USD')))
         all_pks = all_pks | pks
     return all_pks
 

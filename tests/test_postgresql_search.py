@@ -2,6 +2,7 @@ from decimal import Decimal
 
 import pytest
 from django.urls import reverse
+from prices import Money, TaxedMoney
 
 from saleor.account.models import Address, User
 from saleor.order.models import Order
@@ -125,7 +126,9 @@ def orders_with_addresses():
     for pk, name, lastname, email in ORDERS:
         addr = gen_address_for_user(name, lastname)
         user = User.objects.create(default_shipping_address=addr, email=email)
-        order = Order.objects.create(user=user, billing_address=addr, pk=pk)
+        order = Order.objects.create(
+            user=user, billing_address=addr, pk=pk,
+            total=TaxedMoney(net=Money(0, 'USD'), gross=Money(0, 'USD')))
         orders.append(order)
     return orders
 
