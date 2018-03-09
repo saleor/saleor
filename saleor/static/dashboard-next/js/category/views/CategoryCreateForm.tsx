@@ -8,7 +8,7 @@ import {
   TypedCategoryCreateMutation,
   categoryCreateMutation
 } from "../mutations";
-import { pgettext } from "../../i18n";
+import i18n from "../../i18n";
 import { categoryShowUrl } from "../index";
 
 type CategoryCreateFormProps = {
@@ -37,8 +37,7 @@ export const CategoryCreateForm: React.StatelessComponent<
           }
           return (
             <BaseCategoryForm
-              title={pgettext("Add category form card title", "Add category")}
-              name=""
+              confirmButtonLabel={i18n.t("Add", { context: "button" })}
               description=""
               handleConfirm={formData =>
                 mutate({
@@ -48,7 +47,8 @@ export const CategoryCreateForm: React.StatelessComponent<
                   }
                 })
               }
-              confirmButtonLabel={pgettext("Dashboard create action", "Add")}
+              name=""
+              title={i18n.t("Add category", { context: "title" })}
             />
           );
         }}

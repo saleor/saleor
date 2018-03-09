@@ -43,7 +43,7 @@ export const categoryDetailsQuery = gql`
 export const TypedRootCategoryChildrenQuery = Query as React.ComponentType<
   QueryProps<RootCategoryChildrenQuery>
 >;
-export const rootCategoryChildren = gql`
+export const rootCategoryChildrenQuery = gql`
   query RootCategoryChildren {
     categories(level: 0) {
       edges {
@@ -60,7 +60,7 @@ export const rootCategoryChildren = gql`
 export const TypedCategoryPropertiesQuery = Query as React.ComponentType<
   QueryProps<CategoryPropertiesQuery, CategoryPropertiesQueryVariables>
 >;
-export const categoryProperties = gql`
+export const categoryPropertiesQuery = gql`
   query CategoryProperties($id: ID!, $first: Int!, $after: String) {
     category(id: $id) {
       id

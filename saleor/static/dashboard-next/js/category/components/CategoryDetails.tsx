@@ -4,16 +4,14 @@ import Typography from "material-ui/Typography";
 import * as React from "react";
 import { Link } from "react-router-dom";
 
-import { pgettext } from "../../i18n";
 import { Skeleton } from "../../components/Skeleton";
+import i18n from "../../i18n";
 
 interface CategoryDetailsProps {
   description: string;
-  editButtonLabel?: string;
   editButtonLink: string;
   handleRemoveButtonClick?();
   loading: boolean;
-  removeButtonLabel?: string;
   title: string;
 }
 
@@ -21,11 +19,9 @@ export const CategoryDetails: React.StatelessComponent<
   CategoryDetailsProps
 > = ({
   description,
-  editButtonLabel,
   editButtonLink,
   handleRemoveButtonClick,
   loading,
-  removeButtonLabel,
   title
 }) => (
   <Card>
@@ -48,15 +44,11 @@ export const CategoryDetails: React.StatelessComponent<
         color="primary"
         component={props => <Link to={editButtonLink} {...props} />}
       >
-        {editButtonLabel}
+        {i18n.t("Edit", { context: "button" })}
       </Button>
       <Button color="primary" onClick={handleRemoveButtonClick}>
-        {removeButtonLabel}
+        {i18n.t("Delete", { context: "button" })}
       </Button>
     </CardActions>
   </Card>
 );
-CategoryDetails.defaultProps = {
-  editButtonLabel: pgettext("Category edit action", "Edit"),
-  removeButtonLabel: pgettext("Category list action link", "Remove")
-};
