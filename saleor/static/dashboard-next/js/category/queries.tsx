@@ -3,48 +3,30 @@ import * as React from "react";
 import { Query, QueryProps } from "react-apollo";
 
 import {
-  CategoryChildrenQuery,
-  CategoryChildrenQueryVariables,
   CategoryDetailsQuery,
   CategoryDetailsQueryVariables,
-  RootCategoryChildrenQuery,
-  RootCategoryChildrenQueryVariables
+  CategoryPropertiesQuery,
+  CategoryPropertiesQueryVariables,
+  RootCategoryChildrenQuery
 } from "./gql-types";
 
-export const categoryChildrenQuery = gql`
-  query CategoryChildren(
-    $id: ID!
-    $first: Int
-    $after: String
-    $last: Int
-    $before: String
-  ) {
-    category(id: $id) {
-      id
-      children(first: $first, after: $after, last: $last, before: $before) {
-        edges {
-          cursor
-          node {
-            id
-            name
-            description
-          }
-        }
-        pageInfo {
-          hasNextPage
-          hasPreviousPage
-          startCursor
-          endCursor
-        }
-      }
-    }
-  }
-`;
+const createTypedQuery = <TData, TVariables>(query) => ({
+  children,
+  ...other
+}) => {
+  const TypedQuery = Query as React.ComponentType<
+    QueryProps<TData, TVariables>
+  >;
+  return (
+    <TypedQuery query={query} {...other}>
+      {children}
+    </TypedQuery>
+  );
+};
 
-export const TypedCategoryChildrenQuery = Query as React.ComponentType<
-  QueryProps<CategoryChildrenQuery, CategoryChildrenQueryVariables>
+export const TypedCategoryDetailsQuery = Query as React.ComponentType<
+  QueryProps<CategoryDetailsQuery, CategoryDetailsQueryVariables>
 >;
-
 export const categoryDetailsQuery = gql`
   query CategoryDetails($id: ID!) {
     category(id: $id) {
@@ -54,49 +36,65 @@ export const categoryDetailsQuery = gql`
       parent {
         id
       }
-      products {
-        totalCount
-      }
-    }
-  }
-`;
-
-export const TypedCategoryDetailsQuery = Query as React.ComponentType<
-  QueryProps<CategoryDetailsQuery, CategoryDetailsQueryVariables>
->;
-
-export const rootCategoryChildrenQuery = gql`
-  query RootCategoryChildren(
-    $first: Int
-    $after: String
-    $last: Int
-    $before: String
-  ) {
-    categories(
-      level: 0
-      first: $first
-      after: $after
-      last: $last
-      before: $before
-    ) {
-      edges {
-        cursor
-        node {
-          id
-          name
-          description
-        }
-      }
-      pageInfo {
-        hasNextPage
-        hasPreviousPage
-        startCursor
-        endCursor
-      }
     }
   }
 `;
 
 export const TypedRootCategoryChildrenQuery = Query as React.ComponentType<
-  QueryProps<RootCategoryChildrenQuery, RootCategoryChildrenQueryVariables>
+  QueryProps<RootCategoryChildrenQuery>
 >;
+export const rootCategoryChildren = gql`
+  query RootCategoryChildren {
+    categories(level: 0) {
+      edges {
+        cursor
+        node {
+          id
+          name
+        }
+      }
+    }
+  }
+`;
+
+export const TypedCategoryPropertiesQuery = Query as React.ComponentType<
+  QueryProps<CategoryPropertiesQuery, CategoryPropertiesQueryVariables>
+>;
+export const categoryProperties = gql`
+  query CategoryProperties($id: ID!, $first: Int!, $after: String) {
+    category(id: $id) {
+      id
+      name
+      description
+      parent {
+        id
+      }
+      children {
+        edges {
+          node {
+            id
+            name
+          }
+        }
+      }
+      products(first: $first, after: $after) {
+        totalCount
+        pageInfo {
+          endCursor
+          hasNextPage
+        }
+        edges {
+          cursor
+          node {
+            id
+            name
+            thumbnailUrl
+            price {
+              grossLocalized
+            }
+          }
+        }
+      }
+    }
+  }
+`;
