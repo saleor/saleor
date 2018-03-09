@@ -64,44 +64,6 @@ export interface CategoryUpdateMutation {
   } | null,
 };
 
-export interface CategoryChildrenQueryVariables {
-  id: string,
-  first?: number | null,
-  after?: string | null,
-  last?: number | null,
-  before?: string | null,
-};
-
-export interface CategoryChildrenQuery {
-  category:  {
-    // The ID of the object.
-    id: string,
-    children:  {
-      edges:  Array< {
-        // A cursor for use in pagination
-        cursor: string,
-        // The item at the end of the edge
-        node:  {
-          // The ID of the object.
-          id: string,
-          name: string,
-          description: string,
-        } | null,
-      } | null >,
-      pageInfo:  {
-        // When paginating forwards, are there more items?
-        hasNextPage: boolean,
-        // When paginating backwards, are there more items?
-        hasPreviousPage: boolean,
-        // When paginating backwards, the cursor to continue.
-        startCursor: string | null,
-        // When paginating forwards, the cursor to continue.
-        endCursor: string | null,
-      },
-    } | null,
-  } | null,
-};
-
 export interface CategoryDetailsQueryVariables {
   id: string,
 };
@@ -116,17 +78,7 @@ export interface CategoryDetailsQuery {
       // The ID of the object.
       id: string,
     } | null,
-    products:  {
-      totalCount: number | null,
-    } | null,
   } | null,
-};
-
-export interface RootCategoryChildrenQueryVariables {
-  first?: number | null,
-  after?: string | null,
-  last?: number | null,
-  before?: string | null,
 };
 
 export interface RootCategoryChildrenQuery {
@@ -139,18 +91,59 @@ export interface RootCategoryChildrenQuery {
         // The ID of the object.
         id: string,
         name: string,
-        description: string,
       } | null,
     } | null >,
-    pageInfo:  {
-      // When paginating forwards, are there more items?
-      hasNextPage: boolean,
-      // When paginating backwards, are there more items?
-      hasPreviousPage: boolean,
-      // When paginating backwards, the cursor to continue.
-      startCursor: string | null,
-      // When paginating forwards, the cursor to continue.
-      endCursor: string | null,
-    },
+  } | null,
+};
+
+export interface CategoryPropertiesQueryVariables {
+  id: string,
+  first: number,
+  after?: string | null,
+};
+
+export interface CategoryPropertiesQuery {
+  category:  {
+    // The ID of the object.
+    id: string,
+    name: string,
+    description: string,
+    parent:  {
+      // The ID of the object.
+      id: string,
+    } | null,
+    children:  {
+      edges:  Array< {
+        // The item at the end of the edge
+        node:  {
+          // The ID of the object.
+          id: string,
+          name: string,
+        } | null,
+      } | null >,
+    } | null,
+    products:  {
+      totalCount: number | null,
+      pageInfo:  {
+        // When paginating forwards, the cursor to continue.
+        endCursor: string | null,
+        // When paginating forwards, are there more items?
+        hasNextPage: boolean,
+      },
+      edges:  Array< {
+        // A cursor for use in pagination
+        cursor: string,
+        // The item at the end of the edge
+        node:  {
+          // The ID of the object.
+          id: string,
+          name: string,
+          thumbnailUrl: string | null,
+          price:  {
+            grossLocalized: string | null,
+          } | null,
+        } | null,
+      } | null >,
+    } | null,
   } | null,
 };
