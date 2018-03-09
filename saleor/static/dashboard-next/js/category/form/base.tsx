@@ -77,10 +77,10 @@ export const BaseCategoryForm = decorate(
             />
             <TextField
               name="description"
-              label={`${pgettext(
+              label={pgettext(
                 "Category form description field label",
-                "Description"
-              )} (${gettext("Optional")})`}
+                "Description (optional)"
+              )}
               defaultValue={description}
               multiline
               onChange={this.handleInputChange}
