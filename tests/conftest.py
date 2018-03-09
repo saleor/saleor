@@ -9,7 +9,7 @@ from django.core.files import File
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.utils.encoding import smart_text
 from PIL import Image
-from prices import Money
+from prices import Money, TaxedMoney
 
 from saleor.account.models import Address, User
 from saleor.cart import utils
@@ -72,7 +72,9 @@ def request_cart_with_item(product_in_stock, request_cart):
 
 @pytest.fixture
 def order(billing_address):
-    return Order.objects.create(billing_address=billing_address)
+    return Order.objects.create(
+        billing_address=billing_address,
+        total=TaxedMoney(net=Money(0, 'USD'), gross=Money(0, 'USD')))
 
 
 @pytest.fixture()
@@ -598,18 +600,30 @@ def open_orders(billing_address):
 
     orders = []
 
-    orders.append(Order.objects.create(billing_address=billing_address))
+    orders.append(
+        Order.objects.create(
+            billing_address=billing_address,
+            total=TaxedMoney(net=Money(0, 'USD'), gross=Money(0, 'USD'))))
     DeliveryGroup.objects.create(**group_data(orders, GroupStatus.NEW))
 
-    orders.append(Order.objects.create(billing_address=billing_address))
+    orders.append(
+        Order.objects.create(
+            billing_address=billing_address,
+            total=TaxedMoney(net=Money(0, 'USD'), gross=Money(0, 'USD'))))
     DeliveryGroup.objects.create(**group_data(orders, GroupStatus.NEW))
     DeliveryGroup.objects.create(**group_data(orders, GroupStatus.CANCELLED))
 
-    orders.append(Order.objects.create(billing_address=billing_address))
+    orders.append(
+        Order.objects.create(
+            billing_address=billing_address,
+            total=TaxedMoney(net=Money(0, 'USD'), gross=Money(0, 'USD'))))
     DeliveryGroup.objects.create(**group_data(orders, GroupStatus.NEW))
     DeliveryGroup.objects.create(**group_data(orders, GroupStatus.SHIPPED))
 
-    orders.append(Order.objects.create(billing_address=billing_address))
+    orders.append(
+        Order.objects.create(
+            billing_address=billing_address,
+            total=TaxedMoney(net=Money(0, 'USD'), gross=Money(0, 'USD'))))
     DeliveryGroup.objects.create(**group_data(orders, GroupStatus.NEW))
     DeliveryGroup.objects.create(**group_data(orders, GroupStatus.SHIPPED))
     DeliveryGroup.objects.create(**group_data(orders, GroupStatus.CANCELLED))
@@ -624,18 +638,30 @@ def closed_orders(billing_address):
 
     orders = []
 
-    orders.append(Order.objects.create(billing_address=billing_address))
+    orders.append(
+        Order.objects.create(
+            billing_address=billing_address,
+            total=TaxedMoney(net=Money(0, 'USD'), gross=Money(0, 'USD'))))
     DeliveryGroup.objects.create(**group_data(orders, GroupStatus.SHIPPED))
 
-    orders.append(Order.objects.create(billing_address=billing_address))
+    orders.append(
+        Order.objects.create(
+            billing_address=billing_address,
+            total=TaxedMoney(net=Money(0, 'USD'), gross=Money(0, 'USD'))))
     DeliveryGroup.objects.create(**group_data(orders, GroupStatus.SHIPPED))
     DeliveryGroup.objects.create(**group_data(orders, GroupStatus.CANCELLED))
 
-    orders.append(Order.objects.create(billing_address=billing_address))
+    orders.append(
+        Order.objects.create(
+            billing_address=billing_address,
+            total=TaxedMoney(net=Money(0, 'USD'), gross=Money(0, 'USD'))))
     DeliveryGroup.objects.create(**group_data(orders, GroupStatus.CANCELLED))
 
     # empty order is considered as closed
-    orders.append(Order.objects.create(billing_address=billing_address))
+    orders.append(
+        Order.objects.create(
+            billing_address=billing_address,
+            total=TaxedMoney(net=Money(0, 'USD'), gross=Money(0, 'USD'))))
 
     return orders
 

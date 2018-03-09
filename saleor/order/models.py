@@ -65,11 +65,9 @@ class Order(models.Model):
         net_field='shipping_price_net', gross_field='shipping_price_gross')
     token = models.CharField(max_length=36, unique=True)
     total_net = MoneyField(
-        currency=settings.DEFAULT_CURRENCY, max_digits=12, decimal_places=2,
-        blank=True, null=True)
+        currency=settings.DEFAULT_CURRENCY, max_digits=12, decimal_places=2)
     total_gross = MoneyField(
-        currency=settings.DEFAULT_CURRENCY, max_digits=12, decimal_places=2,
-        blank=True, null=True)
+        currency=settings.DEFAULT_CURRENCY, max_digits=12, decimal_places=2)
     total = TaxedMoneyField(net_field='total_net', gross_field='total_gross')
     voucher = models.ForeignKey(
         Voucher, null=True, related_name='+', on_delete=models.SET_NULL)

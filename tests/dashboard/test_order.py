@@ -657,7 +657,9 @@ def test_process_new_delivery_group(billing_address, product_in_stock):
     cart = Cart()
     cart.save()
     cart.add(variant, quantity=2)
-    order = Order.objects.create(billing_address=billing_address)
+    order = Order.objects.create(
+        billing_address=billing_address,
+        total=TaxedMoney(net=Money(0, 'USD'), gross=Money(0, 'USD')))
     group = DeliveryGroup.objects.create(order=order)
 
     group.process(cart.lines.all())
