@@ -68,6 +68,7 @@ export const BaseCategoryForm = decorate(
           </CardContent>
           <CardContent>
             <TextField
+              autoFocus
               name="name"
               label={pgettext("Category form name field label", "Name")}
               defaultValue={name}
