@@ -10,9 +10,9 @@ import {
   TypedCategoryDeleteMutation,
   categoryDeleteMutation
 } from "../mutations";
-import { pgettext, interpolate, ngettext } from "../../i18n";
 import { categoryEditUrl, categoryShowUrl } from "../index";
 import { CategoryPropertiesQuery } from "../gql-types";
+import i18n from "../../i18n";
 
 interface CategoryPropertiesProps {
   loading: boolean;
@@ -35,14 +35,7 @@ export class CategoryProperties extends Component<
 
   render() {
     const { category, loading } = this.props;
-    const titleFmt = pgettext(
-      "Remove category modal title",
-      "Remove category %s"
-    );
-    const contentFmt = pgettext(
-      "Remove category modal title",
-      "Are you sure you want to remove category <strong>%s</strong>?"
-    );
+
     return (
       <TypedCategoryDeleteMutation
         mutation={categoryDeleteMutation}
@@ -75,23 +68,21 @@ export class CategoryProperties extends Component<
                   onClose={this.handleRemoveButtonClick}
                   onConfirm={() => deleteCategory()}
                   opened={this.state.opened}
-                  title={interpolate(titleFmt, [category.name])}
                 >
                   <DialogContentText
                     dangerouslySetInnerHTML={{
-                      __html: interpolate(contentFmt, [category.name])
+                      __html: i18n.t(
+                        "Are you sure you want to remove <strong>{{name}}</strong>?",
+                        { name: category.name }
+                      )
                     }}
                   />
                   {category.products &&
                     category.products.totalCount > 0 && (
                       <DialogContentText>
-                        {interpolate(
-                          ngettext(
-                            "There is one product in this category that will be removed.",
-                            "There are %s products in this category that will be removed.",
-                            category.products.totalCount
-                          ),
-                          [category.products.totalCount]
+                        {i18n.t(
+                          "There are {{count}} product(s) in this category that will also be removed.",
+                          { count: category.products.totalCount }
                         )}
                       </DialogContentText>
                     )}

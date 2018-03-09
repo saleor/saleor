@@ -1,5 +1,4 @@
 import * as classNames from "classnames";
-import * as React from "react";
 import AppBar from "material-ui/AppBar";
 import Divider from "material-ui/Divider";
 import Drawer from "material-ui/Drawer";
@@ -12,7 +11,9 @@ import MenuIcon from "material-ui-icons/Menu";
 import ChevronLeftIcon from "material-ui-icons/ChevronLeft";
 import { Link, LinkProps } from "react-router-dom";
 import { ListItemProps } from "material-ui/List";
-import { gettext } from "./i18n";
+import * as React from "react";
+
+import i18n from "./i18n";
 
 const drawerWidth = 240;
 
@@ -145,10 +146,10 @@ export const AppRoot = decorate<AppRootProps>(
             <Divider />
             <List component="nav">
               <LinkItem component={Link} to="/">
-                <ListItemText primary={gettext("Home")} />
+                <ListItemText primary={i18n.t("Home")} />
               </LinkItem>
               <LinkItem component={Link} to="/categories/">
-                <ListItemText primary={gettext("Categories")} />
+                <ListItemText primary={i18n.t("Categories")} />
               </LinkItem>
             </List>
           </Drawer>

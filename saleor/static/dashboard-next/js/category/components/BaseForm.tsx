@@ -6,7 +6,7 @@ import * as React from "react";
 import { Component } from "react";
 
 import { TextField } from "../../components/TextField";
-import { pgettext, gettext } from "../../i18n";
+import i18n from "../../i18n";
 
 const decorate = withStyles(theme => ({
   cardActions: {
@@ -70,17 +70,14 @@ export const BaseCategoryForm = decorate(
             <TextField
               autoFocus
               name="name"
-              label={pgettext("Category form name field label", "Name")}
+              label={i18n.t("Name", { context: "category" })}
               defaultValue={name}
               className={classes.textField}
               onChange={this.handleInputChange}
             />
             <TextField
               name="description"
-              label={pgettext(
-                "Category form description field label",
-                "Description (optional)"
-              )}
+              label={i18n.t("Description (optional)")}
               defaultValue={description}
               multiline
               onChange={this.handleInputChange}
@@ -90,13 +87,13 @@ export const BaseCategoryForm = decorate(
             <CardActions className={classes.cardActions}>
               <Button
                 variant="raised"
-                color="secondary"
+                color="primary"
                 onClick={() => handleConfirm(this.state.formData)}
               >
                 {confirmButtonLabel}
               </Button>
-              <Button color="secondary" onClick={() => window.history.back()}>
-                {pgettext("Dashboard cancel action", "Cancel")}
+              <Button color="primary" onClick={() => window.history.back()}>
+                {i18n.t("Cancel", { context: "button" })}
               </Button>
             </CardActions>
           </CardContent>
