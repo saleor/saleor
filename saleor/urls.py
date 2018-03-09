@@ -1,5 +1,6 @@
 from django.conf import settings
 from django.conf.urls import include, url
+from django.conf.urls.i18n import i18n_patterns
 from django.conf.urls.static import static
 from django.contrib.sitemaps.views import sitemap
 from django.contrib.staticfiles.views import serve
@@ -22,6 +23,10 @@ from .search.urls import urlpatterns as search_urls
 handler404 = 'saleor.core.views.handle_404'
 
 urlpatterns = [
+    url(r'^sitemap\.xml$', sitemap, {'sitemaps': sitemaps},
+        name='django.contrib.sitemaps.views.sitemap')]
+
+new_urlpatterns = [
     url(r'^', include(core_urls)),
     url(r'^cart/', include((cart_urls, 'cart'), namespace='cart')),
     url(r'^checkout/',
@@ -40,10 +45,10 @@ urlpatterns = [
     url(r'^feeds/',
         include((feed_urls, 'data_feeds'), namespace='data_feeds')),
     url(r'^search/', include((search_urls, 'search'), namespace='search')),
-    url(r'^sitemap\.xml$', sitemap, {'sitemaps': sitemaps},
-        name='django.contrib.sitemaps.views.sitemap'),
     url(r'', include('payments.urls')),
     url('', include('social_django.urls', namespace='social'))]
+
+urlpatterns += i18n_patterns(*new_urlpatterns)
 
 if settings.DEBUG:
     # static files (images, css, javascript, etc.)
