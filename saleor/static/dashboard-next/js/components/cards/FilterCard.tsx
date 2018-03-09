@@ -5,9 +5,9 @@ import Typography from "material-ui/Typography";
 import grey from "material-ui/colors/grey";
 import { withStyles, WithStyles } from "material-ui/styles";
 import * as React from "react";
-import { Component, Fragment } from "react";
+import { Component } from "react";
 
-import { pgettext } from "../../i18n";
+import i18n from "../../i18n";
 
 const decorate = withStyles(theme => ({
   filterCard: {
@@ -43,12 +43,8 @@ const decorate = withStyles(theme => ({
 }));
 
 interface FilterCardComponentProps {
-  buttonClearLabel: string;
-  buttonSubmitLabel: string;
-  cardTitle: string;
   handleClear();
   handleSubmit();
-  noFiltersAvailableLabel: string;
 }
 
 interface FilterCardComponentState {
@@ -66,16 +62,6 @@ export const FilterCard = decorate(
       >,
     FilterCardComponentState
   > {
-    static defaultProps = {
-      buttonClearLabel: pgettext("Filter bar clear fields", "Clear"),
-      buttonSubmitLabel: pgettext("Filter bar submit", "Filter"),
-      cardTitle: pgettext("Filter menu label", "Filters"),
-      noFiltersAvailableLabel: pgettext(
-        "Filter bar no filters",
-        "No filters available"
-      )
-    };
-
     state = {
       collapsed: true
     };
@@ -85,16 +71,7 @@ export const FilterCard = decorate(
     };
 
     render() {
-      const {
-        buttonClearLabel,
-        buttonSubmitLabel,
-        cardTitle,
-        children,
-        classes,
-        handleClear,
-        handleSubmit,
-        noFiltersAvailableLabel
-      } = this.props;
+      const { children, classes, handleClear, handleSubmit } = this.props;
       return (
         <Card
           className={classes.filterCard}
@@ -104,25 +81,19 @@ export const FilterCard = decorate(
             <div className={classes.filterCardExpandIconContainer}>
               <FilterListIcon onClick={this.handleFilterListIconClick} />
             </div>
-            <Typography variant="display1">{cardTitle}</Typography>
+            <Typography variant="display1">{i18n.t("Filters")}</Typography>
           </CardContent>
           <form onSubmit={handleSubmit}>
             <CardContent>
-              {children ? (
-                <Fragment>
-                  {children}
-                  <CardActions className={classes.filterCardActions}>
-                    <Button color="secondary" onClick={handleSubmit}>
-                      {buttonSubmitLabel}
-                    </Button>
-                    <Button color="default" onClick={handleClear}>
-                      {buttonClearLabel}
-                    </Button>
-                  </CardActions>
-                </Fragment>
-              ) : (
-                <Typography>{noFiltersAvailableLabel}</Typography>
-              )}
+              {children}
+              <CardActions className={classes.filterCardActions}>
+                <Button color="secondary" onClick={handleSubmit}>
+                  {i18n.t("Filter", { context: "label" })}
+                </Button>
+                <Button color="default" onClick={handleClear}>
+                  {i18n.t("Clear", { context: "label" })}
+                </Button>
+              </CardActions>
             </CardContent>
           </form>
         </Card>
