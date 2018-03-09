@@ -2,7 +2,7 @@ import Grid from "material-ui/Grid";
 import * as React from "react";
 import { Redirect } from "react-router-dom";
 
-import { BaseCategoryForm } from "./base";
+import { BaseCategoryForm } from "../components/BaseForm";
 import { ErrorMessageCard } from "../../components/cards";
 import { TypedCategoryDetailsQuery, categoryDetailsQuery } from "../queries";
 import {
@@ -37,9 +37,11 @@ export const CategoryUpdateForm: React.StatelessComponent<
               {(mutate, result) => {
                 if (result && !result.loading) {
                   if (result.data.categoryUpdate.errors.length > 0) {
-                    return result.data.categoryUpdate.errors.map(err => (
-                      <ErrorMessageCard message={err.message} />
-                    ));
+                    return result.data.categoryUpdate.errors.map(
+                      (err, index) => (
+                        <ErrorMessageCard message={err.message} key={index} />
+                      )
+                    );
                   }
                   return (
                     <Redirect
