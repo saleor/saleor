@@ -3,12 +3,11 @@ import Typography from "material-ui/Typography";
 import Grid from "material-ui/Grid";
 import Button from "material-ui/Button";
 import { Link } from "react-router-dom";
-import { gettext, pgettext } from "../../i18n";
-import { categoryAddUrl } from "../";
 
 import { CategoryChildElement } from "./CategoryChildElement";
-import { categoryShowUrl } from "../";
+import { categoryAddUrl, categoryShowUrl } from "../";
 import { CategoryPropertiesQuery } from "../gql-types";
+import i18n from "../../i18n";
 
 interface CategoryListProps {
   loading?: boolean;
@@ -29,7 +28,7 @@ export const CategoryList: React.StatelessComponent<CategoryListProps> = ({
       component={props => <Link to={categoryAddUrl(parentId)} {...props} />}
       disabled={loading}
     >
-      {gettext("Add category")}
+      {i18n.t("Add category", { context: "button" })}
     </Button>
     <Grid container>
       {loading ? (
@@ -48,10 +47,7 @@ export const CategoryList: React.StatelessComponent<CategoryListProps> = ({
             </>
           ) : (
             <Typography variant="headline">
-              {pgettext(
-                "Dashboard categories no categories found",
-                "No categories found"
-              )}
+              {i18n.t("No categories found")}
             </Typography>
           )}
         </>

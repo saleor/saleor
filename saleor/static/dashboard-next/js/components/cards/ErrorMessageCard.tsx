@@ -2,7 +2,7 @@ import Card, { CardContent } from "material-ui/Card";
 import Typography from "material-ui/Typography";
 import * as React from "react";
 
-import { pgettext } from "../../i18n";
+import i18n from "../../i18n";
 
 interface ErrorMessageCardProps {
   message: string;
@@ -12,10 +12,10 @@ export const ErrorMessageCard: React.StatelessComponent<
 > = ({ message }) => (
   <Card>
     <CardContent>
-      <Typography variant={"display1"}>
-        {pgettext("Dashboard error message card title", "Error")}
+      <Typography variant="display1">
+        {i18n.t("Error", { context: "title" })}
       </Typography>
-      <Typography variant={"body1"}>{message}</Typography>
+      <Typography variant="body1">{message}</Typography>
     </CardContent>
   </Card>
 );

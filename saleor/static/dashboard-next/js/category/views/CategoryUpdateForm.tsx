@@ -9,8 +9,8 @@ import {
   TypedCategoryUpdateMutation,
   categoryUpdateMutation
 } from "../mutations";
-import { pgettext } from "../../i18n";
 import { categoryShowUrl } from "../index";
+import i18n from "../../i18n";
 
 interface CategoryUpdateFormProps {
   id: string;
@@ -53,10 +53,7 @@ export const CategoryUpdateForm: React.StatelessComponent<
                 }
                 return (
                   <BaseCategoryForm
-                    title={pgettext(
-                      "Edit category form card title",
-                      "Edit category"
-                    )}
+                    title={i18n.t("Edit category", { context: "title" })}
                     name={category.name}
                     description={category.description}
                     handleConfirm={formData =>
@@ -67,10 +64,9 @@ export const CategoryUpdateForm: React.StatelessComponent<
                         }
                       })
                     }
-                    confirmButtonLabel={pgettext(
-                      "Dashboard update action",
-                      "Update"
-                    )}
+                    confirmButtonLabel={i18n.t("Save", {
+                      context: "button"
+                    })}
                   />
                 );
               }}
