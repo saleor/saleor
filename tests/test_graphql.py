@@ -470,7 +470,7 @@ def test_real_query(client, product_in_stock):
     }
     '''
     response = client.post(
-        '/graphql/', {
+        reverse('api'), {
             'query': query,
             'variables': json.dumps(
                 {

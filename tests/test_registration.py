@@ -53,24 +53,24 @@ def test_login_view_next(client, customer_user):
     response = client.post(
         url, {'username': 'test@example.com', 'password': 'password'})
     redirect_location = get_redirect_location(response)
-    assert redirect_location == '/cart/'
+    assert redirect_location == reverse('cart:index')
 
 
 def test_login_view_redirect(client, customer_user):
     url = reverse('account:login')
     data = {
         'username': 'test@example.com', 'password': 'password',
-        'next': '/cart/'}
+        'next': reverse('cart:index')}
     response = client.post(url, data)
     redirect_location = get_redirect_location(response)
-    assert redirect_location == '/cart/'
+    assert redirect_location == reverse('cart:index')
 
 
 def test_logout_view_no_user(client):
     url = reverse('account:logout')
     response = client.get(url)
     redirect_location = get_redirect_location(response)
-    location = '/account/login/'
+    location = reverse('account:login')
     assert location in redirect_location
 
 
@@ -106,17 +106,17 @@ def test_signup_view_create_user(client, db):
     assert User.objects.count() == 1
     assert User.objects.filter(email='client@example.com').exists()
     redirect_location = get_redirect_location(response)
-    assert redirect_location == '/'
+    assert redirect_location == reverse('home')
 
 
 def test_signup_view_redirect(client, customer_user):
     url = reverse('account:signup')
     data = {
         'email': 'client@example.com', 'password': 'password',
-        'next': '/cart/'}
+        'next': reverse('cart:index')}
     response = client.post(url, data)
     redirect_location = get_redirect_location(response)
-    assert redirect_location == '/cart/'
+    assert redirect_location == reverse('cart:index')
 
 
 def test_signup_view_fail(client, db, customer_user):
