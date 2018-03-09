@@ -1,20 +1,20 @@
 import Grid from "material-ui/Grid";
+import Typography from "material-ui/Typography";
 import * as React from "react";
 
 import {
-  categoryProperties,
+  categoryPropertiesQuery,
   TypedCategoryPropertiesQuery,
-  rootCategoryChildren,
+  rootCategoryChildrenQuery,
   TypedRootCategoryChildrenQuery
 } from "../queries";
 import CategoryProperties from "../components/CategoryProperties";
-import Typography from "material-ui/Typography";
-import { pgettext } from "../../i18n";
 import { CategoryChildElement } from "../components/CategoryChildElement";
 import { categoryShowUrl } from "../index";
 import { ProductChildElement } from "../components/ProductChildElement";
 import { CategoryList } from "../components/CategoryList";
 import { ProductList } from "../components/ProductList";
+import i18n from "../../i18n";
 
 interface CategoryDetailsProps {
   filters: any;
@@ -30,7 +30,7 @@ const CategoryDetails: React.StatelessComponent<CategoryDetailsProps> = ({
     <Grid item xs={12} md={9}>
       {id ? (
         <TypedCategoryPropertiesQuery
-          query={categoryProperties}
+          query={categoryPropertiesQuery}
           variables={{ id, first: 5 }}
           fetchPolicy="network-only"
         >
@@ -72,10 +72,7 @@ const CategoryDetails: React.StatelessComponent<CategoryDetailsProps> = ({
                 <CategoryList
                   loading={loading}
                   categories={loading ? [] : category.children.edges}
-                  label={pgettext(
-                    "Dashboard category view subcategories section",
-                    "Subcategories"
-                  )}
+                  label={i18n.t("Subcategories", { context: "title" })}
                   parentId={loading ? "" : category.id}
                 />
                 <ProductList
@@ -93,7 +90,7 @@ const CategoryDetails: React.StatelessComponent<CategoryDetailsProps> = ({
         </TypedCategoryPropertiesQuery>
       ) : (
         <TypedRootCategoryChildrenQuery
-          query={rootCategoryChildren}
+          query={rootCategoryChildrenQuery}
           fetchPolicy="network-only"
         >
           {({ error, loading, data: { categories } }) => {
@@ -104,10 +101,7 @@ const CategoryDetails: React.StatelessComponent<CategoryDetailsProps> = ({
               <CategoryList
                 loading={loading}
                 categories={loading ? [] : categories.edges}
-                label={pgettext(
-                  "Dashboard category view subcategories section",
-                  "Subcategories"
-                )}
+                label={i18n.t("Subcategories", { context: "title" })}
                 parentId=""
               />
             );
