@@ -2,8 +2,8 @@
 from django import forms
 from django.utils.safestring import mark_safe
 from django.utils.translation import pgettext_lazy
-from django_prices.templatetags.prices_i18n import format_price
 
+from ..core.utils import format_money
 from ..shipping.models import ShippingMethodCountry
 
 
@@ -68,7 +68,7 @@ class ShippingCountryChoiceField(forms.ModelChoiceField):
 
     def label_from_instance(self, obj):
         """Return a friendly label for the shipping method."""
-        price_html = format_price(obj.price.gross, obj.price.currency)
+        price_html = format_money(obj.price)
         label = mark_safe('%s %s' % (obj.shipping_method, price_html))
         return label
 

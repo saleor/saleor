@@ -3,9 +3,9 @@ from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.template.response import TemplateResponse
 from django.urls import reverse
-from django_babel.templatetags.babel import currencyfmt
 
-from ..core.utils import get_user_shipping_country, to_local_currency
+from ..core.utils import (
+    format_money, get_user_shipping_country, to_local_currency)
 from ..product.models import ProductVariant
 from ..shipping.utils import get_shipment_options
 from .forms import CountryForm, ReplaceCartLineForm
@@ -92,17 +92,14 @@ def update(request, cart, variant_id):
                 'numLines': len(cart)}}
         updated_line = cart.get_line(form.cart_line.variant)
         if updated_line:
-            response['subtotal'] = currencyfmt(
-                updated_line.get_total(discounts=discounts).gross,
-                updated_line.get_total(discounts=discounts).currency)
+            response['subtotal'] = format_money(
+                updated_line.get_total(discounts=discounts).gross)
         if cart:
             cart_total = cart.get_total(discounts=discounts)
-            response['total'] = currencyfmt(
-                cart_total.gross, cart_total.currency)
+            response['total'] = format_money(cart_total.gross)
             local_cart_total = to_local_currency(cart_total, request.currency)
-            if local_cart_total:
-                response['localTotal'] = currencyfmt(
-                    local_cart_total.gross, local_cart_total.currency)
+            if local_cart_total is not None:
+                response['localTotal'] = format_money(local_cart_total.gross)
         status = 200
     elif request.POST is not None:
         response = {'error': form.errors}
@@ -125,9 +122,8 @@ def summary(request, cart):
             'quantity': line.quantity,
             'attributes': line.variant.display_variant_attributes(attributes),
             'image': first_image,
-            'price_per_item': currencyfmt(
-                price_per_item.gross, price_per_item.currency),
-            'line_total': currencyfmt(line_total.gross, line_total.currency),
+            'price_per_item': format_money(price_per_item.gross),
+            'line_total': format_money(line_total.gross),
             'update_url': reverse(
                 'cart:update-line', kwargs={'variant_id': line.variant_id}),
             'variant_url': line.variant.get_absolute_url()}
@@ -137,7 +133,7 @@ def summary(request, cart):
         cart_total = cart.get_total(discounts=request.discounts)
         data = {
             'quantity': cart.quantity,
-            'total': currencyfmt(cart_total.gross, cart_total.currency),
+            'total': format_money(cart_total.gross),
             'lines': [prepare_line_data(line) for line in cart.lines.all()]}
 
     return render(request, 'cart_dropdown.html', data)

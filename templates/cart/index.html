@@ -1,6 +1,6 @@
 {% extends "base.html" %}
-{% load gross from prices_i18n %}
 {% load i18n %}
+{% load prices_i18n %}
 {% load staticfiles %}
 {% load get_thumbnail from product_images %}
 
@@ -63,7 +63,7 @@
                   <small class="cart__line__quantity-error text-danger"></small>
                 </div>
                 <div class="cart-item-price col-md-5 col-12" data-product-id="{{ line.variant.pk }}">
-                  <p class="text-right">{% gross line.get_total html=True %}</p>
+                  <p class="text-right">{{ line.get_total.gross|amount:'html' }}</p>
                 </div>
               </div>
             </div>

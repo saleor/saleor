@@ -19,8 +19,6 @@
     {% endblock meta %}
 
     {% include 'favicon.html' %}
-    {% render_bundle 'vendors~dashboard~storefront' 'css' %}
-    {% render_bundle 'vendors~dashboard' 'css' %}
     {% render_bundle 'dashboard' 'css' %}
     <link rel="stylesheet" type="text/css" href="{% static "versatileimagefield/css/versatileimagefield.css" %}">
 
@@ -202,7 +200,7 @@
                 </ul>
               </li>
             {% endif %}
-            {% if perms.site.edit_settings or perms.shipping.view_shipping or perms.product.view_properties %}
+            {% if perms.site.edit_settings or perms.shipping.view_shipping or perms.product.view_properties or perms.page.view_page %}
               <li class="side-nav-section">
                 <p>
                   {% trans "Configuration"  context "Dashboard configuration" %}
@@ -233,6 +231,13 @@
                     <li class="{% block menu_settings_class %}{% endblock %}">
                       <a href="{% url 'dashboard:site-index' %}">
                         {% trans "Site settings" context "Dashboard site settings" %}
+                      </a>
+                    </li>
+                  {% endif %}
+                  {% if perms.page.view_page %}
+                    <li class="{% block menu_pages_class %}{% endblock %}">
+                      <a href="{% url 'dashboard:page-list' %}">
+                        {% trans "Pages" context "Dashboard static pages" %}
                       </a>
                     </li>
                   {% endif %}
@@ -273,8 +278,6 @@
 
     <!-- Core Scripts - Include with every page -->
     <script type="text/javascript" src="{% url 'javascript-catalog' %}"></script>
-    {% render_bundle 'vendors~dashboard~storefront' 'js' %}
-    {% render_bundle 'vendors~dashboard' 'js' %}
     {% render_bundle 'dashboard' 'js' %}
     <script src="{% static "versatileimagefield/js/versatileimagefield.js" %}"></script>
 

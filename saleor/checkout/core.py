@@ -7,16 +7,17 @@ from django.db import transaction
 from django.forms.models import model_to_dict
 from django.utils.encoding import smart_text
 from django.utils.translation import get_language
-from prices import FixedDiscount, Price
+from prices import Money, TaxedMoney
 
 from ..account.models import Address
 from ..account.utils import store_user_address
 from ..cart.models import Cart
 from ..cart.utils import get_or_empty_db_cart
 from ..core import analytics
+from ..core.utils import ZERO_TAXED_MONEY
 from ..discount.models import NotApplicable, Voucher
 from ..discount.utils import (
-    increase_voucher_usage, get_voucher_discount_for_checkout)
+    get_voucher_discount_for_checkout, increase_voucher_usage)
 from ..order.models import Order
 from ..shipping.models import ANY_COUNTRY, ShippingMethodCountry
 
@@ -106,9 +107,9 @@ class Checkout:
         """
         for partition in self.cart.partition():
             if self.shipping_method and partition.is_shipping_required():
-                shipping_cost = self.shipping_method.get_total()
+                shipping_cost = self.shipping_method.get_total_price()
             else:
-                shipping_cost = Price(0, currency=settings.DEFAULT_CURRENCY)
+                shipping_cost = ZERO_TAXED_MONEY
             total_with_shipping = partition.get_total(
                 discounts=self.cart.discounts) + shipping_cost
 
@@ -214,18 +215,14 @@ class Checkout:
         """Return a discount if any."""
         value = self.storage.get('discount_value')
         currency = self.storage.get('discount_currency')
-        name = self.storage.get('discount_name')
-        if value is not None and name is not None and currency is not None:
-            amount = Price(value, currency=currency)
-            return FixedDiscount(amount, name)
+        if value is not None and currency is not None:
+            return Money(value, currency)
         return None
 
     @discount.setter
     def discount(self, discount):
-        amount = discount.amount
-        self.storage['discount_value'] = smart_text(amount.net)
-        self.storage['discount_currency'] = amount.currency
-        self.storage['discount_name'] = discount.name
+        self.storage['discount_value'] = smart_text(discount.amount)
+        self.storage['discount_currency'] = discount.currency
         self.modified = True
 
     @discount.deleter
@@ -236,6 +233,19 @@ class Checkout:
         if 'discount_currency' in self.storage:
             del self.storage['discount_currency']
             self.modified = True
+
+    @property
+    def discount_name(self):
+        """Return a discount name if any."""
+        return self.storage.get('discount_name')
+
+    @discount_name.setter
+    def discount_name(self, discount_name):
+        self.storage['discount_name'] = discount_name
+        self.modified = True
+
+    @discount_name.deleter
+    def discount_name(self):
         if 'discount_name' in self.storage:
             del self.storage['discount_name']
             self.modified = True
@@ -305,9 +315,13 @@ class Checkout:
         self._add_to_user_address_book(
             self.billing_address, is_billing=True)
 
-        shipping_price = (
-            self.shipping_method.get_total() if self.shipping_method
-            else Price(0, currency=settings.DEFAULT_CURRENCY))
+        if self.shipping_method:
+            shipping_price = self.shipping_method.get_total_price()
+        else:
+            shipping_price = TaxedMoney(
+                net=Money(0, settings.DEFAULT_CURRENCY),
+                gross=Money(0, settings.DEFAULT_CURRENCY))
+
         order_data = {
             'language_code': get_language(),
             'billing_address': billing_address,
@@ -323,10 +337,9 @@ class Checkout:
             order_data['user_email'] = self.email
 
         if voucher is not None:
-            discount = self.discount
             order_data['voucher'] = voucher
-            order_data['discount_amount'] = discount.amount
-            order_data['discount_name'] = discount.name
+            order_data['discount_amount'] = self.discount
+            order_data['discount_name'] = self.discount_name
 
         order = Order.objects.create(**order_data)
 
@@ -370,30 +383,33 @@ class Checkout:
             try:
                 self.discount = get_voucher_discount_for_checkout(
                     voucher, self)
+                self.discount_name = voucher.name
             except NotApplicable:
                 del self.discount
+                del self.discount_name
                 del self.voucher_code
         else:
             del self.discount
+            del self.discount_name
             del self.voucher_code
 
     def get_subtotal(self):
-        """Calculate order total without shipping."""
-        zero = Price(0, currency=settings.DEFAULT_CURRENCY)
+        """Calculate order total without shipping and discount."""
         cost_iterator = (
             total - shipping_cost
             for shipment, shipping_cost, total in self.deliveries)
-        total = sum(cost_iterator, zero)
+        total = sum(cost_iterator, ZERO_TAXED_MONEY)
         return total
 
     def get_total(self):
-        """Calculate order total with shipping."""
-        zero = Price(0, currency=settings.DEFAULT_CURRENCY)
+        """Calculate order total with shipping and discount amount."""
         cost_iterator = (
             total
             for shipment, shipping_cost, total in self.deliveries)
-        total = sum(cost_iterator, zero)
-        return total if self.discount is None else self.discount.apply(total)
+        total = sum(cost_iterator, ZERO_TAXED_MONEY)
+        if self.discount:
+            return total - self.discount
+        return total
 
 
 def load_checkout(view):

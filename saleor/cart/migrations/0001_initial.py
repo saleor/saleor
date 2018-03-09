@@ -1,12 +1,13 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
+import uuid
+
 from django.db import models, migrations
 import django.db.models.deletion
 from django.conf import settings
 import django.core.validators
 import django_prices.models
-import uuid
 
 
 class Migration(migrations.Migration):
@@ -27,7 +28,7 @@ class Migration(migrations.Migration):
                 ('email', models.EmailField(max_length=254, null=True, blank=True)),
                 ('token', models.UUIDField(primary_key=True, default=uuid.uuid4, serialize=False, editable=False, verbose_name='token')),
                 ('checkout_data', models.TextField(null=True, editable=False)),
-                ('total', django_prices.models.PriceField(default=0, currency='USD', max_digits=12, decimal_places=2)),
+                ('total', django_prices.models.MoneyField(default=0, currency='USD', max_digits=12, decimal_places=2)),
                 ('quantity', models.PositiveIntegerField(default=0)),
                 ('user', models.ForeignKey(related_name='carts', verbose_name='user', blank=True, to=settings.AUTH_USER_MODEL, null=True, on_delete=django.db.models.deletion.CASCADE)),
                 ('voucher', models.ForeignKey(related_name='+', on_delete=django.db.models.deletion.SET_NULL, to='discount.Voucher', null=True)),

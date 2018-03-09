@@ -33,20 +33,21 @@ class Error(graphene.ObjectType):
     message = graphene.String()
 
 
-class Price(graphene.ObjectType):
+class Money(graphene.ObjectType):
     currency = graphene.String()
-    gross = graphene.Float()
-    gross_localized = graphene.String()
-    net = graphene.Float()
-    net_localized = graphene.String()
+    amount = graphene.Float()
+    localized = graphene.String()
 
-    def resolve_gross_localized(self, info):
-        return prices_i18n.gross(self)
-
-    def resolve_net_localized(self, info):
-        return prices_i18n.net(self)
+    def resolve_localized(self, info):
+        return prices_i18n.amount(self)
 
 
-class PriceRange(graphene.ObjectType):
-    max_price = graphene.Field(Price)
-    min_price = graphene.Field(Price)
+class TaxedMoney(graphene.ObjectType):
+    currency = graphene.String()
+    gross = graphene.Field(Money)
+    net = graphene.Field(Money)
+
+
+class TaxedMoneyRange(graphene.ObjectType):
+    start = graphene.Field(TaxedMoney)
+    stop = graphene.Field(TaxedMoney)

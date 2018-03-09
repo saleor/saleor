@@ -4,6 +4,7 @@ Architecture
 .. toctree::
    :maxdepth: 1
 
+   architecture/money
    architecture/products
    architecture/stock
    architecture/orders
@@ -11,3 +12,4 @@ Architecture
    architecture/search
    architecture/payments
    architecture/settings
+   architecture/page

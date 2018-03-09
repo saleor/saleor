@@ -1,0 +1,63 @@
+{% extends "dashboard/base.html" %}
+{% load i18n %}
+{% load materializecss %}
+{% load staticfiles %}
+{% load status %}
+{% load utils %}
+
+{% block title %}{% trans "Pages" context "Pages list page title" %} -
+  {{ block.super }}{% endblock %}
+
+{% block body_class %}body-pages{% endblock %}
+
+{% block breadcrumbs %}
+  <ul class="breadcrumbs breadcrumbs--history">
+    <li>
+      <a href="{% url 'dashboard:page-list' %}" class="breadcrumb">
+        {% trans "Pages" context "Pages form breadcrumbs" %}
+      </a>
+    </li>
+    <li class="back-mobile">
+      <a href="{% url 'dashboard:page-list' %}">
+        <svg data-src="{% static 'dashboard/images/arrow-left.svg' %}" fill="#fff" width="20px" height="20px" />
+      </a>
+    </li>
+    <li>
+      <span class="breadcrumbs--ellipsed-item">
+        {{ page }}
+      </span>
+    </li>
+  </ul>
+{% endblock %}
+
+{% block menu_pages_class %}active{% endblock %}
+
+{% block content %}
+  <div class="row">
+    <div class="col s12 l9">
+      <div class="card">
+        <div class="card-content">
+          <span class="right">{% render_page_availability page %}</span>
+          <span class="card-title">{{ page }}<br></span>
+            <h4>
+              {% trans "Page URL" context "Page URL" %}
+            </h4>
+            {{ page.get_full_url }}
+        </div>
+        <div class="card-action">
+          {% if perms.page.edit_page %}
+            <a href="{% url 'dashboard:page-update' page.pk %}" class="btn-flat waves-effect">
+              {% trans "Edit page" context "Page action" %}
+            </a>
+            <a href="#base-modal" data-href="{% url 'dashboard:page-delete' pk=page.pk %}" class="modal-trigger-custom btn-flat waves-effect">
+              {% trans "Remove page" context "Page action" %}
+            </a>
+          {% endif %}
+          <a href="{% url "page:details" slug=page.slug %}" target="_blank" class="btn-flat waves-effect">
+            {% trans "View on site" context "Page action" %}
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}

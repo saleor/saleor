@@ -3,8 +3,8 @@ import json
 import graphene
 import pytest
 from django.shortcuts import reverse
-
 from saleor.product.models import Category, Product, ProductAttribute
+from prices import Money
 
 from .utils import get_graphql_content
 
@@ -121,9 +121,17 @@ def test_product_query(client, product_in_stock):
                         availability {
                             available,
                             priceRange {
-                                minPrice {
-                                    gross
-                                    net
+                                start {
+                                    gross {
+                                        amount
+                                        currency
+                                        localized
+                                    }
+                                    net {
+                                        amount
+                                        currency
+                                        localized
+                                    }
                                     currency
                                 }
                             }
@@ -143,8 +151,8 @@ def test_product_query(client, product_in_stock):
     product_data = product_edges_data[0]['node']
     assert product_data['name'] == product.name
     assert product_data['url'] == product.get_absolute_url()
-    gross = product_data['availability']['priceRange']['minPrice']['gross']
-    assert float(gross) == float(product.price.gross)
+    gross = product_data['availability']['priceRange']['start']['gross']
+    assert float(gross['amount']) == float(product.price.amount)
 
 
 def test_filter_product_by_category(client, product_in_stock):
@@ -224,6 +232,49 @@ def test_filter_product_by_attributes(client, product_in_stock):
     assert 'errors' not in content
     product_data = content['data']['category']['products']['edges'][0]['node']
     assert product_data['name'] == product_in_stock.name
+
+
+def test_sort_products(client, product_in_stock):
+    # set price of the first product
+    product_in_stock.price = Money('10.00', 'USD')
+    product_in_stock.save()
+
+    # create the second product with higher price
+    product_in_stock.pk = None
+    product_in_stock.price = Money('20.00', 'USD')
+    product_in_stock.save()
+
+    query = '''
+    query {
+        products(sortBy: "%(sort_by)s") {
+            edges {
+                node {
+                    price {
+                        amount
+                    }
+                }
+            }
+        }
+    }
+    '''
+
+    asc_price_query = query % {'sort_by': 'price'}
+    response = client.post(reverse('api'), {'query': asc_price_query})
+    content = get_graphql_content(response)
+    assert 'errors' not in content
+    product_data = content['data']['products']['edges'][0]['node']
+    price_0 = content['data']['products']['edges'][0]['node']['price']['amount']
+    price_1 = content['data']['products']['edges'][1]['node']['price']['amount']
+    assert price_0 < price_1
+
+    desc_price_query = query % {'sort_by': '-price'}
+    response = client.post(reverse('api'), {'query': desc_price_query})
+    content = get_graphql_content(response)
+    assert 'errors' not in content
+    product_data = content['data']['products']['edges'][0]['node']
+    price_0 = content['data']['products']['edges'][0]['node']['price']['amount']
+    price_1 = content['data']['products']['edges'][1]['node']['price']['amount']
+    assert price_0 > price_1
 
 
 def test_attributes_query(client, product_in_stock):
@@ -353,10 +404,9 @@ def test_real_query(client, product_in_stock):
         id
         name
         price {
+            amount
             currency
-            gross
-            grossLocalized
-            net
+            localized
             __typename
         }
         availability {
@@ -372,19 +422,31 @@ def test_real_query(client, product_in_stock):
     fragment ProductPriceFragmentQuery on ProductAvailability {
         available
         discount {
-            gross
-            __typename
-        }
-        priceRange {
-            maxPrice {
-                gross
-                grossLocalized
+            gross {
+                amount
                 currency
                 __typename
             }
-            minPrice {
-                gross
-                grossLocalized
+            __typename
+        }
+        priceRange {
+            stop {
+                gross {
+                    amount
+                    currency
+                    localized
+                    __typename
+                }
+                currency
+                __typename
+            }
+            start {
+                gross {
+                    amount
+                    currency
+                    localized
+                    __typename
+                }
                 currency
                 __typename
             }

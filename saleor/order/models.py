@@ -9,14 +9,14 @@ from django.urls import reverse
 from django.utils.timezone import now
 from django.utils.translation import pgettext_lazy
 from django_fsm import FSMField, transition
-from django_prices.models import PriceField
+from django_prices.models import MoneyField, TaxedMoneyField
 from payments import PaymentStatus, PurchasedItem
 from payments.models import BasePayment
-from prices import FixedDiscount, Price
+from prices import Money, TaxedMoney
 
 from . import GroupStatus, OrderStatus
 from ..account.models import Address
-from ..core.utils import build_absolute_uri
+from ..core.utils import ZERO_TAXED_MONEY, build_absolute_uri
 from ..discount.models import Voucher
 from ..product.models import Product
 from .transitions import (
@@ -55,19 +55,25 @@ class Order(models.Model):
         on_delete=models.PROTECT)
     user_email = models.EmailField(
         blank=True, default='', editable=False)
-    shipping_price = PriceField(
-        currency=settings.DEFAULT_CURRENCY, max_digits=12, decimal_places=4,
+    shipping_price_net = MoneyField(
+        currency=settings.DEFAULT_CURRENCY, max_digits=12, decimal_places=2,
         default=0, editable=False)
+    shipping_price_gross = MoneyField(
+        currency=settings.DEFAULT_CURRENCY, max_digits=12, decimal_places=2,
+        default=0, editable=False)
+    shipping_price = TaxedMoneyField(
+        net_field='shipping_price_net', gross_field='shipping_price_gross')
     token = models.CharField(max_length=36, unique=True)
-    total_net = PriceField(
+    total_net = MoneyField(
         currency=settings.DEFAULT_CURRENCY, max_digits=12, decimal_places=2,
         blank=True, null=True)
-    total_tax = PriceField(
+    total_gross = MoneyField(
         currency=settings.DEFAULT_CURRENCY, max_digits=12, decimal_places=2,
         blank=True, null=True)
+    total = TaxedMoneyField(net_field='total_net', gross_field='total_gross')
     voucher = models.ForeignKey(
         Voucher, null=True, related_name='+', on_delete=models.SET_NULL)
-    discount_amount = PriceField(
+    discount_amount = MoneyField(
         currency=settings.DEFAULT_CURRENCY, max_digits=12, decimal_places=2,
         blank=True, null=True)
     discount_name = models.CharField(max_length=255, default='', blank=True)
@@ -92,9 +98,13 @@ class Order(models.Model):
 
     def is_fully_paid(self):
         total_paid = sum(
-            [payment.total for payment in
-             self.payments.filter(status=PaymentStatus.CONFIRMED)], Decimal())
-        return total_paid >= self.total.gross
+            [
+                payment.get_total_price() for payment in
+                self.payments.filter(status=PaymentStatus.CONFIRMED)],
+            TaxedMoney(
+                net=Money(0, settings.DEFAULT_CURRENCY),
+                gross=Money(0, settings.DEFAULT_CURRENCY)))
+        return total_paid.gross >= self.total.gross
 
     def get_user_current_email(self):
         return self.user.email if self.user else self.user_email
@@ -113,11 +123,6 @@ class Order(models.Model):
 
     def __str__(self):
         return '#%d' % (self.id,)
-
-    @property
-    def discount(self):
-        return FixedDiscount(
-            amount=self.discount_amount, name=self.discount_name)
 
     def get_absolute_url(self):
         return reverse('order:details', kwargs={'token': self.token})
@@ -156,24 +161,9 @@ class Order(models.Model):
         """Order status display text."""
         return dict(OrderStatus.CHOICES)[self.status]
 
-    @property
-    def total(self):
-        if self.total_net is not None:
-            gross = self.total_net.net + self.total_tax.gross
-            return Price(
-                net=self.total_net.net, gross=gross,
-                currency=settings.DEFAULT_CURRENCY)
-        return None
-
-    @total.setter
-    def total(self, price):
-        self.total_net = price
-        self.total_tax = Price(price.tax, currency=price.currency)
-
-    def get_subtotal_without_voucher(self):
-        if self.get_lines():
-            return self.total
-        return Price(net=0, currency=settings.DEFAULT_CURRENCY)
+    def get_subtotal(self):
+        subtotal_iterator = (line.get_total() for line in self.get_lines())
+        return sum(subtotal_iterator, ZERO_TAXED_MONEY)
 
     def can_cancel(self):
         return self.status == OrderStatus.OPEN
@@ -260,19 +250,18 @@ class OrderLine(models.Model):
         'product.Stock', on_delete=models.SET_NULL, null=True)
     quantity = models.IntegerField(
         validators=[MinValueValidator(0), MaxValueValidator(999)])
-    unit_price_net = models.DecimalField(max_digits=12, decimal_places=4)
-    unit_price_gross = models.DecimalField(max_digits=12, decimal_places=4)
+    unit_price_net = MoneyField(
+        currency=settings.DEFAULT_CURRENCY, max_digits=12, decimal_places=4)
+    unit_price_gross = MoneyField(
+        currency=settings.DEFAULT_CURRENCY, max_digits=12, decimal_places=4)
+    unit_price = TaxedMoneyField(
+        net_field='unit_price_net', gross_field='unit_price_gross')
 
     def __str__(self):
         return self.product_name
 
-    def get_price_per_item(self):
-        return Price(
-            net=self.unit_price_net, gross=self.unit_price_gross,
-            currency=settings.DEFAULT_CURRENCY)
-
     def get_total(self):
-        return self.get_price_per_item() * self.quantity
+        return self.unit_price * self.quantity
 
 
 class PaymentQuerySet(models.QuerySet):
@@ -307,26 +296,30 @@ class Payment(BasePayment):
             PurchasedItem(
                 name=line.product_name, sku=line.product_sku,
                 quantity=line.quantity,
-                price=line.unit_price_gross.quantize(Decimal('0.01')),
-                currency=settings.DEFAULT_CURRENCY)
+                price=line.unit_price_gross.quantize(Decimal('0.01')).amount,
+                currency=line.unit_price.currency)
             for line in self.order.get_lines()]
 
         voucher = self.order.voucher
         if voucher is not None:
-            lines.append(PurchasedItem(
-                name=self.order.discount_name,
-                sku='DISCOUNT',
-                quantity=1,
-                price=-self.order.discount_amount.net,
-                currency=self.currency))
+            lines.append(
+                PurchasedItem(
+                    name=self.order.discount_name,
+                    sku='DISCOUNT',
+                    quantity=1,
+                    price=-self.order.discount_amount.amount,
+                    currency=self.order.discount_amount.currency))
         return lines
 
     def get_total_price(self):
-        net = self.total - self.tax
-        return Price(net, gross=self.total, currency=self.currency)
+        return TaxedMoney(
+            net=Money(self.total - self.tax, self.currency),
+            gross=Money(self.total, self.currency))
 
     def get_captured_price(self):
-        return Price(self.captured_amount, currency=self.currency)
+        return TaxedMoney(
+            net=Money(self.captured_amount, self.currency),
+            gross=Money(self.captured_amount, self.currency))
 
 
 class OrderHistoryEntry(models.Model):

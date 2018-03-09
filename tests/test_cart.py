@@ -9,7 +9,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.http import HttpResponse
 from django.urls import reverse
 from django_babel.templatetags.babel import currencyfmt
-from prices import Price
+from prices import Money, TaxedMoney
 
 from saleor.cart import CartStatus, forms, utils
 from saleor.cart.context_processors import cart_counter
@@ -294,10 +294,9 @@ def test_adding_same_variant(cart, product_in_stock):
     variant = product_in_stock.variants.get()
     cart.add(variant, 1)
     cart.add(variant, 2)
-    price_total = 10 * 3
     assert len(cart) == 1
     assert cart.count() == {'total_quantity': 3}
-    assert cart.get_total().gross == price_total
+    assert cart.get_total().gross == Money(30, 'USD')
 
 
 def test_replacing_same_variant(cart, product_in_stock):
@@ -580,7 +579,7 @@ def test_cart_summary_page(client, product_in_stock, request_cart):
     assert content['quantity'] == request_cart.quantity
     cart_total = request_cart.get_total()
     assert content['total'] == currencyfmt(
-        cart_total.gross, cart_total.currency)
+        cart_total.gross.amount, cart_total.currency)
     assert len(content['lines']) == 1
     cart_line = content['lines'][0]
     assert cart_line['variant'] == variant.name
@@ -599,7 +598,8 @@ def test_total_with_discount(client, sale, request_cart, product_in_stock):
     variant = product_in_stock.variants.get()
     request_cart.add(variant, 1)
     line = request_cart.lines.first()
-    assert line.get_total(discounts=sales) == Price(currency="USD", net=5)
+    assert line.get_total(discounts=sales) == TaxedMoney(
+        net=Money(5, 'USD'), gross=Money(5, 'USD'))
 
 
 def test_product_group():
@@ -712,9 +712,10 @@ def test_get_cart_data(request_cart_with_item, shipping_method):
     shipment_option = get_shipment_options('PL')
     cart_data = utils.get_cart_data(
         request_cart_with_item, shipment_option, 'USD', None)
-    assert cart_data['cart_total'] == Price(net=10, currency='USD')
-    assert cart_data['total_with_shipping'].min_price == Price(
-        net=20, currency='USD')
+    assert cart_data['cart_total'] == TaxedMoney(
+        net=Money(10, 'USD'), gross=Money(10, 'USD'))
+    assert cart_data['total_with_shipping'].start == TaxedMoney(
+        net=Money(20, 'USD'), gross=Money(20, 'USD'))
 
 
 def test_get_cart_data_no_shipping(request_cart_with_item):
@@ -722,5 +723,6 @@ def test_get_cart_data_no_shipping(request_cart_with_item):
     cart_data = utils.get_cart_data(
         request_cart_with_item, shipment_option, 'USD', None)
     cart_total = cart_data['cart_total']
-    assert cart_total == Price(net=10, currency='USD')
-    assert cart_data['total_with_shipping'].min_price == cart_total
+    assert cart_total == TaxedMoney(
+        net=Money(10, 'USD'), gross=Money(10, 'USD'))
+    assert cart_data['total_with_shipping'].start == cart_total

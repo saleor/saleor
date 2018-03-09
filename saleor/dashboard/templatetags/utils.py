@@ -67,8 +67,7 @@ def margin_for_variant(stock):
 
 @register.simple_tag
 def margins_for_variant(variant):
-    margins = get_variant_costs_data(variant)['margins']
-    return margins
+    return get_variant_costs_data(variant).margins
 
 
 @register.inclusion_tag('dashboard/includes/_filters.html', takes_context=True)
