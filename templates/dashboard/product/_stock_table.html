@@ -18,9 +18,9 @@
         <td class="wide">{{ stock_item.location }}</td>
         <td>{{ stock_item.quantity }}</td>
         <td>{{ stock_item.quantity_allocated }}</td>
-        <td class="right-align">{% if stock_item.cost_price %}{% gross stock_item.cost_price %}{% else %}-{% endif %}</td>
+        <td class="right-align">{% if stock_item.cost_price %}{{ stock_item.cost_price|amount }}{% else %}-{% endif %}</td>
         <td class="right-align">
-          {% margin_for_variant stock=stock_item as margin%}
+          {% margin_for_variant stock=stock_item as margin %}
           {% if margin %}
             {{ margin }}%
           {% else %}

@@ -26,12 +26,12 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='order',
             name='total_net',
-            field=django_prices.models.PriceField(blank=True, currency='USD', decimal_places=2, max_digits=12, null=True, verbose_name='total'),
+            field=django_prices.models.MoneyField(blank=True, currency='USD', decimal_places=2, max_digits=12, null=True, verbose_name='total'),
         ),
         migrations.AlterField(
             model_name='order',
             name='total_tax',
-            field=django_prices.models.PriceField(blank=True, currency='USD', decimal_places=2, max_digits=12, null=True, verbose_name='total'),
+            field=django_prices.models.MoneyField(blank=True, currency='USD', decimal_places=2, max_digits=12, null=True, verbose_name='total'),
         ),
         migrations.AlterField(
             model_name='orderhistoryentry',

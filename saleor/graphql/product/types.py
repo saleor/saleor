@@ -7,7 +7,8 @@ from ...product import models
 from ...product.templatetags.product_images import product_first_image
 from ...product.utils import get_availability
 from ..core.filters import DistinctFilterSet
-from ..core.types import CountableDjangoObjectType, Price, PriceRange
+from ..core.types import (
+    CountableDjangoObjectType, Money, TaxedMoney, TaxedMoneyRange)
 from ..utils import get_node
 from .filters import ProductFilterSet
 
@@ -15,11 +16,11 @@ from .filters import ProductFilterSet
 class ProductAvailability(graphene.ObjectType):
     available = graphene.Boolean()
     on_sale = graphene.Boolean()
-    discount = graphene.Field(Price)
-    discount_local_currency = graphene.Field(Price)
-    price_range = graphene.Field(PriceRange)
-    price_range_undiscounted = graphene.Field(PriceRange)
-    price_range_local_currency = graphene.Field(PriceRange)
+    discount = graphene.Field(TaxedMoney)
+    discount_local_currency = graphene.Field(TaxedMoney)
+    price_range = graphene.Field(TaxedMoneyRange)
+    price_range_undiscounted = graphene.Field(TaxedMoneyRange)
+    price_range_local_currency = graphene.Field(TaxedMoneyRange)
 
 
 class Product(CountableDjangoObjectType):
@@ -31,7 +32,7 @@ class Product(CountableDjangoObjectType):
     images = graphene.List(lambda: ProductImage)
     variants = graphene.List(lambda: ProductVariant)
     availability = graphene.Field(ProductAvailability)
-    price = graphene.Field(Price)
+    price = graphene.Field(Money)
 
     class Meta:
         model = models.Product
@@ -60,8 +61,7 @@ class Product(CountableDjangoObjectType):
 
 class Category(CountableDjangoObjectType):
     products = DjangoFilterConnectionField(
-        Product, filterset_class=ProductFilterSet,
-        sort_by=graphene.Argument(graphene.String))
+        Product, filterset_class=ProductFilterSet)
     url = graphene.String()
     ancestors = DjangoFilterConnectionField(
         lambda: Category, filterset_class=DistinctFilterSet)
@@ -88,17 +88,15 @@ class Category(CountableDjangoObjectType):
         ancestors = self.get_ancestors().distinct()
         return self.get_absolute_url(ancestors)
 
-    def resolve_products(self, info, sort_by=None, **kwargs):
+    def resolve_products(self, info, **kwargs):
         qs = models.Product.objects.available_products()
         qs = qs.filter(category=self)
-        if sort_by == 'name':
-            qs = qs.order_by('name')
         return qs.distinct()
 
 
 class ProductVariant(CountableDjangoObjectType):
     stock_quantity = graphene.Int()
-    price_override = graphene.Field(Price)
+    price_override = graphene.Field(Money)
 
     class Meta:
         model = models.ProductVariant

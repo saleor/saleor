@@ -31,5 +31,4 @@ class CollectionForm(forms.ModelForm):
 
     def save(self, commit=True):
         self.instance.slug = slugify(unidecode(self.instance.name))
-        super().save(commit=commit)
-        return self.instance
+        return super().save(commit=commit)

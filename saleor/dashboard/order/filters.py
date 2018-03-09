@@ -9,7 +9,7 @@ from payments import PaymentStatus
 from ...core.filters import SortedFilterSet
 from ...order import OrderStatus
 from ...order.models import Order
-from ..widgets import DateRangeWidget, PriceRangeWidget
+from ..widgets import DateRangeWidget, MoneyRangeWidget
 
 SORT_BY_FIELDS = [
     ('pk', 'pk'),
@@ -50,7 +50,7 @@ class OrderFilter(SortedFilterSet):
         widget=forms.Select)
     total_net = RangeFilter(
         label=pgettext_lazy('Order list filter label', 'Total'),
-        widget=PriceRangeWidget)
+        widget=MoneyRangeWidget)
     sort_by = OrderingFilter(
         label=pgettext_lazy('Order list filter label', 'Sort by'),
         fields=SORT_BY_FIELDS,

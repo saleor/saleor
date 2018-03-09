@@ -11,8 +11,8 @@ from django.utils.translation import pgettext, ugettext_lazy as _
 from ..cart.utils import find_and_assign_anonymous_cart
 from ..core.utils import get_paginator_items
 from .forms import (
-    ChangePasswordForm, get_address_form, LoginForm, logout_on_password_change,
-    PasswordResetForm, SignupForm)
+    ChangePasswordForm, LoginForm, PasswordResetForm, SignupForm,
+    get_address_form, logout_on_password_change)
 
 
 @find_and_assign_anonymous_cart()

@@ -2,33 +2,35 @@ from decimal import Decimal
 from unittest.mock import Mock, patch
 
 from django.urls import reverse
-from prices import Price
+from prices import Money, TaxedMoney
 from tests.utils import get_redirect_location
 
 from saleor.order import OrderStatus, models
 from saleor.order.emails import collect_data_for_email
 from saleor.order.forms import OrderNoteForm
-from saleor.order.utils import add_variant_to_delivery_group
-
-
-def test_total_property():
-    order = models.Order(total_net=20, total_tax=5)
-    assert order.total.gross == 25
-    assert order.total.tax == 5
-    assert order.total.net == 20
-
-
-def test_total_property_empty_value():
-    order = models.Order(total_net=None, total_tax=None)
-    assert order.total is None
+from saleor.order.utils import add_variant_to_delivery_group, recalculate_order
 
 
 def test_total_setter():
-    price = Price(net=10, gross=20, currency='USD')
+    price = TaxedMoney(net=Money(10, 'USD'), gross=Money(15, 'USD'))
     order = models.Order()
     order.total = price
-    assert order.total_net.net == 10
-    assert order.total_tax.net == 10
+    assert order.total_net == Money(10, 'USD')
+    assert order.total.net == Money(10, 'USD')
+    assert order.total_gross == Money(15, 'USD')
+    assert order.total.gross == Money(15, 'USD')
+    assert order.total.tax == Money(5, 'USD')
+
+
+def test_order_get_subtotal(order_with_lines):
+    order_with_lines.discount_name = "Test discount"
+    order_with_lines.discount_amount = (
+        order_with_lines.total.gross * Decimal('0.5'))
+    recalculate_order(order_with_lines)
+
+    target_subtotal = order_with_lines.total - order_with_lines.shipping_price
+    target_subtotal += order_with_lines.discount_amount
+    assert order_with_lines.get_subtotal() == target_subtotal
 
 
 def test_add_variant_to_delivery_group_adds_line_for_new_variant(

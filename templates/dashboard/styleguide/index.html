@@ -15,8 +15,6 @@
     {% endblock meta %}
 
     {% include 'favicon.html' %}
-    {% render_bundle 'vendors~dashboard~storefront' 'css' %}
-    {% render_bundle 'vendors~dashboard' 'css' %}
     {% render_bundle 'dashboard' 'css' %}
     <link rel="stylesheet" type="text/css" href="{% static "versatileimagefield/css/versatileimagefield.css" %}">
 
@@ -1622,8 +1620,6 @@
 
     <!-- Core Scripts - Include with every page -->
     <script type="text/javascript" src="{% url 'javascript-catalog' %}"></script>
-    {% render_bundle 'vendors~dashboard~storefront' 'js' %}
-    {% render_bundle 'vendors~dashboard' 'js' %}
     {% render_bundle 'dashboard' 'js' %}
     <script src="{% static "versatileimagefield/js/versatileimagefield.js" %}"></script>
 

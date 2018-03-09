@@ -3,15 +3,17 @@ import operator
 from collections import defaultdict
 
 from django.db.models import Q
+from django_filters import OrderingFilter
 from django_filters.fields import Lookup
 from graphene_django.filter.filterset import Filter
 
+from ...product.filters import SORT_BY_FIELDS
 from ...product.models import Product, ProductAttribute
 from ..core.filters import DistinctFilterSet
 from .fields import AttributeField
 
 
-class ProduductAttributeFilter(Filter):
+class ProductAttributeFilter(Filter):
     field_class = AttributeField
 
     def filter(self, qs, value):
@@ -50,6 +52,9 @@ class ProduductAttributeFilter(Filter):
 
 
 class ProductFilterSet(DistinctFilterSet):
+    sort_by = OrderingFilter(
+        fields=SORT_BY_FIELDS.keys(), field_labels=SORT_BY_FIELDS)
+
     class Meta:
         model = Product
         fields = {
@@ -60,7 +65,7 @@ class ProductFilterSet(DistinctFilterSet):
     @classmethod
     def filter_for_field(cls, f, field_name, lookup_expr='exact'):
         if field_name == 'attributes':
-            return ProduductAttributeFilter(
+            return ProductAttributeFilter(
                 field_name=field_name, lookup_expr=lookup_expr, distinct=True)
         # this class method is called during class construction so we can't
         # reference ProductFilterSet here yet

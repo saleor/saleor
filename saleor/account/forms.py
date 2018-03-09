@@ -4,9 +4,9 @@ from django.contrib.auth import forms as django_forms, update_session_auth_hash
 from django.utils.translation import pgettext, pgettext_lazy
 from phonenumbers.phonenumberutil import country_code_for_region
 
+from . import emails
 from ..account.models import User
 from .i18n import AddressMetaForm, get_address_form_class
-from . import emails
 
 
 def get_address_form(
@@ -113,4 +113,8 @@ class PasswordResetForm(django_forms.PasswordResetForm):
     def send_mail(
             self, subject_template_name, email_template_name, context,
             from_email, to_email, html_email_template_name=None):
+        # Passing the user object to the Celery task throws an
+        # error "'User' is not JSON serializable". Since it's not used in our
+        # template, we remove it from the context.
+        del context['user']
         emails.send_password_reset_email.delay(context, to_email)
