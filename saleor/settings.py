@@ -30,11 +30,6 @@ INTERNAL_IPS = get_list(os.environ.get('INTERNAL_IPS', '127.0.0.1'))
 
 CACHES = {'default': django_cache_url.config()}
 
-if os.environ.get('REDIS_URL'):
-    CACHES['default'] = {
-        'BACKEND': 'django_redis.cache.RedisCache',
-        'LOCATION': os.environ.get('REDIS_URL')}
-
 DATABASES = {
     'default': dj_database_url.config(
         default='postgres://saleor:saleor@localhost:5432/saleor',
