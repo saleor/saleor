@@ -12,7 +12,7 @@ Environment variables
 
   Separate multiple values with comma.
 
-``CACHE_URL`` or ``REDIS_URL``
+``CACHE_URL``
   The URL of a cache database. Defaults to local process memory.
 
   Redis is recommended. Heroku's Redis will export this setting automatically.
