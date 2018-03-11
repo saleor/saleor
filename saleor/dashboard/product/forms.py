@@ -190,7 +190,8 @@ class ProductForm(forms.ModelForm):
             product_description = self.data['description']
 
             # generate a SEO friendly from HTML description
-            seo_description = self.generate_seo_description(product_description)
+            seo_description = self.generate_seo_description(
+                product_description)
 
         return seo_description
 
