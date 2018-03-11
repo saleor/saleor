@@ -697,3 +697,21 @@ def test_sanitize_product_description(product_type, default_category):
         '<b>bold</b><p><i>italic</i></p><h2>Header</h2><h3>subheader</h3>'
         '<blockquote>quote</blockquote><p><a href="www.mirumee.com">link</a></p>'
         '<p>an &lt;script&gt;evil()&lt;/script&gt;example</p>')
+
+    assert product.seo_description == 'bolditalicHeadersubheaderquotelinkan evil()example'
+
+
+def test_set_product_seo_description(unavailable_product):
+    seo_description = (
+        'This is a dummy product. '
+        'HTML <b>shouldn\'t be removed</b> since it\'s a simple text field.')
+    data = model_to_dict(unavailable_product)
+    data['price'] = 20
+    data['description'] = 'a description'
+    data['seo_description'] = seo_description
+
+    form = ProductForm(data, instance=unavailable_product)
+
+    assert form.is_valid()
+    form.save()
+    assert unavailable_product.seo_description == seo_description

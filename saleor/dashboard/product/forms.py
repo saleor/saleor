@@ -8,6 +8,7 @@ from django.utils.encoding import smart_text
 from django.utils.text import slugify
 from django.utils.translation import pgettext_lazy
 
+from saleor.core.utils.text import strip_html, trim_text
 from . import ProductBulkAction
 from ...product.models import (
     AttributeChoiceValue, Collection, Product, ProductAttribute, ProductImage,
@@ -141,6 +142,8 @@ class ProductForm(forms.ModelForm):
         labels = {
             'name': pgettext_lazy('Item name', 'Name'),
             'description': pgettext_lazy('Description', 'Description'),
+            'seo_description': pgettext_lazy(
+                'A SEO friendly description', 'SEO Friendly Description'),
             'category': pgettext_lazy('Category', 'Category'),
             'price': pgettext_lazy('Currency amount', 'Price'),
             'available_on': pgettext_lazy(
@@ -166,6 +169,26 @@ class ProductForm(forms.ModelForm):
         self.prepare_fields_for_attributes()
         self.fields["collections"].initial = Collection.objects.filter(
             products__name=self.instance)
+
+    @classmethod
+    def generate_seo_description(cls, html_text):
+        """Strips HTML tags and whitespaces from text, then trim the description."""
+        text = strip_html(html_text, strip_whitespace=True)
+        text = trim_text(text, settings.GENERATED_SEO_MAX_LENGTH, settings.GENERATED_SEO_SUFFIX)
+        return text
+
+    def clean_seo_description(self):
+        seo_description = self.cleaned_data['seo_description']
+
+        # if there is no SEO friendly description set, generate it from the HTML description
+        if not seo_description:
+            # get the non-safe description (has non escaped HTML tags in it)
+            product_description = self.data['description']
+
+            # generate a SEO friendly from HTML description
+            seo_description = self.generate_seo_description(product_description)
+
+        return seo_description
 
     def prepare_fields_for_attributes(self):
         for attribute in self.product_attributes:
