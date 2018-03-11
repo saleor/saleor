@@ -92,6 +92,7 @@ class Product(models.Model):
         ProductType, related_name='products', on_delete=models.CASCADE)
     name = models.CharField(max_length=128)
     description = models.TextField()
+    seo_description = models.CharField(max_length=255, blank=True, null=True)
     category = models.ForeignKey(
         Category, related_name='products', on_delete=models.CASCADE)
     price = MoneyField(
