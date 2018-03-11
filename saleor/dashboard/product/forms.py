@@ -8,8 +8,8 @@ from django.utils.encoding import smart_text
 from django.utils.text import slugify
 from django.utils.translation import pgettext_lazy
 
-from saleor.core.utils.text import strip_html, trim_text
 from . import ProductBulkAction
+from ...core.utils.text import strip_html, trim_text
 from ...product.models import (
     AttributeChoiceValue, Collection, Product, ProductAttribute, ProductImage,
     ProductType, ProductVariant, Stock, StockLocation, VariantImage)
@@ -172,15 +172,19 @@ class ProductForm(forms.ModelForm):
 
     @classmethod
     def generate_seo_description(cls, html_text):
-        """Strips HTML tags and whitespaces from text, then trim the description."""
+        """Strips HTML tags and whitespaces from text,
+        then trim the description."""
         text = strip_html(html_text, strip_whitespace=True)
-        text = trim_text(text, settings.GENERATED_SEO_MAX_LENGTH, settings.GENERATED_SEO_SUFFIX)
+        text = trim_text(text,
+                         settings.GENERATED_SEO_MAX_LENGTH,
+                         settings.GENERATED_SEO_SUFFIX)
         return text
 
     def clean_seo_description(self):
         seo_description = self.cleaned_data['seo_description']
 
-        # if there is no SEO friendly description set, generate it from the HTML description
+        # if there is no SEO friendly description set,
+        # generate it from the HTML description
         if not seo_description:
             # get the non-safe description (has non escaped HTML tags in it)
             product_description = self.data['description']

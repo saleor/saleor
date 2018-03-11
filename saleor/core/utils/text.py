@@ -4,7 +4,9 @@ from html5lib.serializer import HTMLSerializer
 
 def trim_text(text: str, max_length: int, suffix: str=''):
     """Trims a given text in accordance to parameters.
-    If text length is greater than allowed, it trims it and add a given suffix to the text.
+    If text length is greater than allowed,
+    it trims it and add a given suffix to the text.
+
     Note that the text + suffix is equal to the max length.
 
     Example:
@@ -54,14 +56,16 @@ def get_cleaner(**serializer_kwargs: bool):
     cleaner = bleach.Cleaner([], strip=True)
     for k, v in serializer_kwargs.items():
         if k not in HTMLSerializer.options:
-            raise ValueError('Parameter %s is not a valid option for HTMLSerializer' % k)
+            raise ValueError(
+                'Parameter %s is not a valid option for HTMLSerializer' % k)
         setattr(cleaner.serializer, k, v)
     return cleaner
 
 
 def strip_html(text: str, **serializer_kwargs: bool):
     """Removes (strips) HTML tags from text.
-    Can also take additional parameters to be passed to the serializer (see `get_cleaner`).
+    Can also take additional parameters
+    to be passed to the serializer (see `get_cleaner`).
 
     :param text:
      :type text: str
