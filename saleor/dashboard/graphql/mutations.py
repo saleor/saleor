@@ -41,6 +41,53 @@ class ModelFormMutationOptions(MutationOptions):
     return_field_name = None
 
 
+class ModelDeleteMutationOptions(MutationOptions):
+    model = None
+    return_field_name = None
+
+
+class ModelDeleteMutation(BaseMutation):
+
+    class Meta:
+        abstract = True
+
+    @classmethod
+    def __init_subclass_with_meta__(
+            cls, arguments=None, model=None, return_field_name=None, _meta=None, **options):
+        if not model:
+            raise ImproperlyConfigured(
+                'model is required for ModelDeleteMutation')
+
+        _meta = ModelDeleteMutationOptions(cls)
+        model_type = registry.get_type_for_model(model)
+        if not return_field_name:
+            model_name = model.__name__
+            return_field_name = model_name[:1].lower() + model_name[1:]
+        if arguments is None:
+            arguments = {}
+        arguments.update({'id': graphene.ID()})
+        fields = {return_field_name: graphene.Field(model_type)}
+
+        _meta.model_type = model_type
+        _meta.model = model
+        _meta.return_field_name = return_field_name
+
+        super().__init_subclass_with_meta__(_meta=_meta, **options)
+
+        # Update mutation's arguments and fields
+        cls._meta.arguments.update(arguments)
+        cls._meta.fields.update(fields)
+
+    @classmethod
+    def mutate(cls, root, info, id, **kwargs):
+        model_type = cls._meta.model_type
+        instance = get_node(info, id, only_type=model_type)
+        instance.delete()
+        field = cls._meta.return_field_name
+        return_kwargs = {field: instance}
+        return cls(**return_kwargs)
+
+
 class ModelFormMutation(BaseMutation):
 
     class Meta:
@@ -111,4 +158,5 @@ class ModelFormUpdateMutation(ModelFormMutation):
         model_type = registry.get_type_for_model(model)
         instance = get_node(info, id, only_type=model_type)
         kwargs['instance'] = instance
+
         return kwargs
