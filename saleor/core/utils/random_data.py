@@ -440,9 +440,7 @@ def create_fake_order():
             'shipping_address': address,
             'user_email': get_email(
                 address.first_name, address.last_name)}
-    order = Order.objects.create(
-        total=TaxedMoney(net=Money(0, 'USD'), gross=Money(0, 'USD')),
-        **user_data)
+    order = Order.objects.create(**user_data)
 
     delivery_group = create_delivery_group(order)
     lines = create_order_lines(delivery_group, random.randrange(1, 5))
