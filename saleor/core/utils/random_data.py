@@ -268,10 +268,12 @@ def get_or_create_collection(name, **kwargs):
 
 
 def create_product(**kwargs):
+    description = fake.paragraphs(5)
     defaults = {
         'name': fake.company(),
         'price': fake.money(),
-        'description': '\n\n'.join(fake.paragraphs(5))}
+        'description': '\n\n'.join(description),
+        'seo_description': description[0][:300]}
     defaults.update(kwargs)
     return Product.objects.create(**defaults)
 
