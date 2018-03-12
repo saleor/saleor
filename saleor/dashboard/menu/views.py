@@ -206,31 +206,35 @@ def ajax_menu_links(request):
 
     Response format is that of a Select2 JS widget.
     """
-    def get_obj_repr(obj, label):
+    def get_obj_repr(obj):
         obj_id = str(obj.pk) + '_' + obj.__class__.__name__
-        return {'id': obj_id, 'text': label + ': ' + str(obj)}
+        return {'id': obj_id, 'text': str(obj)}
 
-    results = []
+    def get_group_repr(model, label, filter_fields, query):
+        queryset = model.objects.all()
+        if search_query and search_query.lower() not in label.lower():
+            kwargs = {
+                '%s__icontains' % (field,): query
+                for field in filter_fields}
+            queryset = queryset.filter(Q(**kwargs))
+        return {
+            'text': label,
+            'children': [get_obj_repr(obj) for obj in queryset]}
 
-    queryset = Collection.objects.all()
     search_query = request.GET.get('q', '')
-    label = 'Collection'
-    if search_query and search_query.lower() not in label.lower():
-        queryset = queryset.filter(Q(name__icontains=search_query))
-    results += [get_obj_repr(obj, label) for obj in queryset]
+    groups = [
+        get_group_repr(
+            Collection,
+            pgettext_lazy('Menu available links group label', 'Collection'),
+            ('name',), search_query),
+        get_group_repr(
+            Category,
+            pgettext_lazy('Menu available links group label', 'Category'),
+            ('name',), search_query),
+        get_group_repr(
+            Page, pgettext_lazy('Menu available links group label', 'Page'),
+            ('title',), search_query)
+    ]
 
-    queryset = Category.objects.all()
-    search_query = request.GET.get('q', '')
-    label = 'Category'
-    if search_query and search_query.lower() not in label.lower():
-        queryset = queryset.filter(Q(name__icontains=search_query))
-    results += [get_obj_repr(obj, label) for obj in queryset]
-
-    queryset = Page.objects.all()
-    search_query = request.GET.get('q', '')
-    label = 'Page'
-    if search_query and search_query.lower() not in label.lower():
-        queryset = queryset.filter(Q(title__icontains=search_query))
-    results += [get_obj_repr(obj, label) for obj in queryset]
-
-    return JsonResponse({'results': results})
+    groups = [group for group in groups if len(group.get('children')) > 0]
+    return JsonResponse({'results': groups})
