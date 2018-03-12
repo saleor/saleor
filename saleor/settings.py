@@ -419,6 +419,3 @@ ALLOWED_ATTRIBUTES = {
     'a': ['href', 'title'],
     'img': ['src']}
 ALLOWED_STYLES = ['text-align']
-
-GENERATED_SEO_MAX_LENGTH = 155
-GENERATED_SEO_SUFFIX = '[...]'
