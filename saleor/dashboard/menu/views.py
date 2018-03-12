@@ -80,7 +80,8 @@ def menu_delete(request, pk):
         msg = pgettext_lazy('Dashboard message', 'Removed menu %s') % (menu,)
         messages.success(request, msg)
         return redirect('dashboard:menu-list')
-    ctx = {'menu': menu, 'menu_items_count': menu.items.count()}
+    ctx = {
+        'menu': menu, 'descendants': list(menu.items.all())}
     return TemplateResponse(
         request, 'dashboard/menu/modal/confirm_delete.html', ctx)
 
@@ -153,7 +154,7 @@ def menu_item_delete(request, menu_pk, item_pk):
             else redirect(redirect_url))
     ctx = {
         'menu_item': menu_item,
-        'menu_items_count': len(menu_item.get_descendants())}
+        'descendants': list(menu_item.get_descendants())}
     return TemplateResponse(
         request, 'dashboard/menu/item/modal/confirm_delete.html', ctx)
 
