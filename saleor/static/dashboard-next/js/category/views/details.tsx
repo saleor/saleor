@@ -167,7 +167,6 @@ const CategoryDetails = decorate<CategoryDetailsProps>(
                     <ProductList
                       loading={loading}
                       products={loading ? [] : category.products.edges}
-                      parentId={loading ? "" : category.id}
                       handleLoadMore={handleLoadMore}
                       canLoadMore={
                         loading ? false : category.products.pageInfo.hasNextPage
