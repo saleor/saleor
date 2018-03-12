@@ -35,14 +35,11 @@ export const CategoryUpdateForm: React.StatelessComponent<
           <Grid item xs={12} md={9}>
             <TypedCategoryUpdateMutation mutation={categoryUpdateMutation}>
               {(mutate, result) => {
-                if (result && !result.loading) {
-                  if (result.data.categoryUpdate.errors.length > 0) {
-                    return result.data.categoryUpdate.errors.map(
-                      (err, index) => (
-                        <ErrorMessageCard message={err.message} key={index} />
-                      )
-                    );
-                  }
+                if (
+                  result &&
+                  !result.loading &&
+                  result.data.categoryUpdate.errors.length === 0
+                ) {
                   return (
                     <Redirect
                       to={categoryShowUrl(
@@ -67,6 +64,11 @@ export const CategoryUpdateForm: React.StatelessComponent<
                     confirmButtonLabel={i18n.t("Save", {
                       context: "button"
                     })}
+                    errors={
+                      result && !result.loading
+                        ? result.data.categoryUpdate.errors
+                        : []
+                    }
                   />
                 );
               }}
