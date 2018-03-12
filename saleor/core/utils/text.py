@@ -1,34 +1,6 @@
 import bleach
+
 from html5lib.serializer import HTMLSerializer
-
-
-def trim_text(text: str, max_length: int, suffix: str=''):
-    """Trims a given text in accordance to parameters.
-    If text length is greater than allowed,
-    it trims it and add a given suffix to the text.
-
-    Note that the text + suffix is equal to the max length.
-
-    Example:
-        max length = 16
-        prefix = '[...]' (5 chars)
-        text = 'Hello World, everyone!' (22 chars)
-
-        => text = 'Hello World[...]'
-
-    :param text:
-    :type text: str
-    :param max_length:
-    :type max_length: int
-    :param suffix:
-    :type suffix: str
-
-    :rtype: str
-    """
-    if len(text) > max_length:
-        new_length = max_length - len(suffix)
-        text = '%s%s' % (text[:new_length], suffix)
-    return text
 
 
 def get_cleaner(**serializer_kwargs: bool):
@@ -75,4 +47,12 @@ def strip_html(text: str, **serializer_kwargs: bool):
     """
     cleaner = get_cleaner(**serializer_kwargs)
     text = cleaner.clean(text)
+    return text
+
+
+def generate_seo_description(html_text):
+    """Strips HTML tags and whitespaces from text,
+    then trim the description."""
+    text = strip_html(html_text, strip_whitespace=True)
+    text = text[:300]
     return text
