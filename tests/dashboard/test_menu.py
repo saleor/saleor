@@ -69,9 +69,10 @@ def test_view_menu_delete(admin_client, menu):
     assert Menu.objects.count() == 0
 
 
-def test_view_menu_item_create(admin_client, menu):
+def test_view_menu_item_create(admin_client, menu, default_category):
     url = reverse('dashboard:menu-item-add', kwargs={'menu_pk': menu.pk})
-    data = {'name': 'Link', 'url': 'http://example.com/'}
+    linked_object = str(default_category.id) + '_Category'
+    data = {'name': 'Link', 'linked_object': linked_object}
 
     response = admin_client.post(url, data)
 
@@ -83,11 +84,13 @@ def test_view_menu_item_create(admin_client, menu):
     assert menu_item.sort_order == 0
 
 
-def test_view_menu_item_create_with_parent(admin_client, menu, menu_item):
+def test_view_menu_item_create_with_parent(
+        admin_client, menu, menu_item, default_category):
     url = reverse(
         'dashboard:menu-item-add',
         kwargs={'menu_pk': menu.pk, 'root_pk': menu_item.pk})
-    data = {'name': 'Link 2', 'url': 'http://example.com/'}
+    linked_object = str(default_category.id) + '_Category'
+    data = {'name': 'Link 2', 'linked_object': linked_object}
 
     response = admin_client.post(url, data)
 
@@ -112,11 +115,12 @@ def test_view_menu_item_create_not_valid(admin_client, menu):
     assert MenuItem.objects.count() == 0
 
 
-def test_view_menu_item_edit(admin_client, menu, menu_item):
+def test_view_menu_item_edit(admin_client, menu, menu_item, default_category):
     url = reverse(
         'dashboard:menu-item-edit',
         kwargs={'menu_pk': menu.pk, 'item_pk': menu_item.pk})
-    data = {'name': 'New link', 'url': menu_item.url}
+    linked_object = str(default_category.id) + '_Category'
+    data = {'name': 'New link', 'linked_object': linked_object}
 
     response = admin_client.post(url, data)
 

@@ -37,11 +37,11 @@ class MenuItem(MPTTModel):
 
     # not mandatory fields, usage depends on URL
     category = models.ForeignKey(
-        'product.Category', blank=True, null=True, on_delete=models.CASCADE)
+        Category, blank=True, null=True, on_delete=models.CASCADE)
     collection = models.ForeignKey(
-        'product.Collection', blank=True, null=True, on_delete=models.CASCADE)
+        Collection, blank=True, null=True, on_delete=models.CASCADE)
     page = models.ForeignKey(
-        'page.Page', blank=True, null=True, on_delete=models.CASCADE)
+        Page, blank=True, null=True, on_delete=models.CASCADE)
 
     objects = models.Manager()
     tree = TreeManager()
