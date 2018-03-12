@@ -24,7 +24,10 @@ urlpatterns = [
         views.menu_item_delete, name='menu-item-delete'),
     url(r'^(?P<menu_pk>[0-9]+)/item/(?P<item_pk>[0-9]+)/$',
         views.menu_item_detail, name='menu-item-detail'),
+
     url(r'^(?P<menu_pk>[0-9]+)/items/reorder/$',
         views.ajax_reorder_menu_items, name='menu-items-reorder'),
     url(r'^(?P<menu_pk>[0-9]+)/item/(?P<root_pk>[0-9]+)/items/reorder/$',
-        views.ajax_reorder_menu_items, name='menu-items-reorder')]
+        views.ajax_reorder_menu_items, name='menu-items-reorder'),
+    url(r'^ajax/links/$',
+        views.ajax_menu_links, name='ajax-menu-links')]

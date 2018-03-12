@@ -1,6 +1,7 @@
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import permission_required
+from django.db.models import Q
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect
 from django.template.response import TemplateResponse
@@ -9,6 +10,8 @@ from django.utils.translation import pgettext_lazy
 
 from ...core.utils import get_paginator_items
 from ...menu.models import Menu, MenuItem
+from ...page.models import Page
+from ...product.models import Category, Collection
 from ..views import staff_member_required
 from .filters import MenuFilter, MenuItemFilter
 from .forms import MenuForm, MenuItemForm, ReorderMenuItemsForm
@@ -194,3 +197,40 @@ def ajax_reorder_menu_items(request, menu_pk, root_pk=None):
         status = 400
         ctx = {'error': form.errors}
     return JsonResponse(ctx, status=status)
+
+
+@staff_member_required
+@permission_required('menu.view_menu')
+def ajax_menu_links(request):
+    """Return available menu links filtered by request GET parameters.
+
+    Response format is that of a Select2 JS widget.
+    """
+    def get_obj_repr(obj, label):
+        obj_id = str(obj.pk) + '_' + obj.__class__.__name__
+        return {'id': obj_id, 'text': label + ': ' + str(obj)}
+
+    results = []
+
+    queryset = Collection.objects.all()
+    search_query = request.GET.get('q', '')
+    label = 'Collection'
+    if search_query and search_query.lower() not in label.lower():
+        queryset = queryset.filter(Q(name__icontains=search_query))
+    results += [get_obj_repr(obj, label) for obj in queryset]
+
+    queryset = Category.objects.all()
+    search_query = request.GET.get('q', '')
+    label = 'Category'
+    if search_query and search_query.lower() not in label.lower():
+        queryset = queryset.filter(Q(name__icontains=search_query))
+    results += [get_obj_repr(obj, label) for obj in queryset]
+
+    queryset = Page.objects.all()
+    search_query = request.GET.get('q', '')
+    label = 'Page'
+    if search_query and search_query.lower() not in label.lower():
+        queryset = queryset.filter(Q(title__icontains=search_query))
+    results += [get_obj_repr(obj, label) for obj in queryset]
+
+    return JsonResponse({'results': results})

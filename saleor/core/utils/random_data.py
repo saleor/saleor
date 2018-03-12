@@ -588,15 +588,12 @@ def create_menus():
 
 
 def create_menu_items_by_schema(menu, root_schema):
-    def get_category_url(category_name):
-        category = Category.objects.get(name=category_name)
-        return build_absolute_uri(category.get_absolute_url())
-
     for menu_item_name, schema in root_schema.items():
         sort_order = schema.get('sort_order')
-        url = get_category_url(schema.get('category'))
+        category = Category.objects.get(name=schema.get('category'))
         MenuItem.objects.get_or_create(
             menu=menu,
             name=menu_item_name,
             sort_order=sort_order,
-            url=url)
+            url=category.get_absolute_url(),
+            category=category)

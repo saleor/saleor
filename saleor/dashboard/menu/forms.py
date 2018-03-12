@@ -1,8 +1,12 @@
 from django import forms
+from django.urls import reverse_lazy
 from django.utils.translation import pgettext_lazy
 
 from ...menu.models import Menu, MenuItem
-from ..forms import OrderedModelMultipleChoiceField
+from ...page.models import Page
+from ...product.models import Category, Collection
+from ..forms import (
+    AjaxSelect2CombinedChoiceField, OrderedModelMultipleChoiceField)
 
 
 class MenuForm(forms.ModelForm):
@@ -14,13 +18,39 @@ class MenuForm(forms.ModelForm):
 
 
 class MenuItemForm(forms.ModelForm):
+    linked_object = AjaxSelect2CombinedChoiceField(
+        querysets=[
+            Collection.objects.all(), Category.objects.all(),
+            Page.objects.all()],
+        fetch_data_url=reverse_lazy('dashboard:ajax-menu-links'))
+
     class Meta:
         model = MenuItem
-        fields = ('name', 'url')
+        fields = ('name',)
         labels = {
             'name': pgettext_lazy('Menu item name', 'Name'),
-            'sort_order': pgettext_lazy('Menu item name', 'Sorting order'),
-            'url': pgettext_lazy('Menu item name', 'URL')}
+            'linked_object': pgettext_lazy('Menu item name', 'Link')}
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        destination = self.instance.destination
+
+        if destination:
+            self.fields['linked_object'].set_initial(
+                destination, self.instance.get_destination_display())
+
+    def save(self, commit=True):
+        linked_object = self.cleaned_data.get('linked_object')
+
+        if linked_object.__class__ == Collection:
+            self.instance.collection = linked_object
+        elif linked_object.__class__ == Category:
+            self.instance.category = linked_object
+        elif linked_object.__class__ == Page:
+            self.instance.page = linked_object
+
+        self.instance.url = linked_object.get_absolute_url()
+        return super().save(commit)
 
 
 class ReorderMenuItemsForm(forms.ModelForm):

@@ -4,6 +4,9 @@ from django.utils.translation import pgettext_lazy
 from mptt.managers import TreeManager
 from mptt.models import MPTTModel
 
+from saleor.page.models import Page
+from saleor.product.models import Category, Collection
+
 
 class Menu(models.Model):
     slug = models.SlugField(max_length=50, unique=True)
@@ -32,6 +35,14 @@ class MenuItem(MPTTModel):
         'self', null=True, blank=True, related_name='children',
         on_delete=models.CASCADE)
 
+    # not mandatory fields, usage depends on URL
+    category = models.ForeignKey(
+        'product.Category', blank=True, null=True, on_delete=models.CASCADE)
+    collection = models.ForeignKey(
+        'product.Collection', blank=True, null=True, on_delete=models.CASCADE)
+    page = models.ForeignKey(
+        'page.Page', blank=True, null=True, on_delete=models.CASCADE)
+
     objects = models.Manager()
     tree = TreeManager()
 
@@ -54,3 +65,26 @@ class MenuItem(MPTTModel):
             existing_max = existing_max.get('sort_order__max')
             self.sort_order = 0 if existing_max is None else existing_max + 1
         super().save(*args, **kwargs)
+
+    @property
+    def destination(self):
+        return self.category or self.collection or self.page
+
+    def get_destination_display(self):
+        dest = self.destination
+        prefix = ''
+
+        if not dest:
+            return prefix
+
+        if dest.__class__ == Collection:
+            prefix = pgettext_lazy(
+                'Link object type description', 'Collection: ')
+        elif dest.__class__ == Category:
+            prefix = pgettext_lazy(
+                'Link object type description', 'Category: ')
+        elif dest.__class__ == Page:
+            prefix = pgettext_lazy(
+                'Link object type description', 'Page: ')
+
+        return prefix + str(dest)
