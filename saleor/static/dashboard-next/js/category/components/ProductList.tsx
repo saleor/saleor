@@ -12,7 +12,6 @@ import i18n from "../../i18n";
 interface ProductListProps {
   products: CategoryPropertiesQuery["category"]["products"]["edges"];
   loading: boolean;
-  parentId: string;
   handleLoadMore();
   canLoadMore: boolean;
 }
@@ -20,7 +19,6 @@ interface ProductListProps {
 export const ProductList: React.StatelessComponent<ProductListProps> = ({
   products,
   loading,
-  parentId,
   handleLoadMore,
   canLoadMore
 }) => (
