@@ -9,6 +9,7 @@ from django.utils.text import slugify
 from django.utils.translation import pgettext_lazy
 
 from . import ProductBulkAction
+from ...core.utils.text import generate_seo_description
 from ...product.models import (
     AttributeChoiceValue, Collection, Product, ProductAttribute, ProductImage,
     ProductType, ProductVariant, Stock, StockLocation, VariantImage)
@@ -179,7 +180,7 @@ class ProductForm(forms.ModelForm):
             product_description = self.data['description']
 
             # generate a SEO friendly from HTML description
-            seo_description = self.generate_seo_description(
+            seo_description = generate_seo_description(
                 product_description)
 
         return seo_description
