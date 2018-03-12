@@ -83,7 +83,7 @@ export const BaseCategoryForm = decorate(
               defaultValue={name}
               className={classes.textField}
               onChange={this.handleInputChange}
-              error={Boolean(errorList["name"])}
+              error={!!errorList["name"]}
               helperText={errorList["name"]}
             />
             <TextField
@@ -92,7 +92,7 @@ export const BaseCategoryForm = decorate(
               defaultValue={description}
               multiline
               onChange={this.handleInputChange}
-              error={Boolean(errorList["description"])}
+              error={!!errorList["description"]}
               helperText={errorList["description"]}
             />
           </CardContent>
