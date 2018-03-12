@@ -22,12 +22,11 @@ export const CategoryCreateForm: React.StatelessComponent<
     <Grid item xs={12} md={9}>
       <TypedCategoryCreateMutation mutation={categoryCreateMutation}>
         {(mutate, result) => {
-          if (result && !result.loading) {
-            if (result.data.categoryCreate.errors.length > 0) {
-              return result.data.categoryCreate.errors.map((err, index) => (
-                <ErrorMessageCard message={err.message} key={index} />
-              ));
-            }
+          if (
+            result &&
+            !result.loading &&
+            result.data.categoryCreate.errors.length === 0
+          ) {
             return (
               <Redirect
                 to={categoryShowUrl(result.data.categoryCreate.category.id)}
@@ -49,6 +48,11 @@ export const CategoryCreateForm: React.StatelessComponent<
               }
               name=""
               title={i18n.t("Add category", { context: "title" })}
+              errors={
+                result && !result.loading
+                  ? result.data.categoryCreate.errors
+                  : []
+              }
             />
           );
         }}
