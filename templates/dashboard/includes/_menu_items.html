@@ -24,6 +24,9 @@
           {% trans "Name" context "Menu items list table header name" as label %}
           {% sorting_header 'name' label is_wide=True %}
 
+          {% trans "Points to" context "Menu items list table header points to" as label %}
+          {% sorting_header 'destination' label %}
+
           {% trans "URL" context "Menu items list table header URL" as label %}
           {% sorting_header 'url' label %}
 
@@ -42,6 +45,9 @@
             {% endif %}
             <td>
               {{ item.name }}
+            </td>
+            <td>
+              {{ item.get_destination_display }}
             </td>
             <td>
               {{ item.url }}
