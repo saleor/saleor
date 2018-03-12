@@ -3,7 +3,7 @@ from unittest.mock import patch
 
 import pytest
 from django.urls import reverse
-from payments import FraudStatus, PaymentStatus
+from payments import PaymentStatus
 from prices import Money, TaxedMoney
 from tests.utils import get_redirect_location, get_url_path
 
@@ -18,111 +18,265 @@ from saleor.product.models import ProductVariant, Stock, StockLocation
 
 @pytest.mark.integration
 @pytest.mark.django_db
-def test_view_capture_order_payment(admin_client, order_with_lines_and_stock):
+def test_view_capture_order_payment_preauth(
+        admin_client, order_with_lines_and_stock, payment_preauth):
     order = order_with_lines_and_stock
-    payment = order.payments.create(
-        variant='default', status=PaymentStatus.PREAUTH,
-        fraud_status=FraudStatus.ACCEPT, currency='USD', total='100.0')
-
     url = reverse(
         'dashboard:capture-payment', kwargs={
-            'order_pk': order.pk, 'payment_pk': payment.pk})
+            'order_pk': order.pk, 'payment_pk': payment_preauth.pk})
     response = admin_client.get(url)
     assert response.status_code == 200
 
     response = admin_client.post(
-        url, {'csrfmiddlewaretoken': 'hello', 'amount': '20.00'})
+        url, {
+            'csrfmiddlewaretoken': 'hello',
+            'amount': str(order.total.gross.amount)})
     assert response.status_code == 302
     assert order.payments.last().status == PaymentStatus.CONFIRMED
-    assert order.payments.last().get_captured_price() == TaxedMoney(
-        net=Money(20, 'USD'), gross=Money(20, 'USD'))
+    assert order.payments.last().get_captured_price() == order.total
 
 
 @pytest.mark.integration
 @pytest.mark.django_db
-@pytest.mark.parametrize(
-    'invalid_status', [
-        PaymentStatus.WAITING, PaymentStatus.CONFIRMED, PaymentStatus.REJECTED,
-        PaymentStatus.REFUNDED, PaymentStatus.ERROR, PaymentStatus.INPUT])
-def test_view_capture_order_payment_invalid_status(
-        admin_client, order_with_lines_and_stock, invalid_status):
+def test_view_capture_order_invalid_payment_waiting_status(
+        admin_client, order_with_lines_and_stock, payment_waiting):
     order = order_with_lines_and_stock
-    payment = order.payments.create(
-        variant='default', status=invalid_status,
-        fraud_status=FraudStatus.ACCEPT, currency='USD', total='100.0')
-
     url = reverse(
         'dashboard:capture-payment', kwargs={
-            'order_pk': order.pk, 'payment_pk': payment.pk})
+            'order_pk': order.pk, 'payment_pk': payment_waiting.pk})
     response = admin_client.get(url)
     assert response.status_code == 200
 
     response = admin_client.post(
         url, {'csrfmiddlewaretoken': 'hello', 'amount': '20.00'})
     assert response.status_code == 400
-    assert order.payments.last().status == invalid_status
+    assert order.payments.last().status == PaymentStatus.WAITING
 
 
 @pytest.mark.integration
 @pytest.mark.django_db
-def test_view_refund_order_payment(admin_client, order_with_lines_and_stock):
+def test_view_capture_order_invalid_payment_confirmed_status(
+        admin_client, order_with_lines_and_stock, payment_confirmed):
     order = order_with_lines_and_stock
-    payment = order.payments.create(
-        variant='default', status=PaymentStatus.CONFIRMED,
-        fraud_status=FraudStatus.ACCEPT, currency='USD', total='100.0',
-        captured_amount='100.0')
-
     url = reverse(
-        'dashboard:refund-payment', kwargs={
-            'order_pk': order.pk, 'payment_pk': payment.pk})
-    response = admin_client.get(url)
-    assert response.status_code == 200
-
-    response = admin_client.post(
-        url, {'csrfmiddlewaretoken': 'hello', 'amount': '20.00'})
-    assert response.status_code == 302
-    assert order.payments.last().status == PaymentStatus.CONFIRMED
-    assert order.payments.last().get_captured_price() == TaxedMoney(
-        net=Money(80, 'USD'), gross=Money(80, 'USD'))
-
-
-@pytest.mark.integration
-@pytest.mark.django_db
-@pytest.mark.parametrize(
-    'invalid_status', [
-        PaymentStatus.WAITING, PaymentStatus.PREAUTH, PaymentStatus.REJECTED,
-        PaymentStatus.REFUNDED, PaymentStatus.ERROR, PaymentStatus.INPUT])
-def test_view_refund_order_payment_invalid_status(
-        admin_client, order_with_lines_and_stock, invalid_status):
-    order = order_with_lines_and_stock
-    payment = order.payments.create(
-        variant='default', status=invalid_status,
-        fraud_status=FraudStatus.ACCEPT, currency='USD', total='100.0',
-        captured_amount='100.0')
-
-    url = reverse(
-        'dashboard:refund-payment', kwargs={
-            'order_pk': order.pk, 'payment_pk': payment.pk})
+        'dashboard:capture-payment', kwargs={
+            'order_pk': order.pk, 'payment_pk': payment_confirmed.pk})
     response = admin_client.get(url)
     assert response.status_code == 200
 
     response = admin_client.post(
         url, {'csrfmiddlewaretoken': 'hello', 'amount': '20.00'})
     assert response.status_code == 400
-    assert order.payments.last().status == invalid_status
+    assert order.payments.last().status == PaymentStatus.CONFIRMED
 
 
 @pytest.mark.integration
 @pytest.mark.django_db
-def test_view_release_order_payment(admin_client, order_with_lines_and_stock):
+def test_view_capture_order_invalid_payment_rejected_status(
+        admin_client, order_with_lines_and_stock, payment_rejected):
     order = order_with_lines_and_stock
-    payment = order.payments.create(
-        variant='default', status=PaymentStatus.PREAUTH,
-        fraud_status=FraudStatus.ACCEPT, currency='USD', total='100.0')
+    url = reverse(
+        'dashboard:capture-payment', kwargs={
+            'order_pk': order.pk, 'payment_pk': payment_rejected.pk})
+    response = admin_client.get(url)
+    assert response.status_code == 200
+
+    response = admin_client.post(
+        url, {'csrfmiddlewaretoken': 'hello', 'amount': '20.00'})
+    assert response.status_code == 400
+    assert order.payments.last().status == PaymentStatus.REJECTED
+
+
+@pytest.mark.integration
+@pytest.mark.django_db
+def test_view_capture_order_invalid_payment_refunded_status(
+        admin_client, order_with_lines_and_stock, payment_refunded):
+    order = order_with_lines_and_stock
+    url = reverse(
+        'dashboard:capture-payment', kwargs={
+            'order_pk': order.pk, 'payment_pk': payment_refunded.pk})
+    response = admin_client.get(url)
+    assert response.status_code == 200
+
+    response = admin_client.post(
+        url, {'csrfmiddlewaretoken': 'hello', 'amount': '20.00'})
+    assert response.status_code == 400
+    assert order.payments.last().status == PaymentStatus.REFUNDED
+
+
+@pytest.mark.integration
+@pytest.mark.django_db
+def test_view_capture_order_invalid_payment_error_status(
+        admin_client, order_with_lines_and_stock, payment_error):
+    order = order_with_lines_and_stock
+    url = reverse(
+        'dashboard:capture-payment', kwargs={
+            'order_pk': order.pk, 'payment_pk': payment_error.pk})
+    response = admin_client.get(url)
+    assert response.status_code == 200
+
+    response = admin_client.post(
+        url, {'csrfmiddlewaretoken': 'hello', 'amount': '20.00'})
+    assert response.status_code == 400
+    assert order.payments.last().status == PaymentStatus.ERROR
+
+
+@pytest.mark.integration
+@pytest.mark.django_db
+def test_view_capture_order_invalid_payment_input_status(
+        admin_client, order_with_lines_and_stock, payment_input):
+    order = order_with_lines_and_stock
+    url = reverse(
+        'dashboard:capture-payment', kwargs={
+            'order_pk': order.pk, 'payment_pk': payment_input.pk})
+    response = admin_client.get(url)
+    assert response.status_code == 200
+
+    response = admin_client.post(
+        url, {'csrfmiddlewaretoken': 'hello', 'amount': '20.00'})
+    assert response.status_code == 400
+    assert order.payments.last().status == PaymentStatus.INPUT
+
+
+@pytest.mark.integration
+@pytest.mark.django_db
+def test_view_refund_order_payment_confirmed(
+        admin_client, order_with_lines_and_stock, payment_confirmed):
+    order = order_with_lines_and_stock
+
+    url = reverse(
+        'dashboard:refund-payment', kwargs={
+            'order_pk': order.pk, 'payment_pk': payment_confirmed.pk})
+    response = admin_client.get(url)
+    assert response.status_code == 200
+
+    response = admin_client.post(
+        url, {
+            'csrfmiddlewaretoken': 'hello',
+            'amount': str(payment_confirmed.captured_amount)})
+    assert response.status_code == 302
+    assert order.payments.last().status == PaymentStatus.REFUNDED
+    assert order.payments.last().get_captured_price() == TaxedMoney(
+        net=Money(0, 'USD'), gross=Money(0, 'USD'))
+
+
+@pytest.mark.integration
+@pytest.mark.django_db
+def test_view_refund_order_invalid_payment_waiting_status(
+        admin_client, order_with_lines_and_stock, payment_waiting):
+    order = order_with_lines_and_stock
+
+    url = reverse(
+        'dashboard:refund-payment', kwargs={
+            'order_pk': order.pk, 'payment_pk': payment_waiting.pk})
+    response = admin_client.get(url)
+    assert response.status_code == 200
+
+    response = admin_client.post(
+        url, {'csrfmiddlewaretoken': 'hello', 'amount': '20.00'})
+    assert response.status_code == 400
+    assert order.payments.last().status == PaymentStatus.WAITING
+
+
+@pytest.mark.integration
+@pytest.mark.django_db
+def test_view_refund_order_invalid_payment_preauth_status(
+        admin_client, order_with_lines_and_stock, payment_preauth):
+    order = order_with_lines_and_stock
+
+    url = reverse(
+        'dashboard:refund-payment', kwargs={
+            'order_pk': order.pk, 'payment_pk': payment_preauth.pk})
+    response = admin_client.get(url)
+    assert response.status_code == 200
+
+    response = admin_client.post(
+        url, {'csrfmiddlewaretoken': 'hello', 'amount': '20.00'})
+    assert response.status_code == 400
+    assert order.payments.last().status == PaymentStatus.PREAUTH
+
+
+@pytest.mark.integration
+@pytest.mark.django_db
+def test_view_refund_order_invalid_payment_rejected_status(
+        admin_client, order_with_lines_and_stock, payment_rejected):
+    order = order_with_lines_and_stock
+
+    url = reverse(
+        'dashboard:refund-payment', kwargs={
+            'order_pk': order.pk, 'payment_pk': payment_rejected.pk})
+    response = admin_client.get(url)
+    assert response.status_code == 200
+
+    response = admin_client.post(
+        url, {'csrfmiddlewaretoken': 'hello', 'amount': '20.00'})
+    assert response.status_code == 400
+    assert order.payments.last().status == PaymentStatus.REJECTED
+
+
+@pytest.mark.integration
+@pytest.mark.django_db
+def test_view_refund_order_invalid_payment_refunded_status(
+        admin_client, order_with_lines_and_stock, payment_refunded):
+    order = order_with_lines_and_stock
+
+    url = reverse(
+        'dashboard:refund-payment', kwargs={
+            'order_pk': order.pk, 'payment_pk': payment_refunded.pk})
+    response = admin_client.get(url)
+    assert response.status_code == 200
+
+    response = admin_client.post(
+        url, {'csrfmiddlewaretoken': 'hello', 'amount': '20.00'})
+    assert response.status_code == 400
+    assert order.payments.last().status == PaymentStatus.REFUNDED
+
+
+@pytest.mark.integration
+@pytest.mark.django_db
+def test_view_refund_order_invalid_payment_error_status(
+        admin_client, order_with_lines_and_stock, payment_error):
+    order = order_with_lines_and_stock
+
+    url = reverse(
+        'dashboard:refund-payment', kwargs={
+            'order_pk': order.pk, 'payment_pk': payment_error.pk})
+    response = admin_client.get(url)
+    assert response.status_code == 200
+
+    response = admin_client.post(
+        url, {'csrfmiddlewaretoken': 'hello', 'amount': '20.00'})
+    assert response.status_code == 400
+    assert order.payments.last().status == PaymentStatus.ERROR
+
+
+@pytest.mark.integration
+@pytest.mark.django_db
+def test_view_refund_order_invalid_payment_input_status(
+        admin_client, order_with_lines_and_stock, payment_input):
+    order = order_with_lines_and_stock
+
+    url = reverse(
+        'dashboard:refund-payment', kwargs={
+            'order_pk': order.pk, 'payment_pk': payment_input.pk})
+    response = admin_client.get(url)
+    assert response.status_code == 200
+
+    response = admin_client.post(
+        url, {'csrfmiddlewaretoken': 'hello', 'amount': '20.00'})
+    assert response.status_code == 400
+    assert order.payments.last().status == PaymentStatus.INPUT
+
+
+@pytest.mark.integration
+@pytest.mark.django_db
+def test_view_release_order_payment_preauth(
+        admin_client, order_with_lines_and_stock, payment_preauth):
+    order = order_with_lines_and_stock
 
     url = reverse(
         'dashboard:release-payment', kwargs={
-            'order_pk': order.pk, 'payment_pk': payment.pk})
+            'order_pk': order.pk, 'payment_pk': payment_preauth.pk})
     response = admin_client.get(url)
     assert response.status_code == 200
 
@@ -136,27 +290,110 @@ def test_view_release_order_payment(admin_client, order_with_lines_and_stock):
 
 @pytest.mark.integration
 @pytest.mark.django_db
-@pytest.mark.parametrize(
-    'invalid_status', [
-        PaymentStatus.WAITING, PaymentStatus.CONFIRMED, PaymentStatus.REJECTED,
-        PaymentStatus.REFUNDED, PaymentStatus.ERROR, PaymentStatus.INPUT])
-def test_view_release_order_payment_invalid_status(
-        admin_client, order_with_lines_and_stock, invalid_status):
+def test_view_release_order_invalid_payment_waiting_status(
+        admin_client, order_with_lines_and_stock, payment_waiting):
     order = order_with_lines_and_stock
-    payment = order.payments.create(
-        variant='default', status=invalid_status,
-        fraud_status=FraudStatus.ACCEPT, currency='USD', total='100.0')
 
     url = reverse(
         'dashboard:release-payment', kwargs={
-            'order_pk': order.pk, 'payment_pk': payment.pk})
+            'order_pk': order.pk, 'payment_pk': payment_waiting.pk})
     response = admin_client.get(url)
     assert response.status_code == 200
 
     response = admin_client.post(url, {
         'csrfmiddlewaretoken': 'hello'})
     assert response.status_code == 400
-    assert order.payments.last().status == invalid_status
+    assert order.payments.last().status == PaymentStatus.WAITING
+
+
+@pytest.mark.integration
+@pytest.mark.django_db
+def test_view_release_order_invalid_payment_confirmed_status(
+        admin_client, order_with_lines_and_stock, payment_confirmed):
+    order = order_with_lines_and_stock
+
+    url = reverse(
+        'dashboard:release-payment', kwargs={
+            'order_pk': order.pk, 'payment_pk': payment_confirmed.pk})
+    response = admin_client.get(url)
+    assert response.status_code == 200
+
+    response = admin_client.post(url, {
+        'csrfmiddlewaretoken': 'hello'})
+    assert response.status_code == 400
+    assert order.payments.last().status == PaymentStatus.CONFIRMED
+
+
+@pytest.mark.integration
+@pytest.mark.django_db
+def test_view_release_order_invalid_payment_rejected_status(
+        admin_client, order_with_lines_and_stock, payment_rejected):
+    order = order_with_lines_and_stock
+
+    url = reverse(
+        'dashboard:release-payment', kwargs={
+            'order_pk': order.pk, 'payment_pk': payment_rejected.pk})
+    response = admin_client.get(url)
+    assert response.status_code == 200
+
+    response = admin_client.post(url, {
+        'csrfmiddlewaretoken': 'hello'})
+    assert response.status_code == 400
+    assert order.payments.last().status == PaymentStatus.REJECTED
+
+
+@pytest.mark.integration
+@pytest.mark.django_db
+def test_view_release_order_invalid_payment_refunded_status(
+        admin_client, order_with_lines_and_stock, payment_refunded):
+    order = order_with_lines_and_stock
+
+    url = reverse(
+        'dashboard:release-payment', kwargs={
+            'order_pk': order.pk, 'payment_pk': payment_refunded.pk})
+    response = admin_client.get(url)
+    assert response.status_code == 200
+
+    response = admin_client.post(url, {
+        'csrfmiddlewaretoken': 'hello'})
+    assert response.status_code == 400
+    assert order.payments.last().status == PaymentStatus.REFUNDED
+
+
+@pytest.mark.integration
+@pytest.mark.django_db
+def test_view_release_order_invalid_payment_error_status(
+        admin_client, order_with_lines_and_stock, payment_error):
+    order = order_with_lines_and_stock
+
+    url = reverse(
+        'dashboard:release-payment', kwargs={
+            'order_pk': order.pk, 'payment_pk': payment_error.pk})
+    response = admin_client.get(url)
+    assert response.status_code == 200
+
+    response = admin_client.post(url, {
+        'csrfmiddlewaretoken': 'hello'})
+    assert response.status_code == 400
+    assert order.payments.last().status == PaymentStatus.ERROR
+
+
+@pytest.mark.integration
+@pytest.mark.django_db
+def test_view_release_order_invalid_payment_input_status(
+        admin_client, order_with_lines_and_stock, payment_input):
+    order = order_with_lines_and_stock
+
+    url = reverse(
+        'dashboard:release-payment', kwargs={
+            'order_pk': order.pk, 'payment_pk': payment_input.pk})
+    response = admin_client.get(url)
+    assert response.status_code == 200
+
+    response = admin_client.post(url, {
+        'csrfmiddlewaretoken': 'hello'})
+    assert response.status_code == 400
+    assert order.payments.last().status == PaymentStatus.INPUT
 
 
 @pytest.mark.integration
