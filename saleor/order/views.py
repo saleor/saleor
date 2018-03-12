@@ -4,6 +4,7 @@ from django.conf import settings
 from django.contrib import auth, messages
 from django.contrib.auth.decorators import login_required
 from django.db import transaction
+from django.db.models import F
 from django.http import Http404, HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect
 from django.template.response import TemplateResponse
@@ -23,7 +24,9 @@ logger = logging.getLogger(__name__)
 
 
 def details(request, token):
-    orders = Order.objects.prefetch_related('lines__product')
+    orders = Order.objects.prefetch_related(
+        'lines__product', 'fulfillments', 'fulfillments__lines',
+        'fulfillments__lines__order_line')
     orders = orders.select_related(
         'billing_address', 'shipping_address', 'user')
     order = get_object_or_404(orders, token=token)
@@ -38,6 +41,8 @@ def details(request, token):
             if note_form.is_valid():
                 note_form.save()
                 return redirect('order:details', token=order.token)
+    fulfillments = order.fulfillments.all()
+    ctx.update({'fulfillments': fulfillments})
     return TemplateResponse(request, 'order/details.html', ctx)
 
 
