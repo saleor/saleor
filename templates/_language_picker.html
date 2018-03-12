@@ -1,0 +1,17 @@
+{% load i18n %}
+{% load translate_url from urls %}
+
+<li class="dropdown show">
+  {% get_current_language as LANGUAGE_CODE %}
+  <form action="{% url 'set_language' %}" method="post">
+    <input name="next" type="hidden" value="/">
+    {% csrf_token %}
+      {% get_available_languages as LANGUAGES %}
+      {% get_language_info_list for LANGUAGES as languages %}
+      <select class="selectpicker" name="language" id="language-picker">
+        {% for language in languages %}
+          <option value="{{ language.code }}" {% if language.code == LANGUAGE_CODE %} selected{% endif %}>{{ language.name_local }}</option>
+        {% endfor %}
+      </select>
+  </form>
+</li>
