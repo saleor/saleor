@@ -55,6 +55,7 @@
         </div>
         <div class="col-6">
           <ul class="float-right">
+            {% include "_language_picker.html" %}
             {% if user.is_authenticated %}
               {% if user.is_staff or request.impersonator.is_staff %}
                 <li>
