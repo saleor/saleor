@@ -7,7 +7,7 @@ i18n.use(LanguageDetector);
 i18n.init({
   debug: true,
   defaultNS: "dashboard",
-  fallbackLng: false,
+  fallbackLng: "en",
   keySeparator: false,
   ns: ["dashboard"],
   nsSeparator: false,
