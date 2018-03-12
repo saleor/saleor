@@ -23,6 +23,10 @@ interface BaseCategoryFormProps {
   handleConfirm(data);
   name: string;
   title: string;
+  errors: Array<{
+    field: string;
+    message: string;
+  }>;
 }
 
 interface BaseCategoryFormState {
@@ -58,9 +62,14 @@ export const BaseCategoryForm = decorate(
         description,
         handleConfirm,
         name,
-        title
+        title,
+        errors
       } = this.props;
-
+      const errorList = errors.reduce((acc, curr) => {
+        acc[curr.field] = curr.message;
+        return acc;
+      }, {});
+      console.log(errorList);
       return (
         <Card>
           <CardContent>
@@ -74,6 +83,8 @@ export const BaseCategoryForm = decorate(
               defaultValue={name}
               className={classes.textField}
               onChange={this.handleInputChange}
+              error={Boolean(errorList["name"])}
+              helperText={errorList["name"]}
             />
             <TextField
               name="description"
@@ -81,6 +92,8 @@ export const BaseCategoryForm = decorate(
               defaultValue={description}
               multiline
               onChange={this.handleInputChange}
+              error={Boolean(errorList["description"])}
+              helperText={errorList["description"]}
             />
           </CardContent>
           <CardContent>
