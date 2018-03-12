@@ -1,5 +1,4 @@
 import bleach
-
 from html5lib.serializer import HTMLSerializer
 
 
