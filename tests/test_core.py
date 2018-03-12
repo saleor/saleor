@@ -8,7 +8,7 @@ from saleor.account.models import Address, User
 from saleor.core.utils import (
     Country, create_superuser, format_money, get_country_by_ip,
     get_currency_for_country, random_data)
-from saleor.core.utils.text import trim_text, strip_html, get_cleaner
+from saleor.core.utils.text import strip_html, get_cleaner
 from saleor.discount.models import Sale, Voucher
 from saleor.order.models import Order
 from saleor.product.models import Product
@@ -161,11 +161,6 @@ def test_manifest(client, site_settings):
     assert content['name'] == site_settings.site.name
     assert content['short_name'] == site_settings.site.name
     assert content['description'] == site_settings.description
-
-
-def test_utils_trim_text():
-    text = trim_text('Hello World, everyone!', 16, '[...]')
-    assert text == 'Hello World[...]'
 
 
 def test_utils_get_cleaner_invalid_parameters():
