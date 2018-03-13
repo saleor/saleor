@@ -37,7 +37,7 @@
           <tr data-action-go="{% url 'dashboard:menu-item-detail' menu_pk=menu.pk item_pk=item.pk %}" class="menu-item" data-id="{{ item.pk }}">
             {% if perms.menu.edit_menu %}
               <td class="data-table-icon ignore-link sortable__drag-area">
-                <svg data-src="{% static "dashboard/images/more-vert.svg" %}" height="20" width="20" fill="#000" />
+                <svg data-src="{% static "dashboard/images/reorder.svg" %}" height="20" width="20" fill="#000" />
               </td>
             {% endif %}
             <td>
