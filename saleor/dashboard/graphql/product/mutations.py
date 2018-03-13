@@ -4,8 +4,8 @@ from ....graphql.product.types import Category
 from ....graphql.utils import get_node
 from ...category.forms import CategoryForm
 from ..mutations import (
-    BaseMutation, ModelFormMutation, ModelFormUpdateMutation)
-
+    ModelDeleteMutation, ModelFormMutation, ModelFormUpdateMutation)
+from ....product import models
 
 class CategoryCreateMutation(ModelFormMutation):
     class Arguments:
@@ -37,13 +37,7 @@ class CategoryUpdateMutation(ModelFormUpdateMutation):
         return kwargs
 
 
-class CategoryDelete(BaseMutation):
-    category = graphene.Field(Category)
+class CategoryDelete(ModelDeleteMutation):
 
-    class Arguments:
-        id = graphene.ID()
-
-    def mutate(self, info, id):
-        category = get_node(info, id, only_type=Category)
-        category.delete()
-        return CategoryDelete(category=category)
+    class Meta:
+        model = models.Category
