@@ -224,16 +224,13 @@ def ajax_menu_links(request):
     search_query = request.GET.get('q', '')
     groups = [
         get_group_repr(
-            Collection,
-            pgettext_lazy('Menu available links group label', 'Collection'),
-            ('name',), search_query),
+            Collection, Collection._meta.verbose_name.title(), ('name',),
+            search_query),
         get_group_repr(
-            Category,
-            pgettext_lazy('Menu available links group label', 'Category'),
-            ('name',), search_query),
+            Category, Category._meta.verbose_name.title(), ('name',),
+            search_query),
         get_group_repr(
-            Page, pgettext_lazy('Menu available links group label', 'Page'),
-            ('title',), search_query)
+            Page, Page._meta.verbose_name.title(), ('title',), search_query)
     ]
 
     groups = [group for group in groups if len(group.get('children')) > 0]

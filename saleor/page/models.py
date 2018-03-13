@@ -33,6 +33,7 @@ class Page(models.Model):
              pgettext_lazy('Permission description', 'Can view pages')),
             ('edit_page',
              pgettext_lazy('Permission description', 'Can edit pages')))
+        verbose_name = pgettext_lazy('Model verbose name', 'Page')
 
     def __str__(self):
         return self.title
