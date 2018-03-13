@@ -15,12 +15,12 @@ from prices import Money, TaxedMoney
 
 from ...account.models import Address, User
 from ...account.utils import store_user_address
-from ...core.utils import build_absolute_uri
 from ...discount import DiscountValueType, VoucherType
 from ...discount.models import Sale, Voucher
-from ...menu.models import Menu, MenuItem
+from ...menu.models import Menu
 from ...order.models import Fulfillment, Order, Payment
 from ...order.utils import update_order_status
+from ...page.models import Page
 from ...product.models import (
     AttributeChoiceValue, Category, Collection, Product, ProductAttribute,
     ProductImage, ProductType, ProductVariant, Stock, StockLocation)
@@ -89,25 +89,6 @@ DEFAULT_SCHEMA = {
             'Cover': ['Soft', 'Hard']},
         'images_dir': 'books/',
         'is_shipping_required': True}}
-
-DEFAULT_MENU_SCHEMA = {
-    'Apparel': {
-        'sort_order': 1,
-        'category': 'Apparel'
-    },
-    'Accessories': {
-        'sort_order': 2,
-        'category': 'Accessories'
-    },
-    'Groceries': {
-        'sort_order': 3,
-        'category': 'Groceries'
-    },
-    'Books': {
-        'sort_order': 4,
-        'category': 'Books'
-    }
-}
 
 
 def create_attributes_and_values(attribute_data):
@@ -551,7 +532,7 @@ def create_fake_group():
 
 def create_groups():
     group = create_fake_group()
-    return 'Group: %s' % (group.name)
+    return 'Group: %s' % (group.name,)
 
 
 def set_featured_products(how_many=8):
@@ -579,21 +560,42 @@ def create_collections(how_many=2):
         yield 'Collection: %s' % (collection,)
 
 
+def create_fake_page():
+    title = fake.word()
+    return Page.objects.create(
+        slug=slugify(title),
+        title=title,
+        content='\n\n'.join(fake.paragraphs(5)),
+        is_visible=True)
+
+
+def create_pages(how_many=2):
+    for dummy in range(how_many):
+        page = create_fake_page()
+        yield 'Page: %s' % (page,)
+
+
 def create_menus():
     slugs = ['navbar', 'footer']
     for slug in slugs:
         menu = Menu.objects.get_or_create(slug=slug)[0]
-        create_menu_items_by_schema(menu, DEFAULT_MENU_SCHEMA)
+        create_menu_items_by_schema(menu)
         yield '%s menu created' % (menu,)
 
 
-def create_menu_items_by_schema(menu, root_schema):
-    for menu_item_name, schema in root_schema.items():
-        sort_order = schema.get('sort_order')
-        category = Category.objects.get(name=schema.get('category'))
-        MenuItem.objects.get_or_create(
-            menu=menu,
-            name=menu_item_name,
-            sort_order=sort_order,
-            url=category.get_absolute_url(),
+def create_menu_items_by_schema(menu):
+    categories = Category.objects.all()
+    for category in categories:
+        menu.items.get_or_create(
+            name=category.name,
             category=category)
+
+    collection = Collection.objects.order_by('?')[0]
+    menu.items.get_or_create(
+        name=collection.name,
+        collection=collection)
+
+    page = Page.objects.order_by('?')[0]
+    menu.items.get_or_create(
+        name=page.title,
+        page=page)
