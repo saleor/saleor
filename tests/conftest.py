@@ -76,10 +76,10 @@ def order(billing_address, customer_user):
     return Order.objects.create(
         billing_address=billing_address,
         user_email=customer_user.email,
-        total_net=Money(100, currency='USD'),
-        total_gross=Money(123, currency='USD'),
-        shipping_price_net=Money(10, currency='USD'),
-        shipping_price_gross=Money(12, currency='USD'),
+        total_net=Money(100, 'USD'),
+        total_gross=Money(123, 'USD'),
+        shipping_price_net=Money(10, 'USD'),
+        shipping_price_gross=Money(12, 'USD'),
         user=customer_user)
 
 
