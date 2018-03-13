@@ -40,7 +40,6 @@ class Category(MPTTModel):
              pgettext_lazy('Permission description', 'Can view categories')),
             ('edit_category',
              pgettext_lazy('Permission description', 'Can edit categories')))
-        verbose_name = pgettext_lazy('Model verbose name', 'Category')
 
     def __str__(self):
         return self.name
@@ -403,7 +402,6 @@ class Collection(models.Model):
 
     class Meta:
         ordering = ['pk']
-        verbose_name = pgettext_lazy('Model verbose name', 'Collection')
 
     def __str__(self):
         return self.name
