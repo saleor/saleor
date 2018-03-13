@@ -1,8 +1,13 @@
 import Button from "material-ui/Button";
+import Divider from "material-ui/Divider";
 import Grid from "material-ui/Grid";
+import IconButton from "material-ui/IconButton";
+import Toolbar from "material-ui/Toolbar";
 import Typography from "material-ui/Typography";
 import { withStyles } from "material-ui/styles";
+import ArrowBack from "material-ui-icons/ArrowBack";
 import * as React from "react";
+import { Link } from "react-router-dom";
 
 import {
   categoryPropertiesQuery,
@@ -17,16 +22,25 @@ import { ProductChildElement } from "../components/ProductChildElement";
 import { CategoryList } from "../components/CategoryList";
 import { ProductList } from "../components/ProductList";
 import i18n from "../../i18n";
-import { Link } from "react-router-dom";
+import { Skeleton } from "../../components/Skeleton";
 
 const decorate = withStyles(theme => ({
-  toolbar: {
-    alignItems: "center" as "center",
-    display: "flex",
-    marginBottom: theme.spacing.unit * 2
+  grid: {
+    padding: theme.spacing.unit * 2
+  },
+  menuButton: {
+    marginRight: theme.spacing.unit * 2
   },
   title: {
     flex: 1
+  },
+  toolbar: {
+    backgroundColor: theme.palette.background.paper
+  },
+  subtitle: {
+    display: "flex",
+    alignItems: "center" as "center",
+    marginBottom: theme.spacing.unit * 2
   }
 }));
 
@@ -78,59 +92,90 @@ const CategoryDetails = decorate<CategoryDetailsProps>(
               });
             };
             return (
-              <Grid container spacing={24}>
-                <Grid item xs={12}>
-                  <CategoryProperties category={category} loading={loading} />
+              <>
+                <Toolbar className={classes.toolbar}>
+                  <IconButton
+                    color="inherit"
+                    className={classes.menuButton}
+                    component={props => (
+                      <Link
+                        to={
+                          loading
+                            ? ""
+                            : categoryShowUrl(
+                                category.parent && category.parent.id
+                              )
+                        }
+                        {...props}
+                      />
+                    )}
+                    disabled={loading}
+                  >
+                    <ArrowBack />
+                  </IconButton>
+                  <Typography className={classes.title} variant="title">
+                    {loading ? (
+                      <Skeleton style={{ width: "10em" }} />
+                    ) : (
+                      category.name
+                    )}
+                  </Typography>
+                </Toolbar>
+                <Divider />
+                <Grid container spacing={24} className={classes.grid}>
+                  <Grid item xs={12}>
+                    <CategoryProperties category={category} loading={loading} />
+                  </Grid>
+                  <Grid item xs={12}>
+                    <div className={classes.subtitle}>
+                      <Typography className={classes.title} variant="title">
+                        {i18n.t("Subcategories", { context: "title" })}
+                      </Typography>
+                      <Button
+                        color="secondary"
+                        component={props => (
+                          <Link
+                            to={loading ? "" : categoryAddUrl(category.id)}
+                            {...props}
+                          />
+                        )}
+                        disabled={loading}
+                        variant="raised"
+                      >
+                        {i18n.t("Add category", { context: "button" })}
+                      </Button>
+                    </div>
+                    <CategoryList
+                      loading={loading}
+                      categories={loading ? [] : category.children.edges}
+                    />
+                  </Grid>
+                  <Grid item xs={12}>
+                    <div className={classes.subtitle}>
+                      <Typography className={classes.title} variant="title">
+                        {i18n.t("Products", { context: "title" })}
+                      </Typography>
+                      <Button
+                        color="secondary"
+                        component={props => <Link to="#" {...props} />}
+                        disabled={loading}
+                        variant="raised"
+                      >
+                        {i18n.t("Add product", { context: "button" })}
+                      </Button>
+                    </div>
+                    <ProductList
+                      loading={loading}
+                      products={loading ? [] : category.products.edges}
+                      parentId={loading ? "" : category.id}
+                      handleLoadMore={handleLoadMore}
+                      canLoadMore={
+                        loading ? false : category.products.pageInfo.hasNextPage
+                      }
+                    />
+                  </Grid>
                 </Grid>
-                <Grid item xs={12}>
-                  <div className={classes.toolbar}>
-                    <Typography className={classes.title} variant="title">
-                      {i18n.t("Subcategories", { context: "title" })}
-                    </Typography>
-                    <Button
-                      color="secondary"
-                      component={props => (
-                        <Link
-                          to={loading ? "" : categoryAddUrl(category.id)}
-                          {...props}
-                        />
-                      )}
-                      disabled={loading}
-                      variant="raised"
-                    >
-                      {i18n.t("Add category", { context: "button" })}
-                    </Button>
-                  </div>
-                  <CategoryList
-                    loading={loading}
-                    categories={loading ? [] : category.children.edges}
-                  />
-                </Grid>
-                <Grid item xs={12}>
-                  <div className={classes.toolbar}>
-                    <Typography className={classes.title} variant="title">
-                      {i18n.t("Products", { context: "title" })}
-                    </Typography>
-                    <Button
-                      color="secondary"
-                      component={props => <Link to="#" {...props} />}
-                      disabled={loading}
-                      variant="raised"
-                    >
-                      {i18n.t("Add product", { context: "button" })}
-                    </Button>
-                  </div>
-                  <ProductList
-                    loading={loading}
-                    products={loading ? [] : category.products.edges}
-                    parentId={loading ? "" : category.id}
-                    handleLoadMore={handleLoadMore}
-                    canLoadMore={
-                      loading ? false : category.products.pageInfo.hasNextPage
-                    }
-                  />
-                </Grid>
-              </Grid>
+              </>
             );
           }}
         </TypedCategoryPropertiesQuery>
@@ -147,7 +192,7 @@ const CategoryDetails = decorate<CategoryDetailsProps>(
           }
           return (
             <>
-              <div className={classes.toolbar}>
+              <Toolbar className={classes.toolbar}>
                 <Typography className={classes.title} variant="title">
                   {i18n.t("Categories", { context: "title" })}
                 </Typography>
@@ -159,11 +204,14 @@ const CategoryDetails = decorate<CategoryDetailsProps>(
                 >
                   {i18n.t("Add category", { context: "button" })}
                 </Button>
+              </Toolbar>
+              <Divider />
+              <div className={classes.grid}>
+                <CategoryList
+                  loading={loading}
+                  categories={loading ? [] : categories.edges}
+                />
               </div>
-              <CategoryList
-                loading={loading}
-                categories={loading ? [] : categories.edges}
-              />
             </>
           );
         }}
