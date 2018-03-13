@@ -22,7 +22,7 @@ class MenuItemForm(forms.ModelForm):
         querysets=[
             Collection.objects.all(), Category.objects.all(),
             Page.objects.all()],
-        fetch_data_url=reverse_lazy('dashboard:ajax-menu-links'))
+        fetch_data_url=reverse_lazy('dashboard:ajax-menu-links'), min_input=0)
 
     class Meta:
         model = MenuItem

@@ -18,11 +18,14 @@ class AjaxSelect2ChoiceField(forms.ChoiceField):
     initial - initial object
     """
 
-    def __init__(self, fetch_data_url='', initial=None, *args, **kwargs):
+    def __init__(
+            self, fetch_data_url='', initial=None, min_input=2, *args,
+            **kwargs):
         self.queryset = kwargs.pop('queryset', None)
         super().__init__(*args, **kwargs)
         self.widget.attrs['class'] = 'enable-ajax-select2'
         self.widget.attrs['data-url'] = fetch_data_url
+        self.widget.attrs['data-min-input'] = min_input
         if initial:
             self.set_initial(initial)
 
@@ -83,11 +86,13 @@ class AjaxSelect2MultipleChoiceField(forms.MultipleChoiceField):
     initial - list of initial objects
     """
 
-    def __init__(self, fetch_data_url='', initial=[], *args, **kwargs):
+    def __init__(
+            self, fetch_data_url='', initial=[], min_input=2, *args, **kwargs):
         self.queryset = kwargs.pop('queryset')
         super().__init__(*args, **kwargs)
         self.widget.attrs['class'] = 'enable-ajax-select2'
         self.widget.attrs['data-url'] = fetch_data_url
+        self.widget.attrs['data-min-input'] = min_input
         if initial:
             self.set_initial(initial)
         self.widget.attrs['multiple'] = True
