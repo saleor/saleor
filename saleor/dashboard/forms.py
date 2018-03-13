@@ -64,10 +64,10 @@ class AjaxSelect2CombinedChoiceField(AjaxSelect2ChoiceField):
         super().__init__(*args, **kwargs)
 
     def to_python(self, value):
-        pk, model_name = value.split('_')
-        if pk in self.empty_values:
+        if value in self.empty_values:
             return None
 
+        pk, model_name = value.split('_')
         queryset = next(
             (qs for qs in self.querysets if qs.model.__name__ == model_name),
             None)

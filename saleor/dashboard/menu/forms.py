@@ -22,22 +22,43 @@ class MenuItemForm(forms.ModelForm):
         querysets=[
             Collection.objects.all(), Category.objects.all(),
             Page.objects.all()],
-        fetch_data_url=reverse_lazy('dashboard:ajax-menu-links'), min_input=0)
+        fetch_data_url=reverse_lazy('dashboard:ajax-menu-links'), min_input=0,
+        required=False)
 
     class Meta:
         model = MenuItem
-        fields = ('name',)
+        fields = ('name', 'url')
         labels = {
             'name': pgettext_lazy('Menu item name', 'Name'),
-            'linked_object': pgettext_lazy('Menu item name', 'Link')}
+            'url': pgettext_lazy('Menu item url', 'URL'),
+            'linked_object': pgettext_lazy('Menu item object to link', 'Link')}
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        dest = self.instance.destination
 
+        dest = self.instance.destination
         if dest:
             obj_id = str(dest.pk) + '_' + dest.__class__.__name__
             self.fields['linked_object'].set_initial(dest, obj_id=obj_id)
+
+    def clean(self):
+        url = self.cleaned_data.get('url')
+        linked_object = self.cleaned_data.get('linked_object')
+        if url and linked_object:
+            raise forms.ValidationError(
+                pgettext_lazy(
+                    'Menu item form error',
+                    'A single menu item can\'t point to both an internal link '
+                    'and URL.'),
+                code='invalid')
+        if not url and not linked_object:
+            raise forms.ValidationError(
+                pgettext_lazy(
+                    'Menu item form error',
+                    'A single menu item must point to an internal link or '
+                    'URL.'),
+                code='invalid')
+        return self.cleaned_data
 
     def save(self, commit=True):
         linked_object = self.cleaned_data.get('linked_object')
@@ -49,7 +70,6 @@ class MenuItemForm(forms.ModelForm):
         elif linked_object.__class__ == Page:
             self.instance.page = linked_object
 
-        self.instance.url = linked_object.get_absolute_url()
         return super().save(commit)
 
 
