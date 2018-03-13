@@ -21,28 +21,16 @@ const decorate = withStyles(theme => ({
   root: {
     flexGrow: 1
   },
+  appBar: {
+    zIndex: theme.zIndex.drawer + 1
+  },
   appFrame: {
     zIndex: 1,
     display: "flex",
     width: "100%"
   },
-  appBar: {
-    transition: theme.transitions.create(["margin", "width"], {
-      easing: theme.transitions.easing.sharp,
-      duration: theme.transitions.duration.leavingScreen
-    })
-  },
-  appBarShift: {
-    marginLeft: drawerWidth,
-    width: `calc(100% - ${drawerWidth}px)`,
-    transition: theme.transitions.create(["margin", "width"], {
-      easing: theme.transitions.easing.easeOut,
-      duration: theme.transitions.duration.enteringScreen
-    })
-  },
   menuButton: {
-    marginLeft: 12,
-    marginRight: 20
+    marginRight: theme.spacing.unit * 2
   },
   hide: {
     display: "none"
@@ -61,7 +49,6 @@ const decorate = withStyles(theme => ({
     flexGrow: 1,
     backgroundColor: theme.palette.background.default,
     marginLeft: 0,
-    padding: theme.spacing.unit * 3,
     transition: theme.transitions.create("margin", {
       easing: theme.transitions.easing.sharp,
       duration: theme.transitions.duration.leavingScreen
@@ -76,31 +63,24 @@ const decorate = withStyles(theme => ({
   }
 }));
 
-const LinkItem = ListItem as React.ComponentType<ListItemProps & LinkProps>;
-
-interface AppRootProps {
-  children: (titleTarget: React.ReactInstance) => JSX.Element;
-}
-
 interface AppRootState {
   open: boolean;
 }
 
-export const AppRoot = decorate<AppRootProps>(
+export const AppRoot = decorate<{}>(
   class AppRoot extends React.Component<
-    AppRootProps &
-      WithStyles<
-        | "root"
-        | "appFrame"
-        | "appBar"
-        | "appBarShift"
-        | "menuButton"
-        | "hide"
-        | "drawerPaper"
-        | "drawerHeader"
-        | "content"
-        | "contentShift"
-      >,
+    WithStyles<
+      | "root"
+      | "appFrame"
+      | "appBar"
+      | "appBarShift"
+      | "menuButton"
+      | "hide"
+      | "drawerPaper"
+      | "drawerHeader"
+      | "content"
+      | "contentShift"
+    >,
     AppRootState
   > {
     state = { open: true };
@@ -111,48 +91,43 @@ export const AppRoot = decorate<AppRootProps>(
 
       return (
         <div className={classes.appFrame}>
-          <AppBar
-            className={classNames(classes.appBar, {
-              [classes.appBarShift]: open
-            })}
-          >
-            <Toolbar disableGutters={!open}>
+          <AppBar className={classes.appBar}>
+            <Toolbar>
               <IconButton
                 color="inherit"
                 aria-label="open drawer"
-                onClick={() => this.setState({ open: true })}
-                className={classNames(classes.menuButton, open && classes.hide)}
+                onClick={() =>
+                  this.setState(({ open }) => ({
+                    open: !open
+                  }))
+                }
+                className={classes.menuButton}
               >
                 <MenuIcon />
               </IconButton>
-              <div ref="titleBar">
-                <Typography variant="title" color="inherit" noWrap>
-                  Saleor
-                </Typography>
-              </div>
+              <Typography variant="title" color="inherit" noWrap>
+                Saleor
+              </Typography>
             </Toolbar>
           </AppBar>
           <Drawer
             variant="persistent"
-            anchor="left"
             open={open}
             classes={{
               paper: classes.drawerPaper
             }}
           >
-            <div className={classes.drawerHeader}>
-              <IconButton onClick={() => this.setState({ open: false })}>
-                <ChevronLeftIcon />
-              </IconButton>
-            </div>
-            <Divider />
+            <div className={classes.drawerHeader} />
             <List component="nav">
-              <LinkItem component={Link} to="/">
+              <ListItem button component={props => <Link to="/" {...props} />}>
                 <ListItemText primary={i18n.t("Home")} />
-              </LinkItem>
-              <LinkItem component={Link} to="/categories/">
+              </ListItem>
+              <ListItem
+                button
+                component={props => <Link to="/categories/" {...props} />}
+              >
                 <ListItemText primary={i18n.t("Categories")} />
-              </LinkItem>
+              </ListItem>
             </List>
           </Drawer>
           <main
@@ -161,7 +136,7 @@ export const AppRoot = decorate<AppRootProps>(
             })}
           >
             <div className={classes.drawerHeader} />
-            {children(this.refs.titleBar)}
+            {children}
           </main>
         </div>
       );
