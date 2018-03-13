@@ -1,6 +1,6 @@
 from django.conf import settings
 
-from ..product.models import Category
+from ..menu.models import Menu
 
 
 def get_setting_as_dict(name, short_name=None):
@@ -19,8 +19,11 @@ def default_currency(request):
 
 # request is a required parameter
 # pylint: disable=W0613
-def categories(request):
-    return {'categories': Category.tree.root_nodes()}
+def navigation(request):
+    slugs = ['navbar', 'footer']
+    kwargs = ['items', 'items__collection', 'items__category', 'items__page']
+    menus = Menu.objects.prefetch_related(*kwargs).filter(slug__in=slugs)
+    return {'menus': list(menus)}
 
 
 def search_enabled(request):
