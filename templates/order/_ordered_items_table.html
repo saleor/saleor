@@ -27,17 +27,17 @@
 {% endif %}
 <div class="table__header order-details__table-header d-none d-sm-block">
   <div class="row">
-    <div class="col-md-6">
+    <div class="col-md-8">
       <small>
         {% trans "Product" context "Order details column title" %}
       </small>
     </div>
-    <div class="col-md-3 text-right">
+    <div class="col-md-2 text-right">
       <small>
         {% trans "Quantity" context "Order details column title" %}
       </small>
     </div>
-    <div class="col-md-3 text-right">
+    <div class="col-md-2 text-right">
       <small>
         {% trans "Price" context "Order details column title" %}
       </small>
@@ -48,7 +48,7 @@
 {% for line in order %}
   <div class="table__row order-details__product{% if forloop.last %} order-details__last-row{% endif %}">
     <div class="row">
-      <div class="col-md-6 col-9">
+      <div class="col-md-8">
         <a class="link--clean" href="{% if line.product %}{{ line.product.get_absolute_url }}{% endif %}">
           <img data-src="{% product_first_image line.product size="60x60" method="crop" %}"
                 data-srcset="{% product_first_image line.product size="60x60" method="crop" %} 1x, {% product_first_image line.product size="120x120" method="crop" %} 2x"
@@ -57,7 +57,7 @@
           <span class="order-details__product__description">{{ line.product_name }}</span>
         </a>
       </div>
-      <div class="col-md-6 col-3">
+      <div class="col-md-4">
         <div class="row">
           <div class="col-md-6 col-12">
             <p class="float-right">x {{ line.quantity }}</p>
