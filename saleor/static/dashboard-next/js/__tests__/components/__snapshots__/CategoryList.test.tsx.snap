@@ -1,0 +1,305 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`<CategoryList /> renders when category list is empty 1`] = `
+<div
+  className="MuiGrid-typeContainer-1 MuiGrid-spacing-xs-16-23"
+>
+  <div
+    className="MuiGrid-typeItem-2 MuiGrid-grid-xs-12-38"
+  >
+    <aside
+      className="MuiTypography-root-107 MuiTypography-body2-115"
+    >
+      No categories found
+    </aside>
+  </div>
+</div>
+`;
+
+exports[`<CategoryList /> renders when data is fully loaded 1`] = `
+<div
+  className="MuiGrid-typeContainer-1 MuiGrid-spacing-xs-16-23"
+>
+  <div
+    className="MuiGrid-typeItem-2 MuiGrid-grid-xs-12-38 MuiGrid-grid-sm-6-45 MuiGrid-grid-md-4-56 MuiGrid-grid-lg-3-68 MuiGrid-grid-xl-2-80"
+  >
+    <a
+      className="MuiButtonBase-root-92 Component-button-91"
+      href="/categories/Q2F0ZWdvcnk6MQ==/"
+      onBlur={[Function]}
+      onClick={[Function]}
+      onFocus={[Function]}
+      onKeyDown={[Function]}
+      onKeyUp={[Function]}
+      onMouseDown={[Function]}
+      onMouseLeave={[Function]}
+      onMouseUp={[Function]}
+      onTouchEnd={[Function]}
+      onTouchMove={[Function]}
+      onTouchStart={[Function]}
+      role="button"
+      tabIndex="0"
+    >
+      <div
+        className="MuiCardHeader-root-95"
+      >
+        <div
+          className="MuiCardHeader-avatar-96"
+        >
+          <svg
+            aria-hidden="true"
+            className="MuiSvgIcon-root-101"
+            color={undefined}
+            focusable="false"
+            viewBox="0 0 24 24"
+          >
+            <path
+              d="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z"
+            />
+          </svg>
+        </div>
+        <div
+          className="MuiCardHeader-content-98"
+        >
+          <span
+            className="MuiTypography-root-107 MuiTypography-body2-115 MuiCardHeader-title-99"
+          >
+            Apparel
+          </span>
+        </div>
+      </div>
+      <span
+        className="MuiTouchRipple-root-132"
+      />
+    </a>
+  </div>
+  <div
+    className="MuiGrid-typeItem-2 MuiGrid-grid-xs-12-38 MuiGrid-grid-sm-6-45 MuiGrid-grid-md-4-56 MuiGrid-grid-lg-3-68 MuiGrid-grid-xl-2-80"
+  >
+    <a
+      className="MuiButtonBase-root-92 Component-button-91"
+      href="/categories/Q2F0ZWdvcnk6Mg==/"
+      onBlur={[Function]}
+      onClick={[Function]}
+      onFocus={[Function]}
+      onKeyDown={[Function]}
+      onKeyUp={[Function]}
+      onMouseDown={[Function]}
+      onMouseLeave={[Function]}
+      onMouseUp={[Function]}
+      onTouchEnd={[Function]}
+      onTouchMove={[Function]}
+      onTouchStart={[Function]}
+      role="button"
+      tabIndex="0"
+    >
+      <div
+        className="MuiCardHeader-root-95"
+      >
+        <div
+          className="MuiCardHeader-avatar-96"
+        >
+          <svg
+            aria-hidden="true"
+            className="MuiSvgIcon-root-101"
+            color={undefined}
+            focusable="false"
+            viewBox="0 0 24 24"
+          >
+            <path
+              d="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z"
+            />
+          </svg>
+        </div>
+        <div
+          className="MuiCardHeader-content-98"
+        >
+          <span
+            className="MuiTypography-root-107 MuiTypography-body2-115 MuiCardHeader-title-99"
+          >
+            Accessories
+          </span>
+        </div>
+      </div>
+      <span
+        className="MuiTouchRipple-root-132"
+      />
+    </a>
+  </div>
+  <div
+    className="MuiGrid-typeItem-2 MuiGrid-grid-xs-12-38 MuiGrid-grid-sm-6-45 MuiGrid-grid-md-4-56 MuiGrid-grid-lg-3-68 MuiGrid-grid-xl-2-80"
+  >
+    <a
+      className="MuiButtonBase-root-92 Component-button-91"
+      href="/categories/Q2F0ZWdvcnk6Mw==/"
+      onBlur={[Function]}
+      onClick={[Function]}
+      onFocus={[Function]}
+      onKeyDown={[Function]}
+      onKeyUp={[Function]}
+      onMouseDown={[Function]}
+      onMouseLeave={[Function]}
+      onMouseUp={[Function]}
+      onTouchEnd={[Function]}
+      onTouchMove={[Function]}
+      onTouchStart={[Function]}
+      role="button"
+      tabIndex="0"
+    >
+      <div
+        className="MuiCardHeader-root-95"
+      >
+        <div
+          className="MuiCardHeader-avatar-96"
+        >
+          <svg
+            aria-hidden="true"
+            className="MuiSvgIcon-root-101"
+            color={undefined}
+            focusable="false"
+            viewBox="0 0 24 24"
+          >
+            <path
+              d="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z"
+            />
+          </svg>
+        </div>
+        <div
+          className="MuiCardHeader-content-98"
+        >
+          <span
+            className="MuiTypography-root-107 MuiTypography-body2-115 MuiCardHeader-title-99"
+          >
+            Groceries
+          </span>
+        </div>
+      </div>
+      <span
+        className="MuiTouchRipple-root-132"
+      />
+    </a>
+  </div>
+  <div
+    className="MuiGrid-typeItem-2 MuiGrid-grid-xs-12-38 MuiGrid-grid-sm-6-45 MuiGrid-grid-md-4-56 MuiGrid-grid-lg-3-68 MuiGrid-grid-xl-2-80"
+  >
+    <a
+      className="MuiButtonBase-root-92 Component-button-91"
+      href="/categories/Q2F0ZWdvcnk6NA==/"
+      onBlur={[Function]}
+      onClick={[Function]}
+      onFocus={[Function]}
+      onKeyDown={[Function]}
+      onKeyUp={[Function]}
+      onMouseDown={[Function]}
+      onMouseLeave={[Function]}
+      onMouseUp={[Function]}
+      onTouchEnd={[Function]}
+      onTouchMove={[Function]}
+      onTouchStart={[Function]}
+      role="button"
+      tabIndex="0"
+    >
+      <div
+        className="MuiCardHeader-root-95"
+      >
+        <div
+          className="MuiCardHeader-avatar-96"
+        >
+          <svg
+            aria-hidden="true"
+            className="MuiSvgIcon-root-101"
+            color={undefined}
+            focusable="false"
+            viewBox="0 0 24 24"
+          >
+            <path
+              d="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z"
+            />
+          </svg>
+        </div>
+        <div
+          className="MuiCardHeader-content-98"
+        >
+          <span
+            className="MuiTypography-root-107 MuiTypography-body2-115 MuiCardHeader-title-99"
+          >
+            Books
+          </span>
+        </div>
+      </div>
+      <span
+        className="MuiTouchRipple-root-132"
+      />
+    </a>
+  </div>
+</div>
+`;
+
+exports[`<CategoryList /> renders while data is loading 1`] = `
+<div
+  className="MuiGrid-typeContainer-1 MuiGrid-spacing-xs-16-23"
+>
+  <div
+    className="MuiGrid-typeItem-2 MuiGrid-grid-xs-12-38 MuiGrid-grid-sm-6-45 MuiGrid-grid-md-4-56 MuiGrid-grid-lg-3-68 MuiGrid-grid-xl-2-80"
+  >
+    <a
+      className="MuiButtonBase-root-92 Component-button-91"
+      href="/"
+      onBlur={[Function]}
+      onClick={[Function]}
+      onFocus={[Function]}
+      onKeyDown={[Function]}
+      onKeyUp={[Function]}
+      onMouseDown={[Function]}
+      onMouseLeave={[Function]}
+      onMouseUp={[Function]}
+      onTouchEnd={[Function]}
+      onTouchMove={[Function]}
+      onTouchStart={[Function]}
+      role="button"
+      tabIndex="0"
+    >
+      <div
+        className="MuiCardHeader-root-95"
+      >
+        <div
+          className="MuiCardHeader-avatar-96"
+        >
+          <svg
+            aria-hidden="true"
+            className="MuiSvgIcon-root-101"
+            color={undefined}
+            focusable="false"
+            viewBox="0 0 24 24"
+          >
+            <path
+              d="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z"
+            />
+          </svg>
+        </div>
+        <div
+          className="MuiCardHeader-content-98"
+        >
+          <span
+            className="MuiTypography-root-107 MuiTypography-body2-115 MuiCardHeader-title-99"
+          >
+            <span
+              className="Component-skeleton-131"
+              style={
+                Object {
+                  "width": "80%",
+                }
+              }
+            >
+              ‌
+            </span>
+          </span>
+        </div>
+      </div>
+      <span
+        className="MuiTouchRipple-root-132"
+      />
+    </a>
+  </div>
+</div>
+`;
