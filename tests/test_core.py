@@ -173,6 +173,8 @@ def test_utils_get_last_stop_char():
 
 
 def test_trim_fullword():
+    assert trim_fullword('it\'s too long. but period.', 14) == 'it\'s too long'
+    assert trim_fullword('it\'s not too long.', 50) == 'it\'s not too long.'
     assert trim_fullword('don\'t break', 10) == 'don\'t'
     assert trim_fullword('this is a sentence', 5) == 'this'
     assert trim_fullword('thisIsTooLongJustCutIt', 4) == 'this'
