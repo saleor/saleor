@@ -4,6 +4,19 @@ IN_STOCK = 'http://schema.org/InStock'
 OUT_OF_STOCK = 'http://schema.org/OutOfStock'
 
 
+def get_brand_from_attributes(attributes):
+    if attributes is None:
+        return
+    brand = ''
+    for key in attributes:
+        if key.name == 'brand':
+            brand = attributes[key].name
+            break
+        elif key.name == 'publisher':
+            brand = attributes[key].name
+    return brand
+
+
 def product_json_ld(product, attributes=None):
     # type: (saleor.product.models.Product, saleor.product.utils.ProductAvailability, dict) -> dict  # noqa
     """Generate JSON-LD data for product."""
@@ -24,17 +37,9 @@ def product_json_ld(product, attributes=None):
         variant_data = variant_json_ld(price, variant, in_stock)
         data['offers'].append(variant_data)
 
-    if attributes is not None:
-        brand = ''
-        for key in attributes:
-            if key.name == 'brand':
-                brand = attributes[key].name
-                break
-            elif key.name == 'publisher':
-                brand = attributes[key].name
-
-        if brand:
-            data['brand'] = {'@type': 'Thing', 'name': brand}
+    brand = get_brand_from_attributes(attributes)
+    if brand:
+        data['brand'] = {'@type': 'Thing', 'name': brand}
     return data
 
 
