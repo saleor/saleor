@@ -4,14 +4,13 @@ from django.conf import settings
 from django.contrib import auth, messages
 from django.contrib.auth.decorators import login_required
 from django.db import transaction
-from django.db.models import F
 from django.http import Http404, HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect
 from django.template.response import TemplateResponse
 from django.utils.translation import pgettext_lazy
 from payments import PaymentStatus, RedirectNeeded
 
-from . import OrderStatus
+from . import FulfillmentStatus, OrderStatus
 from ..account.forms import LoginForm
 from ..account.models import User
 from ..core.utils import get_client_ip
@@ -41,7 +40,8 @@ def details(request, token):
             if note_form.is_valid():
                 note_form.save()
                 return redirect('order:details', token=order.token)
-    fulfillments = order.fulfillments.all()
+    fulfillments = order.fulfillments.filter(
+        status=FulfillmentStatus.FULFILLED)
     ctx.update({'fulfillments': fulfillments})
     return TemplateResponse(request, 'order/details.html', ctx)
 
