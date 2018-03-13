@@ -91,17 +91,33 @@
     }
     .label {
       line-height: 1;
-      margin-right: 24px;
+      margin-right: 16px;
+    }
+    h5 {
+      text-transform: initial;
+      font-size: 24px;
+      font-weight: 300;
+    }
+  }
+
+  &-content {
+    align-items: center;
+    display: flex;
+    flex-direction: column;
+    padding: 16px;
+
+    .input {
+      padding: 0;
     }
   }
 
   &-title {
     flex-grow: 1;
-    font-size: 20px;
+    font-size: 24px;
     font-weight: 300;
     line-height: 1;
     margin: 0;
-    padding: 0 24px;
+    padding: 0 16px;
     &--no-data {
       padding: 0 15px;
     }
@@ -146,7 +162,7 @@
   th, td {
     height: 48px;
     overflow: hidden;
-    padding: 0 24px;
+    padding: 0 16px;
     text-overflow: ellipsis;
     vertical-align: middle;
     white-space: nowrap;
@@ -156,11 +172,11 @@
     }
 
     &:first-child {
-      padding-left: 24px;
+      padding-left: 16px;
     }
 
     &:last-child {
-      padding-right: 24px;
+      padding-right: 16px;
     }
 
     &.no-padded {
@@ -177,6 +193,22 @@
       display: inline-block;
       svg {
         vertical-align: bottom;
+      }
+    }
+
+    &.fulfillment-quantity {
+      .fulfillment-quantity-input {
+        display: flex;
+        align-items: center;
+
+        input {
+          width: 64px;
+          margin-bottom: 0;
+          text-align: right;
+        }
+      }
+      label p {
+        margin: 8px 0;
       }
     }
   }

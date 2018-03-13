@@ -9,11 +9,10 @@ def test_get_purchased_items(order_with_lines, settings, voucher):
     payment = Payment.objects.create(order=order_with_lines, variant='paypal')
     discount = Money('10.0', settings.DEFAULT_CURRENCY)
 
-    assert len(payment.get_purchased_items()) == len(
-        order_with_lines.get_lines())
+    assert len(payment.get_purchased_items()) == order_with_lines.lines.count()
 
     for p, o in zip(
-            payment.get_purchased_items(), order_with_lines.get_lines()):
+            payment.get_purchased_items(), order_with_lines.lines.all()):
         assert p.sku == o.product_sku
         assert p.quantity == o.quantity
         assert p.price == o.unit_price_gross.quantize(Decimal('0.01')).amount
@@ -26,11 +25,11 @@ def test_get_purchased_items(order_with_lines, settings, voucher):
 
     settings.PAYMENT_VARIANTS = {'paypal': ('PaypalProvider', {})}
 
-    assert len(payment.get_purchased_items()) == len(
-        order_with_lines.get_lines()) + 1
+    assert len(payment.get_purchased_items()) == (
+        order_with_lines.lines.count() + 1)
 
     for p, o in zip(
-            payment.get_purchased_items()[:-1], order_with_lines.get_lines()):
+            payment.get_purchased_items()[:-1], order_with_lines.lines.all()):
         assert p.sku == o.product_sku
         assert p.quantity == o.quantity
         assert p.price == o.unit_price_gross.quantize(Decimal('0.01')).amount
