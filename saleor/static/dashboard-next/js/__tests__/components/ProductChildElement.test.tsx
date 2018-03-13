@@ -27,7 +27,7 @@ describe("<ProductChildElement />", () => {
           label={productFixture.node.name}
           url={`/products/${productFixture.node.id}/`}
           thumbnail={productFixture.node.thumbnailUrl}
-          price={productFixture.node.price.grossLocalized}
+          price={productFixture.node.price.localized}
           loading={false}
         />
       </MemoryRouter>
