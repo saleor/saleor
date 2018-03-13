@@ -90,7 +90,7 @@ export const categoryPropertiesQuery = gql`
             name
             thumbnailUrl
             price {
-              grossLocalized
+              localized
             }
           }
         }

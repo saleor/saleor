@@ -140,7 +140,7 @@ export interface CategoryPropertiesQuery {
           name: string,
           thumbnailUrl: string | null,
           price:  {
-            grossLocalized: string | null,
+            localized: string | null,
           } | null,
         } | null,
       } | null >,

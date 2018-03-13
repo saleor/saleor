@@ -40,7 +40,7 @@ export const ProductList: React.StatelessComponent<ProductListProps> = ({
             <ProductChildElement
               url="#"
               label={edge.node.name}
-              price={edge.node.price.grossLocalized}
+              price={edge.node.price.localized}
               thumbnail={edge.node.thumbnailUrl}
               key={edge.node.id}
             />
