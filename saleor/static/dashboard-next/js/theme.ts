@@ -5,10 +5,10 @@ const transition = "200ms";
 export default createMuiTheme({
   palette: {
     primary: {
-      main: "#2bb673"
+      main: "#009688"
     },
     secondary: {
-      main: "#26A5D4"
+      main: "#03A9F4"
     }
   }
 });
