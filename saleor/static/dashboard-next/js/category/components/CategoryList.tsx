@@ -12,46 +12,30 @@ import i18n from "../../i18n";
 interface CategoryListProps {
   loading?: boolean;
   categories: CategoryPropertiesQuery["category"]["children"]["edges"];
-  label: string;
-  parentId: string;
 }
 export const CategoryList: React.StatelessComponent<CategoryListProps> = ({
   loading,
-  categories,
-  label,
-  parentId
+  categories
 }) => (
-  <>
-    <Typography variant={"display1"}>{label}</Typography>
-    <Button
-      color="primary"
-      component={props => <Link to={categoryAddUrl(parentId)} {...props} />}
-      disabled={loading}
-    >
-      {i18n.t("Add category", { context: "button" })}
-    </Button>
-    <Grid container>
-      {loading ? (
-        <CategoryChildElement loading={true} label={""} url={""} />
-      ) : (
-        <>
-          {categories.length > 0 ? (
-            <>
-              {categories.map(edge => (
-                <CategoryChildElement
-                  url={categoryShowUrl(edge.node.id)}
-                  label={edge.node.name}
-                  key={edge.node.id}
-                />
-              ))}
-            </>
-          ) : (
-            <Typography variant="headline">
-              {i18n.t("No categories found")}
-            </Typography>
-          )}
-        </>
-      )}
-    </Grid>
-  </>
+  <Grid container>
+    {loading ? (
+      <Grid item xs={12} sm={6} md={4} lg={3} xl={2}>
+        <CategoryChildElement loading={true} label="" url="" />
+      </Grid>
+    ) : categories.length > 0 ? (
+      categories.map(edge => (
+        <Grid item xs={12} sm={6} md={4} lg={3} xl={2}>
+          <CategoryChildElement
+            url={categoryShowUrl(edge.node.id)}
+            label={edge.node.name}
+            key={edge.node.id}
+          />
+        </Grid>
+      ))
+    ) : (
+      <Grid item xs={12}>
+        <Typography variant="body2">{i18n.t("No categories found")}</Typography>
+      </Grid>
+    )}
+  </Grid>
 );
