@@ -147,7 +147,11 @@
         </div>
       </div>
     </div>
-    {% menu menus 'navbar' %}
+    <div class="navbar__menu container d-block">
+      <nav class="navigation">
+        {% menu menus 'navbar' horizontal=True %}
+      </nav>
+    </div>
   </header>
 {% endblock %}
 <div class="container maincontent">
@@ -173,7 +177,9 @@
             <svg data-src="{% static "images/logo.svg" %}" height="38px" width="176px"/>
           </a>
         </div>
-        {% footer_menu %}
+        <div class="col-md-3 col-sm-6">
+          {% menu menus 'footer' %}
+        </div>
         <div class="col-md-3 col-sm-6">
           <ul>
             <li>
