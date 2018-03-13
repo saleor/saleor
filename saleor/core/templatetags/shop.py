@@ -17,16 +17,14 @@ def get_sort_by_url(context, field, descending=False):
     return '%s?%s' % (request.path, urlencode(request_get))
 
 
-def get_menu_items(slug):
-    menu = Menu.objects.filter(slug=slug).prefetch_related('items').first()
-    return menu.get_direct_items() if menu else None
+@register.inclusion_tag('footer_menu.html')
+def footer_menu():
+    menu = Menu.objects.filter(slug='footer').prefetch_related('items').first()
+    return {'menu_items': menu.get_direct_items() if menu else None}
 
 
 @register.inclusion_tag('navbar_menu.html')
-def navbar_menu():
-    return {'menu_items': get_menu_items('navbar')}
-
-
-@register.inclusion_tag('footer_menu.html')
-def footer_menu():
-    return {'menu_items': get_menu_items('footer')}
+def menu(menus, slug):
+    menu = next((menu for menu in menus if menu.slug == slug), None)
+    menu_items = menu.get_direct_items() if menu else None
+    return {'menu_items': menu_items}
