@@ -7,7 +7,7 @@ export default [
       "thumbnailUrl":
         "/media/__sized__/products/saleor/static/placeholders/t-shirts/5_ZoF6Xi8-crop-c0-5__0-5-255x255-70.jpg",
       "price": {
-        "grossLocalized": "62,43 USD"
+        "localized": "62,43 USD"
       }
     }
   },
@@ -19,7 +19,7 @@ export default [
       "thumbnailUrl":
         "/media/__sized__/products/saleor/static/placeholders/t-shirts/6_07Fa6v8-crop-c0-5__0-5-255x255-70.jpg",
       "price": {
-        "grossLocalized": "29,98 USD"
+        "localized": "29,98 USD"
       }
     }
   },
@@ -31,7 +31,7 @@ export default [
       "thumbnailUrl":
         "/media/__sized__/products/saleor/static/placeholders/t-shirts/6_zeczDly-crop-c0-5__0-5-255x255-70.jpg",
       "price": {
-        "grossLocalized": "48,56 USD"
+        "localized": "48,56 USD"
       }
     }
   },
@@ -43,7 +43,7 @@ export default [
       "thumbnailUrl":
         "/media/__sized__/products/saleor/static/placeholders/t-shirts/5_VX2ikxl-crop-c0-5__0-5-255x255-70.jpg",
       "price": {
-        "grossLocalized": "80,54 USD"
+        "localized": "80,54 USD"
       }
     }
   },
@@ -55,7 +55,7 @@ export default [
       "thumbnailUrl":
         "/media/__sized__/products/saleor/static/placeholders/t-shirts/5_wl4FUo7-crop-c0-5__0-5-255x255-70.jpg",
       "price": {
-        "grossLocalized": "67,18 USD"
+        "localized": "67,18 USD"
       }
     }
   },
@@ -67,7 +67,7 @@ export default [
       "thumbnailUrl":
         "/media/__sized__/products/saleor/static/placeholders/t-shirts/5_c0nSiAe-crop-c0-5__0-5-255x255-70.jpg",
       "price": {
-        "grossLocalized": "50,22 USD"
+        "localized": "50,22 USD"
       }
     }
   },
@@ -79,7 +79,7 @@ export default [
       "thumbnailUrl":
         "/media/__sized__/products/saleor/static/placeholders/t-shirts/6_qHI83dZ-crop-c0-5__0-5-255x255-70.jpg",
       "price": {
-        "grossLocalized": "17,81 USD"
+        "localized": "17,81 USD"
       }
     }
   },
@@ -91,7 +91,7 @@ export default [
       "thumbnailUrl":
         "/media/__sized__/products/saleor/static/placeholders/t-shirts/5_06TblXK-crop-c0-5__0-5-255x255-70.jpg",
       "price": {
-        "grossLocalized": "48,41 USD"
+        "localized": "48,41 USD"
       }
     }
   },
@@ -103,7 +103,7 @@ export default [
       "thumbnailUrl":
         "/media/__sized__/products/saleor/static/placeholders/t-shirts/6_yMYqzTc-crop-c0-5__0-5-255x255-70.jpg",
       "price": {
-        "grossLocalized": "55,36 USD"
+        "localized": "55,36 USD"
       }
     }
   },
@@ -115,7 +115,7 @@ export default [
       "thumbnailUrl":
         "/media/__sized__/products/saleor/static/placeholders/t-shirts/5_eWtYYcz-crop-c0-5__0-5-255x255-70.jpg",
       "price": {
-        "grossLocalized": "92,13 USD"
+        "localized": "92,13 USD"
       }
     }
   }
