@@ -10,7 +10,7 @@ from django.template.response import TemplateResponse
 from django.utils.translation import pgettext_lazy
 from payments import PaymentStatus, RedirectNeeded
 
-from . import OrderStatus
+from . import FulfillmentStatus, OrderStatus
 from ..account.forms import LoginForm
 from ..account.models import User
 from ..core.utils import get_client_ip
@@ -23,14 +23,15 @@ logger = logging.getLogger(__name__)
 
 
 def details(request, token):
-    orders = Order.objects.prefetch_related('groups__lines__product')
+    orders = Order.objects.prefetch_related(
+        'lines__product', 'fulfillments', 'fulfillments__lines',
+        'fulfillments__lines__order_line')
     orders = orders.select_related(
         'billing_address', 'shipping_address', 'user')
     order = get_object_or_404(orders, token=token)
-    groups = order.groups.all()
     notes = order.notes.filter(is_public=True)
-    ctx = {'order': order, 'groups': groups, 'notes': notes}
-    if order.status == OrderStatus.OPEN:
+    ctx = {'order': order, 'notes': notes}
+    if order.status == OrderStatus.UNFULFILLED:
         user = request.user if request.user.is_authenticated else None
         note = OrderNote(order=order, user=user)
         note_form = OrderNoteForm(request.POST or None, instance=note)
@@ -39,15 +40,17 @@ def details(request, token):
             if note_form.is_valid():
                 note_form.save()
                 return redirect('order:details', token=order.token)
+    fulfillments = order.fulfillments.filter(
+        status=FulfillmentStatus.FULFILLED)
+    ctx.update({'fulfillments': fulfillments})
     return TemplateResponse(request, 'order/details.html', ctx)
 
 
 def payment(request, token):
-    orders = Order.objects.prefetch_related('groups__lines__product')
+    orders = Order.objects.prefetch_related('lines__product')
     orders = orders.select_related(
         'billing_address', 'shipping_address', 'user')
     order = get_object_or_404(orders, token=token)
-    groups = order.groups.all()
     payments = order.payments.all()
     form_data = request.POST or None
     try:
@@ -70,8 +73,8 @@ def payment(request, token):
             return redirect(
                 'order:payment', token=order.token, variant=payment_method)
     ctx = {
-        'order': order, 'groups': groups, 'payment_form': payment_form,
-        'payments': payments, 'waiting_payment': waiting_payment,
+        'order': order, 'payment_form': payment_form, 'payments': payments,
+        'waiting_payment': waiting_payment,
         'waiting_payment_form': waiting_payment_form}
     return TemplateResponse(request, 'order/payment.html', ctx)
 

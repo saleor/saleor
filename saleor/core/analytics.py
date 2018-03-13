@@ -47,13 +47,12 @@ def report_view(client_id, path, language, headers):
 
 
 def report_order(client_id, order):
-    for group in order:
-        items = [
-            ga.Item(
-                ol.product_name, ol.get_price_per_item(), quantity=ol.quantity,
-                item_id=ol.product_sku)
-            for ol in group]
-        trans = ga.Transaction(
-            '%s-%s' % (order.id, group.id), items, revenue=group.get_total(),
-            shipping=group.order.shipping_price)
-        _report(client_id, trans, {})
+    items = [
+        ga.Item(
+            ol.product_name, ol.get_price_per_item(), quantity=ol.quantity,
+            item_id=ol.product_sku)
+        for ol in order]
+    trans = ga.Transaction(
+        '%s' % (order.id,), items, revenue=order.get_total(),
+        shipping=order.shipping_price)
+    _report(client_id, trans, {})

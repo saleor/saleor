@@ -1,7 +1,7 @@
 {% extends "dashboard/base.html" %}
 {% load i18n %}
 {% load prices_i18n %}
-{% load render_status from status %}
+{% load status %}
 
 {% block title %}
   {{ block.super }}
@@ -100,7 +100,7 @@
                       #{{ order.id }}
                     </td>
                     <td>
-                      {% render_status order.status order.get_status_display %}
+                      {% render_order_status order.status order.get_status_display %}
                     </td>
                     {% trans "Guest" context "Anonymous user account value" as guest %}
                     <td>

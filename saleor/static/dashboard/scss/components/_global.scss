@@ -173,6 +173,10 @@ svg {
   .card-title {
     overflow-wrap: break-word;
   }
+
+  .card-border {
+    border-bottom: 1px solid $table-border-color;
+  }
 }
 
 .row {
