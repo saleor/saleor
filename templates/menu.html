@@ -1,0 +1,10 @@
+{% url 'home' as home_url %}
+<ul class="{% if horizontal %}nav mb-4 mb-md-0{% endif %}{% if request.get_full_path == home_url %} no-border{% endif %}">
+  {% for item in menu_items %}
+    <li class="{% if horizontal %}nav-item{% endif %}">
+      <a class="{% if horizontal %}nav-link{% endif %}" href="{{ item.get_url }}">
+        {{ item }}
+      </a>
+    </li>
+  {% endfor %}
+</ul>

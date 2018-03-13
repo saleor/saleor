@@ -17,14 +17,8 @@ def get_sort_by_url(context, field, descending=False):
     return '%s?%s' % (request.path, urlencode(request_get))
 
 
-@register.inclusion_tag('footer_menu.html')
-def footer_menu():
-    menu = Menu.objects.filter(slug='footer').prefetch_related('items').first()
-    return {'menu_items': menu.get_direct_items() if menu else None}
-
-
-@register.inclusion_tag('navbar_menu.html')
-def menu(menus, slug):
+@register.inclusion_tag('menu.html')
+def menu(menus, slug, horizontal=False):
     menu = next((menu for menu in menus if menu.slug == slug), None)
     menu_items = menu.get_direct_items() if menu else None
-    return {'menu_items': menu_items}
+    return {'menu_items': menu_items, 'horizontal': horizontal}
