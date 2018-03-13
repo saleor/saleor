@@ -5,6 +5,7 @@ import dj_database_url
 import dj_email_url
 import django_cache_url
 from django.contrib.messages import constants as messages
+from django.utils.translation import gettext_lazy as _
 
 
 def get_list(text):
@@ -43,6 +44,28 @@ DATABASES = {
 
 TIME_ZONE = 'America/Chicago'
 LANGUAGE_CODE = 'en-us'
+LANGUAGES = [
+    ('bg', _('Bulgarian (Bulgaria')),
+    ('de', _('German')),
+    ('en', _('English')),
+    ('es', _('Spanish')),
+    ('fa-ir', _('Persian (Iran)')),
+    ('fr', _('French')),
+    ('hu', _('Hungarian')),
+    ('it', _('Italian')),
+    ('ja', _('Japanese')),
+    ('ko', _('Korean')),
+    ('nb', _('Norwegian')),
+    ('nl', _('Dutch')),
+    ('pl', _('Polish')),
+    ('pt-br', _('Portuguese (Brazil)')),
+    ('ro', _('Romanian')),
+    ('ru', _('Russian')),
+    ('sk', _('Slovak')),
+    ('tr', _('Turkish')),
+    ('uk', _('Ukrainian')),
+    ('vi', _('Vietnamese')),
+    ('zh-hans', _('Chinese'))]
 LOCALE_PATHS = [os.path.join(PROJECT_ROOT, 'locale')]
 USE_I18N = True
 USE_L10N = True
