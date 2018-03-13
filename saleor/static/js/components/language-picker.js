@@ -1,4 +1,3 @@
-
 $('.language-pick').on('click', (e) => {
   const $target = $(e.currentTarget);
   const $langCode = $target.attr('js-lang');
