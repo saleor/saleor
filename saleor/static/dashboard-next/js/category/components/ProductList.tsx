@@ -25,45 +25,33 @@ export const ProductList: React.StatelessComponent<ProductListProps> = ({
   canLoadMore
 }) => (
   <>
-    <Typography variant="display1">
-      {i18n.t("Products", { context: "title" })}
-    </Typography>
-    <Button
-      color="primary"
-      component={props => <Link to={"#"} {...props} />}
-      disabled={loading}
-    >
-      {i18n.t("Add product", { context: "button" })}
-    </Button>
     <Grid container>
       {loading ? (
-        <ProductChildElement
-          loading={true}
-          label={""}
-          url={""}
-          price=""
-          thumbnail=""
-        />
+        <Grid item xs={12} sm={6} md={4} lg={3} xl={2}>
+          <ProductChildElement
+            loading={true}
+            label=""
+            url=""
+            price=""
+            thumbnail=""
+          />
+        </Grid>
+      ) : products.length > 0 ? (
+        products.map(edge => (
+          <Grid item xs={12} sm={6} md={4} lg={3} xl={2}>
+            <ProductChildElement
+              url="#"
+              label={edge.node.name}
+              price={edge.node.price.grossLocalized}
+              thumbnail={edge.node.thumbnailUrl}
+              key={edge.node.id}
+            />
+          </Grid>
+        ))
       ) : (
-        <>
-          {products.length > 0 ? (
-            <>
-              {products.map(edge => (
-                <ProductChildElement
-                  url={"#"}
-                  label={edge.node.name}
-                  price={edge.node.price.grossLocalized}
-                  thumbnail={edge.node.thumbnailUrl}
-                  key={edge.node.id}
-                />
-              ))}
-            </>
-          ) : (
-            <Typography variant="headline">
-              {i18n.t("No products found")}
-            </Typography>
-          )}
-        </>
+        <Grid item xs={12}>
+          <Typography variant="body2">{i18n.t("No products found")}</Typography>
+        </Grid>
       )}
     </Grid>
     {canLoadMore && (

@@ -2,7 +2,7 @@ import { InMemoryCache } from "apollo-cache-inmemory";
 import { ApolloClient } from "apollo-client";
 import { HttpLink } from "apollo-link-http";
 import MuiThemeProvider from "material-ui/styles/MuiThemeProvider";
-import Reboot from "material-ui/Reboot";
+import CssBaseline from "material-ui/CssBaseline";
 import * as React from "react";
 import { Fragment } from "react";
 import { ApolloProvider } from "react-apollo";
@@ -36,11 +36,13 @@ render(
     <ApolloProvider client={apolloClient}>
       <BrowserRouter basename="/dashboard/next/">
         <MuiThemeProvider theme={theme}>
-          <Reboot />
+          <CssBaseline />
           <AppRoot>
-            <Switch>
-              <Route path={"/categories"} component={CategorySection} />
-            </Switch>
+            {titleBar => (
+              <Switch>
+                <Route path="/categories" component={CategorySection} />
+              </Switch>
+            )}
           </AppRoot>
         </MuiThemeProvider>
       </BrowserRouter>
