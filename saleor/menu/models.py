@@ -30,12 +30,12 @@ class MenuItem(MPTTModel):
         Menu, related_name='items', on_delete=models.CASCADE)
     name = models.CharField(max_length=128)
     sort_order = models.PositiveIntegerField(editable=False)
-    url = models.URLField(max_length=256)
     parent = models.ForeignKey(
         'self', null=True, blank=True, related_name='children',
         on_delete=models.CASCADE)
 
-    # not mandatory fields, usage depends on URL
+    # not mandatory fields, usage depends on what type of link is stored
+    url = models.URLField(max_length=256, blank=True, null=True)
     category = models.ForeignKey(
         Category, blank=True, null=True, on_delete=models.CASCADE)
     collection = models.ForeignKey(

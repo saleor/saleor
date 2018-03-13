@@ -30,7 +30,7 @@ class Migration(migrations.Migration):
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('name', models.CharField(max_length=128)),
                 ('sort_order', models.PositiveIntegerField(editable=False)),
-                ('url', models.URLField(max_length=256)),
+                ('url', models.URLField(blank=True, max_length=256, null=True)),
                 ('lft', models.PositiveIntegerField(db_index=True, editable=False)),
                 ('rght', models.PositiveIntegerField(db_index=True, editable=False)),
                 ('tree_id', models.PositiveIntegerField(db_index=True, editable=False)),

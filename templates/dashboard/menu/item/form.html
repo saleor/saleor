@@ -80,8 +80,7 @@
           <div class="card-content">
             {% csrf_token %}
             <div class="row">
-              {{ form.name|materializecss }}
-              {{ form.linked_object|materializecss }}
+              {{ form|materializecss }}
             </div>
           </div>
           <div class="card-action right-align">
