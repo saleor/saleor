@@ -695,10 +695,12 @@ def test_sanitize_product_description(product_type, default_category):
     form.save()
     assert product.description == (
         '<b>bold</b><p><i>italic</i></p><h2>Header</h2><h3>subheader</h3>'
-        '<blockquote>quote</blockquote><p><a href="www.mirumee.com">link</a></p>'
+        '<blockquote>quote</blockquote>'
+        '<p><a href="www.mirumee.com">link</a></p>'
         '<p>an &lt;script&gt;evil()&lt;/script&gt;example</p>')
 
-    assert product.seo_description == 'bolditalicHeadersubheaderquotelinkan evil()example'
+    assert product.seo_description == (
+        'bolditalicHeadersubheaderquotelinkan evil()example')
 
 
 def test_set_product_seo_description(unavailable_product):
@@ -715,3 +717,36 @@ def test_set_product_seo_description(unavailable_product):
     assert form.is_valid()
     form.save()
     assert unavailable_product.seo_description == seo_description
+
+
+def test_set_product_description_too_long_for_seo(unavailable_product):
+    description = (
+        'Saying it fourth made saw light bring beginning kind over herb '
+        'won\'t creepeth multiply dry rule divided fish herb cattle greater '
+        'fly divided midst, gathering can\'t moveth seed greater subdue. '
+        'Lesser meat living fowl called. Dry don\'t wherein. Doesn\'t above '
+        'form sixth. Image moving earth without forth light whales. Seas '
+        'were first form fruit that form they\'re, shall air. And. Good of' 
+        'signs darkness be place. Was. Is form it. Whose. Herb signs stars '
+        'fill own fruit wherein. '
+        'Don\'t set man face living fifth Thing the whales were. '
+        'You fish kind. '
+        'Them, his under wherein place first you night gathering.')
+
+    data = model_to_dict(unavailable_product)
+    data['price'] = 20
+    data['description'] = description
+
+    form = ProductForm(data, instance=unavailable_product)
+
+    assert form.is_valid()
+    form.save()
+
+    assert len(unavailable_product.seo_description) < 300
+    assert unavailable_product.seo_description == (
+        'Saying it fourth made saw light bring beginning kind over herb '
+        'won\'t creepeth multiply dry rule divided fish herb cattle greater '
+        'fly divided midst, gathering can\'t moveth seed greater subdue. '
+        'Lesser meat living fowl called. Dry don\'t wherein. Doesn\'t above '
+        'form sixth. Image moving earth without'
+    )
