@@ -25,7 +25,7 @@
           {% sorting_header 'name' label is_wide=True %}
 
           {% trans "Points to" context "Menu items list table header points to" as label %}
-          {% sorting_header 'destination' label %}
+          <th>{{ label }}</th>
 
           {% if perms.menu.edit_menu %}
             <th></th>
