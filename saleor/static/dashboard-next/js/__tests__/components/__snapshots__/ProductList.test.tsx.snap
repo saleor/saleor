@@ -1,0 +1,1074 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`<ProductList /> renders properly 'load more' button 1`] = `
+Array [
+  <div
+    className="MuiGrid-typeContainer-1 MuiGrid-spacing-xs-16-23"
+  >
+    <div
+      className="MuiGrid-typeItem-2 MuiGrid-grid-xs-12-38 MuiGrid-grid-sm-6-45 MuiGrid-grid-md-4-56 MuiGrid-grid-lg-3-68 MuiGrid-grid-xl-2-80"
+    >
+      <a
+        className="MuiButtonBase-root-95 Component-button-91"
+        href="#"
+        onBlur={[Function]}
+        onClick={[Function]}
+        onFocus={[Function]}
+        onKeyDown={[Function]}
+        onKeyUp={[Function]}
+        onMouseDown={[Function]}
+        onMouseLeave={[Function]}
+        onMouseUp={[Function]}
+        onTouchEnd={[Function]}
+        onTouchMove={[Function]}
+        onTouchStart={[Function]}
+        role="button"
+        tabIndex="0"
+      >
+        <div
+          className="MuiCardMedia-root-98 Component-media-92"
+          src={undefined}
+          style={
+            Object {
+              "backgroundImage": "url(/media/__sized__/products/saleor/static/placeholders/t-shirts/5_ZoF6Xi8-crop-c0-5__0-5-255x255-70.jpg)",
+            }
+          }
+        />
+        <div
+          className="MuiCardContent-root-100 Component-content-93"
+        >
+          <span
+            className="MuiTypography-root-101 MuiTypography-button-112"
+          >
+            Lewis PLC
+          </span>
+          <p
+            className="MuiTypography-root-101 MuiTypography-body1-110 Component-price-94"
+          >
+            62,43 USD
+          </p>
+        </div>
+        <span
+          className="MuiTouchRipple-root-126"
+        />
+      </a>
+    </div>
+    <div
+      className="MuiGrid-typeItem-2 MuiGrid-grid-xs-12-38 MuiGrid-grid-sm-6-45 MuiGrid-grid-md-4-56 MuiGrid-grid-lg-3-68 MuiGrid-grid-xl-2-80"
+    >
+      <a
+        className="MuiButtonBase-root-95 Component-button-91"
+        href="#"
+        onBlur={[Function]}
+        onClick={[Function]}
+        onFocus={[Function]}
+        onKeyDown={[Function]}
+        onKeyUp={[Function]}
+        onMouseDown={[Function]}
+        onMouseLeave={[Function]}
+        onMouseUp={[Function]}
+        onTouchEnd={[Function]}
+        onTouchMove={[Function]}
+        onTouchStart={[Function]}
+        role="button"
+        tabIndex="0"
+      >
+        <div
+          className="MuiCardMedia-root-98 Component-media-92"
+          src={undefined}
+          style={
+            Object {
+              "backgroundImage": "url(/media/__sized__/products/saleor/static/placeholders/t-shirts/6_07Fa6v8-crop-c0-5__0-5-255x255-70.jpg)",
+            }
+          }
+        />
+        <div
+          className="MuiCardContent-root-100 Component-content-93"
+        >
+          <span
+            className="MuiTypography-root-101 MuiTypography-button-112"
+          >
+            Kennedy-Ramirez
+          </span>
+          <p
+            className="MuiTypography-root-101 MuiTypography-body1-110 Component-price-94"
+          >
+            29,98 USD
+          </p>
+        </div>
+        <span
+          className="MuiTouchRipple-root-126"
+        />
+      </a>
+    </div>
+    <div
+      className="MuiGrid-typeItem-2 MuiGrid-grid-xs-12-38 MuiGrid-grid-sm-6-45 MuiGrid-grid-md-4-56 MuiGrid-grid-lg-3-68 MuiGrid-grid-xl-2-80"
+    >
+      <a
+        className="MuiButtonBase-root-95 Component-button-91"
+        href="#"
+        onBlur={[Function]}
+        onClick={[Function]}
+        onFocus={[Function]}
+        onKeyDown={[Function]}
+        onKeyUp={[Function]}
+        onMouseDown={[Function]}
+        onMouseLeave={[Function]}
+        onMouseUp={[Function]}
+        onTouchEnd={[Function]}
+        onTouchMove={[Function]}
+        onTouchStart={[Function]}
+        role="button"
+        tabIndex="0"
+      >
+        <div
+          className="MuiCardMedia-root-98 Component-media-92"
+          src={undefined}
+          style={
+            Object {
+              "backgroundImage": "url(/media/__sized__/products/saleor/static/placeholders/t-shirts/6_zeczDly-crop-c0-5__0-5-255x255-70.jpg)",
+            }
+          }
+        />
+        <div
+          className="MuiCardContent-root-100 Component-content-93"
+        >
+          <span
+            className="MuiTypography-root-101 MuiTypography-button-112"
+          >
+            Newman, Ashley and Roberson
+          </span>
+          <p
+            className="MuiTypography-root-101 MuiTypography-body1-110 Component-price-94"
+          >
+            48,56 USD
+          </p>
+        </div>
+        <span
+          className="MuiTouchRipple-root-126"
+        />
+      </a>
+    </div>
+    <div
+      className="MuiGrid-typeItem-2 MuiGrid-grid-xs-12-38 MuiGrid-grid-sm-6-45 MuiGrid-grid-md-4-56 MuiGrid-grid-lg-3-68 MuiGrid-grid-xl-2-80"
+    >
+      <a
+        className="MuiButtonBase-root-95 Component-button-91"
+        href="#"
+        onBlur={[Function]}
+        onClick={[Function]}
+        onFocus={[Function]}
+        onKeyDown={[Function]}
+        onKeyUp={[Function]}
+        onMouseDown={[Function]}
+        onMouseLeave={[Function]}
+        onMouseUp={[Function]}
+        onTouchEnd={[Function]}
+        onTouchMove={[Function]}
+        onTouchStart={[Function]}
+        role="button"
+        tabIndex="0"
+      >
+        <div
+          className="MuiCardMedia-root-98 Component-media-92"
+          src={undefined}
+          style={
+            Object {
+              "backgroundImage": "url(/media/__sized__/products/saleor/static/placeholders/t-shirts/5_VX2ikxl-crop-c0-5__0-5-255x255-70.jpg)",
+            }
+          }
+        />
+        <div
+          className="MuiCardContent-root-100 Component-content-93"
+        >
+          <span
+            className="MuiTypography-root-101 MuiTypography-button-112"
+          >
+            Jacobson, Stewart and Rodriguez
+          </span>
+          <p
+            className="MuiTypography-root-101 MuiTypography-body1-110 Component-price-94"
+          >
+            80,54 USD
+          </p>
+        </div>
+        <span
+          className="MuiTouchRipple-root-126"
+        />
+      </a>
+    </div>
+    <div
+      className="MuiGrid-typeItem-2 MuiGrid-grid-xs-12-38 MuiGrid-grid-sm-6-45 MuiGrid-grid-md-4-56 MuiGrid-grid-lg-3-68 MuiGrid-grid-xl-2-80"
+    >
+      <a
+        className="MuiButtonBase-root-95 Component-button-91"
+        href="#"
+        onBlur={[Function]}
+        onClick={[Function]}
+        onFocus={[Function]}
+        onKeyDown={[Function]}
+        onKeyUp={[Function]}
+        onMouseDown={[Function]}
+        onMouseLeave={[Function]}
+        onMouseUp={[Function]}
+        onTouchEnd={[Function]}
+        onTouchMove={[Function]}
+        onTouchStart={[Function]}
+        role="button"
+        tabIndex="0"
+      >
+        <div
+          className="MuiCardMedia-root-98 Component-media-92"
+          src={undefined}
+          style={
+            Object {
+              "backgroundImage": "url(/media/__sized__/products/saleor/static/placeholders/t-shirts/5_wl4FUo7-crop-c0-5__0-5-255x255-70.jpg)",
+            }
+          }
+        />
+        <div
+          className="MuiCardContent-root-100 Component-content-93"
+        >
+          <span
+            className="MuiTypography-root-101 MuiTypography-button-112"
+          >
+            Sloan Ltd
+          </span>
+          <p
+            className="MuiTypography-root-101 MuiTypography-body1-110 Component-price-94"
+          >
+            67,18 USD
+          </p>
+        </div>
+        <span
+          className="MuiTouchRipple-root-126"
+        />
+      </a>
+    </div>
+    <div
+      className="MuiGrid-typeItem-2 MuiGrid-grid-xs-12-38 MuiGrid-grid-sm-6-45 MuiGrid-grid-md-4-56 MuiGrid-grid-lg-3-68 MuiGrid-grid-xl-2-80"
+    >
+      <a
+        className="MuiButtonBase-root-95 Component-button-91"
+        href="#"
+        onBlur={[Function]}
+        onClick={[Function]}
+        onFocus={[Function]}
+        onKeyDown={[Function]}
+        onKeyUp={[Function]}
+        onMouseDown={[Function]}
+        onMouseLeave={[Function]}
+        onMouseUp={[Function]}
+        onTouchEnd={[Function]}
+        onTouchMove={[Function]}
+        onTouchStart={[Function]}
+        role="button"
+        tabIndex="0"
+      >
+        <div
+          className="MuiCardMedia-root-98 Component-media-92"
+          src={undefined}
+          style={
+            Object {
+              "backgroundImage": "url(/media/__sized__/products/saleor/static/placeholders/t-shirts/5_c0nSiAe-crop-c0-5__0-5-255x255-70.jpg)",
+            }
+          }
+        />
+        <div
+          className="MuiCardContent-root-100 Component-content-93"
+        >
+          <span
+            className="MuiTypography-root-101 MuiTypography-button-112"
+          >
+            Foster-Beard
+          </span>
+          <p
+            className="MuiTypography-root-101 MuiTypography-body1-110 Component-price-94"
+          >
+            50,22 USD
+          </p>
+        </div>
+        <span
+          className="MuiTouchRipple-root-126"
+        />
+      </a>
+    </div>
+    <div
+      className="MuiGrid-typeItem-2 MuiGrid-grid-xs-12-38 MuiGrid-grid-sm-6-45 MuiGrid-grid-md-4-56 MuiGrid-grid-lg-3-68 MuiGrid-grid-xl-2-80"
+    >
+      <a
+        className="MuiButtonBase-root-95 Component-button-91"
+        href="#"
+        onBlur={[Function]}
+        onClick={[Function]}
+        onFocus={[Function]}
+        onKeyDown={[Function]}
+        onKeyUp={[Function]}
+        onMouseDown={[Function]}
+        onMouseLeave={[Function]}
+        onMouseUp={[Function]}
+        onTouchEnd={[Function]}
+        onTouchMove={[Function]}
+        onTouchStart={[Function]}
+        role="button"
+        tabIndex="0"
+      >
+        <div
+          className="MuiCardMedia-root-98 Component-media-92"
+          src={undefined}
+          style={
+            Object {
+              "backgroundImage": "url(/media/__sized__/products/saleor/static/placeholders/t-shirts/6_qHI83dZ-crop-c0-5__0-5-255x255-70.jpg)",
+            }
+          }
+        />
+        <div
+          className="MuiCardContent-root-100 Component-content-93"
+        >
+          <span
+            className="MuiTypography-root-101 MuiTypography-button-112"
+          >
+            Henson PLC
+          </span>
+          <p
+            className="MuiTypography-root-101 MuiTypography-body1-110 Component-price-94"
+          >
+            17,81 USD
+          </p>
+        </div>
+        <span
+          className="MuiTouchRipple-root-126"
+        />
+      </a>
+    </div>
+    <div
+      className="MuiGrid-typeItem-2 MuiGrid-grid-xs-12-38 MuiGrid-grid-sm-6-45 MuiGrid-grid-md-4-56 MuiGrid-grid-lg-3-68 MuiGrid-grid-xl-2-80"
+    >
+      <a
+        className="MuiButtonBase-root-95 Component-button-91"
+        href="#"
+        onBlur={[Function]}
+        onClick={[Function]}
+        onFocus={[Function]}
+        onKeyDown={[Function]}
+        onKeyUp={[Function]}
+        onMouseDown={[Function]}
+        onMouseLeave={[Function]}
+        onMouseUp={[Function]}
+        onTouchEnd={[Function]}
+        onTouchMove={[Function]}
+        onTouchStart={[Function]}
+        role="button"
+        tabIndex="0"
+      >
+        <div
+          className="MuiCardMedia-root-98 Component-media-92"
+          src={undefined}
+          style={
+            Object {
+              "backgroundImage": "url(/media/__sized__/products/saleor/static/placeholders/t-shirts/5_06TblXK-crop-c0-5__0-5-255x255-70.jpg)",
+            }
+          }
+        />
+        <div
+          className="MuiCardContent-root-100 Component-content-93"
+        >
+          <span
+            className="MuiTypography-root-101 MuiTypography-button-112"
+          >
+            Novak, Lopez and Cook
+          </span>
+          <p
+            className="MuiTypography-root-101 MuiTypography-body1-110 Component-price-94"
+          >
+            48,41 USD
+          </p>
+        </div>
+        <span
+          className="MuiTouchRipple-root-126"
+        />
+      </a>
+    </div>
+    <div
+      className="MuiGrid-typeItem-2 MuiGrid-grid-xs-12-38 MuiGrid-grid-sm-6-45 MuiGrid-grid-md-4-56 MuiGrid-grid-lg-3-68 MuiGrid-grid-xl-2-80"
+    >
+      <a
+        className="MuiButtonBase-root-95 Component-button-91"
+        href="#"
+        onBlur={[Function]}
+        onClick={[Function]}
+        onFocus={[Function]}
+        onKeyDown={[Function]}
+        onKeyUp={[Function]}
+        onMouseDown={[Function]}
+        onMouseLeave={[Function]}
+        onMouseUp={[Function]}
+        onTouchEnd={[Function]}
+        onTouchMove={[Function]}
+        onTouchStart={[Function]}
+        role="button"
+        tabIndex="0"
+      >
+        <div
+          className="MuiCardMedia-root-98 Component-media-92"
+          src={undefined}
+          style={
+            Object {
+              "backgroundImage": "url(/media/__sized__/products/saleor/static/placeholders/t-shirts/6_yMYqzTc-crop-c0-5__0-5-255x255-70.jpg)",
+            }
+          }
+        />
+        <div
+          className="MuiCardContent-root-100 Component-content-93"
+        >
+          <span
+            className="MuiTypography-root-101 MuiTypography-button-112"
+          >
+            Thompson-Jones
+          </span>
+          <p
+            className="MuiTypography-root-101 MuiTypography-body1-110 Component-price-94"
+          >
+            55,36 USD
+          </p>
+        </div>
+        <span
+          className="MuiTouchRipple-root-126"
+        />
+      </a>
+    </div>
+    <div
+      className="MuiGrid-typeItem-2 MuiGrid-grid-xs-12-38 MuiGrid-grid-sm-6-45 MuiGrid-grid-md-4-56 MuiGrid-grid-lg-3-68 MuiGrid-grid-xl-2-80"
+    >
+      <a
+        className="MuiButtonBase-root-95 Component-button-91"
+        href="#"
+        onBlur={[Function]}
+        onClick={[Function]}
+        onFocus={[Function]}
+        onKeyDown={[Function]}
+        onKeyUp={[Function]}
+        onMouseDown={[Function]}
+        onMouseLeave={[Function]}
+        onMouseUp={[Function]}
+        onTouchEnd={[Function]}
+        onTouchMove={[Function]}
+        onTouchStart={[Function]}
+        role="button"
+        tabIndex="0"
+      >
+        <div
+          className="MuiCardMedia-root-98 Component-media-92"
+          src={undefined}
+          style={
+            Object {
+              "backgroundImage": "url(/media/__sized__/products/saleor/static/placeholders/t-shirts/5_eWtYYcz-crop-c0-5__0-5-255x255-70.jpg)",
+            }
+          }
+        />
+        <div
+          className="MuiCardContent-root-100 Component-content-93"
+        >
+          <span
+            className="MuiTypography-root-101 MuiTypography-button-112"
+          >
+            Cunningham, Torres and Day
+          </span>
+          <p
+            className="MuiTypography-root-101 MuiTypography-body1-110 Component-price-94"
+          >
+            92,13 USD
+          </p>
+        </div>
+        <span
+          className="MuiTouchRipple-root-126"
+        />
+      </a>
+    </div>
+  </div>,
+  <button
+    className="MuiButtonBase-root-95 MuiButton-root-133 MuiButton-flatPrimary-135"
+    disabled={false}
+    onBlur={[Function]}
+    onClick={[MockFunction]}
+    onFocus={[Function]}
+    onKeyDown={[Function]}
+    onKeyUp={[Function]}
+    onMouseDown={[Function]}
+    onMouseLeave={[Function]}
+    onMouseUp={[Function]}
+    onTouchEnd={[Function]}
+    onTouchMove={[Function]}
+    onTouchStart={[Function]}
+    tabIndex="0"
+    type="button"
+  >
+    <span
+      className="MuiButton-label-134"
+    >
+      Load more
+    </span>
+    <span
+      className="MuiTouchRipple-root-126"
+    />
+  </button>,
+]
+`;
+
+exports[`<ProductList /> renders properly when data is loaded 1`] = `
+<div
+  className="MuiGrid-typeContainer-1 MuiGrid-spacing-xs-16-23"
+>
+  <div
+    className="MuiGrid-typeItem-2 MuiGrid-grid-xs-12-38 MuiGrid-grid-sm-6-45 MuiGrid-grid-md-4-56 MuiGrid-grid-lg-3-68 MuiGrid-grid-xl-2-80"
+  >
+    <a
+      className="MuiButtonBase-root-95 Component-button-91"
+      href="#"
+      onBlur={[Function]}
+      onClick={[Function]}
+      onFocus={[Function]}
+      onKeyDown={[Function]}
+      onKeyUp={[Function]}
+      onMouseDown={[Function]}
+      onMouseLeave={[Function]}
+      onMouseUp={[Function]}
+      onTouchEnd={[Function]}
+      onTouchMove={[Function]}
+      onTouchStart={[Function]}
+      role="button"
+      tabIndex="0"
+    >
+      <div
+        className="MuiCardMedia-root-98 Component-media-92"
+        src={undefined}
+        style={
+          Object {
+            "backgroundImage": "url(/media/__sized__/products/saleor/static/placeholders/t-shirts/5_ZoF6Xi8-crop-c0-5__0-5-255x255-70.jpg)",
+          }
+        }
+      />
+      <div
+        className="MuiCardContent-root-100 Component-content-93"
+      >
+        <span
+          className="MuiTypography-root-101 MuiTypography-button-112"
+        >
+          Lewis PLC
+        </span>
+        <p
+          className="MuiTypography-root-101 MuiTypography-body1-110 Component-price-94"
+        >
+          62,43 USD
+        </p>
+      </div>
+      <span
+        className="MuiTouchRipple-root-126"
+      />
+    </a>
+  </div>
+  <div
+    className="MuiGrid-typeItem-2 MuiGrid-grid-xs-12-38 MuiGrid-grid-sm-6-45 MuiGrid-grid-md-4-56 MuiGrid-grid-lg-3-68 MuiGrid-grid-xl-2-80"
+  >
+    <a
+      className="MuiButtonBase-root-95 Component-button-91"
+      href="#"
+      onBlur={[Function]}
+      onClick={[Function]}
+      onFocus={[Function]}
+      onKeyDown={[Function]}
+      onKeyUp={[Function]}
+      onMouseDown={[Function]}
+      onMouseLeave={[Function]}
+      onMouseUp={[Function]}
+      onTouchEnd={[Function]}
+      onTouchMove={[Function]}
+      onTouchStart={[Function]}
+      role="button"
+      tabIndex="0"
+    >
+      <div
+        className="MuiCardMedia-root-98 Component-media-92"
+        src={undefined}
+        style={
+          Object {
+            "backgroundImage": "url(/media/__sized__/products/saleor/static/placeholders/t-shirts/6_07Fa6v8-crop-c0-5__0-5-255x255-70.jpg)",
+          }
+        }
+      />
+      <div
+        className="MuiCardContent-root-100 Component-content-93"
+      >
+        <span
+          className="MuiTypography-root-101 MuiTypography-button-112"
+        >
+          Kennedy-Ramirez
+        </span>
+        <p
+          className="MuiTypography-root-101 MuiTypography-body1-110 Component-price-94"
+        >
+          29,98 USD
+        </p>
+      </div>
+      <span
+        className="MuiTouchRipple-root-126"
+      />
+    </a>
+  </div>
+  <div
+    className="MuiGrid-typeItem-2 MuiGrid-grid-xs-12-38 MuiGrid-grid-sm-6-45 MuiGrid-grid-md-4-56 MuiGrid-grid-lg-3-68 MuiGrid-grid-xl-2-80"
+  >
+    <a
+      className="MuiButtonBase-root-95 Component-button-91"
+      href="#"
+      onBlur={[Function]}
+      onClick={[Function]}
+      onFocus={[Function]}
+      onKeyDown={[Function]}
+      onKeyUp={[Function]}
+      onMouseDown={[Function]}
+      onMouseLeave={[Function]}
+      onMouseUp={[Function]}
+      onTouchEnd={[Function]}
+      onTouchMove={[Function]}
+      onTouchStart={[Function]}
+      role="button"
+      tabIndex="0"
+    >
+      <div
+        className="MuiCardMedia-root-98 Component-media-92"
+        src={undefined}
+        style={
+          Object {
+            "backgroundImage": "url(/media/__sized__/products/saleor/static/placeholders/t-shirts/6_zeczDly-crop-c0-5__0-5-255x255-70.jpg)",
+          }
+        }
+      />
+      <div
+        className="MuiCardContent-root-100 Component-content-93"
+      >
+        <span
+          className="MuiTypography-root-101 MuiTypography-button-112"
+        >
+          Newman, Ashley and Roberson
+        </span>
+        <p
+          className="MuiTypography-root-101 MuiTypography-body1-110 Component-price-94"
+        >
+          48,56 USD
+        </p>
+      </div>
+      <span
+        className="MuiTouchRipple-root-126"
+      />
+    </a>
+  </div>
+  <div
+    className="MuiGrid-typeItem-2 MuiGrid-grid-xs-12-38 MuiGrid-grid-sm-6-45 MuiGrid-grid-md-4-56 MuiGrid-grid-lg-3-68 MuiGrid-grid-xl-2-80"
+  >
+    <a
+      className="MuiButtonBase-root-95 Component-button-91"
+      href="#"
+      onBlur={[Function]}
+      onClick={[Function]}
+      onFocus={[Function]}
+      onKeyDown={[Function]}
+      onKeyUp={[Function]}
+      onMouseDown={[Function]}
+      onMouseLeave={[Function]}
+      onMouseUp={[Function]}
+      onTouchEnd={[Function]}
+      onTouchMove={[Function]}
+      onTouchStart={[Function]}
+      role="button"
+      tabIndex="0"
+    >
+      <div
+        className="MuiCardMedia-root-98 Component-media-92"
+        src={undefined}
+        style={
+          Object {
+            "backgroundImage": "url(/media/__sized__/products/saleor/static/placeholders/t-shirts/5_VX2ikxl-crop-c0-5__0-5-255x255-70.jpg)",
+          }
+        }
+      />
+      <div
+        className="MuiCardContent-root-100 Component-content-93"
+      >
+        <span
+          className="MuiTypography-root-101 MuiTypography-button-112"
+        >
+          Jacobson, Stewart and Rodriguez
+        </span>
+        <p
+          className="MuiTypography-root-101 MuiTypography-body1-110 Component-price-94"
+        >
+          80,54 USD
+        </p>
+      </div>
+      <span
+        className="MuiTouchRipple-root-126"
+      />
+    </a>
+  </div>
+  <div
+    className="MuiGrid-typeItem-2 MuiGrid-grid-xs-12-38 MuiGrid-grid-sm-6-45 MuiGrid-grid-md-4-56 MuiGrid-grid-lg-3-68 MuiGrid-grid-xl-2-80"
+  >
+    <a
+      className="MuiButtonBase-root-95 Component-button-91"
+      href="#"
+      onBlur={[Function]}
+      onClick={[Function]}
+      onFocus={[Function]}
+      onKeyDown={[Function]}
+      onKeyUp={[Function]}
+      onMouseDown={[Function]}
+      onMouseLeave={[Function]}
+      onMouseUp={[Function]}
+      onTouchEnd={[Function]}
+      onTouchMove={[Function]}
+      onTouchStart={[Function]}
+      role="button"
+      tabIndex="0"
+    >
+      <div
+        className="MuiCardMedia-root-98 Component-media-92"
+        src={undefined}
+        style={
+          Object {
+            "backgroundImage": "url(/media/__sized__/products/saleor/static/placeholders/t-shirts/5_wl4FUo7-crop-c0-5__0-5-255x255-70.jpg)",
+          }
+        }
+      />
+      <div
+        className="MuiCardContent-root-100 Component-content-93"
+      >
+        <span
+          className="MuiTypography-root-101 MuiTypography-button-112"
+        >
+          Sloan Ltd
+        </span>
+        <p
+          className="MuiTypography-root-101 MuiTypography-body1-110 Component-price-94"
+        >
+          67,18 USD
+        </p>
+      </div>
+      <span
+        className="MuiTouchRipple-root-126"
+      />
+    </a>
+  </div>
+  <div
+    className="MuiGrid-typeItem-2 MuiGrid-grid-xs-12-38 MuiGrid-grid-sm-6-45 MuiGrid-grid-md-4-56 MuiGrid-grid-lg-3-68 MuiGrid-grid-xl-2-80"
+  >
+    <a
+      className="MuiButtonBase-root-95 Component-button-91"
+      href="#"
+      onBlur={[Function]}
+      onClick={[Function]}
+      onFocus={[Function]}
+      onKeyDown={[Function]}
+      onKeyUp={[Function]}
+      onMouseDown={[Function]}
+      onMouseLeave={[Function]}
+      onMouseUp={[Function]}
+      onTouchEnd={[Function]}
+      onTouchMove={[Function]}
+      onTouchStart={[Function]}
+      role="button"
+      tabIndex="0"
+    >
+      <div
+        className="MuiCardMedia-root-98 Component-media-92"
+        src={undefined}
+        style={
+          Object {
+            "backgroundImage": "url(/media/__sized__/products/saleor/static/placeholders/t-shirts/5_c0nSiAe-crop-c0-5__0-5-255x255-70.jpg)",
+          }
+        }
+      />
+      <div
+        className="MuiCardContent-root-100 Component-content-93"
+      >
+        <span
+          className="MuiTypography-root-101 MuiTypography-button-112"
+        >
+          Foster-Beard
+        </span>
+        <p
+          className="MuiTypography-root-101 MuiTypography-body1-110 Component-price-94"
+        >
+          50,22 USD
+        </p>
+      </div>
+      <span
+        className="MuiTouchRipple-root-126"
+      />
+    </a>
+  </div>
+  <div
+    className="MuiGrid-typeItem-2 MuiGrid-grid-xs-12-38 MuiGrid-grid-sm-6-45 MuiGrid-grid-md-4-56 MuiGrid-grid-lg-3-68 MuiGrid-grid-xl-2-80"
+  >
+    <a
+      className="MuiButtonBase-root-95 Component-button-91"
+      href="#"
+      onBlur={[Function]}
+      onClick={[Function]}
+      onFocus={[Function]}
+      onKeyDown={[Function]}
+      onKeyUp={[Function]}
+      onMouseDown={[Function]}
+      onMouseLeave={[Function]}
+      onMouseUp={[Function]}
+      onTouchEnd={[Function]}
+      onTouchMove={[Function]}
+      onTouchStart={[Function]}
+      role="button"
+      tabIndex="0"
+    >
+      <div
+        className="MuiCardMedia-root-98 Component-media-92"
+        src={undefined}
+        style={
+          Object {
+            "backgroundImage": "url(/media/__sized__/products/saleor/static/placeholders/t-shirts/6_qHI83dZ-crop-c0-5__0-5-255x255-70.jpg)",
+          }
+        }
+      />
+      <div
+        className="MuiCardContent-root-100 Component-content-93"
+      >
+        <span
+          className="MuiTypography-root-101 MuiTypography-button-112"
+        >
+          Henson PLC
+        </span>
+        <p
+          className="MuiTypography-root-101 MuiTypography-body1-110 Component-price-94"
+        >
+          17,81 USD
+        </p>
+      </div>
+      <span
+        className="MuiTouchRipple-root-126"
+      />
+    </a>
+  </div>
+  <div
+    className="MuiGrid-typeItem-2 MuiGrid-grid-xs-12-38 MuiGrid-grid-sm-6-45 MuiGrid-grid-md-4-56 MuiGrid-grid-lg-3-68 MuiGrid-grid-xl-2-80"
+  >
+    <a
+      className="MuiButtonBase-root-95 Component-button-91"
+      href="#"
+      onBlur={[Function]}
+      onClick={[Function]}
+      onFocus={[Function]}
+      onKeyDown={[Function]}
+      onKeyUp={[Function]}
+      onMouseDown={[Function]}
+      onMouseLeave={[Function]}
+      onMouseUp={[Function]}
+      onTouchEnd={[Function]}
+      onTouchMove={[Function]}
+      onTouchStart={[Function]}
+      role="button"
+      tabIndex="0"
+    >
+      <div
+        className="MuiCardMedia-root-98 Component-media-92"
+        src={undefined}
+        style={
+          Object {
+            "backgroundImage": "url(/media/__sized__/products/saleor/static/placeholders/t-shirts/5_06TblXK-crop-c0-5__0-5-255x255-70.jpg)",
+          }
+        }
+      />
+      <div
+        className="MuiCardContent-root-100 Component-content-93"
+      >
+        <span
+          className="MuiTypography-root-101 MuiTypography-button-112"
+        >
+          Novak, Lopez and Cook
+        </span>
+        <p
+          className="MuiTypography-root-101 MuiTypography-body1-110 Component-price-94"
+        >
+          48,41 USD
+        </p>
+      </div>
+      <span
+        className="MuiTouchRipple-root-126"
+      />
+    </a>
+  </div>
+  <div
+    className="MuiGrid-typeItem-2 MuiGrid-grid-xs-12-38 MuiGrid-grid-sm-6-45 MuiGrid-grid-md-4-56 MuiGrid-grid-lg-3-68 MuiGrid-grid-xl-2-80"
+  >
+    <a
+      className="MuiButtonBase-root-95 Component-button-91"
+      href="#"
+      onBlur={[Function]}
+      onClick={[Function]}
+      onFocus={[Function]}
+      onKeyDown={[Function]}
+      onKeyUp={[Function]}
+      onMouseDown={[Function]}
+      onMouseLeave={[Function]}
+      onMouseUp={[Function]}
+      onTouchEnd={[Function]}
+      onTouchMove={[Function]}
+      onTouchStart={[Function]}
+      role="button"
+      tabIndex="0"
+    >
+      <div
+        className="MuiCardMedia-root-98 Component-media-92"
+        src={undefined}
+        style={
+          Object {
+            "backgroundImage": "url(/media/__sized__/products/saleor/static/placeholders/t-shirts/6_yMYqzTc-crop-c0-5__0-5-255x255-70.jpg)",
+          }
+        }
+      />
+      <div
+        className="MuiCardContent-root-100 Component-content-93"
+      >
+        <span
+          className="MuiTypography-root-101 MuiTypography-button-112"
+        >
+          Thompson-Jones
+        </span>
+        <p
+          className="MuiTypography-root-101 MuiTypography-body1-110 Component-price-94"
+        >
+          55,36 USD
+        </p>
+      </div>
+      <span
+        className="MuiTouchRipple-root-126"
+      />
+    </a>
+  </div>
+  <div
+    className="MuiGrid-typeItem-2 MuiGrid-grid-xs-12-38 MuiGrid-grid-sm-6-45 MuiGrid-grid-md-4-56 MuiGrid-grid-lg-3-68 MuiGrid-grid-xl-2-80"
+  >
+    <a
+      className="MuiButtonBase-root-95 Component-button-91"
+      href="#"
+      onBlur={[Function]}
+      onClick={[Function]}
+      onFocus={[Function]}
+      onKeyDown={[Function]}
+      onKeyUp={[Function]}
+      onMouseDown={[Function]}
+      onMouseLeave={[Function]}
+      onMouseUp={[Function]}
+      onTouchEnd={[Function]}
+      onTouchMove={[Function]}
+      onTouchStart={[Function]}
+      role="button"
+      tabIndex="0"
+    >
+      <div
+        className="MuiCardMedia-root-98 Component-media-92"
+        src={undefined}
+        style={
+          Object {
+            "backgroundImage": "url(/media/__sized__/products/saleor/static/placeholders/t-shirts/5_eWtYYcz-crop-c0-5__0-5-255x255-70.jpg)",
+          }
+        }
+      />
+      <div
+        className="MuiCardContent-root-100 Component-content-93"
+      >
+        <span
+          className="MuiTypography-root-101 MuiTypography-button-112"
+        >
+          Cunningham, Torres and Day
+        </span>
+        <p
+          className="MuiTypography-root-101 MuiTypography-body1-110 Component-price-94"
+        >
+          92,13 USD
+        </p>
+      </div>
+      <span
+        className="MuiTouchRipple-root-126"
+      />
+    </a>
+  </div>
+</div>
+`;
+
+exports[`<ProductList /> renders properly when product list is empty 1`] = `
+<div
+  className="MuiGrid-typeContainer-1 MuiGrid-spacing-xs-16-23"
+>
+  <div
+    className="MuiGrid-typeItem-2 MuiGrid-grid-xs-12-38"
+  >
+    <aside
+      className="MuiTypography-root-101 MuiTypography-body2-109"
+    >
+      No products found
+    </aside>
+  </div>
+</div>
+`;
+
+exports[`<ProductList /> renders while data is loading 1`] = `
+<div
+  className="MuiGrid-typeContainer-1 MuiGrid-spacing-xs-16-23"
+>
+  <div
+    className="MuiGrid-typeItem-2 MuiGrid-grid-xs-12-38 MuiGrid-grid-sm-6-45 MuiGrid-grid-md-4-56 MuiGrid-grid-lg-3-68 MuiGrid-grid-xl-2-80"
+  >
+    <a
+      className="MuiButtonBase-root-95 Component-button-91"
+      href="/"
+      onBlur={[Function]}
+      onClick={[Function]}
+      onFocus={[Function]}
+      onKeyDown={[Function]}
+      onKeyUp={[Function]}
+      onMouseDown={[Function]}
+      onMouseLeave={[Function]}
+      onMouseUp={[Function]}
+      onTouchEnd={[Function]}
+      onTouchMove={[Function]}
+      onTouchStart={[Function]}
+      role="button"
+      tabIndex="0"
+    >
+      <div
+        className="MuiCardMedia-root-98 Component-media-92"
+        src={undefined}
+        style={undefined}
+      />
+      <div
+        className="MuiCardContent-root-100 Component-content-93"
+      >
+        <span
+          className="MuiTypography-root-101 MuiTypography-button-112"
+        >
+          <span
+            className="Component-skeleton-125"
+            style={
+              Object {
+                "width": "80%",
+              }
+            }
+          >
+            ‌
+          </span>
+        </span>
+      </div>
+      <span
+        className="MuiTouchRipple-root-126"
+      />
+    </a>
+  </div>
+</div>
+`;
