@@ -66,10 +66,10 @@ class Order(models.Model):
     token = models.CharField(max_length=36, unique=True)
     total_net = MoneyField(
         currency=settings.DEFAULT_CURRENCY, max_digits=12, decimal_places=2,
-        blank=True, null=True)
+        default=Money(0, settings.DEFAULT_CURRENCY))
     total_gross = MoneyField(
         currency=settings.DEFAULT_CURRENCY, max_digits=12, decimal_places=2,
-        blank=True, null=True)
+        default=Money(0, settings.DEFAULT_CURRENCY))
     total = TaxedMoneyField(net_field='total_net', gross_field='total_gross')
     voucher = models.ForeignKey(
         Voucher, null=True, related_name='+', on_delete=models.SET_NULL)
