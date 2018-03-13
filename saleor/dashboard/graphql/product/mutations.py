@@ -2,10 +2,11 @@ import graphene
 
 from ....graphql.product.types import Category
 from ....graphql.utils import get_node
+from ....product import models
 from ...category.forms import CategoryForm
 from ..mutations import (
     ModelDeleteMutation, ModelFormMutation, ModelFormUpdateMutation)
-from ....product import models
+
 
 class CategoryCreateMutation(ModelFormMutation):
     class Arguments:
