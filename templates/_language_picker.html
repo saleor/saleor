@@ -1,17 +1,26 @@
 {% load i18n %}
 {% load translate_url from urls %}
 
-<li class="dropdown show">
-  {% get_current_language as LANGUAGE_CODE %}
-  <form action="{% url 'set_language' %}" method="post">
-    <input name="next" type="hidden" value="/">
-    {% csrf_token %}
-      {% get_available_languages as LANGUAGES %}
-      {% get_language_info_list for LANGUAGES as languages %}
-      <select class="selectpicker" name="language" id="language-picker">
+<li>
+  <div class="dropdown show">
+    {% get_current_language as LANGUAGE_CODE %}
+    {% get_language_info for LANGUAGE_CODE as current_lang %}
+    <a class="dropdown-toggle" href="#" id="dropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+      {{ current_lang.name }}
+    </a>
+    {% get_available_languages as LANGUAGES %}
+    {% get_language_info_list for LANGUAGES as languages %}
+    <div class="dropdown-menu" aria-labelledby="dropdownMenuLink">
+      <form id="language-picker" action="{% url 'set_language' %}" method="post">
+        {% csrf_token %}
+        <input name="next" type="hidden" value="/">
+        {# Language code will be dynamically appended to the form via JS due to select-box styling nature #}
         {% for language in languages %}
-          <option value="{{ language.code }}" {% if language.code == LANGUAGE_CODE %} selected{% endif %}>{{ language.name_local }}</option>
+          <a js-lang="{{ language.code }}" class="dropdown-item language-pick {% if language.code == LANGUAGE_CODE %} active{% endif %}">
+            {{ language.name_local }}
+          </a>
         {% endfor %}
-      </select>
-  </form>
+      </form>
+    </div>
+  </div>
 </li>
