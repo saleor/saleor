@@ -38,11 +38,9 @@ render(
         <MuiThemeProvider theme={theme}>
           <CssBaseline />
           <AppRoot>
-            {titleBar => (
-              <Switch>
-                <Route path="/categories" component={CategorySection} />
-              </Switch>
-            )}
+            <Switch>
+              <Route path="/categories" component={CategorySection} />
+            </Switch>
           </AppRoot>
         </MuiThemeProvider>
       </BrowserRouter>
