@@ -3,7 +3,6 @@
 from decimal import Decimal
 from django.db import migrations
 import django_prices.models
-import prices
 
 
 class Migration(migrations.Migration):
@@ -16,11 +15,11 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='order',
             name='total_gross',
-            field=django_prices.models.MoneyField(currency='USD', decimal_places=2, default=prices.Money('0', currency='USD'), max_digits=12),
+            field=django_prices.models.MoneyField(currency='USD', decimal_places=2, default=0, max_digits=12),
         ),
         migrations.AlterField(
             model_name='order',
             name='total_net',
-            field=django_prices.models.MoneyField(currency='USD', decimal_places=2, default=prices.Money('0', currency='USD'), max_digits=12),
+            field=django_prices.models.MoneyField(currency='USD', decimal_places=2, default=0, max_digits=12),
         ),
     ]
