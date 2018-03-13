@@ -1,0 +1,114 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`<ProductChildElement /> renders when data is loaded 1`] = `
+<a
+  className="MuiButtonBase-root-2 Component-button-1"
+  href="/categories/Q2F0ZWdvcnk6MQ==/"
+  onBlur={[Function]}
+  onClick={[Function]}
+  onFocus={[Function]}
+  onKeyDown={[Function]}
+  onKeyUp={[Function]}
+  onMouseDown={[Function]}
+  onMouseLeave={[Function]}
+  onMouseUp={[Function]}
+  onTouchEnd={[Function]}
+  onTouchMove={[Function]}
+  onTouchStart={[Function]}
+  role="button"
+  tabIndex="0"
+>
+  <div
+    className="MuiCardHeader-root-5"
+  >
+    <div
+      className="MuiCardHeader-avatar-6"
+    >
+      <svg
+        aria-hidden="true"
+        className="MuiSvgIcon-root-11"
+        color={undefined}
+        focusable="false"
+        viewBox="0 0 24 24"
+      >
+        <path
+          d="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z"
+        />
+      </svg>
+    </div>
+    <div
+      className="MuiCardHeader-content-8"
+    >
+      <span
+        className="MuiTypography-root-17 MuiTypography-body2-25 MuiCardHeader-title-9"
+      >
+        Apparel
+      </span>
+    </div>
+  </div>
+  <span
+    className="MuiTouchRipple-root-42"
+  />
+</a>
+`;
+
+exports[`<ProductChildElement /> renders while data is loading 1`] = `
+<a
+  className="MuiButtonBase-root-2 Component-button-1"
+  href="/"
+  onBlur={[Function]}
+  onClick={[Function]}
+  onFocus={[Function]}
+  onKeyDown={[Function]}
+  onKeyUp={[Function]}
+  onMouseDown={[Function]}
+  onMouseLeave={[Function]}
+  onMouseUp={[Function]}
+  onTouchEnd={[Function]}
+  onTouchMove={[Function]}
+  onTouchStart={[Function]}
+  role="button"
+  tabIndex="0"
+>
+  <div
+    className="MuiCardHeader-root-5"
+  >
+    <div
+      className="MuiCardHeader-avatar-6"
+    >
+      <svg
+        aria-hidden="true"
+        className="MuiSvgIcon-root-11"
+        color={undefined}
+        focusable="false"
+        viewBox="0 0 24 24"
+      >
+        <path
+          d="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z"
+        />
+      </svg>
+    </div>
+    <div
+      className="MuiCardHeader-content-8"
+    >
+      <span
+        className="MuiTypography-root-17 MuiTypography-body2-25 MuiCardHeader-title-9"
+      >
+        <span
+          className="Component-skeleton-41"
+          style={
+            Object {
+              "width": "80%",
+            }
+          }
+        >
+          ‌
+        </span>
+      </span>
+    </div>
+  </div>
+  <span
+    className="MuiTouchRipple-root-42"
+  />
+</a>
+`;
