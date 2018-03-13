@@ -27,7 +27,6 @@ const decorate = withStyles(theme => ({
     width: "100%"
   },
   appBar: {
-    position: "absolute" as "absolute",
     transition: theme.transitions.create(["margin", "width"], {
       easing: theme.transitions.easing.sharp,
       duration: theme.transitions.duration.leavingScreen
@@ -49,7 +48,6 @@ const decorate = withStyles(theme => ({
     display: "none"
   },
   drawerPaper: {
-    position: "relative" as "relative",
     width: drawerWidth
   },
   drawerHeader: {
@@ -62,7 +60,7 @@ const decorate = withStyles(theme => ({
   content: {
     flexGrow: 1,
     backgroundColor: theme.palette.background.default,
-    marginLeft: -drawerWidth,
+    marginLeft: 0,
     padding: theme.spacing.unit * 3,
     transition: theme.transitions.create("margin", {
       easing: theme.transitions.easing.sharp,
@@ -70,7 +68,7 @@ const decorate = withStyles(theme => ({
     })
   },
   contentShift: {
-    marginLeft: 0,
+    marginLeft: drawerWidth,
     transition: theme.transitions.create("margin", {
       easing: theme.transitions.easing.easeOut,
       duration: theme.transitions.duration.enteringScreen
@@ -80,7 +78,9 @@ const decorate = withStyles(theme => ({
 
 const LinkItem = ListItem as React.ComponentType<ListItemProps & LinkProps>;
 
-interface AppRootProps {}
+interface AppRootProps {
+  children: (titleTarget: React.ReactInstance) => JSX.Element;
+}
 
 interface AppRootState {
   open: boolean;
@@ -125,9 +125,11 @@ export const AppRoot = decorate<AppRootProps>(
               >
                 <MenuIcon />
               </IconButton>
-              <Typography variant="title" color="inherit" noWrap>
-                Saleor
-              </Typography>
+              <div ref="titleBar">
+                <Typography variant="title" color="inherit" noWrap>
+                  Saleor
+                </Typography>
+              </div>
             </Toolbar>
           </AppBar>
           <Drawer
@@ -159,7 +161,7 @@ export const AppRoot = decorate<AppRootProps>(
             })}
           >
             <div className={classes.drawerHeader} />
-            {children}
+            {children(this.refs.titleBar)}
           </main>
         </div>
       );
