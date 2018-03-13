@@ -13,7 +13,6 @@ const renderNavbar = () => {
     const $desktopLinks = $desktopLinkBar.find('a');
     if ($desktopLinks.length) {
       $searchForm.addClass('search-form--hidden');
-      console.log($searchForm.hasClass('search-form--hidden'));
       $mobileNav.append('<ul class="nav navbar-nav navbar__menu__login"></ul>');
       $desktopLinks
         .appendTo('.navbar__menu__login')
@@ -27,7 +26,6 @@ const renderNavbar = () => {
     const $mobileLinks = $mobileLinkBar.find('a');
     if ($mobileLinks.length) {
       $searchForm.removeClass('search-form--hidden');
-      console.log($searchForm.hasClass('search-form--hidden'));
       $mobileLinks
         .appendTo('.navbar__login ul')
         .wrap('<li></li>')
