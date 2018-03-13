@@ -5,7 +5,7 @@ import { withStyles, WithStyles } from "material-ui/styles";
 import * as React from "react";
 import { Component } from "react";
 
-import { TextField } from "../../components/TextField";
+import TextField from "material-ui/TextField";
 import i18n from "../../i18n";
 
 const decorate = withStyles(theme => ({
@@ -78,6 +78,7 @@ export const BaseCategoryForm = decorate(
           <CardContent>
             <TextField
               autoFocus
+              fullWidth
               name="name"
               label={i18n.t("Name", { context: "category" })}
               defaultValue={name}
@@ -87,6 +88,7 @@ export const BaseCategoryForm = decorate(
               helperText={errorList["name"]}
             />
             <TextField
+              fullWidth
               name="description"
               label={i18n.t("Description (optional)")}
               defaultValue={description}
