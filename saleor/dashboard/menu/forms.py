@@ -33,11 +33,11 @@ class MenuItemForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        destination = self.instance.destination
+        dest = self.instance.destination
 
-        if destination:
-            self.fields['linked_object'].set_initial(
-                destination, self.instance.get_destination_display())
+        if dest:
+            obj_id = str(dest.pk) + '_' + dest.__class__.__name__
+            self.fields['linked_object'].set_initial(dest, obj_id=obj_id)
 
     def save(self, commit=True):
         linked_object = self.cleaned_data.get('linked_object')
