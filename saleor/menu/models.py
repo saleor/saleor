@@ -78,7 +78,16 @@ class MenuItem(MPTTModel):
             prefix = pgettext_lazy('Link object type description', 'URL: ')
             return prefix + self.url
 
-        prefix = linked_object.__class__._meta.verbose_name.title()
+        if linked_object.__class__ == Collection:
+            prefix = pgettext_lazy(
+                'Link object type description', 'Collection: ')
+        elif linked_object.__class__ == Category:
+            prefix = pgettext_lazy(
+                'Link object type description', 'Category: ')
+        else:
+            prefix = pgettext_lazy(
+                'Link object type description', 'Page: ')
+
         return prefix + str(linked_object)
 
     def get_url(self):
