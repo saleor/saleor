@@ -8,12 +8,13 @@ from django.urls import reverse
 
 from ..cart.utils import set_cart_cookie
 from ..core.utils import serialize_decimal
+from ..schema.product import product_json_ld
 from .filters import ProductCategoryFilter, ProductCollectionFilter
 from .models import Category, Collection
 from .utils import (
     get_availability, get_product_attributes_data, get_product_images,
     get_product_list_context, get_variant_picker_data, handle_cart_form,
-    product_json_ld, products_for_cart, products_with_details)
+    products_for_cart, products_with_details)
 
 
 def product_details(request, slug, product_id, form=None):
