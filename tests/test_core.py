@@ -8,7 +8,8 @@ from saleor.account.models import Address, User
 from saleor.core.utils import (
     Country, create_superuser, format_money, get_country_by_ip,
     get_currency_for_country, random_data)
-from saleor.core.utils.text import strip_html, get_cleaner
+from saleor.core.utils.text import (
+    _get_last_word_separator_pos, get_cleaner, strip_html, trim_fullword)
 from saleor.discount.models import Sale, Voucher
 from saleor.order.models import Order
 from saleor.product.models import Product
@@ -161,6 +162,22 @@ def test_manifest(client, site_settings):
     assert content['name'] == site_settings.site.name
     assert content['short_name'] == site_settings.site.name
     assert content['description'] == site_settings.description
+
+
+def test_utils_get_last_stop_char():
+    assert _get_last_word_separator_pos('') is None
+    assert _get_last_word_separator_pos('this a cut sentenc') == 10
+    assert _get_last_word_separator_pos('.') == 0
+    assert _get_last_word_separator_pos('こんにちは。') == 5
+    assert _get_last_word_separator_pos('여보세요;세계') == 4
+
+
+def test_trim_fullword():
+    assert trim_fullword('don\'t break', 10) == 'don\'t'
+    assert trim_fullword('this is a sentence', 5) == 'this'
+    assert trim_fullword('thisIsTooLongJustCutIt', 4) == 'this'
+    assert trim_fullword('this\nis\nmultiline', 5) == 'this'
+    assert trim_fullword('', 5) == ''
 
 
 def test_utils_get_cleaner_invalid_parameters():
