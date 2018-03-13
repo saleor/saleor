@@ -42,6 +42,13 @@ class MenuItemForm(forms.ModelForm):
             self.fields['linked_object'].set_initial(obj, obj_id=obj_id)
 
     def clean(self):
+        parent = self.instance.parent
+        if parent and parent.level >= 2:
+            raise forms.ValidationError(
+                pgettext_lazy(
+                    'Menu item form error',
+                    'Maximum nesting level for menu items equals to 2.'),
+                code='invalid')
         url = self.cleaned_data.get('url')
         linked_object = self.cleaned_data.get('linked_object')
         if url and linked_object:

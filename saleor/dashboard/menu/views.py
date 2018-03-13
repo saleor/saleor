@@ -168,7 +168,7 @@ def menu_item_detail(request, menu_pk, item_pk):
     menu = get_object_or_404(Menu, pk=menu_pk)
     menu_item = get_object_or_404(menu.items.all(), pk=item_pk)
     path = menu_item.get_ancestors(include_self=True)
-    menu_items = menu_item.get_descendants().order_by('sort_order')
+    menu_items = menu_item.get_children().order_by('sort_order')
     menu_item_filter = MenuItemFilter(request.GET, queryset=menu_items)
     menu_items = get_paginator_items(
         menu_item_filter.qs, settings.DASHBOARD_PAGINATE_BY,
