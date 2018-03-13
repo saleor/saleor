@@ -4,7 +4,7 @@
 {% load staticfiles %}
 {% load utils %}
 
-{% block title %}{% trans "Menus" context "Menu list page title" %} -
+{% block title %}{% trans "Navigation" context "Menu list page title" %} -
   {{ block.super }}{% endblock %}
 
 {% block menu_menus_class %}active{% endblock %}
@@ -18,7 +18,7 @@
   <ul class="breadcrumbs breadcrumbs--history">
     <li>
       <a href="{% url 'dashboard:menu-list' %}">
-        {% trans "Menus" context "Dashboard menus list" %}
+        {% trans "Navigation" context "Dashboard menus list" %}
       </a>
     </li>
     <li class="back-mobile">
