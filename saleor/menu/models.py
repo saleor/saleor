@@ -67,24 +67,29 @@ class MenuItem(MPTTModel):
         super().save(*args, **kwargs)
 
     @property
-    def destination(self):
+    def linked_object(self):
         return self.category or self.collection or self.page
 
-    def get_destination_display(self):
-        dest = self.destination
-        prefix = ''
+    @property
+    def destination_display(self):
+        linked_object = self.linked_object
 
-        if not dest:
-            return prefix
+        if not linked_object:
+            prefix = pgettext_lazy('Link object type description', 'URL: ')
+            return prefix + self.url
 
-        if dest.__class__ == Collection:
+        if linked_object.__class__ == Collection:
             prefix = pgettext_lazy(
                 'Link object type description', 'Collection: ')
-        elif dest.__class__ == Category:
+        elif linked_object.__class__ == Category:
             prefix = pgettext_lazy(
                 'Link object type description', 'Category: ')
-        elif dest.__class__ == Page:
+        else:
             prefix = pgettext_lazy(
                 'Link object type description', 'Page: ')
 
-        return prefix + str(dest)
+        return prefix + str(linked_object)
+
+    def get_url(self):
+        linked_object = self.linked_object
+        return linked_object.get_absolute_url() if linked_object else self.url
