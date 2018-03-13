@@ -42,32 +42,19 @@ def collect_data_for_email(order_pk, template):
     # Order confirmation template requires additional information
     if template == CONFIRM_ORDER_TEMPLATE:
         email_markup = get_order_confirmation_markup(order)
-        email_context.update({'order': order, 'schema_markup': email_markup})
+        email_context.update(
+            {'order': order, 'schema_markup': email_markup})
+
     return {
-        'recipient_email': recipient_email, 'template': template,
-        'context': email_context}
-
-
-def _send_confirmation(recipient_email, template, context):
-    """Sends confirmation email
-
-    Args:
-        recipient_email (str): recipient email
-        template (str): email template path
-        context (dict): context required by email's template
-    """
-    send_templated_mail(
-        from_email=settings.ORDER_FROM_EMAIL,
-        recipient_list=[recipient_email],
-        context=context,
-        template_name=template)
+        'recipient_list': [recipient_email], 'template_name': template,
+        'context': email_context, 'from_email': settings.ORDER_FROM_EMAIL}
 
 
 @shared_task
 def send_order_confirmation(order_pk):
     """Sends order confirmation email."""
     email_data = collect_data_for_email(order_pk, CONFIRM_ORDER_TEMPLATE)
-    _send_confirmation(**email_data)
+    send_templated_mail(**email_data)
 
 
 @shared_task
@@ -90,11 +77,11 @@ def send_fulfillment_update(order_pk, fulfillment_pk):
 def send_payment_confirmation(order_pk):
     """Sends payment confirmation email."""
     email_data = collect_data_for_email(order_pk, CONFIRM_PAYMENT_TEMPLATE)
-    _send_confirmation(**email_data)
+    send_templated_mail(**email_data)
 
 
 @shared_task
 def send_note_confirmation(order_pk):
     """Notifies customer, when new note was added to an order."""
     email_data = collect_data_for_email(order_pk, CONFIRM_NOTE_TEMPLATE)
-    _send_confirmation(**email_data)
+    send_templated_mail(**email_data)
