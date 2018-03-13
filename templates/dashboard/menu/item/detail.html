@@ -91,7 +91,9 @@
         </div>
         {% endif %}
       </div>
-      {% include 'dashboard/includes/_menu_items.html' with menu=menu menu_items=menu_items root_item=menu_item %}
+      {% if menu_item.level < 2 %}
+        {% include 'dashboard/includes/_menu_items.html' with menu=menu menu_items=menu_items root_item=menu_item %}
+      {% endif %}
     </div>
     <div class="col s12 l3" id="filters">
       {% if not is_empty %}{% filters filter_set %}{% endif %}
