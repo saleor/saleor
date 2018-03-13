@@ -1,0 +1,98 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`<CategoryDetails /> renders properly 1`] = `
+<div
+  className="MuiPaper-root-5 MuiPaper-elevation2-9 MuiPaper-rounded-6 FilterCardComponent-filterCard-1"
+  style={Object {}}
+>
+  <div
+    className="MuiCardContent-root-32 FilterCardComponent-filterCardContent-3"
+  >
+    <div
+      className="FilterCardComponent-filterCardExpandIconContainer-2"
+    >
+      <svg
+        aria-hidden="true"
+        className="MuiSvgIcon-root-33"
+        color={undefined}
+        focusable="false"
+        onClick={[Function]}
+        viewBox="0 0 24 24"
+      >
+        <path
+          d="M10 18h4v-2h-4v2zM3 6v2h18V6H3zm3 7h12v-2H6v2z"
+        />
+      </svg>
+    </div>
+    <h1
+      className="MuiTypography-root-39 MuiTypography-display1-43"
+    >
+      Filters
+    </h1>
+  </div>
+  <form
+    onSubmit={[MockFunction]}
+  >
+    <div
+      className="MuiCardContent-root-32"
+    >
+      <div
+        className="MuiCardActions-root-63 FilterCardComponent-filterCardActions-4"
+      >
+        <button
+          className="MuiButtonBase-root-80 MuiButton-root-65 MuiButton-flatSecondary-68 MuiCardActions-action-64"
+          disabled={false}
+          onBlur={[Function]}
+          onClick={[MockFunction]}
+          onFocus={[Function]}
+          onKeyDown={[Function]}
+          onKeyUp={[Function]}
+          onMouseDown={[Function]}
+          onMouseLeave={[Function]}
+          onMouseUp={[Function]}
+          onTouchEnd={[Function]}
+          onTouchMove={[Function]}
+          onTouchStart={[Function]}
+          tabIndex="0"
+          type="button"
+        >
+          <span
+            className="MuiButton-label-66"
+          >
+            Filter
+          </span>
+          <span
+            className="MuiTouchRipple-root-83"
+          />
+        </button>
+        <button
+          className="MuiButtonBase-root-80 MuiButton-root-65 MuiCardActions-action-64"
+          disabled={false}
+          onBlur={[Function]}
+          onClick={[MockFunction]}
+          onFocus={[Function]}
+          onKeyDown={[Function]}
+          onKeyUp={[Function]}
+          onMouseDown={[Function]}
+          onMouseLeave={[Function]}
+          onMouseUp={[Function]}
+          onTouchEnd={[Function]}
+          onTouchMove={[Function]}
+          onTouchStart={[Function]}
+          tabIndex="0"
+          type="button"
+        >
+          <span
+            className="MuiButton-label-66"
+          >
+            Clear
+          </span>
+          <span
+            className="MuiTouchRipple-root-83"
+          />
+        </button>
+      </div>
+    </div>
+  </form>
+</div>
+`;
