@@ -8,7 +8,6 @@ from graphene_django.registry import get_global_registry
 
 from ...graphql.core.types import Error
 from ...graphql.utils import get_node
-from .utils import get_model_name, get_model_type_and_fields
 
 registry = get_global_registry()
 
@@ -30,9 +29,21 @@ def convert_form_errors(form):
     return errors
 
 
+def get_model_name(model):
+    """Return name of the model with first letter lowercase"""
+    model_name = model.__name__
+    return model_name[:1].lower() + model_name[1:]
+
+
+def get_output_fields(model, return_field_name):
+    """Return mutation output field for model instance"""
+    model_type = registry.get_type_for_model(model)
+    fields = {return_field_name: graphene.Field(model_type)}
+    return fields
+
+
 class BaseMutation(graphene.Mutation):
     errors = graphene.List(Error)
-    return_field_name = None
 
     class Meta:
         abstract = True
@@ -45,10 +56,12 @@ class BaseMutation(graphene.Mutation):
 
 class ModelFormMutationOptions(MutationOptions):
     form_class = None
+    return_field_name = None
 
 
 class ModelDeleteMutationOptions(MutationOptions):
     model = None
+    return_field_name = None
 
 
 class ModelDeleteMutation(BaseMutation):
@@ -70,11 +83,10 @@ class ModelDeleteMutation(BaseMutation):
         if arguments is None:
             arguments = {}
         arguments.update({'id': graphene.ID()})
-        model_type, fields = get_model_type_and_fields(registry, model, return_field_name)
+        fields = get_output_fields(model, return_field_name)
 
         _meta.model = model
         _meta.return_field_name = return_field_name
-        _meta.model_type = model_type
 
         super().__init_subclass_with_meta__(_meta=_meta, **options)
 
@@ -83,7 +95,8 @@ class ModelDeleteMutation(BaseMutation):
 
     @classmethod
     def mutate(cls, root, info, id, **kwargs):
-        model_type = cls._meta.model_type
+        model = cls._meta.model
+        model_type = registry.get_type_for_model(model)
         instance = get_node(info, id, only_type=model_type)
         instance.delete()
         field_name = cls._meta.return_field_name
@@ -108,7 +121,7 @@ class ModelFormMutation(BaseMutation):
         model = form_class._meta.model
         if not return_field_name:
             return_field_name = get_model_name(model)
-        _, fields = get_model_type_and_fields(registry, model, return_field_name)
+        fields = get_output_fields(model, return_field_name)
         # get mutation arguments based on model form
         arguments = convert_form_fields(form_class)
 
