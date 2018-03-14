@@ -34,13 +34,12 @@ export const ProductList: React.StatelessComponent<ProductListProps> = ({
         </Grid>
       ) : products.length > 0 ? (
         products.map(edge => (
-          <Grid item xs={12} sm={6} md={4} lg={3} xl={2}>
+          <Grid item key={edge.node.id} xs={12} sm={6} md={4} lg={3} xl={2}>
             <ProductChildElement
               url="#"
               label={edge.node.name}
               price={edge.node.price.localized}
               thumbnail={edge.node.thumbnailUrl}
-              key={edge.node.id}
             />
           </Grid>
         ))
