@@ -2,8 +2,8 @@ from django.db.models import Q
 from django.utils.translation import npgettext, pgettext_lazy
 from django_filters import CharFilter, OrderingFilter
 
-from ...menu.models import Menu, MenuItem
 from ...core.filters import SortedFilterSet
+from ...menu.models import Menu, MenuItem
 
 MENU_SORT_BY_FIELDS = {
     'slug': pgettext_lazy('Menu list sorting option', 'Internal name')}
