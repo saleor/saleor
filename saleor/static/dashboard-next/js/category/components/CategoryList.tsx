@@ -44,7 +44,7 @@ export const CategoryList: React.StatelessComponent<CategoryListProps> = ({
           <ListItemIcon>
             <Folder />
           </ListItemIcon>
-          <ListItemText>{edge.node.name}</ListItemText>
+          <ListItemText primary={edge.node.name} />
         </ListItem>
       ))
     ) : (
