@@ -1,57 +1,60 @@
 import json
+from unittest.mock import patch
 
 import graphene
 import pytest
-from django import forms
 from django.shortcuts import reverse
 
-from saleor.dashboard.category.forms import CategoryForm
 from saleor.dashboard.graphql.mutations import (
     ModelFormMutation, ModelFormUpdateMutation)
-from saleor.product.models import Category, Product, ProductAttribute
+from saleor.product.models import Category
 
 from ..utils import get_graphql_content
 
 
-class CategoryForm(forms.ModelForm):
-    class Meta:
-        model = Category
-        fields = ['name']
+@patch('saleor.dashboard.graphql.mutations.convert_form_fields')
+@patch('saleor.dashboard.graphql.mutations.convert_form_field')
+def test_model_form_mutation(
+        mocked_convert_form_field, mocked_convert_form_fields,
+        model_form_class):
 
+    mocked_convert_form_fields.return_value = {
+        model_form_class._meta.fields: mocked_convert_form_field.return_value}
 
-def test_model_form_mutation():
-    class CategoryMutation(ModelFormMutation):
+    class TestMutation(ModelFormMutation):
         test_field = graphene.String()
 
         class Arguments:
             test_input = graphene.String()
 
         class Meta:
-            form_class = CategoryForm
-            return_field_name = 'category'
+            form_class = model_form_class
+            return_field_name = 'test_return_field'
 
-    meta = CategoryMutation._meta
-    assert meta.form_class == CategoryForm
-    assert meta.model == CategoryForm._meta.model
-    assert meta.return_field_name == 'category'
-
+    meta = TestMutation._meta
+    assert meta.form_class == model_form_class
+    assert meta.model == 'test_model'
+    assert meta.return_field_name == 'test_return_field'
     arguments = meta.arguments
     # check if declarative arguments are present
     assert 'test_input' in arguments
     # check if model form field is present
-    assert 'name' in arguments
+    mocked_convert_form_fields.assert_called_with(model_form_class)
+    assert 'test_field' in arguments
 
     output_fields = meta.fields
-    assert 'category' in output_fields
+    assert 'test_return_field' in output_fields
     assert 'errors' in output_fields
 
 
-def test_model_form_update_mutation():
-    class CategoryUpdateMutation(ModelFormUpdateMutation):
+@patch('saleor.dashboard.graphql.mutations')
+def test_model_form_update_mutation(model_form_class):
+    class TestUpdateMutation(ModelFormUpdateMutation):
         class Meta:
-            form_class = CategoryForm
+            form_class = model_form_class
+            return_field_name = 'test_return_field'
 
-    meta = CategoryUpdateMutation._meta
+    meta = TestUpdateMutation._meta
     assert 'id' in meta.arguments
 
 
