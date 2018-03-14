@@ -22,11 +22,10 @@ export const CategoryList: React.StatelessComponent<CategoryListProps> = ({
       </Grid>
     ) : categories.length > 0 ? (
       categories.map(edge => (
-        <Grid item xs={12} sm={6} md={4} lg={3} xl={2}>
+        <Grid item key={edge.node.id} xs={12} sm={6} md={4} lg={3} xl={2}>
           <CategoryChildElement
             url={categoryShowUrl(edge.node.id)}
             label={edge.node.name}
-            key={edge.node.id}
           />
         </Grid>
       ))
