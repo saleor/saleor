@@ -6,7 +6,7 @@ import Typography from "material-ui/Typography";
 import { Link } from "react-router-dom";
 import { withStyles } from "material-ui/styles";
 import { grey } from "material-ui/colors";
-import { Skeleton } from "../../components/Skeleton";
+import Skeleton from "../../components/Skeleton";
 
 interface CategoryChildElementProps {
   label: string;
@@ -15,6 +15,7 @@ interface CategoryChildElementProps {
   thumbnail: string;
   loading?: boolean;
 }
+
 const decorate = withStyles(theme => ({
   button: {
     backgroundColor: theme.palette.background.paper,
@@ -57,6 +58,7 @@ const decorate = withStyles(theme => ({
     color: grey[500]
   }
 }));
+
 export const ProductChildElement = decorate<CategoryChildElementProps>(
   ({ label, price, url, thumbnail, classes, loading }) => (
     <ButtonBase
@@ -80,3 +82,5 @@ export const ProductChildElement = decorate<CategoryChildElementProps>(
     </ButtonBase>
   )
 );
+
+export default ProductChildElement;

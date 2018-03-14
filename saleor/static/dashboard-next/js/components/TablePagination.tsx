@@ -7,7 +7,7 @@ import { withStyles } from "material-ui/styles";
 import PropTypes from "prop-types";
 import * as React from "react";
 
-import { TablePaginationActions } from "./TablePaginationActions";
+import TablePaginationActions from "./TablePaginationActions";
 
 const decorate = withStyles(
   theme => ({

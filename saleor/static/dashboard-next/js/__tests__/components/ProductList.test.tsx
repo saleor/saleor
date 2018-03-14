@@ -2,19 +2,14 @@ import * as React from "react";
 import { MemoryRouter } from "react-router-dom";
 import * as renderer from "react-test-renderer";
 
-import { ProductList } from "../../category/components/ProductList";
+import ProductList from "../../category/components/ProductList";
 import productListFixture from "./fixtures/productList";
 
 describe("<ProductList />", () => {
   it("renders while data is loading", () => {
     const component = renderer.create(
       <MemoryRouter>
-        <ProductList
-          loading={true}
-          canLoadMore={false}
-          handleLoadMore={jest.fn()}
-          products={[]}
-        />
+        <ProductList canLoadMore={false} handleLoadMore={jest.fn()} />
       </MemoryRouter>
     );
     expect(component).toMatchSnapshot();
@@ -23,7 +18,6 @@ describe("<ProductList />", () => {
     const component = renderer.create(
       <MemoryRouter>
         <ProductList
-          loading={false}
           canLoadMore={false}
           handleLoadMore={jest.fn()}
           products={productListFixture}
@@ -36,7 +30,6 @@ describe("<ProductList />", () => {
     const component = renderer.create(
       <MemoryRouter>
         <ProductList
-          loading={false}
           canLoadMore={true}
           handleLoadMore={jest.fn()}
           products={productListFixture}
@@ -49,7 +42,6 @@ describe("<ProductList />", () => {
     const component = renderer.create(
       <MemoryRouter>
         <ProductList
-          loading={false}
           canLoadMore={false}
           handleLoadMore={jest.fn()}
           products={[]}

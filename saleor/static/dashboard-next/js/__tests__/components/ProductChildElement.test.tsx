@@ -2,7 +2,7 @@ import * as React from "react";
 import { MemoryRouter } from "react-router-dom";
 import * as renderer from "react-test-renderer";
 
-import { ProductChildElement } from "../../category/components/ProductChildElement";
+import ProductChildElement from "../../category/components/ProductChildElement";
 import productFixture from "./fixtures/product";
 
 describe("<ProductChildElement />", () => {

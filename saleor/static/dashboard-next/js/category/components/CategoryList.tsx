@@ -4,21 +4,19 @@ import Grid from "material-ui/Grid";
 import Button from "material-ui/Button";
 import { Link } from "react-router-dom";
 
-import { CategoryChildElement } from "./CategoryChildElement";
+import CategoryChildElement from "./CategoryChildElement";
 import { categoryAddUrl, categoryShowUrl } from "../";
 import { CategoryPropertiesQuery } from "../gql-types";
 import i18n from "../../i18n";
 
 interface CategoryListProps {
-  loading?: boolean;
-  categories: CategoryPropertiesQuery["category"]["children"]["edges"];
+  categories?: CategoryPropertiesQuery["category"]["children"]["edges"];
 }
 export const CategoryList: React.StatelessComponent<CategoryListProps> = ({
-  loading,
   categories
 }) => (
   <Grid container>
-    {loading ? (
+    {categories === undefined ? (
       <Grid item xs={12} sm={6} md={4} lg={3} xl={2}>
         <CategoryChildElement loading={true} label="" url="" />
       </Grid>
@@ -39,3 +37,5 @@ export const CategoryList: React.StatelessComponent<CategoryListProps> = ({
     )}
   </Grid>
 );
+
+export default CategoryList;
