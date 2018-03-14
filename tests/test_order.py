@@ -1,15 +1,10 @@
 from decimal import Decimal
-<<<<<<< HEAD
-from unittest.mock import Mock
-=======
->>>>>>> Move emails test from test_order to test_emails
 
 from django.urls import reverse
 from prices import Money, TaxedMoney
 from tests.utils import get_redirect_location
 
 from saleor.order import FulfillmentStatus, models, OrderStatus
-from saleor.order.emails import collect_data_for_email
 from saleor.order.forms import OrderNoteForm
 from saleor.order.utils import (
     add_variant_to_order, cancel_fulfillment, cancel_order, recalculate_order,
@@ -253,30 +248,3 @@ def test_update_order_status(fulfilled_order):
     update_order_status(fulfilled_order)
 
     assert fulfilled_order.status == OrderStatus.UNFULFILLED
-
-
-def test_delivery_group_is_shipping_required(delivery_group):
-    assert delivery_group.is_shipping_required()
-
-
-def test_delivery_group_is_shipping_required_no_shipping(delivery_group):
-    line = delivery_group.lines.first()
-    line.is_shipping_required = False
-    line.save()
-    assert not delivery_group.is_shipping_required()
-
-
-def test_delivery_group_is_shipping_required_partially_required(
-        delivery_group, product_without_shipping):
-    variant = product_without_shipping.variants.get()
-    product_type = product_without_shipping.product_type
-    delivery_group.lines.create(
-        delivery_group=delivery_group,
-        product=product_without_shipping,
-        product_name=product_without_shipping.name,
-        product_sku=variant.sku,
-        is_shipping_required=product_type.is_shipping_required,
-        quantity=3,
-        unit_price_net=Decimal('30.00'),
-        unit_price_gross=Decimal('30.00'))
-    assert delivery_group.is_shipping_required()

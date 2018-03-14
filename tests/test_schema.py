@@ -18,14 +18,14 @@ def test_get_organization(site_settings):
 
 def test_get_product_data_without_image(order_with_lines):
     """Tested OrderLine Product has no image assigned."""
-    order_line = order_with_lines.get_lines()[0]
+    order_line = order_with_lines.lines.first()
     organization = get_organization()
     result = get_product_data(order_line, organization)
     assert 'image' not in result['itemOffered']
 
 
-def test_get_product_data_with_image(delivery_group, product_with_image):
-    order_line = delivery_group.order.get_lines()[0]
+def test_get_product_data_with_image(order_with_lines, product_with_image):
+    order_line = order_with_lines.lines.first()
     order_line.product = product_with_image
     order_line.product_name = product_with_image.name
     order_line.save()
