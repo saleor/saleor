@@ -1,5 +1,4 @@
 from django.contrib.auth.tokens import default_token_generator
-from django.contrib.sites.models import Site
 from django.core import mail
 from django.urls import reverse
 from django.utils.encoding import force_bytes
@@ -19,6 +18,7 @@ def test_staff_form_not_valid(db):
 
 def test_staff_form_create_valid(
         admin_client, staff_user, staff_group):
+    assert staff_user.groups.count() == 0
     url = reverse('dashboard:staff-details', kwargs={'pk': staff_user.pk})
     data = {'email': 'staff@example.com', 'groups': staff_group.pk}
     admin_client.post(url, data)
@@ -49,47 +49,54 @@ def test_admin_cant_change_his_permissions(admin_client, admin_user):
 
 
 def test_delete_staff(admin_client, staff_user):
-    assert User.objects.all().count() == 2
+    user_count = User.objects.all().count()
     url = reverse('dashboard:staff-delete', kwargs={'pk': staff_user.pk})
     data = {'pk': staff_user.pk}
     response = admin_client.post(url, data)
-    assert User.objects.all().count() == 1
+    assert User.objects.all().count() == user_count - 1
     assert response['Location'] == '/dashboard/staff/'
 
 
 def test_delete_staff_no_post(admin_client, staff_user):
+    user_count = User.objects.all().count()
     url = reverse('dashboard:staff-delete', kwargs={'pk': staff_user.pk})
     admin_client.get(url)
-    assert User.objects.all().count() == 2
+    assert User.objects.all().count() == user_count
 
 
 def test_delete_staff_with_orders(admin_client, staff_user, order):
     order.user = staff_user
     order.save()
-    assert User.objects.all().count() == 2
+    user_count = User.objects.all().count()
     url = reverse('dashboard:staff-delete', kwargs={'pk': staff_user.pk})
     data = {'pk': staff_user.pk}
     response = admin_client.post(url, data)
-    assert User.objects.all().count() == 2
+
+    # Staff placed some orders in the past, so his acc should be not deleted
+    assert User.objects.all().count() == user_count
     staff_user.refresh_from_db()
+    # Instead, his privileges are taken away
     assert not staff_user.is_staff
     assert response['Location'] == '/dashboard/staff/'
 
 
 def test_staff_create_email_with_set_link_password(
         admin_client, staff_group):
+    user_count = User.objects.count()
+    mail_outbox_count = len(mail.outbox)
     url = reverse('dashboard:staff-create')
     data = {
         'email': 'staff3@example.com', 'groups': staff_group.pk,
         'is_staff': True}
     response = admin_client.post(url, data)
-    assert User.objects.count() == 2
-    assert len(mail.outbox) == 1
+
+    assert User.objects.count() == user_count + 1
+    assert len(mail.outbox) == mail_outbox_count + 1
     assert response['Location'] == reverse('dashboard:staff-list')
 
 
-def test_send_set_password_email(staff_user):
-    site = Site.objects.get_current()
+def test_send_set_password_email(staff_user, site_settings):
+    site = site_settings.site
     ctx = {
         'protocol': 'http',
         'domain': site.domain,

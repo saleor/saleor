@@ -1,12 +1,10 @@
 from decimal import Decimal
-from unittest.mock import Mock
 
 from django.urls import reverse
 from prices import Money, TaxedMoney
 from tests.utils import get_redirect_location
 
 from saleor.order import FulfillmentStatus, models, OrderStatus
-from saleor.order.emails import collect_data_for_email
 from saleor.order.forms import OrderNoteForm
 from saleor.order.utils import (
     add_variant_to_order, cancel_fulfillment, cancel_order, recalculate_order,
@@ -108,7 +106,15 @@ def test_view_connect_order_with_user_authorized_user(
 
 
 def test_view_connect_order_with_user_different_email(
-        order, authorized_client):
+        order, authorized_client, customer_user):
+    """Order was placed from different email, than user's
+    we are trying to assign it to."""
+    order.user = None
+    order.user_email = 'example_email@email.email'
+    order.save()
+
+    assert order.user_email != customer_user.email
+
     url = reverse(
         'order:connect-order-with-user', kwargs={'token': order.token})
     response = authorized_client.post(url)
@@ -134,15 +140,6 @@ def test_create_order_history(order_with_lines):
     history_entry = models.OrderHistoryEntry.objects.get(order=order)
     assert history_entry == order.history.first()
     assert history_entry.content == 'test_entry'
-
-
-def test_collect_data_for_email(order):
-    template = Mock(spec=str)
-    order.user_mail = 'test@example.com'
-    email_data = collect_data_for_email(order.pk, template)
-    order_url = reverse('order:details', kwargs={'token': order.token})
-    assert order_url in email_data['url']
-    assert email_data['email'] == order.user_email
 
 
 def test_restock_order_lines(order_with_lines_and_stock):

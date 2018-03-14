@@ -43,7 +43,7 @@ def get_order_payloads(order):
             item_id=ol.product_sku)
         for ol in order]
     return ga.transaction(
-        order.id, items, revenue=order.total.gross,
+        order.id, items, revenue=order.total.gross, tax=order.total.tax,
         shipping=order.shipping_price.gross)
 
 

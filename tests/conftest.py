@@ -72,8 +72,15 @@ def request_cart_with_item(product_in_stock, request_cart):
 
 
 @pytest.fixture
-def order(billing_address):
-    return Order.objects.create(billing_address=billing_address)
+def order(billing_address, customer_user):
+    return Order.objects.create(
+        billing_address=billing_address,
+        user_email=customer_user.email,
+        total_net=Money(100, 'USD'),
+        total_gross=Money(123, 'USD'),
+        shipping_price_net=Money(10, 'USD'),
+        shipping_price_gross=Money(12, 'USD'),
+        user=customer_user)
 
 
 @pytest.fixture()
