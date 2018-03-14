@@ -1,5 +1,6 @@
 import Button from "material-ui/Button";
 import Card, { CardContent, CardActions } from "material-ui/Card";
+import Toolbar from "material-ui/Toolbar";
 import Typography from "material-ui/Typography";
 import { withStyles, WithStyles } from "material-ui/styles";
 import * as React from "react";
@@ -22,7 +23,6 @@ interface BaseCategoryFormProps {
   description: string;
   handleConfirm(data);
   name: string;
-  title: string;
   errors: Array<{
     field: string;
     message: string;
@@ -62,19 +62,14 @@ export const BaseCategoryForm = decorate(
         description,
         handleConfirm,
         name,
-        title,
         errors
       } = this.props;
       const errorList = errors.reduce((acc, curr) => {
         acc[curr.field] = curr.message;
         return acc;
       }, {});
-      console.log(errorList);
       return (
-        <Card>
-          <CardContent>
-            <Typography variant="display1">{title}</Typography>
-          </CardContent>
+        <>
           <CardContent>
             <TextField
               autoFocus
@@ -98,21 +93,16 @@ export const BaseCategoryForm = decorate(
               helperText={errorList["description"]}
             />
           </CardContent>
-          <CardContent>
-            <CardActions className={classes.cardActions}>
-              <Button
-                variant="raised"
-                color="primary"
-                onClick={() => handleConfirm(this.state.formData)}
-              >
-                {confirmButtonLabel}
-              </Button>
-              <Button color="primary" onClick={() => window.history.back()}>
-                {i18n.t("Cancel", { context: "button" })}
-              </Button>
-            </CardActions>
-          </CardContent>
-        </Card>
+          <Toolbar className={classes.cardActions}>
+            <Button
+              variant="raised"
+              color="primary"
+              onClick={() => handleConfirm(this.state.formData)}
+            >
+              {confirmButtonLabel}
+            </Button>
+          </Toolbar>
+        </>
       );
     }
   }

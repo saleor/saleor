@@ -8,9 +8,9 @@ interface ErrorMessageCardProps {
   message: string;
 }
 
-export const ErrorMessageCard: React.StatelessComponent<
-  ErrorMessageCardProps
-> = ({ message }) => (
+const ErrorMessageCard: React.StatelessComponent<ErrorMessageCardProps> = ({
+  message
+}) => (
   <Card>
     <CardContent>
       <Typography variant="display1">
