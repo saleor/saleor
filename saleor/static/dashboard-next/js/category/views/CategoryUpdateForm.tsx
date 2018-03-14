@@ -2,8 +2,8 @@ import Grid from "material-ui/Grid";
 import * as React from "react";
 import { Redirect } from "react-router-dom";
 
-import { BaseCategoryForm } from "../components/BaseForm";
-import { ErrorMessageCard } from "../../components/cards";
+import BaseCategoryForm from "../components/BaseForm";
+import ErrorMessageCard from "../../components/cards/ErrorMessageCard";
 import { TypedCategoryDetailsQuery, categoryDetailsQuery } from "../queries";
 import {
   TypedCategoryUpdateMutation,
@@ -31,7 +31,7 @@ export const CategoryUpdateForm: React.StatelessComponent<
       const { category } = data;
 
       return (
-        <Grid container spacing={16}>
+        <Grid container spacing={24}>
           <Grid item xs={12} md={9}>
             <TypedCategoryUpdateMutation mutation={categoryUpdateMutation}>
               {(mutate, result) => {

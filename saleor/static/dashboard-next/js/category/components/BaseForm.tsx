@@ -117,3 +117,5 @@ export const BaseCategoryForm = decorate(
     }
   }
 );
+
+export default BaseCategoryForm;

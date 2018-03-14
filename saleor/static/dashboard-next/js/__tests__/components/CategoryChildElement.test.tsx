@@ -2,7 +2,7 @@ import * as React from "react";
 import { MemoryRouter } from "react-router-dom";
 import * as renderer from "react-test-renderer";
 
-import { CategoryChildElement } from "../../category/components/CategoryChildElement";
+import CategoryChildElement from "../../category/components/CategoryChildElement";
 import categoryListFixture from "./fixtures/categoryList";
 
 const categoryFixture = categoryListFixture[0];
