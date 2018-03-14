@@ -1,13 +1,20 @@
 import * as React from "react";
-import Typography from "material-ui/Typography";
-import Grid from "material-ui/Grid";
 import Button from "material-ui/Button";
+import Grid from "material-ui/Grid";
+import List, {
+  ListItem,
+  ListItemIcon,
+  ListItemText,
+  ListSubheader
+} from "material-ui/List";
+import Typography from "material-ui/Typography";
+import Folder from "material-ui-icons/Folder";
 import { Link } from "react-router-dom";
 
-import CategoryChildElement from "./CategoryChildElement";
 import { categoryAddUrl, categoryShowUrl } from "../";
 import { CategoryPropertiesQuery } from "../gql-types";
 import i18n from "../../i18n";
+import Skeleton from "../../components/Skeleton";
 
 interface CategoryListProps {
   categories?: CategoryPropertiesQuery["category"]["children"]["edges"];
@@ -15,26 +22,35 @@ interface CategoryListProps {
 export const CategoryList: React.StatelessComponent<CategoryListProps> = ({
   categories
 }) => (
-  <Grid container>
+  <List>
     {categories === undefined ? (
-      <Grid item xs={12} sm={6} md={4} lg={3} xl={2}>
-        <CategoryChildElement loading={true} label="" url="" />
-      </Grid>
+      <ListItem>
+        <ListItemIcon>
+          <Folder />
+        </ListItemIcon>
+        <ListItemText>
+          <Skeleton />
+        </ListItemText>
+      </ListItem>
     ) : categories.length > 0 ? (
       categories.map(edge => (
-        <Grid item key={edge.node.id} xs={12} sm={6} md={4} lg={3} xl={2}>
-          <CategoryChildElement
-            url={categoryShowUrl(edge.node.id)}
-            label={edge.node.name}
-          />
-        </Grid>
+        <ListItem
+          button
+          key={edge.node.id}
+          component={props => (
+            <Link to={categoryShowUrl(edge.node.id)} {...props} />
+          )}
+        >
+          <ListItemIcon>
+            <Folder />
+          </ListItemIcon>
+          <ListItemText>{edge.node.name}</ListItemText>
+        </ListItem>
       ))
     ) : (
-      <Grid item xs={12}>
-        <Typography variant="body2">{i18n.t("No categories found")}</Typography>
-      </Grid>
+      <ListSubheader>{i18n.t("No categories found")}</ListSubheader>
     )}
-  </Grid>
+  </List>
 );
 
 export default CategoryList;

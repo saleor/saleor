@@ -51,7 +51,7 @@ interface FilterCardComponentState {
   collapsed: boolean;
 }
 
-export const FilterCard = decorate(
+const FilterCard = decorate(
   class FilterCardComponent extends Component<
     FilterCardComponentProps &
       WithStyles<

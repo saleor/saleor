@@ -10,16 +10,31 @@ import * as React from "react";
 
 import i18n from "../../i18n";
 
+const decorate = withStyles(theme => ({
+  deleteButton: {
+    backgroundColor: theme.palette.error.main,
+    color: theme.palette.error.contrastText,
+    "&:hover": {
+      backgroundColor: theme.palette.error.dark
+    }
+  }
+}));
+
 interface CategoryDeleteDialogProps {
   onClose?();
   onConfirm?();
   opened?: boolean;
 }
 
-export const CategoryDeleteDialog: React.StatelessComponent<
-  CategoryDeleteDialogProps
-> = props => {
-  const { children, opened, onConfirm, onClose, ...dialogProps } = props;
+const CategoryDeleteDialog = decorate<CategoryDeleteDialogProps>(props => {
+  const {
+    children,
+    classes,
+    opened,
+    onConfirm,
+    onClose,
+    ...dialogProps
+  } = props;
   return (
     <Dialog open={opened} {...dialogProps}>
       <DialogTitle>
@@ -27,15 +42,19 @@ export const CategoryDeleteDialog: React.StatelessComponent<
       </DialogTitle>
       <DialogContent>{children}</DialogContent>
       <DialogActions>
-        <Button color="primary" onClick={onClose}>
+        <Button onClick={onClose}>
           {i18n.t("Cancel", { context: "button" })}
         </Button>
-        <Button color="primary" variant="raised" onClick={onConfirm}>
+        <Button
+          className={classes.deleteButton}
+          variant="raised"
+          onClick={onConfirm}
+        >
           {i18n.t("Delete category", { context: "button" })}
         </Button>
       </DialogActions>
     </Dialog>
   );
-};
+});
 
 export default CategoryDeleteDialog;

@@ -6,6 +6,7 @@ import Toolbar from "material-ui/Toolbar";
 import Typography from "material-ui/Typography";
 import { withStyles } from "material-ui/styles";
 import ArrowBack from "material-ui-icons/ArrowBack";
+import Add from "material-ui-icons/Add";
 import * as React from "react";
 import { Link } from "react-router-dom";
 
@@ -16,7 +17,6 @@ import {
   TypedRootCategoryChildrenQuery
 } from "../queries";
 import CategoryProperties from "../components/CategoryProperties";
-import CategoryChildElement from "../components/CategoryChildElement";
 import CategoryList from "../components/CategoryList";
 import ProductChildElement from "../components/ProductChildElement";
 import ProductList from "../components/ProductList";
@@ -24,11 +24,9 @@ import { categoryShowUrl, categoryAddUrl } from "../index";
 import PageHeader from "../../components/PageHeader";
 import Skeleton from "../../components/Skeleton";
 import i18n from "../../i18n";
+import Page from "../../components/Page";
 
 const decorate = withStyles(theme => ({
-  grid: {
-    padding: theme.spacing.unit * 2
-  },
   title: {
     flex: 1
   },
@@ -87,27 +85,16 @@ const CategoryDetails = decorate<CategoryDetailsProps>(
               });
             };
             return (
-              <>
-                <PageHeader
-                  backLink={
-                    category
-                      ? categoryShowUrl(category.parent && category.parent.id)
-                      : "#"
-                  }
-                  loading={loading}
-                  title={(category && category.name) || ""}
-                />
-                <Grid container spacing={24} className={classes.grid}>
-                  <Grid item xs={12}>
-                    <CategoryProperties category={category} loading={loading} />
-                  </Grid>
-                  <Grid item xs={12}>
-                    <div className={classes.subtitle}>
-                      <Typography className={classes.title} variant="title">
-                        {i18n.t("Subcategories", { context: "title" })}
-                      </Typography>
-                      <Button
-                        color="secondary"
+              <Grid container spacing={24}>
+                <Grid item xs={12}>
+                  <CategoryProperties category={category} loading={loading} />
+                </Grid>
+                <Grid item xs={12}>
+                  <Page>
+                    <PageHeader
+                      title={i18n.t("Subcategories", { context: "title" })}
+                    >
+                      <IconButton
                         component={props => (
                           <Link
                             to={category ? categoryAddUrl(category.id) : "#"}
@@ -115,31 +102,29 @@ const CategoryDetails = decorate<CategoryDetailsProps>(
                           />
                         )}
                         disabled={loading}
-                        variant="raised"
                       >
-                        {i18n.t("Add category", { context: "button" })}
-                      </Button>
-                    </div>
+                        <Add />
+                      </IconButton>
+                    </PageHeader>
                     <CategoryList
                       categories={
                         category && category.children && category.children.edges
                       }
                     />
-                  </Grid>
-                  <Grid item xs={12}>
-                    <div className={classes.subtitle}>
-                      <Typography className={classes.title} variant="title">
-                        {i18n.t("Products", { context: "title" })}
-                      </Typography>
-                      <Button
-                        color="secondary"
+                  </Page>
+                </Grid>
+                <Grid item xs={12}>
+                  <Page>
+                    <PageHeader
+                      title={i18n.t("Products", { context: "title" })}
+                    >
+                      <IconButton
                         component={props => <Link to="#" {...props} />}
                         disabled={loading}
-                        variant="raised"
                       >
-                        {i18n.t("Add product", { context: "button" })}
-                      </Button>
-                    </div>
+                        <Add />
+                      </IconButton>
+                    </PageHeader>
                     <ProductList
                       products={
                         category && category.products && category.products.edges
@@ -152,9 +137,9 @@ const CategoryDetails = decorate<CategoryDetailsProps>(
                         category.products.pageInfo.hasNextPage
                       }
                     />
-                  </Grid>
+                  </Page>
                 </Grid>
-              </>
+              </Grid>
             );
           }}
         </TypedCategoryPropertiesQuery>
@@ -170,21 +155,17 @@ const CategoryDetails = decorate<CategoryDetailsProps>(
             return <span>not ok</span>;
           }
           return (
-            <>
+            <Page>
               <PageHeader title={i18n.t("Categories", { context: "title" })}>
-                <Button
-                  color="secondary"
+                <IconButton
                   component={props => <Link to={categoryAddUrl()} {...props} />}
                   disabled={loading}
-                  variant="raised"
                 >
-                  {i18n.t("Add category", { context: "button" })}
-                </Button>
+                  <Add />
+                </IconButton>
               </PageHeader>
-              <div className={classes.grid}>
-                <CategoryList categories={categories && categories.edges} />
-              </div>
-            </>
+              <CategoryList categories={categories && categories.edges} />
+            </Page>
           );
         }}
       </TypedRootCategoryChildrenQuery>
