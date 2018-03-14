@@ -1,13 +1,19 @@
 import Button from "material-ui/Button";
 import Card, { CardActions, CardContent, CardHeader } from "material-ui/Card";
+import IconButton from "material-ui/IconButton";
 import Typography from "material-ui/Typography";
+import DeleteForever from "material-ui-icons/DeleteForever";
+import ModeEdit from "material-ui-icons/ModeEdit";
 import * as React from "react";
 import { Link } from "react-router-dom";
 
 import Skeleton from "../../components/Skeleton";
 import i18n from "../../i18n";
+import Page from "../../components/Page";
+import PageHeader from "../../components/PageHeader";
 
 interface CategoryDetailsProps {
+  backLink?: string;
   description?: string;
   editButtonLink?: string;
   handleRemoveButtonClick?();
@@ -16,15 +22,31 @@ interface CategoryDetailsProps {
 
 export const CategoryDetails: React.StatelessComponent<
   CategoryDetailsProps
-> = ({ description, editButtonLink, handleRemoveButtonClick, title }) => (
-  <Card>
-    <CardHeader
-      title={
-        title !== undefined ? title : <Skeleton style={{ width: "10em" }} />
-      }
-    />
+> = ({
+  backLink,
+  description,
+  editButtonLink,
+  handleRemoveButtonClick,
+  title
+}) => (
+  <Page>
+    <PageHeader backLink={backLink} title={title}>
+      <IconButton onClick={handleRemoveButtonClick}>
+        <DeleteForever />
+      </IconButton>
+      <IconButton
+        component={props => (
+          <Link
+            to={editButtonLink !== undefined ? editButtonLink : "#"}
+            {...props}
+          />
+        )}
+      >
+        <ModeEdit />
+      </IconButton>
+    </PageHeader>
     <CardContent>
-      <Typography component="p">
+      <Typography variant="body1">
         {description !== undefined
           ? description
           : [
@@ -34,23 +56,7 @@ export const CategoryDetails: React.StatelessComponent<
             ]}
       </Typography>
     </CardContent>
-    <CardActions>
-      <Button
-        color="secondary"
-        component={props => (
-          <Link
-            to={editButtonLink !== undefined ? editButtonLink : "#"}
-            {...props}
-          />
-        )}
-      >
-        {i18n.t("Edit", { context: "button" })}
-      </Button>
-      <Button color="secondary" onClick={handleRemoveButtonClick}>
-        {i18n.t("Delete", { context: "button" })}
-      </Button>
-    </CardActions>
-  </Card>
+  </Page>
 );
 
 export default CategoryDetails;

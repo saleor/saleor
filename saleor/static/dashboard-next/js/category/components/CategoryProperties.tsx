@@ -57,6 +57,11 @@ export class CategoryProperties extends Component<
           return (
             <>
               <CategoryDetails
+                backLink={
+                  (category &&
+                    categoryShowUrl(category.parent && category.parent.id)) ||
+                  "#"
+                }
                 description={category && category.description}
                 editButtonLink={category && categoryEditUrl(category.id)}
                 handleRemoveButtonClick={this.handleRemoveButtonClick}

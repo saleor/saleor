@@ -6,7 +6,7 @@ interface NavigatorProps {
   children(func: (url: string, replace?: boolean) => any);
 }
 
-export const Navigator: React.StatelessComponent<NavigatorProps> = (
+const Navigator: React.StatelessComponent<NavigatorProps> = (
   { children },
   { router }
 ) => {
