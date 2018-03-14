@@ -92,14 +92,31 @@ class RefundPaymentForm(ManagePaymentForm):
         return self.try_payment_action(self.payment.refund)
 
 
-class ReleasePaymentForm(ManagePaymentForm):
+class ReleasePaymentForm(forms.Form):
 
-    clean_status = PaymentStatus.PREAUTH
-    clean_error = pgettext_lazy(
-        'Payment form error', 'Only pre-authorized payments can be released')
+    def __init__(self, *args, **kwargs):
+        self.payment = kwargs.pop('payment')
+        super().__init__(*args, **kwargs)
+
+    def clean(self):
+        if self.payment.status != PaymentStatus.PREAUTH:
+            raise forms.ValidationError(
+                pgettext_lazy(
+                    'Payment form error',
+                    'Only pre-authorized payments can be released'))
+
+    def payment_error(self, message):
+        self.add_error(
+            None, pgettext_lazy(
+                'Payment form error', 'Payment gateway error: %s') % message)
 
     def release(self):
-        return self.try_payment_action(self.payment.release)
+        try:
+            self.payment.release()
+        except (PaymentError, ValueError) as e:
+            self.payment_error(str(e))
+            return False
+        return True
 
 
 class CancelOrderLineForm(forms.Form):

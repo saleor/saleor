@@ -9,6 +9,7 @@ from django.core.files import File
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.utils.encoding import smart_text
 from PIL import Image
+from payments import FraudStatus, PaymentStatus
 from prices import Money
 
 from saleor.account.models import Address, User
@@ -505,6 +506,63 @@ def order_with_variant_from_different_stocks(order_with_lines_and_stock):
         variant=variant, cost_price=Money(1, 'USD'), quantity=5,
         quantity_allocated=0, location=warehouse_2)
     return order_with_lines_and_stock
+
+
+@pytest.fixture()
+def payment_waiting(order_with_lines_and_stock):
+    return order_with_lines_and_stock.payments.create(
+        variant='default', status=PaymentStatus.WAITING,
+        fraud_status=FraudStatus.ACCEPT, currency='USD',
+        total=order_with_lines_and_stock.total_gross.amount)
+
+
+@pytest.fixture()
+def payment_preauth(order_with_lines_and_stock):
+    return order_with_lines_and_stock.payments.create(
+        variant='default', status=PaymentStatus.PREAUTH,
+        fraud_status=FraudStatus.ACCEPT, currency='USD',
+        total=order_with_lines_and_stock.total_gross.amount)
+
+
+@pytest.fixture()
+def payment_confirmed(order_with_lines_and_stock):
+    order_amount = order_with_lines_and_stock.total_gross.amount
+    return order_with_lines_and_stock.payments.create(
+        variant='default', status=PaymentStatus.CONFIRMED,
+        fraud_status=FraudStatus.ACCEPT, currency='USD',
+        total=order_amount, captured_amount=order_amount)
+
+
+@pytest.fixture()
+def payment_rejected(order_with_lines_and_stock):
+    return order_with_lines_and_stock.payments.create(
+        variant='default', status=PaymentStatus.REJECTED,
+        fraud_status=FraudStatus.ACCEPT, currency='USD',
+        total=order_with_lines_and_stock.total_gross.amount)
+
+
+@pytest.fixture()
+def payment_refunded(order_with_lines_and_stock):
+    return order_with_lines_and_stock.payments.create(
+        variant='default', status=PaymentStatus.REFUNDED,
+        fraud_status=FraudStatus.ACCEPT, currency='USD',
+        total=order_with_lines_and_stock.total_gross.amount)
+
+
+@pytest.fixture()
+def payment_error(order_with_lines_and_stock):
+    return order_with_lines_and_stock.payments.create(
+        variant='default', status=PaymentStatus.ERROR,
+        fraud_status=FraudStatus.ACCEPT, currency='USD',
+        total=order_with_lines_and_stock.total_gross.amount)
+
+
+@pytest.fixture()
+def payment_input(order_with_lines_and_stock):
+    return order_with_lines_and_stock.payments.create(
+        variant='default', status=PaymentStatus.INPUT,
+        fraud_status=FraudStatus.ACCEPT, currency='USD',
+        total=order_with_lines_and_stock.total_gross.amount)
 
 
 @pytest.fixture()
