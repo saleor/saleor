@@ -13,7 +13,11 @@
             {% for child in children %}
               <li>
                 <a href="{{ child.get_url }}">
-                  <strong>{{ child }}</strong>
+                  {% if horizontal %}
+                    <strong>{{ child }}</strong>
+                  {% else %}
+                    {{ child }}
+                  {% endif %}
                 </a>
               </li>
               {% with grandchildren=child.get_children %}
