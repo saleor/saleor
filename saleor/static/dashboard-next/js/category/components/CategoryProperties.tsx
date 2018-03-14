@@ -4,8 +4,8 @@ import { Component } from "react";
 import { Query } from "react-apollo";
 import { Redirect } from "react-router-dom";
 
-import { CategoryDeleteDialog } from "./CategoryDeleteDialog";
-import { CategoryDetails } from "./CategoryDetails";
+import CategoryDeleteDialog from "./CategoryDeleteDialog";
+import CategoryDetails from "./CategoryDetails";
 import {
   TypedCategoryDeleteMutation,
   categoryDeleteMutation
@@ -39,7 +39,7 @@ export class CategoryProperties extends Component<
     return (
       <TypedCategoryDeleteMutation
         mutation={categoryDeleteMutation}
-        variables={{ id: loading ? "" : category.id }}
+        variables={{ id: (category && category.id) || "" }}
       >
         {(deleteCategory, deleteResult) => {
           if (deleteResult && !deleteResult.loading) {
@@ -57,11 +57,10 @@ export class CategoryProperties extends Component<
           return (
             <>
               <CategoryDetails
-                description={loading ? "" : category.description}
-                editButtonLink={loading ? "" : categoryEditUrl(category.id)}
+                description={category && category.description}
+                editButtonLink={category && categoryEditUrl(category.id)}
                 handleRemoveButtonClick={this.handleRemoveButtonClick}
-                loading={loading}
-                title={loading ? "" : category.name}
+                title={category && category.name}
               />
               {!loading ? (
                 <CategoryDeleteDialog

@@ -7,6 +7,7 @@ import i18n from "../../i18n";
 interface ErrorMessageCardProps {
   message: string;
 }
+
 export const ErrorMessageCard: React.StatelessComponent<
   ErrorMessageCardProps
 > = ({ message }) => (
@@ -19,3 +20,5 @@ export const ErrorMessageCard: React.StatelessComponent<
     </CardContent>
   </Card>
 );
+
+export default ErrorMessageCard;

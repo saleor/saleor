@@ -143,3 +143,5 @@ export const AppRoot = decorate<{}>(
     }
   }
 );
+
+export default AppRoot;

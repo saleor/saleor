@@ -16,26 +16,21 @@ import {
   TypedRootCategoryChildrenQuery
 } from "../queries";
 import CategoryProperties from "../components/CategoryProperties";
-import { CategoryChildElement } from "../components/CategoryChildElement";
+import CategoryChildElement from "../components/CategoryChildElement";
+import CategoryList from "../components/CategoryList";
+import ProductChildElement from "../components/ProductChildElement";
+import ProductList from "../components/ProductList";
 import { categoryShowUrl, categoryAddUrl } from "../index";
-import { ProductChildElement } from "../components/ProductChildElement";
-import { CategoryList } from "../components/CategoryList";
-import { ProductList } from "../components/ProductList";
+import PageHeader from "../../components/PageHeader";
+import Skeleton from "../../components/Skeleton";
 import i18n from "../../i18n";
-import { Skeleton } from "../../components/Skeleton";
 
 const decorate = withStyles(theme => ({
   grid: {
     padding: theme.spacing.unit * 2
   },
-  menuButton: {
-    marginRight: theme.spacing.unit * 2
-  },
   title: {
     flex: 1
-  },
-  toolbar: {
-    backgroundColor: theme.palette.background.paper
   },
   subtitle: {
     display: "flex",
@@ -93,35 +88,15 @@ const CategoryDetails = decorate<CategoryDetailsProps>(
             };
             return (
               <>
-                <Toolbar className={classes.toolbar}>
-                  <IconButton
-                    color="inherit"
-                    className={classes.menuButton}
-                    component={props => (
-                      <Link
-                        to={
-                          loading
-                            ? ""
-                            : categoryShowUrl(
-                                category.parent && category.parent.id
-                              )
-                        }
-                        {...props}
-                      />
-                    )}
-                    disabled={loading}
-                  >
-                    <ArrowBack />
-                  </IconButton>
-                  <Typography className={classes.title} variant="title">
-                    {loading ? (
-                      <Skeleton style={{ width: "10em" }} />
-                    ) : (
-                      category.name
-                    )}
-                  </Typography>
-                </Toolbar>
-                <Divider />
+                <PageHeader
+                  backLink={
+                    category
+                      ? categoryShowUrl(category.parent && category.parent.id)
+                      : "#"
+                  }
+                  loading={loading}
+                  title={(category && category.name) || ""}
+                />
                 <Grid container spacing={24} className={classes.grid}>
                   <Grid item xs={12}>
                     <CategoryProperties category={category} loading={loading} />
@@ -135,7 +110,7 @@ const CategoryDetails = decorate<CategoryDetailsProps>(
                         color="secondary"
                         component={props => (
                           <Link
-                            to={loading ? "" : categoryAddUrl(category.id)}
+                            to={category ? categoryAddUrl(category.id) : "#"}
                             {...props}
                           />
                         )}
@@ -146,8 +121,9 @@ const CategoryDetails = decorate<CategoryDetailsProps>(
                       </Button>
                     </div>
                     <CategoryList
-                      loading={loading}
-                      categories={loading ? [] : category.children.edges}
+                      categories={
+                        category && category.children && category.children.edges
+                      }
                     />
                   </Grid>
                   <Grid item xs={12}>
@@ -165,11 +141,15 @@ const CategoryDetails = decorate<CategoryDetailsProps>(
                       </Button>
                     </div>
                     <ProductList
-                      loading={loading}
-                      products={loading ? [] : category.products.edges}
+                      products={
+                        category && category.products && category.products.edges
+                      }
                       handleLoadMore={handleLoadMore}
                       canLoadMore={
-                        loading ? false : category.products.pageInfo.hasNextPage
+                        category &&
+                        category.products &&
+                        category.products.pageInfo &&
+                        category.products.pageInfo.hasNextPage
                       }
                     />
                   </Grid>
@@ -191,10 +171,7 @@ const CategoryDetails = decorate<CategoryDetailsProps>(
           }
           return (
             <>
-              <Toolbar className={classes.toolbar}>
-                <Typography className={classes.title} variant="title">
-                  {i18n.t("Categories", { context: "title" })}
-                </Typography>
+              <PageHeader title={i18n.t("Categories", { context: "title" })}>
                 <Button
                   color="secondary"
                   component={props => <Link to={categoryAddUrl()} {...props} />}
@@ -203,13 +180,9 @@ const CategoryDetails = decorate<CategoryDetailsProps>(
                 >
                   {i18n.t("Add category", { context: "button" })}
                 </Button>
-              </Toolbar>
-              <Divider />
+              </PageHeader>
               <div className={classes.grid}>
-                <CategoryList
-                  loading={loading}
-                  categories={loading ? [] : categories.edges}
-                />
+                <CategoryList categories={categories && categories.edges} />
               </div>
             </>
           );

@@ -29,3 +29,5 @@ export const Skeleton = decorate<SkeletonProps>(({ classes, style }) => (
     &zwnj;
   </span>
 ));
+
+export default Skeleton;

@@ -12,7 +12,7 @@ import { BrowserRouter, Route, Switch } from "react-router-dom";
 import { createStore } from "redux";
 import * as Cookies from "universal-cookie";
 
-import { AppRoot } from "./AppRoot";
+import AppRoot from "./AppRoot";
 import CategorySection from "./category";
 import "./i18n";
 import theme from "./theme";

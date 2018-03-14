@@ -2,14 +2,15 @@ import Grid from "material-ui/Grid";
 import * as React from "react";
 import { Redirect } from "react-router-dom";
 
-import { BaseCategoryForm } from "../components/BaseForm";
-import { ErrorMessageCard } from "../../components/cards";
+import BaseCategoryForm from "../components/BaseForm";
+import { categoryShowUrl } from "../index";
 import {
   TypedCategoryCreateMutation,
   categoryCreateMutation
 } from "../mutations";
+import ErrorMessageCard from "../../components/cards/ErrorMessageCard";
+import PageHeader from "../../components/PageHeader";
 import i18n from "../../i18n";
-import { categoryShowUrl } from "../index";
 
 type CategoryCreateFormProps = {
   parentId: string;
@@ -18,8 +19,12 @@ type CategoryCreateFormProps = {
 export const CategoryCreateForm: React.StatelessComponent<
   CategoryCreateFormProps
 > = ({ parentId }) => (
-  <Grid container spacing={16}>
-    <Grid item xs={12} md={9}>
+  <>
+    <PageHeader
+      backLink={categoryShowUrl(parentId)}
+      title={i18n.t("Add category", { context: "title" })}
+    />
+    <Grid xs={12} md={9}>
       <TypedCategoryCreateMutation mutation={categoryCreateMutation}>
         {(mutate, result) => {
           if (
@@ -58,5 +63,5 @@ export const CategoryCreateForm: React.StatelessComponent<
         }}
       </TypedCategoryCreateMutation>
     </Grid>
-  </Grid>
+  </>
 );
