@@ -32,7 +32,7 @@ interface TablePaginationActionsProps {
   theme: any;
 }
 
-export const TablePaginationActions = decorate<TablePaginationActionsProps>(
+const TablePaginationActions = decorate<TablePaginationActionsProps>(
   ({
     backIconButtonProps,
     classes,

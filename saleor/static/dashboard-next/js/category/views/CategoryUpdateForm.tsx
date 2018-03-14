@@ -13,6 +13,7 @@ import {
 import { categoryShowUrl } from "../index";
 import i18n from "../../i18n";
 import PageHeader from "../../components/PageHeader";
+import Page from "../../components/Page";
 
 interface CategoryUpdateFormProps {
   id: string;
@@ -30,60 +31,55 @@ export const CategoryUpdateForm: React.StatelessComponent<
       const { category } = data;
 
       return (
-        <>
+        <Page>
           <PageHeader
-            backLink={categoryShowUrl(id)}
+            cancelLink={categoryShowUrl(id)}
             title={i18n.t("Edit category", { context: "title" })}
           />
           {loading ? (
             <CircularProgress />
           ) : (
-            <Grid container spacing={24}>
-              <Grid item xs={12} md={9}>
-                <TypedCategoryUpdateMutation mutation={categoryUpdateMutation}>
-                  {(mutate, result) => {
-                    if (
-                      result &&
-                      !result.loading &&
-                      result.data.categoryUpdate.errors.length === 0
-                    ) {
-                      return (
-                        <Redirect
-                          to={categoryShowUrl(
-                            result.data.categoryUpdate.category.id
-                          )}
-                        />
-                      );
+            <TypedCategoryUpdateMutation mutation={categoryUpdateMutation}>
+              {(mutate, result) => {
+                if (
+                  result &&
+                  !result.loading &&
+                  result.data.categoryUpdate.errors.length === 0
+                ) {
+                  return (
+                    <Redirect
+                      to={categoryShowUrl(
+                        result.data.categoryUpdate.category.id
+                      )}
+                    />
+                  );
+                }
+                return (
+                  <BaseCategoryForm
+                    name={category.name}
+                    description={category.description}
+                    handleConfirm={formData =>
+                      mutate({
+                        variables: {
+                          ...formData,
+                          id
+                        }
+                      })
                     }
-                    return (
-                      <BaseCategoryForm
-                        title={i18n.t("Edit category", { context: "title" })}
-                        name={category.name}
-                        description={category.description}
-                        handleConfirm={formData =>
-                          mutate({
-                            variables: {
-                              ...formData,
-                              id
-                            }
-                          })
-                        }
-                        confirmButtonLabel={i18n.t("Save", {
-                          context: "button"
-                        })}
-                        errors={
-                          result && !result.loading
-                            ? result.data.categoryUpdate.errors
-                            : []
-                        }
-                      />
-                    );
-                  }}
-                </TypedCategoryUpdateMutation>
-              </Grid>
-            </Grid>
+                    confirmButtonLabel={i18n.t("Save", {
+                      context: "button"
+                    })}
+                    errors={
+                      result && !result.loading
+                        ? result.data.categoryUpdate.errors
+                        : []
+                    }
+                  />
+                );
+              }}
+            </TypedCategoryUpdateMutation>
           )}
-        </>
+        </Page>
       );
     }}
   </TypedCategoryDetailsQuery>

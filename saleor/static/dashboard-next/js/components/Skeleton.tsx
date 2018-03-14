@@ -24,7 +24,7 @@ interface SkeletonProps {
   style?: React.CSSProperties;
 }
 
-export const Skeleton = decorate<SkeletonProps>(({ classes, style }) => (
+const Skeleton = decorate<SkeletonProps>(({ classes, style }) => (
   <span className={classes.skeleton} style={style}>
     &zwnj;
   </span>

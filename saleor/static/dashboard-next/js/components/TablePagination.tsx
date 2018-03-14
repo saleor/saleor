@@ -66,7 +66,7 @@ interface TablePaginationProps {
   onPreviousPage(event);
 }
 
-export const TablePagination = decorate<TablePaginationProps>(
+const TablePagination = decorate<TablePaginationProps>(
   ({
     Actions,
     backIconButtonProps,

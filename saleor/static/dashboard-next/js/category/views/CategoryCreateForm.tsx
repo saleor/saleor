@@ -11,6 +11,7 @@ import {
 import ErrorMessageCard from "../../components/cards/ErrorMessageCard";
 import PageHeader from "../../components/PageHeader";
 import i18n from "../../i18n";
+import Page from "../../components/Page";
 
 type CategoryCreateFormProps = {
   parentId: string;
@@ -19,9 +20,9 @@ type CategoryCreateFormProps = {
 export const CategoryCreateForm: React.StatelessComponent<
   CategoryCreateFormProps
 > = ({ parentId }) => (
-  <>
+  <Page>
     <PageHeader
-      backLink={categoryShowUrl(parentId)}
+      cancelLink={categoryShowUrl(parentId)}
       title={i18n.t("Add category", { context: "title" })}
     />
     <Grid xs={12} md={9}>
@@ -52,7 +53,6 @@ export const CategoryCreateForm: React.StatelessComponent<
                 })
               }
               name=""
-              title={i18n.t("Add category", { context: "title" })}
               errors={
                 result && !result.loading
                   ? result.data.categoryCreate.errors
@@ -63,5 +63,5 @@ export const CategoryCreateForm: React.StatelessComponent<
         }}
       </TypedCategoryCreateMutation>
     </Grid>
-  </>
+  </Page>
 );
