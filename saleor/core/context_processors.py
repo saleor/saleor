@@ -20,9 +20,8 @@ def default_currency(request):
 # request is a required parameter
 # pylint: disable=W0613
 def navigation(request):
-    slugs = ['navbar', 'footer']
-    kwargs = ['items', 'items__collection', 'items__category', 'items__page']
-    menus = Menu.objects.prefetch_related(*kwargs).filter(slug__in=slugs)
+    menus = Menu.objects.prefetch_related(
+        'items', 'items__collection', 'items__category', 'items__page').all()
     return {'menus': list(menus)}
 
 
