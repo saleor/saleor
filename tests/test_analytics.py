@@ -33,8 +33,13 @@ def test_report_order_has_no_errors(order_with_lines):
 
 
 def test_get_view_payloads():
-    # fixme: test get_view_payloads
-    raise NotImplementedError()
+    headers = {'HTTP_HOST': 'getsaleor.com', 'HTTP_REFERER': 'example.com'}
+    generator = get_view_payloads('/test-path/', 'en-us', headers)
+    data = list(generator)[0]
+    assert data['dp'] == '/test-path/'
+    assert data['dh'] == 'getsaleor.com'
+    assert data['dr'] == 'example.com'
+    assert data['ul'] == 'en-us'
 
 
 def test_report_view_has_no_errors():
