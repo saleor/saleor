@@ -218,7 +218,7 @@ def test_checkout_billing_address(user, address):
         302, reverse('cart:index'))])
 def test_index_view(cart, status_code, url, rf, monkeypatch):
     checkout = Checkout(cart, AnonymousUser(), 'tracking_code')
-    request = rf.get('checkout:index')
+    request = rf.get('checkout:index', follow=True)
     request.user = checkout.user
     request.session = {STORAGE_SESSION_KEY: checkout.for_storage()}
     request.discounts = []

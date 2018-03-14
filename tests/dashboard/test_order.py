@@ -5,7 +5,8 @@ import pytest
 from django.urls import reverse
 from payments import PaymentStatus
 from prices import Money, TaxedMoney
-from tests.utils import get_redirect_location, get_url_path
+
+from tests.utils import get_redirect_location
 
 from saleor.dashboard.order.forms import ChangeQuantityForm, OrderNoteForm
 from saleor.dashboard.order.utils import fulfill_order_line
@@ -458,7 +459,7 @@ def test_view_change_order_line_quantity(
     redirected_to, redirect_status_code = response.redirect_chain[-1]
     # check redirection
     assert redirect_status_code == 302
-    assert get_url_path(redirected_to) == reverse(
+    assert redirected_to == reverse(
         'dashboard:order-details',
         args=[order_with_lines_and_stock.pk])
     # success messages should appear after redirect
