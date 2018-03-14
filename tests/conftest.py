@@ -681,11 +681,12 @@ def menu_item(menu):
 
 
 @pytest.fixture
-def menu_with_items(menu):
+def menu_with_items(menu, default_category, collection):
     menu.items.create(name='Link 1', url='http://example.com/')
     menu_item = menu.items.create(name='Link 2', url='http://example.com/')
     menu.items.create(
-        name='Link 3', url='http://example.com/', parent=menu_item)
+        name=default_category.name, category=default_category,
+        parent=menu_item)
     menu.items.create(
-        name='Link 4', url='http://example.com/', parent=menu_item)
+        name=collection.name, collection=collection, parent=menu_item)
     return menu
