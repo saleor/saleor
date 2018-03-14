@@ -1,494 +1,421 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`<ProductList /> renders properly 'load more' button 1`] = `
-Array [
-  <div
-    className="MuiGrid-typeContainer-1 MuiGrid-spacing-xs-16-23"
+<ul
+  className="MuiList-root-1 MuiList-padding-2"
+>
+  <a
+    className="MuiButtonBase-root-57 MuiListItem-root-5 MuiListItem-dense-9 MuiListItem-gutters-12 MuiListItem-button-13"
+    href="#"
+    onBlur={[Function]}
+    onClick={[Function]}
+    onFocus={[Function]}
+    onKeyDown={[Function]}
+    onKeyUp={[Function]}
+    onMouseDown={[Function]}
+    onMouseLeave={[Function]}
+    onMouseUp={[Function]}
+    onTouchEnd={[Function]}
+    onTouchMove={[Function]}
+    onTouchStart={[Function]}
+    role="button"
+    tabIndex="0"
   >
     <div
-      className="MuiGrid-typeItem-2 MuiGrid-grid-xs-12-38 MuiGrid-grid-sm-6-45 MuiGrid-grid-md-4-56 MuiGrid-grid-lg-3-68 MuiGrid-grid-xl-2-80"
+      className="MuiAvatar-root-17"
     >
-      <a
-        className="MuiButtonBase-root-95 Component-button-91"
-        href="#"
-        onBlur={[Function]}
-        onClick={[Function]}
-        onFocus={[Function]}
-        onKeyDown={[Function]}
-        onKeyUp={[Function]}
-        onMouseDown={[Function]}
-        onMouseLeave={[Function]}
-        onMouseUp={[Function]}
-        onTouchEnd={[Function]}
-        onTouchMove={[Function]}
-        onTouchStart={[Function]}
-        role="button"
-        tabIndex="0"
-      >
-        <div
-          className="MuiCardMedia-root-98 Component-media-92"
-          src={undefined}
-          style={
-            Object {
-              "backgroundImage": "url(/media/__sized__/products/saleor/static/placeholders/t-shirts/5_ZoF6Xi8-crop-c0-5__0-5-255x255-70.jpg)",
-            }
-          }
-        />
-        <div
-          className="MuiCardContent-root-100 Component-content-93"
-        >
-          <span
-            className="MuiTypography-root-101 MuiTypography-button-112"
-          >
-            Lewis PLC
-          </span>
-          <p
-            className="MuiTypography-root-101 MuiTypography-body1-110 Component-price-94"
-          >
-            62,43 USD
-          </p>
-        </div>
-        <span
-          className="MuiTouchRipple-root-126"
-        />
-      </a>
+      <img
+        alt={undefined}
+        className="MuiAvatar-img-19"
+        sizes={undefined}
+        src="/media/__sized__/products/saleor/static/placeholders/t-shirts/5_ZoF6Xi8-crop-c0-5__0-5-255x255-70.jpg"
+        srcSet={undefined}
+      />
     </div>
     <div
-      className="MuiGrid-typeItem-2 MuiGrid-grid-xs-12-38 MuiGrid-grid-sm-6-45 MuiGrid-grid-md-4-56 MuiGrid-grid-lg-3-68 MuiGrid-grid-xl-2-80"
+      className="MuiListItemText-root-26"
     >
-      <a
-        className="MuiButtonBase-root-95 Component-button-91"
-        href="#"
-        onBlur={[Function]}
-        onClick={[Function]}
-        onFocus={[Function]}
-        onKeyDown={[Function]}
-        onKeyUp={[Function]}
-        onMouseDown={[Function]}
-        onMouseLeave={[Function]}
-        onMouseUp={[Function]}
-        onTouchEnd={[Function]}
-        onTouchMove={[Function]}
-        onTouchStart={[Function]}
-        role="button"
-        tabIndex="0"
+      <h3
+        className="MuiTypography-root-32 MuiTypography-subheading-39 MuiListItemText-primary-29"
       >
-        <div
-          className="MuiCardMedia-root-98 Component-media-92"
-          src={undefined}
-          style={
-            Object {
-              "backgroundImage": "url(/media/__sized__/products/saleor/static/placeholders/t-shirts/6_07Fa6v8-crop-c0-5__0-5-255x255-70.jpg)",
-            }
-          }
-        />
-        <div
-          className="MuiCardContent-root-100 Component-content-93"
-        >
-          <span
-            className="MuiTypography-root-101 MuiTypography-button-112"
-          >
-            Kennedy-Ramirez
-          </span>
-          <p
-            className="MuiTypography-root-101 MuiTypography-body1-110 Component-price-94"
-          >
-            29,98 USD
-          </p>
-        </div>
-        <span
-          className="MuiTouchRipple-root-126"
-        />
-      </a>
+        Lewis PLC
+      </h3>
+    </div>
+    <span
+      className="MuiTouchRipple-root-60"
+    />
+  </a>
+  <a
+    className="MuiButtonBase-root-57 MuiListItem-root-5 MuiListItem-dense-9 MuiListItem-gutters-12 MuiListItem-button-13"
+    href="#"
+    onBlur={[Function]}
+    onClick={[Function]}
+    onFocus={[Function]}
+    onKeyDown={[Function]}
+    onKeyUp={[Function]}
+    onMouseDown={[Function]}
+    onMouseLeave={[Function]}
+    onMouseUp={[Function]}
+    onTouchEnd={[Function]}
+    onTouchMove={[Function]}
+    onTouchStart={[Function]}
+    role="button"
+    tabIndex="0"
+  >
+    <div
+      className="MuiAvatar-root-17"
+    >
+      <img
+        alt={undefined}
+        className="MuiAvatar-img-19"
+        sizes={undefined}
+        src="/media/__sized__/products/saleor/static/placeholders/t-shirts/6_07Fa6v8-crop-c0-5__0-5-255x255-70.jpg"
+        srcSet={undefined}
+      />
     </div>
     <div
-      className="MuiGrid-typeItem-2 MuiGrid-grid-xs-12-38 MuiGrid-grid-sm-6-45 MuiGrid-grid-md-4-56 MuiGrid-grid-lg-3-68 MuiGrid-grid-xl-2-80"
+      className="MuiListItemText-root-26"
     >
-      <a
-        className="MuiButtonBase-root-95 Component-button-91"
-        href="#"
-        onBlur={[Function]}
-        onClick={[Function]}
-        onFocus={[Function]}
-        onKeyDown={[Function]}
-        onKeyUp={[Function]}
-        onMouseDown={[Function]}
-        onMouseLeave={[Function]}
-        onMouseUp={[Function]}
-        onTouchEnd={[Function]}
-        onTouchMove={[Function]}
-        onTouchStart={[Function]}
-        role="button"
-        tabIndex="0"
+      <h3
+        className="MuiTypography-root-32 MuiTypography-subheading-39 MuiListItemText-primary-29"
       >
-        <div
-          className="MuiCardMedia-root-98 Component-media-92"
-          src={undefined}
-          style={
-            Object {
-              "backgroundImage": "url(/media/__sized__/products/saleor/static/placeholders/t-shirts/6_zeczDly-crop-c0-5__0-5-255x255-70.jpg)",
-            }
-          }
-        />
-        <div
-          className="MuiCardContent-root-100 Component-content-93"
-        >
-          <span
-            className="MuiTypography-root-101 MuiTypography-button-112"
-          >
-            Newman, Ashley and Roberson
-          </span>
-          <p
-            className="MuiTypography-root-101 MuiTypography-body1-110 Component-price-94"
-          >
-            48,56 USD
-          </p>
-        </div>
-        <span
-          className="MuiTouchRipple-root-126"
-        />
-      </a>
+        Kennedy-Ramirez
+      </h3>
+    </div>
+    <span
+      className="MuiTouchRipple-root-60"
+    />
+  </a>
+  <a
+    className="MuiButtonBase-root-57 MuiListItem-root-5 MuiListItem-dense-9 MuiListItem-gutters-12 MuiListItem-button-13"
+    href="#"
+    onBlur={[Function]}
+    onClick={[Function]}
+    onFocus={[Function]}
+    onKeyDown={[Function]}
+    onKeyUp={[Function]}
+    onMouseDown={[Function]}
+    onMouseLeave={[Function]}
+    onMouseUp={[Function]}
+    onTouchEnd={[Function]}
+    onTouchMove={[Function]}
+    onTouchStart={[Function]}
+    role="button"
+    tabIndex="0"
+  >
+    <div
+      className="MuiAvatar-root-17"
+    >
+      <img
+        alt={undefined}
+        className="MuiAvatar-img-19"
+        sizes={undefined}
+        src="/media/__sized__/products/saleor/static/placeholders/t-shirts/6_zeczDly-crop-c0-5__0-5-255x255-70.jpg"
+        srcSet={undefined}
+      />
     </div>
     <div
-      className="MuiGrid-typeItem-2 MuiGrid-grid-xs-12-38 MuiGrid-grid-sm-6-45 MuiGrid-grid-md-4-56 MuiGrid-grid-lg-3-68 MuiGrid-grid-xl-2-80"
+      className="MuiListItemText-root-26"
     >
-      <a
-        className="MuiButtonBase-root-95 Component-button-91"
-        href="#"
-        onBlur={[Function]}
-        onClick={[Function]}
-        onFocus={[Function]}
-        onKeyDown={[Function]}
-        onKeyUp={[Function]}
-        onMouseDown={[Function]}
-        onMouseLeave={[Function]}
-        onMouseUp={[Function]}
-        onTouchEnd={[Function]}
-        onTouchMove={[Function]}
-        onTouchStart={[Function]}
-        role="button"
-        tabIndex="0"
+      <h3
+        className="MuiTypography-root-32 MuiTypography-subheading-39 MuiListItemText-primary-29"
       >
-        <div
-          className="MuiCardMedia-root-98 Component-media-92"
-          src={undefined}
-          style={
-            Object {
-              "backgroundImage": "url(/media/__sized__/products/saleor/static/placeholders/t-shirts/5_VX2ikxl-crop-c0-5__0-5-255x255-70.jpg)",
-            }
-          }
-        />
-        <div
-          className="MuiCardContent-root-100 Component-content-93"
-        >
-          <span
-            className="MuiTypography-root-101 MuiTypography-button-112"
-          >
-            Jacobson, Stewart and Rodriguez
-          </span>
-          <p
-            className="MuiTypography-root-101 MuiTypography-body1-110 Component-price-94"
-          >
-            80,54 USD
-          </p>
-        </div>
-        <span
-          className="MuiTouchRipple-root-126"
-        />
-      </a>
+        Newman, Ashley and Roberson
+      </h3>
+    </div>
+    <span
+      className="MuiTouchRipple-root-60"
+    />
+  </a>
+  <a
+    className="MuiButtonBase-root-57 MuiListItem-root-5 MuiListItem-dense-9 MuiListItem-gutters-12 MuiListItem-button-13"
+    href="#"
+    onBlur={[Function]}
+    onClick={[Function]}
+    onFocus={[Function]}
+    onKeyDown={[Function]}
+    onKeyUp={[Function]}
+    onMouseDown={[Function]}
+    onMouseLeave={[Function]}
+    onMouseUp={[Function]}
+    onTouchEnd={[Function]}
+    onTouchMove={[Function]}
+    onTouchStart={[Function]}
+    role="button"
+    tabIndex="0"
+  >
+    <div
+      className="MuiAvatar-root-17"
+    >
+      <img
+        alt={undefined}
+        className="MuiAvatar-img-19"
+        sizes={undefined}
+        src="/media/__sized__/products/saleor/static/placeholders/t-shirts/5_VX2ikxl-crop-c0-5__0-5-255x255-70.jpg"
+        srcSet={undefined}
+      />
     </div>
     <div
-      className="MuiGrid-typeItem-2 MuiGrid-grid-xs-12-38 MuiGrid-grid-sm-6-45 MuiGrid-grid-md-4-56 MuiGrid-grid-lg-3-68 MuiGrid-grid-xl-2-80"
+      className="MuiListItemText-root-26"
     >
-      <a
-        className="MuiButtonBase-root-95 Component-button-91"
-        href="#"
-        onBlur={[Function]}
-        onClick={[Function]}
-        onFocus={[Function]}
-        onKeyDown={[Function]}
-        onKeyUp={[Function]}
-        onMouseDown={[Function]}
-        onMouseLeave={[Function]}
-        onMouseUp={[Function]}
-        onTouchEnd={[Function]}
-        onTouchMove={[Function]}
-        onTouchStart={[Function]}
-        role="button"
-        tabIndex="0"
+      <h3
+        className="MuiTypography-root-32 MuiTypography-subheading-39 MuiListItemText-primary-29"
       >
-        <div
-          className="MuiCardMedia-root-98 Component-media-92"
-          src={undefined}
-          style={
-            Object {
-              "backgroundImage": "url(/media/__sized__/products/saleor/static/placeholders/t-shirts/5_wl4FUo7-crop-c0-5__0-5-255x255-70.jpg)",
-            }
-          }
-        />
-        <div
-          className="MuiCardContent-root-100 Component-content-93"
-        >
-          <span
-            className="MuiTypography-root-101 MuiTypography-button-112"
-          >
-            Sloan Ltd
-          </span>
-          <p
-            className="MuiTypography-root-101 MuiTypography-body1-110 Component-price-94"
-          >
-            67,18 USD
-          </p>
-        </div>
-        <span
-          className="MuiTouchRipple-root-126"
-        />
-      </a>
+        Jacobson, Stewart and Rodriguez
+      </h3>
+    </div>
+    <span
+      className="MuiTouchRipple-root-60"
+    />
+  </a>
+  <a
+    className="MuiButtonBase-root-57 MuiListItem-root-5 MuiListItem-dense-9 MuiListItem-gutters-12 MuiListItem-button-13"
+    href="#"
+    onBlur={[Function]}
+    onClick={[Function]}
+    onFocus={[Function]}
+    onKeyDown={[Function]}
+    onKeyUp={[Function]}
+    onMouseDown={[Function]}
+    onMouseLeave={[Function]}
+    onMouseUp={[Function]}
+    onTouchEnd={[Function]}
+    onTouchMove={[Function]}
+    onTouchStart={[Function]}
+    role="button"
+    tabIndex="0"
+  >
+    <div
+      className="MuiAvatar-root-17"
+    >
+      <img
+        alt={undefined}
+        className="MuiAvatar-img-19"
+        sizes={undefined}
+        src="/media/__sized__/products/saleor/static/placeholders/t-shirts/5_wl4FUo7-crop-c0-5__0-5-255x255-70.jpg"
+        srcSet={undefined}
+      />
     </div>
     <div
-      className="MuiGrid-typeItem-2 MuiGrid-grid-xs-12-38 MuiGrid-grid-sm-6-45 MuiGrid-grid-md-4-56 MuiGrid-grid-lg-3-68 MuiGrid-grid-xl-2-80"
+      className="MuiListItemText-root-26"
     >
-      <a
-        className="MuiButtonBase-root-95 Component-button-91"
-        href="#"
-        onBlur={[Function]}
-        onClick={[Function]}
-        onFocus={[Function]}
-        onKeyDown={[Function]}
-        onKeyUp={[Function]}
-        onMouseDown={[Function]}
-        onMouseLeave={[Function]}
-        onMouseUp={[Function]}
-        onTouchEnd={[Function]}
-        onTouchMove={[Function]}
-        onTouchStart={[Function]}
-        role="button"
-        tabIndex="0"
+      <h3
+        className="MuiTypography-root-32 MuiTypography-subheading-39 MuiListItemText-primary-29"
       >
-        <div
-          className="MuiCardMedia-root-98 Component-media-92"
-          src={undefined}
-          style={
-            Object {
-              "backgroundImage": "url(/media/__sized__/products/saleor/static/placeholders/t-shirts/5_c0nSiAe-crop-c0-5__0-5-255x255-70.jpg)",
-            }
-          }
-        />
-        <div
-          className="MuiCardContent-root-100 Component-content-93"
-        >
-          <span
-            className="MuiTypography-root-101 MuiTypography-button-112"
-          >
-            Foster-Beard
-          </span>
-          <p
-            className="MuiTypography-root-101 MuiTypography-body1-110 Component-price-94"
-          >
-            50,22 USD
-          </p>
-        </div>
-        <span
-          className="MuiTouchRipple-root-126"
-        />
-      </a>
+        Sloan Ltd
+      </h3>
+    </div>
+    <span
+      className="MuiTouchRipple-root-60"
+    />
+  </a>
+  <a
+    className="MuiButtonBase-root-57 MuiListItem-root-5 MuiListItem-dense-9 MuiListItem-gutters-12 MuiListItem-button-13"
+    href="#"
+    onBlur={[Function]}
+    onClick={[Function]}
+    onFocus={[Function]}
+    onKeyDown={[Function]}
+    onKeyUp={[Function]}
+    onMouseDown={[Function]}
+    onMouseLeave={[Function]}
+    onMouseUp={[Function]}
+    onTouchEnd={[Function]}
+    onTouchMove={[Function]}
+    onTouchStart={[Function]}
+    role="button"
+    tabIndex="0"
+  >
+    <div
+      className="MuiAvatar-root-17"
+    >
+      <img
+        alt={undefined}
+        className="MuiAvatar-img-19"
+        sizes={undefined}
+        src="/media/__sized__/products/saleor/static/placeholders/t-shirts/5_c0nSiAe-crop-c0-5__0-5-255x255-70.jpg"
+        srcSet={undefined}
+      />
     </div>
     <div
-      className="MuiGrid-typeItem-2 MuiGrid-grid-xs-12-38 MuiGrid-grid-sm-6-45 MuiGrid-grid-md-4-56 MuiGrid-grid-lg-3-68 MuiGrid-grid-xl-2-80"
+      className="MuiListItemText-root-26"
     >
-      <a
-        className="MuiButtonBase-root-95 Component-button-91"
-        href="#"
-        onBlur={[Function]}
-        onClick={[Function]}
-        onFocus={[Function]}
-        onKeyDown={[Function]}
-        onKeyUp={[Function]}
-        onMouseDown={[Function]}
-        onMouseLeave={[Function]}
-        onMouseUp={[Function]}
-        onTouchEnd={[Function]}
-        onTouchMove={[Function]}
-        onTouchStart={[Function]}
-        role="button"
-        tabIndex="0"
+      <h3
+        className="MuiTypography-root-32 MuiTypography-subheading-39 MuiListItemText-primary-29"
       >
-        <div
-          className="MuiCardMedia-root-98 Component-media-92"
-          src={undefined}
-          style={
-            Object {
-              "backgroundImage": "url(/media/__sized__/products/saleor/static/placeholders/t-shirts/6_qHI83dZ-crop-c0-5__0-5-255x255-70.jpg)",
-            }
-          }
-        />
-        <div
-          className="MuiCardContent-root-100 Component-content-93"
-        >
-          <span
-            className="MuiTypography-root-101 MuiTypography-button-112"
-          >
-            Henson PLC
-          </span>
-          <p
-            className="MuiTypography-root-101 MuiTypography-body1-110 Component-price-94"
-          >
-            17,81 USD
-          </p>
-        </div>
-        <span
-          className="MuiTouchRipple-root-126"
-        />
-      </a>
+        Foster-Beard
+      </h3>
+    </div>
+    <span
+      className="MuiTouchRipple-root-60"
+    />
+  </a>
+  <a
+    className="MuiButtonBase-root-57 MuiListItem-root-5 MuiListItem-dense-9 MuiListItem-gutters-12 MuiListItem-button-13"
+    href="#"
+    onBlur={[Function]}
+    onClick={[Function]}
+    onFocus={[Function]}
+    onKeyDown={[Function]}
+    onKeyUp={[Function]}
+    onMouseDown={[Function]}
+    onMouseLeave={[Function]}
+    onMouseUp={[Function]}
+    onTouchEnd={[Function]}
+    onTouchMove={[Function]}
+    onTouchStart={[Function]}
+    role="button"
+    tabIndex="0"
+  >
+    <div
+      className="MuiAvatar-root-17"
+    >
+      <img
+        alt={undefined}
+        className="MuiAvatar-img-19"
+        sizes={undefined}
+        src="/media/__sized__/products/saleor/static/placeholders/t-shirts/6_qHI83dZ-crop-c0-5__0-5-255x255-70.jpg"
+        srcSet={undefined}
+      />
     </div>
     <div
-      className="MuiGrid-typeItem-2 MuiGrid-grid-xs-12-38 MuiGrid-grid-sm-6-45 MuiGrid-grid-md-4-56 MuiGrid-grid-lg-3-68 MuiGrid-grid-xl-2-80"
+      className="MuiListItemText-root-26"
     >
-      <a
-        className="MuiButtonBase-root-95 Component-button-91"
-        href="#"
-        onBlur={[Function]}
-        onClick={[Function]}
-        onFocus={[Function]}
-        onKeyDown={[Function]}
-        onKeyUp={[Function]}
-        onMouseDown={[Function]}
-        onMouseLeave={[Function]}
-        onMouseUp={[Function]}
-        onTouchEnd={[Function]}
-        onTouchMove={[Function]}
-        onTouchStart={[Function]}
-        role="button"
-        tabIndex="0"
+      <h3
+        className="MuiTypography-root-32 MuiTypography-subheading-39 MuiListItemText-primary-29"
       >
-        <div
-          className="MuiCardMedia-root-98 Component-media-92"
-          src={undefined}
-          style={
-            Object {
-              "backgroundImage": "url(/media/__sized__/products/saleor/static/placeholders/t-shirts/5_06TblXK-crop-c0-5__0-5-255x255-70.jpg)",
-            }
-          }
-        />
-        <div
-          className="MuiCardContent-root-100 Component-content-93"
-        >
-          <span
-            className="MuiTypography-root-101 MuiTypography-button-112"
-          >
-            Novak, Lopez and Cook
-          </span>
-          <p
-            className="MuiTypography-root-101 MuiTypography-body1-110 Component-price-94"
-          >
-            48,41 USD
-          </p>
-        </div>
-        <span
-          className="MuiTouchRipple-root-126"
-        />
-      </a>
+        Henson PLC
+      </h3>
+    </div>
+    <span
+      className="MuiTouchRipple-root-60"
+    />
+  </a>
+  <a
+    className="MuiButtonBase-root-57 MuiListItem-root-5 MuiListItem-dense-9 MuiListItem-gutters-12 MuiListItem-button-13"
+    href="#"
+    onBlur={[Function]}
+    onClick={[Function]}
+    onFocus={[Function]}
+    onKeyDown={[Function]}
+    onKeyUp={[Function]}
+    onMouseDown={[Function]}
+    onMouseLeave={[Function]}
+    onMouseUp={[Function]}
+    onTouchEnd={[Function]}
+    onTouchMove={[Function]}
+    onTouchStart={[Function]}
+    role="button"
+    tabIndex="0"
+  >
+    <div
+      className="MuiAvatar-root-17"
+    >
+      <img
+        alt={undefined}
+        className="MuiAvatar-img-19"
+        sizes={undefined}
+        src="/media/__sized__/products/saleor/static/placeholders/t-shirts/5_06TblXK-crop-c0-5__0-5-255x255-70.jpg"
+        srcSet={undefined}
+      />
     </div>
     <div
-      className="MuiGrid-typeItem-2 MuiGrid-grid-xs-12-38 MuiGrid-grid-sm-6-45 MuiGrid-grid-md-4-56 MuiGrid-grid-lg-3-68 MuiGrid-grid-xl-2-80"
+      className="MuiListItemText-root-26"
     >
-      <a
-        className="MuiButtonBase-root-95 Component-button-91"
-        href="#"
-        onBlur={[Function]}
-        onClick={[Function]}
-        onFocus={[Function]}
-        onKeyDown={[Function]}
-        onKeyUp={[Function]}
-        onMouseDown={[Function]}
-        onMouseLeave={[Function]}
-        onMouseUp={[Function]}
-        onTouchEnd={[Function]}
-        onTouchMove={[Function]}
-        onTouchStart={[Function]}
-        role="button"
-        tabIndex="0"
+      <h3
+        className="MuiTypography-root-32 MuiTypography-subheading-39 MuiListItemText-primary-29"
       >
-        <div
-          className="MuiCardMedia-root-98 Component-media-92"
-          src={undefined}
-          style={
-            Object {
-              "backgroundImage": "url(/media/__sized__/products/saleor/static/placeholders/t-shirts/6_yMYqzTc-crop-c0-5__0-5-255x255-70.jpg)",
-            }
-          }
-        />
-        <div
-          className="MuiCardContent-root-100 Component-content-93"
-        >
-          <span
-            className="MuiTypography-root-101 MuiTypography-button-112"
-          >
-            Thompson-Jones
-          </span>
-          <p
-            className="MuiTypography-root-101 MuiTypography-body1-110 Component-price-94"
-          >
-            55,36 USD
-          </p>
-        </div>
-        <span
-          className="MuiTouchRipple-root-126"
-        />
-      </a>
+        Novak, Lopez and Cook
+      </h3>
+    </div>
+    <span
+      className="MuiTouchRipple-root-60"
+    />
+  </a>
+  <a
+    className="MuiButtonBase-root-57 MuiListItem-root-5 MuiListItem-dense-9 MuiListItem-gutters-12 MuiListItem-button-13"
+    href="#"
+    onBlur={[Function]}
+    onClick={[Function]}
+    onFocus={[Function]}
+    onKeyDown={[Function]}
+    onKeyUp={[Function]}
+    onMouseDown={[Function]}
+    onMouseLeave={[Function]}
+    onMouseUp={[Function]}
+    onTouchEnd={[Function]}
+    onTouchMove={[Function]}
+    onTouchStart={[Function]}
+    role="button"
+    tabIndex="0"
+  >
+    <div
+      className="MuiAvatar-root-17"
+    >
+      <img
+        alt={undefined}
+        className="MuiAvatar-img-19"
+        sizes={undefined}
+        src="/media/__sized__/products/saleor/static/placeholders/t-shirts/6_yMYqzTc-crop-c0-5__0-5-255x255-70.jpg"
+        srcSet={undefined}
+      />
     </div>
     <div
-      className="MuiGrid-typeItem-2 MuiGrid-grid-xs-12-38 MuiGrid-grid-sm-6-45 MuiGrid-grid-md-4-56 MuiGrid-grid-lg-3-68 MuiGrid-grid-xl-2-80"
+      className="MuiListItemText-root-26"
     >
-      <a
-        className="MuiButtonBase-root-95 Component-button-91"
-        href="#"
-        onBlur={[Function]}
-        onClick={[Function]}
-        onFocus={[Function]}
-        onKeyDown={[Function]}
-        onKeyUp={[Function]}
-        onMouseDown={[Function]}
-        onMouseLeave={[Function]}
-        onMouseUp={[Function]}
-        onTouchEnd={[Function]}
-        onTouchMove={[Function]}
-        onTouchStart={[Function]}
-        role="button"
-        tabIndex="0"
+      <h3
+        className="MuiTypography-root-32 MuiTypography-subheading-39 MuiListItemText-primary-29"
       >
-        <div
-          className="MuiCardMedia-root-98 Component-media-92"
-          src={undefined}
-          style={
-            Object {
-              "backgroundImage": "url(/media/__sized__/products/saleor/static/placeholders/t-shirts/5_eWtYYcz-crop-c0-5__0-5-255x255-70.jpg)",
-            }
-          }
-        />
-        <div
-          className="MuiCardContent-root-100 Component-content-93"
-        >
-          <span
-            className="MuiTypography-root-101 MuiTypography-button-112"
-          >
-            Cunningham, Torres and Day
-          </span>
-          <p
-            className="MuiTypography-root-101 MuiTypography-body1-110 Component-price-94"
-          >
-            92,13 USD
-          </p>
-        </div>
-        <span
-          className="MuiTouchRipple-root-126"
-        />
-      </a>
+        Thompson-Jones
+      </h3>
     </div>
-  </div>,
-  <button
-    className="MuiButtonBase-root-95 MuiButton-root-133 MuiButton-flatPrimary-135"
-    disabled={false}
+    <span
+      className="MuiTouchRipple-root-60"
+    />
+  </a>
+  <a
+    className="MuiButtonBase-root-57 MuiListItem-root-5 MuiListItem-dense-9 MuiListItem-gutters-12 MuiListItem-button-13"
+    href="#"
+    onBlur={[Function]}
+    onClick={[Function]}
+    onFocus={[Function]}
+    onKeyDown={[Function]}
+    onKeyUp={[Function]}
+    onMouseDown={[Function]}
+    onMouseLeave={[Function]}
+    onMouseUp={[Function]}
+    onTouchEnd={[Function]}
+    onTouchMove={[Function]}
+    onTouchStart={[Function]}
+    role="button"
+    tabIndex="0"
+  >
+    <div
+      className="MuiAvatar-root-17"
+    >
+      <img
+        alt={undefined}
+        className="MuiAvatar-img-19"
+        sizes={undefined}
+        src="/media/__sized__/products/saleor/static/placeholders/t-shirts/5_eWtYYcz-crop-c0-5__0-5-255x255-70.jpg"
+        srcSet={undefined}
+      />
+    </div>
+    <div
+      className="MuiListItemText-root-26"
+    >
+      <h3
+        className="MuiTypography-root-32 MuiTypography-subheading-39 MuiListItemText-primary-29"
+      >
+        Cunningham, Torres and Day
+      </h3>
+    </div>
+    <span
+      className="MuiTouchRipple-root-60"
+    />
+  </a>
+  <div
+    className="MuiButtonBase-root-57 MuiListItem-root-5 MuiListItem-dense-9 MuiListItem-gutters-12 MuiListItem-button-13"
     onBlur={[Function]}
     onClick={[MockFunction]}
     onFocus={[Function]}
@@ -500,575 +427,506 @@ Array [
     onTouchEnd={[Function]}
     onTouchMove={[Function]}
     onTouchStart={[Function]}
+    role="button"
     tabIndex="0"
-    type="button"
   >
-    <span
-      className="MuiButton-label-134"
+    <div
+      className="MuiAvatar-root-17 MuiAvatar-colorDefault-18"
     >
-      Load more
-    </span>
+      <svg
+        aria-hidden="true"
+        className="MuiSvgIcon-root-20"
+        color={undefined}
+        focusable="false"
+        viewBox="0 0 24 24"
+      >
+        <path
+          d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"
+        />
+      </svg>
+    </div>
+    <div
+      className="MuiListItemText-root-26"
+    >
+      <h3
+        className="MuiTypography-root-32 MuiTypography-subheading-39 MuiListItemText-primary-29"
+      >
+        Load more
+      </h3>
+    </div>
     <span
-      className="MuiTouchRipple-root-126"
+      className="MuiTouchRipple-root-60"
     />
-  </button>,
-]
+  </div>
+</ul>
 `;
 
 exports[`<ProductList /> renders properly when data is loaded 1`] = `
-<div
-  className="MuiGrid-typeContainer-1 MuiGrid-spacing-xs-16-23"
+<ul
+  className="MuiList-root-1 MuiList-padding-2"
 >
-  <div
-    className="MuiGrid-typeItem-2 MuiGrid-grid-xs-12-38 MuiGrid-grid-sm-6-45 MuiGrid-grid-md-4-56 MuiGrid-grid-lg-3-68 MuiGrid-grid-xl-2-80"
+  <a
+    className="MuiButtonBase-root-57 MuiListItem-root-5 MuiListItem-dense-9 MuiListItem-gutters-12 MuiListItem-button-13"
+    href="#"
+    onBlur={[Function]}
+    onClick={[Function]}
+    onFocus={[Function]}
+    onKeyDown={[Function]}
+    onKeyUp={[Function]}
+    onMouseDown={[Function]}
+    onMouseLeave={[Function]}
+    onMouseUp={[Function]}
+    onTouchEnd={[Function]}
+    onTouchMove={[Function]}
+    onTouchStart={[Function]}
+    role="button"
+    tabIndex="0"
   >
-    <a
-      className="MuiButtonBase-root-95 Component-button-91"
-      href="#"
-      onBlur={[Function]}
-      onClick={[Function]}
-      onFocus={[Function]}
-      onKeyDown={[Function]}
-      onKeyUp={[Function]}
-      onMouseDown={[Function]}
-      onMouseLeave={[Function]}
-      onMouseUp={[Function]}
-      onTouchEnd={[Function]}
-      onTouchMove={[Function]}
-      onTouchStart={[Function]}
-      role="button"
-      tabIndex="0"
+    <div
+      className="MuiAvatar-root-17"
     >
-      <div
-        className="MuiCardMedia-root-98 Component-media-92"
-        src={undefined}
-        style={
-          Object {
-            "backgroundImage": "url(/media/__sized__/products/saleor/static/placeholders/t-shirts/5_ZoF6Xi8-crop-c0-5__0-5-255x255-70.jpg)",
-          }
-        }
+      <img
+        alt={undefined}
+        className="MuiAvatar-img-19"
+        sizes={undefined}
+        src="/media/__sized__/products/saleor/static/placeholders/t-shirts/5_ZoF6Xi8-crop-c0-5__0-5-255x255-70.jpg"
+        srcSet={undefined}
       />
-      <div
-        className="MuiCardContent-root-100 Component-content-93"
+    </div>
+    <div
+      className="MuiListItemText-root-26"
+    >
+      <h3
+        className="MuiTypography-root-32 MuiTypography-subheading-39 MuiListItemText-primary-29"
       >
-        <span
-          className="MuiTypography-root-101 MuiTypography-button-112"
-        >
-          Lewis PLC
-        </span>
-        <p
-          className="MuiTypography-root-101 MuiTypography-body1-110 Component-price-94"
-        >
-          62,43 USD
-        </p>
-      </div>
-      <span
-        className="MuiTouchRipple-root-126"
-      />
-    </a>
-  </div>
-  <div
-    className="MuiGrid-typeItem-2 MuiGrid-grid-xs-12-38 MuiGrid-grid-sm-6-45 MuiGrid-grid-md-4-56 MuiGrid-grid-lg-3-68 MuiGrid-grid-xl-2-80"
+        Lewis PLC
+      </h3>
+    </div>
+    <span
+      className="MuiTouchRipple-root-60"
+    />
+  </a>
+  <a
+    className="MuiButtonBase-root-57 MuiListItem-root-5 MuiListItem-dense-9 MuiListItem-gutters-12 MuiListItem-button-13"
+    href="#"
+    onBlur={[Function]}
+    onClick={[Function]}
+    onFocus={[Function]}
+    onKeyDown={[Function]}
+    onKeyUp={[Function]}
+    onMouseDown={[Function]}
+    onMouseLeave={[Function]}
+    onMouseUp={[Function]}
+    onTouchEnd={[Function]}
+    onTouchMove={[Function]}
+    onTouchStart={[Function]}
+    role="button"
+    tabIndex="0"
   >
-    <a
-      className="MuiButtonBase-root-95 Component-button-91"
-      href="#"
-      onBlur={[Function]}
-      onClick={[Function]}
-      onFocus={[Function]}
-      onKeyDown={[Function]}
-      onKeyUp={[Function]}
-      onMouseDown={[Function]}
-      onMouseLeave={[Function]}
-      onMouseUp={[Function]}
-      onTouchEnd={[Function]}
-      onTouchMove={[Function]}
-      onTouchStart={[Function]}
-      role="button"
-      tabIndex="0"
+    <div
+      className="MuiAvatar-root-17"
     >
-      <div
-        className="MuiCardMedia-root-98 Component-media-92"
-        src={undefined}
-        style={
-          Object {
-            "backgroundImage": "url(/media/__sized__/products/saleor/static/placeholders/t-shirts/6_07Fa6v8-crop-c0-5__0-5-255x255-70.jpg)",
-          }
-        }
+      <img
+        alt={undefined}
+        className="MuiAvatar-img-19"
+        sizes={undefined}
+        src="/media/__sized__/products/saleor/static/placeholders/t-shirts/6_07Fa6v8-crop-c0-5__0-5-255x255-70.jpg"
+        srcSet={undefined}
       />
-      <div
-        className="MuiCardContent-root-100 Component-content-93"
+    </div>
+    <div
+      className="MuiListItemText-root-26"
+    >
+      <h3
+        className="MuiTypography-root-32 MuiTypography-subheading-39 MuiListItemText-primary-29"
       >
-        <span
-          className="MuiTypography-root-101 MuiTypography-button-112"
-        >
-          Kennedy-Ramirez
-        </span>
-        <p
-          className="MuiTypography-root-101 MuiTypography-body1-110 Component-price-94"
-        >
-          29,98 USD
-        </p>
-      </div>
-      <span
-        className="MuiTouchRipple-root-126"
-      />
-    </a>
-  </div>
-  <div
-    className="MuiGrid-typeItem-2 MuiGrid-grid-xs-12-38 MuiGrid-grid-sm-6-45 MuiGrid-grid-md-4-56 MuiGrid-grid-lg-3-68 MuiGrid-grid-xl-2-80"
+        Kennedy-Ramirez
+      </h3>
+    </div>
+    <span
+      className="MuiTouchRipple-root-60"
+    />
+  </a>
+  <a
+    className="MuiButtonBase-root-57 MuiListItem-root-5 MuiListItem-dense-9 MuiListItem-gutters-12 MuiListItem-button-13"
+    href="#"
+    onBlur={[Function]}
+    onClick={[Function]}
+    onFocus={[Function]}
+    onKeyDown={[Function]}
+    onKeyUp={[Function]}
+    onMouseDown={[Function]}
+    onMouseLeave={[Function]}
+    onMouseUp={[Function]}
+    onTouchEnd={[Function]}
+    onTouchMove={[Function]}
+    onTouchStart={[Function]}
+    role="button"
+    tabIndex="0"
   >
-    <a
-      className="MuiButtonBase-root-95 Component-button-91"
-      href="#"
-      onBlur={[Function]}
-      onClick={[Function]}
-      onFocus={[Function]}
-      onKeyDown={[Function]}
-      onKeyUp={[Function]}
-      onMouseDown={[Function]}
-      onMouseLeave={[Function]}
-      onMouseUp={[Function]}
-      onTouchEnd={[Function]}
-      onTouchMove={[Function]}
-      onTouchStart={[Function]}
-      role="button"
-      tabIndex="0"
+    <div
+      className="MuiAvatar-root-17"
     >
-      <div
-        className="MuiCardMedia-root-98 Component-media-92"
-        src={undefined}
-        style={
-          Object {
-            "backgroundImage": "url(/media/__sized__/products/saleor/static/placeholders/t-shirts/6_zeczDly-crop-c0-5__0-5-255x255-70.jpg)",
-          }
-        }
+      <img
+        alt={undefined}
+        className="MuiAvatar-img-19"
+        sizes={undefined}
+        src="/media/__sized__/products/saleor/static/placeholders/t-shirts/6_zeczDly-crop-c0-5__0-5-255x255-70.jpg"
+        srcSet={undefined}
       />
-      <div
-        className="MuiCardContent-root-100 Component-content-93"
+    </div>
+    <div
+      className="MuiListItemText-root-26"
+    >
+      <h3
+        className="MuiTypography-root-32 MuiTypography-subheading-39 MuiListItemText-primary-29"
       >
-        <span
-          className="MuiTypography-root-101 MuiTypography-button-112"
-        >
-          Newman, Ashley and Roberson
-        </span>
-        <p
-          className="MuiTypography-root-101 MuiTypography-body1-110 Component-price-94"
-        >
-          48,56 USD
-        </p>
-      </div>
-      <span
-        className="MuiTouchRipple-root-126"
-      />
-    </a>
-  </div>
-  <div
-    className="MuiGrid-typeItem-2 MuiGrid-grid-xs-12-38 MuiGrid-grid-sm-6-45 MuiGrid-grid-md-4-56 MuiGrid-grid-lg-3-68 MuiGrid-grid-xl-2-80"
+        Newman, Ashley and Roberson
+      </h3>
+    </div>
+    <span
+      className="MuiTouchRipple-root-60"
+    />
+  </a>
+  <a
+    className="MuiButtonBase-root-57 MuiListItem-root-5 MuiListItem-dense-9 MuiListItem-gutters-12 MuiListItem-button-13"
+    href="#"
+    onBlur={[Function]}
+    onClick={[Function]}
+    onFocus={[Function]}
+    onKeyDown={[Function]}
+    onKeyUp={[Function]}
+    onMouseDown={[Function]}
+    onMouseLeave={[Function]}
+    onMouseUp={[Function]}
+    onTouchEnd={[Function]}
+    onTouchMove={[Function]}
+    onTouchStart={[Function]}
+    role="button"
+    tabIndex="0"
   >
-    <a
-      className="MuiButtonBase-root-95 Component-button-91"
-      href="#"
-      onBlur={[Function]}
-      onClick={[Function]}
-      onFocus={[Function]}
-      onKeyDown={[Function]}
-      onKeyUp={[Function]}
-      onMouseDown={[Function]}
-      onMouseLeave={[Function]}
-      onMouseUp={[Function]}
-      onTouchEnd={[Function]}
-      onTouchMove={[Function]}
-      onTouchStart={[Function]}
-      role="button"
-      tabIndex="0"
+    <div
+      className="MuiAvatar-root-17"
     >
-      <div
-        className="MuiCardMedia-root-98 Component-media-92"
-        src={undefined}
-        style={
-          Object {
-            "backgroundImage": "url(/media/__sized__/products/saleor/static/placeholders/t-shirts/5_VX2ikxl-crop-c0-5__0-5-255x255-70.jpg)",
-          }
-        }
+      <img
+        alt={undefined}
+        className="MuiAvatar-img-19"
+        sizes={undefined}
+        src="/media/__sized__/products/saleor/static/placeholders/t-shirts/5_VX2ikxl-crop-c0-5__0-5-255x255-70.jpg"
+        srcSet={undefined}
       />
-      <div
-        className="MuiCardContent-root-100 Component-content-93"
+    </div>
+    <div
+      className="MuiListItemText-root-26"
+    >
+      <h3
+        className="MuiTypography-root-32 MuiTypography-subheading-39 MuiListItemText-primary-29"
       >
-        <span
-          className="MuiTypography-root-101 MuiTypography-button-112"
-        >
-          Jacobson, Stewart and Rodriguez
-        </span>
-        <p
-          className="MuiTypography-root-101 MuiTypography-body1-110 Component-price-94"
-        >
-          80,54 USD
-        </p>
-      </div>
-      <span
-        className="MuiTouchRipple-root-126"
-      />
-    </a>
-  </div>
-  <div
-    className="MuiGrid-typeItem-2 MuiGrid-grid-xs-12-38 MuiGrid-grid-sm-6-45 MuiGrid-grid-md-4-56 MuiGrid-grid-lg-3-68 MuiGrid-grid-xl-2-80"
+        Jacobson, Stewart and Rodriguez
+      </h3>
+    </div>
+    <span
+      className="MuiTouchRipple-root-60"
+    />
+  </a>
+  <a
+    className="MuiButtonBase-root-57 MuiListItem-root-5 MuiListItem-dense-9 MuiListItem-gutters-12 MuiListItem-button-13"
+    href="#"
+    onBlur={[Function]}
+    onClick={[Function]}
+    onFocus={[Function]}
+    onKeyDown={[Function]}
+    onKeyUp={[Function]}
+    onMouseDown={[Function]}
+    onMouseLeave={[Function]}
+    onMouseUp={[Function]}
+    onTouchEnd={[Function]}
+    onTouchMove={[Function]}
+    onTouchStart={[Function]}
+    role="button"
+    tabIndex="0"
   >
-    <a
-      className="MuiButtonBase-root-95 Component-button-91"
-      href="#"
-      onBlur={[Function]}
-      onClick={[Function]}
-      onFocus={[Function]}
-      onKeyDown={[Function]}
-      onKeyUp={[Function]}
-      onMouseDown={[Function]}
-      onMouseLeave={[Function]}
-      onMouseUp={[Function]}
-      onTouchEnd={[Function]}
-      onTouchMove={[Function]}
-      onTouchStart={[Function]}
-      role="button"
-      tabIndex="0"
+    <div
+      className="MuiAvatar-root-17"
     >
-      <div
-        className="MuiCardMedia-root-98 Component-media-92"
-        src={undefined}
-        style={
-          Object {
-            "backgroundImage": "url(/media/__sized__/products/saleor/static/placeholders/t-shirts/5_wl4FUo7-crop-c0-5__0-5-255x255-70.jpg)",
-          }
-        }
+      <img
+        alt={undefined}
+        className="MuiAvatar-img-19"
+        sizes={undefined}
+        src="/media/__sized__/products/saleor/static/placeholders/t-shirts/5_wl4FUo7-crop-c0-5__0-5-255x255-70.jpg"
+        srcSet={undefined}
       />
-      <div
-        className="MuiCardContent-root-100 Component-content-93"
+    </div>
+    <div
+      className="MuiListItemText-root-26"
+    >
+      <h3
+        className="MuiTypography-root-32 MuiTypography-subheading-39 MuiListItemText-primary-29"
       >
-        <span
-          className="MuiTypography-root-101 MuiTypography-button-112"
-        >
-          Sloan Ltd
-        </span>
-        <p
-          className="MuiTypography-root-101 MuiTypography-body1-110 Component-price-94"
-        >
-          67,18 USD
-        </p>
-      </div>
-      <span
-        className="MuiTouchRipple-root-126"
-      />
-    </a>
-  </div>
-  <div
-    className="MuiGrid-typeItem-2 MuiGrid-grid-xs-12-38 MuiGrid-grid-sm-6-45 MuiGrid-grid-md-4-56 MuiGrid-grid-lg-3-68 MuiGrid-grid-xl-2-80"
+        Sloan Ltd
+      </h3>
+    </div>
+    <span
+      className="MuiTouchRipple-root-60"
+    />
+  </a>
+  <a
+    className="MuiButtonBase-root-57 MuiListItem-root-5 MuiListItem-dense-9 MuiListItem-gutters-12 MuiListItem-button-13"
+    href="#"
+    onBlur={[Function]}
+    onClick={[Function]}
+    onFocus={[Function]}
+    onKeyDown={[Function]}
+    onKeyUp={[Function]}
+    onMouseDown={[Function]}
+    onMouseLeave={[Function]}
+    onMouseUp={[Function]}
+    onTouchEnd={[Function]}
+    onTouchMove={[Function]}
+    onTouchStart={[Function]}
+    role="button"
+    tabIndex="0"
   >
-    <a
-      className="MuiButtonBase-root-95 Component-button-91"
-      href="#"
-      onBlur={[Function]}
-      onClick={[Function]}
-      onFocus={[Function]}
-      onKeyDown={[Function]}
-      onKeyUp={[Function]}
-      onMouseDown={[Function]}
-      onMouseLeave={[Function]}
-      onMouseUp={[Function]}
-      onTouchEnd={[Function]}
-      onTouchMove={[Function]}
-      onTouchStart={[Function]}
-      role="button"
-      tabIndex="0"
+    <div
+      className="MuiAvatar-root-17"
     >
-      <div
-        className="MuiCardMedia-root-98 Component-media-92"
-        src={undefined}
-        style={
-          Object {
-            "backgroundImage": "url(/media/__sized__/products/saleor/static/placeholders/t-shirts/5_c0nSiAe-crop-c0-5__0-5-255x255-70.jpg)",
-          }
-        }
+      <img
+        alt={undefined}
+        className="MuiAvatar-img-19"
+        sizes={undefined}
+        src="/media/__sized__/products/saleor/static/placeholders/t-shirts/5_c0nSiAe-crop-c0-5__0-5-255x255-70.jpg"
+        srcSet={undefined}
       />
-      <div
-        className="MuiCardContent-root-100 Component-content-93"
+    </div>
+    <div
+      className="MuiListItemText-root-26"
+    >
+      <h3
+        className="MuiTypography-root-32 MuiTypography-subheading-39 MuiListItemText-primary-29"
       >
-        <span
-          className="MuiTypography-root-101 MuiTypography-button-112"
-        >
-          Foster-Beard
-        </span>
-        <p
-          className="MuiTypography-root-101 MuiTypography-body1-110 Component-price-94"
-        >
-          50,22 USD
-        </p>
-      </div>
-      <span
-        className="MuiTouchRipple-root-126"
-      />
-    </a>
-  </div>
-  <div
-    className="MuiGrid-typeItem-2 MuiGrid-grid-xs-12-38 MuiGrid-grid-sm-6-45 MuiGrid-grid-md-4-56 MuiGrid-grid-lg-3-68 MuiGrid-grid-xl-2-80"
+        Foster-Beard
+      </h3>
+    </div>
+    <span
+      className="MuiTouchRipple-root-60"
+    />
+  </a>
+  <a
+    className="MuiButtonBase-root-57 MuiListItem-root-5 MuiListItem-dense-9 MuiListItem-gutters-12 MuiListItem-button-13"
+    href="#"
+    onBlur={[Function]}
+    onClick={[Function]}
+    onFocus={[Function]}
+    onKeyDown={[Function]}
+    onKeyUp={[Function]}
+    onMouseDown={[Function]}
+    onMouseLeave={[Function]}
+    onMouseUp={[Function]}
+    onTouchEnd={[Function]}
+    onTouchMove={[Function]}
+    onTouchStart={[Function]}
+    role="button"
+    tabIndex="0"
   >
-    <a
-      className="MuiButtonBase-root-95 Component-button-91"
-      href="#"
-      onBlur={[Function]}
-      onClick={[Function]}
-      onFocus={[Function]}
-      onKeyDown={[Function]}
-      onKeyUp={[Function]}
-      onMouseDown={[Function]}
-      onMouseLeave={[Function]}
-      onMouseUp={[Function]}
-      onTouchEnd={[Function]}
-      onTouchMove={[Function]}
-      onTouchStart={[Function]}
-      role="button"
-      tabIndex="0"
+    <div
+      className="MuiAvatar-root-17"
     >
-      <div
-        className="MuiCardMedia-root-98 Component-media-92"
-        src={undefined}
-        style={
-          Object {
-            "backgroundImage": "url(/media/__sized__/products/saleor/static/placeholders/t-shirts/6_qHI83dZ-crop-c0-5__0-5-255x255-70.jpg)",
-          }
-        }
+      <img
+        alt={undefined}
+        className="MuiAvatar-img-19"
+        sizes={undefined}
+        src="/media/__sized__/products/saleor/static/placeholders/t-shirts/6_qHI83dZ-crop-c0-5__0-5-255x255-70.jpg"
+        srcSet={undefined}
       />
-      <div
-        className="MuiCardContent-root-100 Component-content-93"
+    </div>
+    <div
+      className="MuiListItemText-root-26"
+    >
+      <h3
+        className="MuiTypography-root-32 MuiTypography-subheading-39 MuiListItemText-primary-29"
       >
-        <span
-          className="MuiTypography-root-101 MuiTypography-button-112"
-        >
-          Henson PLC
-        </span>
-        <p
-          className="MuiTypography-root-101 MuiTypography-body1-110 Component-price-94"
-        >
-          17,81 USD
-        </p>
-      </div>
-      <span
-        className="MuiTouchRipple-root-126"
-      />
-    </a>
-  </div>
-  <div
-    className="MuiGrid-typeItem-2 MuiGrid-grid-xs-12-38 MuiGrid-grid-sm-6-45 MuiGrid-grid-md-4-56 MuiGrid-grid-lg-3-68 MuiGrid-grid-xl-2-80"
+        Henson PLC
+      </h3>
+    </div>
+    <span
+      className="MuiTouchRipple-root-60"
+    />
+  </a>
+  <a
+    className="MuiButtonBase-root-57 MuiListItem-root-5 MuiListItem-dense-9 MuiListItem-gutters-12 MuiListItem-button-13"
+    href="#"
+    onBlur={[Function]}
+    onClick={[Function]}
+    onFocus={[Function]}
+    onKeyDown={[Function]}
+    onKeyUp={[Function]}
+    onMouseDown={[Function]}
+    onMouseLeave={[Function]}
+    onMouseUp={[Function]}
+    onTouchEnd={[Function]}
+    onTouchMove={[Function]}
+    onTouchStart={[Function]}
+    role="button"
+    tabIndex="0"
   >
-    <a
-      className="MuiButtonBase-root-95 Component-button-91"
-      href="#"
-      onBlur={[Function]}
-      onClick={[Function]}
-      onFocus={[Function]}
-      onKeyDown={[Function]}
-      onKeyUp={[Function]}
-      onMouseDown={[Function]}
-      onMouseLeave={[Function]}
-      onMouseUp={[Function]}
-      onTouchEnd={[Function]}
-      onTouchMove={[Function]}
-      onTouchStart={[Function]}
-      role="button"
-      tabIndex="0"
+    <div
+      className="MuiAvatar-root-17"
     >
-      <div
-        className="MuiCardMedia-root-98 Component-media-92"
-        src={undefined}
-        style={
-          Object {
-            "backgroundImage": "url(/media/__sized__/products/saleor/static/placeholders/t-shirts/5_06TblXK-crop-c0-5__0-5-255x255-70.jpg)",
-          }
-        }
+      <img
+        alt={undefined}
+        className="MuiAvatar-img-19"
+        sizes={undefined}
+        src="/media/__sized__/products/saleor/static/placeholders/t-shirts/5_06TblXK-crop-c0-5__0-5-255x255-70.jpg"
+        srcSet={undefined}
       />
-      <div
-        className="MuiCardContent-root-100 Component-content-93"
+    </div>
+    <div
+      className="MuiListItemText-root-26"
+    >
+      <h3
+        className="MuiTypography-root-32 MuiTypography-subheading-39 MuiListItemText-primary-29"
       >
-        <span
-          className="MuiTypography-root-101 MuiTypography-button-112"
-        >
-          Novak, Lopez and Cook
-        </span>
-        <p
-          className="MuiTypography-root-101 MuiTypography-body1-110 Component-price-94"
-        >
-          48,41 USD
-        </p>
-      </div>
-      <span
-        className="MuiTouchRipple-root-126"
-      />
-    </a>
-  </div>
-  <div
-    className="MuiGrid-typeItem-2 MuiGrid-grid-xs-12-38 MuiGrid-grid-sm-6-45 MuiGrid-grid-md-4-56 MuiGrid-grid-lg-3-68 MuiGrid-grid-xl-2-80"
+        Novak, Lopez and Cook
+      </h3>
+    </div>
+    <span
+      className="MuiTouchRipple-root-60"
+    />
+  </a>
+  <a
+    className="MuiButtonBase-root-57 MuiListItem-root-5 MuiListItem-dense-9 MuiListItem-gutters-12 MuiListItem-button-13"
+    href="#"
+    onBlur={[Function]}
+    onClick={[Function]}
+    onFocus={[Function]}
+    onKeyDown={[Function]}
+    onKeyUp={[Function]}
+    onMouseDown={[Function]}
+    onMouseLeave={[Function]}
+    onMouseUp={[Function]}
+    onTouchEnd={[Function]}
+    onTouchMove={[Function]}
+    onTouchStart={[Function]}
+    role="button"
+    tabIndex="0"
   >
-    <a
-      className="MuiButtonBase-root-95 Component-button-91"
-      href="#"
-      onBlur={[Function]}
-      onClick={[Function]}
-      onFocus={[Function]}
-      onKeyDown={[Function]}
-      onKeyUp={[Function]}
-      onMouseDown={[Function]}
-      onMouseLeave={[Function]}
-      onMouseUp={[Function]}
-      onTouchEnd={[Function]}
-      onTouchMove={[Function]}
-      onTouchStart={[Function]}
-      role="button"
-      tabIndex="0"
+    <div
+      className="MuiAvatar-root-17"
     >
-      <div
-        className="MuiCardMedia-root-98 Component-media-92"
-        src={undefined}
-        style={
-          Object {
-            "backgroundImage": "url(/media/__sized__/products/saleor/static/placeholders/t-shirts/6_yMYqzTc-crop-c0-5__0-5-255x255-70.jpg)",
-          }
-        }
+      <img
+        alt={undefined}
+        className="MuiAvatar-img-19"
+        sizes={undefined}
+        src="/media/__sized__/products/saleor/static/placeholders/t-shirts/6_yMYqzTc-crop-c0-5__0-5-255x255-70.jpg"
+        srcSet={undefined}
       />
-      <div
-        className="MuiCardContent-root-100 Component-content-93"
+    </div>
+    <div
+      className="MuiListItemText-root-26"
+    >
+      <h3
+        className="MuiTypography-root-32 MuiTypography-subheading-39 MuiListItemText-primary-29"
       >
-        <span
-          className="MuiTypography-root-101 MuiTypography-button-112"
-        >
-          Thompson-Jones
-        </span>
-        <p
-          className="MuiTypography-root-101 MuiTypography-body1-110 Component-price-94"
-        >
-          55,36 USD
-        </p>
-      </div>
-      <span
-        className="MuiTouchRipple-root-126"
-      />
-    </a>
-  </div>
-  <div
-    className="MuiGrid-typeItem-2 MuiGrid-grid-xs-12-38 MuiGrid-grid-sm-6-45 MuiGrid-grid-md-4-56 MuiGrid-grid-lg-3-68 MuiGrid-grid-xl-2-80"
+        Thompson-Jones
+      </h3>
+    </div>
+    <span
+      className="MuiTouchRipple-root-60"
+    />
+  </a>
+  <a
+    className="MuiButtonBase-root-57 MuiListItem-root-5 MuiListItem-dense-9 MuiListItem-gutters-12 MuiListItem-button-13"
+    href="#"
+    onBlur={[Function]}
+    onClick={[Function]}
+    onFocus={[Function]}
+    onKeyDown={[Function]}
+    onKeyUp={[Function]}
+    onMouseDown={[Function]}
+    onMouseLeave={[Function]}
+    onMouseUp={[Function]}
+    onTouchEnd={[Function]}
+    onTouchMove={[Function]}
+    onTouchStart={[Function]}
+    role="button"
+    tabIndex="0"
   >
-    <a
-      className="MuiButtonBase-root-95 Component-button-91"
-      href="#"
-      onBlur={[Function]}
-      onClick={[Function]}
-      onFocus={[Function]}
-      onKeyDown={[Function]}
-      onKeyUp={[Function]}
-      onMouseDown={[Function]}
-      onMouseLeave={[Function]}
-      onMouseUp={[Function]}
-      onTouchEnd={[Function]}
-      onTouchMove={[Function]}
-      onTouchStart={[Function]}
-      role="button"
-      tabIndex="0"
+    <div
+      className="MuiAvatar-root-17"
     >
-      <div
-        className="MuiCardMedia-root-98 Component-media-92"
-        src={undefined}
-        style={
-          Object {
-            "backgroundImage": "url(/media/__sized__/products/saleor/static/placeholders/t-shirts/5_eWtYYcz-crop-c0-5__0-5-255x255-70.jpg)",
-          }
-        }
+      <img
+        alt={undefined}
+        className="MuiAvatar-img-19"
+        sizes={undefined}
+        src="/media/__sized__/products/saleor/static/placeholders/t-shirts/5_eWtYYcz-crop-c0-5__0-5-255x255-70.jpg"
+        srcSet={undefined}
       />
-      <div
-        className="MuiCardContent-root-100 Component-content-93"
+    </div>
+    <div
+      className="MuiListItemText-root-26"
+    >
+      <h3
+        className="MuiTypography-root-32 MuiTypography-subheading-39 MuiListItemText-primary-29"
       >
-        <span
-          className="MuiTypography-root-101 MuiTypography-button-112"
-        >
-          Cunningham, Torres and Day
-        </span>
-        <p
-          className="MuiTypography-root-101 MuiTypography-body1-110 Component-price-94"
-        >
-          92,13 USD
-        </p>
-      </div>
-      <span
-        className="MuiTouchRipple-root-126"
-      />
-    </a>
-  </div>
-</div>
+        Cunningham, Torres and Day
+      </h3>
+    </div>
+    <span
+      className="MuiTouchRipple-root-60"
+    />
+  </a>
+</ul>
 `;
 
 exports[`<ProductList /> renders properly when product list is empty 1`] = `
-<div
-  className="MuiGrid-typeContainer-1 MuiGrid-spacing-xs-16-23"
+<ul
+  className="MuiList-root-1 MuiList-padding-2"
 >
-  <div
-    className="MuiGrid-typeItem-2 MuiGrid-grid-xs-12-38"
+  <li
+    className="MuiListSubheader-root-67 MuiListSubheader-sticky-71"
   >
-    <aside
-      className="MuiTypography-root-101 MuiTypography-body2-109"
-    >
-      No products found
-    </aside>
-  </div>
-</div>
+    No products found
+  </li>
+</ul>
 `;
 
 exports[`<ProductList /> renders while data is loading 1`] = `
-<div
-  className="MuiGrid-typeContainer-1 MuiGrid-spacing-xs-16-23"
+<ul
+  className="MuiList-root-1 MuiList-padding-2"
 >
-  <div
-    className="MuiGrid-typeItem-2 MuiGrid-grid-xs-12-38 MuiGrid-grid-sm-6-45 MuiGrid-grid-md-4-56 MuiGrid-grid-lg-3-68 MuiGrid-grid-xl-2-80"
+  <li
+    className="MuiListItem-root-5 MuiListItem-dense-9 MuiListItem-gutters-12"
+    disabled={false}
   >
-    <a
-      className="MuiButtonBase-root-95 Component-button-91"
-      href="/"
-      onBlur={[Function]}
-      onClick={[Function]}
-      onFocus={[Function]}
-      onKeyDown={[Function]}
-      onKeyUp={[Function]}
-      onMouseDown={[Function]}
-      onMouseLeave={[Function]}
-      onMouseUp={[Function]}
-      onTouchEnd={[Function]}
-      onTouchMove={[Function]}
-      onTouchStart={[Function]}
-      role="button"
-      tabIndex="0"
+    <div
+      className="MuiAvatar-root-17 MuiAvatar-colorDefault-18"
     >
-      <div
-        className="MuiCardMedia-root-98 Component-media-92"
-        src={undefined}
-        style={undefined}
-      />
-      <div
-        className="MuiCardContent-root-100 Component-content-93"
+      <svg
+        aria-hidden="true"
+        className="MuiSvgIcon-root-20"
+        color={undefined}
+        focusable="false"
+        viewBox="0 0 24 24"
+      >
+        <path
+          d="M19 8l-4 4h3c0 3.31-2.69 6-6 6-1.01 0-1.97-.25-2.8-.7l-1.46 1.46C8.97 19.54 10.43 20 12 20c4.42 0 8-3.58 8-8h3l-4-4zM6 12c0-3.31 2.69-6 6-6 1.01 0 1.97.25 2.8.7l1.46-1.46C15.03 4.46 13.57 4 12 4c-4.42 0-8 3.58-8 8H1l4 4 4-4H6z"
+        />
+      </svg>
+    </div>
+    <div
+      className="MuiListItemText-root-26"
+    >
+      <h3
+        className="MuiTypography-root-32 MuiTypography-subheading-39 MuiListItemText-primary-29"
       >
         <span
-          className="MuiTypography-root-101 MuiTypography-button-112"
+          className="Component-skeleton-56"
+          style={undefined}
         >
-          <span
-            className="Component-skeleton-125"
-            style={
-              Object {
-                "width": "80%",
-              }
-            }
-          >
-            ‌
-          </span>
+          ‌
         </span>
-      </div>
-      <span
-        className="MuiTouchRipple-root-126"
-      />
-    </a>
-  </div>
-</div>
+      </h3>
+    </div>
+  </li>
+</ul>
 `;

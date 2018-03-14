@@ -18,7 +18,6 @@ import {
 } from "../queries";
 import CategoryProperties from "../components/CategoryProperties";
 import CategoryList from "../components/CategoryList";
-import ProductChildElement from "../components/ProductChildElement";
 import ProductList from "../components/ProductList";
 import { categoryShowUrl, categoryAddUrl } from "../index";
 import PageHeader from "../../components/PageHeader";
