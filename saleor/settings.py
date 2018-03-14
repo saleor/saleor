@@ -43,7 +43,7 @@ DATABASES = {
 
 
 TIME_ZONE = 'America/Chicago'
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = 'en'
 LANGUAGES = [
     ('bg', _('Bulgarian')),
     ('de', _('German')),
