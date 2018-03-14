@@ -591,9 +591,15 @@ def create_menu_items_by_schema(menu):
             category=category)
 
     collection = Collection.objects.order_by('?')[0]
-    menu.items.get_or_create(
-        name=collection.name,
+    item, _ = menu.items.get_or_create(
+        name='Collections',
         collection=collection)
+
+    for collection in Collection.objects.all():
+        menu.items.get_or_create(
+            name=collection.name,
+            collection=collection,
+            parent=item)
 
     page = Page.objects.order_by('?')[0]
     menu.items.get_or_create(
