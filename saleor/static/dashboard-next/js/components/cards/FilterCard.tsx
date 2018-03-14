@@ -101,3 +101,5 @@ export const FilterCard = decorate(
     }
   }
 );
+
+export default FilterCard;

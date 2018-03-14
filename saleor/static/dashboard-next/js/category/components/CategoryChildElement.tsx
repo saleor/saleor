@@ -7,7 +7,7 @@ import Typography from "material-ui/Typography";
 import { Link } from "react-router-dom";
 import Folder from "material-ui-icons/Folder";
 
-import { Skeleton } from "../../components/Skeleton";
+import Skeleton from "../../components/Skeleton";
 
 interface CategoryChildElementProps {
   label: string;
@@ -62,3 +62,5 @@ export const CategoryChildElement = decorate<CategoryChildElementProps>(
     </ButtonBase>
   )
 );
+
+export default CategoryChildElement;

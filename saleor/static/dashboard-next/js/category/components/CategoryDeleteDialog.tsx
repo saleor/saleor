@@ -37,3 +37,5 @@ export const CategoryDeleteDialog: React.StatelessComponent<
     </Dialog>
   );
 };
+
+export default CategoryDeleteDialog;
