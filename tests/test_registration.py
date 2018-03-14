@@ -50,9 +50,9 @@ def test_login_view_not_valid(client, customer_user):
 
 def test_login_view_next(client, customer_user):
     url = reverse('account:login') + '?next=/cart/'
-    response = client.post(
-        url, {'username': 'test@example.com', 'password': 'password'})
-    redirect_location = get_redirect_location(response)
+    post_data = {'username': 'test@example.com', 'password': 'password'}
+    response = client.post(url, post_data, follow=True)
+    redirect_location = response.request['PATH_INFO']
     assert redirect_location == reverse('cart:index')
 
 
@@ -61,17 +61,16 @@ def test_login_view_redirect(client, customer_user):
     data = {
         'username': 'test@example.com', 'password': 'password',
         'next': reverse('cart:index')}
-    response = client.post(url, data)
-    redirect_location = get_redirect_location(response)
+    response = client.post(url, data, follow=True)
+    redirect_location = response.request['PATH_INFO']
     assert redirect_location == reverse('cart:index')
 
 
 def test_logout_view_no_user(client):
     url = reverse('account:logout')
-    response = client.get(url)
-    redirect_location = get_redirect_location(response)
-    location = reverse('account:login')
-    assert location in redirect_location
+    response = client.get(url, follow=True)
+    redirect_location = response.request['PATH_INFO']
+    assert reverse('account:login') == redirect_location
 
 
 def test_logout_with_user(authorized_client):
