@@ -8,10 +8,18 @@
     padding: $global-padding;
     font-weight: bold;
     cursor: pointer;
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    span {
+      max-width: calc(100% - 30px);
+      word-wrap: break-word;
+    }
     .collapse-filters-icon {
-      float: right !important;
-      width: 20px;
-      height: 20px;
+      margin: 0 0 0 auto;
+      img {
+        width: 20px;
+      }
     }
   }
   ul {
@@ -40,22 +48,24 @@
     }
   }
   &__price-range {
-    h3 {
-      margin-bottom: $global-margin;
-      span {
-        width: 100%;
-        margin: 0;
-        display: inline;
+    div:first-child {
+      h3 {
+        margin-bottom: $global-margin;
+        span {
+          width: 100%;
+          margin: 0;
+          display: inline;
+        }
       }
-    }
-    input {
-      width: 40%;
-      display: inline-block;
-    }
-    span {
-      width: 20%;
-      text-align: center;
-      display: inline-block;
+      input {
+        width: 40%;
+        display: inline-block;
+      }
+      span {
+        width: 20%;
+        text-align: center;
+        display: inline-block;
+      }
     }
   }
   &__title {
