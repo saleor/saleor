@@ -7,7 +7,6 @@ from django.shortcuts import reverse
 
 from saleor.dashboard.graphql.mutations import (
     ModelFormMutation, ModelFormUpdateMutation)
-from saleor.product.models import Category
 
 from ..utils import get_graphql_content
 
@@ -184,5 +183,79 @@ def test_category_delete_mutation(client, default_category):
     assert 'errors' not in content
     data = content['data']['categoryDelete']
     assert data['category']['name'] == default_category.name
-    with pytest.raises(Category.DoesNotExist):
+    with pytest.raises(default_category._meta.model.DoesNotExist):
         default_category.refresh_from_db()
+
+
+def test_page_create_mutation(client):
+    query = """
+        mutation CreatePage(
+            $slug: String!,
+            $title: String!,
+            $content: String!,
+            $isVisible: Boolean!) {
+                pageCreate(slug: $slug,
+                title: $title,
+                content: $content,
+                isVisible: $isVisible) {
+                    page {
+                        id
+                        title
+                        content
+                        slug
+                        isVisible
+                      }
+                      errors {
+                        message
+                        field
+                      }
+                    }
+                  }
+    """
+    page_slug = 'test-slug'
+    page_content = 'test content'
+    page_title = 'test title'
+    page_isVisible = True
+
+    # test creating root page
+    variables = json.dumps({
+        'title': page_title, 'content': page_content,
+        'isVisible': page_isVisible, 'slug': page_slug})
+    # import pdb; pdb.set_trace()
+    response = client.post(
+        reverse('dashboard:api'), {'query': query, 'variables': variables})
+    content = get_graphql_content(response)
+    assert 'errors' not in content
+    data = content['data']['pageCreate']
+    assert data['errors'] == []
+    assert data['page']['title'] == page_title
+    assert data['page']['content'] == page_content
+    assert data['page']['slug'] == page_slug
+    assert data['page']['isVisible'] == page_isVisible
+
+
+def test_page_delete_mutation(client, page):
+    query = """
+        mutation DeletePage($id: ID!) {
+            pageDelete(id: $id) {
+                page {
+                    title
+                    id
+                }
+                errors {
+                    field
+                    message
+                }
+              }
+            }
+    """
+    variables = json.dumps({
+        'id': graphene.Node.to_global_id('Page', page.id)})
+    response = client.post(
+        reverse('dashboard:api'), {'query': query, 'variables': variables})
+    content = get_graphql_content(response)
+    assert 'errors' not in content
+    data = content['data']['pageDelete']
+    assert data['page']['title'] == page.title
+    with pytest.raises(page._meta.model.DoesNotExist):
+        page.refresh_from_db()

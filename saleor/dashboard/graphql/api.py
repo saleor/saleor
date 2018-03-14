@@ -43,4 +43,3 @@ class Mutations(graphene.ObjectType):
 
 
 schema = graphene.Schema(Query, Mutations)
-

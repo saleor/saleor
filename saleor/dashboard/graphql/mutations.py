@@ -71,7 +71,8 @@ class ModelDeleteMutation(BaseMutation):
 
     @classmethod
     def __init_subclass_with_meta__(
-            cls, arguments=None, model=None, return_field_name=None, _meta=None, **options):
+            cls, arguments=None, model=None, return_field_name=None,
+            _meta=None, **options):
         if not model:
             raise ImproperlyConfigured(
                 'model is required for ModelDeleteMutation')
@@ -91,7 +92,8 @@ class ModelDeleteMutation(BaseMutation):
         super().__init_subclass_with_meta__(_meta=_meta, **options)
 
         # Update mutation's arguments and fields
-        cls._update_mutation_arguments_and_fields(arguments=arguments, fields=fields)
+        cls._update_mutation_arguments_and_fields(
+            arguments=arguments, fields=fields)
 
     @classmethod
     def mutate(cls, root, info, id, **kwargs):
@@ -131,7 +133,8 @@ class ModelFormMutation(BaseMutation):
 
         super().__init_subclass_with_meta__(_meta=_meta, **options)
 
-        cls._update_mutation_arguments_and_fields(arguments=arguments, fields=fields)
+        cls._update_mutation_arguments_and_fields(
+            arguments=arguments, fields=fields)
 
     @classmethod
     def get_form_kwargs(cls, root, info, **input):
