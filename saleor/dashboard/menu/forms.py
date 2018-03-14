@@ -10,6 +10,8 @@ from ..forms import (
 
 
 class MenuForm(forms.ModelForm):
+    """Add or update menu."""
+
     class Meta:
         model = Menu
         fields = ('slug',)
@@ -18,6 +20,14 @@ class MenuForm(forms.ModelForm):
 
 
 class MenuItemForm(forms.ModelForm):
+    """Add or update menu item.
+
+    An item can point to a URL passed directly or to an object belonging
+    to one of querysets passed to a linked_object field.
+    linked_object requires <obj.pk>_<obj.__class__.__name__> format as passed
+    value.
+    """
+
     linked_object = AjaxSelect2CombinedChoiceField(
         querysets=[
             Collection.objects.all(), Category.objects.all(),
@@ -81,6 +91,12 @@ class MenuItemForm(forms.ModelForm):
 
 
 class ReorderMenuItemsForm(forms.ModelForm):
+    """Reorder menu items.
+
+    Args:
+        ordered_menu_items - sorted menu items
+    """
+
     ordered_menu_items = OrderedModelMultipleChoiceField(
         queryset=MenuItem.objects.none())
 
