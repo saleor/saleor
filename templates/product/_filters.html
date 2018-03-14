@@ -29,41 +29,45 @@
             {% endcomment %}
             <input type="hidden" name="sort_by" value="{% if request.GET.sort_by %}{{ request.GET.sort_by }}{% endif %}">
           {% elif field.name == 'price' %}
-            <div class="toggle-filter product-filters__price-range">
-              <h3 class="filter-label">
-                {{ field.label }}
-                <div class="collapse-filters-icon">
+          {% else %}
+            <div class="filter-section" aria-expanded="true">
+              <div class="filter-section__header">
+                <h3>{{ field.label }}</h3>
+                <div class="filter-section__icon">
                   <img class="lazyload lazypreload" data-src="{% static "images/chevron-up.svg" %}">
-                </div>
-              </h3>
-              <div class="filter-form-field" style="display:block">
-                <div class="mb-3">
-                  <input id="{{ field.auto_id }}_0" name="{{ field.name }}_0"
-                        value="{% if field.value.0 %}{{ field.value.0 }}{% endif %}" type="number" min="0"
-                        class="form-control d-inline"
-                        placeholder="{% trans 'from' context 'Product price filter' %}"><span>-</span><input id="{{ field.auto_id }}_1" name="{{ field.name }}_1"
-                        value="{% if field.value.1 %}{{ field.value.1 }}{% endif %}" type="number" min="0"
-                        class="form-control d-inline" placeholder="{% trans 'to' context 'Product price filter' %}">
                 </div>
               </div>
-            </div>
-          {% else %}
-            <div class="toggle-filter">
-              <h3 class="filter-label">
-                {{ field.label }}
-                <div class="collapse-filters-icon">
-                  <img class="lazyload lazypreload" data-src="{% static "images/chevron-up.svg" %}">
+              <div class="filter-section__content">
+                <div class="filter-form-field">
+                  {{ field }}
                 </div>
-              </h3>
-              <div class="filter-form-field" style="display:block">
-                {{ field }}
               </div>
             </div>
           {% endif %}
         {% endfor %}
-        <div class="product-filters">
-          <button class="btn primary" type="submit">{% trans 'Update' context 'Product price filter' %}</button>
-        </div>
+        {% for field in filter_set.form %}
+          {% if field.name == 'price' %}
+            <div class="filter-section" aria-expanded="true">
+              <div class="filter-section__header">
+                <h3>{{ field.label }}</h3>
+                <div class="filter-section__icon">
+                  <img class="lazyload lazypreload" data-src="{% static "images/chevron-up.svg" %}">
+                </div>
+              </div>
+              <div class="filter-section__content">
+                <div class="filter-form-field price-field">
+                  <input id="{{ field.auto_id }}_0" name="{{ field.name }}_0"
+                        value="{% if field.value.0 %}{{ field.value.0 }}{% endif %}" type="number" min="0"
+                        class="form-control d-inline"
+                        placeholder="{% trans 'from' context 'Product price filter' %}"/><span>-</span><input id="{{ field.auto_id }}_1" name="{{ field.name }}_1"
+                        value="{% if field.value.1 %}{{ field.value.1 }}{% endif %}" type="number" min="0"
+                        class="form-control d-inline" placeholder="{% trans 'to' context 'Product price filter' %}"/>
+                </div>
+                <button class="btn primary" type="submit">{% trans 'Update' context 'Product price filter' %}</button>
+              </div>
+            </div>
+          {% endif %}
+        {% endfor %}
       </form>
     </div>
   </div>
