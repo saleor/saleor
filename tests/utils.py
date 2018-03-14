@@ -1,18 +1,14 @@
 import json
-from urllib.parse import urlparse
 
+from django.conf import settings
 from django.db.models import Q
+from django.urls import translate_url
 from django.utils.encoding import smart_text
 
 
-def get_url_path(url):
-    parsed_url = urlparse(url)
-    return parsed_url.path
-
-
 def get_redirect_location(response):
-    # Due to Django 1.8 compatibility, we have to handle both cases
-    return get_url_path(response['Location'])
+    path = response['Location']
+    return translate_url(path, lang_code=settings.LANGUAGE_CODE)
 
 
 def filter_products_by_attribute(queryset, attribute_id, value):
