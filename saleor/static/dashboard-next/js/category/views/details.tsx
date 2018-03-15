@@ -133,9 +133,9 @@ const CategoryDetails = decorate(
                 });
               };
               return (
-                <Grid container spacing={24}>
+                <Grid container spacing={16}>
                   <Grid item xs={12}>
-                    <Grid container spacing={24}>
+                    <Grid container spacing={16}>
                       <Grid item xs={12} md={9}>
                         <CategoryProperties
                           category={category}
@@ -145,7 +145,7 @@ const CategoryDetails = decorate(
                     </Grid>
                   </Grid>
                   <Grid item xs={12}>
-                    <Grid container spacing={24}>
+                    <Grid container spacing={16}>
                       <Grid item xs={12} md={9}>
                         <Card>
                           <PageHeader
@@ -179,7 +179,7 @@ const CategoryDetails = decorate(
                     </Grid>
                   </Grid>
                   <Grid item xs={12}>
-                    <Grid container spacing={24}>
+                    <Grid container spacing={16}>
                       <Grid item xs={12} md={9}>
                         <Card>
                           <PageHeader

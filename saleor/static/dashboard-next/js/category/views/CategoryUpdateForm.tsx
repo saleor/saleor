@@ -1,3 +1,4 @@
+import Card from "material-ui/Card";
 import Grid from "material-ui/Grid";
 import { CircularProgress } from "material-ui/Progress";
 import * as React from "react";
@@ -13,7 +14,6 @@ import {
 import { categoryShowUrl } from "../index";
 import i18n from "../../i18n";
 import PageHeader from "../../components/PageHeader";
-import Page from "../../components/Page";
 
 interface CategoryUpdateFormProps {
   id: string;
@@ -31,30 +31,28 @@ export const CategoryUpdateForm: React.StatelessComponent<
       const { category } = data;
 
       return (
-        <Page>
-          <PageHeader
-            cancelLink={categoryShowUrl(id)}
-            title={i18n.t("Edit category", { context: "title" })}
-          />
-          {loading ? (
-            <CircularProgress />
-          ) : (
-            <TypedCategoryUpdateMutation mutation={categoryUpdateMutation}>
-              {(mutate, result) => {
-                if (
-                  result &&
-                  !result.loading &&
-                  result.data.categoryUpdate.errors.length === 0
-                ) {
-                  return (
-                    <Redirect
-                      to={categoryShowUrl(
-                        result.data.categoryUpdate.category.id
-                      )}
-                    />
-                  );
-                }
-                return (
+        <TypedCategoryUpdateMutation mutation={categoryUpdateMutation}>
+          {(mutate, result) => {
+            if (
+              result &&
+              !result.loading &&
+              result.data.categoryUpdate.errors.length === 0
+            ) {
+              return (
+                <Redirect
+                  to={categoryShowUrl(result.data.categoryUpdate.category.id)}
+                />
+              );
+            }
+            return (
+              <Card style={{ maxWidth: 750 }}>
+                <PageHeader
+                  cancelLink={categoryShowUrl(id)}
+                  title={i18n.t("Edit category", { context: "title" })}
+                />
+                {loading ? (
+                  <CircularProgress />
+                ) : (
                   <BaseCategoryForm
                     name={category.name}
                     description={category.description}
@@ -75,11 +73,11 @@ export const CategoryUpdateForm: React.StatelessComponent<
                         : []
                     }
                   />
-                );
-              }}
-            </TypedCategoryUpdateMutation>
-          )}
-        </Page>
+                )}
+              </Card>
+            );
+          }}
+        </TypedCategoryUpdateMutation>
       );
     }}
   </TypedCategoryDetailsQuery>
