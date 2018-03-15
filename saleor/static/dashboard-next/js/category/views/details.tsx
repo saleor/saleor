@@ -76,27 +76,55 @@ const CategoryDetails = decorate(
               if (error) {
                 return <span>not ok</span>;
               }
-              const handleLoadMore = () => {
+              const loadNextPage = () => {
                 if (loading) {
                   return;
                 }
                 return fetchMore({
                   variables: {
+                    first: 12,
                     after: category.products.pageInfo.endCursor
                   },
                   updateQuery: (previousResult, { fetchMoreResult }) => {
                     return {
-                      ...previousResult,
+                      ...fetchMoreResult,
                       category: {
-                        ...previousResult.category,
+                        ...fetchMoreResult.category,
                         products: {
-                          ...previousResult.category.products,
-                          edges: [
-                            ...previousResult.category.products.edges,
-                            ...fetchMoreResult.category.products.edges
-                          ],
+                          ...fetchMoreResult.category.products,
                           pageInfo: {
-                            ...fetchMoreResult.category.products.pageInfo
+                            ...fetchMoreResult.category.products.pageInfo,
+                            hasPreviousPage: true
+                          }
+                        }
+                      }
+                    };
+                  }
+                });
+              };
+              const loadPreviousPage = () => {
+                if (loading) {
+                  return;
+                }
+                return fetchMore({
+                  variables: {
+                    first: undefined,
+                    last: 12,
+                    before: category.products.pageInfo.startCursor
+                  },
+                  updateQuery: (
+                    previousResult,
+                    { fetchMoreResult, variables }
+                  ) => {
+                    return {
+                      ...fetchMoreResult,
+                      category: {
+                        ...fetchMoreResult.category,
+                        products: {
+                          ...fetchMoreResult.category.products,
+                          pageInfo: {
+                            ...fetchMoreResult.category.products.pageInfo,
+                            hasNextPage: true
                           }
                         }
                       }
@@ -173,17 +201,24 @@ const CategoryDetails = decorate(
                             </Hidden>
                           </PageHeader>
                           <ProductList
-                            products={
-                              category &&
-                              category.products &&
-                              category.products.edges
-                            }
-                            handleLoadMore={handleLoadMore}
-                            canLoadMore={
+                            hasNextPage={
                               category &&
                               category.products &&
                               category.products.pageInfo &&
                               category.products.pageInfo.hasNextPage
+                            }
+                            hasPreviousPage={
+                              category &&
+                              category.products &&
+                              category.products.pageInfo &&
+                              category.products.pageInfo.hasPreviousPage
+                            }
+                            onNextPage={loadNextPage}
+                            onPreviousPage={loadPreviousPage}
+                            products={
+                              category &&
+                              category.products &&
+                              category.products.edges
                             }
                           />
                         </Card>

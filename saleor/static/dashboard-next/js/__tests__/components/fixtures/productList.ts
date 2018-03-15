@@ -6,8 +6,9 @@ export default [
       "name": "Lewis PLC",
       "thumbnailUrl":
         "/media/__sized__/products/saleor/static/placeholders/t-shirts/5_ZoF6Xi8-crop-c0-5__0-5-255x255-70.jpg",
-      "price": {
-        "localized": "62,43 USD"
+      "productType": {
+        "id": "123412341234",
+        "name": "T-sirts"
       }
     }
   },
@@ -18,8 +19,9 @@ export default [
       "name": "Kennedy-Ramirez",
       "thumbnailUrl":
         "/media/__sized__/products/saleor/static/placeholders/t-shirts/6_07Fa6v8-crop-c0-5__0-5-255x255-70.jpg",
-      "price": {
-        "localized": "29,98 USD"
+      "productType": {
+        "id": "123412341234",
+        "name": "T-sirts"
       }
     }
   },
@@ -30,8 +32,9 @@ export default [
       "name": "Newman, Ashley and Roberson",
       "thumbnailUrl":
         "/media/__sized__/products/saleor/static/placeholders/t-shirts/6_zeczDly-crop-c0-5__0-5-255x255-70.jpg",
-      "price": {
-        "localized": "48,56 USD"
+      "productType": {
+        "id": "123412341234",
+        "name": "T-sirts"
       }
     }
   },
@@ -42,8 +45,9 @@ export default [
       "name": "Jacobson, Stewart and Rodriguez",
       "thumbnailUrl":
         "/media/__sized__/products/saleor/static/placeholders/t-shirts/5_VX2ikxl-crop-c0-5__0-5-255x255-70.jpg",
-      "price": {
-        "localized": "80,54 USD"
+      "productType": {
+        "id": "123412341234",
+        "name": "T-sirts"
       }
     }
   },
@@ -54,8 +58,9 @@ export default [
       "name": "Sloan Ltd",
       "thumbnailUrl":
         "/media/__sized__/products/saleor/static/placeholders/t-shirts/5_wl4FUo7-crop-c0-5__0-5-255x255-70.jpg",
-      "price": {
-        "localized": "67,18 USD"
+      "productType": {
+        "id": "123412341234",
+        "name": "T-sirts"
       }
     }
   },
@@ -66,8 +71,9 @@ export default [
       "name": "Foster-Beard",
       "thumbnailUrl":
         "/media/__sized__/products/saleor/static/placeholders/t-shirts/5_c0nSiAe-crop-c0-5__0-5-255x255-70.jpg",
-      "price": {
-        "localized": "50,22 USD"
+      "productType": {
+        "id": "123412341234",
+        "name": "T-sirts"
       }
     }
   },
@@ -78,8 +84,9 @@ export default [
       "name": "Henson PLC",
       "thumbnailUrl":
         "/media/__sized__/products/saleor/static/placeholders/t-shirts/6_qHI83dZ-crop-c0-5__0-5-255x255-70.jpg",
-      "price": {
-        "localized": "17,81 USD"
+      "productType": {
+        "id": "123412341234",
+        "name": "T-sirts"
       }
     }
   },
@@ -90,8 +97,9 @@ export default [
       "name": "Novak, Lopez and Cook",
       "thumbnailUrl":
         "/media/__sized__/products/saleor/static/placeholders/t-shirts/5_06TblXK-crop-c0-5__0-5-255x255-70.jpg",
-      "price": {
-        "localized": "48,41 USD"
+      "productType": {
+        "id": "123412341234",
+        "name": "T-sirts"
       }
     }
   },
@@ -102,8 +110,9 @@ export default [
       "name": "Thompson-Jones",
       "thumbnailUrl":
         "/media/__sized__/products/saleor/static/placeholders/t-shirts/6_yMYqzTc-crop-c0-5__0-5-255x255-70.jpg",
-      "price": {
-        "localized": "55,36 USD"
+      "productType": {
+        "id": "123412341234",
+        "name": "T-sirts"
       }
     }
   },
@@ -114,8 +123,9 @@ export default [
       "name": "Cunningham, Torres and Day",
       "thumbnailUrl":
         "/media/__sized__/products/saleor/static/placeholders/t-shirts/5_eWtYYcz-crop-c0-5__0-5-255x255-70.jpg",
-      "price": {
-        "localized": "92,13 USD"
+      "productType": {
+        "id": "123412341234",
+        "name": "T-sirts"
       }
     }
   }
