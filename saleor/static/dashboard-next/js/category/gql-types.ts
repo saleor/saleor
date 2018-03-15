@@ -98,8 +98,10 @@ export interface RootCategoryChildrenQuery {
 
 export interface CategoryPropertiesQueryVariables {
   id: string,
-  first: number,
+  first?: number | null,
   after?: string | null,
+  last?: number | null,
+  before?: string | null,
 };
 
 export interface CategoryPropertiesQuery {
@@ -129,6 +131,10 @@ export interface CategoryPropertiesQuery {
         endCursor: string | null,
         // When paginating forwards, are there more items?
         hasNextPage: boolean,
+        // When paginating backwards, are there more items?
+        hasPreviousPage: boolean,
+        // When paginating backwards, the cursor to continue.
+        startCursor: string | null,
       },
       edges:  Array< {
         // A cursor for use in pagination
@@ -139,8 +145,9 @@ export interface CategoryPropertiesQuery {
           id: string,
           name: string,
           thumbnailUrl: string | null,
-          price:  {
-            localized: string | null,
+          productType:  {
+            id: string,
+            name: string,
           } | null,
         } | null,
       } | null >,
