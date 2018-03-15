@@ -10,27 +10,6 @@ import { Component } from "react";
 import i18n from "../../i18n";
 
 const decorate = withStyles(theme => ({
-  filterCard: {
-    transitionDuration: "200ms",
-    [theme.breakpoints.down("sm")]: {
-      maxHeight: 76,
-      overflow: "hidden"
-    }
-  },
-  filterCardExpandIconContainer: {
-    position: "absolute" as "absolute",
-    top: 21,
-    right: 20,
-    [theme.breakpoints.up("md")]: {
-      display: "none"
-    },
-    "& svg": {
-      width: 24,
-      height: 24,
-      fill: "#9e9e9e",
-      cursor: "pointer"
-    }
-  },
   filterCardContent: {
     position: "relative" as "relative",
     borderBottomColor: grey[300],
@@ -42,64 +21,31 @@ const decorate = withStyles(theme => ({
   }
 }));
 
-interface FilterCardComponentProps {
+export interface FilterCardProps {
   handleClear();
-  handleSubmit();
+  handleSubmit(t);
 }
 
-interface FilterCardComponentState {
-  collapsed: boolean;
-}
-
-const FilterCard = decorate(
-  class FilterCardComponent extends Component<
-    FilterCardComponentProps &
-      WithStyles<
-        | "filterCard"
-        | "filterCardExpandIconContainer"
-        | "filterCardContent"
-        | "filterCardActions"
-      >,
-    FilterCardComponentState
-  > {
-    state = {
-      collapsed: true
-    };
-
-    handleFilterListIconClick = () => {
-      this.setState(prevState => ({ collapsed: !prevState.collapsed }));
-    };
-
-    render() {
-      const { children, classes, handleClear, handleSubmit } = this.props;
-      return (
-        <Card
-          className={classes.filterCard}
-          style={this.state.collapsed ? {} : { maxHeight: 1000 }}
-        >
-          <CardContent className={classes.filterCardContent}>
-            <div className={classes.filterCardExpandIconContainer}>
-              <FilterListIcon onClick={this.handleFilterListIconClick} />
-            </div>
-            <Typography variant="display1">{i18n.t("Filters")}</Typography>
-          </CardContent>
-          <form onSubmit={handleSubmit}>
-            <CardContent>
-              {children}
-              <CardActions className={classes.filterCardActions}>
-                <Button color="secondary" onClick={handleSubmit}>
-                  {i18n.t("Filter", { context: "label" })}
-                </Button>
-                <Button color="default" onClick={handleClear}>
-                  {i18n.t("Clear", { context: "label" })}
-                </Button>
-              </CardActions>
-            </CardContent>
-          </form>
-        </Card>
-      );
-    }
-  }
-);
+const FilterCard = decorate<FilterCardProps>(props => {
+  const { children, classes, handleClear, handleSubmit } = props;
+  return (
+    <Card>
+      <CardContent className={classes.filterCardContent}>
+        <Typography variant="display1">{i18n.t("Filters")}</Typography>
+      </CardContent>
+      <form onSubmit={handleSubmit}>
+        <CardContent>{children}</CardContent>
+        <CardActions className={classes.filterCardActions}>
+          <Button color="secondary" onClick={handleSubmit}>
+            {i18n.t("Filter", { context: "label" })}
+          </Button>
+          <Button color="default" onClick={handleClear}>
+            {i18n.t("Clear", { context: "label" })}
+          </Button>
+        </CardActions>
+      </form>
+    </Card>
+  );
+});
 
 export default FilterCard;
