@@ -4,9 +4,7 @@ import { withStyles } from "material-ui/styles";
 import * as React from "react";
 
 const Page: React.StatelessComponent = ({ children }) => (
-  <Grid item xs={12} md={9}>
-    <Card>{children}</Card>
-  </Grid>
+  <Card>{children}</Card>
 );
 
 export default Page;
