@@ -206,6 +206,7 @@ INSTALLED_APPS = [
     'bootstrap4',
     'django_prices',
     'django_prices_openexchangerates',
+    'django_prices_vatlayer',
     'graphene_django',
     'mptt',
     'payments',
@@ -276,6 +277,14 @@ DEFAULT_DECIMAL_PLACES = get_currency_fraction(DEFAULT_CURRENCY)
 AVAILABLE_CURRENCIES = [DEFAULT_CURRENCY]
 
 OPENEXCHANGERATES_API_KEY = os.environ.get('OPENEXCHANGERATES_API_KEY')
+
+# VAT configuration
+# Enabling vat requires valid vatlayer access key. By default prices entered in
+# dashboard are treated as net amounts. If you wish to reverse that and use
+# them as gross amounts instead change the BASE_PRICES_ARE_NET to False
+ENABLE_VAT = False
+BASE_PRICES_ARE_NET = True
+VATLAYER_ACCESS_KEY = os.environ.get('VATLAYER_ACCESS_KEY')
 
 ACCOUNT_ACTIVATION_DAYS = 3
 
