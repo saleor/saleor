@@ -1,8 +1,9 @@
 import Button from "material-ui/Button";
-import Card, { CardContent, CardActions } from "material-ui/Card";
+import Card, { CardContent, CardActions, CardHeader } from "material-ui/Card";
+import IconButton from "material-ui/IconButton";
+import Cancel from "material-ui-icons/Cancel";
 import FilterListIcon from "material-ui-icons/FilterList";
 import Typography from "material-ui/Typography";
-import grey from "material-ui/colors/grey";
 import { withStyles, WithStyles } from "material-ui/styles";
 import * as React from "react";
 import { Component } from "react";
@@ -10,9 +11,15 @@ import { Component } from "react";
 import i18n from "../../i18n";
 
 const decorate = withStyles(theme => ({
+  filterCard: {
+    background: theme.palette.grey[100]
+  },
+  filterCardHeader: {
+    backgroundColor: theme.palette.background.paper
+  },
   filterCardContent: {
     position: "relative" as "relative",
-    borderBottomColor: grey[300],
+    borderBottomColor: theme.palette.grey[300],
     borderBottomStyle: "solid",
     borderBottomWidth: 1
   },
@@ -29,18 +36,21 @@ export interface FilterCardProps {
 const FilterCard = decorate<FilterCardProps>(props => {
   const { children, classes, handleClear, handleSubmit } = props;
   return (
-    <Card>
-      <CardContent className={classes.filterCardContent}>
-        <Typography variant="display1">{i18n.t("Filters")}</Typography>
-      </CardContent>
+    <Card className={classes.filterCard} elevation={1}>
       <form onSubmit={handleSubmit}>
+        <CardHeader
+          action={
+            <IconButton onClick={handleClear}>
+              <Cancel />
+            </IconButton>
+          }
+          className={classes.filterCardHeader}
+          title={i18n.t("Filters")}
+        />
         <CardContent>{children}</CardContent>
         <CardActions className={classes.filterCardActions}>
           <Button color="secondary" onClick={handleSubmit}>
             {i18n.t("Filter", { context: "label" })}
-          </Button>
-          <Button color="default" onClick={handleClear}>
-            {i18n.t("Clear", { context: "label" })}
           </Button>
         </CardActions>
       </form>

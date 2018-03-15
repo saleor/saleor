@@ -9,7 +9,6 @@ import { Link } from "react-router-dom";
 
 import Skeleton from "../../components/Skeleton";
 import i18n from "../../i18n";
-import Page from "../../components/Page";
 import PageHeader from "../../components/PageHeader";
 
 interface CategoryDetailsProps {
@@ -29,7 +28,7 @@ export const CategoryDetails: React.StatelessComponent<
   handleRemoveButtonClick,
   title
 }) => (
-  <Page>
+  <Card>
     <PageHeader backLink={backLink} title={title}>
       <IconButton onClick={handleRemoveButtonClick}>
         <DeleteForever />
@@ -56,7 +55,7 @@ export const CategoryDetails: React.StatelessComponent<
             ]}
       </Typography>
     </CardContent>
-  </Page>
+  </Card>
 );
 
 export default CategoryDetails;
