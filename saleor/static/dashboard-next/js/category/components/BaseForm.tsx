@@ -74,23 +74,26 @@ export const BaseCategoryForm = decorate(
             <TextField
               autoFocus
               fullWidth
-              name="name"
-              label={i18n.t("Name", { context: "category" })}
-              defaultValue={name}
               className={classes.textField}
-              onChange={this.handleInputChange}
+              defaultValue={name}
               error={!!errorList["name"]}
               helperText={errorList["name"]}
+              label={i18n.t("Name", { context: "category" })}
+              name="name"
+              onChange={this.handleInputChange}
             />
             <TextField
               fullWidth
-              name="description"
-              label={i18n.t("Description (optional)")}
-              defaultValue={description}
               multiline
-              onChange={this.handleInputChange}
+              defaultValue={description}
               error={!!errorList["description"]}
-              helperText={errorList["description"]}
+              helperText={
+                errorList["description"] ||
+                i18n.t("Optional", { context: "field" })
+              }
+              label={i18n.t("Description")}
+              name="description"
+              onChange={this.handleInputChange}
             />
           </CardContent>
           <Toolbar className={classes.cardActions}>
