@@ -61,7 +61,13 @@ export const TypedCategoryPropertiesQuery = Query as React.ComponentType<
   QueryProps<CategoryPropertiesQuery, CategoryPropertiesQueryVariables>
 >;
 export const categoryPropertiesQuery = gql`
-  query CategoryProperties($id: ID!, $first: Int!, $after: String) {
+  query CategoryProperties(
+    $id: ID!
+    $first: Int
+    $after: String
+    $last: Int
+    $before: String
+  ) {
     category(id: $id) {
       id
       name
@@ -77,11 +83,13 @@ export const categoryPropertiesQuery = gql`
           }
         }
       }
-      products(first: $first, after: $after) {
+      products(first: $first, after: $after, last: $last, before: $before) {
         totalCount
         pageInfo {
           endCursor
           hasNextPage
+          hasPreviousPage
+          startCursor
         }
         edges {
           cursor
@@ -89,8 +97,9 @@ export const categoryPropertiesQuery = gql`
             id
             name
             thumbnailUrl
-            price {
-              localized
+            productType {
+              id
+              name
             }
           }
         }

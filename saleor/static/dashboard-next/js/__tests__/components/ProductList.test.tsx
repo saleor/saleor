@@ -9,7 +9,11 @@ describe("<ProductList />", () => {
   it("renders while data is loading", () => {
     const component = renderer.create(
       <MemoryRouter>
-        <ProductList canLoadMore={false} handleLoadMore={jest.fn()} />
+        <ProductList
+          hasNextPage={false}
+          onNextPage={jest.fn()}
+          onPreviousPage={jest.fn()}
+        />
       </MemoryRouter>
     );
     expect(component).toMatchSnapshot();
@@ -18,8 +22,9 @@ describe("<ProductList />", () => {
     const component = renderer.create(
       <MemoryRouter>
         <ProductList
-          canLoadMore={false}
-          handleLoadMore={jest.fn()}
+          hasNextPage={false}
+          onNextPage={jest.fn()}
+          onPreviousPage={jest.fn()}
           products={productListFixture}
         />
       </MemoryRouter>
@@ -30,8 +35,9 @@ describe("<ProductList />", () => {
     const component = renderer.create(
       <MemoryRouter>
         <ProductList
-          canLoadMore={true}
-          handleLoadMore={jest.fn()}
+          hasNextPage={true}
+          onNextPage={jest.fn()}
+          onPreviousPage={jest.fn()}
           products={productListFixture}
         />
       </MemoryRouter>
@@ -42,8 +48,9 @@ describe("<ProductList />", () => {
     const component = renderer.create(
       <MemoryRouter>
         <ProductList
-          canLoadMore={false}
-          handleLoadMore={jest.fn()}
+          hasNextPage={false}
+          onNextPage={jest.fn()}
+          onPreviousPage={jest.fn()}
           products={[]}
         />
       </MemoryRouter>
