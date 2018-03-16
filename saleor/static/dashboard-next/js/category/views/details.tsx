@@ -1,35 +1,30 @@
-import Button from "material-ui/Button";
-import Divider from "material-ui/Divider";
+import * as React from "react";
+import { stringify as stringifyQs } from "qs";
+import Add from "material-ui-icons/Add";
+import Card from "material-ui/Card";
+import Drawer from "material-ui/Drawer";
+import FilterListIcon from "material-ui-icons/FilterList";
 import Grid from "material-ui/Grid";
 import IconButton from "material-ui/IconButton";
-import Toolbar from "material-ui/Toolbar";
-import Typography from "material-ui/Typography";
-import { withStyles, WithStyles } from "material-ui/styles";
-import ArrowBack from "material-ui-icons/ArrowBack";
-import Add from "material-ui-icons/Add";
-import * as React from "react";
-import { Link } from "react-router-dom";
 import { Component } from "react";
-import Card from "material-ui/Card";
-import FilterListIcon from "material-ui-icons/FilterList";
-import Drawer from "material-ui/Drawer";
+import { Link } from "react-router-dom";
+import { withStyles, WithStyles } from "material-ui/styles";
 
 import {
-  categoryPropertiesQuery,
   TypedCategoryPropertiesQuery,
-  rootCategoryChildrenQuery,
-  TypedRootCategoryChildrenQuery
+  TypedRootCategoryChildrenQuery,
+  categoryPropertiesQuery,
+  rootCategoryChildrenQuery
 } from "../queries";
-import CategoryProperties from "../components/CategoryProperties";
 import CategoryList from "../components/CategoryList";
-import ProductList from "../components/ProductList";
-import { categoryShowUrl, categoryAddUrl } from "../index";
-import PageHeader from "../../components/PageHeader";
-import Skeleton from "../../components/Skeleton";
-import i18n from "../../i18n";
+import CategoryProperties from "../components/CategoryProperties";
 import Hidden from "material-ui/Hidden";
-import FilterCard from "../../components/cards/FilterCard";
-import { ProductFilters } from "../components/ProductFilters";
+import Navigator from "../../components/Navigator";
+import PageHeader from "../../components/PageHeader";
+import ProductFilters from "../components/ProductFilters";
+import ProductList from "../components/ProductList";
+import i18n from "../../i18n";
+import { categoryAddUrl } from "../index";
 
 const decorate = withStyles(theme => ({
   title: {
@@ -50,6 +45,14 @@ interface CategoryDetailsState {
   isFilterMenuOpened: boolean;
 }
 
+// TODO: Replace when API is ready
+const dummyProductTypes = [
+  { id: "123123123", name: "Type 1" },
+  { id: "123123124", name: "Type 2" },
+  { id: "123123125", name: "Type 3" },
+  { id: "123123126", name: "Type 4" }
+];
+
 const CategoryDetails = decorate(
   class CategoryDetailsComponent extends Component<
     CategoryDetailsProps & WithStyles<"title" | "subtitle">,
@@ -67,7 +70,13 @@ const CategoryDetails = decorate(
       const { classes, filters, id } = this.props;
       if (id) {
         return (
-          <TypedCategoryPropertiesQuery
+<Navigator>
+            {navigate => {
+              const applyFilters = formState => () =>
+                navigate(`?${stringifyQs(formState)}`, true);
+              const clearFilters = () => navigate("?");
+              return (
+                <TypedCategoryPropertiesQuery
             query={categoryPropertiesQuery}
             variables={{ id, first: 12 }}
             fetchPolicy="network-only"
@@ -226,8 +235,10 @@ const CategoryDetails = decorate(
                       <Grid item xs={12} md={3}>
                         <Hidden smDown>
                           <ProductFilters
-                            handleClear={() => {}}
-                            handleSubmit={() => {}}
+                            handleSubmit={applyFilters}
+                            handleClear={clearFilters}
+                            productTypes={dummyProductTypes}
+                            formState={filters}
                           />
                         </Hidden>
                         <Drawer
@@ -236,8 +247,10 @@ const CategoryDetails = decorate(
                           anchor="bottom"
                         >
                           <ProductFilters
-                            handleClear={() => {}}
-                            handleSubmit={() => {}}
+                            handleSubmit={applyFilters}
+                            handleClear={clearFilters}
+                            productTypes={dummyProductTypes}
+                            formState={filters}
                           />
                         </Drawer>
                       </Grid>
@@ -247,6 +260,9 @@ const CategoryDetails = decorate(
               );
             }}
           </TypedCategoryPropertiesQuery>
+              );
+            }}
+</Navigator>
         );
       }
       return (

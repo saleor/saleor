@@ -18,7 +18,7 @@ const decorate = withStyles(theme => ({
 
 export interface FilterCardProps {
   handleClear();
-  handleSubmit(t);
+  handleSubmit();
 }
 
 const FilterCard = decorate<FilterCardProps>(props => {
