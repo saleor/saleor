@@ -7,7 +7,9 @@ from django_countries.fields import Country
 
 from . import analytics
 from ..discount.models import Sale
-from .utils import get_client_ip, get_country_by_ip, get_currency_for_country
+from .utils import (
+    get_client_ip, get_country_by_ip, get_currency_for_country,
+    get_taxes_for_country)
 
 logger = logging.getLogger(__name__)
 
@@ -75,6 +77,17 @@ def site(get_response):
     def middleware(request):
         Site.objects.clear_cache()
         request.site = Site.objects.get_current()
+        return get_response(request)
+
+    return middleware
+
+
+def taxes(get_response):
+    """Assign tax rates for default country to `request.taxes`."""
+    def middleware(request):
+        # fixme: find out if we should or can use request.country here
+        request.taxes = get_taxes_for_country(
+            Country(settings.DEFAULT_COUNTRY))
         return get_response(request)
 
     return middleware

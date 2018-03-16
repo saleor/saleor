@@ -58,11 +58,12 @@ def product_details(request, slug, product_id, form=None):
         product.available_on is None or product.available_on <= today)
     if form is None:
         form = handle_cart_form(request, product, create_cart=False)[0]
-    availability = get_availability(product, discounts=request.discounts,
-                                    local_currency=request.currency)
+    availability = get_availability(
+        product, discounts=request.discounts, local_currency=request.currency,
+        taxes=request.taxes)
     product_images = get_product_images(product)
     variant_picker_data = get_variant_picker_data(
-        product, request.discounts, request.currency)
+        product, request.discounts, request.currency, request.taxes)
     product_attributes = get_product_attributes_data(product)
     # show_variant_picker determines if variant picker is used or select input
     show_variant_picker = all([v.attributes for v in product.variants.all()])

@@ -9,9 +9,10 @@ ProductAvailability = namedtuple(
         'discount', 'price_range_local_currency', 'discount_local_currency'))
 
 
-def products_with_availability(products, discounts, local_currency):
+def products_with_availability(products, discounts, local_currency, taxes):
     for product in products:
-        yield product, get_availability(product, discounts, local_currency)
+        yield (product, get_availability(
+            product, discounts, local_currency, taxes))
 
 
 def get_product_availability_status(product):
@@ -44,10 +45,10 @@ def get_variant_availability_status(variant):
     return VariantAvailabilityStatus.AVAILABLE
 
 
-def get_availability(product, discounts=None, local_currency=None):
+def get_availability(product, discounts=None, local_currency=None, taxes=None):
     # In default currency
-    price_range = product.get_price_range(discounts=discounts)
-    undiscounted = product.get_price_range()
+    price_range = product.get_price_range(discounts=discounts, taxes=taxes)
+    undiscounted = product.get_price_range(taxes=taxes)
     if undiscounted.start > price_range.start:
         discount = undiscounted.start - price_range.start
     else:

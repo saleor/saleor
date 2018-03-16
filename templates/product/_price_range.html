@@ -5,4 +5,7 @@
   <span>
     {% if price_range.start != price_range.stop %}{% trans "from" context "product price range" %} {% endif %}{{ price_range.start.gross|amount:'html' }}
   </span>
+  <div class="small">
+    ({{ price_range.start.net|amount:'html' }} + {{ price_range.start.tax|amount:'html' }} VAT)
+  </div>
 </span>

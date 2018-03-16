@@ -164,6 +164,7 @@ MIDDLEWARE = [
     'saleor.core.middleware.country',
     'saleor.core.middleware.currency',
     'saleor.core.middleware.site',
+    'saleor.core.middleware.taxes',
     'social_django.middleware.SocialAuthExceptionMiddleware',
     'impersonate.middleware.ImpersonateMiddleware']
 
@@ -271,7 +272,7 @@ AUTH_USER_MODEL = 'account.User'
 
 LOGIN_URL = '/account/login/'
 
-DEFAULT_COUNTRY = 'US'
+DEFAULT_COUNTRY = 'PL' # fixme: revert back to USD before merge
 DEFAULT_CURRENCY = 'USD'
 DEFAULT_DECIMAL_PLACES = get_currency_fraction(DEFAULT_CURRENCY)
 AVAILABLE_CURRENCIES = [DEFAULT_CURRENCY]
@@ -282,9 +283,8 @@ OPENEXCHANGERATES_API_KEY = os.environ.get('OPENEXCHANGERATES_API_KEY')
 # Enabling vat requires valid vatlayer access key. By default prices entered in
 # dashboard are treated as net amounts. If you wish to reverse that and use
 # them as gross amounts instead change the BASE_PRICES_ARE_NET to False
-ENABLE_VAT = False
-BASE_PRICES_ARE_NET = True
 VATLAYER_ACCESS_KEY = os.environ.get('VATLAYER_ACCESS_KEY')
+BASE_PRICES_ARE_NET = True
 
 ACCOUNT_ACTIVATION_DAYS = 3
 

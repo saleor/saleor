@@ -14,6 +14,8 @@ from django_babel.templatetags.babel import currencyfmt
 from django_countries import countries
 from django_countries.fields import Country
 from django_prices_openexchangerates import exchange_currency
+from django_prices_vatlayer.utils import (
+    get_tax_rates_for_country, get_tax_for_rate)
 from geolite2 import geolite2
 from prices import Money, MoneyRange, TaxedMoney
 from versatileimagefield.image_warmer import VersatileImageFieldWarmer
@@ -97,6 +99,32 @@ def get_paginator_items(items, paginate_by, page_number):
 
 def format_money(money):
     return currencyfmt(money.amount, money.currency)
+
+
+def get_taxes_for_country(country):
+    tax_rates = get_tax_rates_for_country(country.code)
+    if tax_rates is None:
+        return None
+
+    taxes = {'standard': get_tax_for_rate(tax_rates)}
+    if tax_rates['reduced_rates']:
+        taxes.update({
+            rate: get_tax_for_rate(tax_rates, rate)
+            for rate in tax_rates['reduced_rates']})
+    return taxes
+
+
+def apply_tax_to_price(taxes, rate_name, price):
+    if taxes is None:
+        # Naively convert Money to TaxedMoney for consistency with price
+        # handling logic across the codebase
+        return TaxedMoney(net=price, gross=price)
+    if rate_name in taxes:
+        tax_to_apply = taxes[rate_name]
+    else:
+        tax_to_apply = taxes['standard']
+    price_with_tax = tax_to_apply(price, not settings.BASE_PRICES_ARE_NET)
+    return price_with_tax
 
 
 def to_local_currency(price, currency):
