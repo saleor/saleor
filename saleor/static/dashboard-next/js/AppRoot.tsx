@@ -25,7 +25,11 @@ const decorate = withStyles(theme => ({
     zIndex: theme.zIndex.drawer + 1
   },
   toolBar: {
-    minHeight: 56
+    minHeight: 56,
+    paddingLeft: theme.spacing.unit,
+    [theme.breakpoints.up("md")]: {
+      paddingLeft: theme.spacing.unit * 3
+    }
   },
   appFrame: {
     zIndex: 1,
@@ -33,28 +37,25 @@ const decorate = withStyles(theme => ({
     width: "100%"
   },
   menuButton: {
-    marginLeft: theme.spacing.unit,
     marginRight: theme.spacing.unit * 2
   },
   hide: {
     display: "none"
   },
   drawerPaper: {
+    marginTop: 56,
     position: "relative" as "relative",
     width: drawerWidth
-  },
-  drawerHeader: {
-    display: "flex",
-    alignItems: "center" as "center",
-    justifyContent: "flex-end" as "flex-end",
-    padding: "0 8px",
-    ...theme.mixins.toolbar
   },
   content: {
     flexGrow: 1,
     backgroundColor: theme.palette.background.default,
     marginLeft: 0,
-    padding: theme.spacing.unit * 2
+    marginTop: 56,
+    padding: theme.spacing.unit,
+    [theme.breakpoints.up("sm")]: {
+      padding: theme.spacing.unit * 2
+    }
   }
 }));
 
@@ -74,7 +75,6 @@ const ResponsiveDrawer = decorate<ResponsiveDrawerProps>(
             paper: classes.drawerPaper
           }}
         >
-          <div className={classes.drawerHeader} />
           {children}
         </Drawer>
       </Hidden>
