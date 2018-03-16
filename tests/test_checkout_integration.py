@@ -131,7 +131,7 @@ def test_checkout_flow_authenticated_user(
     assert payment.tax == order.total.tax.amount
     assert payment.currency == order.total.currency
     assert payment.delivery == order.shipping_price.gross.amount
-    assert len(payment.get_purchased_items()) == len(order.get_lines())
+    assert len(payment.get_purchased_items()) == len(order.lines.all())
 
 
 def test_address_without_shipping(request_cart_with_item, client, monkeypatch):

@@ -8,7 +8,7 @@ from impersonate.views import impersonate as orig_impersonate
 from ..account.models import User
 from ..dashboard.views import staff_member_required
 from ..product.utils import products_for_homepage, products_with_availability
-from .utils.schema import get_webpage_schema
+from ..schema.webpage import get_webpage_schema
 
 
 def home(request):

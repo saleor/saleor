@@ -2,27 +2,33 @@ from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import permission_required
 from django.db import transaction
+from django.db.models import F
+from django.forms import modelformset_factory
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect
 from django.template.context_processors import csrf
 from django.template.response import TemplateResponse
-from django.utils.translation import pgettext_lazy
+from django.utils.translation import npgettext_lazy, pgettext_lazy
 from django_prices.templatetags import prices_i18n
 from payments import PaymentStatus
 from prices import Money, TaxedMoney
 
 from ...core.exceptions import InsufficientStock
 from ...core.utils import ZERO_TAXED_MONEY, get_paginator_items
-from ...order import GroupStatus
-from ...order.models import DeliveryGroup, Order, OrderLine, OrderNote
+from ...order import OrderStatus
+from ...order.emails import send_fulfillment_confirmation, send_fulfillment_update
+from ...order.models import (
+    FulfillmentLine, Fulfillment, Order, OrderLine, OrderNote)
+from ...order.utils import update_order_status
 from ...product.models import StockLocation
 from ..views import staff_member_required
 from .filters import OrderFilter
 from .forms import (
-    AddressForm, AddVariantToDeliveryGroupForm, CancelGroupForm,
-    CancelOrderForm, CancelOrderLineForm, CapturePaymentForm,
-    ChangeQuantityForm, ChangeStockForm, MoveLinesForm, OrderNoteForm,
-    RefundPaymentForm, ReleasePaymentForm, RemoveVoucherForm, ShipGroupForm)
+    AddressForm, AddVariantToOrderForm, BaseFulfillmentLineFormSet,
+    CancelOrderForm, CancelFulfillmentForm, CancelOrderLineForm,
+    CapturePaymentForm, ChangeQuantityForm, ChangeStockForm, FulfillmentForm,
+    FulfillmentLineForm, FulfillmentTrackingNumberForm, OrderNoteForm,
+    RefundPaymentForm, ReleasePaymentForm, RemoveVoucherForm)
 from .utils import (
     create_invoice_pdf, create_packing_slip_pdf, get_statics_absolute_url)
 
@@ -30,8 +36,8 @@ from .utils import (
 @staff_member_required
 @permission_required('order.view_order')
 def order_list(request):
-    orders = (Order.objects.prefetch_related(
-        'payments', 'groups__lines', 'user').order_by('-pk'))
+    orders = Order.objects.prefetch_related(
+        'payments', 'lines', 'user').order_by('-pk')
     order_filter = OrderFilter(request.GET, queryset=orders)
     orders = get_paginator_items(
         order_filter.qs, settings.DASHBOARD_PAGINATE_BY,
@@ -45,22 +51,19 @@ def order_list(request):
 @staff_member_required
 @permission_required('order.view_order')
 def order_details(request, order_pk):
-    qs = (Order.objects
-          .select_related('user', 'shipping_address', 'billing_address')
-          .prefetch_related('notes', 'payments', 'history', 'groups__lines'))
+    qs = Order.objects.select_related(
+        'user', 'shipping_address', 'billing_address').prefetch_related(
+        'notes', 'payments', 'history', 'lines')
     order = get_object_or_404(qs, pk=order_pk)
     notes = order.notes.all()
     all_payments = order.payments.exclude(status=PaymentStatus.INPUT)
     payment = order.payments.last()
-    groups = list(order)
     captured = preauthorized = ZERO_TAXED_MONEY
     balance = captured - order.total
     if payment:
         can_capture = (
             payment.status == PaymentStatus.PREAUTH and
-            any([
-                group.status != GroupStatus.CANCELLED
-                for group in order.groups.all()]))
+            order.status != OrderStatus.CANCELED)
         can_release = payment.status == PaymentStatus.PREAUTH
         can_refund = payment.status == PaymentStatus.CONFIRMED
         preauthorized = payment.get_total_price()
@@ -71,11 +74,10 @@ def order_details(request, order_pk):
         can_capture = can_release = can_refund = False
     is_many_stock_locations = StockLocation.objects.count() > 1
     ctx = {'order': order, 'all_payments': all_payments, 'payment': payment,
-           'notes': notes, 'groups': groups, 'captured': captured,
+           'notes': notes, 'captured': captured, 'balance': balance,
            'preauthorized': preauthorized, 'can_capture': can_capture,
            'can_release': can_release, 'can_refund': can_refund,
-           'is_many_stock_locations': is_many_stock_locations,
-           'balance': balance}
+           'is_many_stock_locations': is_many_stock_locations}
     return TemplateResponse(request, 'dashboard/order/detail.html', ctx)
 
 
@@ -171,8 +173,7 @@ def release_payment(request, order_pk, payment_pk):
 @permission_required('order.edit_order')
 def orderline_change_quantity(request, order_pk, line_pk):
     order = get_object_or_404(Order, pk=order_pk)
-    line = get_object_or_404(OrderLine.objects.filter(
-        delivery_group__order=order), pk=line_pk)
+    line = get_object_or_404(order.lines.all(), pk=line_pk)
     form = ChangeQuantityForm(request.POST or None, instance=line)
     status = 200
     old_quantity = line.quantity
@@ -197,46 +198,9 @@ def orderline_change_quantity(request, order_pk, line_pk):
 
 @staff_member_required
 @permission_required('order.edit_order')
-def orderline_split(request, order_pk, line_pk):
-    order = get_object_or_404(Order, pk=order_pk)
-    line = get_object_or_404(OrderLine.objects.filter(
-        delivery_group__order=order), pk=line_pk)
-    form = MoveLinesForm(request.POST or None, line=line)
-    line_pk = None
-    if line:
-        line_pk = line.pk
-    status = 200
-    if form.is_valid():
-        old_group = line.delivery_group
-        how_many = form.cleaned_data.get('quantity')
-        with transaction.atomic():
-            target_group = form.move_lines()
-        if not old_group.pk:
-            old_group = pgettext_lazy(
-                'Dashboard message related to a shipment group',
-                'removed group')
-        msg = pgettext_lazy(
-            'Dashboard message related to shipment groups',
-            'Moved %(how_many)s items %(item)s from %(old_group)s'
-            ' to %(new_group)s') % {
-                'how_many': how_many, 'item': line, 'old_group': old_group,
-                'new_group': target_group}
-        order.history.create(content=msg, user=request.user)
-        messages.success(request, msg)
-        return redirect('dashboard:order-details', order_pk=order.pk)
-    elif form.errors:
-        status = 400
-    ctx = {'order': order, 'object': line, 'form': form, 'line_pk': line_pk}
-    template = 'dashboard/order/modal/split_order_line.html'
-    return TemplateResponse(request, template, ctx, status=status)
-
-
-@staff_member_required
-@permission_required('order.edit_order')
 def orderline_cancel(request, order_pk, line_pk):
     order = get_object_or_404(Order, pk=order_pk)
-    line = get_object_or_404(OrderLine.objects.filter(
-        delivery_group__order=order), pk=line_pk)
+    line = get_object_or_404(order.lines.all(), pk=line_pk)
     form = CancelOrderLineForm(data=request.POST or None, line=line)
     status = 200
     if form.is_valid():
@@ -258,84 +222,35 @@ def orderline_cancel(request, order_pk, line_pk):
 
 @staff_member_required
 @permission_required('order.edit_order')
-def ship_delivery_group(request, order_pk, group_pk):
-    order = get_object_or_404(
-        Order.objects.select_related('shipping_address'), pk=order_pk)
-    group = get_object_or_404(order.groups.all(), pk=group_pk)
-    form = ShipGroupForm(request.POST or None, instance=group)
-    status = 200
-    if form.is_valid():
-        with transaction.atomic():
-            form.save()
-        msg = pgettext_lazy(
-            'Dashboard message related to a shipment group',
-            'Shipped %s') % group
-        messages.success(request, msg)
-        order.history.create(content=msg, user=request.user)
-        return redirect('dashboard:order-details', order_pk=order_pk)
-    elif form.errors:
-        status = 400
-    ctx = {'order': order, 'group': group, 'form': form}
-    template = 'dashboard/order/modal/ship_shipment_group.html'
-    return TemplateResponse(request, template, ctx, status=status)
-
-
-@staff_member_required
-@permission_required('order.edit_order')
-def cancel_delivery_group(request, order_pk, group_pk):
+def add_variant_to_order(request, order_pk):
+    """Add variant in given quantity to an order."""
     order = get_object_or_404(Order, pk=order_pk)
-    group = get_object_or_404(order.groups.all(), pk=group_pk)
-    form = CancelGroupForm(request.POST or None, instance=group)
-    status = 200
-    if form.is_valid():
-        with transaction.atomic():
-            form.save()
-        msg = pgettext_lazy(
-            'Dashboard message related to a shipment group',
-            'Cancelled %s') % group
-        messages.success(request, msg)
-        order.history.create(content=msg, user=request.user)
-        return redirect('dashboard:order-details', order_pk=order_pk)
-    elif form.errors:
-        status = 400
-    ctx = {'order': order, 'group': group}
-    template = 'dashboard/order/modal/cancel_shipment_group.html'
-    return TemplateResponse(request, template, ctx, status=status)
-
-
-@staff_member_required
-@permission_required('order.edit_order')
-def add_variant_to_group(request, order_pk, group_pk):
-    """Add variant in given quantity to an existing or new order group."""
-    order = get_object_or_404(Order, pk=order_pk)
-    group = get_object_or_404(order.groups.all(), pk=group_pk)
-    form = AddVariantToDeliveryGroupForm(
-        request.POST or None, group=group, discounts=request.discounts)
+    form = AddVariantToOrderForm(
+        request.POST or None, order=order, discounts=request.discounts)
     status = 200
     if form.is_valid():
         msg_dict = {
             'quantity': form.cleaned_data.get('quantity'),
-            'variant': form.cleaned_data.get('variant'),
-            'group': group}
+            'variant': form.cleaned_data.get('variant')}
         try:
             with transaction.atomic():
                 form.save()
             msg = pgettext_lazy(
-                'Dashboard message related to a shipment group',
-                'Added %(quantity)d x %(variant)s to %(group)s') % msg_dict
+                'Dashboard message related to an order',
+                'Added %(quantity)d x %(variant)s') % msg_dict
             order.history.create(content=msg, user=request.user)
             messages.success(request, msg)
         except InsufficientStock:
             msg = pgettext_lazy(
-                'Dashboard message related to a shipment group',
-                'Insufficient stock: could not add %(quantity)d x '
-                '%(variant)s to %(group)s') % msg_dict
+                'Dashboard message related to an order',
+                'Insufficient stock: could not add %(quantity)d x %(variant)s'
+            ) % msg_dict
             messages.warning(request, msg)
         return redirect('dashboard:order-details', order_pk=order_pk)
     elif form.errors:
         status = 400
-    ctx = {'order': order, 'group': group, 'form': form}
-    template = 'dashboard/order/modal/add_variant_to_group.html'
+    ctx = {'order': order, 'form': form}
+    template = 'dashboard/order/modal/add_variant_to_order.html'
     return TemplateResponse(request, template, ctx, status=status)
 
 
@@ -376,18 +291,26 @@ def cancel_order(request, order_pk):
     order = get_object_or_404(Order, pk=order_pk)
     form = CancelOrderForm(request.POST or None, order=order)
     if form.is_valid():
-        msg = pgettext_lazy('Dashboard message', 'Cancelled order')
+        msg = pgettext_lazy('Dashboard message', 'Order canceled')
         with transaction.atomic():
             form.cancel_order()
+            if form.cleaned_data.get('restock'):
+                restock_msg = npgettext_lazy(
+                    'Dashboard message',
+                    'Restocked %(quantity)d item',
+                    'Restocked %(quantity)d items',
+                    'quantity') % {'quantity': order.get_total_quantity()}
+                order.history.create(content=restock_msg, user=request.user)
             order.history.create(content=msg, user=request.user)
-        messages.success(request, 'Order cancelled')
+        messages.success(request, msg)
         return redirect('dashboard:order-details', order_pk=order.pk)
         # TODO: send status confirmation email
     elif form.errors:
         status = 400
-    ctx = {'order': order}
-    return TemplateResponse(request, 'dashboard/order/modal/cancel_order.html',
-                            ctx, status=status)
+    ctx = {'form': form, 'order': order}
+    return TemplateResponse(
+        request, 'dashboard/order/modal/cancel_order.html', ctx,
+        status=status)
 
 
 @staff_member_required
@@ -415,7 +338,7 @@ def remove_order_voucher(request, order_pk):
 @permission_required('order.edit_order')
 def order_invoice(request, order_pk):
     orders = Order.objects.prefetch_related(
-        'user', 'shipping_address', 'billing_address', 'voucher', 'groups')
+        'user', 'shipping_address', 'billing_address', 'voucher')
     order = get_object_or_404(orders, pk=order_pk)
     absolute_url = get_statics_absolute_url(request)
     pdf_file, order = create_invoice_pdf(order, absolute_url)
@@ -427,15 +350,17 @@ def order_invoice(request, order_pk):
 
 @staff_member_required
 @permission_required('order.edit_order')
-def order_packing_slip(request, group_pk):
-    groups = DeliveryGroup.objects.prefetch_related(
-        'lines', 'order', 'order__user', 'order__shipping_address',
-        'order__billing_address')
-    group = get_object_or_404(groups, pk=group_pk)
+def fulfillment_packing_slips(request, order_pk, fulfillment_pk):
+    orders = Order.objects.prefetch_related(
+        'user', 'shipping_address', 'billing_address')
+    order = get_object_or_404(orders, pk=order_pk)
+    fulfillments = order.fulfillments.prefetch_related(
+        'lines', 'lines__order_line')
+    fulfillment = get_object_or_404(fulfillments, pk=fulfillment_pk)
     absolute_url = get_statics_absolute_url(request)
-    pdf_file, group = create_packing_slip_pdf(group, absolute_url)
+    pdf_file, order = create_packing_slip_pdf(order, fulfillment, absolute_url)
     response = HttpResponse(pdf_file, content_type='application/pdf')
-    name = "packing-slip-%s-%s" % (group.order.id, group.id)
+    name = "packing-slip-%s" % (order.id,)
     response['Content-Disposition'] = 'filename=%s' % name
     return response
 
@@ -455,5 +380,139 @@ def orderline_change_stock(request, order_pk, line_pk):
     elif form.errors:
         status = 400
     ctx = {'order_pk': order_pk, 'line_pk': line_pk, 'form': form}
-    template = 'dashboard/order/modal/shipment_group_stock.html'
+    template = 'dashboard/order/modal/order_line_stock.html'
     return TemplateResponse(request, template, ctx, status=status)
+
+
+@staff_member_required
+@permission_required('order.edit_order')
+def fulfill_order_lines(request, order_pk):
+    order = get_object_or_404(Order, pk=order_pk)
+    unfulfilled_lines = order.lines.filter(
+        quantity_fulfilled__lt=F('quantity'))
+    status = 200
+    form = FulfillmentForm(
+        request.POST or None, order=order, instance=Fulfillment())
+    FulfillmentLineFormSet = modelformset_factory(
+        FulfillmentLine, form=FulfillmentLineForm, extra=len(unfulfilled_lines),
+        formset=BaseFulfillmentLineFormSet)
+    initial = [
+        {'order_line': line, 'quantity': line.quantity_unfulfilled}
+        for line in unfulfilled_lines]
+    formset = FulfillmentLineFormSet(
+        request.POST or None, queryset=FulfillmentLine.objects.none(),
+        initial=initial)
+    all_forms_valid = all([line_form.is_valid() for line_form in formset])
+    if all_forms_valid and form.is_valid():
+        forms_to_save = [
+            line_form for line_form in formset
+            if line_form.cleaned_data.get('quantity') > 0]
+        if forms_to_save:
+            fulfillment = form.save()
+            quantity_fulfilled = 0
+            for line_form in forms_to_save:
+                line = line_form.save(commit=False)
+                line.fulfillment = fulfillment
+                line.save()
+                quantity_fulfilled += line_form.cleaned_data.get('quantity')
+            update_order_status(order)
+            msg = npgettext_lazy(
+                'Dashboard message related to an order',
+                'Fulfilled %(quantity_fulfilled)d item',
+                'Fulfilled %(quantity_fulfilled)d items',
+                'quantity_fulfilled') % {
+                    'quantity_fulfilled': quantity_fulfilled}
+            order.history.create(content=msg, user=request.user)
+            if form.cleaned_data.get('send_mail'):
+                send_fulfillment_confirmation.delay(order.pk, fulfillment.pk)
+                send_mail_msg = pgettext_lazy(
+                    'Dashboard message related to an order',
+                    'Shipping confirmation email was sent to user'
+                    '(%(email)s)') % {'email': order.get_user_current_email()}
+                order.history.create(content=send_mail_msg, user=request.user)
+        else:
+            msg = pgettext_lazy(
+                'Dashboard message related to an order', 'No items fulfilled')
+        messages.success(request, msg)
+        return redirect('dashboard:order-details', order_pk=order.pk)
+    elif form.errors:
+        status = 400
+    ctx = {
+        'form': form, 'formset': formset, 'order': order,
+        'unfulfilled_lines': unfulfilled_lines}
+    template = 'dashboard/order/fulfillment.html'
+    return TemplateResponse(request, template, ctx, status=status)
+
+
+@staff_member_required
+@permission_required('order.edit_order')
+def cancel_fulfillment(request, order_pk, fulfillment_pk):
+    status = 200
+    order = get_object_or_404(Order, pk=order_pk)
+    fulfillment = get_object_or_404(
+        order.fulfillments.all(), pk=fulfillment_pk)
+    form = CancelFulfillmentForm(request.POST or None, fulfillment=fulfillment)
+    if form.is_valid():
+        msg = pgettext_lazy(
+            'Dashboard message', 'Fulfillment #%(fulfillment)s canceled') % {
+                'fulfillment': fulfillment.composed_id}
+        with transaction.atomic():
+            form.cancel_fulfillment()
+            if form.cleaned_data.get('restock'):
+                restock_msg = npgettext_lazy(
+                    'Dashboard message',
+                    'Restocked %(quantity)d item',
+                    'Restocked %(quantity)d items',
+                    'quantity') % {
+                        'quantity': fulfillment.get_total_quantity()}
+                order.history.create(content=restock_msg, user=request.user)
+            order.history.create(content=msg, user=request.user)
+        messages.success(request, msg)
+        return redirect('dashboard:order-details', order_pk=order.pk)
+    elif form.errors:
+        status = 400
+    ctx = {'form': form, 'order': order, 'fulfillment': fulfillment}
+    return TemplateResponse(
+        request, 'dashboard/order/modal/cancel_fulfillment.html', ctx,
+        status=status)
+
+
+@staff_member_required
+@permission_required('order.edit_order')
+def change_fulfillment_tracking(request, order_pk, fulfillment_pk):
+    status = 200
+    order = get_object_or_404(Order, pk=order_pk)
+    fulfillment = get_object_or_404(
+        order.fulfillments.all(), pk=fulfillment_pk)
+    form = FulfillmentTrackingNumberForm(
+        request.POST or None, instance=fulfillment)
+    if form.is_valid():
+        form.save()
+        if fulfillment.tracking_number:
+            msg = pgettext_lazy(
+                'Dashboard message',
+                'Fulfillment #%(fulfillment)s tracking number changed to: '
+                '#%(tracking_number)s') % {
+                    'fulfillment': fulfillment.composed_id,
+                    'tracking_number': fulfillment.tracking_number}
+        else:
+            msg = pgettext_lazy(
+                'Dashboard message',
+                'Fulfillment #%(fulfillment)s tracking number removed') % {
+                    'fulfillment': fulfillment.composed_id}
+        order.history.create(content=msg, user=request.user)
+        if form.cleaned_data.get('send_mail'):
+            send_fulfillment_update.delay(order.pk, fulfillment.pk)
+            send_mail_msg = pgettext_lazy(
+                'Dashboard message related to an order',
+                'Shipping update email was sent to user (%(email)s)') % {
+                    'email': order.get_user_current_email()}
+            order.history.create(content=send_mail_msg, user=request.user)
+        messages.success(request, msg)
+        return redirect('dashboard:order-details', order_pk=order.pk)
+    elif form.errors:
+        status = 400
+    ctx = {'form': form, 'order': order, 'fulfillment': fulfillment}
+    return TemplateResponse(
+        request, 'dashboard/order/modal/fulfillment_tracking.html', ctx,
+        status=status)

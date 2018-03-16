@@ -6,13 +6,14 @@ from django.contrib.auth.models import AnonymousUser
 from django.db.models import F
 from django.utils.encoding import smart_text
 from django_prices.templatetags import prices_i18n
-from prices import Money, TaxedMoney, TaxedMoneyRange
+from prices import TaxedMoneyRange
 
 from . import ProductAvailabilityStatus, VariantAvailabilityStatus
 from ..cart.utils import get_cart_from_request, get_or_create_cart_from_request
 from ..core.utils import (
     ZERO_TAXED_MONEY, get_paginator_items, to_local_currency)
 from ..core.utils.filters import get_now_sorted_by
+from ..schema.product import variant_json_ld
 from .forms import ProductForm
 
 
@@ -114,46 +115,6 @@ def products_for_cart(user):
     return products
 
 
-def product_json_ld(product, attributes=None):
-    # type: (saleor.product.models.Product, saleor.product.utils.ProductAvailability, dict) -> dict  # noqa
-    """Generate JSON-LD data for product."""
-    data = {'@context': 'http://schema.org/',
-            '@type': 'Product',
-            'name': smart_text(product),
-            'image': [
-                product_image.image.url
-                for product_image in product.images.all()],
-            'description': product.description,
-            'offers': []}
-
-    for variant in product.variants.all():
-        price = variant.get_price_per_item()
-        available = 'http://schema.org/InStock'
-        if not product.is_available() or not variant.is_in_stock():
-            available = 'http://schema.org/OutOfStock'
-        variant_data = {
-            '@type': 'Offer',
-            'availability': available,
-            'itemCondition': 'http://schema.org/NewCondition',
-            'price': price.gross.amount,
-            'priceCurrency': price.currency,
-            'sku': variant.sku}
-        data['offers'].append(variant_data)
-
-    if attributes is not None:
-        brand = ''
-        for key in attributes:
-            if key.name == 'brand':
-                brand = attributes[key].name
-                break
-            elif key.name == 'publisher':
-                brand = attributes[key].name
-
-        if brand:
-            data['brand'] = {'@type': 'Thing', 'name': brand}
-    return data
-
-
 def get_variant_picker_data(product, discounts=None, local_currency=None):
     availability = get_availability(product, discounts, local_currency)
     variants = product.variants.all()
@@ -171,17 +132,8 @@ def get_variant_picker_data(product, discounts=None, local_currency=None):
             price_local_currency = to_local_currency(price, local_currency)
         else:
             price_local_currency = None
-
-        schema_data = {'@type': 'Offer',
-                       'itemCondition': 'http://schema.org/NewCondition',
-                       'priceCurrency': price.currency,
-                       'price': price.net.amount}
         in_stock = variant.is_in_stock()
-        if in_stock:
-            schema_data['availability'] = 'http://schema.org/InStock'
-        else:
-            schema_data['availability'] = 'http://schema.org/OutOfStock'
-
+        schema_data = variant_json_ld(price, variant, in_stock)
         variant_data = {
             'id': variant.id,
             'availability': in_stock,
@@ -387,15 +339,15 @@ def deallocate_stock(stock, quantity):
     stock.save(update_fields=['quantity_allocated'])
 
 
-def increase_stock(stock, quantity):
-    stock.quantity = F('quantity') + quantity
-    stock.save(update_fields=['quantity'])
-
-
 def decrease_stock(stock, quantity):
     stock.quantity = F('quantity') - quantity
     stock.quantity_allocated = F('quantity_allocated') - quantity
     stock.save(update_fields=['quantity', 'quantity_allocated'])
+
+
+def increase_stock(stock, quantity):
+    stock.quantity = F('quantity') + quantity
+    stock.save(update_fields=['quantity'])
 
 
 def get_product_list_context(request, filter_set):

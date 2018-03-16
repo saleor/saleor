@@ -9,15 +9,17 @@ from django.core.files import File
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.utils.encoding import smart_text
 from PIL import Image
+from payments import FraudStatus, PaymentStatus
 from prices import Money
 
 from saleor.account.models import Address, User
 from saleor.cart import utils
 from saleor.cart.models import Cart
 from saleor.checkout.core import Checkout
+from saleor.dashboard.order.utils import fulfill_order_line
 from saleor.discount.models import Sale, Voucher
-from saleor.order import GroupStatus
-from saleor.order.models import DeliveryGroup, Order, OrderLine
+from saleor.order import OrderStatus
+from saleor.order.models import Order, OrderLine
 from saleor.order.utils import recalculate_order
 from saleor.page.models import Page
 from saleor.product.models import (
@@ -71,8 +73,15 @@ def request_cart_with_item(product_in_stock, request_cart):
 
 
 @pytest.fixture
-def order(billing_address):
-    return Order.objects.create(billing_address=billing_address)
+def order(billing_address, customer_user):
+    return Order.objects.create(
+        billing_address=billing_address,
+        user_email=customer_user.email,
+        total_net=Money(123, 'USD'),
+        total_gross=Money(123, 'USD'),
+        shipping_price_net=Money(12, 'USD'),
+        shipping_price_gross=Money(12, 'USD'),
+        user=customer_user)
 
 
 @pytest.fixture()
@@ -373,13 +382,11 @@ def voucher(db):  # pylint: disable=W0613
 
 @pytest.fixture()
 def order_with_lines(order, product_type, default_category):
-    group = DeliveryGroup.objects.create(order=order)
     product = Product.objects.create(
         name='Test product', price=Money('10.00', 'USD'),
         product_type=product_type, category=default_category)
 
-    OrderLine.objects.create(
-        delivery_group=group,
+    order.lines.create(
         product=product,
         product_name=product.name,
         product_sku='SKU_%d' % (product.pk,),
@@ -391,8 +398,7 @@ def order_with_lines(order, product_type, default_category):
         name='Test product 2', price=Money('20.00', 'USD'),
         product_type=product_type, category=default_category)
 
-    OrderLine.objects.create(
-        delivery_group=group,
+    order.lines.create(
         product=product,
         product_name=product.name,
         product_sku='SKU_%d' % (product.pk,),
@@ -404,8 +410,7 @@ def order_with_lines(order, product_type, default_category):
         name='Test product 3', price=Money('30.00', 'USD'),
         product_type=product_type, category=default_category)
 
-    OrderLine.objects.create(
-        delivery_group=group,
+    order.lines.create(
         product=product,
         product_name=product.name,
         product_sku='SKU_%d' % (product.pk,),
@@ -420,7 +425,6 @@ def order_with_lines(order, product_type, default_category):
 
 @pytest.fixture()
 def order_with_lines_and_stock(order, product_type, default_category):
-    group = DeliveryGroup.objects.create(order=order)
     product = Product.objects.create(
         name='Test product', price=Money('10.00', 'USD'),
         product_type=product_type, category=default_category)
@@ -429,8 +433,8 @@ def order_with_lines_and_stock(order, product_type, default_category):
     stock = Stock.objects.create(
         variant=variant, cost_price=Money(1, 'USD'), quantity=5,
         quantity_allocated=3, location=warehouse)
-    OrderLine.objects.create(
-        delivery_group=group,
+    order.lines.create(
+        order=order,
         product=product,
         product_name=product.name,
         product_sku='SKU_A',
@@ -447,8 +451,8 @@ def order_with_lines_and_stock(order, product_type, default_category):
     stock = Stock.objects.create(
         variant=variant, cost_price=Money(2, 'USD'), quantity=2,
         quantity_allocated=2, location=warehouse)
-    OrderLine.objects.create(
-        delivery_group=group,
+    order.lines.create(
+        order=order,
         product=product,
         product_name=product.name,
         product_sku='SKU_B',
@@ -464,6 +468,21 @@ def order_with_lines_and_stock(order, product_type, default_category):
 
 
 @pytest.fixture()
+def fulfilled_order(order_with_lines_and_stock):
+    order = order_with_lines_and_stock
+    fulfillment = order.fulfillments.create()
+    line_1 = order.lines.first()
+    line_2 = order.lines.last()
+    fulfillment.lines.create(order_line=line_1, quantity=line_1.quantity)
+    fulfill_order_line(line_1, line_1.quantity)
+    fulfillment.lines.create(order_line=line_2, quantity=line_2.quantity)
+    fulfill_order_line(line_2, line_2.quantity)
+    order.status = OrderStatus.FULFILLED
+    order.save(update_fields=['status'])
+    return order
+
+
+@pytest.fixture()
 def order_with_variant_from_different_stocks(order_with_lines_and_stock):
     line = OrderLine.objects.get(product_sku='SKU_A')
     variant = ProductVariant.objects.get(sku=line.product_sku)
@@ -471,8 +490,8 @@ def order_with_variant_from_different_stocks(order_with_lines_and_stock):
     stock = Stock.objects.create(
         variant=variant, cost_price=Money(1, 'USD'), quantity=5,
         quantity_allocated=2, location=warehouse_2)
-    OrderLine.objects.create(
-        delivery_group=line.delivery_group,
+    order_with_lines_and_stock.lines.create(
+        order=order,
         product=variant.product,
         product_name=variant.product.name,
         product_sku=line.product_sku,
@@ -490,30 +509,60 @@ def order_with_variant_from_different_stocks(order_with_lines_and_stock):
 
 
 @pytest.fixture()
-def delivery_group(order, product_type, default_category):
-    group = DeliveryGroup.objects.create(order=order)
-    product = Product.objects.create(
-        name='Test product', price=Money('10.00', 'USD'),
-        product_type=product_type, category=default_category)
-    variant = ProductVariant.objects.create(product=product, sku='SKU_A')
-    warehouse = StockLocation.objects.create(name='Warehouse 2')
-    stock = Stock.objects.create(
-        variant=variant, cost_price=Money(1, 'USD'), quantity=5,
-        quantity_allocated=3, location=warehouse)
-    OrderLine.objects.create(
-        delivery_group=group,
-        product=product,
-        product_name=product.name,
-        product_sku='SKU_A',
-        is_shipping_required=product.product_type.is_shipping_required,
-        quantity=3,
-        unit_price_net=Decimal('30.00'),
-        unit_price_gross=Decimal('30.00'),
-        stock=stock,
-        stock_location=stock.location.name)
-    recalculate_order(order)
-    order.refresh_from_db()
-    return group
+def payment_waiting(order_with_lines_and_stock):
+    return order_with_lines_and_stock.payments.create(
+        variant='default', status=PaymentStatus.WAITING,
+        fraud_status=FraudStatus.ACCEPT, currency='USD',
+        total=order_with_lines_and_stock.total_gross.amount)
+
+
+@pytest.fixture()
+def payment_preauth(order_with_lines_and_stock):
+    return order_with_lines_and_stock.payments.create(
+        variant='default', status=PaymentStatus.PREAUTH,
+        fraud_status=FraudStatus.ACCEPT, currency='USD',
+        total=order_with_lines_and_stock.total_gross.amount)
+
+
+@pytest.fixture()
+def payment_confirmed(order_with_lines_and_stock):
+    order_amount = order_with_lines_and_stock.total_gross.amount
+    return order_with_lines_and_stock.payments.create(
+        variant='default', status=PaymentStatus.CONFIRMED,
+        fraud_status=FraudStatus.ACCEPT, currency='USD',
+        total=order_amount, captured_amount=order_amount)
+
+
+@pytest.fixture()
+def payment_rejected(order_with_lines_and_stock):
+    return order_with_lines_and_stock.payments.create(
+        variant='default', status=PaymentStatus.REJECTED,
+        fraud_status=FraudStatus.ACCEPT, currency='USD',
+        total=order_with_lines_and_stock.total_gross.amount)
+
+
+@pytest.fixture()
+def payment_refunded(order_with_lines_and_stock):
+    return order_with_lines_and_stock.payments.create(
+        variant='default', status=PaymentStatus.REFUNDED,
+        fraud_status=FraudStatus.ACCEPT, currency='USD',
+        total=order_with_lines_and_stock.total_gross.amount)
+
+
+@pytest.fixture()
+def payment_error(order_with_lines_and_stock):
+    return order_with_lines_and_stock.payments.create(
+        variant='default', status=PaymentStatus.ERROR,
+        fraud_status=FraudStatus.ACCEPT, currency='USD',
+        total=order_with_lines_and_stock.total_gross.amount)
+
+
+@pytest.fixture()
+def payment_input(order_with_lines_and_stock):
+    return order_with_lines_and_stock.payments.create(
+        variant='default', status=PaymentStatus.INPUT,
+        fraud_status=FraudStatus.ACCEPT, currency='USD',
+        total=order_with_lines_and_stock.total_gross.amount)
 
 
 @pytest.fixture()
@@ -588,55 +637,6 @@ def permission_edit_settings():
 @pytest.fixture
 def permission_impersonate_user():
     return Permission.objects.get(codename='impersonate_user')
-
-
-@pytest.fixture
-def open_orders(billing_address):
-    def group_data(orders, status):
-        return {'order': orders[-1], 'status': status}
-
-    orders = []
-
-    orders.append(Order.objects.create(billing_address=billing_address))
-    DeliveryGroup.objects.create(**group_data(orders, GroupStatus.NEW))
-
-    orders.append(Order.objects.create(billing_address=billing_address))
-    DeliveryGroup.objects.create(**group_data(orders, GroupStatus.NEW))
-    DeliveryGroup.objects.create(**group_data(orders, GroupStatus.CANCELLED))
-
-    orders.append(Order.objects.create(billing_address=billing_address))
-    DeliveryGroup.objects.create(**group_data(orders, GroupStatus.NEW))
-    DeliveryGroup.objects.create(**group_data(orders, GroupStatus.SHIPPED))
-
-    orders.append(Order.objects.create(billing_address=billing_address))
-    DeliveryGroup.objects.create(**group_data(orders, GroupStatus.NEW))
-    DeliveryGroup.objects.create(**group_data(orders, GroupStatus.SHIPPED))
-    DeliveryGroup.objects.create(**group_data(orders, GroupStatus.CANCELLED))
-
-    return orders
-
-
-@pytest.fixture
-def closed_orders(billing_address):
-    def group_data(orders, status):
-        return {'order': orders[-1], 'status': status}
-
-    orders = []
-
-    orders.append(Order.objects.create(billing_address=billing_address))
-    DeliveryGroup.objects.create(**group_data(orders, GroupStatus.SHIPPED))
-
-    orders.append(Order.objects.create(billing_address=billing_address))
-    DeliveryGroup.objects.create(**group_data(orders, GroupStatus.SHIPPED))
-    DeliveryGroup.objects.create(**group_data(orders, GroupStatus.CANCELLED))
-
-    orders.append(Order.objects.create(billing_address=billing_address))
-    DeliveryGroup.objects.create(**group_data(orders, GroupStatus.CANCELLED))
-
-    # empty order is considered as closed
-    orders.append(Order.objects.create(billing_address=billing_address))
-
-    return orders
 
 
 @pytest.fixture
