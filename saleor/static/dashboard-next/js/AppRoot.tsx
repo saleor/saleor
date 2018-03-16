@@ -1,7 +1,7 @@
-import * as classNames from "classnames";
 import AppBar from "material-ui/AppBar";
 import Divider from "material-ui/Divider";
 import Drawer from "material-ui/Drawer";
+import Hidden from "material-ui/Hidden";
 import IconButton from "material-ui/IconButton";
 import List, { ListItem, ListItemText } from "material-ui/List";
 import Toolbar from "material-ui/Toolbar";
@@ -40,6 +40,7 @@ const decorate = withStyles(theme => ({
     display: "none"
   },
   drawerPaper: {
+    position: "relative" as "relative",
     width: drawerWidth
   },
   drawerHeader: {
@@ -53,20 +54,45 @@ const decorate = withStyles(theme => ({
     flexGrow: 1,
     backgroundColor: theme.palette.background.default,
     marginLeft: 0,
-    padding: theme.spacing.unit * 2,
-    transition: theme.transitions.create("margin", {
-      easing: theme.transitions.easing.sharp,
-      duration: theme.transitions.duration.leavingScreen
-    })
-  },
-  contentShift: {
-    marginLeft: drawerWidth,
-    transition: theme.transitions.create("margin", {
-      easing: theme.transitions.easing.easeOut,
-      duration: theme.transitions.duration.enteringScreen
-    })
+    padding: theme.spacing.unit * 2
   }
 }));
+
+interface ResponsiveDrawerProps {
+  onClose?();
+  open: boolean;
+}
+
+const ResponsiveDrawer = decorate<ResponsiveDrawerProps>(
+  ({ children, classes, onClose, open }) => (
+    <>
+      <Hidden smDown>
+        <Drawer
+          variant="persistent"
+          open
+          classes={{
+            paper: classes.drawerPaper
+          }}
+        >
+          <div className={classes.drawerHeader} />
+          {children}
+        </Drawer>
+      </Hidden>
+      <Hidden mdUp>
+        <Drawer
+          variant="temporary"
+          onClose={onClose}
+          open={open}
+          classes={{
+            paper: classes.drawerPaper
+          }}
+        >
+          {children}
+        </Drawer>
+      </Hidden>
+    </>
+  )
+);
 
 interface AppRootState {
   open: boolean;
@@ -88,7 +114,11 @@ export const AppRoot = decorate<{}>(
     >,
     AppRootState
   > {
-    state = { open: true };
+    state = { open: false };
+
+    closeDrawer = () => {
+      this.setState({ open: false });
+    };
 
     render() {
       const { children, classes } = this.props;
@@ -98,18 +128,20 @@ export const AppRoot = decorate<{}>(
         <div className={classes.appFrame}>
           <AppBar className={classes.appBar}>
             <Toolbar disableGutters className={classes.toolBar}>
-              <IconButton
-                color="inherit"
-                aria-label="open drawer"
-                onClick={() =>
-                  this.setState(({ open }) => ({
-                    open: !open
-                  }))
-                }
-                className={classes.menuButton}
-              >
-                <MenuIcon />
-              </IconButton>
+              <Hidden mdUp>
+                <IconButton
+                  color="inherit"
+                  aria-label="open drawer"
+                  onClick={() =>
+                    this.setState(({ open }) => ({
+                      open: !open
+                    }))
+                  }
+                  className={classes.menuButton}
+                >
+                  <MenuIcon />
+                </IconButton>
+              </Hidden>
               <Typography
                 noWrap
                 variant="title"
@@ -120,31 +152,25 @@ export const AppRoot = decorate<{}>(
               />
             </Toolbar>
           </AppBar>
-          <Drawer
-            variant="persistent"
-            open={open}
-            classes={{
-              paper: classes.drawerPaper
-            }}
-          >
-            <div className={classes.drawerHeader} />
+          <ResponsiveDrawer onClose={this.closeDrawer} open={open}>
             <List component="nav">
-              <ListItem button component={props => <Link to="/" {...props} />}>
+              <ListItem
+                button
+                component={props => <Link to="/" {...props} />}
+                onClick={this.closeDrawer}
+              >
                 <ListItemText primary={i18n.t("Home")} />
               </ListItem>
               <ListItem
                 button
                 component={props => <Link to="/categories/" {...props} />}
+                onClick={this.closeDrawer}
               >
                 <ListItemText primary={i18n.t("Categories")} />
               </ListItem>
             </List>
-          </Drawer>
-          <main
-            className={classNames(classes.content, {
-              [classes.contentShift]: open
-            })}
-          >
+          </ResponsiveDrawer>
+          <main className={classes.content}>
             <div className={classes.drawerHeader} />
             {children}
           </main>
