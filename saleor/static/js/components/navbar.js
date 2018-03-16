@@ -8,14 +8,18 @@ const renderNavbar = () => {
   const $desktopLinkBar = $('.navbar__login');
   const $mobileLinkBar = $('.navbar__menu__login');
   const windowWidth = window.innerWidth;
+  const $languagePicker = $('.language-picker');
 
   if (windowWidth < 768) {
-    const $desktopLinks = $desktopLinkBar.find('a');
+    const $desktopLinks = $desktopLinkBar.find('a').not('.dropdown-link');
     if ($desktopLinks.length) {
       $searchForm.addClass('search-form--hidden');
       $mobileNav.append('<ul class="nav navbar-nav navbar__menu__login"></ul>');
       $desktopLinks
         .appendTo('.navbar__menu__login')
+        .wrap('<li class="nav-item login-item"></li>')
+        .addClass('nav-link');
+      $languagePicker.appendTo('.navbar__menu__login')
         .wrap('<li class="nav-item login-item"></li>')
         .addClass('nav-link');
       $desktopLinkBar
