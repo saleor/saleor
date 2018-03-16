@@ -105,8 +105,7 @@ COLLECTIONS_SCHEMA = [
         'image_name': 'summer.jpg'},
     {
         'name': 'Sale',
-        'image_name': 'sale.jpg'}
-]
+        'image_name': 'sale.jpg'}]
 
 
 def create_attributes_and_values(attribute_data):
