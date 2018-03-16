@@ -1,21 +1,62 @@
-import { createMuiTheme } from "material-ui/styles/index";
+import { createMuiTheme } from "material-ui/styles";
+import { darken } from "material-ui/styles/colorManipulator";
 import grey from "material-ui/colors/grey";
 
-const createShadow = (pv, pb, ps, uv, ub, us, av, ab, as) => [
-  `0 ${pv}px ${pb}px ${ps}px rgba(0, 0, 0, 0.2)`,
-  `0 ${uv}px ${ub}px ${us}px rgba(0, 0, 0, 0.14)`,
-  `0 ${av}px ${ab}px ${as}px rgba(0, 0, 0, 0.12)`,
-].join(',');
+const createShadow = (pv, pb, ps, uv, ub, us, av, ab, as) =>
+  [
+    `0 ${pv}px ${pb}px ${ps}px rgba(0, 0, 0, 0.2)`,
+    `0 ${uv}px ${ub}px ${us}px rgba(0, 0, 0, 0.14)`,
+    `0 ${av}px ${ab}px ${as}px rgba(0, 0, 0, 0.12)`
+  ].join(",");
+
+const primary = "#2bb673";
+const secondary = "#03a9f4";
 
 const transition = "200ms";
 export default createMuiTheme({
+  overrides: {
+    MuiButton: {
+      root: {
+        minWidth: 64,
+        "&:hover": {
+          backgroundColor: "transparent"
+        }
+      },
+      flatPrimary: {
+        "&:hover": {
+          backgroundColor: "transparent",
+          color: darken(primary, 0.3)
+        }
+      },
+      flatSecondary: {
+        "&:hover": {
+          backgroundColor: "transparent",
+          color: darken(secondary, 0.3)
+        }
+      },
+      raised: {
+        boxShadow: createShadow(0, 0, 0, 0, 0, 0, 0, 0, 0),
+        "@media (hover: none)": {
+          boxShadow: createShadow(2, 2, 0, 3, 1, -2, 1, 5, 0)
+        },
+        "&:hover": {
+          boxShadow: createShadow(2, 2, 0, 3, 1, -2, 1, 5, 0)
+        }
+      },
+      raisedPrimary: {
+        "&:hover": {
+          backgroundColor: primary
+        }
+      }
+    }
+  },
   palette: {
     primary: {
-      main: "#2bb673",
+      main: primary,
       contrastText: "#ffffff"
     },
     secondary: {
-      main: "#03a9f4"
+      main: secondary
     }
   },
   shadows: [
@@ -43,6 +84,6 @@ export default createMuiTheme({
     createShadow(11, 39, 6, 10, 20, -4, 18, 28, 1),
     createShadow(10, 41, 7, 10, 18, -5, 20, 31, 2),
     createShadow(9, 44, 7, 11, 16, -6, 22, 35, 2),
-    createShadow(9, 46, 8, 11, 15, -7, 24, 38, 3),
+    createShadow(9, 46, 8, 11, 15, -7, 24, 38, 3)
   ]
 });
