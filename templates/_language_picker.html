@@ -9,7 +9,7 @@
     </a>
     {% get_available_languages as LANGUAGES %}
     {% get_language_info_list for LANGUAGES as languages %}
-    <div class="dropdown-menu" aria-labelledby="dropdownMenuLink">
+    <div class="dropdown-menu scrollable-menu" role="menu" aria-labelledby="dropdownMenuLink">
       <form id="language-picker" action="{% url 'set_language' %}" method="post">
         {% csrf_token %}
         <input name="next" type="hidden" value="/">
