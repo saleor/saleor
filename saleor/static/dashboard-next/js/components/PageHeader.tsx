@@ -1,6 +1,5 @@
 import Divider from "material-ui/Divider";
 import IconButton from "material-ui/IconButton";
-import Toolbar from "material-ui/Toolbar";
 import Typography from "material-ui/Typography";
 import { withStyles } from "material-ui/styles";
 import ArrowBack from "material-ui-icons/ArrowBack";
@@ -10,17 +9,26 @@ import { Link } from "react-router-dom";
 import Skeleton from "./Skeleton";
 
 const decorate = withStyles(theme => ({
+  root: theme.mixins.gutters({
+    display: "flex",
+    alignItems: "center"
+  }),
+  action: {
+    flex: "0 0 auto",
+    marginRight: theme.spacing.unit * -2
+  },
   grid: {
     padding: theme.spacing.unit * 2
   },
   menuButton: {
-    marginRight: theme.spacing.unit * 2
+    flex: "0 0 auto",
+    marginLeft: theme.spacing.unit * -2,
+    marginRight: theme.spacing.unit * 3
   },
   title: {
-    flex: 1
-  },
-  toolbar: {
-    backgroundColor: theme.palette.background.paper
+    flex: 1,
+    paddingBottom: theme.spacing.unit * 2,
+    paddingTop: theme.spacing.unit * 2
   },
   subtitle: {
     display: "flex",
@@ -37,7 +45,7 @@ interface PageHeaderProps {
 
 const PageHeader = decorate<PageHeaderProps>(
   ({ backLink, cancelLink, children, classes, title }) => (
-    <Toolbar className={classes.toolbar}>
+    <div className={classes.root}>
       {backLink && (
         <IconButton
           color="inherit"
@@ -61,8 +69,8 @@ const PageHeader = decorate<PageHeaderProps>(
       <Typography className={classes.title} variant="title">
         {title !== undefined ? title : <Skeleton style={{ width: "10em" }} />}
       </Typography>
-      {children}
-    </Toolbar>
+      <div className={classes.action}>{children}</div>
+    </div>
   )
 );
 
