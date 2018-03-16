@@ -5,7 +5,6 @@
 {% load discount_as_negative from voucher %}
 {% load placeholder %}
 
-
 {% if order.user == user %}
   <div class="order-details__addresses">
     <div class="row">
@@ -28,17 +27,17 @@
 {% endif %}
 <div class="table__header order-details__table-header d-none d-sm-block">
   <div class="row">
-    <div class="col-md-6">
+    <div class="col-md-8">
       <small>
         {% trans "Product" context "Order details column title" %}
       </small>
     </div>
-    <div class="col-md-3 text-right">
+    <div class="col-md-2 text-right">
       <small>
         {% trans "Quantity" context "Order details column title" %}
       </small>
     </div>
-    <div class="col-md-3 text-right">
+    <div class="col-md-2 text-right">
       <small>
         {% trans "Price" context "Order details column title" %}
       </small>
@@ -46,60 +45,37 @@
   </div>
 </div>
 
-{% for group in order %}
-  {% for line in group %}
-    <div class="table__row order-details__product{% if forloop.last %} order-details__last-row{% endif %}">
-      <div class="row">
-        <div class="col-md-6 col-9">
-          <a class="link--clean" href="{% if line.product %}{{ line.product.get_absolute_url }}{% endif %}">
-            <img data-src="{% product_first_image line.product size="60x60" method="crop" %}"
-                 data-srcset="{% product_first_image line.product size="60x60" method="crop" %} 1x, {% product_first_image line.product size="120x120" method="crop" %} 2x"
-                 class="float-left lazyload lazypreload"
-                 src="{% placeholder size=60 %}">
-            <span class="order-details__product__description">{{ line.product_name }}</span>
-          </a>
-        </div>
-        <div class="col-md-6 col-3">
-          <div class="row">
-            <div class="col-md-6 col-12">
-              <p class="float-right">x {{ line.quantity }}</p>
-            </div>
-            <div class="col-md-6 col-12">
-              <p class="float-right">{{ line.get_total.gross|amount:'html' }}</p>
-            </div>
+{% for line in order %}
+  <div class="table__row order-details__product{% if forloop.last %} order-details__last-row{% endif %}">
+    <div class="row">
+      <div class="col-md-8">
+        <a class="link--clean" href="{% if line.product %}{{ line.product.get_absolute_url }}{% endif %}">
+          <img data-src="{% product_first_image line.product size="60x60" method="crop" %}"
+                data-srcset="{% product_first_image line.product size="60x60" method="crop" %} 1x, {% product_first_image line.product size="120x120" method="crop" %} 2x"
+                class="float-left lazyload lazypreload"
+                src="{% placeholder size=60 %}">
+          <span class="order-details__product__description">{{ line.product_name }}</span>
+        </a>
+      </div>
+      <div class="col-md-4">
+        <div class="row">
+          <div class="col-md-6 col-12">
+            <p class="float-right">x {{ line.quantity }}</p>
+          </div>
+          <div class="col-md-6 col-12">
+            <p class="float-right">{{ line.get_total.gross|amount:'html' }}</p>
           </div>
         </div>
       </div>
     </div>
-  {% endfor %}
-  {% if order.is_shipping_required %}
-  <div class="table__row">
-    <div class="row">
-      <div class="col-12 order-details__table-footer">
-        <p>
-          {% blocktrans trimmed with shipping_method_name=group.shipping_method_name context "Order details shipment row text"  %}
-          Shipping ({{ shipping_method_name }})
-          {% endblocktrans %}
-        </p>
-        {% if group.tracking_number %}
-        <p>
-          {% blocktrans trimmed with tracking_number=group.tracking_number context "Order details shipment row text"  %}
-          Tracking number: {{ tracking_number }}
-          {% endblocktrans %}
-        </p>
-        {% endif %}
-      </div>
-    </div>
   </div>
-{% endif %}
 {% endfor %}
-
 {% if order.is_shipping_required %}
   <div class="table__row">
     <div class="row">
       <div class="col-8 order-details__table-footer">
         <p>
-          {% trans "Shipping total" context "Order details shipment row text" %}
+          {% trans "Shipping total" context "Order details shipment row text" %} ({{ order.shipping_method_name|default:"-" }})
         </p>
       </div>
       <div class="col-4">
@@ -136,3 +112,53 @@
     </div>
   </div>
 </div>
+
+
+{% for fulfillment in fulfillments %}
+  <h2 class="order-details__header">
+    {% blocktrans trimmed with fulfillment=fulfillment.composed_id context "Order details fulfillment title" %}
+      Fulfillment #{{ fulfillment }}
+    {% endblocktrans %}
+  </h2>
+
+  <div class="table__header order-details__table-header d-none d-sm-block">
+    <div class="row">
+      <div class="col-md-9">
+        <small>
+          {% trans "Product" context "Order details column title" %}
+        </small>
+      </div>
+      <div class="col-md-3 text-right">
+        <small>
+          {% trans "Quantity" context "Order details column title" %}
+        </small>
+      </div>
+    </div>
+  </div>
+  {% for line in fulfillment %}
+    <div class="table__row fulfillment__row order-details__product{% if forloop.last %} order-details__last-row{% endif %}">
+      <div class="row">
+        <div class="col-md-6 col-9">
+          <a class="link--clean" href="{% if line.product %}{{ line.product.get_absolute_url }}{% endif %}">
+            <span class="order-details__product__description">{{ line.order_line.product_name }}</span>
+          </a>
+        </div>
+        <div class="col-md-6 col-3">
+          <p class="float-right">x {{ line.quantity }}</p>
+        </div>
+      </div>
+    </div>
+  {% endfor %}
+  {% if fulfillment.tracking_number %}
+    <div class="order-details__total">
+      <div class="row">
+        <div class="col-4 order-details__table-footer">
+          <p>{% trans "Tracking number" context "Fulfillment tracking number details" %}</p>
+        </div>
+        <div class="col-8">
+          <p class="float-right">{{ fulfillment.tracking_number }}</p>
+        </div>
+      </div>
+    </div>
+  {% endif %}
+{% endfor %}
