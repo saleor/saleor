@@ -7,8 +7,9 @@ from ...seo.schema.product import variant_json_ld
 from .availability import get_availability
 
 
-def get_variant_picker_data(product, discounts=None, local_currency=None):
-    availability = get_availability(product, discounts, local_currency)
+def get_variant_picker_data(
+        product, discounts=None, local_currency=None, taxes=None):
+    availability = get_availability(product, discounts, local_currency, taxes)
     variants = product.variants.all()
     data = {'variantAttributes': [], 'variants': []}
 
@@ -18,8 +19,8 @@ def get_variant_picker_data(product, discounts=None, local_currency=None):
     filter_available_variants = defaultdict(list)
 
     for variant in variants:
-        price = variant.get_price_per_item(discounts)
-        price_undiscounted = variant.get_price_per_item()
+        price = variant.get_price_per_item(discounts, taxes)
+        price_undiscounted = variant.get_price_per_item(taxes=taxes)
         if local_currency:
             price_local_currency = to_local_currency(price, local_currency)
         else:

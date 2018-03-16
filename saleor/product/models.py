@@ -18,6 +18,7 @@ from text_unidecode import unidecode
 from versatileimagefield.fields import PPOIField, VersatileImageField
 
 from ..core.exceptions import InsufficientStock
+from ..core.utils import apply_tax_to_price
 from ..discount.utils import calculate_discounted_price
 from ..seo.models import SeoModel
 
@@ -69,6 +70,9 @@ class ProductType(models.Model):
         'ProductAttribute', related_name='product_variant_types', blank=True)
     is_shipping_required = models.BooleanField(default=False)
 
+    # todo: replace this with proper tax rate field
+    tax_rate = 'standard'
+
     class Meta:
         app_label = 'product'
 
@@ -104,6 +108,9 @@ class Product(SeoModel):
     attributes = HStoreField(default={}, blank=True)
     updated_at = models.DateTimeField(auto_now=True, null=True)
     is_featured = models.BooleanField(default=False)
+
+    # todo: replace this with proper tax rate field
+    tax_rate = None
 
     objects = ProductQuerySet.as_manager()
 
@@ -153,16 +160,24 @@ class Product(SeoModel):
         first_image = self.images.first()
         return first_image.image if first_image else None
 
-    def get_price_per_item(self, item, discounts=None):
-        return item.get_price_per_item(discounts)
+    def get_attribute(self, pk):
+        return self.attributes.get(smart_text(pk))
 
-    def get_price_range(self, discounts=None):
+    def set_attribute(self, pk, value_pk):
+        self.attributes[smart_text(pk)] = smart_text(value_pk)
+
+    def get_price_per_item(self, item, discounts=None, taxes=None):
+        return item.get_price_per_item(discounts, taxes)
+
+    def get_price_range(self, discounts=None, taxes=None):
         if self.variants.exists():
             prices = [
-                self.get_price_per_item(variant, discounts=discounts)
+                self.get_price_per_item(
+                    variant, discounts=discounts, taxes=taxes)
                 for variant in self]
             return TaxedMoneyRange(min(prices), max(prices))
-        price = TaxedMoney(net=self.price, gross=self.price)
+        tax_rate = self.tax_rate or self.product_type.tax_rate
+        price = apply_tax_to_price(taxes, tax_rate, self.price)
         discounted_price = calculate_discounted_price(
             self, price, discounts)
         return TaxedMoneyRange(start=discounted_price, stop=discounted_price)
@@ -213,9 +228,11 @@ class ProductVariant(models.Model):
         if quantity > self.quantity_available:
             raise InsufficientStock(self)
 
-    def get_price_per_item(self, discounts=None):
+    def get_price_per_item(self, discounts=None, taxes=None):
+        tax_rate = (
+            self.product.tax_rate or self.product.product_type.tax_rate)
         price = self.price_override or self.product.price
-        price = TaxedMoney(net=price, gross=price)
+        price = apply_tax_to_price(taxes, tax_rate, price)
         price = calculate_discounted_price(self.product, price, discounts)
         return price
 

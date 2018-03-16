@@ -105,7 +105,8 @@ def get_product_list_context(request, filter_set):
     products_paginated = get_paginator_items(
         filter_set.qs, settings.PAGINATE_BY, request.GET.get('page'))
     products_and_availability = list(products_with_availability(
-        products_paginated, request.discounts, request.currency))
+        products_paginated, request.discounts, request.currency,
+        request.taxes))
     now_sorted_by = get_now_sorted_by(filter_set)
     arg_sort_by = request.GET.get('sort_by')
     is_descending = arg_sort_by.startswith('-') if arg_sort_by else False
