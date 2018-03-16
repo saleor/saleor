@@ -10,7 +10,8 @@ from .utils import get_redirect_location
 
 @patch('saleor.checkout.views.summary.send_order_confirmation')
 def test_checkout_flow(
-        mock_send_confirmation, request_cart_with_item, client, shipping_method):
+        mock_send_confirmation, request_cart_with_item, client,
+        shipping_method):
     # Enter checkout
     checkout_index = client.get(reverse('checkout:index'), follow=True)
     # Checkout index redirects directly to shipping address step
@@ -362,11 +363,15 @@ def test_language_is_saved_in_order(
         authorized_client, billing_address, customer_user,
         request_cart_with_item, settings, shipping_method):
     # Prepare some data
-    user_language = 'fr'
     settings.LANGUAGE_CODE = 'en'
+    user_language = 'fr'
     customer_user.addresses.add(billing_address)
     request_cart_with_item.user = customer_user
     request_cart_with_item.save()
+
+    # Set user's language to fr
+    authorized_client.cookies[settings.LANGUAGE_COOKIE_NAME] = user_language
+    authorized_client.post(reverse('set_language'), data={'language': 'fr'})
     # Enter checkout
     # Checkout index redirects directly to shipping address step
     shipping_address = authorized_client.get(
