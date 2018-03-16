@@ -118,10 +118,11 @@ def test_create_product_types_by_schema(db):
     assert product_type.is_shipping_required
 
 
-def test_create_products_by_type(db, monkeypatch):
+def test_create_products_by_type(db, monkeypatch, product_image):
+    # Tests shouldn't depend on images present in placeholder folder
     monkeypatch.setattr(
         'saleor.core.utils.random_data.get_product_list_image',
-        Mock(return_value=''))
+        Mock(return_value=product_image))
     assert Product.objects.all().count() == 0
     how_many = 5
     product_type = random_data.create_product_types_by_schema(
@@ -132,10 +133,11 @@ def test_create_products_by_type(db, monkeypatch):
     assert Product.objects.all().count() == how_many
 
 
-def test_create_fake_order(db, monkeypatch):
+def test_create_fake_order(db, monkeypatch, product_image):
+    # Tests shouldn't depend on images present in placeholder folder
     monkeypatch.setattr(
         'saleor.core.utils.random_data.get_product_list_image',
-        Mock(return_value=''))
+        Mock(return_value=product_image))
     for _ in random_data.create_shipping_methods():
         pass
     for _ in random_data.create_users(3):
