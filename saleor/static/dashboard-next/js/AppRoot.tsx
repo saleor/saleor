@@ -24,12 +24,16 @@ const decorate = withStyles(theme => ({
   appBar: {
     zIndex: theme.zIndex.drawer + 1
   },
+  toolBar: {
+    minHeight: 56
+  },
   appFrame: {
     zIndex: 1,
     display: "flex",
     width: "100%"
   },
   menuButton: {
+    marginLeft: theme.spacing.unit,
     marginRight: theme.spacing.unit * 2
   },
   hide: {
@@ -74,13 +78,13 @@ export const AppRoot = decorate<{}>(
       | "root"
       | "appFrame"
       | "appBar"
-      | "appBarShift"
       | "menuButton"
       | "hide"
       | "drawerPaper"
       | "drawerHeader"
       | "content"
       | "contentShift"
+      | "toolBar"
     >,
     AppRootState
   > {
@@ -93,7 +97,7 @@ export const AppRoot = decorate<{}>(
       return (
         <div className={classes.appFrame}>
           <AppBar className={classes.appBar}>
-            <Toolbar>
+            <Toolbar disableGutters className={classes.toolBar}>
               <IconButton
                 color="inherit"
                 aria-label="open drawer"
@@ -106,9 +110,14 @@ export const AppRoot = decorate<{}>(
               >
                 <MenuIcon />
               </IconButton>
-              <Typography variant="title" color="inherit" noWrap>
-                Saleor
-              </Typography>
+              <Typography
+                noWrap
+                variant="title"
+                color="inherit"
+                dangerouslySetInnerHTML={{
+                  __html: i18n.t("<strong>Saleor</strong> Dashboard")
+                }}
+              />
             </Toolbar>
           </AppBar>
           <Drawer
