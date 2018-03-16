@@ -24,7 +24,7 @@ export interface FilterCardProps {
 const FilterCard = decorate<FilterCardProps>(props => {
   const { children, classes, handleClear, handleSubmit } = props;
   return (
-    <Card elevation={1}>
+    <Card>
       <form onSubmit={handleSubmit}>
         <CardHeader
           action={
