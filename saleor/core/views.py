@@ -15,7 +15,8 @@ from ..seo.schema.webpage import get_webpage_schema
 def home(request):
     products = products_for_homepage()[:8]
     products = products_with_availability(
-        products, discounts=request.discounts, local_currency=request.currency)
+        products, discounts=request.discounts, local_currency=request.currency,
+        taxes=request.taxes)
     webpage_schema = get_webpage_schema(request)
     return TemplateResponse(
         request, 'home.html', {
