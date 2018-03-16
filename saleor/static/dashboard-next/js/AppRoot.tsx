@@ -1,7 +1,7 @@
-import * as classNames from "classnames";
 import AppBar from "material-ui/AppBar";
 import Divider from "material-ui/Divider";
 import Drawer from "material-ui/Drawer";
+import Hidden from "material-ui/Hidden";
 import IconButton from "material-ui/IconButton";
 import List, { ListItem, ListItemText } from "material-ui/List";
 import Toolbar from "material-ui/Toolbar";
@@ -24,6 +24,13 @@ const decorate = withStyles(theme => ({
   appBar: {
     zIndex: theme.zIndex.drawer + 1
   },
+  toolBar: {
+    minHeight: 56,
+    paddingLeft: theme.spacing.unit,
+    [theme.breakpoints.up("md")]: {
+      paddingLeft: theme.spacing.unit * 3
+    }
+  },
   appFrame: {
     zIndex: 1,
     display: "flex",
@@ -35,34 +42,52 @@ const decorate = withStyles(theme => ({
   hide: {
     display: "none"
   },
-  drawerPaper: {
+  drawerDesktop: {
+    backgroundColor: "transparent",
+    borderRight: "0 none",
+    marginTop: 56,
+    position: "relative" as "relative",
     width: drawerWidth
-  },
-  drawerHeader: {
-    display: "flex",
-    alignItems: "center" as "center",
-    justifyContent: "flex-end" as "flex-end",
-    padding: "0 8px",
-    ...theme.mixins.toolbar
   },
   content: {
     flexGrow: 1,
     backgroundColor: theme.palette.background.default,
     marginLeft: 0,
-    padding: theme.spacing.unit * 2,
-    transition: theme.transitions.create("margin", {
-      easing: theme.transitions.easing.sharp,
-      duration: theme.transitions.duration.leavingScreen
-    })
-  },
-  contentShift: {
-    marginLeft: drawerWidth,
-    transition: theme.transitions.create("margin", {
-      easing: theme.transitions.easing.easeOut,
-      duration: theme.transitions.duration.enteringScreen
-    })
+    marginTop: 56,
+    padding: theme.spacing.unit,
+    [theme.breakpoints.up("sm")]: {
+      padding: theme.spacing.unit * 2
+    }
   }
 }));
+
+interface ResponsiveDrawerProps {
+  onClose?();
+  open: boolean;
+}
+
+const ResponsiveDrawer = decorate<ResponsiveDrawerProps>(
+  ({ children, classes, onClose, open }) => (
+    <>
+      <Hidden smDown>
+        <Drawer
+          variant="persistent"
+          open
+          classes={{
+            paper: classes.drawerDesktop
+          }}
+        >
+          {children}
+        </Drawer>
+      </Hidden>
+      <Hidden mdUp>
+        <Drawer variant="temporary" onClose={onClose} open={open}>
+          {children}
+        </Drawer>
+      </Hidden>
+    </>
+  )
+);
 
 interface AppRootState {
   open: boolean;
@@ -74,17 +99,20 @@ export const AppRoot = decorate<{}>(
       | "root"
       | "appFrame"
       | "appBar"
-      | "appBarShift"
       | "menuButton"
       | "hide"
-      | "drawerPaper"
-      | "drawerHeader"
+      | "drawerDesktop"
       | "content"
       | "contentShift"
+      | "toolBar"
     >,
     AppRootState
   > {
-    state = { open: true };
+    state = { open: false };
+
+    closeDrawer = () => {
+      this.setState({ open: false });
+    };
 
     render() {
       const { children, classes } = this.props;
@@ -93,52 +121,50 @@ export const AppRoot = decorate<{}>(
       return (
         <div className={classes.appFrame}>
           <AppBar className={classes.appBar}>
-            <Toolbar>
-              <IconButton
+            <Toolbar disableGutters className={classes.toolBar}>
+              <Hidden mdUp>
+                <IconButton
+                  color="inherit"
+                  aria-label="open drawer"
+                  onClick={() =>
+                    this.setState(({ open }) => ({
+                      open: !open
+                    }))
+                  }
+                  className={classes.menuButton}
+                >
+                  <MenuIcon />
+                </IconButton>
+              </Hidden>
+              <Typography
+                noWrap
+                variant="title"
                 color="inherit"
-                aria-label="open drawer"
-                onClick={() =>
-                  this.setState(({ open }) => ({
-                    open: !open
-                  }))
-                }
-                className={classes.menuButton}
-              >
-                <MenuIcon />
-              </IconButton>
-              <Typography variant="title" color="inherit" noWrap>
-                Saleor
-              </Typography>
+                dangerouslySetInnerHTML={{
+                  __html: i18n.t("<strong>Saleor</strong> Dashboard")
+                }}
+              />
             </Toolbar>
           </AppBar>
-          <Drawer
-            variant="persistent"
-            open={open}
-            classes={{
-              paper: classes.drawerPaper
-            }}
-          >
-            <div className={classes.drawerHeader} />
+          <ResponsiveDrawer onClose={this.closeDrawer} open={open}>
             <List component="nav">
-              <ListItem button component={props => <Link to="/" {...props} />}>
+              <ListItem
+                button
+                component={props => <Link to="/" {...props} />}
+                onClick={this.closeDrawer}
+              >
                 <ListItemText primary={i18n.t("Home")} />
               </ListItem>
               <ListItem
                 button
                 component={props => <Link to="/categories/" {...props} />}
+                onClick={this.closeDrawer}
               >
                 <ListItemText primary={i18n.t("Categories")} />
               </ListItem>
             </List>
-          </Drawer>
-          <main
-            className={classNames(classes.content, {
-              [classes.contentShift]: open
-            })}
-          >
-            <div className={classes.drawerHeader} />
-            {children}
-          </main>
+          </ResponsiveDrawer>
+          <main className={classes.content}>{children}</main>
         </div>
       );
     }

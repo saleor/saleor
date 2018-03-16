@@ -28,6 +28,7 @@ import TablePagination from "../../components/TablePagination";
 
 const decorate = withStyles(theme => ({
   avatarCell: {
+    paddingLeft: theme.spacing.unit * 2,
     paddingRight: 0,
     width: theme.spacing.unit * 5
   }

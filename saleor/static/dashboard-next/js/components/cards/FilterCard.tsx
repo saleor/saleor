@@ -11,18 +11,6 @@ import { Component } from "react";
 import i18n from "../../i18n";
 
 const decorate = withStyles(theme => ({
-  filterCard: {
-    background: theme.palette.grey[100]
-  },
-  filterCardHeader: {
-    backgroundColor: theme.palette.background.paper
-  },
-  filterCardContent: {
-    position: "relative" as "relative",
-    borderBottomColor: theme.palette.grey[300],
-    borderBottomStyle: "solid",
-    borderBottomWidth: 1
-  },
   filterCardActions: {
     flexDirection: "row-reverse" as "row-reverse"
   }
@@ -36,7 +24,7 @@ export interface FilterCardProps {
 const FilterCard = decorate<FilterCardProps>(props => {
   const { children, classes, handleClear, handleSubmit } = props;
   return (
-    <Card className={classes.filterCard} elevation={1}>
+    <Card>
       <form onSubmit={handleSubmit}>
         <CardHeader
           action={
@@ -44,12 +32,11 @@ const FilterCard = decorate<FilterCardProps>(props => {
               <Cancel />
             </IconButton>
           }
-          className={classes.filterCardHeader}
           title={i18n.t("Filters")}
         />
         <CardContent>{children}</CardContent>
         <CardActions className={classes.filterCardActions}>
-          <Button color="secondary" onClick={handleSubmit}>
+          <Button onClick={handleSubmit} variant="raised">
             {i18n.t("Filter", { context: "label" })}
           </Button>
         </CardActions>

@@ -15,7 +15,7 @@ const decorate = withStyles(theme => ({
     backgroundColor: theme.palette.error.main,
     color: theme.palette.error.contrastText,
     "&:hover": {
-      backgroundColor: theme.palette.error.dark
+      backgroundColor: theme.palette.error.main
     }
   }
 }));

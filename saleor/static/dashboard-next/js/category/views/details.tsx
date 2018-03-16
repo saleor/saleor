@@ -191,7 +191,7 @@ const CategoryDetails = decorate(
                             >
                               <Add />
                             </IconButton>
-                            <Hidden mdUp implementation="css">
+                            <Hidden mdUp>
                               <IconButton
                                 disabled={loading}
                                 onClick={this.handleFilterMenuOpen}
@@ -224,7 +224,7 @@ const CategoryDetails = decorate(
                         </Card>
                       </Grid>
                       <Grid item xs={12} md={3}>
-                        <Hidden smDown implementation="css">
+                        <Hidden smDown>
                           <ProductFilters
                             handleClear={() => {}}
                             handleSubmit={() => {}}
