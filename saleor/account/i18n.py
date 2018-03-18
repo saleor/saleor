@@ -90,28 +90,28 @@ class AddressForm(forms.ModelForm):
         ('email', 'email')]
 
     labels = {
-            'first_name': pgettext_lazy(
-                'Personal name', 'Given name'),
-            'last_name': pgettext_lazy(
-                'Personal name', 'Family name'),
-            'company_name': pgettext_lazy(
-                'Company or organization', 'Company or organization'),
-            'street_address_1': pgettext_lazy(
-                'Address', 'Address'),
-            'street_address_2': pgettext_lazy(
-                'Address', 'Address'),
-            'city': pgettext_lazy(
-                'City', 'City'),
-            'city_area': pgettext_lazy(
-                'City area', 'District'),
-            'postal_code': pgettext_lazy(
-                'Postal code', 'Postal code'),
-            'country': pgettext_lazy(
-                'Country', 'Country'),
-            'country_area': pgettext_lazy(
-                'Country area', 'State or province'),
-            'phone': pgettext_lazy(
-                'Phone number', 'Phone number')}
+        'first_name': pgettext_lazy(
+            'Personal name', 'Given name'),
+        'last_name': pgettext_lazy(
+            'Personal name', 'Family name'),
+        'company_name': pgettext_lazy(
+            'Company or organization', 'Company or organization'),
+        'street_address_1': pgettext_lazy(
+            'Address', 'Address'),
+        'street_address_2': pgettext_lazy(
+            'Address', 'Address'),
+        'city': pgettext_lazy(
+            'City', 'City'),
+        'city_area': pgettext_lazy(
+            'City area', 'District'),
+        'postal_code': pgettext_lazy(
+            'Postal code', 'Postal code'),
+        'country': pgettext_lazy(
+            'Country', 'Country'),
+        'country_area': pgettext_lazy(
+            'Country area', 'State or province'),
+        'phone': pgettext_lazy(
+            'Phone number', 'Phone number')}
 
     class Meta:
         model = Address
