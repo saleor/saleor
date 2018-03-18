@@ -229,8 +229,6 @@ def get_form_i18n_lines(form_instance):
         return bound_fields
 
     if fields_order:
-        a = [_convert_to_bound_fields(form_instance, line)
-                for line in fields_order]
         return [_convert_to_bound_fields(form_instance, line)
                 for line in fields_order]
 
