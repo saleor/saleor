@@ -1,7 +1,7 @@
 import Button from "material-ui/Button";
 import Card, { CardContent, CardActions, CardHeader } from "material-ui/Card";
 import IconButton from "material-ui/IconButton";
-import Cancel from "material-ui-icons/Cancel";
+import RefreshIcon from "material-ui-icons/Refresh";
 import { withStyles } from "material-ui/styles";
 import * as React from "react";
 
@@ -24,9 +24,9 @@ const FilterCard = decorate<FilterCardProps>(props => {
       <form>
         <CardHeader
           action={
-            <Button onClick={handleClear}>
-              {i18n.t("Clear", { context: "label" })}
-            </Button>
+            <IconButton onClick={handleClear}>
+              <RefreshIcon />
+            </IconButton>
           }
           title={i18n.t("Filters")}
         />
