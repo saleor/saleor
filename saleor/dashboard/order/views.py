@@ -9,9 +9,9 @@ from django.shortcuts import get_object_or_404, redirect
 from django.template.context_processors import csrf
 from django.template.response import TemplateResponse
 from django.utils.translation import npgettext_lazy, pgettext_lazy
+from django.views.decorators.http import require_POST
 from django_prices.templatetags import prices_i18n
 from payments import PaymentStatus
-from prices import Money, TaxedMoney
 
 from ...core.exceptions import InsufficientStock
 from ...core.utils import ZERO_TAXED_MONEY, get_paginator_items
@@ -46,6 +46,19 @@ def order_list(request):
         'orders': orders, 'filter_set': order_filter,
         'is_empty': not order_filter.queryset.exists()}
     return TemplateResponse(request, 'dashboard/order/list.html', ctx)
+
+
+@require_POST
+@staff_member_required
+@permission_required('order.edit_order')
+def order_create(request):
+    order = Order.objects.create(status=OrderStatus.DRAFT)
+    msg = pgettext_lazy(
+        'Dashboard message related to an order',
+        'Draft order created')
+    order.history.create(content=msg, user=request.user)
+    messages.success(request, msg)
+    return redirect('dashboard:order-details', order_pk=order.pk)
 
 
 @staff_member_required

@@ -242,6 +242,10 @@
   }
 }
 
+label.svg-submit-btn input[type="submit"] {
+  display: none;
+}
+
 .main form, .modal form {
   @include form;
 }

@@ -216,7 +216,11 @@
                     </span>
                   {% endif %}
               </span>
-              {% format_address order.billing_address %}
+              {% if order.billing_address %}
+                {% format_address order.billing_address %}
+              {% else %}
+                {% trans "No billing address" context "Missing billing address message" %}
+              {% endif %}
             </div>
           </div>
         </div>
