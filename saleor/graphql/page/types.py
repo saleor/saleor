@@ -10,9 +10,5 @@ class Page(CountableDjangoObjectType):
         interfaces = [relay.Node]
 
 
-def resolve_pages(info):
+def resolve_pages():
     return models.Page.objects.public().distinct()
-
-
-def resolve_all_pages(info):
-    return models.Page.objects.all().distinct()
