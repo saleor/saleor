@@ -34,7 +34,7 @@ class Order(models.Model):
     tracking_client_id = models.CharField(
         max_length=36, blank=True, editable=False)
     billing_address = models.ForeignKey(
-        Address, related_name='+', editable=False,
+        Address, related_name='+', editable=False, null=True,
         on_delete=models.PROTECT)
     shipping_address = models.ForeignKey(
         Address, related_name='+', editable=False, null=True,

@@ -12,12 +12,14 @@ class OrderAppConfig(AppConfig):
 
 
 class OrderStatus:
+    DRAFT = 'draft'
     UNFULFILLED = 'unfulfilled'
     PARTIALLY_FULFILLED = 'partially fulfilled'
     FULFILLED = 'fulfilled'
     CANCELED = 'canceled'
 
     CHOICES = [
+        (DRAFT, pgettext_lazy('order status', 'Draft')),
         (UNFULFILLED, pgettext_lazy('order status', 'Unfulfilled')),
         (PARTIALLY_FULFILLED, pgettext_lazy(
             'order status', 'Partially fulfilled')),

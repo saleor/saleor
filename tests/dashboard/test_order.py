@@ -10,6 +10,7 @@ from tests.utils import get_redirect_location
 
 from saleor.dashboard.order.forms import ChangeQuantityForm, OrderNoteForm
 from saleor.dashboard.order.utils import fulfill_order_line
+from saleor.order import OrderStatus
 from saleor.order.models import Order, OrderHistoryEntry, OrderLine, OrderNote
 from saleor.order.utils import (
     add_variant_to_existing_lines, add_variant_to_order,
@@ -835,3 +836,18 @@ def test_view_change_fulfillment_tracking(admin_client, fulfilled_order):
     assert get_redirect_location(response) == reverse(
         'dashboard:order-details', kwargs={'order_pk': fulfilled_order.pk})
     assert fulfillment.tracking_number == tracking_number
+
+
+@pytest.mark.django_db
+def test_view_order_create(admin_client):
+    url = reverse('dashboard:order-create')
+
+    response = admin_client.post(url, {})
+
+    assert response.status_code == 302
+    assert Order.objects.count() == 1
+    order = Order.objects.first()
+    redirect_url = reverse(
+        'dashboard:order-details', kwargs={'order_pk': order.pk})
+    assert get_redirect_location(response) == redirect_url
+    assert order.status == OrderStatus.DRAFT
