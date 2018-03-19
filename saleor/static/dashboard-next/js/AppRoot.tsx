@@ -42,7 +42,9 @@ const decorate = withStyles(theme => ({
   hide: {
     display: "none"
   },
-  drawerPaper: {
+  drawerDesktop: {
+    backgroundColor: "transparent",
+    borderRight: "0 none",
     marginTop: 56,
     position: "relative" as "relative",
     width: drawerWidth
@@ -72,21 +74,14 @@ const ResponsiveDrawer = decorate<ResponsiveDrawerProps>(
           variant="persistent"
           open
           classes={{
-            paper: classes.drawerPaper
+            paper: classes.drawerDesktop
           }}
         >
           {children}
         </Drawer>
       </Hidden>
       <Hidden mdUp>
-        <Drawer
-          variant="temporary"
-          onClose={onClose}
-          open={open}
-          classes={{
-            paper: classes.drawerPaper
-          }}
-        >
+        <Drawer variant="temporary" onClose={onClose} open={open}>
           {children}
         </Drawer>
       </Hidden>
@@ -106,8 +101,7 @@ export const AppRoot = decorate<{}>(
       | "appBar"
       | "menuButton"
       | "hide"
-      | "drawerPaper"
-      | "drawerHeader"
+      | "drawerDesktop"
       | "content"
       | "contentShift"
       | "toolBar"
@@ -170,10 +164,7 @@ export const AppRoot = decorate<{}>(
               </ListItem>
             </List>
           </ResponsiveDrawer>
-          <main className={classes.content}>
-            <div className={classes.drawerHeader} />
-            {children}
-          </main>
+          <main className={classes.content}>{children}</main>
         </div>
       );
     }
