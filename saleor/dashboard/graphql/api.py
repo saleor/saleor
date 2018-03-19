@@ -1,4 +1,5 @@
 import graphene
+import graphql_jwt
 from graphene_django.debug import DjangoDebug
 from graphene_django.filter import DjangoFilterConnectionField
 from graphql_extensions.auth.decorators import staff_member_required
@@ -49,6 +50,10 @@ class Mutations(graphene.ObjectType):
     page_create = PageCreate.Field()
     page_delete = PageDelete.Field()
     page_update = PageUpdate.Field()
+
+    token_auth = graphql_jwt.ObtainJSONWebToken.Field()
+    verify_token = graphql_jwt.Verify.Field()
+    refresh_token = graphql_jwt.Refresh.Field()
 
 
 schema = graphene.Schema(Query, Mutations)
