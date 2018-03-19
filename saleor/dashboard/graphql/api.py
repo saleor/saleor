@@ -3,10 +3,11 @@ from graphene_django.debug import DjangoDebug
 from graphene_django.filter import DjangoFilterConnectionField
 
 from ...graphql.core.filters import DistinctFilterSet
-from ...graphql.page.types import Page, resolve_all_pages
+from ...graphql.page.types import Page
 from ...graphql.product.types import Category, resolve_categories
 from ...graphql.utils import get_node
 from .page.mutations import PageCreate, PageDelete, PageUpdate
+from .page.types import resolve_all_pages
 from .product.mutations import (
     CategoryCreateMutation, CategoryDelete, CategoryUpdateMutation)
 
@@ -28,8 +29,11 @@ class Query(graphene.ObjectType):
     def resolve_categories(self, info, level=None, **kwargs):
         return resolve_categories(info, level)
 
+    def resolve_page(self, info, id):
+        return get_node(info, id, only_type=Page)
+
     def resolve_pages(self, info):
-        return resolve_all_pages(info)
+        return resolve_all_pages()
 
 
 class Mutations(graphene.ObjectType):
