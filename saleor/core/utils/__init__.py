@@ -17,7 +17,7 @@ from django_prices_openexchangerates import exchange_currency
 from django_prices_vatlayer.utils import (
     get_tax_rates_for_country, get_tax_for_rate)
 from geolite2 import geolite2
-from prices import Money, MoneyRange, TaxedMoney
+from prices import Money, MoneyRange, TaxedMoney, TaxedMoneyRange
 from versatileimagefield.image_warmer import VersatileImageFieldWarmer
 
 from ...account.models import User
@@ -114,17 +114,26 @@ def get_taxes_for_country(country):
     return taxes
 
 
-def apply_tax_to_price(taxes, rate_name, price):
+def apply_tax_to_price(taxes, rate_name, base):
     if not taxes:
         # Naively convert Money to TaxedMoney for consistency with price
-        # handling logic across the codebase
-        return TaxedMoney(net=price, gross=price)
+        # handling logic across the codebase, passthrough other money types
+        if isinstance(base, Money):
+            return TaxedMoney(net=base, gross=base)
+        if isinstance(base, MoneyRange):
+            return TaxedMoneyRange(
+                apply_tax_to_price(taxes, rate_name, base.start),
+                apply_tax_to_price(taxes, rate_name, base.stop))
+        if isinstance(base, (TaxedMoney, TaxedMoneyRange)):
+            return base
+        raise TypeError('Unknown base for flat_tax: %r' % (base,))
+
     if rate_name in taxes:
         tax_to_apply = taxes[rate_name]
     else:
         tax_to_apply = taxes['standard']
-    price_with_tax = tax_to_apply(price, not settings.BASE_PRICES_ARE_NET)
-    return price_with_tax
+
+    return tax_to_apply(base, not settings.INCLUDE_TAXES_IN_PRICES)
 
 
 def to_local_currency(price, currency):

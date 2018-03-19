@@ -9,6 +9,7 @@ from django.core.files import File
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.forms import ModelForm
 from django.utils.encoding import smart_text
+from django_prices_vatlayer.utils import get_tax_for_rate
 from payments import FraudStatus, PaymentStatus
 from PIL import Image
 from prices import Money
@@ -684,3 +685,32 @@ def menu_with_items(menu, default_category, collection):
     menu.items.create(
         name=collection.name, collection=collection, parent=menu_item)
     return menu
+
+
+@pytest.fixture
+def tax_rates():
+    return {
+        'standard_rate': 23,
+        'reduced_rates': {
+            'pharmaceuticals': 8,
+            'medical': 8,
+            'passenger transport': 8,
+            'newspapers': 8,
+            'hotels': 8,
+            'restaurants': 8,
+            'admission to cultural events': 8,
+            'admission to sporting events': 8,
+            'admission to entertainment events': 8,
+            'foodstuffs': 5
+        }
+    }
+
+
+@pytest.fixture
+def taxes(tax_rates):
+    taxes = {'standard': get_tax_for_rate(tax_rates)}
+    if tax_rates['reduced_rates']:
+        taxes.update({
+            rate: get_tax_for_rate(tax_rates, rate)
+            for rate in tax_rates['reduced_rates']})
+    return taxes
