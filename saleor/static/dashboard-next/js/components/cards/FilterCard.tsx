@@ -2,11 +2,8 @@ import Button from "material-ui/Button";
 import Card, { CardContent, CardActions, CardHeader } from "material-ui/Card";
 import IconButton from "material-ui/IconButton";
 import Cancel from "material-ui-icons/Cancel";
-import FilterListIcon from "material-ui-icons/FilterList";
-import Typography from "material-ui/Typography";
-import { withStyles, WithStyles } from "material-ui/styles";
+import { withStyles } from "material-ui/styles";
 import * as React from "react";
-import { Component } from "react";
 
 import i18n from "../../i18n";
 
@@ -36,7 +33,7 @@ const FilterCard = decorate<FilterCardProps>(props => {
         />
         <CardContent>{children}</CardContent>
         <CardActions className={classes.filterCardActions}>
-          <Button onClick={handleSubmit} variant="raised">
+          <Button onClick={handleClear} variant="raised">
             {i18n.t("Filter", { context: "label" })}
           </Button>
         </CardActions>

@@ -1,5 +1,5 @@
 import * as React from "react";
-import Input, { InputLabel } from "material-ui/Input";
+import Input, { InputLabel, InputAdornment } from "material-ui/Input";
 import Typography from "material-ui/Typography";
 import { FormControl, FormHelperText } from "material-ui/Form";
 import { withStyles } from "material-ui/styles";
@@ -17,9 +17,7 @@ interface PriceFieldProps {
 }
 
 const decorate = withStyles(theme => ({
-  widgetGrid: {
-    display: "grid",
-    gridTemplateColumns: "calc(100% - 3rem) 3rem",
+  widgetContainer: {
     marginTop: theme.spacing.unit * 2
   },
   inputContainer: {
@@ -29,43 +27,46 @@ const decorate = withStyles(theme => ({
   separator: {
     textAlign: "center",
     width: "100%",
-    marginTop: theme.spacing.unit
+    marginTop: theme.spacing.unit * 3
   },
-  currency: {
-    marginTop: theme.spacing.unit,
-    textAlign: "right"
+  maxInput: {
+    marginTop: theme.spacing.unit * 2
   }
 }));
 export const PriceField = decorate<PriceFieldProps>(
   ({ label, hint, currencySymbol, name, classes, onChange, value }) => (
-    <FormControl>
-      <InputLabel htmlFor={`${name}_min`}>{label}</InputLabel>
-      <div className={classes.widgetGrid}>
-        <div className={classes.inputContainer}>
-          <div>
-            <Input
-              name={`${name}_min`}
-              fullWidth
-              onChange={onChange}
-              value={value.min}
-            />
-          </div>
-          <span className={classes.separator}>-</span>
-          <div>
-            <Input
-              name={`${name}_max`}
-              fullWidth
-              onChange={onChange}
-              value={value.max}
-            />
-          </div>
-        </div>
-        <Typography variant="body1" className={classes.currency}>
-          {currencySymbol}
-        </Typography>
+    <div className={classes.widgetContainer}>
+      <div className={classes.inputContainer}>
+        <FormControl>
+          <InputLabel htmlFor={`${name}_min`}>{label}</InputLabel>
+          <Input
+            defaultValue={value.min}
+            endAdornment={
+              <InputAdornment position="end">{currencySymbol}</InputAdornment>
+            }
+            fullWidth
+            name={`${name}_min`}
+            onChange={onChange}
+            type="number"
+          />
+        </FormControl>
+        <span className={classes.separator}>-</span>
+        <FormControl>
+          <Input
+            defaultValue={value.max}
+            endAdornment={
+              <InputAdornment position="end">{currencySymbol}</InputAdornment>
+            }
+            className={classes.maxInput}
+            fullWidth
+            name={`${name}_max`}
+            onChange={onChange}
+            type="number"
+          />
+        </FormControl>
       </div>
       {hint && <FormHelperText>{hint}</FormHelperText>}
-    </FormControl>
+    </div>
   )
 );
 
