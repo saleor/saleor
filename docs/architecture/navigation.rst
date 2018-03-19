@@ -9,11 +9,11 @@ You can add up to 3 levels of menu items inside every menu you create. Each menu
 Rendering
 ---------
 
-Menu is rendered in templates by passing to a ``menu`` templatetag a list of available menus (attached with context processor) and menu slug, as shown below.
+Menu is rendered in templates by passing to a ``menu`` templatetag a menu slug, as shown below.
 
 .. code-block:: html
 
-  {% menu menus 'footer' %}
+  {% menu 'footer' %}
 
 Menu is rendered as a vertical list by default. You can change it by passing an extra ``horizontal=True`` argument.
 

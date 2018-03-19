@@ -420,3 +420,7 @@ ALLOWED_ATTRIBUTES = {
     'a': ['href', 'title'],
     'img': ['src']}
 ALLOWED_STYLES = ['text-align']
+
+
+# Navigation configuration
+NAVIGATION_CONTEXT_NAME = 'menus'
