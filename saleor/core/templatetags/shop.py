@@ -1,6 +1,7 @@
-from django.conf import settings
 from django.template import Library
 from django.utils.http import urlencode
+
+from ..context_processors import NAVIGATION_CONTEXT_NAME
 
 register = Library()
 
@@ -18,7 +19,7 @@ def get_sort_by_url(context, field, descending=False):
 
 @register.inclusion_tag('menu.html', takes_context=True)
 def menu(context, slug, horizontal=False):
-    menus = context[settings.NAVIGATION_CONTEXT_NAME]
+    menus = context[NAVIGATION_CONTEXT_NAME]
     menu = next((menu for menu in menus if menu.slug == slug), None)
     menu_items = menu.get_direct_items() if menu else None
     return {'menu_items': menu_items, 'horizontal': horizontal}
