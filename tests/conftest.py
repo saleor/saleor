@@ -1,12 +1,13 @@
 from decimal import Decimal
 from io import BytesIO
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, Mock
 
 import pytest
 from django.contrib.auth.models import AnonymousUser, Group, Permission
 from django.contrib.sites.models import Site
 from django.core.files import File
 from django.core.files.uploadedfile import SimpleUploadedFile
+from django.forms import ModelForm
 from django.utils.encoding import smart_text
 from PIL import Image
 from payments import FraudStatus, PaymentStatus
@@ -654,3 +655,12 @@ def page(db):
         'content': 'test content'}
     page = Page.objects.create(**data)
     return page
+
+
+@pytest.fixture
+def model_form_class():
+    mocked_form_class = MagicMock(name='test', spec=ModelForm)
+    mocked_form_class._meta = Mock(name='_meta')
+    mocked_form_class._meta.model = 'test_model'
+    mocked_form_class._meta.fields = 'test_field'
+    return mocked_form_class
