@@ -284,7 +284,7 @@ OPENEXCHANGERATES_API_KEY = os.environ.get('OPENEXCHANGERATES_API_KEY')
 # dashboard are treated as net amounts. If you wish to reverse that and use
 # them as gross amounts instead change the BASE_PRICES_ARE_NET to False
 VATLAYER_ACCESS_KEY = os.environ.get('VATLAYER_ACCESS_KEY')
-BASE_PRICES_ARE_NET = True
+INCLUDE_TAXES_IN_PRICES = True
 
 ACCOUNT_ACTIVATION_DAYS = 3
 
