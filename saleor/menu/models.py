@@ -4,8 +4,8 @@ from django.utils.translation import pgettext_lazy
 from mptt.managers import TreeManager
 from mptt.models import MPTTModel
 
-from saleor.page.models import Page
-from saleor.product.models import Category, Collection
+from ..page.models import Page
+from ..product.models import Category, Collection
 
 
 class Menu(models.Model):
