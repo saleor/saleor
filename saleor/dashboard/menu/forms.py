@@ -24,8 +24,10 @@ class MenuItemForm(forms.ModelForm):
 
     An item can point to a URL passed directly or to an object belonging
     to one of querysets passed to a linked_object field.
-    linked_object requires <obj.pk>_<obj.__class__.__name__> format as passed
-    value.
+
+    linked_object value passed to a field requires format
+    '<obj.id>_<obj.__class__.__name__>', e. g. '17_Collection' for Collection
+    object with id 17.
     """
 
     linked_object = AjaxSelect2CombinedChoiceField(
