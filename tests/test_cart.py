@@ -29,6 +29,7 @@ def cart_request_factory(rf, monkeypatch):
         else:
             request.user = user
         request.discounts = Sale.objects.all()
+        request.taxes = None
         monkeypatch.setattr(
             request, 'get_signed_cookie', Mock(return_value=token))
         return request
@@ -186,6 +187,7 @@ def test_get_cart_from_request(
     queryset = Cart.objects.all()
     token = uuid4()
     request = cart_request_factory(user=customer_user, token=token)
+
     user_cart = Cart(user=customer_user)
     mock_get_for_user = Mock(return_value=user_cart)
     monkeypatch.setattr(
@@ -195,6 +197,7 @@ def test_get_cart_from_request(
     assert returned_cart == user_cart
 
     assert list(returned_cart.discounts) == list(request.discounts)
+    assert returned_cart.taxes == request.taxes
 
     mock_get_for_user = Mock(return_value=None)
     monkeypatch.setattr(
@@ -504,6 +507,17 @@ def test_view_cart(client, sale, product, request_cart):
     assert response.status_code == 200
 
 
+def test_view_cart_with_taxes(client, sale, product, request_cart, vatlayer):
+    variant = product.variants.get()
+    request_cart.add(variant, 1)
+    response = client.get('/cart/')
+    response_cart_line = response.context[0]['cart_lines'][0]
+    cart_line = request_cart.lines.first()
+    assert response_cart_line['get_total'].tax.amount
+    assert not response_cart_line['get_total'] == cart_line.get_total()
+    assert response.status_code == 200
+
+
 def test_view_update_cart_quantity(
         client, local_currency, product, request_cart):
     variant = product.variants.get()
@@ -511,6 +525,18 @@ def test_view_update_cart_quantity(
     response = client.post(
         reverse('cart:update-line', kwargs={'variant_id': variant.pk}),
         data={'quantity': 3}, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
+    assert response.status_code == 200
+    assert request_cart.quantity == 3
+
+
+def test_view_update_cart_quantity_with_taxes(
+        client, local_currency, product, request_cart, vatlayer):
+    variant = product.variants.get()
+    request_cart.add(variant, 1)
+    response = client.post(
+        '/cart/update/%s/' % (variant.pk,),
+        {'quantity': 3},
+        HTTP_X_REQUESTED_WITH='XMLHttpRequest')
     assert response.status_code == 200
     assert request_cart.quantity == 3
 
@@ -684,7 +710,7 @@ def test_get_or_create_db_cart(customer_user, db, rf):
 def test_get_cart_data(request_cart_with_item, shipping_method):
     shipment_option = get_shipment_options('PL')
     cart_data = utils.get_cart_data(
-        request_cart_with_item, shipment_option, 'USD', None)
+        request_cart_with_item, shipment_option, 'USD', None, None)
     assert cart_data['cart_total'] == TaxedMoney(
         net=Money(10, 'USD'), gross=Money(10, 'USD'))
     assert cart_data['total_with_shipping'].start == TaxedMoney(
@@ -694,7 +720,7 @@ def test_get_cart_data(request_cart_with_item, shipping_method):
 def test_get_cart_data_no_shipping(request_cart_with_item):
     shipment_option = get_shipment_options('PL')
     cart_data = utils.get_cart_data(
-        request_cart_with_item, shipment_option, 'USD', None)
+        request_cart_with_item, shipment_option, 'USD', None, None)
     cart_total = cart_data['cart_total']
     assert cart_total == TaxedMoney(
         net=Money(10, 'USD'), gross=Money(10, 'USD'))

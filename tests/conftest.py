@@ -9,6 +9,7 @@ from django.core.files import File
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.forms import ModelForm
 from django.utils.encoding import smart_text
+from django_prices_vatlayer.models import VAT
 from django_prices_vatlayer.utils import get_tax_for_rate
 from payments import FraudStatus, PaymentStatus
 from PIL import Image
@@ -713,4 +714,11 @@ def taxes(tax_rates):
         taxes.update({
             rate: get_tax_for_rate(tax_rates, rate)
             for rate in tax_rates['reduced_rates']})
+    return taxes
+
+
+@pytest.fixture
+def vatlayer(db, settings, tax_rates, taxes):
+    settings.VATLAYER_ACCESS_KEY = 'testvatlayer'
+    VAT.objects.create(country_code=settings.DEFAULT_COUNTRY, data=tax_rates)
     return taxes
