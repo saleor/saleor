@@ -5,7 +5,6 @@ import * as LanguageDetector from "i18next-browser-languagedetector";
 i18n.use(XHR);
 i18n.use(LanguageDetector);
 i18n.init({
-  debug: true,
   defaultNS: "dashboard",
   fallbackLng: "en",
   keySeparator: false,
