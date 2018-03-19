@@ -115,7 +115,7 @@ def get_taxes_for_country(country):
 
 
 def apply_tax_to_price(taxes, rate_name, price):
-    if taxes is None:
+    if not taxes:
         # Naively convert Money to TaxedMoney for consistency with price
         # handling logic across the codebase
         return TaxedMoney(net=price, gross=price)
