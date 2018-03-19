@@ -72,8 +72,12 @@ const CategoryDetails = decorate(
         return (
 <Navigator>
             {navigate => {
-              const applyFilters = formState => () =>
-                navigate(`?${stringifyQs(formState)}`, true);
+              const applyFilters = data => {
+                navigate(
+                  `?${stringifyQs({ ...filters, ...data.formData })}`,
+                  true
+                );
+              };
               const clearFilters = () => navigate("?");
               return (
                 <TypedCategoryPropertiesQuery
