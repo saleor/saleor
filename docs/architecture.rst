@@ -11,6 +11,5 @@ Architecture
    architecture/i18n
    architecture/search
    architecture/payments
-   architecture/navigation
    architecture/settings
    architecture/page
