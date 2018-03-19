@@ -2,6 +2,7 @@ import logging
 
 from django.conf import settings
 from django.contrib.sites.models import Site
+from django.utils.functional import SimpleLazyObject
 from django.utils.translation import get_language
 from django_countries.fields import Country
 
@@ -85,9 +86,11 @@ def site(get_response):
 def taxes(get_response):
     """Assign tax rates for default country to `request.taxes`."""
     def middleware(request):
-        # fixme: find out if we should or can use request.country here
-        request.taxes = get_taxes_for_country(
-            Country(settings.DEFAULT_COUNTRY))
+        if settings.VATLAYER_ACCESS_KEY:
+            request.taxes = SimpleLazyObject(lambda: get_taxes_for_country(
+                request.country))
+        else:
+            request.taxes = None
         return get_response(request)
 
     return middleware
