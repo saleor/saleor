@@ -45,7 +45,7 @@ class Query(graphene.ObjectType):
         return get_node(info, id, only_type=Page)
 
     def resolve_pages(self, info):
-        return resolve_pages()^
+        return resolve_pages()
 
     def resolve_product(self, info, id):
         return get_node(info, id, only_type=Product)
