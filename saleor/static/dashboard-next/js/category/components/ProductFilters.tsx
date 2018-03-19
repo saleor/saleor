@@ -10,6 +10,7 @@ import PriceField from "../../components/PriceField";
 import i18n from "../../i18n";
 
 interface ProductFiltersState {
+  debounceTimeout?: any;
   highlighted: string;
   name: string;
   price_min: string;
@@ -34,30 +35,18 @@ export class ProductFilters extends Component<
   static defaultState = {
     highlighted: "",
     name: "",
-    price_min: "",
     price_max: "",
+    price_min: "",
     productTypes: [],
     published: ""
   };
-
   constructor(props) {
     super(props);
-    this.state = {
-      ...ProductFilters.defaultState,
-      ...props.formState
-    };
+    this.state = ProductFilters.defaultState;
   }
-
-  componentWillReceiveProps(nextProps) {
-    this.setState({ ...ProductFilters.defaultState, ...nextProps.formState });
-  }
-
-  handleInputChange = event => {
-    this.setState({ [event.target.name]: event.target.value });
-  };
 
   render() {
-    const { handleSubmit, productTypes, handleClear } = this.props;
+    const { handleSubmit, productTypes, handleClear, formState } = this.props;
     const publishingStatuses = [
       {
         label: i18n.t("Published", { context: "Product publishing status" }),
@@ -97,65 +86,80 @@ export class ProductFilters extends Component<
       }
     ];
 
+    const handleInputChange = event => {
+      const { name, value } = event.target;
+      const debounceTimeout = setTimeout(() => {
+        handleSubmit({
+          formData: { [name]: value }
+        });
+      }, 500);
+      clearTimeout(this.state.debounceTimeout);
+      this.setState({
+        [name]: value,
+        debounceTimeout
+      });
+    };
+
+    const handleClearButtonClick = () => {
+      this.setState(ProductFilters.defaultState);
+      handleClear();
+    };
+
     return (
-      <FilterCard
-        handleClear={handleClear}
-        handleSubmit={handleSubmit(this.state)}
-      >
+      <FilterCard handleClear={handleClearButtonClick}>
         <TextField
           fullWidth
           name="name"
           label={i18n.t("Name", {
             context: "Product filter field label"
           })}
-          onChange={this.handleInputChange}
-          value={this.state.name}
+          onChange={handleInputChange}
+          value={this.state.name || ""}
         />
-        <FormSpacer>
-          <MultiSelectField
-            label={i18n.t("Product type", {
-              context: "Product filter field label"
-            })}
-            choices={productTypes.map(type => ({
-              value: type.id,
-              label: type.name
-            }))}
-            name="productTypes"
-            onChange={this.handleInputChange}
-            value={this.state.productTypes}
-          />
-        </FormSpacer>
-        <FormSpacer>
-          <PriceField
-            currencySymbol="USD"
-            label={i18n.t("Price")}
-            name="price"
-            onChange={this.handleInputChange}
-            value={{ min: this.state.price_min, max: this.state.price_max }}
-          />
-        </FormSpacer>
-        <FormSpacer>
-          <SingleSelectField
-            label={i18n.t("Published", {
-              context: "Product filter field label"
-            })}
-            choices={publishingStatuses}
-            name="published"
-            onChange={this.handleInputChange}
-            value={this.state.published}
-          />
-        </FormSpacer>
-        <FormSpacer>
-          <SingleSelectField
-            label={i18n.t("Highlighted", {
-              context: "Product filter field label"
-            })}
-            choices={highlightingStatuses}
-            name="highlighted"
-            onChange={this.handleInputChange}
-            value={this.state.highlighted}
-          />
-        </FormSpacer>
+        <FormSpacer />
+        <MultiSelectField
+          label={i18n.t("Product type", {
+            context: "Product filter field label"
+          })}
+          choices={productTypes.map(type => ({
+            value: type.id,
+            label: type.name
+          }))}
+          name="productTypes"
+          onChange={handleInputChange}
+          value={this.state.productTypes || []}
+        />
+        <FormSpacer />
+        <PriceField
+          currencySymbol="USD"
+          label={i18n.t("Price")}
+          name="price"
+          onChange={handleInputChange}
+          value={{
+            min: this.state.price_min,
+            max: this.state.price_max || ""
+          }}
+        />
+        <FormSpacer />
+        <SingleSelectField
+          label={i18n.t("Published", {
+            context: "Product filter field label"
+          })}
+          choices={publishingStatuses}
+          name="published"
+          onChange={handleInputChange}
+          value={this.state.published || ""}
+        />
+        <FormSpacer />
+        <SingleSelectField
+          label={i18n.t("Highlighted", {
+            context: "Product filter field label"
+          })}
+          choices={highlightingStatuses}
+          name="highlighted"
+          onChange={handleInputChange}
+          value={this.state.highlighted || ""}
+        />
       </FilterCard>
     );
   }

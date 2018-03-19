@@ -2,7 +2,7 @@ import * as React from "react";
 import { withStyles } from "material-ui/styles";
 
 interface FormSpacerProps {
-  children: React.ReactNode;
+  children?: React.ReactNode;
 }
 
 const decorate = withStyles(theme => ({

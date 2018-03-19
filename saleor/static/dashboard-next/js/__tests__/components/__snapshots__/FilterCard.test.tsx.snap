@@ -13,41 +13,13 @@ exports[`<CategoryDetails /> renders properly 1`] = `
       Filters
     </h1>
   </div>
-  <form
-    onSubmit={[MockFunction]}
-  >
+  <form>
     <div
       className="MuiCardContent-root-30"
     />
     <div
       className="MuiCardActions-root-55 Component-filterCardActions-2"
     >
-      <button
-        className="MuiButtonBase-root-72 MuiButton-root-57 MuiButton-flatSecondary-60 MuiCardActions-action-56"
-        disabled={false}
-        onBlur={[Function]}
-        onClick={[MockFunction]}
-        onFocus={[Function]}
-        onKeyDown={[Function]}
-        onKeyUp={[Function]}
-        onMouseDown={[Function]}
-        onMouseLeave={[Function]}
-        onMouseUp={[Function]}
-        onTouchEnd={[Function]}
-        onTouchMove={[Function]}
-        onTouchStart={[Function]}
-        tabIndex="0"
-        type="button"
-      >
-        <span
-          className="MuiButton-label-58"
-        >
-          Filter
-        </span>
-        <span
-          className="MuiTouchRipple-root-75"
-        />
-      </button>
       <button
         className="MuiButtonBase-root-72 MuiButton-root-57 MuiCardActions-action-56"
         disabled={false}
