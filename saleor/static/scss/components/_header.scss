@@ -29,7 +29,7 @@
         }
       }
 
-      @include media-breakpoint-up(sm) {
+      @include media-breakpoint-up(md) {
         &__dropdown {
           display: inline-block;
           position: relative;
