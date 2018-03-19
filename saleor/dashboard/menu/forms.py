@@ -80,11 +80,11 @@ class MenuItemForm(forms.ModelForm):
     def save(self, commit=True):
         linked_object = self.cleaned_data.get('linked_object')
 
-        if linked_object.__class__ == Collection:
+        if isinstance(linked_object, Collection):
             self.instance.collection = linked_object
-        elif linked_object.__class__ == Category:
+        elif isinstance(linked_object, Category):
             self.instance.category = linked_object
-        elif linked_object.__class__ == Page:
+        elif isinstance(linked_object, Page):
             self.instance.page = linked_object
 
         return super().save(commit)
