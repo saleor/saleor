@@ -2,51 +2,55 @@
 
 exports[`<CategoryDetails /> renders properly 1`] = `
 <div
-  className="MuiPaper-root-3 MuiPaper-elevation2-7 MuiPaper-rounded-4"
+  className="MuiPaper-root-2 MuiPaper-elevation2-6 MuiPaper-rounded-3"
 >
-  <div
-    className="MuiCardContent-root-30 Component-filterCardContent-1"
-  >
-    <h1
-      className="MuiTypography-root-31 MuiTypography-display1-35"
-    >
-      Filters
-    </h1>
-  </div>
   <form>
     <div
-      className="MuiCardContent-root-30"
-    />
-    <div
-      className="MuiCardActions-root-55 Component-filterCardActions-2"
+      className="MuiCardHeader-root-29"
     >
-      <button
-        className="MuiButtonBase-root-72 MuiButton-root-57 MuiCardActions-action-56"
-        disabled={false}
-        onBlur={[Function]}
-        onClick={[MockFunction]}
-        onFocus={[Function]}
-        onKeyDown={[Function]}
-        onKeyUp={[Function]}
-        onMouseDown={[Function]}
-        onMouseLeave={[Function]}
-        onMouseUp={[Function]}
-        onTouchEnd={[Function]}
-        onTouchMove={[Function]}
-        onTouchStart={[Function]}
-        tabIndex="0"
-        type="button"
+      <div
+        className="MuiCardHeader-content-32"
       >
         <span
-          className="MuiButton-label-58"
+          className="MuiTypography-root-35 MuiTypography-headline-40 MuiCardHeader-title-33"
         >
-          Clear
+          Filters
         </span>
-        <span
-          className="MuiTouchRipple-root-75"
-        />
-      </button>
+      </div>
+      <div
+        className="MuiCardHeader-action-31"
+      >
+        <button
+          className="MuiButtonBase-root-74 MuiButton-root-59"
+          disabled={false}
+          onBlur={[Function]}
+          onClick={[MockFunction]}
+          onFocus={[Function]}
+          onKeyDown={[Function]}
+          onKeyUp={[Function]}
+          onMouseDown={[Function]}
+          onMouseLeave={[Function]}
+          onMouseUp={[Function]}
+          onTouchEnd={[Function]}
+          onTouchMove={[Function]}
+          onTouchStart={[Function]}
+          tabIndex="0"
+          type="button"
+        >
+          <span
+            className="MuiButton-label-60"
+          >
+            Clear
+          </span>
+          <span
+            className="MuiTouchRipple-root-77"
+          />
+        </button>
+      </div>
     </div>
+    <div
+      className="MuiCardContent-root-84"
+    />
   </form>
 </div>
 `;
