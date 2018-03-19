@@ -11,4 +11,8 @@ class Page(CountableDjangoObjectType):
 
 
 def resolve_pages(info):
+    return models.Page.objects.public().distinct()
+
+
+def resolve_all_pages(info):
     return models.Page.objects.all().distinct()

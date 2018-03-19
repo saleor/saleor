@@ -221,7 +221,6 @@ def test_page_create_mutation(client):
     variables = json.dumps({
         'title': page_title, 'content': page_content,
         'isVisible': page_isVisible, 'slug': page_slug})
-    # import pdb; pdb.set_trace()
     response = client.post(
         reverse('dashboard:api'), {'query': query, 'variables': variables})
     content = get_graphql_content(response)

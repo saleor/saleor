@@ -3,6 +3,7 @@ from graphene_django.debug import DjangoDebug
 from graphene_django.filter import DjangoFilterConnectionField
 
 from .core.filters import DistinctFilterSet
+from .page.types import Page, resolve_pages
 from .product.filters import ProductFilterSet
 from .product.types import (
     Category, Product, ProductAttribute, resolve_attributes,
@@ -19,6 +20,8 @@ class Query(graphene.ObjectType):
         Category, filterset_class=DistinctFilterSet,
         level=graphene.Argument(graphene.Int))
     category = graphene.Field(Category, id=graphene.Argument(graphene.ID))
+    page = graphene.Field(Page, id=graphene.Argument(graphene.ID))
+    pages = graphene.List(Page)
     product = graphene.Field(Product, id=graphene.Argument(graphene.ID))
     products = DjangoFilterConnectionField(
         Product, filterset_class=ProductFilterSet)
@@ -30,6 +33,12 @@ class Query(graphene.ObjectType):
 
     def resolve_categories(self, info, level=None, **kwargs):
         return resolve_categories(info, level)
+
+    def resolve_page(self, info, id):
+        return get_node(info, id, only_type=Page)
+
+    def resolve_pages(self, info, **kwargs):
+        return resolve_pages(info)
 
     def resolve_product(self, info, id):
         return get_node(info, id, only_type=Product)
