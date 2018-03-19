@@ -3,7 +3,7 @@ from graphene_django.debug import DjangoDebug
 from graphene_django.filter import DjangoFilterConnectionField
 
 from ...graphql.core.filters import DistinctFilterSet
-from ...graphql.page.types import Page, resolve_pages
+from ...graphql.page.types import Page, resolve_all_pages
 from ...graphql.product.types import Category, resolve_categories
 from ...graphql.utils import get_node
 from .page.mutations import PageCreate, PageDelete, PageUpdate
@@ -29,7 +29,7 @@ class Query(graphene.ObjectType):
         return resolve_categories(info, level)
 
     def resolve_pages(self, info):
-        return resolve_pages(info)
+        return resolve_all_pages(info)
 
 
 class Mutations(graphene.ObjectType):
