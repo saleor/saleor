@@ -17,6 +17,7 @@ from .utils import (
 def index(request, cart):
     """Display cart details."""
     discounts = request.discounts
+    taxes = request.taxes
     cart_lines = []
     check_product_availability_and_warn(request, cart)
 
@@ -39,8 +40,8 @@ def index(request, cart):
                                    initial=initial, discounts=discounts)
         cart_lines.append({
             'variant': line.variant,
-            'get_price_per_item': line.get_price_per_item(discounts),
-            'get_total': line.get_total(discounts=discounts),
+            'get_price_per_item': line.get_price_per_item(discounts, taxes),
+            'get_total': line.get_total(discounts, taxes),
             'form': form})
 
     default_country = get_user_shipping_country(request)
@@ -48,7 +49,7 @@ def index(request, cart):
     default_country_options = get_shipment_options(default_country)
 
     cart_data = get_cart_data(
-        cart, default_country_options, request.currency, request.discounts)
+        cart, default_country_options, request.currency, discounts, taxes)
     ctx = {
         'cart_lines': cart_lines,
         'country_form': country_form,
@@ -84,6 +85,7 @@ def update(request, cart, variant_id):
         return redirect('cart:index')
     variant = get_object_or_404(ProductVariant, pk=variant_id)
     discounts = request.discounts
+    taxes = request.taxes
     status = None
     form = ReplaceCartLineForm(
         request.POST, cart=cart, variant=variant, discounts=discounts)
@@ -99,9 +101,9 @@ def update(request, cart, variant_id):
         updated_line = cart.get_line(form.cart_line.variant)
         if updated_line:
             response['subtotal'] = format_money(
-                updated_line.get_total(discounts=discounts).gross)
+                updated_line.get_total(discounts, taxes).gross)
         if cart:
-            cart_total = cart.get_total(discounts=discounts)
+            cart_total = cart.get_total(discounts, taxes)
             response['total'] = format_money(cart_total.gross)
             local_cart_total = to_local_currency(cart_total, request.currency)
             if local_cart_total is not None:
@@ -116,9 +118,12 @@ def update(request, cart, variant_id):
 @get_or_empty_db_cart(cart_queryset=Cart.objects.for_display())
 def summary(request, cart):
     """Display a cart summary suitable for displaying on all pages."""
+    discounts = request.discounts
+    taxes = request.taxes
+
     def prepare_line_data(line):
         first_image = line.variant.get_first_image()
-        line_total = line.get_total(discounts=request.discounts)
+        line_total = line.get_total(discounts, taxes)
         return {
             'product': line.variant.product,
             'variant': line.variant.name,
@@ -126,10 +131,11 @@ def summary(request, cart):
             'image': first_image,
             'line_total': format_money(line_total.gross),
             'variant_url': line.variant.get_absolute_url()}
+
     if cart.quantity == 0:
         data = {'quantity': 0}
     else:
-        cart_total = cart.get_total(discounts=request.discounts)
+        cart_total = cart.get_total(discounts, taxes)
         data = {
             'quantity': cart.quantity,
             'total': format_money(cart_total.gross),

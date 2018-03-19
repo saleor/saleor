@@ -209,7 +209,7 @@ def get_or_empty_db_cart(cart_queryset=Cart.objects.all()):
     return get_cart
 
 
-def get_cart_data(cart, shipping_range, currency, discounts):
+def get_cart_data(cart, shipping_range, currency, discounts, taxes):
     """Return a JSON-serializable representation of the cart."""
     cart_total = None
     local_cart_total = None
@@ -217,7 +217,7 @@ def get_cart_data(cart, shipping_range, currency, discounts):
     total_with_shipping = None
     local_total_with_shipping = None
     if cart:
-        cart_total = cart.get_total(discounts=discounts)
+        cart_total = cart.get_total(discounts, taxes)
         local_cart_total = to_local_currency(cart_total, currency)
         shipping_required = cart.is_shipping_required()
         total_with_shipping = TaxedMoneyRange(
