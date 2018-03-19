@@ -57,7 +57,7 @@ def test_model_form_update_mutation(model_form_class):
     assert 'id' in meta.arguments
 
 
-def test_category_create_mutation(client):
+def test_category_create_mutation(admin_client):
     query = """
         mutation($name: String!, $description: String, $parentId: ID) {
             categoryCreate(
@@ -89,7 +89,7 @@ def test_category_create_mutation(client):
     # test creating root category
     variables = json.dumps({
         'name': category_name, 'description': category_description})
-    response = client.post(
+    response = admin_client.post(
         reverse('dashboard:api'), {'query': query, 'variables': variables})
     content = get_graphql_content(response)
     assert 'errors' not in content
@@ -104,7 +104,7 @@ def test_category_create_mutation(client):
     variables = json.dumps({
         'name': category_name, 'description': category_description,
         'parentId': parent_id})
-    response = client.post(
+    response = admin_client.post(
         reverse('dashboard:api'), {'query': query, 'variables': variables})
     content = get_graphql_content(response)
     assert 'errors' not in content
@@ -113,7 +113,7 @@ def test_category_create_mutation(client):
     assert data['category']['parent']['id'] == parent_id
 
 
-def test_category_update_mutation(client, default_category):
+def test_category_update_mutation(admin_client, default_category):
     query = """
         mutation($id: ID, $name: String!, $description: String) {
             categoryUpdate(
@@ -147,7 +147,7 @@ def test_category_update_mutation(client, default_category):
     variables = json.dumps({
         'name': category_name, 'description': category_description,
         'id': category_id})
-    response = client.post(
+    response = admin_client.post(
         reverse('dashboard:api'), {'query': query, 'variables': variables})
     content = get_graphql_content(response)
     assert 'errors' not in content
@@ -161,7 +161,7 @@ def test_category_update_mutation(client, default_category):
     assert data['category']['parent']['id'] == parent_id
 
 
-def test_category_delete_mutation(client, default_category):
+def test_category_delete_mutation(admin_client, default_category):
     query = """
         mutation($id: ID!) {
             categoryDelete(id: $id) {
@@ -177,7 +177,7 @@ def test_category_delete_mutation(client, default_category):
     """
     variables = json.dumps({
         'id': graphene.Node.to_global_id('Category', default_category.id)})
-    response = client.post(
+    response = admin_client.post(
         reverse('dashboard:api'), {'query': query, 'variables': variables})
     content = get_graphql_content(response)
     assert 'errors' not in content
@@ -187,7 +187,7 @@ def test_category_delete_mutation(client, default_category):
         default_category.refresh_from_db()
 
 
-def test_page_create_mutation(client):
+def test_page_create_mutation(admin_client):
     query = """
         mutation CreatePage(
             $slug: String!,
@@ -221,7 +221,7 @@ def test_page_create_mutation(client):
     variables = json.dumps({
         'title': page_title, 'content': page_content,
         'isVisible': page_isVisible, 'slug': page_slug})
-    response = client.post(
+    response = admin_client.post(
         reverse('dashboard:api'), {'query': query, 'variables': variables})
     content = get_graphql_content(response)
     assert 'errors' not in content
@@ -233,7 +233,7 @@ def test_page_create_mutation(client):
     assert data['page']['isVisible'] == page_isVisible
 
 
-def test_page_delete_mutation(client, page):
+def test_page_delete_mutation(admin_client, page):
     query = """
         mutation DeletePage($id: ID!) {
             pageDelete(id: $id) {
@@ -250,7 +250,7 @@ def test_page_delete_mutation(client, page):
     """
     variables = json.dumps({
         'id': graphene.Node.to_global_id('Page', page.id)})
-    response = client.post(
+    response = admin_client.post(
         reverse('dashboard:api'), {'query': query, 'variables': variables})
     content = get_graphql_content(response)
     assert 'errors' not in content
