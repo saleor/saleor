@@ -40,7 +40,7 @@ export const PriceField = decorate<PriceFieldProps>(
         <FormControl>
           <InputLabel htmlFor={`${name}_min`}>{label}</InputLabel>
           <Input
-            defaultValue={value.min}
+            value={value.min}
             endAdornment={
               <InputAdornment position="end">{currencySymbol}</InputAdornment>
             }
@@ -53,7 +53,7 @@ export const PriceField = decorate<PriceFieldProps>(
         <span className={classes.separator}>-</span>
         <FormControl>
           <Input
-            defaultValue={value.max}
+            value={value.max}
             endAdornment={
               <InputAdornment position="end">{currencySymbol}</InputAdornment>
             }
