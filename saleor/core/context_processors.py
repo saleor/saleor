@@ -22,7 +22,7 @@ def default_currency(request):
 def navigation(request):
     menus = Menu.objects.prefetch_related(
         'items', 'items__collection', 'items__category', 'items__page').all()
-    return {'menus': list(menus)}
+    return {settings.NAVIGATION_CONTEXT_NAME: list(menus)}
 
 
 def search_enabled(request):
