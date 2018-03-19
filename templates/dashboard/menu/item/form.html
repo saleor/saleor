@@ -41,19 +41,11 @@
         </a>
       </li>
       {% for node in path %}
-        {% if forloop.last %}
-          <li title="{{ node.name }}">
-            <span class="breadcrumbs--ellipsed-item">
-              {{ node.name }}
-            </span>
-          </li>
-        {% else %}
-          <li class="hide-on-med-and-down">
-            <a href="{% url 'dashboard:menu-item-detail' menu_pk=menu.pk item_pk=node.pk %}" title="{{ node.name }}" class="breadcrumbs--ellipsed-item">
-              {{ node.name }}
-            </a>
-          </li>
-        {% endif %}
+        <li class="hide-on-med-and-down">
+          <a href="{% url 'dashboard:menu-item-detail' menu_pk=menu.pk item_pk=node.pk %}" title="{{ node.name }}" class="breadcrumbs--ellipsed-item">
+            {{ node.name }}
+          </a>
+        </li>
       {% endfor %}
     {% endif %}
     {% if menu_item.pk %}
