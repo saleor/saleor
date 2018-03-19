@@ -422,7 +422,5 @@ ALLOWED_ATTRIBUTES = {
 ALLOWED_STYLES = ['text-align']
 
 
-NAVIGATION_CONTEXT_NAME = 'menus'
-
 # slugs for menus used in storefront's base template, created by default
 DEFAULT_MENUS = ['navbar', 'footer']

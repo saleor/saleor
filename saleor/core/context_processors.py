@@ -1,5 +1,6 @@
 from django.conf import settings
 
+from . import NAVIGATION_CONTEXT_NAME
 from ..menu.models import Menu
 
 
@@ -21,8 +22,8 @@ def default_currency(request):
 # pylint: disable=W0613
 def navigation(request):
     menus = Menu.objects.prefetch_related(
-        'items', 'items__collection', 'items__category', 'items__page').all()
-    return {settings.NAVIGATION_CONTEXT_NAME: list(menus)}
+        'items__collection', 'items__category', 'items__page').all()
+    return {NAVIGATION_CONTEXT_NAME: list(menus)}
 
 
 def search_enabled(request):
