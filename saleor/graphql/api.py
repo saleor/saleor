@@ -1,4 +1,5 @@
 import graphene
+import graphql_jwt
 from graphene_django.debug import DjangoDebug
 from graphene_django.filter import DjangoFilterConnectionField
 
@@ -57,4 +58,10 @@ class Query(graphene.ObjectType):
         return resolve_attributes(in_category, info)
 
 
-schema = graphene.Schema(Query)
+class Mutations(graphene.ObjectType):
+    token_auth = graphql_jwt.ObtainJSONWebToken.Field()
+    verify_token = graphql_jwt.Verify.Field()
+    refresh_token = graphql_jwt.Refresh.Field()
+
+
+schema = graphene.Schema(Query, Mutations)
