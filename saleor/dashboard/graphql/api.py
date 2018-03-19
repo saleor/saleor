@@ -1,6 +1,7 @@
 import graphene
 from graphene_django.debug import DjangoDebug
 from graphene_django.filter import DjangoFilterConnectionField
+from graphql_extensions.auth.decorators import staff_member_required
 
 from ...graphql.core.filters import DistinctFilterSet
 from ...graphql.page.types import Page
@@ -23,15 +24,19 @@ class Query(graphene.ObjectType):
     pages = DjangoFilterConnectionField(
         Page, filterset_class=DistinctFilterSet)
 
+    @staff_member_required
     def resolve_category(self, info, id):
         return get_node(info, id, only_type=Category)
 
+    @staff_member_required
     def resolve_categories(self, info, level=None, **kwargs):
         return resolve_categories(info, level)
 
+    @staff_member_required
     def resolve_page(self, info, id):
         return get_node(info, id, only_type=Page)
 
+    @staff_member_required
     def resolve_pages(self, info):
         return resolve_all_pages()
 
