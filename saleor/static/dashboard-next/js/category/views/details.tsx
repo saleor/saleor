@@ -70,7 +70,7 @@ const CategoryDetails = decorate(
       const { classes, filters, id } = this.props;
       if (id) {
         return (
-<Navigator>
+          <Navigator>
             {navigate => {
               const applyFilters = data => {
                 navigate(
@@ -81,192 +81,198 @@ const CategoryDetails = decorate(
               const clearFilters = () => navigate("?");
               return (
                 <TypedCategoryPropertiesQuery
-            query={categoryPropertiesQuery}
-            variables={{ id, first: 12 }}
-            fetchPolicy="network-only"
-          >
-            {({ loading, error, data: { category }, fetchMore }) => {
-              if (error) {
-                return <span>not ok</span>;
-              }
-              const loadNextPage = () => {
-                if (loading) {
-                  return;
-                }
-                return fetchMore({
-                  variables: {
-                    first: 12,
-                    after: category.products.pageInfo.endCursor
-                  },
-                  updateQuery: (previousResult, { fetchMoreResult }) => {
-                    return {
-                      ...fetchMoreResult,
-                      category: {
-                        ...fetchMoreResult.category,
-                        products: {
-                          ...fetchMoreResult.category.products,
-                          pageInfo: {
-                            ...fetchMoreResult.category.products.pageInfo,
-                            hasPreviousPage: true
-                          }
-                        }
+                  query={categoryPropertiesQuery}
+                  variables={{ id, first: 12 }}
+                  fetchPolicy="network-only"
+                >
+                  {({ loading, error, data: { category }, fetchMore }) => {
+                    if (error) {
+                      return <span>not ok</span>;
+                    }
+                    const loadNextPage = () => {
+                      if (loading) {
+                        return;
                       }
-                    };
-                  }
-                });
-              };
-              const loadPreviousPage = () => {
-                if (loading) {
-                  return;
-                }
-                return fetchMore({
-                  variables: {
-                    first: undefined,
-                    last: 12,
-                    before: category.products.pageInfo.startCursor
-                  },
-                  updateQuery: (
-                    previousResult,
-                    { fetchMoreResult, variables }
-                  ) => {
-                    return {
-                      ...fetchMoreResult,
-                      category: {
-                        ...fetchMoreResult.category,
-                        products: {
-                          ...fetchMoreResult.category.products,
-                          pageInfo: {
-                            ...fetchMoreResult.category.products.pageInfo,
-                            hasNextPage: true
-                          }
+                      return fetchMore({
+                        variables: {
+                          first: 12,
+                          after: category.products.pageInfo.endCursor
+                        },
+                        updateQuery: (previousResult, { fetchMoreResult }) => {
+                          return {
+                            ...fetchMoreResult,
+                            category: {
+                              ...fetchMoreResult.category,
+                              products: {
+                                ...fetchMoreResult.category.products,
+                                pageInfo: {
+                                  ...fetchMoreResult.category.products.pageInfo,
+                                  hasPreviousPage: true
+                                }
+                              }
+                            }
+                          };
                         }
-                      }
+                      });
                     };
-                  }
-                });
-              };
-              return (
-                <Grid container spacing={16}>
-                  <Grid item xs={12}>
-                    <Grid container spacing={16}>
-                      <Grid item xs={12} md={9}>
-                        <CategoryProperties
-                          category={category}
-                          loading={loading}
-                        />
-                      </Grid>
-                    </Grid>
-                  </Grid>
-                  <Grid item xs={12}>
-                    <Grid container spacing={16}>
-                      <Grid item xs={12} md={9}>
-                        <Card>
-                          <PageHeader
-                            title={i18n.t("Subcategories", {
-                              context: "title"
-                            })}
-                          >
-                            <IconButton
-                              component={props => (
-                                <Link
-                                  to={
-                                    category ? categoryAddUrl(category.id) : "#"
+                    const loadPreviousPage = () => {
+                      if (loading) {
+                        return;
+                      }
+                      return fetchMore({
+                        variables: {
+                          first: undefined,
+                          last: 12,
+                          before: category.products.pageInfo.startCursor
+                        },
+                        updateQuery: (
+                          previousResult,
+                          { fetchMoreResult, variables }
+                        ) => {
+                          return {
+                            ...fetchMoreResult,
+                            category: {
+                              ...fetchMoreResult.category,
+                              products: {
+                                ...fetchMoreResult.category.products,
+                                pageInfo: {
+                                  ...fetchMoreResult.category.products.pageInfo,
+                                  hasNextPage: true
+                                }
+                              }
+                            }
+                          };
+                        }
+                      });
+                    };
+                    return (
+                      <Grid container spacing={16}>
+                        <Grid item xs={12}>
+                          <Grid container spacing={16}>
+                            <Grid item xs={12} md={9}>
+                              <CategoryProperties
+                                category={category}
+                                loading={loading}
+                              />
+                            </Grid>
+                          </Grid>
+                        </Grid>
+                        <Grid item xs={12}>
+                          <Grid container spacing={16}>
+                            <Grid item xs={12} md={9}>
+                              <Card>
+                                <PageHeader
+                                  title={i18n.t("Subcategories", {
+                                    context: "title"
+                                  })}
+                                >
+                                  <IconButton
+                                    component={props => (
+                                      <Link
+                                        to={
+                                          category
+                                            ? categoryAddUrl(category.id)
+                                            : "#"
+                                        }
+                                        {...props}
+                                      />
+                                    )}
+                                    disabled={loading}
+                                  >
+                                    <Add />
+                                  </IconButton>
+                                </PageHeader>
+                                <CategoryList
+                                  categories={
+                                    category &&
+                                    category.children &&
+                                    category.children.edges
                                   }
-                                  {...props}
                                 />
-                              )}
-                              disabled={loading}
-                            >
-                              <Add />
-                            </IconButton>
-                          </PageHeader>
-                          <CategoryList
-                            categories={
-                              category &&
-                              category.children &&
-                              category.children.edges
-                            }
-                          />
-                        </Card>
-                      </Grid>
-                    </Grid>
-                  </Grid>
-                  <Grid item xs={12}>
-                    <Grid container spacing={16}>
-                      <Grid item xs={12} md={9}>
-                        <Card>
-                          <PageHeader
-                            title={i18n.t("Products", { context: "title" })}
-                          >
-                            <IconButton
-                              component={props => <Link to="#" {...props} />}
-                              disabled={loading}
-                            >
-                              <Add />
-                            </IconButton>
-                            <Hidden mdUp>
-                              <IconButton
-                                disabled={loading}
-                                onClick={this.handleFilterMenuOpen}
+                              </Card>
+                            </Grid>
+                          </Grid>
+                        </Grid>
+                        <Grid item xs={12}>
+                          <Grid container spacing={16}>
+                            <Grid item xs={12} md={9}>
+                              <Card>
+                                <PageHeader
+                                  title={i18n.t("Products", {
+                                    context: "title"
+                                  })}
+                                >
+                                  <IconButton
+                                    component={props => (
+                                      <Link to="#" {...props} />
+                                    )}
+                                    disabled={loading}
+                                  >
+                                    <Add />
+                                  </IconButton>
+                                  <Hidden mdUp>
+                                    <IconButton
+                                      disabled={loading}
+                                      onClick={this.handleFilterMenuOpen}
+                                    >
+                                      <FilterListIcon />
+                                    </IconButton>
+                                  </Hidden>
+                                </PageHeader>
+                                <ProductList
+                                  hasNextPage={
+                                    category &&
+                                    category.products &&
+                                    category.products.pageInfo &&
+                                    category.products.pageInfo.hasNextPage
+                                  }
+                                  hasPreviousPage={
+                                    category &&
+                                    category.products &&
+                                    category.products.pageInfo &&
+                                    category.products.pageInfo.hasPreviousPage
+                                  }
+                                  onNextPage={loadNextPage}
+                                  onPreviousPage={loadPreviousPage}
+                                  products={
+                                    category &&
+                                    category.products &&
+                                    category.products.edges
+                                  }
+                                />
+                              </Card>
+                            </Grid>
+                            <Grid item xs={12} md={3}>
+                              <Hidden smDown>
+                                <ProductFilters
+                                  handleSubmit={applyFilters}
+                                  handleClear={clearFilters}
+                                  productTypes={dummyProductTypes}
+                                  formState={filters}
+                                />
+                              </Hidden>
+                              <Drawer
+                                open={this.state.isFilterMenuOpened}
+                                onClose={this.handleFilterMenuOpen}
+                                anchor="bottom"
                               >
-                                <FilterListIcon />
-                              </IconButton>
-                            </Hidden>
-                          </PageHeader>
-                          <ProductList
-                            hasNextPage={
-                              category &&
-                              category.products &&
-                              category.products.pageInfo &&
-                              category.products.pageInfo.hasNextPage
-                            }
-                            hasPreviousPage={
-                              category &&
-                              category.products &&
-                              category.products.pageInfo &&
-                              category.products.pageInfo.hasPreviousPage
-                            }
-                            onNextPage={loadNextPage}
-                            onPreviousPage={loadPreviousPage}
-                            products={
-                              category &&
-                              category.products &&
-                              category.products.edges
-                            }
-                          />
-                        </Card>
+                                <ProductFilters
+                                  handleSubmit={applyFilters}
+                                  handleClear={clearFilters}
+                                  productTypes={dummyProductTypes}
+                                  formState={filters}
+                                />
+                              </Drawer>
+                            </Grid>
+                          </Grid>
+                        </Grid>
                       </Grid>
-                      <Grid item xs={12} md={3}>
-                        <Hidden smDown>
-                          <ProductFilters
-                            handleSubmit={applyFilters}
-                            handleClear={clearFilters}
-                            productTypes={dummyProductTypes}
-                            formState={filters}
-                          />
-                        </Hidden>
-                        <Drawer
-                          open={this.state.isFilterMenuOpened}
-                          onClose={this.handleFilterMenuOpen}
-                          anchor="bottom"
-                        >
-                          <ProductFilters
-                            handleSubmit={applyFilters}
-                            handleClear={clearFilters}
-                            productTypes={dummyProductTypes}
-                            formState={filters}
-                          />
-                        </Drawer>
-                      </Grid>
-                    </Grid>
-                  </Grid>
-                </Grid>
+                    );
+                  }}
+                </TypedCategoryPropertiesQuery>
               );
             }}
-          </TypedCategoryPropertiesQuery>
-              );
-            }}
-</Navigator>
+          </Navigator>
         );
       }
       return (

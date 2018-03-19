@@ -15,28 +15,22 @@ const decorate = withStyles(theme => ({
 
 export interface FilterCardProps {
   handleClear();
-  handleSubmit();
 }
 
 const FilterCard = decorate<FilterCardProps>(props => {
-  const { children, classes, handleClear, handleSubmit } = props;
+  const { children, classes, handleClear } = props;
   return (
     <Card>
-      <form onSubmit={handleSubmit}>
+      <form>
         <CardHeader
           action={
-            <IconButton onClick={handleClear}>
-              <Cancel />
-            </IconButton>
+            <Button onClick={handleClear}>
+              {i18n.t("Clear", { context: "label" })}
+            </Button>
           }
           title={i18n.t("Filters")}
         />
         <CardContent>{children}</CardContent>
-        <CardActions className={classes.filterCardActions}>
-          <Button onClick={handleClear} variant="raised">
-            {i18n.t("Filter", { context: "label" })}
-          </Button>
-        </CardActions>
       </form>
     </Card>
   );

@@ -42,7 +42,7 @@ export class ProductFilters extends Component<
   };
   constructor(props) {
     super(props);
-    this.state = ProductFilters.defaultState;
+    this.state = { ...ProductFilters.defaultState, ...props.formState };
   }
 
   render() {
