@@ -14,24 +14,27 @@ from .utils import get_node
 
 
 class Query(graphene.ObjectType):
-    attributes = DjangoFilterConnectionField(
-        ProductAttribute,
-        filterset_class=DistinctFilterSet,
-        in_category=graphene.Argument(graphene.ID))
+    node = graphene.Node.Field()
+    debug = graphene.Field(DjangoDebug, name='__debug')
+
     categories = DjangoFilterConnectionField(
         Category, filterset_class=DistinctFilterSet,
         level=graphene.Argument(graphene.Int))
     category = graphene.Field(Category, id=graphene.Argument(graphene.ID))
+
     page = graphene.Field(
         Page, id=graphene.Argument(graphene.ID), slug=graphene.String())
     pages = DjangoFilterConnectionField(
         Page, filterset_class=DistinctFilterSet,
         level=graphene.Argument(graphene.Int))
+
+    attributes = DjangoFilterConnectionField(
+        ProductAttribute,
+        filterset_class=DistinctFilterSet,
+        in_category=graphene.Argument(graphene.ID))
     product = graphene.Field(Product, id=graphene.Argument(graphene.ID))
     products = DjangoFilterConnectionField(
         Product, filterset_class=ProductFilterSet)
-    node = graphene.Node.Field()
-    debug = graphene.Field(DjangoDebug, name='__debug')
 
     def resolve_category(self, info, id):
         return get_node(info, id, only_type=Category)

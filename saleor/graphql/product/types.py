@@ -29,8 +29,6 @@ class Product(CountableDjangoObjectType):
         size=graphene.Argument(
             graphene.String,
             description='The size of a thumbnail, for example 255x255'))
-    images = graphene.List(lambda: ProductImage)
-    variants = graphene.List(lambda: ProductVariant)
     availability = graphene.Field(ProductAvailability)
     price = graphene.Field(Money)
 
@@ -43,12 +41,6 @@ class Product(CountableDjangoObjectType):
             size = '255x255'
         return product_first_image(self, size)
 
-    def resolve_images(self, info):
-        return self.images.all()
-
-    def resolve_variants(self, info):
-        return self.variants.all()
-
     def resolve_url(self, info):
         return self.get_absolute_url()
 
@@ -57,6 +49,15 @@ class Product(CountableDjangoObjectType):
         availability = get_availability(
             self, context.discounts, context.currency)
         return ProductAvailability(**availability._asdict())
+
+
+class ProductType(CountableDjangoObjectType):
+    products = DjangoFilterConnectionField(
+        Product, filterset_class=ProductFilterSet)
+
+    class Meta:
+        model = models.ProductType
+        interfaces = [relay.Node]
 
 
 class Category(CountableDjangoObjectType):
