@@ -54,7 +54,9 @@ class AjaxSelect2ChoiceField(forms.ChoiceField):
 class AjaxSelect2CombinedChoiceField(AjaxSelect2ChoiceField):
     """An AJAX-based choice field using Select2 for multiple querysets.
 
-    <obj.pk>_<obj.__class__.__name__> represents value passed to a field.
+    Value passed to a field is of format '<obj.id>_<obj.__class__.__name__>',
+    e. g. '17_Collection' for Collection object with id 17.
+
     fetch_data_url - specifies url, from which select2 will fetch data
     initial - initial object
     """
