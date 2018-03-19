@@ -7,7 +7,6 @@
 {% load status %}
 {% load staticfiles %}
 {% load dashboard %}
-{% load discount_amount_for from prices %}
 
 {% block title %}
   {% trans "Fulfill" context "Dashboard order fulfillment" %} {{ order }} - {% trans "Orders" context "Dashboard orders list" %} - {{ block.super }}
