@@ -328,7 +328,7 @@ if AWS_MEDIA_BUCKET_NAME:
 MESSAGE_STORAGE = 'django.contrib.messages.storage.session.SessionStorage'
 
 VERSATILEIMAGEFIELD_RENDITION_KEY_SETS = {
-    'defaults': [
+    'products': [
         ('product_gallery', 'crop__540x540'),
         ('product_gallery_2x', 'crop__1080x1080'),
         ('product_small', 'crop__60x60'),
