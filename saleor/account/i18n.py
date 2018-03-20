@@ -89,30 +89,6 @@ class AddressForm(forms.ModelForm):
         ('phone', 'tel'),
         ('email', 'email')]
 
-    labels = {
-        'first_name': pgettext_lazy(
-            'Personal name', 'Given name'),
-        'last_name': pgettext_lazy(
-            'Personal name', 'Family name'),
-        'company_name': pgettext_lazy(
-            'Company or organization', 'Company or organization'),
-        'street_address_1': pgettext_lazy(
-            'Address', 'Address'),
-        'street_address_2': pgettext_lazy(
-            'Address', 'Address'),
-        'city': pgettext_lazy(
-            'City', 'City'),
-        'city_area': pgettext_lazy(
-            'City area', 'District'),
-        'postal_code': pgettext_lazy(
-            'Postal code', 'Postal code'),
-        'country': pgettext_lazy(
-            'Country', 'Country'),
-        'country_area': pgettext_lazy(
-            'Country area', 'State or province'),
-        'phone': pgettext_lazy(
-            'Phone number', 'Phone number')}
-
     class Meta:
         model = Address
         exclude = []
@@ -149,7 +125,6 @@ class AddressForm(forms.ModelForm):
         autocomplete_dict = defaultdict(
             lambda: 'off', self.AUTOCOMPLETE_MAPPING)
         for field_name, field in self.fields.items():
-            field.label = self.labels[field_name]
             if autocomplete_type:
                 autocomplete = '%s %s' % (
                     autocomplete_type, autocomplete_dict[field_name])
@@ -234,6 +209,10 @@ def get_form_i18n_lines(form_instance):
 
 
 def update_base_fields(form_class, i18n_rules):
+    for field_name, label_value in AddressForm.Meta.labels.items():
+        field = form_class.base_fields[field_name]
+        field.label = label_value
+
     if i18n_rules.country_area_choices:
         form_class.base_fields['country_area'] = CountryAreaChoiceField(
             choices=i18n_rules.country_area_choices)
