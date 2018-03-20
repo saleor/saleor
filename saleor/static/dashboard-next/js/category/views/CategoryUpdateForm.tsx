@@ -4,16 +4,16 @@ import { CircularProgress } from "material-ui/Progress";
 import * as React from "react";
 import { Redirect } from "react-router-dom";
 
-import BaseCategoryForm from "../components/BaseForm";
 import ErrorMessageCard from "../../components/cards/ErrorMessageCard";
-import { TypedCategoryDetailsQuery, categoryDetailsQuery } from "../queries";
-import {
-  TypedCategoryUpdateMutation,
-  categoryUpdateMutation
-} from "../mutations";
-import { categoryShowUrl } from "../index";
-import i18n from "../../i18n";
 import PageHeader from "../../components/PageHeader";
+import i18n from "../../i18n";
+import BaseCategoryForm from "../components/BaseForm";
+import { categoryShowUrl } from "../index";
+import {
+  categoryUpdateMutation,
+  TypedCategoryUpdateMutation
+} from "../mutations";
+import { categoryDetailsQuery, TypedCategoryDetailsQuery } from "../queries";
 
 interface CategoryUpdateFormProps {
   id: string;

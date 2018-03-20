@@ -3,8 +3,8 @@ import { MemoryRouter } from "react-router-dom";
 import * as renderer from "react-test-renderer";
 
 import CategoryList from "../../category/components/CategoryList";
-import categoryListFixture from "./fixtures/categoryList";
 import categoryFixture from "./fixtures/category";
+import categoryListFixture from "./fixtures/categoryList";
 
 describe("<CategoryList />", () => {
   it("renders while data is loading", () => {

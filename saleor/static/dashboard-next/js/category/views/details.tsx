@@ -1,39 +1,42 @@
-import * as React from "react";
-import { stringify as stringifyQs } from "qs";
-import Add from "material-ui-icons/Add";
+import AddIcon from "material-ui-icons/Add";
+import FilterListIcon from "material-ui-icons/FilterList";
 import Card from "material-ui/Card";
 import Drawer from "material-ui/Drawer";
-import FilterListIcon from "material-ui-icons/FilterList";
 import Grid from "material-ui/Grid";
+import Hidden from "material-ui/Hidden";
 import IconButton from "material-ui/IconButton";
-import { Component } from "react";
-import { Link } from "react-router-dom";
 import { withStyles, WithStyles } from "material-ui/styles";
+import { stringify as stringifyQs } from "qs";
+import * as React from "react";
+import { Link } from "react-router-dom";
 
-import {
-  TypedCategoryPropertiesQuery,
-  TypedRootCategoryChildrenQuery,
-  categoryPropertiesQuery,
-  rootCategoryChildrenQuery
-} from "../queries";
+import ErrorMessageCard from "../../components/cards/ErrorMessageCard";
+import Navigator, { NavigatorLink } from "../../components/Navigator";
+import PageHeader from "../../components/PageHeader";
+import i18n from "../../i18n";
 import CategoryList from "../components/CategoryList";
 import CategoryProperties from "../components/CategoryProperties";
-import Hidden from "material-ui/Hidden";
-import Navigator from "../../components/Navigator";
-import PageHeader from "../../components/PageHeader";
 import ProductFilters from "../components/ProductFilters";
 import ProductList from "../components/ProductList";
-import i18n from "../../i18n";
+import RootCategoryList from "../components/RootCategoryList";
 import { categoryAddUrl } from "../index";
+import {
+  categoryPropertiesQuery,
+  rootCategoryChildrenQuery,
+  TypedCategoryPropertiesQuery,
+  TypedRootCategoryChildrenQuery
+} from "../queries";
+
+const { Component } = React;
 
 const decorate = withStyles(theme => ({
+  subtitle: {
+    alignItems: "center" as "center",
+    display: "flex",
+    marginBottom: theme.spacing.unit * 2
+  },
   title: {
     flex: 1
-  },
-  subtitle: {
-    display: "flex",
-    alignItems: "center" as "center",
-    marginBottom: theme.spacing.unit * 2
   }
 }));
 
@@ -85,19 +88,22 @@ const CategoryDetails = decorate(
                   variables={{ id, first: 12 }}
                   fetchPolicy="network-only"
                 >
-                  {({ loading, error, data: { category }, fetchMore }) => {
+                  {({ loading, error, data, fetchMore }) => {
                     if (error) {
-                      return <span>not ok</span>;
+                      return (
+                        <Grid container spacing={16}>
+                          <Grid item xs={12} md={9}>
+                            <ErrorMessageCard message="Unable to find a matching category." />
+                          </Grid>
+                        </Grid>
+                      );
                     }
+                    const { category } = data;
                     const loadNextPage = () => {
                       if (loading) {
                         return;
                       }
                       return fetchMore({
-                        variables: {
-                          first: 12,
-                          after: category.products.pageInfo.endCursor
-                        },
                         updateQuery: (previousResult, { fetchMoreResult }) => {
                           return {
                             ...fetchMoreResult,
@@ -112,6 +118,10 @@ const CategoryDetails = decorate(
                               }
                             }
                           };
+                        },
+                        variables: {
+                          after: category.products.pageInfo.endCursor,
+                          first: 12
                         }
                       });
                     };
@@ -120,11 +130,6 @@ const CategoryDetails = decorate(
                         return;
                       }
                       return fetchMore({
-                        variables: {
-                          first: undefined,
-                          last: 12,
-                          before: category.products.pageInfo.startCursor
-                        },
                         updateQuery: (
                           previousResult,
                           { fetchMoreResult, variables }
@@ -142,6 +147,11 @@ const CategoryDetails = decorate(
                               }
                             }
                           };
+                        },
+                        variables: {
+                          before: category.products.pageInfo.startCursor,
+                          first: undefined,
+                          last: 12
                         }
                       });
                     };
@@ -179,7 +189,7 @@ const CategoryDetails = decorate(
                                     )}
                                     disabled={loading}
                                   >
-                                    <Add />
+                                    <AddIcon />
                                   </IconButton>
                                 </PageHeader>
                                 <CategoryList
@@ -208,7 +218,7 @@ const CategoryDetails = decorate(
                                     )}
                                     disabled={loading}
                                   >
-                                    <Add />
+                                    <AddIcon />
                                   </IconButton>
                                   <Hidden mdUp>
                                     <IconButton
@@ -280,24 +290,24 @@ const CategoryDetails = decorate(
           query={rootCategoryChildrenQuery}
           fetchPolicy="network-only"
         >
-          {({ error, loading, data: { categories } }) => {
+          {({ error, loading, data }) => {
             if (error) {
               return <span>not ok</span>;
             }
             return (
-              <Card>
-                <PageHeader title={i18n.t("Categories", { context: "title" })}>
-                  <IconButton
-                    component={props => (
-                      <Link to={categoryAddUrl()} {...props} />
+              <Grid container spacing={16}>
+                <Grid item xs={12} md={9}>
+                  <NavigatorLink to={categoryAddUrl()}>
+                    {handleCreate => (
+                      <RootCategoryList
+                        data={data}
+                        loading={loading}
+                        onCreate={handleCreate}
+                      />
                     )}
-                    disabled={loading}
-                  >
-                    <Add />
-                  </IconButton>
-                </PageHeader>
-                <CategoryList categories={categories && categories.edges} />
-              </Card>
+                  </NavigatorLink>
+                </Grid>
+              </Grid>
             );
           }}
         </TypedRootCategoryChildrenQuery>

@@ -3,19 +3,19 @@ import Grid from "material-ui/Grid";
 import * as React from "react";
 import { Redirect } from "react-router-dom";
 
-import BaseCategoryForm from "../components/BaseForm";
-import { categoryShowUrl } from "../index";
-import {
-  TypedCategoryCreateMutation,
-  categoryCreateMutation
-} from "../mutations";
 import ErrorMessageCard from "../../components/cards/ErrorMessageCard";
 import PageHeader from "../../components/PageHeader";
 import i18n from "../../i18n";
+import BaseCategoryForm from "../components/BaseForm";
+import { categoryShowUrl } from "../index";
+import {
+  categoryCreateMutation,
+  TypedCategoryCreateMutation
+} from "../mutations";
 
-type CategoryCreateFormProps = {
+interface CategoryCreateFormProps {
   parentId: string;
-};
+}
 
 export const CategoryCreateForm: React.StatelessComponent<
   CategoryCreateFormProps

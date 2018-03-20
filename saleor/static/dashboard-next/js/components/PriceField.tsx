@@ -1,38 +1,39 @@
-import * as React from "react";
-import Input, { InputLabel, InputAdornment } from "material-ui/Input";
-import Typography from "material-ui/Typography";
 import { FormControl, FormHelperText } from "material-ui/Form";
+import Input, { InputAdornment, InputLabel } from "material-ui/Input";
 import { withStyles } from "material-ui/styles";
+import Typography from "material-ui/Typography";
+import * as React from "react";
 
 interface PriceFieldProps {
-  label: string;
-  hint?: string;
   currencySymbol: string;
+  hint?: string;
+  label: string;
   name: string;
-  onChange(event: any);
   value: {
-    min?: string;
     max?: string;
+    min?: string;
   };
+  onChange(event: any);
 }
 
 const decorate = withStyles(theme => ({
-  widgetContainer: {
-    marginTop: theme.spacing.unit * 2
-  },
   inputContainer: {
     display: "grid",
     gridTemplateColumns: "calc(50% - 1rem) 2rem calc(50% - 1rem)"
   },
-  separator: {
-    textAlign: "center",
-    width: "100%",
-    marginTop: theme.spacing.unit * 3
-  },
   maxInput: {
+    marginTop: theme.spacing.unit * 2
+  },
+  separator: {
+    marginTop: theme.spacing.unit * 3,
+    textAlign: "center",
+    width: "100%"
+  },
+  widgetContainer: {
     marginTop: theme.spacing.unit * 2
   }
 }));
+
 export const PriceField = decorate<PriceFieldProps>(
   ({ label, hint, currencySymbol, name, classes, onChange, value }) => (
     <div className={classes.widgetContainer}>

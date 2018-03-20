@@ -1,4 +1,4 @@
-import * as React from "react";
+import Folder from "material-ui-icons/Folder";
 import Button from "material-ui/Button";
 import Grid from "material-ui/Grid";
 import List, {
@@ -8,13 +8,13 @@ import List, {
   ListSubheader
 } from "material-ui/List";
 import Typography from "material-ui/Typography";
-import Folder from "material-ui-icons/Folder";
+import * as React from "react";
 import { Link } from "react-router-dom";
 
 import { categoryAddUrl, categoryShowUrl } from "../";
-import { CategoryPropertiesQuery } from "../gql-types";
-import i18n from "../../i18n";
 import Skeleton from "../../components/Skeleton";
+import i18n from "../../i18n";
+import { CategoryPropertiesQuery } from "../gql-types";
 
 interface CategoryListProps {
   categories?: CategoryPropertiesQuery["category"]["children"]["edges"];

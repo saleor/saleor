@@ -1,10 +1,10 @@
-import * as React from "react";
 import Chip from "material-ui/Chip";
-import Select, { SelectProps } from "material-ui/Select";
 import { FormControl, FormHelperText } from "material-ui/Form";
 import { InputLabel } from "material-ui/Input";
 import { MenuItem } from "material-ui/Menu";
+import Select, { SelectProps } from "material-ui/Select";
 import { withStyles } from "material-ui/styles";
+import * as React from "react";
 
 const decorate = withStyles({
   formControl: {
@@ -13,23 +13,27 @@ const decorate = withStyles({
 });
 
 interface SingleSelectFieldProps {
-  label: string;
-  hint?: string;
   choices: Array<{
     value: string;
     label: string;
   }>;
-  value: string;
-  onChange(event: any);
+  hint?: string;
+  label: string;
   name: string;
   selectProps?: SelectProps;
+  value: string;
+  onChange(event: any);
 }
+
 export const SingleSelectField = decorate<SingleSelectFieldProps>(
   ({ classes, label, choices, value, onChange, name, hint, selectProps }) => {
-    const choicesByKey = choices.reduce((prev, curr) => {
-      prev[curr.value] = curr.label;
-      return prev;
-    }, {});
+    const choicesByKey: { [key: string]: string } = choices.reduce(
+      (prev, curr) => {
+        prev[curr.value] = curr.label;
+        return prev;
+      },
+      {}
+    );
 
     return (
       <FormControl className={classes.formControl}>

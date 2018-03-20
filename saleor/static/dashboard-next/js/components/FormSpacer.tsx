@@ -1,5 +1,5 @@
-import * as React from "react";
 import { withStyles } from "material-ui/styles";
+import * as React from "react";
 
 interface FormSpacerProps {
   children?: React.ReactNode;

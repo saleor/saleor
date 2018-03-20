@@ -1,9 +1,9 @@
 // @inheritedComponent TableCell
 
+import { withStyles } from "material-ui/styles";
 import { TableCell } from "material-ui/Table";
 import Toolbar from "material-ui/Toolbar";
 import Typography from "material-ui/Typography";
-import { withStyles } from "material-ui/styles";
 import PropTypes from "prop-types";
 import * as React from "react";
 
@@ -11,30 +11,22 @@ import TablePaginationActions from "./TablePaginationActions";
 
 const decorate = withStyles(
   theme => ({
-    root: {
-      "&:last-child": {
-        padding: 0
-      }
-    },
-    toolbar: {
-      height: 56,
-      minHeight: 56,
-      paddingRight: 2
-    },
-    spacer: {
-      flex: "1 1 100%"
+    actions: {
+      color: theme.palette.text.secondary,
+      flexShrink: 0,
+      marginLeft: theme.spacing.unit * 2.5
     },
     caption: {
       flexShrink: 0
     },
     input: {
-      fontSize: "inherit",
-      flexShrink: 0
+      flexShrink: 0,
+      fontSize: "inherit"
     },
-    selectRoot: {
-      marginRight: theme.spacing.unit * 4,
-      marginLeft: theme.spacing.unit,
-      color: theme.palette.text.secondary
+    root: {
+      "&:last-child": {
+        padding: 0
+      }
     },
     select: {
       paddingLeft: theme.spacing.unit,
@@ -43,10 +35,18 @@ const decorate = withStyles(
     selectIcon: {
       top: 1
     },
-    actions: {
-      flexShrink: 0,
+    selectRoot: {
       color: theme.palette.text.secondary,
-      marginLeft: theme.spacing.unit * 2.5
+      marginLeft: theme.spacing.unit,
+      marginRight: theme.spacing.unit * 4
+    },
+    spacer: {
+      flex: "1 1 100%"
+    },
+    toolbar: {
+      height: 56,
+      minHeight: 56,
+      paddingRight: 2
     }
   }),
   {

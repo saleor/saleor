@@ -26,4 +26,18 @@ Navigator.contextTypes = {
   })
 };
 
+interface NavigatorLinkProps {
+  replace?: boolean;
+  to: string;
+  children(func: () => any);
+}
+
+export const NavigatorLink: React.StatelessComponent<NavigatorLinkProps> = ({
+  children,
+  replace,
+  to
+}) => (
+  <Navigator>{navigate => children(() => navigate(to, replace))}</Navigator>
+);
+
 export default Navigator;

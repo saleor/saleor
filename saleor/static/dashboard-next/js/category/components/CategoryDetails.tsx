@@ -1,22 +1,22 @@
+import DeleteForever from "material-ui-icons/DeleteForever";
+import ModeEdit from "material-ui-icons/ModeEdit";
 import Button from "material-ui/Button";
 import Card, { CardActions, CardContent, CardHeader } from "material-ui/Card";
 import IconButton from "material-ui/IconButton";
 import Typography from "material-ui/Typography";
-import DeleteForever from "material-ui-icons/DeleteForever";
-import ModeEdit from "material-ui-icons/ModeEdit";
 import * as React from "react";
 import { Link } from "react-router-dom";
 
+import PageHeader from "../../components/PageHeader";
 import Skeleton from "../../components/Skeleton";
 import i18n from "../../i18n";
-import PageHeader from "../../components/PageHeader";
 
 interface CategoryDetailsProps {
   backLink?: string;
   description?: string;
   editButtonLink?: string;
-  handleRemoveButtonClick?();
   title?: string;
+  handleRemoveButtonClick?();
 }
 
 export const CategoryDetails: React.StatelessComponent<

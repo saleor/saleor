@@ -13,7 +13,7 @@ const ErrorMessageCard: React.StatelessComponent<ErrorMessageCardProps> = ({
 }) => (
   <Card>
     <CardContent>
-      <Typography variant="display1">
+      <Typography variant="headline" component="h2">
         {i18n.t("Error", { context: "title" })}
       </Typography>
       <Typography variant="body1">{message}</Typography>
