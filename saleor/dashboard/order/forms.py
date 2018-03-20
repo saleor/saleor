@@ -11,8 +11,10 @@ from ...account.i18n import (
 from ...cart.forms import QuantityField
 from ...core.exceptions import InsufficientStock
 from ...discount.utils import decrease_voucher_usage
+from ...order import OrderStatus
 from ...order.emails import send_note_confirmation
-from ...order.models import Fulfillment, FulfillmentLine, OrderLine, OrderNote
+from ...order.models import (
+    Fulfillment, FulfillmentLine, Order, OrderLine, OrderNote)
 from ...order.utils import (
     add_variant_to_order, cancel_fulfillment, cancel_order,
     change_order_line_quantity, merge_duplicates_into_order_line,
@@ -22,6 +24,28 @@ from ...product.utils import allocate_stock, deallocate_stock
 from ..forms import AjaxSelect2ChoiceField
 from ..widgets import PhonePrefixWidget
 from .utils import fulfill_order_line
+
+
+class ConfirmDraftOrderForm(forms.ModelForm):
+    class Meta:
+        model = Order
+        fields = []
+
+    def clean(self):
+        super().clean()
+        if self.instance.status != OrderStatus.DRAFT:
+            raise forms.ValidationError(pgettext_lazy(
+                'Confirm draft order form error',
+                'Order must have draft status to confirm'))
+        if self.instance.get_total_quantity() == 0:
+            raise forms.ValidationError(pgettext_lazy(
+                'Confirm draft order form error',
+                'Could not confirm order without any products'))
+        return self.cleaned_data
+
+    def save(self, commit=True):
+        self.instance.status = OrderStatus.UNFULFILLED
+        return super().save(commit)
 
 
 class OrderNoteForm(forms.ModelForm):
