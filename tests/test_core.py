@@ -215,10 +215,14 @@ def test_create_thumbnails(product_with_image, settings):
     assert not log_deleted_images
 
     create_thumbnails(product_image.pk, ProductImage, 'products')
-
     log_deleted_images = io.StringIO()
     with redirect_stdout(log_deleted_images):
         product_image.image.delete_all_created_images()
     log_deleted_images = log_deleted_images.getvalue()
-    # There should be oneline (one img) per one size in the sizeset
-    assert log_deleted_images.count('\n') == len(sizeset)
+
+    for image_name, method_size in sizeset:
+        method, size = method_size.split('__')
+        if method == 'crop':
+            assert product_image.image.crop[size].name in log_deleted_images
+        elif method == 'thumbnail':
+            assert product_image.image.thumbnail[size].name in log_deleted_images  # noqa
