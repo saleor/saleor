@@ -327,7 +327,20 @@ def order_customer_edit(request, order_pk):
     status = 200
     if form.is_valid():
         form.save()
-        msg = pgettext_lazy('Dashboard message', '')
+        user_email = form.cleaned_data.get('user_email')
+        user = form.cleaned_data.get('user')
+        if user_email:
+            msg = pgettext_lazy(
+                'Dashboard message',
+                '%s email assigned to an order') % user_email
+        elif user:
+            msg = pgettext_lazy(
+                'Dashboard message',
+                '%s user assigned to an order') % user
+        else:
+            msg = pgettext_lazy(
+                'Dashboard message',
+                'Guest user assigned to an order')
         order.history.create(content=msg, user=request.user)
         messages.success(request, msg)
         return redirect('dashboard:order-details', order_pk=order_pk)

@@ -894,3 +894,80 @@ def test_view_confirm_draft_order_not_draft_order(
     response = admin_client.post(url, data)
 
     assert response.status_code == 404
+
+
+@pytest.mark.django_db
+def test_view_order_customer_edit_to_existing_user(
+        admin_user, admin_client, customer_user):
+    order = Order.objects.create()
+    url = reverse(
+        'dashboard:order-customer-edit', kwargs={'order_pk': order.pk})
+    data = {'user_email': '', 'user': customer_user.pk}
+
+    response = admin_client.post(url, data)
+
+    assert response.status_code == 302
+    order.refresh_from_db()
+    assert order.user == customer_user
+    assert not order.user_email
+    redirect_url = reverse(
+        'dashboard:order-details', kwargs={'order_pk': order.pk})
+    assert get_redirect_location(response) == redirect_url
+    msg = '%s user assigned to an order' % customer_user
+    assert order.history.filter(content=msg, user=admin_user)
+
+
+@pytest.mark.django_db
+def test_view_order_customer_edit_to_email(admin_user, admin_client):
+    order = Order.objects.create()
+    url = reverse(
+        'dashboard:order-customer-edit', kwargs={'order_pk': order.pk})
+    data = {'user_email': 'customer@example.com', 'user': ''}
+
+    response = admin_client.post(url, data)
+
+    assert response.status_code == 302
+    order.refresh_from_db()
+    assert order.user_email == 'customer@example.com'
+    assert not order.user
+    redirect_url = reverse(
+        'dashboard:order-details', kwargs={'order_pk': order.pk})
+    assert get_redirect_location(response) == redirect_url
+    msg = 'customer@example.com email assigned to an order'
+    assert order.history.filter(content=msg, user=admin_user)
+
+
+@pytest.mark.django_db
+def test_view_order_customer_edit_to_guest_customer(admin_user, admin_client):
+    order = Order.objects.create()
+    url = reverse(
+        'dashboard:order-customer-edit', kwargs={'order_pk': order.pk})
+    data = {'user_email': '', 'user': ''}
+
+    response = admin_client.post(url, data)
+
+    assert response.status_code == 302
+    order.refresh_from_db()
+    assert not order.user_email
+    assert not order.user
+    redirect_url = reverse(
+        'dashboard:order-details', kwargs={'order_pk': order.pk})
+    assert get_redirect_location(response) == redirect_url
+    msg = 'Guest user assigned to an order'
+    assert order.history.filter(content=msg, user=admin_user)
+
+
+@pytest.mark.django_db
+def test_view_order_customer_edit_not_valid(admin_client, customer_user):
+    order = Order.objects.create()
+    url = reverse(
+        'dashboard:order-customer-edit', kwargs={'order_pk': order.pk})
+    data = {'user_email': 'customer@example.com', 'user': customer_user.pk}
+
+    response = admin_client.post(url, data)
+
+    assert response.status_code == 400
+    order.refresh_from_db()
+    assert not order.user == customer_user
+    assert not order.user_email
+    assert len(response.context.get('form').errors) == 1
