@@ -1,17 +1,23 @@
-from unittest.mock import Mock
+import io
+from contextlib import redirect_stdout
+from unittest.mock import Mock, patch
 
 import pytest
 from django.shortcuts import reverse
 from prices import Money
-
 from saleor.account.models import Address, User
 from saleor.core.utils import (
+<<<<<<< HEAD
     Country, create_superuser, format_money, get_country_by_ip,
     get_currency_for_country, random_data)
 from saleor.core.utils.text import get_cleaner, strip_html
+=======
+    Country, create_superuser, create_thumbnails, format_money,
+    get_country_by_ip, get_currency_for_country, random_data)
+>>>>>>> Add tests
 from saleor.discount.models import Sale, Voucher
 from saleor.order.models import Order
-from saleor.product.models import Product
+from saleor.product.models import Product, ProductImage
 from saleor.shipping.models import ShippingMethod
 
 type_schema = {
@@ -119,19 +125,27 @@ def test_create_product_types_by_schema(db):
     assert product_type.is_shipping_required
 
 
-def test_create_products_by_type(db, monkeypatch, product_image):
+@patch('saleor.core.utils.random_data.create_product_thumbnails.delay')
+def test_create_products_by_type(
+        mock_create_thumbnails, db, monkeypatch, product_image):
     # Tests shouldn't depend on images present in placeholder folder
     monkeypatch.setattr(
         'saleor.core.utils.random_data.get_image',
         Mock(return_value=product_image))
+    dummy_file_names = ['example.jpg', 'example2.jpg']
+    monkeypatch.setattr(
+        'saleor.core.utils.random_data.os.listdir',
+        Mock(return_value=dummy_file_names))
+
     assert Product.objects.all().count() == 0
     how_many = 5
     product_type = random_data.create_product_types_by_schema(
         type_schema)[0][0]
     random_data.create_products_by_type(
         product_type, type_schema['Vegetable'], '/',
-        how_many=how_many, create_images=False)
+        how_many=how_many, create_images=True)
     assert Product.objects.all().count() == how_many
+    assert mock_create_thumbnails.called
 
 
 def test_create_fake_order(db, monkeypatch, product_image):
@@ -184,3 +198,27 @@ def test_utils_strip_html():
                  '\t<b>World</b>')
     text = strip_html(base_text, strip_whitespace=True)
     assert text == 'Hello World'
+
+    
+def test_create_thumbnails(product_with_image, settings):
+    settings.VERSATILEIMAGEFIELD_SETTINGS['create_images_on_demand'] = False
+    sizeset = settings.VERSATILEIMAGEFIELD_RENDITION_KEY_SETS['products']
+    product_image = product_with_image.images.first()
+
+    # There's no way to list images created by versatile prewarmer
+    # So we delete all created thumbnails/crops and count them
+    log_deleted_images = io.StringIO()
+    with redirect_stdout(log_deleted_images):
+        product_image.image.delete_all_created_images()
+    log_deleted_images = log_deleted_images.getvalue()
+    # Image didn't have any thumbnails/crops created, so there's no log
+    assert not log_deleted_images
+
+    create_thumbnails(product_image.pk, ProductImage, 'products')
+
+    log_deleted_images = io.StringIO()
+    with redirect_stdout(log_deleted_images):
+        product_image.image.delete_all_created_images()
+    log_deleted_images = log_deleted_images.getvalue()
+    # There should be oneline (one img) per one size in the sizeset
+    assert log_deleted_images.count('\n') == len(sizeset)

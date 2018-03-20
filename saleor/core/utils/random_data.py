@@ -326,14 +326,12 @@ def create_variant(product, **kwargs):
 
 def create_product_image(product, placeholder_dir):
     placeholder_root = os.path.join(settings.PROJECT_ROOT, placeholder_dir)
-    img_path = '%s/%s' % (placeholder_dir,
-                          random.choice(os.listdir(placeholder_root)))
-    image = ProductImage(
-        product=product,
-        image=File(open(img_path, 'rb')))
-    image.save()
-    create_product_thumbnails.delay(image.pk)
-    return image
+    image_name = random.choice(os.listdir(placeholder_root))
+    image = get_image(placeholder_dir, image_name)
+    product_image = ProductImage(product=product, image=image)
+    product_image.save()
+    create_product_thumbnails.delay(product_image.pk)
+    return product_image
 
 
 def create_attribute(**kwargs):
@@ -451,7 +449,6 @@ def create_fulfillments(order):
 
 
 def create_fake_order():
-
     user = random.choice([None, User.objects.filter(
         is_superuser=False).order_by('?').first()])
     if user:
