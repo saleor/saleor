@@ -98,6 +98,37 @@ def test_filtering_by_attribute(db, color_attribute, default_category):
     assert product_b not in list(filtered)
 
 
+def test_render_home_page_without_taxes(client, product):
+    response = client.get(reverse('home'))
+    assert response.status_code == 200
+
+
+def test_render_home_page_with_taxes(client, product, vatlayer):
+    response = client.get(reverse('home'))
+    assert response.status_code == 200
+
+
+def test_render_category_without_taxes(client, default_category, product):
+    response = client.get(default_category.get_absolute_url())
+    assert response.status_code == 200
+
+
+def test_render_category_with_taxes(
+        client, default_category, product, vatlayer):
+    response = client.get(default_category.get_absolute_url())
+    assert response.status_code == 200
+
+
+def test_render_product_detail_without_taxes(client, product):
+    response = client.get(product.get_absolute_url())
+    assert response.status_code == 200
+
+
+def test_render_product_detail_with_taxes(client, product, vatlayer):
+    response = client.get(product.get_absolute_url())
+    assert response.status_code == 200
+
+
 def test_view_invalid_add_to_cart(client, product, request_cart):
     variant = product.variants.get()
     request_cart.add(variant, 2)
