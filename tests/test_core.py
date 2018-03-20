@@ -121,7 +121,7 @@ def test_create_product_types_by_schema(db):
 def test_create_products_by_type(db, monkeypatch, product_image):
     # Tests shouldn't depend on images present in placeholder folder
     monkeypatch.setattr(
-        'saleor.core.utils.random_data.get_product_list_image',
+        'saleor.core.utils.random_data.get_image',
         Mock(return_value=product_image))
     assert Product.objects.all().count() == 0
     how_many = 5
@@ -136,7 +136,7 @@ def test_create_products_by_type(db, monkeypatch, product_image):
 def test_create_fake_order(db, monkeypatch, product_image):
     # Tests shouldn't depend on images present in placeholder folder
     monkeypatch.setattr(
-        'saleor.core.utils.random_data.get_product_list_image',
+        'saleor.core.utils.random_data.get_image',
         Mock(return_value=product_image))
     for _ in random_data.create_shipping_methods():
         pass
