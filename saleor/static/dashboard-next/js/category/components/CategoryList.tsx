@@ -14,7 +14,7 @@ import { Link } from "react-router-dom";
 import { categoryAddUrl, categoryShowUrl } from "../";
 import Skeleton from "../../components/Skeleton";
 import i18n from "../../i18n";
-import { CategoryPropertiesQuery } from "../gql-types";
+import { CategoryPropertiesQuery } from "../../gql-types";
 
 interface CategoryListProps {
   categories?: CategoryPropertiesQuery["category"]["children"]["edges"];

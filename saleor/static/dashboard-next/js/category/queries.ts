@@ -8,21 +8,7 @@ import {
   CategoryPropertiesQuery,
   CategoryPropertiesQueryVariables,
   RootCategoryChildrenQuery
-} from "./gql-types";
-
-const createTypedQuery = <TData, TVariables>(query) => ({
-  children,
-  ...other
-}) => {
-  const TypedQuery = Query as React.ComponentType<
-    QueryProps<TData, TVariables>
-  >;
-  return (
-    <TypedQuery query={query} {...other}>
-      {children}
-    </TypedQuery>
-  );
-};
+} from "../gql-types";
 
 export const TypedCategoryDetailsQuery = Query as React.ComponentType<
   QueryProps<CategoryDetailsQuery, CategoryDetailsQueryVariables>
