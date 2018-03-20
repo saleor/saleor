@@ -1,21 +1,21 @@
-import * as React from "react";
 import Chip from "material-ui/Chip";
-import Select, { SelectProps } from "material-ui/Select";
 import { FormControl, FormHelperText } from "material-ui/Form";
 import { InputLabel } from "material-ui/Input";
 import { MenuItem } from "material-ui/Menu";
+import Select, { SelectProps } from "material-ui/Select";
 import { withStyles } from "material-ui/styles";
+import * as React from "react";
 
 const decorate = withStyles(theme => ({
+  chip: {
+    margin: theme.spacing.unit * 0.5
+  },
   chipContainer: {
     display: "flex",
     "flex-wrap": "wrap",
-    marginTop: -theme.spacing.unit * 2,
     marginLeft: -theme.spacing.unit * 0.5,
-    marginRight: -theme.spacing.unit * 0.5
-  },
-  chip: {
-    margin: theme.spacing.unit * 0.5
+    marginRight: -theme.spacing.unit * 0.5,
+    marginTop: -theme.spacing.unit * 2
   },
   formControl: {
     // marginTop: theme.spacing.unit * 2,
@@ -24,16 +24,16 @@ const decorate = withStyles(theme => ({
 }));
 
 interface MultiSelectFieldProps {
-  label: string;
-  hint?: string;
   choices: Array<{
     value: string;
     label: string;
   }>;
-  value: Array<string>;
-  onChange(event: any);
+  hint?: string;
+  label: string;
   name: string;
   selectProps?: SelectProps;
+  value: string[];
+  onChange(event: any);
 }
 export const MultiSelectField = decorate<MultiSelectFieldProps>(
   ({ classes, label, choices, value, onChange, name, hint, selectProps }) => {
@@ -50,7 +50,7 @@ export const MultiSelectField = decorate<MultiSelectFieldProps>(
           fullWidth
           renderValue={choiceValues => (
             <div className={classes.chipContainer}>
-              {(choiceValues as Array<string>).map(choiceValue => (
+              {(choiceValues as string[]).map(choiceValue => (
                 <Chip
                   key={choiceValue}
                   label={choicesByKey[choiceValue]}

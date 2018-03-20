@@ -1,13 +1,14 @@
 import Button from "material-ui/Button";
-import Card, { CardContent, CardActions } from "material-ui/Card";
+import Card, { CardActions, CardContent } from "material-ui/Card";
+import { withStyles, WithStyles } from "material-ui/styles";
 import Toolbar from "material-ui/Toolbar";
 import Typography from "material-ui/Typography";
-import { withStyles, WithStyles } from "material-ui/styles";
 import * as React from "react";
-import { Component } from "react";
 
 import TextField from "material-ui/TextField";
 import i18n from "../../i18n";
+
+const { Component } = React;
 
 const decorate = withStyles(theme => ({
   cardActions: {
@@ -21,12 +22,12 @@ const decorate = withStyles(theme => ({
 interface BaseCategoryFormProps {
   confirmButtonLabel: string;
   description: string;
-  handleConfirm(data);
-  name: string;
   errors: Array<{
     field: string;
     message: string;
   }>;
+  name: string;
+  handleConfirm(data);
 }
 
 interface BaseCategoryFormState {
@@ -37,7 +38,7 @@ interface BaseCategoryFormState {
 }
 
 export const BaseCategoryForm = decorate(
-  class BaseCategoryForm extends Component<
+  class InnerBaseCategoryForm extends Component<
     BaseCategoryFormProps & WithStyles<"cardActions" | "textField">,
     BaseCategoryFormState
   > {
@@ -64,10 +65,13 @@ export const BaseCategoryForm = decorate(
         name,
         errors
       } = this.props;
-      const errorList = errors.reduce((acc, curr) => {
-        acc[curr.field] = curr.message;
-        return acc;
-      }, {});
+      const errorList: { [key: string]: string } = errors.reduce(
+        (acc, curr) => {
+          acc[curr.field] = curr.message;
+          return acc;
+        },
+        {}
+      );
       return (
         <>
           <CardContent>
@@ -76,8 +80,8 @@ export const BaseCategoryForm = decorate(
               fullWidth
               className={classes.textField}
               defaultValue={name}
-              error={!!errorList["name"]}
-              helperText={errorList["name"]}
+              error={!!errorList.name}
+              helperText={errorList.name}
               label={i18n.t("Name", { context: "category" })}
               name="name"
               onChange={this.handleInputChange}
@@ -86,9 +90,9 @@ export const BaseCategoryForm = decorate(
               fullWidth
               multiline
               defaultValue={description}
-              error={!!errorList["description"]}
+              error={!!errorList.description}
               helperText={
-                errorList["description"] ||
+                errorList.description ||
                 i18n.t("Optional", { context: "field" })
               }
               label={i18n.t("Description")}

@@ -1,13 +1,14 @@
-import * as React from "react";
 import TextField from "material-ui/TextField";
-import { Component } from "react";
+import * as React from "react";
 
 import FilterCard from "../../components/cards/FilterCard";
 import FormSpacer from "../../components/FormSpacer";
 import MultiSelectField from "../../components/MultiSelectField";
-import SingleSelectField from "../../components/SingleSelectField";
 import PriceField from "../../components/PriceField";
+import SingleSelectField from "../../components/SingleSelectField";
 import i18n from "../../i18n";
+
+const { Component } = React;
 
 interface ProductFiltersState {
   debounceTimeout?: any;
@@ -15,7 +16,7 @@ interface ProductFiltersState {
   name: string;
   price_min: string;
   price_max: string;
-  productTypes: Array<string>;
+  productTypes: string[];
   published: string;
 }
 interface ProductFiltersProps {
@@ -122,8 +123,8 @@ export class ProductFilters extends Component<
             context: "Product filter field label"
           })}
           choices={productTypes.map(type => ({
-            value: type.id,
-            label: type.name
+            label: type.name,
+            value: type.id
           }))}
           name="productTypes"
           onChange={handleInputChange}
@@ -136,8 +137,8 @@ export class ProductFilters extends Component<
           name="price"
           onChange={handleInputChange}
           value={{
-            min: this.state.price_min,
-            max: this.state.price_max || ""
+            max: this.state.price_max || "",
+            min: this.state.price_min
           }}
         />
         <FormSpacer />

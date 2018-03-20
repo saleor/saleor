@@ -2,16 +2,16 @@ import IconButton from "material-ui/IconButton";
 import KeyboardArrowLeft from "material-ui/internal/svg-icons/KeyboardArrowLeft";
 import KeyboardArrowRight from "material-ui/internal/svg-icons/KeyboardArrowRight";
 import { withStyles } from "material-ui/styles";
-import * as React from "react";
 import PropTypes from "prop-types";
+import * as React from "react";
 
 import theme from "../theme";
 
 const decorate = withStyles(
   theme => ({
     root: {
-      flexShrink: 0,
       color: theme.palette.text.secondary,
+      flexShrink: 0,
       marginLeft: theme.spacing.unit * 2.5
     }
   }),
@@ -29,7 +29,6 @@ interface TablePaginationActionsProps {
   nextIconButtonProps: any;
   onNextPage(event);
   onPreviousPage(event);
-  theme: any;
 }
 
 const TablePaginationActions = decorate<TablePaginationActionsProps>(

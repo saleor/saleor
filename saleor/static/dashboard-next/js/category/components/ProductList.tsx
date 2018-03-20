@@ -1,12 +1,14 @@
-import * as React from "react";
+import Cached from "material-ui-icons/Cached";
+import MoreVert from "material-ui-icons/MoreVert";
 import Avatar from "material-ui/Avatar";
 import Button from "material-ui/Button";
 import List, {
-  ListItemAvatar,
   ListItem,
+  ListItemAvatar,
   ListItemText,
   ListSubheader
 } from "material-ui/List";
+import { withStyles } from "material-ui/styles";
 import Table, {
   TableBody,
   TableCell,
@@ -14,17 +16,15 @@ import Table, {
   TableHead,
   TableRow
 } from "material-ui/Table";
-import { withStyles } from "material-ui/styles";
 import Typography from "material-ui/Typography";
-import Cached from "material-ui-icons/Cached";
-import MoreVert from "material-ui-icons/MoreVert";
+import * as React from "react";
 import { Link } from "react-router-dom";
 
-import { CategoryPropertiesQuery } from "../gql-types";
 import { categoryAddUrl } from "../";
-import i18n from "../../i18n";
 import Skeleton from "../../components/Skeleton";
 import TablePagination from "../../components/TablePagination";
+import i18n from "../../i18n";
+import { CategoryPropertiesQuery } from "../gql-types";
 
 const decorate = withStyles(theme => ({
   avatarCell: {
@@ -35,11 +35,11 @@ const decorate = withStyles(theme => ({
 }));
 
 interface ProductListProps {
+  hasNextPage?: boolean;
+  hasPreviousPage?: boolean;
   products?: CategoryPropertiesQuery["category"]["products"]["edges"];
   onNextPage();
   onPreviousPage();
-  hasNextPage?: boolean;
-  hasPreviousPage?: boolean;
 }
 
 export const ProductList = decorate<ProductListProps>(

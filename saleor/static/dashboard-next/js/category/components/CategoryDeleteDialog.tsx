@@ -4,26 +4,26 @@ import Dialog, {
   DialogContent,
   DialogTitle
 } from "material-ui/Dialog";
-import Typography from "material-ui/Typography";
 import { withStyles } from "material-ui/styles";
+import Typography from "material-ui/Typography";
 import * as React from "react";
 
 import i18n from "../../i18n";
 
 const decorate = withStyles(theme => ({
   deleteButton: {
-    backgroundColor: theme.palette.error.main,
-    color: theme.palette.error.contrastText,
     "&:hover": {
       backgroundColor: theme.palette.error.main
-    }
+    },
+    backgroundColor: theme.palette.error.main,
+    color: theme.palette.error.contrastText
   }
 }));
 
 interface CategoryDeleteDialogProps {
+  opened?: boolean;
   onClose?();
   onConfirm?();
-  opened?: boolean;
 }
 
 const CategoryDeleteDialog = decorate<CategoryDeleteDialogProps>(props => {

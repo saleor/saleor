@@ -1,10 +1,9 @@
 import { InMemoryCache } from "apollo-cache-inmemory";
 import { ApolloClient } from "apollo-client";
 import { HttpLink } from "apollo-link-http";
-import MuiThemeProvider from "material-ui/styles/MuiThemeProvider";
 import CssBaseline from "material-ui/CssBaseline";
+import MuiThemeProvider from "material-ui/styles/MuiThemeProvider";
 import * as React from "react";
-import { Fragment } from "react";
 import { ApolloProvider } from "react-apollo";
 import { render } from "react-dom";
 import { Provider } from "react-redux";
@@ -20,16 +19,16 @@ import theme from "./theme";
 const cookies = new Cookies();
 
 const apolloClient = new ApolloClient({
+  cache: new InMemoryCache(),
   link: new HttpLink({
-    uri: "/dashboard/graphql/",
     credentials: "same-origin",
     headers: {
       "X-CSRFToken": cookies.get("csrftoken")
-    }
-  }),
-  cache: new InMemoryCache()
+    },
+    uri: "/dashboard/graphql/"
+  })
 });
-const store = createStore(() => {});
+const store = createStore(() => undefined);
 
 render(
   <Provider store={store}>

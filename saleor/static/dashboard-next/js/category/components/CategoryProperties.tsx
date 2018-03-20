@@ -1,18 +1,19 @@
 import { DialogContentText } from "material-ui/Dialog";
 import * as React from "react";
-import { Component } from "react";
 import { Query } from "react-apollo";
 import { Redirect } from "react-router-dom";
 
+import i18n from "../../i18n";
+import { CategoryPropertiesQuery } from "../gql-types";
+import { categoryEditUrl, categoryShowUrl } from "../index";
+import {
+  categoryDeleteMutation,
+  TypedCategoryDeleteMutation
+} from "../mutations";
 import CategoryDeleteDialog from "./CategoryDeleteDialog";
 import CategoryDetails from "./CategoryDetails";
-import {
-  TypedCategoryDeleteMutation,
-  categoryDeleteMutation
-} from "../mutations";
-import { categoryEditUrl, categoryShowUrl } from "../index";
-import { CategoryPropertiesQuery } from "../gql-types";
-import i18n from "../../i18n";
+
+const { Component } = React;
 
 interface CategoryPropertiesProps {
   loading: boolean;

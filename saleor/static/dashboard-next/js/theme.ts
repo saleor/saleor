@@ -1,6 +1,6 @@
+import grey from "material-ui/colors/grey";
 import { createMuiTheme } from "material-ui/styles";
 import { darken } from "material-ui/styles/colorManipulator";
-import grey from "material-ui/colors/grey";
 
 const createShadow = (pv, pb, ps, uv, ub, us, av, ab, as) =>
   [
@@ -16,12 +16,6 @@ const transition = "200ms";
 export default createMuiTheme({
   overrides: {
     MuiButton: {
-      root: {
-        minWidth: 64,
-        "&:hover": {
-          backgroundColor: "transparent"
-        }
-      },
       flatPrimary: {
         "&:hover": {
           backgroundColor: "transparent",
@@ -35,25 +29,31 @@ export default createMuiTheme({
         }
       },
       raised: {
-        boxShadow: createShadow(0, 0, 0, 0, 0, 0, 0, 0, 0),
+        "&:hover": {
+          boxShadow: createShadow(2, 2, 0, 3, 1, -2, 1, 5, 0)
+        },
         "@media (hover: none)": {
           boxShadow: createShadow(2, 2, 0, 3, 1, -2, 1, 5, 0)
         },
-        "&:hover": {
-          boxShadow: createShadow(2, 2, 0, 3, 1, -2, 1, 5, 0)
-        }
+        boxShadow: createShadow(0, 0, 0, 0, 0, 0, 0, 0, 0)
       },
       raisedPrimary: {
         "&:hover": {
           backgroundColor: primary
         }
+      },
+      root: {
+        "&:hover": {
+          backgroundColor: "transparent"
+        },
+        minWidth: 64
       }
     }
   },
   palette: {
     primary: {
-      main: primary,
-      contrastText: "#ffffff"
+      contrastText: "#ffffff",
+      main: primary
     },
     secondary: {
       main: secondary
