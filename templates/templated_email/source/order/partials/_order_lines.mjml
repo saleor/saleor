@@ -2,6 +2,7 @@
   <mj-column>
     <mj-text>
       {% load prices_i18n %}
+      {% load voucher %}
     </mj-text>
   </mj-column>
 </mj-section>
@@ -25,6 +26,16 @@
             {{ order.shipping_price.gross|amount:'html' }}
           </td>
         </tr>
+        {% if order.discount_amount %}
+          <tr>
+            <td colspan="3" style="text-align: right;">
+              {% trans "Discount" context "E-mail order lines summary table" %}
+            </td>
+            <td style="text-align: right;">
+              {% discount_as_negative order.discount_amount html=True %}
+            </td>
+          </tr>
+        {% endif %}
         <tr>
           <td colspan="3" style="text-align: right;">
             <strong>{% trans "Total" context "E-mail order lines summary table" %}</strong>

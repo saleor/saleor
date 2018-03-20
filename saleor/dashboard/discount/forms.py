@@ -17,7 +17,7 @@ from ..forms import AjaxSelect2ChoiceField, AjaxSelect2MultipleChoiceField
 class SaleForm(forms.ModelForm):
     products = AjaxSelect2MultipleChoiceField(
         queryset=Product.objects.all(),
-        fetch_data_url=reverse_lazy('dashboard:ajax-products'), required=True)
+        fetch_data_url=reverse_lazy('dashboard:ajax-products'), required=False)
 
     class Meta:
         model = Sale
@@ -52,6 +52,13 @@ class SaleForm(forms.ModelForm):
             self.add_error('value', pgettext_lazy(
                 'Sale (discount) error',
                 'Sale cannot exceed 100%'))
+        products = cleaned_data.get('products')
+        categories = cleaned_data.get('categories')
+        if not products and not categories:
+            raise forms.ValidationError(pgettext_lazy(
+                'Sale (discount) error',
+                'A single sale must point to at least one product and/or '
+                'category.'))
         return cleaned_data
 
 

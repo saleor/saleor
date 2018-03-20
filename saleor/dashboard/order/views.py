@@ -16,16 +16,17 @@ from prices import Money, TaxedMoney
 from ...core.exceptions import InsufficientStock
 from ...core.utils import ZERO_TAXED_MONEY, get_paginator_items
 from ...order import OrderStatus
-from ...order.emails import send_fulfillment_confirmation, send_fulfillment_update
+from ...order.emails import (
+    send_fulfillment_confirmation, send_fulfillment_update)
 from ...order.models import (
-    FulfillmentLine, Fulfillment, Order, OrderLine, OrderNote)
+    Fulfillment, FulfillmentLine, Order, OrderLine, OrderNote)
 from ...order.utils import update_order_status
 from ...product.models import StockLocation
 from ..views import staff_member_required
 from .filters import OrderFilter
 from .forms import (
     AddressForm, AddVariantToOrderForm, BaseFulfillmentLineFormSet,
-    CancelOrderForm, CancelFulfillmentForm, CancelOrderLineForm,
+    CancelFulfillmentForm, CancelOrderForm, CancelOrderLineForm,
     CapturePaymentForm, ChangeQuantityForm, ChangeStockForm, FulfillmentForm,
     FulfillmentLineForm, FulfillmentTrackingNumberForm, OrderNoteForm,
     RefundPaymentForm, ReleasePaymentForm, RemoveVoucherForm)

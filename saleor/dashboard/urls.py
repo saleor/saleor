@@ -9,6 +9,7 @@ from .customer.urls import urlpatterns as customer_urls
 from .discount.urls import urlpatterns as discount_urls
 from .graphql.api import schema
 from .group.urls import urlpatterns as groups_urls
+from .menu.urls import urlpatterns as menu_urls
 from .order.urls import urlpatterns as order_urls
 from .page.urls import urlpatterns as page_urls
 from .product.urls import urlpatterns as product_urls
@@ -31,6 +32,7 @@ urlpatterns = [
     url(r'^groups/', include(groups_urls)),
     url(r'^discounts/', include(discount_urls)),
     url(r'^settings/', include(site_urls)),
+    url(r'^menu/', include(menu_urls)),
     url(r'^shipping/', include(shipping_urls)),
     url(r'^style-guide/', core_views.styleguide, name='styleguide'),
     url(r'^search/', include(search_urls)),

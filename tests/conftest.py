@@ -1,12 +1,13 @@
 from decimal import Decimal
 from io import BytesIO
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, Mock
 
 import pytest
 from django.contrib.auth.models import AnonymousUser, Group, Permission
 from django.contrib.sites.models import Site
 from django.core.files import File
 from django.core.files.uploadedfile import SimpleUploadedFile
+from django.forms import ModelForm
 from django.utils.encoding import smart_text
 from PIL import Image
 from payments import FraudStatus, PaymentStatus
@@ -20,6 +21,7 @@ from saleor.dashboard.order.utils import fulfill_order_line
 from saleor.discount.models import Sale, Voucher
 from saleor.order import OrderStatus
 from saleor.order.models import Order, OrderLine
+from saleor.menu.models import Menu, MenuItem
 from saleor.order.utils import recalculate_order
 from saleor.page.models import Page
 from saleor.product.models import (
@@ -654,3 +656,37 @@ def page(db):
         'content': 'test content'}
     page = Page.objects.create(**data)
     return page
+
+
+@pytest.fixture
+def model_form_class():
+    mocked_form_class = MagicMock(name='test', spec=ModelForm)
+    mocked_form_class._meta = Mock(name='_meta')
+    mocked_form_class._meta.model = 'test_model'
+    mocked_form_class._meta.fields = 'test_field'
+    return mocked_form_class
+
+
+@pytest.fixture
+def menu():
+    return Menu.objects.create(slug='navbar')
+
+
+@pytest.fixture
+def menu_item(menu):
+    return MenuItem.objects.create(
+        menu=menu,
+        name='Link 1',
+        url='http://example.com/')
+
+
+@pytest.fixture
+def menu_with_items(menu, default_category, collection):
+    menu.items.create(name='Link 1', url='http://example.com/')
+    menu_item = menu.items.create(name='Link 2', url='http://example.com/')
+    menu.items.create(
+        name=default_category.name, category=default_category,
+        parent=menu_item)
+    menu.items.create(
+        name=collection.name, collection=collection, parent=menu_item)
+    return menu

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: master\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2018-03-13 11:07-0500\n"
+"POT-Creation-Date: 2018-03-19 04:44-0500\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -2940,7 +2940,7 @@ msgctxt "Modal release payment text"
 msgid "Release payment"
 msgstr ""
 
-#: templates/dashboard/order/modal/release.html:16
+#: templates/dashboard/order/modal/release.html:17
 msgctxt "Modal release payment text"
 msgid "Do you want to release the payment?"
 msgstr ""
@@ -4737,6 +4737,7 @@ msgid ""
 msgstr ""
 
 #: templates/product/_filters.html:14
+#: templates/product/product_list_base.html:42
 msgctxt "Filter heading title"
 msgid "Filters"
 msgstr ""
@@ -4746,17 +4747,17 @@ msgctxt "Product list page filters"
 msgid "Clear filters"
 msgstr ""
 
-#: templates/product/_filters.html:45
+#: templates/product/_filters.html:63
 msgctxt "Product price filter"
 msgid "from"
 msgstr ""
 
-#: templates/product/_filters.html:47
+#: templates/product/_filters.html:65
 msgctxt "Product price filter"
 msgid "to"
 msgstr ""
 
-#: templates/product/_filters.html:66
+#: templates/product/_filters.html:67
 msgctxt "Product price filter"
 msgid "Update"
 msgstr ""
@@ -4794,36 +4795,36 @@ msgctxt "Product details title"
 msgid "Description"
 msgstr ""
 
-#: templates/product/product_list_base.html:47
+#: templates/product/product_list_base.html:50
 msgid "Sort by: <b>name</b>"
 msgstr ""
 
-#: templates/product/product_list_base.html:51
+#: templates/product/product_list_base.html:54
 msgid "Sort by: <b>price</b>"
 msgstr ""
 
-#: templates/product/product_list_base.html:70
+#: templates/product/product_list_base.html:73
 msgctxt "Product list filters"
 msgid "Sort by"
 msgstr ""
 
-#: templates/product/product_list_base.html:76
+#: templates/product/product_list_base.html:79
 msgctxt "sort by option"
 msgid "ascending"
 msgstr ""
 
-#: templates/product/product_list_base.html:82
+#: templates/product/product_list_base.html:85
 msgctxt "sort by option"
 msgid "descending"
 msgstr ""
 
-#: templates/product/product_list_base.html:124
+#: templates/product/product_list_base.html:127
 #: templates/search/results.html:34
 msgctxt "Search without results text"
 msgid "Sorry, no matches found for your request."
 msgstr ""
 
-#: templates/product/product_list_base.html:125
+#: templates/product/product_list_base.html:128
 #: templates/search/results.html:35
 msgctxt "Search without results text"
 msgid "Try again or shop new arrivals."

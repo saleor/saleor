@@ -33,6 +33,15 @@ def test_collect_data_for_order_confirmation_email(order):
     assert 'schema_markup' in email_context
 
 
+def test_collect_data_for_fullfillment_email(fulfilled_order):
+    template = emails.CONFIRM_FULFILLMENT_TEMPLATE
+    fulfillment = fulfilled_order.fulfillments.first()
+    email_data = emails.collect_data_for_fullfillment_email(
+        fulfilled_order.pk, template, fulfillment.pk)
+    email_context = email_data['context']
+    assert email_context['fulfillment'] == fulfillment
+
+
 def test_collect_data_for_email(order):
     template = emails.CONFIRM_PAYMENT_TEMPLATE
     email_data = emails.collect_data_for_email(order.pk, template)
@@ -50,9 +59,25 @@ def test_collect_data_for_email(order):
 def test_send_emails(mocked_templated_email, order, template, send_email):
     send_email(order.pk)
     email_data = emails.collect_data_for_email(order.pk, template)
-    email_context = email_data['context']
     mocked_templated_email.assert_called_once_with(
         recipient_list=[order.get_user_current_email()],
-        context=email_context,
+        context=email_data['context'],
+        from_email=settings.ORDER_FROM_EMAIL,
+        template_name=template)
+
+
+@pytest.mark.parametrize('send_email,template', [
+    (emails.send_fulfillment_confirmation, emails.CONFIRM_FULFILLMENT_TEMPLATE),  # noqa
+    (emails.send_fulfillment_update, emails.UPDATE_FULFILLMENT_TEMPLATE)])
+@mock.patch('saleor.order.emails.send_templated_mail')
+def test_send_fulfillment_emails(
+        mocked_templated_email, template, send_email, fulfilled_order):
+    fulfillment = fulfilled_order.fulfillments.first()
+    send_email(order_pk=fulfilled_order.pk, fulfillment_pk=fulfillment.pk)
+    email_data = emails.collect_data_for_fullfillment_email(
+        fulfilled_order.pk, template, fulfillment.pk)
+    mocked_templated_email.assert_called_once_with(
+        recipient_list=[fulfilled_order.get_user_current_email()],
+        context=email_data['context'],
         from_email=settings.ORDER_FROM_EMAIL,
         template_name=template)
