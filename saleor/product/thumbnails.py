@@ -4,6 +4,7 @@ from .models import ProductImage
 
 
 @shared_task
-def create_product_thumbnails(product_image_id: int):
-    create_thumbnails(pk=product_image_id, model=ProductImage,
-                      size_set='products')
+def create_product_thumbnails(image_id):
+    """Takes ProductImage model, and creates thumbnails for it.
+    """
+    create_thumbnails(pk=image_id, model=ProductImage, size_set='products')
