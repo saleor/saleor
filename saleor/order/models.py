@@ -39,8 +39,7 @@ class Order(models.Model):
     shipping_address = models.ForeignKey(
         Address, related_name='+', editable=False, null=True,
         on_delete=models.PROTECT)
-    user_email = models.EmailField(
-        blank=True, default='', editable=False)
+    user_email = models.EmailField(blank=True, default='')
     shipping_price_net = MoneyField(
         currency=settings.DEFAULT_CURRENCY, max_digits=12, decimal_places=2,
         default=0, editable=False)
