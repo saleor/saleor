@@ -339,7 +339,7 @@ VERSATILEIMAGEFIELD_RENDITION_KEY_SETS = {
 VERSATILEIMAGEFIELD_SETTINGS = {
     # Images should be pre-generated on Production environment
     'create_images_on_demand': ast.literal_eval(
-        os.environ.get('CREATE_IMAGES_ON_DEMAND', 'True')),
+        os.environ.get('CREATE_IMAGES_ON_DEMAND', repr(DEBUG))),
 }
 
 PLACEHOLDER_IMAGES = {

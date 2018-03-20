@@ -13,7 +13,7 @@ from PIL import Image
 
 from saleor.dashboard.product import ProductBulkAction
 from saleor.dashboard.product.forms import (
-    ProductBulkUpdate, ProductForm, ProductTypeForm)
+    ProductBulkUpdate, ProductForm, ProductTypeForm, UploadImageForm)
 from saleor.product.forms import VariantChoiceField
 from saleor.product.models import (
     AttributeChoiceValue, Collection, Product, ProductAttribute, ProductImage,
