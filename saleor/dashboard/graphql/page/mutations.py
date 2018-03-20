@@ -3,20 +3,20 @@ import graphene
 from ....page import models
 from ...page.forms import PageForm
 from ..mutations import (
-    ModelDeleteMutation, ModelFormMutation, ModelFormUpdateMutation)
+    ModelDeleteMutation, ModelFormMutation, ModelFormUpdateMutation,
+    StaffMemberRequiredMutation)
 
 
-class PageCreate(ModelFormMutation):
+class PageCreate(StaffMemberRequiredMutation, ModelFormMutation):
     class Meta:
         form_class = PageForm
 
 
-class PageUpdate(ModelFormUpdateMutation):
+class PageUpdate(StaffMemberRequiredMutation, ModelFormUpdateMutation):
     class Meta:
         form_class = PageForm
 
 
-class PageDelete(ModelDeleteMutation):
-
+class PageDelete(StaffMemberRequiredMutation, ModelDeleteMutation):
     class Meta:
         model = models.Page
