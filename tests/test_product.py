@@ -98,7 +98,12 @@ def test_filtering_by_attribute(db, color_attribute, default_category):
     assert product_b not in list(filtered)
 
 
-def test_render_home_page_without_taxes(client, product):
+def test_render_home_page(client, product):
+    response = client.get(reverse('home'))
+    assert response.status_code == 200
+
+
+def test_render_home_page_with_sale(client, product, sale):
     response = client.get(reverse('home'))
     assert response.status_code == 200
 
@@ -108,7 +113,12 @@ def test_render_home_page_with_taxes(client, product, vatlayer):
     assert response.status_code == 200
 
 
-def test_render_category_without_taxes(client, default_category, product):
+def test_render_category(client, default_category, product):
+    response = client.get(default_category.get_absolute_url())
+    assert response.status_code == 200
+
+
+def test_render_category_with_sale(client, default_category, product, sale):
     response = client.get(default_category.get_absolute_url())
     assert response.status_code == 200
 
@@ -119,7 +129,12 @@ def test_render_category_with_taxes(
     assert response.status_code == 200
 
 
-def test_render_product_detail_without_taxes(client, product):
+def test_render_product_detail(client, product):
+    response = client.get(product.get_absolute_url())
+    assert response.status_code == 200
+
+
+def test_render_product_detail_with_sale(client, product, sale):
     response = client.get(product.get_absolute_url())
     assert response.status_code == 200
 
