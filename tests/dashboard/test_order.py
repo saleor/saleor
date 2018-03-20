@@ -5,8 +5,7 @@ import pytest
 from django.urls import reverse
 from payments import PaymentStatus
 from prices import Money, TaxedMoney
-
-from tests.utils import get_redirect_location
+from tests.utils import get_form_errors, get_redirect_location
 
 from saleor.dashboard.order.forms import ChangeQuantityForm, OrderNoteForm
 from saleor.dashboard.order.utils import fulfill_order_line
@@ -870,6 +869,21 @@ def test_view_confirm_draft_order_valid(admin_client, draft_order):
 
 
 @pytest.mark.django_db
+def test_view_confirm_draft_order_assigns_customer_email(
+        admin_client, draft_order, customer_user):
+    draft_order.user_email = ''
+    draft_order.save()
+    url = reverse(
+        'dashboard:draft-order-confirm', kwargs={'order_pk': draft_order.pk})
+    data = {'csrfmiddlewaretoken': 'hello'}
+
+    admin_client.post(url, data)
+
+    draft_order.refresh_from_db()
+    assert draft_order.user_email == customer_user.email
+
+
+@pytest.mark.django_db
 def test_view_confirm_draft_order_empty_order(admin_client, draft_order):
     draft_order.lines.all().delete()
     url = reverse(
@@ -881,7 +895,8 @@ def test_view_confirm_draft_order_empty_order(admin_client, draft_order):
     assert response.status_code == 400
     draft_order.refresh_from_db()
     assert draft_order.status == OrderStatus.DRAFT
-    assert len(response.context.get('form').errors) == 1
+    errors = get_form_errors(response)
+    assert 'Could not confirm order without any products' in errors
 
 
 @pytest.mark.django_db
@@ -894,6 +909,71 @@ def test_view_confirm_draft_order_not_draft_order(
     response = admin_client.post(url, data)
 
     assert response.status_code == 404
+
+
+@pytest.mark.django_db
+def test_view_confirm_draft_order_no_billing_address(
+        admin_client, draft_order):
+    draft_order.billing_address = None
+    draft_order.save()
+    url = reverse(
+        'dashboard:draft-order-confirm', kwargs={'order_pk': draft_order.pk})
+    data = {'csrfmiddlewaretoken': 'hello'}
+
+    response = admin_client.post(url, data)
+
+    assert response.status_code == 400
+    draft_order.refresh_from_db()
+    assert draft_order.status == OrderStatus.DRAFT
+    errors = get_form_errors(response)
+    assert 'Billing address is required to handle payment' in errors
+
+
+@pytest.mark.django_db
+def test_view_confirm_draft_order_no_shipping_address(
+        admin_client, order_with_lines):
+    order_with_lines.shipping_address = None
+    order_with_lines.status = OrderStatus.DRAFT
+    order_with_lines.save()
+    url = reverse(
+        'dashboard:draft-order-confirm',
+        kwargs={'order_pk': order_with_lines.pk})
+    data = {'csrfmiddlewaretoken': 'hello'}
+
+    response = admin_client.post(url, data)
+
+    assert response.status_code == 400
+    order_with_lines.refresh_from_db()
+    assert order_with_lines.status == OrderStatus.DRAFT
+    errors = get_form_errors(response)
+    assert 'Shipping address is required to handle shipping' in errors
+
+
+@pytest.mark.django_db
+def test_view_confirm_draft_order_no_shipping_address_shipping_not_required(
+        admin_client, order, product_without_shipping):
+    order.status = OrderStatus.DRAFT
+    order.save()
+    order.lines.create(
+        product=product_without_shipping,
+        product_name=product_without_shipping.name,
+        product_sku='SKU_%d' % (product_without_shipping.pk,),
+        is_shipping_required=False,
+        quantity=1,
+        unit_price_net=Decimal('10.00'),
+        unit_price_gross=Decimal('10.00'))
+    url = reverse(
+        'dashboard:draft-order-confirm', kwargs={'order_pk': order.pk})
+    data = {'csrfmiddlewaretoken': 'hello'}
+
+    response = admin_client.post(url, data)
+
+    assert response.status_code == 302
+    order.refresh_from_db()
+    assert order.status == OrderStatus.UNFULFILLED
+    redirect_url = reverse(
+        'dashboard:order-details', kwargs={'order_pk': order.pk})
+    assert get_redirect_location(response) == redirect_url
 
 
 @pytest.mark.django_db
@@ -969,5 +1049,8 @@ def test_view_order_customer_edit_not_valid(admin_client, customer_user):
     assert response.status_code == 400
     order.refresh_from_db()
     assert not order.user == customer_user
-    assert not order.user_email
-    assert len(response.context.get('form').errors) == 1
+    errors = get_form_errors(response)
+    error = (
+        'An order can be related either with an email or an existing user '
+        'account')
+    assert error in errors

@@ -34,14 +34,30 @@ class ConfirmDraftOrderForm(forms.ModelForm):
 
     def clean(self):
         super().clean()
+        errors = []
         if self.instance.get_total_quantity() == 0:
-            raise forms.ValidationError(pgettext_lazy(
+            errors.append(forms.ValidationError(pgettext_lazy(
                 'Confirm draft order form error',
-                'Could not confirm order without any products'))
+                'Could not confirm order without any products')))
+        if not self.instance.billing_address:
+            errors.append(forms.ValidationError(pgettext_lazy(
+                'Confirm draft order form error',
+                'Billing address is required to handle payment')))
+        if (
+                self.instance.is_shipping_required() and
+                not self.instance.shipping_address
+        ):
+            errors.append(forms.ValidationError(pgettext_lazy(
+                'Confirm draft order form error',
+                'Shipping address is required to handle shipping')))
+        if errors:
+            raise forms.ValidationError(errors)
         return self.cleaned_data
 
     def save(self, commit=True):
         self.instance.status = OrderStatus.UNFULFILLED
+        if self.instance.user:
+            self.instance.user_email = self.instance.user.email
         return super().save(commit)
 
 

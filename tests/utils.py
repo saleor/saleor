@@ -25,3 +25,8 @@ def filter_products_by_attribute(queryset, attribute_id, value):
 
 def get_graphql_content(response):
     return json.loads(response.content.decode('utf8'))
+
+
+def get_form_errors(response, form_name='form'):
+    errors = response.context.get(form_name).errors
+    return errors.get('__all__') if errors else []

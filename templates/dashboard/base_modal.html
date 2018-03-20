@@ -15,13 +15,13 @@
     </div>
     {% if form.non_field_errors %}
       <div class="row">
-        <div class="col s12">
-          <blockquote>
-            {% for non_field_error in form.non_field_errors %}
-              {{ non_field_error }}
-            {% endfor %}
-          </blockquote>
-        </div>
+        {% for non_field_error in form.non_field_errors %}
+          <div class="col s12">
+            <blockquote>
+                {{ non_field_error }}
+            </blockquote>
+          </div>
+        {% endfor %}
       </div>
     {% endif %}
     <div class="row">
