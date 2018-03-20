@@ -199,7 +199,7 @@ class ProductVariant(models.Model):
         app_label = 'product'
 
     def __str__(self):
-        return self.name
+        return self.name or self.sku
 
     @property
     def quantity_available(self):
