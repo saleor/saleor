@@ -14,11 +14,11 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='category',
             name='background_image',
-            field=versatileimagefield.fields.VersatileImageField(blank=True, null=True, upload_to='category_backgrounds'),
+            field=versatileimagefield.fields.VersatileImageField(blank=True, null=True, upload_to='category-backgrounds'),
         ),
         migrations.AddField(
             model_name='collection',
             name='background_image',
-            field=versatileimagefield.fields.VersatileImageField(blank=True, null=True, upload_to='collection_backgrounds'),
+            field=versatileimagefield.fields.VersatileImageField(blank=True, null=True, upload_to='collection-backgrounds'),
         ),
     ]

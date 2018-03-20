@@ -30,7 +30,7 @@ fake = Factory.create()
 STOCK_LOCATION = 'default'
 
 DELIVERY_REGIONS = [ANY_COUNTRY, 'US', 'PL', 'DE', 'GB']
-PRODUCTS_LIST_DIR = 'products_list/'
+PRODUCTS_LIST_DIR = 'products-list/'
 DEFAULT_SCHEMA = {
     'T-Shirt': {
         'category': {

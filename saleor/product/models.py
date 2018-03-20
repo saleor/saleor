@@ -30,7 +30,7 @@ class Category(MPTTModel):
         'self', null=True, blank=True, related_name='children',
         on_delete=models.CASCADE)
     background_image = VersatileImageField(
-        upload_to='category_backgrounds', blank=True, null=True)
+        upload_to='category-backgrounds', blank=True, null=True)
 
     objects = models.Manager()
     tree = TreeManager()
@@ -402,7 +402,7 @@ class Collection(models.Model):
     products = models.ManyToManyField(
         Product, blank=True, related_name='collections')
     background_image = VersatileImageField(
-        upload_to='collection_backgrounds', blank=True, null=True)
+        upload_to='collection-backgrounds', blank=True, null=True)
 
     class Meta:
         ordering = ['pk']
