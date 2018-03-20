@@ -41,7 +41,7 @@ django-mptt==0.9.0
 django-payments==0.12.1
 django-phonenumber-field==2.0.0
 django-prices-openexchangerates==1.0.0
--e git+git://github.com/mirumee/django-prices-vatlayer.git@lib-api-finalize#egg=django_prices_vatlayer
+django-prices-vatlayer==1.0.0
 django-prices==1.0.0
 django-redis==4.8.0
 django-render-block==0.5  # via django-templated-email
