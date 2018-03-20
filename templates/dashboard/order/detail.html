@@ -177,6 +177,14 @@
             <div class="card-content card-border">
               <span class="card-title black-text">
                 {% trans "Customer" context "" %}
+                {% if perms.order.edit_order and order.is_draft  %}
+                  <span class="right">
+                    <a href="#base-modal" data-href="{% url "dashboard:order-customer-edit" order_pk=order.pk %}" class="btn-flat waves-effect modal-trigger-custom"
+                       title="{% trans "Edit customer details" context "Order customer details action title" %}">
+                      {% trans "Edit" context "Dashboard edit action" %}
+                    </a>
+                  </span>
+                {% endif %}
               </span>
               {% if order.user %}
                 <a href="{% url "dashboard:customer-details" pk=order.user.pk %}">{{ order.user }}</a>
@@ -343,8 +351,14 @@
                 <td class="right-align">
                   <p>{{ order.get_subtotal.gross|amount:'html' }}</p>
                   <p>{{ order.shipping_price.gross|amount:'html' }}</p>
-                  {% if order.discount_amount %}
-                    <p>{% discount_as_negative order.discount_amount html=True %}</p>
+                  {% if order.is_draft or order.discount_amount %}
+                    <p>
+                      {% if order.discount_amount %}
+                        {% discount_as_negative order.discount_amount html=True %}
+                      {% else %}
+                        {% trans "-" context "Order details empty discount" %}
+                      {% endif %}
+                    </p>
                   {% endif %}
                   <p><strong>{{ order.total.gross|amount:'html' }}</strong></p>
                 </td>

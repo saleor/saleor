@@ -27,6 +27,7 @@ from .utils import fulfill_order_line
 
 
 class ConfirmDraftOrderForm(forms.ModelForm):
+    """Save draft order as a ready to fulfill."""
     class Meta:
         model = Order
         fields = []
@@ -42,6 +43,24 @@ class ConfirmDraftOrderForm(forms.ModelForm):
     def save(self, commit=True):
         self.instance.status = OrderStatus.UNFULFILLED
         return super().save(commit)
+
+
+class OrderCustomerForm(forms.ModelForm):
+    """Set customer details in an order."""
+    class Meta:
+        model = Order
+        fields = ['user', 'user_email']
+
+    def clean(self):
+        cleaned_data = super().clean()
+        user_email = cleaned_data.get('user_email')
+        user = cleaned_data.get('user')
+        if user and user_email:
+            raise forms.ValidationError(pgettext_lazy(
+                'Edit customer details in order form error',
+                'An order can be related either with an email or an existing '
+                'user account'))
+        return self.cleaned_data
 
 
 class OrderNoteForm(forms.ModelForm):
