@@ -274,7 +274,7 @@ def get_or_create_category(category_schema, placeholder_dir):
     defaults = {
         'description': fake.text(),
         'slug': fake.slug(category_name),
-        'background_image': get_product_list_image(image_dir, image_name)}
+        'background_image': get_image(image_dir, image_name)}
     return Category.objects.get_or_create(
         name=category_name, defaults=defaults)[0]
 
@@ -284,7 +284,7 @@ def get_or_create_product_type(name, **kwargs):
 
 
 def get_or_create_collection(name, placeholder_dir, image_name):
-    background_image = get_product_list_image(placeholder_dir, image_name)
+    background_image = get_image(placeholder_dir, image_name)
     defaults = {
         'slug': fake.slug(name),
         'background_image': background_image}
@@ -638,6 +638,6 @@ def get_product_list_images_dir(placeholder_dir):
     return product_list_images_dir
 
 
-def get_product_list_image(image_dir, image_name):
+def get_image(image_dir, image_name):
     img_path = os.path.join(image_dir, image_name)
     return File(open(img_path, 'rb'))
