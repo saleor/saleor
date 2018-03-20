@@ -91,7 +91,7 @@
           <p>{{ note.content }}</p>
         {% endfor %}
       {% endif %}
-      {% if order.can_edit %}
+      {% if order.is_open %}
         <form method="post" class="form-group">
           {% csrf_token %}
           {% bootstrap_form note_form display_labels=False %}
