@@ -275,7 +275,8 @@ def create_product(**kwargs):
         'name': fake.company(),
         'price': fake.money(),
         'description': '\n\n'.join(description),
-        'seo_description': generate_seo_description(description[0], seo_description_field)}
+        'seo_description': generate_seo_description(
+            description[0], seo_description_field)}
     defaults.update(kwargs)
     return Product.objects.create(**defaults)
 
