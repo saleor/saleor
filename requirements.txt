@@ -89,7 +89,6 @@ python3-openid==3.1.0     # via social-auth-core
 pytz==2018.3              # via babel, celery, django
 pyyaml==3.12              # via vcrpy
 redis==2.10.6             # via celery, django-redis
-regex==2018.2.21
 requests-oauthlib==0.8.0  # via social-auth-core
 requests==2.18.4
 rx==1.6.0                 # via graphql-core

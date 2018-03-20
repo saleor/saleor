@@ -15,6 +15,7 @@ from prices import Money, TaxedMoney
 
 from ...account.models import Address, User
 from ...account.utils import store_user_address
+from ...core.utils.text import generate_seo_description
 from ...discount import DiscountValueType, VoucherType
 from ...discount.models import Sale, Voucher
 from ...order.models import Fulfillment, Order, Payment
@@ -269,11 +270,12 @@ def get_or_create_collection(name, **kwargs):
 
 def create_product(**kwargs):
     description = fake.paragraphs(5)
+    seo_description_field = Product._meta.get_field('seo_description')
     defaults = {
         'name': fake.company(),
         'price': fake.money(),
         'description': '\n\n'.join(description),
-        'seo_description': description[0][:300]}
+        'seo_description': generate_seo_description(description[0], seo_description_field)}
     defaults.update(kwargs)
     return Product.objects.create(**defaults)
 

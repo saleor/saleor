@@ -44,7 +44,6 @@ pytest-django
 pytest-vcr
 pytest-mock
 vcrpy
-regex
 requests>=1.2.0
 social-auth-app-django>=2.0.0
 text-unidecode

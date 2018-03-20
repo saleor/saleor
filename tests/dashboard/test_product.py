@@ -742,11 +742,11 @@ def test_set_product_description_too_long_for_seo(unavailable_product):
     assert form.is_valid()
     form.save()
 
-    assert len(unavailable_product.seo_description) < 300
+    assert len(unavailable_product.seo_description) <= 300
     assert unavailable_product.seo_description == (
         'Saying it fourth made saw light bring beginning kind over herb '
         'won\'t creepeth multiply dry rule divided fish herb cattle greater '
         'fly divided midst, gathering can\'t moveth seed greater subdue. '
         'Lesser meat living fowl called. Dry don\'t wherein. Doesn\'t above '
-        'form sixth. Image moving earth without'
+        'form sixth. Image moving earth without f...'
     )
