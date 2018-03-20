@@ -14,6 +14,7 @@ from ...product.models import (
     AttributeChoiceValue, Category, Collection, Product, ProductAttribute,
     ProductImage, ProductType, ProductVariant, Stock, StockLocation,
     VariantImage)
+from ...product.thumbnails import create_product_thumbnails
 from ..forms import OrderedModelMultipleChoiceField, ModelChoiceOrCreationField
 from ..widgets import RichTextEditorWidget
 from .widgets import ImagePreviewWidget
@@ -417,6 +418,11 @@ class UploadImageForm(forms.ModelForm):
         product = kwargs.pop('product')
         super().__init__(*args, **kwargs)
         self.instance.product = product
+
+    def save(self, commit):
+        image = super().save(commit=commit)
+        create_product_thumbnails.delay(image.pk, ProductImage)
+        return image
 
 
 class ProductBulkUpdate(forms.Form):
