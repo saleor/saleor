@@ -851,3 +851,46 @@ def test_view_order_create(admin_client):
         'dashboard:order-details', kwargs={'order_pk': order.pk})
     assert get_redirect_location(response) == redirect_url
     assert order.status == OrderStatus.DRAFT
+
+
+@pytest.mark.django_db
+def test_view_confirm_draft_order_valid(admin_client, draft_order):
+    url = reverse(
+        'dashboard:draft-order-confirm', kwargs={'order_pk': draft_order.pk})
+    data = {'csrfmiddlewaretoken': 'hello'}
+
+    response = admin_client.post(url, data)
+
+    assert response.status_code == 302
+    draft_order.refresh_from_db()
+    assert draft_order.status == OrderStatus.UNFULFILLED
+    redirect_url = reverse(
+        'dashboard:order-details', kwargs={'order_pk': draft_order.pk})
+    assert get_redirect_location(response) == redirect_url
+
+
+@pytest.mark.django_db
+def test_view_confirm_draft_order_empty_order(admin_client, draft_order):
+    draft_order.lines.all().delete()
+    url = reverse(
+        'dashboard:draft-order-confirm', kwargs={'order_pk': draft_order.pk})
+    data = {'csrfmiddlewaretoken': 'hello'}
+
+    response = admin_client.post(url, data)
+
+    assert response.status_code == 400
+    draft_order.refresh_from_db()
+    assert draft_order.status == OrderStatus.DRAFT
+    assert len(response.context.get('form').errors) == 1
+
+
+@pytest.mark.django_db
+def test_view_confirm_draft_order_not_draft_order(
+        admin_client, order_with_lines):
+    url = reverse(
+        'dashboard:draft-order-confirm', kwargs={'order_pk': order_with_lines.pk})
+    data = {'csrfmiddlewaretoken': 'hello'}
+
+    response = admin_client.post(url, data)
+
+    assert response.status_code == 404

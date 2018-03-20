@@ -350,7 +350,7 @@
         </div>
         {% if perms.order.edit_order and order.can_edit or order.can_fulfill %}
           <div class="data-table-action">
-            {% if order.can_fulfill and order.get_total_quantity %}
+            {% if order.can_fulfill %}
               <a href="{% url 'dashboard:fulfill-order-lines' order_pk=order.pk %}" class="btn-flat waves-effect" title="{% trans "Fulfill order" context "Order summary card action title" %}">
                 {% trans "Fulfill" context "Order summary card action" %}
               </a>
