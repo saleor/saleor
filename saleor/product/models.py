@@ -3,7 +3,8 @@ from decimal import Decimal
 
 from django.conf import settings
 from django.contrib.postgres.fields import HStoreField
-from django.core.validators import MinValueValidator, RegexValidator
+from django.core.validators import (
+    MaxLengthValidator, MinValueValidator, RegexValidator)
 from django.db import models
 from django.db.models import F, Max, Q
 from django.urls import reverse
@@ -94,6 +95,9 @@ class Product(models.Model):
         ProductType, related_name='products', on_delete=models.CASCADE)
     name = models.CharField(max_length=128)
     description = models.TextField()
+    seo_description = models.CharField(
+        max_length=300, blank=True, null=True,
+        validators=[MaxLengthValidator(300)])
     category = models.ForeignKey(
         Category, related_name='products', on_delete=models.CASCADE)
     price = MoneyField(
