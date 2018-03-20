@@ -9,6 +9,7 @@ from django.utils.text import slugify
 from django.utils.translation import pgettext_lazy
 from mptt.forms import TreeNodeChoiceField
 
+from ...core.utils.text import generate_seo_description
 from ...product.models import (
     AttributeChoiceValue, Category, Collection, Product, ProductAttribute,
     ProductImage, ProductType, ProductVariant, Stock, StockLocation,
@@ -143,6 +144,8 @@ class ProductForm(forms.ModelForm):
         labels = {
             'name': pgettext_lazy('Item name', 'Name'),
             'description': pgettext_lazy('Description', 'Description'),
+            'seo_description': pgettext_lazy(
+                'A SEO friendly description', 'SEO Friendly Description'),
             'category': pgettext_lazy('Category', 'Category'),
             'price': pgettext_lazy('Currency amount', 'Price'),
             'available_on': pgettext_lazy(
@@ -169,6 +172,21 @@ class ProductForm(forms.ModelForm):
         self.prepare_fields_for_attributes()
         self.fields["collections"].initial = Collection.objects.filter(
             products__name=self.instance)
+
+    def clean_seo_description(self):
+        seo_description = self.cleaned_data['seo_description']
+
+        # if there is no SEO friendly description set,
+        # generate it from the HTML description
+        if not seo_description:
+            # get the non-safe description (has non escaped HTML tags in it)
+            product_description = self.data['description']
+
+            # generate a SEO friendly from HTML description
+            seo_description = generate_seo_description(
+                product_description, 300)
+
+        return seo_description
 
     def prepare_fields_for_attributes(self):
         for attribute in self.product_attributes:

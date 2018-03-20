@@ -8,6 +8,7 @@ from saleor.account.models import Address, User
 from saleor.core.utils import (
     Country, create_superuser, format_money, get_country_by_ip,
     get_currency_for_country, random_data)
+from saleor.core.utils.text import get_cleaner, strip_html
 from saleor.discount.models import Sale, Voucher
 from saleor.order.models import Order
 from saleor.product.models import Product
@@ -170,3 +171,16 @@ def test_manifest(client, site_settings):
     assert content['name'] == site_settings.site.name
     assert content['short_name'] == site_settings.site.name
     assert content['description'] == site_settings.description
+
+
+def test_utils_get_cleaner_invalid_parameters():
+    with pytest.raises(ValueError):
+        get_cleaner(bad=True)
+
+
+def test_utils_strip_html():
+    base_text = ('<p>Hello</p>'
+                 '\n\n'
+                 '\t<b>World</b>')
+    text = strip_html(base_text, strip_whitespace=True)
+    assert text == 'Hello World'
