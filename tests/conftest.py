@@ -75,9 +75,10 @@ def request_cart_with_item(product_in_stock, request_cart):
 
 
 @pytest.fixture
-def order(billing_address, customer_user):
+def order(billing_address, shipping_address, customer_user):
     return Order.objects.create(
         billing_address=billing_address,
+        shipping_address=shipping_address,
         user_email=customer_user.email,
         total_net=Money(123, 'USD'),
         total_gross=Money(123, 'USD'),
@@ -132,6 +133,11 @@ def billing_address(db):  # pylint: disable=W0613
         postal_code='53-601',
         country='PL',
         phone='+48713988102')
+
+
+@pytest.fixture
+def shipping_address(billing_address):
+    return billing_address.get_copy()
 
 
 @pytest.fixture
