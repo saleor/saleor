@@ -270,13 +270,11 @@ def get_or_create_collection(name, **kwargs):
 
 def create_product(**kwargs):
     description = fake.paragraphs(5)
-    seo_description_field = Product._meta.get_field('seo_description')
     defaults = {
         'name': fake.company(),
         'price': fake.money(),
         'description': '\n\n'.join(description),
-        'seo_description': generate_seo_description(
-            description[0], seo_description_field)}
+        'seo_description': generate_seo_description(description[0], 300)}
     defaults.update(kwargs)
     return Product.objects.create(**defaults)
 
