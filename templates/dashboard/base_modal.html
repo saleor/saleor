@@ -13,6 +13,17 @@
         </h5>
       </div>
     </div>
+    {% if form.non_field_errors %}
+      <div class="row">
+        <div class="col s12">
+          <blockquote>
+            {% for non_field_error in form.non_field_errors %}
+              {{ non_field_error }}
+            {% endfor %}
+          </blockquote>
+        </div>
+      </div>
+    {% endif %}
     <div class="row">
       {% block content %}{% endblock %}
     </div>
