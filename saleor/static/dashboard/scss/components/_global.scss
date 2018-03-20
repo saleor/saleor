@@ -115,10 +115,6 @@ h6 {
 }
 
 li#version-indicator {
-  @media (min-height: 750px) {
-    position: absolute;
-    bottom: 0;
-  }
   p {
     @extend .grey-text, .text-lighten-1;
   }
