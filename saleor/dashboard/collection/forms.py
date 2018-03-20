@@ -22,7 +22,10 @@ class CollectionForm(forms.ModelForm):
                 'Name'),
             'products': pgettext_lazy(
                 'Products selection',
-                'Products')}
+                'Products'),
+            'background_image': pgettext_lazy(
+                'Products selection',
+                'Background Image')}
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
