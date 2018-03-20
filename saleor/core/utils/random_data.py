@@ -29,13 +29,13 @@ from ...shipping.models import ANY_COUNTRY, ShippingMethod
 fake = Factory.create()
 STOCK_LOCATION = 'default'
 
-DEFAULT_CATEGORY = 'Default'
-
 DELIVERY_REGIONS = [ANY_COUNTRY, 'US', 'PL', 'DE', 'GB']
-
+PRODUCTS_LIST_DIR = 'products-list/'
 DEFAULT_SCHEMA = {
     'T-Shirt': {
-        'category': 'Apparel',
+        'category': {
+            'name': 'Apparel',
+            'image_name': 'apparel.jpg'},
         'product_attributes': {
             'Color': ['Blue', 'White'],
             'Collar': ['Round', 'V-Neck', 'Polo'],
@@ -45,14 +45,18 @@ DEFAULT_SCHEMA = {
         'images_dir': 't-shirts/',
         'is_shipping_required': True},
     'Mugs': {
-        'category': 'Accessories',
+        'category': {
+            'name': 'Accessories',
+            'image_name': 'accessories.jpg'},
         'product_attributes': {
             'Brand': ['Saleor']},
         'variant_attributes': {},
         'images_dir': 'mugs/',
         'is_shipping_required': True},
     'Coffee': {
-        'category': 'Groceries',
+        'category': {
+            'name': 'Groceries',
+            'image_name': 'groceries.jpg'},
         'product_attributes': {
             'Coffee Genre': ['Arabica', 'Robusta'],
             'Brand': ['Saleor']},
@@ -62,7 +66,9 @@ DEFAULT_SCHEMA = {
         'images_dir': 'coffee/',
         'is_shipping_required': True},
     'Candy': {
-        'category': 'Groceries',
+        'category': {
+            'name': 'Groceries',
+            'image_name': 'groceries.jpg'},
         'product_attributes': {
             'Flavor': ['Sour', 'Sweet'],
             'Brand': ['Saleor']},
@@ -71,7 +77,9 @@ DEFAULT_SCHEMA = {
         'images_dir': 'candy/',
         'is_shipping_required': True},
     'E-books': {
-        'category': 'Books',
+        'category': {
+            'name': 'Books',
+            'image_name': 'books.jpg'},
         'product_attributes': {
             'Author': ['John Doe', 'Milionare Pirate'],
             'Publisher': ['Mirumee Press', 'Saleor Publishing'],
@@ -80,7 +88,9 @@ DEFAULT_SCHEMA = {
         'images_dir': 'books/',
         'is_shipping_required': False},
     'Books': {
-        'category': 'Books',
+        'category': {
+            'name': 'Books',
+            'image_name': 'books.jpg'},
         'product_attributes': {
             'Author': ['John Doe', 'Milionare Pirate'],
             'Publisher': ['Mirumee Press', 'Saleor Publishing'],
@@ -89,6 +99,13 @@ DEFAULT_SCHEMA = {
             'Cover': ['Soft', 'Hard']},
         'images_dir': 'books/',
         'is_shipping_required': True}}
+COLLECTIONS_SCHEMA = [
+    {
+        'name': 'Summer collection',
+        'image_name': 'summer.jpg'},
+    {
+        'name': 'Winter sale',
+        'image_name': 'sale.jpg'}]
 
 
 def create_attributes_and_values(attribute_data):
@@ -186,8 +203,7 @@ def get_price_override(schema, combinations_num, current_price):
 def create_products_by_type(
         product_type, schema, placeholder_dir, how_many=10, create_images=True,
         stdout=None):
-    category_name = schema.get('category') or DEFAULT_CATEGORY
-    category = get_or_create_category(category_name)
+    category = get_or_create_category(schema['category'], placeholder_dir)
 
     for dummy in range(how_many):
         product = create_product(
@@ -251,22 +267,28 @@ def get_email(first_name, last_name):
         _first.lower().decode('utf-8'), _last.lower().decode('utf-8'))
 
 
-def get_or_create_category(name, **kwargs):
+def get_or_create_category(category_schema, placeholder_dir):
+    category_name = category_schema['name']
+    image_name = category_schema['image_name']
+    image_dir = get_product_list_images_dir(placeholder_dir)
     defaults = {
-        'description': fake.text()}
-    defaults.update(kwargs)
-    defaults['slug'] = fake.slug(name)
-
-    return Category.objects.get_or_create(name=name, defaults=defaults)[0]
+        'description': fake.text(),
+        'slug': fake.slug(category_name),
+        'background_image': get_image(image_dir, image_name)}
+    return Category.objects.get_or_create(
+        name=category_name, defaults=defaults)[0]
 
 
 def get_or_create_product_type(name, **kwargs):
     return ProductType.objects.get_or_create(name=name, defaults=kwargs)[0]
 
 
-def get_or_create_collection(name, **kwargs):
-    kwargs['slug'] = fake.slug(name)
-    return Collection.objects.get_or_create(name=name, defaults=kwargs)[0]
+def get_or_create_collection(name, placeholder_dir, image_name):
+    background_image = get_image(placeholder_dir, image_name)
+    defaults = {
+        'slug': fake.slug(name),
+        'background_image': background_image}
+    return Collection.objects.get_or_create(name=name, defaults=defaults)[0]
 
 
 def create_product(**kwargs):
@@ -547,16 +569,19 @@ def add_address_to_admin(email):
     store_user_address(user, address, True, True)
 
 
-def create_fake_collection():
-    collection = get_or_create_collection(name='%s collection' % fake.word())
+def create_fake_collection(placeholder_dir, collection_data):
+    image_dir = get_product_list_images_dir(placeholder_dir)
+    collection = get_or_create_collection(
+        name=collection_data['name'], placeholder_dir=image_dir,
+        image_name=collection_data['image_name'])
     products = Product.objects.order_by('?')[:4]
     collection.products.add(*products)
     return collection
 
 
-def create_collections(how_many=2):
-    for dummy in range(how_many):
-        collection = create_fake_collection()
+def create_collections_by_schema(placeholder_dir, schema=COLLECTIONS_SCHEMA):
+    for collection_data in COLLECTIONS_SCHEMA:
+        collection = create_fake_collection(placeholder_dir, collection_data)
         yield 'Collection: %s' % (collection,)
 
 
@@ -595,7 +620,7 @@ def create_menu_items_by_schema(menu):
         name='Collections',
         collection=collection)
 
-    for collection in Collection.objects.all():
+    for collection in Collection.objects.filter(background_image__isnull=False):  # noqa
         menu.items.get_or_create(
             name=collection.name,
             collection=collection,
@@ -605,3 +630,14 @@ def create_menu_items_by_schema(menu):
     menu.items.get_or_create(
         name=page.title,
         page=page)
+
+
+def get_product_list_images_dir(placeholder_dir):
+    product_list_images_dir = os.path.join(
+        placeholder_dir, PRODUCTS_LIST_DIR)
+    return product_list_images_dir
+
+
+def get_image(image_dir, image_name):
+    img_path = os.path.join(image_dir, image_name)
+    return File(open(img_path, 'rb'))

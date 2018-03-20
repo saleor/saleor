@@ -155,6 +155,7 @@
   </header>
 {% endblock %}
 <div class="container maincontent">
+  {% block topcontent %}{% endblock topcontent %}
   {% if messages %}
     {% for message in messages %}
       <div class="alert{% if message.tags %} alert-{{ message.tags }}{% endif %}">
