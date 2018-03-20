@@ -1,14 +1,16 @@
 import graphene
+from graphql_extensions.auth.decorators import staff_member_required
 
 from ....graphql.product.types import Category
 from ....graphql.utils import get_node
 from ....product import models
 from ...category.forms import CategoryForm
 from ..mutations import (
-    ModelDeleteMutation, ModelFormMutation, ModelFormUpdateMutation)
+    BaseMutation, ModelDeleteMutation, ModelFormMutation,
+    ModelFormUpdateMutation, StaffMemberRequiredMutation)
 
 
-class CategoryCreateMutation(ModelFormMutation):
+class CategoryCreateMutation(StaffMemberRequiredMutation, ModelFormMutation):
     class Arguments:
         parent_id = graphene.ID()
 
@@ -27,7 +29,8 @@ class CategoryCreateMutation(ModelFormMutation):
         return kwargs
 
 
-class CategoryUpdateMutation(ModelFormUpdateMutation):
+class CategoryUpdateMutation(
+        StaffMemberRequiredMutation, ModelFormUpdateMutation):
     class Meta:
         form_class = CategoryForm
 
@@ -38,7 +41,6 @@ class CategoryUpdateMutation(ModelFormUpdateMutation):
         return kwargs
 
 
-class CategoryDelete(ModelDeleteMutation):
-
+class CategoryDelete(StaffMemberRequiredMutation, ModelDeleteMutation):
     class Meta:
         model = models.Category
