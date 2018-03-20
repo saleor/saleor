@@ -5,9 +5,20 @@ import * as React from "react";
 
 import PageHeader from "../../components/PageHeader";
 import i18n from "../../i18n";
+import { RootCategoryChildrenQuery } from "../gql-types";
 import CategoryList from "./CategoryList";
 
-const RootCategoryList = ({ data, loading, onCreate }) => (
+interface RootCategoryListProps {
+  data: RootCategoryChildrenQuery;
+  loading?: boolean;
+  onCreate?();
+}
+
+const RootCategoryList: React.StatelessComponent<RootCategoryListProps> = ({
+  data,
+  loading,
+  onCreate
+}) => (
   <Card>
     <PageHeader title={i18n.t("Categories", { context: "title" })}>
       <IconButton onClick={onCreate} disabled={loading}>
