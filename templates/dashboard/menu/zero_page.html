@@ -1,0 +1,12 @@
+{% extends 'dashboard/base_zero_page.html' %}
+{% load i18n %}
+{% load static %}
+
+{% block title %}{% trans "No menus found." %}{% endblock %}
+{% block content %}
+  {% static "dashboard/images/add.svg" as img_path %}
+  {% blocktrans %}
+    Menus are used to organize the navigation bar displayed in the storefront.<br>
+    You can create menus by using the <span class="btn-fab-presentation"><svg data-src="{{ img_path }}" /></span> button.
+  {% endblocktrans %}
+{% endblock %}

@@ -17,8 +17,10 @@ from ...account.models import Address, User
 from ...account.utils import store_user_address
 from ...discount import DiscountValueType, VoucherType
 from ...discount.models import Sale, Voucher
+from ...menu.models import Menu
 from ...order.models import Fulfillment, Order, Payment
 from ...order.utils import update_order_status
+from ...page.models import Page
 from ...product.models import (
     AttributeChoiceValue, Category, Collection, Product, ProductAttribute,
     ProductImage, ProductType, ProductVariant, Stock, StockLocation)
@@ -530,7 +532,7 @@ def create_fake_group():
 
 def create_groups():
     group = create_fake_group()
-    return 'Group: %s' % (group.name)
+    return 'Group: %s' % (group.name,)
 
 
 def set_featured_products(how_many=8):
@@ -556,3 +558,50 @@ def create_collections(how_many=2):
     for dummy in range(how_many):
         collection = create_fake_collection()
         yield 'Collection: %s' % (collection,)
+
+
+def create_fake_page():
+    title = fake.word()
+    return Page.objects.create(
+        slug=slugify(title),
+        title=title,
+        content='\n\n'.join(fake.paragraphs(5)),
+        is_visible=True)
+
+
+def create_pages(how_many=2):
+    for dummy in range(how_many):
+        page = create_fake_page()
+        yield 'Page: %s' % (page,)
+
+
+def create_menus():
+    slugs = ['navbar', 'footer']
+    for slug in slugs:
+        menu = Menu.objects.get_or_create(slug=slug)[0]
+        create_menu_items_by_schema(menu)
+        yield '%s menu created' % (menu,)
+
+
+def create_menu_items_by_schema(menu):
+    categories = Category.objects.all()
+    for category in categories:
+        menu.items.get_or_create(
+            name=category.name,
+            category=category)
+
+    collection = Collection.objects.order_by('?')[0]
+    item, _ = menu.items.get_or_create(
+        name='Collections',
+        collection=collection)
+
+    for collection in Collection.objects.all():
+        menu.items.get_or_create(
+            name=collection.name,
+            collection=collection,
+            parent=item)
+
+    page = Page.objects.order_by('?')[0]
+    menu.items.get_or_create(
+        name=page.title,
+        page=page)

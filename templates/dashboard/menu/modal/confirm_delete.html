@@ -1,0 +1,35 @@
+{% extends "dashboard/base_modal.html" %}
+
+{% load i18n %}
+
+{% block form_class %}{% endblock %}
+
+{% block action_url %}
+{% url "dashboard:menu-delete" pk=menu.pk %}
+{% endblock %}
+
+{% block title %}
+{% blocktrans trimmed with menu=menu context "Remove menu modal title" %}
+  Remove menu {{ menu }}
+{% endblocktrans %}
+{% endblock %}
+
+{% block content %}
+  <div class="col s12">
+    {% blocktrans trimmed with menu=menu context "Remove menu modal title" %}
+      Are you sure you want to remove menu <strong>{{ menu }}</strong>?
+    {% endblocktrans %}
+    {% if descendants %}
+      <p>
+        {% trans "The following menu items will be removed:" context "Remove menu modal text about descendant menu items" %}
+        <ul>
+          {{ descendants|join:", " }}
+        </ul>
+      </p>
+    {% endif %}
+  </div>
+{% endblock %}
+
+{% block primary_action %}
+{% trans "Remove" context "Dashboard delete action" %}
+{% endblock %}
