@@ -497,6 +497,13 @@ def fulfilled_order(order_with_lines_and_stock):
     return order
 
 
+@pytest.fixture
+def draft_order(order_with_lines):
+    order_with_lines.status = OrderStatus.DRAFT
+    order_with_lines.save()
+    return order_with_lines
+
+
 @pytest.fixture()
 def order_with_variant_from_different_stocks(order_with_lines_and_stock):
     line = OrderLine.objects.get(product_sku='SKU_A')

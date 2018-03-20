@@ -33,10 +33,6 @@ class ConfirmDraftOrderForm(forms.ModelForm):
 
     def clean(self):
         super().clean()
-        if self.instance.status != OrderStatus.DRAFT:
-            raise forms.ValidationError(pgettext_lazy(
-                'Confirm draft order form error',
-                'Order must have draft status to confirm'))
         if self.instance.get_total_quantity() == 0:
             raise forms.ValidationError(pgettext_lazy(
                 'Confirm draft order form error',
