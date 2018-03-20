@@ -1,8 +1,7 @@
 import logging
 
-from versatileimagefield.image_warmer import VersatileImageFieldWarmer
-
 from django.core.management.base import BaseCommand
+from versatileimagefield.image_warmer import VersatileImageFieldWarmer
 
 from ....product.models import ProductImage
 
