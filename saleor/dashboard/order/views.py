@@ -98,7 +98,7 @@ def order_details(request, order_pk):
     if payment:
         can_capture = (
             payment.status == PaymentStatus.PREAUTH and
-            order.status != OrderStatus.CANCELED)
+            order.status not in {OrderStatus.DRAFT, OrderStatus.CANCELED})
         can_release = payment.status == PaymentStatus.PREAUTH
         can_refund = payment.status == PaymentStatus.CONFIRMED
         preauthorized = payment.get_total_price()

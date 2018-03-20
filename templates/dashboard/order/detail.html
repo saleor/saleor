@@ -279,7 +279,7 @@
                     {{ line.unit_price.gross|amount:'html' }}
                   </td>
                   <td class="right-align">
-                    {% if order.can_edit %}
+                    {% if order.is_draft %}
                       <a class="dropdown-button" href="#" data-activates="line-actions-{{ line.pk }}" data-constrainwidth="false">
                         {{ line.quantity }} {% if line.stock_location and is_many_stock_locations %} ({{ line.stock_location|truncatechars:10 }}) {% endif %}
                         <svg data-src="{% static "dashboard/images/arrow-drop-down.svg" %}" width="24" height="24" />
@@ -316,12 +316,16 @@
                 <td class="right-align" colspan="3">
                   <p>{% trans "Subtotal" context "Order subtotal" %}</p>
                   <p>{% trans "Shipping" context "Order totals header" %} ({{ order.shipping_method_name|default:"-" }})</p>
-                  {% if order.discount_amount %}
+                  {% if order.is_draft or order.discount_amount %}
                     <p>
                       <a class="dropdown-button" href="#" data-activates="voucher-actions" data-constrainwidth="false">
-                        {% blocktrans trimmed with voucher=order.discount_name context "Order totals header" %}
-                          Voucher {{ voucher }}
-                        {% endblocktrans %}
+                        {% if order.discount_name %}
+                          {% blocktrans trimmed with voucher=order.discount_name context "Order totals header" %}
+                            Discount ({{ voucher }})
+                          {% endblocktrans %}
+                        {% else %}
+                          {% trans "Discount" context "Order totals header" %}
+                        {% endif %}
                         <svg data-src="{% static "dashboard/images/arrow-drop-down.svg" %}" />
                       </a>
                     </p>
@@ -348,22 +352,24 @@
             </tbody>
           </table>
         </div>
-        {% if perms.order.edit_order and order.can_edit or order.can_fulfill %}
-          <div class="data-table-action">
-            {% if order.can_fulfill %}
-              <a href="{% url 'dashboard:fulfill-order-lines' order_pk=order.pk %}" class="btn-flat waves-effect" title="{% trans "Fulfill order" context "Order summary card action title" %}">
-                {% trans "Fulfill" context "Order summary card action" %}
-              </a>
-            {% endif %}
-            {% if order.can_edit %}
-              <a href="#base-modal" data-href="{% url 'dashboard:add-variant-to-order' order_pk=order.pk %}" class="btn-flat waves-effect modal-trigger-custom" title="{% trans "Add product to order" context "Order summary card action title" %}">
-                {% trans "Add product" context "Order summary card action" %}
-              </a>
-              <a href="#base-modal" data-href="{% url 'dashboard:draft-order-confirm' order_pk=order.pk %}" class="btn-flat waves-effect modal-trigger-custom" title="{% trans "Confirm order" context "Order summary card action title" %}">
-                {% trans "Confirm" context "Order summary card action" %}
-              </a>
-            {% endif %}
-          </div>
+        {% if perms.order.edit_order %}
+          {% if order.is_draft or order.is_open %}
+            <div class="data-table-action">
+              {% if order.is_open %}
+                <a href="{% url 'dashboard:fulfill-order-lines' order_pk=order.pk %}" class="btn-flat waves-effect" title="{% trans "Fulfill order" context "Order summary card action title" %}">
+                  {% trans "Fulfill" context "Order summary card action" %}
+                </a>
+              {% endif %}
+              {% if order.is_draft %}
+                <a href="#base-modal" data-href="{% url 'dashboard:add-variant-to-order' order_pk=order.pk %}" class="btn-flat waves-effect modal-trigger-custom" title="{% trans "Add product to order" context "Order summary card action title" %}">
+                  {% trans "Add product" context "Order summary card action" %}
+                </a>
+                <a href="#base-modal" data-href="{% url 'dashboard:draft-order-confirm' order_pk=order.pk %}" class="btn-flat waves-effect modal-trigger-custom" title="{% trans "Confirm order" context "Order summary card action title" %}">
+                  {% trans "Confirm" context "Order summary card action" %}
+                </a>
+              {% endif %}
+            </div>
+          {% endif %}
         {% endif %}
       </div>
       {% for fulfillment in order.fulfillments.all %}

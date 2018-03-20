@@ -143,10 +143,10 @@ class Order(models.Model):
     def get_total_quantity(self):
         return sum([line.quantity for line in self])
 
-    def can_edit(self):
+    def is_draft(self):
         return self.status == OrderStatus.DRAFT
 
-    def can_fulfill(self):
+    def is_open(self):
         statuses = {OrderStatus.UNFULFILLED, OrderStatus.PARTIALLY_FULFILLED}
         return self.status in statuses
 
