@@ -50,6 +50,13 @@ def collect_data_for_email(order_pk, template):
         'context': email_context, 'from_email': settings.ORDER_FROM_EMAIL}
 
 
+def collect_data_for_fullfillment_email(order_pk, template, fulfillment_pk):
+    fulfillment = Fulfillment.objects.get(pk=fulfillment_pk)
+    email_data = collect_data_for_email(order_pk, template)
+    email_data.update({'context': {'fulfillment': fulfillment}})
+    return email_data
+
+
 @shared_task
 def send_order_confirmation(order_pk):
     """Sends order confirmation email."""
@@ -59,18 +66,16 @@ def send_order_confirmation(order_pk):
 
 @shared_task
 def send_fulfillment_confirmation(order_pk, fulfillment_pk):
-    email_data = collect_data_for_email(order_pk, CONFIRM_FULFILLMENT_TEMPLATE)
-    fulfillment = Fulfillment.objects.get(pk=fulfillment_pk)
-    email_data.update({'context': {'fulfillment': fulfillment}})
-    _send_confirmation(**email_data)
+    email_data = collect_data_for_fullfillment_email(
+        order_pk, CONFIRM_FULFILLMENT_TEMPLATE, fulfillment_pk)
+    send_templated_mail(**email_data)
 
 
 @shared_task
 def send_fulfillment_update(order_pk, fulfillment_pk):
-    email_data = collect_data_for_email(order_pk, UPDATE_FULFILLMENT_TEMPLATE)
-    fulfillment = Fulfillment.objects.get(pk=fulfillment_pk)
-    email_data.update({'context': {'fulfillment': fulfillment}})
-    _send_confirmation(**email_data)
+    email_data = collect_data_for_fullfillment_email(
+        order_pk, UPDATE_FULFILLMENT_TEMPLATE, fulfillment_pk)
+    send_templated_mail(**email_data)
 
 
 @shared_task

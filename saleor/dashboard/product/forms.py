@@ -14,6 +14,7 @@ from ...product.models import (
     AttributeChoiceValue, Category, Collection, Product, ProductAttribute,
     ProductImage, ProductType, ProductVariant, Stock, StockLocation,
     VariantImage)
+from ..forms import OrderedModelMultipleChoiceField
 from ..widgets import RichTextEditorWidget
 from .widgets import ImagePreviewWidget
 from . import ProductBulkAction
@@ -376,13 +377,6 @@ class AttributeChoiceValueForm(forms.ModelForm):
     def save(self, commit=True):
         self.instance.slug = slugify(self.instance.name)
         return super().save(commit=commit)
-
-
-class OrderedModelMultipleChoiceField(forms.ModelMultipleChoiceField):
-    def clean(self, value):
-        qs = super().clean(value)
-        keys = list(map(int, value))
-        return sorted(qs, key=lambda v: keys.index(v.pk))
 
 
 class ReorderProductImagesForm(forms.ModelForm):

@@ -28,7 +28,7 @@ function initSelects() {
         delay: 250
       },
       width: '100%',
-      minimumInputLength: 2
+      minimumInputLength: $select.data('min-input')
     });
     $select.addClass('select2-enabled')
   });

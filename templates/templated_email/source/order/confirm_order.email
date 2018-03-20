@@ -1,5 +1,6 @@
 {% load i18n %}
 {% load prices_i18n %}
+{% load voucher %}
 
 {% block subject %}
   {% trans "Order details" context "Order confirmation e-mail subject" %}
@@ -17,6 +18,7 @@ Thank you for your order. Below is the list of ordered products. To see your pay
 {% trans "Order summary" context "Order confirmation e-mail table header" %}:
 {% trans "Subtotal" context "Order confirmation e-mail table header" %}:           {{ order.get_subtotal.gross|amount }}
 {% trans "Shipping" context "Order confirmation e-mail table header" %}:           {{ order.shipping_price.gross|amount }}
+{% if order.discount_amount %}{% trans "Discount:" context "Order confirmation e-mail table header" %}           {% discount_as_negative order.discount_amount %}{% endif %}
 {% trans "Total" context "Order confirmation e-mail table header" %}:              {{ order.total.gross|amount }}
 
 {% trans "Billing address" context "Order confirmation e-mail billing address" %}
