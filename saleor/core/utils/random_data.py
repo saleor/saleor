@@ -104,7 +104,7 @@ COLLECTIONS_SCHEMA = [
         'name': 'Summer collection',
         'image_name': 'summer.jpg'},
     {
-        'name': 'Sale',
+        'name': 'Winter sale',
         'image_name': 'sale.jpg'}]
 
 
@@ -620,7 +620,7 @@ def create_menu_items_by_schema(menu):
         name='Collections',
         collection=collection)
 
-    for collection in Collection.objects.all():
+    for collection in Collection.objects.filter(background_image__isnull=False):  # noqa
         menu.items.get_or_create(
             name=collection.name,
             collection=collection,
