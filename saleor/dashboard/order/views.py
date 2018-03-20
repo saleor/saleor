@@ -27,9 +27,10 @@ from .filters import OrderFilter
 from .forms import (
     AddressForm, AddVariantToOrderForm, BaseFulfillmentLineFormSet,
     CancelFulfillmentForm, CancelOrderForm, CancelOrderLineForm,
-    CapturePaymentForm, ChangeQuantityForm, ChangeStockForm, FulfillmentForm,
-    FulfillmentLineForm, FulfillmentTrackingNumberForm, OrderNoteForm,
-    RefundPaymentForm, ReleasePaymentForm, RemoveVoucherForm)
+    CapturePaymentForm, ChangeQuantityForm, ChangeStockForm,
+    ConfirmDraftOrderForm, FulfillmentForm, FulfillmentLineForm,
+    FulfillmentTrackingNumberForm, OrderNoteForm, RefundPaymentForm,
+    ReleasePaymentForm, RemoveVoucherForm)
 from .utils import (
     create_invoice_pdf, create_packing_slip_pdf, get_statics_absolute_url)
 
@@ -59,6 +60,27 @@ def order_create(request):
     order.history.create(content=msg, user=request.user)
     messages.success(request, msg)
     return redirect('dashboard:order-details', order_pk=order.pk)
+
+
+@staff_member_required
+@permission_required('order.edit_order')
+def confirm_draft_order(request, order_pk):
+    order = get_object_or_404(Order, pk=order_pk, status=OrderStatus.DRAFT)
+    status = 200
+    form = ConfirmDraftOrderForm(request.POST or None, instance=order)
+    if form.is_valid():
+        form.save()
+        msg = pgettext_lazy(
+            'Dashboard message related to an order',
+            'Draft order confirmed')
+        order.history.create(content=msg, user=request.user)
+        messages.success(request, msg)
+        return redirect('dashboard:order-details', order_pk=order.pk)
+    elif form.errors:
+        status = 400
+    template = 'dashboard/order/modal/confirm_order.html'
+    ctx = {'form': form, 'order': order}
+    return TemplateResponse(request, template, ctx, status=status)
 
 
 @staff_member_required

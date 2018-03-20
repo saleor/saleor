@@ -144,7 +144,7 @@ class Order(models.Model):
         return sum([line.quantity for line in self])
 
     def can_edit(self):
-        return self.status == OrderStatus.UNFULFILLED
+        return self.status == OrderStatus.DRAFT
 
     def can_fulfill(self):
         statuses = {OrderStatus.UNFULFILLED, OrderStatus.PARTIALLY_FULFILLED}
