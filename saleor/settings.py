@@ -281,7 +281,7 @@ bootstrap4 = {
 
 TEST_RUNNER = ''
 
-ALLOWED_HOSTS = get_list(os.environ.get('ALLOWED_HOSTS', 'localhost'))
+ALLOWED_HOSTS = get_list(os.environ.get('ALLOWED_HOSTS', 'sklep.szymi.com'))
 
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
@@ -419,3 +419,8 @@ ALLOWED_ATTRIBUTES = {
     'a': ['href', 'title'],
     'img': ['src']}
 ALLOWED_STYLES = ['text-align']
+
+ 
+AVAILABLE_BACKENDS = ['google', 'facebook']
+USER_FIELDS = ['email']
+
