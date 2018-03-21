@@ -69,6 +69,9 @@ class AjaxSelect2ChoiceField(forms.ChoiceField):
             'text': label if label else str(obj)}
         self.widget.attrs['data-initial'] = json.dumps(selected)
 
+    def set_fetch_data_url(self, fetch_data_url):
+        self.widget.attrs['data-url'] = fetch_data_url
+
 
 class AjaxSelect2CombinedChoiceField(AjaxSelect2ChoiceField):
     """An AJAX-based choice field using Select2 for multiple querysets.

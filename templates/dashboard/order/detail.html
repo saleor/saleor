@@ -325,7 +325,11 @@
               <tr class="last-no-border">
                 <td class="right-align" colspan="3">
                   <p>{% trans "Subtotal" context "Order subtotal" %}</p>
-                  <p>{% trans "Shipping" context "Order totals header" %} ({{ order.shipping_method_name|default:"-" }})</p>
+                    <a href="#base-modal" data-href="{% url 'dashboard:order-shipping-edit' order_pk=order.pk %}"
+                       class="modal-trigger-custom" title="{% trans "Edit shipping" context "Order totals action" %}">
+                      {% trans "Shipping" context "Order totals header" %} ({{ order.shipping_method_name|default:"-" }})
+                    </a>
+                  </p>
                   {% if order.is_draft or order.discount_amount %}
                     <p>
                       <a class="dropdown-button" href="#" data-activates="voucher-actions" data-constrainwidth="false">

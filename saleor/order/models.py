@@ -18,6 +18,7 @@ from ..account.models import Address
 from ..core.utils import ZERO_TAXED_MONEY, build_absolute_uri
 from ..discount.models import Voucher
 from ..product.models import Product
+from ..shipping.models import ShippingMethodCountry
 
 
 class Order(models.Model):
@@ -40,6 +41,9 @@ class Order(models.Model):
         Address, related_name='+', editable=False, null=True,
         on_delete=models.SET_NULL)
     user_email = models.EmailField(blank=True, default='')
+    shipping_method = models.ForeignKey(
+        ShippingMethodCountry, blank=True, null=True, related_name='orders',
+        on_delete=models.SET_NULL)
     shipping_price_net = MoneyField(
         currency=settings.DEFAULT_CURRENCY, max_digits=12, decimal_places=2,
         default=0, editable=False)
