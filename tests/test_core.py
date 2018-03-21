@@ -3,18 +3,14 @@ from contextlib import redirect_stdout
 from unittest.mock import Mock, patch
 
 import pytest
+
 from django.shortcuts import reverse
 from prices import Money
 from saleor.account.models import Address, User
 from saleor.core.utils import (
-<<<<<<< HEAD
-    Country, create_superuser, format_money, get_country_by_ip,
-    get_currency_for_country, random_data)
-from saleor.core.utils.text import get_cleaner, strip_html
-=======
     Country, create_superuser, create_thumbnails, format_money,
     get_country_by_ip, get_currency_for_country, random_data)
->>>>>>> Add tests
+from saleor.core.utils.text import get_cleaner, strip_html
 from saleor.discount.models import Sale, Voucher
 from saleor.order.models import Order
 from saleor.product.models import Product, ProductImage
@@ -199,7 +195,7 @@ def test_utils_strip_html():
     text = strip_html(base_text, strip_whitespace=True)
     assert text == 'Hello World'
 
-    
+
 def test_create_thumbnails(product_with_image, settings):
     settings.VERSATILEIMAGEFIELD_SETTINGS['create_images_on_demand'] = False
     sizeset = settings.VERSATILEIMAGEFIELD_RENDITION_KEY_SETS['products']

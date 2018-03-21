@@ -7,6 +7,7 @@ from django.core.validators import (
     MaxLengthValidator, MinValueValidator, RegexValidator)
 from django.db import models
 from django.db.models import F, Max, Q
+from django.dispatch import receiver
 from django.urls import reverse
 from django.utils.encoding import smart_text
 from django.utils.text import slugify
@@ -390,6 +391,15 @@ class ProductImage(models.Model):
         qs = self.get_ordering_queryset()
         qs.filter(order__gt=self.order).update(order=F('order') - 1)
         super().delete(*args, **kwargs)
+
+
+@receiver(models.signals.post_delete, sender=ProductImage)
+def delete_product_image_images(sender, instance, **kwargs):
+    """Deletes ProductImage image renditions on post_delete."""
+    # Deletes Image Renditions
+    instance.image.delete_all_created_images()
+    # Deletes Original Image
+    instance.image.delete(save=False)
 
 
 class VariantImage(models.Model):

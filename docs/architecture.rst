@@ -6,6 +6,7 @@ Architecture
 
    architecture/money
    architecture/products
+   architecture/thumbnails
    architecture/stock
    architecture/orders
    architecture/i18n
