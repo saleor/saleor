@@ -1,12 +1,13 @@
+import * as React from "react";
 import ArrowBack from "material-ui-icons/ArrowBack";
 import Close from "material-ui-icons/Close";
+import DeleteIcon from "material-ui-icons/Delete";
 import Divider from "material-ui/Divider";
 import IconButton from "material-ui/IconButton";
-import { withStyles } from "material-ui/styles";
-import Typography from "material-ui/Typography";
-import * as React from "react";
-import { Link } from "react-router-dom";
 import Skeleton from "./Skeleton";
+import Typography from "material-ui/Typography";
+import { Link } from "react-router-dom";
+import { withStyles } from "material-ui/styles";
 
 const decorate = withStyles(theme => ({
   action: {
@@ -40,11 +41,12 @@ const decorate = withStyles(theme => ({
 interface PageHeaderProps {
   backLink?: string;
   cancelLink?: string;
+  handleDelete?(event: any);
   title: string;
 }
 
 const PageHeader = decorate<PageHeaderProps>(
-  ({ backLink, cancelLink, children, classes, title }) => (
+  ({ backLink, cancelLink, children, classes, handleDelete, title }) => (
     <div className={classes.root}>
       {backLink && (
         <IconButton
@@ -69,6 +71,11 @@ const PageHeader = decorate<PageHeaderProps>(
       <Typography className={classes.title} variant="title">
         {title !== undefined ? title : <Skeleton style={{ width: "10em" }} />}
       </Typography>
+      {handleDelete && (
+        <IconButton color="inherit" onClick={handleDelete}>
+          <DeleteIcon />
+        </IconButton>
+      )}
       <div className={classes.action}>{children}</div>
     </div>
   )

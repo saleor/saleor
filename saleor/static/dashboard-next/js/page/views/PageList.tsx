@@ -35,7 +35,11 @@ export class PageList extends React.Component<PageListProps, PageListState> {
   render() {
     const { filters } = this.props;
     return (
-      <TypedPageListQuery query={pageListQuery} variables={{ first: 4 }}>
+      <TypedPageListQuery
+        query={pageListQuery}
+        variables={{ first: 4 }}
+        fetchPolicy="network-only"
+      >
         {({ data, loading, error, fetchMore }) => {
           if (error) {
             return <>not ok</>;

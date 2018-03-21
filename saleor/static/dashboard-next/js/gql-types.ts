@@ -155,6 +155,46 @@ export interface CategoryPropertiesQuery {
   } | null,
 };
 
+export interface PageDeleteMutationVariables {
+  id: string,
+};
+
+export interface PageDeleteMutation {
+  pageDelete:  {
+    errors:  Array< {
+      field: string | null,
+      message: string | null,
+    } | null > | null,
+  } | null,
+};
+
+export interface PageUpdateMutationVariables {
+  id: string,
+  title: string,
+  content: string,
+  slug: string,
+  isVisible: boolean,
+  availableOn?: string | null,
+};
+
+export interface PageUpdateMutation {
+  pageUpdate:  {
+    page:  {
+      // The ID of the object.
+      id: string,
+      slug: string,
+      title: string,
+      content: string,
+      isVisible: boolean,
+      availableOn: string | null,
+    } | null,
+    errors:  Array< {
+      field: string | null,
+      message: string | null,
+    } | null > | null,
+  } | null,
+};
+
 export interface PageListQueryVariables {
   first?: number | null,
   after?: string | null,
@@ -186,5 +226,22 @@ export interface PageListQuery {
       // When paginating forwards, the cursor to continue.
       endCursor: string | null,
     },
+  } | null,
+};
+
+export interface PageDetailsQueryVariables {
+  id: string,
+};
+
+export interface PageDetailsQuery {
+  page:  {
+    // The ID of the object.
+    id: string,
+    slug: string,
+    title: string,
+    content: string,
+    created: string,
+    isVisible: boolean,
+    availableOn: string | null,
   } | null,
 };

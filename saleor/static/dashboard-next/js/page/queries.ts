@@ -1,7 +1,12 @@
 import gql from "graphql-tag";
 import { Query, QueryProps } from "react-apollo";
 
-import { PageListQuery, PageListQueryVariables } from "../gql-types";
+import {
+  PageListQuery,
+  PageListQueryVariables,
+  PageDetailsQuery,
+  PageDetailsQueryVariables
+} from "../gql-types";
 
 export const TypedPageListQuery = Query as React.ComponentType<
   QueryProps<PageListQuery, PageListQueryVariables>
@@ -24,6 +29,23 @@ export const pageListQuery = gql`
         startCursor
         endCursor
       }
+    }
+  }
+`;
+
+export const TypedPageDetailsQuery = Query as React.ComponentType<
+  QueryProps<PageDetailsQuery, PageDetailsQueryVariables>
+>;
+export const pageDetailsQuery = gql`
+  query PageDetails($id: ID!) {
+    page(id: $id) {
+      id
+      slug
+      title
+      content
+      created
+      isVisible
+      availableOn
     }
   }
 `;
