@@ -23,11 +23,12 @@ from ...product.models import Product, ProductVariant, Stock
 from ...product.utils import allocate_stock, deallocate_stock
 from ..forms import AjaxSelect2ChoiceField
 from ..widgets import PhonePrefixWidget
-from .utils import fulfill_order_line
+from .utils import fulfill_order_line, update_order_with_user_addresses
 
 
 class ConfirmDraftOrderForm(forms.ModelForm):
     """Save draft order as a ready to fulfill."""
+
     class Meta:
         model = Order
         fields = []
@@ -63,9 +64,20 @@ class ConfirmDraftOrderForm(forms.ModelForm):
 
 class OrderCustomerForm(forms.ModelForm):
     """Set customer details in an order."""
+
+    update_addresses = forms.BooleanField(initial=True, required=False)
+
     class Meta:
         model = Order
         fields = ['user', 'user_email']
+        labels = {
+            'update_addresses': pgettext_lazy(
+                'Update an order with user default addresses',
+                'Update billing and shipping address'),
+            'user': pgettext_lazy('Order customer', 'User'),
+            'user_email': pgettext_lazy(
+                'Order customer email',
+                'Email')}
 
     def clean(self):
         cleaned_data = super().clean()
@@ -77,6 +89,11 @@ class OrderCustomerForm(forms.ModelForm):
                 'An order can be related either with an email or an existing '
                 'user account'))
         return self.cleaned_data
+
+    def save(self, commit=True):
+        if self.cleaned_data.get('update_addresses'):
+            update_order_with_user_addresses(self.instance)
+        return super().save(commit)
 
 
 class OrderNoteForm(forms.ModelForm):
@@ -236,6 +253,7 @@ class CancelOrderForm(forms.Form):
 
     Deallocate or increase corresponding stocks for each order line.
     """
+
     restock = forms.BooleanField(initial=True, required=False)
 
     def __init__(self, *args, **kwargs):
@@ -265,6 +283,7 @@ class CancelFulfillmentForm(forms.Form):
 
     Increase corresponding stocks for each fulfillment line.
     """
+
     restock = forms.BooleanField(initial=True, required=False)
 
     def __init__(self, *args, **kwargs):
@@ -291,6 +310,7 @@ class CancelFulfillmentForm(forms.Form):
 
 class FulfillmentTrackingNumberForm(forms.ModelForm):
     """Update tracking number in fulfillment group."""
+
     send_mail = forms.BooleanField(
         initial=True, required=False, label=pgettext_lazy(
             'Send mail to customer',
@@ -434,6 +454,7 @@ class AddressForm(StorefrontAddressForm):
 
 class FulfillmentForm(forms.ModelForm):
     """Create fulfillment group for a given order."""
+
     send_mail = forms.BooleanField(
         initial=True, required=False, label=pgettext_lazy(
             'Send mail to customer',
@@ -462,6 +483,7 @@ class BaseFulfillmentLineFormSet(forms.BaseModelFormSet):
 
 class FulfillmentLineForm(forms.ModelForm):
     """Fulfill order line with given quantity by decreasing stock."""
+
     class Meta:
         model = FulfillmentLine
         fields = ['order_line', 'quantity']

@@ -194,7 +194,7 @@
                 {% trans "Guest" context "Anonymous user account value" %}
               {% endif %}
             </div>
-            {% if order.is_shipping_required %}
+            {% if order.is_shipping_required or order.is_draft %}
               <div class="card-content card-border">
                 <span class="card-title black-text">
                   {% trans "Shipping address" context "" %}

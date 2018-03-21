@@ -52,8 +52,12 @@ def cart(db):  # pylint: disable=W0613
 
 
 @pytest.fixture
-def customer_user(db):  # pylint: disable=W0613
-    return User.objects.create_user('test@example.com', 'password')
+def customer_user(db, billing_address, shipping_address):  # pylint: disable=W0613
+    return User.objects.create_user(
+        'test@example.com',
+        'password',
+        default_billing_address=billing_address.get_copy(),
+        default_shipping_address=shipping_address.get_copy())
 
 
 @pytest.fixture
