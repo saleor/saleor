@@ -142,6 +142,7 @@ MIDDLEWARE = [
 INSTALLED_APPS = [
     # External apps that need to go before django's
     'storages',
+    'robots',
 
     # Django modules
     'django.contrib.contenttypes',
@@ -424,3 +425,9 @@ ALLOWED_STYLES = ['text-align']
 AVAILABLE_BACKENDS = ['google', 'facebook']
 USER_FIELDS = ['email']
 
+SECRET_KEY = 'LASERbakwero@!#$@#$988AAAA1234952837abcKwv'
+
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+SECURE_SSL_REDIRECT = True
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = True
