@@ -22,14 +22,14 @@ from .search.urls import urlpatterns as search_urls
 
 handler404 = 'saleor.core.views.handle_404'
 
-non_translateable_urlpatterns = [
+non_translatable_urlpatterns = [
     url(r'^sitemap\.xml$', sitemap, {'sitemaps': sitemaps},
         name='django.contrib.sitemaps.views.sitemap'),
     url(r'^graphql', GraphQLView.as_view(
         schema=schema, graphiql=settings.DEBUG), name='api'),
     url(r'^i18n/$', set_language, name='set_language')]
 
-translateable_urlpatterns = [
+translatable_urlpatterns = [
     url(r'^', include(core_urls)),
     url(r'^cart/', include((cart_urls, 'cart'), namespace='cart')),
     url(r'^checkout/',
@@ -49,8 +49,8 @@ translateable_urlpatterns = [
     url(r'', include('payments.urls')),
     url('', include('social_django.urls', namespace='social'))]
 
-urlpatterns = non_translateable_urlpatterns + i18n_patterns(
-    *translateable_urlpatterns)
+urlpatterns = non_translatable_urlpatterns + i18n_patterns(
+    *translatable_urlpatterns)
 
 if settings.DEBUG:
     # static files (images, css, javascript, etc.)
