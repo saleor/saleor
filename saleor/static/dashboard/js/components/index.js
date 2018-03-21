@@ -11,5 +11,6 @@ import './modal';
 import './search';
 import './selects';
 import './side-menu';
+import './google-preview';
 import './tab';
 import './vouchers';

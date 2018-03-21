@@ -27,6 +27,12 @@ class Category(MPTTModel):
     name = models.CharField(max_length=128)
     slug = models.SlugField(max_length=128)
     description = models.TextField(blank=True)
+    seo_title = models.CharField(
+        max_length=70, blank=True, null=True,
+        validators=[MaxLengthValidator(70)])
+    seo_description = models.CharField(
+        max_length=300, blank=True, null=True,
+        validators=[MaxLengthValidator(300)])
     parent = models.ForeignKey(
         'self', null=True, blank=True, related_name='children',
         on_delete=models.CASCADE)
@@ -95,6 +101,9 @@ class Product(models.Model):
         ProductType, related_name='products', on_delete=models.CASCADE)
     name = models.CharField(max_length=128)
     description = models.TextField()
+    seo_title = models.CharField(
+        max_length=70, blank=True, null=True,
+        validators=[MaxLengthValidator(70)])
     seo_description = models.CharField(
         max_length=300, blank=True, null=True,
         validators=[MaxLengthValidator(300)])
@@ -395,6 +404,12 @@ class Collection(models.Model):
         Product, blank=True, related_name='collections')
     background_image = VersatileImageField(
         upload_to='collection-backgrounds', blank=True, null=True)
+    seo_title = models.CharField(
+        max_length=70, blank=True, null=True,
+        validators=[MaxLengthValidator(70)])
+    seo_description = models.CharField(
+        max_length=300, blank=True, null=True,
+        validators=[MaxLengthValidator(300)])
 
     class Meta:
         ordering = ['pk']

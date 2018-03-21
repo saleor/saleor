@@ -4,6 +4,7 @@ from django.db import models
 from django.db.models import Q
 from django.urls import reverse
 from django.utils.translation import pgettext_lazy
+from django.core.validators import MaxLengthValidator
 
 from ..core.utils import build_absolute_uri
 
@@ -23,6 +24,12 @@ class Page(models.Model):
     created = models.DateTimeField(auto_now_add=True)
     is_visible = models.BooleanField(default=False)
     available_on = models.DateField(blank=True, null=True)
+    seo_title = models.CharField(
+        max_length=70, blank=True, null=True,
+        validators=[MaxLengthValidator(70)])
+    seo_description = models.CharField(
+        max_length=300, blank=True, null=True,
+        validators=[MaxLengthValidator(300)])
 
     objects = PageQuerySet.as_manager()
 
