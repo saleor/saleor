@@ -201,7 +201,7 @@ def test_adding_to_cart_with_current_user_token(
     variant = product_in_stock.variants.first()
     cart.add(variant, 1)
 
-    response = client.get('/cart/')
+    response = client.get(reverse('cart:index'))
     utils.set_cart_cookie(cart, response)
     client.cookies[key] = response.cookies[key]
 
@@ -223,7 +223,7 @@ def test_adding_to_cart_with_another_user_token(
     variant = product_in_stock.variants.first()
     cart.add(variant, 1)
 
-    response = client.get('/cart/')
+    response = client.get(reverse('cart:index'))
     utils.set_cart_cookie(cart, response)
     client.cookies[key] = response.cookies[key]
 
@@ -244,7 +244,7 @@ def test_anonymous_adding_to_cart_with_another_user_token(
     variant = product_in_stock.variants.first()
     cart.add(variant, 1)
 
-    response = client.get('/cart/')
+    response = client.get(reverse('cart:index'))
     utils.set_cart_cookie(cart, response)
     client.cookies[key] = response.cookies[key]
 
@@ -267,7 +267,7 @@ def test_adding_to_cart_with_deleted_cart_token(
     variant = product_in_stock.variants.first()
     cart.add(variant, 1)
 
-    response = client.get('/cart/')
+    response = client.get(reverse('cart:index'))
     utils.set_cart_cookie(cart, response)
     client.cookies[key] = response.cookies[key]
     cart.delete()
@@ -290,7 +290,7 @@ def test_adding_to_cart_with_closed_cart_token(
     variant = product_in_stock.variants.first()
     cart.add(variant, 1)
 
-    response = client.get('/cart/')
+    response = client.get(reverse('cart:index'))
     utils.set_cart_cookie(cart, response)
     client.cookies[key] = response.cookies[key]
 

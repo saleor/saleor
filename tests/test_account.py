@@ -2,7 +2,6 @@ from urllib.parse import urlencode
 
 import i18naddress
 import pytest
-from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.http import QueryDict
 from django.template import Context, Template
@@ -114,7 +113,7 @@ def test_validate_possible_number(input, exception):
         validate_possible_number(input)
 
 
-def test_order_with_lines_pagination(admin_client, order_list):
+def test_order_with_lines_pagination(admin_client, order_list, settings):
     settings.PAGINATE_BY = 1
     data = {'page': '1'}
     url = reverse('account:details')

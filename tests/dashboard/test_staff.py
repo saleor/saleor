@@ -6,6 +6,7 @@ from django.utils.http import urlsafe_base64_encode
 from templated_email import send_templated_mail
 
 from saleor.account.models import User
+from saleor.core.utils import build_absolute_uri
 from saleor.dashboard.staff.forms import StaffForm
 from saleor.settings import DEFAULT_FROM_EMAIL
 
@@ -54,7 +55,7 @@ def test_delete_staff(admin_client, staff_user):
     data = {'pk': staff_user.pk}
     response = admin_client.post(url, data)
     assert User.objects.all().count() == user_count - 1
-    assert response['Location'] == '/dashboard/staff/'
+    assert response['Location'] == reverse('dashboard:staff-list')
 
 
 def test_delete_staff_no_post(admin_client, staff_user):
@@ -77,7 +78,7 @@ def test_delete_staff_with_orders(admin_client, staff_user, order):
     staff_user.refresh_from_db()
     # Instead, his privileges are taken away
     assert not staff_user.is_staff
-    assert response['Location'] == '/dashboard/staff/'
+    assert response['Location'] == reverse('dashboard:staff-list')
 
 
 def test_staff_create_email_with_set_link_password(
@@ -109,11 +110,12 @@ def test_send_set_password_email(staff_user, site_settings):
         recipient_list=[staff_user.email],
         context=ctx)
     assert len(mail.outbox) == 1
-    generated_link = (
-        'http://%s/account/password/reset/%s/%s/' % (
-            ctx['domain'], ctx['uid'], ctx['token']))
+    generated_link = reverse(
+        'account:reset-password-confirm',
+        kwargs={'uidb64': ctx['uid'], 'token': ctx['token']})
+    absolute_generated_link = build_absolute_uri(generated_link)
     sended_message = mail.outbox[0].body
-    assert generated_link in sended_message
+    assert absolute_generated_link in sended_message
 
 
 def test_create_staff_and_set_password(admin_client, staff_group):

@@ -4,6 +4,7 @@
 {% load render_bundle from webpack_loader %}
 {% load shop %}
 {% load placeholder %}
+{% load translate_url from urls %}
 
 <html lang="{{ LANGUAGE_CODE }}" class="no-js" data-shipping-options-url="{% url 'cart:shipping-options' %}" data-cart-summary-url="{% url 'cart:cart-summary' %}">
 <head>
@@ -19,6 +20,10 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black">
     <meta name="apple-mobile-web-app-title" content="{{ site.name }}">
     <meta name="og:type" content="website">
+    {% get_available_languages as LANGUAGES %}
+    {% for lang_code, language_name in LANGUAGES %}
+      <link rel="alternate" hreflang="{{ lang_code }}" href="{% translate_url url=request.path lang_code=lang_code %}" />
+    {% endfor %}
   {% endblock meta %}
 
   {% include 'favicon.html' %}
@@ -51,6 +56,7 @@
         </div>
         <div class="col-6">
           <ul class="float-right">
+            {% include "_language_picker.html" %}
             {% if user.is_authenticated %}
               {% if user.is_staff or request.impersonator.is_staff %}
                 <li>
