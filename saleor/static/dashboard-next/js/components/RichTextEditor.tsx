@@ -2,7 +2,6 @@ import "medium-editor/src/sass/medium-editor.scss";
 import "medium-editor/src/sass/themes/default.scss";
 
 import * as React from "react";
-import Editor from "react-medium-editor";
 import { withStyles } from "material-ui/styles";
 import { FormControl, FormHelperText } from "material-ui/Form";
 import Input, { InputLabel } from "material-ui/Input";
