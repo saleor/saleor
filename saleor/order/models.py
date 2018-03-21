@@ -35,10 +35,10 @@ class Order(models.Model):
         max_length=36, blank=True, editable=False)
     billing_address = models.ForeignKey(
         Address, related_name='+', editable=False, null=True,
-        on_delete=models.PROTECT)
+        on_delete=models.SET_NULL)
     shipping_address = models.ForeignKey(
         Address, related_name='+', editable=False, null=True,
-        on_delete=models.PROTECT)
+        on_delete=models.SET_NULL)
     user_email = models.EmailField(blank=True, default='')
     shipping_price_net = MoneyField(
         currency=settings.DEFAULT_CURRENCY, max_digits=12, decimal_places=2,

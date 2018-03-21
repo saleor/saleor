@@ -2,6 +2,7 @@ from django.conf import settings
 from django.contrib.sites.shortcuts import get_current_site
 from django.template.loader import get_template
 
+from ...account.models import Address
 from ...product.utils import decrease_stock
 
 INVOICE_TEMPLATE = 'dashboard/order/pdf/invoice.html'
@@ -44,3 +45,21 @@ def fulfill_order_line(order_line, quantity):
     decrease_stock(order_line.stock, quantity)
     order_line.quantity_fulfilled += quantity
     order_line.save(update_fields=['quantity_fulfilled'])
+
+
+def update_order_with_user_addresses(order):
+    """Update addresses in an order based on a user assigned to an order."""
+    if order.shipping_address:
+        order.shipping_address.delete()
+
+    if order.billing_address:
+        order.billing_address.delete()
+
+    if order.user:
+        order.billing_address = (
+            order.user.default_billing_address.get_copy()
+            if order.user.default_billing_address else None)
+        order.shipping_address = (
+            order.user.default_shipping_address.get_copy()
+            if order.user.default_shipping_address else None)
+        order.save()

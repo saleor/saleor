@@ -982,7 +982,8 @@ def test_view_order_customer_edit_to_existing_user(
     order = Order.objects.create()
     url = reverse(
         'dashboard:order-customer-edit', kwargs={'order_pk': order.pk})
-    data = {'user_email': '', 'user': customer_user.pk}
+    data = {
+        'user_email': '', 'user': customer_user.pk, 'update_addresses': True}
 
     response = admin_client.post(url, data)
 
@@ -990,6 +991,8 @@ def test_view_order_customer_edit_to_existing_user(
     order.refresh_from_db()
     assert order.user == customer_user
     assert not order.user_email
+    assert order.billing_address == customer_user.default_billing_address
+    assert order.shipping_address == customer_user.default_shipping_address
     redirect_url = reverse(
         'dashboard:order-details', kwargs={'order_pk': order.pk})
     assert get_redirect_location(response) == redirect_url
@@ -1002,7 +1005,9 @@ def test_view_order_customer_edit_to_email(admin_user, admin_client):
     order = Order.objects.create()
     url = reverse(
         'dashboard:order-customer-edit', kwargs={'order_pk': order.pk})
-    data = {'user_email': 'customer@example.com', 'user': ''}
+    data = {
+        'user_email': 'customer@example.com', 'user': '',
+        'update_addresses': False}
 
     response = admin_client.post(url, data)
 
@@ -1022,7 +1027,7 @@ def test_view_order_customer_edit_to_guest_customer(admin_user, admin_client):
     order = Order.objects.create()
     url = reverse(
         'dashboard:order-customer-edit', kwargs={'order_pk': order.pk})
-    data = {'user_email': '', 'user': ''}
+    data = {'user_email': '', 'user': '', 'update_addresses': False}
 
     response = admin_client.post(url, data)
 
@@ -1042,7 +1047,9 @@ def test_view_order_customer_edit_not_valid(admin_client, customer_user):
     order = Order.objects.create()
     url = reverse(
         'dashboard:order-customer-edit', kwargs={'order_pk': order.pk})
-    data = {'user_email': 'customer@example.com', 'user': customer_user.pk}
+    data = {
+        'user_email': 'customer@example.com', 'user': customer_user.pk,
+        'update_addresses': False}
 
     response = admin_client.post(url, data)
 
