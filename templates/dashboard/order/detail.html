@@ -104,7 +104,9 @@
           {% if payment %}
             {% render_status payment.status payment.get_status_display %}
           {% else %}
-            {% trans "N/A" context "Payment status not available" %}
+            <span class="label">
+              {% trans "N/A" context "Payment status not available" %}
+            </span>
           {% endif %}
         </div>
         <div class="data-table-container">
