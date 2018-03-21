@@ -23,7 +23,7 @@ from saleor.shipping.utils import get_shipment_options
 @pytest.fixture()
 def cart_request_factory(rf, monkeypatch):
     def create_request(user=None, token=None):
-        request = rf.get('/')
+        request = rf.get(reverse('home'))
         if user is None:
             request.user = AnonymousUser()
         else:
@@ -505,14 +505,14 @@ def test_replace_cartline_form_when_insufficient_stock(
 
 
 def test_view_empty_cart(client, request_cart):
-    response = client.get('/cart/')
+    response = client.get(reverse('cart:index'))
     assert response.status_code == 200
 
 
 def test_view_cart(client, sale, product_in_stock, request_cart):
     variant = product_in_stock.variants.get()
     request_cart.add(variant, 1)
-    response = client.get('/cart/')
+    response = client.get(reverse('cart:index'))
     response_cart_line = response.context[0]['cart_lines'][0]
     cart_line = request_cart.lines.first()
     assert not response_cart_line['get_total'] == cart_line.get_total()
@@ -524,9 +524,8 @@ def test_view_update_cart_quantity(
     variant = product_in_stock.variants.get()
     request_cart.add(variant, 1)
     response = client.post(
-        '/cart/update/%s/' % (variant.pk,),
-        {'quantity': 3},
-        HTTP_X_REQUESTED_WITH='XMLHttpRequest')
+        reverse('cart:update-line', kwargs={'variant_id': variant.pk}),
+        data={'quantity': 3}, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
     assert response.status_code == 200
     assert request_cart.quantity == 3
 
@@ -535,8 +534,8 @@ def test_view_invalid_update_cart(client, product_in_stock, request_cart):
     variant = product_in_stock.variants.get()
     request_cart.add(variant, 1)
     response = client.post(
-        '/cart/update/%s/' % (variant.pk,), {},
-        HTTP_X_REQUESTED_WITH='XMLHttpRequest')
+        reverse('cart:update-line', kwargs={'variant_id': variant.pk}),
+        data={}, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
     resp_decoded = json.loads(response.content.decode('utf-8'))
     assert response.status_code == 400
     assert 'error' in resp_decoded.keys()
@@ -548,7 +547,7 @@ def test_cart_page_without_openexchagerates(
     settings.OPENEXCHANGERATES_API_KEY = None
     variant = product_in_stock.variants.get()
     request_cart.add(variant, 1)
-    response = client.get('/cart/')
+    response = client.get(reverse('cart:index'))
     context = response.context
     assert context['local_cart_total'] is None
 
@@ -559,13 +558,13 @@ def test_cart_page_with_openexchagerates(
     settings.OPENEXCHANGERATES_API_KEY = 'fake-key'
     variant = product_in_stock.variants.get()
     request_cart.add(variant, 1)
-    response = client.get('/cart/')
+    response = client.get(reverse('cart:index'))
     context = response.context
     assert context['local_cart_total'] is None
     monkeypatch.setattr(
         'django_prices_openexchangerates.models.get_rates',
         lambda c: {'PLN': Mock(rate=2)})
-    response = client.get('/cart/')
+    response = client.get(reverse('cart:index'))
     context = response.context
     assert context['local_cart_total'].currency == 'PLN'
 
@@ -573,7 +572,7 @@ def test_cart_page_with_openexchagerates(
 def test_cart_summary_page(client, product_in_stock, request_cart):
     variant = product_in_stock.variants.get()
     request_cart.add(variant, 1)
-    response = client.get('/cart/summary/')
+    response = client.get(reverse('cart:cart-summary'))
     assert response.status_code == 200
     content = response.context
     assert content['quantity'] == request_cart.quantity
@@ -587,7 +586,7 @@ def test_cart_summary_page(client, product_in_stock, request_cart):
 
 
 def test_cart_summary_page_empty_cart(client, request_cart):
-    response = client.get('/cart/summary/')
+    response = client.get(reverse('cart:cart-summary'))
     assert response.status_code == 200
     data = response.context
     assert data['quantity'] == 0
@@ -685,7 +684,7 @@ def test_get_category_variants_and_prices(
 
 
 def test_update_view_must_be_ajax(customer_user, rf):
-    request = rf.post('/')
+    request = rf.post(reverse('home'))
     request.user = customer_user
     request.discounts = None
     result = update(request, 1)
@@ -698,7 +697,7 @@ def test_get_or_create_db_cart(customer_user, db, rf):
 
     decorated_view = utils.get_or_create_db_cart()(view)
     assert Cart.objects.filter(user=customer_user).count() == 0
-    request = rf.get('/')
+    request = rf.get(reverse('home'))
     request.user = customer_user
     decorated_view(request)
     assert Cart.objects.filter(user=customer_user).count() == 1
