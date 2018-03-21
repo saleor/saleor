@@ -16,9 +16,8 @@ exports[`<CategoryList /> renders when data is fully loaded 1`] = `
 <ul
   className="MuiList-root-1 MuiList-padding-2"
 >
-  <a
+  <div
     className="MuiButtonBase-root-53 MuiListItem-root-5 MuiListItem-default-8 MuiListItem-gutters-12 MuiListItem-button-13"
-    href="/categories/Q2F0ZWdvcnk6MQ==/"
     onBlur={[Function]}
     onClick={[Function]}
     onFocus={[Function]}
@@ -56,10 +55,9 @@ exports[`<CategoryList /> renders when data is fully loaded 1`] = `
     <span
       className="MuiTouchRipple-root-56"
     />
-  </a>
-  <a
+  </div>
+  <div
     className="MuiButtonBase-root-53 MuiListItem-root-5 MuiListItem-default-8 MuiListItem-gutters-12 MuiListItem-button-13"
-    href="/categories/Q2F0ZWdvcnk6Mg==/"
     onBlur={[Function]}
     onClick={[Function]}
     onFocus={[Function]}
@@ -97,10 +95,9 @@ exports[`<CategoryList /> renders when data is fully loaded 1`] = `
     <span
       className="MuiTouchRipple-root-56"
     />
-  </a>
-  <a
+  </div>
+  <div
     className="MuiButtonBase-root-53 MuiListItem-root-5 MuiListItem-default-8 MuiListItem-gutters-12 MuiListItem-button-13"
-    href="/categories/Q2F0ZWdvcnk6Mw==/"
     onBlur={[Function]}
     onClick={[Function]}
     onFocus={[Function]}
@@ -138,10 +135,9 @@ exports[`<CategoryList /> renders when data is fully loaded 1`] = `
     <span
       className="MuiTouchRipple-root-56"
     />
-  </a>
-  <a
+  </div>
+  <div
     className="MuiButtonBase-root-53 MuiListItem-root-5 MuiListItem-default-8 MuiListItem-gutters-12 MuiListItem-button-13"
-    href="/categories/Q2F0ZWdvcnk6NA==/"
     onBlur={[Function]}
     onClick={[Function]}
     onFocus={[Function]}
@@ -179,7 +175,7 @@ exports[`<CategoryList /> renders when data is fully loaded 1`] = `
     <span
       className="MuiTouchRipple-root-56"
     />
-  </a>
+  </div>
 </ul>
 `;
 

@@ -2,6 +2,7 @@ import Button from "material-ui/Button";
 import Dialog, {
   DialogActions,
   DialogContent,
+  DialogContentText,
   DialogTitle
 } from "material-ui/Dialog";
 import { withStyles } from "material-ui/styles";
@@ -21,7 +22,9 @@ const decorate = withStyles(theme => ({
 }));
 
 interface CategoryDeleteDialogProps {
+  name: string;
   opened?: boolean;
+  productCount?: number;
   onClose?();
   onConfirm?();
 }
@@ -30,9 +33,11 @@ const CategoryDeleteDialog = decorate<CategoryDeleteDialogProps>(props => {
   const {
     children,
     classes,
+    name,
     opened,
     onConfirm,
     onClose,
+    productCount,
     ...dialogProps
   } = props;
   return (
@@ -40,7 +45,27 @@ const CategoryDeleteDialog = decorate<CategoryDeleteDialogProps>(props => {
       <DialogTitle>
         {i18n.t("Delete category", { context: "title" })}
       </DialogTitle>
-      <DialogContent>{children}</DialogContent>
+      <DialogContent>
+        <DialogContentText
+          dangerouslySetInnerHTML={{
+            __html: i18n.t(
+              "Are you sure you want to remove <strong>{{name}}</strong>?",
+              { name }
+            )
+          }}
+        />
+        {productCount &&
+          productCount > 0 && (
+            <DialogContentText>
+              {i18n.t(
+                "There are {{count}} product(s) in this category that will also be removed.",
+                {
+                  count: productCount
+                }
+              )}
+            </DialogContentText>
+          )}
+      </DialogContent>
       <DialogActions>
         <Button onClick={onClose}>
           {i18n.t("Cancel", { context: "button" })}

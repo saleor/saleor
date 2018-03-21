@@ -18,7 +18,7 @@ describe("<CategoryList />", () => {
   it("renders when data is fully loaded", () => {
     const component = renderer.create(
       <MemoryRouter>
-        <CategoryList categories={categoryListFixture} />
+        <CategoryList categories={categoryListFixture} onClick={jest.fn()} />
       </MemoryRouter>
     );
     expect(component).toMatchSnapshot();

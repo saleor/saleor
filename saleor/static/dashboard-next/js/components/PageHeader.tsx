@@ -1,5 +1,5 @@
-import ArrowBack from "material-ui-icons/ArrowBack";
-import Close from "material-ui-icons/Close";
+import ArrowBackIcon from "material-ui-icons/ArrowBack";
+import CloseIcon from "material-ui-icons/Close";
 import Divider from "material-ui/Divider";
 import IconButton from "material-ui/IconButton";
 import { withStyles } from "material-ui/styles";
@@ -38,32 +38,30 @@ const decorate = withStyles(theme => ({
 }));
 
 interface PageHeaderProps {
-  backLink?: string;
-  cancelLink?: string;
   title: string;
+  onBack?();
+  onCancel?();
 }
 
 const PageHeader = decorate<PageHeaderProps>(
-  ({ backLink, cancelLink, children, classes, title }) => (
+  ({ children, classes, onBack, onCancel, title }) => (
     <div className={classes.root}>
-      {backLink && (
+      {onBack && (
         <IconButton
           color="inherit"
           className={classes.menuButton}
-          component={props => <Link to={backLink} {...props} />}
-          disabled={backLink === "#"}
+          onClick={onBack}
         >
-          <ArrowBack />
+          <ArrowBackIcon />
         </IconButton>
       )}
-      {cancelLink && (
+      {onCancel && (
         <IconButton
           color="inherit"
           className={classes.menuButton}
-          component={props => <Link to={cancelLink} {...props} />}
-          disabled={cancelLink === "#"}
+          onClick={onCancel}
         >
-          <Close />
+          <CloseIcon />
         </IconButton>
       )}
       <Typography className={classes.title} variant="title">

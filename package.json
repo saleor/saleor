@@ -49,7 +49,7 @@
     "qs": "^6.5.1",
     "query-string": "^5.0.1",
     "react": "^16.2.0",
-    "react-apollo": "^2.1.0-rc.3",
+    "react-apollo": "^2.1.0-rc.5",
     "react-dom": "^16.2.0",
     "react-jss": "^8.2.1",
     "react-redux": "^5.0.6",

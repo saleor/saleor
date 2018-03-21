@@ -5,6 +5,7 @@ import * as React from "react";
 import { Redirect } from "react-router-dom";
 
 import ErrorMessageCard from "../../components/cards/ErrorMessageCard";
+import { NavigatorLink } from "../../components/Navigator";
 import PageHeader from "../../components/PageHeader";
 import i18n from "../../i18n";
 import BaseCategoryForm from "../components/BaseForm";
@@ -32,49 +33,47 @@ export const CategoryUpdateForm: React.StatelessComponent<
 
       return (
         <TypedCategoryUpdateMutation mutation={categoryUpdateMutation}>
-          {(mutate, result) => {
-            if (
-              result &&
-              !result.loading &&
-              result.data.categoryUpdate.errors.length === 0
-            ) {
+          {(mutate, { called, data, loading }) => {
+            if (called && !loading && data.categoryUpdate.errors.length === 0) {
               return (
                 <Redirect
-                  to={categoryShowUrl(result.data.categoryUpdate.category.id)}
+                  to={categoryShowUrl(data.categoryUpdate.category.id)}
                 />
               );
             }
             return (
-              <Card style={{ maxWidth: 750 }}>
-                <PageHeader
-                  cancelLink={categoryShowUrl(id)}
-                  title={i18n.t("Edit category", { context: "title" })}
-                />
-                {loading ? (
-                  <CircularProgress />
-                ) : (
-                  <BaseCategoryForm
-                    name={category.name}
-                    description={category.description}
-                    handleConfirm={formData =>
-                      mutate({
-                        variables: {
-                          ...formData,
-                          id
+              <NavigatorLink to={categoryShowUrl(id)}>
+                {handleCancel => (
+                  <Card style={{ maxWidth: 750 }}>
+                    <PageHeader
+                      onCancel={handleCancel}
+                      title={i18n.t("Edit category", { context: "title" })}
+                    />
+                    {loading ? (
+                      <CircularProgress />
+                    ) : (
+                      <BaseCategoryForm
+                        name={category.name}
+                        description={category.description}
+                        handleConfirm={formData =>
+                          mutate({
+                            variables: {
+                              ...formData,
+                              id
+                            }
+                          })
                         }
-                      })
-                    }
-                    confirmButtonLabel={i18n.t("Save", {
-                      context: "button"
-                    })}
-                    errors={
-                      result && !result.loading
-                        ? result.data.categoryUpdate.errors
-                        : []
-                    }
-                  />
+                        confirmButtonLabel={i18n.t("Save", {
+                          context: "button"
+                        })}
+                        errors={
+                          called && !loading ? data.categoryUpdate.errors : []
+                        }
+                      />
+                    )}
+                  </Card>
                 )}
-              </Card>
+              </NavigatorLink>
             );
           }}
         </TypedCategoryUpdateMutation>

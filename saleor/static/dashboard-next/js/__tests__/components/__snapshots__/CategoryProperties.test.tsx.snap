@@ -1,19 +1,19 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`<CategoryDetails /> renders when data is loaded 1`] = `
+exports[`<CategoryProperties /> renders when data is loaded 1`] = `
 <div
   className="MuiPaper-root-1 MuiPaper-elevation2-5 MuiPaper-rounded-2"
 >
   <div
-    className="Component-root-28"
+    className="Component-root-31"
   >
     <h2
-      className="MuiTypography-root-34 MuiTypography-title-40 Component-title-32"
+      className="MuiTypography-root-34 MuiTypography-title-40 Component-title-33"
     >
       Books
     </h2>
     <div
-      className="Component-action-29"
+      className="Component-action-28"
     >
       <button
         className="MuiButtonBase-root-64 MuiIconButton-root-58"
@@ -43,7 +43,7 @@ exports[`<CategoryDetails /> renders when data is loaded 1`] = `
             viewBox="0 0 24 24"
           >
             <path
-              d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zm2.46-7.12l1.41-1.41L12 12.59l2.12-2.12 1.41 1.41L13.41 14l2.12 2.12-1.41 1.41L12 15.41l-2.12 2.12-1.41-1.41L10.59 14l-2.13-2.12zM15.5 4l-1-1h-5l-1 1H5v2h14V4z"
+              d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"
             />
           </svg>
         </span>
@@ -51,11 +51,11 @@ exports[`<CategoryDetails /> renders when data is loaded 1`] = `
           className="MuiTouchRipple-root-73"
         />
       </button>
-      <a
+      <button
         className="MuiButtonBase-root-64 MuiIconButton-root-58"
-        href="/categories/Q2F0ZWdvcnk6NA==/edit/"
+        disabled={false}
         onBlur={[Function]}
-        onClick={[Function]}
+        onClick={[MockFunction]}
         onFocus={[Function]}
         onKeyDown={[Function]}
         onKeyUp={[Function]}
@@ -65,8 +65,8 @@ exports[`<CategoryDetails /> renders when data is loaded 1`] = `
         onTouchEnd={[Function]}
         onTouchMove={[Function]}
         onTouchStart={[Function]}
-        role="button"
         tabIndex="0"
+        type="button"
       >
         <span
           className="MuiIconButton-label-63"
@@ -86,7 +86,7 @@ exports[`<CategoryDetails /> renders when data is loaded 1`] = `
         <span
           className="MuiTouchRipple-root-73"
         />
-      </a>
+      </button>
     </div>
   </div>
   <div
@@ -101,20 +101,20 @@ exports[`<CategoryDetails /> renders when data is loaded 1`] = `
 </div>
 `;
 
-exports[`<CategoryDetails /> renders while data is loading 1`] = `
+exports[`<CategoryProperties /> renders while data is loading 1`] = `
 <div
   className="MuiPaper-root-1 MuiPaper-elevation2-5 MuiPaper-rounded-2"
 >
   <div
-    className="Component-root-28"
+    className="Component-root-31"
   >
     <h2
-      className="MuiTypography-root-34 MuiTypography-title-40 Component-title-32"
+      className="MuiTypography-root-34 MuiTypography-title-40 Component-title-33"
     >
       
     </h2>
     <div
-      className="Component-action-29"
+      className="Component-action-28"
     >
       <button
         className="MuiButtonBase-root-64 MuiIconButton-root-58"
@@ -144,7 +144,7 @@ exports[`<CategoryDetails /> renders while data is loading 1`] = `
             viewBox="0 0 24 24"
           >
             <path
-              d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zm2.46-7.12l1.41-1.41L12 12.59l2.12-2.12 1.41 1.41L13.41 14l2.12 2.12-1.41 1.41L12 15.41l-2.12 2.12-1.41-1.41L10.59 14l-2.13-2.12zM15.5 4l-1-1h-5l-1 1H5v2h14V4z"
+              d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"
             />
           </svg>
         </span>
@@ -152,11 +152,11 @@ exports[`<CategoryDetails /> renders while data is loading 1`] = `
           className="MuiTouchRipple-root-73"
         />
       </button>
-      <a
+      <button
         className="MuiButtonBase-root-64 MuiIconButton-root-58"
-        href="/"
+        disabled={false}
         onBlur={[Function]}
-        onClick={[Function]}
+        onClick={undefined}
         onFocus={[Function]}
         onKeyDown={[Function]}
         onKeyUp={[Function]}
@@ -166,8 +166,8 @@ exports[`<CategoryDetails /> renders while data is loading 1`] = `
         onTouchEnd={[Function]}
         onTouchMove={[Function]}
         onTouchStart={[Function]}
-        role="button"
         tabIndex="0"
+        type="button"
       >
         <span
           className="MuiIconButton-label-63"
@@ -187,7 +187,7 @@ exports[`<CategoryDetails /> renders while data is loading 1`] = `
         <span
           className="MuiTouchRipple-root-73"
         />
-      </a>
+      </button>
     </div>
   </div>
   <div
