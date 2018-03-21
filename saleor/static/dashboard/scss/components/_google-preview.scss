@@ -1,43 +1,42 @@
 .google-preview {
-    font-family: arial, sans-serif;
     text-align: left;
+    letter-spacing: initial;
 
     .container {
-        padding: 12px;
-        border: 2px solid #ccc;
         margin: 12px;
         background-color: #fff;
         max-width: 600px;
     .title {
-        overflow: hidden;
+        display: block;
         text-overflow: ellipsis;
+        margin-bottom: 2px;
         a {
             color: rgb(26, 13, 171);
             cursor: pointer;
             font-size: 18px;
-            line-height: 21.6px;
+            line-height: 21px;
             text-decoration: none solid rgb(26, 13, 171);
-            zoom: 1;
             &:hover {
                 text-decoration: underline;
             }
             word-wrap: break-word;
+            overflow-wrap: break-word;
         }
     }
     .description {
         color: rgb(84, 84, 84);
         font-size: 13px;
-        line-height: 18.2px;
-        word-wrap: break-word;
-        zoom: 1;
+        line-height: 18px;
+        overflow-wrap: break-word;
     }
     .url {
       color: rgb(0, 102, 33);
       font-size: 13px;
       line-height: 16px;
       white-space: nowrap;
-      height: 16px;
+      margin-bottom: 2px;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
-
   }
 }

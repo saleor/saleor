@@ -58,6 +58,9 @@
             <div class="row">
               {{ form.background_image|materializecss }}
             </div>
+            <div class="row">
+              {% include "dashboard/includes/_google_preview.html" with object=collection form=form %}
+            </div>
           </div>
           <div class="card-action right-align">
             <a href="{% url 'dashboard:collection-list' %}" class="btn btn-flat">
