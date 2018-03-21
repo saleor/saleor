@@ -4,7 +4,7 @@ import pytest
 from django.urls import reverse
 
 from saleor.menu.models import Menu, MenuItem
-from .utils import get_redirect_location
+from ..utils import get_redirect_location
 
 
 @pytest.mark.django_db
