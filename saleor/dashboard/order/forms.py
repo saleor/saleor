@@ -1,15 +1,17 @@
 from django import forms
 from django.conf import settings
 from django.core.validators import MinValueValidator
-from django.urls import reverse_lazy
+from django.urls import reverse, reverse_lazy
 from django.utils.translation import npgettext_lazy, pgettext_lazy
 from django_prices.forms import MoneyField
 from payments import PaymentError, PaymentStatus
+from prices import Money, TaxedMoney
 
 from ...account.i18n import (
     AddressForm as StorefrontAddressForm, PossiblePhoneNumberFormField)
 from ...cart.forms import QuantityField
 from ...core.exceptions import InsufficientStock
+from ...core.utils import ZERO_TAXED_MONEY
 from ...discount.utils import decrease_voucher_usage
 from ...order import OrderStatus
 from ...order.emails import send_note_confirmation
@@ -21,6 +23,7 @@ from ...order.utils import (
     recalculate_order)
 from ...product.models import Product, ProductVariant, Stock
 from ...product.utils import allocate_stock, deallocate_stock
+from ...shipping.models import ShippingMethodCountry
 from ..forms import AjaxSelect2ChoiceField
 from ..widgets import PhonePrefixWidget
 from .utils import fulfill_order_line, update_order_with_user_addresses
@@ -44,13 +47,15 @@ class ConfirmDraftOrderForm(forms.ModelForm):
             errors.append(forms.ValidationError(pgettext_lazy(
                 'Confirm draft order form error',
                 'Billing address is required to handle payment')))
-        if (
-                self.instance.is_shipping_required() and
-                not self.instance.shipping_address
-        ):
-            errors.append(forms.ValidationError(pgettext_lazy(
-                'Confirm draft order form error',
-                'Shipping address is required to handle shipping')))
+        if self.instance.is_shipping_required():
+            if not self.instance.shipping_address:
+                errors.append(forms.ValidationError(pgettext_lazy(
+                    'Confirm draft order form error',
+                    'Shipping address is required to handle shipping')))
+            if not self.instance.shipping_method_name:
+                errors.append(forms.ValidationError(pgettext_lazy(
+                    'Confirm draft order form error',
+                    'Shipping method is required to handle shipping')))
         if errors:
             raise forms.ValidationError(errors)
         return self.cleaned_data
@@ -59,13 +64,22 @@ class ConfirmDraftOrderForm(forms.ModelForm):
         self.instance.status = OrderStatus.UNFULFILLED
         if self.instance.user:
             self.instance.user_email = self.instance.user.email
+        if not self.instance.is_shipping_required():
+            if self.shipping_address:
+                self.shipping_address.delete()
+            self.instance.shipping_method_name = None
+            self.instance.shipping_price = ZERO_TAXED_MONEY
         return super().save(commit)
 
 
 class OrderCustomerForm(forms.ModelForm):
     """Set customer details in an order."""
 
-    update_addresses = forms.BooleanField(initial=True, required=False)
+    update_addresses = forms.BooleanField(
+        label=pgettext_lazy(
+            'Update an order with user default addresses',
+            'Update billing and shipping address'),
+        initial=True, required=False)
 
     class Meta:
         model = Order
@@ -93,6 +107,42 @@ class OrderCustomerForm(forms.ModelForm):
     def save(self, commit=True):
         if self.cleaned_data.get('update_addresses'):
             update_order_with_user_addresses(self.instance)
+        return super().save(commit)
+
+
+class OrderShippingForm(forms.ModelForm):
+    """Set shipping name and shipping price in an order."""
+
+    shipping_method = AjaxSelect2ChoiceField(
+        queryset=ShippingMethodCountry.objects.all(),
+        required=True, min_input=0)
+
+    class Meta:
+        model = Order
+        fields = ['shipping_method']
+        labels = {
+            'shipping_method': pgettext_lazy(
+                'Shipping method form field label', 'Shipping method')}
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        method = self.instance.shipping_method
+        if method:
+            self.fields['shipping_method'].set_initial(
+                method, label=method.label)
+        fetch_data_url = reverse(
+            'dashboard:ajax-order-shipping-methods',
+            kwargs={'order_pk': self.instance.id})
+        self.fields['shipping_method'].set_fetch_data_url(fetch_data_url)
+
+    def save(self, commit=True):
+        method = self.cleaned_data.get('shipping_method')
+        if method:
+            self.instance.shipping_method_name = method.shipping_method.name
+            self.instance.shipping_price = method.get_total_price()
+        else:
+            self.instance.shipping_method_name = ''
+            self.instance.shipping_price = ZERO_TAXED_MONEY
         return super().save(commit)
 
 

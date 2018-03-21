@@ -2,9 +2,9 @@ from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import permission_required
 from django.db import transaction
-from django.db.models import F
+from django.db.models import F, Q
 from django.forms import modelformset_factory
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect
 from django.template.context_processors import csrf
 from django.template.response import TemplateResponse
@@ -22,6 +22,7 @@ from ...order.models import (
     Fulfillment, FulfillmentLine, Order, OrderLine, OrderNote)
 from ...order.utils import update_order_status
 from ...product.models import StockLocation
+from ...shipping.models import ShippingMethodCountry
 from ..views import staff_member_required
 from .filters import OrderFilter
 from .forms import (
@@ -30,7 +31,8 @@ from .forms import (
     CapturePaymentForm, ChangeQuantityForm, ChangeStockForm,
     ConfirmDraftOrderForm, FulfillmentForm, FulfillmentLineForm,
     FulfillmentTrackingNumberForm, OrderCustomerForm, OrderNoteForm,
-    RefundPaymentForm, ReleasePaymentForm, RemoveVoucherForm)
+    OrderShippingForm, RefundPaymentForm, ReleasePaymentForm,
+    RemoveVoucherForm)
 from .utils import (
     create_invoice_pdf, create_packing_slip_pdf, get_statics_absolute_url)
 
@@ -354,6 +356,25 @@ def order_customer_edit(request, order_pk):
 
 @staff_member_required
 @permission_required('order.edit_order')
+def order_shipping_edit(request, order_pk):
+    order = Order.objects.get(pk=order_pk)
+    form = OrderShippingForm(request.POST or None, instance=order)
+    status = 200
+    if form.is_valid():
+        form.save()
+        msg = pgettext_lazy('Dashboard message', 'Shipping updated')
+        messages.success(request, msg)
+        return redirect('dashboard:order-details', order_pk=order_pk)
+    elif form.errors:
+        status = 400
+    ctx = {'order': order, 'form': form}
+    return TemplateResponse(
+        request, 'dashboard/order/modal/edit_shipping.html', ctx,
+        status=status)
+
+
+@staff_member_required
+@permission_required('order.edit_order')
 def cancel_order(request, order_pk):
     status = 200
     order = get_object_or_404(Order, pk=order_pk)
@@ -584,3 +605,25 @@ def change_fulfillment_tracking(request, order_pk, fulfillment_pk):
     return TemplateResponse(
         request, 'dashboard/order/modal/fulfillment_tracking.html', ctx,
         status=status)
+
+
+@staff_member_required
+def ajax_shipping_methods_list(request, order_pk):
+    order = get_object_or_404(Order, pk=order_pk)
+    queryset = ShippingMethodCountry.objects.select_related(
+        'shipping_method').order_by('price').all()
+
+    if order.shipping_address:
+        country_code = order.shipping_address.country.code
+        queryset = queryset.unique_for_country_code(country_code)
+
+    search_query = request.GET.get('q', '')
+    if search_query:
+        queryset = queryset.filter(
+            Q(shipping_method__name__icontains=search_query) |
+            Q(price__icontains=search_query))
+
+    shipping_methods = [
+        {'id': method.pk, 'text': method.label}
+        for method in queryset]
+    return JsonResponse({'results': shipping_methods})

@@ -17,6 +17,8 @@ urlpatterns = [
         views.address_view, name='address-edit'),
     url(r'^(?P<order_pk>\d+)/customer/edit/$',
         views.order_customer_edit, name='order-customer-edit'),
+    url(r'^(?P<order_pk>\d+)/shipping/edit/$',
+        views.order_shipping_edit, name='order-shipping-edit'),
 
     url(r'^(?P<order_pk>\d+)/payment/(?P<payment_pk>\d+)/capture/$',
         views.capture_payment, name='capture-payment'),
@@ -44,4 +46,7 @@ urlpatterns = [
     url(r'^(?P<order_pk>\d+)/fulfillment/(?P<fulfillment_pk>\d+)/packing-slips/$',  # noqa
         views.fulfillment_packing_slips, name='fulfillment-packing-slips'),
     url(r'^(?P<order_pk>\d+)/invoice/$',
-        views.order_invoice, name='order-invoice')]
+        views.order_invoice, name='order-invoice'),
+
+    url('^(?P<order_pk>\d+)/ajax/shipping-methods/$',
+        views.ajax_shipping_methods_list, name='ajax-order-shipping-methods')]
