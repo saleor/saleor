@@ -1,17 +1,25 @@
 {% load build_absolute_uri from urls %}
 {% load materializecss %}
+{% load i18n %}
 
 <div class='google-preview'>
   <div class='container'>
-    <div class='title'>
-      <a id="google-preview-title" href='#'>Example title</a>
+    <p class="flow-text">Search engine listing preview</p>
+    <br>
+    <div id="preview-error">
+        {% trans "Please provide title and description to see how this product might appear in search engine results." %}
     </div>
-    {% if object.pk %}
-      <div class='url'>{% build_absolute_uri request=request location=object.get_absolute_url %}</div>
-    {% else %}
-      <div class='url'>{% build_absolute_uri request=request location="/" %}</div>
-    {% endif %}
-    <div id="google-preview-description" class='description'>{{ object.seo_description|default:_("Here is an example of what a snippet looks like in Google's Search Engine Results Page. ") }}</div>
+    <div class="preview">
+      <div class='title'>
+        <a id="google-preview-title" href='#'>{{ object.seo_title|default:form.seo_title.field.widget.attrs.placeholder }}</a>
+      </div>
+      {% if object.pk %}
+        <div class='url'>{% build_absolute_uri request=request location=object.get_absolute_url %}</div>
+      {% else %}
+        <div class='url'>{% build_absolute_uri request=request location="/" %}</div>
+      {% endif %}
+      <div id="google-preview-description" class='description'>{{ object.seo_description|default:form.seo_description.field.widget.attrs.placeholder }}</div>
+    </div>
   </div>
 </div>
 {{ form.seo_title|materializecss }}

@@ -4,7 +4,7 @@ from decimal import Decimal
 from django.conf import settings
 from django.contrib.postgres.fields import HStoreField
 from django.core.validators import (
-    MaxLengthValidator, MinValueValidator, RegexValidator)
+    MinValueValidator, RegexValidator)
 from django.db import models
 from django.db.models import F, Max, Q
 from django.urls import reverse
@@ -20,19 +20,14 @@ from versatileimagefield.fields import PPOIField, VersatileImageField
 
 from ..core.exceptions import InsufficientStock
 from ..discount.utils import calculate_discounted_price
+from ..seo.models import SeoModel
 from .utils import get_attributes_display_map
 
 
-class Category(MPTTModel):
+class Category(MPTTModel, SeoModel):
     name = models.CharField(max_length=128)
     slug = models.SlugField(max_length=128)
     description = models.TextField(blank=True)
-    seo_title = models.CharField(
-        max_length=70, blank=True, null=True,
-        validators=[MaxLengthValidator(70)])
-    seo_description = models.CharField(
-        max_length=300, blank=True, null=True,
-        validators=[MaxLengthValidator(300)])
     parent = models.ForeignKey(
         'self', null=True, blank=True, related_name='children',
         on_delete=models.CASCADE)
@@ -96,17 +91,11 @@ class ProductQuerySet(models.QuerySet):
             Q(is_published=True))
 
 
-class Product(models.Model):
+class Product(SeoModel):
     product_type = models.ForeignKey(
         ProductType, related_name='products', on_delete=models.CASCADE)
     name = models.CharField(max_length=128)
     description = models.TextField()
-    seo_title = models.CharField(
-        max_length=70, blank=True, null=True,
-        validators=[MaxLengthValidator(70)])
-    seo_description = models.CharField(
-        max_length=300, blank=True, null=True,
-        validators=[MaxLengthValidator(300)])
     category = models.ForeignKey(
         Category, related_name='products', on_delete=models.CASCADE)
     price = MoneyField(
@@ -397,19 +386,13 @@ class VariantImage(models.Model):
         ProductImage, related_name='variant_images', on_delete=models.CASCADE)
 
 
-class Collection(models.Model):
+class Collection(SeoModel):
     name = models.CharField(max_length=128, unique=True)
     slug = models.SlugField(max_length=128)
     products = models.ManyToManyField(
         Product, blank=True, related_name='collections')
     background_image = VersatileImageField(
         upload_to='collection-backgrounds', blank=True, null=True)
-    seo_title = models.CharField(
-        max_length=70, blank=True, null=True,
-        validators=[MaxLengthValidator(70)])
-    seo_description = models.CharField(
-        max_length=300, blank=True, null=True,
-        validators=[MaxLengthValidator(300)])
 
     class Meta:
         ordering = ['pk']

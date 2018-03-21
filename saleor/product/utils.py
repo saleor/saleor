@@ -13,7 +13,7 @@ from ..cart.utils import get_cart_from_request, get_or_create_cart_from_request
 from ..core.utils import (
     ZERO_TAXED_MONEY, get_paginator_items, to_local_currency)
 from ..core.utils.filters import get_now_sorted_by
-from ..schema.product import variant_json_ld
+from ..seo.schema.product import variant_json_ld
 from .forms import ProductForm
 
 

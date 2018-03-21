@@ -218,6 +218,20 @@ class ProductForm(forms.ModelForm, AttributesMixin):
         self.prepare_fields_for_attributes()
         self.fields['collections'].initial = Collection.objects.filter(
             products__name=self.instance)
+        # Placeholder should be no longer than fields maximum size
+        field_maxlength = self.fields['seo_description'].max_length
+        # Product's description contains htm tags which should be stripped
+        placeholder = generate_seo_description(
+            self.instance.description, field_maxlength)
+        self.fields['seo_description'].widget.attrs.update({
+            'id': 'seo_description',
+            'data-bind': self['description'].auto_id,
+            'data-materialize': self['description'].html_name,
+            'placeholder': placeholder})
+        self.fields['seo_title'].widget.attrs.update({
+            'id': 'seo_title',
+            'data-bind': self['name'].auto_id,
+            'placeholder': self.instance.name})
 
     def clean_seo_description(self):
         seo_description = self.cleaned_data['seo_description']

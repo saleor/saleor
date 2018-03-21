@@ -62,6 +62,7 @@
         <div class="col s12 l8">
           {{ form.title|materializecss }}
           {{ form.content|materializecss }}
+          {% include "dashboard/includes/_google_preview.html" with object=page form=form %}
         </div>
         <div class="col s12 l4">
           {{ form.slug|materializecss }}
