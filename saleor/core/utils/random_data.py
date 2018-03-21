@@ -588,51 +588,51 @@ def create_collections_by_schema(placeholder_dir, schema=COLLECTIONS_SCHEMA):
         yield 'Collection: %s' % (collection,)
 
 
-def create_fake_page():
-    title = fake.word()
-    return Page.objects.create(
-        slug=slugify(title),
-        title=title,
-        content='\n\n'.join(fake.paragraphs(5)),
-        is_visible=True)
-
-
-def create_pages(how_many=2):
-    for dummy in range(how_many):
-        page = create_fake_page()
-        yield 'Page: %s' % (page,)
+def create_page():
+    content = """
+    <h2 align="center">AN OPENSOURCE STOREFRONT PLATFORM FOR PERFECTIONISTS</h2>
+    <h3 align="center">WRITTEN IN PYTHON, BEST SERVED AS A BESPOKE, HIGH-PERFORMANCE E-COMMERCE SOLUTION</h3>
+    <p><br></p>
+    <p><img src="http://getsaleor.com/images/main-pic.svg"></p>
+    <p style="text-align: center;">
+        <a href="https://github.com/mirumee/saleor/">Get Saleor</a> today!
+    </p>
+    """
+    page_data = {'content': content, 'title': 'About', 'is_visible': True}
+    page, dummy = Page.objects.get_or_create(slug='about', **page_data)
+    yield 'Page %s created' % page.slug
 
 
 def create_menus():
-    slugs = ['navbar', 'footer']
-    for slug in slugs:
-        menu = Menu.objects.get_or_create(slug=slug)[0]
-        create_menu_items_by_schema(menu)
-        yield '%s menu created' % (menu,)
+    # Create navbar menu with category links
+    menu, created = Menu.objects.get_or_create(slug='navbar')
+    if created:
+        categories = Category.objects.all()
+        for category in categories:
+            menu.items.get_or_create(
+                name=category.name,
+                category=category)
+        yield "Created navbar menu"
 
+    # Create footer menu with collections and pages
+    menu, created = Menu.objects.get_or_create(slug='footer')
+    if created:
+        collection = Collection.objects.order_by('?')[0]
+        item, _ = menu.items.get_or_create(
+            name='Collections',
+            collection=collection)
 
-def create_menu_items_by_schema(menu):
-    categories = Category.objects.all()
-    for category in categories:
+        for collection in Collection.objects.filter(background_image__isnull=False):  # noqa
+            menu.items.get_or_create(
+                name=collection.name,
+                collection=collection,
+                parent=item)
+
+        page = Page.objects.order_by('?')[0]
         menu.items.get_or_create(
-            name=category.name,
-            category=category)
-
-    collection = Collection.objects.order_by('?')[0]
-    item, _ = menu.items.get_or_create(
-        name='Collections',
-        collection=collection)
-
-    for collection in Collection.objects.filter(background_image__isnull=False):  # noqa
-        menu.items.get_or_create(
-            name=collection.name,
-            collection=collection,
-            parent=item)
-
-    page = Page.objects.order_by('?')[0]
-    menu.items.get_or_create(
-        name=page.title,
-        page=page)
+            name=page.title,
+            page=page)
+        yield "Created footer menu"
 
 
 def get_product_list_images_dir(placeholder_dir):
