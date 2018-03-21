@@ -7,4 +7,3 @@ class ProductForm(forms.ModelForm):
     class Meta:
         model = Product
         exclude = ['attributes', 'updated_at']
-
