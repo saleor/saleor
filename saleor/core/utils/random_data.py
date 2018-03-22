@@ -612,7 +612,7 @@ def create_menus():
             menu.items.get_or_create(
                 name=category.name,
                 category=category)
-        yield "Created navbar menu"
+        yield 'Created navbar menu'
 
     # Create footer menu with collections and pages
     menu, created = Menu.objects.get_or_create(slug='footer')
@@ -622,7 +622,8 @@ def create_menus():
             name='Collections',
             collection=collection)
 
-        for collection in Collection.objects.filter(background_image__isnull=False):  # noqa
+        for collection in Collection.objects.filter(
+                background_image__isnull=False):
             menu.items.get_or_create(
                 name=collection.name,
                 collection=collection,
@@ -632,7 +633,7 @@ def create_menus():
         menu.items.get_or_create(
             name=page.title,
             page=page)
-        yield "Created footer menu"
+        yield 'Created footer menu'
 
 
 def get_product_list_images_dir(placeholder_dir):
