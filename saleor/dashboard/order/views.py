@@ -59,7 +59,6 @@ def order_create(request):
     msg = pgettext_lazy(
         'Dashboard message related to an order',
         'Draft order created')
-    order.history.create(content=msg, user=request.user)
     messages.success(request, msg)
     return redirect('dashboard:order-details', order_pk=order.pk)
 
@@ -74,7 +73,7 @@ def confirm_draft_order(request, order_pk):
         form.save()
         msg = pgettext_lazy(
             'Dashboard message related to an order',
-            'Draft order confirmed')
+            'Order created from draft order')
         order.history.create(content=msg, user=request.user)
         messages.success(request, msg)
         return redirect('dashboard:order-details', order_pk=order.pk)

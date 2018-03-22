@@ -5,7 +5,6 @@ from django.urls import reverse, reverse_lazy
 from django.utils.translation import npgettext_lazy, pgettext_lazy
 from django_prices.forms import MoneyField
 from payments import PaymentError, PaymentStatus
-from prices import Money, TaxedMoney
 
 from ...account.i18n import (
     AddressForm as StorefrontAddressForm, PossiblePhoneNumberFormField)
@@ -14,7 +13,7 @@ from ...core.exceptions import InsufficientStock
 from ...core.utils import ZERO_TAXED_MONEY
 from ...discount.utils import decrease_voucher_usage
 from ...order import OrderStatus
-from ...order.emails import send_note_confirmation
+from ...order.emails import send_note_confirmation, send_order_confirmation
 from ...order.models import (
     Fulfillment, FulfillmentLine, Order, OrderLine, OrderNote)
 from ...order.utils import (
@@ -31,6 +30,11 @@ from .utils import fulfill_order_line, update_order_with_user_addresses
 
 class ConfirmDraftOrderForm(forms.ModelForm):
     """Save draft order as a ready to fulfill."""
+    notify_customer = forms.BooleanField(
+        label=pgettext_lazy(
+            'Send email to customer about order created by staff users',
+            'Notify customer'),
+        required=False, initial=True)
 
     class Meta:
         model = Order
@@ -80,6 +84,10 @@ class ConfirmDraftOrderForm(forms.ModelForm):
                 self.instance.shipping_address.delete()
             self.instance.shipping_method_name = None
             self.instance.shipping_price = ZERO_TAXED_MONEY
+        if self.cleaned_data.get('notify_customer'):
+            email = self.instance.get_user_current_email()
+            if email:
+                send_order_confirmation.delay(self.instance.pk)
         return super().save(commit)
 
 
