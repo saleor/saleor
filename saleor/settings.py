@@ -249,19 +249,21 @@ LOGGING = {
             'tags': ['django.request', 'django'],  # list of tags. Default: None.
         },
     },
-    'root': {
-        # default logger; config for everything that propagates to the root logger
-        'level': 'INFO',
-        'filters': [],
-        'handlers': ['console', 'logstash'],
-    },
+    # 'root': {
+    #     # default logger; config for everything that propagates to the root logger
+    #     'level': 'INFO',
+    #     'filters': [],
+    #     'handlers': ['console', 'logstash'],
+    # },
     'loggers': {
         'django': {
             'handlers': ['logstash', 'console'],
             'level': os.getenv('DJANGO_LOG_LEVEL', 'INFO'),
+            'propagate': True,
         },
         'django.request': {
             'handlers': ['logstash'],
+            'propagate': True,
         },
         'django.security': {
             'handlers': ['mail_admins'],
