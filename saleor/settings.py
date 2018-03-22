@@ -256,7 +256,7 @@ PAYMENT_VARIANTS = {
     'dotpay': ('payments.dotpay.DotpayProvider', {
         'seller_id': '716809',
         'pin': 'D148Lnb6Yn4IPXFIhwjTWs2YMhSUZi8s',
-        'lock': True,
+        'lock': False,
         'endpoint': 'https://ssl.dotpay.pl/test_payment/'})}
 
 SESSION_SERIALIZER = 'django.contrib.sessions.serializers.JSONSerializer'
