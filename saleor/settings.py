@@ -419,9 +419,6 @@ if ES_URL:
         'default': {
             'hosts': ES_URL}}
 
-
-GRAPHENE = {'MIDDLEWARE': ['graphene_django.debug.DjangoDebugMiddleware']}
-
 AUTHENTICATION_BACKENDS = [
     'saleor.account.backends.facebook.CustomFacebookOAuth2',
     'saleor.account.backends.google.CustomGoogleOAuth2',

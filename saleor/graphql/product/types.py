@@ -39,11 +39,9 @@ class Margin(graphene.ObjectType):
 
 class SelectedAttribute(graphene.ObjectType):
     name = graphene.String(
-        default_value=None,
-        description='Name of an attribute')
+        default_value=None, description='Name of an attribute')
     value = graphene.String(
-        default_value=None,
-        description='Value of an attribute.')
+        default_value=None, description='Value of an attribute.')
 
     class Meta:
         description = 'Represents a custom product attribute.'
@@ -51,8 +49,7 @@ class SelectedAttribute(graphene.ObjectType):
 
 class ProductVariant(CountableDjangoObjectType):
     stock_quantity = graphene.Int(
-        required=True,
-        description='Quantity of a product available for sale.')
+        required=True, description='Quantity of a product available for sale.')
     price_override = graphene.Field(
         Money,
         description="""Override the base price of a product if necessary.
@@ -95,8 +92,7 @@ class ProductAvailability(graphene.ObjectType):
 
 class Product(CountableDjangoObjectType):
     url = graphene.String(
-        description='The storefront URL for the product.',
-        required=True)
+        description='The storefront URL for the product.', required=True)
     thumbnail_url = graphene.String(
         description='The URL of a main thumbnail for a product.',
         size=graphene.Argument(
@@ -136,8 +132,8 @@ class Product(CountableDjangoObjectType):
             self, context.discounts, context.taxes, context.currency)
         return ProductAvailability(**availability._asdict())
 
-    def resolve_attributes(self, info):
-        return resolve_attribute_list(self.attributes)
+    def resolve_product_type(self, info):
+        return self.product_type
 
     @permission_required(('product.view_product'))
     def resolve_purchase_cost(self, info):
@@ -152,7 +148,8 @@ class Product(CountableDjangoObjectType):
 
 class ProductType(CountableDjangoObjectType):
     products = DjangoFilterConnectionField(
-        Product, filterset_class=ProductFilterSet,
+        Product,
+        filterset_class=ProductFilterSet,
         description='List of products of this type.')
 
     class Meta:
@@ -185,15 +182,18 @@ class Collection(CountableDjangoObjectType):
 
 class Category(CountableDjangoObjectType):
     products = DjangoFilterConnectionField(
-        Product, filterset_class=ProductFilterSet,
+        Product,
+        filterset_class=ProductFilterSet,
         description='List of products in the category.')
     url = graphene.String(
         description='The storefront\'s URL for the category.')
     ancestors = DjangoFilterConnectionField(
-        lambda: Category, filterset_class=DistinctFilterSet,
+        lambda: Category,
+        filterset_class=DistinctFilterSet,
         description='List of ancestors of the category.')
     children = DjangoFilterConnectionField(
-        lambda: Category, filterset_class=DistinctFilterSet,
+        lambda: Category,
+        filterset_class=DistinctFilterSet,
         description='List of children of the category.')
 
     class Meta:
@@ -223,7 +223,8 @@ class Category(CountableDjangoObjectType):
 
 class ProductImage(CountableDjangoObjectType):
     url = graphene.String(
-        required=True, description='',
+        required=True,
+        description='',
         size=graphene.String(
             description='Size of an image, for example 255x255.'))
 
