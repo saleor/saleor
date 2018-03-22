@@ -129,10 +129,11 @@ def order_add_note(request, order_pk):
         msg = pgettext_lazy(
             'Dashboard message related to an order',
             'Added note')
-        order.history.create(content=msg, user=request.user)
         messages.success(request, msg)
-        if note.is_public:
-            form.send_confirmation_email()
+        if not order.is_draft():
+            order.history.create(content=msg, user=request.user)
+            if note.is_public:
+                form.send_confirmation_email()
     elif form.errors:
         status = 400
     ctx = {'order': order, 'form': form}
@@ -274,8 +275,9 @@ def add_variant_to_order(request, order_pk):
             msg = pgettext_lazy(
                 'Dashboard message related to an order',
                 'Added %(quantity)d x %(variant)s') % msg_dict
-            order.history.create(content=msg, user=request.user)
             messages.success(request, msg)
+            if order.is_draft():
+                order.history.create(content=msg, user=request.user)
         except InsufficientStock:
             msg = pgettext_lazy(
                 'Dashboard message related to an order',
@@ -342,7 +344,6 @@ def order_customer_edit(request, order_pk):
             msg = pgettext_lazy(
                 'Dashboard message',
                 'Guest user assigned to an order')
-        order.history.create(content=msg, user=request.user)
         messages.success(request, msg)
         return redirect('dashboard:order-details', order_pk=order_pk)
     elif form.errors:
