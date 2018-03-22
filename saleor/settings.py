@@ -252,6 +252,8 @@ PAYMENT_HOST = get_host
 
 PAYMENT_MODEL = 'order.Payment'
 
+PAYMENT_USES_SSL = True
+
 PAYMENT_VARIANTS = {
     'dotpay': ('payments.dotpay.DotpayProvider', {
         'seller_id': '716809',
