@@ -1,4 +1,5 @@
 from django.conf.urls import include, url
+from django.views.generic.base import TemplateView
 
 from . import views as core_views
 from .category.urls import urlpatterns as category_urls
@@ -33,4 +34,4 @@ urlpatterns = [
     url(r'^style-guide/', core_views.styleguide, name='styleguide'),
     url(r'^search/', include(search_urls)),
     url(r'^taxes/', include(taxes_urls)),
-]
+    url(r'^next/', TemplateView.as_view(template_name='dashboard/next.html'))]

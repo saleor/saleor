@@ -1,0 +1,1282 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`<ProductList /> renders properly 'load more' button 1`] = `
+<table
+  className="MuiTable-root-2"
+>
+  <thead
+    className="MuiTableHead-root-3"
+  >
+    <tr
+      className="MuiTableRow-root-4 MuiTableRow-head-5"
+    >
+      <th
+        aria-sort={null}
+        className="MuiTableCell-root-9 MuiTableCell-head-10 Component-avatarCell-1"
+        scope="col"
+      />
+      <th
+        aria-sort={null}
+        className="MuiTableCell-root-9 MuiTableCell-head-10"
+        scope="col"
+      >
+        Name
+      </th>
+      <th
+        aria-sort={null}
+        className="MuiTableCell-root-9 MuiTableCell-head-10"
+        scope="col"
+      >
+        Type
+      </th>
+    </tr>
+  </thead>
+  <tfoot>
+    <tr
+      className="MuiTableRow-root-4 MuiTableRow-footer-6"
+    >
+      <td
+        aria-sort={null}
+        className="MuiTableCell-root-9 MuiTableCell-footer-12 MuiTablePagination-root-20"
+        colSpan={3}
+        scope={undefined}
+      >
+        <div
+          className="MuiToolbar-root-26 MuiToolbar-gutters-27 MuiTablePagination-toolbar-25"
+        >
+          <div
+            className="MuiTablePagination-spacer-24"
+          />
+          <div
+            className="MuiTablePaginationActions-root-28"
+          >
+            <button
+              className="MuiButtonBase-root-35 MuiButtonBase-disabled-36 MuiIconButton-root-29 MuiIconButton-disabled-33"
+              disabled={true}
+              onBlur={[Function]}
+              onClick={[MockFunction]}
+              onFocus={[Function]}
+              onKeyDown={[Function]}
+              onKeyUp={[Function]}
+              onMouseDown={[Function]}
+              onMouseLeave={[Function]}
+              onMouseUp={[Function]}
+              onTouchEnd={[Function]}
+              onTouchMove={[Function]}
+              onTouchStart={[Function]}
+              tabIndex="-1"
+              type="button"
+            >
+              <span
+                className="MuiIconButton-label-34"
+              >
+                <svg
+                  aria-hidden="true"
+                  className="MuiSvgIcon-root-38"
+                  color={undefined}
+                  focusable="false"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    d="M15.41 16.09l-4.58-4.59 4.58-4.59L14 5.5l-6 6 6 6z"
+                  />
+                </svg>
+              </span>
+            </button>
+            <button
+              className="MuiButtonBase-root-35 MuiIconButton-root-29"
+              disabled={false}
+              onBlur={[Function]}
+              onClick={[MockFunction]}
+              onFocus={[Function]}
+              onKeyDown={[Function]}
+              onKeyUp={[Function]}
+              onMouseDown={[Function]}
+              onMouseLeave={[Function]}
+              onMouseUp={[Function]}
+              onTouchEnd={[Function]}
+              onTouchMove={[Function]}
+              onTouchStart={[Function]}
+              tabIndex="0"
+              type="button"
+            >
+              <span
+                className="MuiIconButton-label-34"
+              >
+                <svg
+                  aria-hidden="true"
+                  className="MuiSvgIcon-root-38"
+                  color={undefined}
+                  focusable="false"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    d="M8.59 16.34l4.58-4.59-4.58-4.59L10 5.75l6 6-6 6z"
+                  />
+                </svg>
+              </span>
+              <span
+                className="MuiTouchRipple-root-49"
+              />
+            </button>
+          </div>
+        </div>
+      </td>
+    </tr>
+  </tfoot>
+  <tbody
+    className="MuiTableBody-root-44"
+  >
+    <tr
+      className="MuiTableRow-root-4"
+    >
+      <td
+        aria-sort={null}
+        className="MuiTableCell-root-9 MuiTableCell-body-11 Component-avatarCell-1"
+        scope={undefined}
+      >
+        <div
+          className="MuiAvatar-root-45"
+        >
+          <img
+            alt={undefined}
+            className="MuiAvatar-img-47"
+            sizes={undefined}
+            src="/media/__sized__/products/saleor/static/placeholders/t-shirts/5_ZoF6Xi8-crop-c0-5__0-5-255x255-70.jpg"
+            srcSet={undefined}
+          />
+        </div>
+      </td>
+      <td
+        aria-sort={null}
+        className="MuiTableCell-root-9 MuiTableCell-body-11"
+        scope={undefined}
+      >
+        Lewis PLC
+      </td>
+      <td
+        aria-sort={null}
+        className="MuiTableCell-root-9 MuiTableCell-body-11"
+        scope={undefined}
+      >
+        T-sirts
+      </td>
+    </tr>
+    <tr
+      className="MuiTableRow-root-4"
+    >
+      <td
+        aria-sort={null}
+        className="MuiTableCell-root-9 MuiTableCell-body-11 Component-avatarCell-1"
+        scope={undefined}
+      >
+        <div
+          className="MuiAvatar-root-45"
+        >
+          <img
+            alt={undefined}
+            className="MuiAvatar-img-47"
+            sizes={undefined}
+            src="/media/__sized__/products/saleor/static/placeholders/t-shirts/6_07Fa6v8-crop-c0-5__0-5-255x255-70.jpg"
+            srcSet={undefined}
+          />
+        </div>
+      </td>
+      <td
+        aria-sort={null}
+        className="MuiTableCell-root-9 MuiTableCell-body-11"
+        scope={undefined}
+      >
+        Kennedy-Ramirez
+      </td>
+      <td
+        aria-sort={null}
+        className="MuiTableCell-root-9 MuiTableCell-body-11"
+        scope={undefined}
+      >
+        T-sirts
+      </td>
+    </tr>
+    <tr
+      className="MuiTableRow-root-4"
+    >
+      <td
+        aria-sort={null}
+        className="MuiTableCell-root-9 MuiTableCell-body-11 Component-avatarCell-1"
+        scope={undefined}
+      >
+        <div
+          className="MuiAvatar-root-45"
+        >
+          <img
+            alt={undefined}
+            className="MuiAvatar-img-47"
+            sizes={undefined}
+            src="/media/__sized__/products/saleor/static/placeholders/t-shirts/6_zeczDly-crop-c0-5__0-5-255x255-70.jpg"
+            srcSet={undefined}
+          />
+        </div>
+      </td>
+      <td
+        aria-sort={null}
+        className="MuiTableCell-root-9 MuiTableCell-body-11"
+        scope={undefined}
+      >
+        Newman, Ashley and Roberson
+      </td>
+      <td
+        aria-sort={null}
+        className="MuiTableCell-root-9 MuiTableCell-body-11"
+        scope={undefined}
+      >
+        T-sirts
+      </td>
+    </tr>
+    <tr
+      className="MuiTableRow-root-4"
+    >
+      <td
+        aria-sort={null}
+        className="MuiTableCell-root-9 MuiTableCell-body-11 Component-avatarCell-1"
+        scope={undefined}
+      >
+        <div
+          className="MuiAvatar-root-45"
+        >
+          <img
+            alt={undefined}
+            className="MuiAvatar-img-47"
+            sizes={undefined}
+            src="/media/__sized__/products/saleor/static/placeholders/t-shirts/5_VX2ikxl-crop-c0-5__0-5-255x255-70.jpg"
+            srcSet={undefined}
+          />
+        </div>
+      </td>
+      <td
+        aria-sort={null}
+        className="MuiTableCell-root-9 MuiTableCell-body-11"
+        scope={undefined}
+      >
+        Jacobson, Stewart and Rodriguez
+      </td>
+      <td
+        aria-sort={null}
+        className="MuiTableCell-root-9 MuiTableCell-body-11"
+        scope={undefined}
+      >
+        T-sirts
+      </td>
+    </tr>
+    <tr
+      className="MuiTableRow-root-4"
+    >
+      <td
+        aria-sort={null}
+        className="MuiTableCell-root-9 MuiTableCell-body-11 Component-avatarCell-1"
+        scope={undefined}
+      >
+        <div
+          className="MuiAvatar-root-45"
+        >
+          <img
+            alt={undefined}
+            className="MuiAvatar-img-47"
+            sizes={undefined}
+            src="/media/__sized__/products/saleor/static/placeholders/t-shirts/5_wl4FUo7-crop-c0-5__0-5-255x255-70.jpg"
+            srcSet={undefined}
+          />
+        </div>
+      </td>
+      <td
+        aria-sort={null}
+        className="MuiTableCell-root-9 MuiTableCell-body-11"
+        scope={undefined}
+      >
+        Sloan Ltd
+      </td>
+      <td
+        aria-sort={null}
+        className="MuiTableCell-root-9 MuiTableCell-body-11"
+        scope={undefined}
+      >
+        T-sirts
+      </td>
+    </tr>
+    <tr
+      className="MuiTableRow-root-4"
+    >
+      <td
+        aria-sort={null}
+        className="MuiTableCell-root-9 MuiTableCell-body-11 Component-avatarCell-1"
+        scope={undefined}
+      >
+        <div
+          className="MuiAvatar-root-45"
+        >
+          <img
+            alt={undefined}
+            className="MuiAvatar-img-47"
+            sizes={undefined}
+            src="/media/__sized__/products/saleor/static/placeholders/t-shirts/5_c0nSiAe-crop-c0-5__0-5-255x255-70.jpg"
+            srcSet={undefined}
+          />
+        </div>
+      </td>
+      <td
+        aria-sort={null}
+        className="MuiTableCell-root-9 MuiTableCell-body-11"
+        scope={undefined}
+      >
+        Foster-Beard
+      </td>
+      <td
+        aria-sort={null}
+        className="MuiTableCell-root-9 MuiTableCell-body-11"
+        scope={undefined}
+      >
+        T-sirts
+      </td>
+    </tr>
+    <tr
+      className="MuiTableRow-root-4"
+    >
+      <td
+        aria-sort={null}
+        className="MuiTableCell-root-9 MuiTableCell-body-11 Component-avatarCell-1"
+        scope={undefined}
+      >
+        <div
+          className="MuiAvatar-root-45"
+        >
+          <img
+            alt={undefined}
+            className="MuiAvatar-img-47"
+            sizes={undefined}
+            src="/media/__sized__/products/saleor/static/placeholders/t-shirts/6_qHI83dZ-crop-c0-5__0-5-255x255-70.jpg"
+            srcSet={undefined}
+          />
+        </div>
+      </td>
+      <td
+        aria-sort={null}
+        className="MuiTableCell-root-9 MuiTableCell-body-11"
+        scope={undefined}
+      >
+        Henson PLC
+      </td>
+      <td
+        aria-sort={null}
+        className="MuiTableCell-root-9 MuiTableCell-body-11"
+        scope={undefined}
+      >
+        T-sirts
+      </td>
+    </tr>
+    <tr
+      className="MuiTableRow-root-4"
+    >
+      <td
+        aria-sort={null}
+        className="MuiTableCell-root-9 MuiTableCell-body-11 Component-avatarCell-1"
+        scope={undefined}
+      >
+        <div
+          className="MuiAvatar-root-45"
+        >
+          <img
+            alt={undefined}
+            className="MuiAvatar-img-47"
+            sizes={undefined}
+            src="/media/__sized__/products/saleor/static/placeholders/t-shirts/5_06TblXK-crop-c0-5__0-5-255x255-70.jpg"
+            srcSet={undefined}
+          />
+        </div>
+      </td>
+      <td
+        aria-sort={null}
+        className="MuiTableCell-root-9 MuiTableCell-body-11"
+        scope={undefined}
+      >
+        Novak, Lopez and Cook
+      </td>
+      <td
+        aria-sort={null}
+        className="MuiTableCell-root-9 MuiTableCell-body-11"
+        scope={undefined}
+      >
+        T-sirts
+      </td>
+    </tr>
+    <tr
+      className="MuiTableRow-root-4"
+    >
+      <td
+        aria-sort={null}
+        className="MuiTableCell-root-9 MuiTableCell-body-11 Component-avatarCell-1"
+        scope={undefined}
+      >
+        <div
+          className="MuiAvatar-root-45"
+        >
+          <img
+            alt={undefined}
+            className="MuiAvatar-img-47"
+            sizes={undefined}
+            src="/media/__sized__/products/saleor/static/placeholders/t-shirts/6_yMYqzTc-crop-c0-5__0-5-255x255-70.jpg"
+            srcSet={undefined}
+          />
+        </div>
+      </td>
+      <td
+        aria-sort={null}
+        className="MuiTableCell-root-9 MuiTableCell-body-11"
+        scope={undefined}
+      >
+        Thompson-Jones
+      </td>
+      <td
+        aria-sort={null}
+        className="MuiTableCell-root-9 MuiTableCell-body-11"
+        scope={undefined}
+      >
+        T-sirts
+      </td>
+    </tr>
+    <tr
+      className="MuiTableRow-root-4"
+    >
+      <td
+        aria-sort={null}
+        className="MuiTableCell-root-9 MuiTableCell-body-11 Component-avatarCell-1"
+        scope={undefined}
+      >
+        <div
+          className="MuiAvatar-root-45"
+        >
+          <img
+            alt={undefined}
+            className="MuiAvatar-img-47"
+            sizes={undefined}
+            src="/media/__sized__/products/saleor/static/placeholders/t-shirts/5_eWtYYcz-crop-c0-5__0-5-255x255-70.jpg"
+            srcSet={undefined}
+          />
+        </div>
+      </td>
+      <td
+        aria-sort={null}
+        className="MuiTableCell-root-9 MuiTableCell-body-11"
+        scope={undefined}
+      >
+        Cunningham, Torres and Day
+      </td>
+      <td
+        aria-sort={null}
+        className="MuiTableCell-root-9 MuiTableCell-body-11"
+        scope={undefined}
+      >
+        T-sirts
+      </td>
+    </tr>
+  </tbody>
+</table>
+`;
+
+exports[`<ProductList /> renders properly when data is loaded 1`] = `
+<table
+  className="MuiTable-root-2"
+>
+  <thead
+    className="MuiTableHead-root-3"
+  >
+    <tr
+      className="MuiTableRow-root-4 MuiTableRow-head-5"
+    >
+      <th
+        aria-sort={null}
+        className="MuiTableCell-root-9 MuiTableCell-head-10 Component-avatarCell-1"
+        scope="col"
+      />
+      <th
+        aria-sort={null}
+        className="MuiTableCell-root-9 MuiTableCell-head-10"
+        scope="col"
+      >
+        Name
+      </th>
+      <th
+        aria-sort={null}
+        className="MuiTableCell-root-9 MuiTableCell-head-10"
+        scope="col"
+      >
+        Type
+      </th>
+    </tr>
+  </thead>
+  <tfoot>
+    <tr
+      className="MuiTableRow-root-4 MuiTableRow-footer-6"
+    >
+      <td
+        aria-sort={null}
+        className="MuiTableCell-root-9 MuiTableCell-footer-12 MuiTablePagination-root-20"
+        colSpan={3}
+        scope={undefined}
+      >
+        <div
+          className="MuiToolbar-root-26 MuiToolbar-gutters-27 MuiTablePagination-toolbar-25"
+        >
+          <div
+            className="MuiTablePagination-spacer-24"
+          />
+          <div
+            className="MuiTablePaginationActions-root-28"
+          >
+            <button
+              className="MuiButtonBase-root-35 MuiButtonBase-disabled-36 MuiIconButton-root-29 MuiIconButton-disabled-33"
+              disabled={true}
+              onBlur={[Function]}
+              onClick={[MockFunction]}
+              onFocus={[Function]}
+              onKeyDown={[Function]}
+              onKeyUp={[Function]}
+              onMouseDown={[Function]}
+              onMouseLeave={[Function]}
+              onMouseUp={[Function]}
+              onTouchEnd={[Function]}
+              onTouchMove={[Function]}
+              onTouchStart={[Function]}
+              tabIndex="-1"
+              type="button"
+            >
+              <span
+                className="MuiIconButton-label-34"
+              >
+                <svg
+                  aria-hidden="true"
+                  className="MuiSvgIcon-root-38"
+                  color={undefined}
+                  focusable="false"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    d="M15.41 16.09l-4.58-4.59 4.58-4.59L14 5.5l-6 6 6 6z"
+                  />
+                </svg>
+              </span>
+            </button>
+            <button
+              className="MuiButtonBase-root-35 MuiButtonBase-disabled-36 MuiIconButton-root-29 MuiIconButton-disabled-33"
+              disabled={true}
+              onBlur={[Function]}
+              onClick={[MockFunction]}
+              onFocus={[Function]}
+              onKeyDown={[Function]}
+              onKeyUp={[Function]}
+              onMouseDown={[Function]}
+              onMouseLeave={[Function]}
+              onMouseUp={[Function]}
+              onTouchEnd={[Function]}
+              onTouchMove={[Function]}
+              onTouchStart={[Function]}
+              tabIndex="-1"
+              type="button"
+            >
+              <span
+                className="MuiIconButton-label-34"
+              >
+                <svg
+                  aria-hidden="true"
+                  className="MuiSvgIcon-root-38"
+                  color={undefined}
+                  focusable="false"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    d="M8.59 16.34l4.58-4.59-4.58-4.59L10 5.75l6 6-6 6z"
+                  />
+                </svg>
+              </span>
+            </button>
+          </div>
+        </div>
+      </td>
+    </tr>
+  </tfoot>
+  <tbody
+    className="MuiTableBody-root-44"
+  >
+    <tr
+      className="MuiTableRow-root-4"
+    >
+      <td
+        aria-sort={null}
+        className="MuiTableCell-root-9 MuiTableCell-body-11 Component-avatarCell-1"
+        scope={undefined}
+      >
+        <div
+          className="MuiAvatar-root-45"
+        >
+          <img
+            alt={undefined}
+            className="MuiAvatar-img-47"
+            sizes={undefined}
+            src="/media/__sized__/products/saleor/static/placeholders/t-shirts/5_ZoF6Xi8-crop-c0-5__0-5-255x255-70.jpg"
+            srcSet={undefined}
+          />
+        </div>
+      </td>
+      <td
+        aria-sort={null}
+        className="MuiTableCell-root-9 MuiTableCell-body-11"
+        scope={undefined}
+      >
+        Lewis PLC
+      </td>
+      <td
+        aria-sort={null}
+        className="MuiTableCell-root-9 MuiTableCell-body-11"
+        scope={undefined}
+      >
+        T-sirts
+      </td>
+    </tr>
+    <tr
+      className="MuiTableRow-root-4"
+    >
+      <td
+        aria-sort={null}
+        className="MuiTableCell-root-9 MuiTableCell-body-11 Component-avatarCell-1"
+        scope={undefined}
+      >
+        <div
+          className="MuiAvatar-root-45"
+        >
+          <img
+            alt={undefined}
+            className="MuiAvatar-img-47"
+            sizes={undefined}
+            src="/media/__sized__/products/saleor/static/placeholders/t-shirts/6_07Fa6v8-crop-c0-5__0-5-255x255-70.jpg"
+            srcSet={undefined}
+          />
+        </div>
+      </td>
+      <td
+        aria-sort={null}
+        className="MuiTableCell-root-9 MuiTableCell-body-11"
+        scope={undefined}
+      >
+        Kennedy-Ramirez
+      </td>
+      <td
+        aria-sort={null}
+        className="MuiTableCell-root-9 MuiTableCell-body-11"
+        scope={undefined}
+      >
+        T-sirts
+      </td>
+    </tr>
+    <tr
+      className="MuiTableRow-root-4"
+    >
+      <td
+        aria-sort={null}
+        className="MuiTableCell-root-9 MuiTableCell-body-11 Component-avatarCell-1"
+        scope={undefined}
+      >
+        <div
+          className="MuiAvatar-root-45"
+        >
+          <img
+            alt={undefined}
+            className="MuiAvatar-img-47"
+            sizes={undefined}
+            src="/media/__sized__/products/saleor/static/placeholders/t-shirts/6_zeczDly-crop-c0-5__0-5-255x255-70.jpg"
+            srcSet={undefined}
+          />
+        </div>
+      </td>
+      <td
+        aria-sort={null}
+        className="MuiTableCell-root-9 MuiTableCell-body-11"
+        scope={undefined}
+      >
+        Newman, Ashley and Roberson
+      </td>
+      <td
+        aria-sort={null}
+        className="MuiTableCell-root-9 MuiTableCell-body-11"
+        scope={undefined}
+      >
+        T-sirts
+      </td>
+    </tr>
+    <tr
+      className="MuiTableRow-root-4"
+    >
+      <td
+        aria-sort={null}
+        className="MuiTableCell-root-9 MuiTableCell-body-11 Component-avatarCell-1"
+        scope={undefined}
+      >
+        <div
+          className="MuiAvatar-root-45"
+        >
+          <img
+            alt={undefined}
+            className="MuiAvatar-img-47"
+            sizes={undefined}
+            src="/media/__sized__/products/saleor/static/placeholders/t-shirts/5_VX2ikxl-crop-c0-5__0-5-255x255-70.jpg"
+            srcSet={undefined}
+          />
+        </div>
+      </td>
+      <td
+        aria-sort={null}
+        className="MuiTableCell-root-9 MuiTableCell-body-11"
+        scope={undefined}
+      >
+        Jacobson, Stewart and Rodriguez
+      </td>
+      <td
+        aria-sort={null}
+        className="MuiTableCell-root-9 MuiTableCell-body-11"
+        scope={undefined}
+      >
+        T-sirts
+      </td>
+    </tr>
+    <tr
+      className="MuiTableRow-root-4"
+    >
+      <td
+        aria-sort={null}
+        className="MuiTableCell-root-9 MuiTableCell-body-11 Component-avatarCell-1"
+        scope={undefined}
+      >
+        <div
+          className="MuiAvatar-root-45"
+        >
+          <img
+            alt={undefined}
+            className="MuiAvatar-img-47"
+            sizes={undefined}
+            src="/media/__sized__/products/saleor/static/placeholders/t-shirts/5_wl4FUo7-crop-c0-5__0-5-255x255-70.jpg"
+            srcSet={undefined}
+          />
+        </div>
+      </td>
+      <td
+        aria-sort={null}
+        className="MuiTableCell-root-9 MuiTableCell-body-11"
+        scope={undefined}
+      >
+        Sloan Ltd
+      </td>
+      <td
+        aria-sort={null}
+        className="MuiTableCell-root-9 MuiTableCell-body-11"
+        scope={undefined}
+      >
+        T-sirts
+      </td>
+    </tr>
+    <tr
+      className="MuiTableRow-root-4"
+    >
+      <td
+        aria-sort={null}
+        className="MuiTableCell-root-9 MuiTableCell-body-11 Component-avatarCell-1"
+        scope={undefined}
+      >
+        <div
+          className="MuiAvatar-root-45"
+        >
+          <img
+            alt={undefined}
+            className="MuiAvatar-img-47"
+            sizes={undefined}
+            src="/media/__sized__/products/saleor/static/placeholders/t-shirts/5_c0nSiAe-crop-c0-5__0-5-255x255-70.jpg"
+            srcSet={undefined}
+          />
+        </div>
+      </td>
+      <td
+        aria-sort={null}
+        className="MuiTableCell-root-9 MuiTableCell-body-11"
+        scope={undefined}
+      >
+        Foster-Beard
+      </td>
+      <td
+        aria-sort={null}
+        className="MuiTableCell-root-9 MuiTableCell-body-11"
+        scope={undefined}
+      >
+        T-sirts
+      </td>
+    </tr>
+    <tr
+      className="MuiTableRow-root-4"
+    >
+      <td
+        aria-sort={null}
+        className="MuiTableCell-root-9 MuiTableCell-body-11 Component-avatarCell-1"
+        scope={undefined}
+      >
+        <div
+          className="MuiAvatar-root-45"
+        >
+          <img
+            alt={undefined}
+            className="MuiAvatar-img-47"
+            sizes={undefined}
+            src="/media/__sized__/products/saleor/static/placeholders/t-shirts/6_qHI83dZ-crop-c0-5__0-5-255x255-70.jpg"
+            srcSet={undefined}
+          />
+        </div>
+      </td>
+      <td
+        aria-sort={null}
+        className="MuiTableCell-root-9 MuiTableCell-body-11"
+        scope={undefined}
+      >
+        Henson PLC
+      </td>
+      <td
+        aria-sort={null}
+        className="MuiTableCell-root-9 MuiTableCell-body-11"
+        scope={undefined}
+      >
+        T-sirts
+      </td>
+    </tr>
+    <tr
+      className="MuiTableRow-root-4"
+    >
+      <td
+        aria-sort={null}
+        className="MuiTableCell-root-9 MuiTableCell-body-11 Component-avatarCell-1"
+        scope={undefined}
+      >
+        <div
+          className="MuiAvatar-root-45"
+        >
+          <img
+            alt={undefined}
+            className="MuiAvatar-img-47"
+            sizes={undefined}
+            src="/media/__sized__/products/saleor/static/placeholders/t-shirts/5_06TblXK-crop-c0-5__0-5-255x255-70.jpg"
+            srcSet={undefined}
+          />
+        </div>
+      </td>
+      <td
+        aria-sort={null}
+        className="MuiTableCell-root-9 MuiTableCell-body-11"
+        scope={undefined}
+      >
+        Novak, Lopez and Cook
+      </td>
+      <td
+        aria-sort={null}
+        className="MuiTableCell-root-9 MuiTableCell-body-11"
+        scope={undefined}
+      >
+        T-sirts
+      </td>
+    </tr>
+    <tr
+      className="MuiTableRow-root-4"
+    >
+      <td
+        aria-sort={null}
+        className="MuiTableCell-root-9 MuiTableCell-body-11 Component-avatarCell-1"
+        scope={undefined}
+      >
+        <div
+          className="MuiAvatar-root-45"
+        >
+          <img
+            alt={undefined}
+            className="MuiAvatar-img-47"
+            sizes={undefined}
+            src="/media/__sized__/products/saleor/static/placeholders/t-shirts/6_yMYqzTc-crop-c0-5__0-5-255x255-70.jpg"
+            srcSet={undefined}
+          />
+        </div>
+      </td>
+      <td
+        aria-sort={null}
+        className="MuiTableCell-root-9 MuiTableCell-body-11"
+        scope={undefined}
+      >
+        Thompson-Jones
+      </td>
+      <td
+        aria-sort={null}
+        className="MuiTableCell-root-9 MuiTableCell-body-11"
+        scope={undefined}
+      >
+        T-sirts
+      </td>
+    </tr>
+    <tr
+      className="MuiTableRow-root-4"
+    >
+      <td
+        aria-sort={null}
+        className="MuiTableCell-root-9 MuiTableCell-body-11 Component-avatarCell-1"
+        scope={undefined}
+      >
+        <div
+          className="MuiAvatar-root-45"
+        >
+          <img
+            alt={undefined}
+            className="MuiAvatar-img-47"
+            sizes={undefined}
+            src="/media/__sized__/products/saleor/static/placeholders/t-shirts/5_eWtYYcz-crop-c0-5__0-5-255x255-70.jpg"
+            srcSet={undefined}
+          />
+        </div>
+      </td>
+      <td
+        aria-sort={null}
+        className="MuiTableCell-root-9 MuiTableCell-body-11"
+        scope={undefined}
+      >
+        Cunningham, Torres and Day
+      </td>
+      <td
+        aria-sort={null}
+        className="MuiTableCell-root-9 MuiTableCell-body-11"
+        scope={undefined}
+      >
+        T-sirts
+      </td>
+    </tr>
+  </tbody>
+</table>
+`;
+
+exports[`<ProductList /> renders properly when product list is empty 1`] = `
+<table
+  className="MuiTable-root-2"
+>
+  <thead
+    className="MuiTableHead-root-3"
+  >
+    <tr
+      className="MuiTableRow-root-4 MuiTableRow-head-5"
+    >
+      <th
+        aria-sort={null}
+        className="MuiTableCell-root-9 MuiTableCell-head-10 Component-avatarCell-1"
+        scope="col"
+      />
+      <th
+        aria-sort={null}
+        className="MuiTableCell-root-9 MuiTableCell-head-10"
+        scope="col"
+      >
+        Name
+      </th>
+      <th
+        aria-sort={null}
+        className="MuiTableCell-root-9 MuiTableCell-head-10"
+        scope="col"
+      >
+        Type
+      </th>
+    </tr>
+  </thead>
+  <tfoot>
+    <tr
+      className="MuiTableRow-root-4 MuiTableRow-footer-6"
+    >
+      <td
+        aria-sort={null}
+        className="MuiTableCell-root-9 MuiTableCell-footer-12 MuiTablePagination-root-20"
+        colSpan={3}
+        scope={undefined}
+      >
+        <div
+          className="MuiToolbar-root-26 MuiToolbar-gutters-27 MuiTablePagination-toolbar-25"
+        >
+          <div
+            className="MuiTablePagination-spacer-24"
+          />
+          <div
+            className="MuiTablePaginationActions-root-28"
+          >
+            <button
+              className="MuiButtonBase-root-35 MuiButtonBase-disabled-36 MuiIconButton-root-29 MuiIconButton-disabled-33"
+              disabled={true}
+              onBlur={[Function]}
+              onClick={[MockFunction]}
+              onFocus={[Function]}
+              onKeyDown={[Function]}
+              onKeyUp={[Function]}
+              onMouseDown={[Function]}
+              onMouseLeave={[Function]}
+              onMouseUp={[Function]}
+              onTouchEnd={[Function]}
+              onTouchMove={[Function]}
+              onTouchStart={[Function]}
+              tabIndex="-1"
+              type="button"
+            >
+              <span
+                className="MuiIconButton-label-34"
+              >
+                <svg
+                  aria-hidden="true"
+                  className="MuiSvgIcon-root-38"
+                  color={undefined}
+                  focusable="false"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    d="M15.41 16.09l-4.58-4.59 4.58-4.59L14 5.5l-6 6 6 6z"
+                  />
+                </svg>
+              </span>
+            </button>
+            <button
+              className="MuiButtonBase-root-35 MuiButtonBase-disabled-36 MuiIconButton-root-29 MuiIconButton-disabled-33"
+              disabled={true}
+              onBlur={[Function]}
+              onClick={[MockFunction]}
+              onFocus={[Function]}
+              onKeyDown={[Function]}
+              onKeyUp={[Function]}
+              onMouseDown={[Function]}
+              onMouseLeave={[Function]}
+              onMouseUp={[Function]}
+              onTouchEnd={[Function]}
+              onTouchMove={[Function]}
+              onTouchStart={[Function]}
+              tabIndex="-1"
+              type="button"
+            >
+              <span
+                className="MuiIconButton-label-34"
+              >
+                <svg
+                  aria-hidden="true"
+                  className="MuiSvgIcon-root-38"
+                  color={undefined}
+                  focusable="false"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    d="M8.59 16.34l4.58-4.59-4.58-4.59L10 5.75l6 6-6 6z"
+                  />
+                </svg>
+              </span>
+            </button>
+          </div>
+        </div>
+      </td>
+    </tr>
+  </tfoot>
+  <tbody
+    className="MuiTableBody-root-44"
+  >
+    <tr
+      className="MuiTableRow-root-4"
+    >
+      <td
+        aria-sort={null}
+        className="MuiTableCell-root-9 MuiTableCell-body-11 Component-avatarCell-1"
+        scope={undefined}
+      />
+      <td
+        aria-sort={null}
+        className="MuiTableCell-root-9 MuiTableCell-body-11"
+        colSpan={2}
+        scope={undefined}
+      >
+        No products found
+      </td>
+    </tr>
+  </tbody>
+</table>
+`;
+
+exports[`<ProductList /> renders while data is loading 1`] = `
+<table
+  className="MuiTable-root-2"
+>
+  <thead
+    className="MuiTableHead-root-3"
+  >
+    <tr
+      className="MuiTableRow-root-4 MuiTableRow-head-5"
+    >
+      <th
+        aria-sort={null}
+        className="MuiTableCell-root-9 MuiTableCell-head-10 Component-avatarCell-1"
+        scope="col"
+      />
+      <th
+        aria-sort={null}
+        className="MuiTableCell-root-9 MuiTableCell-head-10"
+        scope="col"
+      >
+        Name
+      </th>
+      <th
+        aria-sort={null}
+        className="MuiTableCell-root-9 MuiTableCell-head-10"
+        scope="col"
+      >
+        Type
+      </th>
+    </tr>
+  </thead>
+  <tfoot>
+    <tr
+      className="MuiTableRow-root-4 MuiTableRow-footer-6"
+    >
+      <td
+        aria-sort={null}
+        className="MuiTableCell-root-9 MuiTableCell-footer-12 MuiTablePagination-root-20"
+        colSpan={3}
+        scope={undefined}
+      >
+        <div
+          className="MuiToolbar-root-26 MuiToolbar-gutters-27 MuiTablePagination-toolbar-25"
+        >
+          <div
+            className="MuiTablePagination-spacer-24"
+          />
+          <div
+            className="MuiTablePaginationActions-root-28"
+          >
+            <button
+              className="MuiButtonBase-root-35 MuiButtonBase-disabled-36 MuiIconButton-root-29 MuiIconButton-disabled-33"
+              disabled={true}
+              onBlur={[Function]}
+              onClick={[MockFunction]}
+              onFocus={[Function]}
+              onKeyDown={[Function]}
+              onKeyUp={[Function]}
+              onMouseDown={[Function]}
+              onMouseLeave={[Function]}
+              onMouseUp={[Function]}
+              onTouchEnd={[Function]}
+              onTouchMove={[Function]}
+              onTouchStart={[Function]}
+              tabIndex="-1"
+              type="button"
+            >
+              <span
+                className="MuiIconButton-label-34"
+              >
+                <svg
+                  aria-hidden="true"
+                  className="MuiSvgIcon-root-38"
+                  color={undefined}
+                  focusable="false"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    d="M15.41 16.09l-4.58-4.59 4.58-4.59L14 5.5l-6 6 6 6z"
+                  />
+                </svg>
+              </span>
+            </button>
+            <button
+              className="MuiButtonBase-root-35 MuiButtonBase-disabled-36 MuiIconButton-root-29 MuiIconButton-disabled-33"
+              disabled={true}
+              onBlur={[Function]}
+              onClick={[MockFunction]}
+              onFocus={[Function]}
+              onKeyDown={[Function]}
+              onKeyUp={[Function]}
+              onMouseDown={[Function]}
+              onMouseLeave={[Function]}
+              onMouseUp={[Function]}
+              onTouchEnd={[Function]}
+              onTouchMove={[Function]}
+              onTouchStart={[Function]}
+              tabIndex="-1"
+              type="button"
+            >
+              <span
+                className="MuiIconButton-label-34"
+              >
+                <svg
+                  aria-hidden="true"
+                  className="MuiSvgIcon-root-38"
+                  color={undefined}
+                  focusable="false"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    d="M8.59 16.34l4.58-4.59-4.58-4.59L10 5.75l6 6-6 6z"
+                  />
+                </svg>
+              </span>
+            </button>
+          </div>
+        </div>
+      </td>
+    </tr>
+  </tfoot>
+  <tbody
+    className="MuiTableBody-root-44"
+  >
+    <tr
+      className="MuiTableRow-root-4"
+    >
+      <td
+        aria-sort={null}
+        className="MuiTableCell-root-9 MuiTableCell-body-11 Component-avatarCell-1"
+        scope={undefined}
+      >
+        <div
+          className="MuiAvatar-root-45 MuiAvatar-colorDefault-46"
+        >
+          <svg
+            aria-hidden="true"
+            className="MuiSvgIcon-root-38"
+            color={undefined}
+            focusable="false"
+            viewBox="0 0 24 24"
+          >
+            <path
+              d="M19 8l-4 4h3c0 3.31-2.69 6-6 6-1.01 0-1.97-.25-2.8-.7l-1.46 1.46C8.97 19.54 10.43 20 12 20c4.42 0 8-3.58 8-8h3l-4-4zM6 12c0-3.31 2.69-6 6-6 1.01 0 1.97.25 2.8.7l1.46-1.46C15.03 4.46 13.57 4 12 4c-4.42 0-8 3.58-8 8H1l4 4 4-4H6z"
+            />
+          </svg>
+        </div>
+      </td>
+      <td
+        aria-sort={null}
+        className="MuiTableCell-root-9 MuiTableCell-body-11"
+        scope={undefined}
+      >
+        <span
+          className="Component-skeleton-48"
+          style={undefined}
+        >
+          ‌
+        </span>
+      </td>
+      <td
+        aria-sort={null}
+        className="MuiTableCell-root-9 MuiTableCell-body-11"
+        scope={undefined}
+      >
+        <span
+          className="Component-skeleton-48"
+          style={undefined}
+        >
+          ‌
+        </span>
+      </td>
+    </tr>
+  </tbody>
+</table>
+`;

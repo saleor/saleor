@@ -58,7 +58,6 @@ class Query(graphene.ObjectType):
         level=graphene.Argument(graphene.Int),
         description='List of the shop\'s product types.')
     node = graphene.Node.Field()
-    debug = graphene.Field(DjangoDebug, name='__debug')
 
     def resolve_attributes(self, info, in_category=None, **kwargs):
         return resolve_attributes(in_category, info)
