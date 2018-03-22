@@ -256,6 +256,11 @@ LOGGING = {
     #     'handlers': ['console', 'logstash'],
     # },
     'loggers': {
+        'saleor_oye': {
+            'handlers': ['logstash', 'console'],
+            'level': 'INFO',
+            'propagate': True,
+        },
         'django': {
             'handlers': ['logstash', 'console'],
             'level': os.getenv('DJANGO_LOG_LEVEL', 'INFO'),
