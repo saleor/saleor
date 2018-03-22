@@ -10,6 +10,7 @@ import { Redirect } from "react-router";
 import PageHeader from "../../components/PageHeader";
 import PageUpdateFormComponent from "../components/PageUpdateFormComponent";
 import RichTextEditor from "../../components/RichTextEditor";
+import ErrorMessageCard from "../../components/cards/ErrorMessageCard";
 import i18n from "../../i18n";
 import {
   TypedPageDeleteMutation,
@@ -27,13 +28,22 @@ export const PageUpdateForm: React.StatelessComponent<PageUpdateFormProps> = ({
   id
 }) => (
   <TypedPageDetailsQuery query={pageDetailsQuery} variables={{ id }}>
-    {({ data: { page }, error, loading }) => {
+    {({ data, error, loading }) => {
       if (error) {
-        return;
+        return (
+          <Grid container spacing={16}>
+            <Grid item xs={12} md={9}>
+              <ErrorMessageCard
+                message={i18n.t("Unable to find matching page.")}
+              />
+            </Grid>
+          </Grid>
+        );
       }
       if (loading) {
         return <>loading</>;
       }
+      const { page } = data;
       const formInitialValues = {
         title: page.title,
         slug: page.slug,
@@ -54,7 +64,8 @@ export const PageUpdateForm: React.StatelessComponent<PageUpdateFormProps> = ({
                   console.log(result.data.pageDelete.errors);
                   return;
                 }
-                return <Redirect to="/pages/" />; // FIXME component is loaded with previous state (meaning that deleted page will still be there until table reload)
+                // FIXME: component is loaded with previous state (meaning that delete  d page will still be there until table reload)
+                return <Redirect to="/pages/" />;
               }
               return (
                 <TypedPageUpdateMutation mutation={pageUpdateMutation}>

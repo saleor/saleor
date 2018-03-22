@@ -15,6 +15,7 @@ import PageListComponent from "../components/PageListComponent";
 import PageHeader from "../../components/PageHeader";
 import PageFilters from "../components/PageFilters";
 import Navigator from "../../components/Navigator";
+import ErrorMessageCard from "../../components/cards/ErrorMessageCard";
 import { pageEditUrl, pageStorefrontUrl } from "../index";
 
 interface PageListProps {
@@ -42,7 +43,11 @@ export class PageList extends React.Component<PageListProps, PageListState> {
       >
         {({ data, loading, error, fetchMore }) => {
           if (error) {
-            return <>not ok</>;
+            return (
+              <ErrorMessageCard
+                message={i18n.t("Something went terribly wrong.")}
+              />
+            );
           }
 
           const loadNextPage = () => {
