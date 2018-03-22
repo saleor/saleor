@@ -17,31 +17,31 @@ const $googleDescriptionPreview = $('#google-preview-description');
 const $preview = $('.preview');
 const $previewErrors = $('#preview-error');
 
-const watchedEvents = 'input propertychange cut paste copy change delete';
+const watchedEvents = 'input propertychange cut paste copy change';
 
 function checkForErrors() {
-  const $descriptionText = $googleDescriptionPreview.text() || $googleDescriptionPreview.val();
+  const $descriptionText = $googleDescriptionPreview.text();
   const $titleText = $googleTitlePreview.text();
   if ($descriptionText && $titleText) {
     $preview.show();
     $previewErrors.hide();
   } else if (!$descriptionText && !$titleText) {
     $preview.hide();
-    $previewErrors.text(gettext('title and description missing'));
+    $previewErrors.text(gettext('Please provide title and description to see how this product might appear in search engine results.'));
     $previewErrors.show();
 
     // title and descriptions missing
   } else if (!$descriptionText) {
     $preview.hide();
     $previewErrors.show();
-    $previewErrors.text(gettext('description missing'));
+    $previewErrors.text(gettext('Please provide description to see how this product might appear in search engine results.'));
 
     // description missing
   } else if (!$titleText) {
     // title missing
     $preview.hide();
     $previewErrors.show();
-    $previewErrors.text(gettext('title missing'));
+    $previewErrors.text(gettext('Please provide title to see how this product might appear in search engine results.'));
   }
 }
 
@@ -58,14 +58,10 @@ function updatePlaceholderOnInput(field, seoField, previewField) {
   field.on(watchedEvents, (e) => {
     const $target = $(e.currentTarget);
     const $placeholderText = $target.val();
-    console.log($placeholderText);
     seoField.attr('placeholder', truncate($placeholderText, seoField));
     const $seoText = seoField.val();
-    console.log($seoText);
     if (!$seoText) {
       previewField.text(truncate($placeholderText, seoField));
-    } else {
-      previewField.text(truncate($seoText, seoField));
     }
     checkForErrors();
   });
