@@ -10,10 +10,11 @@ from django.forms.models import model_to_dict
 from django.urls import reverse
 from django.utils.encoding import smart_text
 from PIL import Image
+from decimal import Decimal
 
 from saleor.dashboard.product import ProductBulkAction
 from saleor.dashboard.product.forms import (
-    ProductBulkUpdate, ProductForm, ProductTypeForm)
+    ProductBulkUpdate, ProductForm, ProductTypeForm, VariantAttributeForm)
 from saleor.product.forms import VariantChoiceField
 from saleor.product.models import (
     AttributeChoiceValue, Collection, Product, ProductAttribute, ProductImage,
@@ -88,6 +89,44 @@ def test_variantless_product_type_form(color_attribute, size_attribute):
         'has_variants': False}
     form = ProductTypeForm(data)
     assert not form.is_valid()
+
+
+def test_variant_product_with_attr_without_values(default_category, size_attribute):
+    """
+    Test the automatic creation of a variant attribute's value if
+    a product variant form got an attribute value that wasn't a pk.
+
+    This case occurs when a attribute doesn't have any value.
+    """
+    empty_attribute = ProductAttribute.objects.create(
+        name='Test attr', slug='test_attr')
+
+    product_type = ProductType.objects.create(name='Test Type')
+    product_type.variant_attributes.add(empty_attribute)
+    product_type.variant_attributes.add(size_attribute)
+
+    product = Product.objects.create(
+        name='Test Product', product_type=product_type,
+        price=Decimal('10.00'), category=default_category)
+
+    variant = ProductVariant.objects.create(
+        product=product, sku='123')
+
+    assert empty_attribute.values.count() == 0
+
+    data = {
+        'name': '',
+        'attribute-test_attr': 'test value',
+        'attribute-%s' % size_attribute.slug: size_attribute.values.first().pk
+    }
+
+    form = VariantAttributeForm(data, instance=variant)
+    assert form.is_valid()
+
+    form.save(False)
+
+    assert empty_attribute.values.count() == 1
+    assert size_attribute.values.count() == 2
 
 
 def test_edit_used_product_type(db, default_category):
