@@ -246,7 +246,7 @@ LOGGING = {
             'version': 1,  # Version of logstash event schema. Default value: 0 (for backward compatibility of the library)
             'message_type': 'django',  # 'type' field in logstash message. Default value: 'logstash'.
             'fqdn': False,  # Fully qualified domain name. Default value: false.
-            'tags': ['django.request'],  # list of tags. Default: None.
+            'tags': ['django.request', 'django'],  # list of tags. Default: None.
         },
     },
     'root': {
