@@ -1,0 +1,14 @@
+{
+  "extends": [
+    "tslint:latest",
+    "tslint-config-prettier"
+  ],
+  "rules": {
+    "interface-name": false,
+    "member-access": [true, "no-public"],
+    "no-console": [true, "log"],
+    "no-shadowed-variable": false,
+    "no-submodule-imports": [true, "material-ui", "material-ui-icons"],
+    "no-unused-variable": true
+  }
+}

@@ -9,8 +9,12 @@ var resolve = path.resolve.bind(path, __dirname);
 var extractCssPlugin;
 var fileLoaderPath;
 var output;
+var reactPath;
+var reactDomPath;
 
 if (process.env.NODE_ENV === 'production') {
+  reactPath = 'node_modules/react/umd/react.production.min.js';
+  reactDomPath = 'node_modules/react-dom/umd/react-dom.production.min.js';
   output = {
     path: resolve('saleor/static/assets/'),
     filename: '[name].[chunkhash].js',
@@ -23,6 +27,8 @@ if (process.env.NODE_ENV === 'production') {
     chunkFilename: '[id].[chunkhash].css'
   });
 } else {
+  reactPath = 'node_modules/react/umd/react.development.js';
+  reactDomPath = 'node_modules/react-dom/umd/react-dom.development.js';
   output = {
     path: resolve('saleor/static/assets/'),
     filename: '[name].js',
@@ -44,13 +50,14 @@ var providePlugin = new webpack.ProvidePlugin({
   $: 'jquery',
   jQuery: 'jquery',
   'window.jQuery': 'jquery',
-  'Popper': 'popper.js',
+  Popper: 'popper.js',
   'query-string': 'query-string'
 });
 
 var config = {
   entry: {
     dashboard: './saleor/static/dashboard/js/dashboard.js',
+    'dashboard-next': './saleor/static/dashboard-next/js/index.tsx',
     document: './saleor/static/dashboard/js/document.js',
     storefront: './saleor/static/js/storefront.js'
   },
@@ -90,6 +97,10 @@ var config = {
         ]
       },
       {
+        test: /\.tsx?$/,
+        loader: 'ts-loader'
+      },
+      {
         test: /\.(eot|otf|png|svg|jpg|ttf|woff|woff2)(\?v=[0-9.]+)?$/,
         loader: fileLoaderPath,
         include: [
@@ -108,11 +119,13 @@ var config = {
   ],
   resolve: {
     alias: {
-      'jquery': resolve('node_modules/jquery/dist/jquery.js'),
-      'react': resolve('node_modules/react/dist/react.min.js'),
-      'react-dom': resolve('node_modules/react-dom/dist/react-dom.min.js')
-    }
-  }
+      jquery: resolve('node_modules/jquery/dist/jquery.js'),
+      react: resolve(reactPath),
+      'react-dom': resolve(reactDomPath)
+    },
+    extensions: ['.ts', '.tsx', '.js', '.jsx']
+  },
+  devtool: 'sourceMap'
 };
 
 module.exports = config;

@@ -1,0 +1,22 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`<ProductChildElement /> renders properly 1`] = `
+<div
+  className="MuiPaper-root-1 MuiPaper-elevation2-5 MuiPaper-rounded-2"
+>
+  <div
+    className="MuiCardContent-root-28"
+  >
+    <h2
+      className="MuiTypography-root-29 MuiTypography-headline-34"
+    >
+      Error
+    </h2>
+    <p
+      className="MuiTypography-root-29 MuiTypography-body1-38"
+    >
+      Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam eget pulvinar purus. Etiam nisl orci, maximus dictum elit vitae, tincidunt scelerisque lacus. Nam sed sem nec arcu gravida facilisis a a nisl. Donec ac orci mollis, porta ligula et, facilisis ipsum. Curabitur ut lacus nisi. Sed dui sapien, lobortis in quam at, vestibulum eleifend dolor.
+    </p>
+  </div>
+</div>
+`;
