@@ -6,6 +6,7 @@ from text_unidecode import unidecode
 
 from ...product.models import Collection, Product
 from ..forms import AjaxSelect2MultipleChoiceField
+from ..widgets import CharsLeftWidget
 
 
 class CollectionForm(forms.ModelForm):
@@ -26,6 +27,9 @@ class CollectionForm(forms.ModelForm):
             'background_image': pgettext_lazy(
                 'Products selection',
                 'Background Image')}
+        widgets = {
+            'seo_description': CharsLeftWidget
+        }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
