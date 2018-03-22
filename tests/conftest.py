@@ -52,12 +52,26 @@ def cart(db):  # pylint: disable=W0613
 
 
 @pytest.fixture
-def customer_user(db, billing_address, shipping_address):  # pylint: disable=W0613
-    return User.objects.create_user(
+def default_billing_address(db):  # pylint: disable=W0613
+    return Address.objects.create(
+        first_name='John', last_name='Doe',
+        company_name='Mirumee Software',
+        street_address_1='Tęczowa 7',
+        city='Wrocław',
+        postal_code='53-601',
+        country='PL',
+        phone='+48713988102')
+
+
+@pytest.fixture
+def customer_user(db, default_billing_address):  # pylint: disable=W0613
+    user = User.objects.create_user(
         'test@example.com',
         'password',
-        default_billing_address=billing_address.get_copy(),
-        default_shipping_address=shipping_address.get_copy())
+        default_billing_address=default_billing_address,
+        default_shipping_address=default_billing_address)
+    user.addresses.add(default_billing_address)
+    return user
 
 
 @pytest.fixture
@@ -79,15 +93,11 @@ def request_cart_with_item(product_in_stock, request_cart):
 
 
 @pytest.fixture
-def order(billing_address, shipping_address, customer_user):
+def order(customer_user):
+    address = customer_user.default_billing_address.get_copy()
     return Order.objects.create(
-        billing_address=billing_address,
-        shipping_address=shipping_address,
+        billing_address=address,
         user_email=customer_user.email,
-        total_net=Money(123, 'USD'),
-        total_gross=Money(123, 'USD'),
-        shipping_price_net=Money(12, 'USD'),
-        shipping_price_gross=Money(12, 'USD'),
         user=customer_user)
 
 
@@ -125,23 +135,6 @@ def staff_client(client, staff_user):
 def authorized_client(client, customer_user):
     client.login(username=customer_user.email, password='password')
     return client
-
-
-@pytest.fixture
-def billing_address(db):  # pylint: disable=W0613
-    return Address.objects.create(
-        first_name='John', last_name='Doe',
-        company_name='Mirumee Software',
-        street_address_1='Tęczowa 7',
-        city='Wrocław',
-        postal_code='53-601',
-        country='PL',
-        phone='+48713988102')
-
-
-@pytest.fixture
-def shipping_address(billing_address):
-    return billing_address.get_copy()
 
 
 @pytest.fixture
@@ -331,11 +324,11 @@ def product_list(product_type, default_category):
 
 
 @pytest.fixture
-def order_list(admin_user, billing_address):
+def order_list(customer_user):
+    address = customer_user.default_billing_address.get_copy()
     data = {
-        'billing_address': billing_address, 'user': admin_user,
-        'user_email': admin_user.email, 'total_net': Money(123, 'USD'),
-        'total_gross': Money(123, 'USD')}
+        'billing_address': address, 'user': customer_user,
+        'user_email': customer_user.email}
     order = Order.objects.create(**data)
     order1 = Order.objects.create(**data)
     order2 = Order.objects.create(**data)
@@ -406,50 +399,7 @@ def voucher(db):  # pylint: disable=W0613
 
 
 @pytest.fixture()
-def order_with_lines(order, product_type, default_category):
-    product = Product.objects.create(
-        name='Test product', price=Money('10.00', 'USD'),
-        product_type=product_type, category=default_category)
-
-    order.lines.create(
-        product=product,
-        product_name=product.name,
-        product_sku='SKU_%d' % (product.pk,),
-        is_shipping_required=product.product_type.is_shipping_required,
-        quantity=1,
-        unit_price_net=Decimal('10.00'),
-        unit_price_gross=Decimal('10.00'))
-    product = Product.objects.create(
-        name='Test product 2', price=Money('20.00', 'USD'),
-        product_type=product_type, category=default_category)
-
-    order.lines.create(
-        product=product,
-        product_name=product.name,
-        product_sku='SKU_%d' % (product.pk,),
-        is_shipping_required=product.product_type.is_shipping_required,
-        quantity=1,
-        unit_price_net=Decimal('20.00'),
-        unit_price_gross=Decimal('20.00'))
-    product = Product.objects.create(
-        name='Test product 3', price=Money('30.00', 'USD'),
-        product_type=product_type, category=default_category)
-
-    order.lines.create(
-        product=product,
-        product_name=product.name,
-        product_sku='SKU_%d' % (product.pk,),
-        is_shipping_required=product.product_type.is_shipping_required,
-        quantity=1,
-        unit_price_net=Decimal('30.00'),
-        unit_price_gross=Decimal('30.00'))
-
-    recalculate_order(order)
-    return order
-
-
-@pytest.fixture()
-def order_with_lines_and_stock(order, product_type, default_category):
+def order_with_lines(order, product_type, default_category, shipping_method):
     product = Product.objects.create(
         name='Test product', price=Money('10.00', 'USD'),
         product_type=product_type, category=default_category)
@@ -459,7 +409,6 @@ def order_with_lines_and_stock(order, product_type, default_category):
         variant=variant, cost_price=Money(1, 'USD'), quantity=5,
         quantity_allocated=3, location=warehouse)
     order.lines.create(
-        order=order,
         product=product,
         product_name=product.name,
         product_sku='SKU_A',
@@ -469,6 +418,7 @@ def order_with_lines_and_stock(order, product_type, default_category):
         unit_price_gross=Decimal('30.00'),
         stock=stock,
         stock_location=stock.location.name)
+
     product = Product.objects.create(
         name='Test product 2', price=Money('20.00', 'USD'),
         product_type=product_type, category=default_category)
@@ -477,7 +427,6 @@ def order_with_lines_and_stock(order, product_type, default_category):
         variant=variant, cost_price=Money(2, 'USD'), quantity=2,
         quantity_allocated=2, location=warehouse)
     order.lines.create(
-        order=order,
         product=product,
         product_name=product.name,
         product_sku='SKU_B',
@@ -487,14 +436,21 @@ def order_with_lines_and_stock(order, product_type, default_category):
         unit_price_gross=Decimal('20.00'),
         stock=stock,
         stock_location=stock.location.name)
+
+    order.shipping_address = order.billing_address.get_copy()
+    order.shipping_method_name = shipping_method.name
+    method = shipping_method.price_per_country.get()
+    order.shipping_price = method.get_total_price()
+    order.save()
+
     recalculate_order(order)
     order.refresh_from_db()
     return order
 
 
 @pytest.fixture()
-def fulfilled_order(order_with_lines_and_stock):
-    order = order_with_lines_and_stock
+def fulfilled_order(order_with_lines):
+    order = order_with_lines
     fulfillment = order.fulfillments.create()
     line_1 = order.lines.first()
     line_2 = order.lines.last()
@@ -510,20 +466,19 @@ def fulfilled_order(order_with_lines_and_stock):
 @pytest.fixture
 def draft_order(order_with_lines):
     order_with_lines.status = OrderStatus.DRAFT
-    order_with_lines.save()
+    order_with_lines.save(update_fields=['status'])
     return order_with_lines
 
 
 @pytest.fixture()
-def order_with_variant_from_different_stocks(order_with_lines_and_stock):
+def order_with_variant_from_different_stocks(order_with_lines):
     line = OrderLine.objects.get(product_sku='SKU_A')
     variant = ProductVariant.objects.get(sku=line.product_sku)
     warehouse_2 = StockLocation.objects.create(name='Warehouse 2')
     stock = Stock.objects.create(
         variant=variant, cost_price=Money(1, 'USD'), quantity=5,
         quantity_allocated=2, location=warehouse_2)
-    order_with_lines_and_stock.lines.create(
-        order=order,
+    order_with_lines.lines.create(
         product=variant.product,
         product_name=variant.product.name,
         product_sku=line.product_sku,
@@ -537,64 +492,64 @@ def order_with_variant_from_different_stocks(order_with_lines_and_stock):
     Stock.objects.create(
         variant=variant, cost_price=Money(1, 'USD'), quantity=5,
         quantity_allocated=0, location=warehouse_2)
-    return order_with_lines_and_stock
+    return order_with_lines
 
 
 @pytest.fixture()
-def payment_waiting(order_with_lines_and_stock):
-    return order_with_lines_and_stock.payments.create(
+def payment_waiting(order_with_lines):
+    return order_with_lines.payments.create(
         variant='default', status=PaymentStatus.WAITING,
         fraud_status=FraudStatus.ACCEPT, currency='USD',
-        total=order_with_lines_and_stock.total_gross.amount)
+        total=order_with_lines.total_gross.amount)
 
 
 @pytest.fixture()
-def payment_preauth(order_with_lines_and_stock):
-    return order_with_lines_and_stock.payments.create(
+def payment_preauth(order_with_lines):
+    return order_with_lines.payments.create(
         variant='default', status=PaymentStatus.PREAUTH,
         fraud_status=FraudStatus.ACCEPT, currency='USD',
-        total=order_with_lines_and_stock.total_gross.amount)
+        total=order_with_lines.total_gross.amount)
 
 
 @pytest.fixture()
-def payment_confirmed(order_with_lines_and_stock):
-    order_amount = order_with_lines_and_stock.total_gross.amount
-    return order_with_lines_and_stock.payments.create(
+def payment_confirmed(order_with_lines):
+    order_amount = order_with_lines.total_gross.amount
+    return order_with_lines.payments.create(
         variant='default', status=PaymentStatus.CONFIRMED,
         fraud_status=FraudStatus.ACCEPT, currency='USD',
         total=order_amount, captured_amount=order_amount)
 
 
 @pytest.fixture()
-def payment_rejected(order_with_lines_and_stock):
-    return order_with_lines_and_stock.payments.create(
+def payment_rejected(order_with_lines):
+    return order_with_lines.payments.create(
         variant='default', status=PaymentStatus.REJECTED,
         fraud_status=FraudStatus.ACCEPT, currency='USD',
-        total=order_with_lines_and_stock.total_gross.amount)
+        total=order_with_lines.total_gross.amount)
 
 
 @pytest.fixture()
-def payment_refunded(order_with_lines_and_stock):
-    return order_with_lines_and_stock.payments.create(
+def payment_refunded(order_with_lines):
+    return order_with_lines.payments.create(
         variant='default', status=PaymentStatus.REFUNDED,
         fraud_status=FraudStatus.ACCEPT, currency='USD',
-        total=order_with_lines_and_stock.total_gross.amount)
+        total=order_with_lines.total_gross.amount)
 
 
 @pytest.fixture()
-def payment_error(order_with_lines_and_stock):
-    return order_with_lines_and_stock.payments.create(
+def payment_error(order_with_lines):
+    return order_with_lines.payments.create(
         variant='default', status=PaymentStatus.ERROR,
         fraud_status=FraudStatus.ACCEPT, currency='USD',
-        total=order_with_lines_and_stock.total_gross.amount)
+        total=order_with_lines.total_gross.amount)
 
 
 @pytest.fixture()
-def payment_input(order_with_lines_and_stock):
-    return order_with_lines_and_stock.payments.create(
+def payment_input(order_with_lines):
+    return order_with_lines.payments.create(
         variant='default', status=PaymentStatus.INPUT,
         fraud_status=FraudStatus.ACCEPT, currency='USD',
-        total=order_with_lines_and_stock.total_gross.amount)
+        total=order_with_lines.total_gross.amount)
 
 
 @pytest.fixture()

@@ -183,13 +183,10 @@ def test_checkout_discount(checkout_with_items, sale):
 
 
 def test_checkout_create_order_insufficient_stock(
-        request_cart, customer_user, product_in_stock, billing_address,
-        shipping_method):
+        request_cart, customer_user, product_in_stock):
     product_type = product_in_stock.product_type
     product_type.is_shipping_required = False
     product_type.save()
-    customer_user.default_billing_address = billing_address
-    customer_user.save()
     variant = product_in_stock.variants.get()
     request_cart.add(variant, quantity=10, check_quantity=False)
     checkout = Checkout(request_cart, customer_user, 'tracking_code')

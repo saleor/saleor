@@ -61,8 +61,8 @@ def test_add_variant_to_order_allocates_stock_for_new_variant(
 
 
 def test_add_variant_to_order_edits_line_for_existing_variant(
-        order_with_lines_and_stock):
-    order = order_with_lines_and_stock
+        order_with_lines):
+    order = order_with_lines
     existing_line = order.lines.first()
     variant = existing_line.product.variants.get()
     lines_before = order.lines.count()
@@ -77,8 +77,8 @@ def test_add_variant_to_order_edits_line_for_existing_variant(
 
 
 def test_add_variant_to_order_allocates_stock_for_existing_variant(
-        order_with_lines_and_stock):
-    order = order_with_lines_and_stock
+        order_with_lines):
+    order = order_with_lines
     existing_line = order.lines.first()
     variant = existing_line.product.variants.get()
     stock = existing_line.stock
@@ -125,8 +125,8 @@ def test_view_connect_order_with_user_different_email(
     assert order.user is None
 
 
-def test_add_note_to_order(order_with_lines_and_stock):
-    order = order_with_lines_and_stock
+def test_add_note_to_order(order_with_lines):
+    order = order_with_lines
     note = models.OrderNote(order=order, user=order.user)
     note_form = OrderNoteForm({'content': 'test_note'}, instance=note)
     note_form.is_valid()
@@ -142,8 +142,8 @@ def test_create_order_history(order_with_lines):
     assert history_entry.content == 'test_entry'
 
 
-def test_restock_order_lines(order_with_lines_and_stock):
-    order = order_with_lines_and_stock
+def test_restock_order_lines(order_with_lines):
+    order = order_with_lines
     line_1 = order.lines.first()
     line_2 = order.lines.last()
     stock_1_quantity_allocated_before = line_1.stock.quantity_allocated
