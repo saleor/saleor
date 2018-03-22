@@ -118,23 +118,12 @@ context_processors = [
     'saleor_oye.cart.context_processors.cart_counter',
 ]
 
-# loaders = [
-#     'django.template.loaders.filesystem.Loader',
-#     'django.template.loaders.app_directories.Loader',
-#     # TODO: this one is slow, but for now need for mptt?
-#     'django.template.loaders.eggs.Loader']
-#
-# if not DEBUG:
-#     loaders = [('django.template.loaders.cached.Loader', loaders)]
-
 TEMPLATES = [{
     'BACKEND': 'django.template.backends.django.DjangoTemplates',
-    # 'DIRS': [os.path.join(PROJECT_ROOT, 'templates')],
     'APP_DIRS': True,
     'OPTIONS': {
         'debug': DEBUG,
         'context_processors': context_processors,
-        # 'loaders': loaders,
         'string_if_invalid': '<< MISSING VARIABLE "%s" >>' if DEBUG else ''}}]
 
 # Make this unique, and don't share it with anybody.
@@ -249,24 +238,41 @@ LOGGING = {
             'class': 'logging.StreamHandler',
             'formatter': 'basic',
         },
+        'logstash': {
+            'level': 'INFO',
+            'class': 'logstash.TCPLogstashHandler',
+            'host': '127.0.0.1',
+            'port': 5959,  # Default value: 5959
+            'version': 1,  # Version of logstash event schema. Default value: 0 (for backward compatibility of the library)
+            'message_type': 'django',  # 'type' field in logstash message. Default value: 'logstash'.
+            'fqdn': False,  # Fully qualified domain name. Default value: false.
+            'tags': ['django.request', 'django'],  # list of tags. Default: None.
+        },
     },
-    'root': {
-        # default logger; config for everything that propagates to the root logger
-        'level': 'INFO',
-        'filters': [],
-        'handlers': ['console'],
-    },
+    # 'root': {
+    #     # default logger; config for everything that propagates to the root logger
+    #     'level': 'INFO',
+    #     'filters': [],
+    #     'handlers': ['console', 'logstash'],
+    # },
     'loggers': {
+        'saleor_oye': {
+            'handlers': ['logstash', 'console'],
+            'level': 'INFO',
+            'propagate': True,
+        },
         'django': {
+            'handlers': ['logstash', 'console'],
             'level': os.getenv('DJANGO_LOG_LEVEL', 'INFO'),
+            'propagate': True,
         },
         'django.request': {
-            'handlers': ['mail_admins'],
+            'handlers': ['logstash'],
+            'propagate': True,
         },
         'django.security': {
             'handlers': ['mail_admins'],
         },
-
     },
 }
 #

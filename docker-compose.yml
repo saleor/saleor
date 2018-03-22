@@ -41,6 +41,31 @@ services:
       - rabbit:/var/lib/rabbitmq
     network_mode: "host"
 
+  kibana:
+    labels:
+      com.example.service: "kibana"
+      com.example.description: "Data visualisation and for log aggregation"
+    image: kibana:5.4.3
+    ports:
+      - "5601:5601"
+    environment:
+      - ELASTICSEARCH_URL=http://127.0.0.1:9200
+    depends_on:
+      - search
+    network_mode: "host"
+
+  logstash:
+    labels:
+      com.example.service: "logstash"
+      com.example.description: "For logging data"
+    image: logstash:5.4.3
+    volumes:
+       - ./docker/logstash.conf:/logstash_dir/logstash.conf
+    command: logstash -f /logstash_dir/logstash.conf
+    depends_on:
+      - search
+    network_mode: "host"
+
   web: &web
     image: oyelogic:latest
     restart: always
