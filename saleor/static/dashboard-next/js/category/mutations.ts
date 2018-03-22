@@ -9,7 +9,7 @@ import {
   CategoryDeleteMutationVariables,
   CategoryUpdateMutation,
   CategoryUpdateMutationVariables
-} from "./gql-types";
+} from "../gql-types";
 
 export const categoryDeleteMutation = gql`
   mutation CategoryDelete($id: ID!) {
