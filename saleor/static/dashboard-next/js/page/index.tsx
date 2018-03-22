@@ -1,9 +1,9 @@
 import { parse as parseQs } from "qs";
 import * as React from "react";
-import { Route, Switch, RouteComponentProps } from "react-router-dom";
+import { Route, RouteComponentProps, Switch } from "react-router-dom";
 
-import PageListComponent from "./views/PageList";
 import PageCreateForm from "./views/PageCreateForm";
+import PageListComponent from "./views/PageList";
 import PageUpdateFormComponent from "./views/PageUpdateForm";
 
 const PageList: React.StatelessComponent<RouteComponentProps<any>> = ({

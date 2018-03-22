@@ -1,24 +1,24 @@
-import * as React from "react";
-import Card from "material-ui/Card";
 import DeleteForeverIcon from "material-ui-icons/DeleteForever";
+import Card from "material-ui/Card";
 import Grid from "material-ui/Grid";
 import IconButton from "material-ui/IconButton";
-import TextField from "material-ui/TextField";
 import { CircularProgress } from "material-ui/Progress";
+import TextField from "material-ui/TextField";
+import * as React from "react";
 import { Redirect } from "react-router";
 
-import PageHeader from "../../components/PageHeader";
-import PageBaseForm from "../components/PageBaseForm";
-import RichTextEditor from "../../components/RichTextEditor";
 import ErrorMessageCard from "../../components/cards/ErrorMessageCard";
+import PageHeader from "../../components/PageHeader";
+import RichTextEditor from "../../components/RichTextEditor";
 import i18n from "../../i18n";
+import PageBaseForm from "../components/PageBaseForm";
 import {
-  TypedPageDeleteMutation,
   pageDeleteMutation,
-  TypedPageUpdateMutation,
-  pageUpdateMutation
+  pageUpdateMutation,
+  TypedPageDeleteMutation,
+  TypedPageUpdateMutation
 } from "../mutations";
-import { TypedPageDetailsQuery, pageDetailsQuery } from "../queries";
+import { pageDetailsQuery, TypedPageDetailsQuery } from "../queries";
 
 interface PageUpdateFormProps {
   id: string;
@@ -45,11 +45,11 @@ export const PageUpdateForm: React.StatelessComponent<PageUpdateFormProps> = ({
       }
       const { page } = data;
       const formInitialValues = {
-        title: page.title,
-        slug: page.slug,
-        content: page.content,
         availableOn: page.availableOn,
-        isVisible: page.isVisible
+        content: page.content,
+        isVisible: page.isVisible,
+        slug: page.slug,
+        title: page.title
       };
       return (
         <Card>
@@ -61,7 +61,6 @@ export const PageUpdateForm: React.StatelessComponent<PageUpdateFormProps> = ({
                   return;
                 }
                 if (result.data && result.data.pageDelete.errors) {
-                  console.log(result.data.pageDelete.errors);
                   return;
                 }
                 // FIXME: component is loaded with previous state (meaning that delete  d page will still be there until table reload)
@@ -70,13 +69,13 @@ export const PageUpdateForm: React.StatelessComponent<PageUpdateFormProps> = ({
               return (
                 <TypedPageUpdateMutation mutation={pageUpdateMutation}>
                   {(updatePage, result) => {
-                    if (result) {
+                    if (
+                      result &&
+                      !result.loading &&
+                      !result.data.pageUpdate.errors
+                    ) {
                       if (result.error) {
                         console.error(result.error);
-                        return;
-                      }
-                      if (result.data && result.data.pageUpdate.errors) {
-                        console.log(result.data.pageUpdate.errors);
                         return;
                       }
                       return <Redirect to="/pages/" />;
@@ -102,6 +101,11 @@ export const PageUpdateForm: React.StatelessComponent<PageUpdateFormProps> = ({
                             }
                             formInitialValues={formInitialValues}
                             created={page.created}
+                            errors={
+                              result && result.data
+                                ? result.data.pageUpdate.errors
+                                : undefined
+                            }
                           />
                         )}
                       </>

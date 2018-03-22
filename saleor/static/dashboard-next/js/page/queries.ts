@@ -2,10 +2,10 @@ import gql from "graphql-tag";
 import { Query, QueryProps } from "react-apollo";
 
 import {
-  PageListQuery,
-  PageListQueryVariables,
   PageDetailsQuery,
-  PageDetailsQueryVariables
+  PageDetailsQueryVariables,
+  PageListQuery,
+  PageListQueryVariables
 } from "../gql-types";
 
 export const TypedPageListQuery = Query as React.ComponentType<

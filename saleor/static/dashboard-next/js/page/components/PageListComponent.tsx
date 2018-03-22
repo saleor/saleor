@@ -1,4 +1,7 @@
-import * as React from "react";
+import VisibilityIcon from "material-ui-icons/Visibility";
+import blue from "material-ui/colors/Blue";
+import IconButton from "material-ui/IconButton";
+import { withStyles } from "material-ui/styles";
 import Table, {
   TableBody,
   TableCell,
@@ -6,34 +9,31 @@ import Table, {
   TableHead,
   TableRow
 } from "material-ui/Table";
-import { withStyles } from "material-ui/styles";
-import VisibilityIcon from "material-ui-icons/Visibility";
-import IconButton from "material-ui/IconButton";
+import * as React from "react";
 import { Link } from "react-router-dom";
-import blue from "material-ui/colors/Blue";
 
-import i18n from "../../i18n";
 import Skeleton from "../../components/Skeleton";
 import TablePagination from "../../components/TablePagination";
 import { PageListQuery } from "../../gql-types";
+import i18n from "../../i18n";
 
 interface PageListComponentProps {
+  pages: PageListQuery["pages"]["edges"];
+  pageInfo: PageListQuery["pages"]["pageInfo"];
+  loading: boolean;
   handlePreviousPage();
   handleNextPage();
   editPageUrl(id: string);
   showPageUrl(slug: string);
-  pages: PageListQuery["pages"]["edges"];
-  pageInfo: PageListQuery["pages"]["pageInfo"];
-  loading: boolean;
 }
 
 const decorate = withStyles({
-  textRight: {
-    textAlign: "right"
-  },
   link: {
     color: blue[500],
     textDecoration: "none"
+  },
+  textRight: {
+    textAlign: "right"
   }
 });
 

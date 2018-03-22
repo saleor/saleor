@@ -1,22 +1,22 @@
-import * as React from "react";
-import FilterListIcon from "material-ui-icons/FilterList";
-import Grid from "material-ui/Grid";
-import IconButton from "material-ui/IconButton";
 import Add from "material-ui-icons/Add";
-import { Link } from "react-router-dom";
-import Hidden from "material-ui/Hidden";
+import FilterListIcon from "material-ui-icons/FilterList";
 import Card from "material-ui/Card";
 import Drawer from "material-ui/Drawer";
+import Grid from "material-ui/Grid";
+import Hidden from "material-ui/Hidden";
+import IconButton from "material-ui/IconButton";
 import { stringify as stringifyQs } from "qs";
+import * as React from "react";
+import { Link } from "react-router-dom";
 
-import { TypedPageListQuery, pageListQuery } from "../queries";
-import i18n from "../../i18n";
-import PageListComponent from "../components/PageListComponent";
-import PageHeader from "../../components/PageHeader";
-import PageFilters from "../components/PageFilters";
-import Navigator from "../../components/Navigator";
 import ErrorMessageCard from "../../components/cards/ErrorMessageCard";
+import Navigator from "../../components/Navigator";
+import PageHeader from "../../components/PageHeader";
+import i18n from "../../i18n";
+import PageFilters from "../components/PageFilters";
+import PageListComponent from "../components/PageListComponent";
 import { pageEditUrl, pageStorefrontUrl } from "../index";
+import { pageListQuery, TypedPageListQuery } from "../queries";
 
 interface PageListProps {
   filters: any;
@@ -55,10 +55,6 @@ export class PageList extends React.Component<PageListProps, PageListState> {
               return;
             }
             return fetchMore({
-              variables: {
-                first: 3,
-                after: data.pages.pageInfo.endCursor
-              },
               updateQuery: (previousResult, { fetchMoreResult }) => {
                 return {
                   ...fetchMoreResult,
@@ -70,6 +66,10 @@ export class PageList extends React.Component<PageListProps, PageListState> {
                     }
                   }
                 };
+              },
+              variables: {
+                after: data.pages.pageInfo.endCursor,
+                first: 3
               }
             });
           };
@@ -78,11 +78,6 @@ export class PageList extends React.Component<PageListProps, PageListState> {
               return;
             }
             return fetchMore({
-              variables: {
-                first: undefined,
-                last: 12,
-                before: data.pages.pageInfo.startCursor
-              },
               updateQuery: (previousResult, { fetchMoreResult, variables }) => {
                 return {
                   ...fetchMoreResult,
@@ -94,6 +89,11 @@ export class PageList extends React.Component<PageListProps, PageListState> {
                     }
                   }
                 };
+              },
+              variables: {
+                before: data.pages.pageInfo.startCursor,
+                first: undefined,
+                last: 12
               }
             });
           };

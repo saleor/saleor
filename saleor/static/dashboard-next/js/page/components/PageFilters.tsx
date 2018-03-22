@@ -1,10 +1,9 @@
-import * as React from "react";
-import { Component } from "react";
 import TextField from "material-ui/TextField";
+import * as React from "react";
 
 import FilterCard from "../../components/cards/FilterCard";
-import i18n from "../../i18n";
 import FormSpacer from "../../components/FormSpacer";
+import i18n from "../../i18n";
 
 interface PageFiltersState {
   title: string;
@@ -13,12 +12,15 @@ interface PageFiltersState {
 }
 
 interface PageFiltersProps {
+  formState?: PageFiltersState;
   handleClear();
   handleSubmit(formState: any);
-  formState?: PageFiltersState;
 }
 
-export class PageFilters extends Component<PageFiltersProps, PageFiltersState> {
+export class PageFilters extends React.Component<
+  PageFiltersProps,
+  PageFiltersState
+> {
   static defaultState = {
     title: "",
     url: ""

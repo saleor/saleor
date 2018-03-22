@@ -1,24 +1,24 @@
-import * as React from "react";
-import Card from "material-ui/Card";
 import DeleteForeverIcon from "material-ui-icons/DeleteForever";
+import Card from "material-ui/Card";
 import Grid from "material-ui/Grid";
 import IconButton from "material-ui/IconButton";
-import TextField from "material-ui/TextField";
 import { CircularProgress } from "material-ui/Progress";
+import TextField from "material-ui/TextField";
+import * as React from "react";
 import { Redirect } from "react-router";
 
-import PageHeader from "../../components/PageHeader";
-import PageBaseForm from "../components/PageBaseForm";
-import RichTextEditor from "../../components/RichTextEditor";
 import ErrorMessageCard from "../../components/cards/ErrorMessageCard";
+import PageHeader from "../../components/PageHeader";
+import RichTextEditor from "../../components/RichTextEditor";
 import i18n from "../../i18n";
+import PageBaseForm from "../components/PageBaseForm";
 import {
-  TypedPageDeleteMutation,
+  pageCreateMutation,
   pageDeleteMutation,
   TypedPageCreateMutation,
-  pageCreateMutation
+  TypedPageDeleteMutation
 } from "../mutations";
-import { TypedPageDetailsQuery, pageDetailsQuery } from "../queries";
+import { pageDetailsQuery, TypedPageDetailsQuery } from "../queries";
 
 interface PageCreateFormProps {
   id: string;
@@ -30,13 +30,9 @@ export const PageCreateForm: React.StatelessComponent<PageCreateFormProps> = ({
   <Card>
     <TypedPageCreateMutation mutation={pageCreateMutation}>
       {(createPage, result) => {
-        if (result) {
+        if (result && !result.loading && !result.data.pageCreate.errors) {
           if (result.error) {
             console.error(result.error);
-            return;
-          }
-          if (result.data && result.data.pageCreate.errors) {
-            console.log(result.data.pageCreate.errors);
             return;
           }
           return <Redirect to="/pages/" />;
@@ -48,6 +44,11 @@ export const PageCreateForm: React.StatelessComponent<PageCreateFormProps> = ({
               title={i18n.t("Add page", { context: "title" })}
             />
             <PageBaseForm
+              errors={
+                result && result.data
+                  ? result.data.pageCreate.errors
+                  : undefined
+              }
               handleSubmit={data => createPage({ variables: { id, ...data } })}
             />
           </>

@@ -1,18 +1,18 @@
-import * as React from "react";
-import TextField from "material-ui/TextField";
-import Grid from "material-ui/Grid";
+import Button from "material-ui/Button";
 import { CardContent } from "material-ui/Card";
+import CheckBox from "material-ui/CheckBox";
+import Grid from "material-ui/Grid";
+import { withStyles, WithStyles } from "material-ui/styles";
+import TextField from "material-ui/TextField";
 import Toolbar from "material-ui/Toolbar";
 import Typography from "material-ui/Typography";
-import Button from "material-ui/Button";
-import CheckBox from "material-ui/CheckBox";
-import { withStyles, WithStyles } from "material-ui/styles";
+import * as React from "react";
 
-import { TypedPageDetailsQuery, pageDetailsQuery } from "../queries";
-import i18n from "../../i18n";
-import RichTextEditor from "../../components/RichTextEditor";
-import FormSpacer from "../../components/FormSpacer";
 import ControlledCheckbox from "../../components/ControlledCheckbox";
+import FormSpacer from "../../components/FormSpacer";
+import RichTextEditor from "../../components/RichTextEditor";
+import i18n from "../../i18n";
+import { pageDetailsQuery, TypedPageDetailsQuery } from "../queries";
 
 interface PageUpdateFormComponentState {
   title: string;
@@ -23,19 +23,27 @@ interface PageUpdateFormComponentState {
 }
 
 interface PageUpdateFormComponentProps {
-  handleSubmit(data: any);
+  errors?: Array<{ field: string; message: string }>;
   formInitialValues?: PageUpdateFormComponentState;
   created?: string;
+  handleSubmit(data: any);
+}
+
+interface CombinedErrorsType {
+  title: string;
+  content: string;
+  availableOn: string;
+  slug: string;
 }
 
 const decorate = withStyles(theme => ({
-  cardActions: {
-    flexDirection: "row-reverse" as "row-reverse"
-  },
   addHelperTextPadding: {
     [theme.breakpoints.up("md")]: {
       paddingBottom: theme.spacing.unit * 2.5
     }
+  },
+  cardActions: {
+    flexDirection: "row-reverse" as "row-reverse"
   }
 }));
 
@@ -46,11 +54,11 @@ export const PageUpdateFormComponent = decorate(
     PageUpdateFormComponentState
   > {
     static defaultState = {
-      title: "",
-      slug: "",
-      content: "",
       availableOn: "",
-      isVisible: false
+      content: "",
+      isVisible: false,
+      slug: "",
+      title: ""
     };
 
     constructor(props) {
@@ -66,7 +74,19 @@ export const PageUpdateFormComponent = decorate(
     };
 
     render() {
-      const { created, formInitialValues, handleSubmit, classes } = this.props;
+      const {
+        created,
+        formInitialValues,
+        handleSubmit,
+        classes,
+        errors
+      } = this.props;
+      const combinedErrors = errors
+        ? (errors.reduce((prev, curr) => {
+            prev[curr.field] = curr.message;
+            return prev;
+          }, {}) as CombinedErrorsType)
+        : undefined;
       return (
         <>
           <CardContent>
@@ -77,7 +97,16 @@ export const PageUpdateFormComponent = decorate(
                   label={i18n.t("Title", { context: "object" })}
                   defaultValue={this.state.title}
                   onChange={this.handleChange}
-                  className={classes.addHelperTextPadding}
+                  className={
+                    (errors ? !combinedErrors.title : true)
+                      ? classes.addHelperTextPadding
+                      : ""
+                  }
+                  helperText={
+                    combinedErrors && combinedErrors.title
+                      ? combinedErrors.title
+                      : ""
+                  }
                   fullWidth
                 />
                 <FormSpacer />
@@ -85,12 +114,13 @@ export const PageUpdateFormComponent = decorate(
                   defaultValue={this.state.content}
                   name="content"
                   label={i18n.t("Content", { context: "object" })}
-                  helperText={i18n.t(
-                    "Select text to enable text-formatting tools.",
-                    {
-                      context: "object"
-                    }
-                  )}
+                  helperText={
+                    combinedErrors && combinedErrors.content
+                      ? combinedErrors.content
+                      : i18n.t("Select text to enable text-formatting tools.", {
+                          context: "object"
+                        })
+                  }
                   onChange={this.handleChange}
                   fullWidth
                 />
@@ -100,9 +130,13 @@ export const PageUpdateFormComponent = decorate(
                   name="slug"
                   label={i18n.t("Slug", { context: "object" })}
                   defaultValue={this.state.slug}
-                  helperText={i18n.t("Slug is being used to create page URL", {
-                    context: "object"
-                  })}
+                  helperText={
+                    combinedErrors && combinedErrors.slug
+                      ? combinedErrors.slug
+                      : i18n.t("Slug is being used to create page URL", {
+                          context: "object"
+                        })
+                  }
                   onChange={this.handleChange}
                   fullWidth
                 />
@@ -116,6 +150,11 @@ export const PageUpdateFormComponent = decorate(
                   InputLabelProps={{
                     shrink: true
                   }}
+                  helperText={
+                    combinedErrors && combinedErrors.availableOn
+                      ? combinedErrors.availableOn
+                      : ""
+                  }
                 />
                 <FormSpacer />
                 {created && (

@@ -2,12 +2,12 @@ import gql from "graphql-tag";
 import { Mutation, MutationProps } from "react-apollo";
 
 import {
+  PageCreateMutation,
+  PageCreateMutationVariables,
   PageDeleteMutation,
   PageDeleteMutationVariables,
   PageUpdateMutation,
-  PageUpdateMutationVariables,
-  PageCreateMutation,
-  PageCreateMutationVariables
+  PageUpdateMutationVariables
 } from "../gql-types";
 
 export const TypedPageDeleteMutation = Mutation as React.ComponentType<

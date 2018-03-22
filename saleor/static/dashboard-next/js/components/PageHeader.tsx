@@ -1,12 +1,12 @@
-import * as React from "react";
 import ArrowBack from "material-ui-icons/ArrowBack";
 import Close from "material-ui-icons/Close";
 import Divider from "material-ui/Divider";
 import IconButton from "material-ui/IconButton";
-import Skeleton from "./Skeleton";
-import Typography from "material-ui/Typography";
-import { Link } from "react-router-dom";
 import { withStyles } from "material-ui/styles";
+import Typography from "material-ui/Typography";
+import * as React from "react";
+import { Link } from "react-router-dom";
+import Skeleton from "./Skeleton";
 
 const decorate = withStyles(theme => ({
   action: {
