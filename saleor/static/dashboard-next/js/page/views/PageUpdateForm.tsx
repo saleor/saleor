@@ -8,7 +8,7 @@ import { CircularProgress } from "material-ui/Progress";
 import { Redirect } from "react-router";
 
 import PageHeader from "../../components/PageHeader";
-import PageUpdateFormComponent from "../components/PageUpdateFormComponent";
+import PageBaseForm from "../components/PageBaseForm";
 import RichTextEditor from "../../components/RichTextEditor";
 import ErrorMessageCard from "../../components/cards/ErrorMessageCard";
 import i18n from "../../i18n";
@@ -96,7 +96,7 @@ export const PageUpdateForm: React.StatelessComponent<PageUpdateFormProps> = ({
                         {loading ? (
                           <CircularProgress />
                         ) : (
-                          <PageUpdateFormComponent
+                          <PageBaseForm
                             handleSubmit={data =>
                               updatePage({ variables: { id, ...data } })
                             }

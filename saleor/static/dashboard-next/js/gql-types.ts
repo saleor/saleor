@@ -195,6 +195,33 @@ export interface PageUpdateMutation {
   } | null,
 };
 
+export interface PageCreateMutationVariables {
+  title: string,
+  content: string,
+  slug: string,
+  isVisible: boolean,
+  availableOn?: string | null,
+};
+
+export interface PageCreateMutation {
+  pageCreate:  {
+    page:  {
+      // The ID of the object.
+      id: string,
+      slug: string,
+      title: string,
+      content: string,
+      isVisible: boolean,
+      availableOn: string | null,
+      created: string,
+    } | null,
+    errors:  Array< {
+      field: string | null,
+      message: string | null,
+    } | null > | null,
+  } | null,
+};
+
 export interface PageListQueryVariables {
   first?: number | null,
   after?: string | null,

@@ -5,7 +5,9 @@ import {
   PageDeleteMutation,
   PageDeleteMutationVariables,
   PageUpdateMutation,
-  PageUpdateMutationVariables
+  PageUpdateMutationVariables,
+  PageCreateMutation,
+  PageCreateMutationVariables
 } from "../gql-types";
 
 export const TypedPageDeleteMutation = Mutation as React.ComponentType<
@@ -49,6 +51,41 @@ export const pageUpdateMutation = gql`
         content
         isVisible
         availableOn
+      }
+      errors {
+        field
+        message
+      }
+    }
+  }
+`;
+
+export const TypedPageCreateMutation = Mutation as React.ComponentType<
+  MutationProps<PageCreateMutation, PageCreateMutationVariables>
+>;
+export const pageCreateMutation = gql`
+  mutation PageCreate(
+    $title: String!
+    $content: String!
+    $slug: String!
+    $isVisible: Boolean!
+    $availableOn: String
+  ) {
+    pageCreate(
+      title: $title
+      content: $content
+      slug: $slug
+      isVisible: $isVisible
+      availableOn: $availableOn
+    ) {
+      page {
+        id
+        slug
+        title
+        content
+        isVisible
+        availableOn
+        created
       }
       errors {
         field

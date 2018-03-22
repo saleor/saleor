@@ -25,7 +25,7 @@ interface PageUpdateFormComponentState {
 interface PageUpdateFormComponentProps {
   handleSubmit(data: any);
   formInitialValues?: PageUpdateFormComponentState;
-  created: string;
+  created?: string;
 }
 
 const decorate = withStyles(theme => ({
@@ -62,7 +62,6 @@ export const PageUpdateFormComponent = decorate(
     }
 
     handleChange = event => {
-      console.log(event.target);
       this.setState({ [event.target.name]: event.target.value });
     };
 
@@ -112,14 +111,16 @@ export const PageUpdateFormComponent = decorate(
                   name="availableOn"
                   label={i18n.t("Available on", { context: "label" })}
                   type="date"
-                  defaultValue={formInitialValues.availableOn}
+                  defaultValue={this.state.availableOn}
                   onChange={this.handleChange}
                   InputLabelProps={{
                     shrink: true
                   }}
                 />
                 <FormSpacer />
-                <Typography variant="body1">Created at: {created}</Typography>
+                {created && (
+                  <Typography variant="body1">Created at: {created}</Typography>
+                )}
                 <FormSpacer />
                 <ControlledCheckbox
                   checked={this.state.isVisible}
