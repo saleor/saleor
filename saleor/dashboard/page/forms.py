@@ -15,15 +15,15 @@ class PageForm(forms.ModelForm):
         # Page's content contains htm tags which should be stripped
         placeholder = generate_seo_description(
             self.instance.content, field_maxlength)
-        self.fields['seo_description'].widget.attrs = {
+        self.fields['seo_description'].widget.attrs.update({
             'id': 'seo_description',
             'data-bind': self['content'].auto_id,
             'data-materialize': self['content'].html_name,
-            'placeholder': placeholder}
-        self.fields['seo_title'].widget.attrs = {
+            'placeholder': placeholder})
+        self.fields['seo_title'].widget.attrs.update({
             'id': 'seo_title',
             'data-bind': self['title'].auto_id,
-            'placeholder': self.instance.title}
+            'placeholder': self.instance.title})
 
     class Meta:
         model = Page

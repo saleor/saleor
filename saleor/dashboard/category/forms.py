@@ -14,14 +14,14 @@ class CategoryForm(forms.ModelForm):
         field_maxlength = self.fields['seo_description'].max_length
         # Placeholder should be no longer than fields maximum size
         placeholder = self.instance.description[:field_maxlength]
-        self.fields['seo_description'].widget.attrs = {
+        self.fields['seo_description'].widget.attrs.update({
             'id': 'seo_description',
             'data-bind': self['description'].auto_id,
-            'placeholder': placeholder}
-        self.fields['seo_title'].widget.attrs = {
+            'placeholder': placeholder})
+        self.fields['seo_title'].widget.attrs.update({
             'id': 'seo_title',
             'data-bind': self['name'].auto_id,
-            'placeholder': self.instance.name}
+            'placeholder': self.instance.name})
 
     class Meta:
         model = Category

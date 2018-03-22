@@ -31,14 +31,14 @@ class CollectionForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         if self.instance.pk:
             self.fields['products'].set_initial(self.instance.products.all())
-        self.fields['seo_description'].widget.attrs = {
+        self.fields['seo_description'].widget.attrs.update({
             'id': 'seo_description',
             'data-bind': '',
-            'placeholder': ''}
-        self.fields['seo_title'].widget.attrs = {
+            'placeholder': ''})
+        self.fields['seo_title'].widget.attrs.update({
             'id': 'seo_title',
             'data-bind': self['name'].auto_id,
-            'placeholder': self.instance.name}
+            'placeholder': self.instance.name})
 
     def save(self, commit=True):
         self.instance.slug = slugify(unidecode(self.instance.name))
