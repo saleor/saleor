@@ -8,6 +8,7 @@ from payments import PaymentError, PaymentStatus
 
 from ...account.i18n import (
     AddressForm as StorefrontAddressForm, PossiblePhoneNumberFormField)
+from ...account.models import User
 from ...cart.forms import QuantityField
 from ...core.exceptions import InsufficientStock
 from ...core.utils import ZERO_TAXED_MONEY
@@ -99,6 +100,10 @@ class OrderCustomerForm(forms.ModelForm):
             'Update an order with user default addresses',
             'Update billing and shipping address'),
         initial=True, required=False)
+    user = AjaxSelect2ChoiceField(
+        queryset=User.objects.all(),
+        fetch_data_url=reverse_lazy('dashboard:ajax-users-list'),
+        required=False)
 
     class Meta:
         model = Order
@@ -111,6 +116,12 @@ class OrderCustomerForm(forms.ModelForm):
             'user_email': pgettext_lazy(
                 'Order customer email',
                 'Email')}
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if self.instance.user:
+            self.fields['user'].set_initial(
+                self.instane.user, label=self.instance.user.label)
 
     def clean(self):
         cleaned_data = super().clean()
