@@ -1,6 +1,8 @@
 import * as React from "react";
 import Card from "material-ui/Card";
+import DeleteForeverIcon from "material-ui-icons/DeleteForever";
 import Grid from "material-ui/Grid";
+import IconButton from "material-ui/IconButton";
 import TextField from "material-ui/TextField";
 import { CircularProgress } from "material-ui/Progress";
 import { Redirect } from "react-router";
@@ -72,9 +74,14 @@ export const PageUpdateForm: React.StatelessComponent<PageUpdateFormProps> = ({
                       <>
                         <PageHeader
                           cancelLink={"/pages/"}
-                          handleDelete={() => deletePage({ variables: { id } })}
                           title={i18n.t("Edit page", { context: "title" })}
-                        />
+                        >
+                          <IconButton
+                            onClick={() => deletePage({ variables: { id } })}
+                          >
+                            <DeleteForeverIcon />
+                          </IconButton>
+                        </PageHeader>
                         {loading ? (
                           <CircularProgress />
                         ) : (
