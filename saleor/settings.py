@@ -254,7 +254,11 @@ PAYMENT_HOST = get_host
 PAYMENT_MODEL = 'order.Payment'
 
 PAYMENT_VARIANTS = {
-    'default': ('payments.dummy.DummyProvider', {})}
+    'dotpay': ('payments.dotpay.DotpayProvider', {
+        'seller_id': '716809',
+        'pin': 'D148Lnb6Yn4IPXFIhwjTWs2YMhSUZi8s',
+        'lock': True,
+        'endpoint': 'https://ssl.dotpay.pl/test_payment/'})}
 
 SESSION_SERIALIZER = 'django.contrib.sessions.serializers.JSONSerializer'
 SESSION_ENGINE = 'django.contrib.sessions.backends.cached_db'
@@ -420,7 +424,7 @@ ALLOWED_ATTRIBUTES = {
     'img': ['src']}
 ALLOWED_STYLES = ['text-align']
 
- 
+
 AVAILABLE_BACKENDS = ['google', 'facebook']
 USER_FIELDS = ['email']
 
