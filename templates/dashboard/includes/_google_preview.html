@@ -6,9 +6,7 @@
   <div class='container'>
     <p class="flow-text">Search engine listing preview</p>
     <br>
-    <div id="preview-error">
-        {% trans "Please provide title and description to see how this product might appear in search engine results." %}
-    </div>
+    <div id="preview-error"></div>
     <div class="preview">
       <div class='title'>
         <a id="google-preview-title" href='#'>{{ object.seo_title|default:form.seo_title.field.widget.attrs.placeholder }}</a>
