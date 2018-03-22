@@ -145,3 +145,5 @@ django-robots==3.0
 
 # Sentry/Raven
 raven==6.5.0
+
+python-logstash==0.4.6
