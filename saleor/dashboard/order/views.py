@@ -357,7 +357,7 @@ def order_customer_edit(request, order_pk):
 @staff_member_required
 @permission_required('order.edit_order')
 def order_shipping_edit(request, order_pk):
-    order = Order.objects.get(pk=order_pk)
+    order = get_object_or_404(Order, pk=order_pk, status=OrderStatus.DRAFT)
     form = OrderShippingForm(request.POST or None, instance=order)
     status = 200
     if form.is_valid():
@@ -623,7 +623,8 @@ def ajax_shipping_methods_list(request, order_pk):
             Q(shipping_method__name__icontains=search_query) |
             Q(price__icontains=search_query))
 
-    shipping_methods = [
+    shipping_methods = [{'id': '', 'text': '----'}]
+    shipping_methods += [
         {'id': method.pk, 'text': method.label}
         for method in queryset]
     return JsonResponse({'results': shipping_methods})

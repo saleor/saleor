@@ -23,7 +23,7 @@ from ...order.utils import (
     recalculate_order)
 from ...product.models import Product, ProductVariant, Stock
 from ...product.utils import allocate_stock, deallocate_stock
-from ...shipping.models import ShippingMethodCountry
+from ...shipping.models import ANY_COUNTRY, ShippingMethodCountry
 from ..forms import AjaxSelect2ChoiceField
 from ..widgets import PhonePrefixWidget
 from .utils import fulfill_order_line, update_order_with_user_addresses
@@ -56,6 +56,17 @@ class ConfirmDraftOrderForm(forms.ModelForm):
                 errors.append(forms.ValidationError(pgettext_lazy(
                     'Confirm draft order form error',
                     'Shipping method is required to handle shipping')))
+            method = self.instance.shipping_method
+            shipping_address = self.instance.shipping_address
+            if (
+                method and shipping_address and
+                method.country_code != ANY_COUNTRY and
+                shipping_address.country.code != method.country_code
+            ):
+                errors.append(forms.ValidationError(pgettext_lazy(
+                    'Confirm draft order form error',
+                    'Shipping method is not valid for chosen shipping '
+                    'address')))
         if errors:
             raise forms.ValidationError(errors)
         return self.cleaned_data
@@ -115,7 +126,7 @@ class OrderShippingForm(forms.ModelForm):
 
     shipping_method = AjaxSelect2ChoiceField(
         queryset=ShippingMethodCountry.objects.all(),
-        required=True, min_input=0)
+        required=False, min_input=0)
 
     class Meta:
         model = Order
@@ -126,14 +137,23 @@ class OrderShippingForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        method = self.instance.shipping_method
-        if method:
-            self.fields['shipping_method'].set_initial(
-                method, label=method.label)
+        method_field = self.fields['shipping_method']
         fetch_data_url = reverse(
             'dashboard:ajax-order-shipping-methods',
             kwargs={'order_pk': self.instance.id})
-        self.fields['shipping_method'].set_fetch_data_url(fetch_data_url)
+        method_field.set_fetch_data_url(fetch_data_url)
+
+        method = self.instance.shipping_method
+        if method:
+            method_field.set_initial(method, label=method.label)
+        else:
+            method_field.set_initial(None, obj_id='', label='----')
+
+        if self.instance.shipping_address:
+            country_code = self.instance.shipping_address.country.code
+            queryset = method_field.queryset.unique_for_country_code(
+                country_code)
+            method_field.queryset = queryset
 
     def save(self, commit=True):
         method = self.instance.shipping_method
@@ -141,7 +161,7 @@ class OrderShippingForm(forms.ModelForm):
             self.instance.shipping_method_name = method.shipping_method.name
             self.instance.shipping_price = method.get_total_price()
         else:
-            self.instance.shipping_method_name = ''
+            self.instance.shipping_method_name = None
             self.instance.shipping_price = ZERO_TAXED_MONEY
         return super().save(commit)
 
