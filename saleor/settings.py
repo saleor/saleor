@@ -249,12 +249,12 @@ LOGGING = {
             'tags': ['django.request', 'django'],  # list of tags. Default: None.
         },
     },
-    'root': {
-        # default logger; config for everything that propagates to the root logger
-        'level': 'INFO',
-        'filters': [],
-        'handlers': ['console'],
-    },
+    # 'root': {
+    #     # default logger; config for everything that propagates to the root logger
+    #     'level': 'INFO',
+    #     'filters': [],
+    #     'handlers': ['console'],
+    # },
     'loggers': {
         'django': {
             'handlers': ['logstash', 'console'],
