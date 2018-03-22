@@ -161,6 +161,13 @@ export const AppRoot = decorate<{}>(
               >
                 <ListItemText primary={i18n.t("Categories")} />
               </ListItem>
+              <ListItem
+                button
+                component={props => <Link to="/pages/" {...props} />}
+                onClick={this.closeDrawer}
+              >
+                <ListItemText primary={i18n.t("Pages")} />
+              </ListItem>
             </List>
           </ResponsiveDrawer>
           <main className={classes.content}>{children}</main>
