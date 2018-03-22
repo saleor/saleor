@@ -6,7 +6,7 @@ from django.db import connection
 from ...utils import create_superuser
 from ...utils.random_data import (
     add_address_to_admin, create_collections_by_schema, create_groups,
-    create_menus, create_orders, create_pages, create_product_sales,
+    create_menus, create_orders, create_page, create_product_sales,
     create_products_by_schema, create_shipping_methods, create_users,
     create_vouchers, set_featured_products)
 
@@ -69,7 +69,7 @@ class Command(BaseCommand):
             self.stdout.write(msg)
         for msg in create_collections_by_schema(self.placeholders_dir):
             self.stdout.write(msg)
-        for msg in create_pages():
+        for msg in create_page():
             self.stdout.write(msg)
         for msg in create_menus():
             self.stdout.write(msg)
