@@ -11,6 +11,7 @@ from ..core.types import (
     CountableDjangoObjectType, Money, TaxedMoney, TaxedMoneyRange)
 from ..utils import get_node
 from .filters import ProductFilterSet
+from .fields import AttributeField
 
 
 class ProductAvailability(graphene.ObjectType):
@@ -95,9 +96,15 @@ class Category(CountableDjangoObjectType):
         return qs.distinct()
 
 
+class ProductAttributes(graphene.ObjectType):
+    name = graphene.String()
+    value = graphene.String()
+
+
 class ProductVariant(CountableDjangoObjectType):
     stock_quantity = graphene.Int()
     price_override = graphene.Field(Money)
+    attributes = graphene.List(ProductAttributes)
 
     class Meta:
         model = models.ProductVariant
@@ -106,6 +113,17 @@ class ProductVariant(CountableDjangoObjectType):
     def resolve_stock_quantity(self, info):
         return self.get_stock_quantity()
 
+    def resolve_attributes(self, info):
+        product_attributes = dict(
+            models.ProductAttribute.objects.values_list('id', 'slug'))
+        attribute_values = dict(
+            models.AttributeChoiceValue.objects.values_list('id', 'slug'))
+        attribute_list = []
+        for k, v in self.attributes.items():
+            name = product_attributes.get(int(k))
+            value = attribute_values.get(int(v))
+            attribute_list.append(ProductAttributes(name=name, value=value))
+        return attribute_list
 
 class ProductImage(CountableDjangoObjectType):
     url = graphene.String(size=graphene.String())

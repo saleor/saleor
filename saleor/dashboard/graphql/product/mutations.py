@@ -50,6 +50,7 @@ class ProductCreateMutation(ModelFormMutation):
     class Arguments:
         product_type_id = graphene.ID()
         category_id = graphene.ID()
+        # TODO: add here optional attributes field
 
     class Meta:
         form_class = ProductForm
@@ -61,7 +62,6 @@ class ProductCreateMutation(ModelFormMutation):
     def get_form_kwargs(cls, root, info, **input):
         product_type_id = input.pop('product_type_id', None)
         category_id = input.pop('category_id', None)
-
         product_type = get_node(info, product_type_id, only_type=ProductType)
         category = get_node(info, category_id, only_type=Category)
         kwargs = super().get_form_kwargs(root, info, **input)
