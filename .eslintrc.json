@@ -8,7 +8,9 @@
     "gettext": true,
     "pgettext": true,
     "ngettext": true,
-    "Materialize": true
+    "Materialize": true,
+    "describe": true,
+    "it": true
   },
   "plugins": ["react"],
   "parser": "babel-eslint",

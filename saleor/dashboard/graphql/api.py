@@ -18,7 +18,6 @@ class Query(graphene.ObjectType):
         level=graphene.Argument(graphene.Int))
     category = graphene.Field(Category, id=graphene.Argument(graphene.ID))
     node = graphene.Node.Field()
-    debug = graphene.Field(DjangoDebug, name='__debug')
     page = graphene.Field(Page, id=graphene.Argument(graphene.ID))
     pages = DjangoFilterConnectionField(
         Page, filterset_class=DistinctFilterSet)
@@ -32,7 +31,7 @@ class Query(graphene.ObjectType):
     def resolve_page(self, info, id):
         return get_node(info, id, only_type=Page)
 
-    def resolve_pages(self, info):
+    def resolve_pages(self, info, **kwargs):
         return resolve_all_pages()
 
 

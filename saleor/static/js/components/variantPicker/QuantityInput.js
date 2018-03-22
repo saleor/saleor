@@ -1,5 +1,6 @@
 import classNames from 'classnames';
-import React, { Component, PropTypes } from 'react';
+import React, { Component } from 'react';
+import PropTypes from 'prop-types';
 
 export default class QuantityInput extends Component {
 

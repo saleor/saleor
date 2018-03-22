@@ -30,7 +30,7 @@ function initSelects() {
       width: '100%',
       minimumInputLength: 2
     });
-    $select.addClass('select2-enabled')
+    $select.addClass('select2-enabled');
   });
 }
 
