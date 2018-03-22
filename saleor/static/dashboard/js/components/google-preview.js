@@ -29,19 +29,14 @@ function checkForErrors() {
     $preview.hide();
     $previewErrors.text(gettext('Please provide title and description to see how this product might appear in search engine results.'));
     $previewErrors.show();
-
-    // title and descriptions missing
   } else if (!$descriptionText) {
     $preview.hide();
-    $previewErrors.show();
     $previewErrors.text(gettext('Please provide description to see how this product might appear in search engine results.'));
-
-    // description missing
-  } else if (!$titleText) {
-    // title missing
-    $preview.hide();
     $previewErrors.show();
+  } else if (!$titleText) {
+    $preview.hide();
     $previewErrors.text(gettext('Please provide title to see how this product might appear in search engine results.'));
+    $previewErrors.show();
   }
 }
 
@@ -80,6 +75,7 @@ function updatePreviewOnInput(seoField, previewField) {
     checkForErrors();
   });
 }
+
 checkForErrors();
 updatePlaceholderOnInput($name, $seoTitle, $googleTitlePreview);
 updatePlaceholderOnInput($description, $seoDescription, $googleDescriptionPreview);
