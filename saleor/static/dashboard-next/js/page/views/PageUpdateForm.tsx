@@ -76,7 +76,7 @@ export class PageUpdateForm extends React.Component<
                       console.error(result.error);
                       return;
                     }
-                    if (result.data && result.data.pageDelete.errors) {
+                    if (result.data && result.data.pageDelete.errors.length) {
                       return;
                     }
                     // FIXME: component is loaded with previous state (meaning that delete  d page will still be there until table reload)
@@ -89,7 +89,7 @@ export class PageUpdateForm extends React.Component<
                         if (
                           result &&
                           !result.loading &&
-                          !result.data.pageUpdate.errors
+                          !result.data.pageUpdate.errors.length
                         ) {
                           if (result.error) {
                             console.error(result.error);
