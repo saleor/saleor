@@ -1,4 +1,4 @@
-import DeleteForeverIcon from "material-ui-icons/DeleteForever";
+import DeleteIcon from "material-ui-icons/Delete";
 import Card from "material-ui/Card";
 import Grid from "material-ui/Grid";
 import IconButton from "material-ui/IconButton";
@@ -71,13 +71,16 @@ export class PageUpdateForm extends React.Component<
           return (
             <Card>
               <TypedPageDeleteMutation mutation={pageDeleteMutation}>
-                {(deletePage, result) => {
-                  if (result) {
-                    if (result.error) {
-                      console.error(result.error);
+                {(
+                  deletePage,
+                  { called, data, error, loading: deleteInProgress }
+                ) => {
+                  if (called && !deleteInProgress) {
+                    if (error) {
+                      console.error(error);
                       return;
                     }
-                    if (result.data && result.data.pageDelete.errors.length) {
+                    if (data && data.pageDelete.errors.length) {
                       return;
                     }
                     // FIXME: component is loaded with previous state (meaning that delete  d page will still be there until table reload)
@@ -86,14 +89,17 @@ export class PageUpdateForm extends React.Component<
                   }
                   return (
                     <TypedPageUpdateMutation mutation={pageUpdateMutation}>
-                      {(updatePage, result) => {
+                      {(
+                        updatePage,
+                        { called, data, error, loading: updateInProgress }
+                      ) => {
                         if (
-                          result &&
-                          !result.loading &&
-                          !result.data.pageUpdate.errors.length
+                          called &&
+                          !updateInProgress &&
+                          !data.pageUpdate.errors.length
                         ) {
-                          if (result.error) {
-                            console.error(result.error);
+                          if (error) {
+                            console.error(error);
                             return;
                           }
                           return <Redirect to="/pages/" />;
@@ -111,7 +117,7 @@ export class PageUpdateForm extends React.Component<
                                   <IconButton
                                     onClick={this.handleRemoveButtonClick}
                                   >
-                                    <DeleteForeverIcon />
+                                    <DeleteIcon />
                                   </IconButton>
                                 </PageHeader>
                                 {loading ? (
@@ -127,8 +133,8 @@ export class PageUpdateForm extends React.Component<
                                       formInitialValues={formInitialValues}
                                       created={page.created}
                                       errors={
-                                        result && result.data
-                                          ? result.data.pageUpdate.errors
+                                        data
+                                          ? data.pageUpdate.errors
                                           : undefined
                                       }
                                     />

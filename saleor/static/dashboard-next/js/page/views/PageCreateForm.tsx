@@ -28,45 +28,35 @@ interface PageCreateFormProps {
 export const PageCreateForm: React.StatelessComponent<PageCreateFormProps> = ({
   id
 }) => (
-  <Card>
-    <TypedPageCreateMutation mutation={pageCreateMutation}>
-      {(createPage, result) => {
-        if (
-          result &&
-          !result.loading &&
-          !result.data.pageCreate.errors.length
-        ) {
-          if (result.error) {
-            console.error(result.error);
-            return;
-          }
-          return <Redirect to="/pages/" />;
+  <TypedPageCreateMutation mutation={pageCreateMutation}>
+    {(createPage, { called, data, error, loading }) => {
+      if (called && !loading && !data.pageCreate.errors.length) {
+        if (error) {
+          console.error(error);
+          return;
         }
-        return (
-          <NavigatorLink to={"/pages/"}>
-            {handleCancel => (
-              <>
-                <PageHeader
-                  onCancel={handleCancel}
-                  title={i18n.t("Add page", { context: "title" })}
-                />
-                <PageBaseForm
-                  errors={
-                    result && result.data
-                      ? result.data.pageCreate.errors
-                      : undefined
-                  }
-                  handleSubmit={data =>
-                    createPage({ variables: { id, ...data } })
-                  }
-                />
-              </>
-            )}
-          </NavigatorLink>
-        );
-      }}
-    </TypedPageCreateMutation>
-  </Card>
+        return <Redirect to="/pages/" />;
+      }
+      return (
+        <NavigatorLink to={"/pages/"}>
+          {handleCancel => (
+            <Card>
+              <PageHeader
+                onCancel={handleCancel}
+                title={i18n.t("Add page", { context: "title" })}
+              />
+              <PageBaseForm
+                errors={called && data ? data.pageCreate.errors : undefined}
+                handleSubmit={data =>
+                  createPage({ variables: { id, ...data } })
+                }
+              />
+            </Card>
+          )}
+        </NavigatorLink>
+      );
+    }}
+  </TypedPageCreateMutation>
 );
 
 export default PageCreateForm;
