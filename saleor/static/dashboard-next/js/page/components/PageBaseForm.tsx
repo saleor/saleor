@@ -1,6 +1,6 @@
 import Button from "material-ui/Button";
 import { CardContent } from "material-ui/Card";
-import CheckBox from "material-ui/CheckBox";
+import CheckBox from "material-ui/Checkbox";
 import Grid from "material-ui/Grid";
 import { withStyles, WithStyles } from "material-ui/styles";
 import TextField from "material-ui/TextField";
