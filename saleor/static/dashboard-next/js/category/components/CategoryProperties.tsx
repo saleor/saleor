@@ -1,104 +1,48 @@
-import { DialogContentText } from "material-ui/Dialog";
+import DeleteIcon from "material-ui-icons/Delete";
+import ModeEditIcon from "material-ui-icons/ModeEdit";
+import Button from "material-ui/Button";
+import Card, { CardActions, CardContent, CardHeader } from "material-ui/Card";
+import IconButton from "material-ui/IconButton";
+import Typography from "material-ui/Typography";
 import * as React from "react";
-import { Query } from "react-apollo";
-import { Redirect } from "react-router-dom";
+import { Link } from "react-router-dom";
 
+import PageHeader from "../../components/PageHeader";
+import Skeleton from "../../components/Skeleton";
 import i18n from "../../i18n";
-import { CategoryPropertiesQuery } from "../gql-types";
-import { categoryEditUrl, categoryShowUrl } from "../index";
-import {
-  categoryDeleteMutation,
-  TypedCategoryDeleteMutation
-} from "../mutations";
-import CategoryDeleteDialog from "./CategoryDeleteDialog";
-import CategoryDetails from "./CategoryDetails";
-
-const { Component } = React;
 
 interface CategoryPropertiesProps {
-  loading: boolean;
-  category?: CategoryPropertiesQuery["category"];
+  description?: string;
+  title?: string;
+  onBack?();
+  onDelete?();
+  onEdit?();
 }
 
-interface CategoryPropertiesState {
-  opened: boolean;
-}
-
-export class CategoryProperties extends Component<
-  CategoryPropertiesProps,
-  CategoryPropertiesState
-> {
-  state = { opened: false };
-
-  handleRemoveButtonClick = () => {
-    this.setState(prevState => ({ opened: !prevState.opened }));
-  };
-
-  render() {
-    const { category, loading } = this.props;
-
-    return (
-      <TypedCategoryDeleteMutation
-        mutation={categoryDeleteMutation}
-        variables={{ id: (category && category.id) || "" }}
-      >
-        {(deleteCategory, deleteResult) => {
-          if (deleteResult && !deleteResult.loading) {
-            this.handleRemoveButtonClick();
-            return (
-              <Redirect
-                to={categoryShowUrl(
-                  category.parent ? category.parent.id : null
-                )}
-                push={false}
-              />
-            );
-          }
-
-          return (
-            <>
-              <CategoryDetails
-                backLink={
-                  (category &&
-                    categoryShowUrl(category.parent && category.parent.id)) ||
-                  "#"
-                }
-                description={category && category.description}
-                editButtonLink={category && categoryEditUrl(category.id)}
-                handleRemoveButtonClick={this.handleRemoveButtonClick}
-                title={category && category.name}
-              />
-              {!loading ? (
-                <CategoryDeleteDialog
-                  onClose={this.handleRemoveButtonClick}
-                  onConfirm={() => deleteCategory()}
-                  opened={this.state.opened}
-                >
-                  <DialogContentText
-                    dangerouslySetInnerHTML={{
-                      __html: i18n.t(
-                        "Are you sure you want to remove <strong>{{name}}</strong>?",
-                        { name: category.name }
-                      )
-                    }}
-                  />
-                  {category.products &&
-                    category.products.totalCount > 0 && (
-                      <DialogContentText>
-                        {i18n.t(
-                          "There are {{count}} product(s) in this category that will also be removed.",
-                          { count: category.products.totalCount }
-                        )}
-                      </DialogContentText>
-                    )}
-                </CategoryDeleteDialog>
-              ) : null}
-            </>
-          );
-        }}
-      </TypedCategoryDeleteMutation>
-    );
-  }
-}
+export const CategoryProperties: React.StatelessComponent<
+  CategoryPropertiesProps
+> = ({ description, onBack, onDelete, onEdit, title }) => (
+  <Card>
+    <PageHeader onBack={onBack} title={title}>
+      <IconButton onClick={onDelete}>
+        <DeleteIcon />
+      </IconButton>
+      <IconButton onClick={onEdit}>
+        <ModeEditIcon />
+      </IconButton>
+    </PageHeader>
+    <CardContent>
+      <Typography variant="body1">
+        {description !== undefined
+          ? description
+          : [
+              <Skeleton key="skel-1" style={{ width: "80%" }} />,
+              <Skeleton key="skel-2" style={{ width: "75%" }} />,
+              <Skeleton key="skel-3" style={{ width: "60%" }} />
+            ]}
+      </Typography>
+    </CardContent>
+  </Card>
+);
 
 export default CategoryProperties;

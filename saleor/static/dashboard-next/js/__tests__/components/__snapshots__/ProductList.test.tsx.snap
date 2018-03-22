@@ -37,15 +37,15 @@ exports[`<ProductList /> renders properly 'load more' button 1`] = `
     >
       <td
         aria-sort={null}
-        className="MuiTableCell-root-9 MuiTableCell-footer-12 MuiTablePagination-root-17"
+        className="MuiTableCell-root-9 MuiTableCell-footer-12 MuiTablePagination-root-20"
         colSpan={3}
         scope={undefined}
       >
         <div
-          className="MuiToolbar-root-26 MuiToolbar-gutters-27 MuiTablePagination-toolbar-18"
+          className="MuiToolbar-root-26 MuiToolbar-gutters-27 MuiTablePagination-toolbar-25"
         >
           <div
-            className="MuiTablePagination-spacer-19"
+            className="MuiTablePagination-spacer-24"
           />
           <div
             className="MuiTablePaginationActions-root-28"
@@ -518,15 +518,15 @@ exports[`<ProductList /> renders properly when data is loaded 1`] = `
     >
       <td
         aria-sort={null}
-        className="MuiTableCell-root-9 MuiTableCell-footer-12 MuiTablePagination-root-17"
+        className="MuiTableCell-root-9 MuiTableCell-footer-12 MuiTablePagination-root-20"
         colSpan={3}
         scope={undefined}
       >
         <div
-          className="MuiToolbar-root-26 MuiToolbar-gutters-27 MuiTablePagination-toolbar-18"
+          className="MuiToolbar-root-26 MuiToolbar-gutters-27 MuiTablePagination-toolbar-25"
         >
           <div
-            className="MuiTablePagination-spacer-19"
+            className="MuiTablePagination-spacer-24"
           />
           <div
             className="MuiTablePaginationActions-root-28"
@@ -996,15 +996,15 @@ exports[`<ProductList /> renders properly when product list is empty 1`] = `
     >
       <td
         aria-sort={null}
-        className="MuiTableCell-root-9 MuiTableCell-footer-12 MuiTablePagination-root-17"
+        className="MuiTableCell-root-9 MuiTableCell-footer-12 MuiTablePagination-root-20"
         colSpan={3}
         scope={undefined}
       >
         <div
-          className="MuiToolbar-root-26 MuiToolbar-gutters-27 MuiTablePagination-toolbar-18"
+          className="MuiToolbar-root-26 MuiToolbar-gutters-27 MuiTablePagination-toolbar-25"
         >
           <div
-            className="MuiTablePagination-spacer-19"
+            className="MuiTablePagination-spacer-24"
           />
           <div
             className="MuiTablePaginationActions-root-28"
@@ -1141,15 +1141,15 @@ exports[`<ProductList /> renders while data is loading 1`] = `
     >
       <td
         aria-sort={null}
-        className="MuiTableCell-root-9 MuiTableCell-footer-12 MuiTablePagination-root-17"
+        className="MuiTableCell-root-9 MuiTableCell-footer-12 MuiTablePagination-root-20"
         colSpan={3}
         scope={undefined}
       >
         <div
-          className="MuiToolbar-root-26 MuiToolbar-gutters-27 MuiTablePagination-toolbar-18"
+          className="MuiToolbar-root-26 MuiToolbar-gutters-27 MuiTablePagination-toolbar-25"
         >
           <div
-            className="MuiTablePagination-spacer-19"
+            className="MuiTablePagination-spacer-24"
           />
           <div
             className="MuiTablePaginationActions-root-28"

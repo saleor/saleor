@@ -11,12 +11,14 @@ import CategoryList from "./CategoryList";
 interface RootCategoryListProps {
   data: RootCategoryChildrenQuery;
   loading?: boolean;
+  onClick?(id: string);
   onCreate?();
 }
 
 const RootCategoryList: React.StatelessComponent<RootCategoryListProps> = ({
   data,
   loading,
+  onClick,
   onCreate
 }) => (
   <Card>
@@ -25,7 +27,10 @@ const RootCategoryList: React.StatelessComponent<RootCategoryListProps> = ({
         <AddIcon />
       </IconButton>
     </PageHeader>
-    <CategoryList categories={data.categories && data.categories.edges} />
+    <CategoryList
+      categories={data.categories && data.categories.edges}
+      onClick={onClick}
+    />
   </Card>
 );
 

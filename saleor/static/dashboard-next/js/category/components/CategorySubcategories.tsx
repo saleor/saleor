@@ -11,12 +11,13 @@ import { CategoryPropertiesQuery } from "../gql-types";
 interface CategorySubcategoriesProps {
   data: CategoryPropertiesQuery;
   loading?: boolean;
+  onClickSubcategory?(id: string);
   onCreate?();
 }
 
 const CategorySubcategories: React.StatelessComponent<
   CategorySubcategoriesProps
-> = ({ data, loading, onCreate }) => (
+> = ({ data, loading, onClickSubcategory, onCreate }) => (
   <Card>
     <PageHeader
       title={i18n.t("Subcategories", {
@@ -31,6 +32,7 @@ const CategorySubcategories: React.StatelessComponent<
       categories={
         data.category && data.category.children && data.category.children.edges
       }
+      onClick={onClickSubcategory}
     />
   </Card>
 );

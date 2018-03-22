@@ -11,16 +11,17 @@ import Typography from "material-ui/Typography";
 import * as React from "react";
 import { Link } from "react-router-dom";
 
-import { categoryAddUrl, categoryShowUrl } from "../";
 import Skeleton from "../../components/Skeleton";
-import i18n from "../../i18n";
 import { CategoryPropertiesQuery } from "../../gql-types";
+import i18n from "../../i18n";
 
 interface CategoryListProps {
   categories?: CategoryPropertiesQuery["category"]["children"]["edges"];
+  onClick?(id: string);
 }
 export const CategoryList: React.StatelessComponent<CategoryListProps> = ({
-  categories
+  categories,
+  onClick
 }) => (
   <List>
     {categories === undefined ? (
@@ -35,11 +36,11 @@ export const CategoryList: React.StatelessComponent<CategoryListProps> = ({
     ) : categories.length > 0 ? (
       categories.map(edge => (
         <ListItem
-          button
+          button={!!onClick}
           key={edge.node.id}
-          component={props => (
-            <Link to={categoryShowUrl(edge.node.id)} {...props} />
-          )}
+          onClick={
+            onClick !== undefined ? () => onClick(edge.node.id) : undefined
+          }
         >
           <ListItemIcon>
             <Folder />

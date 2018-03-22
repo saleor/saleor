@@ -7,11 +7,11 @@ exports[`<ProductChildElement /> renders properly 1`] = `
   <div
     className="MuiCardContent-root-28"
   >
-    <h1
-      className="MuiTypography-root-29 MuiTypography-display1-33"
+    <h2
+      className="MuiTypography-root-29 MuiTypography-headline-34"
     >
       Error
-    </h1>
+    </h2>
     <p
       className="MuiTypography-root-29 MuiTypography-body1-38"
     >

@@ -8,6 +8,7 @@ import * as React from "react";
 import { Redirect } from "react-router";
 
 import ErrorMessageCard from "../../components/cards/ErrorMessageCard";
+import { NavigatorLink } from "../../components/Navigator";
 import PageHeader from "../../components/PageHeader";
 import RichTextEditor from "../../components/RichTextEditor";
 import i18n from "../../i18n";
@@ -42,20 +43,26 @@ export const PageCreateForm: React.StatelessComponent<PageCreateFormProps> = ({
           return <Redirect to="/pages/" />;
         }
         return (
-          <>
-            <PageHeader
-              cancelLink={"/pages/"}
-              title={i18n.t("Add page", { context: "title" })}
-            />
-            <PageBaseForm
-              errors={
-                result && result.data
-                  ? result.data.pageCreate.errors
-                  : undefined
-              }
-              handleSubmit={data => createPage({ variables: { id, ...data } })}
-            />
-          </>
+          <NavigatorLink to={"/pages/"}>
+            {handleCancel => (
+              <>
+                <PageHeader
+                  onCancel={handleCancel}
+                  title={i18n.t("Add page", { context: "title" })}
+                />
+                <PageBaseForm
+                  errors={
+                    result && result.data
+                      ? result.data.pageCreate.errors
+                      : undefined
+                  }
+                  handleSubmit={data =>
+                    createPage({ variables: { id, ...data } })
+                  }
+                />
+              </>
+            )}
+          </NavigatorLink>
         );
       }}
     </TypedPageCreateMutation>
