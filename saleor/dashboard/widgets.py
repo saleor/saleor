@@ -1,6 +1,6 @@
 from django import forms
 from django.conf import settings
-from django.forms import Textarea
+from django.forms import Textarea, TextInput
 from django_filters.widgets import RangeWidget
 from django_prices.widgets import MoneyInput
 
@@ -34,3 +34,7 @@ class RichTextEditorWidget(Textarea):
         if attrs:
             default_attrs.update(attrs)
         super().__init__(default_attrs)
+
+
+class CharsLeftWidget(TextInput):
+    pass
