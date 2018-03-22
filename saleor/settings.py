@@ -142,7 +142,6 @@ MIDDLEWARE = [
 INSTALLED_APPS = [
     # External apps that need to go before django's
     'storages',
-    'robots',
 
     # Django modules
     'django.contrib.contenttypes',
