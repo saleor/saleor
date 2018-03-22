@@ -12,7 +12,7 @@ import formatClear from '../../images/editor/format_clear.svg';
 import doneIcon from '../../images/done.svg';
 import closeIcon from '../../images/close.svg';
 
-// eslint-disable
+// eslint-disable-next-line
 const editor = new MediumEditor('.rich-text-editor', {
   paste: {
     forcePlainText: true

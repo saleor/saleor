@@ -1,6 +1,5 @@
 import graphene
 import graphql_jwt
-from graphene_django.debug import DjangoDebug
 from graphene_django.filter import DjangoFilterConnectionField
 from graphql_jwt.decorators import staff_member_required
 
@@ -20,7 +19,6 @@ class Query(graphene.ObjectType):
         level=graphene.Argument(graphene.Int))
     category = graphene.Field(Category, id=graphene.Argument(graphene.ID))
     node = graphene.Node.Field()
-    debug = graphene.Field(DjangoDebug, name='__debug')
     page = graphene.Field(Page, id=graphene.Argument(graphene.ID))
     pages = DjangoFilterConnectionField(
         Page, filterset_class=DistinctFilterSet)
@@ -38,7 +36,7 @@ class Query(graphene.ObjectType):
         return get_node(info, id, only_type=Page)
 
     @staff_member_required
-    def resolve_pages(self, info):
+    def resolve_pages(self, info, **kwargs):
         return resolve_all_pages()
 
 

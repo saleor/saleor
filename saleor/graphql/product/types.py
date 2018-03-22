@@ -1,6 +1,7 @@
 import graphene
 from django.db.models import Q
 from graphene import relay
+from graphene_django import DjangoObjectType
 from graphene_django.filter import DjangoFilterConnectionField
 
 from ...product import models
@@ -23,6 +24,11 @@ class ProductAvailability(graphene.ObjectType):
     price_range_local_currency = graphene.Field(TaxedMoneyRange)
 
 
+class ProductType(DjangoObjectType):
+    class Meta:
+        model = models.ProductType
+
+
 class Product(CountableDjangoObjectType):
     url = graphene.String()
     thumbnail_url = graphene.String(
@@ -33,6 +39,7 @@ class Product(CountableDjangoObjectType):
     variants = graphene.List(lambda: ProductVariant)
     availability = graphene.Field(ProductAvailability)
     price = graphene.Field(Money)
+    product_type = graphene.Field(ProductType)
 
     class Meta:
         model = models.Product
@@ -57,6 +64,9 @@ class Product(CountableDjangoObjectType):
         availability = get_availability(
             self, context.discounts, context.currency)
         return ProductAvailability(**availability._asdict())
+
+    def resolve_product_type(self, info):
+        return self.product_type
 
 
 class Category(CountableDjangoObjectType):
@@ -162,6 +172,6 @@ def resolve_attributes(category_id, info):
             for obj in models.Product.objects.filter(
                 category__in=tree).values_list('product_type_id')}
         queryset = queryset.filter(
-            Q(product_types__in=product_types)
-            | Q(product_variant_types__in=product_types))
+            Q(product_types__in=product_types) |
+            Q(product_variant_types__in=product_types))
     return queryset.distinct()
