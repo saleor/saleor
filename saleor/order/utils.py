@@ -204,9 +204,10 @@ def restock_order_lines(order):
                 line.save(update_fields=['quantity_fulfilled'])
 
 
-def restock_fulfillment_lines(fulfillment):
+def restock_fulfillment_lines(fulfillment, allocate=True):
     """Return fulfilled products to corresponding stocks."""
     for line in fulfillment:
         order_line = line.order_line
         if order_line.stock:
-            increase_stock(line.order_line.stock, line.quantity)
+            increase_stock(
+                line.order_line.stock, line.quantity, allocate=allocate)

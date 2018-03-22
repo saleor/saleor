@@ -200,8 +200,10 @@ def test_restock_fulfillment_lines(fulfilled_order):
 
     stock_1.refresh_from_db()
     stock_2.refresh_from_db()
-    assert stock_1.quantity_allocated == stock_1_quantity_allocated_before
-    assert stock_1.quantity_allocated == stock_2_quantity_allocated_before
+    assert stock_1.quantity_allocated == (
+        stock_1_quantity_allocated_before + line_1.quantity)
+    assert stock_2.quantity_allocated == (
+        stock_2_quantity_allocated_before + line_2.quantity)
     assert stock_1.quantity == stock_1_quantity_before + line_1.quantity
     assert stock_2.quantity == stock_2_quantity_before + line_2.quantity
 
