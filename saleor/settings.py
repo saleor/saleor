@@ -260,7 +260,7 @@ PAYMENT_VARIANTS = {
         'pin': 'D148Lnb6Yn4IPXFIhwjTWs2YMhSUZi8s',
         'lock': False,
         'channel': 1,
-        'channel_groups': 'T',
+        'channel_groups': 'T,K',
         'ignore_last_payment_channel': 1,
         'type': 0,
         'endpoint': 'https://ssl.dotpay.pl/test_payment/'})}
