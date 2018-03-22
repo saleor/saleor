@@ -262,6 +262,7 @@ PAYMENT_VARIANTS = {
         'channel': 1,
         'channel_groups': 'T',
         'ignore_last_payment_channel': 1,
+        'type': 0,
         'endpoint': 'https://ssl.dotpay.pl/test_payment/'})}
 
 SESSION_SERIALIZER = 'django.contrib.sessions.serializers.JSONSerializer'
