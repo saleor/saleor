@@ -1,0 +1,217 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`<CategoryList /> renders when category list is empty 1`] = `
+<ul
+  className="MuiList-root-1 MuiList-padding-2"
+>
+  <li
+    className="MuiListSubheader-root-63 MuiListSubheader-sticky-67"
+  >
+    No categories found
+  </li>
+</ul>
+`;
+
+exports[`<CategoryList /> renders when data is fully loaded 1`] = `
+<ul
+  className="MuiList-root-1 MuiList-padding-2"
+>
+  <div
+    className="MuiButtonBase-root-53 MuiListItem-root-5 MuiListItem-default-8 MuiListItem-gutters-12 MuiListItem-button-13"
+    onBlur={[Function]}
+    onClick={[Function]}
+    onFocus={[Function]}
+    onKeyDown={[Function]}
+    onKeyUp={[Function]}
+    onMouseDown={[Function]}
+    onMouseLeave={[Function]}
+    onMouseUp={[Function]}
+    onTouchEnd={[Function]}
+    onTouchMove={[Function]}
+    onTouchStart={[Function]}
+    role="button"
+    tabIndex="0"
+  >
+    <svg
+      aria-hidden="true"
+      className="MuiSvgIcon-root-16 MuiListItemIcon-root-15"
+      color={undefined}
+      focusable="false"
+      viewBox="0 0 24 24"
+    >
+      <path
+        d="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z"
+      />
+    </svg>
+    <div
+      className="MuiListItemText-root-22"
+    >
+      <h3
+        className="MuiTypography-root-28 MuiTypography-subheading-35 MuiListItemText-primary-25"
+      >
+        Apparel
+      </h3>
+    </div>
+    <span
+      className="MuiTouchRipple-root-56"
+    />
+  </div>
+  <div
+    className="MuiButtonBase-root-53 MuiListItem-root-5 MuiListItem-default-8 MuiListItem-gutters-12 MuiListItem-button-13"
+    onBlur={[Function]}
+    onClick={[Function]}
+    onFocus={[Function]}
+    onKeyDown={[Function]}
+    onKeyUp={[Function]}
+    onMouseDown={[Function]}
+    onMouseLeave={[Function]}
+    onMouseUp={[Function]}
+    onTouchEnd={[Function]}
+    onTouchMove={[Function]}
+    onTouchStart={[Function]}
+    role="button"
+    tabIndex="0"
+  >
+    <svg
+      aria-hidden="true"
+      className="MuiSvgIcon-root-16 MuiListItemIcon-root-15"
+      color={undefined}
+      focusable="false"
+      viewBox="0 0 24 24"
+    >
+      <path
+        d="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z"
+      />
+    </svg>
+    <div
+      className="MuiListItemText-root-22"
+    >
+      <h3
+        className="MuiTypography-root-28 MuiTypography-subheading-35 MuiListItemText-primary-25"
+      >
+        Accessories
+      </h3>
+    </div>
+    <span
+      className="MuiTouchRipple-root-56"
+    />
+  </div>
+  <div
+    className="MuiButtonBase-root-53 MuiListItem-root-5 MuiListItem-default-8 MuiListItem-gutters-12 MuiListItem-button-13"
+    onBlur={[Function]}
+    onClick={[Function]}
+    onFocus={[Function]}
+    onKeyDown={[Function]}
+    onKeyUp={[Function]}
+    onMouseDown={[Function]}
+    onMouseLeave={[Function]}
+    onMouseUp={[Function]}
+    onTouchEnd={[Function]}
+    onTouchMove={[Function]}
+    onTouchStart={[Function]}
+    role="button"
+    tabIndex="0"
+  >
+    <svg
+      aria-hidden="true"
+      className="MuiSvgIcon-root-16 MuiListItemIcon-root-15"
+      color={undefined}
+      focusable="false"
+      viewBox="0 0 24 24"
+    >
+      <path
+        d="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z"
+      />
+    </svg>
+    <div
+      className="MuiListItemText-root-22"
+    >
+      <h3
+        className="MuiTypography-root-28 MuiTypography-subheading-35 MuiListItemText-primary-25"
+      >
+        Groceries
+      </h3>
+    </div>
+    <span
+      className="MuiTouchRipple-root-56"
+    />
+  </div>
+  <div
+    className="MuiButtonBase-root-53 MuiListItem-root-5 MuiListItem-default-8 MuiListItem-gutters-12 MuiListItem-button-13"
+    onBlur={[Function]}
+    onClick={[Function]}
+    onFocus={[Function]}
+    onKeyDown={[Function]}
+    onKeyUp={[Function]}
+    onMouseDown={[Function]}
+    onMouseLeave={[Function]}
+    onMouseUp={[Function]}
+    onTouchEnd={[Function]}
+    onTouchMove={[Function]}
+    onTouchStart={[Function]}
+    role="button"
+    tabIndex="0"
+  >
+    <svg
+      aria-hidden="true"
+      className="MuiSvgIcon-root-16 MuiListItemIcon-root-15"
+      color={undefined}
+      focusable="false"
+      viewBox="0 0 24 24"
+    >
+      <path
+        d="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z"
+      />
+    </svg>
+    <div
+      className="MuiListItemText-root-22"
+    >
+      <h3
+        className="MuiTypography-root-28 MuiTypography-subheading-35 MuiListItemText-primary-25"
+      >
+        Books
+      </h3>
+    </div>
+    <span
+      className="MuiTouchRipple-root-56"
+    />
+  </div>
+</ul>
+`;
+
+exports[`<CategoryList /> renders while data is loading 1`] = `
+<ul
+  className="MuiList-root-1 MuiList-padding-2"
+>
+  <li
+    className="MuiListItem-root-5 MuiListItem-default-8 MuiListItem-gutters-12"
+    disabled={false}
+  >
+    <svg
+      aria-hidden="true"
+      className="MuiSvgIcon-root-16 MuiListItemIcon-root-15"
+      color={undefined}
+      focusable="false"
+      viewBox="0 0 24 24"
+    >
+      <path
+        d="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z"
+      />
+    </svg>
+    <div
+      className="MuiListItemText-root-22"
+    >
+      <h3
+        className="MuiTypography-root-28 MuiTypography-subheading-35 MuiListItemText-primary-25"
+      >
+        <span
+          className="Component-skeleton-52"
+          style={undefined}
+        >
+          ‌
+        </span>
+      </h3>
+    </div>
+  </li>
+</ul>
+`;
