@@ -113,37 +113,39 @@ def test_validate_possible_number(input, exception):
         validate_possible_number(input)
 
 
-def test_order_with_lines_pagination(admin_client, order_list, settings):
+def test_order_with_lines_pagination(authorized_client, order_list, settings):
     settings.PAGINATE_BY = 1
     data = {'page': '1'}
     url = reverse('account:details')
-    response = admin_client.get(url, data)
+    response = authorized_client.get(url, data)
     assert response.status_code == 200
 
     data = {'page': '2'}
     url = reverse('account:details')
-    response = admin_client.get(url, data)
+    response = authorized_client.get(url, data)
     assert response.status_code == 200
 
 
-def test_format_address(billing_address):
-    formatted_address = format_address(billing_address)
+def test_format_address(default_billing_address):
+    address = default_billing_address
+    formatted_address = format_address(address)
     address_html = '<br>'.join(map(str, formatted_address['address_lines']))
-    context = Context({'address': billing_address})
+    context = Context({'address': address})
     tpl = Template(
         '{% load i18n_address_tags %}'
         '{% format_address address %}')
     rendered_html = tpl.render(context)
     assert address_html in rendered_html
     assert 'inline-address' not in rendered_html
-    assert str(billing_address.phone) in rendered_html
+    assert str(address.phone) in rendered_html
 
 
-def test_format_address_all_options(billing_address):
+def test_format_address_all_options(default_billing_address):
+    address = default_billing_address
     formatted_address = format_address(
-        billing_address, include_phone=False, inline=True, latin=True)
+        address, include_phone=False, inline=True, latin=True)
     address_html = ', '.join(map(str, formatted_address['address_lines']))
-    context = Context({'address': billing_address})
+    context = Context({'address': address})
     tpl = Template(
         r'{% load i18n_address_tags %}'
         r'{% format_address address include_phone=False inline=True'
@@ -151,11 +153,11 @@ def test_format_address_all_options(billing_address):
     rendered_html = tpl.render(context)
     assert address_html in rendered_html
     assert 'inline-address' in rendered_html
-    assert str(billing_address.phone) not in rendered_html
+    assert str(address.phone) not in rendered_html
 
 
-def test_address_as_data(billing_address):
-    data = billing_address.as_data()
+def test_address_as_data(default_billing_address):
+    data = default_billing_address.as_data()
     assert data == {
         'first_name': 'John',
         'last_name': 'Doe',
@@ -170,26 +172,26 @@ def test_address_as_data(billing_address):
         'phone': '+48713988102'}
 
 
-def test_copy_address(billing_address):
-    copied_address = billing_address.get_copy()
-    assert copied_address.pk != billing_address.pk
-    assert copied_address == billing_address
+def test_copy_address(default_billing_address):
+    copied_address = default_billing_address.get_copy()
+    assert copied_address.pk != default_billing_address.pk
+    assert copied_address == default_billing_address
 
 
-def test_compare_addresses(billing_address):
-    copied_address = billing_address.get_copy()
-    assert billing_address == copied_address
+def test_compare_addresses(default_billing_address):
+    copied_address = default_billing_address.get_copy()
+    assert default_billing_address == copied_address
 
 
-def test_compare_addresses_with_country_object(billing_address):
-    copied_address = billing_address.get_copy()
+def test_compare_addresses_with_country_object(default_billing_address):
+    copied_address = default_billing_address.get_copy()
     copied_address.country = Country('PL')
     copied_address.save()
-    assert billing_address == copied_address
+    assert default_billing_address == copied_address
 
 
-def test_compare_addresses_different_country(billing_address):
-    copied_address = billing_address.get_copy()
+def test_compare_addresses_different_country(default_billing_address):
+    copied_address = default_billing_address.get_copy()
     copied_address.country = Country('FR')
     copied_address.save()
-    assert billing_address != copied_address
+    assert default_billing_address != copied_address

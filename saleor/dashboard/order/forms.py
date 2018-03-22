@@ -65,8 +65,8 @@ class ConfirmDraftOrderForm(forms.ModelForm):
         if self.instance.user:
             self.instance.user_email = self.instance.user.email
         if not self.instance.is_shipping_required():
-            if self.shipping_address:
-                self.shipping_address.delete()
+            if self.instance.shipping_address:
+                self.instance.shipping_address.delete()
             self.instance.shipping_method_name = None
             self.instance.shipping_price = ZERO_TAXED_MONEY
         return super().save(commit)
@@ -136,7 +136,7 @@ class OrderShippingForm(forms.ModelForm):
         self.fields['shipping_method'].set_fetch_data_url(fetch_data_url)
 
     def save(self, commit=True):
-        method = self.cleaned_data.get('shipping_method')
+        method = self.instance.shipping_method
         if method:
             self.instance.shipping_method_name = method.shipping_method.name
             self.instance.shipping_price = method.get_total_price()

@@ -20,8 +20,8 @@ from saleor.product.models import ProductVariant, Stock, StockLocation
 @pytest.mark.integration
 @pytest.mark.django_db
 def test_view_capture_order_payment_preauth(
-        admin_client, order_with_lines_and_stock, payment_preauth):
-    order = order_with_lines_and_stock
+        admin_client, order_with_lines, payment_preauth):
+    order = order_with_lines
     url = reverse(
         'dashboard:capture-payment', kwargs={
             'order_pk': order.pk, 'payment_pk': payment_preauth.pk})
@@ -40,8 +40,8 @@ def test_view_capture_order_payment_preauth(
 @pytest.mark.integration
 @pytest.mark.django_db
 def test_view_capture_order_invalid_payment_waiting_status(
-        admin_client, order_with_lines_and_stock, payment_waiting):
-    order = order_with_lines_and_stock
+        admin_client, order_with_lines, payment_waiting):
+    order = order_with_lines
     url = reverse(
         'dashboard:capture-payment', kwargs={
             'order_pk': order.pk, 'payment_pk': payment_waiting.pk})
@@ -57,8 +57,8 @@ def test_view_capture_order_invalid_payment_waiting_status(
 @pytest.mark.integration
 @pytest.mark.django_db
 def test_view_capture_order_invalid_payment_confirmed_status(
-        admin_client, order_with_lines_and_stock, payment_confirmed):
-    order = order_with_lines_and_stock
+        admin_client, order_with_lines, payment_confirmed):
+    order = order_with_lines
     url = reverse(
         'dashboard:capture-payment', kwargs={
             'order_pk': order.pk, 'payment_pk': payment_confirmed.pk})
@@ -74,8 +74,8 @@ def test_view_capture_order_invalid_payment_confirmed_status(
 @pytest.mark.integration
 @pytest.mark.django_db
 def test_view_capture_order_invalid_payment_rejected_status(
-        admin_client, order_with_lines_and_stock, payment_rejected):
-    order = order_with_lines_and_stock
+        admin_client, order_with_lines, payment_rejected):
+    order = order_with_lines
     url = reverse(
         'dashboard:capture-payment', kwargs={
             'order_pk': order.pk, 'payment_pk': payment_rejected.pk})
@@ -91,8 +91,8 @@ def test_view_capture_order_invalid_payment_rejected_status(
 @pytest.mark.integration
 @pytest.mark.django_db
 def test_view_capture_order_invalid_payment_refunded_status(
-        admin_client, order_with_lines_and_stock, payment_refunded):
-    order = order_with_lines_and_stock
+        admin_client, order_with_lines, payment_refunded):
+    order = order_with_lines
     url = reverse(
         'dashboard:capture-payment', kwargs={
             'order_pk': order.pk, 'payment_pk': payment_refunded.pk})
@@ -108,8 +108,8 @@ def test_view_capture_order_invalid_payment_refunded_status(
 @pytest.mark.integration
 @pytest.mark.django_db
 def test_view_capture_order_invalid_payment_error_status(
-        admin_client, order_with_lines_and_stock, payment_error):
-    order = order_with_lines_and_stock
+        admin_client, order_with_lines, payment_error):
+    order = order_with_lines
     url = reverse(
         'dashboard:capture-payment', kwargs={
             'order_pk': order.pk, 'payment_pk': payment_error.pk})
@@ -125,8 +125,8 @@ def test_view_capture_order_invalid_payment_error_status(
 @pytest.mark.integration
 @pytest.mark.django_db
 def test_view_capture_order_invalid_payment_input_status(
-        admin_client, order_with_lines_and_stock, payment_input):
-    order = order_with_lines_and_stock
+        admin_client, order_with_lines, payment_input):
+    order = order_with_lines
     url = reverse(
         'dashboard:capture-payment', kwargs={
             'order_pk': order.pk, 'payment_pk': payment_input.pk})
@@ -142,8 +142,8 @@ def test_view_capture_order_invalid_payment_input_status(
 @pytest.mark.integration
 @pytest.mark.django_db
 def test_view_refund_order_payment_confirmed(
-        admin_client, order_with_lines_and_stock, payment_confirmed):
-    order = order_with_lines_and_stock
+        admin_client, order_with_lines, payment_confirmed):
+    order = order_with_lines
 
     url = reverse(
         'dashboard:refund-payment', kwargs={
@@ -164,8 +164,8 @@ def test_view_refund_order_payment_confirmed(
 @pytest.mark.integration
 @pytest.mark.django_db
 def test_view_refund_order_invalid_payment_waiting_status(
-        admin_client, order_with_lines_and_stock, payment_waiting):
-    order = order_with_lines_and_stock
+        admin_client, order_with_lines, payment_waiting):
+    order = order_with_lines
 
     url = reverse(
         'dashboard:refund-payment', kwargs={
@@ -182,8 +182,8 @@ def test_view_refund_order_invalid_payment_waiting_status(
 @pytest.mark.integration
 @pytest.mark.django_db
 def test_view_refund_order_invalid_payment_preauth_status(
-        admin_client, order_with_lines_and_stock, payment_preauth):
-    order = order_with_lines_and_stock
+        admin_client, order_with_lines, payment_preauth):
+    order = order_with_lines
 
     url = reverse(
         'dashboard:refund-payment', kwargs={
@@ -200,8 +200,8 @@ def test_view_refund_order_invalid_payment_preauth_status(
 @pytest.mark.integration
 @pytest.mark.django_db
 def test_view_refund_order_invalid_payment_rejected_status(
-        admin_client, order_with_lines_and_stock, payment_rejected):
-    order = order_with_lines_and_stock
+        admin_client, order_with_lines, payment_rejected):
+    order = order_with_lines
 
     url = reverse(
         'dashboard:refund-payment', kwargs={
@@ -218,8 +218,8 @@ def test_view_refund_order_invalid_payment_rejected_status(
 @pytest.mark.integration
 @pytest.mark.django_db
 def test_view_refund_order_invalid_payment_refunded_status(
-        admin_client, order_with_lines_and_stock, payment_refunded):
-    order = order_with_lines_and_stock
+        admin_client, order_with_lines, payment_refunded):
+    order = order_with_lines
 
     url = reverse(
         'dashboard:refund-payment', kwargs={
@@ -236,8 +236,8 @@ def test_view_refund_order_invalid_payment_refunded_status(
 @pytest.mark.integration
 @pytest.mark.django_db
 def test_view_refund_order_invalid_payment_error_status(
-        admin_client, order_with_lines_and_stock, payment_error):
-    order = order_with_lines_and_stock
+        admin_client, order_with_lines, payment_error):
+    order = order_with_lines
 
     url = reverse(
         'dashboard:refund-payment', kwargs={
@@ -254,8 +254,8 @@ def test_view_refund_order_invalid_payment_error_status(
 @pytest.mark.integration
 @pytest.mark.django_db
 def test_view_refund_order_invalid_payment_input_status(
-        admin_client, order_with_lines_and_stock, payment_input):
-    order = order_with_lines_and_stock
+        admin_client, order_with_lines, payment_input):
+    order = order_with_lines
 
     url = reverse(
         'dashboard:refund-payment', kwargs={
@@ -272,8 +272,8 @@ def test_view_refund_order_invalid_payment_input_status(
 @pytest.mark.integration
 @pytest.mark.django_db
 def test_view_release_order_payment_preauth(
-        admin_client, order_with_lines_and_stock, payment_preauth):
-    order = order_with_lines_and_stock
+        admin_client, order_with_lines, payment_preauth):
+    order = order_with_lines
 
     url = reverse(
         'dashboard:release-payment', kwargs={
@@ -292,8 +292,8 @@ def test_view_release_order_payment_preauth(
 @pytest.mark.integration
 @pytest.mark.django_db
 def test_view_release_order_invalid_payment_waiting_status(
-        admin_client, order_with_lines_and_stock, payment_waiting):
-    order = order_with_lines_and_stock
+        admin_client, order_with_lines, payment_waiting):
+    order = order_with_lines
 
     url = reverse(
         'dashboard:release-payment', kwargs={
@@ -310,8 +310,8 @@ def test_view_release_order_invalid_payment_waiting_status(
 @pytest.mark.integration
 @pytest.mark.django_db
 def test_view_release_order_invalid_payment_confirmed_status(
-        admin_client, order_with_lines_and_stock, payment_confirmed):
-    order = order_with_lines_and_stock
+        admin_client, order_with_lines, payment_confirmed):
+    order = order_with_lines
 
     url = reverse(
         'dashboard:release-payment', kwargs={
@@ -328,8 +328,8 @@ def test_view_release_order_invalid_payment_confirmed_status(
 @pytest.mark.integration
 @pytest.mark.django_db
 def test_view_release_order_invalid_payment_rejected_status(
-        admin_client, order_with_lines_and_stock, payment_rejected):
-    order = order_with_lines_and_stock
+        admin_client, order_with_lines, payment_rejected):
+    order = order_with_lines
 
     url = reverse(
         'dashboard:release-payment', kwargs={
@@ -346,8 +346,8 @@ def test_view_release_order_invalid_payment_rejected_status(
 @pytest.mark.integration
 @pytest.mark.django_db
 def test_view_release_order_invalid_payment_refunded_status(
-        admin_client, order_with_lines_and_stock, payment_refunded):
-    order = order_with_lines_and_stock
+        admin_client, order_with_lines, payment_refunded):
+    order = order_with_lines
 
     url = reverse(
         'dashboard:release-payment', kwargs={
@@ -364,8 +364,8 @@ def test_view_release_order_invalid_payment_refunded_status(
 @pytest.mark.integration
 @pytest.mark.django_db
 def test_view_release_order_invalid_payment_error_status(
-        admin_client, order_with_lines_and_stock, payment_error):
-    order = order_with_lines_and_stock
+        admin_client, order_with_lines, payment_error):
+    order = order_with_lines
 
     url = reverse(
         'dashboard:release-payment', kwargs={
@@ -382,8 +382,8 @@ def test_view_release_order_invalid_payment_error_status(
 @pytest.mark.integration
 @pytest.mark.django_db
 def test_view_release_order_invalid_payment_input_status(
-        admin_client, order_with_lines_and_stock, payment_input):
-    order = order_with_lines_and_stock
+        admin_client, order_with_lines, payment_input):
+    order = order_with_lines
 
     url = reverse(
         'dashboard:release-payment', kwargs={
@@ -399,8 +399,8 @@ def test_view_release_order_invalid_payment_input_status(
 
 @pytest.mark.integration
 @pytest.mark.django_db
-def test_view_cancel_order_line(admin_client, order_with_lines_and_stock):
-    lines_before = order_with_lines_and_stock.lines.all()
+def test_view_cancel_order_line(admin_client, order_with_lines):
+    lines_before = order_with_lines.lines.all()
     lines_before_count = lines_before.count()
     line = lines_before.first()
     line_quantity = line.quantity
@@ -409,7 +409,7 @@ def test_view_cancel_order_line(admin_client, order_with_lines_and_stock):
 
     url = reverse(
         'dashboard:orderline-cancel', kwargs={
-            'order_pk': order_with_lines_and_stock.pk,
+            'order_pk': order_with_lines.pk,
             'line_pk': line.pk})
 
     response = admin_client.get(url)
@@ -417,7 +417,7 @@ def test_view_cancel_order_line(admin_client, order_with_lines_and_stock):
     response = admin_client.post(url, {'csrfmiddlewaretoken': 'hello'})
     assert response.status_code == 302
     assert get_redirect_location(response) == reverse(
-        'dashboard:order-details', args=[order_with_lines_and_stock.pk])
+        'dashboard:order-details', args=[order_with_lines.pk])
     # check ordered item removal
     lines_after = Order.objects.get().lines.all()
     assert lines_before_count - 1 == lines_after.count()
@@ -426,11 +426,11 @@ def test_view_cancel_order_line(admin_client, order_with_lines_and_stock):
         quantity_allocated_before - line_quantity)
     # check note in the order's history
     assert OrderHistoryEntry.objects.get(
-        order=order_with_lines_and_stock).content == (
+        order=order_with_lines).content == (
             'Cancelled item %s' % product)
     url = reverse(
         'dashboard:orderline-cancel', kwargs={
-            'order_pk': order_with_lines_and_stock.pk,
+            'order_pk': order_with_lines.pk,
             'line_pk': OrderLine.objects.get().pk})
     response = admin_client.post(
         url, {'csrfmiddlewaretoken': 'hello'}, follow=True)
@@ -441,16 +441,15 @@ def test_view_cancel_order_line(admin_client, order_with_lines_and_stock):
 
 @pytest.mark.integration
 @pytest.mark.django_db
-def test_view_change_order_line_quantity(
-        admin_client, order_with_lines_and_stock):
-    lines_before_quantity_change = order_with_lines_and_stock.lines.all()
+def test_view_change_order_line_quantity(admin_client, order_with_lines):
+    lines_before_quantity_change = order_with_lines.lines.all()
     lines_before_quantity_change_count = lines_before_quantity_change.count()
     line = lines_before_quantity_change.first()
     line_quantity_before_quantity_change = line.quantity
 
     url = reverse(
         'dashboard:orderline-change-quantity', kwargs={
-            'order_pk': order_with_lines_and_stock.pk,
+            'order_pk': order_with_lines.pk,
             'line_pk': line.pk})
     response = admin_client.get(url)
     assert response.status_code == 200
@@ -460,8 +459,7 @@ def test_view_change_order_line_quantity(
     # check redirection
     assert redirect_status_code == 302
     assert redirected_to == reverse(
-        'dashboard:order-details',
-        args=[order_with_lines_and_stock.pk])
+        'dashboard:order-details', kwargs={'order_pk': order_with_lines.id})
     # success messages should appear after redirect
     assert response.context['messages']
     lines_after = Order.objects.get().lines.all()
@@ -474,7 +472,7 @@ def test_view_change_order_line_quantity(
     assert line.quantity == 2
     # a note in the order's history should be created
     assert OrderHistoryEntry.objects.get(
-        order=order_with_lines_and_stock).content == (
+        order=order_with_lines).content == (
             'Changed quantity for product %(product)s from'
             ' %(old_quantity)s to %(new_quantity)s') % {
                 'product': line.product,
@@ -485,12 +483,12 @@ def test_view_change_order_line_quantity(
 @pytest.mark.integration
 @pytest.mark.django_db
 def test_view_change_order_line_quantity_with_invalid_data(
-        admin_client, order_with_lines_and_stock):
-    lines = order_with_lines_and_stock.lines.all()
+        admin_client, order_with_lines):
+    lines = order_with_lines.lines.all()
     line = lines.first()
     url = reverse(
         'dashboard:orderline-change-quantity', kwargs={
-            'order_pk': order_with_lines_and_stock.pk,
+            'order_pk': order_with_lines.pk,
             'line_pk': line.pk})
     response = admin_client.post(
         url, {'quantity': 0})
@@ -544,7 +542,6 @@ def test_dashboard_change_quantity_form(request_cart_with_item, order):
 def test_ordered_item_change_quantity(transactional_db, order_with_lines):
     assert list(order_with_lines.history.all()) == []
     lines = order_with_lines.lines.all()
-    change_order_line_quantity(lines[2], 0)
     change_order_line_quantity(lines[1], 0)
     change_order_line_quantity(lines[0], 0)
     assert order_with_lines.get_total_quantity() == 0
@@ -552,31 +549,24 @@ def test_ordered_item_change_quantity(transactional_db, order_with_lines):
 
 @pytest.mark.integration
 @pytest.mark.django_db
-def test_view_order_invoice(
-        admin_client, order_with_lines_and_stock, billing_address):
-    order_with_lines_and_stock.shipping_address = billing_address
-    order_with_lines_and_stock.billing_address = billing_address
-    order_with_lines_and_stock.save()
+def test_view_order_invoice(admin_client, order_with_lines):
     url = reverse(
         'dashboard:order-invoice', kwargs={
-            'order_pk': order_with_lines_and_stock.id})
+            'order_pk': order_with_lines.id})
     response = admin_client.get(url)
     assert response.status_code == 200
     assert response['content-type'] == 'application/pdf'
-    name = "invoice-%s" % order_with_lines_and_stock.id
+    name = "invoice-%s" % order_with_lines.id
     assert response['Content-Disposition'] == 'filename=%s' % name
 
 
 @pytest.mark.integration
 @pytest.mark.django_db
-def test_view_order_invoice_without_shipping(
-        admin_client, order_with_lines_and_stock, billing_address):
+def test_view_order_invoice_without_shipping(admin_client, order_with_lines):
+    order_with_lines.shipping_address.delete()
     # Regression test for #1536:
-    order_with_lines_and_stock.billing_address = billing_address
-    order_with_lines_and_stock.save()
     url = reverse(
-        'dashboard:order-invoice', kwargs={
-            'order_pk': order_with_lines_and_stock.id})
+        'dashboard:order-invoice', kwargs={'order_pk': order_with_lines.id})
     response = admin_client.get(url)
     assert response.status_code == 200
     assert response['content-type'] == 'application/pdf'
@@ -584,11 +574,7 @@ def test_view_order_invoice_without_shipping(
 
 @pytest.mark.integration
 @pytest.mark.django_db
-def test_view_fulfillment_packing_slips(
-        admin_client, fulfilled_order, billing_address):
-    fulfilled_order.shipping_address = billing_address
-    fulfilled_order.billing_address = billing_address
-    fulfilled_order.save()
+def test_view_fulfillment_packing_slips(admin_client, fulfilled_order):
     fulfillment = fulfilled_order.fulfillments.first()
     url = reverse(
         'dashboard:fulfillment-packing-slips', kwargs={
@@ -603,10 +589,9 @@ def test_view_fulfillment_packing_slips(
 @pytest.mark.integration
 @pytest.mark.django_db
 def test_view_fulfillment_packing_slips_without_shipping(
-        admin_client, fulfilled_order, billing_address):
+        admin_client, fulfilled_order):
     # Regression test for #1536
-    fulfilled_order.billing_address = billing_address
-    fulfilled_order.save()
+    fulfilled_order.shipping_address.delete()
     fulfillment = fulfilled_order.fulfillments.first()
     url = reverse(
         'dashboard:fulfillment-packing-slips', kwargs={
@@ -618,9 +603,8 @@ def test_view_fulfillment_packing_slips_without_shipping(
 
 @pytest.mark.integration
 @pytest.mark.django_db
-def test_view_change_order_line_stock_valid(
-        admin_client, order_with_lines_and_stock):
-    order = order_with_lines_and_stock
+def test_view_change_order_line_stock_valid(admin_client, order_with_lines):
+    order = order_with_lines
     line = order.lines.last()
     old_stock = line.stock
     variant = ProductVariant.objects.get(sku=line.product_sku)
@@ -650,8 +634,8 @@ def test_view_change_order_line_stock_valid(
 @pytest.mark.integration
 @pytest.mark.django_db
 def test_view_change_order_line_stock_insufficient_stock(
-        admin_client, order_with_lines_and_stock):
-    order = order_with_lines_and_stock
+        admin_client, order_with_lines):
+    order = order_with_lines
     line = order.lines.last()
     old_stock = line.stock
     variant = ProductVariant.objects.get(sku=line.product_sku)
@@ -681,8 +665,8 @@ def test_view_change_order_line_stock_insufficient_stock(
 
 
 def test_view_change_order_line_stock_merges_lines(
-        admin_client, order_with_lines_and_stock):
-    order = order_with_lines_and_stock
+        admin_client, order_with_lines):
+    order = order_with_lines
     line = order.lines.first()
     old_stock = line.stock
     variant = ProductVariant.objects.get(sku=line.product_sku)
@@ -797,16 +781,16 @@ def test_view_add_variant_to_order(
 
 @patch('saleor.dashboard.order.forms.send_note_confirmation')
 def test_note_form_sent_email(
-        mock_send_note_confirmation, order_with_lines_and_stock):
-    order = order_with_lines_and_stock
+        mock_send_note_confirmation, order_with_lines):
+    order = order_with_lines
     note = OrderNote(order=order, user=order.user)
     form = OrderNoteForm({'content': 'test_note'}, instance=note)
     form.send_confirmation_email()
     assert mock_send_note_confirmation.called_once()
 
 
-def test_fulfill_order_line(order_with_lines_and_stock):
-    order = order_with_lines_and_stock
+def test_fulfill_order_line(order_with_lines):
+    order = order_with_lines
     line = order.lines.first()
     quantity_fulfilled_before = line.quantity_fulfilled
     stock = line.stock
@@ -854,47 +838,50 @@ def test_view_order_create(admin_client):
 
 @pytest.mark.django_db
 def test_view_confirm_draft_order_valid(admin_client, draft_order):
+    order = draft_order
     url = reverse(
-        'dashboard:draft-order-confirm', kwargs={'order_pk': draft_order.pk})
+        'dashboard:draft-order-confirm', kwargs={'order_pk': order.pk})
     data = {'csrfmiddlewaretoken': 'hello'}
 
     response = admin_client.post(url, data)
 
     assert response.status_code == 302
-    draft_order.refresh_from_db()
-    assert draft_order.status == OrderStatus.UNFULFILLED
+    order.refresh_from_db()
+    assert order.status == OrderStatus.UNFULFILLED
     redirect_url = reverse(
-        'dashboard:order-details', kwargs={'order_pk': draft_order.pk})
+        'dashboard:order-details', kwargs={'order_pk': order.pk})
     assert get_redirect_location(response) == redirect_url
 
 
 @pytest.mark.django_db
 def test_view_confirm_draft_order_assigns_customer_email(
         admin_client, draft_order, customer_user):
-    draft_order.user_email = ''
-    draft_order.save()
+    order = draft_order
+    order.user_email = ''
+    order.save()
     url = reverse(
-        'dashboard:draft-order-confirm', kwargs={'order_pk': draft_order.pk})
+        'dashboard:draft-order-confirm', kwargs={'order_pk': order.pk})
     data = {'csrfmiddlewaretoken': 'hello'}
 
     admin_client.post(url, data)
 
-    draft_order.refresh_from_db()
-    assert draft_order.user_email == customer_user.email
+    order.refresh_from_db()
+    assert order.user_email == customer_user.email
 
 
 @pytest.mark.django_db
 def test_view_confirm_draft_order_empty_order(admin_client, draft_order):
-    draft_order.lines.all().delete()
+    order = draft_order
+    order.lines.all().delete()
     url = reverse(
-        'dashboard:draft-order-confirm', kwargs={'order_pk': draft_order.pk})
+        'dashboard:draft-order-confirm', kwargs={'order_pk': order.pk})
     data = {'csrfmiddlewaretoken': 'hello'}
 
     response = admin_client.post(url, data)
 
     assert response.status_code == 400
-    draft_order.refresh_from_db()
-    assert draft_order.status == OrderStatus.DRAFT
+    order.refresh_from_db()
+    assert order.status == OrderStatus.DRAFT
     errors = get_form_errors(response)
     assert 'Could not confirm order without any products' in errors
 
@@ -914,8 +901,7 @@ def test_view_confirm_draft_order_not_draft_order(
 @pytest.mark.django_db
 def test_view_confirm_draft_order_no_billing_address(
         admin_client, draft_order):
-    draft_order.billing_address = None
-    draft_order.save()
+    draft_order.billing_address.delete()
     url = reverse(
         'dashboard:draft-order-confirm', kwargs={'order_pk': draft_order.pk})
     data = {'csrfmiddlewaretoken': 'hello'}
@@ -931,20 +917,18 @@ def test_view_confirm_draft_order_no_billing_address(
 
 @pytest.mark.django_db
 def test_view_confirm_draft_order_no_shipping_address(
-        admin_client, order_with_lines):
-    order_with_lines.shipping_address = None
-    order_with_lines.status = OrderStatus.DRAFT
-    order_with_lines.save()
+        admin_client, draft_order):
+    draft_order.shipping_address = None
+    draft_order.save()
     url = reverse(
-        'dashboard:draft-order-confirm',
-        kwargs={'order_pk': order_with_lines.pk})
+        'dashboard:draft-order-confirm', kwargs={'order_pk': draft_order.pk})
     data = {'csrfmiddlewaretoken': 'hello'}
 
     response = admin_client.post(url, data)
 
     assert response.status_code == 400
-    order_with_lines.refresh_from_db()
-    assert order_with_lines.status == OrderStatus.DRAFT
+    draft_order.refresh_from_db()
+    assert draft_order.status == OrderStatus.DRAFT
     errors = get_form_errors(response)
     assert 'Shipping address is required to handle shipping' in errors
 
@@ -1061,3 +1045,9 @@ def test_view_order_customer_edit_not_valid(admin_client, customer_user):
         'An order can be related either with an email or an existing user '
         'account')
     assert error in errors
+
+
+@pytest.mark.django_db
+def test_view_order_shipping_edit(admin_client):
+    order = Order.objects.create()
+    pass
