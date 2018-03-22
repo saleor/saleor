@@ -37,8 +37,7 @@ from .utils import (
 @staff_member_required
 @permission_required('order.view_order')
 def order_list(request):
-    orders = Order.objects.prefetch_related(
-        'payments', 'lines', 'user').order_by('-pk')
+    orders = Order.objects.prefetch_related('payments', 'lines', 'user')
     order_filter = OrderFilter(request.GET, queryset=orders)
     orders = get_paginator_items(
         order_filter.qs, settings.DASHBOARD_PAGINATE_BY,

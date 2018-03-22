@@ -67,6 +67,7 @@ class Order(models.Model):
     discount_name = models.CharField(max_length=255, default='', blank=True)
 
     class Meta:
+        ordering = ('-pk',)
         permissions = (
             ('view_order',
              pgettext_lazy('Permission description', 'Can view orders')),
