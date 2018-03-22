@@ -30,7 +30,11 @@ export const PageCreateForm: React.StatelessComponent<PageCreateFormProps> = ({
   <Card>
     <TypedPageCreateMutation mutation={pageCreateMutation}>
       {(createPage, result) => {
-        if (result && !result.loading && !result.data.pageCreate.errors) {
+        if (
+          result &&
+          !result.loading &&
+          !result.data.pageCreate.errors.length
+        ) {
           if (result.error) {
             console.error(result.error);
             return;
