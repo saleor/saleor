@@ -6,6 +6,14 @@ function appendOption ($select, option) {
 }
 
 function initSelects() {
+  // Custom variant attribute select that allows creating new attribute values.
+  let $variantAttrsSelect = $('.variant-attribute-select select');
+  $variantAttrsSelect.select2({
+    tags: true,
+    width: '100%'
+  });
+  $variantAttrsSelect.addClass('select2-enabled');
+
   $('select:not(.browser-default):not(.enable-ajax-select2):not([multiple])').material_select();
   $('select[multiple]:not(.browser-default):not(.enable-ajax-select2)').select2({width: '100%'});
 
