@@ -1,5 +1,6 @@
 from django.conf import settings
 from django.conf.urls import include, url
+from django.views.generic.base import TemplateView
 from graphene_django.views import GraphQLView
 
 from . import views as core_views
@@ -36,4 +37,5 @@ urlpatterns = [
     url(r'^shipping/', include(shipping_urls)),
     url(r'^style-guide/', core_views.styleguide, name='styleguide'),
     url(r'^search/', include(search_urls)),
+    url(r'^next/', TemplateView.as_view(template_name='dashboard/next.html'))
 ]

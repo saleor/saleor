@@ -31,7 +31,6 @@ class Query(graphene.ObjectType):
     products = DjangoFilterConnectionField(
         Product, filterset_class=ProductFilterSet)
     node = graphene.Node.Field()
-    debug = graphene.Field(DjangoDebug, name='__debug')
 
     def resolve_category(self, info, id):
         return get_node(info, id, only_type=Category)
