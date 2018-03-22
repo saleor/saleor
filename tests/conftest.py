@@ -440,6 +440,7 @@ def order_with_lines(order, product_type, default_category, shipping_method):
     order.shipping_address = order.billing_address.get_copy()
     order.shipping_method_name = shipping_method.name
     method = shipping_method.price_per_country.get()
+    order.shipping_method = method
     order.shipping_price = method.get_total_price()
     order.save()
 

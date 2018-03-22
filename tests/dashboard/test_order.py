@@ -2,11 +2,13 @@ from decimal import Decimal
 from unittest.mock import patch
 
 import pytest
+from django.conf import settings
 from django.urls import reverse
 from payments import PaymentStatus
 from prices import Money, TaxedMoney
 from tests.utils import get_form_errors, get_redirect_location
 
+from saleor.core.utils import ZERO_TAXED_MONEY
 from saleor.dashboard.order.forms import ChangeQuantityForm, OrderNoteForm
 from saleor.dashboard.order.utils import fulfill_order_line
 from saleor.order import OrderStatus
@@ -934,6 +936,27 @@ def test_view_confirm_draft_order_no_shipping_address(
 
 
 @pytest.mark.django_db
+def test_view_confirm_draft_order_shipping_method_not_valid(
+        admin_client, draft_order, shipping_method):
+    method = shipping_method.price_per_country.create(
+        country_code='DE', price=10)
+    draft_order.shipping_method = method
+    draft_order.save()
+    url = reverse(
+        'dashboard:draft-order-confirm', kwargs={'order_pk': draft_order.pk})
+    data = {'csrfmiddlewaretoken': 'hello'}
+
+    response = admin_client.post(url, data)
+
+    assert response.status_code == 400
+    draft_order.refresh_from_db()
+    assert draft_order.status == OrderStatus.DRAFT
+    errors = get_form_errors(response)
+    error = 'Shipping method is not valid for chosen shipping address'
+    assert error in errors
+
+
+@pytest.mark.django_db
 def test_view_confirm_draft_order_no_shipping_address_shipping_not_required(
         admin_client, order, product_without_shipping):
     order.status = OrderStatus.DRAFT
@@ -1048,6 +1071,53 @@ def test_view_order_customer_edit_not_valid(admin_client, customer_user):
 
 
 @pytest.mark.django_db
-def test_view_order_shipping_edit(admin_client):
-    order = Order.objects.create()
-    pass
+def test_view_order_shipping_edit(admin_client, draft_order, shipping_method):
+    method = shipping_method.price_per_country.create(
+        price=Money(5, settings.DEFAULT_CURRENCY), country_code='PL')
+    url = reverse(
+        'dashboard:order-shipping-edit', kwargs={'order_pk': draft_order.pk})
+    data = {'shipping_method': method.pk}
+
+    response = admin_client.post(url, data)
+
+    assert response.status_code == 302
+    redirect_url = reverse(
+        'dashboard:order-details', kwargs={'order_pk': draft_order.pk})
+    assert get_redirect_location(response) == redirect_url
+    draft_order.refresh_from_db()
+    assert draft_order.shipping_method_name == shipping_method.name
+    assert draft_order.shipping_price == method.get_total_price()
+    assert draft_order.shipping_method == method
+
+
+@pytest.mark.django_db
+def test_view_order_shipping_edit_not_draft_order(
+        admin_client, order_with_lines, shipping_method):
+    method = shipping_method.price_per_country.create(
+        price=5, country_code='PL')
+    url = reverse(
+        'dashboard:order-shipping-edit',
+        kwargs={'order_pk': order_with_lines.pk})
+    data = {'shipping_method': method.pk}
+
+    response = admin_client.post(url, data)
+
+    assert response.status_code == 404
+
+
+@pytest.mark.django_db
+def test_view_order_shipping_edit_remove_shipping(admin_client, draft_order):
+    url = reverse(
+        'dashboard:order-shipping-edit', kwargs={'order_pk': draft_order.pk})
+    data = {'shipping_method': ''}
+
+    response = admin_client.post(url, data)
+
+    assert response.status_code == 302
+    redirect_url = reverse(
+        'dashboard:order-details', kwargs={'order_pk': draft_order.pk})
+    assert get_redirect_location(response) == redirect_url
+    draft_order.refresh_from_db()
+    assert not draft_order.shipping_method
+    assert not draft_order.shipping_method_name
+    assert draft_order.shipping_price == ZERO_TAXED_MONEY
