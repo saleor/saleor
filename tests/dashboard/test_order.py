@@ -1003,8 +1003,6 @@ def test_view_order_customer_edit_to_existing_user(
     redirect_url = reverse(
         'dashboard:order-details', kwargs={'order_pk': order.pk})
     assert get_redirect_location(response) == redirect_url
-    msg = '%s user assigned to an order' % customer_user
-    assert order.history.filter(content=msg, user=admin_user)
 
 
 @pytest.mark.django_db
@@ -1025,8 +1023,6 @@ def test_view_order_customer_edit_to_email(admin_user, admin_client):
     redirect_url = reverse(
         'dashboard:order-details', kwargs={'order_pk': order.pk})
     assert get_redirect_location(response) == redirect_url
-    msg = 'customer@example.com email assigned to an order'
-    assert order.history.filter(content=msg, user=admin_user)
 
 
 @pytest.mark.django_db
@@ -1045,8 +1041,6 @@ def test_view_order_customer_edit_to_guest_customer(admin_user, admin_client):
     redirect_url = reverse(
         'dashboard:order-details', kwargs={'order_pk': order.pk})
     assert get_redirect_location(response) == redirect_url
-    msg = 'Guest user assigned to an order'
-    assert order.history.filter(content=msg, user=admin_user)
 
 
 @pytest.mark.django_db
@@ -1121,3 +1115,27 @@ def test_view_order_shipping_edit_remove_shipping(admin_client, draft_order):
     assert not draft_order.shipping_method
     assert not draft_order.shipping_method_name
     assert draft_order.shipping_price == ZERO_TAXED_MONEY
+
+
+@pytest.mark.django_db
+def test_view_remove_draft_order(admin_client, draft_order):
+    url = reverse(
+        'dashboard:draft-order-delete', kwargs={'order_pk': draft_order.pk})
+
+    response = admin_client.post(url, {})
+
+    assert response.status_code == 302
+    assert get_redirect_location(response) == reverse('dashboard:orders')
+    assert Order.objects.count() == 0
+
+
+@pytest.mark.django_db
+def test_view_remove_draft_order_invalid(admin_client, order_with_lines):
+    url = reverse(
+        'dashboard:draft-order-delete',
+        kwargs={'order_pk': order_with_lines.pk})
+
+    response = admin_client.post(url, {})
+
+    assert response.status_code == 404
+    assert Order.objects.count() == 1

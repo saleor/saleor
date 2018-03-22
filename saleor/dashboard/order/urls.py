@@ -19,6 +19,8 @@ urlpatterns = [
         views.order_customer_edit, name='order-customer-edit'),
     url(r'^(?P<order_pk>\d+)/shipping/edit/$',
         views.order_shipping_edit, name='order-shipping-edit'),
+    url(r'^(?P<order_pk>\d+)/delete/$',
+        views.remove_draft_order, name='draft-order-delete'),
 
     url(r'^(?P<order_pk>\d+)/payment/(?P<payment_pk>\d+)/capture/$',
         views.capture_payment, name='capture-payment'),
