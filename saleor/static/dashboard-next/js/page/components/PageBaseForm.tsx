@@ -15,25 +15,25 @@ import i18n from "../../i18n";
 import { pageDetailsQuery, TypedPageDetailsQuery } from "../queries";
 
 interface PageUpdateFormComponentState {
-  title: string;
-  slug: string;
-  content: string;
   availableOn: string;
+  content: string;
   isVisible: boolean;
+  slug: string;
+  title: string;
 }
 
 interface PageUpdateFormComponentProps {
+  created?: string;
   errors?: Array<{ field: string; message: string }>;
   formInitialValues?: PageUpdateFormComponentState;
-  created?: string;
   handleSubmit(data: any);
 }
 
 interface CombinedErrorsType {
-  title: string;
-  content: string;
   availableOn: string;
+  content: string;
   slug: string;
+  title: string;
 }
 
 const decorate = withStyles(theme => ({
@@ -75,11 +75,11 @@ export const PageUpdateFormComponent = decorate(
 
     render() {
       const {
-        created,
-        formInitialValues,
-        handleSubmit,
         classes,
-        errors
+        created,
+        errors,
+        formInitialValues,
+        handleSubmit
       } = this.props;
       const combinedErrors = errors
         ? (errors.reduce((prev, curr) => {
