@@ -1,7 +1,7 @@
 engines:
   eslint:
     enabled: true
-    channel: "eslint-4"
+    channel: eslint-4
   isort:
     enabled: true
     channel: beta
@@ -9,6 +9,9 @@ engines:
     enabled: true
   pylint:
     enabled: true
+  tslint:
+    enabled: true
+    config: tslint.json
   duplication:
     enabled: true
     config:
