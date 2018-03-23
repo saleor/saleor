@@ -143,11 +143,11 @@
   },
   "scripts": {
     "build-assets": "webpack -p --progress",
-    "build-schema": "python manage.py graphql_schema --schema saleor.dashboard.graphql.api.schema --out saleor/static/dashboard-next/js/schema.json",
-    "generate-types": "apollo-codegen generate 'saleor/static/dashboard-next/js/**/*.ts' --schema saleor/static/dashboard-next/js/schema.json --target typescript --output saleor/static/dashboard-next/js/gql-types.ts",
+    "build-schema": "python manage.py graphql_schema --schema saleor.dashboard.graphql.api.schema --out saleor/static/dashboard-next/schema.json",
+    "generate-types": "apollo-codegen generate 'saleor/static/dashboard-next/**/*.ts' --schema saleor/static/dashboard-next/schema.json --target typescript --output saleor/static/dashboard-next/gql-types.ts",
     "heroku-postbuild": "npm run build-assets && npm run build-emails",
     "start": "webpack -d --watch --progress",
     "build-emails": "mjml --config.beautify false -l skip \"templates/templated_email/source/*.mjml\" -o templates/templated_email/compiled",
-    "test": "jest saleor/static/dashboard-next/js/"
+    "test": "jest saleor/static/dashboard-next/"
   }
 }
