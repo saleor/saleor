@@ -54,7 +54,7 @@ def test_page_delete(admin_client, page):
 
 def test_sanitize_page_content(page, default_category):
     data = model_to_dict(page)
-    data['description'] = (
+    data['content'] = (
         '<b>bold</b><p><i>italic</i></p><h2>Header</h2><h3>subheader</h3>'
         '<blockquote>quote</blockquote>'
         '<p><a href="www.mirumee.com">link</a></p>'
@@ -72,17 +72,17 @@ def test_sanitize_page_content(page, default_category):
         'bolditalicHeadersubheaderquotelinkan evil()example')
 
 
-def test_set_product_seo_description(unavailable_product):
+def test_set_page_seo_description(page):
     seo_description = (
-        'This is a dummy product. '
+        'This is a dummy page. '
         'HTML <b>shouldn\'t be removed</b> since it\'s a simple text field.')
-    data = model_to_dict(unavailable_product)
+    data = model_to_dict(page)
     data['price'] = 20
-    data['description'] = 'a description'
+    data['content'] = 'a description'
     data['seo_description'] = seo_description
 
-    form = PageForm(data, instance=unavailable_product)
+    form = PageForm(data, instance=page)
 
     assert form.is_valid()
     form.save()
-    assert unavailable_product.seo_description == seo_description
+    assert page.seo_description == seo_description

@@ -1,7 +1,7 @@
 .google-preview {
   text-align: left;
   letter-spacing: initial;
-
+  padding-top: 1rem;
   &__container {
     margin: 12px;
     background-color: #fff;
@@ -12,11 +12,11 @@
     text-overflow: ellipsis;
     margin-bottom: 2px;
     a {
-      color: rgb(26, 13, 171);
+      color: #1A0DAB;
       cursor: pointer;
       font-size: 18px;
       line-height: 21px;
-      text-decoration: none solid rgb(26, 13, 171);
+      text-decoration: none solid #1A0DAB;
       &:hover {
         text-decoration: underline;
       }
@@ -25,13 +25,13 @@
     }
   }
   &__description {
-    color: rgb(84, 84, 84);
+    color: #545454;
     font-size: 13px;
     line-height: 18px;
     overflow-wrap: break-word;
   }
   &__url {
-    color: rgb(0, 102, 33);
+    color: #006621;
     font-size: 13px;
     line-height: 16px;
     white-space: nowrap;

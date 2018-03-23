@@ -53,7 +53,7 @@ def strip_html(text: str, **serializer_kwargs: bool):
     return text
 
 
-def generate_seo_description(html_text: str, max_length: int):
+def strip_html_and_truncate(html_text: str, max_length: int):
     """Strips HTML tags and whitespaces from text,
     then trim the description."""
     text = strip_html(html_text, strip_whitespace=True)
