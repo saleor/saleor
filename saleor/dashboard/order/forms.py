@@ -6,14 +6,13 @@ from django.utils.translation import npgettext_lazy, pgettext_lazy
 from django_prices.forms import MoneyField
 from payments import PaymentError, PaymentStatus
 
-from saleor.discount.models import Voucher
-
 from ...account.i18n import (
     AddressForm as StorefrontAddressForm, PossiblePhoneNumberFormField)
 from ...account.models import User
 from ...cart.forms import QuantityField
 from ...core.exceptions import InsufficientStock
-from ...core.utils import ZERO_TAXED_MONEY
+from ...core.utils import ZERO_TAXED_MONEY, format_money
+from ...discount.models import Voucher
 from ...discount.utils import decrease_voucher_usage, increase_voucher_usage
 from ...order import OrderStatus
 from ...order.emails import send_note_confirmation, send_order_confirmation
@@ -28,7 +27,9 @@ from ...product.utils import allocate_stock, deallocate_stock
 from ...shipping.models import ANY_COUNTRY, ShippingMethodCountry
 from ..forms import AjaxSelect2ChoiceField
 from ..widgets import PhonePrefixWidget
-from .utils import fulfill_order_line, update_order_with_user_addresses
+from .utils import (
+    fulfill_order_line, get_voucher_discount_for_order,
+    update_order_with_user_addresses)
 
 
 class ConfirmDraftOrderForm(forms.ModelForm):
@@ -38,10 +39,30 @@ class ConfirmDraftOrderForm(forms.ModelForm):
             'Send email to customer about order created by staff users',
             'Notify customer'),
         required=False, initial=True)
+    reapply_voucher = forms.BooleanField(required=False, initial=True)
 
     class Meta:
         model = Order
         fields = []
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.discount_amount = (
+            get_voucher_discount_for_order(
+                self.instance.voucher, self.instance)
+            if self.instance.voucher else None)
+        discount_amount_differs = (
+            self.instance.voucher and
+            self.instance.discount_amount != self.discount_amount)
+        if discount_amount_differs:
+            self.fields['reapply_voucher'].label = pgettext_lazy(
+                'Recalculate discount amount on draft order confirmation',
+                'Update discount amount from %(old_amount)s '
+                'to %(new_amount)s') % {
+                    'old_amount': format_money(self.instance.discount_amount),
+                    'new_amount': format_money(self.discount_amount)}
+        else:
+            self.fields.pop('reapply_voucher')
 
     def clean(self):
         super().clean()
@@ -237,7 +258,8 @@ class OrderEditVoucherForm(forms.ModelForm):
                 decrease_voucher_usage(self.old_voucher)
             increase_voucher_usage(voucher)
         self.instance.discount_name = voucher.name
-        # TODO: update discount amount
+        self.instance.discount_amount = get_voucher_discount_for_order(
+            self.instance.voucher, self.instance)
         recalculate_order(self.instance)
         return super().save(commit)
 

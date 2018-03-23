@@ -11,8 +11,7 @@ from ..discount.utils import (
 
 def _get_value_voucher_discount_for_checkout(voucher, checkout):
     """Calculate discount value for a voucher of value type."""
-    return get_value_voucher_discount(
-        voucher, checkout.get_subtotal())
+    return get_value_voucher_discount(voucher, checkout.get_subtotal())
 
 
 def _get_shipping_voucher_discount_for_checkout(voucher, checkout):
