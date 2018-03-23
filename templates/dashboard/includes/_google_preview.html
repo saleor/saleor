@@ -9,7 +9,7 @@
     <div id="preview-error"></div>
     <div id="google-preview">
       <div class='google-preview__title'>
-        <a id="google-preview-title" href='#'>{{ object.seo_title|default:form.seo_title.field.widget.attrs.placeholder }}</a>
+        <a id="google-preview-title" href='#'>{{ object.seo_title|default:"" }}</a>
       </div>
       <div class='google-preview__url'>
         {% if object.pk %}
@@ -18,7 +18,7 @@
           {% build_absolute_uri request=request location="/" %}
         {% endif %}
       </div>
-      <div id="google-preview-description" class='google-preview__description'>{{ object.seo_description|default:form.seo_description.field.widget.attrs.placeholder }}</div>
+      <div id="google-preview-description" class='google-preview__description'>{{ object.seo_description|default:"" }}</div>
     </div>
   </div>
 </div>

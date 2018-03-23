@@ -1,5 +1,5 @@
-from django.db import models
 from django.core.validators import MaxLengthValidator
+from django.db import models
 
 
 class SeoModel(models.Model):

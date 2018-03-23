@@ -3,7 +3,7 @@ import html
 
 from django.core.validators import MaxLengthValidator
 from django.db import migrations, models
-from saleor.core.utils.text import generate_seo_description
+from saleor.core.utils.text import strip_html_and_truncate
 
 
 def to_seo_friendly(text):
@@ -12,7 +12,7 @@ def to_seo_friendly(text):
     text = html.unescape(text)
 
     # cleanup the description and make it seo friendly
-    return generate_seo_description(text, 300)
+    return strip_html_and_truncate(text, 300)
 
 
 def assign_seo_descriptions(apps, schema_editor):
