@@ -8,7 +8,9 @@
   <head>
     <title>
       {% block title %}
-        {% trans "Dashboard - Saleor" context "Dashboard default page title" %}
+        {% blocktrans trimmed context "Dashboard default page title" with site_name=site.name %}
+          Dashboard - {{ site_name }}
+        {% endblocktrans %}
       {% endblock %}
     </title>
     {% block meta %}
