@@ -165,8 +165,6 @@ class OrderShippingForm(forms.ModelForm):
         method = self.instance.shipping_method
         if method:
             method_field.set_initial(method, label=method.label)
-        else:
-            method_field.set_initial(None, obj_id='', label='----')
 
         if self.instance.shipping_address:
             country_code = self.instance.shipping_address.country.code
