@@ -14,7 +14,7 @@ from ...product.models import (
     AttributeChoiceValue, Category, Collection, Product, ProductAttribute,
     ProductImage, ProductType, ProductVariant, Stock, StockLocation,
     VariantImage)
-from ..forms import OrderedModelMultipleChoiceField
+from ..forms import OrderedModelMultipleChoiceField, ModelChoiceOrCreationField
 from ..widgets import RichTextEditorWidget
 from .widgets import ImagePreviewWidget
 from . import ProductBulkAction
@@ -269,7 +269,7 @@ class VariantAttributeForm(forms.ModelForm):
                 'required': True,
                 'initial': self.instance.get_attribute(attr.pk)}
             if attr.has_values():
-                field = CachingModelChoiceField(
+                field = ModelChoiceOrCreationField(
                     queryset=attr.values.all(), **field_defaults)
             else:
                 field = forms.CharField(**field_defaults)
@@ -279,10 +279,16 @@ class VariantAttributeForm(forms.ModelForm):
         attributes = {}
         for attr in self.available_attrs:
             value = self.cleaned_data.pop(attr.get_formfield_name())
-            if isinstance(value, AttributeChoiceValue):
-                attributes[smart_text(attr.pk)] = smart_text(value.pk)
-            else:
-                attributes[smart_text(attr.pk)] = value
+
+            # if the passed attribute value is a string,
+            # create the attribute value.
+            if not isinstance(value, AttributeChoiceValue):
+                value = AttributeChoiceValue(
+                    attribute_id=attr.pk, name=value, slug=slugify(value))
+                value.save()
+
+            attributes[smart_text(attr.pk)] = smart_text(value.pk)
+
         self.instance.attributes = attributes
         return super().save(commit=commit)
 

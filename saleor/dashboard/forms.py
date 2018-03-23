@@ -4,6 +4,25 @@ from django import forms
 from django.core.exceptions import ValidationError
 
 
+class ModelChoiceOrCreationField(forms.ModelChoiceField):
+    """ModelChoiceField with the ability to create new choices.
+
+    This field allows to select values from a queryset, but it also accepts
+    new values that can be used to create new model choices.
+    """
+
+    def to_python(self, value):
+        if value in self.empty_values:
+            return None
+        try:
+            key = self.to_field_name or 'pk'
+            obj = self.queryset.get(**{key: value})
+        except (ValueError, TypeError, self.queryset.model.DoesNotExist):
+            return value
+        else:
+            return obj
+
+
 class OrderedModelMultipleChoiceField(forms.ModelMultipleChoiceField):
     def clean(self, value):
         qs = super().clean(value)
