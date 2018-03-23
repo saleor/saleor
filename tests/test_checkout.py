@@ -49,58 +49,6 @@ def test_checkout_is_shipping_required():
     assert checkout.is_shipping_required is True
 
 
-def test_checkout_deliveries():
-    item_price = TaxedMoney(net=Money(10, 'USD'), gross=Money(10, 'USD'))
-    partition = Mock(
-        get_total=Mock(return_value=item_price),
-        get_price_per_item=Mock(return_value=item_price))
-
-    def f():
-        yield partition
-
-    partition.__iter__ = Mock(return_value=f())
-    cart = Mock(partition=Mock(return_value=[partition]), currency='USD')
-    checkout = Checkout(cart, AnonymousUser(), 'tracking_code')
-    deliveries = list(checkout.deliveries)
-    assert deliveries[0][1] == TaxedMoney(
-        net=Money(0, 'USD'), gross=Money(0, 'USD'))
-    assert deliveries[0][2] == partition.get_total()
-    assert deliveries[0][0][0][0] == partition
-
-
-def test_checkout_deliveries_with_shipping_method(monkeypatch):
-    shipping_cost = Money(3, settings.DEFAULT_CURRENCY)
-    items_cost = Money(5, settings.DEFAULT_CURRENCY)
-    cost_with_shipping = items_cost + shipping_cost
-
-    items_price = TaxedMoney(net=items_cost, gross=items_cost)
-    partition = Mock(
-        is_shipping_required=MagicMock(return_value=True),
-        get_total=Mock(return_value=items_price),
-        get_price_per_item=Mock(return_value=items_price))
-
-    def f():
-        yield partition
-
-    partition.__iter__ = Mock(return_value=f())
-    cart = Mock(
-        partition=Mock(return_value=[partition]),
-        currency=settings.DEFAULT_CURRENCY)
-
-    shipping_price = TaxedMoney(net=shipping_cost, gross=shipping_cost)
-    shipping_method_mock = Mock(
-        get_total_price=Mock(return_value=shipping_price))
-    monkeypatch.setattr(Checkout, 'shipping_method', shipping_method_mock)
-
-    checkout = Checkout(cart, AnonymousUser(), 'tracking_code')
-    deliveries = list(checkout.deliveries)
-
-    assert deliveries[0][1] == shipping_price
-    assert deliveries[0][2] == TaxedMoney(
-        net=cost_with_shipping, gross=cost_with_shipping)
-    assert deliveries[0][0][0][0] == partition
-
-
 @pytest.mark.parametrize('user, shipping', [
     (Mock(default_shipping_address='user_shipping'), 'user_shipping'),
     (AnonymousUser(), None)])
@@ -229,11 +177,8 @@ def test_index_view(cart, status_code, url, rf, monkeypatch):
     assert response.url == url
 
 
-def test_checkout_discount(request_cart, sale, product_in_stock):
-    variant = product_in_stock.variants.get()
-    request_cart.add(variant, 1)
-    checkout = Checkout(request_cart, AnonymousUser(), 'tracking_code')
-    assert checkout.get_total() == TaxedMoney(
+def test_checkout_discount(checkout_with_items, sale):
+    assert checkout_with_items.get_total() == TaxedMoney(
         net=Money(5, 'USD'), gross=Money(5, 'USD'))
 
 
@@ -265,12 +210,10 @@ def test_note_form(note_value):
     assert checkout.note == note_value.strip()
 
 
-def test_note_in_created_order(request_cart, customer_user, billing_address):
-    customer_user.default_billing_address = billing_address
-    checkout = Checkout(request_cart, customer_user, 'tracking_code')
-    checkout.note = ''
-    order = checkout.create_order()
+def test_note_in_created_order(checkout_with_items):
+    checkout_with_items.note = ''
+    order = checkout_with_items.create_order()
     assert not order.notes.all()
-    checkout.note = 'test_note'
-    order = checkout.create_order()
-    assert order.notes.values()[0].get('content') == 'test_note'
+    checkout_with_items.note = 'test_note'
+    order = checkout_with_items.create_order()
+    assert order.notes.filter(content='test_note').exists()
