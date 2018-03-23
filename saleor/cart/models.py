@@ -29,21 +29,6 @@ def find_open_cart_for_user(user):
     return carts.first()
 
 
-class ProductGroup(list):
-    """A group of products."""
-
-    def is_shipping_required(self):
-        """Return `True` if any product in group requires shipping."""
-        return any(p.is_shipping_required() for p in self)
-
-    def get_total(self, discounts=None):
-        subtotals = [line.get_total(discounts) for line in self]
-        if not subtotals:
-            raise AttributeError(
-                'Calling get_total() on an empty product group')
-        return sum_prices(subtotals)
-
-
 class CartQueryset(models.QuerySet):
     """A specialized queryset for dealing with carts."""
 
@@ -144,6 +129,8 @@ class Cart(models.Model):
 
     def get_total(self, discounts=None):
         """Return the total cost of the cart prior to shipping."""
+        if not discounts:
+            discounts = self.discounts
         subtotals = [line.get_total(discounts) for line in self.lines.all()]
         if not subtotals:
             raise AttributeError('Calling get_total() on an empty cart')
@@ -210,14 +197,6 @@ class Cart(models.Model):
         else:
             cart_line.save(update_fields=['quantity'])
         self.update_quantity()
-
-    def partition(self):
-        """Split the cart into a list of groups for shipping."""
-        grouper = (
-            lambda p: 'physical' if p.is_shipping_required() else 'digital')
-        subject = sorted(self.lines.all(), key=grouper)
-        for _, lines in groupby(subject, key=grouper):
-            yield ProductGroup(lines)
 
 
 class CartLine(models.Model):

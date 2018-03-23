@@ -13,7 +13,7 @@ from prices import Money, TaxedMoney
 
 from saleor.cart import CartStatus, forms, utils
 from saleor.cart.context_processors import cart_counter
-from saleor.cart.models import Cart, ProductGroup, find_open_cart_for_user
+from saleor.cart.models import Cart, find_open_cart_for_user
 from saleor.cart.views import update
 from saleor.core.exceptions import InsufficientStock
 from saleor.discount.models import Sale
@@ -599,17 +599,6 @@ def test_total_with_discount(client, sale, request_cart, product_in_stock):
     line = request_cart.lines.first()
     assert line.get_total(discounts=sales) == TaxedMoney(
         net=Money(5, 'USD'), gross=Money(5, 'USD'))
-
-
-def test_product_group():
-    group = ProductGroup([
-        Mock(is_shipping_required=Mock(return_value=False)),
-        Mock(is_shipping_required=Mock(return_value=False))])
-    assert not group.is_shipping_required()
-    group = ProductGroup([
-        Mock(is_shipping_required=Mock(return_value=True)),
-        Mock(is_shipping_required=Mock(return_value=False))])
-    assert group.is_shipping_required()
 
 
 def test_cart_queryset(customer_user):
