@@ -1,7 +1,12 @@
 from django.conf import settings
 from django.contrib.sites.shortcuts import get_current_site
 from django.template.loader import get_template
+from prices import Money
 
+from ...discount import VoucherType
+from ...discount.utils import (
+    get_product_or_category_voucher_discount, get_shipping_voucher_discount,
+    get_value_voucher_discount)
 from ...product.utils import decrease_stock
 
 INVOICE_TEMPLATE = 'dashboard/order/pdf/invoice.html'
@@ -62,3 +67,70 @@ def update_order_with_user_addresses(order):
             order.user.default_shipping_address.get_copy()
             if order.user.default_shipping_address else None)
         order.save()
+
+
+def get_product_variants_and_prices(order, product):
+    """Get variants and unit prices from order lines matching the product."""
+    lines = (
+        line for line in order.lines.all() if line.product == product)
+    for line in lines:
+        for dummy_i in range(line.quantity):
+            variant = line.product.variants.filter(sku=line.product_sku)
+            yield variant, line.get_price_per_item()
+
+
+def get_category_variants_and_prices(order, root_category):
+    """Get variants and unit prices from cart lines matching the category.
+
+    Product is assumed to be in the category if it belongs to any of its
+    descendant subcategories.
+    """
+    products = {line.product for line in order.lines.all() if line.product}
+    matching_products = set()
+    for product in products:
+        if product.category.is_descendant_of(root_category, include_self=True):
+            matching_products.add(product)
+    for product in matching_products:
+        for line in get_product_variants_and_prices(order, product):
+            yield line
+
+
+def _get_value_voucher_discount_for_order(voucher, order):
+    """Calculate discount value for a voucher of value type."""
+    return get_value_voucher_discount(voucher, order.get_subtotal())
+
+
+def _get_shipping_voucher_discount_for_order(voucher, order):
+    """Calculate discount value for a voucher of shipping type."""
+    return get_shipping_voucher_discount(
+        voucher, order.get_subtotal(), order.shipping_price)
+
+
+def _get_product_or_category_voucher_discount_for_order(voucher, order):
+    """Calculate discount value for a voucher of product or category type."""
+    if voucher.type == VoucherType.PRODUCT:
+        prices = [
+            item[1] for item in get_product_variants_and_prices(
+                order, voucher.product)]
+    else:
+        prices = [
+            item[1] for item in get_category_variants_and_prices(
+                order, voucher.category)]
+    if not prices:
+        return Money(0, settings.DEFAULT_CURRENCY)
+    return get_product_or_category_voucher_discount(voucher, prices)
+
+
+def get_voucher_discount_for_order(voucher, order):
+    """Calculate discount value depending on voucher and discount types.
+
+    Raise NotApplicable if voucher of given type cannot be applied.
+    """
+    if voucher.type == VoucherType.VALUE:
+        return _get_value_voucher_discount_for_order(voucher, order)
+    if voucher.type == VoucherType.SHIPPING:
+        return _get_shipping_voucher_discount_for_order(voucher, order)
+    if voucher.type in (VoucherType.PRODUCT, VoucherType.CATEGORY):
+        return _get_product_or_category_voucher_discount_for_order(
+            voucher, order)
+    raise NotImplementedError('Unknown discount type')

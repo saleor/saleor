@@ -17,6 +17,9 @@
       Are you sure you want confirm order {{ order }}? Once the order has been confirmed, you will not be able to make changes.
     {% endblocktrans %}
     {{ form.notify_customer|materializecss }}
+    {% if form.reapply_voucher %}
+      {{ form.reapply_voucher|materializecss }}
+    {% endif %}
   </div>
 {% endblock %}
 
