@@ -2,7 +2,7 @@ import Card, { CardContent } from "material-ui/Card";
 import Typography from "material-ui/Typography";
 import * as React from "react";
 
-import i18n from "../i18n";
+import i18n from "../../i18n";
 
 interface ErrorMessageCardProps {
   message: string;
