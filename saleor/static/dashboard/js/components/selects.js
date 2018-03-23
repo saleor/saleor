@@ -7,7 +7,7 @@ function appendOption ($select, option) {
 
 function initSelects() {
   // Custom variant attribute select that allows creating new attribute values.
-  let $variantAttrsSelect = $('.variant-attribute-select select');
+  let $variantAttrsSelect = $('.attribute-select-or-create select');
   $variantAttrsSelect.select2({
     tags: true,
     width: '100%'

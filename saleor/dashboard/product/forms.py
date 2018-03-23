@@ -195,7 +195,7 @@ class ProductForm(forms.ModelForm):
                 'required': False,
                 'initial': self.instance.get_attribute(attribute.pk)}
             if attribute.has_values():
-                field = CachingModelChoiceField(
+                field = ModelChoiceOrCreationField(
                     queryset=attribute.values.all(), **field_defaults)
             else:
                 field = forms.CharField(**field_defaults)
@@ -209,10 +209,16 @@ class ProductForm(forms.ModelForm):
         attributes = {}
         for attr in self.product_attributes:
             value = self.cleaned_data.pop(attr.get_formfield_name())
-            if isinstance(value, AttributeChoiceValue):
-                attributes[smart_text(attr.pk)] = smart_text(value.pk)
-            else:
-                attributes[smart_text(attr.pk)] = value
+
+            # if the passed attribute value is a string,
+            # create the attribute value.
+            if not isinstance(value, AttributeChoiceValue):
+                value = AttributeChoiceValue(
+                    attribute_id=attr.pk, name=value, slug=slugify(value))
+                value.save()
+
+            attributes[smart_text(attr.pk)] = smart_text(value.pk)
+
         self.instance.attributes = attributes
         instance = super().save()
         instance.collections.clear()
