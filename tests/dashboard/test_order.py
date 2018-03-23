@@ -1100,10 +1100,10 @@ def test_view_order_shipping_edit_not_draft_order(
 
 
 @pytest.mark.django_db
-def test_view_order_shipping_edit_remove_shipping(admin_client, draft_order):
+def test_view_order_shipping_remove(admin_client, draft_order):
     url = reverse(
-        'dashboard:order-shipping-edit', kwargs={'order_pk': draft_order.pk})
-    data = {'shipping_method': ''}
+        'dashboard:order-shipping-remove', kwargs={'order_pk': draft_order.pk})
+    data = {'csrfmiddlewaretoken': 'hello'}
 
     response = admin_client.post(url, data)
 

@@ -121,7 +121,7 @@ class OrderCustomerForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         if self.instance.user:
             self.fields['user'].set_initial(
-                self.instane.user, label=self.instance.user.label)
+                self.instance.user, label=self.instance.user.label)
 
     def clean(self):
         cleaned_data = super().clean()
@@ -144,8 +144,7 @@ class OrderShippingForm(forms.ModelForm):
     """Set shipping name and shipping price in an order."""
 
     shipping_method = AjaxSelect2ChoiceField(
-        queryset=ShippingMethodCountry.objects.all(),
-        required=False, min_input=0)
+        queryset=ShippingMethodCountry.objects.all(), min_input=0)
 
     class Meta:
         model = Order
@@ -174,12 +173,24 @@ class OrderShippingForm(forms.ModelForm):
 
     def save(self, commit=True):
         method = self.instance.shipping_method
-        if method:
-            self.instance.shipping_method_name = method.shipping_method.name
-            self.instance.shipping_price = method.get_total_price()
-        else:
-            self.instance.shipping_method_name = None
-            self.instance.shipping_price = ZERO_TAXED_MONEY
+        self.instance.shipping_method_name = method.shipping_method.name
+        self.instance.shipping_price = method.get_total_price()
+        recalculate_order(self.instance)
+        return super().save(commit)
+
+
+class OrderRemoveShippingForm(forms.ModelForm):
+    """Remove shipping name and shipping price from an order."""
+
+    class Meta:
+        model = Order
+        fields = []
+
+    def save(self, commit=True):
+        self.instance.shipping_method = None
+        self.instance.shipping_method_name = None
+        self.instance.shipping_price = ZERO_TAXED_MONEY
+        recalculate_order(self.instance)
         return super().save(commit)
 
 

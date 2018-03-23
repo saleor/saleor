@@ -353,6 +353,14 @@
                             {% trans "Edit shipping" context "Order totals action" %}
                           </a>
                         </li>
+                        {% if order.shipping_method %}
+                          <li>
+                            <a href="#base-modal" data-href="{% url 'dashboard:order-shipping-remove' order_pk=order.pk %}"
+                            class="modal-trigger-custom" title="{% trans "Remove shipping" context "Order totals action" %}">
+                              {% trans "Remove shipping" context "Order totals action" %}
+                            </a>
+                          </li>
+                        {% endif %}
                       </ul>
                     {% else %}
                       {% if order.shipping_method_name %}
