@@ -31,8 +31,8 @@ from .forms import (
     CapturePaymentForm, ChangeQuantityForm, ChangeStockForm,
     ConfirmDraftOrderForm, FulfillmentForm, FulfillmentLineForm,
     FulfillmentTrackingNumberForm, OrderCustomerForm, OrderNoteForm,
-    OrderShippingForm, RefundPaymentForm, ReleasePaymentForm,
-    RemoveVoucherForm)
+    OrderRemoveShippingForm, OrderShippingForm, RefundPaymentForm,
+    ReleasePaymentForm, RemoveVoucherForm)
 from .utils import (
     create_invoice_pdf, create_packing_slip_pdf, get_statics_absolute_url)
 
@@ -385,6 +385,25 @@ def order_shipping_edit(request, order_pk):
     ctx = {'order': order, 'form': form}
     return TemplateResponse(
         request, 'dashboard/order/modal/edit_shipping.html', ctx,
+        status=status)
+
+
+@staff_member_required
+@permission_required('order.edit_order')
+def order_shipping_remove(request, order_pk):
+    order = get_object_or_404(Order, pk=order_pk, status=OrderStatus.DRAFT)
+    form = OrderRemoveShippingForm(request.POST or None, instance=order)
+    status = 200
+    if form.is_valid():
+        form.save()
+        msg = pgettext_lazy('Dashboard message', 'Shipping removed')
+        messages.success(request, msg)
+        return redirect('dashboard:order-details', order_pk=order_pk)
+    elif form.errors:
+        status = 400
+    ctx = {'order': order, 'form': form}
+    return TemplateResponse(
+        request, 'dashboard/order/modal/remove_shipping.html', ctx,
         status=status)
 
 
