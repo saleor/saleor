@@ -104,3 +104,9 @@ class ProductCreateMutation(ModelFormMutation):
             errors = convert_form_errors(form)
             return cls(errors=errors)
         return super().mutate(root, info, **kwargs)
+
+
+class ProductDeleteMutation(ModelDeleteMutation):
+
+    class Meta:
+        model = models.Product
