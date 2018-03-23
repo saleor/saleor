@@ -3,7 +3,9 @@ from django.utils.translation import pgettext_lazy
 
 from ...page.models import Page
 from ..product.forms import RichTextField
-from ..seo.utils import SEO_HELP_TEXTS, SEO_LABELS, prepare_seo_description
+from ..seo.utils import (
+    MIN_DESCRIPTION_LENGTH, MIN_TITLE_LENGTH, SEO_HELP_TEXTS, SEO_LABELS,
+    SEO_WIDGETS, prepare_seo_description)
 
 
 class PageForm(forms.ModelForm):
@@ -12,15 +14,18 @@ class PageForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         self.fields['seo_description'].widget.attrs.update({
             'data-bind': self['content'].auto_id,
-            'data-materialize': self['content'].html_name})
+            'data-materialize': self['content'].html_name,
+            'min-recommended-length': MIN_DESCRIPTION_LENGTH})
         self.fields['seo_title'].widget.attrs.update({
-            'data-bind': self['title'].auto_id})
+            'data-bind': self['title'].auto_id,
+            'min-recommended-length': MIN_TITLE_LENGTH})
 
     class Meta:
         model = Page
         exclude = []
         widgets = {
-            'slug': forms.TextInput(attrs={'placeholder': 'example-slug'})}
+            'slug': forms.TextInput(attrs={'placeholder': 'example-slug'}),
+            **SEO_WIDGETS}
         labels = {
             'is_visible': pgettext_lazy(
                 'Visibility status indicator', 'Publish'),
