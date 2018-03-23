@@ -1144,7 +1144,7 @@ def test_view_remove_draft_order_invalid(admin_client, order_with_lines):
 @pytest.mark.django_db
 def test_view_edit_discount(admin_client, draft_order, settings):
     discount_value = 5
-    total_without_discount = draft_order.total
+    total_before = draft_order.total
     url = reverse(
         'dashboard:order-discount-edit',
         kwargs={'order_pk': draft_order.pk})
@@ -1160,4 +1160,4 @@ def test_view_edit_discount(admin_client, draft_order, settings):
     draft_order.refresh_from_db()
     discount_amount = Money(discount_value, settings.DEFAULT_CURRENCY)
     assert draft_order.discount_amount == discount_amount
-    assert draft_order.total == total_without_discount - discount_amount
+    assert draft_order.total == total_before - discount_amount
