@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Saleor — an open source storefront written in Python and Django</title>
+    <meta name="application-name" content="Saleor — an open source storefront written in Python and Django">
+    <link rel="stylesheet" href="/app.css">
+    <link rel="apple-touch-icon" sizes="180x180" href="/images/favicons/apple-touch-icon.png">
+    <link rel="icon" type="image/png" href="/images/favicons/favicon-32x32.png" sizes="32x32">
+    <link rel="icon" type="image/png" href="/images/favicons/favicon-16x16.png" sizes="16x16">
+    <link rel="manifest" href="/images/favicons/manifest.json">
+    <meta name="theme-color" content="#ffffff">
+    <meta name="google-site-verification" content="o3fAcqwEAmUxNIxf07503fA79ulBGaXsCpxyCf1zb9w">
+    <meta property="og:title" content="Saleor — an open source storefront platform for perfectionists" />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="http://getsaleor.com" />
+    <meta property="og:image" content="http://getsaleor.com/main-pic-mobile.png" />
+    <meta property="og:description" content="Written in python, best served as a bespoke, high-performance e-commerce solution" />
+  </head>
+  <body>
+    <header>
+      <div class="notice-bar hide">
+  <div class="text-center notice-text">January release is out. <a href="https://github.com/mirumee/saleor/releases/tag/v2018.01">Check out what's new!</a></div>
+  <div id="notice-bar-close"></div>
+</div>
+<nav class="navbar navbar-custom">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <div class="logo">
+        <a href="/"><img src="/images/saleor-logo.svg" /></a>
+      </div>
+    </div>
+    <div id="navbar" class="menu navbar-collapse collapse navbar-right">
+      <ul>
+        <li class="gh-widget">
+          <a href="http://github.com/mirumee/saleor" target="_blank" rel="nofollow">
+            <img src="/images/github-icon.svg" />
+            <img src="/images/github-star.svg" />
+            <span id="gh-stars"></span>
+          </a>
+        </li>
+        
+            <li><a href="https://saleor.readthedocs.io/en/latest/" target="_blank" rel="nofollow">Docs</a></li>
+        
+            <li><a href="/roadmap"  >Roadmap</a></li>
+        
+            <li><a href="/#services"  >Services</a></li>
+        
+            <li><a href="https://medium.com/saleor"  >Blog</a></li>
+        
+            <li><a href="http://demo.getsaleor.com" target="_blank" >Demo</a></li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+    </header>
+    <div class="page">
+      <div class="section section-top">
+  <div class="container">
+  <div class="row">
+    <div class="col-md-12">
+      <div class="image-text">
+        <h2>Roadmap</h2>
+        <h3 class="image-text__subtext">To keep you informed about the implementation<br /> of the most important features,<br /> below you will find our roadmap for 2018</h3>
+      </div>
+      <div class="image">
+        <picture>
+          <img src="/images/roadmap-header.svg" alt="Human">
+        </picture>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div>
+<div class="container">
+  
+    
+    <div class="row releases">
+      <div class="col-xs-3 col-md-2 timeline">
+        <img src="/images/parrot.svg" class="parrot"/>
+      </div>
+      <div class="col-xs-9 col-md-10 release">
+        <h2 class="release__title">
+           
+            Long-term Goals
+          
+        </h2>
+        <div class="row">
+          <div class="col-xs-12 col-md-6">
+            
+              
+              <div class="feature">
+                <h4 class="feature__title">Dashboard 2.0</h4>
+                <div class="feature__description">
+                   
+                    New, dynamic UX - a modern and intuitive way of managing your shop.
+                  
+                </div>
+              </div>
+            
+              
+              <div class="feature">
+                <h4 class="feature__title">Storefront 2.0</h4>
+                <div class="feature__description">
+                   
+                    Mobile-first storefront with full PWA support.<br /> Support for browser-based payment methods (Google Pay, Apple Pay).
+                  
+                </div>
+              </div>
+            
+              
+              <div class="feature">
+                <h4 class="feature__title">Taxes support</h4>
+                <div class="feature__description">
+                   
+                    Introducing integrations with Vatlayer and Avalara.<br /> Switching between net/gross prices displayed to your customers.
+                  
+                </div>
+              </div>
+            
+          </div>
+          <div class="col-12 col-md-6">
+          
+            
+              <div class="feature">
+                <h4 class="feature__title">Architecture changes (Stable core)</h4>
+                <div class="feature__description">
+                   
+                    Moving storefront and dashboard to separate apps.
+                  
+                </div>
+              </div>
+            
+            
+              <div class="feature">
+                <h4 class="feature__title">CSV export</h4>
+                <div class="feature__description">
+                   
+                    Exporting products, orders and customers to CSV files.
+                  
+                </div>
+              </div>
+            
+            
+              <div class="feature">
+                <h4 class="feature__title">Data import</h4>
+                <div class="feature__description">
+                   
+                    Tools to migrate data from Magento and Shopify to Saleor.
+                  
+                </div>
+              </div>
+            
+            
+              <div class="feature">
+                <h4 class="feature__title">Shipping carriers</h4>
+                <div class="feature__description">
+                   
+                    Integration with shipping carriers APIs.
+                  
+                </div>
+              </div>
+            
+          </div>
+        </div>
+      </div>
+    </div>
+  
+    
+    <div class="row releases">
+      <div class="col-xs-3 col-md-2 timeline">
+        <img src="/images/lantern.svg" class="lantern"/>
+      </div>
+      <div class="col-xs-9 col-md-10 release">
+        <h2 class="release__title">
+           
+            Upcoming Release
+          
+        </h2>
+        <div class="row">
+          <div class="col-xs-12 col-md-6">
+            
+              
+              <div class="feature">
+                <h4 class="feature__title">Collection and category images</h4>
+                <div class="feature__description">
+                   
+                    Customizable collection and category images displayed in the storefront.
+                  
+                </div>
+              </div>
+            
+              
+              <div class="feature">
+                <h4 class="feature__title">Multilingual storefront</h4>
+                <div class="feature__description">
+                   
+                    Support for switching languages in the storefront.
+                  
+                </div>
+              </div>
+            
+              
+              <div class="feature">
+                <h4 class="feature__title">Creating orders from the dashboard</h4>
+                <div class="feature__description">
+                   
+                    Ability to create orders by members of staff.
+                  
+                </div>
+              </div>
+            
+          </div>
+          <div class="col-12 col-md-6">
+          
+            
+              <div class="feature">
+                <h4 class="feature__title">Advanced SEO Tools</h4>
+                <div class="feature__description">
+                   
+                    Customizing metadata for products, collections and manually-added pages.
+                  
+                </div>
+              </div>
+            
+            
+              <div class="feature">
+                <h4 class="feature__title">Menus</h4>
+                <div class="feature__description">
+                   
+                    Defining the storefront’s navigation menus directly from the dashboard.
+                  
+                </div>
+              </div>
+            
+          </div>
+        </div>
+      </div>
+    </div>
+  
+    
+    <div class="row releases">
+      <div class="col-xs-3 col-md-2 timeline">
+        <img src="/images/done.svg" class="done"/>
+      </div>
+      <div class="col-xs-9 col-md-10 release">
+        <h2 class="release__title">
+           
+            <a href="https://github.com/mirumee/saleor/releases/tag/v2018.02"><span>February</span> Release</a>
+          
+        </h2>
+        <div class="row">
+          <div class="col-xs-12 col-md-6">
+            
+              
+              <div class="feature">
+                <h4 class="feature__title">General</h4>
+                <div class="feature__description">
+                  
+                    <br />
+                     
+                      <p>Upgraded prices handling</p>
+                     
+                      <p>Pages application</p>
+                     
+                      <p>Merged userprofile and registration into single account app</p>
+                     
+                      <p>Better organization of email templates</p>
+                     
+                      <p>Dropped Satchless API</p>
+                     
+                      <p>Switched to Webpack 4</p>
+                     
+                      <p>Sanitize output from the rich-text editor</p>
+                    
+                  
+                </div>
+              </div>
+            
+          </div>
+          <div class="col-12 col-md-6">
+          
+          </div>
+        </div>
+      </div>
+    </div>
+  
+    
+    <div class="row releases">
+      <div class="col-xs-3 col-md-2 timeline">
+        <img src="/images/done.svg" class="done"/>
+      </div>
+      <div class="col-xs-9 col-md-10 release">
+        <h2 class="release__title">
+           
+            <a href="https://github.com/mirumee/saleor/releases/tag/v2018.01"><span>January</span> Release</a>
+          
+        </h2>
+        <div class="row">
+          <div class="col-xs-12 col-md-6">
+            
+              
+              <div class="feature">
+                <h4 class="feature__title">General</h4>
+                <div class="feature__description">
+                  
+                    <br />
+                     
+                      <p>Added support for Django 2.0</p>
+                     
+                      <p>Added HTML templates for emails using (MJML engine)</p>
+                     
+                      <p>Introduced product collections</p>
+                     
+                      <p>Using django-fsm to manage order states</p>
+                     
+                      <p>Changed relationship between categories and products to one-to-many</p>
+                     
+                      <p>Single template tag to render addresses - {% format_address address %}</p>
+                     
+                      <p>Improved GraphQL API structure</p>
+                     
+                      <p>Improved docs structure</p>
+                     
+                      <p>Renamed ProductClass to ProductType</p>
+                     
+                      <p>Removed verbose_names from models in favor of explicit, translated labels in forms</p>
+                     
+                      <p>Code style improvements</p>
+                    
+                  
+                </div>
+              </div>
+            
+          </div>
+          <div class="col-12 col-md-6">
+          
+            
+              <div class="feature">
+                <h4 class="feature__title">Storefront</h4>
+                <div class="feature__description">
+                  
+                    <br />
+                     
+                      <p>Added the ability to add order notes during checkout and on the order details page</p>
+                     
+                      <p>Showing success page after finishing checkout</p>
+                     
+                      <p>Lazy-loading images in the storefront</p>
+                    
+                  
+                </div>
+              </div>
+            
+            
+              <div class="feature">
+                <h4 class="feature__title">Dashboard</h4>
+                <div class="feature__description">
+                  
+                    <br />
+                     
+                      <p>Added rich-text editor widget</p>
+                     
+                      <p>Added the ability to create customers through the dashboard</p>
+                     
+                      <p>Improved the appearance of bulk actions in the dashboard</p>
+                     
+                      <p>Order details page improvements"</p>
+                    
+                  
+                </div>
+              </div>
+            
+          </div>
+        </div>
+      </div>
+    </div>
+  
+    
+    <div class="row releases">
+      <div class="col-xs-3 col-md-2 timeline">
+        <img src="/images/done.svg" class="done"/>
+      </div>
+      <div class="col-xs-9 col-md-10 release">
+        <h2 class="release__title">
+           
+            <a href="https://github.com/mirumee/saleor/releases/tag/v2017.12"><span>December</span> Release</a>
+          
+        </h2>
+        <div class="row">
+          <div class="col-xs-12 col-md-6">
+            
+              
+              <div class="feature">
+                <h4 class="feature__title">General</h4>
+                <div class="feature__description">
+                  
+                    <br />
+                     
+                      <p>Dropped Python 2.7</p>
+                     
+                      <p>Order status field has been removed and it’s dynamically determined based on delivery group statuses</p>
+                     
+                      <p>Improved naming consistency in code</p>
+                     
+                      <p>Upgraded Graphene to the newest version</p>
+                     
+                      <p>Upgraded django-impersonate to the newest version</p>
+                    
+                  
+                </div>
+              </div>
+            
+          </div>
+          <div class="col-12 col-md-6">
+          
+            
+              <div class="feature">
+                <h4 class="feature__title">Storefront</h4>
+                <div class="feature__description">
+                  
+                    <br />
+                     
+                      <p>Added OpenGraph tags and canonical links</p>
+                     
+                      <p>Included links to categories in the sitemap</p>
+                     
+                      <p>Selectable country prefixes for phone numbers in checkout</p>
+                    
+                  
+                </div>
+              </div>
+            
+            
+              <div class="feature">
+                <h4 class="feature__title">Dashboard</h4>
+                <div class="feature__description">
+                  
+                    <br />
+                     
+                      <p>Added base template for dashboard modals</p>
+                     
+                      <p>Moved FAB button to top on desktop</p>
+                     
+                      <p>Rendering explanatory “zero” pages</p>
+                     
+                      <p>Unified button styling</p>
+                    
+                  
+                </div>
+              </div>
+            
+          </div>
+        </div>
+      </div>
+    </div>
+  
+</div>
+      <div class="section section-github">
+        <div class="container">
+  <div class="row">
+    <div class="col-md-12">
+      <h2>Simple <span>is</span> better</h2>
+      <h2>Less <span>is</span> more</h2>
+      <h2>Saleor <span>is</span> free</h2>
+      <a href="https://github.com/mirumee/saleor" class="btn btn-tertiary" target="_blank">Fork it on Github</a>
+    </div>
+  </div>
+</div>
+
+      </div>
+    </div>
+    <footer>
+      <div class="container">
+  <div class="row">
+    <div class="col-xs-10 col-center">
+      <div class="row rows">
+        <div class="col-xs-12 col-md-5 logo">
+          <div class="row">
+            <div class="col-xs-6 col-center">
+              <div class="saleor"><a href="/"><img src="/images/saleor-logo-white.svg" /></a></div>
+              <div class="mirumee">
+                <div class="row no-gutter">
+                  <div class="col-xs-5"><span>Crafted by</span></div>
+                  <div class="col-xs-7"><a href="https://mirumee.com/"><img src="/images/mirumee-logo.svg" /></a></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="col-xs-12 col-md-5 links">
+          <div class="row">
+            <div class="col-xs-5 col-sm-6">
+              <h3>Great for</h3>
+              <ul>
+                <li><a href="#developers">Developers</a></li>
+                <li><a href="#store-managers">Managers</a></li>
+                <li><a href="#customers">Customers</a></li>
+              </ul>
+            </div>
+            <div class="col-xs-7 col-sm-6">
+              <h3>Links</h3>
+              <ul>
+                
+                  <li><a href="https://saleor.readthedocs.io/en/latest/" target="_blank">Docs</a></li>
+              
+                  <li><a href="/roadmap" >Roadmap</a></li>
+              
+                  <li><a href="/#services" >Services</a></li>
+              
+                  <li><a href="https://medium.com/saleor" >Blog</a></li>
+              
+                  <li><a href="http://demo.getsaleor.com" target="_blank">Demo</a></li>
+              
+              </ul>
+            </div>
+          </div>
+        </div>
+        <div class="col-xs-12 col-md-2 follow-us">
+          <h3>Follow us</h3>
+          <ul class="icons">
+            <li><a href="https://github.com/mirumee/saleor" target="_blank"><img src="/images/github-icon.svg" /></a></li>
+            <li><a href="https://twitter.com/getsaleor" target="_blank"><img src="/images/twitter-icon.svg"/></a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+      <script src="/js/jquery.js"></script>
+<script src="/js/app.js"></script>
+      <script>
+        (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+        (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+        m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+        })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+        ga('create', 'UA-10159761-12', 'auto');
+        ga('send', 'pageview');
+      </script>
+    </footer>
+    <!-- Hotjar Tracking Code for http://getsaleor.com/ -->
+    <script>
+      (function(h,o,t,j,a,r){
+          h.hj=h.hj||function(){(h.hj.q=h.hj.q||[]).push(arguments)};
+          h._hjSettings={hjid:716251,hjsv:6};
+          a=o.getElementsByTagName('head')[0];
+          r=o.createElement('script');r.async=1;
+          r.src=t+h._hjSettings.hjid+j+h._hjSettings.hjsv;
+          a.appendChild(r);
+      })(window,document,'https://static.hotjar.com/c/hotjar-','.js?sv=');
+    </script>
+  </body>
+</html>

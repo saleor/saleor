@@ -19,7 +19,10 @@
 
 @import "variables";
 @import "_partial/global";
-@import "_partial/header";
-@import "_partial/sections";
 @import "_partial/footer";
+@import "_partial/header";
 @import "_partial/mobile";
+@import "_partial/roadmap/_content";
+@import "_partial/roadmap/_timeline";
+@import "_partial/roadmap/_top";
+@import "_partial/sections";

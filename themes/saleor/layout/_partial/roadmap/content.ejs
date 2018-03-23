@@ -1,0 +1,57 @@
+<div class="container">
+  <% for (var releaseKey in site.data.releases) { %>
+    <% var release = site.data.releases[releaseKey].release %>
+    <div class="row releases">
+      <div class="col-xs-3 col-md-2 timeline">
+        <img src="<%= release.image %>" class="<%= release.image.split('/').splice(-1)[0].split('.')[0] %>"/>
+      </div>
+      <div class="col-xs-9 col-md-10 release">
+        <h2 class="release__title">
+          <% if (release.link) { %> 
+            <a href="<%= release.link %>"><%- release.title %></a>
+          <% } else { %> 
+            <%= release.title %>
+          <% } %>
+        </h2>
+        <div class="row">
+          <div class="col-xs-12 col-md-6">
+            <% for (var featureKey in release.features.left) { %>
+              <% var feature = release.features.left[featureKey].feature %>
+              <div class="feature">
+                <h4 class="feature__title"><%= feature.title %></h4>
+                <div class="feature__description">
+                  <% if (feature.type === 'list') { %>
+                    <br />
+                    <% for (var element in feature.description) { %> 
+                      <p><%- feature.description[element] %></p>
+                    <% } %>
+                  <% } else { %> 
+                    <%- feature.description %>
+                  <% } %>
+                </div>
+              </div>
+            <% } %>
+          </div>
+          <div class="col-12 col-md-6">
+          <% for (var featureKey in release.features.right) { %>
+            <% var feature = release.features.right[featureKey].feature %>
+              <div class="feature">
+                <h4 class="feature__title"><%= feature.title %></h4>
+                <div class="feature__description">
+                  <% if (feature.type === 'list') { %>
+                    <br />
+                    <% for (var element in feature.description) { %> 
+                      <p><%- feature.description[element] %></p>
+                    <% } %>
+                  <% } else { %> 
+                    <%- feature.description %>
+                  <% } %>
+                </div>
+              </div>
+            <% } %>
+          </div>
+        </div>
+      </div>
+    </div>
+  <% } %>
+</div>
