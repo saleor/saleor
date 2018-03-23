@@ -1,13 +1,12 @@
 import * as React from "react";
 import * as renderer from "react-test-renderer";
 
-import ErrorMessageCard from "../../components/ErrorMessageCard";
-import errorMessageFixture from "./fixtures/errorMessage";
+import ErrorMessageCard from "./ErrorMessageCard";
 
 describe("<ErrorMessageCard />", () => {
   it("renders properly", () => {
     const component = renderer.create(
-      <ErrorMessageCard message={errorMessageFixture} />
+      <ErrorMessageCard message="Things are terrible." />
     );
     expect(component).toMatchSnapshot();
   });

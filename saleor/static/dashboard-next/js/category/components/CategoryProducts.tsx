@@ -58,7 +58,9 @@ const CategoryProducts: React.StatelessComponent<CategoryProductsProps> = ({
       onNextPage={onNextPage}
       onPreviousPage={onPreviousPage}
       products={
-        data.category && data.category.products && data.category.products.edges
+        data.category &&
+        data.category.products &&
+        data.category.products.edges.map(edge => edge.node)
       }
     />
   </Card>
