@@ -7,9 +7,9 @@ import List, {
 } from "material-ui/List";
 import * as React from "react";
 
-import { CategoryPropertiesQuery } from "../gql-types";
-import i18n from "../i18n";
-import Skeleton from "./Skeleton";
+import { CategoryPropertiesQuery } from "../../gql-types";
+import i18n from "../../i18n";
+import Skeleton from "../Skeleton";
 
 interface CategoryListProps {
   categories?: CategoryPropertiesQuery["category"]["children"]["edges"];
