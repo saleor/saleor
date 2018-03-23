@@ -1,6 +1,6 @@
 from django import forms
+
 from ....product.models import Product
-from ....graphql.product.fields import AttributeField
 
 
 class ProductForm(forms.ModelForm):
