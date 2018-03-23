@@ -2,7 +2,7 @@ import * as React from "react";
 import { MemoryRouter } from "react-router-dom";
 import * as renderer from "react-test-renderer";
 
-import ProductList from "../../category/components/ProductList";
+import ProductList from "../../components/ProductList";
 import productListFixture from "./fixtures/productList";
 
 describe("<ProductList />", () => {

@@ -1,11 +1,10 @@
 import * as React from "react";
-import { MemoryRouter } from "react-router-dom";
 import * as renderer from "react-test-renderer";
 
-import ErrorMessageCard from "../../components/cards/ErrorMessageCard";
+import ErrorMessageCard from "../../components/ErrorMessageCard";
 import errorMessageFixture from "./fixtures/errorMessage";
 
-describe("<ProductChildElement />", () => {
+describe("<ErrorMessageCard />", () => {
   it("renders properly", () => {
     const component = renderer.create(
       <ErrorMessageCard message={errorMessageFixture} />

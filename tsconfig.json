@@ -5,6 +5,6 @@
         "target": "es5"
     },
     "include": [
-        "saleor/static/dashboard-next/**/*"
+        "saleor/static/dashboard-next/js/index.tsx"
     ]
 }
