@@ -2,8 +2,40 @@ import * as React from "react";
 import { MemoryRouter } from "react-router-dom";
 import * as renderer from "react-test-renderer";
 
-import ProductList from "../../components/ProductList";
-import productListFixture from "./fixtures/productList";
+import ProductList from "./ProductList";
+
+const products = [
+  {
+    id: "prod1",
+    name: "Lewis PLC",
+    productType: {
+      id: "123412341234",
+      name: "T-sirts"
+    },
+    thumbnailUrl:
+      "/media/__sized__/products/saleor/static/placeholders/t-shirts/5_ZoF6Xi8-crop-c0-5__0-5-255x255-70.jpg"
+  },
+  {
+    id: "prod2",
+    name: "Kennedy-Ramirez",
+    productType: {
+      id: "123412341234",
+      name: "T-sirts"
+    },
+    thumbnailUrl:
+      "/media/__sized__/products/saleor/static/placeholders/t-shirts/6_07Fa6v8-crop-c0-5__0-5-255x255-70.jpg"
+  },
+  {
+    id: "prod3",
+    name: "Newman, Ashley and Roberson",
+    productType: {
+      id: "123412341234",
+      name: "T-sirts"
+    },
+    thumbnailUrl:
+      "/media/__sized__/products/saleor/static/placeholders/t-shirts/6_zeczDly-crop-c0-5__0-5-255x255-70.jpg"
+  }
+];
 
 describe("<ProductList />", () => {
   it("renders while data is loading", () => {
@@ -25,7 +57,7 @@ describe("<ProductList />", () => {
           hasNextPage={false}
           onNextPage={jest.fn()}
           onPreviousPage={jest.fn()}
-          products={productListFixture}
+          products={products}
         />
       </MemoryRouter>
     );
@@ -38,7 +70,7 @@ describe("<ProductList />", () => {
           hasNextPage={true}
           onNextPage={jest.fn()}
           onPreviousPage={jest.fn()}
-          products={productListFixture}
+          products={products}
         />
       </MemoryRouter>
     );
