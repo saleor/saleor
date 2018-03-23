@@ -5,6 +5,7 @@ from django.utils.translation import pgettext_lazy
 from text_unidecode import unidecode
 
 from ...product.models import Category
+from ..seo.utils import SEO_HELP_TEXTS, SEO_LABELS
 
 
 class CategoryForm(forms.ModelForm):
@@ -32,7 +33,9 @@ class CategoryForm(forms.ModelForm):
                 'Name'),
             'description': pgettext_lazy(
                 'Description',
-                'Description')}
+                'Description'),
+            **SEO_LABELS}
+        help_texts = SEO_HELP_TEXTS
 
     def save(self, commit=True):
         self.instance.slug = slugify(unidecode(self.instance.name))

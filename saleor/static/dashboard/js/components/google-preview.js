@@ -31,7 +31,7 @@ function updateCharsCount(field) {
   if ($fieldLength < $minRecommendedLength) {
     $charCountWrapper.addClass('red-text');
     $charCountWrapper.removeClass('green-text');
-  } else if ($charCountWrapper.hasClass('red-text')) {
+  } else {
     $charCountWrapper.removeClass('red-text');
     $charCountWrapper.addClass('green-text');
   }

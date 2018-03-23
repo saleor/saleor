@@ -345,7 +345,7 @@
       </label>
       <span class="chars-left__count">
         <span class="chars-left__count__current" data-bind="{{ field.field.widget.attrs.id }}">
-        {% blocktrans with current_chars_count=field.value|length max_chars_count=field.field.max_length %}
+        {% blocktrans with current_chars_count=field.value|length max_chars_count=field.field.max_length context "Message showing how many chars were used out of maximum field's length" %}
           {{ current_chars_count }}</span> of {{ max_chars_count }} characters used
         {% endblocktrans %}
       </span>

@@ -4,6 +4,7 @@ from django.utils.translation import pgettext_lazy
 from ...core.utils.text import generate_seo_description
 from ...page.models import Page
 from ..product.forms import RichTextField
+from ..seo.utils import SEO_HELP_TEXTS, SEO_LABELS
 
 
 class PageForm(forms.ModelForm):
@@ -32,11 +33,13 @@ class PageForm(forms.ModelForm):
             'slug': forms.TextInput(attrs={'placeholder': 'example-slug'})}
         labels = {
             'is_visible': pgettext_lazy(
-                'Visibility status indicator', 'Publish')}
+                'Visibility status indicator', 'Publish'),
+            **SEO_LABELS}
         help_texts = {
             'slug': pgettext_lazy(
                 'Form field help text',
-                'Slug is being used to create page URL')}
+                'Slug is being used to create page URL'),
+            **SEO_HELP_TEXTS}
 
     content = RichTextField()
 
