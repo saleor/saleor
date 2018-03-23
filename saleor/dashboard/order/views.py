@@ -623,7 +623,7 @@ def change_fulfillment_tracking(request, order_pk, fulfillment_pk):
 
 
 @staff_member_required
-def ajax_shipping_methods_list(request, order_pk):
+def ajax_order_shipping_methods_list(request, order_pk):
     order = get_object_or_404(Order, pk=order_pk)
     queryset = ShippingMethodCountry.objects.select_related(
         'shipping_method').order_by('price').all()
@@ -638,8 +638,6 @@ def ajax_shipping_methods_list(request, order_pk):
             Q(shipping_method__name__icontains=search_query) |
             Q(price__icontains=search_query))
 
-    shipping_methods = [{'id': '', 'text': '----'}]
-    shipping_methods += [
-        {'id': method.pk, 'text': method.label}
-        for method in queryset]
+    shipping_methods = [
+        {'id': method.pk, 'text': method.label} for method in queryset]
     return JsonResponse({'results': shipping_methods})

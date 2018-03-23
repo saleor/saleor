@@ -51,4 +51,4 @@ urlpatterns = [
         views.order_invoice, name='order-invoice'),
 
     url('^(?P<order_pk>\d+)/ajax/shipping-methods/$',
-        views.ajax_shipping_methods_list, name='ajax-order-shipping-methods')]
+        views.ajax_order_shipping_methods_list, name='ajax-order-shipping-methods')]
