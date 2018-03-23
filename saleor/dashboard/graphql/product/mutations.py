@@ -45,18 +45,30 @@ class CategoryDelete(StaffMemberRequiredMutation, ModelDeleteMutation):
     class Meta:
         model = models.Category
 
+from graphene.types import InputObjectType
+
+
+class ValuesInput(InputObjectType):
+    name = graphene.String(required=True)
+    value = graphene.String(required=True)
+
+
+class AttributesInput(InputObjectType):
+    attrvalues = graphene.List(ValuesInput)
+
 
 class ProductCreateMutation(ModelFormMutation):
     class Arguments:
         product_type_id = graphene.ID()
         category_id = graphene.ID()
         # TODO: add here optional attributes field
+        attributes = AttributesInput(required=False)
 
     class Meta:
         form_class = ProductForm
         # Exclude from input form fields
         # that are being overwritten by arguments
-        exclude = ['product_type', 'category']
+        exclude = ['product_type', 'category', 'attributes']
 
     @classmethod
     def get_form_kwargs(cls, root, info, **input):
