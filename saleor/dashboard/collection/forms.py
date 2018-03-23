@@ -30,6 +30,11 @@ class CollectionForm(forms.ModelForm):
         widgets = {
             'seo_description': CharsLeftWidget,
             'seo_title': CharsLeftWidget}
+        help_texts = {
+            'seo_description': pgettext_lazy(
+                'Form field help text',
+                'Slug is being used to create page URL'),
+            'seo_title': 'Example help text'}
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -38,11 +43,13 @@ class CollectionForm(forms.ModelForm):
         self.fields['seo_description'].widget.attrs.update({
             'id': 'seo_description',
             'data-bind': '',
-            'placeholder': ''})
+            'placeholder': '',
+            'min-recommended-length': 130})
         self.fields['seo_title'].widget.attrs.update({
             'id': 'seo_title',
             'data-bind': self['name'].auto_id,
-            'placeholder': self.instance.name})
+            'placeholder': self.instance.name,
+            'min-recommended-length': 40})
 
     def save(self, commit=True):
         self.instance.slug = slugify(unidecode(self.instance.name))

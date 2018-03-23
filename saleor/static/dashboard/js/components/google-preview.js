@@ -26,6 +26,15 @@ function updateCharsCount(field) {
   const $fieldId = field.attr('id');
   const $charCount = $(`span[data-bind=${$fieldId}]`);
   const $fieldLength = field.val().length || field.attr('placeholder').length;
+  const $minRecommendedLength = field.attr('min-recommended-length');
+  const $charCountWrapper = $charCount.parent();
+  if ($fieldLength < $minRecommendedLength) {
+    $charCountWrapper.addClass('red-text');
+    $charCountWrapper.removeClass('green-text');
+  } else if ($charCountWrapper.hasClass('red-text')) {
+    $charCountWrapper.removeClass('red-text');
+    $charCountWrapper.addClass('green-text');
+  }
   $charCount.text($fieldLength);
 }
 
