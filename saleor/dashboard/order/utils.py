@@ -2,7 +2,6 @@ from django.conf import settings
 from django.contrib.sites.shortcuts import get_current_site
 from django.template.loader import get_template
 
-from ...account.models import Address
 from ...product.utils import decrease_stock
 
 INVOICE_TEMPLATE = 'dashboard/order/pdf/invoice.html'

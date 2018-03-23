@@ -1,18 +1,18 @@
 from datetime import date, timedelta
-from decimal import Decimal
 from unittest.mock import Mock
 
 import pytest
 from freezegun import freeze_time
 from prices import Money, TaxedMoney
 
+from saleor.checkout.utils import get_voucher_discount_for_checkout
 from saleor.discount import (
     DiscountValueType, VoucherApplyToProduct, VoucherType)
 from saleor.discount.forms import CheckoutDiscountForm
 from saleor.discount.models import NotApplicable, Sale, Voucher
 from saleor.discount.utils import (
     decrease_voucher_usage, get_product_discount_on_sale,
-    get_voucher_discount_for_checkout, increase_voucher_usage)
+    increase_voucher_usage)
 from saleor.product.models import Product, ProductVariant
 
 
@@ -154,7 +154,7 @@ def test_shipping_voucher_checkout_discount_not_applicable(
 def test_product_voucher_checkout_discount_not_applicable(
         settings, monkeypatch):
     monkeypatch.setattr(
-        'saleor.discount.utils.get_product_variants_and_prices',
+        'saleor.checkout.utils.get_product_variants_and_prices',
         lambda cart, product: [])
     voucher = Voucher(
         code='unique', type=VoucherType.PRODUCT,
@@ -170,7 +170,7 @@ def test_product_voucher_checkout_discount_not_applicable(
 def test_category_voucher_checkout_discount_not_applicable(
         settings, monkeypatch):
     monkeypatch.setattr(
-        'saleor.discount.utils.get_category_variants_and_prices',
+        'saleor.checkout.utils.get_category_variants_and_prices',
         lambda cart, product: [])
     voucher = Voucher(
         code='unique', type=VoucherType.CATEGORY,
@@ -281,7 +281,7 @@ def test_products_voucher_checkout_discount_not(
         settings, monkeypatch, prices, discount_value, discount_type, apply_to,
         expected_value):
     monkeypatch.setattr(
-        'saleor.discount.utils.get_product_variants_and_prices',
+        'saleor.checkout.utils.get_product_variants_and_prices',
         lambda cart, product: (
             (None, TaxedMoney(
                 net=Money(price, 'USD'), gross=Money(price, 'USD')))
