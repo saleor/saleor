@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`<ProductChildElement /> renders properly 1`] = `
+exports[`<ErrorMessageCard /> renders properly 1`] = `
 <div
   className="MuiPaper-root-1 MuiPaper-elevation2-5 MuiPaper-rounded-2"
 >
