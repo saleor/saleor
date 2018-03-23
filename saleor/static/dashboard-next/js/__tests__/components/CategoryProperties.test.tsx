@@ -4,7 +4,6 @@ import * as renderer from "react-test-renderer";
 
 import CategoryProperties from "../../category/components/CategoryProperties";
 import categoryFixture from "./fixtures/category";
-import categoryListFixture from "./fixtures/categoryList";
 
 describe("<CategoryProperties />", () => {
   it("renders while data is loading", () => {

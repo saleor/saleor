@@ -1,6 +1,5 @@
 import { FormControl, FormHelperText } from "material-ui/Form";
 import Input, { InputLabel } from "material-ui/Input";
-import { withStyles } from "material-ui/styles";
 import * as React from "react";
 
 interface RichTextEditorProps {

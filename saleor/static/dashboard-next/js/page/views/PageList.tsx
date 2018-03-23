@@ -9,7 +9,7 @@ import { stringify as stringifyQs } from "qs";
 import * as React from "react";
 import { Link } from "react-router-dom";
 
-import ErrorMessageCard from "../../components/cards/ErrorMessageCard";
+import ErrorMessageCard from "../../components/ErrorMessageCard";
 import Navigator from "../../components/Navigator";
 import PageHeader from "../../components/PageHeader";
 import i18n from "../../i18n";

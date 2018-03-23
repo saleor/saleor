@@ -13,8 +13,8 @@ import * as Cookies from "universal-cookie";
 
 import AppRoot from "./AppRoot";
 import CategorySection from "./category";
-import PageSection from "./page";
 import "./i18n";
+import PageSection from "./page";
 import theme from "./theme";
 
 const cookies = new Cookies();

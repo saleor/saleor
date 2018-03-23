@@ -7,6 +7,7 @@
     "interface-name": false,
     "member-access": [true, "no-public"],
     "no-console": [true, "log"],
+    "no-implicit-dependencies": [true, "dev"],
     "no-shadowed-variable": false,
     "no-submodule-imports": [true, "material-ui", "material-ui-icons"],
     "no-unused-variable": true
