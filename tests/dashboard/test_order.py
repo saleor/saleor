@@ -2,7 +2,6 @@ from decimal import Decimal
 from unittest.mock import patch
 
 import pytest
-from django.conf import settings
 from django.urls import reverse
 from payments import PaymentStatus
 from prices import Money, TaxedMoney
@@ -1065,7 +1064,8 @@ def test_view_order_customer_edit_not_valid(admin_client, customer_user):
 
 
 @pytest.mark.django_db
-def test_view_order_shipping_edit(admin_client, draft_order, shipping_method):
+def test_view_order_shipping_edit(
+        admin_client, draft_order, shipping_method, settings):
     method = shipping_method.price_per_country.create(
         price=Money(5, settings.DEFAULT_CURRENCY), country_code='PL')
     url = reverse(
@@ -1139,3 +1139,25 @@ def test_view_remove_draft_order_invalid(admin_client, order_with_lines):
 
     assert response.status_code == 404
     assert Order.objects.count() == 1
+
+
+@pytest.mark.django_db
+def test_view_edit_discount(admin_client, draft_order, settings):
+    discount_value = 5
+    total_without_discount = draft_order.total
+    url = reverse(
+        'dashboard:order-discount-edit',
+        kwargs={'order_pk': draft_order.pk})
+    data = {'discount_amount': discount_value}
+
+    response = admin_client.post(url, data)
+
+    assert response.status_code == 302
+    redirect_url = reverse(
+        'dashboard:order-details', kwargs={'order_pk': draft_order.pk})
+    assert get_redirect_location(response) == redirect_url
+
+    draft_order.refresh_from_db()
+    discount_amount = Money(discount_value, settings.DEFAULT_CURRENCY)
+    assert draft_order.discount_amount == discount_amount
+    assert draft_order.total == total_without_discount - discount_amount

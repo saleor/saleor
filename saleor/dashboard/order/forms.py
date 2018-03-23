@@ -194,6 +194,22 @@ class OrderRemoveShippingForm(forms.ModelForm):
         return super().save(commit)
 
 
+class OrderEditDiscountForm(forms.ModelForm):
+    """Edit discount amount in an order."""
+
+    class Meta:
+        model = Order
+        fields = ['discount_amount']
+        labels = {
+            'discount_amount': pgettext_lazy(
+                'Order discount amount fixed value',
+                'Discount amount')}
+
+    def save(self, commit=True):
+        recalculate_order(self.instance)
+        return super().save(commit)
+
+
 class OrderNoteForm(forms.ModelForm):
     class Meta:
         model = OrderNote
