@@ -11,7 +11,27 @@ from ..core.types import (
     CountableDjangoObjectType, Money, TaxedMoney, TaxedMoneyRange)
 from ..utils import get_node
 from .filters import ProductFilterSet
-from .fields import AttributeField
+
+
+class ProductAttributes(graphene.ObjectType):
+    name = graphene.String(default_value=None)
+    value = graphene.String(default_value=None)
+
+
+class ProductVariant(CountableDjangoObjectType):
+    stock_quantity = graphene.Int()
+    price_override = graphene.Field(Money)
+    attributes = graphene.List(ProductAttributes)
+
+    class Meta:
+        model = models.ProductVariant
+        interfaces = [relay.Node]
+
+    def resolve_stock_quantity(self, info):
+        return self.get_stock_quantity()
+
+    def resolve_attributes(self, info):
+        return resolve_instance_attributes(instance=self, info=info)
 
 
 class ProductAvailability(graphene.ObjectType):
@@ -32,6 +52,7 @@ class Product(CountableDjangoObjectType):
             description='The size of a thumbnail, for example 255x255'))
     availability = graphene.Field(ProductAvailability)
     price = graphene.Field(Money)
+    attributes = graphene.List(ProductAttributes)
 
     class Meta:
         model = models.Product
@@ -50,6 +71,9 @@ class Product(CountableDjangoObjectType):
         availability = get_availability(
             self, context.discounts, context.currency)
         return ProductAvailability(**availability._asdict())
+
+    def resolve_attributes(self, info):
+        return resolve_instance_attributes(instance=self, info=info)
 
 
 class ProductType(CountableDjangoObjectType):
@@ -96,34 +120,7 @@ class Category(CountableDjangoObjectType):
         return qs.distinct()
 
 
-class ProductAttributes(graphene.ObjectType):
-    name = graphene.String()
-    value = graphene.String()
 
-
-class ProductVariant(CountableDjangoObjectType):
-    stock_quantity = graphene.Int()
-    price_override = graphene.Field(Money)
-    attributes = graphene.List(ProductAttributes)
-
-    class Meta:
-        model = models.ProductVariant
-        interfaces = [relay.Node]
-
-    def resolve_stock_quantity(self, info):
-        return self.get_stock_quantity()
-
-    def resolve_attributes(self, info):
-        product_attributes = dict(
-            models.ProductAttribute.objects.values_list('id', 'slug'))
-        attribute_values = dict(
-            models.AttributeChoiceValue.objects.values_list('id', 'slug'))
-        attribute_list = []
-        for k, v in self.attributes.items():
-            name = product_attributes.get(int(k))
-            value = attribute_values.get(int(v))
-            attribute_list.append(ProductAttributes(name=name, value=value))
-        return attribute_list
 
 class ProductImage(CountableDjangoObjectType):
     url = graphene.String(size=graphene.String())
@@ -154,6 +151,22 @@ class ProductAttribute(CountableDjangoObjectType):
 
     def resolve_values(self, info):
         return self.values.all()
+
+
+def resolve_instance_attributes(instance, info):
+    product_attributes = dict(
+        models.ProductAttribute.objects.values_list('id', 'slug'))
+    attribute_values = dict(
+        models.AttributeChoiceValue.objects.values_list('id', 'slug'))
+    attribute_list = []
+    if instance.attributes.items():
+        for k, v in instance.attributes.items():
+            value = None
+            name = product_attributes.get(int(k))
+            if v:
+                value = attribute_values.get(int(v))
+            attribute_list.append(ProductAttributes(name=name, value=value))
+    return attribute_list
 
 
 def resolve_categories(info, level=None):

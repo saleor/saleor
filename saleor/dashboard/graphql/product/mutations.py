@@ -1,13 +1,14 @@
 import graphene
+from graphene.types import InputObjectType
 
 from ....graphql.product.types import Category, ProductType
 from ....graphql.utils import get_node
 from ....product import models
 from ...category.forms import CategoryForm
-from .forms import ProductForm
 from ..mutations import (
     BaseMutation, ModelDeleteMutation, ModelFormMutation,
-    ModelFormUpdateMutation, StaffMemberRequiredMutation)
+    ModelFormUpdateMutation, StaffMemberRequiredMutation, convert_form_errors)
+from .forms import ProductForm
 
 
 class CategoryCreateMutation(StaffMemberRequiredMutation, ModelFormMutation):
@@ -45,24 +46,17 @@ class CategoryDelete(StaffMemberRequiredMutation, ModelDeleteMutation):
     class Meta:
         model = models.Category
 
-from graphene.types import InputObjectType
-
 
 class ValuesInput(InputObjectType):
     name = graphene.String(required=True)
     value = graphene.String(required=True)
 
 
-class AttributesInput(InputObjectType):
-    attrvalues = graphene.List(ValuesInput)
-
-
 class ProductCreateMutation(ModelFormMutation):
     class Arguments:
         product_type_id = graphene.ID()
         category_id = graphene.ID()
-        # TODO: add here optional attributes field
-        attributes = AttributesInput(required=False)
+        attributes = graphene.Argument(graphene.List(ValuesInput))
 
     class Meta:
         form_class = ProductForm
@@ -80,3 +74,33 @@ class ProductCreateMutation(ModelFormMutation):
         kwargs['data']['product_type'] = product_type.id
         kwargs['data']['category'] = category.id
         return kwargs
+
+    @classmethod
+    def mutate(cls, root, info, **kwargs):
+        form_kwargs = cls.get_form_kwargs(root, info, **kwargs)
+        attributes = form_kwargs.get('data').pop('attributes', None)
+        if attributes:
+            attr_ids = {}
+            attr_name_id = dict(
+                models.ProductAttribute.objects.values_list('name', 'id'))
+            value_name_id = dict(
+                models.AttributeChoiceValue.objects.values_list('name', 'id'))
+            for attribute in attributes:
+                attr_name = attribute.get('name')
+                if attr_name not in attr_name_id:
+                    raise ValueError(
+                        'Unknown attribute name: %r' % (attr_name,))
+                attr_value = attribute.get('value')
+                attr_ids[attr_name_id.get(
+                    attr_name)] = value_name_id.get(attr_value)
+
+            form = cls._meta.form_class(**form_kwargs)
+            if form.is_valid():
+                instance = form.instance
+                instance.attributes = attr_ids
+                instance.save()
+                kwargs = {cls._meta.return_field_name: instance}
+                return cls(errors=[], **kwargs)
+            errors = convert_form_errors(form)
+            return cls(errors=errors)
+        return super().mutate(root, info, **kwargs)
