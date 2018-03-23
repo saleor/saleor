@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`<CategoryProperties /> renders when data is loaded 1`] = `
+exports[`<CategoryPropertiesCard /> renders when data is loaded 1`] = `
 <div
   className="MuiPaper-root-1 MuiPaper-elevation2-5 MuiPaper-rounded-2"
 >
@@ -10,7 +10,7 @@ exports[`<CategoryProperties /> renders when data is loaded 1`] = `
     <h2
       className="MuiTypography-root-34 MuiTypography-title-40 Component-title-33"
     >
-      Books
+      Shoes
     </h2>
     <div
       className="Component-action-28"
@@ -95,13 +95,13 @@ exports[`<CategoryProperties /> renders when data is loaded 1`] = `
     <p
       className="MuiTypography-root-34 MuiTypography-body1-43"
     >
-      Girl remain increase quite. More opportunity special special life foot employee. Wall employee all relate control cause need.
+      These are the best shoes.
     </p>
   </div>
 </div>
 `;
 
-exports[`<CategoryProperties /> renders while data is loading 1`] = `
+exports[`<CategoryPropertiesCard /> renders while data is loading 1`] = `
 <div
   className="MuiPaper-root-1 MuiPaper-elevation2-5 MuiPaper-rounded-2"
 >

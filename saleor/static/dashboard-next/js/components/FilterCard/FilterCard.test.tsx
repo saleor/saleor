@@ -1,7 +1,7 @@
 import * as React from "react";
 import * as renderer from "react-test-renderer";
 
-import FilterCard from "../../components/FilterCard";
+import FilterCard from "./FilterCard";
 
 describe("<FilterCard />", () => {
   it("renders properly", () => {

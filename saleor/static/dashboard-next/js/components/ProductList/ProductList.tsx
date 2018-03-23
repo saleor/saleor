@@ -10,10 +10,10 @@ import Table, {
 } from "material-ui/Table";
 import * as React from "react";
 
-import { CategoryPropertiesQuery } from "../gql-types";
-import i18n from "../i18n";
-import Skeleton from "./Skeleton";
-import TablePagination from "./TablePagination";
+import { CategoryPropertiesQuery } from "../../gql-types";
+import i18n from "../../i18n";
+import Skeleton from "../Skeleton";
+import TablePagination from "../TablePagination";
 
 const decorate = withStyles(theme => ({
   avatarCell: {
@@ -26,7 +26,14 @@ const decorate = withStyles(theme => ({
 interface ProductListProps {
   hasNextPage?: boolean;
   hasPreviousPage?: boolean;
-  products?: CategoryPropertiesQuery["category"]["products"]["edges"];
+  products?: Array<{
+    id: string;
+    name: string;
+    productType: {
+      name: string;
+    };
+    thumbnailUrl: string;
+  }>;
   onNextPage();
   onPreviousPage();
 }
@@ -75,13 +82,13 @@ export const ProductList = decorate<ProductListProps>(
             </TableCell>
           </TableRow>
         ) : products.length > 0 ? (
-          products.map(edge => (
-            <TableRow key={edge.node.id}>
+          products.map(product => (
+            <TableRow key={product.id}>
               <TableCell className={classes.avatarCell}>
-                <Avatar src={edge.node.thumbnailUrl} />
+                <Avatar src={product.thumbnailUrl} />
               </TableCell>
-              <TableCell>{edge.node.name}</TableCell>
-              <TableCell>{edge.node.productType.name}</TableCell>
+              <TableCell>{product.name}</TableCell>
+              <TableCell>{product.productType.name}</TableCell>
             </TableRow>
           ))
         ) : (
