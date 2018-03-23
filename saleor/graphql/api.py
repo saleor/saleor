@@ -14,27 +14,32 @@ from .utils import get_node
 
 
 class Query(graphene.ObjectType):
-    node = graphene.Node.Field()
-    debug = graphene.Field(DjangoDebug, name='__debug')
-
+    attributes = DjangoFilterConnectionField(
+        ProductAttribute, filterset_class=DistinctFilterSet,
+        in_category=graphene.Argument(graphene.ID),
+        description="A list of the shop's attributes.")
     categories = DjangoFilterConnectionField(
         Category, filterset_class=DistinctFilterSet,
-        level=graphene.Argument(graphene.Int))
-    category = graphene.Field(Category, id=graphene.Argument(graphene.ID))
-
+        level=graphene.Argument(graphene.Int),
+        description="A list of the shop's categories.")
+    category = graphene.Field(
+        Category, id=graphene.Argument(graphene.ID),
+        description="Lookup a category by ID.")
     page = graphene.Field(
-        Page, id=graphene.Argument(graphene.ID), slug=graphene.String())
+        Page, id=graphene.Argument(graphene.ID), slug=graphene.String(),
+        description="Lookup a page by ID or by slug.")
     pages = DjangoFilterConnectionField(
         Page, filterset_class=DistinctFilterSet,
-        level=graphene.Argument(graphene.Int))
-
-    attributes = DjangoFilterConnectionField(
-        ProductAttribute,
-        filterset_class=DistinctFilterSet,
-        in_category=graphene.Argument(graphene.ID))
-    product = graphene.Field(Product, id=graphene.Argument(graphene.ID))
+        level=graphene.Argument(graphene.Int),
+        description="A list of the shop's pages.")
+    product = graphene.Field(
+        Product, id=graphene.Argument(graphene.ID),
+        description="Lookup a product by ID.")
     products = DjangoFilterConnectionField(
-        Product, filterset_class=ProductFilterSet)
+        Product, filterset_class=ProductFilterSet,
+        description="A list of the shop's products.")
+    node = graphene.Node.Field()
+    debug = graphene.Field(DjangoDebug, name='__debug')
 
     def resolve_category(self, info, id):
         return get_node(info, id, only_type=Category)
@@ -62,9 +67,8 @@ class Query(graphene.ObjectType):
 
 
 class Mutations(graphene.ObjectType):
-    token_auth = graphql_jwt.ObtainJSONWebToken.Field()
-    verify_token = graphql_jwt.Verify.Field()
-    refresh_token = graphql_jwt.Refresh.Field()
+    access_token_create = graphql_jwt.ObtainJSONWebToken.Field()
+    access_token_renew = graphql_jwt.Refresh.Field()
 
 
 schema = graphene.Schema(Query, Mutations)

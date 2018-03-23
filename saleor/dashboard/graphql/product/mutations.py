@@ -5,7 +5,7 @@ from ....graphql.product.types import Category, ProductType
 from ....graphql.utils import get_node
 from ....product import models
 from ...category.forms import CategoryForm
-from ..mutations import (
+from ..core.mutations import (
     BaseMutation, ModelDeleteMutation, ModelFormMutation,
     ModelFormUpdateMutation, StaffMemberRequiredMutation, convert_form_errors)
 from ..utils import get_attributes_dict_from_list
@@ -17,6 +17,7 @@ class CategoryCreateMutation(StaffMemberRequiredMutation, ModelFormMutation):
         parent_id = graphene.ID()
 
     class Meta:
+        description = "Creates a new category."
         form_class = CategoryForm
 
     @classmethod
@@ -34,6 +35,7 @@ class CategoryCreateMutation(StaffMemberRequiredMutation, ModelFormMutation):
 class CategoryUpdateMutation(
         StaffMemberRequiredMutation, ModelFormUpdateMutation):
     class Meta:
+        description = "Updates a existing category."
         form_class = CategoryForm
 
     @classmethod
@@ -45,6 +47,7 @@ class CategoryUpdateMutation(
 
 class CategoryDelete(StaffMemberRequiredMutation, ModelDeleteMutation):
     class Meta:
+        description = "Permanently deletes a category."
         model = models.Category
 
 
