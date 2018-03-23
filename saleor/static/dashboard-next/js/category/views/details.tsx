@@ -1,32 +1,21 @@
-import AddIcon from "material-ui-icons/Add";
-import FilterListIcon from "material-ui-icons/FilterList";
-import Card from "material-ui/Card";
 import Drawer from "material-ui/Drawer";
 import Grid from "material-ui/Grid";
 import Hidden from "material-ui/Hidden";
-import IconButton from "material-ui/IconButton";
-import { withStyles, WithStyles } from "material-ui/styles";
+import { withStyles } from "material-ui/styles";
 import { stringify as stringifyQs } from "qs";
 import * as React from "react";
-import { MutationOptions } from "react-apollo";
-import { Link, Redirect } from "react-router-dom";
+import { Redirect } from "react-router-dom";
 
-import ErrorMessageCard from "../../components/cards/ErrorMessageCard";
+import ErrorMessageCard from "../../components/ErrorMessageCard";
 import Navigator, { NavigatorLink } from "../../components/Navigator";
-import PageHeader from "../../components/PageHeader";
 import Toggle from "../../components/Toggle";
-import i18n from "../../i18n";
+import { CategoryPropertiesQuery } from "../../gql-types";
 import CategoryDeleteDialog from "../components/CategoryDeleteDialog";
 import CategoryProducts from "../components/CategoryProducts";
 import CategoryProperties from "../components/CategoryProperties";
 import CategorySubcategories from "../components/CategorySubcategories";
 import ProductFilters from "../components/ProductFilters";
 import RootCategoryList from "../components/RootCategoryList";
-import {
-  CategoryDeleteMutation,
-  CategoryDeleteMutationVariables,
-  CategoryPropertiesQuery
-} from "../gql-types";
 import { categoryAddUrl, categoryEditUrl, categoryShowUrl } from "../index";
 import {
   categoryDeleteMutation,
@@ -38,8 +27,6 @@ import {
   TypedCategoryPropertiesQuery,
   TypedRootCategoryChildrenQuery
 } from "../queries";
-
-const { Component } = React;
 
 const decorate = withStyles(theme => ({
   root: {

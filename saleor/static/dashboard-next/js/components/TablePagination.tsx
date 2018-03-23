@@ -3,8 +3,6 @@
 import { withStyles } from "material-ui/styles";
 import { TableCell } from "material-ui/Table";
 import Toolbar from "material-ui/Toolbar";
-import Typography from "material-ui/Typography";
-import PropTypes from "prop-types";
 import * as React from "react";
 
 import TablePaginationActions from "./TablePaginationActions";

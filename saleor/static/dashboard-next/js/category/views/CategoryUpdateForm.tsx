@@ -1,10 +1,9 @@
 import Card from "material-ui/Card";
-import Grid from "material-ui/Grid";
 import { CircularProgress } from "material-ui/Progress";
 import * as React from "react";
 import { Redirect } from "react-router-dom";
 
-import ErrorMessageCard from "../../components/cards/ErrorMessageCard";
+import ErrorMessageCard from "../../components/ErrorMessageCard";
 import { NavigatorLink } from "../../components/Navigator";
 import PageHeader from "../../components/PageHeader";
 import i18n from "../../i18n";
