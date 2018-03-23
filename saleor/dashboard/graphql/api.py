@@ -14,7 +14,7 @@ from .page.types import resolve_all_pages
 from .product.filters import ProductFilter
 from .product.mutations import (
     CategoryCreateMutation, CategoryDelete, CategoryUpdateMutation,
-    ProductCreateMutation)
+    ProductCreateMutation, ProductDeleteMutation)
 
 
 class Query(graphene.ObjectType):
@@ -72,6 +72,7 @@ class Mutations(graphene.ObjectType):
     page_update = PageUpdate.Field()
 
     product_create = ProductCreateMutation.Field()
+    product_delete = ProductDeleteMutation.Field()
 
     token_auth = graphql_jwt.ObtainJSONWebToken.Field()
     verify_token = graphql_jwt.Verify.Field()

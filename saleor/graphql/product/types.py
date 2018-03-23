@@ -120,8 +120,6 @@ class Category(CountableDjangoObjectType):
         return qs.distinct()
 
 
-
-
 class ProductImage(CountableDjangoObjectType):
     url = graphene.String(size=graphene.String())
 
