@@ -6,9 +6,9 @@ import IconButton from "material-ui/IconButton";
 import * as React from "react";
 
 import PageHeader from "../../components/PageHeader";
+import ProductList from "../../components/ProductList";
+import { CategoryPropertiesQuery } from "../../gql-types";
 import i18n from "../../i18n";
-import ProductList from "../components/ProductList";
-import { CategoryPropertiesQuery } from "../gql-types";
 
 interface CategoryProductsProps {
   data: CategoryPropertiesQuery;

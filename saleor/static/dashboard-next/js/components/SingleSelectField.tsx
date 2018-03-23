@@ -1,4 +1,3 @@
-import Chip from "material-ui/Chip";
 import { FormControl, FormHelperText } from "material-ui/Form";
 import { InputLabel } from "material-ui/Input";
 import { MenuItem } from "material-ui/Menu";

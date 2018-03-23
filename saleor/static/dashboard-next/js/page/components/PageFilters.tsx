@@ -1,7 +1,7 @@
 import TextField from "material-ui/TextField";
 import * as React from "react";
 
-import FilterCard from "../../components/cards/FilterCard";
+import FilterCard from "../../components/FilterCard";
 import FormSpacer from "../../components/FormSpacer";
 import i18n from "../../i18n";
 
@@ -32,7 +32,7 @@ export class PageFilters extends React.Component<
   }
 
   render() {
-    const { handleClear, handleSubmit, formState } = this.props;
+    const { handleClear, handleSubmit } = this.props;
     const handleInputChange = event => {
       const { name, value } = event.target;
       const debounceTimeout = setTimeout(() => {

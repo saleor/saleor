@@ -1,4 +1,3 @@
-import grey from "material-ui/colors/grey";
 import { createMuiTheme } from "material-ui/styles";
 import { darken } from "material-ui/styles/colorManipulator";
 
@@ -12,7 +11,6 @@ const createShadow = (pv, pb, ps, uv, ub, us, av, ab, as) =>
 const primary = "#2bb673";
 const secondary = "#03a9f4";
 
-const transition = "200ms";
 export default createMuiTheme({
   overrides: {
     MuiButton: {

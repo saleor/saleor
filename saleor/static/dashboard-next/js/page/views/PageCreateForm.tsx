@@ -1,25 +1,12 @@
-import DeleteForeverIcon from "material-ui-icons/DeleteForever";
 import Card from "material-ui/Card";
-import Grid from "material-ui/Grid";
-import IconButton from "material-ui/IconButton";
-import { CircularProgress } from "material-ui/Progress";
-import TextField from "material-ui/TextField";
 import * as React from "react";
 import { Redirect } from "react-router";
 
-import ErrorMessageCard from "../../components/cards/ErrorMessageCard";
 import { NavigatorLink } from "../../components/Navigator";
 import PageHeader from "../../components/PageHeader";
-import RichTextEditor from "../../components/RichTextEditor";
 import i18n from "../../i18n";
 import PageBaseForm from "../components/PageBaseForm";
-import {
-  pageCreateMutation,
-  pageDeleteMutation,
-  TypedPageCreateMutation,
-  TypedPageDeleteMutation
-} from "../mutations";
-import { pageDetailsQuery, TypedPageDetailsQuery } from "../queries";
+import { pageCreateMutation, TypedPageCreateMutation } from "../mutations";
 
 interface PageCreateFormProps {
   id: string;
