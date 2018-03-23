@@ -2,8 +2,7 @@ import * as React from "react";
 import { MemoryRouter } from "react-router-dom";
 import * as renderer from "react-test-renderer";
 
-import CategoryList from "../../category/components/CategoryList";
-import categoryFixture from "./fixtures/category";
+import CategoryList from "../../components/CategoryList";
 import categoryListFixture from "./fixtures/categoryList";
 
 describe("<CategoryList />", () => {
