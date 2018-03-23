@@ -1,7 +1,7 @@
 import TextField from "material-ui/TextField";
 import * as React from "react";
 
-import FilterCard from "../../components/cards/FilterCard";
+import FilterCard from "../../components/FilterCard";
 import FormSpacer from "../../components/FormSpacer";
 import MultiSelectField from "../../components/MultiSelectField";
 import PriceField from "../../components/PriceField";
@@ -47,7 +47,7 @@ export class ProductFilters extends Component<
   }
 
   render() {
-    const { handleSubmit, productTypes, handleClear, formState } = this.props;
+    const { handleSubmit, productTypes, handleClear } = this.props;
     const publishingStatuses = [
       {
         label: i18n.t("Published", { context: "Product publishing status" }),

@@ -3,15 +3,13 @@ import Card from "material-ui/Card";
 import Grid from "material-ui/Grid";
 import IconButton from "material-ui/IconButton";
 import { CircularProgress } from "material-ui/Progress";
-import TextField from "material-ui/TextField";
 import * as React from "react";
 import { Redirect } from "react-router";
 
 import { DialogContentText } from "material-ui/Dialog";
-import ErrorMessageCard from "../../components/cards/ErrorMessageCard";
+import ErrorMessageCard from "../../components/ErrorMessageCard";
 import { NavigatorLink } from "../../components/Navigator";
 import PageHeader from "../../components/PageHeader";
-import RichTextEditor from "../../components/RichTextEditor";
 import i18n from "../../i18n";
 import PageBaseForm from "../components/PageBaseForm";
 import PageDeleteDialog from "../components/PageDeleteDialog";

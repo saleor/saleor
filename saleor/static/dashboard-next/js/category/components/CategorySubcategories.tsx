@@ -3,10 +3,10 @@ import Card from "material-ui/Card";
 import IconButton from "material-ui/IconButton";
 import * as React from "react";
 
+import CategoryList from "../../components/CategoryList";
 import PageHeader from "../../components/PageHeader";
+import { CategoryPropertiesQuery } from "../../gql-types";
 import i18n from "../../i18n";
-import CategoryList from "../components/CategoryList";
-import { CategoryPropertiesQuery } from "../gql-types";
 
 interface CategorySubcategoriesProps {
   data: CategoryPropertiesQuery;

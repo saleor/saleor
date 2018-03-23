@@ -1,19 +1,15 @@
 import Folder from "material-ui-icons/Folder";
-import Button from "material-ui/Button";
-import Grid from "material-ui/Grid";
 import List, {
   ListItem,
   ListItemIcon,
   ListItemText,
   ListSubheader
 } from "material-ui/List";
-import Typography from "material-ui/Typography";
 import * as React from "react";
-import { Link } from "react-router-dom";
 
-import Skeleton from "../../components/Skeleton";
-import { CategoryPropertiesQuery } from "../../gql-types";
-import i18n from "../../i18n";
+import { CategoryPropertiesQuery } from "../gql-types";
+import i18n from "../i18n";
+import Skeleton from "./Skeleton";
 
 interface CategoryListProps {
   categories?: CategoryPropertiesQuery["category"]["children"]["edges"];

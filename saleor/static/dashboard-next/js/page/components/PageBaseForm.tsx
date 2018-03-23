@@ -1,6 +1,5 @@
 import Button from "material-ui/Button";
 import { CardContent } from "material-ui/Card";
-import CheckBox from "material-ui/Checkbox";
 import Grid from "material-ui/Grid";
 import { withStyles, WithStyles } from "material-ui/styles";
 import TextField from "material-ui/TextField";
@@ -12,7 +11,6 @@ import ControlledCheckbox from "../../components/ControlledCheckbox";
 import FormSpacer from "../../components/FormSpacer";
 import RichTextEditor from "../../components/RichTextEditor";
 import i18n from "../../i18n";
-import { pageDetailsQuery, TypedPageDetailsQuery } from "../queries";
 
 interface PageUpdateFormComponentState {
   availableOn: string;
@@ -74,13 +72,7 @@ export const PageUpdateFormComponent = decorate(
     };
 
     render() {
-      const {
-        classes,
-        created,
-        errors,
-        formInitialValues,
-        handleSubmit
-      } = this.props;
+      const { classes, created, errors, handleSubmit } = this.props;
       const combinedErrors = errors
         ? (errors.reduce((prev, curr) => {
             prev[curr.field] = curr.message;
