@@ -3,20 +3,22 @@
 {% load i18n %}
 
 <div class='google-preview'>
-  <div class='container'>
+  <div class='google-preview__container'>
     <p class="flow-text">Search engine listing preview</p>
     <br>
     <div id="preview-error"></div>
-    <div class="preview">
-      <div class='title'>
+    <div id="google-preview">
+      <div class='google-preview__title'>
         <a id="google-preview-title" href='#'>{{ object.seo_title|default:form.seo_title.field.widget.attrs.placeholder }}</a>
       </div>
-      {% if object.pk %}
-        <div class='url'>{% build_absolute_uri request=request location=object.get_absolute_url %}</div>
-      {% else %}
-        <div class='url'>{% build_absolute_uri request=request location="/" %}</div>
-      {% endif %}
-      <div id="google-preview-description" class='description'>{{ object.seo_description|default:form.seo_description.field.widget.attrs.placeholder }}</div>
+      <div class='google-preview__url'>
+        {% if object.pk %}
+          {% build_absolute_uri request=request location=object.get_absolute_url %}
+        {% else %}
+          {% build_absolute_uri request=request location="/" %}
+        {% endif %}
+      </div>
+      <div id="google-preview-description" class='google-preview__description'>{{ object.seo_description|default:form.seo_description.field.widget.attrs.placeholder }}</div>
     </div>
   </div>
 </div>

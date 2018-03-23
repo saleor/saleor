@@ -17,10 +17,17 @@ if ($descriptionMaterialize) {
 
 const $googleTitlePreview = $('#google-preview-title');
 const $googleDescriptionPreview = $('#google-preview-description');
-const $preview = $('.preview');
+const $preview = $('#google-preview');
 const $previewErrors = $('#preview-error');
 
 const watchedEvents = 'input propertychange cut paste copy change';
+
+function updateCharsCount(field) {
+  const $fieldId = field.attr('id');
+  const $charCount = $(`span[data-bind=${$fieldId}]`);
+  const $fieldLength = field.val().length || field.attr('placeholder').length;
+  $charCount.text($fieldLength);
+}
 
 function checkForErrors() {
   const $descriptionText = $googleDescriptionPreview.text();
@@ -58,6 +65,7 @@ function updatePlaceholderOnInput(field, seoField, previewField) {
       previewField.text(truncate($placeholderText, seoField));
     }
     checkForErrors();
+    updateCharsCount(seoField);
   });
 }
 
@@ -72,6 +80,7 @@ function updatePreviewOnInput(seoField, previewField) {
       previewField.text(truncate($placeholderValue, seoField));
     }
     checkForErrors();
+    updateCharsCount(seoField);
   });
 }
 
@@ -82,3 +91,5 @@ if ($description) {
 }
 updatePreviewOnInput($seoTitle, $googleTitlePreview);
 updatePreviewOnInput($seoDescription, $googleDescriptionPreview);
+updateCharsCount($seoTitle);
+updateCharsCount($seoDescription);

@@ -343,8 +343,13 @@
           {% trans "(optional)" context "Dashboard form labels" %}
         {% endif %}
       </label>
-      <span class="chars-left__count {{ field.auto_id }}">10 out of 10 chars used</span>
-      </div>
+      <span class="chars-left__count">
+        <span class="chars-left__count__current" data-bind="{{ field.field.widget.attrs.id }}">
+        {% blocktrans with current_chars_count=field.value|length max_chars_count=field.field.max_length %}
+          {{ current_chars_count }}</span> of {{ max_chars_count }} characters used
+        {% endblocktrans %}
+      </span>
+    </div>
     {{ field }}
     {% for error in field.errors %}
       <p class="help-block materialize-red-text">{{ error }}</p>

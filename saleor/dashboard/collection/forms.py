@@ -28,8 +28,8 @@ class CollectionForm(forms.ModelForm):
                 'Products selection',
                 'Background Image')}
         widgets = {
-            'seo_description': CharsLeftWidget
-        }
+            'seo_description': CharsLeftWidget,
+            'seo_title': CharsLeftWidget}
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
