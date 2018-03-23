@@ -32,11 +32,17 @@ class Error(graphene.ObjectType):
     field = graphene.String()
     message = graphene.String()
 
+    class Meta:
+        description = "Represents an error in the input of a mutation."
+
 
 class Money(graphene.ObjectType):
-    currency = graphene.String()
+    currency = graphene.String(description="")
     amount = graphene.Float()
     localized = graphene.String()
+
+    class Meta:
+        description = "Represents money."
 
     def resolve_localized(self, info):
         return prices_i18n.amount(self)
@@ -47,7 +53,13 @@ class TaxedMoney(graphene.ObjectType):
     gross = graphene.Field(Money)
     net = graphene.Field(Money)
 
+    class Meta:
+        description = "Represents taxed money."
+
 
 class TaxedMoneyRange(graphene.ObjectType):
     start = graphene.Field(TaxedMoney)
     stop = graphene.Field(TaxedMoney)
+
+    class Meta:
+        description = "Represents a range of monetary values."

@@ -23,12 +23,18 @@ class Query(graphene.ObjectType):
 
     categories = DjangoFilterConnectionField(
         Category, filterset_class=DistinctFilterSet,
-        level=graphene.Argument(graphene.Int))
-    category = graphene.Field(Category, id=graphene.Argument(graphene.ID))
+        level=graphene.Argument(graphene.Int),
+        description="A list of shop's categories.")
+    category = graphene.Field(
+        Category, id=graphene.Argument(graphene.ID),
+        description="Lookup a category by ID.")
 
-    page = graphene.Field(Page, id=graphene.Argument(graphene.ID))
+    page = graphene.Field(
+        Page, id=graphene.Argument(graphene.ID),
+        description="Lookup a page by ID.")
     pages = DjangoFilterConnectionField(
-        Page, filterset_class=DistinctFilterSet)
+        Page, filterset_class=DistinctFilterSet,
+        description="A list of shop's pages.")
 
     product = graphene.Field(Product, id=graphene.Argument(graphene.ID))
     products = DjangoFilterConnectionField(
@@ -73,13 +79,8 @@ class Mutations(graphene.ObjectType):
     page_delete = PageDelete.Field()
     page_update = PageUpdate.Field()
 
-    product_create = ProductCreateMutation.Field()
-    product_delete = ProductDeleteMutation.Field()
-    product_update = ProductUpdateMutation.Field()
-
-    token_auth = graphql_jwt.ObtainJSONWebToken.Field()
-    verify_token = graphql_jwt.Verify.Field()
-    refresh_token = graphql_jwt.Refresh.Field()
+    access_token_create = graphql_jwt.ObtainJSONWebToken.Field()
+    access_token_renew = graphql_jwt.Refresh.Field()
 
 
 schema = graphene.Schema(Query, Mutations)

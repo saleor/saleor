@@ -7,9 +7,8 @@ from graphene_django.form_converter import convert_form_field
 from graphene_django.registry import get_global_registry
 from graphql_jwt.decorators import staff_member_required
 
-from ...graphql.core.types import Error
-from ...graphql.utils import get_node
-from .utils import get_attributes_dict_from_list
+from ....graphql.core.types import Error
+from ....graphql.utils import get_node
 
 registry = get_global_registry()
 
@@ -48,7 +47,9 @@ def get_output_fields(model, return_field_name):
 
 
 class BaseMutation(graphene.Mutation):
-    errors = graphene.List(Error)
+    errors = graphene.List(
+        Error,
+        description="List of errors that occurred executing the mutation.")
 
     class Meta:
         abstract = True
