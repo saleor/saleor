@@ -5,7 +5,6 @@ import Dialog, {
   DialogTitle
 } from "material-ui/Dialog";
 import { withStyles } from "material-ui/styles";
-import Typography from "material-ui/Typography";
 import * as React from "react";
 
 import i18n from "../../i18n";

@@ -1,27 +1,27 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`<CategoryDetails /> renders properly 1`] = `
+exports[`<FilterCard /> renders properly 1`] = `
 <div
-  className="MuiPaper-root-2 MuiPaper-elevation2-6 MuiPaper-rounded-3"
+  className="MuiPaper-root-1 MuiPaper-elevation2-5 MuiPaper-rounded-2"
 >
   <form>
     <div
-      className="MuiCardHeader-root-29"
+      className="MuiCardHeader-root-28"
     >
       <div
-        className="MuiCardHeader-content-32"
+        className="MuiCardHeader-content-31"
       >
         <span
-          className="MuiTypography-root-35 MuiTypography-headline-40 MuiCardHeader-title-33"
+          className="MuiTypography-root-34 MuiTypography-headline-39 MuiCardHeader-title-32"
         >
           Filters
         </span>
       </div>
       <div
-        className="MuiCardHeader-action-31"
+        className="MuiCardHeader-action-30"
       >
         <button
-          className="MuiButtonBase-root-65 MuiIconButton-root-59"
+          className="MuiButtonBase-root-64 MuiIconButton-root-58"
           disabled={false}
           onBlur={[Function]}
           onClick={[MockFunction]}
@@ -38,11 +38,11 @@ exports[`<CategoryDetails /> renders properly 1`] = `
           type="button"
         >
           <span
-            className="MuiIconButton-label-64"
+            className="MuiIconButton-label-63"
           >
             <svg
               aria-hidden="true"
-              className="MuiSvgIcon-root-68"
+              className="MuiSvgIcon-root-67"
               color={undefined}
               focusable="false"
               viewBox="0 0 24 24"
@@ -53,13 +53,13 @@ exports[`<CategoryDetails /> renders properly 1`] = `
             </svg>
           </span>
           <span
-            className="MuiTouchRipple-root-74"
+            className="MuiTouchRipple-root-73"
           />
         </button>
       </div>
     </div>
     <div
-      className="MuiCardContent-root-81"
+      className="MuiCardContent-root-80"
     />
   </form>
 </div>

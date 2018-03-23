@@ -1,8 +1,7 @@
 import Button from "material-ui/Button";
-import Card, { CardActions, CardContent } from "material-ui/Card";
+import { CardContent } from "material-ui/Card";
 import { withStyles, WithStyles } from "material-ui/styles";
 import Toolbar from "material-ui/Toolbar";
-import Typography from "material-ui/Typography";
 import * as React from "react";
 
 import TextField from "material-ui/TextField";

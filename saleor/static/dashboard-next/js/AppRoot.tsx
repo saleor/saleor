@@ -1,16 +1,14 @@
-import ChevronLeftIcon from "material-ui-icons/ChevronLeft";
 import MenuIcon from "material-ui-icons/Menu";
 import AppBar from "material-ui/AppBar";
-import Divider from "material-ui/Divider";
 import Drawer from "material-ui/Drawer";
 import Hidden from "material-ui/Hidden";
 import IconButton from "material-ui/IconButton";
-import List, { ListItem, ListItemProps, ListItemText } from "material-ui/List";
+import List, { ListItem, ListItemText } from "material-ui/List";
 import { withStyles, WithStyles } from "material-ui/styles";
 import Toolbar from "material-ui/Toolbar";
 import Typography from "material-ui/Typography";
 import * as React from "react";
-import { Link, LinkProps } from "react-router-dom";
+import { Link } from "react-router-dom";
 
 import i18n from "./i18n";
 

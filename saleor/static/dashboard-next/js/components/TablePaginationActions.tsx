@@ -2,10 +2,7 @@ import IconButton from "material-ui/IconButton";
 import KeyboardArrowLeft from "material-ui/internal/svg-icons/KeyboardArrowLeft";
 import KeyboardArrowRight from "material-ui/internal/svg-icons/KeyboardArrowRight";
 import { withStyles } from "material-ui/styles";
-import PropTypes from "prop-types";
 import * as React from "react";
-
-import theme from "../theme";
 
 const decorate = withStyles(
   theme => ({
