@@ -7,6 +7,7 @@ from text_unidecode import unidecode
 from ...product.models import Collection, Product
 from ..forms import AjaxSelect2MultipleChoiceField
 from ..widgets import CharsLeftWidget
+from ..seo.utils import SEO_HELP_TEXTS, SEO_LABELS
 
 
 class CollectionForm(forms.ModelForm):
@@ -26,15 +27,12 @@ class CollectionForm(forms.ModelForm):
                 'Products'),
             'background_image': pgettext_lazy(
                 'Products selection',
-                'Background Image')}
+                'Background Image'),
+            **SEO_LABELS}
         widgets = {
             'seo_description': CharsLeftWidget,
             'seo_title': CharsLeftWidget}
-        help_texts = {
-            'seo_description': pgettext_lazy(
-                'Form field help text',
-                'Slug is being used to create page URL'),
-            'seo_title': 'Example help text'}
+        help_texts = SEO_HELP_TEXTS
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -48,8 +46,8 @@ class CollectionForm(forms.ModelForm):
         self.fields['seo_title'].widget.attrs.update({
             'id': 'seo_title',
             'data-bind': self['name'].auto_id,
-            'placeholder': self.instance.name,
-            'min-recommended-length': 40})
+            'placeholder': self.instance.name[:70],
+            'min-recommended-length': 25})
 
     def save(self, commit=True):
         self.instance.slug = slugify(unidecode(self.instance.name))

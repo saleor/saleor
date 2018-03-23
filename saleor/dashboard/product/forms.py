@@ -18,6 +18,7 @@ from ..forms import OrderedModelMultipleChoiceField, ModelChoiceOrCreationField
 from ..widgets import RichTextEditorWidget
 from .widgets import ImagePreviewWidget
 from . import ProductBulkAction
+from ..seo.utils import SEO_HELP_TEXTS, SEO_LABELS
 
 
 class RichTextField(forms.CharField):
@@ -201,7 +202,9 @@ class ProductForm(forms.ModelForm, AttributesMixin):
             'is_featured': pgettext_lazy(
                 'Featured product toggle', 'Feature this product on homepage'),
             'collections': pgettext_lazy(
-                'Add to collection select', 'Collections')}
+                'Add to collection select', 'Collections'),
+            **SEO_LABELS}
+        help_texts = SEO_HELP_TEXTS
 
     category = TreeNodeChoiceField(queryset=Category.objects.all())
     collections = forms.ModelMultipleChoiceField(
