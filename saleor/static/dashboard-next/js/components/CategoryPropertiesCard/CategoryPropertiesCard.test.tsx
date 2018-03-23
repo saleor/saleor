@@ -2,14 +2,13 @@ import * as React from "react";
 import { MemoryRouter } from "react-router-dom";
 import * as renderer from "react-test-renderer";
 
-import CategoryProperties from "../../category/components/CategoryProperties";
-import categoryFixture from "./fixtures/category";
+import CategoryPropertiesCard from "./CategoryPropertiesCard";
 
-describe("<CategoryProperties />", () => {
+describe("<CategoryPropertiesCard />", () => {
   it("renders while data is loading", () => {
     const component = renderer.create(
       <MemoryRouter>
-        <CategoryProperties description="" onDelete={jest.fn()} title="" />
+        <CategoryPropertiesCard description="" onDelete={jest.fn()} title="" />
       </MemoryRouter>
     );
     expect(component).toMatchSnapshot();
@@ -17,11 +16,11 @@ describe("<CategoryProperties />", () => {
   it("renders when data is loaded", () => {
     const component = renderer.create(
       <MemoryRouter>
-        <CategoryProperties
-          description={categoryFixture.node.description}
+        <CategoryPropertiesCard
+          description="These are the best shoes."
           onDelete={jest.fn()}
           onEdit={jest.fn()}
-          title={categoryFixture.node.name}
+          title="Shoes"
         />
       </MemoryRouter>
     );
