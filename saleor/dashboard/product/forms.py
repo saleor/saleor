@@ -9,15 +9,17 @@ from django.utils.text import slugify
 from django.utils.translation import pgettext_lazy
 from mptt.forms import TreeNodeChoiceField
 
+from . import ProductBulkAction
 from ...product.models import (
     AttributeChoiceValue, Category, Collection, Product, ProductAttribute,
     ProductImage, ProductType, ProductVariant, Stock, StockLocation,
     VariantImage)
 from ..forms import OrderedModelMultipleChoiceField, ModelChoiceOrCreationField
+from ..seo.utils import (
+    MIN_DESCRIPTION_LENGTH, MIN_TITLE_LENGTH, SEO_HELP_TEXTS, SEO_LABELS,
+    SEO_WIDGETS, prepare_seo_description)
 from ..widgets import RichTextEditorWidget
 from .widgets import ImagePreviewWidget
-from . import ProductBulkAction
-from ..seo.utils import SEO_HELP_TEXTS, SEO_LABELS, prepare_seo_description
 
 
 class RichTextField(forms.CharField):
@@ -204,6 +206,7 @@ class ProductForm(forms.ModelForm, AttributesMixin):
                 'Add to collection select', 'Collections'),
             **SEO_LABELS}
         help_texts = SEO_HELP_TEXTS
+        widgets = SEO_WIDGETS
 
     category = TreeNodeChoiceField(queryset=Category.objects.all())
     collections = forms.ModelMultipleChoiceField(
@@ -222,9 +225,11 @@ class ProductForm(forms.ModelForm, AttributesMixin):
             products__name=self.instance)
         self.fields['seo_description'].widget.attrs.update({
             'data-bind': self['description'].auto_id,
-            'data-materialize': self['description'].html_name})
+            'data-materialize': self['description'].html_name,
+            'min-recommended-length': MIN_DESCRIPTION_LENGTH})
         self.fields['seo_title'].widget.attrs.update({
-            'data-bind': self['name'].auto_id})
+            'data-bind': self['name'].auto_id,
+            'min-recommended-length': MIN_TITLE_LENGTH})
 
     def clean_seo_description(self):
         seo_description = prepare_seo_description(

@@ -6,8 +6,9 @@ from text_unidecode import unidecode
 
 from ...product.models import Collection, Product
 from ..forms import AjaxSelect2MultipleChoiceField
-from ..seo.utils import SEO_HELP_TEXTS, SEO_LABELS
-from ..widgets import CharsLeftWidget
+from ..seo.utils import (
+    MIN_DESCRIPTION_LENGTH, MIN_TITLE_LENGTH, SEO_HELP_TEXTS, SEO_LABELS,
+    SEO_WIDGETS)
 
 
 class CollectionForm(forms.ModelForm):
@@ -29,9 +30,7 @@ class CollectionForm(forms.ModelForm):
                 'Products selection',
                 'Background Image'),
             **SEO_LABELS}
-        widgets = {
-            'seo_description': CharsLeftWidget,
-            'seo_title': CharsLeftWidget}
+        widgets = SEO_WIDGETS
         help_texts = SEO_HELP_TEXTS
 
     def __init__(self, *args, **kwargs):
@@ -39,10 +38,10 @@ class CollectionForm(forms.ModelForm):
         if self.instance.pk:
             self.fields['products'].set_initial(self.instance.products.all())
         self.fields['seo_description'].widget.attrs.update({
-            'min-recommended-length': 130})
+            'min-recommended-length': MIN_DESCRIPTION_LENGTH})
         self.fields['seo_title'].widget.attrs.update({
             'data-bind': self['name'].auto_id,
-            'min-recommended-length': 25})
+            'min-recommended-length': MIN_TITLE_LENGTH})
 
     def save(self, commit=True):
         self.instance.slug = slugify(unidecode(self.instance.name))
