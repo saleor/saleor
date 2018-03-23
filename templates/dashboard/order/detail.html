@@ -391,6 +391,12 @@
                             {% trans "Edit discount" context "Order totals action" %}
                           </a>
                         </li>
+                        <li>
+                          <a href="#base-modal" data-href="{% url 'dashboard:order-voucher-edit' order_pk=order.pk %}"
+                          class="modal-trigger-custom" title="{% trans "Edit voucher" context "Order totals action" %}">
+                            {% trans "Edit voucher" context "Order totals action" %}
+                          </a>
+                        </li>
                         {% if order.voucher %}
                           <li>
                             <a href="#base-modal" data-href="{% url 'dashboard:order-remove-voucher' order_pk=order.pk %}"

@@ -6,13 +6,15 @@ from django.utils.translation import npgettext_lazy, pgettext_lazy
 from django_prices.forms import MoneyField
 from payments import PaymentError, PaymentStatus
 
+from saleor.discount.models import Voucher
+
 from ...account.i18n import (
     AddressForm as StorefrontAddressForm, PossiblePhoneNumberFormField)
 from ...account.models import User
 from ...cart.forms import QuantityField
 from ...core.exceptions import InsufficientStock
 from ...core.utils import ZERO_TAXED_MONEY
-from ...discount.utils import decrease_voucher_usage
+from ...discount.utils import decrease_voucher_usage, increase_voucher_usage
 from ...order import OrderStatus
 from ...order.emails import send_note_confirmation, send_order_confirmation
 from ...order.models import (
@@ -206,6 +208,36 @@ class OrderEditDiscountForm(forms.ModelForm):
                 'Discount amount')}
 
     def save(self, commit=True):
+        recalculate_order(self.instance)
+        return super().save(commit)
+
+
+class OrderEditVoucherForm(forms.ModelForm):
+    """Edit discount amount in an order."""
+    voucher = AjaxSelect2ChoiceField(
+        queryset=Voucher.objects.all(),
+        fetch_data_url=reverse_lazy('dashboard:ajax-vouchers'), min_input=0)
+
+    class Meta:
+        model = Order
+        fields = ['voucher']
+        labels = {
+            'voucher': pgettext_lazy('Order voucher', 'Voucher')}
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.old_voucher = self.instance.voucher
+        if self.instance.voucher:
+            self.fields['voucher'].set_initial(self.instance.voucher)
+
+    def save(self, commit=True):
+        voucher = self.instance.voucher
+        if self.old_voucher != voucher:
+            if self.old_voucher:
+                decrease_voucher_usage(self.old_voucher)
+            increase_voucher_usage(voucher)
+        self.instance.discount_name = voucher.name
+        # TODO: update discount amount
         recalculate_order(self.instance)
         return super().save(commit)
 
@@ -438,15 +470,16 @@ class FulfillmentTrackingNumberForm(forms.ModelForm):
                 'Fulfillment record', 'Tracking number')}
 
 
-class RemoveVoucherForm(forms.Form):
+class OrderRemoveVoucherForm(forms.ModelForm):
+    """Remove voucher from order. Decrease usage and recalculate order."""
 
-    def __init__(self, *args, **kwargs):
-        self.order = kwargs.pop('order')
-        super().__init__(*args, **kwargs)
+    class Meta:
+        model = Order
+        fields = []
 
     def clean(self):
         data = super().clean()
-        if not self.order.voucher:
+        if not self.instance.voucher:
             raise forms.ValidationError(
                 pgettext_lazy(
                     'Remove voucher form error',
@@ -454,11 +487,11 @@ class RemoveVoucherForm(forms.Form):
         return data
 
     def remove_voucher(self):
-        self.order.discount_amount = 0
-        self.order.discount_name = ''
-        decrease_voucher_usage(self.order.voucher)
-        self.order.voucher = None
-        recalculate_order(self.order)
+        decrease_voucher_usage(self.instance.voucher)
+        self.instance.discount_amount = 0
+        self.instance.discount_name = ''
+        self.instance.voucher = None
+        recalculate_order(self.instance)
 
 
 PAYMENT_STATUS_CHOICES = (

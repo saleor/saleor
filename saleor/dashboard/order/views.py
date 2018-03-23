@@ -31,8 +31,9 @@ from .forms import (
     CapturePaymentForm, ChangeQuantityForm, ChangeStockForm,
     ConfirmDraftOrderForm, FulfillmentForm, FulfillmentLineForm,
     FulfillmentTrackingNumberForm, OrderCustomerForm, OrderEditDiscountForm,
-    OrderNoteForm, OrderRemoveShippingForm, OrderShippingForm,
-    RefundPaymentForm, ReleasePaymentForm, RemoveVoucherForm)
+    OrderEditVoucherForm, OrderNoteForm, OrderRemoveShippingForm,
+    OrderRemoveVoucherForm, OrderShippingForm, RefundPaymentForm,
+    ReleasePaymentForm)
 from .utils import (
     create_invoice_pdf, create_packing_slip_pdf, get_statics_absolute_url)
 
@@ -428,6 +429,25 @@ def order_discount_edit(request, order_pk):
 
 @staff_member_required
 @permission_required('order.edit_order')
+def order_voucher_edit(request, order_pk):
+    order = get_object_or_404(Order, pk=order_pk, status=OrderStatus.DRAFT)
+    form = OrderEditVoucherForm(request.POST or None, instance=order)
+    status = 200
+    if form.is_valid():
+        form.save()
+        msg = pgettext_lazy('Dashboard message', 'Voucher updated')
+        messages.success(request, msg)
+        return redirect('dashboard:order-details', order_pk=order_pk)
+    elif form.errors:
+        status = 400
+    ctx = {'order': order, 'form': form}
+    return TemplateResponse(
+        request, 'dashboard/order/modal/edit_voucher.html', ctx,
+        status=status)
+
+
+@staff_member_required
+@permission_required('order.edit_order')
 def cancel_order(request, order_pk):
     status = 200
     order = get_object_or_404(Order, pk=order_pk)
@@ -458,9 +478,9 @@ def cancel_order(request, order_pk):
 @staff_member_required
 @permission_required('order.edit_order')
 def remove_order_voucher(request, order_pk):
-    status = 200
     order = get_object_or_404(Order, pk=order_pk)
-    form = RemoveVoucherForm(request.POST or None, order=order)
+    status = 200
+    form = OrderRemoveVoucherForm(request.POST or None, instance=order)
     if form.is_valid():
         msg = pgettext_lazy('Dashboard message', 'Removed voucher from order')
         with transaction.atomic():
