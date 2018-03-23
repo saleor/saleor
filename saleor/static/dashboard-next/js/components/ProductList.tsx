@@ -1,13 +1,5 @@
 import Cached from "material-ui-icons/Cached";
-import MoreVert from "material-ui-icons/MoreVert";
 import Avatar from "material-ui/Avatar";
-import Button from "material-ui/Button";
-import List, {
-  ListItem,
-  ListItemAvatar,
-  ListItemText,
-  ListSubheader
-} from "material-ui/List";
 import { withStyles } from "material-ui/styles";
 import Table, {
   TableBody,
@@ -16,15 +8,12 @@ import Table, {
   TableHead,
   TableRow
 } from "material-ui/Table";
-import Typography from "material-ui/Typography";
 import * as React from "react";
-import { Link } from "react-router-dom";
 
-import { categoryAddUrl } from "../";
-import Skeleton from "../../components/Skeleton";
-import TablePagination from "../../components/TablePagination";
-import i18n from "../../i18n";
 import { CategoryPropertiesQuery } from "../gql-types";
+import i18n from "../i18n";
+import Skeleton from "./Skeleton";
+import TablePagination from "./TablePagination";
 
 const decorate = withStyles(theme => ({
   avatarCell: {

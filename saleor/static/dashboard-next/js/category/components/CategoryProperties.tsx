@@ -1,15 +1,12 @@
 import DeleteIcon from "material-ui-icons/Delete";
 import ModeEditIcon from "material-ui-icons/ModeEdit";
-import Button from "material-ui/Button";
-import Card, { CardActions, CardContent, CardHeader } from "material-ui/Card";
+import Card, { CardContent } from "material-ui/Card";
 import IconButton from "material-ui/IconButton";
 import Typography from "material-ui/Typography";
 import * as React from "react";
-import { Link } from "react-router-dom";
 
 import PageHeader from "../../components/PageHeader";
 import Skeleton from "../../components/Skeleton";
-import i18n from "../../i18n";
 
 interface CategoryPropertiesProps {
   description?: string;
