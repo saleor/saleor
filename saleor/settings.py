@@ -516,8 +516,10 @@ CELERY_BROKER_URL = 'amqp://{user}:{password}@{host}:5672/{vhost}'.format(
 CELERY_BROKER_USER = os.environ.get('RABBITMQ_USER', 'guest')
 CELERY_BROKER_PASSWORD = os.environ.get('RABBITMQ_PASSWORD', 'guest')
 CELERY_BROKER_PORT = 5672
-CELERY_BROKER_HOST = 'localhost'
+CELERY_BROKER_HOST = os.environ.get('RABBITMQ_HOST', 'localhost')
 CELERY_TASK_ALWAYS_EAGER = False
+CELERY_TIMEZONE = 'Europe/Berlin'
+# BROKER_POOL_LIMIT
 
 
 CORS_ALLOW_HEADERS = (
