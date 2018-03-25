@@ -121,7 +121,7 @@ django-picklefield==1.0.0
 #celery==4.0.2
 git+git://github.com/celery/celery@master#egg=celery
 
-django-celery-beat==1.0.1
+django-celery-beat==1.1.1
 
 elasticsearch>=5.0.0,<6.0.0
 elasticsearch-dsl==5.2.0
