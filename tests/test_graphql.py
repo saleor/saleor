@@ -114,10 +114,20 @@ def test_product_query(client, product_in_stock):
                         name
                         url
                         thumbnailUrl
-                        images { url }
+                        images {
+                            edges {
+                                node {
+                                    url
+                                }
+                            }
+                        }
                         variants {
-                            name
-                            stockQuantity
+                            edges {
+                                node {
+                                    name
+                                    stockQuantity
+                                    }
+                                }
                         }
                         availability {
                             available,

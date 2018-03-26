@@ -38,7 +38,7 @@ def test_model_form_mutation(
     # check if declarative arguments are present
     assert 'test_input' in arguments
     # check if model form field is present
-    mocked_convert_form_fields.assert_called_with(model_form_class)
+    mocked_convert_form_fields.assert_called_with(model_form_class, None)
     assert 'test_field' in arguments
 
     output_fields = meta.fields
