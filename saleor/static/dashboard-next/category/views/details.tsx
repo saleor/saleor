@@ -6,12 +6,12 @@ import { stringify as stringifyQs } from "qs";
 import * as React from "react";
 import { Redirect } from "react-router-dom";
 
+import CategoryDeleteDialog from "../../components/CategoryDeleteDialog";
 import CategoryPropertiesCard from "../../components/CategoryPropertiesCard";
 import ErrorMessageCard from "../../components/ErrorMessageCard";
 import Navigator, { NavigatorLink } from "../../components/Navigator";
 import Toggle from "../../components/Toggle";
 import { CategoryPropertiesQuery } from "../../gql-types";
-import CategoryDeleteDialog from "../components/CategoryDeleteDialog";
 import CategoryProducts from "../components/CategoryProducts";
 import CategorySubcategories from "../components/CategorySubcategories";
 import ProductFilters from "../components/ProductFilters";
@@ -245,7 +245,7 @@ const CategoryDetails = decorate<CategoryDetailsProps>(
                                             }
                                             onClose={hideDelete}
                                             onConfirm={deleteCategory}
-                                            opened={deleteVisible}
+                                            open={deleteVisible}
                                             productCount={
                                               data.category &&
                                               data.category.products &&
