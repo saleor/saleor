@@ -532,3 +532,61 @@ def test_include_products_from_subcategories_in_main_view(
             'path': path, 'category_id': default_category.pk})
     response = authorized_client.get(url)
     assert product in response.context_data['products'][0]
+
+
+@pytest.mark.parametrize(
+    'title, seo_title, expected_result',
+    (
+        ('Title', 'Seo Title', 'Seo Title'),
+        ('Title', None, 'Title')))
+def test_product_get_seo_title(
+        admin_client, product_in_stock, title, seo_title, expected_result):
+    product_in_stock.name = title
+    product_in_stock.seo_title = seo_title
+    product_in_stock.save()
+    result = product_in_stock.get_seo_title()
+    expected_result == result
+
+
+@pytest.mark.parametrize(
+    'description, seo_description, expected_result',
+    (
+        ('Description', 'Seo', 'Seo'),
+        ('Description', None, '')))
+def test_product_get_seo_description(
+        admin_client, product_in_stock, description, seo_description,
+        expected_result):
+    product_in_stock.description = description
+    product_in_stock.seo_description = seo_description
+    product_in_stock.save()
+    result = product_in_stock.get_seo_description()
+    expected_result == result
+
+
+@pytest.mark.parametrize(
+    'title, seo_title, expected_result',
+    (
+        ('Title', 'Seo Title', 'Seo Title'),
+        ('Title', None, 'Title')))
+def test_category_get_seo_title(
+        admin_client, default_category, title, seo_title, expected_result):
+    default_category.name = title
+    default_category.seo_title = seo_title
+    default_category.save()
+    result = default_category.get_seo_title()
+    expected_result == result
+
+
+@pytest.mark.parametrize(
+    'description, seo_description, expected_result',
+    (
+        ('Description', 'Seo', 'Seo'),
+        ('Description', None, '')))
+def test_category_get_seo_description(
+        admin_client, default_category, description, seo_description,
+        expected_result):
+    default_category.description = description
+    default_category.seo_description = seo_description
+    default_category.save()
+    result = default_category.get_seo_description()
+    expected_result == result
