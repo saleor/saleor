@@ -168,6 +168,11 @@ def default_category(db):  # pylint: disable=W0613
 
 
 @pytest.fixture
+def non_default_category(db):  # pylint: disable=W0613
+    return Category.objects.create(name='Not default', slug='not-default')
+
+
+@pytest.fixture
 def default_stock_location(db):
     return StockLocation.objects.create(name='Warehouse 1')
 
