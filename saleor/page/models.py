@@ -43,3 +43,9 @@ class Page(SeoModel):
 
     def get_full_url(self):
         return build_absolute_uri(self.get_absolute_url())
+
+    def get_seo_title(self):
+        return self.seo_title or self.title
+
+    def get_seo_description(self):
+        return self.seo_description or ''

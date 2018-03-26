@@ -10,13 +10,18 @@
 {% load build_absolute_uri from urls %}
 {% load placeholder %}
 
-{% block title %}{{ product }} — {{ block.super }}{% endblock %}
-
-{% block meta_description %}{{ product.seo_description }}{% endblock %}
+{% block title %}
+  {% if product.seo_title %}
+    {{ product.seo_title }}
+  {% else %}
+    {{ product.name }} - {{ block.super }}
+  {% endif %}
+{% endblock %}
 
 {% block meta_tags %}
-  <meta property="og:title" content="{{ product }}">
-  <meta property="og:description" content="{{ product.seo_description }}">
+  <meta property="og:title" content="{{ product.get_seo_title }}">
+  <meta property="og:description" content="{{ product.get_seo_description }}">
+  <meta name="description" content="{{ product.get_seo_description }}">
 
   {% build_absolute_uri request=request location=product.get_absolute_url as product_url %}
   <meta property="og:url" content="{{ product_url }}">
