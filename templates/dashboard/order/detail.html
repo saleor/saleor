@@ -37,7 +37,7 @@
       {% if order.is_draft %}
         <li>
           <a href="#base-modal" data-href="{% url "dashboard:draft-order-delete" order_pk=order.pk %}" class="modal-trigger-custom">
-            {% trans "Remove order" context "Order detail action" %}
+            {% trans "Remove draft order" context "Order detail action" %}
           </a>
         </li>
       {% endif %}
