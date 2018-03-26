@@ -76,17 +76,11 @@
                 <div class="row">
                   {{ form.name|materializecss }}
                 </div>
-                {% if attribute_form.fields %}
-                  {% for attribute_field in attribute_form %}
-                    <div class="row attribute-select-or-create">
-                      {{ attribute_field|materializecss }}
-                    </div>
-                  {% endfor %}
-                {% else %}
-                  <p>
-                    {% trans "This product has no attributes." context "Variant form text" %}
-                  </p>
-                {% endif %}
+                {% for attribute_field in form.iter_attribute_fields %}
+                  <div class="row attribute-select-or-create">
+                    {{ attribute_field|materializecss:"input-field s12" }}
+                  </div>
+                {% endfor %}
               </div>
               <div class="col s12 m4">
                 <div class="row">

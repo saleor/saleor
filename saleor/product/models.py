@@ -156,12 +156,6 @@ class Product(models.Model):
         first_image = self.images.first()
         return first_image.image if first_image else None
 
-    def get_attribute(self, pk):
-        return self.attributes.get(smart_text(pk))
-
-    def set_attribute(self, pk, value_pk):
-        self.attributes[smart_text(pk)] = smart_text(value_pk)
-
     def get_price_per_item(self, item, discounts=None):
         return item.get_price_per_item(discounts)
 
@@ -236,12 +230,6 @@ class ProductVariant(models.Model):
     def is_in_stock(self):
         return any(
             [stock.quantity_available > 0 for stock in self.stock.all()])
-
-    def get_attribute(self, pk):
-        return self.attributes.get(smart_text(pk))
-
-    def set_attribute(self, pk, value_pk):
-        self.attributes[smart_text(pk)] = smart_text(value_pk)
 
     def display_variant_attributes(self, attributes=None):
         if attributes is None:

@@ -137,7 +137,53 @@ class ProductTypeForm(forms.ModelForm):
         return data
 
 
-class ProductForm(forms.ModelForm):
+class AttributesMixin(object):
+    """Form mixin that dynamically adds attribute fields."""
+
+    available_attributes = ProductAttribute.objects.none()
+
+    # Name of a field in self.instance that hold attributes HStore
+    model_attributes_field = None
+
+    def __init__(self, *args, **kwargs):
+        if not self.model_attributes_field:
+            raise Exception(
+                'model_attributes_field must be set in subclasses of '
+                'AttributesMixin.')
+
+    def prepare_fields_for_attributes(self):
+        initial_attrs = getattr(self.instance, self.model_attributes_field)
+        for attribute in self.available_attributes:
+            field_defaults = {
+                'label': attribute.name, 'required': False,
+                'initial': initial_attrs.get(str(attribute.pk))}
+            if attribute.has_values():
+                field = ModelChoiceOrCreationField(
+                    queryset=attribute.values.all(), **field_defaults)
+            else:
+                field = forms.CharField(**field_defaults)
+            self.fields[attribute.get_formfield_name()] = field
+
+    def iter_attribute_fields(self):
+        for attr in self.available_attributes:
+            yield self[attr.get_formfield_name()]
+
+    def get_saved_attributes(self):
+        attributes = {}
+        for attr in self.available_attributes:
+            value = self.cleaned_data.pop(attr.get_formfield_name())
+            if value:
+                # if the passed attribute value is a string,
+                # create the attribute value.
+                if not isinstance(value, AttributeChoiceValue):
+                    value = AttributeChoiceValue(
+                        attribute_id=attr.pk, name=value, slug=slugify(value))
+                    value.save()
+                attributes[smart_text(attr.pk)] = smart_text(value.pk)
+        return attributes
+
+
+class ProductForm(forms.ModelForm, AttributesMixin):
     class Meta:
         model = Product
         exclude = ['attributes', 'product_type', 'updated_at']
@@ -162,15 +208,15 @@ class ProductForm(forms.ModelForm):
         required=False, queryset=Collection.objects.all())
     description = RichTextField()
 
+    model_attributes_field = 'attributes'
+
     def __init__(self, *args, **kwargs):
-        self.product_attributes = []
         super().__init__(*args, **kwargs)
         product_type = self.instance.product_type
-        self.product_attributes = product_type.product_attributes.all()
-        self.product_attributes = self.product_attributes.prefetch_related(
-            'values')
+        self.available_attributes = (
+            product_type.product_attributes.prefetch_related('values').all())
         self.prepare_fields_for_attributes()
-        self.fields["collections"].initial = Collection.objects.filter(
+        self.fields['collections'].initial = Collection.objects.filter(
             products__name=self.instance)
 
     def clean_seo_description(self):
@@ -188,37 +234,8 @@ class ProductForm(forms.ModelForm):
 
         return seo_description
 
-    def prepare_fields_for_attributes(self):
-        for attribute in self.product_attributes:
-            field_defaults = {
-                'label': attribute.name,
-                'required': False,
-                'initial': self.instance.get_attribute(attribute.pk)}
-            if attribute.has_values():
-                field = ModelChoiceOrCreationField(
-                    queryset=attribute.values.all(), **field_defaults)
-            else:
-                field = forms.CharField(**field_defaults)
-            self.fields[attribute.get_formfield_name()] = field
-
-    def iter_attribute_fields(self):
-        for attr in self.product_attributes:
-            yield self[attr.get_formfield_name()]
-
     def save(self, commit=True):
-        attributes = {}
-        for attr in self.product_attributes:
-            value = self.cleaned_data.pop(attr.get_formfield_name())
-
-            # if the passed attribute value is a string,
-            # create the attribute value.
-            if not isinstance(value, AttributeChoiceValue):
-                value = AttributeChoiceValue(
-                    attribute_id=attr.pk, name=value, slug=slugify(value))
-                value.save()
-
-            attributes[smart_text(attr.pk)] = smart_text(value.pk)
-
+        attributes = self.get_saved_attributes()
         self.instance.attributes = attributes
         instance = super().save()
         instance.collections.clear()
@@ -227,7 +244,9 @@ class ProductForm(forms.ModelForm):
         return instance
 
 
-class ProductVariantForm(forms.ModelForm):
+class ProductVariantForm(forms.ModelForm, AttributesMixin):
+    model_attributes_field = 'attributes'
+
     class Meta:
         model = ProductVariant
         exclude = ['attributes', 'product', 'images']
@@ -242,6 +261,15 @@ class ProductVariantForm(forms.ModelForm):
         if self.instance.product.pk:
             self.fields['price_override'].widget.attrs[
                 'placeholder'] = self.instance.product.price.amount
+            self.available_attributes = (
+                self.instance.product.product_type.variant_attributes.all()
+                .prefetch_related('values'))
+            self.prepare_fields_for_attributes()
+
+    def save(self, commit=True):
+        attributes = self.get_saved_attributes()
+        self.instance.attributes = attributes
+        return super().save(commit=commit)
 
 
 class CachingModelChoiceIterator(ModelChoiceIterator):
@@ -258,45 +286,6 @@ class CachingModelChoiceField(forms.ModelChoiceField):
             return self._choices
         return CachingModelChoiceIterator(self)
     choices = property(_get_choices, forms.ChoiceField._set_choices)
-
-
-class VariantAttributeForm(forms.ModelForm):
-    class Meta:
-        model = ProductVariant
-        fields = []
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        attrs = self.instance.product.product_type.variant_attributes.all()
-        self.available_attrs = attrs.prefetch_related('values')
-        for attr in self.available_attrs:
-            field_defaults = {
-                'label': attr.name,
-                'required': True,
-                'initial': self.instance.get_attribute(attr.pk)}
-            if attr.has_values():
-                field = ModelChoiceOrCreationField(
-                    queryset=attr.values.all(), **field_defaults)
-            else:
-                field = forms.CharField(**field_defaults)
-            self.fields[attr.get_formfield_name()] = field
-
-    def save(self, commit=True):
-        attributes = {}
-        for attr in self.available_attrs:
-            value = self.cleaned_data.pop(attr.get_formfield_name())
-
-            # if the passed attribute value is a string,
-            # create the attribute value.
-            if not isinstance(value, AttributeChoiceValue):
-                value = AttributeChoiceValue(
-                    attribute_id=attr.pk, name=value, slug=slugify(value))
-                value.save()
-
-            attributes[smart_text(attr.pk)] = smart_text(value.pk)
-
-        self.instance.attributes = attributes
-        return super().save(commit=commit)
 
 
 class VariantBulkDeleteForm(forms.Form):
