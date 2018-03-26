@@ -38,11 +38,10 @@ const decorate = withStyles(theme => ({
 interface PageHeaderProps {
   title: string;
   onBack?();
-  onCancel?();
 }
 
 const PageHeader = decorate<PageHeaderProps>(
-  ({ children, classes, onBack, onCancel, title }) => (
+  ({ children, classes, onBack, title }) => (
     <div className={classes.root}>
       {onBack && (
         <IconButton
@@ -51,15 +50,6 @@ const PageHeader = decorate<PageHeaderProps>(
           onClick={onBack}
         >
           <ArrowBackIcon />
-        </IconButton>
-      )}
-      {onCancel && (
-        <IconButton
-          color="inherit"
-          className={classes.menuButton}
-          onClick={onCancel}
-        >
-          <CloseIcon />
         </IconButton>
       )}
       <Typography className={classes.title} variant="title">
