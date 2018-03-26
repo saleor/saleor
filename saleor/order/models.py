@@ -66,7 +66,7 @@ class Order(models.Model):
         Voucher, null=True, related_name='+', on_delete=models.SET_NULL)
     discount_amount = MoneyField(
         currency=settings.DEFAULT_CURRENCY, max_digits=12, decimal_places=2,
-        blank=True, null=True)
+        default=0)
     discount_name = models.CharField(max_length=255, default='', blank=True)
 
     class Meta:

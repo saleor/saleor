@@ -423,11 +423,7 @@
                   <p>{{ order.shipping_price.gross|amount:'html' }}</p>
                   {% if order.is_draft or order.discount_amount %}
                     <p>
-                      {% if order.discount_amount %}
-                        {% discount_as_negative order.discount_amount html=True %}
-                      {% else %}
-                        {% trans "-" context "Order details empty discount" %}
-                      {% endif %}
+                      {% discount_as_negative order.discount_amount html=True %}
                     </p>
                   {% endif %}
                   <p><strong>{{ order.total.gross|amount:'html' }}</strong></p>
