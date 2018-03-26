@@ -900,41 +900,6 @@ def test_view_confirm_draft_order_not_draft_order(
 
 
 @pytest.mark.django_db
-def test_view_confirm_draft_order_no_billing_address(
-        admin_client, draft_order):
-    draft_order.billing_address.delete()
-    url = reverse(
-        'dashboard:draft-order-confirm', kwargs={'order_pk': draft_order.pk})
-    data = {'csrfmiddlewaretoken': 'hello'}
-
-    response = admin_client.post(url, data)
-
-    assert response.status_code == 400
-    draft_order.refresh_from_db()
-    assert draft_order.status == OrderStatus.DRAFT
-    errors = get_form_errors(response)
-    assert 'Billing address is required to handle payment' in errors
-
-
-@pytest.mark.django_db
-def test_view_confirm_draft_order_no_shipping_address(
-        admin_client, draft_order):
-    draft_order.shipping_address = None
-    draft_order.save()
-    url = reverse(
-        'dashboard:draft-order-confirm', kwargs={'order_pk': draft_order.pk})
-    data = {'csrfmiddlewaretoken': 'hello'}
-
-    response = admin_client.post(url, data)
-
-    assert response.status_code == 400
-    draft_order.refresh_from_db()
-    assert draft_order.status == OrderStatus.DRAFT
-    errors = get_form_errors(response)
-    assert 'Shipping address is required to handle shipping' in errors
-
-
-@pytest.mark.django_db
 def test_view_confirm_draft_order_shipping_method_not_valid(
         admin_client, draft_order, shipping_method):
     method = shipping_method.price_per_country.create(
