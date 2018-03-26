@@ -3,6 +3,7 @@ import Dialog, {
   DialogActions,
   DialogContent,
   DialogContentText,
+  DialogProps,
   DialogTitle
 } from "material-ui/Dialog";
 import { withStyles } from "material-ui/styles";
@@ -20,9 +21,8 @@ const decorate = withStyles(theme => ({
   }
 }));
 
-interface CategoryDeleteDialogProps {
+export interface CategoryDeleteDialogProps extends DialogProps {
   name: string;
-  opened?: boolean;
   productCount?: number;
   onClose?();
   onConfirm?();
@@ -33,14 +33,13 @@ const CategoryDeleteDialog = decorate<CategoryDeleteDialogProps>(props => {
     children,
     classes,
     name,
-    opened,
     onConfirm,
     onClose,
     productCount,
     ...dialogProps
   } = props;
   return (
-    <Dialog open={opened} {...dialogProps}>
+    <Dialog {...dialogProps}>
       <DialogTitle>
         {i18n.t("Delete category", { context: "title" })}
       </DialogTitle>
