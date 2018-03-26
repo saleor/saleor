@@ -85,8 +85,6 @@ export class PageUpdateForm extends React.Component<
                     return;
                   }
                   if (
-                    deleteResult &&
-                    deleteResult.pageDelete &&
                     deleteResult.pageDelete.errors &&
                     deleteResult.pageDelete.errors.length
                   ) {
