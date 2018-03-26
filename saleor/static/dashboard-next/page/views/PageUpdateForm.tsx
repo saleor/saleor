@@ -7,9 +7,12 @@ import * as React from "react";
 import { Redirect } from "react-router";
 
 import { DialogContentText } from "material-ui/Dialog";
+import { pageListUrl } from "..";
 import ErrorMessageCard from "../../components/ErrorMessageCard";
+import Form, { FormActions, FormProps } from "../../components/Form";
 import { NavigatorLink } from "../../components/Navigator";
 import PageHeader from "../../components/PageHeader";
+import { PageUpdateMutationVariables } from "../../gql-types";
 import i18n from "../../i18n";
 import PageBaseForm from "../components/PageBaseForm";
 import PageDeleteDialog from "../components/PageDeleteDialog";
@@ -29,6 +32,10 @@ interface PageUpdateFormState {
   opened: boolean;
 }
 
+const PageForm: React.ComponentType<
+  FormProps<PageUpdateMutationVariables>
+> = Form;
+
 export class PageUpdateForm extends React.Component<
   PageUpdateFormProps,
   PageUpdateFormState
@@ -43,7 +50,7 @@ export class PageUpdateForm extends React.Component<
     const { id } = this.props;
     return (
       <TypedPageDetailsQuery query={pageDetailsQuery} variables={{ id }}>
-        {({ data, error, loading }) => {
+        {({ data: detailsResult, error, loading }) => {
           if (error) {
             return (
               <Grid container spacing={16}>
@@ -56,9 +63,9 @@ export class PageUpdateForm extends React.Component<
             );
           }
           if (loading) {
-            return <>loading</>;
+            return <CircularProgress />;
           }
-          const { page } = data;
+          const { page } = detailsResult;
           const formInitialValues = {
             availableOn: page.availableOn,
             content: page.content,
@@ -70,90 +77,124 @@ export class PageUpdateForm extends React.Component<
             <TypedPageDeleteMutation mutation={pageDeleteMutation}>
               {(
                 deletePage,
-                { called, data, error, loading: deleteInProgress }
+                { called, data: deleteResult, error, loading: deleteInProgress }
               ) => {
                 if (called && !deleteInProgress) {
                   if (error) {
                     console.error(error);
                     return;
                   }
-                  if (data && data.pageDelete.errors.length) {
+                  if (
+                    deleteResult.pageDelete.errors &&
+                    deleteResult.pageDelete.errors.length
+                  ) {
+                    console.error(deleteResult.pageDelete);
                     return;
                   }
-                  // FIXME: component is loaded with previous state (meaning that delete  d page will still be there until table reload)
+                  // FIXME: component is loaded with previous state (meaning that deleted page will still be there until table reload)
                   this.handleRemoveButtonClick();
-                  return <Redirect to="/pages/" />;
+                  return <Redirect to={pageListUrl} />;
                 }
                 return (
                   <TypedPageUpdateMutation mutation={pageUpdateMutation}>
                     {(
                       updatePage,
-                      { called, data, error, loading: updateInProgress }
+                      {
+                        called,
+                        data: updateResult,
+                        error,
+                        loading: updateInProgress
+                      }
                     ) => {
                       if (
                         called &&
                         !updateInProgress &&
-                        !data.pageUpdate.errors.length
+                        !updateResult.pageUpdate.errors.length
                       ) {
                         if (error) {
                           console.error(error);
                           return;
                         }
-                        return <Redirect to="/pages/" />;
+                        return <Redirect to={pageListUrl} />;
                       }
                       return (
-                        <NavigatorLink to={"/pages/"}>
+                        <NavigatorLink to={pageListUrl}>
                           {handleCancel => (
-                            <Card>
-                              <PageHeader
-                                onBack={handleCancel}
-                                title={i18n.t("Page details", {
-                                  context: "title"
-                                })}
-                              >
-                                <IconButton
-                                  onClick={this.handleRemoveButtonClick}
+                            <>
+                              <Card>
+                                <PageForm
+                                  initial={{
+                                    availableOn: page.availableOn || "",
+                                    content: page.content || "",
+                                    id,
+                                    isVisible: page.isVisible,
+                                    slug: page.slug || "",
+                                    title: page.title || ""
+                                  }}
+                                  onSubmit={data =>
+                                    updatePage({
+                                      variables: data
+                                    })
+                                  }
                                 >
-                                  <DeleteIcon />
-                                </IconButton>
-                              </PageHeader>
-                              {loading ? (
-                                <CircularProgress />
-                              ) : (
-                                <>
-                                  <PageBaseForm
-                                    handleSubmit={data =>
-                                      updatePage({
-                                        variables: { id, ...data }
-                                      })
-                                    }
-                                    formInitialValues={formInitialValues}
-                                    created={page.created}
-                                    errors={
-                                      data ? data.pageUpdate.errors : undefined
-                                    }
-                                  />
-                                  {!loading ? (
-                                    <PageDeleteDialog
-                                      onClose={this.handleRemoveButtonClick}
-                                      onConfirm={() =>
-                                        deletePage({ variables: { id } })
-                                      }
-                                      opened={this.state.opened}
-                                    >
-                                      <DialogContentText
-                                        dangerouslySetInnerHTML={{
-                                          __html: i18n.t(
-                                            "Are you sure you want to remove <strong>{{name}}</strong>?",
-                                            { name: page.title }
-                                          )
-                                        }}
+                                  {({ change, data, submit: handleSubmit }) => (
+                                    <>
+                                      <PageHeader
+                                        onBack={handleCancel}
+                                        title={i18n.t("Page details", {
+                                          context: "title"
+                                        })}
+                                      >
+                                        <IconButton
+                                          onClick={this.handleRemoveButtonClick}
+                                        >
+                                          <DeleteIcon />
+                                        </IconButton>
+                                      </PageHeader>
+                                      <PageBaseForm
+                                        onChange={change}
+                                        created={page.created}
+                                        errors={
+                                          updateResult
+                                            ? updateResult.pageUpdate.errors
+                                            : []
+                                        }
+                                        title={data.title}
+                                        content={data.content}
+                                        slug={data.slug}
+                                        availableOn={data.availableOn}
+                                        isVisible={data.isVisible}
                                       />
-                                    </PageDeleteDialog>
-                                  ) : null}
-                                </>
+                                      <FormActions
+                                        onCancel={handleCancel}
+                                        onSubmit={handleSubmit}
+                                        submitLabel={i18n.t("Save", {
+                                          context: "button"
+                                        })}
+                                      />
+                                    </>
+                                  )}
+                                </PageForm>
+                              </Card>
+                              {!loading && (
+                                <PageDeleteDialog
+                                  onClose={this.handleRemoveButtonClick}
+                                  onConfirm={() =>
+                                    deletePage({ variables: { id } })
+                                  }
+                                  opened={this.state.opened}
+                                >
+                                  <DialogContentText
+                                    dangerouslySetInnerHTML={{
+                                      __html: i18n.t(
+                                        "Are you sure you want to remove <strong>{{name}}</strong>?",
+                                        { name: page.title }
+                                      )
+                                    }}
+                                  />
+                                </PageDeleteDialog>
                               )}
-                            </Card>
+                            </>
                           )}
                         </NavigatorLink>
                       );
