@@ -31,9 +31,9 @@ from .forms import (
     CapturePaymentForm, ChangeQuantityForm, ChangeStockForm,
     ConfirmDraftOrderForm, FulfillmentForm, FulfillmentLineForm,
     FulfillmentTrackingNumberForm, OrderCustomerForm, OrderEditDiscountForm,
-    OrderEditVoucherForm, OrderNoteForm, OrderRemoveShippingForm,
-    OrderRemoveVoucherForm, OrderShippingForm, RefundPaymentForm,
-    ReleasePaymentForm)
+    OrderEditVoucherForm, OrderNoteForm, OrderRemoveCustomerForm,
+    OrderRemoveShippingForm, OrderRemoveVoucherForm, OrderShippingForm,
+    RefundPaymentForm, ReleasePaymentForm)
 from .utils import (
     create_invoice_pdf, create_packing_slip_pdf, get_statics_absolute_url,
     save_address_in_order)
@@ -364,6 +364,27 @@ def order_customer_edit(request, order_pk):
     ctx = {'order': order, 'form': form}
     return TemplateResponse(
         request, 'dashboard/order/modal/edit_customer.html', ctx,
+        status=status)
+
+
+@staff_member_required
+@permission_required('order.edit_order')
+def order_customer_remove(request, order_pk):
+    order = Order.objects.get(pk=order_pk)
+    form = OrderRemoveCustomerForm(request.POST or None, instance=order)
+    status = 200
+    if form.is_valid():
+        form.save()
+        msg = pgettext_lazy(
+            'Dashboard message',
+            'Customer removed from an order')
+        messages.success(request, msg)
+        return redirect('dashboard:order-details', order_pk=order_pk)
+    elif form.errors:
+        status = 400
+    ctx = {'order': order, 'form': form}
+    return TemplateResponse(
+        request, 'dashboard/order/modal/remove_customer.html', ctx,
         status=status)
 
 

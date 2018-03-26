@@ -185,13 +185,28 @@
           <div class="card">
             <div class="card-content card-border">
               <span class="card-title black-text">
-                {% trans "Customer" context "" %}
+                {% trans "Customer" context "Order details summary header" %}
                 {% if perms.order.edit_order and order.is_draft  %}
                   <span class="right">
-                    <a href="#base-modal" data-href="{% url "dashboard:order-customer-edit" order_pk=order.pk %}" class="btn-flat waves-effect modal-trigger-custom"
-                       title="{% trans "Edit customer details" context "Order customer details action title" %}">
-                      {% trans "Edit" context "Dashboard edit action" %}
+                    <a class="dropdown-button right" href="#" data-activates="customer-menu" data-constrainwidth="false">
+                      <svg data-src="{% static "dashboard/images/more-vert.svg" %}" height="20" width="20" fill="#000" />
                     </a>
+                    <ul id="customer-menu" class="dropdown-content">
+                      <li>
+                        <a href="#base-modal" data-href="{% url "dashboard:order-customer-edit" order_pk=order.pk %}" class="btn-flat waves-effect modal-trigger-custom"
+                           title="{% trans "Edit customer details" context "Order customer details action title" %}">
+                          {% trans "Edit" context "Dashboard edit action" %}
+                        </a>
+                      </li>
+                      {% if order.user or order.user_email %}
+                        <li>
+                          <a href="#base-modal" data-href="{% url "dashboard:order-customer-remove" order_pk=order.pk %}" class="btn-flat waves-effect modal-trigger-custom"
+                             title="{% trans "Remove customer" context "Order customer details action title" %}">
+                            {% trans "Remove" context "Dashboard edit action" %}
+                          </a>
+                        </li>
+                      {% endif %}
+                    </ul>
                   </span>
                 {% endif %}
               </span>
