@@ -75,38 +75,27 @@ class ProductCreateMutation(ModelFormMutation):
         kwargs['data']['category'] = category.id
         return kwargs
 
-    @classmethod
-    def mutate(cls, root, info, **kwargs):
-        form_kwargs = cls.get_form_kwargs(root, info, **kwargs)
-        attributes = form_kwargs.get('data').pop('attributes', None)
-        if attributes:
-            attr_ids = {}
-            attr_name_id = dict(
-                models.ProductAttribute.objects.values_list('name', 'id'))
-            value_name_id = dict(
-                models.AttributeChoiceValue.objects.values_list('name', 'id'))
-            for attribute in attributes:
-                attr_name = attribute.get('name')
-                if attr_name not in attr_name_id:
-                    raise ValueError(
-                        'Unknown attribute name: %r' % (attr_name,))
-                attr_value = attribute.get('value')
-                attr_ids[attr_name_id.get(
-                    attr_name)] = value_name_id.get(attr_value)
-
-            form = cls._meta.form_class(**form_kwargs)
-            if form.is_valid():
-                instance = form.instance
-                instance.attributes = attr_ids
-                instance.save()
-                kwargs = {cls._meta.return_field_name: instance}
-                return cls(errors=[], **kwargs)
-            errors = convert_form_errors(form)
-            return cls(errors=errors)
-        return super().mutate(root, info, **kwargs)
-
 
 class ProductDeleteMutation(ModelDeleteMutation):
 
     class Meta:
         model = models.Product
+
+
+class ProductUpdateMutation(ModelFormUpdateMutation):
+    class Arguments:
+        attributes = graphene.Argument(graphene.List(ValuesInput))
+
+    class Meta:
+        form_class = ProductForm
+        # Exclude from input form fields
+        # that are being overwritten by arguments
+        exclude = ['product_type', 'category', 'attributes']
+
+    @classmethod
+    def get_form_kwargs(cls, root, info, **input):
+        kwargs = super().get_form_kwargs(root, info, **input)
+        instance = kwargs.get('instance')
+        kwargs['data']['product_type'] = instance.product_type.id
+        kwargs['data']['category'] = instance.category.id
+        return kwargs
