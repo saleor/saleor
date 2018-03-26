@@ -66,6 +66,7 @@ export const PageBaseForm = decorate<PageBaseFormComponentProps>(
                   ? classes.addHelperTextPadding
                   : ""
               }
+              error={!!(errorList && errorList.title)}
               helperText={errorList && errorList.title ? errorList.title : ""}
               fullWidth
             />
@@ -82,6 +83,7 @@ export const PageBaseForm = decorate<PageBaseFormComponentProps>(
                     })
               }
               onChange={onChange}
+              error={!!(errorList && errorList.content)}
               fullWidth
             />
           </Grid>
@@ -98,6 +100,7 @@ export const PageBaseForm = decorate<PageBaseFormComponentProps>(
                     })
               }
               onChange={onChange}
+              error={!!(errorList && errorList.slug)}
               fullWidth
             />
             <FormSpacer />
@@ -113,6 +116,7 @@ export const PageBaseForm = decorate<PageBaseFormComponentProps>(
               helperText={
                 errorList && errorList.availableOn ? errorList.availableOn : ""
               }
+              error={!!(errorList && errorList.availableOn)}
             />
             <FormSpacer />
             {created && (
