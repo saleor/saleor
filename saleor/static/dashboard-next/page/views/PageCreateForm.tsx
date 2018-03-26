@@ -29,7 +29,7 @@ export const PageCreateForm: React.StatelessComponent<PageCreateFormProps> = ({
           {handleCancel => (
             <Card>
               <PageHeader
-                onCancel={handleCancel}
+                onBack={handleCancel}
                 title={i18n.t("Add page", { context: "title" })}
               />
               <PageBaseForm
