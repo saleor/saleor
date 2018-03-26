@@ -37,8 +37,9 @@ def recalculate_order(order, discount_amount=None):
     """
     prices = [line.get_total() for line in order]
     total = sum(prices, order.shipping_price)
-    if discount_amount is not None:
-        order.discount_amount = discount_amount
+    # discount amount can't be greater than order total
+    order.discount_amount = min(
+        discount_amount or order.discount_amount, total.gross)
     if order.discount_amount:
         total -= order.discount_amount
     order.total = total
