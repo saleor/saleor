@@ -386,10 +386,9 @@ def anonymous_checkout():
 
 
 @pytest.fixture
-def checkout_with_items(
-        request_cart_with_item, customer_user, billing_address):
+def checkout_with_items(request_cart_with_item, customer_user):
     checkout = Checkout(request_cart_with_item, customer_user, 'tracking_code')
-    checkout.shipping_address = billing_address
+    checkout.shipping_address = customer_user.default_shipping_address
     return checkout
 
 
