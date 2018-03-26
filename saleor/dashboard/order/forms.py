@@ -50,18 +50,18 @@ class ConfirmDraftOrderForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         self.discount_amount = get_voucher_discount_for_order(self.instance)
         if self.instance.discount_amount != self.discount_amount:
+            zero = Money(0, settings.DEFAULT_CURRENCY)
             self.fields['reapply_voucher'].label = pgettext_lazy(
                 'Recalculate discount amount on draft order confirmation',
                 'Update discount amount from %(old_amount)s '
                 'to %(new_amount)s') % {
                     'old_amount': format_money(
-                        self.instance.discount_amount or
-                        Money(0, settings.DEFAULT_CURRENCY)),
-                    'new_amount': format_money(
-                        self.discount_amount or
-                        Money(0, settings.DEFAULT_CURRENCY))}
+                        self.instance.discount_amount or zero),
+                    'new_amount': format_money(self.discount_amount or zero)}
         else:
             self.fields.pop('reapply_voucher')
+        if not self.instance.user and not self.instance.user_email:
+            self.fields.pop('notify_customer')
 
     def clean(self):
         super().clean()
@@ -70,19 +70,7 @@ class ConfirmDraftOrderForm(forms.ModelForm):
             errors.append(forms.ValidationError(pgettext_lazy(
                 'Confirm draft order form error',
                 'Could not confirm order without any products')))
-        if not self.instance.billing_address:
-            errors.append(forms.ValidationError(pgettext_lazy(
-                'Confirm draft order form error',
-                'Billing address is required to handle payment')))
         if self.instance.is_shipping_required():
-            if not self.instance.shipping_address:
-                errors.append(forms.ValidationError(pgettext_lazy(
-                    'Confirm draft order form error',
-                    'Shipping address is required to handle shipping')))
-            if not self.instance.shipping_method_name:
-                errors.append(forms.ValidationError(pgettext_lazy(
-                    'Confirm draft order form error',
-                    'Shipping method is required to handle shipping')))
             method = self.instance.shipping_method
             shipping_address = self.instance.shipping_address
             if (

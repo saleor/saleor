@@ -1,7 +1,9 @@
 from functools import wraps
 
+from django.conf import settings
 from django.db.models import F
 from django.shortcuts import get_object_or_404, redirect
+from prices import Money
 
 from ..account.utils import store_user_address
 from ..core.exceptions import InsufficientStock
@@ -39,7 +41,8 @@ def recalculate_order(order, discount_amount=None):
     total = sum(prices, order.shipping_price)
     # discount amount can't be greater than order total
     order.discount_amount = min(
-        discount_amount or order.discount_amount, total.gross)
+        discount_amount or order.discount_amount or
+        Money(0, settings.DEFAULT_CURRENCY), total.gross)
     if order.discount_amount:
         total -= order.discount_amount
     order.total = total
