@@ -1,45 +1,35 @@
 from django import forms
 from django.utils.translation import pgettext_lazy
 
-from ...core.utils import merge_dicts
 from ...page.models import Page
 from ..product.forms import RichTextField
-from ..seo.utils import (
-    MIN_DESCRIPTION_LENGTH, MIN_TITLE_LENGTH, SEO_HELP_TEXTS, SEO_LABELS,
-    SEO_WIDGETS, prepare_seo_description)
+from ..seo.fields import SeoDescriptionField, SeoTitleField
+from ..seo.utils import prepare_seo_description
 
 
 class PageForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['seo_description'].widget.attrs.update({
-            'data-bind': self['content'].auto_id,
-            'data-materialize': self['content'].html_name,
-            'min-recommended-length': MIN_DESCRIPTION_LENGTH})
-        self.fields['seo_title'].widget.attrs.update({
-            'data-bind': self['title'].auto_id,
-            'min-recommended-length': MIN_TITLE_LENGTH})
+        self.fields['seo_description'] = SeoDescriptionField(
+            extra_attrs={
+                'data-bind': self['content'].auto_id,
+                'data-materialize': self['content'].html_name})
+        self.fields['seo_title'] = SeoTitleField(
+            extra_attrs={'data-bind': self['title'].auto_id})
 
     class Meta:
         model = Page
         exclude = []
-        widgets = merge_dicts(
-            {'slug': forms.TextInput(attrs={'placeholder': 'example-slug'})},
-            SEO_WIDGETS)
-        labels = merge_dicts(
-            {
-                'is_visible': pgettext_lazy(
-                    'Visibility status indicator', 'Publish')
-            },
-            SEO_LABELS)
-        help_texts = merge_dicts(
-            {
-                'slug': pgettext_lazy(
-                    'Form field help text',
-                    'Slug is being used to create page URL')
-            },
-            SEO_HELP_TEXTS)
+        widgets = {
+            'slug': forms.TextInput(attrs={'placeholder': 'example-slug'})},
+        labels = {
+            'is_visible': pgettext_lazy(
+                'Visibility status indicator', 'Publish')},
+        help_texts = {
+            'slug': pgettext_lazy(
+                'Form field help text',
+                'Slug is being used to create page URL')}
 
     content = RichTextField()
 
