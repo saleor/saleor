@@ -25,3 +25,13 @@ def filter_products_by_attribute(queryset, attribute_id, value):
 
 def get_graphql_content(response):
     return json.loads(response.content.decode('utf8'))
+
+
+def seo_field_test_helper(object, function_name, field_values, expected_result):
+    """Helper for testing seo fields."""
+    for field_name, field_value in field_values.items():
+        setattr(object, field_name, field_value)
+    object.save()
+    get_seo_field_function = getattr(object, function_name)
+    result = get_seo_field_function()
+    assert expected_result == result
