@@ -53,17 +53,18 @@ const CategoryDeleteDialog = decorate<CategoryDeleteDialogProps>(props => {
             )
           }}
         />
-        {productCount &&
-          productCount > 0 && (
-            <DialogContentText>
-              {i18n.t(
-                "There are {{count}} product(s) in this category that will also be removed.",
-                {
-                  count: productCount
-                }
-              )}
-            </DialogContentText>
-          )}
+        {productCount && productCount > 0 ? (
+          <DialogContentText>
+            {i18n.t(
+              "There are {{count}} product(s) in this category that will also be removed.",
+              {
+                count: productCount
+              }
+            )}
+          </DialogContentText>
+        ) : (
+          undefined
+        )}
       </DialogContent>
       <DialogActions>
         <Button onClick={onClose}>
