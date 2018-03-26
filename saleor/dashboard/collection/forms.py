@@ -4,6 +4,7 @@ from django.utils.text import slugify
 from django.utils.translation import pgettext_lazy
 from text_unidecode import unidecode
 
+from ...core.utils import merge_dicts
 from ...product.models import Collection, Product
 from ..forms import AjaxSelect2MultipleChoiceField
 from ..seo.utils import (
@@ -19,17 +20,15 @@ class CollectionForm(forms.ModelForm):
     class Meta:
         model = Collection
         exclude = ['slug']
-        labels = {
-            'name': pgettext_lazy(
-                'Item name',
-                'Name'),
-            'products': pgettext_lazy(
-                'Products selection',
-                'Products'),
-            'background_image': pgettext_lazy(
-                'Products selection',
-                'Background Image'),
-            **SEO_LABELS}
+        labels = merge_dicts(
+            {
+                'name': pgettext_lazy('Item name', 'Name'),
+                'products': pgettext_lazy('Products selection', 'Products'),
+                'background_image': pgettext_lazy(
+                    'Products selection',
+                    'Background Image')
+            },
+            SEO_LABELS)
         widgets = SEO_WIDGETS
         help_texts = SEO_HELP_TEXTS
 

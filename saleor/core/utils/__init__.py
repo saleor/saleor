@@ -136,3 +136,14 @@ def create_superuser(credentials):
     else:
         msg = 'Superuser already exists - %(email)s' % credentials
     return msg
+
+
+def merge_dicts(*dict_args):
+    """Workaround for Python3.4 to merge two dicts within one line of code.
+    Given any number of dicts, shallow copy and merge into a new dict,
+    precedence goes to key value pairs in latter dicts.
+    """
+    result = {}
+    for dictionary in dict_args:
+        result.update(dictionary)
+    return result

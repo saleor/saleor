@@ -7,7 +7,7 @@ from prices import Money
 from saleor.account.models import Address, User
 from saleor.core.utils import (
     Country, create_superuser, format_money, get_country_by_ip,
-    get_currency_for_country, random_data)
+    get_currency_for_country, merge_dicts, random_data)
 from saleor.core.utils.text import get_cleaner, strip_html
 from saleor.discount.models import Sale, Voucher
 from saleor.order.models import Order
@@ -184,3 +184,19 @@ def test_utils_strip_html():
                  '\t<b>World</b>')
     text = strip_html(base_text, strip_whitespace=True)
     assert text == 'Hello World'
+
+
+@pytest.mark.parametrize(
+    'first_dict, second_dict',
+    (
+        ({}, {}),
+        ({}, {'foo': 'bar'}),
+        ({'foo': 'bar'}, {'bar': 'foo'}),  # Regular case
+        ({'foo': 'bar'}, {}),
+        ({'foo': 'bar'}, {'foo': 'bar'})))  # Merge two same dicts
+def test_merge_dicts(first_dict, second_dict):
+    result = merge_dicts(first_dict, second_dict)
+    expected_result = {}
+    expected_result.update(first_dict)
+    expected_result.update(second_dict)
+    assert result.items() == expected_result.items()
