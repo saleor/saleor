@@ -10,15 +10,13 @@ from django.utils.translation import pgettext_lazy
 from mptt.forms import TreeNodeChoiceField
 
 from . import ProductBulkAction
-from ...core.utils import merge_dicts
 from ...product.models import (
     AttributeChoiceValue, Category, Collection, Product, ProductAttribute,
     ProductImage, ProductType, ProductVariant, Stock, StockLocation,
     VariantImage)
 from ..forms import OrderedModelMultipleChoiceField, ModelChoiceOrCreationField
-from ..seo.utils import (
-    MIN_DESCRIPTION_LENGTH, MIN_TITLE_LENGTH, SEO_HELP_TEXTS, SEO_LABELS,
-    SEO_WIDGETS, prepare_seo_description)
+from ..seo.fields import SeoDescriptionField, SeoTitleField
+from ..seo.utils import prepare_seo_description
 from ..widgets import RichTextEditorWidget
 from .widgets import ImagePreviewWidget
 
@@ -190,27 +188,22 @@ class ProductForm(forms.ModelForm, AttributesMixin):
     class Meta:
         model = Product
         exclude = ['attributes', 'product_type', 'updated_at']
-        labels = merge_dicts(
-            {
-                'name': pgettext_lazy('Item name', 'Name'),
-                'description': pgettext_lazy('Description', 'Description'),
-                'seo_description': pgettext_lazy(
-                    'A SEO friendly description', 'SEO Friendly Description'),
-                'category': pgettext_lazy('Category', 'Category'),
-                'price': pgettext_lazy('Currency amount', 'Price'),
-                'available_on': pgettext_lazy(
-                    'Availability date', 'Availability date'),
-                'is_published': pgettext_lazy(
-                    'Product published toggle', 'Published'),
-                'is_featured': pgettext_lazy(
-                    'Featured product toggle',
-                    'Feature this product on homepage'),
-                'collections': pgettext_lazy(
-                    'Add to collection select', 'Collections'),
-            },
-            SEO_LABELS)
-        help_texts = SEO_HELP_TEXTS
-        widgets = SEO_WIDGETS
+        labels = {
+            'name': pgettext_lazy('Item name', 'Name'),
+            'description': pgettext_lazy('Description', 'Description'),
+            'seo_description': pgettext_lazy(
+                'A SEO friendly description', 'SEO Friendly Description'),
+            'category': pgettext_lazy('Category', 'Category'),
+            'price': pgettext_lazy('Currency amount', 'Price'),
+            'available_on': pgettext_lazy(
+                'Availability date', 'Availability date'),
+            'is_published': pgettext_lazy(
+                'Product published toggle', 'Published'),
+            'is_featured': pgettext_lazy(
+                'Featured product toggle',
+                'Feature this product on homepage'),
+            'collections': pgettext_lazy(
+                'Add to collection select', 'Collections')}
 
     category = TreeNodeChoiceField(queryset=Category.objects.all())
     collections = forms.ModelMultipleChoiceField(
@@ -227,13 +220,12 @@ class ProductForm(forms.ModelForm, AttributesMixin):
         self.prepare_fields_for_attributes()
         self.fields['collections'].initial = Collection.objects.filter(
             products__name=self.instance)
-        self.fields['seo_description'].widget.attrs.update({
-            'data-bind': self['description'].auto_id,
-            'data-materialize': self['description'].html_name,
-            'min-recommended-length': MIN_DESCRIPTION_LENGTH})
-        self.fields['seo_title'].widget.attrs.update({
-            'data-bind': self['name'].auto_id,
-            'min-recommended-length': MIN_TITLE_LENGTH})
+        self.fields['seo_description'] = SeoDescriptionField(
+            extra_attrs={
+                'data-bind': self['description'].auto_id,
+                'data-materialize': self['description'].html_name})
+        self.fields['seo_title'] = SeoTitleField(
+            extra_attrs={'data-bind': self['name'].auto_id})
 
     def clean_seo_description(self):
         seo_description = prepare_seo_description(

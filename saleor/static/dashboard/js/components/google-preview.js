@@ -37,7 +37,7 @@ function updateCharsCount(seoField) {
   if (!$fieldLength && seoField.attr('placeholder')) {
     $fieldLength = seoField.attr('placeholder').length;
   }
-  const $minRecommendedLength = seoField.attr('min-recommended-length');
+  const $minRecommendedLength = seoField.data('min-recommended-length');
   const $charCountWrapper = $charCount.parent();
   if ($fieldLength < $minRecommendedLength) {
     $charCountWrapper.addClass('orange-text');
