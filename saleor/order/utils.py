@@ -29,7 +29,7 @@ def check_order_status(func):
     return decorator
 
 
-def recalculate_order(order):
+def recalculate_order(order, discount_amount=None):
     """Recalculate and assign total price of order.
 
     Total price is a sum of items in order and order shipping price minus
@@ -37,6 +37,8 @@ def recalculate_order(order):
     """
     prices = [line.get_total() for line in order]
     total = sum(prices, order.shipping_price)
+    if discount_amount is not None:
+        order.discount_amount = discount_amount
     if order.discount_amount:
         total -= order.discount_amount
     order.total = total

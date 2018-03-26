@@ -3,7 +3,9 @@ from django.contrib.sites.shortcuts import get_current_site
 from django.template.loader import get_template
 from prices import Money
 
+from saleor.product.models import ProductVariant
 from ...discount import VoucherType
+from ...discount.models import NotApplicable
 from ...discount.utils import (
     get_product_or_category_voucher_discount, get_shipping_voucher_discount,
     get_value_voucher_discount)
@@ -75,8 +77,9 @@ def get_product_variants_and_prices(order, product):
         line for line in order.lines.all() if line.product == product)
     for line in lines:
         for dummy_i in range(line.quantity):
-            variant = line.product.variants.filter(sku=line.product_sku)
-            yield variant, line.get_price_per_item()
+            variant = line.product.variants.get(sku=line.product_sku)
+            if variant:
+                yield variant, variant.get_price_per_item()
 
 
 def get_category_variants_and_prices(order, root_category):
@@ -95,42 +98,52 @@ def get_category_variants_and_prices(order, root_category):
             yield line
 
 
-def _get_value_voucher_discount_for_order(voucher, order):
+def _get_value_voucher_discount_for_order(order):
     """Calculate discount value for a voucher of value type."""
-    return get_value_voucher_discount(voucher, order.get_subtotal())
+    try:
+        discount_amount = get_value_voucher_discount(
+            order.voucher, order.get_subtotal())
+    except NotApplicable:
+        discount_amount = Money(0, settings.DEFAULT_CURRENCY)
+    return discount_amount
 
 
-def _get_shipping_voucher_discount_for_order(voucher, order):
+def _get_shipping_voucher_discount_for_order(order):
     """Calculate discount value for a voucher of shipping type."""
-    return get_shipping_voucher_discount(
-        voucher, order.get_subtotal(), order.shipping_price)
+    try:
+        discount_amount = get_shipping_voucher_discount(
+            order.voucher, order.get_subtotal(), order.shipping_price)
+    except NotApplicable:
+        discount_amount = Money(0, settings.DEFAULT_CURRENCY)
+    return discount_amount
 
 
-def _get_product_or_category_voucher_discount_for_order(voucher, order):
+def _get_product_or_category_voucher_discount_for_order(order):
     """Calculate discount value for a voucher of product or category type."""
-    if voucher.type == VoucherType.PRODUCT:
+    if order.voucher.type == VoucherType.PRODUCT:
         prices = [
             item[1] for item in get_product_variants_and_prices(
-                order, voucher.product)]
+                order, order.voucher.product)]
     else:
         prices = [
             item[1] for item in get_category_variants_and_prices(
-                order, voucher.category)]
+                order, order.voucher.category)]
     if not prices:
         return Money(0, settings.DEFAULT_CURRENCY)
-    return get_product_or_category_voucher_discount(voucher, prices)
+    return get_product_or_category_voucher_discount(order.voucher, prices)
 
 
-def get_voucher_discount_for_order(voucher, order):
+def get_voucher_discount_for_order(order):
     """Calculate discount value depending on voucher and discount types.
 
     Raise NotApplicable if voucher of given type cannot be applied.
     """
-    if voucher.type == VoucherType.VALUE:
-        return _get_value_voucher_discount_for_order(voucher, order)
-    if voucher.type == VoucherType.SHIPPING:
-        return _get_shipping_voucher_discount_for_order(voucher, order)
-    if voucher.type in (VoucherType.PRODUCT, VoucherType.CATEGORY):
-        return _get_product_or_category_voucher_discount_for_order(
-            voucher, order)
+    if not order.voucher:
+        return None
+    if order.voucher.type == VoucherType.VALUE:
+        return _get_value_voucher_discount_for_order(order)
+    if order.voucher.type == VoucherType.SHIPPING:
+        return _get_shipping_voucher_discount_for_order(order)
+    if order.voucher.type in (VoucherType.PRODUCT, VoucherType.CATEGORY):
+        return _get_product_or_category_voucher_discount_for_order(order)
     raise NotImplementedError('Unknown discount type')
