@@ -1,5 +1,4 @@
 import graphene
-from graphql_extensions.auth.decorators import staff_member_required
 
 from ....graphql.product.types import Category
 from ....graphql.utils import get_node
