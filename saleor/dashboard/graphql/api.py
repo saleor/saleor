@@ -2,7 +2,7 @@ import graphene
 import graphql_jwt
 from graphene_django.debug import DjangoDebug
 from graphene_django.filter import DjangoFilterConnectionField
-from graphql_extensions.auth.decorators import staff_member_required
+from graphql_jwt.decorators import staff_member_required
 
 from ...graphql.core.filters import DistinctFilterSet
 from ...graphql.page.types import Page

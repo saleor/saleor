@@ -5,7 +5,7 @@ from django.core.exceptions import ImproperlyConfigured
 from graphene.types.mutation import MutationOptions
 from graphene_django.form_converter import convert_form_field
 from graphene_django.registry import get_global_registry
-from graphql_extensions.auth.decorators import staff_member_required
+from graphql_jwt.decorators import staff_member_required
 
 from ...graphql.core.types import Error
 from ...graphql.utils import get_node
