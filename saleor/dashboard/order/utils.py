@@ -3,7 +3,6 @@ from django.contrib.sites.shortcuts import get_current_site
 from django.template.loader import get_template
 from prices import Money
 
-from saleor.product.models import ProductVariant
 from ...discount import VoucherType
 from ...discount.models import NotApplicable
 from ...discount.utils import (

@@ -12,9 +12,11 @@ from ..product.utils import allocate_stock, deallocate_stock, increase_stock
 
 
 def check_order_status(func):
-    """Prevent execution of decorated function if order is fully paid.
+    """Check if order meets preconditions of payment process.
 
-    Instead redirects to order details page.
+    Order can not have draft status or be fully paid. Billing address
+    must be provided.
+    If not, redirect to order details page.
     """
     # pylint: disable=cyclic-import
     from .models import Order
@@ -23,7 +25,10 @@ def check_order_status(func):
     def decorator(*args, **kwargs):
         token = kwargs.pop('token')
         order = get_object_or_404(Order, token=token)
-        if order.is_fully_paid():
+        can_be_paid = (
+            order.status != OrderStatus.DRAFT and order.billing_address and
+            not order.is_fully_paid())
+        if not can_be_paid:
             return redirect('order:details', token=order.token)
         kwargs['order'] = order
         return func(*args, **kwargs)
@@ -52,7 +57,8 @@ def recalculate_order(order, discount_amount=None):
 def cancel_order(order, restock):
     """Cancel order and associated fulfillments.
 
-    Return products to corresponding stocks if restock is set to True."""
+    Return products to corresponding stocks if restock is set to True.
+    """
     if restock:
         restock_order_lines(order)
     for fulfillment in order.fulfillments.all():
@@ -82,7 +88,8 @@ def update_order_status(order):
 def cancel_fulfillment(fulfillment, restock):
     """Cancel fulfillment.
 
-    Return products to corresponding stocks if restock is set to True."""
+    Return products to corresponding stocks if restock is set to True.
+    """
     if restock:
         restock_fulfillment_lines(fulfillment)
     for line in fulfillment:
