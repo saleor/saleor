@@ -40,10 +40,10 @@ function updateCharsCount(seoField) {
   const $minRecommendedLength = seoField.attr('min-recommended-length');
   const $charCountWrapper = $charCount.parent();
   if ($fieldLength < $minRecommendedLength) {
-    $charCountWrapper.addClass('red-text');
+    $charCountWrapper.addClass('orange-text');
     $charCountWrapper.removeClass('green-text');
   } else {
-    $charCountWrapper.removeClass('red-text');
+    $charCountWrapper.removeClass('orange-text');
     $charCountWrapper.addClass('green-text');
   }
   $charCount.text($fieldLength);
