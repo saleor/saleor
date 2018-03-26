@@ -2,7 +2,7 @@ import pytest
 
 from django.urls import reverse
 
-from .utils import get_redirect_location
+from .utils import get_redirect_location, seo_field_test_helper
 
 
 def test_collection_index(client, collection):
@@ -42,11 +42,10 @@ def test_collection_not_exists(client):
         ('Title', None, 'Title')))
 def test_page_get_seo_title(
         admin_client, collection, title, seo_title, expected_result):
-    collection.name = title
-    collection.seo_title = seo_title
-    collection.save()
-    result = collection.get_seo_title()
-    expected_result == result
+    seo_field_test_helper(
+        collection, 'get_seo_title',
+        {'name': title, 'seo_title': seo_title},
+        expected_result)
 
 
 @pytest.mark.parametrize(
@@ -56,7 +55,7 @@ def test_page_get_seo_title(
         (None, '')))
 def test_page_get_seo_description(
         admin_client, collection, seo_description, expected_result):
-    collection.seo_description = seo_description
-    collection.save()
-    result = collection.get_seo_description()
-    expected_result == result
+    seo_field_test_helper(
+        collection, 'get_seo_description',
+        {'seo_description': seo_description},
+        expected_result)

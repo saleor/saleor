@@ -1,5 +1,7 @@
 import pytest
 
+from .utils import seo_field_test_helper
+
 
 def test_draft_page_detail(client, admin_client, page):
     page_url = page.get_absolute_url()
@@ -26,11 +28,10 @@ def test_public_page_detail(client, admin_client, page):
         ('Title', None, 'Title')))
 def test_page_get_seo_title(
         admin_client, page, title, seo_title, expected_result):
-    page.title = title
-    page.seo_title = seo_title
-    page.save()
-    result = page.get_seo_title()
-    expected_result == result
+    seo_field_test_helper(
+        page, 'get_seo_title',
+        {'title': title, 'seo_title': seo_title},
+        expected_result)
 
 
 @pytest.mark.parametrize(
@@ -40,7 +41,7 @@ def test_page_get_seo_title(
         (None, '')))
 def test_page_get_seo_description(
         admin_client, page, seo_description, expected_result):
-    page.seo_description = seo_description
-    page.save()
-    result = page.get_seo_description()
-    expected_result == result
+    seo_field_test_helper(
+        page, 'get_seo_description',
+        {'seo_description': seo_description},
+        expected_result)
