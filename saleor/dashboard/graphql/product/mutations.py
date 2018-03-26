@@ -85,6 +85,7 @@ class ProductDeleteMutation(ModelDeleteMutation):
 class ProductUpdateMutation(ModelFormUpdateMutation):
     class Arguments:
         attributes = graphene.Argument(graphene.List(ValuesInput))
+        category_id = graphene.ID()
 
     class Meta:
         form_class = ProductForm
@@ -97,5 +98,11 @@ class ProductUpdateMutation(ModelFormUpdateMutation):
         kwargs = super().get_form_kwargs(root, info, **input)
         instance = kwargs.get('instance')
         kwargs['data']['product_type'] = instance.product_type.id
-        kwargs['data']['category'] = instance.category.id
+        # Use provided category or existing one
+        category_id = input.pop('category_id', None)
+        if category_id:
+            category = get_node(info, category_id, only_type=Category)
+            kwargs['data']['category'] = category.id
+        else:
+            kwargs['data']['category'] = instance.category.id
         return kwargs
