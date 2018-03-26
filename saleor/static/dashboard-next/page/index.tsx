@@ -32,7 +32,9 @@ export function pageEditUrl(id: string) {
 }
 
 export function pageStorefrontUrl(slug: string) {
-  return `/page/${slug}/`;
+  return `/pages/${slug}/`;
 }
+
+export const pageListUrl = "/pages/";
 
 export default Component;
