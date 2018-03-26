@@ -10,6 +10,7 @@ from django.utils.translation import pgettext_lazy
 from mptt.forms import TreeNodeChoiceField
 
 from . import ProductBulkAction
+from ...core.utils import merge_dicts
 from ...product.models import (
     AttributeChoiceValue, Category, Collection, Product, ProductAttribute,
     ProductImage, ProductType, ProductVariant, Stock, StockLocation,
@@ -189,22 +190,25 @@ class ProductForm(forms.ModelForm, AttributesMixin):
     class Meta:
         model = Product
         exclude = ['attributes', 'product_type', 'updated_at']
-        labels = {
-            'name': pgettext_lazy('Item name', 'Name'),
-            'description': pgettext_lazy('Description', 'Description'),
-            'seo_description': pgettext_lazy(
-                'A SEO friendly description', 'SEO Friendly Description'),
-            'category': pgettext_lazy('Category', 'Category'),
-            'price': pgettext_lazy('Currency amount', 'Price'),
-            'available_on': pgettext_lazy(
-                'Availability date', 'Availability date'),
-            'is_published': pgettext_lazy(
-                'Product published toggle', 'Published'),
-            'is_featured': pgettext_lazy(
-                'Featured product toggle', 'Feature this product on homepage'),
-            'collections': pgettext_lazy(
-                'Add to collection select', 'Collections'),
-            **SEO_LABELS}
+        labels = merge_dicts(
+            {
+                'name': pgettext_lazy('Item name', 'Name'),
+                'description': pgettext_lazy('Description', 'Description'),
+                'seo_description': pgettext_lazy(
+                    'A SEO friendly description', 'SEO Friendly Description'),
+                'category': pgettext_lazy('Category', 'Category'),
+                'price': pgettext_lazy('Currency amount', 'Price'),
+                'available_on': pgettext_lazy(
+                    'Availability date', 'Availability date'),
+                'is_published': pgettext_lazy(
+                    'Product published toggle', 'Published'),
+                'is_featured': pgettext_lazy(
+                    'Featured product toggle',
+                    'Feature this product on homepage'),
+                'collections': pgettext_lazy(
+                    'Add to collection select', 'Collections'),
+            },
+            SEO_LABELS)
         help_texts = SEO_HELP_TEXTS
         widgets = SEO_WIDGETS
 

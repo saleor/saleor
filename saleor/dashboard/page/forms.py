@@ -1,6 +1,7 @@
 from django import forms
 from django.utils.translation import pgettext_lazy
 
+from ...core.utils import merge_dicts
 from ...page.models import Page
 from ..product.forms import RichTextField
 from ..seo.utils import (
@@ -23,18 +24,22 @@ class PageForm(forms.ModelForm):
     class Meta:
         model = Page
         exclude = []
-        widgets = {
-            'slug': forms.TextInput(attrs={'placeholder': 'example-slug'}),
-            **SEO_WIDGETS}
-        labels = {
-            'is_visible': pgettext_lazy(
-                'Visibility status indicator', 'Publish'),
-            **SEO_LABELS}
-        help_texts = {
-            'slug': pgettext_lazy(
-                'Form field help text',
-                'Slug is being used to create page URL'),
-            **SEO_HELP_TEXTS}
+        widgets = merge_dicts(
+            {'slug': forms.TextInput(attrs={'placeholder': 'example-slug'})},
+            SEO_WIDGETS)
+        labels = merge_dicts(
+            {
+                'is_visible': pgettext_lazy(
+                    'Visibility status indicator', 'Publish')
+            },
+            SEO_LABELS)
+        help_texts = merge_dicts(
+            {
+                'slug': pgettext_lazy(
+                    'Form field help text',
+                    'Slug is being used to create page URL')
+            },
+            SEO_HELP_TEXTS)
 
     content = RichTextField()
 

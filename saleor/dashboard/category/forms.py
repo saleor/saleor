@@ -4,6 +4,7 @@ from django.utils.text import slugify
 from django.utils.translation import pgettext_lazy
 from text_unidecode import unidecode
 
+from ...core.utils import merge_dicts
 from ...product.models import Category
 from ..seo.utils import (
     MIN_DESCRIPTION_LENGTH, MIN_TITLE_LENGTH, SEO_HELP_TEXTS, SEO_LABELS,
@@ -24,14 +25,12 @@ class CategoryForm(forms.ModelForm):
     class Meta:
         model = Category
         exclude = ['slug']
-        labels = {
-            'name': pgettext_lazy(
-                'Item name',
-                'Name'),
-            'description': pgettext_lazy(
-                'Description',
-                'Description'),
-            **SEO_LABELS}
+        labels = merge_dicts(
+            {
+                'name': pgettext_lazy('Item name', 'Name'),
+                'description': pgettext_lazy('Description', 'Description')
+            },
+            SEO_LABELS)
         help_texts = SEO_HELP_TEXTS
         widgets = SEO_WIDGETS
 
