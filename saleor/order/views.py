@@ -64,7 +64,7 @@ def payment(request, token):
         form_data = None
         waiting_payment_form = PaymentDeleteForm(
             None, order=order, initial={'payment_id': waiting_payment.id})
-    if order.is_fully_paid():
+    if order.is_fully_paid() or not order.billing_address:
         form_data = None
     payment_form = None
     if not order.is_pre_authorized():
