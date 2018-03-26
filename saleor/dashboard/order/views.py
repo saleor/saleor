@@ -35,7 +35,8 @@ from .forms import (
     OrderRemoveVoucherForm, OrderShippingForm, RefundPaymentForm,
     ReleasePaymentForm)
 from .utils import (
-    create_invoice_pdf, create_packing_slip_pdf, get_statics_absolute_url)
+    create_invoice_pdf, create_packing_slip_pdf, get_statics_absolute_url,
+    save_address_in_order)
 
 
 @staff_member_required
@@ -325,12 +326,8 @@ def address_view(request, order_pk, address_type):
     form = AddressForm(request.POST or None, instance=address)
     if form.is_valid():
         updated_address = form.save()
-        if address is None:
-            if address_type == 'shipping':
-                order.shipping_address = updated_address
-            else:
-                order.billing_address = updated_address
-            order.save()
+        if not address:
+            save_address_in_order(order, updated_address, address_type)
         order.history.create(content=success_msg, user=request.user)
         messages.success(request, success_msg)
         return redirect('dashboard:order-details', order_pk=order_pk)

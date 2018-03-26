@@ -146,3 +146,19 @@ def get_voucher_discount_for_order(order):
     if order.voucher.type in (VoucherType.PRODUCT, VoucherType.CATEGORY):
         return _get_product_or_category_voucher_discount_for_order(order)
     raise NotImplementedError('Unknown discount type')
+
+
+def save_address_in_order(order, address, address_type):
+    """Save new address of a given address type in an order.
+
+    If the other type of address is empty, copy it.
+    """
+    if address_type == 'shipping':
+        order.shipping_address = address
+        if not order.billing_address:
+            order.billing_address = address.get_copy()
+    else:
+        order.billing_address = address
+        if not order.shipping_address:
+            order.shipping_address = address.get_copy()
+    order.save(update_fields=['billing_address', 'shipping_address'])

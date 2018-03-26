@@ -234,7 +234,11 @@
                   {% endif %}
               </span>
               {% if order.billing_address %}
-                {% format_address order.billing_address %}
+                {% if order.billing_address == order.shipping_address %}
+                  {% trans "Same as shipping address" context "Order billing address same as shipping address" %}
+                {% else %}
+                  {% format_address order.billing_address %}
+                {% endif %}
               {% else %}
                 {% trans "No billing address" context "Missing billing address message" %}
               {% endif %}
