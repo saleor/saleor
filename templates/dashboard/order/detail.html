@@ -269,9 +269,15 @@
         <div class="data-table-header">
           <div class="data-table-title">
             <h5>
-              {% blocktrans trimmed with order=order.id context "Order table title"  %}
-                Order #{{ order }}
-              {% endblocktrans %}
+              {% if order.is_draft %}
+                {% blocktrans trimmed with order=order.id context "Order table title"  %}
+                  Order draft #{{ order }}
+                {% endblocktrans %}
+              {% else %}
+                {% blocktrans trimmed with order=order.id context "Order table title"  %}
+                  Order #{{ order }}
+                {% endblocktrans %}
+              {% endif %}
             </h5>
             <h6>
               {% trans "Placed on" context "Order placed on date" %} {{ order.created }}

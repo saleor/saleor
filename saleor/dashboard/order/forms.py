@@ -91,7 +91,7 @@ class OrderCustomerForm(forms.ModelForm):
     update_addresses = forms.BooleanField(
         label=pgettext_lazy(
             'Update an order with user default addresses',
-            'Update billing and shipping address'),
+            'Set billing and shipping address in order to customer defaults'),
         initial=True, required=False)
     user = AjaxSelect2ChoiceField(
         queryset=User.objects.all(),
@@ -102,9 +102,6 @@ class OrderCustomerForm(forms.ModelForm):
         model = Order
         fields = ['user', 'user_email']
         labels = {
-            'update_addresses': pgettext_lazy(
-                'Update an order with user default addresses',
-                'Update billing and shipping address'),
             'user': pgettext_lazy('Order customer', 'User'),
             'user_email': pgettext_lazy(
                 'Order customer email',
