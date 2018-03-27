@@ -42,9 +42,11 @@ function updateCharsCount(seoField) {
   if ($fieldLength < $minRecommendedLength) {
     $charCountWrapper.addClass('orange-text');
     $charCountWrapper.removeClass('green-text');
+    $charCountWrapper.attr('title', gettext('Your input might be a little too short, think of something more descriptive'));
   } else {
     $charCountWrapper.removeClass('orange-text');
     $charCountWrapper.addClass('green-text');
+    $charCountWrapper.attr('title', gettext('Your input fits between the recommended lengths'));
   }
   $charCount.text($fieldLength);
 }
