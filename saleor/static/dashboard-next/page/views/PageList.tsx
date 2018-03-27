@@ -14,7 +14,7 @@ import Navigator from "../../components/Navigator";
 import PageHeader from "../../components/PageHeader";
 import i18n from "../../i18n";
 import PageFilters from "../components/PageFilters";
-import PageListComponent from "../components/PageListComponent";
+import PageListComponent from "../components/PageList";
 import { pageEditUrl, pageStorefrontUrl } from "../index";
 import { pageListQuery, TypedPageListQuery } from "../queries";
 

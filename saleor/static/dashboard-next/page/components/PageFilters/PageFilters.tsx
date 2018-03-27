@@ -1,9 +1,9 @@
 import TextField from "material-ui/TextField";
 import * as React from "react";
 
-import FilterCard from "../../components/FilterCard";
-import FormSpacer from "../../components/FormSpacer";
-import i18n from "../../i18n";
+import FilterCard from "../../../components/FilterCard";
+import FormSpacer from "../../../components/FormSpacer";
+import i18n from "../../../i18n";
 
 interface PageFiltersState {
   title: string;
@@ -12,7 +12,10 @@ interface PageFiltersState {
 }
 
 interface PageFiltersProps {
-  formState?: PageFiltersState;
+  formState?: {
+    title: string;
+    url: string;
+  };
   handleClear();
   handleSubmit(formState: any);
 }
