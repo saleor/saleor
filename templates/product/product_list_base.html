@@ -19,10 +19,16 @@
 {% endblock %}
 
 {% block meta_tags %}
-  <meta property="og:title" content="{{ object.get_seo_title }}">
-  <meta property="og:description" content="{{ object.get_seo_description }}">
+  <meta property="og:title" content="{{ object.seo_title|default:object.name }}">
+
+  <meta name="description" content="
+    {% if object.seo_description %}
+      {{ object.seo_description }}
+    {% elif object.description %}
+      {{ object.description }}
+    {% endif %}
+  ">
   <meta property="og:image" content="{% static "images/block1.png" %}">
-  <meta name="description" content="{{ object.get_seo_description }}">
 
   {% build_absolute_uri request=request location=object.get_absolute_url as object_url %}
   <meta property="og:url" content="{{ object_url }}">

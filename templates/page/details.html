@@ -12,9 +12,9 @@
 {% endblock %}
 
 {% block meta_tags %}
-  <meta property="og:title" content="{{ page.get_seo_title }}">
-  <meta property="og:description" content="{{ page.get_seo_description }}">
-  <meta name="description" content="{{ page.get_seo_description }}">
+  <meta property="og:title" content="{{ page.seo_title|default:page.title }}">
+  <meta property="og:description" content="{{ page.seo_description|default:"" }}">
+  <meta name="description" content="{{ page.seo_description|default:"" }}">
 
   {% build_absolute_uri request=request location=page.get_absolute_url as page_url %}
   <meta property="og:url" content="{{ page_url }}">

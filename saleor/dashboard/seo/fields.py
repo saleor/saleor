@@ -14,38 +14,42 @@ TITLE_MAX_LENGTH = SeoModel._meta.get_field('seo_title').max_length
 
 
 class SeoTitleField(forms.CharField):
-    help_text = SEO_FIELD_HELP_TEXT
-    label = pgettext_lazy(
-        (
-            'Field name, ',
-            'Title that will be used to describe page in Search Engines'),
-        'SEO Title')
     widget = CharsLeftWidget(
         attrs={
             'data-min-recommended-length': MIN_TITLE_LENGTH,
             'maxlength': TITLE_MAX_LENGTH})
 
-    def __init__(self, extra_attrs=None, *args, **kwargs):
+    def __init__(self, extra_attrs=None, required=False, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.max_length = TITLE_MAX_LENGTH
         if extra_attrs:
             self.widget.attrs.update(extra_attrs)
+        self.required = required
+        self.help_text = SEO_FIELD_HELP_TEXT
+        self.label = pgettext_lazy(
+            (
+                'Field name, ',
+                'Title that will be used to describe page in Search Engines'),
+            'SEO Title')
 
 
 class SeoDescriptionField(forms.CharField):
     help_text = SEO_FIELD_HELP_TEXT
-    label = pgettext_lazy(
-        (
-            'Field name, Meta Description is page summary '
-            'used by Search Engines'),
-        'Meta Description'),
+
     widget = CharsLeftWidget(
         attrs={
+            'help_text': SEO_FIELD_HELP_TEXT,
             'data-min-recommended-length': MIN_DESCRIPTION_LENGTH,
             'maxlength': DESCRIPTION_MAX_LENGTH})
 
-    def __init__(self, extra_attrs=None, *args, **kwargs):
+    def __init__(self, extra_attrs=None, required=False, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.max_length = DESCRIPTION_MAX_LENGTH
         if extra_attrs:
             self.widget.attrs.update(extra_attrs)
+        self.required = required
+        self.help_text = SEO_FIELD_HELP_TEXT
+        self.label = pgettext_lazy(
+            ('Field name, Meta Description is page '
+             'summary used by Search Engines'),
+            'Meta Description')
