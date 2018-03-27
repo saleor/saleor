@@ -841,7 +841,7 @@ def test_view_order_create(admin_client):
 def test_view_confirm_draft_order_valid(admin_client, draft_order):
     order = draft_order
     url = reverse(
-        'dashboard:draft-order-confirm', kwargs={'order_pk': order.pk})
+        'dashboard:create-order-from-draft', kwargs={'order_pk': order.pk})
     data = {'csrfmiddlewaretoken': 'hello'}
 
     response = admin_client.post(url, data)
@@ -861,7 +861,7 @@ def test_view_confirm_draft_order_assigns_customer_email(
     order.user_email = ''
     order.save()
     url = reverse(
-        'dashboard:draft-order-confirm', kwargs={'order_pk': order.pk})
+        'dashboard:create-order-from-draft', kwargs={'order_pk': order.pk})
     data = {'csrfmiddlewaretoken': 'hello'}
 
     admin_client.post(url, data)
@@ -875,7 +875,7 @@ def test_view_confirm_draft_order_empty_order(admin_client, draft_order):
     order = draft_order
     order.lines.all().delete()
     url = reverse(
-        'dashboard:draft-order-confirm', kwargs={'order_pk': order.pk})
+        'dashboard:create-order-from-draft', kwargs={'order_pk': order.pk})
     data = {'csrfmiddlewaretoken': 'hello'}
 
     response = admin_client.post(url, data)
@@ -891,7 +891,7 @@ def test_view_confirm_draft_order_empty_order(admin_client, draft_order):
 def test_view_confirm_draft_order_not_draft_order(
         admin_client, order_with_lines):
     url = reverse(
-        'dashboard:draft-order-confirm', kwargs={'order_pk': order_with_lines.pk})
+        'dashboard:create-order-from-draft', kwargs={'order_pk': order_with_lines.pk})
     data = {'csrfmiddlewaretoken': 'hello'}
 
     response = admin_client.post(url, data)
@@ -907,7 +907,8 @@ def test_view_confirm_draft_order_shipping_method_not_valid(
     draft_order.shipping_method = method
     draft_order.save()
     url = reverse(
-        'dashboard:draft-order-confirm', kwargs={'order_pk': draft_order.pk})
+        'dashboard:create-order-from-draft',
+        kwargs={'order_pk': draft_order.pk})
     data = {'csrfmiddlewaretoken': 'hello'}
 
     response = admin_client.post(url, data)
@@ -934,7 +935,7 @@ def test_view_confirm_draft_order_no_shipping_address_shipping_not_required(
         unit_price_net=Decimal('10.00'),
         unit_price_gross=Decimal('10.00'))
     url = reverse(
-        'dashboard:draft-order-confirm', kwargs={'order_pk': order.pk})
+        'dashboard:create-order-from-draft', kwargs={'order_pk': order.pk})
     data = {'csrfmiddlewaretoken': 'hello'}
 
     response = admin_client.post(url, data)

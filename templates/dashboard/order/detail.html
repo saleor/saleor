@@ -471,10 +471,14 @@
                 <a href="#base-modal" data-href="{% url 'dashboard:add-variant-to-order' order_pk=order.pk %}" class="btn-flat waves-effect modal-trigger-custom" title="{% trans "Add product to order" context "Order summary card action title" %}">
                   {% trans "Add product" context "Order summary card action" %}
                 </a>
-                <a href="#base-modal" data-href="{% url 'dashboard:draft-order-confirm' order_pk=order.pk %}" class="btn-flat waves-effect modal-trigger-custom" title="{% trans "Confirm order" context "Order summary card action title" %}">
-                  {% trans "Confirm" context "Order summary card action" %}
-                </a>
               {% endif %}
+              <span class="right">
+                {% if order.is_draft %}
+                  <a href="#base-modal" data-href="{% url 'dashboard:create-order-from-draft' order_pk=order.pk %}" class="btn waves-effect modal-trigger-custom" title="{% trans "Create order" context "Order summary card action title" %}">
+                   {% trans "Create order" context "Order summary card action" %}
+                  </a>
+                {% endif %}
+              </span>
             </div>
           {% endif %}
         {% endif %}
