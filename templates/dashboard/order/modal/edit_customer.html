@@ -28,6 +28,14 @@
   </div>
 {% endblock %}
 
+{% block actions_left %}
+  {% if order.get_user_current_email %}
+    <button type="submit" class="modal-action btn btn-danger waves-effect" formaction="{% url 'dashboard:order-customer-remove' order_pk=order.pk %}">
+      {% trans "Remove customer from order" context "Dashboard edit draft order remove action" %}
+    </button>
+  {% endif %}
+{% endblock %}
+
 {% block primary_action %}
 {% trans "Update" context "Modal edit customer primary action" %}
 {% endblock %}

@@ -66,4 +66,10 @@
       cursor: unset;
     }
   }
+  &-danger {
+    background-color: #ef5350;
+    &:hover {
+      background-color: #e57373;
+    }
+  }
 }

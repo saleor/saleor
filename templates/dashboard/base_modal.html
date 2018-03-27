@@ -29,10 +29,13 @@
     </div>
   </div>
   <div class="modal-footer">
+    <span class="left">
+      {% block actions_left %}{% endblock %}
+    </span>
     <a href="#!" class="modal-action modal-close btn-flat waves-effect">
       {% block cancel_action %} {% trans "Cancel" context "Dashboard cancel action" %} {% endblock %}
     </a>
-    <button type="submit" class="modal-action btn-flat waves-effect">
+    <button type="submit" class="modal-action btn waves-effect">
       {% block primary_action %}{% endblock %}
     </button>
   </div>

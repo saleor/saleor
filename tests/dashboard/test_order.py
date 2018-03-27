@@ -400,8 +400,8 @@ def test_view_release_order_invalid_payment_input_status(
 
 @pytest.mark.integration
 @pytest.mark.django_db
-def test_view_cancel_order_line(admin_client, order_with_lines):
-    lines_before = order_with_lines.lines.all()
+def test_view_cancel_order_line(admin_client, draft_order):
+    lines_before = draft_order.lines.all()
     lines_before_count = lines_before.count()
     line = lines_before.first()
     line_quantity = line.quantity
@@ -410,7 +410,7 @@ def test_view_cancel_order_line(admin_client, order_with_lines):
 
     url = reverse(
         'dashboard:orderline-cancel', kwargs={
-            'order_pk': order_with_lines.pk,
+            'order_pk': draft_order.pk,
             'line_pk': line.pk})
 
     response = admin_client.get(url)
@@ -418,7 +418,7 @@ def test_view_cancel_order_line(admin_client, order_with_lines):
     response = admin_client.post(url, {'csrfmiddlewaretoken': 'hello'})
     assert response.status_code == 302
     assert get_redirect_location(response) == reverse(
-        'dashboard:order-details', args=[order_with_lines.pk])
+        'dashboard:order-details', args=[draft_order.pk])
     # check ordered item removal
     lines_after = Order.objects.get().lines.all()
     assert lines_before_count - 1 == lines_after.count()
@@ -426,12 +426,11 @@ def test_view_cancel_order_line(admin_client, order_with_lines):
     assert Stock.objects.first().quantity_allocated == (
         quantity_allocated_before - line_quantity)
     # check note in the order's history
-    assert OrderHistoryEntry.objects.get(
-        order=order_with_lines).content == (
-            'Cancelled item %s' % product)
+    assert OrderHistoryEntry.objects.get(order=draft_order).content == (
+        'Cancelled item %s' % product)
     url = reverse(
         'dashboard:orderline-cancel', kwargs={
-            'order_pk': order_with_lines.pk,
+            'order_pk': draft_order.pk,
             'line_pk': OrderLine.objects.get().pk})
     response = admin_client.post(
         url, {'csrfmiddlewaretoken': 'hello'}, follow=True)
@@ -442,15 +441,15 @@ def test_view_cancel_order_line(admin_client, order_with_lines):
 
 @pytest.mark.integration
 @pytest.mark.django_db
-def test_view_change_order_line_quantity(admin_client, order_with_lines):
-    lines_before_quantity_change = order_with_lines.lines.all()
+def test_view_change_order_line_quantity(admin_client, draft_order):
+    lines_before_quantity_change = draft_order.lines.all()
     lines_before_quantity_change_count = lines_before_quantity_change.count()
     line = lines_before_quantity_change.first()
     line_quantity_before_quantity_change = line.quantity
 
     url = reverse(
         'dashboard:orderline-change-quantity', kwargs={
-            'order_pk': order_with_lines.pk,
+            'order_pk': draft_order.pk,
             'line_pk': line.pk})
     response = admin_client.get(url)
     assert response.status_code == 200
@@ -460,7 +459,7 @@ def test_view_change_order_line_quantity(admin_client, order_with_lines):
     # check redirection
     assert redirect_status_code == 302
     assert redirected_to == reverse(
-        'dashboard:order-details', kwargs={'order_pk': order_with_lines.id})
+        'dashboard:order-details', kwargs={'order_pk': draft_order.id})
     # success messages should appear after redirect
     assert response.context['messages']
     lines_after = Order.objects.get().lines.all()
@@ -472,24 +471,23 @@ def test_view_change_order_line_quantity(admin_client, order_with_lines):
     # source line quantity should be decreased to 2
     assert line.quantity == 2
     # a note in the order's history should be created
-    assert OrderHistoryEntry.objects.get(
-        order=order_with_lines).content == (
-            'Changed quantity for product %(product)s from'
-            ' %(old_quantity)s to %(new_quantity)s') % {
-                'product': line.product,
-                'old_quantity': line_quantity_before_quantity_change,
-                'new_quantity': 2}
+    assert OrderHistoryEntry.objects.get(order=draft_order).content == (
+        'Changed quantity for product %(product)s from'
+        ' %(old_quantity)s to %(new_quantity)s') % {
+            'product': line.product,
+            'old_quantity': line_quantity_before_quantity_change,
+            'new_quantity': 2}
 
 
 @pytest.mark.integration
 @pytest.mark.django_db
 def test_view_change_order_line_quantity_with_invalid_data(
-        admin_client, order_with_lines):
-    lines = order_with_lines.lines.all()
+        admin_client, draft_order):
+    lines = draft_order.lines.all()
     line = lines.first()
     url = reverse(
         'dashboard:orderline-change-quantity', kwargs={
-            'order_pk': order_with_lines.pk,
+            'order_pk': draft_order.pk,
             'line_pk': line.pk})
     response = admin_client.post(
         url, {'quantity': 0})
@@ -604,9 +602,8 @@ def test_view_fulfillment_packing_slips_without_shipping(
 
 @pytest.mark.integration
 @pytest.mark.django_db
-def test_view_change_order_line_stock_valid(admin_client, order_with_lines):
-    order = order_with_lines
-    line = order.lines.last()
+def test_view_change_order_line_stock_valid(admin_client, draft_order):
+    line = draft_order.lines.last()
     old_stock = line.stock
     variant = ProductVariant.objects.get(sku=line.product_sku)
     stock_location = StockLocation.objects.create(name='Warehouse 2')
@@ -616,7 +613,7 @@ def test_view_change_order_line_stock_valid(admin_client, order_with_lines):
 
     url = reverse(
         'dashboard:orderline-change-stock', kwargs={
-            'order_pk': order.pk,
+            'order_pk': draft_order.pk,
             'line_pk': line.pk})
     data = {'stock': stock.pk}
     response = admin_client.post(url, data)
@@ -635,9 +632,8 @@ def test_view_change_order_line_stock_valid(admin_client, order_with_lines):
 @pytest.mark.integration
 @pytest.mark.django_db
 def test_view_change_order_line_stock_insufficient_stock(
-        admin_client, order_with_lines):
-    order = order_with_lines
-    line = order.lines.last()
+        admin_client, draft_order):
+    line = draft_order.lines.last()
     old_stock = line.stock
     variant = ProductVariant.objects.get(sku=line.product_sku)
     stock_location = StockLocation.objects.create(name='Warehouse 2')
@@ -647,7 +643,7 @@ def test_view_change_order_line_stock_insufficient_stock(
 
     url = reverse(
         'dashboard:orderline-change-stock', kwargs={
-            'order_pk': order.pk,
+            'order_pk': draft_order.pk,
             'line_pk': line.pk})
     data = {'stock': stock.pk}
     response = admin_client.post(url, data)
@@ -665,17 +661,15 @@ def test_view_change_order_line_stock_insufficient_stock(
     assert stock.quantity_allocated == 1
 
 
-def test_view_change_order_line_stock_merges_lines(
-        admin_client, order_with_lines):
-    order = order_with_lines
-    line = order.lines.first()
+def test_view_change_order_line_stock_merges_lines(admin_client, draft_order):
+    line = draft_order.lines.first()
     old_stock = line.stock
     variant = ProductVariant.objects.get(sku=line.product_sku)
     stock_location = StockLocation.objects.create(name='Warehouse 2')
     stock = Stock.objects.create(
         variant=variant, cost_price=2, quantity=2, quantity_allocated=2,
         location=stock_location)
-    line_2 = order.lines.create(
+    line_2 = draft_order.lines.create(
         product=line.product,
         product_name=line.product.name,
         product_sku='SKU_A',
@@ -685,17 +679,17 @@ def test_view_change_order_line_stock_merges_lines(
         unit_price_gross=Decimal('30.00'),
         stock=stock,
         stock_location=stock.location.name)
-    lines_before = order.lines.count()
+    lines_before = draft_order.lines.count()
 
     url = reverse(
         'dashboard:orderline-change-stock', kwargs={
-            'order_pk': order.pk,
+            'order_pk': draft_order.pk,
             'line_pk': line_2.pk})
     data = {'stock': old_stock.pk}
     response = admin_client.post(url, data)
 
     assert response.status_code == 200
-    assert order.lines.count() == lines_before - 1
+    assert draft_order.lines.count() == lines_before - 1
 
     old_stock.refresh_from_db()
     assert old_stock.quantity_allocated == 5
@@ -764,6 +758,8 @@ def test_add_variant_to_existing_lines_multiple_lines_with_rest(
 def test_view_add_variant_to_order(
         admin_client, order_with_variant_from_different_stocks):
     order = order_with_variant_from_different_stocks
+    order.status = OrderStatus.DRAFT
+    order.save()
     variant = ProductVariant.objects.get(sku='SKU_A')
     line = OrderLine.objects.get(
         product_sku='SKU_A', stock_location='Warehouse 2')
@@ -884,7 +880,7 @@ def test_view_confirm_draft_order_empty_order(admin_client, draft_order):
     order.refresh_from_db()
     assert order.status == OrderStatus.DRAFT
     errors = get_form_errors(response)
-    assert 'Could not confirm order without any products' in errors
+    assert 'Could not create order without any products' in errors
 
 
 @pytest.mark.django_db
@@ -923,58 +919,51 @@ def test_view_confirm_draft_order_shipping_method_not_valid(
 
 @pytest.mark.django_db
 def test_view_confirm_draft_order_no_shipping_address_shipping_not_required(
-        admin_client, order, product_without_shipping):
-    order.status = OrderStatus.DRAFT
-    order.save()
-    order.lines.create(
-        product=product_without_shipping,
-        product_name=product_without_shipping.name,
-        product_sku='SKU_%d' % (product_without_shipping.pk,),
-        is_shipping_required=False,
-        quantity=1,
-        unit_price_net=Decimal('10.00'),
-        unit_price_gross=Decimal('10.00'))
+        admin_client, draft_order):
     url = reverse(
-        'dashboard:create-order-from-draft', kwargs={'order_pk': order.pk})
+        'dashboard:create-order-from-draft',
+        kwargs={'order_pk': draft_order.pk})
     data = {'csrfmiddlewaretoken': 'hello'}
 
     response = admin_client.post(url, data)
 
     assert response.status_code == 302
-    order.refresh_from_db()
-    assert order.status == OrderStatus.UNFULFILLED
+    draft_order.refresh_from_db()
+    assert draft_order.status == OrderStatus.UNFULFILLED
     redirect_url = reverse(
-        'dashboard:order-details', kwargs={'order_pk': order.pk})
+        'dashboard:order-details', kwargs={'order_pk': draft_order.pk})
     assert get_redirect_location(response) == redirect_url
 
 
 @pytest.mark.django_db
 def test_view_order_customer_edit_to_existing_user(
-        admin_user, admin_client, customer_user):
-    order = Order.objects.create()
+        admin_client, customer_user, draft_order):
+    draft_order.user = None
+    draft_order.save()
     url = reverse(
-        'dashboard:order-customer-edit', kwargs={'order_pk': order.pk})
+        'dashboard:order-customer-edit', kwargs={'order_pk': draft_order.pk})
     data = {
         'user_email': '', 'user': customer_user.pk, 'update_addresses': True}
 
     response = admin_client.post(url, data)
 
     assert response.status_code == 302
-    order.refresh_from_db()
-    assert order.user == customer_user
-    assert not order.user_email
-    assert order.billing_address == customer_user.default_billing_address
-    assert order.shipping_address == customer_user.default_shipping_address
+    draft_order.refresh_from_db()
+    assert draft_order.user == customer_user
+    assert not draft_order.user_email
+    assert (
+        draft_order.billing_address == customer_user.default_billing_address)
+    assert (
+        draft_order.shipping_address == customer_user.default_shipping_address)
     redirect_url = reverse(
-        'dashboard:order-details', kwargs={'order_pk': order.pk})
+        'dashboard:order-details', kwargs={'order_pk': draft_order.pk})
     assert get_redirect_location(response) == redirect_url
 
 
 @pytest.mark.django_db
-def test_view_order_customer_edit_to_email(admin_user, admin_client):
-    order = Order.objects.create()
+def test_view_order_customer_edit_to_email(admin_client, draft_order):
     url = reverse(
-        'dashboard:order-customer-edit', kwargs={'order_pk': order.pk})
+        'dashboard:order-customer-edit', kwargs={'order_pk': draft_order.pk})
     data = {
         'user_email': 'customer@example.com', 'user': '',
         'update_addresses': False}
@@ -982,37 +971,39 @@ def test_view_order_customer_edit_to_email(admin_user, admin_client):
     response = admin_client.post(url, data)
 
     assert response.status_code == 302
-    order.refresh_from_db()
-    assert order.user_email == 'customer@example.com'
-    assert not order.user
+    draft_order.refresh_from_db()
+    assert draft_order.user_email == 'customer@example.com'
+    assert not draft_order.user
     redirect_url = reverse(
-        'dashboard:order-details', kwargs={'order_pk': order.pk})
+        'dashboard:order-details', kwargs={'order_pk': draft_order.pk})
     assert get_redirect_location(response) == redirect_url
 
 
 @pytest.mark.django_db
-def test_view_order_customer_edit_to_guest_customer(admin_user, admin_client):
-    order = Order.objects.create()
+def test_view_order_customer_edit_to_guest_customer(admin_client, draft_order):
     url = reverse(
-        'dashboard:order-customer-edit', kwargs={'order_pk': order.pk})
+        'dashboard:order-customer-edit', kwargs={'order_pk': draft_order.pk})
     data = {'user_email': '', 'user': '', 'update_addresses': False}
 
     response = admin_client.post(url, data)
 
     assert response.status_code == 302
-    order.refresh_from_db()
-    assert not order.user_email
-    assert not order.user
+    draft_order.refresh_from_db()
+    assert not draft_order.user_email
+    assert not draft_order.user
     redirect_url = reverse(
-        'dashboard:order-details', kwargs={'order_pk': order.pk})
+        'dashboard:order-details', kwargs={'order_pk': draft_order.pk})
     assert get_redirect_location(response) == redirect_url
 
 
 @pytest.mark.django_db
-def test_view_order_customer_edit_not_valid(admin_client, customer_user):
-    order = Order.objects.create()
+def test_view_order_customer_edit_not_valid(
+        admin_client, customer_user, draft_order):
+    draft_order.user = None
+    draft_order.user_email = ''
+    draft_order.save()
     url = reverse(
-        'dashboard:order-customer-edit', kwargs={'order_pk': order.pk})
+        'dashboard:order-customer-edit', kwargs={'order_pk': draft_order.pk})
     data = {
         'user_email': 'customer@example.com', 'user': customer_user.pk,
         'update_addresses': False}
@@ -1020,8 +1011,8 @@ def test_view_order_customer_edit_not_valid(admin_client, customer_user):
     response = admin_client.post(url, data)
 
     assert response.status_code == 400
-    order.refresh_from_db()
-    assert not order.user == customer_user
+    draft_order.refresh_from_db()
+    assert not draft_order.user == customer_user
     errors = get_form_errors(response)
     error = (
         'An order can be related either with an email or an existing user '
