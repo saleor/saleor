@@ -5,4 +5,4 @@
 # Wait for webapp to be available
 ./wait-for-it.sh 127.0.0.1:8000 --timeout=600 -- echo "OYE Records Server is up!"
 
-celery -A saleor worker --loglevel INFO
+celery -A saleor worker --loglevel INFO -Ofair
