@@ -8,6 +8,7 @@ from django.http import Http404, HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect
 from django.template.response import TemplateResponse
 from django.utils.translation import pgettext_lazy
+from django.views.decorators.csrf import csrf_exempt
 from payments import PaymentStatus, RedirectNeeded
 
 from . import FulfillmentStatus, OrderStatus
@@ -141,6 +142,7 @@ def cancel_payment(request, order):
     return HttpResponseForbidden()
 
 
+@csrf_exempt
 def checkout_success(request, token):
     """Redirect user after placing an order.
 
