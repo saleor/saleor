@@ -9,8 +9,8 @@ from django.core.files import File
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.forms import ModelForm
 from django.utils.encoding import smart_text
-from PIL import Image
 from payments import FraudStatus, PaymentStatus
+from PIL import Image
 from prices import Money
 
 from saleor.account.models import Address, User
@@ -19,9 +19,9 @@ from saleor.cart.models import Cart
 from saleor.checkout.core import Checkout
 from saleor.dashboard.order.utils import fulfill_order_line
 from saleor.discount.models import Sale, Voucher
+from saleor.menu.models import Menu, MenuItem
 from saleor.order import OrderStatus
 from saleor.order.models import Order, OrderLine
-from saleor.menu.models import Menu, MenuItem
 from saleor.order.utils import recalculate_order
 from saleor.page.models import Page
 from saleor.product.models import (
