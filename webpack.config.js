@@ -1,12 +1,12 @@
 var BundleTracker = require("webpack-bundle-tracker");
-var ExtractTextPlugin = require("extract-text-webpack-plugin");
+var MiniCssExtractPlugin = require("mini-css-extract-plugin");
 var path = require("path");
 var webpack = require("webpack");
 var autoprefixer = require("autoprefixer");
 
 var resolve = path.resolve.bind(path, __dirname);
 
-var extractTextPlugin;
+var extractCssPlugin;
 var fileLoaderPath;
 var output;
 var reactPath;
@@ -22,7 +22,10 @@ if (process.env.NODE_ENV === "production") {
     publicPath: process.env.STATIC_URL || "/static/assets/"
   };
   fileLoaderPath = "file-loader?name=[name].[hash].[ext]";
-  extractTextPlugin = new ExtractTextPlugin("[name].[contenthash].css");
+  extractCssPlugin = new MiniCssExtractPlugin({
+    filename: "[name].[chunkhash].css",
+    chunkFilename: "[id].[chunkhash].css"
+  });
 } else {
   reactPath = "node_modules/react/umd/react.development.js";
   reactDomPath = "node_modules/react-dom/umd/react-dom.development.js";
@@ -33,7 +36,10 @@ if (process.env.NODE_ENV === "production") {
     publicPath: "/static/assets/"
   };
   fileLoaderPath = "file-loader?name=[name].[ext]";
-  extractTextPlugin = new ExtractTextPlugin("[name].css");
+  extractCssPlugin = new MiniCssExtractPlugin({
+    filename: "[name].css",
+    chunkFilename: "[name].css"
+  });
 }
 
 var bundleTrackerPlugin = new BundleTracker({
@@ -65,24 +71,21 @@ var config = {
       },
       {
         test: /\.scss$/,
-        loader: ExtractTextPlugin.extract({
-          use: [
-            {
-              loader: "css-loader"
-            },
-            {
-              loader: "postcss-loader",
-              options: {
-                plugins: function() {
-                  return [autoprefixer];
-                }
+        use: [
+          MiniCssExtractPlugin.loader,
+          "css-loader",
+          {
+            loader: "postcss-loader",
+            options: {
+              plugins: function() {
+                return [autoprefixer];
               }
-            },
-            {
-              loader: "sass-loader"
             }
-          ]
-        })
+          },
+          {
+            loader: "sass-loader"
+          }
+        ]
       },
       {
         test: /\.tsx?$/,
@@ -100,7 +103,7 @@ var config = {
       }
     ]
   },
-  plugins: [bundleTrackerPlugin, extractTextPlugin, providePlugin],
+  plugins: [bundleTrackerPlugin, extractCssPlugin, providePlugin],
   resolve: {
     alias: {
       jquery: resolve("node_modules/jquery/dist/jquery.js"),
