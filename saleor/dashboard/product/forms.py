@@ -196,7 +196,7 @@ class ProductForm(forms.ModelForm, AttributesMixin):
             'category': pgettext_lazy('Category', 'Category'),
             'price': pgettext_lazy('Currency amount', 'Price'),
             'available_on': pgettext_lazy(
-                'Availability date', 'Availability date'),
+                'Availability date', 'Publish product on'),
             'is_published': pgettext_lazy(
                 'Product published toggle', 'Published'),
             'is_featured': pgettext_lazy(

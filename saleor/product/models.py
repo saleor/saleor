@@ -60,12 +60,6 @@ class Category(MPTTModel, SeoModel):
         nodes = [node for node in ancestors] + [self]
         return '/'.join([node.slug for node in nodes])
 
-    def get_seo_title(self):
-        return self.seo_title or self.name
-
-    def get_seo_description(self):
-        return self.seo_description or self.description or ''
-
 
 class ProductType(models.Model):
     name = models.CharField(max_length=128)
@@ -181,12 +175,6 @@ class Product(SeoModel):
             return None
         grosses = sorted(grosses, key=lambda x: x.tax)
         return TaxedMoneyRange(min(grosses), max(grosses))
-
-    def get_seo_title(self):
-        return self.seo_title or self.name
-
-    def get_seo_description(self):
-        return self.seo_description or ''
 
 
 class ProductVariant(models.Model):
@@ -415,9 +403,3 @@ class Collection(SeoModel):
         return reverse(
             'product:collection',
             kwargs={'pk': self.id, 'slug': self.slug})
-
-    def get_seo_title(self):
-        return self.seo_title or self.name
-
-    def get_seo_description(self):
-        return self.seo_description or ''

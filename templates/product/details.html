@@ -19,9 +19,9 @@
 {% endblock %}
 
 {% block meta_tags %}
-  <meta property="og:title" content="{{ product.get_seo_title }}">
-  <meta property="og:description" content="{{ product.get_seo_description }}">
-  <meta name="description" content="{{ product.get_seo_description }}">
+  <meta property="og:title" content="{{ product.seo_title|default:product.name }}">
+  <meta property="og:description" content="{{ product.seo_description|default:product.description }}">
+  <meta name="description" content="{{ product.seo_description|default:product.description }}">
 
   {% build_absolute_uri request=request location=product.get_absolute_url as product_url %}
   <meta property="og:url" content="{{ product_url }}">
