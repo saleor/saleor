@@ -18,8 +18,8 @@ Create missing thumbnails for all ProductImage instances.
  $ python manage.py create_thumbnails
 
 
-Deleting Image Renditions
--------------------------
+Deleting Images
+---------------
 
-Image renditions are not deleted automatically with the main image, however Saleor handles that on ``post_delete`` model's signal.
-More on deleting rendition images can be found in `VersatileImageField documentation <https://django-versatileimagefield.readthedocs.io/en/latest/deleting_created_images.html>`_
+Image renditions are not deleted automatically with the Image instance, so is the main image.
+More on deleting images can be found in `VersatileImageField documentation <https://django-versatileimagefield.readthedocs.io/en/latest/deleting_created_images.html>`_

@@ -393,15 +393,6 @@ class ProductImage(models.Model):
         super().delete(*args, **kwargs)
 
 
-@receiver(models.signals.post_delete, sender=ProductImage)
-def delete_product_image_images(sender, instance, **kwargs):
-    """Deletes ProductImage image renditions on post_delete."""
-    # Deletes Image Renditions
-    instance.image.delete_all_created_images()
-    # Deletes Original Image
-    instance.image.delete(save=False)
-
-
 class VariantImage(models.Model):
     variant = models.ForeignKey(
         'ProductVariant', related_name='variant_images',
