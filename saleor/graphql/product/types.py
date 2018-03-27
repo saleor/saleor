@@ -13,7 +13,7 @@ from ..utils import get_node
 from .filters import ProductFilterSet
 
 
-class ProductAttributes(graphene.ObjectType):
+class SelectedAttribute(graphene.ObjectType):
     name = graphene.String(default_value=None)
     value = graphene.String(default_value=None)
 
@@ -21,7 +21,7 @@ class ProductAttributes(graphene.ObjectType):
 class ProductVariant(CountableDjangoObjectType):
     stock_quantity = graphene.Int()
     price_override = graphene.Field(Money)
-    attributes = graphene.List(ProductAttributes)
+    attributes = graphene.List(SelectedAttribute)
 
     class Meta:
         model = models.ProductVariant
@@ -52,7 +52,7 @@ class Product(CountableDjangoObjectType):
             description='The size of a thumbnail, for example 255x255'))
     availability = graphene.Field(ProductAvailability)
     price = graphene.Field(Money)
-    attributes = graphene.List(ProductAttributes)
+    attributes = graphene.List(SelectedAttribute)
 
     class Meta:
         model = models.Product
@@ -163,7 +163,7 @@ def resolve_instance_attributes(instance, info):
             name = product_attributes.get(int(k))
             if v:
                 value = attribute_values.get(int(v))
-            attribute_list.append(ProductAttributes(name=name, value=value))
+            attribute_list.append(SelectedAttribute(name=name, value=value))
     return attribute_list
 
 
