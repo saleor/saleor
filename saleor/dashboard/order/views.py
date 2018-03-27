@@ -30,7 +30,7 @@ from .forms import (
     AddressForm, AddVariantToOrderForm, BaseFulfillmentLineFormSet,
     CancelFulfillmentForm, CancelOrderForm, CancelOrderLineForm,
     CapturePaymentForm, ChangeQuantityForm, ChangeStockForm,
-    ConfirmDraftOrderForm, FulfillmentForm, FulfillmentLineForm,
+    CreateOrderFromDraftForm, FulfillmentForm, FulfillmentLineForm,
     FulfillmentTrackingNumberForm, OrderCustomerForm, OrderEditDiscountForm,
     OrderEditVoucherForm, OrderNoteForm, OrderRemoveCustomerForm,
     OrderRemoveShippingForm, OrderRemoveVoucherForm, OrderShippingForm,
@@ -68,10 +68,10 @@ def order_create(request):
 
 @staff_member_required
 @permission_required('order.edit_order')
-def confirm_draft_order(request, order_pk):
+def create_order_from_draft(request, order_pk):
     order = get_object_or_404(Order, pk=order_pk, status=OrderStatus.DRAFT)
     status = 200
-    form = ConfirmDraftOrderForm(request.POST or None, instance=order)
+    form = CreateOrderFromDraftForm(request.POST or None, instance=order)
     if form.is_valid():
         form.save()
         msg = pgettext_lazy(
@@ -89,7 +89,7 @@ def confirm_draft_order(request, order_pk):
         return redirect('dashboard:order-details', order_pk=order.pk)
     elif form.errors:
         status = 400
-    template = 'dashboard/order/modal/confirm_order.html'
+    template = 'dashboard/order/modal/create_order.html'
     ctx = {'form': form, 'order': order}
     return TemplateResponse(request, template, ctx, status=status)
 

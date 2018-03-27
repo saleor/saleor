@@ -5,8 +5,8 @@ from . import views
 urlpatterns = [
     url(r'^$', views.order_list, name='orders'),
     url(r'^add/$', views.order_create, name='order-create'),
-    url(r'^(?P<order_pk>\d+)/confirm-draft/$',
-        views.confirm_draft_order, name='draft-order-confirm'),
+    url(r'^(?P<order_pk>\d+)/create/$',
+        views.create_order_from_draft, name='create-order-from-draft'),
     url(r'^(?P<order_pk>\d+)/$',
         views.order_details, name='order-details'),
     url(r'^(?P<order_pk>\d+)/add-note/$',

@@ -32,14 +32,13 @@ from .utils import (
     update_order_with_user_addresses)
 
 
-class ConfirmDraftOrderForm(forms.ModelForm):
+class CreateOrderFromDraftForm(forms.ModelForm):
     """Save draft order as a ready to fulfill."""
     notify_customer = forms.BooleanField(
         label=pgettext_lazy(
             'Send email to customer about order created by staff users',
             'Notify customer'),
         required=False, initial=True)
-    reapply_voucher = forms.BooleanField(required=False, initial=True)
 
     class Meta:
         model = Order
@@ -55,8 +54,8 @@ class ConfirmDraftOrderForm(forms.ModelForm):
         errors = []
         if self.instance.get_total_quantity() == 0:
             errors.append(forms.ValidationError(pgettext_lazy(
-                'Confirm draft order form error',
-                'Could not confirm order without any products')))
+                'Create draft order form error',
+                'Could not create order without any products')))
         if self.instance.is_shipping_required():
             method = self.instance.shipping_method
             shipping_address = self.instance.shipping_address
@@ -66,7 +65,7 @@ class ConfirmDraftOrderForm(forms.ModelForm):
                 shipping_address.country.code != method.country_code
             ):
                 errors.append(forms.ValidationError(pgettext_lazy(
-                    'Confirm draft order form error',
+                    'Create draft order form error',
                     'Shipping method is not valid for chosen shipping '
                     'address')))
         if errors:
