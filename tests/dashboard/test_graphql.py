@@ -4,6 +4,7 @@ from unittest.mock import patch
 import graphene
 import pytest
 from django.shortcuts import reverse
+from django.utils.text import slugify
 
 from saleor.dashboard.graphql.mutations import (
     ModelFormMutation, ModelFormUpdateMutation)
@@ -353,7 +354,8 @@ def test_create_product(
     assert data['product']['isPublished'] == product_isPublished
     assert data['product']['productType']['name'] == product_type.name
     assert data['product']['category']['name'] == default_category.name
-    assert data['product']['attributes'][1]['value'] == None
+    assert data['product']['attributes'][1]['value'] == slugify(
+        non_existent_attr_value)
     assert data['product']['attributes'][0]['value'] == color_value_slug
 
 
