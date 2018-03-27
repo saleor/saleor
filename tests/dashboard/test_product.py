@@ -140,19 +140,21 @@ def test_change_attributes_in_product_form(
     product_type.product_attributes.add(text_attribute)
     color_value = color_attribute.values.first()
     new_author = 'Main Tester'
-    new_color = color_value.pk
     data = {
         'name': product.name,
         'price': product.price.amount,
         'category': product.category.pk,
         'description': 'description',
         'attribute-author': new_author,
-        'attribute-color': new_color}
+        'attribute-color': color_value.pk}
     form = ProductForm(data, instance=product)
     assert form.is_valid()
     product = form.save()
-    assert product.get_attribute(color_attribute.pk) == smart_text(new_color)
-    assert product.get_attribute(text_attribute.pk) == new_author
+    assert product.attributes[str(color_attribute.pk)] == str(color_value.pk)
+
+    # Check that new attribute was created for author
+    author_value = AttributeChoiceValue.objects.get(name=new_author)
+    assert product.attributes[str(text_attribute.pk)] == str(author_value.pk)
 
 
 def test_attribute_list(db, product_in_stock, color_attribute, admin_client):
@@ -726,7 +728,7 @@ def test_set_product_description_too_long_for_seo(unavailable_product):
         'fly divided midst, gathering can\'t moveth seed greater subdue. '
         'Lesser meat living fowl called. Dry don\'t wherein. Doesn\'t above '
         'form sixth. Image moving earth without forth light whales. Seas '
-        'were first form fruit that form they\'re, shall air. And. Good of' 
+        'were first form fruit that form they\'re, shall air. And. Good of'
         'signs darkness be place. Was. Is form it. Whose. Herb signs stars '
         'fill own fruit wherein. '
         'Don\'t set man face living fifth Thing the whales were. '
