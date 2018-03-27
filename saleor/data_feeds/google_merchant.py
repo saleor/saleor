@@ -83,14 +83,14 @@ def item_brand(item, attributes_dict, attribute_values_dict):
     publisher_attribute_pk = attributes_dict.get('publisher')
 
     if brand_attribute_pk:
-        brand = item.get_attribute(brand_attribute_pk)
+        brand = item.attributes.get(str(brand_attribute_pk))
         if brand is None:
-            brand = item.product.get_attribute(brand_attribute_pk)
+            brand = item.product.attributes.get(str(brand_attribute_pk))
 
     if brand is None and publisher_attribute_pk is not None:
-        brand = item.get_attribute(publisher_attribute_pk)
+        brand = item.attributes.get(str(publisher_attribute_pk))
         if brand is None:
-            brand = item.product.get_attribute(publisher_attribute_pk)
+            brand = item.product.attributes.get(str(publisher_attribute_pk))
 
     if brand is not None:
         brand_name = attribute_values_dict.get(brand)

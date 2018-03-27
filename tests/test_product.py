@@ -144,9 +144,9 @@ def test_filtering_by_attribute(db, color_attribute, default_category):
                                                      sku='12345')
     color = color_attribute.values.first()
     color_2 = color_attribute.values.last()
-    product_a.set_attribute(color_attribute.pk, color.pk)
+    product_a.attributes[str(color_attribute.pk)] = str(color.pk)
     product_a.save()
-    variant_b.set_attribute(color_attribute.pk, color.pk)
+    variant_b.attributes[str(color_attribute.pk)] = str(color.pk)
     variant_b.save()
 
     filtered = filter_products_by_attribute(models.Product.objects.all(),
@@ -154,7 +154,7 @@ def test_filtering_by_attribute(db, color_attribute, default_category):
     assert product_a in list(filtered)
     assert product_b in list(filtered)
 
-    product_a.set_attribute(color_attribute.pk, color_2.pk)
+    product_a.attributes[str(color_attribute.pk)] = str(color_2.pk)
     product_a.save()
     filtered = filter_products_by_attribute(models.Product.objects.all(),
                                             color_attribute.pk, color.pk)
@@ -327,11 +327,11 @@ def test_get_attributes_display_map_no_choices(product_in_stock):
     attributes = product_in_stock.product_type.product_attributes.all()
     product_attr = attributes.first()
 
-    product_in_stock.set_attribute(product_attr.pk, -1)
+    product_in_stock.attributes[str(product_attr.pk)] = '-1'
     attributes_display_map = get_attributes_display_map(
         product_in_stock, attributes)
 
-    assert attributes_display_map == {product_attr.pk: smart_text(-1)}
+    assert attributes_display_map == {product_attr.pk: '-1'}
 
 
 def test_product_availability_status(unavailable_product):

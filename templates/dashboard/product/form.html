@@ -76,7 +76,7 @@
                   {{ product_form.seo_description|materializecss }}
                 </div>
                 {% for attribute_field in product_form.iter_attribute_fields %}
-                  <div class="row">
+                  <div class="row attribute-select-or-create">
                     {{ attribute_field|materializecss:"input-field s12" }}
                   </div>
                 {% endfor %}
