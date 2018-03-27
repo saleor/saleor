@@ -1,0 +1,299 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`<PageFilters /> renders with initial state 1`] = `
+<div
+  className="MuiPaper-root-1 MuiPaper-elevation2-5 MuiPaper-rounded-2"
+>
+  <form>
+    <div
+      className="MuiCardHeader-root-28"
+    >
+      <div
+        className="MuiCardHeader-content-31"
+      >
+        <span
+          className="MuiTypography-root-34 MuiTypography-headline-39 MuiCardHeader-title-32"
+        >
+          Filters
+        </span>
+      </div>
+      <div
+        className="MuiCardHeader-action-30"
+      >
+        <button
+          className="MuiButtonBase-root-64 MuiIconButton-root-58"
+          disabled={false}
+          onBlur={[Function]}
+          onClick={[Function]}
+          onFocus={[Function]}
+          onKeyDown={[Function]}
+          onKeyUp={[Function]}
+          onMouseDown={[Function]}
+          onMouseLeave={[Function]}
+          onMouseUp={[Function]}
+          onTouchEnd={[Function]}
+          onTouchMove={[Function]}
+          onTouchStart={[Function]}
+          tabIndex="0"
+          type="button"
+        >
+          <span
+            className="MuiIconButton-label-63"
+          >
+            <svg
+              aria-hidden="true"
+              className="MuiSvgIcon-root-67"
+              color={undefined}
+              focusable="false"
+              viewBox="0 0 24 24"
+            >
+              <path
+                d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"
+              />
+            </svg>
+          </span>
+          <span
+            className="MuiTouchRipple-root-73"
+          />
+        </button>
+      </div>
+    </div>
+    <div
+      className="MuiCardContent-root-80"
+    >
+      <div
+        aria-describedby={undefined}
+        className="MuiFormControl-root-81 MuiFormControl-fullWidth-84"
+        onBlur={[Function]}
+        onFocus={[Function]}
+      >
+        <label
+          className="MuiFormLabel-root-91 MuiInputLabel-root-85 MuiInputLabel-formControl-86 MuiInputLabel-animated-89 MuiInputLabel-shrink-88"
+          data-shrink={true}
+          htmlFor={undefined}
+        >
+          Title
+        </label>
+        <div
+          className="MuiInput-root-97 MuiInput-fullWidth-104 MuiInput-formControl-98 MuiInput-underline-101"
+        >
+          <input
+            aria-invalid={false}
+            aria-required={false}
+            autoComplete={undefined}
+            autoFocus={undefined}
+            className="MuiInput-input-105"
+            defaultValue={undefined}
+            disabled={false}
+            id={undefined}
+            name="title"
+            onBlur={[Function]}
+            onChange={[Function]}
+            onFocus={[Function]}
+            onKeyDown={undefined}
+            onKeyUp={undefined}
+            placeholder={undefined}
+            readOnly={undefined}
+            required={undefined}
+            rows={undefined}
+            type="text"
+            value="title"
+          />
+        </div>
+      </div>
+      <div
+        className="Component-spacer-111"
+      />
+      <div
+        aria-describedby={undefined}
+        className="MuiFormControl-root-81 MuiFormControl-fullWidth-84"
+        onBlur={[Function]}
+        onFocus={[Function]}
+      >
+        <label
+          className="MuiFormLabel-root-91 MuiInputLabel-root-85 MuiInputLabel-formControl-86 MuiInputLabel-animated-89 MuiInputLabel-shrink-88"
+          data-shrink={true}
+          htmlFor={undefined}
+        >
+          Url
+        </label>
+        <div
+          className="MuiInput-root-97 MuiInput-fullWidth-104 MuiInput-formControl-98 MuiInput-underline-101"
+        >
+          <input
+            aria-invalid={false}
+            aria-required={false}
+            autoComplete={undefined}
+            autoFocus={undefined}
+            className="MuiInput-input-105"
+            defaultValue={undefined}
+            disabled={false}
+            id={undefined}
+            name="url"
+            onBlur={[Function]}
+            onChange={[Function]}
+            onFocus={[Function]}
+            onKeyDown={undefined}
+            onKeyUp={undefined}
+            placeholder={undefined}
+            readOnly={undefined}
+            required={undefined}
+            rows={undefined}
+            type="text"
+            value="url"
+          />
+        </div>
+      </div>
+    </div>
+  </form>
+</div>
+`;
+
+exports[`<PageFilters /> renders without initial state 1`] = `
+<div
+  className="MuiPaper-root-1 MuiPaper-elevation2-5 MuiPaper-rounded-2"
+>
+  <form>
+    <div
+      className="MuiCardHeader-root-28"
+    >
+      <div
+        className="MuiCardHeader-content-31"
+      >
+        <span
+          className="MuiTypography-root-34 MuiTypography-headline-39 MuiCardHeader-title-32"
+        >
+          Filters
+        </span>
+      </div>
+      <div
+        className="MuiCardHeader-action-30"
+      >
+        <button
+          className="MuiButtonBase-root-64 MuiIconButton-root-58"
+          disabled={false}
+          onBlur={[Function]}
+          onClick={[Function]}
+          onFocus={[Function]}
+          onKeyDown={[Function]}
+          onKeyUp={[Function]}
+          onMouseDown={[Function]}
+          onMouseLeave={[Function]}
+          onMouseUp={[Function]}
+          onTouchEnd={[Function]}
+          onTouchMove={[Function]}
+          onTouchStart={[Function]}
+          tabIndex="0"
+          type="button"
+        >
+          <span
+            className="MuiIconButton-label-63"
+          >
+            <svg
+              aria-hidden="true"
+              className="MuiSvgIcon-root-67"
+              color={undefined}
+              focusable="false"
+              viewBox="0 0 24 24"
+            >
+              <path
+                d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"
+              />
+            </svg>
+          </span>
+          <span
+            className="MuiTouchRipple-root-73"
+          />
+        </button>
+      </div>
+    </div>
+    <div
+      className="MuiCardContent-root-80"
+    >
+      <div
+        aria-describedby={undefined}
+        className="MuiFormControl-root-81 MuiFormControl-fullWidth-84"
+        onBlur={[Function]}
+        onFocus={[Function]}
+      >
+        <label
+          className="MuiFormLabel-root-91 MuiInputLabel-root-85 MuiInputLabel-formControl-86 MuiInputLabel-animated-89"
+          data-shrink={false}
+          htmlFor={undefined}
+        >
+          Title
+        </label>
+        <div
+          className="MuiInput-root-97 MuiInput-fullWidth-104 MuiInput-formControl-98 MuiInput-underline-101"
+        >
+          <input
+            aria-invalid={false}
+            aria-required={false}
+            autoComplete={undefined}
+            autoFocus={undefined}
+            className="MuiInput-input-105"
+            defaultValue={undefined}
+            disabled={false}
+            id={undefined}
+            name="title"
+            onBlur={[Function]}
+            onChange={[Function]}
+            onFocus={[Function]}
+            onKeyDown={undefined}
+            onKeyUp={undefined}
+            placeholder={undefined}
+            readOnly={undefined}
+            required={undefined}
+            rows={undefined}
+            type="text"
+            value=""
+          />
+        </div>
+      </div>
+      <div
+        className="Component-spacer-111"
+      />
+      <div
+        aria-describedby={undefined}
+        className="MuiFormControl-root-81 MuiFormControl-fullWidth-84"
+        onBlur={[Function]}
+        onFocus={[Function]}
+      >
+        <label
+          className="MuiFormLabel-root-91 MuiInputLabel-root-85 MuiInputLabel-formControl-86 MuiInputLabel-animated-89"
+          data-shrink={false}
+          htmlFor={undefined}
+        >
+          Url
+        </label>
+        <div
+          className="MuiInput-root-97 MuiInput-fullWidth-104 MuiInput-formControl-98 MuiInput-underline-101"
+        >
+          <input
+            aria-invalid={false}
+            aria-required={false}
+            autoComplete={undefined}
+            autoFocus={undefined}
+            className="MuiInput-input-105"
+            defaultValue={undefined}
+            disabled={false}
+            id={undefined}
+            name="url"
+            onBlur={[Function]}
+            onChange={[Function]}
+            onFocus={[Function]}
+            onKeyDown={undefined}
+            onKeyUp={undefined}
+            placeholder={undefined}
+            readOnly={undefined}
+            required={undefined}
+            rows={undefined}
+            type="text"
+            value=""
+          />
+        </div>
+      </div>
+    </div>
+  </form>
+</div>
+`;
