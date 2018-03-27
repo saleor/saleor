@@ -326,7 +326,8 @@ CONSTANCE_CONFIG = {
     'OYE_ORDERS_MAIL': ('orders@oye-records.com', 'Support order mail'),
     'PAYPAL_PAYMENT_ENABLED': (False, 'If set to True Paypal payment is enabled'),
     'DISCOGS_RELEASE_UPTODATE_HOURS': (48, 'Re-evaluate discogs release after this amount of hours'),
-    'UNPAID_ORDER_RESERVATION_TIMEOUT_MINUTES': (30, 'Cancel an unpaid order after this amount of minutes')
+    'UNPAID_ORDER_RESERVATION_TIMEOUT_MINUTES': (30, 'Cancel an unpaid order after this amount of minutes'),
+    'DISCOVER_DISCOGS_RELEASES_ENABLED': (False, 'If set to true fetch for Discogs releases'),
 }
 CONSTANCE_BACKEND = 'constance.backends.database.DatabaseBackend'
 
