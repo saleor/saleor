@@ -6,8 +6,8 @@ from ....graphql.utils import get_node
 from ....product import models
 from ...category.forms import CategoryForm
 from ..mutations import (
-    BaseMutation, ModelDeleteMutation, ModelFormMutation,
-    ModelFormUpdateMutation, StaffMemberRequiredMutation, convert_form_errors)
+    ModelDeleteMutation, ModelFormMutation, ModelFormUpdateMutation,
+    StaffMemberRequiredMutation)
 from .forms import ProductForm
 
 
