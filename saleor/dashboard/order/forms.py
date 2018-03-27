@@ -123,20 +123,15 @@ class OrderCustomerForm(forms.ModelForm):
                 'user account'))
         return self.cleaned_data
 
-    def save(self, commit=True):
+    def save(self):
+        super().save()
         if self.cleaned_data.get('update_addresses'):
             update_order_with_user_addresses(self.instance)
-        return super().save(commit)
+        return self.instance
 
 
 class OrderRemoveCustomerForm(forms.ModelForm):
     """Remove customer data from an order."""
-
-    remove_addresses = forms.BooleanField(
-        label=pgettext_lazy(
-            'Remove default user addresses from an order',
-            'Remove billing and shipping addresses as well'),
-        initial=True, required=False)
 
     class Meta:
         model = Order
@@ -144,19 +139,26 @@ class OrderRemoveCustomerForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        if (
-            not self.instance.billing_address and
-            not self.instance.shipping_address
-        ):
-            self.fields.pop('remove_addresses')
 
-    def save(self, commit=True):
+    def save(self):
+        customer = self.instance.user
         self.instance.user = None
         self.instance.user_email = ''
-        super().save(commit)
-        if self.cleaned_data.get('remove_addresses'):
-            self.instance.billing_address.delete()
-            self.instance.shipping_address.delete()
+        super().save()
+
+        if customer:
+            if (
+                customer.default_billing_address ==
+                self.instance.billing_address
+            ):
+                self.instance.billing_address.delete()
+
+            if (
+                customer.default_shipping_address ==
+                self.instance.shipping_address
+            ):
+                self.instance.shipping_address.delete()
+
         return self.instance
 
 

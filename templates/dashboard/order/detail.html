@@ -190,25 +190,10 @@
                 {% trans "Customer" context "Order details summary header" %}
                 {% if perms.order.edit_order and order.is_draft  %}
                   <span class="right">
-                    <a class="dropdown-button right" href="#" data-activates="customer-menu" data-constrainwidth="false">
-                      <svg data-src="{% static "dashboard/images/more-vert.svg" %}" height="20" width="20" fill="#000" />
+                    <a href="#base-modal" data-href="{% url "dashboard:order-customer-edit" order_pk=order.pk %}" class="btn-flat waves-effect modal-trigger-custom"
+                       title="{% trans "Edit customer details" context "Order customer details action title" %}">
+                      {% trans "Edit" context "Dashboard edit action" %}
                     </a>
-                    <ul id="customer-menu" class="dropdown-content">
-                      <li>
-                        <a href="#base-modal" data-href="{% url "dashboard:order-customer-edit" order_pk=order.pk %}" class="btn-flat waves-effect modal-trigger-custom"
-                           title="{% trans "Edit customer details" context "Order customer details action title" %}">
-                          {% trans "Edit" context "Dashboard edit action" %}
-                        </a>
-                      </li>
-                      {% if order.user or order.user_email %}
-                        <li>
-                          <a href="#base-modal" data-href="{% url "dashboard:order-customer-remove" order_pk=order.pk %}" class="btn-flat waves-effect modal-trigger-custom"
-                             title="{% trans "Remove customer" context "Order customer details action title" %}">
-                            {% trans "Remove" context "Dashboard edit action" %}
-                          </a>
-                        </li>
-                      {% endif %}
-                    </ul>
                   </span>
                 {% endif %}
               </span>
@@ -361,7 +346,8 @@
                   <p>{% trans "Subtotal" context "Order subtotal" %}</p>
                   <p>
                     {% if perms.order.edit_order and order.is_draft %}
-                      <a class="dropdown-button" href="#" data-activates="shipping-actions" data-constrainwidth="false">
+                      <a href="#base-modal" data-href="{% url 'dashboard:order-shipping-edit' order_pk=order.pk %}"
+                         class="modal-trigger-custom" title="{% trans "Edit shipping" context "Order totals action" %}">
                         {% if order.shipping_method_name %}
                           {% blocktrans trimmed with shipping_name=order.shipping_method_name context "Order totals header" %}
                             Shipping ({{ shipping_name }})
@@ -370,25 +356,6 @@
                           {% trans "Shipping" context "Order totals header" %}
                         {% endif %}
                       </a>
-                      <a class="dropdown-button" href="#" data-activates="shipping-actions" data-constrainwidth="false">
-                        <svg data-src="{% static "dashboard/images/arrow-drop-down.svg" %}" />
-                      </a>
-                      <ul id="shipping-actions" class="dropdown-content">
-                        <li>
-                          <a href="#base-modal" data-href="{% url 'dashboard:order-shipping-edit' order_pk=order.pk %}"
-                          class="modal-trigger-custom" title="{% trans "Edit shipping" context "Order totals action" %}">
-                            {% trans "Edit shipping" context "Order totals action" %}
-                          </a>
-                        </li>
-                        {% if order.shipping_method %}
-                          <li>
-                            <a href="#base-modal" data-href="{% url 'dashboard:order-shipping-remove' order_pk=order.pk %}"
-                            class="modal-trigger-custom" title="{% trans "Remove shipping" context "Order totals action" %}">
-                              {% trans "Remove shipping" context "Order totals action" %}
-                            </a>
-                          </li>
-                        {% endif %}
-                      </ul>
                     {% else %}
                       {% if order.shipping_method_name %}
                         {% blocktrans trimmed with shipping_name=order.shipping_method_name context "Order totals header" %}
@@ -401,7 +368,8 @@
                   </p>
                   <p>
                     {% if perms.order.edit_order and order.is_draft  %}
-                      <a class="dropdown-button" href="#" data-activates="voucher-actions" data-constrainwidth="false">
+                      <a href="#base-modal" data-href="{% url 'dashboard:order-voucher-edit' order_pk=order.pk %}"
+                         class="modal-trigger-custom" title="{% trans "Edit voucher" context "Order totals action" %}">
                         {% if order.discount_name %}
                           {% blocktrans trimmed with voucher=order.discount_name context "Order totals header" %}
                             Discount ({{ voucher }})
@@ -409,30 +377,7 @@
                         {% else %}
                           {% trans "Discount" context "Order totals header" %}
                         {% endif %}
-                        <svg data-src="{% static "dashboard/images/arrow-drop-down.svg" %}" />
                       </a>
-                      <ul id="voucher-actions" class="dropdown-content">
-                        <li>
-                          <a href="#base-modal" data-href="{% url 'dashboard:order-discount-edit' order_pk=order.pk %}"
-                          class="modal-trigger-custom" title="{% trans "Edit discount" context "Order totals action" %}">
-                            {% trans "Edit discount" context "Order totals action" %}
-                          </a>
-                        </li>
-                        <li>
-                          <a href="#base-modal" data-href="{% url 'dashboard:order-voucher-edit' order_pk=order.pk %}"
-                          class="modal-trigger-custom" title="{% trans "Edit voucher" context "Order totals action" %}">
-                            {% trans "Edit voucher" context "Order totals action" %}
-                          </a>
-                        </li>
-                        {% if order.voucher %}
-                          <li>
-                            <a href="#base-modal" data-href="{% url 'dashboard:order-remove-voucher' order_pk=order.pk %}"
-                            class="modal-trigger-custom" title="{% trans "Remove voucher" context "Order totals action" %}">
-                              {% trans "Remove voucher" context "Order totals action" %}
-                            </a>
-                          </li>
-                        {% endif %}
-                      </ul>
                     {% elif order.discount_amount %}
                       {% if order.discount_name %}
                         {% blocktrans trimmed with voucher=order.discount_name context "Order totals header" %}
@@ -450,7 +395,10 @@
                   <p>{{ order.shipping_price.gross|amount:'html' }}</p>
                   {% if order.is_draft or order.discount_amount %}
                     <p>
-                      {% discount_as_negative order.discount_amount html=True %}
+                      <a href="#base-modal" data-href="{% url 'dashboard:order-discount-edit' order_pk=order.pk %}"
+                         class="modal-trigger-custom" title="{% trans "Edit discount" context "Order totals action" %}">
+                        {% discount_as_negative order.discount_amount html=True %}
+                      </a>
                     </p>
                   {% endif %}
                   <p><strong>{{ order.total.gross|amount:'html' }}</strong></p>

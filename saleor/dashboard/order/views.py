@@ -234,7 +234,7 @@ def release_payment(request, order_pk, payment_pk):
 @staff_member_required
 @permission_required('order.edit_order')
 def orderline_change_quantity(request, order_pk, line_pk):
-    order = get_object_or_404(Order, pk=order_pk)
+    order = get_object_or_404(Order, pk=order_pk, status=OrderStatus.DRAFT)
     line = get_object_or_404(order.lines.all(), pk=line_pk)
     form = ChangeQuantityForm(request.POST or None, instance=line)
     status = 200
@@ -261,7 +261,7 @@ def orderline_change_quantity(request, order_pk, line_pk):
 @staff_member_required
 @permission_required('order.edit_order')
 def orderline_cancel(request, order_pk, line_pk):
-    order = get_object_or_404(Order, pk=order_pk)
+    order = get_object_or_404(Order, pk=order_pk, status=OrderStatus.DRAFT)
     line = get_object_or_404(order.lines.all(), pk=line_pk)
     form = CancelOrderLineForm(data=request.POST or None, line=line)
     status = 200
@@ -286,7 +286,7 @@ def orderline_cancel(request, order_pk, line_pk):
 @permission_required('order.edit_order')
 def add_variant_to_order(request, order_pk):
     """Add variant in given quantity to an order."""
-    order = get_object_or_404(Order, pk=order_pk)
+    order = get_object_or_404(Order, pk=order_pk, status=OrderStatus.DRAFT)
     form = AddVariantToOrderForm(
         request.POST or None, order=order, discounts=request.discounts)
     status = 200
@@ -320,7 +320,7 @@ def add_variant_to_order(request, order_pk):
 @staff_member_required
 @permission_required('order.edit_order')
 def address_view(request, order_pk, address_type):
-    order = Order.objects.get(pk=order_pk)
+    order = get_object_or_404(Order, pk=order_pk)
     if address_type == 'shipping':
         address = order.shipping_address
         success_msg = pgettext_lazy(
@@ -346,7 +346,7 @@ def address_view(request, order_pk, address_type):
 @staff_member_required
 @permission_required('order.edit_order')
 def order_customer_edit(request, order_pk):
-    order = Order.objects.get(pk=order_pk)
+    order = get_object_or_404(Order, pk=order_pk, status=OrderStatus.DRAFT)
     form = OrderCustomerForm(request.POST or None, instance=order)
     status = 200
     if form.is_valid():
@@ -378,9 +378,8 @@ def order_customer_edit(request, order_pk):
 @staff_member_required
 @permission_required('order.edit_order')
 def order_customer_remove(request, order_pk):
-    order = Order.objects.get(pk=order_pk)
+    order = get_object_or_404(Order, pk=order_pk, status=OrderStatus.DRAFT)
     form = OrderRemoveCustomerForm(request.POST or None, instance=order)
-    status = 200
     if form.is_valid():
         form.save()
         msg = pgettext_lazy(
@@ -388,12 +387,7 @@ def order_customer_remove(request, order_pk):
             'Customer removed from an order')
         messages.success(request, msg)
         return redirect('dashboard:order-details', order_pk=order_pk)
-    elif form.errors:
-        status = 400
-    ctx = {'order': order, 'form': form}
-    return TemplateResponse(
-        request, 'dashboard/order/modal/remove_customer.html', ctx,
-        status=status)
+    return redirect('dashboard:order-customer-edit', order_pk=order.pk)
 
 
 @staff_member_required
@@ -420,18 +414,12 @@ def order_shipping_edit(request, order_pk):
 def order_shipping_remove(request, order_pk):
     order = get_object_or_404(Order, pk=order_pk, status=OrderStatus.DRAFT)
     form = OrderRemoveShippingForm(request.POST or None, instance=order)
-    status = 200
     if form.is_valid():
         form.save()
         msg = pgettext_lazy('Dashboard message', 'Shipping removed')
         messages.success(request, msg)
         return redirect('dashboard:order-details', order_pk=order_pk)
-    elif form.errors:
-        status = 400
-    ctx = {'order': order, 'form': form}
-    return TemplateResponse(
-        request, 'dashboard/order/modal/remove_shipping.html', ctx,
-        status=status)
+    return redirect('dashboard:order-shipping-edit', order_pk=order.pk)
 
 
 @staff_member_required
@@ -475,8 +463,8 @@ def order_voucher_edit(request, order_pk):
 @staff_member_required
 @permission_required('order.edit_order')
 def cancel_order(request, order_pk):
-    status = 200
     order = get_object_or_404(Order, pk=order_pk)
+    status = 200
     form = CancelOrderForm(request.POST or None, order=order)
     if form.is_valid():
         msg = pgettext_lazy('Dashboard message', 'Order canceled')
@@ -503,9 +491,8 @@ def cancel_order(request, order_pk):
 
 @staff_member_required
 @permission_required('order.edit_order')
-def remove_order_voucher(request, order_pk):
-    order = get_object_or_404(Order, pk=order_pk)
-    status = 200
+def order_voucher_remove(request, order_pk):
+    order = get_object_or_404(Order, pk=order_pk, status=OrderStatus.DRAFT)
     form = OrderRemoveVoucherForm(request.POST or None, instance=order)
     if form.is_valid():
         msg = pgettext_lazy('Dashboard message', 'Removed voucher from order')
@@ -514,12 +501,7 @@ def remove_order_voucher(request, order_pk):
             order.history.create(content=msg, user=request.user)
         messages.success(request, msg)
         return redirect('dashboard:order-details', order_pk=order.pk)
-    elif form.errors:
-        status = 400
-    ctx = {'order': order}
-    return TemplateResponse(request,
-                            'dashboard/order/modal/order_remove_voucher.html',
-                            ctx, status=status)
+    return redirect('dashboard:order-voucher-edit', order_pk=order.pk)
 
 
 @staff_member_required
@@ -556,7 +538,8 @@ def fulfillment_packing_slips(request, order_pk, fulfillment_pk):
 @staff_member_required
 @permission_required('order.edit_order')
 def orderline_change_stock(request, order_pk, line_pk):
-    line = get_object_or_404(OrderLine, pk=line_pk)
+    order = get_object_or_404(Order, pk=order_pk, status=OrderStatus.DRAFT)
+    line = get_object_or_404(order.lines.all(), pk=line_pk)
     status = 200
     form = ChangeStockForm(request.POST or None, instance=line)
     if form.is_valid():
@@ -635,10 +618,10 @@ def fulfill_order_lines(request, order_pk):
 @staff_member_required
 @permission_required('order.edit_order')
 def cancel_fulfillment(request, order_pk, fulfillment_pk):
-    status = 200
     order = get_object_or_404(Order, pk=order_pk)
     fulfillment = get_object_or_404(
         order.fulfillments.all(), pk=fulfillment_pk)
+    status = 200
     form = CancelFulfillmentForm(request.POST or None, fulfillment=fulfillment)
     if form.is_valid():
         msg = pgettext_lazy(
@@ -668,10 +651,10 @@ def cancel_fulfillment(request, order_pk, fulfillment_pk):
 @staff_member_required
 @permission_required('order.edit_order')
 def change_fulfillment_tracking(request, order_pk, fulfillment_pk):
-    status = 200
     order = get_object_or_404(Order, pk=order_pk)
     fulfillment = get_object_or_404(
         order.fulfillments.all(), pk=fulfillment_pk)
+    status = 200
     form = FulfillmentTrackingNumberForm(
         request.POST or None, instance=fulfillment)
     if form.is_valid():
