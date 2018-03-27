@@ -104,13 +104,12 @@
                 <div class="row">
                   <span class="card-title">{% trans "Attributes" %}</span>
                 </div>
-                <div class="row">
-                    <h6>
-                      {% blocktrans with product_type_name=product.product_type %}
-                        Product Type: {{ product_type_name }}
-                      {% endblocktrans %}
-                    </h6>
-                  </div>
+                  <h6>
+                    {% blocktrans with product_type_name=product.product_type %}
+                      Product Type: {{ product_type_name }}
+                    {% endblocktrans %}
+                  </h6>
+                  <br>
                 {% for attribute_field in product_form.iter_attribute_fields %}
                   <div class="row attribute-select-or-create">
                     {{ attribute_field|materializecss:"input-field s12" }}
