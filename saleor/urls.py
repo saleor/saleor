@@ -23,10 +23,12 @@ from .search.urls import urlpatterns as search_urls
 handler404 = 'saleor.core.views.handle_404'
 
 non_translatable_urlpatterns = [
-    url(r'^sitemap\.xml$', sitemap, {'sitemaps': sitemaps},
-        name='django.contrib.sitemaps.views.sitemap'),
+    url(r'^dashboard/',
+        include((dashboard_urls, 'dashboard'), namespace='dashboard')),
     url(r'^graphql', GraphQLView.as_view(
         schema=schema, graphiql=settings.DEBUG), name='api'),
+    url(r'^sitemap\.xml$', sitemap, {'sitemaps': sitemaps},
+        name='django.contrib.sitemaps.views.sitemap'),
     url(r'^i18n/$', set_language, name='set_language')]
 
 translatable_urlpatterns = [
@@ -34,8 +36,6 @@ translatable_urlpatterns = [
     url(r'^cart/', include((cart_urls, 'cart'), namespace='cart')),
     url(r'^checkout/',
         include((checkout_urls, 'checkout'), namespace='checkout')),
-    url(r'^dashboard/',
-        include((dashboard_urls, 'dashboard'), namespace='dashboard')),
     url(r'^jsi18n/$', JavaScriptCatalog.as_view(), name='javascript-catalog'),
     url(r'^order/', include((order_urls, 'order'), namespace='order')),
     url(r'^page/', include((page_urls, 'page'), namespace='page')),
