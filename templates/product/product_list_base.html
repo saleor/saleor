@@ -5,6 +5,7 @@
 {% load staticfiles %}
 {% load prices_i18n %}
 {% load build_absolute_uri from urls %}
+{% load get_object_properties from attributes %}
 
 {% block footer_scripts %}
   {{ block.super }}
@@ -20,14 +21,9 @@
 
 {% block meta_tags %}
   <meta property="og:title" content="{{ object.seo_title|default:object.name }}">
-
-  <meta name="description" content="
-    {% if object.seo_description %}
-      {{ object.seo_description }}
-    {% elif object.description %}
-      {{ object.description }}
-    {% endif %}
-  ">
+  {% get_object_properties object=object properties="seo_description,description" as seo_description %}
+  <meta property="og:description" content="{{ seo_description }}">
+  <meta name="description" content="{{ seo_description }}">
   <meta property="og:image" content="{% static "images/block1.png" %}">
 
   {% build_absolute_uri request=request location=object.get_absolute_url as object_url %}
