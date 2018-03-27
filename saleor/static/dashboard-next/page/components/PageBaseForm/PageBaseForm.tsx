@@ -7,12 +7,11 @@ import Toolbar from "material-ui/Toolbar";
 import Typography from "material-ui/Typography";
 import * as React from "react";
 
-import ControlledCheckbox from "../../components/ControlledCheckbox";
-import FormSpacer from "../../components/FormSpacer";
-import RichTextEditor from "../../components/RichTextEditor";
-import i18n from "../../i18n";
+import ControlledCheckbox from "../../../components/ControlledCheckbox";
+import FormSpacer from "../../../components/FormSpacer";
+import RichTextEditor from "../../../components/RichTextEditor";
+import i18n from "../../../i18n";
 
-// FIXME: Change name
 interface PageBaseFormComponentProps {
   availableOn: string;
   content: string;
@@ -47,10 +46,12 @@ export const PageBaseForm = decorate<PageBaseFormComponentProps>(
     isVisible,
     onChange
   }) => {
-    const errorList: { [key: string]: string } = errors.reduce((acc, curr) => {
-      acc[curr.field] = curr.message;
-      return acc;
-    }, {});
+    const errorList: { [key: string]: string } = errors
+      ? errors.reduce((acc, curr) => {
+          acc[curr.field] = curr.message;
+          return acc;
+        }, {})
+      : {};
     return (
       <CardContent>
         <Grid container spacing={16}>
