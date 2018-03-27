@@ -7,6 +7,7 @@ from django.core.validators import (
     MaxLengthValidator, MinValueValidator, RegexValidator)
 from django.db import models
 from django.db.models import F, Max, Q
+from django.dispatch import receiver
 from django.urls import reverse
 from django.utils.encoding import smart_text
 from django.utils.text import slugify

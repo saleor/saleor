@@ -1,6 +1,6 @@
 import json
 from io import BytesIO
-from unittest.mock import MagicMock, Mock
+from unittest.mock import MagicMock, Mock, patch
 
 import pytest
 from django.conf import settings
@@ -470,7 +470,9 @@ def test_view_invalid_reorder_product_images(
     assert 'ordered_images' in resp_decoded['error']
 
 
-def test_view_product_image_add(admin_client, product_with_image):
+@patch('saleor.dashboard.product.forms.create_product_thumbnails.delay')
+def test_view_product_image_add(
+        mock_create_thumbnails, admin_client, product_with_image):
     assert len(ProductImage.objects.all()) == 1
     assert len(product_with_image.images.all()) == 1
     url = reverse(
@@ -488,10 +490,12 @@ def test_view_product_image_add(admin_client, product_with_image):
     assert len(images) == 2
     assert image_name in images[1].image.name
     assert images[1].alt == 'description'
+    mock_create_thumbnails.assert_called_once_with(images[1].pk)
 
 
+@patch('saleor.dashboard.product.forms.create_product_thumbnails.delay')
 def test_view_product_image_edit_same_image_add_description(
-        admin_client, product_with_image):
+        mock_create_thumbnails, admin_client, product_with_image):
     assert len(product_with_image.images.all()) == 1
     product_image = product_with_image.images.all()[0]
     url = reverse(
@@ -507,9 +511,12 @@ def test_view_product_image_edit_same_image_add_description(
     assert len(product_with_image.images.all()) == 1
     product_image.refresh_from_db()
     assert product_image.alt == 'description'
+    mock_create_thumbnails.assert_called_once_with(product_image.pk)
 
 
-def test_view_product_image_edit_new_image(admin_client, product_with_image):
+@patch('saleor.dashboard.product.forms.create_product_thumbnails.delay')
+def test_view_product_image_edit_new_image(
+        mock_create_thumbnails, admin_client, product_with_image):
     assert len(product_with_image.images.all()) == 1
     product_image = product_with_image.images.all()[0]
     url = reverse(
@@ -527,6 +534,7 @@ def test_view_product_image_edit_new_image(admin_client, product_with_image):
     product_image.refresh_from_db()
     assert image_name in product_image.image.name
     assert product_image.alt == 'description'
+    mock_create_thumbnails.assert_called_once_with(product_image.pk)
 
 
 def perform_bulk_action(product_list, action):

@@ -1,22 +1,28 @@
 import datetime
+import io
 import json
-from unittest.mock import Mock
+from contextlib import redirect_stdout
+from unittest.mock import Mock, patch
 
 import pytest
+
+from django.conf import settings
 from django.urls import reverse
 from django.utils.encoding import smart_text
-from tests.utils import filter_products_by_attribute
-
 from saleor.cart import CartStatus, utils
 from saleor.cart.models import Cart
+from saleor.core.utils import create_thumbnails
 from saleor.product import (
     ProductAvailabilityStatus, VariantAvailabilityStatus, models)
-from saleor.product.models import Category
+from saleor.product.models import Category, ProductImage
+from saleor.product.thumbnails import create_product_thumbnails
 from saleor.product.utils import (
     allocate_stock, deallocate_stock, decrease_stock,
     get_attributes_display_map, get_availability,
     get_product_availability_status, get_variant_availability_status,
     get_variant_picker_data, increase_stock)
+
+from .utils import filter_products_by_attribute
 
 
 @pytest.fixture()
@@ -532,3 +538,12 @@ def test_include_products_from_subcategories_in_main_view(
             'path': path, 'category_id': default_category.pk})
     response = authorized_client.get(url)
     assert product in response.context_data['products'][0]
+
+
+@patch('saleor.product.thumbnails.create_thumbnails')
+def test_create_product_thumbnails(
+        mock_create_thumbnails, product_with_image):
+    product_image = product_with_image.images.first()
+    create_product_thumbnails(product_image.pk)
+    assert mock_create_thumbnails.called_once_with(
+        product_image.pk, ProductImage, 'products')
