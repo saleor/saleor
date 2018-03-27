@@ -262,7 +262,7 @@ def test_page_delete_mutation(admin_client, page):
 
 
 def test_create_product(
-        client, product_type, default_category, size_attribute):
+        admin_client, product_type, default_category, size_attribute):
     query = """
         mutation createProduct(
             $productTypeId: ID!,
@@ -342,7 +342,7 @@ def test_create_product(
             {'slug': color_attr_slug, 'value': color_attr_value},
             {'slug': size_attr_slug, 'value': non_existent_attr_value}]})
 
-    response = client.post(
+    response = admin_client.post(
         reverse('dashboard:api'), {'query': query, 'variables': variables})
     content = get_graphql_content(response)
     assert 'errors' not in content
@@ -360,7 +360,7 @@ def test_create_product(
 
 
 def test_update_product(
-    client, default_category, non_default_category, product_in_stock):
+    admin_client, default_category, non_default_category, product_in_stock):
     query = """
         mutation updateProduct(
             $productId: ID!,
@@ -424,7 +424,7 @@ def test_update_product(
         'isFeatured': product_isFeatured,
         'price': product_price})
 
-    response = client.post(
+    response = admin_client.post(
         reverse('dashboard:api'), {'query': query, 'variables': variables})
     content = get_graphql_content(response)
     assert 'errors' not in content
@@ -437,7 +437,7 @@ def test_update_product(
     assert not data['product']['category']['name'] == default_category.name
 
 
-def test_delete_product(client, product_in_stock):
+def test_delete_product(admin_client, product_in_stock):
     query = """
         mutation DeleteProduct($id: ID!) {
             productDelete(id: $id) {
@@ -454,7 +454,7 @@ def test_delete_product(client, product_in_stock):
     """
     variables = json.dumps({
         'id': graphene.Node.to_global_id('Product', product_in_stock.id)})
-    response = client.post(
+    response = admin_client.post(
         reverse('dashboard:api'), {'query': query, 'variables': variables})
     content = get_graphql_content(response)
     assert 'errors' not in content
