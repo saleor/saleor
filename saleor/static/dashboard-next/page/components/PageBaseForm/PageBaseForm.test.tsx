@@ -1,7 +1,7 @@
 import * as React from "react";
 import * as renderer from "react-test-renderer";
 
-import PageBaseForm from "./PageBaseForm";
+import PageBaseForm from "./";
 
 const page = {
   availableOn: "2018-03-20T16:39:08.850105+00:00",

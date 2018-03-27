@@ -1,7 +1,7 @@
 import * as React from "react";
 import * as renderer from "react-test-renderer";
 
-import PageFilters from "./PageFilters";
+import PageFilters from "./";
 
 const pageFilters = {
   title: "title",

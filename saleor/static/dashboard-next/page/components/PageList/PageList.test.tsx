@@ -2,7 +2,7 @@ import * as React from "react";
 import { MemoryRouter } from "react-router-dom";
 import * as renderer from "react-test-renderer";
 
-import PageList from "./PageListComponent";
+import PageList from "./";
 
 const pageList = [
   {
