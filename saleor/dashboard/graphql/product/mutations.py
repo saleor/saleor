@@ -48,7 +48,7 @@ class CategoryDelete(StaffMemberRequiredMutation, ModelDeleteMutation):
 
 
 class ValuesInput(InputObjectType):
-    name = graphene.String(required=True)
+    slug = graphene.String(required=True)
     value = graphene.String(required=True)
 
 

@@ -51,9 +51,11 @@ class Query(graphene.ObjectType):
     def resolve_pages(self, info):
         return resolve_all_pages()
 
+    @staff_member_required
     def resolve_product(self, info, id):
         return get_node(info, id, only_type=Product)
 
+    @staff_member_required
     def resolve_products(self, info, category_id=None, **kwargs):
         if category_id is not None:
             category = get_node(info, category_id, only_type=Category)

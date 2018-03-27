@@ -320,12 +320,12 @@ def test_create_product(
 
     # Default attribute defined in product_type fixture
     color_attr = product_type.product_attributes.get(name='Color')
-    color_attr_name = color_attr.name
     color_attr_value = color_attr.values.first().name
-    color_attr_slug = color_attr.values.first().slug
+    color_value_slug = color_attr.values.first().slug
+    color_attr_slug = color_attr.slug
     # Add second attribute
     product_type.product_attributes.add(size_attribute)
-    size_attr_name = product_type.product_attributes.get(name='Size').name
+    size_attr_slug = product_type.product_attributes.get(name='Size').slug
     non_existent_attr_value = 'The cake is a lie'
 
     # test creating root product
@@ -338,8 +338,8 @@ def test_create_product(
         'isFeatured': product_isFeatured,
         'price': product_price,
         'attributes': [
-            {'name': color_attr_name, 'value': color_attr_value},
-            {'name': size_attr_name, 'value': non_existent_attr_value}]})
+            {'slug': color_attr_slug, 'value': color_attr_value},
+            {'slug': size_attr_slug, 'value': non_existent_attr_value}]})
 
     response = client.post(
         reverse('dashboard:api'), {'query': query, 'variables': variables})
@@ -354,7 +354,7 @@ def test_create_product(
     assert data['product']['productType']['name'] == product_type.name
     assert data['product']['category']['name'] == default_category.name
     assert data['product']['attributes'][1]['value'] == None
-    assert data['product']['attributes'][0]['value'] == color_attr_slug
+    assert data['product']['attributes'][0]['value'] == color_value_slug
 
 
 def test_update_product(
