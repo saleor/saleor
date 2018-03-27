@@ -9,6 +9,7 @@
 {% load get_thumbnail product_first_image from product_images %}
 {% load build_absolute_uri from urls %}
 {% load placeholder %}
+{% load get_object_properties from attributes %}
 
 {% block title %}
   {% if product.seo_title %}
@@ -20,8 +21,8 @@
 
 {% block meta_tags %}
   <meta property="og:title" content="{{ product.seo_title|default:product.name }}">
-  <meta property="og:description" content="{{ product.seo_description|default:product.description }}">
-  <meta name="description" content="{{ product.seo_description|default:product.description }}">
+  <meta property="og:description" content="{{ product.seo_description|default:"" }}">
+  <meta name="description" content="{{ product.seo_description|default:"" }}">
 
   {% build_absolute_uri request=request location=product.get_absolute_url as product_url %}
   <meta property="og:url" content="{{ product_url }}">
