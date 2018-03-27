@@ -154,7 +154,7 @@ class Order(models.Model):
         return self.status in statuses
 
     def can_cancel(self):
-        return self.status != OrderStatus.CANCELED
+        return self.status not in {OrderStatus.CANCELED, OrderStatus.DRAFT}
 
 
 class OrderLine(models.Model):

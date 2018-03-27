@@ -42,11 +42,13 @@
         </li>
       {% endif %}
     {% endif %}
-    <li>
-      <a class="btn-print" href="#">
-        {% trans "Print" context "Order detail action" %}
-      </a>
-    </li>
+    {% if not order.is_draft %}
+      <li>
+        <a class="btn-print" href="#">
+          {% trans "Print" context "Order detail action" %}
+        </a>
+      </li>
+    {% endif %}
   </ul>
 {% endblock %}
 
