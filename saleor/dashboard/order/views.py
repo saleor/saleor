@@ -17,7 +17,8 @@ from ...core.exceptions import InsufficientStock
 from ...core.utils import ZERO_TAXED_MONEY, get_paginator_items
 from ...order import OrderStatus
 from ...order.emails import (
-    send_fulfillment_confirmation, send_fulfillment_update)
+    send_fulfillment_confirmation, send_fulfillment_update,
+    send_order_confirmation)
 from ...order.models import (
     Fulfillment, FulfillmentLine, Order, OrderLine, OrderNote)
 from ...order.utils import update_order_status
@@ -78,6 +79,13 @@ def confirm_draft_order(request, order_pk):
             'Order created from draft order')
         order.history.create(content=msg, user=request.user)
         messages.success(request, msg)
+        if form.cleaned_data.get('notify_customer'):
+            send_order_confirmation.delay(order.pk)
+            send_mail_msg = pgettext_lazy(
+                'Dashboard message related to an order',
+                'Order confirmation email was sent to user'
+                '(%(email)s)') % {'email': order.get_user_current_email()}
+            order.history.create(content=send_mail_msg, user=request.user)
         return redirect('dashboard:order-details', order_pk=order.pk)
     elif form.errors:
         status = 400

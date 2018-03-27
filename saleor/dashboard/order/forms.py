@@ -5,14 +5,13 @@ from django.urls import reverse, reverse_lazy
 from django.utils.translation import npgettext_lazy, pgettext_lazy
 from django_prices.forms import MoneyField
 from payments import PaymentError, PaymentStatus
-from prices import Money
 
 from ...account.i18n import (
     AddressForm as StorefrontAddressForm, PossiblePhoneNumberFormField)
 from ...account.models import User
 from ...cart.forms import QuantityField
 from ...core.exceptions import InsufficientStock
-from ...core.utils import ZERO_TAXED_MONEY, format_money
+from ...core.utils import ZERO_TAXED_MONEY
 from ...discount.models import Voucher
 from ...discount.utils import decrease_voucher_usage, increase_voucher_usage
 from ...order import OrderStatus
@@ -48,19 +47,7 @@ class ConfirmDraftOrderForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.discount_amount = get_voucher_discount_for_order(self.instance)
-        if self.instance.discount_amount != self.discount_amount:
-            zero = Money(0, settings.DEFAULT_CURRENCY)
-            self.fields['reapply_voucher'].label = pgettext_lazy(
-                'Recalculate discount amount on draft order confirmation',
-                'Update discount amount from %(old_amount)s '
-                'to %(new_amount)s') % {
-                    'old_amount': format_money(
-                        self.instance.discount_amount or zero),
-                    'new_amount': format_money(self.discount_amount or zero)}
-        else:
-            self.fields.pop('reapply_voucher')
-        if not self.instance.user and not self.instance.user_email:
+        if not self.instance.get_user_current_email():
             self.fields.pop('notify_customer')
 
     def clean(self):
@@ -95,12 +82,6 @@ class ConfirmDraftOrderForm(forms.ModelForm):
                 self.instance.shipping_address.delete()
             self.instance.shipping_method_name = None
             self.instance.shipping_price = ZERO_TAXED_MONEY
-        if self.cleaned_data.get('notify_customer'):
-            email = self.instance.get_user_current_email()
-            if email:
-                send_order_confirmation.delay(self.instance.pk)
-        if self.cleaned_data.get('reapply_voucher'):
-            recalculate_order(self.instance, self.discount_amount)
         return super().save(commit)
 
 
@@ -298,8 +279,8 @@ class OrderNoteForm(forms.ModelForm):
                 'Customer can see this note')}
 
     def send_confirmation_email(self):
-        order = self.instance.order
-        send_note_confirmation.delay(order.pk)
+        if self.instance.order.get_user_current_email():
+            send_note_confirmation.delay(self.instance.order.pk)
 
 
 class ManagePaymentForm(forms.Form):
@@ -513,6 +494,11 @@ class FulfillmentTrackingNumberForm(forms.ModelForm):
             'tracking_number': pgettext_lazy(
                 'Fulfillment record', 'Tracking number')}
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if not self.instance.order.get_user_current_email():
+            self.fields.pop('send_mail')
+
 
 class OrderRemoveVoucherForm(forms.ModelForm):
     """Remove voucher from order. Decrease usage and recalculate order."""
@@ -664,6 +650,8 @@ class FulfillmentForm(forms.ModelForm):
         order = kwargs.pop('order')
         super().__init__(*args, **kwargs)
         self.instance.order = order
+        if not order.get_user_current_email():
+            self.fields.pop('send_mail')
 
 
 class BaseFulfillmentLineFormSet(forms.BaseModelFormSet):
