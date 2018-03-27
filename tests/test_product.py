@@ -547,29 +547,3 @@ def test_create_product_thumbnails(
     create_product_thumbnails(product_image.pk)
     assert mock_create_thumbnails.called_once_with(
         product_image.pk, ProductImage, 'products')
-
-
-@patch('django.db.models.signals.post_delete.send')
-def test_product_image_post_delete_fired(mock_post_delete, product_with_image):
-    product_image = product_with_image.images.first()
-    product_image.delete()
-    assert mock_post_delete.called_once_with(
-        sender=ProductImage, instance=product_image)
-
-
-def test_product_image_post_delete(product_with_image):
-    product_image = product_with_image.images.first()
-    # Generate thumbnails
-    create_thumbnails(product_image.pk, ProductImage, 'products')
-    sizeset = settings.VERSATILEIMAGEFIELD_RENDITION_KEY_SETS['products']
-    # There's no way to list images created by versatile prewarmer
-    # So we delete all created thumbnails/crops and count them
-    log_deleted_images = io.StringIO()
-    with redirect_stdout(log_deleted_images):
-        product_image.delete()
-    log_deleted_images = log_deleted_images.getvalue()
-    deletion_messages = log_deleted_images.split('\n')
-    # Some messages can be empty
-    deleted_images = list(filter(None, deletion_messages))
-    # We should have 1 message for each defined image in the sizeset
-    assert len(deleted_images) == len(sizeset)
