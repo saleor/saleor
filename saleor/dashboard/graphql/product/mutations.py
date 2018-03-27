@@ -52,7 +52,7 @@ class ValuesInput(InputObjectType):
     value = graphene.String(required=True)
 
 
-class ProductCreateMutation(ModelFormMutation):
+class ProductCreateMutation(StaffMemberRequiredMutation, ModelFormMutation):
     class Arguments:
         product_type_id = graphene.ID()
         category_id = graphene.ID()
@@ -76,13 +76,14 @@ class ProductCreateMutation(ModelFormMutation):
         return kwargs
 
 
-class ProductDeleteMutation(ModelDeleteMutation):
+class ProductDeleteMutation(StaffMemberRequiredMutation, ModelDeleteMutation):
 
     class Meta:
         model = models.Product
 
 
-class ProductUpdateMutation(ModelFormUpdateMutation):
+class ProductUpdateMutation(StaffMemberRequiredMutation,
+                            ModelFormUpdateMutation):
     class Arguments:
         attributes = graphene.Argument(graphene.List(ValuesInput))
         category_id = graphene.ID()
