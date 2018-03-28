@@ -148,12 +148,8 @@ class ModelFormMutation(BaseMutation):
     @classmethod
     def mutate(cls, root, info, **kwargs):
         form_kwargs = cls.get_form_kwargs(root, info, **kwargs)
-        attributes = form_kwargs.get('data').pop('attributes', None)
         form = cls._meta.form_class(**form_kwargs)
         if form.is_valid():
-            if attributes:
-                form.instance.attributes = get_attributes_dict_from_list(
-                    attributes)
             instance = form.save()
             kwargs = {cls._meta.return_field_name: instance}
             return cls(errors=[], **kwargs)

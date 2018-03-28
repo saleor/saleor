@@ -8,6 +8,7 @@ from ...category.forms import CategoryForm
 from ..mutations import (
     ModelDeleteMutation, ModelFormMutation, ModelFormUpdateMutation,
     StaffMemberRequiredMutation)
+from ..utils import get_attributes_dict_from_list
 from .forms import ProductForm
 
 
@@ -75,6 +76,20 @@ class ProductCreateMutation(StaffMemberRequiredMutation, ModelFormMutation):
         kwargs['data']['category'] = category.id
         return kwargs
 
+    @classmethod
+    def mutate(cls, root, info, *args, **kwargs):
+        form_kwargs = cls.get_form_kwargs(root, info, **kwargs)
+        attributes = form_kwargs.get('data').pop('attributes', None)
+        if attributes:
+            form = cls._meta.form_class(**form_kwargs)
+            if form.is_valid():
+                form.instance.attributes = get_attributes_dict_from_list(
+                    attributes)
+                instance = form.save()
+                kwargs = {cls._meta.return_field_name: instance}
+                return cls(errors=[], **kwargs)
+        return super().mutate(root, info, *args, **kwargs)
+
 
 class ProductDeleteMutation(StaffMemberRequiredMutation, ModelDeleteMutation):
 
@@ -107,3 +122,17 @@ class ProductUpdateMutation(StaffMemberRequiredMutation,
         else:
             kwargs['data']['category'] = instance.category.id
         return kwargs
+
+    @classmethod
+    def mutate(cls, root, info, *args, **kwargs):
+        form_kwargs = cls.get_form_kwargs(root, info, **kwargs)
+        attributes = form_kwargs.get('data').pop('attributes', None)
+        if attributes:
+            form = cls._meta.form_class(**form_kwargs)
+            if form.is_valid():
+                form.instance.attributes = get_attributes_dict_from_list(
+                    attributes)
+                instance = form.save()
+                kwargs = {cls._meta.return_field_name: instance}
+                return cls(errors=[], **kwargs)
+        return super().mutate(root, info, *args, **kwargs)
