@@ -13,8 +13,6 @@ MODELS_PERMISSIONS = [
     'product.edit_product',
     'product.view_properties',
     'product.edit_properties',
-    'product.view_stock_location',
-    'product.edit_stock_location',
     'sale.view_sale',
     'sale.edit_sale',
     'shipping.view_shipping',

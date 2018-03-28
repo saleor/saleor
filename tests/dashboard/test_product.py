@@ -16,7 +16,7 @@ from saleor.dashboard.product.forms import (
 from saleor.product.forms import VariantChoiceField
 from saleor.product.models import (
     AttributeChoiceValue, Collection, Product, ProductAttribute, ProductImage,
-    ProductType, ProductVariant, Stock, StockLocation)
+    ProductType, ProductVariant)
 
 HTTP_STATUS_OK = 200
 HTTP_REDIRECTION = 302
@@ -47,15 +47,15 @@ def test_product_variant_form(product_in_stock):
 
 @pytest.mark.integration
 @pytest.mark.django_db
-def test_stock_record_update_works(admin_client, product_in_stock):
-    variant = product_in_stock.variants.get()
+def test_stock_record_update_works(admin_client, product):
+    variant = product.variants.get()
     stock = variant.stock.order_by('-quantity_allocated').first()
     quantity = stock.quantity
     quantity_allocated = stock.quantity_allocated
     url = reverse(
         'dashboard:variant-stock-update',
         kwargs={
-            'product_pk': product_in_stock.pk,
+            'product_pk': product.pk,
             'variant_pk': variant.pk,
             'stock_pk': stock.pk})
     admin_client.post(url, {
@@ -143,9 +143,7 @@ def test_edit_used_product_type(db, default_category):
     assert 'has_variants' in form.errors.keys()
 
 
-def test_change_attributes_in_product_form(
-        db, product_in_stock, color_attribute):
-    product = product_in_stock
+def test_change_attributes_in_product_form(db, product, color_attribute):
     product_type = product.product_type
     text_attribute = ProductAttribute.objects.create(
         slug='author', name='Author')
@@ -169,7 +167,7 @@ def test_change_attributes_in_product_form(
     assert product.attributes[str(text_attribute.pk)] == str(author_value.pk)
 
 
-def test_attribute_list(db, product_in_stock, color_attribute, admin_client):
+def test_attribute_list(db, product, color_attribute, admin_client):
     assert len(ProductAttribute.objects.all()) == 2
     response = admin_client.get(reverse('dashboard:product-attributes'))
     assert response.status_code == 200
@@ -287,8 +285,7 @@ def test_get_formfield_name_with_unicode_characters(db):
     assert text_attribute.get_formfield_name() == 'attribute-ąęαβδηθλμπ'
 
 
-def test_view_product_toggle_publish(db, admin_client, product_in_stock):
-    product = product_in_stock
+def test_view_product_toggle_publish(db, admin_client, product):
     url = reverse('dashboard:product-publish', kwargs={'pk': product.pk})
     response = admin_client.post(url)
     assert response.status_code == HTTP_STATUS_OK
@@ -300,16 +297,14 @@ def test_view_product_toggle_publish(db, admin_client, product_in_stock):
 
 
 def test_view_product_not_deleted_before_confirmation(
-        db, admin_client, product_in_stock):
-    product = product_in_stock
+        db, admin_client, product):
     url = reverse('dashboard:product-delete', kwargs={'pk': product.pk})
     response = admin_client.get(url)
     assert response.status_code == HTTP_STATUS_OK
     product.refresh_from_db()
 
 
-def test_view_product_delete(db, admin_client, product_in_stock):
-    product = product_in_stock
+def test_view_product_delete(db, admin_client, product):
     url = reverse('dashboard:product-delete', kwargs={'pk': product.pk})
     response = admin_client.post(url)
     assert response.status_code == HTTP_REDIRECTION
@@ -317,8 +312,8 @@ def test_view_product_delete(db, admin_client, product_in_stock):
 
 
 def test_view_product_type_not_deleted_before_confirmation(
-        admin_client, product_in_stock):
-    product_type = product_in_stock.product_type
+        admin_client, product):
+    product_type = product.product_type
     url = reverse(
         'dashboard:product-type-delete', kwargs={'pk': product_type.pk})
     response = admin_client.get(url)
@@ -326,8 +321,8 @@ def test_view_product_type_not_deleted_before_confirmation(
     assert ProductType.objects.filter(pk=product_type.pk)
 
 
-def test_view_product_type_delete(db, admin_client, product_in_stock):
-    product_type = product_in_stock.product_type
+def test_view_product_type_delete(db, admin_client, product):
+    product_type = product.product_type
     url = reverse(
         'dashboard:product-type-delete', kwargs={'pk': product_type.pk})
     response = admin_client.post(url)
@@ -336,24 +331,24 @@ def test_view_product_type_delete(db, admin_client, product_in_stock):
 
 
 def test_view_product_variant_not_deleted_before_confirmation(
-        admin_client, product_in_stock):
-    product_variant_pk = product_in_stock.variants.first().pk
+        admin_client, product):
+    product_variant_pk = product.variants.first().pk
     url = reverse(
         'dashboard:variant-delete',
         kwargs={
-            'product_pk': product_in_stock.pk,
+            'product_pk': product.pk,
             'variant_pk': product_variant_pk})
     response = admin_client.get(url)
     assert response.status_code == HTTP_STATUS_OK
     assert ProductVariant.objects.filter(pk=product_variant_pk)
 
 
-def test_view_product_variant_delete(admin_client, product_in_stock):
-    product_variant_pk = product_in_stock.variants.first().pk
+def test_view_product_variant_delete(admin_client, product):
+    product_variant_pk = product.variants.first().pk
     url = reverse(
         'dashboard:variant-delete',
         kwargs={
-            'product_pk': product_in_stock.pk,
+            'product_pk': product.pk,
             'variant_pk': product_variant_pk})
     response = admin_client.post(url)
     assert response.status_code == HTTP_REDIRECTION
@@ -361,13 +356,13 @@ def test_view_product_variant_delete(admin_client, product_in_stock):
 
 
 def test_view_stock_not_deleted_before_confirmation(
-        admin_client, product_in_stock):
-    product_variant = product_in_stock.variants.first()
+        admin_client, product):
+    product_variant = product.variants.first()
     stock = Stock.objects.filter(variant=product_variant).first()
     url = reverse(
         'dashboard:variant-stock-delete',
         kwargs={
-            'product_pk': product_in_stock.pk,
+            'product_pk': product.pk,
             'variant_pk': product_variant.pk,
             'stock_pk': stock.pk})
     response = admin_client.get(url)
@@ -375,13 +370,13 @@ def test_view_stock_not_deleted_before_confirmation(
     assert Stock.objects.filter(pk=stock.pk)
 
 
-def test_view_stock_delete(admin_client, product_in_stock):
-    product_variant = product_in_stock.variants.first()
+def test_view_stock_delete(admin_client, product):
+    product_variant = product.variants.first()
     stock = Stock.objects.filter(variant=product_variant).first()
     url = reverse(
         'dashboard:variant-stock-delete',
         kwargs={
-            'product_pk': product_in_stock.pk,
+            'product_pk': product.pk,
             'variant_pk': product_variant.pk,
             'stock_pk': stock.pk})
     response = admin_client.post(url)
@@ -685,8 +680,7 @@ def test_hide_field_in_variant_choice_field_form():
     assert form.widget.attrs.get('value') == 'test'
 
 
-def test_assign_collection_to_product(product_in_stock):
-    product = product_in_stock
+def test_assign_collection_to_product(product):
     collection = Collection.objects.create(name='test_collections')
     data = {
         'name': product.name,

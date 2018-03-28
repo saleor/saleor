@@ -4,10 +4,10 @@ from django.urls import reverse, translate_url
 from saleor.core.utils import build_absolute_uri
 
 
-def test_sitemap(client, product_in_stock):
-    product_url = build_absolute_uri(product_in_stock.get_absolute_url())
+def test_sitemap(client, product):
+    product_url = build_absolute_uri(product.get_absolute_url())
     category_url = build_absolute_uri(
-        product_in_stock.category.get_absolute_url())
+        product.category.get_absolute_url())
     expected_urls = [product_url, category_url]
 
     language_codes = [lang_code for lang_code, lang_name in settings.LANGUAGES]
