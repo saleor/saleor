@@ -1,3 +1,4 @@
+import json
 from datetime import date
 from decimal import Decimal
 from unittest.mock import Mock
@@ -185,3 +186,16 @@ def test_category_voucher_checkout_discount_not_applicable(monkeypatch):
     order = Mock(voucher=voucher)
     discount = get_voucher_discount_for_order(order)
     assert discount == Money(0, 'USD')
+
+
+def test_ajax_voucher_list(admin_client, voucher):
+    voucher.name = 'Summer sale'
+    voucher.save()
+    vouchers_list = [{'id': voucher.pk, 'text': str(voucher)}]
+    url = reverse('dashboard:ajax-vouchers')
+
+    response = admin_client.get(url, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
+    resp_decoded = json.loads(response.content.decode('utf-8'))
+
+    assert response.status_code == 200
+    assert resp_decoded == {'results': vouchers_list}

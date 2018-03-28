@@ -289,40 +289,40 @@ def test_staff_can_access_product_list(
 
 
 def test_staff_cant_access_product_detail(
-        staff_client, staff_user, product_in_stock):
+        staff_client, staff_user, product):
     assert not staff_user.has_perm("product.view_product")
     response = staff_client.get(reverse('dashboard:product-detail',
-                                        args=[product_in_stock.pk]))
+                                        args=[product.pk]))
     assert response.status_code == 302
 
 
 def test_staff_can_access_product_detail(
-        staff_client, staff_user, product_in_stock, permission_view_product):
+        staff_client, staff_user, product, permission_view_product):
     assert not staff_user.has_perm("product.view_product")
     staff_user.user_permissions.add(permission_view_product)
     staff_user = User.objects.get(pk=staff_user.pk)
     assert staff_user.has_perm("product.view_product")
     response = staff_client.get(reverse('dashboard:product-detail',
-                                        args=[product_in_stock.pk]))
+                                        args=[product.pk]))
     assert response.status_code == 200
 
 
 def test_staff_cant_access_product_update(
-        staff_client, staff_user, product_in_stock):
+        staff_client, staff_user, product):
     assert not staff_user.has_perm("product.edit_product")
     response = staff_client.get(reverse('dashboard:product-update',
-                                        args=[product_in_stock.pk]))
+                                        args=[product.pk]))
     assert response.status_code == 302
 
 
 def test_staff_can_access_product_update(
-        staff_client, staff_user, product_in_stock, permission_edit_product):
+        staff_client, staff_user, product, permission_edit_product):
     assert not staff_user.has_perm("product.edit_product")
     staff_user.user_permissions.add(permission_edit_product)
     staff_user = User.objects.get(pk=staff_user.pk)
     assert staff_user.has_perm("product.edit_product")
     response = staff_client.get(reverse('dashboard:product-update',
-                                        args=[product_in_stock.pk]))
+                                        args=[product.pk]))
     assert response.status_code == 200
 
 

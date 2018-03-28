@@ -55,11 +55,9 @@ class ProductTypeSelectorForm(forms.Form):
 
 class StockForm(forms.ModelForm):
     class Meta:
-        model = Stock
-        exclude = ['quantity_allocated', 'variant']
+        model = ProductVariant
+        exclude = ['quantity_allocated']
         labels = {
-            'location': pgettext_lazy(
-                'Stock location', 'Location'),
             'quantity': pgettext_lazy(
                 'Integer number', 'Quantity'),
             'cost_price': pgettext_lazy(
@@ -68,22 +66,6 @@ class StockForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         self.variant = kwargs.pop('variant')
         super().__init__(*args, **kwargs)
-
-    def clean_location(self):
-        location = self.cleaned_data['location']
-        if (
-                not self.instance.pk and
-                self.variant.stock.filter(location=location).exists()):
-            self.add_error(
-                'location',
-                pgettext_lazy(
-                    'stock form error',
-                    'Stock item for this location and variant already exists'))
-        return location
-
-    def save(self, commit=True):
-        self.instance.variant = self.variant
-        return super().save(commit)
 
 
 class ProductTypeForm(forms.ModelForm):
@@ -385,15 +367,6 @@ class ProductAttributeForm(forms.ModelForm):
                 'Product display name', 'Display name'),
             'slug': pgettext_lazy(
                 'Product internal name', 'Internal name')}
-
-
-class StockLocationForm(forms.ModelForm):
-    class Meta:
-        model = StockLocation
-        exclude = []
-        labels = {
-            'name': pgettext_lazy(
-                'Item name', 'Name')}
 
 
 class AttributeChoiceValueForm(forms.ModelForm):

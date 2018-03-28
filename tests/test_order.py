@@ -37,9 +37,9 @@ def test_order_get_subtotal(order_with_lines):
 
 
 def test_add_variant_to_order_adds_line_for_new_variant(
-        order_with_lines, product_in_stock):
+        order_with_lines, product):
     order = order_with_lines
-    variant = product_in_stock.variants.get()
+    variant = product.variants.get()
     lines_before = order.lines.count()
 
     add_variant_to_order(order, variant, 1)
@@ -51,9 +51,9 @@ def test_add_variant_to_order_adds_line_for_new_variant(
 
 
 def test_add_variant_to_order_allocates_stock_for_new_variant(
-        order_with_lines, product_in_stock):
+        order_with_lines, product):
     order = order_with_lines
-    variant = product_in_stock.variants.get()
+    variant = product.variants.get()
     stock = variant.select_stockrecord()
     stock_before = stock.quantity_allocated
 

@@ -86,8 +86,8 @@ def request_cart(cart, monkeypatch):
 
 
 @pytest.fixture
-def request_cart_with_item(product_in_stock, request_cart):
-    variant = product_in_stock.variants.get()
+def request_cart_with_item(product, request_cart):
+    variant = product.variants.get()
     # Prepare some data
     request_cart.add(variant)
     return request_cart
@@ -256,7 +256,7 @@ def product_type(color_attribute, size_attribute):
 
 
 @pytest.fixture
-def product_in_stock(product_type, default_category):
+def product(product_type, default_category):
     product_attr = product_type.product_attributes.first()
     attr_value = product_attr.values.first()
     attributes = {smart_text(product_attr.pk): smart_text(attr_value.pk)}
@@ -352,8 +352,7 @@ def product_image():
 
 
 @pytest.fixture
-def product_with_image(product_in_stock, product_image):
-    product = product_in_stock
+def product_with_image(product, product_image):
     ProductImage.objects.create(product=product, image=product_image)
     return product
 

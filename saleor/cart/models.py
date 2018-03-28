@@ -1,7 +1,6 @@
 """Cart-related ORM models."""
 from collections import namedtuple
 from decimal import Decimal
-from itertools import groupby
 from uuid import uuid4
 
 from django.conf import settings
@@ -53,8 +52,7 @@ class CartQueryset(models.QuerySet):
         return self.prefetch_related(
             'lines__variant__product__category',
             'lines__variant__product__images',
-            'lines__variant__product__product_type__product_attributes__values',  # noqa
-            'lines__variant__stock')
+            'lines__variant__product__product_type__product_attributes__values')  # noqa
 
 
 class Cart(models.Model):
