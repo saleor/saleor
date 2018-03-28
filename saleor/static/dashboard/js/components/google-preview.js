@@ -10,7 +10,7 @@ let $description = '';
 const $descriptionId = $seoDescription.data('bind');
 if ($descriptionMaterialize) {
   const $descriptions = $(`.materialize-textarea[name='${$descriptionMaterialize}']`);
-  // They're two textareas from Medium editor, one contains HTML-free text, other formating
+  // They're two textareas from Medium editor, first one contains HTML-free text
   $description = $descriptions.not($descriptionId).first();
 } else {
   if ($descriptionId) {
@@ -21,7 +21,6 @@ if ($descriptionMaterialize) {
 const $googleTitlePreview = $('#google-preview-title');
 const $googleDescriptionPreview = $('#google-preview-description');
 const $preview = $('#google-preview');
-const $previewErrors = $('#preview-error');
 
 const watchedEvents = 'input propertychange cut paste copy change';
 
@@ -58,19 +57,8 @@ function checkForErrors() {
   const $titleText = $googleTitlePreview.text();
   if ($descriptionText && $titleText) {
     $preview.show();
-    $previewErrors.hide();
-  } else if (!$descriptionText && !$titleText) {
+  } else {
     $preview.hide();
-    $previewErrors.text(gettext('Please provide SEO Title and Meta Description to see how this product might appear in search engine results.'));
-    $previewErrors.show();
-  } else if (!$descriptionText) {
-    $preview.hide();
-    $previewErrors.text(gettext('Please provide Meta Description to see how this product might appear in search engine results.'));
-    $previewErrors.show();
-  } else if (!$titleText) {
-    $preview.hide();
-    $previewErrors.text(gettext('Please provide SEO Title to see how this product might appear in search engine results.'));
-    $previewErrors.show();
   }
 }
 
