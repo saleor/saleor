@@ -100,7 +100,7 @@ class ShippingMethodCountry(models.Model):
         return TaxedMoney(net=self.price, gross=self.price)
 
     @property
-    def label(self):
+    def ajax_label(self):
         price_html = format_money(self.price)
         label = mark_safe('%s %s' % (self.shipping_method, price_html))
         return label

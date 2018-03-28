@@ -110,7 +110,7 @@ class OrderCustomerForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         if self.instance.user:
             self.fields['user'].set_initial(
-                self.instance.user, label=self.instance.user.label)
+                self.instance.user, label=self.instance.user.ajax_label)
 
     def clean(self):
         cleaned_data = super().clean()
@@ -185,7 +185,7 @@ class OrderShippingForm(forms.ModelForm):
 
         method = self.instance.shipping_method
         if method:
-            method_field.set_initial(method, label=method.label)
+            method_field.set_initial(method, label=method.ajax_label)
 
         if self.instance.shipping_address:
             country_code = self.instance.shipping_address.country.code
