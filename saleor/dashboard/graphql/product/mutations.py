@@ -7,7 +7,7 @@ from ....product import models
 from ...category.forms import CategoryForm
 from ..mutations import (
     BaseMutation, ModelDeleteMutation, ModelFormMutation,
-    ModelFormUpdateMutation, StaffMemberRequiredMutation)
+    ModelFormUpdateMutation, StaffMemberRequiredMutation, convert_form_errors)
 from ..utils import get_attributes_dict_from_list
 from .forms import ProductForm
 
@@ -58,18 +58,19 @@ class BaseProductMutateMixin(BaseMutation):
     def mutate(cls, root, info, *args, **kwargs):
         form_kwargs = cls.get_form_kwargs(root, info, **kwargs)
         attributes = form_kwargs.get('data').pop('attributes', None)
-        if attributes:
-            form = cls._meta.form_class(**form_kwargs)
-            if form.is_valid():
+        form = cls._meta.form_class(**form_kwargs)
+        if form.is_valid():
+            if attributes:
                 attr_slug_id = dict(
                     form.instance.product_type.product_attributes.values_list(
                         'slug','id'))
                 form.instance.attributes = get_attributes_dict_from_list(
                     attributes=attributes, attr_slug_id=attr_slug_id)
-                instance = form.save()
-                kwargs = {cls._meta.return_field_name: instance}
-                return cls(errors=[], **kwargs)
-        return super().mutate(root, info, *args, **kwargs)
+            instance = form.save()
+            kwargs = {cls._meta.return_field_name: instance}
+            return cls(errors=[], **kwargs)
+        errors = convert_form_errors(form)
+        return cls(errors=errors)
 
 
 class ProductCreateMutation(BaseProductMutateMixin,
