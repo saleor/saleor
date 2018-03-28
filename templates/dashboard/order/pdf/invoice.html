@@ -27,9 +27,11 @@
         {% trans "Shipping Details" context "Invoice table header" %}
       </th>
     {% endif %}
-    <th align="left" {% if order.shipping_address %} width="50%"{% endif %}>
-      {% trans "Billing Details" context "Invoice table header" %}
-    </th>
+    {% if order.billing_address %}
+      <th align="left" {% if order.shipping_address %} width="50%"{% endif %}>
+        {% trans "Billing Details" context "Invoice table header" %}
+      </th>
+    {% endif %}
   </tr>
   </thead>
   <tbody>
@@ -44,14 +46,16 @@
         {% endwith %}
       </td>
     {% endif %}
-    <td valign="top">
-      {% with order.billing_address as address %}
-        <h2>
-          {% trans "Billing address" context "Invoice billing address" %}
-        </h2>
-        {% include 'dashboard/includes/_address.html' with address=address only %}
-      {% endwith %}
-    </td>
+    {% if order.billing_address %}
+      <td valign="top">
+        {% with order.billing_address as address %}
+          <h2>
+            {% trans "Billing address" context "Invoice billing address" %}
+          </h2>
+          {% include 'dashboard/includes/_address.html' with address=address only %}
+        {% endwith %}
+      </td>
+    {% endif %}
   </tr>
   </tbody>
 </table>
@@ -100,16 +104,6 @@
           </td>
         </tr>
       {% endfor %}
-      {% if order.shipping_price.gross or order.is_shipping_required %}
-        <tr>
-          <td>
-            {% trans "Shipping" context "Shipment order table item column data" %}
-          </td>
-          <td colspan="3">
-            {{ order.shipping_method_name }}
-          </td>
-        </tr>
-      {% endif %}
     </tbody>
   </table>
 {% endif %}
@@ -126,7 +120,7 @@
     </tr>
     <tr>
       <td>
-        {% trans "Shipping total" context "Order total shipping price header" %}
+        {% trans "Shipping" context "Order total shipping price header" %} {% if order.shipping_method_name %}({{ order.shipping_method_name }}){% endif %}
       </td>
       <td class="right-align">
         {{ order.shipping_price.gross|amount:'html' }}

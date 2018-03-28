@@ -15,12 +15,11 @@ from payments import PaymentStatus
 
 from ...core.exceptions import InsufficientStock
 from ...core.utils import ZERO_TAXED_MONEY, get_paginator_items
-from ...order import OrderStatus
+from ...order import CustomPaymentChoices, OrderStatus
 from ...order.emails import (
     send_fulfillment_confirmation, send_fulfillment_update,
     send_order_confirmation)
-from ...order.models import (
-    Fulfillment, FulfillmentLine, Order, OrderLine, OrderNote)
+from ...order.models import Fulfillment, FulfillmentLine, Order, OrderNote
 from ...order.utils import update_order_status
 from ...product.models import StockLocation
 from ...shipping.models import ShippingMethodCountry
@@ -32,9 +31,9 @@ from .forms import (
     CapturePaymentForm, ChangeQuantityForm, ChangeStockForm,
     CreateOrderFromDraftForm, FulfillmentForm, FulfillmentLineForm,
     FulfillmentTrackingNumberForm, OrderCustomerForm, OrderEditDiscountForm,
-    OrderEditVoucherForm, OrderNoteForm, OrderRemoveCustomerForm,
-    OrderRemoveShippingForm, OrderRemoveVoucherForm, OrderShippingForm,
-    RefundPaymentForm, ReleasePaymentForm)
+    OrderEditVoucherForm, OrderMarkAsPaidForm, OrderNoteForm,
+    OrderRemoveCustomerForm, OrderRemoveShippingForm, OrderRemoveVoucherForm,
+    OrderShippingForm, RefundPaymentForm, ReleasePaymentForm)
 from .utils import (
     create_invoice_pdf, create_packing_slip_pdf, get_statics_absolute_url,
     save_address_in_order)
@@ -126,7 +125,9 @@ def order_details(request, order_pk):
             payment.status == PaymentStatus.PREAUTH and
             order.status not in {OrderStatus.DRAFT, OrderStatus.CANCELED})
         can_release = payment.status == PaymentStatus.PREAUTH
-        can_refund = payment.status == PaymentStatus.CONFIRMED
+        can_refund = (
+            payment.status == PaymentStatus.CONFIRMED and
+            payment.variant != CustomPaymentChoices.MANUAL)
         preauthorized = payment.get_total_price()
         if payment.status == PaymentStatus.CONFIRMED:
             captured = payment.get_captured_price()
@@ -301,8 +302,6 @@ def add_variant_to_order(request, order_pk):
                 'Dashboard message related to an order',
                 'Added %(quantity)d x %(variant)s') % msg_dict
             messages.success(request, msg)
-            if order.is_draft():
-                order.history.create(content=msg, user=request.user)
         except InsufficientStock:
             msg = pgettext_lazy(
                 'Dashboard message related to an order',
@@ -505,7 +504,7 @@ def order_voucher_remove(request, order_pk):
 
 
 @staff_member_required
-@permission_required('order.edit_order')
+@permission_required('order.view_order')
 def order_invoice(request, order_pk):
     orders = Order.objects.prefetch_related(
         'user', 'shipping_address', 'billing_address', 'voucher')
@@ -516,6 +515,29 @@ def order_invoice(request, order_pk):
     name = "invoice-%s" % order.id
     response['Content-Disposition'] = 'filename=%s' % name
     return response
+
+
+@staff_member_required
+@permission_required('order.edit_order')
+def mark_order_as_paid(request, order_pk):
+    order = get_object_or_404(Order, pk=order_pk)
+    status = 200
+    form = OrderMarkAsPaidForm(request.POST or None, order=order)
+    if form.is_valid():
+        msg = pgettext_lazy(
+            'Dashboard message',
+            'Order manually marked as paid')
+        with transaction.atomic():
+            form.save()
+            order.history.create(content=msg, user=request.user)
+        messages.success(request, msg)
+        return redirect('dashboard:order-details', order_pk=order.pk)
+    elif form.errors:
+        status = 400
+    ctx = {'form': form, 'order': order}
+    return TemplateResponse(
+        request, 'dashboard/order/modal/mark_as_paid.html', ctx,
+        status=status)
 
 
 @staff_member_required

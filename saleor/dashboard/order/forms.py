@@ -14,10 +14,10 @@ from ...core.exceptions import InsufficientStock
 from ...core.utils import ZERO_TAXED_MONEY
 from ...discount.models import Voucher
 from ...discount.utils import decrease_voucher_usage, increase_voucher_usage
-from ...order import OrderStatus
-from ...order.emails import send_note_confirmation, send_order_confirmation
+from ...order import CustomPaymentChoices, OrderStatus
+from ...order.emails import send_note_confirmation
 from ...order.models import (
-    Fulfillment, FulfillmentLine, Order, OrderLine, OrderNote)
+    Fulfillment, FulfillmentLine, Order, OrderLine, OrderNote, Payment)
 from ...order.utils import (
     add_variant_to_order, cancel_fulfillment, cancel_order,
     change_order_line_quantity, merge_duplicates_into_order_line,
@@ -328,6 +328,14 @@ class RefundPaymentForm(ManagePaymentForm):
     clean_error = pgettext_lazy('Payment form error',
                                 'Only confirmed payments can be refunded')
 
+    def clean(self):
+        super().clean()
+        if self.payment.variant == CustomPaymentChoices.MANUAL:
+            raise forms.ValidationError(
+                pgettext_lazy(
+                    'Payment form error',
+                    'Manual payments can not be refunded'))
+
     def refund(self):
         return self.try_payment_action(self.payment.refund)
 
@@ -357,6 +365,37 @@ class ReleasePaymentForm(forms.Form):
             self.payment_error(str(e))
             return False
         return True
+
+
+class OrderMarkAsPaidForm(forms.Form):
+    """Mark order as manually paid."""
+
+    def __init__(self, *args, **kwargs):
+        self.order = kwargs.pop('order')
+        super().__init__(*args, **kwargs)
+
+    def clean(self):
+        super().clean()
+        if self.order.payments.exists():
+            raise forms.ValidationError(
+                pgettext_lazy(
+                    'Mark order as paid form error',
+                    'Orders with payments can not be manually marked as paid'))
+
+    def save(self):
+        defaults = {
+            'total': self.order.total.gross.amount,
+            'tax': self.order.total.tax.amount,
+            'currency': self.order.total.currency,
+            'delivery': self.order.shipping_price.gross.amount,
+            'description': pgettext_lazy(
+                'Payment description', 'Order %(order)s') % {
+                    'order': self.order},
+            'captured_amount': self.order.total.gross.amount}
+        Payment.objects.get_or_create(
+            variant=CustomPaymentChoices.MANUAL,
+            status=PaymentStatus.CONFIRMED, order=self.order,
+            defaults=defaults)
 
 
 class CancelOrderLineForm(forms.Form):

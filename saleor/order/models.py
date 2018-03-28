@@ -156,6 +156,9 @@ class Order(models.Model):
     def can_cancel(self):
         return self.status not in {OrderStatus.CANCELED, OrderStatus.DRAFT}
 
+    def can_mark_as_paid(self):
+        return not self.payments.exists()
+
 
 class OrderLine(models.Model):
     order = models.ForeignKey(
