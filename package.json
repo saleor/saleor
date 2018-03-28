@@ -26,6 +26,8 @@
     "apollo-client": "^2.2.8",
     "apollo-client-preset": "^1.0.6",
     "apollo-codegen": "^0.19.1",
+    "apollo-link-context": "^1.0.7",
+    "apollo-link-error": "^1.0.7",
     "apollo-link-http": "^1.5.4",
     "apollo-upload-client": "^8.0.0",
     "bootstrap": "4.0.0",
