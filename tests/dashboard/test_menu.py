@@ -16,30 +16,32 @@ def test_view_menu_list(admin_client, menu):
     menu_list = response.context['menus'].object_list
     assert response.status_code == 200
     assert menu in menu_list
-    assert len(menu_list) == 1
+    assert len(menu_list) == Menu.objects.count()
 
 
 @pytest.mark.django_db
 def test_view_menu_create(admin_client):
+    menus_before = Menu.objects.count()
     url = reverse('dashboard:menu-add')
-    data = {'slug': 'footer'}
+    data = {'slug': 'new-menu'}
 
     response = admin_client.post(url, data)
 
     assert response.status_code == 302
     assert get_redirect_location(response) == reverse('dashboard:menu-list')
-    assert Menu.objects.count() == 1
+    assert Menu.objects.count() == menus_before + 1
 
 
 @pytest.mark.django_db
 def test_view_menu_create_not_valid(admin_client):
+    menus_before = Menu.objects.count()
     url = reverse('dashboard:menu-add')
     data = {}
 
     response = admin_client.post(url, data)
 
     assert response.status_code == 200
-    assert Menu.objects.count() == 0
+    assert Menu.objects.count() == menus_before
 
 
 @pytest.mark.django_db
@@ -69,13 +71,14 @@ def test_view_menu_detail(admin_client, menu):
 
 @pytest.mark.django_db
 def test_view_menu_delete(admin_client, menu):
+    menus_before = Menu.objects.count()
     url = reverse('dashboard:menu-delete', kwargs={'pk': menu.pk})
 
     response = admin_client.post(url)
 
     assert response.status_code == 302
     assert get_redirect_location(response) == reverse('dashboard:menu-list')
-    assert Menu.objects.count() == 0
+    assert Menu.objects.count() == menus_before - 1
 
 
 @pytest.mark.django_db
