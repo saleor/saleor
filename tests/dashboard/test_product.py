@@ -2,7 +2,6 @@ import json
 from io import BytesIO
 from unittest.mock import MagicMock, Mock, patch
 
-import pytest
 from django.conf import settings
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.forms import HiddenInput
@@ -43,28 +42,6 @@ def test_product_variant_form(product_in_stock):
     form.save()
     variant.refresh_from_db()
     assert variant.name == example_size
-
-
-@pytest.mark.integration
-@pytest.mark.django_db
-def test_stock_record_update_works(admin_client, product):
-    variant = product.variants.get()
-    stock = variant.stock.order_by('-quantity_allocated').first()
-    quantity = stock.quantity
-    quantity_allocated = stock.quantity_allocated
-    url = reverse(
-        'dashboard:variant-stock-update',
-        kwargs={
-            'product_pk': product.pk,
-            'variant_pk': variant.pk,
-            'stock_pk': stock.pk})
-    admin_client.post(url, {
-        'variant': stock.variant_id, 'location': stock.location.id,
-        'cost_price': stock.cost_price.amount,
-        'quantity': quantity + 5})
-    new_stock = variant.stock.get(pk=stock.pk)
-    assert new_stock.quantity == quantity + 5
-    assert new_stock.quantity_allocated == quantity_allocated
 
 
 def test_valid_product_type_form(color_attribute, size_attribute):
@@ -353,35 +330,6 @@ def test_view_product_variant_delete(admin_client, product):
     response = admin_client.post(url)
     assert response.status_code == HTTP_REDIRECTION
     assert not ProductVariant.objects.filter(pk=product_variant_pk)
-
-
-def test_view_stock_not_deleted_before_confirmation(
-        admin_client, product):
-    product_variant = product.variants.first()
-    stock = Stock.objects.filter(variant=product_variant).first()
-    url = reverse(
-        'dashboard:variant-stock-delete',
-        kwargs={
-            'product_pk': product.pk,
-            'variant_pk': product_variant.pk,
-            'stock_pk': stock.pk})
-    response = admin_client.get(url)
-    assert response.status_code == HTTP_STATUS_OK
-    assert Stock.objects.filter(pk=stock.pk)
-
-
-def test_view_stock_delete(admin_client, product):
-    product_variant = product.variants.first()
-    stock = Stock.objects.filter(variant=product_variant).first()
-    url = reverse(
-        'dashboard:variant-stock-delete',
-        kwargs={
-            'product_pk': product.pk,
-            'variant_pk': product_variant.pk,
-            'stock_pk': stock.pk})
-    response = admin_client.post(url)
-    assert response.status_code == HTTP_REDIRECTION
-    assert not Stock.objects.filter(pk=stock.pk)
 
 
 def test_view_attribute_not_deleted_before_confirmation(

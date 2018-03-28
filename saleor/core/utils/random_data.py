@@ -387,17 +387,16 @@ def create_order_line(order):
     product = Product.objects.all().order_by('?')[0]
     variant = product.variants.all()[0]
     quantity = random.randrange(1, 5)
-    stock = variant.stock.first()
-    stock.quantity += quantity
-    stock.quantity_allocated += quantity
-    stock.save()
+    variant.quantity += quantity
+    variant.quantity_allocated += quantity
+    variant.save()
     return order.lines.create(
         product=product,
         product_name=product.name,
         product_sku=variant.sku,
         is_shipping_required=product.product_type.is_shipping_required,
         quantity=quantity,
-        stock=stock,
+        variant=variant,
         unit_price=TaxedMoney(net=product.price, gross=product.price))
 
 

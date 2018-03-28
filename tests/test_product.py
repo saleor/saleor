@@ -16,46 +16,23 @@ from saleor.product.utils.variants_picker import get_variant_picker_data
 from .utils import filter_products_by_attribute
 
 
-def test_allocate_stock(product):
-    variant = product.variants.get()
-    stock = variant.select_stockrecord(5)
-    assert stock.quantity_allocated == 0
-    allocate_stock(stock, 1)
-    stock.refresh_from_db()
-    assert stock.quantity_allocated == 1
-
-
-def test_deallocate_stock(product):
-    stock = product.variants.first().stock.first()
-    stock.quantity = 100
-    stock.quantity_allocated = 80
-    stock.save()
-    deallocate_stock(stock, 50)
-    stock.refresh_from_db()
-    assert stock.quantity == 100
-    assert stock.quantity_allocated == 30
-
-
-def test_decrease_stock(product):
-    stock = product.variants.first().stock.first()
-    stock.quantity = 100
-    stock.quantity_allocated = 80
-    stock.save()
-    decrease_stock(stock, 50)
-    stock.refresh_from_db()
-    assert stock.quantity == 50
-    assert stock.quantity_allocated == 30
-
-
-def test_increase_stock(product):
-    stock = product.variants.first().stock.first()
-    stock.quantity = 100
-    stock.quantity_allocated = 80
-    stock.save()
-    increase_stock(stock, 50)
-    stock.refresh_from_db()
-    assert stock.quantity == 150
-    assert stock.quantity_allocated == 80
+@pytest.mark.parametrize(
+    'func, expected_quanitty, expected_quant_allocated',
+    (
+        (increase_stock, 150, 80),
+        (decrease_stock, 50, 30),
+        (deallocate_stock, 100, 30),
+        (allocate_stock, 10, 1)))
+def test_stock_utils(
+        product, func, expected_quanitty, expected_quant_allocated):
+    variant = product.variants.first()
+    variant.quantity = 100
+    variant.quantity_allocated = 80
+    variant.save()
+    func(variant, 50)
+    variant.refresh_from_db()
+    assert variant.quantity == expected_quanitty
+    assert variant.quantity_allocated == expected_quant_allocated
 
 
 def test_product_page_redirects_to_correct_slug(client, product):

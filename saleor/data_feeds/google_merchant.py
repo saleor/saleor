@@ -122,7 +122,7 @@ def item_image_link(item, current_site):
 
 
 def item_availability(item):
-    if item.get_stock_quantity():
+    if item.quantity_available:
         return 'in stock'
     return 'out of stock'
 

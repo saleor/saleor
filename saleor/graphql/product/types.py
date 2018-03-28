@@ -52,7 +52,7 @@ class ProductVariant(CountableDjangoObjectType):
         model = models.ProductVariant
 
     def resolve_stock_quantity(self, info):
-        return self.get_stock_quantity()
+        return self.quantity_available
 
     def resolve_attributes(self, info):
         return resolve_attribute_list(self.attributes)
