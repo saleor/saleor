@@ -144,12 +144,12 @@ def add_variant_to_order(
         order, variant, total_quantity) if add_to_existing else total_quantity
     price = variant.get_price_per_item(discounts)
     while quantity_left > 0:
-        stock = variant.select_stockrecord()
-        if not stock:
+        quantity_available = variant.quantity_available()
+        if not quantity_available:
             raise InsufficientStock(variant)
         quantity = (
-            stock.quantity_available
-            if quantity_left > stock.quantity_available
+            quantity_available
+            if quantity_left > quantity_available
             else quantity_left
         )
         order.lines.create(
@@ -160,7 +160,7 @@ def add_variant_to_order(
                 variant.product.product_type.is_shipping_required),
             quantity=quantity,
             unit_price=price,
-            stock=stock)
+            variant=variant)
         allocate_stock(variant, quantity)
         # refresh stock for accessing quantity_allocated
         variant.refresh_from_db()

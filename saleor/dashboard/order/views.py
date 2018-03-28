@@ -32,10 +32,12 @@ from .forms import (
     FulfillmentTrackingNumberForm, OrderCustomerForm, OrderEditDiscountForm,
     OrderEditVoucherForm, OrderMarkAsPaidForm, OrderNoteForm,
     OrderRemoveCustomerForm, OrderRemoveShippingForm, OrderRemoveVoucherForm,
-    OrderShippingForm, RefundPaymentForm, ReleasePaymentForm)
+    OrderShippingForm, RefundPaymentForm, ReleasePaymentForm,
+    RemoveVoucherForm)
 from .utils import (
     create_invoice_pdf, create_packing_slip_pdf, get_statics_absolute_url,
-    save_address_in_order)
+    save_address_in_order, send_fulfillment_confirmation,
+    send_fulfillment_update)
 
 
 @staff_member_required
@@ -558,27 +560,6 @@ def fulfillment_packing_slips(request, order_pk, fulfillment_pk):
     name = "packing-slip-%s" % (order.id,)
     response['Content-Disposition'] = 'filename=%s' % name
     return response
-
-
-@staff_member_required
-@permission_required('order.edit_order')
-def orderline_change_stock(request, order_pk, line_pk):
-    orders = Order.objects.drafts().prefetch_related('lines')
-    order = get_object_or_404(orders, pk=order_pk)
-    line = get_object_or_404(order.lines, pk=line_pk)
-    status = 200
-    form = ChangeStockForm(request.POST or None, instance=line)
-    if form.is_valid():
-        form.save()
-        msg = pgettext_lazy(
-            'Dashboard message',
-            'Stock location changed for %s') % form.instance.product_sku
-        messages.success(request, msg)
-    elif form.errors:
-        status = 400
-    ctx = {'order_pk': order_pk, 'line_pk': line_pk, 'form': form}
-    template = 'dashboard/order/modal/order_line_stock.html'
-    return TemplateResponse(request, template, ctx, status=status)
 
 
 @staff_member_required

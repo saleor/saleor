@@ -26,7 +26,7 @@ from saleor.order.utils import recalculate_order
 from saleor.page.models import Page
 from saleor.product.models import (
     AttributeChoiceValue, Category, Collection, Product, ProductAttribute,
-    ProductImage, ProductType, ProductVariant, Stock)
+    ProductImage, ProductType, ProductVariant)
 from saleor.shipping.models import ShippingMethod
 from saleor.site.models import AuthorizationKey, SiteSettings
 
@@ -380,7 +380,9 @@ def order_with_lines(order, product_type, default_category, shipping_method):
     product = Product.objects.create(
         name='Test product', price=Money('10.00', 'USD'),
         product_type=product_type, category=default_category)
-    variant = ProductVariant.objects.create(product=product, sku='SKU_A')
+    variant = ProductVariant.objects.create(
+        product=product, sku='SKU_A', cost_price=Money(1, 'USD'), quantity=5,
+        quantity_allocated=3)
     order.lines.create(
         product=product,
         product_name=product.name,
@@ -388,11 +390,14 @@ def order_with_lines(order, product_type, default_category, shipping_method):
         is_shipping_required=product.product_type.is_shipping_required,
         quantity=3,
         unit_price_net=Decimal('30.00'),
-        unit_price_gross=Decimal('30.00'))
+        unit_price_gross=Decimal('30.00'),
+        variant=variant)
     product = Product.objects.create(
         name='Test product 2', price=Money('20.00', 'USD'),
         product_type=product_type, category=default_category)
-    variant = ProductVariant.objects.create(product=product, sku='SKU_B')
+    variant = ProductVariant.objects.create(
+        product=product, sku='SKU_B', cost_price=Money(2, 'USD'), quantity=2,
+        quantity_allocated=2)
     order.lines.create(
         product=product,
         product_name=product.name,
@@ -400,7 +405,8 @@ def order_with_lines(order, product_type, default_category, shipping_method):
         is_shipping_required=product.product_type.is_shipping_required,
         quantity=2,
         unit_price_net=Decimal('20.00'),
-        unit_price_gross=Decimal('20.00'))
+        unit_price_gross=Decimal('20.00'),
+        variant=variant)
 
     order.shipping_address = order.billing_address.get_copy()
     order.shipping_method_name = shipping_method.name

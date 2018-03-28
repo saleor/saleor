@@ -54,13 +54,12 @@ def test_add_variant_to_order_allocates_stock_for_new_variant(
         order_with_lines, product):
     order = order_with_lines
     variant = product.variants.get()
-    stock = variant.select_stockrecord()
-    stock_before = stock.quantity_allocated
+    stock_before = variant.quantity_allocated
 
     add_variant_to_order(order, variant, 1)
 
-    stock.refresh_from_db()
-    assert stock.quantity_allocated == stock_before + 1
+    variant.refresh_from_db()
+    assert variant.quantity_allocated == stock_before + 1
 
 
 def test_add_variant_to_order_edits_line_for_existing_variant(

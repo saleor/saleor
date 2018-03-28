@@ -17,7 +17,7 @@ from . import FulfillmentStatus, OrderStatus
 from ..account.models import Address
 from ..core.utils import ZERO_TAXED_MONEY, build_absolute_uri
 from ..discount.models import Voucher
-from ..product.models import Product
+from ..product.models import Product, ProductVariant
 from ..shipping.models import ShippingMethodCountry
 
 
@@ -180,11 +180,11 @@ class OrderLine(models.Model):
     product = models.ForeignKey(
         Product, blank=True, null=True, related_name='+',
         on_delete=models.SET_NULL)
+    variant = models.ForeignKey(
+        ProductVariant, related_name='stock', on_delete=models.CASCADE)
     product_name = models.CharField(max_length=128)
     product_sku = models.CharField(max_length=32)
     is_shipping_required = models.BooleanField()
-    stock = models.ForeignKey(
-        'product.Stock', on_delete=models.SET_NULL, null=True)
     quantity = models.IntegerField(
         validators=[MinValueValidator(0), MaxValueValidator(999)])
     quantity_fulfilled = models.IntegerField(
