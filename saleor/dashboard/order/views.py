@@ -506,7 +506,7 @@ def order_voucher_remove(request, order_pk):
 @staff_member_required
 @permission_required('order.view_order')
 def order_invoice(request, order_pk):
-    orders = Order.objects.prefetch_related(
+    orders = Order.objects.exclude(status=OrderStatus.DRAFT).prefetch_related(
         'user', 'shipping_address', 'billing_address', 'voucher')
     order = get_object_or_404(orders, pk=order_pk)
     absolute_url = get_statics_absolute_url(request)
