@@ -398,7 +398,6 @@ def create_order_line(order):
         is_shipping_required=product.product_type.is_shipping_required,
         quantity=quantity,
         stock=stock,
-        stock_location=stock.location.name,
         unit_price=TaxedMoney(net=product.price, gross=product.price))
 
 

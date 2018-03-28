@@ -160,11 +160,10 @@ def add_variant_to_order(
                 variant.product.product_type.is_shipping_required),
             quantity=quantity,
             unit_price=price,
-            stock=stock,
-            stock_location=stock.location.name)
-        allocate_stock(stock, quantity)
+            stock=stock)
+        allocate_stock(variant, quantity)
         # refresh stock for accessing quantity_allocated
-        stock.refresh_from_db()
+        variant.refresh_from_db()
         quantity_left -= quantity
 
 
@@ -238,6 +237,6 @@ def restock_fulfillment_lines(fulfillment, allocate=True):
     """Return fulfilled products to corresponding stocks."""
     for line in fulfillment:
         order_line = line.order_line
-        if order_line.stock:
+        if order_line.variant:
             increase_stock(
-                line.order_line.stock, line.quantity, allocate=allocate)
+                line.order_line.variant, line.quantity, allocate=allocate)

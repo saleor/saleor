@@ -21,7 +21,6 @@ from ...order.emails import (
     send_order_confirmation)
 from ...order.models import Fulfillment, FulfillmentLine, Order, OrderNote
 from ...order.utils import update_order_status
-from ...product.models import StockLocation
 from ...shipping.models import ShippingMethodCountry
 from ..views import staff_member_required
 from .filters import OrderFilter
@@ -136,14 +135,12 @@ def order_details(request, order_pk):
     else:
         can_capture = can_release = can_refund = False
     can_mark_as_paid = not order.payments.exists()
-    is_many_stock_locations = StockLocation.objects.count() > 1
     ctx = {
         'order': order, 'all_payments': all_payments, 'payment': payment,
         'notes': notes, 'events': events, 'captured': captured,
         'balance': balance, 'preauthorized': preauthorized,
         'can_capture': can_capture, 'can_release': can_release,
-        'can_refund': can_refund, 'can_mark_as_paid': can_mark_as_paid,
-        'is_many_stock_locations': is_many_stock_locations}
+        'can_refund': can_refund, 'can_mark_as_paid': can_mark_as_paid}
     return TemplateResponse(request, 'dashboard/order/detail.html', ctx)
 
 

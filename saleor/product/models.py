@@ -257,27 +257,9 @@ class ProductVariant(models.Model):
         return None
 
 
-class StockLocation(models.Model):
-    name = models.CharField(max_length=100)
-
-    class Meta:
-        permissions = (
-            ('view_stock_location',
-             pgettext_lazy('Permission description',
-                           'Can view stock location')),
-            ('edit_stock_location',
-             pgettext_lazy('Permission description',
-                           'Can edit stock location')))
-
-    def __str__(self):
-        return self.name
-
-
 class Stock(models.Model):
     variant = models.ForeignKey(
         ProductVariant, related_name='stock', on_delete=models.CASCADE)
-    location = models.ForeignKey(
-        StockLocation, null=True, on_delete=models.CASCADE)
     quantity = models.IntegerField(
         validators=[MinValueValidator(0)], default=Decimal(1))
     quantity_allocated = models.IntegerField(

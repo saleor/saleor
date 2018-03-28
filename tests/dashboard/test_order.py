@@ -19,7 +19,7 @@ from saleor.order.models import Order, OrderLine, OrderNote
 from saleor.order.utils import (
     add_variant_to_existing_lines, add_variant_to_order,
     change_order_line_quantity)
-from saleor.product.models import ProductVariant, Stock, StockLocation
+from saleor.product.models import ProductVariant, Stock
 
 
 @pytest.mark.integration
@@ -599,10 +599,8 @@ def test_view_change_order_line_stock_valid(admin_client, draft_order):
     line = draft_order.lines.last()
     old_stock = line.stock
     variant = ProductVariant.objects.get(sku=line.product_sku)
-    stock_location = StockLocation.objects.create(name='Warehouse 2')
     stock = Stock.objects.create(
-        variant=variant, cost_price=2, quantity=2, quantity_allocated=0,
-        location=stock_location)
+        variant=variant, cost_price=2, quantity=2, quantity_allocated=0)
 
     url = reverse(
         'dashboard:orderline-change-stock', kwargs={
@@ -615,7 +613,6 @@ def test_view_change_order_line_stock_valid(admin_client, draft_order):
 
     line.refresh_from_db()
     assert line.stock == stock
-    assert line.stock_location == stock.location.name
     assert line.stock.quantity_allocated == 2
 
     old_stock.refresh_from_db()
@@ -629,10 +626,8 @@ def test_view_change_order_line_stock_insufficient_stock(
     line = draft_order.lines.last()
     old_stock = line.stock
     variant = ProductVariant.objects.get(sku=line.product_sku)
-    stock_location = StockLocation.objects.create(name='Warehouse 2')
     stock = Stock.objects.create(
-        variant=variant, cost_price=2, quantity=2, quantity_allocated=1,
-        location=stock_location)
+        variant=variant, cost_price=2, quantity=2, quantity_allocated=1)
 
     url = reverse(
         'dashboard:orderline-change-stock', kwargs={
@@ -645,7 +640,6 @@ def test_view_change_order_line_stock_insufficient_stock(
 
     line.refresh_from_db()
     assert line.stock == old_stock
-    assert line.stock_location == old_stock.location.name
 
     old_stock.refresh_from_db()
     assert old_stock.quantity_allocated == 2
@@ -658,20 +652,17 @@ def test_view_change_order_line_stock_merges_lines(admin_client, draft_order):
     line = draft_order.lines.first()
     old_stock = line.stock
     variant = ProductVariant.objects.get(sku=line.product_sku)
-    stock_location = StockLocation.objects.create(name='Warehouse 2')
-    stock = Stock.objects.create(
-        variant=variant, cost_price=2, quantity=2, quantity_allocated=2,
-        location=stock_location)
     line_2 = draft_order.lines.create(
+        variant=variant,
+        cost_price=2,
+        quantity=2,
+        quantity_allocated=2,
         product=line.product,
         product_name=line.product.name,
         product_sku='SKU_A',
         is_shipping_required=line.is_shipping_required,
-        quantity=2,
         unit_price_net=Decimal('30.00'),
-        unit_price_gross=Decimal('30.00'),
-        stock=stock,
-        stock_location=stock.location.name)
+        unit_price_gross=Decimal('30.00'))
     lines_before = draft_order.lines.count()
 
     url = reverse(
@@ -696,7 +687,7 @@ def test_add_variant_to_existing_lines_one_line(
     order = order_with_variant_from_different_stocks
     lines = order.lines.filter(product_sku='SKU_A')
     variant_lines_before = lines.count()
-    line = lines.get(stock_location='Warehouse 2')
+    line = lines.first()
     variant = ProductVariant.objects.get(sku='SKU_A')
 
     quantity_left = add_variant_to_existing_lines(line.order, variant, 2)
@@ -711,10 +702,10 @@ def test_add_variant_to_existing_lines_one_line(
 def test_add_variant_to_existing_lines_multiple_lines(
         order_with_variant_from_different_stocks):
     order = order_with_variant_from_different_stocks
-    lines = order.lines.filter(product_sku='SKU_A')
+    lines = order.lines.filter(product_sku='SKU_A').all()
     variant_lines_before = lines.count()
-    line_1 = lines.get(stock_location='Warehouse 1')
-    line_2 = lines.get(stock_location='Warehouse 2')
+    line_1 = lines[0]
+    line_2 = lines[1]
     variant = ProductVariant.objects.get(sku='SKU_A')
 
     quantity_left = add_variant_to_existing_lines(line_1.order, variant, 4)
@@ -731,10 +722,10 @@ def test_add_variant_to_existing_lines_multiple_lines(
 def test_add_variant_to_existing_lines_multiple_lines_with_rest(
         order_with_variant_from_different_stocks):
     order = order_with_variant_from_different_stocks
-    lines = order.lines.filter(product_sku='SKU_A')
+    lines = order.lines.filter(product_sku='SKU_A').all()
     variant_lines_before = lines.count()
-    line_1 = lines.get(stock_location='Warehouse 1')
-    line_2 = lines.get(stock_location='Warehouse 2')
+    line_1 = lines[0]
+    line_2 = lines[1]
     variant = ProductVariant.objects.get(sku='SKU_A')
 
     quantity_left = add_variant_to_existing_lines(line_1.order, variant, 7)
@@ -754,8 +745,7 @@ def test_view_add_variant_to_order(
     order.status = OrderStatus.DRAFT
     order.save()
     variant = ProductVariant.objects.get(sku='SKU_A')
-    line = OrderLine.objects.get(
-        product_sku='SKU_A', stock_location='Warehouse 2')
+    line = OrderLine.objects.get(product_sku='SKU_A')
     url = reverse(
         'dashboard:add-variant-to-order', kwargs={'order_pk': order.pk})
     data = {'variant': variant.pk, 'quantity': 2}

@@ -13,14 +13,12 @@ from . import forms
 from ...core.utils import get_paginator_items
 from ...product.models import (
     AttributeChoiceValue, Product, ProductAttribute, ProductImage, ProductType,
-    ProductVariant, Stock, StockLocation)
+    ProductVariant)
 from ...product.utils.availability import get_availability
 from ...product.utils.costs import (
     get_product_costs_data, get_variant_costs_data)
 from ..views import staff_member_required
-from .filters import (
-    ProductAttributeFilter, ProductFilter, ProductTypeFilter,
-    StockLocationFilter)
+from .filters import ProductAttributeFilter, ProductFilter, ProductTypeFilter
 
 
 @staff_member_required
@@ -262,7 +260,7 @@ def product_delete(request, pk):
 
 
 @staff_member_required
-@permission_required('product.view_stock_location')
+@permission_required('product.view_stock')
 def stock_details(request, product_pk, variant_pk, stock_pk):
     product = get_object_or_404(Product, pk=product_pk)
     variant = get_object_or_404(product.variants, pk=variant_pk)
@@ -275,7 +273,7 @@ def stock_details(request, product_pk, variant_pk, stock_pk):
 
 
 @staff_member_required
-@permission_required('product.edit_stock_location')
+@permission_required('product.edit_stock')
 def stock_add(request, product_pk, variant_pk):
     product = get_object_or_404(Product, pk=product_pk)
     variant = get_object_or_404(product.variants, pk=variant_pk)
@@ -295,7 +293,7 @@ def stock_add(request, product_pk, variant_pk):
 
 
 @staff_member_required
-@permission_required('product.edit_stock_location')
+@permission_required('product.edit_stock')
 def stock_edit(request, product_pk, variant_pk, stock_pk):
     product = get_object_or_404(Product, pk=product_pk)
     variant = get_object_or_404(product.variants, pk=variant_pk)
@@ -315,7 +313,7 @@ def stock_edit(request, product_pk, variant_pk, stock_pk):
 
 
 @staff_member_required
-@permission_required('product.edit_stock_location')
+@permission_required('product.edit_stock')
 def stock_delete(request, product_pk, variant_pk, stock_pk):
     product = get_object_or_404(Product, pk=product_pk)
     variant = get_object_or_404(product.variants, pk=variant_pk)
@@ -654,76 +652,6 @@ def attribute_choice_value_delete(request, attribute_pk, value_pk):
         request,
         'dashboard/product/product_attribute/values/modal/confirm_delete.html',
         {'value': value, 'attribute_pk': attribute_pk})
-
-
-@staff_member_required
-@permission_required('product.view_stock_location')
-def stock_location_list(request):
-    stock_locations = StockLocation.objects.all().order_by('name')
-    stock_location_filter = StockLocationFilter(
-        request.GET, queryset=stock_locations)
-    stock_locations = get_paginator_items(
-        stock_location_filter.qs, settings.DASHBOARD_PAGINATE_BY,
-        request.GET.get('page'))
-    ctx = {
-        'locations': stock_locations, 'filter_set': stock_location_filter,
-        'is_empty': not stock_location_filter.queryset.exists()}
-    return TemplateResponse(
-        request,
-        'dashboard/product/stock_location/list.html',
-        ctx)
-
-
-@staff_member_required
-@permission_required('product.edit_stock_location')
-def stock_location_add(request):
-    location = StockLocation()
-    form = forms.StockLocationForm(request.POST or None, instance=location)
-    if form.is_valid():
-        form.save()
-        msg = pgettext_lazy(
-            'Dashboard message for stock location', 'Added location')
-        messages.success(request, msg)
-        return redirect('dashboard:product-stock-location-list')
-    return TemplateResponse(
-        request,
-        'dashboard/product/stock_location/form.html',
-        {'form': form, 'location': location})
-
-
-@staff_member_required
-@permission_required('product.edit_stock_location')
-def stock_location_edit(request, location_pk):
-    location = get_object_or_404(StockLocation, pk=location_pk)
-    form = forms.StockLocationForm(request.POST or None, instance=location)
-    if form.is_valid():
-        form.save()
-        msg = pgettext_lazy(
-            'Dashboard message for stock location', 'Updated location')
-        messages.success(request, msg)
-        return redirect('dashboard:product-stock-location-list')
-    return TemplateResponse(
-        request,
-        'dashboard/product/stock_location/form.html',
-        {'form': form, 'location': location})
-
-
-@staff_member_required
-@permission_required('product.edit_stock_location')
-def stock_location_delete(request, location_pk):
-    location = get_object_or_404(StockLocation, pk=location_pk)
-    if request.method == 'POST':
-        location.delete()
-        msg = pgettext_lazy(
-            'Dashboard message for stock location',
-            'Removed location %s') % (location,)
-        messages.success(request, msg)
-        return redirect('dashboard:product-stock-location-list')
-    ctx = {'location': location, 'stock_count': location.stock_set.count()}
-    return TemplateResponse(
-        request,
-        'dashboard/product/stock_location/modal/confirm_delete.html',
-        ctx)
 
 
 @require_POST
