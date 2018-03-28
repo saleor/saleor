@@ -61,10 +61,11 @@ class BaseProductMutateMixin(BaseMutation):
         if attributes:
             form = cls._meta.form_class(**form_kwargs)
             if form.is_valid():
-                pt_ids = form.\
-                    instance.product_type.product_attributes.values_list('id')
+                attr_slug_id = dict(
+                    form.instance.product_type.product_attributes.values_list(
+                        'slug','id'))
                 form.instance.attributes = get_attributes_dict_from_list(
-                    attributes=attributes, product_type_ids=pt_ids)
+                    attributes=attributes, attr_slug_id=attr_slug_id)
                 instance = form.save()
                 kwargs = {cls._meta.return_field_name: instance}
                 return cls(errors=[], **kwargs)
