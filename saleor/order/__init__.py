@@ -49,3 +49,10 @@ class FulfillmentStatus:
             'Status for a fulfilled group of products in an order marked '
             'as canceled',
             'Canceled'))]
+
+
+class CustomPaymentChoices:
+    MANUAL = 'manual'
+
+    CHOICES = [
+        (MANUAL, pgettext_lazy('Custom payment choice type', 'Manual'))]

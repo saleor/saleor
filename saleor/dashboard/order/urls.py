@@ -57,6 +57,8 @@ urlpatterns = [
         views.fulfillment_packing_slips, name='fulfillment-packing-slips'),
     url(r'^(?P<order_pk>\d+)/invoice/$',
         views.order_invoice, name='order-invoice'),
+    url(r'^(?P<order_pk>\d+)/mark-as-paid/$',
+        views.mark_order_as_paid, name='order-mark-as-paid'),
 
     url('^(?P<order_pk>\d+)/ajax/shipping-methods/$',
         views.ajax_order_shipping_methods_list,
