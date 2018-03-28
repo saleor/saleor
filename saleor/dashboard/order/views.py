@@ -68,7 +68,7 @@ def order_create(request):
 @staff_member_required
 @permission_required('order.edit_order')
 def create_order_from_draft(request, order_pk):
-    order = get_object_or_404(Order, pk=order_pk, status=OrderStatus.DRAFT)
+    order = get_object_or_404(Order.objects.drafts(), pk=order_pk)
     status = 200
     form = CreateOrderFromDraftForm(request.POST or None, instance=order)
     if form.is_valid():
@@ -96,7 +96,7 @@ def create_order_from_draft(request, order_pk):
 @staff_member_required
 @permission_required('order.edit_order')
 def remove_draft_order(request, order_pk):
-    order = get_object_or_404(Order, pk=order_pk, status=OrderStatus.DRAFT)
+    order = get_object_or_404(Order.objects.drafts(), pk=order_pk)
     if request.method == 'POST':
         order.delete()
         msg = pgettext_lazy(
@@ -171,7 +171,8 @@ def order_add_note(request, order_pk):
 @staff_member_required
 @permission_required('order.edit_order')
 def capture_payment(request, order_pk, payment_pk):
-    order = get_object_or_404(Order, pk=order_pk)
+    orders = Order.objects.confirmed().prefetch_related('payments')
+    order = get_object_or_404(orders, pk=order_pk)
     payment = get_object_or_404(order.payments, pk=payment_pk)
     amount = order.total.quantize('0.01').gross
     form = CapturePaymentForm(request.POST or None, payment=payment,
@@ -194,7 +195,8 @@ def capture_payment(request, order_pk, payment_pk):
 @staff_member_required
 @permission_required('order.edit_order')
 def refund_payment(request, order_pk, payment_pk):
-    order = get_object_or_404(Order, pk=order_pk)
+    orders = Order.objects.confirmed().prefetch_related('payments')
+    order = get_object_or_404(orders, pk=order_pk)
     payment = get_object_or_404(order.payments, pk=payment_pk)
     amount = payment.captured_amount
     form = RefundPaymentForm(request.POST or None, payment=payment,
@@ -217,7 +219,8 @@ def refund_payment(request, order_pk, payment_pk):
 @staff_member_required
 @permission_required('order.edit_order')
 def release_payment(request, order_pk, payment_pk):
-    order = get_object_or_404(Order, pk=order_pk)
+    orders = Order.objects.confirmed().prefetch_related('payments')
+    order = get_object_or_404(orders, pk=order_pk)
     payment = get_object_or_404(order.payments, pk=payment_pk)
     form = ReleasePaymentForm(request.POST or None, payment=payment)
     if form.is_valid() and form.release():
@@ -235,8 +238,9 @@ def release_payment(request, order_pk, payment_pk):
 @staff_member_required
 @permission_required('order.edit_order')
 def orderline_change_quantity(request, order_pk, line_pk):
-    order = get_object_or_404(Order, pk=order_pk, status=OrderStatus.DRAFT)
-    line = get_object_or_404(order.lines.all(), pk=line_pk)
+    orders = Order.objects.drafts().prefetch_related('lines')
+    order = get_object_or_404(orders, pk=order_pk)
+    line = get_object_or_404(order.lines, pk=line_pk)
     form = ChangeQuantityForm(request.POST or None, instance=line)
     status = 200
     old_quantity = line.quantity
@@ -262,8 +266,8 @@ def orderline_change_quantity(request, order_pk, line_pk):
 @staff_member_required
 @permission_required('order.edit_order')
 def orderline_cancel(request, order_pk, line_pk):
-    order = get_object_or_404(Order, pk=order_pk, status=OrderStatus.DRAFT)
-    line = get_object_or_404(order.lines.all(), pk=line_pk)
+    order = get_object_or_404(Order.objects.drafts(), pk=order_pk)
+    line = get_object_or_404(order.lines, pk=line_pk)
     form = CancelOrderLineForm(data=request.POST or None, line=line)
     status = 200
     if form.is_valid():
@@ -287,7 +291,7 @@ def orderline_cancel(request, order_pk, line_pk):
 @permission_required('order.edit_order')
 def add_variant_to_order(request, order_pk):
     """Add variant in given quantity to an order."""
-    order = get_object_or_404(Order, pk=order_pk, status=OrderStatus.DRAFT)
+    order = get_object_or_404(Order.objects.drafts(), pk=order_pk)
     form = AddVariantToOrderForm(
         request.POST or None, order=order, discounts=request.discounts)
     status = 200
@@ -345,7 +349,7 @@ def address_view(request, order_pk, address_type):
 @staff_member_required
 @permission_required('order.edit_order')
 def order_customer_edit(request, order_pk):
-    order = get_object_or_404(Order, pk=order_pk, status=OrderStatus.DRAFT)
+    order = get_object_or_404(Order.objects.drafts(), pk=order_pk)
     form = OrderCustomerForm(request.POST or None, instance=order)
     status = 200
     if form.is_valid():
@@ -377,7 +381,7 @@ def order_customer_edit(request, order_pk):
 @staff_member_required
 @permission_required('order.edit_order')
 def order_customer_remove(request, order_pk):
-    order = get_object_or_404(Order, pk=order_pk, status=OrderStatus.DRAFT)
+    order = get_object_or_404(Order.objects.drafts(), pk=order_pk)
     form = OrderRemoveCustomerForm(request.POST or None, instance=order)
     if form.is_valid():
         form.save()
@@ -392,7 +396,7 @@ def order_customer_remove(request, order_pk):
 @staff_member_required
 @permission_required('order.edit_order')
 def order_shipping_edit(request, order_pk):
-    order = get_object_or_404(Order, pk=order_pk, status=OrderStatus.DRAFT)
+    order = get_object_or_404(Order.objects.drafts(), pk=order_pk)
     form = OrderShippingForm(request.POST or None, instance=order)
     status = 200
     if form.is_valid():
@@ -411,7 +415,7 @@ def order_shipping_edit(request, order_pk):
 @staff_member_required
 @permission_required('order.edit_order')
 def order_shipping_remove(request, order_pk):
-    order = get_object_or_404(Order, pk=order_pk, status=OrderStatus.DRAFT)
+    order = get_object_or_404(Order.objects.drafts(), pk=order_pk)
     form = OrderRemoveShippingForm(request.POST or None, instance=order)
     if form.is_valid():
         form.save()
@@ -424,7 +428,7 @@ def order_shipping_remove(request, order_pk):
 @staff_member_required
 @permission_required('order.edit_order')
 def order_discount_edit(request, order_pk):
-    order = get_object_or_404(Order, pk=order_pk, status=OrderStatus.DRAFT)
+    order = get_object_or_404(Order.objects.drafts(), pk=order_pk)
     form = OrderEditDiscountForm(request.POST or None, instance=order)
     status = 200
     if form.is_valid():
@@ -443,7 +447,7 @@ def order_discount_edit(request, order_pk):
 @staff_member_required
 @permission_required('order.edit_order')
 def order_voucher_edit(request, order_pk):
-    order = get_object_or_404(Order, pk=order_pk, status=OrderStatus.DRAFT)
+    order = get_object_or_404(Order.objects.drafts(), pk=order_pk)
     form = OrderEditVoucherForm(request.POST or None, instance=order)
     status = 200
     if form.is_valid():
@@ -462,7 +466,7 @@ def order_voucher_edit(request, order_pk):
 @staff_member_required
 @permission_required('order.edit_order')
 def cancel_order(request, order_pk):
-    order = get_object_or_404(Order, pk=order_pk)
+    order = get_object_or_404(Order.objects.confirmed(), pk=order_pk)
     status = 200
     form = CancelOrderForm(request.POST or None, order=order)
     if form.is_valid():
@@ -491,7 +495,7 @@ def cancel_order(request, order_pk):
 @staff_member_required
 @permission_required('order.edit_order')
 def order_voucher_remove(request, order_pk):
-    order = get_object_or_404(Order, pk=order_pk, status=OrderStatus.DRAFT)
+    order = get_object_or_404(Order.objects.drafts(), pk=order_pk)
     form = OrderRemoveVoucherForm(request.POST or None, instance=order)
     if form.is_valid():
         msg = pgettext_lazy('Dashboard message', 'Removed voucher from order')
@@ -506,7 +510,7 @@ def order_voucher_remove(request, order_pk):
 @staff_member_required
 @permission_required('order.view_order')
 def order_invoice(request, order_pk):
-    orders = Order.objects.exclude(status=OrderStatus.DRAFT).prefetch_related(
+    orders = Order.objects.confirmed().prefetch_related(
         'user', 'shipping_address', 'billing_address', 'voucher')
     order = get_object_or_404(orders, pk=order_pk)
     absolute_url = get_statics_absolute_url(request)
@@ -520,7 +524,7 @@ def order_invoice(request, order_pk):
 @staff_member_required
 @permission_required('order.edit_order')
 def mark_order_as_paid(request, order_pk):
-    order = get_object_or_404(Order, pk=order_pk)
+    order = get_object_or_404(Order.objects.confirmed(), pk=order_pk)
     status = 200
     form = OrderMarkAsPaidForm(request.POST or None, order=order)
     if form.is_valid():
@@ -543,7 +547,7 @@ def mark_order_as_paid(request, order_pk):
 @staff_member_required
 @permission_required('order.edit_order')
 def fulfillment_packing_slips(request, order_pk, fulfillment_pk):
-    orders = Order.objects.prefetch_related(
+    orders = Order.objects.confirmed().prefetch_related(
         'user', 'shipping_address', 'billing_address')
     order = get_object_or_404(orders, pk=order_pk)
     fulfillments = order.fulfillments.prefetch_related(
@@ -560,8 +564,9 @@ def fulfillment_packing_slips(request, order_pk, fulfillment_pk):
 @staff_member_required
 @permission_required('order.edit_order')
 def orderline_change_stock(request, order_pk, line_pk):
-    order = get_object_or_404(Order, pk=order_pk, status=OrderStatus.DRAFT)
-    line = get_object_or_404(order.lines.all(), pk=line_pk)
+    orders = Order.objects.drafts().prefetch_related('lines')
+    order = get_object_or_404(orders, pk=order_pk)
+    line = get_object_or_404(order.lines, pk=line_pk)
     status = 200
     form = ChangeStockForm(request.POST or None, instance=line)
     if form.is_valid():
@@ -580,15 +585,16 @@ def orderline_change_stock(request, order_pk, line_pk):
 @staff_member_required
 @permission_required('order.edit_order')
 def fulfill_order_lines(request, order_pk):
-    order = get_object_or_404(Order, pk=order_pk)
+    orders = Order.objects.confirmed().prefetch_related('lines')
+    order = get_object_or_404(orders, pk=order_pk)
     unfulfilled_lines = order.lines.filter(
         quantity_fulfilled__lt=F('quantity'))
     status = 200
     form = FulfillmentForm(
         request.POST or None, order=order, instance=Fulfillment())
     FulfillmentLineFormSet = modelformset_factory(
-        FulfillmentLine, form=FulfillmentLineForm, extra=len(unfulfilled_lines),
-        formset=BaseFulfillmentLineFormSet)
+        FulfillmentLine, form=FulfillmentLineForm,
+        extra=len(unfulfilled_lines), formset=BaseFulfillmentLineFormSet)
     initial = [
         {'order_line': line, 'quantity': line.quantity_unfulfilled}
         for line in unfulfilled_lines]
@@ -608,6 +614,8 @@ def fulfill_order_lines(request, order_pk):
                 line.fulfillment = fulfillment
                 line.save()
                 quantity_fulfilled += line_form.cleaned_data.get('quantity')
+            # update to refresh prefetched lines quantity_fulfilled
+            order = orders.get(pk=order_pk)
             update_order_status(order)
             msg = npgettext_lazy(
                 'Dashboard message related to an order',
@@ -640,9 +648,9 @@ def fulfill_order_lines(request, order_pk):
 @staff_member_required
 @permission_required('order.edit_order')
 def cancel_fulfillment(request, order_pk, fulfillment_pk):
-    order = get_object_or_404(Order, pk=order_pk)
-    fulfillment = get_object_or_404(
-        order.fulfillments.all(), pk=fulfillment_pk)
+    orders = Order.objects.confirmed().prefetch_related('fulfillments')
+    order = get_object_or_404(orders, pk=order_pk)
+    fulfillment = get_object_or_404(order.fulfillments, pk=fulfillment_pk)
     status = 200
     form = CancelFulfillmentForm(request.POST or None, fulfillment=fulfillment)
     if form.is_valid():
@@ -673,9 +681,9 @@ def cancel_fulfillment(request, order_pk, fulfillment_pk):
 @staff_member_required
 @permission_required('order.edit_order')
 def change_fulfillment_tracking(request, order_pk, fulfillment_pk):
-    order = get_object_or_404(Order, pk=order_pk)
-    fulfillment = get_object_or_404(
-        order.fulfillments.all(), pk=fulfillment_pk)
+    orders = Order.objects.confirmed().prefetch_related('fulfillments')
+    order = get_object_or_404(orders, pk=order_pk)
+    fulfillment = get_object_or_404(order.fulfillments, pk=fulfillment_pk)
     status = 200
     form = FulfillmentTrackingNumberForm(
         request.POST or None, instance=fulfillment)

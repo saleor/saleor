@@ -25,7 +25,7 @@ logger = logging.getLogger(__name__)
 
 
 def details(request, token):
-    orders = Order.objects.prefetch_related(
+    orders = Order.objects.confirmed().prefetch_related(
         'lines__product', 'fulfillments', 'fulfillments__lines',
         'fulfillments__lines__order_line')
     orders = orders.select_related(
@@ -49,8 +49,7 @@ def details(request, token):
 
 
 def payment(request, token):
-    orders = Order.objects.exclude(
-        status=OrderStatus.DRAFT).filter(billing_address__isnull=False)
+    orders = Order.objects.confirmed().filter(billing_address__isnull=False)
     orders = orders.prefetch_related('lines__product').select_related(
         'billing_address', 'shipping_address', 'user')
     order = get_object_or_404(orders, token=token)

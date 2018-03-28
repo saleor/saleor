@@ -4,7 +4,7 @@ from uuid import uuid4
 from django.conf import settings
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
-from django.db.models import Max
+from django.db.models import F, Max, Sum
 from django.urls import reverse
 from django.utils.timezone import now
 from django.utils.translation import pgettext_lazy
@@ -19,6 +19,21 @@ from ..core.utils import ZERO_TAXED_MONEY, build_absolute_uri
 from ..discount.models import Voucher
 from ..product.models import Product
 from ..shipping.models import ShippingMethodCountry
+
+
+class OrderQueryset(models.QuerySet):
+    def confirmed(self):
+        return self.exclude(status=OrderStatus.DRAFT)
+
+    def drafts(self):
+        return self.filter(status=OrderStatus.DRAFT)
+
+    def to_ship(self):
+        """Fully paid but unfulfilled (or partially fulfilled) orders."""
+        statuses = {OrderStatus.UNFULFILLED, OrderStatus.PARTIALLY_FULFILLED}
+        return self.filter(status__in=statuses).annotate(
+            amount_paid=Sum('payments__captured_amount')).filter(
+            total_gross__lte=F('amount_paid'))
 
 
 class Order(models.Model):
@@ -68,6 +83,8 @@ class Order(models.Model):
         currency=settings.DEFAULT_CURRENCY, max_digits=12, decimal_places=2,
         default=0)
     discount_name = models.CharField(max_length=255, default='', blank=True)
+
+    objects = OrderQueryset.as_manager()
 
     class Meta:
         ordering = ('-pk',)

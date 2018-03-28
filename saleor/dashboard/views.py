@@ -6,7 +6,6 @@ from django.db.models import Q, Sum
 from django.template.response import TemplateResponse
 from payments import PaymentStatus
 
-from ..order import OrderStatus
 from ..order.models import Order, Payment
 from ..product.models import Product
 
@@ -34,12 +33,8 @@ def superuser_required(
 @staff_member_required
 def index(request):
     paginate_by = 10
-    statuses = {OrderStatus.UNFULFILLED, OrderStatus.PARTIALLY_FULFILLED}
-    orders_to_ship = Order.objects.filter(status__in=statuses).select_related(
+    orders_to_ship = Order.objects.to_ship().select_related(
         'user').prefetch_related('lines', 'payments')
-    orders_to_ship = [
-        order for order in orders_to_ship
-        if order.is_fully_paid() and order.status == OrderStatus.FULFILLED]
     payments = Payment.objects.filter(
         status=PaymentStatus.PREAUTH).order_by('-created')
     payments = payments.select_related('order', 'order__user')
