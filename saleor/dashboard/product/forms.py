@@ -12,8 +12,7 @@ from mptt.forms import TreeNodeChoiceField
 from . import ProductBulkAction
 from ...product.models import (
     AttributeChoiceValue, Category, Collection, Product, ProductAttribute,
-    ProductImage, ProductType, ProductVariant, Stock, StockLocation,
-    VariantImage)
+    ProductImage, ProductType, ProductVariant, Stock, VariantImage)
 from ...product.thumbnails import create_product_thumbnails
 from ...product.utils.attributes import get_name_from_attributes
 from ..forms import ModelChoiceOrCreationField, OrderedModelMultipleChoiceField

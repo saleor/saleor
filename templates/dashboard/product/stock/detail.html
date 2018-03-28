@@ -60,7 +60,7 @@
             </div>
           </div>
         </div>
-        {% if perms.product.edit_stock_location %}
+        {% if perms.product.edit_stock %}
           <div class="card-action">
             <a class="btn-flat waves-effect" href="{% url "dashboard:variant-stock-update" product_pk=product.pk variant_pk=variant.pk stock_pk=stock.pk %}">
               {% trans "Edit stock" context "Dashboard action" %}

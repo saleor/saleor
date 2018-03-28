@@ -585,8 +585,6 @@ class ChangeStockForm(forms.ModelForm):
     def save(self, commit=True):
         quantity = self.instance.quantity
         stock = self.instance.stock
-        self.instance.stock_location = (
-            stock.location.name if stock.location else '')
         if self.old_stock:
             deallocate_stock(self.old_stock, quantity)
         allocate_stock(stock, quantity)

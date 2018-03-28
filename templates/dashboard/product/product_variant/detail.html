@@ -100,12 +100,12 @@
           </div>
         {% endif %}
       </div>
-      {% if perms.product.view_stock_location %}
+      {% if perms.product.view_stock %}
         <div class="card">
           <div class="card-content">
             <span class="card-title">{% trans "Stock" context "Dashboard variant details view" %}</span>
           </div>
-          {% if perms.product.edit_stock_location %}
+          {% if perms.product.edit_stock %}
             <div class="data-table-header-action">
               <a class="btn-flat waves-effect" href="{% url "dashboard:variant-stock-add" product_pk=product.pk variant_pk=variant.pk %}">
                 {% trans "Add" context "Dashboard action" %}

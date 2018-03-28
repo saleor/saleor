@@ -86,15 +86,6 @@ urlpatterns = [
         views.attribute_choice_value_delete,
         name='product-attribute-value-delete'),
 
-    url(r'stocklocations/$', views.stock_location_list,
-        name='product-stock-location-list'),
-    url(r'stocklocations/add/$', views.stock_location_add,
-        name='product-stock-location-add'),
-    url(r'stocklocations/(?P<location_pk>[0-9]+)/$', views.stock_location_edit,
-        name='product-stock-location-edit'),
-    url(r'stocklocations/(?P<location_pk>[0-9]+)/delete/$',
-        views.stock_location_delete, name='product-stock-location-delete'),
-
     url(r'^ajax/variants/$',
         views.ajax_available_variants_list, name='ajax-available-variants'),
     url(r'^ajax/products/$',
