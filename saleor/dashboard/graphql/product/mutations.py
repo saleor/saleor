@@ -47,7 +47,7 @@ class CategoryDelete(StaffMemberRequiredMutation, ModelDeleteMutation):
         model = models.Category
 
 
-class ValuesInput(InputObjectType):
+class AttributeValueInput(InputObjectType):
     slug = graphene.String(required=True)
     value = graphene.String(required=True)
 
@@ -56,7 +56,7 @@ class ProductCreateMutation(StaffMemberRequiredMutation, ModelFormMutation):
     class Arguments:
         product_type_id = graphene.ID()
         category_id = graphene.ID()
-        attributes = graphene.Argument(graphene.List(ValuesInput))
+        attributes = graphene.Argument(graphene.List(AttributeValueInput))
 
     class Meta:
         form_class = ProductForm
@@ -85,7 +85,7 @@ class ProductDeleteMutation(StaffMemberRequiredMutation, ModelDeleteMutation):
 class ProductUpdateMutation(StaffMemberRequiredMutation,
                             ModelFormUpdateMutation):
     class Arguments:
-        attributes = graphene.Argument(graphene.List(ValuesInput))
+        attributes = graphene.Argument(graphene.List(AttributeValueInput))
         category_id = graphene.ID()
 
     class Meta:

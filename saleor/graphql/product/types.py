@@ -31,7 +31,7 @@ class ProductVariant(CountableDjangoObjectType):
         return self.get_stock_quantity()
 
     def resolve_attributes(self, info):
-        return resolve_instance_attributes(instance=self, info=info)
+        return resolve_attribute_list(self.attributes)
 
 
 class ProductAvailability(graphene.ObjectType):
@@ -73,7 +73,7 @@ class Product(CountableDjangoObjectType):
         return ProductAvailability(**availability._asdict())
 
     def resolve_attributes(self, info):
-        return resolve_instance_attributes(instance=self, info=info)
+        return resolve_attribute_list(self.attributes)
 
 
 class ProductType(CountableDjangoObjectType):
@@ -151,14 +151,18 @@ class ProductAttribute(CountableDjangoObjectType):
         return self.values.all()
 
 
-def resolve_instance_attributes(instance, info):
-    product_attributes = dict(
-        models.ProductAttribute.objects.values_list('id', 'slug'))
-    attribute_values = dict(
-        models.AttributeChoiceValue.objects.values_list('id', 'slug'))
+def resolve_attribute_list(attributes=None):
+    """
+    :param attributes: dict
+    :return: list of objects of type SelectedAttribute
+    """
     attribute_list = []
-    if instance.attributes.items():
-        for k, v in instance.attributes.items():
+    if attributes:
+        product_attributes = dict(
+            models.ProductAttribute.objects.values_list('id', 'slug'))
+        attribute_values = dict(
+            models.AttributeChoiceValue.objects.values_list('id', 'slug'))
+        for k, v in attributes.items():
             value = None
             name = product_attributes.get(int(k))
             if v:

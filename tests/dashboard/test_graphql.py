@@ -272,7 +272,7 @@ def test_create_product(
             $isPublished: Boolean!,
             $isFeatured: Boolean!,
             $price: Float!,
-            $attributes: [ValuesInput]) {
+            $attributes: [AttributeValueInput]) {
                 productCreate(
                     categoryId: $categoryId,
                     productTypeId: $productTypeId,
@@ -370,7 +370,7 @@ def test_update_product(
             $isPublished: Boolean!,
             $isFeatured: Boolean!,
             $price: Float!,
-            $attributes: [ValuesInput]) {
+            $attributes: [AttributeValueInput]) {
                 productUpdate(
                     categoryId: $categoryId,
                     id: $productId,
