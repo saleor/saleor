@@ -8,6 +8,17 @@ export interface AttributeValueInput {
   value: string,
 };
 
+export interface TokenAuthMutationVariables {
+  email: string,
+  password: string,
+};
+
+export interface TokenAuthMutation {
+  tokenCreate:  {
+    token: string | null,
+  } | null,
+};
+
 export interface CategoryDeleteMutationVariables {
   id: string,
 };
