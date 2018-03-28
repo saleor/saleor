@@ -127,7 +127,7 @@ class User(PermissionsMixin, AbstractBaseUser):
         return self.email
 
     @property
-    def label(self):
+    def ajax_label(self):
         address = self.default_billing_address
         if address:
             return '%s %s (%s)' % (

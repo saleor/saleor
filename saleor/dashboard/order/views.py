@@ -728,5 +728,5 @@ def ajax_order_shipping_methods_list(request, order_pk):
             Q(price__icontains=search_query))
 
     shipping_methods = [
-        {'id': method.pk, 'text': method.label} for method in queryset]
+        {'id': method.pk, 'text': method.ajax_label} for method in queryset]
     return JsonResponse({'results': shipping_methods})
