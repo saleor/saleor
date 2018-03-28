@@ -4,7 +4,7 @@ from django.utils.text import slugify
 from ...product.models import AttributeChoiceValue, ProductAttribute
 
 
-def get_attributes_dict_from_list(attributes):
+def get_attributes_dict_from_list(attributes, product_type_ids):
     """
     :param attributes: list
     :return: dict
@@ -13,7 +13,8 @@ def get_attributes_dict_from_list(attributes):
     """
     attr_ids = {}
     attr_slug_id = dict(
-        ProductAttribute.objects.values_list('slug', 'id'))
+        ProductAttribute.objects.filter(
+            id__in=product_type_ids).values_list('slug', 'id'))
     value_slug_id = dict(
         AttributeChoiceValue.objects.values_list('name', 'id'))
     for attribute in attributes:
@@ -24,7 +25,7 @@ def get_attributes_dict_from_list(attributes):
         value = attribute.get('value')
         if value:
             if not value_slug_id.get(value):
-                attr = ProductAttribute.objects.get(slug='size')
+                attr = ProductAttribute.objects.get(slug=attr_slug)
                 value = AttributeChoiceValue(
                     attribute_id=attr.pk, name=value, slug=slugify(value))
                 value.save()
