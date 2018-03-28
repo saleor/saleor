@@ -7,10 +7,12 @@ const $seoDescription = $('#id_seo_description');
 const $descriptionMaterialize = $seoDescription.data('materialize');
 
 let $description = '';
+const $descriptionId = $seoDescription.data('bind');
 if ($descriptionMaterialize) {
-  $description = $(`.materialize-textarea[name='${$descriptionMaterialize}']`);
+  const $descriptions = $(`.materialize-textarea[name='${$descriptionMaterialize}']`);
+  // They're two textareas from Medium editor, one contains HTML-free text, other formating
+  $description = $descriptions.not($descriptionId).first();
 } else {
-  const $descriptionId = $seoDescription.data('bind');
   if ($descriptionId) {
     $description = $(`#${$descriptionId}`);
   }
