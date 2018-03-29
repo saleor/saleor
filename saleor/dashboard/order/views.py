@@ -248,9 +248,9 @@ def orderline_change_quantity(request, order_pk, line_pk):
     if form.is_valid():
         msg = pgettext_lazy(
             'Dashboard message related to an order line',
-            'Changed quantity for product %(product)s from'
+            'Changed quantity for variant %(variant)s from'
             ' %(old_quantity)s to %(new_quantity)s') % {
-                'product': line.product, 'old_quantity': old_quantity,
+                'variant': line.variant, 'old_quantity': old_quantity,
                 'new_quantity': line.quantity}
         with transaction.atomic():
             form.save()

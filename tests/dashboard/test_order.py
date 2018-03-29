@@ -409,7 +409,7 @@ def test_view_cancel_order_line(admin_client, draft_order):
     line = lines_before.first()
     line_quantity = line.quantity
     quantity_allocated_before = line.variant.quantity_allocated
-    product = line.product
+    product = line.variant.product
 
     url = reverse(
         'dashboard:orderline-cancel', kwargs={

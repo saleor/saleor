@@ -153,7 +153,6 @@ def add_variant_to_order(
             else quantity_left
         )
         order.lines.create(
-            product=variant.product,
             product_name=variant.display_product(),
             product_sku=variant.sku,
             is_shipping_required=(
@@ -201,9 +200,8 @@ def merge_duplicates_into_order_line(line):
     If there are no duplicates, nothing will happen.
     """
     lines = line.order.lines.filter(
-        product=line.product, product_name=line.product_name,
-        product_sku=line.product_sku, variant=line.variant,
-        is_shipping_required=line.is_shipping_required)
+        product_name=line.product_name, product_sku=line.product_sku,
+        variant=line.variant, is_shipping_required=line.is_shipping_required)
     if lines.count() > 1:
         line.quantity = sum([line.quantity for line in lines])
         line.save(update_fields=['quantity'])

@@ -294,8 +294,8 @@
               {% for line in order %}
                 <tr class="last-no-border">
                   <td>
-                    {% if line.product %}
-                      <a href="{% url 'dashboard:product-detail' pk=line.product.pk %}">{{ line.product_name }}</a>
+                    {% if line.variant.product %}
+                      <a href="{% url 'dashboard:product-detail' pk=line.variant.product.pk %}">{{ line.product_name }}</a>
                     {% else %}
                       {{ line.product_name }}
                     {% endif %}
