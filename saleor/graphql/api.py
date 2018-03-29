@@ -67,8 +67,9 @@ class Query(graphene.ObjectType):
 
 
 class Mutations(graphene.ObjectType):
-    access_token_create = graphql_jwt.ObtainJSONWebToken.Field()
-    access_token_renew = graphql_jwt.Refresh.Field()
+    token_auth = graphql_jwt.ObtainJSONWebToken.Field()
+    verify_token = graphql_jwt.Verify.Field()
+    refresh_token = graphql_jwt.Refresh.Field()
 
 
 schema = graphene.Schema(Query, Mutations)
