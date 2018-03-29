@@ -442,7 +442,7 @@
           </div>
         {% endif %}
       </div>
-      {% for fulfillment in order.fulfillments.all %}
+      {% for fulfillment in order_fulfillments %}
         <div class="card shipment-table">
           <div class="data-table-header">
             <h5 class="data-table-title">
@@ -465,7 +465,7 @@
                 </tr>
               </thead>
               <tbody>
-                {% for line in fulfillment.lines.all %}
+                {% for line in fulfillment %}
                   <tr class="last-no-border">
                     <td>
                       {{ line.order_line.product_name }}
