@@ -109,14 +109,16 @@
       </div>
       <div class="card">
         <div class="card-content">
-          <span class="card-title">{% trans "Images" context "Dashboard variant details view" %}</span>
-          <p>
+          <span class="card-title">{% trans "Variant Images" context "Dashboard variant details view" %}</span>
+          <div class="row">
             {% for image in images %}
-              <img class="responsive-img" src="{{ image.image.crop.60x60 }}" srcset="{{ image.image.crop.60x60 }} 1x" alt="">
+              <div class="col s4">
+                <img class="responsive-img" src="{{ image.image.crop.255x255 }}" srcset="{{ image.image.crop.255x255 }} 1x, {{ image.image.crop.510x510 }} 2x" alt="{{ image.alt }}">
+              </div>
             {% empty %}
               {% trans "No images" %}
             {% endfor %}
-          </p>
+          </div>
         </div>
         {% if perms.product.edit_product %}
           <div class="card-action">
