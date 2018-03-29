@@ -3,7 +3,7 @@ import json
 from django.contrib.sites.models import Site
 from django.core.serializers.json import DjangoJSONEncoder
 
-from ..core.utils import build_absolute_uri
+from ...core.utils import build_absolute_uri
 
 
 def get_organization():

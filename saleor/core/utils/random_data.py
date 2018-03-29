@@ -15,7 +15,7 @@ from prices import Money, TaxedMoney
 
 from ...account.models import Address, User
 from ...account.utils import store_user_address
-from ...core.utils.text import generate_seo_description
+from ...core.utils.text import strip_html_and_truncate
 from ...discount import DiscountValueType, VoucherType
 from ...discount.models import Sale, Voucher
 from ...menu.models import Menu
@@ -299,7 +299,7 @@ def create_product(**kwargs):
         'name': fake.company(),
         'price': fake.money(),
         'description': '\n\n'.join(description),
-        'seo_description': generate_seo_description(description[0], 300)}
+        'seo_description': strip_html_and_truncate(description[0], 300)}
     defaults.update(kwargs)
     return Product.objects.create(**defaults)
 

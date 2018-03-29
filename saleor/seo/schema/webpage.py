@@ -4,7 +4,7 @@ from django.conf import settings
 from django.contrib.sites.shortcuts import get_current_site
 from django.urls import reverse
 
-from ..core.utils import build_absolute_uri
+from ...core.utils import build_absolute_uri
 
 
 def get_webpage_schema(request):

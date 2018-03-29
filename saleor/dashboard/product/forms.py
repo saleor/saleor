@@ -9,16 +9,17 @@ from django.utils.text import slugify
 from django.utils.translation import pgettext_lazy
 from mptt.forms import TreeNodeChoiceField
 
-from ...core.utils.text import generate_seo_description
+from . import ProductBulkAction
 from ...product.models import (
     AttributeChoiceValue, Category, Collection, Product, ProductAttribute,
     ProductImage, ProductType, ProductVariant, Stock, StockLocation,
     VariantImage)
 from ...product.thumbnails import create_product_thumbnails
 from ..forms import OrderedModelMultipleChoiceField, ModelChoiceOrCreationField
+from ..seo.fields import SeoDescriptionField, SeoTitleField
+from ..seo.utils import prepare_seo_description
 from ..widgets import RichTextEditorWidget
 from .widgets import ImagePreviewWidget
-from . import ProductBulkAction
 
 
 class RichTextField(forms.CharField):
@@ -196,11 +197,12 @@ class ProductForm(forms.ModelForm, AttributesMixin):
             'category': pgettext_lazy('Category', 'Category'),
             'price': pgettext_lazy('Currency amount', 'Price'),
             'available_on': pgettext_lazy(
-                'Availability date', 'Availability date'),
+                'Availability date', 'Publish product on'),
             'is_published': pgettext_lazy(
                 'Product published toggle', 'Published'),
             'is_featured': pgettext_lazy(
-                'Featured product toggle', 'Feature this product on homepage'),
+                'Featured product toggle',
+                'Feature this product on homepage'),
             'collections': pgettext_lazy(
                 'Add to collection select', 'Collections')}
 
@@ -219,20 +221,18 @@ class ProductForm(forms.ModelForm, AttributesMixin):
         self.prepare_fields_for_attributes()
         self.fields['collections'].initial = Collection.objects.filter(
             products__name=self.instance)
+        self.fields['seo_description'] = SeoDescriptionField(
+            extra_attrs={
+                'data-bind': self['description'].auto_id,
+                'data-materialize': self['description'].html_name})
+        self.fields['seo_title'] = SeoTitleField(
+            extra_attrs={'data-bind': self['name'].auto_id})
 
     def clean_seo_description(self):
-        seo_description = self.cleaned_data['seo_description']
-
-        # if there is no SEO friendly description set,
-        # generate it from the HTML description
-        if not seo_description:
-            # get the non-safe description (has non escaped HTML tags in it)
-            product_description = self.data['description']
-
-            # generate a SEO friendly from HTML description
-            seo_description = generate_seo_description(
-                product_description, 300)
-
+        seo_description = prepare_seo_description(
+            seo_description=self.cleaned_data['seo_description'],
+            html_description=self.data['description'],
+            max_length=self.fields['seo_description'].max_length)
         return seo_description
 
     def save(self, commit=True):

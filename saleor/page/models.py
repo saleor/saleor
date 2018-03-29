@@ -6,6 +6,7 @@ from django.urls import reverse
 from django.utils.translation import pgettext_lazy
 
 from ..core.utils import build_absolute_uri
+from ..seo.models import SeoModel
 
 
 class PageQuerySet(models.QuerySet):
@@ -16,7 +17,7 @@ class PageQuerySet(models.QuerySet):
             Q(available_on__lte=today) | Q(available_on__isnull=True))
 
 
-class Page(models.Model):
+class Page(SeoModel):
     slug = models.SlugField(unique=True, max_length=100)
     title = models.CharField(max_length=200)
     content = models.TextField()

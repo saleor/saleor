@@ -3,6 +3,7 @@ import './bulk-actions';
 import './datepicker';
 import './editor';
 import './filters';
+import './google-preview';
 import './image-gallery';
 import './menu';
 import './messages';
