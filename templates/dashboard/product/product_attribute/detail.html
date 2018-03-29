@@ -79,7 +79,7 @@
               </tr>
             </thead>
             <tbody>
-              {% for value in attribute.values %}
+              {% for value in attribute.values.all %}
                 <tr>
                   <td>
                     {{ value.name }}
