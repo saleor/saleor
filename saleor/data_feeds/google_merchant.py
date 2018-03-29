@@ -29,7 +29,7 @@ def get_feed_items():
     items = ProductVariant.objects.all()
     items = items.select_related('product')
     items = items.prefetch_related(
-        'images', 'stock', 'product__category',
+        'images', 'product__category',
         'product__images', 'product__product_type__product_attributes',
         'product__product_type__variant_attributes')
     return items

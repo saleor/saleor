@@ -203,16 +203,6 @@ def permission_edit_category():
 
 
 @pytest.fixture
-def permission_view_stock():
-    return Permission.objects.get(codename='view_stock')
-
-
-@pytest.fixture
-def permission_edit_stock():
-    return Permission.objects.get(codename='edit_stock')
-
-
-@pytest.fixture
 def permission_view_sale():
     return Permission.objects.get(codename='view_sale')
 
