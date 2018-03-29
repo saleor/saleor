@@ -112,10 +112,8 @@ def remove_draft_order(request, order_pk):
 def order_details(request, order_pk):
     qs = Order.objects.select_related(
         'user', 'shipping_address', 'billing_address').prefetch_related(
-        'notes', 'payments', 'history', 'lines__product')
+        'notes__user', 'payments', 'history__user', 'lines__product')
     order = get_object_or_404(qs, pk=order_pk)
-    notes = order.notes.all()
-    events = order.history.select_related('user')
     all_payments = order.payments.exclude(status=PaymentStatus.INPUT)
     payment = order.payments.last()
     captured = preauthorized = ZERO_TAXED_MONEY
@@ -134,6 +132,8 @@ def order_details(request, order_pk):
             balance = captured - order.total
     else:
         can_capture = can_release = can_refund = False
+    events = order.history.all()
+    notes = order.notes.all()
     can_mark_as_paid = not order.payments.exists()
     ctx = {
         'order': order, 'all_payments': all_payments, 'payment': payment,
