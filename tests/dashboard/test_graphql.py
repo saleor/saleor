@@ -6,14 +6,14 @@ import pytest
 from django.shortcuts import reverse
 from django.utils.text import slugify
 
-from saleor.dashboard.graphql.mutations import (
+from saleor.dashboard.graphql.core.mutations import (
     ModelFormMutation, ModelFormUpdateMutation)
 
 from ..utils import get_graphql_content
 
 
-@patch('saleor.dashboard.graphql.mutations.convert_form_fields')
-@patch('saleor.dashboard.graphql.mutations.convert_form_field')
+@patch('saleor.dashboard.graphql.core.mutations.convert_form_fields')
+@patch('saleor.dashboard.graphql.core.mutations.convert_form_field')
 def test_model_form_mutation(
         mocked_convert_form_field, mocked_convert_form_fields,
         model_form_class):
@@ -47,7 +47,7 @@ def test_model_form_mutation(
     assert 'errors' in output_fields
 
 
-@patch('saleor.dashboard.graphql.mutations')
+@patch('saleor.dashboard.graphql.core.mutations')
 def test_model_form_update_mutation(model_form_class):
     class TestUpdateMutation(ModelFormUpdateMutation):
         class Meta:

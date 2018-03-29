@@ -31,13 +31,6 @@ def test_category_query(client, product_in_stock):
                     }
                 }
             }
-            siblings {
-                edges {
-                    node {
-                        name
-                    }
-                }
-            }
         }
     }
     ''' % {'category_pk': graphene.Node.to_global_id('Category', category.pk)}
@@ -53,9 +46,6 @@ def test_category_query(client, product_in_stock):
     assert (
         len(category_data['children']['edges']) ==
         category.get_children().count())
-    assert (
-        len(category_data['siblings']['edges']) ==
-        category.get_siblings().count())
 
 
 def test_fetch_all_products(client, product_in_stock):
