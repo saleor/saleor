@@ -8,7 +8,7 @@ from django.urls import reverse
 
 from ..cart.utils import set_cart_cookie
 from ..core.utils import serialize_decimal
-from ..schema.product import product_json_ld
+from ..seo.schema.product import product_json_ld
 from .filters import ProductCategoryFilter, ProductCollectionFilter
 from .models import Category, Collection
 from .utils import (

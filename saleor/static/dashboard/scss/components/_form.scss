@@ -245,3 +245,10 @@
 .main form, .modal form {
   @include form;
 }
+
+.is_featured_checkbox {
+  .input.input-field {
+    padding-top: 0!important;
+    padding-bottom: 10px;
+  }
+}

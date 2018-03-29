@@ -25,6 +25,7 @@ def test_collection_incorrect_slug(client, collection):
     proper_url = reverse('product:collection', kwargs=proper_kwargs)
     assert redirected_url == proper_url
 
+
 def test_collection_not_exists(client):
     url_kwargs = {'pk': 123456, 'slug': 'incorrect-slug'}
     url = reverse('product:collection', kwargs=url_kwargs)
