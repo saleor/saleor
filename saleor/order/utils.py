@@ -144,7 +144,7 @@ def add_variant_to_order(
         order, variant, total_quantity) if add_to_existing else total_quantity
     price = variant.get_price_per_item(discounts)
     while quantity_left > 0:
-        quantity_available = variant.quantity_available()
+        quantity_available = variant.quantity_available
         if not quantity_available:
             raise InsufficientStock(variant)
         quantity = (
@@ -177,20 +177,18 @@ def add_variant_to_existing_lines(order, variant, total_quantity):
     Returns quantity that could not be fulfilled with existing lines.
     """
     # order descending by lines' stock available quantity
-    lines = order.lines.filter(
-        product=variant.product, product_sku=variant.sku,
-        stock__isnull=False).order_by(
-            F('stock__quantity_allocated') - F('stock__quantity'))
+    lines = order.lines.filter(variant=variant).order_by(
+        F('variant__quantity_allocated') - F('variant__quantity'))
 
     quantity_left = total_quantity
     for line in lines:
         quantity = (
-            line.stock.quantity_available
-            if quantity_left > line.stock.quantity_available
+            line.variant.quantity_available
+            if quantity_left > line.variant.quantity_available
             else quantity_left)
         line.quantity += quantity
         line.save()
-        allocate_stock(line.stock, quantity)
+        allocate_stock(line.variant, quantity)
         quantity_left -= quantity
         if quantity_left == 0:
             break
@@ -204,7 +202,7 @@ def merge_duplicates_into_order_line(line):
     """
     lines = line.order.lines.filter(
         product=line.product, product_name=line.product_name,
-        product_sku=line.product_sku, stock=line.stock,
+        product_sku=line.product_sku, variant=line.variant,
         is_shipping_required=line.is_shipping_required)
     if lines.count() > 1:
         line.quantity = sum([line.quantity for line in lines])
@@ -224,11 +222,11 @@ def change_order_line_quantity(line, new_quantity):
 def restock_order_lines(order):
     """Return ordered products to corresponding stocks."""
     for line in order:
-        if line.stock:
+        if line.variant:
             if line.quantity_unfulfilled > 0:
-                deallocate_stock(line.stock, line.quantity_unfulfilled)
+                deallocate_stock(line.variant, line.quantity_unfulfilled)
             if line.quantity_fulfilled > 0:
-                increase_stock(line.stock, line.quantity_fulfilled)
+                increase_stock(line.variant, line.quantity_fulfilled)
                 line.quantity_fulfilled = 0
                 line.save(update_fields=['quantity_fulfilled'])
 
