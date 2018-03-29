@@ -9,4 +9,5 @@ Getting Started
    gettingstarted/installation-linux
    gettingstarted/configuration
    gettingstarted/superuser
+   gettingstarted/dev-tools
    gettingstarted/example-data
