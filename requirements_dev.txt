@@ -1,0 +1,2 @@
+django-debug-toolbar==1.9.1
+django-silk==2.0.0

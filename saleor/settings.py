@@ -213,6 +213,18 @@ INSTALLED_APPS = [
     'impersonate',
     'phonenumber_field']
 
+ENABLE_DEBUG_TOOLBAR = ast.literal_eval(
+    os.environ.get('ENABLE_DEBUG_TOOLBAR', 'False'))
+if ENABLE_DEBUG_TOOLBAR:
+    MIDDLEWARE.append(
+        'debug_toolbar.middleware.DebugToolbarMiddleware')
+    INSTALLED_APPS.append('debug_toolbar')
+
+ENABLE_SILK = ast.literal_eval(os.environ.get('ENABLE_SILK', 'False'))
+if ENABLE_SILK:
+    MIDDLEWARE.insert(0, 'silk.middleware.SilkyMiddleware')
+    INSTALLED_APPS.append('silk')
+
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
