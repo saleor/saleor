@@ -112,7 +112,8 @@ def remove_draft_order(request, order_pk):
 def order_details(request, order_pk):
     qs = Order.objects.select_related(
         'user', 'shipping_address', 'billing_address').prefetch_related(
-        'notes__user', 'payments', 'history__user', 'lines__product')
+        'notes__user', 'payments', 'history__user', 'lines__product',
+        'fulfillments__lines')
     order = get_object_or_404(qs, pk=order_pk)
     all_payments = order.payments.exclude(status=PaymentStatus.INPUT)
     payment = order.payments.last()
@@ -132,15 +133,15 @@ def order_details(request, order_pk):
             balance = captured - order.total
     else:
         can_capture = can_release = can_refund = False
-    events = order.history.all()
-    notes = order.notes.all()
     can_mark_as_paid = not order.payments.exists()
     ctx = {
         'order': order, 'all_payments': all_payments, 'payment': payment,
-        'notes': notes, 'events': events, 'captured': captured,
-        'balance': balance, 'preauthorized': preauthorized,
+        'notes': order.notes.all(), 'events': order.history.all(),
+        'captured': captured, 'balance': balance,
+        'preauthorized': preauthorized,
         'can_capture': can_capture, 'can_release': can_release,
-        'can_refund': can_refund, 'can_mark_as_paid': can_mark_as_paid}
+        'can_refund': can_refund, 'can_mark_as_paid': can_mark_as_paid,
+        'order_fulfillments': order.fulfillments.all()}
     return TemplateResponse(request, 'dashboard/order/detail.html', ctx)
 
 
