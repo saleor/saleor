@@ -9,6 +9,7 @@
         - feature:
             title: Storefront 2.0
             description: Mobile-first storefront with full PWA support.<br /> Support for browser-based payment methods (Google Pay, Apple Pay).
+
         - feature:
             title: Taxes support
             description: Introducing integrations with Vatlayer and Avalara.<br /> Switching between net/gross prices displayed to your customers.
@@ -54,7 +55,7 @@
     features:
       left:
         - feature:
-            title: General
+            title: ""
             type: list
             description: 
               - Upgraded prices handling
@@ -64,7 +65,6 @@
               - Dropped Satchless API 
               - Switched to Webpack 4 
               - Sanitize output from the rich-text editor
-
 
 - release:
     title: <span>January</span> Release
@@ -95,7 +95,7 @@
             description: 
               - Added the ability to add order notes during checkout and on the order details page 
               - Showing success page after finishing checkout 
-              - Lazy-loading images in the storefront
+              - Lazy-loading images in the storefront 
 
         - feature:
             title: Dashboard
@@ -104,7 +104,8 @@
               - Added rich-text editor widget 
               - Added the ability to create customers through the dashboard 
               - Improved the appearance of bulk actions in the dashboard 
-              - Order details page improvements"
+              - Order details page improvements 
+
 - release:
     title: <span>December</span> Release
     image: /images/done.svg
@@ -116,7 +117,6 @@
             type: list
             description: 
               - Dropped Python 2.7 
-              - Order status field has been removed and it’s dynamically determined based on delivery group statuses
               - Improved naming consistency in code
               - Upgraded Graphene to the newest version
               - Upgraded django-impersonate to the newest version
