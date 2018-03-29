@@ -378,7 +378,8 @@ def test_contains_unavailable_variants():
 def test_remove_unavailable_variants(cart, product):
     variant = product.variants.get()
     cart.add(variant, 1)
-    variant.stock.update(quantity=0)
+    variant.quantity = 0
+    variant.save()
     utils.remove_unavailable_variants(cart)
     assert len(cart) == 0
 
@@ -443,31 +444,15 @@ def test_form_when_variant_does_not_exist():
     assert not form.is_valid()
 
 
-def test_add_to_cart_form_when_empty_stock():
-    cart_lines = []
-    cart = Mock(
-        add=lambda variant, quantity: cart_lines.append(Mock()),
-        get_line=Mock(return_value=Mock(quantity=1)))
-
-    form = forms.AddToCartForm(data={'quantity': 1}, cart=cart, product=Mock())
-    exception_mock = InsufficientStock(
-        Mock(get_stock_quantity=Mock(return_value=1)))
-    product_variant = Mock(check_quantity=Mock(side_effect=exception_mock))
-    form.get_variant = Mock(return_value=product_variant)
-    assert not form.is_valid()
-
-
-def test_add_to_cart_form_when_insufficient_stock():
+def test_add_to_cart_form_when_insufficient_stock(product):
+    variant = product.variants.first()
     cart_lines = []
     cart = Mock(
         add=lambda variant, quantity: cart_lines.append(variant),
-        get_line=Mock(return_value=Mock(quantity=1)))
+        get_line=Mock(return_value=Mock(quantity=49)))
 
     form = forms.AddToCartForm(data={'quantity': 1}, cart=cart, product=Mock())
-    exception_mock = InsufficientStock(
-        Mock(get_stock_quantity=Mock(return_value=4)))
-    product_variant = Mock(check_quantity=Mock(side_effect=exception_mock))
-    form.get_variant = Mock(return_value=product_variant)
+    form.get_variant = Mock(return_value=variant)
     assert not form.is_valid()
 
 

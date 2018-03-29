@@ -181,7 +181,8 @@ class OrderLine(models.Model):
         Product, blank=True, null=True, related_name='+',
         on_delete=models.SET_NULL)
     variant = models.ForeignKey(
-        ProductVariant, related_name='stock', on_delete=models.CASCADE)
+        ProductVariant, related_name='stock', on_delete=models.SET_NULL,
+        blank=True, null=True)
     product_name = models.CharField(max_length=128)
     product_sku = models.CharField(max_length=32)
     is_shipping_required = models.BooleanField()
