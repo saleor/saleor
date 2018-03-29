@@ -7,7 +7,8 @@ class CountableConnection(graphene.relay.Connection):
     class Meta:
         abstract = True
 
-    total_count = graphene.Int()
+    total_count = graphene.Int(
+        description="A total count of items in the collection")
 
     @staticmethod
     def resolve_total_count(root, info, *args, **kwargs):
