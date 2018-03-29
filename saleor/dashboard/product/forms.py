@@ -245,8 +245,8 @@ class ProductVariantForm(forms.ModelForm, AttributesMixin):
         labels = {
             'sku': pgettext_lazy('SKU', 'SKU'),
             'price_override': pgettext_lazy(
-                'Override price', 'Override price'),
-            'quantity': pgettext_lazy('Integer number', 'Quantity'),
+                'Override price', 'Selling price override'),
+            'quantity': pgettext_lazy('Integer number', 'Number in stock'),
             'cost_price': pgettext_lazy('Currency amount', 'Cost price')}
 
     def __init__(self, *args, **kwargs):
