@@ -392,7 +392,6 @@ def create_order_line(order):
     variant.quantity_allocated += quantity
     variant.save()
     return order.lines.create(
-        product=product,
         product_name=product.name,
         product_sku=variant.sku,
         is_shipping_required=product.product_type.is_shipping_required,

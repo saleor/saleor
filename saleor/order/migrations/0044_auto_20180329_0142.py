@@ -25,4 +25,8 @@ class Migration(migrations.Migration):
             name='variant',
             field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='+', to='product.ProductVariant'),
         ),
+        migrations.RemoveField(
+            model_name='orderline',
+            name='product',
+        ),
     ]

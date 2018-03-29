@@ -17,7 +17,7 @@ from . import FulfillmentStatus, OrderStatus
 from ..account.models import Address
 from ..core.utils import ZERO_TAXED_MONEY, build_absolute_uri
 from ..discount.models import Voucher
-from ..product.models import Product, ProductVariant
+from ..product.models import ProductVariant
 from ..shipping.models import ShippingMethodCountry
 
 
@@ -177,9 +177,6 @@ class Order(models.Model):
 class OrderLine(models.Model):
     order = models.ForeignKey(
         Order, related_name='lines', editable=False, on_delete=models.CASCADE)
-    product = models.ForeignKey(
-        Product, blank=True, null=True, related_name='+',
-        on_delete=models.SET_NULL)
     variant = models.ForeignKey(
         ProductVariant, related_name='+', on_delete=models.SET_NULL,
         blank=True, null=True)
