@@ -14,9 +14,9 @@ from ...core.utils import get_paginator_items
 from ...product.models import (
     AttributeChoiceValue, Product, ProductAttribute, ProductImage, ProductType,
     ProductVariant)
+from ...product.utils import get_margin_for_variant
 from ...product.utils.availability import get_availability
-from ...product.utils.costs import (
-    get_product_costs_data, get_variant_costs_data)
+from ...product.utils.costs import get_product_costs_data
 from ..views import staff_member_required
 from .filters import ProductAttributeFilter, ProductFilter, ProductTypeFilter
 
@@ -382,17 +382,10 @@ def variant_details(request, product_pk, variant_pk):
         return redirect('dashboard:product-detail', pk=product.pk)
 
     images = variant.images.all()
-    costs_data = get_variant_costs_data(variant)
-    if costs_data.costs:
-        costs = {
-            'min': costs_data.costs[0],
-            'max': costs_data.costs[-1]}
-    else:
-        costs = {}
-
+    margin = get_margin_for_variant(variant)
     ctx = {
         'images': images, 'product': product,
-        'variant': variant, 'costs': costs, 'margins': costs_data.margins}
+        'variant': variant, 'margin': margin}
     return TemplateResponse(
         request,
         'dashboard/product/product_variant/detail.html',

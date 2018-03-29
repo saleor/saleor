@@ -77,6 +77,8 @@
                   <div class="row attribute-select-or-create">
                     {{ attribute_field|materializecss:"input-field s12" }}
                   </div>
+                {% empty %}
+                  {% trans "No attributes found." %}
                 {% endfor %}
               </div>
               <div class="col s12 m4">

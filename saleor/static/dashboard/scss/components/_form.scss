@@ -71,12 +71,6 @@
     }
   }
 
-  &#form-stock {
-    #id_quantity {
-      @extend %input-lg;
-    }
-  }
-
   &#form-attributes {
     #id_display {
       @extend %input-lg;
