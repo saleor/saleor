@@ -63,7 +63,7 @@ class BaseProductMutateMixin(BaseMutation):
             if attributes:
                 attr_slug_id = dict(
                     form.instance.product_type.product_attributes.values_list(
-                        'slug','id'))
+                        'slug', 'id'))
                 form.instance.attributes = get_attributes_dict_from_list(
                     attributes=attributes, attr_slug_id=attr_slug_id)
             instance = form.save()
