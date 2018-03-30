@@ -21,9 +21,9 @@ Enabling Debug Tool (example)
 
 #. Install packages from requirements_dev.txt:
 
-   .. code-block:: powershell
+   .. code-block:: bash
 
-    python -m pip install -r requirements_dev.txt
+    $ python -m pip install -r requirements_dev.txt
 
 #. Restart server
 

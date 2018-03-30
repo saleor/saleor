@@ -61,10 +61,8 @@ if settings.DEBUG:
 if settings.ENABLE_DEBUG_TOOLBAR:
     import debug_toolbar
     urlpatterns += [
-        url(r'^__debug__/', include(debug_toolbar.urls)),
-    ]
+        url(r'^__debug__/', include(debug_toolbar.urls))]
 
 if settings.ENABLE_SILK:
     urlpatterns += [
-        url(r'^silk/', include('silk.urls', namespace='silk'))
-    ]
+        url(r'^silk/', include('silk.urls', namespace='silk'))]
