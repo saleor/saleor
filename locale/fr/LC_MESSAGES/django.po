@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: master\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2018-03-13 11:07-0500\n"
+"POT-Creation-Date: 2018-03-19 04:44-0500\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Da Costa Faro Rémy <remy@dacostafaro.com>, 2018\n"
 "Language-Team: French (https://www.transifex.com/mirumee/teams/34782/fr/)\n"
@@ -1216,7 +1216,7 @@ msgstr "Il n'y a pas de produits dans votre panier."
 #: templates/cart/index.html:87 templates/cart_dropdown.html:61
 msgctxt "Empty cart link"
 msgid "Check out our sales"
-msgstr "Regardez nos promotions"
+msgstr "Jetez à un coup d’œil à nos offres"
 
 #: templates/cart_dropdown.html:37
 msgctxt "Cart dropdown text"
@@ -1485,7 +1485,7 @@ msgstr "Bons d'achats"
 #: templates/dashboard/base.html:160
 msgctxt "Dashboard sales. `Sales' is noun of to sell"
 msgid "Sales"
-msgstr "Promotions"
+msgstr "Ventes"
 
 #: templates/dashboard/base.html:166
 #: templates/dashboard/order/address_form.html:7
@@ -2990,7 +2990,7 @@ msgctxt "Modal release payment text"
 msgid "Release payment"
 msgstr "Liberer le paiement"
 
-#: templates/dashboard/order/modal/release.html:16
+#: templates/dashboard/order/modal/release.html:17
 msgctxt "Modal release payment text"
 msgid "Do you want to release the payment?"
 msgstr "Voulez-vous libérer le paiement ?"
@@ -4863,6 +4863,7 @@ msgstr ""
 "que le <strong>%(date)s</strong>."
 
 #: templates/product/_filters.html:14
+#: templates/product/product_list_base.html:42
 msgctxt "Filter heading title"
 msgid "Filters"
 msgstr "Filtres"
@@ -4872,17 +4873,17 @@ msgctxt "Product list page filters"
 msgid "Clear filters"
 msgstr "Effacer les filtres"
 
-#: templates/product/_filters.html:45
+#: templates/product/_filters.html:63
 msgctxt "Product price filter"
 msgid "from"
 msgstr "de"
 
-#: templates/product/_filters.html:47
+#: templates/product/_filters.html:65
 msgctxt "Product price filter"
 msgid "to"
 msgstr "à"
 
-#: templates/product/_filters.html:66
+#: templates/product/_filters.html:67
 msgctxt "Product price filter"
 msgid "Update"
 msgstr "Mettre à jour"
@@ -4922,36 +4923,36 @@ msgctxt "Product details title"
 msgid "Description"
 msgstr "Description"
 
-#: templates/product/product_list_base.html:47
+#: templates/product/product_list_base.html:50
 msgid "Sort by: <b>name</b>"
 msgstr "Trier par : <b>nom</b>"
 
-#: templates/product/product_list_base.html:51
+#: templates/product/product_list_base.html:54
 msgid "Sort by: <b>price</b>"
 msgstr "Trier par : <b>prix</b>"
 
-#: templates/product/product_list_base.html:70
+#: templates/product/product_list_base.html:73
 msgctxt "Product list filters"
 msgid "Sort by"
 msgstr "Trier par"
 
-#: templates/product/product_list_base.html:76
+#: templates/product/product_list_base.html:79
 msgctxt "sort by option"
 msgid "ascending"
 msgstr "ascendant"
 
-#: templates/product/product_list_base.html:82
+#: templates/product/product_list_base.html:85
 msgctxt "sort by option"
 msgid "descending"
 msgstr "descendant"
 
-#: templates/product/product_list_base.html:124
+#: templates/product/product_list_base.html:127
 #: templates/search/results.html:34
 msgctxt "Search without results text"
 msgid "Sorry, no matches found for your request."
 msgstr "Aucun résultat n'a été trouvé."
 
-#: templates/product/product_list_base.html:125
+#: templates/product/product_list_base.html:128
 #: templates/search/results.html:35
 msgctxt "Search without results text"
 msgid "Try again or shop new arrivals."
