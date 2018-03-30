@@ -38,7 +38,7 @@ maxminddb
 maxminddb-geolite2
 phonenumberslite>=8.9.1
 prices>=1.0.0
-psycopg2>=2.6
+psycopg2-binary>=2.7
 purl>=0.4.1
 pytest
 pytest-django
