@@ -11,7 +11,7 @@ You can control them with environmental variables:
   Controls `django-silk <https://github.com/jazzband/django-silk>`. Defaults to ``False``
 
 
-Enabling Debug Tool (example)
+Enabling Silk
 -----------------------------
 #. Set environment variable.
 
@@ -21,7 +21,7 @@ Enabling Debug Tool (example)
 
 #. Install packages from requirements_dev.txt:
 
-   .. code-block:: bash
+   .. code-block:: console
 
     $ python -m pip install -r requirements_dev.txt
 

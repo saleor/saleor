@@ -213,9 +213,7 @@ INSTALLED_APPS = [
     'impersonate',
     'phonenumber_field']
 
-ENABLE_DEBUG_TOOLBAR = ast.literal_eval(
-    os.environ.get('ENABLE_DEBUG_TOOLBAR', 'False'))
-if ENABLE_DEBUG_TOOLBAR:
+if DEBUG:
     MIDDLEWARE.append(
         'debug_toolbar.middleware.DebugToolbarMiddleware')
     INSTALLED_APPS.append('debug_toolbar')
