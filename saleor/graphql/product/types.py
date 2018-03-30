@@ -183,6 +183,7 @@ class ProductImage(CountableDjangoObjectType):
 class ProductAttributeValue(CountableDjangoObjectType):
     class Meta:
         description = 'Represents a value of an attribute.'
+        exclude_fields = ['attribute']
         interfaces = [relay.Node]
         model = models.AttributeChoiceValue
 
@@ -195,6 +196,7 @@ class ProductAttribute(CountableDjangoObjectType):
         description = """
         Custom attribute of a product. Attributes can be dynamically assigned
         to products and variants at the product type level."""
+        exclude_fields = ['product_types', 'product_variant_types']
         interfaces = [relay.Node]
         filter_fields = ['id', 'slug']
         model = models.ProductAttribute
