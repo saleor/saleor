@@ -7,9 +7,8 @@ from graphene_django.form_converter import convert_form_field
 from graphene_django.registry import get_global_registry
 from graphql_jwt.decorators import staff_member_required
 
-from ...graphql.core.types import Error
-from ...graphql.utils import get_node
-from .utils import get_attributes_dict_from_list
+from ....graphql.core.types import Error
+from ....graphql.utils import get_node
 
 registry = get_global_registry()
 
@@ -35,20 +34,22 @@ def convert_form_errors(form):
 
 
 def get_model_name(model):
-    """Return name of the model with first letter lowercase"""
+    """Return name of the model with first letter lowercase."""
     model_name = model.__name__
     return model_name[:1].lower() + model_name[1:]
 
 
 def get_output_fields(model, return_field_name):
-    """Return mutation output field for model instance"""
+    """Return mutation output field for model instance."""
     model_type = registry.get_type_for_model(model)
     fields = {return_field_name: graphene.Field(model_type)}
     return fields
 
 
 class BaseMutation(graphene.Mutation):
-    errors = graphene.List(Error)
+    errors = graphene.List(
+        Error,
+        description='List of errors that occurred executing the mutation.')
 
     class Meta:
         abstract = True

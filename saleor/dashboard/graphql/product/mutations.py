@@ -5,7 +5,7 @@ from ....graphql.product.types import Category, ProductType
 from ....graphql.utils import get_node
 from ....product import models
 from ...category.forms import CategoryForm
-from ..mutations import (
+from ..core.mutations import (
     BaseMutation, ModelDeleteMutation, ModelFormMutation,
     ModelFormUpdateMutation, StaffMemberRequiredMutation, convert_form_errors)
 from ..utils import get_attributes_dict_from_list
@@ -17,6 +17,7 @@ class CategoryCreateMutation(StaffMemberRequiredMutation, ModelFormMutation):
         parent_id = graphene.ID()
 
     class Meta:
+        description = 'Creates a new category.'
         form_class = CategoryForm
 
     @classmethod
@@ -34,6 +35,7 @@ class CategoryCreateMutation(StaffMemberRequiredMutation, ModelFormMutation):
 class CategoryUpdateMutation(
         StaffMemberRequiredMutation, ModelFormUpdateMutation):
     class Meta:
+        description = 'Updates an existing category.'
         form_class = CategoryForm
 
     @classmethod
@@ -45,6 +47,7 @@ class CategoryUpdateMutation(
 
 class CategoryDelete(StaffMemberRequiredMutation, ModelDeleteMutation):
     class Meta:
+        description = 'Deletes a category.'
         model = models.Category
 
 
@@ -73,14 +76,16 @@ class BaseProductMutateMixin(BaseMutation):
         return cls(errors=errors)
 
 
-class ProductCreateMutation(BaseProductMutateMixin,
-                            StaffMemberRequiredMutation, ModelFormMutation):
+class ProductCreateMutation(
+        BaseProductMutateMixin, StaffMemberRequiredMutation,
+        ModelFormMutation):
     class Arguments:
         product_type_id = graphene.ID()
         category_id = graphene.ID()
         attributes = graphene.Argument(graphene.List(AttributeValueInput))
 
     class Meta:
+        description = 'Creates a new product.'
         form_class = ProductForm
         # Exclude from input form fields
         # that are being overwritten by arguments
@@ -99,19 +104,20 @@ class ProductCreateMutation(BaseProductMutateMixin,
 
 
 class ProductDeleteMutation(StaffMemberRequiredMutation, ModelDeleteMutation):
-
     class Meta:
+        description = 'Deletes a product.'
         model = models.Product
 
 
-class ProductUpdateMutation(BaseProductMutateMixin,
-                            StaffMemberRequiredMutation,
-                            ModelFormUpdateMutation):
+class ProductUpdateMutation(
+        BaseProductMutateMixin, StaffMemberRequiredMutation,
+        ModelFormUpdateMutation):
     class Arguments:
         attributes = graphene.Argument(graphene.List(AttributeValueInput))
         category_id = graphene.ID()
 
     class Meta:
+        description = 'Update an existing product.'
         form_class = ProductForm
         # Exclude from input form fields
         # that are being overwritten by arguments
