@@ -14,18 +14,34 @@ from .filters import ProductFilterSet
 
 
 class SelectedAttribute(graphene.ObjectType):
-    name = graphene.String(default_value=None)
-    value = graphene.String(default_value=None)
+    name = graphene.String(
+        default_value=None,
+        description='Name of an attribute')
+    value = graphene.String(
+        default_value=None,
+        description='Value of an attribute.')
+
+    class Meta:
+        description = 'Represents a custom product attribute.'
 
 
 class ProductVariant(CountableDjangoObjectType):
-    stock_quantity = graphene.Int()
-    price_override = graphene.Field(Money)
-    attributes = graphene.List(SelectedAttribute)
+    stock_quantity = graphene.Int(
+        required=True,
+        description='Quantity of a product available for sale.')
+    price_override = graphene.Field(
+        Money,
+        description="""Override the base price of a product if necessary.
+        A value of `null` indicates the the default product price is used.""")
+    attributes = graphene.List(
+        SelectedAttribute,
+        description='List of attributes assigned to this variant.')
 
     class Meta:
-        model = models.ProductVariant
+        description = """Represents a version of a product such as different
+        size or color."""
         interfaces = [relay.Node]
+        model = models.ProductVariant
 
     def resolve_stock_quantity(self, info):
         return self.get_stock_quantity()
@@ -43,20 +59,36 @@ class ProductAvailability(graphene.ObjectType):
     price_range_undiscounted = graphene.Field(TaxedMoneyRange)
     price_range_local_currency = graphene.Field(TaxedMoneyRange)
 
+    class Meta:
+        description = 'Represents availability of a product in the storefront.'
+
 
 class Product(CountableDjangoObjectType):
-    url = graphene.String()
+    url = graphene.String(
+        description='The storefront URL for the product.',
+        required=True)
     thumbnail_url = graphene.String(
+        description='The URL of a main thumbnail for a product.',
         size=graphene.Argument(
             graphene.String,
-            description='The size of a thumbnail, for example 255x255'))
-    availability = graphene.Field(ProductAvailability)
-    price = graphene.Field(Money)
-    attributes = graphene.List(SelectedAttribute)
+            description='Size of a thumbnail, for example 255x255.'))
+    availability = graphene.Field(
+        ProductAvailability,
+        description="""Informs about product's availability in the storefront,
+        current price and discounts.""")
+    price = graphene.Field(
+        Money,
+        description="""The product's base price (without any discounts
+        applied).""")
+    attributes = graphene.List(
+        SelectedAttribute,
+        description='List of product attributes assigned to this product.')
 
     class Meta:
-        model = models.Product
+        description = """Represents an individual item for sale in the
+        storefront."""
         interfaces = [relay.Node]
+        model = models.Product
 
     def resolve_thumbnail_url(self, info, *, size=None):
         if not size:
@@ -78,37 +110,43 @@ class Product(CountableDjangoObjectType):
 
 class ProductType(CountableDjangoObjectType):
     products = DjangoFilterConnectionField(
-        Product, filterset_class=ProductFilterSet)
+        Product, filterset_class=ProductFilterSet,
+        description='List of products of this type.')
 
     class Meta:
-        model = models.ProductType
+        description = """Represents a type of product. It defines what
+        attributes are available to products of this type."""
         interfaces = [relay.Node]
+        model = models.ProductType
 
 
 class Category(CountableDjangoObjectType):
     products = DjangoFilterConnectionField(
-        Product, filterset_class=ProductFilterSet)
-    url = graphene.String()
+        Product, filterset_class=ProductFilterSet,
+        description='List of products in the category.')
+    url = graphene.String(
+        description='The storefront\'s URL for the category.')
     ancestors = DjangoFilterConnectionField(
-        lambda: Category, filterset_class=DistinctFilterSet)
+        lambda: Category, filterset_class=DistinctFilterSet,
+        description='List of ancestors of the category.')
     children = DjangoFilterConnectionField(
-        lambda: Category, filterset_class=DistinctFilterSet)
-    siblings = DjangoFilterConnectionField(
-        lambda: Category, filterset_class=DistinctFilterSet)
+        lambda: Category, filterset_class=DistinctFilterSet,
+        description='List of children of the category.')
 
     class Meta:
-        model = models.Category
-        filter_fields = ['id', 'name']
+        description = """Represents a single category of products. Categories
+        allow to organize products in a tree-hierarchies which can be used for
+        navigation in the storefront."""
+        exclude_fields = ['lft', 'rght', 'tree_id']
         interfaces = [relay.Node]
+        filter_fields = ['id', 'name']
+        model = models.Category
 
     def resolve_ancestors(self, info, **kwargs):
         return self.get_ancestors().distinct()
 
     def resolve_children(self, info, **kwargs):
         return self.children.distinct()
-
-    def resolve_siblings(self, info, **kwargs):
-        return self.get_siblings().distinct()
 
     def resolve_url(self, info):
         ancestors = self.get_ancestors().distinct()
@@ -121,11 +159,16 @@ class Category(CountableDjangoObjectType):
 
 
 class ProductImage(CountableDjangoObjectType):
-    url = graphene.String(size=graphene.String())
+    url = graphene.String(
+        required=True, description='',
+        size=graphene.String(
+            description='Size of an image, for example 255x255.'))
 
     class Meta:
-        model = models.ProductImage
+        description = 'Represents a product image.'
+        exclude_fields = ['product', 'productvariant_set', 'variant_images']
         interfaces = [relay.Node]
+        model = models.ProductImage
 
     def resolve_url(self, info, *, size=None):
         if size:
@@ -135,17 +178,24 @@ class ProductImage(CountableDjangoObjectType):
 
 class ProductAttributeValue(CountableDjangoObjectType):
     class Meta:
-        model = models.AttributeChoiceValue
+        description = 'Represents a value of an attribute.'
+        exclude_fields = ['attribute']
         interfaces = [relay.Node]
+        model = models.AttributeChoiceValue
 
 
 class ProductAttribute(CountableDjangoObjectType):
-    values = graphene.List(ProductAttributeValue)
+    values = graphene.List(
+        ProductAttributeValue, description='List of attribute\'s values.')
 
     class Meta:
-        model = models.ProductAttribute
-        filter_fields = ['id', 'slug']
+        description = """Custom attribute of a product. Attributes can be
+        dynamically assigned to products and variants at the product type
+        level."""
+        exclude_fields = ['product_types', 'product_variant_types']
         interfaces = [relay.Node]
+        filter_fields = ['id', 'slug']
+        model = models.ProductAttribute
 
     def resolve_values(self, info):
         return self.values.all()

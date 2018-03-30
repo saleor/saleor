@@ -14,27 +14,32 @@ from .utils import get_node
 
 
 class Query(graphene.ObjectType):
-    node = graphene.Node.Field()
-    debug = graphene.Field(DjangoDebug, name='__debug')
-
+    attributes = DjangoFilterConnectionField(
+        ProductAttribute, filterset_class=DistinctFilterSet,
+        in_category=graphene.Argument(graphene.ID),
+        description='List of the shop\'s product attributes.')
     categories = DjangoFilterConnectionField(
         Category, filterset_class=DistinctFilterSet,
-        level=graphene.Argument(graphene.Int))
-    category = graphene.Field(Category, id=graphene.Argument(graphene.ID))
-
+        level=graphene.Argument(graphene.Int),
+        description='List of the shop\'s categories.')
+    category = graphene.Field(
+        Category, id=graphene.Argument(graphene.ID),
+        description='Lookup a category by ID.')
     page = graphene.Field(
-        Page, id=graphene.Argument(graphene.ID), slug=graphene.String())
+        Page, id=graphene.Argument(graphene.ID), slug=graphene.String(),
+        description='Lookup a page by ID or by slug.')
     pages = DjangoFilterConnectionField(
         Page, filterset_class=DistinctFilterSet,
-        level=graphene.Argument(graphene.Int))
-
-    attributes = DjangoFilterConnectionField(
-        ProductAttribute,
-        filterset_class=DistinctFilterSet,
-        in_category=graphene.Argument(graphene.ID))
-    product = graphene.Field(Product, id=graphene.Argument(graphene.ID))
+        level=graphene.Argument(graphene.Int),
+        description='List of the shop\'s pages.')
+    product = graphene.Field(
+        Product, id=graphene.Argument(graphene.ID),
+        description='Lookup a product by ID.')
     products = DjangoFilterConnectionField(
-        Product, filterset_class=ProductFilterSet)
+        Product, filterset_class=ProductFilterSet,
+        description='List of the shop\'s products.')
+    node = graphene.Node.Field()
+    debug = graphene.Field(DjangoDebug, name='__debug')
 
     def resolve_category(self, info, id):
         return get_node(info, id, only_type=Category)
@@ -45,7 +50,6 @@ class Query(graphene.ObjectType):
     def resolve_page(self, info, id=None, slug=None):
         if slug is not None:
             return page_models.Page.objects.get(slug=slug)
-
         return get_node(info, id, only_type=Page)
 
     def resolve_pages(self, info):
@@ -62,9 +66,8 @@ class Query(graphene.ObjectType):
 
 
 class Mutations(graphene.ObjectType):
-    token_auth = graphql_jwt.ObtainJSONWebToken.Field()
-    verify_token = graphql_jwt.Verify.Field()
-    refresh_token = graphql_jwt.Refresh.Field()
+    token_create = graphql_jwt.ObtainJSONWebToken.Field()
+    token_refresh = graphql_jwt.Refresh.Field()
 
 
 schema = graphene.Schema(Query, Mutations)
