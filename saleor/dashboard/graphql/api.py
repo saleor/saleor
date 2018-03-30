@@ -21,7 +21,7 @@ from .product.types import resolve_attributes, resolve_products
 class Query(graphene.ObjectType):
     attributes = DjangoFilterConnectionField(
         ProductAttribute, filterset_class=DistinctFilterSet,
-        description='A list of the shop\'s attributes.')
+        description='List of the shop\'s product attributes.')
     categories = DjangoFilterConnectionField(
         Category, filterset_class=DistinctFilterSet,
         level=graphene.Argument(graphene.Int),
