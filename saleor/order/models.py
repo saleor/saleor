@@ -261,7 +261,7 @@ class Payment(BasePayment):
     def get_success_url(self):
         return build_absolute_uri(
             reverse(
-                'order:checkout-success', kwargs={'token': self.order.token}))
+                'order:payment-success', kwargs={'token': self.order.token}))
 
     def get_purchased_items(self):
         lines = [
