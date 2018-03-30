@@ -9,6 +9,7 @@ from django.shortcuts import get_object_or_404, redirect
 from django.template.response import TemplateResponse
 from django.urls import reverse
 from django.utils.translation import pgettext_lazy
+from django.views.decorators.csrf import csrf_exempt
 from payments import PaymentStatus, RedirectNeeded
 
 from . import FulfillmentStatus, OrderStatus
