@@ -31,16 +31,15 @@ class ProductVariant(CountableDjangoObjectType):
         description='Quantity of a product available for sale.')
     price_override = graphene.Field(
         Money,
-        description="""
-        Override the base price of a product if necessary. A value of `null`
-        indicates the the default product price is used.""")
+        description="""Override the base price of a product if necessary.
+        A value of `null` indicates the the default product price is used.""")
     attributes = graphene.List(
         SelectedAttribute,
         description='List of attributes assigned to this variant.')
 
     class Meta:
-        description = """
-        Represents a version of a product such as different size or color."""
+        description = """Represents a version of a product such as different
+        size or color."""
         interfaces = [relay.Node]
         model = models.ProductVariant
 
@@ -75,20 +74,19 @@ class Product(CountableDjangoObjectType):
             description='Size of a thumbnail, for example 255x255.'))
     availability = graphene.Field(
         ProductAvailability,
-        description="""
-        Informs about product's availability in the storefront, current price
-        and discounts.""")
+        description="""Informs about product's availability in the storefront,
+        current price and discounts.""")
     price = graphene.Field(
         Money,
-        description="""
-        The product's base price (without any discounts applied).""")
+        description="""The product's base price (without any discounts
+        applied).""")
     attributes = graphene.List(
         SelectedAttribute,
         description='List of product attributes assigned to this product.')
 
     class Meta:
-        description = """
-        Represents an individual item for sale in the storefront."""
+        description = """Represents an individual item for sale in the
+        storefront."""
         interfaces = [relay.Node]
         model = models.Product
 
@@ -116,9 +114,8 @@ class ProductType(CountableDjangoObjectType):
         description='List of products of this type.')
 
     class Meta:
-        description = """
-        Represents a type of product. It defines what attributes are available
-        to products of this type."""
+        description = """Represents a type of product. It defines what
+        attributes are available to products of this type."""
         interfaces = [relay.Node]
         model = models.ProductType
 
@@ -137,10 +134,9 @@ class Category(CountableDjangoObjectType):
         description='List of children of the category.')
 
     class Meta:
-        description = """
-        Represents a single category of products. Categories allow to organize
-        products in a tree-hierarchies which can be used for navigation in the
-        storefront."""
+        description = """Represents a single category of products. Categories
+        allow to organize products in a tree-hierarchies which can be used for
+        navigation in the storefront."""
         exclude_fields = ['lft', 'rght', 'tree_id']
         interfaces = [relay.Node]
         filter_fields = ['id', 'name']
@@ -193,9 +189,9 @@ class ProductAttribute(CountableDjangoObjectType):
         ProductAttributeValue, description='List of attribute\'s values.')
 
     class Meta:
-        description = """
-        Custom attribute of a product. Attributes can be dynamically assigned
-        to products and variants at the product type level."""
+        description = """Custom attribute of a product. Attributes can be
+        dynamically assigned to products and variants at the product type
+        level."""
         exclude_fields = ['product_types', 'product_variant_types']
         interfaces = [relay.Node]
         filter_fields = ['id', 'slug']
