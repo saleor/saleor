@@ -146,9 +146,11 @@ def cancel_payment(request, order):
 @csrf_exempt
 def payment_success(request, token):
     """Receive request from payment gateway after paying for an order.
-    Redirect user to payment success.
+
+    Redirects user to payment success.
+    All post data and query strings are dropped.
     """
-    url = reverse('order:checkout-success',kwargs={'token': token})
+    url = reverse('order:checkout-success', kwargs={'token': token})
     return redirect(url)
 
 
