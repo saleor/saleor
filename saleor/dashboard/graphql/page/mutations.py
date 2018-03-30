@@ -9,17 +9,17 @@ from ..core.mutations import (
 
 class PageCreate(StaffMemberRequiredMutation, ModelFormMutation):
     class Meta:
-        description = "Creates a new page."
+        description = 'Creates a new page.'
         form_class = PageForm
 
 
 class PageUpdate(StaffMemberRequiredMutation, ModelFormUpdateMutation):
     class Meta:
-        description = "Updates a existing page."
+        description = 'Updates an existing page.'
         form_class = PageForm
 
 
 class PageDelete(StaffMemberRequiredMutation, ModelDeleteMutation):
     class Meta:
-        description = "Permanently deletes a page."
+        description = 'Deletes a page.'
         model = models.Page

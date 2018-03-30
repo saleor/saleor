@@ -8,7 +8,8 @@ class Page(CountableDjangoObjectType):
     class Meta:
         description = """
         A static page that can be manually added by staff users through
-        the dashboard."""
+        the dashboard.
+        """
         model = models.Page
         interfaces = [relay.Node]
 

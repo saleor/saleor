@@ -6,40 +6,48 @@ from graphql_jwt.decorators import staff_member_required
 
 from ...graphql.core.filters import DistinctFilterSet
 from ...graphql.page.types import Page
-from ...graphql.product.types import Category, Product, resolve_categories
+from ...graphql.product.types import (
+    Category, Product, ProductAttribute, resolve_categories)
 from ...graphql.utils import get_node
-from ...product import models as product_models
 from .page.mutations import PageCreate, PageDelete, PageUpdate
 from .page.types import resolve_all_pages
 from .product.filters import ProductFilter
 from .product.mutations import (
     CategoryCreateMutation, CategoryDelete, CategoryUpdateMutation,
     ProductCreateMutation, ProductDeleteMutation, ProductUpdateMutation)
+from .product.types import resolve_attributes, resolve_products
 
 
 class Query(graphene.ObjectType):
-    node = graphene.Node.Field()
-    debug = graphene.Field(DjangoDebug, name='__debug')
-
+    attributes = DjangoFilterConnectionField(
+        ProductAttribute, filterset_class=DistinctFilterSet,
+        description='A list of the shop\'s attributes.')
     categories = DjangoFilterConnectionField(
         Category, filterset_class=DistinctFilterSet,
         level=graphene.Argument(graphene.Int),
-        description="A list of shop's categories.")
+        description='List of shop\'s categories.')
     category = graphene.Field(
         Category, id=graphene.Argument(graphene.ID),
-        description="Lookup a category by ID.")
-
+        description='Lookup a category by ID.')
     page = graphene.Field(
         Page, id=graphene.Argument(graphene.ID),
-        description="Lookup a page by ID.")
+        description='Lookup a page by ID.')
     pages = DjangoFilterConnectionField(
         Page, filterset_class=DistinctFilterSet,
-        description="A list of shop's pages.")
-
-    product = graphene.Field(Product, id=graphene.Argument(graphene.ID))
+        description='List of shop\'s pages.')
+    product = graphene.Field(
+        Product, id=graphene.Argument(graphene.ID),
+        description='Lookup a product by ID.')
     products = DjangoFilterConnectionField(
         Product, filterset_class=ProductFilter,
-        category_id=graphene.Argument(graphene.ID))
+        category_id=graphene.Argument(graphene.ID),
+        description='List of shop\'s products.')
+    node = graphene.Node.Field()
+    debug = graphene.Field(DjangoDebug, name='__debug')
+
+    @staff_member_required
+    def resolve_attributes(self, info):
+        return resolve_attributes()
 
     @staff_member_required
     def resolve_category(self, info, id):
@@ -63,11 +71,7 @@ class Query(graphene.ObjectType):
 
     @staff_member_required
     def resolve_products(self, info, category_id=None, **kwargs):
-        if category_id is not None:
-            category = get_node(info, category_id, only_type=Category)
-            return product_models.Product.objects.filter(
-                category=category).distinct()
-        return product_models.Product.objects.all().distinct()
+        return resolve_products(info, category_id)
 
 
 class Mutations(graphene.ObjectType):
@@ -78,6 +82,10 @@ class Mutations(graphene.ObjectType):
     page_create = PageCreate.Field()
     page_delete = PageDelete.Field()
     page_update = PageUpdate.Field()
+
+    product_create = ProductCreateMutation.Field()
+    product_delete = ProductDeleteMutation.Field()
+    product_update = ProductUpdateMutation.Field()
 
     token_auth = graphql_jwt.ObtainJSONWebToken.Field()
     verify_token = graphql_jwt.Verify.Field()

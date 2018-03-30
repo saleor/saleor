@@ -8,7 +8,7 @@ class CountableConnection(graphene.relay.Connection):
         abstract = True
 
     total_count = graphene.Int(
-        description="A total count of items in the collection")
+        description='A total count of items in the collection')
 
     @staticmethod
     def resolve_total_count(root, info, *args, **kwargs):
@@ -30,20 +30,21 @@ class CountableDjangoObjectType(DjangoObjectType):
 
 
 class Error(graphene.ObjectType):
-    field = graphene.String()
-    message = graphene.String()
+    field = graphene.String(
+        description='Name of a field that caused the error.')
+    message = graphene.String(description='The error message.')
 
     class Meta:
-        description = "Represents an error in the input of a mutation."
+        description = 'Represents an error in the input of a mutation.'
 
 
 class Money(graphene.ObjectType):
-    currency = graphene.String(description="")
+    currency = graphene.String()
     amount = graphene.Float()
     localized = graphene.String()
 
     class Meta:
-        description = "Represents money."
+        description = 'Basic representation of money.'
 
     def resolve_localized(self, info):
         return prices_i18n.amount(self)
@@ -55,7 +56,7 @@ class TaxedMoney(graphene.ObjectType):
     net = graphene.Field(Money)
 
     class Meta:
-        description = "Represents taxed money."
+        description = 'Monetary value including '
 
 
 class TaxedMoneyRange(graphene.ObjectType):
@@ -63,4 +64,4 @@ class TaxedMoneyRange(graphene.ObjectType):
     stop = graphene.Field(TaxedMoney)
 
     class Meta:
-        description = "Represents a range of monetary values."
+        description = 'Represents a range of monetary values.'
