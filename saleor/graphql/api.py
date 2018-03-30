@@ -17,11 +17,11 @@ class Query(graphene.ObjectType):
     attributes = DjangoFilterConnectionField(
         ProductAttribute, filterset_class=DistinctFilterSet,
         in_category=graphene.Argument(graphene.ID),
-        description='A list of the shop\'s attributes.')
+        description='List of the shop\'s product attributes.')
     categories = DjangoFilterConnectionField(
         Category, filterset_class=DistinctFilterSet,
         level=graphene.Argument(graphene.Int),
-        description='A list of the shop\'s categories.')
+        description='List of the shop\'s categories.')
     category = graphene.Field(
         Category, id=graphene.Argument(graphene.ID),
         description='Lookup a category by ID.')
@@ -31,13 +31,13 @@ class Query(graphene.ObjectType):
     pages = DjangoFilterConnectionField(
         Page, filterset_class=DistinctFilterSet,
         level=graphene.Argument(graphene.Int),
-        description='A list of the shop\'s pages.')
+        description='List of the shop\'s pages.')
     product = graphene.Field(
         Product, id=graphene.Argument(graphene.ID),
         description='Lookup a product by ID.')
     products = DjangoFilterConnectionField(
         Product, filterset_class=ProductFilterSet,
-        description='A list of the shop\'s products.')
+        description='List of the shop\'s products.')
     node = graphene.Node.Field()
     debug = graphene.Field(DjangoDebug, name='__debug')
 
