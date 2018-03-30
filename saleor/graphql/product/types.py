@@ -13,6 +13,27 @@ from ..utils import get_node
 from .filters import ProductFilterSet
 
 
+class SelectedAttribute(graphene.ObjectType):
+    name = graphene.String(default_value=None)
+    value = graphene.String(default_value=None)
+
+
+class ProductVariant(CountableDjangoObjectType):
+    stock_quantity = graphene.Int()
+    price_override = graphene.Field(Money)
+    attributes = graphene.List(SelectedAttribute)
+
+    class Meta:
+        model = models.ProductVariant
+        interfaces = [relay.Node]
+
+    def resolve_stock_quantity(self, info):
+        return self.get_stock_quantity()
+
+    def resolve_attributes(self, info):
+        return resolve_attribute_list(self.attributes)
+
+
 class ProductAvailability(graphene.ObjectType):
     available = graphene.Boolean()
     on_sale = graphene.Boolean()
@@ -29,10 +50,9 @@ class Product(CountableDjangoObjectType):
         size=graphene.Argument(
             graphene.String,
             description='The size of a thumbnail, for example 255x255'))
-    images = graphene.List(lambda: ProductImage)
-    variants = graphene.List(lambda: ProductVariant)
     availability = graphene.Field(ProductAvailability)
     price = graphene.Field(Money)
+    attributes = graphene.List(SelectedAttribute)
 
     class Meta:
         model = models.Product
@@ -43,12 +63,6 @@ class Product(CountableDjangoObjectType):
             size = '255x255'
         return product_first_image(self, size)
 
-    def resolve_images(self, info):
-        return self.images.all()
-
-    def resolve_variants(self, info):
-        return self.variants.all()
-
     def resolve_url(self, info):
         return self.get_absolute_url()
 
@@ -57,6 +71,18 @@ class Product(CountableDjangoObjectType):
         availability = get_availability(
             self, context.discounts, context.currency)
         return ProductAvailability(**availability._asdict())
+
+    def resolve_attributes(self, info):
+        return resolve_attribute_list(self.attributes)
+
+
+class ProductType(CountableDjangoObjectType):
+    products = DjangoFilterConnectionField(
+        Product, filterset_class=ProductFilterSet)
+
+    class Meta:
+        model = models.ProductType
+        interfaces = [relay.Node]
 
 
 class Category(CountableDjangoObjectType):
@@ -94,18 +120,6 @@ class Category(CountableDjangoObjectType):
         return qs.distinct()
 
 
-class ProductVariant(CountableDjangoObjectType):
-    stock_quantity = graphene.Int()
-    price_override = graphene.Field(Money)
-
-    class Meta:
-        model = models.ProductVariant
-        interfaces = [relay.Node]
-
-    def resolve_stock_quantity(self, info):
-        return self.get_stock_quantity()
-
-
 class ProductImage(CountableDjangoObjectType):
     url = graphene.String(size=graphene.String())
 
@@ -135,6 +149,26 @@ class ProductAttribute(CountableDjangoObjectType):
 
     def resolve_values(self, info):
         return self.values.all()
+
+
+def resolve_attribute_list(attributes=None):
+    """
+    :param attributes: dict
+    :return: list of objects of type SelectedAttribute
+    """
+    attribute_list = []
+    if attributes:
+        product_attributes = dict(
+            models.ProductAttribute.objects.values_list('id', 'slug'))
+        attribute_values = dict(
+            models.AttributeChoiceValue.objects.values_list('id', 'slug'))
+        for k, v in attributes.items():
+            value = None
+            name = product_attributes.get(int(k))
+            if v:
+                value = attribute_values.get(int(v))
+            attribute_list.append(SelectedAttribute(name=name, value=value))
+    return attribute_list
 
 
 def resolve_categories(info, level=None):

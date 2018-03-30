@@ -9,15 +9,19 @@ from graphql_jwt.decorators import staff_member_required
 
 from ...graphql.core.types import Error
 from ...graphql.utils import get_node
+from .utils import get_attributes_dict_from_list
 
 registry = get_global_registry()
 
 
-def convert_form_fields(form_class):
+def convert_form_fields(form_class, exclude=None):
     """Convert form fields to Graphene fields"""
     fields = OrderedDict()
+    if exclude is None:
+        exclude = []
     for name, field in form_class.base_fields.items():
-        fields[name] = convert_form_field(field)
+        if name not in exclude:
+            fields[name] = convert_form_field(field)
     return fields
 
 
@@ -115,7 +119,7 @@ class ModelFormMutation(BaseMutation):
     @classmethod
     def __init_subclass_with_meta__(
             cls, arguments=None, form_class=None, return_field_name=None,
-            _meta=None, **options):
+            _meta=None, exclude=None, **options):
         if not form_class:
             raise ImproperlyConfigured(
                 'form_class are required for ModelFormMutation')
@@ -126,7 +130,7 @@ class ModelFormMutation(BaseMutation):
             return_field_name = get_model_name(model)
         fields = get_output_fields(model, return_field_name)
         # get mutation arguments based on model form
-        arguments = convert_form_fields(form_class)
+        arguments = convert_form_fields(form_class, exclude)
 
         _meta.form_class = form_class
         _meta.model = model

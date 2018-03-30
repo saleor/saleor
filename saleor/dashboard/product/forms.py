@@ -15,7 +15,7 @@ from ...product.models import (
     ProductImage, ProductType, ProductVariant, Stock, StockLocation,
     VariantImage)
 from ...product.thumbnails import create_product_thumbnails
-from ..forms import OrderedModelMultipleChoiceField, ModelChoiceOrCreationField
+from ..forms import ModelChoiceOrCreationField, OrderedModelMultipleChoiceField
 from ..seo.fields import SeoDescriptionField, SeoTitleField
 from ..seo.utils import prepare_seo_description
 from ..widgets import RichTextEditorWidget
