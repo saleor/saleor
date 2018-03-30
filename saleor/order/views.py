@@ -7,6 +7,7 @@ from django.db import transaction
 from django.http import Http404, HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect
 from django.template.response import TemplateResponse
+from django.urls import reverse
 from django.utils.translation import pgettext_lazy
 from django.views.decorators.csrf import csrf_exempt
 from payments import PaymentStatus, RedirectNeeded
@@ -143,6 +144,14 @@ def cancel_payment(request, order):
 
 
 @csrf_exempt
+def payment_success(request, token):
+    """Receive request from payment gateway after paying for an order.
+    Redirect user to payment success.
+    """
+    url = reverse('order:checkout-success',kwargs={'token': token})
+    return redirect(url)
+
+
 def checkout_success(request, token):
     """Redirect user after placing an order.
 
