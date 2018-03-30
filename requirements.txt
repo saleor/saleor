@@ -29,6 +29,7 @@ django-bootstrap4==0.0.5
 django-cache-url==2.0.0
 django-celery-results==1.0.1
 django-countries==5.2
+django-debug-toolbar==1.9.1
 django-elasticsearch-dsl==0.4.4
 django-environ==0.4.4     # via django-graphql-jwt
 django-filter==1.1
@@ -99,6 +100,7 @@ singledispatch==3.4.0.3   # via graphene-django
 six==1.11.0               # via bleach, cryptography, django-environ, django-templated-email, elasticsearch-dsl, faker, freezegun, graphene, graphene-django, graphql-core, graphql-relay, html5lib, promise, purl, pytest, python-dateutil, singledispatch, social-auth-app-django, social-auth-core, vcrpy
 social-auth-app-django==2.1.0
 social-auth-core==1.6.0   # via social-auth-app-django
+sqlparse==0.2.4           # via django-debug-toolbar
 stripe==1.77.1            # via django-payments
 suds-jurko==0.6           # via django-payments
 text-unidecode==1.1

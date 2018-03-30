@@ -53,15 +53,12 @@ urlpatterns = non_translatable_urlpatterns + i18n_patterns(
     *translatable_urlpatterns)
 
 if settings.DEBUG:
-    # static files (images, css, javascript, etc.)
-    urlpatterns += [
-        url(r'^static/(?P<path>.*)$', serve)] + static(
-            settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
-
-if settings.ENABLE_DEBUG_TOOLBAR:
     import debug_toolbar
     urlpatterns += [
-        url(r'^__debug__/', include(debug_toolbar.urls))]
+        url(r'^__debug__/', include(debug_toolbar.urls)),
+        # static files (images, css, javascript, etc.)
+        url(r'^static/(?P<path>.*)$', serve)] + static(
+            settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 if settings.ENABLE_SILK:
     urlpatterns += [
