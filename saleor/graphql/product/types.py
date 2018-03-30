@@ -14,19 +14,29 @@ from .filters import ProductFilterSet
 
 
 class SelectedAttribute(graphene.ObjectType):
-    name = graphene.String(default_value=None)
-    value = graphene.String(default_value=None)
+    name = graphene.String(
+        default_value=None,
+        description='Name of an attribute')
+    value = graphene.String(
+        default_value=None,
+        description='Value of an attribute.')
+
+    class Meta:
+        description = 'Represents a custom product attribute.'
 
 
 class ProductVariant(CountableDjangoObjectType):
     stock_quantity = graphene.Int(
-        required=True, description='Quantity of a product available for sale.')
+        required=True,
+        description='Quantity of a product available for sale.')
     price_override = graphene.Field(
         Money,
         description="""
         Override the base price of a product if necessary. A value of `null`
         indicates the the default product price is used.""")
-    attributes = graphene.List(SelectedAttribute)
+    attributes = graphene.List(
+        SelectedAttribute,
+        description='List of attributes assigned to this variant.')
 
     class Meta:
         description = """
@@ -63,23 +73,22 @@ class Product(CountableDjangoObjectType):
         size=graphene.Argument(
             graphene.String,
             description='Size of a thumbnail, for example 255x255.'))
-    images = graphene.List(
-        lambda: ProductImage, description='List of product images.')
-    variants = graphene.List(
-        lambda: ProductVariant, description='List of product variants.')
     availability = graphene.Field(
         ProductAvailability,
         description="""
-        Informs about product\'s availability in the storefront, current price
+        Informs about product's availability in the storefront, current price
         and discounts.""")
     price = graphene.Field(
         Money,
         description="""
-        The product\'s base price (without any discounts applied).""")
-    attributes = graphene.List(SelectedAttribute)
+        The product's base price (without any discounts applied).""")
+    attributes = graphene.List(
+        SelectedAttribute,
+        description='List of product attributes assigned to this product.')
 
     class Meta:
-        description = 'Represents an individual item for sale in the storefront.'
+        description = """
+        Represents an individual item for sale in the storefront."""
         interfaces = [relay.Node]
         model = models.Product
 
@@ -103,11 +112,15 @@ class Product(CountableDjangoObjectType):
 
 class ProductType(CountableDjangoObjectType):
     products = DjangoFilterConnectionField(
-        Product, filterset_class=ProductFilterSet)
+        Product, filterset_class=ProductFilterSet,
+        description='List of products of this type.')
 
     class Meta:
-        model = models.ProductType
+        description = """
+        Represents a type of product. It defines what attributes are available
+        to products of this type."""
         interfaces = [relay.Node]
+        model = models.ProductType
 
 
 class Category(CountableDjangoObjectType):

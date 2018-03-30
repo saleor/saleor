@@ -17,27 +17,27 @@ class Query(graphene.ObjectType):
     attributes = DjangoFilterConnectionField(
         ProductAttribute, filterset_class=DistinctFilterSet,
         in_category=graphene.Argument(graphene.ID),
-        description="A list of the shop's attributes.")
+        description='A list of the shop\'s attributes.')
     categories = DjangoFilterConnectionField(
         Category, filterset_class=DistinctFilterSet,
         level=graphene.Argument(graphene.Int),
-        description="A list of the shop's categories.")
+        description='A list of the shop\'s categories.')
     category = graphene.Field(
         Category, id=graphene.Argument(graphene.ID),
-        description="Lookup a category by ID.")
+        description='Lookup a category by ID.')
     page = graphene.Field(
         Page, id=graphene.Argument(graphene.ID), slug=graphene.String(),
-        description="Lookup a page by ID or by slug.")
+        description='Lookup a page by ID or by slug.')
     pages = DjangoFilterConnectionField(
         Page, filterset_class=DistinctFilterSet,
         level=graphene.Argument(graphene.Int),
-        description="A list of the shop's pages.")
+        description='A list of the shop\'s pages.')
     product = graphene.Field(
         Product, id=graphene.Argument(graphene.ID),
-        description="Lookup a product by ID.")
+        description='Lookup a product by ID.')
     products = DjangoFilterConnectionField(
         Product, filterset_class=ProductFilterSet,
-        description="A list of the shop's products.")
+        description='A list of the shop\'s products.')
     node = graphene.Node.Field()
     debug = graphene.Field(DjangoDebug, name='__debug')
 
@@ -50,7 +50,6 @@ class Query(graphene.ObjectType):
     def resolve_page(self, info, id=None, slug=None):
         if slug is not None:
             return page_models.Page.objects.get(slug=slug)
-
         return get_node(info, id, only_type=Page)
 
     def resolve_pages(self, info):

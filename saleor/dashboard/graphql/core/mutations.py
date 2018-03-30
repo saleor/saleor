@@ -34,13 +34,13 @@ def convert_form_errors(form):
 
 
 def get_model_name(model):
-    """Return name of the model with first letter lowercase"""
+    """Return name of the model with first letter lowercase."""
     model_name = model.__name__
     return model_name[:1].lower() + model_name[1:]
 
 
 def get_output_fields(model, return_field_name):
-    """Return mutation output field for model instance"""
+    """Return mutation output field for model instance."""
     model_type = registry.get_type_for_model(model)
     fields = {return_field_name: graphene.Field(model_type)}
     return fields
@@ -49,7 +49,7 @@ def get_output_fields(model, return_field_name):
 class BaseMutation(graphene.Mutation):
     errors = graphene.List(
         Error,
-        description="List of errors that occurred executing the mutation.")
+        description='List of errors that occurred executing the mutation.')
 
     class Meta:
         abstract = True
