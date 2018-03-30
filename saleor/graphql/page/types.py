@@ -6,10 +6,8 @@ from ..core.types import CountableDjangoObjectType
 
 class Page(CountableDjangoObjectType):
     class Meta:
-        description = """
-        A static page that can be manually added by staff users through
-        the dashboard.
-        """
+        description = """A static page that can be manually added by a shop
+        operator through the dashboard."""
         model = models.Page
         interfaces = [relay.Node]
 

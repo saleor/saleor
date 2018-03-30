@@ -39,29 +39,34 @@ class Error(graphene.ObjectType):
 
 
 class Money(graphene.ObjectType):
-    currency = graphene.String()
-    amount = graphene.Float()
-    localized = graphene.String()
+    currency = graphene.String(description='Currency code.')
+    amount = graphene.Float(description='Amount of money.')
+    localized = graphene.String(
+        description='Money formatted according to the current locale.')
 
     class Meta:
-        description = 'Basic representation of money.'
+        description = 'Represents amount of money in specific currency.'
 
     def resolve_localized(self, info):
         return prices_i18n.amount(self)
 
 
 class TaxedMoney(graphene.ObjectType):
-    currency = graphene.String()
-    gross = graphene.Field(Money)
-    net = graphene.Field(Money)
+    gross = graphene.Field(
+        Money, description='Amount of money including taxes.')
+    net = graphene.Field(Money, description='Amount of money without taxes.')
 
     class Meta:
-        description = 'Monetary value including '
+        description = """Represents a monetary value with taxes. In
+        case when taxes were not applied, net and gross values will be equal.
+        """
 
 
 class TaxedMoneyRange(graphene.ObjectType):
-    start = graphene.Field(TaxedMoney)
-    stop = graphene.Field(TaxedMoney)
+    start = graphene.Field(
+        TaxedMoney, description='Lower bound of a price range.')
+    stop = graphene.Field(
+        TaxedMoney, description='Upper bound of a price range.')
 
     class Meta:
         description = 'Represents a range of monetary values.'
