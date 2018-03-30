@@ -1,18 +1,21 @@
 Debug tools
 ===========
 
-We have built in support for some debug tools, turned off by default.
-You can control them with environmental variables:
+We have built in support for some of the debug tools.
 
-``ENABLE_DEBUG_TOOLBAR``
-  Controls `django-debug-toolbar <https://github.com/jazzband/django-debug-toolbar>`. Defaults to ``False``
+Django debug toolbar
+--------------------
+
+`Django Debug Toolbar <https://github.com/jazzband/django-debug-toolbar>` is turned on if Django is running in debug mode.
+
+Silk
+----
+
+Silk's presence can be controled via environmental variable
 
 ``ENABLE_SILK``
   Controls `django-silk <https://github.com/jazzband/django-silk>`. Defaults to ``False``
 
-
-Enabling Silk
------------------------------
 #. Set environment variable.
 
    .. code-block:: console
