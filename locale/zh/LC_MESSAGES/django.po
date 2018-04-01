@@ -4681,8 +4681,8 @@ msgstr "修改支付方式"
 
 #: templates/order/payment/default.html:19
 msgctxt "Payment form primary action"
-msgid "Save changes"
-msgstr "保存变更"
+msgid "Make payment"
+msgstr ""
 
 #: templates/order/payment/details.html:4
 msgctxt "Payment form page title"

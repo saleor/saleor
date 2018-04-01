@@ -4752,8 +4752,8 @@ msgstr "Zmień metodę płatności"
 
 #: templates/order/payment/default.html:19
 msgctxt "Payment form primary action"
-msgid "Save changes"
-msgstr "Zapisz zmiany"
+msgid "Make payment"
+msgstr ""
 
 #: templates/order/payment/details.html:4
 msgctxt "Payment form page title"

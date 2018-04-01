@@ -4774,8 +4774,8 @@ msgstr "Промяна на плащането"
 
 #: templates/order/payment/default.html:19
 msgctxt "Payment form primary action"
-msgid "Save changes"
-msgstr "Запази промените"
+msgid "Make payment"
+msgstr ""
 
 #: templates/order/payment/details.html:4
 msgctxt "Payment form page title"
