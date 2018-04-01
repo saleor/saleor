@@ -4684,7 +4684,7 @@ msgstr ""
 
 #: templates/order/payment/default.html:19
 msgctxt "Payment form primary action"
-msgid "Save changes"
+msgid "Make payment"
 msgstr ""
 
 #: templates/order/payment/details.html:4
