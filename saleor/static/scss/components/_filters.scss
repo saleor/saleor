@@ -83,9 +83,6 @@
     }
   }
   &__title {
-    @include media-breakpoint-down(sm) {
-      padding: $global-padding *2 0;
-    }
     @media (max-width: 370px) {
       padding-top: 5rem;
     }
@@ -158,20 +155,14 @@
     border-radius: 50%;
   }
   &__wrapper {
-    @include media-breakpoint-down(sm) {
-      padding-top: 8px;
-    }
+    padding: 0 0 $global-padding * 2 0;
   }
 }
 
-.filters-toggle {
-  margin: 1.1rem 0 1rem;
-  cursor: pointer;
-}
 .sort-by {
   text-align: right;
   position: relative;
-  margin: 1rem 0 1rem 5rem;
+  margin: 1rem 0 1rem auto;
   .btn-link {
     padding-right: $global-padding;
     color: $body-color;
@@ -268,4 +259,10 @@
 .load-more {
   clear: both;
   text-align: center;
+}
+
+@include media-breakpoint-up(md) {
+  .d-md-hidden {
+    visibility: hidden;
+  }
 }
