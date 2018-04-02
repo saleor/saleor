@@ -1,0 +1,18 @@
+#cookie-prompter {
+  background-color: $body-color;
+  padding: 10px 0;
+  color: $white;
+  box-shadow: $body-color 0 0 8px;
+  text-align: center;
+
+  // hide cookie prompter box by default
+  display: none;
+
+  // put the cookie prompter at the top
+  // and at the bottom of the screen
+  z-index: 1;
+  position: fixed;
+  width: 100%;
+  bottom: 0;
+  left: 0;
+}
