@@ -9,7 +9,7 @@ from ...core.exceptions import InsufficientStock
 from ...order.emails import send_order_confirmation
 from ..forms import (
     AnonymousUserBillingForm, BillingAddressesForm,
-    BillingWithoutShippingAddressForm, NoteForm, ContractAcceptanceForm)
+    BillingWithoutShippingAddressForm, ContractAcceptanceForm, NoteForm)
 
 
 def create_order(checkout):

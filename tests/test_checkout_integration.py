@@ -18,8 +18,8 @@ def test_checkout_flow(
     shipping_address = client.get(checkout_index.request['PATH_INFO'])
 
     # Enter shipping address data
-    shipping_data = {
-        'email': 'test@example.com', **billing_address.as_data()}
+    shipping_data = dict(
+        email='test@example.com', **billing_address.as_data())
     shipping_response = client.post(
         shipping_address.request['PATH_INFO'], data=shipping_data, follow=True)
 
@@ -221,8 +221,8 @@ def test_voucher_invalid(
     shipping_address = client.get(checkout_index.request['PATH_INFO'])
 
     # Enter shipping address data
-    shipping_data = {
-        'email': 'test@example.com', **billing_address.as_data()}
+    shipping_data = dict(
+        email='test@example.com', **billing_address.as_data())
     shipping_response = client.post(shipping_address.request['PATH_INFO'],
                                     data=shipping_data, follow=True)
 
@@ -263,8 +263,8 @@ def test_voucher_code_invalid(
     shipping_address = client.get(checkout_index.request['PATH_INFO'])
 
     # Enter shipping address data
-    shipping_data = {
-        'email': 'test@example.com', **billing_address.as_data()}
+    shipping_data = dict(
+        email='test@example.com', **billing_address.as_data())
     shipping_response = client.post(shipping_address.request['PATH_INFO'],
                                     data=shipping_data, follow=True)
 
@@ -298,8 +298,8 @@ def test_remove_voucher(
     shipping_address = client.get(checkout_index.request['PATH_INFO'])
 
     # Enter shipping address data
-    shipping_data = {
-        'email': 'test@example.com', **billing_address.as_data()}
+    shipping_data = dict(
+        email='test@example.com', **billing_address.as_data())
     shipping_response = client.post(shipping_address.request['PATH_INFO'],
                                     data=shipping_data, follow=True)
 
@@ -425,8 +425,8 @@ def test_checkout_anonymous_without_shipping_selling_contract_is_required(
 
     # Summary page asks for Billing address, default is the same as shipping
     # We are try to place an order without accepting the contract
-    billing_address_data = {
-        'email': 'test@example.com', **billing_address.as_data()}
+    billing_address_data = dict(
+        email='test@example.com', **billing_address.as_data())
     billing_address_response = client.post(
         billing_address_url, data=billing_address_data)
 
