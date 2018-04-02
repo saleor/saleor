@@ -207,16 +207,14 @@ def summary_without_shipping(request, checkout):
         addresses_form = BillingWithoutShippingAddressForm(
             request.POST or None, additional_addresses=user_addresses)
 
-    if addresses_form.is_valid():
+    if selling_contract_form.accepted and addresses_form.is_valid():
         address_id = addresses_form.cleaned_data['address']
-
-        if selling_contract_form.accepted:
-            if address_id != BillingWithoutShippingAddressForm.NEW_ADDRESS:
-                checkout.billing_address = user_addresses.get(id=address_id)
-                return handle_order_placement(request, checkout)
-            elif address_form.is_valid() and not preview:
-                checkout.billing_address = address_form.instance
-                return handle_order_placement(request, checkout)
+        if address_id != BillingWithoutShippingAddressForm.NEW_ADDRESS:
+            checkout.billing_address = user_addresses.get(id=address_id)
+            return handle_order_placement(request, checkout)
+        elif address_form.is_valid() and not preview:
+            checkout.billing_address = address_form.instance
+            return handle_order_placement(request, checkout)
 
     return TemplateResponse(
         request, 'checkout/summary_without_shipping.html', context={
