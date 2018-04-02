@@ -1,0 +1,7 @@
+{% load i18n %}
+{% load bootstrap_form from bootstrap4 %}
+
+<div>
+  <h2>{% trans "Add a note to your order" context "Checkout summary without shipping note title" %}</h2>
+  {% bootstrap_form note_form show_label=False %}
+</div>

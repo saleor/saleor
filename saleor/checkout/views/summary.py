@@ -9,7 +9,7 @@ from ...core.exceptions import InsufficientStock
 from ...order.emails import send_order_confirmation
 from ..forms import (
     AnonymousUserBillingForm, BillingAddressesForm,
-    BillingWithoutShippingAddressForm, NoteForm)
+    BillingWithoutShippingAddressForm, NoteForm, ContractAcceptanceForm)
 
 
 def create_order(checkout):
@@ -45,6 +45,11 @@ def handle_order_placement(request, checkout):
         msg = pgettext('Checkout warning', 'Please review your checkout.')
         messages.warning(request, msg)
     return redirect_url
+
+
+def get_contract_acceptance_form(data):
+    contract_form = ContractAcceptanceForm(data or None)
+    return contract_form
 
 
 def get_billing_forms_with_shipping(
@@ -93,7 +98,9 @@ def summary_with_shipping_view(request, checkout):
 
     Will create an order if all data is valid.
     """
+    selling_contract_form = get_contract_acceptance_form(request.POST)
     note_form = NoteForm(request.POST or None, checkout=checkout)
+
     if note_form.is_valid():
         note_form.set_checkout_note()
 
@@ -101,18 +108,22 @@ def summary_with_shipping_view(request, checkout):
         additional_addresses = request.user.addresses.all()
     else:
         additional_addresses = Address.objects.none()
+
     address_form, addresses_form, address = get_billing_forms_with_shipping(
         request.POST or None, additional_addresses,
         checkout.billing_address or Address(country=request.country),
         checkout.shipping_address)
-    if address is not None:
+
+    if selling_contract_form.accepted and address is not None:
         checkout.billing_address = address
         return handle_order_placement(request, checkout)
+
     return TemplateResponse(
         request, 'checkout/summary.html', context={
             'addresses_form': addresses_form, 'address_form': address_form,
             'checkout': checkout,
             'additional_addresses': additional_addresses,
+            'selling_contract_form': selling_contract_form,
             'note_form': note_form})
 
 
@@ -121,12 +132,16 @@ def anonymous_summary_without_shipping(request, checkout):
 
     Will create an order if all data is valid.
     """
+    selling_contract_form = get_contract_acceptance_form(request.POST)
     note_form = NoteForm(request.POST or None, checkout=checkout)
+
     if note_form.is_valid():
         note_form.set_checkout_note()
+
     user_form = AnonymousUserBillingForm(
         request.POST or None, initial={'email': checkout.email})
     billing_address = checkout.billing_address
+
     if billing_address:
         address_form, preview = get_address_form(
             request.POST or None, country_code=billing_address.country.code,
@@ -135,14 +150,22 @@ def anonymous_summary_without_shipping(request, checkout):
         address_form, preview = get_address_form(
             request.POST or None, country_code=request.country.code,
             autocomplete_type='billing', initial={'country': request.country})
-    if all([user_form.is_valid(), address_form.is_valid()]) and not preview:
+
+    form_is_valid = all([
+        selling_contract_form.accepted,
+        user_form.is_valid(),
+        address_form.is_valid()])
+
+    if form_is_valid and not preview:
         checkout.email = user_form.cleaned_data['email']
         checkout.billing_address = address_form.instance
         return handle_order_placement(request, checkout)
+
     return TemplateResponse(
         request, 'checkout/summary_without_shipping.html', context={
             'user_form': user_form, 'address_form': address_form,
             'checkout': checkout,
+            'selling_contract_form': selling_contract_form,
             'note_form': note_form})
 
 
@@ -151,12 +174,15 @@ def summary_without_shipping(request, checkout):
 
     Will create an order if all data is valid.
     """
+    selling_contract_form = get_contract_acceptance_form(request.POST)
     note_form = NoteForm(request.POST or None, checkout=checkout)
+
     if note_form.is_valid():
         note_form.set_checkout_note()
 
     billing_address = checkout.billing_address
     user_addresses = request.user.addresses.all()
+
     if billing_address and billing_address.id:
         address_form, preview = get_address_form(
             request.POST or None, autocomplete_type='billing',
@@ -183,14 +209,18 @@ def summary_without_shipping(request, checkout):
 
     if addresses_form.is_valid():
         address_id = addresses_form.cleaned_data['address']
-        if address_id != BillingWithoutShippingAddressForm.NEW_ADDRESS:
-            checkout.billing_address = user_addresses.get(id=address_id)
-            return handle_order_placement(request, checkout)
-        elif address_form.is_valid() and not preview:
-            checkout.billing_address = address_form.instance
-            return handle_order_placement(request, checkout)
+
+        if selling_contract_form.accepted:
+            if address_id != BillingWithoutShippingAddressForm.NEW_ADDRESS:
+                checkout.billing_address = user_addresses.get(id=address_id)
+                return handle_order_placement(request, checkout)
+            elif address_form.is_valid() and not preview:
+                checkout.billing_address = address_form.instance
+                return handle_order_placement(request, checkout)
+
     return TemplateResponse(
         request, 'checkout/summary_without_shipping.html', context={
             'addresses_form': addresses_form, 'address_form': address_form,
             'checkout': checkout, 'additional_addresses': user_addresses,
+            'selling_contract_form': selling_contract_form,
             'note_form': note_form})
