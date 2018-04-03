@@ -6,6 +6,7 @@ from django.contrib.postgres.fields import HStoreField
 from django.core.validators import MinValueValidator, RegexValidator
 from django.db import models
 from django.db.models import F, Max, Q
+from django.dispatch import receiver
 from django.urls import reverse
 from django.utils.encoding import smart_text
 from django.utils.text import slugify
@@ -19,16 +20,19 @@ from versatileimagefield.fields import PPOIField, VersatileImageField
 
 from ..core.exceptions import InsufficientStock
 from ..discount.utils import calculate_discounted_price
+from ..seo.models import SeoModel
 from .utils import get_attributes_display_map
 
 
-class Category(MPTTModel):
+class Category(MPTTModel, SeoModel):
     name = models.CharField(max_length=128)
     slug = models.SlugField(max_length=128)
     description = models.TextField(blank=True)
     parent = models.ForeignKey(
         'self', null=True, blank=True, related_name='children',
         on_delete=models.CASCADE)
+    background_image = VersatileImageField(
+        upload_to='category-backgrounds', blank=True, null=True)
 
     objects = models.Manager()
     tree = TreeManager()
@@ -87,7 +91,7 @@ class ProductQuerySet(models.QuerySet):
             Q(is_published=True))
 
 
-class Product(models.Model):
+class Product(SeoModel):
     product_type = models.ForeignKey(
         ProductType, related_name='products', on_delete=models.CASCADE)
     name = models.CharField(max_length=128)
@@ -98,7 +102,7 @@ class Product(models.Model):
         currency=settings.DEFAULT_CURRENCY, max_digits=12, decimal_places=2)
     available_on = models.DateField(blank=True, null=True)
     is_published = models.BooleanField(default=True)
-    attributes = HStoreField(default={})
+    attributes = HStoreField(default={}, blank=True)
     updated_at = models.DateTimeField(auto_now=True, null=True)
     is_featured = models.BooleanField(default=False)
 
@@ -150,12 +154,6 @@ class Product(models.Model):
         first_image = self.images.first()
         return first_image.image if first_image else None
 
-    def get_attribute(self, pk):
-        return self.attributes.get(smart_text(pk))
-
-    def set_attribute(self, pk, value_pk):
-        self.attributes[smart_text(pk)] = smart_text(value_pk)
-
     def get_price_per_item(self, item, discounts=None):
         return item.get_price_per_item(discounts)
 
@@ -188,7 +186,7 @@ class ProductVariant(models.Model):
         blank=True, null=True)
     product = models.ForeignKey(
         Product, related_name='variants', on_delete=models.CASCADE)
-    attributes = HStoreField(default={})
+    attributes = HStoreField(default={}, blank=True)
     images = models.ManyToManyField('ProductImage', through='VariantImage')
 
     class Meta:
@@ -231,12 +229,6 @@ class ProductVariant(models.Model):
         return any(
             [stock.quantity_available > 0 for stock in self.stock.all()])
 
-    def get_attribute(self, pk):
-        return self.attributes.get(smart_text(pk))
-
-    def set_attribute(self, pk, value_pk):
-        self.attributes[smart_text(pk)] = smart_text(value_pk)
-
     def display_variant_attributes(self, attributes=None):
         if attributes is None:
             attributes = self.product.product_type.variant_attributes.all()
@@ -264,7 +256,7 @@ class ProductVariant(models.Model):
         stock = [
             stock_item for stock_item in self.stock.all()
             if stock_item.quantity_available >= quantity]
-        zero_price = Money(0, currency=settings.DEFAULT_CURRENCY)
+        zero_price = Money(0, settings.DEFAULT_CURRENCY)
         stock = sorted(
             stock, key=(lambda s: s.cost_price or zero_price), reverse=False)
         if stock:
@@ -394,11 +386,13 @@ class VariantImage(models.Model):
         ProductImage, related_name='variant_images', on_delete=models.CASCADE)
 
 
-class Collection(models.Model):
+class Collection(SeoModel):
     name = models.CharField(max_length=128, unique=True)
     slug = models.SlugField(max_length=128)
     products = models.ManyToManyField(
         Product, blank=True, related_name='collections')
+    background_image = VersatileImageField(
+        upload_to='collection-backgrounds', blank=True, null=True)
 
     class Meta:
         ordering = ['pk']

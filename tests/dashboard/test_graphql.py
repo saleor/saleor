@@ -1,61 +1,64 @@
 import json
+from unittest.mock import patch
 
 import graphene
 import pytest
-from django import forms
 from django.shortcuts import reverse
+from django.utils.text import slugify
 
-from saleor.dashboard.category.forms import CategoryForm
-from saleor.dashboard.graphql.mutations import (
+from saleor.dashboard.graphql.core.mutations import (
     ModelFormMutation, ModelFormUpdateMutation)
-from saleor.product.models import Category, Product, ProductAttribute
 
 from ..utils import get_graphql_content
 
 
-class CategoryForm(forms.ModelForm):
-    class Meta:
-        model = Category
-        fields = ['name']
+@patch('saleor.dashboard.graphql.core.mutations.convert_form_fields')
+@patch('saleor.dashboard.graphql.core.mutations.convert_form_field')
+def test_model_form_mutation(
+        mocked_convert_form_field, mocked_convert_form_fields,
+        model_form_class):
 
+    mocked_convert_form_fields.return_value = {
+        model_form_class._meta.fields: mocked_convert_form_field.return_value}
 
-def test_model_form_mutation():
-    class CategoryMutation(ModelFormMutation):
+    class TestMutation(ModelFormMutation):
         test_field = graphene.String()
 
         class Arguments:
             test_input = graphene.String()
 
         class Meta:
-            form_class = CategoryForm
-            return_field_name = 'category'
+            form_class = model_form_class
+            return_field_name = 'test_return_field'
 
-    meta = CategoryMutation._meta
-    assert meta.form_class == CategoryForm
-    assert meta.model == CategoryForm._meta.model
-    assert meta.return_field_name == 'category'
-
+    meta = TestMutation._meta
+    assert meta.form_class == model_form_class
+    assert meta.model == 'test_model'
+    assert meta.return_field_name == 'test_return_field'
     arguments = meta.arguments
     # check if declarative arguments are present
     assert 'test_input' in arguments
     # check if model form field is present
-    assert 'name' in arguments
+    mocked_convert_form_fields.assert_called_with(model_form_class, None)
+    assert 'test_field' in arguments
 
     output_fields = meta.fields
-    assert 'category' in output_fields
+    assert 'test_return_field' in output_fields
     assert 'errors' in output_fields
 
 
-def test_model_form_update_mutation():
-    class CategoryUpdateMutation(ModelFormUpdateMutation):
+@patch('saleor.dashboard.graphql.core.mutations')
+def test_model_form_update_mutation(model_form_class):
+    class TestUpdateMutation(ModelFormUpdateMutation):
         class Meta:
-            form_class = CategoryForm
+            form_class = model_form_class
+            return_field_name = 'test_return_field'
 
-    meta = CategoryUpdateMutation._meta
+    meta = TestUpdateMutation._meta
     assert 'id' in meta.arguments
 
 
-def test_category_create_mutation(client):
+def test_category_create_mutation(admin_client):
     query = """
         mutation($name: String!, $description: String, $parentId: ID) {
             categoryCreate(
@@ -87,7 +90,7 @@ def test_category_create_mutation(client):
     # test creating root category
     variables = json.dumps({
         'name': category_name, 'description': category_description})
-    response = client.post(
+    response = admin_client.post(
         reverse('dashboard:api'), {'query': query, 'variables': variables})
     content = get_graphql_content(response)
     assert 'errors' not in content
@@ -102,7 +105,7 @@ def test_category_create_mutation(client):
     variables = json.dumps({
         'name': category_name, 'description': category_description,
         'parentId': parent_id})
-    response = client.post(
+    response = admin_client.post(
         reverse('dashboard:api'), {'query': query, 'variables': variables})
     content = get_graphql_content(response)
     assert 'errors' not in content
@@ -111,7 +114,7 @@ def test_category_create_mutation(client):
     assert data['category']['parent']['id'] == parent_id
 
 
-def test_category_update_mutation(client, default_category):
+def test_category_update_mutation(admin_client, default_category):
     query = """
         mutation($id: ID, $name: String!, $description: String) {
             categoryUpdate(
@@ -145,7 +148,7 @@ def test_category_update_mutation(client, default_category):
     variables = json.dumps({
         'name': category_name, 'description': category_description,
         'id': category_id})
-    response = client.post(
+    response = admin_client.post(
         reverse('dashboard:api'), {'query': query, 'variables': variables})
     content = get_graphql_content(response)
     assert 'errors' not in content
@@ -159,7 +162,7 @@ def test_category_update_mutation(client, default_category):
     assert data['category']['parent']['id'] == parent_id
 
 
-def test_category_delete_mutation(client, default_category):
+def test_category_delete_mutation(admin_client, default_category):
     query = """
         mutation($id: ID!) {
             categoryDelete(id: $id) {
@@ -175,11 +178,289 @@ def test_category_delete_mutation(client, default_category):
     """
     variables = json.dumps({
         'id': graphene.Node.to_global_id('Category', default_category.id)})
-    response = client.post(
+    response = admin_client.post(
         reverse('dashboard:api'), {'query': query, 'variables': variables})
     content = get_graphql_content(response)
     assert 'errors' not in content
     data = content['data']['categoryDelete']
     assert data['category']['name'] == default_category.name
-    with pytest.raises(Category.DoesNotExist):
+    with pytest.raises(default_category._meta.model.DoesNotExist):
         default_category.refresh_from_db()
+
+
+def test_page_create_mutation(admin_client):
+    query = """
+        mutation CreatePage(
+            $slug: String!,
+            $title: String!,
+            $content: String!,
+            $isVisible: Boolean!) {
+                pageCreate(slug: $slug,
+                title: $title,
+                content: $content,
+                isVisible: $isVisible) {
+                    page {
+                        id
+                        title
+                        content
+                        slug
+                        isVisible
+                      }
+                      errors {
+                        message
+                        field
+                      }
+                    }
+                  }
+    """
+    page_slug = 'test-slug'
+    page_content = 'test content'
+    page_title = 'test title'
+    page_isVisible = True
+
+    # test creating root page
+    variables = json.dumps({
+        'title': page_title, 'content': page_content,
+        'isVisible': page_isVisible, 'slug': page_slug})
+    response = admin_client.post(
+        reverse('dashboard:api'), {'query': query, 'variables': variables})
+    content = get_graphql_content(response)
+    assert 'errors' not in content
+    data = content['data']['pageCreate']
+    assert data['errors'] == []
+    assert data['page']['title'] == page_title
+    assert data['page']['content'] == page_content
+    assert data['page']['slug'] == page_slug
+    assert data['page']['isVisible'] == page_isVisible
+
+
+def test_page_delete_mutation(admin_client, page):
+    query = """
+        mutation DeletePage($id: ID!) {
+            pageDelete(id: $id) {
+                page {
+                    title
+                    id
+                }
+                errors {
+                    field
+                    message
+                }
+              }
+            }
+    """
+    variables = json.dumps({
+        'id': graphene.Node.to_global_id('Page', page.id)})
+    response = admin_client.post(
+        reverse('dashboard:api'), {'query': query, 'variables': variables})
+    content = get_graphql_content(response)
+    assert 'errors' not in content
+    data = content['data']['pageDelete']
+    assert data['page']['title'] == page.title
+    with pytest.raises(page._meta.model.DoesNotExist):
+        page.refresh_from_db()
+
+
+def test_create_product(
+        admin_client, product_type, default_category, size_attribute):
+    query = """
+        mutation createProduct(
+            $productTypeId: ID!,
+            $categoryId: ID!
+            $name: String!,
+            $description: String!,
+            $isPublished: Boolean!,
+            $isFeatured: Boolean!,
+            $price: Float!,
+            $attributes: [AttributeValueInput]) {
+                productCreate(
+                    categoryId: $categoryId,
+                    productTypeId: $productTypeId,
+                    name: $name,
+                    description: $description,
+                    isPublished: $isPublished,
+                    isFeatured: $isFeatured,
+                    price: $price,
+                    attributes: $attributes) {
+                        product {
+                            category{
+                                name
+                            }
+                            description
+                            isPublished
+                            isFeatured
+                            name
+                            price{
+                                amount
+                            }
+                            productType{
+                                name
+                            }
+                            attributes{
+                                name
+                                value
+                            }
+                          }
+                          errors {
+                            message
+                            field
+                          }
+                        }
+                      }
+    """
+
+    product_type_id = graphene.Node.to_global_id(
+        'ProductType', product_type.pk)
+    category_id = graphene.Node.to_global_id(
+        'Category', default_category.pk)
+    product_description = 'test description'
+    product_name = 'test name'
+    product_isPublished = True
+    product_isFeatured = False
+    product_price = 22
+
+    # Default attribute defined in product_type fixture
+    color_attr = product_type.product_attributes.get(name='Color')
+    color_attr_value = color_attr.values.first().name
+    color_value_slug = color_attr.values.first().slug
+    color_attr_slug = color_attr.slug
+    # Add second attribute
+    product_type.product_attributes.add(size_attribute)
+    size_attr_slug = product_type.product_attributes.get(name='Size').slug
+    non_existent_attr_value = 'The cake is a lie'
+
+    # test creating root product
+    variables = json.dumps({
+        'productTypeId': product_type_id,
+        'categoryId': category_id,
+        'name': product_name,
+        'description': product_description,
+        'isPublished': product_isPublished,
+        'isFeatured': product_isFeatured,
+        'price': product_price,
+        'attributes': [
+            {'slug': color_attr_slug, 'value': color_attr_value},
+            {'slug': size_attr_slug, 'value': non_existent_attr_value}]})
+
+    response = admin_client.post(
+        reverse('dashboard:api'), {'query': query, 'variables': variables})
+    content = get_graphql_content(response)
+    assert 'errors' not in content
+    data = content['data']['productCreate']
+    assert data['errors'] == []
+    assert data['product']['name'] == product_name
+    assert data['product']['description'] == product_description
+    assert data['product']['isFeatured'] == product_isFeatured
+    assert data['product']['isPublished'] == product_isPublished
+    assert data['product']['productType']['name'] == product_type.name
+    assert data['product']['category']['name'] == default_category.name
+    values = (
+        data['product']['attributes'][0].get('value'),
+        data['product']['attributes'][1].get('value'))
+    assert slugify(non_existent_attr_value) in values
+    assert color_value_slug in values
+
+
+def test_update_product(
+    admin_client, default_category, non_default_category, product_in_stock):
+    query = """
+        mutation updateProduct(
+            $productId: ID!,
+            $categoryId: ID,
+            $name: String!,
+            $description: String!,
+            $isPublished: Boolean!,
+            $isFeatured: Boolean!,
+            $price: Float!,
+            $attributes: [AttributeValueInput]) {
+                productUpdate(
+                    categoryId: $categoryId,
+                    id: $productId,
+                    name: $name,
+                    description: $description,
+                    isPublished: $isPublished,
+                    isFeatured: $isFeatured,
+                    price: $price,
+                    attributes: $attributes) {
+                        product {
+                            category{
+                                name
+                            }
+                            description
+                            isPublished
+                            isFeatured
+                            name
+                            price{
+                                amount
+                            }
+                            productType{
+                                name
+                            }
+                            attributes{
+                                name
+                                value
+                            }
+                          }
+                          errors {
+                            message
+                            field
+                          }
+                        }
+                      }
+    """
+    product_id = graphene.Node.to_global_id('Product', product_in_stock.pk)
+    category_id = graphene.Node.to_global_id(
+        'Category', non_default_category.pk)
+    product_description = 'updated description'
+    product_name = 'updated name'
+    product_isPublished = True
+    product_isFeatured = False
+    product_price = 33
+
+    variables = json.dumps({
+        'productId': product_id,
+        'categoryId': category_id,
+        'name': product_name,
+        'description': product_description,
+        'isPublished': product_isPublished,
+        'isFeatured': product_isFeatured,
+        'price': product_price})
+
+    response = admin_client.post(
+        reverse('dashboard:api'), {'query': query, 'variables': variables})
+    content = get_graphql_content(response)
+    assert 'errors' not in content
+    data = content['data']['productUpdate']
+    assert data['errors'] == []
+    assert data['product']['name'] == product_name
+    assert data['product']['description'] == product_description
+    assert data['product']['isFeatured'] == product_isFeatured
+    assert data['product']['isPublished'] == product_isPublished
+    assert not data['product']['category']['name'] == default_category.name
+
+
+def test_delete_product(admin_client, product_in_stock):
+    query = """
+        mutation DeleteProduct($id: ID!) {
+            productDelete(id: $id) {
+                product {
+                    name
+                    id
+                }
+                errors {
+                    field
+                    message
+                }
+              }
+            }
+    """
+    variables = json.dumps({
+        'id': graphene.Node.to_global_id('Product', product_in_stock.id)})
+    response = admin_client.post(
+        reverse('dashboard:api'), {'query': query, 'variables': variables})
+    content = get_graphql_content(response)
+    assert 'errors' not in content
+    data = content['data']['productDelete']
+    assert data['product']['name'] == product_in_stock.name
+    with pytest.raises(product_in_stock._meta.model.DoesNotExist):
+        product_in_stock.refresh_from_db()

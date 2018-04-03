@@ -3,15 +3,59 @@
   .hide {
     display: none;
   }
-  h3 {
-    background: $light-gray;
-    padding: $global-padding;
-    font-weight: bold;
-    cursor: pointer;
-    .collapse-filters-icon {
-      float: right !important;
-      width: 20px;
-      height: 20px;
+  .filter-section {
+    &--closed {
+      .filter-section {
+        &__icon {
+          img {
+            transform: rotate(180deg);
+          }
+        }
+        &__content {
+          max-height: $global-padding * .5;
+        }
+      }
+    }
+    &__header {
+      display: grid;
+      grid-template-columns: calc(100% - 20px) 20px;
+      background: $light-gray;
+      padding: $global-padding;
+      cursor: pointer;
+      h3 {
+        font-weight: bold;
+        padding-right: $global-padding * .5;
+        margin: 0;
+        text-overflow: ellipsis;
+        overflow: hidden;
+      }
+    }
+    &__content {
+      transition: $transition-base;
+      overflow: hidden;
+      max-height: 500px;
+      .price-field {
+        padding: $global-padding 0;
+        input {
+          width: 40%;
+          display: inline-block;
+        }
+        span {
+          width: 20%;
+          text-align: center;
+          display: inline-block;
+        }
+      }
+    }
+    &__icon {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: $transition-base;
+      img {
+        width: 20px;
+        height: 20px;
+      }
     }
   }
   ul {
@@ -27,7 +71,6 @@
   }
   button {
     width: 100%;
-    margin-top: $global-margin;
   }
   &__attributes {
     ul {
@@ -39,28 +82,9 @@
       }
     }
   }
-  &__price-range {
-    h3 {
-      margin-bottom: $global-margin;
-      span {
-        width: 100%;
-        margin: 0;
-        display: inline;
-      }
-    }
-    input {
-      width: 40%;
-      display: inline-block;
-    }
-    span {
-      width: 20%;
-      text-align: center;
-      display: inline-block;
-    }
-  }
   &__title {
     @include media-breakpoint-down(sm) {
-      padding: $global-padding*3 0 $global-padding*2;
+      padding: $global-padding *2 0;
     }
     @media (max-width: 370px) {
       padding-top: 5rem;
@@ -74,7 +98,7 @@
   &__categories {
     padding: $global-padding 0 0;
     @include media-breakpoint-down(sm) {
-      padding: $global-padding*3 0 $global-padding*2;
+      padding: $global-padding * 3 0 $global-padding * 2;
     }
     @media (max-width: 370px) {
       padding-top: 5rem;
@@ -108,7 +132,7 @@
       }
     }
     &__childs {
-      padding-left: $global-padding*2.5;
+      padding-left: $global-padding * 2.5;
       a {
         font-size: 1rem;
       }
@@ -140,10 +164,14 @@
   }
 }
 
+.filters-toggle {
+  margin: 1.1rem 0 1rem;
+  cursor: pointer;
+}
 .sort-by {
   text-align: right;
   position: relative;
-  margin: 1rem 0;
+  margin: 1rem 0 1rem 5rem;
   .btn-link {
     padding-right: $global-padding;
     color: $body-color;
@@ -164,7 +192,7 @@
     top: 2.5rem;
     right: 0;
     z-index: 999;
-    padding: $global-padding $global-padding*2;
+    padding: $global-padding $global-padding * 2;
     li {
       text-align: left;
       padding-top: $global-padding/2;
@@ -196,7 +224,7 @@
       }
     }
     &:before {
-      content: '';
+      content: "";
       display: block;
       width: 15px;
       height: 10px;

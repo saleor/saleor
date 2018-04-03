@@ -17,7 +17,7 @@
     "npm": "^5.4.2"
   },
   "dependencies": {
-    "bootstrap": "4.0.0-beta.2",
+    "bootstrap": "4.0.0",
     "classnames": "^2.2.5",
     "detect-passive-events": "^1.0.4",
     "dropzone": "^5.2.0",
@@ -29,13 +29,13 @@
     "medium-editor": "^5.23.3",
     "mobx": "^3.0.2",
     "mobx-react": "^4.1.0",
-    "popper.js": "^1.12.5",
+    "popper.js": "^1.14.1",
     "query-string": "^5.0.1",
     "react": "^15.4.2",
     "react-apollo": "^1.4.15",
     "react-dom": "^15.4.2",
     "react-inlinesvg": "^0.6.2",
-    "select2": "^4.0.3",
+    "select2": "^4.0.5",
     "sortablejs": "^1.5.0-rc1",
     "svg-injector-2": "^2.0.35"
   },

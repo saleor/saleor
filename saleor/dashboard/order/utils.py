@@ -2,6 +2,8 @@ from django.conf import settings
 from django.contrib.sites.shortcuts import get_current_site
 from django.template.loader import get_template
 
+from ...product.utils import decrease_stock
+
 INVOICE_TEMPLATE = 'dashboard/order/pdf/invoice.html'
 PACKING_SLIP_TEMPLATE = 'dashboard/order/pdf/packing_slip.html'
 
@@ -24,16 +26,21 @@ def _create_pdf(rendered_template, absolute_url):
 
 
 def create_invoice_pdf(order, absolute_url):
-    shipping_methods = [
-        {'name': d.shipping_method_name} for d in order.groups.all()]
-    ctx = {'order': order, 'shipping_methods': shipping_methods}
+    ctx = {'order': order}
     rendered_template = get_template(INVOICE_TEMPLATE).render(ctx)
     pdf_file = _create_pdf(rendered_template, absolute_url)
     return pdf_file, order
 
 
-def create_packing_slip_pdf(group, absolute_url):
-    ctx = {'group': group}
+def create_packing_slip_pdf(order, fulfillment, absolute_url):
+    ctx = {'order': order, 'fulfillment': fulfillment}
     rendered_template = get_template(PACKING_SLIP_TEMPLATE).render(ctx)
     pdf_file = _create_pdf(rendered_template, absolute_url)
-    return pdf_file, group
+    return pdf_file, order
+
+
+def fulfill_order_line(order_line, quantity):
+    """Fulfill order line with given quantity."""
+    decrease_stock(order_line.stock, quantity)
+    order_line.quantity_fulfilled += quantity
+    order_line.save(update_fields=['quantity_fulfilled'])

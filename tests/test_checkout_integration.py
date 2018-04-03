@@ -10,7 +10,8 @@ from .utils import get_redirect_location
 
 @patch('saleor.checkout.views.summary.send_order_confirmation')
 def test_checkout_flow(
-        mock_send_confirmation, request_cart_with_item, client, shipping_method):
+        mock_send_confirmation, request_cart_with_item, client,
+        shipping_method):
     # Enter checkout
     checkout_index = client.get(reverse('checkout:index'), follow=True)
     # Checkout index redirects directly to shipping address step
@@ -66,9 +67,14 @@ def test_checkout_flow(
         'verification_result': 'waiting'}
     payment_response = client.post(payment_page_url, data=payment_data)
     assert payment_response.status_code == 302
+    payment_redirect = reverse(
+        'order:payment-success', kwargs={'token': order.token})
+    assert get_redirect_location(payment_response) == payment_redirect
+    success_response = client.post(payment_redirect, data={'status': 'ok'})
+    assert success_response.status_code == 302
     order_password = reverse(
         'order:checkout-success', kwargs={'token': order.token})
-    assert get_redirect_location(payment_response) == order_password
+    assert get_redirect_location(success_response) == order_password
     mock_send_confirmation.delay.assert_called_once_with(order.pk)
 
 
@@ -122,7 +128,7 @@ def test_checkout_flow_authenticated_user(
 
     assert payment_response.status_code == 302
     order_password = reverse(
-        'order:checkout-success', kwargs={'token': order.token})
+        'order:payment-success', kwargs={'token': order.token})
     assert get_redirect_location(payment_response) == order_password
 
     # Assert that payment object was created and contains correct data
@@ -131,7 +137,7 @@ def test_checkout_flow_authenticated_user(
     assert payment.tax == order.total.tax.amount
     assert payment.currency == order.total.currency
     assert payment.delivery == order.shipping_price.gross.amount
-    assert len(payment.get_purchased_items()) == len(order.get_lines())
+    assert len(payment.get_purchased_items()) == len(order.lines.all())
 
 
 def test_address_without_shipping(request_cart_with_item, client, monkeypatch):
@@ -362,11 +368,15 @@ def test_language_is_saved_in_order(
         authorized_client, billing_address, customer_user,
         request_cart_with_item, settings, shipping_method):
     # Prepare some data
-    user_language = 'fr'
     settings.LANGUAGE_CODE = 'en'
+    user_language = 'fr'
     customer_user.addresses.add(billing_address)
     request_cart_with_item.user = customer_user
     request_cart_with_item.save()
+
+    # Set user's language to fr
+    authorized_client.cookies[settings.LANGUAGE_COOKIE_NAME] = user_language
+    authorized_client.post(reverse('set_language'), data={'language': 'fr'})
     # Enter checkout
     # Checkout index redirects directly to shipping address step
     shipping_address = authorized_client.get(
