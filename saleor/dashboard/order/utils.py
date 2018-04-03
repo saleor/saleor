@@ -73,7 +73,7 @@ def update_order_with_user_addresses(order):
 def get_product_variants_and_prices(order, product):
     """Get variants and unit prices from order lines matching the product."""
     lines = (
-        line for line in order.lines.all() if line.product == product)
+        line for line in order if line.product == product)
     for line in lines:
         for dummy_i in range(line.quantity):
             variant = line.product.variants.get(sku=line.product_sku)
