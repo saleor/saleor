@@ -7,6 +7,7 @@ from django.urls import reverse
 from ..core.utils import (
     format_money, get_user_shipping_country, to_local_currency)
 from ..product.models import ProductVariant
+from ..product.utils import display_variant_attributes
 from ..shipping.utils import get_shipment_options
 from .forms import CountryForm, ReplaceCartLineForm
 from .models import Cart
@@ -120,7 +121,7 @@ def summary(request, cart):
             'product': line.variant.product,
             'variant': line.variant.name,
             'quantity': line.quantity,
-            'attributes': line.variant.display_variant_attributes(attributes),
+            'attributes': display_variant_attributes(line.variant, attributes),
             'image': first_image,
             'price_per_item': format_money(price_per_item.gross),
             'line_total': format_money(line_total.gross),

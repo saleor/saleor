@@ -377,3 +377,16 @@ def get_product_list_context(request, filter_set):
         'sort_by_choices': SORT_BY_FIELDS,
         'now_sorted_by': now_sorted_by,
         'is_descending': is_descending}
+
+
+def display_variant_attributes(variant, attributes=None):
+    if attributes is None:
+        attributes = variant.product.product_type.variant_attributes.all()
+    values = get_attributes_display_map(variant, attributes)
+    if not values:
+        return ''
+    return ', '.join(
+        [
+            '%s: %s' % (
+                smart_text(attributes.get(id=int(key))), smart_text(value))
+            for (key, value) in values.items()])
