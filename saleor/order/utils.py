@@ -140,30 +140,24 @@ def add_variant_to_order(
     Order lines are created by increasing quantity of lines,
     as long as total_quantity of variant will be added.
     """
-    quantity_left = add_variant_to_existing_lines(
+    quantity_not_fulfilled = add_variant_to_existing_lines(
         order, variant, total_quantity) if add_to_existing else total_quantity
+
+    if not quantity_not_fulfilled:
+        return
+    if quantity_not_fulfilled > variant.quantity_available:
+        raise InsufficientStock(variant)
+
     price = variant.get_price_per_item(discounts)
-    while quantity_left > 0:
-        quantity_available = variant.quantity_available
-        if not quantity_available:
-            raise InsufficientStock(variant)
-        quantity = (
-            quantity_available
-            if quantity_left > quantity_available
-            else quantity_left
-        )
-        order.lines.create(
-            product_name=variant.display_product(),
-            product_sku=variant.sku,
-            is_shipping_required=(
-                variant.product.product_type.is_shipping_required),
-            quantity=quantity,
-            unit_price=price,
-            variant=variant)
-        allocate_stock(variant, quantity)
-        # refresh stock for accessing quantity_allocated
-        variant.refresh_from_db()
-        quantity_left -= quantity
+    order.lines.create(
+        product_name=variant.display_product(),
+        product_sku=variant.sku,
+        is_shipping_required=(
+            variant.product.product_type.is_shipping_required),
+        quantity=quantity_not_fulfilled,
+        unit_price=price,
+        variant=variant)
+    allocate_stock(variant, quantity_not_fulfilled)
 
 
 def add_variant_to_existing_lines(order, variant, total_quantity):
