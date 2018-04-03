@@ -1,6 +1,7 @@
 from django.conf import settings
 
 from ..menu.models import Menu
+from ..page.models import Page
 from . import NAVIGATION_CONTEXT_NAME
 
 
