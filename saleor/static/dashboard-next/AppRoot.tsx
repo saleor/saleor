@@ -10,6 +10,7 @@ import Typography from "material-ui/Typography";
 import * as React from "react";
 import { Link } from "react-router-dom";
 
+import Navigator from "./components/Navigator";
 import i18n from "./i18n";
 
 const drawerWidth = 240;
@@ -116,60 +117,70 @@ export const AppRoot = decorate<{}>(
       const { open } = this.state;
 
       return (
-        <div className={classes.appFrame}>
-          <AppBar className={classes.appBar}>
-            <Toolbar disableGutters className={classes.toolBar}>
-              <Hidden mdUp>
-                <IconButton
-                  color="inherit"
-                  aria-label="open drawer"
-                  onClick={() =>
-                    this.setState(({ open }) => ({
-                      open: !open
-                    }))
-                  }
-                  className={classes.menuButton}
-                >
-                  <MenuIcon />
-                </IconButton>
-              </Hidden>
-              <Typography
-                noWrap
-                variant="title"
-                color="inherit"
-                dangerouslySetInnerHTML={{
-                  __html: i18n.t("<strong>Saleor</strong> Dashboard")
-                }}
-              />
-            </Toolbar>
-          </AppBar>
-          <ResponsiveDrawer onClose={this.closeDrawer} open={open}>
-            <List component="nav">
-              <ListItem
-                button
-                component={props => <Link to="/" {...props} />}
-                onClick={this.closeDrawer}
-              >
-                <ListItemText primary={i18n.t("Home")} />
-              </ListItem>
-              <ListItem
-                button
-                component={props => <Link to="/categories/" {...props} />}
-                onClick={this.closeDrawer}
-              >
-                <ListItemText primary={i18n.t("Categories")} />
-              </ListItem>
-              <ListItem
-                button
-                component={props => <Link to="/pages/" {...props} />}
-                onClick={this.closeDrawer}
-              >
-                <ListItemText primary={i18n.t("Pages")} />
-              </ListItem>
-            </List>
-          </ResponsiveDrawer>
-          <main className={classes.content}>{children}</main>
-        </div>
+        <Navigator>
+          {navigate => (
+            <div className={classes.appFrame}>
+              <AppBar className={classes.appBar}>
+                <Toolbar disableGutters className={classes.toolBar}>
+                  <Hidden mdUp>
+                    <IconButton
+                      color="inherit"
+                      aria-label="open drawer"
+                      onClick={() =>
+                        this.setState(({ open }) => ({
+                          open: !open
+                        }))
+                      }
+                      className={classes.menuButton}
+                    >
+                      <MenuIcon />
+                    </IconButton>
+                  </Hidden>
+                  <Typography
+                    noWrap
+                    variant="title"
+                    color="inherit"
+                    dangerouslySetInnerHTML={{
+                      __html: i18n.t("<strong>Saleor</strong> Dashboard")
+                    }}
+                  />
+                </Toolbar>
+              </AppBar>
+              <ResponsiveDrawer onClose={this.closeDrawer} open={open}>
+                <List component="nav">
+                  <ListItem
+                    button
+                    onClick={() => {
+                      this.closeDrawer();
+                      navigate("/");
+                    }}
+                  >
+                    <ListItemText primary={i18n.t("Home")} />
+                  </ListItem>
+                  <ListItem
+                    button
+                    onClick={() => {
+                      this.closeDrawer();
+                      navigate("/categories/");
+                    }}
+                  >
+                    <ListItemText primary={i18n.t("Categories")} />
+                  </ListItem>
+                  <ListItem
+                    button
+                    onClick={() => {
+                      this.closeDrawer();
+                      navigate("/pages/");
+                    }}
+                  >
+                    <ListItemText primary={i18n.t("Pages")} />
+                  </ListItem>
+                </List>
+              </ResponsiveDrawer>
+              <main className={classes.content}>{children}</main>
+            </div>
+          )}
+        </Navigator>
       );
     }
   }
