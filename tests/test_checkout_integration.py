@@ -67,9 +67,14 @@ def test_checkout_flow(
         'verification_result': 'waiting'}
     payment_response = client.post(payment_page_url, data=payment_data)
     assert payment_response.status_code == 302
+    payment_redirect = reverse(
+        'order:payment-success', kwargs={'token': order.token})
+    assert get_redirect_location(payment_response) == payment_redirect
+    success_response = client.post(payment_redirect, data={'status': 'ok'})
+    assert success_response.status_code == 302
     order_password = reverse(
         'order:checkout-success', kwargs={'token': order.token})
-    assert get_redirect_location(payment_response) == order_password
+    assert get_redirect_location(success_response) == order_password
     mock_send_confirmation.delay.assert_called_once_with(order.pk)
 
 
@@ -123,7 +128,7 @@ def test_checkout_flow_authenticated_user(
 
     assert payment_response.status_code == 302
     order_password = reverse(
-        'order:checkout-success', kwargs={'token': order.token})
+        'order:payment-success', kwargs={'token': order.token})
     assert get_redirect_location(payment_response) == order_password
 
     # Assert that payment object was created and contains correct data
