@@ -4,47 +4,28 @@
 {% block content %}
   <div class="home">
     <div class="row">
-      <div class="col-sm-12 home__block1">
-        <div class="home--square">
+      {% for page_block in blocks %}
+      <div class="home--square--container {{ page_block.html_classes }}">
+        <div class="home--square"
+             style="background-image: url('{{ page_block.cover_url }}')">
           <div class="home--content">
             <div class="home--content-wrapper">
               <div class="home--content-inner">
-                <h1>{% trans "Promo &amp; Sale" context "Homepage title" %}</h1>
-                <h2>{% trans "from the Northpole" context "Homepage title" %}</h2>
-                  <a class="btn btn-secondary home__button" href="#">
-                    {% trans "Shop now" context "Homepage action" %}
-                  </a>
+                <div class="home--content-inner--padded">
+                  <h1>{{ page_block.title }}</h1>
+                  {% if page_block.subtitle %}
+                    <h2>{{ page_block.subtitle }}</h2>
+                  {% endif %}
+                </div>
+                <a class="btn btn-secondary home__button" href="{{ page_block.url }}">
+                  {{ page_block.primary_button }}
+                </a>
               </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
-    <div class="row">
-      <div class="col-sm-12 col-md-6 home__block2">
-        <div class="home--square">
-          <div class="home--content">
-            <div class="home--content-wrapper">
-              <div class="home--content-inner">
-                <h1>{% trans "Size &amp; Colours" context "Homepage title" %}</h1>
-                <a class="btn btn-secondary home__button" href="#">{% trans "Shop now" context "Homepage action" %}</a>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="col-sm-12 col-md-6 home__block3">
-        <div class="home--square">
-          <div class="home--content">
-            <div class="home--content-wrapper">
-              <div class="home--content-inner">
-                <h1>{% trans "Digital Downloads" context "Homepage title" %}</h1>
-                <a class="btn btn-secondary home__button" href="#">{% trans "Shop now" context "Homepage action" %}</a>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+      {% endfor %}
     </div>
     <div class="home__featured">
       <h2 class="text-center">{% trans "Featured products" context "Homepage title" %}</h2>

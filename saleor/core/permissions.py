@@ -30,6 +30,8 @@ MODELS_PERMISSIONS = [
     'user.impersonate_user',
     'voucher.view_voucher',
     'voucher.edit_voucher',
+    'homepage.view_blocks_config',
+    'homepage.edit_blocks_config',
 ]
 
 

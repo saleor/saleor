@@ -1,0 +1,122 @@
+{% extends "dashboard/base.html" %}
+{% load i18n %}
+{% load staticfiles %}
+{% load status %}
+{% load materializecss %}
+{% load utils %}
+{% load placeholder %}
+
+{% block title %}
+  {% trans "Homepage blocks" context "Homepage block list page title"%} - {{ block.super }}
+{% endblock %}
+
+{% block body_class %}body-page{% endblock %}
+
+
+{% block header_menu %}
+  {% url "dashboard:homepage-blocks-list" as url %}
+  {% include "dashboard/includes/_back-link.html" with url=url %}
+{% endblock %}
+
+{% block breadcrumbs %}
+ <ul class="breadcrumbs breadcrumbs--history">
+   <li>
+     <a href="{% url 'dashboard:homepage-blocks-list' %}" class="breadcrumbs">{% trans "Homepage blocks" %}</a>
+   </li>
+   <li class="back-mobile">
+     <a href="{% url 'dashboard:homepage-blocks-list' %}" class="breadcrumb"><i class="material-icons">arrow_back</i></a>
+   </li>
+   <li><span class="breadcrumbs--ellipsed-item">
+     {% if page_block %}{{ page_block.title }}{% else %}{% trans 'Create a new block' %}{% endif %}</span>
+   </li>
+  </ul>
+{% endblock %}
+
+{% block menu_homepage_blocks_class %}active{% endblock %}
+
+{% block content %}
+  <script>
+  </script>
+  <form method="post" class="card" enctype="multipart/form-data" novalidate>
+    {% csrf_token %}
+    <div class="card-content">
+      <div class="card-title">
+      </div>
+      {% if form.non_field_errors %}
+        <blockquote>
+          {% for non_field_error in form.non_field_errors %}
+            {{ non_field_error }}
+          {% endfor %}
+        </blockquote>
+      {% endif %}
+    </div>
+    <div class="row">
+      <div class="card-content">
+        <div class="col s12 l8">
+          <div class="card-title center-align">
+            {% trans "Block information" context "Block creation form title" %}
+          </div>
+          {{ form.title|materializecss }}
+          {{ form.subtitle|materializecss }}
+          {{ form.primary_button_text|materializecss }}
+        </div>
+        <div class="col s12 l4">
+          <div class="card-title center-align">
+            {% trans "Link" context "Block link creation form title" %}
+          </div>
+          {{ form.category|materializecss }}
+          {{ form.collection|materializecss }}
+          {{ form.page|materializecss }}
+        </div>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col s12">
+        <div class="card-action center-align">
+          <div class="row no-padding">
+            <div class="col s12">
+              <div class="row image-input-container">
+                <img id="image"
+                     src="{% if page_block %}{{ page_block.cover_url }}{% else %}{% placeholder size=255 %}{% endif %}" />
+                <div class="image-dropzone waves-effect">
+                  <div class="file-field input-field">
+                    <span class="btn" contenteditable="true">
+                      {% trans "Select File" context "Homepage block form creation - select image to upload button" %}
+                    </span>
+                    <input type="file" data-handle-image-input="" data-image-target-id="image" name="cover" />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="card-action center-align">
+          <div class="card-title">
+            {% trans "Visual rendering information" context "Block HTML information creation form title" %}
+          </div>
+          <div class="row">
+            <div class="col m3">
+              {{ form.position|materializecss }}
+            </div>
+            <div class="col m9">
+              {{ form.html_classes|materializecss }}
+            </div>
+          </div>
+        </div>
+        <div class="card-action center-align">
+          <div class="row no-padding">
+            <div class="col s12">
+              {% if page_block %}
+                <a href="{% url 'dashboard:homepage-blocks-list' %}" class="btn-flat">{% trans "Cancel" %}</a>
+                <button type="submit" class="btn">{% trans "Save" %}</button>
+              {% else %}
+                <a href="{% url 'dashboard:homepage-blocks-list' %}" class="btn-flat">{% trans "Cancel" %}</a>
+                <button type="submit" class="btn submit-stay">{% trans "Create" %}</button>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </form>
+{% endblock %}

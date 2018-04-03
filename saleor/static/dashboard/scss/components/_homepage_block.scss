@@ -1,0 +1,70 @@
+.homepage-block {
+  .is-counter {
+    position: absolute;
+    right: 0;
+    padding: 1rem;
+    color: rgba(#000, 0.5);
+    text-shadow: 1px 1px 1px rgba(#fff, 0.5);
+  }
+  .is-title {
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    width: 100%;
+    cursor: help;
+  }
+  &-image-container {
+    overflow: hidden;
+    display: block;
+    height: 170px;
+    img {
+      position: relative;
+      object-fit: cover;
+      height: 100%;
+      width: 125%;
+      left: 0;
+      transition: all 1s;
+      &:hover {
+        left: -25%;
+        width: 200%;
+      }
+    }
+  }
+}
+
+.image-input-container {
+  height: 300px;
+  position: relative;
+  #image {
+    object-fit: cover;
+    height: 100%;
+  }
+  .image-dropzone {
+    position: absolute;
+    margin: auto;
+    height: 100%;
+    width: 100%;
+    background-color: rgba(0, 0, 0, 0.2);
+    top: 0;
+    left: 0;
+    text-align: center;
+    opacity: .5;
+    transition: 1s;
+    &:not(:hover) .btn {
+      background-color: #000;
+    }
+    &:hover {
+      background-color: rgba(0, 0, 0, 0.8);
+      opacity: .8;
+    }
+    .file-field {
+      display: flex;
+      align-items: center;
+      height: 100%;
+      padding: 0;
+      span {
+        width: 100%;
+      }
+    }
+  }
+}

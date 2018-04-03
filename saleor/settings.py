@@ -195,6 +195,7 @@ INSTALLED_APPS = [
     'saleor.site',
     'saleor.data_feeds',
     'saleor.page',
+    'saleor.homepage',
 
     # External apps
     'versatileimagefield',
@@ -344,7 +345,9 @@ VERSATILEIMAGEFIELD_RENDITION_KEY_SETS = {
         ('product_small', 'crop__60x60'),
         ('product_small_2x', 'crop__120x120'),
         ('product_list', 'crop__255x255'),
-        ('product_list_2x', 'crop__510x510')]}
+        ('product_list_2x', 'crop__510x510')],
+    'homepage-block': [
+        ('homepage_block_cover', 'thumbnail__1080x720')]}
 
 VERSATILEIMAGEFIELD_SETTINGS = {
     # Images should be pre-generated on Production environment
