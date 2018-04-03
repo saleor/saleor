@@ -126,8 +126,7 @@ def test_order_with_lines_pagination(authorized_client, order_list, settings):
     assert response.status_code == 200
 
 
-def test_format_address(default_billing_address):
-    address = default_billing_address
+def test_format_address(address):
     formatted_address = format_address(address)
     address_html = '<br>'.join(map(str, formatted_address['address_lines']))
     context = Context({'address': address})
@@ -140,8 +139,7 @@ def test_format_address(default_billing_address):
     assert str(address.phone) in rendered_html
 
 
-def test_format_address_all_options(default_billing_address):
-    address = default_billing_address
+def test_format_address_all_options(address):
     formatted_address = format_address(
         address, include_phone=False, inline=True, latin=True)
     address_html = ', '.join(map(str, formatted_address['address_lines']))
@@ -156,8 +154,8 @@ def test_format_address_all_options(default_billing_address):
     assert str(address.phone) not in rendered_html
 
 
-def test_address_as_data(default_billing_address):
-    data = default_billing_address.as_data()
+def test_address_as_data(address):
+    data = address.as_data()
     assert data == {
         'first_name': 'John',
         'last_name': 'Doe',
@@ -172,26 +170,26 @@ def test_address_as_data(default_billing_address):
         'phone': '+48713988102'}
 
 
-def test_copy_address(default_billing_address):
-    copied_address = default_billing_address.get_copy()
-    assert copied_address.pk != default_billing_address.pk
-    assert copied_address == default_billing_address
+def test_copy_address(address):
+    copied_address = address.get_copy()
+    assert copied_address.pk != address.pk
+    assert copied_address == address
 
 
-def test_compare_addresses(default_billing_address):
-    copied_address = default_billing_address.get_copy()
-    assert default_billing_address == copied_address
+def test_compare_addresses(address):
+    copied_address = address.get_copy()
+    assert address == copied_address
 
 
-def test_compare_addresses_with_country_object(default_billing_address):
-    copied_address = default_billing_address.get_copy()
+def test_compare_addresses_with_country_object(address):
+    copied_address = address.get_copy()
     copied_address.country = Country('PL')
     copied_address.save()
-    assert default_billing_address == copied_address
+    assert address == copied_address
 
 
-def test_compare_addresses_different_country(default_billing_address):
-    copied_address = default_billing_address.get_copy()
+def test_compare_addresses_different_country(address):
+    copied_address = address.get_copy()
     copied_address.country = Country('FR')
     copied_address.save()
-    assert default_billing_address != copied_address
+    assert address != copied_address

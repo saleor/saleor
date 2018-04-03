@@ -174,7 +174,7 @@
                 {% trans "Release" context "Order summary card action" %}
               </a>
             {% endif %}
-            {% if order.can_mark_as_paid %}
+            {% if can_mark_as_paid %}
               <a href="#base-modal" data-href="{% url 'dashboard:order-mark-as-paid' order_pk=order.pk %}" class="btn-flat modal-trigger-custom waves-effect">
                 {% trans "Mark as paid" context "Order detail action" %}
               </a>

@@ -29,11 +29,11 @@ from ..forms import AjaxSelect2ChoiceField
 from ..widgets import PhonePrefixWidget
 from .utils import (
     fulfill_order_line, get_voucher_discount_for_order,
-    update_order_with_user_addresses)
+    remove_customer_from_order, update_order_with_user_addresses)
 
 
 class CreateOrderFromDraftForm(forms.ModelForm):
-    """Save draft order as a ready to fulfill."""
+    """Mark draft order as ready to fulfill."""
     notify_customer = forms.BooleanField(
         label=pgettext_lazy(
             'Send email to customer about order created by staff users',
@@ -59,11 +59,11 @@ class CreateOrderFromDraftForm(forms.ModelForm):
         if self.instance.is_shipping_required():
             method = self.instance.shipping_method
             shipping_address = self.instance.shipping_address
-            if (
+            shipping_not_valid = (
                 method and shipping_address and
                 method.country_code != ANY_COUNTRY and
-                shipping_address.country.code != method.country_code
-            ):
+                shipping_address.country.code != method.country_code)
+            if shipping_not_valid:
                 errors.append(forms.ValidationError(pgettext_lazy(
                     'Create draft order form error',
                     'Shipping method is not valid for chosen shipping '
@@ -137,28 +137,8 @@ class OrderRemoveCustomerForm(forms.ModelForm):
         model = Order
         fields = []
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
     def save(self):
-        customer = self.instance.user
-        self.instance.user = None
-        self.instance.user_email = ''
-        super().save()
-
-        if customer:
-            if (
-                customer.default_billing_address ==
-                self.instance.billing_address
-            ):
-                self.instance.billing_address.delete()
-
-            if (
-                customer.default_shipping_address ==
-                self.instance.shipping_address
-            ):
-                self.instance.shipping_address.delete()
-
+        remove_customer_from_order(self.instance)
         return self.instance
 
 
