@@ -21,6 +21,7 @@ from ...core.utils.text import strip_html_and_truncate
 from ...discount import DiscountValueType, VoucherType
 from ...discount.models import Sale, Voucher
 from ...homepage.models import HomePageItem
+from ...homepage.thumbnails import create_homepage_block_thumbnails
 from ...menu.models import Menu
 from ...order.models import Fulfillment, Order, Payment
 from ...order.utils import update_order_status
@@ -657,6 +658,22 @@ def create_menus():
         yield 'Created footer menu'
 
 
+def create_homepage_block(data: dict) -> HomePageItem:
+    cover = data.pop('_cover_path', None)
+
+    if cover:
+        with open(cover, 'rb') as cover_fp:
+            image = SimpleUploadedFile(
+                cover, cover_fp.read(), 'image/jpeg')
+        data['cover'] = image
+
+    instance = HomePageItem.objects.create(**data)
+    if instance.cover:
+        create_homepage_block_thumbnails.delay(instance.pk)
+
+    return instance
+
+
 def create_homepage_blocks_by_schema(
         schema=HOMEPAGE_BLOCKS_SCHEMA, allow_duplicates=False):
     existing_blocks = HomePageItem.objects.all()
@@ -668,16 +685,9 @@ def create_homepage_blocks_by_schema(
     for entry in schema:
         if not allow_duplicates and _homepage_block_exists():
             continue
+
         kwargs = entry.copy()
-        cover = kwargs.pop('_cover_path', None)
-
-        if cover:
-            with open(cover, 'rb') as cover_fp:
-                image = SimpleUploadedFile(
-                    cover, cover_fp.read(), 'image/jpeg')
-            kwargs['cover'] = image
-
-        instance = HomePageItem.objects.create(**kwargs)
+        instance = create_homepage_block(kwargs)
 
         yield 'Created a new homepage block item with title: %s' % \
               instance.title
