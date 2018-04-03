@@ -142,12 +142,10 @@ def add_variant_to_order(
     """
     quantity_not_fulfilled = add_variant_to_existing_lines(
         order, variant, total_quantity) if add_to_existing else total_quantity
-
     if not quantity_not_fulfilled:
         return
     if quantity_not_fulfilled > variant.quantity_available:
         raise InsufficientStock(variant)
-
     price = variant.get_price_per_item(discounts)
     order.lines.create(
         product_name=variant.display_product(),
