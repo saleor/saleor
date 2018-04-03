@@ -203,13 +203,9 @@ def get_variant_url_from_product(product, attributes):
 
 
 def get_variant_url(variant):
-    attributes = {}
-    values = {}
-    for attribute in variant.product.product_type.variant_attributes.all():
-        attributes[str(attribute.pk)] = attribute
-        for value in attribute.values.all():
-            values[str(value.pk)] = value
-
+    attributes = {
+        str(attribute.pk): attribute
+        for attribute in variant.product.product_type.variant_attributes.all()}
     return get_variant_url_from_product(variant.product, attributes)
 
 
@@ -386,7 +382,33 @@ def display_variant_attributes(variant, attributes=None):
     if not values:
         return ''
     return ', '.join(
-        [
-            '%s: %s' % (
-                smart_text(attributes.get(id=int(key))), smart_text(value))
-            for (key, value) in values.items()])
+        '%s: %s' % (
+            smart_text(
+                next(attr for attr in attributes if attr.pk == key)),
+            smart_text(value))
+        for (key, value) in values.items())
+
+
+def get_attributes_from_dict(variant, attributes):
+    display_map = {}
+    for attribute_pk, attribute_choice_pk in attributes.items():
+        attributes = variant.product.product_type.variant_attributes.all()
+        attribute = next(
+            attribute for attribute in attributes if
+            attribute.pk == int(attribute_pk))
+        if attribute:
+            choices = attribute.values.all()
+            choice_obj = next(
+                choice for choice in choices
+                if choice.pk == int(attribute_choice_pk))
+            if choice_obj:
+                display_map[attribute] = choice_obj
+    return display_map
+
+
+def generate_name_from_variant_attributes(variant, attributes):
+    values = get_attributes_from_dict(variant, attributes)
+    if not values:
+        return ''
+    return ' / '.join(
+        smart_text(attribute) for attribute, value in values.items())
