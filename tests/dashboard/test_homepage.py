@@ -1,16 +1,13 @@
+from unittest.mock import patch
+
 from django.db.models import Model
 from django.test import Client, RequestFactory
 from django.urls import reverse
-from unittest import mock
-
-from versatileimagefield.datastructures import SizedImage
-
-from saleor.core.utils.warmer import Warmer
-from saleor.userprofile.models import User
-from saleor.homepage.models import HomePageItem
-from saleor.dashboard.homepage import views, urls
 from tests.conftest import product_image
 
+from saleor.account.models import User
+from saleor.dashboard.homepage import urls, views
+from saleor.homepage.models import HomePageItem
 
 BASE_ENDPOINT = 'dashboard:homepage-blocks-'
 
@@ -134,101 +131,105 @@ def test_homepage_block_add__too_many_targets(
     assert HomePageItem.objects.count() == 0
 
 
+@patch(
+    'saleor.dashboard.homepage.forms.create_homepage_block_thumbnails.delay')
 def test_homepage_block_add(
+        mocked_create_thumbnails,
         admin_client: Client, default_category, product_image):
     assert HomePageItem.objects.count() == 0
 
-    with mock.patch.object(Warmer, '__call__') as mocked:
-        resp = admin_client.post(
-            reverse(BASE_ENDPOINT + 'add'), {
-                'title': 'dummy title',
-                'subtitle': 'dummy sub',
-                'cover': product_image,
-                'category': default_category.pk
-            })
+    resp = admin_client.post(
+        reverse(BASE_ENDPOINT + 'add'), {
+            'title': 'dummy title',
+            'subtitle': 'dummy sub',
+            'cover': product_image,
+            'category': default_category.pk
+        })
 
-        assert resp.status_code == 302
-        assert HomePageItem.objects.count() == 1
+    assert resp.status_code == 302
+    assert HomePageItem.objects.count() == 1
 
-        block = HomePageItem.objects.first()  # type: HomePageItem
+    block = HomePageItem.objects.first()  # type: HomePageItem
 
-        assert block.position == 0
+    assert block.position == 0
 
-        assert block.title == 'dummy title'
-        assert block.subtitle == 'dummy sub'
-        assert block.cover is not None
+    assert block.title == 'dummy title'
+    assert block.subtitle == 'dummy sub'
+    assert block.cover is not None
 
-        assert isinstance(block.category, type(default_category))
-        assert block.category.pk == default_category.pk
+    assert isinstance(block.category, type(default_category))
+    assert block.category.pk == default_category.pk
 
-        assert block.linked_object
-        assert block.linked_object == block.category
+    assert block.linked_object
+    assert block.linked_object == block.category
 
-        assert mocked.call_count == 1
+    assert mocked_create_thumbnails.call_count == 1
 
 
+@patch(
+    'saleor.dashboard.homepage.forms.create_homepage_block_thumbnails.delay')
 def test_homepage_block_edit(
+        mocked_create_thumbnails,
         admin_client: Client, homepage_block,
         default_category, page, collection):
 
     assert HomePageItem.objects.count() == 1
 
-    with mock.patch.object(SizedImage, 'create_resized_image'):
-        def _test(
-                data: dict, expected_target: Model,
-                expected_warmup: bool, expected_status):
-            with mock.patch.object(Warmer, '__call__') as mocked:
-                resp = admin_client.post(
-                    data=data,
-                    path=reverse(
-                        BASE_ENDPOINT + 'edit', kwargs={'pk': homepage_block.pk}))
+    def _test(
+            data: dict, expected_target: Model,
+            expected_warmup: bool, expected_status):
+        mocked_create_thumbnails.reset_mock()
+        resp = admin_client.post(
+            data=data,
+            path=reverse(
+                BASE_ENDPOINT + 'edit', kwargs={'pk': homepage_block.pk}))
 
-                assert resp.status_code == expected_status
-                assert HomePageItem.objects.count() == 1
+        assert resp.status_code == expected_status
+        assert HomePageItem.objects.count() == 1
 
-                if expected_status == 302:
-                    block = HomePageItem.objects.first()  # type: HomePageItem
+        if expected_status == 302:
+            block = HomePageItem.objects.first()  # type: HomePageItem
 
-                    assert block.position == 0
+            assert block.position == 0
 
-                    assert block.title == data['title']
-                    assert block.subtitle == data.get('subtitle', None)
-                    assert block.cover is not None
+            assert block.title == data['title']
+            assert block.subtitle == data.get('subtitle', None)
+            assert block.cover is not None
 
-                    assert block.linked_object
-                    assert isinstance(
-                        block.linked_object, type(expected_target))
-                    assert block.linked_object.pk == expected_target.pk
+            assert block.linked_object
+            assert isinstance(
+                block.linked_object, type(expected_target))
+            assert block.linked_object.pk == expected_target.pk
 
-                if expected_warmup:
-                    assert mocked.call_count == 1
-                else:
-                    assert mocked.call_count == 0
+        if expected_warmup:
+            assert mocked_create_thumbnails.call_count == 1
+        else:
+            assert mocked_create_thumbnails.call_count == 0
 
-        _test({
-            'title': 'new dummy title',
-            'subtitle': 'new dummy sub',
-            'cover': product_image(),
-            'category': default_category.pk
-        }, default_category, True, 302)
+    _test({
+        'title': 'new dummy title',
+        'subtitle': 'new dummy sub',
+        'cover': product_image(),
+        'category': default_category.pk
+    }, default_category, True, 302)
 
-        _test({
-            'title': 'new dummy title',
-            'subtitle': 'new dummy sub',
-            'cover': product_image(),
-            'page': page.pk
-        }, page, True, 302)
+    _test({
+        'title': 'new dummy title',
+        'subtitle': 'new dummy sub',
+        'cover': product_image(),
+        'page': page.pk
+    }, page, True, 302)
 
-        _test({
-            'title': 'new dummy title',
-            'subtitle': 'new dummy sub',
-            'collection': collection.pk
-        }, collection, False, 302)
+    _test({
+        'title': 'new dummy title',
+        'subtitle': 'new dummy sub',
+        'collection': collection.pk
+    }, collection, False, 302)
 
-        _test({
-            'title': 'new dummy title',
-            'subtitle': 'new dummy sub',
-            'cover': product_image(),
-            'page': page.pk,
-            'collection': collection.pk
-        }, collection, False, 400)
+    _test({
+        'title': 'new dummy title',
+        'subtitle': 'new dummy sub',
+        'cover': product_image(),
+        'page': page.pk,
+        'collection': collection.pk
+    }, collection, False, 400)

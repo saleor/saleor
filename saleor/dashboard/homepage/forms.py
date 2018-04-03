@@ -3,9 +3,9 @@ from django.core.exceptions import ValidationError
 from django.utils.translation import pgettext_lazy
 from mptt.fields import TreeNodeChoiceField
 
-from ...product.models import Category
 from ...homepage.models import HomePageItem
-
+from ...homepage.thumbnails import create_homepage_block_thumbnails
+from ...product.models import Category
 
 CATEGORY_LABEL = pgettext_lazy(
     'Homepage block linked category field label',
@@ -56,20 +56,18 @@ class BlockItemForm(forms.ModelForm):
         if not required_fields:
             raise ValidationError(pgettext_lazy(
                 'Home page block item creation/edit form error',
-                'You must select <strong>an object</strong> to link to this '
-                'block.'))
+                'You must select an object to link to this block.'))
 
         # or if there was more than one filled
         if len(required_fields) > 1:
             raise ValidationError(pgettext_lazy(
                 'Home page block item creation/edit form error',
-                'You must select <strong>only one</strong> object to link to '
-                'this block.'))
+                'You must select only one object to link to this block.'))
 
         return cleaned_data
 
     def save(self, commit=True):
         res = super(BlockItemForm, self).save(commit)
         if 'cover' in self.changed_data:
-            res.create_thumbnails()
+            create_homepage_block_thumbnails.delay(res.pk)
         return res

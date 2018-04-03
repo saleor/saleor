@@ -1,13 +1,12 @@
-from django_positions_2 import *
 from django.core.validators import MaxLengthValidator
 from django.db import models
 from django.utils.translation import pgettext_lazy
+from django_positions_2 import *
 from versatileimagefield.fields import VersatileImageField
 
 from ..core.templatetags.placeholder import placeholder
 from ..page.models import Page
 from ..product.models import Category, Collection
-
 
 DEFAULT_PRIMARY_BTN_TEXT = pgettext_lazy("Homepage action", "Shop now")
 DEFAULT_HTML_CLASSES = 'col-sm-12 col-md-6'
@@ -50,7 +49,12 @@ class HomePageItem(models.Model):
     @property
     def cover_url(self):
         if self.cover:
-            return self.cover.thumbnail['1080x720'].url
+            try:
+                return self.cover.thumbnail['1080x720'].url
+            except FileNotFoundError:
+                # Happens if the cover was modified and the instance wasn't
+                # saved
+                pass
         return placeholder(540)
 
     @property

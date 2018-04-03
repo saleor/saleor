@@ -1,12 +1,13 @@
 .home {
   text-align: center;
   color: $white;
-  h1 {
+  h2 {
     font-weight: 300;
+    font-size: 2.5rem;
     text-transform: uppercase;
-    @include media-breakpoint-down(sm) {
-      font-size: 2.5rem;
-    }
+  }
+  h3 {
+    font-size: 1.1rem;
   }
   .btn {
     margin-top: $global-margin;

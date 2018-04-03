@@ -1,10 +1,10 @@
 from django.contrib.auth.decorators import permission_required
-from django.shortcuts import redirect, get_object_or_404
+from django.shortcuts import get_object_or_404, redirect
 from django.template.response import TemplateResponse
 
-from .forms import BlockItemForm
-from ..views import staff_member_required
 from ...homepage.models import HomePageItem
+from ..views import staff_member_required
+from .forms import BlockItemForm
 
 
 @staff_member_required
@@ -12,11 +12,13 @@ from ...homepage.models import HomePageItem
 def homepage_block_list(request):
     blocks = HomePageItem.objects.all()
     ctx = {'blocks': blocks}
-    return TemplateResponse(request, 'dashboard/homepage-blocks/list.html', ctx)
+    return TemplateResponse(
+        request, 'dashboard/homepage-blocks/list.html', ctx)
 
 
 def _handle_homepage_block_form(request, instance=None):
-    form = BlockItemForm(request.POST or None, request.FILES or None, instance=instance)
+    form = BlockItemForm(
+        request.POST or None, request.FILES or None, instance=instance)
     status = 200
 
     if form.is_valid():
@@ -26,7 +28,8 @@ def _handle_homepage_block_form(request, instance=None):
         status = 400
 
     ctx = {'form': form, 'page_block': instance}
-    return TemplateResponse(request, 'dashboard/homepage-blocks/form.html', ctx, status=status)
+    return TemplateResponse(
+        request, 'dashboard/homepage-blocks/form.html', ctx, status=status)
 
 
 @staff_member_required
@@ -49,5 +52,7 @@ def homepage_block_delete(request, pk):
     if request.method == 'POST':
         block_instance.delete()
         return redirect('dashboard:homepage-blocks-list')
+
+    ctx = {'page_block': block_instance}
     return TemplateResponse(
-        request, 'dashboard/homepage-blocks/modals/delete.html', {'page_block': block_instance})
+        request, 'dashboard/homepage-blocks/modals/delete.html', ctx)
