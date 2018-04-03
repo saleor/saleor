@@ -254,7 +254,6 @@ def orderline_change_quantity(request, order_pk, line_pk):
                 'product': line.product, 'old_quantity': old_quantity,
                 'new_quantity': line.quantity}
         with transaction.atomic():
-            order.history.create(content=msg, user=request.user)
             form.save()
             messages.success(request, msg)
         return redirect('dashboard:order-details', order_pk=order.pk)
@@ -277,7 +276,6 @@ def orderline_cancel(request, order_pk, line_pk):
             'Dashboard message related to an order line',
             'Cancelled item %s') % line
         with transaction.atomic():
-            order.history.create(content=msg, user=request.user)
             form.cancel_line()
             messages.success(request, msg)
         return redirect('dashboard:order-details', order_pk=order.pk)
@@ -341,7 +339,8 @@ def address_view(request, order_pk, address_type):
         updated_address = form.save()
         if not address:
             save_address_in_order(order, updated_address, address_type)
-        order.history.create(content=success_msg, user=request.user)
+        if not order.is_draft():
+            order.history.create(content=success_msg, user=request.user)
         messages.success(request, success_msg)
         return redirect('dashboard:order-details', order_pk=order_pk)
     ctx = {'order': order, 'address_type': address_type, 'form': form}
@@ -503,8 +502,7 @@ def order_voucher_remove(request, order_pk):
         msg = pgettext_lazy('Dashboard message', 'Removed voucher from order')
         with transaction.atomic():
             form.remove_voucher()
-            order.history.create(content=msg, user=request.user)
-        messages.success(request, msg)
+            messages.success(request, msg)
         return redirect('dashboard:order-details', order_pk=order.pk)
     return redirect('dashboard:order-voucher-edit', order_pk=order.pk)
 
