@@ -154,27 +154,6 @@ def set_product_attributes(product, product_type):
     product.save(update_fields=['attributes'])
 
 
-def set_variant_attributes(variant, product_type):
-    attr_dict = {}
-    existing_variants = variant.product.variants.values_list(
-        'attributes', flat=True)
-    existing_variant_attributes = defaultdict(list)
-    for variant_attrs in existing_variants:
-        for attr_id, value_id in variant_attrs.items():
-            existing_variant_attributes[attr_id].append(value_id)
-
-    for product_attribute in product_type.variant_attributes.all():
-        available_values = product_attribute.values.exclude(
-            pk__in=[int(pk) for pk
-                    in existing_variant_attributes[str(product_attribute.pk)]])
-        if not available_values:
-            return
-        value = random.choice(available_values)
-        attr_dict[str(product_attribute.pk)] = str(value.pk)
-    variant.attributes = attr_dict
-    variant.save(update_fields=['attributes'])
-
-
 def get_variant_combinations(product):
     # Returns all possible variant combinations
     # For example: product type has two variant attributes: Size, Color
