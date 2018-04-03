@@ -117,9 +117,8 @@ argon2-cffi==16.3.0
 # OPS
 django-constance==2.0.0
 django-picklefield==1.0.0
-
-#celery==4.0.2
-git+git://github.com/celery/celery@master#egg=celery
+celery==4.0.2
+# git+git://github.com/celery/celery@master#egg=celery
 
 django-celery-beat==1.0.1
 
