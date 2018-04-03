@@ -179,7 +179,7 @@ class Product(SeoModel):
 
 class ProductVariant(models.Model):
     sku = models.CharField(max_length=32, unique=True)
-    name = models.CharField(max_length=100, blank=True)
+    name = models.CharField(max_length=255, blank=True)
     price_override = MoneyField(
         currency=settings.DEFAULT_CURRENCY, max_digits=12, decimal_places=2,
         blank=True, null=True)
