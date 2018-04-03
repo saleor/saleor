@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: master\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2018-03-30 10:20-0500\n"
+"POT-Creation-Date: 2018-04-03 09:37-0500\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -599,26 +599,26 @@ msgctxt "Order status history entry"
 msgid "Order fully paid"
 msgstr ""
 
-#: saleor/order/views.py:104
+#: saleor/order/views.py:106
 #, python-format
 msgctxt "Payment description"
 msgid "Order %(order_number)s"
 msgstr ""
 
-#: saleor/order/views.py:123
+#: saleor/order/views.py:125
 msgctxt "Payment gateway error"
 msgid ""
 "Oops, it looks like we were unable to contact the selected payment service"
 msgstr ""
 
-#: saleor/order/views.py:186
+#: saleor/order/views.py:199
 msgctxt "Connect order with user warning message"
 msgid ""
 "We couldn't assign the order to your account as the email addresses don't "
 "match"
 msgstr ""
 
-#: saleor/order/views.py:193
+#: saleor/order/views.py:206
 msgctxt "storefront message"
 msgid "The order is now assigned to your account"
 msgstr ""
