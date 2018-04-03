@@ -93,8 +93,8 @@ EMAIL_USE_SSL = email_config['EMAIL_USE_SSL']
 ENABLE_SSL = ast.literal_eval(
     os.environ.get('ENABLE_SSL', 'False'))
 
-if ENABLE_SSL and ast.literal_eval(os.environ.get('FORCE_SSL', 'False')):
-    SECURE_SSL_REDIRECT = True
+if ENABLE_SSL:
+    SECURE_SSL_REDIRECT = not DEBUG
 
 DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL')
 ORDER_FROM_EMAIL = os.getenv('ORDER_FROM_EMAIL', DEFAULT_FROM_EMAIL)
