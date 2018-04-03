@@ -120,10 +120,8 @@ export class PageList extends React.Component<PageListProps, PageListState> {
                               })}
                             >
                               <IconButton
-                                component={props => (
-                                  <Link to="/pages/add/" {...props} />
-                                )}
                                 disabled={loading}
+                                onClick={() => navigate("/pages/add/")}
                               >
                                 <Add />
                               </IconButton>
