@@ -95,11 +95,7 @@ def test_fetch_unavailable_products(client, product):
     assert not content['data']['products']['edges']
 
 
-<<<<<<< HEAD
-def test_product_query(admin_client, product_in_stock):
-=======
-def test_product_query(client, product):
->>>>>>> Rename product_in_stock to producT
+def test_product_query(admin_client, product):
     category = Category.objects.first()
     product = category.products.first()
     query = '''
