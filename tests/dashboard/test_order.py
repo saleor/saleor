@@ -425,9 +425,6 @@ def test_view_cancel_order_line(admin_client, draft_order):
     # check stock deallocation
     assert Stock.objects.first().quantity_allocated == (
         quantity_allocated_before - line_quantity)
-    # check note in the order's history
-    assert OrderHistoryEntry.objects.get(order=draft_order).content == (
-        'Cancelled item %s' % product)
     url = reverse(
         'dashboard:orderline-cancel', kwargs={
             'order_pk': draft_order.pk,
@@ -470,13 +467,6 @@ def test_view_change_order_line_quantity(admin_client, draft_order):
     line.refresh_from_db()
     # source line quantity should be decreased to 2
     assert line.quantity == 2
-    # a note in the order's history should be created
-    assert OrderHistoryEntry.objects.get(order=draft_order).content == (
-        'Changed quantity for product %(product)s from'
-        ' %(old_quantity)s to %(new_quantity)s') % {
-            'product': line.product,
-            'old_quantity': line_quantity_before_quantity_change,
-            'new_quantity': 2}
 
 
 @pytest.mark.integration

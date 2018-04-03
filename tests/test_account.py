@@ -1,3 +1,4 @@
+import json
 from urllib.parse import urlencode
 
 import i18naddress
@@ -193,3 +194,27 @@ def test_compare_addresses_different_country(address):
     copied_address.country = Country('FR')
     copied_address.save()
     assert address != copied_address
+
+
+def test_user_ajax_label(customer_user):
+    address = customer_user.default_billing_address
+    label = '%s %s (%s)' % (
+        address.first_name, address.last_name, customer_user.email)
+    assert customer_user.ajax_label == label
+
+
+def test_user_ajax_label_without_address(admin_user):
+    assert admin_user.ajax_label == admin_user.email
+
+
+def test_ajax_users_list(admin_client, admin_user, customer_user):
+    users_list = [
+        {'id': admin_user.pk, 'text': admin_user.ajax_label},
+        {'id': customer_user.pk, 'text': customer_user.ajax_label}]
+    url = reverse('dashboard:ajax-users-list')
+
+    response = admin_client.get(url, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
+    resp_decoded = json.loads(response.content.decode('utf-8'))
+
+    assert response.status_code == 200
+    assert resp_decoded == {'results': users_list}

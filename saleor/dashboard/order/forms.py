@@ -72,16 +72,20 @@ class CreateOrderFromDraftForm(forms.ModelForm):
             raise forms.ValidationError(errors)
         return self.cleaned_data
 
-    def save(self, commit=True):
+    def save(self):
         self.instance.status = OrderStatus.UNFULFILLED
         if self.instance.user:
             self.instance.user_email = self.instance.user.email
+        remove_shipping_address = False
         if not self.instance.is_shipping_required():
-            if self.instance.shipping_address:
-                self.instance.shipping_address.delete()
             self.instance.shipping_method_name = None
             self.instance.shipping_price = ZERO_TAXED_MONEY
-        return super().save(commit)
+            if self.instance.shipping_address:
+                remove_shipping_address = True
+        super().save()
+        if remove_shipping_address:
+            self.instance.shipping_address.delete()
+        return self.instance
 
 
 class OrderCustomerForm(forms.ModelForm):
@@ -108,9 +112,9 @@ class OrderCustomerForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        if self.instance.user:
-            self.fields['user'].set_initial(
-                self.instance.user, label=self.instance.user.ajax_label)
+        user = self.instance.user
+        if user:
+            self.fields['user'].set_initial(user, label=user.ajax_label)
 
     def clean(self):
         cleaned_data = super().clean()

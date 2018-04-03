@@ -1,11 +1,13 @@
 from decimal import Decimal
 
 from django.urls import reverse
+from payments import PaymentStatus
 from prices import Money, TaxedMoney
 from tests.utils import get_redirect_location
 
-from saleor.order import FulfillmentStatus, models, OrderStatus
+from saleor.order import FulfillmentStatus, OrderStatus, models
 from saleor.order.forms import OrderNoteForm
+from saleor.order.models import Order
 from saleor.order.utils import (
     add_variant_to_order, cancel_fulfillment, cancel_order, recalculate_order,
     restock_fulfillment_lines, restock_order_lines, update_order_status)
@@ -250,3 +252,59 @@ def test_update_order_status(fulfilled_order):
     update_order_status(fulfilled_order)
 
     assert fulfilled_order.status == OrderStatus.UNFULFILLED
+
+
+def test_order_queryset_confirmed(draft_order):
+    other_orders = [
+        Order.objects.create(status=OrderStatus.UNFULFILLED),
+        Order.objects.create(status=OrderStatus.PARTIALLY_FULFILLED),
+        Order.objects.create(status=OrderStatus.FULFILLED),
+        Order.objects.create(status=OrderStatus.CANCELED)
+    ]
+
+    confirmed_orders = Order.objects.confirmed()
+
+    assert draft_order not in confirmed_orders
+    assert all([order in confirmed_orders for order in other_orders])
+
+
+def test_order_queryset_drafts(draft_order):
+    other_orders = [
+        Order.objects.create(status=OrderStatus.UNFULFILLED),
+        Order.objects.create(status=OrderStatus.PARTIALLY_FULFILLED),
+        Order.objects.create(status=OrderStatus.FULFILLED),
+        Order.objects.create(status=OrderStatus.CANCELED)
+    ]
+
+    draft_orders = Order.objects.drafts()
+
+    assert draft_order in draft_orders
+    assert all([order not in draft_orders for order in other_orders])
+
+
+def test_order_queryset_to_ship():
+    total = TaxedMoney(net=Money(10, 'USD'), gross=Money(15, 'USD'))
+    orders_to_ship = [
+        Order.objects.create(status=OrderStatus.UNFULFILLED, total=total),
+        Order.objects.create(
+            status=OrderStatus.PARTIALLY_FULFILLED, total=total)
+    ]
+    for order in orders_to_ship:
+        order.payments.create(
+            variant='default', status=PaymentStatus.CONFIRMED, currency='USD',
+            total=order.total_gross.amount,
+            captured_amount=order.total_gross.amount)
+
+    orders_not_to_ship = [
+        Order.objects.create(status=OrderStatus.DRAFT, total=total),
+        Order.objects.create(status=OrderStatus.UNFULFILLED, total=total),
+        Order.objects.create(
+            status=OrderStatus.PARTIALLY_FULFILLED, total=total),
+        Order.objects.create(status=OrderStatus.FULFILLED, total=total),
+        Order.objects.create(status=OrderStatus.CANCELED, total=total)
+    ]
+
+    orders = Order.objects.to_ship()
+
+    assert all([order in orders for order in orders_to_ship])
+    assert all([order not in orders for order in orders_not_to_ship])
