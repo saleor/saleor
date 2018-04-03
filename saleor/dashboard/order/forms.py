@@ -37,7 +37,7 @@ class CreateOrderFromDraftForm(forms.ModelForm):
     notify_customer = forms.BooleanField(
         label=pgettext_lazy(
             'Send email to customer about order created by staff users',
-            'Notify customer'),
+            'Send email with order confirmation to the customer'),
         required=False, initial=True)
 
     class Meta:

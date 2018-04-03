@@ -2,6 +2,7 @@
 
 {% load i18n %}
 {% load materializecss %}
+{% load prices_i18n %}
 
 {% block action_url %}
 {% url 'dashboard:order-mark-as-paid' order_pk=order.pk %}
@@ -13,9 +14,8 @@
 
 {% block content %}
   <div class="col s12">
-    {% blocktrans trimmed with order=order context "Modal mark order as paid text" %}
-      Are you sure you want mark order as paid?
-    {% endblocktrans %}
+    {% trans "Are you sure you want mark order as paid?" context "Modal mark order as paid text" %}
+    </br>{% trans "Total received:" context "Modal mark order as paid text" %} {{ order.total.gross|amount:'html' }}
   </div>
 {% endblock %}
 
