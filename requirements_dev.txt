@@ -1,0 +1,1 @@
+django-silk==2.0.0
