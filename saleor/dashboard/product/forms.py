@@ -15,6 +15,7 @@ from ...product.models import (
     ProductImage, ProductType, ProductVariant, Stock, StockLocation,
     VariantImage)
 from ...product.thumbnails import create_product_thumbnails
+from ...product.utils import display_variant_attributes
 from ..forms import ModelChoiceOrCreationField, OrderedModelMultipleChoiceField
 from ..seo.fields import SeoDescriptionField, SeoTitleField
 from ..seo.utils import prepare_seo_description
@@ -259,6 +260,10 @@ class ProductVariantForm(forms.ModelForm, AttributesMixin):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        # Variant's name is generated from its attributes
+        # should not be edited directly
+        self.fields['name'].disabled = True
+
         if self.instance.product.pk:
             self.fields['price_override'].widget.attrs[
                 'placeholder'] = self.instance.product.price.amount
@@ -270,6 +275,8 @@ class ProductVariantForm(forms.ModelForm, AttributesMixin):
     def save(self, commit=True):
         attributes = self.get_saved_attributes()
         self.instance.attributes = attributes
+        self.instance.name = display_variant_attributes(
+            self.instance, attributes)
         return super().save(commit=commit)
 
 
