@@ -43,12 +43,12 @@ def _get_product_or_category_voucher_discount_for_checkout(voucher, checkout):
     """Calculate discount value for a voucher of product or category type."""
     if voucher.type == VoucherType.PRODUCT:
         prices = [
-            item[1] for item in get_product_variants_and_prices(
-                checkout.cart, voucher.product)]
+            variant_price for _, variant_price in
+            get_product_variants_and_prices(checkout.cart, voucher.product)]
     else:
         prices = [
-            item[1] for item in get_category_variants_and_prices(
-                checkout.cart, voucher.category)]
+            variant_price for _, variant_price in
+            get_category_variants_and_prices(checkout.cart, voucher.category)]
     if not prices:
         msg = pgettext(
             'Voucher not applicable',

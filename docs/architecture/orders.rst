@@ -35,4 +35,4 @@ There are four possible order statuses, based on statuses of its fulfillments:
 - ``CANCELED``
     Order has been canceled. Every fulfillment (if there is any) has ``CANCELED`` status. Order doesn't require further actions by a shop operator.
 
-There is also ``DRAFT`` status, used for orders created from dashboard.
+There is also ``DRAFT`` status, used for orders newly created from dashboard and not yet published.

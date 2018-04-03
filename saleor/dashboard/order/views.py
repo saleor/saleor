@@ -134,12 +134,14 @@ def order_details(request, order_pk):
             balance = captured - order.total
     else:
         can_capture = can_release = can_refund = False
+    can_mark_as_paid = not order.payments.exists()
     is_many_stock_locations = StockLocation.objects.count() > 1
     ctx = {'order': order, 'all_payments': all_payments, 'payment': payment,
            'notes': notes, 'captured': captured, 'balance': balance,
            'preauthorized': preauthorized, 'can_capture': can_capture,
            'can_release': can_release, 'can_refund': can_refund,
-           'is_many_stock_locations': is_many_stock_locations}
+           'is_many_stock_locations': is_many_stock_locations,
+           'can_mark_as_paid': can_mark_as_paid}
     return TemplateResponse(request, 'dashboard/order/detail.html', ctx)
 
 

@@ -121,12 +121,12 @@ def _get_product_or_category_voucher_discount_for_order(order):
     """Calculate discount value for a voucher of product or category type."""
     if order.voucher.type == VoucherType.PRODUCT:
         prices = [
-            item[1] for item in get_product_variants_and_prices(
-                order, order.voucher.product)]
+            variant_price for _, variant_price in
+            get_product_variants_and_prices(order, order.voucher.product)]
     else:
         prices = [
-            item[1] for item in get_category_variants_and_prices(
-                order, order.voucher.category)]
+            variant_price for _, variant_price in
+            get_category_variants_and_prices(order, order.voucher.category)]
     if not prices:
         return Money(0, settings.DEFAULT_CURRENCY)
     return get_product_or_category_voucher_discount(order.voucher, prices)
@@ -162,3 +162,22 @@ def save_address_in_order(order, address, address_type):
         if not order.shipping_address:
             order.shipping_address = address.get_copy()
     order.save(update_fields=['billing_address', 'shipping_address'])
+
+
+def remove_customer_from_order(order):
+    """Remove related customer and user email from order.
+
+    If billing and shipping addresses are set to related customer's default
+    addresses and were not edited, remove them as well.
+    """
+    customer = order.user
+    order.user = None
+    order.user_email = ''
+    order.save()
+
+    if customer:
+        if customer.default_billing_address == order.billing_address:
+            order.billing_address.delete()
+
+        if customer.default_shipping_address == order.shipping_address:
+            order.shipping_address.delete()

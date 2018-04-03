@@ -52,7 +52,7 @@ def cart(db):  # pylint: disable=W0613
 
 
 @pytest.fixture
-def default_billing_address(db):  # pylint: disable=W0613
+def address(db):  # pylint: disable=W0613
     return Address.objects.create(
         first_name='John', last_name='Doe',
         company_name='Mirumee Software',
@@ -64,13 +64,14 @@ def default_billing_address(db):  # pylint: disable=W0613
 
 
 @pytest.fixture
-def customer_user(db, default_billing_address):  # pylint: disable=W0613
+def customer_user(db, address):  # pylint: disable=W0613
+    default_address = address.get_copy()
     user = User.objects.create_user(
         'test@example.com',
         'password',
-        default_billing_address=default_billing_address,
-        default_shipping_address=default_billing_address)
-    user.addresses.add(default_billing_address)
+        default_billing_address=default_address,
+        default_shipping_address=default_address)
+    user.addresses.add(default_address)
     return user
 
 
