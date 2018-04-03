@@ -1,14 +1,14 @@
 import React, { Component, PropTypes } from 'react';
 import FilterHeader from './FilterHeader';
-import {isMobile} from '../utils';
+import { isMobile } from '../utils';
 
 export default class PriceFilter extends Component {
 
   constructor(props) {
     super(props);
-      this.state = {
-        visibility: !isMobile()
-      };
+    this.state = {
+      visibility: !isMobile()
+    };
   }
 
   static propTypes = {
@@ -42,34 +42,35 @@ export default class PriceFilter extends Component {
     const { maxPrice, minPrice } = this.props;
     const { visibility } = this.state;
     return (
-      <div className="product-filters__price-range">
+      <div className={['filter-section', visibility ? '' : 'filter-section--closed'].join(' ')}>
         <FilterHeader
           onClick={this.changeVisibility}
           title={pgettext('Price filter on category page', 'Price range')}
-          visibility={visibility}
         />
         {(visibility || minPrice || maxPrice) && (
-          <div>
-            <input
-              className="form-control"
-              defaultValue={minPrice}
-              min="0"
-              onKeyUp={this.checkKey}
-              placeholder={pgettext('Price filter on category page', 'from')}
-              ref={input => (this.minPriceInput = input)}
-              type="number"
-            />
-            <span>&#8212;</span>
-            <input
-              className="form-control"
-              defaultValue={maxPrice}
-              min="0"
-              onKeyUp={this.checkKey}
-              placeholder={pgettext('Price filter on category page', 'to')}
-              ref={input => (this.maxPriceInput = input)}
-              type="number"
-            />
-            <button className="btn primary" onClick={this.updateFilter}>{pgettext('Price filter on category page', 'Update')}</button>
+          <div className="filter-section__content">
+            <div className="price-field">
+              <input
+                className="form-control"
+                defaultValue={minPrice}
+                min="0"
+                onKeyUp={this.checkKey}
+                placeholder={pgettext('Price filter on category page', 'from')}
+                ref={input => (this.minPriceInput = input)}
+                type="number"
+              />
+              <span>&#8212;</span>
+              <input
+                className="form-control"
+                defaultValue={maxPrice}
+                min="0"
+                onKeyUp={this.checkKey}
+                placeholder={pgettext('Price filter on category page', 'to')}
+                ref={input => (this.maxPriceInput = input)}
+                type="number"
+              />
+              <button className="btn primary mt-3" onClick={this.updateFilter}>{pgettext('Price filter on category page', 'Update')}</button>
+            </div>
           </div>
         )}
       </div>

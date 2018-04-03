@@ -1,27 +1,26 @@
 import React, { PropTypes } from 'react';
-
 import InlineSVG from 'react-inlinesvg';
 
-import chevronUpIcon from '../../../images/chevron-up.svg';
 import chevronDownIcon from '../../../images/chevron-down.svg';
 
-const FilterHeader = ({ onClick, title, visibility }) => {
-  const imageSrc = visibility ? (chevronUpIcon) : (chevronDownIcon);
-  const key = visibility ? 'chevronUpIcon' : 'chevronDownIcon';
+const FilterHeader = ({ onClick, title }) => {
+  const imageSrc = chevronDownIcon;
+  const key = 'chevronDownIcon';
   return (
-    <h3 onClick={onClick}>
-      {title}
-      <div className="collapse-filters-icon">
-        <InlineSVG key={key} src={imageSrc} />
+    <div className="filter-section__header" onClick={onClick}>
+      <h3>
+        {title}
+      </h3>
+      <div className="filter-section__icon">
+        <img key={key} src={imageSrc} />
       </div>
-    </h3>
+    </div>
   );
 };
 
 FilterHeader.propTypes = {
   onClick: PropTypes.func.isRequired,
-  title: PropTypes.string.isRequired,
-  visibility: PropTypes.bool
+  title: PropTypes.string.isRequired
 };
 
 export default FilterHeader;
