@@ -11,6 +11,9 @@ from .product.filters import ProductFilterSet
 from .product.types import (
     Category, Product, ProductAttribute, resolve_attributes,
     resolve_categories, resolve_products)
+from .product.mutations import (
+    CategoryCreateMutation, CategoryUpdateMutation, CategoryDelete,
+    ProductCreateMutation, ProductUpdateMutation, ProductDeleteMutation)
 from .utils import get_node
 
 
@@ -69,6 +72,10 @@ class Query(graphene.ObjectType):
 class Mutations(graphene.ObjectType):
     token_create = graphql_jwt.ObtainJSONWebToken.Field()
     token_refresh = graphql_jwt.Refresh.Field()
+
+    product_create = ProductCreateMutation.Field()
+    product_delete = ProductDeleteMutation.Field()
+    product_update = ProductUpdateMutation.Field()
 
 
 schema = graphene.Schema(Query, Mutations)
