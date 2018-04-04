@@ -1,7 +1,12 @@
+from unittest.mock import patch
+
+import pytest
+from django.conf import settings
+from django.forms.models import model_to_dict
 from django.urls import reverse
 
 from saleor.dashboard.page.forms import PageForm
-from django.forms.models import model_to_dict
+from saleor.page.models import Page
 
 
 def test_page_list(admin_client):
@@ -13,6 +18,7 @@ def test_page_list(admin_client):
 
 def test_page_edit(admin_client, page):
     url = reverse('dashboard:page-update', args=[page.pk])
+    assert not page.is_protected
 
     response = admin_client.get(url)
     assert response.status_code == 200
@@ -20,10 +26,41 @@ def test_page_edit(admin_client, page):
         'slug': 'changed-url',
         'title': 'foo',
         'content': 'bar',
-        'visible': True}
+        'is_visible': True}
 
     response = admin_client.post(url, data=data)
     assert response.status_code == 302
+
+    page.refresh_from_db()
+    for attr, expected_value in data.items():
+        assert getattr(page, attr) == expected_value
+
+
+# sets the PROTECTED_PAGES setting, to contain the fixture default page slug
+@patch.object(settings, 'PROTECTED_PAGES', ['test-url'])
+def test_page_edit_protected_page(admin_client, page):
+    """Tests if editing the slug from a protected page preserves the slug."""
+    url = reverse('dashboard:page-update', args=[page.pk])
+    assert page.is_protected
+
+    response = admin_client.get(url)
+    assert response.status_code == 200
+
+    data = {
+        'slug': 'changed-url',
+        'title': 'foo',
+        'content': 'bar',
+        'is_visible': True}
+
+    response = admin_client.post(url, data=data)
+    assert response.status_code == 302
+
+    page.refresh_from_db()
+    assert page.slug == 'test-url'
+
+    data.pop('slug')
+    for attr, expected_value in data.items():
+        assert getattr(page, attr) == expected_value
 
 
 def test_page_add(admin_client):
@@ -36,20 +73,55 @@ def test_page_add(admin_client):
         'slug': 'aaaa',
         'title': 'foo',
         'content': 'bar',
-        'visible': False}
+        'is_visible': False}
 
     response = admin_client.post(url, data=data)
     assert response.status_code == 302
 
+    page = Page.objects.last()
+
+    for attr, expected_value in data.items():
+        assert getattr(page, attr) == expected_value
+
 
 def test_page_delete(admin_client, page):
     url = reverse('dashboard:page-delete', args=[page.pk])
+    assert not page.is_protected
 
     response = admin_client.get(url)
     assert response.status_code == 200
+    assert b'Are you sure you want to remove page' in response.content
 
-    response = admin_client.post(url, data={'a': 'b'})
+    # send 'random' post data as in real usage it would be the CSRF token
+    response = admin_client.post(url, data={'dummy': 'data'})
     assert response.status_code == 302
+
+    with pytest.raises(page._meta.model.DoesNotExist):
+        Page.objects.get(pk=page.pk)
+
+    response = admin_client.get(url)
+    assert response.status_code == 404
+
+
+# sets the PROTECTED_PAGES setting, to contain the fixture default page slug
+@patch.object(settings, 'PROTECTED_PAGES', ['test-url'])
+def test_page_delete_protected(admin_client, page):
+    """Tests if deleting a page having its slug protected page is denied."""
+    url = reverse('dashboard:page-delete', args=[page.pk])
+    expected_response_content = b'you cannot delete'
+    assert page.is_protected
+
+    response = admin_client.get(url)
+    assert response.status_code == 200
+    assert expected_response_content in response.content
+
+    # send 'random' post data as in real usage it would be the CSRF token
+    response = admin_client.post(url, data={'dummy': 'data'})
+    assert response.status_code == 200
+    assert expected_response_content in response.content
+
+    # page should not have been deleted
+    assert Page.objects.get(pk=page.pk)
 
 
 def test_sanitize_page_content(page, default_category):
