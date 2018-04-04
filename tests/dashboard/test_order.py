@@ -1,7 +1,8 @@
 from decimal import Decimal
-from unittest.mock import patch
+from unittest.mock import MagicMock, Mock, patch
 
 import pytest
+from django.conf import settings
 from django.urls import reverse
 from payments import PaymentStatus
 from prices import Money, TaxedMoney
@@ -9,7 +10,11 @@ from tests.utils import get_form_errors, get_redirect_location
 
 from saleor.core.utils import ZERO_TAXED_MONEY
 from saleor.dashboard.order.forms import ChangeQuantityForm, OrderNoteForm
-from saleor.dashboard.order.utils import fulfill_order_line
+from saleor.dashboard.order.utils import (
+    fulfill_order_line, get_product_variants_and_prices,
+    remove_customer_from_order, save_address_in_order,
+    update_order_with_user_addresses)
+from saleor.discount.utils import increase_voucher_usage
 from saleor.order import OrderStatus
 from saleor.order.models import Order, OrderHistoryEntry, OrderLine, OrderNote
 from saleor.order.utils import (
@@ -442,7 +447,6 @@ def test_view_change_order_line_quantity(admin_client, draft_order):
     lines_before_quantity_change = draft_order.lines.all()
     lines_before_quantity_change_count = lines_before_quantity_change.count()
     line = lines_before_quantity_change.first()
-    line_quantity_before_quantity_change = line.quantity
 
     url = reverse(
         'dashboard:orderline-change-quantity', kwargs={
@@ -824,7 +828,7 @@ def test_view_order_create(admin_client):
 
 
 @pytest.mark.django_db
-def test_view_confirm_draft_order_valid(admin_client, draft_order):
+def test_view_create_from_draft_order_valid(admin_client, draft_order):
     order = draft_order
     url = reverse(
         'dashboard:create-order-from-draft', kwargs={'order_pk': order.pk})
@@ -841,7 +845,7 @@ def test_view_confirm_draft_order_valid(admin_client, draft_order):
 
 
 @pytest.mark.django_db
-def test_view_confirm_draft_order_assigns_customer_email(
+def test_view_create_from_draft_order_assigns_customer_email(
         admin_client, draft_order, customer_user):
     order = draft_order
     order.user_email = ''
@@ -857,7 +861,7 @@ def test_view_confirm_draft_order_assigns_customer_email(
 
 
 @pytest.mark.django_db
-def test_view_confirm_draft_order_empty_order(admin_client, draft_order):
+def test_view_create_from_draft_order_empty_order(admin_client, draft_order):
     order = draft_order
     order.lines.all().delete()
     url = reverse(
@@ -874,10 +878,11 @@ def test_view_confirm_draft_order_empty_order(admin_client, draft_order):
 
 
 @pytest.mark.django_db
-def test_view_confirm_draft_order_not_draft_order(
+def test_view_create_from_draft_order_not_draft_order(
         admin_client, order_with_lines):
     url = reverse(
-        'dashboard:create-order-from-draft', kwargs={'order_pk': order_with_lines.pk})
+        'dashboard:create-order-from-draft',
+        kwargs={'order_pk': order_with_lines.pk})
     data = {'csrfmiddlewaretoken': 'hello'}
 
     response = admin_client.post(url, data)
@@ -886,7 +891,7 @@ def test_view_confirm_draft_order_not_draft_order(
 
 
 @pytest.mark.django_db
-def test_view_confirm_draft_order_shipping_method_not_valid(
+def test_view_create_from_draft_order_shipping_method_not_valid(
         admin_client, draft_order, shipping_method):
     method = shipping_method.price_per_country.create(
         country_code='DE', price=10)
@@ -908,7 +913,7 @@ def test_view_confirm_draft_order_shipping_method_not_valid(
 
 
 @pytest.mark.django_db
-def test_view_confirm_draft_order_no_shipping_address_shipping_not_required(
+def test_view_create_from_draft_order_no_shipping_address_shipping_not_required(  # noqa
         admin_client, draft_order):
     url = reverse(
         'dashboard:create-order-from-draft',
@@ -1011,6 +1016,25 @@ def test_view_order_customer_edit_not_valid(
 
 
 @pytest.mark.django_db
+def test_view_order_customer_remove(admin_client, draft_order):
+    url = reverse(
+        'dashboard:order-customer-remove', kwargs={'order_pk': draft_order.pk})
+    data = {'csrfmiddlewaretoken': 'hello'}
+
+    response = admin_client.post(url, data)
+
+    assert response.status_code == 302
+    redirect_url = reverse(
+        'dashboard:order-details', kwargs={'order_pk': draft_order.pk})
+    assert get_redirect_location(response) == redirect_url
+    draft_order.refresh_from_db()
+    assert not draft_order.user
+    assert not draft_order.user_email
+    assert not draft_order.billing_address
+    assert not draft_order.shipping_address
+
+
+@pytest.mark.django_db
 def test_view_order_shipping_edit(
         admin_client, draft_order, shipping_method, settings):
     method = shipping_method.price_per_country.create(
@@ -1108,3 +1132,142 @@ def test_view_edit_discount(admin_client, draft_order, settings):
     discount_amount = Money(discount_value, settings.DEFAULT_CURRENCY)
     assert draft_order.discount_amount == discount_amount
     assert draft_order.total == total_before - discount_amount
+
+
+def test_update_order_with_user_addresses(order):
+    update_order_with_user_addresses(order)
+    assert order.billing_address == order.user.default_billing_address
+    assert order.shipping_address == order.user.default_shipping_address
+
+
+def test_update_order_with_user_addresses_empty_user(order):
+    order.user = None
+    order.save()
+    update_order_with_user_addresses(order)
+    assert order.billing_address is None
+    assert order.shipping_address is None
+
+
+def test_save_address_in_order_shipping_address(order, address):
+    old_billing_address = order.billing_address
+    address.first_name = 'Jane'
+    address.save()
+
+    save_address_in_order(order, address, 'shipping')
+
+    assert order.shipping_address == address
+    assert order.shipping_address.pk == address.pk
+    assert order.billing_address == old_billing_address
+
+
+def test_save_address_in_order_billing_address(order, address):
+    address.first_name = 'Jane'
+    address.save()
+
+    save_address_in_order(order, address, 'billing')
+
+    assert order.billing_address == address
+    assert order.billing_address.pk == address.pk
+    assert order.shipping_address == order.billing_address
+
+
+def test_remove_customer_from_order(order):
+    remove_customer_from_order(order)
+
+    assert order.user is None
+    assert order.user_email == ''
+    assert order.billing_address is None
+
+
+def test_remove_customer_from_order_remove_addresses(order, customer_user):
+    order.billing_address = customer_user.default_billing_address.get_copy()
+    order.shipping_address = customer_user.default_shipping_address.get_copy()
+
+    remove_customer_from_order(order)
+
+    assert order.user is None
+    assert order.user_email == ''
+    assert order.billing_address is None
+    assert order.shipping_address is None
+
+
+def test_remove_customer_from_order_do_not_remove_modified_addresses(
+        order, customer_user):
+    order.billing_address = customer_user.default_billing_address.get_copy()
+    order.billing_address.first_name = 'Jane'
+    order.billing_address.save()
+    old_billing_address = order.billing_address
+
+    order.shipping_address = customer_user.default_shipping_address.get_copy()
+    order.shipping_address.first_name = 'Jane'
+    order.shipping_address.save()
+    old_shipping_address = order.shipping_address
+
+    remove_customer_from_order(order)
+
+    assert order.user is None
+    assert order.user_email == ''
+    assert order.billing_address == old_billing_address
+    assert order.shipping_address == old_shipping_address
+
+
+def test_view_order_voucher_edit(admin_client, draft_order, voucher):
+    total_before = draft_order.total
+    url = reverse(
+        'dashboard:order-voucher-edit', kwargs={'order_pk': draft_order.pk})
+    data = {'voucher': voucher.pk}
+
+    response = admin_client.post(url, data)
+
+    assert response.status_code == 302
+    redirect_url = reverse(
+        'dashboard:order-details', kwargs={'order_pk': draft_order.pk})
+    assert get_redirect_location(response) == redirect_url
+
+    draft_order.refresh_from_db()
+    discount_amount = Money(voucher.discount_value, settings.DEFAULT_CURRENCY)
+    assert draft_order.discount_amount == discount_amount
+    assert draft_order.total == total_before - discount_amount
+
+
+def test_view_order_voucher_remove(admin_client, draft_order, voucher):
+    increase_voucher_usage(voucher)
+    draft_order.voucher = voucher
+    discount_amount = Money(voucher.discount_value, settings.DEFAULT_CURRENCY)
+    draft_order.discount_amount = discount_amount
+    draft_order.total -= discount_amount
+    draft_order.save()
+    total_before = draft_order.total
+    url = reverse(
+        'dashboard:order-voucher-remove', kwargs={'order_pk': draft_order.pk})
+    data = {'csrfmiddlewaretoken': 'hello'}
+
+    response = admin_client.post(url, data)
+
+    assert response.status_code == 302
+    redirect_url = reverse(
+        'dashboard:order-details', kwargs={'order_pk': draft_order.pk})
+    assert get_redirect_location(response) == redirect_url
+
+    draft_order.refresh_from_db()
+    assert draft_order.discount_amount == Money(0, settings.DEFAULT_CURRENCY)
+    assert draft_order.total == total_before + discount_amount
+
+
+def test_view_mark_order_as_paid(admin_client, order_with_lines):
+    url = reverse(
+        'dashboard:order-mark-as-paid',
+        kwargs={'order_pk': order_with_lines.pk})
+    data = {'csrfmiddlewaretoken': 'hello'}
+
+    response = admin_client.post(url, data)
+
+    assert response.status_code == 302
+    redirect_url = reverse(
+        'dashboard:order-details', kwargs={'order_pk': order_with_lines.pk})
+    assert get_redirect_location(response) == redirect_url
+
+    order_with_lines.refresh_from_db()
+    assert order_with_lines.is_fully_paid()
+    assert order_with_lines.history.filter(
+        content='Order manually marked as paid').exists()

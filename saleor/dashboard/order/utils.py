@@ -56,9 +56,11 @@ def update_order_with_user_addresses(order):
     """Update addresses in an order based on a user assigned to an order."""
     if order.shipping_address:
         order.shipping_address.delete()
+        order.shipping_address = None
 
     if order.billing_address:
         order.billing_address.delete()
+        order.billing_address = None
 
     if order.user:
         order.billing_address = (
@@ -67,7 +69,8 @@ def update_order_with_user_addresses(order):
         order.shipping_address = (
             order.user.default_shipping_address.get_copy()
             if order.user.default_shipping_address else None)
-        order.save()
+
+    order.save(update_fields=['billing_address', 'shipping_address'])
 
 
 def get_product_variants_and_prices(order, product):
@@ -87,7 +90,7 @@ def get_category_variants_and_prices(order, root_category):
     Product is assumed to be in the category if it belongs to any of its
     descendant subcategories.
     """
-    products = {line.product for line in order.lines.all() if line.product}
+    products = {line.product for line in order if line.product}
     matching_products = set()
     for product in products:
         if product.category.is_descendant_of(root_category, include_self=True):
@@ -176,8 +179,19 @@ def remove_customer_from_order(order):
     order.save()
 
     if customer:
-        if customer.default_billing_address == order.billing_address:
+        equal_billing_addresses = (
+            order.billing_address and customer.default_billing_address and
+            customer.default_billing_address == order.billing_address)
+        if equal_billing_addresses:
             order.billing_address.delete()
+            order.billing_address = None
 
-        if customer.default_shipping_address == order.shipping_address:
+        equal_shipping_addresses = (
+            order.shipping_address and customer.default_shipping_address and
+            customer.default_shipping_address == order.shipping_address)
+        if equal_shipping_addresses:
             order.shipping_address.delete()
+            order.shipping_address = None
+
+        if equal_billing_addresses or equal_shipping_addresses:
+            order.save()
