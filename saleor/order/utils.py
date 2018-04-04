@@ -7,6 +7,7 @@ from prices import Money
 
 from ..account.utils import store_user_address
 from ..core.exceptions import InsufficientStock
+from ..dashboard.order.utils import get_voucher_discount_for_order
 from ..order import FulfillmentStatus, OrderStatus
 from ..product.utils import allocate_stock, deallocate_stock, increase_stock
 
@@ -33,19 +34,35 @@ def check_order_status(func):
     return decorator
 
 
-def recalculate_order(order, discount_amount=None):
+def update_voucher_discount(func):
+    """Recalculate order discount amount based on order voucher."""
+
+    @wraps(func)
+    def decorator(*args, **kwargs):
+        if kwargs.pop('update_voucher_discount', True):
+            order = args[0]
+            order.discount_amount = (
+                get_voucher_discount_for_order(order) or
+                Money(0, settings.DEFAULT_CURRENCY))
+        return func(*args, **kwargs)
+
+    return decorator
+
+
+@update_voucher_discount
+def recalculate_order(order, **kwargs):
     """Recalculate and assign total price of order.
 
     Total price is a sum of items in order and order shipping price minus
     discount amount.
+
+    Voucher discount amount is recalculated by default. To avoid this, pass
+    update_voucher_discount argument set to False.
     """
     prices = [line.get_total() for line in order]
     total = sum(prices, order.shipping_price)
     # discount amount can't be greater than order total
-    current_discount_amount = (
-        discount_amount or order.discount_amount or
-        Money(0, settings.DEFAULT_CURRENCY))
-    order.discount_amount = min(current_discount_amount, total.gross)
+    order.discount_amount = min(order.discount_amount, total.gross)
     if order.discount_amount:
         total -= order.discount_amount
     order.total = total
