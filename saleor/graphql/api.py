@@ -59,8 +59,8 @@ class Query(graphene.ObjectType):
     def resolve_product(self, info, id):
         return get_node(info, id, only_type=Product)
 
-    def resolve_products(self, info, **kwargs):
-        return resolve_products(info)
+    def resolve_products(self, info, category_id=None, **kwargs):
+        return resolve_products(info, category_id)
 
     def resolve_attributes(self, info, in_category=None, **kwargs):
         return resolve_attributes(in_category, info)

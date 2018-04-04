@@ -5,7 +5,8 @@ from graphene_django.filter import DjangoFilterConnectionField
 
 from ...product import models
 from ...product.templatetags.product_images import product_first_image
-from ...product.utils import get_availability, get_product_costs_data
+from ...product.utils import (
+    get_availability, get_product_costs_data, products_visible_to_user)
 from ..core.decorators import permission_required
 from ..core.filters import DistinctFilterSet
 from ..core.types import (
@@ -254,13 +255,13 @@ def resolve_categories(info, level=None):
         qs = qs.filter(level=level)
     return qs.distinct()
 
-
 def resolve_products(info, category_id):
+    user = info.context.user
     if category_id is not None:
         category = get_node(info, category_id, only_type=Category)
-        return models.Product.objects.filter(
-            category=category).distinct()
-    return models.Product.objects.all().distinct()
+        return products_visible_to_user(
+            user=user).filter(category=category).distinct()
+    return products_visible_to_user(user=user).distinct()
 
 
 def resolve_attributes(category_id, info):
