@@ -15,8 +15,7 @@ from ...product.models import (
     ProductImage, ProductType, ProductVariant, Stock, StockLocation,
     VariantImage)
 from ...product.thumbnails import create_product_thumbnails
-from ...product.utils import (
-    display_variant_attributes, generate_name_from_variant_attributes)
+from ...product.utils import display_variant_attributes
 from ..forms import ModelChoiceOrCreationField, OrderedModelMultipleChoiceField
 from ..seo.fields import SeoDescriptionField, SeoTitleField
 from ..seo.utils import prepare_seo_description
@@ -125,19 +124,21 @@ class ProductTypeForm(forms.ModelForm):
                 'and its variant.')
             self.add_error('variant_attributes', msg)
 
-        if self.instance.pk:
-            variants_changed = (
-                self.fields['has_variants'].initial != has_variants)
-            if variants_changed:
-                query = self.instance.products.all()
-                query = query.annotate(variants_counter=Count('variants'))
-                query = query.filter(variants_counter__gt=1)
-                if query.exists():
-                    msg = pgettext_lazy(
-                        'Product type form error',
-                        'Some products of this type have more than '
-                        'one variant.')
-                    self.add_error('has_variants', msg)
+        if not self.instance.pk:
+            return data
+
+        variants_changed = (
+            self.fields['has_variants'].initial != has_variants)
+        if variants_changed:
+            query = self.instance.products.all()
+            query = query.annotate(variants_counter=Count('variants'))
+            query = query.filter(variants_counter__gt=1)
+            if query.exists():
+                msg = pgettext_lazy(
+                    'Product type form error',
+                    'Some products of this type have more than '
+                    'one variant.')
+                self.add_error('has_variants', msg)
 
         # Some variant attributes could be removed so name should be updated
         # accordingly
@@ -289,7 +290,7 @@ class ProductVariantForm(forms.ModelForm, AttributesMixin):
     def save(self, commit=True):
         attributes = self.get_saved_attributes()
         self.instance.attributes = attributes
-        self.instance.name = generate_name_from_variant_attributes(
+        self.instance.name = display_variant_attributes(
             self.instance, attributes)
         return super().save(commit=commit)
 

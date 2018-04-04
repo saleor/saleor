@@ -25,7 +25,7 @@ from ...product.models import (
     AttributeChoiceValue, Category, Collection, Product, ProductAttribute,
     ProductImage, ProductType, ProductVariant, Stock, StockLocation)
 from ...product.thumbnails import create_product_thumbnails
-from ...product.utils import generate_name_from_variant_attributes
+from ...product.utils import display_variant_attributes
 from ...shipping.models import ANY_COUNTRY, ShippingMethod
 
 fake = Factory.create()
@@ -300,8 +300,7 @@ def create_variant(product, **kwargs):
     defaults.update(kwargs)
     variant = ProductVariant(**defaults)
     if variant.attributes:
-        variant.name = generate_name_from_variant_attributes(
-            variant, variant.attributes)
+        variant.name = display_variant_attributes(variant, variant.attributes)
     variant.save()
     create_stock(variant)
     return variant
