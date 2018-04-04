@@ -47,30 +47,32 @@ export default class PriceFilter extends Component {
           onClick={this.changeVisibility}
           title={pgettext('Price filter on category page', 'Price range')}
         />
-        <div className="filter-section__content">
-          <div className="price-field">
-            <input
-              className="form-control"
-              defaultValue={minPrice}
-              min="0"
-              onKeyUp={this.checkKey}
-              placeholder={pgettext('Price filter on category page', 'from')}
-              ref={input => (this.minPriceInput = input)}
-              type="number"
-            />
-            <span>&#8212;</span>
-            <input
-              className="form-control"
-              defaultValue={maxPrice}
-              min="0"
-              onKeyUp={this.checkKey}
-              placeholder={pgettext('Price filter on category page', 'to')}
-              ref={input => (this.maxPriceInput = input)}
-              type="number"
-            />
-            <button className="btn primary mt-3" onClick={this.updateFilter}>{pgettext('Price filter on category page', 'Update')}</button>
+        {(visibility || minPrice || maxPrice) && (
+          <div className="filter-section__content">
+            <div className="price-field">
+              <input
+                className="form-control"
+                defaultValue={minPrice}
+                min="0"
+                onKeyUp={this.checkKey}
+                placeholder={pgettext('Price filter on category page', 'from')}
+                ref={input => (this.minPriceInput = input)}
+                type="number"
+              />
+              <span>&#8212;</span>
+              <input
+                className="form-control"
+                defaultValue={maxPrice}
+                min="0"
+                onKeyUp={this.checkKey}
+                placeholder={pgettext('Price filter on category page', 'to')}
+                ref={input => (this.maxPriceInput = input)}
+                type="number"
+              />
+              <button className="btn primary mt-3" onClick={this.updateFilter}>{pgettext('Price filter on category page', 'Update')}</button>
+            </div>
           </div>
-        </div>
+        )}
       </div>
     );
   }
