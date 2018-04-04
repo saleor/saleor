@@ -27,6 +27,8 @@ urlpatterns = [
         views.order_discount_edit, name='order-discount-edit'),
     url(r'^(?P<order_pk>\d+)/edit-voucher/$',
         views.order_voucher_edit, name='order-voucher-edit'),
+    url(r'^(?P<order_pk>\d+)/remove-voucher/$',
+        views.order_voucher_remove, name='order-voucher-remove'),
     url(r'^(?P<order_pk>\d+)/delete/$',
         views.remove_draft_order, name='draft-order-delete'),
 
@@ -43,8 +45,6 @@ urlpatterns = [
         views.orderline_cancel, name='orderline-cancel'),
     url(r'^(?P<order_pk>\d+)/line/(?P<line_pk>\d+)/change-stock/$',
         views.orderline_change_stock, name='orderline-change-stock'),
-    url(r'^(?P<order_pk>\d+)/remove-voucher/$',
-        views.order_voucher_remove, name='order-voucher-remove'),
     url(r'^(?P<order_pk>\d+)/add-variant/$',
         views.add_variant_to_order, name='add-variant-to-order'),
     url(r'^(?P<order_pk>\d+)/fulfill/$',
