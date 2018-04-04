@@ -64,6 +64,7 @@
     margin-bottom: 0;
     li {
       padding-left: $global-padding;
+      padding-top: $global-padding * .25;
       input {
         margin-right: $global-margin;
       }
