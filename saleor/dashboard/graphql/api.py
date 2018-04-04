@@ -1,42 +1,16 @@
 import graphene
 import graphql_jwt
 from graphene_django.debug import DjangoDebug
-from graphene_django.filter import DjangoFilterConnectionField
-from graphql_jwt.decorators import staff_member_required
-
-from ...graphql.core.filters import DistinctFilterSet
-from ...graphql.page.types import Page
-from ...graphql.utils import get_node
-from .page.mutations import PageCreate, PageDelete, PageUpdate
-from .page.types import resolve_all_pages
 
 
 class Query(graphene.ObjectType):
-    page = graphene.Field(
-        Page, id=graphene.Argument(graphene.ID),
-        description='Lookup a page by ID.')
-    pages = DjangoFilterConnectionField(
-        Page, filterset_class=DistinctFilterSet,
-        description='List of shop\'s pages.')
     node = graphene.Node.Field()
     debug = graphene.Field(DjangoDebug, name='__debug')
 
-    @staff_member_required
-    def resolve_page(self, info, id):
-        return get_node(info, id, only_type=Page)
-
-    @staff_member_required
-    def resolve_pages(self, info):
-        return resolve_all_pages()
-
 
 class Mutations(graphene.ObjectType):
-    page_create = PageCreate.Field()
-    page_delete = PageDelete.Field()
-    page_update = PageUpdate.Field()
-
     token_create = graphql_jwt.ObtainJSONWebToken.Field()
     token_refresh = graphql_jwt.Refresh.Field()
 
 
-schema = graphene.Schema(Query, Mutations)
+schema = graphene.Schema(Query)

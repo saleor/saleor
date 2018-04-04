@@ -5,6 +5,7 @@ from graphene_django.filter import DjangoFilterConnectionField
 
 from ..page import models as page_models
 from .core.filters import DistinctFilterSet
+from .page.mutations import PageCreate, PageDelete, PageUpdate
 from .page.types import Page, resolve_pages
 from .product.filters import ProductFilterSet
 from .product.mutations import (
@@ -56,7 +57,7 @@ class Query(graphene.ObjectType):
         return get_node(info, id, only_type=Page)
 
     def resolve_pages(self, info):
-        return resolve_pages()
+        return resolve_pages(user=info.context.user)
 
     def resolve_product(self, info, id):
         return get_node(info, id, only_type=Product)
@@ -75,6 +76,10 @@ class Mutations(graphene.ObjectType):
     category_create = CategoryCreateMutation.Field()
     category_delete = CategoryDelete.Field()
     category_update = CategoryUpdateMutation.Field()
+
+    page_create = PageCreate.Field()
+    page_delete = PageDelete.Field()
+    page_update = PageUpdate.Field()
 
     product_create = ProductCreateMutation.Field()
     product_delete = ProductDeleteMutation.Field()
