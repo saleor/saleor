@@ -17,7 +17,9 @@
 
 {% block content %}
   {{ form.tracking_number|materializecss }}
-  {{ form.send_mail|materializecss }}
+  {% if form.send_mail %}
+    {{ form.send_mail|materializecss }}
+  {% endif %}
 {% endblock %}
 
 {% block primary_action %}

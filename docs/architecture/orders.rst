@@ -21,7 +21,7 @@ There are two possible fulfillment statuses:
 Order statuses
 --------------
 
-Order status is based on statuses of its fulfillments. There are four possible statuses:
+There are four possible order statuses, based on statuses of its fulfillments:
 
 - ``UNFULFILLED``
     There are no fulfillments related to an order or each one is canceled. An action by a shop operator is required to continue order processing.
@@ -34,3 +34,5 @@ Order status is based on statuses of its fulfillments. There are four possible s
 
 - ``CANCELED``
     Order has been canceled. Every fulfillment (if there is any) has ``CANCELED`` status. Order doesn't require further actions by a shop operator.
+
+There is also ``DRAFT`` status, used for orders newly created from dashboard and not yet published.

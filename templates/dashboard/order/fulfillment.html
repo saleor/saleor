@@ -125,7 +125,9 @@
         </div>
         <div class="data-table-content">
           {{ form.tracking_number|materializecss }}
-          {{ form.send_mail|materializecss }}
+          {% if form.send_mail %}
+            {{ form.send_mail|materializecss }}
+          {% endif %}
         </div>
         <div class="data-table-action right-align">
           <a href="{% url 'dashboard:order-details' order.pk %}" class="btn-flat waves-effect">

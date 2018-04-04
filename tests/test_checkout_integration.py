@@ -79,10 +79,9 @@ def test_checkout_flow(
 
 
 def test_checkout_flow_authenticated_user(
-        authorized_client, billing_address, request_cart_with_item,
-        customer_user, shipping_method):
+        authorized_client, request_cart_with_item, customer_user,
+        shipping_method):
     # Prepare some data
-    customer_user.addresses.add(billing_address)
     request_cart_with_item.user = customer_user
     request_cart_with_item.save()
 
@@ -92,7 +91,7 @@ def test_checkout_flow_authenticated_user(
         reverse('checkout:index'), follow=True)
 
     # Enter shipping address data
-    shipping_data = {'address': billing_address.pk}
+    shipping_data = {'address': customer_user.default_billing_address.pk}
     shipping_method_page = authorized_client.post(
         shipping_address.request['PATH_INFO'], data=shipping_data, follow=True)
 
@@ -187,10 +186,9 @@ def test_summary_without_shipping_method(
 
 
 def test_email_is_saved_in_order(
-        authorized_client, billing_address, customer_user,
-        request_cart_with_item, shipping_method):
+        authorized_client, customer_user, request_cart_with_item,
+        shipping_method):
     # Prepare some data
-    customer_user.addresses.add(billing_address)
     request_cart_with_item.user = customer_user
     request_cart_with_item.save()
 
@@ -200,7 +198,7 @@ def test_email_is_saved_in_order(
         reverse('checkout:index'), follow=True)
 
     # Enter shipping address data
-    shipping_data = {'address': billing_address.pk}
+    shipping_data = {'address': customer_user.default_billing_address.pk}
     shipping_method_page = authorized_client.post(
         shipping_address.request['PATH_INFO'], data=shipping_data, follow=True)
 
@@ -365,12 +363,11 @@ def test_remove_voucher(
 
 
 def test_language_is_saved_in_order(
-        authorized_client, billing_address, customer_user,
-        request_cart_with_item, settings, shipping_method):
+        authorized_client, customer_user, request_cart_with_item, settings,
+        shipping_method):
     # Prepare some data
     settings.LANGUAGE_CODE = 'en'
     user_language = 'fr'
-    customer_user.addresses.add(billing_address)
     request_cart_with_item.user = customer_user
     request_cart_with_item.save()
 
@@ -384,7 +381,7 @@ def test_language_is_saved_in_order(
         HTTP_ACCEPT_LANGUAGE=user_language)
 
     # Enter shipping address data
-    shipping_data = {'address': billing_address.pk}
+    shipping_data = {'address': customer_user.default_billing_address.pk}
     shipping_method_page = authorized_client.post(
         shipping_address.request['PATH_INFO'], data=shipping_data, follow=True,
         HTTP_ACCEPT_LANGUAGE=user_language)

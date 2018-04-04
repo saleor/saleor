@@ -1,17 +1,12 @@
 import datetime
-import io
 import json
-from contextlib import redirect_stdout
 from unittest.mock import Mock, patch
 
 import pytest
 
-from django.conf import settings
 from django.urls import reverse
-from django.utils.encoding import smart_text
 from saleor.cart import CartStatus, utils
 from saleor.cart.models import Cart
-from saleor.core.utils import create_thumbnails
 from saleor.product import (
     ProductAvailabilityStatus, VariantAvailabilityStatus, models)
 from saleor.product.models import Category, ProductImage
