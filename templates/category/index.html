@@ -24,6 +24,12 @@
     {% endfor %}
 {% endblock breadcrumb %}
 
+{% block topcontent %}
+  {% if category.background_image %}
+    <div class="row" id="product-list-image" style="background-image: url('{{ category.background_image.url }}')"></div>
+  {% endif %}
+{% endblock topcontent %}
+
 {% block content %}
     {% comment %} NOTE: This implementation of category page uses React for rendering the product list. See saleor/static/js/category.js file. {% endcomment %}
     {% csrf_token %}
