@@ -1,0 +1,42 @@
+{% load i18n %}
+{% load staticfiles %}
+
+<div class="col m4 sortable__drag-area sortable-item" data-id="{{ block_item.pk }}">
+  <div class="card center homepage-block">
+    <a href="{{ block_item.url }}"
+       class="homepage-block-image-container position-relative corner-container">
+      <div class="corner corner-top corner-right sortable__drag-area">
+        <svg data-src="{% static "dashboard/images/reorder.svg" %}"
+             height="20" width="20" fill="#fff" />
+      </div>
+      <div class="corner corner-bottom corner-right">
+        <span class="is-counter">{{ block_item.position }}</span>
+      </div>
+      <img src="{{ block_item.cover_url }}" />
+    </a>
+    <div class="is-title card-action" title="{{ block_item.title }}">
+      <strong>{{ block_item.title }}</strong>
+    </div>
+
+    <div class="is-title grey-text card-action" title="{{ block_item.subtitle }}">
+      {% if block_item.subtitle %}
+        {{ block_item.subtitle }}
+      {% else %}
+        &dash;
+      {% endif %}
+    </div>
+
+    <div class="full-width blue card-action no-padding">
+      <a href="{% url 'dashboard:homepage-blocks-edit' pk=block_item.pk %}"
+         class="white-text full-width btn-flat waves-effect">
+        {% trans "Edit" context "Homepage block edit button - block list" %}
+      </a>
+    </div>
+    <div class="full-width red card-action no-padding">
+      <a href="#base-modal" data-href="{% url 'dashboard:homepage-blocks-delete' pk=block_item.pk %}"
+         class="white-text full-width btn-flat waves-effect modal-trigger-custom">
+        {% trans "Delete" context "Homepage block edit button - block list" %}
+      </a>
+    </div>
+  </div>
+</div>

@@ -10,4 +10,6 @@ urlpatterns = [
     url(r'^(?P<pk>[0-9]+)/edit/$',
         views.homepage_block_edit, name='homepage-blocks-edit'),
     url(r'^(?P<pk>[0-9]+)/delete/$',
-        views.homepage_block_delete, name='homepage-blocks-delete')]
+        views.homepage_block_delete, name='homepage-blocks-delete'),
+    url(r'^reorder/$',
+        views.ajax_reorder_homepage_blocks, name='homepage-blocks-reorder')]

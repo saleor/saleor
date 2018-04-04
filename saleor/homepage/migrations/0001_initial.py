@@ -3,7 +3,6 @@
 import django.core.validators
 from django.db import migrations, models
 import django.db.models.deletion
-import django_positions_2.fields
 import versatileimagefield.fields
 
 
@@ -26,7 +25,8 @@ class Migration(migrations.Migration):
                 ('html_classes', models.CharField(blank=True, default='col-sm-12 col-md-6', max_length=100, validators=[django.core.validators.MaxLengthValidator(100)])),
                 ('primary_button_text', models.CharField(blank=True, max_length=100, null=True, validators=[django.core.validators.MaxLengthValidator(100)])),
                 ('cover', versatileimagefield.fields.VersatileImageField(blank=True, upload_to='homepage_blocks')),
-                ('position', django_positions_2.fields.PositionField(blank=True, default=-1)),
+                ('position', models.fields.PositiveIntegerField(
+                    editable=False)),
                 ('category', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to='product.Category')),
                 ('collection', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to='product.Collection')),
                 ('page', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to='page.Page')),

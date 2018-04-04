@@ -1,8 +1,10 @@
 .homepage-block {
-  .is-counter {
-    position: absolute;
-    right: 0;
+  .corner {
     padding: 1rem;
+    display: flex;
+    flex-direction: column;
+  }
+  .is-counter {
     color: rgba(#000, 0.5);
     text-shadow: 1px 1px 1px rgba(#fff, 0.5);
   }
@@ -16,7 +18,7 @@
   &-image-container {
     overflow: hidden;
     display: block;
-    height: 170px;
+    height: 250px;
     img {
       position: relative;
       object-fit: cover;

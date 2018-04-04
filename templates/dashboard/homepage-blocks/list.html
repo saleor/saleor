@@ -1,8 +1,6 @@
 {% extends "dashboard/base.html" %}
 {% load i18n %}
 {% load staticfiles %}
-{% load status %}
-{% load utils %}
 
 {% block title %}
   {% trans "Homepage blocks" context "Homepage block list page title"%} - {{ block.super }}
@@ -30,41 +28,12 @@
 {% block menu_homepage_blocks_class %}active{% endblock %}
 
 {% block content %}
-  <div class="row">
+  <div class="row sortable-items-container"
+       data-post-parameter="ordered_block_items"
+       data-post-url="{% url 'dashboard:homepage-blocks-reorder' %}">
     {% if blocks %}
-      {% for page_block in blocks %}
-        <div class="col m4 l2">
-          <div class="card center homepage-block">
-            <span class="is-counter">{{ forloop.counter }}</span>
-            <a href="{{ page_block.url }}" class="homepage-block-image-container">
-              <img src="{{ page_block.cover_url }}" />
-            </a>
-            <div class="is-title card-action" title="{{ page_block.title }}">
-              <strong>{{ page_block.title }}</strong>
-            </div>
-
-            <div class="is-title grey-text card-action" title="{{ page_block.subtitle }}">
-              {% if page_block.subtitle %}
-                {{ page_block.subtitle }}
-              {% else %}
-                &dash;
-              {% endif %}
-            </div>
-
-            <div class="full-width blue card-action no-padding">
-              <a href="{% url 'dashboard:homepage-blocks-edit' pk=page_block.pk %}"
-                 class="white-text full-width btn-flat waves-effect">
-                {% trans "Edit" context "Homepage block edit button - block list" %}
-              </a>
-            </div>
-            <div class="full-width red card-action no-padding">
-              <a href="#base-modal" data-href="{% url 'dashboard:homepage-blocks-delete' pk=page_block.pk %}"
-                 class="white-text full-width btn-flat waves-effect modal-trigger-custom">
-                {% trans "Delete" context "Homepage block edit button - block list" %}
-              </a>
-            </div>
-          </div>
-        </div>
+      {% for block_item in blocks %}
+        {% include 'dashboard/includes/_homepage_block_item.html' %}
       {% endfor %}
     {% else %}
       {% include 'dashboard/homepage-blocks/zero_page.html' %}

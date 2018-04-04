@@ -233,3 +233,34 @@ def test_homepage_block_edit(
         'page': page.pk,
         'collection': collection.pk
     }, collection, False, 400)
+
+
+def test_ajax_reorder_homepage_blocks(admin_client):
+    assert HomePageItem.objects.all().count() == 0
+
+    url = reverse(BASE_ENDPOINT + 'reorder')
+    cases = ([2, 3, 1], [3, 2, 1], [1, 2, 3])
+
+    blocks = [HomePageItem.objects.create(pk=1, title='dummy 1'),
+              HomePageItem.objects.create(pk=2, title='dummy 2'),
+              HomePageItem.objects.create(pk=3, title='dummy 3')]
+
+    for case in cases:
+        response = admin_client.post(url, {'ordered_block_items': case})
+        assert response.status_code == 200
+
+        for position, pk in enumerate(case, start=0):
+            block = blocks[pk - 1]
+            block.refresh_from_db(fields=['position'])
+            assert block.position == position
+
+
+def test_ajax_reorder_homepage_blocks_invalid(admin_client):
+    assert HomePageItem.objects.all().count() == 0
+
+    url = reverse(BASE_ENDPOINT + 'reorder')
+    response = admin_client.post(url, {'ordered_block_items': [1, 2]})
+    assert response.status_code == 400
+
+    response = admin_client.post(url, {})
+    assert response.status_code == 400

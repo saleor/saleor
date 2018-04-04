@@ -6,6 +6,7 @@ from mptt.fields import TreeNodeChoiceField
 from ...homepage.models import HomePageItem
 from ...homepage.thumbnails import create_homepage_block_thumbnails
 from ...product.models import Category
+from ..forms import OrderedModelMultipleChoiceField
 
 CATEGORY_LABEL = pgettext_lazy(
     'Homepage block linked category field label',
@@ -18,7 +19,7 @@ class BlockItemForm(forms.ModelForm):
 
     class Meta:
         model = HomePageItem
-        exclude = []
+        exclude = ['position']
         labels = {
             'title': pgettext_lazy(
                 'Homepage block title field label',
@@ -71,3 +72,26 @@ class BlockItemForm(forms.ModelForm):
         if 'cover' in self.changed_data:
             create_homepage_block_thumbnails.delay(res.pk)
         return res
+
+
+class ReorderHomepageBlockItemsForm(forms.ModelForm):
+    """Reorder menu items.
+
+    Args:
+        ordered_menu_items - sorted menu items
+    """
+
+    ordered_block_items = OrderedModelMultipleChoiceField(
+        queryset=HomePageItem.objects.all())
+
+    class Meta:
+        model = HomePageItem
+        fields = ()
+
+    def save(self):
+        for sort_order, item in enumerate(
+                self.cleaned_data['ordered_block_items']):
+            item.position = sort_order
+            item.save()
+            item.refresh_from_db()
+        return self.instance

@@ -1,7 +1,7 @@
 from django.core.validators import MaxLengthValidator
 from django.db import models
+from django.db.models import Max
 from django.utils.translation import pgettext_lazy
-from django_positions_2 import *
 from versatileimagefield.fields import VersatileImageField
 
 from ..core.templatetags.placeholder import placeholder
@@ -35,8 +35,8 @@ class HomePageItem(models.Model):
     page = models.ForeignKey(
         Page, blank=True, null=True, on_delete=models.CASCADE)
 
-    position = PositionField(blank=True)
-    objects = PositionManager('position')
+    position = models.PositiveIntegerField(editable=False)
+    objects = models.Manager()
 
     class Meta:
         ordering = ('position', )
@@ -45,6 +45,14 @@ class HomePageItem(models.Model):
                 'Permission description', 'Can view home page configuration')),
             ('edit_blocks_config', pgettext_lazy(
                 'Permission description', 'Can edit home page configuration')))
+
+    def save(self, *args, **kwargs):
+        if self.position is None:
+            qs = self.__class__.objects.all()
+            existing_max = qs.aggregate(Max('position'))
+            existing_max = existing_max.get('position__max')
+            self.position = 0 if existing_max is None else existing_max + 1
+        super().save(*args, **kwargs)
 
     @property
     def cover_url(self):

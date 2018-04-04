@@ -1,10 +1,12 @@
 from django.contrib.auth.decorators import permission_required
+from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect
 from django.template.response import TemplateResponse
 
+from ...core.decorators import requires_post_method
 from ...homepage.models import HomePageItem
 from ..views import staff_member_required
-from .forms import BlockItemForm
+from .forms import BlockItemForm, ReorderHomepageBlockItemsForm
 
 
 @staff_member_required
@@ -56,3 +58,18 @@ def homepage_block_delete(request, pk):
     ctx = {'page_block': block_instance}
     return TemplateResponse(
         request, 'dashboard/homepage-blocks/modals/delete.html', ctx)
+
+
+@staff_member_required
+@requires_post_method()
+@permission_required('homepage.edit_blocks_config')
+def ajax_reorder_homepage_blocks(request):
+    form = ReorderHomepageBlockItemsForm(request.POST)
+    status = 400
+    ctx = {}
+    if form.is_valid():
+        status = 200
+        form.save()
+    elif form.errors:
+        ctx = {'error': form.errors}
+    return JsonResponse(ctx, status=status)
