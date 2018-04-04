@@ -354,6 +354,9 @@ def get_product_list_context(request, filter_set):
 
 
 def get_product_attributes_data(product):
+    """Returns attributes associated with the product,
+    as dict of ProductAttribute: AttributeChoiceValue values.
+    """
     product_attributes = list(product.product_type.product_attributes.all())
     values_map = get_attributes_display_map(product, product_attributes)
     return {
@@ -362,6 +365,7 @@ def get_product_attributes_data(product):
 
 
 def get_name_from_attributes(variant, attributes=None):
+    """Generates ProductVariant's name based on its attributes."""
     if attributes is None:
         attributes = variant.product.product_type.variant_attributes.all()
 
@@ -373,6 +377,9 @@ def get_name_from_attributes(variant, attributes=None):
 
 
 def get_attributes_display_map(obj, attributes):
+    """Returns attributes associated with the product,
+    as dict of ProductAttribute: AttributeChoiceValue values.
+    """
     display_map = {}
     for attribute in attributes:
         value = obj.attributes.get(smart_text(attribute.pk))
