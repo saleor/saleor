@@ -1,9 +1,9 @@
 import React, { Component, PropTypes } from 'react';
-import {gql} from 'react-apollo';
+import { gql } from 'react-apollo';
 
 import AttributeInput from './AttributeInput';
 import FilterHeader from './FilterHeader';
-import {isMobile} from '../utils';
+import { isMobile } from '../utils';
 
 class ProductFilters extends Component {
 
@@ -30,7 +30,7 @@ class ProductFilters extends Component {
 
   changeVisibility = (target) => {
     this.setState({
-      visibility: Object.assign(this.state.visibility, {[target]: !this.state.visibility[target]})
+      visibility: Object.assign(this.state.visibility, { [target]: !this.state.visibility[target] })
     });
   };
 
@@ -39,7 +39,7 @@ class ProductFilters extends Component {
       let attribute = node.node;
       const attrValue = `${attribute.slug}`;
       this.setState({
-        visibility: Object.assign(this.state.visibility, {[attrValue]: !isMobile()})
+        visibility: Object.assign(this.state.visibility, { [attrValue]: !isMobile() })
       });
     });
   }
@@ -68,13 +68,12 @@ class ProductFilters extends Component {
         {attributes && (attributes.edges.map((node) => {
           let attribute = node.node;
           return (
-            <div key={attribute.id}>
+            <div key={attribute.id} className={['filter-section', visibility[attribute.slug] ? '' : 'filter-section--closed'].join(' ')}>
               <FilterHeader
                 onClick={() => this.changeVisibility(attribute.slug)}
                 title={attribute.name}
-                visibility={visibility[attribute.slug]}
               />
-              <ul id={attribute.slug}>
+              <ul id={attribute.slug} className="filter-section__content">
                 {attribute.values.map((value) => {
                   const key = this.getFilterKey(attribute.slug, value.slug);
                   const isKeyChecked = checkedAttributes.indexOf(key) > -1;
