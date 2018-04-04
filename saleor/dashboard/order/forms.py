@@ -181,8 +181,8 @@ class OrderShippingForm(forms.ModelForm):
         method = self.instance.shipping_method
         self.instance.shipping_method_name = method.shipping_method.name
         self.instance.shipping_price = method.get_total_price()
-        recalculate_order(
-            self.instance, get_voucher_discount_for_order(self.instance))
+        recalculate_order(self.instance)
+        recalculate_order(self.instance)
         return super().save(commit)
 
 
@@ -197,8 +197,7 @@ class OrderRemoveShippingForm(forms.ModelForm):
         self.instance.shipping_method = None
         self.instance.shipping_method_name = None
         self.instance.shipping_price = ZERO_TAXED_MONEY
-        recalculate_order(
-            self.instance, get_voucher_discount_for_order(self.instance))
+        recalculate_order(self.instance)
         return super().save(commit)
 
 
@@ -214,7 +213,7 @@ class OrderEditDiscountForm(forms.ModelForm):
                 'Discount amount')}
 
     def save(self, commit=True):
-        recalculate_order(self.instance)
+        recalculate_order(self.instance, update_voucher_discount=False)
         return super().save(commit)
 
 
@@ -243,8 +242,7 @@ class OrderEditVoucherForm(forms.ModelForm):
                 decrease_voucher_usage(self.old_voucher)
             increase_voucher_usage(voucher)
         self.instance.discount_name = voucher.name or ''
-        recalculate_order(
-            self.instance, get_voucher_discount_for_order(self.instance))
+        recalculate_order(self.instance)
         return super().save(commit)
 
 
@@ -393,7 +391,7 @@ class CancelOrderLineForm(forms.Form):
             deallocate_stock(self.line.stock, self.line.quantity)
         order = self.line.order
         self.line.delete()
-        recalculate_order(order, get_voucher_discount_for_order(order))
+        recalculate_order(order)
 
 
 class ChangeQuantityForm(forms.ModelForm):
@@ -435,8 +433,7 @@ class ChangeQuantityForm(forms.ModelForm):
             delta = quantity - self.initial_quantity
             allocate_stock(stock, delta)
         change_order_line_quantity(self.instance, quantity)
-        order = self.instance.order
-        recalculate_order(order, get_voucher_discount_for_order(order))
+        recalculate_order(self.instance.order)
         return self.instance
 
 
@@ -642,8 +639,7 @@ class AddVariantToOrderForm(forms.Form):
         quantity = self.cleaned_data.get('quantity')
         add_variant_to_order(
             self.order, variant, quantity, self.discounts)
-        recalculate_order(
-            self.order, get_voucher_discount_for_order(self.order))
+        recalculate_order(self.order)
 
 
 class AddressForm(StorefrontAddressForm):
