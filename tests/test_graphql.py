@@ -3,6 +3,7 @@ import json
 import graphene
 import pytest
 from django.shortcuts import reverse
+from django.utils.text import slugify
 from prices import Money
 
 from saleor.product.models import Category, Product, ProductAttribute
@@ -91,7 +92,7 @@ def test_fetch_unavailable_products(client, product_in_stock):
     assert not content['data']['products']['edges']
 
 
-def test_product_query(client, product_in_stock):
+def test_product_query(admin_client, product_in_stock):
     category = Category.objects.first()
     product = category.products.first()
     query = '''
@@ -143,7 +144,7 @@ def test_product_query(client, product_in_stock):
         }
     }
     ''' % {'category_id': graphene.Node.to_global_id('Category', category.id)}
-    response = client.post(reverse('api'), {'query': query})
+    response = admin_client.post(reverse('api'), {'query': query})
     content = get_graphql_content(response)
     assert 'errors' not in content
     assert content['data']['category'] is not None
@@ -332,8 +333,7 @@ def test_attributes_in_category_query(client, product_in_stock):
     assert len(attributes_data) == ProductAttribute.objects.count()
 
 
-def test_real_query(client, product_in_stock):
-    category = product_in_stock.category
+def test_real_query(admin_client, product_in_stock):
     product_attr = product_in_stock.product_type.product_attributes.first()
     category = product_in_stock.category
     attr_value = product_attr.values.first()
@@ -470,7 +470,7 @@ def test_real_query(client, product_in_stock):
         __typename
     }
     '''
-    response = client.post(
+    response = admin_client.post(
         reverse('api'), {
             'query': query,
             'variables': json.dumps(
@@ -503,3 +503,208 @@ def test_page_query(client, page):
     page_data = content['data']['page']
     assert page_data['title'] == page.title
     assert page_data['slug'] == page.slug
+
+
+def test_create_product(
+        admin_client, product_type, default_category, size_attribute):
+    query = """
+        mutation createProduct(
+            $productTypeId: ID!,
+            $categoryId: ID!
+            $name: String!,
+            $description: String!,
+            $isPublished: Boolean!,
+            $isFeatured: Boolean!,
+            $price: Float!,
+            $attributes: [AttributeValueInput]) {
+                productCreate(
+                    categoryId: $categoryId,
+                    productTypeId: $productTypeId,
+                    name: $name,
+                    description: $description,
+                    isPublished: $isPublished,
+                    isFeatured: $isFeatured,
+                    price: $price,
+                    attributes: $attributes) {
+                        product {
+                            category{
+                                name
+                            }
+                            description
+                            isPublished
+                            isFeatured
+                            name
+                            price{
+                                amount
+                            }
+                            productType{
+                                name
+                            }
+                            attributes{
+                                name
+                                value
+                            }
+                          }
+                          errors {
+                            message
+                            field
+                          }
+                        }
+                      }
+    """
+
+    product_type_id = graphene.Node.to_global_id(
+        'ProductType', product_type.pk)
+    category_id = graphene.Node.to_global_id(
+        'Category', default_category.pk)
+    product_description = 'test description'
+    product_name = 'test name'
+    product_isPublished = True
+    product_isFeatured = False
+    product_price = 22
+
+    # Default attribute defined in product_type fixture
+    color_attr = product_type.product_attributes.get(name='Color')
+    color_attr_value = color_attr.values.first().name
+    color_value_slug = color_attr.values.first().slug
+    color_attr_slug = color_attr.slug
+    # Add second attribute
+    product_type.product_attributes.add(size_attribute)
+    size_attr_slug = product_type.product_attributes.get(name='Size').slug
+    non_existent_attr_value = 'The cake is a lie'
+
+    # test creating root product
+    variables = json.dumps({
+        'productTypeId': product_type_id,
+        'categoryId': category_id,
+        'name': product_name,
+        'description': product_description,
+        'isPublished': product_isPublished,
+        'isFeatured': product_isFeatured,
+        'price': product_price,
+        'attributes': [
+            {'slug': color_attr_slug, 'value': color_attr_value},
+            {'slug': size_attr_slug, 'value': non_existent_attr_value}]})
+
+    response = admin_client.post(
+        reverse('api'), {'query': query, 'variables': variables})
+    content = get_graphql_content(response)
+    assert 'errors' not in content
+    data = content['data']['productCreate']
+    assert data['errors'] == []
+    assert data['product']['name'] == product_name
+    assert data['product']['description'] == product_description
+    assert data['product']['isFeatured'] == product_isFeatured
+    assert data['product']['isPublished'] == product_isPublished
+    assert data['product']['productType']['name'] == product_type.name
+    assert data['product']['category']['name'] == default_category.name
+    values = (
+        data['product']['attributes'][0].get('value'),
+        data['product']['attributes'][1].get('value'))
+    assert slugify(non_existent_attr_value) in values
+    assert color_value_slug in values
+
+
+def test_update_product(
+    admin_client, default_category, non_default_category, product_in_stock):
+    query = """
+        mutation updateProduct(
+            $productId: ID!,
+            $categoryId: ID,
+            $name: String!,
+            $description: String!,
+            $isPublished: Boolean!,
+            $isFeatured: Boolean!,
+            $price: Float!,
+            $attributes: [AttributeValueInput]) {
+                productUpdate(
+                    categoryId: $categoryId,
+                    id: $productId,
+                    name: $name,
+                    description: $description,
+                    isPublished: $isPublished,
+                    isFeatured: $isFeatured,
+                    price: $price,
+                    attributes: $attributes) {
+                        product {
+                            category{
+                                name
+                            }
+                            description
+                            isPublished
+                            isFeatured
+                            name
+                            price{
+                                amount
+                            }
+                            productType{
+                                name
+                            }
+                            attributes{
+                                name
+                                value
+                            }
+                          }
+                          errors {
+                            message
+                            field
+                          }
+                        }
+                      }
+    """
+    product_id = graphene.Node.to_global_id('Product', product_in_stock.pk)
+    category_id = graphene.Node.to_global_id(
+        'Category', non_default_category.pk)
+    product_description = 'updated description'
+    product_name = 'updated name'
+    product_isPublished = True
+    product_isFeatured = False
+    product_price = 33
+
+    variables = json.dumps({
+        'productId': product_id,
+        'categoryId': category_id,
+        'name': product_name,
+        'description': product_description,
+        'isPublished': product_isPublished,
+        'isFeatured': product_isFeatured,
+        'price': product_price})
+
+    response = admin_client.post(
+        reverse('api'), {'query': query, 'variables': variables})
+    content = get_graphql_content(response)
+    assert 'errors' not in content
+    data = content['data']['productUpdate']
+    assert data['errors'] == []
+    assert data['product']['name'] == product_name
+    assert data['product']['description'] == product_description
+    assert data['product']['isFeatured'] == product_isFeatured
+    assert data['product']['isPublished'] == product_isPublished
+    assert not data['product']['category']['name'] == default_category.name
+
+
+def test_delete_product(admin_client, product_in_stock):
+    query = """
+        mutation DeleteProduct($id: ID!) {
+            productDelete(id: $id) {
+                product {
+                    name
+                    id
+                }
+                errors {
+                    field
+                    message
+                }
+              }
+            }
+    """
+    variables = json.dumps({
+        'id': graphene.Node.to_global_id('Product', product_in_stock.id)})
+    response = admin_client.post(
+        reverse('api'), {'query': query, 'variables': variables})
+    content = get_graphql_content(response)
+    assert 'errors' not in content
+    data = content['data']['productDelete']
+    assert data['product']['name'] == product_in_stock.name
+    with pytest.raises(product_in_stock._meta.model.DoesNotExist):
+        product_in_stock.refresh_from_db()

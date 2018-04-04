@@ -13,8 +13,7 @@ from .page.mutations import PageCreate, PageDelete, PageUpdate
 from .page.types import resolve_all_pages
 from .product.filters import ProductFilter
 from .product.mutations import (
-    CategoryCreateMutation, CategoryDelete, CategoryUpdateMutation,
-    ProductCreateMutation, ProductDeleteMutation, ProductUpdateMutation)
+    CategoryCreateMutation, CategoryDelete, CategoryUpdateMutation)
 from .product.types import resolve_attributes, resolve_products
 
 
@@ -82,10 +81,6 @@ class Mutations(graphene.ObjectType):
     page_create = PageCreate.Field()
     page_delete = PageDelete.Field()
     page_update = PageUpdate.Field()
-
-    product_create = ProductCreateMutation.Field()
-    product_delete = ProductDeleteMutation.Field()
-    product_update = ProductUpdateMutation.Field()
 
     token_create = graphql_jwt.ObtainJSONWebToken.Field()
     token_refresh = graphql_jwt.Refresh.Field()
