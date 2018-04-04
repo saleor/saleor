@@ -4,11 +4,12 @@ import { withStyles } from "material-ui/styles";
 import * as React from "react";
 
 interface PriceFieldProps {
-  currencySymbol: string;
+  currencySymbol?: string;
+  error?: boolean;
   hint?: string;
-  label: string;
-  name: string;
-  value: {
+  label?: string;
+  name?: string;
+  value?: {
     max?: string;
     min?: string;
   };
@@ -20,7 +21,7 @@ const decorate = withStyles(theme => ({
     display: "grid",
     gridTemplateColumns: "calc(50% - 1rem) 2rem calc(50% - 1rem)"
   },
-  maxInput: {
+  pullDown: {
     marginTop: theme.spacing.unit * 2
   },
   separator: {
@@ -34,30 +35,40 @@ const decorate = withStyles(theme => ({
 }));
 
 export const PriceField = decorate<PriceFieldProps>(
-  ({ label, hint, currencySymbol, name, classes, onChange, value }) => (
+  ({ error, label, hint, currencySymbol, name, classes, onChange, value }) => (
     <div className={classes.widgetContainer}>
       <div className={classes.inputContainer}>
-        <FormControl>
-          <InputLabel htmlFor={`${name}_min`}>{label}</InputLabel>
+        <FormControl error={error}>
+          {label && <InputLabel htmlFor={`${name}_min`}>{label}</InputLabel>}
           <Input
-            value={value.min}
+            value={value ? value.min : ""}
             endAdornment={
-              <InputAdornment position="end">{currencySymbol}</InputAdornment>
+              currencySymbol ? (
+                <InputAdornment position="end">{currencySymbol}</InputAdornment>
+              ) : (
+                <span />
+              )
             }
+            className={label ? "" : classes.pullDown}
             fullWidth
             name={`${name}_min`}
             onChange={onChange}
             type="number"
           />
+          {hint && <FormHelperText>{hint}</FormHelperText>}
         </FormControl>
         <span className={classes.separator}>-</span>
-        <FormControl>
+        <FormControl error={error}>
           <Input
-            value={value.max}
+            value={value ? value.max : ""}
             endAdornment={
-              <InputAdornment position="end">{currencySymbol}</InputAdornment>
+              currencySymbol ? (
+                <InputAdornment position="end">{currencySymbol}</InputAdornment>
+              ) : (
+                <span />
+              )
             }
-            className={classes.maxInput}
+            className={classes.pullDown}
             fullWidth
             name={`${name}_max`}
             onChange={onChange}
@@ -65,9 +76,11 @@ export const PriceField = decorate<PriceFieldProps>(
           />
         </FormControl>
       </div>
-      {hint && <FormHelperText>{hint}</FormHelperText>}
     </div>
   )
 );
+PriceField.defaultProps = {
+  name: "price"
+};
 
 export default PriceField;
