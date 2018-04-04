@@ -87,16 +87,18 @@ class ProductFilters extends Component {
                   {attribute.values.map(value => {
                     const key = this.getFilterKey(attribute.slug, value.slug);
                     const isKeyChecked = checkedAttributes.indexOf(key) > -1;
-                    return (
-                      <li key={value.id} className="item">
-                        <AttributeInput
-                          attribute={attribute}
-                          checked={isKeyChecked}
-                          onClick={this.onClick}
-                          value={value}
-                        />
-                      </li>
-                    );
+                    if (visibility[attribute.slug] || isKeyChecked) {
+                      return (
+                        <li key={value.id} className="item">
+                          <AttributeInput
+                            attribute={attribute}
+                            checked={isKeyChecked}
+                            onClick={this.onClick}
+                            value={value}
+                          />
+                        </li>
+                      );
+                    }
                   })}
                 </ul>
               </div>
