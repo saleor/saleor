@@ -6,7 +6,6 @@ import FilterHeader from './FilterHeader';
 import { isMobile } from '../utils';
 
 class ProductFilters extends Component {
-
   constructor(props) {
     super(props);
     this.state = {
@@ -28,18 +27,22 @@ class ProductFilters extends Component {
     this.props.onFilterChanged(this.getFilterKey(attributeSlug, valueSlug));
   };
 
-  changeVisibility = (target) => {
+  changeVisibility = target => {
     this.setState({
-      visibility: Object.assign(this.state.visibility, { [target]: !this.state.visibility[target] })
+      visibility: Object.assign(this.state.visibility, {
+        [target]: !this.state.visibility[target]
+      })
     });
   };
 
   componentWillMount() {
-    this.props.attributes.edges.map((node) => {
+    this.props.attributes.edges.map(node => {
       let attribute = node.node;
       const attrValue = `${attribute.slug}`;
       this.setState({
-        visibility: Object.assign(this.state.visibility, { [attrValue]: !isMobile() })
+        visibility: Object.assign(this.state.visibility, {
+          [attrValue]: !isMobile()
+        })
       });
     });
   }
@@ -65,19 +68,25 @@ class ProductFilters extends Component {
     const { visibility } = this.state;
     return (
       <div className="product-filters__attributes">
-        {attributes && (attributes.edges.map((node) => {
-          let attribute = node.node;
-          return (
-            <div key={attribute.id} className={['filter-section', visibility[attribute.slug] ? '' : 'filter-section--closed'].join(' ')}>
-              <FilterHeader
-                onClick={() => this.changeVisibility(attribute.slug)}
-                title={attribute.name}
-              />
-              <ul id={attribute.slug} className="filter-section__content">
-                {attribute.values.map((value) => {
-                  const key = this.getFilterKey(attribute.slug, value.slug);
-                  const isKeyChecked = checkedAttributes.indexOf(key) > -1;
-                  if (visibility[attribute.slug] || isKeyChecked) {
+        {attributes &&
+          attributes.edges.map(node => {
+            let attribute = node.node;
+            return (
+              <div
+                key={attribute.id}
+                className={[
+                  'filter-section',
+                  visibility[attribute.slug] ? '' : 'filter-section--closed'
+                ].join(' ')}
+              >
+                <FilterHeader
+                  onClick={() => this.changeVisibility(attribute.slug)}
+                  title={attribute.name}
+                />
+                <ul id={attribute.slug} className="filter-section__content">
+                  {attribute.values.map(value => {
+                    const key = this.getFilterKey(attribute.slug, value.slug);
+                    const isKeyChecked = checkedAttributes.indexOf(key) > -1;
                     return (
                       <li key={value.id} className="item">
                         <AttributeInput
@@ -88,12 +97,11 @@ class ProductFilters extends Component {
                         />
                       </li>
                     );
-                  }
-                })}
-              </ul>
-            </div>
-          );
-        }))}
+                  })}
+                </ul>
+              </div>
+            );
+          })}
       </div>
     );
   }
