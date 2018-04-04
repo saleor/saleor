@@ -1,5 +1,6 @@
 import graphene
 import graphql_jwt
+from graphql_jwt.decorators import staff_member_required
 from graphene_django.debug import DjangoDebug
 from graphene_django.filter import DjangoFilterConnectionField
 
