@@ -18,5 +18,8 @@
     &.active {
       border-color: $darken-gray;
     }
+    input {
+      display: none;
+    }
   }
 }
