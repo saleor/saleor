@@ -1,5 +1,5 @@
 from decimal import Decimal
-from unittest.mock import MagicMock, Mock, patch
+from unittest.mock import patch
 
 import pytest
 from django.conf import settings
@@ -11,12 +11,11 @@ from tests.utils import get_form_errors, get_redirect_location
 from saleor.core.utils import ZERO_TAXED_MONEY
 from saleor.dashboard.order.forms import ChangeQuantityForm, OrderNoteForm
 from saleor.dashboard.order.utils import (
-    fulfill_order_line, get_product_variants_and_prices,
-    remove_customer_from_order, save_address_in_order,
+    fulfill_order_line, remove_customer_from_order, save_address_in_order,
     update_order_with_user_addresses)
 from saleor.discount.utils import increase_voucher_usage
 from saleor.order import OrderStatus
-from saleor.order.models import Order, OrderHistoryEntry, OrderLine, OrderNote
+from saleor.order.models import Order, OrderLine, OrderNote
 from saleor.order.utils import (
     add_variant_to_existing_lines, add_variant_to_order,
     change_order_line_quantity)
