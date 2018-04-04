@@ -5,6 +5,7 @@ from django.db.models import F
 from django.shortcuts import get_object_or_404, redirect
 from prices import Money
 
+from saleor.order.models import OrderLine
 from ..account.utils import store_user_address
 from ..core.exceptions import InsufficientStock
 from ..dashboard.order.utils import get_voucher_discount_for_order
@@ -59,11 +60,9 @@ def recalculate_order(order, **kwargs):
     Voucher discount amount is recalculated by default. To avoid this, pass
     update_voucher_discount argument set to False.
     """
-    # do not use prefetched order lines, cause they might have changed
-    if hasattr(order, '_prefetched_objects_cache'):
-        order._prefetched_objects_cache.pop('lines', None)
-
-    prices = [line.get_total() for line in order]
+    # avoid using prefetched order lines
+    lines = [OrderLine.objects.get(pk=line.pk) for line in order]
+    prices = [line.get_total() for line in lines]
     total = sum(prices, order.shipping_price)
     # discount amount can't be greater than order total
     order.discount_amount = min(order.discount_amount, total.gross)
