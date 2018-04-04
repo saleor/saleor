@@ -1,6 +1,5 @@
 import graphene
 import graphql_jwt
-from graphql_jwt.decorators import staff_member_required
 from graphene_django.debug import DjangoDebug
 from graphene_django.filter import DjangoFilterConnectionField
 
@@ -8,12 +7,12 @@ from ..page import models as page_models
 from .core.filters import DistinctFilterSet
 from .page.types import Page, resolve_pages
 from .product.filters import ProductFilterSet
+from .product.mutations import (
+    CategoryCreateMutation, CategoryDelete, CategoryUpdateMutation,
+    ProductCreateMutation, ProductDeleteMutation, ProductUpdateMutation)
 from .product.types import (
     Category, Product, ProductAttribute, resolve_attributes,
     resolve_categories, resolve_products)
-from .product.mutations import (
-    CategoryCreateMutation, CategoryUpdateMutation, CategoryDelete,
-    ProductCreateMutation, ProductUpdateMutation, ProductDeleteMutation)
 from .utils import get_node
 
 
@@ -72,6 +71,10 @@ class Query(graphene.ObjectType):
 class Mutations(graphene.ObjectType):
     token_create = graphql_jwt.ObtainJSONWebToken.Field()
     token_refresh = graphql_jwt.Refresh.Field()
+
+    category_create = CategoryCreateMutation.Field()
+    category_delete = CategoryDelete.Field()
+    category_update = CategoryUpdateMutation.Field()
 
     product_create = ProductCreateMutation.Field()
     product_delete = ProductDeleteMutation.Field()
