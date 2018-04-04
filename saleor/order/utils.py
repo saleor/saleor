@@ -59,6 +59,10 @@ def recalculate_order(order, **kwargs):
     Voucher discount amount is recalculated by default. To avoid this, pass
     update_voucher_discount argument set to False.
     """
+    # do not use prefetched order lines, cause they might have changed
+    if hasattr(order, '_prefetched_objects_cache'):
+        order._prefetched_objects_cache.pop('lines', None)
+
     prices = [line.get_total() for line in order]
     total = sum(prices, order.shipping_price)
     # discount amount can't be greater than order total
