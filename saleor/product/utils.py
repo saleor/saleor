@@ -361,7 +361,7 @@ def get_product_attributes_data(product):
         for (attribute, value_obj) in values_map.items()}
 
 
-def display_variant_attributes(variant, attributes=None):
+def get_name_from_attributes(variant, attributes=None):
     if attributes is None:
         attributes = variant.product.product_type.variant_attributes.all()
 
@@ -375,8 +375,6 @@ def display_variant_attributes(variant, attributes=None):
 def get_attributes_display_map(obj, attributes):
     display_map = {}
     for attribute in attributes:
-        import pdb; pdb.set_trace()
-
         value = obj.attributes.get(smart_text(attribute.pk))
         if value:
             choices = {smart_text(a.pk): a for a in attribute.values.all()}

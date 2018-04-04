@@ -15,7 +15,7 @@ from ...product.models import (
     ProductImage, ProductType, ProductVariant, Stock, StockLocation,
     VariantImage)
 from ...product.thumbnails import create_product_thumbnails
-from ...product.utils import display_variant_attributes
+from ...product.utils import get_name_from_attributes
 from ..forms import ModelChoiceOrCreationField, OrderedModelMultipleChoiceField
 from ..seo.fields import SeoDescriptionField, SeoTitleField
 from ..seo.utils import prepare_seo_description
@@ -150,7 +150,7 @@ class ProductTypeForm(forms.ModelForm):
                 product__in=self.instance.products.all()).prefetch_related(
                     'product__product_type__variant_attributes__values').all()
             for variant in variants_to_be_updated:
-                variant.name = display_variant_attributes(variant)
+                variant.name = get_name_from_attributes(variant)
                 variant.save()
         return data
 
@@ -290,7 +290,7 @@ class ProductVariantForm(forms.ModelForm, AttributesMixin):
     def save(self, commit=True):
         attributes = self.get_saved_attributes()
         self.instance.attributes = attributes
-        self.instance.name = display_variant_attributes(
+        self.instance.name = get_name_from_attributes(
             self.instance, attributes)
         return super().save(commit=commit)
 
