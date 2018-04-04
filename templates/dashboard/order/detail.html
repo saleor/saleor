@@ -607,7 +607,7 @@
     <p class="print-show print-tabs">{% trans "History" context "Order detail tab" %}</p>
     <div class="timeline-outer">
       <ul class="timeline">
-        {% for event in order.history.all %}
+        {% for event in events %}
           <li class="event" data-date="{{ event.date }}">
             <div class="content">
               {{ event.content|default:"" }}{% if event.user %} by {{ event.user }}{% endif %}

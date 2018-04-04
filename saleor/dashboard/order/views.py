@@ -113,9 +113,10 @@ def remove_draft_order(request, order_pk):
 def order_details(request, order_pk):
     qs = Order.objects.select_related(
         'user', 'shipping_address', 'billing_address').prefetch_related(
-        'notes', 'payments', 'history', 'lines')
+        'notes', 'payments', 'history', 'lines__product')
     order = get_object_or_404(qs, pk=order_pk)
     notes = order.notes.all()
+    events = order.history.select_related('user')
     all_payments = order.payments.exclude(status=PaymentStatus.INPUT)
     payment = order.payments.last()
     captured = preauthorized = ZERO_TAXED_MONEY
@@ -136,12 +137,13 @@ def order_details(request, order_pk):
         can_capture = can_release = can_refund = False
     can_mark_as_paid = not order.payments.exists()
     is_many_stock_locations = StockLocation.objects.count() > 1
-    ctx = {'order': order, 'all_payments': all_payments, 'payment': payment,
-           'notes': notes, 'captured': captured, 'balance': balance,
-           'preauthorized': preauthorized, 'can_capture': can_capture,
-           'can_release': can_release, 'can_refund': can_refund,
-           'is_many_stock_locations': is_many_stock_locations,
-           'can_mark_as_paid': can_mark_as_paid}
+    ctx = {
+        'order': order, 'all_payments': all_payments, 'payment': payment,
+        'notes': notes, 'events': events, 'captured': captured,
+        'balance': balance, 'preauthorized': preauthorized,
+        'can_capture': can_capture, 'can_release': can_release,
+        'can_refund': can_refund, 'can_mark_as_paid': can_mark_as_paid,
+        'is_many_stock_locations': is_many_stock_locations}
     return TemplateResponse(request, 'dashboard/order/detail.html', ctx)
 
 
