@@ -20,7 +20,6 @@ from versatileimagefield.fields import PPOIField, VersatileImageField
 from ..core.exceptions import InsufficientStock
 from ..discount.utils import calculate_discounted_price
 from ..seo.models import SeoModel
-from .utils import get_attributes_display_map
 
 
 class Category(MPTTModel, SeoModel):

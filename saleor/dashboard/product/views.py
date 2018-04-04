@@ -785,9 +785,15 @@ def ajax_available_variants_list(request):
             variant.sku, variant.display_product(),
             prices_i18n.amount(variant.get_price_per_item(discounts).gross))
 
-    available_products = Product.objects.available_products()
+    available_products = Product.objects.available_products().prefetch_related(
+        'product_type__variant_attributes',
+        'category',
+        'product_type__product_attributes')
     queryset = ProductVariant.objects.filter(
-        product__in=available_products).prefetch_related('product')
+        product__in=available_products).prefetch_related(
+            'product__product_type__variant_attributes',
+            'product__category',
+            'product__product_type__product_attributes')
     search_query = request.GET.get('q', '')
     if search_query:
         queryset = queryset.filter(

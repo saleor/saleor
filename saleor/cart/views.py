@@ -2,12 +2,10 @@
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.template.response import TemplateResponse
-from django.urls import reverse
 
 from ..core.utils import (
     format_money, get_user_shipping_country, to_local_currency)
 from ..product.models import ProductVariant
-from ..product.utils import display_variant_attributes
 from ..shipping.utils import get_shipment_options
 from .forms import CountryForm, ReplaceCartLineForm
 from .models import Cart
@@ -112,21 +110,14 @@ def update(request, cart, variant_id):
 def summary(request, cart):
     """Display a cart summary suitable for displaying on all pages."""
     def prepare_line_data(line):
-        product_type = line.variant.product.product_type
-        attributes = product_type.variant_attributes.all()
         first_image = line.variant.get_first_image()
-        price_per_item = line.get_price_per_item(discounts=request.discounts)
         line_total = line.get_total(discounts=request.discounts)
         return {
             'product': line.variant.product,
             'variant': line.variant.name,
             'quantity': line.quantity,
-            'attributes': display_variant_attributes(line.variant, attributes),
             'image': first_image,
-            'price_per_item': format_money(price_per_item.gross),
             'line_total': format_money(line_total.gross),
-            'update_url': reverse(
-                'cart:update-line', kwargs={'variant_id': line.variant_id}),
             'variant_url': line.variant.get_absolute_url()}
     if cart.quantity == 0:
         data = {'quantity': 0}

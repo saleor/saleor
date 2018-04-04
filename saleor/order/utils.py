@@ -215,9 +215,8 @@ def merge_duplicates_into_order_line(line):
 
 def change_order_line_quantity(line, new_quantity):
     """Change the quantity of ordered items in a order line."""
-    line.quantity = new_quantity
-
-    if line.quantity:
+    if new_quantity:
+        line.quantity = new_quantity
         line.save()
     else:
         line.delete()

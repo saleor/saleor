@@ -171,14 +171,6 @@ def get_variant_picker_data(product, discounts=None, local_currency=None):
     return data
 
 
-def get_product_attributes_data(product):
-    attributes = product.product_type.product_attributes.all()
-    attributes_map = {attribute.pk: attribute for attribute in attributes}
-    values_map = get_attributes_display_map(product, attributes)
-    return {attributes_map.get(attr_pk): value_obj
-            for (attr_pk, value_obj) in values_map.items()}
-
-
 def price_as_dict(price):
     if price is None:
         return None
@@ -207,20 +199,6 @@ def get_variant_url(variant):
         str(attribute.pk): attribute
         for attribute in variant.product.product_type.variant_attributes.all()}
     return get_variant_url_from_product(variant.product, attributes)
-
-
-def get_attributes_display_map(obj, attributes):
-    display_map = {}
-    for attribute in attributes:
-        value = obj.attributes.get(smart_text(attribute.pk))
-        if value:
-            choices = {smart_text(a.pk): a for a in attribute.values.all()}
-            choice_obj = choices.get(value)
-            if choice_obj:
-                display_map[attribute.pk] = choice_obj
-            else:
-                display_map[attribute.pk] = value
-    return display_map
 
 
 def get_product_availability_status(product):
@@ -375,21 +353,42 @@ def get_product_list_context(request, filter_set):
         'is_descending': is_descending}
 
 
+def get_product_attributes_data(product):
+    product_attributes = list(product.product_type.product_attributes.all())
+    values_map = get_attributes_display_map(product, product_attributes)
+    return {
+        attribute if attribute in product_attributes else None: value_obj
+        for (attribute, value_obj) in values_map.items()}
+
+
 def display_variant_attributes(variant, attributes=None):
     if attributes is None:
         attributes = variant.product.product_type.variant_attributes.all()
-    values = get_attributes_display_map(variant, attributes)
-    if not values:
-        return ''
-    return ', '.join(
-        '%s: %s' % (
-            smart_text(
-                next(attr for attr in attributes if attr.pk == key)),
-            smart_text(value))
-        for (key, value) in values.items())
+
+    if isinstance(attributes, dict):
+        values = get_attributes_display_map_from_dict(variant, attributes)
+    else:
+        values = get_attributes_display_map(variant, attributes)
+    return generate_name_from_values(values)
 
 
-def get_attributes_from_dict(variant, attributes):
+def get_attributes_display_map(obj, attributes):
+    display_map = {}
+    for attribute in attributes:
+        import pdb; pdb.set_trace()
+
+        value = obj.attributes.get(smart_text(attribute.pk))
+        if value:
+            choices = {smart_text(a.pk): a for a in attribute.values.all()}
+            choice_obj = choices.get(value)
+            if choice_obj:
+                display_map[attribute] = choice_obj
+            else:
+                display_map[attribute] = value
+    return display_map
+
+
+def get_attributes_display_map_from_dict(variant, attributes):
     display_map = {}
     for attribute_pk, attribute_choice_pk in attributes.items():
         attributes = variant.product.product_type.variant_attributes.all()
@@ -406,9 +405,6 @@ def get_attributes_from_dict(variant, attributes):
     return display_map
 
 
-def generate_name_from_variant_attributes(variant, attributes):
-    values = get_attributes_from_dict(variant, attributes)
-    if not values:
-        return ''
+def generate_name_from_values(values):
     return ' / '.join(
-        smart_text(attribute) for attribute, value in values.items())
+        smart_text(value) for attribute, value in values.items())
