@@ -25,7 +25,7 @@ logger = logging.getLogger(__name__)
 
 
 def details(request, token):
-    orders = Order.objects.prefetch_related(
+    orders = Order.objects.confirmed().prefetch_related(
         'lines__product', 'fulfillments', 'fulfillments__lines',
         'fulfillments__lines__order_line')
     orders = orders.select_related(
@@ -49,8 +49,8 @@ def details(request, token):
 
 
 def payment(request, token):
-    orders = Order.objects.prefetch_related('lines__product')
-    orders = orders.select_related(
+    orders = Order.objects.confirmed().filter(billing_address__isnull=False)
+    orders = orders.prefetch_related('lines__product').select_related(
         'billing_address', 'shipping_address', 'user')
     order = get_object_or_404(orders, token=token)
     payments = order.payments.all()
@@ -64,7 +64,7 @@ def payment(request, token):
         form_data = None
         waiting_payment_form = PaymentDeleteForm(
             None, order=order, initial={'payment_id': waiting_payment.id})
-    if order.is_fully_paid():
+    if order.is_fully_paid() or not order.billing_address:
         form_data = None
     payment_form = None
     if not order.is_pre_authorized():

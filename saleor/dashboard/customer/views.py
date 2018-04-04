@@ -2,6 +2,7 @@ from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import permission_required
 from django.db.models import Q
+from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect
 from django.template.response import TemplateResponse
 from django.utils.translation import pgettext_lazy
@@ -76,3 +77,19 @@ def customer_edit(request, pk=None):
         return redirect('dashboard:customer-details', pk=customer.pk)
     ctx = {'form': form, 'customer': customer}
     return TemplateResponse(request, 'dashboard/customer/form.html', ctx)
+
+
+@staff_member_required
+@permission_required('account.view_user')
+def ajax_users_list(request):
+    queryset = User.objects.select_related('default_billing_address')
+    search_query = request.GET.get('q', '')
+    if search_query:
+        queryset = queryset.filter(
+            Q(default_billing_address__first_name__icontains=search_query) |
+            Q(default_billing_address__last_name__icontains=search_query) |
+            Q(email__icontains=search_query))
+
+    users = [
+        {'id': user.pk, 'text': user.ajax_label} for user in queryset]
+    return JsonResponse({'results': users})

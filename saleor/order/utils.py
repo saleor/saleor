@@ -1,18 +1,24 @@
 from functools import wraps
 
+from django.conf import settings
 from django.db.models import F
 from django.shortcuts import get_object_or_404, redirect
+from prices import Money
 
+from saleor.order.models import OrderLine
 from ..account.utils import store_user_address
 from ..core.exceptions import InsufficientStock
+from ..dashboard.order.utils import get_voucher_discount_for_order
 from ..order import FulfillmentStatus, OrderStatus
 from ..product.utils import allocate_stock, deallocate_stock, increase_stock
 
 
 def check_order_status(func):
-    """Prevent execution of decorated function if order is fully paid.
+    """Check if order meets preconditions of payment process.
 
-    Instead redirects to order details page.
+    Order can not have draft status or be fully paid. Billing address
+    must be provided.
+    If not, redirect to order details page.
     """
     # pylint: disable=cyclic-import
     from .models import Order
@@ -20,8 +26,8 @@ def check_order_status(func):
     @wraps(func)
     def decorator(*args, **kwargs):
         token = kwargs.pop('token')
-        order = get_object_or_404(Order, token=token)
-        if order.is_fully_paid():
+        order = get_object_or_404(Order.objects.confirmed(), token=token)
+        if not order.billing_address or order.is_fully_paid():
             return redirect('order:details', token=order.token)
         kwargs['order'] = order
         return func(*args, **kwargs)
@@ -29,14 +35,37 @@ def check_order_status(func):
     return decorator
 
 
-def recalculate_order(order):
+def update_voucher_discount(func):
+    """Recalculate order discount amount based on order voucher."""
+
+    @wraps(func)
+    def decorator(*args, **kwargs):
+        if kwargs.pop('update_voucher_discount', True):
+            order = args[0]
+            order.discount_amount = (
+                get_voucher_discount_for_order(order) or
+                Money(0, settings.DEFAULT_CURRENCY))
+        return func(*args, **kwargs)
+
+    return decorator
+
+
+@update_voucher_discount
+def recalculate_order(order, **kwargs):
     """Recalculate and assign total price of order.
 
     Total price is a sum of items in order and order shipping price minus
     discount amount.
+
+    Voucher discount amount is recalculated by default. To avoid this, pass
+    update_voucher_discount argument set to False.
     """
-    prices = [line.get_total() for line in order]
+    # avoid using prefetched order lines
+    lines = [OrderLine.objects.get(pk=line.pk) for line in order]
+    prices = [line.get_total() for line in lines]
     total = sum(prices, order.shipping_price)
+    # discount amount can't be greater than order total
+    order.discount_amount = min(order.discount_amount, total.gross)
     if order.discount_amount:
         total -= order.discount_amount
     order.total = total
@@ -46,7 +75,8 @@ def recalculate_order(order):
 def cancel_order(order, restock):
     """Cancel order and associated fulfillments.
 
-    Return products to corresponding stocks if restock is set to True."""
+    Return products to corresponding stocks if restock is set to True.
+    """
     if restock:
         restock_order_lines(order)
     for fulfillment in order.fulfillments.all():
@@ -76,7 +106,8 @@ def update_order_status(order):
 def cancel_fulfillment(fulfillment, restock):
     """Cancel fulfillment.
 
-    Return products to corresponding stocks if restock is set to True."""
+    Return products to corresponding stocks if restock is set to True.
+    """
     if restock:
         restock_fulfillment_lines(fulfillment)
     for line in fulfillment:
@@ -204,9 +235,10 @@ def restock_order_lines(order):
                 line.save(update_fields=['quantity_fulfilled'])
 
 
-def restock_fulfillment_lines(fulfillment):
+def restock_fulfillment_lines(fulfillment, allocate=True):
     """Return fulfilled products to corresponding stocks."""
     for line in fulfillment:
         order_line = line.order_line
         if order_line.stock:
-            increase_stock(line.order_line.stock, line.quantity)
+            increase_stock(
+                line.order_line.stock, line.quantity, allocate=allocate)

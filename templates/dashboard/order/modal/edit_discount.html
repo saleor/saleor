@@ -1,0 +1,22 @@
+{% extends "dashboard/base_modal.html" %}
+
+{% load i18n %}
+{% load materializecss %}
+
+{% block action_url %}
+{% url 'dashboard:order-discount-edit' order_pk=order.pk %}
+{% endblock %}
+
+{% block title %}
+{% trans "Edit discount" context "Modal edit discount title" %}
+{% endblock %}
+
+{% block content %}
+  <div class="col s12">
+    {{ form.discount_amount|materializecss }}
+  </div>
+{% endblock %}
+
+{% block primary_action %}
+{% trans "Update" context "Modal edit discount primary action" %}
+{% endblock %}

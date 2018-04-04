@@ -74,7 +74,7 @@ def password_reset_confirm(request, uidb64=None, token=None):
 @login_required
 def details(request):
     password_form = get_or_process_password_form(request)
-    orders = request.user.orders.prefetch_related('lines')
+    orders = request.user.orders.confirmed().prefetch_related('lines')
     orders_paginated = get_paginator_items(
         orders, settings.PAGINATE_BY, request.GET.get('page'))
     ctx = {'addresses': request.user.addresses.all(),

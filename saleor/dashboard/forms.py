@@ -65,9 +65,12 @@ class AjaxSelect2ChoiceField(forms.ChoiceField):
     def set_initial(self, obj, obj_id=None, label=None):
         """Set initially selected objects on field's widget."""
         selected = {
-            'id': obj_id if obj_id else obj.pk,
+            'id': obj_id if obj_id is not None else obj.pk,
             'text': label if label else str(obj)}
         self.widget.attrs['data-initial'] = json.dumps(selected)
+
+    def set_fetch_data_url(self, fetch_data_url):
+        self.widget.attrs['data-url'] = fetch_data_url
 
 
 class AjaxSelect2CombinedChoiceField(AjaxSelect2ChoiceField):

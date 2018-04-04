@@ -5,7 +5,6 @@ from functools import partial
 from django.conf import settings
 from django.db import models
 from django.db.models import F, Q
-from django.utils.encoding import smart_text
 from django.utils.translation import pgettext, pgettext_lazy
 from django_countries import countries
 from django_prices.models import MoneyField
