@@ -4,7 +4,7 @@ from uuid import uuid4
 from django.conf import settings
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
-from django.db.models import Max
+from django.db.models import F, Max, Sum
 from django.urls import reverse
 from django.utils.timezone import now
 from django.utils.translation import pgettext_lazy
@@ -18,6 +18,22 @@ from ..account.models import Address
 from ..core.utils import ZERO_TAXED_MONEY, build_absolute_uri
 from ..discount.models import Voucher
 from ..product.models import Product
+from ..shipping.models import ShippingMethodCountry
+
+
+class OrderQueryset(models.QuerySet):
+    def confirmed(self):
+        return self.exclude(status=OrderStatus.DRAFT)
+
+    def drafts(self):
+        return self.filter(status=OrderStatus.DRAFT)
+
+    def to_ship(self):
+        """Fully paid but unfulfilled (or partially fulfilled) orders."""
+        statuses = {OrderStatus.UNFULFILLED, OrderStatus.PARTIALLY_FULFILLED}
+        return self.filter(status__in=statuses).annotate(
+            amount_paid=Sum('payments__captured_amount')).filter(
+            total_gross__lte=F('amount_paid'))
 
 
 class Order(models.Model):
@@ -34,13 +50,15 @@ class Order(models.Model):
     tracking_client_id = models.CharField(
         max_length=36, blank=True, editable=False)
     billing_address = models.ForeignKey(
-        Address, related_name='+', editable=False,
-        on_delete=models.PROTECT)
+        Address, related_name='+', editable=False, null=True,
+        on_delete=models.SET_NULL)
     shipping_address = models.ForeignKey(
         Address, related_name='+', editable=False, null=True,
-        on_delete=models.PROTECT)
-    user_email = models.EmailField(
-        blank=True, default='', editable=False)
+        on_delete=models.SET_NULL)
+    user_email = models.EmailField(blank=True, default='')
+    shipping_method = models.ForeignKey(
+        ShippingMethodCountry, blank=True, null=True, related_name='orders',
+        on_delete=models.SET_NULL)
     shipping_price_net = MoneyField(
         currency=settings.DEFAULT_CURRENCY, max_digits=12, decimal_places=2,
         default=0, editable=False)
@@ -63,8 +81,10 @@ class Order(models.Model):
         Voucher, null=True, related_name='+', on_delete=models.SET_NULL)
     discount_amount = MoneyField(
         currency=settings.DEFAULT_CURRENCY, max_digits=12, decimal_places=2,
-        blank=True, null=True)
+        default=0)
     discount_name = models.CharField(max_length=255, default='', blank=True)
+
+    objects = OrderQueryset.as_manager()
 
     class Meta:
         ordering = ('-pk',)
@@ -143,15 +163,15 @@ class Order(models.Model):
     def get_total_quantity(self):
         return sum([line.quantity for line in self])
 
-    def can_edit(self):
-        return self.status == OrderStatus.UNFULFILLED
+    def is_draft(self):
+        return self.status == OrderStatus.DRAFT
 
-    def can_fulfill(self):
+    def is_open(self):
         statuses = {OrderStatus.UNFULFILLED, OrderStatus.PARTIALLY_FULFILLED}
         return self.status in statuses
 
     def can_cancel(self):
-        return self.status != OrderStatus.CANCELED
+        return self.status not in {OrderStatus.CANCELED, OrderStatus.DRAFT}
 
 
 class OrderLine(models.Model):

@@ -1,6 +1,10 @@
+from datetime import date
+
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import permission_required
+from django.db.models import Q
+from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect
 from django.template.response import TemplateResponse
 from django.utils.translation import pgettext_lazy
@@ -164,3 +168,17 @@ def voucher_delete(request, pk):
     ctx = {'voucher': instance}
     return TemplateResponse(
         request, 'dashboard/discount/voucher/modal/confirm_delete.html', ctx)
+
+
+@staff_member_required
+@permission_required('discount.view_voucher')
+def ajax_voucher_list(request):
+    queryset = Voucher.objects.active(date=date.today())
+
+    search_query = request.GET.get('q', '')
+    if search_query:
+        queryset = queryset.filter(Q(name__icontains=search_query))
+
+    vouchers = [
+        {'id': voucher.pk, 'text': str(voucher)} for voucher in queryset]
+    return JsonResponse({'results': vouchers})

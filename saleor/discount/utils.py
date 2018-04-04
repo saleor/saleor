@@ -1,12 +1,9 @@
 from django.conf import settings
 from django.db.models import F
-from django.utils.encoding import smart_text
 from django.utils.translation import pgettext
-from prices import Money, TaxedMoney
+from prices import Money
 
-from . import VoucherApplyToProduct, VoucherType
-from ..cart.utils import (
-    get_category_variants_and_prices, get_product_variants_and_prices)
+from . import VoucherApplyToProduct
 from ..core.utils import ZERO_TAXED_MONEY
 from .models import NotApplicable
 
@@ -63,54 +60,20 @@ def calculate_discounted_price(product, price, discounts):
     return price
 
 
-def _get_value_voucher_discount_for_checkout(voucher, checkout):
+def get_value_voucher_discount(voucher, total_price):
     """Calculate discount value for a voucher of value type."""
-    cart_total = checkout.get_subtotal()
-    voucher.validate_limit(cart_total)
-    return voucher.get_discount_amount_for(cart_total)
+    voucher.validate_limit(total_price)
+    return voucher.get_discount_amount_for(total_price)
 
 
-def _get_shipping_voucher_discount_for_checkout(voucher, checkout):
+def get_shipping_voucher_discount(voucher, total_price, shipping_price):
     """Calculate discount value for a voucher of shipping type."""
-    if not checkout.is_shipping_required:
-        msg = pgettext(
-            'Voucher not applicable',
-            'Your order does not require shipping.')
-        raise NotApplicable(msg)
-    shipping_method = checkout.shipping_method
-    if not shipping_method:
-        msg = pgettext(
-            'Voucher not applicable',
-            'Please select a shipping method first.')
-        raise NotApplicable(msg)
-    not_valid_for_country = (
-        voucher.apply_to and shipping_method.country_code != voucher.apply_to)
-    if not_valid_for_country:
-        msg = pgettext(
-            'Voucher not applicable',
-            'This offer is only valid in %(country)s.')
-        raise NotApplicable(
-            msg % {'country': voucher.get_apply_to_display()})
-    cart_total = checkout.get_subtotal()
-    voucher.validate_limit(cart_total)
-    return voucher.get_discount_amount_for(shipping_method.get_total_price())
+    voucher.validate_limit(total_price)
+    return voucher.get_discount_amount_for(shipping_price)
 
 
-def _get_product_or_category_voucher_discount_for_checkout(voucher, checkout):
+def get_product_or_category_voucher_discount(voucher, prices):
     """Calculate discount value for a voucher of product or category type."""
-    if voucher.type == VoucherType.PRODUCT:
-        prices = [
-            item[1] for item in get_product_variants_and_prices(
-                checkout.cart, voucher.product)]
-    else:
-        prices = [
-            item[1] for item in get_category_variants_and_prices(
-                checkout.cart, voucher.category)]
-    if not prices:
-        msg = pgettext(
-            'Voucher not applicable',
-            'This offer is only valid for selected items.')
-        raise NotApplicable(msg)
     if voucher.apply_to == VoucherApplyToProduct.ALL_PRODUCTS:
         discounts = (
             voucher.get_discount_amount_for(price) for price in prices)
@@ -119,18 +82,3 @@ def _get_product_or_category_voucher_discount_for_checkout(voucher, checkout):
         return total_amount
     product_total = sum(prices, ZERO_TAXED_MONEY)
     return voucher.get_discount_amount_for(product_total)
-
-
-def get_voucher_discount_for_checkout(voucher, checkout):
-    """Calculate discount value depending on voucher and discount types.
-
-    Raise NotApplicable if voucher of given type cannot be applied.
-    """
-    if voucher.type == VoucherType.VALUE:
-        return _get_value_voucher_discount_for_checkout(voucher, checkout)
-    if voucher.type == VoucherType.SHIPPING:
-        return _get_shipping_voucher_discount_for_checkout(voucher, checkout)
-    if voucher.type in (VoucherType.PRODUCT, VoucherType.CATEGORY):
-        return _get_product_or_category_voucher_discount_for_checkout(
-            voucher, checkout)
-    raise NotImplementedError('Unknown discount type')

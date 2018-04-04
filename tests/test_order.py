@@ -1,11 +1,14 @@
+import json
 from decimal import Decimal
 
 from django.urls import reverse
+from payments import PaymentStatus
 from prices import Money, TaxedMoney
 from tests.utils import get_redirect_location
 
-from saleor.order import FulfillmentStatus, models, OrderStatus
+from saleor.order import FulfillmentStatus, OrderStatus, models
 from saleor.order.forms import OrderNoteForm
+from saleor.order.models import Order
 from saleor.order.utils import (
     add_variant_to_order, cancel_fulfillment, cancel_order, recalculate_order,
     restock_fulfillment_lines, restock_order_lines, update_order_status)
@@ -61,8 +64,8 @@ def test_add_variant_to_order_allocates_stock_for_new_variant(
 
 
 def test_add_variant_to_order_edits_line_for_existing_variant(
-        order_with_lines_and_stock):
-    order = order_with_lines_and_stock
+        order_with_lines):
+    order = order_with_lines
     existing_line = order.lines.first()
     variant = existing_line.product.variants.get()
     lines_before = order.lines.count()
@@ -77,8 +80,8 @@ def test_add_variant_to_order_edits_line_for_existing_variant(
 
 
 def test_add_variant_to_order_allocates_stock_for_existing_variant(
-        order_with_lines_and_stock):
-    order = order_with_lines_and_stock
+        order_with_lines):
+    order = order_with_lines
     existing_line = order.lines.first()
     variant = existing_line.product.variants.get()
     stock = existing_line.stock
@@ -125,8 +128,8 @@ def test_view_connect_order_with_user_different_email(
     assert order.user is None
 
 
-def test_add_note_to_order(order_with_lines_and_stock):
-    order = order_with_lines_and_stock
+def test_add_note_to_order(order_with_lines):
+    order = order_with_lines
     note = models.OrderNote(order=order, user=order.user)
     note_form = OrderNoteForm({'content': 'test_note'}, instance=note)
     note_form.is_valid()
@@ -142,8 +145,8 @@ def test_create_order_history(order_with_lines):
     assert history_entry.content == 'test_entry'
 
 
-def test_restock_order_lines(order_with_lines_and_stock):
-    order = order_with_lines_and_stock
+def test_restock_order_lines(order_with_lines):
+    order = order_with_lines
     line_1 = order.lines.first()
     line_2 = order.lines.last()
     stock_1_quantity_allocated_before = line_1.stock.quantity_allocated
@@ -200,8 +203,10 @@ def test_restock_fulfillment_lines(fulfilled_order):
 
     stock_1.refresh_from_db()
     stock_2.refresh_from_db()
-    assert stock_1.quantity_allocated == stock_1_quantity_allocated_before
-    assert stock_1.quantity_allocated == stock_2_quantity_allocated_before
+    assert stock_1.quantity_allocated == (
+        stock_1_quantity_allocated_before + line_1.quantity)
+    assert stock_2.quantity_allocated == (
+        stock_2_quantity_allocated_before + line_2.quantity)
     assert stock_1.quantity == stock_1_quantity_before + line_1.quantity
     assert stock_2.quantity == stock_2_quantity_before + line_2.quantity
 
@@ -248,3 +253,90 @@ def test_update_order_status(fulfilled_order):
     update_order_status(fulfilled_order)
 
     assert fulfilled_order.status == OrderStatus.UNFULFILLED
+
+
+def test_order_queryset_confirmed(draft_order):
+    other_orders = [
+        Order.objects.create(status=OrderStatus.UNFULFILLED),
+        Order.objects.create(status=OrderStatus.PARTIALLY_FULFILLED),
+        Order.objects.create(status=OrderStatus.FULFILLED),
+        Order.objects.create(status=OrderStatus.CANCELED)
+    ]
+
+    confirmed_orders = Order.objects.confirmed()
+
+    assert draft_order not in confirmed_orders
+    assert all([order in confirmed_orders for order in other_orders])
+
+
+def test_order_queryset_drafts(draft_order):
+    other_orders = [
+        Order.objects.create(status=OrderStatus.UNFULFILLED),
+        Order.objects.create(status=OrderStatus.PARTIALLY_FULFILLED),
+        Order.objects.create(status=OrderStatus.FULFILLED),
+        Order.objects.create(status=OrderStatus.CANCELED)
+    ]
+
+    draft_orders = Order.objects.drafts()
+
+    assert draft_order in draft_orders
+    assert all([order not in draft_orders for order in other_orders])
+
+
+def test_order_queryset_to_ship():
+    total = TaxedMoney(net=Money(10, 'USD'), gross=Money(15, 'USD'))
+    orders_to_ship = [
+        Order.objects.create(status=OrderStatus.UNFULFILLED, total=total),
+        Order.objects.create(
+            status=OrderStatus.PARTIALLY_FULFILLED, total=total)
+    ]
+    for order in orders_to_ship:
+        order.payments.create(
+            variant='default', status=PaymentStatus.CONFIRMED, currency='USD',
+            total=order.total_gross.amount,
+            captured_amount=order.total_gross.amount)
+
+    orders_not_to_ship = [
+        Order.objects.create(status=OrderStatus.DRAFT, total=total),
+        Order.objects.create(status=OrderStatus.UNFULFILLED, total=total),
+        Order.objects.create(
+            status=OrderStatus.PARTIALLY_FULFILLED, total=total),
+        Order.objects.create(status=OrderStatus.FULFILLED, total=total),
+        Order.objects.create(status=OrderStatus.CANCELED, total=total)
+    ]
+
+    orders = Order.objects.to_ship()
+
+    assert all([order in orders for order in orders_to_ship])
+    assert all([order not in orders for order in orders_not_to_ship])
+
+
+def test_ajax_order_shipping_methods_list(
+        admin_client, order, shipping_method):
+    method = shipping_method.price_per_country.get()
+    shipping_methods_list = [{'id': method.pk, 'text': method.ajax_label}]
+    url = reverse(
+        'dashboard:ajax-order-shipping-methods', kwargs={'order_pk': order.pk})
+
+    response = admin_client.get(url, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
+    resp_decoded = json.loads(response.content.decode('utf-8'))
+
+    assert response.status_code == 200
+    assert resp_decoded == {'results': shipping_methods_list}
+
+
+def test_ajax_order_shipping_methods_list_different_country(
+        admin_client, order, shipping_method):
+    order.shipping_address = order.billing_address.get_copy()
+    order.save()
+    method = shipping_method.price_per_country.get()
+    shipping_methods_list = [{'id': method.pk, 'text': method.ajax_label}]
+    shipping_method.price_per_country.create(price=15, country_code='DE')
+    url = reverse(
+        'dashboard:ajax-order-shipping-methods', kwargs={'order_pk': order.pk})
+
+    response = admin_client.get(url, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
+    resp_decoded = json.loads(response.content.decode('utf-8'))
+
+    assert response.status_code == 200
+    assert resp_decoded == {'results': shipping_methods_list}
