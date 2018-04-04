@@ -459,3 +459,7 @@ ALLOWED_STYLES = ['text-align']
 
 # slugs for menus used in storefront's base template, created by default
 DEFAULT_MENUS = ['navbar', 'footer']
+
+# page slugs that must never be deleted and thus, that must be protected
+# TODO: add to documentation
+PROTECTED_PAGES = ['privacy']
