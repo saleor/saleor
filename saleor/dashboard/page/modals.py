@@ -1,6 +1,5 @@
 from django.template.response import TemplateResponse
 
-
 PROTECTED_PAGE_ERROR_MODAL_PATH = (
     'dashboard/page/modals/protected_page_error_modal.html')
 

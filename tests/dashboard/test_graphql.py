@@ -3,8 +3,10 @@ from unittest.mock import patch
 
 import graphene
 import pytest
+from django.conf import settings
 from django.shortcuts import reverse
 from django.utils.text import slugify
+from graphql_jwt.exceptions import PermissionDenied
 
 from saleor.dashboard.graphql.core.mutations import (
     ModelFormMutation, ModelFormUpdateMutation)
@@ -234,6 +236,73 @@ def test_page_create_mutation(admin_client):
     assert data['page']['isVisible'] == page_isVisible
 
 
+def test_page_update_mutation(admin_client, page):
+    query = """
+        mutation PageUpdate(
+            $id: ID,
+            $slug: String!,
+            $title: String!,
+            $content: String!,
+            $isVisible: Boolean!) {
+                pageUpdate(id: $id,
+                slug: $slug,
+                title: $title,
+                content: $content,
+                isVisible: $isVisible) {
+                    page {
+                        id
+                        title
+                        content
+                        slug
+                        isVisible
+                      }
+                      errors {
+                        message
+                        field
+                      }
+                    }
+                  }
+    """
+    page_title = 'Updated title'
+    page_content = 'Updated content'
+    page_slug = 'updated-slug'
+    page_is_visible = not page.is_visible
+
+    page_id = graphene.Node.to_global_id('Page', page.id)
+
+    variables = {
+        'id': page_id,
+        'title': page_title, 'content': page_content,
+        'isVisible': page_is_visible, 'slug': page_slug}
+
+    response = admin_client.post(
+        reverse('dashboard:api'),
+        {'query': query, 'variables': json.dumps(variables)})
+    content = get_graphql_content(response)
+
+    def _check_expected(data):
+        assert data['errors'] == []
+        assert data['page']['id'] == page_id
+        assert data['page']['title'] == page_title
+        assert data['page']['content'] == page_content
+        assert data['page']['slug'] == page_slug
+        assert data['page']['isVisible'] == page_is_visible
+
+    assert 'errors' not in content
+    _check_expected(content['data']['pageUpdate'])
+
+    # trying to update a disabled field on a protected page,
+    # the slug shouldn't change.
+    with patch.object(settings, 'PROTECTED_PAGES', [page_slug]):
+        variables['slug'] = 'changed-a-protected-slug'
+        response = admin_client.post(
+            reverse('dashboard:api'),
+            {'query': query, 'variables': json.dumps(variables)})
+        content = get_graphql_content(response)
+        assert 'errors' not in content
+        _check_expected(content['data']['pageUpdate'])
+
+
 def test_page_delete_mutation(admin_client, page):
     query = """
         mutation DeletePage($id: ID!) {
@@ -259,6 +328,42 @@ def test_page_delete_mutation(admin_client, page):
     assert data['page']['title'] == page.title
     with pytest.raises(page._meta.model.DoesNotExist):
         page.refresh_from_db()
+
+
+# sets the PROTECTED_PAGES setting, to contain the fixture default page slug
+@patch.object(settings, 'PROTECTED_PAGES', ['test-url'])
+def test_page_delete_mutation__protected_page(admin_client, page):
+    """This test case, tries to delete a page that is flagged as protected.
+    This test is expected a forbidden error from GraphQL.
+    """
+    query = """
+        mutation DeletePage($id: ID!) {
+            pageDelete(id: $id) {
+                page {
+                    title
+                    id
+                }
+                errors {
+                    field
+                    message
+                }
+              }
+            }
+    """
+    variables = json.dumps({
+        'id': graphene.Node.to_global_id('Page', page.id)})
+
+    response = admin_client.post(
+        reverse('dashboard:api'),
+        {'query': query, 'variables': variables})
+
+    content = get_graphql_content(response)
+
+    assert 'errors' in content
+    errors = content['errors']
+
+    assert len(errors) == 1
+    assert errors[0]['message'] == PermissionDenied.default_message
 
 
 def test_create_product(

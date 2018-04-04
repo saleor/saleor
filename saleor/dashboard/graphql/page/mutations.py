@@ -1,10 +1,9 @@
-import graphene
-
 from ....page import models
 from ...page.forms import PageForm
 from ..core.mutations import (
     ModelDeleteMutation, ModelFormMutation, ModelFormUpdateMutation,
     StaffMemberRequiredMutation)
+from .decorators import must_be_unprotected
 
 
 class PageCreate(StaffMemberRequiredMutation, ModelFormMutation):
@@ -23,3 +22,8 @@ class PageDelete(StaffMemberRequiredMutation, ModelDeleteMutation):
     class Meta:
         description = 'Deletes a page.'
         model = models.Page
+
+    @classmethod
+    @must_be_unprotected
+    def _delete_instance(cls, instance):
+        return super(PageDelete, cls)._delete_instance(instance)
