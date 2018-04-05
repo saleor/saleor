@@ -1,6 +1,6 @@
 from django import template
 from django.conf import settings
-from django.urls import translate_url as django_translate_url, reverse
+from django.urls import reverse, translate_url as django_translate_url
 
 register = template.Library()
 
@@ -45,8 +45,8 @@ def _get_internal_page_slug(internal_name):
         return internal_pages[internal_name]
 
     raise ValueError((
-         '\'{}\' is not a know internal page name. '
-         'Please check the \'INTERNAL_PAGES\' settings key if you edited it.'
+        '\'{}\' is not a know internal page name. '
+        'Please check the \'INTERNAL_PAGES\' settings key if you edited it.'
     ).format(internal_name))
 
 

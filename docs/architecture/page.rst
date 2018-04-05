@@ -40,7 +40,7 @@ Here is the list of automatically generated pages:
   |                  |                  |                      | from conflicts and accidents.                                       |
   |                  |                  |                      |                                                                     |
   +------------------+------------------+----------------------+---------------------------------------------------------------------+
-  | About Us         | No               | ``selling-contract`` | This page contains some miscellaneous information about your store. |
+  | About            | No               | ``about``            | This page contains some miscellaneous information about your store. |
   |                  |                  |                      |                                                                     |
   |                  |                  |                      | *Note: page generated on populate db.*                              |
   |                  |                  |                      |                                                                     |
