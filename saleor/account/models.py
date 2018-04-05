@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.contrib.auth.models import (
     AbstractBaseUser, BaseUserManager, PermissionsMixin)
 from django.db import models
@@ -8,6 +9,7 @@ from django_countries.fields import Country, CountryField
 from phonenumber_field.modelfields import PhoneNumberField
 
 from .validators import validate_possible_number
+from ..core.models import BaseNote
 
 
 class PossiblePhoneNumberField(PhoneNumberField):
@@ -133,3 +135,11 @@ class User(PermissionsMixin, AbstractBaseUser):
             return '%s %s (%s)' % (
                 address.first_name, address.last_name, self.email)
         return self.email
+
+
+class CustomerNote(BaseNote):
+    customer = models.ForeignKey(
+        settings.AUTH_USER_MODEL, related_name='notes', on_delete=models.CASCADE)
+
+    class Meta:
+        ordering = ('date', )
