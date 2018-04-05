@@ -411,20 +411,15 @@ def variant_add(request, product_pk):
     product = get_object_or_404(Product.objects.all(), pk=product_pk)
     variant = ProductVariant(product=product)
     form = forms.ProductVariantForm(request.POST or None, instance=variant)
-    attribute_form = forms.VariantAttributeForm(
-        request.POST or None, instance=variant)
-    if form.is_valid() and attribute_form.is_valid():
+    if form.is_valid():
         form.save()
-        attribute_form.save()
         msg = pgettext_lazy(
             'Dashboard message', 'Saved variant %s') % (variant.name,)
         messages.success(request, msg)
         return redirect(
             'dashboard:variant-details', product_pk=product.pk,
             variant_pk=variant.pk)
-    ctx = {
-        'attribute_form': attribute_form, 'form': form, 'product': product,
-        'variant': variant}
+    ctx = {'form': form, 'product': product, 'variant': variant}
     return TemplateResponse(
         request,
         'dashboard/product/product_variant/form.html',
@@ -437,20 +432,15 @@ def variant_edit(request, product_pk, variant_pk):
     product = get_object_or_404(Product.objects.all(), pk=product_pk)
     variant = get_object_or_404(product.variants.all(), pk=variant_pk)
     form = forms.ProductVariantForm(request.POST or None, instance=variant)
-    attribute_form = forms.VariantAttributeForm(
-        request.POST or None, instance=variant)
-    if form.is_valid() and attribute_form.is_valid():
+    if form.is_valid():
         form.save()
-        attribute_form.save()
         msg = pgettext_lazy(
             'Dashboard message', 'Saved variant %s') % (variant.name,)
         messages.success(request, msg)
         return redirect(
             'dashboard:variant-details', product_pk=product.pk,
             variant_pk=variant.pk)
-    ctx = {
-        'attribute_form': attribute_form, 'form': form, 'product': product,
-        'variant': variant}
+    ctx = {'form': form, 'product': product, 'variant': variant}
     return TemplateResponse(
         request,
         'dashboard/product/product_variant/form.html',

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2018-02-26 07:41-0600\n"
+"POT-Creation-Date: 2018-03-30 10:19-0500\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Jihan Chung <jihanchung20@gmail.com>, 2017\n"
 "Language-Team: Korean (https://www.transifex.com/mirumee/teams/34782/ko/)\n"
@@ -283,34 +283,73 @@ msgctxt "Datepicker option"
 msgid "Close"
 msgstr "닫기"
 
-#: saleor/static/dashboard/js/components/editor.js:9
+#: saleor/static/dashboard/js/components/editor.js:24
 msgctxt "Rich text editor option"
 msgid "Bold text"
 msgstr ""
 
-#: saleor/static/dashboard/js/components/editor.js:13
+#: saleor/static/dashboard/js/components/editor.js:28
 msgctxt "Rich text editor option"
 msgid "Italic text"
 msgstr ""
 
-#: saleor/static/dashboard/js/components/editor.js:17
+#: saleor/static/dashboard/js/components/editor.js:32
 msgctxt "Rich text editor option"
 msgid "Header"
 msgstr ""
 
-#: saleor/static/dashboard/js/components/editor.js:24
+#: saleor/static/dashboard/js/components/editor.js:39
 msgctxt "Rich text editor option"
 msgid "Subheader"
 msgstr ""
 
-#: saleor/static/dashboard/js/components/editor.js:31
+#: saleor/static/dashboard/js/components/editor.js:46
 msgctxt "Rich text editor option"
 msgid "Quote"
 msgstr ""
 
-#: saleor/static/dashboard/js/components/editor.js:35
+#: saleor/static/dashboard/js/components/editor.js:51
 msgctxt "Rich text editor option"
 msgid "Link"
+msgstr ""
+
+#: saleor/static/dashboard/js/components/editor.js:58
+msgctxt "Rich text editor option"
+msgid "Image (converts selected text to an image tag)"
+msgstr ""
+
+#: saleor/static/dashboard/js/components/editor.js:63
+msgctxt "Rich text editor option"
+msgid "Left align"
+msgstr ""
+
+#: saleor/static/dashboard/js/components/editor.js:68
+msgctxt "Rich text editor option"
+msgid "Center align"
+msgstr ""
+
+#: saleor/static/dashboard/js/components/editor.js:73
+msgctxt "Rich text editor option"
+msgid "Right align"
+msgstr ""
+
+#: saleor/static/dashboard/js/components/editor.js:78
+msgctxt "Rich text editor option"
+msgid "Justify"
+msgstr ""
+
+#: saleor/static/dashboard/js/components/editor.js:83
+msgctxt "Rich text editor option"
+msgid "Remove formatting"
+msgstr ""
+
+#: saleor/static/dashboard/js/components/google-preview.js:46
+msgid ""
+"Your input might be a little too short, think of something more descriptive"
+msgstr ""
+
+#: saleor/static/dashboard/js/components/google-preview.js:50
+msgid "Your input fits between the recommended lengths"
 msgstr ""
 
 #: saleor/static/js/components/variantPicker/QuantityInput.js:21
@@ -318,7 +357,7 @@ msgctxt "Add to cart form field label"
 msgid "Quantity"
 msgstr "수량"
 
-#: saleor/static/js/components/variantPicker/VariantPicker.js:168
+#: saleor/static/js/components/variantPicker/VariantPicker.js:166
 msgctxt "Product details primary action"
 msgid "Add to cart"
 msgstr "카트에 추가"

@@ -5,6 +5,7 @@ import dj_database_url
 import dj_email_url
 import django_cache_url
 from django.contrib.messages import constants as messages
+from django.utils.translation import gettext_lazy as _
 
 
 def get_list(text):
@@ -42,7 +43,29 @@ DATABASES = {
 
 
 TIME_ZONE = 'America/Chicago'
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = 'en'
+LANGUAGES = [
+    ('bg', _('Bulgarian')),
+    ('de', _('German')),
+    ('en', _('English')),
+    ('es', _('Spanish')),
+    ('fa-ir', _('Persian (Iran)')),
+    ('fr', _('French')),
+    ('hu', _('Hungarian')),
+    ('it', _('Italian')),
+    ('ja', _('Japanese')),
+    ('ko', _('Korean')),
+    ('nb', _('Norwegian')),
+    ('nl', _('Dutch')),
+    ('pl', _('Polish')),
+    ('pt-br', _('Portuguese (Brazil)')),
+    ('ro', _('Romanian')),
+    ('ru', _('Russian')),
+    ('sk', _('Slovak')),
+    ('tr', _('Turkish')),
+    ('uk', _('Ukrainian')),
+    ('vi', _('Vietnamese')),
+    ('zh-hans', _('Chinese'))]
 LOCALE_PATHS = [os.path.join(PROJECT_ROOT, 'locale')]
 USE_I18N = True
 USE_L10N = True
@@ -69,6 +92,9 @@ EMAIL_USE_SSL = email_config['EMAIL_USE_SSL']
 
 ENABLE_SSL = ast.literal_eval(
     os.environ.get('ENABLE_SSL', 'False'))
+
+if ENABLE_SSL:
+    SECURE_SSL_REDIRECT = not DEBUG
 
 DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL')
 ORDER_FROM_EMAIL = os.getenv('ORDER_FROM_EMAIL', DEFAULT_FROM_EMAIL)
@@ -97,8 +123,8 @@ context_processors = [
     'django.contrib.messages.context_processors.messages',
     'django.template.context_processors.request',
     'saleor.core.context_processors.default_currency',
-    'saleor.core.context_processors.categories',
     'saleor.cart.context_processors.cart_counter',
+    'saleor.core.context_processors.navigation',
     'saleor.core.context_processors.search_enabled',
     'saleor.core.context_processors.demo_example_page',
     'saleor.site.context_processors.site',
@@ -126,12 +152,14 @@ SECRET_KEY = os.environ.get('SECRET_KEY')
 
 MIDDLEWARE = [
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.middleware.security.SecurityMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.locale.LocaleMiddleware',
     'django_babel.middleware.LocaleMiddleware',
+    'graphql_jwt.middleware.JSONWebTokenMiddleware',
     'saleor.core.middleware.discounts',
     'saleor.core.middleware.google_analytics',
     'saleor.core.middleware.country',
@@ -163,8 +191,10 @@ INSTALLED_APPS = [
     'saleor.checkout',
     'saleor.core',
     'saleor.graphql',
+    'saleor.menu',
     'saleor.order.OrderAppConfig',
     'saleor.dashboard',
+    'saleor.seo',
     'saleor.shipping',
     'saleor.search',
     'saleor.site',
@@ -175,7 +205,6 @@ INSTALLED_APPS = [
     'versatileimagefield',
     'django_babel',
     'bootstrap4',
-    'django_fsm',
     'django_prices',
     'django_prices_openexchangerates',
     'graphene_django',
@@ -188,6 +217,16 @@ INSTALLED_APPS = [
     'django_celery_results',
     'impersonate',
     'phonenumber_field']
+
+if DEBUG:
+    MIDDLEWARE.append(
+        'debug_toolbar.middleware.DebugToolbarMiddleware')
+    INSTALLED_APPS.append('debug_toolbar')
+
+ENABLE_SILK = ast.literal_eval(os.environ.get('ENABLE_SILK', 'False'))
+if ENABLE_SILK:
+    MIDDLEWARE.insert(0, 'silk.middleware.SilkyMiddleware')
+    INSTALLED_APPS.append('silk')
 
 LOGGING = {
     'version': 1,
@@ -287,10 +326,12 @@ ALLOWED_HOSTS = get_list(os.environ.get('ALLOWED_HOSTS', 'localhost'))
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
 # Amazon S3 configuration
+AWS_S3_CUSTOM_DOMAIN = os.environ.get('AWS_STATIC_CUSTOM_DOMAIN')
 AWS_ACCESS_KEY_ID = os.environ.get('AWS_ACCESS_KEY_ID')
 AWS_SECRET_ACCESS_KEY = os.environ.get('AWS_SECRET_ACCESS_KEY')
 AWS_STORAGE_BUCKET_NAME = os.environ.get('AWS_STORAGE_BUCKET_NAME')
 AWS_MEDIA_BUCKET_NAME = os.environ.get('AWS_MEDIA_BUCKET_NAME')
+AWS_MEDIA_CUSTOM_DOMAIN = os.environ.get('AWS_MEDIA_CUSTOM_DOMAIN')
 AWS_QUERYSTRING_AUTH = ast.literal_eval(
     os.environ.get('AWS_QUERYSTRING_AUTH', 'False'))
 
@@ -304,7 +345,7 @@ if AWS_MEDIA_BUCKET_NAME:
 MESSAGE_STORAGE = 'django.contrib.messages.storage.session.SessionStorage'
 
 VERSATILEIMAGEFIELD_RENDITION_KEY_SETS = {
-    'defaults': [
+    'products': [
         ('product_gallery', 'crop__540x540'),
         ('product_gallery_2x', 'crop__1080x1080'),
         ('product_small', 'crop__60x60'),
@@ -315,7 +356,7 @@ VERSATILEIMAGEFIELD_RENDITION_KEY_SETS = {
 VERSATILEIMAGEFIELD_SETTINGS = {
     # Images should be pre-generated on Production environment
     'create_images_on_demand': ast.literal_eval(
-        os.environ.get('CREATE_IMAGES_ON_DEMAND', 'True')),
+        os.environ.get('CREATE_IMAGES_ON_DEMAND', repr(DEBUG))),
 }
 
 PLACEHOLDER_IMAGES = {
@@ -364,6 +405,7 @@ GRAPHENE = {'MIDDLEWARE': ['graphene_django.debug.DjangoDebugMiddleware']}
 AUTHENTICATION_BACKENDS = [
     'saleor.account.backends.facebook.CustomFacebookOAuth2',
     'saleor.account.backends.google.CustomGoogleOAuth2',
+    'graphql_jwt.backends.JSONWebTokenBackend',
     'django.contrib.auth.backends.ModelBackend']
 
 SOCIAL_AUTH_PIPELINE = [
@@ -419,6 +461,9 @@ ALLOWED_ATTRIBUTES = {
     'a': ['href', 'title'],
     'img': ['src']}
 ALLOWED_STYLES = ['text-align']
+
+# slugs for menus used in storefront's base template, created by default
+DEFAULT_MENUS = ['navbar', 'footer']
 
 # Demo-specific settings
 # We obfucate emails if they are different than demo's admin email

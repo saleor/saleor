@@ -5,7 +5,7 @@ SECRET_KEY = 'NOTREALLY'
 
 DEFAULT_CURRENCY = 'USD'
 
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = 'en'
 
 if 'sqlite' in DATABASES['default']['ENGINE']:  # noqa
     DATABASES['default']['TEST'] = {  # noqa

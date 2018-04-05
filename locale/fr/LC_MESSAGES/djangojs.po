@@ -8,9 +8,9 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2018-02-26 07:41-0600\n"
+"POT-Creation-Date: 2018-03-30 10:19-0500\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"Last-Translator: benoit barthelet <benoit.barthelet@gmail.com>, 2017\n"
+"Last-Translator: Da Costa Faro Rémy <remy@dacostafaro.com>, 2018\n"
 "Language-Team: French (https://www.transifex.com/mirumee/teams/34782/fr/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -284,42 +284,83 @@ msgctxt "Datepicker option"
 msgid "Close"
 msgstr "Fermer"
 
-#: saleor/static/dashboard/js/components/editor.js:9
+#: saleor/static/dashboard/js/components/editor.js:24
 msgctxt "Rich text editor option"
 msgid "Bold text"
 msgstr "Texte gras"
 
-#: saleor/static/dashboard/js/components/editor.js:13
+#: saleor/static/dashboard/js/components/editor.js:28
 msgctxt "Rich text editor option"
 msgid "Italic text"
 msgstr "Texte italique"
 
-#: saleor/static/dashboard/js/components/editor.js:17
+#: saleor/static/dashboard/js/components/editor.js:32
 msgctxt "Rich text editor option"
 msgid "Header"
 msgstr "Entête"
 
-#: saleor/static/dashboard/js/components/editor.js:24
+#: saleor/static/dashboard/js/components/editor.js:39
 msgctxt "Rich text editor option"
 msgid "Subheader"
 msgstr "Sous-titre"
 
-#: saleor/static/dashboard/js/components/editor.js:31
+#: saleor/static/dashboard/js/components/editor.js:46
 msgctxt "Rich text editor option"
 msgid "Quote"
 msgstr "Citation"
 
-#: saleor/static/dashboard/js/components/editor.js:35
+#: saleor/static/dashboard/js/components/editor.js:51
 msgctxt "Rich text editor option"
 msgid "Link"
 msgstr "Lien"
+
+#: saleor/static/dashboard/js/components/editor.js:58
+msgctxt "Rich text editor option"
+msgid "Image (converts selected text to an image tag)"
+msgstr "Image (convertis le texte sélectionné en une étiquette d'image)"
+
+#: saleor/static/dashboard/js/components/editor.js:63
+msgctxt "Rich text editor option"
+msgid "Left align"
+msgstr "Aligner à gauche"
+
+#: saleor/static/dashboard/js/components/editor.js:68
+msgctxt "Rich text editor option"
+msgid "Center align"
+msgstr "Centrer"
+
+#: saleor/static/dashboard/js/components/editor.js:73
+msgctxt "Rich text editor option"
+msgid "Right align"
+msgstr "Aligner à droite"
+
+#: saleor/static/dashboard/js/components/editor.js:78
+msgctxt "Rich text editor option"
+msgid "Justify"
+msgstr "Justifier"
+
+#: saleor/static/dashboard/js/components/editor.js:83
+msgctxt "Rich text editor option"
+msgid "Remove formatting"
+msgstr "Enlever le formatage"
+
+#: saleor/static/dashboard/js/components/google-preview.js:46
+msgid ""
+"Your input might be a little too short, think of something more descriptive"
+msgstr ""
+"Votre texte peut être un peu trop court, pensez à quelque chose de plus "
+"descriptif"
+
+#: saleor/static/dashboard/js/components/google-preview.js:50
+msgid "Your input fits between the recommended lengths"
+msgstr "Votre texte rentre dans la longueur optimale"
 
 #: saleor/static/js/components/variantPicker/QuantityInput.js:21
 msgctxt "Add to cart form field label"
 msgid "Quantity"
 msgstr "Quantité"
 
-#: saleor/static/js/components/variantPicker/VariantPicker.js:168
+#: saleor/static/js/components/variantPicker/VariantPicker.js:166
 msgctxt "Product details primary action"
 msgid "Add to cart"
 msgstr "Ajouter au panier"

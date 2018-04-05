@@ -9,7 +9,7 @@ from random import randint
 from ..account.models import User
 from ..dashboard.views import staff_member_required
 from ..product.utils import products_for_homepage, products_with_availability
-from .utils.schema import get_webpage_schema
+from ..seo.schema.webpage import get_webpage_schema
 
 
 def home(request):
@@ -45,10 +45,5 @@ def handle_404(request, exception=None):
 
 
 def manifest(request):
-    site = request.site
-    ctx = {
-        'description': site.settings.description,
-        'name': site.name,
-        'short_name': site.name}
     return TemplateResponse(
-        request, 'manifest.json', ctx, content_type='application/json')
+        request, 'manifest.json', content_type='application/json')

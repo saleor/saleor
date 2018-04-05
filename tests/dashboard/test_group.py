@@ -23,7 +23,7 @@ def test_group_create_form_valid(admin_client, permission_view_product):
     data = {'name': 'view product', 'permissions': permission_view_product.pk}
     response = admin_client.post(url, data)
     assert Group.objects.all().count() == 1
-    assert response['Location'] == '/dashboard/groups/'
+    assert response['Location'] == reverse('dashboard:group-list')
 
 
 def test_group_detail_form_valid(
@@ -41,7 +41,7 @@ def test_delete_group(admin_client, staff_group):
     data = {'pk': staff_group.pk}
     response = admin_client.post(url, data)
     assert Group.objects.all().count() == 0
-    assert response['Location'] == '/dashboard/groups/'
+    assert response['Location'] == reverse('dashboard:group-list')
 
 
 def test_delete_group_no_post(admin_client, staff_group):

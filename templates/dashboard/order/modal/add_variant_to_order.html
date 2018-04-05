@@ -1,0 +1,23 @@
+{% extends "dashboard/base_modal.html" %}
+
+{% load i18n %}
+{% load materializecss %}
+
+{% block action_url %}
+{% url 'dashboard:add-variant-to-order' order_pk=order.pk %}
+{% endblock %}
+
+{% block title %}
+{% blocktrans trimmed with order=order context "Modal order add variant title" %}
+  Add product to {{ order }}
+{% endblocktrans %}
+{% endblock %}
+
+{% block content %}
+{{ form.variant|materializecss:"s12 m8" }}
+{{ form.quantity|materializecss:"s12 m4" }}
+{% endblock %}
+
+{% block primary_action %}
+{% trans "Add" context "Modal order add variant primary action" %}
+{% endblock %}

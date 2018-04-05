@@ -1,7 +1,8 @@
 from django.conf import settings
 
-from ..product.models import Category
+from ..menu.models import Menu
 from ..page.models import Page
+from . import NAVIGATION_CONTEXT_NAME
 
 
 def get_setting_as_dict(name, short_name=None):
@@ -20,8 +21,10 @@ def default_currency(request):
 
 # request is a required parameter
 # pylint: disable=W0613
-def categories(request):
-    return {'categories': Category.tree.root_nodes()}
+def navigation(request):
+    menus = Menu.objects.prefetch_related(
+        'items__collection', 'items__category', 'items__page').all()
+    return {NAVIGATION_CONTEXT_NAME: list(menus)}
 
 
 def search_enabled(request):

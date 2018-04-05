@@ -3,6 +3,7 @@ import datetime
 from django.template import Library
 from payments import PaymentStatus
 
+from ...order import OrderStatus
 from ...product import ProductAvailabilityStatus, VariantAvailabilityStatus
 from ...product.utils import (
     get_product_availability_status, get_variant_availability_status)
@@ -24,6 +25,15 @@ def render_status(status, status_display=None):
     if status in ERRORS:
         label_cls = LABEL_DANGER
     elif status in SUCCESSES:
+        label_cls = LABEL_SUCCESS
+    else:
+        label_cls = LABEL_DEFAULT
+    return {'label_cls': label_cls, 'status': status_display or status}
+
+
+@register.inclusion_tag('status_label.html')
+def render_order_status(status, status_display=None):
+    if status == OrderStatus.FULFILLED:
         label_cls = LABEL_SUCCESS
     else:
         label_cls = LABEL_DEFAULT

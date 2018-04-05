@@ -17,3 +17,14 @@ def attributes_values_with_empty(variant, attributes):
         else:
             values.append(ATTRIBUTE_EMPTY_VALUE)
     return values
+
+
+@register.simple_tag
+def get_object_properties(object, properties):
+    """Returns first non empty property of given object."""
+    properties = properties.split(',')
+    for property in properties:
+        attribute = getattr(object, property, '')
+        if attribute:
+            return attribute
+    return ''

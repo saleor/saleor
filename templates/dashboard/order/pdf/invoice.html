@@ -27,9 +27,11 @@
         {% trans "Shipping Details" context "Invoice table header" %}
       </th>
     {% endif %}
-    <th align="left" {% if order.shipping_address %} width="50%"{% endif %}>
-      {% trans "Billing Details" context "Invoice table header" %}
-    </th>
+    {% if order.billing_address %}
+      <th align="left" {% if order.shipping_address %} width="50%"{% endif %}>
+        {% trans "Billing Details" context "Invoice table header" %}
+      </th>
+    {% endif %}
   </tr>
   </thead>
   <tbody>
@@ -44,14 +46,16 @@
         {% endwith %}
       </td>
     {% endif %}
-    <td valign="top">
-      {% with order.billing_address as address %}
-        <h2>
-          {% trans "Billing address" context "Invoice billing address" %}
-        </h2>
-        {% include 'dashboard/includes/_address.html' with address=address only %}
-      {% endwith %}
-    </td>
+    {% if order.billing_address %}
+      <td valign="top">
+        {% with order.billing_address as address %}
+          <h2>
+            {% trans "Billing address" context "Invoice billing address" %}
+          </h2>
+          {% include 'dashboard/includes/_address.html' with address=address only %}
+        {% endwith %}
+      </td>
+    {% endif %}
   </tr>
   </tbody>
 </table>
@@ -81,37 +85,25 @@
     </tr>
     </thead>
     <tbody>
-      {% for item in order.get_lines.all %}
+      {% for line in order %}
         <tr>
           <td>
-            {{ item.product_name|truncatechars:30 }}<br>
+            {{ line.product_name|truncatechars:30 }}<br>
           </td>
           <td>
-            {{ item.product_sku }}
+            {{ line.product_sku }}
           </td>
           <td class="right-align">
-            {{ item.unit_price.gross|amount:'html' }}
+            {{ line.unit_price.gross|amount:'html' }}
           </td>
           <td class="right-align">
-            {{ item.quantity }}
+            {{ line.quantity }}
           </td>
           <td class="right-align">
-            {{ item.get_total.gross|amount:'html' }}
+            {{ line.get_total.gross|amount:'html' }}
           </td>
         </tr>
       {% endfor %}
-      {% if order.shipping_price.gross or order.is_shipping_required %}
-        {% for shipping in shipping_methods %}
-          <tr>
-            <td>
-              {% trans "Shipping" context "Shipment order table item column data" %}
-            </td>
-            <td colspan="3">
-              {{ shipping.name }}
-            </td>
-          </tr>
-        {% endfor %}
-      {% endif %}
     </tbody>
   </table>
 {% endif %}
@@ -128,7 +120,7 @@
     </tr>
     <tr>
       <td>
-        {% trans "Shipping total" context "Order total shipping price header" %}
+        {% trans "Shipping" context "Order total shipping price header" %} {% if order.shipping_method_name %}({{ order.shipping_method_name }}){% endif %}
       </td>
       <td class="right-align">
         {{ order.shipping_price.gross|amount:'html' }}

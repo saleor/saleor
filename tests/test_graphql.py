@@ -3,8 +3,9 @@ import json
 import graphene
 import pytest
 from django.shortcuts import reverse
-from saleor.product.models import Category, Product, ProductAttribute
 from prices import Money
+
+from saleor.product.models import Category, Product, ProductAttribute
 
 from .utils import get_graphql_content
 
@@ -30,13 +31,6 @@ def test_category_query(client, product_in_stock):
                     }
                 }
             }
-            siblings {
-                edges {
-                    node {
-                        name
-                    }
-                }
-            }
         }
     }
     ''' % {'category_pk': graphene.Node.to_global_id('Category', category.pk)}
@@ -52,9 +46,6 @@ def test_category_query(client, product_in_stock):
     assert (
         len(category_data['children']['edges']) ==
         category.get_children().count())
-    assert (
-        len(category_data['siblings']['edges']) ==
-        category.get_siblings().count())
 
 
 def test_fetch_all_products(client, product_in_stock):
@@ -113,10 +104,20 @@ def test_product_query(client, product_in_stock):
                         name
                         url
                         thumbnailUrl
-                        images { url }
+                        images {
+                            edges {
+                                node {
+                                    url
+                                }
+                            }
+                        }
                         variants {
-                            name
-                            stockQuantity
+                            edges {
+                                node {
+                                    name
+                                    stockQuantity
+                                    }
+                                }
                         }
                         availability {
                             available,
@@ -470,7 +471,7 @@ def test_real_query(client, product_in_stock):
     }
     '''
     response = client.post(
-        '/graphql/', {
+        reverse('api'), {
             'query': query,
             'variables': json.dumps(
                 {
@@ -481,3 +482,24 @@ def test_real_query(client, product_in_stock):
                     'attributesFilter': [filter_by]})})
     content = get_graphql_content(response)
     assert 'errors' not in content
+
+
+def test_page_query(client, page):
+    page.is_visible = True
+    query = """
+    query PageQuery($id: ID!) {
+        page(id: $id) {
+            title
+            slug
+        }
+    }
+    """
+    variables = json.dumps({
+        'id': graphene.Node.to_global_id('Page', page.id)})
+    response = client.post(
+        reverse('api'), {'query': query, 'variables': variables})
+    content = get_graphql_content(response)
+    assert 'errors' not in content
+    page_data = content['data']['page']
+    assert page_data['title'] == page.title
+    assert page_data['slug'] == page.slug

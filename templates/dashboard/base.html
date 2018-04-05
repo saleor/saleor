@@ -8,7 +8,9 @@
   <head>
     <title>
       {% block title %}
-        {% trans "Dashboard - Saleor" context "Dashboard default page title" %}
+        {% blocktrans trimmed context "Dashboard default page title" with site_name=site.name %}
+          Dashboard - {{ site_name }}
+        {% endblocktrans %}
       {% endblock %}
     </title>
     {% block meta %}
@@ -224,6 +226,13 @@
                     <li class="{% block menu_delivery_class %}{% endblock %}">
                       <a href="{% url 'dashboard:shipping-methods' %}">
                         {% trans "Shipping methods" context "Dashboard shipping methods list" %}
+                      </a>
+                    </li>
+                  {% endif %}
+                  {% if perms.menu.view_menus %}
+                    <li class="{% block menu_menus_class %}{% endblock %}">
+                      <a href="{% url 'dashboard:menu-list' %}">
+                        {% trans "Navigation" context "Dashboard menus list" %}
                       </a>
                     </li>
                   {% endif %}
