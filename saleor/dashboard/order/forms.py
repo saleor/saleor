@@ -267,7 +267,7 @@ class ManagePaymentForm(forms.Form):
         label=pgettext_lazy(
             'Payment management form (capture, refund, release)', 'Amount'),
         max_digits=12,
-        decimal_places=2,
+        decimal_places=settings.DEFAULT_DECIMAL_PLACES,
         currency=settings.DEFAULT_CURRENCY)
 
     def __init__(self, *args, **kwargs):
