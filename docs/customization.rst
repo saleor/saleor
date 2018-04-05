@@ -13,3 +13,4 @@ Customizing Saleor
    customization/tests
    customization/ci
    customization/pypy
+   customization/protected-pages

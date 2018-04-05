@@ -4,12 +4,8 @@ from unittest.mock import Mock, patch
 
 import pytest
 from django.conf import settings
-
 from django.shortcuts import reverse
 from prices import Money
-
-from saleor.menu.models import Menu
-from saleor.page.models import Page
 
 from saleor.account.models import Address, User
 from saleor.core.storages import S3MediaStorage
@@ -18,7 +14,9 @@ from saleor.core.utils import (
     get_country_by_ip, get_currency_for_country, random_data)
 from saleor.core.utils.text import get_cleaner, strip_html
 from saleor.discount.models import Sale, Voucher
+from saleor.menu.models import Menu
 from saleor.order.models import Order
+from saleor.page.models import Page
 from saleor.product.models import Product, ProductImage
 from saleor.shipping.models import ShippingMethod
 

@@ -486,5 +486,4 @@ PRIVACY_PAGE_SLUG = 'privacy-policy'
 SELLING_CONTRACT_PAGE_SLUG = 'selling-contract'
 
 # page slugs that must never be deleted and thus, that must be protected
-# TODO: add to documentation
 PROTECTED_PAGES = [PRIVACY_PAGE_SLUG, SELLING_CONTRACT_PAGE_SLUG]

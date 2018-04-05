@@ -5,11 +5,11 @@ from django.db import connection
 
 from ...utils import create_superuser
 from ...utils.random_data import (
-    add_address_to_admin, create_collections_by_schema, create_groups,
-    create_menus, create_orders, create_about_page, create_product_sales,
-    create_products_by_schema, create_shipping_methods, create_users,
-    create_vouchers, set_featured_products,
-    create_privacy_page, create_selling_contract_page)
+    add_address_to_admin, create_about_page, create_collections_by_schema,
+    create_groups, create_menus, create_orders, create_privacy_page,
+    create_product_sales, create_products_by_schema,
+    create_selling_contract_page, create_shipping_methods, create_users,
+    create_vouchers, set_featured_products)
 
 
 class Command(BaseCommand):
