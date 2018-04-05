@@ -2,7 +2,7 @@ from django.conf import settings
 from django.db import models
 
 
-class Note(models.Model):
+class BaseNote(models.Model):
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL, blank=True, null=True,
         on_delete=models.SET_NULL)
