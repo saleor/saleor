@@ -29,6 +29,7 @@ from ...product.models import (
     ProductImage, ProductType, ProductVariant, Stock, StockLocation)
 from ...product.thumbnails import create_product_thumbnails
 from ...shipping.models import ANY_COUNTRY, ShippingMethod
+from ..templatetags.urls import _get_internal_page_slug
 
 fake = Factory.create()
 STOCK_LOCATION = 'default'
@@ -639,7 +640,7 @@ def _create_default_page_from_data(slug, data, create_menu_entry=True):
 
 
 def create_privacy_page(create_menu_entry: bool):
-    slug = settings.PRIVACY_PAGE_SLUG
+    slug = _get_internal_page_slug('PrivacyPolicy')
     page_data = {
         'title': 'Privacy Policy',
         'content': get_default_page_content(
@@ -648,7 +649,7 @@ def create_privacy_page(create_menu_entry: bool):
 
 
 def create_selling_contract_page(create_menu_entry: bool):
-    slug = settings.SELLING_CONTRACT_PAGE_SLUG
+    slug = _get_internal_page_slug('SellingContract')
     page_data = {
         'title': 'Selling Contract',
         'content': get_default_page_content(

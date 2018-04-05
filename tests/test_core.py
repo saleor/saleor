@@ -9,6 +9,8 @@ from prices import Money
 
 from saleor.account.models import Address, User
 from saleor.core.storages import S3MediaStorage
+from saleor.core.templatetags.urls import _get_internal_page_slug, \
+    get_internal_page_url
 from saleor.core.utils import (
     Country, create_superuser, create_thumbnails, format_money,
     get_country_by_ip, get_currency_for_country, random_data)
@@ -255,8 +257,10 @@ def test_random_data_get_default_page_content_missing_file():
 
 
 def test_random_data_create_privacy_page(footer: Menu):
-    slug = settings.PRIVACY_PAGE_SLUG
+    slug = _get_internal_page_slug('PrivacyPolicy')
 
+    # default pages object can be already created by default in migration
+    assert Page.objects.all().delete()
     assert Page.objects.all().count() == 0
     assert footer.items.count() == 0
 
@@ -300,8 +304,10 @@ def test_random_data_create_privacy_page(footer: Menu):
 
 
 def test_random_data_create_selling_contract_page(footer: Menu):
-    slug = settings.SELLING_CONTRACT_PAGE_SLUG
+    slug = _get_internal_page_slug('SellingContract')
 
+    # default pages object can be already created by default in migration
+    assert Page.objects.all().delete()
     assert Page.objects.all().count() == 0
     assert footer.items.count() == 0
 
@@ -345,3 +351,12 @@ def test_random_data_create_selling_contract_page(footer: Menu):
         create_menu_entry=False))
     assert Page.objects.all().count() == 1
     assert footer.items.count() == 0
+
+
+@patch.object(settings, 'INTERNAL_PAGES', {'InternalPage': 'internal-page'})
+def test_templatetags_urls_get_internal_page_url():
+    expected_url = reverse('page:details', kwargs={'slug': 'internal-page'})
+    assert get_internal_page_url('InternalPage') == expected_url
+
+    with pytest.raises(ValueError):
+        get_internal_page_url('UnknownInternalPage')

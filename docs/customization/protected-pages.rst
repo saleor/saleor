@@ -27,13 +27,15 @@ By default, ``PROTECTED_PAGES`` contains the following data:
 
 .. code-block:: python
 
-  PROTECTED_PAGES = [PRIVACY_PAGE_SLUG, SELLING_CONTRACT_PAGE_SLUG]
+  PROTECTED_PAGES = [
+      INTERNAL_PAGES['PrivacyPolicy'],
+      INTERNAL_PAGES['SellingContract']]
 
 
 Where:
 
-- ``PRIVACY_PAGE_SLUG`` contains the privacy page's slug (``privacy-policy`` by default);
-- ``SELLING_CONTRACT_PAGE_SLUG`` contains the selling contract page's slug (``selling-contract`` by default).
+- ``INTERNAL_PAGES['PrivacyPolicy']`` contains the privacy page's slug (``privacy-policy`` by default);
+- ``INTERNAL_PAGES['SellingContract']`` contains the selling contract page's slug (``selling-contract`` by default).
 
 
 If you want to protect, let's say, a page that you created with the slug ``about-us``,
@@ -41,11 +43,16 @@ you would want to append ``about-us`` like that:
 
 .. code-block:: python
 
-  PROTECTED_PAGES = [PRIVACY_PAGE_SLUG, SELLING_CONTRACT_PAGE_SLUG, 'about-us']
+  PROTECTED_PAGES = [
+      'about-us',
+      INTERNAL_PAGES['PrivacyPolicy'],
+      INTERNAL_PAGES['SellingContract']]
 
 
 Or if you wanted to drop the privacy page protection:
 
 .. code-block:: python
 
-  PROTECTED_PAGES = [SELLING_CONTRACT_PAGE_SLUG, 'about-us']
+  PROTECTED_PAGES = [
+      'about-us',
+      INTERNAL_PAGES['SellingContract']]

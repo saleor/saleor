@@ -474,16 +474,28 @@ DEFAULT_MENUS = ['navbar', 'footer']
 # If the data is needed by Saleor, it will show a warning but won't crash.
 DEFAULT_PAGES_CONTENT_PATH = os.path.join(PROJECT_ROOT, 'default_pages')
 
-# Those two below settings keys are:
+# The below settings key is containing:
 #   - the privacy policy page slug;
 #   - the selling contract page slug.
 #
-# They *shouldn't* be changed as it would require to manually rename those
+# The *should* never be changed as it would require to manually rename those
 # page's existing slug to the new one.
 #
+# Value entry syntax: 'InternalNameForViewAndTemplates': 'slug-to-use-on-page'
+#
 # But, of course, you still can change them if you know what you are doing!
+# As long as you don't edit the internal name.
+#
+# Required by: saleor.core.templatetags.urls.get_internal_page_url
+INTERNAL_PAGES = {
+    'PrivacyPolicy': 'privacy-policy',
+    'SellingContract': 'selling-contract'
+}
 PRIVACY_PAGE_SLUG = 'privacy-policy'
 SELLING_CONTRACT_PAGE_SLUG = 'selling-contract'
 
-# page slugs that must never be deleted and thus, that must be protected
-PROTECTED_PAGES = [PRIVACY_PAGE_SLUG, SELLING_CONTRACT_PAGE_SLUG]
+# Page slugs that must never be deleted and thus, that must be protected.
+# Note: please keep this settings key user friendly for easy modification.
+PROTECTED_PAGES = [
+    INTERNAL_PAGES['PrivacyPolicy'],
+    INTERNAL_PAGES['SellingContract']]
