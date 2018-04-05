@@ -4,11 +4,12 @@ from unittest.mock import patch
 
 import pytest
 from django.urls import reverse
+from prices import Money, TaxedMoney
 
 from saleor.cart import CartStatus, utils
 from saleor.cart.models import Cart
+from saleor.discount.models import Sale
 from saleor.product import ProductAvailabilityStatus, models
-from saleor.product.models import Category, ProductImage
 from saleor.product.thumbnails import create_product_thumbnails
 from saleor.product.utils import (
     allocate_stock, deallocate_stock, decrease_stock, increase_stock)
@@ -404,7 +405,7 @@ def test_render_product_page_with_no_variant(
 
 def test_include_products_from_subcategories_in_main_view(
         default_category, product, authorized_client):
-    subcategory = Category.objects.create(
+    subcategory = models.Category.objects.create(
         name='sub', slug='test', parent=default_category)
     product.category = subcategory
     product.save()
@@ -423,4 +424,34 @@ def test_create_product_thumbnails(
     product_image = product_with_image.images.first()
     create_product_thumbnails(product_image.pk)
     assert mock_create_thumbnails.called_once_with(
-        product_image.pk, ProductImage, 'products')
+        product_image.pk, models.ProductImage, 'products')
+
+
+@pytest.mark.parametrize(
+    'product_price, include_taxes_in_prices, include_taxes, include_discounts,'
+    'product_net, product_gross', [
+        ('10.00', True, False, False, '10.00', '10.00'),
+        ('10.00', True, True, False, '10.00', '12.30'),
+        ('15.00', True, False, True, '10.00', '10.00'),
+        ('15.00', True, True, True, '10.00', '12.30'),
+        ('10.00', False, False, False, '10.00', '10.00'),
+        ('10.00', False, True, False, '8.13', '10.00'),
+        ('15.00', False, False, True, '10.00', '10.00'),
+        ('15.00', False, True, True, '8.13', '10.00')])
+def test_get_price_per_item(
+        settings, product_type, default_category, taxes, sale, product_price,
+        include_taxes_in_prices, include_taxes, include_discounts,
+        product_net, product_gross):
+    settings.INCLUDE_TAXES_IN_PRICES = include_taxes_in_prices
+    product = models.Product.objects.create(
+        product_type=product_type,
+        category=default_category,
+        price=Money(product_price, 'USD'))
+    variant = product.variants.create()
+
+    price = variant.get_price_per_item(
+        taxes=taxes if include_taxes else None,
+        discounts=Sale.objects.all() if include_discounts else None)
+
+    assert price == TaxedMoney(
+        net=Money(product_net, 'USD'), gross=Money(product_gross, 'USD'))
