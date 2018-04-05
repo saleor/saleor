@@ -9,7 +9,6 @@ def get_brand_from_attributes(attributes):
         return
     brand = ''
     for key in attributes:
-        import pdb; pdb.set_trace()
         if key.name == 'brand':
             brand = attributes[key].name
             break

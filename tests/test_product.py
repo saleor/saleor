@@ -314,7 +314,7 @@ def test_get_attributes_display_map(product_in_stock):
     attr_value = product_attr.values.first()
 
     assert len(attributes_display_map) == 1
-    assert attributes_display_map == {product_attr.pk: attr_value}
+    assert attributes_display_map == {product_attr: attr_value}
 
 
 def test_get_attributes_display_map_empty(product_with_no_attributes):
