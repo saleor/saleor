@@ -232,8 +232,8 @@ class ProductVariant(models.Model):
         tax_rate = (
             self.product.tax_rate or self.product.product_type.tax_rate)
         price = self.price_override or self.product.price
-        price = apply_tax_to_price(taxes, tax_rate, price)
         price = calculate_discounted_price(self.product, price, discounts)
+        price = apply_tax_to_price(taxes, tax_rate, price)
         return price
 
     def get_absolute_url(self):

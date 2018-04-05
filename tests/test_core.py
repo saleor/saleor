@@ -3,6 +3,7 @@ from contextlib import redirect_stdout
 from unittest.mock import Mock, patch
 
 import pytest
+from django.conf import settings
 from django.shortcuts import reverse
 from prices import Money, MoneyRange, TaxedMoney, TaxedMoneyRange
 
