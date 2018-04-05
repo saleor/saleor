@@ -67,7 +67,7 @@ export const ProductList = decorate<ProductListProps>(
         </TableRow>
       </TableFooter>
       <TableBody>
-        {products === undefined ? (
+        {products === undefined || products === null ? (
           <TableRow>
             <TableCell className={classes.avatarCell}>
               <Avatar>

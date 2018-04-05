@@ -14,11 +14,9 @@ const decorate = withStyles(theme => ({
     display: "flex",
     "flex-wrap": "wrap",
     marginLeft: -theme.spacing.unit * 0.5,
-    marginRight: -theme.spacing.unit * 0.5,
-    marginTop: -theme.spacing.unit * 2
+    marginRight: -theme.spacing.unit * 0.5
   },
   formControl: {
-    // marginTop: theme.spacing.unit * 2,
     width: "100%"
   }
 }));
@@ -28,23 +26,34 @@ interface MultiSelectFieldProps {
     value: string;
     label: string;
   }>;
+  error?: boolean;
   hint?: string;
-  label: string;
-  name: string;
+  label?: string;
+  name?: string;
   selectProps?: SelectProps;
-  value: string[];
+  value?: string[];
   onChange(event: any);
 }
 export const MultiSelectField = decorate<MultiSelectFieldProps>(
-  ({ classes, label, choices, value, onChange, name, hint, selectProps }) => {
+  ({
+    classes,
+    error,
+    label,
+    choices,
+    value,
+    onChange,
+    name,
+    hint,
+    selectProps
+  }) => {
     const choicesByKey = choices.reduce((prev, curr) => {
       prev[curr.value] = curr.label;
       return prev;
     }, {});
 
     return (
-      <FormControl className={classes.formControl}>
-        <InputLabel>{label}</InputLabel>
+      <FormControl className={classes.formControl} error={error}>
+        {label && <InputLabel>{label}</InputLabel>}
         <Select
           multiple
           fullWidth
@@ -75,5 +84,8 @@ export const MultiSelectField = decorate<MultiSelectFieldProps>(
     );
   }
 );
+MultiSelectField.defaultProps = {
+  value: []
+};
 
 export default MultiSelectField;

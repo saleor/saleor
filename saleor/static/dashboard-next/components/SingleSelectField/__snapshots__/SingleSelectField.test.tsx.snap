@@ -1,0 +1,498 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`<MultiSelectField /> renders with error hint 1`] = `
+<div
+  className="MuiFormControl-root-2 Component-formControl-1"
+  onBlur={[Function]}
+  onFocus={[Function]}
+>
+  <label
+    className="MuiFormLabel-root-12 MuiFormLabel-error-15 MuiInputLabel-root-6 MuiInputLabel-formControl-7 MuiInputLabel-animated-10"
+    data-shrink={false}
+  />
+  <div
+    className="MuiInput-root-23 MuiInput-error-28 MuiInput-fullWidth-30 MuiInput-formControl-24 MuiInput-underline-27"
+  >
+    <div
+      className="MuiSelect-root-18"
+    >
+      <div
+        aria-haspopup="true"
+        aria-owns={null}
+        aria-pressed="false"
+        className="MuiSelect-select-19 MuiSelect-selectMenu-20 MuiInput-input-31"
+        onBlur={[Function]}
+        onClick={[Function]}
+        onFocus={[Function]}
+        onKeyDown={[Function]}
+        role="button"
+        tabIndex={0}
+      >
+        <span
+          dangerouslySetInnerHTML={
+            Object {
+              "__html": "&#8203",
+            }
+          }
+        />
+      </div>
+      <input
+        aria-invalid={true}
+        aria-required={false}
+        autoComplete={undefined}
+        autoFocus={undefined}
+        defaultValue={undefined}
+        id={undefined}
+        name={undefined}
+        onKeyDown={undefined}
+        onKeyUp={undefined}
+        placeholder={undefined}
+        readOnly={undefined}
+        required={undefined}
+        rows={undefined}
+        type="hidden"
+        value=""
+      />
+      <svg
+        aria-hidden="true"
+        className="MuiSvgIcon-root-37 MuiSelect-icon-22"
+        color={undefined}
+        focusable="false"
+        viewBox="0 0 24 24"
+      >
+        <path
+          d="M7 10l5 5 5-5z"
+        />
+      </svg>
+    </div>
+  </div>
+  <p
+    className="MuiFormHelperText-root-47 MuiFormHelperText-error-48"
+  >
+    Lorem error
+  </p>
+</div>
+`;
+
+exports[`<MultiSelectField /> renders with hint 1`] = `
+<div
+  className="MuiFormControl-root-2 Component-formControl-1"
+  onBlur={[Function]}
+  onFocus={[Function]}
+>
+  <label
+    className="MuiFormLabel-root-12 MuiInputLabel-root-6 MuiInputLabel-formControl-7 MuiInputLabel-animated-10"
+    data-shrink={false}
+  />
+  <div
+    className="MuiInput-root-23 MuiInput-fullWidth-30 MuiInput-formControl-24 MuiInput-underline-27"
+  >
+    <div
+      className="MuiSelect-root-18"
+    >
+      <div
+        aria-haspopup="true"
+        aria-owns={null}
+        aria-pressed="false"
+        className="MuiSelect-select-19 MuiSelect-selectMenu-20 MuiInput-input-31"
+        onBlur={[Function]}
+        onClick={[Function]}
+        onFocus={[Function]}
+        onKeyDown={[Function]}
+        role="button"
+        tabIndex={0}
+      >
+        <span
+          dangerouslySetInnerHTML={
+            Object {
+              "__html": "&#8203",
+            }
+          }
+        />
+      </div>
+      <input
+        aria-invalid={false}
+        aria-required={false}
+        autoComplete={undefined}
+        autoFocus={undefined}
+        defaultValue={undefined}
+        id={undefined}
+        name={undefined}
+        onKeyDown={undefined}
+        onKeyUp={undefined}
+        placeholder={undefined}
+        readOnly={undefined}
+        required={undefined}
+        rows={undefined}
+        type="hidden"
+        value=""
+      />
+      <svg
+        aria-hidden="true"
+        className="MuiSvgIcon-root-37 MuiSelect-icon-22"
+        color={undefined}
+        focusable="false"
+        viewBox="0 0 24 24"
+      >
+        <path
+          d="M7 10l5 5 5-5z"
+        />
+      </svg>
+    </div>
+  </div>
+  <p
+    className="MuiFormHelperText-root-47"
+  >
+    Lorem ipsum
+  </p>
+</div>
+`;
+
+exports[`<MultiSelectField /> renders with label 1`] = `
+<div
+  className="MuiFormControl-root-2 Component-formControl-1"
+  onBlur={[Function]}
+  onFocus={[Function]}
+>
+  <label
+    className="MuiFormLabel-root-12 MuiInputLabel-root-6 MuiInputLabel-formControl-7 MuiInputLabel-animated-10"
+    data-shrink={false}
+  >
+    Lorem ipsum
+  </label>
+  <div
+    className="MuiInput-root-23 MuiInput-fullWidth-30 MuiInput-formControl-24 MuiInput-underline-27"
+  >
+    <div
+      className="MuiSelect-root-18"
+    >
+      <div
+        aria-haspopup="true"
+        aria-owns={null}
+        aria-pressed="false"
+        className="MuiSelect-select-19 MuiSelect-selectMenu-20 MuiInput-input-31"
+        onBlur={[Function]}
+        onClick={[Function]}
+        onFocus={[Function]}
+        onKeyDown={[Function]}
+        role="button"
+        tabIndex={0}
+      >
+        <span
+          dangerouslySetInnerHTML={
+            Object {
+              "__html": "&#8203",
+            }
+          }
+        />
+      </div>
+      <input
+        aria-invalid={false}
+        aria-required={false}
+        autoComplete={undefined}
+        autoFocus={undefined}
+        defaultValue={undefined}
+        id={undefined}
+        name={undefined}
+        onKeyDown={undefined}
+        onKeyUp={undefined}
+        placeholder={undefined}
+        readOnly={undefined}
+        required={undefined}
+        rows={undefined}
+        type="hidden"
+        value=""
+      />
+      <svg
+        aria-hidden="true"
+        className="MuiSvgIcon-root-37 MuiSelect-icon-22"
+        color={undefined}
+        focusable="false"
+        viewBox="0 0 24 24"
+      >
+        <path
+          d="M7 10l5 5 5-5z"
+        />
+      </svg>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`<MultiSelectField /> renders with label and hint 1`] = `
+<div
+  className="MuiFormControl-root-2 Component-formControl-1"
+  onBlur={[Function]}
+  onFocus={[Function]}
+>
+  <label
+    className="MuiFormLabel-root-12 MuiInputLabel-root-6 MuiInputLabel-formControl-7 MuiInputLabel-animated-10"
+    data-shrink={false}
+  >
+    Lorem
+  </label>
+  <div
+    className="MuiInput-root-23 MuiInput-fullWidth-30 MuiInput-formControl-24 MuiInput-underline-27"
+  >
+    <div
+      className="MuiSelect-root-18"
+    >
+      <div
+        aria-haspopup="true"
+        aria-owns={null}
+        aria-pressed="false"
+        className="MuiSelect-select-19 MuiSelect-selectMenu-20 MuiInput-input-31"
+        onBlur={[Function]}
+        onClick={[Function]}
+        onFocus={[Function]}
+        onKeyDown={[Function]}
+        role="button"
+        tabIndex={0}
+      >
+        <span
+          dangerouslySetInnerHTML={
+            Object {
+              "__html": "&#8203",
+            }
+          }
+        />
+      </div>
+      <input
+        aria-invalid={false}
+        aria-required={false}
+        autoComplete={undefined}
+        autoFocus={undefined}
+        defaultValue={undefined}
+        id={undefined}
+        name={undefined}
+        onKeyDown={undefined}
+        onKeyUp={undefined}
+        placeholder={undefined}
+        readOnly={undefined}
+        required={undefined}
+        rows={undefined}
+        type="hidden"
+        value=""
+      />
+      <svg
+        aria-hidden="true"
+        className="MuiSvgIcon-root-37 MuiSelect-icon-22"
+        color={undefined}
+        focusable="false"
+        viewBox="0 0 24 24"
+      >
+        <path
+          d="M7 10l5 5 5-5z"
+        />
+      </svg>
+    </div>
+  </div>
+  <p
+    className="MuiFormHelperText-root-47"
+  >
+    Ipsum
+  </p>
+</div>
+`;
+
+exports[`<MultiSelectField /> renders with no value 1`] = `
+<div
+  className="MuiFormControl-root-2 Component-formControl-1"
+  onBlur={[Function]}
+  onFocus={[Function]}
+>
+  <label
+    className="MuiFormLabel-root-12 MuiInputLabel-root-6 MuiInputLabel-formControl-7 MuiInputLabel-animated-10"
+    data-shrink={false}
+  />
+  <div
+    className="MuiInput-root-23 MuiInput-fullWidth-30 MuiInput-formControl-24 MuiInput-underline-27"
+  >
+    <div
+      className="MuiSelect-root-18"
+    >
+      <div
+        aria-haspopup="true"
+        aria-owns={null}
+        aria-pressed="false"
+        className="MuiSelect-select-19 MuiSelect-selectMenu-20 MuiInput-input-31"
+        onBlur={[Function]}
+        onClick={[Function]}
+        onFocus={[Function]}
+        onKeyDown={[Function]}
+        role="button"
+        tabIndex={0}
+      >
+        <span
+          dangerouslySetInnerHTML={
+            Object {
+              "__html": "&#8203",
+            }
+          }
+        />
+      </div>
+      <input
+        aria-invalid={false}
+        aria-required={false}
+        autoComplete={undefined}
+        autoFocus={undefined}
+        defaultValue={undefined}
+        id={undefined}
+        name={undefined}
+        onKeyDown={undefined}
+        onKeyUp={undefined}
+        placeholder={undefined}
+        readOnly={undefined}
+        required={undefined}
+        rows={undefined}
+        type="hidden"
+        value=""
+      />
+      <svg
+        aria-hidden="true"
+        className="MuiSvgIcon-root-37 MuiSelect-icon-22"
+        color={undefined}
+        focusable="false"
+        viewBox="0 0 24 24"
+      >
+        <path
+          d="M7 10l5 5 5-5z"
+        />
+      </svg>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`<MultiSelectField /> renders with value 1`] = `
+<div
+  className="MuiFormControl-root-2 Component-formControl-1"
+  onBlur={[Function]}
+  onFocus={[Function]}
+>
+  <label
+    className="MuiFormLabel-root-12 MuiInputLabel-root-6 MuiInputLabel-formControl-7 MuiInputLabel-animated-10 MuiInputLabel-shrink-9"
+    data-shrink={true}
+  />
+  <div
+    className="MuiInput-root-23 MuiInput-fullWidth-30 MuiInput-formControl-24 MuiInput-underline-27"
+  >
+    <div
+      className="MuiSelect-root-18"
+    >
+      <div
+        aria-haspopup="true"
+        aria-owns={null}
+        aria-pressed="false"
+        className="MuiSelect-select-19 MuiSelect-selectMenu-20 MuiInput-input-31"
+        onBlur={[Function]}
+        onClick={[Function]}
+        onFocus={[Function]}
+        onKeyDown={[Function]}
+        role="button"
+        tabIndex={0}
+      >
+        Apparel
+      </div>
+      <input
+        aria-invalid={false}
+        aria-required={false}
+        autoComplete={undefined}
+        autoFocus={undefined}
+        defaultValue={undefined}
+        id={undefined}
+        name={undefined}
+        onKeyDown={undefined}
+        onKeyUp={undefined}
+        placeholder={undefined}
+        readOnly={undefined}
+        required={undefined}
+        rows={undefined}
+        type="hidden"
+        value="1"
+      />
+      <svg
+        aria-hidden="true"
+        className="MuiSvgIcon-root-37 MuiSelect-icon-22"
+        color={undefined}
+        focusable="false"
+        viewBox="0 0 24 24"
+      >
+        <path
+          d="M7 10l5 5 5-5z"
+        />
+      </svg>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`<MultiSelectField /> renders with value, label and hint 1`] = `
+<div
+  className="MuiFormControl-root-2 Component-formControl-1"
+  onBlur={[Function]}
+  onFocus={[Function]}
+>
+  <label
+    className="MuiFormLabel-root-12 MuiInputLabel-root-6 MuiInputLabel-formControl-7 MuiInputLabel-animated-10 MuiInputLabel-shrink-9"
+    data-shrink={true}
+  >
+    Lorem
+  </label>
+  <div
+    className="MuiInput-root-23 MuiInput-fullWidth-30 MuiInput-formControl-24 MuiInput-underline-27"
+  >
+    <div
+      className="MuiSelect-root-18"
+    >
+      <div
+        aria-haspopup="true"
+        aria-owns={null}
+        aria-pressed="false"
+        className="MuiSelect-select-19 MuiSelect-selectMenu-20 MuiInput-input-31"
+        onBlur={[Function]}
+        onClick={[Function]}
+        onFocus={[Function]}
+        onKeyDown={[Function]}
+        role="button"
+        tabIndex={0}
+      >
+        Apparel
+      </div>
+      <input
+        aria-invalid={false}
+        aria-required={false}
+        autoComplete={undefined}
+        autoFocus={undefined}
+        defaultValue={undefined}
+        id={undefined}
+        name={undefined}
+        onKeyDown={undefined}
+        onKeyUp={undefined}
+        placeholder={undefined}
+        readOnly={undefined}
+        required={undefined}
+        rows={undefined}
+        type="hidden"
+        value="1"
+      />
+      <svg
+        aria-hidden="true"
+        className="MuiSvgIcon-root-37 MuiSelect-icon-22"
+        color={undefined}
+        focusable="false"
+        viewBox="0 0 24 24"
+      >
+        <path
+          d="M7 10l5 5 5-5z"
+        />
+      </svg>
+    </div>
+  </div>
+  <p
+    className="MuiFormHelperText-root-47"
+  >
+    Ipsum
+  </p>
+</div>
+`;

@@ -4,7 +4,7 @@ import IconButton from "material-ui/IconButton";
 import { withStyles } from "material-ui/styles";
 import Typography from "material-ui/Typography";
 import * as React from "react";
-import Skeleton from "./Skeleton";
+import Skeleton from "../Skeleton";
 
 const decorate = withStyles(theme => ({
   action: {
@@ -36,7 +36,7 @@ const decorate = withStyles(theme => ({
 }));
 
 interface PageHeaderProps {
-  title: string;
+  title?: string;
   onBack?();
 }
 

@@ -108,6 +108,10 @@ export class PageList extends React.Component<PageListProps, PageListState> {
                   );
                 };
                 const clearFilters = () => navigate("?");
+                const handleEditClick = (id: string) => () =>
+                  navigate(pageEditUrl(id));
+                const handleShowPageClick = (slug: string) => () =>
+                  window.open(pageStorefrontUrl(slug));
                 return (
                   <Grid container spacing={16}>
                     <Grid item xs={12}>
@@ -139,9 +143,8 @@ export class PageList extends React.Component<PageListProps, PageListState> {
                               pages={loading ? null : data.pages.edges}
                               handlePreviousPage={loadPreviousPage}
                               handleNextPage={loadNextPage}
-                              editPageUrl={pageEditUrl}
-                              showPageUrl={pageStorefrontUrl}
-                              loading={loading}
+                              onEditClick={handleEditClick}
+                              onShowPageClick={handleShowPageClick}
                             />
                           </Card>
                         </Grid>
