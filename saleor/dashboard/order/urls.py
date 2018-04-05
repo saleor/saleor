@@ -43,8 +43,6 @@ urlpatterns = [
         views.orderline_change_quantity, name='orderline-change-quantity'),
     url(r'^(?P<order_pk>\d+)/line/(?P<line_pk>\d+)/cancel/$',
         views.orderline_cancel, name='orderline-cancel'),
-    url(r'^(?P<order_pk>\d+)/remove-voucher/$',
-        views.remove_order_voucher, name='order-remove-voucher'),
     url(r'^(?P<order_pk>\d+)/add-variant/$',
         views.add_variant_to_order, name='add-variant-to-order'),
     url(r'^(?P<order_pk>\d+)/fulfill/$',

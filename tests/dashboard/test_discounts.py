@@ -66,7 +66,7 @@ def test_view_sale_add(admin_client, default_category):
 
 
 def test_view_sale_add_requires_product_or_category(
-        admin_client, default_category, product_in_stock):
+        admin_client, default_category, product):
     url = reverse('dashboard:sale-add')
     data = {
         'name': 'Free products',
@@ -87,7 +87,7 @@ def test_view_sale_add_requires_product_or_category(
     assert Sale.objects.count() == 1
 
     data_with_product = data.copy()
-    data_with_product.update({'products': [product_in_stock.id]})
+    data_with_product.update({'products': [product.id]})
 
     response = admin_client.post(url, data_with_product)
 

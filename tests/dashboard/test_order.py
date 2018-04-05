@@ -442,24 +442,23 @@ def test_view_cancel_order_line(admin_client, draft_order):
 
 @pytest.mark.integration
 @pytest.mark.django_db
-def test_view_change_order_line_quantity(admin_client, draft_order):
-    lines_before_quantity_change = draft_order.lines.all()
+def test_view_change_order_line_quantity(admin_client, draft_order_with_stock):
+    order = draft_order_with_stock
+    lines_before_quantity_change = order.lines.all()
     lines_before_quantity_change_count = lines_before_quantity_change.count()
     line = lines_before_quantity_change.first()
 
     url = reverse(
-        'dashboard:orderline-change-quantity', kwargs={
-            'order_pk': draft_order.pk,
-            'line_pk': line.pk})
+        'dashboard:orderline-change-quantity',
+        kwargs={'order_pk': order.pk, 'line_pk': line.pk})
     response = admin_client.get(url)
     assert response.status_code == 200
-    response = admin_client.post(
-        url, {'quantity': 2}, follow=True)
+    response = admin_client.post(url, {'quantity': 2}, follow=True)
     redirected_to, redirect_status_code = response.redirect_chain[-1]
     # check redirection
     assert redirect_status_code == 302
     assert redirected_to == reverse(
-        'dashboard:order-details', kwargs={'order_pk': draft_order.id})
+        'dashboard:order-details', kwargs={'order_pk': order.id})
     # success messages should appear after redirect
     assert response.context['messages']
     lines_after = Order.objects.get().lines.all()
@@ -536,7 +535,7 @@ def test_dashboard_change_quantity_form(request_cart_with_item, order):
 
 
 def test_ordered_item_change_quantity(transactional_db, order_with_lines):
-    assert list(order_with_lines.history.all()) == []
+    assert not order_with_lines.history.count()
     lines = order_with_lines.lines.all()
     change_order_line_quantity(lines[1], 0)
     change_order_line_quantity(lines[0], 0)
@@ -619,8 +618,9 @@ def test_add_variant_to_existing_lines_one_line(
 
 def test_view_add_variant_to_order(
         admin_client, order_with_lines_and_stock):
-    order.status = OrderStatus.DRAFT
     order = order_with_lines_and_stock
+    order.status = OrderStatus.DRAFT
+    order.save()
     variant = ProductVariant.objects.get(sku='SKU_A')
     line = OrderLine.objects.get(product_sku='SKU_A')
     line_quantity_before = line.quantity

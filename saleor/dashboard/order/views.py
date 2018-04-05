@@ -27,12 +27,12 @@ from .filters import OrderFilter
 from .forms import (
     AddressForm, AddVariantToOrderForm, BaseFulfillmentLineFormSet,
     CancelFulfillmentForm, CancelOrderForm, CancelOrderLineForm,
-    CapturePaymentForm, ChangeQuantityForm,
-    CreateOrderFromDraftForm, FulfillmentForm, FulfillmentLineForm,
-    FulfillmentTrackingNumberForm, OrderCustomerForm, OrderEditDiscountForm,
-    OrderEditVoucherForm, OrderMarkAsPaidForm, OrderNoteForm,
-    OrderRemoveCustomerForm, OrderRemoveShippingForm, OrderRemoveVoucherForm,
-    OrderShippingForm, RefundPaymentForm, ReleasePaymentForm)
+    CapturePaymentForm, ChangeQuantityForm, CreateOrderFromDraftForm,
+    FulfillmentForm, FulfillmentLineForm, FulfillmentTrackingNumberForm,
+    OrderCustomerForm, OrderEditDiscountForm, OrderEditVoucherForm,
+    OrderMarkAsPaidForm, OrderNoteForm, OrderRemoveCustomerForm,
+    OrderRemoveShippingForm, OrderRemoveVoucherForm, OrderShippingForm,
+    RefundPaymentForm, ReleasePaymentForm)
 from .utils import (
     create_invoice_pdf, create_packing_slip_pdf, get_statics_absolute_url,
     save_address_in_order)

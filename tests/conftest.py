@@ -367,7 +367,7 @@ def voucher(db):  # pylint: disable=W0613
 
 
 @pytest.fixture()
-def order_with_lines(order, product_type, default_category):
+def order_with_lines(order, product_type, default_category, shipping_method):
     product = Product.objects.create(
         name='Test product', price=Money('10.00', 'USD'),
         product_type=product_type, category=default_category)
@@ -400,20 +400,22 @@ def order_with_lines(order, product_type, default_category):
         name='Test product 3', price=Money('30.00', 'USD'),
         product_type=product_type, category=default_category)
 
-    order.lines.create(
-        product_name=product.name,
-        product_sku='SKU_%d' % (product.pk,),
-        is_shipping_required=product.product_type.is_shipping_required,
-        quantity=1,
-        unit_price_net=Decimal('30.00'),
-        unit_price_gross=Decimal('30.00'))
+    order.shipping_address = order.billing_address.get_copy()
+    order.shipping_method_name = shipping_method.name
+    method = shipping_method.price_per_country.get()
+    order.shipping_method = method
+    order.shipping_price = method.get_total_price()
+    order.save()
+    recalculate_order(order)
+    order.refresh_from_db()
 
     recalculate_order(order)
     return order
 
 
 @pytest.fixture()
-def order_with_lines_and_stock(order, product_type, default_category):
+def order_with_lines_and_stock(
+        order, product_type, default_category, shipping_method):
     product = Product.objects.create(
         name='Test product', price=Money('10.00', 'USD'),
         product_type=product_type, category=default_category)
@@ -476,6 +478,13 @@ def draft_order(order_with_lines):
     order_with_lines.status = OrderStatus.DRAFT
     order_with_lines.save(update_fields=['status'])
     return order_with_lines
+
+
+@pytest.fixture
+def draft_order_with_stock(order_with_lines_and_stock):
+    order_with_lines_and_stock.status = OrderStatus.DRAFT
+    order_with_lines_and_stock.save(update_fields=['status'])
+    return order_with_lines_and_stock
 
 
 @pytest.fixture()
