@@ -7,7 +7,7 @@ import { NavigatorLink } from "../../components/Navigator";
 import PageHeader from "../../components/PageHeader";
 import { CategoryCreateMutationVariables } from "../../gql-types";
 import i18n from "../../i18n";
-import BaseCategoryForm from "../components/BaseForm";
+import CategoryBaseForm from "../components/CategoryBaseForm";
 import { categoryShowUrl } from "../index";
 import {
   categoryCreateMutation,
@@ -62,7 +62,7 @@ export const CategoryCreateForm: React.StatelessComponent<
                     onBack={handleCancel}
                     title={i18n.t("Add category", { context: "title" })}
                   />
-                  <BaseCategoryForm
+                  <CategoryBaseForm
                     description={data.description}
                     errors={errors}
                     name={data.name}

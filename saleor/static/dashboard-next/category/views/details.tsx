@@ -192,132 +192,158 @@ const CategoryDetails = decorate<CategoryDetailsProps>(
             const clearFilters = () => navigate("?");
             return (
               <CategoryPaginationProvider id={id}>
-                {({ data, loading, fetchNextPage, fetchPreviousPage }) => (
-                  <CategoryDeleteProvider category={data.category}>
-                    {deleteCategory => (
-                      <Toggle>
-                        {(
-                          filtersVisible,
-                          { disable: hideFilters, enable: showFilters }
-                        ) => (
-                          <div className={classes.root}>
-                            <Toggle>
-                              {(
-                                deleteVisible,
-                                { disable: hideDelete, enable: showDelete }
-                              ) => (
-                                <NavigatorLink
-                                  to={
-                                    (data.category &&
-                                      categoryShowUrl(
-                                        data.category.parent &&
-                                          data.category.parent.id
-                                      )) ||
-                                    "#"
-                                  }
-                                >
-                                  {handleBack => (
-                                    <NavigatorLink
-                                      to={
-                                        data.category &&
-                                        categoryEditUrl(data.category.id)
-                                      }
-                                    >
-                                      {handleEdit => (
-                                        <>
-                                          <CategoryPropertiesCard
-                                            description={
-                                              data.category &&
-                                              data.category.description
-                                            }
-                                            onBack={handleBack}
-                                            onDelete={showDelete}
-                                            onEdit={handleEdit}
-                                            title={
-                                              data.category &&
-                                              data.category.name
-                                            }
-                                          />
-                                          <CategoryDeleteDialog
-                                            name={
-                                              data.category &&
-                                              data.category.name
-                                            }
-                                            onClose={hideDelete}
-                                            onConfirm={deleteCategory}
-                                            open={deleteVisible}
-                                            productCount={
-                                              data.category &&
-                                              data.category.products &&
-                                              data.category.products.totalCount
-                                            }
-                                          />
-                                        </>
-                                      )}
-                                    </NavigatorLink>
-                                  )}
-                                </NavigatorLink>
-                              )}
-                            </Toggle>
-                            <Hidden smDown implementation="css" />
-                            <NavigatorLink
-                              to={
-                                data.category
-                                  ? categoryAddUrl(data.category.id)
-                                  : "#"
-                              }
-                            >
-                              {handleCreate => (
-                                <CategorySubcategories
-                                  data={data}
-                                  loading={loading}
-                                  onClickSubcategory={id =>
-                                    navigate(categoryShowUrl(id))
-                                  }
-                                  onCreate={handleCreate}
-                                />
-                              )}
-                            </NavigatorLink>
-                            <Hidden smDown implementation="css" />
-                            <div>
-                              {/* CSS grid will make this full height */}
-                              <CategoryProducts
-                                data={data}
-                                loading={loading}
-                                onCreate={() => undefined}
-                                onFilter={showFilters}
-                                onNextPage={fetchNextPage}
-                                onPreviousPage={fetchPreviousPage}
-                              />
-                            </div>
-                            <Hidden smDown implementation="css">
-                              <ProductFilters
-                                handleSubmit={applyFilters}
-                                handleClear={clearFilters}
-                                productTypes={dummyProductTypes}
-                                formState={filters}
-                              />
-                            </Hidden>
-                            <Hidden mdUp implementation="css">
-                              <Drawer
-                                open={filtersVisible}
-                                onClose={hideFilters}
-                                anchor="bottom"
+                {({ data, loading, fetchNextPage, fetchPreviousPage }) => {
+                  const dataHasProducts =
+                    data && data.category && data.category.products;
+                  return (
+                    <CategoryDeleteProvider category={data.category}>
+                      {deleteCategory => (
+                        <Toggle>
+                          {(
+                            filtersVisible,
+                            { disable: hideFilters, enable: showFilters }
+                          ) => (
+                            <div className={classes.root}>
+                              <Toggle>
+                                {(
+                                  deleteVisible,
+                                  { disable: hideDelete, enable: showDelete }
+                                ) => (
+                                  <NavigatorLink
+                                    to={
+                                      (data.category &&
+                                        categoryShowUrl(
+                                          data.category.parent &&
+                                            data.category.parent.id
+                                        )) ||
+                                      "#"
+                                    }
+                                  >
+                                    {handleBack => (
+                                      <NavigatorLink
+                                        to={
+                                          data.category &&
+                                          categoryEditUrl(data.category.id)
+                                        }
+                                      >
+                                        {handleEdit => (
+                                          <>
+                                            <CategoryPropertiesCard
+                                              description={
+                                                data.category &&
+                                                data.category.description
+                                              }
+                                              onBack={handleBack}
+                                              onDelete={showDelete}
+                                              onEdit={handleEdit}
+                                              title={
+                                                data.category &&
+                                                data.category.name
+                                              }
+                                            />
+                                            <CategoryDeleteDialog
+                                              name={
+                                                data.category &&
+                                                data.category.name
+                                              }
+                                              onClose={hideDelete}
+                                              onConfirm={deleteCategory}
+                                              open={deleteVisible}
+                                              productCount={
+                                                dataHasProducts &&
+                                                data.category.products
+                                                  .totalCount
+                                              }
+                                            />
+                                          </>
+                                        )}
+                                      </NavigatorLink>
+                                    )}
+                                  </NavigatorLink>
+                                )}
+                              </Toggle>
+                              <Hidden smDown implementation="css" />
+                              <NavigatorLink
+                                to={
+                                  data.category
+                                    ? categoryAddUrl(data.category.id)
+                                    : "#"
+                                }
                               >
+                                {handleCreate => (
+                                  <CategorySubcategories
+                                    subcategories={
+                                      data && data.category
+                                        ? data.category.children.edges.map(
+                                            edge => edge.node
+                                          )
+                                        : []
+                                    }
+                                    onClickSubcategory={id =>
+                                      navigate(categoryShowUrl(id))
+                                    }
+                                    onCreate={handleCreate}
+                                  />
+                                )}
+                              </NavigatorLink>
+                              <Hidden smDown implementation="css" />
+                              <div>
+                                {/* CSS grid will make this full height */}
+                                <CategoryProducts
+                                  products={
+                                    dataHasProducts
+                                      ? data.category.products.edges.map(
+                                          edge => edge.node
+                                        )
+                                      : []
+                                  }
+                                  hasPreviousPage={
+                                    dataHasProducts
+                                      ? data.category.products.pageInfo
+                                          .hasPreviousPage
+                                      : false
+                                  }
+                                  hasNextPage={
+                                    dataHasProducts
+                                      ? data.category.products.pageInfo
+                                          .hasNextPage
+                                      : false
+                                  }
+                                  onCreate={() => undefined}
+                                  onFilter={showFilters}
+                                  onNextPage={fetchNextPage}
+                                  onPreviousPage={fetchPreviousPage}
+                                />
+                              </div>
+                              <Hidden smDown implementation="css">
                                 <ProductFilters
                                   handleSubmit={applyFilters}
                                   handleClear={clearFilters}
                                   productTypes={dummyProductTypes}
                                   formState={filters}
                                 />
-                              </Drawer>
-                            </Hidden>
-                          </div>
-                        )}
-                      </Toggle>
-                    )}
-                  </CategoryDeleteProvider>
-                )}
+                              </Hidden>
+                              <Hidden mdUp implementation="css">
+                                <Drawer
+                                  open={filtersVisible}
+                                  onClose={hideFilters}
+                                  anchor="bottom"
+                                >
+                                  <ProductFilters
+                                    handleSubmit={applyFilters}
+                                    handleClear={clearFilters}
+                                    productTypes={dummyProductTypes}
+                                    formState={filters}
+                                  />
+                                </Drawer>
+                              </Hidden>
+                            </div>
+                          )}
+                        </Toggle>
+                      )}
+                    </CategoryDeleteProvider>
+                  );
+                }}
               </CategoryPaginationProvider>
             );
           }}
@@ -341,8 +367,11 @@ const CategoryDetails = decorate<CategoryDetailsProps>(
                     <NavigatorLink to={categoryAddUrl()}>
                       {handleCreate => (
                         <RootCategoryList
-                          data={data}
-                          loading={loading}
+                          categories={
+                            data && data.categories
+                              ? data.categories.edges.map(edge => edge.node)
+                              : []
+                          }
                           onClick={id => navigate(categoryShowUrl(id))}
                           onCreate={handleCreate}
                         />

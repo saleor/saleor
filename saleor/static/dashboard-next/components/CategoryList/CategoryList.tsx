@@ -12,7 +12,10 @@ import i18n from "../../i18n";
 import Skeleton from "../Skeleton";
 
 interface CategoryListProps {
-  categories?: CategoryPropertiesQuery["category"]["children"]["edges"];
+  categories?: Array<{
+    id: string;
+    name: string;
+  }>;
   onClick?(id: string);
 }
 export const CategoryList: React.StatelessComponent<CategoryListProps> = ({
@@ -20,7 +23,7 @@ export const CategoryList: React.StatelessComponent<CategoryListProps> = ({
   onClick
 }) => (
   <List>
-    {categories === undefined ? (
+    {categories === undefined || categories === null ? (
       <ListItem>
         <ListItemIcon>
           <Folder />
@@ -30,18 +33,18 @@ export const CategoryList: React.StatelessComponent<CategoryListProps> = ({
         </ListItemText>
       </ListItem>
     ) : categories.length > 0 ? (
-      categories.map(edge => (
+      categories.map(category => (
         <ListItem
           button={!!onClick}
-          key={edge.node.id}
+          key={category.id}
           onClick={
-            onClick !== undefined ? () => onClick(edge.node.id) : undefined
+            onClick !== undefined ? () => onClick(category.id) : undefined
           }
         >
           <ListItemIcon>
             <Folder />
           </ListItemIcon>
-          <ListItemText primary={edge.node.name} />
+          <ListItemText primary={category.name} />
         </ListItem>
       ))
     ) : (

@@ -139,26 +139,10 @@ exports[`<PageList /> renders when category list is empty 1`] = `
       <td
         aria-sort={null}
         className="MuiTableCell-root-10 MuiTableCell-body-12"
+        colSpan={3}
         scope={undefined}
       >
-        <span
-          className="Component-skeleton-46"
-          style={undefined}
-        >
-          ‌
-        </span>
-      </td>
-      <td
-        aria-sort={null}
-        className="MuiTableCell-root-10 MuiTableCell-body-12"
-        scope={undefined}
-      >
-        <span
-          className="Component-skeleton-46"
-          style={undefined}
-        >
-          ‌
-        </span>
+        No pages found
       </td>
     </tr>
   </tbody>
@@ -303,27 +287,271 @@ exports[`<PageList /> renders when data is fully loaded 1`] = `
     >
       <td
         aria-sort={null}
-        className="MuiTableCell-root-10 MuiTableCell-body-12"
+        className="MuiTableCell-root-10 MuiTableCell-body-12 Component-link-1"
+        onClick={undefined}
         scope={undefined}
       >
-        <span
-          className="Component-skeleton-46"
-          style={undefined}
-        >
-          ‌
-        </span>
+        Lorem ipsum
       </td>
       <td
         aria-sort={null}
         className="MuiTableCell-root-10 MuiTableCell-body-12"
         scope={undefined}
       >
-        <span
-          className="Component-skeleton-46"
-          style={undefined}
+        /lorem-ipsum-dolor
+      </td>
+      <td
+        aria-sort={null}
+        className="MuiTableCell-root-10 MuiTableCell-body-12"
+        scope={undefined}
+      >
+        Published
+      </td>
+      <td
+        aria-sort={null}
+        className="MuiTableCell-root-10 MuiTableCell-body-12 Component-textRight-2"
+        scope={undefined}
+      >
+        <button
+          className="MuiButtonBase-root-36 MuiIconButton-root-30"
+          disabled={false}
+          onBlur={[Function]}
+          onClick={undefined}
+          onFocus={[Function]}
+          onKeyDown={[Function]}
+          onKeyUp={[Function]}
+          onMouseDown={[Function]}
+          onMouseLeave={[Function]}
+          onMouseUp={[Function]}
+          onTouchEnd={[Function]}
+          onTouchMove={[Function]}
+          onTouchStart={[Function]}
+          tabIndex="0"
+          type="button"
         >
-          ‌
-        </span>
+          <span
+            className="MuiIconButton-label-35"
+          >
+            <svg
+              aria-hidden="true"
+              className="MuiSvgIcon-root-39"
+              color={undefined}
+              focusable="false"
+              viewBox="0 0 24 24"
+            >
+              <path
+                d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"
+              />
+            </svg>
+          </span>
+          <span
+            className="MuiTouchRipple-root-47"
+          />
+        </button>
+      </td>
+    </tr>
+    <tr
+      className="MuiTableRow-root-5"
+    >
+      <td
+        aria-sort={null}
+        className="MuiTableCell-root-10 MuiTableCell-body-12 Component-link-1"
+        onClick={undefined}
+        scope={undefined}
+      >
+        Pellentesque habitant morbi tristique senectus
+      </td>
+      <td
+        aria-sort={null}
+        className="MuiTableCell-root-10 MuiTableCell-body-12"
+        scope={undefined}
+      >
+        /lorem-ipsum-consectetur
+      </td>
+      <td
+        aria-sort={null}
+        className="MuiTableCell-root-10 MuiTableCell-body-12"
+        scope={undefined}
+      >
+        Published
+      </td>
+      <td
+        aria-sort={null}
+        className="MuiTableCell-root-10 MuiTableCell-body-12 Component-textRight-2"
+        scope={undefined}
+      >
+        <button
+          className="MuiButtonBase-root-36 MuiIconButton-root-30"
+          disabled={false}
+          onBlur={[Function]}
+          onClick={undefined}
+          onFocus={[Function]}
+          onKeyDown={[Function]}
+          onKeyUp={[Function]}
+          onMouseDown={[Function]}
+          onMouseLeave={[Function]}
+          onMouseUp={[Function]}
+          onTouchEnd={[Function]}
+          onTouchMove={[Function]}
+          onTouchStart={[Function]}
+          tabIndex="0"
+          type="button"
+        >
+          <span
+            className="MuiIconButton-label-35"
+          >
+            <svg
+              aria-hidden="true"
+              className="MuiSvgIcon-root-39"
+              color={undefined}
+              focusable="false"
+              viewBox="0 0 24 24"
+            >
+              <path
+                d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"
+              />
+            </svg>
+          </span>
+          <span
+            className="MuiTouchRipple-root-47"
+          />
+        </button>
+      </td>
+    </tr>
+    <tr
+      className="MuiTableRow-root-5"
+    >
+      <td
+        aria-sort={null}
+        className="MuiTableCell-root-10 MuiTableCell-body-12 Component-link-1"
+        onClick={undefined}
+        scope={undefined}
+      >
+        Pellentesque metus turpis
+      </td>
+      <td
+        aria-sort={null}
+        className="MuiTableCell-root-10 MuiTableCell-body-12"
+        scope={undefined}
+      >
+        /lorem-ipsum-amet
+      </td>
+      <td
+        aria-sort={null}
+        className="MuiTableCell-root-10 MuiTableCell-body-12"
+        scope={undefined}
+      >
+        Published
+      </td>
+      <td
+        aria-sort={null}
+        className="MuiTableCell-root-10 MuiTableCell-body-12 Component-textRight-2"
+        scope={undefined}
+      >
+        <button
+          className="MuiButtonBase-root-36 MuiIconButton-root-30"
+          disabled={false}
+          onBlur={[Function]}
+          onClick={undefined}
+          onFocus={[Function]}
+          onKeyDown={[Function]}
+          onKeyUp={[Function]}
+          onMouseDown={[Function]}
+          onMouseLeave={[Function]}
+          onMouseUp={[Function]}
+          onTouchEnd={[Function]}
+          onTouchMove={[Function]}
+          onTouchStart={[Function]}
+          tabIndex="0"
+          type="button"
+        >
+          <span
+            className="MuiIconButton-label-35"
+          >
+            <svg
+              aria-hidden="true"
+              className="MuiSvgIcon-root-39"
+              color={undefined}
+              focusable="false"
+              viewBox="0 0 24 24"
+            >
+              <path
+                d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"
+              />
+            </svg>
+          </span>
+          <span
+            className="MuiTouchRipple-root-47"
+          />
+        </button>
+      </td>
+    </tr>
+    <tr
+      className="MuiTableRow-root-5"
+    >
+      <td
+        aria-sort={null}
+        className="MuiTableCell-root-10 MuiTableCell-body-12 Component-link-1"
+        onClick={undefined}
+        scope={undefined}
+      >
+        Nulla blandit ut lectus at placerat
+      </td>
+      <td
+        aria-sort={null}
+        className="MuiTableCell-root-10 MuiTableCell-body-12"
+        scope={undefined}
+      >
+        /lorem-ipsum-sit
+      </td>
+      <td
+        aria-sort={null}
+        className="MuiTableCell-root-10 MuiTableCell-body-12"
+        scope={undefined}
+      >
+        Published
+      </td>
+      <td
+        aria-sort={null}
+        className="MuiTableCell-root-10 MuiTableCell-body-12 Component-textRight-2"
+        scope={undefined}
+      >
+        <button
+          className="MuiButtonBase-root-36 MuiIconButton-root-30"
+          disabled={false}
+          onBlur={[Function]}
+          onClick={undefined}
+          onFocus={[Function]}
+          onKeyDown={[Function]}
+          onKeyUp={[Function]}
+          onMouseDown={[Function]}
+          onMouseLeave={[Function]}
+          onMouseUp={[Function]}
+          onTouchEnd={[Function]}
+          onTouchMove={[Function]}
+          onTouchStart={[Function]}
+          tabIndex="0"
+          type="button"
+        >
+          <span
+            className="MuiIconButton-label-35"
+          >
+            <svg
+              aria-hidden="true"
+              className="MuiSvgIcon-root-39"
+              color={undefined}
+              focusable="false"
+              viewBox="0 0 24 24"
+            >
+              <path
+                d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"
+              />
+            </svg>
+          </span>
+          <span
+            className="MuiTouchRipple-root-47"
+          />
+        </button>
       </td>
     </tr>
   </tbody>
@@ -489,6 +717,56 @@ exports[`<PageList /> renders while data is loading 1`] = `
         >
           ‌
         </span>
+      </td>
+      <td
+        aria-sort={null}
+        className="MuiTableCell-root-10 MuiTableCell-body-12"
+        scope={undefined}
+      >
+        <span
+          className="Component-skeleton-46"
+          style={undefined}
+        >
+          ‌
+        </span>
+      </td>
+      <td
+        aria-sort={null}
+        className="MuiTableCell-root-10 MuiTableCell-body-12 Component-textRight-2"
+        scope={undefined}
+      >
+        <button
+          className="MuiButtonBase-root-36 MuiButtonBase-disabled-37 MuiIconButton-root-30 MuiIconButton-disabled-34"
+          disabled={true}
+          onBlur={[Function]}
+          onFocus={[Function]}
+          onKeyDown={[Function]}
+          onKeyUp={[Function]}
+          onMouseDown={[Function]}
+          onMouseLeave={[Function]}
+          onMouseUp={[Function]}
+          onTouchEnd={[Function]}
+          onTouchMove={[Function]}
+          onTouchStart={[Function]}
+          tabIndex="-1"
+          type="button"
+        >
+          <span
+            className="MuiIconButton-label-35"
+          >
+            <svg
+              aria-hidden="true"
+              className="MuiSvgIcon-root-39"
+              color={undefined}
+              focusable="false"
+              viewBox="0 0 24 24"
+            >
+              <path
+                d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"
+              />
+            </svg>
+          </span>
+        </button>
       </td>
     </tr>
   </tbody>

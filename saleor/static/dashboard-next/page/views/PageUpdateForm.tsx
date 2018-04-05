@@ -1,12 +1,12 @@
 import DeleteIcon from "material-ui-icons/Delete";
 import Card from "material-ui/Card";
+import { DialogContentText } from "material-ui/Dialog";
 import Grid from "material-ui/Grid";
 import IconButton from "material-ui/IconButton";
 import { CircularProgress } from "material-ui/Progress";
 import * as React from "react";
 import { Redirect } from "react-router";
 
-import { DialogContentText } from "material-ui/Dialog";
 import { pageListUrl } from "..";
 import ErrorMessageCard from "../../components/ErrorMessageCard";
 import Form, { FormActions, FormProps } from "../../components/Form";

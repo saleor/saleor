@@ -1,0 +1,759 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`<CategoryProducts /> renders when loading data 1`] = `
+<div
+  className="MuiPaper-root-1 MuiPaper-elevation2-5 MuiPaper-rounded-2"
+>
+  <div
+    className="Component-root-31"
+  >
+    <h2
+      className="MuiTypography-root-34 MuiTypography-title-40 Component-title-33"
+    >
+      Products
+    </h2>
+    <div
+      className="Component-action-28"
+    >
+      <button
+        className="MuiButtonBase-root-64 MuiIconButton-root-58"
+        disabled={false}
+        onBlur={[Function]}
+        onClick={[MockFunction]}
+        onFocus={[Function]}
+        onKeyDown={[Function]}
+        onKeyUp={[Function]}
+        onMouseDown={[Function]}
+        onMouseLeave={[Function]}
+        onMouseUp={[Function]}
+        onTouchEnd={[Function]}
+        onTouchMove={[Function]}
+        onTouchStart={[Function]}
+        tabIndex="0"
+        type="button"
+      >
+        <span
+          className="MuiIconButton-label-63"
+        >
+          <svg
+            aria-hidden="true"
+            className="MuiSvgIcon-root-67"
+            color={undefined}
+            focusable="false"
+            viewBox="0 0 24 24"
+          >
+            <path
+              d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"
+            />
+          </svg>
+        </span>
+        <span
+          className="MuiTouchRipple-root-73"
+        />
+      </button>
+    </div>
+  </div>
+  <table
+    className="MuiTable-root-81"
+  >
+    <thead
+      className="MuiTableHead-root-82"
+    >
+      <tr
+        className="MuiTableRow-root-83 MuiTableRow-head-84"
+      >
+        <th
+          aria-sort={null}
+          className="MuiTableCell-root-88 MuiTableCell-head-89 Component-avatarCell-80"
+          scope="col"
+        />
+        <th
+          aria-sort={null}
+          className="MuiTableCell-root-88 MuiTableCell-head-89"
+          scope="col"
+        >
+          Name
+        </th>
+        <th
+          aria-sort={null}
+          className="MuiTableCell-root-88 MuiTableCell-head-89"
+          scope="col"
+        >
+          Type
+        </th>
+      </tr>
+    </thead>
+    <tfoot>
+      <tr
+        className="MuiTableRow-root-83 MuiTableRow-footer-85"
+      >
+        <td
+          aria-sort={null}
+          className="MuiTableCell-root-88 MuiTableCell-footer-91 MuiTablePagination-root-99"
+          colSpan={3}
+          scope={undefined}
+        >
+          <div
+            className="MuiToolbar-root-105 MuiToolbar-gutters-106 MuiTablePagination-toolbar-104"
+          >
+            <div
+              className="MuiTablePagination-spacer-103"
+            />
+            <div
+              className="MuiTablePaginationActions-root-107"
+            >
+              <button
+                className="MuiButtonBase-root-64 MuiButtonBase-disabled-65 MuiIconButton-root-58 MuiIconButton-disabled-62"
+                disabled={true}
+                onBlur={[Function]}
+                onClick={[MockFunction]}
+                onFocus={[Function]}
+                onKeyDown={[Function]}
+                onKeyUp={[Function]}
+                onMouseDown={[Function]}
+                onMouseLeave={[Function]}
+                onMouseUp={[Function]}
+                onTouchEnd={[Function]}
+                onTouchMove={[Function]}
+                onTouchStart={[Function]}
+                tabIndex="-1"
+                type="button"
+              >
+                <span
+                  className="MuiIconButton-label-63"
+                >
+                  <svg
+                    aria-hidden="true"
+                    className="MuiSvgIcon-root-67"
+                    color={undefined}
+                    focusable="false"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      d="M15.41 16.09l-4.58-4.59 4.58-4.59L14 5.5l-6 6 6 6z"
+                    />
+                  </svg>
+                </span>
+              </button>
+              <button
+                className="MuiButtonBase-root-64 MuiIconButton-root-58"
+                disabled={false}
+                onBlur={[Function]}
+                onClick={[MockFunction]}
+                onFocus={[Function]}
+                onKeyDown={[Function]}
+                onKeyUp={[Function]}
+                onMouseDown={[Function]}
+                onMouseLeave={[Function]}
+                onMouseUp={[Function]}
+                onTouchEnd={[Function]}
+                onTouchMove={[Function]}
+                onTouchStart={[Function]}
+                tabIndex="0"
+                type="button"
+              >
+                <span
+                  className="MuiIconButton-label-63"
+                >
+                  <svg
+                    aria-hidden="true"
+                    className="MuiSvgIcon-root-67"
+                    color={undefined}
+                    focusable="false"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      d="M8.59 16.34l4.58-4.59-4.58-4.59L10 5.75l6 6-6 6z"
+                    />
+                  </svg>
+                </span>
+                <span
+                  className="MuiTouchRipple-root-73"
+                />
+              </button>
+            </div>
+          </div>
+        </td>
+      </tr>
+    </tfoot>
+    <tbody
+      className="MuiTableBody-root-108"
+    >
+      <tr
+        className="MuiTableRow-root-83"
+      >
+        <td
+          aria-sort={null}
+          className="MuiTableCell-root-88 MuiTableCell-body-90 Component-avatarCell-80"
+          scope={undefined}
+        >
+          <div
+            className="MuiAvatar-root-109 MuiAvatar-colorDefault-110"
+          >
+            <svg
+              aria-hidden="true"
+              className="MuiSvgIcon-root-67"
+              color={undefined}
+              focusable="false"
+              viewBox="0 0 24 24"
+            >
+              <path
+                d="M19 8l-4 4h3c0 3.31-2.69 6-6 6-1.01 0-1.97-.25-2.8-.7l-1.46 1.46C8.97 19.54 10.43 20 12 20c4.42 0 8-3.58 8-8h3l-4-4zM6 12c0-3.31 2.69-6 6-6 1.01 0 1.97.25 2.8.7l1.46-1.46C15.03 4.46 13.57 4 12 4c-4.42 0-8 3.58-8 8H1l4 4 4-4H6z"
+              />
+            </svg>
+          </div>
+        </td>
+        <td
+          aria-sort={null}
+          className="MuiTableCell-root-88 MuiTableCell-body-90"
+          scope={undefined}
+        >
+          <span
+            className="Component-skeleton-112"
+            style={undefined}
+          >
+            ‌
+          </span>
+        </td>
+        <td
+          aria-sort={null}
+          className="MuiTableCell-root-88 MuiTableCell-body-90"
+          scope={undefined}
+        >
+          <span
+            className="Component-skeleton-112"
+            style={undefined}
+          >
+            ‌
+          </span>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+`;
+
+exports[`<CategoryProducts /> renders with initial data 1`] = `
+<div
+  className="MuiPaper-root-1 MuiPaper-elevation2-5 MuiPaper-rounded-2"
+>
+  <div
+    className="Component-root-31"
+  >
+    <h2
+      className="MuiTypography-root-34 MuiTypography-title-40 Component-title-33"
+    >
+      Products
+    </h2>
+    <div
+      className="Component-action-28"
+    >
+      <button
+        className="MuiButtonBase-root-64 MuiIconButton-root-58"
+        disabled={false}
+        onBlur={[Function]}
+        onClick={[MockFunction]}
+        onFocus={[Function]}
+        onKeyDown={[Function]}
+        onKeyUp={[Function]}
+        onMouseDown={[Function]}
+        onMouseLeave={[Function]}
+        onMouseUp={[Function]}
+        onTouchEnd={[Function]}
+        onTouchMove={[Function]}
+        onTouchStart={[Function]}
+        tabIndex="0"
+        type="button"
+      >
+        <span
+          className="MuiIconButton-label-63"
+        >
+          <svg
+            aria-hidden="true"
+            className="MuiSvgIcon-root-67"
+            color={undefined}
+            focusable="false"
+            viewBox="0 0 24 24"
+          >
+            <path
+              d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"
+            />
+          </svg>
+        </span>
+        <span
+          className="MuiTouchRipple-root-73"
+        />
+      </button>
+    </div>
+  </div>
+  <table
+    className="MuiTable-root-81"
+  >
+    <thead
+      className="MuiTableHead-root-82"
+    >
+      <tr
+        className="MuiTableRow-root-83 MuiTableRow-head-84"
+      >
+        <th
+          aria-sort={null}
+          className="MuiTableCell-root-88 MuiTableCell-head-89 Component-avatarCell-80"
+          scope="col"
+        />
+        <th
+          aria-sort={null}
+          className="MuiTableCell-root-88 MuiTableCell-head-89"
+          scope="col"
+        >
+          Name
+        </th>
+        <th
+          aria-sort={null}
+          className="MuiTableCell-root-88 MuiTableCell-head-89"
+          scope="col"
+        >
+          Type
+        </th>
+      </tr>
+    </thead>
+    <tfoot>
+      <tr
+        className="MuiTableRow-root-83 MuiTableRow-footer-85"
+      >
+        <td
+          aria-sort={null}
+          className="MuiTableCell-root-88 MuiTableCell-footer-91 MuiTablePagination-root-99"
+          colSpan={3}
+          scope={undefined}
+        >
+          <div
+            className="MuiToolbar-root-105 MuiToolbar-gutters-106 MuiTablePagination-toolbar-104"
+          >
+            <div
+              className="MuiTablePagination-spacer-103"
+            />
+            <div
+              className="MuiTablePaginationActions-root-107"
+            >
+              <button
+                className="MuiButtonBase-root-64 MuiButtonBase-disabled-65 MuiIconButton-root-58 MuiIconButton-disabled-62"
+                disabled={true}
+                onBlur={[Function]}
+                onClick={[MockFunction]}
+                onFocus={[Function]}
+                onKeyDown={[Function]}
+                onKeyUp={[Function]}
+                onMouseDown={[Function]}
+                onMouseLeave={[Function]}
+                onMouseUp={[Function]}
+                onTouchEnd={[Function]}
+                onTouchMove={[Function]}
+                onTouchStart={[Function]}
+                tabIndex="-1"
+                type="button"
+              >
+                <span
+                  className="MuiIconButton-label-63"
+                >
+                  <svg
+                    aria-hidden="true"
+                    className="MuiSvgIcon-root-67"
+                    color={undefined}
+                    focusable="false"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      d="M15.41 16.09l-4.58-4.59 4.58-4.59L14 5.5l-6 6 6 6z"
+                    />
+                  </svg>
+                </span>
+              </button>
+              <button
+                className="MuiButtonBase-root-64 MuiIconButton-root-58"
+                disabled={false}
+                onBlur={[Function]}
+                onClick={[MockFunction]}
+                onFocus={[Function]}
+                onKeyDown={[Function]}
+                onKeyUp={[Function]}
+                onMouseDown={[Function]}
+                onMouseLeave={[Function]}
+                onMouseUp={[Function]}
+                onTouchEnd={[Function]}
+                onTouchMove={[Function]}
+                onTouchStart={[Function]}
+                tabIndex="0"
+                type="button"
+              >
+                <span
+                  className="MuiIconButton-label-63"
+                >
+                  <svg
+                    aria-hidden="true"
+                    className="MuiSvgIcon-root-67"
+                    color={undefined}
+                    focusable="false"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      d="M8.59 16.34l4.58-4.59-4.58-4.59L10 5.75l6 6-6 6z"
+                    />
+                  </svg>
+                </span>
+                <span
+                  className="MuiTouchRipple-root-73"
+                />
+              </button>
+            </div>
+          </div>
+        </td>
+      </tr>
+    </tfoot>
+    <tbody
+      className="MuiTableBody-root-108"
+    >
+      <tr
+        className="MuiTableRow-root-83"
+      >
+        <td
+          aria-sort={null}
+          className="MuiTableCell-root-88 MuiTableCell-body-90 Component-avatarCell-80"
+          scope={undefined}
+        >
+          <div
+            className="MuiAvatar-root-109"
+          >
+            <img
+              alt={undefined}
+              className="MuiAvatar-img-111"
+              sizes={undefined}
+              src="/media/__sized__/products/saleor/static/placeholders/t-shirts/6_tdo7a5D-crop-c0-5__0-5-255x255-70.jpg"
+              srcSet={undefined}
+            />
+          </div>
+        </td>
+        <td
+          aria-sort={null}
+          className="MuiTableCell-root-88 MuiTableCell-body-90"
+          scope={undefined}
+        >
+          Gardner, Graham and King
+        </td>
+        <td
+          aria-sort={null}
+          className="MuiTableCell-root-88 MuiTableCell-body-90"
+          scope={undefined}
+        >
+          T-Shirt
+        </td>
+      </tr>
+      <tr
+        className="MuiTableRow-root-83"
+      >
+        <td
+          aria-sort={null}
+          className="MuiTableCell-root-88 MuiTableCell-body-90 Component-avatarCell-80"
+          scope={undefined}
+        >
+          <div
+            className="MuiAvatar-root-109"
+          >
+            <img
+              alt={undefined}
+              className="MuiAvatar-img-111"
+              sizes={undefined}
+              src="/media/__sized__/products/saleor/static/placeholders/t-shirts/6_tdo7a5D-crop-c0-5__0-5-255x255-70.jpg"
+              srcSet={undefined}
+            />
+          </div>
+        </td>
+        <td
+          aria-sort={null}
+          className="MuiTableCell-root-88 MuiTableCell-body-90"
+          scope={undefined}
+        >
+          Gardner, Graham and King
+        </td>
+        <td
+          aria-sort={null}
+          className="MuiTableCell-root-88 MuiTableCell-body-90"
+          scope={undefined}
+        >
+          T-Shirt
+        </td>
+      </tr>
+      <tr
+        className="MuiTableRow-root-83"
+      >
+        <td
+          aria-sort={null}
+          className="MuiTableCell-root-88 MuiTableCell-body-90 Component-avatarCell-80"
+          scope={undefined}
+        >
+          <div
+            className="MuiAvatar-root-109"
+          >
+            <img
+              alt={undefined}
+              className="MuiAvatar-img-111"
+              sizes={undefined}
+              src="/media/__sized__/products/saleor/static/placeholders/t-shirts/6_tdo7a5D-crop-c0-5__0-5-255x255-70.jpg"
+              srcSet={undefined}
+            />
+          </div>
+        </td>
+        <td
+          aria-sort={null}
+          className="MuiTableCell-root-88 MuiTableCell-body-90"
+          scope={undefined}
+        >
+          Gardner, Graham and King
+        </td>
+        <td
+          aria-sort={null}
+          className="MuiTableCell-root-88 MuiTableCell-body-90"
+          scope={undefined}
+        >
+          T-Shirt
+        </td>
+      </tr>
+      <tr
+        className="MuiTableRow-root-83"
+      >
+        <td
+          aria-sort={null}
+          className="MuiTableCell-root-88 MuiTableCell-body-90 Component-avatarCell-80"
+          scope={undefined}
+        >
+          <div
+            className="MuiAvatar-root-109"
+          >
+            <img
+              alt={undefined}
+              className="MuiAvatar-img-111"
+              sizes={undefined}
+              src="/media/__sized__/products/saleor/static/placeholders/t-shirts/6_tdo7a5D-crop-c0-5__0-5-255x255-70.jpg"
+              srcSet={undefined}
+            />
+          </div>
+        </td>
+        <td
+          aria-sort={null}
+          className="MuiTableCell-root-88 MuiTableCell-body-90"
+          scope={undefined}
+        >
+          Gardner, Graham and King
+        </td>
+        <td
+          aria-sort={null}
+          className="MuiTableCell-root-88 MuiTableCell-body-90"
+          scope={undefined}
+        >
+          T-Shirt
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+`;
+
+exports[`<CategoryProducts /> renders without initial data 1`] = `
+<div
+  className="MuiPaper-root-1 MuiPaper-elevation2-5 MuiPaper-rounded-2"
+>
+  <div
+    className="Component-root-31"
+  >
+    <h2
+      className="MuiTypography-root-34 MuiTypography-title-40 Component-title-33"
+    >
+      Products
+    </h2>
+    <div
+      className="Component-action-28"
+    >
+      <button
+        className="MuiButtonBase-root-64 MuiIconButton-root-58"
+        disabled={false}
+        onBlur={[Function]}
+        onClick={[MockFunction]}
+        onFocus={[Function]}
+        onKeyDown={[Function]}
+        onKeyUp={[Function]}
+        onMouseDown={[Function]}
+        onMouseLeave={[Function]}
+        onMouseUp={[Function]}
+        onTouchEnd={[Function]}
+        onTouchMove={[Function]}
+        onTouchStart={[Function]}
+        tabIndex="0"
+        type="button"
+      >
+        <span
+          className="MuiIconButton-label-63"
+        >
+          <svg
+            aria-hidden="true"
+            className="MuiSvgIcon-root-67"
+            color={undefined}
+            focusable="false"
+            viewBox="0 0 24 24"
+          >
+            <path
+              d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"
+            />
+          </svg>
+        </span>
+        <span
+          className="MuiTouchRipple-root-73"
+        />
+      </button>
+    </div>
+  </div>
+  <table
+    className="MuiTable-root-81"
+  >
+    <thead
+      className="MuiTableHead-root-82"
+    >
+      <tr
+        className="MuiTableRow-root-83 MuiTableRow-head-84"
+      >
+        <th
+          aria-sort={null}
+          className="MuiTableCell-root-88 MuiTableCell-head-89 Component-avatarCell-80"
+          scope="col"
+        />
+        <th
+          aria-sort={null}
+          className="MuiTableCell-root-88 MuiTableCell-head-89"
+          scope="col"
+        >
+          Name
+        </th>
+        <th
+          aria-sort={null}
+          className="MuiTableCell-root-88 MuiTableCell-head-89"
+          scope="col"
+        >
+          Type
+        </th>
+      </tr>
+    </thead>
+    <tfoot>
+      <tr
+        className="MuiTableRow-root-83 MuiTableRow-footer-85"
+      >
+        <td
+          aria-sort={null}
+          className="MuiTableCell-root-88 MuiTableCell-footer-91 MuiTablePagination-root-99"
+          colSpan={3}
+          scope={undefined}
+        >
+          <div
+            className="MuiToolbar-root-105 MuiToolbar-gutters-106 MuiTablePagination-toolbar-104"
+          >
+            <div
+              className="MuiTablePagination-spacer-103"
+            />
+            <div
+              className="MuiTablePaginationActions-root-107"
+            >
+              <button
+                className="MuiButtonBase-root-64 MuiButtonBase-disabled-65 MuiIconButton-root-58 MuiIconButton-disabled-62"
+                disabled={true}
+                onBlur={[Function]}
+                onClick={[MockFunction]}
+                onFocus={[Function]}
+                onKeyDown={[Function]}
+                onKeyUp={[Function]}
+                onMouseDown={[Function]}
+                onMouseLeave={[Function]}
+                onMouseUp={[Function]}
+                onTouchEnd={[Function]}
+                onTouchMove={[Function]}
+                onTouchStart={[Function]}
+                tabIndex="-1"
+                type="button"
+              >
+                <span
+                  className="MuiIconButton-label-63"
+                >
+                  <svg
+                    aria-hidden="true"
+                    className="MuiSvgIcon-root-67"
+                    color={undefined}
+                    focusable="false"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      d="M15.41 16.09l-4.58-4.59 4.58-4.59L14 5.5l-6 6 6 6z"
+                    />
+                  </svg>
+                </span>
+              </button>
+              <button
+                className="MuiButtonBase-root-64 MuiIconButton-root-58"
+                disabled={false}
+                onBlur={[Function]}
+                onClick={[MockFunction]}
+                onFocus={[Function]}
+                onKeyDown={[Function]}
+                onKeyUp={[Function]}
+                onMouseDown={[Function]}
+                onMouseLeave={[Function]}
+                onMouseUp={[Function]}
+                onTouchEnd={[Function]}
+                onTouchMove={[Function]}
+                onTouchStart={[Function]}
+                tabIndex="0"
+                type="button"
+              >
+                <span
+                  className="MuiIconButton-label-63"
+                >
+                  <svg
+                    aria-hidden="true"
+                    className="MuiSvgIcon-root-67"
+                    color={undefined}
+                    focusable="false"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      d="M8.59 16.34l4.58-4.59-4.58-4.59L10 5.75l6 6-6 6z"
+                    />
+                  </svg>
+                </span>
+                <span
+                  className="MuiTouchRipple-root-73"
+                />
+              </button>
+            </div>
+          </div>
+        </td>
+      </tr>
+    </tfoot>
+    <tbody
+      className="MuiTableBody-root-108"
+    >
+      <tr
+        className="MuiTableRow-root-83"
+      >
+        <td
+          aria-sort={null}
+          className="MuiTableCell-root-88 MuiTableCell-body-90 Component-avatarCell-80"
+          scope={undefined}
+        />
+        <td
+          aria-sort={null}
+          className="MuiTableCell-root-88 MuiTableCell-body-90"
+          colSpan={2}
+          scope={undefined}
+        >
+          No products found
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+`;
