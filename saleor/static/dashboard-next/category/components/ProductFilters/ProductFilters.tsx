@@ -1,12 +1,12 @@
 import TextField from "material-ui/TextField";
 import * as React from "react";
 
-import FilterCard from "../../components/FilterCard";
-import FormSpacer from "../../components/FormSpacer";
-import MultiSelectField from "../../components/MultiSelectField";
-import PriceField from "../../components/PriceField";
-import SingleSelectField from "../../components/SingleSelectField";
-import i18n from "../../i18n";
+import FilterCard from "../../../components/FilterCard";
+import FormSpacer from "../../../components/FormSpacer";
+import MultiSelectField from "../../../components/MultiSelectField";
+import PriceField from "../../../components/PriceField";
+import SingleSelectField from "../../../components/SingleSelectField";
+import i18n from "../../../i18n";
 
 const { Component } = React;
 
@@ -24,7 +24,14 @@ interface ProductFiltersProps {
     id: string;
     name: string;
   }>;
-  formState?: ProductFiltersState;
+  formState?: {
+    highlighted: string;
+    name: string;
+    price_min: string;
+    price_max: string;
+    productTypes: string[];
+    published: string;
+  };
   handleSubmit(formState: any);
   handleClear();
 }

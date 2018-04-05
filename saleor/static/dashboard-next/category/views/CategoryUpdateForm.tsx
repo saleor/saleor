@@ -10,7 +10,7 @@ import { NavigatorLink } from "../../components/Navigator";
 import PageHeader from "../../components/PageHeader";
 import { CategoryUpdateMutationVariables } from "../../gql-types";
 import i18n from "../../i18n";
-import BaseCategoryForm from "../components/BaseForm";
+import CategoryBaseForm from "../components/CategoryBaseForm";
 import { categoryShowUrl } from "../index";
 import {
   categoryUpdateMutation,
@@ -96,7 +96,7 @@ export const CategoryUpdateForm = decorate<CategoryUpdateFormProps>(
                                 context: "title"
                               })}
                             />
-                            <BaseCategoryForm
+                            <CategoryBaseForm
                               description={data.description}
                               errors={errors}
                               name={data.name}

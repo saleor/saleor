@@ -18,18 +18,18 @@ import { PageListQuery } from "../../../gql-types";
 import i18n from "../../../i18n";
 
 interface PageListComponentProps {
-  pages: PageListQuery["pages"]["edges"];
+  pages?: PageListQuery["pages"]["edges"];
   pageInfo: PageListQuery["pages"]["pageInfo"];
-  loading: boolean;
   handlePreviousPage();
   handleNextPage();
-  editPageUrl(id: string);
-  showPageUrl(slug: string);
+  onEditClick(id: string);
+  onShowPageClick(slug: string);
 }
 
 const decorate = withStyles({
   link: {
     color: blue[500],
+    cursor: "pointer",
     textDecoration: "none"
   },
   textRight: {
@@ -42,11 +42,10 @@ export const PageListComponent = decorate<PageListComponentProps>(
     classes,
     handlePreviousPage,
     handleNextPage,
-    editPageUrl,
-    showPageUrl,
+    onEditClick,
+    onShowPageClick,
     pages,
-    pageInfo,
-    loading
+    pageInfo
   }) => (
     <Table>
       <TableHead>
@@ -71,7 +70,7 @@ export const PageListComponent = decorate<PageListComponentProps>(
         </TableRow>
       </TableFooter>
       <TableBody>
-        {loading ? (
+        {pages === undefined || pages === null ? (
           <TableRow>
             <TableCell>
               <Skeleton />
@@ -79,14 +78,23 @@ export const PageListComponent = decorate<PageListComponentProps>(
             <TableCell>
               <Skeleton />
             </TableCell>
+            <TableCell>
+              <Skeleton />
+            </TableCell>
+            <TableCell className={classes.textRight}>
+              <IconButton disabled>
+                <VisibilityIcon />
+              </IconButton>
+            </TableCell>
           </TableRow>
         ) : pages.length > 0 ? (
           pages.map(edge => (
             <TableRow key={edge.node.id}>
-              <TableCell>
-                <Link to={editPageUrl(edge.node.id)} className={classes.link}>
-                  {edge.node.title}
-                </Link>
+              <TableCell
+                onClick={onEditClick(edge.node.id)}
+                className={classes.link}
+              >
+                {edge.node.title}
               </TableCell>
               <TableCell>{`/${edge.node.slug}`}</TableCell>
               <TableCell>
@@ -95,15 +103,7 @@ export const PageListComponent = decorate<PageListComponentProps>(
                   : i18n.t("Not published", { context: "object" })}
               </TableCell>
               <TableCell className={classes.textRight}>
-                <IconButton
-                  component={props => (
-                    <a
-                      href={showPageUrl(edge.node.slug)}
-                      target="_blank"
-                      {...props}
-                    />
-                  )}
-                >
+                <IconButton onClick={onShowPageClick(edge.node.slug)}>
                   <VisibilityIcon />
                 </IconButton>
               </TableCell>

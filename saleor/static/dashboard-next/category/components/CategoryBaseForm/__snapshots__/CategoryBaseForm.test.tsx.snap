@@ -1,0 +1,368 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`<CategoryBaseForm /> renders when errors occured 1`] = `
+<div
+  className="MuiCardContent-root-3"
+>
+  <div
+    aria-describedby={undefined}
+    className="MuiFormControl-root-4 MuiFormControl-fullWidth-7 Component-textField-2"
+    onBlur={[Function]}
+    onFocus={[Function]}
+  >
+    <label
+      className="MuiFormLabel-root-14 MuiFormLabel-error-17 MuiInputLabel-root-8 MuiInputLabel-formControl-9 MuiInputLabel-animated-12 MuiInputLabel-shrink-11"
+      data-shrink={true}
+      htmlFor={undefined}
+    >
+      Name
+    </label>
+    <div
+      className="MuiInput-root-20 MuiInput-error-25 MuiInput-fullWidth-27 MuiInput-formControl-21 MuiInput-underline-24"
+    >
+      <input
+        aria-invalid={true}
+        aria-required={false}
+        autoComplete={undefined}
+        autoFocus={true}
+        className="MuiInput-input-28"
+        defaultValue={undefined}
+        disabled={false}
+        id={undefined}
+        name="name"
+        onBlur={[Function]}
+        onChange={[Function]}
+        onFocus={[Function]}
+        onKeyDown={undefined}
+        onKeyUp={undefined}
+        placeholder={undefined}
+        readOnly={undefined}
+        required={undefined}
+        rows={undefined}
+        type="text"
+        value="Apparel"
+      />
+    </div>
+    <p
+      className="MuiFormHelperText-root-37 MuiFormHelperText-error-38"
+      id={undefined}
+    >
+      To pole jest wymagane.
+    </p>
+  </div>
+  <div
+    aria-describedby={undefined}
+    className="MuiFormControl-root-4 MuiFormControl-fullWidth-7"
+    onBlur={[Function]}
+    onFocus={[Function]}
+  >
+    <label
+      className="MuiFormLabel-root-14 MuiInputLabel-root-8 MuiInputLabel-formControl-9 MuiInputLabel-animated-12 MuiInputLabel-shrink-11"
+      data-shrink={true}
+      htmlFor={undefined}
+    >
+      Description
+    </label>
+    <div
+      className="MuiInput-root-20 MuiInput-fullWidth-27 MuiInput-formControl-21 MuiInput-multiline-26 MuiInput-underline-24"
+    >
+      <div
+        className="MuiTextarea-root-34"
+        style={
+          Object {
+            "height": 19,
+          }
+        }
+      >
+        <textarea
+          aria-hidden="true"
+          className="MuiTextarea-shadow-36 MuiTextarea-textarea-35"
+          readOnly={true}
+          rows="1"
+          tabIndex={-1}
+          value=""
+        />
+        <textarea
+          aria-hidden="true"
+          className="MuiTextarea-shadow-36 MuiTextarea-textarea-35"
+          defaultValue={undefined}
+          readOnly={true}
+          rows={1}
+          tabIndex={-1}
+          value="Across pressure PM food discover recognize. Send letter reach listen. Quickly work plan rule.
+Tell lose part purpose do when. Whatever drug contain particularly defense."
+        />
+        <textarea
+          aria-invalid={false}
+          aria-required={false}
+          autoComplete={undefined}
+          autoFocus={undefined}
+          className="MuiTextarea-textarea-35 MuiInput-input-28 MuiInput-inputMultiline-31"
+          defaultValue={undefined}
+          disabled={false}
+          id={undefined}
+          name="description"
+          onBlur={[Function]}
+          onChange={[Function]}
+          onFocus={[Function]}
+          onKeyDown={undefined}
+          onKeyUp={undefined}
+          placeholder={undefined}
+          readOnly={undefined}
+          required={undefined}
+          rows={1}
+          type="text"
+          value="Across pressure PM food discover recognize. Send letter reach listen. Quickly work plan rule.
+Tell lose part purpose do when. Whatever drug contain particularly defense."
+        />
+      </div>
+    </div>
+    <p
+      className="MuiFormHelperText-root-37"
+      id={undefined}
+    >
+      Optional
+    </p>
+  </div>
+</div>
+`;
+
+exports[`<CategoryBaseForm /> renders with initial data 1`] = `
+<div
+  className="MuiCardContent-root-3"
+>
+  <div
+    aria-describedby={undefined}
+    className="MuiFormControl-root-4 MuiFormControl-fullWidth-7 Component-textField-2"
+    onBlur={[Function]}
+    onFocus={[Function]}
+  >
+    <label
+      className="MuiFormLabel-root-14 MuiInputLabel-root-8 MuiInputLabel-formControl-9 MuiInputLabel-animated-12 MuiInputLabel-shrink-11"
+      data-shrink={true}
+      htmlFor={undefined}
+    >
+      Name
+    </label>
+    <div
+      className="MuiInput-root-20 MuiInput-fullWidth-27 MuiInput-formControl-21 MuiInput-underline-24"
+    >
+      <input
+        aria-invalid={false}
+        aria-required={false}
+        autoComplete={undefined}
+        autoFocus={true}
+        className="MuiInput-input-28"
+        defaultValue={undefined}
+        disabled={false}
+        id={undefined}
+        name="name"
+        onBlur={[Function]}
+        onChange={[Function]}
+        onFocus={[Function]}
+        onKeyDown={undefined}
+        onKeyUp={undefined}
+        placeholder={undefined}
+        readOnly={undefined}
+        required={undefined}
+        rows={undefined}
+        type="text"
+        value="Apparel"
+      />
+    </div>
+  </div>
+  <div
+    aria-describedby={undefined}
+    className="MuiFormControl-root-4 MuiFormControl-fullWidth-7"
+    onBlur={[Function]}
+    onFocus={[Function]}
+  >
+    <label
+      className="MuiFormLabel-root-14 MuiInputLabel-root-8 MuiInputLabel-formControl-9 MuiInputLabel-animated-12 MuiInputLabel-shrink-11"
+      data-shrink={true}
+      htmlFor={undefined}
+    >
+      Description
+    </label>
+    <div
+      className="MuiInput-root-20 MuiInput-fullWidth-27 MuiInput-formControl-21 MuiInput-multiline-26 MuiInput-underline-24"
+    >
+      <div
+        className="MuiTextarea-root-34"
+        style={
+          Object {
+            "height": 19,
+          }
+        }
+      >
+        <textarea
+          aria-hidden="true"
+          className="MuiTextarea-shadow-36 MuiTextarea-textarea-35"
+          readOnly={true}
+          rows="1"
+          tabIndex={-1}
+          value=""
+        />
+        <textarea
+          aria-hidden="true"
+          className="MuiTextarea-shadow-36 MuiTextarea-textarea-35"
+          defaultValue={undefined}
+          readOnly={true}
+          rows={1}
+          tabIndex={-1}
+          value="Across pressure PM food discover recognize. Send letter reach listen. Quickly work plan rule.
+Tell lose part purpose do when. Whatever drug contain particularly defense."
+        />
+        <textarea
+          aria-invalid={false}
+          aria-required={false}
+          autoComplete={undefined}
+          autoFocus={undefined}
+          className="MuiTextarea-textarea-35 MuiInput-input-28 MuiInput-inputMultiline-31"
+          defaultValue={undefined}
+          disabled={false}
+          id={undefined}
+          name="description"
+          onBlur={[Function]}
+          onChange={[Function]}
+          onFocus={[Function]}
+          onKeyDown={undefined}
+          onKeyUp={undefined}
+          placeholder={undefined}
+          readOnly={undefined}
+          required={undefined}
+          rows={1}
+          type="text"
+          value="Across pressure PM food discover recognize. Send letter reach listen. Quickly work plan rule.
+Tell lose part purpose do when. Whatever drug contain particularly defense."
+        />
+      </div>
+    </div>
+    <p
+      className="MuiFormHelperText-root-37"
+      id={undefined}
+    >
+      Optional
+    </p>
+  </div>
+</div>
+`;
+
+exports[`<CategoryBaseForm /> renders without initial data 1`] = `
+<div
+  className="MuiCardContent-root-3"
+>
+  <div
+    aria-describedby={undefined}
+    className="MuiFormControl-root-4 MuiFormControl-fullWidth-7 Component-textField-2"
+    onBlur={[Function]}
+    onFocus={[Function]}
+  >
+    <label
+      className="MuiFormLabel-root-14 MuiInputLabel-root-8 MuiInputLabel-formControl-9 MuiInputLabel-animated-12"
+      data-shrink={false}
+      htmlFor={undefined}
+    >
+      Name
+    </label>
+    <div
+      className="MuiInput-root-20 MuiInput-fullWidth-27 MuiInput-formControl-21 MuiInput-underline-24"
+    >
+      <input
+        aria-invalid={false}
+        aria-required={false}
+        autoComplete={undefined}
+        autoFocus={true}
+        className="MuiInput-input-28"
+        defaultValue={undefined}
+        disabled={false}
+        id={undefined}
+        name="name"
+        onBlur={[Function]}
+        onChange={[Function]}
+        onFocus={[Function]}
+        onKeyDown={undefined}
+        onKeyUp={undefined}
+        placeholder={undefined}
+        readOnly={undefined}
+        required={undefined}
+        rows={undefined}
+        type="text"
+        value=""
+      />
+    </div>
+  </div>
+  <div
+    aria-describedby={undefined}
+    className="MuiFormControl-root-4 MuiFormControl-fullWidth-7"
+    onBlur={[Function]}
+    onFocus={[Function]}
+  >
+    <label
+      className="MuiFormLabel-root-14 MuiInputLabel-root-8 MuiInputLabel-formControl-9 MuiInputLabel-animated-12"
+      data-shrink={false}
+      htmlFor={undefined}
+    >
+      Description
+    </label>
+    <div
+      className="MuiInput-root-20 MuiInput-fullWidth-27 MuiInput-formControl-21 MuiInput-multiline-26 MuiInput-underline-24"
+    >
+      <div
+        className="MuiTextarea-root-34"
+        style={
+          Object {
+            "height": 19,
+          }
+        }
+      >
+        <textarea
+          aria-hidden="true"
+          className="MuiTextarea-shadow-36 MuiTextarea-textarea-35"
+          readOnly={true}
+          rows="1"
+          tabIndex={-1}
+          value=""
+        />
+        <textarea
+          aria-hidden="true"
+          className="MuiTextarea-shadow-36 MuiTextarea-textarea-35"
+          defaultValue={undefined}
+          readOnly={true}
+          rows={1}
+          tabIndex={-1}
+          value=""
+        />
+        <textarea
+          aria-invalid={false}
+          aria-required={false}
+          autoComplete={undefined}
+          autoFocus={undefined}
+          className="MuiTextarea-textarea-35 MuiInput-input-28 MuiInput-inputMultiline-31"
+          defaultValue={undefined}
+          disabled={false}
+          id={undefined}
+          name="description"
+          onBlur={[Function]}
+          onChange={[Function]}
+          onFocus={[Function]}
+          onKeyDown={undefined}
+          onKeyUp={undefined}
+          placeholder={undefined}
+          readOnly={undefined}
+          required={undefined}
+          rows={1}
+          type="text"
+          value=""
+        />
+      </div>
+    </div>
+    <p
+      className="MuiFormHelperText-root-37"
+      id={undefined}
+    >
+      Optional
+    </p>
+  </div>
+</div>
+`;

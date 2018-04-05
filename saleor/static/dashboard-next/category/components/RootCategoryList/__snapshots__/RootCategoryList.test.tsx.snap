@@ -1,0 +1,296 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`<CategorySubcategories /> renders when loading data 1`] = `
+<div
+  className="MuiPaper-root-1 MuiPaper-elevation2-5 MuiPaper-rounded-2"
+>
+  <div
+    className="Component-root-31"
+  >
+    <h2
+      className="MuiTypography-root-34 MuiTypography-title-40 Component-title-33"
+    >
+      Categories
+    </h2>
+    <div
+      className="Component-action-28"
+    >
+      <button
+        className="MuiButtonBase-root-64 MuiIconButton-root-58"
+        disabled={false}
+        onBlur={[Function]}
+        onClick={[MockFunction]}
+        onFocus={[Function]}
+        onKeyDown={[Function]}
+        onKeyUp={[Function]}
+        onMouseDown={[Function]}
+        onMouseLeave={[Function]}
+        onMouseUp={[Function]}
+        onTouchEnd={[Function]}
+        onTouchMove={[Function]}
+        onTouchStart={[Function]}
+        tabIndex="0"
+        type="button"
+      >
+        <span
+          className="MuiIconButton-label-63"
+        >
+          <svg
+            aria-hidden="true"
+            className="MuiSvgIcon-root-67"
+            color={undefined}
+            focusable="false"
+            viewBox="0 0 24 24"
+          >
+            <path
+              d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"
+            />
+          </svg>
+        </span>
+        <span
+          className="MuiTouchRipple-root-73"
+        />
+      </button>
+    </div>
+  </div>
+  <ul
+    className="MuiList-root-80 MuiList-padding-81"
+  >
+    <li
+      className="MuiListItem-root-84 MuiListItem-default-87 MuiListItem-gutters-91"
+      disabled={false}
+    >
+      <svg
+        aria-hidden="true"
+        className="MuiSvgIcon-root-67 MuiListItemIcon-root-94"
+        color={undefined}
+        focusable="false"
+        viewBox="0 0 24 24"
+      >
+        <path
+          d="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z"
+        />
+      </svg>
+      <div
+        className="MuiListItemText-root-95"
+      >
+        <h3
+          className="MuiTypography-root-34 MuiTypography-subheading-41 MuiListItemText-primary-98"
+        >
+          <span
+            className="Component-skeleton-106"
+            style={undefined}
+          >
+            ‌
+          </span>
+        </h3>
+      </div>
+    </li>
+  </ul>
+</div>
+`;
+
+exports[`<CategorySubcategories /> renders with initial data 1`] = `
+<div
+  className="MuiPaper-root-1 MuiPaper-elevation2-5 MuiPaper-rounded-2"
+>
+  <div
+    className="Component-root-31"
+  >
+    <h2
+      className="MuiTypography-root-34 MuiTypography-title-40 Component-title-33"
+    >
+      Categories
+    </h2>
+    <div
+      className="Component-action-28"
+    >
+      <button
+        className="MuiButtonBase-root-64 MuiIconButton-root-58"
+        disabled={false}
+        onBlur={[Function]}
+        onClick={[MockFunction]}
+        onFocus={[Function]}
+        onKeyDown={[Function]}
+        onKeyUp={[Function]}
+        onMouseDown={[Function]}
+        onMouseLeave={[Function]}
+        onMouseUp={[Function]}
+        onTouchEnd={[Function]}
+        onTouchMove={[Function]}
+        onTouchStart={[Function]}
+        tabIndex="0"
+        type="button"
+      >
+        <span
+          className="MuiIconButton-label-63"
+        >
+          <svg
+            aria-hidden="true"
+            className="MuiSvgIcon-root-67"
+            color={undefined}
+            focusable="false"
+            viewBox="0 0 24 24"
+          >
+            <path
+              d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"
+            />
+          </svg>
+        </span>
+        <span
+          className="MuiTouchRipple-root-73"
+        />
+      </button>
+    </div>
+  </div>
+  <ul
+    className="MuiList-root-80 MuiList-padding-81"
+  >
+    <div
+      className="MuiButtonBase-root-64 MuiListItem-root-84 MuiListItem-default-87 MuiListItem-gutters-91 MuiListItem-button-92"
+      onBlur={[Function]}
+      onClick={[Function]}
+      onFocus={[Function]}
+      onKeyDown={[Function]}
+      onKeyUp={[Function]}
+      onMouseDown={[Function]}
+      onMouseLeave={[Function]}
+      onMouseUp={[Function]}
+      onTouchEnd={[Function]}
+      onTouchMove={[Function]}
+      onTouchStart={[Function]}
+      role="button"
+      tabIndex="0"
+    >
+      <svg
+        aria-hidden="true"
+        className="MuiSvgIcon-root-67 MuiListItemIcon-root-94"
+        color={undefined}
+        focusable="false"
+        viewBox="0 0 24 24"
+      >
+        <path
+          d="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z"
+        />
+      </svg>
+      <div
+        className="MuiListItemText-root-95"
+      >
+        <h3
+          className="MuiTypography-root-34 MuiTypography-subheading-41 MuiListItemText-primary-98"
+        >
+          Lorem ipsum dolor
+        </h3>
+      </div>
+      <span
+        className="MuiTouchRipple-root-73"
+      />
+    </div>
+    <div
+      className="MuiButtonBase-root-64 MuiListItem-root-84 MuiListItem-default-87 MuiListItem-gutters-91 MuiListItem-button-92"
+      onBlur={[Function]}
+      onClick={[Function]}
+      onFocus={[Function]}
+      onKeyDown={[Function]}
+      onKeyUp={[Function]}
+      onMouseDown={[Function]}
+      onMouseLeave={[Function]}
+      onMouseUp={[Function]}
+      onTouchEnd={[Function]}
+      onTouchMove={[Function]}
+      onTouchStart={[Function]}
+      role="button"
+      tabIndex="0"
+    >
+      <svg
+        aria-hidden="true"
+        className="MuiSvgIcon-root-67 MuiListItemIcon-root-94"
+        color={undefined}
+        focusable="false"
+        viewBox="0 0 24 24"
+      >
+        <path
+          d="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z"
+        />
+      </svg>
+      <div
+        className="MuiListItemText-root-95"
+      >
+        <h3
+          className="MuiTypography-root-34 MuiTypography-subheading-41 MuiListItemText-primary-98"
+        >
+          Mauris vehicula tortor vulputate
+        </h3>
+      </div>
+      <span
+        className="MuiTouchRipple-root-73"
+      />
+    </div>
+  </ul>
+</div>
+`;
+
+exports[`<CategorySubcategories /> renders without initial data 1`] = `
+<div
+  className="MuiPaper-root-1 MuiPaper-elevation2-5 MuiPaper-rounded-2"
+>
+  <div
+    className="Component-root-31"
+  >
+    <h2
+      className="MuiTypography-root-34 MuiTypography-title-40 Component-title-33"
+    >
+      Categories
+    </h2>
+    <div
+      className="Component-action-28"
+    >
+      <button
+        className="MuiButtonBase-root-64 MuiIconButton-root-58"
+        disabled={false}
+        onBlur={[Function]}
+        onClick={[MockFunction]}
+        onFocus={[Function]}
+        onKeyDown={[Function]}
+        onKeyUp={[Function]}
+        onMouseDown={[Function]}
+        onMouseLeave={[Function]}
+        onMouseUp={[Function]}
+        onTouchEnd={[Function]}
+        onTouchMove={[Function]}
+        onTouchStart={[Function]}
+        tabIndex="0"
+        type="button"
+      >
+        <span
+          className="MuiIconButton-label-63"
+        >
+          <svg
+            aria-hidden="true"
+            className="MuiSvgIcon-root-67"
+            color={undefined}
+            focusable="false"
+            viewBox="0 0 24 24"
+          >
+            <path
+              d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"
+            />
+          </svg>
+        </span>
+        <span
+          className="MuiTouchRipple-root-73"
+        />
+      </button>
+    </div>
+  </div>
+  <ul
+    className="MuiList-root-80 MuiList-padding-81"
+  >
+    <li
+      className="MuiListSubheader-root-101 MuiListSubheader-sticky-105"
+    >
+      No categories found
+    </li>
+  </ul>
+</div>
+`;
