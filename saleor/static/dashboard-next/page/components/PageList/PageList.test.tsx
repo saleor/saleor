@@ -48,12 +48,10 @@ describe("<PageList />", () => {
     const component = renderer.create(
       <MemoryRouter>
         <PageList
-          loading={true}
           handlePreviousPage={jest.fn()}
           handleNextPage={jest.fn()}
-          pages={[]}
-          editPageUrl={jest.fn()}
-          showPageUrl={jest.fn()}
+          onEditClick={jest.fn()}
+          onShowPageClick={jest.fn()}
           pageInfo={{
             endCursor: "",
             hasNextPage: false,
@@ -69,12 +67,11 @@ describe("<PageList />", () => {
     const component = renderer.create(
       <MemoryRouter>
         <PageList
-          loading={true}
           handlePreviousPage={jest.fn()}
           handleNextPage={jest.fn()}
           pages={pageList}
-          editPageUrl={jest.fn()}
-          showPageUrl={jest.fn()}
+          onEditClick={jest.fn()}
+          onShowPageClick={jest.fn()}
           pageInfo={{
             endCursor: "",
             hasNextPage: false,
@@ -90,12 +87,11 @@ describe("<PageList />", () => {
     const component = renderer.create(
       <MemoryRouter>
         <PageList
-          loading={true}
           handlePreviousPage={jest.fn()}
           handleNextPage={jest.fn()}
           pages={[]}
-          editPageUrl={jest.fn()}
-          showPageUrl={jest.fn()}
+          onEditClick={jest.fn()}
+          onShowPageClick={jest.fn()}
           pageInfo={{
             endCursor: "",
             hasNextPage: false,

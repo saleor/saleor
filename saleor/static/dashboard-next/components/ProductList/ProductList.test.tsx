@@ -1,5 +1,4 @@
 import * as React from "react";
-import { MemoryRouter } from "react-router-dom";
 import * as renderer from "react-test-renderer";
 
 import ProductList from "./ProductList";
@@ -40,52 +39,35 @@ const products = [
 describe("<ProductList />", () => {
   it("renders while data is loading", () => {
     const component = renderer.create(
-      <MemoryRouter>
-        <ProductList
-          hasNextPage={false}
-          onNextPage={jest.fn()}
-          onPreviousPage={jest.fn()}
-        />
-      </MemoryRouter>
+      <ProductList
+        hasPreviousPage={false}
+        hasNextPage={false}
+        onNextPage={jest.fn()}
+        onPreviousPage={jest.fn()}
+      />
     );
     expect(component).toMatchSnapshot();
   });
   it("renders properly when data is loaded", () => {
     const component = renderer.create(
-      <MemoryRouter>
-        <ProductList
-          hasNextPage={false}
-          onNextPage={jest.fn()}
-          onPreviousPage={jest.fn()}
-          products={products}
-        />
-      </MemoryRouter>
-    );
-    expect(component).toMatchSnapshot();
-  });
-  it("renders properly 'load more' button", () => {
-    const component = renderer.create(
-      <MemoryRouter>
-        <ProductList
-          hasNextPage={true}
-          onNextPage={jest.fn()}
-          onPreviousPage={jest.fn()}
-          products={products}
-        />
-      </MemoryRouter>
+      <ProductList
+        hasPreviousPage={false}
+        hasNextPage={false}
+        onNextPage={jest.fn()}
+        onPreviousPage={jest.fn()}
+        products={products}
+      />
     );
     expect(component).toMatchSnapshot();
   });
   it("renders properly when product list is empty", () => {
     const component = renderer.create(
-      <MemoryRouter>
-        <ProductList
-          hasNextPage={false}
-          onNextPage={jest.fn()}
-          onPreviousPage={jest.fn()}
-          products={[]}
-        />
-      </MemoryRouter>
+      <ProductList
+        hasNextPage={false}
+        onNextPage={jest.fn()}
+        onPreviousPage={jest.fn()}
+        products={[]}
+      />
     );
     expect(component).toMatchSnapshot();
   });
