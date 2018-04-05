@@ -1,0 +1,377 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`<TablePagination /> renders when next page is available 1`] = `
+<table
+  className="MuiTable-root-1"
+>
+  <td
+    aria-sort={null}
+    className="MuiTableCell-root-11 MuiTablePagination-root-5"
+    colSpan={1}
+    scope={undefined}
+  >
+    <div
+      className="MuiToolbar-root-19 MuiToolbar-gutters-20 MuiTablePagination-toolbar-10"
+    >
+      <div
+        className="MuiTablePagination-spacer-9"
+      />
+      <div
+        className="MuiTablePaginationActions-root-21"
+      >
+        <button
+          className="MuiButtonBase-root-28 MuiButtonBase-disabled-29 MuiIconButton-root-22 MuiIconButton-disabled-26"
+          disabled={true}
+          onBlur={[Function]}
+          onClick={[MockFunction]}
+          onFocus={[Function]}
+          onKeyDown={[Function]}
+          onKeyUp={[Function]}
+          onMouseDown={[Function]}
+          onMouseLeave={[Function]}
+          onMouseUp={[Function]}
+          onTouchEnd={[Function]}
+          onTouchMove={[Function]}
+          onTouchStart={[Function]}
+          tabIndex="-1"
+          type="button"
+        >
+          <span
+            className="MuiIconButton-label-27"
+          >
+            <svg
+              aria-hidden="true"
+              className="MuiSvgIcon-root-31"
+              color={undefined}
+              focusable="false"
+              viewBox="0 0 24 24"
+            >
+              <path
+                d="M15.41 16.09l-4.58-4.59 4.58-4.59L14 5.5l-6 6 6 6z"
+              />
+            </svg>
+          </span>
+        </button>
+        <button
+          className="MuiButtonBase-root-28 MuiIconButton-root-22"
+          disabled={false}
+          onBlur={[Function]}
+          onClick={[MockFunction]}
+          onFocus={[Function]}
+          onKeyDown={[Function]}
+          onKeyUp={[Function]}
+          onMouseDown={[Function]}
+          onMouseLeave={[Function]}
+          onMouseUp={[Function]}
+          onTouchEnd={[Function]}
+          onTouchMove={[Function]}
+          onTouchStart={[Function]}
+          tabIndex="0"
+          type="button"
+        >
+          <span
+            className="MuiIconButton-label-27"
+          >
+            <svg
+              aria-hidden="true"
+              className="MuiSvgIcon-root-31"
+              color={undefined}
+              focusable="false"
+              viewBox="0 0 24 24"
+            >
+              <path
+                d="M8.59 16.34l4.58-4.59-4.58-4.59L10 5.75l6 6-6 6z"
+              />
+            </svg>
+          </span>
+          <span
+            className="MuiTouchRipple-root-37"
+          />
+        </button>
+      </div>
+    </div>
+  </td>
+</table>
+`;
+
+exports[`<TablePagination /> renders when no previous / next page are available 1`] = `
+<table
+  className="MuiTable-root-1"
+>
+  <td
+    aria-sort={null}
+    className="MuiTableCell-root-11 MuiTablePagination-root-5"
+    colSpan={1}
+    scope={undefined}
+  >
+    <div
+      className="MuiToolbar-root-19 MuiToolbar-gutters-20 MuiTablePagination-toolbar-10"
+    >
+      <div
+        className="MuiTablePagination-spacer-9"
+      />
+      <div
+        className="MuiTablePaginationActions-root-21"
+      >
+        <button
+          className="MuiButtonBase-root-28 MuiButtonBase-disabled-29 MuiIconButton-root-22 MuiIconButton-disabled-26"
+          disabled={true}
+          onBlur={[Function]}
+          onClick={[MockFunction]}
+          onFocus={[Function]}
+          onKeyDown={[Function]}
+          onKeyUp={[Function]}
+          onMouseDown={[Function]}
+          onMouseLeave={[Function]}
+          onMouseUp={[Function]}
+          onTouchEnd={[Function]}
+          onTouchMove={[Function]}
+          onTouchStart={[Function]}
+          tabIndex="-1"
+          type="button"
+        >
+          <span
+            className="MuiIconButton-label-27"
+          >
+            <svg
+              aria-hidden="true"
+              className="MuiSvgIcon-root-31"
+              color={undefined}
+              focusable="false"
+              viewBox="0 0 24 24"
+            >
+              <path
+                d="M15.41 16.09l-4.58-4.59 4.58-4.59L14 5.5l-6 6 6 6z"
+              />
+            </svg>
+          </span>
+        </button>
+        <button
+          className="MuiButtonBase-root-28 MuiButtonBase-disabled-29 MuiIconButton-root-22 MuiIconButton-disabled-26"
+          disabled={true}
+          onBlur={[Function]}
+          onClick={[MockFunction]}
+          onFocus={[Function]}
+          onKeyDown={[Function]}
+          onKeyUp={[Function]}
+          onMouseDown={[Function]}
+          onMouseLeave={[Function]}
+          onMouseUp={[Function]}
+          onTouchEnd={[Function]}
+          onTouchMove={[Function]}
+          onTouchStart={[Function]}
+          tabIndex="-1"
+          type="button"
+        >
+          <span
+            className="MuiIconButton-label-27"
+          >
+            <svg
+              aria-hidden="true"
+              className="MuiSvgIcon-root-31"
+              color={undefined}
+              focusable="false"
+              viewBox="0 0 24 24"
+            >
+              <path
+                d="M8.59 16.34l4.58-4.59-4.58-4.59L10 5.75l6 6-6 6z"
+              />
+            </svg>
+          </span>
+        </button>
+      </div>
+    </div>
+  </td>
+</table>
+`;
+
+exports[`<TablePagination /> renders when previous and next pages are available 1`] = `
+<table
+  className="MuiTable-root-1"
+>
+  <td
+    aria-sort={null}
+    className="MuiTableCell-root-11 MuiTablePagination-root-5"
+    colSpan={1}
+    scope={undefined}
+  >
+    <div
+      className="MuiToolbar-root-19 MuiToolbar-gutters-20 MuiTablePagination-toolbar-10"
+    >
+      <div
+        className="MuiTablePagination-spacer-9"
+      />
+      <div
+        className="MuiTablePaginationActions-root-21"
+      >
+        <button
+          className="MuiButtonBase-root-28 MuiIconButton-root-22"
+          disabled={false}
+          onBlur={[Function]}
+          onClick={[MockFunction]}
+          onFocus={[Function]}
+          onKeyDown={[Function]}
+          onKeyUp={[Function]}
+          onMouseDown={[Function]}
+          onMouseLeave={[Function]}
+          onMouseUp={[Function]}
+          onTouchEnd={[Function]}
+          onTouchMove={[Function]}
+          onTouchStart={[Function]}
+          tabIndex="0"
+          type="button"
+        >
+          <span
+            className="MuiIconButton-label-27"
+          >
+            <svg
+              aria-hidden="true"
+              className="MuiSvgIcon-root-31"
+              color={undefined}
+              focusable="false"
+              viewBox="0 0 24 24"
+            >
+              <path
+                d="M15.41 16.09l-4.58-4.59 4.58-4.59L14 5.5l-6 6 6 6z"
+              />
+            </svg>
+          </span>
+          <span
+            className="MuiTouchRipple-root-37"
+          />
+        </button>
+        <button
+          className="MuiButtonBase-root-28 MuiIconButton-root-22"
+          disabled={false}
+          onBlur={[Function]}
+          onClick={[MockFunction]}
+          onFocus={[Function]}
+          onKeyDown={[Function]}
+          onKeyUp={[Function]}
+          onMouseDown={[Function]}
+          onMouseLeave={[Function]}
+          onMouseUp={[Function]}
+          onTouchEnd={[Function]}
+          onTouchMove={[Function]}
+          onTouchStart={[Function]}
+          tabIndex="0"
+          type="button"
+        >
+          <span
+            className="MuiIconButton-label-27"
+          >
+            <svg
+              aria-hidden="true"
+              className="MuiSvgIcon-root-31"
+              color={undefined}
+              focusable="false"
+              viewBox="0 0 24 24"
+            >
+              <path
+                d="M8.59 16.34l4.58-4.59-4.58-4.59L10 5.75l6 6-6 6z"
+              />
+            </svg>
+          </span>
+          <span
+            className="MuiTouchRipple-root-37"
+          />
+        </button>
+      </div>
+    </div>
+  </td>
+</table>
+`;
+
+exports[`<TablePagination /> renders when previous page is available 1`] = `
+<table
+  className="MuiTable-root-1"
+>
+  <td
+    aria-sort={null}
+    className="MuiTableCell-root-11 MuiTablePagination-root-5"
+    colSpan={1}
+    scope={undefined}
+  >
+    <div
+      className="MuiToolbar-root-19 MuiToolbar-gutters-20 MuiTablePagination-toolbar-10"
+    >
+      <div
+        className="MuiTablePagination-spacer-9"
+      />
+      <div
+        className="MuiTablePaginationActions-root-21"
+      >
+        <button
+          className="MuiButtonBase-root-28 MuiIconButton-root-22"
+          disabled={false}
+          onBlur={[Function]}
+          onClick={[MockFunction]}
+          onFocus={[Function]}
+          onKeyDown={[Function]}
+          onKeyUp={[Function]}
+          onMouseDown={[Function]}
+          onMouseLeave={[Function]}
+          onMouseUp={[Function]}
+          onTouchEnd={[Function]}
+          onTouchMove={[Function]}
+          onTouchStart={[Function]}
+          tabIndex="0"
+          type="button"
+        >
+          <span
+            className="MuiIconButton-label-27"
+          >
+            <svg
+              aria-hidden="true"
+              className="MuiSvgIcon-root-31"
+              color={undefined}
+              focusable="false"
+              viewBox="0 0 24 24"
+            >
+              <path
+                d="M15.41 16.09l-4.58-4.59 4.58-4.59L14 5.5l-6 6 6 6z"
+              />
+            </svg>
+          </span>
+          <span
+            className="MuiTouchRipple-root-37"
+          />
+        </button>
+        <button
+          className="MuiButtonBase-root-28 MuiButtonBase-disabled-29 MuiIconButton-root-22 MuiIconButton-disabled-26"
+          disabled={true}
+          onBlur={[Function]}
+          onClick={[MockFunction]}
+          onFocus={[Function]}
+          onKeyDown={[Function]}
+          onKeyUp={[Function]}
+          onMouseDown={[Function]}
+          onMouseLeave={[Function]}
+          onMouseUp={[Function]}
+          onTouchEnd={[Function]}
+          onTouchMove={[Function]}
+          onTouchStart={[Function]}
+          tabIndex="-1"
+          type="button"
+        >
+          <span
+            className="MuiIconButton-label-27"
+          >
+            <svg
+              aria-hidden="true"
+              className="MuiSvgIcon-root-31"
+              color={undefined}
+              focusable="false"
+              viewBox="0 0 24 24"
+            >
+              <path
+                d="M8.59 16.34l4.58-4.59-4.58-4.59L10 5.75l6 6-6 6z"
+              />
+            </svg>
+          </span>
+        </button>
+      </div>
+    </div>
+  </td>
+</table>
+`;

@@ -71,6 +71,7 @@
     "@babel/preset-es2015": "^7.0.0-beta.44",
     "@babel/preset-react": "^7.0.0-beta.44",
     "@babel/preset-stage-0": "^7.0.0-beta.44",
+    "@storybook/react": "^4.0.0-alpha.1",
     "@types/i18next": "^8.4.3",
     "@types/jest": "^22.2.2",
     "@types/react-dom": "^16.0.4",
@@ -149,6 +150,7 @@
     "heroku-postbuild": "npm run build-assets && npm run build-emails",
     "start": "webpack -d --watch --progress",
     "build-emails": "mjml --config.beautify false -l skip \"templates/templated_email/source/*.mjml\" -o templates/templated_email/compiled",
+    "storybook": "start-storybook -p 3000 -c saleor/static/dashboard-next/storybook/",
     "test": "jest saleor/static/dashboard-next/"
   }
 }

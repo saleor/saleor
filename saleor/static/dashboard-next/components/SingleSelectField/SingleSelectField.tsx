@@ -16,16 +16,27 @@ interface SingleSelectFieldProps {
     value: string;
     label: string;
   }>;
+  error?: boolean;
   hint?: string;
-  label: string;
-  name: string;
+  label?: string;
+  name?: string;
   selectProps?: SelectProps;
-  value: string;
+  value?: string;
   onChange(event: any);
 }
 
 export const SingleSelectField = decorate<SingleSelectFieldProps>(
-  ({ classes, label, choices, value, onChange, name, hint, selectProps }) => {
+  ({
+    classes,
+    error,
+    label,
+    choices,
+    value,
+    onChange,
+    name,
+    hint,
+    selectProps
+  }) => {
     const choicesByKey: { [key: string]: string } = choices.reduce(
       (prev, curr) => {
         prev[curr.value] = curr.label;
@@ -35,14 +46,14 @@ export const SingleSelectField = decorate<SingleSelectFieldProps>(
     );
 
     return (
-      <FormControl className={classes.formControl}>
+      <FormControl className={classes.formControl} error={error}>
         <InputLabel shrink={!!value}>{label}</InputLabel>
         <Select
           fullWidth
           renderValue={choiceValue =>
             choiceValue ? choicesByKey[choiceValue.toString()] : ""
           }
-          value={value}
+          value={value || ""}
           name={name}
           onChange={onChange}
           {...selectProps}
