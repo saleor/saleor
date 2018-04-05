@@ -44,9 +44,10 @@ def _get_internal_page_slug(internal_name):
     if internal_name in internal_pages:
         return internal_pages[internal_name]
 
-    raise ValueError(
-        '\'{}\' is not a know internal page name. '
-        'Please check the \'INTERNAL_PAGES\' settings key if you edited it.')
+    raise ValueError((
+         '\'{}\' is not a know internal page name. '
+         'Please check the \'INTERNAL_PAGES\' settings key if you edited it.'
+    ).format(internal_name))
 
 
 @register.simple_tag
