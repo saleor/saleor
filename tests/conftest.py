@@ -677,3 +677,8 @@ def menu_with_items(menu, default_category, collection):
     menu.items.create(
         name=collection.name, collection=collection, parent=menu_item)
     return menu
+
+
+@pytest.fixture
+def footer():
+    return Menu.objects.get_or_create(slug='footer')[0]

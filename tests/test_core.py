@@ -3,9 +3,14 @@ from contextlib import redirect_stdout
 from unittest.mock import Mock, patch
 
 import pytest
+from django.conf import settings
 
 from django.shortcuts import reverse
 from prices import Money
+
+from saleor.menu.models import Menu
+from saleor.page.models import Page
+
 from saleor.account.models import Address, User
 from saleor.core.utils import (
     Country, create_superuser, create_thumbnails, format_money,
@@ -222,3 +227,101 @@ def test_create_thumbnails(product_with_image, settings):
             assert product_image.image.crop[size].name in log_deleted_images
         elif method == 'thumbnail':
             assert product_image.image.thumbnail[size].name in log_deleted_images  # noqa
+
+
+def test_random_data_get_default_page_content_missing_file():
+    html = random_data.get_default_page_content('__missing_file__')
+    assert html == random_data.DEFAULT_PAGE_HTML_IF_MISSING
+
+
+def test_random_data_create_privacy_page(footer: Menu):
+    slug = settings.PRIVACY_PAGE_SLUG
+
+    assert Page.objects.all().count() == 0
+    assert footer.items.count() == 0
+
+    assert list(random_data.create_privacy_page(create_menu_entry=True))
+    assert Page.objects.all().count() == 1
+    assert footer.items.count() == 1
+
+    created_page = Page.objects.all().last()
+    menu_item = footer.items.last()
+    assert created_page.slug == slug
+    assert created_page.content != random_data.DEFAULT_PAGE_HTML_IF_MISSING
+    assert menu_item.name == created_page.title
+    assert menu_item.page_id == created_page.pk
+
+    created_page.title = title = 'New title was placed'
+    created_page.content = content = 'New content was placed'
+    created_page.save()
+
+    menu_item.name = menu_item_name = 'New name'
+    menu_item.save()
+
+    # check if not overriding
+    assert not list(random_data.create_privacy_page(create_menu_entry=True))
+    assert Page.objects.all().count() == 1
+    assert footer.items.count() == 1
+
+    created_page = Page.objects.all().last()
+    menu_item = footer.items.last()
+    assert created_page.title == title
+    assert created_page.content == content
+    assert menu_item.name == menu_item_name
+
+    # test without creating menu item
+    footer.items.last().delete()
+    assert footer.items.count() == 0
+
+    # should have nothing to do
+    assert not list(random_data.create_privacy_page(create_menu_entry=False))
+    assert Page.objects.all().count() == 1
+    assert footer.items.count() == 0
+
+
+def test_random_data_create_selling_contract_page(footer: Menu):
+    slug = settings.SELLING_CONTRACT_PAGE_SLUG
+
+    assert Page.objects.all().count() == 0
+    assert footer.items.count() == 0
+
+    assert list(
+        random_data.create_selling_contract_page(create_menu_entry=True))
+    assert Page.objects.all().count() == 1
+    assert footer.items.count() == 1
+
+    created_page = Page.objects.all().last()
+    menu_item = footer.items.last()
+    assert created_page.slug == slug
+    assert created_page.content != random_data.DEFAULT_PAGE_HTML_IF_MISSING
+    assert menu_item.name == created_page.title
+    assert menu_item.page_id == created_page.pk
+
+    created_page.title = title = 'New title was placed'
+    created_page.content = content = 'New content was placed'
+    created_page.save()
+
+    menu_item.name = menu_item_name = 'New name'
+    menu_item.save()
+
+    # check if not overriding
+    assert not list(
+        random_data.create_selling_contract_page(create_menu_entry=True))
+    assert Page.objects.all().count() == 1
+    assert footer.items.count() == 1
+
+    created_page = Page.objects.all().last()
+    menu_item = footer.items.last()
+    assert created_page.title == title
+    assert created_page.content == content
+    assert menu_item.name == menu_item_name
+
+    # test without creating menu item
+    footer.items.last().delete()
+    assert footer.items.count() == 0
+
+    # should have nothing to do
+    assert not list(random_data.create_selling_contract_page(
+        create_menu_entry=False))
+    assert Page.objects.all().count() == 1
+    assert footer.items.count() == 0

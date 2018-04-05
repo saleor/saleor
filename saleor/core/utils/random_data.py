@@ -3,6 +3,7 @@ import os
 import random
 import unicodedata
 from collections import defaultdict
+from os.path import isfile
 
 from django.conf import settings
 from django.contrib.auth.models import Group, Permission
@@ -10,6 +11,7 @@ from django.core.files import File
 from django.template.defaultfilters import slugify
 from faker import Factory
 from faker.providers import BaseProvider
+from markdown import markdown
 from payments import PaymentStatus
 from prices import Money, TaxedMoney
 
@@ -108,6 +110,20 @@ COLLECTIONS_SCHEMA = [
     {
         'name': 'Winter sale',
         'image_name': 'sale.jpg'}]
+
+DEFAULT_PRIVACY_POLICY_FILE_NAME = 'privacy-policy.md'
+DEFAULT_SELLING_CONTRACT_FILE_NAME = 'selling-contract.md'
+
+DEFAULT_PAGE_HTML_IF_MISSING = '<p>No data</p>'
+
+
+def get_default_page_content(name):
+    path = os.path.join(settings.DEFAULT_PAGES_CONTENT_PATH, name)
+    if isfile(path):
+        with open(path) as fp:
+            return markdown(fp.read())
+    else:
+        return DEFAULT_PAGE_HTML_IF_MISSING
 
 
 def create_attributes_and_values(attribute_data):
@@ -588,7 +604,7 @@ def create_collections_by_schema(placeholder_dir, schema=COLLECTIONS_SCHEMA):
         yield 'Collection: %s' % (collection,)
 
 
-def create_page():
+def create_about_page():
     content = """
     <h2 align="center">AN OPENSOURCE STOREFRONT PLATFORM FOR PERFECTIONISTS</h2>
     <h3 align="center">WRITTEN IN PYTHON, BEST SERVED AS A BESPOKE, HIGH-PERFORMANCE E-COMMERCE SOLUTION</h3>
@@ -601,6 +617,43 @@ def create_page():
     page_data = {'content': content, 'title': 'About', 'is_visible': True}
     page, dummy = Page.objects.get_or_create(slug='about', **page_data)
     yield 'Page %s created' % page.slug
+
+
+def create_footer_entry_from_page(page):
+    footer_menu = Menu.objects.get(slug='footer')
+    data = {'name': page.title}
+    return footer_menu.items.get_or_create(defaults=data, page_id=page.pk)
+
+
+def _create_default_page_from_data(slug, data, create_menu_entry=True):
+    data.setdefault('is_visible', True)
+    page, created = Page.objects.get_or_create(defaults=data, slug=slug)
+
+    if created:
+        yield 'Created page: {0.title} ({0.slug})'.format(page)
+
+    if create_menu_entry:
+        menu_item, created = create_footer_entry_from_page(page)
+        if created:
+            yield 'Created menu entry for: {0.title} ({0.slug})'.format(page)
+
+
+def create_privacy_page(create_menu_entry: bool):
+    slug = settings.PRIVACY_PAGE_SLUG
+    page_data = {
+        'title': 'Privacy Policy',
+        'content': get_default_page_content(
+            DEFAULT_PRIVACY_POLICY_FILE_NAME)}
+    return _create_default_page_from_data(slug, page_data, create_menu_entry)
+
+
+def create_selling_contract_page(create_menu_entry: bool):
+    slug = settings.SELLING_CONTRACT_PAGE_SLUG
+    page_data = {
+        'title': 'Selling Contract',
+        'content': get_default_page_content(
+            DEFAULT_SELLING_CONTRACT_FILE_NAME)}
+    return _create_default_page_from_data(slug, page_data, create_menu_entry)
 
 
 def create_menus():
