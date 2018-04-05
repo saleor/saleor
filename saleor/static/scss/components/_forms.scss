@@ -93,7 +93,7 @@
     border-left: solid 1px $gray;
     border-radius: 0;
     outline: 0;
-    @include transition(background, 0.3s)
+    @include transition(background, 0.3s);
     img {
       height: 1.5rem;
       padding: $global-padding / 7;

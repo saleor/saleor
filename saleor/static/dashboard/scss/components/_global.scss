@@ -181,3 +181,27 @@ svg {
     max-width: 100%;
   }
 }
+
+.full-width {
+  width: 100%;
+}
+
+.corner {
+  position: absolute;
+  z-index: 1;
+  &-top {
+    top: 0;
+  }
+  &-bottom {
+    bottom: 0;
+  }
+  &-left {
+    left: 0;
+  }
+  &-right {
+    right: 0;
+  }
+  &-container {
+    position: relative;
+  }
+}

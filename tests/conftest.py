@@ -19,6 +19,7 @@ from saleor.cart.models import Cart
 from saleor.checkout.core import Checkout
 from saleor.dashboard.order.utils import fulfill_order_line
 from saleor.discount.models import Sale, Voucher
+from saleor.homepage.models import HomePageItem
 from saleor.menu.models import Menu, MenuItem
 from saleor.order import OrderStatus
 from saleor.order.models import Order, OrderLine
@@ -642,6 +643,14 @@ def page(db):
         'content': 'test content'}
     page = Page.objects.create(**data)
     return page
+
+
+@pytest.fixture
+def homepage_block():
+    res = HomePageItem.objects.create(
+        title='Dummy block', subtitle='Dummy subtitle',
+        primary_button_text='Dummy button')
+    return res
 
 
 @pytest.fixture

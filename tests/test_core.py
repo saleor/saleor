@@ -3,10 +3,13 @@ from contextlib import redirect_stdout
 from unittest.mock import Mock, patch
 
 import pytest
-
+from django.http import HttpResponse
 from django.shortcuts import reverse
+from django.test import RequestFactory
 from prices import Money
+
 from saleor.account.models import Address, User
+from saleor.core.decorators import methods_required, requires_post_method
 from saleor.core.utils import (
     Country, create_superuser, create_thumbnails, format_money,
     get_country_by_ip, get_currency_for_country, random_data)
@@ -222,3 +225,53 @@ def test_create_thumbnails(product_with_image, settings):
             assert product_image.image.crop[size].name in log_deleted_images
         elif method == 'thumbnail':
             assert product_image.image.thumbnail[size].name in log_deleted_images  # noqa
+
+
+def test_decorators_methods_required_empty():
+    request = RequestFactory().get('/')
+
+    @methods_required()
+    def my_view(request):
+        pytest.fail('This view should not be called, but it was.')
+
+    # test if the view was wrapped correctly
+    assert my_view.__name__ == 'my_view'
+
+    # test if the decorator does its job
+    response = my_view(request)
+    assert response.status_code == 405
+    assert response['Allow'] == ''
+
+
+def test_decorators_methods_required():
+    allowed_methods = ('POST', 'PUT')
+    allowed_methods_allow_header = ', '.join(allowed_methods)
+
+    cases = (
+        (True, 'post'),
+        (True, 'put'),
+        (False, 'get'),
+        (False, 'head'),
+    )
+    request_factory = RequestFactory()
+
+    view = methods_required(*allowed_methods)(
+        lambda _rq: HttpResponse(status=200))
+
+    # test if the decorator does its job
+    for case in cases:
+        should_success, method = case
+        request = getattr(request_factory, method)('/')
+        response = view(request)
+        if should_success:
+            assert response.status_code == 200
+        else:
+            assert response.status_code == 405
+            assert response['Allow'] == allowed_methods_allow_header
+
+
+def test_decorators_requires_post_method():
+    request_factory = RequestFactory()
+    view = requires_post_method()(lambda _rq: HttpResponse(status=200))
+    assert view(request_factory.get('/')).status_code == 405
+    assert view(request_factory.post('/')).status_code == 200

@@ -12,16 +12,19 @@ a.btn {
   white-space: normal;
   line-height: 1.25;
   &.home__button {
+    position: absolute;
+    bottom: 0;
+    left: 0;
     text-transform: uppercase;
     font-size: $h3-font-size;
     color: $white;
-    background-color: transparent;
-    border: 1px solid $white;
+    font-weight: bold;
+    background-color: $black;
+    border-radius: 0;
+    opacity: 0.8;
+    width: 100%;
+    border: none;
     padding: $global-padding $global-padding * 2;
-    &:hover {
-      background-color: $white;
-      color: $body-color;
-    }
   }
   &.primary {
     background-color: $blue;

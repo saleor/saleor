@@ -1,0 +1,22 @@
+{% load i18n %}
+
+<form action="{% url 'dashboard:homepage-blocks-delete' pk=page_block.pk %}" method="post">
+    {% csrf_token %}
+    <div class="modal-content">
+        <div class="row">
+            <div class="col s12">
+                <h5>{% trans "Are you sure?" %}</h5>
+            </div>
+        </div>
+        <p>
+            {% blocktrans with block_title=page_block.title %}
+                Are you sure you want to delete the block <strong>{{ block_title }}</strong>?
+            {% endblocktrans %}
+        </p>
+    </div>
+
+    <div class="modal-footer">
+        <a href="#" class="modal-action modal-close btn-flat blue-text">{% trans "Cancel" %}</a>
+        <button type="submit" class="modal-action btn-flat blue-text">{% trans "Delete" %}</button>
+    </div>
+</form>

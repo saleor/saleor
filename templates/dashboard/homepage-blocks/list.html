@@ -1,0 +1,42 @@
+{% extends "dashboard/base.html" %}
+{% load i18n %}
+{% load staticfiles %}
+
+{% block title %}
+  {% trans "Homepage blocks" context "Homepage block list page title"%} - {{ block.super }}
+{% endblock %}
+
+{% block body_class %}body-page{% endblock %}
+
+{% block header_extra %}
+  {% if perms.homepage.edit_blocks_config %}
+    <div class="btn-fab-fixed">
+      <a class="btn-fab-default waves-effect waves-light"
+       href="{% url 'dashboard:homepage-blocks-add' %}"
+       title="{% trans "Create block" %}"><svg data-src="{% static "dashboard/images/add.svg" %}" />
+      </a>
+    </div>
+  {% endif %}
+{% endblock %}
+
+{% block breadcrumbs %}
+  <ul class="breadcrumbs">
+    <li class="visible-s">{% trans "Homepage blocks" %}</li>
+  </ul>
+{% endblock %}
+
+{% block menu_homepage_blocks_class %}active{% endblock %}
+
+{% block content %}
+  <div class="row sortable-items-container"
+       data-post-parameter="ordered_block_items"
+       data-post-url="{% url 'dashboard:homepage-blocks-reorder' %}">
+    {% if blocks %}
+      {% for block_item in blocks %}
+        {% include 'dashboard/includes/_homepage_block_item.html' %}
+      {% endfor %}
+    {% else %}
+      {% include 'dashboard/homepage-blocks/zero_page.html' %}
+    {% endif %}
+  </div>
+{% endblock %}

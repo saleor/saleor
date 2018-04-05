@@ -250,6 +250,13 @@
                       </a>
                     </li>
                   {% endif %}
+                  {% if perms.homepage.view_blocks_config %}
+                    <li class="{% block menu_homepage_blocks_class %}{% endblock %}">
+                      <a href="{% url 'dashboard:homepage-blocks-list' %}">
+                        {% trans "Homepage blocks" context "Dashboard homepage blocks" %}
+                      </a>
+                    </li>
+                  {% endif %}
                 </ul>
               </li>
               <li class="side-nav-section" id="version-indicator">

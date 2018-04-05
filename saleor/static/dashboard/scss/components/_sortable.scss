@@ -1,0 +1,9 @@
+@mixin sortable-items {
+  .sortable__drag-area {
+      cursor: move;
+  }
+}
+
+.sortable-items-container {
+  @include sortable-items;
+}

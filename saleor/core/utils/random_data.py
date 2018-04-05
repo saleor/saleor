@@ -6,7 +6,9 @@ from collections import defaultdict
 
 from django.conf import settings
 from django.contrib.auth.models import Group, Permission
+from django.contrib.staticfiles.finders import find as static_find
 from django.core.files import File
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.template.defaultfilters import slugify
 from faker import Factory
 from faker.providers import BaseProvider
@@ -18,6 +20,8 @@ from ...account.utils import store_user_address
 from ...core.utils.text import strip_html_and_truncate
 from ...discount import DiscountValueType, VoucherType
 from ...discount.models import Sale, Voucher
+from ...homepage.models import HomePageItem
+from ...homepage.thumbnails import create_homepage_block_thumbnails
 from ...menu.models import Menu
 from ...order.models import Fulfillment, Order, Payment
 from ...order.utils import update_order_status
@@ -108,6 +112,24 @@ COLLECTIONS_SCHEMA = [
     {
         'name': 'Winter sale',
         'image_name': 'sale.jpg'}]
+HOMEPAGE_BLOCKS_SCHEMA = [
+    {
+        '_cover_path': static_find('assets/block1.jpg'),
+        'html_classes': 'col-sm-12',
+        'title': 'Promo & Sale',
+        'subtitle': 'from the North Pole',
+        'primary_button_text': 'View Offers'
+    },
+    {
+        '_cover_path': static_find('assets/block2.jpg'),
+        'html_classes': 'col-sm-12 col-md-6',
+        'title': 'Size & Colours'
+    },
+    {
+        '_cover_path': static_find('assets/block3.jpg'),
+        'html_classes': 'col-sm-12 col-md-6',
+        'title': 'Digital Downloads'
+    }]
 
 
 def create_attributes_and_values(attribute_data):
@@ -634,6 +656,41 @@ def create_menus():
             name=page.title,
             page=page)
         yield 'Created footer menu'
+
+
+def create_homepage_block(data: dict) -> HomePageItem:
+    cover = data.pop('_cover_path', None)
+
+    if cover:
+        with open(cover, 'rb') as cover_fp:
+            image = SimpleUploadedFile(
+                cover, cover_fp.read(), 'image/jpeg')
+        data['cover'] = image
+
+    instance = HomePageItem.objects.create(**data)
+    if instance.cover:
+        create_homepage_block_thumbnails.delay(instance.pk)
+
+    return instance
+
+
+def create_homepage_blocks_by_schema(
+        schema=HOMEPAGE_BLOCKS_SCHEMA, allow_duplicates=False):
+    existing_blocks = HomePageItem.objects.all()
+    entry = None
+
+    def _homepage_block_exists() -> bool:
+        return existing_blocks.filter(title=entry['title']).exists()
+
+    for entry in schema:
+        if not allow_duplicates and _homepage_block_exists():
+            continue
+
+        kwargs = entry.copy()
+        instance = create_homepage_block(kwargs)
+
+        yield 'Created a new homepage block item with title: %s' % \
+              instance.title
 
 
 def get_product_list_images_dir(placeholder_dir):
