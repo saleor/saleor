@@ -1,6 +1,7 @@
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import permission_required
+from django.contrib.sites.shortcuts import get_current_site
 from django.db.models import Q
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect
@@ -14,7 +15,7 @@ from ...page.models import Page
 from ...product.models import Category, Collection
 from ..views import staff_member_required
 from .filters import MenuFilter, MenuItemFilter
-from .forms import MenuForm, MenuItemForm, ReorderMenuItemsForm
+from .forms import MenuForm, MenuItemForm, ReorderMenuItemsForm, AssignMenuForm
 
 
 @staff_member_required
@@ -25,8 +26,20 @@ def menu_list(request):
     menus = get_paginator_items(
         menu_filter.qs, settings.DASHBOARD_PAGINATE_BY,
         request.GET.get('page'))
-    ctx = {'menus': menus, 'filter_set': menu_filter,
-           'is_empty': not menu_filter.queryset.exists()}
+    site = get_current_site(request)
+    site_settings = site.settings
+    assign_menu_form = AssignMenuForm(
+        request.POST or None, instance=site_settings)
+    if assign_menu_form.is_valid():
+        assign_menu_form.save()
+        msg = pgettext_lazy(
+            'Dashboard message', 'Updated Storefront menus')
+        messages.success(request, msg)
+        return redirect('dashboard:menu-list')
+    ctx = {
+        'menus': menus, 'filter_set': menu_filter,
+        'is_empty': not menu_filter.queryset.exists(),
+        'assign_menu_form': assign_menu_form}
     return TemplateResponse(request, 'dashboard/menu/list.html', ctx)
 
 

@@ -26,9 +26,9 @@
         <svg data-src="{% static 'dashboard/images/arrow-left.svg' %}" fill="#fff" width="20px" height="20px"/>
       </a>
     </li>
-    <li title="{{ menu.slug }}">
+    <li title="{{ menu.name }}">
       <span class="breadcrumbs--ellipsed-item">
-        {{ menu.slug }}
+        {{ menu.name }}
       </span>
     </li>
   </ul>
@@ -40,7 +40,7 @@
       <div class="card">
         <div class="card-content">
           <span class="card-title">
-            {{ menu.slug }}
+            {{ menu.name }}
           </span>
         </div>
         {% if perms.product.edit_menu %}

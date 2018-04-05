@@ -23,7 +23,7 @@ def test_view_menu_list(admin_client, menu):
 def test_view_menu_create(admin_client):
     menus_before = Menu.objects.count()
     url = reverse('dashboard:menu-add')
-    data = {'slug': 'new-menu'}
+    data = {'name': 'Summer Collection'}
 
     response = admin_client.post(url, data)
 
@@ -47,8 +47,8 @@ def test_view_menu_create_not_valid(admin_client):
 @pytest.mark.django_db
 def test_view_menu_edit(admin_client, menu):
     url = reverse('dashboard:menu-edit', kwargs={'pk': menu.pk})
-    slug = 'navbar2'
-    data = {'slug': slug}
+    name = 'Summer Collection'
+    data = {'name': name}
 
     response = admin_client.post(url, data)
 
@@ -56,7 +56,7 @@ def test_view_menu_edit(admin_client, menu):
     redirect_url = reverse('dashboard:menu-detail', kwargs={'pk': menu.pk})
     assert get_redirect_location(response) == redirect_url
     menu.refresh_from_db()
-    assert menu.slug == slug
+    assert menu.name == name
 
 
 @pytest.mark.django_db

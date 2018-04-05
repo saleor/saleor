@@ -7,6 +7,18 @@ from ...page.models import Page
 from ...product.models import Category, Collection
 from ..forms import (
     AjaxSelect2CombinedChoiceField, OrderedModelMultipleChoiceField)
+from ...site.models import SiteSettings
+
+
+class AssignMenuForm(forms.ModelForm):
+    class Meta:
+        model = SiteSettings
+        fields = ('top_menu', 'bottom_menu')
+        label = {
+            'top_menu': pgettext_lazy(
+                'Lowest value for order to be able to use the voucher',
+                'Only if order is over or equal to')
+        }
 
 
 class MenuForm(forms.ModelForm):
@@ -14,9 +26,9 @@ class MenuForm(forms.ModelForm):
 
     class Meta:
         model = Menu
-        fields = ('slug',)
+        fields = ('name',)
         labels = {
-            'slug': pgettext_lazy('Menu internal name', 'Internal name')}
+            'name': pgettext_lazy('Menu name', 'Menu name')}
 
 
 class MenuItemForm(forms.ModelForm):
