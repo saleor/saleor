@@ -6,7 +6,7 @@ from ...core.filters import SortedFilterSet
 from ...menu.models import Menu, MenuItem
 
 MENU_SORT_BY_FIELDS = {
-    'slug': pgettext_lazy('Menu list sorting option', 'Internal name')}
+    'name': pgettext_lazy('Menu list sorting option', 'Name')}
 
 MENU_ITEM_SORT_BY_FIELDS = {
     'name': pgettext_lazy('Menu item list sorting option', 'Name')}
@@ -14,7 +14,7 @@ MENU_ITEM_SORT_BY_FIELDS = {
 
 class MenuFilter(SortedFilterSet):
     slug = CharFilter(
-        label=pgettext_lazy('Menu list filter label', 'Internal name'),
+        label=pgettext_lazy('Menu list filter label', 'Menu name'),
         lookup_expr='icontains')
     sort_by = OrderingFilter(
         label=pgettext_lazy('Menu list filter label', 'Sort by'),

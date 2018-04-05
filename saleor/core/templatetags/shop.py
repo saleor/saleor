@@ -18,8 +18,10 @@ def get_sort_by_url(context, field, descending=False):
 
 
 @register.inclusion_tag('menu.html', takes_context=True)
-def menu(context, slug, horizontal=False):
+def menu(context, site_menu=None, horizontal=False):
+    if not site_menu:
+        return
     menus = context[NAVIGATION_CONTEXT_NAME]
-    menu = next((menu for menu in menus if menu.slug == slug), None)
+    menu = next((menu for menu in menus if menu.pk == site_menu.pk), None)
     menu_items = menu.items.all() if menu else None
     return {'menu_items': menu_items, 'horizontal': horizontal}
