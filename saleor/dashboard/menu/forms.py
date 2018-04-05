@@ -14,11 +14,13 @@ class AssignMenuForm(forms.ModelForm):
     class Meta:
         model = SiteSettings
         fields = ('top_menu', 'bottom_menu')
-        label = {
-            'top_menu': pgettext_lazy(
-                'Lowest value for order to be able to use the voucher',
-                'Only if order is over or equal to')
-        }
+
+    def __init__(self, *args, **kwargs):
+        self.user = kwargs.pop('user')
+        super().__init__(*args, **kwargs)
+        user_can_edit_menus = self.user.has_perm('menu.edit_menu')
+        self.fields['top_menu'].disabled = not user_can_edit_menus
+        self.fields['bottom_menu'].disabled = not user_can_edit_menus
 
 
 class MenuForm(forms.ModelForm):

@@ -91,14 +91,16 @@
               {{ assign_menu_form.bottom_menu|materializecss }}
             </div>
         </div>
-        <div class="card-action right-align">
-          <div class="col s12">
-            <button type="submit" class="btn waves-effect right">
-              {% trans "Save" context "Dashboard update action" %}
-            </button>
+        {% if perms.menu.edit_menu %}
+          <div class="card-action right-align">
+            <div class="col s12">
+              <button type="submit" class="btn waves-effect right">
+                {% trans "Save" context "Dashboard update action" %}
+              </button>
+            </div>
+            <div class="clearfix"></div>
           </div>
-          <div class="clearfix"></div>
-        </div>
+        {% endif %}
       </form>
     </div>
     </div>
