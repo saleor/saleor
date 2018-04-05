@@ -12,6 +12,7 @@ from saleor.menu.models import Menu
 from saleor.page.models import Page
 
 from saleor.account.models import Address, User
+from saleor.core.storages import S3MediaStorage
 from saleor.core.utils import (
     Country, create_superuser, create_thumbnails, format_money,
     get_country_by_ip, get_currency_for_country, random_data)
@@ -227,6 +228,27 @@ def test_create_thumbnails(product_with_image, settings):
             assert product_image.image.crop[size].name in log_deleted_images
         elif method == 'thumbnail':
             assert product_image.image.thumbnail[size].name in log_deleted_images  # noqa
+
+
+@patch('storages.backends.s3boto3.S3Boto3Storage')
+@patch.object(settings, 'AWS_MEDIA_BUCKET_NAME', 'media-bucket')
+@patch.object(settings, 'AWS_MEDIA_CUSTOM_DOMAIN', 'media-bucket.example.org')
+def test_storages_set_s3_bucket_domain(*_patches):
+    assert settings.AWS_MEDIA_BUCKET_NAME == 'media-bucket'
+    assert settings.AWS_MEDIA_CUSTOM_DOMAIN == 'media-bucket.example.org'
+    storage = S3MediaStorage()
+    assert storage.bucket_name == 'media-bucket'
+    assert storage.custom_domain == 'media-bucket.example.org'
+
+
+@patch('storages.backends.s3boto3.S3Boto3Storage')
+@patch.object(settings, 'AWS_MEDIA_BUCKET_NAME', 'media-bucket')
+def test_storages_not_setting_s3_bucket_domain(*_patches):
+    assert settings.AWS_MEDIA_BUCKET_NAME == 'media-bucket'
+    assert settings.AWS_MEDIA_CUSTOM_DOMAIN is None
+    storage = S3MediaStorage()
+    assert storage.bucket_name == 'media-bucket'
+    assert storage.custom_domain is None
 
 
 def test_random_data_get_default_page_content_missing_file():
