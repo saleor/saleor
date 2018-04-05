@@ -1,6 +1,7 @@
 from django import forms
+from django.utils.translation import pgettext_lazy
 
-from ...account.models import User
+from ...account.models import User, CustomerNote
 
 
 class CustomerForm(forms.ModelForm):
@@ -14,3 +15,16 @@ class CustomerForm(forms.ModelForm):
     class Meta:
         model = User
         fields = ['email', 'is_active']
+
+
+class CustomerNoteForm(forms.ModelForm):
+    class Meta:
+        model = CustomerNote
+        fields = ['content', 'is_public']
+        widget = {
+            'content': forms.Textarea()}
+        labels = {
+            'content': pgettext_lazy('Customer note', 'Note'),
+            'is_public': pgettext_lazy(
+                'Allow customers to see note toggle',
+                'Customer can see this note')}

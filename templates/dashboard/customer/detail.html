@@ -168,6 +168,36 @@
             </div>
           </div>
         </div>
+        <div class="col s12 m6 p6 l12">
+          <div class="card equal-height-on-med">
+            <div class="card-content">
+              <span class="card-title black-text">
+                {% trans "Customer notes" context "Customer notes card title" %}
+              </span>
+              {% if notes %}
+                <ul class="list">
+                  {% for note in notes %}
+                    <li class="list-item list-item--spaced">
+                      <small class="list-item-author">{{ note.user }} - {{ note.date }}</small>
+                      <p>{{ note.content }}</p>
+                    </li>
+                  {% endfor %}
+                </ul>
+              {% else %}
+                <div>
+                  {% trans "There are no notes associated with this customer" context "Customer without notes message" %}
+                </div>
+              {% endif %}
+              {% if perms.account.edit_user %}
+                <div class="card-action">
+                  <a data-href="{% url "dashboard:customer-add-note" customer_pk=customer.pk %}" class="modal-trigger-custom btn-flat waves-effect" href="#base-modal">
+                    {% trans "Add note" context "Customer notes card action" %}
+                  </a>
+                </div>
+              {% endif %}
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
