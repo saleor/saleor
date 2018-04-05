@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2018-03-13 11:07-0500\n"
+"POT-Creation-Date: 2018-03-30 10:19-0500\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Magnus Lund <mgnusl@gmail.com>, 2017\n"
 "Language-Team: Norwegian Bokmål (https://www.transifex.com/mirumee/teams/34782/nb/)\n"
@@ -342,6 +342,15 @@ msgstr ""
 #: saleor/static/dashboard/js/components/editor.js:83
 msgctxt "Rich text editor option"
 msgid "Remove formatting"
+msgstr ""
+
+#: saleor/static/dashboard/js/components/google-preview.js:46
+msgid ""
+"Your input might be a little too short, think of something more descriptive"
+msgstr ""
+
+#: saleor/static/dashboard/js/components/google-preview.js:50
+msgid "Your input fits between the recommended lengths"
 msgstr ""
 
 #: saleor/static/js/components/variantPicker/QuantityInput.js:21

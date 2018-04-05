@@ -7,7 +7,8 @@ from django.utils.translation import pgettext_lazy
 from django_countries.fields import Country, CountryField
 from phonenumber_field.modelfields import PhoneNumberField
 
-from ..core.templatetags.demo_obfuscators import obfuscate_email
+from ..core.templatetags.demo_obfuscators import (
+    obfuscate_address, obfuscate_email)
 from .validators import validate_possible_number
 
 
@@ -131,4 +132,12 @@ class User(PermissionsMixin, AbstractBaseUser):
         return self.get_obfuscated_username()
 
     def get_short_name(self):
+        return self.get_obfuscated_username()
+
+    @property
+    def ajax_label(self):
+        address = obfuscate_address(self.default_billing_address)
+        if address:
+            return '%s %s (%s)' % (
+                address.first_name, address.last_name, self.email)
         return self.get_obfuscated_username()

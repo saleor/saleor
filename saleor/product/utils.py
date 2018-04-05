@@ -345,9 +345,14 @@ def decrease_stock(stock, quantity):
     stock.save(update_fields=['quantity', 'quantity_allocated'])
 
 
-def increase_stock(stock, quantity):
+def increase_stock(stock, quantity, allocate=False):
+    """Return given quantity of product to a stock."""
     stock.quantity = F('quantity') + quantity
-    stock.save(update_fields=['quantity'])
+    update_fields = ['quantity']
+    if allocate:
+        stock.quantity_allocated = F('quantity_allocated') + quantity
+        update_fields.append('quantity_allocated')
+    stock.save(update_fields=update_fields)
 
 
 def get_product_list_context(request, filter_set):

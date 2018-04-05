@@ -14,13 +14,12 @@ from ..account.utils import store_user_address
 from ..cart.models import Cart
 from ..cart.utils import get_or_empty_db_cart
 from ..core import analytics
-from ..core.utils import ZERO_TAXED_MONEY
 from ..discount.models import NotApplicable, Voucher
-from ..discount.utils import (
-    get_voucher_discount_for_checkout, increase_voucher_usage)
+from ..discount.utils import increase_voucher_usage
 from ..order.models import Order
 from ..order.utils import add_variant_to_order
 from ..shipping.models import ANY_COUNTRY, ShippingMethodCountry
+from .utils import get_voucher_discount_for_checkout
 
 STORAGE_SESSION_KEY = 'checkout_storage'
 

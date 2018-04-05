@@ -1,27 +1,249 @@
 from django import forms
 from django.conf import settings
 from django.core.validators import MinValueValidator
-from django.urls import reverse_lazy
+from django.urls import reverse, reverse_lazy
 from django.utils.translation import npgettext_lazy, pgettext_lazy
 from django_prices.forms import MoneyField
 from payments import PaymentError, PaymentStatus
 
 from ...account.i18n import (
     AddressForm as StorefrontAddressForm, PossiblePhoneNumberFormField)
+from ...account.models import User
 from ...cart.forms import QuantityField
 from ...core.exceptions import InsufficientStock
-from ...discount.utils import decrease_voucher_usage
+from ...core.utils import ZERO_TAXED_MONEY
+from ...discount.models import Voucher
+from ...discount.utils import decrease_voucher_usage, increase_voucher_usage
+from ...order import CustomPaymentChoices, OrderStatus
 from ...order.emails import send_note_confirmation
-from ...order.models import Fulfillment, FulfillmentLine, OrderLine, OrderNote
+from ...order.models import (
+    Fulfillment, FulfillmentLine, Order, OrderLine, OrderNote, Payment)
 from ...order.utils import (
     add_variant_to_order, cancel_fulfillment, cancel_order,
     change_order_line_quantity, merge_duplicates_into_order_line,
     recalculate_order)
 from ...product.models import Product, ProductVariant, Stock
 from ...product.utils import allocate_stock, deallocate_stock
+from ...shipping.models import ANY_COUNTRY, ShippingMethodCountry
 from ..forms import AjaxSelect2ChoiceField
 from ..widgets import PhonePrefixWidget
-from .utils import fulfill_order_line
+from .utils import (
+    fulfill_order_line, get_voucher_discount_for_order,
+    remove_customer_from_order, update_order_with_user_addresses)
+
+
+class CreateOrderFromDraftForm(forms.ModelForm):
+    """Mark draft order as ready to fulfill."""
+    notify_customer = forms.BooleanField(
+        label=pgettext_lazy(
+            'Send email to customer about order created by staff users',
+            'Send email with order confirmation to the customer'),
+        required=False, initial=True)
+
+    class Meta:
+        model = Order
+        fields = []
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if not self.instance.get_user_current_email():
+            self.fields.pop('notify_customer')
+
+    def clean(self):
+        super().clean()
+        errors = []
+        if self.instance.get_total_quantity() == 0:
+            errors.append(forms.ValidationError(pgettext_lazy(
+                'Create draft order form error',
+                'Could not create order without any products')))
+        if self.instance.is_shipping_required():
+            method = self.instance.shipping_method
+            shipping_address = self.instance.shipping_address
+            shipping_not_valid = (
+                method and shipping_address and
+                method.country_code != ANY_COUNTRY and
+                shipping_address.country.code != method.country_code)
+            if shipping_not_valid:
+                errors.append(forms.ValidationError(pgettext_lazy(
+                    'Create draft order form error',
+                    'Shipping method is not valid for chosen shipping '
+                    'address')))
+        if errors:
+            raise forms.ValidationError(errors)
+        return self.cleaned_data
+
+    def save(self):
+        self.instance.status = OrderStatus.UNFULFILLED
+        if self.instance.user:
+            self.instance.user_email = self.instance.user.email
+        remove_shipping_address = False
+        if not self.instance.is_shipping_required():
+            self.instance.shipping_method_name = None
+            self.instance.shipping_price = ZERO_TAXED_MONEY
+            if self.instance.shipping_address:
+                remove_shipping_address = True
+        super().save()
+        if remove_shipping_address:
+            self.instance.shipping_address.delete()
+        return self.instance
+
+
+class OrderCustomerForm(forms.ModelForm):
+    """Set customer details in an order."""
+
+    update_addresses = forms.BooleanField(
+        label=pgettext_lazy(
+            'Update an order with user default addresses',
+            'Set billing and shipping address in order to customer defaults'),
+        initial=True, required=False)
+    user = AjaxSelect2ChoiceField(
+        queryset=User.objects.all(),
+        fetch_data_url=reverse_lazy('dashboard:ajax-users-list'),
+        required=False)
+
+    class Meta:
+        model = Order
+        fields = ['user', 'user_email']
+        labels = {
+            'user': pgettext_lazy('Order customer', 'User'),
+            'user_email': pgettext_lazy(
+                'Order customer email',
+                'Email')}
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        user = self.instance.user
+        if user:
+            self.fields['user'].set_initial(user, label=user.ajax_label)
+
+    def clean(self):
+        cleaned_data = super().clean()
+        user_email = cleaned_data.get('user_email')
+        user = cleaned_data.get('user')
+        if user and user_email:
+            raise forms.ValidationError(pgettext_lazy(
+                'Edit customer details in order form error',
+                'An order can be related either with an email or an existing '
+                'user account'))
+        return self.cleaned_data
+
+    def save(self):
+        super().save()
+        if self.cleaned_data.get('update_addresses'):
+            update_order_with_user_addresses(self.instance)
+        return self.instance
+
+
+class OrderRemoveCustomerForm(forms.ModelForm):
+    """Remove customer data from an order."""
+
+    class Meta:
+        model = Order
+        fields = []
+
+    def save(self):
+        remove_customer_from_order(self.instance)
+        return self.instance
+
+
+class OrderShippingForm(forms.ModelForm):
+    """Set shipping name and shipping price in an order."""
+
+    shipping_method = AjaxSelect2ChoiceField(
+        queryset=ShippingMethodCountry.objects.all(), min_input=0)
+
+    class Meta:
+        model = Order
+        fields = ['shipping_method']
+        labels = {
+            'shipping_method': pgettext_lazy(
+                'Shipping method form field label', 'Shipping method')}
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        method_field = self.fields['shipping_method']
+        fetch_data_url = reverse(
+            'dashboard:ajax-order-shipping-methods',
+            kwargs={'order_pk': self.instance.id})
+        method_field.set_fetch_data_url(fetch_data_url)
+
+        method = self.instance.shipping_method
+        if method:
+            method_field.set_initial(method, label=method.ajax_label)
+
+        if self.instance.shipping_address:
+            country_code = self.instance.shipping_address.country.code
+            queryset = method_field.queryset.unique_for_country_code(
+                country_code)
+            method_field.queryset = queryset
+
+    def save(self, commit=True):
+        method = self.instance.shipping_method
+        self.instance.shipping_method_name = method.shipping_method.name
+        self.instance.shipping_price = method.get_total_price()
+        recalculate_order(self.instance)
+        recalculate_order(self.instance)
+        return super().save(commit)
+
+
+class OrderRemoveShippingForm(forms.ModelForm):
+    """Remove shipping name and shipping price from an order."""
+
+    class Meta:
+        model = Order
+        fields = []
+
+    def save(self, commit=True):
+        self.instance.shipping_method = None
+        self.instance.shipping_method_name = None
+        self.instance.shipping_price = ZERO_TAXED_MONEY
+        recalculate_order(self.instance)
+        return super().save(commit)
+
+
+class OrderEditDiscountForm(forms.ModelForm):
+    """Edit discount amount in an order."""
+
+    class Meta:
+        model = Order
+        fields = ['discount_amount']
+        labels = {
+            'discount_amount': pgettext_lazy(
+                'Order discount amount fixed value',
+                'Discount amount')}
+
+    def save(self, commit=True):
+        recalculate_order(self.instance, update_voucher_discount=False)
+        return super().save(commit)
+
+
+class OrderEditVoucherForm(forms.ModelForm):
+    """Edit discount amount in an order."""
+    voucher = AjaxSelect2ChoiceField(
+        queryset=Voucher.objects.all(),
+        fetch_data_url=reverse_lazy('dashboard:ajax-vouchers'), min_input=0)
+
+    class Meta:
+        model = Order
+        fields = ['voucher']
+        labels = {
+            'voucher': pgettext_lazy('Order voucher', 'Voucher')}
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.old_voucher = self.instance.voucher
+        if self.instance.voucher:
+            self.fields['voucher'].set_initial(self.instance.voucher)
+
+    def save(self, commit=True):
+        voucher = self.instance.voucher
+        if self.old_voucher != voucher:
+            if self.old_voucher:
+                decrease_voucher_usage(self.old_voucher)
+            increase_voucher_usage(voucher)
+        self.instance.discount_name = voucher.name or ''
+        recalculate_order(self.instance)
+        return super().save(commit)
 
 
 class OrderNoteForm(forms.ModelForm):
@@ -37,8 +259,8 @@ class OrderNoteForm(forms.ModelForm):
                 'Customer can see this note')}
 
     def send_confirmation_email(self):
-        order = self.instance.order
-        send_note_confirmation.delay(order.pk)
+        if self.instance.order.get_user_current_email():
+            send_note_confirmation.delay(self.instance.order.pk)
 
 
 class ManagePaymentForm(forms.Form):
@@ -88,6 +310,14 @@ class RefundPaymentForm(ManagePaymentForm):
     clean_error = pgettext_lazy('Payment form error',
                                 'Only confirmed payments can be refunded')
 
+    def clean(self):
+        super().clean()
+        if self.payment.variant == CustomPaymentChoices.MANUAL:
+            raise forms.ValidationError(
+                pgettext_lazy(
+                    'Payment form error',
+                    'Manual payments can not be refunded'))
+
     def refund(self):
         return self.try_payment_action(self.payment.refund)
 
@@ -117,6 +347,37 @@ class ReleasePaymentForm(forms.Form):
             self.payment_error(str(e))
             return False
         return True
+
+
+class OrderMarkAsPaidForm(forms.Form):
+    """Mark order as manually paid."""
+
+    def __init__(self, *args, **kwargs):
+        self.order = kwargs.pop('order')
+        super().__init__(*args, **kwargs)
+
+    def clean(self):
+        super().clean()
+        if self.order.payments.exists():
+            raise forms.ValidationError(
+                pgettext_lazy(
+                    'Mark order as paid form error',
+                    'Orders with payments can not be manually marked as paid'))
+
+    def save(self):
+        defaults = {
+            'total': self.order.total.gross.amount,
+            'tax': self.order.total.tax.amount,
+            'currency': self.order.total.currency,
+            'delivery': self.order.shipping_price.gross.amount,
+            'description': pgettext_lazy(
+                'Payment description', 'Order %(order)s') % {
+                    'order': self.order},
+            'captured_amount': self.order.total.gross.amount}
+        Payment.objects.get_or_create(
+            variant=CustomPaymentChoices.MANUAL,
+            status=PaymentStatus.CONFIRMED, order=self.order,
+            defaults=defaults)
 
 
 class CancelOrderLineForm(forms.Form):
@@ -181,6 +442,7 @@ class CancelOrderForm(forms.Form):
 
     Deallocate or increase corresponding stocks for each order line.
     """
+
     restock = forms.BooleanField(initial=True, required=False)
 
     def __init__(self, *args, **kwargs):
@@ -210,6 +472,7 @@ class CancelFulfillmentForm(forms.Form):
 
     Increase corresponding stocks for each fulfillment line.
     """
+
     restock = forms.BooleanField(initial=True, required=False)
 
     def __init__(self, *args, **kwargs):
@@ -236,6 +499,7 @@ class CancelFulfillmentForm(forms.Form):
 
 class FulfillmentTrackingNumberForm(forms.ModelForm):
     """Update tracking number in fulfillment group."""
+
     send_mail = forms.BooleanField(
         initial=True, required=False, label=pgettext_lazy(
             'Send mail to customer',
@@ -248,16 +512,22 @@ class FulfillmentTrackingNumberForm(forms.ModelForm):
             'tracking_number': pgettext_lazy(
                 'Fulfillment record', 'Tracking number')}
 
-
-class RemoveVoucherForm(forms.Form):
-
     def __init__(self, *args, **kwargs):
-        self.order = kwargs.pop('order')
         super().__init__(*args, **kwargs)
+        if not self.instance.order.get_user_current_email():
+            self.fields.pop('send_mail')
+
+
+class OrderRemoveVoucherForm(forms.ModelForm):
+    """Remove voucher from order. Decrease usage and recalculate order."""
+
+    class Meta:
+        model = Order
+        fields = []
 
     def clean(self):
         data = super().clean()
-        if not self.order.voucher:
+        if not self.instance.voucher:
             raise forms.ValidationError(
                 pgettext_lazy(
                     'Remove voucher form error',
@@ -265,11 +535,11 @@ class RemoveVoucherForm(forms.Form):
         return data
 
     def remove_voucher(self):
-        self.order.discount_amount = 0
-        self.order.discount_name = ''
-        decrease_voucher_usage(self.order.voucher)
-        self.order.voucher = None
-        recalculate_order(self.order)
+        decrease_voucher_usage(self.instance.voucher)
+        self.instance.discount_amount = 0
+        self.instance.discount_name = ''
+        self.instance.voucher = None
+        recalculate_order(self.instance)
 
 
 PAYMENT_STATUS_CHOICES = (
@@ -379,6 +649,7 @@ class AddressForm(StorefrontAddressForm):
 
 class FulfillmentForm(forms.ModelForm):
     """Create fulfillment group for a given order."""
+
     send_mail = forms.BooleanField(
         initial=True, required=False, label=pgettext_lazy(
             'Send mail to customer',
@@ -396,6 +667,8 @@ class FulfillmentForm(forms.ModelForm):
         order = kwargs.pop('order')
         super().__init__(*args, **kwargs)
         self.instance.order = order
+        if not order.get_user_current_email():
+            self.fields.pop('send_mail')
 
 
 class BaseFulfillmentLineFormSet(forms.BaseModelFormSet):
@@ -407,6 +680,7 @@ class BaseFulfillmentLineFormSet(forms.BaseModelFormSet):
 
 class FulfillmentLineForm(forms.ModelForm):
     """Fulfill order line with given quantity by decreasing stock."""
+
     class Meta:
         model = FulfillmentLine
         fields = ['order_line', 'quantity']
