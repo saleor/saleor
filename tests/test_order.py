@@ -51,8 +51,8 @@ def test_add_variant_to_order_adds_line_for_new_variant(
 
 
 def test_add_variant_to_order_allocates_stock_for_new_variant(
-        order_with_lines, product):
-    order = order_with_lines
+        order_with_lines_and_stock, product):
+    order = order_with_lines_and_stock
     variant = product.variants.get()
     stock_before = variant.quantity_allocated
 
@@ -63,8 +63,8 @@ def test_add_variant_to_order_allocates_stock_for_new_variant(
 
 
 def test_add_variant_to_order_edits_line_for_existing_variant(
-        order_with_lines):
-    order = order_with_lines
+        order_with_lines_and_stock):
+    order = order_with_lines_and_stock
     existing_line = order.lines.first()
     variant = existing_line.variant
     lines_before = order.lines.count()
@@ -79,8 +79,8 @@ def test_add_variant_to_order_edits_line_for_existing_variant(
 
 
 def test_add_variant_to_order_allocates_stock_for_existing_variant(
-        order_with_lines):
-    order = order_with_lines
+        order_with_lines_and_stock):
+    order = order_with_lines_and_stock
     existing_line = order.lines.first()
     variant = existing_line.variant
     stock_before = variant.quantity_allocated

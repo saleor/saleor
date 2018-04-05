@@ -188,9 +188,9 @@ class OrderLine(models.Model):
     quantity_fulfilled = models.IntegerField(
         validators=[MinValueValidator(0), MaxValueValidator(999)], default=0)
     unit_price_net = MoneyField(
-        currency=settings.DEFAULT_CURRENCY, max_digits=12, decimal_places=4)
+        currency=settings.DEFAULT_CURRENCY, max_digits=12, decimal_places=2)
     unit_price_gross = MoneyField(
-        currency=settings.DEFAULT_CURRENCY, max_digits=12, decimal_places=4)
+        currency=settings.DEFAULT_CURRENCY, max_digits=12, decimal_places=2)
     unit_price = TaxedMoneyField(
         net_field='unit_price_net', gross_field='unit_price_gross')
 

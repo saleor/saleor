@@ -2,13 +2,14 @@
 
 from django.db import migrations, models
 import django.db.models.deletion
+import django_prices.models
 
 
 class Migration(migrations.Migration):
 
     dependencies = [
         ('product', '0054_merge_20180320_1108'),
-        ('order', '0043_auto_20180322_0655'),
+        ('order', '0044_auto_20180326_1055'),
     ]
 
     operations = [
@@ -28,5 +29,15 @@ class Migration(migrations.Migration):
         migrations.RemoveField(
             model_name='orderline',
             name='product',
+        ),
+        migrations.AlterField(
+            model_name='orderline',
+            name='unit_price_gross',
+            field=django_prices.models.MoneyField(currency='USD', decimal_places=2, max_digits=12),
+        ),
+        migrations.AlterField(
+            model_name='orderline',
+            name='unit_price_net',
+            field=django_prices.models.MoneyField(currency='USD', decimal_places=2, max_digits=12),
         ),
     ]
