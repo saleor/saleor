@@ -379,6 +379,9 @@ def get_name_from_attributes(variant, attributes=None):
 def get_attributes_display_map(obj, attributes):
     """Returns attributes associated with the product,
     as dict of ProductAttribute: AttributeChoiceValue values.
+
+    Args:
+        attributes: ProductAttribute Iterable
     """
     display_map = {}
     for attribute in attributes:
@@ -394,6 +397,12 @@ def get_attributes_display_map(obj, attributes):
 
 
 def get_attributes_display_map_from_dict(variant, attributes):
+    """Returns attributes associated with the product,
+    as dict of ProductAttribute: AttributeChoiceValue values.
+
+    Args:
+        attributes: Dict of attribute_pk: attributechoicevalue_pk
+    """
     display_map = {}
     for attribute_pk, attribute_choice_pk in attributes.items():
         attributes = variant.product.product_type.variant_attributes.all()
