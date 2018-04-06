@@ -22,7 +22,7 @@
   <body>
     <header>
       <div class="notice-bar hide">
-  <div class="text-center notice-text">January release is out. <a href="https://github.com/mirumee/saleor/releases/tag/v2018.01">Check out what's new!</a></div>
+  <div class="text-center notice-text">March release is out. <a href="https://github.com/mirumee/saleor/releases/tag/v2018.03">Check out what's new!</a></div>
   <div id="notice-bar-close"></div>
 </div>
 <nav class="navbar navbar-custom">
@@ -120,10 +120,10 @@
             
               
               <div class="feature">
-                <h4 class="feature__title">Taxes support</h4>
+                <h4 class="feature__title">Architecture changes (Stable core)</h4>
                 <div class="feature__description">
                    
-                    Introducing integrations with Vatlayer and Avalara.<br /> Switching between net/gross prices displayed to your customers.
+                    Moving storefront and dashboard to separate apps.
                   
                 </div>
               </div>
@@ -133,10 +133,10 @@
           
             
               <div class="feature">
-                <h4 class="feature__title">Architecture changes (Stable core)</h4>
+                <h4 class="feature__title">Avalara integration</h4>
                 <div class="feature__description">
                    
-                    Moving storefront and dashboard to separate apps.
+                    Integration with Avalara for tax calculations.
                   
                 </div>
               </div>
@@ -192,30 +192,10 @@
             
               
               <div class="feature">
-                <h4 class="feature__title">Collection and category images</h4>
+                <h4 class="feature__title">Vatlayer integration</h4>
                 <div class="feature__description">
                    
-                    Customizable collection and category images displayed in the storefront.
-                  
-                </div>
-              </div>
-            
-              
-              <div class="feature">
-                <h4 class="feature__title">Multilingual storefront</h4>
-                <div class="feature__description">
-                   
-                    Support for switching languages in the storefront.
-                  
-                </div>
-              </div>
-            
-              
-              <div class="feature">
-                <h4 class="feature__title">Creating orders from the dashboard</h4>
-                <div class="feature__description">
-                   
-                    Ability to create orders by members of staff.
+                    Integration with Vatlayer for getting tax rates. Switching between net/gross prices displayed in the storefront.
                   
                 </div>
               </div>
@@ -225,24 +205,59 @@
           
             
               <div class="feature">
-                <h4 class="feature__title">Advanced SEO Tools</h4>
+                <h4 class="feature__title">Abandoned checkouts</h4>
                 <div class="feature__description">
                    
-                    Customizing metadata for products, collections and manually-added pages.
+                    Ability to track abandoned checkouts.
                   
                 </div>
               </div>
             
+          </div>
+        </div>
+      </div>
+    </div>
+  
+    
+    <div class="row releases">
+      <div class="col-xs-3 col-md-2 timeline">
+        <img src="/images/done.svg" class="done"/>
+      </div>
+      <div class="col-xs-9 col-md-10 release">
+        <h2 class="release__title">
+           
+            <a href="https://github.com/mirumee/saleor/releases/tag/v2018.03"><span>March</span> Release</a>
+          
+        </h2>
+        <div class="row">
+          <div class="col-xs-12 col-md-6">
             
+              
               <div class="feature">
-                <h4 class="feature__title">Menus</h4>
+                <h4 class="feature__title"></h4>
                 <div class="feature__description">
-                   
-                    Defining the storefront’s navigation menus directly from the dashboard.
+                  
+                    <br />
+                     
+                      <p>Multilingual storefront</p>
+                     
+                      <p>Creating orders through the dashboard</p>
+                     
+                      <p>Customizable storefront navigation</p>
+                     
+                      <p>SEO tools</p>
+                     
+                      <p>Email schema markup</p>
+                     
+                      <p>Background images for categories and collections</p>
+                    
                   
                 </div>
               </div>
             
+          </div>
+          <div class="col-12 col-md-6">
+          
           </div>
         </div>
       </div>
@@ -271,17 +286,11 @@
                      
                       <p>Upgraded prices handling</p>
                      
-                      <p>Pages application</p>
-                     
-                      <p>Merged userprofile and registration into single account app</p>
-                     
-                      <p>Better organization of email templates</p>
+                      <p>Adding custom pages through the dashboard</p>
                      
                       <p>Dropped Satchless API</p>
                      
                       <p>Switched to Webpack 4</p>
-                     
-                      <p>Sanitize output from the rich-text editor</p>
                     
                   
                 </div>
@@ -311,32 +320,24 @@
             
               
               <div class="feature">
-                <h4 class="feature__title">General</h4>
+                <h4 class="feature__title"></h4>
                 <div class="feature__description">
                   
                     <br />
                      
                       <p>Added support for Django 2.0</p>
                      
-                      <p>Added HTML templates for emails using (MJML engine)</p>
+                      <p>MJML templates for emails</p>
                      
-                      <p>Introduced product collections</p>
+                      <p>Product collections</p>
                      
-                      <p>Using django-fsm to manage order states</p>
+                      <p>Adding order notes in checkout</p>
                      
-                      <p>Changed relationship between categories and products to one-to-many</p>
+                      <p>Lazy-loading images in the storefront</p>
                      
-                      <p>Single template tag to render addresses - {% format_address address %}</p>
+                      <p>Added rich-text editor widget</p>
                      
-                      <p>Improved GraphQL API structure</p>
-                     
-                      <p>Improved docs structure</p>
-                     
-                      <p>Renamed ProductClass to ProductType</p>
-                     
-                      <p>Removed verbose_names from models in favor of explicit, translated labels in forms</p>
-                     
-                      <p>Code style improvements</p>
+                      <p>Creating customers through the dashboard</p>
                     
                   
                 </div>
@@ -345,42 +346,6 @@
           </div>
           <div class="col-12 col-md-6">
           
-            
-              <div class="feature">
-                <h4 class="feature__title">Storefront</h4>
-                <div class="feature__description">
-                  
-                    <br />
-                     
-                      <p>Added the ability to add order notes during checkout and on the order details page</p>
-                     
-                      <p>Showing success page after finishing checkout</p>
-                     
-                      <p>Lazy-loading images in the storefront</p>
-                    
-                  
-                </div>
-              </div>
-            
-            
-              <div class="feature">
-                <h4 class="feature__title">Dashboard</h4>
-                <div class="feature__description">
-                  
-                    <br />
-                     
-                      <p>Added rich-text editor widget</p>
-                     
-                      <p>Added the ability to create customers through the dashboard</p>
-                     
-                      <p>Improved the appearance of bulk actions in the dashboard</p>
-                     
-                      <p>Order details page improvements</p>
-                    
-                  
-                </div>
-              </div>
-            
           </div>
         </div>
       </div>
@@ -402,18 +367,18 @@
             
               
               <div class="feature">
-                <h4 class="feature__title">General</h4>
+                <h4 class="feature__title"></h4>
                 <div class="feature__description">
                   
                     <br />
                      
                       <p>Dropped Python 2.7</p>
                      
-                      <p>Improved naming consistency in code</p>
+                      <p>Added OpenGraph tags and canonical links</p>
                      
-                      <p>Upgraded Graphene to the newest version</p>
+                      <p>Selectable country prefixes for phone numbers in checkout</p>
                      
-                      <p>Upgraded django-impersonate to the newest version</p>
+                      <p>Rendering explanatory “zero” pages</p>
                     
                   
                 </div>
@@ -422,42 +387,6 @@
           </div>
           <div class="col-12 col-md-6">
           
-            
-              <div class="feature">
-                <h4 class="feature__title">Storefront</h4>
-                <div class="feature__description">
-                  
-                    <br />
-                     
-                      <p>Added OpenGraph tags and canonical links</p>
-                     
-                      <p>Included links to categories in the sitemap</p>
-                     
-                      <p>Selectable country prefixes for phone numbers in checkout</p>
-                    
-                  
-                </div>
-              </div>
-            
-            
-              <div class="feature">
-                <h4 class="feature__title">Dashboard</h4>
-                <div class="feature__description">
-                  
-                    <br />
-                     
-                      <p>Added base template for dashboard modals</p>
-                     
-                      <p>Moved FAB button to top on desktop</p>
-                     
-                      <p>Rendering explanatory “zero” pages</p>
-                     
-                      <p>Unified button styling</p>
-                    
-                  
-                </div>
-              </div>
-            
           </div>
         </div>
       </div>

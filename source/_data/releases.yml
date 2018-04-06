@@ -9,14 +9,13 @@
         - feature:
             title: Storefront 2.0
             description: Mobile-first storefront with full PWA support.<br /> Support for browser-based payment methods (Google Pay, Apple Pay).
-
-        - feature:
-            title: Taxes support
-            description: Introducing integrations with Vatlayer and Avalara.<br /> Switching between net/gross prices displayed to your customers.
-      right:
         - feature:
             title: Architecture changes (Stable core)
             description: Moving storefront and dashboard to separate apps.
+      right:
+        - feature:
+            title: Avalara integration
+            description: Integration with Avalara for tax calculations.
         - feature:
             title: CSV export
             description: Exporting products, orders and customers to CSV files.
@@ -32,22 +31,28 @@
     features:
       left:
         - feature:
-            title: Collection and category images
-            description: Customizable collection and category images displayed in the storefront.
-        - feature:
-            title: Multilingual storefront
-            description: Support for switching languages in the storefront.
-        - feature:
-            title: Creating orders from the dashboard
-            description: Ability to create orders by members of staff.
+            title: Vatlayer integration
+            description: Integration with Vatlayer for getting tax rates. Switching between net/gross prices displayed in the storefront.
       right:
         - feature:
-            title: Advanced SEO Tools
-            description: Customizing metadata for products, collections and manually-added pages.
+            title: Abandoned checkouts
+            description: Ability to track abandoned checkouts.
+- release:
+    title: <span>March</span> Release
+    image: /images/done.svg
+    link: https://github.com/mirumee/saleor/releases/tag/v2018.03
+    features:
+      left:
         - feature:
-            title: Menus
-            description: Defining the storefront’s navigation menus directly from the dashboard.
-
+            title: ""
+            type: list
+            description:
+              - Multilingual storefront
+              - Creating orders through the dashboard
+              - Customizable storefront navigation
+              - SEO tools
+              - Email schema markup
+              - Background images for categories and collections
 - release:
     title: <span>February</span> Release
     image: /images/done.svg
@@ -59,12 +64,9 @@
             type: list
             description: 
               - Upgraded prices handling
-              - Pages application 
-              - Merged userprofile and registration into single account app 
-              - Better organization of email templates 
-              - Dropped Satchless API 
-              - Switched to Webpack 4 
-              - Sanitize output from the rich-text editor
+              - Adding custom pages through the dashboard
+              - Dropped Satchless API
+              - Switched to Webpack 4
 
 - release:
     title: <span>January</span> Release
@@ -73,38 +75,16 @@
     features:
       left:
         - feature:
-            title: General
+            title: ""
             type: list
             description: 
-              - Added support for Django 2.0 
-              - Added HTML templates for emails using (MJML engine) 
-              - Introduced product collections 
-              - Using django-fsm to manage order states
-              - Changed relationship between categories and products to one-to-many
-              - Single template tag to render addresses - {% format_address address %} 
-              - Improved GraphQL API structure
-              - Improved docs structure 
-              - Renamed ProductClass to ProductType
-              - Removed verbose_names from models in favor of explicit, translated labels in forms
-              - Code style improvements
-
-      right:
-        - feature:
-            title: Storefront
-            type: list
-            description: 
-              - Added the ability to add order notes during checkout and on the order details page 
-              - Showing success page after finishing checkout 
-              - Lazy-loading images in the storefront 
-
-        - feature:
-            title: Dashboard
-            type: list
-            description: 
-              - Added rich-text editor widget 
-              - Added the ability to create customers through the dashboard 
-              - Improved the appearance of bulk actions in the dashboard 
-              - Order details page improvements 
+              - Added support for Django 2.0
+              - MJML templates for emails
+              - Product collections
+              - Adding order notes in checkout
+              - Lazy-loading images in the storefront
+              - Added rich-text editor widget
+              - Creating customers through the dashboard
 
 - release:
     title: <span>December</span> Release
@@ -113,28 +93,10 @@
     features:
       left:
         - feature:
-            title: General
+            title: ""
             type: list
             description: 
               - Dropped Python 2.7 
-              - Improved naming consistency in code
-              - Upgraded Graphene to the newest version
-              - Upgraded django-impersonate to the newest version
-
-      right:
-        - feature:
-            title: Storefront
-            type: list
-            description: 
               - Added OpenGraph tags and canonical links
-              - Included links to categories in the sitemap
               - Selectable country prefixes for phone numbers in checkout
-
-        - feature:
-            title: Dashboard
-            type: list
-            description: 
-              - Added base template for dashboard modals
-              - Moved FAB button to top on desktop
               - Rendering explanatory “zero” pages
-              - Unified button styling
