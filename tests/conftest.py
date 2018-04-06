@@ -655,7 +655,7 @@ def model_form_class():
 
 
 @pytest.fixture
-def menu():
+def menu(db):
     # navbar menu object can be already created by default in migration
     return Menu.objects.get_or_create(name='navbar')[0]
 
