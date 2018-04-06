@@ -357,22 +357,18 @@ def get_product_attributes_data(product):
     """Returns attributes associated with the product,
     as dict of ProductAttribute: AttributeChoiceValue values.
     """
-    product_attributes = list(product.product_type.product_attributes.all())
-    values_map = get_attributes_display_map(product, product_attributes)
-    return {
-        attribute if attribute in product_attributes else None: value_obj
-        for (attribute, value_obj) in values_map.items()}
+    attributes = product.product_type.product_attributes.all()
+    attributes_map = {attribute.pk: attribute for attribute in attributes}
+    values_map = get_attributes_display_map(product, attributes)
+    return {attributes_map.get(attr_pk): value_obj
+            for (attr_pk, value_obj) in values_map.items()}
 
 
 def get_name_from_attributes(variant, attributes=None):
     """Generates ProductVariant's name based on its attributes."""
     if attributes is None:
         attributes = variant.product.product_type.variant_attributes.all()
-
-    if isinstance(attributes, dict):
-        values = get_attributes_display_map_from_dict(variant, attributes)
-    else:
-        values = get_attributes_display_map(variant, attributes)
+    values = get_attributes_display_map(variant, attributes)
     return generate_name_from_values(values)
 
 
@@ -390,35 +386,13 @@ def get_attributes_display_map(obj, attributes):
             choices = {smart_text(a.pk): a for a in attribute.values.all()}
             choice_obj = choices.get(value)
             if choice_obj:
-                display_map[attribute] = choice_obj
+                display_map[attribute.pk] = choice_obj
             else:
-                display_map[attribute] = value
+                display_map[attribute.pk] = value
     return display_map
 
 
-def get_attributes_display_map_from_dict(variant, attributes):
-    """Returns attributes associated with the product,
-    as dict of ProductAttribute: AttributeChoiceValue values.
-
-    Args:
-        attributes: Dict of attribute_pk: attributechoicevalue_pk
-    """
-    display_map = {}
-    for attribute_pk, attribute_choice_pk in attributes.items():
-        attributes = variant.product.product_type.variant_attributes.all()
-        attribute = next(
-            attribute for attribute in attributes if
-            attribute.pk == int(attribute_pk))
-        if attribute:
-            choices = attribute.values.all()
-            choice_obj = next(
-                choice for choice in choices
-                if choice.pk == int(attribute_choice_pk))
-            if choice_obj:
-                display_map[attribute] = choice_obj
-    return display_map
-
-
-def generate_name_from_values(values):
+def generate_name_from_values(attributes_dict):
     return ' / '.join(
-        smart_text(value) for attribute, value in values.items())
+        smart_text(attribute_value)
+        for attribute_value in sorted(attributes_dict.values()))

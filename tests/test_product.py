@@ -9,13 +9,14 @@ from saleor.cart import CartStatus, utils
 from saleor.cart.models import Cart
 from saleor.product import (
     ProductAvailabilityStatus, VariantAvailabilityStatus, models)
-from saleor.product.models import Category, ProductImage
+from saleor.product.models import (
+    AttributeChoiceValue, Category, ProductAttribute, ProductImage)
 from saleor.product.thumbnails import create_product_thumbnails
 from saleor.product.utils import (
     allocate_stock, deallocate_stock, decrease_stock,
-    get_attributes_display_map, get_availability,
-    get_product_availability_status, get_variant_availability_status,
-    get_variant_picker_data, increase_stock)
+    generate_name_from_values, get_attributes_display_map, get_availability,
+    get_name_from_attributes, get_product_availability_status,
+    get_variant_availability_status, get_variant_picker_data, increase_stock)
 
 from .utils import filter_products_by_attribute
 
@@ -314,7 +315,7 @@ def test_get_attributes_display_map(product_in_stock):
     attr_value = product_attr.values.first()
 
     assert len(attributes_display_map) == 1
-    assert attributes_display_map == {product_attr: attr_value}
+    assert attributes_display_map == {product_attr.pk: attr_value}
 
 
 def test_get_attributes_display_map_empty(product_with_no_attributes):
@@ -322,6 +323,16 @@ def test_get_attributes_display_map_empty(product_with_no_attributes):
     attributes = product.product_type.product_attributes.all()
 
     assert get_attributes_display_map(product, attributes) == {}
+
+
+@pytest.mark.parametrize(
+    'values, expected_result', (
+        ({}, ''),
+        ({'color': 'blue'}, 'blue'),
+        ({'color': 'blue', 'size': 'large'}, 'blue / large')))
+def test_generate_name_from_values(values, expected_result):
+    name = generate_name_from_values(values)
+    assert name == expected_result
 
 
 def test_product_availability_status(unavailable_product):
