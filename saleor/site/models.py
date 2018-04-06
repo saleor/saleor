@@ -4,6 +4,7 @@ from django.utils.translation import pgettext_lazy
 
 from . import AuthenticationBackends
 from .patch_sites import patch_contrib_sites
+
 patch_contrib_sites()
 
 
