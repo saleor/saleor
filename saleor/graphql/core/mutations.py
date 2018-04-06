@@ -7,8 +7,9 @@ from graphene_django.form_converter import convert_form_field
 from graphene_django.registry import get_global_registry
 from graphql_jwt.decorators import staff_member_required
 
-from .types import Error
 from ..utils import get_node
+from .decorators import permission_required
+from .types import Error
 
 registry = get_global_registry()
 
@@ -180,9 +181,11 @@ class ModelFormUpdateMutation(ModelFormMutation):
         return kwargs
 
 
-class StaffMemberRequiredMutation(graphene.Mutation):
+class StaffMemberRequiredMixin(graphene.Mutation):
+    permissions = ()
 
     @classmethod
     @staff_member_required
     def mutate(cls, root, info, *args, **kwargs):
-        return super().mutate(root, info, *args, **kwargs)
+        mutate = permission_required(cls.permissions)(super().mutate)
+        return mutate(root, info, *args, **kwargs)

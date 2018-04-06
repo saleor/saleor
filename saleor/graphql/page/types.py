@@ -17,6 +17,3 @@ def resolve_pages(user):
     if user.is_authenticated and user.is_active and user.is_staff:
         return models.Page.objects.all().distinct()
     return models.Page.objects.public().distinct()
-
-def resolve_all_pages():
-    return models.Page.objects.all().distinct()

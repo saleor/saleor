@@ -100,28 +100,24 @@ class Product(CountableDjangoObjectType):
         interfaces = [relay.Node]
         model = models.Product
 
-    @permission_required('product.view_product')
     def resolve_thumbnail_url(self, info, *, size=None):
         if not size:
             size = '255x255'
         return product_first_image(self, size)
 
-    @permission_required('product.view_product')
     def resolve_url(self, info):
         return self.get_absolute_url()
 
-    @permission_required('product.view_product')
     def resolve_availability(self, info):
         context = info.context
         availability = get_availability(
             self, context.discounts, context.currency)
         return ProductAvailability(**availability._asdict())
 
-    @permission_required('product.view_product')
     def resolve_attributes(self, info):
         return resolve_attribute_list(self.attributes)
 
-    @permission_required('product.view_product')
+    @permission_required(('product.view_product'))
     def resolve_purchase_cost(self, info):
         purchase_cost, _ = get_product_costs_data(self)
         return purchase_cost
@@ -254,6 +250,7 @@ def resolve_categories(info, level=None):
     if level is not None:
         qs = qs.filter(level=level)
     return qs.distinct()
+
 
 def resolve_products(info, category_id):
     user = info.context.user
