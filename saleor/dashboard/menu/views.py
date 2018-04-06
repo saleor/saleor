@@ -15,7 +15,7 @@ from ...page.models import Page
 from ...product.models import Category, Collection
 from ..views import staff_member_required
 from .filters import MenuFilter, MenuItemFilter
-from .forms import MenuForm, MenuItemForm, ReorderMenuItemsForm, AssignMenuForm
+from .forms import AssignMenuForm, MenuForm, MenuItemForm, ReorderMenuItemsForm
 
 
 @staff_member_required
