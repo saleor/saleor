@@ -300,7 +300,7 @@ def create_variant(product, **kwargs):
     defaults.update(kwargs)
     variant = ProductVariant(**defaults)
     if variant.attributes:
-        variant.name = get_name_from_attributes(variant, variant.attributes)
+        variant.name = get_name_from_attributes(variant)
     variant.save()
     create_stock(variant)
     return variant

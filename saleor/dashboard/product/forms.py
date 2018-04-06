@@ -294,8 +294,7 @@ class ProductVariantForm(forms.ModelForm, AttributesMixin):
     def save(self, commit=True):
         attributes = self.get_saved_attributes()
         self.instance.attributes = attributes
-        self.instance.name = get_name_from_attributes(
-            self.instance, attributes)
+        self.instance.name = get_name_from_attributes(self.instance)
         return super().save(commit=commit)
 
 
