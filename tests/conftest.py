@@ -619,6 +619,16 @@ def permission_impersonate_user():
 
 
 @pytest.fixture
+def permission_edit_menu():
+    return Permission.objects.get(codename='edit_menu')
+
+
+@pytest.fixture
+def permission_view_menu():
+    return Permission.objects.get(codename='view_menu')
+
+
+@pytest.fixture
 def collection(db):
     collection = Collection.objects.create(
         name='Collection', slug='collection')
