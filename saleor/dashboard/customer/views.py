@@ -8,7 +8,7 @@ from django.template.context_processors import csrf
 from django.template.response import TemplateResponse
 from django.utils.translation import pgettext_lazy
 
-from ...account.models import User, CustomerNote
+from ...account.models import CustomerNote, User
 from ...core.utils import get_paginator_items
 from ..emails import send_set_password_email
 from ..views import staff_member_required
