@@ -130,22 +130,20 @@
           <span class="card-title">
             {% trans "Customer notes" context "Customer notes card title" %}
           </span>
-          <div class="row">
-            {% if notes %}
-              <ul class="list">
-                {% for note in notes %}
-                  <li class="list-item list-item--spaced">
-                    <small class="list-item-author">{{ note.user }} - {{ note.date }}</small>
-                    <p>{{ note.content }}</p>
-                  </li>
-                {% endfor %}
-              </ul>
-            {% else %}
-              <div>
-                {% trans "There are no notes associated with this customer" context "Customer without notes message" %}
-              </div>
-            {% endif %}
-          </div>
+          {% if notes %}
+            <ul class="list">
+              {% for note in notes %}
+                <li class="list-item list-item--spaced">
+                  <small class="list-item-author">{{ note.user }} - {{ note.date }}</small>
+                  <p>{{ note.content }}</p>
+                </li>
+              {% endfor %}
+            </ul>
+          {% else %}
+            <div>
+              {% trans "There are no notes associated with this customer" context "Customer without notes message" %}
+            </div>
+          {% endif %}
         </div>
         {% if perms.account.edit_user %}
           <div class="card-action">
