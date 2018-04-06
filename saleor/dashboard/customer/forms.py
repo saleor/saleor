@@ -11,10 +11,11 @@ class CustomerForm(forms.ModelForm):
         # disable 'is_active' checkbox if user edits his own account
         if self.user == self.instance:
             self.fields['is_active'].disabled = True
+            self.fields['note'].disabled = True
 
     class Meta:
         model = User
-        fields = ['email', 'is_active']
+        fields = ['email', 'is_active', 'note']
 
 
 class CustomerNoteForm(forms.ModelForm):
