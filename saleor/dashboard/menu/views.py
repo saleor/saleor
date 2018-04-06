@@ -30,7 +30,10 @@ def menu_list(request):
     site_settings = site.settings
     assign_menu_form = AssignMenuForm(
         request.POST or None, instance=site_settings, user=request.user)
-    if assign_menu_form.is_valid() and request.user.has_perm('menu.edit_menu'):
+    if all([
+            request.method == 'POST',
+            assign_menu_form.is_valid(),
+            request.user.has_perm('menu.edit_menu')]):
         assign_menu_form.save()
         msg = pgettext_lazy(
             'Dashboard message', 'Updated Storefront menus')
