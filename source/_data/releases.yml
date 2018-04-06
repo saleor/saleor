@@ -1,0 +1,102 @@
+- release:
+    title: Long-term Goals
+    image: /images/parrot.svg
+    features:
+      left:
+        - feature:
+            title: Dashboard 2.0
+            description: New, dynamic UX - a modern and intuitive way of managing your shop.
+        - feature:
+            title: Storefront 2.0
+            description: Mobile-first storefront with full PWA support.<br /> Support for browser-based payment methods (Google Pay, Apple Pay).
+        - feature:
+            title: Architecture changes (Stable core)
+            description: Moving storefront and dashboard to separate apps.
+      right:
+        - feature:
+            title: Avalara integration
+            description: Integration with Avalara for tax calculations.
+        - feature:
+            title: CSV export
+            description: Exporting products, orders and customers to CSV files.
+        - feature:
+            title: Data import
+            description: Tools to migrate data from Magento and Shopify to Saleor.
+        - feature:
+            title: Shipping carriers
+            description: Integration with shipping carriers APIs.
+- release:
+    title: Upcoming Release
+    image: /images/lantern.svg
+    features:
+      left:
+        - feature:
+            title: Vatlayer integration
+            description: Integration with Vatlayer for getting tax rates. Switching between net/gross prices displayed in the storefront.
+      right:
+        - feature:
+            title: Abandoned checkouts
+            description: Ability to track abandoned checkouts.
+- release:
+    title: <span>March</span> Release
+    image: /images/done.svg
+    link: https://github.com/mirumee/saleor/releases/tag/v2018.03
+    features:
+      left:
+        - feature:
+            title: ""
+            type: list
+            description:
+              - Multilingual storefront
+              - Creating orders through the dashboard
+              - Customizable storefront navigation
+              - SEO tools
+              - Email schema markup
+              - Background images for categories and collections
+- release:
+    title: <span>February</span> Release
+    image: /images/done.svg
+    link: https://github.com/mirumee/saleor/releases/tag/v2018.02
+    features:
+      left:
+        - feature:
+            title: ""
+            type: list
+            description: 
+              - Upgraded prices handling
+              - Adding custom pages through the dashboard
+              - Dropped Satchless API
+              - Switched to Webpack 4
+
+- release:
+    title: <span>January</span> Release
+    image: /images/done.svg
+    link: https://github.com/mirumee/saleor/releases/tag/v2018.01
+    features:
+      left:
+        - feature:
+            title: ""
+            type: list
+            description: 
+              - Added support for Django 2.0
+              - MJML templates for emails
+              - Product collections
+              - Adding order notes in checkout
+              - Lazy-loading images in the storefront
+              - Added rich-text editor widget
+              - Creating customers through the dashboard
+
+- release:
+    title: <span>December</span> Release
+    image: /images/done.svg
+    link: https://github.com/mirumee/saleor/releases/tag/v2017.12
+    features:
+      left:
+        - feature:
+            title: ""
+            type: list
+            description: 
+              - Dropped Python 2.7 
+              - Added OpenGraph tags and canonical links
+              - Selectable country prefixes for phone numbers in checkout
+              - Rendering explanatory “zero” pages

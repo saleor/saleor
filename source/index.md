@@ -1,5 +1,5 @@
 ---
-title: Saleor
+title: index
 author: Mirumee
 ---
 

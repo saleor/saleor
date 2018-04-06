@@ -1,35 +1,35 @@
 // Fonts
 @font-face {
-  font-family: 'Lato';
-  src: url('../fonts/Lato-Regular.ttf') format('truetype');
+  font-family: "Lato";
+  src: url("../fonts/Lato-Regular.ttf") format("truetype");
   font-weight: normal;
   font-style: normal;
 }
 
 @font-face {
-  font-family: 'Lato';
-  src: url('../fonts/Lato-Light.ttf') format('truetype');
+  font-family: "Lato";
+  src: url("../fonts/Lato-Light.ttf") format("truetype");
   font-weight: 300;
   font-style: normal;
 }
 
 @font-face {
-  font-family: 'Lato';
-  src: url('../fonts/Lato-LightItalic.ttf') format('truetype');
+  font-family: "Lato";
+  src: url("../fonts/Lato-LightItalic.ttf") format("truetype");
   font-weight: 300;
   font-style: italic;
 }
 
 @font-face {
-  font-family: 'Lato';
-  src: url('../fonts/Lato-Bold.ttf') format('truetype');
+  font-family: "Lato";
+  src: url("../fonts/Lato-Bold.ttf") format("truetype");
   font-weight: 700;
   font-style: normal;
 }
 
 @font-face {
-  font-family: 'Lato';
-  src: url('../fonts/Lato-Black.ttf') format('truetype');
+  font-family: "Lato";
+  src: url("../fonts/Lato-Black.ttf") format("truetype");
   font-weight: 900;
   font-style: normal;
 }
@@ -37,24 +37,24 @@
 //Colors
 $base-color: #333333;
 
-$bg-gray: #FAFAFA;
-$bg-dark-gray: #4F4F4F;
+$bg-gray: #fafafa;
+$bg-dark-gray: #4f4f4f;
 
-$light-gray: #E0E0E0;
-$gray: #BDBDBD;
+$light-gray: #e0e0e0;
+$gray: #bdbdbd;
 $footer-border: #828282;
 
 $white: #fff;
-$cyan: #1FBAB3;
-$red: #D85039;
-$orange: #F99144;
-$blue: #26A5D4;
-$green: #2AB573;
+$cyan: #1fbab3;
+$red: #d85039;
+$orange: #f99144;
+$blue: #26a5d4;
+$green: #2ab573;
 
-$device: #9EA0A2;
+$device: #9ea0a2;
 
 //Typography
-$font-family-base: 'Lato';
+$font-family-base: "Lato";
 $font-size-base: 14px;
 $line-height-base: 1.3;
 $line-height-large: 1.8;
@@ -65,3 +65,5 @@ $font-size-h4: $font-size-base;
 
 $global-margin: 1rem;
 $global-padding: 1rem;
+
+$transition-duration: 200ms;

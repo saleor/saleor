@@ -1,0 +1,17 @@
+.image-text {
+  width: 100%;
+  position: absolute;
+  top: 10%;
+  left: -20px;
+  padding: 0 2 * $global-padding;
+  &__subtext {
+    margin-top: 20px;
+    font-size: 15px;
+    -webkit-font-smoothing: antialiased;
+  }
+  @media (max-width: $screen-md) {
+    position: relative;
+    left: 0;
+    top: 50px;
+  }
+}

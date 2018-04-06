@@ -1,0 +1,10 @@
+.timeline {
+  .lantern {
+    margin-top: -10px;
+  }
+  @media (max-width: $screen-sm-max) {
+    img {
+      width: 100%;
+    }
+  }
+}
