@@ -8,8 +8,8 @@ from django.utils.translation import pgettext_lazy
 from django_countries.fields import Country, CountryField
 from phonenumber_field.modelfields import PhoneNumberField
 
-from .validators import validate_possible_number
 from ..core.models import BaseNote
+from .validators import validate_possible_number
 
 
 class PossiblePhoneNumberField(PhoneNumberField):
@@ -139,7 +139,8 @@ class User(PermissionsMixin, AbstractBaseUser):
 
 class CustomerNote(BaseNote):
     customer = models.ForeignKey(
-        settings.AUTH_USER_MODEL, related_name='notes', on_delete=models.CASCADE)
+        settings.AUTH_USER_MODEL, related_name='notes',
+        on_delete=models.CASCADE)
 
     class Meta:
         ordering = ('date', )

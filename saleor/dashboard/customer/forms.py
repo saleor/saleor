@@ -1,7 +1,7 @@
 from django import forms
 from django.utils.translation import pgettext_lazy
 
-from ...account.models import User, CustomerNote
+from ...account.models import CustomerNote, User
 
 
 class CustomerForm(forms.ModelForm):
