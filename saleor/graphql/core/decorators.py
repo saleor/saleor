@@ -1,6 +1,7 @@
 from functools import wraps
 
 from django.core.exceptions import PermissionDenied
+from graphql.execution.base import ResolveInfo
 
 
 def permission_required(permissions):
@@ -8,6 +9,7 @@ def permission_required(permissions):
         @wraps(func)
         def wrapper(*args, **kwargs):
             info = args[1]
+            assert isinstance(info, ResolveInfo)
             user = info.context.user
             if not user.has_perm(permissions):
                 raise PermissionDenied(
