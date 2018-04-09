@@ -4,7 +4,7 @@ from unittest.mock import patch
 
 import pytest
 from django.urls import reverse
-from prices import Money, TaxedMoney
+from prices import Money, TaxedMoney, TaxedMoneyRange
 
 from saleor.cart import CartStatus, utils
 from saleor.cart.models import Cart
@@ -455,3 +455,64 @@ def test_get_price_per_item(
 
     assert price == TaxedMoney(
         net=Money(product_net, 'USD'), gross=Money(product_gross, 'USD'))
+
+
+def test_product_get_price_per_item_variant_has_no_price(
+        product_type, default_category, taxes):
+    product = Product.objects.create(
+        product_type=product_type,
+        category=default_category,
+        price=Money('10.00', 'USD'))
+    variant = product.variants.create()
+
+    price = variant.get_price_per_item(taxes=taxes)
+
+    assert price == TaxedMoney(
+        net=Money('10.00', 'USD'), gross=Money('12.30', 'USD'))
+
+
+def test_product_get_price_per_item_variant_with_price(
+        product_type, default_category, taxes):
+    product = Product.objects.create(
+        product_type=product_type,
+        category=default_category,
+        price=Money('10.00', 'USD'))
+    variant = product.variants.create(price_override=Money('20.00', 'USD'))
+
+    price = variant.get_price_per_item(taxes=taxes)
+
+    assert price == TaxedMoney(
+        net=Money('20.00', 'USD'), gross=Money('24.60', 'USD'))
+
+
+def test_product_get_price_range_with_variants(
+        product_type, default_category, taxes):
+    product = Product.objects.create(
+        product_type=product_type,
+        category=default_category,
+        price=Money('15.00', 'USD'))
+    product.variants.create(sku='1')
+    product.variants.create(sku='2', price_override=Money('20.00', 'USD'))
+    product.variants.create(sku='3', price_override=Money('11.00', 'USD'))
+
+    price = product.get_price_range(taxes=taxes)
+
+    start = TaxedMoney(
+        net=Money('11.00', 'USD'), gross=Money('13.53', 'USD'))
+    stop = TaxedMoney(
+        net=Money('20.00', 'USD'), gross=Money('24.60', 'USD'))
+    assert price == TaxedMoneyRange(start=start, stop=stop)
+
+
+def test_product_get_price_range_no_variants(
+        product_type, default_category, taxes):
+    product = Product.objects.create(
+        product_type=product_type,
+        category=default_category,
+        price=Money('10.00', 'USD'))
+
+    price = product.get_price_range(taxes=taxes)
+
+    expected_price = TaxedMoney(
+        net=Money('10.00', 'USD'), gross=Money('12.30', 'USD'))
+    assert price == TaxedMoneyRange(start=expected_price, stop=expected_price)

@@ -183,7 +183,6 @@ def product_details(request, pk):
     availability = get_availability(product)
     sale_price = availability.price_range
     purchase_cost, gross_margin = get_product_costs_data(product)
-    gross_price_range = product.get_gross_price_range()
 
     # no_variants is True for product types that doesn't require variant.
     # In this case we're using the first variant under the hood to allow stock
@@ -192,10 +191,9 @@ def product_details(request, pk):
     only_variant = variants.first() if no_variants else None
     ctx = {
         'product': product, 'sale_price': sale_price, 'variants': variants,
-        'gross_price_range': gross_price_range, 'images': images,
-        'no_variants': no_variants, 'only_variant': only_variant,
-        'purchase_cost': purchase_cost, 'gross_margin': gross_margin,
-        'is_empty': not variants.exists()}
+        'images': images, 'no_variants': no_variants,
+        'only_variant': only_variant, 'purchase_cost': purchase_cost,
+        'gross_margin': gross_margin, 'is_empty': not variants.exists()}
     return TemplateResponse(request, 'dashboard/product/detail.html', ctx)
 
 
