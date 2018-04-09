@@ -103,11 +103,21 @@ class ModelDeleteMutation(BaseMutation):
             arguments=arguments, fields=fields)
 
     @classmethod
+    def _delete_instance(cls, instance):
+        """Note this method is needed as it is being wrapped at
+        saleor.dashboard.graphql.page.mutations.PageDelete#_delete_instance
+
+        The reason behind this function, is to avoid having to retrieve the
+        instance multiple times, and thus, to avoid wasting resources.
+        """
+        instance.delete()
+
+    @classmethod
     def mutate(cls, root, info, id, **kwargs):
         model = cls._meta.model
         model_type = registry.get_type_for_model(model)
         instance = get_node(info, id, only_type=model_type)
-        instance.delete()
+        cls._delete_instance(instance)
         field_name = cls._meta.return_field_name
         kwargs = {field_name: instance}
         return cls(**kwargs)

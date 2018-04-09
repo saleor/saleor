@@ -3,6 +3,7 @@ from ...page import models
 from ..core.mutations import (
     ModelDeleteMutation, ModelFormMutation, ModelFormUpdateMutation,
     StaffMemberRequiredMixin)
+from .decorators import must_be_unprotected
 
 
 class PageCreate(StaffMemberRequiredMixin, ModelFormMutation):
@@ -27,3 +28,8 @@ class PageDelete(StaffMemberRequiredMixin, ModelDeleteMutation):
     class Meta:
         description = 'Deletes a page.'
         model = models.Page
+
+    @classmethod
+    @must_be_unprotected
+    def _delete_instance(cls, instance):
+        return super(PageDelete, cls)._delete_instance(instance)

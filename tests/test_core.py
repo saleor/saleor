@@ -9,12 +9,16 @@ from prices import Money
 
 from saleor.account.models import Address, User
 from saleor.core.storages import S3MediaStorage
+from saleor.core.templatetags.urls import _get_internal_page_slug, \
+    get_internal_page_url
 from saleor.core.utils import (
     Country, create_superuser, create_thumbnails, format_money,
     get_country_by_ip, get_currency_for_country, random_data)
 from saleor.core.utils.text import get_cleaner, strip_html
 from saleor.discount.models import Sale, Voucher
+from saleor.menu.models import Menu
 from saleor.order.models import Order
+from saleor.page.models import Page
 from saleor.product.models import Product, ProductImage
 from saleor.shipping.models import ShippingMethod
 
@@ -245,3 +249,114 @@ def test_storages_not_setting_s3_bucket_domain(*_patches):
     storage = S3MediaStorage()
     assert storage.bucket_name == 'media-bucket'
     assert storage.custom_domain is None
+
+
+def test_random_data_get_default_page_content_missing_file():
+    html = random_data.get_default_page_content('__missing_file__')
+    assert html == random_data.DEFAULT_PAGE_HTML_IF_MISSING
+
+
+def test_random_data_create_privacy_page(footer: Menu):
+    slug = _get_internal_page_slug('PrivacyPolicy')
+
+    # default pages object can be already created by default in migration
+    assert Page.objects.all().delete()
+    assert Page.objects.all().count() == 0
+    assert footer.items.count() == 0
+
+    assert list(random_data.create_privacy_page(create_menu_entry=True))
+    assert Page.objects.all().count() == 1
+    assert footer.items.count() == 1
+
+    created_page = Page.objects.all().last()
+    menu_item = footer.items.last()
+    assert created_page.slug == slug
+    assert created_page.content != random_data.DEFAULT_PAGE_HTML_IF_MISSING
+    assert menu_item.name == created_page.title
+    assert menu_item.page_id == created_page.pk
+
+    created_page.title = title = 'New title was placed'
+    created_page.content = content = 'New content was placed'
+    created_page.save()
+
+    menu_item.name = menu_item_name = 'New name'
+    menu_item.save()
+
+    # check if not overriding
+    assert not list(random_data.create_privacy_page(create_menu_entry=True))
+    assert Page.objects.all().count() == 1
+    assert footer.items.count() == 1
+
+    created_page = Page.objects.all().last()
+    menu_item = footer.items.last()
+    assert created_page.title == title
+    assert created_page.content == content
+    assert menu_item.name == menu_item_name
+
+    # test without creating menu item
+    footer.items.last().delete()
+    assert footer.items.count() == 0
+
+    # should have nothing to do
+    assert not list(random_data.create_privacy_page(create_menu_entry=False))
+    assert Page.objects.all().count() == 1
+    assert footer.items.count() == 0
+
+
+def test_random_data_create_selling_contract_page(footer: Menu):
+    slug = _get_internal_page_slug('SellingContract')
+
+    # default pages object can be already created by default in migration
+    assert Page.objects.all().delete()
+    assert Page.objects.all().count() == 0
+    assert footer.items.count() == 0
+
+    assert list(
+        random_data.create_selling_contract_page(create_menu_entry=True))
+    assert Page.objects.all().count() == 1
+    assert footer.items.count() == 1
+
+    created_page = Page.objects.all().last()
+    menu_item = footer.items.last()
+    assert created_page.slug == slug
+    assert created_page.content != random_data.DEFAULT_PAGE_HTML_IF_MISSING
+    assert menu_item.name == created_page.title
+    assert menu_item.page_id == created_page.pk
+
+    created_page.title = title = 'New title was placed'
+    created_page.content = content = 'New content was placed'
+    created_page.save()
+
+    menu_item.name = menu_item_name = 'New name'
+    menu_item.save()
+
+    # check if not overriding
+    assert not list(
+        random_data.create_selling_contract_page(create_menu_entry=True))
+    assert Page.objects.all().count() == 1
+    assert footer.items.count() == 1
+
+    created_page = Page.objects.all().last()
+    menu_item = footer.items.last()
+    assert created_page.title == title
+    assert created_page.content == content
+    assert menu_item.name == menu_item_name
+
+    # test without creating menu item
+    footer.items.last().delete()
+    assert footer.items.count() == 0
+
+    # should have nothing to do
+    assert not list(random_data.create_selling_contract_page(
+        create_menu_entry=False))
+    assert Page.objects.all().count() == 1
+    assert footer.items.count() == 0
+
+
+@patch.object(settings, 'INTERNAL_PAGES', {'InternalPage': 'internal-page'})
+def test_templatetags_urls_get_internal_page_url():
+    expected_url = reverse('page:details', kwargs={'slug': 'internal-page'})
+    assert get_internal_page_url('InternalPage') == expected_url
+
+    with pytest.raises(ValueError):
+        get_internal_page_url('UnknownInternalPage')

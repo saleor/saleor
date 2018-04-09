@@ -5,9 +5,10 @@ from django.db import connection
 
 from ...utils import create_superuser
 from ...utils.random_data import (
-    add_address_to_admin, create_collections_by_schema, create_groups,
-    create_menus, create_orders, create_page, create_product_sales,
-    create_products_by_schema, create_shipping_methods, create_users,
+    add_address_to_admin, create_about_page, create_collections_by_schema,
+    create_groups, create_menus, create_orders, create_privacy_page,
+    create_product_sales, create_products_by_schema,
+    create_selling_contract_page, create_shipping_methods, create_users,
     create_vouchers, set_featured_products)
 
 
@@ -34,6 +35,12 @@ class Command(BaseCommand):
             dest='withoutsearch',
             default=False,
             help='Don\'t update search index')
+        parser.add_argument(
+            '--without-policies-menu-entries',
+            action='store_true',
+            dest='no_menu_policy_entries',
+            default=False,
+            help='Don\'t create footer menu entries for policies pages')
 
     def make_database_faster(self):
         """Sacrifice some of the safeguards of sqlite3 for speed.
@@ -51,12 +58,17 @@ class Command(BaseCommand):
             call_command('search_index', '--rebuild', force=True)
 
     def handle(self, *args, **options):
-        self.make_database_faster()
         create_images = not options['withoutimages']
+        create_policies_entries = not options['no_menu_policy_entries']
+
+        self.make_database_faster()
+
         for msg in create_shipping_methods():
             self.stdout.write(msg)
+
         create_products_by_schema(self.placeholders_dir, 10, create_images,
                                   stdout=self.stdout)
+
         for msg in create_product_sales(5):
             self.stdout.write(msg)
         for msg in create_vouchers():
@@ -69,10 +81,18 @@ class Command(BaseCommand):
             self.stdout.write(msg)
         for msg in create_collections_by_schema(self.placeholders_dir):
             self.stdout.write(msg)
-        for msg in create_page():
+        for msg in create_about_page():
             self.stdout.write(msg)
         for msg in create_menus():
             self.stdout.write(msg)
+
+        # warning: create_privacy_page and create_selling_contract_page are
+        # depending on create_menus.
+        for msg in create_privacy_page(create_policies_entries):
+            self.stdout.write(msg)
+        for msg in create_selling_contract_page(create_policies_entries):
+            self.stdout.write(msg)
+
         self.stdout.write(create_groups())
 
         if options['createsuperuser']:

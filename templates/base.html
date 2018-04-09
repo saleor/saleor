@@ -267,6 +267,9 @@
     </div>
   </footer>
 {% endblock %}
+
+{% include '_cookie_prompter_box.html' %}
+
 {% block footer_scripts %}
   <script type="text/javascript" src="{% url 'javascript-catalog' %}"></script>
   {% render_bundle 'storefront' 'js' %}

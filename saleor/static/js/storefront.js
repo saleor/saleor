@@ -6,6 +6,7 @@ import '../scss/storefront.scss';
 
 import './components/navbar';
 import './components/cart';
+import './components/cookie-prompter';
 import './components/sorter';
 import './components/variant-picker';
 import './components/language-picker';
