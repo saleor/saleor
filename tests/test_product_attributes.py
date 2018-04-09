@@ -3,7 +3,8 @@ import pytest
 from saleor.product.models import (
     AttributeChoiceValue, Product, ProductAttribute)
 from saleor.product.utils.attributes import (
-    generate_name_from_values, get_attributes_display_map)
+    generate_name_from_values, get_attributes_display_map,
+    get_name_from_attributes)
 
 
 @pytest.fixture()
@@ -29,12 +30,20 @@ def test_get_attributes_display_map(product_in_stock):
 def test_get_attributes_display_map_empty(product_with_no_attributes):
     product = product_with_no_attributes
     attributes = product.product_type.product_attributes.all()
-
     assert get_attributes_display_map(product, attributes) == {}
 
 
-def test_get_name_from_attributes():
-    raise NotImplementedError
+def test_get_name_from_attributes(product_in_stock):
+    variant = product_in_stock.variants.first()
+    name = get_name_from_attributes(variant)
+    assert name == 'Small'
+
+
+def test_get_name_from_attributes_no_attributes(product_with_no_attributes):
+    variant_without_attributes = product_with_no_attributes.variants.create(
+        sku='example-sku')
+    name = get_name_from_attributes(variant_without_attributes)
+    assert name == ''
 
 
 def test_generate_name_from_values():
