@@ -13,6 +13,7 @@ from .types import Category, ProductType
 
 class CategoryCreateMutation(StaffMemberRequiredMixin, ModelFormMutation):
     permissions = 'category.edit_category'
+
     class Arguments:
         parent_id = graphene.ID()
 
@@ -35,6 +36,7 @@ class CategoryCreateMutation(StaffMemberRequiredMixin, ModelFormMutation):
 class CategoryUpdateMutation(
         StaffMemberRequiredMixin, ModelFormUpdateMutation):
     permissions = 'category.edit_category'
+
     class Meta:
         description = 'Updates an existing category.'
         form_class = CategoryForm
@@ -48,6 +50,7 @@ class CategoryUpdateMutation(
 
 class CategoryDelete(StaffMemberRequiredMixin, ModelDeleteMutation):
     permissions = 'category.edit_category'
+
     class Meta:
         description = 'Deletes a category.'
         model = models.Category
