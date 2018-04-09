@@ -1,32 +1,19 @@
 import datetime
 import json
-from unittest.mock import Mock, patch
-
-import pytest
+from unittest.mock import patch
 
 from django.urls import reverse
 from saleor.cart import CartStatus, utils
 from saleor.cart.models import Cart
-from saleor.product import (
-    ProductAvailabilityStatus, VariantAvailabilityStatus, models)
-from saleor.product.models import (
-    AttributeChoiceValue, Category, ProductImage)
+from saleor.product import ProductAvailabilityStatus, models
+from saleor.product.models import Category, ProductImage
 from saleor.product.thumbnails import create_product_thumbnails
 from saleor.product.utils import (
-    allocate_stock, deallocate_stock, decrease_stock,
-    generate_name_from_values, get_attributes_display_map, get_availability,
-    get_name_from_attributes, get_product_availability_status,
-    get_variant_availability_status, get_variant_picker_data, increase_stock)
- 
+    allocate_stock, deallocate_stock, decrease_stock, increase_stock)
+from saleor.product.utils.availability import get_product_availability_status
+from saleor.product.utils.variants_picker import get_variant_picker_data
+
 from .utils import filter_products_by_attribute
-
-
-@pytest.fixture()
-def product_with_no_attributes(product_type, default_category):
-    product = models.Product.objects.create(
-        name='Test product', price='10.00', product_type=product_type,
-        category=default_category)
-    return product
 
 
 def test_stock_selector(product_in_stock):
@@ -96,36 +83,6 @@ def test_product_preview(admin_client, client, product_in_stock):
     assert response.status_code == 404
     response = admin_client.get(product_in_stock.get_absolute_url())
     assert response.status_code == 200
-
-
-def test_availability(product_in_stock, monkeypatch, settings):
-    availability = get_availability(product_in_stock)
-    assert availability.price_range == product_in_stock.get_price_range()
-    assert availability.price_range_local_currency is None
-    monkeypatch.setattr(
-        'django_prices_openexchangerates.models.get_rates',
-        lambda c: {'PLN': Mock(rate=2)})
-    settings.DEFAULT_COUNTRY = 'PL'
-    settings.OPENEXCHANGERATES_API_KEY = 'fake-key'
-    availability = get_availability(product_in_stock, local_currency='PLN')
-    assert availability.price_range_local_currency.start.currency == 'PLN'
-    assert availability.available
-
-
-def test_available_products_only_published(product_list):
-    available_products = models.Product.objects.available_products()
-    assert available_products.count() == 2
-    assert all([product.is_published for product in available_products])
-
-
-def test_available_products_only_available(product_list):
-    product = product_list[0]
-    date_tomorrow = datetime.date.today() + datetime.timedelta(days=1)
-    product.available_on = date_tomorrow
-    product.save()
-    available_products = models.Product.objects.available_products()
-    assert available_products.count() == 1
-    assert all([product.is_available() for product in available_products])
 
 
 def test_filtering_by_attribute(db, color_attribute, default_category):
@@ -304,107 +261,6 @@ def test_adding_to_cart_with_closed_cart_token(
 
     assert Cart.objects.filter(
         user=admin_user, status=CartStatus.OPEN).count() == 1
-
-
-def test_get_attributes_display_map(product_in_stock):
-    attributes = product_in_stock.product_type.product_attributes.all()
-    attributes_display_map = get_attributes_display_map(
-        product_in_stock, attributes)
-
-    product_attr = product_in_stock.product_type.product_attributes.first()
-    attr_value = product_attr.values.first()
-
-    assert len(attributes_display_map) == 1
-    assert attributes_display_map == {product_attr.pk: attr_value}
-
-
-def test_get_attributes_display_map_empty(product_with_no_attributes):
-    product = product_with_no_attributes
-    attributes = product.product_type.product_attributes.all()
-
-    assert get_attributes_display_map(product, attributes) == {}
-
-
-def test_get_name_from_attributes():
-    raise NotImplementedError
-
-
-def test_generate_name_from_values():
-    red = AttributeChoiceValue.objects.create(name='Red', slug='red')
-    blue = AttributeChoiceValue.objects.create(name='Blue', slug='blue')
-    yellow = AttributeChoiceValue.objects.create(name='Yellow', slug='yellow')
-    values = {'3': red, '2': blue, '1': yellow}
-    name = generate_name_from_values(values)
-    assert name == 'Yellow / Blue / Red'
-
-
-def test_generate_name_from_values_empty():
-    name = generate_name_from_values({})
-    assert name == ''
-
-
-def test_product_availability_status(unavailable_product):
-    product = unavailable_product
-    product.product_type.has_variants = True
-
-    # product is not published
-    status = get_product_availability_status(product)
-    assert status == ProductAvailabilityStatus.NOT_PUBLISHED
-
-    product.is_published = True
-    product.save()
-
-    # product has no variants
-    status = get_product_availability_status(product)
-    assert status == ProductAvailabilityStatus.VARIANTS_MISSSING
-
-    # product has variant but not stock records
-    variant_1 = product.variants.create(sku='test-1')
-    variant_2 = product.variants.create(sku='test-2')
-    status = get_product_availability_status(product)
-    assert status == ProductAvailabilityStatus.NOT_CARRIED
-
-    # create empty stock records
-    stock_1 = variant_1.stock.create(quantity=0)
-    stock_2 = variant_2.stock.create(quantity=0)
-    status = get_product_availability_status(product)
-    assert status == ProductAvailabilityStatus.OUT_OF_STOCK
-
-    # assign quantity to only one stock record
-    stock_1.quantity = 5
-    stock_1.save()
-    status = get_product_availability_status(product)
-    assert status == ProductAvailabilityStatus.LOW_STOCK
-
-    # both stock records have some quantity
-    stock_2.quantity = 5
-    stock_2.save()
-    status = get_product_availability_status(product)
-    assert status == ProductAvailabilityStatus.READY_FOR_PURCHASE
-
-    # set product availability date from future
-    product.available_on = datetime.date.today() + datetime.timedelta(days=1)
-    product.save()
-    status = get_product_availability_status(product)
-    assert status == ProductAvailabilityStatus.NOT_YET_AVAILABLE
-
-
-def test_variant_availability_status(unavailable_product):
-    product = unavailable_product
-    product.product_type.has_variants = True
-
-    variant = product.variants.create(sku='test')
-    status = get_variant_availability_status(variant)
-    assert status == VariantAvailabilityStatus.NOT_CARRIED
-
-    stock = variant.stock.create(quantity=0)
-    status = get_variant_availability_status(variant)
-    assert status == VariantAvailabilityStatus.OUT_OF_STOCK
-
-    stock.quantity = 5
-    stock.save()
-    status = get_variant_availability_status(variant)
-    assert status == VariantAvailabilityStatus.AVAILABLE
 
 
 def test_product_filter_before_filtering(
