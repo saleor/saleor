@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: master\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2018-04-03 09:37-0500\n"
+"POT-Creation-Date: 2018-04-09 09:21-0500\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -191,13 +191,13 @@ msgid_plural "Found %(counter)d matching customers"
 msgstr[0] ""
 msgstr[1] ""
 
-#: saleor/dashboard/customer/views.py:58
+#: saleor/dashboard/customer/views.py:59
 #, python-format
 msgctxt "Dashboard message"
 msgid "Added customer %s"
 msgstr ""
 
-#: saleor/dashboard/customer/views.py:74
+#: saleor/dashboard/customer/views.py:75
 #, python-format
 msgctxt "Dashboard message"
 msgid "Updated customer %s"
@@ -416,33 +416,33 @@ msgctxt "Category"
 msgid "Category"
 msgstr ""
 
-#: saleor/dashboard/discount/views.py:50
+#: saleor/dashboard/discount/views.py:54
 msgctxt "Sale (discount) message"
 msgid "Added sale"
 msgstr ""
 
-#: saleor/dashboard/discount/views.py:64
+#: saleor/dashboard/discount/views.py:68
 msgctxt "Sale (discount) message"
 msgid "Updated sale"
 msgstr ""
 
-#: saleor/dashboard/discount/views.py:78
+#: saleor/dashboard/discount/views.py:82
 #, python-format
 msgctxt "Sale (discount) message"
 msgid "Removed sale %s"
 msgstr ""
 
-#: saleor/dashboard/discount/views.py:118
+#: saleor/dashboard/discount/views.py:122
 msgctxt "Voucher message"
 msgid "Added voucher"
 msgstr ""
 
-#: saleor/dashboard/discount/views.py:144
+#: saleor/dashboard/discount/views.py:148
 msgctxt "Voucher message"
 msgid "Updated voucher"
 msgstr ""
 
-#: saleor/dashboard/discount/views.py:161
+#: saleor/dashboard/discount/views.py:165
 #, python-format
 msgctxt "Voucher message"
 msgid "Removed voucher %s"
@@ -698,48 +698,115 @@ msgid_plural "Found %(counter)d matching orders"
 msgstr[0] ""
 msgstr[1] ""
 
-#: saleor/dashboard/order/forms.py:34
+#: saleor/dashboard/order/forms.py:40
+msgctxt "Send email to customer about order created by staff users"
+msgid "Send email with order confirmation to the customer"
+msgstr ""
+
+#: saleor/dashboard/order/forms.py:58
+msgctxt "Create draft order form error"
+msgid "Could not create order without any products"
+msgstr ""
+
+#: saleor/dashboard/order/forms.py:69
+msgctxt "Create draft order form error"
+msgid "Shipping method is not valid for chosen shipping address"
+msgstr ""
+
+#: saleor/dashboard/order/forms.py:97
+msgctxt "Update an order with user default addresses"
+msgid "Set billing and shipping address in order to customer defaults"
+msgstr ""
+
+#: saleor/dashboard/order/forms.py:108
+msgctxt "Order customer"
+msgid "User"
+msgstr ""
+
+#: saleor/dashboard/order/forms.py:111
+msgctxt "Order customer email"
+msgid "Email"
+msgstr ""
+
+#: saleor/dashboard/order/forms.py:126
+msgctxt "Edit customer details in order form error"
+msgid ""
+"An order can be related either with an email or an existing user account"
+msgstr ""
+
+#: saleor/dashboard/order/forms.py:160
+msgctxt "Shipping method form field label"
+msgid "Shipping method"
+msgstr ""
+
+#: saleor/dashboard/order/forms.py:213
+msgctxt "Order discount amount fixed value"
+msgid "Discount amount"
+msgstr ""
+
+#: saleor/dashboard/order/forms.py:230
+msgctxt "Order voucher"
+msgid "Voucher"
+msgstr ""
+
+#: saleor/dashboard/order/forms.py:256
 msgctxt "Order note"
 msgid "Note"
 msgstr ""
 
-#: saleor/dashboard/order/forms.py:37
+#: saleor/dashboard/order/forms.py:259
 msgctxt "Allow customers to see note toggle"
 msgid "Customer can see this note"
 msgstr ""
 
-#: saleor/dashboard/order/forms.py:47
+#: saleor/dashboard/order/forms.py:269
 msgctxt "Payment management form (capture, refund, release)"
 msgid "Amount"
 msgstr ""
 
-#: saleor/dashboard/order/forms.py:63 saleor/dashboard/order/forms.py:111
+#: saleor/dashboard/order/forms.py:285 saleor/dashboard/order/forms.py:341
 #, python-format
 msgctxt "Payment form error"
 msgid "Payment gateway error: %s"
 msgstr ""
 
-#: saleor/dashboard/order/forms.py:79
+#: saleor/dashboard/order/forms.py:301
 msgctxt "Payment form error"
 msgid "Only pre-authorized payments can be captured"
 msgstr ""
 
-#: saleor/dashboard/order/forms.py:89
+#: saleor/dashboard/order/forms.py:311
 msgctxt "Payment form error"
 msgid "Only confirmed payments can be refunded"
 msgstr ""
 
-#: saleor/dashboard/order/forms.py:106
+#: saleor/dashboard/order/forms.py:319
+msgctxt "Payment form error"
+msgid "Manual payments can not be refunded"
+msgstr ""
+
+#: saleor/dashboard/order/forms.py:336
 msgctxt "Payment form error"
 msgid "Only pre-authorized payments can be released"
 msgstr ""
 
-#: saleor/dashboard/order/forms.py:145 saleor/dashboard/product/forms.py:63
+#: saleor/dashboard/order/forms.py:365
+msgctxt "Mark order as paid form error"
+msgid "Orders with payments can not be manually marked as paid"
+msgstr ""
+
+#: saleor/dashboard/order/forms.py:374
+#, python-format
+msgctxt "Payment description"
+msgid "Order %(order)s"
+msgstr ""
+
+#: saleor/dashboard/order/forms.py:406 saleor/dashboard/product/forms.py:63
 msgctxt "Integer number"
 msgid "Quantity"
 msgstr ""
 
-#: saleor/dashboard/order/forms.py:160
+#: saleor/dashboard/order/forms.py:421
 #, python-format
 msgctxt "Change quantity form error"
 msgid "Only %(remaining)d remaining in stock."
@@ -747,7 +814,7 @@ msgid_plural "Only %(remaining)d remaining in stock."
 msgstr[0] ""
 msgstr[1] ""
 
-#: saleor/dashboard/order/forms.py:191
+#: saleor/dashboard/order/forms.py:453
 #, python-format
 msgctxt "Cancel order form action"
 msgid "Restock %(quantity)d item"
@@ -755,12 +822,12 @@ msgid_plural "Restock %(quantity)d items"
 msgstr[0] ""
 msgstr[1] ""
 
-#: saleor/dashboard/order/forms.py:201
+#: saleor/dashboard/order/forms.py:463
 msgctxt "Cancel order form error"
 msgid "This order can't be cancelled"
 msgstr ""
 
-#: saleor/dashboard/order/forms.py:220
+#: saleor/dashboard/order/forms.py:483
 #, python-format
 msgctxt "Cancel fulfillment form action"
 msgid "Restock %(quantity)d item"
@@ -768,64 +835,64 @@ msgid_plural "Restock %(quantity)d items"
 msgstr[0] ""
 msgstr[1] ""
 
-#: saleor/dashboard/order/forms.py:230
+#: saleor/dashboard/order/forms.py:493
 msgctxt "Cancel fulfillment form error"
 msgid "This fulfillment can't be canceled"
 msgstr ""
 
-#: saleor/dashboard/order/forms.py:242
+#: saleor/dashboard/order/forms.py:506
 msgctxt "Send mail to customer"
 msgid "Send notification email to customer"
 msgstr ""
 
-#: saleor/dashboard/order/forms.py:249
+#: saleor/dashboard/order/forms.py:513
 msgctxt "Fulfillment record"
 msgid "Tracking number"
 msgstr ""
 
-#: saleor/dashboard/order/forms.py:264
+#: saleor/dashboard/order/forms.py:534
 msgctxt "Remove voucher form error"
 msgid "This order has no voucher"
 msgstr ""
 
-#: saleor/dashboard/order/forms.py:276
+#: saleor/dashboard/order/forms.py:546
 msgctxt "Payment status field value"
 msgid "All"
 msgstr ""
 
-#: saleor/dashboard/order/forms.py:297
+#: saleor/dashboard/order/forms.py:567
 msgctxt "Stock record"
 msgid "Stock"
 msgstr ""
 
-#: saleor/dashboard/order/forms.py:311
+#: saleor/dashboard/order/forms.py:581
 #, python-format
 msgctxt "Change stock form error"
 msgid "Only %(remaining)d remaining in this stock."
 msgstr ""
 
-#: saleor/dashboard/order/forms.py:337
+#: saleor/dashboard/order/forms.py:607
 msgctxt "Add variant to order form label"
 msgid "Quantity"
 msgstr ""
 
-#: saleor/dashboard/order/forms.py:357
+#: saleor/dashboard/order/forms.py:627
 #, python-format
 msgctxt "Add item form error"
 msgid "Could not add item. Only %(remaining)d remaining in stock."
 msgstr ""
 
-#: saleor/dashboard/order/forms.py:385
+#: saleor/dashboard/order/forms.py:656
 msgctxt "Send mail to customer"
 msgid "Send shipment details to your customer now"
 msgstr ""
 
-#: saleor/dashboard/order/forms.py:393
+#: saleor/dashboard/order/forms.py:664
 msgctxt "Order tracking number"
 msgid "Tracking number"
 msgstr ""
 
-#: saleor/dashboard/order/forms.py:420
+#: saleor/dashboard/order/forms.py:694
 #, python-format
 msgctxt "Fulfill order line form error"
 msgid "%(quantity)d item remaining to fulfill."
@@ -833,29 +900,50 @@ msgid_plural "%(quantity)d items remaining to fulfill."
 msgstr[0] ""
 msgstr[1] ""
 
-#: saleor/dashboard/order/views.py:95
+#: saleor/dashboard/order/views.py:63
+msgctxt "Dashboard message related to an order"
+msgid "Draft order created"
+msgstr ""
+
+#: saleor/dashboard/order/views.py:78
+msgctxt "Dashboard message related to an order"
+msgid "Order created from draft order"
+msgstr ""
+
+#: saleor/dashboard/order/views.py:85
+#, python-format
+msgctxt "Dashboard message related to an order"
+msgid "Order confirmation email was sent to user(%(email)s)"
+msgstr ""
+
+#: saleor/dashboard/order/views.py:103
+msgctxt "Dashboard message"
+msgid "Draft order successfully removed"
+msgstr ""
+
+#: saleor/dashboard/order/views.py:161
 msgctxt "Dashboard message related to an order"
 msgid "Added note"
 msgstr ""
 
-#: saleor/dashboard/order/views.py:120
+#: saleor/dashboard/order/views.py:188
 #, python-format
 msgctxt "Dashboard message related to a payment"
 msgid "Captured %(amount)s"
 msgstr ""
 
-#: saleor/dashboard/order/views.py:143
+#: saleor/dashboard/order/views.py:212
 #, python-format
 msgctxt "Dashboard message related to a payment"
 msgid "Refunded %(amount)s"
 msgstr ""
 
-#: saleor/dashboard/order/views.py:161
+#: saleor/dashboard/order/views.py:231
 msgctxt "Dashboard message"
 msgid "Released payment"
 msgstr ""
 
-#: saleor/dashboard/order/views.py:183
+#: saleor/dashboard/order/views.py:254
 #, python-format
 msgctxt "Dashboard message related to an order line"
 msgid ""
@@ -863,40 +951,82 @@ msgid ""
 "%(new_quantity)s"
 msgstr ""
 
-#: saleor/dashboard/order/views.py:209
+#: saleor/dashboard/order/views.py:279
 #, python-format
 msgctxt "Dashboard message related to an order line"
 msgid "Cancelled item %s"
 msgstr ""
 
-#: saleor/dashboard/order/views.py:240
+#: saleor/dashboard/order/views.py:309
 #, python-format
 msgctxt "Dashboard message related to an order"
 msgid "Added %(quantity)d x %(variant)s"
 msgstr ""
 
-#: saleor/dashboard/order/views.py:246
+#: saleor/dashboard/order/views.py:314
 #, python-format
 msgctxt "Dashboard message related to an order"
 msgid "Insufficient stock: could not add %(quantity)d x %(variant)s"
 msgstr ""
 
-#: saleor/dashboard/order/views.py:265
+#: saleor/dashboard/order/views.py:333
 msgctxt "Dashboard message"
 msgid "Updated shipping address"
 msgstr ""
 
-#: saleor/dashboard/order/views.py:270
+#: saleor/dashboard/order/views.py:338
 msgctxt "Dashboard message"
 msgid "Updated billing address"
 msgstr ""
 
-#: saleor/dashboard/order/views.py:294
+#: saleor/dashboard/order/views.py:365
+#, python-format
+msgctxt "Dashboard message"
+msgid "%s email assigned to an order"
+msgstr ""
+
+#: saleor/dashboard/order/views.py:369
+#, python-format
+msgctxt "Dashboard message"
+msgid "%s user assigned to an order"
+msgstr ""
+
+#: saleor/dashboard/order/views.py:373
+msgctxt "Dashboard message"
+msgid "Guest user assigned to an order"
+msgstr ""
+
+#: saleor/dashboard/order/views.py:393
+msgctxt "Dashboard message"
+msgid "Customer removed from an order"
+msgstr ""
+
+#: saleor/dashboard/order/views.py:407
+msgctxt "Dashboard message"
+msgid "Shipping updated"
+msgstr ""
+
+#: saleor/dashboard/order/views.py:425
+msgctxt "Dashboard message"
+msgid "Shipping removed"
+msgstr ""
+
+#: saleor/dashboard/order/views.py:439
+msgctxt "Dashboard message"
+msgid "Discount updated"
+msgstr ""
+
+#: saleor/dashboard/order/views.py:458
+msgctxt "Dashboard message"
+msgid "Voucher updated"
+msgstr ""
+
+#: saleor/dashboard/order/views.py:476
 msgctxt "Dashboard message"
 msgid "Order canceled"
 msgstr ""
 
-#: saleor/dashboard/order/views.py:300 saleor/dashboard/order/views.py:464
+#: saleor/dashboard/order/views.py:482 saleor/dashboard/order/views.py:667
 #, python-format
 msgctxt "Dashboard message"
 msgid "Restocked %(quantity)d item"
@@ -904,18 +1034,23 @@ msgid_plural "Restocked %(quantity)d items"
 msgstr[0] ""
 msgstr[1] ""
 
-#: saleor/dashboard/order/views.py:323
+#: saleor/dashboard/order/views.py:504
 msgctxt "Dashboard message"
 msgid "Removed voucher from order"
 msgstr ""
 
-#: saleor/dashboard/order/views.py:378
+#: saleor/dashboard/order/views.py:535
+msgctxt "Dashboard message"
+msgid "Order manually marked as paid"
+msgstr ""
+
+#: saleor/dashboard/order/views.py:578
 #, python-format
 msgctxt "Dashboard message"
 msgid "Stock location changed for %s"
 msgstr ""
 
-#: saleor/dashboard/order/views.py:421
+#: saleor/dashboard/order/views.py:624
 #, python-format
 msgctxt "Dashboard message related to an order"
 msgid "Fulfilled %(quantity_fulfilled)d item"
@@ -923,37 +1058,37 @@ msgid_plural "Fulfilled %(quantity_fulfilled)d items"
 msgstr[0] ""
 msgstr[1] ""
 
-#: saleor/dashboard/order/views.py:430
+#: saleor/dashboard/order/views.py:633
 #, python-format
 msgctxt "Dashboard message related to an order"
 msgid "Shipping confirmation email was sent to user(%(email)s)"
 msgstr ""
 
-#: saleor/dashboard/order/views.py:435
+#: saleor/dashboard/order/views.py:638
 msgctxt "Dashboard message related to an order"
 msgid "No items fulfilled"
 msgstr ""
 
-#: saleor/dashboard/order/views.py:457
+#: saleor/dashboard/order/views.py:660
 #, python-format
 msgctxt "Dashboard message"
 msgid "Fulfillment #%(fulfillment)s canceled"
 msgstr ""
 
-#: saleor/dashboard/order/views.py:494
+#: saleor/dashboard/order/views.py:697
 #, python-format
 msgctxt "Dashboard message"
 msgid ""
 "Fulfillment #%(fulfillment)s tracking number changed to: #%(tracking_number)s"
 msgstr ""
 
-#: saleor/dashboard/order/views.py:501
+#: saleor/dashboard/order/views.py:704
 #, python-format
 msgctxt "Dashboard message"
 msgid "Fulfillment #%(fulfillment)s tracking number removed"
 msgstr ""
 
-#: saleor/dashboard/order/views.py:508
+#: saleor/dashboard/order/views.py:711
 #, python-format
 msgctxt "Dashboard message related to an order"
 msgid "Shipping update email was sent to user (%(email)s)"
