@@ -39,7 +39,13 @@
           <span class="card-title">{{ product }} <br> {{ product.product_type }}</span>
           <div class="row">
             <div class="col s5 m6">
-              <p class="text-padding">{% trans "Sale price" context "Product field" %}</p>
+              <p class="text-padding">
+                {% if product.charge_taxes %}
+                  {% trans "Sale price (taxes are charged)" context "Product field" %}
+                {% else %}
+                  {% trans "Sale price (taxes are not charged)" context "Product field" %}
+                {% endif %}
+              </p>
             </div>
             <div class="col s7 m6">
               {% with sale_price as price_range %}

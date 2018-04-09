@@ -516,3 +516,34 @@ def test_product_get_price_range_no_variants(
     expected_price = TaxedMoney(
         net=Money('10.00', 'USD'), gross=Money('12.30', 'USD'))
     assert price == TaxedMoneyRange(start=expected_price, stop=expected_price)
+
+
+def test_product_get_price_per_item_do_not_charge_taxes(
+        product_type, default_category, taxes, sale):
+    product = Product.objects.create(
+        product_type=product_type,
+        category=default_category,
+        price=Money('10.00', 'USD'),
+        charge_taxes=False)
+    variant = product.variants.create()
+
+    price = variant.get_price_per_item(
+        taxes=taxes, discounts=Sale.objects.all())
+
+    assert price == TaxedMoney(
+        net=Money('5.00', 'USD'), gross=Money('5.00', 'USD'))
+
+
+def test_product_get_price_range_do_not_charge_taxes(
+        product_type, default_category, taxes, sale):
+    product = Product.objects.create(
+        product_type=product_type,
+        category=default_category,
+        price=Money('10.00', 'USD'),
+        charge_taxes=False)
+
+    price = product.get_price_range(taxes=taxes, discounts=Sale.objects.all())
+
+    expected_price = TaxedMoney(
+        net=Money('5.00', 'USD'), gross=Money('5.00', 'USD'))
+    assert price == TaxedMoneyRange(start=expected_price, stop=expected_price)
