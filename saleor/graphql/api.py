@@ -5,8 +5,8 @@ from graphene_django.filter import DjangoFilterConnectionField
 
 from ..page import models as page_models
 from .core.filters import DistinctFilterSet
-from .page.mutations import PageCreate, PageDelete, PageUpdate
 from .page.types import Page, resolve_pages
+from .page.mutations import PageCreate, PageDelete, PageUpdate
 from .product.filters import ProductFilterSet
 from .product.mutations import (
     CategoryCreateMutation, CategoryDelete, CategoryUpdateMutation,

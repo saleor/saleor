@@ -3,8 +3,6 @@ from ...page import models
 from ..core.mutations import (
     ModelDeleteMutation, ModelFormMutation, ModelFormUpdateMutation,
     StaffMemberRequiredMixin)
-# TODO: This dummy import allows application to start. Find out why
-from .types import Page
 
 
 class PageCreate(StaffMemberRequiredMixin, ModelFormMutation):

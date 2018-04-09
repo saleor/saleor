@@ -93,6 +93,8 @@ class Product(CountableDjangoObjectType):
         description='List of product attributes assigned to this product.')
     purchase_cost = graphene.Field(TaxedMoneyRange)
     gross_margin = graphene.List(GrossMargin)
+    price_range = graphene.Field(TaxedMoneyRange)
+    price_range_undiscounted = graphene.Field(TaxedMoneyRange)
 
     class Meta:
         description = """Represents an individual item for sale in the
@@ -127,8 +129,11 @@ class Product(CountableDjangoObjectType):
         _, gross_margin = get_product_costs_data(self)
         return [GrossMargin(gross_margin[0], gross_margin[1])]
 
-    @permission_required('product.view_product')
     def resolve_price_range(self, info):
+        context = info.context
+        return self.get_price_range(discounts=context.discounts)
+
+    def resolve_price_range_undiscounted(self, info):
         return self.get_price_range()
 
 
@@ -254,11 +259,11 @@ def resolve_categories(info, level=None):
 
 def resolve_products(info, category_id):
     user = info.context.user
+    products = products_visible_to_user(user=user).distinct()
     if category_id is not None:
         category = get_node(info, category_id, only_type=Category)
-        return products_visible_to_user(
-            user=user).filter(category=category).distinct()
-    return products_visible_to_user(user=user).distinct()
+        return products.filter(category=category)
+    return products
 
 
 def resolve_attributes(category_id, info):
