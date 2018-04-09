@@ -193,7 +193,9 @@ class ProductForm(forms.ModelForm, AttributesMixin):
                 'Featured product toggle',
                 'Feature this product on homepage'),
             'collections': pgettext_lazy(
-                'Add to collection select', 'Collections')}
+                'Add to collection select', 'Collections'),
+            'charge_taxes': pgettext_lazy(
+                'Charge taxes on product', 'Charge taxes on this product')}
 
     category = TreeNodeChoiceField(queryset=Category.objects.all())
     collections = forms.ModelMultipleChoiceField(
