@@ -7,6 +7,7 @@ from ..core.mutations import (
 
 class PageCreate(StaffMemberRequiredMixin, ModelFormMutation):
     permissions = 'page.edit_page'
+
     class Meta:
         description = 'Creates a new page.'
         form_class = PageForm
@@ -14,6 +15,7 @@ class PageCreate(StaffMemberRequiredMixin, ModelFormMutation):
 
 class PageUpdate(StaffMemberRequiredMixin, ModelFormUpdateMutation):
     permissions = 'page.edit_page'
+
     class Meta:
         description = 'Updates an existing page.'
         form_class = PageForm
@@ -21,6 +23,7 @@ class PageUpdate(StaffMemberRequiredMixin, ModelFormUpdateMutation):
 
 class PageDelete(StaffMemberRequiredMixin, ModelDeleteMutation):
     permissions = 'page.edit_page'
+
     class Meta:
         description = 'Deletes a page.'
         model = models.Page
