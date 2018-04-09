@@ -177,19 +177,10 @@ class Product(SeoModel):
                 for variant in self]
             return TaxedMoneyRange(min(prices), max(prices))
         tax_rate = self.tax_rate or self.product_type.tax_rate
-        price = apply_tax_to_price(taxes, tax_rate, self.price)
         discounted_price = calculate_discounted_price(
-            self, price, discounts)
-        return TaxedMoneyRange(start=discounted_price, stop=discounted_price)
-
-    def get_gross_price_range(self, discounts=None):
-        grosses = [
-            self.get_price_per_item(variant, discounts=discounts)
-            for variant in self]
-        if not grosses:
-            return None
-        grosses = sorted(grosses, key=lambda x: x.tax)
-        return TaxedMoneyRange(min(grosses), max(grosses))
+            self, self.price, discounts)
+        taxed_price = apply_tax_to_price(taxes, tax_rate, discounted_price)
+        return TaxedMoneyRange(start=taxed_price, stop=taxed_price)
 
 
 class ProductVariant(models.Model):

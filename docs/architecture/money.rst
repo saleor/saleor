@@ -22,12 +22,12 @@ In Saleor's codebase, money amounts exist either as `Money` or `TaxedMoney` inst
 Products and shipping methods prices are stored using `MoneyField` and are assumed to be gross amounts. Those amounts are then naively converted to `TaxedMoney` objects using the `TaxedAmount(net=item.price, gross=item.price)` approach with conversion happening before resolving item's final price (before taxes and discounts).
 
 .. note::
-  
+
   In future Saleor will support setting for store administrators to change this approach to use net values instead if this fits their business more.
 
 TaxedMoneyRange
 ---------------
 
-Sometimes a product may be available under more than single price due to it's variants defining custom prices different from base brice. For such situations `Product` defines additional `get_price_range` and `get_gross_price_range` methods that return `TaxedMoneyRange` object defining minim and maximum prices on its `start` and `stop` attributes. This object is then used by the UI to differentatie between displaying price as "10 USD" or "from 10 USD" in case of products where prices differ between variants.
+Sometimes a product may be available under more than single price due to it's variants defining custom prices different from base brice. For such situations `Product` defines additional `get_price_range` method that return `TaxedMoneyRange` object defining minimum and maximum prices on its `start` and `stop` attributes. This object is then used by the UI to differentiate between displaying price as "10 USD" or "from 10 USD" in case of products where prices differ between variants.
 
 TaxedMoneyRange is also used in for displaying other money ranges, like min and maximum cost and margin on product's variant in dashboard.
