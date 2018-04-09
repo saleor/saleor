@@ -2,7 +2,7 @@ from functools import wraps
 
 from graphql_jwt.exceptions import PermissionDenied
 
-from ....page.models import Page
+from ...page.models import Page
 
 
 def must_be_unprotected(fn):
