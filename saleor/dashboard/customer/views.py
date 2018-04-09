@@ -103,7 +103,6 @@ def ajax_users_list(request):
 @permission_required('account.edit_user')
 def customer_add_note(request, customer_pk):
     customer = get_object_or_404(User, pk=customer_pk)
-    print(customer)
     note = CustomerNote(customer=customer, user=request.user)
     form = CustomerNoteForm(request.POST or None, instance=note)
     status = 200
