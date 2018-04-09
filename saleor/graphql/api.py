@@ -6,7 +6,11 @@ from graphene_django.filter import DjangoFilterConnectionField
 from ..page import models as page_models
 from .core.filters import DistinctFilterSet
 from .page.types import Page, resolve_pages
+from .page.mutations import PageCreate, PageDelete, PageUpdate
 from .product.filters import ProductFilterSet
+from .product.mutations import (
+    CategoryCreateMutation, CategoryDelete, CategoryUpdateMutation,
+    ProductCreateMutation, ProductDeleteMutation, ProductUpdateMutation)
 from .product.types import (
     Category, Product, ProductAttribute, resolve_attributes,
     resolve_categories, resolve_products)
@@ -53,13 +57,13 @@ class Query(graphene.ObjectType):
         return get_node(info, id, only_type=Page)
 
     def resolve_pages(self, info):
-        return resolve_pages()
+        return resolve_pages(user=info.context.user)
 
     def resolve_product(self, info, id):
         return get_node(info, id, only_type=Product)
 
-    def resolve_products(self, info, **kwargs):
-        return resolve_products(info)
+    def resolve_products(self, info, category_id=None, **kwargs):
+        return resolve_products(info, category_id)
 
     def resolve_attributes(self, info, in_category=None, **kwargs):
         return resolve_attributes(in_category, info)
@@ -68,6 +72,18 @@ class Query(graphene.ObjectType):
 class Mutations(graphene.ObjectType):
     token_create = graphql_jwt.ObtainJSONWebToken.Field()
     token_refresh = graphql_jwt.Refresh.Field()
+
+    category_create = CategoryCreateMutation.Field()
+    category_delete = CategoryDelete.Field()
+    category_update = CategoryUpdateMutation.Field()
+
+    page_create = PageCreate.Field()
+    page_delete = PageDelete.Field()
+    page_update = PageUpdate.Field()
+
+    product_create = ProductCreateMutation.Field()
+    product_delete = ProductDeleteMutation.Field()
+    product_update = ProductUpdateMutation.Field()
 
 
 schema = graphene.Schema(Query, Mutations)

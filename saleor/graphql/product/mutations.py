@@ -1,18 +1,19 @@
 import graphene
 from graphene.types import InputObjectType
 
-from ....graphql.product.types import Category, ProductType
-from ....graphql.utils import get_node
-from ....product import models
-from ...category.forms import CategoryForm
+from ...dashboard.category.forms import CategoryForm
+from ...product import models
 from ..core.mutations import (
     BaseMutation, ModelDeleteMutation, ModelFormMutation,
-    ModelFormUpdateMutation, StaffMemberRequiredMutation, convert_form_errors)
-from ..utils import get_attributes_dict_from_list
+    ModelFormUpdateMutation, StaffMemberRequiredMixin, convert_form_errors)
+from ..utils import get_attributes_dict_from_list, get_node
 from .forms import ProductForm
+from .types import Category, ProductType
 
 
-class CategoryCreateMutation(StaffMemberRequiredMutation, ModelFormMutation):
+class CategoryCreateMutation(StaffMemberRequiredMixin, ModelFormMutation):
+    permissions = 'category.edit_category'
+
     class Arguments:
         parent_id = graphene.ID()
 
@@ -33,7 +34,9 @@ class CategoryCreateMutation(StaffMemberRequiredMutation, ModelFormMutation):
 
 
 class CategoryUpdateMutation(
-        StaffMemberRequiredMutation, ModelFormUpdateMutation):
+        StaffMemberRequiredMixin, ModelFormUpdateMutation):
+    permissions = 'category.edit_category'
+
     class Meta:
         description = 'Updates an existing category.'
         form_class = CategoryForm
@@ -45,7 +48,9 @@ class CategoryUpdateMutation(
         return kwargs
 
 
-class CategoryDelete(StaffMemberRequiredMutation, ModelDeleteMutation):
+class CategoryDelete(StaffMemberRequiredMixin, ModelDeleteMutation):
+    permissions = 'category.edit_category'
+
     class Meta:
         description = 'Deletes a category.'
         model = models.Category
@@ -57,6 +62,24 @@ class AttributeValueInput(InputObjectType):
 
 
 class BaseProductMutateMixin(BaseMutation):
+    """
+    This is special mixin designed to handle product attributes.
+    Note that it has no super() call, so it _replaces_ mutate method, not only
+    modify it. Because of that, it should be used as a last mixin if more than
+    one are being used.
+    Example:
+        Yes:
+        class ProductUpdateMutation(
+            StaffMemberRequiredMixin, BaseProductMutateMixin, ...)
+
+        No:
+        class ProductUpdateMutation(
+            BaseProductMutateMixin, StaffMemberRequiredMixin, ...)
+
+        In the second example, StaffMemberRequiredMixin won't affect
+        ProductUpdateMutation class, allowing even anonymous users to update
+        products via API.
+    """
     @classmethod
     def mutate(cls, root, info, *args, **kwargs):
         form_kwargs = cls.get_form_kwargs(root, info, **kwargs)
@@ -77,8 +100,10 @@ class BaseProductMutateMixin(BaseMutation):
 
 
 class ProductCreateMutation(
-        BaseProductMutateMixin, StaffMemberRequiredMutation,
+        StaffMemberRequiredMixin, BaseProductMutateMixin,
         ModelFormMutation):
+    permissions = 'product.edit_product'
+
     class Arguments:
         product_type_id = graphene.ID()
         category_id = graphene.ID()
@@ -103,15 +128,19 @@ class ProductCreateMutation(
         return kwargs
 
 
-class ProductDeleteMutation(StaffMemberRequiredMutation, ModelDeleteMutation):
+class ProductDeleteMutation(StaffMemberRequiredMixin, ModelDeleteMutation):
+    permissions = 'product.edit_product'
+
     class Meta:
         description = 'Deletes a product.'
         model = models.Product
 
 
 class ProductUpdateMutation(
-        BaseProductMutateMixin, StaffMemberRequiredMutation,
+        StaffMemberRequiredMixin, BaseProductMutateMixin,
         ModelFormUpdateMutation):
+    permissions = 'product.edit_product'
+
     class Arguments:
         attributes = graphene.Argument(graphene.List(AttributeValueInput))
         category_id = graphene.ID()
