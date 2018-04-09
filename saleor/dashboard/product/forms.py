@@ -136,14 +136,18 @@ class ProductTypeForm(forms.ModelForm):
         # accordingly
         initial_attributes = set(list(self.instance.variant_attributes.all()))
         saved_attributes = set(list(data.get('variant_attributes')))
-        attributes_changed = initial_attributes != saved_attributes
-        if attributes_changed:
-            variants_to_be_updated = ProductVariant.objects.filter(
-                product__in=self.instance.products.all()).prefetch_related(
-                    'product__product_type__variant_attributes__values').all()
-            for variant in variants_to_be_updated:
-                variant.name = get_name_from_attributes(variant)
-                variant.save()
+        attributes_changed = initial_attributes.intersection(saved_attributes)
+        if not attributes_changed:
+            return
+        # TODO check if below filtering works properly
+        variants_to_be_updated = ProductVariant.objects.filter(
+            product__in=self.instance.products.all(),
+            product__product_type__variant_attributes__in=attributes_changed)
+        variants_to_be_updated = variants_to_be_updated.prefetch_related(
+            'product__product_type__variant_attributes__values').all()
+        for variant in variants_to_be_updated:
+            variant.name = get_name_from_attributes(variant)
+            variant.save()
 
     def check_if_variants_changed(self, has_variants):
         variants_changed = (
