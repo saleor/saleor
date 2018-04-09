@@ -393,6 +393,14 @@ def get_attributes_display_map(obj, attributes):
 
 
 def generate_name_from_values(attributes_dict):
+    """Generates name from AttributeChoiceValues. Attributes dict is sorted,
+    as attributes order should be kept within each save.
+
+        Args:
+            attributes_dict: dict of attribute_pk: AttributeChoiceValue values
+    """
     return ' / '.join(
-        smart_text(attribute_value)
-        for attribute_value in sorted(attributes_dict.values()))
+        smart_text(attributechoice_value)
+        for attribute_pk, attributechoice_value in sorted(
+            attributes_dict.items(),
+            key=lambda x: x[0]))
