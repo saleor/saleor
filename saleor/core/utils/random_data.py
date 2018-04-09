@@ -25,7 +25,7 @@ from ...product.models import (
     AttributeChoiceValue, Category, Collection, Product, ProductAttribute,
     ProductImage, ProductType, ProductVariant, Stock, StockLocation)
 from ...product.thumbnails import create_product_thumbnails
-from ...product.utils import get_name_from_attributes
+from ...product.utils.attributes import get_name_from_attributes
 from ...shipping.models import ANY_COUNTRY, ShippingMethod
 
 fake = Factory.create()
