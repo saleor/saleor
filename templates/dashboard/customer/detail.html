@@ -56,8 +56,8 @@
               </div>
             {% endif %}
           </div>
-          <div class="row">
-            {% if customer.note %}
+          {% if customer.note %}
+            <div class="row">
               <div class="col s12 m4 l12">
                 <h4>
                   {% trans "Note" context "Customer field" %}
@@ -66,8 +66,8 @@
                   {{ customer.note }}
                 </p>
               </div>
-            {% endif %}
-          </div>
+            </div>
+          {% endif %}
         </div>
         <div class="card-action">
           {% if perms.account.edit_user %}
