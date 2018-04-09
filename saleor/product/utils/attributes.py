@@ -12,10 +12,9 @@ def get_product_attributes_data(product):
             for (attr_pk, value_obj) in values_map.items()}
 
 
-def get_name_from_attributes(variant, attributes=None):
+def get_name_from_attributes(variant):
     """Generates ProductVariant's name based on its attributes."""
-    if attributes is None:
-        attributes = variant.product.product_type.variant_attributes.all()
+    attributes = variant.product.product_type.variant_attributes.all()
     values = get_attributes_display_map(variant, attributes)
     return generate_name_from_values(values)
 
@@ -44,8 +43,8 @@ def generate_name_from_values(attributes_dict):
     """Generates name from AttributeChoiceValues. Attributes dict is sorted,
     as attributes order should be kept within each save.
 
-        Args:
-            attributes_dict: dict of attribute_pk: AttributeChoiceValue values
+    Args:
+        attributes_dict: dict of attribute_pk: AttributeChoiceValue values
     """
     return ' / '.join(
         smart_text(attributechoice_value)
