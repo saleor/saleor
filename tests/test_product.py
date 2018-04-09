@@ -10,14 +10,14 @@ from saleor.cart.models import Cart
 from saleor.product import (
     ProductAvailabilityStatus, VariantAvailabilityStatus, models)
 from saleor.product.models import (
-    AttributeChoiceValue, Category, ProductAttribute, ProductImage)
+    AttributeChoiceValue, Category, ProductImage)
 from saleor.product.thumbnails import create_product_thumbnails
 from saleor.product.utils import (
     allocate_stock, deallocate_stock, decrease_stock,
     generate_name_from_values, get_attributes_display_map, get_availability,
     get_name_from_attributes, get_product_availability_status,
     get_variant_availability_status, get_variant_picker_data, increase_stock)
-
+ 
 from .utils import filter_products_by_attribute
 
 
@@ -325,14 +325,22 @@ def test_get_attributes_display_map_empty(product_with_no_attributes):
     assert get_attributes_display_map(product, attributes) == {}
 
 
-@pytest.mark.parametrize(
-    'values, expected_result', (
-        ({}, ''),
-        ({'color': 'blue'}, 'blue'),
-        ({'color': 'blue', 'size': 'large'}, 'blue / large')))
-def test_generate_name_from_values(values, expected_result):
+def test_get_name_from_attributes():
+    raise NotImplementedError
+
+
+def test_generate_name_from_values():
+    red = AttributeChoiceValue.objects.create(name='Red', slug='red')
+    blue = AttributeChoiceValue.objects.create(name='Blue', slug='blue')
+    yellow = AttributeChoiceValue.objects.create(name='Yellow', slug='yellow')
+    values = {'3': red, '2': blue, '1': yellow}
     name = generate_name_from_values(values)
-    assert name == expected_result
+    assert name == 'Yellow / Blue / Red'
+
+
+def test_generate_name_from_values_empty():
+    name = generate_name_from_values({})
+    assert name == ''
 
 
 def test_product_availability_status(unavailable_product):

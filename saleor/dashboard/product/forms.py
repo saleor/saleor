@@ -127,19 +127,11 @@ class ProductTypeForm(forms.ModelForm):
         if not self.instance.pk:
             return data
 
-        variants_changed = (
-            self.fields['has_variants'].initial != has_variants)
-        if variants_changed:
-            query = self.instance.products.all()
-            query = query.annotate(variants_counter=Count('variants'))
-            query = query.filter(variants_counter__gt=1)
-            if query.exists():
-                msg = pgettext_lazy(
-                    'Product type form error',
-                    'Some products of this type have more than '
-                    'one variant.')
-                self.add_error('has_variants', msg)
+        self.check_if_variants_changed(has_variants)
+        self.update_variants_names(data)
+        return data
 
+    def update_variants_names(self, data):
         # Some variant attributes could be removed so name should be updated
         # accordingly
         initial_attributes = set(list(self.instance.variant_attributes.all()))
@@ -152,7 +144,20 @@ class ProductTypeForm(forms.ModelForm):
             for variant in variants_to_be_updated:
                 variant.name = get_name_from_attributes(variant)
                 variant.save()
-        return data
+
+    def check_if_variants_changed(self, has_variants):
+        variants_changed = (
+            self.fields['has_variants'].initial != has_variants)
+        if variants_changed:
+            query = self.instance.products.all()
+            query = query.annotate(variants_counter=Count('variants'))
+            query = query.filter(variants_counter__gt=1)
+            if query.exists():
+                msg = pgettext_lazy(
+                    'Product type form error',
+                    'Some products of this type have more than '
+                    'one variant.')
+                self.add_error('has_variants', msg)
 
 
 class AttributesMixin(object):
