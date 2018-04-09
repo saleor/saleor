@@ -268,21 +268,7 @@
   </footer>
 {% endblock %}
 
-<div id="cookie-prompter">
-  <p>
-    {% blocktrans trimmed context "Cookie prompter box, information about cookies" %}
-      This website uses cookies to improve user experience.
-      By using this website, you are accepting our policy about cookies.
-    {% endblocktrans %}
-    <a href="{% url "page:details" slug="privacy" %}">
-      {% trans "Read further." context "Cookie prompter box, read more link after the information text" %}
-    </a>
-  </p>
-
-  <button class="btn btn-primary btn-sm">
-    {% trans "I accept" context "Cookie prompter box, accept/ close button" %}
-  </button>
-</div>
+{% include '_cookie_prompter_box.html' %}
 
 {% block footer_scripts %}
   <script type="text/javascript" src="{% url 'javascript-catalog' %}"></script>
