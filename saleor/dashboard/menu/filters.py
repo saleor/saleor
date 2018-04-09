@@ -13,7 +13,7 @@ MENU_ITEM_SORT_BY_FIELDS = {
 
 
 class MenuFilter(SortedFilterSet):
-    slug = CharFilter(
+    name = CharFilter(
         label=pgettext_lazy('Menu list filter label', 'Menu name'),
         lookup_expr='icontains')
     sort_by = OrderingFilter(
