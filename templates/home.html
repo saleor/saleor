@@ -10,8 +10,8 @@
             <div class="home--content-wrapper">
               <div class="home--content-inner">
                 <h1>{% trans "Promo &amp; Sale" context "Homepage title" %}</h1>
-                <h2>{% trans "from the Northpole" context "Homepage title" %}</h2>
-                  <a class="btn btn-secondary home__button" href="#">
+                <h2>{% trans "from the North Pole" context "Homepage title" %}</h2>
+                  <a class="btn btn-secondary home__button" href="{{ shop_now_links.0 }}">
                     {% trans "Shop now" context "Homepage action" %}
                   </a>
               </div>
@@ -27,7 +27,7 @@
             <div class="home--content-wrapper">
               <div class="home--content-inner">
                 <h1>{% trans "Size &amp; Colours" context "Homepage title" %}</h1>
-                <a class="btn btn-secondary home__button" href="#">{% trans "Shop now" context "Homepage action" %}</a>
+                <a class="btn btn-secondary home__button" href="{{ shop_now_links.1 }}">{% trans "Shop now" context "Homepage action" %}</a>
               </div>
             </div>
           </div>
@@ -39,7 +39,7 @@
             <div class="home--content-wrapper">
               <div class="home--content-inner">
                 <h1>{% trans "Digital Downloads" context "Homepage title" %}</h1>
-                <a class="btn btn-secondary home__button" href="#">{% trans "Shop now" context "Homepage action" %}</a>
+                <a class="btn btn-secondary home__button" href="{{ shop_now_links.2 }}">{% trans "Shop now" context "Homepage action" %}</a>
               </div>
             </div>
           </div>

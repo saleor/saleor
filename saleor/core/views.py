@@ -8,6 +8,7 @@ from random import randint
 
 from ..account.models import User
 from ..dashboard.views import staff_member_required
+from ..product.models import Category
 from ..product.utils import products_for_homepage, products_with_availability
 from ..seo.schema.webpage import get_webpage_schema
 
@@ -17,10 +18,25 @@ def home(request):
     products = products_with_availability(
         products, discounts=request.discounts, local_currency=request.currency)
     webpage_schema = get_webpage_schema(request)
+
+    # DEMO: get Shop Now links based on current categories, instead of
+    # hardcoding them in template.
+    num = 3
+    shop_now_links = []
+    categories = list(Category.objects.all()[:num])
+    for dummy in range(num):
+        if categories:
+            category = categories.pop()
+            link = category.get_absolute_url()
+        else:
+            link = ''
+        shop_now_links.append(link)
+
     return TemplateResponse(
         request, 'home.html', {
             'parent': None,
             'products': products,
+            'shop_now_links' : shop_now_links,
             'webpage_schema': json.dumps(webpage_schema)})
 
 
