@@ -54,7 +54,7 @@ elasticsearch-dsl==5.4.0
 elasticsearch==5.5.2
 faker==0.8.11
 freezegun==0.3.9
-google-i18n-address==2.2.3
+google-i18n-address==2.3.0
 google-measurement-protocol==1.0.0
 graphene-django==2.0.0
 graphene==2.0.1           # via django-graphql-jwt, graphene-django
