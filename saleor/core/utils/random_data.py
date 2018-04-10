@@ -32,6 +32,9 @@ fake = Factory.create()
 
 DELIVERY_REGIONS = [ANY_COUNTRY, 'US', 'PL', 'DE', 'GB']
 PRODUCTS_LIST_DIR = 'products-list/'
+
+GROCERIES_CATEGORY = {'name': 'Groceries', 'image_name': 'groceries.jpg'}
+
 DEFAULT_SCHEMA = {
     'T-Shirt': {
         'category': {
@@ -56,8 +59,9 @@ DEFAULT_SCHEMA = {
         'is_shipping_required': True},
     'Coffee': {
         'category': {
-            'name': 'Groceries',
-            'image_name': 'groceries.jpg'},
+            'name': 'Coffees',
+            'image_name': 'coffees.jpg',
+            'parent': GROCERIES_CATEGORY},
         'product_attributes': {
             'Coffee Genre': ['Arabica', 'Robusta'],
             'Brand': ['Saleor']},
@@ -68,8 +72,9 @@ DEFAULT_SCHEMA = {
         'is_shipping_required': True},
     'Candy': {
         'category': {
-            'name': 'Groceries',
-            'image_name': 'groceries.jpg'},
+            'name': 'Candies',
+            'image_name': 'candies.jpg',
+            'parent': GROCERIES_CATEGORY},
         'product_attributes': {
             'Flavor': ['Sour', 'Sweet'],
             'Brand': ['Saleor']},
@@ -248,6 +253,11 @@ def get_email(first_name, last_name):
 
 
 def get_or_create_category(category_schema, placeholder_dir):
+    if 'parent' in category_schema:
+        parent_id = get_or_create_category(
+            category_schema['parent'], placeholder_dir).id
+    else:
+        parent_id = None
     category_name = category_schema['name']
     image_name = category_schema['image_name']
     image_dir = get_product_list_images_dir(placeholder_dir)
@@ -256,7 +266,7 @@ def get_or_create_category(category_schema, placeholder_dir):
         'slug': fake.slug(category_name),
         'background_image': get_image(image_dir, image_name)}
     return Category.objects.get_or_create(
-        name=category_name, defaults=defaults)[0]
+        name=category_name, parent_id=parent_id, defaults=defaults)[0]
 
 
 def get_or_create_product_type(name, **kwargs):
@@ -576,7 +586,8 @@ def create_menus():
     # Create navbar menu with category links
     menu, _ = Menu.objects.get_or_create(slug='navbar')
     if not menu.items.exists():
-        categories = Category.objects.all()
+        # create a menu entry for all root categories
+        categories = Category.objects.filter(parent__isnull=True)
         for category in categories:
             menu.items.get_or_create(
                 name=category.name,
