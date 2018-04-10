@@ -187,8 +187,8 @@ def test_product_query(admin_client, product):
     gross = product_data['availability']['priceRange']['start']['gross']
     assert float(gross['amount']) == float(product.price.amount)
     from saleor.product.utils.costs import get_product_costs_data
-    purchase_cost, gross_margin = get_product_costs_data(product_in_stock)
-    price_range = product_in_stock.get_price_range()
+    purchase_cost, gross_margin = get_product_costs_data(product)
+    price_range = product.get_price_range()
     assert purchase_cost.start.gross.amount == product_data[
         'purchaseCost']['start']['gross']['amount']
     assert purchase_cost.stop.gross.amount == product_data[
@@ -377,16 +377,9 @@ def test_attributes_in_category_query(client, product):
     assert len(attributes_data) == ProductAttribute.objects.count()
 
 
-<<<<<<< HEAD
-def test_real_query(admin_client, product_in_stock):
-    product_attr = product_in_stock.product_type.product_attributes.first()
-    category = product_in_stock.category
-=======
-def test_real_query(client, product):
-    category = product.category
+def test_real_query(admin_client, product):
     product_attr = product.product_type.product_attributes.first()
     category = product.category
->>>>>>> Rename product_in_stock to producT
     attr_value = product_attr.values.first()
     filter_by = '%s:%s' % (product_attr.slug, attr_value.slug)
     query = '''
@@ -704,7 +697,7 @@ def test_create_product(
 
 def test_update_product(
         admin_client, default_category, non_default_category,
-        product_in_stock):
+        product):
     query = """
         mutation updateProduct(
             $productId: ID!,
@@ -750,7 +743,7 @@ def test_update_product(
                         }
                       }
     """
-    product_id = graphene.Node.to_global_id('Product', product_in_stock.pk)
+    product_id = graphene.Node.to_global_id('Product', product.pk)
     category_id = graphene.Node.to_global_id(
         'Category', non_default_category.pk)
     product_description = 'updated description'
@@ -781,7 +774,7 @@ def test_update_product(
     assert not data['product']['category']['name'] == default_category.name
 
 
-def test_delete_product(admin_client, product_in_stock):
+def test_delete_product(admin_client, product):
     query = """
         mutation DeleteProduct($id: ID!) {
             productDelete(id: $id) {
@@ -797,15 +790,15 @@ def test_delete_product(admin_client, product_in_stock):
             }
     """
     variables = json.dumps({
-        'id': graphene.Node.to_global_id('Product', product_in_stock.id)})
+        'id': graphene.Node.to_global_id('Product', product.id)})
     response = admin_client.post(
         reverse('api'), {'query': query, 'variables': variables})
     content = get_graphql_content(response)
     assert 'errors' not in content
     data = content['data']['productDelete']
-    assert data['product']['name'] == product_in_stock.name
-    with pytest.raises(product_in_stock._meta.model.DoesNotExist):
-        product_in_stock.refresh_from_db()
+    assert data['product']['name'] == product.name
+    with pytest.raises(product._meta.model.DoesNotExist):
+        product.refresh_from_db()
 
 
 def test_category_create_mutation(admin_client):
