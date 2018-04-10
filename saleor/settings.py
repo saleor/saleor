@@ -295,13 +295,25 @@ PAYMENT_HOST = get_host
 PAYMENT_MODEL = 'order.Payment'
 
 PAYMENT_VARIANTS = {
-    'default': ('payments.dummy.DummyProvider', {})}
+    'default': ('payments.dummy.DummyProvider', {}),
+    'taler': (
+        'payments.taler.TalerProvider',
+        # NOTE: the shop currency should be changed to 'KUDOS' in
+        # order to work correctly against the following backend.
+        # The following link explains how to set up a merchant backend,
+        # https://docs.taler.net/merchant/backend/html/manual.html
+        {'backend_url': 'http://backend.demo.taler.net/',
+         'instance': 'default',
+         'address': 'US',
+         'jurisdiction': 'US',
+         'name': 'Taler tester shop'})}
 
 SESSION_SERIALIZER = 'django.contrib.sessions.serializers.JSONSerializer'
 SESSION_ENGINE = 'django.contrib.sessions.backends.cached_db'
 
 CHECKOUT_PAYMENT_CHOICES = [
-    ('default', 'Dummy provider')]
+    ('default', 'Dummy provider'),
+    ('taler', 'Taler')]
 
 MESSAGE_TAGS = {
     messages.ERROR: 'danger'}
