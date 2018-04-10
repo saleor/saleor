@@ -154,10 +154,6 @@ class Order(models.Model):
     def is_shipping_required(self):
         return any(line.is_shipping_required for line in self)
 
-    def get_status_display(self):
-        """Order status display text."""
-        return dict(OrderStatus.CHOICES)[self.status]
-
     def get_subtotal(self):
         subtotal_iterator = (line.get_total() for line in self)
         return sum(subtotal_iterator, ZERO_TAXED_MONEY)
