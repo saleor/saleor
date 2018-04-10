@@ -179,8 +179,7 @@ def product_create(request, type_pk):
 @permission_required('product.view_product')
 def product_detail(request, pk):
     products = Product.objects.prefetch_related(
-        'variants__stock', 'images',
-        'product_type__variant_attributes__values').all()
+        'variants__stock', 'images').all()
     product = get_object_or_404(products, pk=pk)
     variants = product.variants.all()
     images = product.images.all()
@@ -453,8 +452,7 @@ def variant_edit(request, product_pk, variant_pk):
 def variant_details(request, product_pk, variant_pk):
     product = get_object_or_404(Product, pk=product_pk)
     qs = product.variants.prefetch_related(
-        'stock__location',
-        'product__product_type__variant_attributes__values')
+        'stock__location')
     variant = get_object_or_404(qs, pk=variant_pk)
 
     # If the product type of this product assumes no variants, redirect to
@@ -787,12 +785,10 @@ def ajax_available_variants_list(request):
             prices_i18n.amount(variant.get_price_per_item(discounts).gross))
 
     available_products = Product.objects.available_products().prefetch_related(
-        'product_type__variant_attributes',
         'category',
         'product_type__product_attributes')
     queryset = ProductVariant.objects.filter(
         product__in=available_products).prefetch_related(
-            'product__product_type__variant_attributes',
             'product__category',
             'product__product_type__product_attributes')
     search_query = request.GET.get('q', '')
