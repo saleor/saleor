@@ -186,7 +186,7 @@ def test_product_query(admin_client, product_in_stock):
     assert product_data['url'] == product.get_absolute_url()
     gross = product_data['availability']['priceRange']['start']['gross']
     assert float(gross['amount']) == float(product.price.amount)
-    from saleor.product.utils import get_availability, get_product_costs_data
+    from saleor.product.utils.costs import get_product_costs_data
     purchase_cost, gross_margin = get_product_costs_data(product_in_stock)
     price_range = product_in_stock.get_price_range()
     assert purchase_cost.start.gross.amount == product_data[
