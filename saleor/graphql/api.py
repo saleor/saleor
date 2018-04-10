@@ -11,9 +11,11 @@ from .product.filters import ProductFilterSet
 from .product.mutations import (
     CategoryCreateMutation, CategoryDelete, CategoryUpdateMutation,
     ProductCreateMutation, ProductDeleteMutation, ProductUpdateMutation)
+from .product.resolvers import (
+    resolve_attributes, resolve_categories, resolve_products,
+    resolve_product_types)
 from .product.types import (
-    Category, Product, ProductAttribute, resolve_attributes,
-    resolve_categories, resolve_products)
+    Category, Product, ProductAttribute, ProductType)
 from .utils import get_node
 
 
@@ -42,8 +44,18 @@ class Query(graphene.ObjectType):
     products = DjangoFilterConnectionField(
         Product, filterset_class=ProductFilterSet,
         description='List of the shop\'s products.')
+    product_type = graphene.Field(
+        ProductType, id=graphene.Argument(graphene.ID),
+        description='Lookup a product type by ID.')
+    product_types = DjangoFilterConnectionField(
+        ProductType, filterset_class=DistinctFilterSet,
+        level=graphene.Argument(graphene.Int),
+        description='List of the shop\'s product types.')
     node = graphene.Node.Field()
     debug = graphene.Field(DjangoDebug, name='__debug')
+
+    def resolve_attributes(self, info, in_category=None, **kwargs):
+        return resolve_attributes(in_category, info)
 
     def resolve_category(self, info, id):
         return get_node(info, id, only_type=Category)
@@ -65,8 +77,11 @@ class Query(graphene.ObjectType):
     def resolve_products(self, info, category_id=None, **kwargs):
         return resolve_products(info, category_id)
 
-    def resolve_attributes(self, info, in_category=None, **kwargs):
-        return resolve_attributes(in_category, info)
+    def resolve_product_type(self, info, id):
+        return get_node(info, id, only_type=ProductType)
+
+    def resolve_product_types(self, info):
+        return resolve_product_types()
 
 
 class Mutations(graphene.ObjectType):
