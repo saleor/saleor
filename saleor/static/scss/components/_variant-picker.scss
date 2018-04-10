@@ -5,7 +5,7 @@
   }
   &__label {
     margin-bottom: $global-margin;
-    
+
   }
   &__options {
     display: block;
@@ -17,6 +17,9 @@
     float: left;
     &.active {
       border-color: $darken-gray;
+    }
+    input {
+      display: none;
     }
   }
 }
