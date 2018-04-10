@@ -25,7 +25,6 @@ def products_with_details(user):
     products = products.prefetch_related(
         'category', 'images', 'variants__stock',
         'variants__variant_images__image', 'attributes__values',
-        'product_type__variant_attributes__values',
         'product_type__product_attributes__values')
     return products
 
