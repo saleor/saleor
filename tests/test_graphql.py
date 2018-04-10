@@ -1025,3 +1025,41 @@ def test_product_type(client, product_type):
     assert 'errors' not in content
     assert content['data']['productTypes']['totalCount'] == no_product_types
     assert len(content['data']['productTypes']['edges']) == no_product_types
+
+
+def test_product_type_query(
+        client, admin_client, product_type, product_in_stock):
+    query = """
+            query getProductType($id: ID!) {
+                productType(id: $id) {
+                    name
+                    products {
+                        totalCount
+                        edges{
+                            node{
+                                name
+                            }
+                        }
+                    }
+                }
+            }
+        """
+    no_products = Product.objects.count()
+    product_in_stock.is_published = False
+    product_in_stock.save()
+    variables = json.dumps({
+        'id': graphene.Node.to_global_id('ProductType', product_type.id)})
+
+    response = client.post(
+        reverse('api'), {'query': query, 'variables': variables})
+    content = get_graphql_content(response)
+    assert 'errors' not in content
+    data = content['data']
+    assert data['productType']['products']['totalCount'] == no_products - 1
+
+    response = admin_client.post(
+        reverse('api'), {'query': query, 'variables': variables})
+    content = get_graphql_content(response)
+    assert 'errors' not in content
+    data = content['data']
+    assert data['productType']['products']['totalCount'] == no_products
