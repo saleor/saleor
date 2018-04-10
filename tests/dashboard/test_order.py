@@ -551,7 +551,7 @@ def test_view_order_invoice(admin_client, order_with_lines):
     response = admin_client.get(url)
     assert response.status_code == 200
     assert response['content-type'] == 'application/pdf'
-    name = "invoice-%s" % order_with_lines.id
+    name = "invoice-%s.pdf" % order_with_lines.id
     assert response['Content-Disposition'] == 'filename=%s' % name
 
 
@@ -577,7 +577,7 @@ def test_view_fulfillment_packing_slips(admin_client, fulfilled_order):
     response = admin_client.get(url)
     assert response.status_code == 200
     assert response['content-type'] == 'application/pdf'
-    name = "packing-slip-%s" % (fulfilled_order.id,)
+    name = "packing-slip-%s.pdf" % (fulfilled_order.id,)
     assert response['Content-Disposition'] == 'filename=%s' % name
 
 
