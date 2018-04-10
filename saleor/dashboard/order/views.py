@@ -516,7 +516,7 @@ def order_invoice(request, order_pk):
     absolute_url = get_statics_absolute_url(request)
     pdf_file, order = create_invoice_pdf(order, absolute_url)
     response = HttpResponse(pdf_file, content_type='application/pdf')
-    name = "invoice-%s" % order.id
+    name = "invoice-%s.pdf" % order.id
     response['Content-Disposition'] = 'filename=%s' % name
     return response
 
@@ -556,7 +556,7 @@ def fulfillment_packing_slips(request, order_pk, fulfillment_pk):
     absolute_url = get_statics_absolute_url(request)
     pdf_file, order = create_packing_slip_pdf(order, fulfillment, absolute_url)
     response = HttpResponse(pdf_file, content_type='application/pdf')
-    name = "packing-slip-%s" % (order.id,)
+    name = "packing-slip-%s.pdf" % (order.id,)
     response['Content-Disposition'] = 'filename=%s' % name
     return response
 
