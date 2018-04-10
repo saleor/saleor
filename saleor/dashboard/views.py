@@ -53,5 +53,5 @@ def styleguide(request):
 def get_low_stock_products():
     threshold = getattr(settings, 'LOW_STOCK_THRESHOLD', 10)
     products = Product.objects.annotate(
-        total_stock=Sum('variants__stock__quantity'))
+        total_stock=Sum('variants__quantity'))
     return products.filter(Q(total_stock__lte=threshold)).distinct()

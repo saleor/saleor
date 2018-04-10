@@ -21,5 +21,5 @@ def get_sort_by_url(context, field, descending=False):
 def menu(context, slug, horizontal=False):
     menus = context[NAVIGATION_CONTEXT_NAME]
     menu = next((menu for menu in menus if menu.slug == slug), None)
-    menu_items = menu.get_direct_items() if menu else None
+    menu_items = menu.items.all() if menu else None
     return {'menu_items': menu_items, 'horizontal': horizontal}

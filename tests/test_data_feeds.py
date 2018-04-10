@@ -9,8 +9,8 @@ from saleor.data_feeds.google_merchant import (
 from saleor.product.models import AttributeChoiceValue, Category
 
 
-def test_saleor_feed_items(product_in_stock, site_settings):
-    valid_variant = product_in_stock.variants.first()
+def test_saleor_feed_items(product, site_settings):
+    valid_variant = product.variants.first()
     items = get_feed_items()
     assert len(items) == 1
     categories = Category.objects.all()
@@ -38,7 +38,7 @@ def test_category_formatter(db):
     assert item_google_product_category(sub_category_item, {}) == 'Main > Sub'
 
 
-def test_write_feed(product_in_stock, monkeypatch):
+def test_write_feed(product, monkeypatch):
     buffer = StringIO()
     write_feed(buffer)
     buffer.seek(0)
@@ -58,7 +58,7 @@ def test_write_feed(product_in_stock, monkeypatch):
 
 @patch('saleor.data_feeds.google_merchant.item_link')
 def test_feed_contains_site_settings_domain(
-        mocked_item_link, product_in_stock, site_settings):
+        mocked_item_link, product, site_settings):
     write_feed(StringIO())
     mocked_item_link.assert_called_once_with(
-        product_in_stock.variants.first(), site_settings.site)
+        product.variants.first(), site_settings.site)

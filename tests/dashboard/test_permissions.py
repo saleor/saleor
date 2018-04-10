@@ -289,40 +289,40 @@ def test_staff_can_access_product_list(
 
 
 def test_staff_cant_access_product_detail(
-        staff_client, staff_user, product_in_stock):
+        staff_client, staff_user, product):
     assert not staff_user.has_perm("product.view_product")
     response = staff_client.get(reverse('dashboard:product-detail',
-                                        args=[product_in_stock.pk]))
+                                        args=[product.pk]))
     assert response.status_code == 302
 
 
 def test_staff_can_access_product_detail(
-        staff_client, staff_user, product_in_stock, permission_view_product):
+        staff_client, staff_user, product, permission_view_product):
     assert not staff_user.has_perm("product.view_product")
     staff_user.user_permissions.add(permission_view_product)
     staff_user = User.objects.get(pk=staff_user.pk)
     assert staff_user.has_perm("product.view_product")
     response = staff_client.get(reverse('dashboard:product-detail',
-                                        args=[product_in_stock.pk]))
+                                        args=[product.pk]))
     assert response.status_code == 200
 
 
 def test_staff_cant_access_product_update(
-        staff_client, staff_user, product_in_stock):
+        staff_client, staff_user, product):
     assert not staff_user.has_perm("product.edit_product")
     response = staff_client.get(reverse('dashboard:product-update',
-                                        args=[product_in_stock.pk]))
+                                        args=[product.pk]))
     assert response.status_code == 302
 
 
 def test_staff_can_access_product_update(
-        staff_client, staff_user, product_in_stock, permission_edit_product):
+        staff_client, staff_user, product, permission_edit_product):
     assert not staff_user.has_perm("product.edit_product")
     staff_user.user_permissions.add(permission_edit_product)
     staff_user = User.objects.get(pk=staff_user.pk)
     assert staff_user.has_perm("product.edit_product")
     response = staff_client.get(reverse('dashboard:product-update',
-                                        args=[product_in_stock.pk]))
+                                        args=[product.pk]))
     assert response.status_code == 200
 
 
@@ -410,72 +410,6 @@ def test_staff_group_member_can_view_category_delete(
     assert staff_user.has_perm("product.edit_category")
     response = staff_client.get(reverse('dashboard:category-delete',
                                         args=[default_category.pk]))
-    assert response.status_code == 200
-
-
-def test_staff_group_member_can_view_stock_location_list(
-        staff_client, staff_user, staff_group, permission_view_stock_location):
-    assert not staff_user.has_perm("product.view_stock_location")
-    response = staff_client.get(reverse(
-        'dashboard:product-stock-location-list'))
-    assert response.status_code == 302
-    staff_group.permissions.add(permission_view_stock_location)
-    staff_user.groups.add(staff_group)
-    staff_user = User.objects.get(pk=staff_user.pk)
-    assert staff_user.has_perm("product.view_stock_location")
-    response = staff_client.get(reverse(
-        'dashboard:product-stock-location-list'))
-    assert response.status_code == 200
-
-
-def test_staff_group_member_can_view_stock_location_add(
-        staff_client, staff_user, staff_group, permission_edit_stock_location):
-    assert not staff_user.has_perm("product.edit_stock_location")
-    response = staff_client.get(reverse(
-        'dashboard:product-stock-location-add'))
-    assert response.status_code == 302
-    staff_group.permissions.add(permission_edit_stock_location)
-    staff_user.groups.add(staff_group)
-    staff_user = User.objects.get(pk=staff_user.pk)
-    assert staff_user.has_perm("product.edit_stock_location")
-    response = staff_client.get(reverse(
-        'dashboard:product-stock-location-add'))
-    assert response.status_code == 200
-
-
-def test_staff_group_member_can_view_stock_location_edit(
-        staff_client, staff_user, staff_group, permission_edit_stock_location,
-        default_stock_location):
-    assert not staff_user.has_perm("product.edit_stock_location")
-    response = staff_client.get(reverse(
-        'dashboard:product-stock-location-edit',
-        args=[default_stock_location.pk]))
-    assert response.status_code == 302
-    staff_group.permissions.add(permission_edit_stock_location)
-    staff_user.groups.add(staff_group)
-    staff_user = User.objects.get(pk=staff_user.pk)
-    assert staff_user.has_perm("product.edit_stock_location")
-    response = staff_client.get(reverse(
-        'dashboard:product-stock-location-edit',
-        args=[default_stock_location.pk]))
-    assert response.status_code == 200
-
-
-def test_staff_group_member_can_view_stock_location_delete(
-        staff_client, staff_user, staff_group, permission_edit_stock_location,
-        default_stock_location):
-    assert not staff_user.has_perm("product.edit_stock_location")
-    response = staff_client.get(reverse(
-        'dashboard:product-stock-location-delete',
-        args=[default_stock_location.pk]))
-    assert response.status_code == 302
-    staff_group.permissions.add(permission_edit_stock_location)
-    staff_user.groups.add(staff_group)
-    staff_user = User.objects.get(pk=staff_user.pk)
-    assert staff_user.has_perm("product.edit_stock_location")
-    response = staff_client.get(reverse(
-        'dashboard:product-stock-location-delete',
-        args=[default_stock_location.pk]))
     assert response.status_code == 200
 
 

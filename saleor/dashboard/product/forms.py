@@ -12,8 +12,7 @@ from mptt.forms import TreeNodeChoiceField
 from . import ProductBulkAction
 from ...product.models import (
     AttributeChoiceValue, Category, Collection, Product, ProductAttribute,
-    ProductImage, ProductType, ProductVariant, Stock, StockLocation,
-    VariantImage)
+    ProductImage, ProductType, ProductVariant, VariantImage)
 from ...product.thumbnails import create_product_thumbnails
 from ...product.utils.attributes import get_name_from_attributes
 from ..forms import ModelChoiceOrCreationField, OrderedModelMultipleChoiceField
@@ -51,39 +50,6 @@ class ProductTypeSelectorForm(forms.Form):
         queryset=ProductType.objects.all(),
         label=pgettext_lazy('Product type form label', 'Product type'),
         widget=forms.RadioSelect, empty_label=None)
-
-
-class StockForm(forms.ModelForm):
-    class Meta:
-        model = Stock
-        exclude = ['quantity_allocated', 'variant']
-        labels = {
-            'location': pgettext_lazy(
-                'Stock location', 'Location'),
-            'quantity': pgettext_lazy(
-                'Integer number', 'Quantity'),
-            'cost_price': pgettext_lazy(
-                'Currency amount', 'Cost price')}
-
-    def __init__(self, *args, **kwargs):
-        self.variant = kwargs.pop('variant')
-        super().__init__(*args, **kwargs)
-
-    def clean_location(self):
-        location = self.cleaned_data['location']
-        if (
-                not self.instance.pk and
-                self.variant.stock.filter(location=location).exists()):
-            self.add_error(
-                'location',
-                pgettext_lazy(
-                    'stock form error',
-                    'Stock item for this location and variant already exists'))
-        return location
-
-    def save(self, commit=True):
-        self.instance.variant = self.variant
-        return super().save(commit)
 
 
 class ProductTypeForm(forms.ModelForm):
@@ -274,11 +240,14 @@ class ProductVariantForm(forms.ModelForm, AttributesMixin):
 
     class Meta:
         model = ProductVariant
-        exclude = ['attributes', 'product', 'images', 'name']
+        exclude = [
+            'attributes', 'product', 'images', 'name', 'quantity_allocated']
         labels = {
             'sku': pgettext_lazy('SKU', 'SKU'),
             'price_override': pgettext_lazy(
-                'Override price', 'Override price')}
+                'Override price', 'Selling price override'),
+            'quantity': pgettext_lazy('Integer number', 'Number in stock'),
+            'cost_price': pgettext_lazy('Currency amount', 'Cost price')}
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -320,14 +289,6 @@ class VariantBulkDeleteForm(forms.Form):
     def delete(self):
         items = ProductVariant.objects.filter(
             pk__in=self.cleaned_data['items'])
-        items.delete()
-
-
-class StockBulkDeleteForm(forms.Form):
-    items = forms.ModelMultipleChoiceField(queryset=Stock.objects)
-
-    def delete(self):
-        items = Stock.objects.filter(pk__in=self.cleaned_data['items'])
         items.delete()
 
 
@@ -385,15 +346,6 @@ class ProductAttributeForm(forms.ModelForm):
                 'Product display name', 'Display name'),
             'slug': pgettext_lazy(
                 'Product internal name', 'Internal name')}
-
-
-class StockLocationForm(forms.ModelForm):
-    class Meta:
-        model = StockLocation
-        exclude = []
-        labels = {
-            'name': pgettext_lazy(
-                'Item name', 'Name')}
 
 
 class AttributeChoiceValueForm(forms.ModelForm):

@@ -21,9 +21,6 @@ class Menu(models.Model):
     def __str__(self):
         return self.slug
 
-    def get_direct_items(self):
-        return self.items.filter(parent=None)
-
 
 class MenuItem(MPTTModel):
     menu = models.ForeignKey(

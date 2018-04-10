@@ -1,4 +1,3 @@
-from decimal import Decimal
 from unittest.mock import patch
 
 import pytest
@@ -19,7 +18,7 @@ from saleor.order.models import Order, OrderLine, OrderNote
 from saleor.order.utils import (
     add_variant_to_existing_lines, add_variant_to_order,
     change_order_line_quantity)
-from saleor.product.models import ProductVariant, Stock, StockLocation
+from saleor.product.models import ProductVariant
 
 
 @pytest.mark.integration
@@ -409,8 +408,8 @@ def test_view_cancel_order_line(admin_client, draft_order):
     lines_before_count = lines_before.count()
     line = lines_before.first()
     line_quantity = line.quantity
-    quantity_allocated_before = line.stock.quantity_allocated
-    product = line.product
+    quantity_allocated_before = line.variant.quantity_allocated
+    product = line.variant.product
 
     url = reverse(
         'dashboard:orderline-cancel', kwargs={
@@ -427,7 +426,8 @@ def test_view_cancel_order_line(admin_client, draft_order):
     lines_after = Order.objects.get().lines.all()
     assert lines_before_count - 1 == lines_after.count()
     # check stock deallocation
-    assert Stock.objects.first().quantity_allocated == (
+    line.variant.refresh_from_db()
+    assert line.variant.quantity_allocated == (
         quantity_allocated_before - line_quantity)
     url = reverse(
         'dashboard:orderline-cancel', kwargs={
@@ -442,31 +442,30 @@ def test_view_cancel_order_line(admin_client, draft_order):
 
 @pytest.mark.integration
 @pytest.mark.django_db
-def test_view_change_order_line_quantity(admin_client, draft_order):
-    lines_before_quantity_change = draft_order.lines.all()
+def test_view_change_order_line_quantity(admin_client, draft_order_with_stock):
+    order = draft_order_with_stock
+    lines_before_quantity_change = order.lines.all()
     lines_before_quantity_change_count = lines_before_quantity_change.count()
     line = lines_before_quantity_change.first()
 
     url = reverse(
-        'dashboard:orderline-change-quantity', kwargs={
-            'order_pk': draft_order.pk,
-            'line_pk': line.pk})
+        'dashboard:orderline-change-quantity',
+        kwargs={'order_pk': order.pk, 'line_pk': line.pk})
     response = admin_client.get(url)
     assert response.status_code == 200
-    response = admin_client.post(
-        url, {'quantity': 2}, follow=True)
+    response = admin_client.post(url, {'quantity': 2}, follow=True)
     redirected_to, redirect_status_code = response.redirect_chain[-1]
     # check redirection
     assert redirect_status_code == 302
     assert redirected_to == reverse(
-        'dashboard:order-details', kwargs={'order_pk': draft_order.id})
+        'dashboard:order-details', kwargs={'order_pk': order.id})
     # success messages should appear after redirect
     assert response.context['messages']
     lines_after = Order.objects.get().lines.all()
     # order should have the same lines
     assert lines_before_quantity_change_count == lines_after.count()
     # stock allocation should be 2 now
-    assert Stock.objects.first().quantity_allocated == 2
+    assert line.variant.quantity_allocated == 2
     line.refresh_from_db()
     # source line quantity should be decreased to 2
     assert line.quantity == 2
@@ -492,7 +491,7 @@ def test_dashboard_change_quantity_form(request_cart_with_item, order):
     for line in cart.lines.all():
         add_variant_to_order(order, line.variant, line.quantity)
     order_line = order.lines.get()
-
+    quantity_before = order_line.variant.quantity_allocated
     # Check max quantity validation
     form = ChangeQuantityForm({'quantity': 9999}, instance=order_line)
     assert not form.is_valid()
@@ -502,37 +501,41 @@ def test_dashboard_change_quantity_form(request_cart_with_item, order):
     # Check minimum quantity validation
     form = ChangeQuantityForm({'quantity': 0}, instance=order_line)
     assert not form.is_valid()
-    assert order.lines.get().stock.quantity_allocated == 1
+    assert order.lines.get().variant.quantity_allocated == quantity_before
+    assert 'quantity' in form.errors
 
     # Check available quantity validation
     form = ChangeQuantityForm({'quantity': 20}, instance=order_line)
     assert not form.is_valid()
-    assert order.lines.get().stock.quantity_allocated == 1
-    assert form.errors['quantity'] == ['Only 5 remaining in stock.']
+    assert order.lines.get().variant.quantity_allocated == quantity_before
+    assert 'quantity' in form.errors
 
     # Save same quantity
-    form = ChangeQuantityForm({'quantity': 1}, instance=order_line)
+    form = ChangeQuantityForm(
+        {'quantity': 1}, instance=order_line)
     assert form.is_valid()
     form.save()
-    order_line.stock.refresh_from_db()
-    assert order.lines.get().stock.quantity_allocated == 1
+    order_line.variant.refresh_from_db()
+    assert order_line.variant.quantity_allocated == quantity_before
 
     # Increase quantity
-    form = ChangeQuantityForm({'quantity': 2}, instance=order_line)
+    form = ChangeQuantityForm(
+        {'quantity': 2}, instance=order_line)
     assert form.is_valid()
     form.save()
-    order_line.stock.refresh_from_db()
-    assert order.lines.get().stock.quantity_allocated == 2
+    order_line.variant.refresh_from_db()
+    assert order_line.variant.quantity_allocated == quantity_before + 1
 
     # Decrease quantity
     form = ChangeQuantityForm({'quantity': 1}, instance=order_line)
     assert form.is_valid()
     form.save()
-    assert order.lines.get().stock.quantity_allocated == 1
+    order_line.variant.refresh_from_db()
+    assert order_line.variant.quantity_allocated == quantity_before
 
 
 def test_ordered_item_change_quantity(transactional_db, order_with_lines):
-    assert list(order_with_lines.history.all()) == []
+    assert not order_with_lines.history.count()
     lines = order_with_lines.lines.all()
     change_order_line_quantity(lines[1], 0)
     change_order_line_quantity(lines[0], 0)
@@ -593,172 +596,39 @@ def test_view_fulfillment_packing_slips_without_shipping(
     assert response['content-type'] == 'application/pdf'
 
 
-@pytest.mark.integration
-@pytest.mark.django_db
-def test_view_change_order_line_stock_valid(admin_client, draft_order):
-    line = draft_order.lines.last()
-    old_stock = line.stock
-    variant = ProductVariant.objects.get(sku=line.product_sku)
-    stock_location = StockLocation.objects.create(name='Warehouse 2')
-    stock = Stock.objects.create(
-        variant=variant, cost_price=2, quantity=2, quantity_allocated=0,
-        location=stock_location)
-
-    url = reverse(
-        'dashboard:orderline-change-stock', kwargs={
-            'order_pk': draft_order.pk,
-            'line_pk': line.pk})
-    data = {'stock': stock.pk}
-    response = admin_client.post(url, data)
-
-    assert response.status_code == 200
-
-    line.refresh_from_db()
-    assert line.stock == stock
-    assert line.stock_location == stock.location.name
-    assert line.stock.quantity_allocated == 2
-
-    old_stock.refresh_from_db()
-    assert old_stock.quantity_allocated == 0
-
-
-@pytest.mark.integration
-@pytest.mark.django_db
-def test_view_change_order_line_stock_insufficient_stock(
-        admin_client, draft_order):
-    line = draft_order.lines.last()
-    old_stock = line.stock
-    variant = ProductVariant.objects.get(sku=line.product_sku)
-    stock_location = StockLocation.objects.create(name='Warehouse 2')
-    stock = Stock.objects.create(
-        variant=variant, cost_price=2, quantity=2, quantity_allocated=1,
-        location=stock_location)
-
-    url = reverse(
-        'dashboard:orderline-change-stock', kwargs={
-            'order_pk': draft_order.pk,
-            'line_pk': line.pk})
-    data = {'stock': stock.pk}
-    response = admin_client.post(url, data)
-
-    assert response.status_code == 400
-
-    line.refresh_from_db()
-    assert line.stock == old_stock
-    assert line.stock_location == old_stock.location.name
-
-    old_stock.refresh_from_db()
-    assert old_stock.quantity_allocated == 2
-
-    stock.refresh_from_db()
-    assert stock.quantity_allocated == 1
-
-
-def test_view_change_order_line_stock_merges_lines(admin_client, draft_order):
-    line = draft_order.lines.first()
-    old_stock = line.stock
-    variant = ProductVariant.objects.get(sku=line.product_sku)
-    stock_location = StockLocation.objects.create(name='Warehouse 2')
-    stock = Stock.objects.create(
-        variant=variant, cost_price=2, quantity=2, quantity_allocated=2,
-        location=stock_location)
-    line_2 = draft_order.lines.create(
-        product=line.product,
-        product_name=line.product.name,
-        product_sku='SKU_A',
-        is_shipping_required=line.is_shipping_required,
-        quantity=2,
-        unit_price_net=Decimal('30.00'),
-        unit_price_gross=Decimal('30.00'),
-        stock=stock,
-        stock_location=stock.location.name)
-    lines_before = draft_order.lines.count()
-
-    url = reverse(
-        'dashboard:orderline-change-stock', kwargs={
-            'order_pk': draft_order.pk,
-            'line_pk': line_2.pk})
-    data = {'stock': old_stock.pk}
-    response = admin_client.post(url, data)
-
-    assert response.status_code == 200
-    assert draft_order.lines.count() == lines_before - 1
-
-    old_stock.refresh_from_db()
-    assert old_stock.quantity_allocated == 5
-
-    stock.refresh_from_db()
-    assert stock.quantity_allocated == 0
-
-
 def test_add_variant_to_existing_lines_one_line(
-        order_with_variant_from_different_stocks):
-    order = order_with_variant_from_different_stocks
+        order_with_lines_and_stock):
+    order = order_with_lines_and_stock
     lines = order.lines.filter(product_sku='SKU_A')
     variant_lines_before = lines.count()
-    line = lines.get(stock_location='Warehouse 2')
+    line = lines.first()
+    line_quantity_before = line.quantity
     variant = ProductVariant.objects.get(sku='SKU_A')
 
-    quantity_left = add_variant_to_existing_lines(line.order, variant, 2)
+    quantity_added = 2
+    quantity_left = add_variant_to_existing_lines(
+        line.order, variant, quantity_added)
 
     lines_after = order.lines.filter(product_sku='SKU_A').count()
     line.refresh_from_db()
     assert quantity_left == 0
     assert lines_after == variant_lines_before
-    assert line.quantity == 4
-
-
-def test_add_variant_to_existing_lines_multiple_lines(
-        order_with_variant_from_different_stocks):
-    order = order_with_variant_from_different_stocks
-    lines = order.lines.filter(product_sku='SKU_A')
-    variant_lines_before = lines.count()
-    line_1 = lines.get(stock_location='Warehouse 1')
-    line_2 = lines.get(stock_location='Warehouse 2')
-    variant = ProductVariant.objects.get(sku='SKU_A')
-
-    quantity_left = add_variant_to_existing_lines(line_1.order, variant, 4)
-
-    lines_after = order.lines.filter(product_sku='SKU_A').count()
-    line_1.refresh_from_db()
-    line_2.refresh_from_db()
-    assert quantity_left == 0
-    assert lines_after == variant_lines_before
-    assert line_1.quantity == 4
-    assert line_2.quantity == 5
-
-
-def test_add_variant_to_existing_lines_multiple_lines_with_rest(
-        order_with_variant_from_different_stocks):
-    order = order_with_variant_from_different_stocks
-    lines = order.lines.filter(product_sku='SKU_A')
-    variant_lines_before = lines.count()
-    line_1 = lines.get(stock_location='Warehouse 1')
-    line_2 = lines.get(stock_location='Warehouse 2')
-    variant = ProductVariant.objects.get(sku='SKU_A')
-
-    quantity_left = add_variant_to_existing_lines(line_1.order, variant, 7)
-
-    lines_after = order.lines.filter(product_sku='SKU_A').count()
-    line_1.refresh_from_db()
-    line_2.refresh_from_db()
-    assert quantity_left == 2
-    assert lines_after == variant_lines_before
-    assert line_1.quantity == 5
-    assert line_2.quantity == 5
+    assert line.quantity == line_quantity_before + quantity_added
 
 
 def test_view_add_variant_to_order(
-        admin_client, order_with_variant_from_different_stocks):
-    order = order_with_variant_from_different_stocks
+        admin_client, order_with_lines_and_stock):
+    order = order_with_lines_and_stock
     order.status = OrderStatus.DRAFT
     order.save()
     variant = ProductVariant.objects.get(sku='SKU_A')
-    line = OrderLine.objects.get(
-        product_sku='SKU_A', stock_location='Warehouse 2')
+    line = OrderLine.objects.get(product_sku='SKU_A')
+    line_quantity_before = line.quantity
+
+    added_quantity = 2
     url = reverse(
         'dashboard:add-variant-to-order', kwargs={'order_pk': order.pk})
-    data = {'variant': variant.pk, 'quantity': 2}
+    data = {'variant': variant.pk, 'quantity': added_quantity}
 
     response = admin_client.post(url, data)
 
@@ -766,7 +636,7 @@ def test_view_add_variant_to_order(
     assert response.status_code == 302
     assert get_redirect_location(response) == reverse(
         'dashboard:order-details', kwargs={'order_pk': order.pk})
-    assert line.quantity == 4
+    assert line.quantity == line_quantity_before + added_quantity
 
 
 @patch('saleor.dashboard.order.forms.send_note_confirmation')
@@ -783,13 +653,13 @@ def test_fulfill_order_line(order_with_lines):
     order = order_with_lines
     line = order.lines.first()
     quantity_fulfilled_before = line.quantity_fulfilled
-    stock = line.stock
-    stock_quantity_after = stock.quantity - line.quantity
+    variant = line.variant
+    stock_quantity_after = variant.quantity - line.quantity
 
     fulfill_order_line(line, line.quantity)
 
-    stock.refresh_from_db()
-    assert stock.quantity == stock_quantity_after
+    variant.refresh_from_db()
+    assert variant.quantity == stock_quantity_after
     assert line.quantity_fulfilled == quantity_fulfilled_before + line.quantity
 
 

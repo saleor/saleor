@@ -56,16 +56,12 @@
               <p class="text-padding right-align">{{ variant.get_price_per_item.gross|amount }}</p>
             </div>
             <div class="col s5 m6">
-              <p class="text-padding">{% trans "Cost price range" context "Dashboard variant details view" %}</p>
+              <p class="text-padding">{% trans "Cost price" context "Dashboard variant details view" %}</p>
             </div>
             <div class="col s7 m6">
               <p class="text-padding right-align">
-                {% if costs %}
-                  {% if costs.min != costs.max %}
-                    {{ costs.min.gross|amount }} - {{ costs.max.gross|amount }}
-                  {% else %}
-                    {{ costs.min.gross|amount }}
-                  {% endif %}
+                {% if variant.cost_price %}
+                  {{ variant.cost_price|amount}}
                 {% else %}
                   -
                 {% endif %}
@@ -76,16 +72,27 @@
             </div>
             <div class="col s7 m6">
               <p class="text-padding right-align">
-                {% if margins|length > 1 %}
-                  {{ margins|first }}% - {{ margins|last }}%
+                {% if margin %}
+                  {{ margin }}%
                 {% else %}
-                  {% if margins %}
-                    {{ margins|first }}% - {{ margins|last }}%
-                  {% else %}
-                    -
-                  {% endif %}
+                  -
                 {% endif %}
               </p>
+            </div>
+          </div>
+          <br>
+          <div class="row">
+            <div class="col s5 m6">
+              <p class="text-padding">{% trans "Number in stock" context "Dashboard variant details view" %}</p>
+            </div>
+            <div class="col s7 m6">
+              <p class="text-padding right-align">{{ variant.quantity }}</p>
+            </div>
+            <div class="col s5 m6">
+              <p class="text-padding">{% trans "Allocated" context "Dashboard variant details view" %}</p>
+            </div>
+            <div class="col s7 m6">
+              <p class="text-padding right-align">{{ variant.quantity_allocated }}</p>
             </div>
           </div>
         </div>
@@ -100,23 +107,6 @@
           </div>
         {% endif %}
       </div>
-      {% if perms.product.view_stock_location %}
-        <div class="card">
-          <div class="card-content">
-            <span class="card-title">{% trans "Stock" context "Dashboard variant details view" %}</span>
-          </div>
-          {% if perms.product.edit_stock_location %}
-            <div class="data-table-header-action">
-              <a class="btn-flat waves-effect" href="{% url "dashboard:variant-stock-add" product_pk=product.pk variant_pk=variant.pk %}">
-                {% trans "Add" context "Dashboard action" %}
-              </a>
-            </div>
-          {% endif %}
-          <div class="data-table-container">
-            {% include "dashboard/product/_stock_table.html" with product=product variant=variant stock=stock %}
-          </div>
-        </div>
-      {% endif %}
     </div>
     <div class="col m12 l3">
       <div class="card">
@@ -126,14 +116,18 @@
       </div>
       <div class="card">
         <div class="card-content">
-          <span class="card-title">{% trans "Images" context "Dashboard variant details view" %}</span>
-          <p>
+          <span class="card-title">{% trans "Variant Images" context "Dashboard variant details view" %}</span>
+          <div class="row">
             {% for image in images %}
-              <img class="responsive-img" src="{{ image.image.crop.60x60 }}" srcset="{{ image.image.crop.60x60 }} 1x" alt="">
+              <div class="col s4">
+                <img class="responsive-img" src="{{ image.image.crop.255x255 }}" srcset="{{ image.image.crop.255x255 }} 1x, {{ image.image.crop.510x510 }} 2x" alt="{{ image.alt }}">
+              </div>
             {% empty %}
+            <div class="col s4">
               {% trans "No images" %}
+            </div>
             {% endfor %}
-          </p>
+          </div>
         </div>
         {% if perms.product.edit_product %}
           <div class="card-action">
