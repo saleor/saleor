@@ -6,6 +6,7 @@ import dj_email_url
 import django_cache_url
 from django.contrib.messages import constants as messages
 from django.utils.translation import gettext_lazy as _
+from django_prices.templatetags.prices_i18n import get_currency_fraction
 
 
 def get_list(text):
@@ -272,6 +273,7 @@ LOGIN_URL = '/account/login/'
 
 DEFAULT_COUNTRY = 'US'
 DEFAULT_CURRENCY = 'USD'
+DEFAULT_DECIMAL_PLACES = get_currency_fraction(DEFAULT_CURRENCY)
 AVAILABLE_CURRENCIES = [DEFAULT_CURRENCY]
 
 OPENEXCHANGERATES_API_KEY = os.environ.get('OPENEXCHANGERATES_API_KEY')

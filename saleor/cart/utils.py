@@ -54,7 +54,7 @@ def remove_unavailable_variants(cart):
         try:
             cart.add(line.variant, quantity=line.quantity, replace=True)
         except InsufficientStock as e:
-            quantity = e.item.get_stock_quantity()
+            quantity = e.item.quantity_available
             cart.add(line.variant, quantity=quantity, replace=True)
 
 

@@ -22,7 +22,8 @@ def default_currency(request):
 # pylint: disable=W0613
 def navigation(request):
     menus = Menu.objects.prefetch_related(
-        'items__collection', 'items__category', 'items__page').all()
+        'items__collection', 'items__category', 'items__page'
+    ).filter(items__parent=None)
     return {NAVIGATION_CONTEXT_NAME: list(menus)}
 
 

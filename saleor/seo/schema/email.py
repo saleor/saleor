@@ -28,7 +28,7 @@ def get_product_data(line, organization):
         },
         'seller': organization}
 
-    product = line.product
+    product = line.variant.product
     product_url = build_absolute_uri(product.get_absolute_url())
     product_data['itemOffered']['url'] = product_url
 
@@ -59,7 +59,8 @@ def get_order_confirmation_markup(order):
         'orderStatus': 'http://schema.org/OrderProcessing',
         'orderDate': order.created}
 
-    for line in order.lines.all():
+    lines = order.lines.prefetch_related('variant')
+    for line in lines:
         product_data = get_product_data(line=line, organization=organization)
         data['acceptedOffer'].append(product_data)
     return json.dumps(data, cls=DjangoJSONEncoder)

@@ -5,8 +5,7 @@ from django_filters import (
     RangeFilter)
 
 from ...core.filters import SortedFilterSet
-from ...product.models import (
-    Category, Product, ProductAttribute, ProductType, StockLocation)
+from ...product.models import Category, Product, ProductAttribute, ProductType
 from ..widgets import MoneyRangeWidget
 
 PRODUCT_SORT_BY_FIELDS = {
@@ -18,9 +17,6 @@ PRODUCT_ATTRIBUTE_SORT_BY_FIELDS = {
 
 PRODUCT_TYPE_SORT_BY_FIELDS = {
     'name': pgettext_lazy('Product type list sorting option', 'name')}
-
-STOCK_LOCATION_SORT_BY_FIELDS = {
-    'name': pgettext_lazy('Stock location list sorting option', 'name')}
 
 PUBLISHED_CHOICES = (
     ('1', pgettext_lazy('Is publish filter choice', 'Published')),
@@ -119,18 +115,3 @@ class ProductTypeFilter(SortedFilterSet):
             'Found %(counter)d matching product type',
             'Found %(counter)d matching product types',
             number=counter) % {'counter': counter}
-
-
-class StockLocationFilter(SortedFilterSet):
-    sort_by = OrderingFilter(
-        label=pgettext_lazy(
-            'Stock location list filter label', 'Sort by'),
-        fields=STOCK_LOCATION_SORT_BY_FIELDS.keys(),
-        field_labels=STOCK_LOCATION_SORT_BY_FIELDS)
-    name = CharFilter(
-        label=pgettext_lazy('Stock location list filter label', 'Name'),
-        lookup_expr='icontains')
-
-    class Meta:
-        model = StockLocation
-        fields = []

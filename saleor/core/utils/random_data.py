@@ -23,13 +23,12 @@ from ...order.utils import update_order_status
 from ...page.models import Page
 from ...product.models import (
     AttributeChoiceValue, Category, Collection, Product, ProductAttribute,
-    ProductImage, ProductType, ProductVariant, Stock, StockLocation)
+    ProductImage, ProductType, ProductVariant)
 from ...product.thumbnails import create_product_thumbnails
 from ...product.utils.attributes import get_name_from_attributes
 from ...shipping.models import ANY_COUNTRY, ShippingMethod
 
 fake = Factory.create()
-STOCK_LOCATION = 'default'
 
 DELIVERY_REGIONS = [ANY_COUNTRY, 'US', 'PL', 'DE', 'GB']
 PRODUCTS_LIST_DIR = 'products-list/'
@@ -283,26 +282,17 @@ def create_product(**kwargs):
     return Product.objects.create(**defaults)
 
 
-def create_stock(variant, **kwargs):
-    default_location = StockLocation.objects.get_or_create(
-        name=STOCK_LOCATION)[0]
-    defaults = {
-        'variant': variant,
-        'location': default_location,
-        'quantity': fake.random_int(1, 50)}
-    defaults.update(kwargs)
-    return Stock.objects.create(**defaults)
-
-
 def create_variant(product, **kwargs):
     defaults = {
-        'product': product}
+        'product': product,
+        'quantity': fake.random_int(1, 50),
+        'cost_price': fake.money(),
+        'quantity_allocated': fake.random_int(1, 50)}
     defaults.update(kwargs)
     variant = ProductVariant(**defaults)
     if variant.attributes:
         variant.name = get_name_from_attributes(variant)
     variant.save()
-    create_stock(variant)
     return variant
 
 
@@ -398,18 +388,15 @@ def create_order_line(order):
     product = Product.objects.all().order_by('?')[0]
     variant = product.variants.all()[0]
     quantity = random.randrange(1, 5)
-    stock = variant.stock.first()
-    stock.quantity += quantity
-    stock.quantity_allocated += quantity
-    stock.save()
+    variant.quantity += quantity
+    variant.quantity_allocated += quantity
+    variant.save()
     return order.lines.create(
-        product=product,
         product_name=product.name,
         product_sku=variant.sku,
         is_shipping_required=product.product_type.is_shipping_required,
         quantity=quantity,
-        stock=stock,
-        stock_location=stock.location.name,
+        variant=variant,
         unit_price=TaxedMoney(net=product.price, gross=product.price))
 
 

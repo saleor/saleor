@@ -165,9 +165,6 @@ class CommonVoucherForm(forms.ModelForm):
     apply_to = forms.ChoiceField(
         choices=VoucherApplyToProduct.CHOICES, required=False)
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
     def save(self, commit=True):
         self.instance.limit = None
         # Apply to one with percentage discount is more complicated case.

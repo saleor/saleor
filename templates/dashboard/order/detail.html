@@ -294,8 +294,8 @@
               {% for line in order %}
                 <tr class="last-no-border">
                   <td>
-                    {% if line.product %}
-                      <a href="{% url 'dashboard:product-detail' pk=line.product.pk %}">{{ line.product_name }}</a>
+                    {% if line.variant.product %}
+                      <a href="{% url 'dashboard:product-detail' pk=line.variant.product.pk %}">{{ line.product_name }}</a>
                     {% else %}
                       {{ line.product_name }}
                     {% endif %}
@@ -312,7 +312,7 @@
                   <td class="right-align">
                     {% if perms.order.edit_order and order.is_draft %}
                       <a class="dropdown-button" href="#" data-activates="line-actions-{{ line.pk }}" data-constrainwidth="false">
-                        {{ line.quantity }} {% if line.stock_location and is_many_stock_locations %} ({{ line.stock_location|truncatechars:10 }}) {% endif %}
+                        {{ line.quantity }}
                         <svg data-src="{% static "dashboard/images/arrow-drop-down.svg" %}" width="24" height="24" />
                       </a>
                       <ul id="line-actions-{{ line.pk }}" class="dropdown-content">
@@ -321,13 +321,6 @@
                             {% trans "Change quantity" context "Order table row action" %}
                           </a>
                         </li>
-                        {% if is_many_stock_locations %}
-                          <li>
-                            <a href="#base-modal" data-href="{% url 'dashboard:orderline-change-stock' order_pk=order.pk line_pk=line.pk %}" class="modal-trigger-custom" title="{% trans "Change stock location" context "Order table row action" %}">
-                              {% trans "Change stock" context "Order table row action" %}
-                            </a>
-                          </li>
-                        {% endif %}
                         <li>
                           <a href="#base-modal" data-href="{% url 'dashboard:orderline-cancel' order_pk=order.pk line_pk=line.pk %}" class="modal-trigger-custom" title="{% trans "Remove line" context "Order table row action" %}">
                             {% trans "Remove line" context "Order table row action" %}
@@ -449,7 +442,7 @@
           </div>
         {% endif %}
       </div>
-      {% for fulfillment in order.fulfillments.all %}
+      {% for fulfillment in order_fulfillments %}
         <div class="card shipment-table">
           <div class="data-table-header">
             <h5 class="data-table-title">
@@ -472,7 +465,7 @@
                 </tr>
               </thead>
               <tbody>
-                {% for line in fulfillment.lines.all %}
+                {% for line in fulfillment %}
                   <tr class="last-no-border">
                     <td>
                       {{ line.order_line.product_name }}

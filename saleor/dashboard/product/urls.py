@@ -40,18 +40,6 @@ urlpatterns = [
     url(r'^(?P<product_pk>[0-9]+)/variants/(?P<variant_pk>[0-9]+)/images/$',
         views.variant_images, name='variant-images'),
 
-    url(r'^(?P<product_pk>[0-9]+)/variants/(?P<variant_pk>[0-9]+)/stock/add/$',
-        views.stock_add, name='variant-stock-add'),
-    url(r'^(?P<product_pk>[0-9]+)/variants/(?P<variant_pk>[0-9]+)/stock/'
-        r'(?P<stock_pk>[0-9]+)/$',
-        views.stock_details, name='variant-stock-details'),
-    url(r'^(?P<product_pk>[0-9]+)/variants/(?P<variant_pk>[0-9]+)/stock/'
-        r'(?P<stock_pk>[0-9]+)/update/$',
-        views.stock_edit, name='variant-stock-update'),
-    url(r'^(?P<product_pk>[0-9]+)/variants/(?P<variant_pk>[0-9]+)/stock/'
-        r'(?P<stock_pk>[0-9]+)/delete/$',
-        views.stock_delete, name='variant-stock-delete'),
-
     url(r'^(?P<product_pk>[0-9]+)/images/$', views.product_images,
         name='product-image-list'),
     url(r'^(?P<product_pk>[0-9]+)/images/add/$',
@@ -85,15 +73,6 @@ urlpatterns = [
     url(r'attributes/(?P<attribute_pk>[0-9]+)/value/(?P<value_pk>[0-9]+)/delete/$',  # noqa
         views.attribute_choice_value_delete,
         name='product-attribute-value-delete'),
-
-    url(r'stocklocations/$', views.stock_location_list,
-        name='product-stock-location-list'),
-    url(r'stocklocations/add/$', views.stock_location_add,
-        name='product-stock-location-add'),
-    url(r'stocklocations/(?P<location_pk>[0-9]+)/$', views.stock_location_edit,
-        name='product-stock-location-edit'),
-    url(r'stocklocations/(?P<location_pk>[0-9]+)/delete/$',
-        views.stock_location_delete, name='product-stock-location-delete'),
 
     url(r'^ajax/variants/$',
         views.ajax_available_variants_list, name='ajax-available-variants'),

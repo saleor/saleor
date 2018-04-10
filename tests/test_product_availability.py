@@ -23,27 +23,26 @@ def test_product_availability_status(unavailable_product):
     status = get_product_availability_status(product)
     assert status == ProductAvailabilityStatus.VARIANTS_MISSSING
 
-    # product has variant but not stock records
     variant_1 = product.variants.create(sku='test-1')
     variant_2 = product.variants.create(sku='test-2')
-    status = get_product_availability_status(product)
-    assert status == ProductAvailabilityStatus.NOT_CARRIED
 
     # create empty stock records
-    stock_1 = variant_1.stock.create(quantity=0)
-    stock_2 = variant_2.stock.create(quantity=0)
+    variant_1.quantity = 0
+    variant_2.quantity = 0
+    variant_1.save()
+    variant_2.save()
     status = get_product_availability_status(product)
     assert status == ProductAvailabilityStatus.OUT_OF_STOCK
 
     # assign quantity to only one stock record
-    stock_1.quantity = 5
-    stock_1.save()
+    variant_1.quantity = 5
+    variant_1.save()
     status = get_product_availability_status(product)
     assert status == ProductAvailabilityStatus.LOW_STOCK
 
     # both stock records have some quantity
-    stock_2.quantity = 5
-    stock_2.save()
+    variant_2.quantity = 5
+    variant_2.save()
     status = get_product_availability_status(product)
     assert status == ProductAvailabilityStatus.READY_FOR_PURCHASE
 
@@ -59,29 +58,26 @@ def test_variant_availability_status(unavailable_product):
     product.product_type.has_variants = True
 
     variant = product.variants.create(sku='test')
-    status = get_variant_availability_status(variant)
-    assert status == VariantAvailabilityStatus.NOT_CARRIED
-
-    stock = variant.stock.create(quantity=0)
+    variant.quantity = 0
+    variant.save()
     status = get_variant_availability_status(variant)
     assert status == VariantAvailabilityStatus.OUT_OF_STOCK
 
-    stock.quantity = 5
-    stock.save()
+    variant.quantity = 5
+    variant.save()
     status = get_variant_availability_status(variant)
-    assert status == VariantAvailabilityStatus.AVAILABLE
 
 
-def test_availability(product_in_stock, monkeypatch, settings):
-    availability = get_availability(product_in_stock)
-    assert availability.price_range == product_in_stock.get_price_range()
+def test_availability(product, monkeypatch, settings):
+    availability = get_availability(product)
+    assert availability.price_range == product.get_price_range()
     assert availability.price_range_local_currency is None
     monkeypatch.setattr(
         'django_prices_openexchangerates.models.get_rates',
         lambda c: {'PLN': Mock(rate=2)})
     settings.DEFAULT_COUNTRY = 'PL'
     settings.OPENEXCHANGERATES_API_KEY = 'fake-key'
-    availability = get_availability(product_in_stock, local_currency='PLN')
+    availability = get_availability(product, local_currency='PLN')
     assert availability.price_range_local_currency.start.currency == 'PLN'
     assert availability.available
 

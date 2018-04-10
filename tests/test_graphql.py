@@ -14,7 +14,7 @@ from saleor.product.models import Category, Product, ProductAttribute
 from .utils import get_graphql_content
 
 
-def test_category_query(client, product_in_stock):
+def test_category_query(client, product):
     category = Category.objects.first()
     query = '''
     query {
@@ -52,7 +52,7 @@ def test_category_query(client, product_in_stock):
         category.get_children().count())
 
 
-def test_fetch_all_products(client, product_in_stock):
+def test_fetch_all_products(client, product):
     query = '''
     query {
         products {
@@ -74,7 +74,7 @@ def test_fetch_all_products(client, product_in_stock):
 
 
 @pytest.mark.djangodb
-def test_fetch_unavailable_products(client, product_in_stock):
+def test_fetch_unavailable_products(client, product):
     Product.objects.update(is_published=False)
     query = '''
     query {
@@ -95,7 +95,7 @@ def test_fetch_unavailable_products(client, product_in_stock):
     assert not content['data']['products']['edges']
 
 
-def test_product_query(admin_client, product_in_stock):
+def test_product_query(admin_client, product):
     category = Category.objects.first()
     product = category.products.first()
     query = '''
@@ -187,8 +187,8 @@ def test_product_query(admin_client, product_in_stock):
     gross = product_data['availability']['priceRange']['start']['gross']
     assert float(gross['amount']) == float(product.price.amount)
     from saleor.product.utils.costs import get_product_costs_data
-    purchase_cost, gross_margin = get_product_costs_data(product_in_stock)
-    price_range = product_in_stock.get_price_range()
+    purchase_cost, gross_margin = get_product_costs_data(product)
+    price_range = product.get_price_range()
     assert purchase_cost.start.gross.amount == product_data[
         'purchaseCost']['start']['gross']['amount']
     assert purchase_cost.stop.gross.amount == product_data[
@@ -201,8 +201,8 @@ def test_product_query(admin_client, product_in_stock):
         'priceRange']['stop']['gross']['amount']
 
 
-def test_filter_product_by_category(client, product_in_stock):
-    category = product_in_stock.category
+def test_filter_product_by_category(client, product):
+    category = product.category
     query = '''
     query getProducts($categoryId: ID) {
         products(category: $categoryId) {
@@ -226,10 +226,10 @@ def test_filter_product_by_category(client, product_in_stock):
     content = get_graphql_content(response)
     assert 'errors' not in content
     product_data = content['data']['products']['edges'][0]['node']
-    assert product_data['name'] == product_in_stock.name
+    assert product_data['name'] == product.name
 
 
-def test_fetch_product_by_id(client, product_in_stock):
+def test_fetch_product_by_id(client, product):
     query = '''
     query ($productId: ID!) {
         node(id: $productId) {
@@ -246,16 +246,16 @@ def test_fetch_product_by_id(client, product_in_stock):
             'variables': json.dumps(
                 {
                     'productId': graphene.Node.to_global_id(
-                        'Product', product_in_stock.id)})})
+                        'Product', product.id)})})
     content = get_graphql_content(response)
     assert 'errors' not in content
     product_data = content['data']['node']
-    assert product_data['name'] == product_in_stock.name
+    assert product_data['name'] == product.name
 
 
-def test_filter_product_by_attributes(client, product_in_stock):
-    product_attr = product_in_stock.product_type.product_attributes.first()
-    category = product_in_stock.category
+def test_filter_product_by_attributes(client, product):
+    product_attr = product.product_type.product_attributes.first()
+    category = product.category
     attr_value = product_attr.values.first()
     filter_by = '%s:%s' % (product_attr.slug, attr_value.slug)
     query = '''
@@ -277,18 +277,18 @@ def test_filter_product_by_attributes(client, product_in_stock):
     content = get_graphql_content(response)
     assert 'errors' not in content
     product_data = content['data']['category']['products']['edges'][0]['node']
-    assert product_data['name'] == product_in_stock.name
+    assert product_data['name'] == product.name
 
 
-def test_sort_products(client, product_in_stock):
+def test_sort_products(client, product):
     # set price of the first product
-    product_in_stock.price = Money('10.00', 'USD')
-    product_in_stock.save()
+    product.price = Money('10.00', 'USD')
+    product.save()
 
     # create the second product with higher price
-    product_in_stock.pk = None
-    product_in_stock.price = Money('20.00', 'USD')
-    product_in_stock.save()
+    product.pk = None
+    product.price = Money('20.00', 'USD')
+    product.save()
 
     query = '''
     query {
@@ -323,7 +323,7 @@ def test_sort_products(client, product_in_stock):
     assert price_0 > price_1
 
 
-def test_attributes_query(client, product_in_stock):
+def test_attributes_query(client, product):
     attributes = ProductAttribute.objects.prefetch_related('values')
     query = '''
     query {
@@ -350,7 +350,7 @@ def test_attributes_query(client, product_in_stock):
     assert len(attributes_data) == attributes.count()
 
 
-def test_attributes_in_category_query(client, product_in_stock):
+def test_attributes_in_category_query(client, product):
     category = Category.objects.first()
     query = '''
     query {
@@ -377,9 +377,9 @@ def test_attributes_in_category_query(client, product_in_stock):
     assert len(attributes_data) == ProductAttribute.objects.count()
 
 
-def test_real_query(admin_client, product_in_stock):
-    product_attr = product_in_stock.product_type.product_attributes.first()
-    category = product_in_stock.category
+def test_real_query(admin_client, product):
+    product_attr = product.product_type.product_attributes.first()
+    category = product.category
     attr_value = product_attr.values.first()
     filter_by = '%s:%s' % (product_attr.slug, attr_value.slug)
     query = '''
@@ -697,7 +697,7 @@ def test_create_product(
 
 def test_update_product(
         admin_client, default_category, non_default_category,
-        product_in_stock):
+        product):
     query = """
         mutation updateProduct(
             $productId: ID!,
@@ -743,7 +743,7 @@ def test_update_product(
                         }
                       }
     """
-    product_id = graphene.Node.to_global_id('Product', product_in_stock.pk)
+    product_id = graphene.Node.to_global_id('Product', product.pk)
     category_id = graphene.Node.to_global_id(
         'Category', non_default_category.pk)
     product_description = 'updated description'
@@ -774,7 +774,7 @@ def test_update_product(
     assert not data['product']['category']['name'] == default_category.name
 
 
-def test_delete_product(admin_client, product_in_stock):
+def test_delete_product(admin_client, product):
     query = """
         mutation DeleteProduct($id: ID!) {
             productDelete(id: $id) {
@@ -790,15 +790,15 @@ def test_delete_product(admin_client, product_in_stock):
             }
     """
     variables = json.dumps({
-        'id': graphene.Node.to_global_id('Product', product_in_stock.id)})
+        'id': graphene.Node.to_global_id('Product', product.id)})
     response = admin_client.post(
         reverse('api'), {'query': query, 'variables': variables})
     content = get_graphql_content(response)
     assert 'errors' not in content
     data = content['data']['productDelete']
-    assert data['product']['name'] == product_in_stock.name
-    with pytest.raises(product_in_stock._meta.model.DoesNotExist):
-        product_in_stock.refresh_from_db()
+    assert data['product']['name'] == product.name
+    with pytest.raises(product._meta.model.DoesNotExist):
+        product.refresh_from_db()
 
 
 def test_category_create_mutation(admin_client):

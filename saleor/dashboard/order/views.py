@@ -21,19 +21,18 @@ from ...order.emails import (
     send_order_confirmation)
 from ...order.models import Fulfillment, FulfillmentLine, Order, OrderNote
 from ...order.utils import update_order_status
-from ...product.models import StockLocation
 from ...shipping.models import ShippingMethodCountry
 from ..views import staff_member_required
 from .filters import OrderFilter
 from .forms import (
     AddressForm, AddVariantToOrderForm, BaseFulfillmentLineFormSet,
     CancelFulfillmentForm, CancelOrderForm, CancelOrderLineForm,
-    CapturePaymentForm, ChangeQuantityForm, ChangeStockForm,
-    CreateOrderFromDraftForm, FulfillmentForm, FulfillmentLineForm,
-    FulfillmentTrackingNumberForm, OrderCustomerForm, OrderEditDiscountForm,
-    OrderEditVoucherForm, OrderMarkAsPaidForm, OrderNoteForm,
-    OrderRemoveCustomerForm, OrderRemoveShippingForm, OrderRemoveVoucherForm,
-    OrderShippingForm, RefundPaymentForm, ReleasePaymentForm)
+    CapturePaymentForm, ChangeQuantityForm, CreateOrderFromDraftForm,
+    FulfillmentForm, FulfillmentLineForm, FulfillmentTrackingNumberForm,
+    OrderCustomerForm, OrderEditDiscountForm, OrderEditVoucherForm,
+    OrderMarkAsPaidForm, OrderNoteForm, OrderRemoveCustomerForm,
+    OrderRemoveShippingForm, OrderRemoveVoucherForm, OrderShippingForm,
+    RefundPaymentForm, ReleasePaymentForm)
 from .utils import (
     create_invoice_pdf, create_packing_slip_pdf, get_statics_absolute_url,
     save_address_in_order)
@@ -113,10 +112,9 @@ def remove_draft_order(request, order_pk):
 def order_details(request, order_pk):
     qs = Order.objects.select_related(
         'user', 'shipping_address', 'billing_address').prefetch_related(
-        'notes', 'payments', 'history', 'lines__product')
+        'notes__user', 'payments', 'history__user', 'lines__variant__product',
+        'fulfillments__lines')
     order = get_object_or_404(qs, pk=order_pk)
-    notes = order.notes.all()
-    events = order.history.select_related('user')
     all_payments = order.payments.exclude(status=PaymentStatus.INPUT)
     payment = order.payments.last()
     captured = preauthorized = ZERO_TAXED_MONEY
@@ -136,14 +134,14 @@ def order_details(request, order_pk):
     else:
         can_capture = can_release = can_refund = False
     can_mark_as_paid = not order.payments.exists()
-    is_many_stock_locations = StockLocation.objects.count() > 1
     ctx = {
         'order': order, 'all_payments': all_payments, 'payment': payment,
-        'notes': notes, 'events': events, 'captured': captured,
-        'balance': balance, 'preauthorized': preauthorized,
+        'notes': order.notes.all(), 'events': order.history.all(),
+        'captured': captured, 'balance': balance,
+        'preauthorized': preauthorized,
         'can_capture': can_capture, 'can_release': can_release,
         'can_refund': can_refund, 'can_mark_as_paid': can_mark_as_paid,
-        'is_many_stock_locations': is_many_stock_locations}
+        'order_fulfillments': order.fulfillments.all()}
     return TemplateResponse(request, 'dashboard/order/detail.html', ctx)
 
 
@@ -251,9 +249,9 @@ def orderline_change_quantity(request, order_pk, line_pk):
     if form.is_valid():
         msg = pgettext_lazy(
             'Dashboard message related to an order line',
-            'Changed quantity for product %(product)s from'
+            'Changed quantity for variant %(variant)s from'
             ' %(old_quantity)s to %(new_quantity)s') % {
-                'product': line.product, 'old_quantity': old_quantity,
+                'variant': line.variant, 'old_quantity': old_quantity,
                 'new_quantity': line.quantity}
         with transaction.atomic():
             form.save()
@@ -561,27 +559,6 @@ def fulfillment_packing_slips(request, order_pk, fulfillment_pk):
     name = "packing-slip-%s" % (order.id,)
     response['Content-Disposition'] = 'filename=%s' % name
     return response
-
-
-@staff_member_required
-@permission_required('order.edit_order')
-def orderline_change_stock(request, order_pk, line_pk):
-    orders = Order.objects.drafts().prefetch_related('lines')
-    order = get_object_or_404(orders, pk=order_pk)
-    line = get_object_or_404(order.lines, pk=line_pk)
-    status = 200
-    form = ChangeStockForm(request.POST or None, instance=line)
-    if form.is_valid():
-        form.save()
-        msg = pgettext_lazy(
-            'Dashboard message',
-            'Stock location changed for %s') % form.instance.product_sku
-        messages.success(request, msg)
-    elif form.errors:
-        status = 400
-    ctx = {'order_pk': order_pk, 'line_pk': line_pk, 'form': form}
-    template = 'dashboard/order/modal/order_line_stock.html'
-    return TemplateResponse(request, template, ctx, status=status)
 
 
 @staff_member_required
