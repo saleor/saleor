@@ -15,6 +15,7 @@ from ...product.models import (
     ProductImage, ProductType, ProductVariant, Stock, StockLocation,
     VariantImage)
 from ...product.thumbnails import create_product_thumbnails
+from ...product.utils.attributes import get_name_from_attributes
 from ..forms import ModelChoiceOrCreationField, OrderedModelMultipleChoiceField
 from ..seo.fields import SeoDescriptionField, SeoTitleField
 from ..seo.utils import prepare_seo_description
@@ -123,20 +124,43 @@ class ProductTypeForm(forms.ModelForm):
                 'and its variant.')
             self.add_error('variant_attributes', msg)
 
-        if self.instance.pk:
-            variants_changed = (
-                self.fields['has_variants'].initial != has_variants)
-            if variants_changed:
-                query = self.instance.products.all()
-                query = query.annotate(variants_counter=Count('variants'))
-                query = query.filter(variants_counter__gt=1)
-                if query.exists():
-                    msg = pgettext_lazy(
-                        'Product type form error',
-                        'Some products of this type have more than '
-                        'one variant.')
-                    self.add_error('has_variants', msg)
+        if not self.instance.pk:
+            return data
+
+        self.check_if_variants_changed(has_variants)
+        self.update_variants_names(data)
         return data
+
+    def update_variants_names(self, data):
+        # Some variant attributes could be removed so name should be updated
+        # accordingly
+        initial_attributes = set(list(self.instance.variant_attributes.all()))
+        saved_attributes = set(list(data.get('variant_attributes')))
+        attributes_changed = initial_attributes.intersection(saved_attributes)
+        if not attributes_changed:
+            return
+        variants_to_be_updated = ProductVariant.objects.filter(
+            product__in=self.instance.products.all(),
+            product__product_type__variant_attributes__in=attributes_changed)
+        variants_to_be_updated = variants_to_be_updated.prefetch_related(
+            'product__product_type__variant_attributes__values').all()
+        for variant in variants_to_be_updated:
+            variant.name = get_name_from_attributes(variant)
+            variant.save()
+
+    def check_if_variants_changed(self, has_variants):
+        variants_changed = (
+            self.fields['has_variants'].initial != has_variants)
+        if variants_changed:
+            query = self.instance.products.all()
+            query = query.annotate(variants_counter=Count('variants'))
+            query = query.filter(variants_counter__gt=1)
+            if query.exists():
+                msg = pgettext_lazy(
+                    'Product type form error',
+                    'Some products of this type have more than '
+                    'one variant.')
+                self.add_error('has_variants', msg)
 
 
 class AttributesMixin(object):
@@ -250,15 +274,15 @@ class ProductVariantForm(forms.ModelForm, AttributesMixin):
 
     class Meta:
         model = ProductVariant
-        exclude = ['attributes', 'product', 'images']
+        exclude = ['attributes', 'product', 'images', 'name']
         labels = {
             'sku': pgettext_lazy('SKU', 'SKU'),
             'price_override': pgettext_lazy(
-                'Override price', 'Override price'),
-            'name': pgettext_lazy('Product variant name', 'Name')}
+                'Override price', 'Override price')}
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+
         if self.instance.product.pk:
             self.fields['price_override'].widget.attrs[
                 'placeholder'] = self.instance.product.price.amount
@@ -270,6 +294,7 @@ class ProductVariantForm(forms.ModelForm, AttributesMixin):
     def save(self, commit=True):
         attributes = self.get_saved_attributes()
         self.instance.attributes = attributes
+        self.instance.name = get_name_from_attributes(self.instance)
         return super().save(commit=commit)
 
 

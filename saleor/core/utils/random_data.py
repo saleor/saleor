@@ -2,7 +2,6 @@ import itertools
 import os
 import random
 import unicodedata
-from collections import defaultdict
 
 from django.conf import settings
 from django.contrib.auth.models import Group, Permission
@@ -26,6 +25,7 @@ from ...product.models import (
     AttributeChoiceValue, Category, Collection, Product, ProductAttribute,
     ProductImage, ProductType, ProductVariant, Stock, StockLocation)
 from ...product.thumbnails import create_product_thumbnails
+from ...product.utils.attributes import get_name_from_attributes
 from ...shipping.models import ANY_COUNTRY, ShippingMethod
 
 fake = Factory.create()
@@ -152,27 +152,6 @@ def set_product_attributes(product, product_type):
         attr_dict[str(product_attribute.pk)] = str(value.pk)
     product.attributes = attr_dict
     product.save(update_fields=['attributes'])
-
-
-def set_variant_attributes(variant, product_type):
-    attr_dict = {}
-    existing_variants = variant.product.variants.values_list(
-        'attributes', flat=True)
-    existing_variant_attributes = defaultdict(list)
-    for variant_attrs in existing_variants:
-        for attr_id, value_id in variant_attrs.items():
-            existing_variant_attributes[attr_id].append(value_id)
-
-    for product_attribute in product_type.variant_attributes.all():
-        available_values = product_attribute.values.exclude(
-            pk__in=[int(pk) for pk
-                    in existing_variant_attributes[str(product_attribute.pk)]])
-        if not available_values:
-            return
-        value = random.choice(available_values)
-        attr_dict[str(product_attribute.pk)] = str(value.pk)
-    variant.attributes = attr_dict
-    variant.save(update_fields=['attributes'])
 
 
 def get_variant_combinations(product):
@@ -319,7 +298,10 @@ def create_variant(product, **kwargs):
     defaults = {
         'product': product}
     defaults.update(kwargs)
-    variant = ProductVariant.objects.create(**defaults)
+    variant = ProductVariant(**defaults)
+    if variant.attributes:
+        variant.name = get_name_from_attributes(variant)
+    variant.save()
     create_stock(variant)
     return variant
 

@@ -73,9 +73,6 @@
             {% csrf_token %}
             <div class="row">
               <div class="col s12 m8">
-                <div class="row">
-                  {{ form.name|materializecss }}
-                </div>
                 {% for attribute_field in form.iter_attribute_fields %}
                   <div class="row attribute-select-or-create">
                     {{ attribute_field|materializecss:"input-field s12" }}

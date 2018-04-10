@@ -6,7 +6,6 @@ from django.contrib.postgres.fields import HStoreField
 from django.core.validators import MinValueValidator, RegexValidator
 from django.db import models
 from django.db.models import F, Max, Q
-from django.dispatch import receiver
 from django.urls import reverse
 from django.utils.encoding import smart_text
 from django.utils.text import slugify
@@ -21,7 +20,6 @@ from versatileimagefield.fields import PPOIField, VersatileImageField
 from ..core.exceptions import InsufficientStock
 from ..discount.utils import calculate_discounted_price
 from ..seo.models import SeoModel
-from .utils import get_attributes_display_map
 
 
 class Category(MPTTModel, SeoModel):
@@ -180,7 +178,7 @@ class Product(SeoModel):
 
 class ProductVariant(models.Model):
     sku = models.CharField(max_length=32, unique=True)
-    name = models.CharField(max_length=100, blank=True)
+    name = models.CharField(max_length=255, blank=True)
     price_override = MoneyField(
         currency=settings.DEFAULT_CURRENCY, max_digits=12, decimal_places=2,
         blank=True, null=True)
@@ -193,7 +191,7 @@ class ProductVariant(models.Model):
         app_label = 'product'
 
     def __str__(self):
-        return self.name or self.display_variant_attributes()
+        return self.name
 
     def check_quantity(self, quantity):
         total_available_quantity = self.get_stock_quantity()
@@ -228,17 +226,6 @@ class ProductVariant(models.Model):
     def is_in_stock(self):
         return any(
             [stock.quantity_available > 0 for stock in self.stock.all()])
-
-    def display_variant_attributes(self, attributes=None):
-        if attributes is None:
-            attributes = self.product.product_type.variant_attributes.all()
-        values = get_attributes_display_map(self, attributes)
-        if values:
-            return ', '.join(
-                ['%s: %s' % (smart_text(attributes.get(id=int(key))),
-                             smart_text(value))
-                 for (key, value) in values.items()])
-        return ''
 
     def display_product(self):
         variant_display = str(self)
