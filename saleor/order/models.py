@@ -1,4 +1,5 @@
 from decimal import Decimal
+from operator import attrgetter
 from uuid import uuid4
 
 from django.conf import settings
@@ -132,26 +133,16 @@ class Order(models.Model):
     def get_absolute_url(self):
         return reverse('order:details', kwargs={'token': self.token})
 
-    def get_last_payment(self):
-        """Query-friendly method for getting last payment from cached
-        payments.
-        """
-        payments = list(self.payments.all())
-        if not payments:
-            return
-        payment_mapping = {payment.pk: payment for payment in payments}
-        latest_payment_pk = max(payment_mapping.keys())
-        last_payment = payment_mapping[latest_payment_pk]
-        return last_payment
-
     def get_last_payment_status(self):
-        last_payment = self.get_last_payment()
+        last_payment = max(
+            self.payments.all(), default=None, key=attrgetter('pk'))
         if last_payment:
             return last_payment.status
         return None
 
     def get_last_payment_status_display(self):
-        last_payment = self.get_last_payment()
+        last_payment = max(
+            self.payments.all(), default=None, key=attrgetter('pk'))
         if last_payment:
             return last_payment.get_status_display()
         return None
@@ -265,20 +256,9 @@ class FulfillmentLine(models.Model):
         validators=[MinValueValidator(0), MaxValueValidator(999)])
 
 
-class PaymentQuerySet(models.QuerySet):
-    def last(self):
-        # using .all() here reuses data fetched by prefetch_related
-        objects = list(self.all()[:1])
-        if objects:
-            return objects[0]
-        return None
-
-
 class Payment(BasePayment):
     order = models.ForeignKey(
         Order, related_name='payments', on_delete=models.PROTECT)
-
-    objects = PaymentQuerySet.as_manager()
 
     class Meta:
         ordering = ('-pk',)
