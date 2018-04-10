@@ -15,10 +15,7 @@ def products_with_availability(products, discounts, local_currency):
 
 
 def get_product_availability_status(product):
-    from ..models import Stock
-
     is_available = product.is_available()
-    has_stock_records = Stock.objects.filter(variant__product=product)
     are_all_variants_in_stock = all(
         variant.is_in_stock() for variant in product.variants.all())
     is_in_stock = any(
@@ -32,8 +29,6 @@ def get_product_availability_status(product):
         # status with product types that don't require variants, as in that
         # case variants are hidden from the UI and user doesn't manage them.
         return ProductAvailabilityStatus.VARIANTS_MISSSING
-    if not has_stock_records:
-        return ProductAvailabilityStatus.NOT_CARRIED
     if not is_in_stock:
         return ProductAvailabilityStatus.OUT_OF_STOCK
     if not are_all_variants_in_stock:
@@ -44,9 +39,6 @@ def get_product_availability_status(product):
 
 
 def get_variant_availability_status(variant):
-    has_stock_records = variant.stock.exists()
-    if not has_stock_records:
-        return VariantAvailabilityStatus.NOT_CARRIED
     if not variant.is_in_stock():
         return VariantAvailabilityStatus.OUT_OF_STOCK
     return VariantAvailabilityStatus.AVAILABLE

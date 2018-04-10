@@ -31,12 +31,12 @@ def create_image():
     return image, image_name
 
 
-def test_product_variant_form(product_in_stock):
-    variant = product_in_stock.variants.first()
+def test_product_variant_form(product):
+    variant = product.variants.first()
     variant.name = ''
     variant.save()
     example_size = 'Small Size'
-    data = {'attribute-size': example_size, 'sku': '1111'}
+    data = {'attribute-size': example_size, 'sku': '1111', 'quantity': 2}
     form = ProductVariantForm(data, instance=variant)
     assert form.is_valid()
     form.save()

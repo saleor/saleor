@@ -2,7 +2,9 @@ import datetime
 import json
 from unittest.mock import patch
 
+import pytest
 from django.urls import reverse
+
 from saleor.cart import CartStatus, utils
 from saleor.cart.models import Cart
 from saleor.product import ProductAvailabilityStatus, models

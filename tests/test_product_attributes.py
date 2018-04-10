@@ -15,12 +15,12 @@ def product_with_no_attributes(product_type, default_category):
     return product
 
 
-def test_get_attributes_display_map(product_in_stock):
-    attributes = product_in_stock.product_type.product_attributes.all()
+def test_get_attributes_display_map(product):
+    attributes = product.product_type.product_attributes.all()
     attributes_display_map = get_attributes_display_map(
-        product_in_stock, attributes)
+        product, attributes)
 
-    product_attr = product_in_stock.product_type.product_attributes.first()
+    product_attr = product.product_type.product_attributes.first()
     attr_value = product_attr.values.first()
 
     assert len(attributes_display_map) == 1
@@ -33,8 +33,8 @@ def test_get_attributes_display_map_empty(product_with_no_attributes):
     assert get_attributes_display_map(product, attributes) == {}
 
 
-def test_get_name_from_attributes(product_in_stock):
-    variant = product_in_stock.variants.first()
+def test_get_name_from_attributes(product):
+    variant = product.variants.first()
     name = get_name_from_attributes(variant)
     assert name == 'Small'
 
