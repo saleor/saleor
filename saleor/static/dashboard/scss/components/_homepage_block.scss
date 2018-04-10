@@ -26,10 +26,6 @@
       width: 125%;
       left: 0;
       transition: all 1s;
-      &:hover {
-        left: -25%;
-        width: 200%;
-      }
     }
   }
 }
@@ -52,10 +48,10 @@
     text-align: center;
     opacity: .5;
     transition: 1s;
-    &:not(:hover) .btn {
+    &:not(.hover) .btn {
       background-color: #000;
     }
-    &:hover {
+    &.hover {
       background-color: rgba(0, 0, 0, 0.8);
       opacity: .8;
     }

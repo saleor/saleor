@@ -90,5 +90,5 @@ class Command(BaseCommand):
             self.populate_search_index()
 
         if not options['withouthomepage_blocks']:
-            for msg in create_homepage_blocks_by_schema():
+            for msg in create_homepage_blocks_by_schema(self.placeholders_dir):
                 self.stdout.write(msg)

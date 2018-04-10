@@ -6,7 +6,6 @@ from collections import defaultdict
 
 from django.conf import settings
 from django.contrib.auth.models import Group, Permission
-from django.contrib.staticfiles.finders import find as static_find
 from django.core.files import File
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.template.defaultfilters import slugify
@@ -36,7 +35,8 @@ fake = Factory.create()
 STOCK_LOCATION = 'default'
 
 DELIVERY_REGIONS = [ANY_COUNTRY, 'US', 'PL', 'DE', 'GB']
-PRODUCTS_LIST_DIR = 'products-list/'
+PRODUCTS_LIST_DIR = 'products-list'
+HOMEPAGE_BLOCKS_LIST_DIR = 'homepage-blocks'
 DEFAULT_SCHEMA = {
     'T-Shirt': {
         'category': {
@@ -114,19 +114,19 @@ COLLECTIONS_SCHEMA = [
         'image_name': 'sale.jpg'}]
 HOMEPAGE_BLOCKS_SCHEMA = [
     {
-        '_cover_path': static_find('assets/block1.jpg'),
+        '_cover_name': 'block1.jpg',
         'html_classes': 'col-sm-12',
         'title': 'Promo & Sale',
         'subtitle': 'from the North Pole',
         'primary_button_text': 'View Offers'
     },
     {
-        '_cover_path': static_find('assets/block2.jpg'),
+        '_cover_name': 'block2.jpg',
         'html_classes': 'col-sm-12 col-md-6',
         'title': 'Size & Colours'
     },
     {
-        '_cover_path': static_find('assets/block3.jpg'),
+        '_cover_name': 'block3.jpg',
         'html_classes': 'col-sm-12 col-md-6',
         'title': 'Digital Downloads'
     }]
@@ -658,13 +658,14 @@ def create_menus():
         yield 'Created footer menu'
 
 
-def create_homepage_block(data: dict) -> HomePageItem:
-    cover = data.pop('_cover_path', None)
+def create_homepage_block(data: dict, placeholder_path=None) -> HomePageItem:
+    cover_filename = data.pop('_cover_name', None)
 
-    if cover:
-        with open(cover, 'rb') as cover_fp:
+    if cover_filename and placeholder_path:
+        cover_path = os.path.join(placeholder_path, cover_filename)
+        with open(cover_path, 'rb') as cover_fp:
             image = SimpleUploadedFile(
-                cover, cover_fp.read(), 'image/jpeg')
+                cover_filename, cover_fp.read(), 'image/jpeg')
         data['cover'] = image
 
     instance = HomePageItem.objects.create(**data)
@@ -675,9 +676,11 @@ def create_homepage_block(data: dict) -> HomePageItem:
 
 
 def create_homepage_blocks_by_schema(
+        placeholder_dir,
         schema=HOMEPAGE_BLOCKS_SCHEMA, allow_duplicates=False):
     existing_blocks = HomePageItem.objects.all()
     entry = None
+    placeholder_path = os.path.join(placeholder_dir, HOMEPAGE_BLOCKS_LIST_DIR)
 
     def _homepage_block_exists() -> bool:
         return existing_blocks.filter(title=entry['title']).exists()
@@ -687,7 +690,7 @@ def create_homepage_blocks_by_schema(
             continue
 
         kwargs = entry.copy()
-        instance = create_homepage_block(kwargs)
+        instance = create_homepage_block(kwargs, placeholder_path)
 
         yield 'Created a new homepage block item with title: %s' % \
               instance.title
