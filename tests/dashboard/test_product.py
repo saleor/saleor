@@ -8,12 +8,11 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from django.forms import HiddenInput
 from django.forms.models import model_to_dict
 from django.urls import reverse
-from django.utils.encoding import smart_text
 from PIL import Image
 
 from saleor.dashboard.product import ProductBulkAction
 from saleor.dashboard.product.forms import (
-    ProductBulkUpdate, ProductForm, ProductTypeForm)
+    ProductBulkUpdate, ProductForm, ProductTypeForm, ProductVariantForm)
 from saleor.product.forms import VariantChoiceField
 from saleor.product.models import (
     AttributeChoiceValue, Collection, Product, ProductAttribute, ProductImage,
@@ -31,6 +30,19 @@ def create_image():
     image = SimpleUploadedFile(
         image_name + '.jpg', img_data.getvalue(), 'image/png')
     return image, image_name
+
+
+def test_product_variant_form(product_in_stock):
+    variant = product_in_stock.variants.first()
+    variant.name = ''
+    variant.save()
+    example_size = 'Small Size'
+    data = {'attribute-size': example_size, 'sku': '1111'}
+    form = ProductVariantForm(data, instance=variant)
+    assert form.is_valid()
+    form.save()
+    variant.refresh_from_db()
+    assert variant.name == example_size
 
 
 @pytest.mark.integration

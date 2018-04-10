@@ -20,7 +20,7 @@ def get_name_from_attributes(variant):
 
 
 def get_attributes_display_map(obj, attributes):
-    """Returns attributes associated with the product,
+    """Returns attributes associated with an object,
     as dict of ProductAttribute: AttributeChoiceValue values.
 
     Args:
