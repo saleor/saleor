@@ -5,8 +5,9 @@ from graphene_django.filter import DjangoFilterConnectionField
 
 from ...product import models
 from ...product.templatetags.product_images import product_first_image
-from ...product.utils import (
-    get_availability, get_product_costs_data, products_visible_to_user)
+from ...product.utils import products_visible_to_user
+from ...product.utils.availability import get_availability
+from ...product.utils.costs import get_product_costs_data
 from ..core.decorators import permission_required
 from ..core.filters import DistinctFilterSet
 from ..core.types import (
@@ -51,7 +52,7 @@ class ProductVariant(CountableDjangoObjectType):
         model = models.ProductVariant
 
     def resolve_stock_quantity(self, info):
-        return self.get_stock_quantity()
+        return self.quantity_available
 
     def resolve_attributes(self, info):
         return resolve_attribute_list(self.attributes)

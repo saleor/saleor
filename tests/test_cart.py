@@ -278,20 +278,20 @@ def test_find_and_assign_anonymous_cart_and_close_opened(
     assert user_cart.status == CartStatus.CANCELED
 
 
-def test_adding_without_checking(cart, product_in_stock):
-    variant = product_in_stock.variants.get()
+def test_adding_without_checking(cart, product):
+    variant = product.variants.get()
     cart.add(variant, 1000, check_quantity=False)
     assert len(cart) == 1
 
 
-def test_adding_zero_quantity(cart, product_in_stock):
-    variant = product_in_stock.variants.get()
+def test_adding_zero_quantity(cart, product):
+    variant = product.variants.get()
     cart.add(variant, 0)
     assert len(cart) == 0
 
 
-def test_adding_same_variant(cart, product_in_stock):
-    variant = product_in_stock.variants.get()
+def test_adding_same_variant(cart, product):
+    variant = product.variants.get()
     cart.add(variant, 1)
     cart.add(variant, 2)
     assert len(cart) == 1
@@ -299,16 +299,16 @@ def test_adding_same_variant(cart, product_in_stock):
     assert cart.get_total().gross == Money(30, 'USD')
 
 
-def test_replacing_same_variant(cart, product_in_stock):
-    variant = product_in_stock.variants.get()
+def test_replacing_same_variant(cart, product):
+    variant = product.variants.get()
     cart.add(variant, 1, replace=True)
     cart.add(variant, 2, replace=True)
     assert len(cart) == 1
     assert cart.count() == {'total_quantity': 2}
 
 
-def test_adding_invalid_quantity(cart, product_in_stock):
-    variant = product_in_stock.variants.get()
+def test_adding_invalid_quantity(cart, product):
+    variant = product.variants.get()
     with pytest.raises(ValueError):
         cart.add(variant, -1)
 
@@ -318,8 +318,8 @@ def test_adding_invalid_quantity(cart, product_in_stock):
     ({'gift-wrap': True}, None, False),
     ({'gift-wrap': True}, {'gift-wrap': True}, True)])
 def test_getting_line(
-        create_line_data, get_line_data, lines_equal, cart, product_in_stock):
-    variant = product_in_stock.variants.get()
+        create_line_data, get_line_data, lines_equal, cart, product):
+    variant = product.variants.get()
     assert cart.get_line(variant) is None
     line = cart.create_line(variant, 1, create_line_data)
     fetched_line = cart.get_line(variant, data=get_line_data)
@@ -337,8 +337,8 @@ def test_change_status(cart):
     assert cart.status == CartStatus.CANCELED
 
 
-def test_shipping_detection(cart, product_in_stock):
-    variant = product_in_stock.variants.get()
+def test_shipping_detection(cart, product):
+    variant = product.variants.get()
     assert not cart.is_shipping_required()
     cart.add(variant, 1, replace=True)
     assert cart.is_shipping_required()
@@ -375,17 +375,18 @@ def test_contains_unavailable_variants():
     assert not utils.contains_unavailable_variants(cart)
 
 
-def test_remove_unavailable_variants(cart, product_in_stock):
-    variant = product_in_stock.variants.get()
+def test_remove_unavailable_variants(cart, product):
+    variant = product.variants.get()
     cart.add(variant, 1)
-    variant.stock.update(quantity=0)
+    variant.quantity = 0
+    variant.save()
     utils.remove_unavailable_variants(cart)
     assert len(cart) == 0
 
 
 def test_check_product_availability_and_warn(
-        monkeypatch, cart, product_in_stock):
-    variant = product_in_stock.variants.get()
+        monkeypatch, cart, product):
+    variant = product.variants.get()
     cart.add(variant, 1)
     monkeypatch.setattr(
         'django.contrib.messages.warning', Mock(warning=Mock()))
@@ -443,36 +444,20 @@ def test_form_when_variant_does_not_exist():
     assert not form.is_valid()
 
 
-def test_add_to_cart_form_when_empty_stock():
-    cart_lines = []
-    cart = Mock(
-        add=lambda variant, quantity: cart_lines.append(Mock()),
-        get_line=Mock(return_value=Mock(quantity=1)))
-
-    form = forms.AddToCartForm(data={'quantity': 1}, cart=cart, product=Mock())
-    exception_mock = InsufficientStock(
-        Mock(get_stock_quantity=Mock(return_value=1)))
-    product_variant = Mock(check_quantity=Mock(side_effect=exception_mock))
-    form.get_variant = Mock(return_value=product_variant)
-    assert not form.is_valid()
-
-
-def test_add_to_cart_form_when_insufficient_stock():
+def test_add_to_cart_form_when_insufficient_stock(product):
+    variant = product.variants.first()
     cart_lines = []
     cart = Mock(
         add=lambda variant, quantity: cart_lines.append(variant),
-        get_line=Mock(return_value=Mock(quantity=1)))
+        get_line=Mock(return_value=Mock(quantity=49)))
 
     form = forms.AddToCartForm(data={'quantity': 1}, cart=cart, product=Mock())
-    exception_mock = InsufficientStock(
-        Mock(get_stock_quantity=Mock(return_value=4)))
-    product_variant = Mock(check_quantity=Mock(side_effect=exception_mock))
-    form.get_variant = Mock(return_value=product_variant)
+    form.get_variant = Mock(return_value=variant)
     assert not form.is_valid()
 
 
-def test_replace_cart_line_form(cart, product_in_stock):
-    variant = product_in_stock.variants.get()
+def test_replace_cart_line_form(cart, product):
+    variant = product.variants.get()
     initial_quantity = 1
     replaced_quantity = 4
 
@@ -485,8 +470,8 @@ def test_replace_cart_line_form(cart, product_in_stock):
 
 
 def test_replace_cartline_form_when_insufficient_stock(
-        monkeypatch, cart, product_in_stock):
-    variant = product_in_stock.variants.get()
+        monkeypatch, cart, product):
+    variant = product.variants.get()
     initial_quantity = 1
     replaced_quantity = 4
 
@@ -509,8 +494,8 @@ def test_view_empty_cart(client, request_cart):
     assert response.status_code == 200
 
 
-def test_view_cart(client, sale, product_in_stock, request_cart):
-    variant = product_in_stock.variants.get()
+def test_view_cart(client, sale, product, request_cart):
+    variant = product.variants.get()
     request_cart.add(variant, 1)
     response = client.get(reverse('cart:index'))
     response_cart_line = response.context[0]['cart_lines'][0]
@@ -520,8 +505,8 @@ def test_view_cart(client, sale, product_in_stock, request_cart):
 
 
 def test_view_update_cart_quantity(
-        client, local_currency, product_in_stock, request_cart):
-    variant = product_in_stock.variants.get()
+        client, local_currency, product, request_cart):
+    variant = product.variants.get()
     request_cart.add(variant, 1)
     response = client.post(
         reverse('cart:update-line', kwargs={'variant_id': variant.pk}),
@@ -530,8 +515,8 @@ def test_view_update_cart_quantity(
     assert request_cart.quantity == 3
 
 
-def test_view_invalid_update_cart(client, product_in_stock, request_cart):
-    variant = product_in_stock.variants.get()
+def test_view_invalid_update_cart(client, product, request_cart):
+    variant = product.variants.get()
     request_cart.add(variant, 1)
     response = client.post(
         reverse('cart:update-line', kwargs={'variant_id': variant.pk}),
@@ -543,9 +528,9 @@ def test_view_invalid_update_cart(client, product_in_stock, request_cart):
 
 
 def test_cart_page_without_openexchagerates(
-        client, product_in_stock, request_cart, settings):
+        client, product, request_cart, settings):
     settings.OPENEXCHANGERATES_API_KEY = None
-    variant = product_in_stock.variants.get()
+    variant = product.variants.get()
     request_cart.add(variant, 1)
     response = client.get(reverse('cart:index'))
     context = response.context
@@ -553,10 +538,10 @@ def test_cart_page_without_openexchagerates(
 
 
 def test_cart_page_with_openexchagerates(
-        client, monkeypatch, product_in_stock, request_cart, settings):
+        client, monkeypatch, product, request_cart, settings):
     settings.DEFAULT_COUNTRY = 'PL'
     settings.OPENEXCHANGERATES_API_KEY = 'fake-key'
-    variant = product_in_stock.variants.get()
+    variant = product.variants.get()
     request_cart.add(variant, 1)
     response = client.get(reverse('cart:index'))
     context = response.context
@@ -569,8 +554,8 @@ def test_cart_page_with_openexchagerates(
     assert context['local_cart_total'].currency == 'PLN'
 
 
-def test_cart_summary_page(client, product_in_stock, request_cart):
-    variant = product_in_stock.variants.get()
+def test_cart_summary_page(client, product, request_cart):
+    variant = product.variants.get()
     request_cart.add(variant, 1)
     response = client.get(reverse('cart:cart-summary'))
     assert response.status_code == 200
@@ -592,9 +577,9 @@ def test_cart_summary_page_empty_cart(client, request_cart):
     assert data['quantity'] == 0
 
 
-def test_total_with_discount(client, sale, request_cart, product_in_stock):
+def test_total_with_discount(client, sale, request_cart, product):
     sales = Sale.objects.all()
-    variant = product_in_stock.variants.get()
+    variant = product.variants.get()
     request_cart.add(variant, 1)
     line = request_cart.lines.first()
     assert line.get_total(discounts=sales) == TaxedMoney(
@@ -646,15 +631,15 @@ def test_cart_change_user(customer_user):
     assert old_cart.status == CartStatus.CANCELED
 
 
-def test_cart_line_repr(product_in_stock, request_cart_with_item):
-    variant = product_in_stock.variants.get()
+def test_cart_line_repr(product, request_cart_with_item):
+    variant = product.variants.get()
     line = request_cart_with_item.lines.first()
     assert repr(line) == 'CartLine(variant=%r, quantity=%r, data=%r)' % (
         variant, line.quantity, line.data)
 
 
-def test_cart_line_state(product_in_stock, request_cart_with_item):
-    variant = product_in_stock.variants.get()
+def test_cart_line_state(product, request_cart_with_item):
+    variant = product.variants.get()
     line = request_cart_with_item.lines.first()
 
     assert line.__getstate__() == (variant, line.quantity, line.data)
@@ -665,10 +650,10 @@ def test_cart_line_state(product_in_stock, request_cart_with_item):
 
 
 def test_get_category_variants_and_prices(
-        default_category, product_in_stock, request_cart_with_item):
+        default_category, product, request_cart_with_item):
     result = list(utils.get_category_variants_and_prices(
         request_cart_with_item, default_category))
-    variant = product_in_stock.variants.get()
+    variant = product.variants.get()
     assert result[0][0] == variant
 
 

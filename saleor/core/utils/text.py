@@ -1,7 +1,6 @@
 # coding: utf-8
 
 import bleach
-from django.forms import fields
 from django.template.defaultfilters import truncatechars
 from html5lib.serializer import HTMLSerializer
 

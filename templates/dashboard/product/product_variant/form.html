@@ -73,13 +73,13 @@
             {% csrf_token %}
             <div class="row">
               <div class="col s12 m8">
-                <div class="row">
-                  {{ form.name|materializecss }}
-                </div>
+                <p class="card-title">{% trans "Attributes" %}</p>
                 {% for attribute_field in form.iter_attribute_fields %}
                   <div class="row attribute-select-or-create">
                     {{ attribute_field|materializecss:"input-field s12" }}
                   </div>
+                {% empty %}
+                  {% trans "No attributes found." %}
                 {% endfor %}
               </div>
               <div class="col s12 m4">
@@ -87,7 +87,13 @@
                   {{ form.sku|materializecss }}
                 </div>
                 <div class="row">
+                  {{ form.quantity|materializecss }}
+                </div>
+                <div class="row">
                   {{ form.price_override|materializecss }}
+                </div>
+                <div class="row">
+                  {{ form.cost_price|materializecss }}
                 </div>
               </div>
             </div>

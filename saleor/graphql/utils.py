@@ -30,15 +30,17 @@ def get_attributes_dict_from_list(attributes, attr_slug_id):
             raise ValueError(
                 'Unknown attribute slug: %r' % (attr_slug,))
         value = attribute.get('value')
-        if value:
-            if not value_slug_id.get(value):
-                attr = ProductAttribute.objects.get(slug=attr_slug)
-                value = AttributeChoiceValue(
-                    attribute_id=attr.pk, name=value, slug=slugify(value))
-                value.save()
-                attr_ids[smart_text(
-                    attr_slug_id.get(attr_slug))] = smart_text(value.pk)
-            else:
-                attr_ids[smart_text(attr_slug_id.get(attr_slug))] = smart_text(
-                    value_slug_id.get(value))
+        if not value:
+            continue
+
+        if not value_slug_id.get(value):
+            attr = ProductAttribute.objects.get(slug=attr_slug)
+            value = AttributeChoiceValue(
+                attribute_id=attr.pk, name=value, slug=slugify(value))
+            value.save()
+            attr_ids[smart_text(
+                attr_slug_id.get(attr_slug))] = smart_text(value.pk)
+        else:
+            attr_ids[smart_text(attr_slug_id.get(attr_slug))] = smart_text(
+                value_slug_id.get(value))
     return attr_ids

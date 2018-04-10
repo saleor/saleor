@@ -76,8 +76,8 @@
               {% for line in unfulfilled_lines %}
                 <tr>
                   <td>
-                    {% if line.product %}
-                      <a href="{% url 'dashboard:product-detail' pk=line.product.pk %}">{{ line.product_name }}</a>
+                    {% if line.variant %}
+                      <a href="{% url 'dashboard:variant-detail' pk=line.variant.pk %}">{{ line.product_name }}</a>
                     {% else %}
                       {{ line.product_name }}
                     {% endif %}

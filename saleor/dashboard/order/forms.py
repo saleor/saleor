@@ -20,9 +20,8 @@ from ...order.models import (
     Fulfillment, FulfillmentLine, Order, OrderLine, OrderNote, Payment)
 from ...order.utils import (
     add_variant_to_order, cancel_fulfillment, cancel_order,
-    change_order_line_quantity, merge_duplicates_into_order_line,
-    recalculate_order)
-from ...product.models import Product, ProductVariant, Stock
+    change_order_line_quantity, recalculate_order)
+from ...product.models import Product, ProductVariant
 from ...product.utils import allocate_stock, deallocate_stock
 from ...shipping.models import ANY_COUNTRY, ShippingMethodCountry
 from ..forms import AjaxSelect2ChoiceField
@@ -268,7 +267,7 @@ class ManagePaymentForm(forms.Form):
         label=pgettext_lazy(
             'Payment management form (capture, refund, release)', 'Amount'),
         max_digits=12,
-        decimal_places=2,
+        decimal_places=settings.DEFAULT_DECIMAL_PLACES,
         currency=settings.DEFAULT_CURRENCY)
 
     def __init__(self, *args, **kwargs):
@@ -387,8 +386,8 @@ class CancelOrderLineForm(forms.Form):
         super().__init__(*args, **kwargs)
 
     def cancel_line(self):
-        if self.line.stock:
-            deallocate_stock(self.line.stock, self.line.quantity)
+        if self.line.variant:
+            deallocate_stock(self.line.variant, self.line.quantity)
         order = self.line.order
         self.line.delete()
         recalculate_order(order)
@@ -413,8 +412,8 @@ class ChangeQuantityForm(forms.ModelForm):
     def clean_quantity(self):
         quantity = self.cleaned_data['quantity']
         delta = quantity - self.initial_quantity
-        stock = self.instance.stock
-        if stock and delta > stock.quantity_available:
+        variant = self.instance.variant
+        if variant and delta > variant.quantity_available:
             raise forms.ValidationError(
                 npgettext_lazy(
                     'Change quantity form error',
@@ -422,16 +421,16 @@ class ChangeQuantityForm(forms.ModelForm):
                     'Only %(remaining)d remaining in stock.',
                     'remaining') % {
                         'remaining': (
-                            self.initial_quantity + stock.quantity_available)})
+                            self.initial_quantity + variant.quantity_available)})  # noqa
         return quantity
 
     def save(self):
         quantity = self.cleaned_data['quantity']
-        stock = self.instance.stock
-        if stock is not None:
+        variant = self.instance.variant
+        if variant is not None:
             # update stock allocation
             delta = quantity - self.initial_quantity
-            allocate_stock(stock, delta)
+            allocate_stock(variant, delta)
         change_order_line_quantity(self.instance, quantity)
         recalculate_order(self.instance.order)
         return self.instance
@@ -551,50 +550,6 @@ class PaymentFilterForm(forms.Form):
     status = forms.ChoiceField(choices=PAYMENT_STATUS_CHOICES)
 
 
-class StockChoiceField(forms.ModelChoiceField):
-    def label_from_instance(self, obj):
-        return obj.location.name
-
-
-class ChangeStockForm(forms.ModelForm):
-    stock = StockChoiceField(queryset=Stock.objects.none())
-
-    class Meta:
-        model = OrderLine
-        fields = ['stock']
-        labels = {
-            'stock': pgettext_lazy(
-                'Stock record', 'Stock')}
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        sku = self.instance.product_sku
-        self.fields['stock'].queryset = Stock.objects.filter(variant__sku=sku)
-        self.old_stock = self.instance.stock
-
-    def clean_stock(self):
-        stock = self.cleaned_data['stock']
-        if stock and stock.quantity_available < self.instance.quantity:
-            raise forms.ValidationError(
-                pgettext_lazy(
-                    'Change stock form error',
-                    'Only %(remaining)d remaining in this stock.') % {
-                        'remaining': stock.quantity_available})
-        return stock
-
-    def save(self, commit=True):
-        quantity = self.instance.quantity
-        stock = self.instance.stock
-        self.instance.stock_location = (
-            stock.location.name if stock.location else '')
-        if self.old_stock:
-            deallocate_stock(self.old_stock, quantity)
-        allocate_stock(stock, quantity)
-        super().save(commit)
-        merge_duplicates_into_order_line(self.instance)
-        return self.instance
-
-
 class AddVariantToOrderForm(forms.Form):
     """Allow adding lines with given quantity to an order."""
 
@@ -626,7 +581,7 @@ class AddVariantToOrderForm(forms.Form):
                         'Add item form error',
                         'Could not add item. '
                         'Only %(remaining)d remaining in stock.' %
-                        {'remaining': e.item.get_stock_quantity()}))
+                        {'remaining': e.item.quantity_available}))
                 self.add_error('quantity', error)
         return cleaned_data
 

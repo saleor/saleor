@@ -13,13 +13,12 @@ from . import forms
 from ...core.utils import get_paginator_items
 from ...product.models import (
     AttributeChoiceValue, Product, ProductAttribute, ProductImage, ProductType,
-    ProductVariant, Stock, StockLocation)
-from ...product.utils import (
-    get_availability, get_product_costs_data, get_variant_costs_data)
+    ProductVariant)
+from ...product.utils.availability import get_availability
+from ...product.utils.costs import (
+    get_margin_for_variant, get_product_costs_data)
 from ..views import staff_member_required
-from .filters import (
-    ProductAttributeFilter, ProductFilter, ProductTypeFilter,
-    StockLocationFilter)
+from .filters import ProductAttributeFilter, ProductFilter, ProductTypeFilter
 
 
 @staff_member_required
@@ -177,9 +176,7 @@ def product_create(request, type_pk):
 @staff_member_required
 @permission_required('product.view_product')
 def product_detail(request, pk):
-    products = Product.objects.prefetch_related(
-        'variants__stock', 'images',
-        'product_type__variant_attributes__values').all()
+    products = Product.objects.prefetch_related('variants', 'images').all()
     product = get_object_or_404(products, pk=pk)
     variants = product.variants.all()
     images = product.images.all()
@@ -193,13 +190,12 @@ def product_detail(request, pk):
     # management.
     no_variants = not product.product_type.has_variants
     only_variant = variants.first() if no_variants else None
-    stock = only_variant.stock.all() if only_variant else Stock.objects.none()
     ctx = {
         'product': product, 'sale_price': sale_price, 'variants': variants,
         'gross_price_range': gross_price_range, 'images': images,
         'no_variants': no_variants, 'only_variant': only_variant,
-        'stock': stock, 'purchase_cost': purchase_cost,
-        'gross_margin': gross_margin, 'is_empty': not variants.exists()}
+        'purchase_cost': purchase_cost, 'gross_margin': gross_margin,
+        'is_empty': not variants.exists()}
     return TemplateResponse(request, 'dashboard/product/detail.html', ctx)
 
 
@@ -259,79 +255,6 @@ def product_delete(request, pk):
         request,
         'dashboard/product/modal/confirm_delete.html',
         {'product': product})
-
-
-@staff_member_required
-@permission_required('product.view_stock_location')
-def stock_details(request, product_pk, variant_pk, stock_pk):
-    product = get_object_or_404(Product, pk=product_pk)
-    variant = get_object_or_404(product.variants, pk=variant_pk)
-    stock = get_object_or_404(variant.stock, pk=stock_pk)
-    ctx = {'stock': stock, 'product': product, 'variant': variant}
-    return TemplateResponse(
-        request,
-        'dashboard/product/stock/detail.html',
-        ctx)
-
-
-@staff_member_required
-@permission_required('product.edit_stock_location')
-def stock_add(request, product_pk, variant_pk):
-    product = get_object_or_404(Product, pk=product_pk)
-    variant = get_object_or_404(product.variants, pk=variant_pk)
-    stock = Stock()
-    form = forms.StockForm(
-        request.POST or None, instance=stock, variant=variant)
-    if form.is_valid():
-        form.save()
-        msg = pgettext_lazy('Dashboard message', 'Saved stock')
-        messages.success(request, msg)
-        return redirect(
-            'dashboard:variant-details', product_pk=product.pk,
-            variant_pk=variant.pk)
-    ctx = {
-        'form': form, 'product': product, 'variant': variant, 'stock': stock}
-    return TemplateResponse(request, 'dashboard/product/stock/form.html', ctx)
-
-
-@staff_member_required
-@permission_required('product.edit_stock_location')
-def stock_edit(request, product_pk, variant_pk, stock_pk):
-    product = get_object_or_404(Product, pk=product_pk)
-    variant = get_object_or_404(product.variants, pk=variant_pk)
-    stock = get_object_or_404(variant.stock, pk=stock_pk)
-    form = forms.StockForm(
-        request.POST or None, instance=stock, variant=variant)
-    if form.is_valid():
-        form.save()
-        msg = pgettext_lazy('Dashboard message', 'Saved stock')
-        messages.success(request, msg)
-        return redirect(
-            'dashboard:variant-details', product_pk=product.pk,
-            variant_pk=variant.pk)
-    ctx = {
-        'form': form, 'product': product, 'variant': variant, 'stock': stock}
-    return TemplateResponse(request, 'dashboard/product/stock/form.html', ctx)
-
-
-@staff_member_required
-@permission_required('product.edit_stock_location')
-def stock_delete(request, product_pk, variant_pk, stock_pk):
-    product = get_object_or_404(Product, pk=product_pk)
-    variant = get_object_or_404(product.variants, pk=variant_pk)
-    stock = get_object_or_404(Stock, pk=stock_pk)
-    if request.method == 'POST':
-        stock.delete()
-        msg = pgettext_lazy('Dashboard message', 'Removed stock')
-        messages.success(request, msg)
-        return redirect(
-            'dashboard:variant-details', product_pk=product.pk,
-            variant_pk=variant.pk)
-    ctx = {'product': product, 'stock': stock, 'variant': variant}
-    return TemplateResponse(
-        request,
-        'dashboard/product/stock/modal/confirm_delete.html',
-        ctx)
 
 
 @staff_member_required
@@ -451,31 +374,18 @@ def variant_edit(request, product_pk, variant_pk):
 @permission_required('product.view_product')
 def variant_details(request, product_pk, variant_pk):
     product = get_object_or_404(Product, pk=product_pk)
-    qs = product.variants.prefetch_related(
-        'stock__location',
-        'product__product_type__variant_attributes__values')
-    variant = get_object_or_404(qs, pk=variant_pk)
+    variant = get_object_or_404(product.variants.all(), pk=variant_pk)
 
     # If the product type of this product assumes no variants, redirect to
     # product details page that has special UI for products without variants.
-
     if not product.product_type.has_variants:
         return redirect('dashboard:product-detail', pk=product.pk)
 
-    stock = variant.stock.all()
     images = variant.images.all()
-    costs_data = get_variant_costs_data(variant)
-    if costs_data.costs:
-        costs = {
-            'min': costs_data.costs[0],
-            'max': costs_data.costs[-1]}
-    else:
-        costs = {}
-
+    margin = get_margin_for_variant(variant)
     ctx = {
-        'images': images, 'product': product, 'stock': stock,
-        'variant': variant, 'costs': costs, 'margins': costs_data.margins,
-        'is_empty': not stock.exists()}
+        'images': images, 'product': product,
+        'variant': variant, 'margin': margin}
     return TemplateResponse(
         request,
         'dashboard/product/product_variant/detail.html',
@@ -657,76 +567,6 @@ def attribute_choice_value_delete(request, attribute_pk, value_pk):
         {'value': value, 'attribute_pk': attribute_pk})
 
 
-@staff_member_required
-@permission_required('product.view_stock_location')
-def stock_location_list(request):
-    stock_locations = StockLocation.objects.all().order_by('name')
-    stock_location_filter = StockLocationFilter(
-        request.GET, queryset=stock_locations)
-    stock_locations = get_paginator_items(
-        stock_location_filter.qs, settings.DASHBOARD_PAGINATE_BY,
-        request.GET.get('page'))
-    ctx = {
-        'locations': stock_locations, 'filter_set': stock_location_filter,
-        'is_empty': not stock_location_filter.queryset.exists()}
-    return TemplateResponse(
-        request,
-        'dashboard/product/stock_location/list.html',
-        ctx)
-
-
-@staff_member_required
-@permission_required('product.edit_stock_location')
-def stock_location_add(request):
-    location = StockLocation()
-    form = forms.StockLocationForm(request.POST or None, instance=location)
-    if form.is_valid():
-        form.save()
-        msg = pgettext_lazy(
-            'Dashboard message for stock location', 'Added location')
-        messages.success(request, msg)
-        return redirect('dashboard:product-stock-location-list')
-    return TemplateResponse(
-        request,
-        'dashboard/product/stock_location/form.html',
-        {'form': form, 'location': location})
-
-
-@staff_member_required
-@permission_required('product.edit_stock_location')
-def stock_location_edit(request, location_pk):
-    location = get_object_or_404(StockLocation, pk=location_pk)
-    form = forms.StockLocationForm(request.POST or None, instance=location)
-    if form.is_valid():
-        form.save()
-        msg = pgettext_lazy(
-            'Dashboard message for stock location', 'Updated location')
-        messages.success(request, msg)
-        return redirect('dashboard:product-stock-location-list')
-    return TemplateResponse(
-        request,
-        'dashboard/product/stock_location/form.html',
-        {'form': form, 'location': location})
-
-
-@staff_member_required
-@permission_required('product.edit_stock_location')
-def stock_location_delete(request, location_pk):
-    location = get_object_or_404(StockLocation, pk=location_pk)
-    if request.method == 'POST':
-        location.delete()
-        msg = pgettext_lazy(
-            'Dashboard message for stock location',
-            'Removed location %s') % (location,)
-        messages.success(request, msg)
-        return redirect('dashboard:product-stock-location-list')
-    ctx = {'location': location, 'stock_count': location.stock_set.count()}
-    return TemplateResponse(
-        request,
-        'dashboard/product/stock_location/modal/confirm_delete.html',
-        ctx)
-
-
 @require_POST
 @staff_member_required
 def ajax_reorder_product_images(request, product_pk):
@@ -785,9 +625,13 @@ def ajax_available_variants_list(request):
             variant.sku, variant.display_product(),
             prices_i18n.amount(variant.get_price_per_item(discounts).gross))
 
-    available_products = Product.objects.available_products()
+    available_products = Product.objects.available_products().prefetch_related(
+        'category',
+        'product_type__product_attributes')
     queryset = ProductVariant.objects.filter(
-        product__in=available_products).prefetch_related('product')
+        product__in=available_products).prefetch_related(
+            'product__category',
+            'product__product_type__product_attributes')
     search_query = request.GET.get('q', '')
     if search_query:
         queryset = queryset.filter(
