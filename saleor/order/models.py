@@ -132,17 +132,27 @@ class Order(models.Model):
     def get_absolute_url(self):
         return reverse('order:details', kwargs={'token': self.token})
 
-    def get_last_payment_status(self):
+    def get_last_payment(self):
+        """Query-friendly method for getting last payment from cached
+        payments.
+        """
         payments = list(self.payments.all())
-        if payments:
-            last_payment = payments[-1]
+        if not payments:
+            return
+        payment_mapping = {payment.pk: payment for payment in payments}
+        latest_payment_pk = max(payment_mapping.keys())
+        last_payment = payment_mapping[latest_payment_pk]
+        return last_payment
+
+    def get_last_payment_status(self):
+        last_payment = self.get_last_payment()
+        if last_payment:
             return last_payment.status
         return None
 
     def get_last_payment_status_display(self):
-        payments = list(self.payments.all())
-        if payments:
-            last_payment = payments[-1]
+        last_payment = self.get_last_payment()
+        if last_payment:
             return last_payment.get_status_display()
         return None
 
