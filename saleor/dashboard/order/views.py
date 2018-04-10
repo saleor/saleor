@@ -113,7 +113,7 @@ def order_details(request, order_pk):
     qs = Order.objects.select_related(
         'user', 'shipping_address', 'billing_address').prefetch_related(
         'notes__user', 'payments', 'history__user', 'lines__variant__product',
-        'fulfillments__lines')
+        'fulfillments__lines__order_line')
     order = get_object_or_404(qs, pk=order_pk)
     all_payments = order.payments.exclude(status=PaymentStatus.INPUT)
     payment = order.payments.last()
