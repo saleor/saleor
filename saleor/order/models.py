@@ -133,14 +133,16 @@ class Order(models.Model):
         return reverse('order:details', kwargs={'token': self.token})
 
     def get_last_payment_status(self):
-        last_payment = self.payments.last()
-        if last_payment:
+        payments = list(self.payments.all())
+        if payments:
+            last_payment = payments[-1]
             return last_payment.status
         return None
 
     def get_last_payment_status_display(self):
-        last_payment = self.payments.last()
-        if last_payment:
+        payments = list(self.payments.all())
+        if payments:
+            last_payment = payments[-1]
             return last_payment.get_status_display()
         return None
 
