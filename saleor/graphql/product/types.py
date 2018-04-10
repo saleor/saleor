@@ -5,12 +5,19 @@ from graphene_django.filter import DjangoFilterConnectionField
 
 from ...product import models
 from ...product.templatetags.product_images import product_first_image
-from ...product.utils import get_availability
+from ...product.utils import (
+    get_availability, get_product_costs_data, products_visible_to_user)
+from ..core.decorators import permission_required
 from ..core.filters import DistinctFilterSet
 from ..core.types import (
     CountableDjangoObjectType, Money, TaxedMoney, TaxedMoneyRange)
 from ..utils import get_node
 from .filters import ProductFilterSet
+
+
+class GrossMargin(graphene.ObjectType):
+    start = graphene.Int()
+    stop = graphene.Int()
 
 
 class SelectedAttribute(graphene.ObjectType):
@@ -72,6 +79,7 @@ class Product(CountableDjangoObjectType):
         size=graphene.Argument(
             graphene.String,
             description='Size of a thumbnail, for example 255x255.'))
+    # TODO: drop this field in favor of particular ones?
     availability = graphene.Field(
         ProductAvailability,
         description="""Informs about product's availability in the storefront,
@@ -83,6 +91,10 @@ class Product(CountableDjangoObjectType):
     attributes = graphene.List(
         SelectedAttribute,
         description='List of product attributes assigned to this product.')
+    purchase_cost = graphene.Field(TaxedMoneyRange)
+    gross_margin = graphene.List(GrossMargin)
+    price_range = graphene.Field(TaxedMoneyRange)
+    price_range_undiscounted = graphene.Field(TaxedMoneyRange)
 
     class Meta:
         description = """Represents an individual item for sale in the
@@ -106,6 +118,23 @@ class Product(CountableDjangoObjectType):
 
     def resolve_attributes(self, info):
         return resolve_attribute_list(self.attributes)
+
+    @permission_required(('product.view_product'))
+    def resolve_purchase_cost(self, info):
+        purchase_cost, _ = get_product_costs_data(self)
+        return purchase_cost
+
+    @permission_required('product.view_product')
+    def resolve_gross_margin(self, info):
+        _, gross_margin = get_product_costs_data(self)
+        return [GrossMargin(gross_margin[0], gross_margin[1])]
+
+    def resolve_price_range(self, info):
+        context = info.context
+        return self.get_price_range(discounts=context.discounts)
+
+    def resolve_price_range_undiscounted(self, info):
+        return self.get_price_range()
 
 
 class ProductType(CountableDjangoObjectType):
@@ -228,8 +257,13 @@ def resolve_categories(info, level=None):
     return qs.distinct()
 
 
-def resolve_products(info):
-    return models.Product.objects.available_products().distinct()
+def resolve_products(info, category_id):
+    user = info.context.user
+    products = products_visible_to_user(user=user).distinct()
+    if category_id is not None:
+        category = get_node(info, category_id, only_type=Category)
+        return products.filter(category=category)
+    return products
 
 
 def resolve_attributes(category_id, info):

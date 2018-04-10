@@ -4711,8 +4711,8 @@ msgstr "Wijzig betaalmethode"
 
 #: templates/order/payment/default.html:19
 msgctxt "Payment form primary action"
-msgid "Save changes"
-msgstr "Sla wijzigingen op"
+msgid "Make payment"
+msgstr ""
 
 #: templates/order/payment/details.html:4
 msgctxt "Payment form page title"

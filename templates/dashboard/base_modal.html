@@ -13,11 +13,21 @@
         </h5>
       </div>
     </div>
+    {% if form.non_field_errors %}
+      <div class="col 12">
+        {% for error in form.non_field_errors %}
+          <p class="help-block materialize-red-text">{{ error }}</p>
+        {% endfor %}
+      </div>
+    {% endif %}
     <div class="row">
       {% block content %}{% endblock %}
     </div>
   </div>
   <div class="modal-footer">
+    <span class="left">
+      {% block actions_left %}{% endblock %}
+    </span>
     <a href="#!" class="modal-action modal-close btn-flat waves-effect">
       {% block cancel_action %} {% trans "Cancel" context "Dashboard cancel action" %} {% endblock %}
     </a>

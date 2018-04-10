@@ -71,7 +71,7 @@ def get_product_variants_and_prices(cart, product):
 def get_category_variants_and_prices(cart, root_category):
     """Get variants and unit prices from cart lines matching the category.
 
-    Product is assumed to be in the the category if it belongs to any of its
+    Product is assumed to be in the category if it belongs to any of its
     descendant subcategories.
     """
     products = {cart_line.variant.product for cart_line in cart.lines.all()}

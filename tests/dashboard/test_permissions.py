@@ -608,17 +608,17 @@ def test_staff_group_member_can_view_order_list(
 
 def test_staff_group_member_can_view_order_details(
         staff_client, staff_user, staff_group, permission_view_order,
-        order_with_lines_and_stock):
+        order_with_lines):
     assert not staff_user.has_perm("order.view_order")
     response = staff_client.get(reverse('dashboard:order-details',
-                                        args=[order_with_lines_and_stock.pk]))
+                                        args=[order_with_lines.pk]))
     assert response.status_code == 302
     staff_group.permissions.add(permission_view_order)
     staff_user.groups.add(staff_group)
     staff_user = User.objects.get(pk=staff_user.pk)
     assert staff_user.has_perm("order.view_order")
     response = staff_client.get(reverse('dashboard:order-details',
-                                        args=[order_with_lines_and_stock.pk]))
+                                        args=[order_with_lines.pk]))
     assert response.status_code == 200
 
 
@@ -684,7 +684,7 @@ def test_staff_group_member_can_view_customers_list(
 
 def test_staff_group_member_can_view_customer_details(
         staff_client, staff_user, staff_group, permission_view_user,
-        customer_user, order_with_lines_and_stock):
+        customer_user, order_with_lines):
     assert not staff_user.has_perm("account.view_user")
     response = staff_client.get(reverse('dashboard:customer-details',
                                         args=[customer_user.pk]))
@@ -697,7 +697,7 @@ def test_staff_group_member_can_view_customer_details(
                                         args=[customer_user.pk]))
     assert response.status_code == 200
     response = staff_client.get(reverse('dashboard:order-details',
-                                        args=[order_with_lines_and_stock.pk]))
+                                        args=[order_with_lines.pk]))
     assert response.status_code == 302
 
 

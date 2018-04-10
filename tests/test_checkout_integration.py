@@ -11,15 +11,15 @@ from .utils import get_redirect_location
 @patch('saleor.checkout.views.summary.send_order_confirmation')
 def test_checkout_flow(
         mock_send_confirmation, request_cart_with_item, client,
-        shipping_method, billing_address: Address):
+        shipping_method, customer_user):
     # Enter checkout
     checkout_index = client.get(reverse('checkout:index'), follow=True)
     # Checkout index redirects directly to shipping address step
     shipping_address = client.get(checkout_index.request['PATH_INFO'])
 
     # Enter shipping address data
-    shipping_data = dict(
-        email='test@example.com', **billing_address.as_data())
+    address_data = customer_user.default_billing_address.as_data()
+    shipping_data = dict(email='test@example.com', **address_data)
     shipping_response = client.post(
         shipping_address.request['PATH_INFO'], data=shipping_data, follow=True)
 
@@ -59,17 +59,21 @@ def test_checkout_flow(
         'verification_result': 'waiting'}
     payment_response = client.post(payment_page_url, data=payment_data)
     assert payment_response.status_code == 302
+    payment_redirect = reverse(
+        'order:payment-success', kwargs={'token': order.token})
+    assert get_redirect_location(payment_response) == payment_redirect
+    success_response = client.post(payment_redirect, data={'status': 'ok'})
+    assert success_response.status_code == 302
     order_password = reverse(
         'order:checkout-success', kwargs={'token': order.token})
-    assert get_redirect_location(payment_response) == order_password
+    assert get_redirect_location(success_response) == order_password
     mock_send_confirmation.delay.assert_called_once_with(order.pk)
 
 
 def test_checkout_flow_authenticated_user(
-        authorized_client, billing_address, request_cart_with_item,
-        customer_user, shipping_method):
+        authorized_client, request_cart_with_item, customer_user,
+        shipping_method):
     # Prepare some data
-    customer_user.addresses.add(billing_address)
     request_cart_with_item.user = customer_user
     request_cart_with_item.save()
 
@@ -79,7 +83,7 @@ def test_checkout_flow_authenticated_user(
         reverse('checkout:index'), follow=True)
 
     # Enter shipping address data
-    shipping_data = {'address': billing_address.pk}
+    shipping_data = {'address': customer_user.default_billing_address.pk}
     shipping_method_page = authorized_client.post(
         shipping_address.request['PATH_INFO'], data=shipping_data, follow=True)
 
@@ -115,7 +119,7 @@ def test_checkout_flow_authenticated_user(
 
     assert payment_response.status_code == 302
     order_password = reverse(
-        'order:checkout-success', kwargs={'token': order.token})
+        'order:payment-success', kwargs={'token': order.token})
     assert get_redirect_location(payment_response) == order_password
 
     # Assert that payment object was created and contains correct data
@@ -174,10 +178,9 @@ def test_summary_without_shipping_method(
 
 
 def test_email_is_saved_in_order(
-        authorized_client, billing_address, customer_user,
-        request_cart_with_item, shipping_method):
+        authorized_client, customer_user, request_cart_with_item,
+        shipping_method):
     # Prepare some data
-    customer_user.addresses.add(billing_address)
     request_cart_with_item.user = customer_user
     request_cart_with_item.save()
 
@@ -187,7 +190,7 @@ def test_email_is_saved_in_order(
         reverse('checkout:index'), follow=True)
 
     # Enter shipping address data
-    shipping_data = {'address': billing_address.pk}
+    shipping_data = {'address': customer_user.default_billing_address.pk}
     shipping_method_page = authorized_client.post(
         shipping_address.request['PATH_INFO'], data=shipping_data, follow=True)
 
@@ -211,7 +214,7 @@ def test_email_is_saved_in_order(
 
 def test_voucher_invalid(
         client, request_cart_with_item,
-        shipping_method, voucher, billing_address: Address):
+        shipping_method, voucher, customer_user):
     # related issues: #549 #544
     voucher.usage_limit = 3
     voucher.save()
@@ -221,8 +224,8 @@ def test_voucher_invalid(
     shipping_address = client.get(checkout_index.request['PATH_INFO'])
 
     # Enter shipping address data
-    shipping_data = dict(
-        email='test@example.com', **billing_address.as_data())
+    address_data = customer_user.default_billing_address.as_data()
+    shipping_data = dict(email='test@example.com', **address_data)
     shipping_response = client.post(shipping_address.request['PATH_INFO'],
                                     data=shipping_data, follow=True)
 
@@ -256,15 +259,15 @@ def test_voucher_invalid(
 
 def test_voucher_code_invalid(
         client, request_cart_with_item,
-        shipping_method, billing_address: Address):
+        shipping_method, customer_user):
     # Enter checkout
     checkout_index = client.get(reverse('checkout:index'), follow=True)
     # Checkout index redirects directly to shipping address step
     shipping_address = client.get(checkout_index.request['PATH_INFO'])
 
     # Enter shipping address data
-    shipping_data = dict(
-        email='test@example.com', **billing_address.as_data())
+    address_data = customer_user.default_billing_address.as_data()
+    shipping_data = dict(email='test@example.com', **address_data)
     shipping_response = client.post(shipping_address.request['PATH_INFO'],
                                     data=shipping_data, follow=True)
 
@@ -291,15 +294,15 @@ def test_voucher_code_invalid(
 
 def test_remove_voucher(
         client, request_cart_with_item,
-        shipping_method, voucher, billing_address: Address):
+        shipping_method, voucher, customer_user):
     # Enter checkout
     checkout_index = client.get(reverse('checkout:index'), follow=True)
     # Checkout index redirects directly to shipping address step
     shipping_address = client.get(checkout_index.request['PATH_INFO'])
 
     # Enter shipping address data
-    shipping_data = dict(
-        email='test@example.com', **billing_address.as_data())
+    address_data = customer_user.default_billing_address.as_data()
+    shipping_data = dict(email='test@example.com', **address_data)
     shipping_response = client.post(shipping_address.request['PATH_INFO'],
                                     data=shipping_data, follow=True)
 
@@ -329,10 +332,9 @@ def test_remove_voucher(
 
 # tests: saleor.checkout.views.summary.summary_with_shipping_view
 def test_checkout_with_shipping_selling_contract_is_required(
-        authorized_client, billing_address, customer_user,
+        authorized_client, customer_user,
         request_cart_with_item, shipping_method):
     # Prepare some data
-    customer_user.addresses.add(billing_address)
     request_cart_with_item.user = customer_user
     request_cart_with_item.save()
 
@@ -342,7 +344,7 @@ def test_checkout_with_shipping_selling_contract_is_required(
         reverse('checkout:index'), follow=True)
 
     # Enter shipping address data
-    shipping_data = {'address': billing_address.pk}
+    shipping_data = {'address': customer_user.default_billing_address.pk}
     shipping_method_page = authorized_client.post(
         shipping_address.request['PATH_INFO'], data=shipping_data, follow=True)
 
@@ -377,10 +379,9 @@ def test_checkout_with_shipping_selling_contract_is_required(
 
 # tests: saleor.checkout.views.summary.summary_without_shipping
 def test_checkout_without_shipping_selling_contract_is_required(
-        authorized_client, billing_address, customer_user,
+        authorized_client, customer_user,
         request_cart_with_item_without_shipping):
     # Prepare some data
-    customer_user.addresses.add(billing_address)
     request_cart_with_item_without_shipping.user = customer_user
     request_cart_with_item_without_shipping.save()
 
@@ -393,7 +394,8 @@ def test_checkout_without_shipping_selling_contract_is_required(
 
     # Summary page asks for Billing address, default is the same as shipping
     # We are try to place an order without accepting the contract
-    billing_address_data = {'address': billing_address.pk}
+    billing_address_data = {
+        'address': customer_user.default_billing_address.pk}
     billing_address_response = authorized_client.post(
         billing_address_url, data=billing_address_data)
 
@@ -414,7 +416,8 @@ def test_checkout_without_shipping_selling_contract_is_required(
 
 # tests: saleor.checkout.views.summary.anonymous_summary_without_shipping
 def test_checkout_anonymous_without_shipping_selling_contract_is_required(
-        client, billing_address, request_cart_with_item_without_shipping):
+        client, customer_user,
+        request_cart_with_item_without_shipping):
     assert request_cart_with_item_without_shipping.user is None
     billing_address_response = client.get(
         reverse('checkout:index'), follow=True)
@@ -425,8 +428,8 @@ def test_checkout_anonymous_without_shipping_selling_contract_is_required(
 
     # Summary page asks for Billing address, default is the same as shipping
     # We are try to place an order without accepting the contract
-    billing_address_data = dict(
-        email='test@example.com', **billing_address.as_data())
+    address_data = customer_user.default_billing_address.as_data()
+    billing_address_data = dict(email='test@example.com', **address_data)
     billing_address_response = client.post(
         billing_address_url, data=billing_address_data)
 
@@ -446,12 +449,11 @@ def test_checkout_anonymous_without_shipping_selling_contract_is_required(
 
 
 def test_language_is_saved_in_order(
-        authorized_client, billing_address, customer_user,
-        request_cart_with_item, settings, shipping_method):
+        authorized_client, customer_user, request_cart_with_item, settings,
+        shipping_method):
     # Prepare some data
     settings.LANGUAGE_CODE = 'en'
     user_language = 'fr'
-    customer_user.addresses.add(billing_address)
     request_cart_with_item.user = customer_user
     request_cart_with_item.save()
 
@@ -465,7 +467,7 @@ def test_language_is_saved_in_order(
         HTTP_ACCEPT_LANGUAGE=user_language)
 
     # Enter shipping address data
-    shipping_data = {'address': billing_address.pk}
+    shipping_data = {'address': customer_user.default_billing_address.pk}
     shipping_method_page = authorized_client.post(
         shipping_address.request['PATH_INFO'], data=shipping_data, follow=True,
         HTTP_ACCEPT_LANGUAGE=user_language)

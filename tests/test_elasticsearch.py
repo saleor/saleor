@@ -160,12 +160,12 @@ def test_dashboard_search_user_name(db, admin_client, customers):
 
 
 @pytest.fixture
-def orders(db, billing_address):
+def orders(db, address):
     all_pks = set()
     for email, pks in ORDERS.items():
         for pk in pks:
             Order.objects.create(
-                billing_address=billing_address, user_email=email, pk=pk)
+                billing_address=address, user_email=email, pk=pk)
         all_pks = all_pks | pks
     return all_pks
 
