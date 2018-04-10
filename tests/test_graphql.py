@@ -9,7 +9,8 @@ from prices import Money
 
 from saleor.graphql.core.mutations import (
     ModelFormMutation, ModelFormUpdateMutation)
-from saleor.product.models import Category, Product, ProductAttribute
+from saleor.product.models import (
+    Category, Product, ProductAttribute, ProductType)
 
 from .utils import get_graphql_content
 
@@ -1002,3 +1003,25 @@ def test_page_delete_mutation(admin_client, page):
     assert data['page']['title'] == page.title
     with pytest.raises(page._meta.model.DoesNotExist):
         page.refresh_from_db()
+
+
+def test_product_type(client, product_type):
+    query = """
+    query {
+        productTypes {
+            totalCount
+            edges {
+                node {
+                    id
+                    name
+                }
+            }
+        }
+    }
+    """
+    response = client.post(reverse('api'), {'query': query})
+    content = get_graphql_content(response)
+    no_product_types = ProductType.objects.count()
+    assert 'errors' not in content
+    assert content['data']['productTypes']['totalCount'] == no_product_types
+    assert len(content['data']['productTypes']['edges']) == no_product_types
