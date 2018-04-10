@@ -1,5 +1,5 @@
-from django.template import Library
 from django.contrib.staticfiles.templatetags.staticfiles import static
+from django.template import Library
 
 register = Library()
 
