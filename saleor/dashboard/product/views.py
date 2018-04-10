@@ -14,9 +14,9 @@ from ...core.utils import get_paginator_items
 from ...product.models import (
     AttributeChoiceValue, Product, ProductAttribute, ProductImage, ProductType,
     ProductVariant)
-from ...product.utils import get_margin_for_variant
 from ...product.utils.availability import get_availability
-from ...product.utils.costs import get_product_costs_data
+from ...product.utils.costs import (
+    get_margin_for_variant, get_product_costs_data)
 from ..views import staff_member_required
 from .filters import ProductAttributeFilter, ProductFilter, ProductTypeFilter
 

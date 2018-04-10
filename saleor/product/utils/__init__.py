@@ -23,9 +23,8 @@ def products_visible_to_user(user):
 def products_with_details(user):
     products = products_visible_to_user(user)
     products = products.prefetch_related(
-        'category', 'images', 'variants__stock',
-        'variants__variant_images__image', 'attributes__values',
-        'product_type__product_attributes__values')
+        'category', 'images', 'variants__variant_images__image',
+        'attributes__values', 'product_type__product_attributes__values')
     return products
 
 
@@ -69,30 +68,30 @@ def get_variant_url(variant):
     return get_variant_url_from_product(variant.product, attributes)
 
 
-def allocate_stock(stock, quantity):
-    stock.quantity_allocated = F('quantity_allocated') + quantity
-    stock.save(update_fields=['quantity_allocated'])
+def allocate_stock(variant, quantity):
+    variant.quantity_allocated = F('quantity_allocated') + quantity
+    variant.save(update_fields=['quantity_allocated'])
 
 
-def deallocate_stock(stock, quantity):
-    stock.quantity_allocated = F('quantity_allocated') - quantity
-    stock.save(update_fields=['quantity_allocated'])
+def deallocate_stock(variant, quantity):
+    variant.quantity_allocated = F('quantity_allocated') - quantity
+    variant.save(update_fields=['quantity_allocated'])
 
 
-def decrease_stock(stock, quantity):
-    stock.quantity = F('quantity') - quantity
-    stock.quantity_allocated = F('quantity_allocated') - quantity
-    stock.save(update_fields=['quantity', 'quantity_allocated'])
+def decrease_stock(variant, quantity):
+    variant.quantity = F('quantity') - quantity
+    variant.quantity_allocated = F('quantity_allocated') - quantity
+    variant.save(update_fields=['quantity', 'quantity_allocated'])
 
 
-def increase_stock(stock, quantity, allocate=False):
+def increase_stock(variant, quantity, allocate=False):
     """Return given quantity of product to a stock."""
-    stock.quantity = F('quantity') + quantity
+    variant.quantity = F('quantity') + quantity
     update_fields = ['quantity']
     if allocate:
-        stock.quantity_allocated = F('quantity_allocated') + quantity
+        variant.quantity_allocated = F('quantity_allocated') + quantity
         update_fields.append('quantity_allocated')
-    stock.save(update_fields=update_fields)
+    variant.save(update_fields=update_fields)
 
 
 def get_product_list_context(request, filter_set):
