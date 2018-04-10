@@ -28,15 +28,17 @@ def menu_list(request):
         request.GET.get('page'))
     site = get_current_site(request)
     site_settings = site.settings
+
+    data = (
+        request.POST
+        if request.user.has_perm('menu.edit_menu') and request.POST
+        else None)
     assign_menu_form = AssignMenuForm(
-        request.POST or None, instance=site_settings, user=request.user)
-    if all([
-            request.method == 'POST',
-            assign_menu_form.is_valid(),
-            request.user.has_perm('menu.edit_menu')]):
+        data, instance=site_settings, user=request.user)
+    if request.method == 'POST' and assign_menu_form.is_valid():
         assign_menu_form.save()
         msg = pgettext_lazy(
-            'Dashboard message', 'Updated Storefront menus')
+            'Dashboard message', 'Updated storefront menus')
         messages.success(request, msg)
         return redirect('dashboard:menu-list')
     ctx = {
