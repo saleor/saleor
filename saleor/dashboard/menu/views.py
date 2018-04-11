@@ -63,7 +63,8 @@ def menu_edit(request, pk):
 @permission_required('menu.view_menu')
 def menu_detail(request, pk):
     menu = get_object_or_404(Menu, pk=pk)
-    menu_items = menu.items.filter(parent=None)
+    menu_items = menu.items.filter(parent=None).prefetch_related(
+        'category', 'collection', 'page')
     menu_item_filter = MenuItemFilter(request.GET, queryset=menu_items)
     menu_items = get_paginator_items(
         menu_item_filter.qs, settings.DASHBOARD_PAGINATE_BY,

@@ -1,4 +1,5 @@
 from decimal import Decimal
+from operator import attrgetter
 from uuid import uuid4
 
 from django.conf import settings
@@ -133,13 +134,15 @@ class Order(models.Model):
         return reverse('order:details', kwargs={'token': self.token})
 
     def get_last_payment_status(self):
-        last_payment = self.payments.last()
+        last_payment = max(
+            self.payments.all(), default=None, key=attrgetter('pk'))
         if last_payment:
             return last_payment.status
         return None
 
     def get_last_payment_status_display(self):
-        last_payment = self.payments.last()
+        last_payment = max(
+            self.payments.all(), default=None, key=attrgetter('pk'))
         if last_payment:
             return last_payment.get_status_display()
         return None
@@ -153,10 +156,6 @@ class Order(models.Model):
 
     def is_shipping_required(self):
         return any(line.is_shipping_required for line in self)
-
-    def get_status_display(self):
-        """Order status display text."""
-        return dict(OrderStatus.CHOICES)[self.status]
 
     def get_subtotal(self):
         subtotal_iterator = (line.get_total() for line in self)
@@ -257,20 +256,9 @@ class FulfillmentLine(models.Model):
         validators=[MinValueValidator(0), MaxValueValidator(999)])
 
 
-class PaymentQuerySet(models.QuerySet):
-    def last(self):
-        # using .all() here reuses data fetched by prefetch_related
-        objects = list(self.all()[:1])
-        if objects:
-            return objects[0]
-        return None
-
-
 class Payment(BasePayment):
     order = models.ForeignKey(
         Order, related_name='payments', on_delete=models.PROTECT)
-
-    objects = PaymentQuerySet.as_manager()
 
     class Meta:
         ordering = ('-pk',)

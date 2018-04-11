@@ -22,11 +22,18 @@ def index(request, cart):
 
     # refresh required to get updated cart lines and it's quantity
     try:
-        cart = Cart.objects.get(pk=cart.pk)
+        cart = Cart.objects.prefetch_related(
+            'lines__variant__product__category').get(pk=cart.pk)
     except Cart.DoesNotExist:
         pass
 
-    for line in cart.lines.all():
+    lines = cart.lines.select_related(
+        'variant__product__product_type',
+        'variant__product__category')
+    lines = lines.prefetch_related(
+        'variant__product__images',
+        'variant__product__product_type__variant_attributes')
+    for line in lines:
         initial = {'quantity': line.quantity}
         form = ReplaceCartLineForm(None, cart=cart, variant=line.variant,
                                    initial=initial, discounts=discounts)
