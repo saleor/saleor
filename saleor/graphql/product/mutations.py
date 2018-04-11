@@ -194,6 +194,7 @@ class ProductTypeCreateMutation(StaffMemberRequiredMixin, ModelFormMutation):
         kwargs['data']['variant_attributes'] = variant_attributes
         return kwargs
 
+
 class ProductTypeUpdateMutation(
         StaffMemberRequiredMixin, ModelFormUpdateMutation):
     permissions = 'product.edit_properties'
@@ -226,3 +227,11 @@ class ProductTypeUpdateMutation(
         kwargs['data']['variant_attributes'] = variant_attributes
 
         return kwargs
+
+
+class ProductTypeDeleteMutation(StaffMemberRequiredMixin, ModelDeleteMutation):
+    permissions = 'product.edit_properties'
+
+    class Meta:
+        description = 'Deletes a product type.'
+        model = models.ProductType
