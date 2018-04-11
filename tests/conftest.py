@@ -353,12 +353,13 @@ def product_with_images(product_type, default_category):
 
 @pytest.fixture
 def anonymous_checkout():
-    return Checkout((), AnonymousUser(), 'tracking_code')
+    return Checkout((), AnonymousUser(), None, 'tracking_code')
 
 
 @pytest.fixture
 def checkout_with_items(request_cart_with_item, customer_user):
-    checkout = Checkout(request_cart_with_item, customer_user, 'tracking_code')
+    checkout = Checkout(
+        request_cart_with_item, customer_user, None, 'tracking_code')
     checkout.shipping_address = customer_user.default_shipping_address
     return checkout
 

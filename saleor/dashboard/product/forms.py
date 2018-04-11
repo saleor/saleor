@@ -54,20 +54,15 @@ class ProductTypeSelectorForm(forms.Form):
         widget=forms.RadioSelect, empty_label=None)
 
 
-class TaxRateTypeChoiceField(forms.ChoiceField):
-    """Choice field with choices filled up with available tax rate types."""
-
-    def __init__(self, *args, **kwargs):
-        rate_types = get_tax_rate_types() + ['standard']
-        rate_types.sort()
-        kwargs['choices'] = [
-            (rate_type, VAT_RATE_TYPE_TRANSLATIONS.get(rate_type, rate_type))
-            for rate_type in rate_types]
-        super().__init__(*args, **kwargs)
+def get_tax_rate_type_choices():
+    rate_types = get_tax_rate_types() + ['standard']
+    return [
+        (rate_type, VAT_RATE_TYPE_TRANSLATIONS.get(rate_type, rate_type))
+        for rate_type in rate_types]
 
 
 class ProductTypeForm(forms.ModelForm):
-    tax_rate = TaxRateTypeChoiceField()
+    tax_rate = forms.ChoiceField(required=False)
 
     class Meta:
         model = ProductType
@@ -90,6 +85,10 @@ class ProductTypeForm(forms.ModelForm):
                 'Require shipping'),
             'tax_rate': pgettext_lazy(
                 'Product type tax rate type', 'Tax rate')}
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['tax_rate'].choices = get_tax_rate_type_choices()
 
     def clean(self):
         data = super().clean()
@@ -193,7 +192,7 @@ class AttributesMixin(object):
 
 
 class ProductForm(forms.ModelForm, AttributesMixin):
-    tax_rate = TaxRateTypeChoiceField()
+    tax_rate = forms.ChoiceField(required=False)
 
     class Meta:
         model = Product
@@ -240,6 +239,7 @@ class ProductForm(forms.ModelForm, AttributesMixin):
                 'data-materialize': self['description'].html_name})
         self.fields['seo_title'] = SeoTitleField(
             extra_attrs={'data-bind': self['name'].auto_id})
+        self.fields['tax_rate'].choices = get_tax_rate_type_choices()
 
     def clean_seo_description(self):
         seo_description = prepare_seo_description(

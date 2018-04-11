@@ -32,7 +32,9 @@ type_schema = {
         'is_shipping_required': True}}
 
 
-def test_apply_tax_to_price_include_tax(taxes):
+def test_apply_tax_to_price_include_tax(settings, taxes):
+    settings.INCLUDE_TAXES_IN_PRICES = False
+
     money = Money(100, 'USD')
     assert apply_tax_to_price(taxes, 'standard', money) == TaxedMoney(
         net=Money(100, 'USD'), gross=Money(123, 'USD'))
@@ -46,15 +48,16 @@ def test_apply_tax_to_price_include_tax(taxes):
         net=Money(100, 'USD'), gross=Money(108, 'USD'))
 
 
-def test_apply_tax_to_price_include_tax_fallback_to_standard_rate(taxes):
+def test_apply_tax_to_price_include_tax_fallback_to_standard_rate(
+        settings, taxes):
+    settings.INCLUDE_TAXES_IN_PRICES = False
+
     money = Money(100, 'USD')
     taxed_money = TaxedMoney(net=Money(100, 'USD'), gross=Money(123, 'USD'))
     assert apply_tax_to_price(taxes, 'space suits', money) == taxed_money
 
 
-def test_apply_tax_to_price_add_tax(settings, taxes):
-    settings.INCLUDE_TAXES_IN_PRICES = False
-
+def test_apply_tax_to_price_include_tax(taxes):
     money = Money(100, 'USD')
     assert apply_tax_to_price(taxes, 'standard', money) == TaxedMoney(
         net=Money('81.30', 'USD'), gross=Money(100, 'USD'))
@@ -62,9 +65,7 @@ def test_apply_tax_to_price_add_tax(settings, taxes):
         net=Money('92.59', 'USD'), gross=Money(100, 'USD'))
 
 
-def test_apply_tax_to_price_add_tax_fallback_to_standard_rate(
-        settings, taxes):
-    settings.INCLUDE_TAXES_IN_PRICES = False
+def test_apply_tax_to_price_include_fallback_to_standard_rate(taxes):
     money = Money(100, 'USD')
     assert apply_tax_to_price(taxes, 'space suits', money) == TaxedMoney(
         net=Money('81.30', 'USD'), gross=Money(100, 'USD'))

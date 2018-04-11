@@ -40,24 +40,25 @@ class Checkout:
 
     VERSION = '1.0.0'
 
-    def __init__(self, cart, user, tracking_code):
+    def __init__(self, cart, user, taxes, tracking_code):
         self.modified = False
         self.cart = cart
         self.storage = {'version': self.VERSION}
         self.tracking_code = tracking_code
         self.user = user
+        self.taxes = taxes
         self.discounts = cart.discounts
         self._shipping_method = None
         self._shipping_address = None
 
     @classmethod
-    def from_storage(cls, storage_data, cart, user, tracking_code):
+    def from_storage(cls, storage_data, cart, user, taxes, tracking_code):
         """Restore a previously serialized checkout session.
 
         `storage_data` is the value previously returned by
         `Checkout.for_storage()`.
         """
-        checkout = cls(cart, user, tracking_code)
+        checkout = cls(cart, user, taxes, tracking_code)
         checkout.storage = storage_data
         try:
             version = checkout.storage['version']
@@ -368,11 +369,11 @@ class Checkout:
 
     def get_subtotal(self):
         """Calculate order total without shipping and discount."""
-        return self.cart.get_total()
+        return self.cart.get_total(taxes=self.taxes)
 
     def get_total(self):
         """Calculate order total with shipping and discount amount."""
-        total = self.cart.get_total()
+        total = self.get_subtotal()
         if self.shipping_method and self.is_shipping_required:
             total += self.shipping_method.get_total_price()
         if self.discount:
@@ -397,7 +398,7 @@ def load_checkout(view):
             session_data = ''
         tracking_code = analytics.get_client_id(request)
         checkout = Checkout.from_storage(
-            session_data, cart, request.user, tracking_code)
+            session_data, cart, request.user, request.taxes, tracking_code)
         response = view(request, checkout, cart)
         if checkout.modified:
             request.session[STORAGE_SESSION_KEY] = checkout.for_storage()

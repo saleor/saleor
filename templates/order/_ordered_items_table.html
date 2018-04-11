@@ -100,6 +100,17 @@
 </div>
 {% endif %}
 
+<div class="table__row">
+  <div class="row">
+    <div class="col-8 order-details__table-footer">
+      <p>{% trans "Taxes" context "Order details taxes text" %}</p>
+    </div>
+    <div class="col-4">
+      <p class="float-right">{{ order.total.tax|amount:'html' }}</p>
+    </div>
+  </div>
+</div>
+
 <div class="order-details__total">
   <div class="row">
     <div class="col-8 order-details__table-footer">
