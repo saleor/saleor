@@ -2,13 +2,14 @@ import graphene
 from graphene.types import InputObjectType
 
 from ...dashboard.category.forms import CategoryForm
+from ...dashboard.product.forms import ProductTypeForm
 from ...product import models
 from ..core.mutations import (
     BaseMutation, ModelDeleteMutation, ModelFormMutation,
     ModelFormUpdateMutation, StaffMemberRequiredMixin, convert_form_errors)
 from ..utils import get_attributes_dict_from_list, get_node
 from .forms import ProductForm
-from .types import Category, ProductType
+from .types import Category, ProductAttribute, ProductType
 
 
 class CategoryCreateMutation(StaffMemberRequiredMixin, ModelFormMutation):
@@ -164,4 +165,35 @@ class ProductUpdateMutation(
             kwargs['data']['category'] = category.id
         else:
             kwargs['data']['category'] = instance.category.id
+        return kwargs
+
+class AttributeID(InputObjectType):
+    id = graphene.ID()
+
+class ProductTypeCreateMutation(StaffMemberRequiredMixin, ModelFormMutation):
+    permissions = 'product.edit_properties'
+
+    # class Arguments:
+    #     product_attributes = graphene.List(graphene.ID)
+
+    class Meta:
+        description = 'Creates a new product type.'
+        form_class = ProductTypeForm
+        # exclude = ['product_attributes']
+
+    @classmethod
+    def get_form_kwargs(cls, root, info, **input):
+        product_attributes = input.pop('product_attributes', None)
+        product_attributes = {
+            get_node(info, pr_att_id, only_type=ProductAttribute)
+            for pr_att_id in product_attributes}
+
+        variant_attributes = input.pop('variant_attributes', None)
+        variant_attributes = {
+            get_node(info, pr_att_id, only_type=ProductAttribute)
+            for pr_att_id in variant_attributes}
+
+        kwargs = super().get_form_kwargs(root, info, **input)
+        kwargs['data']['product_attributes'] = product_attributes
+        kwargs['data']['variant_attributes'] = variant_attributes
         return kwargs
