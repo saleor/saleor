@@ -459,7 +459,7 @@ def test_get_price_per_item(
 
 def test_product_get_price_per_item_variant_has_no_price(
         product_type, default_category, taxes):
-    product = Product.objects.create(
+    product = models.Product.objects.create(
         product_type=product_type,
         category=default_category,
         price=Money('10.00', 'USD'))
@@ -473,7 +473,7 @@ def test_product_get_price_per_item_variant_has_no_price(
 
 def test_product_get_price_per_item_variant_with_price(
         product_type, default_category, taxes):
-    product = Product.objects.create(
+    product = models.Product.objects.create(
         product_type=product_type,
         category=default_category,
         price=Money('10.00', 'USD'))
@@ -487,7 +487,7 @@ def test_product_get_price_per_item_variant_with_price(
 
 def test_product_get_price_range_with_variants(
         product_type, default_category, taxes):
-    product = Product.objects.create(
+    product = models.Product.objects.create(
         product_type=product_type,
         category=default_category,
         price=Money('15.00', 'USD'))
@@ -506,7 +506,7 @@ def test_product_get_price_range_with_variants(
 
 def test_product_get_price_range_no_variants(
         product_type, default_category, taxes):
-    product = Product.objects.create(
+    product = models.Product.objects.create(
         product_type=product_type,
         category=default_category,
         price=Money('10.00', 'USD'))
@@ -520,7 +520,7 @@ def test_product_get_price_range_no_variants(
 
 def test_product_get_price_per_item_do_not_charge_taxes(
         product_type, default_category, taxes, sale):
-    product = Product.objects.create(
+    product = models.Product.objects.create(
         product_type=product_type,
         category=default_category,
         price=Money('10.00', 'USD'),
@@ -536,7 +536,7 @@ def test_product_get_price_per_item_do_not_charge_taxes(
 
 def test_product_get_price_range_do_not_charge_taxes(
         product_type, default_category, taxes, sale):
-    product = Product.objects.create(
+    product = models.Product.objects.create(
         product_type=product_type,
         category=default_category,
         price=Money('10.00', 'USD'),
