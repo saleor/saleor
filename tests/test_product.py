@@ -430,14 +430,14 @@ def test_create_product_thumbnails(
 @pytest.mark.parametrize(
     'product_price, include_taxes_in_prices, include_taxes, include_discounts,'
     'product_net, product_gross', [
-        ('10.00', True, False, False, '10.00', '10.00'),
-        ('10.00', True, True, False, '10.00', '12.30'),
-        ('15.00', True, False, True, '10.00', '10.00'),
-        ('15.00', True, True, True, '10.00', '12.30'),
         ('10.00', False, False, False, '10.00', '10.00'),
-        ('10.00', False, True, False, '8.13', '10.00'),
+        ('10.00', False, True, False, '10.00', '12.30'),
         ('15.00', False, False, True, '10.00', '10.00'),
-        ('15.00', False, True, True, '8.13', '10.00')])
+        ('15.00', False, True, True, '10.00', '12.30'),
+        ('10.00', True, False, False, '10.00', '10.00'),
+        ('10.00', True, True, False, '8.13', '10.00'),
+        ('15.00', True, False, True, '10.00', '10.00'),
+        ('15.00', True, True, True, '8.13', '10.00')])
 def test_get_price_per_item(
         settings, product_type, default_category, taxes, sale, product_price,
         include_taxes_in_prices, include_taxes, include_discounts,
@@ -458,7 +458,8 @@ def test_get_price_per_item(
 
 
 def test_product_get_price_per_item_variant_has_no_price(
-        product_type, default_category, taxes):
+        settings, product_type, default_category, taxes):
+    settings.INCLUDE_TAXES_IN_PRICES = False
     product = models.Product.objects.create(
         product_type=product_type,
         category=default_category,
@@ -472,7 +473,8 @@ def test_product_get_price_per_item_variant_has_no_price(
 
 
 def test_product_get_price_per_item_variant_with_price(
-        product_type, default_category, taxes):
+        settings, product_type, default_category, taxes):
+    settings.INCLUDE_TAXES_IN_PRICES = False
     product = models.Product.objects.create(
         product_type=product_type,
         category=default_category,
@@ -486,7 +488,8 @@ def test_product_get_price_per_item_variant_with_price(
 
 
 def test_product_get_price_range_with_variants(
-        product_type, default_category, taxes):
+        settings, product_type, default_category, taxes):
+    settings.INCLUDE_TAXES_IN_PRICES = False
     product = models.Product.objects.create(
         product_type=product_type,
         category=default_category,
@@ -505,7 +508,8 @@ def test_product_get_price_range_with_variants(
 
 
 def test_product_get_price_range_no_variants(
-        product_type, default_category, taxes):
+        settings, product_type, default_category, taxes):
+    settings.INCLUDE_TAXES_IN_PRICES = False
     product = models.Product.objects.create(
         product_type=product_type,
         category=default_category,

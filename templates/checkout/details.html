@@ -32,18 +32,16 @@
       {% with total=checkout.get_total %}
         <div class="checkout__review">
           <h3 class="checkout__review__tittle">{% trans "Order review" context "Order review title" %}</h3>
-          {% for shipment, shipment_cost, total_with_shipment in checkout.deliveries %}
-            {% for item, item_price_per_item, item_price_total in shipment %}
-              <div class="row">
-                <div class="col-8">
-                  <p><strong>{{ item.variant.product }}</strong> x {{ item.quantity }}<br>
-                    <span class="checkout__review__variant">{{ item.variant }}</span></p>
-                </div>
-                <div class="col-4">
-                  <p class="float-right">{{ item_price_total.net|amount }}</p>
-                </div>
+          {% for line in checkout.cart.lines.all %}
+            <div class="row">
+              <div class="col-8">
+                <p><strong>{{ line.variant.product }}</strong> x {{ line.quantity }}<br>
+                  <span class="checkout__review__variant">{{ line.variant }}</span></p>
               </div>
-            {% endfor %}
+              <div class="col-4">
+                <p class="float-right">{{ line.get_total.gross|amount }}</p>
+              </div>
+            </div>
           {% endfor %}
           <div class="row checkout__review__section">
             <div class="col-8">
@@ -66,6 +64,12 @@
             </div>
           </div>
           <div class="row checkout__review__section">
+            <div class="col-8">
+              <p>{% trans "Taxes" context "Order review section title" %}</p>
+            </div>
+            <div class="col-4">
+              <p class="float-right">{{ total.tax|amount:'html' }}</p>
+            </div>
             <div class="col-8">
               <h3>{% trans "Total" context "Order review section title" %}</h3>
             </div>

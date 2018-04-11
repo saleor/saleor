@@ -76,10 +76,11 @@ def update_order_with_user_addresses(order):
 def get_product_variants_and_prices(order, product):
     """Get variants and unit prices from order lines matching the product."""
     lines = (
-        line for line in order if line.product == product)
+        line for line in order
+        if line.variant and line.variant.product == product)
     for line in lines:
         for dummy_i in range(line.quantity):
-            variant = line.product.variants.get(sku=line.product_sku)
+            variant = line.variant
             if variant:
                 yield variant, variant.get_price_per_item()
 
@@ -90,7 +91,7 @@ def get_category_variants_and_prices(order, root_category):
     Product is assumed to be in the category if it belongs to any of its
     descendant subcategories.
     """
-    products = {line.product for line in order if line.product}
+    products = {line.variant.product for line in order if line.variant}
     matching_products = set()
     for product in products:
         if product.category.is_descendant_of(root_category, include_self=True):

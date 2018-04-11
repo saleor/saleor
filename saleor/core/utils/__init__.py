@@ -128,9 +128,12 @@ def apply_tax_to_price(taxes, rate_name, base):
             return base
         raise TypeError('Unknown base for flat_tax: %r' % (base,))
 
-    tax_to_apply = taxes.get(rate_name, taxes['standard'])
+    if rate_name in taxes:
+        tax_to_apply = taxes[rate_name]
+    else:
+        tax_to_apply = taxes['standard']
 
-    return tax_to_apply(base, not settings.INCLUDE_TAXES_IN_PRICES)
+    return tax_to_apply(base, keep_gross=settings.INCLUDE_TAXES_IN_PRICES)
 
 
 def to_local_currency(price, currency):
