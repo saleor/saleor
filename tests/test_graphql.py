@@ -1028,7 +1028,7 @@ def test_product_type(client, product_type):
 
 
 def test_product_type_query(
-        client, admin_client, product_type, product_in_stock):
+        client, admin_client, product_type, product):
     query = """
             query getProductType($id: ID!) {
                 productType(id: $id) {
@@ -1045,8 +1045,8 @@ def test_product_type_query(
             }
         """
     no_products = Product.objects.count()
-    product_in_stock.is_published = False
-    product_in_stock.save()
+    product.is_published = False
+    product.save()
     variables = json.dumps({
         'id': graphene.Node.to_global_id('ProductType', product_type.id)})
 
