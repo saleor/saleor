@@ -22,7 +22,8 @@ def resolve_attribute_list(attributes=None):
             name = product_attributes.get(int(k))
             if v:
                 value = attribute_values.get(int(v))
-            attribute_list.append(types.SelectedAttribute(name=name, value=value))
+            attribute_list.append(
+                types.SelectedAttribute(name=name, value=value))
     return attribute_list
 
 
@@ -38,7 +39,7 @@ def resolve_products(info, category_id):
     products = products_visible_to_user(user=user).distinct()
     if category_id is not None:
         category = get_node(info, category_id, only_type=types.Category)
-        return products.filter(category=category)
+        return products.filter(category=category).distinct()
     return products
 
 

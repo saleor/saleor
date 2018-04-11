@@ -150,9 +150,8 @@ class ProductType(CountableDjangoObjectType):
 
     def resolve_products(self, info):
         user = info.context.user
-        products = products_visible_to_user(
+        return products_visible_to_user(
             user=user).filter(product_type=self).distinct()
-        return products
 
 
 class Category(CountableDjangoObjectType):
