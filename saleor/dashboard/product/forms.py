@@ -7,9 +7,11 @@ from django.forms.widgets import CheckboxSelectMultiple
 from django.utils.encoding import smart_text
 from django.utils.text import slugify
 from django.utils.translation import pgettext_lazy
+from django_prices_vatlayer.utils import get_tax_rate_types
 from mptt.forms import TreeNodeChoiceField
 
 from . import ProductBulkAction
+from ...core.i18n import VAT_RATE_TYPE_TRANSLATIONS
 from ...product.models import (
     AttributeChoiceValue, Category, Collection, Product, ProductAttribute,
     ProductImage, ProductType, ProductVariant, VariantImage)
@@ -52,7 +54,21 @@ class ProductTypeSelectorForm(forms.Form):
         widget=forms.RadioSelect, empty_label=None)
 
 
+class TaxRateTypeChoiceField(forms.ChoiceField):
+    """Choice field with choices filled up with available tax rate types."""
+
+    def __init__(self, *args, **kwargs):
+        rate_types = get_tax_rate_types() + ['standard']
+        rate_types.sort()
+        kwargs['choices'] = [
+            (rate_type, VAT_RATE_TYPE_TRANSLATIONS.get(rate_type, rate_type))
+            for rate_type in rate_types]
+        super().__init__(*args, **kwargs)
+
+
 class ProductTypeForm(forms.ModelForm):
+    tax_rate = TaxRateTypeChoiceField()
+
     class Meta:
         model = ProductType
         exclude = []
@@ -71,7 +87,9 @@ class ProductTypeForm(forms.ModelForm):
                 'Attributes common to all variants'),
             'is_shipping_required': pgettext_lazy(
                 'Shipping toggle',
-                'Require shipping')}
+                'Require shipping'),
+            'tax_rate': pgettext_lazy(
+                'Product type tax rate type', 'Tax rate')}
 
     def clean(self):
         data = super().clean()
@@ -175,6 +193,8 @@ class AttributesMixin(object):
 
 
 class ProductForm(forms.ModelForm, AttributesMixin):
+    tax_rate = TaxRateTypeChoiceField()
+
     class Meta:
         model = Product
         exclude = ['attributes', 'product_type', 'updated_at']
@@ -195,7 +215,9 @@ class ProductForm(forms.ModelForm, AttributesMixin):
             'collections': pgettext_lazy(
                 'Add to collection select', 'Collections'),
             'charge_taxes': pgettext_lazy(
-                'Charge taxes on product', 'Charge taxes on this product')}
+                'Charge taxes on product', 'Charge taxes on this product'),
+            'tax_rate': pgettext_lazy(
+                'Product tax rate type', 'Tax rate')}
 
     category = TreeNodeChoiceField(queryset=Category.objects.all())
     collections = forms.ModelMultipleChoiceField(
