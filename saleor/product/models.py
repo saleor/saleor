@@ -69,9 +69,7 @@ class ProductType(models.Model):
     variant_attributes = models.ManyToManyField(
         'ProductAttribute', related_name='product_variant_types', blank=True)
     is_shipping_required = models.BooleanField(default=False)
-
-    # todo: replace this with proper tax rate field
-    tax_rate = 'standard'
+    tax_rate = models.CharField(max_length=128, default='standard', blank=True)
 
     class Meta:
         app_label = 'product'
@@ -109,9 +107,7 @@ class Product(SeoModel):
     updated_at = models.DateTimeField(auto_now=True, null=True)
     is_featured = models.BooleanField(default=False)
     charge_taxes = models.BooleanField(default=True)
-
-    # todo: replace this with proper tax rate field
-    tax_rate = None
+    tax_rate = models.CharField(max_length=128, default='standard', blank=True)
 
     objects = ProductQuerySet.as_manager()
 
