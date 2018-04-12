@@ -584,7 +584,7 @@ def create_page():
 
 def create_menus():
     # Create navbar menu with category links
-    menu, _ = Menu.objects.get_or_create(slug='navbar')
+    menu, _ = Menu.objects.get_or_create(name='navbar')
     if not menu.items.exists():
         # create a menu entry for all root categories
         categories = Category.objects.filter(parent__isnull=True)
@@ -595,7 +595,7 @@ def create_menus():
         yield 'Created navbar menu'
 
     # Create footer menu with collections and pages
-    menu, _ = Menu.objects.get_or_create(slug='footer')
+    menu, _ = Menu.objects.get_or_create(name='footer')
     if not menu.items.exists():
         collection = Collection.objects.order_by('?')[0]
         item, _ = menu.items.get_or_create(

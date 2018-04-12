@@ -619,6 +619,16 @@ def permission_impersonate_user():
 
 
 @pytest.fixture
+def permission_edit_menu():
+    return Permission.objects.get(codename='edit_menu')
+
+
+@pytest.fixture
+def permission_view_menu():
+    return Permission.objects.get(codename='view_menu')
+
+
+@pytest.fixture
 def collection(db):
     collection = Collection.objects.create(
         name='Collection', slug='collection')
@@ -645,9 +655,9 @@ def model_form_class():
 
 
 @pytest.fixture
-def menu():
+def menu(db):
     # navbar menu object can be already created by default in migration
-    return Menu.objects.get_or_create(slug='navbar')[0]
+    return Menu.objects.get_or_create(name='navbar')[0]
 
 
 @pytest.fixture

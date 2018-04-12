@@ -44,15 +44,15 @@
             <table class="bordered highlight responsive data-table data-table-description">
               <thead>
                 <tr>
-                  {% trans "Internal name" context "Menu list table header internal name" as label %}
-                  {% sorting_header 'slug' label %}
+                  {% trans "Menu name" context "Menu list table header Menu name" as label %}
+                  {% sorting_header 'name' label %}
                 </tr>
               </thead>
               <tbody>
                 {% for menu in menus %}
                   <tr data-action-go="{% url 'dashboard:menu-detail' pk=menu.pk %}">
                     <td>
-                      {{ menu.slug }}
+                      {{ menu.name }}
                     </td>
                   </tr>
                 {% endfor %}
@@ -77,6 +77,32 @@
     </div>
     <div class="col s12 l3" id="filters">
       {% if not is_empty %}{% filters filter_set %}{% endif %}
+      <div class="card">
+        <form action="" method="post">
+        <div class="card-content">
+          <span class="card-title">
+            {% trans "Storefront Menus" %}
+          </span>
+            {% csrf_token %}
+            <div class="row">
+                {{ assign_menu_form.top_menu|materializecss }}
+            </div>
+            <div class="row">
+              {{ assign_menu_form.bottom_menu|materializecss }}
+            </div>
+        </div>
+        {% if perms.menu.edit_menu %}
+          <div class="card-action right-align">
+            <div class="col s12">
+              <button type="submit" class="btn waves-effect right">
+                {% trans "Save" context "Dashboard update action" %}
+              </button>
+            </div>
+            <div class="clearfix"></div>
+          </div>
+        {% endif %}
+      </form>
+    </div>
     </div>
   </div>
 {% endblock %}

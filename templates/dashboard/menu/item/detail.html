@@ -29,9 +29,9 @@
         </span>
       </li>
     {% endif %}
-    <li title="{{ menu.slug }}" class="breadcrumbs--ellipsed-item">
+    <li title="{{ menu.name }}" class="breadcrumbs--ellipsed-item">
       <a href="{% url 'dashboard:menu-detail' pk=menu.pk %}">
-        {{ menu.slug }}
+        {{ menu.name }}
       </a>
     </li>
     {% if path %}

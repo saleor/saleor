@@ -154,7 +154,7 @@
     </div>
     <div class="navbar__menu container d-block">
       <nav class="navigation">
-        {% menu 'navbar' horizontal=True %}
+        {% menu site_menu=site.settings.top_menu horizontal=True %}
       </nav>
     </div>
   </header>
@@ -184,7 +184,7 @@
           </a>
         </div>
         <div class="col-md-3 col-sm-6">
-          {% menu 'footer' %}
+          {% menu site_menu=site.settings.bottom_menu %}
         </div>
         <div class="col-md-3 col-sm-6">
           <ul>
