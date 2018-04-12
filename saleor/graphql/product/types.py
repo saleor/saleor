@@ -150,6 +150,22 @@ class ProductType(CountableDjangoObjectType):
         model = models.ProductType
 
 
+class Collection(CountableDjangoObjectType):
+    products = DjangoFilterConnectionField(
+        Product, filterset_class=ProductFilterSet,
+        description='List of collection products.')
+
+    class Meta:
+        description = "Represents a collection of products."
+        interfaces = [relay.Node]
+        model = models.Collection
+
+    def resolve_products(self, info, **kwargs):
+        user = info.context.user
+        return products_visible_to_user(
+            user=user).filter(collections=self).distinct()
+
+
 class Category(CountableDjangoObjectType):
     products = DjangoFilterConnectionField(
         Product, filterset_class=ProductFilterSet,
