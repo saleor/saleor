@@ -79,7 +79,6 @@ class Product(CountableDjangoObjectType):
         size=graphene.Argument(
             graphene.String,
             description='Size of a thumbnail, for example 255x255.'))
-    # TODO: drop this field in favor of particular ones?
     availability = graphene.Field(
         ProductAvailability,
         description="""Informs about product's availability in the storefront,
@@ -93,8 +92,6 @@ class Product(CountableDjangoObjectType):
         description='List of product attributes assigned to this product.')
     purchase_cost = graphene.Field(TaxedMoneyRange)
     gross_margin = graphene.List(GrossMargin)
-    price_range = graphene.Field(TaxedMoneyRange)
-    price_range_undiscounted = graphene.Field(TaxedMoneyRange)
 
     class Meta:
         description = """Represents an individual item for sale in the
@@ -128,13 +125,6 @@ class Product(CountableDjangoObjectType):
     def resolve_gross_margin(self, info):
         _, gross_margin = get_product_costs_data(self)
         return [GrossMargin(gross_margin[0], gross_margin[1])]
-
-    def resolve_price_range(self, info):
-        context = info.context
-        return self.get_price_range(discounts=context.discounts)
-
-    def resolve_price_range_undiscounted(self, info):
-        return self.get_price_range()
 
 
 class ProductType(CountableDjangoObjectType):

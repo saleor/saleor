@@ -9,5 +9,5 @@ class Page(CountableDjangoObjectType):
         description = """A static page that can be manually added by a shop
         operator through the dashboard."""
         interfaces = [relay.Node]
-        model = models.Page
         filter_fields = ['id', 'name']
+        model = models.Page
