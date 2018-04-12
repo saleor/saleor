@@ -60,6 +60,19 @@ def test_valid_product_type_form(color_attribute, size_attribute):
     assert not form.is_valid()
 
 
+def test_product_type_form_missing_variant_attributes(
+        color_attribute, size_attribute, product_type):
+    product_type.has_variants = True
+    product_type.save()
+    data = {
+        'name': "Testing Type",
+        'product_attributes': [color_attribute.pk],
+        'variant_attributes': [size_attribute.pk],
+        'has_variants': False}
+    form = ProductTypeForm(data, instance=product_type)
+    assert not form.is_valid()
+
+
 def test_variantless_product_type_form(color_attribute, size_attribute):
     data = {
         'name': "Testing Type",
