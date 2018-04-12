@@ -5,6 +5,7 @@ import unicodedata
 
 from django.conf import settings
 from django.contrib.auth.models import Group, Permission
+from django.contrib.sites.models import Site
 from django.core.files import File
 from django.template.defaultfilters import slugify
 from faker import Factory
@@ -616,6 +617,11 @@ def create_menus():
             name=page.title,
             page=page)
         yield 'Created footer menu'
+    site = Site.objects.get_current()
+    site_settings = site.settings
+    site_settings.top_menu = top_menu
+    site_settings.bottom_menu = bottom_menu
+    site_settings.save()
 
 
 def get_product_list_images_dir(placeholder_dir):
