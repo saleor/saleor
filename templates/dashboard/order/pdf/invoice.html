@@ -24,12 +24,12 @@
   <tr>
     {% if order.shipping_address %}
       <th align="left" width="50%">
-        {% trans "Shipping Details" context "Invoice table header" %}
+        {% trans "Shipping address" context "Invoice shipping address" %}
       </th>
     {% endif %}
     {% if order.billing_address %}
       <th align="left" {% if order.shipping_address %} width="50%"{% endif %}>
-        {% trans "Billing Details" context "Invoice table header" %}
+        {% trans "Billing address" context "Invoice billing address" %}
       </th>
     {% endif %}
   </tr>
@@ -37,23 +37,13 @@
   <tbody>
   <tr>
     {% if order.shipping_address %}
-      <td valign="top">
-        {% with order.shipping_address as address %}
-          <h2>
-            {% trans "Shipping address" context "Invoice shipping address" %}
-          </h2>
-          {% include 'dashboard/includes/_address.html' with address=address only %}
-        {% endwith %}
+      <td>
+        {% include 'dashboard/includes/_address.html' with address=order.shipping_address only %}
       </td>
     {% endif %}
     {% if order.billing_address %}
-      <td valign="top">
-        {% with order.billing_address as address %}
-          <h2>
-            {% trans "Billing address" context "Invoice billing address" %}
-          </h2>
-          {% include 'dashboard/includes/_address.html' with address=address only %}
-        {% endwith %}
+      <td>
+        {% include 'dashboard/includes/_address.html' with address=order.billing_address only %}
       </td>
     {% endif %}
   </tr>
@@ -74,7 +64,10 @@
         {% trans "SKU" context "Shipment order table header" %}
       </th>
       <th class="right-align">
-        {% trans "Price" context "Shipment order table header" %}
+        {% trans "Price net" context "Shipment order table header" %}
+      </th>
+      <th class="right-align">
+        {% trans "Price gross" context "Shipment order table header" %}
       </th>
       <th class="right-align">
         {% trans "Quantity" context "Shipment order table header" %}
@@ -92,6 +85,9 @@
           </td>
           <td>
             {{ line.product_sku }}
+          </td>
+          <td class="right-align">
+            {{ line.unit_price.net|amount:'html' }}
           </td>
           <td class="right-align">
             {{ line.unit_price.gross|amount:'html' }}
@@ -112,10 +108,18 @@
   <tbody>
     <tr>
       <td class="wide">
-        {% trans "Subtotal" context "Order subtotal price" %}
+        {% trans "Subtotal net" context "Order subtotal net price" %}
       </td>
       <td class="right-align">
-        {{ order.get_subtotal.gross|amount:'html' }}
+        {{ order.get_subtotal.net|amount:'html' }}
+      </td>
+    </tr>
+    <tr>
+      <td>
+        {% trans "Total taxes" context "Order total taxes header" %}
+      </td>
+      <td class="right-align">
+        {{ order.total.tax|amount:'html' }}
       </td>
     </tr>
     <tr>

@@ -565,6 +565,7 @@ class AddVariantToOrderForm(forms.Form):
     def __init__(self, *args, **kwargs):
         self.order = kwargs.pop('order')
         self.discounts = kwargs.pop('discounts')
+        self.taxes = kwargs.pop('taxes')
         super().__init__(*args, **kwargs)
 
     def clean(self):
@@ -593,7 +594,7 @@ class AddVariantToOrderForm(forms.Form):
         variant = self.cleaned_data.get('variant')
         quantity = self.cleaned_data.get('quantity')
         add_variant_to_order(
-            self.order, variant, quantity, self.discounts)
+            self.order, variant, quantity, self.discounts, self.taxes)
         recalculate_order(self.order)
 
 
