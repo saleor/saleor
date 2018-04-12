@@ -3,12 +3,14 @@ from unittest.mock import patch
 
 import graphene
 import pytest
+from django.forms.models import model_to_dict
 from django.shortcuts import reverse
 from django.utils.text import slugify
 from prices import Money
 
 from saleor.graphql.core.mutations import (
     ModelFormMutation, ModelFormUpdateMutation)
+from saleor.page.models import Page
 from saleor.product.models import (
     Category, Product, ProductAttribute, ProductType)
 
@@ -528,7 +530,6 @@ def test_real_query(admin_client, product):
     content = get_graphql_content(response)
     assert 'errors' not in content
 
-
 def test_page_query(client, page):
     page.is_visible = True
     query = """
@@ -549,6 +550,40 @@ def test_page_query(client, page):
     assert page_data['title'] == page.title
     assert page_data['slug'] == page.slug
 
+
+def test_paginate_pages(client, page):
+    page.is_visible = True
+    data_02 = {
+        'slug': 'test02-url',
+        'title': 'Test page',
+        'content': 'test content',
+        'is_visible': True}
+    data_03 = {
+        'slug': 'test03-url',
+        'title': 'Test page',
+        'content': 'test content',
+        'is_visible': True}
+
+    page2 = Page.objects.create(**data_02)
+    page3 = Page.objects.create(**data_03)
+    query = """
+        query PagesQuery {
+            pages(first: 2) {
+                edges {
+                    node {
+                        id
+                        title
+                    }
+                }
+            }
+        }
+        """
+    response = client.post(
+        reverse('api'), {'query': query})
+    content = get_graphql_content(response)
+    assert 'errors' not in content
+    pages_data = content['data']['pages']
+    assert len(pages_data['edges']) == 2
 
 @patch('saleor.graphql.core.mutations.convert_form_fields')
 @patch('saleor.graphql.core.mutations.convert_form_field')

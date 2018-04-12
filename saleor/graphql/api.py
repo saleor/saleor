@@ -71,7 +71,7 @@ class Query(graphene.ObjectType):
             return page_models.Page.objects.get(slug=slug)
         return get_node(info, id, only_type=Page)
 
-    def resolve_pages(self, info):
+    def resolve_pages(self, info, **kwargs):
         return resolve_pages(user=info.context.user)
 
     def resolve_product(self, info, id):
