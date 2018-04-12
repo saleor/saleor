@@ -325,7 +325,7 @@ class Checkout:
         for line in self.cart.lines.all():
             add_variant_to_order(
                 order, line.variant, line.quantity, self.cart.discounts,
-                add_to_existing=False)
+                self.taxes, add_to_existing=False)
 
         if voucher is not None:
             increase_voucher_usage(voucher)

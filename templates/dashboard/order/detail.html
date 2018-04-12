@@ -283,7 +283,7 @@
                   {% trans "Item" context "Order table header" %}
                 </th>
                 <th class="right-align">
-                  {% trans "Price" context "Order table header" %}
+                  {% trans "Price gross" context "Order table header" %}
                 </th>
                 <th class="right-align">
                   {% trans "Quantity" context "Order table header" %}
@@ -341,7 +341,8 @@
               {% endfor %}
               <tr class="last-no-border">
                 <td class="right-align" colspan="3">
-                  <p>{% trans "Subtotal" context "Order subtotal" %}</p>
+                  <p>{% trans "Subtotal net" context "Order subtotal" %}</p>
+                  <p>{% trans "Total taxes" context "Order total taxes" %}</p>
                   <p>
                     {% if perms.order.edit_order and order.is_draft %}
                       <a href="#base-modal" data-href="{% url 'dashboard:order-shipping-edit' order_pk=order.pk %}"
@@ -405,7 +406,8 @@
                   <p><strong>{% trans "Grand total" context "Order totals header" %}</strong></p>
                 </td>
                 <td class="right-align">
-                  <p>{{ order.get_subtotal.gross|amount:'html' }}</p>
+                  <p>{{ order.get_subtotal.net|amount:'html' }}</p>
+                  <p>{{ order.total.tax|amount:'html' }}</p>
                   <p>{{ order.shipping_price.gross|amount:'html' }}</p>
                   {% if order.is_draft or order.discount_amount %}
                     <p>{% discount_as_negative order.discount_amount html=True %}</p>

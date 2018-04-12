@@ -293,7 +293,8 @@ def add_variant_to_order(request, order_pk):
     """Add variant in given quantity to an order."""
     order = get_object_or_404(Order.objects.drafts(), pk=order_pk)
     form = AddVariantToOrderForm(
-        request.POST or None, order=order, discounts=request.discounts)
+        request.POST or None, order=order, discounts=request.discounts,
+        taxes=request.taxes)
     status = 200
     if form.is_valid():
         msg_dict = {
