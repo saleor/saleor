@@ -1,10 +1,13 @@
+from django.conf import settings
 from django.db import migrations
 
 
 def assign_default_menus(apps, schema_editor):
     Menu = apps.get_model('menu', 'Menu')
-    top_menu = Menu.objects.get_or_create(name='navbar')[0]
-    bottom_menu = Menu.objects.get_or_create(name='footer')[0]
+    top_menu = Menu.objects.get_or_create(
+        name=settings.DEFAULT_MENUS['top_menu_name'])[0]
+    bottom_menu = Menu.objects.get_or_create(
+        name=settings.DEFAULT_MENUS['bottom_menu_name'])[0]
     Site = apps.get_model('sites', 'Site')
     site = Site.objects.get_current()
     site_settings = site.settings
