@@ -156,18 +156,6 @@ def test_product_query(admin_client, product):
                                 }
                             }
                         }
-                        priceRange{
-                            start{
-                                gross{
-                                    amount
-                                }
-                            }
-                            stop{
-                                gross{
-                                    amount
-                                }
-                            }
-                        }
                         grossMargin {
                             start
                             stop
@@ -191,17 +179,12 @@ def test_product_query(admin_client, product):
     assert float(gross['amount']) == float(product.price.amount)
     from saleor.product.utils.costs import get_product_costs_data
     purchase_cost, gross_margin = get_product_costs_data(product)
-    price_range = product.get_price_range()
     assert purchase_cost.start.gross.amount == product_data[
         'purchaseCost']['start']['gross']['amount']
     assert purchase_cost.stop.gross.amount == product_data[
         'purchaseCost']['stop']['gross']['amount']
     assert gross_margin[0] == product_data['grossMargin'][0]['start']
     assert gross_margin[1] == product_data['grossMargin'][0]['stop']
-    assert price_range.start.gross.amount == product_data[
-        'priceRange']['start']['gross']['amount']
-    assert price_range.stop.gross.amount == product_data[
-        'priceRange']['stop']['gross']['amount']
 
 
 def test_filter_product_by_category(client, product):
