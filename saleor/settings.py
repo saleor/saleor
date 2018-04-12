@@ -462,3 +462,9 @@ ALLOWED_ATTRIBUTES = {
     'a': ['href', 'title'],
     'img': ['src']}
 ALLOWED_STYLES = ['text-align']
+
+
+# Slugs for menus precreated in Django migrations
+DEFAULT_MENUS = {
+    'top_menu_name': 'navbar',
+    'bottom_menu_name': 'footer'}

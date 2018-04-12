@@ -23,12 +23,10 @@ The menu items display on the storefront in the order that they are listed in me
 Managing menus
 --------------
 
-By default, storefront template renders menu with slug ``navbar`` as a main navigation bar and with slug ``footer`` as a footer menu.
+Dashboard gives you a possibility to add new menus.
 
-Dashboard gives you a possibility to add new menus. In order to display them in the storefront, you should change templates. Menu is rendered in templates by passing to a ``menu`` templatetag a menu slug, as shown below.
+There can be two active menus at once (one for the navbar, the other one for the footer, they can be the same).
 
-.. code-block:: html
-
-  {% menu 'footer' %}
+Currently assigned menus can be changed via dashboard's ``Navigation`` panel.
 
 Menu is rendered as a vertical list by default. You can change it by passing an extra ``horizontal=True`` argument. Horizontal menus with nested items appear as a dropdown menu on desktops.
