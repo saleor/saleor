@@ -100,8 +100,8 @@ class ProductTypeForm(forms.ModelForm):
     def update_variants_names(self, data):
         # Some variant attributes could be removed so name should be updated
         # accordingly
-        initial_attributes = set(list(self.instance.variant_attributes.all()))
-        saved_attributes = set(list(data.get('variant_attributes')))
+        initial_attributes = set(self.instance.variant_attributes.all())
+        saved_attributes = set(data.get('variant_attributes', []))
         attributes_changed = initial_attributes.intersection(saved_attributes)
         if not attributes_changed:
             return
