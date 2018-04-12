@@ -174,7 +174,6 @@ def test_products_voucher_checkout_discount_not(
     assert discount == Money(expected_value, 'USD')
 
 
-@pytest.mark.django_db
 def test_sale_applies_to_correct_products(product_type, default_category):
     product = Product.objects.create(
         name='Test Product', price=Money(10, 'USD'), description='',
