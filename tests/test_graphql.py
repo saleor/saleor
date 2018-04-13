@@ -205,7 +205,7 @@ def test_product_with_collections(admin_client, product, collection):
     query = '''
         query getProduct($productID: ID!) {
             product(id: $productID) {
-                collections {
+                collections(first: 1) {
                     edges {
                         node {
                             name
@@ -226,6 +226,7 @@ def test_product_with_collections(admin_client, product, collection):
     assert 'errors' not in content
     data = content['data']['product']
     assert data['collections']['edges'][0]['node']['name'] == collection.name
+    assert len(data['collections']['edges']) == 1
 
 
 def test_filter_product_by_category(client, product):
