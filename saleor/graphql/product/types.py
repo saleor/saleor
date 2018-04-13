@@ -12,7 +12,23 @@ from ..core.filters import DistinctFilterSet
 from ..core.types import (
     CountableDjangoObjectType, Money, TaxedMoney, TaxedMoneyRange)
 from .filters import ProductFilterSet
-from .resolvers import resolve_attribute_list
+
+
+def resolve_attribute_list(attributes):
+    attribute_list = []
+    if attributes:
+        product_attributes = dict(
+            models.ProductAttribute.objects.values_list('id', 'slug'))
+        attribute_values = dict(
+            models.AttributeChoiceValue.objects.values_list('id', 'slug'))
+        for k, v in attributes.items():
+            value = None
+            name = product_attributes.get(int(k))
+            if v:
+                value = attribute_values.get(int(v))
+            attribute_list.append(
+                SelectedAttribute(name=name, value=value))
+    return attribute_list
 
 
 class GrossMargin(graphene.ObjectType):
