@@ -17,6 +17,37 @@ from saleor.product.models import (
 from .utils import get_graphql_content
 
 
+def test_create_token_mutation(admin_client, staff_user):
+    query = '''
+    mutation {
+        tokenCreate(email: "%(email)s", password: "%(password)s") {
+            token
+            errors {
+                field
+                message
+            }
+        }
+    }
+    '''
+    success_query = query % {'email': staff_user.email, 'password': 'password'}
+    response = admin_client.post(reverse('api'), {'query': success_query})
+    content = get_graphql_content(response)
+    assert 'errors' not in content
+    token_data = content['data']['tokenCreate']
+    assert token_data['token']
+    assert not token_data['errors']
+
+    error_query = query % {'email': staff_user.email, 'password': 'wat'}
+    response = admin_client.post(reverse('api'), {'query': error_query})
+    content = get_graphql_content(response)
+    assert 'errors' not in content
+    token_data = content['data']['tokenCreate']
+    assert not token_data['token']
+    errors = token_data['errors']
+    assert errors
+    assert not errors[0]['field']
+
+
 def test_category_query(client, product):
     category = Category.objects.first()
     query = '''
