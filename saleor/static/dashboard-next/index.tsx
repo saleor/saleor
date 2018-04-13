@@ -26,7 +26,7 @@ const apolloClient = new ApolloClient({
     headers: {
       "X-CSRFToken": cookies.get("csrftoken")
     },
-    uri: "/dashboard/graphql/"
+    uri: "/graphql/"
   })
 });
 const store = createStore(() => undefined);
