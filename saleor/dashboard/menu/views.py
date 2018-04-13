@@ -127,7 +127,8 @@ def menu_item_create(request, menu_pk, root_pk=None):
         messages.success(request, msg)
         if root_pk:
             return redirect(
-                'dashboard:menu-item-details', menu_pk=menu.pk, item_pk=root_pk)
+                'dashboard:menu-item-details',
+                menu_pk=menu.pk, item_pk=root_pk)
         return redirect('dashboard:menu-details', pk=menu.pk)
     ctx = {
         'form': form, 'menu': menu, 'menu_item': menu_item, 'path': path}
