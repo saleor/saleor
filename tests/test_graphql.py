@@ -201,6 +201,34 @@ def test_product_query(admin_client, product):
         'priceRange']['stop']['gross']['amount']
 
 
+def test_product_with_collections(admin_client, product, collection):
+    query = '''
+        query getProduct($productID: ID!) {
+            product(id: $productID) {
+                collections(first: 1) {
+                    edges {
+                        node {
+                            name
+                        }
+                    }
+                }
+            }
+        }
+        '''
+    product.collections.add(collection)
+    product.save()
+    product_id = graphene.Node.to_global_id('Product', product.id)
+
+    variables = json.dumps({'productID': product_id})
+    response = admin_client.post(
+        reverse('api'), {'query': query, 'variables': variables})
+    content = get_graphql_content(response)
+    assert 'errors' not in content
+    data = content['data']['product']
+    assert data['collections']['edges'][0]['node']['name'] == collection.name
+    assert len(data['collections']['edges']) == 1
+
+
 def test_filter_product_by_category(client, product):
     category = product.category
     query = '''
