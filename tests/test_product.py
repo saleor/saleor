@@ -320,7 +320,7 @@ def test_get_variant_picker_data_proper_variant_count(product):
 def test_view_ajax_available_variants_list(admin_client, product):
     variant = product.variants.first()
     variant_list = [
-        {'id': variant.pk, 'text': '123, Test product, $10.00'}]
+        {'id': variant.pk, 'text': '123, Test product (123), $10.00'}]
 
     url = reverse('dashboard:ajax-available-variants')
     response = admin_client.get(url, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
