@@ -51,7 +51,7 @@
               </thead>
               <tbody>
                 {% for page in pages %}
-                  <tr data-action-go="{% url 'dashboard:page-detail' pk=page.pk %}">
+                  <tr data-action-go="{% url 'dashboard:page-details' pk=page.pk %}">
                     <td>
                       {{ page.title }}
                     </td>

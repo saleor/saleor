@@ -27,12 +27,12 @@
       </a>
     </li>
     <li class="back-mobile">
-      <a href="{% url "dashboard:product-detail" pk=product.pk %}">
+      <a href="{% url "dashboard:product-details" pk=product.pk %}">
         <svg data-src="{% static "dashboard/images/chevron-left.svg" %}" />
       </a>
     </li>
     <li>
-      <a href="{% url "dashboard:product-detail" pk=product.pk %}" class="breadcrumbs--ellipsed-item">
+      <a href="{% url "dashboard:product-details" pk=product.pk %}" class="breadcrumbs--ellipsed-item">
         {{ product }}
       </a>
     </li>
@@ -107,7 +107,7 @@
                 {% trans "Save" context "Dashboard update action" %}
               </button>
             {% else %}
-              <a href="{% url "dashboard:product-detail" pk=product.pk %}" class="btn-flat waves-effect">
+              <a href="{% url "dashboard:product-details" pk=product.pk %}" class="btn-flat waves-effect">
                 {% trans "Cancel" context "Dashboard cancel action" %}
               </a>
               <button type="submit" class="btn waves-effect">

@@ -149,7 +149,7 @@
               </thead>
               <tbody>
                 {% for product in low_stock %}
-                  <tr data-action-go="{% url "dashboard:product-detail" pk=product.pk %}">
+                  <tr data-action-go="{% url "dashboard:product-details" pk=product.pk %}">
                     <td>
                       {{ product }}
                     </td>

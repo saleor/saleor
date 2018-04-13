@@ -6,7 +6,7 @@ from django.template.response import TemplateResponse
 from .utils import pages_visible_to_user
 
 
-def page_detail(request, slug):
+def page_details(request, slug):
     page = get_object_or_404(
         pages_visible_to_user(user=request.user).filter(slug=slug))
     today = datetime.date.today()
