@@ -22,7 +22,6 @@ from saleor.discount.models import Sale, Voucher
 from saleor.menu.models import Menu, MenuItem
 from saleor.order import OrderStatus
 from saleor.order.models import Order
-from saleor.menu.models import Menu, MenuItem
 from saleor.order.utils import recalculate_order
 from saleor.page.models import Page
 from saleor.product.models import (

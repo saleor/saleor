@@ -464,5 +464,7 @@ ALLOWED_ATTRIBUTES = {
 ALLOWED_STYLES = ['text-align']
 
 
-# slugs for menus used in storefront's base template, created by default
-DEFAULT_MENUS = ['navbar', 'footer']
+# Slugs for menus precreated in Django migrations
+DEFAULT_MENUS = {
+    'top_menu_name': 'navbar',
+    'bottom_menu_name': 'footer'}

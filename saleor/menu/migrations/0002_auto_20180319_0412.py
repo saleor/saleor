@@ -5,8 +5,9 @@ from django.db import migrations
 
 
 def create_default_menus(apps, schema_editor):
+    # slugs for menus created by default
     Menu = apps.get_model('menu', 'Menu')
-    for slug in settings.DEFAULT_MENUS:
+    for slug in settings.DEFAULT_MENUS.values():
         Menu.objects.get_or_create(slug=slug)
 
 
