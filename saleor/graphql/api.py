@@ -5,6 +5,7 @@ from graphene_django.filter import DjangoFilterConnectionField
 
 from ..page import models as page_models
 from .core.filters import DistinctFilterSet
+from .core.mutations import CreateToken
 from .page.resolvers import resolve_pages
 from .page.types import Page
 from .page.mutations import PageCreate, PageDelete, PageUpdate
@@ -88,7 +89,7 @@ class Query(graphene.ObjectType):
 
 
 class Mutations(graphene.ObjectType):
-    token_create = graphql_jwt.ObtainJSONWebToken.Field()
+    token_create = CreateToken.Field()
     token_refresh = graphql_jwt.Refresh.Field()
 
     category_create = CategoryCreateMutation.Field()
