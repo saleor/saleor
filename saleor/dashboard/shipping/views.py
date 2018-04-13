@@ -37,7 +37,7 @@ def shipping_method_add(request):
         method = form.save()
         msg = pgettext_lazy('Dashboard message', 'Added shipping method')
         messages.success(request, msg)
-        return redirect('dashboard:shipping-method-detail', pk=method.pk)
+        return redirect('dashboard:shipping-method-details', pk=method.pk)
     ctx = {'form': form, 'shipping_method': form.instance}
     return TemplateResponse(request, 'dashboard/shipping/form.html', ctx)
 
@@ -51,14 +51,14 @@ def shipping_method_edit(request, pk):
         method = form.save()
         msg = pgettext_lazy('Dashboard message', 'Updated shipping method')
         messages.success(request, msg)
-        return redirect('dashboard:shipping-method-detail', pk=method.pk)
+        return redirect('dashboard:shipping-method-details', pk=method.pk)
     ctx = {'form': form, 'shipping_method': method}
     return TemplateResponse(request, 'dashboard/shipping/form.html', ctx)
 
 
 @staff_member_required
 @permission_required('shipping.view_shipping')
-def shipping_method_detail(request, pk):
+def shipping_method_details(request, pk):
     shipping_methods = ShippingMethod.objects.prefetch_related(
         'price_per_country').all()
     method = get_object_or_404(shipping_methods, pk=pk)
@@ -97,7 +97,7 @@ def shipping_method_country_add(request, shipping_method_pk):
             'Dashboard message', 'Added shipping price for %s') % (country,)
         messages.success(request, msg)
         return redirect(
-            'dashboard:shipping-method-detail', pk=shipping_method_pk)
+            'dashboard:shipping-method-details', pk=shipping_method_pk)
     ctx = {
         'form': form, 'shipping_method': shipping_method, 'country': country}
     return TemplateResponse(
@@ -117,7 +117,7 @@ def shipping_method_country_edit(request, shipping_method_pk, country_pk):
             'Updated country shipping price %s') % (country,)
         messages.success(request, msg)
         return redirect(
-            'dashboard:shipping-method-detail', pk=shipping_method_pk)
+            'dashboard:shipping-method-details', pk=shipping_method_pk)
     ctx = {
         'form': form, 'shipping_method': shipping_method, 'country': country}
     return TemplateResponse(
@@ -135,7 +135,7 @@ def shipping_method_country_delete(
             'Dashboard message', 'Removed shipping method %s') % (country,)
         messages.success(request, msg)
         return redirect(
-            'dashboard:shipping-method-detail', pk=shipping_method_pk)
+            'dashboard:shipping-method-details', pk=shipping_method_pk)
     ctx = {'country': country, 'shipping_method_pk': shipping_method_pk}
     return TemplateResponse(
         request, 'dashboard/shipping/modal/country_confirm_delete.html', ctx)

@@ -57,7 +57,7 @@
               </thead>
               <tbody>
                 {% for node in categories %}
-                  <tr data-action-go="{% url 'dashboard:category-detail' pk=node.pk %}">
+                  <tr data-action-go="{% url 'dashboard:category-details' pk=node.pk %}">
                     <td>
                       {{ node.name }}
                     </td>

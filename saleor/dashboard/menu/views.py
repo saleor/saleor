@@ -71,7 +71,7 @@ def menu_edit(request, pk):
         menu = form.save()
         msg = pgettext_lazy('Dashboard message', 'Updated menu %s') % (menu,)
         messages.success(request, msg)
-        return redirect('dashboard:menu-detail', pk=menu.pk)
+        return redirect('dashboard:menu-details', pk=menu.pk)
     ctx = {'form': form, 'menu': menu}
     template = 'dashboard/menu/form.html'
     return TemplateResponse(request, template, ctx)
@@ -79,7 +79,7 @@ def menu_edit(request, pk):
 
 @staff_member_required
 @permission_required('menu.view_menu')
-def menu_detail(request, pk):
+def menu_details(request, pk):
     menu = get_object_or_404(Menu, pk=pk)
     menu_items = menu.items.filter(parent=None).prefetch_related(
         'category', 'collection', 'page')
@@ -127,8 +127,9 @@ def menu_item_create(request, menu_pk, root_pk=None):
         messages.success(request, msg)
         if root_pk:
             return redirect(
-                'dashboard:menu-item-detail', menu_pk=menu.pk, item_pk=root_pk)
-        return redirect('dashboard:menu-detail', pk=menu.pk)
+                'dashboard:menu-item-details',
+                menu_pk=menu.pk, item_pk=root_pk)
+        return redirect('dashboard:menu-details', pk=menu.pk)
     ctx = {
         'form': form, 'menu': menu, 'menu_item': menu_item, 'path': path}
     return TemplateResponse(request, 'dashboard/menu/item/form.html', ctx)
@@ -147,7 +148,7 @@ def menu_item_edit(request, menu_pk, item_pk):
             'Dashboard message', 'Saved menu item %s') % (menu_item,)
         messages.success(request, msg)
         return redirect(
-            'dashboard:menu-item-detail', menu_pk=menu.pk, item_pk=item_pk)
+            'dashboard:menu-item-details', menu_pk=menu.pk, item_pk=item_pk)
     ctx = {
         'form': form, 'menu': menu, 'menu_item': menu_item, 'path': path}
     return TemplateResponse(request, 'dashboard/menu/item/form.html', ctx)
@@ -166,11 +167,11 @@ def menu_item_delete(request, menu_pk, item_pk):
         root_pk = menu_item.parent.pk if menu_item.parent else None
         if root_pk:
             redirect_url = reverse(
-                'dashboard:menu-item-detail', kwargs={
+                'dashboard:menu-item-details', kwargs={
                     'menu_pk': menu_item.menu.pk, 'item_pk': root_pk})
         else:
             redirect_url = reverse(
-                'dashboard:menu-detail', kwargs={'pk': menu.pk})
+                'dashboard:menu-details', kwargs={'pk': menu.pk})
         return (
             JsonResponse({'redirectUrl': redirect_url}) if request.is_ajax()
             else redirect(redirect_url))
@@ -183,7 +184,7 @@ def menu_item_delete(request, menu_pk, item_pk):
 
 @staff_member_required
 @permission_required('menu.view_menu')
-def menu_item_detail(request, menu_pk, item_pk):
+def menu_item_details(request, menu_pk, item_pk):
     menu = get_object_or_404(Menu, pk=menu_pk)
     menu_item = get_object_or_404(menu.items.all(), pk=item_pk)
     path = menu_item.get_ancestors(include_self=True)

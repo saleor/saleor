@@ -12,7 +12,7 @@ urlpatterns = [
     url(r'^(?P<pk>[0-9]+)/delete/$',
         views.menu_delete, name='menu-delete'),
     url(r'^(?P<pk>[0-9]+)/$',
-        views.menu_detail, name='menu-detail'),
+        views.menu_details, name='menu-details'),
 
     url(r'^(?P<menu_pk>[0-9]+)/add/$',
         views.menu_item_create, name='menu-item-add'),
@@ -23,7 +23,7 @@ urlpatterns = [
     url(r'^(?P<menu_pk>[0-9]+)/item/(?P<item_pk>[0-9]+)/delete/$',
         views.menu_item_delete, name='menu-item-delete'),
     url(r'^(?P<menu_pk>[0-9]+)/item/(?P<item_pk>[0-9]+)/$',
-        views.menu_item_detail, name='menu-item-detail'),
+        views.menu_item_details, name='menu-item-details'),
 
     url(r'^(?P<menu_pk>[0-9]+)/items/reorder/$',
         views.ajax_reorder_menu_items, name='menu-items-reorder'),

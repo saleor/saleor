@@ -50,7 +50,7 @@
               </thead>
               <tbody>
                 {% for menu in menus %}
-                  <tr data-action-go="{% url 'dashboard:menu-detail' pk=menu.pk %}">
+                  <tr data-action-go="{% url 'dashboard:menu-details' pk=menu.pk %}">
                     <td>
                       {{ menu.name }}
                     </td>

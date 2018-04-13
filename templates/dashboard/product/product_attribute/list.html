@@ -50,7 +50,7 @@
               </thead>
               <tbody>
                 {% for pk, name, values in attributes %}
-                  <tr data-action-go="{% url 'dashboard:product-attribute-detail' pk=pk %}">
+                  <tr data-action-go="{% url 'dashboard:product-attribute-details' pk=pk %}">
                     <td>
                       {{ name }}
                     </td>

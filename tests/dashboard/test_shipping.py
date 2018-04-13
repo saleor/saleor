@@ -39,9 +39,9 @@ def test_shipping_method_edit(admin_client, shipping_method):
     assert ShippingMethod.objects.all()[0].name == 'Flash'
 
 
-def test_shipping_method_detail(admin_client, shipping_method):
+def test_shipping_method_details(admin_client, shipping_method):
     assert len(ShippingMethod.objects.all()) == 1
-    url = reverse('dashboard:shipping-method-detail',
+    url = reverse('dashboard:shipping-method-details',
                   kwargs={'pk': shipping_method.pk})
     response = admin_client.post(url, follow=True)
     assert response.status_code == 200

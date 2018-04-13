@@ -107,14 +107,14 @@ def test_view_menu_edit(admin_client, menu):
     response = admin_client.post(url, data)
 
     assert response.status_code == 302
-    redirect_url = reverse('dashboard:menu-detail', kwargs={'pk': menu.pk})
+    redirect_url = reverse('dashboard:menu-details', kwargs={'pk': menu.pk})
     assert get_redirect_location(response) == redirect_url
     menu.refresh_from_db()
     assert menu.name == name
 
 
-def test_view_menu_detail(admin_client, menu):
-    url = reverse('dashboard:menu-detail', kwargs={'pk': menu.pk})
+def test_view_menu_details(admin_client, menu):
+    url = reverse('dashboard:menu-details', kwargs={'pk': menu.pk})
 
     response = admin_client.post(url)
 
@@ -141,7 +141,7 @@ def test_view_menu_item_create(admin_client, menu, default_category):
     response = admin_client.post(url, data)
 
     assert response.status_code == 302
-    redirect_url = reverse('dashboard:menu-detail', kwargs={'pk': menu.pk})
+    redirect_url = reverse('dashboard:menu-details', kwargs={'pk': menu.pk})
     assert get_redirect_location(response) == redirect_url
     assert MenuItem.objects.count() == 1
     menu_item = MenuItem.objects.first()
@@ -160,7 +160,7 @@ def test_view_menu_item_create_with_parent(
 
     assert response.status_code == 302
     redirect_url = reverse(
-        'dashboard:menu-item-detail',
+        'dashboard:menu-item-details',
         kwargs={'menu_pk': menu.pk, 'item_pk': menu_item.pk})
     assert get_redirect_location(response) == redirect_url
     assert MenuItem.objects.count() == 2
@@ -190,7 +190,7 @@ def test_view_menu_item_edit(admin_client, menu, menu_item, default_category):
 
     assert response.status_code == 302
     redirect_url = reverse(
-        'dashboard:menu-item-detail',
+        'dashboard:menu-item-details',
         kwargs={'menu_pk': menu.pk, 'item_pk': menu_item.pk})
     assert get_redirect_location(response) == redirect_url
     assert MenuItem.objects.count() == 1
@@ -206,7 +206,7 @@ def test_view_menu_item_delete(admin_client, menu, menu_item):
     response = admin_client.post(url)
 
     assert response.status_code == 302
-    redirect_url = reverse('dashboard:menu-detail', kwargs={'pk': menu.pk})
+    redirect_url = reverse('dashboard:menu-details', kwargs={'pk': menu.pk})
     assert get_redirect_location(response) == redirect_url
     assert MenuItem.objects.count() == 0
 
@@ -223,15 +223,15 @@ def test_view_menu_item_delete_with_parent(admin_client, menu, menu_item):
 
     assert response.status_code == 302
     redirect_url = reverse(
-        'dashboard:menu-item-detail',
+        'dashboard:menu-item-details',
         kwargs={'menu_pk': menu.pk, 'item_pk': menu_item.pk})
     assert get_redirect_location(response) == redirect_url
     assert MenuItem.objects.count() == 1
 
 
-def test_view_menu_item_detail(admin_client, menu, menu_item):
+def test_view_menu_item_details(admin_client, menu, menu_item):
     url = reverse(
-        'dashboard:menu-item-detail',
+        'dashboard:menu-item-details',
         kwargs={'menu_pk': menu.pk, 'item_pk': menu_item.pk})
 
     response = admin_client.post(url)
