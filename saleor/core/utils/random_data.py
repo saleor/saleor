@@ -5,6 +5,7 @@ import unicodedata
 
 from django.conf import settings
 from django.contrib.auth.models import Group, Permission
+from django.contrib.sites.models import Site
 from django.core.files import File
 from django.template.defaultfilters import slugify
 from faker import Factory
@@ -584,36 +585,43 @@ def create_page():
 
 def create_menus():
     # Create navbar menu with category links
-    menu, _ = Menu.objects.get_or_create(name='navbar')
-    if not menu.items.exists():
+    top_menu, _ = Menu.objects.get_or_create(
+        name=settings.DEFAULT_MENUS['top_menu_name'])
+    if not top_menu.items.exists():
         # create a menu entry for all root categories
         categories = Category.objects.filter(parent__isnull=True)
         for category in categories:
-            menu.items.get_or_create(
+            top_menu.items.get_or_create(
                 name=category.name,
                 category=category)
         yield 'Created navbar menu'
 
     # Create footer menu with collections and pages
-    menu, _ = Menu.objects.get_or_create(name='footer')
-    if not menu.items.exists():
+    bottom_menu, _ = Menu.objects.get_or_create(
+        name=settings.DEFAULT_MENUS['bottom_menu_name'])
+    if not bottom_menu.items.exists():
         collection = Collection.objects.order_by('?')[0]
-        item, _ = menu.items.get_or_create(
+        item, _ = bottom_menu.items.get_or_create(
             name='Collections',
             collection=collection)
 
         for collection in Collection.objects.filter(
                 background_image__isnull=False):
-            menu.items.get_or_create(
+            bottom_menu.items.get_or_create(
                 name=collection.name,
                 collection=collection,
                 parent=item)
 
         page = Page.objects.order_by('?')[0]
-        menu.items.get_or_create(
+        bottom_menu.items.get_or_create(
             name=page.title,
             page=page)
         yield 'Created footer menu'
+    site = Site.objects.get_current()
+    site_settings = site.settings
+    site_settings.top_menu = top_menu
+    site_settings.bottom_menu = bottom_menu
+    site_settings.save()
 
 
 def get_product_list_images_dir(placeholder_dir):
