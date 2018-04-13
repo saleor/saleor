@@ -118,7 +118,7 @@
       </h1>
       {% if user.is_staff %}
         <p>
-          <a href="{% url "dashboard:product-details"pk=product.pk %}">
+          <a href="{% url "dashboard:product-details" pk=product.pk %}">
             {% trans "Edit in dashboard" context "Product details link text" %}
           </a>
         </p>
