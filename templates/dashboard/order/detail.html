@@ -295,7 +295,7 @@
                 <tr class="last-no-border">
                   <td>
                     {% if line.variant.product %}
-                      <a href="{% url 'dashboard:product-detail' pk=line.variant.product.pk %}">{{ line.product_name }}</a>
+                      <a href="{% url 'dashboard:product-details' pk=line.variant.product.pk %}">{{ line.product_name }}</a>
                     {% else %}
                       {{ line.product_name }}
                     {% endif %}

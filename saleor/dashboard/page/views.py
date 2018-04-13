@@ -46,7 +46,7 @@ def _page_edit(request, page):
         form.save()
         msg = pgettext_lazy('Dashboard message', 'Saved page')
         messages.success(request, msg)
-        return redirect('dashboard:page-detail', pk=page.pk)
+        return redirect('dashboard:page-details', pk=page.pk)
     ctx = {
         'page': page, 'form': form}
     return TemplateResponse(request, 'dashboard/page/form.html', ctx)
@@ -68,7 +68,7 @@ def page_delete(request, pk):
 
 @staff_member_required
 @permission_required('page.view_page')
-def page_detail(request, pk):
+def page_details(request, pk):
     page = get_object_or_404(Page, pk=pk)
     ctx = {'page': page}
     return TemplateResponse(request, 'dashboard/page/detail.html', ctx)

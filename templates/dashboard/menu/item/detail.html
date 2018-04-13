@@ -30,7 +30,7 @@
       </li>
     {% endif %}
     <li title="{{ menu.name }}" class="breadcrumbs--ellipsed-item">
-      <a href="{% url 'dashboard:menu-detail' pk=menu.pk %}">
+      <a href="{% url 'dashboard:menu-details' pk=menu.pk %}">
         {{ menu.name }}
       </a>
     </li>
@@ -49,7 +49,7 @@
           </li>
         {% else %}
           <li class="hide-on-med-and-down">
-            <a href="{% url 'dashboard:menu-item-detail' menu_pk=menu.pk item_pk=node.pk %}" title="{{ node.name }}" class="breadcrumbs--ellipsed-item">
+            <a href="{% url 'dashboard:menu-item-details' menu_pk=menu.pk item_pk=node.pk %}" title="{{ node.name }}" class="breadcrumbs--ellipsed-item">
               {{ node.name }}
             </a>
           </li>

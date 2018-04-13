@@ -15,7 +15,7 @@ from .forms import AuthorizationKeyForm, SiteForm, SiteSettingsForm
 def index(request):
     site = get_current_site(request)
     settings = site.settings
-    return redirect('dashboard:site-detail', pk=settings.pk)
+    return redirect('dashboard:site-details', pk=settings.pk)
 
 
 @staff_member_required
@@ -33,7 +33,7 @@ def site_settings_edit(request, pk):
         site_settings = site_settings_form.save()
         messages.success(request, pgettext_lazy(
             'Dashboard message', 'Updated site settings'))
-        return redirect('dashboard:site-detail', pk=site_settings.id)
+        return redirect('dashboard:site-details', pk=site_settings.id)
     ctx = {'site': site_settings, 'site_settings_form': site_settings_form,
            'site_form': site_form}
     return TemplateResponse(request, 'dashboard/sites/form.html', ctx)
@@ -41,7 +41,7 @@ def site_settings_edit(request, pk):
 
 @staff_member_required
 @permission_required('site.edit_settings')
-def site_settings_detail(request, pk):
+def site_settings_details(request, pk):
     site_settings = get_object_or_404(SiteSettings, pk=pk)
     authorization_keys = AuthorizationKey.objects.filter(
         site_settings=site_settings)
@@ -61,7 +61,7 @@ def authorization_key_add(request, site_settings_pk):
         msg = pgettext_lazy(
             'Dashboard message', 'Added authorization key %s') % (key,)
         messages.success(request, msg)
-        return redirect('dashboard:site-detail', pk=site_settings_pk)
+        return redirect('dashboard:site-details', pk=site_settings_pk)
     ctx = {'form': form, 'site_settings_pk': site_settings_pk, 'key': key}
     return TemplateResponse(
         request, 'dashboard/sites/authorization_keys/form.html', ctx)
@@ -77,7 +77,7 @@ def authorization_key_edit(request, site_settings_pk, key_pk):
         msg = pgettext_lazy(
             'dashboard message', 'Updated authorization key %s') % (key,)
         messages.success(request, msg)
-        return redirect('dashboard:site-detail', pk=site_settings_pk)
+        return redirect('dashboard:site-details', pk=site_settings_pk)
     ctx = {'form': form, 'site_settings_pk': site_settings_pk, 'key': key}
     return TemplateResponse(
         request, 'dashboard/sites/authorization_keys/form.html', ctx)
@@ -96,7 +96,7 @@ def authorization_key_delete(request, site_settings_pk, key_pk):
                 'Removed site authorization key %s') %
             (key,))
         return redirect(
-            'dashboard:site-detail', pk=site_settings_pk)
+            'dashboard:site-details', pk=site_settings_pk)
     return TemplateResponse(
         request, 'dashboard/sites/modal/confirm_delete.html',
         {'key': key, 'site_settings_pk': site_settings_pk})
