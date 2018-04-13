@@ -26,7 +26,7 @@
         <ul class="collection list card">
           {% for product in products %}
             <li class="collection-item avatar list-item">
-              <a href="{% url 'dashboard:product-detail' pk=product.pk %}">
+              <a href="{% url 'dashboard:product-details' pk=product.pk %}">
                 <img src="{% product_first_image product size="60x60" method="crop" %}"
                      srcset="{% product_first_image product size="60x60" method="crop" %} 1x, {% product_first_image product size="120x120" method="crop" %} 2x"
                      class="circle" alt="{{ product.name }}">

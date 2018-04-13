@@ -6,8 +6,8 @@ urlpatterns = [
     url(r'^$', views.index, name='site-index'),
     url(r'^(?P<pk>\d+)/update/$', views.site_settings_edit,
         name='site-update'),
-    url(r'^(?P<pk>\d+)/$', views.site_settings_detail,
-        name='site-detail'),
+    url(r'^(?P<pk>\d+)/$', views.site_settings_details,
+        name='site-details'),
     url(r'^(?P<pk>\d+)/delete/$', views.site_settings_edit,
         name='site-delete'),
 

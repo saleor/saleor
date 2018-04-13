@@ -52,9 +52,9 @@ def test_category_edit(admin_client, default_category):
     assert Category.objects.all()[0].name == 'Cars'
 
 
-def test_category_detail(admin_client, default_category):
+def test_category_details(admin_client, default_category):
     assert len(Category.objects.all()) == 1
-    url = reverse('dashboard:category-detail',
+    url = reverse('dashboard:category-details',
                   kwargs={'pk': default_category.pk})
     response = admin_client.post(url, follow=True)
     assert response.status_code == 200

@@ -163,9 +163,9 @@ def test_attribute_list(db, product, color_attribute, admin_client):
     assert response.status_code == 200
 
 
-def test_attribute_detail(color_attribute, admin_client):
+def test_attribute_details(color_attribute, admin_client):
     url = reverse(
-        'dashboard:product-attribute-detail',
+        'dashboard:product-attribute-details',
         kwargs={'pk': color_attribute.pk})
     response = admin_client.get(url)
     assert response.status_code == 200

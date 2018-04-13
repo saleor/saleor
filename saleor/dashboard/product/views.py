@@ -166,7 +166,7 @@ def product_create(request, type_pk):
         msg = pgettext_lazy(
             'Dashboard message', 'Added product %s') % (product,)
         messages.success(request, msg)
-        return redirect('dashboard:product-detail', pk=product.pk)
+        return redirect('dashboard:product-details', pk=product.pk)
     ctx = {
         'product_form': product_form, 'variant_form': variant_form,
         'product': product}
@@ -175,7 +175,7 @@ def product_create(request, type_pk):
 
 @staff_member_required
 @permission_required('product.view_product')
-def product_detail(request, pk):
+def product_details(request, pk):
     products = Product.objects.prefetch_related('variants', 'images').all()
     product = get_object_or_404(products, pk=pk)
     variants = product.variants.all()
@@ -235,7 +235,7 @@ def product_edit(request, pk):
         msg = pgettext_lazy(
             'Dashboard message', 'Updated product %s') % (product,)
         messages.success(request, msg)
-        return redirect('dashboard:product-detail', pk=product.pk)
+        return redirect('dashboard:product-details', pk=product.pk)
     ctx = {
         'product': product, 'product_form': form, 'variant_form': variant_form}
     return TemplateResponse(request, 'dashboard/product/form.html', ctx)
@@ -379,7 +379,7 @@ def variant_details(request, product_pk, variant_pk):
     # If the product type of this product assumes no variants, redirect to
     # product details page that has special UI for products without variants.
     if not product.product_type.has_variants:
-        return redirect('dashboard:product-detail', pk=product.pk)
+        return redirect('dashboard:product-details', pk=product.pk)
 
     images = variant.images.all()
     margin = get_margin_for_variant(variant)
@@ -421,7 +421,7 @@ def variant_delete(request, product_pk, variant_pk):
         msg = pgettext_lazy(
             'Dashboard message', 'Removed variant %s') % (variant.name,)
         messages.success(request, msg)
-        return redirect('dashboard:product-detail', pk=product.pk)
+        return redirect('dashboard:product-details', pk=product.pk)
     ctx = {
         'is_only_variant': product.variants.count() == 1, 'product': product,
         'variant': variant}
@@ -451,7 +451,7 @@ def attribute_list(request):
 
 @staff_member_required
 @permission_required('product.view_properties')
-def attribute_detail(request, pk):
+def attribute_details(request, pk):
     attributes = ProductAttribute.objects.prefetch_related('values').all()
     attribute = get_object_or_404(attributes, pk=pk)
     ctx = {
@@ -470,7 +470,7 @@ def attribute_add(request):
         attribute = form.save()
         msg = pgettext_lazy('Dashboard message', 'Added attribute')
         messages.success(request, msg)
-        return redirect('dashboard:product-attribute-detail', pk=attribute.pk)
+        return redirect('dashboard:product-attribute-details', pk=attribute.pk)
     ctx = {'attribute': attribute, 'form': form}
     return TemplateResponse(
         request,
@@ -487,7 +487,7 @@ def attribute_edit(request, pk):
         attribute = form.save()
         msg = pgettext_lazy('Dashboard message', 'Updated attribute')
         messages.success(request, msg)
-        return redirect('dashboard:product-attribute-detail', pk=attribute.pk)
+        return redirect('dashboard:product-attribute-details', pk=attribute.pk)
     ctx = {'attribute': attribute, 'form': form}
     return TemplateResponse(
         request,
@@ -523,7 +523,7 @@ def attribute_choice_value_add(request, attribute_pk):
         msg = pgettext_lazy(
             'Dashboard message', 'Added attribute\'s value')
         messages.success(request, msg)
-        return redirect('dashboard:product-attribute-detail', pk=attribute_pk)
+        return redirect('dashboard:product-attribute-details', pk=attribute_pk)
     ctx = {'attribute': attribute, 'value': value, 'form': form}
     return TemplateResponse(
         request,
@@ -542,7 +542,7 @@ def attribute_choice_value_edit(request, attribute_pk, value_pk):
         msg = pgettext_lazy(
             'Dashboard message', 'Updated attribute\'s value')
         messages.success(request, msg)
-        return redirect('dashboard:product-attribute-detail', pk=attribute_pk)
+        return redirect('dashboard:product-attribute-details', pk=attribute_pk)
     ctx = {'attribute': attribute, 'value': value, 'form': form}
     return TemplateResponse(
         request,
@@ -560,7 +560,7 @@ def attribute_choice_value_delete(request, attribute_pk, value_pk):
             'Dashboard message',
             'Removed attribute\'s value %s') % (value.name,)
         messages.success(request, msg)
-        return redirect('dashboard:product-attribute-detail', pk=attribute_pk)
+        return redirect('dashboard:product-attribute-details', pk=attribute_pk)
     return TemplateResponse(
         request,
         'dashboard/product/product_attribute/values/modal/confirm_delete.html',
