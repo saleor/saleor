@@ -6,7 +6,8 @@ from ...product import models
 from ...product.templatetags.product_images import product_first_image
 from ...product.utils import products_visible_to_user
 from ...product.utils.availability import get_availability
-from ...product.utils.costs import get_product_costs_data
+from ...product.utils.costs import (
+    get_margin_for_variant, get_product_costs_data)
 from ..core.decorators import permission_required
 from ..core.filters import DistinctFilterSet
 from ..core.types import (
@@ -59,6 +60,9 @@ class ProductVariant(CountableDjangoObjectType):
     attributes = graphene.List(
         SelectedAttribute,
         description='List of attributes assigned to this variant.')
+    cost_price = graphene.Field(
+        Money, description='Cost price of the variant.')
+    margin = graphene.Int(description='Gross margin percentage value.')
 
     class Meta:
         description = """Represents a version of a product such as different
@@ -71,6 +75,9 @@ class ProductVariant(CountableDjangoObjectType):
 
     def resolve_attributes(self, info):
         return resolve_attribute_list(self.attributes)
+
+    def resolve_margin(self, info):
+        return get_margin_for_variant(self)
 
 
 class ProductAvailability(graphene.ObjectType):
