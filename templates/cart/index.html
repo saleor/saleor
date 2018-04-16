@@ -2,6 +2,7 @@
 {% load i18n %}
 {% load prices_i18n %}
 {% load staticfiles %}
+{% load price_to_display from price_ranges %}
 {% load get_thumbnail from product_images %}
 
 {% block title %}{% trans "Your cart" context "Cart page title" %} — {{ block.super }}{% endblock %}
@@ -63,7 +64,10 @@
                   <small class="cart__line__quantity-error text-danger"></small>
                 </div>
                 <div class="cart-item-price col-md-5 col-12" data-product-id="{{ line.variant.pk }}">
-                  <p class="text-right">{{ line.get_total.gross|amount:'html' }}</p>
+                  <p class="text-right">
+                    {% price_to_display line.get_total as price %}
+                    {{ price|amount:'html' }}
+                  </p>
                 </div>
               </div>
             </div>

@@ -1,6 +1,7 @@
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import permission_required
+from django.contrib.sites.models import Site
 from django.db import transaction
 from django.db.models import F, Q
 from django.forms import modelformset_factory
@@ -56,7 +57,11 @@ def order_list(request):
 @staff_member_required
 @permission_required('order.edit_order')
 def order_create(request):
-    order = Order.objects.create(status=OrderStatus.DRAFT)
+    include_taxes_in_prices = (
+        Site.objects.get_current().settings.include_taxes_in_prices)
+    order = Order.objects.create(
+        status=OrderStatus.DRAFT,
+        include_taxes_in_prices=include_taxes_in_prices)
     msg = pgettext_lazy(
         'Dashboard message related to an order',
         'Draft order created')

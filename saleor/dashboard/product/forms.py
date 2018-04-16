@@ -1,6 +1,7 @@
 import bleach
 from django import forms
 from django.conf import settings
+from django.contrib.sites.models import Site
 from django.db.models import Count
 from django.forms.models import ModelChoiceIterator
 from django.forms.widgets import CheckboxSelectMultiple
@@ -240,6 +241,12 @@ class ProductForm(forms.ModelForm, AttributesMixin):
         self.fields['seo_title'] = SeoTitleField(
             extra_attrs={'data-bind': self['name'].auto_id})
         self.fields['tax_rate'].choices = get_tax_rate_type_choices()
+        if Site.objects.get_current().settings.include_taxes_in_prices:
+            self.fields['price'].label = pgettext_lazy(
+                'Currency gross amount', 'Gross price')
+        else:
+            self.fields['price'].label = pgettext_lazy(
+                'Currency net amount', 'Net price')
 
     def clean_seo_description(self):
         seo_description = prepare_seo_description(

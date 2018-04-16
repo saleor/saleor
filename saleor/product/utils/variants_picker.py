@@ -1,5 +1,6 @@
 from collections import defaultdict
 
+from django.contrib.sites.models import Site
 from django_prices.templatetags import prices_i18n
 
 from ...core.utils import to_local_currency
@@ -61,6 +62,8 @@ def get_variant_picker_data(
             availability.price_range_undiscounted),
         'priceRangeLocalCurrency': price_range_as_dict(
             availability.price_range_local_currency)}
+    data['displayGrossPrices'] = (
+        Site.objects.get_current().settings.display_gross_prices)
     return data
 
 

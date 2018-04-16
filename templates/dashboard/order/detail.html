@@ -3,6 +3,7 @@
 {% load prices_i18n %}
 {% load i18n %}
 {% load i18n_address_tags %}
+{% load price_ranges %}
 {% load materializecss %}
 {% load status %}
 {% load staticfiles %}
@@ -283,7 +284,7 @@
                   {% trans "Item" context "Order table header" %}
                 </th>
                 <th class="right-align">
-                  {% trans "Price gross" context "Order table header" %}
+                  {% trans "Price" context "Order table header" %}
                 </th>
                 <th class="right-align">
                   {% trans "Quantity" context "Order table header" %}
@@ -310,7 +311,8 @@
                     </span>
                   </td>
                   <td class="right-align">
-                    {{ line.unit_price.gross|amount:'html' }}
+                    {% price_to_display line.unit_price order.include_taxes_in_prices as price %}
+                    {{ price|amount:'html' }}
                   </td>
                   <td class="right-align">
                     {% if perms.order.edit_order and order.is_draft %}
@@ -335,7 +337,8 @@
                     {% endif %}
                   </td>
                   <td class="right-align">
-                    {{ line.get_total.gross|amount:'html' }}
+                    {% price_to_display line.get_total order.include_taxes_in_prices as price %}
+                    {{ price|amount:'html' }}
                   </td>
                 </tr>
               {% endfor %}
@@ -406,9 +409,15 @@
                   <p><strong>{% trans "Grand total" context "Order totals header" %}</strong></p>
                 </td>
                 <td class="right-align">
-                  <p>{{ order.get_subtotal.net|amount:'html' }}</p>
+                  <p>
+                    {% price_to_display order.get_subtotal order.include_taxes_in_prices as price %}
+                    {{ price|amount:'html' }}
+                  </p>
                   <p>{{ order.total.tax|amount:'html' }}</p>
-                  <p>{{ order.shipping_price.gross|amount:'html' }}</p>
+                  <p>
+                    {% price_to_display order.shipping_price order.include_taxes_in_prices as price %}
+                    {{ price|amount:'html' }}
+                  </p>
                   {% if order.is_draft or order.discount_amount %}
                     <p>{% discount_as_negative order.discount_amount html=True %}</p>
                   {% endif %}

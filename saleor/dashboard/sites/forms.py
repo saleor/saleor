@@ -30,11 +30,14 @@ class SiteSettingsForm(forms.ModelForm):
 class SiteSettingsTaxesForm(forms.ModelForm):
     class Meta:
         model = SiteSettings
-        fields = ['include_taxes_in_prices']
+        fields = ['include_taxes_in_prices', 'display_gross_prices']
         labels = {
             'include_taxes_in_prices': pgettext_lazy(
                 'Include taxes in prices',
-                'All taxes are included in my prices')}
+                'All taxes are included in my prices'),
+            'display_gross_prices': pgettext_lazy(
+                'Display gross prices',
+                'Show customers gross prices in storefront')}
 
 
 class AuthorizationKeyForm(forms.ModelForm):

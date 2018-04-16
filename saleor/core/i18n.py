@@ -1,6 +1,5 @@
 from django.utils.translation import pgettext_lazy
 
-
 VAT_RATE_TYPE_TRANSLATIONS = {
     'accommodation': pgettext_lazy('VAT rate type', 'accommodation'),
     'admission to cultural events': pgettext_lazy(

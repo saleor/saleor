@@ -3,6 +3,7 @@
 {% load i18n %}
 {% load materializecss %}
 {% load prices_i18n %}
+{% load price_to_display from price_ranges %}
 
 {% block action_url %}
 {% url 'dashboard:orderline-cancel' order_pk=order.pk line_pk=item.pk %}
@@ -47,13 +48,15 @@
             {{ item.product_sku }}
           </td>
           <td class="right-align">
-            {{ item.unit_price.gross|amount:'html' }}
+            {% price_to_display item.unit_price as price %}
+            {{ price|amount:'html' }}
           </td>
           <td class="right-align">
             {{ item.quantity }}
           </td>
           <td class="right-align">
-            {{ item.get_total.gross|amount:'html' }}
+            {% price_to_display item.get_total as price %}
+            {{ price|amount:'html' }}
           </td>
         </tr>
       </tbody>

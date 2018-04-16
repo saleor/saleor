@@ -41,7 +41,33 @@
               {% trans "Taxes" context "Dashboard site taxes settings form title" %}
             </div>
             <div class="row">
-              {{ taxes_form.include_taxes_in_prices|materializecss }}
+              <div class="col s12">
+                {{ taxes_form.include_taxes_in_prices|materializecss }}
+              </div>
+              <div class="col s12 checkbox-helptext">
+                <h6>
+                  {% blocktrans context "Dashboard site taxes settings form help text" %}
+                    If selected, all prices entered in dashboard will include taxes.
+                  {% endblocktrans %}
+                </h6>
+                <h6>
+                  {% blocktrans context "Dashboard site taxes settings form help text" %}
+                    For example: product with entered price 4.00 € and 19% VAT will have net price calculated to 3.36 €	(rounded).
+                  {% endblocktrans %}
+                </h6>
+              </div>
+            </div>
+            <div class="row">
+              <div class="col s12">
+                {{ taxes_form.display_gross_prices|materializecss }}
+              </div>
+              <div class="col s12 checkbox-helptext">
+                <h6>
+                  {% blocktrans context "Dashboard site taxes settings form help text" %}
+                    If selected, prices displayed for customers in storefront will be gross. Taxes will be properly calculated at checkout.
+                  {% endblocktrans %}
+                </h6>
+              </div>
             </div>
           </div>
           <div class="card-action right-align">
