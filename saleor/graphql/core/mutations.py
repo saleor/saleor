@@ -150,14 +150,23 @@ class ModelFormMutation(BaseMutation):
         return {'data': input}
 
     @classmethod
-    def mutate(cls, root, info, **kwargs):
+    def save(cls, root, info, **kwargs):
         form_kwargs = cls.get_form_kwargs(root, info, **kwargs)
         form = cls._meta.form_class(**form_kwargs)
+        cls._form = form
         if form.is_valid():
             instance = form.save()
+            return instance
+        return None
+
+    @classmethod
+    def mutate(cls, root, info, **kwargs):
+        instance = cls.save(root, info, **kwargs)
+        if instance is not None:
+            # instance.save()
             kwargs = {cls._meta.return_field_name: instance}
             return cls(errors=[], **kwargs)
-        errors = convert_form_errors(form)
+        errors = convert_form_errors(cls._form)
         return cls(errors=errors)
 
 
