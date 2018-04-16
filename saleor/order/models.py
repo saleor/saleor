@@ -197,6 +197,8 @@ class OrderLine(models.Model):
         decimal_places=settings.DEFAULT_DECIMAL_PLACES)
     unit_price = TaxedMoneyField(
         net_field='unit_price_net', gross_field='unit_price_gross')
+    tax_rate = models.DecimalField(
+        max_digits=5, decimal_places=2, default='0.0')
 
     def __str__(self):
         return self.product_name

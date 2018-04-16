@@ -399,7 +399,7 @@ def order_with_lines(order, product_type, default_category, shipping_method):
         unit_price_net=Decimal('20.00'),
         unit_price_gross=Decimal('20.00'),
         variant=variant)
-    product = Product.objects.create(
+    Product.objects.create(
         name='Test product 3', price=Money('30.00', 'USD'),
         product_type=product_type, category=default_category)
 
@@ -711,10 +711,14 @@ def tax_rates():
 
 @pytest.fixture
 def taxes(tax_rates):
-    taxes = {'standard': get_tax_for_rate(tax_rates)}
+    taxes = {'standard': {
+        'value': tax_rates['standard_rate'],
+        'tax': get_tax_for_rate(tax_rates)}}
     if tax_rates['reduced_rates']:
         taxes.update({
-            rate: get_tax_for_rate(tax_rates, rate)
+            rate: {
+                'value': tax_rates['reduced_rates'][rate],
+                'tax': get_tax_for_rate(tax_rates, rate)}
             for rate in tax_rates['reduced_rates']})
     return taxes
 

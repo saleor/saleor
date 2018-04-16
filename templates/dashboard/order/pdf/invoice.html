@@ -64,7 +64,7 @@
         {% trans "SKU" context "Shipment order table header" %}
       </th>
       <th class="right-align">
-        {% trans "Price net" context "Shipment order table header" %}
+        {% trans "Tax rate" context "Shipment order table header" %}
       </th>
       <th class="right-align">
         {% trans "Price gross" context "Shipment order table header" %}
@@ -87,7 +87,9 @@
             {{ line.product_sku }}
           </td>
           <td class="right-align">
-            {{ line.unit_price.net|amount:'html' }}
+            {% blocktrans with tax_rate=line.tax_rate context "Order line tax rate value" %}
+              {{ tax_rate }} %
+            {% endblocktrans %}
           </td>
           <td class="right-align">
             {{ line.unit_price.gross|amount:'html' }}
@@ -133,7 +135,7 @@
     {% if order.discount_amount %}
       <tr>
         <td>
-          {% trans "Voucher" context "Order voucher header" %} {{ order.discount_name }}
+          {% trans "Discount" context "Order voucher header" %} {% if order.discount_name %}({{ order.discount_name }}){% endif %}
         </td>
         <td class="right-align">
           {% discount_as_negative order.discount_amount html=True %}

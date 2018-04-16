@@ -128,6 +128,20 @@ def attach_order_to_user(order, user):
     order.save(update_fields=['user'])
 
 
+def get_variant_tax_rate(variant, taxes=None):
+    """Return value of variant tax rate for current taxes."""
+    if not taxes:
+        return 0
+
+    rate_name = variant.product.tax_rate
+    if rate_name in taxes:
+        tax = taxes[rate_name]
+    else:
+        tax = taxes['standard']
+
+    return tax['value']
+
+
 def add_variant_to_order(
         order, variant, total_quantity, discounts=None, taxes=None,
         add_to_existing=True):
@@ -155,7 +169,8 @@ def add_variant_to_order(
             variant.product.product_type.is_shipping_required),
         quantity=quantity_not_fulfilled,
         unit_price=price,
-        variant=variant)
+        variant=variant,
+        tax_rate=get_variant_tax_rate(variant, taxes))
     allocate_stock(variant, quantity_not_fulfilled)
 
 
