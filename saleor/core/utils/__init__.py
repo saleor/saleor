@@ -106,10 +106,14 @@ def get_taxes_for_country(country):
     if tax_rates is None:
         return None
 
-    taxes = {'standard': get_tax_for_rate(tax_rates)}
+    taxes = {'standard': {
+        'value': tax_rates['standard_rate'],
+        'tax': get_tax_for_rate(tax_rates)}}
     if tax_rates['reduced_rates']:
         taxes.update({
-            rate: get_tax_for_rate(tax_rates, rate)
+            rate: {
+                'value': tax_rates['reduced_rates'][rate],
+                'tax': get_tax_for_rate(tax_rates, rate)}
             for rate in tax_rates['reduced_rates']})
     return taxes
 
@@ -129,9 +133,9 @@ def apply_tax_to_price(taxes, rate_name, base):
         raise TypeError('Unknown base for flat_tax: %r' % (base,))
 
     if rate_name in taxes:
-        tax_to_apply = taxes[rate_name]
+        tax_to_apply = taxes[rate_name]['tax']
     else:
-        tax_to_apply = taxes['standard']
+        tax_to_apply = taxes['standard']['tax']
 
     return tax_to_apply(base, keep_gross=settings.INCLUDE_TAXES_IN_PRICES)
 

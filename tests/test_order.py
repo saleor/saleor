@@ -10,8 +10,9 @@ from saleor.order import FulfillmentStatus, OrderStatus, models
 from saleor.order.forms import OrderNoteForm
 from saleor.order.models import Order
 from saleor.order.utils import (
-    add_variant_to_order, cancel_fulfillment, cancel_order, recalculate_order,
-    restock_fulfillment_lines, restock_order_lines, update_order_status)
+    add_variant_to_order, cancel_fulfillment, cancel_order,
+    get_variant_tax_rate, recalculate_order, restock_fulfillment_lines,
+    restock_order_lines, update_order_status)
 
 
 def test_total_setter():
@@ -36,18 +37,44 @@ def test_order_get_subtotal(order_with_lines):
     assert order_with_lines.get_subtotal() == target_subtotal
 
 
+def test_get_variant_tax_rate(product, taxes):
+    variant = product.variants.get()
+
+    tax_rate = get_variant_tax_rate(variant, taxes)
+
+    assert tax_rate == taxes[product.tax_rate]['value']
+
+
+def test_get_variant_tax_rate_fallback_to_standard(product, taxes):
+    product.tax_rate = 'unexisting tax rate'
+    variant = product.variants.get()
+
+    tax_rate = get_variant_tax_rate(variant, taxes)
+
+    assert tax_rate == taxes['standard']['value']
+
+
+def test_get_variant_tax_rate_empty_taxes(product):
+    variant = product.variants.get()
+
+    tax_rate = get_variant_tax_rate(variant)
+
+    assert tax_rate == 0
+
+
 def test_add_variant_to_order_adds_line_for_new_variant(
-        order_with_lines, product):
+        order_with_lines, product, taxes):
     order = order_with_lines
     variant = product.variants.get()
     lines_before = order.lines.count()
 
-    add_variant_to_order(order, variant, 1)
+    add_variant_to_order(order, variant, 1, taxes=taxes)
 
     line = order.lines.last()
     assert order.lines.count() == lines_before + 1
     assert line.product_sku == variant.sku
     assert line.quantity == 1
+    assert line.tax_rate == taxes[product.tax_rate]['value']
 
 
 def test_add_variant_to_order_allocates_stock_for_new_variant(
