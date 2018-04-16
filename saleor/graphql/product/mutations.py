@@ -62,47 +62,28 @@ class AttributeValueInput(InputObjectType):
     value = graphene.String(required=True)
 
 
-class BaseProductMutateMixin(BaseMutation):
-    """
-    This is special mixin designed to handle product variant attributes.
-    Note that it has no super() call, so it _replaces_ mutate method, not only
-    modify it. Because of that, it should be used as a last mixin if more than
-    one are being used.
-    Example:
-        Yes:
-        class ProductUpdateMutation(
-            StaffMemberRequiredMixin, BaseProductMutateMixin, ...)
+class ProductSave(ModelFormMutation):
+    permissions = 'product.edit_product'
 
-        No:
-        class ProductUpdateMutation(
-            BaseProductMutateMixin, StaffMemberRequiredMixin, ...)
+    class Meta:
+        form_class = ProductForm
 
-        In the second example, StaffMemberRequiredMixin won't affect
-        ProductUpdateMutation class, allowing even anonymous users to update
-        products via API.
-    """
-    attributes_list = "form.instance.product_type.product_attributes." \
-                      "values_list('slug', 'id')"
     @classmethod
-    def mutate(cls, root, info, *args, **kwargs):
-        form_kwargs = cls.get_form_kwargs(root, info, **kwargs)
-        attributes = form_kwargs.get('data').pop('attributes', None)
-        form = cls._meta.form_class(**form_kwargs)
-        if form.is_valid():
-            if attributes:
-                attr_slug_id = dict(eval(cls.attributes_list))
-                form.instance.attributes = get_attributes_dict_from_list(
-                    attributes=attributes, attr_slug_id=attr_slug_id)
-            instance = form.save()
-            kwargs = {cls._meta.return_field_name: instance}
-            return cls(errors=[], **kwargs)
-        errors = convert_form_errors(form)
-        return cls(errors=errors)
+    def save(cls, root, info, **kwargs):
+        attributes = kwargs.pop('attributes', None)
+        instance = super().save(root, info, **kwargs)
+        if attributes and instance:
+            attr_slug_id = dict(
+                instance.product_type.product_attributes.values_list(
+                    'slug', 'id'))
+            instance.attributes = get_attributes_dict_from_list(
+                attributes=attributes, attr_slug_id=attr_slug_id)
+            instance.save()
+        return instance
 
 
 class ProductCreateMutation(
-        StaffMemberRequiredMixin, BaseProductMutateMixin,
-        ModelFormMutation):
+        StaffMemberRequiredMixin, ProductSave, ModelFormMutation):
     permissions = 'product.edit_product'
 
     class Arguments:
@@ -129,17 +110,8 @@ class ProductCreateMutation(
         return kwargs
 
 
-class ProductDeleteMutation(StaffMemberRequiredMixin, ModelDeleteMutation):
-    permissions = 'product.edit_product'
-
-    class Meta:
-        description = 'Deletes a product.'
-        model = models.Product
-
-
 class ProductUpdateMutation(
-        StaffMemberRequiredMixin, BaseProductMutateMixin,
-        ModelFormUpdateMutation):
+        StaffMemberRequiredMixin, ProductSave, ModelFormUpdateMutation):
     permissions = 'product.edit_product'
 
     class Arguments:
@@ -168,48 +140,36 @@ class ProductUpdateMutation(
         return kwargs
 
 
-# class BaseProductMutateMixin(BaseMutation):
-#     """
-#     This is special mixin designed to handle product variant attributes.
-#     Note that it has no super() call, so it _replaces_ mutate method, not only
-#     modify it. Because of that, it should be used as a last mixin if more than
-#     one are being used.
-#     Example:
-#         Yes:
-#         class ProductUpdateMutation(
-#             StaffMemberRequiredMixin, BaseProductMutateMixin, ...)
-#
-#         No:
-#         class ProductUpdateMutation(
-#             BaseProductMutateMixin, StaffMemberRequiredMixin, ...)
-#
-#         In the second example, StaffMemberRequiredMixin won't affect
-#         ProductUpdateMutation class, allowing even anonymous users to update
-#         products via API.
-#     """
-#     attributes_list = """
-#         form.instance.product_type.product_attributes.values_list('slug', 'id')
-#         """
-#     @classmethod
-#     def mutate(cls, root, info, *args, **kwargs):
-#         form_kwargs = cls.get_form_kwargs(root, info, **kwargs)
-#         attributes = form_kwargs.get('data').pop('attributes', None)
-#         form = cls._meta.form_class(**form_kwargs)
-#         if form.is_valid():
-#             if attributes:
-#                 attr_slug_id = dict(exec(cls.attributes_list))
-#                 form.instance.attributes = get_attributes_dict_from_list(
-#                     attributes=attributes, attr_slug_id=attr_slug_id)
-#             instance = form.save()
-#             kwargs = {cls._meta.return_field_name: instance}
-#             return cls(errors=[], **kwargs)
-#         errors = convert_form_errors(form)
-#         return cls(errors=errors)
+class ProductDeleteMutation(StaffMemberRequiredMixin, ModelDeleteMutation):
+    permissions = 'product.edit_product'
+
+    class Meta:
+        description = 'Deletes a product.'
+        model = models.Product
+
+
+class VariantSave(ModelFormMutation):
+    permissions = 'product.edit_product'
+
+    class Meta:
+        form_class = ProductForm
+
+    @classmethod
+    def save(cls, root, info, **kwargs):
+        attributes = kwargs.pop('attributes', None)
+        instance = super().save(root, info, **kwargs)
+        if attributes and instance:
+            attr_slug_id = dict(
+                instance.product.product_type.variant_attributes.values_list(
+                    'slug', 'id'))
+            instance.attributes = get_attributes_dict_from_list(
+                attributes=attributes, attr_slug_id=attr_slug_id)
+            instance.save()
+        return instance
 
 
 class ProductVariantCreateMutation(
-        StaffMemberRequiredMixin,
-        ModelFormMutation):
+        StaffMemberRequiredMixin, VariantSave, ModelFormMutation):
     permissions = 'product.edit_product'
 
     class Arguments:
@@ -229,27 +189,6 @@ class ProductVariantCreateMutation(
         kwargs = super().get_form_kwargs(root, info, **input)
         kwargs['instance'] = variant
         return kwargs
-
-    @classmethod
-    def mutate(cls, root, info, *args, **kwargs):
-        form_kwargs = cls.get_form_kwargs(root, info, **kwargs)
-        attributes = form_kwargs.get('data').pop('attributes', None)
-        form = cls._meta.form_class(**form_kwargs)
-        if form.is_valid():
-            if attributes:
-                # import ipdb; ipdb.set_trace()
-                attr_slug_id = dict(
-                    form.instance.product.product_type.
-                        variant_attributes.values_list(
-                        'slug', 'id'))
-                form.instance.attributes = get_attributes_dict_from_list(
-                    attributes=attributes, attr_slug_id=attr_slug_id)
-            instance = form.save()
-            import ipdb; ipdb.set_trace()
-            kwargs = {cls._meta.return_field_name: instance}
-            return cls(errors=[], **kwargs)
-        errors = convert_form_errors(form)
-        return cls(errors=errors)
 
 
 class ProductTypeCreateMutation(StaffMemberRequiredMixin, ModelFormMutation):
