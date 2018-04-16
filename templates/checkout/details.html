@@ -2,6 +2,7 @@
 
 {% load i18n %}
 {% load prices_i18n %}
+{% load price_to_display from price_ranges %}
 {% load staticfiles %}
 
 {% block title %}{% trans "Checkout" context "Checkout page title" %} — {{ block.super }}{% endblock %}
@@ -39,7 +40,10 @@
                   <span class="checkout__review__variant">{{ line.variant }}</span></p>
               </div>
               <div class="col-4">
-                <p class="float-right">{{ line.get_total.gross|amount }}</p>
+                <p class="float-right">
+                  {% price_to_display line.get_total as price %}
+                  {{ price|amount }}
+                </p>
               </div>
             </div>
           {% endfor %}
@@ -58,7 +62,8 @@
             <div class="col-4">
               <p class="float-right">
                 {% if checkout.shipping_method %}
-                  {{ checkout.shipping_method.get_total_price.gross|amount }}
+                  {% price_to_display checkout.shipping_method.get_total_price as price %}
+                  {{ price|amount:'html' }}
                 {% else %}
                   &mdash;
                 {% endif %}

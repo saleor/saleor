@@ -63,7 +63,10 @@
             <p class="float-right">x {{ line.quantity }}</p>
           </div>
           <div class="col-md-6 col-12">
-            <p class="float-right">{{ line.get_total.gross|amount:'html' }}</p>
+            <p class="float-right">
+              {% price_to_display item.get_total as price %}
+              {{ price|amount:'html' }}
+            </p>
           </div>
         </div>
       </div>
@@ -79,7 +82,10 @@
         </p>
       </div>
       <div class="col-4">
-        <p class="float-right">{{ order.shipping_price.gross|amount:'html' }}</p>
+        <p class="float-right">
+          {% price_to_display order.shipping_price as price %}
+          {{ price|amount:'html' }}
+        </p>
       </div>
     </div>
   </div>

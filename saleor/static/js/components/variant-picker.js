@@ -30,6 +30,7 @@ export default $(document).ready((e) => {
         <VariantPrice
           availability={variantPickerData.availability}
           store={variantPickerStore}
+          displayGrossPrices={variantPickerData.displayGrossPrices}
         />,
         variantPriceContainer
       );

@@ -123,22 +123,20 @@ def summary(request, cart):
 
     def prepare_line_data(line):
         first_image = line.variant.get_first_image()
-        line_total = line.get_total(discounts, taxes)
         return {
             'product': line.variant.product,
             'variant': line.variant.name,
             'quantity': line.quantity,
             'image': first_image,
-            'line_total': format_money(line_total.gross),
+            'line_total': line.get_total(discounts, taxes),
             'variant_url': line.variant.get_absolute_url()}
 
     if cart.quantity == 0:
         data = {'quantity': 0}
     else:
-        cart_total = cart.get_total(discounts, taxes)
         data = {
             'quantity': cart.quantity,
-            'total': format_money(cart_total.gross),
+            'total': cart.get_total(discounts, taxes),
             'lines': [prepare_line_data(line) for line in cart.lines.all()]}
 
     return render(request, 'cart_dropdown.html', data)

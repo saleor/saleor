@@ -15,4 +15,9 @@ class Migration(migrations.Migration):
             name='tax_rate',
             field=models.DecimalField(decimal_places=2, default='0.0', max_digits=5),
         ),
+        migrations.AddField(
+            model_name='order',
+            name='include_taxes_in_prices',
+            field=models.BooleanField(default=True),
+        ),
     ]

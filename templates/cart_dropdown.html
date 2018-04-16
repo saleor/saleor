@@ -1,7 +1,9 @@
 {% load i18n %}
+{% load prices_i18n %}
 {% load staticfiles %}
 {% load get_thumbnail from product_images %}
 {% load placeholder %}
+{% load price_to_display from price_ranges %}
 
 <div class="container">
   {% if quantity > 0 %}
@@ -24,7 +26,10 @@
         </div>
         <div class="col-md-2">
           <div class="float-right">
-            <h3>{{ line.line_total }}</h3>
+            <h3>
+              {% price_to_display line.line_total as price %}
+              {{ price|amount:'html' }}
+            </h3>
           </div>
         </div>
       </div>
@@ -32,13 +37,17 @@
     </div>
     <div class="row cart-dropdown__total" data-quantity="{{ quantity }}">
       <div class="col-md-8">
-        <h3>{% trans "Subtotal" context "Order subtotal" %}
-            <br>
-            <span>{% trans "(Shipment and taxes calculated at checkout)" context "Cart dropdown text" %}</span></h3>
+        <h3>
+          {% trans "Subtotal" context "Order subtotal" %}<br>
+          <span>{% trans "Shipment and taxes calculated at checkout" context "Cart dropdown text" %}</span>
+        </h3>
       </div>
       <div class="col-md-4">
         <h3 class="float-md-right price {% if lines|length <= 2 %}single{% endif %}" data-quantity="{{ quantity }}">
-          <p>{{ total }}</p>
+          <p>
+            {% price_to_display total as price %}
+            {{ price|amount:'html' }}
+          </p>
         </h3>
       </div>
     </div>

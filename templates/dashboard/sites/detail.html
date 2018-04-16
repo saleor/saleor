@@ -86,6 +86,20 @@
               </p>
             </div>
           </div>
+          <div class="row">
+            <div class="col s12 m4 l12">
+              <h4>
+                {% trans "Show customers gross prices in storefront" context "Site settings field" %}
+              </h4>
+              <p>
+                {% if site.display_gross_prices %}
+                  {% trans "Yes" context "Show customers gross prices setting description" %}
+                {% else %}
+                  {% trans "No" context "Show customers gross prices setting description" %}
+                {% endif %}
+              </p>
+            </div>
+          </div>
         </div>
         <div class="card-action">
           <a class="btn-flat waves-effect" href="{% url 'dashboard:site-configure-taxes' pk=site.pk %}">
