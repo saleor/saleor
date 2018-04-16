@@ -145,7 +145,7 @@
   },
   "scripts": {
     "build-assets": "webpack -p --progress",
-    "build-schema": "python manage.py graphql_schema --schema saleor.dashboard.graphql.api.schema --out saleor/static/dashboard-next/schema.json",
+    "build-schema": "python manage.py graphql_schema --schema saleor.graphql.api.schema --out saleor/static/dashboard-next/schema.json",
     "generate-types": "apollo-codegen generate 'saleor/static/dashboard-next/**/*.ts' --schema saleor/static/dashboard-next/schema.json --target typescript --output saleor/static/dashboard-next/gql-types.ts",
     "heroku-postbuild": "npm run build-assets && npm run build-emails",
     "start": "webpack -d --watch --progress",
