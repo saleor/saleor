@@ -898,3 +898,19 @@ def test_staff_group_member_can_view_and_edit_site_settings(
     response = staff_client.get(reverse('dashboard:site-update',
                                         args=[site_settings.pk]))
     assert response.status_code == 200
+
+
+def test_staff_group_member_can_view_and_edit_site_taxes_settings(
+        staff_client, staff_user, staff_group, site_settings,
+        permission_edit_settings):
+    assert not staff_user.has_perm('site.edit_settings')
+    url = reverse(
+        'dashboard:site-configure-taxes', kwargs={'pk': site_settings.pk})
+    response = staff_client.get(url)
+    assert response.status_code == 302
+    staff_group.permissions.add(permission_edit_settings)
+    staff_user.groups.add(staff_group)
+    staff_user = User.objects.get(pk=staff_user.pk)
+    assert staff_user.has_perm('site.edit_settings')
+    response = staff_client.get(url)
+    assert response.status_code == 200
