@@ -55,7 +55,7 @@ class ProductVariant(CountableDjangoObjectType):
     price_override = graphene.Field(
         Money,
         description="""Override the base price of a product if necessary.
-        A value of `null` indicates the the default product price is used.""")
+        A value of `null` indicates that the default product price is used.""")
     attributes = graphene.List(
         SelectedAttribute,
         description='List of attributes assigned to this variant.')

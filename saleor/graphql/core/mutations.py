@@ -5,6 +5,8 @@ from django.core.exceptions import ImproperlyConfigured
 from graphene.types.mutation import MutationOptions
 from graphene_django.form_converter import convert_form_field
 from graphene_django.registry import get_global_registry
+from graphql_jwt import ObtainJSONWebToken
+from graphql_jwt.exceptions import GraphQLJWTError
 from graphql_jwt.decorators import staff_member_required
 
 from ..utils import get_node
@@ -189,3 +191,23 @@ class StaffMemberRequiredMixin(graphene.Mutation):
     def mutate(cls, root, info, *args, **kwargs):
         mutate = permission_required(cls.permissions)(super().mutate)
         return mutate(root, info, *args, **kwargs)
+
+
+class CreateToken(ObtainJSONWebToken):
+    """Mutation that authenticates a user and returns token.
+
+    It overrides the default graphql_jwt.ObtainJSONWebToken to wrap potential
+    authentication errors in our Error type, which is consistent to how rest of
+    the mutation works.
+    """
+
+    errors = graphene.List(Error)
+
+    @classmethod
+    def mutate(cls, root, info, **kwargs):
+        try:
+            result = super().mutate(root, info, **kwargs)
+        except GraphQLJWTError as e:
+            return CreateToken(errors=[Error(message=str(e))])
+        else:
+            return result
