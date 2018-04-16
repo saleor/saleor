@@ -53,7 +53,7 @@ def collect_data_for_email(order_pk, template):
 def collect_data_for_fullfillment_email(order_pk, template, fulfillment_pk):
     fulfillment = Fulfillment.objects.get(pk=fulfillment_pk)
     email_data = collect_data_for_email(order_pk, template)
-    email_data.update({'context': {'fulfillment': fulfillment}})
+    email_data['context'].update({'fulfillment': fulfillment})
     return email_data
 
 
