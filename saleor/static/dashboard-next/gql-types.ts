@@ -7,8 +7,13 @@ export interface CategoryDeleteMutationVariables {
 
 export interface CategoryDeleteMutation {
   categoryDelete:  {
+    // List of errors that occurred executing the mutation.
     errors:  Array< {
+      // Name of a field that caused the error. A value of
+      // `null` indicates that the error isn't associated with a particular
+      // field.
       field: string | null,
+      // The error message.
       message: string | null,
     } | null > | null,
   } | null,
@@ -22,8 +27,13 @@ export interface CategoryCreateMutationVariables {
 
 export interface CategoryCreateMutation {
   categoryCreate:  {
+    // List of errors that occurred executing the mutation.
     errors:  Array< {
+      // Name of a field that caused the error. A value of
+      // `null` indicates that the error isn't associated with a particular
+      // field.
       field: string | null,
+      // The error message.
       message: string | null,
     } | null > | null,
     category:  {
@@ -47,8 +57,13 @@ export interface CategoryUpdateMutationVariables {
 
 export interface CategoryUpdateMutation {
   categoryUpdate:  {
+    // List of errors that occurred executing the mutation.
     errors:  Array< {
+      // Name of a field that caused the error. A value of
+      // `null` indicates that the error isn't associated with a particular
+      // field.
       field: string | null,
+      // The error message.
       message: string | null,
     } | null > | null,
     category:  {
@@ -69,6 +84,7 @@ export interface CategoryDetailsQueryVariables {
 };
 
 export interface CategoryDetailsQuery {
+  // Lookup a category by ID.
   category:  {
     // The ID of the object.
     id: string,
@@ -82,6 +98,7 @@ export interface CategoryDetailsQuery {
 };
 
 export interface RootCategoryChildrenQuery {
+  // List of the shop's categories.
   categories:  {
     edges:  Array< {
       // A cursor for use in pagination
@@ -105,6 +122,7 @@ export interface CategoryPropertiesQueryVariables {
 };
 
 export interface CategoryPropertiesQuery {
+  // Lookup a category by ID.
   category:  {
     // The ID of the object.
     id: string,
@@ -114,6 +132,7 @@ export interface CategoryPropertiesQuery {
       // The ID of the object.
       id: string,
     } | null,
+    // List of children of the category.
     children:  {
       edges:  Array< {
         // The item at the end of the edge
@@ -124,7 +143,9 @@ export interface CategoryPropertiesQuery {
         } | null,
       } | null >,
     } | null,
+    // List of products in the category.
     products:  {
+      // A total count of items in the collection
       totalCount: number | null,
       pageInfo:  {
         // When paginating forwards, the cursor to continue.
@@ -144,11 +165,13 @@ export interface CategoryPropertiesQuery {
           // The ID of the object.
           id: string,
           name: string,
+          // The URL of a main thumbnail for a product.
           thumbnailUrl: string | null,
           productType:  {
+            // The ID of the object.
             id: string,
             name: string,
-          } | null,
+          },
         } | null,
       } | null >,
     } | null,
@@ -161,8 +184,13 @@ export interface PageDeleteMutationVariables {
 
 export interface PageDeleteMutation {
   pageDelete:  {
+    // List of errors that occurred executing the mutation.
     errors:  Array< {
+      // Name of a field that caused the error. A value of
+      // `null` indicates that the error isn't associated with a particular
+      // field.
       field: string | null,
+      // The error message.
       message: string | null,
     } | null > | null,
   } | null,
@@ -188,8 +216,13 @@ export interface PageUpdateMutation {
       isVisible: boolean,
       availableOn: string | null,
     } | null,
+    // List of errors that occurred executing the mutation.
     errors:  Array< {
+      // Name of a field that caused the error. A value of
+      // `null` indicates that the error isn't associated with a particular
+      // field.
       field: string | null,
+      // The error message.
       message: string | null,
     } | null > | null,
   } | null,
@@ -215,8 +248,13 @@ export interface PageCreateMutation {
       availableOn: string | null,
       created: string,
     } | null,
+    // List of errors that occurred executing the mutation.
     errors:  Array< {
+      // Name of a field that caused the error. A value of
+      // `null` indicates that the error isn't associated with a particular
+      // field.
       field: string | null,
+      // The error message.
       message: string | null,
     } | null > | null,
   } | null,
@@ -230,6 +268,7 @@ export interface PageListQueryVariables {
 };
 
 export interface PageListQuery {
+  // List of the shop's pages.
   pages:  {
     edges:  Array< {
       // A cursor for use in pagination
@@ -261,6 +300,7 @@ export interface PageDetailsQueryVariables {
 };
 
 export interface PageDetailsQuery {
+  // Lookup a page by ID or by slug.
   page:  {
     // The ID of the object.
     id: string,
