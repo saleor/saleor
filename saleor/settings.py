@@ -280,11 +280,8 @@ AVAILABLE_CURRENCIES = [DEFAULT_CURRENCY]
 OPENEXCHANGERATES_API_KEY = os.environ.get('OPENEXCHANGERATES_API_KEY')
 
 # VAT configuration
-# Enabling vat requires valid vatlayer access key. By default prices entered in
-# dashboard are treated as gross amounts. If you wish to reverse that and use
-# them as net amounts change the INCLUDE_TAXES_IN_PRICES to False
+# Enabling vat requires valid vatlayer access key.
 VATLAYER_ACCESS_KEY = os.environ.get('VATLAYER_ACCESS_KEY')
-INCLUDE_TAXES_IN_PRICES = True
 
 ACCOUNT_ACTIVATION_DAYS = 3
 

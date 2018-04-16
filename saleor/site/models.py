@@ -19,6 +19,7 @@ class SiteSettings(models.Model):
     bottom_menu = models.ForeignKey(
         'menu.Menu', on_delete=models.SET_NULL, related_name='+', blank=True,
         null=True)
+    include_taxes_in_prices = models.BooleanField(default=True)
 
     class Meta:
         permissions = (

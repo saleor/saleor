@@ -137,7 +137,8 @@ def apply_tax_to_price(taxes, rate_name, base):
     else:
         tax_to_apply = taxes['standard']['tax']
 
-    return tax_to_apply(base, keep_gross=settings.INCLUDE_TAXES_IN_PRICES)
+    keep_gross = Site.objects.get_current().settings.include_taxes_in_prices
+    return tax_to_apply(base, keep_gross=keep_gross)
 
 
 def to_local_currency(price, currency):

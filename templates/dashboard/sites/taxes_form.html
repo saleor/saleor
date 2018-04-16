@@ -1,0 +1,60 @@
+{% extends 'dashboard/base.html' %}
+{% load i18n %}
+{% load materializecss %}
+
+{% block title %}
+  {% if site.pk %}
+    {{ site }}
+  {% else %}
+    {% trans "Add new site settings" context "Site settings page title" %}
+  {% endif %}
+   - {% trans "Site settings" context "Dashboard site settings" %} - {{ block.super }}
+{% endblock %}
+
+{% block body_class %}body-settings{% endblock %}
+
+{% block menu_settings_class %}active{% endblock %}
+
+{% block breadcrumbs %}
+  <ul class="breadcrumbs breadcrumbs--history">
+    <li>
+      <a href="{% url 'dashboard:site-index' %}" class="breadcrumbs--ellipsed-item">
+        {% trans "Site settings" context "Dashboard attributes list" %}
+      </a>
+    </li>
+    <li>
+      <span>
+        {% trans "Edit taxes" context "Dashboard site settings" %}
+      </span>
+    </li>
+  </ul>
+{% endblock %}
+
+{% block content %}
+  <div class="row">
+    <div class="col s12 l9">
+      <div class="card">
+        <form method="post" id="form-category" enctype="multipart/form-data" novalidate>
+        {% csrf_token %}
+          <div class="card-content card-content-form">
+            <div class="card-title">
+              {% trans "Taxes" context "Dashboard site taxes settings form title" %}
+            </div>
+            <div class="row">
+              {{ taxes_form.include_taxes_in_prices|materializecss }}
+            </div>
+          </div>
+          <div class="card-action right-align">
+            <a class="btn-flat waves-effect" href="{% url 'dashboard:site-details' pk=site.pk %}" target="_blank">
+              {% trans "Cancel" context "Dashboard cancel action" %}
+            </a>
+            <button type="submit" class="btn waves-effect">
+              {% trans "Update" context "Dashboard update action" %}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+    <div class="col m12 l3 help-box"></div>
+  </div>
+{% endblock %}

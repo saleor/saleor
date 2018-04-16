@@ -10,6 +10,8 @@ urlpatterns = [
         name='site-details'),
     url(r'^(?P<pk>\d+)/delete/$', views.site_settings_edit,
         name='site-delete'),
+    url(r'^(?P<pk>\d+)/configure-taxes/$', views.site_configure_taxes,
+        name='site-configure-taxes'),
 
     url(r'^(?P<site_settings_pk>\d+)/authorization_key/add/$',
         views.authorization_key_add, name='authorization-key-add'),
