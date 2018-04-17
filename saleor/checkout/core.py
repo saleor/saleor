@@ -94,6 +94,13 @@ class Checkout:
         return None
 
     @property
+    def lines(self):
+        """Return the cart lines data."""
+        for line in self.cart.lines.all():
+            line_total = line.get_total(self.discounts, self.taxes)
+            yield line, line_total
+
+    @property
     def is_shipping_required(self):
         """Return `True` if this checkout session needs shipping."""
         return self.cart.is_shipping_required()
@@ -374,13 +381,13 @@ class Checkout:
 
     def get_subtotal(self):
         """Calculate order total without shipping and discount."""
-        return self.cart.get_total(taxes=self.taxes)
+        return self.cart.get_total(discounts=self.discounts, taxes=self.taxes)
 
     def get_total(self):
         """Calculate order total with shipping and discount amount."""
         total = self.get_subtotal()
         if self.shipping_method and self.is_shipping_required:
-            total += self.shipping_method.get_total_price()
+            total += self.shipping_price
         if self.discount:
             total -= self.discount
         return total
