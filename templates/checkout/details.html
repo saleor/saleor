@@ -62,7 +62,7 @@
             <div class="col-4">
               <p class="float-right">
                 {% if checkout.shipping_method %}
-                  {% price_to_display checkout.shipping_method.get_total_price as price %}
+                  {% price_to_display checkout.shipping_price as price %}
                   {{ price|amount:'html' }}
                 {% else %}
                   &mdash;

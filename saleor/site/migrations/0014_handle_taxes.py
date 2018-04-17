@@ -20,4 +20,9 @@ class Migration(migrations.Migration):
             name='include_taxes_in_prices',
             field=models.BooleanField(default=True),
         ),
+        migrations.AddField(
+            model_name='sitesettings',
+            name='charge_taxes_on_shipping',
+            field=models.BooleanField(default=True),
+        ),
     ]

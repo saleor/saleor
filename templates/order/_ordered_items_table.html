@@ -3,6 +3,7 @@
 {% load amount from prices_i18n %}
 {% load product_first_image from product_images %}
 {% load discount_as_negative from voucher %}
+{% load price_ranges %}
 {% load placeholder %}
 
 {% if order.user == user %}
@@ -64,7 +65,7 @@
           </div>
           <div class="col-md-6 col-12">
             <p class="float-right">
-              {% price_to_display item.get_total as price %}
+              {% price_to_display line.get_total as price %}
               {{ price|amount:'html' }}
             </p>
           </div>

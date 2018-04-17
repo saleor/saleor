@@ -589,8 +589,7 @@ def test_cart_summary_page(client, product, request_cart):
     content = response.context
     assert content['quantity'] == request_cart.quantity
     cart_total = request_cart.get_total()
-    assert content['total'] == currencyfmt(
-        cart_total.gross.amount, cart_total.currency)
+    assert content['total'] == cart_total
     assert len(content['lines']) == 1
     cart_line = content['lines'][0]
     assert cart_line['variant'] == variant.name

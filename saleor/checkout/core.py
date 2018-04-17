@@ -15,6 +15,7 @@ from ..account.utils import store_user_address
 from ..cart.models import Cart
 from ..cart.utils import get_or_empty_db_cart
 from ..core import analytics
+from ..core.utils import ZERO_TAXED_MONEY
 from ..discount.models import NotApplicable, Voucher
 from ..discount.utils import increase_voucher_usage
 from ..order.models import Order
@@ -146,6 +147,13 @@ class Checkout:
         self.storage['shipping_method_country_id'] = shipping_method_country.id
         self.modified = True
         self._shipping_method = shipping_method_country
+
+    @property
+    def shipping_price(self):
+        shipping_method = self.shipping_method
+        return (
+            shipping_method.get_total_price(self.taxes) if shipping_method
+            else ZERO_TAXED_MONEY)
 
     @property
     def email(self):
@@ -291,13 +299,6 @@ class Checkout:
         self._add_to_user_address_book(
             self.billing_address, is_billing=True)
 
-        if self.shipping_method:
-            shipping_price = self.shipping_method.get_total_price()
-        else:
-            shipping_price = TaxedMoney(
-                net=Money(0, settings.DEFAULT_CURRENCY),
-                gross=Money(0, settings.DEFAULT_CURRENCY))
-
         shipping_method_name = (
             smart_text(self.shipping_method) if self.is_shipping_required
             else None)
@@ -308,7 +309,7 @@ class Checkout:
             'billing_address': billing_address,
             'shipping_address': shipping_address,
             'tracking_client_id': self.tracking_code,
-            'shipping_price': shipping_price,
+            'shipping_price': self.shipping_price,
             'shipping_method_name': shipping_method_name,
             'total': self.get_total(),
             'include_taxes_in_prices': include_taxes_in_prices}
