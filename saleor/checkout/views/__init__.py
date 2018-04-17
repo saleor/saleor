@@ -45,7 +45,7 @@ def shipping_method_view(request, checkout):
     """Display the shipping method selection step."""
     country_code = checkout.shipping_address.country.code
     shipping_method_form = ShippingMethodForm(
-        country_code, request.POST or None,
+        country_code, request.taxes, request.POST or None,
         initial={'method': checkout.shipping_method})
     if shipping_method_form.is_valid():
         checkout.shipping_method = shipping_method_form.cleaned_data['method']

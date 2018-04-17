@@ -1,9 +1,20 @@
-from prices import TaxedMoney, TaxedMoneyRange
+from django.contrib.sites.models import Site
+from prices import MoneyRange
 
-from .models import ShippingMethodCountry
+from ..core.utils import apply_tax_to_price
 
 
-def get_shipment_options(country_code):
+def get_taxed_shipping_price(price, taxes=None):
+    """Calculate shipping price based on settings and taxes."""
+    charge_taxes = (
+        Site.objects.get_current().settings.charge_taxes_on_shipping)
+    if not charge_taxes:
+        taxes = None
+    return apply_tax_to_price(taxes, 'standard', price)
+
+
+def get_shipment_options(country_code, taxes=None):
+    from .models import ShippingMethodCountry
     shipping_methods_qs = ShippingMethodCountry.objects.select_related(
         'shipping_method')
     shipping_methods = shipping_methods_qs.filter(country_code=country_code)
@@ -11,8 +22,6 @@ def get_shipment_options(country_code):
         shipping_methods = shipping_methods_qs.filter(country_code='')
     if shipping_methods:
         shipping_methods = shipping_methods.values_list('price', flat=True)
-        min_amount = min(shipping_methods)
-        max_amount = max(shipping_methods)
-        return TaxedMoneyRange(
-            start=TaxedMoney(net=min_amount, gross=min_amount),
-            stop=TaxedMoney(net=max_amount, gross=max_amount))
+        prices = MoneyRange(
+            start=min(shipping_methods), stop=max(shipping_methods))
+        return get_taxed_shipping_price(prices, taxes)

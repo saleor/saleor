@@ -1,4 +1,5 @@
 {% extends 'dashboard/base.html' %}
+{% load staticfiles %}
 {% load i18n %}
 {% load materializecss %}
 
@@ -47,7 +48,7 @@
               <div class="col s12 checkbox-helptext">
                 <h6>
                   {% blocktrans context "Dashboard site taxes settings form help text" %}
-                    If selected, all prices entered in dashboard will include taxes.
+                    If selected, all prices entered and displayed in dashboard will include taxes.
                   {% endblocktrans %}
                 </h6>
                 <h6>
@@ -69,6 +70,18 @@
                 </h6>
               </div>
             </div>
+            <div class="row">
+              <div class="col s12">
+                {{ taxes_form.charge_taxes_on_shipping|materializecss }}
+              </div>
+              <div class="col s12 checkbox-helptext">
+                <h6>
+                  {% blocktrans context "Dashboard site taxes settings form help text" %}
+                    If selected, standard rate tax is charged on shipping price.
+                  {% endblocktrans %}
+                </h6>
+              </div>
+            </div>
           </div>
           <div class="card-action right-align">
             <a class="btn-flat waves-effect" href="{% url 'dashboard:site-details' pk=site.pk %}" target="_blank">
@@ -81,6 +94,13 @@
         </form>
       </div>
     </div>
-    <div class="col m12 l3 help-box"></div>
+    <div class="col m12 l3 help-box">
+      <p class="grey-text">
+        <svg data-src="{% static "dashboard/images/help.svg" %}" width="18" height="18" />
+        {% blocktrans trimmed context "Taxes help text" %}
+          Taxes are charged according to the standard rate applicable in the country to which the order is delivered. For now, only rates in European Union are handled.
+        {% endblocktrans %}
+      </p>
+    </div>
   </div>
 {% endblock %}

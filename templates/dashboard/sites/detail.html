@@ -100,6 +100,20 @@
               </p>
             </div>
           </div>
+          <div class="row">
+            <div class="col s12 m4 l12">
+              <h4>
+                {% trans "Charge taxes on shipping rates" context "Site settings field" %}
+              </h4>
+              <p>
+                {% if site.charge_taxes_on_shipping %}
+                  {% trans "Yes" context "Charge taxes on shipping rates setting description" %}
+                {% else %}
+                  {% trans "No" context "Charge taxes on shipping rates setting description" %}
+                {% endif %}
+              </p>
+            </div>
+          </div>
         </div>
         <div class="card-action">
           <a class="btn-flat waves-effect" href="{% url 'dashboard:site-configure-taxes' pk=site.pk %}">
