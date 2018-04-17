@@ -1,5 +1,4 @@
 import json
-from unittest.mock import patch
 
 import graphene
 import pytest
@@ -7,14 +6,9 @@ from django.forms.models import model_to_dict
 from django.shortcuts import reverse
 from django.utils.text import slugify
 from prices import Money
+from tests.utils import get_graphql_content
 
-from saleor.graphql.core.mutations import (
-    ModelFormMutation, ModelFormUpdateMutation)
-from saleor.page.models import Page
-from saleor.product.models import (
-    Category, Product, ProductAttribute, ProductType)
-
-from .utils import get_graphql_content
+from saleor.product.models import Category, Product, ProductAttribute
 
 
 def test_create_token_mutation(admin_client, staff_user):
