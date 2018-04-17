@@ -23,5 +23,7 @@ def menu(context, site_menu=None, horizontal=False):
         return
     menus = context[NAVIGATION_CONTEXT_NAME]
     menu = next((menu for menu in menus if menu.pk == site_menu.pk), None)
-    menu_items = menu.items.all() if menu else None
+    if not menu:
+        return
+    menu_items = [item for item in menu.items.all() if item.parent_id is None]
     return {'menu_items': menu_items, 'horizontal': horizontal}
