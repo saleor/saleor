@@ -68,6 +68,9 @@
                     {% price_to_display line.get_total as price %}
                     {{ price|amount:'html' }}
                   </p>
+                  <p class="small text-right">
+                    ({{ line.get_total.net|amount:'html' }} + {{ line.get_total.tax|amount:'html' }} VAT)
+                  </p>
                 </div>
               </div>
             </div>

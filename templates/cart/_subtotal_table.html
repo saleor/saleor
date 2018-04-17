@@ -13,6 +13,10 @@
           {% spaceless %}
             {% price_to_display cart_total as price %}
             {{ price|amount:'html' }}
+            <br>
+            <small>
+              ({{ cart_total.net|amount:'html' }} + {{ cart_total.tax|amount:'html' }} VAT)
+            </small>
             {% if local_cart_total is not None and local_cart_total.gross %}
               <br>
               <small>

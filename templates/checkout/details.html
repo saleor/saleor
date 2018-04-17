@@ -30,44 +30,78 @@
       {% block forms %}{% endblock %}
     </div>
     <div class="col-md-5">
-      {% with total=checkout.get_total %}
-        <div class="checkout__review">
-          <h3 class="checkout__review__tittle">{% trans "Order review" context "Order review title" %}</h3>
-          {% for line in checkout.cart.lines.all %}
-            <div class="row">
-              <div class="col-8">
-                <p><strong>{{ line.variant.product }}</strong> x {{ line.quantity }}<br>
-                  <span class="checkout__review__variant">{{ line.variant }}</span></p>
-              </div>
-              <div class="col-4">
-                <p class="float-right">
-                  {% price_to_display line.get_total as price %}
-                  {{ price|amount }}
-                </p>
-              </div>
-            </div>
-          {% endfor %}
-          <div class="row checkout__review__section">
+      <div class="checkout__review">
+        <h3 class="checkout__review__tittle">{% trans "Order review" context "Order review title" %}</h3>
+        {% for line, line_total in checkout.lines %}
+          <div class="row">
             <div class="col-8">
-              <p>{% trans "Total tax" context "Order review section title" %}</p>
-            </div>
-            <div class="col-4">
-              <p class="float-right">{{ total.tax|amount:'html' }}</p>
-            </div>
-          </div>
-          <div class="row checkout__review__section">
-            <div class="col-8">
-              <p>{% trans "Shipment" context "Order review section" %}</p>
+              <p><strong>{{ line.variant.product }}</strong> x {{ line.quantity }}<br>
+                <span class="checkout__review__variant">{{ line.variant }}</span></p>
             </div>
             <div class="col-4">
               <p class="float-right">
-                {% if checkout.shipping_method %}
-                  {% price_to_display checkout.shipping_price as price %}
-                  {{ price|amount:'html' }}
-                {% else %}
-                  &mdash;
-                {% endif %}
+                {% price_to_display line_total as price %}
+                {{ price|amount }}
               </p>
+            </div>
+            <div class="col-12">
+              <p class="small text-right">
+                ({{ line_total.net|amount:'html' }} + {{ line_total.tax|amount:'html' }} VAT)
+              </p>
+            </div>
+          </div>
+        {% endfor %}
+        <div class="row checkout__review__section">
+          <div class="col-8">
+            <p>{% trans "Subtotal" context "Order review section" %}</p>
+          </div>
+          <div class="col-4">
+            <p class="float-right">
+              {% if checkout.shipping_method %}
+                {% price_to_display checkout.get_subtotal as price %}
+                {{ price|amount:'html' }}
+              {% else %}
+                &mdash;
+              {% endif %}
+            </p>
+          </div>
+          <div class="col-12">
+            <p class="small text-right">
+              ({{ checkout.get_subtotal.net|amount:'html' }} + {{ checkout.get_subtotal.tax|amount:'html' }} VAT)
+            </p>
+          </div>
+        </div>
+        <div class="row checkout__review__section">
+          <div class="col-8">
+            <p>{% trans "Shipment" context "Order review section" %}</p>
+          </div>
+          <div class="col-4">
+            <p class="float-right">
+              {% if checkout.shipping_method %}
+                {% price_to_display checkout.shipping_price as price %}
+                {{ price|amount:'html' }}
+              {% else %}
+                &mdash;
+              {% endif %}
+            </p>
+          </div>
+          <div class="col-12">
+            <p class="small text-right">
+              ({{ checkout.shipping_price.net|amount:'html' }} + {{ checkout.shipping_price.tax|amount:'html' }} VAT)
+            </p>
+          </div>
+        </div>
+        {% with total=checkout.get_total %}
+          <div class="row checkout__review__section">
+            <div class="col-8">
+              {% if request.site.settings.display_gross_prices %}
+                <p>{% trans "Taxes (included)" context "Order review section title" %}</p>
+              {% else %}
+                <p>{% trans "Taxes" context "Order review section title" %}</p>
+              {% endif %}
+            </div>
+            <div class="col-4">
+              <p class="float-right">{{ total.tax|amount:'html' }}</p>
             </div>
           </div>
           <div class="row checkout__review__section">
@@ -84,8 +118,8 @@
               <h3 class="float-right">{{ total.gross|amount:'html' }}</h3>
             </div>
           </div>
-        </div>
-      {% endwith %}
+        {% endwith %}
+      </div>
     </div>
   </div>
 {% endblock content %}
