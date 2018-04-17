@@ -174,7 +174,7 @@ class ProductVariantCreateMutation(
 
     class Arguments:
         attributes = graphene.Argument(graphene.List(AttributeValueInput))
-        product_id= graphene.ID()
+        product_id = graphene.ID()
 
     class Meta:
         description = 'Creates a new variant for product'
@@ -197,7 +197,6 @@ class ProductVariantUpdateMutation(
 
     class Arguments:
         attributes = graphene.Argument(graphene.List(AttributeValueInput))
-        # product_id= graphene.ID()
 
     class Meta:
         description = 'Updates an existing variant for product'

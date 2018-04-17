@@ -12,4 +12,4 @@ class ProductForm(forms.ModelForm):
 class ProductVariantForm(forms.ModelForm):
     class Meta:
         model = ProductVariant
-        exclude = ['images' ,'name', 'product', 'quantity_allocated']
+        exclude = ['images', 'name', 'product', 'quantity_allocated']
