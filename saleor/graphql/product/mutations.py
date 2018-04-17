@@ -5,8 +5,8 @@ from ...dashboard.category.forms import CategoryForm
 from ...dashboard.product.forms import ProductTypeForm
 from ...product import models
 from ..core.mutations import (
-    ModelDeleteMutation, ModelFormMutation,
-    ModelFormUpdateMutation, StaffMemberRequiredMixin)
+    ModelDeleteMutation, ModelFormMutation, ModelFormUpdateMutation,
+    StaffMemberRequiredMixin)
 from ..utils import get_attributes_dict_from_list, get_node
 from .forms import ProductForm, ProductVariantForm
 from .types import Category, Product, ProductAttribute, ProductType
