@@ -5,8 +5,8 @@ from ...dashboard.category.forms import CategoryForm
 from ...dashboard.product.forms import ProductTypeForm
 from ...product import models
 from ..core.mutations import (
-    BaseMutation, ModelDeleteMutation, ModelFormMutation,
-    ModelFormUpdateMutation, StaffMemberRequiredMixin, convert_form_errors)
+    ModelDeleteMutation, ModelFormMutation,
+    ModelFormUpdateMutation, StaffMemberRequiredMixin)
 from ..utils import get_attributes_dict_from_list, get_node
 from .forms import ProductForm, ProductVariantForm
 from .types import Category, Product, ProductAttribute, ProductType
@@ -83,7 +83,7 @@ class ProductSave(ModelFormMutation):
 
 
 class ProductCreateMutation(
-        StaffMemberRequiredMixin, ProductSave, ModelFormMutation):
+        StaffMemberRequiredMixin, ProductSave):
     permissions = 'product.edit_product'
 
     class Arguments:
@@ -152,7 +152,7 @@ class VariantSave(ModelFormMutation):
     permissions = 'product.edit_product'
 
     class Meta:
-        form_class = ProductForm
+        form_class = ProductVariantForm
 
     @classmethod
     def save(cls, root, info, **kwargs):
@@ -189,6 +189,29 @@ class ProductVariantCreateMutation(
         kwargs = super().get_form_kwargs(root, info, **input)
         kwargs['instance'] = variant
         return kwargs
+
+
+class ProductVariantUpdateMutation(
+        StaffMemberRequiredMixin, VariantSave, ModelFormUpdateMutation):
+    permissions = 'product.edit_product'
+
+    class Arguments:
+        attributes = graphene.Argument(graphene.List(AttributeValueInput))
+        # product_id= graphene.ID()
+
+    class Meta:
+        description = 'Updates an existing variant for product'
+        form_class = ProductVariantForm
+        exclude = ['attributes']
+
+
+class ProductVariantDeleteMutation(
+        StaffMemberRequiredMixin, ModelDeleteMutation):
+    permissions = 'product.edit_product'
+
+    class Meta:
+        description = 'Deletes a product variant.'
+        model = models.ProductVariant
 
 
 class ProductTypeCreateMutation(StaffMemberRequiredMixin, ModelFormMutation):

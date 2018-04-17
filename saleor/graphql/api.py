@@ -14,7 +14,9 @@ from .product.mutations import (
     CategoryCreateMutation, CategoryDelete, CategoryUpdateMutation,
     ProductCreateMutation, ProductDeleteMutation, ProductUpdateMutation,
     ProductTypeCreateMutation, ProductTypeDeleteMutation,
-    ProductTypeUpdateMutation, ProductVariantCreateMutation)
+    ProductTypeUpdateMutation, ProductVariantCreateMutation,
+    ProductVariantDeleteMutation, ProductVariantUpdateMutation
+)
 from .product.resolvers import (
     resolve_attributes, resolve_categories, resolve_products,
     resolve_product_types)
@@ -109,6 +111,8 @@ class Mutations(graphene.ObjectType):
     product_type_delete = ProductTypeDeleteMutation.Field()
 
     product_variant_create = ProductVariantCreateMutation.Field()
+    product_variant_delete = ProductVariantDeleteMutation.Field()
+    product_variant_update = ProductVariantUpdateMutation.Field()
 
 
 schema = graphene.Schema(Query, Mutations)
