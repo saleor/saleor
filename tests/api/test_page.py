@@ -5,6 +5,8 @@ import pytest
 from django.shortcuts import reverse
 from tests.utils import get_graphql_content
 
+from saleor.page.models import Page
+
 
 def test_page_query(client, page):
     page.is_visible = True
@@ -98,3 +100,38 @@ def test_page_delete_mutation(admin_client, page):
     assert data['page']['title'] == page.title
     with pytest.raises(page._meta.model.DoesNotExist):
         page.refresh_from_db()
+
+
+def test_paginate_pages(client, page):
+    page.is_visible = True
+    data_02 = {
+        'slug': 'test02-url',
+        'title': 'Test page',
+        'content': 'test content',
+        'is_visible': True}
+    data_03 = {
+        'slug': 'test03-url',
+        'title': 'Test page',
+        'content': 'test content',
+        'is_visible': True}
+
+    page2 = Page.objects.create(**data_02)
+    page3 = Page.objects.create(**data_03)
+    query = """
+        query PagesQuery {
+            pages(first: 2) {
+                edges {
+                    node {
+                        id
+                        title
+                    }
+                }
+            }
+        }
+        """
+    response = client.post(
+        reverse('api'), {'query': query})
+    content = get_graphql_content(response)
+    assert 'errors' not in content
+    pages_data = content['data']['pages']
+    assert len(pages_data['edges']) == 2
