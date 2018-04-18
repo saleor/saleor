@@ -4,6 +4,7 @@ from django.conf.urls.i18n import i18n_patterns
 from django.conf.urls.static import static
 from django.contrib.sitemaps.views import sitemap
 from django.contrib.staticfiles.views import serve
+from django.views.decorators.csrf import csrf_exempt
 from django.views.i18n import JavaScriptCatalog, set_language
 from graphene_django.views import GraphQLView
 
@@ -25,8 +26,8 @@ handler404 = 'saleor.core.views.handle_404'
 non_translatable_urlpatterns = [
     url(r'^dashboard/',
         include((dashboard_urls, 'dashboard'), namespace='dashboard')),
-    url(r'^graphql', GraphQLView.as_view(
-        schema=schema, graphiql=settings.DEBUG), name='api'),
+    url(r'^graphql/', csrf_exempt(GraphQLView.as_view(
+        schema=schema, graphiql=settings.DEBUG)), name='api'),
     url(r'^sitemap\.xml$', sitemap, {'sitemaps': sitemaps},
         name='django.contrib.sitemaps.views.sitemap'),
     url(r'^i18n/$', set_language, name='set_language'),

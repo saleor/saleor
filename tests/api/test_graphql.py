@@ -2,11 +2,35 @@ import json
 from unittest.mock import patch
 
 import graphene
+from django.contrib.auth.models import AnonymousUser
+from django.forms.models import model_to_dict
+from django.http import HttpResponse
 from django.shortcuts import reverse
 from tests.utils import get_graphql_content
 
 from saleor.graphql.core.mutations import (
     ModelFormMutation, ModelFormUpdateMutation)
+
+
+def test_jwt_middleware(admin_client, admin_user):
+    def get_response(request):
+        return HttpResponse()
+
+    rf = RequestFactory()
+    middleware = jwt_middleware(get_response)
+
+    # test setting AnonymousUser on unauthorized request to API
+    request = rf.get(reverse('api'))
+    assert not hasattr(request, 'user')
+    middleware(request)
+    assert isinstance(request.user, AnonymousUser)
+
+    # test request with proper JWT token authorizes the request to API
+    token = get_token(admin_user)
+    request = rf.get(reverse('api'), **{'HTTP_AUTHORIZATION': 'JWT %s' % token})
+    assert not hasattr(request, 'user')
+    middleware(request)
+    assert request.user == admin_user
 
 
 def test_real_query(admin_client, product):
