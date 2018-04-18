@@ -4,7 +4,7 @@
 {% load i18n %}
 {% load markdown from markdown %}
 {% load prices_i18n %}
-{% load price_ranges %}
+{% load taxed_prices %}
 {% load staticfiles %}
 {% load get_thumbnail product_first_image from product_images %}
 {% load build_absolute_uri from urls %}
@@ -144,7 +144,7 @@
               </small>
             {% endif %}
             <small>
-              {% tax_value request.taxes product.tax_rate as tax_rate %}
+              {% tax_rate request.taxes product.tax_rate as tax_rate %}
               {% if request.site.settings.display_gross_prices %}
                 {% blocktrans trimmed with tax_rate=tax_rate context "Product details page vat rate value" %}
                   including {{ tax_rate }}% VAT

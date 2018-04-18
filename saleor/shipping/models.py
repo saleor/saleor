@@ -39,10 +39,9 @@ class ShippingMethod(models.Model):
     def countries(self):
         return [str(country) for country in self.price_per_country.all()]
 
-    @property
-    def price_range(self):
+    def get_price_range(self, taxes=None):
         prices = [
-            country.get_total_price()
+            country.get_total_price(taxes)
             for country in self.price_per_country.all()]
         if prices:
             return TaxedMoneyRange(min(prices), max(prices))
