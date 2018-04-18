@@ -1,4 +1,4 @@
-import DeleteIcon from "material-ui-icons/Delete";
+import DeleteIcon from "@material-ui/icons/Delete";
 import Card from "material-ui/Card";
 import { DialogContentText } from "material-ui/Dialog";
 import Grid from "material-ui/Grid";

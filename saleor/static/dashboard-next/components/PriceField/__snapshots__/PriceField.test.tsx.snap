@@ -20,7 +20,7 @@ exports[`<PriceField /> renders with hint 1`] = `
           aria-required={false}
           autoComplete={undefined}
           autoFocus={undefined}
-          className="MuiInput-input-17 MuiInput-inputType-21"
+          className="MuiInput-input-17 MuiInput-inputType-20"
           defaultValue={undefined}
           disabled={false}
           id={undefined}
@@ -40,7 +40,7 @@ exports[`<PriceField /> renders with hint 1`] = `
         <span />
       </div>
       <p
-        className="MuiFormHelperText-root-35"
+        className="MuiFormHelperText-root-32"
       >
         Lorem ipsum
       </p>
@@ -63,7 +63,7 @@ exports[`<PriceField /> renders with hint 1`] = `
           aria-required={false}
           autoComplete={undefined}
           autoFocus={undefined}
-          className="MuiInput-input-17 MuiInput-inputType-21"
+          className="MuiInput-input-17 MuiInput-inputType-20"
           defaultValue={undefined}
           disabled={false}
           id={undefined}
@@ -100,7 +100,7 @@ exports[`<PriceField /> renders with label 1`] = `
       onFocus={[Function]}
     >
       <label
-        className="MuiFormLabel-root-29 MuiInputLabel-root-23 MuiInputLabel-formControl-24 MuiInputLabel-animated-27"
+        className="MuiFormLabel-root-27 MuiInputLabel-root-22 MuiInputLabel-formControl-23 MuiInputLabel-animated-26"
         data-shrink={false}
         htmlFor="price_min"
       >
@@ -114,7 +114,7 @@ exports[`<PriceField /> renders with label 1`] = `
           aria-required={false}
           autoComplete={undefined}
           autoFocus={undefined}
-          className="MuiInput-input-17 MuiInput-inputType-21"
+          className="MuiInput-input-17 MuiInput-inputType-20"
           defaultValue={undefined}
           disabled={false}
           id={undefined}
@@ -152,7 +152,7 @@ exports[`<PriceField /> renders with label 1`] = `
           aria-required={false}
           autoComplete={undefined}
           autoFocus={undefined}
-          className="MuiInput-input-17 MuiInput-inputType-21"
+          className="MuiInput-input-17 MuiInput-inputType-20"
           defaultValue={undefined}
           disabled={false}
           id={undefined}
@@ -189,7 +189,7 @@ exports[`<PriceField /> renders with label and hint 1`] = `
       onFocus={[Function]}
     >
       <label
-        className="MuiFormLabel-root-29 MuiInputLabel-root-23 MuiInputLabel-formControl-24 MuiInputLabel-animated-27"
+        className="MuiFormLabel-root-27 MuiInputLabel-root-22 MuiInputLabel-formControl-23 MuiInputLabel-animated-26"
         data-shrink={false}
         htmlFor="price_min"
       >
@@ -203,7 +203,7 @@ exports[`<PriceField /> renders with label and hint 1`] = `
           aria-required={false}
           autoComplete={undefined}
           autoFocus={undefined}
-          className="MuiInput-input-17 MuiInput-inputType-21"
+          className="MuiInput-input-17 MuiInput-inputType-20"
           defaultValue={undefined}
           disabled={false}
           id={undefined}
@@ -223,7 +223,7 @@ exports[`<PriceField /> renders with label and hint 1`] = `
         <span />
       </div>
       <p
-        className="MuiFormHelperText-root-35"
+        className="MuiFormHelperText-root-32"
       >
         Ipsum
       </p>
@@ -246,7 +246,7 @@ exports[`<PriceField /> renders with label and hint 1`] = `
           aria-required={false}
           autoComplete={undefined}
           autoFocus={undefined}
-          className="MuiInput-input-17 MuiInput-inputType-21"
+          className="MuiInput-input-17 MuiInput-inputType-20"
           defaultValue={undefined}
           disabled={false}
           id={undefined}
@@ -290,7 +290,7 @@ exports[`<PriceField /> renders with no value 1`] = `
           aria-required={false}
           autoComplete={undefined}
           autoFocus={undefined}
-          className="MuiInput-input-17 MuiInput-inputType-21"
+          className="MuiInput-input-17 MuiInput-inputType-20"
           defaultValue={undefined}
           disabled={false}
           id={undefined}
@@ -328,7 +328,7 @@ exports[`<PriceField /> renders with no value 1`] = `
           aria-required={false}
           autoComplete={undefined}
           autoFocus={undefined}
-          className="MuiInput-input-17 MuiInput-inputType-21"
+          className="MuiInput-input-17 MuiInput-inputType-20"
           defaultValue={undefined}
           disabled={false}
           id={undefined}
@@ -372,7 +372,7 @@ exports[`<PriceField /> renders with value 1`] = `
           aria-required={false}
           autoComplete={undefined}
           autoFocus={undefined}
-          className="MuiInput-input-17 MuiInput-inputType-21"
+          className="MuiInput-input-17 MuiInput-inputType-20"
           defaultValue={undefined}
           disabled={false}
           id={undefined}
@@ -410,7 +410,7 @@ exports[`<PriceField /> renders with value 1`] = `
           aria-required={false}
           autoComplete={undefined}
           autoFocus={undefined}
-          className="MuiInput-input-17 MuiInput-inputType-21"
+          className="MuiInput-input-17 MuiInput-inputType-20"
           defaultValue={undefined}
           disabled={false}
           id={undefined}
@@ -447,7 +447,7 @@ exports[`<PriceField /> renders with value, label and error 1`] = `
       onFocus={[Function]}
     >
       <label
-        className="MuiFormLabel-root-29 MuiFormLabel-error-32 MuiInputLabel-root-23 MuiInputLabel-formControl-24 MuiInputLabel-animated-27 MuiInputLabel-shrink-26"
+        className="MuiFormLabel-root-27 MuiFormLabel-error-30 MuiInputLabel-root-22 MuiInputLabel-formControl-23 MuiInputLabel-animated-26 MuiInputLabel-shrink-25"
         data-shrink={true}
         htmlFor="price_min"
       >
@@ -461,7 +461,7 @@ exports[`<PriceField /> renders with value, label and error 1`] = `
           aria-required={false}
           autoComplete={undefined}
           autoFocus={undefined}
-          className="MuiInput-input-17 MuiInput-inputType-21"
+          className="MuiInput-input-17 MuiInput-inputType-20"
           defaultValue={undefined}
           disabled={false}
           id={undefined}
@@ -481,7 +481,7 @@ exports[`<PriceField /> renders with value, label and error 1`] = `
         <span />
       </div>
       <p
-        className="MuiFormHelperText-root-35 MuiFormHelperText-error-36"
+        className="MuiFormHelperText-root-32 MuiFormHelperText-error-33"
       >
         Ipsum
       </p>
@@ -504,7 +504,7 @@ exports[`<PriceField /> renders with value, label and error 1`] = `
           aria-required={false}
           autoComplete={undefined}
           autoFocus={undefined}
-          className="MuiInput-input-17 MuiInput-inputType-21"
+          className="MuiInput-input-17 MuiInput-inputType-20"
           defaultValue={undefined}
           disabled={false}
           id={undefined}
@@ -541,7 +541,7 @@ exports[`<PriceField /> renders with value, label and hint 1`] = `
       onFocus={[Function]}
     >
       <label
-        className="MuiFormLabel-root-29 MuiInputLabel-root-23 MuiInputLabel-formControl-24 MuiInputLabel-animated-27 MuiInputLabel-shrink-26"
+        className="MuiFormLabel-root-27 MuiInputLabel-root-22 MuiInputLabel-formControl-23 MuiInputLabel-animated-26 MuiInputLabel-shrink-25"
         data-shrink={true}
         htmlFor="price_min"
       >
@@ -555,7 +555,7 @@ exports[`<PriceField /> renders with value, label and hint 1`] = `
           aria-required={false}
           autoComplete={undefined}
           autoFocus={undefined}
-          className="MuiInput-input-17 MuiInput-inputType-21"
+          className="MuiInput-input-17 MuiInput-inputType-20"
           defaultValue={undefined}
           disabled={false}
           id={undefined}
@@ -575,7 +575,7 @@ exports[`<PriceField /> renders with value, label and hint 1`] = `
         <span />
       </div>
       <p
-        className="MuiFormHelperText-root-35"
+        className="MuiFormHelperText-root-32"
       >
         Ipsum
       </p>
@@ -598,7 +598,7 @@ exports[`<PriceField /> renders with value, label and hint 1`] = `
           aria-required={false}
           autoComplete={undefined}
           autoFocus={undefined}
-          className="MuiInput-input-17 MuiInput-inputType-21"
+          className="MuiInput-input-17 MuiInput-inputType-20"
           defaultValue={undefined}
           disabled={false}
           id={undefined}

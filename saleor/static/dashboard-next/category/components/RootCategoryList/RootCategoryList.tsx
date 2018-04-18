@@ -1,4 +1,4 @@
-import AddIcon from "material-ui-icons/Add";
+import AddIcon from "@material-ui/icons/Add";
 import Card from "material-ui/Card";
 import IconButton from "material-ui/IconButton";
 import * as React from "react";

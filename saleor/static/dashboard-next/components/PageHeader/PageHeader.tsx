@@ -1,5 +1,5 @@
-import ArrowBackIcon from "material-ui-icons/ArrowBack";
-import CloseIcon from "material-ui-icons/Close";
+import ArrowBackIcon from "@material-ui/icons/ArrowBack";
+import CloseIcon from "@material-ui/icons/Close";
 import IconButton from "material-ui/IconButton";
 import { withStyles } from "material-ui/styles";
 import Typography from "material-ui/Typography";

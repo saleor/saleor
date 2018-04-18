@@ -1,5 +1,5 @@
+import DeleteIcon from "@material-ui/icons/Delete";
 import { storiesOf } from "@storybook/react";
-import DeleteIcon from "material-ui-icons/Delete";
 import IconButton from "material-ui/IconButton";
 import * as React from "react";
 
