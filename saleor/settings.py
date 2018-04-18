@@ -171,7 +171,6 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.locale.LocaleMiddleware',
     'django_babel.middleware.LocaleMiddleware',
-    'graphql_jwt.middleware.JSONWebTokenMiddleware',
     'saleor.core.middleware.discounts',
     'saleor.core.middleware.google_analytics',
     'saleor.core.middleware.country',
@@ -179,7 +178,9 @@ MIDDLEWARE = [
     'saleor.core.middleware.site',
     'saleor.core.middleware.taxes',
     'social_django.middleware.SocialAuthExceptionMiddleware',
-    'impersonate.middleware.ImpersonateMiddleware']
+    'impersonate.middleware.ImpersonateMiddleware',
+    'saleor.graphql.middleware.jwt_middleware'
+]
 
 INSTALLED_APPS = [
     # External apps that need to go before django's
