@@ -18,7 +18,7 @@ class VariantChoiceField(forms.ModelChoiceField):
             '%(variant_label)s - %(price)s') % {
                 'variant_label': variant_label,
                 'price': amount(
-                    obj.get_price_per_item(discounts=self.discounts).gross)}
+                    obj.get_price(discounts=self.discounts).gross)}
         return label
 
     def update_field_data(self, variants, cart):

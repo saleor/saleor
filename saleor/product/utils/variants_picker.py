@@ -20,8 +20,8 @@ def get_variant_picker_data(
     filter_available_variants = defaultdict(list)
 
     for variant in variants:
-        price = variant.get_price_per_item(discounts, taxes)
-        price_undiscounted = variant.get_price_per_item(taxes=taxes)
+        price = variant.get_price(discounts, taxes)
+        price_undiscounted = variant.get_price(taxes=taxes)
         if local_currency:
             price_local_currency = to_local_currency(price, local_currency)
         else:

@@ -13,6 +13,7 @@ from mptt.forms import TreeNodeChoiceField
 
 from . import ProductBulkAction
 from ...core.i18n import VAT_RATE_TYPE_TRANSLATIONS
+from ...core.utils import DEFAULT_TAX_RATE_NAME
 from ...product.models import (
     AttributeChoiceValue, Category, Collection, Product, ProductAttribute,
     ProductImage, ProductType, ProductVariant, VariantImage)
@@ -56,7 +57,7 @@ class ProductTypeSelectorForm(forms.Form):
 
 
 def get_tax_rate_type_choices():
-    rate_types = get_tax_rate_types() + ['standard']
+    rate_types = get_tax_rate_types() + [DEFAULT_TAX_RATE_NAME]
     return [
         (rate_type, VAT_RATE_TYPE_TRANSLATIONS.get(rate_type, rate_type))
         for rate_type in rate_types]

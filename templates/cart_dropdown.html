@@ -20,7 +20,7 @@
             <h3>
               {{ line.product }}
               <span>x{{ line.quantity }}</span>
-              <p>{{ line.variant }}</p>
+              <p>{{ line.variant }} ({{ line.line_total.net|amount:'html' }} + {{ line.line_total.tax|amount:'html' }} VAT)</p>
             </h3>
           </a>
         </div>
@@ -49,6 +49,11 @@
             {{ price|amount:'html' }}
           </p>
         </h3>
+      </div>
+      <div class="col-md-12">
+        <div class="small text-right">
+          ({{ total.net|amount:'html' }} + {{ total.tax|amount:'html' }} VAT)
+        </div>
       </div>
     </div>
     <div class="row cart-dropdown__actions">

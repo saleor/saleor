@@ -53,7 +53,7 @@
               <p class="text-padding">{% trans "Sale price" context "Dashboard variant details view" %}</p>
             </div>
             <div class="col s7 m6">
-              <p class="text-padding right-align">{{ variant.get_price_per_item.gross|amount }}</p>
+              <p class="text-padding right-align">{{ variant.get_price.gross|amount }}</p>
             </div>
             <div class="col s5 m6">
               <p class="text-padding">{% trans "Cost price" context "Dashboard variant details view" %}</p>

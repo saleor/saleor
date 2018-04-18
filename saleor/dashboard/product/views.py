@@ -621,7 +621,7 @@ def ajax_available_variants_list(request):
     def get_variant_label(variant, discounts):
         return '%s, %s, %s' % (
             variant.sku, variant.display_product(),
-            prices_i18n.amount(variant.get_price_per_item(discounts).gross))
+            prices_i18n.amount(variant.get_price(discounts).gross))
 
     available_products = Product.objects.available_products().prefetch_related(
         'category',

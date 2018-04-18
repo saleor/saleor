@@ -5,11 +5,12 @@ from django.db.models import F
 from django.shortcuts import get_object_or_404, redirect
 from prices import Money
 
-from saleor.order.models import OrderLine
 from ..account.utils import store_user_address
 from ..core.exceptions import InsufficientStock
+from ..core.utils import DEFAULT_TAX_RATE_NAME
 from ..dashboard.order.utils import get_voucher_discount_for_order
 from ..order import FulfillmentStatus, OrderStatus
+from ..order.models import OrderLine
 from ..product.utils import allocate_stock, deallocate_stock, increase_stock
 
 
@@ -137,7 +138,7 @@ def get_variant_tax_rate(variant, taxes=None):
     if rate_name in taxes:
         tax = taxes[rate_name]
     else:
-        tax = taxes['standard']
+        tax = taxes[DEFAULT_TAX_RATE_NAME]
 
     return tax['value']
 
@@ -161,7 +162,7 @@ def add_variant_to_order(
         return
     if quantity_not_fulfilled > variant.quantity_available:
         raise InsufficientStock(variant)
-    price = variant.get_price_per_item(discounts, taxes=taxes)
+    price = variant.get_price(discounts, taxes=taxes)
     order.lines.create(
         product_name=variant.display_product(),
         product_sku=variant.sku,

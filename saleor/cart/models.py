@@ -243,14 +243,8 @@ class CartLine(models.Model):
 
     def get_total(self, discounts=None, taxes=None):
         """Return the total price of this line."""
-        amount = self.get_price_per_item(discounts, taxes) * self.quantity
+        amount = self.quantity * self.variant.get_price(discounts, taxes)
         return amount.quantize(CENTS)
-
-    # pylint: disable=W0221
-    def get_price_per_item(self, discounts=None, taxes=None):
-        """Return the unit price of the line."""
-        return self.variant.get_price_per_item(
-            discounts=discounts, taxes=taxes)
 
     def is_shipping_required(self):
         """Return `True` if the related product variant requires shipping."""

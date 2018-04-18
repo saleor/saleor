@@ -82,7 +82,7 @@ def get_product_variants_and_prices(order, product):
         for dummy_i in range(line.quantity):
             variant = line.variant
             if variant:
-                yield variant, variant.get_price_per_item()
+                yield variant, variant.get_price()
 
 
 def get_category_variants_and_prices(order, root_category):

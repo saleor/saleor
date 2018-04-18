@@ -13,12 +13,12 @@ from django.utils.translation import pgettext_lazy
 from django_prices.models import MoneyField
 from mptt.managers import TreeManager
 from mptt.models import MPTTModel
-from prices import Money, TaxedMoney, TaxedMoneyRange
+from prices import TaxedMoney, TaxedMoneyRange
 from text_unidecode import unidecode
 from versatileimagefield.fields import PPOIField, VersatileImageField
 
 from ..core.exceptions import InsufficientStock
-from ..core.utils import apply_tax_to_price
+from ..core.utils import apply_tax_to_price, DEFAULT_TAX_RATE_NAME
 from ..discount.utils import calculate_discounted_price
 from ..seo.models import SeoModel
 
@@ -69,7 +69,8 @@ class ProductType(models.Model):
     variant_attributes = models.ManyToManyField(
         'ProductAttribute', related_name='product_variant_types', blank=True)
     is_shipping_required = models.BooleanField(default=False)
-    tax_rate = models.CharField(max_length=128, default='standard', blank=True)
+    tax_rate = models.CharField(
+        max_length=128, default=DEFAULT_TAX_RATE_NAME, blank=True)
 
     class Meta:
         app_label = 'product'
@@ -157,20 +158,10 @@ class Product(SeoModel):
         first_image = self.images.first()
         return first_image.image if first_image else None
 
-    def get_attribute(self, pk):
-        return self.attributes.get(smart_text(pk))
-
-    def set_attribute(self, pk, value_pk):
-        self.attributes[smart_text(pk)] = smart_text(value_pk)
-
-    def get_price_per_item(self, item, discounts=None, taxes=None):
-        return item.get_price_per_item(discounts, taxes)
-
     def get_price_range(self, discounts=None, taxes=None):
         if self.variants.exists():
             prices = [
-                self.get_price_per_item(
-                    variant, discounts=discounts, taxes=taxes)
+                variant.get_price(discounts=discounts, taxes=taxes)
                 for variant in self]
             return TaxedMoneyRange(min(prices), max(prices))
         price = calculate_discounted_price(self, self.price, discounts)
@@ -217,7 +208,7 @@ class ProductVariant(models.Model):
         if quantity > self.quantity_available:
             raise InsufficientStock(self)
 
-    def get_price_per_item(self, discounts=None, taxes=None):
+    def get_price(self, discounts=None, taxes=None):
         price = self.price_override or self.product.price
         price = calculate_discounted_price(self.product, price, discounts)
         if not self.product.charge_taxes:
@@ -237,7 +228,7 @@ class ProductVariant(models.Model):
             'product_name': str(self),
             'product_id': self.product.pk,
             'variant_id': self.pk,
-            'unit_price': str(self.get_price_per_item().gross)}
+            'unit_price': str(self.get_price().gross)}
 
     def is_shipping_required(self):
         return self.product.product_type.is_shipping_required

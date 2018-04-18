@@ -26,6 +26,8 @@ ZERO_TAXED_MONEY = TaxedMoney(
     net=Money(0, settings.DEFAULT_CURRENCY),
     gross=Money(0, settings.DEFAULT_CURRENCY))
 
+DEFAULT_TAX_RATE_NAME = 'standard'
+
 georeader = geolite2.reader()
 logger = logging.getLogger(__name__)
 
@@ -106,7 +108,7 @@ def get_taxes_for_country(country):
     if tax_rates is None:
         return None
 
-    taxes = {'standard': {
+    taxes = {DEFAULT_TAX_RATE_NAME: {
         'value': tax_rates['standard_rate'],
         'tax': get_tax_for_rate(tax_rates)}}
     if tax_rates['reduced_rates']:
@@ -135,7 +137,7 @@ def apply_tax_to_price(taxes, rate_name, base):
     if rate_name in taxes:
         tax_to_apply = taxes[rate_name]['tax']
     else:
-        tax_to_apply = taxes['standard']['tax']
+        tax_to_apply = taxes[DEFAULT_TAX_RATE_NAME]['tax']
 
     keep_gross = Site.objects.get_current().settings.include_taxes_in_prices
     return tax_to_apply(base, keep_gross=keep_gross)

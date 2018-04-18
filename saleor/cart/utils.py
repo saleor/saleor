@@ -65,7 +65,7 @@ def get_product_variants_and_prices(cart, product):
         if cart_line.variant.product_id == product.id)
     for line in lines:
         for dummy_i in range(line.quantity):
-            yield line.variant, line.get_price_per_item()
+            yield line.variant, line.variant.get_price()
 
 
 def get_category_variants_and_prices(cart, root_category):
