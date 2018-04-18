@@ -1,5 +1,5 @@
-import AddIcon from "material-ui-icons/Add";
-import FilterListIcon from "material-ui-icons/FilterList";
+import AddIcon from "@material-ui/icons/Add";
+import FilterListIcon from "@material-ui/icons/FilterList";
 import Card from "material-ui/Card";
 import Hidden from "material-ui/Hidden";
 import IconButton from "material-ui/IconButton";

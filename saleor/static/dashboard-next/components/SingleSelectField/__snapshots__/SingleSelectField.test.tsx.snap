@@ -7,20 +7,20 @@ exports[`<MultiSelectField /> renders with error hint 1`] = `
   onFocus={[Function]}
 >
   <label
-    className="MuiFormLabel-root-12 MuiFormLabel-error-15 MuiInputLabel-root-6 MuiInputLabel-formControl-7 MuiInputLabel-animated-10"
+    className="MuiFormLabel-root-11 MuiFormLabel-error-14 MuiInputLabel-root-6 MuiInputLabel-formControl-7 MuiInputLabel-animated-10"
     data-shrink={false}
   />
   <div
-    className="MuiInput-root-23 MuiInput-error-28 MuiInput-fullWidth-30 MuiInput-formControl-24 MuiInput-underline-27"
+    className="MuiInput-root-21 MuiInput-error-26 MuiInput-fullWidth-28 MuiInput-formControl-22 MuiInput-underline-25"
   >
     <div
-      className="MuiSelect-root-18"
+      className="MuiSelect-root-16"
     >
       <div
         aria-haspopup="true"
         aria-owns={null}
         aria-pressed="false"
-        className="MuiSelect-select-19 MuiSelect-selectMenu-20 MuiInput-input-31"
+        className="MuiSelect-select-17 MuiSelect-selectMenu-18 MuiInput-input-29"
         onBlur={[Function]}
         onClick={[Function]}
         onFocus={[Function]}
@@ -55,7 +55,7 @@ exports[`<MultiSelectField /> renders with error hint 1`] = `
       />
       <svg
         aria-hidden="true"
-        className="MuiSvgIcon-root-37 MuiSelect-icon-22"
+        className="MuiSvgIcon-root-34 MuiSelect-icon-20"
         color={undefined}
         focusable="false"
         viewBox="0 0 24 24"
@@ -67,7 +67,7 @@ exports[`<MultiSelectField /> renders with error hint 1`] = `
     </div>
   </div>
   <p
-    className="MuiFormHelperText-root-47 MuiFormHelperText-error-48"
+    className="MuiFormHelperText-root-44 MuiFormHelperText-error-45"
   >
     Lorem error
   </p>
@@ -81,20 +81,20 @@ exports[`<MultiSelectField /> renders with hint 1`] = `
   onFocus={[Function]}
 >
   <label
-    className="MuiFormLabel-root-12 MuiInputLabel-root-6 MuiInputLabel-formControl-7 MuiInputLabel-animated-10"
+    className="MuiFormLabel-root-11 MuiInputLabel-root-6 MuiInputLabel-formControl-7 MuiInputLabel-animated-10"
     data-shrink={false}
   />
   <div
-    className="MuiInput-root-23 MuiInput-fullWidth-30 MuiInput-formControl-24 MuiInput-underline-27"
+    className="MuiInput-root-21 MuiInput-fullWidth-28 MuiInput-formControl-22 MuiInput-underline-25"
   >
     <div
-      className="MuiSelect-root-18"
+      className="MuiSelect-root-16"
     >
       <div
         aria-haspopup="true"
         aria-owns={null}
         aria-pressed="false"
-        className="MuiSelect-select-19 MuiSelect-selectMenu-20 MuiInput-input-31"
+        className="MuiSelect-select-17 MuiSelect-selectMenu-18 MuiInput-input-29"
         onBlur={[Function]}
         onClick={[Function]}
         onFocus={[Function]}
@@ -129,7 +129,7 @@ exports[`<MultiSelectField /> renders with hint 1`] = `
       />
       <svg
         aria-hidden="true"
-        className="MuiSvgIcon-root-37 MuiSelect-icon-22"
+        className="MuiSvgIcon-root-34 MuiSelect-icon-20"
         color={undefined}
         focusable="false"
         viewBox="0 0 24 24"
@@ -141,7 +141,7 @@ exports[`<MultiSelectField /> renders with hint 1`] = `
     </div>
   </div>
   <p
-    className="MuiFormHelperText-root-47"
+    className="MuiFormHelperText-root-44"
   >
     Lorem ipsum
   </p>
@@ -155,22 +155,22 @@ exports[`<MultiSelectField /> renders with label 1`] = `
   onFocus={[Function]}
 >
   <label
-    className="MuiFormLabel-root-12 MuiInputLabel-root-6 MuiInputLabel-formControl-7 MuiInputLabel-animated-10"
+    className="MuiFormLabel-root-11 MuiInputLabel-root-6 MuiInputLabel-formControl-7 MuiInputLabel-animated-10"
     data-shrink={false}
   >
     Lorem ipsum
   </label>
   <div
-    className="MuiInput-root-23 MuiInput-fullWidth-30 MuiInput-formControl-24 MuiInput-underline-27"
+    className="MuiInput-root-21 MuiInput-fullWidth-28 MuiInput-formControl-22 MuiInput-underline-25"
   >
     <div
-      className="MuiSelect-root-18"
+      className="MuiSelect-root-16"
     >
       <div
         aria-haspopup="true"
         aria-owns={null}
         aria-pressed="false"
-        className="MuiSelect-select-19 MuiSelect-selectMenu-20 MuiInput-input-31"
+        className="MuiSelect-select-17 MuiSelect-selectMenu-18 MuiInput-input-29"
         onBlur={[Function]}
         onClick={[Function]}
         onFocus={[Function]}
@@ -205,7 +205,7 @@ exports[`<MultiSelectField /> renders with label 1`] = `
       />
       <svg
         aria-hidden="true"
-        className="MuiSvgIcon-root-37 MuiSelect-icon-22"
+        className="MuiSvgIcon-root-34 MuiSelect-icon-20"
         color={undefined}
         focusable="false"
         viewBox="0 0 24 24"
@@ -226,22 +226,22 @@ exports[`<MultiSelectField /> renders with label and hint 1`] = `
   onFocus={[Function]}
 >
   <label
-    className="MuiFormLabel-root-12 MuiInputLabel-root-6 MuiInputLabel-formControl-7 MuiInputLabel-animated-10"
+    className="MuiFormLabel-root-11 MuiInputLabel-root-6 MuiInputLabel-formControl-7 MuiInputLabel-animated-10"
     data-shrink={false}
   >
     Lorem
   </label>
   <div
-    className="MuiInput-root-23 MuiInput-fullWidth-30 MuiInput-formControl-24 MuiInput-underline-27"
+    className="MuiInput-root-21 MuiInput-fullWidth-28 MuiInput-formControl-22 MuiInput-underline-25"
   >
     <div
-      className="MuiSelect-root-18"
+      className="MuiSelect-root-16"
     >
       <div
         aria-haspopup="true"
         aria-owns={null}
         aria-pressed="false"
-        className="MuiSelect-select-19 MuiSelect-selectMenu-20 MuiInput-input-31"
+        className="MuiSelect-select-17 MuiSelect-selectMenu-18 MuiInput-input-29"
         onBlur={[Function]}
         onClick={[Function]}
         onFocus={[Function]}
@@ -276,7 +276,7 @@ exports[`<MultiSelectField /> renders with label and hint 1`] = `
       />
       <svg
         aria-hidden="true"
-        className="MuiSvgIcon-root-37 MuiSelect-icon-22"
+        className="MuiSvgIcon-root-34 MuiSelect-icon-20"
         color={undefined}
         focusable="false"
         viewBox="0 0 24 24"
@@ -288,7 +288,7 @@ exports[`<MultiSelectField /> renders with label and hint 1`] = `
     </div>
   </div>
   <p
-    className="MuiFormHelperText-root-47"
+    className="MuiFormHelperText-root-44"
   >
     Ipsum
   </p>
@@ -302,20 +302,20 @@ exports[`<MultiSelectField /> renders with no value 1`] = `
   onFocus={[Function]}
 >
   <label
-    className="MuiFormLabel-root-12 MuiInputLabel-root-6 MuiInputLabel-formControl-7 MuiInputLabel-animated-10"
+    className="MuiFormLabel-root-11 MuiInputLabel-root-6 MuiInputLabel-formControl-7 MuiInputLabel-animated-10"
     data-shrink={false}
   />
   <div
-    className="MuiInput-root-23 MuiInput-fullWidth-30 MuiInput-formControl-24 MuiInput-underline-27"
+    className="MuiInput-root-21 MuiInput-fullWidth-28 MuiInput-formControl-22 MuiInput-underline-25"
   >
     <div
-      className="MuiSelect-root-18"
+      className="MuiSelect-root-16"
     >
       <div
         aria-haspopup="true"
         aria-owns={null}
         aria-pressed="false"
-        className="MuiSelect-select-19 MuiSelect-selectMenu-20 MuiInput-input-31"
+        className="MuiSelect-select-17 MuiSelect-selectMenu-18 MuiInput-input-29"
         onBlur={[Function]}
         onClick={[Function]}
         onFocus={[Function]}
@@ -350,7 +350,7 @@ exports[`<MultiSelectField /> renders with no value 1`] = `
       />
       <svg
         aria-hidden="true"
-        className="MuiSvgIcon-root-37 MuiSelect-icon-22"
+        className="MuiSvgIcon-root-34 MuiSelect-icon-20"
         color={undefined}
         focusable="false"
         viewBox="0 0 24 24"
@@ -371,20 +371,20 @@ exports[`<MultiSelectField /> renders with value 1`] = `
   onFocus={[Function]}
 >
   <label
-    className="MuiFormLabel-root-12 MuiInputLabel-root-6 MuiInputLabel-formControl-7 MuiInputLabel-animated-10 MuiInputLabel-shrink-9"
+    className="MuiFormLabel-root-11 MuiInputLabel-root-6 MuiInputLabel-formControl-7 MuiInputLabel-animated-10 MuiInputLabel-shrink-9"
     data-shrink={true}
   />
   <div
-    className="MuiInput-root-23 MuiInput-fullWidth-30 MuiInput-formControl-24 MuiInput-underline-27"
+    className="MuiInput-root-21 MuiInput-fullWidth-28 MuiInput-formControl-22 MuiInput-underline-25"
   >
     <div
-      className="MuiSelect-root-18"
+      className="MuiSelect-root-16"
     >
       <div
         aria-haspopup="true"
         aria-owns={null}
         aria-pressed="false"
-        className="MuiSelect-select-19 MuiSelect-selectMenu-20 MuiInput-input-31"
+        className="MuiSelect-select-17 MuiSelect-selectMenu-18 MuiInput-input-29"
         onBlur={[Function]}
         onClick={[Function]}
         onFocus={[Function]}
@@ -413,7 +413,7 @@ exports[`<MultiSelectField /> renders with value 1`] = `
       />
       <svg
         aria-hidden="true"
-        className="MuiSvgIcon-root-37 MuiSelect-icon-22"
+        className="MuiSvgIcon-root-34 MuiSelect-icon-20"
         color={undefined}
         focusable="false"
         viewBox="0 0 24 24"
@@ -434,22 +434,22 @@ exports[`<MultiSelectField /> renders with value, label and hint 1`] = `
   onFocus={[Function]}
 >
   <label
-    className="MuiFormLabel-root-12 MuiInputLabel-root-6 MuiInputLabel-formControl-7 MuiInputLabel-animated-10 MuiInputLabel-shrink-9"
+    className="MuiFormLabel-root-11 MuiInputLabel-root-6 MuiInputLabel-formControl-7 MuiInputLabel-animated-10 MuiInputLabel-shrink-9"
     data-shrink={true}
   >
     Lorem
   </label>
   <div
-    className="MuiInput-root-23 MuiInput-fullWidth-30 MuiInput-formControl-24 MuiInput-underline-27"
+    className="MuiInput-root-21 MuiInput-fullWidth-28 MuiInput-formControl-22 MuiInput-underline-25"
   >
     <div
-      className="MuiSelect-root-18"
+      className="MuiSelect-root-16"
     >
       <div
         aria-haspopup="true"
         aria-owns={null}
         aria-pressed="false"
-        className="MuiSelect-select-19 MuiSelect-selectMenu-20 MuiInput-input-31"
+        className="MuiSelect-select-17 MuiSelect-selectMenu-18 MuiInput-input-29"
         onBlur={[Function]}
         onClick={[Function]}
         onFocus={[Function]}
@@ -478,7 +478,7 @@ exports[`<MultiSelectField /> renders with value, label and hint 1`] = `
       />
       <svg
         aria-hidden="true"
-        className="MuiSvgIcon-root-37 MuiSelect-icon-22"
+        className="MuiSvgIcon-root-34 MuiSelect-icon-20"
         color={undefined}
         focusable="false"
         viewBox="0 0 24 24"
@@ -490,7 +490,7 @@ exports[`<MultiSelectField /> renders with value, label and hint 1`] = `
     </div>
   </div>
   <p
-    className="MuiFormHelperText-root-47"
+    className="MuiFormHelperText-root-44"
   >
     Ipsum
   </p>

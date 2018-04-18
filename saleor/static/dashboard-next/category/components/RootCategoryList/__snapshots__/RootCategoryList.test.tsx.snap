@@ -2,21 +2,21 @@
 
 exports[`<CategorySubcategories /> renders when loading data 1`] = `
 <div
-  className="MuiPaper-root-1 MuiPaper-elevation2-5 MuiPaper-rounded-2"
+  className="MuiPaper-root-2 MuiPaper-elevation2-6 MuiPaper-rounded-3 MuiCard-root-1"
 >
   <div
-    className="Component-root-31"
+    className="Component-root-32"
   >
     <h2
-      className="MuiTypography-root-34 MuiTypography-title-40 Component-title-33"
+      className="MuiTypography-root-35 MuiTypography-title-41 Component-title-34"
     >
       Categories
     </h2>
     <div
-      className="Component-action-28"
+      className="Component-action-29"
     >
       <button
-        className="MuiButtonBase-root-64 MuiIconButton-root-58"
+        className="MuiButtonBase-root-65 MuiIconButton-root-59"
         disabled={false}
         onBlur={[Function]}
         onClick={[MockFunction]}
@@ -33,52 +33,56 @@ exports[`<CategorySubcategories /> renders when loading data 1`] = `
         type="button"
       >
         <span
-          className="MuiIconButton-label-63"
+          className="MuiIconButton-label-64"
         >
           <svg
             aria-hidden="true"
-            className="MuiSvgIcon-root-67"
+            className="MuiSvgIcon-root-68"
             color={undefined}
             focusable="false"
             viewBox="0 0 24 24"
           >
-            <path
-              d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"
-            />
+            <g>
+              <path
+                d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"
+              />
+            </g>
           </svg>
         </span>
         <span
-          className="MuiTouchRipple-root-73"
+          className="MuiTouchRipple-root-74"
         />
       </button>
     </div>
   </div>
   <ul
-    className="MuiList-root-80 MuiList-padding-81"
+    className="MuiList-root-81 MuiList-padding-82"
   >
     <li
-      className="MuiListItem-root-84 MuiListItem-default-87 MuiListItem-gutters-91"
+      className="MuiListItem-root-85 MuiListItem-default-88 MuiListItem-gutters-92"
       disabled={false}
     >
       <svg
         aria-hidden="true"
-        className="MuiSvgIcon-root-67 MuiListItemIcon-root-94"
+        className="MuiSvgIcon-root-68 MuiListItemIcon-root-95"
         color={undefined}
         focusable="false"
         viewBox="0 0 24 24"
       >
-        <path
-          d="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z"
-        />
+        <g>
+          <path
+            d="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z"
+          />
+        </g>
       </svg>
       <div
-        className="MuiListItemText-root-95"
+        className="MuiListItemText-root-96"
       >
         <h3
-          className="MuiTypography-root-34 MuiTypography-subheading-41 MuiListItemText-primary-98"
+          className="MuiTypography-root-35 MuiTypography-subheading-42 MuiListItemText-primary-99"
         >
           <span
-            className="Component-skeleton-106"
+            className="Component-skeleton-107"
             style={undefined}
           >
             ‌
@@ -92,21 +96,21 @@ exports[`<CategorySubcategories /> renders when loading data 1`] = `
 
 exports[`<CategorySubcategories /> renders with initial data 1`] = `
 <div
-  className="MuiPaper-root-1 MuiPaper-elevation2-5 MuiPaper-rounded-2"
+  className="MuiPaper-root-2 MuiPaper-elevation2-6 MuiPaper-rounded-3 MuiCard-root-1"
 >
   <div
-    className="Component-root-31"
+    className="Component-root-32"
   >
     <h2
-      className="MuiTypography-root-34 MuiTypography-title-40 Component-title-33"
+      className="MuiTypography-root-35 MuiTypography-title-41 Component-title-34"
     >
       Categories
     </h2>
     <div
-      className="Component-action-28"
+      className="Component-action-29"
     >
       <button
-        className="MuiButtonBase-root-64 MuiIconButton-root-58"
+        className="MuiButtonBase-root-65 MuiIconButton-root-59"
         disabled={false}
         onBlur={[Function]}
         onClick={[MockFunction]}
@@ -123,31 +127,33 @@ exports[`<CategorySubcategories /> renders with initial data 1`] = `
         type="button"
       >
         <span
-          className="MuiIconButton-label-63"
+          className="MuiIconButton-label-64"
         >
           <svg
             aria-hidden="true"
-            className="MuiSvgIcon-root-67"
+            className="MuiSvgIcon-root-68"
             color={undefined}
             focusable="false"
             viewBox="0 0 24 24"
           >
-            <path
-              d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"
-            />
+            <g>
+              <path
+                d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"
+              />
+            </g>
           </svg>
         </span>
         <span
-          className="MuiTouchRipple-root-73"
+          className="MuiTouchRipple-root-74"
         />
       </button>
     </div>
   </div>
   <ul
-    className="MuiList-root-80 MuiList-padding-81"
+    className="MuiList-root-81 MuiList-padding-82"
   >
     <div
-      className="MuiButtonBase-root-64 MuiListItem-root-84 MuiListItem-default-87 MuiListItem-gutters-91 MuiListItem-button-92"
+      className="MuiButtonBase-root-65 MuiListItem-root-85 MuiListItem-default-88 MuiListItem-gutters-92 MuiListItem-button-93"
       onBlur={[Function]}
       onClick={[Function]}
       onFocus={[Function]}
@@ -164,30 +170,32 @@ exports[`<CategorySubcategories /> renders with initial data 1`] = `
     >
       <svg
         aria-hidden="true"
-        className="MuiSvgIcon-root-67 MuiListItemIcon-root-94"
+        className="MuiSvgIcon-root-68 MuiListItemIcon-root-95"
         color={undefined}
         focusable="false"
         viewBox="0 0 24 24"
       >
-        <path
-          d="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z"
-        />
+        <g>
+          <path
+            d="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z"
+          />
+        </g>
       </svg>
       <div
-        className="MuiListItemText-root-95"
+        className="MuiListItemText-root-96"
       >
         <h3
-          className="MuiTypography-root-34 MuiTypography-subheading-41 MuiListItemText-primary-98"
+          className="MuiTypography-root-35 MuiTypography-subheading-42 MuiListItemText-primary-99"
         >
           Lorem ipsum dolor
         </h3>
       </div>
       <span
-        className="MuiTouchRipple-root-73"
+        className="MuiTouchRipple-root-74"
       />
     </div>
     <div
-      className="MuiButtonBase-root-64 MuiListItem-root-84 MuiListItem-default-87 MuiListItem-gutters-91 MuiListItem-button-92"
+      className="MuiButtonBase-root-65 MuiListItem-root-85 MuiListItem-default-88 MuiListItem-gutters-92 MuiListItem-button-93"
       onBlur={[Function]}
       onClick={[Function]}
       onFocus={[Function]}
@@ -204,26 +212,28 @@ exports[`<CategorySubcategories /> renders with initial data 1`] = `
     >
       <svg
         aria-hidden="true"
-        className="MuiSvgIcon-root-67 MuiListItemIcon-root-94"
+        className="MuiSvgIcon-root-68 MuiListItemIcon-root-95"
         color={undefined}
         focusable="false"
         viewBox="0 0 24 24"
       >
-        <path
-          d="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z"
-        />
+        <g>
+          <path
+            d="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z"
+          />
+        </g>
       </svg>
       <div
-        className="MuiListItemText-root-95"
+        className="MuiListItemText-root-96"
       >
         <h3
-          className="MuiTypography-root-34 MuiTypography-subheading-41 MuiListItemText-primary-98"
+          className="MuiTypography-root-35 MuiTypography-subheading-42 MuiListItemText-primary-99"
         >
           Mauris vehicula tortor vulputate
         </h3>
       </div>
       <span
-        className="MuiTouchRipple-root-73"
+        className="MuiTouchRipple-root-74"
       />
     </div>
   </ul>
@@ -232,21 +242,21 @@ exports[`<CategorySubcategories /> renders with initial data 1`] = `
 
 exports[`<CategorySubcategories /> renders without initial data 1`] = `
 <div
-  className="MuiPaper-root-1 MuiPaper-elevation2-5 MuiPaper-rounded-2"
+  className="MuiPaper-root-2 MuiPaper-elevation2-6 MuiPaper-rounded-3 MuiCard-root-1"
 >
   <div
-    className="Component-root-31"
+    className="Component-root-32"
   >
     <h2
-      className="MuiTypography-root-34 MuiTypography-title-40 Component-title-33"
+      className="MuiTypography-root-35 MuiTypography-title-41 Component-title-34"
     >
       Categories
     </h2>
     <div
-      className="Component-action-28"
+      className="Component-action-29"
     >
       <button
-        className="MuiButtonBase-root-64 MuiIconButton-root-58"
+        className="MuiButtonBase-root-65 MuiIconButton-root-59"
         disabled={false}
         onBlur={[Function]}
         onClick={[MockFunction]}
@@ -263,31 +273,33 @@ exports[`<CategorySubcategories /> renders without initial data 1`] = `
         type="button"
       >
         <span
-          className="MuiIconButton-label-63"
+          className="MuiIconButton-label-64"
         >
           <svg
             aria-hidden="true"
-            className="MuiSvgIcon-root-67"
+            className="MuiSvgIcon-root-68"
             color={undefined}
             focusable="false"
             viewBox="0 0 24 24"
           >
-            <path
-              d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"
-            />
+            <g>
+              <path
+                d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"
+              />
+            </g>
           </svg>
         </span>
         <span
-          className="MuiTouchRipple-root-73"
+          className="MuiTouchRipple-root-74"
         />
       </button>
     </div>
   </div>
   <ul
-    className="MuiList-root-80 MuiList-padding-81"
+    className="MuiList-root-81 MuiList-padding-82"
   >
     <li
-      className="MuiListSubheader-root-101 MuiListSubheader-sticky-105"
+      className="MuiListSubheader-root-102 MuiListSubheader-sticky-106"
     >
       No categories found
     </li>
