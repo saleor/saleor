@@ -2,7 +2,7 @@
 
 {% load i18n %}
 {% load prices_i18n %}
-{% load price_ranges %}
+{% load taxed_prices %}
 {% load staticfiles %}
 {% load status %}
 {% load utils %}
@@ -100,7 +100,13 @@
                   <th>{% trans "SKU" %}</th>
                   <th>{% trans "Name" %}</th>
                   <th>{% trans "Status" %}</th>
-                  <th class="right-align">{% trans "Price" %}</th>
+                  <th class="right-align">
+                    {% if request.site.settings.include_taxes_in_prices %}
+                      {% trans "Price (gross)" %}
+                    {% else %}
+                      {% trans "Price (net)" %}
+                    {% endif %}
+                  </th>
                   <th class="right-align">{% trans "Gross margin" %}</th>
                   {% if perms.product.edit_product %}
                     <th></th>
@@ -113,7 +119,12 @@
                     <td>{{ variant.sku }}</td>
                     <td>{{ variant }}</td>
                     <td class="wide">{% render_variant_availability_status variant %}</td>
-                    <td class="right-align">{{ variant.get_price.gross|amount }}</td>
+                    <td class="right-align">
+                      {% with request.site.settings.include_taxes_in_prices as display_gross_prices %}
+                        {% price_to_display variant.get_price display_gross_prices as price %}
+                        {{ price|amount }}
+                      {% endwith %}
+                    </td>
                     <td class="right-align">
                       {% margins_for_variant variant=variant as margins %}
                       {% if margins|length > 1 %}
@@ -162,31 +173,20 @@
                   </div>
                 </div>
                 <div class="data-table-container">
-                  <table class="data-table bordered highlight">
-                    <tbody>
-                      <tr>
-                        <td>
-                          {% trans "Sale price" context "Product field" %}
-                        </td>
-                        <td class="right-align">
-                          {% price_to_display sale_price.start as start_price %}
-                          {% price_to_display sale_price.stop as stop_price %}
-
-                          {% if start_price == stop_price %}
-                            {{ start_price|amount }}
-                          {% else %}
-                            {{ start_price|amount }} - {{ stop_price|amount }}
-                          {% endif %}
-                        </td>
-                      </tr>
-                      {% if discounted_price != sale_price %}
+                  {% with request.site.settings.include_taxes_in_prices as display_gross_prices %}
+                    <table class="data-table bordered highlight">
+                      <tbody>
                         <tr>
                           <td>
-                            {% trans "Discounted price" context "Product field" %}
+                            {% if display_gross_prices %}
+                              {% trans "Sale price (gross)" context "Product field" %}
+                            {% else %}
+                              {% trans "Sale price (net)" context "Product field" %}
+                            {% endif %}
                           </td>
                           <td class="right-align">
-                            {% price_to_display discounted_price.start as start_price %}
-                            {% price_to_display discounted_price.stop as stop_price %}
+                            {% price_to_display sale_price.start display_gross_prices as start_price %}
+                            {% price_to_display sale_price.stop display_gross_prices as stop_price %}
 
                             {% if start_price == stop_price %}
                               {{ start_price|amount }}
@@ -195,40 +195,61 @@
                             {% endif %}
                           </td>
                         </tr>
-                      {% endif %}
-                      <tr>
-                        <td>
-                          {% trans "Purchase cost" context "Product field" %}
-                        </td>
-                        <td class="right-align">
-                          {% price_to_display purchase_cost.start as start_price %}
-                          {% price_to_display purchase_cost.stop as stop_price %}
+                        {% if discounted_price != sale_price %}
+                          <tr>
+                            <td>
+                              {% if display_gross_prices %}
+                                {% trans "Discounted price (gross)" context "Product field" %}
+                              {% else %}
+                                {% trans "Discounted price (net)" context "Product field" %}
+                              {% endif %}
+                            </td>
+                            <td class="right-align">
+                              {% price_to_display discounted_price.start display_gross_prices as start_price %}
+                              {% price_to_display discounted_price.stop display_gross_prices as stop_price %}
 
-                          {% if start_price == stop_price %}
-                            {{ start_price|amount }}
-                          {% else %}
-                            {{ start_price|amount }} - {{ stop_price|amount }}
-                          {% endif %}
-                        </td>
-                      </tr>
-                      <tr>
-                        <td>
-                          {% trans "Gross margin" context "Product field" %}
-                        </td>
-                        <td class="right-align">
-                          {% if gross_margin %}
-                            {% if gross_margin.0 == gross_margin.1 %}
-                              {{ gross_margin.0 }}%
+                              {% if start_price == stop_price %}
+                                {{ start_price|amount }}
+                              {% else %}
+                                {{ start_price|amount }} - {{ stop_price|amount }}
+                              {% endif %}
+                            </td>
+                          </tr>
+                        {% endif %}
+                        <tr>
+                          <td>
+                            {% trans "Purchase cost" context "Product field" %}
+                          </td>
+                          <td class="right-align">
+                            {% price_to_display purchase_cost.start display_gross_prices as start_price %}
+                            {% price_to_display purchase_cost.stop display_gross_prices as stop_price %}
+
+                            {% if start_price == stop_price %}
+                              {{ start_price|amount }}
                             {% else %}
-                              {{ gross_margin.0 }}% - {{ gross_margin.1 }}%
+                              {{ start_price|amount }} - {{ stop_price|amount }}
                             {% endif %}
-                          {% else %}
-                            -
-                          {% endif %}
-                        </td>
-                      </tr>
-                    </tbody>
-                  </table>
+                          </td>
+                        </tr>
+                        <tr>
+                          <td>
+                            {% trans "Gross margin" context "Product field" %}
+                          </td>
+                          <td class="right-align">
+                            {% if gross_margin %}
+                              {% if gross_margin.0 == gross_margin.1 %}
+                                {{ gross_margin.0 }}%
+                              {% else %}
+                                {{ gross_margin.0 }}% - {{ gross_margin.1 }}%
+                              {% endif %}
+                            {% else %}
+                              -
+                            {% endif %}
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  {% endwith %}
                 </div>
               </div>
             </div>

@@ -2,7 +2,7 @@
 {% load i18n %}
 {% load prices_i18n %}
 {% load staticfiles %}
-{% load price_to_display from price_ranges %}
+{% load price_to_display from taxed_prices %}
 {% load get_thumbnail from product_images %}
 
 {% block title %}{% trans "Your cart" context "Cart page title" %} — {{ block.super }}{% endblock %}

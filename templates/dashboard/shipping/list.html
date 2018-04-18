@@ -4,6 +4,7 @@
 {% load status %}
 {% load utils %}
 {% load static %}
+{% load taxed_prices %}
 
 {% block title %}
   {% trans "Shipping methods" context "Dashboard shipping methods list" %} - {{ block.super }}
@@ -44,6 +45,9 @@
                   {% sorting_header 'name' label is_wide=True %}
 
                   <th>
+                    {% trans "Price range (debug)" context "Shipping methods table header" %}
+                  </th>
+                  <th>
                     {% trans "Price range" context "Shipping methods table header" %}
                   </th>
                   <th class="wide">
@@ -58,12 +62,34 @@
                       {{ method }}
                     </td>
                     <td>
-                      {% if not method.price_range %}
+                      {% if not method.get_price_range %}
                         -
-                      {% elif method.price_range.start == method.price_range.stop %}
-                        {{ method.price_range.start.gross|amount:'html' }}
                       {% else %}
-                        {{ method.price_range.start.gross|amount:'html' }}&ndash;{{ method.price_range.stop.gross|amount:'html' }}
+                        {% with request.site.settings.include_taxes_in_prices as display_gross_prices %}
+                          {% shipping_price_range method request.taxes as price_range %}
+
+                          ({{ price_range.start.net|amount:'html' }} + {{ price_range.start.tax|amount:'html' }} VAT)
+                          {% if price_range.start != price_range.stop %}
+                            - ({{ price_range.stop.net|amount:'html' }} + {{ price_range.stop.tax|amount:'html' }} VAT)
+                          {% endif %}
+                        {% endwith %}
+                      {% endif %}
+                    </td>
+                    <td>
+                      {% if not method.get_price_range %}
+                        -
+                      {% else %}
+                        {% with request.site.settings.include_taxes_in_prices as display_gross_prices %}
+                          {% shipping_price_range method request.taxes as price_range %}
+                          {% price_to_display price_range.start display_gross_prices as start_price %}
+                          {% price_to_display price_range.stop display_gross_prices as stop_price %}
+
+                          {% if start_price == stop_price %}
+                            {{ start_price|amount }}
+                          {% else %}
+                            {{ start_price|amount }} - {{ stop_price|amount }}
+                          {% endif %}
+                        {% endwith %}
                       {% endif %}
                     </td>
                     <td>
