@@ -2,26 +2,26 @@
 
 exports[`<FilterCard /> renders properly 1`] = `
 <div
-  className="MuiPaper-root-1 MuiPaper-elevation2-5 MuiPaper-rounded-2"
+  className="MuiPaper-root-2 MuiPaper-elevation2-6 MuiPaper-rounded-3 MuiCard-root-1"
 >
   <form>
     <div
-      className="MuiCardHeader-root-28"
+      className="MuiCardHeader-root-29"
     >
       <div
-        className="MuiCardHeader-content-31"
+        className="MuiCardHeader-content-32"
       >
         <span
-          className="MuiTypography-root-34 MuiTypography-headline-39 MuiCardHeader-title-32"
+          className="MuiTypography-root-35 MuiTypography-headline-40 MuiCardHeader-title-33"
         >
           Filters
         </span>
       </div>
       <div
-        className="MuiCardHeader-action-30"
+        className="MuiCardHeader-action-31"
       >
         <button
-          className="MuiButtonBase-root-64 MuiIconButton-root-58"
+          className="MuiButtonBase-root-65 MuiIconButton-root-59"
           disabled={false}
           onBlur={[Function]}
           onClick={[MockFunction]}
@@ -38,28 +38,30 @@ exports[`<FilterCard /> renders properly 1`] = `
           type="button"
         >
           <span
-            className="MuiIconButton-label-63"
+            className="MuiIconButton-label-64"
           >
             <svg
               aria-hidden="true"
-              className="MuiSvgIcon-root-67"
+              className="MuiSvgIcon-root-68"
               color={undefined}
               focusable="false"
               viewBox="0 0 24 24"
             >
-              <path
-                d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"
-              />
+              <g>
+                <path
+                  d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"
+                />
+              </g>
             </svg>
           </span>
           <span
-            className="MuiTouchRipple-root-73"
+            className="MuiTouchRipple-root-74"
           />
         </button>
       </div>
     </div>
     <div
-      className="MuiCardContent-root-80"
+      className="MuiCardContent-root-81"
     />
   </form>
 </div>

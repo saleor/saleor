@@ -5,10 +5,10 @@ exports[`<PageBaseForm /> renders errors 1`] = `
   className="MuiCardContent-root-3"
 >
   <div
-    className="MuiGrid-typeContainer-4 MuiGrid-spacing-xs-16-26"
+    className="MuiGrid-container-4 MuiGrid-spacing-xs-16-26"
   >
     <div
-      className="MuiGrid-typeItem-5 MuiGrid-grid-xs-12-41 MuiGrid-grid-md-9-64"
+      className="MuiGrid-item-5 MuiGrid-grid-xs-12-41 MuiGrid-grid-md-9-64"
     >
       <div
         aria-describedby={undefined}
@@ -17,21 +17,21 @@ exports[`<PageBaseForm /> renders errors 1`] = `
         onFocus={[Function]}
       >
         <label
-          className="MuiFormLabel-root-104 MuiFormLabel-error-107 MuiInputLabel-root-98 MuiInputLabel-formControl-99 MuiInputLabel-animated-102 MuiInputLabel-shrink-101"
+          className="MuiFormLabel-root-103 MuiFormLabel-error-106 MuiInputLabel-root-98 MuiInputLabel-formControl-99 MuiInputLabel-animated-102 MuiInputLabel-shrink-101"
           data-shrink={true}
           htmlFor={undefined}
         >
           Title
         </label>
         <div
-          className="MuiInput-root-110 MuiInput-error-115 MuiInput-fullWidth-117 MuiInput-formControl-111 MuiInput-underline-114"
+          className="MuiInput-root-108 MuiInput-error-113 MuiInput-fullWidth-115 MuiInput-formControl-109 MuiInput-underline-112"
         >
           <input
             aria-invalid={true}
             aria-required={false}
             autoComplete={undefined}
             autoFocus={true}
-            className="MuiInput-input-118"
+            className="MuiInput-input-116"
             defaultValue={undefined}
             disabled={false}
             id={undefined}
@@ -50,14 +50,14 @@ exports[`<PageBaseForm /> renders errors 1`] = `
           />
         </div>
         <p
-          className="MuiFormHelperText-root-128 MuiFormHelperText-error-129"
+          className="MuiFormHelperText-root-125 MuiFormHelperText-error-126"
           id={undefined}
         >
           To pole jest wymagane.
         </p>
       </div>
       <div
-        className="Component-spacer-124"
+        className="Component-spacer-121"
       />
       <div
         className="MuiFormControl-root-94"
@@ -70,16 +70,16 @@ exports[`<PageBaseForm /> renders errors 1`] = `
         }
       >
         <label
-          className="MuiFormLabel-root-104 MuiFormLabel-error-107 MuiInputLabel-root-98 MuiInputLabel-formControl-99 MuiInputLabel-animated-102 MuiInputLabel-shrink-101"
+          className="MuiFormLabel-root-103 MuiFormLabel-error-106 MuiInputLabel-root-98 MuiInputLabel-formControl-99 MuiInputLabel-animated-102 MuiInputLabel-shrink-101"
           data-shrink={true}
         >
           Content
         </label>
         <div
-          className="MuiInput-root-110 MuiInput-error-115 MuiInput-fullWidth-117 MuiInput-formControl-111 MuiInput-multiline-116 MuiInput-underline-114"
+          className="MuiInput-root-108 MuiInput-error-113 MuiInput-fullWidth-115 MuiInput-formControl-109 MuiInput-multiline-114 MuiInput-underline-112"
         >
           <div
-            className="MuiTextarea-root-125"
+            className="MuiTextarea-root-122"
             style={
               Object {
                 "height": 19,
@@ -88,7 +88,7 @@ exports[`<PageBaseForm /> renders errors 1`] = `
           >
             <textarea
               aria-hidden="true"
-              className="MuiTextarea-shadow-127 MuiTextarea-textarea-126"
+              className="MuiTextarea-shadow-124 MuiTextarea-textarea-123"
               readOnly={true}
               rows="1"
               tabIndex={-1}
@@ -96,7 +96,7 @@ exports[`<PageBaseForm /> renders errors 1`] = `
             />
             <textarea
               aria-hidden="true"
-              className="MuiTextarea-shadow-127 MuiTextarea-textarea-126"
+              className="MuiTextarea-shadow-124 MuiTextarea-textarea-123"
               defaultValue={undefined}
               readOnly={true}
               rows={1}
@@ -108,7 +108,7 @@ exports[`<PageBaseForm /> renders errors 1`] = `
               aria-required={false}
               autoComplete={undefined}
               autoFocus={undefined}
-              className="MuiTextarea-textarea-126 MuiInput-input-118 MuiInput-inputMultiline-121"
+              className="MuiTextarea-textarea-123 MuiInput-input-116 MuiInput-inputMultiline-118"
               defaultValue={undefined}
               disabled={false}
               id={undefined}
@@ -128,14 +128,14 @@ exports[`<PageBaseForm /> renders errors 1`] = `
           </div>
         </div>
         <p
-          className="MuiFormHelperText-root-128 MuiFormHelperText-error-129"
+          className="MuiFormHelperText-root-125 MuiFormHelperText-error-126"
         >
           To pole jest wymagane.
         </p>
       </div>
     </div>
     <div
-      className="MuiGrid-typeItem-5 MuiGrid-grid-xs-12-41 MuiGrid-grid-md-3-58"
+      className="MuiGrid-item-5 MuiGrid-grid-xs-12-41 MuiGrid-grid-md-3-58"
     >
       <div
         aria-describedby={undefined}
@@ -144,21 +144,21 @@ exports[`<PageBaseForm /> renders errors 1`] = `
         onFocus={[Function]}
       >
         <label
-          className="MuiFormLabel-root-104 MuiFormLabel-error-107 MuiInputLabel-root-98 MuiInputLabel-formControl-99 MuiInputLabel-animated-102 MuiInputLabel-shrink-101"
+          className="MuiFormLabel-root-103 MuiFormLabel-error-106 MuiInputLabel-root-98 MuiInputLabel-formControl-99 MuiInputLabel-animated-102 MuiInputLabel-shrink-101"
           data-shrink={true}
           htmlFor={undefined}
         >
           Slug
         </label>
         <div
-          className="MuiInput-root-110 MuiInput-error-115 MuiInput-fullWidth-117 MuiInput-formControl-111 MuiInput-underline-114"
+          className="MuiInput-root-108 MuiInput-error-113 MuiInput-fullWidth-115 MuiInput-formControl-109 MuiInput-underline-112"
         >
           <input
             aria-invalid={true}
             aria-required={false}
             autoComplete={undefined}
             autoFocus={undefined}
-            className="MuiInput-input-118"
+            className="MuiInput-input-116"
             defaultValue={undefined}
             disabled={false}
             id={undefined}
@@ -177,14 +177,14 @@ exports[`<PageBaseForm /> renders errors 1`] = `
           />
         </div>
         <p
-          className="MuiFormHelperText-root-128 MuiFormHelperText-error-129"
+          className="MuiFormHelperText-root-125 MuiFormHelperText-error-126"
           id={undefined}
         >
           To pole jest wymagane.
         </p>
       </div>
       <div
-        className="Component-spacer-124"
+        className="Component-spacer-121"
       />
       <div
         aria-describedby={undefined}
@@ -193,21 +193,21 @@ exports[`<PageBaseForm /> renders errors 1`] = `
         onFocus={[Function]}
       >
         <label
-          className="MuiFormLabel-root-104 MuiInputLabel-root-98 MuiInputLabel-formControl-99 MuiInputLabel-animated-102 MuiInputLabel-shrink-101"
+          className="MuiFormLabel-root-103 MuiInputLabel-root-98 MuiInputLabel-formControl-99 MuiInputLabel-animated-102 MuiInputLabel-shrink-101"
           data-shrink={true}
           htmlFor={undefined}
         >
           Available on
         </label>
         <div
-          className="MuiInput-root-110 MuiInput-formControl-111 MuiInput-underline-114"
+          className="MuiInput-root-108 MuiInput-formControl-109 MuiInput-underline-112"
         >
           <input
             aria-invalid={false}
             aria-required={false}
             autoComplete={undefined}
             autoFocus={undefined}
-            className="MuiInput-input-118 MuiInput-inputType-122"
+            className="MuiInput-input-116 MuiInput-inputType-119"
             defaultValue={undefined}
             disabled={false}
             id={undefined}
@@ -228,16 +228,16 @@ exports[`<PageBaseForm /> renders errors 1`] = `
         
       </div>
       <div
-        className="Component-spacer-124"
+        className="Component-spacer-121"
       />
       <div
-        className="Component-spacer-124"
+        className="Component-spacer-121"
       />
       <label
-        className="MuiFormControlLabel-root-132"
+        className="MuiFormControlLabel-root-129"
       >
         <span
-          className="MuiButtonBase-root-151 MuiIconButton-root-145 MuiSwitchBase-root-140 MuiSwitchBase-default-142 MuiCheckbox-default-135 MuiSwitchBase-checked-143 MuiCheckbox-checked-136 MuiCheckbox-checkedSecondary-138"
+          className="MuiButtonBase-root-147 MuiIconButton-root-141 MuiSwitchBase-root-137 MuiCheckbox-root-132 MuiCheckbox-colorSecondary-136 MuiSwitchBase-checked-138 MuiCheckbox-checked-133"
           onBlur={[Function]}
           onFocus={[Function]}
           onKeyDown={[Function]}
@@ -252,11 +252,11 @@ exports[`<PageBaseForm /> renders errors 1`] = `
           tabIndex={null}
         >
           <span
-            className="MuiIconButton-label-150"
+            className="MuiIconButton-label-146"
           >
             <svg
               aria-hidden="true"
-              className="MuiSvgIcon-root-154"
+              className="MuiSvgIcon-root-150"
               color={undefined}
               focusable="false"
               viewBox="0 0 24 24"
@@ -267,7 +267,7 @@ exports[`<PageBaseForm /> renders errors 1`] = `
             </svg>
             <input
               checked={true}
-              className="MuiSwitchBase-input-141"
+              className="MuiSwitchBase-input-140"
               disabled={undefined}
               id={undefined}
               name="isVisible"
@@ -278,11 +278,11 @@ exports[`<PageBaseForm /> renders errors 1`] = `
             />
           </span>
           <span
-            className="MuiTouchRipple-root-160"
+            className="MuiTouchRipple-root-156"
           />
         </span>
         <span
-          className="MuiTypography-root-167 MuiTypography-body1-176 MuiFormControlLabel-label-134"
+          className="MuiTypography-root-163 MuiTypography-body1-172 MuiFormControlLabel-label-131"
         >
           Published
         </span>
@@ -297,10 +297,10 @@ exports[`<PageBaseForm /> renders with 'created' property 1`] = `
   className="MuiCardContent-root-3"
 >
   <div
-    className="MuiGrid-typeContainer-4 MuiGrid-spacing-xs-16-26"
+    className="MuiGrid-container-4 MuiGrid-spacing-xs-16-26"
   >
     <div
-      className="MuiGrid-typeItem-5 MuiGrid-grid-xs-12-41 MuiGrid-grid-md-9-64"
+      className="MuiGrid-item-5 MuiGrid-grid-xs-12-41 MuiGrid-grid-md-9-64"
     >
       <div
         aria-describedby={undefined}
@@ -309,21 +309,21 @@ exports[`<PageBaseForm /> renders with 'created' property 1`] = `
         onFocus={[Function]}
       >
         <label
-          className="MuiFormLabel-root-104 MuiInputLabel-root-98 MuiInputLabel-formControl-99 MuiInputLabel-animated-102 MuiInputLabel-shrink-101"
+          className="MuiFormLabel-root-103 MuiInputLabel-root-98 MuiInputLabel-formControl-99 MuiInputLabel-animated-102 MuiInputLabel-shrink-101"
           data-shrink={true}
           htmlFor={undefined}
         >
           Title
         </label>
         <div
-          className="MuiInput-root-110 MuiInput-fullWidth-117 MuiInput-formControl-111 MuiInput-underline-114"
+          className="MuiInput-root-108 MuiInput-fullWidth-115 MuiInput-formControl-109 MuiInput-underline-112"
         >
           <input
             aria-invalid={false}
             aria-required={false}
             autoComplete={undefined}
             autoFocus={true}
-            className="MuiInput-input-118"
+            className="MuiInput-input-116"
             defaultValue={undefined}
             disabled={false}
             id={undefined}
@@ -344,7 +344,7 @@ exports[`<PageBaseForm /> renders with 'created' property 1`] = `
         
       </div>
       <div
-        className="Component-spacer-124"
+        className="Component-spacer-121"
       />
       <div
         className="MuiFormControl-root-94"
@@ -357,16 +357,16 @@ exports[`<PageBaseForm /> renders with 'created' property 1`] = `
         }
       >
         <label
-          className="MuiFormLabel-root-104 MuiInputLabel-root-98 MuiInputLabel-formControl-99 MuiInputLabel-animated-102 MuiInputLabel-shrink-101"
+          className="MuiFormLabel-root-103 MuiInputLabel-root-98 MuiInputLabel-formControl-99 MuiInputLabel-animated-102 MuiInputLabel-shrink-101"
           data-shrink={true}
         >
           Content
         </label>
         <div
-          className="MuiInput-root-110 MuiInput-fullWidth-117 MuiInput-formControl-111 MuiInput-multiline-116 MuiInput-underline-114"
+          className="MuiInput-root-108 MuiInput-fullWidth-115 MuiInput-formControl-109 MuiInput-multiline-114 MuiInput-underline-112"
         >
           <div
-            className="MuiTextarea-root-125"
+            className="MuiTextarea-root-122"
             style={
               Object {
                 "height": 19,
@@ -375,7 +375,7 @@ exports[`<PageBaseForm /> renders with 'created' property 1`] = `
           >
             <textarea
               aria-hidden="true"
-              className="MuiTextarea-shadow-127 MuiTextarea-textarea-126"
+              className="MuiTextarea-shadow-124 MuiTextarea-textarea-123"
               readOnly={true}
               rows="1"
               tabIndex={-1}
@@ -383,7 +383,7 @@ exports[`<PageBaseForm /> renders with 'created' property 1`] = `
             />
             <textarea
               aria-hidden="true"
-              className="MuiTextarea-shadow-127 MuiTextarea-textarea-126"
+              className="MuiTextarea-shadow-124 MuiTextarea-textarea-123"
               defaultValue={undefined}
               readOnly={true}
               rows={1}
@@ -395,7 +395,7 @@ exports[`<PageBaseForm /> renders with 'created' property 1`] = `
               aria-required={false}
               autoComplete={undefined}
               autoFocus={undefined}
-              className="MuiTextarea-textarea-126 MuiInput-input-118 MuiInput-inputMultiline-121"
+              className="MuiTextarea-textarea-123 MuiInput-input-116 MuiInput-inputMultiline-118"
               defaultValue={undefined}
               disabled={false}
               id={undefined}
@@ -415,14 +415,14 @@ exports[`<PageBaseForm /> renders with 'created' property 1`] = `
           </div>
         </div>
         <p
-          className="MuiFormHelperText-root-128"
+          className="MuiFormHelperText-root-125"
         >
           Select text to enable text-formatting tools.
         </p>
       </div>
     </div>
     <div
-      className="MuiGrid-typeItem-5 MuiGrid-grid-xs-12-41 MuiGrid-grid-md-3-58"
+      className="MuiGrid-item-5 MuiGrid-grid-xs-12-41 MuiGrid-grid-md-3-58"
     >
       <div
         aria-describedby={undefined}
@@ -431,21 +431,21 @@ exports[`<PageBaseForm /> renders with 'created' property 1`] = `
         onFocus={[Function]}
       >
         <label
-          className="MuiFormLabel-root-104 MuiInputLabel-root-98 MuiInputLabel-formControl-99 MuiInputLabel-animated-102 MuiInputLabel-shrink-101"
+          className="MuiFormLabel-root-103 MuiInputLabel-root-98 MuiInputLabel-formControl-99 MuiInputLabel-animated-102 MuiInputLabel-shrink-101"
           data-shrink={true}
           htmlFor={undefined}
         >
           Slug
         </label>
         <div
-          className="MuiInput-root-110 MuiInput-fullWidth-117 MuiInput-formControl-111 MuiInput-underline-114"
+          className="MuiInput-root-108 MuiInput-fullWidth-115 MuiInput-formControl-109 MuiInput-underline-112"
         >
           <input
             aria-invalid={false}
             aria-required={false}
             autoComplete={undefined}
             autoFocus={undefined}
-            className="MuiInput-input-118"
+            className="MuiInput-input-116"
             defaultValue={undefined}
             disabled={false}
             id={undefined}
@@ -464,14 +464,14 @@ exports[`<PageBaseForm /> renders with 'created' property 1`] = `
           />
         </div>
         <p
-          className="MuiFormHelperText-root-128"
+          className="MuiFormHelperText-root-125"
           id={undefined}
         >
           Slug is being used to create page URL
         </p>
       </div>
       <div
-        className="Component-spacer-124"
+        className="Component-spacer-121"
       />
       <div
         aria-describedby={undefined}
@@ -480,21 +480,21 @@ exports[`<PageBaseForm /> renders with 'created' property 1`] = `
         onFocus={[Function]}
       >
         <label
-          className="MuiFormLabel-root-104 MuiInputLabel-root-98 MuiInputLabel-formControl-99 MuiInputLabel-animated-102 MuiInputLabel-shrink-101"
+          className="MuiFormLabel-root-103 MuiInputLabel-root-98 MuiInputLabel-formControl-99 MuiInputLabel-animated-102 MuiInputLabel-shrink-101"
           data-shrink={true}
           htmlFor={undefined}
         >
           Available on
         </label>
         <div
-          className="MuiInput-root-110 MuiInput-formControl-111 MuiInput-underline-114"
+          className="MuiInput-root-108 MuiInput-formControl-109 MuiInput-underline-112"
         >
           <input
             aria-invalid={false}
             aria-required={false}
             autoComplete={undefined}
             autoFocus={undefined}
-            className="MuiInput-input-118 MuiInput-inputType-122"
+            className="MuiInput-input-116 MuiInput-inputType-119"
             defaultValue={undefined}
             disabled={false}
             id={undefined}
@@ -515,22 +515,22 @@ exports[`<PageBaseForm /> renders with 'created' property 1`] = `
         
       </div>
       <div
-        className="Component-spacer-124"
+        className="Component-spacer-121"
       />
       <p
-        className="MuiTypography-root-167 MuiTypography-body1-176"
+        className="MuiTypography-root-163 MuiTypography-body1-172"
       >
         Created at: 
         2018-03-20T16:39:08.850105+00:00
       </p>
       <div
-        className="Component-spacer-124"
+        className="Component-spacer-121"
       />
       <label
-        className="MuiFormControlLabel-root-132"
+        className="MuiFormControlLabel-root-129"
       >
         <span
-          className="MuiButtonBase-root-151 MuiIconButton-root-145 MuiSwitchBase-root-140 MuiSwitchBase-default-142 MuiCheckbox-default-135 MuiSwitchBase-checked-143 MuiCheckbox-checked-136 MuiCheckbox-checkedSecondary-138"
+          className="MuiButtonBase-root-147 MuiIconButton-root-141 MuiSwitchBase-root-137 MuiCheckbox-root-132 MuiCheckbox-colorSecondary-136 MuiSwitchBase-checked-138 MuiCheckbox-checked-133"
           onBlur={[Function]}
           onFocus={[Function]}
           onKeyDown={[Function]}
@@ -545,11 +545,11 @@ exports[`<PageBaseForm /> renders with 'created' property 1`] = `
           tabIndex={null}
         >
           <span
-            className="MuiIconButton-label-150"
+            className="MuiIconButton-label-146"
           >
             <svg
               aria-hidden="true"
-              className="MuiSvgIcon-root-154"
+              className="MuiSvgIcon-root-150"
               color={undefined}
               focusable="false"
               viewBox="0 0 24 24"
@@ -560,7 +560,7 @@ exports[`<PageBaseForm /> renders with 'created' property 1`] = `
             </svg>
             <input
               checked={true}
-              className="MuiSwitchBase-input-141"
+              className="MuiSwitchBase-input-140"
               disabled={undefined}
               id={undefined}
               name="isVisible"
@@ -571,11 +571,11 @@ exports[`<PageBaseForm /> renders with 'created' property 1`] = `
             />
           </span>
           <span
-            className="MuiTouchRipple-root-160"
+            className="MuiTouchRipple-root-156"
           />
         </span>
         <span
-          className="MuiTypography-root-167 MuiTypography-body1-176 MuiFormControlLabel-label-134"
+          className="MuiTypography-root-163 MuiTypography-body1-172 MuiFormControlLabel-label-131"
         >
           Published
         </span>
@@ -590,10 +590,10 @@ exports[`<PageBaseForm /> renders without 'created' property 1`] = `
   className="MuiCardContent-root-3"
 >
   <div
-    className="MuiGrid-typeContainer-4 MuiGrid-spacing-xs-16-26"
+    className="MuiGrid-container-4 MuiGrid-spacing-xs-16-26"
   >
     <div
-      className="MuiGrid-typeItem-5 MuiGrid-grid-xs-12-41 MuiGrid-grid-md-9-64"
+      className="MuiGrid-item-5 MuiGrid-grid-xs-12-41 MuiGrid-grid-md-9-64"
     >
       <div
         aria-describedby={undefined}
@@ -602,21 +602,21 @@ exports[`<PageBaseForm /> renders without 'created' property 1`] = `
         onFocus={[Function]}
       >
         <label
-          className="MuiFormLabel-root-104 MuiInputLabel-root-98 MuiInputLabel-formControl-99 MuiInputLabel-animated-102 MuiInputLabel-shrink-101"
+          className="MuiFormLabel-root-103 MuiInputLabel-root-98 MuiInputLabel-formControl-99 MuiInputLabel-animated-102 MuiInputLabel-shrink-101"
           data-shrink={true}
           htmlFor={undefined}
         >
           Title
         </label>
         <div
-          className="MuiInput-root-110 MuiInput-fullWidth-117 MuiInput-formControl-111 MuiInput-underline-114"
+          className="MuiInput-root-108 MuiInput-fullWidth-115 MuiInput-formControl-109 MuiInput-underline-112"
         >
           <input
             aria-invalid={false}
             aria-required={false}
             autoComplete={undefined}
             autoFocus={true}
-            className="MuiInput-input-118"
+            className="MuiInput-input-116"
             defaultValue={undefined}
             disabled={false}
             id={undefined}
@@ -637,7 +637,7 @@ exports[`<PageBaseForm /> renders without 'created' property 1`] = `
         
       </div>
       <div
-        className="Component-spacer-124"
+        className="Component-spacer-121"
       />
       <div
         className="MuiFormControl-root-94"
@@ -650,16 +650,16 @@ exports[`<PageBaseForm /> renders without 'created' property 1`] = `
         }
       >
         <label
-          className="MuiFormLabel-root-104 MuiInputLabel-root-98 MuiInputLabel-formControl-99 MuiInputLabel-animated-102 MuiInputLabel-shrink-101"
+          className="MuiFormLabel-root-103 MuiInputLabel-root-98 MuiInputLabel-formControl-99 MuiInputLabel-animated-102 MuiInputLabel-shrink-101"
           data-shrink={true}
         >
           Content
         </label>
         <div
-          className="MuiInput-root-110 MuiInput-fullWidth-117 MuiInput-formControl-111 MuiInput-multiline-116 MuiInput-underline-114"
+          className="MuiInput-root-108 MuiInput-fullWidth-115 MuiInput-formControl-109 MuiInput-multiline-114 MuiInput-underline-112"
         >
           <div
-            className="MuiTextarea-root-125"
+            className="MuiTextarea-root-122"
             style={
               Object {
                 "height": 19,
@@ -668,7 +668,7 @@ exports[`<PageBaseForm /> renders without 'created' property 1`] = `
           >
             <textarea
               aria-hidden="true"
-              className="MuiTextarea-shadow-127 MuiTextarea-textarea-126"
+              className="MuiTextarea-shadow-124 MuiTextarea-textarea-123"
               readOnly={true}
               rows="1"
               tabIndex={-1}
@@ -676,7 +676,7 @@ exports[`<PageBaseForm /> renders without 'created' property 1`] = `
             />
             <textarea
               aria-hidden="true"
-              className="MuiTextarea-shadow-127 MuiTextarea-textarea-126"
+              className="MuiTextarea-shadow-124 MuiTextarea-textarea-123"
               defaultValue={undefined}
               readOnly={true}
               rows={1}
@@ -688,7 +688,7 @@ exports[`<PageBaseForm /> renders without 'created' property 1`] = `
               aria-required={false}
               autoComplete={undefined}
               autoFocus={undefined}
-              className="MuiTextarea-textarea-126 MuiInput-input-118 MuiInput-inputMultiline-121"
+              className="MuiTextarea-textarea-123 MuiInput-input-116 MuiInput-inputMultiline-118"
               defaultValue={undefined}
               disabled={false}
               id={undefined}
@@ -708,14 +708,14 @@ exports[`<PageBaseForm /> renders without 'created' property 1`] = `
           </div>
         </div>
         <p
-          className="MuiFormHelperText-root-128"
+          className="MuiFormHelperText-root-125"
         >
           Select text to enable text-formatting tools.
         </p>
       </div>
     </div>
     <div
-      className="MuiGrid-typeItem-5 MuiGrid-grid-xs-12-41 MuiGrid-grid-md-3-58"
+      className="MuiGrid-item-5 MuiGrid-grid-xs-12-41 MuiGrid-grid-md-3-58"
     >
       <div
         aria-describedby={undefined}
@@ -724,21 +724,21 @@ exports[`<PageBaseForm /> renders without 'created' property 1`] = `
         onFocus={[Function]}
       >
         <label
-          className="MuiFormLabel-root-104 MuiInputLabel-root-98 MuiInputLabel-formControl-99 MuiInputLabel-animated-102 MuiInputLabel-shrink-101"
+          className="MuiFormLabel-root-103 MuiInputLabel-root-98 MuiInputLabel-formControl-99 MuiInputLabel-animated-102 MuiInputLabel-shrink-101"
           data-shrink={true}
           htmlFor={undefined}
         >
           Slug
         </label>
         <div
-          className="MuiInput-root-110 MuiInput-fullWidth-117 MuiInput-formControl-111 MuiInput-underline-114"
+          className="MuiInput-root-108 MuiInput-fullWidth-115 MuiInput-formControl-109 MuiInput-underline-112"
         >
           <input
             aria-invalid={false}
             aria-required={false}
             autoComplete={undefined}
             autoFocus={undefined}
-            className="MuiInput-input-118"
+            className="MuiInput-input-116"
             defaultValue={undefined}
             disabled={false}
             id={undefined}
@@ -757,14 +757,14 @@ exports[`<PageBaseForm /> renders without 'created' property 1`] = `
           />
         </div>
         <p
-          className="MuiFormHelperText-root-128"
+          className="MuiFormHelperText-root-125"
           id={undefined}
         >
           Slug is being used to create page URL
         </p>
       </div>
       <div
-        className="Component-spacer-124"
+        className="Component-spacer-121"
       />
       <div
         aria-describedby={undefined}
@@ -773,21 +773,21 @@ exports[`<PageBaseForm /> renders without 'created' property 1`] = `
         onFocus={[Function]}
       >
         <label
-          className="MuiFormLabel-root-104 MuiInputLabel-root-98 MuiInputLabel-formControl-99 MuiInputLabel-animated-102 MuiInputLabel-shrink-101"
+          className="MuiFormLabel-root-103 MuiInputLabel-root-98 MuiInputLabel-formControl-99 MuiInputLabel-animated-102 MuiInputLabel-shrink-101"
           data-shrink={true}
           htmlFor={undefined}
         >
           Available on
         </label>
         <div
-          className="MuiInput-root-110 MuiInput-formControl-111 MuiInput-underline-114"
+          className="MuiInput-root-108 MuiInput-formControl-109 MuiInput-underline-112"
         >
           <input
             aria-invalid={false}
             aria-required={false}
             autoComplete={undefined}
             autoFocus={undefined}
-            className="MuiInput-input-118 MuiInput-inputType-122"
+            className="MuiInput-input-116 MuiInput-inputType-119"
             defaultValue={undefined}
             disabled={false}
             id={undefined}
@@ -808,16 +808,16 @@ exports[`<PageBaseForm /> renders without 'created' property 1`] = `
         
       </div>
       <div
-        className="Component-spacer-124"
+        className="Component-spacer-121"
       />
       <div
-        className="Component-spacer-124"
+        className="Component-spacer-121"
       />
       <label
-        className="MuiFormControlLabel-root-132"
+        className="MuiFormControlLabel-root-129"
       >
         <span
-          className="MuiButtonBase-root-151 MuiIconButton-root-145 MuiSwitchBase-root-140 MuiSwitchBase-default-142 MuiCheckbox-default-135 MuiSwitchBase-checked-143 MuiCheckbox-checked-136 MuiCheckbox-checkedSecondary-138"
+          className="MuiButtonBase-root-147 MuiIconButton-root-141 MuiSwitchBase-root-137 MuiCheckbox-root-132 MuiCheckbox-colorSecondary-136 MuiSwitchBase-checked-138 MuiCheckbox-checked-133"
           onBlur={[Function]}
           onFocus={[Function]}
           onKeyDown={[Function]}
@@ -832,11 +832,11 @@ exports[`<PageBaseForm /> renders without 'created' property 1`] = `
           tabIndex={null}
         >
           <span
-            className="MuiIconButton-label-150"
+            className="MuiIconButton-label-146"
           >
             <svg
               aria-hidden="true"
-              className="MuiSvgIcon-root-154"
+              className="MuiSvgIcon-root-150"
               color={undefined}
               focusable="false"
               viewBox="0 0 24 24"
@@ -847,7 +847,7 @@ exports[`<PageBaseForm /> renders without 'created' property 1`] = `
             </svg>
             <input
               checked={true}
-              className="MuiSwitchBase-input-141"
+              className="MuiSwitchBase-input-140"
               disabled={undefined}
               id={undefined}
               name="isVisible"
@@ -858,11 +858,11 @@ exports[`<PageBaseForm /> renders without 'created' property 1`] = `
             />
           </span>
           <span
-            className="MuiTouchRipple-root-160"
+            className="MuiTouchRipple-root-156"
           />
         </span>
         <span
-          className="MuiTypography-root-167 MuiTypography-body1-176 MuiFormControlLabel-label-134"
+          className="MuiTypography-root-163 MuiTypography-body1-172 MuiFormControlLabel-label-131"
         >
           Published
         </span>

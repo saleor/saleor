@@ -1,4 +1,4 @@
-import Folder from "material-ui-icons/Folder";
+import Folder from "@material-ui/icons/Folder";
 import List, {
   ListItem,
   ListItemIcon,
