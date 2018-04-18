@@ -12,6 +12,7 @@ export default observer(class VariantPrice extends Component {
     let priceText, priceUndiscountedText, priceLocalCurrency, isDiscount;
     const { availability, store, displayGrossPrices } = this.props;
     const variant = store.variant;
+    const taxRate = availability.taxRate;
     if (!store.isEmpty) {
       // variant price
       isDiscount = variant.price.gross !== variant.priceUndiscounted.gross;
@@ -56,6 +57,12 @@ export default observer(class VariantPrice extends Component {
         )}
         {priceLocalCurrency && (
           <p><small className="text-info">&asymp; {priceLocalCurrency}</small></p>
+        )}
+        {displayGrossPrices && (
+          <small>including {taxRate}% VAT</small>
+        )}
+        {!displayGrossPrices && (
+          <small>excluding {taxRate}% VAT</small>
         )}
       </h2>
     );
