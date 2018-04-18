@@ -1,8 +1,8 @@
 from django.utils.translation import npgettext, pgettext_lazy
-from django_filters import CharFilter, OrderingFilter
-
 from ...core.filters import SortedFilterSet
+from django_filters import CharFilter, OrderingFilter
 from ...page.models import Page
+
 
 SORT_BY_FIELDS = {
     'title': pgettext_lazy('Page list sorting option', 'title'),
