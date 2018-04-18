@@ -75,7 +75,11 @@
                     {{ order.created }}
                   </div>
                   <div class="col-md-2 col-4">
-                    <span class="float-right">{{ order.total.gross|amount:'html' }}</span>
+                    <span class="float-right">
+                      {{ order.total.gross|amount:'html' }}
+                    </span>
+                    <br>
+                    ({{ order.total.net|amount:'html' }} + {{ order.total.tax|amount:'html' }} VAT)
                   </div>
                   <div class="col-md-4 d-none d-md-block">
                     {% render_order_status order.status order.get_status_display %}

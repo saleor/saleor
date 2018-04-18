@@ -53,6 +53,9 @@
                   {% trans "Payment status" context "Orders table header" as label %}
                   {% sorting_header 'payment_status' label %}
 
+                  {% trans "Total (debug)" context "Orders table header" as label %}
+                  {% sorting_header 'total_debug' label %}
+
                   {% trans "Total" context "Orders table header" as label %}
                   {% sorting_header 'total' label %}
                 </tr>
@@ -75,6 +78,9 @@
                     </td>
                     <td>
                       {% render_status order.get_last_payment_status order.get_last_payment_status_display %}
+                    </td>
+                    <td class="right-align">
+                      ({{ order.total.net|amount:'html' }} + {{ order.total.tax|amount:'html' }} VAT)
                     </td>
                     <td class="right-align">
                       {{ order.total.gross|amount:'html' }}

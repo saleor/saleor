@@ -68,24 +68,56 @@
               {% price_to_display line.get_total as price %}
               {{ price|amount:'html' }}
             </p>
+            <p class="float-right">
+              ({{ line.get_total.net|amount:'html' }} + {{ line.get_total.tax|amount:'html' }} VAT)
+            </p>
           </div>
         </div>
       </div>
     </div>
   </div>
 {% endfor %}
+
+<div class="table__row">
+  <div class="row">
+    <div class="col-8 order-details__table-footer">
+      <p>
+        {% if request.site.settings.display_gross_prices %}
+          {% trans "Subtotal" context "Order details subtotal row text" %}
+        {% else %}
+          {% trans "Subtotal net" context "Order details subtotal row text" %}
+        {% endif %}
+      </p>
+    </div>
+    <div class="col-4">
+      <p class="float-right">
+        {% price_to_display order.get_subtotal as price %}
+        {{ price|amount:'html' }}
+      </p>
+      <br>
+      <p class="float-right">
+        ({{ order.get_subtotal.net|amount:'html' }} + {{ order.get_subtotal.tax|amount:'html' }} VAT)
+      </p>
+    </div>
+  </div>
+</div>
+
 {% if order.is_shipping_required %}
   <div class="table__row">
     <div class="row">
       <div class="col-8 order-details__table-footer">
         <p>
-          {% trans "Shipping total" context "Order details shipment row text" %} ({{ order.shipping_method_name|default:"-" }})
+          {% trans "Shipping" context "Order details shipment row text" %} ({{ order.shipping_method_name|default:"-" }})
         </p>
       </div>
       <div class="col-4">
         <p class="float-right">
           {% price_to_display order.shipping_price as price %}
           {{ price|amount:'html' }}
+        </p>
+        <br>
+        <p class="float-right">
+          ({{ order.shipping_price.net|amount:'html' }} + {{ order.shipping_price.tax|amount:'html' }} VAT)
         </p>
       </div>
     </div>
@@ -110,7 +142,13 @@
 <div class="table__row">
   <div class="row">
     <div class="col-8 order-details__table-footer">
-      <p>{% trans "Taxes" context "Order details taxes text" %}</p>
+      <p>
+        {% if request.site.settings.display_gross_prices %}
+          {% trans "Taxes (included)" context "Order details taxes text" %}
+        {% else %}
+          {% trans "Taxes" context "Order details taxes text" %}
+        {% endif %}
+      </p>
     </div>
     <div class="col-4">
       <p class="float-right">{{ order.total.tax|amount:'html' }}</p>
@@ -126,7 +164,11 @@
       </div>
     </div>
     <div class="col-4">
-      <p class="float-right">{{ order.total.gross|amount:'html' }}</p>
+      <p class="float-right">
+        {{ order.total.gross|amount:'html' }}
+        <br>
+        ({{ order.total.net|amount:'html' }} + {{ order.total.tax|amount:'html' }} VAT)
+      </p>
     </div>
   </div>
 </div>
