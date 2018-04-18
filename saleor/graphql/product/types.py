@@ -134,6 +134,9 @@ class Product(CountableDjangoObjectType):
     def resolve_product_type(self, info):
         return self.product_type
 
+    def resolve_attributes(self, info):
+        return resolve_attribute_list(self.attributes)
+
     @permission_required(('product.view_product'))
     def resolve_purchase_cost(self, info):
         purchase_cost, _ = get_product_costs_data(self)
