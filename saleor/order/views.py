@@ -26,7 +26,7 @@ logger = logging.getLogger(__name__)
 
 def details(request, token):
     orders = Order.objects.confirmed().prefetch_related(
-        'lines__product', 'fulfillments', 'fulfillments__lines',
+        'lines__variant', 'fulfillments', 'fulfillments__lines',
         'fulfillments__lines__order_line')
     orders = orders.select_related(
         'billing_address', 'shipping_address', 'user')
