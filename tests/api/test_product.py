@@ -2,13 +2,22 @@ import json
 
 import graphene
 import pytest
+
 from django.shortcuts import reverse
+from django.test import RequestFactory
 from django.utils.text import slugify
+from graphql_jwt.shortcuts import get_token
 from prices import Money
 from tests.utils import get_graphql_content
 
+from saleor.graphql.core.mutations import (
+    ModelFormMutation, ModelFormUpdateMutation)
+from saleor.graphql.middleware import jwt_middleware
+from saleor.page.models import Page
 from saleor.product.models import (
     Category, Product, ProductAttribute, ProductType)
+
+from .utils import get_graphql_content
 
 
 def test_fetch_all_products(client, product):
