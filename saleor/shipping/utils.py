@@ -1,7 +1,7 @@
 from django.contrib.sites.models import Site
 from prices import MoneyRange
 
-from ..core.utils import apply_tax_to_price
+from ..core.utils import apply_tax_to_price, DEFAULT_TAX_RATE_NAME
 
 
 def get_taxed_shipping_price(price, taxes=None):
@@ -10,7 +10,7 @@ def get_taxed_shipping_price(price, taxes=None):
         Site.objects.get_current().settings.charge_taxes_on_shipping)
     if not charge_taxes:
         taxes = None
-    return apply_tax_to_price(taxes, 'standard', price)
+    return apply_tax_to_price(taxes, DEFAULT_TAX_RATE_NAME, price)
 
 
 def get_shipment_options(country_code, taxes=None):

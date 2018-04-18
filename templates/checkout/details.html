@@ -117,6 +117,11 @@
             <div class="col-4">
               <h3 class="float-right">{{ total.gross|amount:'html' }}</h3>
             </div>
+            <div class="col-md-12">
+              <p class="small text-right">
+                ({{ total.net|amount:'html' }} + {{ total.tax|amount:'html' }} VAT)
+              </p>
+            </div>
           </div>
         {% endwith %}
       </div>

@@ -438,7 +438,7 @@ def test_create_product_thumbnails(
         ('10.00', True, True, False, '8.13', '10.00'),
         ('15.00', True, False, True, '10.00', '10.00'),
         ('15.00', True, True, True, '8.13', '10.00')])
-def test_get_price_per_item(
+def test_get_price(
         product_type, default_category, taxes, sale, product_price,
         include_taxes_in_prices, include_taxes, include_discounts,
         product_net, product_gross, site_settings):
@@ -450,7 +450,7 @@ def test_get_price_per_item(
         price=Money(product_price, 'USD'))
     variant = product.variants.create()
 
-    price = variant.get_price_per_item(
+    price = variant.get_price(
         taxes=taxes if include_taxes else None,
         discounts=Sale.objects.all() if include_discounts else None)
 
@@ -458,7 +458,7 @@ def test_get_price_per_item(
         net=Money(product_net, 'USD'), gross=Money(product_gross, 'USD'))
 
 
-def test_product_get_price_per_item_variant_has_no_price(
+def test_product_get_price_variant_has_no_price(
         product_type, default_category, taxes, site_settings):
     site_settings.include_taxes_in_prices = False
     site_settings.save()
@@ -468,13 +468,13 @@ def test_product_get_price_per_item_variant_has_no_price(
         price=Money('10.00', 'USD'))
     variant = product.variants.create()
 
-    price = variant.get_price_per_item(taxes=taxes)
+    price = variant.get_price(taxes=taxes)
 
     assert price == TaxedMoney(
         net=Money('10.00', 'USD'), gross=Money('12.30', 'USD'))
 
 
-def test_product_get_price_per_item_variant_with_price(
+def test_product_get_price_variant_with_price(
         product_type, default_category, taxes, site_settings):
     site_settings.include_taxes_in_prices = False
     site_settings.save()
@@ -484,7 +484,7 @@ def test_product_get_price_per_item_variant_with_price(
         price=Money('10.00', 'USD'))
     variant = product.variants.create(price_override=Money('20.00', 'USD'))
 
-    price = variant.get_price_per_item(taxes=taxes)
+    price = variant.get_price(taxes=taxes)
 
     assert price == TaxedMoney(
         net=Money('20.00', 'USD'), gross=Money('24.60', 'USD'))
@@ -527,7 +527,7 @@ def test_product_get_price_range_no_variants(
     assert price == TaxedMoneyRange(start=expected_price, stop=expected_price)
 
 
-def test_product_get_price_per_item_do_not_charge_taxes(
+def test_product_get_price_do_not_charge_taxes(
         product_type, default_category, taxes, sale):
     product = models.Product.objects.create(
         product_type=product_type,
@@ -536,8 +536,7 @@ def test_product_get_price_per_item_do_not_charge_taxes(
         charge_taxes=False)
     variant = product.variants.create()
 
-    price = variant.get_price_per_item(
-        taxes=taxes, discounts=Sale.objects.all())
+    price = variant.get_price(taxes=taxes, discounts=Sale.objects.all())
 
     assert price == TaxedMoney(
         net=Money('5.00', 'USD'), gross=Money('5.00', 'USD'))

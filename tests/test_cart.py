@@ -356,12 +356,9 @@ def test_cart_counter(monkeypatch):
 
 
 def test_get_product_variants_and_prices():
-    variant = Mock(product_id=1, id=1)
+    variant = Mock(product_id=1, id=1, get_price=Mock(return_value=10))
     cart = MagicMock(spec=Cart)
-    cart.lines.all.return_value = [
-        Mock(
-            quantity=1, variant=variant,
-            get_price_per_item=Mock(return_value=10))]
+    cart.lines.all.return_value = [Mock(quantity=1, variant=variant)]
     variants = list(utils.get_product_variants_and_prices(cart, variant))
     assert variants == [(variant, 10)]
 

@@ -116,7 +116,7 @@
                     <td>{{ variant.sku }}</td>
                     <td>{{ variant }}</td>
                     <td class="wide">{% render_variant_availability_status variant %}</td>
-                    <td class="right-align">{{ variant.get_price_per_item.gross|amount }}</td>
+                    <td class="right-align">{{ variant.get_price.gross|amount }}</td>
                     <td class="right-align">
                       {% margins_for_variant variant=variant as margins %}
                       {% if margins|length > 1 %}
