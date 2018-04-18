@@ -166,6 +166,36 @@ def get_cart_from_request(request, cart_queryset=Cart.objects.all()):
     if cart is not None:
         cart.discounts = discounts
         return cart
+    if request.user.is_authenticated:
+        cart = get_user_cart(request.user, cart_queryset)
+        user = request.user
+    else:
+        token = request.get_signed_cookie(COOKIE_NAME, default=None)
+        cart = get_anonymous_cart_from_token(token, cart_queryset)
+        user = None
+    if cart is not None:
+        cart.discounts = discounts
+        return cart
+        if request.user.is_authenticated:
+        cart = get_user_cart(request.user, cart_queryset)
+        user = request.user
+    else:
+        token = request.get_signed_cookie(COOKIE_NAME, default=None)
+        cart = get_anonymous_cart_from_token(token, cart_queryset)
+        user = None
+    if cart is not None:
+        cart.discounts = discounts
+        return cart
+    if request.user.is_authenticated:
+        cart = get_user_cart(request.user, cart_queryset)
+        user = request.user
+    else:
+        token = request.get_signed_cookie(COOKIE_NAME, default=None)
+        cart = get_anonymous_cart_from_token(token, cart_queryset)
+        user = None
+    if cart is not None:
+        cart.discounts = discounts
+        return cart
     return Cart(user=user, discounts=discounts)
 
 
