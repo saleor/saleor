@@ -125,6 +125,9 @@ class Product(CountableDjangoObjectType):
             self, context.discounts, context.currency)
         return ProductAvailability(**availability._asdict())
 
+    def resolve_attributes(self, info):
+        return resolve_attribute_list(self.attributes)
+
     def resolve_product_type(self, info):
         return self.product_type
 
