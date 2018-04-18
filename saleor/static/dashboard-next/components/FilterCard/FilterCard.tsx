@@ -1,4 +1,4 @@
-import RefreshIcon from "material-ui-icons/Refresh";
+import RefreshIcon from "@material-ui/icons/Refresh";
 import Card, { CardContent, CardHeader } from "material-ui/Card";
 import IconButton from "material-ui/IconButton";
 import * as React from "react";

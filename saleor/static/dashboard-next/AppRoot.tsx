@@ -1,4 +1,4 @@
-import MenuIcon from "material-ui-icons/Menu";
+import MenuIcon from "@material-ui/icons/Menu";
 import AppBar from "material-ui/AppBar";
 import Drawer from "material-ui/Drawer";
 import Hidden from "material-ui/Hidden";

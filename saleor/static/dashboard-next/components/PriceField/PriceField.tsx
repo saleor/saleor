@@ -26,7 +26,7 @@ const decorate = withStyles(theme => ({
   },
   separator: {
     marginTop: theme.spacing.unit * 3,
-    textAlign: "center",
+    textAlign: "center" as "center",
     width: "100%"
   },
   widgetContainer: {
