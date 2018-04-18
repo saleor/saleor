@@ -11,21 +11,21 @@ exports[`<CategoryBaseForm /> renders when errors occured 1`] = `
     onFocus={[Function]}
   >
     <label
-      className="MuiFormLabel-root-14 MuiFormLabel-error-17 MuiInputLabel-root-8 MuiInputLabel-formControl-9 MuiInputLabel-animated-12 MuiInputLabel-shrink-11"
+      className="MuiFormLabel-root-13 MuiFormLabel-error-16 MuiInputLabel-root-8 MuiInputLabel-formControl-9 MuiInputLabel-animated-12 MuiInputLabel-shrink-11"
       data-shrink={true}
       htmlFor={undefined}
     >
       Name
     </label>
     <div
-      className="MuiInput-root-20 MuiInput-error-25 MuiInput-fullWidth-27 MuiInput-formControl-21 MuiInput-underline-24"
+      className="MuiInput-root-18 MuiInput-error-23 MuiInput-fullWidth-25 MuiInput-formControl-19 MuiInput-underline-22"
     >
       <input
         aria-invalid={true}
         aria-required={false}
         autoComplete={undefined}
         autoFocus={true}
-        className="MuiInput-input-28"
+        className="MuiInput-input-26"
         defaultValue={undefined}
         disabled={false}
         id={undefined}
@@ -44,7 +44,7 @@ exports[`<CategoryBaseForm /> renders when errors occured 1`] = `
       />
     </div>
     <p
-      className="MuiFormHelperText-root-37 MuiFormHelperText-error-38"
+      className="MuiFormHelperText-root-34 MuiFormHelperText-error-35"
       id={undefined}
     >
       To pole jest wymagane.
@@ -57,17 +57,17 @@ exports[`<CategoryBaseForm /> renders when errors occured 1`] = `
     onFocus={[Function]}
   >
     <label
-      className="MuiFormLabel-root-14 MuiInputLabel-root-8 MuiInputLabel-formControl-9 MuiInputLabel-animated-12 MuiInputLabel-shrink-11"
+      className="MuiFormLabel-root-13 MuiInputLabel-root-8 MuiInputLabel-formControl-9 MuiInputLabel-animated-12 MuiInputLabel-shrink-11"
       data-shrink={true}
       htmlFor={undefined}
     >
       Description
     </label>
     <div
-      className="MuiInput-root-20 MuiInput-fullWidth-27 MuiInput-formControl-21 MuiInput-multiline-26 MuiInput-underline-24"
+      className="MuiInput-root-18 MuiInput-fullWidth-25 MuiInput-formControl-19 MuiInput-multiline-24 MuiInput-underline-22"
     >
       <div
-        className="MuiTextarea-root-34"
+        className="MuiTextarea-root-31"
         style={
           Object {
             "height": 19,
@@ -76,7 +76,7 @@ exports[`<CategoryBaseForm /> renders when errors occured 1`] = `
       >
         <textarea
           aria-hidden="true"
-          className="MuiTextarea-shadow-36 MuiTextarea-textarea-35"
+          className="MuiTextarea-shadow-33 MuiTextarea-textarea-32"
           readOnly={true}
           rows="1"
           tabIndex={-1}
@@ -84,7 +84,7 @@ exports[`<CategoryBaseForm /> renders when errors occured 1`] = `
         />
         <textarea
           aria-hidden="true"
-          className="MuiTextarea-shadow-36 MuiTextarea-textarea-35"
+          className="MuiTextarea-shadow-33 MuiTextarea-textarea-32"
           defaultValue={undefined}
           readOnly={true}
           rows={1}
@@ -97,7 +97,7 @@ Tell lose part purpose do when. Whatever drug contain particularly defense."
           aria-required={false}
           autoComplete={undefined}
           autoFocus={undefined}
-          className="MuiTextarea-textarea-35 MuiInput-input-28 MuiInput-inputMultiline-31"
+          className="MuiTextarea-textarea-32 MuiInput-input-26 MuiInput-inputMultiline-28"
           defaultValue={undefined}
           disabled={false}
           id={undefined}
@@ -118,7 +118,7 @@ Tell lose part purpose do when. Whatever drug contain particularly defense."
       </div>
     </div>
     <p
-      className="MuiFormHelperText-root-37"
+      className="MuiFormHelperText-root-34"
       id={undefined}
     >
       Optional
@@ -138,21 +138,21 @@ exports[`<CategoryBaseForm /> renders with initial data 1`] = `
     onFocus={[Function]}
   >
     <label
-      className="MuiFormLabel-root-14 MuiInputLabel-root-8 MuiInputLabel-formControl-9 MuiInputLabel-animated-12 MuiInputLabel-shrink-11"
+      className="MuiFormLabel-root-13 MuiInputLabel-root-8 MuiInputLabel-formControl-9 MuiInputLabel-animated-12 MuiInputLabel-shrink-11"
       data-shrink={true}
       htmlFor={undefined}
     >
       Name
     </label>
     <div
-      className="MuiInput-root-20 MuiInput-fullWidth-27 MuiInput-formControl-21 MuiInput-underline-24"
+      className="MuiInput-root-18 MuiInput-fullWidth-25 MuiInput-formControl-19 MuiInput-underline-22"
     >
       <input
         aria-invalid={false}
         aria-required={false}
         autoComplete={undefined}
         autoFocus={true}
-        className="MuiInput-input-28"
+        className="MuiInput-input-26"
         defaultValue={undefined}
         disabled={false}
         id={undefined}
@@ -178,17 +178,17 @@ exports[`<CategoryBaseForm /> renders with initial data 1`] = `
     onFocus={[Function]}
   >
     <label
-      className="MuiFormLabel-root-14 MuiInputLabel-root-8 MuiInputLabel-formControl-9 MuiInputLabel-animated-12 MuiInputLabel-shrink-11"
+      className="MuiFormLabel-root-13 MuiInputLabel-root-8 MuiInputLabel-formControl-9 MuiInputLabel-animated-12 MuiInputLabel-shrink-11"
       data-shrink={true}
       htmlFor={undefined}
     >
       Description
     </label>
     <div
-      className="MuiInput-root-20 MuiInput-fullWidth-27 MuiInput-formControl-21 MuiInput-multiline-26 MuiInput-underline-24"
+      className="MuiInput-root-18 MuiInput-fullWidth-25 MuiInput-formControl-19 MuiInput-multiline-24 MuiInput-underline-22"
     >
       <div
-        className="MuiTextarea-root-34"
+        className="MuiTextarea-root-31"
         style={
           Object {
             "height": 19,
@@ -197,7 +197,7 @@ exports[`<CategoryBaseForm /> renders with initial data 1`] = `
       >
         <textarea
           aria-hidden="true"
-          className="MuiTextarea-shadow-36 MuiTextarea-textarea-35"
+          className="MuiTextarea-shadow-33 MuiTextarea-textarea-32"
           readOnly={true}
           rows="1"
           tabIndex={-1}
@@ -205,7 +205,7 @@ exports[`<CategoryBaseForm /> renders with initial data 1`] = `
         />
         <textarea
           aria-hidden="true"
-          className="MuiTextarea-shadow-36 MuiTextarea-textarea-35"
+          className="MuiTextarea-shadow-33 MuiTextarea-textarea-32"
           defaultValue={undefined}
           readOnly={true}
           rows={1}
@@ -218,7 +218,7 @@ Tell lose part purpose do when. Whatever drug contain particularly defense."
           aria-required={false}
           autoComplete={undefined}
           autoFocus={undefined}
-          className="MuiTextarea-textarea-35 MuiInput-input-28 MuiInput-inputMultiline-31"
+          className="MuiTextarea-textarea-32 MuiInput-input-26 MuiInput-inputMultiline-28"
           defaultValue={undefined}
           disabled={false}
           id={undefined}
@@ -239,7 +239,7 @@ Tell lose part purpose do when. Whatever drug contain particularly defense."
       </div>
     </div>
     <p
-      className="MuiFormHelperText-root-37"
+      className="MuiFormHelperText-root-34"
       id={undefined}
     >
       Optional
@@ -259,21 +259,21 @@ exports[`<CategoryBaseForm /> renders without initial data 1`] = `
     onFocus={[Function]}
   >
     <label
-      className="MuiFormLabel-root-14 MuiInputLabel-root-8 MuiInputLabel-formControl-9 MuiInputLabel-animated-12"
+      className="MuiFormLabel-root-13 MuiInputLabel-root-8 MuiInputLabel-formControl-9 MuiInputLabel-animated-12"
       data-shrink={false}
       htmlFor={undefined}
     >
       Name
     </label>
     <div
-      className="MuiInput-root-20 MuiInput-fullWidth-27 MuiInput-formControl-21 MuiInput-underline-24"
+      className="MuiInput-root-18 MuiInput-fullWidth-25 MuiInput-formControl-19 MuiInput-underline-22"
     >
       <input
         aria-invalid={false}
         aria-required={false}
         autoComplete={undefined}
         autoFocus={true}
-        className="MuiInput-input-28"
+        className="MuiInput-input-26"
         defaultValue={undefined}
         disabled={false}
         id={undefined}
@@ -299,17 +299,17 @@ exports[`<CategoryBaseForm /> renders without initial data 1`] = `
     onFocus={[Function]}
   >
     <label
-      className="MuiFormLabel-root-14 MuiInputLabel-root-8 MuiInputLabel-formControl-9 MuiInputLabel-animated-12"
+      className="MuiFormLabel-root-13 MuiInputLabel-root-8 MuiInputLabel-formControl-9 MuiInputLabel-animated-12"
       data-shrink={false}
       htmlFor={undefined}
     >
       Description
     </label>
     <div
-      className="MuiInput-root-20 MuiInput-fullWidth-27 MuiInput-formControl-21 MuiInput-multiline-26 MuiInput-underline-24"
+      className="MuiInput-root-18 MuiInput-fullWidth-25 MuiInput-formControl-19 MuiInput-multiline-24 MuiInput-underline-22"
     >
       <div
-        className="MuiTextarea-root-34"
+        className="MuiTextarea-root-31"
         style={
           Object {
             "height": 19,
@@ -318,7 +318,7 @@ exports[`<CategoryBaseForm /> renders without initial data 1`] = `
       >
         <textarea
           aria-hidden="true"
-          className="MuiTextarea-shadow-36 MuiTextarea-textarea-35"
+          className="MuiTextarea-shadow-33 MuiTextarea-textarea-32"
           readOnly={true}
           rows="1"
           tabIndex={-1}
@@ -326,7 +326,7 @@ exports[`<CategoryBaseForm /> renders without initial data 1`] = `
         />
         <textarea
           aria-hidden="true"
-          className="MuiTextarea-shadow-36 MuiTextarea-textarea-35"
+          className="MuiTextarea-shadow-33 MuiTextarea-textarea-32"
           defaultValue={undefined}
           readOnly={true}
           rows={1}
@@ -338,7 +338,7 @@ exports[`<CategoryBaseForm /> renders without initial data 1`] = `
           aria-required={false}
           autoComplete={undefined}
           autoFocus={undefined}
-          className="MuiTextarea-textarea-35 MuiInput-input-28 MuiInput-inputMultiline-31"
+          className="MuiTextarea-textarea-32 MuiInput-input-26 MuiInput-inputMultiline-28"
           defaultValue={undefined}
           disabled={false}
           id={undefined}
@@ -358,7 +358,7 @@ exports[`<CategoryBaseForm /> renders without initial data 1`] = `
       </div>
     </div>
     <p
-      className="MuiFormHelperText-root-37"
+      className="MuiFormHelperText-root-34"
       id={undefined}
     >
       Optional

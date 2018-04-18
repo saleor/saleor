@@ -8,7 +8,7 @@ exports[`<ProductList /> renders properly when data is loaded 1`] = `
     className="MuiTableHead-root-3"
   >
     <tr
-      className="MuiTableRow-root-4 MuiTableRow-head-5"
+      className="MuiTableRow-root-4 MuiTableRow-head-7"
     >
       <th
         aria-sort={null}
@@ -33,7 +33,7 @@ exports[`<ProductList /> renders properly when data is loaded 1`] = `
   </thead>
   <tfoot>
     <tr
-      className="MuiTableRow-root-4 MuiTableRow-footer-6"
+      className="MuiTableRow-root-4 MuiTableRow-footer-8"
     >
       <td
         aria-sort={null}
@@ -241,7 +241,7 @@ exports[`<ProductList /> renders properly when product list is empty 1`] = `
     className="MuiTableHead-root-3"
   >
     <tr
-      className="MuiTableRow-root-4 MuiTableRow-head-5"
+      className="MuiTableRow-root-4 MuiTableRow-head-7"
     >
       <th
         aria-sort={null}
@@ -266,7 +266,7 @@ exports[`<ProductList /> renders properly when product list is empty 1`] = `
   </thead>
   <tfoot>
     <tr
-      className="MuiTableRow-root-4 MuiTableRow-footer-6"
+      className="MuiTableRow-root-4 MuiTableRow-footer-8"
     >
       <td
         aria-sort={null}
@@ -386,7 +386,7 @@ exports[`<ProductList /> renders while data is loading 1`] = `
     className="MuiTableHead-root-3"
   >
     <tr
-      className="MuiTableRow-root-4 MuiTableRow-head-5"
+      className="MuiTableRow-root-4 MuiTableRow-head-7"
     >
       <th
         aria-sort={null}
@@ -411,7 +411,7 @@ exports[`<ProductList /> renders while data is loading 1`] = `
   </thead>
   <tfoot>
     <tr
-      className="MuiTableRow-root-4 MuiTableRow-footer-6"
+      className="MuiTableRow-root-4 MuiTableRow-footer-8"
     >
       <td
         aria-sort={null}
