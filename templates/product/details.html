@@ -143,6 +143,18 @@
                 {{ price|amount:'html' }}
               </small>
             {% endif %}
+            <small>
+              {% tax_value request.taxes product.tax_rate as tax_rate %}
+              {% if request.site.settings.display_gross_prices %}
+                {% blocktrans trimmed with tax_rate=tax_rate context "Product details page vat rate value" %}
+                  including {{ tax_rate }}% VAT
+                {% endblocktrans %}
+              {% else %}
+                {% blocktrans trimmed with tax_rate=tax_rate context "Product details page vat rate value" %}
+                  excluding {{ tax_rate }}% VAT
+                {% endblocktrans %}
+              {% endif %}
+            </small>
           </h2>
         {% endif %}
       {% endif %}
