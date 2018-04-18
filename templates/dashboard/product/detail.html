@@ -2,6 +2,7 @@
 
 {% load i18n %}
 {% load prices_i18n %}
+{% load price_ranges %}
 {% load staticfiles %}
 {% load status %}
 {% load utils %}
@@ -33,44 +34,40 @@
 {% endblock %}
 {% block content %}
   <div class="row">
-    <div class="col s12 l9">
+    <div class="col s12 l8">
       <div class="card">
         <div class="card-content">
-          <span class="card-title">{{ product }} <br> {{ product.product_type }}</span>
+          <span class="card-title">
+            {{ product }}
+          </span>
           <div class="row">
-            <div class="col s5 m6">
-              <p class="text-padding">
-                {% if product.charge_taxes %}
-                  {% trans "Sale price (taxes are charged)" context "Product field" %}
-                {% else %}
-                  {% trans "Sale price (taxes are not charged)" context "Product field" %}
-                {% endif %}
-              </p>
-            </div>
-            <div class="col s7 m6">
-              {% with sale_price as price_range %}
-                <p class="text-padding right-align">{{ price_range.start.gross|amount }} - {{ price_range.stop.gross|amount }}</p>
-              {% endwith %}
-            </div>
-            <div class="col s5 m6">
-                <p class="text-padding">{% trans "Purchase cost" context "Product field" %}</p>
-            </div>
-            <div class="col s7 m6">
-              {% with purchase_cost as price_range %}
-                <p class="text-padding right-align">{{ price_range.start.gross|amount }} - {{ price_range.stop.gross|amount }}</p>
-              {% endwith %}
-            </div>
-            <div class="col s5 m6">
-                <p class="text-padding">{% trans "Gross margin" context "Product field" %}</p>
-            </div>
-            <div class="col s7 m6">
-              {% if gross_margin %}
-                <p class="text-padding right-align">{{ gross_margin.0 }}% - {{ gross_margin.1 }}%</p>
-              {% else %}
-                <p class="text-padding right-align">-</p>
-              {% endif %}
+            <div class="col s12">
+              <form id="toggle-publish-form" action="{% url 'dashboard:product-publish' product.pk %}">
+              {% csrf_token %}
+                <div class="switch" id="product-is-published">
+                  <label>
+                    <input id="toggle-publish-switch" type="checkbox" {% if product.is_published %} checked {% endif %}>
+                    <span class="lever"></span>
+                    <span class="label">
+                      {% if product.is_published %}
+                        {% trans "Published" context "Product field" %}
+                      {% else %}
+                        {% trans "Draft" context "Product field" %}
+                      {% endif %}
+                    </span>
+                  </label>
+                </div>
+              </form>
             </div>
           </div>
+          <div class="row">
+            <div class="col s12">
+              <h5>{% render_availability_status product %}</h5>
+            </div>
+          </div>
+          <p>
+            {{ product.description }}
+          </p>
         </div>
         <div class="card-action">
           {% if perms.product.edit_product %}
@@ -143,29 +140,95 @@
       {% endif %}
     </div>
     {% if perms.product.edit_product %}
-      <div class="col s12 l3">
+      <div class="col s12 l4">
         <div id="status">
           <div class="row no-margin">
             <div class="col s12">
               <div class="card">
-                <div class="card-content">
-                  <form id="toggle-publish-form" action="{% url 'dashboard:product-publish' product.pk %}">
-                    <div class="switch" id="product-is-published">
-                      <label>
-                        <input id="toggle-publish-switch" type="checkbox" {% if product.is_published %} checked {% endif %}>
-                        <span class="lever"></span>
-                        <span class="label">
-                          {% if product.is_published %}
-                            {% trans "Published" context "Product field" %}
+                <div class="data-table-header">
+                  <div class="data-table-title">
+                    <h5>
+                      {% trans "Pricing" context "Product pricing card header" %}
+                    </h5>
+                    <h6>
+                      {% if product.charge_taxes %}
+                        {% blocktrans trimmed with tax_rate=product.tax_rate context "Product pricing card header subtitle" %}
+                          Taxes are charged ({{ tax_rate }} tax rate)
+                        {% endblocktrans %}
+                      {% else %}
+                        {% trans "Taxes are not charged" context "Product pricing card header subtitle" %}
+                      {% endif %}
+                    </h6>
+                  </div>
+                </div>
+                <div class="data-table-container">
+                  <table class="data-table bordered highlight">
+                    <tbody>
+                      <tr>
+                        <td>
+                          {% trans "Sale price" context "Product field" %}
+                        </td>
+                        <td class="right-align">
+                          {% price_to_display sale_price.start as start_price %}
+                          {% price_to_display sale_price.stop as stop_price %}
+
+                          {% if start_price == stop_price %}
+                            {{ start_price|amount }}
                           {% else %}
-                            {% trans "Draft" context "Product field" %}
+                            {{ start_price|amount }} - {{ stop_price|amount }}
                           {% endif %}
-                        </span>
-                      </label>
-                    </div>
-                  {% csrf_token %}
-                  </form>
-                  <h5>{% render_availability_status product %}</h5>
+                        </td>
+                      </tr>
+                      {% if discounted_price != sale_price %}
+                        <tr>
+                          <td>
+                            {% trans "Discounted price" context "Product field" %}
+                          </td>
+                          <td class="right-align">
+                            {% price_to_display discounted_price.start as start_price %}
+                            {% price_to_display discounted_price.stop as stop_price %}
+
+                            {% if start_price == stop_price %}
+                              {{ start_price|amount }}
+                            {% else %}
+                              {{ start_price|amount }} - {{ stop_price|amount }}
+                            {% endif %}
+                          </td>
+                        </tr>
+                      {% endif %}
+                      <tr>
+                        <td>
+                          {% trans "Purchase cost" context "Product field" %}
+                        </td>
+                        <td class="right-align">
+                          {% price_to_display purchase_cost.start as start_price %}
+                          {% price_to_display purchase_cost.stop as stop_price %}
+
+                          {% if start_price == stop_price %}
+                            {{ start_price|amount }}
+                          {% else %}
+                            {{ start_price|amount }} - {{ stop_price|amount }}
+                          {% endif %}
+                        </td>
+                      </tr>
+                      <tr>
+                        <td>
+                          {% trans "Gross margin" context "Product field" %}
+                        </td>
+                        <td class="right-align">
+                          {% if gross_margin %}
+                            {% if gross_margin.0 == gross_margin.1 %}
+                              {{ gross_margin.0 }}%
+                            {% else %}
+                              {{ gross_margin.0 }}% - {{ gross_margin.1 }}%
+                            {% endif %}
+                          {% else %}
+                            -
+                          {% endif %}
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
                 </div>
               </div>
             </div>
@@ -173,7 +236,7 @@
         </div>
       </div>
     {% endif %}
-    <div class="col s12 l3">
+    <div class="col s12 l4">
       <div id="images">
         <div class="row">
           <div class="col s12">

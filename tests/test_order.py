@@ -11,7 +11,7 @@ from saleor.order.forms import OrderNoteForm
 from saleor.order.models import Order
 from saleor.order.utils import (
     add_variant_to_order, cancel_fulfillment, cancel_order,
-    get_variant_tax_rate, recalculate_order, restock_fulfillment_lines,
+    get_tax_rate_by_name, recalculate_order, restock_fulfillment_lines,
     restock_order_lines, update_order_status)
 
 
@@ -37,27 +37,23 @@ def test_order_get_subtotal(order_with_lines):
     assert order_with_lines.get_subtotal() == target_subtotal
 
 
-def test_get_variant_tax_rate(product, taxes):
-    variant = product.variants.get()
+def test_get_tax_rate_by_name(taxes):
+    rate_name = 'pharmaceuticals'
+    tax_rate = get_tax_rate_by_name(rate_name, taxes)
 
-    tax_rate = get_variant_tax_rate(variant, taxes)
-
-    assert tax_rate == taxes[product.tax_rate]['value']
-
-
-def test_get_variant_tax_rate_fallback_to_standard(product, taxes):
-    product.tax_rate = 'unexisting tax rate'
-    variant = product.variants.get()
-
-    tax_rate = get_variant_tax_rate(variant, taxes)
-
-    assert tax_rate == taxes['standard']['value']
+    assert tax_rate == taxes[rate_name]['value']
 
 
-def test_get_variant_tax_rate_empty_taxes(product):
-    variant = product.variants.get()
+def test_get_tax_rate_by_name_fallback_to_standard(taxes):
+    rate_name = 'unexisting tax rate'
+    tax_rate = get_tax_rate_by_name(rate_name, taxes)
 
-    tax_rate = get_variant_tax_rate(variant)
+    assert tax_rate == taxes[rate_name]['value']
+
+
+def test_get_tax_rate_by_name_empty_taxes(product):
+    rate_name = 'unexisting tax rate'
+    tax_rate = get_tax_rate_by_name(rate_name)
 
     assert tax_rate == 0
 

@@ -4,6 +4,7 @@ from django.contrib.sites.models import Site
 from django_prices.templatetags import prices_i18n
 
 from ...core.utils import to_local_currency
+from ...order.utils import get_tax_rate_by_name
 from ...seo.schema.product import variant_json_ld
 from .availability import get_availability
 
@@ -57,6 +58,7 @@ def get_variant_picker_data(
 
     data['availability'] = {
         'discount': price_as_dict(availability.discount),
+        'taxRate': get_tax_rate_by_name(product.tax_rate, taxes),
         'priceRange': price_range_as_dict(availability.price_range),
         'priceRangeUndiscounted': price_range_as_dict(
             availability.price_range_undiscounted),

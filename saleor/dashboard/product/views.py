@@ -180,8 +180,10 @@ def product_details(request, pk):
     product = get_object_or_404(products, pk=pk)
     variants = product.variants.all()
     images = product.images.all()
-    availability = get_availability(product)
-    sale_price = availability.price_range
+    availability = get_availability(
+        product, discounts=request.discounts, taxes=request.taxes)
+    sale_price = availability.price_range_undiscounted
+    discounted_price = availability.price_range
     purchase_cost, gross_margin = get_product_costs_data(product)
 
     # no_variants is True for product types that doesn't require variant.
@@ -190,7 +192,8 @@ def product_details(request, pk):
     no_variants = not product.product_type.has_variants
     only_variant = variants.first() if no_variants else None
     ctx = {
-        'product': product, 'sale_price': sale_price, 'variants': variants,
+        'product': product, 'sale_price': sale_price,
+        'discounted_price': discounted_price, 'variants': variants,
         'images': images, 'no_variants': no_variants,
         'only_variant': only_variant, 'purchase_cost': purchase_cost,
         'gross_margin': gross_margin, 'is_empty': not variants.exists()}
