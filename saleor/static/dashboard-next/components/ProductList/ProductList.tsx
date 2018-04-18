@@ -1,4 +1,4 @@
-import Cached from "material-ui-icons/Cached";
+import Cached from "@material-ui/icons/Cached";
 import Avatar from "material-ui/Avatar";
 import { withStyles } from "material-ui/styles";
 import Table, {

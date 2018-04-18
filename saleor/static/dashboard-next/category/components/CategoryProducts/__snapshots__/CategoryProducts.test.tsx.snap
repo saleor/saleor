@@ -2,21 +2,21 @@
 
 exports[`<CategoryProducts /> renders when loading data 1`] = `
 <div
-  className="MuiPaper-root-1 MuiPaper-elevation2-5 MuiPaper-rounded-2"
+  className="MuiPaper-root-2 MuiPaper-elevation2-6 MuiPaper-rounded-3 MuiCard-root-1"
 >
   <div
-    className="Component-root-31"
+    className="Component-root-32"
   >
     <h2
-      className="MuiTypography-root-34 MuiTypography-title-40 Component-title-33"
+      className="MuiTypography-root-35 MuiTypography-title-41 Component-title-34"
     >
       Products
     </h2>
     <div
-      className="Component-action-28"
+      className="Component-action-29"
     >
       <button
-        className="MuiButtonBase-root-64 MuiIconButton-root-58"
+        className="MuiButtonBase-root-65 MuiIconButton-root-59"
         disabled={false}
         onBlur={[Function]}
         onClick={[MockFunction]}
@@ -33,50 +33,52 @@ exports[`<CategoryProducts /> renders when loading data 1`] = `
         type="button"
       >
         <span
-          className="MuiIconButton-label-63"
+          className="MuiIconButton-label-64"
         >
           <svg
             aria-hidden="true"
-            className="MuiSvgIcon-root-67"
+            className="MuiSvgIcon-root-68"
             color={undefined}
             focusable="false"
             viewBox="0 0 24 24"
           >
-            <path
-              d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"
-            />
+            <g>
+              <path
+                d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"
+              />
+            </g>
           </svg>
         </span>
         <span
-          className="MuiTouchRipple-root-73"
+          className="MuiTouchRipple-root-74"
         />
       </button>
     </div>
   </div>
   <table
-    className="MuiTable-root-81"
+    className="MuiTable-root-82"
   >
     <thead
-      className="MuiTableHead-root-82"
+      className="MuiTableHead-root-83"
     >
       <tr
-        className="MuiTableRow-root-83 MuiTableRow-head-84"
+        className="MuiTableRow-root-84 MuiTableRow-head-87"
       >
         <th
           aria-sort={null}
-          className="MuiTableCell-root-88 MuiTableCell-head-89 Component-avatarCell-80"
+          className="MuiTableCell-root-89 MuiTableCell-head-90 Component-avatarCell-81"
           scope="col"
         />
         <th
           aria-sort={null}
-          className="MuiTableCell-root-88 MuiTableCell-head-89"
+          className="MuiTableCell-root-89 MuiTableCell-head-90"
           scope="col"
         >
           Name
         </th>
         <th
           aria-sort={null}
-          className="MuiTableCell-root-88 MuiTableCell-head-89"
+          className="MuiTableCell-root-89 MuiTableCell-head-90"
           scope="col"
         >
           Type
@@ -85,25 +87,25 @@ exports[`<CategoryProducts /> renders when loading data 1`] = `
     </thead>
     <tfoot>
       <tr
-        className="MuiTableRow-root-83 MuiTableRow-footer-85"
+        className="MuiTableRow-root-84 MuiTableRow-footer-88"
       >
         <td
           aria-sort={null}
-          className="MuiTableCell-root-88 MuiTableCell-footer-91 MuiTablePagination-root-99"
+          className="MuiTableCell-root-89 MuiTableCell-footer-92 MuiTablePagination-root-100"
           colSpan={3}
           scope={undefined}
         >
           <div
-            className="MuiToolbar-root-105 MuiToolbar-gutters-106 MuiTablePagination-toolbar-104"
+            className="MuiToolbar-root-106 MuiToolbar-gutters-107 MuiTablePagination-toolbar-105"
           >
             <div
-              className="MuiTablePagination-spacer-103"
+              className="MuiTablePagination-spacer-104"
             />
             <div
-              className="MuiTablePaginationActions-root-107"
+              className="MuiTablePaginationActions-root-108"
             >
               <button
-                className="MuiButtonBase-root-64 MuiButtonBase-disabled-65 MuiIconButton-root-58 MuiIconButton-disabled-62"
+                className="MuiButtonBase-root-65 MuiButtonBase-disabled-66 MuiIconButton-root-59 MuiIconButton-disabled-63"
                 disabled={true}
                 onBlur={[Function]}
                 onClick={[MockFunction]}
@@ -120,11 +122,11 @@ exports[`<CategoryProducts /> renders when loading data 1`] = `
                 type="button"
               >
                 <span
-                  className="MuiIconButton-label-63"
+                  className="MuiIconButton-label-64"
                 >
                   <svg
                     aria-hidden="true"
-                    className="MuiSvgIcon-root-67"
+                    className="MuiSvgIcon-root-68"
                     color={undefined}
                     focusable="false"
                     viewBox="0 0 24 24"
@@ -136,7 +138,7 @@ exports[`<CategoryProducts /> renders when loading data 1`] = `
                 </span>
               </button>
               <button
-                className="MuiButtonBase-root-64 MuiIconButton-root-58"
+                className="MuiButtonBase-root-65 MuiIconButton-root-59"
                 disabled={false}
                 onBlur={[Function]}
                 onClick={[MockFunction]}
@@ -153,11 +155,11 @@ exports[`<CategoryProducts /> renders when loading data 1`] = `
                 type="button"
               >
                 <span
-                  className="MuiIconButton-label-63"
+                  className="MuiIconButton-label-64"
                 >
                   <svg
                     aria-hidden="true"
-                    className="MuiSvgIcon-root-67"
+                    className="MuiSvgIcon-root-68"
                     color={undefined}
                     focusable="false"
                     viewBox="0 0 24 24"
@@ -168,7 +170,7 @@ exports[`<CategoryProducts /> renders when loading data 1`] = `
                   </svg>
                 </span>
                 <span
-                  className="MuiTouchRipple-root-73"
+                  className="MuiTouchRipple-root-74"
                 />
               </button>
             </div>
@@ -177,39 +179,41 @@ exports[`<CategoryProducts /> renders when loading data 1`] = `
       </tr>
     </tfoot>
     <tbody
-      className="MuiTableBody-root-108"
+      className="MuiTableBody-root-109"
     >
       <tr
-        className="MuiTableRow-root-83"
+        className="MuiTableRow-root-84"
       >
         <td
           aria-sort={null}
-          className="MuiTableCell-root-88 MuiTableCell-body-90 Component-avatarCell-80"
+          className="MuiTableCell-root-89 MuiTableCell-body-91 Component-avatarCell-81"
           scope={undefined}
         >
           <div
-            className="MuiAvatar-root-109 MuiAvatar-colorDefault-110"
+            className="MuiAvatar-root-110 MuiAvatar-colorDefault-111"
           >
             <svg
               aria-hidden="true"
-              className="MuiSvgIcon-root-67"
+              className="MuiSvgIcon-root-68"
               color={undefined}
               focusable="false"
               viewBox="0 0 24 24"
             >
-              <path
-                d="M19 8l-4 4h3c0 3.31-2.69 6-6 6-1.01 0-1.97-.25-2.8-.7l-1.46 1.46C8.97 19.54 10.43 20 12 20c4.42 0 8-3.58 8-8h3l-4-4zM6 12c0-3.31 2.69-6 6-6 1.01 0 1.97.25 2.8.7l1.46-1.46C15.03 4.46 13.57 4 12 4c-4.42 0-8 3.58-8 8H1l4 4 4-4H6z"
-              />
+              <g>
+                <path
+                  d="M19 8l-4 4h3c0 3.31-2.69 6-6 6-1.01 0-1.97-.25-2.8-.7l-1.46 1.46C8.97 19.54 10.43 20 12 20c4.42 0 8-3.58 8-8h3l-4-4zM6 12c0-3.31 2.69-6 6-6 1.01 0 1.97.25 2.8.7l1.46-1.46C15.03 4.46 13.57 4 12 4c-4.42 0-8 3.58-8 8H1l4 4 4-4H6z"
+                />
+              </g>
             </svg>
           </div>
         </td>
         <td
           aria-sort={null}
-          className="MuiTableCell-root-88 MuiTableCell-body-90"
+          className="MuiTableCell-root-89 MuiTableCell-body-91"
           scope={undefined}
         >
           <span
-            className="Component-skeleton-112"
+            className="Component-skeleton-113"
             style={undefined}
           >
             ‌
@@ -217,11 +221,11 @@ exports[`<CategoryProducts /> renders when loading data 1`] = `
         </td>
         <td
           aria-sort={null}
-          className="MuiTableCell-root-88 MuiTableCell-body-90"
+          className="MuiTableCell-root-89 MuiTableCell-body-91"
           scope={undefined}
         >
           <span
-            className="Component-skeleton-112"
+            className="Component-skeleton-113"
             style={undefined}
           >
             ‌
@@ -235,21 +239,21 @@ exports[`<CategoryProducts /> renders when loading data 1`] = `
 
 exports[`<CategoryProducts /> renders with initial data 1`] = `
 <div
-  className="MuiPaper-root-1 MuiPaper-elevation2-5 MuiPaper-rounded-2"
+  className="MuiPaper-root-2 MuiPaper-elevation2-6 MuiPaper-rounded-3 MuiCard-root-1"
 >
   <div
-    className="Component-root-31"
+    className="Component-root-32"
   >
     <h2
-      className="MuiTypography-root-34 MuiTypography-title-40 Component-title-33"
+      className="MuiTypography-root-35 MuiTypography-title-41 Component-title-34"
     >
       Products
     </h2>
     <div
-      className="Component-action-28"
+      className="Component-action-29"
     >
       <button
-        className="MuiButtonBase-root-64 MuiIconButton-root-58"
+        className="MuiButtonBase-root-65 MuiIconButton-root-59"
         disabled={false}
         onBlur={[Function]}
         onClick={[MockFunction]}
@@ -266,50 +270,52 @@ exports[`<CategoryProducts /> renders with initial data 1`] = `
         type="button"
       >
         <span
-          className="MuiIconButton-label-63"
+          className="MuiIconButton-label-64"
         >
           <svg
             aria-hidden="true"
-            className="MuiSvgIcon-root-67"
+            className="MuiSvgIcon-root-68"
             color={undefined}
             focusable="false"
             viewBox="0 0 24 24"
           >
-            <path
-              d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"
-            />
+            <g>
+              <path
+                d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"
+              />
+            </g>
           </svg>
         </span>
         <span
-          className="MuiTouchRipple-root-73"
+          className="MuiTouchRipple-root-74"
         />
       </button>
     </div>
   </div>
   <table
-    className="MuiTable-root-81"
+    className="MuiTable-root-82"
   >
     <thead
-      className="MuiTableHead-root-82"
+      className="MuiTableHead-root-83"
     >
       <tr
-        className="MuiTableRow-root-83 MuiTableRow-head-84"
+        className="MuiTableRow-root-84 MuiTableRow-head-87"
       >
         <th
           aria-sort={null}
-          className="MuiTableCell-root-88 MuiTableCell-head-89 Component-avatarCell-80"
+          className="MuiTableCell-root-89 MuiTableCell-head-90 Component-avatarCell-81"
           scope="col"
         />
         <th
           aria-sort={null}
-          className="MuiTableCell-root-88 MuiTableCell-head-89"
+          className="MuiTableCell-root-89 MuiTableCell-head-90"
           scope="col"
         >
           Name
         </th>
         <th
           aria-sort={null}
-          className="MuiTableCell-root-88 MuiTableCell-head-89"
+          className="MuiTableCell-root-89 MuiTableCell-head-90"
           scope="col"
         >
           Type
@@ -318,25 +324,25 @@ exports[`<CategoryProducts /> renders with initial data 1`] = `
     </thead>
     <tfoot>
       <tr
-        className="MuiTableRow-root-83 MuiTableRow-footer-85"
+        className="MuiTableRow-root-84 MuiTableRow-footer-88"
       >
         <td
           aria-sort={null}
-          className="MuiTableCell-root-88 MuiTableCell-footer-91 MuiTablePagination-root-99"
+          className="MuiTableCell-root-89 MuiTableCell-footer-92 MuiTablePagination-root-100"
           colSpan={3}
           scope={undefined}
         >
           <div
-            className="MuiToolbar-root-105 MuiToolbar-gutters-106 MuiTablePagination-toolbar-104"
+            className="MuiToolbar-root-106 MuiToolbar-gutters-107 MuiTablePagination-toolbar-105"
           >
             <div
-              className="MuiTablePagination-spacer-103"
+              className="MuiTablePagination-spacer-104"
             />
             <div
-              className="MuiTablePaginationActions-root-107"
+              className="MuiTablePaginationActions-root-108"
             >
               <button
-                className="MuiButtonBase-root-64 MuiButtonBase-disabled-65 MuiIconButton-root-58 MuiIconButton-disabled-62"
+                className="MuiButtonBase-root-65 MuiButtonBase-disabled-66 MuiIconButton-root-59 MuiIconButton-disabled-63"
                 disabled={true}
                 onBlur={[Function]}
                 onClick={[MockFunction]}
@@ -353,11 +359,11 @@ exports[`<CategoryProducts /> renders with initial data 1`] = `
                 type="button"
               >
                 <span
-                  className="MuiIconButton-label-63"
+                  className="MuiIconButton-label-64"
                 >
                   <svg
                     aria-hidden="true"
-                    className="MuiSvgIcon-root-67"
+                    className="MuiSvgIcon-root-68"
                     color={undefined}
                     focusable="false"
                     viewBox="0 0 24 24"
@@ -369,7 +375,7 @@ exports[`<CategoryProducts /> renders with initial data 1`] = `
                 </span>
               </button>
               <button
-                className="MuiButtonBase-root-64 MuiIconButton-root-58"
+                className="MuiButtonBase-root-65 MuiIconButton-root-59"
                 disabled={false}
                 onBlur={[Function]}
                 onClick={[MockFunction]}
@@ -386,11 +392,11 @@ exports[`<CategoryProducts /> renders with initial data 1`] = `
                 type="button"
               >
                 <span
-                  className="MuiIconButton-label-63"
+                  className="MuiIconButton-label-64"
                 >
                   <svg
                     aria-hidden="true"
-                    className="MuiSvgIcon-root-67"
+                    className="MuiSvgIcon-root-68"
                     color={undefined}
                     focusable="false"
                     viewBox="0 0 24 24"
@@ -401,7 +407,7 @@ exports[`<CategoryProducts /> renders with initial data 1`] = `
                   </svg>
                 </span>
                 <span
-                  className="MuiTouchRipple-root-73"
+                  className="MuiTouchRipple-root-74"
                 />
               </button>
             </div>
@@ -410,22 +416,22 @@ exports[`<CategoryProducts /> renders with initial data 1`] = `
       </tr>
     </tfoot>
     <tbody
-      className="MuiTableBody-root-108"
+      className="MuiTableBody-root-109"
     >
       <tr
-        className="MuiTableRow-root-83"
+        className="MuiTableRow-root-84"
       >
         <td
           aria-sort={null}
-          className="MuiTableCell-root-88 MuiTableCell-body-90 Component-avatarCell-80"
+          className="MuiTableCell-root-89 MuiTableCell-body-91 Component-avatarCell-81"
           scope={undefined}
         >
           <div
-            className="MuiAvatar-root-109"
+            className="MuiAvatar-root-110"
           >
             <img
               alt={undefined}
-              className="MuiAvatar-img-111"
+              className="MuiAvatar-img-112"
               sizes={undefined}
               src="/media/__sized__/products/saleor/static/placeholders/t-shirts/6_tdo7a5D-crop-c0-5__0-5-255x255-70.jpg"
               srcSet={undefined}
@@ -434,33 +440,33 @@ exports[`<CategoryProducts /> renders with initial data 1`] = `
         </td>
         <td
           aria-sort={null}
-          className="MuiTableCell-root-88 MuiTableCell-body-90"
+          className="MuiTableCell-root-89 MuiTableCell-body-91"
           scope={undefined}
         >
           Gardner, Graham and King
         </td>
         <td
           aria-sort={null}
-          className="MuiTableCell-root-88 MuiTableCell-body-90"
+          className="MuiTableCell-root-89 MuiTableCell-body-91"
           scope={undefined}
         >
           T-Shirt
         </td>
       </tr>
       <tr
-        className="MuiTableRow-root-83"
+        className="MuiTableRow-root-84"
       >
         <td
           aria-sort={null}
-          className="MuiTableCell-root-88 MuiTableCell-body-90 Component-avatarCell-80"
+          className="MuiTableCell-root-89 MuiTableCell-body-91 Component-avatarCell-81"
           scope={undefined}
         >
           <div
-            className="MuiAvatar-root-109"
+            className="MuiAvatar-root-110"
           >
             <img
               alt={undefined}
-              className="MuiAvatar-img-111"
+              className="MuiAvatar-img-112"
               sizes={undefined}
               src="/media/__sized__/products/saleor/static/placeholders/t-shirts/6_tdo7a5D-crop-c0-5__0-5-255x255-70.jpg"
               srcSet={undefined}
@@ -469,33 +475,33 @@ exports[`<CategoryProducts /> renders with initial data 1`] = `
         </td>
         <td
           aria-sort={null}
-          className="MuiTableCell-root-88 MuiTableCell-body-90"
+          className="MuiTableCell-root-89 MuiTableCell-body-91"
           scope={undefined}
         >
           Gardner, Graham and King
         </td>
         <td
           aria-sort={null}
-          className="MuiTableCell-root-88 MuiTableCell-body-90"
+          className="MuiTableCell-root-89 MuiTableCell-body-91"
           scope={undefined}
         >
           T-Shirt
         </td>
       </tr>
       <tr
-        className="MuiTableRow-root-83"
+        className="MuiTableRow-root-84"
       >
         <td
           aria-sort={null}
-          className="MuiTableCell-root-88 MuiTableCell-body-90 Component-avatarCell-80"
+          className="MuiTableCell-root-89 MuiTableCell-body-91 Component-avatarCell-81"
           scope={undefined}
         >
           <div
-            className="MuiAvatar-root-109"
+            className="MuiAvatar-root-110"
           >
             <img
               alt={undefined}
-              className="MuiAvatar-img-111"
+              className="MuiAvatar-img-112"
               sizes={undefined}
               src="/media/__sized__/products/saleor/static/placeholders/t-shirts/6_tdo7a5D-crop-c0-5__0-5-255x255-70.jpg"
               srcSet={undefined}
@@ -504,33 +510,33 @@ exports[`<CategoryProducts /> renders with initial data 1`] = `
         </td>
         <td
           aria-sort={null}
-          className="MuiTableCell-root-88 MuiTableCell-body-90"
+          className="MuiTableCell-root-89 MuiTableCell-body-91"
           scope={undefined}
         >
           Gardner, Graham and King
         </td>
         <td
           aria-sort={null}
-          className="MuiTableCell-root-88 MuiTableCell-body-90"
+          className="MuiTableCell-root-89 MuiTableCell-body-91"
           scope={undefined}
         >
           T-Shirt
         </td>
       </tr>
       <tr
-        className="MuiTableRow-root-83"
+        className="MuiTableRow-root-84"
       >
         <td
           aria-sort={null}
-          className="MuiTableCell-root-88 MuiTableCell-body-90 Component-avatarCell-80"
+          className="MuiTableCell-root-89 MuiTableCell-body-91 Component-avatarCell-81"
           scope={undefined}
         >
           <div
-            className="MuiAvatar-root-109"
+            className="MuiAvatar-root-110"
           >
             <img
               alt={undefined}
-              className="MuiAvatar-img-111"
+              className="MuiAvatar-img-112"
               sizes={undefined}
               src="/media/__sized__/products/saleor/static/placeholders/t-shirts/6_tdo7a5D-crop-c0-5__0-5-255x255-70.jpg"
               srcSet={undefined}
@@ -539,14 +545,14 @@ exports[`<CategoryProducts /> renders with initial data 1`] = `
         </td>
         <td
           aria-sort={null}
-          className="MuiTableCell-root-88 MuiTableCell-body-90"
+          className="MuiTableCell-root-89 MuiTableCell-body-91"
           scope={undefined}
         >
           Gardner, Graham and King
         </td>
         <td
           aria-sort={null}
-          className="MuiTableCell-root-88 MuiTableCell-body-90"
+          className="MuiTableCell-root-89 MuiTableCell-body-91"
           scope={undefined}
         >
           T-Shirt
@@ -559,21 +565,21 @@ exports[`<CategoryProducts /> renders with initial data 1`] = `
 
 exports[`<CategoryProducts /> renders without initial data 1`] = `
 <div
-  className="MuiPaper-root-1 MuiPaper-elevation2-5 MuiPaper-rounded-2"
+  className="MuiPaper-root-2 MuiPaper-elevation2-6 MuiPaper-rounded-3 MuiCard-root-1"
 >
   <div
-    className="Component-root-31"
+    className="Component-root-32"
   >
     <h2
-      className="MuiTypography-root-34 MuiTypography-title-40 Component-title-33"
+      className="MuiTypography-root-35 MuiTypography-title-41 Component-title-34"
     >
       Products
     </h2>
     <div
-      className="Component-action-28"
+      className="Component-action-29"
     >
       <button
-        className="MuiButtonBase-root-64 MuiIconButton-root-58"
+        className="MuiButtonBase-root-65 MuiIconButton-root-59"
         disabled={false}
         onBlur={[Function]}
         onClick={[MockFunction]}
@@ -590,50 +596,52 @@ exports[`<CategoryProducts /> renders without initial data 1`] = `
         type="button"
       >
         <span
-          className="MuiIconButton-label-63"
+          className="MuiIconButton-label-64"
         >
           <svg
             aria-hidden="true"
-            className="MuiSvgIcon-root-67"
+            className="MuiSvgIcon-root-68"
             color={undefined}
             focusable="false"
             viewBox="0 0 24 24"
           >
-            <path
-              d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"
-            />
+            <g>
+              <path
+                d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"
+              />
+            </g>
           </svg>
         </span>
         <span
-          className="MuiTouchRipple-root-73"
+          className="MuiTouchRipple-root-74"
         />
       </button>
     </div>
   </div>
   <table
-    className="MuiTable-root-81"
+    className="MuiTable-root-82"
   >
     <thead
-      className="MuiTableHead-root-82"
+      className="MuiTableHead-root-83"
     >
       <tr
-        className="MuiTableRow-root-83 MuiTableRow-head-84"
+        className="MuiTableRow-root-84 MuiTableRow-head-87"
       >
         <th
           aria-sort={null}
-          className="MuiTableCell-root-88 MuiTableCell-head-89 Component-avatarCell-80"
+          className="MuiTableCell-root-89 MuiTableCell-head-90 Component-avatarCell-81"
           scope="col"
         />
         <th
           aria-sort={null}
-          className="MuiTableCell-root-88 MuiTableCell-head-89"
+          className="MuiTableCell-root-89 MuiTableCell-head-90"
           scope="col"
         >
           Name
         </th>
         <th
           aria-sort={null}
-          className="MuiTableCell-root-88 MuiTableCell-head-89"
+          className="MuiTableCell-root-89 MuiTableCell-head-90"
           scope="col"
         >
           Type
@@ -642,25 +650,25 @@ exports[`<CategoryProducts /> renders without initial data 1`] = `
     </thead>
     <tfoot>
       <tr
-        className="MuiTableRow-root-83 MuiTableRow-footer-85"
+        className="MuiTableRow-root-84 MuiTableRow-footer-88"
       >
         <td
           aria-sort={null}
-          className="MuiTableCell-root-88 MuiTableCell-footer-91 MuiTablePagination-root-99"
+          className="MuiTableCell-root-89 MuiTableCell-footer-92 MuiTablePagination-root-100"
           colSpan={3}
           scope={undefined}
         >
           <div
-            className="MuiToolbar-root-105 MuiToolbar-gutters-106 MuiTablePagination-toolbar-104"
+            className="MuiToolbar-root-106 MuiToolbar-gutters-107 MuiTablePagination-toolbar-105"
           >
             <div
-              className="MuiTablePagination-spacer-103"
+              className="MuiTablePagination-spacer-104"
             />
             <div
-              className="MuiTablePaginationActions-root-107"
+              className="MuiTablePaginationActions-root-108"
             >
               <button
-                className="MuiButtonBase-root-64 MuiButtonBase-disabled-65 MuiIconButton-root-58 MuiIconButton-disabled-62"
+                className="MuiButtonBase-root-65 MuiButtonBase-disabled-66 MuiIconButton-root-59 MuiIconButton-disabled-63"
                 disabled={true}
                 onBlur={[Function]}
                 onClick={[MockFunction]}
@@ -677,11 +685,11 @@ exports[`<CategoryProducts /> renders without initial data 1`] = `
                 type="button"
               >
                 <span
-                  className="MuiIconButton-label-63"
+                  className="MuiIconButton-label-64"
                 >
                   <svg
                     aria-hidden="true"
-                    className="MuiSvgIcon-root-67"
+                    className="MuiSvgIcon-root-68"
                     color={undefined}
                     focusable="false"
                     viewBox="0 0 24 24"
@@ -693,7 +701,7 @@ exports[`<CategoryProducts /> renders without initial data 1`] = `
                 </span>
               </button>
               <button
-                className="MuiButtonBase-root-64 MuiIconButton-root-58"
+                className="MuiButtonBase-root-65 MuiIconButton-root-59"
                 disabled={false}
                 onBlur={[Function]}
                 onClick={[MockFunction]}
@@ -710,11 +718,11 @@ exports[`<CategoryProducts /> renders without initial data 1`] = `
                 type="button"
               >
                 <span
-                  className="MuiIconButton-label-63"
+                  className="MuiIconButton-label-64"
                 >
                   <svg
                     aria-hidden="true"
-                    className="MuiSvgIcon-root-67"
+                    className="MuiSvgIcon-root-68"
                     color={undefined}
                     focusable="false"
                     viewBox="0 0 24 24"
@@ -725,7 +733,7 @@ exports[`<CategoryProducts /> renders without initial data 1`] = `
                   </svg>
                 </span>
                 <span
-                  className="MuiTouchRipple-root-73"
+                  className="MuiTouchRipple-root-74"
                 />
               </button>
             </div>
@@ -734,19 +742,19 @@ exports[`<CategoryProducts /> renders without initial data 1`] = `
       </tr>
     </tfoot>
     <tbody
-      className="MuiTableBody-root-108"
+      className="MuiTableBody-root-109"
     >
       <tr
-        className="MuiTableRow-root-83"
+        className="MuiTableRow-root-84"
       >
         <td
           aria-sort={null}
-          className="MuiTableCell-root-88 MuiTableCell-body-90 Component-avatarCell-80"
+          className="MuiTableCell-root-89 MuiTableCell-body-91 Component-avatarCell-81"
           scope={undefined}
         />
         <td
           aria-sort={null}
-          className="MuiTableCell-root-88 MuiTableCell-body-90"
+          className="MuiTableCell-root-89 MuiTableCell-body-91"
           colSpan={2}
           scope={undefined}
         >

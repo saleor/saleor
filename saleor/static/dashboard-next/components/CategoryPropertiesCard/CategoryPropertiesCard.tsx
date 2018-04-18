@@ -1,5 +1,5 @@
-import DeleteIcon from "material-ui-icons/Delete";
-import ModeEditIcon from "material-ui-icons/ModeEdit";
+import DeleteIcon from "@material-ui/icons/Delete";
+import ModeEditIcon from "@material-ui/icons/ModeEdit";
 import Card, { CardContent } from "material-ui/Card";
 import IconButton from "material-ui/IconButton";
 import Typography from "material-ui/Typography";

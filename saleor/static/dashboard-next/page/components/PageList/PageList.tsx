@@ -1,4 +1,4 @@
-import VisibilityIcon from "material-ui-icons/Visibility";
+import VisibilityIcon from "@material-ui/icons/Visibility";
 import blue from "material-ui/colors/blue";
 import IconButton from "material-ui/IconButton";
 import { withStyles } from "material-ui/styles";
