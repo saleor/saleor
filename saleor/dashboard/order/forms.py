@@ -27,8 +27,8 @@ from ...shipping.models import ANY_COUNTRY, ShippingMethodCountry
 from ..forms import AjaxSelect2ChoiceField
 from ..widgets import PhonePrefixWidget
 from .utils import (
-    fulfill_order_line, get_voucher_discount_for_order,
-    remove_customer_from_order, update_order_with_user_addresses)
+    fulfill_order_line, remove_customer_from_order,
+    update_order_with_user_addresses)
 
 
 class CreateOrderFromDraftForm(forms.ModelForm):
@@ -180,7 +180,6 @@ class OrderShippingForm(forms.ModelForm):
         method = self.instance.shipping_method
         self.instance.shipping_method_name = method.shipping_method.name
         self.instance.shipping_price = method.get_total_price()
-        recalculate_order(self.instance)
         recalculate_order(self.instance)
         return super().save(commit)
 

@@ -8,7 +8,6 @@ from django.core import signing
 from django.core.exceptions import ObjectDoesNotExist
 from django.http import HttpResponse
 from django.urls import reverse
-from django_babel.templatetags.babel import currencyfmt
 from prices import Money, TaxedMoney
 
 from saleor.cart import CartStatus, forms, utils
@@ -196,9 +195,6 @@ def test_get_cart_from_request(
     mock_get_for_user.assert_called_once_with(customer_user, queryset)
     assert returned_cart == user_cart
 
-    assert list(returned_cart.discounts) == list(request.discounts)
-    assert returned_cart.taxes == request.taxes
-
     mock_get_for_user = Mock(return_value=None)
     monkeypatch.setattr(
         'saleor.cart.utils.get_user_cart', mock_get_for_user)
@@ -293,13 +289,14 @@ def test_adding_zero_quantity(cart, product):
     assert len(cart) == 0
 
 
-def test_adding_same_variant(cart, product):
+def test_adding_same_variant(cart, product, taxes):
     variant = product.variants.get()
     cart.add(variant, 1)
     cart.add(variant, 2)
     assert len(cart) == 1
     assert cart.count() == {'total_quantity': 3}
-    assert cart.get_total().gross == Money(30, 'USD')
+    cart_total = TaxedMoney(net=Money('24.39', 'USD'), gross=Money(30, 'USD'))
+    assert cart.get_total(taxes=taxes) == cart_total
 
 
 def test_replacing_same_variant(cart, product):
@@ -494,7 +491,7 @@ def test_view_empty_cart(client, request_cart):
     assert response.status_code == 200
 
 
-def test_view_cart(client, sale, product, request_cart):
+def test_view_cart_without_taxes(client, sale, product, request_cart):
     variant = product.variants.get()
     request_cart.add(variant, 1)
     response = client.get(reverse('cart:index'))
@@ -578,14 +575,14 @@ def test_cart_page_with_openexchagerates(
     assert context['local_cart_total'].currency == 'PLN'
 
 
-def test_cart_summary_page(client, product, request_cart):
+def test_cart_summary_page(client, product, request_cart, vatlayer, taxes):
     variant = product.variants.get()
     request_cart.add(variant, 1)
     response = client.get(reverse('cart:cart-summary'))
     assert response.status_code == 200
     content = response.context
     assert content['quantity'] == request_cart.quantity
-    cart_total = request_cart.get_total()
+    cart_total = request_cart.get_total(taxes=taxes)
     assert content['total'] == cart_total
     assert len(content['lines']) == 1
     cart_line = content['lines'][0]
@@ -600,16 +597,17 @@ def test_cart_summary_page_empty_cart(client, request_cart):
     assert data['quantity'] == 0
 
 
-def test_total_with_discount(client, sale, request_cart, product):
+def test_cart_line_total_with_discount_and_taxes(
+        sale, request_cart, product, taxes):
     sales = Sale.objects.all()
     variant = product.variants.get()
     request_cart.add(variant, 1)
     line = request_cart.lines.first()
-    assert line.get_total(discounts=sales) == TaxedMoney(
-        net=Money(5, 'USD'), gross=Money(5, 'USD'))
+    assert line.get_total(discounts=sales, taxes=taxes) == TaxedMoney(
+        net=Money('4.07', 'USD'), gross=Money('5.00', 'USD'))
 
 
-def test_cart_queryset(customer_user):
+def test_cart_queryset():
     canceled_cart = Cart.objects.create(status=CartStatus.CANCELED)
     canceled = Cart.objects.canceled()
     assert canceled.filter(pk=canceled_cart.pk).exists()

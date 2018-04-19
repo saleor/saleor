@@ -120,9 +120,7 @@
                     <td>{{ variant }}</td>
                     <td class="wide">{% render_variant_availability_status variant %}</td>
                     <td class="right-align">
-                      {% with request.site.settings.include_taxes_in_prices as display_gross_prices %}
-                        {% taxed_price variant.get_price display_gross_prices %}
-                      {% endwith %}
+                      {{ variant.base_price|amount:'html' }}
                     </td>
                     <td class="right-align">
                       {% margins_for_variant variant=variant as margins %}
@@ -206,7 +204,7 @@
                             {% trans "Purchase cost" context "Product field" %}
                           </td>
                           <td class="right-align">
-                            {% taxed_price purchase_cost display_gross_prices %}
+                            {% taxed_price purchase_cost %}
                           </td>
                         </tr>
                         <tr>

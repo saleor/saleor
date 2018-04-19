@@ -45,7 +45,7 @@ class ShippingMethod(models.Model):
             country.get_total_price()
             for country in self.price_per_country.all()]
         if prices:
-            return MoneyRange(min(prices), max(prices))
+            return MoneyRange(min(prices).net, max(prices).net)
         return None
 
 
@@ -99,8 +99,6 @@ class ShippingMethodCountry(models.Model):
             self.shipping_method, self.get_country_code_display())
 
     def get_total_price(self, taxes=None):
-        if not taxes:
-            return self.price
         return get_taxed_shipping_price(self.price, taxes)
 
     @property

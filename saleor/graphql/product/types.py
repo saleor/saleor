@@ -10,7 +10,7 @@ from ...product.utils.costs import get_product_costs_data
 from ..core.decorators import permission_required
 from ..core.filters import DistinctFilterSet
 from ..core.types import (
-    CountableDjangoObjectType, Money, TaxedMoney, TaxedMoneyRange)
+    CountableDjangoObjectType, Money, MoneyRange, TaxedMoney, TaxedMoneyRange)
 from .filters import ProductFilterSet
 
 
@@ -106,7 +106,7 @@ class Product(CountableDjangoObjectType):
     attributes = graphene.List(
         SelectedAttribute,
         description='List of product attributes assigned to this product.')
-    purchase_cost = graphene.Field(TaxedMoneyRange)
+    purchase_cost = graphene.Field(MoneyRange)
     gross_margin = graphene.List(GrossMargin)
 
     class Meta:
@@ -126,7 +126,7 @@ class Product(CountableDjangoObjectType):
     def resolve_availability(self, info):
         context = info.context
         availability = get_availability(
-            self, context.discounts, context.currency)
+            self, context.discounts, context.taxes, context.currency)
         return ProductAvailability(**availability._asdict())
 
     def resolve_attributes(self, info):

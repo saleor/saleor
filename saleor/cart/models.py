@@ -81,11 +81,6 @@ class Cart(models.Model):
     class Meta:
         ordering = ('-last_status_change',)
 
-    def __init__(self, *args, **kwargs):
-        self.discounts = kwargs.pop('discounts', None)
-        self.taxes = kwargs.pop('taxes', None)
-        super().__init__(*args, **kwargs)
-
     def update_quantity(self):
         """Recalculate cart quantity based on lines."""
         total_lines = self.count()['total_quantity']
@@ -127,8 +122,6 @@ class Cart(models.Model):
 
     def get_total(self, discounts=None, taxes=None):
         """Return the total cost of the cart prior to shipping."""
-        if not discounts:
-            discounts = self.discounts
         subtotals = [
             line.get_total(discounts, taxes) for line in self.lines.all()]
         if not subtotals:

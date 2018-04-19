@@ -53,6 +53,16 @@ class Money(graphene.ObjectType):
         return prices_i18n.amount(self)
 
 
+class MoneyRange(graphene.ObjectType):
+    start = graphene.Field(
+        Money, description='Lower bound of a price range.')
+    stop = graphene.Field(
+        Money, description='Upper bound of a price range.')
+
+    class Meta:
+        description = 'Represents a range of amounts of money.'
+
+
 class TaxedMoney(graphene.ObjectType):
     currency = graphene.String(description='Currency code.')
     gross = graphene.Field(
