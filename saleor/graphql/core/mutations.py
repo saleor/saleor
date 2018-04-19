@@ -151,6 +151,10 @@ class ModelFormMutation(BaseMutation):
 
     @classmethod
     def save(cls, root, info, **kwargs):
+        """
+        This method is designed to handle form and special cases for easier
+        use of mutate method.
+        """
         form_kwargs = cls.get_form_kwargs(root, info, **kwargs)
         form = cls._meta.form_class(**form_kwargs)
         cls._form = form
@@ -163,7 +167,6 @@ class ModelFormMutation(BaseMutation):
     def mutate(cls, root, info, **kwargs):
         instance = cls.save(root, info, **kwargs)
         if instance is not None:
-            # instance.save()
             kwargs = {cls._meta.return_field_name: instance}
             return cls(errors=[], **kwargs)
         errors = convert_form_errors(cls._form)
