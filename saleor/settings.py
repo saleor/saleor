@@ -301,6 +301,9 @@ CONSTANCE_CONFIG_FIELDSETS = {
         'OYE_ORDERS_MAIL',
         'UNPAID_ORDER_RESERVATION_TIMEOUT_MINUTES',
         'DISCOVER_DISCOGS_RELEASES_ENABLED',
+        'RESERVATION_CANCELLED_RECIPIENT',
+        'SEND_RESERVATION_CANCELLED_MAIL',
+
     )
 }
 CONSTANCE_ADDITIONAL_FIELDS = {
@@ -329,6 +332,8 @@ CONSTANCE_CONFIG = {
     'DISCOGS_RELEASE_UPTODATE_HOURS': (48, 'Re-evaluate discogs release after this amount of hours'),
     'UNPAID_ORDER_RESERVATION_TIMEOUT_MINUTES': (30, 'Cancel an unpaid order after this amount of minutes'),
     'DISCOVER_DISCOGS_RELEASES_ENABLED': (False, 'If set to true fetch for Discogs releases'),
+    'RESERVATION_CANCELLED_RECIPIENT': ('order@oye-records.com,mail@oye-records.com', 'Comma separated list of receipients for order cancellations'),
+    'SEND_RESERVATION_CANCELLED_MAIL': (False, 'If set to True a mail is send out after a reservation has been cancelled'),
 }
 CONSTANCE_BACKEND = 'constance.backends.database.DatabaseBackend'
 
