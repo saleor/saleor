@@ -1,15 +1,15 @@
 {% extends "base.html" %}
 
 {% load bootstrap_field from bootstrap4 %}
+{% load build_absolute_uri from urls %}
+{% load get_object_properties from attributes %}
+{% load get_thumbnail product_first_image from product_images %}
 {% load i18n %}
 {% load markdown from markdown %}
-{% load prices_i18n %}
-{% load taxed_prices %}
-{% load staticfiles %}
-{% load get_thumbnail product_first_image from product_images %}
-{% load build_absolute_uri from urls %}
 {% load placeholder %}
-{% load get_object_properties from attributes %}
+{% load prices_i18n %}
+{% load staticfiles %}
+{% load taxed_prices %}
 
 {% block title %}
   {% if product.seo_title %}
@@ -131,16 +131,14 @@
             <span>{% price_range availability.price_range %}</span>
             {% if availability.discount %}
               <small class="product__info__price__undiscounted">
-                {% price_to_display availability.price_range_undiscounted.start as price %}
-                {{ price|amount:'html' }}
+                {% taxed_price availability.price_range_undiscounted %}
               </small>
             {% endif %}
             {% if availability.price_range_local_currency %}
               <br>
               <small class="text-info">
                 &asymp;
-                {% price_to_display availability.price_range_local_currency.start as price %}
-                {{ price|amount:'html' }}
+                {% taxed_price availability.price_range_local_currency %}
               </small>
             {% endif %}
             <small>

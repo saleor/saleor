@@ -1,0 +1,11 @@
+{% load prices_i18n %}
+
+{% if is_range %}
+  {% if price.start == price.stop %}
+    {{ price.start|amount }}
+  {% else %}
+    {{ price.start|amount }} - {{ price.stop|amount }}
+  {% endif %}
+{% else %}
+  {{ price|amount }}
+{% endif %}
