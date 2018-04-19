@@ -6,19 +6,19 @@ from django.shortcuts import reverse
 from tests.utils import get_graphql_content
 
 
-def test_create_variant(admin_client, product, product_type):
+def test_create_variant(admin_api_client, product, product_type):
     query = """
         mutation createVariant (
             $productId: ID!,
             $sku: String!,
-            $priceOverride: Float, 
+            $priceOverride: Float,
             $costPrice: Float,
             $quantity: Int!,
             $attributes: [AttributeValueInput]) {
                 productVariantCreate(
                     productId: $productId,
                     sku: $sku,
-                    priceOverride: $priceOverride, 
+                    priceOverride: $priceOverride,
                     costPrice: $costPrice,
                     quantity: $quantity,
                     attributes: $attributes){
@@ -43,7 +43,7 @@ def test_create_variant(admin_client, product, product_type):
                     }
                 }
             }
-        
+
     """
     product_id = graphene.Node.to_global_id('Product', product.pk)
     sku = "1"
@@ -61,7 +61,7 @@ def test_create_variant(admin_client, product, product_type):
         'priceOverride': price_override,
         'attributes': [
             {'slug': variant_slug, 'value': variant_value}]})
-    response = admin_client.post(
+    response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
     content = get_graphql_content(response)
     assert 'errors' not in content
@@ -75,7 +75,7 @@ def test_create_variant(admin_client, product, product_type):
     assert data['attributes'][0]['value'] == variant_value
 
 
-def test_update_product_variant(admin_client, product):
+def test_update_product_variant(admin_api_client, product):
     query = """
         mutation updateVariant (
             $id: ID!,
@@ -113,7 +113,7 @@ def test_update_product_variant(admin_client, product):
         'quantity': quantity,
         'costPrice': cost_price})
 
-    response = admin_client.post(
+    response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
     content = get_graphql_content(response)
     assert 'errors' not in content
@@ -124,7 +124,7 @@ def test_update_product_variant(admin_client, product):
     assert data['sku'] == sku
 
 
-def test_delete_variant(admin_client, product):
+def test_delete_variant(admin_api_client, product):
     query = """
         mutation variantDelete($id: ID!) {
             productVariantDelete(id: $id) {
@@ -138,7 +138,7 @@ def test_delete_variant(admin_client, product):
     variant = product.variants.first()
     variant_id = graphene.Node.to_global_id('ProductVariant', variant.pk)
     variables = json.dumps({'id': variant_id})
-    response = admin_client.post(
+    response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
     content = get_graphql_content(response)
     assert 'errors' not in content
