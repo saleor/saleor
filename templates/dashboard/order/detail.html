@@ -1,12 +1,12 @@
 {% extends "dashboard/base.html" %}
 {% load babel %}
-{% load prices_i18n %}
 {% load i18n %}
 {% load i18n_address_tags %}
-{% load taxed_prices %}
 {% load materializecss %}
-{% load status %}
+{% load prices_i18n %}
 {% load staticfiles %}
+{% load status %}
+{% load taxed_price from taxed_prices %}
 {% load voucher %}
 
 {% block title %}
@@ -320,8 +320,7 @@
                     ({{ line.unit_price.net|amount:'html' }} + {{ line.unit_price.tax|amount:'html' }} VAT)
                   </td>
                   <td class="right-align">
-                    {% price_to_display line.unit_price order.include_taxes_in_prices as price %}
-                    {{ price|amount:'html' }}
+                    {% taxed_price line.unit_price order.include_taxes_in_prices %}
                   </td>
                   <td class="right-align">
                     {% if perms.order.edit_order and order.is_draft %}
@@ -349,8 +348,7 @@
                     ({{ line.get_total.net|amount:'html' }} + {{ line.get_total.tax|amount:'html' }} VAT)
                   </td>
                   <td class="right-align">
-                    {% price_to_display line.get_total order.include_taxes_in_prices as price %}
-                    {{ price|amount:'html' }}
+                    {% taxed_price line.get_total order.include_taxes_in_prices %}
                   </td>
                 </tr>
               {% endfor %}
@@ -437,15 +435,13 @@
                 </td>
                 <td class="right-align">
                   <p>
-                    {% price_to_display order.get_subtotal order.include_taxes_in_prices as price %}
-                    {{ price|amount:'html' }}
+                    {% taxed_price order.get_subtotal order.include_taxes_in_prices %}
                   </p>
                   <p>
                     ({{ order.get_subtotal.net|amount:'html' }} + {{ order.get_subtotal.tax|amount:'html' }} VAT)
                   </p>
                   <p>
-                    {% price_to_display order.shipping_price order.include_taxes_in_prices as price %}
-                    {{ price|amount:'html' }}
+                    {% taxed_price order.shipping_price order.include_taxes_in_prices %}
                   </p>
                   <p>
                     ({{ order.shipping_price.net|amount:'html' }} + {{ order.shipping_price.tax|amount:'html' }} VAT)

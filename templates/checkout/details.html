@@ -2,8 +2,8 @@
 
 {% load i18n %}
 {% load prices_i18n %}
-{% load price_to_display from taxed_prices %}
 {% load staticfiles %}
+{% load taxed_price from taxed_prices %}
 
 {% block title %}{% trans "Checkout" context "Checkout page title" %} — {{ block.super }}{% endblock %}
 
@@ -40,8 +40,7 @@
             </div>
             <div class="col-4">
               <p class="float-right">
-                {% price_to_display line_total as price %}
-                {{ price|amount }}
+                {% taxed_price line_total %}
               </p>
             </div>
             <div class="col-12">
@@ -57,12 +56,7 @@
           </div>
           <div class="col-4">
             <p class="float-right">
-              {% if checkout.shipping_method %}
-                {% price_to_display checkout.get_subtotal as price %}
-                {{ price|amount:'html' }}
-              {% else %}
-                &mdash;
-              {% endif %}
+              {% taxed_price checkout.get_subtotal %}
             </p>
           </div>
           <div class="col-12">
@@ -78,8 +72,7 @@
           <div class="col-4">
             <p class="float-right">
               {% if checkout.shipping_method %}
-                {% price_to_display checkout.shipping_price as price %}
-                {{ price|amount:'html' }}
+                {% taxed_price checkout.shipping_price %}
               {% else %}
                 &mdash;
               {% endif %}

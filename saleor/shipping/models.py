@@ -8,7 +8,7 @@ from django.utils.safestring import mark_safe
 from django.utils.translation import pgettext_lazy
 from django_countries import countries
 from django_prices.models import MoneyField
-from prices import TaxedMoneyRange
+from prices import MoneyRange
 
 from ..core.utils import format_money
 from ..shipping.utils import get_taxed_shipping_price
@@ -39,12 +39,13 @@ class ShippingMethod(models.Model):
     def countries(self):
         return [str(country) for country in self.price_per_country.all()]
 
-    def get_price_range(self, taxes=None):
+    @property
+    def price_range(self):
         prices = [
-            country.get_total_price(taxes)
+            country.get_total_price()
             for country in self.price_per_country.all()]
         if prices:
-            return TaxedMoneyRange(min(prices), max(prices))
+            return MoneyRange(min(prices), max(prices))
         return None
 
 
@@ -98,6 +99,8 @@ class ShippingMethodCountry(models.Model):
             self.shipping_method, self.get_country_code_display())
 
     def get_total_price(self, taxes=None):
+        if not taxes:
+            return self.price
         return get_taxed_shipping_price(self.price, taxes)
 
     @property

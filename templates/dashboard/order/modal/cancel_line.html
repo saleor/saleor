@@ -3,7 +3,7 @@
 {% load i18n %}
 {% load materializecss %}
 {% load prices_i18n %}
-{% load price_to_display from taxed_prices %}
+{% load taxed_price from taxed_prices %}
 
 {% block action_url %}
 {% url 'dashboard:orderline-cancel' order_pk=order.pk line_pk=item.pk %}
@@ -48,15 +48,13 @@
             {{ item.product_sku }}
           </td>
           <td class="right-align">
-            {% price_to_display item.unit_price as price %}
-            {{ price|amount:'html' }}
+            {% taxed_price item.unit_price order.include_taxes_in_prices %}
           </td>
           <td class="right-align">
             {{ item.quantity }}
           </td>
           <td class="right-align">
-            {% price_to_display item.get_total as price %}
-            {{ price|amount:'html' }}
+            {% taxed_price item.get_total order.include_taxes_in_prices %}
           </td>
         </tr>
       </tbody>

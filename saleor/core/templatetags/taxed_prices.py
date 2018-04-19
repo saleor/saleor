@@ -1,4 +1,5 @@
 from django import template
+from prices import MoneyRange, TaxedMoney, TaxedMoneyRange
 
 from ...core.utils import DEFAULT_TAX_RATE_NAME
 
@@ -14,30 +15,6 @@ def price_range(context, price_range):
 
 
 @register.simple_tag
-def shipping_price_range(shipping_method, taxes):
-    """Return shipping price to display (gross or net) depending on settings.
-
-    Extra with_taxes param forces return of gross (if true)
-    or net (if false) price.
-    """
-    return shipping_method.get_price_range(taxes)
-
-
-@register.simple_tag(takes_context=True)
-def price_to_display(context, price, with_taxes=None):
-    """Return price to display (gross or net) depending on settings.
-
-    Extra with_taxes param forces return of gross (if true)
-    or net (if false) price.
-    """
-    if with_taxes is None:
-        display_gross_prices = context['site'].settings.display_gross_prices
-    else:
-        display_gross_prices = with_taxes
-    return price.gross if display_gross_prices else price.net
-
-
-@register.simple_tag
 def tax_rate(taxes, rate_name):
     """Return tax rate value for given tax rate type in current country."""
     if not taxes:
@@ -45,3 +22,23 @@ def tax_rate(taxes, rate_name):
 
     tax = taxes.get(rate_name) or taxes.get(DEFAULT_TAX_RATE_NAME)
     return tax['value']
+
+
+@register.inclusion_tag('taxed_price.html', takes_context=True)
+def taxed_price(context, base, display_gross=None):
+    if display_gross is None:
+        display_gross = context['site'].settings.display_gross_prices
+
+    price = base
+
+    if isinstance(base, TaxedMoneyRange):
+        if display_gross:
+            price = MoneyRange(start=base.start.gross, stop=base.stop.gross)
+        else:
+            price = MoneyRange(start=base.start.net, stop=base.stop.net)
+
+    if isinstance(base, TaxedMoney):
+        price = base.gross if display_gross else base.net
+
+    is_range = isinstance(price, MoneyRange)
+    return {'price': price, 'is_range': is_range}

@@ -1,10 +1,10 @@
+{% load amount from prices_i18n %}
+{% load discount_as_negative from voucher %}
 {% load i18n %}
 {% load i18n_address_tags %}
-{% load amount from prices_i18n %}
-{% load product_first_image from product_images %}
-{% load discount_as_negative from voucher %}
-{% load taxed_prices %}
 {% load placeholder %}
+{% load product_first_image from product_images %}
+{% load taxed_price from taxed_prices %}
 
 {% if order.user == user %}
   <div class="order-details__addresses">
@@ -65,8 +65,7 @@
           </div>
           <div class="col-md-6 col-12">
             <p class="float-right">
-              {% price_to_display line.get_total as price %}
-              {{ price|amount:'html' }}
+              {% taxed_price line.get_total %}
             </p>
             <p class="float-right">
               ({{ line.get_total.net|amount:'html' }} + {{ line.get_total.tax|amount:'html' }} VAT)
@@ -91,8 +90,7 @@
     </div>
     <div class="col-4">
       <p class="float-right">
-        {% price_to_display order.get_subtotal as price %}
-        {{ price|amount:'html' }}
+        {% taxed_price order.get_subtotal %}
       </p>
       <br>
       <p class="float-right">
@@ -112,8 +110,7 @@
       </div>
       <div class="col-4">
         <p class="float-right">
-          {% price_to_display order.shipping_price as price %}
-          {{ price|amount:'html' }}
+          {% taxed_price order.shipping_price %}
         </p>
         <br>
         <p class="float-right">
