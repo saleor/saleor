@@ -17,8 +17,6 @@ from saleor.page.models import Page
 from saleor.product.models import (
     Category, Product, ProductAttribute, ProductType)
 
-from .utils import get_graphql_content
-
 
 def test_fetch_all_products(client, product):
     query = '''
@@ -63,7 +61,7 @@ def test_fetch_unavailable_products(client, product):
     assert not content['data']['products']['edges']
 
 
-def test_product_query(admin_client, product):
+def test_product_query(admin_api_client, product):
     category = Category.objects.first()
     product = category.products.first()
     query = '''
@@ -127,7 +125,7 @@ def test_product_query(admin_client, product):
         }
     }
     ''' % {'category_id': graphene.Node.to_global_id('Category', category.id)}
-    response = admin_client.post(reverse('api'), {'query': query})
+    response = admin_api_client.post(reverse('api'), {'query': query})
     content = get_graphql_content(response)
     assert 'errors' not in content
     assert content['data']['category'] is not None
@@ -148,7 +146,7 @@ def test_product_query(admin_client, product):
     assert margin[1] == product_data['margin'][0]['stop']
 
 
-def test_product_with_collections(admin_client, product, collection):
+def test_product_with_collections(admin_api_client, product, collection):
     query = '''
         query getProduct($productID: ID!) {
             product(id: $productID) {
@@ -167,7 +165,7 @@ def test_product_with_collections(admin_client, product, collection):
     product_id = graphene.Node.to_global_id('Product', product.id)
 
     variables = json.dumps({'productID': product_id})
-    response = admin_client.post(
+    response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
     content = get_graphql_content(response)
     assert 'errors' not in content
@@ -353,7 +351,7 @@ def test_attributes_in_category_query(client, product):
 
 
 def test_create_product(
-        admin_client, product_type, default_category, size_attribute):
+        admin_api_client, product_type, default_category, size_attribute):
     query = """
         mutation createProduct(
             $productTypeId: ID!,
@@ -443,7 +441,7 @@ def test_create_product(
             {'slug': color_attr_slug, 'value': color_attr_value},
             {'slug': size_attr_slug, 'value': non_existent_attr_value}]})
 
-    response = admin_client.post(
+    response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
     content = get_graphql_content(response)
     assert 'errors' not in content
@@ -465,7 +463,7 @@ def test_create_product(
 
 
 def test_update_product(
-        admin_client, default_category, non_default_category,
+        admin_api_client, default_category, non_default_category,
         product):
     query = """
         mutation updateProduct(
@@ -540,7 +538,7 @@ def test_update_product(
         'taxRate': product_taxRate,
         'price': product_price})
 
-    response = admin_client.post(
+    response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
     content = get_graphql_content(response)
     assert 'errors' not in content
@@ -555,7 +553,7 @@ def test_update_product(
     assert not data['product']['category']['name'] == default_category.name
 
 
-def test_delete_product(admin_client, product):
+def test_delete_product(admin_api_client, product):
     query = """
         mutation DeleteProduct($id: ID!) {
             productDelete(id: $id) {
@@ -572,7 +570,7 @@ def test_delete_product(admin_client, product):
     """
     variables = json.dumps({
         'id': graphene.Node.to_global_id('Product', product.id)})
-    response = admin_client.post(
+    response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
     content = get_graphql_content(response)
     assert 'errors' not in content
@@ -605,7 +603,7 @@ def test_product_type(client, product_type):
 
 
 def test_product_type_query(
-        client, admin_client, product_type, product):
+        client, admin_api_client, product_type, product):
     query = """
             query getProductType($id: ID!) {
                 productType(id: $id) {
@@ -634,7 +632,7 @@ def test_product_type_query(
     data = content['data']
     assert data['productType']['products']['totalCount'] == no_products - 1
 
-    response = admin_client.post(
+    response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
     content = get_graphql_content(response)
     assert 'errors' not in content
@@ -642,7 +640,7 @@ def test_product_type_query(
     assert data['productType']['products']['totalCount'] == no_products
 
 
-def test_product_type_create_mutation(admin_client, product_type):
+def test_product_type_create_mutation(admin_api_client, product_type):
     query = """
     mutation createProductType(
         $name: String!,
@@ -695,7 +693,7 @@ def test_product_type_create_mutation(admin_client, product_type):
         'isShippingRequired': require_shipping,
         'productAttributes': product_attributes_ids,
         'variantAttributes': variant_attributes_ids})
-    response = admin_client.post(
+    response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
     content = get_graphql_content(response)
     assert 'errors' not in content
@@ -709,7 +707,7 @@ def test_product_type_create_mutation(admin_client, product_type):
     assert len(data['productType']['variantAttributes']['edges']) == no_va
 
 
-def test_product_type_update_mutation(admin_client, product_type):
+def test_product_type_update_mutation(admin_api_client, product_type):
     query = """
     mutation updateProductType(
         $id: ID!,
@@ -765,7 +763,7 @@ def test_product_type_update_mutation(admin_client, product_type):
         'hasVariants': has_variants,
         'isShippingRequired': require_shipping,
         'productAttributes': product_attributes_ids})
-    response = admin_client.post(
+    response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
     content = get_graphql_content(response)
     assert 'errors' not in content
@@ -778,7 +776,7 @@ def test_product_type_update_mutation(admin_client, product_type):
     assert len(data['productType']['variantAttributes']['edges']) == no_va
 
 
-def test_product_type_delete_mutation(admin_client, product_type):
+def test_product_type_delete_mutation(admin_api_client, product_type):
     query = """
         mutation deleteProductType($id: ID!) {
             productTypeDelete(id: $id) {
@@ -790,7 +788,7 @@ def test_product_type_delete_mutation(admin_client, product_type):
     """
     variables = json.dumps({
         'id': graphene.Node.to_global_id('ProductType', product_type.id)})
-    response = admin_client.post(
+    response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
     content = get_graphql_content(response)
     assert 'errors' not in content

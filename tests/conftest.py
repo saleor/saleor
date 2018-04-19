@@ -7,9 +7,11 @@ from django.contrib.sites.models import Site
 from django.core.files import File
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.forms import ModelForm
+from django.test.client import Client
 from django.utils.encoding import smart_text
 from django_prices_vatlayer.models import VAT
 from django_prices_vatlayer.utils import get_tax_for_rate
+from graphql_jwt.shortcuts import get_token
 from payments import FraudStatus, PaymentStatus
 from PIL import Image
 from prices import Money
@@ -30,6 +32,24 @@ from saleor.product.models import (
     ProductImage, ProductType, ProductVariant)
 from saleor.shipping.models import ShippingMethod
 from saleor.site.models import AuthorizationKey, SiteSettings
+
+
+class AdminApiClient(Client):
+
+    def __init__(self, *args, **kwargs):
+        user = kwargs.pop('user')
+        self.token = get_token(user)
+        super().__init__(*args, **kwargs)
+
+    def _base_environ(self, **request):
+        environ = super()._base_environ(**request)
+        environ.update({'HTTP_AUTHORIZATION': 'JWT %s' % self.token})
+        return environ
+
+
+@pytest.fixture
+def admin_api_client(admin_user):
+    return AdminApiClient(user=admin_user)
 
 
 @pytest.fixture(autouse=True)
@@ -120,7 +140,6 @@ def admin_user(db):
 @pytest.fixture()
 def admin_client(admin_user):
     """Return a Django test client logged in as an admin user."""
-    from django.test.client import Client
     client = Client()
     client.login(username=admin_user.email, password='password')
     return client
