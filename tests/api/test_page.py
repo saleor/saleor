@@ -29,7 +29,7 @@ def test_page_query(client, page):
     assert page_data['slug'] == page.slug
 
 
-def test_page_create_mutation(admin_client):
+def test_page_create_mutation(admin_api_client):
     query = """
         mutation CreatePage(
             $slug: String!,
@@ -63,7 +63,7 @@ def test_page_create_mutation(admin_client):
     variables = json.dumps({
         'title': page_title, 'content': page_content,
         'isVisible': page_isVisible, 'slug': page_slug})
-    response = admin_client.post(
+    response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
     content = get_graphql_content(response)
     assert 'errors' not in content
@@ -75,7 +75,7 @@ def test_page_create_mutation(admin_client):
     assert data['page']['isVisible'] == page_isVisible
 
 
-def test_page_delete_mutation(admin_client, page):
+def test_page_delete_mutation(admin_api_client, page):
     query = """
         mutation DeletePage($id: ID!) {
             pageDelete(id: $id) {
@@ -92,7 +92,7 @@ def test_page_delete_mutation(admin_client, page):
     """
     variables = json.dumps({
         'id': graphene.Node.to_global_id('Page', page.id)})
-    response = admin_client.post(
+    response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
     content = get_graphql_content(response)
     assert 'errors' not in content
