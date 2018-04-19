@@ -83,8 +83,6 @@ def request_cart(cart, monkeypatch):
     monkeypatch.setattr(
         utils, 'get_cart_from_request',
         lambda request, cart_queryset=None: cart)
-    cart.discounts = Sale.objects.all()
-    cart.taxes = None
     return cart
 
 
@@ -352,14 +350,14 @@ def product_with_images(product_type, default_category):
 
 
 @pytest.fixture
-def anonymous_checkout():
-    return Checkout((), AnonymousUser(), None, 'tracking_code')
+def checkout():
+    return Checkout(Mock(), AnonymousUser(), None, None, 'tracking_code')
 
 
 @pytest.fixture
 def checkout_with_items(request_cart_with_item, customer_user):
     checkout = Checkout(
-        request_cart_with_item, customer_user, None, 'tracking_code')
+        request_cart_with_item, customer_user, None, None, 'tracking_code')
     checkout.shipping_address = customer_user.default_shipping_address
     return checkout
 

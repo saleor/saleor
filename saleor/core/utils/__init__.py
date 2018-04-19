@@ -113,10 +113,10 @@ def get_taxes_for_country(country):
         'tax': get_tax_for_rate(tax_rates)}}
     if tax_rates['reduced_rates']:
         taxes.update({
-            rate: {
-                'value': tax_rates['reduced_rates'][rate],
-                'tax': get_tax_for_rate(tax_rates, rate)}
-            for rate in tax_rates['reduced_rates']})
+            rate_name: {
+                'value': tax_rates['reduced_rates'][rate_name],
+                'tax': get_tax_for_rate(tax_rates, rate_name)}
+            for rate_name in tax_rates['reduced_rates']})
     return taxes
 
 

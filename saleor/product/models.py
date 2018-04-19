@@ -200,17 +200,17 @@ class ProductVariant(models.Model):
     def quantity_available(self):
         return max(self.quantity - self.quantity_allocated, 0)
 
-    def get_total(self):
-        if self.cost_price:
-            return TaxedMoney(net=self.cost_price, gross=self.cost_price)
-
     def check_quantity(self, quantity):
         if quantity > self.quantity_available:
             raise InsufficientStock(self)
 
+    @property
+    def base_price(self):
+        return self.price_override or self.product.price
+
     def get_price(self, discounts=None, taxes=None):
-        price = self.price_override or self.product.price
-        price = calculate_discounted_price(self.product, price, discounts)
+        price = calculate_discounted_price(
+            self.product, self.base_price, discounts)
         if not self.product.charge_taxes:
             taxes = None
         tax_rate = (

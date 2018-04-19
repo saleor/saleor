@@ -6,6 +6,7 @@ from payments import PaymentStatus
 from prices import Money, TaxedMoney
 from tests.utils import get_redirect_location
 
+from saleor.core.utils import DEFAULT_TAX_RATE_NAME
 from saleor.order import FulfillmentStatus, OrderStatus, models
 from saleor.order.forms import OrderNoteForm
 from saleor.order.models import Order
@@ -48,7 +49,7 @@ def test_get_tax_rate_by_name_fallback_to_standard(taxes):
     rate_name = 'unexisting tax rate'
     tax_rate = get_tax_rate_by_name(rate_name, taxes)
 
-    assert tax_rate == taxes[rate_name]['value']
+    assert tax_rate == taxes[DEFAULT_TAX_RATE_NAME]['value']
 
 
 def test_get_tax_rate_by_name_empty_taxes(product):

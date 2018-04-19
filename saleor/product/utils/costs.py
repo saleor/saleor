@@ -1,10 +1,11 @@
-from prices import TaxedMoneyRange
+from django.conf import settings
+from prices import Money, MoneyRange
 
 from ...core.utils import ZERO_TAXED_MONEY
 
 
 def get_product_costs_data(product):
-    purchase_costs_range = TaxedMoneyRange(
+    purchase_costs_range = MoneyRange(
         start=ZERO_TAXED_MONEY, stop=ZERO_TAXED_MONEY)
     gross_margin = (0, 0)
 
@@ -14,7 +15,7 @@ def get_product_costs_data(product):
     variants = product.variants.all()
     costs_data = get_cost_data_from_variants(variants)
     if costs_data.costs:
-        purchase_costs_range = TaxedMoneyRange(
+        purchase_costs_range = MoneyRange(
             min(costs_data.costs), max(costs_data.costs))
     if costs_data.margins:
         gross_margin = (costs_data.margins[0], costs_data.margins[-1])
@@ -25,7 +26,7 @@ class CostsData:
     __slots__ = ('costs', 'margins')
 
     def __init__(self, costs, margins):
-        self.costs = sorted(costs, key=lambda x: x.gross)
+        self.costs = sorted(costs)
         self.margins = sorted(margins)
 
 
@@ -51,15 +52,14 @@ def get_variant_costs_data(variant):
 
 def get_cost_price(variant):
     if not variant.cost_price:
-        return ZERO_TAXED_MONEY
-    return variant.get_total()
+        return Money(0, settings.DEFAULT_CURRENCY)
+    return variant.cost_price
 
 
 def get_margin_for_variant(variant):
-    variant_cost = variant.get_total()
-    if variant_cost is None:
+    if variant.cost_price is None:
         return None
-    price = variant.get_price()
-    margin = price - variant_cost
-    percent = round((margin.gross / price.gross) * 100, 0)
+    base_price = variant.base_price
+    margin = base_price - variant.cost_price
+    percent = round((margin / base_price) * 100, 0)
     return percent

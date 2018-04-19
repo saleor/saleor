@@ -2,13 +2,12 @@
 from datetime import date
 from functools import wraps
 
-from django.conf import settings
 from django.contrib.sites.models import Site
 from django.db import transaction
 from django.forms.models import model_to_dict
 from django.utils.encoding import smart_text
 from django.utils.translation import get_language
-from prices import Money, TaxedMoney
+from prices import Money
 
 from ..account.models import Address
 from ..account.utils import store_user_address
@@ -42,25 +41,26 @@ class Checkout:
 
     VERSION = '1.0.0'
 
-    def __init__(self, cart, user, taxes, tracking_code):
+    def __init__(self, cart, user, discounts, taxes, tracking_code):
         self.modified = False
         self.cart = cart
-        self.storage = {'version': self.VERSION}
-        self.tracking_code = tracking_code
         self.user = user
+        self.discounts = discounts
         self.taxes = taxes
-        self.discounts = cart.discounts
+        self.tracking_code = tracking_code
+        self.storage = {'version': self.VERSION}
         self._shipping_method = None
         self._shipping_address = None
 
     @classmethod
-    def from_storage(cls, storage_data, cart, user, taxes, tracking_code):
+    def from_storage(
+            cls, storage_data, cart, user, discounts, taxes, tracking_code):
         """Restore a previously serialized checkout session.
 
         `storage_data` is the value previously returned by
         `Checkout.for_storage()`.
         """
-        checkout = cls(cart, user, taxes, tracking_code)
+        checkout = cls(cart, user, discounts, taxes, tracking_code)
         checkout.storage = storage_data
         try:
             version = checkout.storage['version']
@@ -336,8 +336,8 @@ class Checkout:
 
         for line in self.cart.lines.all():
             add_variant_to_order(
-                order, line.variant, line.quantity, self.cart.discounts,
-                self.taxes, add_to_existing=False)
+                order, line.variant, line.quantity, self.discounts, self.taxes,
+                add_to_existing=False)
 
         if voucher is not None:
             increase_voucher_usage(voucher)
@@ -381,7 +381,7 @@ class Checkout:
 
     def get_subtotal(self):
         """Calculate order total without shipping and discount."""
-        return self.cart.get_total(discounts=self.discounts, taxes=self.taxes)
+        return self.cart.get_total(self.discounts, self.taxes)
 
     def get_total(self):
         """Calculate order total with shipping and discount amount."""
@@ -410,7 +410,8 @@ def load_checkout(view):
             session_data = ''
         tracking_code = analytics.get_client_id(request)
         checkout = Checkout.from_storage(
-            session_data, cart, request.user, request.taxes, tracking_code)
+            session_data, cart, request.user, request.discounts, request.taxes,
+            tracking_code)
         response = view(request, checkout, cart)
         if checkout.modified:
             request.session[STORAGE_SESSION_KEY] = checkout.for_storage()

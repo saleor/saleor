@@ -359,7 +359,7 @@ def test_product_filter_sorted_by_wrong_parameter(
 
 def test_get_variant_picker_data_proper_variant_count(product):
     data = get_variant_picker_data(
-        product, discounts=None, local_currency=None)
+        product, discounts=None, taxes=None, local_currency=None)
 
     assert len(data['variantAttributes'][0]['values']) == 1
 

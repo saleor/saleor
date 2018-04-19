@@ -36,8 +36,9 @@ def index(request, cart):
         'variant__product__product_type__variant_attributes')
     for line in lines:
         initial = {'quantity': line.quantity}
-        form = ReplaceCartLineForm(None, cart=cart, variant=line.variant,
-                                   initial=initial, discounts=discounts)
+        form = ReplaceCartLineForm(
+            None, cart=cart, variant=line.variant, initial=initial,
+            discounts=discounts, taxes=taxes)
         cart_lines.append({
             'variant': line.variant,
             'get_price': line.variant.get_price(discounts, taxes),
@@ -64,7 +65,7 @@ def index(request, cart):
 @get_or_empty_db_cart(cart_queryset=Cart.objects.for_display())
 def get_shipping_options(request, cart):
     """Display shipping options to get a price estimate."""
-    country_form = CountryForm(request.POST or None)
+    country_form = CountryForm(request.POST or None, taxes=request.taxes)
     if country_form.is_valid():
         shipments = country_form.get_shipment_options()
     else:
@@ -73,7 +74,7 @@ def get_shipping_options(request, cart):
         'default_country_options': shipments,
         'country_form': country_form}
     cart_data = get_cart_data(
-        cart, shipments, request.currency, request.discounts)
+        cart, shipments, request.currency, request.discounts, request.taxes)
     ctx.update(cart_data)
     return TemplateResponse(
         request, 'cart/_subtotal_table.html', ctx)
@@ -89,7 +90,8 @@ def update(request, cart, variant_id):
     taxes = request.taxes
     status = None
     form = ReplaceCartLineForm(
-        request.POST, cart=cart, variant=variant, discounts=discounts)
+        request.POST, cart=cart, variant=variant, discounts=discounts,
+        taxes=taxes)
     if form.is_valid():
         form.save()
         response = {

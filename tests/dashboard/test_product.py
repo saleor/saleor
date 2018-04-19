@@ -617,7 +617,7 @@ def test_hide_field_in_variant_choice_field_form():
     variants, cart = MagicMock(), MagicMock()
     variants.count.return_value = 1
     variants.all()[0].pk = 'test'
-    form.update_field_data(variants, cart)
+    form.update_field_data(variants, discounts=None, taxes=None)
     assert isinstance(form.widget, HiddenInput)
     assert form.widget.attrs.get('value') == 'test'
 

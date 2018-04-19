@@ -1,6 +1,7 @@
 import json
 
 from django import forms
+from django.contrib.sites.models import Site
 from django.utils.encoding import smart_text
 from django.utils.translation import pgettext_lazy
 from django_prices.templatetags.prices_i18n import amount
@@ -10,22 +11,27 @@ from ..cart.forms import AddToCartForm
 
 class VariantChoiceField(forms.ModelChoiceField):
     discounts = None
+    taxes = None
+    display_gross = True
 
     def label_from_instance(self, obj):
         variant_label = smart_text(obj)
+        price = obj.get_price(self.discounts, self.taxes)
+        price = price.gross if self.display_gross else price.net
         label = pgettext_lazy(
             'Variant choice field label',
             '%(variant_label)s - %(price)s') % {
-                'variant_label': variant_label,
-                'price': amount(
-                    obj.get_price(discounts=self.discounts).gross)}
+                'variant_label': variant_label, 'price': amount(price)}
         return label
 
-    def update_field_data(self, variants, cart):
+    def update_field_data(self, variants, discounts, taxes):
         """Initialize variant picker metadata."""
         self.queryset = variants
-        self.discounts = cart.discounts
+        self.discounts = discounts
+        self.taxes = taxes
         self.empty_label = None
+        self.display_gross = (
+            Site.objects.get_current().settings.display_gross_prices)
         images_map = {
             variant.pk: [
                 vi.image.image.url for vi in variant.variant_images.all()]
@@ -43,7 +49,8 @@ class ProductForm(AddToCartForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         variant_field = self.fields['variant']
-        variant_field.update_field_data(self.product.variants, self.cart)
+        variant_field.update_field_data(
+            self.product.variants, self.discounts, self.taxes)
 
     def get_variant(self, cleaned_data):
         return cleaned_data.get('variant')
