@@ -46,7 +46,7 @@ def test_category_query(client, product):
         category.get_children().count())
 
 
-def test_category_create_mutation(admin_client):
+def test_category_create_mutation(admin_api_client):
     query = """
         mutation($name: String!, $description: String, $parentId: ID) {
             categoryCreate(
@@ -78,7 +78,7 @@ def test_category_create_mutation(admin_client):
     # test creating root category
     variables = json.dumps({
         'name': category_name, 'description': category_description})
-    response = admin_client.post(
+    response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
     content = get_graphql_content(response)
     assert 'errors' not in content
@@ -93,7 +93,7 @@ def test_category_create_mutation(admin_client):
     variables = json.dumps({
         'name': category_name, 'description': category_description,
         'parentId': parent_id})
-    response = admin_client.post(
+    response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
     content = get_graphql_content(response)
     assert 'errors' not in content
@@ -102,7 +102,7 @@ def test_category_create_mutation(admin_client):
     assert data['category']['parent']['id'] == parent_id
 
 
-def test_category_update_mutation(admin_client, default_category):
+def test_category_update_mutation(admin_api_client, default_category):
     query = """
         mutation($id: ID, $name: String!, $description: String) {
             categoryUpdate(
@@ -136,7 +136,7 @@ def test_category_update_mutation(admin_client, default_category):
     variables = json.dumps({
         'name': category_name, 'description': category_description,
         'id': category_id})
-    response = admin_client.post(
+    response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
     content = get_graphql_content(response)
     assert 'errors' not in content
@@ -150,7 +150,7 @@ def test_category_update_mutation(admin_client, default_category):
     assert data['category']['parent']['id'] == parent_id
 
 
-def test_category_delete_mutation(admin_client, default_category):
+def test_category_delete_mutation(admin_api_client, default_category):
     query = """
         mutation($id: ID!) {
             categoryDelete(id: $id) {
@@ -166,7 +166,7 @@ def test_category_delete_mutation(admin_client, default_category):
     """
     variables = json.dumps({
         'id': graphene.Node.to_global_id('Category', default_category.id)})
-    response = admin_client.post(
+    response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
     content = get_graphql_content(response)
     assert 'errors' not in content
