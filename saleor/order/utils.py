@@ -3,11 +3,12 @@ from functools import wraps
 from django.conf import settings
 from django.db.models import F
 from django.shortcuts import get_object_or_404, redirect
+from django_countries.fields import Country
 from prices import Money
 
 from ..account.utils import store_user_address
 from ..core.exceptions import InsufficientStock
-from ..core.utils import DEFAULT_TAX_RATE_NAME
+from ..core.utils import DEFAULT_TAX_RATE_NAME, get_taxes_for_country
 from ..dashboard.order.utils import get_voucher_discount_for_order
 from ..order import FulfillmentStatus, OrderStatus
 from ..order.models import OrderLine
@@ -139,6 +140,17 @@ def get_tax_rate_by_name(rate_name, taxes=None):
         tax_rate = taxes[DEFAULT_TAX_RATE_NAME]['value']
 
     return tax_rate
+
+
+def get_taxes_for_order(order):
+    """Return proper taxes for order.
+    Taxes are based on shipping address or default country."""
+    if order.shipping_address:
+        country = order.shipping_address.country
+    else:
+        country = Country(settings.DEFAULT_COUNTRY)
+
+    return get_taxes_for_country(country)
 
 
 def add_variant_to_order(

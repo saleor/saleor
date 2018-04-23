@@ -101,8 +101,7 @@ class ShippingMethodCountry(models.Model):
     def get_total_price(self, taxes=None):
         return get_taxed_shipping_price(self.price, taxes)
 
-    @property
-    def ajax_label(self):
-        price_html = format_money(self.price)
+    def get_ajax_label(self, taxes=None):
+        price_html = format_money(self.get_total_price(taxes).gross)
         label = mark_safe('%s %s' % (self.shipping_method, price_html))
         return label

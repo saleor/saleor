@@ -159,6 +159,7 @@ class OrderShippingForm(forms.ModelForm):
                 'Shipping method form field label', 'Shipping method')}
 
     def __init__(self, *args, **kwargs):
+        self.taxes = kwargs.pop('taxes')
         super().__init__(*args, **kwargs)
         method_field = self.fields['shipping_method']
         fetch_data_url = reverse(
@@ -179,7 +180,7 @@ class OrderShippingForm(forms.ModelForm):
     def save(self, commit=True):
         method = self.instance.shipping_method
         self.instance.shipping_method_name = method.shipping_method.name
-        self.instance.shipping_price = method.get_total_price()
+        self.instance.shipping_price = method.get_total_price(self.taxes)
         recalculate_order(self.instance)
         return super().save(commit)
 
