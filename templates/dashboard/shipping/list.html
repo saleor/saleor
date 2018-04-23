@@ -62,7 +62,7 @@
                       {% if not method.price_range %}
                         -
                       {% else %}
-                        {% taxed_price method.price_range request.site.settings.include_taxes_in_prices %}
+                        {% price method.price_range %}
                       {% endif %}
                     </td>
                     <td>

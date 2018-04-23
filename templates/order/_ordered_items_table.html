@@ -4,7 +4,7 @@
 {% load i18n_address_tags %}
 {% load placeholder %}
 {% load product_first_image from product_images %}
-{% load taxed_price from taxed_prices %}
+{% load price from taxed_prices %}
 
 {% if order.user == user %}
   <div class="order-details__addresses">
@@ -65,7 +65,7 @@
           </div>
           <div class="col-md-6 col-12">
             <p class="float-right">
-              {% taxed_price line.get_total %}
+              {% price line.get_total display_gross=order.display_gross_prices %}
             </p>
             <p class="float-right">
               ({{ line.get_total.net|amount:'html' }} + {{ line.get_total.tax|amount:'html' }} VAT)
@@ -81,16 +81,12 @@
   <div class="row">
     <div class="col-8 order-details__table-footer">
       <p>
-        {% if request.site.settings.display_gross_prices %}
-          {% trans "Subtotal" context "Order details subtotal row text" %}
-        {% else %}
-          {% trans "Subtotal net" context "Order details subtotal row text" %}
-        {% endif %}
+        {% trans "Subtotal" context "Order details subtotal row text" %}
       </p>
     </div>
     <div class="col-4">
       <p class="float-right">
-        {% taxed_price order.get_subtotal %}
+        {% price order.get_subtotal display_gross=order.display_gross_prices %}
       </p>
       <br>
       <p class="float-right">
@@ -110,7 +106,7 @@
       </div>
       <div class="col-4">
         <p class="float-right">
-          {% taxed_price order.shipping_price %}
+          {% price order.shipping_price display_gross=order.display_gross_prices %}
         </p>
         <br>
         <p class="float-right">
@@ -140,7 +136,7 @@
   <div class="row">
     <div class="col-8 order-details__table-footer">
       <p>
-        {% if request.site.settings.display_gross_prices %}
+        {% if order.display_gross_prices %}
           {% trans "Taxes (included)" context "Order details taxes text" %}
         {% else %}
           {% trans "Taxes" context "Order details taxes text" %}

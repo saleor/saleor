@@ -24,21 +24,19 @@ def tax_rate(taxes, rate_name):
     return tax['value']
 
 
-@register.inclusion_tag('taxed_price.html', takes_context=True)
-def taxed_price(context, base, display_gross=None):
+@register.inclusion_tag('price.html', takes_context=True)
+def price(context, base, display_gross=None):
     if display_gross is None:
         display_gross = context['site'].settings.display_gross_prices
 
-    price = base
-
     if isinstance(base, TaxedMoneyRange):
         if display_gross:
-            price = MoneyRange(start=base.start.gross, stop=base.stop.gross)
+            base = MoneyRange(start=base.start.gross, stop=base.stop.gross)
         else:
-            price = MoneyRange(start=base.start.net, stop=base.stop.net)
+            base = MoneyRange(start=base.start.net, stop=base.stop.net)
 
     if isinstance(base, TaxedMoney):
-        price = base.gross if display_gross else base.net
+        base = base.gross if display_gross else base.net
 
-    is_range = isinstance(price, MoneyRange)
-    return {'price': price, 'is_range': is_range}
+    is_range = isinstance(base, MoneyRange)
+    return {'price': base, 'is_range': is_range}

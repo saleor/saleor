@@ -131,14 +131,14 @@
             <span>{% price_range availability.price_range %}</span>
             {% if availability.discount %}
               <small class="product__info__price__undiscounted">
-                {% taxed_price availability.price_range_undiscounted %}
+                {% price availability.price_range_undiscounted %}
               </small>
             {% endif %}
             {% if availability.price_range_local_currency %}
               <br>
               <small class="text-info">
                 &asymp;
-                {% taxed_price availability.price_range_local_currency %}
+                {% price availability.price_range_local_currency %}
               </small>
             {% endif %}
             <small>

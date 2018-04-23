@@ -11,7 +11,7 @@
       <div class="col-4">
         <h3 class="text-right cart-subtotal" data-value="{{ cart_total.gross|amount }}" {% if local_cart_total is not None %}data-value-local="{{ local_cart_total.gross|amount }}"{% endif %}>
           {% spaceless %}
-            {% taxed_price cart_total %}
+            {% price cart_total %}
             <br>
             <small>
               ({{ cart_total.net|amount:'html' }} + {{ cart_total.tax|amount:'html' }} VAT)
@@ -20,7 +20,7 @@
               <br>
               <small>
                 &asymp;
-                {% taxed_price local_cart_total %}
+                {% price local_cart_total %}
               </small>
             {% endif %}
           {% endspaceless %}

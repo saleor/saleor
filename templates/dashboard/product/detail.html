@@ -4,7 +4,7 @@
 {% load prices_i18n %}
 {% load staticfiles %}
 {% load status %}
-{% load taxed_price from taxed_prices %}
+{% load price from taxed_prices %}
 {% load utils %}
 
 {% block title %}{{ product }} - {{ block.super }}{% endblock %}
@@ -101,7 +101,7 @@
                   <th>{% trans "Name" %}</th>
                   <th>{% trans "Status" %}</th>
                   <th class="right-align">
-                    {% if request.site.settings.include_taxes_in_prices %}
+                    {% if include_taxes_in_prices %}
                       {% trans "Price (gross)" %}
                     {% else %}
                       {% trans "Price (net)" %}
@@ -170,62 +170,60 @@
                   </div>
                 </div>
                 <div class="data-table-container">
-                  {% with request.site.settings.include_taxes_in_prices as display_gross_prices %}
-                    <table class="data-table bordered highlight">
-                      <tbody>
+                  <table class="data-table bordered highlight">
+                    <tbody>
+                      <tr>
+                        <td>
+                          {% if include_taxes_in_prices %}
+                            {% trans "Sale price (gross)" context "Product field" %}
+                          {% else %}
+                            {% trans "Sale price (net)" context "Product field" %}
+                          {% endif %}
+                        </td>
+                        <td class="right-align">
+                          {% price sale_price display_gross=include_taxes_in_prices %}
+                        </td>
+                      </tr>
+                      {% if discounted_price != sale_price %}
                         <tr>
                           <td>
-                            {% if display_gross_prices %}
-                              {% trans "Sale price (gross)" context "Product field" %}
+                            {% if include_taxes_in_prices %}
+                              {% trans "Discounted price (gross)" context "Product field" %}
                             {% else %}
-                              {% trans "Sale price (net)" context "Product field" %}
+                              {% trans "Discounted price (net)" context "Product field" %}
                             {% endif %}
                           </td>
                           <td class="right-align">
-                            {% taxed_price sale_price display_gross_prices %}
+                            {% price discounted_price display_gross=include_taxes_in_prices %}
                           </td>
                         </tr>
-                        {% if discounted_price != sale_price %}
-                          <tr>
-                            <td>
-                              {% if display_gross_prices %}
-                                {% trans "Discounted price (gross)" context "Product field" %}
-                              {% else %}
-                                {% trans "Discounted price (net)" context "Product field" %}
-                              {% endif %}
-                            </td>
-                            <td class="right-align">
-                              {% taxed_price discounted_price display_gross_prices %}
-                            </td>
-                          </tr>
-                        {% endif %}
-                        <tr>
-                          <td>
-                            {% trans "Purchase cost" context "Product field" %}
-                          </td>
-                          <td class="right-align">
-                            {% taxed_price purchase_cost %}
-                          </td>
-                        </tr>
-                        <tr>
-                          <td>
-                            {% trans "Gross margin" context "Product field" %}
-                          </td>
-                          <td class="right-align">
-                            {% if gross_margin %}
-                              {% if gross_margin.0 == gross_margin.1 %}
-                                {{ gross_margin.0 }}%
-                              {% else %}
-                                {{ gross_margin.0 }}% - {{ gross_margin.1 }}%
-                              {% endif %}
+                      {% endif %}
+                      <tr>
+                        <td>
+                          {% trans "Purchase cost" context "Product field" %}
+                        </td>
+                        <td class="right-align">
+                          {% price purchase_cost %}
+                        </td>
+                      </tr>
+                      <tr>
+                        <td>
+                          {% trans "Gross margin" context "Product field" %}
+                        </td>
+                        <td class="right-align">
+                          {% if gross_margin %}
+                            {% if gross_margin.0 == gross_margin.1 %}
+                              {{ gross_margin.0 }}%
                             {% else %}
-                              -
+                              {{ gross_margin.0 }}% - {{ gross_margin.1 }}%
                             {% endif %}
-                          </td>
-                        </tr>
-                      </tbody>
-                    </table>
-                  {% endwith %}
+                          {% else %}
+                            -
+                          {% endif %}
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
                 </div>
               </div>
             </div>

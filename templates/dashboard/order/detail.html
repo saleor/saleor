@@ -6,7 +6,7 @@
 {% load prices_i18n %}
 {% load staticfiles %}
 {% load status %}
-{% load taxed_price from taxed_prices %}
+{% load price from taxed_prices %}
 {% load voucher %}
 
 {% block title %}
@@ -320,7 +320,7 @@
                     ({{ line.unit_price.net|amount:'html' }} + {{ line.unit_price.tax|amount:'html' }} VAT)
                   </td>
                   <td class="right-align">
-                    {% taxed_price line.unit_price order.include_taxes_in_prices %}
+                    {% price line.unit_price order.display_gross_prices %}
                   </td>
                   <td class="right-align">
                     {% if perms.order.edit_order and order.is_draft %}
@@ -348,18 +348,14 @@
                     ({{ line.get_total.net|amount:'html' }} + {{ line.get_total.tax|amount:'html' }} VAT)
                   </td>
                   <td class="right-align">
-                    {% taxed_price line.get_total order.include_taxes_in_prices %}
+                    {% price line.get_total display_gross=order.display_gross_prices %}
                   </td>
                 </tr>
               {% endfor %}
               <tr class="last-no-border">
                 <td class="right-align" colspan="5">
                   <p>
-                    {% if order.include_taxes_in_prices %}
-                      {% trans "Subtotal" context "Order subtotal" %}
-                    {% else %}
-                      {% trans "Subtotal net" context "Order subtotal" %}
-                    {% endif %}
+                    {% trans "Subtotal" context "Order subtotal" %}
                   </p>
                   <p>debug</p>
                   <p>
@@ -386,7 +382,7 @@
                   </p>
                   <p>debug</p>
                   <p>
-                    {% if order.include_taxes_in_prices %}
+                    {% if order.display_gross_prices %}
                       {% trans "Taxes (included)" context "Order total taxes" %}
                     {% else %}
                       {% trans "Taxes" context "Order total taxes" %}
@@ -435,13 +431,13 @@
                 </td>
                 <td class="right-align">
                   <p>
-                    {% taxed_price order.get_subtotal order.include_taxes_in_prices %}
+                    {% price order.get_subtotal display_gross=order.display_gross_prices %}
                   </p>
                   <p>
                     ({{ order.get_subtotal.net|amount:'html' }} + {{ order.get_subtotal.tax|amount:'html' }} VAT)
                   </p>
                   <p>
-                    {% taxed_price order.shipping_price order.include_taxes_in_prices %}
+                    {% price order.shipping_price display_gross=order.display_gross_prices %}
                   </p>
                   <p>
                     ({{ order.shipping_price.net|amount:'html' }} + {{ order.shipping_price.tax|amount:'html' }} VAT)

@@ -3,7 +3,7 @@
 {% load placeholder %}
 {% load prices_i18n %}
 {% load staticfiles %}
-{% load taxed_price from taxed_prices %}
+{% load price from taxed_prices %}
 
 <div class="container">
   {% if quantity > 0 %}
@@ -27,7 +27,7 @@
         <div class="col-md-2">
           <div class="float-right">
             <h3>
-              {% taxed_price line.line_total %}
+              {% price line.line_total %}
             </h3>
           </div>
         </div>
@@ -44,7 +44,7 @@
       <div class="col-md-4">
         <h3 class="float-md-right price {% if lines|length <= 2 %}single{% endif %}" data-quantity="{{ quantity }}">
           <p>
-            {% taxed_price total %}
+            {% price total %}
           </p>
         </h3>
       </div>
