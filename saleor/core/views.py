@@ -9,7 +9,8 @@ from random import randint
 from ..account.models import User
 from ..dashboard.views import staff_member_required
 from ..product.models import Category
-from ..product.utils import products_for_homepage, products_with_availability
+from ..product.utils import products_for_homepage
+from ..product.utils.availability import products_with_availability
 from ..seo.schema.webpage import get_webpage_schema
 
 

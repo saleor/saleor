@@ -14,7 +14,6 @@ def test_list_view(admin_client, collection):
     assert list(context['collections']) == [collection]
 
 
-@pytest.mark.django_db
 def test_collection_form_name():
     data = {'name': 'Test Collection', 'products': []}
     form = CollectionForm(data)
@@ -27,9 +26,8 @@ def test_collection_form_name():
     assert not invalid_form.is_valid()
 
 
-@pytest.mark.django_db
-def test_collection_form_with_products(product_in_stock):
-    data = {'name': 'Test collection', 'products': [product_in_stock.id]}
+def test_collection_form_with_products(product):
+    data = {'name': 'Test collection', 'products': [product.id]}
     form = CollectionForm(data)
     assert form.is_valid()
 
@@ -49,19 +47,19 @@ def test_collection_create_view(admin_client):
     assert redirected_url == reverse('dashboard:collection-list')
 
 
-def test_collection_update_view(admin_client, collection, product_in_stock):
+def test_collection_update_view(admin_client, collection, product):
     url = reverse('dashboard:collection-update', kwargs={'pk': collection.id})
     response = admin_client.get(url)
     assert response.status_code == 200
 
     current_name = collection.name
-    data = {'name': 'New name', 'products': [product_in_stock.id]}
+    data = {'name': 'New name', 'products': [product.id]}
     response = admin_client.post(url, data)
     assert response.status_code == 302
 
     collection.refresh_from_db()
     assert not current_name == collection.name
-    assert list(collection.products.all()) == [product_in_stock]
+    assert list(collection.products.all()) == [product]
 
 
 def test_collection_delete_view(admin_client, collection):

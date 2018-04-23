@@ -2,7 +2,6 @@
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.template.response import TemplateResponse
-from django.urls import reverse
 
 from ..core.utils import (
     format_money, get_user_shipping_country, to_local_currency)
@@ -23,11 +22,18 @@ def index(request, cart):
 
     # refresh required to get updated cart lines and it's quantity
     try:
-        cart = Cart.objects.get(pk=cart.pk)
+        cart = Cart.objects.prefetch_related(
+            'lines__variant__product__category').get(pk=cart.pk)
     except Cart.DoesNotExist:
         pass
 
-    for line in cart.lines.all():
+    lines = cart.lines.select_related(
+        'variant__product__product_type',
+        'variant__product__category')
+    lines = lines.prefetch_related(
+        'variant__product__images',
+        'variant__product__product_type__variant_attributes')
+    for line in lines:
         initial = {'quantity': line.quantity}
         form = ReplaceCartLineForm(None, cart=cart, variant=line.variant,
                                    initial=initial, discounts=discounts)
@@ -111,21 +117,14 @@ def update(request, cart, variant_id):
 def summary(request, cart):
     """Display a cart summary suitable for displaying on all pages."""
     def prepare_line_data(line):
-        product_type = line.variant.product.product_type
-        attributes = product_type.variant_attributes.all()
         first_image = line.variant.get_first_image()
-        price_per_item = line.get_price_per_item(discounts=request.discounts)
         line_total = line.get_total(discounts=request.discounts)
         return {
             'product': line.variant.product,
             'variant': line.variant.name,
             'quantity': line.quantity,
-            'attributes': line.variant.display_variant_attributes(attributes),
             'image': first_image,
-            'price_per_item': format_money(price_per_item.gross),
             'line_total': format_money(line_total.gross),
-            'update_url': reverse(
-                'cart:update-line', kwargs={'variant_id': line.variant_id}),
             'variant_url': line.variant.get_absolute_url()}
     if cart.quantity == 0:
         data = {'quantity': 0}

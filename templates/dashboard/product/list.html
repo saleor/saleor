@@ -69,7 +69,7 @@
           </thead>
           <tbody>
           {% for product in products %}
-            <tr class="avatar" data-action-go="{% url 'dashboard:product-detail' pk=product.pk %}">
+            <tr class="avatar" data-action-go="{% url 'dashboard:product-details' pk=product.pk %}">
               <td class="bulk-checkbox ignore-link">
                 <input id="id_products_{{ product.pk }}" type="checkbox" name="products" value="{{ product.pk }}" class="filled-in select-item">
                 <label for="id_products_{{ product.pk }}"></label>

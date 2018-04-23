@@ -1,31 +1,29 @@
 Stock Management
 ================
 
-Each product variant has a stock keeping unit (SKU) and can have any number of stock records.
+Each product variant has a stock keeping unit (SKU).
 
-A stock record represents that variant's availability in a single location. Multiple stock records are often used to represent different warehouses, different fulfilment partners or separate shipments of the same product that were obtained at different prices.
+Each variant holds information about *quantity* at hand, quantity *allocated* for already placed orders and quantity *available*.
 
-Each stock record holds information about *quantity* at hand, quantity *allocated* for already placed orders and quantity *available*.
+**Example:** There are five boxes of shoes. Three of them have already been sold to customers but were not yet dispatched for shipment. The stock records **quantity** is **5**, **quantity allocated** is **3** and **quantity available** is **2**.
 
-**Example:** There are five boxes of shoes in warehouse A. Three of them have already been sold to customers but were not yet dispatched for shipment. The stock records **quantity** is **5**, **quantity allocated** is **3** and **quantity available** is **2**.
-
-Each stock records also has a *cost price* (the price that your store had to pay to obtain it).
+Each variant also has a *cost price* (the price that your store had to pay to obtain it).
 
 
 Product Availability
 --------------------
 
-A variant is *in stock* if at least one of its stock records has unallocated quantity.
+A variant is *in stock* if it has unallocated quantity.
 
-The highest quantity that can be ordered is the sum of all available quantities in stock records. It allows each ordered product to be fulfilled in multiple order lines with all stock records.
+The highest quantity that can be ordered is the available quantity in product variant.
 
 
 Allocating Stock for New Orders
 -------------------------------
 
-Once an order is placed, a stock records are selected to fulfil each order line. Default logic will select the stock records with the *lowest cost price* that holds enough stock. Quantity needed to fulfil the order line is immediately marked as *allocated*.
+Once an order is placed, quantity needed to fulfil each order line is immediately marked as *allocated*.
 
-**Example:** A customer places an order for another box of shoes and warehouse A is selected to fulfil the order. The stock records **quantity** is **5**, **quantity allocated** is now **4** and **quantity available** becomes **1**.
+**Example:** A customer places an order for another box of shoes. The stock records **quantity** is **5**, **quantity allocated** is now **4** and **quantity available** becomes **1**.
 
 
 Decreasing Stock After Shipment

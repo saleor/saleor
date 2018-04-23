@@ -36,7 +36,7 @@
     </li>
     <li>
       {% if product.pk %}
-        <a href="{% url "dashboard:product-detail" pk=product.pk %}" class="breadcrumbs--ellipsed-item">
+        <a href="{% url "dashboard:product-details" pk=product.pk %}" class="breadcrumbs--ellipsed-item">
           {{ product }}
         </a>
       {% else %}
@@ -119,7 +119,7 @@
           </div>
           <div class="card-action right-align">
             {% if product.pk %}
-              <a href="{% url 'dashboard:product-detail' product.pk %}" class="btn-flat waves-effect">
+              <a href="{% url 'dashboard:product-details' product.pk %}" class="btn-flat waves-effect">
                 {% trans "Cancel" context "Dashboard cancel action" %}
               </a>
               <button type="submit" class="btn waves-effect">

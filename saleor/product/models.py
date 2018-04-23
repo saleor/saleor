@@ -6,7 +6,6 @@ from django.contrib.postgres.fields import HStoreField
 from django.core.validators import MinValueValidator, RegexValidator
 from django.db import models
 from django.db.models import F, Max, Q
-from django.dispatch import receiver
 from django.urls import reverse
 from django.utils.encoding import smart_text
 from django.utils.text import slugify
@@ -21,7 +20,6 @@ from versatileimagefield.fields import PPOIField, VersatileImageField
 from ..core.exceptions import InsufficientStock
 from ..discount.utils import calculate_discounted_price
 from ..seo.models import SeoModel
-from .utils import get_attributes_display_map
 
 
 class Category(MPTTModel, SeoModel):
@@ -99,7 +97,8 @@ class Product(SeoModel):
     category = models.ForeignKey(
         Category, related_name='products', on_delete=models.CASCADE)
     price = MoneyField(
-        currency=settings.DEFAULT_CURRENCY, max_digits=12, decimal_places=2)
+        currency=settings.DEFAULT_CURRENCY, max_digits=12,
+        decimal_places=settings.DEFAULT_DECIMAL_PLACES)
     available_on = models.DateField(blank=True, null=True)
     is_published = models.BooleanField(default=True)
     attributes = HStoreField(default={}, blank=True)
@@ -180,28 +179,39 @@ class Product(SeoModel):
 
 class ProductVariant(models.Model):
     sku = models.CharField(max_length=32, unique=True)
-    name = models.CharField(max_length=100, blank=True)
+    name = models.CharField(max_length=255, blank=True)
     price_override = MoneyField(
-        currency=settings.DEFAULT_CURRENCY, max_digits=12, decimal_places=2,
-        blank=True, null=True)
+        currency=settings.DEFAULT_CURRENCY, max_digits=12,
+        decimal_places=settings.DEFAULT_DECIMAL_PLACES, blank=True, null=True)
     product = models.ForeignKey(
         Product, related_name='variants', on_delete=models.CASCADE)
     attributes = HStoreField(default={}, blank=True)
     images = models.ManyToManyField('ProductImage', through='VariantImage')
+    quantity = models.IntegerField(
+        validators=[MinValueValidator(0)], default=Decimal(1))
+    quantity_allocated = models.IntegerField(
+        validators=[MinValueValidator(0)], default=Decimal(0))
+    cost_price = MoneyField(
+        currency=settings.DEFAULT_CURRENCY, max_digits=12,
+        decimal_places=settings.DEFAULT_DECIMAL_PLACES, blank=True, null=True)
 
     class Meta:
         app_label = 'product'
 
     def __str__(self):
-        return self.name or self.display_variant_attributes()
+        return self.name or self.sku
+
+    @property
+    def quantity_available(self):
+        return max(self.quantity - self.quantity_allocated, 0)
+
+    def get_total(self):
+        if self.cost_price:
+            return TaxedMoney(net=self.cost_price, gross=self.cost_price)
 
     def check_quantity(self, quantity):
-        total_available_quantity = self.get_stock_quantity()
-        if quantity > total_available_quantity:
+        if quantity > self.quantity_available:
             raise InsufficientStock(self)
-
-    def get_stock_quantity(self):
-        return sum([stock.quantity_available for stock in self.stock.all()])
 
     def get_price_per_item(self, discounts=None):
         price = self.price_override or self.product.price
@@ -226,19 +236,7 @@ class ProductVariant(models.Model):
         return self.product.product_type.is_shipping_required
 
     def is_in_stock(self):
-        return any(
-            [stock.quantity_available > 0 for stock in self.stock.all()])
-
-    def display_variant_attributes(self, attributes=None):
-        if attributes is None:
-            attributes = self.product.product_type.variant_attributes.all()
-        values = get_attributes_display_map(self, attributes)
-        if values:
-            return ', '.join(
-                ['%s: %s' % (smart_text(attributes.get(id=int(key))),
-                             smart_text(value))
-                 for (key, value) in values.items()])
-        return ''
+        return self.quantity_available > 0
 
     def display_product(self):
         variant_display = str(self)
@@ -249,70 +247,6 @@ class ProductVariant(models.Model):
 
     def get_first_image(self):
         return self.product.get_first_image()
-
-    def select_stockrecord(self, quantity=1):
-        # By default selects stock with lowest cost price. If stock cost price
-        # is None we assume price equal to zero to allow sorting.
-        stock = [
-            stock_item for stock_item in self.stock.all()
-            if stock_item.quantity_available >= quantity]
-        zero_price = Money(0, settings.DEFAULT_CURRENCY)
-        stock = sorted(
-            stock, key=(lambda s: s.cost_price or zero_price), reverse=False)
-        if stock:
-            return stock[0]
-        return None
-
-    def get_cost_price(self):
-        stock = self.select_stockrecord()
-        if stock:
-            return stock.cost_price
-        return None
-
-
-class StockLocation(models.Model):
-    name = models.CharField(max_length=100)
-
-    class Meta:
-        permissions = (
-            ('view_stock_location',
-             pgettext_lazy('Permission description',
-                           'Can view stock location')),
-            ('edit_stock_location',
-             pgettext_lazy('Permission description',
-                           'Can edit stock location')))
-
-    def __str__(self):
-        return self.name
-
-
-class Stock(models.Model):
-    variant = models.ForeignKey(
-        ProductVariant, related_name='stock', on_delete=models.CASCADE)
-    location = models.ForeignKey(
-        StockLocation, null=True, on_delete=models.CASCADE)
-    quantity = models.IntegerField(
-        validators=[MinValueValidator(0)], default=Decimal(1))
-    quantity_allocated = models.IntegerField(
-        validators=[MinValueValidator(0)], default=Decimal(0))
-    cost_price = MoneyField(
-        currency=settings.DEFAULT_CURRENCY, max_digits=12, decimal_places=2,
-        blank=True, null=True)
-
-    class Meta:
-        app_label = 'product'
-        unique_together = ('variant', 'location')
-
-    def __str__(self):
-        return '%s - %s' % (self.variant.name, self.location)
-
-    @property
-    def quantity_available(self):
-        return max(self.quantity - self.quantity_allocated, 0)
-
-    def get_total(self):
-        if self.cost_price:
-            return TaxedMoney(net=self.cost_price, gross=self.cost_price)
 
 
 class ProductAttribute(models.Model):

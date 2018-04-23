@@ -1,9 +1,7 @@
-import json
 from datetime import date, timedelta
 from unittest.mock import Mock
 
 import pytest
-from django.urls import reverse
 from freezegun import freeze_time
 from prices import Money, TaxedMoney
 
@@ -32,32 +30,32 @@ def test_valid_voucher_limit(settings, limit, value):
 
 @pytest.mark.integration
 @pytest.mark.django_db(transaction=True)
-def test_variant_discounts(product_in_stock):
-    variant = product_in_stock.variants.get()
+def test_variant_discounts(product):
+    variant = product.variants.get()
     low_discount = Sale.objects.create(
         type=DiscountValueType.FIXED,
         value=5)
-    low_discount.products.add(product_in_stock)
+    low_discount.products.add(product)
     discount = Sale.objects.create(
         type=DiscountValueType.FIXED,
         value=8)
-    discount.products.add(product_in_stock)
+    discount.products.add(product)
     high_discount = Sale.objects.create(
         type=DiscountValueType.FIXED,
         value=50)
-    high_discount.products.add(product_in_stock)
+    high_discount.products.add(product)
     final_price = variant.get_price_per_item(discounts=Sale.objects.all())
     assert final_price.gross == Money(0, 'USD')
 
 
 @pytest.mark.integration
 @pytest.mark.django_db(transaction=True)
-def test_percentage_discounts(product_in_stock):
-    variant = product_in_stock.variants.get()
+def test_percentage_discounts(product):
+    variant = product.variants.get()
     discount = Sale.objects.create(
         type=DiscountValueType.PERCENTAGE,
         value=50)
-    discount.products.add(product_in_stock)
+    discount.products.add(product)
     final_price = variant.get_price_per_item(discounts=[discount])
     assert final_price.gross == Money(5, 'USD')
 
@@ -176,7 +174,6 @@ def test_products_voucher_checkout_discount_not(
     assert discount == Money(expected_value, 'USD')
 
 
-@pytest.mark.django_db
 def test_sale_applies_to_correct_products(product_type, default_category):
     product = Product.objects.create(
         name='Test Product', price=Money(10, 'USD'), description='',
@@ -282,16 +279,3 @@ def test_get_product_or_category_voucher_discount_all_products(
 
     discount = get_product_or_category_voucher_discount(voucher, prices)
     assert discount == Money(expected_value, 'USD')
-
-
-def test_ajax_voucher_list(admin_client, voucher):
-    voucher.name = 'Summer sale'
-    voucher.save()
-    vouchers_list = [{'id': voucher.pk, 'text': str(voucher)}]
-    url = reverse('dashboard:ajax-vouchers')
-
-    response = admin_client.get(url, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
-    resp_decoded = json.loads(response.content.decode('utf-8'))
-
-    assert response.status_code == 200
-    assert resp_decoded == {'results': vouchers_list}

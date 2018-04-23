@@ -65,16 +65,6 @@
     #id_sku {
       @extend %input-lg;
     }
-
-    #id_price_override {
-      @extend %input-lg;
-    }
-  }
-
-  &#form-stock {
-    #id_quantity {
-      @extend %input-lg;
-    }
   }
 
   &#form-attributes {

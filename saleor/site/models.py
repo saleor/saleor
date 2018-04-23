@@ -13,6 +13,12 @@ class SiteSettings(models.Model):
         Site, related_name='settings', on_delete=models.CASCADE)
     header_text = models.CharField(max_length=200, blank=True)
     description = models.CharField(max_length=500, blank=True)
+    top_menu = models.ForeignKey(
+        'menu.Menu', on_delete=models.SET_NULL, related_name='+', blank=True,
+        null=True)
+    bottom_menu = models.ForeignKey(
+        'menu.Menu', on_delete=models.SET_NULL, related_name='+', blank=True,
+        null=True)
 
     class Meta:
         permissions = (

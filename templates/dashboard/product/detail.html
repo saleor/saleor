@@ -135,21 +135,6 @@
           </div>
         </div>
       {% endif %}
-      {% if no_variants and only_variant %}
-        <div class="card">
-          <div class="card-content">
-            <span class="card-title">{% trans "Stock" context "Dashboard variant details view" %}</span>
-          </div>
-          <div class="data-table-header-action">
-            <a class="btn-flat waves-effect" href="{% url "dashboard:variant-stock-add" product_pk=product.pk variant_pk=only_variant.pk %}">
-              {% trans "Add" context "Dashboard action" %}
-            </a>
-          </div>
-          <div class="data-table-container">
-            {% include "dashboard/product/_stock_table.html" with product=product variant=only_variant stock=stock %}
-          </div>
-        </div>
-      {% endif %}
     </div>
     {% if perms.product.edit_product %}
       <div class="col s12 l3">

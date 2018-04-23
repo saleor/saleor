@@ -53,7 +53,7 @@
               </thead>
               <tbody>
                 {% for method in shipping_methods %}
-                  <tr data-action-go="{% if perms.shipping.edit_shipping %}{% url 'dashboard:shipping-method-detail' pk=method.pk %}{% endif %}">
+                  <tr data-action-go="{% if perms.shipping.edit_shipping %}{% url 'dashboard:shipping-method-details' pk=method.pk %}{% endif %}">
                     <td>
                       {{ method }}
                     </td>

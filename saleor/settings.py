@@ -6,6 +6,7 @@ import dj_email_url
 import django_cache_url
 from django.contrib.messages import constants as messages
 from django.utils.translation import gettext_lazy as _
+from django_prices.templatetags.prices_i18n import get_currency_fraction
 
 
 def get_list(text):
@@ -29,12 +30,11 @@ MANAGERS = ADMINS
 
 INTERNAL_IPS = get_list(os.environ.get('INTERNAL_IPS', '127.0.0.1'))
 
+# Some cloud providers like Heroku export REDIS_URL variable instead of CACHE_URL
+REDIS_URL = os.environ.get('REDIS_URL')
+if REDIS_URL:
+    CACHE_URL = os.environ.setdefault('CACHE_URL', REDIS_URL)
 CACHES = {'default': django_cache_url.config()}
-
-if os.environ.get('REDIS_URL'):
-    CACHES['default'] = {
-        'BACKEND': 'django_redis.cache.RedisCache',
-        'LOCATION': os.environ.get('REDIS_URL')}
 
 DATABASES = {
     'default': dj_database_url.config(
@@ -273,6 +273,7 @@ LOGIN_URL = '/account/login/'
 
 DEFAULT_COUNTRY = 'US'
 DEFAULT_CURRENCY = 'USD'
+DEFAULT_DECIMAL_PLACES = get_currency_fraction(DEFAULT_CURRENCY)
 AVAILABLE_CURRENCIES = [DEFAULT_CURRENCY]
 
 OPENEXCHANGERATES_API_KEY = os.environ.get('OPENEXCHANGERATES_API_KEY')
@@ -426,7 +427,7 @@ SOCIAL_AUTH_FACEBOOK_PROFILE_EXTRA_PARAMS = {
     'fields': 'id, email'}
 
 # CELERY SETTINGS
-CELERY_BROKER_URL = os.environ.get('REDIS_BROKER_URL') or ''
+CELERY_BROKER_URL = os.environ.get('CELERY_BROKER_URL') or ''
 CELERY_TASK_ALWAYS_EAGER = False if CELERY_BROKER_URL else True
 CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'
@@ -462,8 +463,12 @@ ALLOWED_ATTRIBUTES = {
     'img': ['src']}
 ALLOWED_STYLES = ['text-align']
 
-# slugs for menus used in storefront's base template, created by default
-DEFAULT_MENUS = ['navbar', 'footer']
+
+# Slugs for menus precreated in Django migrations
+DEFAULT_MENUS = {
+    'top_menu_name': 'navbar',
+    'bottom_menu_name': 'footer'}
+
 
 # Demo-specific settings
 # We obfucate emails if they are different than demo's admin email

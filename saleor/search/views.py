@@ -3,7 +3,8 @@ from django.core.paginator import InvalidPage, Paginator
 from django.http import Http404
 from django.shortcuts import render
 
-from ..product.utils import products_with_availability, products_with_details
+from ..product.utils import products_with_details
+from ..product.utils.availability import products_with_availability
 from .forms import SearchForm
 
 
