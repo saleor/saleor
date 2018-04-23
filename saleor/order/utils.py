@@ -131,10 +131,9 @@ def attach_order_to_user(order, user):
 
 def get_tax_rate_by_name(rate_name, taxes=None):
     """Return value of tax rate for current taxes."""
-    if not taxes:
-        return 0
-
-    if rate_name in taxes:
+    if not taxes or not rate_name:
+        tax_rate = 0
+    elif rate_name in taxes:
         tax_rate = taxes[rate_name]['value']
     else:
         tax_rate = taxes[DEFAULT_TAX_RATE_NAME]['value']

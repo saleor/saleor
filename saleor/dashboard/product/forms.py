@@ -57,10 +57,12 @@ class ProductTypeSelectorForm(forms.Form):
 
 
 def get_tax_rate_type_choices():
-    rate_types = get_tax_rate_types() + [DEFAULT_TAX_RATE_NAME]
-    return [
-        (rate_type, VAT_RATE_TYPE_TRANSLATIONS.get(rate_type, rate_type))
-        for rate_type in rate_types]
+    rate_types = get_tax_rate_types() + [DEFAULT_TAX_RATE_NAME, '']
+    choices = [
+        (rate_name, VAT_RATE_TYPE_TRANSLATIONS.get(rate_name, '---------'))
+        for rate_name in rate_types]
+    # sort choices alphabetically by translations
+    return sorted(choices, key=lambda x: x[1])
 
 
 class ProductTypeForm(forms.ModelForm):
@@ -230,6 +232,7 @@ class ProductForm(forms.ModelForm, AttributesMixin):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         product_type = self.instance.product_type
+        self.initial['tax_rate'] = product_type.tax_rate
         self.available_attributes = (
             product_type.product_attributes.prefetch_related('values').all())
         self.prepare_fields_for_attributes()

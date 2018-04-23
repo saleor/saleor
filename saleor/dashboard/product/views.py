@@ -216,10 +216,9 @@ def product_toggle_is_published(request, pk):
 def product_edit(request, pk):
     product = get_object_or_404(
         Product.objects.prefetch_related('variants'), pk=pk)
-
-    edit_variant = not product.product_type.has_variants
     form = forms.ProductForm(request.POST or None, instance=product)
 
+    edit_variant = not product.product_type.has_variants
     if edit_variant:
         variant = product.variants.first()
         variant_form = forms.ProductVariantForm(
