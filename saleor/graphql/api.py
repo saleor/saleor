@@ -42,7 +42,6 @@ class Query(graphene.ObjectType):
         description='Lookup a page by ID or by slug.')
     pages = DjangoFilterConnectionField(
         Page, filterset_class=DistinctFilterSet,
-        level=graphene.Argument(graphene.Int),
         description='List of the shop\'s pages.')
     product = graphene.Field(
         Product, id=graphene.Argument(graphene.ID),
