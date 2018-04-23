@@ -3,8 +3,8 @@
 {% load i18n %}
 {% load i18n_address_tags %}
 {% load placeholder %}
-{% load product_first_image from product_images %}
 {% load price from taxed_prices %}
+{% load product_first_image from product_images %}
 
 {% if order.user == user %}
   <div class="order-details__addresses">
@@ -144,7 +144,7 @@
       </p>
     </div>
     <div class="col-4">
-      <p class="float-right">{{ order.total.tax|amount:'html' }}</p>
+      <p class="float-right">{% price order.total.tax %}</p>
     </div>
   </div>
 </div>
@@ -158,7 +158,7 @@
     </div>
     <div class="col-4">
       <p class="float-right">
-        {{ order.total.gross|amount:'html' }}
+        {% price order.total.gross %}
         <br>
         ({{ order.total.net|amount:'html' }} + {{ order.total.tax|amount:'html' }} VAT)
       </p>
