@@ -22,6 +22,9 @@
       <li class="list-item">{% trans "Order total:" context "Modal refund payment list title" %}
         {{ payment.order.total.gross|amount:'html' }}
       </li>
+      <li class="list-item">{% trans "Taxes (included):" context "Modal refund payment list title" %}
+        {{ payment.order.total.tax|amount:'html' }}
+      </li>
       <li class="list-item">{% trans "Captured amount:" context "Modal refund payment list title" %}
         {{ captured|currencyfmt:currency }}
       </li>
