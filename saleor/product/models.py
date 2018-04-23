@@ -223,13 +223,6 @@ class ProductVariant(models.Model):
         return reverse('product:details',
                        kwargs={'slug': slug, 'product_id': product_id})
 
-    def as_data(self):
-        return {
-            'product_name': str(self),
-            'product_id': self.product.pk,
-            'variant_id': self.pk,
-            'unit_price': str(self.get_price().gross)}
-
     def is_shipping_required(self):
         return self.product.product_type.is_shipping_required
 

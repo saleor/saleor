@@ -8,19 +8,21 @@ from django.contrib.auth.models import Group, Permission
 from django.contrib.sites.models import Site
 from django.core.files import File
 from django.template.defaultfilters import slugify
+from django_countries.fields import Country
 from faker import Factory
 from faker.providers import BaseProvider
 from payments import PaymentStatus
-from prices import Money, TaxedMoney
+from prices import Money
 
 from ...account.models import Address, User
 from ...account.utils import store_user_address
+from ...core.utils import get_taxes_for_country
 from ...core.utils.text import strip_html_and_truncate
 from ...discount import DiscountValueType, VoucherType
 from ...discount.models import Sale, Voucher
 from ...menu.models import Menu
 from ...order.models import Fulfillment, Order, Payment
-from ...order.utils import update_order_status
+from ...order.utils import get_tax_rate_by_name, update_order_status
 from ...page.models import Page
 from ...product.models import (
     AttributeChoiceValue, Category, Collection, Product, ProductAttribute,
@@ -28,6 +30,7 @@ from ...product.models import (
 from ...product.thumbnails import create_product_thumbnails
 from ...product.utils.attributes import get_name_from_attributes
 from ...shipping.models import ANY_COUNTRY, ShippingMethod
+from ...shipping.utils import get_taxed_shipping_price
 
 fake = Factory.create()
 
@@ -395,7 +398,7 @@ def create_payment(order):
     return payment
 
 
-def create_order_line(order):
+def create_order_line(order, discounts, taxes):
     product = Product.objects.all().order_by('?')[0]
     variant = product.variants.all()[0]
     quantity = random.randrange(1, 5)
@@ -403,17 +406,18 @@ def create_order_line(order):
     variant.quantity_allocated += quantity
     variant.save()
     return order.lines.create(
-        product_name=product.name,
+        product_name=variant.display_product(),
         product_sku=variant.sku,
-        is_shipping_required=product.product_type.is_shipping_required,
+        is_shipping_required=variant.is_shipping_required(),
         quantity=quantity,
         variant=variant,
-        unit_price=TaxedMoney(net=product.price, gross=product.price))
+        unit_price=variant.get_price(discounts=discounts, taxes=taxes),
+        tax_rate=get_tax_rate_by_name(variant.product.tax_rate, taxes))
 
 
-def create_order_lines(order, how_many=10):
+def create_order_lines(order, discounts, taxes, how_many=10):
     for dummy in range(how_many):
-        yield create_order_line(order)
+        yield create_order_line(order, discounts, taxes)
 
 
 def create_fulfillments(order):
@@ -428,7 +432,7 @@ def create_fulfillments(order):
     update_order_status(order)
 
 
-def create_fake_order():
+def create_fake_order(discounts, taxes):
     user = random.choice([None, User.objects.filter(
         is_superuser=False).order_by('?').first()])
     if user:
@@ -446,14 +450,14 @@ def create_fake_order():
 
     shipping_method = ShippingMethod.objects.order_by('?').first()
     shipping_price = shipping_method.price_per_country.first().price
+    shipping_price = get_taxed_shipping_price(shipping_price, taxes)
     order_data.update({
         'shipping_method_name': shipping_method.name,
-        'shipping_price_net': shipping_price,
-        'shipping_price_gross': shipping_price})
+        'shipping_price': shipping_price})
 
     order = Order.objects.create(**order_data)
 
-    lines = create_order_lines(order, random.randrange(1, 5))
+    lines = create_order_lines(order, discounts, taxes, random.randrange(1, 5))
 
     order.total = sum(
         [line.get_total() for line in lines], order.shipping_price)
@@ -482,8 +486,10 @@ def create_users(how_many=10):
 
 
 def create_orders(how_many=10):
+    taxes = get_taxes_for_country(Country(settings.DEFAULT_COUNTRY))
+    discounts = Sale.objects.prefetch_related('products', 'categories')
     for dummy in range(how_many):
-        order = create_fake_order()
+        order = create_fake_order(discounts, taxes)
         yield 'Order: %s' % (order,)
 
 
