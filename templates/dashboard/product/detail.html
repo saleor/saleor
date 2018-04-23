@@ -1,10 +1,9 @@
 {% extends "dashboard/base.html" %}
 
 {% load i18n %}
-{% load prices_i18n %}
+{% load price from taxed_prices %}
 {% load staticfiles %}
 {% load status %}
-{% load price from taxed_prices %}
 {% load utils %}
 
 {% block title %}{{ product }} - {{ block.super }}{% endblock %}
@@ -150,92 +149,92 @@
       {% endif %}
     </div>
     <div class="col s12 l4">
-      <div class="row no-margin">
-        <div class="col s12">
-          <div class="card">
-            <div class="data-table-header">
-              <div class="data-table-title">
-                <h5>
-                  {% trans "Pricing" context "Product pricing card header" %}
-                </h5>
-                <h6>
-                  {% if product.charge_taxes %}
-                    {% blocktrans trimmed with tax_rate=product.tax_rate context "Product pricing card header subtitle" %}
-                      Taxes are charged ({{ tax_rate }} tax rate)
-                    {% endblocktrans %}
-                  {% else %}
-                    {% trans "Taxes are not charged" context "Product pricing card header subtitle" %}
-                  {% endif %}
-                </h6>
+        <div class="row no-margin">
+          <div class="col s12">
+            <div class="card">
+              <div class="data-table-header">
+                <div class="data-table-title">
+                  <h5>
+                    {% trans "Pricing" context "Product pricing card header" %}
+                  </h5>
+                  <h6>
+                    {% if product.charge_taxes %}
+                      {% blocktrans trimmed with tax_rate=product.tax_rate context "Product pricing card header subtitle" %}
+                        Taxes are charged ({{ tax_rate }} tax rate)
+                      {% endblocktrans %}
+                    {% else %}
+                      {% trans "Taxes are not charged" context "Product pricing card header subtitle" %}
+                    {% endif %}
+                  </h6>
+                </div>
               </div>
-            </div>
-            <div class="data-table-container">
-              <table class="data-table bordered highlight">
-                <tbody>
-                  <tr>
-                    <td>
-                      {% if include_taxes_in_prices %}
-                        {% trans "Gross sale price" context "Product field" %}
-                      {% else %}
-                        {% trans "Net sale price" context "Product field" %}
-                      {% endif %}
-                    </td>
-                    <td class="right-align">
-                      {% price sale_price display_gross=include_taxes_in_prices %}
-                    </td>
-                  </tr>
-                  {% if discounted_price != sale_price %}
+              <div class="data-table-container">
+                <table class="data-table bordered highlight">
+                  <tbody>
                     <tr>
                       <td>
                         {% if include_taxes_in_prices %}
-                          {% trans "Gross discounted price" context "Product field" %}
+                          {% trans "Gross sale price" context "Product field" %}
                         {% else %}
-                          {% trans "Net discounted price" context "Product field" %}
+                          {% trans "Net sale price" context "Product field" %}
                         {% endif %}
                       </td>
                       <td class="right-align">
-                        {% price discounted_price display_gross=include_taxes_in_prices %}
+                        {% price sale_price display_gross=include_taxes_in_prices %}
                       </td>
                     </tr>
-                  {% endif %}
-                  <tr>
-                    <td>
-                      {% if include_taxes_in_prices %}
-                        {% trans "Gross purchase cost" context "Product field" %}
-                      {% else %}
-                        {% trans "Net purchase cost" context "Product field" %}
-                      {% endif %}
-                    </td>
-                    <td class="right-align">
-                      {% price purchase_cost %}
-                    </td>
-                  </tr>
-                  <tr>
-                    <td>
-                      {% if include_taxes_in_prices %}
-                        {% trans "Gross margin" context "Product field" %}
-                      {% else %}
-                        {% trans "Net margin" context "Product field" %}
-                      {% endif %}
-                    </td>
-                    <td class="right-align">
-                      {% if margin %}
-                        {% if margin.0 == margin.1 %}
-                          {{ margin.0 }}%
+                    {% if discounted_price != sale_price %}
+                      <tr>
+                        <td>
+                          {% if include_taxes_in_prices %}
+                            {% trans "Gross discounted price" context "Product field" %}
+                          {% else %}
+                            {% trans "Net discounted price" context "Product field" %}
+                          {% endif %}
+                        </td>
+                        <td class="right-align">
+                          {% price discounted_price display_gross=include_taxes_in_prices %}
+                        </td>
+                      </tr>
+                    {% endif %}
+                    <tr>
+                      <td>
+                        {% if include_taxes_in_prices %}
+                          {% trans "Gross purchase cost" context "Product field" %}
                         {% else %}
-                          {{ margin.0 }}% - {{ margin.1 }}%
+                          {% trans "Net purchase cost" context "Product field" %}
                         {% endif %}
-                      {% else %}
-                        -
-                      {% endif %}
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
+                      </td>
+                      <td class="right-align">
+                        {% price purchase_cost %}
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        {% if include_taxes_in_prices %}
+                          {% trans "Gross margin" context "Product field" %}
+                        {% else %}
+                          {% trans "Net margin" context "Product field" %}
+                        {% endif %}
+                      </td>
+                      <td class="right-align">
+                        {% if margin %}
+                          {% if margin.0 == margin.1 %}
+                            {{ margin.0 }}%
+                          {% else %}
+                            {{ margin.0 }}% - {{ margin.1 }}%
+                          {% endif %}
+                        {% else %}
+                          -
+                        {% endif %}
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
         </div>
-      </div>
     </div>
     <div class="col s12 l4">
       <div id="images">

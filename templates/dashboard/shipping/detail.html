@@ -2,11 +2,10 @@
 
 {% load i18n %}
 {% load price from taxed_prices %}
-{% load prices_i18n %}
 {% load staticfiles %}
 
 {% block title %}
-    {{ shipping_method }} - {{ block.super }}
+  {{ shipping_method }} - {{ block.super }}
 {% endblock %}
 
 {% block body_class %}body-shipping-methods{% endblock %}

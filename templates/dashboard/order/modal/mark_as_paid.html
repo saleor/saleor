@@ -3,7 +3,6 @@
 {% load i18n %}
 {% load materializecss %}
 {% load price from taxed_prices %}
-{% load prices_i18n %}
 
 {% block action_url %}
 {% url 'dashboard:order-mark-as-paid' order_pk=order.pk %}
