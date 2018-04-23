@@ -191,12 +191,14 @@ def product_details(request, pk):
     # management.
     no_variants = not product.product_type.has_variants
     only_variant = variants.first() if no_variants else None
+    include_taxes_in_prices = request.site.settings.include_taxes_in_prices
     ctx = {
         'product': product, 'sale_price': sale_price,
         'discounted_price': discounted_price, 'variants': variants,
         'images': images, 'no_variants': no_variants,
         'only_variant': only_variant, 'purchase_cost': purchase_cost,
-        'gross_margin': gross_margin, 'is_empty': not variants.exists()}
+        'gross_margin': gross_margin, 'is_empty': not variants.exists(),
+        'include_taxes_in_prices': include_taxes_in_prices}
     return TemplateResponse(request, 'dashboard/product/detail.html', ctx)
 
 

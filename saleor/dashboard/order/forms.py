@@ -169,7 +169,8 @@ class OrderShippingForm(forms.ModelForm):
 
         method = self.instance.shipping_method
         if method:
-            method_field.set_initial(method, label=method.ajax_label)
+            method_field.set_initial(
+                method, label=method.get_ajax_label(self.taxes))
 
         if self.instance.shipping_address:
             country_code = self.instance.shipping_address.country.code

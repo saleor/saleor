@@ -863,7 +863,7 @@ def test_view_order_customer_remove(admin_client, draft_order):
 
 
 def test_view_order_shipping_edit(
-        admin_client, draft_order, shipping_method, settings):
+        admin_client, draft_order, shipping_method, settings, taxes):
     method = shipping_method.price_per_country.create(
         price=Money(5, settings.DEFAULT_CURRENCY), country_code='PL')
     url = reverse(
@@ -878,7 +878,7 @@ def test_view_order_shipping_edit(
     assert get_redirect_location(response) == redirect_url
     draft_order.refresh_from_db()
     assert draft_order.shipping_method_name == shipping_method.name
-    assert draft_order.shipping_price == method.get_total_price()
+    assert draft_order.shipping_price == method.get_total_price(taxes)
     assert draft_order.shipping_method == method
 
 

@@ -309,8 +309,8 @@ class Checkout:
         shipping_method_name = (
             smart_text(self.shipping_method) if self.is_shipping_required
             else None)
-        include_taxes_in_prices = (
-            Site.objects.get_current().settings.include_taxes_in_prices)
+        display_gross_prices = (
+            Site.objects.get_current().settings.display_gross_prices)
         order_data = {
             'language_code': get_language(),
             'billing_address': billing_address,
@@ -319,7 +319,7 @@ class Checkout:
             'shipping_price': self.shipping_price,
             'shipping_method_name': shipping_method_name,
             'total': self.get_total(),
-            'include_taxes_in_prices': include_taxes_in_prices}
+            'display_gross_prices': display_gross_prices}
 
         if self.user.is_authenticated:
             order_data['user'] = self.user

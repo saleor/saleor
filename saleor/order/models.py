@@ -87,7 +87,7 @@ class Order(models.Model):
         currency=settings.DEFAULT_CURRENCY, max_digits=12,
         decimal_places=settings.DEFAULT_DECIMAL_PLACES, default=0)
     discount_name = models.CharField(max_length=255, default='', blank=True)
-    include_taxes_in_prices = models.BooleanField(default=True)
+    display_gross_prices = models.BooleanField(default=True)
 
     objects = OrderQueryset.as_manager()
 

@@ -336,7 +336,8 @@ def test_order_queryset_to_ship():
 def test_ajax_order_shipping_methods_list(
         admin_client, order, shipping_method):
     method = shipping_method.price_per_country.get()
-    shipping_methods_list = [{'id': method.pk, 'text': method.ajax_label}]
+    shipping_methods_list = [
+        {'id': method.pk, 'text': method.get_ajax_label()}]
     url = reverse(
         'dashboard:ajax-order-shipping-methods', kwargs={'order_pk': order.pk})
 
@@ -352,7 +353,8 @@ def test_ajax_order_shipping_methods_list_different_country(
     order.shipping_address = order.billing_address.get_copy()
     order.save()
     method = shipping_method.price_per_country.get()
-    shipping_methods_list = [{'id': method.pk, 'text': method.ajax_label}]
+    shipping_methods_list = [
+        {'id': method.pk, 'text': method.get_ajax_label()}]
     shipping_method.price_per_country.create(price=15, country_code='DE')
     url = reverse(
         'dashboard:ajax-order-shipping-methods', kwargs={'order_pk': order.pk})

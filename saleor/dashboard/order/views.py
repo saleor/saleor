@@ -57,11 +57,10 @@ def order_list(request):
 @staff_member_required
 @permission_required('order.edit_order')
 def order_create(request):
-    include_taxes_in_prices = (
-        Site.objects.get_current().settings.include_taxes_in_prices)
+    display_gross_prices = (
+        Site.objects.get_current().settings.display_gross_prices)
     order = Order.objects.create(
-        status=OrderStatus.DRAFT,
-        include_taxes_in_prices=include_taxes_in_prices)
+        status=OrderStatus.DRAFT, display_gross_prices=display_gross_prices)
     msg = pgettext_lazy(
         'Dashboard message related to an order',
         'Draft order created')
