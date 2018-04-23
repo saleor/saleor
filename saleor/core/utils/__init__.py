@@ -121,7 +121,7 @@ def get_taxes_for_country(country):
 
 
 def apply_tax_to_price(taxes, rate_name, base):
-    if not taxes:
+    if not taxes or not rate_name:
         # Naively convert Money to TaxedMoney for consistency with price
         # handling logic across the codebase, passthrough other money types
         if isinstance(base, Money):
