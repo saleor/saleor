@@ -15,40 +15,21 @@ from ..core.types import (
 from .filters import ProductFilterSet
 
 
-def resolve_attribute_list(attributes, connected_model=None):
-    # attribute_list = []
-
+def resolve_attribute_list(attributes):
     keys = list(attributes.keys())
     values = list(attributes.values())
-    product_attributes = list(models.ProductAttribute.objects.filter(pk__in=keys))
-    product_values = list(models.AttributeChoiceValue.objects.filter(pk__in=values))
-    # for k, v in attributes.items():
-    #     print(k)
-    # attribute_list = [SelectedAttribute(
-    #     name=name, value=value for
-    # )]
-    # queryset =
-    # if attributes:
-    #     product_attributes = dict(
-    #         models.ProductAttribute.objects.values_list('id', 'slug'))
-    #     attribute_values = dict(
-    #         models.AttributeChoiceValue.objects.values_list('id', 'slug'))
-    #     import ipdb; ipdb.set_trace()
-    #     for k, v in attributes.items():
-    #         value = None
-    #         name = product_attributes.get(int(k))
-    #         if v:
-    #             value = attribute_values.get(int(v))
-    #         attribute_list.append(
-    #             SelectedAttribute(name=name, value=value))
+    product_attributes = list(
+        models.ProductAttribute.objects.filter(pk__in=keys))
+    product_values = list(
+        models.AttributeChoiceValue.objects.filter(pk__in=values))
 
-
-    #NOT WORKIN YET
-    attribute_list = [
-        SelectedAttribute(
-            name=name, value=value) for name, value in zip(
-            product_attributes, product_values)]
+    attribute_list = [SelectedAttribute(
+        attribute=attr, attribute_value=attr_value)
+        for k, v in attributes.items()
+        for attr in product_attributes if attr.pk == int(k)
+        for attr_value in product_values if attr_value.pk == int(v)]
     return attribute_list
+
 
 class ProductAttributeValue(CountableDjangoObjectType):
     class Meta:
@@ -81,23 +62,13 @@ class Margin(graphene.ObjectType):
 
 
 class SelectedAttribute(graphene.ObjectType):
-    name = graphene.Field(ProductAttribute,
+    attribute = graphene.Field(ProductAttribute,
         default_value=None, description='Name of an attribute')
-    value = graphene.Field(ProductAttributeValue,
+    attribute_value = graphene.Field(ProductAttributeValue,
         default_value=None, description='Value of an attribute.')
 
     class Meta:
         description = 'Represents a custom product attribute.'
-
-
-# class SelectedAttribute(graphene.ObjectType):
-#     name = graphene.String(
-#         default_value=None, description='Name of an attribute')
-#     value = graphene.String(
-#         default_value=None, description='Value of an attribute.')
-#
-#     class Meta:
-#         description = 'Represents a custom product attribute.'
 
 
 class ProductVariant(CountableDjangoObjectType):
