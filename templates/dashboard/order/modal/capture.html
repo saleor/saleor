@@ -4,7 +4,6 @@
 {% load i18n %}
 {% load materializecss %}
 {% load price from taxed_prices %}
-{% load prices_i18n %}
 
 {% block action_url %}
 {% url 'dashboard:capture-payment' order_pk=order.pk payment_pk=payment.pk %}
