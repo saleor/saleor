@@ -157,19 +157,19 @@ def add_variant_to_order(
     """
     quantity_not_fulfilled = add_variant_to_existing_lines(
         order, variant, total_quantity) if add_to_existing else total_quantity
+
     if not quantity_not_fulfilled:
         return
     if quantity_not_fulfilled > variant.quantity_available:
         raise InsufficientStock(variant)
-    price = variant.get_price(discounts, taxes)
+
     order.lines.create(
         product_name=variant.display_product(),
         product_sku=variant.sku,
-        is_shipping_required=(
-            variant.product.product_type.is_shipping_required),
+        is_shipping_required=variant.is_shipping_required(),
         quantity=quantity_not_fulfilled,
-        unit_price=price,
         variant=variant,
+        unit_price=variant.get_price(discounts, taxes),
         tax_rate=get_tax_rate_by_name(variant.product.tax_rate, taxes))
     allocate_stock(variant, quantity_not_fulfilled)
 

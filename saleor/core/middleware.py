@@ -34,8 +34,7 @@ def google_analytics(get_response):
 def discounts(get_response):
     """Assign active discounts to `request.discounts`."""
     def middleware(request):
-        discounts = Sale.objects.all()
-        discounts = discounts.prefetch_related('products', 'categories')
+        discounts = Sale.objects.prefetch_related('products', 'categories')
         request.discounts = discounts
         return get_response(request)
 
