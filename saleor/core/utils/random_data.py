@@ -583,18 +583,34 @@ def create_page():
     yield 'Page %s created' % page.slug
 
 
+def generate_menu_items(menu: Menu, category: Category, parent_menu_item):
+    menu_item, created = menu.items.get_or_create(
+        name=category.name, category=category, parent=parent_menu_item)
+
+    if created:
+        yield 'Created menu item for category %s' % category
+
+    for child in category.get_children():
+        for msg in generate_menu_items(menu, child, menu_item):
+            yield '\t%s' % msg
+
+
+def generate_menu_tree(menu):
+    categories = Category.tree.get_queryset()
+    for category in categories:
+        if not category.parent_id:
+            for msg in generate_menu_items(menu, category, None):
+                yield msg
+
+
 def create_menus():
     # Create navbar menu with category links
     top_menu, _ = Menu.objects.get_or_create(
         name=settings.DEFAULT_MENUS['top_menu_name'])
     if not top_menu.items.exists():
-        # create a menu entry for all root categories
-        categories = Category.objects.filter(parent__isnull=True)
-        for category in categories:
-            top_menu.items.get_or_create(
-                name=category.name,
-                category=category)
         yield 'Created navbar menu'
+        for msg in generate_menu_tree(top_menu):
+            yield msg
 
     # Create footer menu with collections and pages
     bottom_menu, _ = Menu.objects.get_or_create(
