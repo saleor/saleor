@@ -1,9 +1,10 @@
 {% extends "dashboard/base.html" %}
 {% load i18n %}
-{% load prices_i18n %}
 {% load materializecss %}
-{% load staticfiles %}
+{% load price from taxed_prices %}
+{% load prices_i18n %}
 {% load product_first_image from product_images %}
+{% load staticfiles %}
 {% load utils %}
 
 {% block title %}
@@ -83,7 +84,7 @@
                 {{ product.name }}
               </td>
               <td>
-                {{ product.price|amount:'html' }}
+                {% price product.price %}
               </td>
             </tr>
           {% endfor %}

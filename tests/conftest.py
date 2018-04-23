@@ -724,5 +724,5 @@ def taxes(tax_rates):
 @pytest.fixture
 def vatlayer(db, settings, tax_rates, taxes):
     settings.VATLAYER_ACCESS_KEY = 'enablevatlayer'
-    VAT.objects.create(country_code=settings.DEFAULT_COUNTRY, data=tax_rates)
+    VAT.objects.create(country_code='PL', data=tax_rates)
     return taxes

@@ -1,11 +1,12 @@
 {% extends "base.html" %}
+{% load bootstrap_form from bootstrap4 %}
+{% load bootstrap_pagination from bootstrap4 %}
 {% load i18n %}
 {% load i18n_address_tags %}
+{% load price from taxed_prices %}
 {% load prices_i18n %}
 {% load staticfiles %}
 {% load status %}
-{% load bootstrap_form from bootstrap4 %}
-{% load bootstrap_pagination from bootstrap4 %}
 
 {% block title %}{% trans "Your profile" context "User profile page title" %} — {{ block.super }}{% endblock %}
 
@@ -76,7 +77,7 @@
                   </div>
                   <div class="col-md-2 col-4">
                     <span class="float-right">
-                      {{ order.total.gross|amount:'html' }}
+                      {% price order.total.gross %}
                     </span>
                     <br>
                     ({{ order.total.net|amount:'html' }} + {{ order.total.tax|amount:'html' }} VAT)

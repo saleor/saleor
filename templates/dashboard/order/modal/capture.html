@@ -1,8 +1,9 @@
 {% extends "dashboard/base_modal.html" %}
 
-{% load i18n %}
 {% load babel %}
+{% load i18n %}
 {% load materializecss %}
+{% load price from taxed_prices %}
 {% load prices_i18n %}
 
 {% block action_url %}
@@ -19,10 +20,10 @@
     {% trans "Before this action:" context "Modal capture payment title" %}
     <ul class="list">
       <li class="list-item">{% trans "Order total:" context "Modal capture payment list title" %}
-        {{ payment.order.total.gross|amount:'html' }}
+        {% price payment.order.total.gross %}
       </li>
       <li class="list-item">{% trans "Taxes (included):" context "Modal capture payment list title" %}
-        {{ payment.order.total.tax|amount:'html' }}
+        {% price payment.order.total.tax %}
       </li>
       <li class="list-item">{% trans "Captured amount:" context "Modal capture payment list title" %}
         {{ captured|currencyfmt:currency }}

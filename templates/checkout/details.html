@@ -1,9 +1,9 @@
 {% extends "base.html" %}
 
 {% load i18n %}
+{% load price from taxed_prices %}
 {% load prices_i18n %}
 {% load staticfiles %}
-{% load price from taxed_prices %}
 
 {% block title %}{% trans "Checkout" context "Checkout page title" %} — {{ block.super }}{% endblock %}
 
@@ -94,7 +94,7 @@
               {% endif %}
             </div>
             <div class="col-4">
-              <p class="float-right">{{ total.tax|amount:'html' }}</p>
+              <p class="float-right">{% price total.tax %}</p>
             </div>
           </div>
           <div class="row checkout__review__section">
@@ -108,7 +108,7 @@
               <h3>{% trans "Total" context "Order review section title" %}</h3>
             </div>
             <div class="col-4">
-              <h3 class="float-right">{{ total.gross|amount:'html' }}</h3>
+              <h3 class="float-right">{% price total.gross %}</h3>
             </div>
             <div class="col-md-12">
               <p class="small text-right">

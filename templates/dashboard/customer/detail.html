@@ -1,9 +1,10 @@
 {% extends "dashboard/base.html" %}
-{% load prices_i18n %}
 {% load i18n %}
 {% load materializecss %}
-{% load status %}
+{% load price from taxed_prices %}
+{% load prices_i18n %}
 {% load staticfiles %}
+{% load status %}
 
 {% block title %}
   {{ customer }} - {% trans "Customers" context "Dashboard customers list" %} - {{ block.super }}
@@ -121,7 +122,7 @@
                       {% render_order_status order.status order.get_status_display %}
                     </td>
                     <td class="right-align">
-                      {{ order.total.gross|amount:'html' }}
+                      {% price order.total.gross %}
                     </td>
                   </tr>
                 {% endfor %}

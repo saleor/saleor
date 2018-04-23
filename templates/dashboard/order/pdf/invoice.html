@@ -1,4 +1,5 @@
 {% load i18n static %}
+{% load price from taxed_prices %}
 {% load prices_i18n %}
 {% load discount_as_negative from voucher %}
 {% load render_bundle from webpack_loader %}
@@ -92,13 +93,13 @@
             {% endblocktrans %}
           </td>
           <td class="right-align">
-            {{ line.unit_price.gross|amount:'html' }}
+            {% price line.unit_price.gross %}
           </td>
           <td class="right-align">
             {{ line.quantity }}
           </td>
           <td class="right-align">
-            {{ line.get_total.gross|amount:'html' }}
+            {% price line.get_total.gross %}
           </td>
         </tr>
       {% endfor %}
@@ -110,18 +111,10 @@
   <tbody>
     <tr>
       <td class="wide">
-        {% trans "Subtotal net" context "Order subtotal net price" %}
+        {% trans "Subtotal" context "Order subtotal net price" %}
       </td>
       <td class="right-align">
-        {{ order.get_subtotal.net|amount:'html' }}
-      </td>
-    </tr>
-    <tr>
-      <td>
-        {% trans "Total taxes" context "Order total taxes header" %}
-      </td>
-      <td class="right-align">
-        {{ order.total.tax|amount:'html' }}
+        {% price order.get_subtotal.gross %}
       </td>
     </tr>
     <tr>
@@ -129,7 +122,15 @@
         {% trans "Shipping" context "Order total shipping price header" %} {% if order.shipping_method_name %}({{ order.shipping_method_name }}){% endif %}
       </td>
       <td class="right-align">
-        {{ order.shipping_price.gross|amount:'html' }}
+        {% price order.shipping_price.gross %}
+      </td>
+    </tr>
+    <tr>
+      <td>
+        {% trans "Total taxes (included)" context "Order total taxes header" %}
+      </td>
+      <td class="right-align">
+        {% price order.total.tax %}
       </td>
     </tr>
     {% if order.discount_amount %}
@@ -149,7 +150,7 @@
         {% trans "Grand total" context "Order total price header" %}
       </td>
       <td class="right-align">
-        {{ order.total.gross|amount:'html' }}
+        {% price order.total.gross %}
       </td>
     </tr>
   </tfoot>

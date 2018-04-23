@@ -1,5 +1,6 @@
 {% extends "dashboard/base.html" %}
 {% load i18n %}
+{% load price from taxed_prices %}
 {% load prices_i18n %}
 {% load status %}
 
@@ -48,7 +49,7 @@
                       {{ payment.order.user|default:_("Guest") }}
                     </td>
                     <td class="right-align">
-                      {{ payment.get_total_price.gross|amount:'html' }}
+                      {% price payment.get_total_price.gross %}
                     </td>
                   </tr>
                 {% endfor %}
@@ -113,7 +114,7 @@
                       {% render_status order.get_last_payment_status order.get_last_payment_status_display %}
                     </td>
                     <td class="right-align">
-                      {{ order.total.gross|amount:'html' }}
+                      {% price order.total.gross %}
                     </td>
                   </tr>
                 {% endfor %}

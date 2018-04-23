@@ -130,7 +130,7 @@
                 </td>
                 <td class="right-align">
                   <strong>
-                    {{ balance.gross|amount:'html' }}
+                    {% price balance.gross %}
                   </strong>
                 </td>
               </tr>
@@ -142,7 +142,7 @@
                 </td>
                 <td class="right-align">
                   {% if preauthorized.gross %}
-                    {{ preauthorized.gross|amount:'html' }}
+                    {% price preauthorized.gross %}
                   {% else %}
                     {% trans "N/A" context "Preauthorized amount not available" %}
                   {% endif %}
@@ -153,7 +153,7 @@
                   {% trans "Captured amount" context "Order summary card header" %}
                 </td>
                 <td class="right-align">
-                  {{ captured.gross|amount:'html' }}
+                  {% price captured.gross %}
                 </td>
               </tr>
             </tbody>
@@ -442,11 +442,11 @@
                   <p>
                     ({{ order.shipping_price.net|amount:'html' }} + {{ order.shipping_price.tax|amount:'html' }} VAT)
                   </p>
-                  <p>{{ order.total.tax|amount:'html' }}</p>
+                  <p>{% price order.total.tax %}</p>
                   {% if order.is_draft or order.discount_amount %}
                     <p>{% discount_as_negative order.discount_amount html=True %}</p>
                   {% endif %}
-                  <p><strong>{{ order.total.gross|amount:'html' }}</strong></p>
+                  <p><strong>{% price order.total.gross %}</strong></p>
                   <p>
                     <strong>({{ order.total.net|amount:'html' }} + {{ order.total.tax|amount:'html' }} VAT)</strong>
                   </p>

@@ -1,6 +1,7 @@
 <mj-section css-class="no-display">
   <mj-column>
     <mj-text>
+      {% load price from taxed_prices %}
       {% load prices_i18n %}
       {% load voucher %}
     </mj-text>
@@ -15,7 +16,7 @@
             {% trans "Subtotal" context "E-mail order lines summary table" %}
           </td>
           <td style="text-align: right;">
-            {{ order.get_subtotal.gross|amount:'html' }}
+            {% price order.get_subtotal display_gross=order.display_gross_prices html=False %}
           </td>
         </tr>
         <tr>
@@ -23,7 +24,19 @@
             {% trans "Shipping" context "E-mail order lines summary table" %}
           </td>
           <td style="text-align: right;">
-            {{ order.shipping_price.gross|amount:'html' }}
+            {% price order.shipping_price display_gross=order.display_gross_prices html=False %}
+          </td>
+        </tr>
+        <tr>
+          <td colspan="3" style="text-align: right;">
+            {% if order.display_gross_prices %}
+              {% trans "Taxes (included)" context "E-mail order lines summary table" %}
+            {% else %}
+              {% trans "Taxes" context "E-mail order lines summary table" %}
+            {% endif %}
+          </td>
+          <td style="text-align: right;">
+            {% price order.total.tax html=False %}
           </td>
         </tr>
         {% if order.discount_amount %}
@@ -41,7 +54,7 @@
             <strong>{% trans "Total" context "E-mail order lines summary table" %}</strong>
           </td>
           <td style="text-align: right;">
-            <strong>{{ order.total.gross|amount:'html' }}</strong>
+            <strong>{% price order.total display_gross=order.display_gross_prices html=False %}</strong>
           </td>
         </tr>
       </tfoot>
@@ -59,9 +72,9 @@
             <td>{{ line.product_name }}</td>
             <td style="text-align: right;">{{ line.quantity }}</td>
             <td style="text-align: right;">
-              {{ line.unit_price.gross|amount:'html' }}
+              {% price line.unit_price display_gross=order.display_gross_prices html=False %}
             </td>
-            <td style="text-align: right;">{{ line.get_total.gross|amount }}</td>
+            <td style="text-align: right;">{% price line.get_total display_gross=order.display_gross_prices html=False %}</td>
           </tr>
         {% endfor %}
       </tbody>

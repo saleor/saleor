@@ -11,6 +11,7 @@ from django_prices.templatetags import prices_i18n
 
 from . import forms
 from ...core.utils import get_paginator_items
+from ...discount.models import Sale
 from ...product.models import (
     AttributeChoiceValue, Product, ProductAttribute, ProductImage, ProductType,
     ProductVariant)
@@ -184,7 +185,7 @@ def product_details(request, pk):
         product, discounts=request.discounts, taxes=request.taxes)
     sale_price = availability.price_range_undiscounted
     discounted_price = availability.price_range
-    purchase_cost, gross_margin = get_product_costs_data(product)
+    purchase_cost, margin = get_product_costs_data(product)
 
     # no_variants is True for product types that doesn't require variant.
     # In this case we're using the first variant under the hood to allow stock
@@ -197,7 +198,7 @@ def product_details(request, pk):
         'discounted_price': discounted_price, 'variants': variants,
         'images': images, 'no_variants': no_variants,
         'only_variant': only_variant, 'purchase_cost': purchase_cost,
-        'gross_margin': gross_margin, 'is_empty': not variants.exists(),
+        'margin': margin, 'is_empty': not variants.exists(),
         'include_taxes_in_prices': include_taxes_in_prices}
     return TemplateResponse(request, 'dashboard/product/detail.html', ctx)
 
@@ -385,9 +386,12 @@ def variant_details(request, product_pk, variant_pk):
 
     images = variant.images.all()
     margin = get_margin_for_variant(variant)
+    include_taxes_in_prices = request.site.settings.include_taxes_in_prices
+    discounted_price = variant.get_price(discounts=Sale.objects.all()).gross
     ctx = {
-        'images': images, 'product': product,
-        'variant': variant, 'margin': margin}
+        'images': images, 'product': product, 'variant': variant,
+        'margin': margin, 'discounted_price': discounted_price,
+        'include_taxes_in_prices': include_taxes_in_prices}
     return TemplateResponse(
         request,
         'dashboard/product/product_variant/detail.html',

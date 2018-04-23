@@ -1,9 +1,10 @@
 {% extends "dashboard/base.html" %}
 {% load i18n %}
-{% load prices_i18n %}
 {% load materializecss %}
-{% load staticfiles %}
+{% load price from taxed_prices %}
+{% load prices_i18n %}
 {% load product_first_image from product_images %}
+{% load staticfiles %}
 
 {% block title %}
   {% trans "Search results" context "Search page title" %} - {{ block.super }}
@@ -35,7 +36,7 @@
                 </span>
                 <p class="list-item-price">
                   <small>
-                    {{ product.price|amount:'html' }}
+                    {% price product.price %}
                   </small>
                 </p>
               </a>

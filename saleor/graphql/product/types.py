@@ -31,7 +31,7 @@ def resolve_attribute_list(attributes):
     return attribute_list
 
 
-class GrossMargin(graphene.ObjectType):
+class Margin(graphene.ObjectType):
     start = graphene.Int()
     stop = graphene.Int()
 
@@ -107,7 +107,7 @@ class Product(CountableDjangoObjectType):
         SelectedAttribute,
         description='List of product attributes assigned to this product.')
     purchase_cost = graphene.Field(MoneyRange)
-    gross_margin = graphene.List(GrossMargin)
+    margin = graphene.List(Margin)
 
     class Meta:
         description = """Represents an individual item for sale in the
@@ -138,9 +138,9 @@ class Product(CountableDjangoObjectType):
         return purchase_cost
 
     @permission_required('product.view_product')
-    def resolve_gross_margin(self, info):
-        _, gross_margin = get_product_costs_data(self)
-        return [GrossMargin(gross_margin[0], gross_margin[1])]
+    def resolve_margin(self, info):
+        _, margin = get_product_costs_data(self)
+        return [Margin(margin[0], margin[1])]
 
 
 class ProductType(CountableDjangoObjectType):

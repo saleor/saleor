@@ -7,10 +7,10 @@ from ...core.utils import ZERO_TAXED_MONEY
 def get_product_costs_data(product):
     purchase_costs_range = MoneyRange(
         start=ZERO_TAXED_MONEY, stop=ZERO_TAXED_MONEY)
-    gross_margin = (0, 0)
+    margin = (0, 0)
 
     if not product.variants.exists():
-        return purchase_costs_range, gross_margin
+        return purchase_costs_range, margin
 
     variants = product.variants.all()
     costs_data = get_cost_data_from_variants(variants)
@@ -18,8 +18,8 @@ def get_product_costs_data(product):
         purchase_costs_range = MoneyRange(
             min(costs_data.costs), max(costs_data.costs))
     if costs_data.margins:
-        gross_margin = (costs_data.margins[0], costs_data.margins[-1])
-    return purchase_costs_range, gross_margin
+        margin = (costs_data.margins[0], costs_data.margins[-1])
+    return purchase_costs_range, margin
 
 
 class CostsData:
