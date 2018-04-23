@@ -26,8 +26,12 @@ def test_create_variant(admin_api_client, product, product_type):
                         name
                         sku
                         attributes{
-                            name
-                            value
+                            attribute{
+                                slug
+                            }
+                            attributeValue{
+                                slug
+                            }
                         }
                         quantity
                         priceOverride {
@@ -71,8 +75,8 @@ def test_create_variant(admin_api_client, product, product_type):
     assert data['costPrice']['amount'] == cost_price
     assert data['priceOverride']['amount'] == price_override
     assert data['sku'] == sku
-    assert data['attributes'][0]['name'] == variant_slug
-    assert data['attributes'][0]['value'] == variant_value
+    assert data['attributes'][0]['attribute']['slug'] == variant_slug
+    assert data['attributes'][0]['attributeValue']['slug'] == variant_value
 
 
 def test_update_product_variant(admin_api_client, product):
