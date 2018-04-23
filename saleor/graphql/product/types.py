@@ -15,21 +15,64 @@ from ..core.types import (
 from .filters import ProductFilterSet
 
 
-def resolve_attribute_list(attributes):
-    attribute_list = []
-    if attributes:
-        product_attributes = dict(
-            models.ProductAttribute.objects.values_list('id', 'slug'))
-        attribute_values = dict(
-            models.AttributeChoiceValue.objects.values_list('id', 'slug'))
-        for k, v in attributes.items():
-            value = None
-            name = product_attributes.get(int(k))
-            if v:
-                value = attribute_values.get(int(v))
-            attribute_list.append(
-                SelectedAttribute(name=name, value=value))
+def resolve_attribute_list(attributes, connected_model=None):
+    # attribute_list = []
+
+    keys = list(attributes.keys())
+    values = list(attributes.values())
+    product_attributes = list(models.ProductAttribute.objects.filter(pk__in=keys))
+    product_values = list(models.AttributeChoiceValue.objects.filter(pk__in=values))
+    # for k, v in attributes.items():
+    #     print(k)
+    # attribute_list = [SelectedAttribute(
+    #     name=name, value=value for
+    # )]
+    # queryset =
+    # if attributes:
+    #     product_attributes = dict(
+    #         models.ProductAttribute.objects.values_list('id', 'slug'))
+    #     attribute_values = dict(
+    #         models.AttributeChoiceValue.objects.values_list('id', 'slug'))
+    #     import ipdb; ipdb.set_trace()
+    #     for k, v in attributes.items():
+    #         value = None
+    #         name = product_attributes.get(int(k))
+    #         if v:
+    #             value = attribute_values.get(int(v))
+    #         attribute_list.append(
+    #             SelectedAttribute(name=name, value=value))
+
+
+    #NOT WORKIN YET
+    attribute_list = [
+        SelectedAttribute(
+            name=name, value=value) for name, value in zip(
+            product_attributes, product_values)]
     return attribute_list
+
+class ProductAttributeValue(CountableDjangoObjectType):
+    class Meta:
+        description = 'Represents a value of an attribute.'
+        exclude_fields = ['attribute']
+        interfaces = [relay.Node]
+        model = models.AttributeChoiceValue
+
+
+class ProductAttribute(CountableDjangoObjectType):
+    values = graphene.List(
+        ProductAttributeValue, description='List of attribute\'s values.')
+
+    class Meta:
+        description = """Custom attribute of a product. Attributes can be
+        dynamically assigned to products and variants at the product type
+        level."""
+        exclude_fields = ['product_types', 'product_variant_types']
+        interfaces = [relay.Node]
+        filter_fields = ['id', 'slug']
+        model = models.ProductAttribute
+
+    def resolve_values(self, info):
+        return self.values.all()
 
 
 class Margin(graphene.ObjectType):
@@ -38,13 +81,23 @@ class Margin(graphene.ObjectType):
 
 
 class SelectedAttribute(graphene.ObjectType):
-    name = graphene.String(
+    name = graphene.Field(ProductAttribute,
         default_value=None, description='Name of an attribute')
-    value = graphene.String(
+    value = graphene.Field(ProductAttributeValue,
         default_value=None, description='Value of an attribute.')
 
     class Meta:
         description = 'Represents a custom product attribute.'
+
+
+# class SelectedAttribute(graphene.ObjectType):
+#     name = graphene.String(
+#         default_value=None, description='Name of an attribute')
+#     value = graphene.String(
+#         default_value=None, description='Value of an attribute.')
+#
+#     class Meta:
+#         description = 'Represents a custom product attribute.'
 
 
 class ProductVariant(CountableDjangoObjectType):
@@ -242,27 +295,3 @@ class ProductImage(CountableDjangoObjectType):
             return self.image.crop[size].url
         return self.image.url
 
-
-class ProductAttributeValue(CountableDjangoObjectType):
-    class Meta:
-        description = 'Represents a value of an attribute.'
-        exclude_fields = ['attribute']
-        interfaces = [relay.Node]
-        model = models.AttributeChoiceValue
-
-
-class ProductAttribute(CountableDjangoObjectType):
-    values = graphene.List(
-        ProductAttributeValue, description='List of attribute\'s values.')
-
-    class Meta:
-        description = """Custom attribute of a product. Attributes can be
-        dynamically assigned to products and variants at the product type
-        level."""
-        exclude_fields = ['product_types', 'product_variant_types']
-        interfaces = [relay.Node]
-        filter_fields = ['id', 'slug']
-        model = models.ProductAttribute
-
-    def resolve_values(self, info):
-        return self.values.all()
