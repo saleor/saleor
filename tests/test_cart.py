@@ -702,21 +702,21 @@ def test_get_or_create_db_cart(customer_user, db, rf):
     assert Cart.objects.filter(user__isnull=True).count() == 1
 
 
-def test_get_cart_data(request_cart_with_item, shipping_method):
-    shipment_option = get_shipment_options('PL')
+def test_get_cart_data(request_cart_with_item, shipping_method, vatlayer):
+    shipment_option = get_shipment_options('PL', vatlayer)
     cart_data = utils.get_cart_data(
-        request_cart_with_item, shipment_option, 'USD', None, None)
+        request_cart_with_item, shipment_option, 'USD', None, vatlayer)
     assert cart_data['cart_total'] == TaxedMoney(
-        net=Money(10, 'USD'), gross=Money(10, 'USD'))
+        net=Money('8.13', 'USD'), gross=Money(10, 'USD'))
     assert cart_data['total_with_shipping'].start == TaxedMoney(
-        net=Money(20, 'USD'), gross=Money(20, 'USD'))
+        net=Money('16.26', 'USD'), gross=Money(20, 'USD'))
 
 
-def test_get_cart_data_no_shipping(request_cart_with_item):
-    shipment_option = get_shipment_options('PL')
+def test_get_cart_data_no_shipping(request_cart_with_item, vatlayer):
+    shipment_option = get_shipment_options('PL', vatlayer)
     cart_data = utils.get_cart_data(
-        request_cart_with_item, shipment_option, 'USD', None, None)
+        request_cart_with_item, shipment_option, 'USD', None, vatlayer)
     cart_total = cart_data['cart_total']
     assert cart_total == TaxedMoney(
-        net=Money(10, 'USD'), gross=Money(10, 'USD'))
+        net=Money('8.13', 'USD'), gross=Money(10, 'USD'))
     assert cart_data['total_with_shipping'].start == cart_total

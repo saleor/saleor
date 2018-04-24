@@ -4,7 +4,7 @@ from prices import MoneyRange
 from ..core.utils import apply_tax_to_price, DEFAULT_TAX_RATE_NAME
 
 
-def get_taxed_shipping_price(price, taxes=None):
+def get_taxed_shipping_price(price, taxes):
     """Calculate shipping price based on settings and taxes."""
     charge_taxes = (
         Site.objects.get_current().settings.charge_taxes_on_shipping)
@@ -13,7 +13,7 @@ def get_taxed_shipping_price(price, taxes=None):
     return apply_tax_to_price(taxes, DEFAULT_TAX_RATE_NAME, price)
 
 
-def get_shipment_options(country_code, taxes=None):
+def get_shipment_options(country_code, taxes):
     from .models import ShippingMethodCountry
     shipping_methods_qs = ShippingMethodCountry.objects.select_related(
         'shipping_method')
