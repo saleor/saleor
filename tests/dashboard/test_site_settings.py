@@ -59,9 +59,9 @@ def test_site_update_view(admin_client, site_settings):
     assert site_settings.site.name == 'Mirumee Labs'
 
 
-def test_site_configure_taxes(admin_client, site_settings):
+def test_configure_taxes(admin_client, site_settings):
     url = reverse(
-        'dashboard:site-configure-taxes', kwargs={'pk': site_settings.pk})
+        'dashboard:configure-taxes', kwargs={'pk': site_settings.pk})
     data = {'include_taxes_in_prices': False}
 
     response = admin_client.post(url, data)

@@ -7,8 +7,7 @@ from django.utils.translation import pgettext_lazy
 
 from ...site.models import AuthorizationKey, SiteSettings
 from ..views import staff_member_required
-from .forms import (
-    AuthorizationKeyForm, SiteForm, SiteSettingsForm, SiteSettingsTaxesForm)
+from .forms import AuthorizationKeyForm, SiteForm, SiteSettingsForm
 
 
 @staff_member_required
@@ -38,22 +37,6 @@ def site_settings_edit(request, pk):
     ctx = {'site': site_settings, 'site_settings_form': site_settings_form,
            'site_form': site_form}
     return TemplateResponse(request, 'dashboard/sites/form.html', ctx)
-
-
-@staff_member_required
-@permission_required('site.edit_settings')
-def site_configure_taxes(request, pk):
-    site_settings = get_object_or_404(SiteSettings, pk=pk)
-    taxes_form = SiteSettingsTaxesForm(
-        request.POST or None, instance=site_settings)
-
-    if taxes_form.is_valid():
-        taxes_form.save()
-        msg = pgettext_lazy('Dashboard message', 'Updated taxes settings')
-        messages.success(request, msg)
-        return redirect('dashboard:site-details', pk=site_settings.id)
-    ctx = {'site': site_settings, 'taxes_form': taxes_form}
-    return TemplateResponse(request, 'dashboard/sites/taxes_form.html', ctx)
 
 
 @staff_member_required

@@ -68,5 +68,65 @@
     <div class="col s12 l3" id="filters">
       {% if not is_empty %}{% filters filter_set %}{% endif %}
     </div>
+    {% if perms.site.view_settings %}
+      <div class="col s12 l3">
+        <div class="card">
+          <div class="card-content">
+            <span class="card-title">
+              {% trans "Taxes settings" context "Taxes site settings title" %}
+            </span>
+            <div class="row">
+              <div class="col s12 m4 l12">
+                <h4>
+                  {% trans "All taxes are included in my prices" context "Site settings field" %}
+                </h4>
+                <p>
+                  {% if settings.include_taxes_in_prices %}
+                    {% trans "Yes" context "Include taxes in prices setting description" %}
+                  {% else %}
+                    {% trans "No" context "Include taxes in prices setting description" %}
+                  {% endif %}
+                </p>
+              </div>
+            </div>
+            <div class="row">
+              <div class="col s12 m4 l12">
+                <h4>
+                  {% trans "Show customers gross prices in storefront" context "Site settings field" %}
+                </h4>
+                <p>
+                  {% if settings.display_gross_prices %}
+                    {% trans "Yes" context "Show customers gross prices setting description" %}
+                  {% else %}
+                    {% trans "No" context "Show customers gross prices setting description" %}
+                  {% endif %}
+                </p>
+              </div>
+            </div>
+            <div class="row">
+              <div class="col s12 m4 l12">
+                <h4>
+                  {% trans "Charge taxes on shipping rates" context "Site settings field" %}
+                </h4>
+                <p>
+                  {% if settings.charge_taxes_on_shipping %}
+                    {% trans "Yes" context "Charge taxes on shipping rates setting description" %}
+                  {% else %}
+                    {% trans "No" context "Charge taxes on shipping rates setting description" %}
+                  {% endif %}
+                </p>
+              </div>
+            </div>
+          </div>
+          {% if perms.site.edit_settings %}
+            <div class="card-action">
+              <a class="btn-flat waves-effect" href="{% url 'dashboard:configure-taxes' pk=site.pk %}">
+                {% trans "Configure taxes" context "Site settings configure taxes action" %}
+              </a>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+    {% endif %}
   </div>
 {% endblock %}
