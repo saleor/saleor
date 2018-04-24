@@ -14,7 +14,7 @@ from ..account.utils import store_user_address
 from ..cart.models import Cart
 from ..cart.utils import get_or_empty_db_cart
 from ..core import analytics
-from ..core.utils import ZERO_TAXED_MONEY
+from ..core.utils import ZERO_TAXED_MONEY, get_taxes_for_country
 from ..discount.models import NotApplicable, Voucher
 from ..discount.utils import increase_voucher_usage
 from ..order.models import Order
@@ -97,7 +97,7 @@ class Checkout:
     def lines(self):
         """Return the cart lines data."""
         for line in self.cart.lines.all():
-            line_total = line.get_total(self.discounts, self.taxes)
+            line_total = line.get_total(self.discounts, self.get_taxes())
             yield line, line_total
 
     @property
@@ -159,8 +159,8 @@ class Checkout:
     def shipping_price(self):
         shipping_method = self.shipping_method
         return (
-            shipping_method.get_total_price(self.taxes) if shipping_method
-            else ZERO_TAXED_MONEY)
+            shipping_method.get_total_price(self.get_taxes())
+            if shipping_method else ZERO_TAXED_MONEY)
 
     @property
     def email(self):
@@ -336,8 +336,8 @@ class Checkout:
 
         for line in self.cart.lines.all():
             add_variant_to_order(
-                order, line.variant, line.quantity, self.discounts, self.taxes,
-                add_to_existing=False)
+                order, line.variant, line.quantity, self.discounts,
+                self.get_taxes(), add_to_existing=False)
 
         if voucher is not None:
             increase_voucher_usage(voucher)
@@ -381,7 +381,7 @@ class Checkout:
 
     def get_subtotal(self):
         """Calculate order total without shipping and discount."""
-        return self.cart.get_total(self.discounts, self.taxes)
+        return self.cart.get_total(self.discounts, self.get_taxes())
 
     def get_total(self):
         """Calculate order total with shipping and discount amount."""
@@ -391,6 +391,15 @@ class Checkout:
         if self.discount:
             total -= self.discount
         return total
+
+    def get_taxes(self):
+        """Return taxes based on shipping address (if set) or IP country."""
+        shipping_address = self.shipping_address
+
+        if shipping_address:
+            return get_taxes_for_country(shipping_address.country)
+
+        return self.taxes
 
 
 def load_checkout(view):
