@@ -33,7 +33,7 @@ def details(request, token):
     order = get_object_or_404(orders, token=token)
     notes = order.notes.filter(is_public=True)
     ctx = {'order': order, 'notes': notes}
-    if order.status == OrderStatus.UNFULFILLED:
+    if order.is_open():
         user = request.user if request.user.is_authenticated else None
         note = OrderNote(order=order, user=user)
         note_form = OrderNoteForm(request.POST or None, instance=note)

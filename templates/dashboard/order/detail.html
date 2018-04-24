@@ -452,8 +452,11 @@
               </span>
             {% endif %}
             {% if not order.is_draft and perms.order.view_order %}
-              <a href="{% url 'dashboard:order-invoice' order_pk=order.pk %}" data-href="" class="btn-flat waves-effect" target="_blank">
+              <a href="{% url 'dashboard:order-invoice' order_pk=order.pk %}" class="btn-flat waves-effect" target="_blank">
                 {% trans "Invoice" context "Order detail action" %}
+              </a>
+              <a href="{% url 'order:details' token=order.token %}" class="btn-flat waves-effect" target="_blank">
+                {% trans "View on site" context "Order detail action" %}
               </a>
             {% endif %}
           </div>
