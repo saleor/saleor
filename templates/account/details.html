@@ -4,7 +4,6 @@
 {% load i18n %}
 {% load i18n_address_tags %}
 {% load price from taxed_prices %}
-{% load prices_i18n %}
 {% load staticfiles %}
 {% load status %}
 
@@ -79,8 +78,6 @@
                     <span class="float-right">
                       {% price order.total.gross %}
                     </span>
-                    <br>
-                    ({{ order.total.net|amount:'html' }} + {{ order.total.tax|amount:'html' }} VAT)
                   </div>
                   <div class="col-md-4 d-none d-md-block">
                     {% render_order_status order.status order.get_status_display %}

@@ -1,6 +1,4 @@
 {% load i18n %}
-{% load price from taxed_prices %}
-{% load prices_i18n %}
 {% load taxed_prices %}
 
 {% if shipping_required %}
@@ -13,10 +11,6 @@
         <h3 class="text-right cart-subtotal" data-value="{% price cart_total.gross html=False %}" {% if local_cart_total is not None %}data-value-local="{% price local_cart_total.gross html=False %}"{% endif %}>
           {% spaceless %}
             {% price cart_total %}
-            <br>
-            <small>
-              ({{ cart_total.net|amount:'html' }} + {{ cart_total.tax|amount:'html' }} VAT)
-            </small>
             {% if local_cart_total is not None and local_cart_total.gross %}
               <br>
               <small>

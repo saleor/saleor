@@ -1,9 +1,8 @@
 {% extends "base.html" %}
 {% load i18n %}
-{% load get_thumbnail from product_images %}cart
-{% load prices_i18n %}
-{% load staticfiles %}
+{% load get_thumbnail from product_images %}
 {% load price from taxed_prices %}
+{% load staticfiles %}
 
 {% block title %}{% trans "Your cart" context "Cart page title" %} — {{ block.super }}{% endblock %}
 
@@ -66,9 +65,6 @@
                 <div class="cart-item-price col-md-5 col-12" data-product-id="{{ line.variant.pk }}">
                   <p class="text-right">
                     {% price line.get_total %}
-                  </p>
-                  <p class="small text-right">
-                    ({{ line.get_total.net|amount:'html' }} + {{ line.get_total.tax|amount:'html' }} VAT)
                   </p>
                 </div>
               </div>
