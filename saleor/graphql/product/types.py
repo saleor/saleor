@@ -34,6 +34,9 @@ def resolve_attribute_list(attributes):
 
 
 class ProductAttributeValue(CountableDjangoObjectType):
+    name = graphene.String(description='Attribute value\'s name.')
+    slug = graphene.String(description='Slugified name.')
+
     class Meta:
         description = 'Represents a value of an attribute.'
         exclude_fields = ['attribute']
@@ -47,8 +50,7 @@ class ProductAttribute(CountableDjangoObjectType):
 
     class Meta:
         description = """Custom attribute of a product. Attributes can be
-        dynamically assigned to products and variants at the product type
-        level."""
+        assigned to products and variants at the product type level."""
         exclude_fields = ['product_types', 'product_variant_types']
         interfaces = [relay.Node]
         filter_fields = ['id', 'slug']

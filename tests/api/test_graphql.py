@@ -3,7 +3,6 @@ from unittest.mock import patch
 
 import graphene
 from django.contrib.auth.models import AnonymousUser
-from django.forms.models import model_to_dict
 from django.http import HttpResponse
 from django.shortcuts import reverse
 from django.test import RequestFactory
