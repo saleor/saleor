@@ -2,7 +2,6 @@
 
 {% load i18n %}
 {% load price from taxed_prices %}
-{% load prices_i18n %}
 {% load staticfiles %}
 
 {% block title %}{% trans "Checkout" context "Checkout page title" %} — {{ block.super }}{% endblock %}
@@ -43,11 +42,6 @@
                 {% price line_total %}
               </p>
             </div>
-            <div class="col-12">
-              <p class="small text-right">
-                ({{ line_total.net|amount:'html' }} + {{ line_total.tax|amount:'html' }} VAT)
-              </p>
-            </div>
           </div>
         {% endfor %}
         <div class="row checkout__review__section">
@@ -57,11 +51,6 @@
           <div class="col-4">
             <p class="float-right">
               {% price checkout.get_subtotal %}
-            </p>
-          </div>
-          <div class="col-12">
-            <p class="small text-right">
-              ({{ checkout.get_subtotal.net|amount:'html' }} + {{ checkout.get_subtotal.tax|amount:'html' }} VAT)
             </p>
           </div>
         </div>
@@ -76,11 +65,6 @@
               {% else %}
                 &mdash;
               {% endif %}
-            </p>
-          </div>
-          <div class="col-12">
-            <p class="small text-right">
-              ({{ checkout.shipping_price.net|amount:'html' }} + {{ checkout.shipping_price.tax|amount:'html' }} VAT)
             </p>
           </div>
         </div>
@@ -109,11 +93,6 @@
             </div>
             <div class="col-4">
               <h3 class="float-right">{% price total.gross %}</h3>
-            </div>
-            <div class="col-md-12">
-              <p class="small text-right">
-                ({{ total.net|amount:'html' }} + {{ total.tax|amount:'html' }} VAT)
-              </p>
             </div>
           </div>
         {% endwith %}

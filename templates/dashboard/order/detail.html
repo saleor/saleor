@@ -3,10 +3,9 @@
 {% load i18n %}
 {% load i18n_address_tags %}
 {% load materializecss %}
-{% load prices_i18n %}
+{% load price from taxed_prices %}
 {% load staticfiles %}
 {% load status %}
-{% load price from taxed_prices %}
 {% load voucher %}
 
 {% block title %}
@@ -284,16 +283,10 @@
                   {% trans "Item" context "Order table header" %}
                 </th>
                 <th class="right-align">
-                  {% trans "Price (debug)" context "Order table header" %}
-                </th>
-                <th class="right-align">
                   {% trans "Price" context "Order table header" %}
                 </th>
                 <th class="right-align">
                   {% trans "Quantity" context "Order table header" %}
-                </th>
-                <th class="right-align">
-                  {% trans "Total (debug)" context "Order table header" %}
                 </th>
                 <th class="right-align">
                   {% trans "Total" context "Order table header" %}
@@ -315,9 +308,6 @@
                         SKU: {{ sku }}
                       {% endblocktrans %}
                     </span>
-                  </td>
-                  <td class="right-align">
-                    ({{ line.unit_price.net|amount:'html' }} + {{ line.unit_price.tax|amount:'html' }} VAT)
                   </td>
                   <td class="right-align">
                     {% price line.unit_price order.display_gross_prices %}
@@ -345,19 +335,15 @@
                     {% endif %}
                   </td>
                   <td class="right-align">
-                    ({{ line.get_total.net|amount:'html' }} + {{ line.get_total.tax|amount:'html' }} VAT)
-                  </td>
-                  <td class="right-align">
                     {% price line.get_total display_gross=order.display_gross_prices %}
                   </td>
                 </tr>
               {% endfor %}
               <tr class="last-no-border">
-                <td class="right-align" colspan="5">
+                <td class="right-align" colspan="3">
                   <p>
                     {% trans "Subtotal" context "Order subtotal" %}
                   </p>
-                  <p>debug</p>
                   <p>
                     {% if perms.order.edit_order and order.is_draft %}
                       <a href="#base-modal" data-href="{% url 'dashboard:order-shipping-edit' order_pk=order.pk %}"
@@ -380,7 +366,6 @@
                       {% endif %}
                     {% endif %}
                   </p>
-                  <p>debug</p>
                   <p>
                     {% if order.display_gross_prices %}
                       {% trans "Taxes (included)" context "Order total taxes" %}
@@ -427,29 +412,19 @@
                     </p>
                   {% endif %}
                   <p><strong>{% trans "Grand total" context "Order totals header" %}</strong></p>
-                  <p><strong>debug</strong></p>
                 </td>
                 <td class="right-align">
                   <p>
                     {% price order.get_subtotal display_gross=order.display_gross_prices %}
                   </p>
                   <p>
-                    ({{ order.get_subtotal.net|amount:'html' }} + {{ order.get_subtotal.tax|amount:'html' }} VAT)
-                  </p>
-                  <p>
                     {% price order.shipping_price display_gross=order.display_gross_prices %}
-                  </p>
-                  <p>
-                    ({{ order.shipping_price.net|amount:'html' }} + {{ order.shipping_price.tax|amount:'html' }} VAT)
                   </p>
                   <p>{% price order.total.tax %}</p>
                   {% if order.is_draft or order.discount_amount %}
                     <p>{% discount_as_negative order.discount_amount html=True %}</p>
                   {% endif %}
                   <p><strong>{% price order.total.gross %}</strong></p>
-                  <p>
-                    <strong>({{ order.total.net|amount:'html' }} + {{ order.total.tax|amount:'html' }} VAT)</strong>
-                  </p>
                 </td>
               </tr>
             </tbody>

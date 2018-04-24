@@ -1,4 +1,3 @@
-{% load amount from prices_i18n %}
 {% load discount_as_negative from voucher %}
 {% load i18n %}
 {% load i18n_address_tags %}
@@ -67,9 +66,6 @@
             <p class="float-right">
               {% price line.get_total display_gross=order.display_gross_prices %}
             </p>
-            <p class="float-right">
-              ({{ line.get_total.net|amount:'html' }} + {{ line.get_total.tax|amount:'html' }} VAT)
-            </p>
           </div>
         </div>
       </div>
@@ -89,9 +85,6 @@
         {% price order.get_subtotal display_gross=order.display_gross_prices %}
       </p>
       <br>
-      <p class="float-right">
-        ({{ order.get_subtotal.net|amount:'html' }} + {{ order.get_subtotal.tax|amount:'html' }} VAT)
-      </p>
     </div>
   </div>
 </div>
@@ -107,10 +100,6 @@
       <div class="col-4">
         <p class="float-right">
           {% price order.shipping_price display_gross=order.display_gross_prices %}
-        </p>
-        <br>
-        <p class="float-right">
-          ({{ order.shipping_price.net|amount:'html' }} + {{ order.shipping_price.tax|amount:'html' }} VAT)
         </p>
       </div>
     </div>
@@ -159,8 +148,6 @@
     <div class="col-4">
       <p class="float-right">
         {% price order.total.gross %}
-        <br>
-        ({{ order.total.net|amount:'html' }} + {{ order.total.tax|amount:'html' }} VAT)
       </p>
     </div>
   </div>
