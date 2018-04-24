@@ -18,17 +18,19 @@ from .filters import ProductFilterSet
 def resolve_attribute_list(attributes):
     keys = list(attributes.keys())
     values = list(attributes.values())
-    product_attributes = list(
-        models.ProductAttribute.objects.filter(pk__in=keys))
-    product_values = list(
-        models.AttributeChoiceValue.objects.filter(pk__in=values))
 
-    attribute_list = [SelectedAttribute(
-        attribute=attr, attribute_value=attr_value)
-        for k, v in attributes.items()
-        for attr in product_attributes if attr.pk == int(k)
-        for attr_value in product_values if attr_value.pk == int(v)]
-    return attribute_list
+    attributes_map = {
+        att.pk: att for att in models.ProductAttribute.objects.filter(
+        pk__in=keys)}
+    values_map = {
+        val.pk: val for val in models.AttributeChoiceValue.objects.filter(
+        pk__in=values)}
+
+    attributes_list = [SelectedAttribute(
+        attribute=attributes_map.get(int(k)),
+        value=values_map.get(int(v)))
+        for k,v in attributes.items()]
+    return attributes_list
 
 
 class ProductAttributeValue(CountableDjangoObjectType):
@@ -64,7 +66,7 @@ class Margin(graphene.ObjectType):
 class SelectedAttribute(graphene.ObjectType):
     attribute = graphene.Field(ProductAttribute,
         default_value=None, description='Name of an attribute')
-    attribute_value = graphene.Field(ProductAttributeValue,
+    value = graphene.Field(ProductAttributeValue,
         default_value=None, description='Value of an attribute.')
 
     class Meta:
