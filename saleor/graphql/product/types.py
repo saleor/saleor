@@ -34,8 +34,9 @@ def resolve_attribute_list(attributes):
 
 
 class ProductAttributeValue(CountableDjangoObjectType):
-    name = graphene.String(description='Attribute value\'s name.')
-    slug = graphene.String(description='Slugified name.')
+    name = graphene.String(description='Visible name for display purposes.')
+    slug = graphene.String(
+        description='Internal representation of an attribute name.')
 
     class Meta:
         description = 'Represents a value of an attribute.'
@@ -45,8 +46,9 @@ class ProductAttributeValue(CountableDjangoObjectType):
 
 
 class ProductAttribute(CountableDjangoObjectType):
-    name = graphene.String(description='Attribute\'s name.')
-    slug = graphene.String(description='Slugified name.')
+    name = graphene.String(description='Visible name for display purposes.')
+    slug = graphene.String(
+        description='Internal representation of an attribute name.')
     values = graphene.List(
         ProductAttributeValue, description='List of attribute\'s values.')
 
