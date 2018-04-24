@@ -45,6 +45,8 @@ class ProductAttributeValue(CountableDjangoObjectType):
 
 
 class ProductAttribute(CountableDjangoObjectType):
+    name = graphene.String(description='Attribute\'s name.')
+    slug = graphene.String(description='Slugified name.')
     values = graphene.List(
         ProductAttributeValue, description='List of attribute\'s values.')
 
