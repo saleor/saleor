@@ -1,4 +1,9 @@
 from django.utils.translation import pgettext_lazy
+from django_countries import countries
+
+ANY_COUNTRY = ''
+ANY_COUNTRY_DISPLAY = pgettext_lazy('Country choice', 'Rest of World')
+COUNTRY_CODE_CHOICES = [(ANY_COUNTRY, ANY_COUNTRY_DISPLAY)] + list(countries)
 
 VAT_RATE_TYPE_TRANSLATIONS = {
     'accommodation': pgettext_lazy('VAT rate type', 'accommodation'),

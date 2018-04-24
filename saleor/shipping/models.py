@@ -6,16 +6,12 @@ from django.db import models
 from django.db.models import Q
 from django.utils.safestring import mark_safe
 from django.utils.translation import pgettext_lazy
-from django_countries import countries
 from django_prices.models import MoneyField
 from prices import MoneyRange
 
+from ..core.i18n import ANY_COUNTRY, COUNTRY_CODE_CHOICES
 from ..core.utils import format_money
 from ..shipping.utils import get_taxed_shipping_price
-
-ANY_COUNTRY = ''
-ANY_COUNTRY_DISPLAY = pgettext_lazy('Country choice', 'Rest of World')
-COUNTRY_CODE_CHOICES = [(ANY_COUNTRY, ANY_COUNTRY_DISPLAY)] + list(countries)
 
 
 class ShippingMethod(models.Model):

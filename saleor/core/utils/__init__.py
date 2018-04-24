@@ -21,6 +21,7 @@ from prices import Money, MoneyRange, TaxedMoney, TaxedMoneyRange
 from versatileimagefield.image_warmer import VersatileImageFieldWarmer
 
 from ...account.models import User
+from ...core.i18n import COUNTRY_CODE_CHOICES
 
 ZERO_TAXED_MONEY = TaxedMoney(
     net=Money(0, settings.DEFAULT_CURRENCY),
@@ -203,3 +204,10 @@ def create_thumbnails(pk, model, size_set, image_attr=None):
     if failed_to_create:
         logger.error('Failed to generate thumbnails',
                      extra={'paths': failed_to_create})
+
+
+def get_country_name_by_code(country_code):
+    country_name = next(
+        (name for code, name in COUNTRY_CODE_CHOICES if code == country_code),
+        country_code)
+    return country_name
