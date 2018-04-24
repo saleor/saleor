@@ -50,7 +50,7 @@ def details(request, token):
 
 def payment(request, token):
     orders = Order.objects.confirmed().filter(billing_address__isnull=False)
-    orders = Order.objects.prefetch_related('lines__variant')
+    orders = orders.prefetch_related('lines__variant')
     orders = orders.select_related(
         'billing_address', 'shipping_address', 'user')
     order = get_object_or_404(orders, token=token)

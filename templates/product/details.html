@@ -142,7 +142,7 @@
             {% endif %}
             <small>
               {% tax_rate request.taxes product.tax_rate as tax_rate %}
-              {% if request.site.settings.display_gross_prices %}
+              {% if display_gross_prices %}
                 {% blocktrans trimmed with tax_rate=tax_rate context "Product details page vat rate value" %}
                   including {{ tax_rate }}% VAT
                 {% endblocktrans %}
@@ -160,7 +160,7 @@
           {% if show_variant_picker %}
             {% csrf_token %}
             <div id="variant-picker" data-variant-picker-data="{{ variant_picker_data }}"
-                 data-action="{% url 'product:add-to-cart' product_id=product.pk slug=product.get_slug %}" data-display-gross-price="{{ request.site.settings.display_gross_prices }}"></div>
+                 data-action="{% url 'product:add-to-cart' product_id=product.pk slug=product.get_slug %}" data-display-gross-price="{{ display_gross_prices }}"></div>
           {% else %}
             <form id="product-form" role="form" class="product-form clearfix" method="post" action="{% url 'product:add-to-cart' product_id=product.pk slug=product.get_slug %}" novalidate>
               {% csrf_token %}

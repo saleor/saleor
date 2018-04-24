@@ -74,6 +74,24 @@ def recalculate_order(order, **kwargs):
     order.save()
 
 
+def update_order_prices(order, discounts):
+    """Update prices in order with given discounts and proper taxes."""
+    taxes = get_taxes_for_order(order)
+
+    for line in order:
+        if line.variant:
+            line.unit_price = line.variant.get_price(discounts, taxes)
+            line.tax_rate = get_tax_rate_by_name(
+                line.variant.product.tax_rate, taxes)
+            line.save()
+
+    if order.shipping_method:
+        order.shipping_price = order.shipping_method.get_total_price(taxes)
+        order.save()
+
+    recalculate_order(order)
+
+
 def cancel_order(order, restock):
     """Cancel order and associated fulfillments.
 

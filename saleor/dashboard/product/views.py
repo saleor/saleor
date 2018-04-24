@@ -626,11 +626,6 @@ def ajax_available_variants_list(request):
 
     Response format is that of a Select2 JS widget.
     """
-    def get_variant_label(variant, discounts):
-        return '%s, %s, %s' % (
-            variant.sku, variant.display_product(),
-            prices_i18n.amount(variant.get_price(discounts).gross))
-
     available_products = Product.objects.available_products().prefetch_related(
         'category',
         'product_type__product_attributes')
@@ -638,17 +633,17 @@ def ajax_available_variants_list(request):
         product__in=available_products).prefetch_related(
             'product__category',
             'product__product_type__product_attributes')
+
     search_query = request.GET.get('q', '')
     if search_query:
         queryset = queryset.filter(
             Q(sku__icontains=search_query) |
             Q(name__icontains=search_query) |
             Q(product__name__icontains=search_query))
-    discounts = request.discounts
+
     variants = [
-        {'id': variant.id, 'text': get_variant_label(variant, discounts)}
-        for variant in queryset
-    ]
+        {'id': variant.id, 'text': variant.get_ajax_label(request.discounts)}
+        for variant in queryset]
     return JsonResponse({'results': variants})
 
 
