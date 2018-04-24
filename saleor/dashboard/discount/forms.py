@@ -7,10 +7,11 @@ from django.utils.translation import pgettext_lazy
 from django_prices.forms import MoneyField
 from prices import Money
 
+from ...core.i18n import COUNTRY_CODE_CHOICES
 from ...discount import DiscountValueType, VoucherApplyToProduct
 from ...discount.models import Sale, Voucher
 from ...product.models import Product
-from ...shipping.models import COUNTRY_CODE_CHOICES, ShippingMethodCountry
+from ...shipping.models import ShippingMethodCountry
 from ..forms import AjaxSelect2ChoiceField, AjaxSelect2MultipleChoiceField
 
 
