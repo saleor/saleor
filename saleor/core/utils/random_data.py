@@ -384,6 +384,7 @@ def create_payment(order):
         transaction_id=str(fake.random_int(1, 100000)),
         currency=settings.DEFAULT_CURRENCY,
         total=order.total.gross.amount,
+        tax=order.total.tax.amount,
         delivery=order.shipping_price.gross.amount,
         customer_ip_address=fake.ipv4(),
         billing_first_name=order.billing_address.first_name,

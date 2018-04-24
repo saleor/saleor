@@ -21,7 +21,8 @@ from ...order.emails import (
     send_fulfillment_confirmation, send_fulfillment_update,
     send_order_confirmation)
 from ...order.models import Fulfillment, FulfillmentLine, Order, OrderNote
-from ...order.utils import get_taxes_for_order, update_order_status
+from ...order.utils import (
+    get_taxes_for_order, update_order_prices, update_order_status)
 from ...shipping.models import ShippingMethodCountry
 from ..views import staff_member_required
 from .filters import OrderFilter
@@ -330,11 +331,13 @@ def add_variant_to_order(request, order_pk):
 @permission_required('order.edit_order')
 def address_view(request, order_pk, address_type):
     order = get_object_or_404(Order, pk=order_pk)
+    update_prices = False
     if address_type == 'shipping':
         address = order.shipping_address
         success_msg = pgettext_lazy(
             'Dashboard message',
             'Updated shipping address')
+        update_prices = True
     else:
         address = order.billing_address
         success_msg = pgettext_lazy(
@@ -345,6 +348,8 @@ def address_view(request, order_pk, address_type):
         updated_address = form.save()
         if not address:
             save_address_in_order(order, updated_address, address_type)
+        if update_prices:
+            update_order_prices(order, request.discounts)
         if not order.is_draft():
             order.history.create(content=success_msg, user=request.user)
         messages.success(request, success_msg)
@@ -361,6 +366,7 @@ def order_customer_edit(request, order_pk):
     status = 200
     if form.is_valid():
         form.save()
+        update_order_prices(order, request.discounts)
         user_email = form.cleaned_data.get('user_email')
         user = form.cleaned_data.get('user')
         if user_email:
@@ -392,6 +398,7 @@ def order_customer_remove(request, order_pk):
     form = OrderRemoveCustomerForm(request.POST or None, instance=order)
     if form.is_valid():
         form.save()
+        update_order_prices(order, request.discounts)
         msg = pgettext_lazy(
             'Dashboard message',
             'Customer removed from an order')

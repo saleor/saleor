@@ -11,9 +11,10 @@ from django.utils.encoding import smart_text
 from django.utils.text import slugify
 from django.utils.translation import pgettext_lazy
 from django_prices.models import MoneyField
+from django_prices.templatetags import prices_i18n
 from mptt.managers import TreeManager
 from mptt.models import MPTTModel
-from prices import TaxedMoney, TaxedMoneyRange
+from prices import TaxedMoneyRange
 from text_unidecode import unidecode
 from versatileimagefield.fields import PPOIField, VersatileImageField
 
@@ -239,6 +240,11 @@ class ProductVariant(models.Model):
 
     def get_first_image(self):
         return self.product.get_first_image()
+
+    def get_ajax_label(self, discounts=None):
+        price = self.get_price(discounts).gross
+        return '%s, %s, %s' % (
+            self.sku, self.display_product(), prices_i18n.amount(price))
 
 
 class ProductAttribute(models.Model):
