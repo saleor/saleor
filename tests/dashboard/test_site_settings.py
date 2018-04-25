@@ -59,18 +59,6 @@ def test_site_update_view(admin_client, site_settings):
     assert site_settings.site.name == 'Mirumee Labs'
 
 
-def test_configure_taxes(admin_client, site_settings):
-    url = reverse(
-        'dashboard:configure-taxes', kwargs={'pk': site_settings.pk})
-    data = {'include_taxes_in_prices': False}
-
-    response = admin_client.post(url, data)
-
-    assert response.status_code == 302
-    site_settings.refresh_from_db()
-    assert not site_settings.include_taxes_in_prices
-
-
 def test_get_authorization_key_for_backend(site_settings, authorization_key):
     key_for_backend = utils.get_authorization_key_for_backend('Backend')
     assert key_for_backend == authorization_key

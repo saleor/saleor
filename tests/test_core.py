@@ -5,15 +5,13 @@ from unittest.mock import Mock, patch
 import pytest
 from django.conf import settings
 from django.shortcuts import reverse
-from prices import Money, MoneyRange, TaxedMoney, TaxedMoneyRange
+from prices import Money
 
 from saleor.account.models import Address, User
 from saleor.core.storages import S3MediaStorage
 from saleor.core.utils import (
     Country, create_superuser, create_thumbnails, format_money,
-    get_country_by_ip, get_currency_for_country, get_taxes_for_country,
-    random_data)
-from saleor.core.utils.taxes import apply_tax_to_price, get_taxes_for_address
+    get_country_by_ip, get_currency_for_country, random_data)
 from saleor.core.utils.text import get_cleaner, strip_html
 from saleor.discount.models import Sale, Voucher
 from saleor.order.models import Order
@@ -32,81 +30,6 @@ type_schema = {
             'GMO': ['Yes', 'No']},
         'images_dir': 'candy/',
         'is_shipping_required': True}}
-
-
-def test_apply_tax_to_price_include_tax(site_settings, taxes):
-    site_settings.include_taxes_in_prices = False
-    site_settings.save()
-
-    money = Money(100, 'USD')
-    assert apply_tax_to_price(taxes, 'standard', money) == TaxedMoney(
-        net=Money(100, 'USD'), gross=Money(123, 'USD'))
-    assert apply_tax_to_price(taxes, 'medical', money) == TaxedMoney(
-        net=Money(100, 'USD'), gross=Money(108, 'USD'))
-
-    taxed_money = TaxedMoney(net=Money(100, 'USD'), gross=Money(100, 'USD'))
-    assert apply_tax_to_price(taxes, 'standard', taxed_money) == TaxedMoney(
-        net=Money(100, 'USD'), gross=Money(123, 'USD'))
-    assert apply_tax_to_price(taxes, 'medical', taxed_money) == TaxedMoney(
-        net=Money(100, 'USD'), gross=Money(108, 'USD'))
-
-
-def test_apply_tax_to_price_include_tax_fallback_to_standard_rate(
-        site_settings, taxes):
-    site_settings.include_taxes_in_prices = False
-    site_settings.save()
-
-    money = Money(100, 'USD')
-    taxed_money = TaxedMoney(net=Money(100, 'USD'), gross=Money(123, 'USD'))
-    assert apply_tax_to_price(taxes, 'space suits', money) == taxed_money
-
-
-def test_apply_tax_to_price_include_tax(taxes):
-    money = Money(100, 'USD')
-    assert apply_tax_to_price(taxes, 'standard', money) == TaxedMoney(
-        net=Money('81.30', 'USD'), gross=Money(100, 'USD'))
-    assert apply_tax_to_price(taxes, 'medical', money) == TaxedMoney(
-        net=Money('92.59', 'USD'), gross=Money(100, 'USD'))
-
-
-def test_apply_tax_to_price_include_fallback_to_standard_rate(taxes):
-    money = Money(100, 'USD')
-    assert apply_tax_to_price(taxes, 'space suits', money) == TaxedMoney(
-        net=Money('81.30', 'USD'), gross=Money(100, 'USD'))
-
-    taxed_money = TaxedMoney(net=Money(100, 'USD'), gross=Money(100, 'USD'))
-    assert apply_tax_to_price(taxes, 'space suits', taxed_money) == TaxedMoney(
-        net=Money('81.30', 'USD'), gross=Money(100, 'USD'))
-
-
-def test_apply_tax_to_price_raise_typeerror_for_invalid_type(taxes):
-    with pytest.raises(TypeError):
-        assert apply_tax_to_price(taxes, 'standard', 100)
-
-
-def test_apply_tax_to_price_no_taxes_return_taxed_money():
-    money = Money(100, 'USD')
-    taxed_money = TaxedMoney(net=Money(100, 'USD'), gross=Money(100, 'USD'))
-
-    assert apply_tax_to_price(None, 'standard', money) == taxed_money
-    assert apply_tax_to_price(None, 'medical', taxed_money) == taxed_money
-
-
-def test_apply_tax_to_price_no_taxes_return_taxed_money_range():
-    money_range = MoneyRange(Money(100, 'USD'), Money(200, 'USD'))
-    taxed_money_range = TaxedMoneyRange(
-        TaxedMoney(net=Money(100, 'USD'), gross=Money(100, 'USD')),
-        TaxedMoney(net=Money(200, 'USD'), gross=Money(200, 'USD')))
-
-    assert (apply_tax_to_price(
-        None, 'standard', money_range) == taxed_money_range)
-    assert (apply_tax_to_price(
-        None, 'standard', taxed_money_range) == taxed_money_range)
-
-
-def test_apply_tax_to_price_no_taxes_raise_typeerror_for_invalid_type():
-    with pytest.raises(TypeError):
-        assert apply_tax_to_price(None, 'standard', 100)
 
 
 def test_format_money():
@@ -322,31 +245,3 @@ def test_storages_not_setting_s3_bucket_domain(*_patches):
     storage = S3MediaStorage()
     assert storage.bucket_name == 'media-bucket'
     assert storage.custom_domain is None
-
-
-def compare_taxes(taxes_1, taxes_2):
-    assert len(taxes_1) == len(taxes_2)
-
-    for rate_name, tax in taxes_1.items():
-        value_1 = tax['value']
-        value_2 = taxes_2.get(rate_name)['value']
-        assert value_1 == value_2
-
-
-def test_get_taxes_for_address(address, vatlayer):
-    taxes = get_taxes_for_address(address)
-    compare_taxes(taxes, vatlayer)
-
-
-def test_get_taxes_for_address_fallback_default(vatlayer):
-    taxes = get_taxes_for_address(None)
-    compare_taxes(taxes, vatlayer)
-
-
-def test_get_taxes_for_address_other_country(address, vatlayer):
-    address.country = 'DE'
-    address.save()
-    tax_rates = get_taxes_for_country(Country('DE'))
-
-    taxes = get_taxes_for_address(address)
-    compare_taxes(taxes, tax_rates)

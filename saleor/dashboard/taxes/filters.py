@@ -12,10 +12,10 @@ SORT_BY_FIELDS = {
 
 
 def get_country_choices_for_vat():
-    choices = [
+    qs = VAT.objects.order_by('country_code')
+    return [
         (country_code, get_country_name_by_code(country_code))
-        for country_code in VAT.objects.values_list('country_code', flat=True)]
-    return choices
+        for country_code in qs.values_list('country_code', flat=True)]
 
 
 class TaxFilter(SortedFilterSet):

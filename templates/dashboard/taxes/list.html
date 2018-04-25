@@ -120,7 +120,7 @@
           </div>
           {% if perms.site.edit_settings %}
             <div class="card-action">
-              <a class="btn-flat waves-effect" href="{% url 'dashboard:configure-taxes' pk=site.pk %}">
+              <a class="btn-flat waves-effect" href="{% url 'dashboard:configure-taxes' site_pk=site.pk %}">
                 {% trans "Configure taxes" context "Site settings configure taxes action" %}
               </a>
             </div>

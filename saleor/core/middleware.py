@@ -8,9 +8,8 @@ from django_countries.fields import Country
 
 from . import analytics
 from ..discount.models import Sale
-from .utils import (
-    get_client_ip, get_country_by_ip, get_currency_for_country,
-    get_taxes_for_country)
+from .utils import get_client_ip, get_country_by_ip, get_currency_for_country
+from .utils.taxes import get_taxes_for_country
 
 logger = logging.getLogger(__name__)
 

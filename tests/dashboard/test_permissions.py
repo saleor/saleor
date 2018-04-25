@@ -905,7 +905,7 @@ def test_staff_group_member_can_view_and_edit_taxes_settings(
         permission_edit_settings):
     assert not staff_user.has_perm('site.edit_settings')
     url = reverse(
-        'dashboard:configure-taxes', kwargs={'pk': site_settings.pk})
+        'dashboard:configure-taxes', kwargs={'site_pk': site_settings.pk})
     response = staff_client.get(url)
     assert response.status_code == 302
     staff_group.permissions.add(permission_edit_settings)

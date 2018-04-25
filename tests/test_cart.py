@@ -502,7 +502,9 @@ def test_view_cart_without_taxes(client, sale, product, request_cart):
     assert response.status_code == 200
 
 
-def test_view_cart_with_taxes(client, sale, product, request_cart, vatlayer):
+def test_view_cart_with_taxes(
+        settings, client, sale, product, request_cart, vatlayer):
+    settings.DEFAULT_COUNTRY = 'PL'
     variant = product.variants.get()
     request_cart.add(variant, 1)
     response = client.get(reverse('cart:index'))
@@ -575,14 +577,15 @@ def test_cart_page_with_openexchagerates(
     assert context['local_cart_total'].currency == 'PLN'
 
 
-def test_cart_summary_page(client, product, request_cart, vatlayer, taxes):
+def test_cart_summary_page(settings, client, product, request_cart, vatlayer):
+    settings.DEFAULT_COUNTRY = 'PL'
     variant = product.variants.get()
     request_cart.add(variant, 1)
     response = client.get(reverse('cart:cart-summary'))
     assert response.status_code == 200
     content = response.context
     assert content['quantity'] == request_cart.quantity
-    cart_total = request_cart.get_total(taxes=taxes)
+    cart_total = request_cart.get_total(taxes=vatlayer)
     assert content['total'] == cart_total
     assert len(content['lines']) == 1
     cart_line = content['lines'][0]

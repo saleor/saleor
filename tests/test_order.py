@@ -7,8 +7,8 @@ from payments import PaymentStatus
 from prices import Money, TaxedMoney
 from tests.utils import get_redirect_location
 
-from saleor.core.utils import get_taxes_for_country
-from saleor.core.utils.taxes import DEFAULT_TAX_RATE_NAME, get_tax_rate_by_name
+from saleor.core.utils.taxes import (
+    DEFAULT_TAX_RATE_NAME, get_tax_rate_by_name, get_taxes_for_country)
 from saleor.order import FulfillmentStatus, OrderStatus, models
 from saleor.order.forms import OrderNoteForm
 from saleor.order.models import Order

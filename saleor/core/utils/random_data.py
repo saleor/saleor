@@ -16,8 +16,7 @@ from prices import Money
 
 from ...account.models import Address, User
 from ...account.utils import store_user_address
-from ...core.utils import get_taxes_for_country
-from ...core.utils.taxes import get_tax_rate_by_name
+from ...core.utils.taxes import get_tax_rate_by_name, get_taxes_for_country
 from ...core.utils.text import strip_html_and_truncate
 from ...discount import DiscountValueType, VoucherType
 from ...discount.models import Sale, Voucher
