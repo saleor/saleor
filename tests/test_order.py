@@ -2,18 +2,20 @@ import json
 from decimal import Decimal
 
 from django.urls import reverse
+from django_countries.fields import Country
 from payments import PaymentStatus
 from prices import Money, TaxedMoney
 from tests.utils import get_redirect_location
 
-from saleor.core.utils import DEFAULT_TAX_RATE_NAME
+from saleor.core.utils import get_taxes_for_country
+from saleor.core.utils.taxes import DEFAULT_TAX_RATE_NAME, get_tax_rate_by_name
 from saleor.order import FulfillmentStatus, OrderStatus, models
 from saleor.order.forms import OrderNoteForm
 from saleor.order.models import Order
 from saleor.order.utils import (
-    add_variant_to_order, cancel_fulfillment, cancel_order,
-    get_tax_rate_by_name, recalculate_order, restock_fulfillment_lines,
-    restock_order_lines, update_order_status)
+    add_variant_to_order, cancel_fulfillment, cancel_order, recalculate_order,
+    restock_fulfillment_lines, restock_order_lines, update_order_prices,
+    update_order_status)
 
 
 def test_total_setter():
@@ -71,6 +73,8 @@ def test_add_variant_to_order_adds_line_for_new_variant(
     assert order.lines.count() == lines_before + 1
     assert line.product_sku == variant.sku
     assert line.quantity == 1
+    assert line.unit_price == TaxedMoney(
+        net=Money('8.13', 'USD'), gross=Money(10, 'USD'))
     assert line.tax_rate == taxes[product.tax_rate]['value']
 
 
@@ -364,3 +368,26 @@ def test_ajax_order_shipping_methods_list_different_country(
 
     assert response.status_code == 200
     assert resp_decoded == {'results': shipping_methods_list}
+
+
+def test_update_order_prices(order_with_lines, vatlayer):
+    taxes = get_taxes_for_country(Country('DE'))
+    address = order_with_lines.shipping_address
+    address.country = 'DE'
+    address.save()
+
+    line_1 = order_with_lines.lines.first()
+    line_2 = order_with_lines.lines.last()
+    price_1 = line_1.variant.get_price(taxes=taxes)
+    price_2 = line_2.variant.get_price(taxes=taxes)
+    shipping_price = order_with_lines.shipping_method.get_total_price(taxes)
+
+    update_order_prices(order_with_lines, None)
+
+    line_1.refresh_from_db()
+    line_2.refresh_from_db()
+    assert line_1.unit_price == price_1
+    assert line_2.unit_price == price_2
+    assert order_with_lines.shipping_price == shipping_price
+    total = price_1 + price_2 + shipping_price
+    assert order_with_lines.total == total

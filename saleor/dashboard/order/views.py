@@ -15,14 +15,14 @@ from django_prices.templatetags import prices_i18n
 from payments import PaymentStatus
 
 from ...core.exceptions import InsufficientStock
-from ...core.utils import ZERO_TAXED_MONEY, get_paginator_items
+from ...core.utils import get_paginator_items
+from ...core.utils.taxes import ZERO_TAXED_MONEY, get_taxes_for_address
 from ...order import CustomPaymentChoices, OrderStatus
 from ...order.emails import (
     send_fulfillment_confirmation, send_fulfillment_update,
     send_order_confirmation)
 from ...order.models import Fulfillment, FulfillmentLine, Order, OrderNote
-from ...order.utils import (
-    get_taxes_for_order, update_order_prices, update_order_status)
+from ...order.utils import update_order_prices, update_order_status
 from ...shipping.models import ShippingMethodCountry
 from ..views import staff_member_required
 from .filters import OrderFilter
@@ -297,7 +297,7 @@ def orderline_cancel(request, order_pk, line_pk):
 def add_variant_to_order(request, order_pk):
     """Add variant in given quantity to an order."""
     order = get_object_or_404(Order.objects.drafts(), pk=order_pk)
-    taxes = get_taxes_for_order(order)
+    taxes = get_taxes_for_address(order.shipping_address)
     form = AddVariantToOrderForm(
         request.POST or None, order=order, discounts=request.discounts,
         taxes=taxes)
@@ -411,7 +411,7 @@ def order_customer_remove(request, order_pk):
 @permission_required('order.edit_order')
 def order_shipping_edit(request, order_pk):
     order = get_object_or_404(Order.objects.drafts(), pk=order_pk)
-    taxes = get_taxes_for_order(order)
+    taxes = get_taxes_for_address(order.shipping_address)
     form = OrderShippingForm(request.POST or None, instance=order, taxes=taxes)
     status = 200
     if form.is_valid():
@@ -728,8 +728,7 @@ def ajax_order_shipping_methods_list(request, order_pk):
             Q(shipping_method__name__icontains=search_query) |
             Q(price__icontains=search_query))
 
-    taxes = get_taxes_for_order(order)
     shipping_methods = [
-        {'id': method.pk, 'text': method.get_ajax_label(taxes=taxes)}
+        {'id': method.pk, 'text': method.get_ajax_label()}
         for method in queryset]
     return JsonResponse({'results': shipping_methods})

@@ -555,3 +555,13 @@ def test_product_get_price_range_do_not_charge_taxes(
     expected_price = TaxedMoney(
         net=Money('5.00', 'USD'), gross=Money('5.00', 'USD'))
     assert price == TaxedMoneyRange(start=expected_price, stop=expected_price)
+
+
+def test_variant_base_price(product):
+    variant = product.variants.get()
+    assert variant.base_price == product.price
+
+    variant.price_override = Money('15.00', 'USD')
+    variant.save()
+
+    assert variant.base_price == variant.price_override

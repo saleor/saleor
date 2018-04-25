@@ -1,7 +1,7 @@
 from django.conf import settings
 from prices import Money, MoneyRange
 
-from ...core.utils import ZERO_TAXED_MONEY
+from ...core.utils.taxes import ZERO_TAXED_MONEY
 
 
 def get_product_costs_data(product):

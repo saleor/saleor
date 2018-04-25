@@ -419,9 +419,12 @@ def test_view_invalid_reorder_product_images(
     assert 'ordered_images' in resp_decoded['error']
 
 
-@patch('saleor.dashboard.product.forms.create_product_thumbnails.delay')
 def test_view_product_image_add(
-        mock_create_thumbnails, admin_client, product_with_image):
+        monkeypatch, admin_client, product_with_image):
+    mock_create_thumbnails = Mock(return_value=None)
+    monkeypatch.setattr(
+        'saleor.dashboard.product.forms.create_product_thumbnails.delay',
+        mock_create_thumbnails)
     assert len(ProductImage.objects.all()) == 1
     assert len(product_with_image.images.all()) == 1
     url = reverse(
@@ -442,9 +445,12 @@ def test_view_product_image_add(
     mock_create_thumbnails.assert_called_once_with(images[1].pk)
 
 
-@patch('saleor.dashboard.product.forms.create_product_thumbnails.delay')
 def test_view_product_image_edit_same_image_add_description(
-        mock_create_thumbnails, admin_client, product_with_image):
+        monkeypatch, admin_client, product_with_image):
+    mock_create_thumbnails = Mock(return_value=None)
+    monkeypatch.setattr(
+        'saleor.dashboard.product.forms.create_product_thumbnails.delay',
+        mock_create_thumbnails)
     assert len(product_with_image.images.all()) == 1
     product_image = product_with_image.images.all()[0]
     url = reverse(
@@ -463,9 +469,12 @@ def test_view_product_image_edit_same_image_add_description(
     mock_create_thumbnails.assert_called_once_with(product_image.pk)
 
 
-@patch('saleor.dashboard.product.forms.create_product_thumbnails.delay')
 def test_view_product_image_edit_new_image(
-        mock_create_thumbnails, admin_client, product_with_image):
+        monkeypatch, admin_client, product_with_image):
+    mock_create_thumbnails = Mock(return_value=None)
+    monkeypatch.setattr(
+        'saleor.dashboard.product.forms.create_product_thumbnails.delay',
+        mock_create_thumbnails)
     assert len(product_with_image.images.all()) == 1
     product_image = product_with_image.images.all()[0]
     url = reverse(

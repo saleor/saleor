@@ -368,7 +368,8 @@ def voucher(db):  # pylint: disable=W0613
 
 
 @pytest.fixture()
-def order_with_lines(order, product_type, default_category, shipping_method):
+def order_with_lines(
+        order, product_type, default_category, shipping_method, taxes):
     product = Product.objects.create(
         name='Test product', price=Money('10.00', 'USD'),
         product_type=product_type, category=default_category)
@@ -376,13 +377,14 @@ def order_with_lines(order, product_type, default_category, shipping_method):
         product=product, sku='SKU_A', cost_price=Money(1, 'USD'), quantity=0,
         quantity_allocated=0)
     order.lines.create(
-        product_name=product.name,
-        product_sku='SKU_%d' % (product.pk,),
-        is_shipping_required=product.product_type.is_shipping_required,
+        product_name=variant.display_product(),
+        product_sku=variant.sku,
+        is_shipping_required=variant.is_shipping_required(),
         quantity=1,
-        unit_price_net=Decimal('10.00'),
-        unit_price_gross=Decimal('10.00'),
-        variant=variant)
+        variant=variant,
+        unit_price=variant.get_price(taxes=taxes),
+        tax_rate=taxes['standard']['value'])
+
     product = Product.objects.create(
         name='Test product 2', price=Money('20.00', 'USD'),
         product_type=product_type, category=default_category)
@@ -390,27 +392,24 @@ def order_with_lines(order, product_type, default_category, shipping_method):
         product=product, sku='SKU_B', cost_price=Money(2, 'USD'), quantity=0,
         quantity_allocated=0)
     order.lines.create(
-        product_name=product.name,
-        product_sku='SKU_%d' % (product.pk,),
-        is_shipping_required=product.product_type.is_shipping_required,
+        product_name=variant.display_product(),
+        product_sku=variant.sku,
+        is_shipping_required=variant.is_shipping_required(),
         quantity=1,
-        unit_price_net=Decimal('20.00'),
-        unit_price_gross=Decimal('20.00'),
-        variant=variant)
-    Product.objects.create(
-        name='Test product 3', price=Money('30.00', 'USD'),
-        product_type=product_type, category=default_category)
+        variant=variant,
+        unit_price=variant.get_price(taxes=taxes),
+        tax_rate=taxes['standard']['value'])
 
     order.shipping_address = order.billing_address.get_copy()
     order.shipping_method_name = shipping_method.name
     method = shipping_method.price_per_country.get()
     order.shipping_method = method
-    order.shipping_price = method.get_total_price()
+    order.shipping_price = method.get_total_price(taxes)
     order.save()
-    recalculate_order(order)
-    order.refresh_from_db()
 
     recalculate_order(order)
+
+    order.refresh_from_db()
     return order
 
 
@@ -501,7 +500,8 @@ def payment_preauth(order_with_lines):
     return order_with_lines.payments.create(
         variant='default', status=PaymentStatus.PREAUTH,
         fraud_status=FraudStatus.ACCEPT, currency='USD',
-        total=order_with_lines.total_gross.amount)
+        total=order_with_lines.total.gross.amount,
+        tax=order_with_lines.total.tax.amount)
 
 
 @pytest.fixture()
@@ -725,4 +725,19 @@ def taxes(tax_rates):
 def vatlayer(db, settings, tax_rates, taxes):
     settings.VATLAYER_ACCESS_KEY = 'enablevatlayer'
     VAT.objects.create(country_code='PL', data=tax_rates)
+
+    tax_rates_2 = {
+        'standard_rate': 19,
+        'reduced_rates': {
+            'admission to cultural events': 7,
+            'admission to entertainment events': 7,
+            'books': 7,
+            'foodstuffs': 7,
+            'hotels': 7,
+            'medical': 7,
+            'newspapers': 7,
+            'passenger transport': 7
+        }
+    }
+    VAT.objects.create(country_code='DE', data=tax_rates_2)
     return taxes

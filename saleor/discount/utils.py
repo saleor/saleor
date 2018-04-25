@@ -4,7 +4,7 @@ from django.utils.translation import pgettext
 from prices import Money
 
 from . import VoucherApplyToProduct
-from ..core.utils import ZERO_TAXED_MONEY
+from ..core.utils.taxes import ZERO_TAXED_MONEY
 from .models import NotApplicable
 
 

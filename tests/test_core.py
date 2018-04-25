@@ -10,8 +10,10 @@ from prices import Money, MoneyRange, TaxedMoney, TaxedMoneyRange
 from saleor.account.models import Address, User
 from saleor.core.storages import S3MediaStorage
 from saleor.core.utils import (
-    Country, apply_tax_to_price, create_superuser, create_thumbnails,
-    format_money, get_country_by_ip, get_currency_for_country, random_data)
+    Country, create_superuser, create_thumbnails, format_money,
+    get_country_by_ip, get_currency_for_country, get_taxes_for_country,
+    random_data)
+from saleor.core.utils.taxes import apply_tax_to_price, get_taxes_for_address
 from saleor.core.utils.text import get_cleaner, strip_html
 from saleor.discount.models import Sale, Voucher
 from saleor.order.models import Order
@@ -320,3 +322,31 @@ def test_storages_not_setting_s3_bucket_domain(*_patches):
     storage = S3MediaStorage()
     assert storage.bucket_name == 'media-bucket'
     assert storage.custom_domain is None
+
+
+def compare_taxes(taxes_1, taxes_2):
+    assert len(taxes_1) == len(taxes_2)
+
+    for rate_name, tax in taxes_1.items():
+        value_1 = tax['value']
+        value_2 = taxes_2.get(rate_name)['value']
+        assert value_1 == value_2
+
+
+def test_get_taxes_for_address(address, vatlayer):
+    taxes = get_taxes_for_address(address)
+    compare_taxes(taxes, vatlayer)
+
+
+def test_get_taxes_for_address_fallback_default(vatlayer):
+    taxes = get_taxes_for_address(None)
+    compare_taxes(taxes, vatlayer)
+
+
+def test_get_taxes_for_address_other_country(address, vatlayer):
+    address.country = 'DE'
+    address.save()
+    tax_rates = get_taxes_for_country(Country('DE'))
+
+    taxes = get_taxes_for_address(address)
+    compare_taxes(taxes, tax_rates)
