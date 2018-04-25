@@ -194,6 +194,16 @@ def test_checkout_create_order_insufficient_stock(
         checkout.create_order()
 
 
+def test_checkout_taxes(checkout_with_items, shipping_method, vatlayer):
+    checkout_with_items.taxes = vatlayer
+    method = shipping_method.price_per_country.get()
+    checkout_with_items.shipping_method = method
+    assert checkout_with_items.shipping_price == TaxedMoney(
+        net=Money('8.13', 'USD'), gross=Money(10, 'USD'))
+    subtotal = checkout_with_items.cart.get_total(taxes=vatlayer)
+    assert checkout_with_items.get_subtotal() == subtotal
+
+
 @pytest.mark.parametrize('note_value', [
     '',
     '    ',

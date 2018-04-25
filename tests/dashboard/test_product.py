@@ -1,6 +1,6 @@
 import json
 from io import BytesIO
-from unittest.mock import MagicMock, Mock, patch
+from unittest.mock import MagicMock, Mock
 
 from django.conf import settings
 from django.core.files.uploadedfile import SimpleUploadedFile

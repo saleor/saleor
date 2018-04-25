@@ -8,7 +8,8 @@ from django_countries.fields import Country
 from django_prices_vatlayer.models import VAT
 
 from ...core.i18n import VAT_RATE_TYPE_TRANSLATIONS
-from ...core.utils import get_paginator_items, get_taxes_for_country
+from ...core.utils import get_paginator_items
+from ...core.utils.taxes import get_taxes_for_country
 from ...dashboard.taxes.filters import TaxFilter
 from ...dashboard.taxes.forms import TaxesConfigurationForm
 from ...dashboard.views import staff_member_required
@@ -41,8 +42,8 @@ def tax_details(request, country_code):
 
 @staff_member_required
 @permission_required('site.edit_settings')
-def configure_taxes(request, pk):
-    site_settings = get_object_or_404(SiteSettings, pk=pk)
+def configure_taxes(request, site_pk):
+    site_settings = get_object_or_404(SiteSettings, pk=site_pk)
     taxes_form = TaxesConfigurationForm(
         request.POST or None, instance=site_settings)
     if taxes_form.is_valid():

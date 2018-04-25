@@ -99,23 +99,6 @@ def format_money(money):
     return currencyfmt(money.amount, money.currency)
 
 
-def get_taxes_for_country(country):
-    tax_rates = get_tax_rates_for_country(country.code)
-    if tax_rates is None:
-        return None
-
-    taxes = {DEFAULT_TAX_RATE_NAME: {
-        'value': tax_rates['standard_rate'],
-        'tax': get_tax_for_rate(tax_rates)}}
-    if tax_rates['reduced_rates']:
-        taxes.update({
-            rate_name: {
-                'value': tax_rates['reduced_rates'][rate_name],
-                'tax': get_tax_for_rate(tax_rates, rate_name)}
-            for rate_name in tax_rates['reduced_rates']})
-    return taxes
-
-
 def to_local_currency(price, currency):
     if not settings.OPENEXCHANGERATES_API_KEY:
         return None

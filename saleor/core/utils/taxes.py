@@ -1,6 +1,8 @@
 from django.conf import settings
 from django.contrib.sites.models import Site
 from django_countries.fields import Country
+from django_prices_vatlayer.utils import (
+    get_tax_for_rate, get_tax_rates_for_country)
 from prices import Money, MoneyRange, TaxedMoney, TaxedMoneyRange
 
 DEFAULT_TAX_RATE_NAME = 'standard'
@@ -33,8 +35,24 @@ def apply_tax_to_price(taxes, rate_name, base):
     return tax_to_apply(base, keep_gross=keep_gross)
 
 
+def get_taxes_for_country(country):
+    tax_rates = get_tax_rates_for_country(country.code)
+    if tax_rates is None:
+        return None
+
+    taxes = {DEFAULT_TAX_RATE_NAME: {
+        'value': tax_rates['standard_rate'],
+        'tax': get_tax_for_rate(tax_rates)}}
+    if tax_rates['reduced_rates']:
+        taxes.update({
+            rate_name: {
+                'value': tax_rates['reduced_rates'][rate_name],
+                'tax': get_tax_for_rate(tax_rates, rate_name)}
+            for rate_name in tax_rates['reduced_rates']})
+    return taxes
+
+
 def get_taxes_for_address(address):
-    from . import get_taxes_for_country
     """Return proper taxes for address or default country."""
     if address is not None:
         country = address.country
