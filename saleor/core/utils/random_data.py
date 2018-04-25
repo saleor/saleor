@@ -17,12 +17,13 @@ from prices import Money
 from ...account.models import Address, User
 from ...account.utils import store_user_address
 from ...core.utils import get_taxes_for_country
+from ...core.utils.taxes import get_tax_rate_by_name
 from ...core.utils.text import strip_html_and_truncate
 from ...discount import DiscountValueType, VoucherType
 from ...discount.models import Sale, Voucher
 from ...menu.models import Menu
 from ...order.models import Fulfillment, Order, Payment
-from ...order.utils import get_tax_rate_by_name, update_order_status
+from ...order.utils import update_order_status
 from ...page.models import Page
 from ...product.models import (
     AttributeChoiceValue, Category, Collection, Product, ProductAttribute,

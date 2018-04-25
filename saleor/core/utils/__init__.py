@@ -17,17 +17,12 @@ from django_prices_openexchangerates import exchange_currency
 from django_prices_vatlayer.utils import (
     get_tax_rates_for_country, get_tax_for_rate)
 from geolite2 import geolite2
-from prices import Money, MoneyRange, TaxedMoney, TaxedMoneyRange
+from prices import MoneyRange
 from versatileimagefield.image_warmer import VersatileImageFieldWarmer
 
 from ...account.models import User
 from ...core.i18n import COUNTRY_CODE_CHOICES
-
-ZERO_TAXED_MONEY = TaxedMoney(
-    net=Money(0, settings.DEFAULT_CURRENCY),
-    gross=Money(0, settings.DEFAULT_CURRENCY))
-
-DEFAULT_TAX_RATE_NAME = 'standard'
+from ...core.utils.taxes import DEFAULT_TAX_RATE_NAME
 
 georeader = geolite2.reader()
 logger = logging.getLogger(__name__)
@@ -119,29 +114,6 @@ def get_taxes_for_country(country):
                 'tax': get_tax_for_rate(tax_rates, rate_name)}
             for rate_name in tax_rates['reduced_rates']})
     return taxes
-
-
-def apply_tax_to_price(taxes, rate_name, base):
-    if not taxes or not rate_name:
-        # Naively convert Money to TaxedMoney for consistency with price
-        # handling logic across the codebase, passthrough other money types
-        if isinstance(base, Money):
-            return TaxedMoney(net=base, gross=base)
-        if isinstance(base, MoneyRange):
-            return TaxedMoneyRange(
-                apply_tax_to_price(taxes, rate_name, base.start),
-                apply_tax_to_price(taxes, rate_name, base.stop))
-        if isinstance(base, (TaxedMoney, TaxedMoneyRange)):
-            return base
-        raise TypeError('Unknown base for flat_tax: %r' % (base,))
-
-    if rate_name in taxes:
-        tax_to_apply = taxes[rate_name]['tax']
-    else:
-        tax_to_apply = taxes[DEFAULT_TAX_RATE_NAME]['tax']
-
-    keep_gross = Site.objects.get_current().settings.include_taxes_in_prices
-    return tax_to_apply(base, keep_gross=keep_gross)
 
 
 def to_local_currency(price, currency):

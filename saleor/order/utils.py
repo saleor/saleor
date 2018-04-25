@@ -3,12 +3,11 @@ from functools import wraps
 from django.conf import settings
 from django.db.models import F
 from django.shortcuts import get_object_or_404, redirect
-from django_countries.fields import Country
 from prices import Money
 
 from ..account.utils import store_user_address
 from ..core.exceptions import InsufficientStock
-from ..core.utils import DEFAULT_TAX_RATE_NAME, get_taxes_for_country
+from ..core.utils.taxes import get_tax_rate_by_name, get_taxes_for_address
 from ..dashboard.order.utils import get_voucher_discount_for_order
 from ..order import FulfillmentStatus, OrderStatus
 from ..order.models import OrderLine
@@ -76,7 +75,7 @@ def recalculate_order(order, **kwargs):
 
 def update_order_prices(order, discounts):
     """Update prices in order with given discounts and proper taxes."""
-    taxes = get_taxes_for_order(order)
+    taxes = get_taxes_for_address(order.shipping_address)
 
     for line in order:
         if line.variant:
@@ -146,29 +145,6 @@ def attach_order_to_user(order, user):
     if order.shipping_address:
         store_user_address(user, order.shipping_address, shipping=True)
     order.save(update_fields=['user'])
-
-
-def get_tax_rate_by_name(rate_name, taxes=None):
-    """Return value of tax rate for current taxes."""
-    if not taxes or not rate_name:
-        tax_rate = 0
-    elif rate_name in taxes:
-        tax_rate = taxes[rate_name]['value']
-    else:
-        tax_rate = taxes[DEFAULT_TAX_RATE_NAME]['value']
-
-    return tax_rate
-
-
-def get_taxes_for_order(order):
-    """Return proper taxes for order.
-    Taxes are based on shipping address or default country."""
-    if order.shipping_address:
-        country = order.shipping_address.country
-    else:
-        country = Country(settings.DEFAULT_COUNTRY)
-
-    return get_taxes_for_country(country)
 
 
 def add_variant_to_order(

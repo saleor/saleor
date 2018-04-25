@@ -1,13 +1,13 @@
-from unittest.mock import patch
+from unittest.mock import Mock
 
 import pytest
 from django.conf import settings
 from django.urls import reverse
 from payments import PaymentStatus
-from prices import Money, TaxedMoney
+from prices import Money
 from tests.utils import get_form_errors, get_redirect_location
 
-from saleor.core.utils import ZERO_TAXED_MONEY
+from saleor.core.utils.taxes import ZERO_TAXED_MONEY
 from saleor.dashboard.order.forms import ChangeQuantityForm, OrderNoteForm
 from saleor.dashboard.order.utils import (
     fulfill_order_line, remove_customer_from_order, save_address_in_order,
@@ -37,7 +37,7 @@ def test_view_capture_order_payment_preauth(
             'amount': str(order.total.gross.amount)})
     assert response.status_code == 302
     assert order.payments.last().status == PaymentStatus.CONFIRMED
-    assert order.payments.last().get_captured_price() == order.total
+    assert order.payments.last().get_captured_price() == order.total.gross
 
 
 @pytest.mark.integration
@@ -153,8 +153,7 @@ def test_view_refund_order_payment_confirmed(
             'amount': str(payment_confirmed.captured_amount)})
     assert response.status_code == 302
     assert order.payments.last().status == PaymentStatus.REFUNDED
-    assert order.payments.last().get_captured_price() == TaxedMoney(
-        net=Money(0, 'USD'), gross=Money(0, 'USD'))
+    assert order.payments.last().get_captured_price() == Money(0, 'USD')
 
 
 @pytest.mark.integration
@@ -274,8 +273,7 @@ def test_view_release_order_payment_preauth(
         'csrfmiddlewaretoken': 'hello'})
     assert response.status_code == 302
     assert order.payments.last().status == PaymentStatus.REFUNDED
-    assert order.payments.last().get_captured_price() == TaxedMoney(
-        net=Money(0, 'USD'), gross=Money(0, 'USD'))
+    assert order.payments.last().get_captured_price() == Money(0, 'USD')
 
 
 @pytest.mark.integration
@@ -610,14 +608,14 @@ def test_view_add_variant_to_order(
     assert line.quantity == line_quantity_before + added_quantity
 
 
-@patch('saleor.dashboard.order.forms.send_note_confirmation')
-def test_note_form_sent_email(
-        mock_send_note_confirmation, order_with_lines):
-    order = order_with_lines
-    note = OrderNote(order=order, user=order.user)
+def test_note_form_sent_email(monkeypatch, order_with_lines):
+    mock_send_mail = Mock(return_value=None)
+    monkeypatch.setattr(
+        'saleor.dashboard.order.forms.send_note_confirmation', mock_send_mail)
+    note = OrderNote(order=order_with_lines, user=order_with_lines.user)
     form = OrderNoteForm({'content': 'test_note'}, instance=note)
     form.send_confirmation_email()
-    assert mock_send_note_confirmation.called_once()
+    assert mock_send_mail.called_once()
 
 
 def test_fulfill_order_line(order_with_lines):

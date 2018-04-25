@@ -11,7 +11,7 @@ from ...account.i18n import (
 from ...account.models import User
 from ...cart.forms import QuantityField
 from ...core.exceptions import InsufficientStock
-from ...core.utils import ZERO_TAXED_MONEY
+from ...core.utils.taxes import ZERO_TAXED_MONEY
 from ...discount.models import Voucher
 from ...discount.utils import decrease_voucher_usage, increase_voucher_usage
 from ...order import CustomPaymentChoices, OrderStatus
@@ -113,7 +113,7 @@ class OrderCustomerForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         user = self.instance.user
         if user:
-            self.fields['user'].set_initial(user, label=user.ajax_label)
+            self.fields['user'].set_initial(user, label=user.get_ajax_label())
 
     def clean(self):
         cleaned_data = super().clean()
@@ -169,8 +169,7 @@ class OrderShippingForm(forms.ModelForm):
 
         method = self.instance.shipping_method
         if method:
-            method_field.set_initial(
-                method, label=method.get_ajax_label(self.taxes))
+            method_field.set_initial(method, label=method.get_ajax_label())
 
         if self.instance.shipping_address:
             country_code = self.instance.shipping_address.country.code

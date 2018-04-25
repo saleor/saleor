@@ -13,7 +13,7 @@ from mptt.forms import TreeNodeChoiceField
 
 from . import ProductBulkAction
 from ...core.i18n import VAT_RATE_TYPE_TRANSLATIONS
-from ...core.utils import DEFAULT_TAX_RATE_NAME
+from ...core.utils.taxes import DEFAULT_TAX_RATE_NAME
 from ...product.models import (
     AttributeChoiceValue, Category, Collection, Product, ProductAttribute,
     ProductImage, ProductType, ProductVariant, VariantImage)

@@ -174,9 +174,9 @@ def test_index_view(checkout, cart, status_code, url, rf, monkeypatch):
     assert response.url == url
 
 
-def test_checkout_discount(checkout_with_items, sale, taxes):
+def test_checkout_discount(checkout_with_items, sale, vatlayer):
     checkout_with_items.discounts = (sale,)
-    checkout_with_items.taxes = taxes
+    checkout_with_items.taxes = vatlayer
     assert checkout_with_items.get_total() == TaxedMoney(
         net=Money('4.07', 'USD'), gross=Money('5.00', 'USD'))
 

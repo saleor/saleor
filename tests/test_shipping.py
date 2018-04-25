@@ -1,4 +1,5 @@
 import pytest
+from mock import Mock
 from prices import Money, TaxedMoney
 
 from saleor.shipping.utils import get_taxed_shipping_price
@@ -17,3 +18,21 @@ def test_get_taxed_shipping_price(
     shipping_price = get_taxed_shipping_price(price, taxes=vatlayer)
 
     assert shipping_price == expected_price
+
+
+def test_shipping_get_total_price(monkeypatch, shipping_method, vatlayer):
+    method = shipping_method.price_per_country.get()
+    price = Money(10, 'USD')
+    taxed_price = TaxedMoney(
+        net=Money('8.13', 'USD'), gross=Money(10, 'USD'))
+    mock_get_price = Mock(return_value=taxed_price)
+    monkeypatch.setattr(
+        'saleor.shipping.models.get_taxed_shipping_price', mock_get_price)
+    method.get_total_price(taxes=vatlayer)
+    mock_get_price.assert_called_once_with(price, vatlayer)
+
+
+def test_shipping_get_ajax_label(shipping_method):
+    method = shipping_method.price_per_country.get()
+    label = method.get_ajax_label()
+    assert label == 'DHL $10.00'

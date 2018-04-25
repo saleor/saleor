@@ -1,7 +1,7 @@
 from django import template
 from prices import MoneyRange, TaxedMoney, TaxedMoneyRange
 
-from ...core.utils import DEFAULT_TAX_RATE_NAME
+from ...core.utils.taxes import DEFAULT_TAX_RATE_NAME
 
 register = template.Library()
 

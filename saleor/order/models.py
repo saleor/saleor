@@ -17,7 +17,8 @@ from prices import Money, TaxedMoney
 from . import FulfillmentStatus, OrderStatus
 from ..account.models import Address
 from ..core.models import BaseNote
-from ..core.utils import ZERO_TAXED_MONEY, build_absolute_uri
+from ..core.utils import build_absolute_uri
+from ..core.utils.taxes import ZERO_TAXED_MONEY
 from ..discount.models import Voucher
 from ..product.models import ProductVariant
 from ..shipping.models import ShippingMethodCountry
@@ -302,9 +303,7 @@ class Payment(BasePayment):
             gross=Money(self.total, self.currency))
 
     def get_captured_price(self):
-        return TaxedMoney(
-            net=Money(self.captured_amount, self.currency),
-            gross=Money(self.captured_amount, self.currency))
+        return Money(self.captured_amount, self.currency)
 
 
 class OrderHistoryEntry(models.Model):
