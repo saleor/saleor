@@ -52,4 +52,4 @@ def configure_taxes(request, site_pk):
         messages.success(request, msg)
         return redirect('dashboard:taxes')
     ctx = {'site': site_settings, 'taxes_form': taxes_form}
-    return TemplateResponse(request, 'dashboard/sites/taxes_form.html', ctx)
+    return TemplateResponse(request, 'dashboard/taxes/form.html', ctx)
