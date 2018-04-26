@@ -75,6 +75,13 @@
         <div class="card-action center-align">
           <div class="row no-padding">
             <div class="col s12">
+              {% if cover_errors %}
+                <div class="row red-text">
+                  {% for error in cover_errors %}
+                    {{ error }}
+                  {% endfor %}
+                </div>
+              {% endif %}
               <div class="row image-input-container">
                 <img id="image"
                      src="{% if page_block %}{{ page_block.cover_url }}{% else %}{% placeholder size=255 %}{% endif %}" />

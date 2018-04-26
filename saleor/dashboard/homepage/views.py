@@ -29,7 +29,10 @@ def _handle_homepage_block_form(request, instance=None):
     elif form.errors:
         status = 400
 
-    ctx = {'form': form, 'page_block': instance}
+    ctx = {
+        'form': form,
+        'page_block': instance,
+        'cover_errors': form.errors.get('cover', None)}
     return TemplateResponse(
         request, 'dashboard/homepage-blocks/form.html', ctx, status=status)
 

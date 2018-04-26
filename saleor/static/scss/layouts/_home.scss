@@ -38,7 +38,9 @@
   &--square {
     background-size: cover;
     background-repeat: no-repeat;
+    background-position: center;
     max-height: 350px;
+    overflow: hidden;
     &--container {
       padding: 0;
       margin-top: $global-margin * 2;
