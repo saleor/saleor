@@ -1,10 +1,9 @@
 from collections import defaultdict
 
-from django.contrib.sites.models import Site
 from django_prices.templatetags import prices_i18n
 
 from ...core.utils import to_local_currency
-from ...core.utils.taxes import get_tax_rate_by_name
+from ...core.utils.taxes import display_gross_prices, get_tax_rate_by_name
 from ...seo.schema.product import variant_json_ld
 from .availability import get_availability
 
@@ -64,8 +63,7 @@ def get_variant_picker_data(
             availability.price_range_undiscounted),
         'priceRangeLocalCurrency': price_range_as_dict(
             availability.price_range_local_currency)}
-    data['displayGrossPrices'] = (
-        Site.objects.get_current().settings.display_gross_prices)
+    data['displayGrossPrices'] = display_gross_prices()
     return data
 
 

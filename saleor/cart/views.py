@@ -47,8 +47,7 @@ def index(request, cart):
 
     default_country = get_user_shipping_country(request)
     country_form = CountryForm(initial={'country': default_country})
-    default_country_options = get_shipment_options(
-        default_country, request.taxes)
+    default_country_options = get_shipment_options(default_country, taxes)
 
     cart_data = get_cart_data(
         cart, default_country_options, request.currency, discounts, taxes)

@@ -702,9 +702,7 @@ def tax_rates():
             'admission to cultural events': 8,
             'admission to sporting events': 8,
             'admission to entertainment events': 8,
-            'foodstuffs': 5
-        }
-    }
+            'foodstuffs': 5}}
 
 
 @pytest.fixture
@@ -736,8 +734,6 @@ def vatlayer(db, settings, tax_rates, taxes):
             'hotels': 7,
             'medical': 7,
             'newspapers': 7,
-            'passenger transport': 7
-        }
-    }
+            'passenger transport': 7}}
     VAT.objects.create(country_code='DE', data=tax_rates_2)
     return taxes

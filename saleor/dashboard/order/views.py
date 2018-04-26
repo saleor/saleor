@@ -58,8 +58,7 @@ def order_list(request):
 @staff_member_required
 @permission_required('order.edit_order')
 def order_create(request):
-    display_gross_prices = (
-        Site.objects.get_current().settings.display_gross_prices)
+    display_gross_prices = request.site.settings.display_gross_prices
     order = Order.objects.create(
         status=OrderStatus.DRAFT, display_gross_prices=display_gross_prices)
     msg = pgettext_lazy(
