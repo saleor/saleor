@@ -142,23 +142,22 @@
       "^.+\\.png?$": "jest-file"
     },
     "testRegex": ".*\\.test\\.tsx?$",
-    "moduleFileExtensions": [
-      "ts",
-      "tsx",
-      "js",
-      "jsx",
-      "json",
-      "node"
-    ]
+    "moduleFileExtensions": ["ts", "tsx", "js", "jsx", "json", "node"]
   },
   "scripts": {
     "build-assets": "webpack -p --progress",
-    "build-schema": "python manage.py graphql_schema --schema saleor.graphql.api.schema --out saleor/static/dashboard-next/schema.json",
-    "generate-types": "apollo-codegen generate 'saleor/static/dashboard-next/**/*.ts' --schema saleor/static/dashboard-next/schema.json --target typescript --output saleor/static/dashboard-next/gql-types.ts",
+    "build-schema":
+      "python manage.py graphql_schema --schema saleor.graphql.api.schema --out saleor/static/dashboard-next/schema.json",
+    "generate-types":
+      "apollo-codegen generate 'saleor/static/dashboard-next/**/*.ts' --schema saleor/static/dashboard-next/schema.json --target typescript --output saleor/static/dashboard-next/gql-types.ts",
     "heroku-postbuild": "npm run build-assets && npm run build-emails",
     "start": "webpack -d --watch --progress",
-    "build-emails": "mkdir -p templates/templated_email/compiled/ && find templates -name \"*.mjml\" -not -path \"templates/templated_email/source/*partials/*\" -not -path \"templates/templated_email/source/*shared/*\" -exec mjml -l skip {} -o templates/templated_email/compiled/ \\;",
-    "storybook": "start-storybook -p 3000 -c saleor/static/dashboard-next/storybook/",
+    "build-emails":
+      "mkdir -p templates/templated_email/compiled/ && find templates -name \"*.mjml\" -not -path \"templates/templated_email/source/*partials/*\" -not -path \"templates/templated_email/source/*shared/*\" -exec mjml -l skip {} -o templates/templated_email/compiled/ \\;",
+    "storybook":
+      "start-storybook -p 3000 -c saleor/static/dashboard-next/storybook/",
+    "storybook-build":
+      "build-storybook -c saleor/static/dashboard-next/storybook/ -o .out",
     "test": "jest saleor/static/dashboard-next/"
   }
 }
