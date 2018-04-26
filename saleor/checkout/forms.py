@@ -1,10 +1,10 @@
 """Checkout-related forms."""
 from django import forms
-from django.contrib.sites.models import Site
 from django.utils.safestring import mark_safe
 from django.utils.translation import pgettext_lazy
 
 from ..core.utils import format_money
+from ..core.utils.taxes import display_gross_prices
 from ..shipping.models import ShippingMethodCountry
 from ..shipping.utils import get_taxed_shipping_price
 
@@ -75,7 +75,7 @@ class ShippingCountryChoiceField(forms.ModelChoiceField):
     def label_from_instance(self, obj):
         """Return a friendly label for the shipping method."""
         price = get_taxed_shipping_price(obj.price, self.taxes)
-        if Site.objects.get_current().settings.display_gross_prices:
+        if display_gross_prices():
             price = price.gross
         else:
             price = price.net

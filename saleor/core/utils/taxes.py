@@ -31,7 +31,7 @@ def apply_tax_to_price(taxes, rate_name, base):
     else:
         tax_to_apply = taxes[DEFAULT_TAX_RATE_NAME]['tax']
 
-    keep_gross = Site.objects.get_current().settings.include_taxes_in_prices
+    keep_gross = include_taxes_in_prices()
     return tax_to_apply(base, keep_gross=keep_gross)
 
 
@@ -72,3 +72,15 @@ def get_tax_rate_by_name(rate_name, taxes=None):
         tax_rate = taxes[DEFAULT_TAX_RATE_NAME]['value']
 
     return tax_rate
+
+
+def include_taxes_in_prices():
+    return Site.objects.get_current().settings.include_taxes_in_prices
+
+
+def display_gross_prices():
+    return Site.objects.get_current().settings.display_gross_prices
+
+
+def charge_taxes_on_shipping():
+    return Site.objects.get_current().settings.charge_taxes_on_shipping

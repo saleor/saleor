@@ -1,12 +1,12 @@
 import json
 
 from django import forms
-from django.contrib.sites.models import Site
 from django.utils.encoding import smart_text
 from django.utils.translation import pgettext_lazy
 from django_prices.templatetags.prices_i18n import amount
 
 from ..cart.forms import AddToCartForm
+from ..core.utils.taxes import display_gross_prices
 
 
 class VariantChoiceField(forms.ModelChoiceField):
@@ -30,8 +30,7 @@ class VariantChoiceField(forms.ModelChoiceField):
         self.discounts = discounts
         self.taxes = taxes
         self.empty_label = None
-        self.display_gross = (
-            Site.objects.get_current().settings.display_gross_prices)
+        self.display_gross = display_gross_prices()
         images_map = {
             variant.pk: [
                 vi.image.image.url for vi in variant.variant_images.all()]

@@ -1,7 +1,6 @@
 import bleach
 from django import forms
 from django.conf import settings
-from django.contrib.sites.models import Site
 from django.db.models import Count
 from django.forms.models import ModelChoiceIterator
 from django.forms.widgets import CheckboxSelectMultiple
@@ -13,7 +12,7 @@ from mptt.forms import TreeNodeChoiceField
 
 from . import ProductBulkAction
 from ...core.i18n import VAT_RATE_TYPE_TRANSLATIONS
-from ...core.utils.taxes import DEFAULT_TAX_RATE_NAME
+from ...core.utils.taxes import DEFAULT_TAX_RATE_NAME, include_taxes_in_prices
 from ...product.models import (
     AttributeChoiceValue, Category, Collection, Product, ProductAttribute,
     ProductImage, ProductType, ProductVariant, VariantImage)
@@ -245,7 +244,7 @@ class ProductForm(forms.ModelForm, AttributesMixin):
         self.fields['seo_title'] = SeoTitleField(
             extra_attrs={'data-bind': self['name'].auto_id})
         self.fields['tax_rate'].choices = get_tax_rate_type_choices()
-        if Site.objects.get_current().settings.include_taxes_in_prices:
+        if include_taxes_in_prices():
             self.fields['price'].label = pgettext_lazy(
                 'Currency gross amount', 'Gross price')
         else:

@@ -2,7 +2,6 @@
 from datetime import date
 from functools import wraps
 
-from django.contrib.sites.models import Site
 from django.db import transaction
 from django.forms.models import model_to_dict
 from django.utils.encoding import smart_text
@@ -14,7 +13,8 @@ from ..account.utils import store_user_address
 from ..cart.models import Cart
 from ..cart.utils import get_or_empty_db_cart
 from ..core import analytics
-from ..core.utils.taxes import ZERO_TAXED_MONEY, get_taxes_for_country
+from ..core.utils.taxes import (
+    ZERO_TAXED_MONEY, display_gross_prices, get_taxes_for_country)
 from ..discount.models import NotApplicable, Voucher
 from ..discount.utils import increase_voucher_usage
 from ..order.models import Order
@@ -309,8 +309,6 @@ class Checkout:
         shipping_method_name = (
             smart_text(self.shipping_method) if self.is_shipping_required
             else None)
-        display_gross_prices = (
-            Site.objects.get_current().settings.display_gross_prices)
         order_data = {
             'language_code': get_language(),
             'billing_address': billing_address,
@@ -319,7 +317,7 @@ class Checkout:
             'shipping_price': self.shipping_price,
             'shipping_method_name': shipping_method_name,
             'total': self.get_total(),
-            'display_gross_prices': display_gross_prices}
+            'display_gross_prices': display_gross_prices()}
 
         if self.user.is_authenticated:
             order_data['user'] = self.user
