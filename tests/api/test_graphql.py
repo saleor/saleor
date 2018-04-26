@@ -3,7 +3,6 @@ from unittest.mock import patch
 
 import graphene
 from django.contrib.auth.models import AnonymousUser
-from django.forms.models import model_to_dict
 from django.http import HttpResponse
 from django.shortcuts import reverse
 from django.test import RequestFactory
@@ -231,34 +230,3 @@ def test_model_form_update_mutation(model_form_class):
 
     meta = TestUpdateMutation._meta
     assert 'id' in meta.arguments
-
-
-def test_create_token_mutation(admin_client, staff_user):
-    query = '''
-    mutation {
-        tokenCreate(email: "%(email)s", password: "%(password)s") {
-            token
-            errors {
-                field
-                message
-            }
-        }
-    }
-    '''
-    success_query = query % {'email': staff_user.email, 'password': 'password'}
-    response = admin_client.post(reverse('api'), {'query': success_query})
-    content = get_graphql_content(response)
-    assert 'errors' not in content
-    token_data = content['data']['tokenCreate']
-    assert token_data['token']
-    assert not token_data['errors']
-
-    error_query = query % {'email': staff_user.email, 'password': 'wat'}
-    response = admin_client.post(reverse('api'), {'query': error_query})
-    content = get_graphql_content(response)
-    assert 'errors' not in content
-    token_data = content['data']['tokenCreate']
-    assert not token_data['token']
-    errors = token_data['errors']
-    assert errors
-    assert not errors[0]['field']
