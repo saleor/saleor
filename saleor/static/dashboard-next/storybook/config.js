@@ -47,6 +47,11 @@ function loadStories() {
   require("./stories/products/ProductVariantProduct");
   require("./stories/products/ProductVariantStock");
   require("./stories/products/ProductVariants");
+
+  // Orders
+  require("./stories/orders/OrderFilters");
+  require("./stories/orders/OrderList");
+  require("./stories/orders/OrderListPage");
 }
 
 configure(loadStories, module);
