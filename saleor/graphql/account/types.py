@@ -6,9 +6,18 @@ from graphene import relay
 from ..core.types import CountableDjangoObjectType
 
 
+class PermissionDisplay(graphene.ObjectType):
+    code = graphene.String(description="Internal code for permission.")
+    name = graphene.String(description=
+                           "Describe action(s) allowed to do by permission.")
+
+    class Meta:
+        description = 'Represents a permission object in a friendly form.'
+
+
 class User(CountableDjangoObjectType):
 
-    permissions = graphene.List(graphene.String)
+    permissions = graphene.List(PermissionDisplay)
 
     class Meta:
         exclude_fields = [
@@ -21,6 +30,12 @@ class User(CountableDjangoObjectType):
 
     def resolve_permissions(self, info, **kwargs):
         if self.is_superuser:
-            return Permission.objects.all()
-        return self.user_permissions.all() | Permission.objects.filter(
-            group__user=self)
+            permissions = Permission.objects.all().select_related(
+                'content_type')
+        else:
+            permissions = (
+                self.user_permissions.all() | Permission.objects.filter(
+            group__user=self)).select_related('content_type')
+        return [PermissionDisplay(
+            code='.'.join([permission.content_type.name, permission.codename]),
+            name=permission.name) for permission in permissions]
