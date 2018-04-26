@@ -81,7 +81,7 @@
                   {% trans "All taxes are included in my prices" context "Site settings field" %}
                 </h4>
                 <p>
-                  {% if settings.include_taxes_in_prices %}
+                  {% if site.settings.include_taxes_in_prices %}
                     {% trans "Yes" context "Include taxes in prices setting description" %}
                   {% else %}
                     {% trans "No" context "Include taxes in prices setting description" %}
@@ -95,7 +95,7 @@
                   {% trans "Show customers gross prices in storefront" context "Site settings field" %}
                 </h4>
                 <p>
-                  {% if settings.display_gross_prices %}
+                  {% if site.settings.display_gross_prices %}
                     {% trans "Yes" context "Show customers gross prices setting description" %}
                   {% else %}
                     {% trans "No" context "Show customers gross prices setting description" %}
@@ -109,7 +109,7 @@
                   {% trans "Charge taxes on shipping rates" context "Site settings field" %}
                 </h4>
                 <p>
-                  {% if settings.charge_taxes_on_shipping %}
+                  {% if site.settings.charge_taxes_on_shipping %}
                     {% trans "Yes" context "Charge taxes on shipping rates setting description" %}
                   {% else %}
                     {% trans "No" context "Charge taxes on shipping rates setting description" %}
