@@ -8,6 +8,7 @@ from django.forms import HiddenInput
 from django.forms.models import model_to_dict
 from django.urls import reverse
 from PIL import Image
+from tests.utils import get_redirect_location
 
 from saleor.dashboard.product import ProductBulkAction
 from saleor.dashboard.product.forms import (
@@ -158,7 +159,7 @@ def test_change_attributes_in_product_form(db, product, color_attribute):
 
 
 def test_attribute_list(db, product, color_attribute, admin_client):
-    assert len(ProductAttribute.objects.all()) == 2
+    assert ProductAttribute.objects.count() == 2
     response = admin_client.get(reverse('dashboard:product-attributes'))
     assert response.status_code == 200
 
@@ -172,50 +173,50 @@ def test_attribute_details(color_attribute, admin_client):
 
 
 def test_attribute_add(color_attribute, admin_client):
-    assert len(ProductAttribute.objects.all()) == 1
+    assert ProductAttribute.objects.count() == 1
     url = reverse('dashboard:product-attribute-add')
     data = {'name': 'test', 'slug': 'test'}
     response = admin_client.post(url, data, follow=True)
     assert response.status_code == 200
-    assert len(ProductAttribute.objects.all()) == 2
+    assert ProductAttribute.objects.count() == 2
 
 
 def test_attribute_add_not_valid(color_attribute, admin_client):
-    assert len(ProductAttribute.objects.all()) == 1
+    assert ProductAttribute.objects.count() == 1
     url = reverse('dashboard:product-attribute-add')
     data = {}
     response = admin_client.post(url, data, follow=True)
     assert response.status_code == 200
-    assert len(ProductAttribute.objects.all()) == 1
+    assert ProductAttribute.objects.count() == 1
 
 
 def test_attribute_edit(color_attribute, admin_client):
-    assert len(ProductAttribute.objects.all()) == 1
+    assert ProductAttribute.objects.count() == 1
     url = reverse(
         'dashboard:product-attribute-update',
         kwargs={'pk': color_attribute.pk})
     data = {'name': 'new_name', 'slug': 'new_slug'}
     response = admin_client.post(url, data, follow=True)
     assert response.status_code == 200
-    assert len(ProductAttribute.objects.all()) == 1
+    assert ProductAttribute.objects.count() == 1
     color_attribute.refresh_from_db()
     assert color_attribute.name == 'new_name'
     assert color_attribute.slug == 'new_slug'
 
 
 def test_attribute_delete(color_attribute, admin_client):
-    assert len(ProductAttribute.objects.all()) == 1
+    assert ProductAttribute.objects.count() == 1
     url = reverse(
         'dashboard:product-attribute-delete',
         kwargs={'pk': color_attribute.pk})
     response = admin_client.post(url, follow=True)
     assert response.status_code == 200
-    assert len(ProductAttribute.objects.all()) == 0
+    assert ProductAttribute.objects.count() == 0
 
 
 def test_attribute_choice_value_add(color_attribute, admin_client):
     values = AttributeChoiceValue.objects.filter(attribute=color_attribute.pk)
-    assert len(values) == 2
+    assert values.count() == 2
     url = reverse(
         'dashboard:product-attribute-value-add',
         kwargs={'attribute_pk': color_attribute.pk})
@@ -223,12 +224,12 @@ def test_attribute_choice_value_add(color_attribute, admin_client):
     response = admin_client.post(url, data, follow=True)
     assert response.status_code == 200
     values = AttributeChoiceValue.objects.filter(attribute=color_attribute.pk)
-    assert len(values) == 3
+    assert values.count() == 3
 
 
 def test_attribute_choice_value_add_not_valid(color_attribute, admin_client):
     values = AttributeChoiceValue.objects.filter(attribute=color_attribute.pk)
-    assert len(values) == 2
+    assert values.count() == 2
     url = reverse(
         'dashboard:product-attribute-value-add',
         kwargs={'attribute_pk': color_attribute.pk})
@@ -236,12 +237,12 @@ def test_attribute_choice_value_add_not_valid(color_attribute, admin_client):
     response = admin_client.post(url, data, follow=True)
     assert response.status_code == 200
     values = AttributeChoiceValue.objects.filter(attribute=color_attribute.pk)
-    assert len(values) == 2
+    assert values.count() == 2
 
 
 def test_attribute_choice_value_edit(color_attribute, admin_client):
     values = AttributeChoiceValue.objects.filter(attribute=color_attribute.pk)
-    assert len(values) == 2
+    assert values.count() == 2
     url = reverse(
         'dashboard:product-attribute-value-update',
         kwargs={'attribute_pk': color_attribute.pk, 'value_pk': values[0].pk})
@@ -250,13 +251,13 @@ def test_attribute_choice_value_edit(color_attribute, admin_client):
     assert response.status_code == 200
     values = AttributeChoiceValue.objects.filter(
         attribute=color_attribute.pk, name='Pink')
-    assert len(values) == 1
+    assert values.count() == 1
     assert values[0].name == 'Pink'
 
 
 def test_attribute_choice_value_delete(color_attribute, admin_client):
     values = AttributeChoiceValue.objects.filter(attribute=color_attribute.pk)
-    assert len(values) == 2
+    assert values.count() == 2
     deleted_value = values[0]
     url = reverse(
         'dashboard:product-attribute-value-delete',
@@ -265,7 +266,7 @@ def test_attribute_choice_value_delete(color_attribute, admin_client):
     response = admin_client.post(url, follow=True)
     assert response.status_code == 200
     values = AttributeChoiceValue.objects.filter(attribute=color_attribute.pk)
-    assert len(values) == 1
+    assert values.count() == 1
     assert deleted_value not in values
 
 
@@ -424,9 +425,8 @@ def test_view_product_image_add(
     mock_create_thumbnails = Mock(return_value=None)
     monkeypatch.setattr(
         'saleor.dashboard.product.forms.create_product_thumbnails.delay',
-        mock_create_thumbnails)
-    assert len(ProductImage.objects.all()) == 1
-    assert len(product_with_image.images.all()) == 1
+    assert ProductImage.objects.count() == 1
+    assert product_with_image.images.count() == 1
     url = reverse(
         'dashboard:product-image-add',
         kwargs={'product_pk': product_with_image.pk})
@@ -436,7 +436,7 @@ def test_view_product_image_add(
     data = {'image_0': image, 'alt': ['description']}
     response = admin_client.post(url, data, follow=True)
     assert response.status_code == 200
-    assert len(ProductImage.objects.all()) == 2
+    assert ProductImage.objects.count() == 2
     product_with_image.refresh_from_db()
     images = product_with_image.images.all()
     assert len(images) == 2
@@ -463,7 +463,7 @@ def test_view_product_image_edit_same_image_add_description(
     data = {'image_1': ['0.49x0.59'], 'alt': ['description']}
     response = admin_client.post(url, data, follow=True)
     assert response.status_code == 200
-    assert len(product_with_image.images.all()) == 1
+    assert product_with_image.images.count() == 1
     product_image.refresh_from_db()
     assert product_image.alt == 'description'
     mock_create_thumbnails.assert_called_once_with(product_image.pk)
@@ -488,7 +488,7 @@ def test_view_product_image_edit_new_image(
     data = {'image_0': image, 'alt': ['description']}
     response = admin_client.post(url, data, follow=True)
     assert response.status_code == 200
-    assert len(product_with_image.images.all()) == 1
+    assert product_with_image.images.count() == 1
     product_image.refresh_from_db()
     assert image_name in product_image.image.name
     assert product_image.alt == 'description'
