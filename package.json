@@ -72,6 +72,7 @@
     "@babel/preset-es2015": "^7.0.0-beta.44",
     "@babel/preset-react": "^7.0.0-beta.44",
     "@babel/preset-stage-0": "^7.0.0-beta.44",
+    "@storybook/addon-storyshots": "^4.0.0-alpha.3",
     "@storybook/react": "^4.0.0-alpha.3",
     "@types/i18next": "^8.4.3",
     "@types/jest": "^22.2.3",
@@ -79,11 +80,15 @@
     "@types/react-router-dom": "^4.2.6",
     "@types/react-test-renderer": "^16.0.1",
     "autoprefixer": "^8.2.0",
+    "babel-core": "^7.0.0-bridge.0",
     "babel-eslint": "^8.2.2",
     "babel-jest": "^22.2.2",
     "babel-loader": "^8.0.0-beta.2",
     "chai": "^4.1.2",
     "css-loader": "^0.28.11",
+    "enzyme": "^3.3.0",
+    "enzyme-adapter-react-16": "^1.1.1",
+    "enzyme-to-json": "^3.3.3",
     "eslint": "^4.19.1",
     "eslint-config-prettier": "^2.9.0",
     "eslint-config-standard": "^10.2.1",
@@ -95,6 +100,7 @@
     "eslint-plugin-standard": "^3.0.1",
     "file-loader": "^1.1.11",
     "jest": "^22.4.3",
+    "jest-file": "^1.0.0",
     "mini-css-extract-plugin": "^0.4.0",
     "mjml": "^4.0.5",
     "node-sass": "^4.9.0",
@@ -132,7 +138,8 @@
   "jest": {
     "globals": {},
     "transform": {
-      "^.+\\.tsx?$": "ts-jest"
+      "^.+\\.tsx?$": "ts-jest",
+      "^.+\\.png?$": "jest-file"
     },
     "testRegex": ".*\\.test\\.tsx?$",
     "moduleFileExtensions": [
