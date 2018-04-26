@@ -41,7 +41,7 @@ exports[`<TablePagination /> renders when next page is available 1`] = `
           >
             <svg
               aria-hidden="true"
-              className="MuiSvgIcon-root-31"
+              className="MuiSvgIcon-root-30"
               color={undefined}
               focusable="false"
               viewBox="0 0 24 24"
@@ -74,7 +74,7 @@ exports[`<TablePagination /> renders when next page is available 1`] = `
           >
             <svg
               aria-hidden="true"
-              className="MuiSvgIcon-root-31"
+              className="MuiSvgIcon-root-30"
               color={undefined}
               focusable="false"
               viewBox="0 0 24 24"
@@ -85,7 +85,7 @@ exports[`<TablePagination /> renders when next page is available 1`] = `
             </svg>
           </span>
           <span
-            className="MuiTouchRipple-root-37"
+            className="MuiTouchRipple-root-36"
           />
         </button>
       </div>
@@ -135,7 +135,7 @@ exports[`<TablePagination /> renders when no previous / next page are available 
           >
             <svg
               aria-hidden="true"
-              className="MuiSvgIcon-root-31"
+              className="MuiSvgIcon-root-30"
               color={undefined}
               focusable="false"
               viewBox="0 0 24 24"
@@ -168,7 +168,7 @@ exports[`<TablePagination /> renders when no previous / next page are available 
           >
             <svg
               aria-hidden="true"
-              className="MuiSvgIcon-root-31"
+              className="MuiSvgIcon-root-30"
               color={undefined}
               focusable="false"
               viewBox="0 0 24 24"
@@ -226,7 +226,7 @@ exports[`<TablePagination /> renders when previous and next pages are available 
           >
             <svg
               aria-hidden="true"
-              className="MuiSvgIcon-root-31"
+              className="MuiSvgIcon-root-30"
               color={undefined}
               focusable="false"
               viewBox="0 0 24 24"
@@ -237,7 +237,7 @@ exports[`<TablePagination /> renders when previous and next pages are available 
             </svg>
           </span>
           <span
-            className="MuiTouchRipple-root-37"
+            className="MuiTouchRipple-root-36"
           />
         </button>
         <button
@@ -262,7 +262,7 @@ exports[`<TablePagination /> renders when previous and next pages are available 
           >
             <svg
               aria-hidden="true"
-              className="MuiSvgIcon-root-31"
+              className="MuiSvgIcon-root-30"
               color={undefined}
               focusable="false"
               viewBox="0 0 24 24"
@@ -273,7 +273,7 @@ exports[`<TablePagination /> renders when previous and next pages are available 
             </svg>
           </span>
           <span
-            className="MuiTouchRipple-root-37"
+            className="MuiTouchRipple-root-36"
           />
         </button>
       </div>
@@ -323,7 +323,7 @@ exports[`<TablePagination /> renders when previous page is available 1`] = `
           >
             <svg
               aria-hidden="true"
-              className="MuiSvgIcon-root-31"
+              className="MuiSvgIcon-root-30"
               color={undefined}
               focusable="false"
               viewBox="0 0 24 24"
@@ -334,7 +334,7 @@ exports[`<TablePagination /> renders when previous page is available 1`] = `
             </svg>
           </span>
           <span
-            className="MuiTouchRipple-root-37"
+            className="MuiTouchRipple-root-36"
           />
         </button>
         <button
@@ -359,7 +359,7 @@ exports[`<TablePagination /> renders when previous page is available 1`] = `
           >
             <svg
               aria-hidden="true"
-              className="MuiSvgIcon-root-31"
+              className="MuiSvgIcon-root-30"
               color={undefined}
               focusable="false"
               viewBox="0 0 24 24"

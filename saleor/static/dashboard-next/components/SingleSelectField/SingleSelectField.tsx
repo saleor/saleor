@@ -16,6 +16,7 @@ interface SingleSelectFieldProps {
     value: string;
     label: string;
   }>;
+  disabled?: boolean;
   error?: boolean;
   hint?: string;
   label?: string;
@@ -28,6 +29,7 @@ interface SingleSelectFieldProps {
 export const SingleSelectField = decorate<SingleSelectFieldProps>(
   ({
     classes,
+    disabled,
     error,
     label,
     choices,
@@ -37,16 +39,19 @@ export const SingleSelectField = decorate<SingleSelectFieldProps>(
     hint,
     selectProps
   }) => {
-    const choicesByKey: { [key: string]: string } = choices.reduce(
-      (prev, curr) => {
-        prev[curr.value] = curr.label;
-        return prev;
-      },
-      {}
-    );
+    const choicesByKey: { [key: string]: string } = disabled
+      ? {}
+      : choices.reduce((prev, curr) => {
+          prev[curr.value] = curr.label;
+          return prev;
+        }, {});
 
     return (
-      <FormControl className={classes.formControl} error={error}>
+      <FormControl
+        className={classes.formControl}
+        error={error}
+        disabled={disabled}
+      >
         <InputLabel shrink={!!value}>{label}</InputLabel>
         <Select
           fullWidth
