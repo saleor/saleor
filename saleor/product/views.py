@@ -12,8 +12,8 @@ from ..seo.schema.product import product_json_ld
 from .filters import ProductCategoryFilter, ProductCollectionFilter
 from .models import Category, Collection
 from .utils import (
-    get_product_images, get_product_list_context, handle_cart_form,
-    products_for_cart, products_with_details, collections_visible_to_user)
+    collections_visible_to_user, get_product_images, get_product_list_context,
+    handle_cart_form, products_for_cart, products_with_details)
 from .utils.attributes import get_product_attributes_data
 from .utils.availability import get_availability
 from .utils.variants_picker import get_variant_picker_data
