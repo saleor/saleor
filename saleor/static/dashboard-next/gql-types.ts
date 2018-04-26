@@ -312,3 +312,155 @@ export interface PageDetailsQuery {
     availableOn: string | null,
   } | null,
 };
+
+export interface ProductListQueryVariables {
+  first?: number | null,
+  after?: string | null,
+  last?: number | null,
+  before?: string | null,
+};
+
+export interface ProductListQuery {
+  // List of the shop's products.
+  products:  {
+    edges:  Array< {
+      // The item at the end of the edge
+      node:  {
+        // The ID of the object.
+        id: string,
+        name: string,
+        // The URL of a main thumbnail for a product.
+        thumbnailUrl: string | null,
+        productType:  {
+          // The ID of the object.
+          id: string,
+          name: string,
+        },
+      } | null,
+    } | null >,
+    pageInfo:  {
+      // When paginating backwards, are there more items?
+      hasPreviousPage: boolean,
+      // When paginating forwards, are there more items?
+      hasNextPage: boolean,
+      // When paginating backwards, the cursor to continue.
+      startCursor: string | null,
+      // When paginating forwards, the cursor to continue.
+      endCursor: string | null,
+    },
+  } | null,
+};
+
+export interface ProductDetailsQueryVariables {
+  id: string,
+};
+
+export interface ProductDetailsQuery {
+  // Lookup a product by ID.
+  product:  {
+    // The ID of the object.
+    id: string,
+    name: string,
+    description: string,
+    collections:  {
+      edges:  Array< {
+        // The item at the end of the edge
+        node:  {
+          // The ID of the object.
+          id: string,
+          name: string,
+        } | null,
+      } | null >,
+    } | null,
+    // The product's base price (without any discounts
+    // applied).
+    price:  {
+      // Money formatted according to the current locale.
+      localized: string | null,
+    } | null,
+    grossMargin:  Array< {
+      start: number | null,
+      stop: number | null,
+    } | null > | null,
+    purchaseCost:  {
+      // Lower bound of a price range.
+      start:  {
+        // Amount of money including taxes.
+        gross:  {
+          // Money formatted according to the current locale.
+          localized: string | null,
+        } | null,
+      } | null,
+      // Upper bound of a price range.
+      stop:  {
+        // Amount of money including taxes.
+        gross:  {
+          // Money formatted according to the current locale.
+          localized: string | null,
+        } | null,
+      } | null,
+    } | null,
+    isPublished: boolean,
+    // Informs about product's availability in the storefront,
+    // current price and discounts.
+    availability:  {
+      available: boolean | null,
+      priceRange:  {
+        // Lower bound of a price range.
+        start:  {
+          // Amount of money without taxes.
+          net:  {
+            // Money formatted according to the current locale.
+            localized: string | null,
+          } | null,
+        } | null,
+        // Upper bound of a price range.
+        stop:  {
+          // Amount of money without taxes.
+          net:  {
+            // Money formatted according to the current locale.
+            localized: string | null,
+          } | null,
+        } | null,
+      } | null,
+    } | null,
+    images:  {
+      edges:  Array< {
+        // The item at the end of the edge
+        node:  {
+          // The ID of the object.
+          id: string,
+          alt: string,
+          order: number,
+          url: string,
+        } | null,
+      } | null >,
+    } | null,
+    variants:  {
+      edges:  Array< {
+        // The item at the end of the edge
+        node:  {
+          // The ID of the object.
+          id: string,
+          sku: string,
+          name: string,
+          // Override the base price of a product if necessary.
+          // A value of `null` indicates that the default product price is used.
+          priceOverride:  {
+            // Money formatted according to the current locale.
+            localized: string | null,
+          } | null,
+          // Quantity of a product available for sale.
+          stockQuantity: number,
+        } | null,
+      } | null >,
+    } | null,
+    productType:  {
+      // The ID of the object.
+      id: string,
+      name: string,
+    },
+    // The storefront URL for the product.
+    url: string,
+  } | null,
+};

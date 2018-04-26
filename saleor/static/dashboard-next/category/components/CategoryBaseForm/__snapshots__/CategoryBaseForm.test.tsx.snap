@@ -67,7 +67,7 @@ exports[`<CategoryBaseForm /> renders when errors occured 1`] = `
       className="MuiInput-root-18 MuiInput-fullWidth-25 MuiInput-formControl-19 MuiInput-multiline-24 MuiInput-underline-22"
     >
       <div
-        className="MuiTextarea-root-31"
+        className="Textarea-root-31"
         style={
           Object {
             "height": 19,
@@ -76,7 +76,7 @@ exports[`<CategoryBaseForm /> renders when errors occured 1`] = `
       >
         <textarea
           aria-hidden="true"
-          className="MuiTextarea-shadow-33 MuiTextarea-textarea-32"
+          className="Textarea-shadow-33 Textarea-textarea-32"
           readOnly={true}
           rows="1"
           tabIndex={-1}
@@ -84,7 +84,7 @@ exports[`<CategoryBaseForm /> renders when errors occured 1`] = `
         />
         <textarea
           aria-hidden="true"
-          className="MuiTextarea-shadow-33 MuiTextarea-textarea-32"
+          className="Textarea-shadow-33 Textarea-textarea-32"
           defaultValue={undefined}
           readOnly={true}
           rows={1}
@@ -97,7 +97,7 @@ Tell lose part purpose do when. Whatever drug contain particularly defense."
           aria-required={false}
           autoComplete={undefined}
           autoFocus={undefined}
-          className="MuiTextarea-textarea-32 MuiInput-input-26 MuiInput-inputMultiline-28"
+          className="Textarea-textarea-32 MuiInput-input-26 MuiInput-inputMultiline-28"
           defaultValue={undefined}
           disabled={false}
           id={undefined}
@@ -188,7 +188,7 @@ exports[`<CategoryBaseForm /> renders with initial data 1`] = `
       className="MuiInput-root-18 MuiInput-fullWidth-25 MuiInput-formControl-19 MuiInput-multiline-24 MuiInput-underline-22"
     >
       <div
-        className="MuiTextarea-root-31"
+        className="Textarea-root-31"
         style={
           Object {
             "height": 19,
@@ -197,7 +197,7 @@ exports[`<CategoryBaseForm /> renders with initial data 1`] = `
       >
         <textarea
           aria-hidden="true"
-          className="MuiTextarea-shadow-33 MuiTextarea-textarea-32"
+          className="Textarea-shadow-33 Textarea-textarea-32"
           readOnly={true}
           rows="1"
           tabIndex={-1}
@@ -205,7 +205,7 @@ exports[`<CategoryBaseForm /> renders with initial data 1`] = `
         />
         <textarea
           aria-hidden="true"
-          className="MuiTextarea-shadow-33 MuiTextarea-textarea-32"
+          className="Textarea-shadow-33 Textarea-textarea-32"
           defaultValue={undefined}
           readOnly={true}
           rows={1}
@@ -218,7 +218,7 @@ Tell lose part purpose do when. Whatever drug contain particularly defense."
           aria-required={false}
           autoComplete={undefined}
           autoFocus={undefined}
-          className="MuiTextarea-textarea-32 MuiInput-input-26 MuiInput-inputMultiline-28"
+          className="Textarea-textarea-32 MuiInput-input-26 MuiInput-inputMultiline-28"
           defaultValue={undefined}
           disabled={false}
           id={undefined}
@@ -309,7 +309,7 @@ exports[`<CategoryBaseForm /> renders without initial data 1`] = `
       className="MuiInput-root-18 MuiInput-fullWidth-25 MuiInput-formControl-19 MuiInput-multiline-24 MuiInput-underline-22"
     >
       <div
-        className="MuiTextarea-root-31"
+        className="Textarea-root-31"
         style={
           Object {
             "height": 19,
@@ -318,7 +318,7 @@ exports[`<CategoryBaseForm /> renders without initial data 1`] = `
       >
         <textarea
           aria-hidden="true"
-          className="MuiTextarea-shadow-33 MuiTextarea-textarea-32"
+          className="Textarea-shadow-33 Textarea-textarea-32"
           readOnly={true}
           rows="1"
           tabIndex={-1}
@@ -326,7 +326,7 @@ exports[`<CategoryBaseForm /> renders without initial data 1`] = `
         />
         <textarea
           aria-hidden="true"
-          className="MuiTextarea-shadow-33 MuiTextarea-textarea-32"
+          className="Textarea-shadow-33 Textarea-textarea-32"
           defaultValue={undefined}
           readOnly={true}
           rows={1}
@@ -338,7 +338,7 @@ exports[`<CategoryBaseForm /> renders without initial data 1`] = `
           aria-required={false}
           autoComplete={undefined}
           autoFocus={undefined}
-          className="MuiTextarea-textarea-32 MuiInput-input-26 MuiInput-inputMultiline-28"
+          className="Textarea-textarea-32 MuiInput-input-26 MuiInput-inputMultiline-28"
           defaultValue={undefined}
           disabled={false}
           id={undefined}

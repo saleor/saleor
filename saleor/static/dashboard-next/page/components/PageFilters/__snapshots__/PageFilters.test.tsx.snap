@@ -42,7 +42,7 @@ exports[`<PageFilters /> renders with initial state 1`] = `
           >
             <svg
               aria-hidden="true"
-              className="MuiSvgIcon-root-68"
+              className="MuiSvgIcon-root-67"
               color={undefined}
               focusable="false"
               viewBox="0 0 24 24"
@@ -55,36 +55,36 @@ exports[`<PageFilters /> renders with initial state 1`] = `
             </svg>
           </span>
           <span
-            className="MuiTouchRipple-root-74"
+            className="MuiTouchRipple-root-73"
           />
         </button>
       </div>
     </div>
     <div
-      className="MuiCardContent-root-81"
+      className="MuiCardContent-root-80"
     >
       <div
         aria-describedby={undefined}
-        className="MuiFormControl-root-82 MuiFormControl-fullWidth-85"
+        className="MuiFormControl-root-81 MuiFormControl-fullWidth-84"
         onBlur={[Function]}
         onFocus={[Function]}
       >
         <label
-          className="MuiFormLabel-root-91 MuiInputLabel-root-86 MuiInputLabel-formControl-87 MuiInputLabel-animated-90 MuiInputLabel-shrink-89"
+          className="MuiFormLabel-root-90 MuiInputLabel-root-85 MuiInputLabel-formControl-86 MuiInputLabel-animated-89 MuiInputLabel-shrink-88"
           data-shrink={true}
           htmlFor={undefined}
         >
           Title
         </label>
         <div
-          className="MuiInput-root-96 MuiInput-fullWidth-103 MuiInput-formControl-97 MuiInput-underline-100"
+          className="MuiInput-root-95 MuiInput-fullWidth-102 MuiInput-formControl-96 MuiInput-underline-99"
         >
           <input
             aria-invalid={false}
             aria-required={false}
             autoComplete={undefined}
             autoFocus={undefined}
-            className="MuiInput-input-104"
+            className="MuiInput-input-103"
             defaultValue={undefined}
             disabled={false}
             id={undefined}
@@ -104,30 +104,30 @@ exports[`<PageFilters /> renders with initial state 1`] = `
         </div>
       </div>
       <div
-        className="Component-spacer-109"
+        className="Component-spacer-108"
       />
       <div
         aria-describedby={undefined}
-        className="MuiFormControl-root-82 MuiFormControl-fullWidth-85"
+        className="MuiFormControl-root-81 MuiFormControl-fullWidth-84"
         onBlur={[Function]}
         onFocus={[Function]}
       >
         <label
-          className="MuiFormLabel-root-91 MuiInputLabel-root-86 MuiInputLabel-formControl-87 MuiInputLabel-animated-90 MuiInputLabel-shrink-89"
+          className="MuiFormLabel-root-90 MuiInputLabel-root-85 MuiInputLabel-formControl-86 MuiInputLabel-animated-89 MuiInputLabel-shrink-88"
           data-shrink={true}
           htmlFor={undefined}
         >
           Url
         </label>
         <div
-          className="MuiInput-root-96 MuiInput-fullWidth-103 MuiInput-formControl-97 MuiInput-underline-100"
+          className="MuiInput-root-95 MuiInput-fullWidth-102 MuiInput-formControl-96 MuiInput-underline-99"
         >
           <input
             aria-invalid={false}
             aria-required={false}
             autoComplete={undefined}
             autoFocus={undefined}
-            className="MuiInput-input-104"
+            className="MuiInput-input-103"
             defaultValue={undefined}
             disabled={false}
             id={undefined}
@@ -193,7 +193,7 @@ exports[`<PageFilters /> renders without initial state 1`] = `
           >
             <svg
               aria-hidden="true"
-              className="MuiSvgIcon-root-68"
+              className="MuiSvgIcon-root-67"
               color={undefined}
               focusable="false"
               viewBox="0 0 24 24"
@@ -206,36 +206,36 @@ exports[`<PageFilters /> renders without initial state 1`] = `
             </svg>
           </span>
           <span
-            className="MuiTouchRipple-root-74"
+            className="MuiTouchRipple-root-73"
           />
         </button>
       </div>
     </div>
     <div
-      className="MuiCardContent-root-81"
+      className="MuiCardContent-root-80"
     >
       <div
         aria-describedby={undefined}
-        className="MuiFormControl-root-82 MuiFormControl-fullWidth-85"
+        className="MuiFormControl-root-81 MuiFormControl-fullWidth-84"
         onBlur={[Function]}
         onFocus={[Function]}
       >
         <label
-          className="MuiFormLabel-root-91 MuiInputLabel-root-86 MuiInputLabel-formControl-87 MuiInputLabel-animated-90"
+          className="MuiFormLabel-root-90 MuiInputLabel-root-85 MuiInputLabel-formControl-86 MuiInputLabel-animated-89"
           data-shrink={false}
           htmlFor={undefined}
         >
           Title
         </label>
         <div
-          className="MuiInput-root-96 MuiInput-fullWidth-103 MuiInput-formControl-97 MuiInput-underline-100"
+          className="MuiInput-root-95 MuiInput-fullWidth-102 MuiInput-formControl-96 MuiInput-underline-99"
         >
           <input
             aria-invalid={false}
             aria-required={false}
             autoComplete={undefined}
             autoFocus={undefined}
-            className="MuiInput-input-104"
+            className="MuiInput-input-103"
             defaultValue={undefined}
             disabled={false}
             id={undefined}
@@ -255,30 +255,30 @@ exports[`<PageFilters /> renders without initial state 1`] = `
         </div>
       </div>
       <div
-        className="Component-spacer-109"
+        className="Component-spacer-108"
       />
       <div
         aria-describedby={undefined}
-        className="MuiFormControl-root-82 MuiFormControl-fullWidth-85"
+        className="MuiFormControl-root-81 MuiFormControl-fullWidth-84"
         onBlur={[Function]}
         onFocus={[Function]}
       >
         <label
-          className="MuiFormLabel-root-91 MuiInputLabel-root-86 MuiInputLabel-formControl-87 MuiInputLabel-animated-90"
+          className="MuiFormLabel-root-90 MuiInputLabel-root-85 MuiInputLabel-formControl-86 MuiInputLabel-animated-89"
           data-shrink={false}
           htmlFor={undefined}
         >
           Url
         </label>
         <div
-          className="MuiInput-root-96 MuiInput-fullWidth-103 MuiInput-formControl-97 MuiInput-underline-100"
+          className="MuiInput-root-95 MuiInput-fullWidth-102 MuiInput-formControl-96 MuiInput-underline-99"
         >
           <input
             aria-invalid={false}
             aria-required={false}
             autoComplete={undefined}
             autoFocus={undefined}
-            className="MuiInput-input-104"
+            className="MuiInput-input-103"
             defaultValue={undefined}
             disabled={false}
             id={undefined}

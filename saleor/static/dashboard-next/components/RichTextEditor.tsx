@@ -4,10 +4,11 @@ import * as React from "react";
 
 interface RichTextEditorProps {
   defaultValue?: string;
+  disabled?: boolean;
   error?: boolean;
   fullWidth?: boolean;
   helperText: string;
-  label: string;
+  label?: string;
   name: string;
   value?: string;
   onChange(event: any);
@@ -15,6 +16,7 @@ interface RichTextEditorProps {
 
 export const RichTextEditor: React.StatelessComponent<RichTextEditorProps> = ({
   defaultValue,
+  disabled,
   error,
   fullWidth,
   helperText,
@@ -24,8 +26,11 @@ export const RichTextEditor: React.StatelessComponent<RichTextEditorProps> = ({
   value
 }) => (
   <FormControl style={fullWidth ? { width: "100%" } : {}} error={error}>
-    <InputLabel shrink={!!(value || defaultValue)}>{label}</InputLabel>
+    {label && (
+      <InputLabel shrink={!!(value || defaultValue)}>{label}</InputLabel>
+    )}
     <Input
+      disabled={disabled}
       multiline
       name={name}
       {...(value ? { value } : {})}
@@ -33,7 +38,7 @@ export const RichTextEditor: React.StatelessComponent<RichTextEditorProps> = ({
       onChange={onChange}
       fullWidth={fullWidth}
     />
-    <FormHelperText>{helperText}</FormHelperText>
+    {helperText && <FormHelperText>{helperText}</FormHelperText>}
   </FormControl>
 );
 

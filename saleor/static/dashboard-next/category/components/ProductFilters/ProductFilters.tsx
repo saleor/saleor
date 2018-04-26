@@ -4,7 +4,7 @@ import * as React from "react";
 import FilterCard from "../../../components/FilterCard";
 import FormSpacer from "../../../components/FormSpacer";
 import MultiSelectField from "../../../components/MultiSelectField";
-import PriceField from "../../../components/PriceField";
+import { PriceRangeField } from "../../../components/PriceField";
 import SingleSelectField from "../../../components/SingleSelectField";
 import i18n from "../../../i18n";
 
@@ -138,7 +138,7 @@ export class ProductFilters extends Component<
           value={this.state.productTypes || []}
         />
         <FormSpacer />
-        <PriceField
+        <PriceRangeField
           currencySymbol="USD"
           label={i18n.t("Price")}
           name="price"
