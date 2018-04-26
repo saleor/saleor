@@ -1,5 +1,6 @@
+from unittest.mock import Mock
+
 import pytest
-from mock import Mock
 from prices import Money, TaxedMoney
 
 from saleor.shipping.utils import get_taxed_shipping_price
