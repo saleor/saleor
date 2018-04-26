@@ -12,6 +12,7 @@ import ErrorMessageCard from "../../components/ErrorMessageCard";
 import Navigator, { NavigatorLink } from "../../components/Navigator";
 import Toggle from "../../components/Toggle";
 import { CategoryPropertiesQuery } from "../../gql-types";
+import { productShowUrl } from "../../products";
 import CategoryProducts from "../components/CategoryProducts";
 import CategorySubcategories from "../components/CategorySubcategories";
 import ProductFilters from "../components/ProductFilters";

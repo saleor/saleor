@@ -25,6 +25,7 @@ interface CategoryProductsProps {
   onFilter?();
   onNextPage?();
   onPreviousPage?();
+  onRowClick?(id: string);
 }
 
 const CategoryProducts: React.StatelessComponent<CategoryProductsProps> = ({
@@ -34,6 +35,7 @@ const CategoryProducts: React.StatelessComponent<CategoryProductsProps> = ({
   onFilter,
   onNextPage,
   onPreviousPage,
+  onRowClick,
   products
 }) => (
   <Card>
@@ -57,6 +59,7 @@ const CategoryProducts: React.StatelessComponent<CategoryProductsProps> = ({
       onNextPage={onNextPage}
       onPreviousPage={onPreviousPage}
       products={products}
+      onRowClick={onRowClick}
     />
   </Card>
 );

@@ -1,5 +1,6 @@
 import Cached from "@material-ui/icons/Cached";
 import Avatar from "material-ui/Avatar";
+import blue from "material-ui/colors/blue";
 import { withStyles } from "material-ui/styles";
 import Table, {
   TableBody,
@@ -20,6 +21,10 @@ const decorate = withStyles(theme => ({
     paddingLeft: theme.spacing.unit * 2,
     paddingRight: 0,
     width: theme.spacing.unit * 5
+  },
+  link: {
+    color: blue[500],
+    cursor: "pointer"
   }
 }));
 
@@ -36,6 +41,7 @@ interface ProductListProps {
   }>;
   onNextPage();
   onPreviousPage();
+  onRowClick?(id: string);
 }
 
 export const ProductList = decorate<ProductListProps>(
@@ -45,6 +51,7 @@ export const ProductList = decorate<ProductListProps>(
     hasPreviousPage,
     onNextPage,
     onPreviousPage,
+    onRowClick,
     products
   }) => (
     <Table>
@@ -87,7 +94,14 @@ export const ProductList = decorate<ProductListProps>(
               <TableCell className={classes.avatarCell}>
                 <Avatar src={product.thumbnailUrl} />
               </TableCell>
-              <TableCell>{product.name}</TableCell>
+              <TableCell>
+                <span
+                  onClick={onRowClick ? onRowClick(product.id) : () => {}}
+                  className={onRowClick ? classes.link : ""}
+                >
+                  {product.name}
+                </span>
+              </TableCell>
               <TableCell>{product.productType.name}</TableCell>
             </TableRow>
           ))

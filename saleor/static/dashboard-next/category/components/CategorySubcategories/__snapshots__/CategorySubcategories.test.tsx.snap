@@ -37,7 +37,7 @@ exports[`<CategorySubcategories /> renders when loading data 1`] = `
         >
           <svg
             aria-hidden="true"
-            className="MuiSvgIcon-root-68"
+            className="MuiSvgIcon-root-67"
             color={undefined}
             focusable="false"
             viewBox="0 0 24 24"
@@ -50,21 +50,21 @@ exports[`<CategorySubcategories /> renders when loading data 1`] = `
           </svg>
         </span>
         <span
-          className="MuiTouchRipple-root-74"
+          className="MuiTouchRipple-root-73"
         />
       </button>
     </div>
   </div>
   <ul
-    className="MuiList-root-81 MuiList-padding-82"
+    className="MuiList-root-80 MuiList-padding-81"
   >
     <li
-      className="MuiListItem-root-85 MuiListItem-default-88 MuiListItem-gutters-92"
+      className="MuiListItem-root-84 MuiListItem-default-87 MuiListItem-gutters-91"
       disabled={false}
     >
       <svg
         aria-hidden="true"
-        className="MuiSvgIcon-root-68 MuiListItemIcon-root-95"
+        className="MuiSvgIcon-root-67 MuiListItemIcon-root-94"
         color={undefined}
         focusable="false"
         viewBox="0 0 24 24"
@@ -76,13 +76,13 @@ exports[`<CategorySubcategories /> renders when loading data 1`] = `
         </g>
       </svg>
       <div
-        className="MuiListItemText-root-96"
+        className="MuiListItemText-root-95"
       >
         <h3
-          className="MuiTypography-root-35 MuiTypography-subheading-42 MuiListItemText-primary-99"
+          className="MuiTypography-root-35 MuiTypography-subheading-42 MuiListItemText-primary-98"
         >
           <span
-            className="Component-skeleton-107"
+            className="Component-skeleton-106"
             style={undefined}
           >
             ‌
@@ -131,7 +131,7 @@ exports[`<CategorySubcategories /> renders with initial data 1`] = `
         >
           <svg
             aria-hidden="true"
-            className="MuiSvgIcon-root-68"
+            className="MuiSvgIcon-root-67"
             color={undefined}
             focusable="false"
             viewBox="0 0 24 24"
@@ -144,16 +144,16 @@ exports[`<CategorySubcategories /> renders with initial data 1`] = `
           </svg>
         </span>
         <span
-          className="MuiTouchRipple-root-74"
+          className="MuiTouchRipple-root-73"
         />
       </button>
     </div>
   </div>
   <ul
-    className="MuiList-root-81 MuiList-padding-82"
+    className="MuiList-root-80 MuiList-padding-81"
   >
     <div
-      className="MuiButtonBase-root-65 MuiListItem-root-85 MuiListItem-default-88 MuiListItem-gutters-92 MuiListItem-button-93"
+      className="MuiButtonBase-root-65 MuiListItem-root-84 MuiListItem-default-87 MuiListItem-gutters-91 MuiListItem-button-92"
       onBlur={[Function]}
       onClick={[Function]}
       onFocus={[Function]}
@@ -170,7 +170,7 @@ exports[`<CategorySubcategories /> renders with initial data 1`] = `
     >
       <svg
         aria-hidden="true"
-        className="MuiSvgIcon-root-68 MuiListItemIcon-root-95"
+        className="MuiSvgIcon-root-67 MuiListItemIcon-root-94"
         color={undefined}
         focusable="false"
         viewBox="0 0 24 24"
@@ -182,20 +182,20 @@ exports[`<CategorySubcategories /> renders with initial data 1`] = `
         </g>
       </svg>
       <div
-        className="MuiListItemText-root-96"
+        className="MuiListItemText-root-95"
       >
         <h3
-          className="MuiTypography-root-35 MuiTypography-subheading-42 MuiListItemText-primary-99"
+          className="MuiTypography-root-35 MuiTypography-subheading-42 MuiListItemText-primary-98"
         >
           Lorem ipsum dolor
         </h3>
       </div>
       <span
-        className="MuiTouchRipple-root-74"
+        className="MuiTouchRipple-root-73"
       />
     </div>
     <div
-      className="MuiButtonBase-root-65 MuiListItem-root-85 MuiListItem-default-88 MuiListItem-gutters-92 MuiListItem-button-93"
+      className="MuiButtonBase-root-65 MuiListItem-root-84 MuiListItem-default-87 MuiListItem-gutters-91 MuiListItem-button-92"
       onBlur={[Function]}
       onClick={[Function]}
       onFocus={[Function]}
@@ -212,7 +212,7 @@ exports[`<CategorySubcategories /> renders with initial data 1`] = `
     >
       <svg
         aria-hidden="true"
-        className="MuiSvgIcon-root-68 MuiListItemIcon-root-95"
+        className="MuiSvgIcon-root-67 MuiListItemIcon-root-94"
         color={undefined}
         focusable="false"
         viewBox="0 0 24 24"
@@ -224,16 +224,16 @@ exports[`<CategorySubcategories /> renders with initial data 1`] = `
         </g>
       </svg>
       <div
-        className="MuiListItemText-root-96"
+        className="MuiListItemText-root-95"
       >
         <h3
-          className="MuiTypography-root-35 MuiTypography-subheading-42 MuiListItemText-primary-99"
+          className="MuiTypography-root-35 MuiTypography-subheading-42 MuiListItemText-primary-98"
         >
           Mauris vehicula tortor vulputate
         </h3>
       </div>
       <span
-        className="MuiTouchRipple-root-74"
+        className="MuiTouchRipple-root-73"
       />
     </div>
   </ul>
@@ -277,7 +277,7 @@ exports[`<CategorySubcategories /> renders without initial data 1`] = `
         >
           <svg
             aria-hidden="true"
-            className="MuiSvgIcon-root-68"
+            className="MuiSvgIcon-root-67"
             color={undefined}
             focusable="false"
             viewBox="0 0 24 24"
@@ -290,16 +290,16 @@ exports[`<CategorySubcategories /> renders without initial data 1`] = `
           </svg>
         </span>
         <span
-          className="MuiTouchRipple-root-74"
+          className="MuiTouchRipple-root-73"
         />
       </button>
     </div>
   </div>
   <ul
-    className="MuiList-root-81 MuiList-padding-82"
+    className="MuiList-root-80 MuiList-padding-81"
   >
     <li
-      className="MuiListSubheader-root-102 MuiListSubheader-sticky-106"
+      className="MuiListSubheader-root-101 MuiListSubheader-sticky-105"
     >
       No categories found
     </li>
