@@ -2,8 +2,8 @@ from django.utils.translation import npgettext, pgettext_lazy
 from django_filters import (
     CharFilter, ChoiceFilter, OrderingFilter, RangeFilter)
 
-from ...core.i18n import COUNTRY_CODE_CHOICES
 from ...core.filters import SortedFilterSet
+from ...core.i18n import COUNTRY_CODE_CHOICES
 from ...shipping.models import ShippingMethod
 
 SORT_BY_FIELDS = {
