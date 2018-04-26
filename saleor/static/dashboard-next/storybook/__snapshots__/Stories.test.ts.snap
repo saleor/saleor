@@ -1,0 +1,3826 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Storyshots Categories / CategoryBaseForm with 'errors' property 1`] = `
+<Component
+  classes={
+    Object {
+      "cardActions": "Component-cardActions-21",
+      "textField": "Component-textField-22",
+    }
+  }
+  description="Across pressure PM food discover recognize. Send letter reach listen. Quickly work plan rule.
+Tell lose part purpose do when. Whatever drug contain particularly defense."
+  errors={
+    Array [
+      Object {
+        "field": "name",
+        "message": "To pole jest wymagane.",
+      },
+    ]
+  }
+  name="Apparel"
+/>
+`;
+
+exports[`Storyshots Categories / CategoryBaseForm with initial data 1`] = `
+<Component
+  classes={
+    Object {
+      "cardActions": "Component-cardActions-21",
+      "textField": "Component-textField-22",
+    }
+  }
+  description="Across pressure PM food discover recognize. Send letter reach listen. Quickly work plan rule.
+Tell lose part purpose do when. Whatever drug contain particularly defense."
+  name="Apparel"
+/>
+`;
+
+exports[`Storyshots Categories / CategoryBaseForm without initial data 1`] = `
+<Component
+  classes={
+    Object {
+      "cardActions": "Component-cardActions-21",
+      "textField": "Component-textField-22",
+    }
+  }
+/>
+`;
+
+exports[`Storyshots Categories / CategoryProducts when loading data 1`] = `
+<WithStyles(Card)>
+  <WithStyles(Component)
+    title="Products"
+  >
+    <WithStyles(IconButton)
+      onClick={[Function]}
+    >
+      <pure(Add) />
+    </WithStyles(IconButton)>
+    <Hidden
+      implementation="js"
+      lgDown={false}
+      lgUp={false}
+      mdDown={false}
+      mdUp={true}
+      smDown={false}
+      smUp={false}
+      xlDown={false}
+      xlUp={false}
+      xsDown={false}
+      xsUp={false}
+    >
+      <WithStyles(IconButton)
+        onClick={[Function]}
+      >
+        <pure(FilterList) />
+      </WithStyles(IconButton)>
+    </Hidden>
+  </WithStyles(Component)>
+  <WithStyles(Component)
+    hasNextPage={true}
+    hasPreviousPage={false}
+    onNextPage={[Function]}
+    onPreviousPage={[Function]}
+  />
+</WithStyles(Card)>
+`;
+
+exports[`Storyshots Categories / CategoryProducts with clickable rows 1`] = `
+<WithStyles(Card)>
+  <WithStyles(Component)
+    title="Products"
+  >
+    <WithStyles(IconButton)
+      onClick={[Function]}
+    >
+      <pure(Add) />
+    </WithStyles(IconButton)>
+    <Hidden
+      implementation="js"
+      lgDown={false}
+      lgUp={false}
+      mdDown={false}
+      mdUp={true}
+      smDown={false}
+      smUp={false}
+      xlDown={false}
+      xlUp={false}
+      xsDown={false}
+      xsUp={false}
+    >
+      <WithStyles(IconButton)
+        onClick={[Function]}
+      >
+        <pure(FilterList) />
+      </WithStyles(IconButton)>
+    </Hidden>
+  </WithStyles(Component)>
+  <WithStyles(Component)
+    hasNextPage={true}
+    hasPreviousPage={false}
+    onNextPage={[Function]}
+    onPreviousPage={[Function]}
+    onRowClick={[Function]}
+    products={
+      Array [
+        Object {
+          "id": "UHJvZHVjdDox",
+          "name": "Gardner, Graham and King",
+          "productType": Object {
+            "id": "1",
+            "name": "T-Shirt",
+          },
+          "thumbnailUrl": "placeholder60x60.png",
+        },
+        Object {
+          "id": "UHJvZHVjdDoy",
+          "name": "Gardner, Graham and King",
+          "productType": Object {
+            "id": "1",
+            "name": "T-Shirt",
+          },
+          "thumbnailUrl": "placeholder60x60.png",
+        },
+        Object {
+          "id": "UHJvZHVjdDoz",
+          "name": "Gardner, Graham and King",
+          "productType": Object {
+            "id": "1",
+            "name": "T-Shirt",
+          },
+          "thumbnailUrl": "placeholder60x60.png",
+        },
+        Object {
+          "id": "UHJvZHVjdDoa",
+          "name": "Gardner, Graham and King",
+          "productType": Object {
+            "id": "1",
+            "name": "T-Shirt",
+          },
+          "thumbnailUrl": "placeholder60x60.png",
+        },
+      ]
+    }
+  />
+</WithStyles(Card)>
+`;
+
+exports[`Storyshots Categories / CategoryProducts with initial data 1`] = `
+<WithStyles(Card)>
+  <WithStyles(Component)
+    title="Products"
+  >
+    <WithStyles(IconButton)
+      onClick={[Function]}
+    >
+      <pure(Add) />
+    </WithStyles(IconButton)>
+    <Hidden
+      implementation="js"
+      lgDown={false}
+      lgUp={false}
+      mdDown={false}
+      mdUp={true}
+      smDown={false}
+      smUp={false}
+      xlDown={false}
+      xlUp={false}
+      xsDown={false}
+      xsUp={false}
+    >
+      <WithStyles(IconButton)
+        onClick={[Function]}
+      >
+        <pure(FilterList) />
+      </WithStyles(IconButton)>
+    </Hidden>
+  </WithStyles(Component)>
+  <WithStyles(Component)
+    hasNextPage={true}
+    hasPreviousPage={false}
+    onNextPage={[Function]}
+    onPreviousPage={[Function]}
+    products={
+      Array [
+        Object {
+          "id": "UHJvZHVjdDox",
+          "name": "Gardner, Graham and King",
+          "productType": Object {
+            "id": "1",
+            "name": "T-Shirt",
+          },
+          "thumbnailUrl": "placeholder60x60.png",
+        },
+        Object {
+          "id": "UHJvZHVjdDoy",
+          "name": "Gardner, Graham and King",
+          "productType": Object {
+            "id": "1",
+            "name": "T-Shirt",
+          },
+          "thumbnailUrl": "placeholder60x60.png",
+        },
+        Object {
+          "id": "UHJvZHVjdDoz",
+          "name": "Gardner, Graham and King",
+          "productType": Object {
+            "id": "1",
+            "name": "T-Shirt",
+          },
+          "thumbnailUrl": "placeholder60x60.png",
+        },
+        Object {
+          "id": "UHJvZHVjdDoa",
+          "name": "Gardner, Graham and King",
+          "productType": Object {
+            "id": "1",
+            "name": "T-Shirt",
+          },
+          "thumbnailUrl": "placeholder60x60.png",
+        },
+      ]
+    }
+  />
+</WithStyles(Card)>
+`;
+
+exports[`Storyshots Categories / CategoryProducts without initial data 1`] = `
+<WithStyles(Card)>
+  <WithStyles(Component)
+    title="Products"
+  >
+    <WithStyles(IconButton)
+      onClick={[Function]}
+    >
+      <pure(Add) />
+    </WithStyles(IconButton)>
+    <Hidden
+      implementation="js"
+      lgDown={false}
+      lgUp={false}
+      mdDown={false}
+      mdUp={true}
+      smDown={false}
+      smUp={false}
+      xlDown={false}
+      xlUp={false}
+      xsDown={false}
+      xsUp={false}
+    >
+      <WithStyles(IconButton)
+        onClick={[Function]}
+      >
+        <pure(FilterList) />
+      </WithStyles(IconButton)>
+    </Hidden>
+  </WithStyles(Component)>
+  <WithStyles(Component)
+    hasNextPage={true}
+    hasPreviousPage={false}
+    onNextPage={[Function]}
+    onPreviousPage={[Function]}
+    products={Array []}
+  />
+</WithStyles(Card)>
+`;
+
+exports[`Storyshots Categories / CategorySubcategories when loading data 1`] = `
+<WithStyles(Card)>
+  <WithStyles(Component)
+    title="Subcategories"
+  >
+    <WithStyles(IconButton)
+      onClick={[Function]}
+    >
+      <pure(Add) />
+    </WithStyles(IconButton)>
+  </WithStyles(Component)>
+  <Component
+    onClick={[Function]}
+  />
+</WithStyles(Card)>
+`;
+
+exports[`Storyshots Categories / CategorySubcategories with initial data 1`] = `
+<WithStyles(Card)>
+  <WithStyles(Component)
+    title="Subcategories"
+  >
+    <WithStyles(IconButton)
+      onClick={[Function]}
+    >
+      <pure(Add) />
+    </WithStyles(IconButton)>
+  </WithStyles(Component)>
+  <Component
+    categories={
+      Array [
+        Object {
+          "id": "123123",
+          "name": "Lorem ipsum dolor",
+        },
+        Object {
+          "id": "876752",
+          "name": "Mauris vehicula tortor vulputate",
+        },
+      ]
+    }
+    onClick={[Function]}
+  />
+</WithStyles(Card)>
+`;
+
+exports[`Storyshots Categories / CategorySubcategories without initial data 1`] = `
+<WithStyles(Card)>
+  <WithStyles(Component)
+    title="Subcategories"
+  >
+    <WithStyles(IconButton)
+      onClick={[Function]}
+    >
+      <pure(Add) />
+    </WithStyles(IconButton)>
+  </WithStyles(Component)>
+  <Component
+    categories={Array []}
+    onClick={[Function]}
+  />
+</WithStyles(Card)>
+`;
+
+exports[`Storyshots Categories / ProductFilters with initial data 1`] = `
+<FilterCard
+  handleClear={[Function]}
+>
+  <TextField
+    fullWidth={true}
+    label="Name"
+    name="name"
+    onChange={[Function]}
+    required={false}
+    select={false}
+    value="Lorem ipsum"
+  />
+  <WithStyles(Component) />
+  <WithStyles(Component)
+    choices={
+      Array [
+        Object {
+          "label": "Type 1",
+          "value": "123123123",
+        },
+        Object {
+          "label": "Type 2",
+          "value": "123123124",
+        },
+        Object {
+          "label": "Type 3",
+          "value": "123123125",
+        },
+        Object {
+          "label": "Type 4",
+          "value": "123123126",
+        },
+      ]
+    }
+    label="Product type"
+    name="productTypes"
+    onChange={[Function]}
+    value={
+      Array [
+        "123123123",
+        "123123126",
+      ]
+    }
+  />
+  <WithStyles(Component) />
+  <WithStyles(Component)
+    currencySymbol="USD"
+    label="Price"
+    name="price"
+    onChange={[Function]}
+    value={
+      Object {
+        "max": "50",
+        "min": "30",
+      }
+    }
+  />
+  <WithStyles(Component) />
+  <WithStyles(Component)
+    choices={
+      Array [
+        Object {
+          "label": "Published",
+          "value": "1",
+        },
+        Object {
+          "label": "Not published",
+          "value": "0",
+        },
+        Object {
+          "label": "All",
+          "value": "",
+        },
+      ]
+    }
+    label="Published"
+    name="published"
+    onChange={[Function]}
+    value="true"
+  />
+  <WithStyles(Component) />
+  <WithStyles(Component)
+    choices={
+      Array [
+        Object {
+          "label": "Highlighted",
+          "value": "1",
+        },
+        Object {
+          "label": "Not highlighted",
+          "value": "0",
+        },
+        Object {
+          "label": "All",
+          "value": "",
+        },
+      ]
+    }
+    label="Highlighted"
+    name="highlighted"
+    onChange={[Function]}
+    value="false"
+  />
+</FilterCard>
+`;
+
+exports[`Storyshots Categories / ProductFilters without initial data 1`] = `
+<FilterCard
+  handleClear={[Function]}
+>
+  <TextField
+    fullWidth={true}
+    label="Name"
+    name="name"
+    onChange={[Function]}
+    required={false}
+    select={false}
+    value=""
+  />
+  <WithStyles(Component) />
+  <WithStyles(Component)
+    choices={
+      Array [
+        Object {
+          "label": "Type 1",
+          "value": "123123123",
+        },
+        Object {
+          "label": "Type 2",
+          "value": "123123124",
+        },
+        Object {
+          "label": "Type 3",
+          "value": "123123125",
+        },
+        Object {
+          "label": "Type 4",
+          "value": "123123126",
+        },
+      ]
+    }
+    label="Product type"
+    name="productTypes"
+    onChange={[Function]}
+    value={Array []}
+  />
+  <WithStyles(Component) />
+  <WithStyles(Component)
+    currencySymbol="USD"
+    label="Price"
+    name="price"
+    onChange={[Function]}
+    value={
+      Object {
+        "max": "",
+        "min": "",
+      }
+    }
+  />
+  <WithStyles(Component) />
+  <WithStyles(Component)
+    choices={
+      Array [
+        Object {
+          "label": "Published",
+          "value": "1",
+        },
+        Object {
+          "label": "Not published",
+          "value": "0",
+        },
+        Object {
+          "label": "All",
+          "value": "",
+        },
+      ]
+    }
+    label="Published"
+    name="published"
+    onChange={[Function]}
+    value=""
+  />
+  <WithStyles(Component) />
+  <WithStyles(Component)
+    choices={
+      Array [
+        Object {
+          "label": "Highlighted",
+          "value": "1",
+        },
+        Object {
+          "label": "Not highlighted",
+          "value": "0",
+        },
+        Object {
+          "label": "All",
+          "value": "",
+        },
+      ]
+    }
+    label="Highlighted"
+    name="highlighted"
+    onChange={[Function]}
+    value=""
+  />
+</FilterCard>
+`;
+
+exports[`Storyshots Categories / RootCategoryList when loading data 1`] = `
+<WithStyles(Card)>
+  <WithStyles(Component)
+    title="Categories"
+  >
+    <WithStyles(IconButton)
+      onClick={[Function]}
+    >
+      <pure(Add) />
+    </WithStyles(IconButton)>
+  </WithStyles(Component)>
+  <Component
+    onClick={[Function]}
+  />
+</WithStyles(Card)>
+`;
+
+exports[`Storyshots Categories / RootCategoryList with initial data 1`] = `
+<WithStyles(Card)>
+  <WithStyles(Component)
+    title="Categories"
+  >
+    <WithStyles(IconButton)
+      onClick={[Function]}
+    >
+      <pure(Add) />
+    </WithStyles(IconButton)>
+  </WithStyles(Component)>
+  <Component
+    categories={
+      Array [
+        Object {
+          "id": "123123",
+          "name": "Lorem ipsum dolor",
+        },
+        Object {
+          "id": "876752",
+          "name": "Mauris vehicula tortor vulputate",
+        },
+      ]
+    }
+    onClick={[Function]}
+  />
+</WithStyles(Card)>
+`;
+
+exports[`Storyshots Categories / RootCategoryList without initial data 1`] = `
+<WithStyles(Card)>
+  <WithStyles(Component)
+    title="Categories"
+  >
+    <WithStyles(IconButton)
+      onClick={[Function]}
+    >
+      <pure(Add) />
+    </WithStyles(IconButton)>
+  </WithStyles(Component)>
+  <Component
+    categories={Array []}
+    onClick={[Function]}
+  />
+</WithStyles(Card)>
+`;
+
+exports[`Storyshots Generics / ErrorMessageCard default 1`] = `
+<WithStyles(Card)>
+  <WithStyles(CardContent)>
+    <WithStyles(Typography)
+      component="h2"
+      variant="headline"
+    >
+      Error
+    </WithStyles(Typography)>
+    <WithStyles(Typography)
+      variant="body1"
+    >
+      Loren ipsum dolor sit amet!
+    </WithStyles(Typography)>
+  </WithStyles(CardContent)>
+</WithStyles(Card)>
+`;
+
+exports[`Storyshots Generics / MultiSelectField with error hint 1`] = `
+<Component
+  choices={
+    Array [
+      Object {
+        "label": "Apparel",
+        "value": "1",
+      },
+      Object {
+        "label": "Groceries",
+        "value": "2",
+      },
+      Object {
+        "label": "Books",
+        "value": "3",
+      },
+      Object {
+        "label": "Accessories",
+        "value": "4",
+      },
+    ]
+  }
+  classes={
+    Object {
+      "chip": "Component-chip-1",
+      "chipContainer": "Component-chipContainer-2",
+      "formControl": "Component-formControl-3",
+    }
+  }
+  error={true}
+  hint="Lorem error"
+  onChange={[Function]}
+  value={Array []}
+/>
+`;
+
+exports[`Storyshots Generics / MultiSelectField with hint 1`] = `
+<Component
+  choices={
+    Array [
+      Object {
+        "label": "Apparel",
+        "value": "1",
+      },
+      Object {
+        "label": "Groceries",
+        "value": "2",
+      },
+      Object {
+        "label": "Books",
+        "value": "3",
+      },
+      Object {
+        "label": "Accessories",
+        "value": "4",
+      },
+    ]
+  }
+  classes={
+    Object {
+      "chip": "Component-chip-1",
+      "chipContainer": "Component-chipContainer-2",
+      "formControl": "Component-formControl-3",
+    }
+  }
+  hint="Lorem ipsum"
+  onChange={[Function]}
+  value={Array []}
+/>
+`;
+
+exports[`Storyshots Generics / MultiSelectField with label 1`] = `
+<Component
+  choices={
+    Array [
+      Object {
+        "label": "Apparel",
+        "value": "1",
+      },
+      Object {
+        "label": "Groceries",
+        "value": "2",
+      },
+      Object {
+        "label": "Books",
+        "value": "3",
+      },
+      Object {
+        "label": "Accessories",
+        "value": "4",
+      },
+    ]
+  }
+  classes={
+    Object {
+      "chip": "Component-chip-1",
+      "chipContainer": "Component-chipContainer-2",
+      "formControl": "Component-formControl-3",
+    }
+  }
+  label="Lorem ipsum"
+  onChange={[Function]}
+  value={Array []}
+/>
+`;
+
+exports[`Storyshots Generics / MultiSelectField with label and hint 1`] = `
+<Component
+  choices={
+    Array [
+      Object {
+        "label": "Apparel",
+        "value": "1",
+      },
+      Object {
+        "label": "Groceries",
+        "value": "2",
+      },
+      Object {
+        "label": "Books",
+        "value": "3",
+      },
+      Object {
+        "label": "Accessories",
+        "value": "4",
+      },
+    ]
+  }
+  classes={
+    Object {
+      "chip": "Component-chip-1",
+      "chipContainer": "Component-chipContainer-2",
+      "formControl": "Component-formControl-3",
+    }
+  }
+  hint="Ipsum"
+  label="Lorem"
+  onChange={[Function]}
+  value={Array []}
+/>
+`;
+
+exports[`Storyshots Generics / MultiSelectField with no value 1`] = `
+<Component
+  choices={
+    Array [
+      Object {
+        "label": "Apparel",
+        "value": "1",
+      },
+      Object {
+        "label": "Groceries",
+        "value": "2",
+      },
+      Object {
+        "label": "Books",
+        "value": "3",
+      },
+      Object {
+        "label": "Accessories",
+        "value": "4",
+      },
+    ]
+  }
+  classes={
+    Object {
+      "chip": "Component-chip-1",
+      "chipContainer": "Component-chipContainer-2",
+      "formControl": "Component-formControl-3",
+    }
+  }
+  onChange={[Function]}
+  value={Array []}
+/>
+`;
+
+exports[`Storyshots Generics / MultiSelectField with value 1`] = `
+<Component
+  choices={
+    Array [
+      Object {
+        "label": "Apparel",
+        "value": "1",
+      },
+      Object {
+        "label": "Groceries",
+        "value": "2",
+      },
+      Object {
+        "label": "Books",
+        "value": "3",
+      },
+      Object {
+        "label": "Accessories",
+        "value": "4",
+      },
+    ]
+  }
+  classes={
+    Object {
+      "chip": "Component-chip-1",
+      "chipContainer": "Component-chipContainer-2",
+      "formControl": "Component-formControl-3",
+    }
+  }
+  onChange={[Function]}
+  value={
+    Array [
+      "1",
+    ]
+  }
+/>
+`;
+
+exports[`Storyshots Generics / MultiSelectField with value, label and hint 1`] = `
+<Component
+  choices={
+    Array [
+      Object {
+        "label": "Apparel",
+        "value": "1",
+      },
+      Object {
+        "label": "Groceries",
+        "value": "2",
+      },
+      Object {
+        "label": "Books",
+        "value": "3",
+      },
+      Object {
+        "label": "Accessories",
+        "value": "4",
+      },
+    ]
+  }
+  classes={
+    Object {
+      "chip": "Component-chip-1",
+      "chipContainer": "Component-chipContainer-2",
+      "formControl": "Component-formControl-3",
+    }
+  }
+  hint="Ipsum"
+  label="Lorem"
+  onChange={[Function]}
+  value={
+    Array [
+      "1",
+    ]
+  }
+/>
+`;
+
+exports[`Storyshots Generics / PageHeader with title 1`] = `
+<Component
+  classes={
+    Object {
+      "action": "Component-action-4",
+      "grid": "Component-grid-5",
+      "menuButton": "Component-menuButton-6",
+      "root": "Component-root-7",
+      "subtitle": "Component-subtitle-8",
+      "title": "Component-title-9",
+    }
+  }
+  title="Lorem ipsum"
+/>
+`;
+
+exports[`Storyshots Generics / PageHeader with title and back button 1`] = `
+<Component
+  classes={
+    Object {
+      "action": "Component-action-4",
+      "grid": "Component-grid-5",
+      "menuButton": "Component-menuButton-6",
+      "root": "Component-root-7",
+      "subtitle": "Component-subtitle-8",
+      "title": "Component-title-9",
+    }
+  }
+  onBack={[Function]}
+  title="Lorem ipsum"
+/>
+`;
+
+exports[`Storyshots Generics / PageHeader with title icon bar 1`] = `
+<Component
+  classes={
+    Object {
+      "action": "Component-action-4",
+      "grid": "Component-grid-5",
+      "menuButton": "Component-menuButton-6",
+      "root": "Component-root-7",
+      "subtitle": "Component-subtitle-8",
+      "title": "Component-title-9",
+    }
+  }
+  title="Lorem ipsum"
+>
+  <WithStyles(IconButton)>
+    <pure(Delete) />
+  </WithStyles(IconButton)>
+</Component>
+`;
+
+exports[`Storyshots Generics / PageHeader with title, back button and icon bar 1`] = `
+<Component
+  classes={
+    Object {
+      "action": "Component-action-4",
+      "grid": "Component-grid-5",
+      "menuButton": "Component-menuButton-6",
+      "root": "Component-root-7",
+      "subtitle": "Component-subtitle-8",
+      "title": "Component-title-9",
+    }
+  }
+  onBack={[Function]}
+  title="Lorem ipsum"
+>
+  <WithStyles(IconButton)>
+    <pure(Delete) />
+  </WithStyles(IconButton)>
+</Component>
+`;
+
+exports[`Storyshots Generics / PageHeader without title 1`] = `
+<Component
+  classes={
+    Object {
+      "action": "Component-action-4",
+      "grid": "Component-grid-5",
+      "menuButton": "Component-menuButton-6",
+      "root": "Component-root-7",
+      "subtitle": "Component-subtitle-8",
+      "title": "Component-title-9",
+    }
+  }
+/>
+`;
+
+exports[`Storyshots Generics / PriceField disabled 1`] = `
+<Component
+  classes={
+    Object {
+      "inputContainer": "Component-inputContainer-14",
+      "pullDown": "Component-pullDown-15",
+      "separator": "Component-separator-16",
+      "widgetContainer": "Component-widgetContainer-17",
+    }
+  }
+  disabled={true}
+  name="price"
+  onChange={[Function]}
+/>
+`;
+
+exports[`Storyshots Generics / PriceField with currency symbol 1`] = `
+<Component
+  classes={
+    Object {
+      "inputContainer": "Component-inputContainer-14",
+      "pullDown": "Component-pullDown-15",
+      "separator": "Component-separator-16",
+      "widgetContainer": "Component-widgetContainer-17",
+    }
+  }
+  currencySymbol="$"
+  name="price"
+  onChange={[Function]}
+/>
+`;
+
+exports[`Storyshots Generics / PriceField with hint 1`] = `
+<Component
+  classes={
+    Object {
+      "inputContainer": "Component-inputContainer-14",
+      "pullDown": "Component-pullDown-15",
+      "separator": "Component-separator-16",
+      "widgetContainer": "Component-widgetContainer-17",
+    }
+  }
+  hint="Lorem ipsum"
+  name="price"
+  onChange={[Function]}
+/>
+`;
+
+exports[`Storyshots Generics / PriceField with label 1`] = `
+<Component
+  classes={
+    Object {
+      "inputContainer": "Component-inputContainer-14",
+      "pullDown": "Component-pullDown-15",
+      "separator": "Component-separator-16",
+      "widgetContainer": "Component-widgetContainer-17",
+    }
+  }
+  label="Lorem ipsum"
+  name="price"
+  onChange={[Function]}
+/>
+`;
+
+exports[`Storyshots Generics / PriceField with label and hint 1`] = `
+<Component
+  classes={
+    Object {
+      "inputContainer": "Component-inputContainer-14",
+      "pullDown": "Component-pullDown-15",
+      "separator": "Component-separator-16",
+      "widgetContainer": "Component-widgetContainer-17",
+    }
+  }
+  hint="Ipsum"
+  label="Lorem"
+  name="price"
+  onChange={[Function]}
+/>
+`;
+
+exports[`Storyshots Generics / PriceField with no value 1`] = `
+<Component
+  classes={
+    Object {
+      "inputContainer": "Component-inputContainer-14",
+      "pullDown": "Component-pullDown-15",
+      "separator": "Component-separator-16",
+      "widgetContainer": "Component-widgetContainer-17",
+    }
+  }
+  name="price"
+  onChange={[Function]}
+/>
+`;
+
+exports[`Storyshots Generics / PriceField with value 1`] = `
+<Component
+  classes={
+    Object {
+      "inputContainer": "Component-inputContainer-14",
+      "pullDown": "Component-pullDown-15",
+      "separator": "Component-separator-16",
+      "widgetContainer": "Component-widgetContainer-17",
+    }
+  }
+  name="price"
+  onChange={[Function]}
+  value="30"
+/>
+`;
+
+exports[`Storyshots Generics / PriceField with value, label, currency symbol and error 1`] = `
+<Component
+  classes={
+    Object {
+      "inputContainer": "Component-inputContainer-14",
+      "pullDown": "Component-pullDown-15",
+      "separator": "Component-separator-16",
+      "widgetContainer": "Component-widgetContainer-17",
+    }
+  }
+  currencySymbol="$"
+  error={true}
+  hint="Ipsum"
+  label="Lorem"
+  name="price"
+  onChange={[Function]}
+  value="30"
+/>
+`;
+
+exports[`Storyshots Generics / PriceField with value, label, currency symbol and hint 1`] = `
+<Component
+  classes={
+    Object {
+      "inputContainer": "Component-inputContainer-14",
+      "pullDown": "Component-pullDown-15",
+      "separator": "Component-separator-16",
+      "widgetContainer": "Component-widgetContainer-17",
+    }
+  }
+  currencySymbol="$"
+  hint="Ipsum"
+  label="Lorem"
+  name="price"
+  onChange={[Function]}
+  value="30"
+/>
+`;
+
+exports[`Storyshots Generics / PriceRangeField disabled 1`] = `
+<Component
+  classes={
+    Object {
+      "inputContainer": "Component-inputContainer-10",
+      "pullDown": "Component-pullDown-11",
+      "separator": "Component-separator-12",
+      "widgetContainer": "Component-widgetContainer-13",
+    }
+  }
+  disabled={true}
+  name="price"
+  onChange={[Function]}
+/>
+`;
+
+exports[`Storyshots Generics / PriceRangeField with currency symbol 1`] = `
+<Component
+  classes={
+    Object {
+      "inputContainer": "Component-inputContainer-10",
+      "pullDown": "Component-pullDown-11",
+      "separator": "Component-separator-12",
+      "widgetContainer": "Component-widgetContainer-13",
+    }
+  }
+  currencySymbol="$"
+  name="price"
+  onChange={[Function]}
+/>
+`;
+
+exports[`Storyshots Generics / PriceRangeField with hint 1`] = `
+<Component
+  classes={
+    Object {
+      "inputContainer": "Component-inputContainer-10",
+      "pullDown": "Component-pullDown-11",
+      "separator": "Component-separator-12",
+      "widgetContainer": "Component-widgetContainer-13",
+    }
+  }
+  hint="Lorem ipsum"
+  name="price"
+  onChange={[Function]}
+/>
+`;
+
+exports[`Storyshots Generics / PriceRangeField with label 1`] = `
+<Component
+  classes={
+    Object {
+      "inputContainer": "Component-inputContainer-10",
+      "pullDown": "Component-pullDown-11",
+      "separator": "Component-separator-12",
+      "widgetContainer": "Component-widgetContainer-13",
+    }
+  }
+  label="Lorem ipsum"
+  name="price"
+  onChange={[Function]}
+/>
+`;
+
+exports[`Storyshots Generics / PriceRangeField with label and hint 1`] = `
+<Component
+  classes={
+    Object {
+      "inputContainer": "Component-inputContainer-10",
+      "pullDown": "Component-pullDown-11",
+      "separator": "Component-separator-12",
+      "widgetContainer": "Component-widgetContainer-13",
+    }
+  }
+  hint="Ipsum"
+  label="Lorem"
+  name="price"
+  onChange={[Function]}
+/>
+`;
+
+exports[`Storyshots Generics / PriceRangeField with no value 1`] = `
+<Component
+  classes={
+    Object {
+      "inputContainer": "Component-inputContainer-10",
+      "pullDown": "Component-pullDown-11",
+      "separator": "Component-separator-12",
+      "widgetContainer": "Component-widgetContainer-13",
+    }
+  }
+  name="price"
+  onChange={[Function]}
+/>
+`;
+
+exports[`Storyshots Generics / PriceRangeField with value 1`] = `
+<Component
+  classes={
+    Object {
+      "inputContainer": "Component-inputContainer-10",
+      "pullDown": "Component-pullDown-11",
+      "separator": "Component-separator-12",
+      "widgetContainer": "Component-widgetContainer-13",
+    }
+  }
+  name="price"
+  onChange={[Function]}
+  value={
+    Object {
+      "max": "30",
+      "min": "10",
+    }
+  }
+/>
+`;
+
+exports[`Storyshots Generics / PriceRangeField with value, label, currency symbol and error 1`] = `
+<Component
+  classes={
+    Object {
+      "inputContainer": "Component-inputContainer-10",
+      "pullDown": "Component-pullDown-11",
+      "separator": "Component-separator-12",
+      "widgetContainer": "Component-widgetContainer-13",
+    }
+  }
+  currencySymbol="$"
+  error={true}
+  hint="Ipsum"
+  label="Lorem"
+  name="price"
+  onChange={[Function]}
+  value={
+    Object {
+      "max": "30",
+      "min": "10",
+    }
+  }
+/>
+`;
+
+exports[`Storyshots Generics / PriceRangeField with value, label, currency symbol and hint 1`] = `
+<Component
+  classes={
+    Object {
+      "inputContainer": "Component-inputContainer-10",
+      "pullDown": "Component-pullDown-11",
+      "separator": "Component-separator-12",
+      "widgetContainer": "Component-widgetContainer-13",
+    }
+  }
+  currencySymbol="$"
+  hint="Ipsum"
+  label="Lorem"
+  name="price"
+  onChange={[Function]}
+  value={
+    Object {
+      "max": "30",
+      "min": "10",
+    }
+  }
+/>
+`;
+
+exports[`Storyshots Generics / SingleSelectField with error hint 1`] = `
+<Component
+  choices={
+    Array [
+      Object {
+        "label": "Apparel",
+        "value": "1",
+      },
+      Object {
+        "label": "Groceries",
+        "value": "2",
+      },
+      Object {
+        "label": "Books",
+        "value": "3",
+      },
+      Object {
+        "label": "Accessories",
+        "value": "4",
+      },
+    ]
+  }
+  classes={
+    Object {
+      "formControl": "Component-formControl-18",
+    }
+  }
+  error={true}
+  hint="Lorem error"
+  onChange={[Function]}
+/>
+`;
+
+exports[`Storyshots Generics / SingleSelectField with hint 1`] = `
+<Component
+  choices={
+    Array [
+      Object {
+        "label": "Apparel",
+        "value": "1",
+      },
+      Object {
+        "label": "Groceries",
+        "value": "2",
+      },
+      Object {
+        "label": "Books",
+        "value": "3",
+      },
+      Object {
+        "label": "Accessories",
+        "value": "4",
+      },
+    ]
+  }
+  classes={
+    Object {
+      "formControl": "Component-formControl-18",
+    }
+  }
+  hint="Lorem ipsum"
+  onChange={[Function]}
+/>
+`;
+
+exports[`Storyshots Generics / SingleSelectField with label 1`] = `
+<Component
+  choices={
+    Array [
+      Object {
+        "label": "Apparel",
+        "value": "1",
+      },
+      Object {
+        "label": "Groceries",
+        "value": "2",
+      },
+      Object {
+        "label": "Books",
+        "value": "3",
+      },
+      Object {
+        "label": "Accessories",
+        "value": "4",
+      },
+    ]
+  }
+  classes={
+    Object {
+      "formControl": "Component-formControl-18",
+    }
+  }
+  label="Lorem ipsum"
+  onChange={[Function]}
+/>
+`;
+
+exports[`Storyshots Generics / SingleSelectField with label and hint 1`] = `
+<Component
+  choices={
+    Array [
+      Object {
+        "label": "Apparel",
+        "value": "1",
+      },
+      Object {
+        "label": "Groceries",
+        "value": "2",
+      },
+      Object {
+        "label": "Books",
+        "value": "3",
+      },
+      Object {
+        "label": "Accessories",
+        "value": "4",
+      },
+    ]
+  }
+  classes={
+    Object {
+      "formControl": "Component-formControl-18",
+    }
+  }
+  hint="Ipsum"
+  label="Lorem"
+  onChange={[Function]}
+/>
+`;
+
+exports[`Storyshots Generics / SingleSelectField with no value 1`] = `
+<Component
+  choices={
+    Array [
+      Object {
+        "label": "Apparel",
+        "value": "1",
+      },
+      Object {
+        "label": "Groceries",
+        "value": "2",
+      },
+      Object {
+        "label": "Books",
+        "value": "3",
+      },
+      Object {
+        "label": "Accessories",
+        "value": "4",
+      },
+    ]
+  }
+  classes={
+    Object {
+      "formControl": "Component-formControl-18",
+    }
+  }
+  onChange={[Function]}
+/>
+`;
+
+exports[`Storyshots Generics / SingleSelectField with value 1`] = `
+<Component
+  choices={
+    Array [
+      Object {
+        "label": "Apparel",
+        "value": "1",
+      },
+      Object {
+        "label": "Groceries",
+        "value": "2",
+      },
+      Object {
+        "label": "Books",
+        "value": "3",
+      },
+      Object {
+        "label": "Accessories",
+        "value": "4",
+      },
+    ]
+  }
+  classes={
+    Object {
+      "formControl": "Component-formControl-18",
+    }
+  }
+  onChange={[Function]}
+  value="1"
+/>
+`;
+
+exports[`Storyshots Generics / SingleSelectField with value, label and hint 1`] = `
+<Component
+  choices={
+    Array [
+      Object {
+        "label": "Apparel",
+        "value": "1",
+      },
+      Object {
+        "label": "Groceries",
+        "value": "2",
+      },
+      Object {
+        "label": "Books",
+        "value": "3",
+      },
+      Object {
+        "label": "Accessories",
+        "value": "4",
+      },
+    ]
+  }
+  classes={
+    Object {
+      "formControl": "Component-formControl-18",
+    }
+  }
+  hint="Ipsum"
+  label="Lorem"
+  onChange={[Function]}
+  value="1"
+/>
+`;
+
+exports[`Storyshots Generics / Skeleton default 1`] = `
+<Component
+  classes={
+    Object {
+      "skeleton": "Component-skeleton-19",
+    }
+  }
+  style={
+    Object {
+      "maxWidth": 300,
+    }
+  }
+/>
+`;
+
+exports[`Storyshots Generics / TablePagination both previous and next pages are available 1`] = `
+<Table
+  classes={
+    Object {
+      "root": "MuiTable-root-20",
+    }
+  }
+  component="table"
+>
+  <WithStyles(Component)
+    Actions={[Function]}
+    colSpan={1}
+    component={[Function]}
+    hasNextPage={true}
+    hasPreviousPage={true}
+    onNextPage={[Function]}
+    onPreviousPage={[Function]}
+  />
+</Table>
+`;
+
+exports[`Storyshots Generics / TablePagination next page available 1`] = `
+<Table
+  classes={
+    Object {
+      "root": "MuiTable-root-20",
+    }
+  }
+  component="table"
+>
+  <WithStyles(Component)
+    Actions={[Function]}
+    colSpan={1}
+    component={[Function]}
+    hasNextPage={true}
+    hasPreviousPage={false}
+    onNextPage={[Function]}
+    onPreviousPage={[Function]}
+  />
+</Table>
+`;
+
+exports[`Storyshots Generics / TablePagination no previous / next page 1`] = `
+<Table
+  classes={
+    Object {
+      "root": "MuiTable-root-20",
+    }
+  }
+  component="table"
+>
+  <WithStyles(Component)
+    Actions={[Function]}
+    colSpan={1}
+    component={[Function]}
+    hasNextPage={false}
+    hasPreviousPage={false}
+    onNextPage={[Function]}
+    onPreviousPage={[Function]}
+  />
+</Table>
+`;
+
+exports[`Storyshots Generics / TablePagination previous page available 1`] = `
+<Table
+  classes={
+    Object {
+      "root": "MuiTable-root-20",
+    }
+  }
+  component="table"
+>
+  <WithStyles(Component)
+    Actions={[Function]}
+    colSpan={1}
+    component={[Function]}
+    hasNextPage={false}
+    hasPreviousPage={true}
+    onNextPage={[Function]}
+    onPreviousPage={[Function]}
+  />
+</Table>
+`;
+
+exports[`Storyshots Pages / PageBaseForm with 'created' property 1`] = `
+<Component
+  availableOn="2018-03-20T16:39:08.850105+00:00"
+  classes={
+    Object {
+      "addHelperTextPadding": "Component-addHelperTextPadding-23",
+      "cardActions": "Component-cardActions-24",
+    }
+  }
+  content="Lorem ipsum dolor sit amet, consectetur adipiscing elit. Proin bibendum et justo sit amet viverra. Maecenas euismod auctor nisi et tincidunt. Maecenas ante urna, aliquet at odio sed, gravida efficitur purus. Morbi ut dapibus ante. Nulla eu neque sit amet odio tincidunt porttitor eu quis purus. Aliquam at diam sit amet turpis varius semper vitae non lectus. Vivamus lectus ligula, molestie eu augue eu, cursus tincidunt sem. Nam ornare egestas tincidunt."
+  created="2018-03-20T16:39:08.850105+00:00"
+  isVisible={true}
+  slug="lorem-ipsum-dolor"
+  title="Lorem ipsum"
+/>
+`;
+
+exports[`Storyshots Pages / PageBaseForm with 'errors' property 1`] = `
+<Component
+  availableOn="2018-03-20T16:39:08.850105+00:00"
+  classes={
+    Object {
+      "addHelperTextPadding": "Component-addHelperTextPadding-23",
+      "cardActions": "Component-cardActions-24",
+    }
+  }
+  content="Lorem ipsum dolor sit amet, consectetur adipiscing elit. Proin bibendum et justo sit amet viverra. Maecenas euismod auctor nisi et tincidunt. Maecenas ante urna, aliquet at odio sed, gravida efficitur purus. Morbi ut dapibus ante. Nulla eu neque sit amet odio tincidunt porttitor eu quis purus. Aliquam at diam sit amet turpis varius semper vitae non lectus. Vivamus lectus ligula, molestie eu augue eu, cursus tincidunt sem. Nam ornare egestas tincidunt."
+  errors={
+    Array [
+      Object {
+        "field": "slug",
+        "message": "To pole jest wymagane.",
+      },
+      Object {
+        "field": "title",
+        "message": "To pole jest wymagane.",
+      },
+      Object {
+        "field": "content",
+        "message": "To pole jest wymagane.",
+      },
+    ]
+  }
+  isVisible={true}
+  slug="lorem-ipsum-dolor"
+  title="Lorem ipsum"
+/>
+`;
+
+exports[`Storyshots Pages / PageBaseForm with initial data 1`] = `
+<Component
+  availableOn="2018-03-20T16:39:08.850105+00:00"
+  classes={
+    Object {
+      "addHelperTextPadding": "Component-addHelperTextPadding-23",
+      "cardActions": "Component-cardActions-24",
+    }
+  }
+  content="Lorem ipsum dolor sit amet, consectetur adipiscing elit. Proin bibendum et justo sit amet viverra. Maecenas euismod auctor nisi et tincidunt. Maecenas ante urna, aliquet at odio sed, gravida efficitur purus. Morbi ut dapibus ante. Nulla eu neque sit amet odio tincidunt porttitor eu quis purus. Aliquam at diam sit amet turpis varius semper vitae non lectus. Vivamus lectus ligula, molestie eu augue eu, cursus tincidunt sem. Nam ornare egestas tincidunt."
+  isVisible={true}
+  slug="lorem-ipsum-dolor"
+  title="Lorem ipsum"
+/>
+`;
+
+exports[`Storyshots Pages / PageDeleteDialog default 1`] = `
+<Component
+  classes={
+    Object {
+      "deleteButton": "Component-deleteButton-25",
+    }
+  }
+  opened={true}
+>
+  <WithStyles(DialogContentText)>
+    Do you really want to delete this page?
+  </WithStyles(DialogContentText)>
+</Component>
+`;
+
+exports[`Storyshots Pages / PageFilters with initial data 1`] = `
+<FilterCard
+  handleClear={[Function]}
+>
+  <TextField
+    fullWidth={true}
+    label="Title"
+    name="title"
+    onChange={[Function]}
+    required={false}
+    select={false}
+    value="Initial title"
+  />
+  <WithStyles(Component) />
+  <TextField
+    fullWidth={true}
+    label="Url"
+    name="url"
+    onChange={[Function]}
+    required={false}
+    select={false}
+    value="initial-url"
+  />
+</FilterCard>
+`;
+
+exports[`Storyshots Pages / PageFilters without initial data 1`] = `
+<FilterCard
+  handleClear={[Function]}
+>
+  <TextField
+    fullWidth={true}
+    label="Title"
+    name="title"
+    onChange={[Function]}
+    required={false}
+    select={false}
+    value=""
+  />
+  <WithStyles(Component) />
+  <TextField
+    fullWidth={true}
+    label="Url"
+    name="url"
+    onChange={[Function]}
+    required={false}
+    select={false}
+    value=""
+  />
+</FilterCard>
+`;
+
+exports[`Storyshots Pages / PageList when loading data 1`] = `
+<Card
+  classes={
+    Object {
+      "root": "MuiCard-root-26",
+    }
+  }
+  raised={false}
+>
+  <WithStyles(Component)
+    handleNextPage={[Function]}
+    handlePreviousPage={[Function]}
+    onEditClick={[Function]}
+    onShowPageClick={[Function]}
+    pageInfo={
+      Object {
+        "endCursor": "YXJyYXljb25uZWN0aW9uOjE=",
+        "hasNextPage": false,
+        "hasPreviousPage": false,
+        "startCursor": "YXJyYXljb25uZWN0aW9uOjA=",
+      }
+    }
+  />
+</Card>
+`;
+
+exports[`Storyshots Pages / PageList with data 1`] = `
+<Card
+  classes={
+    Object {
+      "root": "MuiCard-root-26",
+    }
+  }
+  raised={false}
+>
+  <WithStyles(Component)
+    handleNextPage={[Function]}
+    handlePreviousPage={[Function]}
+    onEditClick={[Function]}
+    onShowPageClick={[Function]}
+    pageInfo={
+      Object {
+        "endCursor": "YXJyYXljb25uZWN0aW9uOjE=",
+        "hasNextPage": false,
+        "hasPreviousPage": false,
+        "startCursor": "YXJyYXljb25uZWN0aW9uOjA=",
+      }
+    }
+    pages={
+      Array [
+        Object {
+          "cursor": "YXJyYXljb25uZWN0aW9uOjA=",
+          "node": Object {
+            "id": "UGFnZTox",
+            "isVisible": true,
+            "slug": "about",
+            "title": "About",
+          },
+        },
+        Object {
+          "cursor": "YXJyYXljb25uZWN0aW9uOjE=",
+          "node": Object {
+            "id": "UGFnZToy",
+            "isVisible": false,
+            "slug": "terms-of-use",
+            "title": "Terms of use",
+          },
+        },
+      ]
+    }
+  />
+</Card>
+`;
+
+exports[`Storyshots Pages / PageList without data 1`] = `
+<Card
+  classes={
+    Object {
+      "root": "MuiCard-root-26",
+    }
+  }
+  raised={false}
+>
+  <WithStyles(Component)
+    handleNextPage={[Function]}
+    handlePreviousPage={[Function]}
+    onEditClick={[Function]}
+    onShowPageClick={[Function]}
+    pageInfo={
+      Object {
+        "endCursor": "YXJyYXljb25uZWN0aW9uOjE=",
+        "hasNextPage": false,
+        "hasPreviousPage": false,
+        "startCursor": "YXJyYXljb25uZWN0aW9uOjA=",
+      }
+    }
+    pages={Array []}
+  />
+</Card>
+`;
+
+exports[`Storyshots Products / ProductAttributesForm when data loaded 1`] = `
+<Component
+  attributes={
+    Array [
+      Object {
+        "id": "UHJvZHVjdEF0dHJpYnV0ZToz",
+        "name": "Brand",
+        "slug": "brand",
+        "values": Array [
+          Object {
+            "id": "UHJvZHVjdEF0dHJpYnV0ZVZhbHVlOjQw",
+            "name": "dominikibrand",
+            "slug": "dominikibrand",
+          },
+          Object {
+            "id": "UHJvZHVjdEF0dHJpYnV0ZVZhbHVlOjM5",
+            "name": "superbrand",
+            "slug": "superbrand",
+          },
+          Object {
+            "id": "UHJvZHVjdEF0dHJpYnV0ZVZhbHVlOjM4",
+            "name": "Mirumee",
+            "slug": "mirumee",
+          },
+          Object {
+            "id": "UHJvZHVjdEF0dHJpYnV0ZVZhbHVlOjY=",
+            "name": "Saleor",
+            "slug": "saleor",
+          },
+        ],
+      },
+      Object {
+        "id": "UHJvZHVjdEF0dHJpYnV0ZToy",
+        "name": "Collar",
+        "slug": "collar",
+        "values": Array [
+          Object {
+            "id": "UHJvZHVjdEF0dHJpYnV0ZVZhbHVlOjU=",
+            "name": "Polo",
+            "slug": "polo",
+          },
+          Object {
+            "id": "UHJvZHVjdEF0dHJpYnV0ZVZhbHVlOjQ=",
+            "name": "V-Neck",
+            "slug": "v-neck",
+          },
+          Object {
+            "id": "UHJvZHVjdEF0dHJpYnV0ZVZhbHVlOjM=",
+            "name": "Round",
+            "slug": "round",
+          },
+        ],
+      },
+      Object {
+        "id": "UHJvZHVjdEF0dHJpYnV0ZTox",
+        "name": "Color",
+        "slug": "color",
+        "values": Array [
+          Object {
+            "id": "UHJvZHVjdEF0dHJpYnV0ZVZhbHVlOjI=",
+            "name": "White",
+            "slug": "white",
+          },
+          Object {
+            "id": "UHJvZHVjdEF0dHJpYnV0ZVZhbHVlOjE=",
+            "name": "Blue",
+            "slug": "blue",
+          },
+        ],
+      },
+    ]
+  }
+  classes={Object {}}
+  onChange={[Function]}
+  productAttributes={
+    Array [
+      Object {
+        "name": "brand",
+        "value": "superbrand",
+      },
+      Object {
+        "name": "collar",
+        "value": "round",
+      },
+      Object {
+        "name": "color",
+        "value": "blue",
+      },
+    ]
+  }
+/>
+`;
+
+exports[`Storyshots Products / ProductAttributesForm when loading data 1`] = `
+<Component
+  classes={Object {}}
+  loading={true}
+  onChange={[Function]}
+/>
+`;
+
+exports[`Storyshots Products / ProductAvailabilityForm when loading data 1`] = `
+<Component
+  classes={
+    Object {
+      "root": "Component-root-27",
+    }
+  }
+  onChange={[Function]}
+/>
+`;
+
+exports[`Storyshots Products / ProductAvailabilityForm with loaded data 1`] = `
+<Component
+  available={true}
+  availableOn="04-10-2010"
+  classes={
+    Object {
+      "root": "Component-root-27",
+    }
+  }
+  onChange={[Function]}
+/>
+`;
+
+exports[`Storyshots Products / ProductCategoryAndCollectionsForm when data is loaded 1`] = `
+<Component
+  categories={
+    Array [
+      Object {
+        "label": "Lorem ipsum dolor",
+        "value": "123123",
+      },
+      Object {
+        "label": "Mauris vehicula tortor vulputate",
+        "value": "876752",
+      },
+    ]
+  }
+  category="876752"
+  classes={Object {}}
+  collections={
+    Array [
+      Object {
+        "label": "Winter collection",
+        "value": "1",
+      },
+      Object {
+        "label": "Emperor's choice",
+        "value": "2",
+      },
+    ]
+  }
+  onChange={[Function]}
+  productCollections={
+    Array [
+      "1",
+    ]
+  }
+/>
+`;
+
+exports[`Storyshots Products / ProductCategoryAndCollectionsForm while loading data 1`] = `
+<Component
+  classes={Object {}}
+  loading={true}
+  onChange={[Function]}
+/>
+`;
+
+exports[`Storyshots Products / ProductCollections when loading data 1`] = `
+<Component
+  classes={
+    Object {
+      "card": "Component-card-28",
+      "link": "Component-link-29",
+    }
+  }
+  onRowClick={[Function]}
+/>
+`;
+
+exports[`Storyshots Products / ProductCollections with collections 1`] = `
+<Component
+  classes={
+    Object {
+      "card": "Component-card-28",
+      "link": "Component-link-29",
+    }
+  }
+  collections={
+    Array [
+      Object {
+        "id": "collection-1",
+        "name": "Winter Collection",
+      },
+      Object {
+        "id": "collection-2",
+        "name": "Summer Collection",
+      },
+    ]
+  }
+  onRowClick={[Function]}
+/>
+`;
+
+exports[`Storyshots Products / ProductCollections with no collections 1`] = `
+<Component
+  classes={
+    Object {
+      "card": "Component-card-28",
+      "link": "Component-link-29",
+    }
+  }
+  collections={Array []}
+  onRowClick={[Function]}
+/>
+`;
+
+exports[`Storyshots Products / ProductDescription when loading data 1`] = `
+<WithStyles(Card)>
+  <WithStyles(Component)
+    onBack={[Function]}
+  >
+    <WithStyles(IconButton)
+      disabled={true}
+      onClick={[Function]}
+    >
+      <pure(Visibility) />
+    </WithStyles(IconButton)>
+    <WithStyles(IconButton)
+      disabled={true}
+      onClick={[Function]}
+    >
+      <pure(Edit) />
+    </WithStyles(IconButton)>
+    <WithStyles(IconButton)
+      disabled={true}
+      onClick={[Function]}
+    >
+      <pure(Delete) />
+    </WithStyles(IconButton)>
+  </WithStyles(Component)>
+  <WithStyles(CardContent)>
+    <WithStyles(Typography)>
+      <WithStyles(Component) />
+    </WithStyles(Typography)>
+  </WithStyles(CardContent)>
+</WithStyles(Card)>
+`;
+
+exports[`Storyshots Products / ProductDescription with description 1`] = `
+<WithStyles(Card)>
+  <WithStyles(Component)
+    onBack={[Function]}
+    title="Stewart-Barrera"
+  >
+    <WithStyles(IconButton)
+      disabled={false}
+    >
+      <pure(Visibility) />
+    </WithStyles(IconButton)>
+    <WithStyles(IconButton)
+      disabled={false}
+    >
+      <pure(Edit) />
+    </WithStyles(IconButton)>
+    <WithStyles(IconButton)
+      disabled={false}
+    >
+      <pure(Delete) />
+    </WithStyles(IconButton)>
+  </WithStyles(Component)>
+  <WithStyles(CardContent)>
+    <WithStyles(Typography)>
+      Light light office style present life military. Enough executive coach cause own.
+
+Care season wrong fly. Example age between discuss assume.
+
+Their third build might strong account. Worry enter room note level air.
+
+Weight director mother. Because find task with now enter tree management.
+
+Soon name recently ground green. There owner sport box them red information.
+    </WithStyles(Typography)>
+  </WithStyles(CardContent)>
+</WithStyles(Card)>
+`;
+
+exports[`Storyshots Products / ProductDescription with no description 1`] = `
+<WithStyles(Card)>
+  <WithStyles(Component)
+    onBack={[Function]}
+    title="Stewart-Barrera"
+  >
+    <WithStyles(IconButton)
+      disabled={false}
+    >
+      <pure(Visibility) />
+    </WithStyles(IconButton)>
+    <WithStyles(IconButton)
+      disabled={false}
+    >
+      <pure(Edit) />
+    </WithStyles(IconButton)>
+    <WithStyles(IconButton)
+      disabled={false}
+    >
+      <pure(Delete) />
+    </WithStyles(IconButton)>
+  </WithStyles(Component)>
+  <WithStyles(CardContent)>
+    <WithStyles(Typography)>
+      No description
+    </WithStyles(Typography)>
+  </WithStyles(CardContent)>
+</WithStyles(Card)>
+`;
+
+exports[`Storyshots Products / ProductDetailsForm when loading data 1`] = `
+<Component
+  classes={
+    Object {
+      "root": "Component-root-30",
+    }
+  }
+  loading={true}
+  onBack={[Function]}
+  onChange={[Function]}
+/>
+`;
+
+exports[`Storyshots Products / ProductDetailsForm with initial data 1`] = `
+<Component
+  classes={
+    Object {
+      "root": "Component-root-30",
+    }
+  }
+  currencySymbol="USD"
+  description="Aenean sit amet malesuada nibh. Proin nisi lorem, facilisis at tortor vel, convallis ornare nibh. In nec ipsum porta, varius leo eu, condimentum quam. Donec gravida euismod ipsum, at consequat orci efficitur nec. Phasellus lectus arcu, auctor eget porttitor eget, venenatis a lacus. Suspendisse quis urna rhoncus, commodo justo at, tempor nisl."
+  name="Our totally awesome book"
+  onBack={[Function]}
+  onChange={[Function]}
+  price="300"
+/>
+`;
+
+exports[`Storyshots Products / ProductDetailsForm with no initial data 1`] = `
+<Component
+  classes={
+    Object {
+      "root": "Component-root-30",
+    }
+  }
+  onBack={[Function]}
+  onChange={[Function]}
+/>
+`;
+
+exports[`Storyshots Products / ProductDetailsPage when loaded data 1`] = `
+<Component
+  classes={
+    Object {
+      "root": "Component-root-31",
+    }
+  }
+  onBack={[Function]}
+  onCollectionShow={[Function]}
+  onDelete={[Function]}
+  onEdit={[Function]}
+  onImageEdit={[Function]}
+  onImageReorder={[Function]}
+  onImageUpload={[Function]}
+  onProductPublish={[Function]}
+  onProductShow={[Function]}
+  onVariantShow={[Function]}
+  placeholderImage="placeholder255x255.png"
+  product={
+    Object {
+      "availability": Object {
+        "available": true,
+        "priceRange": Object {
+          "start": Object {
+            "net": Object {
+              "localized": "55,14 USD",
+            },
+          },
+          "stop": Object {
+            "net": Object {
+              "localized": "88,36 USD",
+            },
+          },
+        },
+      },
+      "collections": Object {
+        "edges": Array [
+          Object {
+            "node": Object {
+              "id": "collection-1",
+              "name": "Winter Collection",
+            },
+          },
+          Object {
+            "node": Object {
+              "id": "collection-2",
+              "name": "Summer Collection",
+            },
+          },
+        ],
+      },
+      "description": "Light light office style present life military. Enough executive coach cause own.
+
+Care season wrong fly. Example age between discuss assume.
+
+Their third build might strong account. Worry enter room note level air.
+
+Weight director mother. Because find task with now enter tree management.
+
+Soon name recently ground green. There owner sport box them red information.",
+      "grossMargin": Array [
+        Object {
+          "start": 56,
+          "stop": 98,
+        },
+      ],
+      "id": "UHJvZHVjdDoyOA==",
+      "images": Object {
+        "edges": Array [
+          Object {
+            "node": Object {
+              "alt": "",
+              "id": "UHJvZHVjdEltYWdlOjY2",
+              "order": 0,
+              "url": "placeholder255x255.png",
+            },
+          },
+          Object {
+            "node": Object {
+              "alt": "",
+              "id": "UHJvZHVjdEltYWdlOjY3",
+              "order": 1,
+              "url": "placeholder255x255.png",
+            },
+          },
+          Object {
+            "node": Object {
+              "alt": "",
+              "id": "UHJvZHVjdEltYWdlOjY4",
+              "order": 2,
+              "url": "placeholder255x255.png",
+            },
+          },
+        ],
+      },
+      "isPublished": true,
+      "name": "Stewart-Barrera",
+      "price": Object {
+        "localized": "95,47 USD",
+      },
+      "productType": Object {
+        "id": "UHJvZHVjdFR5cGU6Mw==",
+        "name": "Coffee",
+      },
+      "purchaseCost": Object {
+        "start": Object {
+          "gross": Object {
+            "localized": "1,88 USD",
+          },
+        },
+        "stop": Object {
+          "gross": Object {
+            "localized": "48,10 USD",
+          },
+        },
+      },
+      "url": "/pl/products/stewart-barrera-28/",
+      "variants": Object {
+        "edges": Array [
+          Object {
+            "node": Object {
+              "id": "UHJvZHVjdFZhcmlhbnQ6Nw==",
+              "name": "XXL",
+              "priceOverride": null,
+              "sku": "2-1337",
+              "stockQuantity": 5,
+            },
+          },
+          Object {
+            "node": Object {
+              "id": "UHJvZHVjdFZhcmlhbnQ6OA==",
+              "name": "XL",
+              "priceOverride": null,
+              "sku": "2-1338",
+              "stockQuantity": 0,
+            },
+          },
+          Object {
+            "node": Object {
+              "id": "UHJvZHVjdFZhcmlhbnQ6OQ==",
+              "name": "L",
+              "priceOverride": null,
+              "sku": "2-1339",
+              "stockQuantity": 15,
+            },
+          },
+          Object {
+            "node": Object {
+              "id": "UHJvZHVjdFZhcmlhbnQ6MTA=",
+              "name": "M",
+              "priceOverride": null,
+              "sku": "2-1340",
+              "stockQuantity": 33,
+            },
+          },
+          Object {
+            "node": Object {
+              "id": "UHJvZHVjdFZhcmlhbnQ6MTE=",
+              "name": "S",
+              "priceOverride": null,
+              "sku": "2-1341",
+              "stockQuantity": 0,
+            },
+          },
+          Object {
+            "node": Object {
+              "id": "UHJvZHVjdFZhcmlhbnQ6MTI=",
+              "name": "XS",
+              "priceOverride": null,
+              "sku": "2-1342",
+              "stockQuantity": 0,
+            },
+          },
+        ],
+      },
+    }
+  }
+/>
+`;
+
+exports[`Storyshots Products / ProductDetailsPage when loading data 1`] = `
+<Component
+  classes={
+    Object {
+      "root": "Component-root-31",
+    }
+  }
+  onBack={[Function]}
+  onCollectionShow={[Function]}
+  onDelete={[Function]}
+  onEdit={[Function]}
+  onImageEdit={[Function]}
+  onImageReorder={[Function]}
+  onImageUpload={[Function]}
+  onProductPublish={[Function]}
+  onProductShow={[Function]}
+  onVariantShow={[Function]}
+  placeholderImage="placeholder255x255.png"
+/>
+`;
+
+exports[`Storyshots Products / ProductImagePage data loaded 1`] = `
+<Component
+  classes={
+    Object {
+      "image": "Component-image-33",
+      "root": "Component-root-32",
+    }
+  }
+  image="placeholder255x255.png"
+  onBack={[Function]}
+  onSubmit={[Function]}
+/>
+`;
+
+exports[`Storyshots Products / ProductImagePage loading 1`] = `
+<Component
+  classes={
+    Object {
+      "image": "Component-image-33",
+      "root": "Component-root-32",
+    }
+  }
+  loading={true}
+  onBack={[Function]}
+  onSubmit={[Function]}
+/>
+`;
+
+exports[`Storyshots Products / ProductImages when loading data 1`] = `
+<Component
+  classes={
+    Object {
+      "card": "Component-card-35",
+      "fileField": "Component-fileField-38",
+      "gridElement": "Component-gridElement-36",
+      "icon": "Component-icon-37",
+      "root": "Component-root-34",
+    }
+  }
+  onImageReorder={[Function]}
+  onImageUpload={[Function]}
+  placeholderImage="placeholder255x255.png"
+/>
+`;
+
+exports[`Storyshots Products / ProductImages with data 1`] = `
+<Component
+  classes={
+    Object {
+      "card": "Component-card-35",
+      "fileField": "Component-fileField-38",
+      "gridElement": "Component-gridElement-36",
+      "icon": "Component-icon-37",
+      "root": "Component-root-34",
+    }
+  }
+  images={
+    Array [
+      Object {
+        "alt": "",
+        "id": "UHJvZHVjdEltYWdlOjY2",
+        "order": 0,
+        "url": "placeholder255x255.png",
+      },
+      Object {
+        "alt": "",
+        "id": "UHJvZHVjdEltYWdlOjY3",
+        "order": 1,
+        "url": "placeholder255x255.png",
+      },
+      Object {
+        "alt": "",
+        "id": "UHJvZHVjdEltYWdlOjY4",
+        "order": 2,
+        "url": "placeholder255x255.png",
+      },
+    ]
+  }
+  onImageReorder={[Function]}
+  onImageUpload={[Function]}
+/>
+`;
+
+exports[`Storyshots Products / ProductImages without data 1`] = `
+<Component
+  classes={
+    Object {
+      "card": "Component-card-35",
+      "fileField": "Component-fileField-38",
+      "gridElement": "Component-gridElement-36",
+      "icon": "Component-icon-37",
+      "root": "Component-root-34",
+    }
+  }
+  images={Array []}
+  onImageReorder={[Function]}
+  onImageUpload={[Function]}
+/>
+`;
+
+exports[`Storyshots Products / ProductListCard when loading data 1`] = `
+<WithStyles(Card)>
+  <WithStyles(Component)
+    title="Product list"
+  >
+    <Hidden
+      implementation="js"
+      lgDown={false}
+      lgUp={false}
+      mdDown={false}
+      mdUp={true}
+      smDown={false}
+      smUp={false}
+      xlDown={false}
+      xlUp={false}
+      xsDown={false}
+      xsUp={false}
+    >
+      <WithStyles(IconButton)
+        onClick={[Function]}
+      >
+        <pure(FilterList) />
+      </WithStyles(IconButton)>
+    </Hidden>
+  </WithStyles(Component)>
+  <WithStyles(Component)
+    hasNextPage={true}
+    hasPreviousPage={false}
+    onNextPage={[Function]}
+    onPreviousPage={[Function]}
+  />
+</WithStyles(Card)>
+`;
+
+exports[`Storyshots Products / ProductListCard with clickable rows 1`] = `
+<WithStyles(Card)>
+  <WithStyles(Component)
+    title="Product list"
+  >
+    <Hidden
+      implementation="js"
+      lgDown={false}
+      lgUp={false}
+      mdDown={false}
+      mdUp={true}
+      smDown={false}
+      smUp={false}
+      xlDown={false}
+      xlUp={false}
+      xsDown={false}
+      xsUp={false}
+    >
+      <WithStyles(IconButton)
+        onClick={[Function]}
+      >
+        <pure(FilterList) />
+      </WithStyles(IconButton)>
+    </Hidden>
+  </WithStyles(Component)>
+  <WithStyles(Component)
+    hasNextPage={true}
+    hasPreviousPage={false}
+    onNextPage={[Function]}
+    onPreviousPage={[Function]}
+    onRowClick={[Function]}
+    products={
+      Array [
+        Object {
+          "id": "UHJvZHVjdDox",
+          "name": "Gardner, Graham and King",
+          "productType": Object {
+            "id": "1",
+            "name": "T-Shirt",
+          },
+          "thumbnailUrl": "placeholder255x255.png",
+        },
+        Object {
+          "id": "UHJvZHVjdDoy",
+          "name": "Gardner, Graham and King",
+          "productType": Object {
+            "id": "1",
+            "name": "T-Shirt",
+          },
+          "thumbnailUrl": "placeholder255x255.png",
+        },
+        Object {
+          "id": "UHJvZHVjdDoz",
+          "name": "Gardner, Graham and King",
+          "productType": Object {
+            "id": "1",
+            "name": "T-Shirt",
+          },
+          "thumbnailUrl": "placeholder255x255.png",
+        },
+        Object {
+          "id": "UHJvZHVjdDoa",
+          "name": "Gardner, Graham and King",
+          "productType": Object {
+            "id": "1",
+            "name": "T-Shirt",
+          },
+          "thumbnailUrl": "placeholder255x255.png",
+        },
+      ]
+    }
+  />
+</WithStyles(Card)>
+`;
+
+exports[`Storyshots Products / ProductListCard with initial data 1`] = `
+<WithStyles(Card)>
+  <WithStyles(Component)
+    title="Product list"
+  >
+    <Hidden
+      implementation="js"
+      lgDown={false}
+      lgUp={false}
+      mdDown={false}
+      mdUp={true}
+      smDown={false}
+      smUp={false}
+      xlDown={false}
+      xlUp={false}
+      xsDown={false}
+      xsUp={false}
+    >
+      <WithStyles(IconButton)
+        onClick={[Function]}
+      >
+        <pure(FilterList) />
+      </WithStyles(IconButton)>
+    </Hidden>
+  </WithStyles(Component)>
+  <WithStyles(Component)
+    hasNextPage={true}
+    hasPreviousPage={false}
+    onNextPage={[Function]}
+    onPreviousPage={[Function]}
+    products={
+      Array [
+        Object {
+          "id": "UHJvZHVjdDox",
+          "name": "Gardner, Graham and King",
+          "productType": Object {
+            "id": "1",
+            "name": "T-Shirt",
+          },
+          "thumbnailUrl": "placeholder255x255.png",
+        },
+        Object {
+          "id": "UHJvZHVjdDoy",
+          "name": "Gardner, Graham and King",
+          "productType": Object {
+            "id": "1",
+            "name": "T-Shirt",
+          },
+          "thumbnailUrl": "placeholder255x255.png",
+        },
+        Object {
+          "id": "UHJvZHVjdDoz",
+          "name": "Gardner, Graham and King",
+          "productType": Object {
+            "id": "1",
+            "name": "T-Shirt",
+          },
+          "thumbnailUrl": "placeholder255x255.png",
+        },
+        Object {
+          "id": "UHJvZHVjdDoa",
+          "name": "Gardner, Graham and King",
+          "productType": Object {
+            "id": "1",
+            "name": "T-Shirt",
+          },
+          "thumbnailUrl": "placeholder255x255.png",
+        },
+      ]
+    }
+  />
+</WithStyles(Card)>
+`;
+
+exports[`Storyshots Products / ProductListCard without initial data 1`] = `
+<WithStyles(Card)>
+  <WithStyles(Component)
+    title="Product list"
+  >
+    <Hidden
+      implementation="js"
+      lgDown={false}
+      lgUp={false}
+      mdDown={false}
+      mdUp={true}
+      smDown={false}
+      smUp={false}
+      xlDown={false}
+      xlUp={false}
+      xsDown={false}
+      xsUp={false}
+    >
+      <WithStyles(IconButton)
+        onClick={[Function]}
+      >
+        <pure(FilterList) />
+      </WithStyles(IconButton)>
+    </Hidden>
+  </WithStyles(Component)>
+  <WithStyles(Component)
+    hasNextPage={true}
+    hasPreviousPage={false}
+    onNextPage={[Function]}
+    onPreviousPage={[Function]}
+    products={Array []}
+  />
+</WithStyles(Card)>
+`;
+
+exports[`Storyshots Products / ProductPriceAndAvailability when loading data 1`] = `
+<Component
+  classes={
+    Object {
+      "greenText": "Component-greenText-39",
+      "leftCell": "Component-leftCell-40",
+      "redText": "Component-redText-41",
+      "rightCell": "Component-rightCell-42",
+    }
+  }
+  onPublish={[Function]}
+/>
+`;
+
+exports[`Storyshots Products / ProductPriceAndAvailability when product is available 1`] = `
+<Component
+  classes={
+    Object {
+      "greenText": "Component-greenText-39",
+      "leftCell": "Component-leftCell-40",
+      "redText": "Component-redText-41",
+      "rightCell": "Component-rightCell-42",
+    }
+  }
+  grossMargin={
+    Object {
+      "start": 56,
+      "stop": 98,
+    }
+  }
+  isAvailable={true}
+  onPublish={[Function]}
+  purchaseCost={
+    Object {
+      "start": "1,88 USD",
+      "stop": "48,10 USD",
+    }
+  }
+  salePrice={
+    Object {
+      "start": "55,14 USD",
+      "stop": "88,36 USD",
+    }
+  }
+/>
+`;
+
+exports[`Storyshots Products / ProductPriceAndAvailability when product is not available 1`] = `
+<Component
+  classes={
+    Object {
+      "greenText": "Component-greenText-39",
+      "leftCell": "Component-leftCell-40",
+      "redText": "Component-redText-41",
+      "rightCell": "Component-rightCell-42",
+    }
+  }
+  grossMargin={
+    Object {
+      "start": 56,
+      "stop": 98,
+    }
+  }
+  isAvailable={false}
+  onPublish={[Function]}
+  purchaseCost={
+    Object {
+      "start": "1,88 USD",
+      "stop": "48,10 USD",
+    }
+  }
+  salePrice={
+    Object {
+      "start": "55,14 USD",
+      "stop": "88,36 USD",
+    }
+  }
+/>
+`;
+
+exports[`Storyshots Products / ProductUpdatePage when data is fully loaded 1`] = `
+<Component
+  categories={
+    Array [
+      Object {
+        "id": "123123",
+        "name": "Lorem ipsum dolor",
+      },
+      Object {
+        "id": "876752",
+        "name": "Mauris vehicula tortor vulputate",
+      },
+    ]
+  }
+  classes={
+    Object {
+      "cardContainer": "Component-cardContainer-45",
+      "grid": "Component-grid-44",
+      "root": "Component-root-43",
+    }
+  }
+  collections={
+    Array [
+      Object {
+        "id": "1",
+        "name": "Winter collection",
+      },
+      Object {
+        "id": "2",
+        "name": "Emperor's choice",
+      },
+    ]
+  }
+  onBack={[Function]}
+  onSubmit={[Function]}
+  product={
+    Object {
+      "attributes": Array [
+        Object {
+          "name": "brand",
+          "value": "superbrand",
+        },
+        Object {
+          "name": "collar",
+          "value": "round",
+        },
+        Object {
+          "name": "color",
+          "value": "blue",
+        },
+      ],
+      "available": true,
+      "availableOn": "23-01-2006",
+      "category": Object {
+        "id": "123123",
+      },
+      "collections": Object {
+        "edges": Array [
+          Object {
+            "node": Object {
+              "id": "1",
+              "name": "Winter collection",
+            },
+          },
+        ],
+      },
+      "description": "Aenean sit amet malesuada nibh. Proin nisi lorem, facilisis at tortor vel, convallis ornare nibh. In nec ipsum porta, varius leo eu, condimentum quam. Donec gravida euismod ipsum, at consequat orci efficitur nec. Phasellus lectus arcu, auctor eget porttitor eget, venenatis a lacus. Suspendisse quis urna rhoncus, commodo justo at, tempor nisl.",
+      "id": "1231u",
+      "name": "Our awesome book",
+      "price": Object {
+        "currencySymbol": "$",
+        "net": 3000.1,
+      },
+      "productType": Object {
+        "name": "Book",
+        "productAttributes": Object {
+          "edges": Array [
+            Object {
+              "node": Object {
+                "id": "UHJvZHVjdEF0dHJpYnV0ZToz",
+                "name": "Brand",
+                "slug": "brand",
+                "values": Array [
+                  Object {
+                    "id": "UHJvZHVjdEF0dHJpYnV0ZVZhbHVlOjQw",
+                    "name": "dominikibrand",
+                    "slug": "dominikibrand",
+                  },
+                  Object {
+                    "id": "UHJvZHVjdEF0dHJpYnV0ZVZhbHVlOjM5",
+                    "name": "superbrand",
+                    "slug": "superbrand",
+                  },
+                  Object {
+                    "id": "UHJvZHVjdEF0dHJpYnV0ZVZhbHVlOjM4",
+                    "name": "Mirumee",
+                    "slug": "mirumee",
+                  },
+                  Object {
+                    "id": "UHJvZHVjdEF0dHJpYnV0ZVZhbHVlOjY=",
+                    "name": "Saleor",
+                    "slug": "saleor",
+                  },
+                ],
+              },
+            },
+            Object {
+              "node": Object {
+                "id": "UHJvZHVjdEF0dHJpYnV0ZToy",
+                "name": "Collar",
+                "slug": "collar",
+                "values": Array [
+                  Object {
+                    "id": "UHJvZHVjdEF0dHJpYnV0ZVZhbHVlOjU=",
+                    "name": "Polo",
+                    "slug": "polo",
+                  },
+                  Object {
+                    "id": "UHJvZHVjdEF0dHJpYnV0ZVZhbHVlOjQ=",
+                    "name": "V-Neck",
+                    "slug": "v-neck",
+                  },
+                  Object {
+                    "id": "UHJvZHVjdEF0dHJpYnV0ZVZhbHVlOjM=",
+                    "name": "Round",
+                    "slug": "round",
+                  },
+                ],
+              },
+            },
+            Object {
+              "node": Object {
+                "id": "UHJvZHVjdEF0dHJpYnV0ZTox",
+                "name": "Color",
+                "slug": "color",
+                "values": Array [
+                  Object {
+                    "id": "UHJvZHVjdEF0dHJpYnV0ZVZhbHVlOjI=",
+                    "name": "White",
+                    "slug": "white",
+                  },
+                  Object {
+                    "id": "UHJvZHVjdEF0dHJpYnV0ZVZhbHVlOjE=",
+                    "name": "Blue",
+                    "slug": "blue",
+                  },
+                ],
+              },
+            },
+          ],
+        },
+      },
+      "seo": Object {
+        "description": "Order our awesome book right now!",
+        "title": "Buy our awesome book now!",
+      },
+      "slug": "our-awesome-book-1231u",
+    }
+  }
+/>
+`;
+
+exports[`Storyshots Products / ProductUpdatePage when loading data 1`] = `
+<Component
+  classes={
+    Object {
+      "cardContainer": "Component-cardContainer-45",
+      "grid": "Component-grid-44",
+      "root": "Component-root-43",
+    }
+  }
+  loading={true}
+  onBack={[Function]}
+  onSubmit={[Function]}
+/>
+`;
+
+exports[`Storyshots Products / ProductVariantAttributes when loaded data 1`] = `
+<Component
+  attributes={
+    Array [
+      Object {
+        "attribute": Object {
+          "name": "Cover",
+          "slug": "cover",
+          "values": Array [
+            "hard",
+            "soft",
+          ],
+        },
+        "value": "hard",
+      },
+      Object {
+        "attribute": Object {
+          "name": "Version",
+          "slug": "version",
+          "values": Array [
+            "regular",
+            "extended",
+          ],
+        },
+        "value": "extended",
+      },
+    ]
+  }
+  classes={
+    Object {
+      "grid": "Component-grid-46",
+    }
+  }
+  onChange={[Function]}
+/>
+`;
+
+exports[`Storyshots Products / ProductVariantAttributes when loading data 1`] = `
+<Component
+  classes={
+    Object {
+      "grid": "Component-grid-46",
+    }
+  }
+  loading={true}
+  onChange={[Function]}
+/>
+`;
+
+exports[`Storyshots Products / ProductVariantDeleteDialog default 1`] = `
+<Component
+  classes={
+    Object {
+      "deleteButton": "Component-deleteButton-47",
+    }
+  }
+  name="Extended Hard"
+  open={true}
+/>
+`;
+
+exports[`Storyshots Products / ProductVariantImageSelectDialog default 1`] = `
+<ProductVariantImageSelectDialogComponent
+  classes={
+    Object {
+      "gridElement": "ProductVariantImageSelectDialogComponent-gridElement-49",
+      "icon": "ProductVariantImageSelectDialogComponent-icon-50",
+      "iconChecked": "ProductVariantImageSelectDialogComponent-iconChecked-51",
+      "root": "ProductVariantImageSelectDialogComponent-root-48",
+    }
+  }
+  images={
+    Array [
+      Object {
+        "alt": "Front",
+        "id": "img1",
+        "order": 1,
+        "url": "placeholder255x255.png",
+      },
+      Object {
+        "alt": "Back",
+        "id": "img2",
+        "order": 4,
+        "url": "placeholder255x255.png",
+      },
+      Object {
+        "alt": "Right side",
+        "id": "img3",
+        "order": 2,
+        "url": "placeholder255x255.png",
+      },
+      Object {
+        "alt": "Left side",
+        "id": "img4",
+        "order": 3,
+        "url": "placeholder255x255.png",
+      },
+      Object {
+        "alt": "Paper",
+        "id": "img5",
+        "order": 0,
+        "url": "placeholder255x255.png",
+      },
+      Object {
+        "alt": "Hard cover",
+        "id": "img6",
+        "order": 1,
+        "url": "placeholder255x255.png",
+      },
+      Object {
+        "alt": "Extended version",
+        "id": "img7",
+        "order": 0,
+        "url": "placeholder255x255.png",
+      },
+      Object {
+        "alt": "Cut version",
+        "id": "img8",
+        "order": 2,
+        "url": "placeholder255x255.png",
+      },
+      Object {
+        "alt": "Soft cover",
+        "id": "img9",
+        "order": 2,
+        "url": "placeholder255x255.png",
+      },
+    ]
+  }
+  open={true}
+  selectedImages={
+    Array [
+      Object {
+        "id": "img1",
+      },
+      Object {
+        "id": "img2",
+      },
+      Object {
+        "id": "img7",
+      },
+      Object {
+        "id": "img8",
+      },
+    ]
+  }
+/>
+`;
+
+exports[`Storyshots Products / ProductVariantImages when loaded data 1`] = `
+<Component
+  classes={
+    Object {
+      "card": "Component-card-53",
+      "gridElement": "Component-gridElement-54",
+      "root": "Component-root-52",
+    }
+  }
+  images={
+    Array [
+      Object {
+        "alt": "Front",
+        "id": "img1",
+        "order": 1,
+        "url": "placeholder255x255.png",
+      },
+      Object {
+        "alt": "Back",
+        "id": "img2",
+        "order": 4,
+        "url": "placeholder255x255.png",
+      },
+      Object {
+        "alt": "Right side",
+        "id": "img3",
+        "order": 2,
+        "url": "placeholder255x255.png",
+      },
+      Object {
+        "alt": "Left side",
+        "id": "img4",
+        "order": 3,
+        "url": "placeholder255x255.png",
+      },
+      Object {
+        "alt": "Paper",
+        "id": "img5",
+        "order": 0,
+        "url": "placeholder255x255.png",
+      },
+      Object {
+        "alt": "Hard cover",
+        "id": "img6",
+        "order": 1,
+        "url": "placeholder255x255.png",
+      },
+      Object {
+        "alt": "Extended version",
+        "id": "img7",
+        "order": 0,
+        "url": "placeholder255x255.png",
+      },
+      Object {
+        "alt": "Cut version",
+        "id": "img8",
+        "order": 2,
+        "url": "placeholder255x255.png",
+      },
+      Object {
+        "alt": "Soft cover",
+        "id": "img9",
+        "order": 2,
+        "url": "placeholder255x255.png",
+      },
+    ]
+  }
+  onImageAdd={[Function]}
+  placeholderImage="placeholder255x255.png"
+/>
+`;
+
+exports[`Storyshots Products / ProductVariantImages when loading data 1`] = `
+<Component
+  classes={
+    Object {
+      "card": "Component-card-53",
+      "gridElement": "Component-gridElement-54",
+      "root": "Component-root-52",
+    }
+  }
+  loading={true}
+  onImageAdd={[Function]}
+  placeholderImage="placeholder255x255.png"
+/>
+`;
+
+exports[`Storyshots Products / ProductVariantNavigation when loaded data 1`] = `
+<Component
+  classes={
+    Object {
+      "card": "Component-card-55",
+      "link": "Component-link-56",
+    }
+  }
+  variants={
+    Array [
+      Object {
+        "id": "var2",
+        "name": "Extended Soft",
+      },
+      Object {
+        "id": "var3",
+        "name": "Normal Hard",
+      },
+      Object {
+        "id": "var4",
+        "name": "Normal Soft",
+      },
+    ]
+  }
+/>
+`;
+
+exports[`Storyshots Products / ProductVariantNavigation when loading data 1`] = `
+<Component
+  classes={
+    Object {
+      "card": "Component-card-55",
+      "link": "Component-link-56",
+    }
+  }
+  loading={true}
+/>
+`;
+
+exports[`Storyshots Products / ProductVariantNavigation with clickable rows 1`] = `
+<Component
+  classes={
+    Object {
+      "card": "Component-card-55",
+      "link": "Component-link-56",
+    }
+  }
+  onRowClick={[Function]}
+  variants={
+    Array [
+      Object {
+        "id": "var2",
+        "name": "Extended Soft",
+      },
+      Object {
+        "id": "var3",
+        "name": "Normal Hard",
+      },
+      Object {
+        "id": "var4",
+        "name": "Normal Soft",
+      },
+    ]
+  }
+/>
+`;
+
+exports[`Storyshots Products / ProductVariantPage when loaded data 1`] = `
+<Component
+  classes={
+    Object {
+      "root": "Component-root-57",
+    }
+  }
+  onBack={[Function]}
+  onDelete={[Function]}
+  onImageSelect={[Function]}
+  variant={
+    Object {
+      "attributes": Array [
+        Object {
+          "attribute": Object {
+            "name": "Cover",
+            "slug": "cover",
+            "values": Array [
+              "hard",
+              "soft",
+            ],
+          },
+          "value": "hard",
+        },
+        Object {
+          "attribute": Object {
+            "name": "Version",
+            "slug": "version",
+            "values": Array [
+              "regular",
+              "extended",
+            ],
+          },
+          "value": "extended",
+        },
+      ],
+      "id": "var1",
+      "images": Object {
+        "edges": Array [
+          Object {
+            "node": Object {
+              "id": "img1",
+            },
+          },
+          Object {
+            "node": Object {
+              "id": "img2",
+            },
+          },
+          Object {
+            "node": Object {
+              "id": "img7",
+            },
+          },
+          Object {
+            "node": Object {
+              "id": "img8",
+            },
+          },
+        ],
+      },
+      "name": "Extended Hard",
+      "priceOverride": Object {
+        "amount": 100,
+        "currency": "USD",
+      },
+      "product": Object {
+        "id": "prod1",
+        "images": Object {
+          "edges": Array [
+            Object {
+              "node": Object {
+                "alt": "Front",
+                "id": "img1",
+                "order": 1,
+                "url": "placeholder60x60.png",
+              },
+            },
+            Object {
+              "node": Object {
+                "alt": "Back",
+                "id": "img2",
+                "order": 4,
+                "url": "placeholder60x60.png",
+              },
+            },
+            Object {
+              "node": Object {
+                "alt": "Right side",
+                "id": "img3",
+                "order": 2,
+                "url": "placeholder60x60.png",
+              },
+            },
+            Object {
+              "node": Object {
+                "alt": "Left side",
+                "id": "img4",
+                "order": 3,
+                "url": "placeholder60x60.png",
+              },
+            },
+            Object {
+              "node": Object {
+                "alt": "Paper",
+                "id": "img5",
+                "order": 0,
+                "url": "placeholder60x60.png",
+              },
+            },
+            Object {
+              "node": Object {
+                "alt": "Hard cover",
+                "id": "img6",
+                "order": 1,
+                "url": "placeholder60x60.png",
+              },
+            },
+            Object {
+              "node": Object {
+                "alt": "Extended version",
+                "id": "img7",
+                "order": 0,
+                "url": "placeholder60x60.png",
+              },
+            },
+            Object {
+              "node": Object {
+                "alt": "Cut version",
+                "id": "img8",
+                "order": 2,
+                "url": "placeholder60x60.png",
+              },
+            },
+            Object {
+              "node": Object {
+                "alt": "Soft cover",
+                "id": "img9",
+                "order": 2,
+                "url": "placeholder60x60.png",
+              },
+            },
+          ],
+        },
+        "name": "Our Awesome Book",
+        "thumbnailUrl": "placeholder60x60.png",
+        "variants": Object {
+          "edges": Array [
+            Object {
+              "node": Object {
+                "id": "var2",
+                "name": "Extended Soft",
+              },
+            },
+            Object {
+              "node": Object {
+                "id": "var3",
+                "name": "Normal Hard",
+              },
+            },
+            Object {
+              "node": Object {
+                "id": "var4",
+                "name": "Normal Soft",
+              },
+            },
+          ],
+          "totalCount": 11,
+        },
+      },
+      "sku": "1230959124123",
+      "stock": 49,
+      "stockAllocated": 12,
+    }
+  }
+/>
+`;
+
+exports[`Storyshots Products / ProductVariantPage when loading data 1`] = `
+<Component
+  classes={
+    Object {
+      "root": "Component-root-57",
+    }
+  }
+  loading={true}
+  onBack={[Function]}
+  onDelete={[Function]}
+  onImageSelect={[Function]}
+  placeholderImage="placeholder60x60.png"
+/>
+`;
+
+exports[`Storyshots Products / ProductVariantPrice when loaded data 1`] = `
+<Component
+  classes={
+    Object {
+      "grid": "Component-grid-59",
+      "root": "Component-root-58",
+    }
+  }
+  costPrice={100}
+  currencySymbol="USD"
+  onChange={[Function]}
+  priceOverride={100}
+/>
+`;
+
+exports[`Storyshots Products / ProductVariantPrice when loading data 1`] = `
+<Component
+  classes={
+    Object {
+      "grid": "Component-grid-59",
+      "root": "Component-root-58",
+    }
+  }
+  loading={true}
+  onChange={[Function]}
+/>
+`;
+
+exports[`Storyshots Products / ProductVariantProduct when loaded data 1`] = `
+<Component
+  classes={
+    Object {
+      "root": "Component-root-60",
+    }
+  }
+  product={
+    Object {
+      "id": "prod1",
+      "images": Object {
+        "edges": Array [
+          Object {
+            "node": Object {
+              "alt": "Front",
+              "id": "img1",
+              "order": 1,
+              "url": "placeholder60x60.png",
+            },
+          },
+          Object {
+            "node": Object {
+              "alt": "Back",
+              "id": "img2",
+              "order": 4,
+              "url": "placeholder60x60.png",
+            },
+          },
+          Object {
+            "node": Object {
+              "alt": "Right side",
+              "id": "img3",
+              "order": 2,
+              "url": "placeholder60x60.png",
+            },
+          },
+          Object {
+            "node": Object {
+              "alt": "Left side",
+              "id": "img4",
+              "order": 3,
+              "url": "placeholder60x60.png",
+            },
+          },
+          Object {
+            "node": Object {
+              "alt": "Paper",
+              "id": "img5",
+              "order": 0,
+              "url": "placeholder60x60.png",
+            },
+          },
+          Object {
+            "node": Object {
+              "alt": "Hard cover",
+              "id": "img6",
+              "order": 1,
+              "url": "placeholder60x60.png",
+            },
+          },
+          Object {
+            "node": Object {
+              "alt": "Extended version",
+              "id": "img7",
+              "order": 0,
+              "url": "placeholder60x60.png",
+            },
+          },
+          Object {
+            "node": Object {
+              "alt": "Cut version",
+              "id": "img8",
+              "order": 2,
+              "url": "placeholder60x60.png",
+            },
+          },
+          Object {
+            "node": Object {
+              "alt": "Soft cover",
+              "id": "img9",
+              "order": 2,
+              "url": "placeholder60x60.png",
+            },
+          },
+        ],
+      },
+      "name": "Our Awesome Book",
+      "thumbnailUrl": "placeholder60x60.png",
+      "variants": Object {
+        "edges": Array [
+          Object {
+            "node": Object {
+              "id": "var2",
+              "name": "Extended Soft",
+            },
+          },
+          Object {
+            "node": Object {
+              "id": "var3",
+              "name": "Normal Hard",
+            },
+          },
+          Object {
+            "node": Object {
+              "id": "var4",
+              "name": "Normal Soft",
+            },
+          },
+        ],
+        "totalCount": 11,
+      },
+    }
+  }
+/>
+`;
+
+exports[`Storyshots Products / ProductVariantProduct when loading data 1`] = `
+<Component
+  classes={
+    Object {
+      "root": "Component-root-60",
+    }
+  }
+  loading={true}
+  placeholderImage="placeholder60x60.png"
+/>
+`;
+
+exports[`Storyshots Products / ProductVariantStock when loaded data 1`] = `
+<Component
+  classes={
+    Object {
+      "grid": "Component-grid-62",
+      "root": "Component-root-61",
+    }
+  }
+  onChange={[Function]}
+  sku="1230959124123"
+  stock={49}
+  stockAllocated={12}
+/>
+`;
+
+exports[`Storyshots Products / ProductVariantStock when loading data 1`] = `
+<Component
+  classes={
+    Object {
+      "grid": "Component-grid-62",
+      "root": "Component-root-61",
+    }
+  }
+  loading={true}
+  onChange={[Function]}
+/>
+`;
+
+exports[`Storyshots Products / ProductVariants when loading data 1`] = `
+<Component
+  classes={
+    Object {
+      "alignRightText": "Component-alignRightText-63",
+      "greenDot": "Component-greenDot-64",
+      "link": "Component-link-65",
+      "redDot": "Component-redDot-66",
+    }
+  }
+/>
+`;
+
+exports[`Storyshots Products / ProductVariants when product has no variants 1`] = `
+<Component
+  classes={
+    Object {
+      "alignRightText": "Component-alignRightText-63",
+      "greenDot": "Component-greenDot-64",
+      "link": "Component-link-65",
+      "redDot": "Component-redDot-66",
+    }
+  }
+  variants={Array []}
+/>
+`;
+
+exports[`Storyshots Products / ProductVariants when product has variants 1`] = `
+<Component
+  classes={
+    Object {
+      "alignRightText": "Component-alignRightText-63",
+      "greenDot": "Component-greenDot-64",
+      "link": "Component-link-65",
+      "redDot": "Component-redDot-66",
+    }
+  }
+  fallbackGross="80%"
+  fallbackPrice="90.00 USD"
+  variants={
+    Array [
+      Object {
+        "id": "UHJvZHVjdFZhcmlhbnQ6Nw==",
+        "name": "XXL",
+        "priceOverride": null,
+        "sku": "2-1337",
+        "stockQuantity": 5,
+      },
+      Object {
+        "id": "UHJvZHVjdFZhcmlhbnQ6OA==",
+        "name": "XL",
+        "priceOverride": null,
+        "sku": "2-1338",
+        "stockQuantity": 0,
+      },
+      Object {
+        "id": "UHJvZHVjdFZhcmlhbnQ6OQ==",
+        "name": "L",
+        "priceOverride": null,
+        "sku": "2-1339",
+        "stockQuantity": 15,
+      },
+      Object {
+        "id": "UHJvZHVjdFZhcmlhbnQ6MTA=",
+        "name": "M",
+        "priceOverride": null,
+        "sku": "2-1340",
+        "stockQuantity": 33,
+      },
+      Object {
+        "id": "UHJvZHVjdFZhcmlhbnQ6MTE=",
+        "name": "S",
+        "priceOverride": null,
+        "sku": "2-1341",
+        "stockQuantity": 0,
+      },
+      Object {
+        "id": "UHJvZHVjdFZhcmlhbnQ6MTI=",
+        "name": "XS",
+        "priceOverride": null,
+        "sku": "2-1342",
+        "stockQuantity": 0,
+      },
+    ]
+  }
+/>
+`;
+
+exports[`Storyshots Products / ProductVariants with clickable rows 1`] = `
+<Component
+  classes={
+    Object {
+      "alignRightText": "Component-alignRightText-63",
+      "greenDot": "Component-greenDot-64",
+      "link": "Component-link-65",
+      "redDot": "Component-redDot-66",
+    }
+  }
+  fallbackGross="80%"
+  fallbackPrice="90.00 USD"
+  onRowClick={[Function]}
+  variants={
+    Array [
+      Object {
+        "id": "UHJvZHVjdFZhcmlhbnQ6Nw==",
+        "name": "XXL",
+        "priceOverride": null,
+        "sku": "2-1337",
+        "stockQuantity": 5,
+      },
+      Object {
+        "id": "UHJvZHVjdFZhcmlhbnQ6OA==",
+        "name": "XL",
+        "priceOverride": null,
+        "sku": "2-1338",
+        "stockQuantity": 0,
+      },
+      Object {
+        "id": "UHJvZHVjdFZhcmlhbnQ6OQ==",
+        "name": "L",
+        "priceOverride": null,
+        "sku": "2-1339",
+        "stockQuantity": 15,
+      },
+      Object {
+        "id": "UHJvZHVjdFZhcmlhbnQ6MTA=",
+        "name": "M",
+        "priceOverride": null,
+        "sku": "2-1340",
+        "stockQuantity": 33,
+      },
+      Object {
+        "id": "UHJvZHVjdFZhcmlhbnQ6MTE=",
+        "name": "S",
+        "priceOverride": null,
+        "sku": "2-1341",
+        "stockQuantity": 0,
+      },
+      Object {
+        "id": "UHJvZHVjdFZhcmlhbnQ6MTI=",
+        "name": "XS",
+        "priceOverride": null,
+        "sku": "2-1342",
+        "stockQuantity": 0,
+      },
+    ]
+  }
+/>
+`;
