@@ -42,8 +42,8 @@ def tax_details(request, country_code):
 
 @staff_member_required
 @permission_required('site.edit_settings')
-def configure_taxes(request, site_pk):
-    site_settings = get_object_or_404(SiteSettings, pk=site_pk)
+def configure_taxes(request):
+    site_settings = request.site.settings
     taxes_form = TaxesConfigurationForm(
         request.POST or None, instance=site_settings)
     if taxes_form.is_valid():

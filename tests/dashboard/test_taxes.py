@@ -45,8 +45,7 @@ def test_view_tax_details(admin_client, vatlayer):
 
 
 def test_configure_taxes(admin_client, site_settings):
-    url = reverse(
-        'dashboard:configure-taxes', kwargs={'site_pk': site_settings.pk})
+    url = reverse('dashboard:configure-taxes')
     data = {
         'include_taxes_in_prices': False,
         'display_gross_prices': False,
