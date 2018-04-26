@@ -71,7 +71,7 @@
         {% with total=checkout.get_total %}
           <div class="row checkout__review__section">
             <div class="col-8">
-              {% if request.site.settings.display_gross_prices %}
+              {% if site.settings.display_gross_prices %}
                 <p>{% trans "Taxes (included)" context "Order review section title" %}</p>
               {% else %}
                 <p>{% trans "Taxes" context "Order review section title" %}</p>

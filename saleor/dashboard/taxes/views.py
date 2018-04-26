@@ -22,9 +22,8 @@ def tax_list(request):
     tax_filter = TaxFilter(request.GET, queryset=taxes)
     taxes = get_paginator_items(
         tax_filter.qs, settings.DASHBOARD_PAGINATE_BY, request.GET.get('page'))
-    site_settings = request.site.settings
     ctx = {
-        'taxes': taxes, 'settings': site_settings, 'filter_set': tax_filter,
+        'taxes': taxes, 'filter_set': tax_filter,
         'is_empty': not tax_filter.queryset.exists()}
     return TemplateResponse(request, 'dashboard/taxes/list.html', ctx)
 
