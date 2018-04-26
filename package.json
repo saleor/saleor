@@ -100,6 +100,7 @@
     "eslint-plugin-standard": "^3.0.1",
     "file-loader": "^1.1.11",
     "jest": "^22.4.3",
+    "jest-file": "^1.0.0",
     "mini-css-extract-plugin": "^0.4.0",
     "mjml": "^3.3.5",
     "node-sass": "^4.8.3",
@@ -137,7 +138,8 @@
   "jest": {
     "globals": {},
     "transform": {
-      "^.+\\.tsx?$": "ts-jest"
+      "^.+\\.tsx?$": "ts-jest",
+      "^.+\\.png?$": "jest-file"
     },
     "testRegex": ".*\\.test\\.tsx?$",
     "moduleFileExtensions": [
