@@ -11,4 +11,5 @@ class BaseNote(models.Model):
     is_public = models.BooleanField(default=True)
 
     class Meta:
+        abstract = True
         ordering = ('date', )
