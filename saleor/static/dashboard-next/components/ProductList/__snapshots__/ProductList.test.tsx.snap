@@ -2,29 +2,29 @@
 
 exports[`<ProductList /> renders properly when data is loaded 1`] = `
 <table
-  className="MuiTable-root-2"
+  className="MuiTable-root-3"
 >
   <thead
-    className="MuiTableHead-root-3"
+    className="MuiTableHead-root-4"
   >
     <tr
-      className="MuiTableRow-root-4 MuiTableRow-head-7"
+      className="MuiTableRow-root-5 MuiTableRow-head-8"
     >
       <th
         aria-sort={null}
-        className="MuiTableCell-root-9 MuiTableCell-head-10 Component-avatarCell-1"
+        className="MuiTableCell-root-10 MuiTableCell-head-11 Component-avatarCell-1"
         scope="col"
       />
       <th
         aria-sort={null}
-        className="MuiTableCell-root-9 MuiTableCell-head-10"
+        className="MuiTableCell-root-10 MuiTableCell-head-11"
         scope="col"
       >
         Name
       </th>
       <th
         aria-sort={null}
-        className="MuiTableCell-root-9 MuiTableCell-head-10"
+        className="MuiTableCell-root-10 MuiTableCell-head-11"
         scope="col"
       >
         Type
@@ -33,25 +33,25 @@ exports[`<ProductList /> renders properly when data is loaded 1`] = `
   </thead>
   <tfoot>
     <tr
-      className="MuiTableRow-root-4 MuiTableRow-footer-8"
+      className="MuiTableRow-root-5 MuiTableRow-footer-9"
     >
       <td
         aria-sort={null}
-        className="MuiTableCell-root-9 MuiTableCell-footer-12 MuiTablePagination-root-20"
+        className="MuiTableCell-root-10 MuiTableCell-footer-13 MuiTablePagination-root-21"
         colSpan={3}
         scope={undefined}
       >
         <div
-          className="MuiToolbar-root-26 MuiToolbar-gutters-27 MuiTablePagination-toolbar-25"
+          className="MuiToolbar-root-27 MuiToolbar-gutters-28 MuiTablePagination-toolbar-26"
         >
           <div
-            className="MuiTablePagination-spacer-24"
+            className="MuiTablePagination-spacer-25"
           />
           <div
-            className="MuiTablePaginationActions-root-28"
+            className="MuiTablePaginationActions-root-29"
           >
             <button
-              className="MuiButtonBase-root-35 MuiButtonBase-disabled-36 MuiIconButton-root-29 MuiIconButton-disabled-33"
+              className="MuiButtonBase-root-36 MuiButtonBase-disabled-37 MuiIconButton-root-30 MuiIconButton-disabled-34"
               disabled={true}
               onBlur={[Function]}
               onClick={[MockFunction]}
@@ -68,7 +68,7 @@ exports[`<ProductList /> renders properly when data is loaded 1`] = `
               type="button"
             >
               <span
-                className="MuiIconButton-label-34"
+                className="MuiIconButton-label-35"
               >
                 <svg
                   aria-hidden="true"
@@ -84,7 +84,7 @@ exports[`<ProductList /> renders properly when data is loaded 1`] = `
               </span>
             </button>
             <button
-              className="MuiButtonBase-root-35 MuiButtonBase-disabled-36 MuiIconButton-root-29 MuiIconButton-disabled-33"
+              className="MuiButtonBase-root-36 MuiButtonBase-disabled-37 MuiIconButton-root-30 MuiIconButton-disabled-34"
               disabled={true}
               onBlur={[Function]}
               onClick={[MockFunction]}
@@ -101,7 +101,7 @@ exports[`<ProductList /> renders properly when data is loaded 1`] = `
               type="button"
             >
               <span
-                className="MuiIconButton-label-34"
+                className="MuiIconButton-label-35"
               >
                 <svg
                   aria-hidden="true"
@@ -125,11 +125,11 @@ exports[`<ProductList /> renders properly when data is loaded 1`] = `
     className="MuiTableBody-root-44"
   >
     <tr
-      className="MuiTableRow-root-4"
+      className="MuiTableRow-root-5"
     >
       <td
         aria-sort={null}
-        className="MuiTableCell-root-9 MuiTableCell-body-11 Component-avatarCell-1"
+        className="MuiTableCell-root-10 MuiTableCell-body-12 Component-avatarCell-1"
         scope={undefined}
       >
         <div
@@ -146,25 +146,30 @@ exports[`<ProductList /> renders properly when data is loaded 1`] = `
       </td>
       <td
         aria-sort={null}
-        className="MuiTableCell-root-9 MuiTableCell-body-11"
+        className="MuiTableCell-root-10 MuiTableCell-body-12"
         scope={undefined}
       >
-        Lewis PLC
+        <span
+          className=""
+          onClick={[Function]}
+        >
+          Lewis PLC
+        </span>
       </td>
       <td
         aria-sort={null}
-        className="MuiTableCell-root-9 MuiTableCell-body-11"
+        className="MuiTableCell-root-10 MuiTableCell-body-12"
         scope={undefined}
       >
         T-sirts
       </td>
     </tr>
     <tr
-      className="MuiTableRow-root-4"
+      className="MuiTableRow-root-5"
     >
       <td
         aria-sort={null}
-        className="MuiTableCell-root-9 MuiTableCell-body-11 Component-avatarCell-1"
+        className="MuiTableCell-root-10 MuiTableCell-body-12 Component-avatarCell-1"
         scope={undefined}
       >
         <div
@@ -181,25 +186,30 @@ exports[`<ProductList /> renders properly when data is loaded 1`] = `
       </td>
       <td
         aria-sort={null}
-        className="MuiTableCell-root-9 MuiTableCell-body-11"
+        className="MuiTableCell-root-10 MuiTableCell-body-12"
         scope={undefined}
       >
-        Kennedy-Ramirez
+        <span
+          className=""
+          onClick={[Function]}
+        >
+          Kennedy-Ramirez
+        </span>
       </td>
       <td
         aria-sort={null}
-        className="MuiTableCell-root-9 MuiTableCell-body-11"
+        className="MuiTableCell-root-10 MuiTableCell-body-12"
         scope={undefined}
       >
         T-sirts
       </td>
     </tr>
     <tr
-      className="MuiTableRow-root-4"
+      className="MuiTableRow-root-5"
     >
       <td
         aria-sort={null}
-        className="MuiTableCell-root-9 MuiTableCell-body-11 Component-avatarCell-1"
+        className="MuiTableCell-root-10 MuiTableCell-body-12 Component-avatarCell-1"
         scope={undefined}
       >
         <div
@@ -216,14 +226,19 @@ exports[`<ProductList /> renders properly when data is loaded 1`] = `
       </td>
       <td
         aria-sort={null}
-        className="MuiTableCell-root-9 MuiTableCell-body-11"
+        className="MuiTableCell-root-10 MuiTableCell-body-12"
         scope={undefined}
       >
-        Newman, Ashley and Roberson
+        <span
+          className=""
+          onClick={[Function]}
+        >
+          Newman, Ashley and Roberson
+        </span>
       </td>
       <td
         aria-sort={null}
-        className="MuiTableCell-root-9 MuiTableCell-body-11"
+        className="MuiTableCell-root-10 MuiTableCell-body-12"
         scope={undefined}
       >
         T-sirts
@@ -235,29 +250,29 @@ exports[`<ProductList /> renders properly when data is loaded 1`] = `
 
 exports[`<ProductList /> renders properly when product list is empty 1`] = `
 <table
-  className="MuiTable-root-2"
+  className="MuiTable-root-3"
 >
   <thead
-    className="MuiTableHead-root-3"
+    className="MuiTableHead-root-4"
   >
     <tr
-      className="MuiTableRow-root-4 MuiTableRow-head-7"
+      className="MuiTableRow-root-5 MuiTableRow-head-8"
     >
       <th
         aria-sort={null}
-        className="MuiTableCell-root-9 MuiTableCell-head-10 Component-avatarCell-1"
+        className="MuiTableCell-root-10 MuiTableCell-head-11 Component-avatarCell-1"
         scope="col"
       />
       <th
         aria-sort={null}
-        className="MuiTableCell-root-9 MuiTableCell-head-10"
+        className="MuiTableCell-root-10 MuiTableCell-head-11"
         scope="col"
       >
         Name
       </th>
       <th
         aria-sort={null}
-        className="MuiTableCell-root-9 MuiTableCell-head-10"
+        className="MuiTableCell-root-10 MuiTableCell-head-11"
         scope="col"
       >
         Type
@@ -266,25 +281,25 @@ exports[`<ProductList /> renders properly when product list is empty 1`] = `
   </thead>
   <tfoot>
     <tr
-      className="MuiTableRow-root-4 MuiTableRow-footer-8"
+      className="MuiTableRow-root-5 MuiTableRow-footer-9"
     >
       <td
         aria-sort={null}
-        className="MuiTableCell-root-9 MuiTableCell-footer-12 MuiTablePagination-root-20"
+        className="MuiTableCell-root-10 MuiTableCell-footer-13 MuiTablePagination-root-21"
         colSpan={3}
         scope={undefined}
       >
         <div
-          className="MuiToolbar-root-26 MuiToolbar-gutters-27 MuiTablePagination-toolbar-25"
+          className="MuiToolbar-root-27 MuiToolbar-gutters-28 MuiTablePagination-toolbar-26"
         >
           <div
-            className="MuiTablePagination-spacer-24"
+            className="MuiTablePagination-spacer-25"
           />
           <div
-            className="MuiTablePaginationActions-root-28"
+            className="MuiTablePaginationActions-root-29"
           >
             <button
-              className="MuiButtonBase-root-35 MuiButtonBase-disabled-36 MuiIconButton-root-29 MuiIconButton-disabled-33"
+              className="MuiButtonBase-root-36 MuiButtonBase-disabled-37 MuiIconButton-root-30 MuiIconButton-disabled-34"
               disabled={true}
               onBlur={[Function]}
               onClick={[MockFunction]}
@@ -301,7 +316,7 @@ exports[`<ProductList /> renders properly when product list is empty 1`] = `
               type="button"
             >
               <span
-                className="MuiIconButton-label-34"
+                className="MuiIconButton-label-35"
               >
                 <svg
                   aria-hidden="true"
@@ -317,7 +332,7 @@ exports[`<ProductList /> renders properly when product list is empty 1`] = `
               </span>
             </button>
             <button
-              className="MuiButtonBase-root-35 MuiButtonBase-disabled-36 MuiIconButton-root-29 MuiIconButton-disabled-33"
+              className="MuiButtonBase-root-36 MuiButtonBase-disabled-37 MuiIconButton-root-30 MuiIconButton-disabled-34"
               disabled={true}
               onBlur={[Function]}
               onClick={[MockFunction]}
@@ -334,7 +349,7 @@ exports[`<ProductList /> renders properly when product list is empty 1`] = `
               type="button"
             >
               <span
-                className="MuiIconButton-label-34"
+                className="MuiIconButton-label-35"
               >
                 <svg
                   aria-hidden="true"
@@ -358,16 +373,16 @@ exports[`<ProductList /> renders properly when product list is empty 1`] = `
     className="MuiTableBody-root-44"
   >
     <tr
-      className="MuiTableRow-root-4"
+      className="MuiTableRow-root-5"
     >
       <td
         aria-sort={null}
-        className="MuiTableCell-root-9 MuiTableCell-body-11 Component-avatarCell-1"
+        className="MuiTableCell-root-10 MuiTableCell-body-12 Component-avatarCell-1"
         scope={undefined}
       />
       <td
         aria-sort={null}
-        className="MuiTableCell-root-9 MuiTableCell-body-11"
+        className="MuiTableCell-root-10 MuiTableCell-body-12"
         colSpan={2}
         scope={undefined}
       >
@@ -380,29 +395,29 @@ exports[`<ProductList /> renders properly when product list is empty 1`] = `
 
 exports[`<ProductList /> renders while data is loading 1`] = `
 <table
-  className="MuiTable-root-2"
+  className="MuiTable-root-3"
 >
   <thead
-    className="MuiTableHead-root-3"
+    className="MuiTableHead-root-4"
   >
     <tr
-      className="MuiTableRow-root-4 MuiTableRow-head-7"
+      className="MuiTableRow-root-5 MuiTableRow-head-8"
     >
       <th
         aria-sort={null}
-        className="MuiTableCell-root-9 MuiTableCell-head-10 Component-avatarCell-1"
+        className="MuiTableCell-root-10 MuiTableCell-head-11 Component-avatarCell-1"
         scope="col"
       />
       <th
         aria-sort={null}
-        className="MuiTableCell-root-9 MuiTableCell-head-10"
+        className="MuiTableCell-root-10 MuiTableCell-head-11"
         scope="col"
       >
         Name
       </th>
       <th
         aria-sort={null}
-        className="MuiTableCell-root-9 MuiTableCell-head-10"
+        className="MuiTableCell-root-10 MuiTableCell-head-11"
         scope="col"
       >
         Type
@@ -411,25 +426,25 @@ exports[`<ProductList /> renders while data is loading 1`] = `
   </thead>
   <tfoot>
     <tr
-      className="MuiTableRow-root-4 MuiTableRow-footer-8"
+      className="MuiTableRow-root-5 MuiTableRow-footer-9"
     >
       <td
         aria-sort={null}
-        className="MuiTableCell-root-9 MuiTableCell-footer-12 MuiTablePagination-root-20"
+        className="MuiTableCell-root-10 MuiTableCell-footer-13 MuiTablePagination-root-21"
         colSpan={3}
         scope={undefined}
       >
         <div
-          className="MuiToolbar-root-26 MuiToolbar-gutters-27 MuiTablePagination-toolbar-25"
+          className="MuiToolbar-root-27 MuiToolbar-gutters-28 MuiTablePagination-toolbar-26"
         >
           <div
-            className="MuiTablePagination-spacer-24"
+            className="MuiTablePagination-spacer-25"
           />
           <div
-            className="MuiTablePaginationActions-root-28"
+            className="MuiTablePaginationActions-root-29"
           >
             <button
-              className="MuiButtonBase-root-35 MuiButtonBase-disabled-36 MuiIconButton-root-29 MuiIconButton-disabled-33"
+              className="MuiButtonBase-root-36 MuiButtonBase-disabled-37 MuiIconButton-root-30 MuiIconButton-disabled-34"
               disabled={true}
               onBlur={[Function]}
               onClick={[MockFunction]}
@@ -446,7 +461,7 @@ exports[`<ProductList /> renders while data is loading 1`] = `
               type="button"
             >
               <span
-                className="MuiIconButton-label-34"
+                className="MuiIconButton-label-35"
               >
                 <svg
                   aria-hidden="true"
@@ -462,7 +477,7 @@ exports[`<ProductList /> renders while data is loading 1`] = `
               </span>
             </button>
             <button
-              className="MuiButtonBase-root-35 MuiButtonBase-disabled-36 MuiIconButton-root-29 MuiIconButton-disabled-33"
+              className="MuiButtonBase-root-36 MuiButtonBase-disabled-37 MuiIconButton-root-30 MuiIconButton-disabled-34"
               disabled={true}
               onBlur={[Function]}
               onClick={[MockFunction]}
@@ -479,7 +494,7 @@ exports[`<ProductList /> renders while data is loading 1`] = `
               type="button"
             >
               <span
-                className="MuiIconButton-label-34"
+                className="MuiIconButton-label-35"
               >
                 <svg
                   aria-hidden="true"
@@ -503,11 +518,11 @@ exports[`<ProductList /> renders while data is loading 1`] = `
     className="MuiTableBody-root-44"
   >
     <tr
-      className="MuiTableRow-root-4"
+      className="MuiTableRow-root-5"
     >
       <td
         aria-sort={null}
-        className="MuiTableCell-root-9 MuiTableCell-body-11 Component-avatarCell-1"
+        className="MuiTableCell-root-10 MuiTableCell-body-12 Component-avatarCell-1"
         scope={undefined}
       >
         <div
@@ -530,7 +545,7 @@ exports[`<ProductList /> renders while data is loading 1`] = `
       </td>
       <td
         aria-sort={null}
-        className="MuiTableCell-root-9 MuiTableCell-body-11"
+        className="MuiTableCell-root-10 MuiTableCell-body-12"
         scope={undefined}
       >
         <span
@@ -542,7 +557,7 @@ exports[`<ProductList /> renders while data is loading 1`] = `
       </td>
       <td
         aria-sort={null}
-        className="MuiTableCell-root-9 MuiTableCell-body-11"
+        className="MuiTableCell-root-10 MuiTableCell-body-12"
         scope={undefined}
       >
         <span

@@ -81,7 +81,7 @@ exports[`<PageList /> renders when category list is empty 1`] = `
               >
                 <svg
                   aria-hidden="true"
-                  className="MuiSvgIcon-root-39"
+                  className="MuiSvgIcon-root-38"
                   color={undefined}
                   focusable="false"
                   viewBox="0 0 24 24"
@@ -114,7 +114,7 @@ exports[`<PageList /> renders when category list is empty 1`] = `
               >
                 <svg
                   aria-hidden="true"
-                  className="MuiSvgIcon-root-39"
+                  className="MuiSvgIcon-root-38"
                   color={undefined}
                   focusable="false"
                   viewBox="0 0 24 24"
@@ -131,7 +131,7 @@ exports[`<PageList /> renders when category list is empty 1`] = `
     </tr>
   </tfoot>
   <tbody
-    className="MuiTableBody-root-45"
+    className="MuiTableBody-root-44"
   >
     <tr
       className="MuiTableRow-root-5"
@@ -230,7 +230,7 @@ exports[`<PageList /> renders when data is fully loaded 1`] = `
               >
                 <svg
                   aria-hidden="true"
-                  className="MuiSvgIcon-root-39"
+                  className="MuiSvgIcon-root-38"
                   color={undefined}
                   focusable="false"
                   viewBox="0 0 24 24"
@@ -263,7 +263,7 @@ exports[`<PageList /> renders when data is fully loaded 1`] = `
               >
                 <svg
                   aria-hidden="true"
-                  className="MuiSvgIcon-root-39"
+                  className="MuiSvgIcon-root-38"
                   color={undefined}
                   focusable="false"
                   viewBox="0 0 24 24"
@@ -280,7 +280,7 @@ exports[`<PageList /> renders when data is fully loaded 1`] = `
     </tr>
   </tfoot>
   <tbody
-    className="MuiTableBody-root-45"
+    className="MuiTableBody-root-44"
   >
     <tr
       className="MuiTableRow-root-5"
@@ -334,7 +334,7 @@ exports[`<PageList /> renders when data is fully loaded 1`] = `
           >
             <svg
               aria-hidden="true"
-              className="MuiSvgIcon-root-39"
+              className="MuiSvgIcon-root-38"
               color={undefined}
               focusable="false"
               viewBox="0 0 24 24"
@@ -347,7 +347,7 @@ exports[`<PageList /> renders when data is fully loaded 1`] = `
             </svg>
           </span>
           <span
-            className="MuiTouchRipple-root-47"
+            className="MuiTouchRipple-root-46"
           />
         </button>
       </td>
@@ -404,7 +404,7 @@ exports[`<PageList /> renders when data is fully loaded 1`] = `
           >
             <svg
               aria-hidden="true"
-              className="MuiSvgIcon-root-39"
+              className="MuiSvgIcon-root-38"
               color={undefined}
               focusable="false"
               viewBox="0 0 24 24"
@@ -417,7 +417,7 @@ exports[`<PageList /> renders when data is fully loaded 1`] = `
             </svg>
           </span>
           <span
-            className="MuiTouchRipple-root-47"
+            className="MuiTouchRipple-root-46"
           />
         </button>
       </td>
@@ -474,7 +474,7 @@ exports[`<PageList /> renders when data is fully loaded 1`] = `
           >
             <svg
               aria-hidden="true"
-              className="MuiSvgIcon-root-39"
+              className="MuiSvgIcon-root-38"
               color={undefined}
               focusable="false"
               viewBox="0 0 24 24"
@@ -487,7 +487,7 @@ exports[`<PageList /> renders when data is fully loaded 1`] = `
             </svg>
           </span>
           <span
-            className="MuiTouchRipple-root-47"
+            className="MuiTouchRipple-root-46"
           />
         </button>
       </td>
@@ -544,7 +544,7 @@ exports[`<PageList /> renders when data is fully loaded 1`] = `
           >
             <svg
               aria-hidden="true"
-              className="MuiSvgIcon-root-39"
+              className="MuiSvgIcon-root-38"
               color={undefined}
               focusable="false"
               viewBox="0 0 24 24"
@@ -557,7 +557,7 @@ exports[`<PageList /> renders when data is fully loaded 1`] = `
             </svg>
           </span>
           <span
-            className="MuiTouchRipple-root-47"
+            className="MuiTouchRipple-root-46"
           />
         </button>
       </td>
@@ -647,7 +647,7 @@ exports[`<PageList /> renders while data is loading 1`] = `
               >
                 <svg
                   aria-hidden="true"
-                  className="MuiSvgIcon-root-39"
+                  className="MuiSvgIcon-root-38"
                   color={undefined}
                   focusable="false"
                   viewBox="0 0 24 24"
@@ -680,7 +680,7 @@ exports[`<PageList /> renders while data is loading 1`] = `
               >
                 <svg
                   aria-hidden="true"
-                  className="MuiSvgIcon-root-39"
+                  className="MuiSvgIcon-root-38"
                   color={undefined}
                   focusable="false"
                   viewBox="0 0 24 24"
@@ -697,7 +697,7 @@ exports[`<PageList /> renders while data is loading 1`] = `
     </tr>
   </tfoot>
   <tbody
-    className="MuiTableBody-root-45"
+    className="MuiTableBody-root-44"
   >
     <tr
       className="MuiTableRow-root-5"
@@ -708,7 +708,7 @@ exports[`<PageList /> renders while data is loading 1`] = `
         scope={undefined}
       >
         <span
-          className="Component-skeleton-46"
+          className="Component-skeleton-45"
           style={undefined}
         >
           ‌
@@ -720,7 +720,7 @@ exports[`<PageList /> renders while data is loading 1`] = `
         scope={undefined}
       >
         <span
-          className="Component-skeleton-46"
+          className="Component-skeleton-45"
           style={undefined}
         >
           ‌
@@ -732,7 +732,7 @@ exports[`<PageList /> renders while data is loading 1`] = `
         scope={undefined}
       >
         <span
-          className="Component-skeleton-46"
+          className="Component-skeleton-45"
           style={undefined}
         >
           ‌
@@ -764,7 +764,7 @@ exports[`<PageList /> renders while data is loading 1`] = `
           >
             <svg
               aria-hidden="true"
-              className="MuiSvgIcon-root-39"
+              className="MuiSvgIcon-root-38"
               color={undefined}
               focusable="false"
               viewBox="0 0 24 24"

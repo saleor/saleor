@@ -37,7 +37,7 @@ exports[`<CategoryProducts /> renders when loading data 1`] = `
         >
           <svg
             aria-hidden="true"
-            className="MuiSvgIcon-root-68"
+            className="MuiSvgIcon-root-67"
             color={undefined}
             focusable="false"
             viewBox="0 0 24 24"
@@ -50,7 +50,7 @@ exports[`<CategoryProducts /> renders when loading data 1`] = `
           </svg>
         </span>
         <span
-          className="MuiTouchRipple-root-74"
+          className="MuiTouchRipple-root-73"
         />
       </button>
     </div>
@@ -66,7 +66,7 @@ exports[`<CategoryProducts /> renders when loading data 1`] = `
       >
         <th
           aria-sort={null}
-          className="MuiTableCell-root-89 MuiTableCell-head-90 Component-avatarCell-81"
+          className="MuiTableCell-root-89 MuiTableCell-head-90 Component-avatarCell-80"
           scope="col"
         />
         <th
@@ -126,7 +126,7 @@ exports[`<CategoryProducts /> renders when loading data 1`] = `
                 >
                   <svg
                     aria-hidden="true"
-                    className="MuiSvgIcon-root-68"
+                    className="MuiSvgIcon-root-67"
                     color={undefined}
                     focusable="false"
                     viewBox="0 0 24 24"
@@ -159,7 +159,7 @@ exports[`<CategoryProducts /> renders when loading data 1`] = `
                 >
                   <svg
                     aria-hidden="true"
-                    className="MuiSvgIcon-root-68"
+                    className="MuiSvgIcon-root-67"
                     color={undefined}
                     focusable="false"
                     viewBox="0 0 24 24"
@@ -170,7 +170,7 @@ exports[`<CategoryProducts /> renders when loading data 1`] = `
                   </svg>
                 </span>
                 <span
-                  className="MuiTouchRipple-root-74"
+                  className="MuiTouchRipple-root-73"
                 />
               </button>
             </div>
@@ -186,7 +186,7 @@ exports[`<CategoryProducts /> renders when loading data 1`] = `
       >
         <td
           aria-sort={null}
-          className="MuiTableCell-root-89 MuiTableCell-body-91 Component-avatarCell-81"
+          className="MuiTableCell-root-89 MuiTableCell-body-91 Component-avatarCell-80"
           scope={undefined}
         >
           <div
@@ -194,7 +194,7 @@ exports[`<CategoryProducts /> renders when loading data 1`] = `
           >
             <svg
               aria-hidden="true"
-              className="MuiSvgIcon-root-68"
+              className="MuiSvgIcon-root-67"
               color={undefined}
               focusable="false"
               viewBox="0 0 24 24"
@@ -274,7 +274,7 @@ exports[`<CategoryProducts /> renders with initial data 1`] = `
         >
           <svg
             aria-hidden="true"
-            className="MuiSvgIcon-root-68"
+            className="MuiSvgIcon-root-67"
             color={undefined}
             focusable="false"
             viewBox="0 0 24 24"
@@ -287,7 +287,7 @@ exports[`<CategoryProducts /> renders with initial data 1`] = `
           </svg>
         </span>
         <span
-          className="MuiTouchRipple-root-74"
+          className="MuiTouchRipple-root-73"
         />
       </button>
     </div>
@@ -303,7 +303,7 @@ exports[`<CategoryProducts /> renders with initial data 1`] = `
       >
         <th
           aria-sort={null}
-          className="MuiTableCell-root-89 MuiTableCell-head-90 Component-avatarCell-81"
+          className="MuiTableCell-root-89 MuiTableCell-head-90 Component-avatarCell-80"
           scope="col"
         />
         <th
@@ -363,7 +363,7 @@ exports[`<CategoryProducts /> renders with initial data 1`] = `
                 >
                   <svg
                     aria-hidden="true"
-                    className="MuiSvgIcon-root-68"
+                    className="MuiSvgIcon-root-67"
                     color={undefined}
                     focusable="false"
                     viewBox="0 0 24 24"
@@ -396,7 +396,7 @@ exports[`<CategoryProducts /> renders with initial data 1`] = `
                 >
                   <svg
                     aria-hidden="true"
-                    className="MuiSvgIcon-root-68"
+                    className="MuiSvgIcon-root-67"
                     color={undefined}
                     focusable="false"
                     viewBox="0 0 24 24"
@@ -407,7 +407,7 @@ exports[`<CategoryProducts /> renders with initial data 1`] = `
                   </svg>
                 </span>
                 <span
-                  className="MuiTouchRipple-root-74"
+                  className="MuiTouchRipple-root-73"
                 />
               </button>
             </div>
@@ -423,7 +423,7 @@ exports[`<CategoryProducts /> renders with initial data 1`] = `
       >
         <td
           aria-sort={null}
-          className="MuiTableCell-root-89 MuiTableCell-body-91 Component-avatarCell-81"
+          className="MuiTableCell-root-89 MuiTableCell-body-91 Component-avatarCell-80"
           scope={undefined}
         >
           <div
@@ -443,7 +443,12 @@ exports[`<CategoryProducts /> renders with initial data 1`] = `
           className="MuiTableCell-root-89 MuiTableCell-body-91"
           scope={undefined}
         >
-          Gardner, Graham and King
+          <span
+            className=""
+            onClick={[Function]}
+          >
+            Gardner, Graham and King
+          </span>
         </td>
         <td
           aria-sort={null}
@@ -458,7 +463,7 @@ exports[`<CategoryProducts /> renders with initial data 1`] = `
       >
         <td
           aria-sort={null}
-          className="MuiTableCell-root-89 MuiTableCell-body-91 Component-avatarCell-81"
+          className="MuiTableCell-root-89 MuiTableCell-body-91 Component-avatarCell-80"
           scope={undefined}
         >
           <div
@@ -478,7 +483,12 @@ exports[`<CategoryProducts /> renders with initial data 1`] = `
           className="MuiTableCell-root-89 MuiTableCell-body-91"
           scope={undefined}
         >
-          Gardner, Graham and King
+          <span
+            className=""
+            onClick={[Function]}
+          >
+            Gardner, Graham and King
+          </span>
         </td>
         <td
           aria-sort={null}
@@ -493,7 +503,7 @@ exports[`<CategoryProducts /> renders with initial data 1`] = `
       >
         <td
           aria-sort={null}
-          className="MuiTableCell-root-89 MuiTableCell-body-91 Component-avatarCell-81"
+          className="MuiTableCell-root-89 MuiTableCell-body-91 Component-avatarCell-80"
           scope={undefined}
         >
           <div
@@ -513,7 +523,12 @@ exports[`<CategoryProducts /> renders with initial data 1`] = `
           className="MuiTableCell-root-89 MuiTableCell-body-91"
           scope={undefined}
         >
-          Gardner, Graham and King
+          <span
+            className=""
+            onClick={[Function]}
+          >
+            Gardner, Graham and King
+          </span>
         </td>
         <td
           aria-sort={null}
@@ -528,7 +543,7 @@ exports[`<CategoryProducts /> renders with initial data 1`] = `
       >
         <td
           aria-sort={null}
-          className="MuiTableCell-root-89 MuiTableCell-body-91 Component-avatarCell-81"
+          className="MuiTableCell-root-89 MuiTableCell-body-91 Component-avatarCell-80"
           scope={undefined}
         >
           <div
@@ -548,7 +563,12 @@ exports[`<CategoryProducts /> renders with initial data 1`] = `
           className="MuiTableCell-root-89 MuiTableCell-body-91"
           scope={undefined}
         >
-          Gardner, Graham and King
+          <span
+            className=""
+            onClick={[Function]}
+          >
+            Gardner, Graham and King
+          </span>
         </td>
         <td
           aria-sort={null}
@@ -600,7 +620,7 @@ exports[`<CategoryProducts /> renders without initial data 1`] = `
         >
           <svg
             aria-hidden="true"
-            className="MuiSvgIcon-root-68"
+            className="MuiSvgIcon-root-67"
             color={undefined}
             focusable="false"
             viewBox="0 0 24 24"
@@ -613,7 +633,7 @@ exports[`<CategoryProducts /> renders without initial data 1`] = `
           </svg>
         </span>
         <span
-          className="MuiTouchRipple-root-74"
+          className="MuiTouchRipple-root-73"
         />
       </button>
     </div>
@@ -629,7 +649,7 @@ exports[`<CategoryProducts /> renders without initial data 1`] = `
       >
         <th
           aria-sort={null}
-          className="MuiTableCell-root-89 MuiTableCell-head-90 Component-avatarCell-81"
+          className="MuiTableCell-root-89 MuiTableCell-head-90 Component-avatarCell-80"
           scope="col"
         />
         <th
@@ -689,7 +709,7 @@ exports[`<CategoryProducts /> renders without initial data 1`] = `
                 >
                   <svg
                     aria-hidden="true"
-                    className="MuiSvgIcon-root-68"
+                    className="MuiSvgIcon-root-67"
                     color={undefined}
                     focusable="false"
                     viewBox="0 0 24 24"
@@ -722,7 +742,7 @@ exports[`<CategoryProducts /> renders without initial data 1`] = `
                 >
                   <svg
                     aria-hidden="true"
-                    className="MuiSvgIcon-root-68"
+                    className="MuiSvgIcon-root-67"
                     color={undefined}
                     focusable="false"
                     viewBox="0 0 24 24"
@@ -733,7 +753,7 @@ exports[`<CategoryProducts /> renders without initial data 1`] = `
                   </svg>
                 </span>
                 <span
-                  className="MuiTouchRipple-root-74"
+                  className="MuiTouchRipple-root-73"
                 />
               </button>
             </div>
@@ -749,7 +769,7 @@ exports[`<CategoryProducts /> renders without initial data 1`] = `
       >
         <td
           aria-sort={null}
-          className="MuiTableCell-root-89 MuiTableCell-body-91 Component-avatarCell-81"
+          className="MuiTableCell-root-89 MuiTableCell-body-91 Component-avatarCell-80"
           scope={undefined}
         />
         <td

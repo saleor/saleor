@@ -37,7 +37,7 @@ exports[`<CategoryPropertiesCard /> renders when data is loaded 1`] = `
         >
           <svg
             aria-hidden="true"
-            className="MuiSvgIcon-root-68"
+            className="MuiSvgIcon-root-67"
             color={undefined}
             focusable="false"
             viewBox="0 0 24 24"
@@ -50,7 +50,7 @@ exports[`<CategoryPropertiesCard /> renders when data is loaded 1`] = `
           </svg>
         </span>
         <span
-          className="MuiTouchRipple-root-74"
+          className="MuiTouchRipple-root-73"
         />
       </button>
       <button
@@ -75,7 +75,7 @@ exports[`<CategoryPropertiesCard /> renders when data is loaded 1`] = `
         >
           <svg
             aria-hidden="true"
-            className="MuiSvgIcon-root-68"
+            className="MuiSvgIcon-root-67"
             color={undefined}
             focusable="false"
             viewBox="0 0 24 24"
@@ -88,13 +88,13 @@ exports[`<CategoryPropertiesCard /> renders when data is loaded 1`] = `
           </svg>
         </span>
         <span
-          className="MuiTouchRipple-root-74"
+          className="MuiTouchRipple-root-73"
         />
       </button>
     </div>
   </div>
   <div
-    className="MuiCardContent-root-81"
+    className="MuiCardContent-root-80"
   >
     <p
       className="MuiTypography-root-35 MuiTypography-body1-44"
@@ -142,7 +142,7 @@ exports[`<CategoryPropertiesCard /> renders while data is loading 1`] = `
         >
           <svg
             aria-hidden="true"
-            className="MuiSvgIcon-root-68"
+            className="MuiSvgIcon-root-67"
             color={undefined}
             focusable="false"
             viewBox="0 0 24 24"
@@ -155,7 +155,7 @@ exports[`<CategoryPropertiesCard /> renders while data is loading 1`] = `
           </svg>
         </span>
         <span
-          className="MuiTouchRipple-root-74"
+          className="MuiTouchRipple-root-73"
         />
       </button>
       <button
@@ -180,7 +180,7 @@ exports[`<CategoryPropertiesCard /> renders while data is loading 1`] = `
         >
           <svg
             aria-hidden="true"
-            className="MuiSvgIcon-root-68"
+            className="MuiSvgIcon-root-67"
             color={undefined}
             focusable="false"
             viewBox="0 0 24 24"
@@ -193,13 +193,13 @@ exports[`<CategoryPropertiesCard /> renders while data is loading 1`] = `
           </svg>
         </span>
         <span
-          className="MuiTouchRipple-root-74"
+          className="MuiTouchRipple-root-73"
         />
       </button>
     </div>
   </div>
   <div
-    className="MuiCardContent-root-81"
+    className="MuiCardContent-root-80"
   >
     <p
       className="MuiTypography-root-35 MuiTypography-body1-44"

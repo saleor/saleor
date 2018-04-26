@@ -69,7 +69,7 @@ export class PageList extends React.Component<PageListProps, PageListState> {
               },
               variables: {
                 after: data.pages.pageInfo.endCursor,
-                first: 3
+                first: 12
               }
             });
           };

@@ -79,7 +79,7 @@ exports[`<PageBaseForm /> renders errors 1`] = `
           className="MuiInput-root-108 MuiInput-error-113 MuiInput-fullWidth-115 MuiInput-formControl-109 MuiInput-multiline-114 MuiInput-underline-112"
         >
           <div
-            className="MuiTextarea-root-122"
+            className="Textarea-root-122"
             style={
               Object {
                 "height": 19,
@@ -88,7 +88,7 @@ exports[`<PageBaseForm /> renders errors 1`] = `
           >
             <textarea
               aria-hidden="true"
-              className="MuiTextarea-shadow-124 MuiTextarea-textarea-123"
+              className="Textarea-shadow-124 Textarea-textarea-123"
               readOnly={true}
               rows="1"
               tabIndex={-1}
@@ -96,7 +96,7 @@ exports[`<PageBaseForm /> renders errors 1`] = `
             />
             <textarea
               aria-hidden="true"
-              className="MuiTextarea-shadow-124 MuiTextarea-textarea-123"
+              className="Textarea-shadow-124 Textarea-textarea-123"
               defaultValue={undefined}
               readOnly={true}
               rows={1}
@@ -108,7 +108,7 @@ exports[`<PageBaseForm /> renders errors 1`] = `
               aria-required={false}
               autoComplete={undefined}
               autoFocus={undefined}
-              className="MuiTextarea-textarea-123 MuiInput-input-116 MuiInput-inputMultiline-118"
+              className="Textarea-textarea-123 MuiInput-input-116 MuiInput-inputMultiline-118"
               defaultValue={undefined}
               disabled={false}
               id={undefined}
@@ -256,7 +256,7 @@ exports[`<PageBaseForm /> renders errors 1`] = `
           >
             <svg
               aria-hidden="true"
-              className="MuiSvgIcon-root-150"
+              className="MuiSvgIcon-root-149"
               color={undefined}
               focusable="false"
               viewBox="0 0 24 24"
@@ -278,11 +278,11 @@ exports[`<PageBaseForm /> renders errors 1`] = `
             />
           </span>
           <span
-            className="MuiTouchRipple-root-156"
+            className="MuiTouchRipple-root-155"
           />
         </span>
         <span
-          className="MuiTypography-root-163 MuiTypography-body1-172 MuiFormControlLabel-label-131"
+          className="MuiTypography-root-162 MuiTypography-body1-171 MuiFormControlLabel-label-131"
         >
           Published
         </span>
@@ -366,7 +366,7 @@ exports[`<PageBaseForm /> renders with 'created' property 1`] = `
           className="MuiInput-root-108 MuiInput-fullWidth-115 MuiInput-formControl-109 MuiInput-multiline-114 MuiInput-underline-112"
         >
           <div
-            className="MuiTextarea-root-122"
+            className="Textarea-root-122"
             style={
               Object {
                 "height": 19,
@@ -375,7 +375,7 @@ exports[`<PageBaseForm /> renders with 'created' property 1`] = `
           >
             <textarea
               aria-hidden="true"
-              className="MuiTextarea-shadow-124 MuiTextarea-textarea-123"
+              className="Textarea-shadow-124 Textarea-textarea-123"
               readOnly={true}
               rows="1"
               tabIndex={-1}
@@ -383,7 +383,7 @@ exports[`<PageBaseForm /> renders with 'created' property 1`] = `
             />
             <textarea
               aria-hidden="true"
-              className="MuiTextarea-shadow-124 MuiTextarea-textarea-123"
+              className="Textarea-shadow-124 Textarea-textarea-123"
               defaultValue={undefined}
               readOnly={true}
               rows={1}
@@ -395,7 +395,7 @@ exports[`<PageBaseForm /> renders with 'created' property 1`] = `
               aria-required={false}
               autoComplete={undefined}
               autoFocus={undefined}
-              className="MuiTextarea-textarea-123 MuiInput-input-116 MuiInput-inputMultiline-118"
+              className="Textarea-textarea-123 MuiInput-input-116 MuiInput-inputMultiline-118"
               defaultValue={undefined}
               disabled={false}
               id={undefined}
@@ -518,7 +518,7 @@ exports[`<PageBaseForm /> renders with 'created' property 1`] = `
         className="Component-spacer-121"
       />
       <p
-        className="MuiTypography-root-163 MuiTypography-body1-172"
+        className="MuiTypography-root-162 MuiTypography-body1-171"
       >
         Created at: 
         2018-03-20T16:39:08.850105+00:00
@@ -549,7 +549,7 @@ exports[`<PageBaseForm /> renders with 'created' property 1`] = `
           >
             <svg
               aria-hidden="true"
-              className="MuiSvgIcon-root-150"
+              className="MuiSvgIcon-root-149"
               color={undefined}
               focusable="false"
               viewBox="0 0 24 24"
@@ -571,11 +571,11 @@ exports[`<PageBaseForm /> renders with 'created' property 1`] = `
             />
           </span>
           <span
-            className="MuiTouchRipple-root-156"
+            className="MuiTouchRipple-root-155"
           />
         </span>
         <span
-          className="MuiTypography-root-163 MuiTypography-body1-172 MuiFormControlLabel-label-131"
+          className="MuiTypography-root-162 MuiTypography-body1-171 MuiFormControlLabel-label-131"
         >
           Published
         </span>
@@ -659,7 +659,7 @@ exports[`<PageBaseForm /> renders without 'created' property 1`] = `
           className="MuiInput-root-108 MuiInput-fullWidth-115 MuiInput-formControl-109 MuiInput-multiline-114 MuiInput-underline-112"
         >
           <div
-            className="MuiTextarea-root-122"
+            className="Textarea-root-122"
             style={
               Object {
                 "height": 19,
@@ -668,7 +668,7 @@ exports[`<PageBaseForm /> renders without 'created' property 1`] = `
           >
             <textarea
               aria-hidden="true"
-              className="MuiTextarea-shadow-124 MuiTextarea-textarea-123"
+              className="Textarea-shadow-124 Textarea-textarea-123"
               readOnly={true}
               rows="1"
               tabIndex={-1}
@@ -676,7 +676,7 @@ exports[`<PageBaseForm /> renders without 'created' property 1`] = `
             />
             <textarea
               aria-hidden="true"
-              className="MuiTextarea-shadow-124 MuiTextarea-textarea-123"
+              className="Textarea-shadow-124 Textarea-textarea-123"
               defaultValue={undefined}
               readOnly={true}
               rows={1}
@@ -688,7 +688,7 @@ exports[`<PageBaseForm /> renders without 'created' property 1`] = `
               aria-required={false}
               autoComplete={undefined}
               autoFocus={undefined}
-              className="MuiTextarea-textarea-123 MuiInput-input-116 MuiInput-inputMultiline-118"
+              className="Textarea-textarea-123 MuiInput-input-116 MuiInput-inputMultiline-118"
               defaultValue={undefined}
               disabled={false}
               id={undefined}
@@ -836,7 +836,7 @@ exports[`<PageBaseForm /> renders without 'created' property 1`] = `
           >
             <svg
               aria-hidden="true"
-              className="MuiSvgIcon-root-150"
+              className="MuiSvgIcon-root-149"
               color={undefined}
               focusable="false"
               viewBox="0 0 24 24"
@@ -858,11 +858,11 @@ exports[`<PageBaseForm /> renders without 'created' property 1`] = `
             />
           </span>
           <span
-            className="MuiTouchRipple-root-156"
+            className="MuiTouchRipple-root-155"
           />
         </span>
         <span
-          className="MuiTypography-root-163 MuiTypography-body1-172 MuiFormControlLabel-label-131"
+          className="MuiTypography-root-162 MuiTypography-body1-171 MuiFormControlLabel-label-131"
         >
           Published
         </span>
