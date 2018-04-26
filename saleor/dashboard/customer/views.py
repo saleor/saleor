@@ -4,15 +4,16 @@ from django.contrib.auth.decorators import permission_required
 from django.db.models import Q
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect
+from django.template.context_processors import csrf
 from django.template.response import TemplateResponse
 from django.utils.translation import pgettext_lazy
 
-from ...account.models import User
+from ...account.models import CustomerNote, User
 from ...core.utils import get_paginator_items
 from ..emails import send_set_password_email
 from ..views import staff_member_required
 from .filters import UserFilter
-from .forms import CustomerForm
+from .forms import CustomerForm, CustomerNoteForm
 
 
 @staff_member_required
@@ -40,11 +41,14 @@ def customer_list(request):
 @permission_required('account.view_user')
 def customer_details(request, pk):
     queryset = User.objects.prefetch_related(
-        'orders', 'addresses').select_related(
+        'orders', 'addresses', 'notes').select_related(
             'default_billing_address', 'default_shipping_address')
     customer = get_object_or_404(queryset, pk=pk)
     customer_orders = customer.orders.all()
-    ctx = {'customer': customer, 'customer_orders': customer_orders}
+    notes = customer.notes.all()
+    ctx = {
+        'customer': customer, 'customer_orders': customer_orders,
+        'notes': notes}
     return TemplateResponse(request, 'dashboard/customer/detail.html', ctx)
 
 
@@ -93,3 +97,23 @@ def ajax_users_list(request):
     users = [
         {'id': user.pk, 'text': user.ajax_label} for user in queryset]
     return JsonResponse({'results': users})
+
+
+@staff_member_required
+@permission_required('account.edit_user')
+def customer_add_note(request, customer_pk):
+    customer = get_object_or_404(User, pk=customer_pk)
+    note = CustomerNote(customer=customer, user=request.user)
+    form = CustomerNoteForm(request.POST or None, instance=note)
+    status = 200
+    if form.is_valid():
+        form.save()
+        msg = pgettext_lazy(
+            'Dashboard message related to an customer', 'Added note')
+        messages.success(request, msg)
+    elif form.errors:
+        status = 400
+    ctx = {'customer': customer, 'form': form}
+    ctx.update(csrf(request))
+    template = 'dashboard/customer/modal/add_note.html'
+    return TemplateResponse(request, template, ctx, status=status)

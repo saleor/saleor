@@ -16,6 +16,7 @@ from prices import Money, TaxedMoney
 
 from . import FulfillmentStatus, OrderStatus
 from ..account.models import Address
+from ..core.models import BaseNote
 from ..core.utils import ZERO_TAXED_MONEY, build_absolute_uri
 from ..discount.models import Voucher
 from ..product.models import ProductVariant
@@ -316,15 +317,9 @@ class OrderHistoryEntry(models.Model):
         ordering = ('date', )
 
 
-class OrderNote(models.Model):
-    user = models.ForeignKey(
-        settings.AUTH_USER_MODEL, blank=True, null=True,
-        on_delete=models.SET_NULL)
-    date = models.DateTimeField(db_index=True, auto_now_add=True)
+class OrderNote(BaseNote):
     order = models.ForeignKey(
         Order, related_name='notes', on_delete=models.CASCADE)
-    content = models.TextField()
-    is_public = models.BooleanField(default=True)
 
     class Meta:
         ordering = ('date', )
