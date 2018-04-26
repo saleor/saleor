@@ -860,7 +860,7 @@ def test_staff_with_permissions_can_edit_customer(
     assert response.status_code == 200
     url = reverse('dashboard:customer-update', args=[customer_user.pk])
     data = {'email': 'newemail@example.com', 'is_active': True}
-    response = staff_client.post(url, data)
+    staff_client.post(url, data)
     customer_user = User.objects.get(pk=customer_user.pk)
     assert customer_user.email == 'newemail@example.com'
     assert customer_user.is_active
@@ -879,7 +879,7 @@ def test_staff_with_permissions_can_add_customer(
     assert response.status_code == 200
     url = reverse('dashboard:customer-create')
     data = {'email': 'newcustomer@example.com', 'is_active': True}
-    response = staff_client.post(url, data)
+    staff_client.post(url, data)
     customer = User.objects.get(email='newcustomer@example.com')
     assert customer.is_active
 
@@ -912,4 +912,93 @@ def test_staff_group_member_can_view_and_edit_taxes_settings(
     staff_user = User.objects.get(pk=staff_user.pk)
     assert staff_user.has_perm('site.edit_settings')
     response = staff_client.get(url)
+
+
+def test_staff_group_member_can_view_menus_and_details(
+        staff_client, staff_user, staff_group, permission_view_menu,
+        menu_item):
+    menu_list_url = reverse('dashboard:menu-list')
+    menu_details_url = reverse(
+        'dashboard:menu-details', args=[menu_item.menu.pk])
+    menu_item_details_url = reverse(
+        'dashboard:menu-item-details', args=[menu_item.menu.pk, menu_item.pk])
+
+    assert not staff_user.has_perm('menu.view_menu')
+    response = staff_client.get(menu_list_url)
+    assert response.status_code == 302
+    response = staff_client.get(menu_details_url)
+    assert response.status_code == 302
+    response = staff_client.get(menu_item_details_url)
+    assert response.status_code == 302
+
+    staff_group.permissions.add(permission_view_menu)
+    staff_user.groups.add(staff_group)
+    staff_user = User.objects.get(pk=staff_user.pk)
+    assert staff_user.has_perm('menu.view_menu')
+
+    response = staff_client.get(menu_list_url)
+    assert response.status_code == 200
+    response = staff_client.get(menu_details_url)
+    assert response.status_code == 200
+    response = staff_client.get(menu_item_details_url)
+    assert response.status_code == 200
+
+
+def test_staff_group_member_can_edit_menus(
+        staff_client, staff_user, staff_group, permission_edit_menu,
+        menu_item):
+    menu_add_url = reverse('dashboard:menu-add')
+    menu_edit_url = reverse('dashboard:menu-edit', args=[menu_item.menu.pk])
+    menu_delete_url = reverse(
+        'dashboard:menu-delete', args=[menu_item.menu.pk])
+
+    assert not staff_user.has_perm('menu.view_menu')
+    response = staff_client.get(menu_add_url)
+    assert response.status_code == 302
+    response = staff_client.get(menu_edit_url)
+    assert response.status_code == 302
+    response = staff_client.get(menu_delete_url)
+    assert response.status_code == 302
+
+    staff_group.permissions.add(permission_edit_menu)
+    staff_user.groups.add(staff_group)
+    staff_user = User.objects.get(pk=staff_user.pk)
+    assert staff_user.has_perm('menu.edit_menu')
+
+    response = staff_client.get(menu_add_url)
+    assert response.status_code == 200
+    response = staff_client.get(menu_edit_url)
+    assert response.status_code == 200
+    response = staff_client.get(menu_delete_url)
+    assert response.status_code == 200
+
+
+def test_staff_group_member_can_edit_menu_items(
+        staff_client, staff_user, staff_group, permission_edit_menu,
+        menu_item):
+    menu_item_add_url = reverse(
+        'dashboard:menu-item-add', args=[menu_item.menu.pk, menu_item.pk])
+    menu_item_edit_url = reverse(
+        'dashboard:menu-item-edit', args=[menu_item.menu.pk, menu_item.pk])
+    menu_item_delete_url = reverse(
+        'dashboard:menu-item-delete', args=[menu_item.menu.pk, menu_item.pk])
+
+    assert not staff_user.has_perm('menu.view_menu')
+    response = staff_client.get(menu_item_add_url)
+    assert response.status_code == 302
+    response = staff_client.get(menu_item_edit_url)
+    assert response.status_code == 302
+    response = staff_client.get(menu_item_delete_url)
+    assert response.status_code == 302
+
+    staff_group.permissions.add(permission_edit_menu)
+    staff_user.groups.add(staff_group)
+    staff_user = User.objects.get(pk=staff_user.pk)
+    assert staff_user.has_perm('menu.edit_menu')
+
+    response = staff_client.get(menu_item_add_url)
+    assert response.status_code == 200
+    response = staff_client.get(menu_item_edit_url)
+    assert response.status_code == 200
+    response = staff_client.get(menu_item_delete_url)
     assert response.status_code == 200
