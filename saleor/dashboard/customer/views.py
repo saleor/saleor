@@ -41,7 +41,7 @@ def customer_list(request):
 @permission_required('account.view_user')
 def customer_details(request, pk):
     queryset = User.objects.prefetch_related(
-        'orders', 'addresses').select_related(
+        'orders', 'addresses', 'notes').select_related(
             'default_billing_address', 'default_shipping_address')
     customer = get_object_or_404(queryset, pk=pk)
     customer_orders = customer.orders.all()
