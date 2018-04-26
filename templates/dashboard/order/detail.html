@@ -200,7 +200,10 @@
                 {% endif %}
               </span>
               {% if order.user %}
-                <a href="{% url "dashboard:customer-details" pk=order.user.pk %}">{{ order.user }}</a>
+                <a href="{% url 'dashboard:customer-details' pk=order.user.pk %}">{{ order.user }}</a>
+                {% if order.user.note %}
+                  <p>{{ order.user.note|truncatechars:80 }}</p>
+                {% endif %}
               {% elif order.user_email %}
                 {{ order.user_email }}
               {% else %}
