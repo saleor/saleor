@@ -42,7 +42,7 @@ exports[`<ProductFilters /> renders with initial state 1`] = `
           >
             <svg
               aria-hidden="true"
-              className="MuiSvgIcon-root-68"
+              className="MuiSvgIcon-root-67"
               color={undefined}
               focusable="false"
               viewBox="0 0 24 24"
@@ -55,36 +55,36 @@ exports[`<ProductFilters /> renders with initial state 1`] = `
             </svg>
           </span>
           <span
-            className="MuiTouchRipple-root-74"
+            className="MuiTouchRipple-root-73"
           />
         </button>
       </div>
     </div>
     <div
-      className="MuiCardContent-root-81"
+      className="MuiCardContent-root-80"
     >
       <div
         aria-describedby={undefined}
-        className="MuiFormControl-root-82 MuiFormControl-fullWidth-85"
+        className="MuiFormControl-root-81 MuiFormControl-fullWidth-84"
         onBlur={[Function]}
         onFocus={[Function]}
       >
         <label
-          className="MuiFormLabel-root-91 MuiInputLabel-root-86 MuiInputLabel-formControl-87 MuiInputLabel-animated-90 MuiInputLabel-shrink-89"
+          className="MuiFormLabel-root-90 MuiInputLabel-root-85 MuiInputLabel-formControl-86 MuiInputLabel-animated-89 MuiInputLabel-shrink-88"
           data-shrink={true}
           htmlFor={undefined}
         >
           Name
         </label>
         <div
-          className="MuiInput-root-96 MuiInput-fullWidth-103 MuiInput-formControl-97 MuiInput-underline-100"
+          className="MuiInput-root-95 MuiInput-fullWidth-102 MuiInput-formControl-96 MuiInput-underline-99"
         >
           <input
             aria-invalid={false}
             aria-required={false}
             autoComplete={undefined}
             autoFocus={undefined}
-            className="MuiInput-input-104"
+            className="MuiInput-input-103"
             defaultValue={undefined}
             disabled={false}
             id={undefined}
@@ -104,30 +104,30 @@ exports[`<ProductFilters /> renders with initial state 1`] = `
         </div>
       </div>
       <div
-        className="Component-spacer-109"
+        className="Component-spacer-108"
       />
       <div
-        className="MuiFormControl-root-82 Component-formControl-112"
+        className="MuiFormControl-root-81 Component-formControl-111"
         onBlur={[Function]}
         onFocus={[Function]}
       >
         <label
-          className="MuiFormLabel-root-91 MuiInputLabel-root-86 MuiInputLabel-formControl-87 MuiInputLabel-animated-90 MuiInputLabel-shrink-89"
+          className="MuiFormLabel-root-90 MuiInputLabel-root-85 MuiInputLabel-formControl-86 MuiInputLabel-animated-89 MuiInputLabel-shrink-88"
           data-shrink={true}
         >
           Product type
         </label>
         <div
-          className="MuiInput-root-96 MuiInput-fullWidth-103 MuiInput-formControl-97 MuiInput-underline-100"
+          className="MuiInput-root-95 MuiInput-fullWidth-102 MuiInput-formControl-96 MuiInput-underline-99"
         >
           <div
-            className="MuiSelect-root-113"
+            className="MuiSelect-root-112"
           >
             <div
               aria-haspopup="true"
               aria-owns={null}
               aria-pressed="false"
-              className="MuiSelect-select-114 MuiSelect-selectMenu-115 MuiInput-input-104"
+              className="MuiSelect-select-113 MuiSelect-selectMenu-114 MuiInput-input-103"
               onBlur={[Function]}
               onClick={[Function]}
               onFocus={[Function]}
@@ -136,30 +136,30 @@ exports[`<ProductFilters /> renders with initial state 1`] = `
               tabIndex={0}
             >
               <div
-                className="Component-chipContainer-111"
+                className="Component-chipContainer-110"
               >
                 <div
-                  className="MuiChip-root-130 Component-chip-110"
+                  className="MuiChip-root-129 Component-chip-109"
                   onClick={undefined}
                   onKeyDown={[Function]}
                   role="button"
                   tabIndex={-1}
                 >
                   <span
-                    className="MuiChip-label-135"
+                    className="MuiChip-label-134"
                   >
                     Type 1
                   </span>
                 </div>
                 <div
-                  className="MuiChip-root-130 Component-chip-110"
+                  className="MuiChip-root-129 Component-chip-109"
                   onClick={undefined}
                   onKeyDown={[Function]}
                   role="button"
                   tabIndex={-1}
                 >
                   <span
-                    className="MuiChip-label-135"
+                    className="MuiChip-label-134"
                   >
                     Type 4
                   </span>
@@ -185,7 +185,7 @@ exports[`<ProductFilters /> renders with initial state 1`] = `
             />
             <svg
               aria-hidden="true"
-              className="MuiSvgIcon-root-68 MuiSelect-icon-117"
+              className="MuiSvgIcon-root-67 MuiSelect-icon-116"
               color={undefined}
               focusable="false"
               viewBox="0 0 24 24"
@@ -198,35 +198,35 @@ exports[`<ProductFilters /> renders with initial state 1`] = `
         </div>
       </div>
       <div
-        className="Component-spacer-109"
+        className="Component-spacer-108"
       />
       <div
-        className="Component-widgetContainer-125"
+        className="Component-widgetContainer-124"
       >
         <div
-          className="Component-inputContainer-122"
+          className="Component-inputContainer-121"
         >
           <div
-            className="MuiFormControl-root-82"
+            className="MuiFormControl-root-81"
             onBlur={[Function]}
             onFocus={[Function]}
           >
             <label
-              className="MuiFormLabel-root-91 MuiInputLabel-root-86 MuiInputLabel-formControl-87 MuiInputLabel-animated-90 MuiInputLabel-shrink-89"
+              className="MuiFormLabel-root-90 MuiInputLabel-root-85 MuiInputLabel-formControl-86 MuiInputLabel-animated-89 MuiInputLabel-shrink-88"
               data-shrink={true}
               htmlFor="price_min"
             >
               Price
             </label>
             <div
-              className="MuiInput-root-96 MuiInput-fullWidth-103 MuiInput-formControl-97 MuiInput-underline-100"
+              className="MuiInput-root-95 MuiInput-fullWidth-102 MuiInput-formControl-96 MuiInput-underline-99"
             >
               <input
                 aria-invalid={false}
                 aria-required={false}
                 autoComplete={undefined}
                 autoFocus={undefined}
-                className="MuiInput-input-104 MuiInput-inputType-107"
+                className="MuiInput-input-103 MuiInput-inputType-106"
                 defaultValue={undefined}
                 disabled={false}
                 id={undefined}
@@ -244,7 +244,7 @@ exports[`<ProductFilters /> renders with initial state 1`] = `
                 value="30"
               />
               <div
-                className="MuiInputAdornment-root-126 MuiInputAdornment-positionEnd-128"
+                className="MuiInputAdornment-root-125 MuiInputAdornment-positionEnd-127"
               >
                 <p
                   className="MuiTypography-root-35 MuiTypography-body1-44 MuiTypography-colorTextSecondary-57"
@@ -255,24 +255,24 @@ exports[`<ProductFilters /> renders with initial state 1`] = `
             </div>
           </div>
           <span
-            className="Component-separator-124"
+            className="Component-separator-123"
           >
             -
           </span>
           <div
-            className="MuiFormControl-root-82"
+            className="MuiFormControl-root-81"
             onBlur={[Function]}
             onFocus={[Function]}
           >
             <div
-              className="MuiInput-root-96 MuiInput-fullWidth-103 MuiInput-formControl-97 MuiInput-underline-100 Component-pullDown-123"
+              className="MuiInput-root-95 MuiInput-fullWidth-102 MuiInput-formControl-96 MuiInput-underline-99 Component-pullDown-122"
             >
               <input
                 aria-invalid={false}
                 aria-required={false}
                 autoComplete={undefined}
                 autoFocus={undefined}
-                className="MuiInput-input-104 MuiInput-inputType-107"
+                className="MuiInput-input-103 MuiInput-inputType-106"
                 defaultValue={undefined}
                 disabled={false}
                 id={undefined}
@@ -290,7 +290,7 @@ exports[`<ProductFilters /> renders with initial state 1`] = `
                 value="50"
               />
               <div
-                className="MuiInputAdornment-root-126 MuiInputAdornment-positionEnd-128"
+                className="MuiInputAdornment-root-125 MuiInputAdornment-positionEnd-127"
               >
                 <p
                   className="MuiTypography-root-35 MuiTypography-body1-44 MuiTypography-colorTextSecondary-57"
@@ -303,30 +303,30 @@ exports[`<ProductFilters /> renders with initial state 1`] = `
         </div>
       </div>
       <div
-        className="Component-spacer-109"
+        className="Component-spacer-108"
       />
       <div
-        className="MuiFormControl-root-82 Component-formControl-129"
+        className="MuiFormControl-root-81 Component-formControl-128"
         onBlur={[Function]}
         onFocus={[Function]}
       >
         <label
-          className="MuiFormLabel-root-91 MuiInputLabel-root-86 MuiInputLabel-formControl-87 MuiInputLabel-animated-90 MuiInputLabel-shrink-89"
+          className="MuiFormLabel-root-90 MuiInputLabel-root-85 MuiInputLabel-formControl-86 MuiInputLabel-animated-89 MuiInputLabel-shrink-88"
           data-shrink={true}
         >
           Published
         </label>
         <div
-          className="MuiInput-root-96 MuiInput-fullWidth-103 MuiInput-formControl-97 MuiInput-underline-100"
+          className="MuiInput-root-95 MuiInput-fullWidth-102 MuiInput-formControl-96 MuiInput-underline-99"
         >
           <div
-            className="MuiSelect-root-113"
+            className="MuiSelect-root-112"
           >
             <div
               aria-haspopup="true"
               aria-owns={null}
               aria-pressed="false"
-              className="MuiSelect-select-114 MuiSelect-selectMenu-115 MuiInput-input-104"
+              className="MuiSelect-select-113 MuiSelect-selectMenu-114 MuiInput-input-103"
               onBlur={[Function]}
               onClick={[Function]}
               onFocus={[Function]}
@@ -361,7 +361,7 @@ exports[`<ProductFilters /> renders with initial state 1`] = `
             />
             <svg
               aria-hidden="true"
-              className="MuiSvgIcon-root-68 MuiSelect-icon-117"
+              className="MuiSvgIcon-root-67 MuiSelect-icon-116"
               color={undefined}
               focusable="false"
               viewBox="0 0 24 24"
@@ -374,30 +374,30 @@ exports[`<ProductFilters /> renders with initial state 1`] = `
         </div>
       </div>
       <div
-        className="Component-spacer-109"
+        className="Component-spacer-108"
       />
       <div
-        className="MuiFormControl-root-82 Component-formControl-129"
+        className="MuiFormControl-root-81 Component-formControl-128"
         onBlur={[Function]}
         onFocus={[Function]}
       >
         <label
-          className="MuiFormLabel-root-91 MuiInputLabel-root-86 MuiInputLabel-formControl-87 MuiInputLabel-animated-90 MuiInputLabel-shrink-89"
+          className="MuiFormLabel-root-90 MuiInputLabel-root-85 MuiInputLabel-formControl-86 MuiInputLabel-animated-89 MuiInputLabel-shrink-88"
           data-shrink={true}
         >
           Highlighted
         </label>
         <div
-          className="MuiInput-root-96 MuiInput-fullWidth-103 MuiInput-formControl-97 MuiInput-underline-100"
+          className="MuiInput-root-95 MuiInput-fullWidth-102 MuiInput-formControl-96 MuiInput-underline-99"
         >
           <div
-            className="MuiSelect-root-113"
+            className="MuiSelect-root-112"
           >
             <div
               aria-haspopup="true"
               aria-owns={null}
               aria-pressed="false"
-              className="MuiSelect-select-114 MuiSelect-selectMenu-115 MuiInput-input-104"
+              className="MuiSelect-select-113 MuiSelect-selectMenu-114 MuiInput-input-103"
               onBlur={[Function]}
               onClick={[Function]}
               onFocus={[Function]}
@@ -432,7 +432,7 @@ exports[`<ProductFilters /> renders with initial state 1`] = `
             />
             <svg
               aria-hidden="true"
-              className="MuiSvgIcon-root-68 MuiSelect-icon-117"
+              className="MuiSvgIcon-root-67 MuiSelect-icon-116"
               color={undefined}
               focusable="false"
               viewBox="0 0 24 24"
@@ -491,7 +491,7 @@ exports[`<ProductFilters /> renders without initial state 1`] = `
           >
             <svg
               aria-hidden="true"
-              className="MuiSvgIcon-root-68"
+              className="MuiSvgIcon-root-67"
               color={undefined}
               focusable="false"
               viewBox="0 0 24 24"
@@ -504,36 +504,36 @@ exports[`<ProductFilters /> renders without initial state 1`] = `
             </svg>
           </span>
           <span
-            className="MuiTouchRipple-root-74"
+            className="MuiTouchRipple-root-73"
           />
         </button>
       </div>
     </div>
     <div
-      className="MuiCardContent-root-81"
+      className="MuiCardContent-root-80"
     >
       <div
         aria-describedby={undefined}
-        className="MuiFormControl-root-82 MuiFormControl-fullWidth-85"
+        className="MuiFormControl-root-81 MuiFormControl-fullWidth-84"
         onBlur={[Function]}
         onFocus={[Function]}
       >
         <label
-          className="MuiFormLabel-root-91 MuiInputLabel-root-86 MuiInputLabel-formControl-87 MuiInputLabel-animated-90"
+          className="MuiFormLabel-root-90 MuiInputLabel-root-85 MuiInputLabel-formControl-86 MuiInputLabel-animated-89"
           data-shrink={false}
           htmlFor={undefined}
         >
           Name
         </label>
         <div
-          className="MuiInput-root-96 MuiInput-fullWidth-103 MuiInput-formControl-97 MuiInput-underline-100"
+          className="MuiInput-root-95 MuiInput-fullWidth-102 MuiInput-formControl-96 MuiInput-underline-99"
         >
           <input
             aria-invalid={false}
             aria-required={false}
             autoComplete={undefined}
             autoFocus={undefined}
-            className="MuiInput-input-104"
+            className="MuiInput-input-103"
             defaultValue={undefined}
             disabled={false}
             id={undefined}
@@ -553,30 +553,30 @@ exports[`<ProductFilters /> renders without initial state 1`] = `
         </div>
       </div>
       <div
-        className="Component-spacer-109"
+        className="Component-spacer-108"
       />
       <div
-        className="MuiFormControl-root-82 Component-formControl-112"
+        className="MuiFormControl-root-81 Component-formControl-111"
         onBlur={[Function]}
         onFocus={[Function]}
       >
         <label
-          className="MuiFormLabel-root-91 MuiInputLabel-root-86 MuiInputLabel-formControl-87 MuiInputLabel-animated-90"
+          className="MuiFormLabel-root-90 MuiInputLabel-root-85 MuiInputLabel-formControl-86 MuiInputLabel-animated-89"
           data-shrink={false}
         >
           Product type
         </label>
         <div
-          className="MuiInput-root-96 MuiInput-fullWidth-103 MuiInput-formControl-97 MuiInput-underline-100"
+          className="MuiInput-root-95 MuiInput-fullWidth-102 MuiInput-formControl-96 MuiInput-underline-99"
         >
           <div
-            className="MuiSelect-root-113"
+            className="MuiSelect-root-112"
           >
             <div
               aria-haspopup="true"
               aria-owns={null}
               aria-pressed="false"
-              className="MuiSelect-select-114 MuiSelect-selectMenu-115 MuiInput-input-104"
+              className="MuiSelect-select-113 MuiSelect-selectMenu-114 MuiInput-input-103"
               onBlur={[Function]}
               onClick={[Function]}
               onFocus={[Function]}
@@ -611,7 +611,7 @@ exports[`<ProductFilters /> renders without initial state 1`] = `
             />
             <svg
               aria-hidden="true"
-              className="MuiSvgIcon-root-68 MuiSelect-icon-117"
+              className="MuiSvgIcon-root-67 MuiSelect-icon-116"
               color={undefined}
               focusable="false"
               viewBox="0 0 24 24"
@@ -624,35 +624,35 @@ exports[`<ProductFilters /> renders without initial state 1`] = `
         </div>
       </div>
       <div
-        className="Component-spacer-109"
+        className="Component-spacer-108"
       />
       <div
-        className="Component-widgetContainer-125"
+        className="Component-widgetContainer-124"
       >
         <div
-          className="Component-inputContainer-122"
+          className="Component-inputContainer-121"
         >
           <div
-            className="MuiFormControl-root-82"
+            className="MuiFormControl-root-81"
             onBlur={[Function]}
             onFocus={[Function]}
           >
             <label
-              className="MuiFormLabel-root-91 MuiInputLabel-root-86 MuiInputLabel-formControl-87 MuiInputLabel-animated-90"
+              className="MuiFormLabel-root-90 MuiInputLabel-root-85 MuiInputLabel-formControl-86 MuiInputLabel-animated-89"
               data-shrink={false}
               htmlFor="price_min"
             >
               Price
             </label>
             <div
-              className="MuiInput-root-96 MuiInput-fullWidth-103 MuiInput-formControl-97 MuiInput-underline-100"
+              className="MuiInput-root-95 MuiInput-fullWidth-102 MuiInput-formControl-96 MuiInput-underline-99"
             >
               <input
                 aria-invalid={false}
                 aria-required={false}
                 autoComplete={undefined}
                 autoFocus={undefined}
-                className="MuiInput-input-104 MuiInput-inputType-107"
+                className="MuiInput-input-103 MuiInput-inputType-106"
                 defaultValue={undefined}
                 disabled={false}
                 id={undefined}
@@ -670,7 +670,7 @@ exports[`<ProductFilters /> renders without initial state 1`] = `
                 value=""
               />
               <div
-                className="MuiInputAdornment-root-126 MuiInputAdornment-positionEnd-128"
+                className="MuiInputAdornment-root-125 MuiInputAdornment-positionEnd-127"
               >
                 <p
                   className="MuiTypography-root-35 MuiTypography-body1-44 MuiTypography-colorTextSecondary-57"
@@ -681,24 +681,24 @@ exports[`<ProductFilters /> renders without initial state 1`] = `
             </div>
           </div>
           <span
-            className="Component-separator-124"
+            className="Component-separator-123"
           >
             -
           </span>
           <div
-            className="MuiFormControl-root-82"
+            className="MuiFormControl-root-81"
             onBlur={[Function]}
             onFocus={[Function]}
           >
             <div
-              className="MuiInput-root-96 MuiInput-fullWidth-103 MuiInput-formControl-97 MuiInput-underline-100 Component-pullDown-123"
+              className="MuiInput-root-95 MuiInput-fullWidth-102 MuiInput-formControl-96 MuiInput-underline-99 Component-pullDown-122"
             >
               <input
                 aria-invalid={false}
                 aria-required={false}
                 autoComplete={undefined}
                 autoFocus={undefined}
-                className="MuiInput-input-104 MuiInput-inputType-107"
+                className="MuiInput-input-103 MuiInput-inputType-106"
                 defaultValue={undefined}
                 disabled={false}
                 id={undefined}
@@ -716,7 +716,7 @@ exports[`<ProductFilters /> renders without initial state 1`] = `
                 value=""
               />
               <div
-                className="MuiInputAdornment-root-126 MuiInputAdornment-positionEnd-128"
+                className="MuiInputAdornment-root-125 MuiInputAdornment-positionEnd-127"
               >
                 <p
                   className="MuiTypography-root-35 MuiTypography-body1-44 MuiTypography-colorTextSecondary-57"
@@ -729,30 +729,30 @@ exports[`<ProductFilters /> renders without initial state 1`] = `
         </div>
       </div>
       <div
-        className="Component-spacer-109"
+        className="Component-spacer-108"
       />
       <div
-        className="MuiFormControl-root-82 Component-formControl-129"
+        className="MuiFormControl-root-81 Component-formControl-128"
         onBlur={[Function]}
         onFocus={[Function]}
       >
         <label
-          className="MuiFormLabel-root-91 MuiInputLabel-root-86 MuiInputLabel-formControl-87 MuiInputLabel-animated-90"
+          className="MuiFormLabel-root-90 MuiInputLabel-root-85 MuiInputLabel-formControl-86 MuiInputLabel-animated-89"
           data-shrink={false}
         >
           Published
         </label>
         <div
-          className="MuiInput-root-96 MuiInput-fullWidth-103 MuiInput-formControl-97 MuiInput-underline-100"
+          className="MuiInput-root-95 MuiInput-fullWidth-102 MuiInput-formControl-96 MuiInput-underline-99"
         >
           <div
-            className="MuiSelect-root-113"
+            className="MuiSelect-root-112"
           >
             <div
               aria-haspopup="true"
               aria-owns={null}
               aria-pressed="false"
-              className="MuiSelect-select-114 MuiSelect-selectMenu-115 MuiInput-input-104"
+              className="MuiSelect-select-113 MuiSelect-selectMenu-114 MuiInput-input-103"
               onBlur={[Function]}
               onClick={[Function]}
               onFocus={[Function]}
@@ -787,7 +787,7 @@ exports[`<ProductFilters /> renders without initial state 1`] = `
             />
             <svg
               aria-hidden="true"
-              className="MuiSvgIcon-root-68 MuiSelect-icon-117"
+              className="MuiSvgIcon-root-67 MuiSelect-icon-116"
               color={undefined}
               focusable="false"
               viewBox="0 0 24 24"
@@ -800,30 +800,30 @@ exports[`<ProductFilters /> renders without initial state 1`] = `
         </div>
       </div>
       <div
-        className="Component-spacer-109"
+        className="Component-spacer-108"
       />
       <div
-        className="MuiFormControl-root-82 Component-formControl-129"
+        className="MuiFormControl-root-81 Component-formControl-128"
         onBlur={[Function]}
         onFocus={[Function]}
       >
         <label
-          className="MuiFormLabel-root-91 MuiInputLabel-root-86 MuiInputLabel-formControl-87 MuiInputLabel-animated-90"
+          className="MuiFormLabel-root-90 MuiInputLabel-root-85 MuiInputLabel-formControl-86 MuiInputLabel-animated-89"
           data-shrink={false}
         >
           Highlighted
         </label>
         <div
-          className="MuiInput-root-96 MuiInput-fullWidth-103 MuiInput-formControl-97 MuiInput-underline-100"
+          className="MuiInput-root-95 MuiInput-fullWidth-102 MuiInput-formControl-96 MuiInput-underline-99"
         >
           <div
-            className="MuiSelect-root-113"
+            className="MuiSelect-root-112"
           >
             <div
               aria-haspopup="true"
               aria-owns={null}
               aria-pressed="false"
-              className="MuiSelect-select-114 MuiSelect-selectMenu-115 MuiInput-input-104"
+              className="MuiSelect-select-113 MuiSelect-selectMenu-114 MuiInput-input-103"
               onBlur={[Function]}
               onClick={[Function]}
               onFocus={[Function]}
@@ -858,7 +858,7 @@ exports[`<ProductFilters /> renders without initial state 1`] = `
             />
             <svg
               aria-hidden="true"
-              className="MuiSvgIcon-root-68 MuiSelect-icon-117"
+              className="MuiSvgIcon-root-67 MuiSelect-icon-116"
               color={undefined}
               focusable="false"
               viewBox="0 0 24 24"

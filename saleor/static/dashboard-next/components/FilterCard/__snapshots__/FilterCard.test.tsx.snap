@@ -42,7 +42,7 @@ exports[`<FilterCard /> renders properly 1`] = `
           >
             <svg
               aria-hidden="true"
-              className="MuiSvgIcon-root-68"
+              className="MuiSvgIcon-root-67"
               color={undefined}
               focusable="false"
               viewBox="0 0 24 24"
@@ -55,13 +55,13 @@ exports[`<FilterCard /> renders properly 1`] = `
             </svg>
           </span>
           <span
-            className="MuiTouchRipple-root-74"
+            className="MuiTouchRipple-root-73"
           />
         </button>
       </div>
     </div>
     <div
-      className="MuiCardContent-root-81"
+      className="MuiCardContent-root-80"
     />
   </form>
 </div>
