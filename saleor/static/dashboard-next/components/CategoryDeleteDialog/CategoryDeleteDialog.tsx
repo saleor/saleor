@@ -21,7 +21,8 @@ const decorate = withStyles(theme => ({
   }
 }));
 
-export interface CategoryDeleteDialogProps extends DialogProps {
+export interface CategoryDeleteDialogProps {
+  open: boolean;
   name: string;
   productCount?: number;
   onClose?();
@@ -33,13 +34,14 @@ const CategoryDeleteDialog = decorate<CategoryDeleteDialogProps>(props => {
     children,
     classes,
     name,
+    open,
     onConfirm,
     onClose,
     productCount,
     ...dialogProps
   } = props;
   return (
-    <Dialog {...dialogProps}>
+    <Dialog open={open}>
       <DialogTitle>
         {i18n.t("Delete category", { context: "title" })}
       </DialogTitle>

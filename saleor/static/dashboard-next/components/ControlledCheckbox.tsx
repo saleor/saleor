@@ -6,13 +6,15 @@ interface ControlledCheckboxProps {
   name: string;
   label?: string;
   checked: boolean;
+  disabled?: boolean;
   onChange(event: any);
 }
 
 export const ControlledCheckbox: React.StatelessComponent<
   ControlledCheckboxProps
-> = ({ checked, name, label, onChange }) => (
+> = ({ checked, disabled, name, label, onChange }) => (
   <FormControlLabel
+    disabled={disabled}
     control={
       <Checkbox
         checked={checked}

@@ -3,13 +3,13 @@ import { DialogContentText } from "material-ui/Dialog";
 import * as React from "react";
 
 import CategoryProducts from "../../../category/components/CategoryProducts";
+import * as placeholder from "../../../../images/placeholder60x60.png";
 
 const products = [
   {
     id: "UHJvZHVjdDox",
     name: "Gardner, Graham and King",
-    thumbnailUrl:
-      "/media/__sized__/products/saleor/static/placeholders/t-shirts/6_tdo7a5D-crop-c0-5__0-5-255x255-70.jpg",
+    thumbnailUrl: placeholder,
     productType: {
       id: "1",
       name: "T-Shirt"
@@ -18,8 +18,7 @@ const products = [
   {
     id: "UHJvZHVjdDoy",
     name: "Gardner, Graham and King",
-    thumbnailUrl:
-      "/media/__sized__/products/saleor/static/placeholders/t-shirts/6_tdo7a5D-crop-c0-5__0-5-255x255-70.jpg",
+    thumbnailUrl: placeholder,
     productType: {
       id: "1",
       name: "T-Shirt"
@@ -28,8 +27,7 @@ const products = [
   {
     id: "UHJvZHVjdDoz",
     name: "Gardner, Graham and King",
-    thumbnailUrl:
-      "/media/__sized__/products/saleor/static/placeholders/t-shirts/6_tdo7a5D-crop-c0-5__0-5-255x255-70.jpg",
+    thumbnailUrl: placeholder,
     productType: {
       id: "1",
       name: "T-Shirt"
@@ -38,8 +36,7 @@ const products = [
   {
     id: "UHJvZHVjdDoa",
     name: "Gardner, Graham and King",
-    thumbnailUrl:
-      "/media/__sized__/products/saleor/static/placeholders/t-shirts/6_tdo7a5D-crop-c0-5__0-5-255x255-70.jpg",
+    thumbnailUrl: placeholder,
     productType: {
       id: "1",
       name: "T-Shirt"
@@ -48,6 +45,17 @@ const products = [
 ];
 
 storiesOf("Categories / CategoryProducts", module)
+  .add("without initial data", () => (
+    <CategoryProducts
+      hasNextPage={true}
+      hasPreviousPage={false}
+      products={[]}
+      onCreate={() => {}}
+      onFilter={() => {}}
+      onNextPage={() => {}}
+      onPreviousPage={() => {}}
+    />
+  ))
   .add("with initial data", () => (
     <CategoryProducts
       hasNextPage={true}
@@ -59,15 +67,16 @@ storiesOf("Categories / CategoryProducts", module)
       onPreviousPage={() => {}}
     />
   ))
-  .add("without initial data", () => (
+  .add("with clickable rows", () => (
     <CategoryProducts
       hasNextPage={true}
       hasPreviousPage={false}
-      products={[]}
+      products={products}
       onCreate={() => {}}
       onFilter={() => {}}
       onNextPage={() => {}}
       onPreviousPage={() => {}}
+      onRowClick={() => {}}
     />
   ))
   .add("when loading data", () => (

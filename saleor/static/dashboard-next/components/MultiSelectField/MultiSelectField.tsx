@@ -26,6 +26,7 @@ interface MultiSelectFieldProps {
     value: string;
     label: string;
   }>;
+  disabled?: boolean;
   error?: boolean;
   hint?: string;
   label?: string;
@@ -37,6 +38,7 @@ interface MultiSelectFieldProps {
 export const MultiSelectField = decorate<MultiSelectFieldProps>(
   ({
     classes,
+    disabled,
     error,
     label,
     choices,
@@ -46,13 +48,19 @@ export const MultiSelectField = decorate<MultiSelectFieldProps>(
     hint,
     selectProps
   }) => {
-    const choicesByKey = choices.reduce((prev, curr) => {
-      prev[curr.value] = curr.label;
-      return prev;
-    }, {});
+    const choicesByKey = disabled
+      ? {}
+      : choices.reduce((prev, curr) => {
+          prev[curr.value] = curr.label;
+          return prev;
+        }, {});
 
     return (
-      <FormControl className={classes.formControl} error={error}>
+      <FormControl
+        className={classes.formControl}
+        error={error}
+        disabled={disabled}
+      >
         {label && <InputLabel>{label}</InputLabel>}
         <Select
           multiple

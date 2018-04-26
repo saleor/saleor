@@ -31,6 +31,13 @@ var config = {
       {
         test: /\.tsx?$/,
         loader: "ts-loader"
+      },
+      {
+        test: /\.(svg|png)$/,
+        loader: "file-loader",
+        options: {
+          name: "[name].[ext]"
+        }
       }
     ]
   },

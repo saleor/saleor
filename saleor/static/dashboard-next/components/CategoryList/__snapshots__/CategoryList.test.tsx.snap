@@ -5,7 +5,7 @@ exports[`<CategoryList /> renders when category list is empty 1`] = `
   className="MuiList-root-1 MuiList-padding-2"
 >
   <li
-    className="MuiListSubheader-root-63 MuiListSubheader-sticky-67"
+    className="MuiListSubheader-root-62 MuiListSubheader-sticky-66"
   >
     No categories found
   </li>
@@ -55,7 +55,7 @@ exports[`<CategoryList /> renders when data is fully loaded 1`] = `
       </h3>
     </div>
     <span
-      className="MuiTouchRipple-root-56"
+      className="MuiTouchRipple-root-55"
     />
   </div>
   <div
@@ -97,7 +97,7 @@ exports[`<CategoryList /> renders when data is fully loaded 1`] = `
       </h3>
     </div>
     <span
-      className="MuiTouchRipple-root-56"
+      className="MuiTouchRipple-root-55"
     />
   </div>
   <div
@@ -139,7 +139,7 @@ exports[`<CategoryList /> renders when data is fully loaded 1`] = `
       </h3>
     </div>
     <span
-      className="MuiTouchRipple-root-56"
+      className="MuiTouchRipple-root-55"
     />
   </div>
   <div
@@ -181,7 +181,7 @@ exports[`<CategoryList /> renders when data is fully loaded 1`] = `
       </h3>
     </div>
     <span
-      className="MuiTouchRipple-root-56"
+      className="MuiTouchRipple-root-55"
     />
   </div>
 </ul>

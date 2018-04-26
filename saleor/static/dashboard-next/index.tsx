@@ -15,6 +15,7 @@ import AppRoot from "./AppRoot";
 import CategorySection from "./category";
 import "./i18n";
 import PageSection from "./page";
+import ProductSection from "./products";
 import theme from "./theme";
 
 const cookies = new Cookies();
@@ -41,6 +42,7 @@ render(
             <Switch>
               <Route path="/categories" component={CategorySection} />
               <Route path="/pages" component={PageSection} />
+              <Route path="/products" component={ProductSection} />
             </Switch>
           </AppRoot>
         </MuiThemeProvider>
