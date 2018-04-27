@@ -157,7 +157,7 @@
     "storybook":
       "start-storybook -p 3000 -c saleor/static/dashboard-next/storybook/",
     "build-storybook":
-      "build-storybook -c saleor/static/dashboard-next/storybook/ -o .out",
+      "build-storybook -c saleor/static/dashboard-next/storybook/ -o build",
     "test": "jest saleor/static/dashboard-next/"
   }
 }
