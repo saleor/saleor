@@ -156,7 +156,7 @@
       "mkdir -p templates/templated_email/compiled/ && find templates -name \"*.mjml\" -not -path \"templates/templated_email/source/*partials/*\" -not -path \"templates/templated_email/source/*shared/*\" -exec mjml -l skip {} -o templates/templated_email/compiled/ \\;",
     "storybook":
       "start-storybook -p 3000 -c saleor/static/dashboard-next/storybook/",
-    "storybook-build":
+    "build-storybook":
       "build-storybook -c saleor/static/dashboard-next/storybook/ -o .out",
     "test": "jest saleor/static/dashboard-next/"
   }
