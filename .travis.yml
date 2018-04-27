@@ -4,6 +4,8 @@ python:
   - "3.4"
   - "3.5"
   - "3.6"
+nodejs:
+  - "8.7.0"
 cache:
   pip: true
   directories:
@@ -18,6 +20,8 @@ install:
   - npm run test
 script:
   - tox
+  exclude:
+    - nodejs: "8.7.0"
 env:
   global:
     - DJANGO_SETTINGS_MODULE=tests.settings
@@ -35,7 +39,10 @@ matrix:
   exclude:
     - python: "3.4"
       env: DJANGO="master"
+    - nodejs: "8.7.0"
 after_success:
   - codecov
 services:
   - postgresql
+  exclude:
+    - nodejs: "8.7.0"
