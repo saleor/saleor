@@ -1,8 +1,11 @@
 import json
+import os
+from unittest.mock import patch
 from urllib.parse import urlencode
 
 import i18naddress
 import pytest
+from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.http import QueryDict
 from django.template import Context, Template
@@ -10,6 +13,7 @@ from django.urls import reverse
 from django_countries.fields import Country
 
 from saleor.account import forms, i18n
+from saleor.account.forms import LoginForm, PasswordResetForm, SignupForm
 from saleor.account.templatetags.i18n_address_tags import format_address
 from saleor.account.validators import validate_possible_number
 
@@ -218,3 +222,22 @@ def test_ajax_users_list(admin_client, admin_user, customer_user):
 
     assert response.status_code == 200
     assert resp_decoded == {'results': users_list}
+
+
+@patch.dict(os.environ, {'RECAPTCHA_TESTING': 'True'})
+@pytest.mark.parametrize(
+    'form_cls, post_data', [
+        (LoginForm, {'username': 'test@example.com', 'password': 'password'}),
+        (SignupForm, {'email': 'another@example.com', 'password': 'password'}),
+        (PasswordResetForm, {'email': 'test@example.com'}),
+    ])
+def test_requires_recaptcha(customer_user, form_cls, post_data):
+    params_passed_robot_check = post_data.copy()
+    params_passed_robot_check['g-recaptcha-response'] = 'PASSED'
+
+    with patch.object(settings, 'ENABLE_RECAPTCHA', False):
+        assert form_cls(data=post_data).is_valid()
+
+    with patch.object(settings, 'ENABLE_RECAPTCHA', True):
+        assert not form_cls(data=post_data).is_valid()
+        assert form_cls(data=params_passed_robot_check).is_valid()

@@ -1,3 +1,4 @@
+from captcha.fields import ReCaptchaField
 from django import forms
 from django.conf import settings
 from django.contrib.auth import forms as django_forms, update_session_auth_hash
@@ -7,6 +8,14 @@ from phonenumbers.phonenumberutil import country_code_for_region
 from . import emails
 from ..account.models import User
 from .i18n import AddressMetaForm, get_address_form_class
+
+
+class FormWithReCaptcha(forms.BaseForm):
+    def __new__(cls, *args, **kwargs):
+        if settings.ENABLE_RECAPTCHA:
+            cls.base_fields['_captcha'] = ReCaptchaField(
+                label=pgettext_lazy('Captcha field label', 'Are you human?'))
+        return super(FormWithReCaptcha, cls).__new__(cls)
 
 
 def get_address_form(
@@ -55,7 +64,7 @@ def logout_on_password_change(request, user):
         update_session_auth_hash(request, user)
 
 
-class LoginForm(django_forms.AuthenticationForm):
+class LoginForm(django_forms.AuthenticationForm, FormWithReCaptcha):
     username = forms.EmailField(
         label=pgettext('Form field', 'Email'), max_length=75)
 
@@ -67,7 +76,7 @@ class LoginForm(django_forms.AuthenticationForm):
                 self.fields['username'].initial = email
 
 
-class SignupForm(forms.ModelForm):
+class SignupForm(forms.ModelForm, FormWithReCaptcha):
     password = forms.CharField(
         widget=forms.PasswordInput)
     email = forms.EmailField(
@@ -100,7 +109,7 @@ class SignupForm(forms.ModelForm):
         return user
 
 
-class PasswordResetForm(django_forms.PasswordResetForm):
+class PasswordResetForm(django_forms.PasswordResetForm, FormWithReCaptcha):
     """Allow resetting passwords.
 
     This subclass overrides sending emails to use templated email.
