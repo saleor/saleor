@@ -2,6 +2,7 @@
 {% load materializecss %}
 {% load i18n %}
 {% load staticfiles %}
+{% load status %}
 
 {% block title %}
   {% if collection.pk %}{{ collection }}{% else %}{% trans 'Add new collection' %}{% endif %} - {% trans 'Collections' %} - {{ block.super }}{% endblock %}
@@ -58,6 +59,10 @@
             <div class="row">
               {{ form.background_image|materializecss }}
             </div>
+            <span class="card-title">Availability</span>
+            <div class="row">
+              {{ form.is_published|materializecss }}
+            </div>
             {% include "dashboard/includes/_google_preview.html" with object=collection form=form %}
           </div>
           <div class="card-action right-align">
@@ -76,5 +81,36 @@
         </form>
       </div>
     </div>
+    {% if collection.pk %}
+      <div class="col s12 l3">
+        <div id="status">
+          <div class="row no-margin">
+            <div class="col s12">
+              <div class="card">
+                <div class="card-content">
+                  <form id="toggle-publish-form" action="{% url 'dashboard:collection-publish' pk=collection.pk %}">
+                    <div class="switch" id="collection-is-published">
+                      <label>
+                        <input id="toggle-publish-switch" type="checkbox" {% if collection.is_published %} checked {% endif %}>
+                        <span class="lever"></span>
+                        <span class="label">
+                          {% if collection.is_published %}
+                            {% trans "Published" context "Collection field" %}
+                          {% else %}
+                            {% trans "Draft" context "Collection field" %}
+                          {% endif %}
+                        </span>
+                      </label>
+                    </div>
+                  {% csrf_token %}
+                  </form>
+                  <h5>{% render_collection_availability collection %}</h5>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    {% endif %}
   </div>
 {% endblock %}

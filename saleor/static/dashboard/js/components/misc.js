@@ -39,24 +39,27 @@ $(document).on('mouseup', 'tr[data-action-go] > td:not(.ignore-link)', (e) => {
   }
 });
 
-// Publish / unpublish lever in product detail view
-$('#product-is-published').on('click', (e) => {
-  const form = $(e.currentTarget).closest('#toggle-publish-form');
-  const input = form.find('#toggle-publish-switch')[0];
-  if (e.target === input) {
-    const url = form.attr('action');
-    fetch(url, {
-      method: 'POST',
-      credentials: 'same-origin',
-      headers: {
-        'X-CSRFToken': $('[name=csrfmiddlewaretoken]').val()
-      }
-    }).then(() => {
-      window.location.reload();
-    }).catch(() => {
-      window.location.reload();
-    });
-  }
+// Publish / unpublish lever in detail views
+const selectors = ['#product-is-published', '#collection-is-published'];
+selectors.forEach(selector => {
+  $(selector).on('click', (e) => {
+    const form = $(e.currentTarget).closest('#toggle-publish-form');
+    const input = form.find('#toggle-publish-switch')[0];
+    if (e.target === input) {
+      const url = form.attr('action');
+      fetch(url, {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: {
+          'X-CSRFToken': $('[name=csrfmiddlewaretoken]').val()
+        }
+      }).then(() => {
+        window.location.reload();
+      }).catch(() => {
+        window.location.reload();
+      });
+    }
+  });
 });
 
 // Styleguide sticky right menu

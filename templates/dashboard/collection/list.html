@@ -2,6 +2,7 @@
 
 {% load i18n %}
 {% load staticfiles %}
+{% load status %}
 {% load utils %}
 
 {% block title %}
@@ -42,6 +43,9 @@
                   <th>
                     {% trans "Number of products" context "Voucher table header" %}
                   </th>
+                  <th>
+                    {% trans "Visibility" context "Collections list table header" %}
+                  </th>
                 </tr>
               </thead>
               {% for node in collections %}
@@ -56,6 +60,9 @@
                       {% else %}
                         -
                       {% endif %}
+                    </td>
+                    <td>
+                      {% render_collection_availability node %}
                     </td>
                   </tr>
                 </tbody>
