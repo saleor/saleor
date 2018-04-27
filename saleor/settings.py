@@ -13,7 +13,14 @@ def get_list(text):
     return [item.strip() for item in text.split(',')]
 
 
-DEBUG = ast.literal_eval(os.environ.get('DEBUG', 'True'))
+def get_bool(name, default_value):
+    if name in os.environ:
+        value = os.environ[name]
+        return ast.literal_eval(value)
+    return default_value
+
+
+DEBUG = get_bool('DEBUG', True)
 
 SITE_ID = 1
 
@@ -90,8 +97,7 @@ EMAIL_BACKEND = email_config['EMAIL_BACKEND']
 EMAIL_USE_TLS = email_config['EMAIL_USE_TLS']
 EMAIL_USE_SSL = email_config['EMAIL_USE_SSL']
 
-ENABLE_SSL = ast.literal_eval(
-    os.environ.get('ENABLE_SSL', 'False'))
+ENABLE_SSL = get_bool('ENABLE_SSL', False)
 
 if ENABLE_SSL:
     SECURE_SSL_REDIRECT = not DEBUG
@@ -215,14 +221,15 @@ INSTALLED_APPS = [
     'django_filters',
     'django_celery_results',
     'impersonate',
-    'phonenumber_field']
+    'phonenumber_field',
+    'captcha']
 
 if DEBUG:
     MIDDLEWARE.append(
         'debug_toolbar.middleware.DebugToolbarMiddleware')
     INSTALLED_APPS.append('debug_toolbar')
 
-ENABLE_SILK = ast.literal_eval(os.environ.get('ENABLE_SILK', 'False'))
+ENABLE_SILK = get_bool('ENABLE_SILK', False)
 if ENABLE_SILK:
     MIDDLEWARE.insert(0, 'silk.middleware.SilkyMiddleware')
     INSTALLED_APPS.append('silk')
@@ -332,8 +339,7 @@ AWS_SECRET_ACCESS_KEY = os.environ.get('AWS_SECRET_ACCESS_KEY')
 AWS_STORAGE_BUCKET_NAME = os.environ.get('AWS_STORAGE_BUCKET_NAME')
 AWS_MEDIA_BUCKET_NAME = os.environ.get('AWS_MEDIA_BUCKET_NAME')
 AWS_MEDIA_CUSTOM_DOMAIN = os.environ.get('AWS_MEDIA_CUSTOM_DOMAIN')
-AWS_QUERYSTRING_AUTH = ast.literal_eval(
-    os.environ.get('AWS_QUERYSTRING_AUTH', 'False'))
+AWS_QUERYSTRING_AUTH = get_bool('AWS_QUERYSTRING_AUTH', False)
 
 if AWS_STORAGE_BUCKET_NAME:
     STATICFILES_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
@@ -355,8 +361,7 @@ VERSATILEIMAGEFIELD_RENDITION_KEY_SETS = {
 
 VERSATILEIMAGEFIELD_SETTINGS = {
     # Images should be pre-generated on Production environment
-    'create_images_on_demand': ast.literal_eval(
-        os.environ.get('CREATE_IMAGES_ON_DEMAND', repr(DEBUG))),
+    'create_images_on_demand': get_bool('CREATE_IMAGES_ON_DEMAND', DEBUG),
 }
 
 PLACEHOLDER_IMAGES = {
@@ -468,3 +473,15 @@ ALLOWED_STYLES = ['text-align']
 DEFAULT_MENUS = {
     'top_menu_name': 'navbar',
     'bottom_menu_name': 'footer'}
+
+
+NOCAPTCHA = True
+
+ENABLE_RECAPTCHA = get_bool('ENABLE_RECAPTCHA', False)
+
+if 'RECAPTCHA_PUBLIC_KEY' in os.environ:
+    RECAPTCHA_PUBLIC_KEY = os.environ['RECAPTCHA_PUBLIC_KEY']
+
+if 'RECAPTCHA_PRIVATE_KEY' in os.environ:
+    RECAPTCHA_PRIVATE_KEY = os.environ['RECAPTCHA_PRIVATE_KEY']
+
