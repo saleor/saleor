@@ -320,6 +320,11 @@ class VariantImage(models.Model):
         ProductImage, related_name='variant_images', on_delete=models.CASCADE)
 
 
+class CollectionQuerySet(models.QuerySet):
+    def public(self):
+        return self.filter(is_published=True)
+
+
 class Collection(SeoModel):
     name = models.CharField(max_length=128, unique=True)
     slug = models.SlugField(max_length=128)
@@ -327,6 +332,9 @@ class Collection(SeoModel):
         Product, blank=True, related_name='collections')
     background_image = VersatileImageField(
         upload_to='collection-backgrounds', blank=True, null=True)
+    is_published = models.BooleanField(default=False)
+
+    objects = CollectionQuerySet.as_manager()
 
     class Meta:
         ordering = ['pk']

@@ -630,6 +630,13 @@ def permission_view_menu():
 @pytest.fixture
 def collection(db):
     collection = Collection.objects.create(
+        name='Collection', slug='collection', is_published=True)
+    return collection
+
+
+@pytest.fixture
+def draft_collection(db):
+    collection = Collection.objects.create(
         name='Collection', slug='collection')
     return collection
 

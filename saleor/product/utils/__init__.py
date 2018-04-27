@@ -116,3 +116,11 @@ def get_product_list_context(request, filter_set):
         'sort_by_choices': SORT_BY_FIELDS,
         'now_sorted_by': now_sorted_by,
         'is_descending': is_descending}
+
+
+def collections_visible_to_user(user):
+    # pylint: disable=cyclic-import
+    from ..models import Collection
+    if user.is_authenticated and user.is_active and user.is_staff:
+        return Collection.objects.all()
+    return Collection.objects.public()
