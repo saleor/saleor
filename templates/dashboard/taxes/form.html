@@ -41,6 +41,10 @@
             <div class="card-title">
               {% trans "Taxes" context "Dashboard site taxes settings form title" %}
             </div>
+            <br>
+            <div class="col s12">
+              <h4>{% trans "Dashboard" %}</h4>
+            </div>
             <div class="row">
               <div class="col s12">
                 {{ taxes_form.include_taxes_in_prices|materializecss }}
@@ -48,15 +52,23 @@
               <div class="col s12 checkbox-helptext">
                 <h6>
                   {% blocktrans context "Dashboard site taxes settings form help text" %}
-                    If selected, all prices entered and displayed in dashboard will include taxes.
+                    If selected, taxes will be calculated using below formula:
                   {% endblocktrans %}
                 </h6>
                 <h6>
                   {% blocktrans context "Dashboard site taxes settings form help text" %}
-                    For example: product with entered price 4.00 € and 19% VAT will have net price calculated to 3.36 €	(rounded).
+                    tax_amount = (tax_rate * price) / (1 + tax_rate)
+                  {% endblocktrans %}
+                </h6>
+                <h6>
+                  {% blocktrans context "Dashboard site taxes settings form help text" %}
+                    For example: product with price 4.00 € and 19% VAT will have net price calculated to 3.36 € and tax to 0.64 € (rounded)
                   {% endblocktrans %}
                 </h6>
               </div>
+            </div>
+            <div class="col s12">
+              <h4>{% trans "Storefront" %}</h4>
             </div>
             <div class="row">
               <div class="col s12">
@@ -65,7 +77,7 @@
               <div class="col s12 checkbox-helptext">
                 <h6>
                   {% blocktrans context "Dashboard site taxes settings form help text" %}
-                    If selected, prices displayed for customers in storefront will be gross. Taxes will be properly calculated at checkout.
+                    If selected, prices displayed for customers in the storefront will be gross and taxes will be calculated at checkout.
                   {% endblocktrans %}
                 </h6>
               </div>
@@ -77,7 +89,7 @@
               <div class="col s12 checkbox-helptext">
                 <h6>
                   {% blocktrans context "Dashboard site taxes settings form help text" %}
-                    If selected, standard tax rate is charged on shipping price.
+                    If selected, standard tax rate will be charged on a shipping price.
                   {% endblocktrans %}
                 </h6>
               </div>
