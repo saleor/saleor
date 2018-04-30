@@ -104,7 +104,7 @@
                   <th>{% trans "Name" %}</th>
                   <th>{% trans "Status" %}</th>
                   <th class="right-align">
-                    {% if include_taxes_in_prices %}
+                    {% if site.settings.include_taxes_in_prices %}
                       {% trans "Gross price" %}
                     {% else %}
                       {% trans "Net price" %}
@@ -175,33 +175,33 @@
                   <tbody>
                     <tr>
                       <td>
-                        {% if include_taxes_in_prices %}
+                        {% if site.settings.include_taxes_in_prices %}
                           {% trans "Gross sale price" context "Product field" %}
                         {% else %}
                           {% trans "Net sale price" context "Product field" %}
                         {% endif %}
                       </td>
                       <td class="right-align">
-                        {% price sale_price display_gross=include_taxes_in_prices %}
+                        {% price sale_price display_gross=site.settings.include_taxes_in_prices %}
                       </td>
                     </tr>
                     {% if discounted_price != sale_price %}
                       <tr>
                         <td>
-                          {% if include_taxes_in_prices %}
+                          {% if site.settings.include_taxes_in_prices %}
                             {% trans "Gross discounted price" context "Product field" %}
                           {% else %}
                             {% trans "Net discounted price" context "Product field" %}
                           {% endif %}
                         </td>
                         <td class="right-align">
-                          {% price discounted_price display_gross=include_taxes_in_prices %}
+                          {% price discounted_price display_gross=site.settings.include_taxes_in_prices %}
                         </td>
                       </tr>
                     {% endif %}
                     <tr>
                       <td>
-                        {% if include_taxes_in_prices %}
+                        {% if site.settings.include_taxes_in_prices %}
                           {% trans "Gross purchase cost" context "Product field" %}
                         {% else %}
                           {% trans "Net purchase cost" context "Product field" %}
@@ -213,7 +213,7 @@
                     </tr>
                     <tr>
                       <td>
-                        {% if include_taxes_in_prices %}
+                        {% if site.settings.include_taxes_in_prices %}
                           {% trans "Gross margin" context "Product field" %}
                         {% else %}
                           {% trans "Net margin" context "Product field" %}

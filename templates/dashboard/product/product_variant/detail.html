@@ -85,7 +85,7 @@
                 <tbody>
                   <tr>
                     <td>
-                      {% if include_taxes_in_prices %}
+                      {% if site.settings.include_taxes_in_prices %}
                         {% trans "Gross sale price" context "Product field" %}
                       {% else %}
                         {% trans "Net sale price" context "Product field" %}
@@ -98,7 +98,7 @@
                   {% if discounted_price != variant.base_price %}
                     <tr>
                       <td>
-                        {% if include_taxes_in_prices %}
+                        {% if site.settings.include_taxes_in_prices %}
                           {% trans "Gross discounted price" context "Product field" %}
                         {% else %}
                           {% trans "Net discounted price" context "Product field" %}
@@ -111,7 +111,7 @@
                   {% endif %}
                   <tr>
                     <td>
-                      {% if include_taxes_in_prices %}
+                      {% if site.settings.include_taxes_in_prices %}
                         {% trans "Gross purchase cost" context "Product field" %}
                       {% else %}
                         {% trans "Net purchase cost" context "Product field" %}
@@ -127,7 +127,7 @@
                   </tr>
                   <tr>
                     <td>
-                      {% if include_taxes_in_prices %}
+                      {% if site.settings.include_taxes_in_prices %}
                         {% trans "Gross margin" context "Product field" %}
                       {% else %}
                         {% trans "Net margin" context "Product field" %}

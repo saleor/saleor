@@ -14,7 +14,7 @@ from ..cart.models import Cart
 from ..cart.utils import get_or_empty_db_cart
 from ..core import analytics
 from ..core.utils.taxes import (
-    ZERO_TAXED_MONEY, display_gross_prices, get_taxes_for_country)
+    ZERO_TAXED_MONEY, get_taxes_for_country)
 from ..discount.models import NotApplicable, Voucher
 from ..discount.utils import increase_voucher_usage
 from ..order.models import Order
@@ -316,8 +316,7 @@ class Checkout:
             'tracking_client_id': self.tracking_code,
             'shipping_price': self.shipping_price,
             'shipping_method_name': shipping_method_name,
-            'total': self.get_total(),
-            'display_gross_prices': display_gross_prices()}
+            'total': self.get_total()}
 
         if self.user.is_authenticated:
             order_data['user'] = self.user

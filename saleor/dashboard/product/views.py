@@ -7,7 +7,6 @@ from django.shortcuts import get_object_or_404, redirect, reverse
 from django.template.response import TemplateResponse
 from django.utils.translation import npgettext_lazy, pgettext_lazy
 from django.views.decorators.http import require_POST
-from django_prices.templatetags import prices_i18n
 
 from . import forms
 from ...core.utils import get_paginator_items
@@ -192,14 +191,12 @@ def product_details(request, pk):
     # management.
     no_variants = not product.product_type.has_variants
     only_variant = variants.first() if no_variants else None
-    include_taxes_in_prices = request.site.settings.include_taxes_in_prices
     ctx = {
         'product': product, 'sale_price': sale_price,
         'discounted_price': discounted_price, 'variants': variants,
         'images': images, 'no_variants': no_variants,
         'only_variant': only_variant, 'purchase_cost': purchase_cost,
-        'margin': margin, 'is_empty': not variants.exists(),
-        'include_taxes_in_prices': include_taxes_in_prices}
+        'margin': margin, 'is_empty': not variants.exists()}
     return TemplateResponse(request, 'dashboard/product/detail.html', ctx)
 
 
@@ -386,12 +383,10 @@ def variant_details(request, product_pk, variant_pk):
 
     images = variant.images.all()
     margin = get_margin_for_variant(variant)
-    include_taxes_in_prices = request.site.settings.include_taxes_in_prices
     discounted_price = variant.get_price(discounts=Sale.objects.all()).gross
     ctx = {
         'images': images, 'product': product, 'variant': variant,
-        'margin': margin, 'discounted_price': discounted_price,
-        'include_taxes_in_prices': include_taxes_in_prices}
+        'margin': margin, 'discounted_price': discounted_price}
     return TemplateResponse(
         request,
         'dashboard/product/product_variant/detail.html',
