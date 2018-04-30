@@ -4,7 +4,7 @@
 <span>
   <span>
     {% if price_range.start != price_range.stop %}{% trans "from" context "product price range" %} {% endif %}
-    {% if display_gross_prices %}
+    {% if site.settings.display_gross_prices %}
       {{ price_range.start.gross|amount:'html' }}
     {% else %}
       {{ price_range.start.net|amount:'html' }}
