@@ -19,8 +19,7 @@ def get_statics_absolute_url(request):
     absolute_url = '%(protocol)s://%(domain)s%(static_url)s' % {
         'protocol': 'https' if request.is_secure() else 'http',
         'domain': site.domain,
-        'static_url': settings.STATIC_URL,
-    }
+        'static_url': settings.STATIC_URL}
     return absolute_url
 
 

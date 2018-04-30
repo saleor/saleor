@@ -22,8 +22,7 @@ export default observer(class VariantPrice extends Component {
         if (variant.priceLocalCurrency) {
           priceLocalCurrency = variant.priceLocalCurrency.grossLocalized;
         }
-      }
-      else {
+      } else {
         priceText = `${variant.price.netLocalized}`;
         priceUndiscountedText = `${variant.priceUndiscounted.netLocalized}`;
         if (variant.priceLocalCurrency) {
@@ -40,8 +39,7 @@ export default observer(class VariantPrice extends Component {
         if (availability.priceRangeLocalCurrency) {
           priceLocalCurrency = availability.priceRangeLocalCurrency.minPrice.grossLocalized;
         }
-      }
-      else {
+      } else {
         priceText = `${priceRange.minPrice.netLocalized}`;
         priceUndiscountedText = `${priceRangeUndiscounted.minPrice.netLocalized}`;
         if (availability.priceRangeLocalCurrency) {

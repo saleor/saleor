@@ -13,8 +13,7 @@ from ..account.utils import store_user_address
 from ..cart.models import Cart
 from ..cart.utils import get_or_empty_db_cart
 from ..core import analytics
-from ..core.utils.taxes import (
-    ZERO_TAXED_MONEY, get_taxes_for_country)
+from ..core.utils.taxes import ZERO_TAXED_MONEY, get_taxes_for_country
 from ..discount.models import NotApplicable, Voucher
 from ..discount.utils import increase_voucher_usage
 from ..order.models import Order
