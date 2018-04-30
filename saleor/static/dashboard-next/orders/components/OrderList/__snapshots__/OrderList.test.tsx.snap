@@ -1,0 +1,232 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`<OrderList /> renders 1`] = `
+<div
+  className="MuiPaper-root-7 MuiPaper-elevation2-11 MuiPaper-rounded-8 MuiCard-root-6"
+>
+  <table
+    className="MuiTable-root-34"
+  >
+    <thead
+      className="MuiTableHead-root-35"
+    >
+      <tr
+        className="MuiTableRow-root-36 MuiTableRow-head-39"
+      >
+        <th
+          aria-sort={null}
+          className="MuiTableCell-root-41 MuiTableCell-head-42"
+          scope="col"
+        >
+          #
+        </th>
+        <th
+          aria-sort={null}
+          className="MuiTableCell-root-41 MuiTableCell-head-42"
+          scope="col"
+        >
+          Status
+        </th>
+        <th
+          aria-sort={null}
+          className="MuiTableCell-root-41 MuiTableCell-head-42"
+          scope="col"
+        >
+          Client
+        </th>
+        <th
+          aria-sort={null}
+          className="MuiTableCell-root-41 MuiTableCell-head-42"
+          scope="col"
+        >
+          Created at
+        </th>
+        <th
+          aria-sort={null}
+          className="MuiTableCell-root-41 MuiTableCell-head-42"
+          scope="col"
+        >
+          Payment
+        </th>
+        <th
+          aria-sort={null}
+          className="MuiTableCell-root-41 MuiTableCell-head-42 Component-textRight-4"
+          scope="col"
+        >
+          Price
+        </th>
+      </tr>
+    </thead>
+    <tfoot>
+      <tr
+        className="MuiTableRow-root-36 MuiTableRow-footer-40"
+      >
+        <td
+          aria-sort={null}
+          className="MuiTableCell-root-41 MuiTableCell-footer-44 MuiTablePagination-root-52"
+          colSpan={6}
+          scope={undefined}
+        >
+          <div
+            className="MuiToolbar-root-58 MuiToolbar-gutters-59 MuiTablePagination-toolbar-57"
+          >
+            <div
+              className="MuiTablePagination-spacer-56"
+            />
+            <div
+              className="MuiTablePaginationActions-root-60"
+            >
+              <button
+                className="MuiButtonBase-root-67 MuiButtonBase-disabled-68 MuiIconButton-root-61 MuiIconButton-disabled-65"
+                disabled={true}
+                onBlur={[Function]}
+                onClick={undefined}
+                onFocus={[Function]}
+                onKeyDown={[Function]}
+                onKeyUp={[Function]}
+                onMouseDown={[Function]}
+                onMouseLeave={[Function]}
+                onMouseUp={[Function]}
+                onTouchEnd={[Function]}
+                onTouchMove={[Function]}
+                onTouchStart={[Function]}
+                tabIndex="-1"
+                type="button"
+              >
+                <span
+                  className="MuiIconButton-label-66"
+                >
+                  <svg
+                    aria-hidden="true"
+                    className="MuiSvgIcon-root-69"
+                    color={undefined}
+                    focusable="false"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      d="M15.41 16.09l-4.58-4.59 4.58-4.59L14 5.5l-6 6 6 6z"
+                    />
+                  </svg>
+                </span>
+              </button>
+              <button
+                className="MuiButtonBase-root-67 MuiButtonBase-disabled-68 MuiIconButton-root-61 MuiIconButton-disabled-65"
+                disabled={true}
+                onBlur={[Function]}
+                onClick={undefined}
+                onFocus={[Function]}
+                onKeyDown={[Function]}
+                onKeyUp={[Function]}
+                onMouseDown={[Function]}
+                onMouseLeave={[Function]}
+                onMouseUp={[Function]}
+                onTouchEnd={[Function]}
+                onTouchMove={[Function]}
+                onTouchStart={[Function]}
+                tabIndex="-1"
+                type="button"
+              >
+                <span
+                  className="MuiIconButton-label-66"
+                >
+                  <svg
+                    aria-hidden="true"
+                    className="MuiSvgIcon-root-69"
+                    color={undefined}
+                    focusable="false"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      d="M8.59 16.34l4.58-4.59-4.58-4.59L10 5.75l6 6-6 6z"
+                    />
+                  </svg>
+                </span>
+              </button>
+            </div>
+          </div>
+        </td>
+      </tr>
+    </tfoot>
+    <tbody
+      className="MuiTableBody-root-75"
+    >
+      <tr
+        className="MuiTableRow-root-36"
+      >
+        <td
+          aria-sort={null}
+          className="MuiTableCell-root-41 MuiTableCell-body-43"
+          scope={undefined}
+        >
+          <span
+            className="Component-skeleton-76"
+            style={undefined}
+          >
+            ‌
+          </span>
+        </td>
+        <td
+          aria-sort={null}
+          className="MuiTableCell-root-41 MuiTableCell-body-43"
+          scope={undefined}
+        >
+          <span
+            className="Component-skeleton-76"
+            style={undefined}
+          >
+            ‌
+          </span>
+        </td>
+        <td
+          aria-sort={null}
+          className="MuiTableCell-root-41 MuiTableCell-body-43"
+          scope={undefined}
+        >
+          <span
+            className="Component-skeleton-76"
+            style={undefined}
+          >
+            ‌
+          </span>
+        </td>
+        <td
+          aria-sort={null}
+          className="MuiTableCell-root-41 MuiTableCell-body-43"
+          scope={undefined}
+        >
+          <span
+            className="Component-skeleton-76"
+            style={undefined}
+          >
+            ‌
+          </span>
+        </td>
+        <td
+          aria-sort={null}
+          className="MuiTableCell-root-41 MuiTableCell-body-43"
+          scope={undefined}
+        >
+          <span
+            className="Component-skeleton-76"
+            style={undefined}
+          >
+            ‌
+          </span>
+        </td>
+        <td
+          aria-sort={null}
+          className="MuiTableCell-root-41 MuiTableCell-body-43"
+          scope={undefined}
+        >
+          <span
+            className="Component-skeleton-76"
+            style={undefined}
+          >
+            ‌
+          </span>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+`;

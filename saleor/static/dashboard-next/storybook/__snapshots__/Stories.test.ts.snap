@@ -1626,6 +1626,187 @@ exports[`Storyshots Generics / TablePagination previous page available 1`] = `
 </Table>
 `;
 
+exports[`Storyshots Orders / OrderList when loaded data 1`] = `
+<Component
+  classes={
+    Object {
+      "errorDot": "Component-errorDot-3",
+      "link": "Component-link-2",
+      "neutralDot": "Component-neutralDot-5",
+      "successDot": "Component-successDot-1",
+      "textRight": "Component-textRight-4",
+    }
+  }
+  orders={
+    Array [
+      Object {
+        "client": Object {
+          "email": "test.client-1@example.com",
+          "id": "c1",
+        },
+        "created": "21 Apr 2018 16:39",
+        "id": "o1",
+        "number": 11,
+        "paymentStatus": "confirmed",
+        "price": Object {
+          "localized": "19.20 USD",
+        },
+        "status": "fulfilled",
+      },
+      Object {
+        "client": Object {
+          "email": "test.client-1@example.com",
+          "id": "c1",
+        },
+        "created": "21 Apr 2018 16:31",
+        "id": "o2",
+        "number": 10,
+        "paymentStatus": "confirmed",
+        "price": Object {
+          "localized": "28.90 USD",
+        },
+        "status": "unfulfilled",
+      },
+      Object {
+        "client": Object {
+          "email": "test.client-2@example.com",
+          "id": "c2",
+        },
+        "created": "21 Apr 2018 11:06",
+        "id": "o2",
+        "number": 9,
+        "paymentStatus": "rejected",
+        "price": Object {
+          "localized": "289.00 USD",
+        },
+        "status": "shipped",
+      },
+    ]
+  }
+/>
+`;
+
+exports[`Storyshots Orders / OrderList when loading data 1`] = `
+<Component
+  classes={
+    Object {
+      "errorDot": "Component-errorDot-3",
+      "link": "Component-link-2",
+      "neutralDot": "Component-neutralDot-5",
+      "successDot": "Component-successDot-1",
+      "textRight": "Component-textRight-4",
+    }
+  }
+/>
+`;
+
+exports[`Storyshots Orders / OrderList when no data 1`] = `
+<Component
+  classes={
+    Object {
+      "errorDot": "Component-errorDot-3",
+      "link": "Component-link-2",
+      "neutralDot": "Component-neutralDot-5",
+      "successDot": "Component-successDot-1",
+      "textRight": "Component-textRight-4",
+    }
+  }
+  orders={Array []}
+/>
+`;
+
+exports[`Storyshots Orders / OrderListPage when loaded data 1`] = `
+<Component
+  classes={
+    Object {
+      "root": "Component-root-6",
+    }
+  }
+  onBack={[Function]}
+/>
+`;
+
+exports[`Storyshots Orders / OrderListPage when loading data 1`] = `
+<Component
+  classes={
+    Object {
+      "root": "Component-root-6",
+    }
+  }
+  onBack={[Function]}
+  orders={
+    Object {
+      "edges": Array [
+        Object {
+          "node": Object {
+            "client": Object {
+              "email": "test.client-1@example.com",
+              "id": "c1",
+            },
+            "created": "21 Apr 2018 16:39",
+            "id": "o1",
+            "number": 11,
+            "paymentStatus": "confirmed",
+            "price": Object {
+              "localized": "19.20 USD",
+            },
+            "status": "fulfilled",
+          },
+        },
+        Object {
+          "node": Object {
+            "client": Object {
+              "email": "test.client-1@example.com",
+              "id": "c1",
+            },
+            "created": "21 Apr 2018 16:31",
+            "id": "o2",
+            "number": 10,
+            "paymentStatus": "confirmed",
+            "price": Object {
+              "localized": "28.90 USD",
+            },
+            "status": "unfulfilled",
+          },
+        },
+        Object {
+          "node": Object {
+            "client": Object {
+              "email": "test.client-2@example.com",
+              "id": "c2",
+            },
+            "created": "21 Apr 2018 11:06",
+            "id": "o2",
+            "number": 9,
+            "paymentStatus": "rejected",
+            "price": Object {
+              "localized": "289.00 USD",
+            },
+            "status": "shipped",
+          },
+        },
+      ],
+    }
+  }
+/>
+`;
+
+exports[`Storyshots Orders / OrderListPage when no data 1`] = `
+<Component
+  classes={
+    Object {
+      "root": "Component-root-6",
+    }
+  }
+  onBack={[Function]}
+  orders={
+    Object {
+      "edges": Array [],
+    }
+  }
+/>
+`;
+
 exports[`Storyshots Pages / PageBaseForm with 'created' property 1`] = `
 <Component
   availableOn="2018-03-20T16:39:08.850105+00:00"

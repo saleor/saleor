@@ -3,12 +3,14 @@ import { configure } from "@storybook/react";
 
 function loadStories() {
   // Components
+  require("./stories/components/DateFormatter");
   require("./stories/components/ErrorMessageCard");
   require("./stories/components/MultiSelectField");
   require("./stories/components/PageHeader");
   require("./stories/components/PriceField");
   require("./stories/components/SingleSelectField");
   require("./stories/components/Skeleton");
+  require("./stories/components/StatusLabel");
   require("./stories/components/TablePagination");
 
   // Categories
@@ -49,7 +51,6 @@ function loadStories() {
   require("./stories/products/ProductVariants");
 
   // Orders
-  require("./stories/orders/OrderFilters");
   require("./stories/orders/OrderList");
   require("./stories/orders/OrderListPage");
 }

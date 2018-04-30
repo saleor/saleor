@@ -3,7 +3,20 @@ import * as React from "react";
 
 import OrderListPage from "../../../orders/components/OrderListPage";
 import { orders } from "../../../orders/fixtures";
+import Decorator from "../../Decorator";
 
-storiesOf("orders / OrderListPage", module)
-  .add("default", () => <OrderListPage onBack={() => {}} orders={orders} />)
-  .add("other", () => <OrderListPage onBack={() => {}} />);
+storiesOf("Orders / OrderListPage", module)
+  .addDecorator(Decorator)
+  .add("when loaded data", () => (
+    <OrderListPage onBack={() => {}} onRowClick={() => {}} />
+  ))
+  .add("when loading data", () => (
+    <OrderListPage onBack={() => {}} orders={orders} onRowClick={() => {}} />
+  ))
+  .add("when no data", () => (
+    <OrderListPage
+      onBack={() => {}}
+      orders={{ edges: [] }}
+      onRowClick={() => {}}
+    />
+  ));

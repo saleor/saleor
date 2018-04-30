@@ -1,5 +1,8 @@
 import { withStyles } from "material-ui/styles";
 import * as React from "react";
+
+import { transformOrderStatus, transformPaymentStatus } from "../../";
+import Container from "../../../components/Container";
 import PageHeader from "../../../components/PageHeader";
 import i18n from "../../../i18n";
 import OrderList from "../OrderList";
@@ -18,24 +21,32 @@ interface OrderListPageProps {
         created: string;
         paymentStatus: string;
         price: {
-          localized;
+          amount: number;
+          currency: string;
         };
       };
     }>;
   };
   onBack();
+  onRowClick(id: string);
 }
 
 const decorate = withStyles(theme => ({ root: {} }));
 const OrderListPage = decorate<OrderListPageProps>(
-  ({ classes, orders, onBack }) => (
-    // TODO: Wrap in container
-    <>
-      <PageHeader title={i18n.t("Orders")} onBack={onBack} />
-      <OrderList
-        orders={orders ? orders.edges.map(edge => edge.node) : undefined}
-      />
-    </>
-  )
+  ({ classes, orders, onBack, onRowClick }) => {
+    const orderList = orders
+      ? orders.edges.map(edge => ({
+          ...edge.node,
+          orderStatus: transformOrderStatus(edge.node.status),
+          paymentStatus: transformPaymentStatus(edge.node.paymentStatus)
+        }))
+      : undefined;
+    return (
+      <Container width="md">
+        <PageHeader title={i18n.t("Orders")} onBack={onBack} />
+        <OrderList orders={orderList} onRowClick={onRowClick} />
+      </Container>
+    );
+  }
 );
 export default OrderListPage;
