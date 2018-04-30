@@ -30,3 +30,13 @@ Tax rates preview
 -----------------
 
 You can preview tax rates in dashboard ``Taxes`` tab. It lists all countries taxes are handled for. You can see all available tax rates for each country in its details view.
+
+
+Fetching taxes
+--------------
+
+  Assuming one provided valid ``VATLAYER_ACCESS_KEY``, taxes can be fetched via following command:
+
+  .. code-block:: console
+
+  $ python manage.py get_vat_rates
