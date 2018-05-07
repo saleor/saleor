@@ -105,6 +105,11 @@ class Checkout:
         return self.cart.is_shipping_required()
 
     @property
+    def are_taxes_handled(self):
+        """Return `True` if taxes are handled in the delivery country."""
+        return bool(self.get_taxes())
+
+    @property
     def shipping_address(self):
         """Return a shipping address if any."""
         if self._shipping_address is None:

@@ -140,18 +140,20 @@
                 {% price availability.price_range_local_currency %}
               </small>
             {% endif %}
-            <small>
-              {% tax_rate request.taxes product.tax_rate as tax_rate %}
-              {% if site.settings.display_gross_prices %}
-                {% blocktrans trimmed with tax_rate=tax_rate context "Product details page vat rate value" %}
-                  including {{ tax_rate }}% VAT
-                {% endblocktrans %}
-              {% else %}
-                {% blocktrans trimmed with tax_rate=tax_rate context "Product details page vat rate value" %}
-                  excluding {{ tax_rate }}% VAT
-                {% endblocktrans %}
-              {% endif %}
-            </small>
+            {% if request.taxes %}
+              <small>
+                {% tax_rate request.taxes product.tax_rate as tax_rate %}
+                {% if site.settings.display_gross_prices %}
+                  {% blocktrans trimmed with tax_rate=tax_rate context "Product details page vat rate value" %}
+                    including {{ tax_rate }}% VAT
+                  {% endblocktrans %}
+                {% else %}
+                  {% blocktrans trimmed with tax_rate=tax_rate context "Product details page vat rate value" %}
+                    excluding {{ tax_rate }}% VAT
+                  {% endblocktrans %}
+                {% endif %}
+              </small>
+            {% endif %}
           </h2>
         {% endif %}
       {% endif %}
@@ -159,8 +161,7 @@
         {% block orderform %}
           {% if show_variant_picker %}
             {% csrf_token %}
-            <div id="variant-picker" data-variant-picker-data="{{ variant_picker_data }}"
-                 data-action="{% url 'product:add-to-cart' product_id=product.pk slug=product.get_slug %}" data-display-gross-price="{{ site.settings.display_gross_prices }}"></div>
+            <div id="variant-picker" data-variant-picker-data="{{ variant_picker_data }}" data-action="{% url 'product:add-to-cart' product_id=product.pk slug=product.get_slug %}"></div>
           {% else %}
             <form id="product-form" role="form" class="product-form clearfix" method="post" action="{% url 'product:add-to-cart' product_id=product.pk slug=product.get_slug %}" novalidate>
               {% csrf_token %}

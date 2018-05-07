@@ -80,6 +80,13 @@
             <div class="col-4">
               <p class="float-right">{% price total.tax %}</p>
             </div>
+            <div class="col-12">
+              {% if not checkout.are_taxes_handled %}
+                <small class="form-text text-muted">
+                  <p>{% trans "Calculating tax rates in delivery country is not supported" context "Order review section title" %}</p>
+                </small>
+              {% endif %}
+            </div>
           </div>
           <div class="row checkout__review__section">
             <div class="col-12">

@@ -4,19 +4,20 @@ import React, { Component, PropTypes } from 'react';
 export default observer(class VariantPrice extends Component {
   static propTypes = {
     availability: PropTypes.object.isRequired,
-    store: PropTypes.object,
-    displayGrossPrices: PropTypes.bool
+    priceDisplay: PropTypes.object.isRequired,
+    store: PropTypes.object
   }
 
   render() {
     let priceText, priceUndiscountedText, priceLocalCurrency, isDiscount;
-    const { availability, store, displayGrossPrices } = this.props;
+    const { availability, priceDisplay, store } = this.props;
+    const { displayGross, handleTaxes } = priceDisplay;
     const variant = store.variant;
     const taxRate = availability.taxRate;
     if (!store.isEmpty) {
       // variant price
       isDiscount = variant.price.gross !== variant.priceUndiscounted.gross;
-      if (displayGrossPrices) {
+      if (displayGross) {
         priceText = `${variant.price.grossLocalized}`;
         priceUndiscountedText = `${variant.priceUndiscounted.grossLocalized}`;
         if (variant.priceLocalCurrency) {
@@ -33,7 +34,7 @@ export default observer(class VariantPrice extends Component {
       // if there's no variant, fall back to product price
       const { discount, priceRange, priceRangeUndiscounted } = availability;
       isDiscount = discount && !!Object.keys(discount).length;
-      if (displayGrossPrices) {
+      if (displayGross) {
         priceText = `${priceRange.minPrice.grossLocalized}`;
         priceUndiscountedText = `${priceRangeUndiscounted.minPrice.grossLocalized}`;
         if (availability.priceRangeLocalCurrency) {
@@ -56,12 +57,13 @@ export default observer(class VariantPrice extends Component {
         {priceLocalCurrency && (
           <p><small className="text-info">&asymp; {priceLocalCurrency}</small></p>
         )}
-        {displayGrossPrices && (
-          <small>including {taxRate}% VAT</small>
-        )}
-        {!displayGrossPrices && (
-          <small>excluding {taxRate}% VAT</small>
-        )}
+        {handleTaxes && [
+          displayGross ? (
+            <small>including {taxRate}% VAT</small>
+          ) : (
+            <small>excluding {taxRate}% VAT</small>
+          )
+        ]}
       </h2>
     );
   }
