@@ -13,11 +13,11 @@ Configuring taxes
 
 There are three ways in which you can configure taxes:
 
-#. All taxes are included in my prices
+#. All products prices are entered with tax included
 
    If selected, all prices entered and displayed in dashboard will be treated as gross prices. For example: product with entered price 4.00 € and 19% VAT will have net price calculated to 3.36 € (rounded).
 
-#. Show customers gross prices in storefront
+#. Show gross prices to customers in the storefront
 
    If selected, prices displayed for customers in storefront will be gross. Taxes will be properly calculated at checkout. Changing this setting has no effect on displaying orders placed in the past.
 

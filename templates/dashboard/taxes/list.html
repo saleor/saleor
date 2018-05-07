@@ -73,12 +73,12 @@
         <div class="card">
           <div class="card-content">
             <span class="card-title">
-              {% trans "Taxes settings" context "Taxes site settings title" %}
+              {% trans "Configuration" context "Taxes site settings title" %}
             </span>
             <div class="row">
               <div class="col s12">
                 <h4>
-                  {% trans "All taxes are included in my prices" context "Site settings field" %}
+                  {% trans "All products prices are entered with tax included" context "Site settings field" %}
                 </h4>
                 <p>
                   {% if site.settings.include_taxes_in_prices %}
@@ -92,7 +92,7 @@
             <div class="row">
               <div class="col s12">
                 <h4>
-                  {% trans "Show customers gross prices in storefront" context "Site settings field" %}
+                  {% trans "Show gross prices to customers in the storefront" context "Site settings field" %}
                 </h4>
                 <p>
                   {% if site.settings.display_gross_prices %}
