@@ -1,8 +1,8 @@
 from django.conf import settings
 from django.contrib.sites.shortcuts import get_current_site
 from django.template.loader import get_template
-from prices import Money
 
+from ...core.utils.taxes import ZERO_MONEY
 from ...discount import VoucherType
 from ...discount.models import NotApplicable
 from ...discount.utils import (
@@ -106,7 +106,7 @@ def _get_value_voucher_discount_for_order(order):
         discount_amount = get_value_voucher_discount(
             order.voucher, order.get_subtotal())
     except NotApplicable:
-        discount_amount = Money(0, settings.DEFAULT_CURRENCY)
+        discount_amount = ZERO_MONEY
     return discount_amount
 
 
@@ -116,7 +116,7 @@ def _get_shipping_voucher_discount_for_order(order):
         discount_amount = get_shipping_voucher_discount(
             order.voucher, order.get_subtotal(), order.shipping_price)
     except NotApplicable:
-        discount_amount = Money(0, settings.DEFAULT_CURRENCY)
+        discount_amount = ZERO_MONEY
     return discount_amount
 
 
@@ -131,7 +131,7 @@ def _get_product_or_category_voucher_discount_for_order(order):
             variant_price for _, variant_price in
             get_category_variants_and_prices(order, order.voucher.category)]
     if not prices:
-        return Money(0, settings.DEFAULT_CURRENCY)
+        return ZERO_MONEY
     return get_product_or_category_voucher_discount(order.voucher, prices)
 
 

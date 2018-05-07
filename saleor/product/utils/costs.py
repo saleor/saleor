@@ -1,12 +1,10 @@
-from django.conf import settings
-from prices import Money, MoneyRange
+from prices import MoneyRange
 
-from ...core.utils.taxes import ZERO_TAXED_MONEY
+from ...core.utils.taxes import ZERO_MONEY
 
 
 def get_product_costs_data(product):
-    purchase_costs_range = MoneyRange(
-        start=ZERO_TAXED_MONEY, stop=ZERO_TAXED_MONEY)
+    purchase_costs_range = MoneyRange(start=ZERO_MONEY, stop=ZERO_MONEY)
     margin = (0, 0)
 
     if not product.variants.exists():
@@ -52,7 +50,7 @@ def get_variant_costs_data(variant):
 
 def get_cost_price(variant):
     if not variant.cost_price:
-        return Money(0, settings.DEFAULT_CURRENCY)
+        return ZERO_MONEY
     return variant.cost_price
 
 

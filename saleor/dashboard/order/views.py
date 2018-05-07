@@ -16,7 +16,8 @@ from payments import PaymentStatus
 
 from ...core.exceptions import InsufficientStock
 from ...core.utils import get_paginator_items
-from ...core.utils.taxes import ZERO_TAXED_MONEY, get_taxes_for_address
+from ...core.utils.taxes import (
+    ZERO_MONEY, ZERO_TAXED_MONEY, get_taxes_for_address)
 from ...order import CustomPaymentChoices, OrderStatus
 from ...order.emails import (
     send_fulfillment_confirmation, send_fulfillment_update,
@@ -121,8 +122,9 @@ def order_details(request, order_pk):
     order = get_object_or_404(qs, pk=order_pk)
     all_payments = order.payments.exclude(status=PaymentStatus.INPUT)
     payment = order.payments.last()
-    captured = preauthorized = ZERO_TAXED_MONEY
-    balance = captured - order.total
+    preauthorized = ZERO_TAXED_MONEY
+    captured = ZERO_MONEY
+    balance = captured - order.total.gross
     if payment:
         can_capture = (
             payment.status == PaymentStatus.PREAUTH and
@@ -134,7 +136,7 @@ def order_details(request, order_pk):
         preauthorized = payment.get_total_price()
         if payment.status == PaymentStatus.CONFIRMED:
             captured = payment.get_captured_price()
-            balance = captured - order.total
+            balance = captured - order.total.gross
     else:
         can_capture = can_release = can_refund = False
     can_mark_as_paid = not order.payments.exists()

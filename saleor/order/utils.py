@@ -1,13 +1,12 @@
 from functools import wraps
 
-from django.conf import settings
 from django.db.models import F
 from django.shortcuts import get_object_or_404, redirect
-from prices import Money
 
 from ..account.utils import store_user_address
 from ..core.exceptions import InsufficientStock
-from ..core.utils.taxes import get_tax_rate_by_name, get_taxes_for_address
+from ..core.utils.taxes import (
+    ZERO_MONEY, get_tax_rate_by_name, get_taxes_for_address)
 from ..dashboard.order.utils import get_voucher_discount_for_order
 from ..order import FulfillmentStatus, OrderStatus
 from ..order.models import OrderLine
@@ -44,8 +43,7 @@ def update_voucher_discount(func):
         if kwargs.pop('update_voucher_discount', True):
             order = args[0]
             order.discount_amount = (
-                get_voucher_discount_for_order(order) or
-                Money(0, settings.DEFAULT_CURRENCY))
+                get_voucher_discount_for_order(order) or ZERO_MONEY)
         return func(*args, **kwargs)
 
     return decorator

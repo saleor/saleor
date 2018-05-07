@@ -7,7 +7,7 @@ from payments import PaymentStatus
 from prices import Money
 from tests.utils import get_form_errors, get_redirect_location
 
-from saleor.core.utils.taxes import ZERO_TAXED_MONEY
+from saleor.core.utils.taxes import ZERO_MONEY, ZERO_TAXED_MONEY
 from saleor.dashboard.order.forms import ChangeQuantityForm, OrderNoteForm
 from saleor.dashboard.order.utils import (
     fulfill_order_line, remove_customer_from_order, save_address_in_order,
@@ -1070,7 +1070,7 @@ def test_view_order_voucher_remove(admin_client, draft_order, voucher):
     assert get_redirect_location(response) == redirect_url
 
     draft_order.refresh_from_db()
-    assert draft_order.discount_amount == Money(0, settings.DEFAULT_CURRENCY)
+    assert draft_order.discount_amount == ZERO_MONEY
     assert draft_order.total == total_before + discount_amount
 
 
