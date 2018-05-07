@@ -63,7 +63,9 @@ def get_variant_picker_data(
             availability.price_range_undiscounted),
         'priceRangeLocalCurrency': price_range_as_dict(
             availability.price_range_local_currency)}
-    data['displayGrossPrices'] = display_gross_prices()
+    data['priceDisplay'] = {
+        'displayGross': display_gross_prices(),
+        'handleTaxes': bool(taxes)}
     return data
 
 

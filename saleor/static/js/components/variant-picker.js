@@ -29,8 +29,8 @@ export default $(document).ready((e) => {
       ReactDOM.render(
         <VariantPrice
           availability={variantPickerData.availability}
+          priceDisplay={variantPickerData.priceDisplay}
           store={variantPickerStore}
-          displayGrossPrices={variantPickerData.displayGrossPrices}
         />,
         variantPriceContainer
       );
