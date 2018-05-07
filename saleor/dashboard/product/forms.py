@@ -293,6 +293,17 @@ class ProductVariantForm(forms.ModelForm, AttributesMixin):
                 .prefetch_related('values'))
             self.prepare_fields_for_attributes()
 
+        if include_taxes_in_prices():
+            self.fields['price_override'].label = pgettext_lazy(
+                'Override price', 'Selling gross price override')
+            self.fields['cost_price'].label = pgettext_lazy(
+                'Currency amount', 'Cost gross price')
+        else:
+            self.fields['price_override'].label = pgettext_lazy(
+                'Override price', 'Selling net price override')
+            self.fields['cost_price'].label = pgettext_lazy(
+                'Currency amount', 'Cost net price')
+
     def save(self, commit=True):
         attributes = self.get_saved_attributes()
         self.instance.attributes = attributes
