@@ -1,6 +1,8 @@
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import permission_required
+from django.core.exceptions import ImproperlyConfigured
+from django.core.management import call_command
 from django.shortcuts import get_object_or_404, redirect
 from django.template.response import TemplateResponse
 from django.utils.translation import pgettext_lazy
@@ -13,7 +15,6 @@ from ...core.utils.taxes import get_taxes_for_country
 from ...dashboard.taxes.filters import TaxFilter
 from ...dashboard.taxes.forms import TaxesConfigurationForm
 from ...dashboard.views import staff_member_required
-from ...site.models import SiteSettings
 
 
 @staff_member_required
@@ -52,3 +53,20 @@ def configure_taxes(request):
         return redirect('dashboard:taxes')
     ctx = {'site': site_settings, 'taxes_form': taxes_form}
     return TemplateResponse(request, 'dashboard/taxes/form.html', ctx)
+
+
+@staff_member_required
+@permission_required('site.edit_settings')
+def fetch_tax_rates(request):
+    try:
+        call_command('get_vat_rates')
+        msg = pgettext_lazy(
+            'Dashboard message', 'Tax rates updated successfully')
+        messages.success(request, msg)
+    except ImproperlyConfigured:
+        msg = pgettext_lazy(
+            'Dashboard message',
+            'Could not fetch tax rates. You have not supplied a valid API '
+            'Access Key')
+        messages.warning(request, msg)
+    return redirect('dashboard:taxes')
