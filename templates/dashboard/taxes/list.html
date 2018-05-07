@@ -76,7 +76,7 @@
               {% trans "Taxes settings" context "Taxes site settings title" %}
             </span>
             <div class="row">
-              <div class="col s12 m4 l12">
+              <div class="col s12">
                 <h4>
                   {% trans "All taxes are included in my prices" context "Site settings field" %}
                 </h4>
@@ -90,7 +90,7 @@
               </div>
             </div>
             <div class="row">
-              <div class="col s12 m4 l12">
+              <div class="col s12">
                 <h4>
                   {% trans "Show customers gross prices in storefront" context "Site settings field" %}
                 </h4>
@@ -104,7 +104,7 @@
               </div>
             </div>
             <div class="row">
-              <div class="col s12 m4 l12">
+              <div class="col s12">
                 <h4>
                   {% trans "Charge taxes on shipping rates" context "Site settings field" %}
                 </h4>
@@ -122,6 +122,9 @@
             <div class="card-action">
               <a class="btn-flat waves-effect" href="{% url 'dashboard:configure-taxes' %}">
                 {% trans "Configure taxes" context "Site settings configure taxes action" %}
+              </a>
+              <a class="btn-flat waves-effect load-action" href="{% url 'dashboard:fetch-tax-rates' %}">
+                {% trans "Fetch newest tax rates" context "Site settings fetch tax rates action" %}
               </a>
             </div>
           {% endif %}
