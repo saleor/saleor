@@ -38,7 +38,8 @@ Example: ``export DEFAULT_FROM_EMAIL=me@example.com``
 
 .. note::
 
-    If your 'from email' address is your domain, you need to make sure you at least correctly set your
+    As it is not in the setup process of sendgrid, if your 'from email' address is your domain,
+    you need to make sure you at least correctly set your
     `SPF <https://sendgrid.com/docs/Glossary/spf.html>`_ DNS record and, optionally, set your
     `DKIM <https://sendgrid.com/docs/Glossary/dkim.html>`_ DNS record as well.
 
