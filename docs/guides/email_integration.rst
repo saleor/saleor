@@ -1,0 +1,81 @@
+Email Configuration and Integration
+===================================
+
+Saleor offers a few ways to set-up your email settings over SMTP servers and relays.
+
+The global, and basic way saleor offers is to set the following ``EMAIL_URL`` environment variable to the target URL,
+which will contain a straightforward value as bellow examples.
+
+
+Example Configurations
+----------------------
+
+
+.. table::
+
+   ==========================================================  ================================================================================
+   Description                                                 URL
+   ==========================================================  ================================================================================
+   GMAIL with **SSL on**.                                      ``smtp://my.gmaail.username@gmail.com:my-password@smtp.gmail.com:465/?ssl=True``
+   OVH with **STARTTLS on**.                                   ``smtp://username@example.com:my-password@pro1.mail.ovh.net:587/?tls=True``
+   A SMTP server unencrypted.                                  ``smtp://username@example.com:my-password@smtp.example.com:25/``
+   ==========================================================  ================================================================================
+
+
+
+Sendgrid Integration
+--------------------
+
+After you `created your sendgrid application <https://app.sendgrid.com/guide/integrate/langs/smtp>`_,
+you need to set the environment variable ``EMAIL_URL`` as bellow,
+but by replacing ``YOUR_API_KEY_HERE`` with your API key.
+
+``smtp://apikey:YOUR_API_KEY_HERE@smtp.sendgrid.com:465/?ssl=True``
+
+Then, you have to set the environment variable ``DEFAULT_FROM_EMAIL`` to the email address you want to use as the sender email.
+
+Example: ``export DEFAULT_FROM_EMAIL=me@example.com``
+
+.. note::
+
+    If your 'from email' address is your domain, you need to make sure you at least correctly set your
+    `SPF <https://sendgrid.com/docs/Glossary/spf.html>`_ DNS record and, optionally, set your
+    `DKIM <https://sendgrid.com/docs/Glossary/dkim.html>`_ DNS record as well.
+
+
+Mailgun Integration
+-------------------
+
+After you `added your domain in Mailgun and correctly set-up your domain DNS records <https://app.mailgun.com/app/domains/new>`_,
+you can set the environment variable ``EMAIL_URL`` as bellow,
+but by replacing everything capitalized, with your data.
+
+``smtp://YOUR_LOGIN_NAME@YOUR_DOMAIN_NAME:YOUR_DEFAULT_MAILGUN_PASSWORD@smtp.mailgun.org:465/?ssl=True``
+
+
+Example
++++++++
+
+Let's say my domain name is ``smtp.example.com`` and I want to send emails as ``john.doe@smtp.example.com``
+and my password is ``my-mailgun-password``.
+
+.. image:: https://i.imgur.com/pdJjBnD.png
+
+I have to set ``EMAIL_URL`` to:
+
+``smtp://john.doe@smtp.example.com:my-mailgun-password@smtp.mailgun.org:465/?ssl=True``
+
+
+
+Mailjet Integration
+-------------------
+
+After `adding your domain in Mailjet <https://app.mailjet.com/account/sender/domain#create-domain>`_,
+you have to set the environment variable ``EMAIL_URL`` as bellow,
+but by replacing everything capitalized, with your data, available at this `URL <https://app.mailjet.com/account/setup>`_\.
+
+``smtp://YOUR_MAILJET_USERNAME:YOUR_MAILJET_PASSWORD@in-v3.mailjet.com:587/?tls=True``
+
+Then, you have to set the environment variable ``DEFAULT_FROM_EMAIL`` to the email address you want to use as the sender email.
+
+Example: ``export DEFAULT_FROM_EMAIL=me@example.com``
