@@ -110,7 +110,7 @@
                       {% trans "Net price" %}
                     {% endif %}
                   </th>
-                  <th class="right-align">{% trans "Gross margin" %}</th>
+                  <th class="right-align">{% trans "Margin" %}</th>
                   {% if perms.product.edit_product %}
                     <th></th>
                   {% endif %}
@@ -213,11 +213,7 @@
                     </tr>
                     <tr>
                       <td>
-                        {% if site.settings.include_taxes_in_prices %}
-                          {% trans "Gross margin" context "Product field" %}
-                        {% else %}
-                          {% trans "Net margin" context "Product field" %}
-                        {% endif %}
+                        {% trans "Margin" context "Product field" %}
                       </td>
                       <td class="right-align">
                         {% if margin %}
