@@ -14,18 +14,18 @@
 
 {% block body_class %}body-settings{% endblock %}
 
-{% block menu_settings_class %}active{% endblock %}
+{% block menu_taxes_class %}active{% endblock %}
 
 {% block breadcrumbs %}
   <ul class="breadcrumbs breadcrumbs--history">
     <li>
-      <a href="{% url 'dashboard:site-index' %}" class="breadcrumbs--ellipsed-item">
-        {% trans "Site settings" context "Dashboard attributes list" %}
+      <a href="{% url 'dashboard:taxes' %}" class="breadcrumbs--ellipsed-item">
+        {% trans "Taxes" context "Dashboard taxes list" %}
       </a>
     </li>
     <li>
       <span>
-        {% trans "Edit taxes" context "Dashboard site settings" %}
+        {% trans "Configure taxes" context "Dashboard configure taxes settings" %}
       </span>
     </li>
   </ul>
@@ -96,7 +96,7 @@
             </div>
           </div>
           <div class="card-action right-align">
-            <a class="btn-flat waves-effect" href="{% url 'dashboard:taxes' %}" target="_blank">
+            <a class="btn-flat waves-effect" href="{% url 'dashboard:taxes' %}">
               {% trans "Cancel" context "Dashboard cancel action" %}
             </a>
             <button type="submit" class="btn waves-effect">

@@ -13,7 +13,7 @@ class TaxesConfigurationForm(forms.ModelForm):
         labels = {
             'include_taxes_in_prices': pgettext_lazy(
                 'Include taxes in prices',
-                'All taxes are included in my prices'),
+                'All products prices are entered with tax included'),
             'display_gross_prices': pgettext_lazy(
                 'Display gross prices',
                 'Show gross prices to customers in the storefront'),
