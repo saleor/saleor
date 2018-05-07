@@ -7,9 +7,8 @@ from prices import Money, MoneyRange, TaxedMoney, TaxedMoneyRange
 
 DEFAULT_TAX_RATE_NAME = 'standard'
 
-ZERO_TAXED_MONEY = TaxedMoney(
-    net=Money(0, settings.DEFAULT_CURRENCY),
-    gross=Money(0, settings.DEFAULT_CURRENCY))
+ZERO_MONEY = Money(0, settings.DEFAULT_CURRENCY)
+ZERO_TAXED_MONEY = TaxedMoney(net=ZERO_MONEY, gross=ZERO_MONEY)
 
 
 def apply_tax_to_price(taxes, rate_name, base):

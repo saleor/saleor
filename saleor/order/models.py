@@ -110,9 +110,7 @@ class Order(models.Model):
             [
                 payment.get_total_price() for payment in
                 self.payments.filter(status=PaymentStatus.CONFIRMED)],
-            TaxedMoney(
-                net=Money(0, settings.DEFAULT_CURRENCY),
-                gross=Money(0, settings.DEFAULT_CURRENCY)))
+            ZERO_TAXED_MONEY)
         return total_paid.gross >= self.total.gross
 
     def get_user_current_email(self):
