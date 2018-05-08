@@ -10,7 +10,7 @@ from ...product.utils.costs import get_product_costs_data
 from ..core.decorators import permission_required
 from ..core.filters import DistinctFilterSet
 from ..core.types import (
-    CountableDjangoObjectType, Money, TaxedMoney, TaxedMoneyRange)
+    CountableDjangoObjectType, Money, MoneyRange, TaxedMoney, TaxedMoneyRange)
 from .filters import ProductFilterSet
 
 
@@ -31,7 +31,7 @@ def resolve_attribute_list(attributes):
     return attribute_list
 
 
-class GrossMargin(graphene.ObjectType):
+class Margin(graphene.ObjectType):
     start = graphene.Int()
     stop = graphene.Int()
 
@@ -106,8 +106,8 @@ class Product(CountableDjangoObjectType):
     attributes = graphene.List(
         SelectedAttribute,
         description='List of product attributes assigned to this product.')
-    purchase_cost = graphene.Field(TaxedMoneyRange)
-    gross_margin = graphene.List(GrossMargin)
+    purchase_cost = graphene.Field(MoneyRange)
+    margin = graphene.List(Margin)
 
     class Meta:
         description = """Represents an individual item for sale in the
@@ -126,7 +126,7 @@ class Product(CountableDjangoObjectType):
     def resolve_availability(self, info):
         context = info.context
         availability = get_availability(
-            self, context.discounts, context.currency)
+            self, context.discounts, context.taxes, context.currency)
         return ProductAvailability(**availability._asdict())
 
     def resolve_attributes(self, info):
@@ -138,9 +138,9 @@ class Product(CountableDjangoObjectType):
         return purchase_cost
 
     @permission_required('product.view_product')
-    def resolve_gross_margin(self, info):
-        _, gross_margin = get_product_costs_data(self)
-        return [GrossMargin(gross_margin[0], gross_margin[1])]
+    def resolve_margin(self, info):
+        _, margin = get_product_costs_data(self)
+        return [Margin(margin[0], margin[1])]
 
 
 class ProductType(CountableDjangoObjectType):

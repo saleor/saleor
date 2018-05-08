@@ -11,13 +11,15 @@ from django.utils.encoding import smart_text
 from django.utils.text import slugify
 from django.utils.translation import pgettext_lazy
 from django_prices.models import MoneyField
+from django_prices.templatetags import prices_i18n
 from mptt.managers import TreeManager
 from mptt.models import MPTTModel
-from prices import Money, TaxedMoney, TaxedMoneyRange
+from prices import TaxedMoneyRange
 from text_unidecode import unidecode
 from versatileimagefield.fields import PPOIField, VersatileImageField
 
 from ..core.exceptions import InsufficientStock
+from ..core.utils.taxes import DEFAULT_TAX_RATE_NAME, apply_tax_to_price
 from ..discount.utils import calculate_discounted_price
 from ..seo.models import SeoModel
 
@@ -68,6 +70,8 @@ class ProductType(models.Model):
     variant_attributes = models.ManyToManyField(
         'ProductAttribute', related_name='product_variant_types', blank=True)
     is_shipping_required = models.BooleanField(default=False)
+    tax_rate = models.CharField(
+        max_length=128, default=DEFAULT_TAX_RATE_NAME, blank=True)
 
     class Meta:
         app_label = 'product'
@@ -104,6 +108,9 @@ class Product(SeoModel):
     attributes = HStoreField(default={}, blank=True)
     updated_at = models.DateTimeField(auto_now=True, null=True)
     is_featured = models.BooleanField(default=False)
+    charge_taxes = models.BooleanField(default=True)
+    tax_rate = models.CharField(
+        max_length=128, default=DEFAULT_TAX_RATE_NAME, blank=True)
 
     objects = ProductQuerySet.as_manager()
 
@@ -153,28 +160,18 @@ class Product(SeoModel):
         first_image = self.images.first()
         return first_image.image if first_image else None
 
-    def get_price_per_item(self, item, discounts=None):
-        return item.get_price_per_item(discounts)
-
-    def get_price_range(self, discounts=None):
+    def get_price_range(self, discounts=None, taxes=None):
         if self.variants.exists():
             prices = [
-                self.get_price_per_item(variant, discounts=discounts)
+                variant.get_price(discounts=discounts, taxes=taxes)
                 for variant in self]
             return TaxedMoneyRange(min(prices), max(prices))
-        price = TaxedMoney(net=self.price, gross=self.price)
-        discounted_price = calculate_discounted_price(
-            self, price, discounts)
-        return TaxedMoneyRange(start=discounted_price, stop=discounted_price)
-
-    def get_gross_price_range(self, discounts=None):
-        grosses = [
-            self.get_price_per_item(variant, discounts=discounts)
-            for variant in self]
-        if not grosses:
-            return None
-        grosses = sorted(grosses, key=lambda x: x.tax)
-        return TaxedMoneyRange(min(grosses), max(grosses))
+        price = calculate_discounted_price(self, self.price, discounts)
+        if not self.charge_taxes:
+            taxes = None
+        tax_rate = self.tax_rate or self.product_type.tax_rate
+        price = apply_tax_to_price(taxes, tax_rate, price)
+        return TaxedMoneyRange(start=price, stop=price)
 
 
 class ProductVariant(models.Model):
@@ -205,32 +202,28 @@ class ProductVariant(models.Model):
     def quantity_available(self):
         return max(self.quantity - self.quantity_allocated, 0)
 
-    def get_total(self):
-        if self.cost_price:
-            return TaxedMoney(net=self.cost_price, gross=self.cost_price)
-
     def check_quantity(self, quantity):
         if quantity > self.quantity_available:
             raise InsufficientStock(self)
 
-    def get_price_per_item(self, discounts=None):
-        price = self.price_override or self.product.price
-        price = TaxedMoney(net=price, gross=price)
-        price = calculate_discounted_price(self.product, price, discounts)
-        return price
+    @property
+    def base_price(self):
+        return self.price_override or self.product.price
+
+    def get_price(self, discounts=None, taxes=None):
+        price = calculate_discounted_price(
+            self.product, self.base_price, discounts)
+        if not self.product.charge_taxes:
+            taxes = None
+        tax_rate = (
+            self.product.tax_rate or self.product.product_type.tax_rate)
+        return apply_tax_to_price(taxes, tax_rate, price)
 
     def get_absolute_url(self):
         slug = self.product.get_slug()
         product_id = self.product.id
         return reverse('product:details',
                        kwargs={'slug': slug, 'product_id': product_id})
-
-    def as_data(self):
-        return {
-            'product_name': str(self),
-            'product_id': self.product.pk,
-            'variant_id': self.pk,
-            'unit_price': str(self.get_price_per_item().gross)}
 
     def is_shipping_required(self):
         return self.product.product_type.is_shipping_required
@@ -247,6 +240,11 @@ class ProductVariant(models.Model):
 
     def get_first_image(self):
         return self.product.get_first_image()
+
+    def get_ajax_label(self, discounts=None):
+        price = self.get_price(discounts).gross
+        return '%s, %s, %s' % (
+            self.sku, self.display_product(), prices_i18n.amount(price))
 
 
 class ProductAttribute(models.Model):

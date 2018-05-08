@@ -7,10 +7,10 @@ from django.shortcuts import get_object_or_404, redirect, reverse
 from django.template.response import TemplateResponse
 from django.utils.translation import npgettext_lazy, pgettext_lazy
 from django.views.decorators.http import require_POST
-from django_prices.templatetags import prices_i18n
 
 from . import forms
 from ...core.utils import get_paginator_items
+from ...discount.models import Sale
 from ...product.models import (
     AttributeChoiceValue, Product, ProductAttribute, ProductImage, ProductType,
     ProductVariant)
@@ -180,10 +180,11 @@ def product_details(request, pk):
     product = get_object_or_404(products, pk=pk)
     variants = product.variants.all()
     images = product.images.all()
-    availability = get_availability(product)
-    sale_price = availability.price_range
-    purchase_cost, gross_margin = get_product_costs_data(product)
-    gross_price_range = product.get_gross_price_range()
+    availability = get_availability(
+        product, discounts=request.discounts, taxes=request.taxes)
+    sale_price = availability.price_range_undiscounted
+    discounted_price = availability.price_range
+    purchase_cost, margin = get_product_costs_data(product)
 
     # no_variants is True for product types that doesn't require variant.
     # In this case we're using the first variant under the hood to allow stock
@@ -191,11 +192,11 @@ def product_details(request, pk):
     no_variants = not product.product_type.has_variants
     only_variant = variants.first() if no_variants else None
     ctx = {
-        'product': product, 'sale_price': sale_price, 'variants': variants,
-        'gross_price_range': gross_price_range, 'images': images,
-        'no_variants': no_variants, 'only_variant': only_variant,
-        'purchase_cost': purchase_cost, 'gross_margin': gross_margin,
-        'is_empty': not variants.exists()}
+        'product': product, 'sale_price': sale_price,
+        'discounted_price': discounted_price, 'variants': variants,
+        'images': images, 'no_variants': no_variants,
+        'only_variant': only_variant, 'purchase_cost': purchase_cost,
+        'margin': margin, 'is_empty': not variants.exists()}
     return TemplateResponse(request, 'dashboard/product/detail.html', ctx)
 
 
@@ -215,10 +216,9 @@ def product_toggle_is_published(request, pk):
 def product_edit(request, pk):
     product = get_object_or_404(
         Product.objects.prefetch_related('variants'), pk=pk)
-
-    edit_variant = not product.product_type.has_variants
     form = forms.ProductForm(request.POST or None, instance=product)
 
+    edit_variant = not product.product_type.has_variants
     if edit_variant:
         variant = product.variants.first()
         variant_form = forms.ProductVariantForm(
@@ -383,9 +383,10 @@ def variant_details(request, product_pk, variant_pk):
 
     images = variant.images.all()
     margin = get_margin_for_variant(variant)
+    discounted_price = variant.get_price(discounts=Sale.objects.all()).gross
     ctx = {
-        'images': images, 'product': product,
-        'variant': variant, 'margin': margin}
+        'images': images, 'product': product, 'variant': variant,
+        'margin': margin, 'discounted_price': discounted_price}
     return TemplateResponse(
         request,
         'dashboard/product/product_variant/detail.html',
@@ -620,11 +621,6 @@ def ajax_available_variants_list(request):
 
     Response format is that of a Select2 JS widget.
     """
-    def get_variant_label(variant, discounts):
-        return '%s, %s, %s' % (
-            variant.sku, variant.display_product(),
-            prices_i18n.amount(variant.get_price_per_item(discounts).gross))
-
     available_products = Product.objects.available_products().prefetch_related(
         'category',
         'product_type__product_attributes')
@@ -632,17 +628,17 @@ def ajax_available_variants_list(request):
         product__in=available_products).prefetch_related(
             'product__category',
             'product__product_type__product_attributes')
+
     search_query = request.GET.get('q', '')
     if search_query:
         queryset = queryset.filter(
             Q(sku__icontains=search_query) |
             Q(name__icontains=search_query) |
             Q(product__name__icontains=search_query))
-    discounts = request.discounts
+
     variants = [
-        {'id': variant.id, 'text': get_variant_label(variant, discounts)}
-        for variant in queryset
-    ]
+        {'id': variant.id, 'text': variant.get_ajax_label(request.discounts)}
+        for variant in queryset]
     return JsonResponse({'results': variants})
 
 

@@ -7,9 +7,12 @@ from django.forms.widgets import CheckboxSelectMultiple
 from django.utils.encoding import smart_text
 from django.utils.text import slugify
 from django.utils.translation import pgettext_lazy
+from django_prices_vatlayer.utils import get_tax_rate_types
 from mptt.forms import TreeNodeChoiceField
 
 from . import ProductBulkAction
+from ...core.i18n import VAT_RATE_TYPE_TRANSLATIONS
+from ...core.utils.taxes import DEFAULT_TAX_RATE_NAME, include_taxes_in_prices
 from ...product.models import (
     AttributeChoiceValue, Category, Collection, Product, ProductAttribute,
     ProductImage, ProductType, ProductVariant, VariantImage)
@@ -52,7 +55,18 @@ class ProductTypeSelectorForm(forms.Form):
         widget=forms.RadioSelect, empty_label=None)
 
 
+def get_tax_rate_type_choices():
+    rate_types = get_tax_rate_types() + [DEFAULT_TAX_RATE_NAME, '']
+    choices = [
+        (rate_name, VAT_RATE_TYPE_TRANSLATIONS.get(rate_name, '---------'))
+        for rate_name in rate_types]
+    # sort choices alphabetically by translations
+    return sorted(choices, key=lambda x: x[1])
+
+
 class ProductTypeForm(forms.ModelForm):
+    tax_rate = forms.ChoiceField(required=False)
+
     class Meta:
         model = ProductType
         exclude = []
@@ -71,7 +85,13 @@ class ProductTypeForm(forms.ModelForm):
                 'Attributes common to all variants'),
             'is_shipping_required': pgettext_lazy(
                 'Shipping toggle',
-                'Require shipping')}
+                'Require shipping'),
+            'tax_rate': pgettext_lazy(
+                'Product type tax rate type', 'Tax rate')}
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['tax_rate'].choices = get_tax_rate_type_choices()
 
     def clean(self):
         data = super().clean()
@@ -175,6 +195,8 @@ class AttributesMixin(object):
 
 
 class ProductForm(forms.ModelForm, AttributesMixin):
+    tax_rate = forms.ChoiceField(required=False)
+
     class Meta:
         model = Product
         exclude = ['attributes', 'product_type', 'updated_at']
@@ -193,7 +215,11 @@ class ProductForm(forms.ModelForm, AttributesMixin):
                 'Featured product toggle',
                 'Feature this product on homepage'),
             'collections': pgettext_lazy(
-                'Add to collection select', 'Collections')}
+                'Add to collection select', 'Collections'),
+            'charge_taxes': pgettext_lazy(
+                'Charge taxes on product', 'Charge taxes on this product'),
+            'tax_rate': pgettext_lazy(
+                'Product tax rate type', 'Tax rate')}
 
     category = TreeNodeChoiceField(queryset=Category.objects.all())
     collections = forms.ModelMultipleChoiceField(
@@ -205,6 +231,7 @@ class ProductForm(forms.ModelForm, AttributesMixin):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         product_type = self.instance.product_type
+        self.initial['tax_rate'] = product_type.tax_rate
         self.available_attributes = (
             product_type.product_attributes.prefetch_related('values').all())
         self.prepare_fields_for_attributes()
@@ -216,6 +243,13 @@ class ProductForm(forms.ModelForm, AttributesMixin):
                 'data-materialize': self['description'].html_name})
         self.fields['seo_title'] = SeoTitleField(
             extra_attrs={'data-bind': self['name'].auto_id})
+        self.fields['tax_rate'].choices = get_tax_rate_type_choices()
+        if include_taxes_in_prices():
+            self.fields['price'].label = pgettext_lazy(
+                'Currency gross amount', 'Gross price')
+        else:
+            self.fields['price'].label = pgettext_lazy(
+                'Currency net amount', 'Net price')
 
     def clean_seo_description(self):
         seo_description = prepare_seo_description(
@@ -258,6 +292,17 @@ class ProductVariantForm(forms.ModelForm, AttributesMixin):
                 self.instance.product.product_type.variant_attributes.all()
                 .prefetch_related('values'))
             self.prepare_fields_for_attributes()
+
+        if include_taxes_in_prices():
+            self.fields['price_override'].label = pgettext_lazy(
+                'Override price', 'Selling gross price override')
+            self.fields['cost_price'].label = pgettext_lazy(
+                'Currency amount', 'Cost gross price')
+        else:
+            self.fields['price_override'].label = pgettext_lazy(
+                'Override price', 'Selling net price override')
+            self.fields['cost_price'].label = pgettext_lazy(
+                'Currency amount', 'Cost net price')
 
     def save(self, commit=True):
         attributes = self.get_saved_attributes()

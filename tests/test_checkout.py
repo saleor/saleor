@@ -16,8 +16,7 @@ from saleor.discount.models import Voucher, NotApplicable
 from saleor.shipping.models import ShippingMethodCountry
 
 
-def test_checkout_version():
-    checkout = Checkout(Mock(), AnonymousUser(), 'tracking_code')
+def test_checkout_version(checkout):
     storage = checkout.for_storage()
     assert storage['version'] == Checkout.VERSION
 
@@ -32,30 +31,30 @@ def test_checkout_version():
     (None, {'version': Checkout.VERSION})])
 def test_checkout_version_with_from_storage(storage_data, expected_storage):
     checkout = Checkout.from_storage(
-        storage_data, Mock(), AnonymousUser(), 'tracking_code')
+        storage_data, Mock(), AnonymousUser(), None, None, 'tracking_code')
     storage = checkout.for_storage()
     assert storage == expected_storage
 
 
-def test_checkout_clear_storage():
-    checkout = Checkout(Mock(), AnonymousUser(), 'tracking_code')
+def test_checkout_clear_storage(checkout):
     checkout.storage['new'] = 1
     checkout.clear_storage()
     assert checkout.storage is None
     assert checkout.modified is True
 
 
-def test_checkout_is_shipping_required():
+def test_checkout_is_shipping_required(checkout):
     cart = Mock(is_shipping_required=Mock(return_value=True))
-    checkout = Checkout(cart, AnonymousUser(), 'tracking_code')
+    checkout.cart = cart
     assert checkout.is_shipping_required is True
 
 
 @pytest.mark.parametrize('user, shipping', [
     (Mock(default_shipping_address='user_shipping'), 'user_shipping'),
     (AnonymousUser(), None)])
-def test_checkout_shipping_address_with_anonymous_user(user, shipping):
-    checkout = Checkout(Mock(), user, 'tracking_code')
+def test_checkout_shipping_address_with_anonymous_user(
+        checkout, user, shipping):
+    checkout.user = user
     assert checkout._shipping_address is None
     assert checkout.shipping_address == shipping
     assert checkout._shipping_address == shipping
@@ -65,17 +64,15 @@ def test_checkout_shipping_address_with_anonymous_user(user, shipping):
     (Mock(get=Mock(return_value='shipping')), 'shipping'),
     (Mock(get=Mock(side_effect=Address.DoesNotExist)), None)])
 def test_checkout_shipping_address_with_storage(
-        address_objects, shipping, monkeypatch):
+        checkout, address_objects, shipping, monkeypatch):
     monkeypatch.setattr(
         'saleor.checkout.core.Address.objects', address_objects)
-    checkout = Checkout(Mock(), AnonymousUser(), 'tracking_code')
     checkout.storage['shipping_address'] = {'id': 1}
     assert checkout.shipping_address == shipping
 
 
-def test_checkout_shipping_address_setter():
+def test_checkout_shipping_address_setter(checkout):
     address = Address(first_name='Jan', last_name='Kowalski')
-    checkout = Checkout(Mock(), AnonymousUser(), 'tracking_code')
     assert checkout._shipping_address is None
     checkout.shipping_address = address
     assert checkout._shipping_address == address
@@ -104,32 +101,29 @@ def test_checkout_shipping_address_setter():
     (Mock(country=Mock(code='DE')), Mock(country_code='PL'), None),
     (None, Mock(country_code='PL'), None)])
 def test_checkout_shipping_method(
-        shipping_address, shipping_method, value, monkeypatch):
+        checkout, shipping_address, shipping_method, value, monkeypatch):
     queryset = Mock(get=Mock(return_value=shipping_method))
     monkeypatch.setattr(Checkout, 'shipping_address', shipping_address)
     monkeypatch.setattr(
         'saleor.checkout.core.ShippingMethodCountry.objects', queryset)
-    checkout = Checkout(Mock(), AnonymousUser(), 'tracking_code')
     checkout.storage['shipping_method_country_id'] = 1
     assert checkout._shipping_method is None
     assert checkout.shipping_method == value
     assert checkout._shipping_method == value
 
 
-def test_checkout_shipping_does_not_exists(monkeypatch):
+def test_checkout_shipping_does_not_exists(monkeypatch, checkout):
     queryset = Mock(get=Mock(side_effect=ShippingMethodCountry.DoesNotExist))
     monkeypatch.setattr(
         'saleor.checkout.core.ShippingMethodCountry.objects', queryset)
-    checkout = Checkout(Mock(), AnonymousUser(), 'tracking_code')
     checkout.storage['shipping_method_country_id'] = 1
     assert checkout.shipping_method is None
 
 
-def test_checkout_shipping_method_setter():
-    shipping_method = Mock(id=1)
-    checkout = Checkout(Mock(), AnonymousUser(), 'tracking_code')
+def test_checkout_shipping_method_setter(checkout):
     assert checkout.modified is False
     assert checkout._shipping_method is None
+    shipping_method = Mock(id=1)
     checkout.shipping_method = shipping_method
     assert checkout._shipping_method == shipping_method
     assert checkout.modified is True
@@ -144,8 +138,8 @@ def test_checkout_shipping_method_setter():
             addresses=Mock(
                 is_authenticated=Mock(return_value=True))),
         'billing_address')])
-def test_checkout_billing_address(user, address):
-    checkout = Checkout(Mock(), user, 'tracking_code')
+def test_checkout_billing_address(checkout, user, address):
+    checkout.user = user
     assert checkout.billing_address == address
 
 
@@ -166,12 +160,13 @@ def test_checkout_billing_address(user, address):
             __len__=Mock(return_value=0),
             is_shipping_required=Mock(return_value=False)),
         302, reverse('cart:index'))])
-def test_index_view(cart, status_code, url, rf, monkeypatch):
-    checkout = Checkout(cart, AnonymousUser(), 'tracking_code')
+def test_index_view(checkout, cart, status_code, url, rf, monkeypatch):
+    checkout.cart = cart
     request = rf.get('checkout:index', follow=True)
     request.user = checkout.user
     request.session = {STORAGE_SESSION_KEY: checkout.for_storage()}
     request.discounts = []
+    request.taxes = None
     monkeypatch.setattr(
         'saleor.cart.utils.get_cart_from_request', lambda req, qs: cart)
     response = views.index_view(request)
@@ -179,21 +174,34 @@ def test_index_view(cart, status_code, url, rf, monkeypatch):
     assert response.url == url
 
 
-def test_checkout_discount(checkout_with_items, sale):
+def test_checkout_discount(checkout_with_items, sale, vatlayer):
+    checkout_with_items.discounts = (sale,)
+    checkout_with_items.taxes = vatlayer
     assert checkout_with_items.get_total() == TaxedMoney(
-        net=Money(5, 'USD'), gross=Money(5, 'USD'))
+        net=Money('4.07', 'USD'), gross=Money('5.00', 'USD'))
 
 
 def test_checkout_create_order_insufficient_stock(
-        request_cart, customer_user, product):
+        checkout, request_cart, customer_user, product):
     product_type = product.product_type
     product_type.is_shipping_required = False
     product_type.save()
     variant = product.variants.get()
     request_cart.add(variant, quantity=10, check_quantity=False)
-    checkout = Checkout(request_cart, customer_user, 'tracking_code')
+    checkout.cart = request_cart
+    checkout.user = customer_user
     with pytest.raises(InsufficientStock):
         checkout.create_order()
+
+
+def test_checkout_taxes(checkout_with_items, shipping_method, vatlayer):
+    checkout_with_items.taxes = vatlayer
+    method = shipping_method.price_per_country.get()
+    checkout_with_items.shipping_method = method
+    assert checkout_with_items.shipping_price == TaxedMoney(
+        net=Money('8.13', 'USD'), gross=Money(10, 'USD'))
+    subtotal = checkout_with_items.cart.get_total(taxes=vatlayer)
+    assert checkout_with_items.get_subtotal() == subtotal
 
 
 @pytest.mark.parametrize('note_value', [
@@ -201,8 +209,7 @@ def test_checkout_create_order_insufficient_stock(
     '    ',
     '   test_note  ',
     'test_note'])
-def test_note_form(note_value):
-    checkout = Checkout(Mock(), AnonymousUser(), 'tracking_code')
+def test_note_form(checkout, note_value):
     form = NoteForm({'note': note_value}, checkout=checkout)
     form.is_valid()
     form.set_checkout_note()
