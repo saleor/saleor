@@ -407,6 +407,26 @@ class AttributeChoiceValueForm(forms.ModelForm):
         return super().save(commit=commit)
 
 
+class ReorderAttributeChoiceValuesForm(forms.ModelForm):
+    ordered_values = OrderedModelMultipleChoiceField(
+        queryset=AttributeChoiceValue.objects.none())
+
+    class Meta:
+        model = ProductAttribute
+        fields = ()
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if self.instance:
+            self.fields['ordered_values'].queryset = self.instance.values.all()
+
+    def save(self):
+        for order, value in enumerate(self.cleaned_data['ordered_values']):
+            value.sort_order = order
+            value.save()
+        return self.instance
+
+
 class ReorderProductImagesForm(forms.ModelForm):
     ordered_images = OrderedModelMultipleChoiceField(
         queryset=ProductImage.objects.none())

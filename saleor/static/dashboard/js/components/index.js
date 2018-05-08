@@ -1,4 +1,5 @@
 import './async-form';
+import './attribute-values.js';
 import './bulk-actions';
 import './datepicker';
 import './editor';
