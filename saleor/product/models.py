@@ -272,12 +272,30 @@ class AttributeChoiceValue(models.Model):
         validators=[RegexValidator('^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$')])
     attribute = models.ForeignKey(
         ProductAttribute, related_name='values', on_delete=models.CASCADE)
+    sort_order = models.PositiveIntegerField(editable=False)
 
     class Meta:
+        ordering = ('sort_order',)
         unique_together = ('name', 'attribute')
 
     def __str__(self):
         return self.name
+
+    def get_ordering_queryset(self):
+        return self.attribute.values.all()
+
+    def save(self, *args, **kwargs):
+        if self.sort_order is None:
+            qs = self.get_ordering_queryset()
+            existing_max = qs.aggregate(Max('sort_order'))
+            existing_max = existing_max.get('sort_order__max')
+            self.sort_order = 0 if existing_max is None else existing_max + 1
+        super().save(*args, **kwargs)
+
+    def delete(self, *args, **kwargs):
+        qs = self.get_ordering_queryset()
+        qs.filter(order__gt=self.sort_order).update(order=F('order') - 1)
+        super().delete(*args, **kwargs)
 
 
 class ProductImage(models.Model):
