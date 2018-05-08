@@ -17,7 +17,8 @@ from prices import Money, TaxedMoney
 from . import FulfillmentStatus, OrderStatus
 from ..account.models import Address
 from ..core.models import BaseNote
-from ..core.utils import ZERO_TAXED_MONEY, build_absolute_uri
+from ..core.utils import build_absolute_uri
+from ..core.utils.taxes import ZERO_TAXED_MONEY
 from ..discount.models import Voucher
 from ..product.models import ProductVariant
 from ..shipping.models import ShippingMethodCountry
@@ -87,6 +88,7 @@ class Order(models.Model):
         currency=settings.DEFAULT_CURRENCY, max_digits=12,
         decimal_places=settings.DEFAULT_DECIMAL_PLACES, default=0)
     discount_name = models.CharField(max_length=255, default='', blank=True)
+    display_gross_prices = models.BooleanField(default=True)
 
     objects = OrderQueryset.as_manager()
 
@@ -108,9 +110,7 @@ class Order(models.Model):
             [
                 payment.get_total_price() for payment in
                 self.payments.filter(status=PaymentStatus.CONFIRMED)],
-            TaxedMoney(
-                net=Money(0, settings.DEFAULT_CURRENCY),
-                gross=Money(0, settings.DEFAULT_CURRENCY)))
+            ZERO_TAXED_MONEY)
         return total_paid.gross >= self.total.gross
 
     def get_user_current_email(self):
@@ -197,6 +197,8 @@ class OrderLine(models.Model):
         decimal_places=settings.DEFAULT_DECIMAL_PLACES)
     unit_price = TaxedMoneyField(
         net_field='unit_price_net', gross_field='unit_price_gross')
+    tax_rate = models.DecimalField(
+        max_digits=5, decimal_places=2, default='0.0')
 
     def __str__(self):
         return self.product_name
@@ -299,9 +301,7 @@ class Payment(BasePayment):
             gross=Money(self.total, self.currency))
 
     def get_captured_price(self):
-        return TaxedMoney(
-            net=Money(self.captured_amount, self.currency),
-            gross=Money(self.captured_amount, self.currency))
+        return Money(self.captured_amount, self.currency)
 
 
 class OrderHistoryEntry(models.Model):

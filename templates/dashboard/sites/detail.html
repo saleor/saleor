@@ -1,11 +1,10 @@
 {% extends 'dashboard/base.html' %}
 
 {% load i18n %}
-{% load prices_i18n %}
 {% load staticfiles %}
 
 {% block title %}
-    {{ site }} - {{ block.super }}
+  {{ site }} - {{ block.super }}
 {% endblock %}
 
 {% block menu_settings_class %}active{% endblock %}
@@ -54,18 +53,14 @@
                 {% trans "Description" context "Site settings field" %}
               </h4>
               <p>
-                {% if site.description %}
-                  {{ site.description }}
-                {% else %}
-                  -
-                {% endif %}
+                {{ site.description|default:"-" }}
               </p>
             </div>
           </div>
         </div>
         <div class="card-action">
           <a class="btn-flat waves-effect" href="{% url 'dashboard:site-update' pk=site.pk %}">
-            {% trans "Edit site settings" context "Shipping method action" %}
+            {% trans "Edit site settings" context "Site settings action" %}
           </a>
         </div>
       </div>

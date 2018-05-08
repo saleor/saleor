@@ -29,6 +29,6 @@ Once an order is placed, quantity needed to fulfil each order line is immediatel
 Decreasing Stock After Shipment
 -------------------------------
 
-Once a delivery group is marked as shipped, each stock record used to fulfil its lines will have both its quantity at hand and quantity allocated decreased by the number of items shipped.
+Once order lines are marked as shipped, each corresponding stock record will have both its quantity at hand and quantity allocated decreased by the number of items shipped.
 
 **Example:** Two boxes of shoes from warehouse A are shipped to a customer. The stock records **quantity** is now **3**, **quantity allocated** becomes **2** and **quantity available** stays at **1**.

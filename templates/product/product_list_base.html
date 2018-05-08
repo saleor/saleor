@@ -1,11 +1,10 @@
 {% extends "base.html" %}
 {% load bootstrap_pagination from bootstrap4 %}
+{% load build_absolute_uri from urls %}
+{% load get_object_properties from attributes %}
 {% load i18n %}
 {% load shop %}
 {% load staticfiles %}
-{% load prices_i18n %}
-{% load build_absolute_uri from urls %}
-{% load get_object_properties from attributes %}
 
 {% block footer_scripts %}
   {{ block.super }}

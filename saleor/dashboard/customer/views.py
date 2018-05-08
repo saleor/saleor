@@ -95,7 +95,7 @@ def ajax_users_list(request):
             Q(email__icontains=search_query))
 
     users = [
-        {'id': user.pk, 'text': user.ajax_label} for user in queryset]
+        {'id': user.pk, 'text': user.get_ajax_label()} for user in queryset]
     return JsonResponse({'results': users})
 
 

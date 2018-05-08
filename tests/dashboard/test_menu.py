@@ -53,7 +53,6 @@ def test_view_menu_list_assign_new_menu_to_settings_no_edit_permission(
         staff_user):
     staff_group.permissions.add(permission_view_menu)
     staff_user.groups.add(staff_group)
-    staff_user = User.objects.get(pk=staff_user.pk)
 
     url = reverse('dashboard:menu-list')
     data = {'top_menu': menu.pk, 'bottom_menu': ''}
