@@ -1,5 +1,5 @@
 from django.db import models
-from django.db.models import Max
+from django.db.models import F, Max
 from django.utils.translation import pgettext_lazy
 from mptt.managers import TreeManager
 from mptt.models import MPTTModel
@@ -65,7 +65,8 @@ class MenuItem(MPTTModel):
 
     def delete(self, *args, **kwargs):
         qs = self.get_ordering_queryset()
-        qs.filter(order__gt=self.sort_order).update(order=F('order') - 1)
+        qs.filter(sort_order__gt=self.sort_order).update(
+            sort_order=F('sort_order') - 1)
         super().delete(*args, **kwargs)
 
     @property
