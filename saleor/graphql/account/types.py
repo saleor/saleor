@@ -37,5 +37,5 @@ class User(CountableDjangoObjectType):
                 self.user_permissions.all() | Permission.objects.filter(
             group__user=self)).select_related('content_type')
         return [PermissionDisplay(
-            code='.'.join([permission.content_type.name, permission.codename]),
+            code='.'.join([permission.content_type.app_label, permission.codename]),
             name=permission.name) for permission in permissions]
