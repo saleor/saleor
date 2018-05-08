@@ -8,8 +8,6 @@ function createLink (link, index, replacement) {
   return outputLink.join('/');
 }
 
-const productGallery = document.getElementById('product-gallery');
-
 // -----
 
 $('#product-image-form').dropzone({
@@ -39,26 +37,3 @@ $('#product-image-form').dropzone({
     });
   }
 });
-
-if (productGallery) {
-  Sortable.create(productGallery, {
-    handle: '.sortable__drag-area',
-    onUpdate: () => {
-      const orderedImages = $(productGallery)
-        .find('.product-gallery-item[data-id]')
-        .map((index, item) => item.dataset.id)
-        .toArray();
-
-      // TODO: Get rid of ajax() in favour of fetch()
-      $.ajax({
-        method: 'POST',
-        url: $(productGallery).data('post-url'),
-        data: {ordered_images: orderedImages},
-        traditional: true,
-        headers: {
-          'X-CSRFToken': $.cookie('csrftoken')
-        }
-      });
-    }
-  });
-}
