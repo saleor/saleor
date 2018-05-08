@@ -29,7 +29,7 @@ def get_feed_items():
     items = ProductVariant.objects.all()
     items = items.select_related('product')
     items = items.prefetch_related(
-        'images', 'stock', 'product__category',
+        'images', 'product__category',
         'product__images', 'product__product_type__product_attributes',
         'product__product_type__variant_attributes')
     return items
@@ -106,7 +106,7 @@ def item_tax(item, discounts):
     Read more:
     https://support.google.com/merchants/answer/6324454
     """
-    price = item.get_price_per_item(discounts=discounts)
+    price = item.get_price(discounts=discounts)
     return 'US::%s:y' % price.tax
 
 
@@ -122,7 +122,7 @@ def item_image_link(item, current_site):
 
 
 def item_availability(item):
-    if item.get_stock_quantity():
+    if item.quantity_available:
         return 'in stock'
     return 'out of stock'
 
@@ -146,12 +146,12 @@ def item_google_product_category(item, category_paths):
 
 
 def item_price(item):
-    price = item.get_price_per_item(discounts=None)
+    price = item.get_price(discounts=None)
     return '%s %s' % (price.gross.amount, price.currency)
 
 
 def item_sale_price(item, discounts):
-    sale_price = item.get_price_per_item(discounts=discounts)
+    sale_price = item.get_price(discounts=discounts)
     return '%s %s' % (sale_price.gross.amount, sale_price.currency)
 
 

@@ -6,7 +6,7 @@ urlpatterns = [
     url(r'^$',
         views.product_list, name='product-list'),
     url(r'^(?P<pk>[0-9]+)/$',
-        views.product_detail, name='product-detail'),
+        views.product_details, name='product-details'),
     url(r'^(?P<pk>[0-9]+)/publish/$', views.product_toggle_is_published,
         name='product-publish'),
     url(r'^(?P<pk>[0-9]+)/update/$',
@@ -40,18 +40,6 @@ urlpatterns = [
     url(r'^(?P<product_pk>[0-9]+)/variants/(?P<variant_pk>[0-9]+)/images/$',
         views.variant_images, name='variant-images'),
 
-    url(r'^(?P<product_pk>[0-9]+)/variants/(?P<variant_pk>[0-9]+)/stock/add/$',
-        views.stock_add, name='variant-stock-add'),
-    url(r'^(?P<product_pk>[0-9]+)/variants/(?P<variant_pk>[0-9]+)/stock/'
-        r'(?P<stock_pk>[0-9]+)/$',
-        views.stock_details, name='variant-stock-details'),
-    url(r'^(?P<product_pk>[0-9]+)/variants/(?P<variant_pk>[0-9]+)/stock/'
-        r'(?P<stock_pk>[0-9]+)/update/$',
-        views.stock_edit, name='variant-stock-update'),
-    url(r'^(?P<product_pk>[0-9]+)/variants/(?P<variant_pk>[0-9]+)/stock/'
-        r'(?P<stock_pk>[0-9]+)/delete/$',
-        views.stock_delete, name='variant-stock-delete'),
-
     url(r'^(?P<product_pk>[0-9]+)/images/$', views.product_images,
         name='product-image-list'),
     url(r'^(?P<product_pk>[0-9]+)/images/add/$',
@@ -69,7 +57,7 @@ urlpatterns = [
     url(r'attributes/$',
         views.attribute_list, name='product-attributes'),
     url(r'attributes/(?P<pk>[0-9]+)/$',
-        views.attribute_detail, name='product-attribute-detail'),
+        views.attribute_details, name='product-attribute-details'),
     url(r'attributes/add/$',
         views.attribute_add, name='product-attribute-add'),
     url(r'attributes/(?P<pk>[0-9]+)/update/$',
@@ -85,15 +73,6 @@ urlpatterns = [
     url(r'attributes/(?P<attribute_pk>[0-9]+)/value/(?P<value_pk>[0-9]+)/delete/$',  # noqa
         views.attribute_choice_value_delete,
         name='product-attribute-value-delete'),
-
-    url(r'stocklocations/$', views.stock_location_list,
-        name='product-stock-location-list'),
-    url(r'stocklocations/add/$', views.stock_location_add,
-        name='product-stock-location-add'),
-    url(r'stocklocations/(?P<location_pk>[0-9]+)/$', views.stock_location_edit,
-        name='product-stock-location-edit'),
-    url(r'stocklocations/(?P<location_pk>[0-9]+)/delete/$',
-        views.stock_location_delete, name='product-stock-location-delete'),
 
     url(r'^ajax/variants/$',
         views.ajax_available_variants_list, name='ajax-available-variants'),

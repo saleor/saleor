@@ -1,11 +1,11 @@
 {% extends "dashboard/base.html" %}
 {% load babel %}
-{% load prices_i18n %}
 {% load i18n %}
 {% load i18n_address_tags %}
 {% load materializecss %}
-{% load status %}
+{% load price from taxed_prices %}
 {% load staticfiles %}
+{% load status %}
 {% load voucher %}
 {% load demo_obfuscators %}
 
@@ -130,7 +130,7 @@
                 </td>
                 <td class="right-align">
                   <strong>
-                    {{ balance.gross|amount:'html' }}
+                    {% price balance %}
                   </strong>
                 </td>
               </tr>
@@ -142,7 +142,7 @@
                 </td>
                 <td class="right-align">
                   {% if preauthorized.gross %}
-                    {{ preauthorized.gross|amount:'html' }}
+                    {% price preauthorized.gross %}
                   {% else %}
                     {% trans "N/A" context "Preauthorized amount not available" %}
                   {% endif %}
@@ -153,7 +153,7 @@
                   {% trans "Captured amount" context "Order summary card header" %}
                 </td>
                 <td class="right-align">
-                  {{ captured.gross|amount:'html' }}
+                  {% price captured %}
                 </td>
               </tr>
             </tbody>
@@ -201,7 +201,10 @@
                 {% endif %}
               </span>
               {% if order.user %}
-                <a href="{% url "dashboard:customer-details" pk=order.user.pk %}">{{ order.user }}</a>
+                <a href="{% url 'dashboard:customer-details' pk=order.user.pk %}">{{ order.user }}</a>
+                {% if order.user.note %}
+                  <p>{{ order.user.note|truncatechars:80 }}</p>
+                {% endif %}
               {% elif order.user_email %}
                 {{ order.user_email|obfuscate_email }}
               {% else %}
@@ -295,8 +298,8 @@
               {% for line in order %}
                 <tr class="last-no-border">
                   <td>
-                    {% if line.product %}
-                      <a href="{% url 'dashboard:product-detail' pk=line.product.pk %}">{{ line.product_name }}</a>
+                    {% if line.variant.product %}
+                      <a href="{% url 'dashboard:product-details' pk=line.variant.product.pk %}">{{ line.product_name }}</a>
                     {% else %}
                       {{ line.product_name }}
                     {% endif %}
@@ -308,12 +311,12 @@
                     </span>
                   </td>
                   <td class="right-align">
-                    {{ line.unit_price.gross|amount:'html' }}
+                    {% price line.unit_price order.display_gross_prices %}
                   </td>
                   <td class="right-align">
                     {% if perms.order.edit_order and order.is_draft %}
                       <a class="dropdown-button" href="#" data-activates="line-actions-{{ line.pk }}" data-constrainwidth="false">
-                        {{ line.quantity }} {% if line.stock_location and is_many_stock_locations %} ({{ line.stock_location|truncatechars:10 }}) {% endif %}
+                        {{ line.quantity }}
                         <svg data-src="{% static "dashboard/images/arrow-drop-down.svg" %}" width="24" height="24" />
                       </a>
                       <ul id="line-actions-{{ line.pk }}" class="dropdown-content">
@@ -322,13 +325,6 @@
                             {% trans "Change quantity" context "Order table row action" %}
                           </a>
                         </li>
-                        {% if is_many_stock_locations %}
-                          <li>
-                            <a href="#base-modal" data-href="{% url 'dashboard:orderline-change-stock' order_pk=order.pk line_pk=line.pk %}" class="modal-trigger-custom" title="{% trans "Change stock location" context "Order table row action" %}">
-                              {% trans "Change stock" context "Order table row action" %}
-                            </a>
-                          </li>
-                        {% endif %}
                         <li>
                           <a href="#base-modal" data-href="{% url 'dashboard:orderline-cancel' order_pk=order.pk line_pk=line.pk %}" class="modal-trigger-custom" title="{% trans "Remove line" context "Order table row action" %}">
                             {% trans "Remove line" context "Order table row action" %}
@@ -340,13 +336,15 @@
                     {% endif %}
                   </td>
                   <td class="right-align">
-                    {{ line.get_total.gross|amount:'html' }}
+                    {% price line.get_total display_gross=order.display_gross_prices %}
                   </td>
                 </tr>
               {% endfor %}
               <tr class="last-no-border">
                 <td class="right-align" colspan="3">
-                  <p>{% trans "Subtotal" context "Order subtotal" %}</p>
+                  <p>
+                    {% trans "Subtotal" context "Order subtotal" %}
+                  </p>
                   <p>
                     {% if perms.order.edit_order and order.is_draft %}
                       <a href="#base-modal" data-href="{% url 'dashboard:order-shipping-edit' order_pk=order.pk %}"
@@ -367,6 +365,13 @@
                       {% else %}
                         {% trans "Shipping" context "Order totals header" %}
                       {% endif %}
+                    {% endif %}
+                  </p>
+                  <p>
+                    {% if order.display_gross_prices %}
+                      {% trans "Taxes (included)" context "Order total taxes" %}
+                    {% else %}
+                      {% trans "Taxes" context "Order total taxes" %}
                     {% endif %}
                   </p>
                   {% if order.is_draft or order.discount_amount %}
@@ -410,12 +415,17 @@
                   <p><strong>{% trans "Grand total" context "Order totals header" %}</strong></p>
                 </td>
                 <td class="right-align">
-                  <p>{{ order.get_subtotal.gross|amount:'html' }}</p>
-                  <p>{{ order.shipping_price.gross|amount:'html' }}</p>
+                  <p>
+                    {% price order.get_subtotal display_gross=order.display_gross_prices %}
+                  </p>
+                  <p>
+                    {% price order.shipping_price display_gross=order.display_gross_prices %}
+                  </p>
+                  <p>{% price order.total.tax %}</p>
                   {% if order.is_draft or order.discount_amount %}
                     <p>{% discount_as_negative order.discount_amount html=True %}</p>
                   {% endif %}
-                  <p><strong>{{ order.total.gross|amount:'html' }}</strong></p>
+                  <p><strong>{% price order.total.gross %}</strong></p>
                 </td>
               </tr>
             </tbody>
@@ -443,14 +453,17 @@
               </span>
             {% endif %}
             {% if not order.is_draft and perms.order.view_order %}
-              <a href="{% url 'dashboard:order-invoice' order_pk=order.pk %}" data-href="" class="btn-flat waves-effect" target="_blank">
+              <a href="{% url 'dashboard:order-invoice' order_pk=order.pk %}" class="btn-flat waves-effect" target="_blank">
                 {% trans "Invoice" context "Order detail action" %}
+              </a>
+              <a href="{% url 'order:details' token=order.token %}" class="btn-flat waves-effect" target="_blank">
+                {% trans "View on site" context "Order detail action" %}
               </a>
             {% endif %}
           </div>
         {% endif %}
       </div>
-      {% for fulfillment in order.fulfillments.all %}
+      {% for fulfillment in order_fulfillments %}
         <div class="card shipment-table">
           <div class="data-table-header">
             <h5 class="data-table-title">
@@ -473,7 +486,7 @@
                 </tr>
               </thead>
               <tbody>
-                {% for line in fulfillment.lines.all %}
+                {% for line in fulfillment %}
                   <tr class="last-no-border">
                     <td>
                       {{ line.order_line.product_name }}

@@ -5,8 +5,22 @@ from django.utils.translation import pgettext_lazy
 from ...menu.models import Menu, MenuItem
 from ...page.models import Page
 from ...product.models import Category, Collection
+from ...site.models import SiteSettings
 from ..forms import (
     AjaxSelect2CombinedChoiceField, OrderedModelMultipleChoiceField)
+
+
+class AssignMenuForm(forms.ModelForm):
+    class Meta:
+        model = SiteSettings
+        fields = ('top_menu', 'bottom_menu')
+
+    def __init__(self, *args, **kwargs):
+        self.user = kwargs.pop('user')
+        super().__init__(*args, **kwargs)
+        user_can_edit_menus = self.user.has_perm('menu.edit_menu')
+        self.fields['top_menu'].disabled = not user_can_edit_menus
+        self.fields['bottom_menu'].disabled = not user_can_edit_menus
 
 
 class MenuForm(forms.ModelForm):
@@ -14,9 +28,9 @@ class MenuForm(forms.ModelForm):
 
     class Meta:
         model = Menu
-        fields = ('slug',)
+        fields = ('name',)
         labels = {
-            'slug': pgettext_lazy('Menu internal name', 'Internal name')}
+            'name': pgettext_lazy('Menu name', 'Menu name')}
 
 
 class MenuItemForm(forms.ModelForm):

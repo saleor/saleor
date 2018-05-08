@@ -14,27 +14,28 @@ from django_prices.templatetags import prices_i18n
 from payments import PaymentStatus
 
 from ...core.exceptions import InsufficientStock
-from ...core.utils import ZERO_TAXED_MONEY, get_paginator_items
 from ...core.templatetags.demo_obfuscators import obfuscate_address
-from ...order import CustomPaymentChoices, OrderStatus
+from ...core.utils import get_paginator_items
+from ...core.utils.taxes import (
+    ZERO_MONEY, ZERO_TAXED_MONEY, get_taxes_for_address)
 from ...order.emails import (
     send_fulfillment_confirmation, send_fulfillment_update,
     send_order_confirmation)
+from ...order import CustomPaymentChoices, OrderStatus
 from ...order.models import Fulfillment, FulfillmentLine, Order, OrderNote
-from ...order.utils import update_order_status
-from ...product.models import StockLocation
+from ...order.utils import update_order_prices, update_order_status
 from ...shipping.models import ShippingMethodCountry
 from ..views import staff_member_required
 from .filters import OrderFilter
 from .forms import (
     AddressForm, AddVariantToOrderForm, BaseFulfillmentLineFormSet,
     CancelFulfillmentForm, CancelOrderForm, CancelOrderLineForm,
-    CapturePaymentForm, ChangeQuantityForm, ChangeStockForm,
-    CreateOrderFromDraftForm, FulfillmentForm, FulfillmentLineForm,
-    FulfillmentTrackingNumberForm, OrderCustomerForm, OrderEditDiscountForm,
-    OrderEditVoucherForm, OrderMarkAsPaidForm, OrderNoteForm,
-    OrderRemoveCustomerForm, OrderRemoveShippingForm, OrderRemoveVoucherForm,
-    OrderShippingForm, RefundPaymentForm, ReleasePaymentForm)
+    CapturePaymentForm, ChangeQuantityForm, CreateOrderFromDraftForm,
+    FulfillmentForm, FulfillmentLineForm, FulfillmentTrackingNumberForm,
+    OrderCustomerForm, OrderEditDiscountForm, OrderEditVoucherForm,
+    OrderMarkAsPaidForm, OrderNoteForm, OrderRemoveCustomerForm,
+    OrderRemoveShippingForm, OrderRemoveVoucherForm, OrderShippingForm,
+    RefundPaymentForm, ReleasePaymentForm)
 from .utils import (
     create_invoice_pdf, create_packing_slip_pdf, get_statics_absolute_url,
     save_address_in_order)
@@ -58,7 +59,9 @@ def order_list(request):
 @staff_member_required
 @permission_required('order.edit_order')
 def order_create(request):
-    order = Order.objects.create(status=OrderStatus.DRAFT)
+    display_gross_prices = request.site.settings.display_gross_prices
+    order = Order.objects.create(
+        status=OrderStatus.DRAFT, display_gross_prices=display_gross_prices)
     msg = pgettext_lazy(
         'Dashboard message related to an order',
         'Draft order created')
@@ -114,14 +117,14 @@ def remove_draft_order(request, order_pk):
 def order_details(request, order_pk):
     qs = Order.objects.select_related(
         'user', 'shipping_address', 'billing_address').prefetch_related(
-        'notes', 'payments', 'history', 'lines__product')
+        'notes__user', 'payments', 'history__user', 'lines__variant__product',
+        'fulfillments__lines__order_line')
     order = get_object_or_404(qs, pk=order_pk)
-    notes = order.notes.all()
-    events = order.history.select_related('user')
     all_payments = order.payments.exclude(status=PaymentStatus.INPUT)
     payment = order.payments.last()
-    captured = preauthorized = ZERO_TAXED_MONEY
-    balance = captured - order.total
+    preauthorized = ZERO_TAXED_MONEY
+    captured = ZERO_MONEY
+    balance = captured - order.total.gross
     if payment:
         can_capture = (
             payment.status == PaymentStatus.PREAUTH and
@@ -133,18 +136,18 @@ def order_details(request, order_pk):
         preauthorized = payment.get_total_price()
         if payment.status == PaymentStatus.CONFIRMED:
             captured = payment.get_captured_price()
-            balance = captured - order.total
+            balance = captured - order.total.gross
     else:
         can_capture = can_release = can_refund = False
     can_mark_as_paid = not order.payments.exists()
-    is_many_stock_locations = StockLocation.objects.count() > 1
     ctx = {
         'order': order, 'all_payments': all_payments, 'payment': payment,
-        'notes': notes, 'events': events, 'captured': captured,
-        'balance': balance, 'preauthorized': preauthorized,
+        'notes': order.notes.all(), 'events': order.history.all(),
+        'captured': captured, 'balance': balance,
+        'preauthorized': preauthorized,
         'can_capture': can_capture, 'can_release': can_release,
         'can_refund': can_refund, 'can_mark_as_paid': can_mark_as_paid,
-        'is_many_stock_locations': is_many_stock_locations}
+        'order_fulfillments': order.fulfillments.all()}
     return TemplateResponse(request, 'dashboard/order/detail.html', ctx)
 
 
@@ -252,9 +255,9 @@ def orderline_change_quantity(request, order_pk, line_pk):
     if form.is_valid():
         msg = pgettext_lazy(
             'Dashboard message related to an order line',
-            'Changed quantity for product %(product)s from'
+            'Changed quantity for variant %(variant)s from'
             ' %(old_quantity)s to %(new_quantity)s') % {
-                'product': line.product, 'old_quantity': old_quantity,
+                'variant': line.variant, 'old_quantity': old_quantity,
                 'new_quantity': line.quantity}
         with transaction.atomic():
             form.save()
@@ -295,8 +298,10 @@ def orderline_cancel(request, order_pk, line_pk):
 def add_variant_to_order(request, order_pk):
     """Add variant in given quantity to an order."""
     order = get_object_or_404(Order.objects.drafts(), pk=order_pk)
+    taxes = get_taxes_for_address(order.shipping_address)
     form = AddVariantToOrderForm(
-        request.POST or None, order=order, discounts=request.discounts)
+        request.POST or None, order=order, discounts=request.discounts,
+        taxes=taxes)
     status = 200
     if form.is_valid():
         msg_dict = {
@@ -327,11 +332,13 @@ def add_variant_to_order(request, order_pk):
 @permission_required('order.edit_order')
 def address_view(request, order_pk, address_type):
     order = get_object_or_404(Order, pk=order_pk)
+    update_prices = False
     if address_type == 'shipping':
         address = order.shipping_address
         success_msg = pgettext_lazy(
             'Dashboard message',
             'Updated shipping address')
+        update_prices = True
     else:
         address = order.billing_address
         success_msg = pgettext_lazy(
@@ -344,6 +351,8 @@ def address_view(request, order_pk, address_type):
         updated_address = form.save()
         if not address:
             save_address_in_order(order, updated_address, address_type)
+        if update_prices:
+            update_order_prices(order, request.discounts)
         if not order.is_draft():
             order.history.create(content=success_msg, user=request.user)
         messages.success(request, success_msg)
@@ -360,6 +369,7 @@ def order_customer_edit(request, order_pk):
     status = 200
     if form.is_valid():
         form.save()
+        update_order_prices(order, request.discounts)
         user_email = form.cleaned_data.get('user_email')
         user = form.cleaned_data.get('user')
         if user_email:
@@ -391,6 +401,7 @@ def order_customer_remove(request, order_pk):
     form = OrderRemoveCustomerForm(request.POST or None, instance=order)
     if form.is_valid():
         form.save()
+        update_order_prices(order, request.discounts)
         msg = pgettext_lazy(
             'Dashboard message',
             'Customer removed from an order')
@@ -403,7 +414,8 @@ def order_customer_remove(request, order_pk):
 @permission_required('order.edit_order')
 def order_shipping_edit(request, order_pk):
     order = get_object_or_404(Order.objects.drafts(), pk=order_pk)
-    form = OrderShippingForm(request.POST or None, instance=order)
+    taxes = get_taxes_for_address(order.shipping_address)
+    form = OrderShippingForm(request.POST or None, instance=order, taxes=taxes)
     status = 200
     if form.is_valid():
         form.save()
@@ -521,7 +533,7 @@ def order_invoice(request, order_pk):
     absolute_url = get_statics_absolute_url(request)
     pdf_file, order = create_invoice_pdf(order, absolute_url)
     response = HttpResponse(pdf_file, content_type='application/pdf')
-    name = "invoice-%s" % order.id
+    name = "invoice-%s.pdf" % order.id
     response['Content-Disposition'] = 'filename=%s' % name
     return response
 
@@ -561,30 +573,9 @@ def fulfillment_packing_slips(request, order_pk, fulfillment_pk):
     absolute_url = get_statics_absolute_url(request)
     pdf_file, order = create_packing_slip_pdf(order, fulfillment, absolute_url)
     response = HttpResponse(pdf_file, content_type='application/pdf')
-    name = "packing-slip-%s" % (order.id,)
+    name = "packing-slip-%s.pdf" % (order.id,)
     response['Content-Disposition'] = 'filename=%s' % name
     return response
-
-
-@staff_member_required
-@permission_required('order.edit_order')
-def orderline_change_stock(request, order_pk, line_pk):
-    orders = Order.objects.drafts().prefetch_related('lines')
-    order = get_object_or_404(orders, pk=order_pk)
-    line = get_object_or_404(order.lines, pk=line_pk)
-    status = 200
-    form = ChangeStockForm(request.POST or None, instance=line)
-    if form.is_valid():
-        form.save()
-        msg = pgettext_lazy(
-            'Dashboard message',
-            'Stock location changed for %s') % form.instance.product_sku
-        messages.success(request, msg)
-    elif form.errors:
-        status = 400
-    ctx = {'order_pk': order_pk, 'line_pk': line_pk, 'form': form}
-    template = 'dashboard/order/modal/order_line_stock.html'
-    return TemplateResponse(request, template, ctx, status=status)
 
 
 @staff_member_required
@@ -741,5 +732,6 @@ def ajax_order_shipping_methods_list(request, order_pk):
             Q(price__icontains=search_query))
 
     shipping_methods = [
-        {'id': method.pk, 'text': method.ajax_label} for method in queryset]
+        {'id': method.pk, 'text': method.get_ajax_label()}
+        for method in queryset]
     return JsonResponse({'results': shipping_methods})

@@ -47,7 +47,8 @@ class Voucher(models.Model):
     discount_value_type = models.CharField(
         max_length=10, choices=DiscountValueType.CHOICES,
         default=DiscountValueType.FIXED)
-    discount_value = models.DecimalField(max_digits=12, decimal_places=2)
+    discount_value = models.DecimalField(
+        max_digits=12, decimal_places=settings.DEFAULT_DECIMAL_PLACES)
 
     # not mandatory fields, usage depends on type
     product = models.ForeignKey(
@@ -56,8 +57,8 @@ class Voucher(models.Model):
         'product.Category', blank=True, null=True, on_delete=models.CASCADE)
     apply_to = models.CharField(max_length=20, blank=True, null=True)
     limit = MoneyField(
-        currency=settings.DEFAULT_CURRENCY, max_digits=12, decimal_places=2,
-        null=True, blank=True)
+        currency=settings.DEFAULT_CURRENCY, max_digits=12,
+        decimal_places=settings.DEFAULT_DECIMAL_PLACES, null=True, blank=True)
 
     objects = VoucherQueryset.as_manager()
 
@@ -140,7 +141,9 @@ class Sale(models.Model):
     type = models.CharField(
         max_length=10, choices=DiscountValueType.CHOICES,
         default=DiscountValueType.FIXED)
-    value = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    value = models.DecimalField(
+        max_digits=12, decimal_places=settings.DEFAULT_DECIMAL_PLACES,
+        default=0)
     products = models.ManyToManyField('product.Product', blank=True)
     categories = models.ManyToManyField('product.Category', blank=True)
 

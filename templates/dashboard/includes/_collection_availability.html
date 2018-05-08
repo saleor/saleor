@@ -1,0 +1,9 @@
+{% load i18n %}
+
+  <div class="label label-{{ label_cls }}">
+    {% if is_published %}
+      {% trans "Published" context "Collection availability status" %}
+    {% else %}
+      {% trans "Not Published" context "Collection availability status" %}
+    {% endif %}
+  </div>

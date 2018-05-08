@@ -33,7 +33,7 @@
     </li>
     <li>
       {% if page.pk %}
-        <a href="{% url 'dashboard:page-detail' pk=page.pk %}" class="breadcrumbs--ellipsed-item">
+        <a href="{% url 'dashboard:page-details' pk=page.pk %}" class="breadcrumbs--ellipsed-item">
           {{ page }}
         </a>
       {% else %}

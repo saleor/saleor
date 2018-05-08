@@ -9,6 +9,8 @@ from django.core.files import File
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.forms import ModelForm
 from django.utils.encoding import smart_text
+from django_prices_vatlayer.models import VAT
+from django_prices_vatlayer.utils import get_tax_for_rate
 from payments import FraudStatus, PaymentStatus
 from PIL import Image
 from prices import Money
@@ -21,12 +23,12 @@ from saleor.dashboard.order.utils import fulfill_order_line
 from saleor.discount.models import Sale, Voucher
 from saleor.menu.models import Menu, MenuItem
 from saleor.order import OrderStatus
-from saleor.order.models import Order, OrderLine
+from saleor.order.models import Order
 from saleor.order.utils import recalculate_order
 from saleor.page.models import Page
 from saleor.product.models import (
     AttributeChoiceValue, Category, Collection, Product, ProductAttribute,
-    ProductImage, ProductType, ProductVariant, Stock, StockLocation)
+    ProductImage, ProductType, ProductVariant)
 from saleor.shipping.models import ShippingMethod
 from saleor.site.models import AuthorizationKey, SiteSettings
 
@@ -81,13 +83,12 @@ def request_cart(cart, monkeypatch):
     monkeypatch.setattr(
         utils, 'get_cart_from_request',
         lambda request, cart_queryset=None: cart)
-    cart.discounts = Sale.objects.all()
     return cart
 
 
 @pytest.fixture
-def request_cart_with_item(product_in_stock, request_cart):
-    variant = product_in_stock.variants.get()
+def request_cart_with_item(product, request_cart):
+    variant = product.variants.get()
     # Prepare some data
     request_cart.add(variant)
     return request_cart
@@ -177,11 +178,6 @@ def non_default_category(db):  # pylint: disable=W0613
 
 
 @pytest.fixture
-def default_stock_location(db):
-    return StockLocation.objects.create(name='Warehouse 1')
-
-
-@pytest.fixture
 def staff_group():
     return Group.objects.create(name='test')
 
@@ -204,16 +200,6 @@ def permission_view_category():
 @pytest.fixture
 def permission_edit_category():
     return Permission.objects.get(codename='edit_category')
-
-
-@pytest.fixture
-def permission_view_stock_location():
-    return Permission.objects.get(codename='view_stock_location')
-
-
-@pytest.fixture
-def permission_edit_stock_location():
-    return Permission.objects.get(codename='edit_stock_location')
 
 
 @pytest.fixture
@@ -256,7 +242,7 @@ def product_type(color_attribute, size_attribute):
 
 
 @pytest.fixture
-def product_in_stock(product_type, default_category):
+def product(product_type, default_category):
     product_attr = product_type.product_attributes.first()
     attr_value = product_attr.values.first()
     attributes = {smart_text(product_attr.pk): smart_text(attr_value.pk)}
@@ -271,20 +257,9 @@ def product_in_stock(product_type, default_category):
     variant_attributes = {
         smart_text(variant_attr.pk): smart_text(variant_attr_value.pk)}
 
-    variant = ProductVariant.objects.create(
-        product=product, sku='123', attributes=variant_attributes)
-    warehouse_1 = StockLocation.objects.create(name='Warehouse 1')
-    warehouse_2 = StockLocation.objects.create(name='Warehouse 2')
-    warehouse_3 = StockLocation.objects.create(name='Warehouse 3')
-    Stock.objects.create(
-        variant=variant, cost_price=Money('1.00', 'USD'), quantity=5,
-        quantity_allocated=5, location=warehouse_1)
-    Stock.objects.create(
-        variant=variant, cost_price=Money('100.00', 'USD'), quantity=5,
-        quantity_allocated=5, location=warehouse_2)
-    Stock.objects.create(
-        variant=variant, cost_price=Money('10.00', 'USD'), quantity=5,
-        quantity_allocated=0, location=warehouse_3)
+    ProductVariant.objects.create(
+        product=product, sku='123', attributes=variant_attributes,
+        cost_price=Money('1.00', 'USD'), quantity=10, quantity_allocated=1)
     return product
 
 
@@ -338,12 +313,6 @@ def order_list(customer_user):
 
 
 @pytest.fixture
-def stock_location():
-    warehouse_1 = StockLocation.objects.create(name='Warehouse 1')
-    return warehouse_1
-
-
-@pytest.fixture
 def product_image():
     img_data = BytesIO()
     image = Image.new('RGB', size=(1, 1))
@@ -352,8 +321,7 @@ def product_image():
 
 
 @pytest.fixture
-def product_with_image(product_in_stock, product_image):
-    product = product_in_stock
+def product_with_image(product, product_image):
     ProductImage.objects.create(product=product, image=product_image)
     return product
 
@@ -382,13 +350,14 @@ def product_with_images(product_type, default_category):
 
 
 @pytest.fixture
-def anonymous_checkout():
-    return Checkout((), AnonymousUser(), 'tracking_code')
+def checkout():
+    return Checkout(Mock(), AnonymousUser(), None, None, 'tracking_code')
 
 
 @pytest.fixture
 def checkout_with_items(request_cart_with_item, customer_user):
-    checkout = Checkout(request_cart_with_item, customer_user, 'tracking_code')
+    checkout = Checkout(
+        request_cart_with_item, customer_user, None, None, 'tracking_code')
     checkout.shipping_address = customer_user.default_shipping_address
     return checkout
 
@@ -399,43 +368,84 @@ def voucher(db):  # pylint: disable=W0613
 
 
 @pytest.fixture()
-def order_with_lines(order, product_type, default_category, shipping_method):
+def order_with_lines(
+        order, product_type, default_category, shipping_method, taxes):
     product = Product.objects.create(
         name='Test product', price=Money('10.00', 'USD'),
         product_type=product_type, category=default_category)
-    variant = ProductVariant.objects.create(product=product, sku='SKU_A')
-    warehouse = StockLocation.objects.create(name='Warehouse 1')
-    stock = Stock.objects.create(
-        variant=variant, cost_price=Money(1, 'USD'), quantity=5,
-        quantity_allocated=3, location=warehouse)
+    variant = ProductVariant.objects.create(
+        product=product, sku='SKU_A', cost_price=Money(1, 'USD'), quantity=0,
+        quantity_allocated=0)
     order.lines.create(
-        product=product,
+        product_name=variant.display_product(),
+        product_sku=variant.sku,
+        is_shipping_required=variant.is_shipping_required(),
+        quantity=1,
+        variant=variant,
+        unit_price=variant.get_price(taxes=taxes),
+        tax_rate=taxes['standard']['value'])
+
+    product = Product.objects.create(
+        name='Test product 2', price=Money('20.00', 'USD'),
+        product_type=product_type, category=default_category)
+    variant = ProductVariant.objects.create(
+        product=product, sku='SKU_B', cost_price=Money(2, 'USD'), quantity=0,
+        quantity_allocated=0)
+    order.lines.create(
+        product_name=variant.display_product(),
+        product_sku=variant.sku,
+        is_shipping_required=variant.is_shipping_required(),
+        quantity=1,
+        variant=variant,
+        unit_price=variant.get_price(taxes=taxes),
+        tax_rate=taxes['standard']['value'])
+
+    order.shipping_address = order.billing_address.get_copy()
+    order.shipping_method_name = shipping_method.name
+    method = shipping_method.price_per_country.get()
+    order.shipping_method = method
+    order.shipping_price = method.get_total_price(taxes)
+    order.save()
+
+    recalculate_order(order)
+
+    order.refresh_from_db()
+    return order
+
+
+@pytest.fixture()
+def order_with_lines_and_stock(
+        order, product_type, default_category, shipping_method):
+    product = Product.objects.create(
+        name='Test product', price=Money('10.00', 'USD'),
+        product_type=product_type, category=default_category)
+    variant = ProductVariant.objects.create(
+        product=product, sku='SKU_A', cost_price=Money(1, 'USD'), quantity=5,
+        quantity_allocated=3)
+    order.lines.create(
+        order=order,
         product_name=product.name,
         product_sku='SKU_A',
         is_shipping_required=product.product_type.is_shipping_required,
         quantity=3,
         unit_price_net=Decimal('30.00'),
         unit_price_gross=Decimal('30.00'),
-        stock=stock,
-        stock_location=stock.location.name)
-
+        variant=variant)
     product = Product.objects.create(
         name='Test product 2', price=Money('20.00', 'USD'),
         product_type=product_type, category=default_category)
-    variant = ProductVariant.objects.create(product=product, sku='SKU_B')
-    stock = Stock.objects.create(
-        variant=variant, cost_price=Money(2, 'USD'), quantity=2,
-        quantity_allocated=2, location=warehouse)
+    variant = ProductVariant.objects.create(
+        product=product, sku='SKU_B', cost_price=Money(2, 'USD'), quantity=2,
+        quantity_allocated=2)
     order.lines.create(
-        product=product,
+        order=order,
         product_name=product.name,
         product_sku='SKU_B',
         is_shipping_required=product.product_type.is_shipping_required,
         quantity=2,
         unit_price_net=Decimal('20.00'),
         unit_price_gross=Decimal('20.00'),
-        stock=stock,
-        stock_location=stock.location.name)
+        variant=variant)
 
     order.shipping_address = order.billing_address.get_copy()
     order.shipping_method_name = shipping_method.name
@@ -443,7 +453,6 @@ def order_with_lines(order, product_type, default_category, shipping_method):
     order.shipping_method = method
     order.shipping_price = method.get_total_price()
     order.save()
-
     recalculate_order(order)
     order.refresh_from_db()
     return order
@@ -471,29 +480,11 @@ def draft_order(order_with_lines):
     return order_with_lines
 
 
-@pytest.fixture()
-def order_with_variant_from_different_stocks(order_with_lines):
-    line = OrderLine.objects.get(product_sku='SKU_A')
-    variant = ProductVariant.objects.get(sku=line.product_sku)
-    warehouse_2 = StockLocation.objects.create(name='Warehouse 2')
-    stock = Stock.objects.create(
-        variant=variant, cost_price=Money(1, 'USD'), quantity=5,
-        quantity_allocated=2, location=warehouse_2)
-    order_with_lines.lines.create(
-        product=variant.product,
-        product_name=variant.product.name,
-        product_sku=line.product_sku,
-        is_shipping_required=variant.product.product_type.is_shipping_required,
-        quantity=2,
-        unit_price_net=Decimal('30.00'),
-        unit_price_gross=Decimal('30.00'),
-        stock=stock,
-        stock_location=stock.location.name)
-    warehouse_2 = StockLocation.objects.create(name='Warehouse 3')
-    Stock.objects.create(
-        variant=variant, cost_price=Money(1, 'USD'), quantity=5,
-        quantity_allocated=0, location=warehouse_2)
-    return order_with_lines
+@pytest.fixture
+def draft_order_with_stock(order_with_lines_and_stock):
+    order_with_lines_and_stock.status = OrderStatus.DRAFT
+    order_with_lines_and_stock.save(update_fields=['status'])
+    return order_with_lines_and_stock
 
 
 @pytest.fixture()
@@ -509,7 +500,8 @@ def payment_preauth(order_with_lines):
     return order_with_lines.payments.create(
         variant='default', status=PaymentStatus.PREAUTH,
         fraud_status=FraudStatus.ACCEPT, currency='USD',
-        total=order_with_lines.total_gross.amount)
+        total=order_with_lines.total.gross.amount,
+        tax=order_with_lines.total.tax.amount)
 
 
 @pytest.fixture()
@@ -628,7 +620,24 @@ def permission_impersonate_user():
 
 
 @pytest.fixture
+def permission_edit_menu():
+    return Permission.objects.get(codename='edit_menu')
+
+
+@pytest.fixture
+def permission_view_menu():
+    return Permission.objects.get(codename='view_menu')
+
+
+@pytest.fixture
 def collection(db):
+    collection = Collection.objects.create(
+        name='Collection', slug='collection', is_published=True)
+    return collection
+
+
+@pytest.fixture
+def draft_collection(db):
     collection = Collection.objects.create(
         name='Collection', slug='collection')
     return collection
@@ -654,9 +663,9 @@ def model_form_class():
 
 
 @pytest.fixture
-def menu():
+def menu(db):
     # navbar menu object can be already created by default in migration
-    return Menu.objects.get_or_create(slug='navbar')[0]
+    return Menu.objects.get_or_create(name='navbar')[0]
 
 
 @pytest.fixture
@@ -677,3 +686,54 @@ def menu_with_items(menu, default_category, collection):
     menu.items.create(
         name=collection.name, collection=collection, parent=menu_item)
     return menu
+
+
+@pytest.fixture
+def tax_rates():
+    return {
+        'standard_rate': 23,
+        'reduced_rates': {
+            'pharmaceuticals': 8,
+            'medical': 8,
+            'passenger transport': 8,
+            'newspapers': 8,
+            'hotels': 8,
+            'restaurants': 8,
+            'admission to cultural events': 8,
+            'admission to sporting events': 8,
+            'admission to entertainment events': 8,
+            'foodstuffs': 5}}
+
+
+@pytest.fixture
+def taxes(tax_rates):
+    taxes = {'standard': {
+        'value': tax_rates['standard_rate'],
+        'tax': get_tax_for_rate(tax_rates)}}
+    if tax_rates['reduced_rates']:
+        taxes.update({
+            rate: {
+                'value': tax_rates['reduced_rates'][rate],
+                'tax': get_tax_for_rate(tax_rates, rate)}
+            for rate in tax_rates['reduced_rates']})
+    return taxes
+
+
+@pytest.fixture
+def vatlayer(db, settings, tax_rates, taxes):
+    settings.VATLAYER_ACCESS_KEY = 'enablevatlayer'
+    VAT.objects.create(country_code='PL', data=tax_rates)
+
+    tax_rates_2 = {
+        'standard_rate': 19,
+        'reduced_rates': {
+            'admission to cultural events': 7,
+            'admission to entertainment events': 7,
+            'books': 7,
+            'foodstuffs': 7,
+            'hotels': 7,
+            'medical': 7,
+            'newspapers': 7,
+            'passenger transport': 7}}
+    VAT.objects.create(country_code='DE', data=tax_rates_2)
+    return taxes

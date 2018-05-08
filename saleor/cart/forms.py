@@ -47,6 +47,7 @@ class AddToCartForm(forms.Form):
         self.cart = kwargs.pop('cart')
         self.product = kwargs.pop('product')
         self.discounts = kwargs.pop('discounts', ())
+        self.taxes = kwargs.pop('taxes', {})
         super().__init__(*args, **kwargs)
 
     def clean(self):
@@ -71,7 +72,7 @@ class AddToCartForm(forms.Form):
             try:
                 product_variant.check_quantity(new_quantity)
             except InsufficientStock as e:
-                remaining = e.item.get_stock_quantity() - used_quantity
+                remaining = e.item.quantity_available - used_quantity
                 if remaining:
                     msg = self.error_messages['insufficient-stock']
                     self.add_error('quantity', msg % remaining)
@@ -122,7 +123,7 @@ class ReplaceCartLineForm(AddToCartForm):
         except InsufficientStock as e:
             msg = self.error_messages['insufficient-stock']
             raise forms.ValidationError(
-                msg % e.item.get_stock_quantity())
+                msg % e.item.quantity_available)
         return quantity
 
     def clean(self):
@@ -153,7 +154,11 @@ class CountryForm(forms.Form):
         label=pgettext_lazy('Country form field label', 'Country'),
         choices=countries)
 
+    def __init__(self, *args, **kwargs):
+        self.taxes = kwargs.pop('taxes', {})
+        super().__init__(*args, **kwargs)
+
     def get_shipment_options(self):
         """Return a list of shipping methods for the selected country."""
         code = self.cleaned_data['country']
-        return get_shipment_options(code)
+        return get_shipment_options(code, self.taxes)

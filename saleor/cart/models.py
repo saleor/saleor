@@ -1,7 +1,6 @@
 """Cart-related ORM models."""
 from collections import namedtuple
 from decimal import Decimal
-from itertools import groupby
 from uuid import uuid4
 
 from django.conf import settings
@@ -53,9 +52,7 @@ class CartQueryset(models.QuerySet):
         return self.prefetch_related(
             'lines__variant__product__category',
             'lines__variant__product__images',
-            'lines__variant__product__product_type__product_attributes__values',  # noqa
-            'lines__variant__product__product_type__variant_attributes__values',  # noqa
-            'lines__variant__stock')
+            'lines__variant__product__product_type__product_attributes__values')  # noqa
 
 
 class Cart(models.Model):
@@ -75,18 +72,14 @@ class Cart(models.Model):
         on_delete=models.SET_NULL)
     checkout_data = JSONField(null=True, editable=False)
     total = MoneyField(
-        currency=settings.DEFAULT_CURRENCY, max_digits=12, decimal_places=2,
-        default=0)
+        currency=settings.DEFAULT_CURRENCY, max_digits=12,
+        decimal_places=settings.DEFAULT_DECIMAL_PLACES, default=0)
     quantity = models.PositiveIntegerField(default=0)
 
     objects = CartQueryset.as_manager()
 
     class Meta:
         ordering = ('-last_status_change',)
-
-    def __init__(self, *args, **kwargs):
-        self.discounts = kwargs.pop('discounts', None)
-        super().__init__(*args, **kwargs)
 
     def update_quantity(self):
         """Recalculate cart quantity based on lines."""
@@ -127,11 +120,10 @@ class Cart(models.Model):
     def __len__(self):
         return self.lines.count()
 
-    def get_total(self, discounts=None):
+    def get_total(self, discounts=None, taxes=None):
         """Return the total cost of the cart prior to shipping."""
-        if not discounts:
-            discounts = self.discounts
-        subtotals = [line.get_total(discounts) for line in self.lines.all()]
+        subtotals = [
+            line.get_total(discounts, taxes) for line in self.lines.all()]
         if not subtotals:
             raise AttributeError('Calling get_total() on an empty cart')
         return sum_prices(subtotals)
@@ -242,15 +234,10 @@ class CartLine(models.Model):
     def __setstate__(self, data):
         self.variant, self.quantity, self.data = data
 
-    def get_total(self, discounts=None):
+    def get_total(self, discounts=None, taxes=None):
         """Return the total price of this line."""
-        amount = self.get_price_per_item(discounts) * self.quantity
+        amount = self.quantity * self.variant.get_price(discounts, taxes)
         return amount.quantize(CENTS)
-
-    # pylint: disable=W0221
-    def get_price_per_item(self, discounts=None):
-        """Return the unit price of the line."""
-        return self.variant.get_price_per_item(discounts=discounts)
 
     def is_shipping_required(self):
         """Return `True` if the related product variant requires shipping."""

@@ -1,9 +1,9 @@
+{% load discount_as_negative from voucher %}
 {% load i18n %}
 {% load i18n_address_tags %}
-{% load amount from prices_i18n %}
-{% load product_first_image from product_images %}
-{% load discount_as_negative from voucher %}
 {% load placeholder %}
+{% load price from taxed_prices %}
+{% load product_first_image from product_images %}
 
 {% if order.user == user %}
   <div class="order-details__addresses">
@@ -49,9 +49,9 @@
   <div class="table__row order-details__product{% if forloop.last %} order-details__last-row{% endif %}">
     <div class="row">
       <div class="col-md-8">
-        <a class="link--clean" href="{% if line.product %}{{ line.product.get_absolute_url }}{% endif %}">
-          <img data-src="{% product_first_image line.product size="60x60" method="crop" %}"
-                data-srcset="{% product_first_image line.product size="60x60" method="crop" %} 1x, {% product_first_image line.product size="120x120" method="crop" %} 2x"
+        <a class="link--clean" href="{% if line.variant %}{{ line.variant.get_absolute_url }}{% endif %}">
+          <img data-src="{% product_first_image line.variant.product size="60x60" method="crop" %}"
+                data-srcset="{% product_first_image line.variant.product size="60x60" method="crop" %} 1x, {% product_first_image line.variant.product size="120x120" method="crop" %} 2x"
                 class="float-left lazyload lazypreload"
                 src="{% placeholder size=60 %}">
           <span class="order-details__product__description">{{ line.product_name }}</span>
@@ -63,23 +63,44 @@
             <p class="float-right">x {{ line.quantity }}</p>
           </div>
           <div class="col-md-6 col-12">
-            <p class="float-right">{{ line.get_total.gross|amount:'html' }}</p>
+            <p class="float-right">
+              {% price line.get_total display_gross=order.display_gross_prices %}
+            </p>
           </div>
         </div>
       </div>
     </div>
   </div>
 {% endfor %}
+
+<div class="table__row">
+  <div class="row">
+    <div class="col-8 order-details__table-footer">
+      <p>
+        {% trans "Subtotal" context "Order details subtotal row text" %}
+      </p>
+    </div>
+    <div class="col-4">
+      <p class="float-right">
+        {% price order.get_subtotal display_gross=order.display_gross_prices %}
+      </p>
+      <br>
+    </div>
+  </div>
+</div>
+
 {% if order.is_shipping_required %}
   <div class="table__row">
     <div class="row">
       <div class="col-8 order-details__table-footer">
         <p>
-          {% trans "Shipping total" context "Order details shipment row text" %} ({{ order.shipping_method_name|default:"-" }})
+          {% trans "Shipping" context "Order details shipment row text" %} ({{ order.shipping_method_name|default:"-" }})
         </p>
       </div>
       <div class="col-4">
-        <p class="float-right">{{ order.shipping_price.gross|amount:'html' }}</p>
+        <p class="float-right">
+          {% price order.shipping_price display_gross=order.display_gross_prices %}
+        </p>
       </div>
     </div>
   </div>
@@ -100,6 +121,23 @@
 </div>
 {% endif %}
 
+<div class="table__row">
+  <div class="row">
+    <div class="col-8 order-details__table-footer">
+      <p>
+        {% if order.display_gross_prices %}
+          {% trans "Taxes (included)" context "Order details taxes text" %}
+        {% else %}
+          {% trans "Taxes" context "Order details taxes text" %}
+        {% endif %}
+      </p>
+    </div>
+    <div class="col-4">
+      <p class="float-right">{% price order.total.tax %}</p>
+    </div>
+  </div>
+</div>
+
 <div class="order-details__total">
   <div class="row">
     <div class="col-8 order-details__table-footer">
@@ -108,7 +146,9 @@
       </div>
     </div>
     <div class="col-4">
-      <p class="float-right">{{ order.total.gross|amount:'html' }}</p>
+      <p class="float-right">
+        {% price order.total.gross %}
+      </p>
     </div>
   </div>
 </div>
@@ -139,7 +179,7 @@
     <div class="table__row fulfillment__row order-details__product{% if forloop.last %} order-details__last-row{% endif %}">
       <div class="row">
         <div class="col-md-6 col-9">
-          <a class="link--clean" href="{% if line.product %}{{ line.product.get_absolute_url }}{% endif %}">
+          <a class="link--clean" href="{% if line.variant.product %}{{ line.variant.product.get_absolute_url }}{% endif %}">
             <span class="order-details__product__description">{{ line.order_line.product_name }}</span>
           </a>
         </div>

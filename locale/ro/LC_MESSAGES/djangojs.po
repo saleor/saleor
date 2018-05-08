@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2018-03-30 10:19-0500\n"
+"POT-Creation-Date: 2018-04-23 09:24-0500\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Tiberiu Ichim <tiberiu.ichim@gmail.com>, 2017\n"
 "Language-Team: Romanian (https://www.transifex.com/mirumee/teams/34782/ro/)\n"
@@ -313,7 +313,7 @@ msgstr ""
 #: saleor/static/dashboard/js/components/editor.js:51
 msgctxt "Rich text editor option"
 msgid "Link"
-msgstr ""
+msgstr "Link"
 
 #: saleor/static/dashboard/js/components/editor.js:58
 msgctxt "Rich text editor option"

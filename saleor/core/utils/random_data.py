@@ -2,19 +2,21 @@ import itertools
 import os
 import random
 import unicodedata
-from collections import defaultdict
 
 from django.conf import settings
 from django.contrib.auth.models import Group, Permission
+from django.contrib.sites.models import Site
 from django.core.files import File
 from django.template.defaultfilters import slugify
+from django_countries.fields import Country
 from faker import Factory
 from faker.providers import BaseProvider
 from payments import PaymentStatus
-from prices import Money, TaxedMoney
+from prices import Money
 
 from ...account.models import Address, User
 from ...account.utils import store_user_address
+from ...core.utils.taxes import get_tax_rate_by_name, get_taxes_for_country
 from ...core.utils.text import strip_html_and_truncate
 from ...discount import DiscountValueType, VoucherType
 from ...discount.models import Sale, Voucher
@@ -24,15 +26,19 @@ from ...order.utils import update_order_status
 from ...page.models import Page
 from ...product.models import (
     AttributeChoiceValue, Category, Collection, Product, ProductAttribute,
-    ProductImage, ProductType, ProductVariant, Stock, StockLocation)
+    ProductImage, ProductType, ProductVariant)
 from ...product.thumbnails import create_product_thumbnails
+from ...product.utils.attributes import get_name_from_attributes
 from ...shipping.models import ANY_COUNTRY, ShippingMethod
+from ...shipping.utils import get_taxed_shipping_price
 
 fake = Factory.create()
-STOCK_LOCATION = 'default'
 
 DELIVERY_REGIONS = [ANY_COUNTRY, 'US', 'PL', 'DE', 'GB']
 PRODUCTS_LIST_DIR = 'products-list/'
+
+GROCERIES_CATEGORY = {'name': 'Groceries', 'image_name': 'groceries.jpg'}
+
 DEFAULT_SCHEMA = {
     'T-Shirt': {
         'category': {
@@ -57,8 +63,9 @@ DEFAULT_SCHEMA = {
         'is_shipping_required': True},
     'Coffee': {
         'category': {
-            'name': 'Groceries',
-            'image_name': 'groceries.jpg'},
+            'name': 'Coffees',
+            'image_name': 'coffees.jpg',
+            'parent': GROCERIES_CATEGORY},
         'product_attributes': {
             'Coffee Genre': ['Arabica', 'Robusta'],
             'Brand': ['Saleor']},
@@ -69,8 +76,9 @@ DEFAULT_SCHEMA = {
         'is_shipping_required': True},
     'Candy': {
         'category': {
-            'name': 'Groceries',
-            'image_name': 'groceries.jpg'},
+            'name': 'Candies',
+            'image_name': 'candies.jpg',
+            'parent': GROCERIES_CATEGORY},
         'product_attributes': {
             'Flavor': ['Sour', 'Sweet'],
             'Brand': ['Saleor']},
@@ -152,27 +160,6 @@ def set_product_attributes(product, product_type):
         attr_dict[str(product_attribute.pk)] = str(value.pk)
     product.attributes = attr_dict
     product.save(update_fields=['attributes'])
-
-
-def set_variant_attributes(variant, product_type):
-    attr_dict = {}
-    existing_variants = variant.product.variants.values_list(
-        'attributes', flat=True)
-    existing_variant_attributes = defaultdict(list)
-    for variant_attrs in existing_variants:
-        for attr_id, value_id in variant_attrs.items():
-            existing_variant_attributes[attr_id].append(value_id)
-
-    for product_attribute in product_type.variant_attributes.all():
-        available_values = product_attribute.values.exclude(
-            pk__in=[int(pk) for pk
-                    in existing_variant_attributes[str(product_attribute.pk)]])
-        if not available_values:
-            return
-        value = random.choice(available_values)
-        attr_dict[str(product_attribute.pk)] = str(value.pk)
-    variant.attributes = attr_dict
-    variant.save(update_fields=['attributes'])
 
 
 def get_variant_combinations(product):
@@ -270,6 +257,11 @@ def get_email(first_name, last_name):
 
 
 def get_or_create_category(category_schema, placeholder_dir):
+    if 'parent' in category_schema:
+        parent_id = get_or_create_category(
+            category_schema['parent'], placeholder_dir).id
+    else:
+        parent_id = None
     category_name = category_schema['name']
     image_name = category_schema['image_name']
     image_dir = get_product_list_images_dir(placeholder_dir)
@@ -278,7 +270,7 @@ def get_or_create_category(category_schema, placeholder_dir):
         'slug': fake.slug(category_name),
         'background_image': get_image(image_dir, image_name)}
     return Category.objects.get_or_create(
-        name=category_name, defaults=defaults)[0]
+        name=category_name, parent_id=parent_id, defaults=defaults)[0]
 
 
 def get_or_create_product_type(name, **kwargs):
@@ -304,23 +296,17 @@ def create_product(**kwargs):
     return Product.objects.create(**defaults)
 
 
-def create_stock(variant, **kwargs):
-    default_location = StockLocation.objects.get_or_create(
-        name=STOCK_LOCATION)[0]
-    defaults = {
-        'variant': variant,
-        'location': default_location,
-        'quantity': fake.random_int(1, 50)}
-    defaults.update(kwargs)
-    return Stock.objects.create(**defaults)
-
-
 def create_variant(product, **kwargs):
     defaults = {
-        'product': product}
+        'product': product,
+        'quantity': fake.random_int(1, 50),
+        'cost_price': fake.money(),
+        'quantity_allocated': fake.random_int(1, 50)}
     defaults.update(kwargs)
-    variant = ProductVariant.objects.create(**defaults)
-    create_stock(variant)
+    variant = ProductVariant(**defaults)
+    if variant.attributes:
+        variant.name = get_name_from_attributes(variant)
+    variant.save()
     return variant
 
 
@@ -398,6 +384,7 @@ def create_payment(order):
         transaction_id=str(fake.random_int(1, 100000)),
         currency=settings.DEFAULT_CURRENCY,
         total=order.total.gross.amount,
+        tax=order.total.tax.amount,
         delivery=order.shipping_price.gross.amount,
         customer_ip_address=fake.ipv4(),
         billing_first_name=order.billing_address.first_name,
@@ -412,28 +399,26 @@ def create_payment(order):
     return payment
 
 
-def create_order_line(order):
+def create_order_line(order, discounts, taxes):
     product = Product.objects.all().order_by('?')[0]
     variant = product.variants.all()[0]
     quantity = random.randrange(1, 5)
-    stock = variant.stock.first()
-    stock.quantity += quantity
-    stock.quantity_allocated += quantity
-    stock.save()
+    variant.quantity += quantity
+    variant.quantity_allocated += quantity
+    variant.save()
     return order.lines.create(
-        product=product,
-        product_name=product.name,
+        product_name=variant.display_product(),
         product_sku=variant.sku,
-        is_shipping_required=product.product_type.is_shipping_required,
+        is_shipping_required=variant.is_shipping_required(),
         quantity=quantity,
-        stock=stock,
-        stock_location=stock.location.name,
-        unit_price=TaxedMoney(net=product.price, gross=product.price))
+        variant=variant,
+        unit_price=variant.get_price(discounts=discounts, taxes=taxes),
+        tax_rate=get_tax_rate_by_name(variant.product.tax_rate, taxes))
 
 
-def create_order_lines(order, how_many=10):
+def create_order_lines(order, discounts, taxes, how_many=10):
     for dummy in range(how_many):
-        yield create_order_line(order)
+        yield create_order_line(order, discounts, taxes)
 
 
 def create_fulfillments(order):
@@ -448,7 +433,7 @@ def create_fulfillments(order):
     update_order_status(order)
 
 
-def create_fake_order():
+def create_fake_order(discounts, taxes):
     user = random.choice([None, User.objects.filter(
         is_superuser=False).order_by('?').first()])
     if user:
@@ -466,14 +451,14 @@ def create_fake_order():
 
     shipping_method = ShippingMethod.objects.order_by('?').first()
     shipping_price = shipping_method.price_per_country.first().price
+    shipping_price = get_taxed_shipping_price(shipping_price, taxes)
     order_data.update({
         'shipping_method_name': shipping_method.name,
-        'shipping_price_net': shipping_price,
-        'shipping_price_gross': shipping_price})
+        'shipping_price': shipping_price})
 
     order = Order.objects.create(**order_data)
 
-    lines = create_order_lines(order, random.randrange(1, 5))
+    lines = create_order_lines(order, discounts, taxes, random.randrange(1, 5))
 
     order.total = sum(
         [line.get_total() for line in lines], order.shipping_price)
@@ -502,8 +487,10 @@ def create_users(how_many=10):
 
 
 def create_orders(how_many=10):
+    taxes = get_taxes_for_country(Country(settings.DEFAULT_COUNTRY))
+    discounts = Sale.objects.prefetch_related('products', 'categories')
     for dummy in range(how_many):
-        order = create_fake_order()
+        order = create_fake_order(discounts, taxes)
         yield 'Order: %s' % (order,)
 
 
@@ -603,37 +590,61 @@ def create_page():
     yield 'Page %s created' % page.slug
 
 
+def generate_menu_items(menu: Menu, category: Category, parent_menu_item):
+    menu_item, created = menu.items.get_or_create(
+        name=category.name, category=category, parent=parent_menu_item)
+
+    if created:
+        yield 'Created menu item for category %s' % category
+
+    for child in category.get_children():
+        for msg in generate_menu_items(menu, child, menu_item):
+            yield '\t%s' % msg
+
+
+def generate_menu_tree(menu):
+    categories = Category.tree.get_queryset()
+    for category in categories:
+        if not category.parent_id:
+            for msg in generate_menu_items(menu, category, None):
+                yield msg
+
+
 def create_menus():
     # Create navbar menu with category links
-    menu, _ = Menu.objects.get_or_create(slug='navbar')
-    if not menu.items.exists():
-        categories = Category.objects.all()
-        for category in categories:
-            menu.items.get_or_create(
-                name=category.name,
-                category=category)
+    top_menu, _ = Menu.objects.get_or_create(
+        name=settings.DEFAULT_MENUS['top_menu_name'])
+    if not top_menu.items.exists():
         yield 'Created navbar menu'
+        for msg in generate_menu_tree(top_menu):
+            yield msg
 
     # Create footer menu with collections and pages
-    menu, _ = Menu.objects.get_or_create(slug='footer')
-    if not menu.items.exists():
+    bottom_menu, _ = Menu.objects.get_or_create(
+        name=settings.DEFAULT_MENUS['bottom_menu_name'])
+    if not bottom_menu.items.exists():
         collection = Collection.objects.order_by('?')[0]
-        item, _ = menu.items.get_or_create(
+        item, _ = bottom_menu.items.get_or_create(
             name='Collections',
             collection=collection)
 
         for collection in Collection.objects.filter(
                 background_image__isnull=False):
-            menu.items.get_or_create(
+            bottom_menu.items.get_or_create(
                 name=collection.name,
                 collection=collection,
                 parent=item)
 
         page = Page.objects.order_by('?')[0]
-        menu.items.get_or_create(
+        bottom_menu.items.get_or_create(
             name=page.title,
             page=page)
         yield 'Created footer menu'
+    site = Site.objects.get_current()
+    site_settings = site.settings
+    site_settings.top_menu = top_menu
+    site_settings.bottom_menu = bottom_menu
+    site_settings.save()
 
 
 def get_product_list_images_dir(placeholder_dir):

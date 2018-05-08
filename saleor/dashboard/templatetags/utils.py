@@ -9,7 +9,8 @@ from django.template import Library
 from django_filters.fields import RangeField
 from versatileimagefield.widgets import VersatileImagePPOIClickWidget
 
-from ...product.utils import get_margin_for_variant, get_variant_costs_data
+from ...product.utils.costs import (
+    get_margin_for_variant, get_variant_costs_data)
 from ..product.widgets import ImagePreviewWidget
 from .chips import (
     handle_default, handle_multiple_choice, handle_multiple_model_choice,

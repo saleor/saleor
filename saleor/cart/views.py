@@ -2,7 +2,6 @@
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.template.response import TemplateResponse
-from django.urls import reverse
 
 from ..core.utils import (
     format_money, get_user_shipping_country, to_local_currency)
@@ -18,31 +17,40 @@ from .utils import (
 def index(request, cart):
     """Display cart details."""
     discounts = request.discounts
+    taxes = request.taxes
     cart_lines = []
     check_product_availability_and_warn(request, cart)
 
     # refresh required to get updated cart lines and it's quantity
     try:
-        cart = Cart.objects.get(pk=cart.pk)
+        cart = Cart.objects.prefetch_related(
+            'lines__variant__product__category').get(pk=cart.pk)
     except Cart.DoesNotExist:
         pass
 
-    for line in cart.lines.all():
+    lines = cart.lines.select_related(
+        'variant__product__product_type',
+        'variant__product__category')
+    lines = lines.prefetch_related(
+        'variant__product__images',
+        'variant__product__product_type__variant_attributes')
+    for line in lines:
         initial = {'quantity': line.quantity}
-        form = ReplaceCartLineForm(None, cart=cart, variant=line.variant,
-                                   initial=initial, discounts=discounts)
+        form = ReplaceCartLineForm(
+            None, cart=cart, variant=line.variant, initial=initial,
+            discounts=discounts, taxes=taxes)
         cart_lines.append({
             'variant': line.variant,
-            'get_price_per_item': line.get_price_per_item(discounts),
-            'get_total': line.get_total(discounts=discounts),
+            'get_price': line.variant.get_price(discounts, taxes),
+            'get_total': line.get_total(discounts, taxes),
             'form': form})
 
     default_country = get_user_shipping_country(request)
     country_form = CountryForm(initial={'country': default_country})
-    default_country_options = get_shipment_options(default_country)
+    default_country_options = get_shipment_options(default_country, taxes)
 
     cart_data = get_cart_data(
-        cart, default_country_options, request.currency, request.discounts)
+        cart, default_country_options, request.currency, discounts, taxes)
     ctx = {
         'cart_lines': cart_lines,
         'country_form': country_form,
@@ -56,7 +64,7 @@ def index(request, cart):
 @get_or_empty_db_cart(cart_queryset=Cart.objects.for_display())
 def get_shipping_options(request, cart):
     """Display shipping options to get a price estimate."""
-    country_form = CountryForm(request.POST or None)
+    country_form = CountryForm(request.POST or None, taxes=request.taxes)
     if country_form.is_valid():
         shipments = country_form.get_shipment_options()
     else:
@@ -65,7 +73,7 @@ def get_shipping_options(request, cart):
         'default_country_options': shipments,
         'country_form': country_form}
     cart_data = get_cart_data(
-        cart, shipments, request.currency, request.discounts)
+        cart, shipments, request.currency, request.discounts, request.taxes)
     ctx.update(cart_data)
     return TemplateResponse(
         request, 'cart/_subtotal_table.html', ctx)
@@ -78,9 +86,11 @@ def update(request, cart, variant_id):
         return redirect('cart:index')
     variant = get_object_or_404(ProductVariant, pk=variant_id)
     discounts = request.discounts
+    taxes = request.taxes
     status = None
     form = ReplaceCartLineForm(
-        request.POST, cart=cart, variant=variant, discounts=discounts)
+        request.POST, cart=cart, variant=variant, discounts=discounts,
+        taxes=taxes)
     if form.is_valid():
         form.save()
         response = {
@@ -93,9 +103,9 @@ def update(request, cart, variant_id):
         updated_line = cart.get_line(form.cart_line.variant)
         if updated_line:
             response['subtotal'] = format_money(
-                updated_line.get_total(discounts=discounts).gross)
+                updated_line.get_total(discounts, taxes).gross)
         if cart:
-            cart_total = cart.get_total(discounts=discounts)
+            cart_total = cart.get_total(discounts, taxes)
             response['total'] = format_money(cart_total.gross)
             local_cart_total = to_local_currency(cart_total, request.currency)
             if local_cart_total is not None:
@@ -110,30 +120,25 @@ def update(request, cart, variant_id):
 @get_or_empty_db_cart(cart_queryset=Cart.objects.for_display())
 def summary(request, cart):
     """Display a cart summary suitable for displaying on all pages."""
+    discounts = request.discounts
+    taxes = request.taxes
+
     def prepare_line_data(line):
-        product_type = line.variant.product.product_type
-        attributes = product_type.variant_attributes.all()
         first_image = line.variant.get_first_image()
-        price_per_item = line.get_price_per_item(discounts=request.discounts)
-        line_total = line.get_total(discounts=request.discounts)
         return {
             'product': line.variant.product,
             'variant': line.variant.name,
             'quantity': line.quantity,
-            'attributes': line.variant.display_variant_attributes(attributes),
             'image': first_image,
-            'price_per_item': format_money(price_per_item.gross),
-            'line_total': format_money(line_total.gross),
-            'update_url': reverse(
-                'cart:update-line', kwargs={'variant_id': line.variant_id}),
+            'line_total': line.get_total(discounts, taxes),
             'variant_url': line.variant.get_absolute_url()}
+
     if cart.quantity == 0:
         data = {'quantity': 0}
     else:
-        cart_total = cart.get_total(discounts=request.discounts)
         data = {
             'quantity': cart.quantity,
-            'total': format_money(cart_total.gross),
+            'total': cart.get_total(discounts, taxes),
             'lines': [prepare_line_data(line) for line in cart.lines.all()]}
 
     return render(request, 'cart_dropdown.html', data)

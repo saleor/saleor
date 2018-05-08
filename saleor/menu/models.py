@@ -9,7 +9,7 @@ from ..product.models import Category, Collection
 
 
 class Menu(models.Model):
-    slug = models.SlugField(max_length=50, unique=True)
+    name = models.CharField(max_length=128)
 
     class Meta:
         permissions = (
@@ -19,10 +19,7 @@ class Menu(models.Model):
              pgettext_lazy('Permission description', 'Can edit menus')))
 
     def __str__(self):
-        return self.slug
-
-    def get_direct_items(self):
-        return self.items.filter(parent=None)
+        return self.name
 
 
 class MenuItem(MPTTModel):

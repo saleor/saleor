@@ -4,4 +4,4 @@ from . import views
 
 urlpatterns = [
     url(r'^(?P<slug>[a-z0-9-_]+?)/$',
-        views.page_detail, name='details')]
+        views.page_details, name='details')]
