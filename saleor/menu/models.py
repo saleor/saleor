@@ -63,6 +63,11 @@ class MenuItem(MPTTModel):
             self.sort_order = 0 if existing_max is None else existing_max + 1
         super().save(*args, **kwargs)
 
+    def delete(self, *args, **kwargs):
+        qs = self.get_ordering_queryset()
+        qs.filter(order__gt=self.sort_order).update(order=F('order') - 1)
+        super().delete(*args, **kwargs)
+
     @property
     def linked_object(self):
         return self.category or self.collection or self.page
