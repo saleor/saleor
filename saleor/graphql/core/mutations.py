@@ -5,10 +5,12 @@ from django.core.exceptions import ImproperlyConfigured
 from graphene.types.mutation import MutationOptions
 from graphene_django.form_converter import convert_form_field
 from graphene_django.registry import get_global_registry
-from graphql_jwt import ObtainJSONWebToken
-from graphql_jwt.exceptions import GraphQLJWTError
+from graphql_jwt import ObtainJSONWebToken, Verify
 from graphql_jwt.decorators import staff_member_required
+from graphql_jwt.exceptions import GraphQLJWTError
 
+from ...account import models
+from ..account.types import User
 from ..utils import get_node
 from .decorators import permission_required
 from .types import Error
@@ -204,9 +206,8 @@ class StaffMemberRequiredMixin(graphene.Mutation):
         mutate = permission_required(cls.permissions)(super().mutate)
         return mutate(root, info, *args, **kwargs)
 
-
 class CreateToken(ObtainJSONWebToken):
-    """Mutation that authenticates a user and returns token.
+    """Mutation that authenticates a user and returns token and user data.
 
     It overrides the default graphql_jwt.ObtainJSONWebToken to wrap potential
     authentication errors in our Error type, which is consistent to how rest of
@@ -214,6 +215,7 @@ class CreateToken(ObtainJSONWebToken):
     """
 
     errors = graphene.List(Error)
+    user = graphene.Field(User)
 
     @classmethod
     def mutate(cls, root, info, **kwargs):
@@ -223,3 +225,18 @@ class CreateToken(ObtainJSONWebToken):
             return CreateToken(errors=[Error(message=str(e))])
         else:
             return result
+
+    @classmethod
+    def resolve(cls, root, info):
+        return cls(user=info.context.user)
+
+
+class VerifyToken(Verify):
+    """Mutation that confirm if token is valid and also return user data.
+
+    """
+    user = graphene.Field(User)
+
+    def resolve_user(self, info, **kwargs):
+        email = self.payload.get('email')
+        return models.User.objects.get(email=email)
