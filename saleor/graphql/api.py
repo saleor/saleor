@@ -1,11 +1,10 @@
 import graphene
 import graphql_jwt
-from graphene_django.debug import DjangoDebug
 from graphene_django.filter import DjangoFilterConnectionField
 
 from ..page import models as page_models
 from .core.filters import DistinctFilterSet
-from .core.mutations import CreateToken
+from .core.mutations import CreateToken, VerifyToken
 from .page.resolvers import resolve_pages
 from .page.types import Page
 from .page.mutations import PageCreate, PageDelete, PageUpdate
@@ -91,6 +90,7 @@ class Query(graphene.ObjectType):
 class Mutations(graphene.ObjectType):
     token_create = CreateToken.Field()
     token_refresh = graphql_jwt.Refresh.Field()
+    token_verify = VerifyToken.Field()
 
     category_create = CategoryCreateMutation.Field()
     category_delete = CategoryDelete.Field()
