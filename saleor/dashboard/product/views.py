@@ -177,6 +177,7 @@ def product_delete(request, pk):
 
 @require_POST
 @staff_member_required
+@permission_required('product.edit_product')
 def product_bulk_update(request):
     form = forms.ProductBulkUpdate(request.POST)
     if form.is_valid():
