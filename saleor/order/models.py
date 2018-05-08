@@ -182,7 +182,8 @@ class OrderLine(models.Model):
     variant = models.ForeignKey(
         ProductVariant, related_name='+', on_delete=models.SET_NULL,
         blank=True, null=True)
-    product_name = models.CharField(max_length=128)
+    # max_length is as produced by ProductVariant's display_product method
+    product_name = models.CharField(max_length=386)
     product_sku = models.CharField(max_length=32)
     is_shipping_required = models.BooleanField()
     quantity = models.IntegerField(
