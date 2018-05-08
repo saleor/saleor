@@ -236,6 +236,11 @@
                       </a>
                     </li>
                   {% endif %}
+                  <li class="{% block menu_taxes_class %}{% endblock %}">
+                    <a href="{% url 'dashboard:taxes' %}">
+                      {% trans "Taxes" context "Dashboard taxes" %}
+                    </a>
+                  </li>
                   {% if perms.page.view_page %}
                     <li class="{% block menu_pages_class %}{% endblock %}">
                       <a href="{% url 'dashboard:page-list' %}">

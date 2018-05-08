@@ -5,12 +5,13 @@ from django.conf import settings
 from django.urls import reverse_lazy
 from django.utils.translation import pgettext_lazy
 from django_prices.forms import MoneyField
-from prices import Money
 
+from ...core.i18n import COUNTRY_CODE_CHOICES
+from ...core.utils.taxes import ZERO_MONEY
 from ...discount import DiscountValueType, VoucherApplyToProduct
 from ...discount.models import Sale, Voucher
 from ...product.models import Product
-from ...shipping.models import COUNTRY_CODE_CHOICES, ShippingMethodCountry
+from ...shipping.models import ShippingMethodCountry
 from ..forms import AjaxSelect2ChoiceField, AjaxSelect2MultipleChoiceField
 
 
@@ -115,8 +116,8 @@ def country_choices():
 class ShippingVoucherForm(forms.ModelForm):
 
     limit = MoneyField(
-        min_value=Money(0, settings.DEFAULT_CURRENCY),
-        required=False, currency=settings.DEFAULT_CURRENCY)
+        min_value=ZERO_MONEY, required=False,
+        currency=settings.DEFAULT_CURRENCY)
     apply_to = forms.ChoiceField(
         choices=country_choices,
         required=False)
@@ -141,8 +142,8 @@ class ShippingVoucherForm(forms.ModelForm):
 class ValueVoucherForm(forms.ModelForm):
 
     limit = MoneyField(
-        min_value=Money(0, settings.DEFAULT_CURRENCY),
-        required=False, currency=settings.DEFAULT_CURRENCY)
+        min_value=ZERO_MONEY, required=False,
+        currency=settings.DEFAULT_CURRENCY)
 
     class Meta:
         model = Voucher

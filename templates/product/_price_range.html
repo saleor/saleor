@@ -3,6 +3,11 @@
 
 <span>
   <span>
-    {% if price_range.start != price_range.stop %}{% trans "from" context "product price range" %} {% endif %}{{ price_range.start.gross|amount:'html' }}
+    {% if price_range.start != price_range.stop %}{% trans "from" context "product price range" %} {% endif %}
+    {% if site.settings.display_gross_prices %}
+      {{ price_range.start.gross|amount:'html' }}
+    {% else %}
+      {{ price_range.start.net|amount:'html' }}
+    {% endif %}
   </span>
 </span>

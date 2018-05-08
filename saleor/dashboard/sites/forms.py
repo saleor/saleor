@@ -19,7 +19,7 @@ class SiteForm(forms.ModelForm):
 class SiteSettingsForm(forms.ModelForm):
     class Meta:
         model = SiteSettings
-        exclude = ['site']
+        fields = ['header_text', 'description']
         labels = {
             'header_text': pgettext_lazy(
                 'Header text', 'Header text'),

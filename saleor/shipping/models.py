@@ -6,15 +6,12 @@ from django.db import models
 from django.db.models import Q
 from django.utils.safestring import mark_safe
 from django.utils.translation import pgettext_lazy
-from django_countries import countries
 from django_prices.models import MoneyField
-from prices import TaxedMoney, TaxedMoneyRange
+from prices import MoneyRange
 
+from ..core.i18n import ANY_COUNTRY, COUNTRY_CODE_CHOICES
 from ..core.utils import format_money
-
-ANY_COUNTRY = ''
-ANY_COUNTRY_DISPLAY = pgettext_lazy('Country choice', 'Rest of World')
-COUNTRY_CODE_CHOICES = [(ANY_COUNTRY, ANY_COUNTRY_DISPLAY)] + list(countries)
+from ..shipping.utils import get_taxed_shipping_price
 
 
 class ShippingMethod(models.Model):
@@ -44,7 +41,7 @@ class ShippingMethod(models.Model):
             country.get_total_price()
             for country in self.price_per_country.all()]
         if prices:
-            return TaxedMoneyRange(min(prices), max(prices))
+            return MoneyRange(min(prices).net, max(prices).net)
         return None
 
 
@@ -97,11 +94,10 @@ class ShippingMethodCountry(models.Model):
         return '%s %s' % (
             self.shipping_method, self.get_country_code_display())
 
-    def get_total_price(self):
-        return TaxedMoney(net=self.price, gross=self.price)
+    def get_total_price(self, taxes=None):
+        return get_taxed_shipping_price(self.price, taxes)
 
-    @property
-    def ajax_label(self):
+    def get_ajax_label(self):
         price_html = format_money(self.price)
         label = mark_safe('%s %s' % (self.shipping_method, price_html))
         return label

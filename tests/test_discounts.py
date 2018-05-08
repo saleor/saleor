@@ -44,7 +44,7 @@ def test_variant_discounts(product):
         type=DiscountValueType.FIXED,
         value=50)
     high_discount.products.add(product)
-    final_price = variant.get_price_per_item(discounts=Sale.objects.all())
+    final_price = variant.get_price(discounts=Sale.objects.all())
     assert final_price.gross == Money(0, 'USD')
 
 
@@ -56,7 +56,7 @@ def test_percentage_discounts(product):
         type=DiscountValueType.PERCENTAGE,
         value=50)
     discount.products.add(product)
-    final_price = variant.get_price_per_item(discounts=[discount])
+    final_price = variant.get_price(discounts=[discount])
     assert final_price.gross == Money(5, 'USD')
 
 

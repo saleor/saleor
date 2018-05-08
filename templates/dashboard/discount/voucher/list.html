@@ -1,9 +1,9 @@
 {% extends "dashboard/base.html" %}
 {% load i18n %}
-{% load prices_i18n %}
+{% load price from taxed_prices %}
 {% load materializecss %}
-{% load utils %}
 {% load static %}
+{% load utils %}
 
 {% block title %}
   {% trans "Vouchers" context "Dashboard vouchers list" %} - {{ block.super }}
@@ -92,7 +92,7 @@
                     </td>
                     <td class="right-align">
                       {% if voucher.limit %}
-                        {{ voucher.limit|amount:'html' }}
+                        {% price voucher.limit %}
                       {% else %}
                         -
                       {% endif %}

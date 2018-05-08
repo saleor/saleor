@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.contrib.auth.models import (
     AbstractBaseUser, BaseUserManager, PermissionsMixin)
 from django.db import models
@@ -9,6 +10,7 @@ from phonenumber_field.modelfields import PhoneNumberField
 
 from ..core.templatetags.demo_obfuscators import (
     obfuscate_address, obfuscate_email)
+from ..core.models import BaseNote
 from .validators import validate_possible_number
 
 
@@ -93,6 +95,7 @@ class User(PermissionsMixin, AbstractBaseUser):
     addresses = models.ManyToManyField(Address, blank=True)
     is_staff = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
+    note = models.TextField(null=True, blank=True)
     date_joined = models.DateTimeField(default=timezone.now, editable=False)
     default_shipping_address = models.ForeignKey(
         Address, related_name='+', null=True, blank=True,
@@ -134,10 +137,18 @@ class User(PermissionsMixin, AbstractBaseUser):
     def get_short_name(self):
         return self.get_obfuscated_username()
 
-    @property
-    def ajax_label(self):
+    def get_ajax_label(self):
         address = obfuscate_address(self.default_billing_address)
         if address:
             return '%s %s (%s)' % (
                 address.first_name, address.last_name, self.email)
-        return self.get_obfuscated_username()
+        return self.email
+
+
+class CustomerNote(BaseNote):
+    customer = models.ForeignKey(
+        settings.AUTH_USER_MODEL, related_name='notes',
+        on_delete=models.CASCADE)
+
+    class Meta:
+        ordering = ('date', )
