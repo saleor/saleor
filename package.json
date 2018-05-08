@@ -159,6 +159,7 @@
     "start": "webpack -d --watch --progress",
     "build-emails": "mjml --config.beautify false -l skip \"templates/templated_email/source/*.mjml\" -o templates/templated_email/compiled",
     "storybook": "start-storybook -p 3000 -c saleor/static/dashboard-next/storybook/",
+    "build-storybook": "build-storybook -c saleor/static/dashboard-next/storybook/ -o build",
     "test": "jest saleor/static/dashboard-next/"
   }
 }
