@@ -294,7 +294,8 @@ class AttributeChoiceValue(models.Model):
 
     def delete(self, *args, **kwargs):
         qs = self.get_ordering_queryset()
-        qs.filter(order__gt=self.sort_order).update(order=F('order') - 1)
+        qs.filter(sort_order__gt=self.sort_order).update(
+            sort_order=F('sort_order') - 1)
         super().delete(*args, **kwargs)
 
 
