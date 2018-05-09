@@ -6,7 +6,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('product', '0062_nullable_attr_value_order'),
+        ('product', '0062_sortable_models'),
     ]
 
     operations = [

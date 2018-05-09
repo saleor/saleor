@@ -343,7 +343,7 @@ class ProductImageForm(forms.ModelForm):
 
     class Meta:
         model = ProductImage
-        exclude = ('product', 'order')
+        exclude = ('product', 'sort_order')
         labels = {
             'image': pgettext_lazy('Product image', 'Image'),
             'alt': pgettext_lazy(
@@ -442,7 +442,7 @@ class ReorderProductImagesForm(forms.ModelForm):
 
     def save(self):
         for order, image in enumerate(self.cleaned_data['ordered_images']):
-            image.order = order
+            image.sort_order = order
             image.save()
         return self.instance
 
