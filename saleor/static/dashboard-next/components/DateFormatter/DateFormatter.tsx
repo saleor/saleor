@@ -10,6 +10,7 @@ interface DateFormatterProps {
   outputFormat?: string;
   showTooltip?: boolean;
   locale?: string;
+  typography?: string;
 }
 
 const decorate = withStyles(theme => ({ root: { display: "inline" } }));
@@ -20,12 +21,16 @@ const DateFormatter = decorate<DateFormatterProps>(
     inputFormat,
     outputFormat,
     showTooltip = true,
-    locale
+    locale,
+    typography
   }) => {
     const momentDate = inputFormat ? moment(date, inputFormat) : moment(date);
     if (moment().diff(momentDate, "days") > 1) {
       return (
-        <Typography className={classes.root}>
+        <Typography
+          className={classes.root}
+          variant={(typography as any) || "body1"}
+        >
           {momentDate.format(outputFormat || "DD.MM.YYYY HH:mm")}
         </Typography>
       );

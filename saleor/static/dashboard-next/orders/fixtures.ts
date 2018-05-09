@@ -254,7 +254,15 @@ export const order = placeholder => ({
   total: {
     amount: 165.7,
     currency: "USD"
-  }
+  },
+  events: [
+    {
+      id: "n1",
+      type: "created",
+      content: "Created order",
+      user: "richard.holder@example.com"
+    }
+  ]
 });
 export const flatOrders = orders.edges.map(edge => ({
   ...edge.node,
