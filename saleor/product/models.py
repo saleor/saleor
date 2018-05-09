@@ -268,9 +268,6 @@ class ProductAttribute(models.Model):
 class AttributeChoiceValue(SortableModel):
     name = models.CharField(max_length=100)
     slug = models.SlugField(max_length=100)
-    color = models.CharField(
-        max_length=7, blank=True,
-        validators=[RegexValidator('^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$')])
     attribute = models.ForeignKey(
         ProductAttribute, related_name='values', on_delete=models.CASCADE)
 

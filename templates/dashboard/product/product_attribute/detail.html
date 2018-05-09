@@ -76,7 +76,6 @@
                 {% endif %}
 
                 <th>{% trans "Display name" %}</th>
-                <th>{% trans "Color" %}</th>
                 {% if perms.product.edit_product %}
                   <th></th>
                 {% endif %}
@@ -92,13 +91,6 @@
                   {% endif %}
                   <td>
                     {{ value.name }}
-                  </td>
-                  <td>
-                    {% if value.color %}
-                      {{ value.color }}
-                    {% else %}
-                      -
-                    {% endif %}
                   </td>
                   {% if perms.product.edit_product %}
                     <td class="right-align">

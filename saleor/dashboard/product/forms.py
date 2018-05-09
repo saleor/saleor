@@ -394,13 +394,11 @@ class ProductAttributeForm(forms.ModelForm):
 class AttributeChoiceValueForm(forms.ModelForm):
     class Meta:
         model = AttributeChoiceValue
-        fields = ['attribute', 'name', 'color']
+        fields = ['attribute', 'name']
         widgets = {'attribute': forms.widgets.HiddenInput()}
         labels = {
             'name': pgettext_lazy(
-                'Item name', 'Name'),
-            'color': pgettext_lazy(
-                'Color', 'Color')}
+                'Item name', 'Name')}
 
     def save(self, commit=True):
         self.instance.slug = slugify(self.instance.name)
