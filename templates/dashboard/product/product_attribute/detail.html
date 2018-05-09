@@ -79,7 +79,7 @@
               </tr>
             </thead>
             <tbody>
-              {% for value in attribute.values.all %}
+              {% for value in values %}
                 <tr>
                   <td>
                     {{ value.name }}
@@ -101,6 +101,10 @@
                       </a>
                     </td>
                   {% endif %}
+                </tr>
+              {% empty %}
+                <tr>
+                  <td colspan="2">{% trans "No attribute values" context "Empty list of attribute values" %}</td>
                 </tr>
               {% endfor %}
             </tbody>

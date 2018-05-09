@@ -273,8 +273,7 @@ class ProductVariantForm(forms.ModelForm, AttributesMixin):
 
     class Meta:
         model = ProductVariant
-        exclude = [
-            'attributes', 'product', 'images', 'name', 'quantity_allocated']
+        fields = ['sku', 'price_override', 'quantity', 'cost_price']
         labels = {
             'sku': pgettext_lazy('SKU', 'SKU'),
             'price_override': pgettext_lazy(
@@ -447,7 +446,7 @@ class UploadImageForm(forms.ModelForm):
 
 
 class ProductBulkUpdate(forms.Form):
-    """Performs one selected bulk action on all selected products."""
+    """Perform one selected bulk action on all selected products."""
 
     action = forms.ChoiceField(choices=ProductBulkAction.CHOICES)
     products = forms.ModelMultipleChoiceField(queryset=Product.objects.all())
