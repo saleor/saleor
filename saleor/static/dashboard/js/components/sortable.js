@@ -1,21 +1,22 @@
 import Sortable from 'sortablejs';
 
-$('.sortable-items').each(function() {
-  Sortable.create(this, {
+$('.sortable-items').each((sortableIndex, sortableItems) => {
+  const sortable = $(sortableItems);
+  Sortable.create(sortableItems, {
     handle: '.sortable__drag-area',
     animation: 150,
     onUpdate: () => {
-      const sortedItems = $(this)
+      const sortedItems = sortable
         .find('.sortable-item[data-id]')
         .map((index, item) => item.dataset.id)
         .toArray();
       const data = {};
-      data[$(this).data('post-name')] = sortedItems;
+      data[sortable.data('post-name')] = sortedItems;
 
       // TODO: Get rid of ajax() in favour of fetch()
       $.ajax({
         method: 'POST',
-        url: $(this).data('post-url'),
+        url: sortable.data('post-url'),
         data: data,
         traditional: true,
         headers: {
