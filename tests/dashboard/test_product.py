@@ -875,7 +875,7 @@ def test_view_attribute_choice_value_create(color_attribute, admin_client):
     url = reverse(
         'dashboard:product-attribute-value-add',
         kwargs={'attribute_pk': color_attribute.pk})
-    data = {'name': 'Pink', 'color': '#FFF', 'attribute': color_attribute.pk}
+    data = {'name': 'Pink', 'attribute': color_attribute.pk}
 
     response = admin_client.post(url, data, follow=True)
 
@@ -906,7 +906,7 @@ def test_view_attribute_choice_value_edit(color_attribute, admin_client):
     url = reverse(
         'dashboard:product-attribute-value-update',
         kwargs={'attribute_pk': color_attribute.pk, 'value_pk': values[0].pk})
-    data = {'name': 'Pink', 'color': '#FFF', 'attribute': color_attribute.pk}
+    data = {'name': 'Pink', 'attribute': color_attribute.pk}
 
     response = admin_client.post(url, data, follow=True)
 
@@ -932,6 +932,37 @@ def test_view_attribute_choice_value_delete(color_attribute, admin_client):
     values = AttributeChoiceValue.objects.filter(attribute=color_attribute.pk)
     assert len(values) == 1
     assert deleted_value not in values
+
+
+def test_view_ajax_reorder_attribute_choice_values(
+        admin_client, color_attribute):
+    order_before = [val.pk for val in color_attribute.values.all()]
+    ordered_values = list(reversed(order_before))
+    url = reverse(
+        'dashboard:product-attribute-values-reorder',
+        kwargs={'attribute_pk': color_attribute.pk})
+    data = {'ordered_values': ordered_values}
+    response = admin_client.post(
+        url, data, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
+    order_after = [val.pk for val in color_attribute.values.all()]
+    assert response.status_code == 200
+    assert order_after == ordered_values
+
+
+def test_view_ajax_reorder_attribute_choice_values_invalid(
+        admin_client, color_attribute):
+    order_before = [val.pk for val in color_attribute.values.all()]
+    ordered_values = list(reversed(order_before)).append(3)
+    url = reverse(
+        'dashboard:product-attribute-values-reorder',
+        kwargs={'attribute_pk': color_attribute.pk})
+    data = {'ordered_values': ordered_values}
+    response = admin_client.post(
+        url, data, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
+    assert response.status_code == 400
+    resp_decoded = json.loads(response.content.decode('utf-8'))
+    assert 'error' in resp_decoded
+    assert 'ordered_values' in resp_decoded['error']
 
 
 def test_get_formfield_name_with_unicode_characters(db):

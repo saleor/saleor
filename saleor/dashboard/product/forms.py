@@ -343,7 +343,7 @@ class ProductImageForm(forms.ModelForm):
 
     class Meta:
         model = ProductImage
-        exclude = ('product', 'order')
+        exclude = ('product', 'sort_order')
         labels = {
             'image': pgettext_lazy('Product image', 'Image'),
             'alt': pgettext_lazy(
@@ -394,17 +394,35 @@ class ProductAttributeForm(forms.ModelForm):
 class AttributeChoiceValueForm(forms.ModelForm):
     class Meta:
         model = AttributeChoiceValue
-        fields = ['attribute', 'name', 'color']
+        fields = ['attribute', 'name']
         widgets = {'attribute': forms.widgets.HiddenInput()}
         labels = {
             'name': pgettext_lazy(
-                'Item name', 'Name'),
-            'color': pgettext_lazy(
-                'Color', 'Color')}
+                'Item name', 'Name')}
 
     def save(self, commit=True):
         self.instance.slug = slugify(self.instance.name)
         return super().save(commit=commit)
+
+
+class ReorderAttributeChoiceValuesForm(forms.ModelForm):
+    ordered_values = OrderedModelMultipleChoiceField(
+        queryset=AttributeChoiceValue.objects.none())
+
+    class Meta:
+        model = ProductAttribute
+        fields = ()
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if self.instance:
+            self.fields['ordered_values'].queryset = self.instance.values.all()
+
+    def save(self):
+        for order, value in enumerate(self.cleaned_data['ordered_values']):
+            value.sort_order = order
+            value.save()
+        return self.instance
 
 
 class ReorderProductImagesForm(forms.ModelForm):
@@ -422,7 +440,7 @@ class ReorderProductImagesForm(forms.ModelForm):
 
     def save(self):
         for order, image in enumerate(self.cleaned_data['ordered_images']):
-            image.order = order
+            image.sort_order = order
             image.save()
         return self.instance
 

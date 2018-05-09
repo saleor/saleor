@@ -32,9 +32,9 @@
           {% endif %}
         </tr>
       </thead>
-      <tbody id="menu-items" class="menu-items" data-post-url="{% if menu_item %}{% url 'dashboard:menu-items-reorder' menu_pk=menu.pk root_pk=menu_item.pk %}{% else %}{% url 'dashboard:menu-items-reorder' menu_pk=menu.pk %}{% endif %}">
+      <tbody class="sortable-items" data-post-url="{% if menu_item %}{% url 'dashboard:menu-items-reorder' menu_pk=menu.pk root_pk=menu_item.pk %}{% else %}{% url 'dashboard:menu-items-reorder' menu_pk=menu.pk %}{% endif %}" data-post-name="ordered_menu_items">
         {% for item in menu_items %}
-          <tr data-action-go="{% url 'dashboard:menu-item-details' menu_pk=menu.pk item_pk=item.pk %}" class="menu-item" data-id="{{ item.pk }}">
+          <tr data-action-go="{% url 'dashboard:menu-item-details' menu_pk=menu.pk item_pk=item.pk %}" class="sortable-item" data-id="{{ item.pk }}">
             {% if perms.menu.edit_menu %}
               <td class="data-table-icon ignore-link sortable__drag-area">
                 <svg data-src="{% static "dashboard/images/reorder.svg" %}" height="20" width="20" fill="#000" />
