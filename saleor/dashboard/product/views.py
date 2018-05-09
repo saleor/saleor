@@ -22,88 +22,6 @@ from .filters import ProductAttributeFilter, ProductFilter, ProductTypeFilter
 
 
 @staff_member_required
-@permission_required('product.view_properties')
-def product_type_list(request):
-    types = ProductType.objects.all().prefetch_related(
-        'product_attributes', 'variant_attributes').order_by('name')
-    type_filter = ProductTypeFilter(request.GET, queryset=types)
-    form = forms.ProductTypeForm(request.POST or None)
-    if form.is_valid():
-        return redirect('dashboard:product-type-add')
-    types = get_paginator_items(
-        type_filter.qs, settings.DASHBOARD_PAGINATE_BY,
-        request.GET.get('page'))
-    types.object_list = [
-        (pc.pk, pc.name, pc.has_variants, pc.product_attributes.all(),
-         pc.variant_attributes.all())
-        for pc in types.object_list]
-    ctx = {
-        'form': form, 'product_types': types, 'filter_set': type_filter,
-        'is_empty': not type_filter.queryset.exists()}
-    return TemplateResponse(
-        request,
-        'dashboard/product/product_type/list.html',
-        ctx)
-
-
-@staff_member_required
-@permission_required('product.edit_properties')
-def product_type_create(request):
-    product_type = ProductType()
-    form = forms.ProductTypeForm(
-        request.POST or None, instance=product_type)
-    if form.is_valid():
-        product_type = form.save()
-        msg = pgettext_lazy(
-            'Dashboard message', 'Added product type %s') % (product_type,)
-        messages.success(request, msg)
-        return redirect('dashboard:product-type-list')
-    ctx = {'form': form, 'product_type': product_type}
-    return TemplateResponse(
-        request,
-        'dashboard/product/product_type/form.html',
-        ctx)
-
-
-@staff_member_required
-@permission_required('product.edit_properties')
-def product_type_edit(request, pk):
-    product_type = get_object_or_404(ProductType, pk=pk)
-    form = forms.ProductTypeForm(
-        request.POST or None, instance=product_type)
-    if form.is_valid():
-        product_type = form.save()
-        msg = pgettext_lazy(
-            'Dashboard message', 'Updated product type %s') % (product_type,)
-        messages.success(request, msg)
-        return redirect('dashboard:product-type-update', pk=pk)
-    ctx = {'form': form, 'product_type': product_type}
-    return TemplateResponse(
-        request,
-        'dashboard/product/product_type/form.html',
-        ctx)
-
-
-@staff_member_required
-@permission_required('product.edit_properties')
-def product_type_delete(request, pk):
-    product_type = get_object_or_404(ProductType, pk=pk)
-    if request.method == 'POST':
-        product_type.delete()
-        msg = pgettext_lazy(
-            'Dashboard message', 'Removed product type %s') % (product_type,)
-        messages.success(request, msg)
-        return redirect('dashboard:product-type-list')
-    ctx = {
-        'product_type': product_type,
-        'products': product_type.products.all()}
-    return TemplateResponse(
-        request,
-        'dashboard/product/product_type/modal/confirm_delete.html',
-        ctx)
-
-
-@staff_member_required
 @permission_required('product.view_product')
 def product_list(request):
     products = Product.objects.prefetch_related('images')
@@ -119,6 +37,44 @@ def product_list(request):
         'filter_set': product_filter,
         'is_empty': not product_filter.queryset.exists()}
     return TemplateResponse(request, 'dashboard/product/list.html', ctx)
+
+
+@staff_member_required
+@permission_required('product.view_product')
+def product_details(request, pk):
+    products = Product.objects.prefetch_related('variants', 'images').all()
+    product = get_object_or_404(products, pk=pk)
+    variants = product.variants.all()
+    images = product.images.all()
+    availability = get_availability(
+        product, discounts=request.discounts, taxes=request.taxes)
+    sale_price = availability.price_range_undiscounted
+    discounted_price = availability.price_range
+    purchase_cost, margin = get_product_costs_data(product)
+
+    # no_variants is True for product types that doesn't require variant.
+    # In this case we're using the first variant under the hood to allow stock
+    # management.
+    no_variants = not product.product_type.has_variants
+    only_variant = variants.first() if no_variants else None
+    ctx = {
+        'product': product, 'sale_price': sale_price,
+        'discounted_price': discounted_price, 'variants': variants,
+        'images': images, 'no_variants': no_variants,
+        'only_variant': only_variant, 'purchase_cost': purchase_cost,
+        'margin': margin, 'is_empty': not variants.exists()}
+    return TemplateResponse(request, 'dashboard/product/detail.html', ctx)
+
+
+@require_POST
+@staff_member_required
+@permission_required('product.edit_product')
+def product_toggle_is_published(request, pk):
+    product = get_object_or_404(Product, pk=pk)
+    product.is_published = not product.is_published
+    product.save(update_fields=['is_published'])
+    return JsonResponse(
+        {'success': True, 'is_published': product.is_published})
 
 
 @staff_member_required
@@ -174,44 +130,6 @@ def product_create(request, type_pk):
 
 
 @staff_member_required
-@permission_required('product.view_product')
-def product_details(request, pk):
-    products = Product.objects.prefetch_related('variants', 'images').all()
-    product = get_object_or_404(products, pk=pk)
-    variants = product.variants.all()
-    images = product.images.all()
-    availability = get_availability(
-        product, discounts=request.discounts, taxes=request.taxes)
-    sale_price = availability.price_range_undiscounted
-    discounted_price = availability.price_range
-    purchase_cost, margin = get_product_costs_data(product)
-
-    # no_variants is True for product types that doesn't require variant.
-    # In this case we're using the first variant under the hood to allow stock
-    # management.
-    no_variants = not product.product_type.has_variants
-    only_variant = variants.first() if no_variants else None
-    ctx = {
-        'product': product, 'sale_price': sale_price,
-        'discounted_price': discounted_price, 'variants': variants,
-        'images': images, 'no_variants': no_variants,
-        'only_variant': only_variant, 'purchase_cost': purchase_cost,
-        'margin': margin, 'is_empty': not variants.exists()}
-    return TemplateResponse(request, 'dashboard/product/detail.html', ctx)
-
-
-@require_POST
-@staff_member_required
-@permission_required('product.edit_product')
-def product_toggle_is_published(request, pk):
-    product = get_object_or_404(Product, pk=pk)
-    product.is_published = not product.is_published
-    product.save(update_fields=['is_published'])
-    return JsonResponse(
-        {'success': True, 'is_published': product.is_published})
-
-
-@staff_member_required
 @permission_required('product.edit_product')
 def product_edit(request, pk):
     product = get_object_or_404(
@@ -257,11 +175,253 @@ def product_delete(request, pk):
         {'product': product})
 
 
+@require_POST
+@staff_member_required
+@permission_required('product.edit_product')
+def product_bulk_update(request):
+    form = forms.ProductBulkUpdate(request.POST)
+    if form.is_valid():
+        form.save()
+        count = len(form.cleaned_data['products'])
+        msg = npgettext_lazy(
+            'Dashboard message',
+            '%(count)d product has been updated',
+            '%(count)d products have been updated',
+            number=count) % {'count': count}
+        messages.success(request, msg)
+    return redirect('dashboard:product-list')
+
+
+@staff_member_required
+def ajax_products_list(request):
+    """Return products filtered by request GET parameters.
+
+    Response format is that of a Select2 JS widget.
+    """
+    queryset = (
+        Product.objects.all() if request.user.has_perm('product.view_product')
+        else Product.objects.available_products())
+    search_query = request.GET.get('q', '')
+    if search_query:
+        queryset = queryset.filter(Q(name__icontains=search_query))
+    products = [
+        {'id': product.id, 'text': str(product)} for product in queryset]
+    return JsonResponse({'results': products})
+
+
+@staff_member_required
+@permission_required('product.view_properties')
+def product_type_list(request):
+    types = ProductType.objects.all().prefetch_related(
+        'product_attributes', 'variant_attributes').order_by('name')
+    type_filter = ProductTypeFilter(request.GET, queryset=types)
+    types = get_paginator_items(
+        type_filter.qs, settings.DASHBOARD_PAGINATE_BY,
+        request.GET.get('page'))
+    types.object_list = [
+        (pt.pk, pt.name, pt.product_attributes.all(),
+         pt.variant_attributes.all()) for pt in types.object_list]
+    ctx = {
+        'product_types': types, 'filter_set': type_filter,
+        'is_empty': not type_filter.queryset.exists()}
+    return TemplateResponse(
+        request,
+        'dashboard/product/product_type/list.html',
+        ctx)
+
+
+@staff_member_required
+@permission_required('product.edit_properties')
+def product_type_create(request):
+    product_type = ProductType()
+    form = forms.ProductTypeForm(request.POST or None, instance=product_type)
+    if form.is_valid():
+        product_type = form.save()
+        msg = pgettext_lazy(
+            'Dashboard message', 'Added product type %s') % (product_type,)
+        messages.success(request, msg)
+        return redirect('dashboard:product-type-list')
+    ctx = {'form': form, 'product_type': product_type}
+    return TemplateResponse(
+        request,
+        'dashboard/product/product_type/form.html',
+        ctx)
+
+
+@staff_member_required
+@permission_required('product.edit_properties')
+def product_type_edit(request, pk):
+    product_type = get_object_or_404(ProductType, pk=pk)
+    form = forms.ProductTypeForm(
+        request.POST or None, instance=product_type)
+    if form.is_valid():
+        product_type = form.save()
+        msg = pgettext_lazy(
+            'Dashboard message', 'Updated product type %s') % (product_type,)
+        messages.success(request, msg)
+        return redirect('dashboard:product-type-update', pk=pk)
+    ctx = {'form': form, 'product_type': product_type}
+    return TemplateResponse(
+        request,
+        'dashboard/product/product_type/form.html',
+        ctx)
+
+
+@staff_member_required
+@permission_required('product.edit_properties')
+def product_type_delete(request, pk):
+    product_type = get_object_or_404(ProductType, pk=pk)
+    if request.method == 'POST':
+        product_type.delete()
+        msg = pgettext_lazy(
+            'Dashboard message', 'Removed product type %s') % (product_type,)
+        messages.success(request, msg)
+        return redirect('dashboard:product-type-list')
+    ctx = {
+        'product_type': product_type,
+        'products': product_type.products.all()}
+    return TemplateResponse(
+        request,
+        'dashboard/product/product_type/modal/confirm_delete.html',
+        ctx)
+
+
+@staff_member_required
+@permission_required('product.view_product')
+def variant_details(request, product_pk, variant_pk):
+    product = get_object_or_404(Product, pk=product_pk)
+    variant = get_object_or_404(product.variants.all(), pk=variant_pk)
+
+    # If the product type of this product assumes no variants, redirect to
+    # product details page that has special UI for products without variants.
+    if not product.product_type.has_variants:
+        return redirect('dashboard:product-details', pk=product.pk)
+
+    images = variant.images.all()
+    margin = get_margin_for_variant(variant)
+    discounted_price = variant.get_price(discounts=Sale.objects.all()).gross
+    ctx = {
+        'images': images, 'product': product, 'variant': variant,
+        'margin': margin, 'discounted_price': discounted_price}
+    return TemplateResponse(
+        request,
+        'dashboard/product/product_variant/detail.html',
+        ctx)
+
+
+@staff_member_required
+@permission_required('product.edit_product')
+def variant_create(request, product_pk):
+    product = get_object_or_404(Product.objects.all(), pk=product_pk)
+    variant = ProductVariant(product=product)
+    form = forms.ProductVariantForm(request.POST or None, instance=variant)
+    if form.is_valid():
+        form.save()
+        msg = pgettext_lazy(
+            'Dashboard message', 'Saved variant %s') % (variant.name,)
+        messages.success(request, msg)
+        return redirect(
+            'dashboard:variant-details', product_pk=product.pk,
+            variant_pk=variant.pk)
+    ctx = {'form': form, 'product': product, 'variant': variant}
+    return TemplateResponse(
+        request,
+        'dashboard/product/product_variant/form.html',
+        ctx)
+
+
+@staff_member_required
+@permission_required('product.edit_product')
+def variant_edit(request, product_pk, variant_pk):
+    product = get_object_or_404(Product.objects.all(), pk=product_pk)
+    variant = get_object_or_404(product.variants.all(), pk=variant_pk)
+    form = forms.ProductVariantForm(request.POST or None, instance=variant)
+    if form.is_valid():
+        form.save()
+        msg = pgettext_lazy(
+            'Dashboard message', 'Saved variant %s') % (variant.name,)
+        messages.success(request, msg)
+        return redirect(
+            'dashboard:variant-details', product_pk=product.pk,
+            variant_pk=variant.pk)
+    ctx = {'form': form, 'product': product, 'variant': variant}
+    return TemplateResponse(
+        request,
+        'dashboard/product/product_variant/form.html',
+        ctx)
+
+
+@staff_member_required
+@permission_required('product.edit_product')
+def variant_delete(request, product_pk, variant_pk):
+    product = get_object_or_404(Product, pk=product_pk)
+    variant = get_object_or_404(product.variants, pk=variant_pk)
+    if request.method == 'POST':
+        variant.delete()
+        msg = pgettext_lazy(
+            'Dashboard message', 'Removed variant %s') % (variant.name,)
+        messages.success(request, msg)
+        return redirect('dashboard:product-details', pk=product.pk)
+    ctx = {
+        'is_only_variant': product.variants.count() == 1, 'product': product,
+        'variant': variant}
+    return TemplateResponse(
+        request,
+        'dashboard/product/product_variant/modal/confirm_delete.html',
+        ctx)
+
+
+@staff_member_required
+@permission_required('product.view_product')
+def variant_images(request, product_pk, variant_pk):
+    product = get_object_or_404(Product, pk=product_pk)
+    qs = product.variants.prefetch_related('images')
+    variant = get_object_or_404(qs, pk=variant_pk)
+    form = forms.VariantImagesSelectForm(request.POST or None, variant=variant)
+    if form.is_valid():
+        form.save()
+        return redirect(
+            'dashboard:variant-details', product_pk=product.pk,
+            variant_pk=variant.pk)
+    ctx = {'form': form, 'product': product, 'variant': variant}
+    return TemplateResponse(
+        request,
+        'dashboard/product/product_variant/modal/select_images.html',
+        ctx)
+
+
+@staff_member_required
+def ajax_available_variants_list(request):
+    """Return variants filtered by request GET parameters.
+
+    Response format is that of a Select2 JS widget.
+    """
+    available_products = Product.objects.available_products().prefetch_related(
+        'category',
+        'product_type__product_attributes')
+    queryset = ProductVariant.objects.filter(
+        product__in=available_products).prefetch_related(
+            'product__category',
+            'product__product_type__product_attributes')
+
+    search_query = request.GET.get('q', '')
+    if search_query:
+        queryset = queryset.filter(
+            Q(sku__icontains=search_query) |
+            Q(name__icontains=search_query) |
+            Q(product__name__icontains=search_query))
+
+    variants = [
+        {'id': variant.id, 'text': variant.get_ajax_label(request.discounts)}
+        for variant in queryset]
+    return JsonResponse({'results': variants})
+
+
 @staff_member_required
 @permission_required('product.view_product')
 def product_images(request, product_pk):
-    product = get_object_or_404(
-        Product.objects.prefetch_related('images'), pk=product_pk)
+    products = Product.objects.prefetch_related('images')
+    product = get_object_or_404(products, pk=product_pk)
     images = product.images.all()
     ctx = {
         'product': product, 'images': images, 'is_empty': not images.exists()}
@@ -271,7 +431,7 @@ def product_images(request, product_pk):
 
 @staff_member_required
 @permission_required('product.edit_product')
-def product_image_add(request, product_pk):
+def product_image_create(request, product_pk):
     product = get_object_or_404(Product, pk=product_pk)
     product_image = ProductImage(product=product)
     form = forms.ProductImageForm(
@@ -328,108 +488,37 @@ def product_image_delete(request, product_pk, img_pk):
         {'product': product, 'image': image})
 
 
+@require_POST
 @staff_member_required
 @permission_required('product.edit_product')
-def variant_add(request, product_pk):
-    product = get_object_or_404(Product.objects.all(), pk=product_pk)
-    variant = ProductVariant(product=product)
-    form = forms.ProductVariantForm(request.POST or None, instance=variant)
+def ajax_reorder_product_images(request, product_pk):
+    product = get_object_or_404(Product, pk=product_pk)
+    form = forms.ReorderProductImagesForm(request.POST, instance=product)
+    status = 200
+    ctx = {}
     if form.is_valid():
         form.save()
-        msg = pgettext_lazy(
-            'Dashboard message', 'Saved variant %s') % (variant.name,)
-        messages.success(request, msg)
-        return redirect(
-            'dashboard:variant-details', product_pk=product.pk,
-            variant_pk=variant.pk)
-    ctx = {'form': form, 'product': product, 'variant': variant}
-    return TemplateResponse(
-        request,
-        'dashboard/product/product_variant/form.html',
-        ctx)
+    elif form.errors:
+        status = 400
+        ctx = {'error': form.errors}
+    return JsonResponse(ctx, status=status)
 
 
+@require_POST
 @staff_member_required
-@permission_required('product.edit_product')
-def variant_edit(request, product_pk, variant_pk):
-    product = get_object_or_404(Product.objects.all(), pk=product_pk)
-    variant = get_object_or_404(product.variants.all(), pk=variant_pk)
-    form = forms.ProductVariantForm(request.POST or None, instance=variant)
+def ajax_upload_image(request, product_pk):
+    product = get_object_or_404(Product, pk=product_pk)
+    form = forms.UploadImageForm(
+        request.POST or None, request.FILES or None, product=product)
+    ctx = {}
+    status = 200
     if form.is_valid():
-        form.save()
-        msg = pgettext_lazy(
-            'Dashboard message', 'Saved variant %s') % (variant.name,)
-        messages.success(request, msg)
-        return redirect(
-            'dashboard:variant-details', product_pk=product.pk,
-            variant_pk=variant.pk)
-    ctx = {'form': form, 'product': product, 'variant': variant}
-    return TemplateResponse(
-        request,
-        'dashboard/product/product_variant/form.html',
-        ctx)
-
-
-@staff_member_required
-@permission_required('product.view_product')
-def variant_details(request, product_pk, variant_pk):
-    product = get_object_or_404(Product, pk=product_pk)
-    variant = get_object_or_404(product.variants.all(), pk=variant_pk)
-
-    # If the product type of this product assumes no variants, redirect to
-    # product details page that has special UI for products without variants.
-    if not product.product_type.has_variants:
-        return redirect('dashboard:product-details', pk=product.pk)
-
-    images = variant.images.all()
-    margin = get_margin_for_variant(variant)
-    discounted_price = variant.get_price(discounts=Sale.objects.all()).gross
-    ctx = {
-        'images': images, 'product': product, 'variant': variant,
-        'margin': margin, 'discounted_price': discounted_price}
-    return TemplateResponse(
-        request,
-        'dashboard/product/product_variant/detail.html',
-        ctx)
-
-
-@staff_member_required
-@permission_required('product.view_product')
-def variant_images(request, product_pk, variant_pk):
-    product = get_object_or_404(Product, pk=product_pk)
-    qs = product.variants.prefetch_related('images')
-    variant = get_object_or_404(qs, pk=variant_pk)
-    form = forms.VariantImagesSelectForm(request.POST or None, variant=variant)
-    if form.is_valid():
-        form.save()
-        return redirect(
-            'dashboard:variant-details', product_pk=product.pk,
-            variant_pk=variant.pk)
-    ctx = {'form': form, 'product': product, 'variant': variant}
-    return TemplateResponse(
-        request,
-        'dashboard/product/product_variant/modal/select_images.html',
-        ctx)
-
-
-@staff_member_required
-@permission_required('product.edit_product')
-def variant_delete(request, product_pk, variant_pk):
-    product = get_object_or_404(Product, pk=product_pk)
-    variant = get_object_or_404(product.variants, pk=variant_pk)
-    if request.method == 'POST':
-        variant.delete()
-        msg = pgettext_lazy(
-            'Dashboard message', 'Removed variant %s') % (variant.name,)
-        messages.success(request, msg)
-        return redirect('dashboard:product-details', pk=product.pk)
-    ctx = {
-        'is_only_variant': product.variants.count() == 1, 'product': product,
-        'variant': variant}
-    return TemplateResponse(
-        request,
-        'dashboard/product/product_variant/modal/confirm_delete.html',
-        ctx)
+        image = form.save()
+        ctx = {'id': image.pk, 'image': None, 'order': image.order}
+    elif form.errors:
+        status = 400
+        ctx = {'error': form.errors}
+    return JsonResponse(ctx, status=status)
 
 
 @staff_member_required
@@ -455,16 +544,15 @@ def attribute_list(request):
 def attribute_details(request, pk):
     attributes = ProductAttribute.objects.prefetch_related('values').all()
     attribute = get_object_or_404(attributes, pk=pk)
-    ctx = {
-        'attribute': attribute,
-        'is_empty': not attributes.exists()}
+    values = attribute.values.all()
+    ctx = {'attribute': attribute, 'values': values}
     return TemplateResponse(
         request, 'dashboard/product/product_attribute/detail.html', ctx)
 
 
 @staff_member_required
 @permission_required('product.edit_properties')
-def attribute_add(request):
+def attribute_create(request):
     attribute = ProductAttribute()
     form = forms.ProductAttributeForm(request.POST or None, instance=attribute)
     if form.is_valid():
@@ -515,7 +603,7 @@ def attribute_delete(request, pk):
 
 @staff_member_required
 @permission_required('product.edit_properties')
-def attribute_choice_value_add(request, attribute_pk):
+def attribute_choice_value_create(request, attribute_pk):
     attribute = get_object_or_404(ProductAttribute, pk=attribute_pk)
     value = AttributeChoiceValue(attribute_id=attribute_pk)
     form = forms.AttributeChoiceValueForm(request.POST or None, instance=value)
@@ -566,95 +654,3 @@ def attribute_choice_value_delete(request, attribute_pk, value_pk):
         request,
         'dashboard/product/product_attribute/values/modal/confirm_delete.html',
         {'value': value, 'attribute_pk': attribute_pk})
-
-
-@require_POST
-@staff_member_required
-def ajax_reorder_product_images(request, product_pk):
-    product = get_object_or_404(Product, pk=product_pk)
-    form = forms.ReorderProductImagesForm(request.POST, instance=product)
-    status = 200
-    ctx = {}
-    if form.is_valid():
-        form.save()
-    elif form.errors:
-        status = 400
-        ctx = {'error': form.errors}
-    return JsonResponse(ctx, status=status)
-
-
-@require_POST
-@staff_member_required
-def ajax_upload_image(request, product_pk):
-    product = get_object_or_404(Product, pk=product_pk)
-    form = forms.UploadImageForm(
-        request.POST or None, request.FILES or None, product=product)
-    status = 200
-    if form.is_valid():
-        image = form.save()
-        ctx = {'id': image.pk, 'image': None, 'order': image.order}
-    elif form.errors:
-        status = 400
-        ctx = {'error': form.errors}
-    return JsonResponse(ctx, status=status)
-
-
-@require_POST
-@staff_member_required
-def product_bulk_update(request):
-    form = forms.ProductBulkUpdate(request.POST)
-    if form.is_valid():
-        form.save()
-        count = len(form.cleaned_data['products'])
-        msg = npgettext_lazy(
-            'Dashboard message',
-            '%(count)d product has been updated',
-            '%(count)d products have been updated',
-            number=count) % {'count': count}
-        messages.success(request, msg)
-    return redirect('dashboard:product-list')
-
-
-@staff_member_required
-def ajax_available_variants_list(request):
-    """Return variants filtered by request GET parameters.
-
-    Response format is that of a Select2 JS widget.
-    """
-    available_products = Product.objects.available_products().prefetch_related(
-        'category',
-        'product_type__product_attributes')
-    queryset = ProductVariant.objects.filter(
-        product__in=available_products).prefetch_related(
-            'product__category',
-            'product__product_type__product_attributes')
-
-    search_query = request.GET.get('q', '')
-    if search_query:
-        queryset = queryset.filter(
-            Q(sku__icontains=search_query) |
-            Q(name__icontains=search_query) |
-            Q(product__name__icontains=search_query))
-
-    variants = [
-        {'id': variant.id, 'text': variant.get_ajax_label(request.discounts)}
-        for variant in queryset]
-    return JsonResponse({'results': variants})
-
-
-@staff_member_required
-def ajax_products_list(request):
-    """Return products filtered by request GET parameters.
-
-    Response format is that of a Select2 JS widget.
-    """
-    queryset = (
-        Product.objects.all() if request.user.has_perm('product.view_product')
-        else Product.objects.available_products())
-    search_query = request.GET.get('q', '')
-    if search_query:
-        queryset = queryset.filter(Q(name__icontains=search_query))
-    products = [
-        {'id': product.id, 'text': str(product)} for product in queryset
-    ]
-    return JsonResponse({'results': products})
