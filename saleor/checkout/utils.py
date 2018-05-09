@@ -78,5 +78,6 @@ def get_cart_data(cart, discounts, taxes):
         (line, line.get_total(discounts, taxes)) for line in cart.lines.all()]
     subtotal = cart.get_total(discounts, taxes)
     return {
+        'cart': cart,
         'cart_lines': lines,
         'cart_subtotal': subtotal}

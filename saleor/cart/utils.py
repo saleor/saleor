@@ -132,7 +132,8 @@ def get_or_create_anonymous_cart_from_token(
 
 def get_or_create_user_cart(user, cart_queryset=Cart.objects.all()):
     """Return an open cart for given user or create a new one."""
-    return cart_queryset.open().get_or_create(user=user)[0]
+    defaults = {'shipping_address': user.default_shipping_address}
+    return cart_queryset.open().get_or_create(user=user, defaults=defaults)[0]
 
 
 def get_anonymous_cart_from_token(token, cart_queryset=Cart.objects.all()):
@@ -164,7 +165,9 @@ def get_cart_from_request(request, cart_queryset=Cart.objects.all()):
         user = None
     if cart is not None:
         return cart
-    return Cart(user=user)
+    if user:
+        return Cart(user=user, shipping_address=user.default_shipping_address)
+    return Cart()
 
 
 def get_or_create_db_cart(cart_queryset=Cart.objects.all()):
