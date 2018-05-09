@@ -490,7 +490,6 @@ def product_image_delete(request, product_pk, img_pk):
 
 @require_POST
 @staff_member_required
-@permission_required('product.edit_product')
 def ajax_reorder_product_images(request, product_pk):
     product = get_object_or_404(Product, pk=product_pk)
     form = forms.ReorderProductImagesForm(request.POST, instance=product)
@@ -514,7 +513,7 @@ def ajax_upload_image(request, product_pk):
     status = 200
     if form.is_valid():
         image = form.save()
-        ctx = {'id': image.pk, 'image': None, 'order': image.order}
+        ctx = {'id': image.pk, 'image': None, 'order': image.sort_order}
     elif form.errors:
         status = 400
         ctx = {'error': form.errors}
@@ -654,3 +653,19 @@ def attribute_choice_value_delete(request, attribute_pk, value_pk):
         request,
         'dashboard/product/product_attribute/values/modal/confirm_delete.html',
         {'value': value, 'attribute_pk': attribute_pk})
+
+
+@staff_member_required
+@permission_required('product.edit_properties')
+def ajax_reorder_attribute_choice_values(request, attribute_pk):
+    attribute = get_object_or_404(ProductAttribute, pk=attribute_pk)
+    form = forms.ReorderAttributeChoiceValuesForm(
+        request.POST, instance=attribute)
+    status = 200
+    ctx = {}
+    if form.is_valid():
+        form.save()
+    elif form.errors:
+        status = 400
+        ctx = {'error': form.errors}
+    return JsonResponse(ctx, status=status)

@@ -5,7 +5,7 @@ from django.conf import settings
 from django.contrib.postgres.fields import HStoreField
 from django.core.validators import MinValueValidator, RegexValidator
 from django.db import models
-from django.db.models import F, Max, Q
+from django.db.models import Q
 from django.urls import reverse
 from django.utils.encoding import smart_text
 from django.utils.text import slugify
@@ -19,6 +19,7 @@ from text_unidecode import unidecode
 from versatileimagefield.fields import PPOIField, VersatileImageField
 
 from ..core.exceptions import InsufficientStock
+from ..core.models import SortableModel
 from ..core.utils.taxes import DEFAULT_TAX_RATE_NAME, apply_tax_to_price
 from ..discount.utils import calculate_discounted_price
 from ..seo.models import SeoModel
@@ -264,50 +265,37 @@ class ProductAttribute(models.Model):
         return self.values.exists()
 
 
-class AttributeChoiceValue(models.Model):
+class AttributeChoiceValue(SortableModel):
     name = models.CharField(max_length=100)
     slug = models.SlugField(max_length=100)
-    color = models.CharField(
-        max_length=7, blank=True,
-        validators=[RegexValidator('^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$')])
     attribute = models.ForeignKey(
         ProductAttribute, related_name='values', on_delete=models.CASCADE)
 
     class Meta:
+        ordering = ('sort_order',)
         unique_together = ('name', 'attribute')
 
     def __str__(self):
         return self.name
 
+    def get_ordering_queryset(self):
+        return self.attribute.values.all()
 
-class ProductImage(models.Model):
+
+class ProductImage(SortableModel):
     product = models.ForeignKey(
         Product, related_name='images', on_delete=models.CASCADE)
     image = VersatileImageField(
         upload_to='products', ppoi_field='ppoi', blank=False)
     ppoi = PPOIField()
     alt = models.CharField(max_length=128, blank=True)
-    order = models.PositiveIntegerField(editable=False)
 
     class Meta:
-        ordering = ('order', )
+        ordering = ('sort_order', )
         app_label = 'product'
 
     def get_ordering_queryset(self):
         return self.product.images.all()
-
-    def save(self, *args, **kwargs):
-        if self.order is None:
-            qs = self.get_ordering_queryset()
-            existing_max = qs.aggregate(Max('order'))
-            existing_max = existing_max.get('order__max')
-            self.order = 0 if existing_max is None else existing_max + 1
-        super().save(*args, **kwargs)
-
-    def delete(self, *args, **kwargs):
-        qs = self.get_ordering_queryset()
-        qs.filter(order__gt=self.order).update(order=F('order') - 1)
-        super().delete(*args, **kwargs)
 
 
 class VariantImage(models.Model):
