@@ -25,7 +25,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='attributechoicevalue',
             name='sort_order',
-            field=models.PositiveIntegerField(editable=False, null=True),
+            field=models.PositiveIntegerField(db_index=True, editable=False, null=True),
         ),
         migrations.AlterModelOptions(
             name='productimage',
@@ -35,6 +35,11 @@ class Migration(migrations.Migration):
             model_name='productimage',
             old_name='order',
             new_name='sort_order',
+        ),
+        migrations.AlterField(
+            model_name='productimage',
+            name='sort_order',
+            field=models.PositiveIntegerField(db_index=True, editable=False),
         ),
         migrations.RemoveField(
             model_name='attributechoicevalue',

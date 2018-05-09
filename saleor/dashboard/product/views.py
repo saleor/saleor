@@ -513,7 +513,7 @@ def ajax_upload_image(request, product_pk):
     status = 200
     if form.is_valid():
         image = form.save()
-        ctx = {'id': image.pk, 'image': None, 'order': image.order}
+        ctx = {'id': image.pk, 'image': None, 'order': image.sort_order}
     elif form.errors:
         status = 400
         ctx = {'error': form.errors}
