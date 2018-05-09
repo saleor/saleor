@@ -36,5 +36,9 @@ class Migration(migrations.Migration):
             old_name='order',
             new_name='sort_order',
         ),
+        migrations.RemoveField(
+            model_name='attributechoicevalue',
+            name='color',
+        ),
         migrations.RunPython(assign_sort_order_to_product_images, migrations.RunPython.noop)
     ]

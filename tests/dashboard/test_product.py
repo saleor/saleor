@@ -875,7 +875,7 @@ def test_view_attribute_choice_value_create(color_attribute, admin_client):
     url = reverse(
         'dashboard:product-attribute-value-add',
         kwargs={'attribute_pk': color_attribute.pk})
-    data = {'name': 'Pink', 'color': '#FFF', 'attribute': color_attribute.pk}
+    data = {'name': 'Pink', 'attribute': color_attribute.pk}
 
     response = admin_client.post(url, data, follow=True)
 
@@ -906,7 +906,7 @@ def test_view_attribute_choice_value_edit(color_attribute, admin_client):
     url = reverse(
         'dashboard:product-attribute-value-update',
         kwargs={'attribute_pk': color_attribute.pk, 'value_pk': values[0].pk})
-    data = {'name': 'Pink', 'color': '#FFF', 'attribute': color_attribute.pk}
+    data = {'name': 'Pink', 'attribute': color_attribute.pk}
 
     response = admin_client.post(url, data, follow=True)
 
