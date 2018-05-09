@@ -6,12 +6,14 @@ function loadStories() {
   require("./stories/components/DateFormatter");
   require("./stories/components/ErrorMessageCard");
   require("./stories/components/MultiSelectField");
+  require("./stories/components/Money");
   require("./stories/components/PageHeader");
   require("./stories/components/PriceField");
   require("./stories/components/SingleSelectField");
   require("./stories/components/Skeleton");
   require("./stories/components/StatusLabel");
   require("./stories/components/TablePagination");
+  require("./stories/components/Timeline");
 
   // Categories
   require("./stories/categories/CategoryBaseForm");
@@ -51,6 +53,8 @@ function loadStories() {
   require("./stories/products/ProductVariants");
 
   // Orders
+  require("./stories/orders/OrderCustomer");
+  require("./stories/orders/OrderDetailsPage");
   require("./stories/orders/OrderList");
   require("./stories/orders/OrderListPage");
 }
