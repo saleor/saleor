@@ -1,6 +1,5 @@
 import Sortable from 'sortablejs';
 
-
 $('.sortable-items').each(function() {
   Sortable.create(this, {
     handle: '.sortable__drag-area',
