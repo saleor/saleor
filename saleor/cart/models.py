@@ -13,6 +13,7 @@ from jsonfield import JSONField
 from prices import sum as sum_prices
 
 from . import CartStatus, logger
+from ..account.models import Address
 
 CENTS = Decimal('0.01')
 SimpleCart = namedtuple('SimpleCart', ('quantity', 'total', 'token'))
@@ -76,6 +77,11 @@ class Cart(models.Model):
         decimal_places=settings.DEFAULT_DECIMAL_PLACES, default=0)
     quantity = models.PositiveIntegerField(default=0)
 
+    # data used for handling checkout process
+    shipping_address = models.ForeignKey(
+        Address, related_name='+', editable=False, null=True,
+        on_delete=models.SET_NULL)
+
     objects = CartQueryset.as_manager()
 
     class Meta:
@@ -108,7 +114,8 @@ class Cart(models.Model):
         if open_cart is not None:
             open_cart.change_status(status=CartStatus.CANCELED)
         self.user = user
-        self.save(update_fields=['user'])
+        self.shipping_address = user.default_shipping_address
+        self.save(update_fields=['user', 'shipping_address'])
 
     def is_shipping_required(self):
         """Return `True` if any of the lines requires shipping."""

@@ -2,8 +2,6 @@ from django.shortcuts import redirect
 from django.template.response import TemplateResponse
 
 from .discount import add_voucher_form, validate_voucher
-from .shipping import (
-    anonymous_user_shipping_address_view, user_shipping_address_view)
 from .summary import (
     summary_with_shipping_view, anonymous_summary_without_shipping,
     summary_without_shipping)
@@ -14,6 +12,8 @@ from ..core import load_checkout
 from ..forms import ShippingMethodForm
 from ..utils import get_cart_data
 from ...account.forms import LoginForm
+from ...cart.checkout.views.shipping import (
+    anonymous_user_shipping_address_view, user_shipping_address_view)
 
 
 @load_checkout

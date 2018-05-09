@@ -294,9 +294,12 @@ class Checkout:
             return None
 
         if self.is_shipping_required:
-            shipping_address = self._save_order_shipping_address()
-            self._add_to_user_address_book(
-                self.shipping_address, is_shipping=True)
+            shipping_address = self.cart.shipping_address
+            if self.cart.user:
+                if shipping_address not in self.cart.user.addresses.all():
+                    store_user_address(
+                        self.user, shipping_address, shipping=True)
+                shipping_address = shipping_address.get_copy()
         else:
             shipping_address = None
         billing_address = self._save_order_billing_address()
