@@ -15,7 +15,7 @@ from ..core import load_checkout
 def add_voucher_form(view):
     """Decorate a view injecting a voucher form and handling its submission."""
     @wraps(view)
-    def func(request, checkout):
+    def func(request, cart, checkout):
         prefix = 'discount'
         data = {k: v for k, v in request.POST.items() if k.startswith(prefix)}
         voucher_form = CheckoutDiscountForm(
@@ -34,7 +34,7 @@ def add_voucher_form(view):
                 request.POST = {}
         else:
             checkout.recalculate_discount()
-        response = view(request, checkout)
+        response = view(request, cart, checkout)
         if isinstance(response, TemplateResponse):
             voucher = voucher_form.initial.get('voucher')
             response.context_data['voucher_form'] = voucher_form
@@ -50,7 +50,7 @@ def validate_voucher(view):
     redirected to the checkout summary view.
     """
     @wraps(view)
-    def func(request, checkout, cart):
+    def func(request, cart, checkout):
         if checkout.voucher_code:
             try:
                 Voucher.objects.active(date=date.today()).get(
@@ -63,13 +63,13 @@ def validate_voucher(view):
                     'This voucher has expired. Please review your checkout.')
                 messages.warning(request, msg)
                 return redirect('checkout:summary')
-        return view(request, checkout, cart)
+        return view(request, cart, checkout)
     return func
 
 
 @require_POST
 @load_checkout
-def remove_voucher_view(request, checkout, cart):
+def remove_voucher_view(request, cart, checkout):
     """Clear the discount and remove the voucher."""
     next_url = request.GET.get('next', request.META['HTTP_REFERER'])
     del checkout.discount

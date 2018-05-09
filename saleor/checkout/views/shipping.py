@@ -3,10 +3,11 @@ from django.template.response import TemplateResponse
 
 from ...account.forms import get_address_form
 from ...account.models import Address
+from ...checkout.utils import get_cart_data
 from ..forms import AnonymousUserShippingForm, ShippingAddressesForm
 
 
-def anonymous_user_shipping_address_view(request, checkout):
+def anonymous_user_shipping_address_view(request, cart, checkout):
     """Display the shipping step for a user who is not logged in."""
     address_form, preview = get_address_form(
         request.POST or None, country_code=request.country.code,
@@ -21,13 +22,16 @@ def anonymous_user_shipping_address_view(request, checkout):
         checkout.shipping_address = address_form.instance
         checkout.email = user_form.cleaned_data['email']
         return redirect('checkout:shipping-method')
-    return TemplateResponse(
-        request, 'checkout/shipping_address.html', context={
-            'address_form': address_form, 'user_form': user_form,
-            'checkout': checkout})
+
+    ctx = get_cart_data(cart, request.discounts, checkout.get_taxes())
+    ctx.update({
+        'address_form': address_form,
+        'checkout': checkout,
+        'user_form': user_form})
+    return TemplateResponse(request, 'checkout/shipping_address.html', ctx)
 
 
-def user_shipping_address_view(request, checkout):
+def user_shipping_address_view(request, cart, checkout):
     """Display the shipping step for a logged in user.
 
     In addition to entering a new address the user has an option of selecting
@@ -67,8 +71,12 @@ def user_shipping_address_view(request, checkout):
         elif address_form.is_valid():
             checkout.shipping_address = address_form.instance
             return redirect('checkout:shipping-method')
-    return TemplateResponse(
-        request, 'checkout/shipping_address.html', context={
-            'address_form': address_form, 'user_form': addresses_form,
-            'checkout': checkout,
-            'additional_addresses': additional_addresses})
+
+    ctx = get_cart_data(cart, request.discounts, checkout.get_taxes())
+    ctx.update({
+        'additional_addresses': additional_addresses,
+        'address_form': address_form,
+        'cart': cart,
+        'checkout': checkout,
+        'user_form': addresses_form})
+    return TemplateResponse(request, 'checkout/shipping_address.html', ctx)

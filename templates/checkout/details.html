@@ -33,7 +33,7 @@
     <div class="col-md-5">
       <div class="checkout__review">
         <h3 class="checkout__review__tittle">{% trans "Order review" context "Order review title" %}</h3>
-        {% for line, line_total in checkout.lines %}
+        {% for line, line_total in cart_lines %}
           <div class="row">
             <div class="col-8">
               <p><strong>{{ line.variant.product }}</strong> x {{ line.quantity }}<br>
@@ -52,7 +52,7 @@
           </div>
           <div class="col-4">
             <p class="float-right">
-              {% price checkout.get_subtotal %}
+              {% price cart_subtotal %}
             </p>
           </div>
         </div>

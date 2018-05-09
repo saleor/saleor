@@ -5,6 +5,7 @@ from django.utils.translation import pgettext, pgettext_lazy
 
 from ...account.forms import get_address_form
 from ...account.models import Address
+from ...checkout.utils import get_cart_data
 from ...core.exceptions import InsufficientStock
 from ...order.emails import send_order_confirmation
 from ..forms import (
@@ -87,7 +88,7 @@ def get_billing_forms_with_shipping(
     return address_form, addresses_form, None
 
 
-def summary_with_shipping_view(request, checkout):
+def summary_with_shipping_view(request, cart, checkout):
     """Display order summary with billing forms for a logged in user.
 
     Will create an order if all data is valid.
@@ -107,15 +108,18 @@ def summary_with_shipping_view(request, checkout):
     if address is not None:
         checkout.billing_address = address
         return handle_order_placement(request, checkout)
-    return TemplateResponse(
-        request, 'checkout/summary.html', context={
-            'addresses_form': addresses_form, 'address_form': address_form,
-            'checkout': checkout,
-            'additional_addresses': additional_addresses,
-            'note_form': note_form})
+
+    ctx = get_cart_data(cart, request.discounts, checkout.get_taxes())
+    ctx.update({
+        'additional_addresses': additional_addresses,
+        'address_form': address_form,
+        'addresses_form': addresses_form,
+        'checkout': checkout,
+        'note_form': note_form})
+    return TemplateResponse(request, 'checkout/summary.html', ctx)
 
 
-def anonymous_summary_without_shipping(request, checkout):
+def anonymous_summary_without_shipping(request, cart, checkout):
     """Display order summary with billing forms for an unauthorized user.
 
     Will create an order if all data is valid.
@@ -138,14 +142,18 @@ def anonymous_summary_without_shipping(request, checkout):
         checkout.email = user_form.cleaned_data['email']
         checkout.billing_address = address_form.instance
         return handle_order_placement(request, checkout)
+
+    ctx = get_cart_data(cart, request.discounts, checkout.get_taxes())
+    ctx.update({
+        'address_form': address_form,
+        'checkout': checkout,
+        'note_form': note_form,
+        'user_form': user_form})
     return TemplateResponse(
-        request, 'checkout/summary_without_shipping.html', context={
-            'user_form': user_form, 'address_form': address_form,
-            'checkout': checkout,
-            'note_form': note_form})
+        request, 'checkout/summary_without_shipping.html', ctx)
 
 
-def summary_without_shipping(request, checkout):
+def summary_without_shipping(request, cart, checkout):
     """Display order summary for cases where shipping is not required.
 
     Will create an order if all data is valid.
@@ -187,8 +195,13 @@ def summary_without_shipping(request, checkout):
         elif address_form.is_valid() and not preview:
             checkout.billing_address = address_form.instance
             return handle_order_placement(request, checkout)
+
+    ctx = get_cart_data(cart, request.discounts, checkout.get_taxes())
+    ctx.update({
+        'additional_addresses': user_addresses,
+        'address_form': address_form,
+        'addresses_form': addresses_form,
+        'checkout': checkout,
+        'note_form': note_form})
     return TemplateResponse(
-        request, 'checkout/summary_without_shipping.html', context={
-            'addresses_form': addresses_form, 'address_form': address_form,
-            'checkout': checkout, 'additional_addresses': user_addresses,
-            'note_form': note_form})
+        request, 'checkout/summary_without_shipping.html', ctx)
