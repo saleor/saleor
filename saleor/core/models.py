@@ -16,7 +16,7 @@ class BaseNote(models.Model):
 
 
 class SortableModel(models.Model):
-    sort_order = models.PositiveIntegerField(editable=False)
+    sort_order = models.PositiveIntegerField(editable=False, db_index=True)
 
     class Meta:
         abstract = True
