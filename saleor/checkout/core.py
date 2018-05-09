@@ -93,13 +93,6 @@ class Checkout:
         return None
 
     @property
-    def lines(self):
-        """Return the cart lines data."""
-        for line in self.cart.lines.all():
-            line_total = line.get_total(self.discounts, self.get_taxes())
-            yield line, line_total
-
-    @property
     def is_shipping_required(self):
         """Return `True` if this checkout session needs shipping."""
         return self.cart.is_shipping_required()
@@ -407,7 +400,7 @@ def load_checkout(view):
     """Decorate view with checkout session and cart for each request.
 
     Any views decorated by this will change their signature from
-    `func(request)` to `func(request, checkout, cart)`.
+    `func(request)` to `func(request, cart, checkout)`.
     """
     # FIXME: behave like middleware and assign checkout and cart to request
     # instead of changing the view signature
@@ -422,7 +415,7 @@ def load_checkout(view):
         checkout = Checkout.from_storage(
             session_data, cart, request.user, request.discounts, request.taxes,
             tracking_code)
-        response = view(request, checkout, cart)
+        response = view(request, cart, checkout)
         if checkout.modified:
             request.session[STORAGE_SESSION_KEY] = checkout.for_storage()
         return response

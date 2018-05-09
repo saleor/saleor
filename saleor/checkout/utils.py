@@ -70,3 +70,13 @@ def get_voucher_discount_for_checkout(voucher, checkout):
         return _get_product_or_category_voucher_discount_for_checkout(
             voucher, checkout)
     raise NotImplementedError('Unknown discount type')
+
+
+def get_cart_data(cart, discounts, taxes):
+    """Prepare cart data displayed in checkout process."""
+    lines = [
+        (line, line.get_total(discounts, taxes)) for line in cart.lines.all()]
+    subtotal = cart.get_total(discounts, taxes)
+    return {
+        'cart_lines': lines,
+        'cart_subtotal': subtotal}
