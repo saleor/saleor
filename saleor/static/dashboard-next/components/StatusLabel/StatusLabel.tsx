@@ -1,5 +1,3 @@
-import green from "material-ui/colors/green";
-import red from "material-ui/colors/red";
 import yellow from "material-ui/colors/yellow";
 import { withStyles } from "material-ui/styles";
 import Typography from "material-ui/Typography";
@@ -22,7 +20,7 @@ const decorate = withStyles(theme => {
   return {
     errorDot: {
       ...dot,
-      backgroundColor: red[500]
+      backgroundColor: theme.palette.error.main
     },
     neutralDot: {
       ...dot,
@@ -33,7 +31,7 @@ const decorate = withStyles(theme => {
     },
     successDot: {
       ...dot,
-      backgroundColor: green[500]
+      backgroundColor: theme.palette.primary.main
     }
   };
 });
