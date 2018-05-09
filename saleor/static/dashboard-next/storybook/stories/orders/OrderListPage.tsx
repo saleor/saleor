@@ -5,7 +5,7 @@ import OrderListPage from "../../../orders/components/OrderListPage";
 import { orders } from "../../../orders/fixtures";
 import Decorator from "../../Decorator";
 
-storiesOf("Orders / OrderListPage", module)
+storiesOf("Views / Orders / Order list", module)
   .addDecorator(Decorator)
   .add("when loaded data", () => (
     <OrderListPage onBack={() => {}} onRowClick={() => {}} />

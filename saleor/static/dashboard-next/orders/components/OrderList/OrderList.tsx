@@ -11,11 +11,11 @@ import Table, {
 } from "material-ui/Table";
 import * as React from "react";
 
+import DateFormatter from "../../../components/DateFormatter";
 import Skeleton from "../../../components/Skeleton";
 import StatusLabel from "../../../components/StatusLabel";
 import TablePagination from "../../../components/TablePagination";
 import i18n from "../../../i18n";
-import DateFormatter from "../../../components/DateFormatter";
 
 interface OrderListProps {
   orders?: Array<{
@@ -75,7 +75,7 @@ export const OrderList = decorate<OrderListProps>(
           <TableRow>
             <TableCell>{i18n.t("#", { context: "object" })}</TableCell>
             <TableCell>
-              {i18n.t("Order status", { context: "object" })}
+              {i18n.t("Fulfillment", { context: "object" })}
             </TableCell>
             <TableCell>{i18n.t("Client", { context: "object" })}</TableCell>
             <TableCell>{i18n.t("Created at", { context: "object" })}</TableCell>

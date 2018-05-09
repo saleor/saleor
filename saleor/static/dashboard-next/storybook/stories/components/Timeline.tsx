@@ -7,7 +7,7 @@ import Timeline, {
 } from "../../../components/Timeline";
 import Decorator from "../../Decorator";
 
-storiesOf("Components / Timeline", module)
+storiesOf("Generics / Timeline", module)
   .addDecorator(Decorator)
   .add("default", () => (
     <Timeline>

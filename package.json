@@ -27,6 +27,7 @@
     "apollo-upload-client": "^8.0.0",
     "bootstrap": "4.0.0",
     "classnames": "^2.2.5",
+    "crc-32": "^1.2.0",
     "detect-passive-events": "^1.0.4",
     "dropzone": "^5.2.0",
     "graphql": "^0.13.2",

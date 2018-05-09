@@ -38,3 +38,16 @@ export const transformOrderStatus = (status: string) => {
     status: "error"
   };
 };
+
+export const transformFulfillmentStatus = (status: string) => {
+  switch (status) {
+    case "fulfilled":
+      return { localized: i18n.t("Fulfilled"), status: "success" };
+    case "cancelled":
+      return { localized: i18n.t("Cancelled"), status: "neutral" };
+  }
+  return {
+    localized: status,
+    status: "error"
+  };
+};
