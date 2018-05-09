@@ -27,5 +27,14 @@ class Migration(migrations.Migration):
             name='sort_order',
             field=models.PositiveIntegerField(editable=False, null=True),
         ),
+        migrations.AlterModelOptions(
+            name='productimage',
+            options={'ordering': ('sort_order',)},
+        ),
+        migrations.RenameField(
+            model_name='productimage',
+            old_name='order',
+            new_name='sort_order',
+        ),
         migrations.RunPython(assign_sort_order_to_product_images, migrations.RunPython.noop)
     ]
