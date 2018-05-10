@@ -18,7 +18,7 @@ Service-based architecture, top-notch technologies. Django, PostgreSQL, ElasticS
 
 ## 💾 Installation and requirements
 
-Saleor requires Python 3.4+, Node.js, PostgreSQL and OS-specific dependency tools.
+Saleor requires Python 3.4+, Node.js 8.0+, PostgreSQL and OS-specific dependency tools.
 
 [See the Saleor docs](https://saleor.readthedocs.io) for step-by-step installation and deployment instructions.
 
@@ -45,7 +45,7 @@ Login credentials: `admin@example.com`/`admin`
 ## 🎁 Contribute
 Any contributions are warmly welcomed, we will do our best to provide you with mentorship and support during the whole collaboration.
 
-If you are looking for an issue to tackle, take a look at issues labeled
+If you are looking for an issue to tackle, take a look at issues labelled
 [`Help Wanted`](https://github.com/mirumee/saleor/issues?q=is%3Aopen+is%3Aissue+label%3A%22help+wanted%22).
 
 Some of them however, might not be listed yet. Check [our roadmap](https://github.com/mirumee/saleor/projects/6) or think of your own feature, then drop us a message and we will discuss the most efficient way to handle it!
