@@ -32,10 +32,10 @@ def validate_shipping_address(view):
     """
     @wraps(view)
     def func(request, cart, checkout):
-        if checkout.email is None or checkout.shipping_address is None:
+        if checkout.email is None or checkout.cart.shipping_address is None:
             return redirect('checkout:shipping-address')
         try:
-            checkout.shipping_address.full_clean()
+            checkout.cart.shipping_address.full_clean()
         except ValidationError:
             return redirect('checkout:shipping-address')
         return view(request, cart, checkout)

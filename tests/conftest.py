@@ -356,10 +356,8 @@ def checkout():
 
 @pytest.fixture
 def checkout_with_items(request_cart_with_item, customer_user):
-    checkout = Checkout(
+    return Checkout(
         request_cart_with_item, customer_user, None, None, 'tracking_code')
-    checkout.shipping_address = customer_user.default_shipping_address
-    return checkout
 
 
 @pytest.fixture

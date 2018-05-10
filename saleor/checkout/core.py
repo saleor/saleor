@@ -49,7 +49,6 @@ class Checkout:
         self.tracking_code = tracking_code
         self.storage = {'version': self.VERSION}
         self._shipping_method = None
-        self._shipping_address = None
 
     @classmethod
     def from_storage(
@@ -103,32 +102,10 @@ class Checkout:
         return bool(self.get_taxes())
 
     @property
-    def shipping_address(self):
-        """Return a shipping address if any."""
-        if self._shipping_address is None:
-            address = self._get_address_from_storage('shipping_address')
-            if address is None and self.user.is_authenticated:
-                address = self.user.default_shipping_address
-            self._shipping_address = address
-        return self._shipping_address
-
-    @shipping_address.setter
-    def shipping_address(self, address):
-        address_data = model_to_dict(address)
-        phone_number = address_data.get('phone')
-        if phone_number:
-            address_data['phone'] = str(address_data['phone'])
-        address_data['country'] = smart_text(address_data['country'])
-        self.storage['shipping_address'] = address_data
-        self.modified = True
-        self._shipping_address = address
-
-    @property
     def shipping_method(self):
         """Return a shipping method if any."""
         if self._shipping_method is None:
-            shipping_address = self.shipping_address
-            if shipping_address is None:
+            if not self.cart.shipping_address:
                 return None
             shipping_method_country_id = self.storage.get(
                 'shipping_method_country_id')
@@ -139,7 +116,7 @@ class Checkout:
                     id=shipping_method_country_id)
             except ShippingMethodCountry.DoesNotExist:
                 return None
-            shipping_country_code = shipping_address.country.code
+            shipping_country_code = self.cart.shipping_address.country.code
             allowed_codes = [ANY_COUNTRY, shipping_country_code]
             if shipping_method_country.country_code not in allowed_codes:
                 return None
@@ -187,9 +164,7 @@ class Checkout:
         elif (self.user.is_authenticated and
               self.user.default_billing_address):
             return self.user.default_billing_address
-        elif self.shipping_address:
-            return self.shipping_address
-        return None
+        return self.cart.shipping_address
 
     @billing_address.setter
     def billing_address(self, address):
@@ -254,11 +229,6 @@ class Checkout:
             del self.storage['voucher_code']
             self.modified = True
 
-    @property
-    def is_shipping_same_as_billing(self):
-        """Return `True` if shipping and billing addresses are identical."""
-        return self.shipping_address == self.billing_address
-
     def _add_to_user_address_book(self, address, is_billing=False,
                                   is_shipping=False):
         if self.user.is_authenticated:
@@ -268,9 +238,6 @@ class Checkout:
 
     def _save_order_billing_address(self):
         return self.billing_address.get_copy()
-
-    def _save_order_shipping_address(self):
-        return self.shipping_address.get_copy()
 
     @transaction.atomic
     def create_order(self):
@@ -391,10 +358,8 @@ class Checkout:
 
     def get_taxes(self):
         """Return taxes based on shipping address (if set) or IP country."""
-        shipping_address = self.shipping_address
-
-        if shipping_address:
-            return get_taxes_for_country(shipping_address.country)
+        if self.cart.shipping_address:
+            return get_taxes_for_country(self.cart.shipping_address.country)
 
         return self.taxes
 

@@ -104,7 +104,7 @@ def summary_with_shipping_view(request, cart, checkout):
     address_form, addresses_form, address = get_billing_forms_with_shipping(
         request.POST or None, additional_addresses,
         checkout.billing_address or Address(country=request.country),
-        checkout.shipping_address)
+        cart.shipping_address)
     if address is not None:
         checkout.billing_address = address
         return handle_order_placement(request, checkout)

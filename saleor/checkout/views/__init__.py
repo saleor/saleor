@@ -44,7 +44,7 @@ def shipping_address_view(request, cart, checkout):
 @add_voucher_form
 def shipping_method_view(request, cart, checkout):
     """Display the shipping method selection step."""
-    country_code = checkout.shipping_address.country.code
+    country_code = cart.shipping_address.country.code
     shipping_method_form = ShippingMethodForm(
         country_code, request.taxes, request.POST or None,
         initial={'method': checkout.shipping_method})
