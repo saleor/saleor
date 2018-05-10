@@ -39,10 +39,10 @@ def test_token_create_user_data(
     query = """
     mutation {
         tokenCreate(email: "%(email)s", password: "%(password)s") {
-            user{
+            user {
                 id
                 email
-                permissions{
+                permissions {
                     code
                     name
                 }
