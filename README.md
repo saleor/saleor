@@ -22,7 +22,7 @@ Saleor requires Python 3.4+, Node.js, PostgreSQL and OS-specific dependency tool
 
 [See the Saleor docs](https://saleor.readthedocs.io) for step-by-step installation and deployment instructions.
 
-## ▶️  Demo
+## ▶️ Demo
 
 Want to see Saleor in action?
 
@@ -36,13 +36,13 @@ Login credentials: `admin@example.com`/`admin`
 
 # Get involved
 
-## ❤️  Community
+## ❤️ Community
 
--   Join the chat on [gitter](https://gitter.im/mirumee/saleor)
--   Follow us on [Twitter](https://twitter.com/getsaleor?lang=en)
--   Check our latest blog posts on [medium](https://medium.com/saleor)
+* Join the chat on [gitter](https://gitter.im/mirumee/saleor)
+* Follow us on [Twitter](https://twitter.com/getsaleor?lang=en)
+* Check our latest blog posts on [Medium](https://medium.com/saleor)
 
-## 🎁  Contribute
+## 🎁 Contribute
 Any contributions are warmly welcomed, we will do our best to provide you with mentorship and support during the whole collaboration.
 
 If you are looking for an issue to tackle, take a look at issues labeled
@@ -54,7 +54,7 @@ If you have any ideas, just [open an issue](https://github.com/mirumee/saleor/is
 
 Get more details in our [Contributing Guide](https://saleor.readthedocs.io/en/latest/contributing.html).
 
-##  📝  Your feedback
+## 📝 Your feedback
 
 Do you use Saleor as an e-commerce platform?
 Fill out this short survey and help us grow. It will take just a minute, but mean a lot!
@@ -67,5 +67,5 @@ Disclaimer: everything you see here is open and free to use as long as you compl
 
 Some situations however call for extra code being written. Whether you need us to cover an exotic use case or build you a custom e-commerce appliance, our team can help.
 
-#### Crafted with ❤️  by [Mirumee Software](http://mirumee.com)
+#### Crafted with ❤️ by [Mirumee Software](http://mirumee.com)
 hello@mirumee.com
