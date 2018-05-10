@@ -8,9 +8,9 @@ msgid ""
 msgstr ""
 "Project-Id-Version: master\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2018-04-23 09:25-0500\n"
+"POT-Creation-Date: 2018-05-08 07:15-0500\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"Last-Translator: Delia Cosma <deliacosma79@gmail.com>, 2018\n"
+"Last-Translator: Tiberiu Ichim <tiberiu.ichim@gmail.com>, 2018\n"
 "Language-Team: Romanian (https://www.transifex.com/mirumee/teams/34782/ro/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -49,16 +49,16 @@ msgstr[2] "S-a găsit %(counter)d categorie potrivită"
 
 #: saleor/dashboard/category/forms.py:24
 #: saleor/dashboard/collection/forms.py:21
-#: saleor/dashboard/discount/forms.py:76 saleor/dashboard/group/forms.py:13
-#: saleor/dashboard/product/forms.py:62 saleor/dashboard/product/forms.py:182
-#: saleor/dashboard/product/forms.py:357 saleor/dashboard/shipping/forms.py:14
+#: saleor/dashboard/discount/forms.py:77 saleor/dashboard/group/forms.py:13
+#: saleor/dashboard/product/forms.py:76 saleor/dashboard/product/forms.py:204
+#: saleor/dashboard/product/forms.py:402 saleor/dashboard/shipping/forms.py:14
 #: saleor/dashboard/sites/forms.py:40
 msgctxt "Item name"
 msgid "Name"
 msgstr "Nume"
 
-#: saleor/dashboard/category/forms.py:25 saleor/dashboard/product/forms.py:183
-#: saleor/dashboard/product/forms.py:306 saleor/dashboard/shipping/forms.py:16
+#: saleor/dashboard/category/forms.py:25 saleor/dashboard/product/forms.py:205
+#: saleor/dashboard/product/forms.py:351 saleor/dashboard/shipping/forms.py:16
 #: saleor/dashboard/sites/forms.py:27
 msgctxt "Description"
 msgid "Description"
@@ -82,22 +82,50 @@ msgctxt "Dashboard message"
 msgid "Removed category %s"
 msgstr "Categorie eliminată %s"
 
-#: saleor/dashboard/collection/filters.py:8
+#: saleor/dashboard/collection/filters.py:9
 msgctxt "Collection list sorting option"
 msgid "name"
 msgstr "nume"
 
+#: saleor/dashboard/collection/filters.py:12
+#: saleor/dashboard/product/filters.py:22
+msgctxt "Is publish filter choice"
+msgid "Published"
+msgstr "Publicat"
+
 #: saleor/dashboard/collection/filters.py:13
+#: saleor/dashboard/product/filters.py:23
+msgctxt "Is publish filter choice"
+msgid "Not published"
+msgstr "Nu a fost publicat"
+
+#: saleor/dashboard/collection/filters.py:18
 msgctxt "Collection list name filter label"
 msgid "Name"
 msgstr "Nume"
 
-#: saleor/dashboard/collection/filters.py:16
+#: saleor/dashboard/collection/filters.py:21
+msgctxt "Collection list filter label"
+msgid "Is published"
+msgstr "Este publicat"
+
+#: saleor/dashboard/collection/filters.py:23
+#: saleor/dashboard/customer/filters.py:38
+#: saleor/dashboard/discount/filters.py:43
+#: saleor/dashboard/discount/filters.py:74
+#: saleor/dashboard/order/filters.py:43 saleor/dashboard/order/filters.py:49
+#: saleor/dashboard/product/filters.py:49
+#: saleor/dashboard/product/filters.py:55 saleor/dashboard/taxes/filters.py:25
+msgctxt "Filter empty choice label"
+msgid "All"
+msgstr "Toate"
+
+#: saleor/dashboard/collection/filters.py:26
 msgctxt "Collection list sorting filter label"
 msgid "Sort by"
 msgstr "Sortează după"
 
-#: saleor/dashboard/collection/filters.py:28
+#: saleor/dashboard/collection/filters.py:38
 #, python-format
 msgctxt "Number of matching records in the dashboard collections list"
 msgid "Found %(counter)d matching collection"
@@ -116,17 +144,22 @@ msgctxt "Products selection"
 msgid "Background Image"
 msgstr "Imagine de fundal"
 
-#: saleor/dashboard/collection/views.py:40
+#: saleor/dashboard/collection/forms.py:28
+msgctxt "Collection published toggle"
+msgid "Published"
+msgstr "Publicat"
+
+#: saleor/dashboard/collection/views.py:41
 msgctxt "Collection message"
 msgid "Added collection"
 msgstr "Colecție agăugată"
 
-#: saleor/dashboard/collection/views.py:55
+#: saleor/dashboard/collection/views.py:56
 msgctxt "Collection message"
 msgid "Updated collection"
 msgstr "Colecție actualizată"
 
-#: saleor/dashboard/collection/views.py:68
+#: saleor/dashboard/collection/views.py:69
 msgctxt "Collection message"
 msgid "Deleted collection"
 msgstr "Colecție ștearsă"
@@ -174,16 +207,6 @@ msgctxt "Customer list filter label"
 msgid "Is active"
 msgstr "Este activ"
 
-#: saleor/dashboard/customer/filters.py:38
-#: saleor/dashboard/discount/filters.py:43
-#: saleor/dashboard/discount/filters.py:74
-#: saleor/dashboard/order/filters.py:43 saleor/dashboard/order/filters.py:49
-#: saleor/dashboard/product/filters.py:49
-#: saleor/dashboard/product/filters.py:55
-msgctxt "Filter empty choice label"
-msgid "All"
-msgstr "Toate"
-
 #: saleor/dashboard/customer/filters.py:41
 msgctxt "Customer list filter label"
 msgid "Sort by"
@@ -198,17 +221,32 @@ msgstr[0] "S-a găsit %(counter)d client potrivit"
 msgstr[1] "S-au găsit %(counter)d clienți potriviți"
 msgstr[2] "S-au găsit %(counter)d clienți potriviți"
 
-#: saleor/dashboard/customer/views.py:59
+#: saleor/dashboard/customer/forms.py:28
+msgctxt "Customer note"
+msgid "Note"
+msgstr "Notă"
+
+#: saleor/dashboard/customer/forms.py:31 saleor/dashboard/order/forms.py:258
+msgctxt "Allow customers to see note toggle"
+msgid "Customer can see this note"
+msgstr "Clientul poate vedea această notă"
+
+#: saleor/dashboard/customer/views.py:63
 #, python-format
 msgctxt "Dashboard message"
 msgid "Added customer %s"
 msgstr "Adăugat client %s"
 
-#: saleor/dashboard/customer/views.py:75
+#: saleor/dashboard/customer/views.py:79
 #, python-format
 msgctxt "Dashboard message"
 msgid "Updated customer %s"
 msgstr "Actualizat client %s"
+
+#: saleor/dashboard/customer/views.py:112
+msgctxt "Dashboard message related to an customer"
+msgid "Added note"
+msgstr "Notă adăugată"
 
 #: saleor/dashboard/discount/filters.py:14
 msgctxt "Sale list sorting option"
@@ -338,91 +376,91 @@ msgstr[0] "S-a găsit %(counter)d voucher corespunzător"
 msgstr[1] "S-au găsit %(counter)d vouchere potrivite"
 msgstr[2] "S-au găsit %(counter)d vouchere potrivite"
 
-#: saleor/dashboard/discount/forms.py:28
+#: saleor/dashboard/discount/forms.py:29
 msgctxt "Sale name"
 msgid "Name"
 msgstr "Nume"
 
-#: saleor/dashboard/discount/forms.py:31
+#: saleor/dashboard/discount/forms.py:32
 msgctxt "Discount type"
 msgid "Fixed or percentage"
 msgstr "Fix sau procentual"
 
-#: saleor/dashboard/discount/forms.py:34
+#: saleor/dashboard/discount/forms.py:35
 msgctxt "Percentage or fixed amount value"
 msgid "Value"
 msgstr "Valoare"
 
-#: saleor/dashboard/discount/forms.py:37
+#: saleor/dashboard/discount/forms.py:38
 msgctxt "Discounted products"
 msgid "Discounted products"
 msgstr "Produse cu reduceri"
 
-#: saleor/dashboard/discount/forms.py:40
+#: saleor/dashboard/discount/forms.py:41
 msgctxt "Discounted categories"
 msgid "Discounted categories"
 msgstr "Categorii cu reduceri"
 
-#: saleor/dashboard/discount/forms.py:54
+#: saleor/dashboard/discount/forms.py:55
 msgctxt "Sale (discount) error"
 msgid "Sale cannot exceed 100%"
 msgstr "Vânzarea nu poate depăși 100%"
 
-#: saleor/dashboard/discount/forms.py:60
+#: saleor/dashboard/discount/forms.py:61
 msgctxt "Sale (discount) error"
 msgid "A single sale must point to at least one product and/or category."
 msgstr ""
 "O singură vânzare trebuie să indice cel puțin un produs și/sau o categorie."
 
-#: saleor/dashboard/discount/forms.py:73
+#: saleor/dashboard/discount/forms.py:74
 msgctxt "Discount type"
 msgid "Discount type"
 msgstr "Tipul de reducere"
 
-#: saleor/dashboard/discount/forms.py:79
+#: saleor/dashboard/discount/forms.py:80
 msgctxt "Coupon code"
 msgid "Code"
 msgstr "Cod"
 
-#: saleor/dashboard/discount/forms.py:82
+#: saleor/dashboard/discount/forms.py:83
 msgctxt "Usage limit"
 msgid "Usage limit"
 msgstr "Limita de utilizare"
 
-#: saleor/dashboard/discount/forms.py:85
+#: saleor/dashboard/discount/forms.py:86
 msgctxt "Voucher date restrictions"
 msgid "Start date"
 msgstr "Data de început"
 
-#: saleor/dashboard/discount/forms.py:88
+#: saleor/dashboard/discount/forms.py:89
 msgctxt "Voucher date restrictions"
 msgid "End date"
 msgstr "Data de încheiere"
 
-#: saleor/dashboard/discount/forms.py:130
-#: saleor/dashboard/discount/forms.py:192
-#: saleor/dashboard/discount/forms.py:211
+#: saleor/dashboard/discount/forms.py:131
+#: saleor/dashboard/discount/forms.py:193
+#: saleor/dashboard/discount/forms.py:212
 msgctxt "Country"
 msgid "Country"
 msgstr "Țară"
 
-#: saleor/dashboard/discount/forms.py:133
+#: saleor/dashboard/discount/forms.py:134
 msgctxt "Lowest value for order to be able to use the voucher"
 msgid "Only if order is over or equal to"
 msgstr "Doar dacă comanda este mai mare sau egal cu"
 
-#: saleor/dashboard/discount/forms.py:153
+#: saleor/dashboard/discount/forms.py:154
 msgctxt "Lowest value for order to be able to use the voucher"
 msgid "Only if purchase value is greater than or equal to"
 msgstr "Numai dacă valoarea achiziției este mai mare sau egală cu"
 
-#: saleor/dashboard/discount/forms.py:195
+#: saleor/dashboard/discount/forms.py:196
 msgctxt "Product"
 msgid "Product"
 msgstr "Produs"
 
-#: saleor/dashboard/discount/forms.py:214
-#: saleor/dashboard/product/forms.py:186
+#: saleor/dashboard/discount/forms.py:215
+#: saleor/dashboard/product/forms.py:208
 msgctxt "Category"
 msgid "Category"
 msgstr "Categorie"
@@ -459,7 +497,8 @@ msgctxt "Voucher message"
 msgid "Removed voucher %s"
 msgstr "Voucher eliminat %s"
 
-#: saleor/dashboard/group/filters.py:10 saleor/dashboard/shipping/filters.py:9
+#: saleor/dashboard/group/filters.py:10
+#: saleor/dashboard/shipping/filters.py:10
 msgctxt "Group list sorting option"
 msgid "name"
 msgstr "nume"
@@ -602,58 +641,58 @@ msgstr ""
 "Un singur element de meniu trebuie să indice un link intern sau o adresă "
 "URL."
 
-#: saleor/dashboard/menu/views.py:41
+#: saleor/dashboard/menu/views.py:39
 msgctxt "Dashboard message"
 msgid "Updated storefront menus"
 msgstr "Meniurile magazinului au fost actualizate"
 
-#: saleor/dashboard/menu/views.py:58
+#: saleor/dashboard/menu/views.py:56
 #, python-format
 msgctxt "Dashboard message"
 msgid "Added menu %s"
 msgstr "Meniu adăugat %s"
 
-#: saleor/dashboard/menu/views.py:72
+#: saleor/dashboard/menu/views.py:70
 #, python-format
 msgctxt "Dashboard message"
 msgid "Updated menu %s"
 msgstr "Meniu actualizat %s"
 
-#: saleor/dashboard/menu/views.py:102
+#: saleor/dashboard/menu/views.py:100
 #, python-format
 msgctxt "Dashboard message"
 msgid "Removed menu %s"
 msgstr "Meniu eliminat %s"
 
-#: saleor/dashboard/menu/views.py:126
+#: saleor/dashboard/menu/views.py:124
 #, python-format
 msgctxt "Dashboard message"
 msgid "Added menu item %s"
 msgstr "Elementul de meniu %s adăugat "
 
-#: saleor/dashboard/menu/views.py:148
+#: saleor/dashboard/menu/views.py:146
 #, python-format
 msgctxt "Dashboard message"
 msgid "Saved menu item %s"
 msgstr "Articol meniu %s salvat"
 
-#: saleor/dashboard/menu/views.py:165
+#: saleor/dashboard/menu/views.py:163
 #, python-format
 msgctxt "Dashboard message"
 msgid "Removed menu item %s"
 msgstr "Eliminat elementul %s din meniu "
 
-#: saleor/dashboard/menu/views.py:248
+#: saleor/dashboard/menu/views.py:246
 msgctxt "Link object type group description"
 msgid "Collection"
 msgstr "Colecție"
 
-#: saleor/dashboard/menu/views.py:253
+#: saleor/dashboard/menu/views.py:251
 msgctxt "Link object type group description"
 msgid "Category"
 msgstr "Categorie"
 
-#: saleor/dashboard/menu/views.py:258
+#: saleor/dashboard/menu/views.py:256
 msgctxt "Link object type group description"
 msgid "Page"
 msgstr "Pagină"
@@ -773,17 +812,12 @@ msgstr "cuantumul reducerii"
 #: saleor/dashboard/order/forms.py:229
 msgctxt "Order voucher"
 msgid "Voucher"
-msgstr "Bon"
+msgstr "Voucher"
 
 #: saleor/dashboard/order/forms.py:255
 msgctxt "Order note"
 msgid "Note"
 msgstr "Notă"
-
-#: saleor/dashboard/order/forms.py:258
-msgctxt "Allow customers to see note toggle"
-msgid "Customer can see this note"
-msgstr "Clientul poate vedea această notă"
 
 #: saleor/dashboard/order/forms.py:268
 msgctxt "Payment management form (capture, refund, release)"
@@ -846,9 +880,9 @@ msgstr[2] "Numai %(remaining)d rămase în stoc"
 msgctxt "Cancel order form action"
 msgid "Restock %(quantity)d item"
 msgid_plural "Restock %(quantity)d items"
-msgstr[0] ""
-msgstr[1] ""
-msgstr[2] ""
+msgstr[0] "Adaugă în stoc %(quantity)d articol"
+msgstr[1] "Adaugă în stoc %(quantity)d articole"
+msgstr[2] "Adaugă în stoc %(quantity)d articole"
 
 #: saleor/dashboard/order/forms.py:462
 msgctxt "Cancel order form error"
@@ -860,9 +894,9 @@ msgstr "Această comandă nu poate fi anulată"
 msgctxt "Cancel fulfillment form action"
 msgid "Restock %(quantity)d item"
 msgid_plural "Restock %(quantity)d items"
-msgstr[0] ""
-msgstr[1] ""
-msgstr[2] ""
+msgstr[0] "Adaugă în stoc %(quantity)d articol"
+msgstr[1] "Adaugă în stoc %(quantity)d articole"
+msgstr[2] "Adaugă în stoc %(quantity)d articole"
 
 #: saleor/dashboard/order/forms.py:492
 msgctxt "Cancel fulfillment form error"
@@ -894,75 +928,76 @@ msgctxt "Add variant to order form label"
 msgid "Quantity"
 msgstr "Cantitate"
 
-#: saleor/dashboard/order/forms.py:582
+#: saleor/dashboard/order/forms.py:583
 #, python-format
 msgctxt "Add item form error"
 msgid "Could not add item. Only %(remaining)d remaining in stock."
-msgstr ""
+msgstr "Nu s-a putut adăuga elementul. Numai %(remaining)d rămânând în stoc."
 
-#: saleor/dashboard/order/forms.py:611
+#: saleor/dashboard/order/forms.py:612
 msgctxt "Send mail to customer"
 msgid "Send shipment details to your customer now"
 msgstr "Trimite detaliile de expediere către clientul dvs. acum"
 
-#: saleor/dashboard/order/forms.py:619
+#: saleor/dashboard/order/forms.py:620
 msgctxt "Order tracking number"
 msgid "Tracking number"
 msgstr "Număr de urmărire"
 
-#: saleor/dashboard/order/forms.py:649
+#: saleor/dashboard/order/forms.py:650
 #, python-format
 msgctxt "Fulfill order line form error"
 msgid "%(quantity)d item remaining to fulfill."
 msgid_plural "%(quantity)d items remaining to fulfill."
-msgstr[0] ""
-msgstr[1] ""
-msgstr[2] ""
+msgstr[0] "%(quantity)d articol rămas pentru a fi onorat."
+msgstr[1] "%(quantity)d articole rămase pentru a fi onorate. "
+msgstr[2] "%(quantity)d articole rămase pentru a fi onorate. "
 
-#: saleor/dashboard/order/views.py:62
+#: saleor/dashboard/order/views.py:67
 msgctxt "Dashboard message related to an order"
 msgid "Draft order created"
 msgstr "Proiectul a fost creat"
 
-#: saleor/dashboard/order/views.py:77
+#: saleor/dashboard/order/views.py:82
 msgctxt "Dashboard message related to an order"
 msgid "Order created from draft order"
 msgstr "Comanda creată din proiectul comenzii"
 
-#: saleor/dashboard/order/views.py:84
+#: saleor/dashboard/order/views.py:89
 #, python-format
 msgctxt "Dashboard message related to an order"
 msgid "Order confirmation email was sent to user(%(email)s)"
 msgstr ""
+"E-mailul de confirmare a comenzii a fost trimis utilizatorului(%(email)s)"
 
-#: saleor/dashboard/order/views.py:102
+#: saleor/dashboard/order/views.py:107
 msgctxt "Dashboard message"
 msgid "Draft order successfully removed"
 msgstr "Proiectul a fost eliminat cu succes"
 
-#: saleor/dashboard/order/views.py:159
+#: saleor/dashboard/order/views.py:165
 msgctxt "Dashboard message related to an order"
 msgid "Added note"
 msgstr "Notă adăugată"
 
-#: saleor/dashboard/order/views.py:186
+#: saleor/dashboard/order/views.py:192
 #, python-format
 msgctxt "Dashboard message related to a payment"
 msgid "Captured %(amount)s"
 msgstr "Capturat %(amount)s"
 
-#: saleor/dashboard/order/views.py:210
+#: saleor/dashboard/order/views.py:216
 #, python-format
 msgctxt "Dashboard message related to a payment"
 msgid "Refunded %(amount)s"
 msgstr "Rambursată %(amount)s"
 
-#: saleor/dashboard/order/views.py:229
+#: saleor/dashboard/order/views.py:235
 msgctxt "Dashboard message"
 msgid "Released payment"
 msgstr "Plata eliberată"
 
-#: saleor/dashboard/order/views.py:252
+#: saleor/dashboard/order/views.py:258
 #, python-format
 msgctxt "Dashboard message related to an order line"
 msgid ""
@@ -972,127 +1007,128 @@ msgstr ""
 "Cantitate modificată pentru varianta %(variant)s de la %(old_quantity)s la "
 "%(new_quantity)s"
 
-#: saleor/dashboard/order/views.py:277
+#: saleor/dashboard/order/views.py:283
 #, python-format
 msgctxt "Dashboard message related to an order line"
 msgid "Cancelled item %s"
 msgstr "Articol anulat %s"
 
-#: saleor/dashboard/order/views.py:307
+#: saleor/dashboard/order/views.py:315
 #, python-format
 msgctxt "Dashboard message related to an order"
 msgid "Added %(quantity)d x %(variant)s"
 msgstr "Adăugat%(quantity)d x %(variant)s"
 
-#: saleor/dashboard/order/views.py:312
+#: saleor/dashboard/order/views.py:320
 #, python-format
 msgctxt "Dashboard message related to an order"
 msgid "Insufficient stock: could not add %(quantity)d x %(variant)s"
 msgstr "Stoc insuficient: nu a putut fi adăugat %(quantity)d x %(variant)s"
 
-#: saleor/dashboard/order/views.py:331
+#: saleor/dashboard/order/views.py:340
 msgctxt "Dashboard message"
 msgid "Updated shipping address"
 msgstr "Adresa de expediere actualizată"
 
-#: saleor/dashboard/order/views.py:336
+#: saleor/dashboard/order/views.py:346
 msgctxt "Dashboard message"
 msgid "Updated billing address"
 msgstr "Adresa de facturare actualizată"
 
-#: saleor/dashboard/order/views.py:363
+#: saleor/dashboard/order/views.py:376
 #, python-format
 msgctxt "Dashboard message"
 msgid "%s email assigned to an order"
-msgstr ""
+msgstr "%se-mail atribuit unei comenzi "
 
-#: saleor/dashboard/order/views.py:367
+#: saleor/dashboard/order/views.py:380
 #, python-format
 msgctxt "Dashboard message"
 msgid "%s user assigned to an order"
-msgstr ""
+msgstr "%sutilizator atribuit unei comenzi "
 
-#: saleor/dashboard/order/views.py:371
+#: saleor/dashboard/order/views.py:384
 msgctxt "Dashboard message"
 msgid "Guest user assigned to an order"
-msgstr ""
-
-#: saleor/dashboard/order/views.py:391
-msgctxt "Dashboard message"
-msgid "Customer removed from an order"
-msgstr ""
+msgstr "Utilizator fără cont atribuit unei comenzi"
 
 #: saleor/dashboard/order/views.py:405
 msgctxt "Dashboard message"
-msgid "Shipping updated"
-msgstr ""
+msgid "Customer removed from an order"
+msgstr "Clientul a fost eliminat dintr-o comandă"
 
-#: saleor/dashboard/order/views.py:423
+#: saleor/dashboard/order/views.py:420
+msgctxt "Dashboard message"
+msgid "Shipping updated"
+msgstr "Transportul a fost actualizat"
+
+#: saleor/dashboard/order/views.py:438
 msgctxt "Dashboard message"
 msgid "Shipping removed"
-msgstr ""
+msgstr "Transportul a fost eliminat"
 
-#: saleor/dashboard/order/views.py:437
+#: saleor/dashboard/order/views.py:452
 msgctxt "Dashboard message"
 msgid "Discount updated"
-msgstr ""
+msgstr "Reducerea actualizată"
 
-#: saleor/dashboard/order/views.py:456
+#: saleor/dashboard/order/views.py:471
 msgctxt "Dashboard message"
 msgid "Voucher updated"
-msgstr ""
+msgstr "Voucher actualizat"
 
-#: saleor/dashboard/order/views.py:474
+#: saleor/dashboard/order/views.py:489
 msgctxt "Dashboard message"
 msgid "Order canceled"
-msgstr ""
+msgstr "Comandă anulată"
 
-#: saleor/dashboard/order/views.py:480 saleor/dashboard/order/views.py:644
+#: saleor/dashboard/order/views.py:495 saleor/dashboard/order/views.py:659
 #, python-format
 msgctxt "Dashboard message"
 msgid "Restocked %(quantity)d item"
 msgid_plural "Restocked %(quantity)d items"
-msgstr[0] ""
-msgstr[1] ""
-msgstr[2] ""
+msgstr[0] "Adăugat %(quantity)d articol"
+msgstr[1] "Adăugate%(quantity)darticole"
+msgstr[2] "Adăugate %(quantity)d articole"
 
-#: saleor/dashboard/order/views.py:502
+#: saleor/dashboard/order/views.py:517
 msgctxt "Dashboard message"
 msgid "Removed voucher from order"
 msgstr "Voucher eliminat din comandă"
 
-#: saleor/dashboard/order/views.py:533
+#: saleor/dashboard/order/views.py:548
 msgctxt "Dashboard message"
 msgid "Order manually marked as paid"
-msgstr ""
+msgstr "Comanda marcată manual ca plătită"
 
-#: saleor/dashboard/order/views.py:601
+#: saleor/dashboard/order/views.py:616
 #, python-format
 msgctxt "Dashboard message related to an order"
 msgid "Fulfilled %(quantity_fulfilled)d item"
 msgid_plural "Fulfilled %(quantity_fulfilled)d items"
-msgstr[0] ""
-msgstr[1] ""
-msgstr[2] ""
+msgstr[0] "Onorat %(quantity_fulfilled)d articol"
+msgstr[1] "Onorate %(quantity_fulfilled)d articole"
+msgstr[2] "Onorate %(quantity_fulfilled)d articole"
 
-#: saleor/dashboard/order/views.py:610
+#: saleor/dashboard/order/views.py:625
 #, python-format
 msgctxt "Dashboard message related to an order"
 msgid "Shipping confirmation email was sent to user(%(email)s)"
 msgstr ""
+"E-mailul de confirmare a expedierii a fost trimis utilizatorului (%(email)s)"
 
-#: saleor/dashboard/order/views.py:615
+#: saleor/dashboard/order/views.py:630
 msgctxt "Dashboard message related to an order"
 msgid "No items fulfilled"
-msgstr ""
+msgstr "Nici un articol nu a fost onorat"
 
-#: saleor/dashboard/order/views.py:637
+#: saleor/dashboard/order/views.py:652
 #, python-format
 msgctxt "Dashboard message"
 msgid "Fulfillment #%(fulfillment)s canceled"
 msgstr ""
 
-#: saleor/dashboard/order/views.py:674
+#: saleor/dashboard/order/views.py:689
 #, python-format
 msgctxt "Dashboard message"
 msgid ""
@@ -1100,32 +1136,34 @@ msgid ""
 "#%(tracking_number)s"
 msgstr ""
 
-#: saleor/dashboard/order/views.py:681
+#: saleor/dashboard/order/views.py:696
 #, python-format
 msgctxt "Dashboard message"
 msgid "Fulfillment #%(fulfillment)s tracking number removed"
 msgstr ""
 
-#: saleor/dashboard/order/views.py:688
+#: saleor/dashboard/order/views.py:703
 #, python-format
 msgctxt "Dashboard message related to an order"
 msgid "Shipping update email was sent to user (%(email)s)"
 msgstr ""
+"E-mailul de actualizare a expediției a fost trimis utilizatorului "
+"(%(email)s)"
 
 #: saleor/dashboard/page/filters.py:8
 msgctxt "Page list sorting option"
 msgid "title"
-msgstr ""
+msgstr "titlu"
 
 #: saleor/dashboard/page/filters.py:9
 msgctxt "Page list sorting option"
 msgid "url"
-msgstr ""
+msgstr "url"
 
 #: saleor/dashboard/page/filters.py:14
 msgctxt "Page list title filter label"
 msgid "Title"
-msgstr ""
+msgstr "Titlu"
 
 #: saleor/dashboard/page/filters.py:17
 msgctxt "Page list url filter label"
@@ -1142,9 +1180,9 @@ msgstr "Sortează după"
 msgctxt "Number of matching records in the dashboard page list"
 msgid "Found %(counter)d matching page"
 msgid_plural "Found %(counter)d matching pages"
-msgstr[0] ""
-msgstr[1] ""
-msgstr[2] ""
+msgstr[0] "Găsită %(counter)d pagină potrivită"
+msgstr[1] "Găsite %(counter)d pagini potrivite"
+msgstr[2] "Găsite %(counter)d pagini potrivite"
 
 #: saleor/dashboard/page/forms.py:28
 msgctxt "Visibility status indicator"
@@ -1159,13 +1197,13 @@ msgstr ""
 #: saleor/dashboard/page/views.py:47
 msgctxt "Dashboard message"
 msgid "Saved page"
-msgstr ""
+msgstr "Pagină salvată"
 
 #: saleor/dashboard/page/views.py:62
 #, python-format
 msgctxt "Dashboard message"
 msgid "Removed page %s"
-msgstr ""
+msgstr "Pagină eliminată %s"
 
 #: saleor/dashboard/product/__init__.py:11
 msgctxt "product bulk action"
@@ -1185,7 +1223,7 @@ msgstr "nume"
 #: saleor/dashboard/product/filters.py:13
 msgctxt "Product type list sorting option"
 msgid "price"
-msgstr ""
+msgstr "Preț"
 
 #: saleor/dashboard/product/filters.py:16
 msgctxt "Product attribute list sorting option"
@@ -1197,25 +1235,15 @@ msgctxt "Product type list sorting option"
 msgid "name"
 msgstr "nume"
 
-#: saleor/dashboard/product/filters.py:22
-msgctxt "Is publish filter choice"
-msgid "Published"
-msgstr "Publicat"
-
-#: saleor/dashboard/product/filters.py:23
-msgctxt "Is publish filter choice"
-msgid "Not published"
-msgstr ""
-
 #: saleor/dashboard/product/filters.py:26
 msgctxt "Is featured filter choice"
 msgid "Featured"
-msgstr ""
+msgstr "Promovat"
 
 #: saleor/dashboard/product/filters.py:27
 msgctxt "Is featured filter choice"
 msgid "Not featured"
-msgstr ""
+msgstr "Nepromovat"
 
 #: saleor/dashboard/product/filters.py:32
 msgctxt "Product list filter label"
@@ -1230,22 +1258,22 @@ msgstr "Categorie"
 #: saleor/dashboard/product/filters.py:39
 msgctxt "Product list filter label"
 msgid "Product type"
-msgstr ""
+msgstr "Tip produs"
 
 #: saleor/dashboard/product/filters.py:43
 msgctxt "Product list filter label"
 msgid "Price"
-msgstr ""
+msgstr "Preț"
 
 #: saleor/dashboard/product/filters.py:47
 msgctxt "Product list filter label"
 msgid "Is published"
-msgstr ""
+msgstr "Este publicat"
 
 #: saleor/dashboard/product/filters.py:53
 msgctxt "Product list is featured filter label"
 msgid "Is featured"
-msgstr ""
+msgstr "Este promovat"
 
 #: saleor/dashboard/product/filters.py:58
 msgctxt "Product list filter label"
@@ -1257,9 +1285,9 @@ msgstr "Sortează după"
 msgctxt "Number of matching records in the dashboard products list"
 msgid "Found %(counter)d matching product"
 msgid_plural "Found %(counter)d matching products"
-msgstr[0] ""
-msgstr[1] ""
-msgstr[2] ""
+msgstr[0] "S-a găsit %(counter)d produs potrivit"
+msgstr[1] "S-au găsit %(counter)d produse potrivite"
+msgstr[2] "S-au găsit %(counter)d produse potrivite"
 
 #: saleor/dashboard/product/filters.py:77
 msgctxt "Product attribute list filter label"
@@ -1299,120 +1327,167 @@ msgstr[0] ""
 msgstr[1] ""
 msgstr[2] ""
 
-#: saleor/dashboard/product/forms.py:34
+#: saleor/dashboard/product/forms.py:37
 msgctxt "Help text in rich-text editor field"
 msgid "Select text to enable text-formatting tools."
-msgstr ""
+msgstr "Selectați text pentru a activa instrumentele de formatare a textului."
 
-#: saleor/dashboard/product/forms.py:51
+#: saleor/dashboard/product/forms.py:54
 msgctxt "Product type form label"
 msgid "Product type"
-msgstr ""
+msgstr "Tip produs"
 
-#: saleor/dashboard/product/forms.py:65
+#: saleor/dashboard/product/forms.py:79
 msgctxt "Enable variants"
 msgid "Enable variants"
-msgstr ""
+msgstr "Activați variante"
 
-#: saleor/dashboard/product/forms.py:68
+#: saleor/dashboard/product/forms.py:82
 msgctxt "Product type attributes"
 msgid "Attributes specific to each variant"
-msgstr ""
+msgstr "Atribute specifice fiecărei variante"
 
-#: saleor/dashboard/product/forms.py:71
+#: saleor/dashboard/product/forms.py:85
 msgctxt "Product type attributes"
 msgid "Attributes common to all variants"
-msgstr ""
+msgstr "Atribute comune tuturor variantelor"
 
-#: saleor/dashboard/product/forms.py:74
+#: saleor/dashboard/product/forms.py:88
 msgctxt "Shipping toggle"
 msgid "Require shipping"
+msgstr "Solicitați livrarea"
+
+#: saleor/dashboard/product/forms.py:90
+msgctxt "Product type tax rate type"
+msgid "Tax rate"
 msgstr ""
 
-#: saleor/dashboard/product/forms.py:84
+#: saleor/dashboard/product/forms.py:104
 msgctxt "Product type form error"
 msgid "Product variants are disabled."
-msgstr ""
+msgstr "Variantele de produs sunt dezactivate."
 
-#: saleor/dashboard/product/forms.py:89
+#: saleor/dashboard/product/forms.py:109
 msgctxt "Product type form error"
 msgid "A single attribute can't belong to both a product and its variant."
 msgstr ""
+"Un singur atribut nu poate să aparțină atât produsului, cât și variantei "
+"sale."
 
-#: saleor/dashboard/product/forms.py:126
+#: saleor/dashboard/product/forms.py:146
 msgctxt "Product type form error"
 msgid "Some products of this type have more than one variant."
-msgstr ""
+msgstr "Unele produse de acest tip au mai multe variante."
 
-#: saleor/dashboard/product/forms.py:185
+#: saleor/dashboard/product/forms.py:207
 msgctxt "A SEO friendly description"
 msgid "SEO Friendly Description"
 msgstr ""
 
-#: saleor/dashboard/product/forms.py:187 saleor/dashboard/shipping/forms.py:29
+#: saleor/dashboard/product/forms.py:209 saleor/dashboard/shipping/forms.py:29
 msgctxt "Currency amount"
 msgid "Price"
-msgstr ""
+msgstr "Preț"
 
-#: saleor/dashboard/product/forms.py:189
+#: saleor/dashboard/product/forms.py:211
 msgctxt "Availability date"
 msgid "Publish product on"
-msgstr ""
+msgstr "Publicați produsul pe"
 
-#: saleor/dashboard/product/forms.py:191
+#: saleor/dashboard/product/forms.py:213
 msgctxt "Product published toggle"
 msgid "Published"
-msgstr ""
+msgstr "Publicat"
 
-#: saleor/dashboard/product/forms.py:194
+#: saleor/dashboard/product/forms.py:216
 msgctxt "Featured product toggle"
 msgid "Feature this product on homepage"
-msgstr ""
+msgstr "Promovează acest produs pe pagina principală"
 
-#: saleor/dashboard/product/forms.py:196
+#: saleor/dashboard/product/forms.py:218
 msgctxt "Add to collection select"
 msgid "Collections"
+msgstr "Colecții"
+
+#: saleor/dashboard/product/forms.py:220
+msgctxt "Charge taxes on product"
+msgid "Charge taxes on this product"
 msgstr ""
 
-#: saleor/dashboard/product/forms.py:245
+#: saleor/dashboard/product/forms.py:222
+msgctxt "Product tax rate type"
+msgid "Tax rate"
+msgstr ""
+
+#: saleor/dashboard/product/forms.py:249
+msgctxt "Currency gross amount"
+msgid "Gross price"
+msgstr ""
+
+#: saleor/dashboard/product/forms.py:252
+msgctxt "Currency net amount"
+msgid "Net price"
+msgstr ""
+
+#: saleor/dashboard/product/forms.py:279
 msgctxt "SKU"
 msgid "SKU"
-msgstr ""
+msgstr "SKU"
 
-#: saleor/dashboard/product/forms.py:247
+#: saleor/dashboard/product/forms.py:281
 msgctxt "Override price"
 msgid "Selling price override"
-msgstr ""
+msgstr "Suprascrierea prețului de vânzare"
 
-#: saleor/dashboard/product/forms.py:248
+#: saleor/dashboard/product/forms.py:282
 msgctxt "Integer number"
 msgid "Number in stock"
 msgstr ""
 
-#: saleor/dashboard/product/forms.py:249
+#: saleor/dashboard/product/forms.py:283
 msgctxt "Currency amount"
 msgid "Cost price"
 msgstr ""
 
-#: saleor/dashboard/product/forms.py:304 saleor/dashboard/product/forms.py:391
+#: saleor/dashboard/product/forms.py:298
+msgctxt "Override price"
+msgid "Selling gross price override"
+msgstr ""
+
+#: saleor/dashboard/product/forms.py:300
+msgctxt "Currency amount"
+msgid "Cost gross price"
+msgstr ""
+
+#: saleor/dashboard/product/forms.py:303
+msgctxt "Override price"
+msgid "Selling net price override"
+msgstr ""
+
+#: saleor/dashboard/product/forms.py:305
+msgctxt "Currency amount"
+msgid "Cost net price"
+msgstr ""
+
+#: saleor/dashboard/product/forms.py:349 saleor/dashboard/product/forms.py:436
 msgctxt "Product image"
 msgid "Image"
-msgstr ""
+msgstr "Imagine"
 
-#: saleor/dashboard/product/forms.py:345
+#: saleor/dashboard/product/forms.py:390
 msgctxt "Product display name"
 msgid "Display name"
-msgstr ""
+msgstr "Numele afișat"
 
-#: saleor/dashboard/product/forms.py:347
+#: saleor/dashboard/product/forms.py:392
 msgctxt "Product internal name"
 msgid "Internal name"
-msgstr ""
+msgstr "Nume intern"
 
-#: saleor/dashboard/product/forms.py:359
+#: saleor/dashboard/product/forms.py:404
 msgctxt "Color"
 msgid "Color"
-msgstr ""
+msgstr "Culoare"
 
 #: saleor/dashboard/product/views.py:58
 #, python-format
@@ -1430,7 +1505,7 @@ msgstr "Tip de produs actualizat %s"
 #, python-format
 msgctxt "Dashboard message"
 msgid "Removed product type %s"
-msgstr ""
+msgstr "Tip de produs eliminat%s"
 
 #: saleor/dashboard/product/views.py:167
 #, python-format
@@ -1448,7 +1523,7 @@ msgstr "Produs actualizat %s"
 #, python-format
 msgctxt "Dashboard message"
 msgid "Removed product %s"
-msgstr ""
+msgstr "Produs eliminat%s"
 
 #: saleor/dashboard/product/views.py:283
 #, python-format
@@ -1466,7 +1541,7 @@ msgstr "Imagine actualizată %s"
 #, python-format
 msgctxt "Dashboard message"
 msgid "Removed image %s"
-msgstr ""
+msgstr "Imagine eliminată%s"
 
 #: saleor/dashboard/product/views.py:340 saleor/dashboard/product/views.py:361
 #, python-format
@@ -1474,45 +1549,45 @@ msgctxt "Dashboard message"
 msgid "Saved variant %s"
 msgstr "Varianta salvată %s"
 
-#: saleor/dashboard/product/views.py:422
+#: saleor/dashboard/product/views.py:423
 #, python-format
 msgctxt "Dashboard message"
 msgid "Removed variant %s"
-msgstr ""
+msgstr "Varianta eliminată%s"
 
-#: saleor/dashboard/product/views.py:471
+#: saleor/dashboard/product/views.py:472
 msgctxt "Dashboard message"
 msgid "Added attribute"
 msgstr "Adăugat atribut"
 
-#: saleor/dashboard/product/views.py:488
+#: saleor/dashboard/product/views.py:489
 msgctxt "Dashboard message"
 msgid "Updated attribute"
-msgstr "Updated attribute"
+msgstr "Atribut actualizat"
 
-#: saleor/dashboard/product/views.py:505
+#: saleor/dashboard/product/views.py:506
 #, python-format
 msgctxt "Dashboard message"
 msgid "Removed attribute %s"
-msgstr ""
+msgstr "Atribut eliminat %s"
 
-#: saleor/dashboard/product/views.py:524
+#: saleor/dashboard/product/views.py:525
 msgctxt "Dashboard message"
 msgid "Added attribute's value"
 msgstr ""
 
-#: saleor/dashboard/product/views.py:543
+#: saleor/dashboard/product/views.py:544
 msgctxt "Dashboard message"
 msgid "Updated attribute's value"
 msgstr ""
 
-#: saleor/dashboard/product/views.py:561
+#: saleor/dashboard/product/views.py:562
 #, python-format
 msgctxt "Dashboard message"
 msgid "Removed attribute's value %s"
 msgstr ""
 
-#: saleor/dashboard/product/views.py:610
+#: saleor/dashboard/product/views.py:611
 #, python-format
 msgctxt "Dashboard message"
 msgid "%(count)d product has been updated"
@@ -1524,36 +1599,36 @@ msgstr[2] "%(count)d produse au fost actualizate"
 #: saleor/dashboard/seo/fields.py:9
 msgctxt "Form field help text"
 msgid "If empty, the preview shows what will be autogenerated."
-msgstr ""
+msgstr "Dacă este gol, previzualizarea arată ce va fi generat în mod automat."
 
-#: saleor/dashboard/shipping/filters.py:15
+#: saleor/dashboard/shipping/filters.py:16
 msgctxt "Shipping method list filter label"
 msgid "Name"
 msgstr "Nume"
 
-#: saleor/dashboard/shipping/filters.py:19
+#: saleor/dashboard/shipping/filters.py:20
 msgctxt "Shipping method list filter label"
 msgid "Price range"
-msgstr ""
+msgstr "Gama de prețuri"
 
-#: saleor/dashboard/shipping/filters.py:22
+#: saleor/dashboard/shipping/filters.py:23
 msgctxt "Shipping method filter label"
 msgid "Country"
 msgstr "Țară"
 
-#: saleor/dashboard/shipping/filters.py:26
+#: saleor/dashboard/shipping/filters.py:27
 msgctxt "Product list sorting filter label"
 msgid "Sort by"
 msgstr "Sortează după"
 
-#: saleor/dashboard/shipping/filters.py:39
+#: saleor/dashboard/shipping/filters.py:40
 #, python-format
 msgctxt "Number of matching records in the dashboard shipping methods list"
 msgid "Found %(counter)d matching shipping method"
 msgid_plural "Found %(counter)d matching shipping methods"
-msgstr[0] ""
-msgstr[1] ""
-msgstr[2] ""
+msgstr[0] "S-a găsit %(counter)d metodă de transport potrivită"
+msgstr[1] "S-au găsit %(counter)d metode de transport potrivite"
+msgstr[2] "S-au găsit %(counter)d metode de transport potrivite"
 
 #: saleor/dashboard/shipping/forms.py:27
 msgctxt "List of countries"
@@ -1563,12 +1638,12 @@ msgstr "Țară"
 #: saleor/dashboard/shipping/views.py:38
 msgctxt "Dashboard message"
 msgid "Added shipping method"
-msgstr ""
+msgstr "Adaugă metoda de expediere"
 
 #: saleor/dashboard/shipping/views.py:52
 msgctxt "Dashboard message"
 msgid "Updated shipping method"
-msgstr ""
+msgstr "Metoda de expediere actualizată"
 
 #: saleor/dashboard/shipping/views.py:79
 #, python-format
@@ -1597,32 +1672,32 @@ msgstr ""
 #: saleor/dashboard/sites/forms.py:14
 msgctxt "Domain name (FQDN)"
 msgid "Domain name"
-msgstr ""
+msgstr "Numele domeniului"
 
 #: saleor/dashboard/sites/forms.py:16
 msgctxt "Display name"
 msgid "Display name"
-msgstr ""
+msgstr "Numele afișat"
 
 #: saleor/dashboard/sites/forms.py:25
 msgctxt "Header text"
 msgid "Header text"
-msgstr ""
+msgstr "Antet"
 
 #: saleor/dashboard/sites/forms.py:36
 msgctxt "Key for chosen authorization method"
 msgid "Key"
-msgstr ""
+msgstr "Cheie"
 
 #: saleor/dashboard/sites/forms.py:38
 msgctxt "Password"
 msgid "Password"
-msgstr ""
+msgstr "Parolă"
 
 #: saleor/dashboard/sites/views.py:35
 msgctxt "Dashboard message"
 msgid "Updated site settings"
-msgstr ""
+msgstr "Setările site-ului au fost actualizate"
 
 #: saleor/dashboard/sites/views.py:62
 #, python-format
@@ -1645,7 +1720,7 @@ msgstr ""
 #: saleor/dashboard/staff/filters.py:24
 msgctxt "Staff list filter label"
 msgid "Groups"
-msgstr ""
+msgstr "Grupuri"
 
 #: saleor/dashboard/staff/filters.py:28
 msgctxt "Staff list filter label"
@@ -1664,17 +1739,17 @@ msgstr[2] ""
 #: saleor/dashboard/staff/forms.py:20
 msgctxt "Email"
 msgid "Email"
-msgstr ""
+msgstr "Email"
 
 #: saleor/dashboard/staff/forms.py:22
 msgctxt "Groups"
 msgid "Groups"
-msgstr ""
+msgstr "Grupuri"
 
 #: saleor/dashboard/staff/forms.py:24
 msgctxt "User active toggle"
 msgid "User is active"
-msgstr ""
+msgstr "Utilizatorul este activ"
 
 #: saleor/dashboard/staff/views.py:43
 #, python-format
@@ -1692,19 +1767,74 @@ msgstr "Adăugat membru al personalului %s"
 #, python-format
 msgctxt "Dashboard message"
 msgid "Removed staff member %s"
+msgstr "Eliminat membru al personalului%s"
+
+#: saleor/dashboard/taxes/filters.py:11
+msgctxt "Product list sorting option"
+msgid "country_code"
+msgstr ""
+
+#: saleor/dashboard/taxes/filters.py:24
+msgctxt "Taxes list filter label"
+msgid "Country name"
+msgstr ""
+
+#: saleor/dashboard/taxes/filters.py:28
+msgctxt "Taxes list sorting form"
+msgid "Sort by"
+msgstr "Sortează după"
+
+#: saleor/dashboard/taxes/filters.py:45
+#, python-format
+msgctxt "Number of matching records in the dashboard taxes list"
+msgid "Found %(counter)d matching country"
+msgid_plural "Found %(counter)d matching countries"
+msgstr[0] ""
+msgstr[1] ""
+msgstr[2] ""
+
+#: saleor/dashboard/taxes/forms.py:16
+msgctxt "Include taxes in prices"
+msgid "All products prices are entered with tax included"
+msgstr ""
+
+#: saleor/dashboard/taxes/forms.py:19
+msgctxt "Display gross prices"
+msgid "Show gross prices to customers in the storefront"
+msgstr ""
+
+#: saleor/dashboard/taxes/forms.py:22
+msgctxt "Charge taxes on shipping rates"
+msgid "Charge taxes on shipping rates"
+msgstr ""
+
+#: saleor/dashboard/taxes/views.py:51
+msgctxt "Dashboard message"
+msgid "Updated taxes settings"
+msgstr ""
+
+#: saleor/dashboard/taxes/views.py:64
+msgctxt "Dashboard message"
+msgid "Tax rates updated successfully"
+msgstr ""
+
+#: saleor/dashboard/taxes/views.py:69
+msgctxt "Dashboard message"
+msgid ""
+"Could not fetch tax rates. You have not supplied a valid API Access Key"
 msgstr ""
 
 #: saleor/dashboard/templatetags/chips.py:66
 msgctxt "Possible values of boolean filter"
 msgid "yes,no,all"
-msgstr ""
+msgstr "da,nu,toate"
 
 #: saleor/dashboard/templatetags/chips.py:77
 msgctxt "Label of first value in range filter"
 msgid "From"
-msgstr ""
+msgstr "Din"
 
 #: saleor/dashboard/templatetags/chips.py:78
 msgctxt "Label of second value in range filter"
 msgid "To"
-msgstr ""
+msgstr "La"
