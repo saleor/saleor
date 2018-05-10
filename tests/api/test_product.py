@@ -101,12 +101,16 @@ def test_product_query(admin_api_client, product):
                                 }
                             }
                         }
-                        purchaseCost{
-                            start{
-                                amount
+                        purchaseCost {
+                            start {
+                                gross {
+                                    amount
+                                }
                             }
-                            stop{
-                                amount
+                            stop {
+                                gross {
+                                    amount
+                                }
                             }
                         }
                         margin {
@@ -370,7 +374,7 @@ def test_create_product(
                     price: $price,
                     attributes: $attributes) {
                         product {
-                            category{
+                            category {
                                 name
                             }
                             description
@@ -379,17 +383,17 @@ def test_create_product(
                             chargeTaxes
                             taxRate
                             name
-                            price{
+                            price {
                                 amount
                             }
-                            productType{
+                            productType {
                                 name
                             }
-                            attributes{
-                                attribute{
+                            attributes {
+                                attribute {
                                     slug
                                 }
-                                value{
+                                value {
                                     slug
                                 }
                             }
@@ -487,7 +491,7 @@ def test_update_product(
                     price: $price,
                     attributes: $attributes) {
                         product {
-                            category{
+                            category {
                                 name
                             }
                             description
@@ -496,17 +500,17 @@ def test_update_product(
                             chargeTaxes
                             taxRate
                             name
-                            price{
+                            price {
                                 amount
                             }
-                            productType{
+                            productType {
                                 name
                             }
-                            attributes{
-                                attribute{
+                            attributes {
+                                attribute {
                                     name
                                 }
-                                value{
+                                value {
                                     name
                                 }
                             }
@@ -612,8 +616,8 @@ def test_product_type_query(
                     name
                     products {
                         totalCount
-                        edges{
-                            node{
+                        edges {
+                            node {
                                 name
                             }
                         }
