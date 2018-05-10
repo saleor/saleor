@@ -14,14 +14,13 @@ def anonymous_user_shipping_address_view(request, cart, checkout):
         request.POST or None, country_code=request.country.code,
         autocomplete_type='shipping',
         initial={'country': request.country.code},
-        instance=checkout.shipping_address)
+        instance=cart.shipping_address)
 
     user_form = AnonymousUserShippingForm(
         not preview and request.POST or None, initial={'email': checkout.email}
         if not preview else request.POST.dict())
     if all([user_form.is_valid(), address_form.is_valid()]):
         checkout.email = user_form.cleaned_data['email']
-        checkout.shipping_address = address_form.instance
         address = address_form.save()
         save_shipping_address_in_cart(cart, address)
         return redirect('checkout:shipping-method')
@@ -73,12 +72,10 @@ def user_shipping_address_view(request, cart, checkout):
         if use_existing_address:
             address_id = addresses_form.cleaned_data['address']
             address = Address.objects.get(id=address_id)
-            checkout.shipping_address = address
             save_shipping_address_in_cart(cart, address)
             return redirect('checkout:shipping-method')
 
         elif address_form.is_valid():
-            checkout.shipping_address = address_form.instance
             address = address_form.save()
             save_shipping_address_in_cart(cart, address)
             return redirect('checkout:shipping-method')

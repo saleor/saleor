@@ -49,48 +49,6 @@ def test_checkout_is_shipping_required(checkout):
     assert checkout.is_shipping_required is True
 
 
-@pytest.mark.parametrize('user, shipping', [
-    (Mock(default_shipping_address='user_shipping'), 'user_shipping'),
-    (AnonymousUser(), None)])
-def test_checkout_shipping_address_with_anonymous_user(
-        checkout, user, shipping):
-    checkout.user = user
-    assert checkout._shipping_address is None
-    assert checkout.shipping_address == shipping
-    assert checkout._shipping_address == shipping
-
-
-@pytest.mark.parametrize('address_objects, shipping', [
-    (Mock(get=Mock(return_value='shipping')), 'shipping'),
-    (Mock(get=Mock(side_effect=Address.DoesNotExist)), None)])
-def test_checkout_shipping_address_with_storage(
-        checkout, address_objects, shipping, monkeypatch):
-    monkeypatch.setattr(
-        'saleor.checkout.core.Address.objects', address_objects)
-    checkout.storage['shipping_address'] = {'id': 1}
-    assert checkout.shipping_address == shipping
-
-
-def test_checkout_shipping_address_setter(checkout):
-    address = Address(first_name='Jan', last_name='Kowalski')
-    assert checkout._shipping_address is None
-    checkout.shipping_address = address
-    assert checkout._shipping_address == address
-    assert checkout.storage['shipping_address'] == {
-        'city': '',
-        'city_area': '',
-        'company_name': '',
-        'country': '',
-        'country_area': '',
-        'first_name': 'Jan',
-        'id': None,
-        'last_name': 'Kowalski',
-        'phone': '',
-        'postal_code': '',
-        'street_address_1': '',
-        'street_address_2': ''}
-
-
 @pytest.mark.parametrize('shipping_address, shipping_method, value', [
     (
         Mock(country=Mock(code='PL')),
@@ -103,7 +61,7 @@ def test_checkout_shipping_address_setter(checkout):
 def test_checkout_shipping_method(
         checkout, shipping_address, shipping_method, value, monkeypatch):
     queryset = Mock(get=Mock(return_value=shipping_method))
-    monkeypatch.setattr(Checkout, 'shipping_address', shipping_address)
+    monkeypatch.setattr(checkout.cart, 'shipping_address', shipping_address)
     monkeypatch.setattr(
         'saleor.checkout.core.ShippingMethodCountry.objects', queryset)
     checkout.storage['shipping_method_country_id'] = 1
@@ -138,7 +96,8 @@ def test_checkout_shipping_method_setter(checkout):
             addresses=Mock(
                 is_authenticated=Mock(return_value=True))),
         'billing_address')])
-def test_checkout_billing_address(checkout, user, address):
+def test_checkout_billing_address(checkout, user, address, monkeypatch):
+    monkeypatch.setattr(checkout.cart, 'shipping_address', None)
     checkout.user = user
     assert checkout.billing_address == address
 
