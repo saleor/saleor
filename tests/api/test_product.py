@@ -101,14 +101,14 @@ def test_product_query(admin_api_client, product):
                                 }
                             }
                         }
-                        purchaseCost{
-                            start{
-                                gross{
+                        purchaseCost {
+                            start {
+                                gross {
                                     amount
                                 }
                             }
-                            stop{
-                                gross{
+                            stop {
+                                gross {
                                     amount
                                 }
                             }
@@ -370,24 +370,24 @@ def test_create_product(
                     price: $price,
                     attributes: $attributes) {
                         product {
-                            category{
+                            category {
                                 name
                             }
                             description
                             isPublished
                             isFeatured
                             name
-                            price{
+                            price {
                                 amount
                             }
-                            productType{
+                            productType {
                                 name
                             }
-                            attributes{
-                                attribute{
+                            attributes {
+                                attribute {
                                     slug
                                 }
-                                value{
+                                value {
                                     slug
                                 }
                             }
@@ -475,24 +475,24 @@ def test_update_product(
                     price: $price,
                     attributes: $attributes) {
                         product {
-                            category{
+                            category {
                                 name
                             }
                             description
                             isPublished
                             isFeatured
                             name
-                            price{
+                            price {
                                 amount
                             }
-                            productType{
+                            productType {
                                 name
                             }
-                            attributes{
-                                attribute{
+                            attributes {
+                                attribute {
                                     name
                                 }
-                                value{
+                                value {
                                     name
                                 }
                             }
@@ -592,8 +592,8 @@ def test_product_type_query(
                     name
                     products {
                         totalCount
-                        edges{
-                            node{
+                        edges {
+                            node {
                                 name
                             }
                         }
