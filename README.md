@@ -13,6 +13,8 @@ Built with top-notch technologies. Django, PostgreSQL, ElasticSearch, GraphQL an
 
 [Visit our homepage to find out more](http://getsaleor.com/)
 
+[![Saleor](http://getsaleor.com/mr-saleor-readme.png)](http://getsaleor.com)
+
 # Getting started
 
 ## 💾 Installation and requirements
