@@ -10,7 +10,7 @@ from ..core.mutations import (
     BaseMutation, ModelDeleteMutation, ModelFormMutation,
     ModelFormUpdateMutation, StaffMemberRequiredMixin, Error)
 from ..utils import get_attributes_dict_from_list, get_node
-from .forms import ProductForm, ProductVariantForm
+from .forms import CollectionForm, ProductForm, ProductVariantForm
 from .types import (
     Category, Product, ProductAttribute, ProductImage, ProductType)
 
@@ -58,6 +58,25 @@ class CategoryDelete(StaffMemberRequiredMixin, ModelDeleteMutation):
     class Meta:
         description = 'Deletes a category.'
         model = models.Category
+
+
+class CollectionCreateMutation(StaffMemberRequiredMixin, ModelFormMutation):
+    permissions = 'collection.edit_collection'
+
+    class Meta:
+        description = 'Creates a new collection.'
+        form_class = CollectionForm
+
+    @classmethod
+    def get_form_kwargs(cls, root, info, **input):
+        products = input.pop('products', None)
+        kwargs = super().get_form_kwargs(root, info, **input)
+        if products:
+            products = {
+                get_node(info, pr_id, only_type=Product)
+                for pr_id in products}
+            kwargs['data']['products'] = products
+        return kwargs
 
 
 class AttributeValueInput(InputObjectType):
