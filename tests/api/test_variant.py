@@ -21,15 +21,15 @@ def test_create_variant(admin_api_client, product, product_type):
                     priceOverride: $priceOverride,
                     costPrice: $costPrice,
                     quantity: $quantity,
-                    attributes: $attributes){
-                    productVariant{
+                    attributes: $attributes) {
+                    productVariant {
                         name
                         sku
-                        attributes{
-                            attribute{
+                        attributes {
+                            attribute {
                                 slug
                             }
-                            value{
+                            value {
                                 slug
                             }
                         }
@@ -90,8 +90,8 @@ def test_update_product_variant(admin_api_client, product):
                     id: $id,
                     sku: $sku,
                     costPrice: $costPrice,
-                    quantity: $quantity){
-                    productVariant{
+                    quantity: $quantity) {
+                    productVariant {
                         name
                         sku
                         quantity
