@@ -1,3 +1,5 @@
+[![Saleor](http://getsaleor.com/mr-saleor-readme.png)](http://getsaleor.com)
+
 # Saleor
 
 [![Build Status](https://travis-ci.org/mirumee/saleor.svg?branch=master)](https://travis-ci.org/mirumee/saleor)
@@ -12,8 +14,6 @@ We believe that better service-based architecture means productive developers, t
 Built with top-notch technologies. Django, PostgreSQL, ElasticSearch, GraphQL and Docker.
 
 [Visit our homepage to find out more](http://getsaleor.com/)
-
-[![Saleor](http://getsaleor.com/mr-saleor-readme.png)](http://getsaleor.com)
 
 # Getting started
 
