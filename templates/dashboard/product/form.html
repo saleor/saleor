@@ -1,5 +1,4 @@
 {% extends "dashboard/base.html" %}
-{% load prices_i18n %}
 {% load i18n %}
 {% load materializecss %}
 {% load staticfiles %}
@@ -36,7 +35,7 @@
     </li>
     <li>
       {% if product.pk %}
-        <a href="{% url "dashboard:product-detail" pk=product.pk %}" class="breadcrumbs--ellipsed-item">
+        <a href="{% url "dashboard:product-details" pk=product.pk %}" class="breadcrumbs--ellipsed-item">
           {{ product }}
         </a>
       {% else %}
@@ -87,6 +86,10 @@
                 <div class="row">
                   {{ product_form.price|materializecss }}
                 </div>
+                <div class="row">
+                  {{ product_form.tax_rate|materializecss }}
+                  {{ product_form.charge_taxes|materializecss }}
+                </div>
                 {% if not product.product_type.has_variants %}
                   <div class="row">
                     {{ variant_form.sku|materializecss }}
@@ -119,7 +122,7 @@
           </div>
           <div class="card-action right-align">
             {% if product.pk %}
-              <a href="{% url 'dashboard:product-detail' product.pk %}" class="btn-flat waves-effect">
+              <a href="{% url 'dashboard:product-details' product.pk %}" class="btn-flat waves-effect">
                 {% trans "Cancel" context "Dashboard cancel action" %}
               </a>
               <button type="submit" class="btn waves-effect">

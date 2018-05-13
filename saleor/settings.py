@@ -164,6 +164,7 @@ MIDDLEWARE = [
     'saleor.core.middleware.country',
     'saleor.core.middleware.currency',
     'saleor.core.middleware.site',
+    'saleor.core.middleware.taxes',
     'social_django.middleware.SocialAuthExceptionMiddleware',
     'impersonate.middleware.ImpersonateMiddleware']
 
@@ -206,6 +207,7 @@ INSTALLED_APPS = [
     'bootstrap4',
     'django_prices',
     'django_prices_openexchangerates',
+    'django_prices_vatlayer',
     'graphene_django',
     'mptt',
     'payments',
@@ -276,6 +278,10 @@ DEFAULT_DECIMAL_PLACES = get_currency_fraction(DEFAULT_CURRENCY)
 AVAILABLE_CURRENCIES = [DEFAULT_CURRENCY]
 
 OPENEXCHANGERATES_API_KEY = os.environ.get('OPENEXCHANGERATES_API_KEY')
+
+# VAT configuration
+# Enabling vat requires valid vatlayer access key.
+VATLAYER_ACCESS_KEY = os.environ.get('VATLAYER_ACCESS_KEY')
 
 ACCOUNT_ACTIVATION_DAYS = 3
 
@@ -464,8 +470,10 @@ ALLOWED_ATTRIBUTES = {
 ALLOWED_STYLES = ['text-align']
 
 
-# slugs for menus used in storefront's base template, created by default
-DEFAULT_MENUS = ['navbar', 'footer']
+# Slugs for menus precreated in Django migrations
+DEFAULT_MENUS = {
+    'top_menu_name': 'navbar',
+    'bottom_menu_name': 'footer'}
 
 # The below settings key is containing:
 #   - the privacy policy page slug;

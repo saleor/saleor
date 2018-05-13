@@ -1,5 +1,4 @@
 import graphene
-from django.db.models import Q
 from graphene import relay
 from graphene_django.filter import DjangoFilterConnectionField
 
@@ -11,12 +10,28 @@ from ...product.utils.costs import get_product_costs_data
 from ..core.decorators import permission_required
 from ..core.filters import DistinctFilterSet
 from ..core.types import (
-    CountableDjangoObjectType, Money, TaxedMoney, TaxedMoneyRange)
-from ..utils import get_node
+    CountableDjangoObjectType, Money, MoneyRange, TaxedMoney, TaxedMoneyRange)
 from .filters import ProductFilterSet
 
 
-class GrossMargin(graphene.ObjectType):
+def resolve_attribute_list(attributes):
+    attribute_list = []
+    if attributes:
+        product_attributes = dict(
+            models.ProductAttribute.objects.values_list('id', 'slug'))
+        attribute_values = dict(
+            models.AttributeChoiceValue.objects.values_list('id', 'slug'))
+        for k, v in attributes.items():
+            value = None
+            name = product_attributes.get(int(k))
+            if v:
+                value = attribute_values.get(int(v))
+            attribute_list.append(
+                SelectedAttribute(name=name, value=value))
+    return attribute_list
+
+
+class Margin(graphene.ObjectType):
     start = graphene.Int()
     stop = graphene.Int()
 
@@ -40,7 +55,7 @@ class ProductVariant(CountableDjangoObjectType):
     price_override = graphene.Field(
         Money,
         description="""Override the base price of a product if necessary.
-        A value of `null` indicates the the default product price is used.""")
+        A value of `null` indicates that the default product price is used.""")
     attributes = graphene.List(
         SelectedAttribute,
         description='List of attributes assigned to this variant.')
@@ -80,7 +95,6 @@ class Product(CountableDjangoObjectType):
         size=graphene.Argument(
             graphene.String,
             description='Size of a thumbnail, for example 255x255.'))
-    # TODO: drop this field in favor of particular ones?
     availability = graphene.Field(
         ProductAvailability,
         description="""Informs about product's availability in the storefront,
@@ -92,10 +106,8 @@ class Product(CountableDjangoObjectType):
     attributes = graphene.List(
         SelectedAttribute,
         description='List of product attributes assigned to this product.')
-    purchase_cost = graphene.Field(TaxedMoneyRange)
-    gross_margin = graphene.List(GrossMargin)
-    price_range = graphene.Field(TaxedMoneyRange)
-    price_range_undiscounted = graphene.Field(TaxedMoneyRange)
+    purchase_cost = graphene.Field(MoneyRange)
+    margin = graphene.List(Margin)
 
     class Meta:
         description = """Represents an individual item for sale in the
@@ -114,7 +126,7 @@ class Product(CountableDjangoObjectType):
     def resolve_availability(self, info):
         context = info.context
         availability = get_availability(
-            self, context.discounts, context.currency)
+            self, context.discounts, context.taxes, context.currency)
         return ProductAvailability(**availability._asdict())
 
     def resolve_attributes(self, info):
@@ -126,16 +138,9 @@ class Product(CountableDjangoObjectType):
         return purchase_cost
 
     @permission_required('product.view_product')
-    def resolve_gross_margin(self, info):
-        _, gross_margin = get_product_costs_data(self)
-        return [GrossMargin(gross_margin[0], gross_margin[1])]
-
-    def resolve_price_range(self, info):
-        context = info.context
-        return self.get_price_range(discounts=context.discounts)
-
-    def resolve_price_range_undiscounted(self, info):
-        return self.get_price_range()
+    def resolve_margin(self, info):
+        _, margin = get_product_costs_data(self)
+        return [Margin(margin[0], margin[1])]
 
 
 class ProductType(CountableDjangoObjectType):
@@ -148,6 +153,27 @@ class ProductType(CountableDjangoObjectType):
         attributes are available to products of this type."""
         interfaces = [relay.Node]
         model = models.ProductType
+
+    def resolve_products(self, info):
+        user = info.context.user
+        return products_visible_to_user(
+            user=user).filter(product_type=self).distinct()
+
+
+class Collection(CountableDjangoObjectType):
+    products = DjangoFilterConnectionField(
+        Product, filterset_class=ProductFilterSet,
+        description='List of collection products.')
+
+    class Meta:
+        description = "Represents a collection of products."
+        interfaces = [relay.Node]
+        model = models.Collection
+
+    def resolve_products(self, info, **kwargs):
+        user = info.context.user
+        return products_visible_to_user(
+            user=user).filter(collections=self).distinct()
 
 
 class Category(CountableDjangoObjectType):
@@ -229,58 +255,3 @@ class ProductAttribute(CountableDjangoObjectType):
 
     def resolve_values(self, info):
         return self.values.all()
-
-
-def resolve_attribute_list(attributes=None):
-    """
-    :param attributes: dict
-    :return: list of objects of type SelectedAttribute
-    """
-    attribute_list = []
-    if attributes:
-        product_attributes = dict(
-            models.ProductAttribute.objects.values_list('id', 'slug'))
-        attribute_values = dict(
-            models.AttributeChoiceValue.objects.values_list('id', 'slug'))
-        for k, v in attributes.items():
-            value = None
-            name = product_attributes.get(int(k))
-            if v:
-                value = attribute_values.get(int(v))
-            attribute_list.append(SelectedAttribute(name=name, value=value))
-    return attribute_list
-
-
-def resolve_categories(info, level=None):
-    qs = models.Category.objects.all()
-    if level is not None:
-        qs = qs.filter(level=level)
-    return qs.distinct()
-
-
-def resolve_products(info, category_id):
-    user = info.context.user
-    products = products_visible_to_user(user=user).distinct()
-    if category_id is not None:
-        category = get_node(info, category_id, only_type=Category)
-        return products.filter(category=category)
-    return products
-
-
-def resolve_attributes(category_id, info):
-    queryset = models.ProductAttribute.objects.prefetch_related('values')
-    if category_id:
-        # Get attributes that are used with product types
-        # within the given category.
-        category = get_node(info, category_id, only_type=Category)
-        if category is None:
-            return queryset.none()
-        tree = category.get_descendants(include_self=True)
-        product_types = {
-            obj[0]
-            for obj in models.Product.objects.filter(
-                category__in=tree).values_list('product_type_id')}
-        queryset = queryset.filter(
-            Q(product_types__in=product_types)
-            | Q(product_variant_types__in=product_types))
-    return queryset.distinct()

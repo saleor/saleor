@@ -1,8 +1,8 @@
 {% extends "base.html" %}
 {% load i18n %}
-{% load prices_i18n %}
-{% load staticfiles %}
 {% load get_thumbnail from product_images %}
+{% load price from taxed_prices %}
+{% load staticfiles %}
 
 {% block title %}{% trans "Your cart" context "Cart page title" %} — {{ block.super }}{% endblock %}
 
@@ -63,7 +63,9 @@
                   <small class="cart__line__quantity-error text-danger"></small>
                 </div>
                 <div class="cart-item-price col-md-5 col-12" data-product-id="{{ line.variant.pk }}">
-                  <p class="text-right">{{ line.get_total.gross|amount:'html' }}</p>
+                  <p class="text-right">
+                    {% price line.get_total %}
+                  </p>
                 </div>
               </div>
             </div>

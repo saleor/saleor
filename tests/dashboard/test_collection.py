@@ -1,3 +1,4 @@
+import json
 import pytest
 from django.urls import reverse
 
@@ -14,7 +15,6 @@ def test_list_view(admin_client, collection):
     assert list(context['collections']) == [collection]
 
 
-@pytest.mark.django_db
 def test_collection_form_name():
     data = {'name': 'Test Collection', 'products': []}
     form = CollectionForm(data)
@@ -27,7 +27,6 @@ def test_collection_form_name():
     assert not invalid_form.is_valid()
 
 
-@pytest.mark.django_db
 def test_collection_form_with_products(product):
     data = {'name': 'Test collection', 'products': [product.id]}
     form = CollectionForm(data)
@@ -76,3 +75,14 @@ def test_collection_delete_view(admin_client, collection):
     response = admin_client.post(url)
     assert response.status_code == 302
     assert Collection.objects.count() == (collections_count - 1)
+
+
+def test_collection_is_published_toggle_view(db, admin_client, collection):
+    url = reverse('dashboard:collection-publish', kwargs={'pk': collection.pk})
+    response = admin_client.post(url)
+    assert response.status_code == 200
+    data = {'success': True, 'is_published': False}
+    assert json.loads(response.content.decode('utf8')) == data
+    admin_client.post(url)
+    collection.refresh_from_db()
+    assert collection.is_published

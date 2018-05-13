@@ -30,7 +30,7 @@
       </a>
     </li>
     <li>
-      <a href="{% url 'dashboard:menu-detail' pk=menu.pk %}" class="breadcrumbs--ellipsed-item">
+      <a href="{% url 'dashboard:menu-details' pk=menu.pk %}" class="breadcrumbs--ellipsed-item">
         {{ menu }}
       </a>
     </li>
@@ -42,7 +42,7 @@
       </li>
       {% for node in path %}
         <li class="hide-on-med-and-down">
-          <a href="{% url 'dashboard:menu-item-detail' menu_pk=menu.pk item_pk=node.pk %}" title="{{ node.name }}" class="breadcrumbs--ellipsed-item">
+          <a href="{% url 'dashboard:menu-item-details' menu_pk=menu.pk item_pk=node.pk %}" title="{{ node.name }}" class="breadcrumbs--ellipsed-item">
             {{ node.name }}
           </a>
         </li>
@@ -76,7 +76,7 @@
             </div>
           </div>
           <div class="card-action right-align">
-            <a href="{% if menu_item.pk %}{% url 'dashboard:menu-item-detail' menu_pk=menu.pk item_pk=menu_item.pk %}{% elif menu_item.parent %}{% url 'dashboard:menu-item-detail' menu_pk=menu.pk item_pk=menu_item.parent.pk %}{% else %}{% url 'dashboard:menu-detail' pk=menu.pk %}{% endif %}" class="btn btn-flat">
+            <a href="{% if menu_item.pk %}{% url 'dashboard:menu-item-details' menu_pk=menu.pk item_pk=menu_item.pk %}{% elif menu_item.parent %}{% url 'dashboard:menu-item-details' menu_pk=menu.pk item_pk=menu_item.parent.pk %}{% else %}{% url 'dashboard:menu-details' pk=menu.pk %}{% endif %}" class="btn btn-flat">
               {% trans "Cancel" context "Dashboard cancel action" %}
             </a>
             {% if menu_item.pk %}

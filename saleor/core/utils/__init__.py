@@ -14,15 +14,15 @@ from django_babel.templatetags.babel import currencyfmt
 from django_countries import countries
 from django_countries.fields import Country
 from django_prices_openexchangerates import exchange_currency
+from django_prices_vatlayer.utils import (
+    get_tax_rates_for_country, get_tax_for_rate)
 from geolite2 import geolite2
-from prices import Money, MoneyRange, TaxedMoney
+from prices import MoneyRange
 from versatileimagefield.image_warmer import VersatileImageFieldWarmer
 
 from ...account.models import User
-
-ZERO_TAXED_MONEY = TaxedMoney(
-    net=Money(0, settings.DEFAULT_CURRENCY),
-    gross=Money(0, settings.DEFAULT_CURRENCY))
+from ...core.i18n import COUNTRY_CODE_CHOICES
+from ...core.utils.taxes import DEFAULT_TAX_RATE_NAME
 
 georeader = geolite2.reader()
 logger = logging.getLogger(__name__)
@@ -159,3 +159,10 @@ def create_thumbnails(pk, model, size_set, image_attr=None):
     if failed_to_create:
         logger.error('Failed to generate thumbnails',
                      extra={'paths': failed_to_create})
+
+
+def get_country_name_by_code(country_code):
+    country_name = next(
+        (name for code, name in COUNTRY_CODE_CHOICES if code == country_code),
+        country_code)
+    return country_name

@@ -1,4 +1,5 @@
 from decimal import Decimal
+from operator import attrgetter
 from uuid import uuid4
 
 from django.conf import settings
@@ -15,7 +16,9 @@ from prices import Money, TaxedMoney
 
 from . import FulfillmentStatus, OrderStatus
 from ..account.models import Address
-from ..core.utils import ZERO_TAXED_MONEY, build_absolute_uri
+from ..core.models import BaseNote
+from ..core.utils import build_absolute_uri
+from ..core.utils.taxes import ZERO_TAXED_MONEY
 from ..discount.models import Voucher
 from ..product.models import ProductVariant
 from ..shipping.models import ShippingMethodCountry
@@ -85,6 +88,7 @@ class Order(models.Model):
         currency=settings.DEFAULT_CURRENCY, max_digits=12,
         decimal_places=settings.DEFAULT_DECIMAL_PLACES, default=0)
     discount_name = models.CharField(max_length=255, default='', blank=True)
+    display_gross_prices = models.BooleanField(default=True)
 
     objects = OrderQueryset.as_manager()
 
@@ -106,9 +110,7 @@ class Order(models.Model):
             [
                 payment.get_total_price() for payment in
                 self.payments.filter(status=PaymentStatus.CONFIRMED)],
-            TaxedMoney(
-                net=Money(0, settings.DEFAULT_CURRENCY),
-                gross=Money(0, settings.DEFAULT_CURRENCY)))
+            ZERO_TAXED_MONEY)
         return total_paid.gross >= self.total.gross
 
     def get_user_current_email(self):
@@ -133,13 +135,15 @@ class Order(models.Model):
         return reverse('order:details', kwargs={'token': self.token})
 
     def get_last_payment_status(self):
-        last_payment = self.payments.last()
+        last_payment = max(
+            self.payments.all(), default=None, key=attrgetter('pk'))
         if last_payment:
             return last_payment.status
         return None
 
     def get_last_payment_status_display(self):
-        last_payment = self.payments.last()
+        last_payment = max(
+            self.payments.all(), default=None, key=attrgetter('pk'))
         if last_payment:
             return last_payment.get_status_display()
         return None
@@ -153,10 +157,6 @@ class Order(models.Model):
 
     def is_shipping_required(self):
         return any(line.is_shipping_required for line in self)
-
-    def get_status_display(self):
-        """Order status display text."""
-        return dict(OrderStatus.CHOICES)[self.status]
 
     def get_subtotal(self):
         subtotal_iterator = (line.get_total() for line in self)
@@ -182,7 +182,8 @@ class OrderLine(models.Model):
     variant = models.ForeignKey(
         ProductVariant, related_name='+', on_delete=models.SET_NULL,
         blank=True, null=True)
-    product_name = models.CharField(max_length=128)
+    # max_length is as produced by ProductVariant's display_product method
+    product_name = models.CharField(max_length=386)
     product_sku = models.CharField(max_length=32)
     is_shipping_required = models.BooleanField()
     quantity = models.IntegerField(
@@ -197,6 +198,8 @@ class OrderLine(models.Model):
         decimal_places=settings.DEFAULT_DECIMAL_PLACES)
     unit_price = TaxedMoneyField(
         net_field='unit_price_net', gross_field='unit_price_gross')
+    tax_rate = models.DecimalField(
+        max_digits=5, decimal_places=2, default='0.0')
 
     def __str__(self):
         return self.product_name
@@ -257,20 +260,9 @@ class FulfillmentLine(models.Model):
         validators=[MinValueValidator(0), MaxValueValidator(999)])
 
 
-class PaymentQuerySet(models.QuerySet):
-    def last(self):
-        # using .all() here reuses data fetched by prefetch_related
-        objects = list(self.all()[:1])
-        if objects:
-            return objects[0]
-        return None
-
-
 class Payment(BasePayment):
     order = models.ForeignKey(
         Order, related_name='payments', on_delete=models.PROTECT)
-
-    objects = PaymentQuerySet.as_manager()
 
     class Meta:
         ordering = ('-pk',)
@@ -310,9 +302,7 @@ class Payment(BasePayment):
             gross=Money(self.total, self.currency))
 
     def get_captured_price(self):
-        return TaxedMoney(
-            net=Money(self.captured_amount, self.currency),
-            gross=Money(self.captured_amount, self.currency))
+        return Money(self.captured_amount, self.currency)
 
 
 class OrderHistoryEntry(models.Model):
@@ -328,15 +318,9 @@ class OrderHistoryEntry(models.Model):
         ordering = ('date', )
 
 
-class OrderNote(models.Model):
-    user = models.ForeignKey(
-        settings.AUTH_USER_MODEL, blank=True, null=True,
-        on_delete=models.SET_NULL)
-    date = models.DateTimeField(db_index=True, auto_now_add=True)
+class OrderNote(BaseNote):
     order = models.ForeignKey(
         Order, related_name='notes', on_delete=models.CASCADE)
-    content = models.TextField()
-    is_public = models.BooleanField(default=True)
 
     class Meta:
         ordering = ('date', )

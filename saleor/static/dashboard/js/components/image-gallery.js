@@ -1,14 +1,11 @@
 // eslint-disable-next-line no-unused-vars
 import Dropzone from 'dropzone';
-import Sortable from 'sortablejs';
 
 function createLink (link, index, replacement) {
   const outputLink = link.attr('data-href-template').split('/');
   outputLink[outputLink.length + index] = replacement;
   return outputLink.join('/');
 }
-
-const productGallery = document.getElementById('product-gallery');
 
 // -----
 
@@ -39,26 +36,3 @@ $('#product-image-form').dropzone({
     });
   }
 });
-
-if (productGallery) {
-  Sortable.create(productGallery, {
-    handle: '.sortable__drag-area',
-    onUpdate: () => {
-      const orderedImages = $(productGallery)
-        .find('.product-gallery-item[data-id]')
-        .map((index, item) => item.dataset.id)
-        .toArray();
-
-      // TODO: Get rid of ajax() in favour of fetch()
-      $.ajax({
-        method: 'POST',
-        url: $(productGallery).data('post-url'),
-        data: {ordered_images: orderedImages},
-        traditional: true,
-        headers: {
-          'X-CSRFToken': $.cookie('csrftoken')
-        }
-      });
-    }
-  });
-}

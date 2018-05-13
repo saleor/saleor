@@ -57,3 +57,12 @@ Environment variables
 
 ``STATIC_URL``
   Controls production assets' mount path. Defaults to ``/static/assets/``.
+
+``VATLAYER_ACCESS_KEY``
+  Access key to `vatlayer API <https://vatlayer.com/>`_. Enables VAT support within European Union.
+
+  To update the tax rates run the following command at least once per day:
+
+  .. code-block:: console
+
+   $ python manage.py get_vat_rates

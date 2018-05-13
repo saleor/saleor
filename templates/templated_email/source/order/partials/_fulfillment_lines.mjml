@@ -3,8 +3,8 @@
     <mj-table>
       <thead class="table-header-row">
         <tr>
-          <th>Item</th>
-          <th>Quantity</th>
+          <th style="text-align: left;">Item</th>
+          <th style="text-align: right;">Quantity</th>
         </tr>
       </thead>
       <tbody>

@@ -31,3 +31,10 @@ def test_collection_not_exists(client):
     url = reverse('product:collection', kwargs=url_kwargs)
     response = client.get(url)
     assert response.status_code == 404
+
+
+def test_collection_not_published_404(client, draft_collection):
+    url_kwargs = {'pk': draft_collection.pk, 'slug': draft_collection.slug}
+    url = reverse('product:collection', kwargs=url_kwargs)
+    response = client.get(url)
+    assert response.status_code == 404

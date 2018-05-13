@@ -1,9 +1,9 @@
 {% extends "dashboard/base.html" %}
-{% load prices_i18n %}
 {% load i18n %}
 {% load materializecss %}
-{% load status %}
+{% load price from taxed_prices %}
 {% load staticfiles %}
+{% load status %}
 
 {% block title %}
   {{ customer }} - {% trans "Customers" context "Dashboard customers list" %} - {{ block.super }}
@@ -56,6 +56,18 @@
               </div>
             {% endif %}
           </div>
+          {% if customer.note %}
+            <div class="row">
+              <div class="col s12 m4 l12">
+                <h4>
+                  {% trans "Note" context "Customer field" %}
+                </h4>
+                <p>
+                  {{ customer.note }}
+                </p>
+              </div>
+            </div>
+          {% endif %}
         </div>
         <div class="card-action">
           {% if perms.account.edit_user %}
@@ -69,7 +81,6 @@
             </a>
           {% endif %}
         </div>
-
       </div>
 
       <div class="card">
@@ -110,7 +121,7 @@
                       {% render_order_status order.status order.get_status_display %}
                     </td>
                     <td class="right-align">
-                      {{ order.total.gross|amount:'html' }}
+                      {% price order.total.gross %}
                     </td>
                   </tr>
                 {% endfor %}
@@ -122,6 +133,35 @@
             <p>
               {% trans "No orders found." context "Empty customer orders table message" %}
             </p>
+          </div>
+        {% endif %}
+      </div>
+
+      <div class="card">
+        <div class="card-content">
+          <span class="card-title">
+            {% trans "Customer notes" context "Customer notes card title" %}
+          </span>
+          {% if notes %}
+            <ul class="list">
+              {% for note in notes %}
+                <li class="list-item list-item--spaced">
+                  <small class="list-item-author">{{ note.user }} - {{ note.date }}</small>
+                  <p>{{ note.content }}</p>
+                </li>
+              {% endfor %}
+            </ul>
+          {% else %}
+            <div>
+              {% trans "There are no notes associated with this customer" context "Customer without notes message" %}
+            </div>
+          {% endif %}
+        </div>
+        {% if perms.account.edit_user %}
+          <div class="card-action">
+            <a data-href="{% url "dashboard:customer-add-note" customer_pk=customer.pk %}" class="modal-trigger-custom btn-flat waves-effect" href="#base-modal">
+              {% trans "Add note" context "Customer notes card action" %}
+            </a>
           </div>
         {% endif %}
       </div>

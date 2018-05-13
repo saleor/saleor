@@ -4,6 +4,7 @@ from unittest.mock import patch
 import graphene
 import pytest
 from django.conf import settings
+from django.forms.models import model_to_dict
 from django.shortcuts import reverse
 from django.utils.text import slugify
 from graphql_jwt.exceptions import PermissionDenied
@@ -11,9 +12,42 @@ from prices import Money
 
 from saleor.graphql.core.mutations import (
     ModelFormMutation, ModelFormUpdateMutation)
-from saleor.product.models import Category, Product, ProductAttribute
+from saleor.page.models import Page
+from saleor.product.models import (
+    Category, Product, ProductAttribute, ProductType)
 
 from .utils import get_graphql_content
+
+
+def test_create_token_mutation(admin_client, staff_user):
+    query = '''
+    mutation {
+        tokenCreate(email: "%(email)s", password: "%(password)s") {
+            token
+            errors {
+                field
+                message
+            }
+        }
+    }
+    '''
+    success_query = query % {'email': staff_user.email, 'password': 'password'}
+    response = admin_client.post(reverse('api'), {'query': success_query})
+    content = get_graphql_content(response)
+    assert 'errors' not in content
+    token_data = content['data']['tokenCreate']
+    assert token_data['token']
+    assert not token_data['errors']
+
+    error_query = query % {'email': staff_user.email, 'password': 'wat'}
+    response = admin_client.post(reverse('api'), {'query': error_query})
+    content = get_graphql_content(response)
+    assert 'errors' not in content
+    token_data = content['data']['tokenCreate']
+    assert not token_data['token']
+    errors = token_data['errors']
+    assert errors
+    assert not errors[0]['field']
 
 
 def test_category_query(client, product):
@@ -145,29 +179,13 @@ def test_product_query(admin_client, product):
                         }
                         purchaseCost{
                             start{
-                                gross{
-                                    amount
-                                }
+                                amount
                             }
                             stop{
-                                gross{
-                                    amount
-                                }
+                                amount
                             }
                         }
-                        priceRange{
-                            start{
-                                gross{
-                                    amount
-                                }
-                            }
-                            stop{
-                                gross{
-                                    amount
-                                }
-                            }
-                        }
-                        grossMargin {
+                        margin {
                             start
                             stop
                         }
@@ -189,18 +207,41 @@ def test_product_query(admin_client, product):
     gross = product_data['availability']['priceRange']['start']['gross']
     assert float(gross['amount']) == float(product.price.amount)
     from saleor.product.utils.costs import get_product_costs_data
-    purchase_cost, gross_margin = get_product_costs_data(product)
-    price_range = product.get_price_range()
-    assert purchase_cost.start.gross.amount == product_data[
-        'purchaseCost']['start']['gross']['amount']
-    assert purchase_cost.stop.gross.amount == product_data[
-        'purchaseCost']['stop']['gross']['amount']
-    assert gross_margin[0] == product_data['grossMargin'][0]['start']
-    assert gross_margin[1] == product_data['grossMargin'][0]['stop']
-    assert price_range.start.gross.amount == product_data[
-        'priceRange']['start']['gross']['amount']
-    assert price_range.stop.gross.amount == product_data[
-        'priceRange']['stop']['gross']['amount']
+    purchase_cost, margin = get_product_costs_data(product)
+    assert purchase_cost.start.amount == product_data[
+        'purchaseCost']['start']['amount']
+    assert purchase_cost.stop.amount == product_data[
+        'purchaseCost']['stop']['amount']
+    assert margin[0] == product_data['margin'][0]['start']
+    assert margin[1] == product_data['margin'][0]['stop']
+
+
+def test_product_with_collections(admin_client, product, collection):
+    query = '''
+        query getProduct($productID: ID!) {
+            product(id: $productID) {
+                collections(first: 1) {
+                    edges {
+                        node {
+                            name
+                        }
+                    }
+                }
+            }
+        }
+        '''
+    product.collections.add(collection)
+    product.save()
+    product_id = graphene.Node.to_global_id('Product', product.id)
+
+    variables = json.dumps({'productID': product_id})
+    response = admin_client.post(
+        reverse('api'), {'query': query, 'variables': variables})
+    content = get_graphql_content(response)
+    assert 'errors' not in content
+    data = content['data']['product']
+    assert data['collections']['edges'][0]['node']['name'] == collection.name
+    assert len(data['collections']['edges']) == 1
 
 
 def test_filter_product_by_category(client, product):
@@ -510,7 +551,6 @@ def test_real_query(admin_client, product):
             id
             name
             slug
-            color
             __typename
         }
         __typename
@@ -528,7 +568,6 @@ def test_real_query(admin_client, product):
                     'attributesFilter': [filter_by]})})
     content = get_graphql_content(response)
     assert 'errors' not in content
-
 
 def test_page_query(client, page):
     page.is_visible = True
@@ -550,6 +589,40 @@ def test_page_query(client, page):
     assert page_data['title'] == page.title
     assert page_data['slug'] == page.slug
 
+
+def test_paginate_pages(client, page):
+    page.is_visible = True
+    data_02 = {
+        'slug': 'test02-url',
+        'title': 'Test page',
+        'content': 'test content',
+        'is_visible': True}
+    data_03 = {
+        'slug': 'test03-url',
+        'title': 'Test page',
+        'content': 'test content',
+        'is_visible': True}
+
+    page2 = Page.objects.create(**data_02)
+    page3 = Page.objects.create(**data_03)
+    query = """
+        query PagesQuery {
+            pages(first: 2) {
+                edges {
+                    node {
+                        id
+                        title
+                    }
+                }
+            }
+        }
+        """
+    response = client.post(
+        reverse('api'), {'query': query})
+    content = get_graphql_content(response)
+    assert 'errors' not in content
+    pages_data = content['data']['pages']
+    assert len(pages_data['edges']) == 2
 
 @patch('saleor.graphql.core.mutations.convert_form_fields')
 @patch('saleor.graphql.core.mutations.convert_form_field')
@@ -607,6 +680,8 @@ def test_create_product(
             $description: String!,
             $isPublished: Boolean!,
             $isFeatured: Boolean!,
+            $chargeTaxes: Boolean!,
+            $taxRate: String!,
             $price: Float!,
             $attributes: [AttributeValueInput]) {
                 productCreate(
@@ -616,6 +691,8 @@ def test_create_product(
                     description: $description,
                     isPublished: $isPublished,
                     isFeatured: $isFeatured,
+                    chargeTaxes: $chargeTaxes,
+                    taxRate: $taxRate,
                     price: $price,
                     attributes: $attributes) {
                         product {
@@ -625,6 +702,8 @@ def test_create_product(
                             description
                             isPublished
                             isFeatured
+                            chargeTaxes
+                            taxRate
                             name
                             price{
                                 amount
@@ -653,6 +732,8 @@ def test_create_product(
     product_name = 'test name'
     product_isPublished = True
     product_isFeatured = False
+    product_chargeTaxes = True
+    product_taxRate = 'standard'
     product_price = 22
 
     # Default attribute defined in product_type fixture
@@ -673,6 +754,8 @@ def test_create_product(
         'description': product_description,
         'isPublished': product_isPublished,
         'isFeatured': product_isFeatured,
+        'chargeTaxes': product_chargeTaxes,
+        'taxRate': product_taxRate,
         'price': product_price,
         'attributes': [
             {'slug': color_attr_slug, 'value': color_attr_value},
@@ -688,6 +771,8 @@ def test_create_product(
     assert data['product']['description'] == product_description
     assert data['product']['isFeatured'] == product_isFeatured
     assert data['product']['isPublished'] == product_isPublished
+    assert data['product']['chargeTaxes'] == product_chargeTaxes
+    assert data['product']['taxRate'] == product_taxRate
     assert data['product']['productType']['name'] == product_type.name
     assert data['product']['category']['name'] == default_category.name
     values = (
@@ -708,6 +793,8 @@ def test_update_product(
             $description: String!,
             $isPublished: Boolean!,
             $isFeatured: Boolean!,
+            $chargeTaxes: Boolean!,
+            $taxRate: String!,
             $price: Float!,
             $attributes: [AttributeValueInput]) {
                 productUpdate(
@@ -717,6 +804,8 @@ def test_update_product(
                     description: $description,
                     isPublished: $isPublished,
                     isFeatured: $isFeatured,
+                    chargeTaxes: $chargeTaxes,
+                    taxRate: $taxRate,
                     price: $price,
                     attributes: $attributes) {
                         product {
@@ -726,6 +815,8 @@ def test_update_product(
                             description
                             isPublished
                             isFeatured
+                            chargeTaxes
+                            taxRate
                             name
                             price{
                                 amount
@@ -752,6 +843,8 @@ def test_update_product(
     product_name = 'updated name'
     product_isPublished = True
     product_isFeatured = False
+    product_chargeTaxes = True
+    product_taxRate = 'standard'
     product_price = 33
 
     variables = json.dumps({
@@ -761,6 +854,8 @@ def test_update_product(
         'description': product_description,
         'isPublished': product_isPublished,
         'isFeatured': product_isFeatured,
+        'chargeTaxes': product_chargeTaxes,
+        'taxRate': product_taxRate,
         'price': product_price})
 
     response = admin_client.post(
@@ -773,6 +868,8 @@ def test_update_product(
     assert data['product']['description'] == product_description
     assert data['product']['isFeatured'] == product_isFeatured
     assert data['product']['isPublished'] == product_isPublished
+    assert data['product']['chargeTaxes'] == product_chargeTaxes
+    assert data['product']['taxRate'] == product_taxRate
     assert not data['product']['category']['name'] == default_category.name
 
 
@@ -1107,3 +1204,221 @@ def test_page_delete_mutation__protected_page(admin_client, page):
 
     assert len(errors) == 1
     assert errors[0]['message'] == PermissionDenied.default_message
+
+
+def test_product_type(client, product_type):
+    query = """
+    query {
+        productTypes {
+            totalCount
+            edges {
+                node {
+                    id
+                    name
+                }
+            }
+        }
+    }
+    """
+    response = client.post(reverse('api'), {'query': query})
+    content = get_graphql_content(response)
+    no_product_types = ProductType.objects.count()
+    assert 'errors' not in content
+    assert content['data']['productTypes']['totalCount'] == no_product_types
+    assert len(content['data']['productTypes']['edges']) == no_product_types
+
+
+def test_product_type_query(
+        client, admin_client, product_type, product):
+    query = """
+            query getProductType($id: ID!) {
+                productType(id: $id) {
+                    name
+                    products {
+                        totalCount
+                        edges{
+                            node{
+                                name
+                            }
+                        }
+                    }
+                }
+            }
+        """
+    no_products = Product.objects.count()
+    product.is_published = False
+    product.save()
+    variables = json.dumps({
+        'id': graphene.Node.to_global_id('ProductType', product_type.id)})
+
+    response = client.post(
+        reverse('api'), {'query': query, 'variables': variables})
+    content = get_graphql_content(response)
+    assert 'errors' not in content
+    data = content['data']
+    assert data['productType']['products']['totalCount'] == no_products - 1
+
+    response = admin_client.post(
+        reverse('api'), {'query': query, 'variables': variables})
+    content = get_graphql_content(response)
+    assert 'errors' not in content
+    data = content['data']
+    assert data['productType']['products']['totalCount'] == no_products
+
+
+def test_product_type_create_mutation(admin_client, product_type):
+    query = """
+    mutation createProductType(
+        $name: String!,
+        $hasVariants: Boolean!,
+        $isShippingRequired: Boolean!,
+        $productAttributes: [ID],
+        $variantAttributes: [ID]) {
+            productTypeCreate(
+            name: $name,
+            hasVariants: $hasVariants,
+            isShippingRequired: $isShippingRequired,
+            productAttributes: $productAttributes,
+            variantAttributes: $variantAttributes) {
+                productType {
+                    name
+                    isShippingRequired
+                    hasVariants
+                    variantAttributes {
+                        edges {
+                            node {
+                                name
+                            }
+                        }
+                    }
+                    productAttributes {
+                        edges {
+                            node {
+                                name
+                            }
+                        }
+                    }
+                }
+              }
+            }
+    """
+    product_type_name = 'test type'
+    has_variants = True
+    require_shipping = True
+    product_attributes = product_type.product_attributes.all()
+    product_attributes_ids = [
+        graphene.Node.to_global_id('ProductAttribute', att.id) for att in
+        product_attributes]
+    variant_attributes = product_type.variant_attributes.all()
+    variant_attributes_ids = [
+        graphene.Node.to_global_id('ProductAttribute', att.id) for att in
+        variant_attributes]
+
+    variables = json.dumps({
+        'name': product_type_name, 'hasVariants': has_variants,
+        'isShippingRequired': require_shipping,
+        'productAttributes': product_attributes_ids,
+        'variantAttributes': variant_attributes_ids})
+    response = admin_client.post(
+        reverse('api'), {'query': query, 'variables': variables})
+    content = get_graphql_content(response)
+    assert 'errors' not in content
+    data = content['data']['productTypeCreate']
+    assert data['productType']['name'] == product_type_name
+    assert data['productType']['hasVariants'] == has_variants
+    assert data['productType']['isShippingRequired'] == require_shipping
+    no_pa = product_attributes.count()
+    assert len(data['productType']['productAttributes']['edges']) == no_pa
+    no_va = variant_attributes.count()
+    assert len(data['productType']['variantAttributes']['edges']) == no_va
+
+
+def test_product_type_update_mutation(admin_client, product_type):
+    query = """
+    mutation updateProductType(
+        $id: ID!,
+        $name: String!,
+        $hasVariants: Boolean!,
+        $isShippingRequired: Boolean!,
+        $productAttributes: [ID],
+        ) {
+            productTypeUpdate(
+            id: $id,
+            name: $name,
+            hasVariants: $hasVariants,
+            isShippingRequired: $isShippingRequired,
+            productAttributes: $productAttributes) {
+                productType {
+                    name
+                    isShippingRequired
+                    hasVariants
+                    variantAttributes {
+                        edges {
+                            node {
+                                name
+                            }
+                        }
+                    }
+                    productAttributes {
+                        edges {
+                            node {
+                                name
+                            }
+                        }
+                    }
+                }
+              }
+            }
+    """
+    product_type_name = 'test type updated'
+    has_variants = True
+    require_shipping = False
+    product_type_id = graphene.Node.to_global_id(
+        'ProductType', product_type.id)
+
+    # Test scenario: remove all product attributes using [] as input
+    # but do not change variant attributes
+    product_attributes = []
+    product_attributes_ids = [
+        graphene.Node.to_global_id('ProductAttribute', att.id) for att in
+        product_attributes]
+    variant_attributes = product_type.variant_attributes.all()
+
+    variables = json.dumps({
+        'id': product_type_id, 'name': product_type_name,
+        'hasVariants': has_variants,
+        'isShippingRequired': require_shipping,
+        'productAttributes': product_attributes_ids})
+    response = admin_client.post(
+        reverse('api'), {'query': query, 'variables': variables})
+    content = get_graphql_content(response)
+    assert 'errors' not in content
+    data = content['data']['productTypeUpdate']
+    assert data['productType']['name'] == product_type_name
+    assert data['productType']['hasVariants'] == has_variants
+    assert data['productType']['isShippingRequired'] == require_shipping
+    assert len(data['productType']['productAttributes']['edges']) == 0
+    no_va = variant_attributes.count()
+    assert len(data['productType']['variantAttributes']['edges']) == no_va
+
+
+def test_product_type_delete_mutation(admin_client, product_type):
+    query = """
+        mutation deleteProductType($id: ID!) {
+            productTypeDelete(id: $id) {
+                productType {
+                    name
+                }
+            }
+        }
+    """
+    variables = json.dumps({
+        'id': graphene.Node.to_global_id('ProductType', product_type.id)})
+    response = admin_client.post(
+        reverse('api'), {'query': query, 'variables': variables})
+    content = get_graphql_content(response)
+    assert 'errors' not in content
+    data = content['data']['productTypeDelete']
+    assert data['productType']['name'] == product_type.name
+    with pytest.raises(product_type._meta.model.DoesNotExist):
+        product_type.refresh_from_db()

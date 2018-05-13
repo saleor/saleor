@@ -1,13 +1,69 @@
 import json
 
 import pytest
-from django.urls import reverse
 
+from django.urls import reverse
+from saleor.account.models import User
+from saleor.dashboard.menu.forms import AssignMenuForm
 from saleor.menu.models import Menu, MenuItem
+
 from ..utils import get_redirect_location
 
 
-@pytest.mark.django_db
+def test_assign_menu_form(admin_user, menu, site_settings):
+    data = {'top_menu': menu.pk, 'bottom_menu': ''}
+    form = AssignMenuForm(data=data, user=admin_user, instance=site_settings)
+    assert not form.fields['top_menu'].disabled
+    assert not form.fields['bottom_menu'].disabled
+    assert form.is_valid()
+
+
+def test_assign_menu_form_no_permission(staff_user, menu, site_settings):
+    data = {'top_menu': menu.pk, 'bottom_menu': ''}
+    form = AssignMenuForm(data=data, user=staff_user, instance=site_settings)
+    assert form.fields['top_menu'].disabled
+    assert form.fields['bottom_menu'].disabled
+    assert form.is_valid()
+
+
+def test_view_menu_list_assign_new_menu_to_settings(
+        admin_client, menu, site_settings):
+    url = reverse('dashboard:menu-list')
+    top_menu = menu
+    menu.pk = None
+    menu.save()
+    bottom_menu = Menu.objects.exclude(pk=menu.pk).first()
+    site_settings.bottom_menu = bottom_menu
+    site_settings.save()
+    assert site_settings.bottom_menu
+
+    data = {'top_menu': top_menu.pk, 'bottom_menu': ''}
+    response = admin_client.post(url, data=data)
+
+    assert response.status_code == 302
+    assert get_redirect_location(response) == url
+
+    site_settings.refresh_from_db()
+    assert site_settings.top_menu == top_menu
+    assert not site_settings.bottom_menu
+
+
+def test_view_menu_list_assign_new_menu_to_settings_no_edit_permission(
+        staff_client, menu, site_settings, permission_view_menu, staff_group,
+        staff_user):
+    staff_group.permissions.add(permission_view_menu)
+    staff_user.groups.add(staff_group)
+
+    url = reverse('dashboard:menu-list')
+    data = {'top_menu': menu.pk, 'bottom_menu': ''}
+    response = staff_client.post(url, data=data)
+    assert response.status_code == 200
+
+    site_settings.refresh_from_db()
+    assert not site_settings.top_menu
+    assert not site_settings.bottom_menu
+
+
 def test_view_menu_list(admin_client, menu):
     url = reverse('dashboard:menu-list')
 
@@ -19,11 +75,10 @@ def test_view_menu_list(admin_client, menu):
     assert len(menu_list) == Menu.objects.count()
 
 
-@pytest.mark.django_db
 def test_view_menu_create(admin_client):
     menus_before = Menu.objects.count()
     url = reverse('dashboard:menu-add')
-    data = {'slug': 'new-menu'}
+    data = {'name': 'Summer Collection'}
 
     response = admin_client.post(url, data)
 
@@ -32,7 +87,6 @@ def test_view_menu_create(admin_client):
     assert Menu.objects.count() == menus_before + 1
 
 
-@pytest.mark.django_db
 def test_view_menu_create_not_valid(admin_client):
     menus_before = Menu.objects.count()
     url = reverse('dashboard:menu-add')
@@ -44,24 +98,22 @@ def test_view_menu_create_not_valid(admin_client):
     assert Menu.objects.count() == menus_before
 
 
-@pytest.mark.django_db
 def test_view_menu_edit(admin_client, menu):
     url = reverse('dashboard:menu-edit', kwargs={'pk': menu.pk})
-    slug = 'navbar2'
-    data = {'slug': slug}
+    name = 'Summer Collection'
+    data = {'name': name}
 
     response = admin_client.post(url, data)
 
     assert response.status_code == 302
-    redirect_url = reverse('dashboard:menu-detail', kwargs={'pk': menu.pk})
+    redirect_url = reverse('dashboard:menu-details', kwargs={'pk': menu.pk})
     assert get_redirect_location(response) == redirect_url
     menu.refresh_from_db()
-    assert menu.slug == slug
+    assert menu.name == name
 
 
-@pytest.mark.django_db
-def test_view_menu_detail(admin_client, menu):
-    url = reverse('dashboard:menu-detail', kwargs={'pk': menu.pk})
+def test_view_menu_details(admin_client, menu):
+    url = reverse('dashboard:menu-details', kwargs={'pk': menu.pk})
 
     response = admin_client.post(url)
 
@@ -69,7 +121,6 @@ def test_view_menu_detail(admin_client, menu):
     assert response.context['menu'] == menu
 
 
-@pytest.mark.django_db
 def test_view_menu_delete(admin_client, menu):
     menus_before = Menu.objects.count()
     url = reverse('dashboard:menu-delete', kwargs={'pk': menu.pk})
@@ -81,7 +132,6 @@ def test_view_menu_delete(admin_client, menu):
     assert Menu.objects.count() == menus_before - 1
 
 
-@pytest.mark.django_db
 def test_view_menu_item_create(admin_client, menu, default_category):
     url = reverse('dashboard:menu-item-add', kwargs={'menu_pk': menu.pk})
     linked_object = str(default_category.id) + '_Category'
@@ -90,14 +140,13 @@ def test_view_menu_item_create(admin_client, menu, default_category):
     response = admin_client.post(url, data)
 
     assert response.status_code == 302
-    redirect_url = reverse('dashboard:menu-detail', kwargs={'pk': menu.pk})
+    redirect_url = reverse('dashboard:menu-details', kwargs={'pk': menu.pk})
     assert get_redirect_location(response) == redirect_url
     assert MenuItem.objects.count() == 1
     menu_item = MenuItem.objects.first()
     assert menu_item.sort_order == 0
 
 
-@pytest.mark.django_db
 def test_view_menu_item_create_with_parent(
         admin_client, menu, menu_item, default_category):
     url = reverse(
@@ -110,7 +159,7 @@ def test_view_menu_item_create_with_parent(
 
     assert response.status_code == 302
     redirect_url = reverse(
-        'dashboard:menu-item-detail',
+        'dashboard:menu-item-details',
         kwargs={'menu_pk': menu.pk, 'item_pk': menu_item.pk})
     assert get_redirect_location(response) == redirect_url
     assert MenuItem.objects.count() == 2
@@ -119,7 +168,6 @@ def test_view_menu_item_create_with_parent(
     assert new_menu_item.sort_order == 0
 
 
-@pytest.mark.django_db
 def test_view_menu_item_create_not_valid(admin_client, menu):
     url = reverse('dashboard:menu-item-add', kwargs={'menu_pk': menu.pk})
     data = {}
@@ -130,7 +178,6 @@ def test_view_menu_item_create_not_valid(admin_client, menu):
     assert MenuItem.objects.count() == 0
 
 
-@pytest.mark.django_db
 def test_view_menu_item_edit(admin_client, menu, menu_item, default_category):
     url = reverse(
         'dashboard:menu-item-edit',
@@ -142,7 +189,7 @@ def test_view_menu_item_edit(admin_client, menu, menu_item, default_category):
 
     assert response.status_code == 302
     redirect_url = reverse(
-        'dashboard:menu-item-detail',
+        'dashboard:menu-item-details',
         kwargs={'menu_pk': menu.pk, 'item_pk': menu_item.pk})
     assert get_redirect_location(response) == redirect_url
     assert MenuItem.objects.count() == 1
@@ -150,7 +197,6 @@ def test_view_menu_item_edit(admin_client, menu, menu_item, default_category):
     assert menu_item.name == 'New link'
 
 
-@pytest.mark.django_db
 def test_view_menu_item_delete(admin_client, menu, menu_item):
     url = reverse(
         'dashboard:menu-item-delete',
@@ -159,12 +205,11 @@ def test_view_menu_item_delete(admin_client, menu, menu_item):
     response = admin_client.post(url)
 
     assert response.status_code == 302
-    redirect_url = reverse('dashboard:menu-detail', kwargs={'pk': menu.pk})
+    redirect_url = reverse('dashboard:menu-details', kwargs={'pk': menu.pk})
     assert get_redirect_location(response) == redirect_url
     assert MenuItem.objects.count() == 0
 
 
-@pytest.mark.django_db
 def test_view_menu_item_delete_with_parent(admin_client, menu, menu_item):
     new_menu_item = MenuItem.objects.create(
         menu=menu, name='New Link', url='http://example.com/',
@@ -177,16 +222,15 @@ def test_view_menu_item_delete_with_parent(admin_client, menu, menu_item):
 
     assert response.status_code == 302
     redirect_url = reverse(
-        'dashboard:menu-item-detail',
+        'dashboard:menu-item-details',
         kwargs={'menu_pk': menu.pk, 'item_pk': menu_item.pk})
     assert get_redirect_location(response) == redirect_url
     assert MenuItem.objects.count() == 1
 
 
-@pytest.mark.django_db
-def test_view_menu_item_detail(admin_client, menu, menu_item):
+def test_view_menu_item_details(admin_client, menu, menu_item):
     url = reverse(
-        'dashboard:menu-item-detail',
+        'dashboard:menu-item-details',
         kwargs={'menu_pk': menu.pk, 'item_pk': menu_item.pk})
 
     response = admin_client.post(url)
@@ -196,7 +240,6 @@ def test_view_menu_item_detail(admin_client, menu, menu_item):
     assert response.context['menu_item'] == menu_item
 
 
-@pytest.mark.django_db
 def test_view_ajax_reorder_menu_items(admin_client, menu, menu_with_items):
     items = menu_with_items.items.filter(parent=None)
     order_before = [item.pk for item in items]
@@ -216,7 +259,6 @@ def test_view_ajax_reorder_menu_items(admin_client, menu, menu_with_items):
 
 
 @pytest.mark.integration
-@pytest.mark.django_db
 def test_view_ajax_reorder_menu_items_with_parent(
         admin_client, menu, menu_with_items):
     items = menu_with_items.items.exclude(parent=None)
@@ -239,7 +281,6 @@ def test_view_ajax_reorder_menu_items_with_parent(
 
 
 @pytest.mark.integration
-@pytest.mark.django_db
 def test_view_ajax_menu_links(
         admin_client, collection, default_category, page):
     collection_repr = {

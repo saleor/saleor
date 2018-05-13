@@ -31,7 +31,9 @@ class CountableDjangoObjectType(DjangoObjectType):
 
 class Error(graphene.ObjectType):
     field = graphene.String(
-        description='Name of a field that caused the error.')
+        description="""Name of a field that caused the error. A value of
+        `null` indicates that the error isn't associated with a particular
+        field.""", required=False)
     message = graphene.String(description='The error message.')
 
     class Meta:
@@ -49,6 +51,16 @@ class Money(graphene.ObjectType):
 
     def resolve_localized(self, info):
         return prices_i18n.amount(self)
+
+
+class MoneyRange(graphene.ObjectType):
+    start = graphene.Field(
+        Money, description='Lower bound of a price range.')
+    stop = graphene.Field(
+        Money, description='Upper bound of a price range.')
+
+    class Meta:
+        description = 'Represents a range of amounts of money.'
 
 
 class TaxedMoney(graphene.ObjectType):

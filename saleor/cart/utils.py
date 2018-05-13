@@ -65,7 +65,7 @@ def get_product_variants_and_prices(cart, product):
         if cart_line.variant.product_id == product.id)
     for line in lines:
         for dummy_i in range(line.quantity):
-            yield line.variant, line.get_price_per_item()
+            yield line.variant, line.variant.get_price()
 
 
 def get_category_variants_and_prices(cart, root_category):
@@ -155,7 +155,6 @@ def get_or_create_cart_from_request(request, cart_queryset=Cart.objects.all()):
 
 def get_cart_from_request(request, cart_queryset=Cart.objects.all()):
     """Fetch cart from database or return a new instance based on cookie."""
-    discounts = request.discounts
     if request.user.is_authenticated:
         cart = get_user_cart(request.user, cart_queryset)
         user = request.user
@@ -164,9 +163,8 @@ def get_cart_from_request(request, cart_queryset=Cart.objects.all()):
         cart = get_anonymous_cart_from_token(token, cart_queryset)
         user = None
     if cart is not None:
-        cart.discounts = discounts
         return cart
-    return Cart(user=user, discounts=discounts)
+    return Cart(user=user)
 
 
 def get_or_create_db_cart(cart_queryset=Cart.objects.all()):
@@ -209,7 +207,7 @@ def get_or_empty_db_cart(cart_queryset=Cart.objects.all()):
     return get_cart
 
 
-def get_cart_data(cart, shipping_range, currency, discounts):
+def get_cart_data(cart, shipping_range, currency, discounts, taxes):
     """Return a JSON-serializable representation of the cart."""
     cart_total = None
     local_cart_total = None
@@ -217,7 +215,7 @@ def get_cart_data(cart, shipping_range, currency, discounts):
     total_with_shipping = None
     local_total_with_shipping = None
     if cart:
-        cart_total = cart.get_total(discounts=discounts)
+        cart_total = cart.get_total(discounts, taxes)
         local_cart_total = to_local_currency(cart_total, currency)
         shipping_required = cart.is_shipping_required()
         total_with_shipping = TaxedMoneyRange(

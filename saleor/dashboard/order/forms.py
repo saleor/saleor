@@ -11,7 +11,7 @@ from ...account.i18n import (
 from ...account.models import User
 from ...cart.forms import QuantityField
 from ...core.exceptions import InsufficientStock
-from ...core.utils import ZERO_TAXED_MONEY
+from ...core.utils.taxes import ZERO_TAXED_MONEY
 from ...discount.models import Voucher
 from ...discount.utils import decrease_voucher_usage, increase_voucher_usage
 from ...order import CustomPaymentChoices, OrderStatus
@@ -27,8 +27,8 @@ from ...shipping.models import ANY_COUNTRY, ShippingMethodCountry
 from ..forms import AjaxSelect2ChoiceField
 from ..widgets import PhonePrefixWidget
 from .utils import (
-    fulfill_order_line, get_voucher_discount_for_order,
-    remove_customer_from_order, update_order_with_user_addresses)
+    fulfill_order_line, remove_customer_from_order,
+    update_order_with_user_addresses)
 
 
 class CreateOrderFromDraftForm(forms.ModelForm):
@@ -113,7 +113,7 @@ class OrderCustomerForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         user = self.instance.user
         if user:
-            self.fields['user'].set_initial(user, label=user.ajax_label)
+            self.fields['user'].set_initial(user, label=user.get_ajax_label())
 
     def clean(self):
         cleaned_data = super().clean()
@@ -159,6 +159,7 @@ class OrderShippingForm(forms.ModelForm):
                 'Shipping method form field label', 'Shipping method')}
 
     def __init__(self, *args, **kwargs):
+        self.taxes = kwargs.pop('taxes')
         super().__init__(*args, **kwargs)
         method_field = self.fields['shipping_method']
         fetch_data_url = reverse(
@@ -168,7 +169,7 @@ class OrderShippingForm(forms.ModelForm):
 
         method = self.instance.shipping_method
         if method:
-            method_field.set_initial(method, label=method.ajax_label)
+            method_field.set_initial(method, label=method.get_ajax_label())
 
         if self.instance.shipping_address:
             country_code = self.instance.shipping_address.country.code
@@ -179,8 +180,7 @@ class OrderShippingForm(forms.ModelForm):
     def save(self, commit=True):
         method = self.instance.shipping_method
         self.instance.shipping_method_name = method.shipping_method.name
-        self.instance.shipping_price = method.get_total_price()
-        recalculate_order(self.instance)
+        self.instance.shipping_price = method.get_total_price(self.taxes)
         recalculate_order(self.instance)
         return super().save(commit)
 
@@ -565,6 +565,7 @@ class AddVariantToOrderForm(forms.Form):
     def __init__(self, *args, **kwargs):
         self.order = kwargs.pop('order')
         self.discounts = kwargs.pop('discounts')
+        self.taxes = kwargs.pop('taxes')
         super().__init__(*args, **kwargs)
 
     def clean(self):
@@ -593,7 +594,7 @@ class AddVariantToOrderForm(forms.Form):
         variant = self.cleaned_data.get('variant')
         quantity = self.cleaned_data.get('quantity')
         add_variant_to_order(
-            self.order, variant, quantity, self.discounts)
+            self.order, variant, quantity, self.discounts, self.taxes)
         recalculate_order(self.order)
 
 
