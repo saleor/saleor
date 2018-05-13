@@ -10,7 +10,6 @@ from ...page.models import Page
 from ..views import staff_member_required
 from .filters import PageFilter
 from .forms import PageForm
-from .modals import modal_protected_page
 
 
 @staff_member_required
