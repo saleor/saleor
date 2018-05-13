@@ -251,11 +251,6 @@ def test_storages_not_setting_s3_bucket_domain(*_patches):
     assert storage.custom_domain is None
 
 
-def test_random_data_get_default_page_content_missing_file():
-    html = random_data.get_default_page_content('__missing_file__')
-    assert html == random_data.DEFAULT_PAGE_HTML_IF_MISSING
-
-
 def test_random_data_create_privacy_page(footer: Menu):
     slug = _get_internal_page_slug('PrivacyPolicy')
 

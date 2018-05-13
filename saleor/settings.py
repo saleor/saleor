@@ -467,14 +467,6 @@ ALLOWED_STYLES = ['text-align']
 # slugs for menus used in storefront's base template, created by default
 DEFAULT_MENUS = ['navbar', 'footer']
 
-# This settings key contains the absolute path to the default pages content
-# this is needed to populate the database with the default pages.
-#
-# If this directory or directory data is missing, Saleor will still be able
-# to operate correctly.
-# If the data is needed by Saleor, it will show a warning but won't crash.
-DEFAULT_PAGES_CONTENT_PATH = os.path.join(PROJECT_ROOT, 'default_pages')
-
 # The below settings key is containing:
 #   - the privacy policy page slug;
 #   - the selling contract page slug.

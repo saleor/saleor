@@ -1,9 +1,10 @@
+from graphql_jwt.exceptions import PermissionDenied
+
 from ...dashboard.page.forms import PageForm
 from ...page import models
 from ..core.mutations import (
     ModelDeleteMutation, ModelFormMutation, ModelFormUpdateMutation,
     StaffMemberRequiredMixin)
-from .decorators import must_be_unprotected
 
 
 class PageCreate(StaffMemberRequiredMixin, ModelFormMutation):
@@ -30,6 +31,16 @@ class PageDelete(StaffMemberRequiredMixin, ModelDeleteMutation):
         model = models.Page
 
     @classmethod
-    @must_be_unprotected
-    def _delete_instance(cls, instance):
-        return super(PageDelete, cls)._delete_instance(instance)
+    def delete_instance(cls, instance):
+        """This override checks if the passed instance is not protected.
+
+        If the instance is existing and is protected,
+        it raises a `PermissionDenied`.
+
+        If the instance is None (non existing) or non-protected,
+        it will call the wrapped Mutator function,
+        and pass the instance as a keyword parameter.
+        """
+        if instance and instance.is_protected:
+            raise PermissionDenied()
+        return super(PageDelete, cls).delete_instance(instance)

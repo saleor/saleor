@@ -118,15 +118,6 @@ DEFAULT_SELLING_CONTRACT_FILE_NAME = 'selling-contract.md'
 DEFAULT_PAGE_HTML_IF_MISSING = '<p>No data</p>'
 
 
-def get_default_page_content(name):
-    path = os.path.join(settings.DEFAULT_PAGES_CONTENT_PATH, name)
-    if isfile(path):
-        with open(path) as fp:
-            return markdown(fp.read())
-    else:
-        return DEFAULT_PAGE_HTML_IF_MISSING
-
-
 def create_attributes_and_values(attribute_data):
     attributes = []
     for attribute_name, attribute_values in attribute_data.items():
@@ -613,8 +604,7 @@ def create_privacy_page(create_menu_entry: bool):
     slug = _get_internal_page_slug('PrivacyPolicy')
     page_data = {
         'title': 'Privacy Policy',
-        'content': get_default_page_content(
-            DEFAULT_PRIVACY_POLICY_FILE_NAME)}
+        'content': ''}
     return _create_default_page_from_data(slug, page_data, create_menu_entry)
 
 
@@ -622,8 +612,7 @@ def create_selling_contract_page(create_menu_entry: bool):
     slug = _get_internal_page_slug('SellingContract')
     page_data = {
         'title': 'Selling Contract',
-        'content': get_default_page_content(
-            DEFAULT_SELLING_CONTRACT_FILE_NAME)}
+        'content': ''}
     return _create_default_page_from_data(slug, page_data, create_menu_entry)
 
 

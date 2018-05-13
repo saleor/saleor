@@ -8,9 +8,9 @@ from django.utils.translation import pgettext_lazy
 from ...core.utils import get_paginator_items
 from ...page.models import Page
 from ..views import staff_member_required
-from .decorators import unprotected_page_required
 from .filters import PageFilter
 from .forms import PageForm
+from .modals import modal_protected_page
 
 
 @staff_member_required
@@ -54,16 +54,24 @@ def _page_edit(request, page):
 
 
 @staff_member_required
-@unprotected_page_required
 @permission_required('page.edit_page')
-def page_delete(request, page):
+def page_delete(request, pk):
+    page = get_object_or_404(Page, pk=pk)
+    ctx = {'page': page}
+
+    # if the page is protected, deny the deletion, by showing an error modal
+    if page.is_protected:
+        return TemplateResponse(
+            request,
+            'dashboard/page/modals/protected_page_error_modal.html', ctx)
+
     if request.POST:
         page.delete()
         msg = pgettext_lazy(
             'Dashboard message', 'Removed page %s') % (page.title,)
         messages.success(request, msg)
         return redirect('dashboard:page-list')
-    ctx = {'page': page}
+
     return TemplateResponse(
         request, 'dashboard/page/modals/delete_page_modal.html', ctx)
 
