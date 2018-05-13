@@ -6,6 +6,7 @@ SECRET_KEY = 'NOTREALLY'
 DEFAULT_CURRENCY = 'USD'
 
 LANGUAGE_CODE = 'en'
+ENABLE_RECAPTCHA = False
 
 if 'sqlite' in DATABASES['default']['ENGINE']:  # noqa
     DATABASES['default']['TEST'] = {  # noqa

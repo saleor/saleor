@@ -4,6 +4,7 @@ import os.path
 import dj_database_url
 import dj_email_url
 import django_cache_url
+from captcha import constants as recaptcha_constants
 from django.contrib.messages import constants as messages
 from django.utils.translation import gettext_lazy as _
 from django_prices.templatetags.prices_i18n import get_currency_fraction
@@ -474,14 +475,16 @@ DEFAULT_MENUS = {
     'top_menu_name': 'navbar',
     'bottom_menu_name': 'footer'}
 
-
-NOCAPTCHA = True
-
+# Enable or not Google's reCaptcha on account forms
 ENABLE_RECAPTCHA = get_bool('ENABLE_RECAPTCHA', False)
 
-if 'RECAPTCHA_PUBLIC_KEY' in os.environ:
-    RECAPTCHA_PUBLIC_KEY = os.environ['RECAPTCHA_PUBLIC_KEY']
+# Set Google's reCaptcha keys
+RECAPTCHA_PUBLIC_KEY = os.environ.get(
+    'RECAPTCHA_PUBLIC_KEY', recaptcha_constants.TEST_PUBLIC_KEY)
+RECAPTCHA_PRIVATE_KEY = os.environ.get(
+    'RECAPTCHA_PRIVATE_KEY', recaptcha_constants.TEST_PUBLIC_KEY)
 
-if 'RECAPTCHA_PRIVATE_KEY' in os.environ:
-    RECAPTCHA_PRIVATE_KEY = os.environ['RECAPTCHA_PRIVATE_KEY']
-
+# This enable the new 'No Captcha reCaptcha' version (the simple checkbox)
+# instead of the old (deprecated) one. For more information see:
+#   https://github.com/praekelt/django-recaptcha/blob/34af16ba1e/README.rst
+NOCAPTCHA = True
