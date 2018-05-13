@@ -33,7 +33,7 @@ from ...product.models import (
 from ...product.thumbnails import create_product_thumbnails
 from ...product.utils.attributes import get_name_from_attributes
 from ...shipping.models import ANY_COUNTRY, ShippingMethod
-from ..templatetags.urls import _get_internal_page_slug
+from ..templatetags.urls import get_internal_page_slug
 from ...shipping.utils import get_taxed_shipping_price
 
 fake = Factory.create()
@@ -120,11 +120,6 @@ COLLECTIONS_SCHEMA = [
     {
         'name': 'Winter sale',
         'image_name': 'sale.jpg'}]
-
-DEFAULT_PRIVACY_POLICY_FILE_NAME = 'privacy-policy.md'
-DEFAULT_SELLING_CONTRACT_FILE_NAME = 'selling-contract.md'
-
-DEFAULT_PAGE_HTML_IF_MISSING = '<p>No data</p>'
 
 
 def create_attributes_and_values(attribute_data):
@@ -599,39 +594,28 @@ def create_about_page():
     yield 'Page %s created' % page.slug
 
 
-def create_footer_entry_from_page(page):
-    footer_menu = Menu.objects.get(slug='footer')
-    data = {'name': page.title}
-    return footer_menu.items.get_or_create(defaults=data, page_id=page.pk)
-
-
-def _create_default_page_from_data(slug, data, create_menu_entry=True):
+def _create_default_page_from_data(slug, data):
     data.setdefault('is_visible', True)
     page, created = Page.objects.get_or_create(defaults=data, slug=slug)
 
     if created:
         yield 'Created page: {0.title} ({0.slug})'.format(page)
 
-    if create_menu_entry:
-        menu_item, created = create_footer_entry_from_page(page)
-        if created:
-            yield 'Created menu entry for: {0.title} ({0.slug})'.format(page)
 
-
-def create_privacy_page(create_menu_entry: bool):
-    slug = _get_internal_page_slug('PrivacyPolicy')
+def create_privacy_page():
+    slug = get_internal_page_slug('PrivacyPolicy')
     page_data = {
         'title': 'Privacy Policy',
         'content': ''}
-    return _create_default_page_from_data(slug, page_data, create_menu_entry)
+    return _create_default_page_from_data(slug, page_data)
 
 
-def create_selling_contract_page(create_menu_entry: bool):
-    slug = _get_internal_page_slug('SellingContract')
+def create_selling_contract_page():
+    slug = get_internal_page_slug('SellingContract')
     page_data = {
         'title': 'Selling Contract',
         'content': ''}
-    return _create_default_page_from_data(slug, page_data, create_menu_entry)
+    return _create_default_page_from_data(slug, page_data)
 
 
 def generate_menu_items(menu: Menu, category: Category, parent_menu_item):

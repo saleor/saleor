@@ -6,8 +6,8 @@ from ...core.utils import random_data
 
 
 def generate_pages(*_):
-    for msg in chain(random_data.create_privacy_page(True),
-                     random_data.create_selling_contract_page(True)):
+    for msg in chain(random_data.create_privacy_page(),
+                     random_data.create_selling_contract_page()):
         print(msg)
 
 

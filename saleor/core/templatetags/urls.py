@@ -21,7 +21,7 @@ def privacy_page_url():
         'page:details', kwargs={'settings.PRIVACY_PAGE_SLUG'})
 
 
-def _get_internal_page_slug(internal_name):
+def get_internal_page_slug(internal_name):
     """Retrieve the slug of an internal page name.
 
     This mechanism is there to allow user to customize internal pages' slug
@@ -55,5 +55,5 @@ def get_internal_page_url(internal_name):
     """Returns the page URL of an internal page
     by using its associated slug.
     """
-    slug = _get_internal_page_slug(internal_name)
+    slug = get_internal_page_slug(internal_name)
     return reverse('page:details', kwargs={'slug': slug})
