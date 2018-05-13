@@ -9,6 +9,8 @@ from django.core.files import File
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.forms import ModelForm
 from django.utils.encoding import smart_text
+from django_prices_vatlayer.models import VAT
+from django_prices_vatlayer.utils import get_tax_for_rate
 from payments import FraudStatus, PaymentStatus
 from PIL import Image
 from prices import Money
@@ -81,7 +83,6 @@ def request_cart(cart, monkeypatch):
     monkeypatch.setattr(
         utils, 'get_cart_from_request',
         lambda request, cart_queryset=None: cart)
-    cart.discounts = Sale.objects.all()
     return cart
 
 
@@ -349,13 +350,14 @@ def product_with_images(product_type, default_category):
 
 
 @pytest.fixture
-def anonymous_checkout():
-    return Checkout((), AnonymousUser(), 'tracking_code')
+def checkout():
+    return Checkout(Mock(), AnonymousUser(), None, None, 'tracking_code')
 
 
 @pytest.fixture
 def checkout_with_items(request_cart_with_item, customer_user):
-    checkout = Checkout(request_cart_with_item, customer_user, 'tracking_code')
+    checkout = Checkout(
+        request_cart_with_item, customer_user, None, None, 'tracking_code')
     checkout.shipping_address = customer_user.default_shipping_address
     return checkout
 
@@ -366,7 +368,8 @@ def voucher(db):  # pylint: disable=W0613
 
 
 @pytest.fixture()
-def order_with_lines(order, product_type, default_category, shipping_method):
+def order_with_lines(
+        order, product_type, default_category, shipping_method, taxes):
     product = Product.objects.create(
         name='Test product', price=Money('10.00', 'USD'),
         product_type=product_type, category=default_category)
@@ -374,13 +377,14 @@ def order_with_lines(order, product_type, default_category, shipping_method):
         product=product, sku='SKU_A', cost_price=Money(1, 'USD'), quantity=0,
         quantity_allocated=0)
     order.lines.create(
-        product_name=product.name,
-        product_sku='SKU_%d' % (product.pk,),
-        is_shipping_required=product.product_type.is_shipping_required,
+        product_name=variant.display_product(),
+        product_sku=variant.sku,
+        is_shipping_required=variant.is_shipping_required(),
         quantity=1,
-        unit_price_net=Decimal('10.00'),
-        unit_price_gross=Decimal('10.00'),
-        variant=variant)
+        variant=variant,
+        unit_price=variant.get_price(taxes=taxes),
+        tax_rate=taxes['standard']['value'])
+
     product = Product.objects.create(
         name='Test product 2', price=Money('20.00', 'USD'),
         product_type=product_type, category=default_category)
@@ -388,27 +392,24 @@ def order_with_lines(order, product_type, default_category, shipping_method):
         product=product, sku='SKU_B', cost_price=Money(2, 'USD'), quantity=0,
         quantity_allocated=0)
     order.lines.create(
-        product_name=product.name,
-        product_sku='SKU_%d' % (product.pk,),
-        is_shipping_required=product.product_type.is_shipping_required,
+        product_name=variant.display_product(),
+        product_sku=variant.sku,
+        is_shipping_required=variant.is_shipping_required(),
         quantity=1,
-        unit_price_net=Decimal('20.00'),
-        unit_price_gross=Decimal('20.00'),
-        variant=variant)
-    product = Product.objects.create(
-        name='Test product 3', price=Money('30.00', 'USD'),
-        product_type=product_type, category=default_category)
+        variant=variant,
+        unit_price=variant.get_price(taxes=taxes),
+        tax_rate=taxes['standard']['value'])
 
     order.shipping_address = order.billing_address.get_copy()
     order.shipping_method_name = shipping_method.name
     method = shipping_method.price_per_country.get()
     order.shipping_method = method
-    order.shipping_price = method.get_total_price()
+    order.shipping_price = method.get_total_price(taxes)
     order.save()
-    recalculate_order(order)
-    order.refresh_from_db()
 
     recalculate_order(order)
+
+    order.refresh_from_db()
     return order
 
 
@@ -499,7 +500,8 @@ def payment_preauth(order_with_lines):
     return order_with_lines.payments.create(
         variant='default', status=PaymentStatus.PREAUTH,
         fraud_status=FraudStatus.ACCEPT, currency='USD',
-        total=order_with_lines.total_gross.amount)
+        total=order_with_lines.total.gross.amount,
+        tax=order_with_lines.total.tax.amount)
 
 
 @pytest.fixture()
@@ -630,6 +632,13 @@ def permission_view_menu():
 @pytest.fixture
 def collection(db):
     collection = Collection.objects.create(
+        name='Collection', slug='collection', is_published=True)
+    return collection
+
+
+@pytest.fixture
+def draft_collection(db):
+    collection = Collection.objects.create(
         name='Collection', slug='collection')
     return collection
 
@@ -677,3 +686,54 @@ def menu_with_items(menu, default_category, collection):
     menu.items.create(
         name=collection.name, collection=collection, parent=menu_item)
     return menu
+
+
+@pytest.fixture
+def tax_rates():
+    return {
+        'standard_rate': 23,
+        'reduced_rates': {
+            'pharmaceuticals': 8,
+            'medical': 8,
+            'passenger transport': 8,
+            'newspapers': 8,
+            'hotels': 8,
+            'restaurants': 8,
+            'admission to cultural events': 8,
+            'admission to sporting events': 8,
+            'admission to entertainment events': 8,
+            'foodstuffs': 5}}
+
+
+@pytest.fixture
+def taxes(tax_rates):
+    taxes = {'standard': {
+        'value': tax_rates['standard_rate'],
+        'tax': get_tax_for_rate(tax_rates)}}
+    if tax_rates['reduced_rates']:
+        taxes.update({
+            rate: {
+                'value': tax_rates['reduced_rates'][rate],
+                'tax': get_tax_for_rate(tax_rates, rate)}
+            for rate in tax_rates['reduced_rates']})
+    return taxes
+
+
+@pytest.fixture
+def vatlayer(db, settings, tax_rates, taxes):
+    settings.VATLAYER_ACCESS_KEY = 'enablevatlayer'
+    VAT.objects.create(country_code='PL', data=tax_rates)
+
+    tax_rates_2 = {
+        'standard_rate': 19,
+        'reduced_rates': {
+            'admission to cultural events': 7,
+            'admission to entertainment events': 7,
+            'books': 7,
+            'foodstuffs': 7,
+            'hotels': 7,
+            'medical': 7,
+            'newspapers': 7,
+            'passenger transport': 7}}
+    VAT.objects.create(country_code='DE', data=tax_rates_2)
+    return taxes

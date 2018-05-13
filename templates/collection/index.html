@@ -9,6 +9,17 @@
   <li><a href='{{ object.get_absolute_url }}'>{{ object.name }}</a></li>
 {% endblock %}
 
+{% block collection_published_warning %}
+  {% if not object.is_published %}
+    <div class="alert alert-warning" role="alert">
+      {% blocktrans context "Unavailable collection detail text" %}
+        <strong>Warning!</strong>
+        You are previewing a collection that is not published.
+      {% endblocktrans %}
+    </div>
+  {% endif %}
+{% endblock %}
+
 {% block filters %}
   {% include "product/_filters.html" %}
 {% endblock filters %}

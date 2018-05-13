@@ -71,25 +71,26 @@
           <table class="bordered highlight responsive data-table">
             <thead>
               <tr>
+                {% if perms.product.edit_properties %}
+                  <th class="data-table-icon"></th>
+                {% endif %}
+
                 <th>{% trans "Display name" %}</th>
-                <th>{% trans "Color" %}</th>
                 {% if perms.product.edit_product %}
                   <th></th>
                 {% endif %}
               </tr>
             </thead>
-            <tbody>
-              {% for value in attribute.values.all %}
-                <tr>
+            <tbody class="sortable-items" data-post-url="{% url 'dashboard:product-attribute-values-reorder' attribute_pk=attribute.pk %}" data-post-name="ordered_values">
+              {% for value in values %}
+                <tr class="sortable-item" data-id="{{ value.pk }}">
+                  {% if perms.product.edit_properties %}
+                    <td class="data-table-icon ignore-link sortable__drag-area">
+                      <svg data-src="{% static "dashboard/images/reorder.svg" %}" height="20" width="20" fill="#000" />
+                    </td>
+                  {% endif %}
                   <td>
                     {{ value.name }}
-                  </td>
-                  <td>
-                    {% if value.color %}
-                      {{ value.color }}
-                    {% else %}
-                      -
-                    {% endif %}
                   </td>
                   {% if perms.product.edit_product %}
                     <td class="right-align">
@@ -101,6 +102,10 @@
                       </a>
                     </td>
                   {% endif %}
+                </tr>
+              {% empty %}
+                <tr>
+                  <td colspan="2">{% trans "No attribute values" context "Empty list of attribute values" %}</td>
                 </tr>
               {% endfor %}
             </tbody>

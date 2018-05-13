@@ -47,6 +47,7 @@ class AddToCartForm(forms.Form):
         self.cart = kwargs.pop('cart')
         self.product = kwargs.pop('product')
         self.discounts = kwargs.pop('discounts', ())
+        self.taxes = kwargs.pop('taxes', {})
         super().__init__(*args, **kwargs)
 
     def clean(self):
@@ -153,7 +154,11 @@ class CountryForm(forms.Form):
         label=pgettext_lazy('Country form field label', 'Country'),
         choices=countries)
 
+    def __init__(self, *args, **kwargs):
+        self.taxes = kwargs.pop('taxes', {})
+        super().__init__(*args, **kwargs)
+
     def get_shipment_options(self):
         """Return a list of shipping methods for the selected country."""
         code = self.cleaned_data['country']
-        return get_shipment_options(code)
+        return get_shipment_options(code, self.taxes)

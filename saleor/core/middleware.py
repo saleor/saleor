@@ -2,12 +2,14 @@ import logging
 
 from django.conf import settings
 from django.contrib.sites.models import Site
+from django.utils.functional import SimpleLazyObject
 from django.utils.translation import get_language
 from django_countries.fields import Country
 
 from . import analytics
 from ..discount.models import Sale
 from .utils import get_client_ip, get_country_by_ip, get_currency_for_country
+from .utils.taxes import get_taxes_for_country
 
 logger = logging.getLogger(__name__)
 
@@ -31,8 +33,7 @@ def google_analytics(get_response):
 def discounts(get_response):
     """Assign active discounts to `request.discounts`."""
     def middleware(request):
-        discounts = Sale.objects.all()
-        discounts = discounts.prefetch_related('products', 'categories')
+        discounts = Sale.objects.prefetch_related('products', 'categories')
         request.discounts = discounts
         return get_response(request)
 
@@ -75,6 +76,19 @@ def site(get_response):
     def middleware(request):
         Site.objects.clear_cache()
         request.site = Site.objects.get_current()
+        return get_response(request)
+
+    return middleware
+
+
+def taxes(get_response):
+    """Assign tax rates for default country to `request.taxes`."""
+    def middleware(request):
+        if settings.VATLAYER_ACCESS_KEY:
+            request.taxes = SimpleLazyObject(lambda: get_taxes_for_country(
+                request.country))
+        else:
+            request.taxes = None
         return get_response(request)
 
     return middleware

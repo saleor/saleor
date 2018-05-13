@@ -1,11 +1,11 @@
 {% extends "dashboard/base.html" %}
 {% load babel %}
-{% load prices_i18n %}
 {% load i18n %}
 {% load i18n_address_tags %}
 {% load materializecss %}
-{% load status %}
+{% load price from taxed_prices %}
 {% load staticfiles %}
+{% load status %}
 {% load voucher %}
 
 {% block title %}
@@ -129,7 +129,7 @@
                 </td>
                 <td class="right-align">
                   <strong>
-                    {{ balance.gross|amount:'html' }}
+                    {% price balance %}
                   </strong>
                 </td>
               </tr>
@@ -141,7 +141,7 @@
                 </td>
                 <td class="right-align">
                   {% if preauthorized.gross %}
-                    {{ preauthorized.gross|amount:'html' }}
+                    {% price preauthorized.gross %}
                   {% else %}
                     {% trans "N/A" context "Preauthorized amount not available" %}
                   {% endif %}
@@ -152,7 +152,7 @@
                   {% trans "Captured amount" context "Order summary card header" %}
                 </td>
                 <td class="right-align">
-                  {{ captured.gross|amount:'html' }}
+                  {% price captured %}
                 </td>
               </tr>
             </tbody>
@@ -310,7 +310,7 @@
                     </span>
                   </td>
                   <td class="right-align">
-                    {{ line.unit_price.gross|amount:'html' }}
+                    {% price line.unit_price order.display_gross_prices %}
                   </td>
                   <td class="right-align">
                     {% if perms.order.edit_order and order.is_draft %}
@@ -335,13 +335,15 @@
                     {% endif %}
                   </td>
                   <td class="right-align">
-                    {{ line.get_total.gross|amount:'html' }}
+                    {% price line.get_total display_gross=order.display_gross_prices %}
                   </td>
                 </tr>
               {% endfor %}
               <tr class="last-no-border">
                 <td class="right-align" colspan="3">
-                  <p>{% trans "Subtotal" context "Order subtotal" %}</p>
+                  <p>
+                    {% trans "Subtotal" context "Order subtotal" %}
+                  </p>
                   <p>
                     {% if perms.order.edit_order and order.is_draft %}
                       <a href="#base-modal" data-href="{% url 'dashboard:order-shipping-edit' order_pk=order.pk %}"
@@ -362,6 +364,13 @@
                       {% else %}
                         {% trans "Shipping" context "Order totals header" %}
                       {% endif %}
+                    {% endif %}
+                  </p>
+                  <p>
+                    {% if order.display_gross_prices %}
+                      {% trans "Taxes (included)" context "Order total taxes" %}
+                    {% else %}
+                      {% trans "Taxes" context "Order total taxes" %}
                     {% endif %}
                   </p>
                   {% if order.is_draft or order.discount_amount %}
@@ -405,12 +414,17 @@
                   <p><strong>{% trans "Grand total" context "Order totals header" %}</strong></p>
                 </td>
                 <td class="right-align">
-                  <p>{{ order.get_subtotal.gross|amount:'html' }}</p>
-                  <p>{{ order.shipping_price.gross|amount:'html' }}</p>
+                  <p>
+                    {% price order.get_subtotal display_gross=order.display_gross_prices %}
+                  </p>
+                  <p>
+                    {% price order.shipping_price display_gross=order.display_gross_prices %}
+                  </p>
+                  <p>{% price order.total.tax %}</p>
                   {% if order.is_draft or order.discount_amount %}
                     <p>{% discount_as_negative order.discount_amount html=True %}</p>
                   {% endif %}
-                  <p><strong>{{ order.total.gross|amount:'html' }}</strong></p>
+                  <p><strong>{% price order.total.gross %}</strong></p>
                 </td>
               </tr>
             </tbody>
@@ -438,8 +452,11 @@
               </span>
             {% endif %}
             {% if not order.is_draft and perms.order.view_order %}
-              <a href="{% url 'dashboard:order-invoice' order_pk=order.pk %}" data-href="" class="btn-flat waves-effect" target="_blank">
+              <a href="{% url 'dashboard:order-invoice' order_pk=order.pk %}" class="btn-flat waves-effect" target="_blank">
                 {% trans "Invoice" context "Order detail action" %}
+              </a>
+              <a href="{% url 'order:details' token=order.token %}" class="btn-flat waves-effect" target="_blank">
+                {% trans "View on site" context "Order detail action" %}
               </a>
             {% endif %}
           </div>

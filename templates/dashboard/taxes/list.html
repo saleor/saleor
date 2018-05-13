@@ -1,0 +1,135 @@
+{% extends "dashboard/base.html" %}
+{% load i18n %}
+{% load get_country_by_code from dashboard %}
+{% load utils %}
+
+{% block title %}
+  {% trans "Taxes" context "Dashboard taxes list" %} - {{ block.super }}
+{% endblock %}
+
+{% block menu_taxes_class %}active{% endblock %}
+
+{% block breadcrumbs %}
+  <ul class="breadcrumbs">
+    <li class="visible-s">
+      {% trans "Taxes" context "Dashboard taxes list" %}
+    </li>
+  </ul>
+{% endblock %}
+
+{% block content %}
+  <div class="row">
+    <div class="col s12 l9">
+      {% if taxes %}
+        <div class="card">
+          <div class="data-table-container">
+            <table class="bordered highlight responsive data-table">
+              <thead>
+                <tr>
+                  {% trans "Country code" context "Taxes table header" as label %}
+                  {% sorting_header 'country_code' label %}
+
+                  <th class="wide">
+                    {% trans "Country name" context "Taxes table header" %}
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for tax in taxes %}
+                  <tr data-action-go="{% url 'dashboard:tax-details' country_code=tax.country_code %}">
+                    <td>
+                      {{ tax.country_code }}
+                    </td>
+                    <td>
+                      {% get_country_by_code tax.country_code as country_name %}
+                      {{ country_name }}
+                    </td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      {% paginate taxes %}
+      {% else %}
+        {% if is_empty %}
+          {% include 'dashboard/taxes/zero_page.html' %}
+        {% else %}
+          <div class="col s12">
+            <div class="not-found">
+              <p class="grey-text">
+                {% trans "No taxes found." context "Empty taxes message" %}
+              </p>
+            </div>
+          </div>
+        {% endif %}
+      {% endif %}
+    </div>
+    <div class="col s12 l3" id="filters">
+      {% if not is_empty %}{% filters filter_set %}{% endif %}
+    </div>
+    {% if perms.site.view_settings %}
+      <div class="col s12 l3">
+        <div class="card">
+          <div class="card-content">
+            <span class="card-title">
+              {% trans "Configuration" context "Taxes site settings title" %}
+            </span>
+            <div class="row">
+              <div class="col s12">
+                <h4>
+                  {% trans "All products prices are entered with tax included" context "Site settings field" %}
+                </h4>
+                <p>
+                  {% if site.settings.include_taxes_in_prices %}
+                    {% trans "Yes" context "Include taxes in prices setting description" %}
+                  {% else %}
+                    {% trans "No" context "Include taxes in prices setting description" %}
+                  {% endif %}
+                </p>
+              </div>
+            </div>
+            <div class="row">
+              <div class="col s12">
+                <h4>
+                  {% trans "Show gross prices to customers in the storefront" context "Site settings field" %}
+                </h4>
+                <p>
+                  {% if site.settings.display_gross_prices %}
+                    {% trans "Yes" context "Show customers gross prices setting description" %}
+                  {% else %}
+                    {% trans "No" context "Show customers gross prices setting description" %}
+                  {% endif %}
+                </p>
+              </div>
+            </div>
+            <div class="row">
+              <div class="col s12">
+                <h4>
+                  {% trans "Charge taxes on shipping rates" context "Site settings field" %}
+                </h4>
+                <p>
+                  {% if site.settings.charge_taxes_on_shipping %}
+                    {% trans "Yes" context "Charge taxes on shipping rates setting description" %}
+                  {% else %}
+                    {% trans "No" context "Charge taxes on shipping rates setting description" %}
+                  {% endif %}
+                </p>
+              </div>
+            </div>
+          </div>
+          {% if perms.site.edit_settings %}
+            <div class="card-action">
+              <a class="btn-flat waves-effect" href="{% url 'dashboard:configure-taxes' %}">
+                {% trans "Configure taxes" context "Site settings configure taxes action" %}
+              </a>
+              <a class="btn-flat waves-effect load-action" href="{% url 'dashboard:fetch-tax-rates' %}">
+                {% trans "Fetch tax rates" context "Site settings fetch tax rates action" %}
+              </a>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+    {% endif %}
+  </div>
+{% endblock %}

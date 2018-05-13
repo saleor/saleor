@@ -83,7 +83,7 @@ table {
   display: table;
   td, th {
     border: none;
-    padding: 15px 5px;
+    padding: 5px;
     display: table-cell;
     text-align: left;
     vertical-align: middle;
@@ -106,7 +106,7 @@ table {
       }
       td {
         height: 30px;
-        padding: 10px;
+        padding: 5px;
         &:first-child {
           padding-left: 24px;
         }
@@ -123,7 +123,7 @@ table {
     }
     th {
       height: 48px;
-      padding: 0 24px;
+      padding: 0 5px;
       color: #757575;
       font-weight: 400;
       font-size: 12px;
