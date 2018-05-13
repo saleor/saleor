@@ -8,6 +8,8 @@ DEFAULT_CURRENCY = 'USD'
 LANGUAGE_CODE = 'en'
 ENABLE_RECAPTCHA = False
 
+VATLAYER_ACCESS_KEY = ''
+
 if 'sqlite' in DATABASES['default']['ENGINE']:  # noqa
     DATABASES['default']['TEST'] = {  # noqa
         'SERIALIZE': False,

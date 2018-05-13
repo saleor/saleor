@@ -177,17 +177,13 @@ def test_product_query(admin_client, product):
                         }
                         purchaseCost{
                             start{
-                                gross{
-                                    amount
-                                }
+                                amount
                             }
                             stop{
-                                gross{
-                                    amount
-                                }
+                                amount
                             }
                         }
-                        grossMargin {
+                        margin {
                             start
                             stop
                         }
@@ -209,13 +205,13 @@ def test_product_query(admin_client, product):
     gross = product_data['availability']['priceRange']['start']['gross']
     assert float(gross['amount']) == float(product.price.amount)
     from saleor.product.utils.costs import get_product_costs_data
-    purchase_cost, gross_margin = get_product_costs_data(product)
-    assert purchase_cost.start.gross.amount == product_data[
-        'purchaseCost']['start']['gross']['amount']
-    assert purchase_cost.stop.gross.amount == product_data[
-        'purchaseCost']['stop']['gross']['amount']
-    assert gross_margin[0] == product_data['grossMargin'][0]['start']
-    assert gross_margin[1] == product_data['grossMargin'][0]['stop']
+    purchase_cost, margin = get_product_costs_data(product)
+    assert purchase_cost.start.amount == product_data[
+        'purchaseCost']['start']['amount']
+    assert purchase_cost.stop.amount == product_data[
+        'purchaseCost']['stop']['amount']
+    assert margin[0] == product_data['margin'][0]['start']
+    assert margin[1] == product_data['margin'][0]['stop']
 
 
 def test_product_with_collections(admin_client, product, collection):
@@ -553,7 +549,6 @@ def test_real_query(admin_client, product):
             id
             name
             slug
-            color
             __typename
         }
         __typename
@@ -683,6 +678,8 @@ def test_create_product(
             $description: String!,
             $isPublished: Boolean!,
             $isFeatured: Boolean!,
+            $chargeTaxes: Boolean!,
+            $taxRate: String!,
             $price: Float!,
             $attributes: [AttributeValueInput]) {
                 productCreate(
@@ -692,6 +689,8 @@ def test_create_product(
                     description: $description,
                     isPublished: $isPublished,
                     isFeatured: $isFeatured,
+                    chargeTaxes: $chargeTaxes,
+                    taxRate: $taxRate,
                     price: $price,
                     attributes: $attributes) {
                         product {
@@ -701,6 +700,8 @@ def test_create_product(
                             description
                             isPublished
                             isFeatured
+                            chargeTaxes
+                            taxRate
                             name
                             price{
                                 amount
@@ -729,6 +730,8 @@ def test_create_product(
     product_name = 'test name'
     product_isPublished = True
     product_isFeatured = False
+    product_chargeTaxes = True
+    product_taxRate = 'standard'
     product_price = 22
 
     # Default attribute defined in product_type fixture
@@ -749,6 +752,8 @@ def test_create_product(
         'description': product_description,
         'isPublished': product_isPublished,
         'isFeatured': product_isFeatured,
+        'chargeTaxes': product_chargeTaxes,
+        'taxRate': product_taxRate,
         'price': product_price,
         'attributes': [
             {'slug': color_attr_slug, 'value': color_attr_value},
@@ -764,6 +769,8 @@ def test_create_product(
     assert data['product']['description'] == product_description
     assert data['product']['isFeatured'] == product_isFeatured
     assert data['product']['isPublished'] == product_isPublished
+    assert data['product']['chargeTaxes'] == product_chargeTaxes
+    assert data['product']['taxRate'] == product_taxRate
     assert data['product']['productType']['name'] == product_type.name
     assert data['product']['category']['name'] == default_category.name
     values = (
@@ -784,6 +791,8 @@ def test_update_product(
             $description: String!,
             $isPublished: Boolean!,
             $isFeatured: Boolean!,
+            $chargeTaxes: Boolean!,
+            $taxRate: String!,
             $price: Float!,
             $attributes: [AttributeValueInput]) {
                 productUpdate(
@@ -793,6 +802,8 @@ def test_update_product(
                     description: $description,
                     isPublished: $isPublished,
                     isFeatured: $isFeatured,
+                    chargeTaxes: $chargeTaxes,
+                    taxRate: $taxRate,
                     price: $price,
                     attributes: $attributes) {
                         product {
@@ -802,6 +813,8 @@ def test_update_product(
                             description
                             isPublished
                             isFeatured
+                            chargeTaxes
+                            taxRate
                             name
                             price{
                                 amount
@@ -828,6 +841,8 @@ def test_update_product(
     product_name = 'updated name'
     product_isPublished = True
     product_isFeatured = False
+    product_chargeTaxes = True
+    product_taxRate = 'standard'
     product_price = 33
 
     variables = json.dumps({
@@ -837,6 +852,8 @@ def test_update_product(
         'description': product_description,
         'isPublished': product_isPublished,
         'isFeatured': product_isFeatured,
+        'chargeTaxes': product_chargeTaxes,
+        'taxRate': product_taxRate,
         'price': product_price})
 
     response = admin_client.post(
@@ -849,6 +866,8 @@ def test_update_product(
     assert data['product']['description'] == product_description
     assert data['product']['isFeatured'] == product_isFeatured
     assert data['product']['isPublished'] == product_isPublished
+    assert data['product']['chargeTaxes'] == product_chargeTaxes
+    assert data['product']['taxRate'] == product_taxRate
     assert not data['product']['category']['name'] == default_category.name
 
 

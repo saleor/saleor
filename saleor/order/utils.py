@@ -1,15 +1,15 @@
 from functools import wraps
 
-from django.conf import settings
 from django.db.models import F
 from django.shortcuts import get_object_or_404, redirect
-from prices import Money
 
-from saleor.order.models import OrderLine
 from ..account.utils import store_user_address
 from ..core.exceptions import InsufficientStock
+from ..core.utils.taxes import (
+    ZERO_MONEY, get_tax_rate_by_name, get_taxes_for_address)
 from ..dashboard.order.utils import get_voucher_discount_for_order
 from ..order import FulfillmentStatus, OrderStatus
+from ..order.models import OrderLine
 from ..product.utils import allocate_stock, deallocate_stock, increase_stock
 
 
@@ -43,8 +43,7 @@ def update_voucher_discount(func):
         if kwargs.pop('update_voucher_discount', True):
             order = args[0]
             order.discount_amount = (
-                get_voucher_discount_for_order(order) or
-                Money(0, settings.DEFAULT_CURRENCY))
+                get_voucher_discount_for_order(order) or ZERO_MONEY)
         return func(*args, **kwargs)
 
     return decorator
@@ -70,6 +69,24 @@ def recalculate_order(order, **kwargs):
         total -= order.discount_amount
     order.total = total
     order.save()
+
+
+def update_order_prices(order, discounts):
+    """Update prices in order with given discounts and proper taxes."""
+    taxes = get_taxes_for_address(order.shipping_address)
+
+    for line in order:
+        if line.variant:
+            line.unit_price = line.variant.get_price(discounts, taxes)
+            line.tax_rate = get_tax_rate_by_name(
+                line.variant.product.tax_rate, taxes)
+            line.save()
+
+    if order.shipping_method:
+        order.shipping_price = order.shipping_method.get_total_price(taxes)
+        order.save()
+
+    recalculate_order(order)
 
 
 def cancel_order(order, restock):
@@ -129,7 +146,8 @@ def attach_order_to_user(order, user):
 
 
 def add_variant_to_order(
-        order, variant, total_quantity, discounts=None, add_to_existing=True):
+        order, variant, total_quantity, discounts=None, taxes=None,
+        add_to_existing=True):
     """Add total_quantity of variant to order.
 
     Raises InsufficientStock exception if quantity could not be fulfilled.
@@ -142,19 +160,20 @@ def add_variant_to_order(
     """
     quantity_not_fulfilled = add_variant_to_existing_lines(
         order, variant, total_quantity) if add_to_existing else total_quantity
+
     if not quantity_not_fulfilled:
         return
     if quantity_not_fulfilled > variant.quantity_available:
         raise InsufficientStock(variant)
-    price = variant.get_price_per_item(discounts)
+
     order.lines.create(
         product_name=variant.display_product(),
         product_sku=variant.sku,
-        is_shipping_required=(
-            variant.product.product_type.is_shipping_required),
+        is_shipping_required=variant.is_shipping_required(),
         quantity=quantity_not_fulfilled,
-        unit_price=price,
-        variant=variant)
+        variant=variant,
+        unit_price=variant.get_price(discounts, taxes),
+        tax_rate=get_tax_rate_by_name(variant.product.tax_rate, taxes))
     allocate_stock(variant, quantity_not_fulfilled)
 
 

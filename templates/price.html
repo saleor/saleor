@@ -1,0 +1,23 @@
+{% load prices_i18n %}{% spaceless %}
+  {% if is_range %}
+    {% if price.start == price.stop %}
+      {% if html %}
+        {{ price.start|amount:'html' }}
+      {% else %}
+        {{ price.start|amount }}
+      {% endif %}
+    {% else %}
+      {% if html %}
+        {{ price.start|amount:'html' }} - {{ price.stop|amount:'html' }}
+      {% else %}
+        {{ price.start|amount }} - {{ price.stop|amount }}
+      {% endif %}
+    {% endif %}
+  {% else %}
+    {% if html %}
+      {{ price|amount:'html' }}
+    {% else %}
+      {{ price|amount }}
+    {% endif %}
+  {% endif %}
+{% endspaceless %}

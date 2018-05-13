@@ -4,7 +4,9 @@ from django.utils.safestring import mark_safe
 from django.utils.translation import pgettext_lazy
 
 from ..core.utils import format_money
+from ..core.utils.taxes import display_gross_prices
 from ..shipping.models import ShippingMethodCountry
+from ..shipping.utils import get_taxed_shipping_price
 
 
 class CheckoutAddressField(forms.ChoiceField):
@@ -66,11 +68,23 @@ class ShippingCountryChoiceField(forms.ModelChoiceField):
 
     widget = forms.RadioSelect()
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.taxes = None
+
     def label_from_instance(self, obj):
         """Return a friendly label for the shipping method."""
-        price_html = format_money(obj.price)
+        price = get_taxed_shipping_price(obj.price, self.taxes)
+        if display_gross_prices():
+            price = price.gross
+        else:
+            price = price.net
+        price_html = format_money(price)
         label = mark_safe('%s %s' % (obj.shipping_method, price_html))
         return label
+
+    def set_taxes(self, taxes):
+        self.taxes = taxes
 
 
 class ShippingMethodForm(forms.Form):
@@ -83,9 +97,10 @@ class ShippingMethodForm(forms.Form):
             'Shipping method form field label', 'Shipping method'),
         required=True)
 
-    def __init__(self, country_code, *args, **kwargs):
+    def __init__(self, country_code, taxes, *args, **kwargs):
         super().__init__(*args, **kwargs)
         method_field = self.fields['method']
+        method_field.set_taxes(taxes)
         if country_code:
             queryset = method_field.queryset
             method_field.queryset = queryset.unique_for_country_code(

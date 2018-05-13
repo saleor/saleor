@@ -30,5 +30,5 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RunPython(create_variant_name_based_on_attributes)
+        migrations.RunPython(create_variant_name_based_on_attributes, migrations.RunPython.noop)
     ]

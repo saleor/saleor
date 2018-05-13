@@ -6,6 +6,7 @@ from django.shortcuts import get_object_or_404, redirect
 from django.template.response import TemplateResponse
 from django.urls import reverse
 from django.utils.translation import pgettext_lazy
+from django.views.decorators.http import require_POST
 
 from ...core.utils import get_paginator_items
 from ...product.models import Collection
@@ -74,3 +75,14 @@ def collection_delete(request, pk=None):
     ctx = {'collection': collection}
     return TemplateResponse(
         request, 'dashboard/collection/confirm_delete.html', ctx)
+
+
+@require_POST
+@staff_member_required
+@permission_required('product.edit_product')
+def collection_toggle_is_published(request, pk):
+    collection = get_object_or_404(Collection, pk=pk)
+    collection.is_published = not collection.is_published
+    collection.save(update_fields=['is_published'])
+    return JsonResponse(
+        {'success': True, 'is_published': collection.is_published})

@@ -119,7 +119,7 @@ Installation
 
    Unless configured otherwise the store will use ``saleor`` as both username and password. Remember to give your user the ``SUPERUSER`` privilege so it can create databases and database extensions.
 
-   ..code-block:: console
+   .. code-block:: console
 
     $ createuser --superuser --pwprompt saleor
 

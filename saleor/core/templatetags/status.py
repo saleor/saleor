@@ -73,3 +73,14 @@ def render_page_availability(page):
         label_cls = LABEL_SUCCESS
         ctx.update({'label_cls': label_cls})
     return ctx
+
+
+@register.inclusion_tag('dashboard/includes/_collection_availability.html')
+def render_collection_availability(collection):
+    if collection.is_published:
+        label_cls = LABEL_SUCCESS
+    else:
+        label_cls = LABEL_DANGER
+    return {'is_published': collection.is_published,
+            'collection': collection,
+            'label_cls': label_cls}
