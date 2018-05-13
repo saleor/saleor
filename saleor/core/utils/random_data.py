@@ -33,8 +33,8 @@ from ...product.models import (
 from ...product.thumbnails import create_product_thumbnails
 from ...product.utils.attributes import get_name_from_attributes
 from ...shipping.models import ANY_COUNTRY, ShippingMethod
-from ..templatetags.urls import get_internal_page_slug
 from ...shipping.utils import get_taxed_shipping_price
+from ..templatetags.urls import get_internal_page_slug
 
 fake = Factory.create()
 
