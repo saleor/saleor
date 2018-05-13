@@ -35,12 +35,6 @@ class Command(BaseCommand):
             dest='withoutsearch',
             default=False,
             help='Don\'t update search index')
-        parser.add_argument(
-            '--without-policies-menu-entries',
-            action='store_true',
-            dest='no_menu_policy_entries',
-            default=False,
-            help='Don\'t create footer menu entries for policies pages')
 
     def make_database_faster(self):
         """Sacrifice some of the safeguards of sqlite3 for speed.
@@ -59,7 +53,6 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         create_images = not options['withoutimages']
-        create_policies_entries = not options['no_menu_policy_entries']
 
         self.make_database_faster()
 
@@ -88,9 +81,9 @@ class Command(BaseCommand):
 
         # warning: create_privacy_page and create_selling_contract_page are
         # depending on create_menus.
-        for msg in create_privacy_page(create_policies_entries):
+        for msg in create_privacy_page():
             self.stdout.write(msg)
-        for msg in create_selling_contract_page(create_policies_entries):
+        for msg in create_selling_contract_page():
             self.stdout.write(msg)
 
         self.stdout.write(create_groups())
