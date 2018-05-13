@@ -15,12 +15,6 @@ def translate_url(url, lang_code):
     return django_translate_url(url, lang_code)
 
 
-@register.simple_tag
-def privacy_page_url():
-    return reverse(
-        'page:details', kwargs={'settings.PRIVACY_PAGE_SLUG'})
-
-
 def get_internal_page_slug(internal_name):
     """Retrieve the slug of an internal page name.
 
