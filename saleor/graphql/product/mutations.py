@@ -9,7 +9,7 @@ from ...product import models
 from ..core.mutations import (
     BaseMutation, ModelDeleteMutation, ModelFormMutation,
     ModelFormUpdateMutation, StaffMemberRequiredMixin, Error)
-from ..utils import get_attributes_dict_from_list, get_node
+from ..utils import get_attributes_dict_from_list, get_node, get_nodes
 from .forms import CollectionForm, ProductForm, ProductVariantForm
 from .types import (
     Category, Product, ProductAttribute, ProductImage, ProductType)
@@ -69,12 +69,11 @@ class CollectionCreateMutation(StaffMemberRequiredMixin, ModelFormMutation):
 
     @classmethod
     def get_form_kwargs(cls, root, info, **input):
-        products = input.pop('products', None)
+        product_ids = input.pop('products', None)
         kwargs = super().get_form_kwargs(root, info, **input)
-        if products:
-            products = {
-                get_node(info, pr_id, only_type=Product)
-                for pr_id in products}
+        if product_ids:
+            products = set(
+                get_nodes(info, product_ids, only_type=Product))
             kwargs['data']['products'] = products
         return kwargs
 
@@ -246,15 +245,14 @@ class ProductTypeCreateMutation(StaffMemberRequiredMixin, ModelFormMutation):
     def get_form_kwargs(cls, root, info, **input):
         product_attributes = input.pop('product_attributes', None)
         if product_attributes:
-            product_attributes = {
-                get_node(info, pr_att_id, only_type=ProductAttribute)
-                for pr_att_id in product_attributes}
-
+            product_attributes = set(
+                get_nodes(
+                    info, product_attributes, only_type=ProductAttribute))
         variant_attributes = input.pop('variant_attributes', None)
         if variant_attributes:
-            variant_attributes = {
-                get_node(info, pr_att_id, only_type=ProductAttribute)
-                for pr_att_id in variant_attributes}
+            variant_attributes = set(
+                get_nodes(
+                    info, variant_attributes, only_type=ProductAttribute))
 
         kwargs = super().get_form_kwargs(root, info, **input)
         kwargs['data']['product_attributes'] = product_attributes
