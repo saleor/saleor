@@ -5,6 +5,7 @@ from graphene_django.filter import DjangoFilterConnectionField
 from ..page import models as page_models
 from .core.filters import DistinctFilterSet
 from .core.mutations import CreateToken, VerifyToken
+from .order.types import Order
 from .page.resolvers import resolve_pages
 from .page.types import Page
 from .page.mutations import PageCreate, PageDelete, PageUpdate
@@ -14,16 +15,14 @@ from .product.mutations import (
     ProductCreateMutation, ProductDeleteMutation, ProductUpdateMutation,
     ProductTypeCreateMutation, ProductTypeDeleteMutation,
     ProductTypeUpdateMutation, ProductVariantCreateMutation,
-    ProductVariantDeleteMutation, ProductVariantUpdateMutation
-)
+    ProductVariantDeleteMutation, ProductVariantUpdateMutation)
 from .product.resolvers import (
     resolve_attributes, resolve_categories, resolve_products,
     resolve_product_types)
-from .product.types import (
-    Category, Product, ProductAttribute, ProductType)
+from .product.types import Category, Product, ProductAttribute, ProductType
 from .utils import get_node
 
-
+from .order.resolvers import resolve_orders
 class Query(graphene.ObjectType):
     attributes = DjangoFilterConnectionField(
         ProductAttribute, filterset_class=DistinctFilterSet,
@@ -36,6 +35,11 @@ class Query(graphene.ObjectType):
     category = graphene.Field(
         Category, id=graphene.Argument(graphene.ID),
         description='Lookup a category by ID.')
+    order = graphene.Field(
+        Order, description='Lookup an order by ID.',
+        id=graphene.Argument(graphene.ID))
+    orders = DjangoFilterConnectionField(
+        Order, description='List of the shop\'s orders.')
     page = graphene.Field(
         Page, id=graphene.Argument(graphene.ID), slug=graphene.String(),
         description='Lookup a page by ID or by slug.')
@@ -70,6 +74,12 @@ class Query(graphene.ObjectType):
         if slug is not None:
             return page_models.Page.objects.get(slug=slug)
         return get_node(info, id, only_type=Page)
+
+    def resolve_order(self, info, id):
+        return get_node(info, id, only_type=Order)
+
+    def resolve_orders(self, info, **kwargs):
+        return resolve_orders()
 
     def resolve_pages(self, info, **kwargs):
         return resolve_pages(user=info.context.user)
