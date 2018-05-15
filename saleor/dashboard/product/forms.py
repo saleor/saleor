@@ -15,7 +15,7 @@ from ...core.i18n import VAT_RATE_TYPE_TRANSLATIONS
 from ...core.utils.taxes import DEFAULT_TAX_RATE_NAME, include_taxes_in_prices
 from ...product.models import (
     AttributeChoiceValue, Category, Collection, Product, ProductAttribute,
-    ProductImage, ProductType, ProductVariant, VariantImage)
+    ProductImage, ProductType, ProductVariant, VariantImage, ProductVendor)
 from ...product.thumbnails import create_product_thumbnails
 from ...product.utils.attributes import get_name_from_attributes
 from ..forms import ModelChoiceOrCreationField, OrderedModelMultipleChoiceField
@@ -202,6 +202,7 @@ class ProductForm(forms.ModelForm, AttributesMixin):
         exclude = ['attributes', 'product_type', 'updated_at']
         labels = {
             'name': pgettext_lazy('Item name', 'Name'),
+            'vendor': pgettext_lazy('Product vendor name', 'Vendor'),
             'description': pgettext_lazy('Description', 'Description'),
             'seo_description': pgettext_lazy(
                 'A SEO friendly description', 'SEO Friendly Description'),
@@ -225,6 +226,8 @@ class ProductForm(forms.ModelForm, AttributesMixin):
     collections = forms.ModelMultipleChoiceField(
         required=False, queryset=Collection.objects.all())
     description = RichTextField()
+    vendor = ModelChoiceOrCreationField(
+        queryset=ProductVendor.objects.all(), required=False)
 
     model_attributes_field = 'attributes'
 
@@ -258,6 +261,13 @@ class ProductForm(forms.ModelForm, AttributesMixin):
             max_length=self.fields['seo_description'].max_length)
         return seo_description
 
+    def clean_vendor(self):
+        vendor = self.cleaned_data.pop('vendor')
+        if not isinstance(vendor, ProductVendor):
+            vendor = ProductVendor(name=vendor)
+            vendor.save()
+        return vendor
+
     def save(self, commit=True):
         attributes = self.get_saved_attributes()
         self.instance.attributes = attributes
@@ -278,6 +288,7 @@ class ProductVariantForm(forms.ModelForm, AttributesMixin):
             'quantity', 'cost_price', 'track_inventory']
         labels = {
             'sku': pgettext_lazy('SKU', 'SKU'),
+            'vendor_sku': pgettext_lazy('Vendor\'s SKU', 'Vendor SKU'),
             'price_override': pgettext_lazy(
                 'Override price', 'Selling price override'),
             'quantity': pgettext_lazy('Integer number', 'Number in stock'),
@@ -389,6 +400,14 @@ class VariantImagesSelectForm(forms.Form):
         for image in self.cleaned_data['images']:
             images.append(VariantImage(variant=self.variant, image=image))
         VariantImage.objects.bulk_create(images)
+
+
+class ProductVendorForm(forms.ModelForm):
+    class Meta:
+        model = ProductVendor
+        exclude = []
+        labels = {
+            'name': pgettext_lazy('Vendor name', 'Vendor name')}
 
 
 class ProductAttributeForm(forms.ModelForm):

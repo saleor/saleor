@@ -13,7 +13,7 @@ from ...core.utils import get_paginator_items
 from ...discount.models import Sale
 from ...product.models import (
     AttributeChoiceValue, Product, ProductAttribute, ProductImage, ProductType,
-    ProductVariant)
+    ProductVariant, ProductVendor)
 from ...product.utils.availability import get_availability
 from ...product.utils.costs import (
     get_margin_for_variant, get_product_costs_data)
@@ -525,6 +525,46 @@ def ajax_upload_image(request, product_pk):
         status = 400
         ctx = {'error': form.errors}
     return JsonResponse(ctx, status=status)
+
+
+@staff_member_required
+@permission_required('product.view_properties')
+def vendor_list(request):
+    ctx = {
+        'vendors': ProductVendor.objects.all()}
+    return TemplateResponse(
+        request, 'dashboard/product/vendor/list.html', ctx)
+
+
+@staff_member_required
+@permission_required('product.edit_properties')
+def vendor_edit(request, pk):
+    vendor = get_object_or_404(ProductVendor, pk=pk)
+    form = forms.ProductVendorForm(request.POST or None, instance=vendor)
+
+    if form.is_valid():
+        form.save()
+        messages.success(
+            request, pgettext_lazy('Dashboard message', 'Updated vendor'))
+        return redirect('dashboard:product-vendors')
+
+    ctx = {'vendor': vendor, 'form': form}
+    return TemplateResponse(request, 'dashboard/product/vendor/form.html', ctx)
+
+
+@staff_member_required
+@permission_required('product.edit_properties')
+def vendor_delete(request, pk):
+    vendor = get_object_or_404(ProductVendor, pk=pk)
+    if request.method == 'POST':
+        vendor.delete()
+        msg = pgettext_lazy(
+            'Dashboard message', 'Deleted vendor %s') % (vendor.name,)
+        messages.success(request, msg)
+        return redirect('dashboard:product-vendors')
+    ctx = {'vendor': vendor}
+    return TemplateResponse(
+        request, 'dashboard/product/vendor/modal/confirm_delete.html', ctx)
 
 
 @staff_member_required

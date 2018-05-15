@@ -1,0 +1,70 @@
+{% extends "dashboard/base.html" %}
+{% load i18n %}
+{% load materializecss %}
+{% load staticfiles %}
+
+{% block title %}
+ {% trans "Edit" context "Dashboard - Editing production vendor title" %} - {{ vendor }}
+  - {{ block.super }}
+{% endblock %}
+
+{% block body_class %}body-vendors{% endblock %}
+
+{% block menu_vendors_class %}active{% endblock %}
+
+{% block header_menu %}
+  {% url "dashboard:product-vendors" as url %}
+  {% include "dashboard/includes/_back_link.html" with url=url %}
+{% endblock %}
+
+
+{% block breadcrumbs %}
+  <ul class="breadcrumbs breadcrumbs--history">
+    <li>
+      <a href="{% url 'dashboard:product-vendors' %}" class="breadcrumbs--ellipsed-item">
+        {% trans "Vendors" context "Dashboard vendors list" %}
+      </a>
+    </li>
+    <li class="back-mobile">
+      <a href="{% url 'dashboard:product-vendors' %}">
+        <svg data-src="{% static "dashboard/images/arrow-left.svg" %}" fill="#fff" width="20px" height="20px" />
+      </a>
+    </li>
+    <li>
+      <span class="breadcrumbs--ellipsed-item">
+        {% trans "Edit" context "Editing vendor detail breadcrumbs" %}
+      </span>
+    </li>
+  </ul>
+{% endblock %}
+
+{% block menu_catalogue_class %} active{% endblock %}
+
+{% block content %}
+  <div class="row">
+    <div class="col m12 l9">
+      <div class="card">
+        <form method="post" enctype="multipart/form-data" id="form-vendors" novalidate>
+          {% csrf_token %}
+          <div class="card-content">
+            <span class="card-title">
+              {% trans "Vendor" context "Vendor form title" %}
+            </span>
+            <div class="row">
+              {{ form|materializecss }}
+            </div>
+          </div>
+          <div class="card-action right-align">
+            <a href="{% url 'dashboard:product-vendors' %}" class="btn-flat waves-effect">
+              {% trans "Cancel" context "Dashboard cancel action" %}
+            </a>
+            <button type="submit" class="btn waves-effect">
+              {% trans "Save" context "Dashboard update action" %}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+    <div class="col m12 l3 help-box"></div>
+  </div>
+{% endblock %}

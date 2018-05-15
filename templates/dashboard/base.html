@@ -209,6 +209,13 @@
                     </li>
                   {% endif %}
                   {% if perms.product.view_properties %}
+                    <li class="{% block menu_vendors_class %}{% endblock %}">
+                      <a href="{% url 'dashboard:product-vendors' %}">
+                        {% trans "Vendors" context "Dashboard vendors list" %}
+                      </a>
+                    </li>
+                  {% endif %}
+                  {% if perms.product.view_properties %}
                     <li class="{% block menu_attributes_class %}{% endblock %}">
                       <a href="{% url 'dashboard:product-attributes' %}">
                         {% trans "Attributes" context "Dashboard attributes list" %}

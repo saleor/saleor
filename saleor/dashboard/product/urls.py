@@ -57,6 +57,13 @@ urlpatterns = [
     url(r'^(?P<product_pk>[0-9]+)/images/upload/$',
         views.ajax_upload_image, name='product-images-upload'),
 
+    url(r'vendors/$',
+        views.vendor_list, name='product-vendors'),
+    url(r'vendors/(?P<pk>[0-9]+)/update/$',
+        views.vendor_edit, name='product-vendor-edit'),
+    url(r'vendors/(?P<pk>[0-9]+)/delete/$',
+        views.vendor_delete, name='product-vendor-delete'),
+
     url(r'attributes/$',
         views.attribute_list, name='product-attributes'),
     url(r'attributes/(?P<pk>[0-9]+)/$',
