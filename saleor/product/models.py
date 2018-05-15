@@ -99,7 +99,7 @@ class Product(SeoModel):
     price = MoneyField(
         currency=settings.DEFAULT_CURRENCY, max_digits=12,
         decimal_places=settings.DEFAULT_DECIMAL_PLACES,
-        verbose_name=pgettext_lazy('Product list sorting option', 'price'))
+        verbose_name=pgettext_lazy('Currency amount', 'Price'))
     available_on = models.DateField(blank=True, null=True)
     is_published = models.BooleanField(default=True)
     attributes = HStoreField(default={}, blank=True)
