@@ -10,4 +10,11 @@ class Order(CountableDjangoObjectType):
         size or color."""
         interfaces = [relay.Node]
         model = models.Order
-        filter_fields = ['user_email']
+        filter_fields = {
+            'id': ['exact'],
+            'user_email': ['exact', 'icontains'],
+            'created': ['range', 'lte', 'gte'],
+            # 'payment_status': ['exact'],
+            'status': ['exact'],
+            # 'total': ['range', 'lte', 'gte'],
+}
