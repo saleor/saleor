@@ -3,7 +3,11 @@ import * as React from "react";
 
 import * as placeholderImage from "../../../../images/placeholder60x60.png";
 import OrderDetailsPage from "../../../orders/components/OrderDetailsPage";
-import { order as orderFixture } from "../../../orders/fixtures";
+import {
+  countries,
+  order as orderFixture,
+  prefixes
+} from "../../../orders/fixtures";
 import Decorator from "../../Decorator";
 
 const order = orderFixture(placeholderImage);
@@ -15,7 +19,12 @@ storiesOf("Views / Orders / Order details", module)
     <OrderDetailsPage
       order={order}
       onBack={() => {}}
+      user="admin@example.com"
       onCustomerEmailClick={id => () => {}}
       onProductClick={() => {}}
+      onPackingSlipClick={() => () => {}}
+      onOrderCancel={() => {}}
+      prefixes={prefixes}
+      countries={countries}
     />
   ));

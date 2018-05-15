@@ -1,7 +1,9 @@
 import Cached from "@material-ui/icons/Cached";
+import PrintIcon from "@material-ui/icons/Print";
 import Avatar from "material-ui/Avatar";
 import Button from "material-ui/Button";
-import Card, { CardActions } from "material-ui/Card";
+import Card, { CardActions, CardContent } from "material-ui/Card";
+import IconButton from "material-ui/IconButton";
 import { withStyles } from "material-ui/styles";
 import Table, {
   TableBody,
@@ -28,6 +30,10 @@ interface OrderFulfillmentProps {
       thumbnailUrl: string;
     };
   }>;
+  trackingCode?: string;
+  onFulfillmentCancel?();
+  onTrackingCodeAdd?();
+  onPackingSlipClick?();
 }
 
 const decorate = withStyles(theme => ({
@@ -47,29 +53,48 @@ const decorate = withStyles(theme => ({
   },
   textRight: {
     textAlign: "right" as "right"
+  },
+  statusBar: {
+    paddingTop: 0
   }
 }));
 const OrderFulfillment = decorate<OrderFulfillmentProps>(
-  ({ classes, id, status, products }) => (
+  ({
+    classes,
+    id,
+    status,
+    products,
+    trackingCode,
+    onFulfillmentCancel,
+    onTrackingCodeAdd,
+    onPackingSlipClick
+  }) => (
     <Card className={classes.root}>
       <PageHeader
         title={id ? i18n.t("Fulfillment #{{ id }}", { id }) : undefined}
       >
-        {status && (
+        {status !== "cancelled" && (
+          <IconButton
+            disabled={!onPackingSlipClick}
+            onClick={onPackingSlipClick}
+          >
+            <PrintIcon />
+          </IconButton>
+        )}
+      </PageHeader>
+      {status && (
+        <CardContent className={classes.statusBar}>
           <StatusLabel
             status={transformFulfillmentStatus(status).status}
             label={transformFulfillmentStatus(status).localized}
           />
-        )}
-      </PageHeader>
+        </CardContent>
+      )}
       <Table>
         <TableHead>
           <TableRow>
             <TableCell />
             <TableCell>{i18n.t("Product")}</TableCell>
-            <TableCell className={classes.textRight}>
-              {i18n.t("Quantity")}
-            </TableCell>
           </TableRow>
         </TableHead>
         <TableBody>
@@ -79,9 +104,8 @@ const OrderFulfillment = decorate<OrderFulfillmentProps>(
                 <TableCell className={classes.avatarCell}>
                   <Avatar src={productLine.product.thumbnailUrl} />
                 </TableCell>
-                <TableCell>{productLine.product.name}</TableCell>
-                <TableCell className={classes.textRight}>
-                  {productLine.quantity}
+                <TableCell>
+                  {productLine.product.name} x {productLine.quantity}
                 </TableCell>
               </TableRow>
             ))
@@ -95,18 +119,22 @@ const OrderFulfillment = decorate<OrderFulfillmentProps>(
               <TableCell>
                 <Skeleton />
               </TableCell>
-              <TableCell>
-                <Skeleton />
-              </TableCell>
             </TableRow>
           )}
         </TableBody>
       </Table>
-      <CardActions className={classes.cardActions}>
-        <Button>{i18n.t("Packing slip")}</Button>
-        <Button>{i18n.t("Add tracking number")}</Button>
-        <Button>{i18n.t("Cancel shipment")}</Button>
-      </CardActions>
+      {status !== "cancelled" && (
+        <CardActions className={classes.cardActions}>
+          <Button disabled={!onTrackingCodeAdd} onClick={onTrackingCodeAdd}>
+            {trackingCode
+              ? i18n.t("Add tracking number")
+              : i18n.t("Edit tracking number")}
+          </Button>
+          <Button disabled={!onFulfillmentCancel} onClick={onFulfillmentCancel}>
+            {i18n.t("Cancel shipment")}
+          </Button>
+        </CardActions>
+      )}
     </Card>
   )
 );

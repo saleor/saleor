@@ -29,7 +29,7 @@ interface MoneyType {
   amount: number;
   currency: string;
 }
-interface OrderProductsProps {
+export interface OrderProductsProps {
   products?: Array<{
     id: string;
     name: string;
@@ -38,6 +38,9 @@ interface OrderProductsProps {
     price: TaxedMoneyType;
     quantity: number;
   }>;
+  paid: MoneyType;
+  refunded: MoneyType;
+  net: MoneyType;
   subtotal: MoneyType;
   total: MoneyType;
   onRowClick?(id: string);
@@ -63,131 +66,157 @@ const decorate = withStyles(theme => ({
   },
   textRight: {
     textAlign: "right" as "right"
+  },
+  flexBox: {
+    display: "flex",
+    flexDirection: "column" as "column",
+    height: theme.spacing.unit * 12,
+    justifyContent: "space-evenly"
   }
 }));
 const OrderProducts = decorate<OrderProductsProps>(
-  ({ classes, products, subtotal, total, onRowClick }) => (
-    <Card>
-      <PageHeader title={i18n.t("Ordered items")} />
-      <Table className={classes.denseTable}>
-        <TableHead>
+  ({ classes, products, subtotal, total, paid, refunded, net, onRowClick }) => (
+    <Table className={classes.denseTable}>
+      <TableHead>
+        <TableRow>
+          <TableCell className={classes.avatarCell} />
+          <TableCell>{i18n.t("Name", { context: "object" })}</TableCell>
+          <TableCell>{i18n.t("SKU", { context: "object" })}</TableCell>
+          <TableCell className={classes.textRight}>
+            {i18n.t("Unit price", { context: "object" })}
+          </TableCell>
+          <TableCell className={classes.textRight}>
+            {i18n.t("Quantity", { context: "object" })}
+          </TableCell>
+          <TableCell className={classes.textRight}>
+            {i18n.t("Price", { context: "object" })}
+          </TableCell>
+        </TableRow>
+      </TableHead>
+      <TableBody>
+        {products === undefined || products === null ? (
           <TableRow>
-            <TableCell className={classes.avatarCell} />
-            <TableCell>{i18n.t("Name", { context: "object" })}</TableCell>
-            <TableCell>{i18n.t("SKU", { context: "object" })}</TableCell>
-            <TableCell className={classes.textRight}>
-              {i18n.t("Unit price", { context: "object" })}
+            <TableCell className={classes.avatarCell}>
+              <Avatar>
+                <Cached />
+              </Avatar>
             </TableCell>
-            <TableCell className={classes.textRight}>
-              {i18n.t("Quantity", { context: "object" })}
+            <TableCell>
+              <Skeleton />
             </TableCell>
-            <TableCell className={classes.textRight}>
-              {i18n.t("Price", { context: "object" })}
+            <TableCell>
+              <Skeleton />
+            </TableCell>
+            <TableCell>
+              <Skeleton />
+            </TableCell>
+            <TableCell>
+              <Skeleton />
+            </TableCell>
+            <TableCell>
+              <Skeleton />
             </TableCell>
           </TableRow>
-        </TableHead>
-        <TableFooter>
+        ) : products.length > 0 ? (
+          products.map(product => (
+            <TableRow key={product.id}>
+              <TableCell className={classes.avatarCell}>
+                <Avatar src={product.thumbnailUrl} />
+              </TableCell>
+              <TableCell>
+                <span
+                  onClick={onRowClick ? onRowClick(product.id) : () => {}}
+                  className={onRowClick ? classes.link : ""}
+                >
+                  {product.name}
+                </span>
+              </TableCell>
+              <TableCell>{product.sku}</TableCell>
+              <TableCell className={classes.textRight}>
+                <Money
+                  amount={product.price.gross.amount}
+                  currency={product.price.gross.currency}
+                />
+              </TableCell>
+              <TableCell className={classes.textRight}>
+                {product.quantity}
+              </TableCell>
+              <TableCell className={classes.textRight}>
+                <Money
+                  amount={product.price.gross.amount * product.quantity}
+                  currency={product.price.gross.currency}
+                />
+              </TableCell>
+            </TableRow>
+          ))
+        ) : (
           <TableRow>
-            <TableCell colSpan={5} className={classes.textRight}>
+            <TableCell className={classes.avatarCell} />
+            <TableCell colSpan={2}>{i18n.t("No products found")}</TableCell>
+          </TableRow>
+        )}
+        <TableRow>
+          <TableCell colSpan={5} className={classes.textRight}>
+            <div className={classes.flexBox}>
               <Typography>{i18n.t("Subtotal")}</Typography>
               <Typography>{i18n.t("Shipping")}</Typography>
               <Typography>
                 <b>{i18n.t("Total")}</b>
               </Typography>
-            </TableCell>
-            <TableCell className={classes.textRight}>
+            </div>
+          </TableCell>
+          <TableCell className={classes.textRight}>
+            <div className={classes.flexBox}>
               {subtotal ? (
                 <Money amount={subtotal.amount} currency={subtotal.currency} />
               ) : (
-                <p>
-                  <Skeleton />
-                </p>
+                <Skeleton />
               )}
               {subtotal ? (
                 <Money amount={subtotal.amount} currency={subtotal.currency} />
               ) : (
-                <p>
-                  <Skeleton />
-                </p>
+                <Skeleton />
               )}
               {total ? (
                 <Money amount={total.amount} currency={total.currency} />
               ) : (
-                <p>
-                  <Skeleton />
-                </p>
+                <Skeleton />
               )}
-            </TableCell>
-          </TableRow>
-        </TableFooter>
-        <TableBody>
-          {products === undefined || products === null ? (
-            <TableRow>
-              <TableCell className={classes.avatarCell}>
-                <Avatar>
-                  <Cached />
-                </Avatar>
-              </TableCell>
-              <TableCell>
+            </div>
+          </TableCell>
+        </TableRow>
+        <TableRow>
+          <TableCell colSpan={5} className={classes.textRight}>
+            <div className={classes.flexBox}>
+              <Typography>{i18n.t("Paid by customer")}</Typography>
+              <Typography>{i18n.t("Refunded")}</Typography>
+              <Typography>
+                <b>{i18n.t("Net payment")}</b>
+              </Typography>
+            </div>
+          </TableCell>
+          <TableCell className={classes.textRight}>
+            <div className={classes.flexBox}>
+              {paid ? (
+                <Money amount={paid.amount} currency={paid.currency} />
+              ) : (
                 <Skeleton />
-              </TableCell>
-              <TableCell>
+              )}
+              {refunded ? (
+                <Money amount={-refunded.amount} currency={refunded.currency} />
+              ) : (
                 <Skeleton />
-              </TableCell>
-              <TableCell>
+              )}
+              {net ? (
+                <Money amount={net.amount} currency={net.currency} />
+              ) : (
                 <Skeleton />
-              </TableCell>
-              <TableCell>
-                <Skeleton />
-              </TableCell>
-              <TableCell>
-                <Skeleton />
-              </TableCell>
-            </TableRow>
-          ) : products.length > 0 ? (
-            products.map(product => (
-              <TableRow key={product.id}>
-                <TableCell className={classes.avatarCell}>
-                  <Avatar src={product.thumbnailUrl} />
-                </TableCell>
-                <TableCell>
-                  <span
-                    onClick={onRowClick ? onRowClick(product.id) : () => {}}
-                    className={onRowClick ? classes.link : ""}
-                  >
-                    {product.name}
-                  </span>
-                </TableCell>
-                <TableCell>{product.sku}</TableCell>
-                <TableCell className={classes.textRight}>
-                  <Money
-                    amount={product.price.gross.amount}
-                    currency={product.price.gross.currency}
-                  />
-                </TableCell>
-                <TableCell className={classes.textRight}>
-                  {product.quantity}
-                </TableCell>
-                <TableCell className={classes.textRight}>
-                  <Money
-                    amount={product.price.gross.amount * product.quantity}
-                    currency={product.price.gross.currency}
-                  />
-                </TableCell>
-              </TableRow>
-            ))
-          ) : (
-            <TableRow>
-              <TableCell className={classes.avatarCell} />
-              <TableCell colSpan={2}>{i18n.t("No products found")}</TableCell>
-            </TableRow>
-          )}
-        </TableBody>
-      </Table>
-      {/* <CardActions className={classes.cardActions}>
-        <Button>{i18n.t("Fulfill")}</Button>
-      </CardActions> */}
-    </Card>
+              )}
+            </div>
+          </TableCell>
+        </TableRow>
+      </TableBody>
+    </Table>
   )
 );
 export default OrderProducts;

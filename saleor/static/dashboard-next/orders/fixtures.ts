@@ -108,10 +108,10 @@ export const orders = {
 export const order = placeholder => ({
   id: "o1",
   number: 11,
-  status: "fulfilled",
+  status: "partially fulfilled",
   client: {
-    id: "c1",
     email: "test.client@example.com",
+    id: "c1",
     name: "Test Client"
   },
   shippingAddress: {
@@ -123,7 +123,10 @@ export const order = placeholder => ({
     firstName: "Test",
     id: "a1",
     lastName: "Client",
-    phone: "",
+    phone: {
+      number: "",
+      prefix: ""
+    },
     postalCode: "95393-6818",
     streetAddress_1: "9297 Barker Extension",
     streetAddress_2: ""
@@ -137,7 +140,10 @@ export const order = placeholder => ({
     firstName: "Test",
     id: "a1",
     lastName: "Client",
-    phone: "",
+    phone: {
+      number: "",
+      prefix: ""
+    },
     postalCode: "95393-6818",
     streetAddress_1: "9297 Barker Extension",
     streetAddress_2: ""
@@ -147,6 +153,20 @@ export const order = placeholder => ({
   price: {
     amount: 19.2,
     currency: "USD"
+  },
+  payment: {
+    paid: {
+      amount: 19.2,
+      currency: "USD"
+    },
+    refunded: {
+      amount: 13.2,
+      currency: "USD"
+    },
+    net: {
+      amount: 6,
+      currency: "USD"
+    }
   },
   fulfillments: [
     {
@@ -169,7 +189,8 @@ export const order = placeholder => ({
           },
           quantity: 1
         }
-      ]
+      ],
+      trackingCode: "012391230412131239052"
     },
     {
       id: "f2",
@@ -183,7 +204,31 @@ export const order = placeholder => ({
           },
           quantity: 1
         }
-      ]
+      ],
+      trackingCode: "012391230412131239052"
+    }
+  ],
+  unfulfilled: [
+    {
+      id: "UHJvZHVjdDoy",
+      name: "Gardner and Graham",
+      sku: "9123022",
+      thumbnailUrl: placeholder,
+      quantity: 1
+    },
+    {
+      id: "UHJvZHVjdDoz",
+      name: "Gardner and King",
+      sku: "9123023",
+      thumbnailUrl: placeholder,
+      quantity: 7
+    },
+    {
+      id: "UHJvZHVjdDoa",
+      name: "Graham and King",
+      sku: "9123024",
+      thumbnailUrl: placeholder,
+      quantity: 3
     }
   ],
   products: [
@@ -260,7 +305,47 @@ export const order = placeholder => ({
       id: "n1",
       type: "created",
       content: "Created order",
+      date: "2018-04-07T11:18:19+00:00",
       user: "richard.holder@example.com"
+    },
+    {
+      id: "n1",
+      type: "payment",
+      content: "Received payment",
+      date: "2018-04-07T11:33:19+00:00",
+      user: "richard.holder@example.com",
+      params: { amount: 165.7, currency: "USD" }
+    },
+    {
+      id: "n3",
+      type: "shipped",
+      content: "Shipped order",
+      date: "2018-04-07T13:31:19+00:00",
+      user: "megan.finger@example.com",
+      params: {
+        shippingAddress: {
+          city: "Keithport",
+          cityArea: "",
+          companyName: "",
+          country: "Cyprus",
+          countryArea: "",
+          firstName: "Test",
+          id: "a1",
+          lastName: "Client",
+          phone: "",
+          postalCode: "95393-6818",
+          streetAddress_1: "9297 Barker Extension",
+          streetAddress_2: ""
+        }
+      }
+    },
+    {
+      id: "n4",
+      type: "note",
+      content:
+        "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Curabitur arcu nisi, dignissim non placerat id, varius imperdiet nisi. Duis lobortis, massa sed feugiat ultricies, massa felis commodo dui, tempor tempus tellus ligula id arcu. Nam erat dui, fermentum sed dui a, tincidunt molestie magna.",
+      date: "2018-04-08T11:18:19+00:00",
+      user: "megan.finger@example.com"
     }
   ]
 });
@@ -269,3 +354,11 @@ export const flatOrders = orders.edges.map(edge => ({
   orderStatus: transformOrderStatus(edge.node.status),
   paymentStatus: transformPaymentStatus(edge.node.paymentStatus)
 }));
+export const prefixes = ["01", "02", "41", "49"];
+export const countries = [
+  { code: "AF", label: "Afghanistan" },
+  { code: "AX", label: "Åland Islands" },
+  { code: "AL", label: "Albania" },
+  { code: "DZ", label: "Algeria" },
+  { code: "AS", label: "American Samoa" }
+];

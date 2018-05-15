@@ -2,7 +2,8 @@ import ExpandMoreIcon from "@material-ui/icons/ExpandMore";
 import PersonIcon from "@material-ui/icons/Person";
 import * as CRC from "crc-32";
 import Avatar from "material-ui/Avatar";
-import Card, { CardContent } from "material-ui/Card";
+import Button from "material-ui/Button";
+import Card, { CardActions, CardContent } from "material-ui/Card";
 import * as colors from "material-ui/colors";
 import grey from "material-ui/colors/grey";
 import ExpansionPanel, {
@@ -10,10 +11,12 @@ import ExpansionPanel, {
   ExpansionPanelSummary
 } from "material-ui/ExpansionPanel";
 import { withStyles } from "material-ui/styles";
+import TextField from "material-ui/TextField";
 import Typography from "material-ui/Typography";
 import * as React from "react";
 
 import DateFormatter from "../DateFormatter";
+import i18n from "../../i18n";
 
 interface TimelineProps {}
 interface TimelineNodeProps {
@@ -25,14 +28,34 @@ interface TimelineNoteProps {
   user: string;
   content: string;
 }
+interface TimelineAddNoteProps {
+  user: string;
+  content: string;
+  onChange(event: React.ChangeEvent<any>);
+  onSubmit(event: React.FormEvent<any>);
+}
 
 const decorate = withStyles(theme => ({
   root: {
-    marginLeft: theme.spacing.unit * 8,
+    marginLeft: theme.spacing.unit * 5.5,
     paddingLeft: theme.spacing.unit * 3,
     borderStyle: "solid",
     borderWidth: "0 0 0 2px",
     borderColor: grey[300]
+  },
+  avatar: {
+    alignSelf: "flex-start" as "flex-start",
+    marginRight: theme.spacing.unit * 5.5
+  },
+  cardActions: {
+    direction: "rtl" as "rtl",
+    maxHeight: 0,
+    transitionDuration: "200ms",
+    overflow: "hidden" as "hidden",
+    display: "block" as "block"
+  },
+  cardActionsExpanded: {
+    maxHeight: theme.spacing.unit * 6
   },
   nodeDot: {
     position: "relative" as "relative",
@@ -46,7 +69,6 @@ const decorate = withStyles(theme => ({
     borderColor: grey[300]
   },
   nodeRoot: {
-    maxWidth: theme.breakpoints.values.sm,
     marginBottom: theme.spacing.unit * 3,
     display: "flex",
     width: "100%",
@@ -69,9 +91,8 @@ const decorate = withStyles(theme => ({
   },
   noteRoot: {
     position: "relative" as "relative",
-    left: -theme.spacing.unit * 8.5,
-    maxWidth: `calc(${theme.breakpoints.values.sm}px + ${theme.spacing.unit *
-      8.5}px)`,
+    left: -theme.spacing.unit * 8.5 - 1,
+    width: `calc(100% + ${theme.spacing.unit * 8.5}px)`,
     marginBottom: theme.spacing.unit * 3
   },
   noteTitle: {
@@ -90,6 +111,7 @@ const decorate = withStyles(theme => ({
   },
   panel: {
     background: "none",
+    width: "100%",
     "&:before": {
       display: "none"
     }
@@ -102,6 +124,25 @@ const decorate = withStyles(theme => ({
     right: theme.spacing.unit * 7
   }
 }));
+const palette = [
+  colors.amber,
+  colors.blue,
+  colors.cyan,
+  colors.deepOrange,
+  colors.deepPurple,
+  colors.green,
+  colors.indigo,
+  colors.lightBlue,
+  colors.lightGreen,
+  colors.lime,
+  colors.orange,
+  colors.pink,
+  colors.purple,
+  colors.red,
+  colors.teal,
+  colors.yellow
+].map(color => color[500]);
+
 export const Timeline = decorate<TimelineProps>(({ classes, children }) => (
   <div className={classes.root}>{children}</div>
 ));
@@ -133,44 +174,53 @@ export const TimelineNode = decorate<TimelineNodeProps>(
   )
 );
 export const TimelineNote = decorate<TimelineNoteProps>(
-  ({ classes, date, user, content }) => {
-    const palette = [
-      colors.amber,
-      colors.blue,
-      colors.blueGrey,
-      colors.cyan,
-      colors.deepOrange,
-      colors.deepPurple,
-      colors.green,
-      colors.indigo,
-      colors.lightBlue,
-      colors.lightGreen,
-      colors.lime,
-      colors.orange,
-      colors.pink,
-      colors.purple,
-      colors.red,
-      colors.teal,
-      colors.yellow
-    ].map(color => color[500]);
-    return (
-      <Card className={classes.noteRoot}>
-        <CardContent className={classes.noteTitle}>
-          <Avatar
-            style={{ background: palette[CRC.str(user) % palette.length] }}
-          >
-            <PersonIcon />
-          </Avatar>
-          <Typography className={classes.noteUser}>{user}</Typography>
-          <div className={classes.noteDate}>
-            <DateFormatter date={date} />
-          </div>
-        </CardContent>
-        <CardContent>
-          <Typography className={classes.noteContent}>{content}</Typography>
-        </CardContent>
-      </Card>
-    );
-  }
+  ({ classes, date, user, content }) => (
+    <Card className={classes.noteRoot}>
+      <CardContent className={classes.noteTitle}>
+        <Avatar style={{ background: palette[CRC.str(user) % palette.length] }}>
+          <PersonIcon />
+        </Avatar>
+        <Typography className={classes.noteUser}>{user}</Typography>
+        <div className={classes.noteDate}>
+          <DateFormatter date={date} />
+        </div>
+      </CardContent>
+      <CardContent>
+        <Typography className={classes.noteContent}>{content}</Typography>
+      </CardContent>
+    </Card>
+  )
+);
+export const TimelineAddNote = decorate<TimelineAddNoteProps>(
+  ({ classes, user, content, onChange, onSubmit }) => (
+    <div className={classes.noteRoot}>
+      <CardContent className={classes.noteTitle}>
+        <Avatar
+          style={{ background: palette[CRC.str(user) % palette.length] }}
+          className={classes.avatar}
+        >
+          <PersonIcon />
+        </Avatar>
+        <TextField
+          label={i18n.t("Note")}
+          placeholder={i18n.t("Leave your note here...")}
+          onChange={onChange}
+          value={content}
+          name="content"
+          InputLabelProps={{ shrink: true }}
+          fullWidth
+          multiline
+        />
+      </CardContent>
+      <CardActions
+        className={[
+          classes.cardActions,
+          content ? classes.cardActionsExpanded : ""
+        ].join(" ")}
+      >
+        <Button onClick={onSubmit}>{i18n.t("Add note")}</Button>
+      </CardActions>
+    </div>
+  )
 );
 export default Timeline;

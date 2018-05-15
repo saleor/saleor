@@ -16,7 +16,10 @@ interface AddressType {
   firstName: string;
   id: string;
   lastName: string;
-  phone: string;
+  phone: {
+    prefix: string;
+    number: string;
+  };
   postalCode: string;
   streetAddress_1: string;
   streetAddress_2: string;

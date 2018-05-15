@@ -30,8 +30,14 @@ export const transformOrderStatus = (status: string) => {
   switch (status) {
     case "fulfilled":
       return { localized: i18n.t("Fulfilled"), status: "success" };
+    case "partially fulfilled":
+      return { localized: i18n.t("Partially fulfilled"), status: "neutral" };
     case "unfulfilled":
-      return { localized: i18n.t("Unfulfilled"), status: "neutral" };
+      return { localized: i18n.t("Unfulfilled"), status: "error" };
+    case "cancelled":
+      return { localized: i18n.t("Cancelled"), status: "error" };
+    case "draft":
+      return { localized: i18n.t("Draft"), status: "error" };
   }
   return {
     localized: status,
