@@ -5,7 +5,7 @@ import PhoneField from "../../../components/PhoneField";
 import { prefixes } from "../../../orders/fixtures";
 import Decorator from "../../Decorator";
 
-storiesOf("Components / PhoneField", module)
+storiesOf("Generics / PhoneField", module)
   .addDecorator(Decorator)
   .add("default", () => (
     <PhoneField
