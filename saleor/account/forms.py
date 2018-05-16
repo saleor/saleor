@@ -13,8 +13,10 @@ from .i18n import AddressMetaForm, get_address_form_class
 class FormWithReCaptcha(forms.BaseForm):
     def __new__(cls, *args, **kwargs):
         if settings.ENABLE_RECAPTCHA:
-            cls.base_fields['_captcha'] = ReCaptchaField(
-                label=pgettext_lazy('Captcha field label', 'Are you human?'))
+            # insert a Google reCaptcha field inside the form
+            # note: label is empty, the reCaptcha is self-explanatory making
+            #       the form simpler for the user.
+            cls.base_fields['_captcha'] = ReCaptchaField(label='')
         return super(FormWithReCaptcha, cls).__new__(cls)
 
 
