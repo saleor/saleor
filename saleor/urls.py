@@ -29,7 +29,8 @@ non_translatable_urlpatterns = [
         schema=schema, graphiql=settings.DEBUG), name='api'),
     url(r'^sitemap\.xml$', sitemap, {'sitemaps': sitemaps},
         name='django.contrib.sitemaps.views.sitemap'),
-    url(r'^i18n/$', set_language, name='set_language')]
+    url(r'^i18n/$', set_language, name='set_language'),
+    url('', include('social_django.urls', namespace='social'))]
 
 translatable_urlpatterns = [
     url(r'^', include(core_urls)),
@@ -46,8 +47,7 @@ translatable_urlpatterns = [
     url(r'^feeds/',
         include((feed_urls, 'data_feeds'), namespace='data_feeds')),
     url(r'^search/', include((search_urls, 'search'), namespace='search')),
-    url(r'', include('payments.urls')),
-    url('', include('social_django.urls', namespace='social'))]
+    url(r'', include('payments.urls'))]
 
 urlpatterns = non_translatable_urlpatterns + i18n_patterns(
     *translatable_urlpatterns)
