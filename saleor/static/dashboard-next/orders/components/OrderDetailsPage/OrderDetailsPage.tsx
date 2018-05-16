@@ -3,7 +3,11 @@ import IconButton from "material-ui/IconButton";
 import { withStyles } from "material-ui/styles";
 import * as React from "react";
 
-import { transformOrderStatus } from "../..";
+import {
+  AddressType,
+  transformAddressToForm,
+  transformOrderStatus
+} from "../..";
 import { Container } from "../../../components/Container";
 import DateFormatter from "../../../components/DateFormatter";
 import Form from "../../../components/Form";
@@ -22,23 +26,6 @@ import OrderHistory from "../OrderHistory";
 import OrderPaymentDialog from "../OrderPaymentDialog";
 import OrderSummary from "../OrderSummary";
 
-interface AddressType {
-  city: string;
-  cityArea: string;
-  companyName: string;
-  country: string;
-  countryArea: string;
-  firstName: string;
-  id: string;
-  lastName: string;
-  phone: {
-    prefix: string;
-    number: string;
-  };
-  postalCode: string;
-  streetAddress_1: string;
-  streetAddress_2: string;
-}
 interface TaxedMoneyType {
   gross: {
     amount: number;
@@ -375,7 +362,11 @@ const OrderDetailsPage = decorate<OrderDetailsPageProps>(
                     />
                     {order && (
                       <>
-                        <Form initial={order.shippingAddress}>
+                        <Form
+                          initial={transformAddressToForm(
+                            order.shippingAddress
+                          )}
+                        >
                           {({ change, data, submit }) => (
                             <OrderAddressEditDialog
                               variant="shipping"
@@ -389,7 +380,9 @@ const OrderDetailsPage = decorate<OrderDetailsPageProps>(
                             />
                           )}
                         </Form>
-                        <Form initial={order.billingAddress}>
+                        <Form
+                          initial={transformAddressToForm(order.billingAddress)}
+                        >
                           {({ change, data, submit }) => (
                             <OrderAddressEditDialog
                               variant="billing"

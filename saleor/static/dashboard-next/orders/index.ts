@@ -1,5 +1,23 @@
 import i18n from "../i18n";
 
+export interface AddressType {
+  city: string;
+  cityArea: string;
+  companyName: string;
+  country: string;
+  countryArea: string;
+  firstName: string;
+  id: string;
+  lastName: string;
+  phone: {
+    prefix: string;
+    number: string;
+  };
+  postalCode: string;
+  streetAddress_1: string;
+  streetAddress_2: string;
+}
+
 export const PaymentStatus = {
   CONFIRMED: "confirmed",
   ERROR: "error",
@@ -81,3 +99,10 @@ export const transformFulfillmentStatus = (status: string) => {
     status: "error"
   };
 };
+
+export const transformAddressToForm = (data: AddressType) => ({
+  ...data,
+  phone: undefined,
+  phone_number: data.phone.number,
+  phone_prefix: data.phone.prefix
+});

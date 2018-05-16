@@ -26,10 +26,8 @@ interface OrderAddressEditDialogProps {
     firstName: string;
     id: string;
     lastName: string;
-    phone: {
-      prefix: string;
-      number: string;
-    };
+    phone_prefix: string;
+    phone_number: string;
     postalCode: string;
     streetAddress_1: string;
     streetAddress_2: string;
@@ -160,7 +158,8 @@ const OrderAddressEditDialog = decorate<OrderAddressEditDialogProps>(
         <PhoneField
           label={i18n.t("Phone")}
           name="phone"
-          value={data.phone}
+          prefix={data.phone_prefix}
+          number={data.phone_number}
           prefixes={prefixes}
           onChange={onChange}
         />

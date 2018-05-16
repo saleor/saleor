@@ -11,7 +11,8 @@ storiesOf("Components / PhoneField", module)
     <PhoneField
       prefixes={prefixes}
       name="phone"
-      value={{ prefix: "41", number: "123 012 239" }}
+      prefix="41"
+      number="123 987 456"
       onChange={() => {}}
     />
   ));

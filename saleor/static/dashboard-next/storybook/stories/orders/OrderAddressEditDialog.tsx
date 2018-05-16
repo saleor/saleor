@@ -1,11 +1,12 @@
 import { storiesOf } from "@storybook/react";
 import * as React from "react";
 
+import { transformAddressToForm } from "../../../orders";
 import OrderAddressEditDialog from "../../../orders/components/OrderAddressEditDialog";
 import {
+  countries,
   order as orderFixture,
-  prefixes,
-  countries
+  prefixes
 } from "../../../orders/fixtures";
 import Decorator from "../../Decorator";
 
@@ -17,7 +18,7 @@ storiesOf("Orders / OrderAddressEditDialog", module)
     <OrderAddressEditDialog
       open={true}
       variant="shipping"
-      data={order.shippingAddress}
+      data={transformAddressToForm(order.shippingAddress)}
       onChange={() => {}}
       countries={countries}
       prefixes={prefixes}
@@ -27,7 +28,7 @@ storiesOf("Orders / OrderAddressEditDialog", module)
     <OrderAddressEditDialog
       open={true}
       variant="billing"
-      data={order.billingAddress}
+      data={transformAddressToForm(order.billingAddress)}
       onChange={() => {}}
       prefixes={prefixes}
       countries={countries}

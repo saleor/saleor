@@ -6,10 +6,8 @@ import SingleSelectField from "../../components/SingleSelectField";
 
 interface PhoneFieldProps {
   name: string;
-  value: {
-    prefix: string;
-    number: string;
-  };
+  prefix: string;
+  number: string;
   prefixes: string[];
   label?: string;
   onChange(event: React.ChangeEvent<any>);
@@ -23,21 +21,28 @@ const decorate = withStyles(theme => ({
   }
 }));
 const PhoneField = decorate<PhoneFieldProps>(
-  ({ classes, name, value, prefixes, label, onChange }) => (
+  ({
+    classes,
+    name,
+    number: phoneNumber,
+    prefix,
+    prefixes,
+    label,
+    onChange
+  }) => (
     <div className={classes.root}>
       <SingleSelectField
         name={name + "_prefix"}
         choices={prefixes.map(p => ({ label: "+" + p, value: p }))}
         onChange={onChange}
-        value={value.prefix}
+        value={prefix}
         label={label}
       />
       <TextField
         name={name + "_number"}
         onChange={onChange}
-        value={value.number}
+        value={phoneNumber}
         label="&nbsp;"
-        type="number"
       />
     </div>
   )
