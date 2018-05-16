@@ -3,12 +3,14 @@ from collections import defaultdict
 from django_prices.templatetags import prices_i18n
 
 from ...core.utils import to_local_currency
+from ...core.utils.taxes import display_gross_prices, get_tax_rate_by_name
 from ...seo.schema.product import variant_json_ld
 from .availability import get_availability
 
 
-def get_variant_picker_data(product, discounts=None, local_currency=None):
-    availability = get_availability(product, discounts, local_currency)
+def get_variant_picker_data(
+        product, discounts=None, taxes=None, local_currency=None):
+    availability = get_availability(product, discounts, taxes, local_currency)
     variants = product.variants.all()
     data = {'variantAttributes': [], 'variants': []}
 
@@ -18,8 +20,8 @@ def get_variant_picker_data(product, discounts=None, local_currency=None):
     filter_available_variants = defaultdict(list)
 
     for variant in variants:
-        price = variant.get_price_per_item(discounts)
-        price_undiscounted = variant.get_price_per_item()
+        price = variant.get_price(discounts, taxes)
+        price_undiscounted = variant.get_price(taxes=taxes)
         if local_currency:
             price_local_currency = to_local_currency(price, local_currency)
         else:
@@ -55,11 +57,15 @@ def get_variant_picker_data(product, discounts=None, local_currency=None):
 
     data['availability'] = {
         'discount': price_as_dict(availability.discount),
+        'taxRate': get_tax_rate_by_name(product.tax_rate, taxes),
         'priceRange': price_range_as_dict(availability.price_range),
         'priceRangeUndiscounted': price_range_as_dict(
             availability.price_range_undiscounted),
         'priceRangeLocalCurrency': price_range_as_dict(
             availability.price_range_local_currency)}
+    data['priceDisplay'] = {
+        'displayGross': display_gross_prices(),
+        'handleTaxes': bool(taxes)}
     return data
 
 

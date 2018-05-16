@@ -1,0 +1,7 @@
+.product-header {
+  display: grid;
+  grid-template-columns: 1fr 200px;
+  grid-column-gap: 2rem;
+  &__title {}
+  &__switch {}
+}

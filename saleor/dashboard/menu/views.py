@@ -1,7 +1,6 @@
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import permission_required
-from django.contrib.sites.shortcuts import get_current_site
 from django.db.models import Q
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect
@@ -26,8 +25,7 @@ def menu_list(request):
     menus = get_paginator_items(
         menu_filter.qs, settings.DASHBOARD_PAGINATE_BY,
         request.GET.get('page'))
-    site = get_current_site(request)
-    site_settings = site.settings
+    site_settings = request.site.settings
 
     data = (
         request.POST
