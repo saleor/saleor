@@ -24,29 +24,41 @@ interface OrderFulfillmentTrackingDialogProps {
 const decorate = withStyles(theme => ({}));
 const OrderFulfillmentTrackingDialog = decorate<
   OrderFulfillmentTrackingDialogProps
->(({ children, classes, open, variant, onConfirm, onClose, onChange }) => (
-  <Dialog open={open}>
-    <DialogTitle>
-      {variant === "edit"
-        ? i18n.t("Edit tracking code", { context: "title" })
-        : i18n.t("Add tracking code", { context: "title" })}
-    </DialogTitle>
-    <DialogContent>
-      <TextField
-        label={i18n.t("Tracking code")}
-        name="trackingCode"
-        onChange={onChange}
-        fullWidth
-      />
-    </DialogContent>
-    <DialogActions>
-      <Button onClick={onClose}>
-        {i18n.t("Cancel", { context: "button" })}
-      </Button>
-      <Button color="primary" variant="raised" onClick={onConfirm}>
-        {i18n.t("Confirm", { context: "button" })}
-      </Button>
-    </DialogActions>
-  </Dialog>
-));
+>(
+  ({
+    children,
+    classes,
+    open,
+    variant,
+    trackingCode,
+    onConfirm,
+    onClose,
+    onChange
+  }) => (
+    <Dialog open={open}>
+      <DialogTitle>
+        {variant === "edit"
+          ? i18n.t("Edit tracking code", { context: "title" })
+          : i18n.t("Add tracking code", { context: "title" })}
+      </DialogTitle>
+      <DialogContent>
+        <TextField
+          label={i18n.t("Tracking code")}
+          name="trackingCode"
+          onChange={onChange}
+          value={trackingCode}
+          fullWidth
+        />
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={onClose}>
+          {i18n.t("Cancel", { context: "button" })}
+        </Button>
+        <Button color="primary" variant="raised" onClick={onConfirm}>
+          {i18n.t("Confirm", { context: "button" })}
+        </Button>
+      </DialogActions>
+    </Dialog>
+  )
+);
 export default OrderFulfillmentTrackingDialog;

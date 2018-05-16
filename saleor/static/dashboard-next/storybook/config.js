@@ -65,6 +65,7 @@ function loadStories() {
   require("./stories/orders/OrderList");
   require("./stories/orders/OrderListPage");
   require("./stories/orders/OrderPaymentDialog");
+  require("./stories/orders/OrderPaymentReleaseDialog");
   require("./stories/orders/OrderSummary");
 }
 
