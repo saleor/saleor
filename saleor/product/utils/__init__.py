@@ -47,7 +47,7 @@ def handle_cart_form(request, product, create_cart=False):
         cart = get_cart_from_request(request)
     form = ProductForm(
         cart=cart, product=product, data=request.POST or None,
-        discounts=request.discounts)
+        discounts=request.discounts, taxes=request.taxes)
     return form, cart
 
 
@@ -105,7 +105,8 @@ def get_product_list_context(request, filter_set):
     products_paginated = get_paginator_items(
         filter_set.qs, settings.PAGINATE_BY, request.GET.get('page'))
     products_and_availability = list(products_with_availability(
-        products_paginated, request.discounts, request.currency))
+        products_paginated, request.discounts, request.taxes,
+        request.currency))
     now_sorted_by = get_now_sorted_by(filter_set)
     arg_sort_by = request.GET.get('sort_by')
     is_descending = arg_sort_by.startswith('-') if arg_sort_by else False
@@ -116,3 +117,11 @@ def get_product_list_context(request, filter_set):
         'sort_by_choices': SORT_BY_FIELDS,
         'now_sorted_by': now_sorted_by,
         'is_descending': is_descending}
+
+
+def collections_visible_to_user(user):
+    # pylint: disable=cyclic-import
+    from ..models import Collection
+    if user.is_authenticated and user.is_active and user.is_staff:
+        return Collection.objects.all()
+    return Collection.objects.public()

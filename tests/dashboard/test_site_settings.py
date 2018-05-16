@@ -98,7 +98,7 @@ def test_authorization_key_form_add(admin_client, site_settings):
                   kwargs={'site_settings_pk': site_settings.pk})
     response = admin_client.post(url, data, follow=True)
     assert response.status_code == 200
-    assert len(AuthorizationKey.objects.all()) == 1
+    assert AuthorizationKey.objects.count() == 1
     assert site_settings.available_backends().count() == 1
     assert 'google-oauth2' in site_settings.available_backends()
 
@@ -111,7 +111,7 @@ def test_authorization_key_form_add_not_valid(admin_client, site_settings):
                   kwargs={'site_settings_pk': site_settings.pk})
     response = admin_client.post(url, data, follow=True)
     assert response.status_code == 200
-    assert len(AuthorizationKey.objects.all()) == 0
+    assert AuthorizationKey.objects.count() == 0
     assert site_settings.available_backends().count() == 0
 
 
@@ -125,7 +125,7 @@ def test_authorization_key_form_edit(
                           'key_pk': authorization_key.pk})
     response = admin_client.post(url, data, follow=True)
     assert response.status_code == 200
-    assert len(AuthorizationKey.objects.all()) == 1
+    assert AuthorizationKey.objects.count() == 1
     assert site_settings.available_backends().count() == 1
     assert 'google-oauth2' in site_settings.available_backends()
 
@@ -138,7 +138,7 @@ def test_authorization_key_form_delete(
                           'key_pk': authorization_key.pk})
     response = admin_client.post(url, follow=True)
     assert response.status_code == 200
-    assert len(AuthorizationKey.objects.all()) == 0
+    assert AuthorizationKey.objects.count() == 0
     assert site_settings.available_backends().count() == 0
 
 

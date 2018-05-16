@@ -1,6 +1,5 @@
 {% load i18n %}
-{% load price_range from price_ranges %}
-{% load prices_i18n %}
+{% load taxed_prices %}
 
 {% if shipping_required %}
   <div class="table__row">
@@ -9,14 +8,14 @@
         <h3>{% trans "Subtotal" context "Order subtotal" %}</h3>
       </div>
       <div class="col-4">
-        <h3 class="text-right cart-subtotal" data-value="{{ cart_total.gross|amount }}" {% if local_cart_total is not None %}data-value-local="{{ local_cart_total.gross|amount }}"{% endif %}>
+        <h3 class="text-right cart-subtotal" data-value="{% price cart_total.gross html=False %}" {% if local_cart_total is not None %}data-value-local="{% price local_cart_total.gross html=False %}"{% endif %}>
           {% spaceless %}
-            {{ cart_total.gross|amount:'html' }}
+            {% price cart_total %}
             {% if local_cart_total is not None and local_cart_total.gross %}
               <br>
               <small>
                 &asymp;
-                {{ local_cart_total.gross|amount:'html' }}
+                {% price local_cart_total %}
               </small>
             {% endif %}
           {% endspaceless %}
@@ -54,6 +53,7 @@
   <div class="row">
     <div class="col-8 cart__total__subtotal">
       <h3>{% trans "Total" context "Order subtotal" %}</h3>
+      <small>{% trans "Shipment and taxes calculated at checkout" context "Cart summary text" %}</small>
     </div>
     <div class="col-4">
       {% spaceless %}

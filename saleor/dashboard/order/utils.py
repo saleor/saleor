@@ -1,8 +1,8 @@
 from django.conf import settings
 from django.contrib.sites.shortcuts import get_current_site
 from django.template.loader import get_template
-from prices import Money
 
+from ...core.utils.taxes import ZERO_MONEY
 from ...discount import VoucherType
 from ...discount.models import NotApplicable
 from ...discount.utils import (
@@ -19,8 +19,7 @@ def get_statics_absolute_url(request):
     absolute_url = '%(protocol)s://%(domain)s%(static_url)s' % {
         'protocol': 'https' if request.is_secure() else 'http',
         'domain': site.domain,
-        'static_url': settings.STATIC_URL,
-    }
+        'static_url': settings.STATIC_URL}
     return absolute_url
 
 
@@ -76,12 +75,13 @@ def update_order_with_user_addresses(order):
 def get_product_variants_and_prices(order, product):
     """Get variants and unit prices from order lines matching the product."""
     lines = (
-        line for line in order if line.product == product)
+        line for line in order
+        if line.variant and line.variant.product == product)
     for line in lines:
         for dummy_i in range(line.quantity):
-            variant = line.product.variants.get(sku=line.product_sku)
+            variant = line.variant
             if variant:
-                yield variant, variant.get_price_per_item()
+                yield variant, variant.get_price()
 
 
 def get_category_variants_and_prices(order, root_category):
@@ -90,7 +90,7 @@ def get_category_variants_and_prices(order, root_category):
     Product is assumed to be in the category if it belongs to any of its
     descendant subcategories.
     """
-    products = {line.product for line in order if line.product}
+    products = {line.variant.product for line in order if line.variant}
     matching_products = set()
     for product in products:
         if product.category.is_descendant_of(root_category, include_self=True):
@@ -106,7 +106,7 @@ def _get_value_voucher_discount_for_order(order):
         discount_amount = get_value_voucher_discount(
             order.voucher, order.get_subtotal())
     except NotApplicable:
-        discount_amount = Money(0, settings.DEFAULT_CURRENCY)
+        discount_amount = ZERO_MONEY
     return discount_amount
 
 
@@ -116,7 +116,7 @@ def _get_shipping_voucher_discount_for_order(order):
         discount_amount = get_shipping_voucher_discount(
             order.voucher, order.get_subtotal(), order.shipping_price)
     except NotApplicable:
-        discount_amount = Money(0, settings.DEFAULT_CURRENCY)
+        discount_amount = ZERO_MONEY
     return discount_amount
 
 
@@ -131,7 +131,7 @@ def _get_product_or_category_voucher_discount_for_order(order):
             variant_price for _, variant_price in
             get_category_variants_and_prices(order, order.voucher.category)]
     if not prices:
-        return Money(0, settings.DEFAULT_CURRENCY)
+        return ZERO_MONEY
     return get_product_or_category_voucher_discount(order.voucher, prices)
 
 

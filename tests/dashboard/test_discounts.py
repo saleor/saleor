@@ -25,7 +25,7 @@ def test_vouchers_list(admin_client, voucher):
 
 
 def test_voucher_shipping_add(admin_client):
-    assert len(Voucher.objects.all()) == 0
+    assert Voucher.objects.count() == 0
     url = reverse('dashboard:voucher-add')
     data = {
         'code': 'TESTVOUCHER', 'name': 'Test Voucher',
@@ -35,7 +35,7 @@ def test_voucher_shipping_add(admin_client):
         'shipping-limit': '59.99'}
     response = admin_client.post(url, data, follow=True)
     assert response.status_code == 200
-    assert len(Voucher.objects.all()) == 1
+    assert Voucher.objects.count() == 1
 
     voucher = Voucher.objects.all()[0]
     assert voucher.type == VoucherType.SHIPPING

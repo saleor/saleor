@@ -1,11 +1,11 @@
 {% extends "base.html" %}
-{% load i18n %}
-{% load i18n_address_tags %}
-{% load prices_i18n %}
-{% load staticfiles %}
-{% load status %}
 {% load bootstrap_form from bootstrap4 %}
 {% load bootstrap_pagination from bootstrap4 %}
+{% load i18n %}
+{% load i18n_address_tags %}
+{% load price from taxed_prices %}
+{% load staticfiles %}
+{% load status %}
 
 {% block title %}{% trans "Your profile" context "User profile page title" %} — {{ block.super }}{% endblock %}
 
@@ -75,7 +75,9 @@
                     {{ order.created }}
                   </div>
                   <div class="col-md-2 col-4">
-                    <span class="float-right">{{ order.total.gross|amount:'html' }}</span>
+                    <span class="float-right">
+                      {% price order.total.gross %}
+                    </span>
                   </div>
                   <div class="col-md-4 d-none d-md-block">
                     {% render_order_status order.status order.get_status_display %}

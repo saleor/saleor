@@ -1,6 +1,5 @@
 {% extends "dashboard/base.html" %}
 {% load i18n %}
-{% load prices_i18n %}
 {% load materializecss %}
 {% load staticfiles %}
 {% load utils %}
@@ -54,7 +53,7 @@
                 </tr>
               </thead>
               <tbody>
-              {% for pk, name, has_variants, product_attributes, variant_attributes in product_types %}
+              {% for pk, name, product_attributes, variant_attributes in product_types %}
                 <tr data-action-go="{% if perms.product.edit_properties %}{% url 'dashboard:product-type-update' pk=pk %}{% endif %}">
                   <td>
                     {{ name }}
@@ -96,23 +95,6 @@
     </div>
     <div class="col s12 l3" id="filters">
       {% if not is_empty %}{% filters filter_set %}{% endif %}
-    </div>
-  </div>
-  <div id="modal-product-class" class="modal">
-    <div class="modal-content">
-      <form method="post" novalidate>
-        {% csrf_token %}
-        <div class="row">
-          {{ form|materializecss }}
-        </div>
-        <div class="row">
-          <div class="col s12">
-            <button class="btn waves-effect" type="submit">
-              {% trans "Create new" context "Dashboard create new action"  %}
-            </button>
-          </div>
-        </div>
-      </form>
     </div>
   </div>
 {% endblock %}

@@ -1,9 +1,9 @@
 from django.db import models
-from django.db.models import Max
 from django.utils.translation import pgettext_lazy
 from mptt.managers import TreeManager
 from mptt.models import MPTTModel
 
+from ..core.models import SortableModel
 from ..page.models import Page
 from ..product.models import Category, Collection
 
@@ -22,11 +22,10 @@ class Menu(models.Model):
         return self.name
 
 
-class MenuItem(MPTTModel):
+class MenuItem(MPTTModel, SortableModel):
     menu = models.ForeignKey(
         Menu, related_name='items', on_delete=models.CASCADE)
     name = models.CharField(max_length=128)
-    sort_order = models.PositiveIntegerField(editable=False)
     parent = models.ForeignKey(
         'self', null=True, blank=True, related_name='children',
         on_delete=models.CASCADE)
@@ -54,14 +53,6 @@ class MenuItem(MPTTModel):
         return (
             self.menu.items.all() if not self.parent
             else self.parent.children.all())
-
-    def save(self, *args, **kwargs):
-        if self.sort_order is None:
-            qs = self.get_ordering_queryset()
-            existing_max = qs.aggregate(Max('sort_order'))
-            existing_max = existing_max.get('sort_order__max')
-            self.sort_order = 0 if existing_max is None else existing_max + 1
-        super().save(*args, **kwargs)
 
     @property
     def linked_object(self):
