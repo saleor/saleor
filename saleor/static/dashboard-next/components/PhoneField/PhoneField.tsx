@@ -26,14 +26,14 @@ const PhoneField = decorate<PhoneFieldProps>(
   ({ classes, name, value, prefixes, label, onChange }) => (
     <div className={classes.root}>
       <SingleSelectField
-        name={name}
+        name={name + "_prefix"}
         choices={prefixes.map(p => ({ label: "+" + p, value: p }))}
         onChange={onChange}
         value={value.prefix}
         label={label}
       />
       <TextField
-        name={name}
+        name={name + "_number"}
         onChange={onChange}
         value={value.number}
         label="&nbsp;"
