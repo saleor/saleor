@@ -63,33 +63,11 @@ const OrderHistory = decorate<OrderHistoryProps>(
                   <Typography variant="caption" className={classes.user}>
                     {i18n.t("by {{ user }}", { user: event.user })}
                   </Typography>
-                  <Typography>
-                    {event.params.shippingAddress.firstName}{" "}
-                    {event.params.shippingAddress.lastName}
-                    <br />
-                    {event.params.shippingAddress.companyName && (
-                      <>
-                        {event.params.shippingAddress.companyName}
-                        <br />
-                      </>
-                    )}
-                    {event.params.shippingAddress.streetAddress_1}
-                    <br />
-                    {event.params.shippingAddress.streetAddress_2 && (
-                      <>
-                        {event.params.shippingAddress.streetAddress_2}
-                        <br />
-                      </>
-                    )}
-                    {event.params.shippingAddress.postalCode}{" "}
-                    {event.params.shippingAddress.city}
-                    {event.params.shippingAddress.cityArea &&
-                      ", " + event.params.shippingAddress.cityArea}
-                    <br />
-                    {event.params.shippingAddress.country}
-                    {event.params.shippingAddress.countryArea &&
-                      ", " + event.params.shippingAddress.countryArea}
-                  </Typography>
+                  <Typography
+                    dangerouslySetInnerHTML={{
+                      __html: event.params.shippingAddress
+                    }}
+                  />
                 </TimelineNode>
               );
             }

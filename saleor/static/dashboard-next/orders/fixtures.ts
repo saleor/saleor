@@ -323,20 +323,8 @@ export const order = placeholder => ({
       date: "2018-04-07T13:31:19+00:00",
       user: "megan.finger@example.com",
       params: {
-        shippingAddress: {
-          city: "Keithport",
-          cityArea: "",
-          companyName: "",
-          country: "Cyprus",
-          countryArea: "",
-          firstName: "Test",
-          id: "a1",
-          lastName: "Client",
-          phone: "",
-          postalCode: "95393-6818",
-          streetAddress_1: "9297 Barker Extension",
-          streetAddress_2: ""
-        }
+        shippingAddress:
+          "Test Client<br />9297 Barker Extension<br />95393-6818 Keithport<br />Cyprus"
       }
     },
     {
