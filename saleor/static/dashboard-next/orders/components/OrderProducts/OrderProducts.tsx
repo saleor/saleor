@@ -38,11 +38,11 @@ export interface OrderProductsProps {
     price: TaxedMoneyType;
     quantity: number;
   }>;
-  paid: MoneyType;
-  refunded: MoneyType;
-  net: MoneyType;
-  subtotal: MoneyType;
-  total: MoneyType;
+  paid?: MoneyType;
+  refunded?: MoneyType;
+  net?: MoneyType;
+  subtotal?: MoneyType;
+  total?: MoneyType;
   onRowClick?(id: string);
 }
 

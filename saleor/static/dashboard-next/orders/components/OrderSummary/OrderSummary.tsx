@@ -3,7 +3,12 @@ import Card, { CardActions, CardContent } from "material-ui/Card";
 import { withStyles } from "material-ui/styles";
 import * as React from "react";
 
-import { transformOrderStatus } from "../..";
+import {
+  OrderStatus,
+  PaymentStatus,
+  PaymentVariants,
+  transformOrderStatus
+} from "../..";
 import PageHeader from "../../../components/PageHeader";
 import StatusLabel from "../../../components/StatusLabel/StatusLabel";
 import i18n from "../../../i18n";
@@ -17,8 +22,12 @@ interface MoneyType {
 }
 interface OrderSummaryProps extends OrderProductsProps {
   status?: string;
+  paymentStatus?: string;
+  paymentVariant?: string;
   onFulfill?();
-  onPaymentOperation?();
+  onCapture?();
+  onRefund?();
+  onRelease?();
   onOrderCancel?();
 }
 
@@ -45,15 +54,40 @@ const OrderSummary = decorate<OrderSummaryProps>(
     subtotal,
     total,
     status,
+    paymentStatus,
     paid,
     refunded,
     net,
+    paymentVariant,
     onRowClick,
     onFulfill,
-    onPaymentOperation,
+    onCapture,
+    onRefund,
+    onRelease,
     onOrderCancel
   }) => {
     const orderStatus = status ? transformOrderStatus(status) : undefined;
+    const canCapture =
+      paymentStatus && status
+        ? paymentStatus === PaymentStatus.PREAUTH &&
+          !([OrderStatus.DRAFT, OrderStatus.CANCELLED] as any).includes(status)
+        : false;
+    const canRelease =
+      paymentStatus && status ? paymentStatus === PaymentStatus.PREAUTH : false;
+    const canRefund =
+      paymentStatus && status
+        ? paymentStatus === PaymentStatus.CONFIRMED &&
+          paymentVariant !== PaymentVariants.MANUAL
+        : false;
+    const canFulfill = ([
+      OrderStatus.UNFULFILLED,
+      OrderStatus.PARTIALLY_FULFILLED
+    ] as any).includes(status);
+    const canCancel = !([
+      OrderStatus.CANCELLED,
+      OrderStatus.DRAFT
+    ] as any).includes(status);
+    const canGetInvoice = paymentStatus === PaymentStatus.CONFIRMED;
     return (
       <Card>
         <PageHeader title={i18n.t("Order Summary")} />
@@ -74,29 +108,42 @@ const OrderSummary = decorate<OrderSummaryProps>(
           net={net}
           onRowClick={onRowClick}
         />
-        <CardActions className={classes.cardActions}>
-          {status && (
-            <>
-              {orderStatus.status !== "success" && (
+        {status &&
+          (canGetInvoice ||
+            canFulfill ||
+            canCapture ||
+            canRefund ||
+            canRelease ||
+            canCancel) && (
+            <CardActions className={classes.cardActions}>
+              {canGetInvoice && <Button>{i18n.t("Invoice")}</Button>}
+              {canFulfill && (
                 <Button disabled={!onFulfill} onClick={onFulfill}>
                   {i18n.t("Fulfill")}
                 </Button>
               )}
-              {!(paid.amount > 0 && refunded.amount > 0) && (
-                <Button
-                  disabled={!onPaymentOperation}
-                  onClick={onPaymentOperation}
-                >
-                  {paid.amount === 0 ? i18n.t("Capture") : i18n.t("Refund")}
+              {canCapture && (
+                <Button disabled={!onCapture} onClick={onCapture}>
+                  {i18n.t("Capture")}
                 </Button>
               )}
-            </>
+              {canRefund && (
+                <Button disabled={!onRefund} onClick={onRefund}>
+                  {i18n.t("Refund")}
+                </Button>
+              )}
+              {canRelease && (
+                <Button disabled={!onRelease} onClick={onRelease}>
+                  {i18n.t("Release")}
+                </Button>
+              )}
+              {canCancel && (
+                <Button disabled={!onOrderCancel} onClick={onOrderCancel}>
+                  {i18n.t("Cancel order")}
+                </Button>
+              )}
+            </CardActions>
           )}
-          <Button>{i18n.t("Invoice")}</Button>
-          <Button disabled={!onOrderCancel} onClick={onOrderCancel}>
-            {i18n.t("Cancel order")}
-          </Button>
-        </CardActions>
       </Card>
     );
   }

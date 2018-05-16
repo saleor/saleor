@@ -1,23 +1,47 @@
 import i18n from "../i18n";
 
+export const PaymentStatus = {
+  CONFIRMED: "confirmed",
+  ERROR: "error",
+  INPUT: "input",
+  PREAUTH: "preauth",
+  REFUNDED: "refunded",
+  REJECTED: "rejected",
+  WAITING: "waiting"
+};
+export const OrderStatus = {
+  CANCELLED: "cancelled",
+  DRAFT: "draft",
+  FULFILLED: "fulfilled",
+  PARTIALLY_FULFILLED: "partially fulfilled",
+  UNFULFILLED: "unfulfilled"
+};
+export const FulfillmentStatus = {
+  CANCELLED: "cancelled",
+  FULFILLED: "fulfilled"
+};
+export const PaymentVariants = {
+  MANUAL: "manual"
+};
+
 export const transformPaymentStatus = (status: string) => {
   switch (status) {
-    case "confirmed":
+    case PaymentStatus.CONFIRMED:
       return { localized: i18n.t("Confirmed"), status: "success" };
-    case "refunded":
+    case PaymentStatus.REFUNDED:
       return { localized: i18n.t("Refunded"), status: "success" };
-    case "waiting":
+    case PaymentStatus.WAITING:
       return {
         localized: i18n.t("Waiting for confirmation"),
         status: "neutral"
       };
-    case "preauth":
+    case PaymentStatus.PREAUTH:
       return { localized: i18n.t("Preauthorized"), status: "neutral" };
-    case "input":
+    case PaymentStatus.INPUT:
       return { localized: i18n.t("Input"), status: "neutral" };
-    case "rejected":
+    case PaymentStatus.REJECTED:
       return { localized: i18n.t("Rejected"), status: "error" };
-    case "error":
+    case PaymentStatus.ERROR:
       return { localized: i18n.t("Error"), status: "error" };
   }
   return {
@@ -28,15 +52,15 @@ export const transformPaymentStatus = (status: string) => {
 
 export const transformOrderStatus = (status: string) => {
   switch (status) {
-    case "fulfilled":
+    case OrderStatus.FULFILLED:
       return { localized: i18n.t("Fulfilled"), status: "success" };
-    case "partially fulfilled":
+    case OrderStatus.PARTIALLY_FULFILLED:
       return { localized: i18n.t("Partially fulfilled"), status: "neutral" };
-    case "unfulfilled":
+    case OrderStatus.UNFULFILLED:
       return { localized: i18n.t("Unfulfilled"), status: "error" };
-    case "cancelled":
+    case OrderStatus.CANCELLED:
       return { localized: i18n.t("Cancelled"), status: "error" };
-    case "draft":
+    case OrderStatus.DRAFT:
       return { localized: i18n.t("Draft"), status: "error" };
   }
   return {
@@ -47,9 +71,9 @@ export const transformOrderStatus = (status: string) => {
 
 export const transformFulfillmentStatus = (status: string) => {
   switch (status) {
-    case "fulfilled":
+    case FulfillmentStatus.FULFILLED:
       return { localized: i18n.t("Fulfilled"), status: "success" };
-    case "cancelled":
+    case FulfillmentStatus.CANCELLED:
       return { localized: i18n.t("Cancelled"), status: "neutral" };
   }
   return {

@@ -55,11 +55,17 @@ function loadStories() {
 
   // Orders
   require("./stories/orders/OrderAddressEditDialog");
+  require("./stories/orders/OrderCancelDialog");
   require("./stories/orders/OrderCustomer");
   require("./stories/orders/OrderDetailsPage");
+  require("./stories/orders/OrderFulfillmentCancelDialog");
   require("./stories/orders/OrderFulfillmentDialog");
+  require("./stories/orders/OrderFulfillmentTrackingDialog");
+  require("./stories/orders/OrderHistory");
   require("./stories/orders/OrderList");
   require("./stories/orders/OrderListPage");
+  require("./stories/orders/OrderPaymentDialog");
+  require("./stories/orders/OrderSummary");
 }
 
 configure(loadStories, module);

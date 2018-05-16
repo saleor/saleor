@@ -59,6 +59,7 @@ interface OrderDetailsPageProps {
     };
     created: string;
     status: string;
+    paymentStatus: string;
     shippingAddress?: AddressType;
     billingAddress?: AddressType;
     fulfillments: Array<{
@@ -173,76 +174,118 @@ const OrderDetailsPage = decorate<OrderDetailsPageProps>(
                     ) => (
                       <Toggle>
                         {(
-                          openedOrderCancelDialog,
-                          { toggle: toggleOrderCancelDialog }
+                          openedPaymentCaptureDialog,
+                          { toggle: togglePaymentCaptureDialog }
                         ) => (
-                          <>
-                            <OrderSummary
-                              products={order ? order.products : undefined}
-                              subtotal={order ? order.subtotal : undefined}
-                              status={order ? order.status : undefined}
-                              total={order ? order.total : undefined}
-                              onRowClick={onProductClick}
-                              paid={order ? order.payment.paid : undefined}
-                              refunded={
-                                order ? order.payment.refunded : undefined
-                              }
-                              net={order ? order.payment.net : undefined}
-                              onFulfill={toggleFulfillmentDialog}
-                              onPaymentOperation={togglePaymentDialog}
-                              onOrderCancel={toggleOrderCancelDialog}
-                            />
-                            {order && (
-                              <>
-                                <Form
-                                  initial={
-                                    order
-                                      ? order.unfulfilled.reduce(
-                                          (prev, curr) => {
-                                            prev[curr.id] = curr.quantity;
-                                            return prev;
-                                          },
-                                          {}
-                                        )
-                                      : undefined
-                                  }
-                                >
-                                  {({ data, change, submit }) => (
-                                    <OrderFulfillmentDialog
-                                      open={openedFulfillmentDialog}
-                                      onClose={toggleFulfillmentDialog}
-                                      onChange={change}
-                                      products={order.unfulfilled}
-                                      onConfirm={submit}
-                                      data={data}
-                                    />
-                                  )}
-                                </Form>
-                                <Form initial={{ value: 0 }}>
-                                  {({ data, change, submit }) => (
-                                    <OrderPaymentDialog
-                                      open={openedPaymentDialog}
-                                      onClose={togglePaymentDialog}
-                                      onChange={change}
-                                      onConfirm={submit}
-                                      value={data.value}
-                                      variant={
-                                        order.payment.paid.amount === 0
-                                          ? "capture"
-                                          : "refund"
+                          <Toggle>
+                            {(
+                              openedPaymentRefundDialog,
+                              { toggle: togglePaymentRefundDialog }
+                            ) => (
+                              <Toggle>
+                                {(
+                                  openedOrderCancelDialog,
+                                  { toggle: toggleOrderCancelDialog }
+                                ) => (
+                                  <>
+                                    <OrderSummary
+                                      products={
+                                        order ? order.products : undefined
                                       }
+                                      subtotal={
+                                        order ? order.subtotal : undefined
+                                      }
+                                      status={order ? order.status : undefined}
+                                      paymentStatus={
+                                        order ? order.paymentStatus : undefined
+                                      }
+                                      total={order ? order.total : undefined}
+                                      onRowClick={onProductClick}
+                                      paid={
+                                        order ? order.payment.paid : undefined
+                                      }
+                                      refunded={
+                                        order
+                                          ? order.payment.refunded
+                                          : undefined
+                                      }
+                                      net={
+                                        order ? order.payment.net : undefined
+                                      }
+                                      onFulfill={toggleFulfillmentDialog}
+                                      onCapture={togglePaymentCaptureDialog}
+                                      onRefund={togglePaymentRefundDialog}
+                                      onRelease={togglePaymentReleaseDialog}
+                                      onOrderCancel={toggleOrderCancelDialog}
                                     />
-                                  )}
-                                </Form>
-                                <OrderCancelDialog
-                                  open={openedOrderCancelDialog}
-                                  onClose={toggleOrderCancelDialog}
-                                  onConfirm={onOrderCancel}
-                                  id={order.id}
-                                />
-                              </>
+                                    {order && (
+                                      <>
+                                        <Form
+                                          initial={
+                                            order
+                                              ? order.unfulfilled.reduce(
+                                                  (prev, curr) => {
+                                                    prev[curr.id] =
+                                                      curr.quantity;
+                                                    return prev;
+                                                  },
+                                                  {}
+                                                )
+                                              : undefined
+                                          }
+                                        >
+                                          {({ data, change, submit }) => (
+                                            <OrderFulfillmentDialog
+                                              open={openedFulfillmentDialog}
+                                              onClose={toggleFulfillmentDialog}
+                                              onChange={change}
+                                              products={order.unfulfilled}
+                                              onConfirm={submit}
+                                              data={data}
+                                            />
+                                          )}
+                                        </Form>
+                                        <Form initial={{ value: 0 }}>
+                                          {({ data, change, submit }) => (
+                                            <OrderPaymentDialog
+                                              open={openedPaymentCaptureDialog}
+                                              onClose={
+                                                togglePaymentCaptureDialog
+                                              }
+                                              onChange={change}
+                                              onConfirm={submit}
+                                              value={data.value}
+                                              variant="capture"
+                                            />
+                                          )}
+                                        </Form>
+                                        <Form initial={{ value: 0 }}>
+                                          {({ data, change, submit }) => (
+                                            <OrderPaymentDialog
+                                              open={openedPaymentRefundDialog}
+                                              onClose={
+                                                togglePaymentRefundDialog
+                                              }
+                                              onChange={change}
+                                              onConfirm={submit}
+                                              value={data.value}
+                                              variant="refund"
+                                            />
+                                          )}
+                                        </Form>
+                                        <OrderCancelDialog
+                                          open={openedOrderCancelDialog}
+                                          onClose={toggleOrderCancelDialog}
+                                          onConfirm={onOrderCancel}
+                                          id={order.id}
+                                        />
+                                      </>
+                                    )}
+                                  </>
+                                )}
+                              </Toggle>
                             )}
-                          </>
+                          </Toggle>
                         )}
                       </Toggle>
                     )}
