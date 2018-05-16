@@ -370,6 +370,8 @@ const OrderDetailsPage = decorate<OrderDetailsPageProps>(
                       }
                       billingAddress={order ? order.billingAddress : undefined}
                       onCustomerEmailClick={onCustomerEmailClick}
+                      onBillingAddressEdit={toggleBillingAddressEditDialog}
+                      onShippingAddressEdit={toggleShippingAddressEditDialog}
                     />
                     {order && (
                       <>

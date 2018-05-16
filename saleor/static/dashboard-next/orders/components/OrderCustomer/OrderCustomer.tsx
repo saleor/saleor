@@ -1,8 +1,11 @@
+import EditIcon from "@material-ui/icons/Edit";
 import Card, { CardContent } from "material-ui/Card";
 import blue from "material-ui/colors/blue";
+import IconButton from "material-ui/IconButton";
 import { withStyles } from "material-ui/styles";
 import Typography from "material-ui/Typography";
 import * as React from "react";
+
 import PageHeader from "../../../components/PageHeader";
 import Skeleton from "../../../components/Skeleton";
 import i18n from "../../../i18n";
@@ -33,6 +36,8 @@ interface OrderCustomerProps {
   shippingAddress?: AddressType;
   billingAddress?: AddressType;
   onCustomerEmailClick?(id: string);
+  onBillingAddressEdit?();
+  onShippingAddressEdit?();
 }
 
 const decorate = withStyles(theme => ({
@@ -55,7 +60,9 @@ const OrderCustomer = decorate<OrderCustomerProps>(
     client,
     billingAddress,
     shippingAddress,
-    onCustomerEmailClick
+    onCustomerEmailClick,
+    onBillingAddressEdit,
+    onShippingAddressEdit
   }) => (
     <Card>
       <PageHeader title={i18n.t("Customer")} />
@@ -83,7 +90,14 @@ const OrderCustomer = decorate<OrderCustomerProps>(
       </CardContent>
       <hr className={classes.hr} />
 
-      <PageHeader title={i18n.t("Shipping Address")} />
+      <PageHeader title={i18n.t("Shipping Address")}>
+        <IconButton
+          onClick={onShippingAddressEdit}
+          disabled={!onShippingAddressEdit && client === undefined}
+        >
+          <EditIcon />
+        </IconButton>
+      </PageHeader>
       <CardContent>
         {client === undefined || client === null ? (
           <>
@@ -116,7 +130,14 @@ const OrderCustomer = decorate<OrderCustomerProps>(
       </CardContent>
       <hr className={classes.hr} />
 
-      <PageHeader title={i18n.t("Billing Address")} />
+      <PageHeader title={i18n.t("Billing Address")}>
+        <IconButton
+          onClick={onShippingAddressEdit}
+          disabled={!onShippingAddressEdit && client === undefined}
+        >
+          <EditIcon />
+        </IconButton>
+      </PageHeader>
       <CardContent>
         {client === undefined || client === null ? (
           <>

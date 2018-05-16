@@ -15,6 +15,8 @@ storiesOf("Orders / OrderCustomer", module)
       client={order("").client}
       shippingAddress={order("").shippingAddress}
       billingAddress={order("").billingAddress}
+      onBillingAddressEdit={() => {}}
+      onShippingAddressEdit={() => {}}
     />
   ))
   .add("with different addresses", () => (
@@ -22,5 +24,7 @@ storiesOf("Orders / OrderCustomer", module)
       client={order("").client}
       shippingAddress={order("").shippingAddress}
       billingAddress={differentAddress}
+      onBillingAddressEdit={() => {}}
+      onShippingAddressEdit={() => {}}
     />
   ));
