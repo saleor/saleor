@@ -5,6 +5,8 @@ from graphene_django.filter import DjangoFilterConnectionField
 from ..page import models as page_models
 from .core.filters import DistinctFilterSet
 from .core.mutations import CreateToken, VerifyToken
+from .order.filters import OrderFilter
+from .order.resolvers import resolve_orders
 from .order.types import Order
 from .page.resolvers import resolve_pages
 from .page.types import Page
@@ -22,7 +24,6 @@ from .product.resolvers import (
 from .product.types import Category, Product, ProductAttribute, ProductType
 from .utils import get_node
 
-from .order.resolvers import resolve_orders
 class Query(graphene.ObjectType):
     attributes = DjangoFilterConnectionField(
         ProductAttribute, filterset_class=DistinctFilterSet,
@@ -39,7 +40,7 @@ class Query(graphene.ObjectType):
         Order, description='Lookup an order by ID.',
         id=graphene.Argument(graphene.ID))
     orders = DjangoFilterConnectionField(
-        Order, description='List of the shop\'s orders.')
+        Order, filterset_class=OrderFilter, description='List of the shop\'s orders.')
     page = graphene.Field(
         Page, id=graphene.Argument(graphene.ID), slug=graphene.String(),
         description='Lookup a page by ID or by slug.')
