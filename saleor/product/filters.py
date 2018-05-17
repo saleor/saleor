@@ -19,11 +19,12 @@ class ProductFilter(SortedFilterSet):
         label=pgettext_lazy('Product list sorting form', 'Sort by'),
         fields=SORT_BY_FIELDS.keys(),
         field_labels=SORT_BY_FIELDS)
+    price = RangeFilter(
+        label=pgettext_lazy('Currency amount', 'Price'))
 
     class Meta:
         model = Product
-        fields = ['price']
-        filter_overrides = {MoneyField: {'filter_class': RangeFilter}}
+        fields = []
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
