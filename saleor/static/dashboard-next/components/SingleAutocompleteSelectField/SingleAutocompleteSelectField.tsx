@@ -23,48 +23,6 @@ interface SingleAutocompleteSelectFieldProps {
   onChange(event);
 }
 
-function renderInput(inputProps) {
-  const { InputProps, classes, ref, ...other } = inputProps;
-
-  return (
-    <TextField
-      InputProps={{
-        classes: {
-          root: classes.inputRoot
-        },
-        inputRef: ref,
-        ...InputProps
-      }}
-      {...other}
-    />
-  );
-}
-
-function renderSuggestion({
-  suggestion,
-  index,
-  itemProps,
-  highlightedIndex,
-  selectedItem
-}) {
-  const isHighlighted = highlightedIndex === index;
-  const isSelected = (selectedItem.value || "").indexOf(suggestion.value) > -1;
-
-  return (
-    <MenuItem
-      {...itemProps}
-      key={suggestion.value}
-      selected={isHighlighted}
-      component="div"
-      style={{
-        fontWeight: isSelected ? 500 : 400
-      }}
-    >
-      {suggestion.label}
-    </MenuItem>
-  );
-}
-
 const decorate = withStyles(theme => ({
   chip: {
     margin: `${theme.spacing.unit / 2}px ${theme.spacing.unit / 4}px`
@@ -106,24 +64,36 @@ export const SingleAutocompleteSelectField = decorate<
         const choices = fetchChoices(inputValue);
         return (
           <div className={classes.container}>
-            {renderInput({
-              InputProps: getInputProps({
-                placeholder: "Search a country (start with a)"
-              }),
-              classes,
-              fullWidth: true
-            })}
+            <TextField
+              InputProps={{
+                classes: {
+                  root: classes.inputRoot
+                },
+                ...getInputProps({
+                  placeholder: "Search a country (start with a)"
+                })
+              }}
+              fullWidth={true}
+            />
             {isOpen ? (
               <Paper className={classes.paper} square>
-                {choices.map((suggestion, index) =>
-                  renderSuggestion({
-                    highlightedIndex,
-                    index,
-                    itemProps: getItemProps({ item: suggestion }),
-                    selectedItem,
-                    suggestion
-                  })
-                )}
+                {choices.map((suggestion, index) => (
+                  <MenuItem
+                    key={suggestion.value}
+                    selected={highlightedIndex === index}
+                    component="div"
+                    style={{
+                      fontWeight:
+                        (selectedItem.value || "").indexOf(suggestion.value) >
+                        -1
+                          ? 500
+                          : 400
+                    }}
+                    {...getItemProps({ item: suggestion })}
+                  >
+                    {suggestion.label}
+                  </MenuItem>
+                ))}
               </Paper>
             ) : null}
           </div>
