@@ -1,6 +1,6 @@
 <mjml>
   <mj-head>
-    <mj-include path="../shared/styles" />
+    <mj-include path="./shared/styles" />
   </mj-head>
   <mj-body>
     <mj-container>
@@ -11,18 +11,18 @@
           </mj-text>
         </mj-column>
       </mj-section>
-      <mj-include path="../shared/header" />
+      <mj-include path="./shared/header" />
       <mj-section>
         <mj-column>
           <mj-text font-size="16px">
-            {% trans "Hi!" context "Fulfillment update email text" %}
+            {% trans "Hi!" context "Fulfillment confirmation email text" %}
           </mj-text>
           <mj-text>
-            {% blocktrans trimmed context "Fulfillment update email text" %}
-              Your shipping status has been updated. Below is the list of ordered products that have been updated with new tracking number.
+            {% blocktrans trimmed context "Fulfillment confirmation email text" %}
+              Thank you for your order. Below is the list of shipped products.
             {% endblocktrans %}
             {% if fulfillment.tracking_number %}
-              {% blocktrans trimmed with tracking_number=fulfillment.tracking_number context "Fulfillment update email text" %}
+              {% blocktrans trimmed with tracking_number=fulfillment.tracking_number context "Fulfillment confirmation email text" %}
                 You can track your shipment with {{ tracking_number }} code.
               {% endblocktrans %}
             {% endif %}
@@ -30,7 +30,7 @@
         </mj-column>
       </mj-section>
       <mj-include path="./partials/_fulfillment_lines" />
-      <mj-include path="../shared/footer" />
+      <mj-include path="./shared/footer" />
     </mj-container>
   </mj-body>
 </mjml>
