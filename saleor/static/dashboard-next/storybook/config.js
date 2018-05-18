@@ -10,6 +10,7 @@ function loadStories() {
   require("./stories/components/PageHeader");
   require("./stories/components/PhoneField");
   require("./stories/components/PriceField");
+  require("./stories/components/SingleAutocompleteSelectField");
   require("./stories/components/SingleSelectField");
   require("./stories/components/Skeleton");
   require("./stories/components/StatusLabel");
