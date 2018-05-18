@@ -8,11 +8,11 @@ from ..core.utils import build_absolute_uri
 from ..seo.schema.email import get_order_confirmation_markup
 from .models import Fulfillment, Order
 
-CONFIRM_ORDER_TEMPLATE = 'source/order/confirm_order'
-CONFIRM_FULFILLMENT_TEMPLATE = 'source/order/confirm_fulfillment'
-UPDATE_FULFILLMENT_TEMPLATE = 'source/order/update_fulfillment'
-CONFIRM_PAYMENT_TEMPLATE = 'source/order/payment/confirm_payment'
-CONFIRM_NOTE_TEMPLATE = 'source/order/note/confirm_note'
+CONFIRM_ORDER_TEMPLATE = 'order/confirm_order'
+CONFIRM_FULFILLMENT_TEMPLATE = 'order/confirm_fulfillment'
+UPDATE_FULFILLMENT_TEMPLATE = 'order/update_fulfillment'
+CONFIRM_PAYMENT_TEMPLATE = 'order/payment/confirm_payment'
+CONFIRM_NOTE_TEMPLATE = 'order/note/confirm_note'
 
 
 def get_email_context(order_token):

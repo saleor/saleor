@@ -20,7 +20,7 @@ def send_set_password_email(staff):
         'uid': urlsafe_base64_encode(force_bytes(staff.pk)).decode(),
         'token': default_token_generator.make_token(staff)}
     send_templated_mail(
-        template_name='source/dashboard/staff/set_password',
+        template_name='dashboard/staff/set_password',
         from_email=settings.DEFAULT_FROM_EMAIL,
         recipient_list=[staff.email],
         context=ctx)
@@ -35,7 +35,7 @@ def send_promote_customer_to_staff_email(staff):
         'url': build_absolute_uri(reverse('dashboard:index')),
         'site_name': site.name}
     send_templated_mail(
-        template_name='source/dashboard/staff/promote_customer',
+        template_name='dashboard/staff/promote_customer',
         from_email=settings.DEFAULT_FROM_EMAIL,
         recipient_list=[staff.email],
         context=ctx)
