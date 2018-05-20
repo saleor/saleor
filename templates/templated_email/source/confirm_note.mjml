@@ -1,6 +1,6 @@
 <mjml>
   <mj-head>
-    <mj-include path="../../shared/styles" />
+    <mj-include path="./shared/styles" />
   </mj-head>
   <mj-body>
     <mj-container>
@@ -11,20 +11,20 @@
           </mj-text>
         </mj-column>
       </mj-section>
-      <mj-include path="../../shared/header" />
+      <mj-include path="./shared/header" />
       <mj-section>
         <mj-column>
           <mj-text font-size="16px">
-            {% trans "Hi!" context "Payment confirmation e-mail text" %}
+            {% trans "Hi!" context "Note confirmation e-mail text" %}
           </mj-text>
           <mj-text>
-            {% blocktrans trimmed context "Payment confirmation e-mail text" %}
-              Thank you for your payment. To see your payment details please visit: <a href="{{ url }}">{{ url }}</a>
+            {% blocktrans trimmed context "Note confirmation e-mail text" %}
+              A new note has been added to your order. To see details please visit: <a href="{{ url }}">{{ url }}</a>
             {% endblocktrans %}
           </mj-text>
         </mj-column>
       </mj-section>
-      <mj-include path="../../shared/footer" />
+      <mj-include path="./shared/footer" />
     </mj-container>
   </mj-body>
 </mjml>

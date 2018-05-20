@@ -14,7 +14,7 @@ def send_password_reset_email(context, recipient):
             kwargs={'uidb64': context['uid'], 'token': context['token']}))
     context['reset_url'] = reset_url
     send_templated_mail(
-        template_name='source/account/password_reset',
+        template_name='account/password_reset',
         from_email=settings.DEFAULT_FROM_EMAIL,
         recipient_list=[recipient],
         context=context)

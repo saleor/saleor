@@ -105,7 +105,7 @@ def test_send_set_password_email(staff_user, site_settings):
         'uid': urlsafe_base64_encode(force_bytes(staff_user.pk)).decode(),
         'token': default_token_generator.make_token(staff_user)}
     send_templated_mail(
-        template_name='source/dashboard/staff/set_password',
+        template_name='dashboard/staff/set_password',
         from_email=DEFAULT_FROM_EMAIL,
         recipient_list=[staff_user.email],
         context=ctx)

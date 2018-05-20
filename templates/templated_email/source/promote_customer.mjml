@@ -1,6 +1,6 @@
 <mjml>
   <mj-head>
-    <mj-include path="../../shared/styles" />
+    <mj-include path="./shared/styles" />
   </mj-head>
   <mj-body>
     <mj-container>
@@ -11,7 +11,7 @@
           </mj-text>
         </mj-column>
       </mj-section>
-      <mj-include path="../../shared/header" />
+      <mj-include path="./shared/header" />
       <mj-section>
         <mj-column>
           <mj-text font-size="16px">
@@ -25,7 +25,7 @@
           </mj-text>
         </mj-column>
       </mj-section>
-      <mj-include path="../../shared/footer" />
+      <mj-include path="./shared/footer" />
     </mj-container>
   </mj-body>
 </mjml>
