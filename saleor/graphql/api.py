@@ -6,7 +6,7 @@ from ..page import models as page_models
 from .core.filters import DistinctFilterSet
 from .core.mutations import CreateToken, VerifyToken
 from .order.filters import OrderFilter
-from .order.resolvers import resolve_orders
+from .order.resolvers import resolve_order, resolve_orders
 from .order.types import Order
 from .page.resolvers import resolve_pages
 from .page.types import Page
@@ -79,10 +79,10 @@ class Query(graphene.ObjectType):
         return get_node(info, id, only_type=Page)
 
     def resolve_order(self, info, id):
-        return get_node(info, id, only_type=Order)
+        return resolve_order(info, id)
 
     def resolve_orders(self, info, **kwargs):
-        return resolve_orders()
+        return resolve_orders(info)
 
     def resolve_pages(self, info, **kwargs):
         return resolve_pages(user=info.context.user)
