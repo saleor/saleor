@@ -368,7 +368,7 @@ class OrderMarkAsPaidForm(forms.Form):
             'total': self.order.total.gross.amount,
             'tax': self.order.total.tax.amount,
             'currency': self.order.total.currency,
-            'delivery': self.order.shipping_price.gross.amount,
+            'delivery': self.order.shipping_price.net.amount,
             'description': pgettext_lazy(
                 'Payment description', 'Order %(order)s') % {
                     'order': self.order},
