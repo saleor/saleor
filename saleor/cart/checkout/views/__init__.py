@@ -32,18 +32,16 @@ def shipping_address_view(request, cart, checkout):
 def shipping_method_view(request, cart, checkout):
     """Display the shipping method selection step."""
     taxes = checkout.get_taxes()
-    shipping_method_form = CartShippingMethodForm(
+    form = CartShippingMethodForm(
         request.POST or None, taxes=taxes, instance=cart,
         initial={'shipping_method': cart.shipping_method})
 
-    if shipping_method_form.is_valid():
-        checkout.shipping_method = (
-            shipping_method_form.cleaned_data['shipping_method'])
-        shipping_method_form.save()
+    if form.is_valid():
+        form.save()
         return redirect('checkout:summary')
 
     ctx = get_checkout_data(cart, request.discounts, taxes)
     ctx.update({
         'checkout': checkout,
-        'shipping_method_form': shipping_method_form})
+        'shipping_method_form': form})
     return TemplateResponse(request, 'checkout/shipping_method.html', ctx)

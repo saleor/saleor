@@ -14,6 +14,7 @@ from prices import sum as sum_prices
 
 from . import CartStatus, logger
 from ..account.models import Address
+from ..core.utils.taxes import ZERO_TAXED_MONEY
 from ..shipping.models import ShippingMethodCountry
 
 CENTS = Decimal('0.01')
@@ -130,6 +131,12 @@ class Cart(models.Model):
 
     def __len__(self):
         return self.lines.count()
+
+    def get_shipping_price(self, taxes):
+        return (
+            self.shipping_method.get_total_price(taxes)
+            if self.shipping_method and self.is_shipping_required()
+            else ZERO_TAXED_MONEY)
 
     def get_total(self, discounts=None, taxes=None):
         """Return the total cost of the cart prior to shipping."""
