@@ -13,12 +13,11 @@ from ..account.utils import store_user_address
 from ..cart.models import Cart
 from ..cart.utils import get_or_empty_db_cart
 from ..core import analytics
-from ..core.utils.taxes import ZERO_TAXED_MONEY, get_taxes_for_country
+from ..core.utils.taxes import get_taxes_for_country
 from ..discount.models import NotApplicable, Voucher
 from ..discount.utils import increase_voucher_usage
 from ..order.models import Order
 from ..order.utils import add_variant_to_order
-from ..shipping.models import ANY_COUNTRY, ShippingMethodCountry
 from .utils import get_voucher_discount_for_checkout
 
 STORAGE_SESSION_KEY = 'checkout_storage'
@@ -48,7 +47,6 @@ class Checkout:
         self.taxes = taxes
         self.tracking_code = tracking_code
         self.storage = {'version': self.VERSION}
-        self._shipping_method = None
 
     @classmethod
     def from_storage(
@@ -95,46 +93,6 @@ class Checkout:
     def is_shipping_required(self):
         """Return `True` if this checkout session needs shipping."""
         return self.cart.is_shipping_required()
-
-    @property
-    def are_taxes_handled(self):
-        """Return `True` if taxes are handled in the delivery country."""
-        return bool(self.get_taxes())
-
-    @property
-    def shipping_method(self):
-        """Return a shipping method if any."""
-        if self._shipping_method is None:
-            if not self.cart.shipping_address:
-                return None
-            shipping_method_country_id = self.storage.get(
-                'shipping_method_country_id')
-            if shipping_method_country_id is None:
-                return None
-            try:
-                shipping_method_country = ShippingMethodCountry.objects.get(
-                    id=shipping_method_country_id)
-            except ShippingMethodCountry.DoesNotExist:
-                return None
-            shipping_country_code = self.cart.shipping_address.country.code
-            allowed_codes = [ANY_COUNTRY, shipping_country_code]
-            if shipping_method_country.country_code not in allowed_codes:
-                return None
-            self._shipping_method = shipping_method_country
-        return self._shipping_method
-
-    @shipping_method.setter
-    def shipping_method(self, shipping_method_country):
-        self.storage['shipping_method_country_id'] = shipping_method_country.id
-        self.modified = True
-        self._shipping_method = shipping_method_country
-
-    @property
-    def shipping_price(self):
-        shipping_method = self.cart.shipping_method
-        return (
-            shipping_method.get_total_price(self.get_taxes())
-            if shipping_method else ZERO_TAXED_MONEY)
 
     @property
     def email(self):
@@ -253,6 +211,8 @@ class Checkout:
         which language to use when sending email.
         """
         # FIXME: save locale along with the language
+        taxes = self.get_taxes()
+
         voucher = self._get_voucher(
             vouchers=Voucher.objects.active(date=date.today())
             .select_for_update())
@@ -285,9 +245,9 @@ class Checkout:
             'billing_address': billing_address,
             'shipping_address': shipping_address,
             'tracking_client_id': self.tracking_code,
-            'shipping_price': self.shipping_price,
             'shipping_method': shipping_method,
             'shipping_method_name': shipping_method_name,
+            'shipping_price': self.cart.get_shipping_price(taxes),
             'total': self.get_total()}
 
         if self.user.is_authenticated:
@@ -305,8 +265,8 @@ class Checkout:
 
         for line in self.cart.lines.all():
             add_variant_to_order(
-                order, line.variant, line.quantity, self.discounts,
-                self.get_taxes(), add_to_existing=False)
+                order, line.variant, line.quantity, self.discounts, taxes,
+                add_to_existing=False)
 
         if voucher is not None:
             increase_voucher_usage(voucher)
@@ -356,7 +316,7 @@ class Checkout:
         """Calculate order total with shipping and discount amount."""
         total = self.get_subtotal()
         if self.cart.shipping_method and self.is_shipping_required:
-            total += self.shipping_price
+            total += self.cart.get_shipping_price(self.get_taxes())
         if self.discount:
             total -= self.discount
         return total

@@ -63,7 +63,7 @@
           <div class="col-4">
             <p class="float-right">
               {% if cart.shipping_method %}
-                {% price checkout.shipping_price %}
+                {% price cart_shipping_price %}
               {% else %}
                 &mdash;
               {% endif %}
@@ -71,7 +71,7 @@
           </div>
         </div>
         {% with total=checkout.get_total %}
-          {% if checkout.are_taxes_handled %}
+          {% if cart_are_taxes_handled %}
             <div class="row checkout__review__section">
               <div class="col-8">
                 {% if site.settings.display_gross_prices %}

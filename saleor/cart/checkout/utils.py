@@ -22,7 +22,10 @@ def get_checkout_data(cart, discounts, taxes):
     lines = [
         (line, line.get_total(discounts, taxes)) for line in cart.lines.all()]
     subtotal = cart.get_total(discounts, taxes)
+    shipping_price = cart.get_shipping_price(taxes)
     return {
         'cart': cart,
+        'cart_are_taxes_handled': bool(taxes),
         'cart_lines': lines,
-        'cart_subtotal': subtotal}
+        'cart_subtotal': subtotal,
+        'cart_shipping_price': shipping_price}
