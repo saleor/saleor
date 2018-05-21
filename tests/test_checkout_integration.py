@@ -38,7 +38,7 @@ def test_checkout_flow(
 
     # Redirect to summary after shipping method selection
     shipping_method_data = {
-        'method': shipping_method.price_per_country.first().pk}
+        'shipping_method': shipping_method.price_per_country.first().pk}
     shipping_method_response = client.post(
         shipping_method_page.request['PATH_INFO'], data=shipping_method_data,
         follow=True)
@@ -97,7 +97,7 @@ def test_checkout_flow_authenticated_user(
 
     # Select shipping method
     shipping_method_data = {
-        'method': shipping_method.price_per_country.first().pk}
+        'shipping_method': shipping_method.price_per_country.first().pk}
     shipping_method_response = authorized_client.post(
         shipping_method_page.request['PATH_INFO'], data=shipping_method_data,
         follow=True)
@@ -204,7 +204,7 @@ def test_email_is_saved_in_order(
 
     # Select shipping method
     shipping_method_data = {
-        'method': shipping_method.price_per_country.first().pk}
+        'shipping_method': shipping_method.price_per_country.first().pk}
     shipping_method_response = authorized_client.post(
         shipping_method_page.request['PATH_INFO'], data=shipping_method_data,
         follow=True)
@@ -250,7 +250,7 @@ def test_voucher_invalid(
 
     # Redirect to summary after shipping method selection
     shipping_method_data = {
-        'method': shipping_method.price_per_country.first().pk}
+        'shipping_method': shipping_method.price_per_country.first().pk}
     shipping_method_response = client.post(
         shipping_method_page.request['PATH_INFO'], data=shipping_method_data,
         follow=True)
@@ -388,7 +388,7 @@ def test_language_is_saved_in_order(
 
     # Select shipping method
     shipping_method_data = {
-        'method': shipping_method.price_per_country.first().pk}
+        'shipping_method': shipping_method.price_per_country.first().pk}
     shipping_method_response = authorized_client.post(
         shipping_method_page.request['PATH_INFO'], data=shipping_method_data,
         follow=True, HTTP_ACCEPT_LANGUAGE=user_language)

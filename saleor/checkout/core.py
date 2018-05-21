@@ -131,7 +131,7 @@ class Checkout:
 
     @property
     def shipping_price(self):
-        shipping_method = self.shipping_method
+        shipping_method = self.cart.shipping_method
         return (
             shipping_method.get_total_price(self.get_taxes())
             if shipping_method else ZERO_TAXED_MONEY)
@@ -273,15 +273,20 @@ class Checkout:
         self._add_to_user_address_book(
             self.billing_address, is_billing=True)
 
-        shipping_method_name = (
-            smart_text(self.shipping_method) if self.is_shipping_required
-            else None)
+        if self.is_shipping_required:
+            shipping_method = self.cart.shipping_method
+            shipping_method_name = smart_text(shipping_method)
+        else:
+            shipping_method = None
+            shipping_method_name = None
+
         order_data = {
             'language_code': get_language(),
             'billing_address': billing_address,
             'shipping_address': shipping_address,
             'tracking_client_id': self.tracking_code,
             'shipping_price': self.shipping_price,
+            'shipping_method': shipping_method,
             'shipping_method_name': shipping_method_name,
             'total': self.get_total()}
 
@@ -350,7 +355,7 @@ class Checkout:
     def get_total(self):
         """Calculate order total with shipping and discount amount."""
         total = self.get_subtotal()
-        if self.shipping_method and self.is_shipping_required:
+        if self.cart.shipping_method and self.is_shipping_required:
             total += self.shipping_price
         if self.discount:
             total -= self.discount

@@ -9,11 +9,7 @@ from .validators import (
     validate_cart, validate_shipping_address,
     validate_shipping_method, validate_is_shipping_required)
 from ..core import load_checkout
-from ..forms import ShippingMethodForm
-from ..utils import get_cart_data
 from ...account.forms import LoginForm
-from ...cart.checkout.views.shipping import (
-    anonymous_user_shipping_address_view, user_shipping_address_view)
 
 
 @load_checkout
@@ -22,42 +18,6 @@ from ...cart.checkout.views.shipping import (
 def index_view(request, cart, checkout):
     """Redirect to the initial step of checkout."""
     return redirect('checkout:shipping-address')
-
-
-@load_checkout
-@validate_voucher
-@validate_cart
-@validate_is_shipping_required
-@add_voucher_form
-def shipping_address_view(request, cart, checkout):
-    """Display the correct shipping address step."""
-    if request.user.is_authenticated:
-        return user_shipping_address_view(request, cart, checkout)
-    return anonymous_user_shipping_address_view(request, cart, checkout)
-
-
-@load_checkout
-@validate_voucher
-@validate_cart
-@validate_is_shipping_required
-@validate_shipping_address
-@add_voucher_form
-def shipping_method_view(request, cart, checkout):
-    """Display the shipping method selection step."""
-    country_code = cart.shipping_address.country.code
-    shipping_method_form = ShippingMethodForm(
-        country_code, request.taxes, request.POST or None,
-        initial={'method': checkout.shipping_method})
-
-    if shipping_method_form.is_valid():
-        checkout.shipping_method = shipping_method_form.cleaned_data['method']
-        return redirect('checkout:summary')
-
-    ctx = get_cart_data(cart, request.discounts, checkout.get_taxes())
-    ctx.update({
-        'checkout': checkout,
-        'shipping_method_form': shipping_method_form})
-    return TemplateResponse(request, 'checkout/shipping_method.html', ctx)
 
 
 @load_checkout
