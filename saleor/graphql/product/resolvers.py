@@ -45,7 +45,7 @@ def resolve_product_types():
     return models.ProductType.objects.all().distinct()
 
 
-def resolve_available_variants_list(info, q):
+def resolve_search_variants(info, q):
     """Return variants filtered by q parameter.
 
     Look for sku, variant name or product name.

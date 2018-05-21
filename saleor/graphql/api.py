@@ -18,13 +18,16 @@ from .product.mutations import (
 )
 from .product.resolvers import (
     resolve_attributes, resolve_categories, resolve_products,
-    resolve_product_types, resolve_available_variants_list)
+    resolve_product_types, resolve_search_variants)
 from .product.types import (
     Category, Product, ProductAttribute, ProductType, ProductVariant)
 from .utils import get_node
 
 
 class Query(graphene.ObjectType):
+    search_variants = DjangoFilterConnectionField(
+        ProductVariant, filterset_class=DistinctFilterSet, q=graphene.String(),
+        description='Search for variants by parameter q.')
     attributes = DjangoFilterConnectionField(
         ProductAttribute, filterset_class=DistinctFilterSet,
         in_category=graphene.Argument(graphene.ID),
@@ -55,13 +58,13 @@ class Query(graphene.ObjectType):
         ProductType, filterset_class=DistinctFilterSet,
         level=graphene.Argument(graphene.Int),
         description='List of the shop\'s product types.')
-    available_variants_list = DjangoFilterConnectionField(
-        ProductVariant, filterset_class=DistinctFilterSet, q=graphene.String(),
-        description='here goes desc.')
     node = graphene.Node.Field()
 
     def resolve_attributes(self, info, in_category=None, **kwargs):
         return resolve_attributes(in_category, info)
+
+    def resolve_available_variants_list(self, info, q):
+        return resolve_search_variants(info, q)
 
     def resolve_category(self, info, id):
         return get_node(info, id, only_type=Category)
@@ -88,9 +91,6 @@ class Query(graphene.ObjectType):
 
     def resolve_product_types(self, info):
         return resolve_product_types()
-
-    def resolve_available_variants_list(self, info, q):
-        return resolve_available_variants_list(info, q)
 
 
 class Mutations(graphene.ObjectType):
