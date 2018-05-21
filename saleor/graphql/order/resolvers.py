@@ -15,6 +15,7 @@ def resolve_orders(info):
 
 
 def resolve_order(info, id):
+    """Return order only for user assigned to it or proper staff user."""
     order = get_node(info, id, only_type=Order)
     user = info.context.user
     if (order.user == user

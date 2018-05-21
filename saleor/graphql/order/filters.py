@@ -8,9 +8,10 @@ from ..core.filters import DistinctFilterSet
 
 
 class OrderFilter(DistinctFilterSet):
-    """
-    id - graphene type ID
-    order_id - database primary key
+    """Filter class for order query.
+
+    Field id is a GraphQL type ID, while order_id represents database
+    primary key.
     """
 
     id = GlobalIDMultipleChoiceFilter(name='id', label='GraphQL ID')
