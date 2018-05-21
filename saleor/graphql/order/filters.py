@@ -12,6 +12,7 @@ class OrderFilter(DistinctFilterSet):
     id - graphene type ID
     order_id - database primary key
     """
+
     id = GlobalIDMultipleChoiceFilter(name='id', label='GraphQL ID')
     order_id = NumberFilter(method='order_id_lookup', label='Database ID')
     created__gte = CharFilter(
