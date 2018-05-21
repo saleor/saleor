@@ -14,6 +14,7 @@ from prices import sum as sum_prices
 
 from . import CartStatus, logger
 from ..account.models import Address
+from ..shipping.models import ShippingMethodCountry
 
 CENTS = Decimal('0.01')
 SimpleCart = namedtuple('SimpleCart', ('quantity', 'total', 'token'))
@@ -80,6 +81,9 @@ class Cart(models.Model):
     # data used for handling checkout process
     shipping_address = models.ForeignKey(
         Address, related_name='+', editable=False, null=True,
+        on_delete=models.SET_NULL)
+    shipping_method = models.ForeignKey(
+        ShippingMethodCountry, blank=True, null=True, related_name='carts',
         on_delete=models.SET_NULL)
 
     objects = CartQueryset.as_manager()

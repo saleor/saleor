@@ -62,7 +62,7 @@
           </div>
           <div class="col-4">
             <p class="float-right">
-              {% if checkout.shipping_method %}
+              {% if cart.shipping_method %}
                 {% price checkout.shipping_price %}
               {% else %}
                 &mdash;

@@ -3,9 +3,8 @@ from django.template.response import TemplateResponse
 
 from ....account.forms import get_address_form
 from ....account.models import Address
-from ....checkout.utils import get_cart_data
 from ..forms import AddressChoiceForm, AnonymousUserShippingForm
-from ..utils import save_shipping_address_in_cart
+from ..utils import get_checkout_data, save_shipping_address_in_cart
 
 
 def anonymous_user_shipping_address_view(request, cart, checkout):
@@ -25,7 +24,7 @@ def anonymous_user_shipping_address_view(request, cart, checkout):
         save_shipping_address_in_cart(cart, address)
         return redirect('checkout:shipping-method')
 
-    ctx = get_cart_data(cart, request.discounts, checkout.get_taxes())
+    ctx = get_checkout_data(cart, request.discounts, checkout.get_taxes())
     ctx.update({
         'address_form': address_form,
         'checkout': checkout,
@@ -80,7 +79,7 @@ def user_shipping_address_view(request, cart, checkout):
             save_shipping_address_in_cart(cart, address)
             return redirect('checkout:shipping-method')
 
-    ctx = get_cart_data(cart, request.discounts, checkout.get_taxes())
+    ctx = get_checkout_data(cart, request.discounts, checkout.get_taxes())
     ctx.update({
         'additional_addresses': additional_addresses,
         'address_form': address_form,

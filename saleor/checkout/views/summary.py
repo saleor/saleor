@@ -5,7 +5,7 @@ from django.utils.translation import pgettext, pgettext_lazy
 
 from ...account.forms import get_address_form
 from ...account.models import Address
-from ...checkout.utils import get_cart_data
+from ...cart.checkout.utils import get_checkout_data
 from ...core.exceptions import InsufficientStock
 from ...order.emails import send_order_confirmation
 from ..forms import (
@@ -109,7 +109,7 @@ def summary_with_shipping_view(request, cart, checkout):
         checkout.billing_address = address
         return handle_order_placement(request, checkout)
 
-    ctx = get_cart_data(cart, request.discounts, checkout.get_taxes())
+    ctx = get_checkout_data(cart, request.discounts, checkout.get_taxes())
     ctx.update({
         'additional_addresses': additional_addresses,
         'address_form': address_form,
@@ -143,7 +143,7 @@ def anonymous_summary_without_shipping(request, cart, checkout):
         checkout.billing_address = address_form.instance
         return handle_order_placement(request, checkout)
 
-    ctx = get_cart_data(cart, request.discounts, checkout.get_taxes())
+    ctx = get_checkout_data(cart, request.discounts, checkout.get_taxes())
     ctx.update({
         'address_form': address_form,
         'checkout': checkout,
@@ -196,7 +196,7 @@ def summary_without_shipping(request, cart, checkout):
             checkout.billing_address = address_form.instance
             return handle_order_placement(request, checkout)
 
-    ctx = get_cart_data(cart, request.discounts, checkout.get_taxes())
+    ctx = get_checkout_data(cart, request.discounts, checkout.get_taxes())
     ctx.update({
         'additional_addresses': user_addresses,
         'address_form': address_form,

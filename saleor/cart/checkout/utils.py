@@ -15,3 +15,14 @@ def save_shipping_address_in_cart(cart, address):
             cart.shipping_address.delete()
         cart.shipping_address = address
         cart.save()
+
+
+def get_checkout_data(cart, discounts, taxes):
+    """Data shared between views in checkout process."""
+    lines = [
+        (line, line.get_total(discounts, taxes)) for line in cart.lines.all()]
+    subtotal = cart.get_total(discounts, taxes)
+    return {
+        'cart': cart,
+        'cart_lines': lines,
+        'cart_subtotal': subtotal}

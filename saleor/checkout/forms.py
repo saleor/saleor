@@ -1,12 +1,6 @@
 """Checkout-related forms."""
 from django import forms
-from django.utils.safestring import mark_safe
 from django.utils.translation import pgettext_lazy
-
-from ..core.utils import format_money
-from ..core.utils.taxes import display_gross_prices
-from ..shipping.models import ShippingMethodCountry
-from ..shipping.utils import get_taxed_shipping_price
 
 
 class CheckoutAddressField(forms.ChoiceField):
@@ -56,60 +50,6 @@ class BillingWithoutShippingAddressForm(ShippingAddressesForm):
     Same as the default shipping address as in this came "billing same as
     shipping" option does not make sense.
     """
-
-
-# FIXME: why is this called a country choice field?
-class ShippingCountryChoiceField(forms.ModelChoiceField):
-    """Shipping method choice field.
-
-    Uses a radio group instead of a dropdown and includes estimated shipping
-    prices.
-    """
-
-    widget = forms.RadioSelect()
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.taxes = None
-
-    def label_from_instance(self, obj):
-        """Return a friendly label for the shipping method."""
-        price = get_taxed_shipping_price(obj.price, self.taxes)
-        if display_gross_prices():
-            price = price.gross
-        else:
-            price = price.net
-        price_html = format_money(price)
-        label = mark_safe('%s %s' % (obj.shipping_method, price_html))
-        return label
-
-    def set_taxes(self, taxes):
-        self.taxes = taxes
-
-
-class ShippingMethodForm(forms.Form):
-    """Shipping method form."""
-
-    method = ShippingCountryChoiceField(
-        queryset=ShippingMethodCountry.objects.select_related(
-            'shipping_method').order_by('price').all(),
-        label=pgettext_lazy(
-            'Shipping method form field label', 'Shipping method'),
-        required=True)
-
-    def __init__(self, country_code, taxes, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        method_field = self.fields['method']
-        method_field.set_taxes(taxes)
-        if country_code:
-            queryset = method_field.queryset
-            method_field.queryset = queryset.unique_for_country_code(
-                country_code)
-
-        if self.initial.get('method') is None:
-            self.initial['method'] = method_field.queryset.first()
-
-        method_field.empty_label = None
 
 
 class AnonymousUserShippingForm(forms.Form):

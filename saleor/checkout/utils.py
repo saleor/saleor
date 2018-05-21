@@ -21,7 +21,7 @@ def _get_shipping_voucher_discount_for_checkout(voucher, checkout):
             'Voucher not applicable',
             'Your order does not require shipping.')
         raise NotApplicable(msg)
-    shipping_method = checkout.shipping_method
+    shipping_method = checkout.cart.shipping_method
     if not shipping_method:
         msg = pgettext(
             'Voucher not applicable',
@@ -70,14 +70,3 @@ def get_voucher_discount_for_checkout(voucher, checkout):
         return _get_product_or_category_voucher_discount_for_checkout(
             voucher, checkout)
     raise NotImplementedError('Unknown discount type')
-
-
-def get_cart_data(cart, discounts, taxes):
-    """Prepare cart data displayed in checkout process."""
-    lines = [
-        (line, line.get_total(discounts, taxes)) for line in cart.lines.all()]
-    subtotal = cart.get_total(discounts, taxes)
-    return {
-        'cart': cart,
-        'cart_lines': lines,
-        'cart_subtotal': subtotal}

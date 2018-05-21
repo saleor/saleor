@@ -51,7 +51,7 @@ def validate_shipping_method(view):
     """
     @wraps(view)
     def func(request, cart, checkout):
-        if checkout.shipping_method is None:
+        if checkout.cart.shipping_method is None:
             return redirect('checkout:shipping-method')
         return view(request, cart, checkout)
     return func

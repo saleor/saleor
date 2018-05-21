@@ -49,45 +49,6 @@ def test_checkout_is_shipping_required(checkout):
     assert checkout.is_shipping_required is True
 
 
-@pytest.mark.parametrize('shipping_address, shipping_method, value', [
-    (
-        Mock(country=Mock(code='PL')),
-        Mock(
-            country_code='PL',
-            __eq__=lambda n, o: n.country_code == o.country_code),
-        Mock(country_code='PL')),
-    (Mock(country=Mock(code='DE')), Mock(country_code='PL'), None),
-    (None, Mock(country_code='PL'), None)])
-def test_checkout_shipping_method(
-        checkout, shipping_address, shipping_method, value, monkeypatch):
-    queryset = Mock(get=Mock(return_value=shipping_method))
-    monkeypatch.setattr(checkout.cart, 'shipping_address', shipping_address)
-    monkeypatch.setattr(
-        'saleor.checkout.core.ShippingMethodCountry.objects', queryset)
-    checkout.storage['shipping_method_country_id'] = 1
-    assert checkout._shipping_method is None
-    assert checkout.shipping_method == value
-    assert checkout._shipping_method == value
-
-
-def test_checkout_shipping_does_not_exists(monkeypatch, checkout):
-    queryset = Mock(get=Mock(side_effect=ShippingMethodCountry.DoesNotExist))
-    monkeypatch.setattr(
-        'saleor.checkout.core.ShippingMethodCountry.objects', queryset)
-    checkout.storage['shipping_method_country_id'] = 1
-    assert checkout.shipping_method is None
-
-
-def test_checkout_shipping_method_setter(checkout):
-    assert checkout.modified is False
-    assert checkout._shipping_method is None
-    shipping_method = Mock(id=1)
-    checkout.shipping_method = shipping_method
-    assert checkout._shipping_method == shipping_method
-    assert checkout.modified is True
-    assert checkout.storage['shipping_method_country_id'] == 1
-
-
 @pytest.mark.parametrize('user, address', [
     (AnonymousUser(), None),
     (
@@ -155,8 +116,9 @@ def test_checkout_create_order_insufficient_stock(
 
 def test_checkout_taxes(checkout_with_items, shipping_method, vatlayer):
     checkout_with_items.taxes = vatlayer
-    method = shipping_method.price_per_country.get()
-    checkout_with_items.shipping_method = method
+    cart = checkout_with_items.cart
+    cart.shipping_method = shipping_method.price_per_country.get()
+    cart.save()
     assert checkout_with_items.shipping_price == TaxedMoney(
         net=Money('8.13', 'USD'), gross=Money(10, 'USD'))
     subtotal = checkout_with_items.cart.get_total(taxes=vatlayer)
@@ -228,10 +190,12 @@ def test_shipping_voucher_checkout_discount(
         net=Money(shipping_cost, 'USD'), gross=Money(shipping_cost, 'USD'))
     checkout = Mock(
         get_subtotal=Mock(return_value=subtotal),
-        is_shipping_required=True, shipping_method=Mock(
-            price=Money(shipping_cost, 'USD'),
-            country_code=shipping_country_code,
-            get_total_price=Mock(return_value=shipping_total)))
+        is_shipping_required=True,
+        cart=Mock(
+            shipping_method=Mock(
+                price=Money(shipping_cost, 'USD'),
+                country_code=shipping_country_code,
+                get_total_price=Mock(return_value=shipping_total))))
     voucher = Voucher(
         code='unique', type=VoucherType.SHIPPING,
         discount_value_type=discount_type,
@@ -263,7 +227,7 @@ def test_shipping_voucher_checkout_discount_not_applicable(
     subtotal_price = TaxedMoney(net=subtotal, gross=subtotal)
     checkout = Mock(
         is_shipping_required=is_shipping_required,
-        shipping_method=shipping_method,
+        cart=Mock(shipping_method=shipping_method),
         get_subtotal=Mock(return_value=subtotal_price))
     voucher = Voucher(
         code='unique', type=VoucherType.SHIPPING,
