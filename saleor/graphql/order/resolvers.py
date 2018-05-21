@@ -18,7 +18,6 @@ def resolve_order(info, id):
     order = get_node(info, id, only_type=Order)
     user = info.context.user
     if (order.user == user
-        or user.is_superuser
         or user.get_all_permissions() & {
             'order.view_order', 'order.edit_order'}):
         return order
