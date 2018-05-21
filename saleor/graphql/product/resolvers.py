@@ -51,6 +51,8 @@ def resolve_search_variants(info, q):
     Look for sku, variant name or product name.
 
     """
+    if len(q) < 2:
+        raise ValueError('Search query must be at least two characters long.')
     available_products = models.Product.objects.available_products()
     queryset = models.ProductVariant.objects.filter(
         product__in=available_products)

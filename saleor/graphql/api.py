@@ -63,7 +63,7 @@ class Query(graphene.ObjectType):
     def resolve_attributes(self, info, in_category=None, **kwargs):
         return resolve_attributes(in_category, info)
 
-    def resolve_available_variants_list(self, info, q):
+    def resolve_search_variants(self, info, q):
         return resolve_search_variants(info, q)
 
     def resolve_category(self, info, id):
