@@ -34,7 +34,7 @@ from saleor.shipping.models import ShippingMethod
 from saleor.site.models import AuthorizationKey, SiteSettings
 
 
-class AdminApiClient(Client):
+class ApiClient(Client):
 
     def __init__(self, *args, **kwargs):
         user = kwargs.pop('user')
@@ -49,7 +49,12 @@ class AdminApiClient(Client):
 
 @pytest.fixture
 def admin_api_client(admin_user):
-    return AdminApiClient(user=admin_user)
+    return ApiClient(user=admin_user)
+
+
+@pytest.fixture
+def user_api_client(customer_user):
+    return ApiClient(user=customer_user)
 
 
 @pytest.fixture(autouse=True)
