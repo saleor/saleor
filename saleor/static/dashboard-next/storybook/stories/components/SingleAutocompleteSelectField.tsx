@@ -248,7 +248,7 @@ const suggestions = [
   "Zimbabwe"
 ].map(c => ({ label: c, value: c.toLocaleLowerCase().replace(/\s+/, "_") }));
 
-storiesOf("Components / SingleAutocompleteSelectField", module)
+storiesOf("Generics / SingleAutocompleteSelectField", module)
   .addDecorator(Decorator)
   .add("with loading data", () => (
     <Form initial={{ country: suggestions[0] }}>
