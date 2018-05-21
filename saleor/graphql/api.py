@@ -18,9 +18,9 @@ from .product.mutations import (
 )
 from .product.resolvers import (
     resolve_attributes, resolve_categories, resolve_products,
-    resolve_product_types)
+    resolve_product_types, resolve_available_variants_list)
 from .product.types import (
-    Category, Product, ProductAttribute, ProductType)
+    Category, Product, ProductAttribute, ProductType, ProductVariant)
 from .utils import get_node
 
 
@@ -55,6 +55,9 @@ class Query(graphene.ObjectType):
         ProductType, filterset_class=DistinctFilterSet,
         level=graphene.Argument(graphene.Int),
         description='List of the shop\'s product types.')
+    available_variants_list = DjangoFilterConnectionField(
+        ProductVariant, filterset_class=DistinctFilterSet, q=graphene.String(),
+        description='here goes desc.')
     node = graphene.Node.Field()
 
     def resolve_attributes(self, info, in_category=None, **kwargs):
@@ -85,6 +88,9 @@ class Query(graphene.ObjectType):
 
     def resolve_product_types(self, info):
         return resolve_product_types()
+
+    def resolve_available_variants_list(self, info, q):
+        return resolve_available_variants_list(info, q)
 
 
 class Mutations(graphene.ObjectType):
