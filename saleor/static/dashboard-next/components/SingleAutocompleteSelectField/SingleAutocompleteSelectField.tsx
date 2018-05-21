@@ -8,6 +8,8 @@ import { withStyles } from "material-ui/styles";
 import TextField from "material-ui/TextField";
 import * as React from "react";
 
+import i18n from "../../i18n";
+
 interface SingleAutocompleteSelectFieldProps {
   name: string;
   choices: Array<{
@@ -20,6 +22,9 @@ interface SingleAutocompleteSelectFieldProps {
   };
   loading?: boolean;
   placeholder?: string;
+  custom?: boolean;
+  helperText?: string;
+  label?: string;
   fetchChoices(value: string);
   onChange(event);
 }
@@ -30,7 +35,7 @@ const decorate = withStyles(theme => ({
   },
   container: {
     flexGrow: 1,
-    position: "relative" as "absolute"
+    position: "relative" as "relative"
   },
   inputRoot: {
     flexWrap: "wrap" as "wrap"
@@ -48,16 +53,20 @@ export const SingleAutocompleteSelectField = decorate<
   SingleAutocompleteSelectFieldProps
 >(
   ({
-    classes,
     choices,
+    classes,
+    custom,
+    helperText,
+    label,
+    loading,
     name,
     placeholder,
-    loading,
     value,
     fetchChoices,
     onChange
   }) => {
     const handleChange = item => onChange({ target: { name, value: item } });
+
     return (
       <Downshift
         selectedItem={value}
@@ -73,6 +82,8 @@ export const SingleAutocompleteSelectField = decorate<
           selectedItem,
           highlightedIndex
         }) => {
+          const isCustom =
+            choices.filter(c => c.value === selectedItem.value).length === 0;
           return (
             <div className={classes.container}>
               <TextField
@@ -80,36 +91,48 @@ export const SingleAutocompleteSelectField = decorate<
                   classes: {
                     root: classes.inputRoot
                   },
-                  endAdornment: loading ? (
-                    <CircularProgress size={20} style={{ marginTop: 3 }} />
-                  ) : null,
                   ...getInputProps({
                     placeholder
                   })
                 }}
+                helperText={helperText}
+                label={label}
                 fullWidth={true}
               />
-              {isOpen && !loading ? (
+              {isOpen && (
                 <Paper className={classes.paper} square>
-                  {choices.map((suggestion, index) => (
-                    <MenuItem
-                      key={suggestion.value}
-                      selected={highlightedIndex === index}
-                      component="div"
-                      style={{
-                        fontWeight:
-                          (selectedItem.value || "").indexOf(suggestion.value) >
-                          -1
-                            ? 500
-                            : 400
-                      }}
-                      {...getItemProps({ item: suggestion })}
-                    >
-                      {suggestion.label}
+                  {loading ? (
+                    <MenuItem disabled={true} component="div">
+                      {i18n.t("Loading...")}
                     </MenuItem>
-                  ))}
+                  ) : (
+                    <>
+                      {choices.map((suggestion, index) => (
+                        <MenuItem
+                          key={suggestion.value}
+                          selected={suggestion.value === selectedItem.value}
+                          component="div"
+                          {...getItemProps({ item: suggestion })}
+                        >
+                          {suggestion.label}
+                        </MenuItem>
+                      ))}
+                      {custom && (
+                        <MenuItem
+                          key={"customValue"}
+                          selected={isCustom}
+                          component="div"
+                          {...getItemProps({
+                            item: { label: inputValue, value: inputValue }
+                          })}
+                        >
+                          {i18n.t("Add custom value")}
+                        </MenuItem>
+                      )}
+                    </>
+                  )}
                 </Paper>
-              ) : null}
+              )}
             </div>
           );
         }}

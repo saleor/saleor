@@ -4,6 +4,7 @@ import * as React from "react";
 import Form from "../../../components/Form";
 import SingleAutocompleteSelectField from "../../../components/SingleAutocompleteSelectField";
 import Decorator from "../../Decorator";
+import { ChoiceProvider } from "../../mock";
 
 const suggestions = [
   "Afghanistan",
@@ -247,77 +248,22 @@ const suggestions = [
   "Zimbabwe"
 ].map(c => ({ label: c, value: c.toLocaleLowerCase().replace(/\s+/, "_") }));
 
-interface ChoiceProviderProps {
-  children:
-    | ((
-        props: {
-          choices: Array<{
-            label: string;
-            value: string;
-          }>;
-          fetchChoices(value: string);
-        }
-      ) => React.ReactElement<any>)
-    | React.ReactNode;
-}
-interface ChoiceProviderState {
-  choices: Array<{
-    label: string;
-    value: string;
-  }>;
-}
-
-class ChoiceProvider extends React.Component<
-  ChoiceProviderProps,
-  ChoiceProviderState
-> {
-  state = { choices: [] };
-
-  fetchChoices = inputValue => {
-    let count = 0;
-    this.setState({
-      choices: suggestions.filter(suggestion => {
-        const keep =
-          (!inputValue ||
-            suggestion.label.toLowerCase().indexOf(inputValue.toLowerCase()) !==
-              -1) &&
-          count < 5;
-
-        if (keep) {
-          count += 1;
-        }
-
-        return keep;
-      })
-    });
-  };
-
-  render() {
-    if (typeof this.props.children === "function") {
-      return this.props.children({
-        choices: this.state.choices,
-        fetchChoices: this.fetchChoices
-      });
-    }
-    return this.props.children;
-  }
-}
-
 storiesOf("Components / SingleAutocompleteSelectField", module)
   .addDecorator(Decorator)
   .add("with loading data", () => (
     <Form initial={{ country: suggestions[0] }}>
       {({ change, data }) => (
-        <ChoiceProvider>
+        <ChoiceProvider choices={suggestions}>
           {({ choices, fetchChoices }) => (
             <SingleAutocompleteSelectField
-              name="country"
-              fetchChoices={fetchChoices}
-              value={data.country}
-              onChange={change}
               choices={choices}
+              fetchChoices={fetchChoices}
+              helperText={`Value: ${data.country.value}`}
               loading={true}
+              name="country"
+              onChange={change}
               placeholder="Select country"
+              value={data.country}
             />
           )}
         </ChoiceProvider>
@@ -327,16 +273,38 @@ storiesOf("Components / SingleAutocompleteSelectField", module)
   .add("with loaded data", () => (
     <Form initial={{ country: suggestions[0] }}>
       {({ change, data }) => (
-        <ChoiceProvider>
+        <ChoiceProvider choices={suggestions}>
           {({ choices, fetchChoices }) => (
             <SingleAutocompleteSelectField
-              name="country"
-              fetchChoices={fetchChoices}
-              value={data.country}
-              onChange={change}
               choices={choices}
+              fetchChoices={fetchChoices}
+              helperText={`Value: ${data.country.value}`}
               loading={false}
+              name="country"
+              onChange={change}
               placeholder="Select country"
+              value={data.country}
+            />
+          )}
+        </ChoiceProvider>
+      )}
+    </Form>
+  ))
+  .add("with custom option", () => (
+    <Form initial={{ country: suggestions[0] }}>
+      {({ change, data }) => (
+        <ChoiceProvider choices={suggestions}>
+          {({ choices, fetchChoices, loading }) => (
+            <SingleAutocompleteSelectField
+              choices={choices}
+              custom={true}
+              fetchChoices={fetchChoices}
+              helperText={`Value: ${data.country.value}`}
+              loading={loading}
+              name="country"
+              onChange={change}
+              placeholder="Select country"
+              value={data.country}
             />
           )}
         </ChoiceProvider>
