@@ -2,9 +2,10 @@ from django.shortcuts import redirect
 from django.template.response import TemplateResponse
 
 from ....checkout.core import load_checkout
-from ....checkout.views import (
-    add_voucher_form, validate_cart, validate_is_shipping_required,
-    validate_shipping_address, validate_shipping_method, validate_voucher)
+from ....checkout.views import add_voucher_form, validate_voucher
+from ....checkout.views.validators import (
+    validate_cart, validate_is_shipping_required, validate_shipping_address,
+    validate_shipping_method)
 from ..forms import CartShippingMethodForm
 from ..utils import get_checkout_data
 from .shipping import (
