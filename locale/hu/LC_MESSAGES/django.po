@@ -2,13 +2,13 @@
 # Copyright (C) 2017 Mirumee Software
 # This file is distributed under the same license as the Saleor package.
 # Mirumee Software <hello@mirumee.com>, 2017.
-#
+# 
 #, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: master\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2018-05-08 07:15-0500\n"
+"POT-Creation-Date: 2018-05-10 08:29-0500\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Marci Wéber <webermarton@gmail.com>, 2017\n"
 "Language-Team: Hungarian (https://www.transifex.com/mirumee/teams/34782/hu/)\n"
@@ -653,22 +653,22 @@ msgctxt "Permission description"
 msgid "Can edit menus"
 msgstr ""
 
-#: saleor/menu/models.py:75
+#: saleor/menu/models.py:66
 msgctxt "Link object type description"
 msgid "URL: "
 msgstr ""
 
-#: saleor/menu/models.py:80
+#: saleor/menu/models.py:71
 msgctxt "Link object type description"
 msgid "Collection: "
 msgstr ""
 
-#: saleor/menu/models.py:83
+#: saleor/menu/models.py:74
 msgctxt "Link object type description"
 msgid "Category: "
 msgstr ""
 
-#: saleor/menu/models.py:86
+#: saleor/menu/models.py:77
 msgctxt "Link object type description"
 msgid "Page: "
 msgstr ""
@@ -852,32 +852,32 @@ msgctxt "Variant choice field label"
 msgid "%(variant_label)s - %(price)s"
 msgstr ""
 
-#: saleor/product/models.py:44
+#: saleor/product/models.py:45
 msgctxt "Permission description"
 msgid "Can view categories"
 msgstr ""
 
-#: saleor/product/models.py:46
+#: saleor/product/models.py:47
 msgctxt "Permission description"
 msgid "Can edit categories"
 msgstr ""
 
-#: saleor/product/models.py:121
+#: saleor/product/models.py:122
 msgctxt "Permission description"
 msgid "Can view products"
 msgstr ""
 
-#: saleor/product/models.py:123
+#: saleor/product/models.py:124
 msgctxt "Permission description"
 msgid "Can edit products"
 msgstr ""
 
-#: saleor/product/models.py:126
+#: saleor/product/models.py:127
 msgctxt "Permission description"
 msgid "Can view product properties"
 msgstr ""
 
-#: saleor/product/models.py:129
+#: saleor/product/models.py:130
 msgctxt "Permission description"
 msgid "Can edit product properties"
 msgstr ""
@@ -1919,7 +1919,7 @@ msgstr ""
 
 #: templates/dashboard/category/detail.html:155
 msgctxt "Empty list of categories"
-msgid "No categories"
+msgid "No subcategories"
 msgstr ""
 
 #: templates/dashboard/category/form.html:9
@@ -4132,23 +4132,24 @@ msgstr ""
 msgid "Attribute values"
 msgstr ""
 
-#: templates/dashboard/product/product_attribute/detail.html:74
+#: templates/dashboard/product/product_attribute/detail.html:78
 msgid "Display name"
 msgstr ""
 
-#: templates/dashboard/product/product_attribute/detail.html:75
-msgid "Color"
-msgstr ""
-
-#: templates/dashboard/product/product_attribute/detail.html:97
+#: templates/dashboard/product/product_attribute/detail.html:98
 #: templates/dashboard/shipping/detail.html:100
 msgctxt "Attribute choice value edit action"
 msgid "Edit"
 msgstr ""
 
-#: templates/dashboard/product/product_attribute/detail.html:100
+#: templates/dashboard/product/product_attribute/detail.html:101
 msgctxt "Attribute choice value edit action"
 msgid "Remove"
+msgstr ""
+
+#: templates/dashboard/product/product_attribute/detail.html:108
+msgctxt "Empty list of attribute values"
+msgid "No attribute values"
 msgstr ""
 
 #: templates/dashboard/product/product_attribute/form.html:8
@@ -4367,11 +4368,6 @@ msgstr ""
 #: templates/dashboard/product/product_type/list.html:89
 msgctxt "Empty product type list message"
 msgid "No product types found."
-msgstr ""
-
-#: templates/dashboard/product/product_type/list.html:110
-msgctxt "Dashboard create new action"
-msgid "Create new"
 msgstr ""
 
 #: templates/dashboard/product/product_type/modal/confirm_delete.html:13

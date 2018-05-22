@@ -8,10 +8,8 @@ register = template.Library()
 
 @register.inclusion_tag('product/_price_range.html', takes_context=True)
 def price_range(context, price_range):
-    display_gross_prices = context['site'].settings.display_gross_prices
-    return {
-        'price_range': price_range,
-        'display_gross_prices': display_gross_prices}
+    display_gross = context['site'].settings.display_gross_prices
+    return {'display_gross': display_gross, 'price_range': price_range}
 
 
 @register.simple_tag
