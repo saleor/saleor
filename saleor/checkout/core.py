@@ -90,11 +90,6 @@ class Checkout:
         return None
 
     @property
-    def is_shipping_required(self):
-        """Return `True` if this checkout session needs shipping."""
-        return self.cart.is_shipping_required()
-
-    @property
     def email(self):
         """Return the customer email if any."""
         return self.storage.get('email')
@@ -220,7 +215,7 @@ class Checkout:
             # Voucher expired in meantime, abort order placement
             return None
 
-        if self.is_shipping_required:
+        if self.cart.is_shipping_required():
             shipping_address = self.cart.shipping_address
             if self.cart.user:
                 if shipping_address not in self.cart.user.addresses.all():
@@ -233,7 +228,7 @@ class Checkout:
         self._add_to_user_address_book(
             self.billing_address, is_billing=True)
 
-        if self.is_shipping_required:
+        if self.cart.is_shipping_required():
             shipping_method = self.cart.shipping_method
             shipping_method_name = smart_text(shipping_method)
         else:
@@ -315,8 +310,7 @@ class Checkout:
     def get_total(self):
         """Calculate order total with shipping and discount amount."""
         total = self.get_subtotal()
-        if self.cart.shipping_method and self.is_shipping_required:
-            total += self.cart.get_shipping_price(self.get_taxes())
+        total += self.cart.get_shipping_price(self.get_taxes())
         if self.discount:
             total -= self.discount
         return total

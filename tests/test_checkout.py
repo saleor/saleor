@@ -43,12 +43,6 @@ def test_checkout_clear_storage(checkout):
     assert checkout.modified is True
 
 
-def test_checkout_is_shipping_required(checkout):
-    cart = Mock(is_shipping_required=Mock(return_value=True))
-    checkout.cart = cart
-    assert checkout.is_shipping_required is True
-
-
 @pytest.mark.parametrize('user, address', [
     (AnonymousUser(), None),
     (
@@ -119,8 +113,8 @@ def test_checkout_taxes(checkout_with_items, shipping_method, vatlayer):
     cart = checkout_with_items.cart
     cart.shipping_method = shipping_method.price_per_country.get()
     cart.save()
-    assert checkout_with_items.shipping_price == TaxedMoney(
-        net=Money('8.13', 'USD'), gross=Money(10, 'USD'))
+    assert checkout_with_items.cart.get_shipping_price(vatlayer) == (
+        TaxedMoney(net=Money('8.13', 'USD'), gross=Money(10, 'USD')))
     subtotal = checkout_with_items.cart.get_total(taxes=vatlayer)
     assert checkout_with_items.get_subtotal() == subtotal
 
@@ -190,8 +184,8 @@ def test_shipping_voucher_checkout_discount(
         net=Money(shipping_cost, 'USD'), gross=Money(shipping_cost, 'USD'))
     checkout = Mock(
         get_subtotal=Mock(return_value=subtotal),
-        is_shipping_required=True,
         cart=Mock(
+            is_shipping_required=Mock(return_value=True),
             shipping_method=Mock(
                 price=Money(shipping_cost, 'USD'),
                 country_code=shipping_country_code,
@@ -226,8 +220,9 @@ def test_shipping_voucher_checkout_discount_not_applicable(
         discount_type, apply_to, limit, subtotal, error_msg):
     subtotal_price = TaxedMoney(net=subtotal, gross=subtotal)
     checkout = Mock(
-        is_shipping_required=is_shipping_required,
-        cart=Mock(shipping_method=shipping_method),
+        cart=Mock(
+            is_shipping_required=Mock(return_value=is_shipping_required),
+            shipping_method=shipping_method),
         get_subtotal=Mock(return_value=subtotal_price))
     voucher = Voucher(
         code='unique', type=VoucherType.SHIPPING,
