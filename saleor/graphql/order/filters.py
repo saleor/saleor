@@ -20,9 +20,7 @@ class OrderFilter(DistinctFilterSet):
         name='created', lookup_expr='gte', label='ISO 8601 standard')
     created__lte = CharFilter(
         name='created', lookup_expr='lte', label='ISO 8601 standard')
-
-    user = CharFilter(
-        method='filter_by_order_customer')
+    user = CharFilter(method='filter_by_order_customer')
 
     class Meta:
         model = models.Order
