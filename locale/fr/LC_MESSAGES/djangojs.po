@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2018-03-30 10:19-0500\n"
+"POT-Creation-Date: 2018-05-10 08:29-0500\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Da Costa Faro Rémy <remy@dacostafaro.com>, 2018\n"
 "Language-Team: French (https://www.transifex.com/mirumee/teams/34782/fr/)\n"
@@ -312,7 +312,7 @@ msgstr "Citation"
 #: saleor/static/dashboard/js/components/editor.js:51
 msgctxt "Rich text editor option"
 msgid "Link"
-msgstr "Lien"
+msgstr "Lien hypertexte"
 
 #: saleor/static/dashboard/js/components/editor.js:58
 msgctxt "Rich text editor option"
@@ -342,7 +342,7 @@ msgstr "Justifier"
 #: saleor/static/dashboard/js/components/editor.js:83
 msgctxt "Rich text editor option"
 msgid "Remove formatting"
-msgstr "Enlever le formatage"
+msgstr "Supprimer le formatage"
 
 #: saleor/static/dashboard/js/components/google-preview.js:46
 msgid ""
