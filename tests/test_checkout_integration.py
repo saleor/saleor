@@ -13,13 +13,13 @@ def test_checkout_flow(
         mock_send_confirmation, request_cart_with_item, client,
         shipping_method):
     # Enter checkout
-    checkout_index = client.get(reverse('checkout:index'), follow=True)
+    checkout_index = client.get(reverse('cart:checkout-index'), follow=True)
     # Checkout index redirects directly to shipping address step
     shipping_address = client.get(checkout_index.request['PATH_INFO'])
 
     # Enter shipping address data
     shipping_data = {
-        'email': 'test@example.com',
+        'user_email': 'test@example.com',
         'first_name': 'John',
         'last_name': 'Doe',
         'street_address_1': 'Aleje Jerozolimskie 2',
@@ -88,7 +88,7 @@ def test_checkout_flow_authenticated_user(
     # Enter checkout
     # Checkout index redirects directly to shipping address step
     shipping_address = authorized_client.get(
-        reverse('checkout:index'), follow=True)
+        reverse('cart:checkout-index'), follow=True)
 
     # Enter shipping address data
     shipping_data = {'address': customer_user.default_billing_address.pk}
@@ -145,9 +145,9 @@ def test_address_without_shipping(request_cart_with_item, client):
     product_type.is_shipping_required = False
     product_type.save()
 
-    response = client.get(reverse('checkout:shipping-address'))
+    response = client.get(reverse('cart:checkout-shipping-address'))
     assert response.status_code == 302
-    assert get_redirect_location(response) == reverse('checkout:summary')
+    assert get_redirect_location(response) == reverse('cart:checkout-summary')
 
 
 def test_shipping_method_without_shipping(
@@ -157,32 +157,32 @@ def test_shipping_method_without_shipping(
     product_type.is_shipping_required = False
     product_type.save()
 
-    response = client.get(reverse('checkout:shipping-method'))
+    response = client.get(reverse('cart:checkout-shipping-method'))
     assert response.status_code == 302
-    assert get_redirect_location(response) == reverse('checkout:summary')
+    assert get_redirect_location(response) == reverse('cart:checkout-summary')
 
 
 def test_shipping_method_without_address(request_cart_with_item, client):
-    response = client.get(reverse('checkout:shipping-method'))
+    response = client.get(reverse('cart:checkout-shipping-method'))
     assert response.status_code == 302
     assert (
         get_redirect_location(response) ==
-        reverse('checkout:shipping-address'))
+        reverse('cart:checkout-shipping-address'))
 
 
 def test_summary_without_address(request_cart_with_item, client):
-    response = client.get(reverse('checkout:summary'))
+    response = client.get(reverse('cart:checkout-summary'))
     assert response.status_code == 302
     assert (
-        get_redirect_location(response) == reverse('checkout:shipping-method'))
+        get_redirect_location(response) == reverse('cart:checkout-shipping-method'))
 
 
 def test_summary_without_shipping_method(
         request_cart_with_item, client, monkeypatch):
-    response = client.get(reverse('checkout:summary'))
+    response = client.get(reverse('cart:checkout-summary'))
     assert response.status_code == 302
     assert (
-        get_redirect_location(response) == reverse('checkout:shipping-method'))
+        get_redirect_location(response) == reverse('cart:checkout-shipping-method'))
 
 
 def test_email_is_saved_in_order(
@@ -195,7 +195,7 @@ def test_email_is_saved_in_order(
     # Enter checkout
     # Checkout index redirects directly to shipping address step
     shipping_address = authorized_client.get(
-        reverse('checkout:index'), follow=True)
+        reverse('cart:checkout-index'), follow=True)
 
     # Enter shipping address data
     shipping_data = {'address': customer_user.default_billing_address.pk}
@@ -226,13 +226,13 @@ def test_voucher_invalid(
     voucher.usage_limit = 3
     voucher.save()
     # Enter checkout
-    checkout_index = client.get(reverse('checkout:index'), follow=True)
+    checkout_index = client.get(reverse('cart:checkout-index'), follow=True)
     # Checkout index redirects directly to shipping address step
     shipping_address = client.get(checkout_index.request['PATH_INFO'])
 
     # Enter shipping address data
     shipping_data = {
-        'email': 'test@example.com',
+        'user_email': 'test@example.com',
         'first_name': 'John',
         'last_name': 'Doe',
         'street_address_1': 'Aleje Jerozolimskie 2',
@@ -265,7 +265,7 @@ def test_voucher_invalid(
     voucher.used = 3
     voucher.save()
     address_data = {'address': 'shipping_address'}
-    assert url == reverse('checkout:summary')
+    assert url == reverse('cart:checkout-summary')
     summary_response = client.post(url, data=address_data, follow=True)
     assert summary_response.context['checkout'].voucher_code is None
 
@@ -276,7 +276,7 @@ def test_voucher_invalid(
 def test_voucher_code_invalid(
         client, request_cart_with_item, shipping_method):
     # Enter checkout
-    checkout_index = client.get(reverse('checkout:index'), follow=True)
+    checkout_index = client.get(reverse('cart:checkout-index'), follow=True)
     # Checkout index redirects directly to shipping address step
     shipping_address = client.get(checkout_index.request['PATH_INFO'])
 
@@ -319,7 +319,7 @@ def test_voucher_code_invalid(
 def test_remove_voucher(
         client, request_cart_with_item, shipping_method, voucher):
     # Enter checkout
-    checkout_index = client.get(reverse('checkout:index'), follow=True)
+    checkout_index = client.get(reverse('cart:checkout-index'), follow=True)
     # Checkout index redirects directly to shipping address step
     shipping_address = client.get(checkout_index.request['PATH_INFO'])
 
@@ -357,7 +357,7 @@ def test_remove_voucher(
     assert voucher_response.context['checkout'].voucher_code is not None
     # Remove voucher from checkout
     voucher_response = client.post(
-        reverse('checkout:remove-voucher'), follow=True, HTTP_REFERER=url)
+        reverse('cart:checkout-remove-voucher'), follow=True, HTTP_REFERER=url)
     assert voucher_response.status_code == 200
     assert voucher_response.context['checkout'].voucher_code is None
 
@@ -377,7 +377,7 @@ def test_language_is_saved_in_order(
     # Enter checkout
     # Checkout index redirects directly to shipping address step
     shipping_address = authorized_client.get(
-        reverse('checkout:index'), follow=True,
+        reverse('cart:checkout-index'), follow=True,
         HTTP_ACCEPT_LANGUAGE=user_language)
 
     # Enter shipping address data

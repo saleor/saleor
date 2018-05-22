@@ -5,7 +5,6 @@ from django.utils.translation import pgettext_lazy
 from ...cart.models import Cart
 from ...core.utils import format_money
 from ...core.utils.taxes import display_gross_prices
-from ...checkout.forms import CheckoutAddressField
 from ...shipping.models import ShippingMethodCountry
 from ...shipping.utils import get_taxed_shipping_price
 
@@ -34,6 +33,10 @@ class AnonymousUserBillingForm(forms.ModelForm):
         fields = ['user_email']
 
 
+class RadioSelectChoiceField(forms.ChoiceField):
+    widget = forms.RadioSelect()
+
+
 class AddressChoiceForm(forms.Form):
     """Choose one of user's addresses or to create new one."""
 
@@ -42,7 +45,7 @@ class AddressChoiceForm(forms.Form):
         (NEW_ADDRESS, pgettext_lazy(
             'Shipping addresses form choice', 'Enter a new address'))]
 
-    address = CheckoutAddressField(
+    address = RadioSelectChoiceField(
         label=pgettext_lazy('Shipping addresses form field label', 'Address'),
         choices=CHOICES, initial=NEW_ADDRESS)
 
@@ -64,7 +67,7 @@ class BillingAddressChoiceForm(AddressChoiceForm):
         (SHIPPING_ADDRESS, pgettext_lazy(
             'Billing addresses form choice', 'Same as shipping'))]
 
-    address = CheckoutAddressField(
+    address = RadioSelectChoiceField(
         label=pgettext_lazy('Billing addresses form field label', 'Address'),
         choices=CHOICES, initial=SHIPPING_ADDRESS)
 

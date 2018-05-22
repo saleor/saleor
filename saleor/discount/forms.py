@@ -4,7 +4,7 @@ from django import forms
 from django.utils.encoding import smart_text
 from django.utils.translation import pgettext_lazy
 
-from ..checkout.utils import get_voucher_discount_for_checkout
+from ..cart.checkout.utils import get_voucher_discount_for_checkout
 from .models import NotApplicable, Voucher
 
 

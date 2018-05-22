@@ -5,7 +5,7 @@ import pytest
 from freezegun import freeze_time
 from prices import Money, TaxedMoney
 
-from saleor.checkout.utils import get_voucher_discount_for_checkout
+from saleor.cart.checkout.utils import get_voucher_discount_for_checkout
 from saleor.discount import (
     DiscountValueType, VoucherApplyToProduct, VoucherType)
 from saleor.discount.forms import CheckoutDiscountForm
@@ -159,7 +159,7 @@ def test_products_voucher_checkout_discount_not(
         settings, monkeypatch, prices, discount_value, discount_type, apply_to,
         expected_value):
     monkeypatch.setattr(
-        'saleor.checkout.utils.get_product_variants_and_prices',
+        'saleor.cart.checkout.utils.get_product_variants_and_prices',
         lambda cart, product: (
             (None, TaxedMoney(
                 net=Money(price, 'USD'), gross=Money(price, 'USD')))

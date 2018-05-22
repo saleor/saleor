@@ -18,11 +18,11 @@ def create_order(checkout):
 
     This is a helper function.
 
-    `checkout` is a `saleor.checkout.core.Checkout` instance.
+    `checkout` is a `saleor.cart.checkout.core.Checkout` instance.
     """
     order = checkout.create_order()
     if not order:
-        return None, redirect('checkout:summary')
+        return None, redirect('cart:checkout-summary')
     checkout.clear_storage()
     checkout.cart.clear()
     user = None if checkout.user.is_anonymous else checkout.user
