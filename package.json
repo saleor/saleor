@@ -59,7 +59,7 @@
     "file-loader": "^1.1.11",
     "mini-css-extract-plugin": "^0.4.0",
     "mjml": "^3.3.5",
-    "node-sass": "^4.8.3",
+    "node-sass": "^4.9.0",
     "postcss": "^6.0.21",
     "postcss-loader": "^2.1.3",
     "sass-loader": "^6.0.7",
@@ -89,6 +89,6 @@
     "build-assets": "webpack -p --progress",
     "heroku-postbuild": "npm run build-assets && npm run build-emails",
     "start": "webpack -d --watch --progress",
-    "build-emails": "mkdir -p templates/templated_email/compiled/ && find templates -name \"*.mjml\" -not -path \"templates/templated_email/source/*partials/*\" -not -path \"templates/templated_email/source/*shared/*\" -exec mjml -l skip {} -o templates/templated_email/compiled/ \\;"
+    "build-emails": "mjml -l skip \"templates/templated_email/source/*.mjml\" -o templates/templated_email/compiled"
   }
 }
