@@ -3,7 +3,7 @@ from django.db.models import Q
 from ...product import models
 from ...product.utils import products_visible_to_user
 from ..utils import get_node
-from .types import Category, SelectedAttribute
+from .types import Category
 
 
 def resolve_categories(info, level=None):
@@ -43,3 +43,21 @@ def resolve_attributes(category_id, info):
 
 def resolve_product_types():
     return models.ProductType.objects.all().distinct()
+
+
+def resolve_search_variants(info, q):
+    """Return variants filtered by q parameter.
+
+    Look for sku, variant name or product name.
+
+    """
+    if len(q) < 2:
+        raise ValueError('Search query must be at least two characters long.')
+    available_products = models.Product.objects.available_products()
+    queryset = models.ProductVariant.objects.filter(
+        product__in=available_products)
+    queryset = queryset.filter(
+        Q(sku__icontains=q) |
+        Q(name__icontains=q) |
+        Q(product__name__icontains=q))
+    return queryset.distinct()

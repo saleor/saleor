@@ -1,13 +1,14 @@
 import json
+from unittest.mock import Mock
 
 import graphene
 import pytest
-
 from django.shortcuts import reverse
 from django.utils.text import slugify
 from prices import Money
 from tests.utils import get_graphql_content
 
+from saleor.graphql.product.resolvers import resolve_search_variants
 from saleor.product.models import (
     Category, Product, ProductAttribute, ProductType)
 
@@ -778,3 +779,19 @@ def test_product_type_delete_mutation(admin_api_client, product_type):
     assert data['productType']['name'] == product_type.name
     with pytest.raises(product_type._meta.model.DoesNotExist):
         product_type.refresh_from_db()
+
+
+def test_search_variant(product):
+    variant = product.variants.first()
+    variant.sku = 'sharp knives unified'
+    variant.name = 'variants deserves names too'
+    variant.save()
+    sku = variant.sku
+    info = Mock()
+    assert resolve_search_variants(info, sku[:2]).first() == variant
+    assert resolve_search_variants(info, variant.name).first() == variant
+    assert resolve_search_variants(info, product.name).first() == variant
+    wrong_q = sku + 'wrong'
+    assert not resolve_search_variants(info, wrong_q)
+    with pytest.raises(ValueError):
+        resolve_search_variants(info, '1')
