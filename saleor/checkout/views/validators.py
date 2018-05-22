@@ -66,7 +66,7 @@ def validate_is_shipping_required(view):
     """
     @wraps(view)
     def func(request, cart, checkout):
-        if not checkout.is_shipping_required:
+        if not cart.is_shipping_required():
             return redirect('checkout:summary')
         return view(request, cart, checkout)
     return func

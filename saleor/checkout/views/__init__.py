@@ -26,7 +26,7 @@ def index_view(request, cart, checkout):
 @add_voucher_form
 def summary_view(request, cart, checkout):
     """Display the correct order summary."""
-    if checkout.is_shipping_required:
+    if cart.is_shipping_required():
         view = validate_shipping_address(summary_with_shipping_view)
         view = validate_shipping_method(view)
         return view(request, cart, checkout)

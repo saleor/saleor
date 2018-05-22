@@ -139,9 +139,11 @@ def test_checkout_flow_authenticated_user(
     assert len(payment.get_purchased_items()) == len(order.lines.all())
 
 
-def test_address_without_shipping(request_cart_with_item, client, monkeypatch):
-    monkeypatch.setattr(
-        'saleor.checkout.core.Checkout.is_shipping_required', False)
+def test_address_without_shipping(request_cart_with_item, client):
+    line = request_cart_with_item.lines.get()
+    product_type = line.variant.product.product_type
+    product_type.is_shipping_required = False
+    product_type.save()
 
     response = client.get(reverse('checkout:shipping-address'))
     assert response.status_code == 302
@@ -149,9 +151,11 @@ def test_address_without_shipping(request_cart_with_item, client, monkeypatch):
 
 
 def test_shipping_method_without_shipping(
-        request_cart_with_item, client, monkeypatch):
-    monkeypatch.setattr('saleor.checkout.core.Checkout.is_shipping_required',
-                        False)
+        request_cart_with_item, client):
+    line = request_cart_with_item.lines.get()
+    product_type = line.variant.product.product_type
+    product_type.is_shipping_required = False
+    product_type.save()
 
     response = client.get(reverse('checkout:shipping-method'))
     assert response.status_code == 302

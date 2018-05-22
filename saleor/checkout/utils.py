@@ -16,7 +16,7 @@ def _get_value_voucher_discount_for_checkout(voucher, checkout):
 
 def _get_shipping_voucher_discount_for_checkout(voucher, checkout):
     """Calculate discount value for a voucher of shipping type."""
-    if not checkout.is_shipping_required:
+    if not checkout.cart.is_shipping_required():
         msg = pgettext(
             'Voucher not applicable',
             'Your order does not require shipping.')

@@ -92,6 +92,12 @@ class Cart(models.Model):
     class Meta:
         ordering = ('-last_status_change',)
 
+    def __repr__(self):
+        return 'Cart(quantity=%s)' % (self.quantity,)
+
+    def __len__(self):
+        return self.lines.count()
+
     def update_quantity(self):
         """Recalculate cart quantity based on lines."""
         total_lines = self.count()['total_quantity']
@@ -125,12 +131,6 @@ class Cart(models.Model):
     def is_shipping_required(self):
         """Return `True` if any of the lines requires shipping."""
         return any(line.is_shipping_required() for line in self.lines.all())
-
-    def __repr__(self):
-        return 'Cart(quantity=%s)' % (self.quantity,)
-
-    def __len__(self):
-        return self.lines.count()
 
     def get_shipping_price(self, taxes):
         return (
