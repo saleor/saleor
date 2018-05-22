@@ -9,7 +9,7 @@ from ....core.exceptions import InsufficientStock
 from ....order.emails import send_order_confirmation
 from ..forms import (
     AddressChoiceForm, AnonymousUserBillingForm, BillingAddressChoiceForm,
-    NoteForm)
+    CartNoteForm)
 from ..utils import get_checkout_data, save_billing_address_in_cart
 
 
@@ -93,9 +93,9 @@ def summary_with_shipping_view(request, cart, checkout):
 
     Will create an order if all data is valid.
     """
-    note_form = NoteForm(request.POST or None, checkout=checkout)
+    note_form = CartNoteForm(request.POST or None, instance=cart)
     if note_form.is_valid():
-        note_form.set_checkout_note()
+        note_form.save()
 
     if request.user.is_authenticated:
         additional_addresses = request.user.addresses.all()
@@ -126,9 +126,10 @@ def anonymous_summary_without_shipping(request, cart, checkout):
 
     Will create an order if all data is valid.
     """
-    note_form = NoteForm(request.POST or None, checkout=checkout)
+    note_form = CartNoteForm(request.POST or None, instance=cart)
     if note_form.is_valid():
-        note_form.set_checkout_note()
+        note_form.save()
+
     user_form = AnonymousUserBillingForm(request.POST or None, instance=cart)
     billing_address = cart.billing_address
     if billing_address:
@@ -161,9 +162,9 @@ def summary_without_shipping(request, cart, checkout):
 
     Will create an order if all data is valid.
     """
-    note_form = NoteForm(request.POST or None, checkout=checkout)
+    note_form = CartNoteForm(request.POST or None, instance=cart)
     if note_form.is_valid():
-        note_form.set_checkout_note()
+        note_form.save()
 
     billing_address = cart.billing_address
     user_addresses = request.user.addresses.all()
