@@ -7,7 +7,6 @@ from django.utils.encoding import smart_text
 from django.utils.translation import get_language
 from prices import Money
 
-from ...account.models import Address
 from ...account.utils import store_user_address
 from ...core import analytics
 from ...core.utils.taxes import get_taxes_for_country
@@ -75,36 +74,6 @@ class Checkout:
     def clear_storage(self):
         """Discard the entire state."""
         self.storage = None
-        self.modified = True
-
-    def _get_address_from_storage(self, key):
-        address_data = self.storage.get(key)
-        if address_data is not None and address_data.get('id'):
-            try:
-                return Address.objects.get(id=address_data['id'])
-            except Address.DoesNotExist:
-                return None
-        elif address_data:
-            return Address(**address_data)
-        return None
-
-    @property
-    def email(self):
-        """Return the customer email if any."""
-        return self.storage.get('email')
-
-    @email.setter
-    def email(self, email):
-        self.storage['email'] = email
-        self.modified = True
-
-    @property
-    def note(self):
-        return self.storage.get('note')
-
-    @note.setter
-    def note(self, note):
-        self.storage['note'] = note
         self.modified = True
 
     @property
@@ -242,8 +211,8 @@ class Checkout:
         if voucher is not None:
             increase_voucher_usage(voucher)
 
-        if self.note is not None and self.note:
-            order.notes.create(user=order.user, content=self.note)
+        if self.cart.note:
+            order.notes.create(user=order.user, content=self.cart.note)
 
         return order
 

@@ -127,16 +127,13 @@ class CartShippingMethodForm(forms.ModelForm):
         method_field.empty_label = None
 
 
-class NoteForm(forms.Form):
-    """Form to add a note to an order."""
+class CartNoteForm(forms.ModelForm):
+    """Save note in cart."""
 
     note = forms.CharField(
-        max_length=250, required=False, strip=True, label=False)
-    note.widget = forms.Textarea({'rows': 3})
+        max_length=250, required=False, strip=True, label=False,
+        widget=forms.Textarea({'rows': 3}))
 
-    def __init__(self, *args, **kwargs):
-        self.checkout = kwargs.pop('checkout', None)
-        super().__init__(*args, **kwargs)
-
-    def set_checkout_note(self):
-        self.checkout.note = self.cleaned_data.get('note', '')
+    class Meta:
+        model = Cart
+        fields = ['note']

@@ -89,6 +89,7 @@ class Cart(models.Model):
     shipping_method = models.ForeignKey(
         ShippingMethodCountry, blank=True, null=True, related_name='carts',
         on_delete=models.SET_NULL)
+    note = models.TextField(blank=True, default='')
 
     objects = CartQueryset.as_manager()
 

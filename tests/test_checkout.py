@@ -6,7 +6,6 @@ from django.urls import reverse
 from prices import Money, TaxedMoney
 
 from saleor.cart.checkout import views
-from saleor.cart.checkout.forms import NoteForm
 from saleor.cart.checkout.utils import get_voucher_discount_for_checkout
 from saleor.cart.checkout.core import STORAGE_SESSION_KEY, Checkout
 from saleor.core.exceptions import InsufficientStock
@@ -103,23 +102,15 @@ def test_checkout_taxes(checkout_with_items, shipping_method, vatlayer):
     assert checkout_with_items.get_subtotal() == subtotal
 
 
-@pytest.mark.parametrize('note_value', [
-    '',
-    '    ',
-    '   test_note  ',
-    'test_note'])
-def test_note_form(checkout, note_value):
-    form = NoteForm({'note': note_value}, checkout=checkout)
-    form.is_valid()
-    form.set_checkout_note()
-    assert checkout.note == note_value.strip()
-
-
 def test_note_in_created_order(checkout_with_items):
-    checkout_with_items.note = ''
+    cart = checkout_with_items.cart
+    cart.note = ''
+    cart.save()
     order = checkout_with_items.create_order()
     assert not order.notes.all()
-    checkout_with_items.note = 'test_note'
+
+    cart.note = 'test_note'
+    cart.save()
     order = checkout_with_items.create_order()
     assert order.notes.filter(content='test_note').exists()
 
