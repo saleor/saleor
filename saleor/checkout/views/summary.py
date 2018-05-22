@@ -160,8 +160,7 @@ def summary_without_shipping(request, checkout):
         address_form, preview = get_address_form(
             request.POST or None, autocomplete_type='billing',
             initial={'country': request.country},
-            country_code=billing_address.country.code,
-            instance=billing_address)
+            country_code=billing_address.country.code)
         addresses_form = BillingWithoutShippingAddressForm(
             request.POST or None, additional_addresses=user_addresses,
             initial={'address': billing_address.id})
