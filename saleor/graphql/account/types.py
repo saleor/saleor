@@ -23,7 +23,7 @@ class User(CountableDjangoObjectType):
         exclude_fields = [
             'addresses', 'is_staff', 'is_active', 'date_joined', 'password',
             'default_shipping_address', 'default_billing_address',
-            'is_superuser', 'last_login']
+            'is_superuser', 'last_login', 'ordernote_set']
         description = "Represents user data."
         interfaces = [relay.Node]
         model = get_user_model()

@@ -68,6 +68,7 @@ class TaxedMoney(graphene.ObjectType):
     gross = graphene.Field(
         Money, description='Amount of money including taxes.')
     net = graphene.Field(Money, description='Amount of money without taxes.')
+    tax = graphene.Field(Money, description='Amount of taxes.')
 
     class Meta:
         description = """Represents a monetary value with taxes. In
