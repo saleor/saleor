@@ -15,6 +15,11 @@ class Migration(migrations.Migration):
     operations = [
         migrations.AddField(
             model_name='cart',
+            name='billing_address',
+            field=models.ForeignKey(editable=False, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='+', to='account.Address'),
+        ),
+        migrations.AddField(
+            model_name='cart',
             name='shipping_address',
             field=models.ForeignKey(editable=False, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='+', to='account.Address'),
         ),

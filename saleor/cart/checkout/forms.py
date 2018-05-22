@@ -38,6 +38,22 @@ class AddressChoiceForm(forms.Form):
         self.fields['address'].choices = self.CHOICES + address_choices
 
 
+class BillingAddressChoiceForm(AddressChoiceForm):
+    """Choose one of user's addresses, a shipping one or to create new."""
+
+    NEW_ADDRESS = 'new_address'
+    SHIPPING_ADDRESS = 'shipping_address'
+    CHOICES = [
+        (NEW_ADDRESS, pgettext_lazy(
+            'Billing addresses form choice', 'Enter a new address')),
+        (SHIPPING_ADDRESS, pgettext_lazy(
+            'Billing addresses form choice', 'Same as shipping'))]
+
+    address = CheckoutAddressField(
+        label=pgettext_lazy('Billing addresses form field label', 'Address'),
+        choices=CHOICES, initial=SHIPPING_ADDRESS)
+
+
 # FIXME: why is this called a country choice field?
 class ShippingCountryChoiceField(forms.ModelChoiceField):
     """Shipping method country choice field.
@@ -45,6 +61,7 @@ class ShippingCountryChoiceField(forms.ModelChoiceField):
     Uses a radio group instead of a dropdown and includes estimated shipping
     prices.
     """
+
     taxes = None
     widget = forms.RadioSelect()
 
@@ -90,3 +107,27 @@ class CartShippingMethodForm(forms.ModelForm):
             self.initial['shipping_method'] = method_field.queryset.first()
 
         method_field.empty_label = None
+
+
+class AnonymousUserBillingForm(forms.Form):
+    """Additional billing information form for users who are not logged in."""
+
+    email = forms.EmailField(
+        required=True, widget=forms.EmailInput(
+            attrs={'autocomplete': 'billing email'}),
+        label=pgettext_lazy('Billing form field label', 'Email'))
+
+
+class NoteForm(forms.Form):
+    """Form to add a note to an order."""
+
+    note = forms.CharField(
+        max_length=250, required=False, strip=True, label=False)
+    note.widget = forms.Textarea({'rows': 3})
+
+    def __init__(self, *args, **kwargs):
+        self.checkout = kwargs.pop('checkout', None)
+        super().__init__(*args, **kwargs)
+
+    def set_checkout_note(self):
+        self.checkout.note = self.cleaned_data.get('note', '')

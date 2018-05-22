@@ -5,15 +5,13 @@ from django.contrib.auth.models import AnonymousUser
 from django.urls import reverse
 from prices import Money, TaxedMoney
 
-from saleor.account.models import Address
+from saleor.cart.checkout.forms import NoteForm
 from saleor.checkout import views
 from saleor.checkout.core import STORAGE_SESSION_KEY, Checkout
-from saleor.checkout.forms import NoteForm
 from saleor.checkout.utils import get_voucher_discount_for_checkout
 from saleor.core.exceptions import InsufficientStock
 from saleor.discount import DiscountValueType, VoucherType
 from saleor.discount.models import Voucher, NotApplicable
-from saleor.shipping.models import ShippingMethodCountry
 
 
 def test_checkout_version(checkout):
@@ -41,20 +39,6 @@ def test_checkout_clear_storage(checkout):
     checkout.clear_storage()
     assert checkout.storage is None
     assert checkout.modified is True
-
-
-@pytest.mark.parametrize('user, address', [
-    (AnonymousUser(), None),
-    (
-        Mock(
-            default_billing_address='billing_address',
-            addresses=Mock(
-                is_authenticated=Mock(return_value=True))),
-        'billing_address')])
-def test_checkout_billing_address(checkout, user, address, monkeypatch):
-    monkeypatch.setattr(checkout.cart, 'shipping_address', None)
-    checkout.user = user
-    assert checkout.billing_address == address
 
 
 @pytest.mark.parametrize('cart, status_code, url', [

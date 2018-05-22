@@ -80,6 +80,9 @@ class Cart(models.Model):
     quantity = models.PositiveIntegerField(default=0)
 
     # data used for handling checkout process
+    billing_address = models.ForeignKey(
+        Address, related_name='+', editable=False, null=True,
+        on_delete=models.SET_NULL)
     shipping_address = models.ForeignKey(
         Address, related_name='+', editable=False, null=True,
         on_delete=models.SET_NULL)

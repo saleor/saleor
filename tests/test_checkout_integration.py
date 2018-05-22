@@ -8,7 +8,7 @@ from saleor.account.models import User
 from .utils import get_redirect_location
 
 
-@patch('saleor.checkout.views.summary.send_order_confirmation')
+@patch('saleor.cart.checkout.views.summary.send_order_confirmation')
 def test_checkout_flow(
         mock_send_confirmation, request_cart_with_item, client,
         shipping_method):

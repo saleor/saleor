@@ -3,7 +3,6 @@ from datetime import date
 from functools import wraps
 
 from django.db import transaction
-from django.forms.models import model_to_dict
 from django.utils.encoding import smart_text
 from django.utils.translation import get_language
 from prices import Money
@@ -109,24 +108,6 @@ class Checkout:
         self.modified = True
 
     @property
-    def billing_address(self):
-        """Return the billing addres if any."""
-        address = self._get_address_from_storage('billing_address')
-        if address is not None:
-            return address
-        elif (self.user.is_authenticated and
-              self.user.default_billing_address):
-            return self.user.default_billing_address
-        return self.cart.shipping_address
-
-    @billing_address.setter
-    def billing_address(self, address):
-        address_data = model_to_dict(address)
-        address_data['country'] = smart_text(address_data['country'])
-        self.storage['billing_address'] = address_data
-        self.modified = True
-
-    @property
     def discount(self):
         """Return a discount if any."""
         value = self.storage.get('discount_value')
@@ -182,16 +163,6 @@ class Checkout:
             del self.storage['voucher_code']
             self.modified = True
 
-    def _add_to_user_address_book(self, address, is_billing=False,
-                                  is_shipping=False):
-        if self.user.is_authenticated:
-            store_user_address(
-                self.user, address, shipping=is_shipping,
-                billing=is_billing)
-
-    def _save_order_billing_address(self):
-        return self.billing_address.get_copy()
-
     @transaction.atomic
     def create_order(self):
         """Create an order from the checkout session.
@@ -215,25 +186,30 @@ class Checkout:
             # Voucher expired in meantime, abort order placement
             return None
 
-        if self.cart.is_shipping_required():
-            shipping_address = self.cart.shipping_address
-            if self.cart.user:
-                if shipping_address not in self.cart.user.addresses.all():
-                    store_user_address(
-                        self.user, shipping_address, shipping=True)
-                shipping_address = shipping_address.get_copy()
-        else:
-            shipping_address = None
-        billing_address = self._save_order_billing_address()
-        self._add_to_user_address_book(
-            self.billing_address, is_billing=True)
+        billing_address = self.cart.billing_address
 
         if self.cart.is_shipping_required():
+            shipping_address = self.cart.shipping_address
             shipping_method = self.cart.shipping_method
             shipping_method_name = smart_text(shipping_method)
         else:
+            shipping_address = None
             shipping_method = None
             shipping_method_name = None
+
+        if self.cart.user:
+            if (
+                shipping_address and
+                shipping_address not in self.cart.user.addresses.all()
+            ):
+                store_user_address(
+                    self.user, shipping_address, shipping=True)
+            if billing_address not in self.cart.user.addresses.all():
+                store_user_address(
+                    self.user, billing_address, billing=True)
+            if shipping_address:
+                shipping_address = shipping_address.get_copy()
+            billing_address = billing_address.get_copy()
 
         order_data = {
             'language_code': get_language(),
