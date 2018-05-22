@@ -50,7 +50,8 @@ class OrderLine(DjangoObjectType):
     class Meta:
         description = 'Represents order line of particular order.'
         model = models.OrderLine
-        exclude_fields = ['variant', 'unit_price_gross', 'unit_price_net']
+        exclude_fields = [
+            'variant', 'unit_price_gross', 'unit_price_net', 'order']
 
 
 class OrderNote(DjangoObjectType):
@@ -63,6 +64,7 @@ class Fulfillment(DjangoObjectType):
     class Meta:
         description = 'Represents order fulfillment.'
         model = models.Fulfillment
+        exclude_fields = ['order']
 
 
 class FulfillmentLine(DjangoObjectType):
