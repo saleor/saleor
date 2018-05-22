@@ -8,7 +8,7 @@ from .types import Order
 def resolve_orders(info):
     user = info.context.user
     if user.is_anonymous:
-        raise PermissionDenied('You have no permission to see this')
+        raise PermissionDenied('You have no permission to see this order.')
     if user.get_all_permissions() & {'order.view_order', 'order.edit_order'}:
         return models.Order.objects.all().distinct().prefetch_related('lines')
     return user.orders.confirmed().distinct().prefetch_related('lines')
