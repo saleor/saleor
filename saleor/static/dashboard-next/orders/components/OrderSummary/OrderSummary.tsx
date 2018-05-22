@@ -1,5 +1,7 @@
+import AddIcon from "@material-ui/icons/Add";
 import Button from "material-ui/Button";
 import Card, { CardActions, CardContent } from "material-ui/Card";
+import IconButton from "material-ui/IconButton";
 import { withStyles } from "material-ui/styles";
 import * as React from "react";
 
@@ -21,14 +23,16 @@ interface MoneyType {
   currency: string;
 }
 interface OrderSummaryProps extends OrderProductsProps {
-  status?: string;
   paymentStatus?: string;
   paymentVariant?: string;
-  onFulfill?();
+  status?: string;
   onCapture?();
+  onCreate?();
+  onFulfill?();
+  onOrderCancel?();
+  onProductAdd?();
   onRefund?();
   onRelease?();
-  onOrderCancel?();
 }
 
 const decorate = withStyles(theme => ({
@@ -50,21 +54,23 @@ const decorate = withStyles(theme => ({
 const OrderSummary = decorate<OrderSummaryProps>(
   ({
     classes,
+    net,
+    paid,
+    paymentStatus,
+    paymentVariant,
     products,
+    refunded,
+    status,
     subtotal,
     total,
-    status,
-    paymentStatus,
-    paid,
-    refunded,
-    net,
-    paymentVariant,
-    onRowClick,
-    onFulfill,
     onCapture,
+    onCreate,
+    onFulfill,
+    onOrderCancel,
+    onProductAdd,
     onRefund,
     onRelease,
-    onOrderCancel
+    onRowClick
   }) => {
     const orderStatus = status ? transformOrderStatus(status) : undefined;
     const canCapture =
@@ -88,9 +94,16 @@ const OrderSummary = decorate<OrderSummaryProps>(
       OrderStatus.DRAFT
     ] as any).includes(status);
     const canGetInvoice = paymentStatus === PaymentStatus.CONFIRMED;
+    const isDraft = status === OrderStatus.DRAFT;
     return (
       <Card>
-        <PageHeader title={i18n.t("Order Summary")} />
+        <PageHeader title={i18n.t("Order Summary")}>
+          {isDraft && (
+            <IconButton disabled={!onProductAdd} onClick={onProductAdd}>
+              <AddIcon />
+            </IconButton>
+          )}
+        </PageHeader>
         {status && (
           <CardContent className={classes.statusBar}>
             <StatusLabel
@@ -100,13 +113,14 @@ const OrderSummary = decorate<OrderSummaryProps>(
           </CardContent>
         )}
         <OrderProducts
-          products={products}
-          subtotal={subtotal}
-          total={total}
-          paid={paid}
-          refunded={refunded}
+          displayPayment={!isDraft}
           net={net}
           onRowClick={onRowClick}
+          paid={paid}
+          products={products}
+          refunded={refunded}
+          subtotal={subtotal}
+          total={total}
         />
         {status &&
           (canGetInvoice ||
@@ -114,33 +128,42 @@ const OrderSummary = decorate<OrderSummaryProps>(
             canCapture ||
             canRefund ||
             canRelease ||
-            canCancel) && (
+            canCancel ||
+            isDraft) && (
             <CardActions className={classes.cardActions}>
-              {canGetInvoice && <Button>{i18n.t("Invoice")}</Button>}
-              {canFulfill && (
-                <Button disabled={!onFulfill} onClick={onFulfill}>
-                  {i18n.t("Fulfill")}
+              {isDraft ? (
+                <Button disabled={!onCreate} onClick={onCreate}>
+                  {i18n.t("Create order")}
                 </Button>
-              )}
-              {canCapture && (
-                <Button disabled={!onCapture} onClick={onCapture}>
-                  {i18n.t("Capture")}
-                </Button>
-              )}
-              {canRefund && (
-                <Button disabled={!onRefund} onClick={onRefund}>
-                  {i18n.t("Refund")}
-                </Button>
-              )}
-              {canRelease && (
-                <Button disabled={!onRelease} onClick={onRelease}>
-                  {i18n.t("Release")}
-                </Button>
-              )}
-              {canCancel && (
-                <Button disabled={!onOrderCancel} onClick={onOrderCancel}>
-                  {i18n.t("Cancel order")}
-                </Button>
+              ) : (
+                <>
+                  {canGetInvoice && <Button>{i18n.t("Invoice")}</Button>}
+                  {canFulfill && (
+                    <Button disabled={!onFulfill} onClick={onFulfill}>
+                      {i18n.t("Fulfill")}
+                    </Button>
+                  )}
+                  {canCapture && (
+                    <Button disabled={!onCapture} onClick={onCapture}>
+                      {i18n.t("Capture")}
+                    </Button>
+                  )}
+                  {canRefund && (
+                    <Button disabled={!onRefund} onClick={onRefund}>
+                      {i18n.t("Refund")}
+                    </Button>
+                  )}
+                  {canRelease && (
+                    <Button disabled={!onRelease} onClick={onRelease}>
+                      {i18n.t("Release")}
+                    </Button>
+                  )}
+                  {canCancel && (
+                    <Button disabled={!onOrderCancel} onClick={onOrderCancel}>
+                      {i18n.t("Cancel order")}
+                    </Button>
+                  )}
+                </>
               )}
             </CardActions>
           )}

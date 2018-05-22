@@ -105,7 +105,7 @@ export const orders = {
     }
   ]
 };
-export const order = placeholder => ({
+export const order = (placeholder, args?) => ({
   id: "o1",
   number: 11,
   status: "partially fulfilled",
@@ -335,13 +335,23 @@ export const order = placeholder => ({
       date: "2018-04-08T11:18:19+00:00",
       user: "megan.finger@example.com"
     }
-  ]
+  ],
+  ...args
 });
 export const flatOrders = orders.edges.map(edge => ({
   ...edge.node,
   orderStatus: transformOrderStatus(edge.node.status),
   paymentStatus: transformPaymentStatus(edge.node.paymentStatus)
 }));
+export const variants = [
+  { id: "p1", name: "Product 1: variant 1", sku: "12345", stockAllocated: 3 },
+  { id: "p2", name: "Product 1: variant 2", sku: "12346", stockAllocated: 1 },
+  { id: "p3", name: "Product 2: variant 1", sku: "12355", stockAllocated: 10 },
+  { id: "p4", name: "Product 3: variant 1", sku: "12445", stockAllocated: 12 },
+  { id: "p5", name: "Product 3: variant 2", sku: "12545", stockAllocated: 7 },
+  { id: "p6", name: "Product 5: variant 1", sku: "13345", stockAllocated: 3 },
+  { id: "p7", name: "Product 5: variant 2", sku: "14345", stockAllocated: 11 }
+];
 export const prefixes = ["01", "02", "41", "49"];
 export const countries = [
   { code: "AF", label: "Afghanistan" },

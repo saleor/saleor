@@ -30,17 +30,18 @@ interface MoneyType {
   currency: string;
 }
 export interface OrderProductsProps {
+  displayPayment?: boolean;
+  net?: MoneyType;
+  paid?: MoneyType;
   products?: Array<{
     id: string;
     name: string;
-    sku: string;
-    thumbnailUrl: string;
     price: TaxedMoneyType;
     quantity: number;
+    sku: string;
+    thumbnailUrl: string;
   }>;
-  paid?: MoneyType;
   refunded?: MoneyType;
-  net?: MoneyType;
   subtotal?: MoneyType;
   total?: MoneyType;
   onRowClick?(id: string);
@@ -75,7 +76,17 @@ const decorate = withStyles(theme => ({
   }
 }));
 const OrderProducts = decorate<OrderProductsProps>(
-  ({ classes, products, subtotal, total, paid, refunded, net, onRowClick }) => (
+  ({
+    classes,
+    displayPayment,
+    net,
+    paid,
+    products,
+    refunded,
+    subtotal,
+    total,
+    onRowClick
+  }) => (
     <Table className={classes.denseTable}>
       <TableHead>
         <TableRow>
@@ -185,36 +196,41 @@ const OrderProducts = decorate<OrderProductsProps>(
             </div>
           </TableCell>
         </TableRow>
-        <TableRow>
-          <TableCell colSpan={5} className={classes.textRight}>
-            <div className={classes.flexBox}>
-              <Typography>{i18n.t("Paid by customer")}</Typography>
-              <Typography>{i18n.t("Refunded")}</Typography>
-              <Typography>
-                <b>{i18n.t("Net payment")}</b>
-              </Typography>
-            </div>
-          </TableCell>
-          <TableCell className={classes.textRight}>
-            <div className={classes.flexBox}>
-              {paid ? (
-                <Money amount={paid.amount} currency={paid.currency} />
-              ) : (
-                <Skeleton />
-              )}
-              {refunded ? (
-                <Money amount={-refunded.amount} currency={refunded.currency} />
-              ) : (
-                <Skeleton />
-              )}
-              {net ? (
-                <Money amount={net.amount} currency={net.currency} />
-              ) : (
-                <Skeleton />
-              )}
-            </div>
-          </TableCell>
-        </TableRow>
+        {displayPayment && (
+          <TableRow>
+            <TableCell colSpan={5} className={classes.textRight}>
+              <div className={classes.flexBox}>
+                <Typography>{i18n.t("Paid by customer")}</Typography>
+                <Typography>{i18n.t("Refunded")}</Typography>
+                <Typography>
+                  <b>{i18n.t("Net payment")}</b>
+                </Typography>
+              </div>
+            </TableCell>
+            <TableCell className={classes.textRight}>
+              <div className={classes.flexBox}>
+                {paid ? (
+                  <Money amount={paid.amount} currency={paid.currency} />
+                ) : (
+                  <Skeleton />
+                )}
+                {refunded ? (
+                  <Money
+                    amount={-refunded.amount}
+                    currency={refunded.currency}
+                  />
+                ) : (
+                  <Skeleton />
+                )}
+                {net ? (
+                  <Money amount={net.amount} currency={net.currency} />
+                ) : (
+                  <Skeleton />
+                )}
+              </div>
+            </TableCell>
+          </TableRow>
+        )}
       </TableBody>
     </Table>
   )

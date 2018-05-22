@@ -17,217 +17,219 @@ storiesOf("Orders / OrderSummary", module)
   .add("when loading data", () => <OrderSummary />)
   .add("order unfulfilled", () => (
     <OrderSummary
+      net={order.payment.net}
+      paid={order.payment.paid}
+      paymentStatus={order.paymentStatus}
       products={order.products}
+      refunded={order.payment.refunded}
+      status={"unfulfilled"}
       subtotal={order.subtotal}
       total={order.total}
-      status={"unfulfilled"}
-      paymentStatus={order.paymentStatus}
-      paid={order.payment.paid}
-      refunded={order.payment.refunded}
-      net={order.payment.net}
-      onRowClick={() => {}}
-      onFulfill={() => {}}
       onCapture={() => {}}
+      onFulfill={() => {}}
+      onOrderCancel={() => {}}
       onRefund={() => {}}
       onRelease={() => {}}
-      onOrderCancel={() => {}}
+      onRowClick={() => {}}
     />
   ))
   .add("order partially fulfilled", () => (
     <OrderSummary
+      net={order.payment.net}
+      paid={order.payment.paid}
+      paymentStatus={order.paymentStatus}
       products={order.products}
+      refunded={order.payment.refunded}
+      status={"partially fulfilled"}
       subtotal={order.subtotal}
       total={order.total}
-      status={"partially fulfilled"}
-      paymentStatus={order.paymentStatus}
-      paid={order.payment.paid}
-      refunded={order.payment.refunded}
-      net={order.payment.net}
-      onRowClick={() => {}}
-      onFulfill={() => {}}
       onCapture={() => {}}
+      onFulfill={() => {}}
+      onOrderCancel={() => {}}
       onRefund={() => {}}
       onRelease={() => {}}
-      onOrderCancel={() => {}}
+      onRowClick={() => {}}
     />
   ))
   .add("order fulfilled", () => (
     <OrderSummary
+      net={order.payment.net}
+      paid={order.payment.paid}
+      paymentStatus={order.paymentStatus}
       products={order.products}
+      refunded={order.payment.refunded}
+      status={"fulfilled"}
       subtotal={order.subtotal}
       total={order.total}
-      status={"fulfilled"}
-      paymentStatus={order.paymentStatus}
-      paid={order.payment.paid}
-      refunded={order.payment.refunded}
-      net={order.payment.net}
-      onRowClick={() => {}}
-      onFulfill={() => {}}
       onCapture={() => {}}
+      onFulfill={() => {}}
+      onOrderCancel={() => {}}
       onRefund={() => {}}
       onRelease={() => {}}
-      onOrderCancel={() => {}}
+      onRowClick={() => {}}
     />
   ))
   .add("order cancelled", () => (
     <OrderSummary
+      net={order.payment.net}
+      paid={order.payment.paid}
+      paymentStatus={order.paymentStatus}
       products={order.products}
+      refunded={order.payment.refunded}
+      status={"cancelled"}
       subtotal={order.subtotal}
       total={order.total}
-      status={"cancelled"}
-      paymentStatus={order.paymentStatus}
-      paid={order.payment.paid}
-      refunded={order.payment.refunded}
-      net={order.payment.net}
-      onRowClick={() => {}}
-      onFulfill={() => {}}
       onCapture={() => {}}
+      onFulfill={() => {}}
+      onOrderCancel={() => {}}
       onRefund={() => {}}
       onRelease={() => {}}
-      onOrderCancel={() => {}}
+      onRowClick={() => {}}
     />
   ))
   .add("order draft", () => (
     <OrderSummary
+      net={order.payment.net}
+      paid={order.payment.paid}
+      paymentStatus={order.paymentStatus}
       products={order.products}
+      refunded={order.payment.refunded}
+      status={"draft"}
       subtotal={order.subtotal}
       total={order.total}
-      paymentStatus={order.paymentStatus}
-      status={"draft"}
-      paid={order.payment.paid}
-      refunded={order.payment.refunded}
-      net={order.payment.net}
-      onRowClick={() => {}}
-      onFulfill={() => {}}
       onCapture={() => {}}
+      onCreate={() => {}}
+      onFulfill={() => {}}
+      onOrderCancel={() => {}}
+      onProductAdd={() => {}}
       onRefund={() => {}}
       onRelease={() => {}}
-      onOrderCancel={() => {}}
+      onRowClick={() => {}}
     />
   ))
   .add("payment confirmed", () => (
     <OrderSummary
+      net={order.payment.net}
+      paid={order.payment.paid}
+      paymentStatus="confirmed"
       products={order.products}
+      refunded={order.payment.refunded}
+      status={order.status}
       subtotal={order.subtotal}
       total={order.total}
-      paymentStatus="confirmed"
-      status={order.status}
-      paid={order.payment.paid}
-      refunded={order.payment.refunded}
-      net={order.payment.net}
-      onRowClick={() => {}}
-      onFulfill={() => {}}
       onCapture={() => {}}
+      onFulfill={() => {}}
+      onOrderCancel={() => {}}
       onRefund={() => {}}
       onRelease={() => {}}
-      onOrderCancel={() => {}}
+      onRowClick={() => {}}
     />
   ))
   .add("payment error", () => (
     <OrderSummary
+      net={order.payment.net}
+      paid={order.payment.paid}
+      paymentStatus="error"
       products={order.products}
+      refunded={order.payment.refunded}
+      status={order.status}
       subtotal={order.subtotal}
       total={order.total}
-      paymentStatus="error"
-      status={order.status}
-      paid={order.payment.paid}
-      refunded={order.payment.refunded}
-      net={order.payment.net}
-      onRowClick={() => {}}
-      onFulfill={() => {}}
       onCapture={() => {}}
+      onFulfill={() => {}}
+      onOrderCancel={() => {}}
       onRefund={() => {}}
       onRelease={() => {}}
-      onOrderCancel={() => {}}
+      onRowClick={() => {}}
     />
   ))
   .add("payment input", () => (
     <OrderSummary
+      net={order.payment.net}
+      paid={order.payment.paid}
+      paymentStatus="input"
       products={order.products}
+      refunded={order.payment.refunded}
+      status={order.status}
       subtotal={order.subtotal}
       total={order.total}
-      paymentStatus="input"
-      status={order.status}
-      paid={order.payment.paid}
-      refunded={order.payment.refunded}
-      net={order.payment.net}
-      onRowClick={() => {}}
-      onFulfill={() => {}}
       onCapture={() => {}}
+      onFulfill={() => {}}
+      onOrderCancel={() => {}}
       onRefund={() => {}}
       onRelease={() => {}}
-      onOrderCancel={() => {}}
+      onRowClick={() => {}}
     />
   ))
   .add("payment preauth", () => (
     <OrderSummary
+      net={order.payment.net}
+      paid={order.payment.paid}
+      paymentStatus="preauth"
       products={order.products}
+      refunded={order.payment.refunded}
+      status={order.status}
       subtotal={order.subtotal}
       total={order.total}
-      paymentStatus="preauth"
-      status={order.status}
-      paid={order.payment.paid}
-      refunded={order.payment.refunded}
-      net={order.payment.net}
-      onRowClick={() => {}}
-      onFulfill={() => {}}
       onCapture={() => {}}
+      onFulfill={() => {}}
+      onOrderCancel={() => {}}
       onRefund={() => {}}
       onRelease={() => {}}
-      onOrderCancel={() => {}}
+      onRowClick={() => {}}
     />
   ))
   .add("payment refunded", () => (
     <OrderSummary
+      net={order.payment.net}
+      paid={order.payment.paid}
+      paymentStatus="refunded"
       products={order.products}
+      refunded={order.payment.refunded}
+      status={order.status}
       subtotal={order.subtotal}
       total={order.total}
-      paymentStatus="refunded"
-      status={order.status}
-      paid={order.payment.paid}
-      refunded={order.payment.refunded}
-      net={order.payment.net}
-      onRowClick={() => {}}
-      onFulfill={() => {}}
       onCapture={() => {}}
+      onFulfill={() => {}}
+      onOrderCancel={() => {}}
       onRefund={() => {}}
       onRelease={() => {}}
-      onOrderCancel={() => {}}
+      onRowClick={() => {}}
     />
   ))
   .add("payment rejected", () => (
     <OrderSummary
+      net={order.payment.net}
+      paid={order.payment.paid}
+      paymentStatus="rejected"
       products={order.products}
+      refunded={order.payment.refunded}
+      status={order.status}
       subtotal={order.subtotal}
       total={order.total}
-      paymentStatus="rejected"
-      status={order.status}
-      paid={order.payment.paid}
-      refunded={order.payment.refunded}
-      net={order.payment.net}
-      onRowClick={() => {}}
-      onFulfill={() => {}}
       onCapture={() => {}}
+      onFulfill={() => {}}
+      onOrderCancel={() => {}}
       onRefund={() => {}}
       onRelease={() => {}}
-      onOrderCancel={() => {}}
+      onRowClick={() => {}}
     />
   ))
   .add("payment waiting", () => (
     <OrderSummary
+      net={order.payment.net}
+      paid={order.payment.paid}
+      paymentStatus="waiting"
       products={order.products}
+      refunded={order.payment.refunded}
+      status={order.status}
       subtotal={order.subtotal}
       total={order.total}
-      paymentStatus="waiting"
-      status={order.status}
-      paid={order.payment.paid}
-      refunded={order.payment.refunded}
-      net={order.payment.net}
-      onRowClick={() => {}}
-      onFulfill={() => {}}
       onCapture={() => {}}
+      onFulfill={() => {}}
+      onOrderCancel={() => {}}
       onRefund={() => {}}
       onRelease={() => {}}
-      onOrderCancel={() => {}}
+      onRowClick={() => {}}
     />
   ));
