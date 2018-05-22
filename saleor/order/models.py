@@ -281,7 +281,7 @@ class Payment(BasePayment):
             PurchasedItem(
                 name=line.product_name, sku=line.product_sku,
                 quantity=line.quantity,
-                price=line.unit_price_gross.quantize(Decimal('0.01')).amount,
+                price=line.unit_price_net.quantize(Decimal('0.01')).amount,
                 currency=line.unit_price.currency)
             for line in self.order]
 
