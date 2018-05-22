@@ -16,10 +16,10 @@ def anonymous_user_shipping_address_view(request, cart, checkout):
         instance=cart.shipping_address)
 
     user_form = AnonymousUserShippingForm(
-        not preview and request.POST or None, initial={'email': checkout.email}
-        if not preview else request.POST.dict())
+        not preview and request.POST or None,
+        request.POST.dict() if preview else None, instance=cart)
     if all([user_form.is_valid(), address_form.is_valid()]):
-        checkout.email = user_form.cleaned_data['email']
+        user_form.save()
         address = address_form.save()
         save_shipping_address_in_cart(cart, address)
         return redirect('checkout:shipping-method')
@@ -40,10 +40,11 @@ def user_shipping_address_view(request, cart, checkout):
     """
     data = request.POST or None
     user_addresses = request.user.addresses.all()
-    checkout.email = request.user.email
     shipping_address = cart.shipping_address
+    cart.user_email = request.user.email
+    cart.save()
 
-    if shipping_address and shipping_address in cart.user.addresses.all():
+    if shipping_address and shipping_address in user_addresses:
         address_form, preview = get_address_form(
             data, country_code=request.country.code,
             initial={'country': request.country})

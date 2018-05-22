@@ -10,13 +10,28 @@ from ...shipping.models import ShippingMethodCountry
 from ...shipping.utils import get_taxed_shipping_price
 
 
-class AnonymousUserShippingForm(forms.Form):
+class AnonymousUserShippingForm(forms.ModelForm):
     """Additional shipping information form for users who are not logged in."""
 
-    email = forms.EmailField(
-        required=True, widget=forms.EmailInput(
-            attrs={'autocomplete': 'shipping email'}),
-        label=pgettext_lazy('Shipping form field label', 'Email'))
+    user_email = forms.EmailField(
+        widget=forms.EmailInput(attrs={'autocomplete': 'shipping email'}),
+        label=pgettext_lazy('Address form field label', 'Email'))
+
+    class Meta:
+        model = Cart
+        fields = ['user_email']
+
+
+class AnonymousUserBillingForm(forms.ModelForm):
+    """Additional billing information form for users who are not logged in."""
+
+    user_email = forms.EmailField(
+        widget=forms.EmailInput(attrs={'autocomplete': 'billing email'}),
+        label=pgettext_lazy('Address form field label', 'Email'))
+
+    class Meta:
+        model = Cart
+        fields = ['user_email']
 
 
 class AddressChoiceForm(forms.Form):
@@ -107,15 +122,6 @@ class CartShippingMethodForm(forms.ModelForm):
             self.initial['shipping_method'] = method_field.queryset.first()
 
         method_field.empty_label = None
-
-
-class AnonymousUserBillingForm(forms.Form):
-    """Additional billing information form for users who are not logged in."""
-
-    email = forms.EmailField(
-        required=True, widget=forms.EmailInput(
-            attrs={'autocomplete': 'billing email'}),
-        label=pgettext_lazy('Billing form field label', 'Email'))
 
 
 class NoteForm(forms.Form):

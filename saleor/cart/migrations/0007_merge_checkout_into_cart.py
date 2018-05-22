@@ -28,4 +28,9 @@ class Migration(migrations.Migration):
             name='shipping_method',
             field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='carts', to='shipping.ShippingMethodCountry'),
         ),
+        migrations.AddField(
+            model_name='cart',
+            name='user_email',
+            field=models.EmailField(blank=True, default='', max_length=254),
+        ),
     ]

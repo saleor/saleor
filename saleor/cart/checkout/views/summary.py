@@ -129,8 +129,7 @@ def anonymous_summary_without_shipping(request, cart, checkout):
     note_form = NoteForm(request.POST or None, checkout=checkout)
     if note_form.is_valid():
         note_form.set_checkout_note()
-    user_form = AnonymousUserBillingForm(
-        request.POST or None, initial={'email': checkout.email})
+    user_form = AnonymousUserBillingForm(request.POST or None, instance=cart)
     billing_address = cart.billing_address
     if billing_address:
         address_form, preview = get_address_form(
@@ -142,7 +141,7 @@ def anonymous_summary_without_shipping(request, cart, checkout):
             autocomplete_type='billing', initial={'country': request.country})
 
     if all([user_form.is_valid(), address_form.is_valid()]) and not preview:
-        checkout.email = user_form.cleaned_data['email']
+        user_form.save()
         address = address_form.save()
         save_billing_address_in_cart(cart, address)
         return handle_order_placement(request, checkout)

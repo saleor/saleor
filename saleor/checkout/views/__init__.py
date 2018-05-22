@@ -2,9 +2,7 @@ from django.shortcuts import redirect
 from django.template.response import TemplateResponse
 
 from .discount import add_voucher_form, validate_voucher
-from .validators import (
-    validate_cart, validate_shipping_address,
-    validate_shipping_method, validate_is_shipping_required)
+from .validators import validate_cart, validate_is_shipping_required
 from ..core import load_checkout
 from ...account.forms import LoginForm
 

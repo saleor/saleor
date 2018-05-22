@@ -179,10 +179,6 @@ def test_summary_without_address(request_cart_with_item, client):
 
 def test_summary_without_shipping_method(
         request_cart_with_item, client, monkeypatch):
-    # address test return true
-    monkeypatch.setattr(
-        'saleor.checkout.core.Checkout.email', True)
-
     response = client.get(reverse('checkout:summary'))
     assert response.status_code == 302
     assert (
