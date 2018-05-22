@@ -68,4 +68,4 @@ def test_non_staff_user_can_only_see_his_order(user_api_client, order):
         reverse('api'), {'query': query, 'variables': variables})
     content = get_graphql_content(response)
     order_data = content['data']['order']
-    assert order_data is None
+    assert not order_data
