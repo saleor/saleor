@@ -2,13 +2,13 @@
 # Copyright (C) 2017 Mirumee Software
 # This file is distributed under the same license as the Saleor package.
 # Mirumee Software <hello@mirumee.com>, 2017.
-#
+# 
 #, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: master\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2018-05-08 07:15-0500\n"
+"POT-Creation-Date: 2018-05-10 08:29-0500\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Sadeq Sardari <sadeq.sardari@gmail.com>, 2018\n"
 "Language-Team: Persian (Iran) (https://www.transifex.com/mirumee/teams/34782/fa_IR/)\n"
@@ -16,7 +16,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Language: fa_IR\n"
-"Plural-Forms: nplurals=1; plural=0;\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
 
 #: saleor/account/forms.py:60
 msgctxt "Form field"
@@ -305,6 +305,7 @@ msgctxt "Add to cart form error"
 msgid "Only %d remaining in stock."
 msgid_plural "Only %d remaining in stock."
 msgstr[0] ""
+msgstr[1] ""
 
 #: saleor/cart/forms.py:154
 msgctxt "Country form field label"
@@ -395,6 +396,7 @@ msgctxt "Number of matching records in the dashboard list"
 msgid "Found %(counter)d matching record"
 msgid_plural "Found %(counter)d matching records"
 msgstr[0] ""
+msgstr[1] ""
 
 #: saleor/core/i18n.py:5
 msgctxt "Country choice"
@@ -651,22 +653,22 @@ msgctxt "Permission description"
 msgid "Can edit menus"
 msgstr ""
 
-#: saleor/menu/models.py:75
+#: saleor/menu/models.py:66
 msgctxt "Link object type description"
 msgid "URL: "
 msgstr ""
 
-#: saleor/menu/models.py:80
+#: saleor/menu/models.py:71
 msgctxt "Link object type description"
 msgid "Collection: "
 msgstr ""
 
-#: saleor/menu/models.py:83
+#: saleor/menu/models.py:74
 msgctxt "Link object type description"
 msgid "Category: "
 msgstr ""
 
-#: saleor/menu/models.py:86
+#: saleor/menu/models.py:77
 msgctxt "Link object type description"
 msgid "Page: "
 msgstr ""
@@ -850,32 +852,32 @@ msgctxt "Variant choice field label"
 msgid "%(variant_label)s - %(price)s"
 msgstr ""
 
-#: saleor/product/models.py:44
+#: saleor/product/models.py:45
 msgctxt "Permission description"
 msgid "Can view categories"
 msgstr ""
 
-#: saleor/product/models.py:46
+#: saleor/product/models.py:47
 msgctxt "Permission description"
 msgid "Can edit categories"
 msgstr ""
 
-#: saleor/product/models.py:121
+#: saleor/product/models.py:122
 msgctxt "Permission description"
 msgid "Can view products"
 msgstr ""
 
-#: saleor/product/models.py:123
+#: saleor/product/models.py:124
 msgctxt "Permission description"
 msgid "Can edit products"
 msgstr ""
 
-#: saleor/product/models.py:126
+#: saleor/product/models.py:127
 msgctxt "Permission description"
 msgid "Can view product properties"
 msgstr ""
 
-#: saleor/product/models.py:129
+#: saleor/product/models.py:130
 msgctxt "Permission description"
 msgid "Can edit product properties"
 msgstr ""
@@ -1917,7 +1919,7 @@ msgstr ""
 
 #: templates/dashboard/category/detail.html:155
 msgctxt "Empty list of categories"
-msgid "No categories"
+msgid "No subcategories"
 msgstr ""
 
 #: templates/dashboard/category/form.html:9
@@ -2016,6 +2018,7 @@ msgid "There is one product in this category that will be removed."
 msgid_plural ""
 "There are %(counter)s products in this category that will be removed."
 msgstr[0] ""
+msgstr[1] ""
 
 #: templates/dashboard/category/modal/confirm_delete.html:49
 #: templates/dashboard/collection/confirm_delete.html:26
@@ -4129,23 +4132,24 @@ msgstr ""
 msgid "Attribute values"
 msgstr ""
 
-#: templates/dashboard/product/product_attribute/detail.html:74
+#: templates/dashboard/product/product_attribute/detail.html:78
 msgid "Display name"
 msgstr ""
 
-#: templates/dashboard/product/product_attribute/detail.html:75
-msgid "Color"
-msgstr ""
-
-#: templates/dashboard/product/product_attribute/detail.html:97
+#: templates/dashboard/product/product_attribute/detail.html:98
 #: templates/dashboard/shipping/detail.html:100
 msgctxt "Attribute choice value edit action"
 msgid "Edit"
 msgstr ""
 
-#: templates/dashboard/product/product_attribute/detail.html:100
+#: templates/dashboard/product/product_attribute/detail.html:101
 msgctxt "Attribute choice value edit action"
 msgid "Remove"
+msgstr ""
+
+#: templates/dashboard/product/product_attribute/detail.html:108
+msgctxt "Empty list of attribute values"
+msgid "No attribute values"
 msgstr ""
 
 #: templates/dashboard/product/product_attribute/form.html:8
@@ -4365,11 +4369,6 @@ msgstr ""
 msgctxt "Empty product type list message"
 msgid "No product types found."
 msgstr ""
-
-#: templates/dashboard/product/product_type/list.html:110
-msgctxt "Dashboard create new action"
-msgid "Create new"
-msgstr "جدید"
 
 #: templates/dashboard/product/product_type/modal/confirm_delete.html:13
 #, python-format
