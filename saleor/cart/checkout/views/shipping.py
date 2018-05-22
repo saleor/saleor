@@ -22,7 +22,7 @@ def anonymous_user_shipping_address_view(request, cart, checkout):
         user_form.save()
         address = address_form.save()
         save_shipping_address_in_cart(cart, address)
-        return redirect('checkout:shipping-method')
+        return redirect('cart:checkout-shipping-method')
 
     ctx = get_checkout_data(cart, request.discounts, checkout.get_taxes())
     ctx.update({
@@ -73,12 +73,12 @@ def user_shipping_address_view(request, cart, checkout):
             address_id = addresses_form.cleaned_data['address']
             address = Address.objects.get(id=address_id)
             save_shipping_address_in_cart(cart, address)
-            return redirect('checkout:shipping-method')
+            return redirect('cart:checkout-shipping-method')
 
         elif address_form.is_valid():
             address = address_form.save()
             save_shipping_address_in_cart(cart, address)
-            return redirect('checkout:shipping-method')
+            return redirect('cart:checkout-shipping-method')
 
     ctx = get_checkout_data(cart, request.discounts, checkout.get_taxes())
     ctx.update({

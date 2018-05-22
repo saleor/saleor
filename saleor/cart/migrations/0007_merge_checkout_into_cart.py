@@ -33,4 +33,8 @@ class Migration(migrations.Migration):
             name='user_email',
             field=models.EmailField(blank=True, default='', max_length=254),
         ),
+        migrations.RemoveField(
+            model_name='cart',
+            name='checkout_data',
+        ),
     ]

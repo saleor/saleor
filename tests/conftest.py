@@ -18,7 +18,7 @@ from prices import Money
 from saleor.account.models import Address, User
 from saleor.cart import utils
 from saleor.cart.models import Cart
-from saleor.checkout.core import Checkout
+from saleor.cart.checkout.core import Checkout
 from saleor.dashboard.order.utils import fulfill_order_line
 from saleor.discount.models import Sale, Voucher
 from saleor.menu.models import Menu, MenuItem

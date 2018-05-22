@@ -7,8 +7,8 @@ from django.template.response import TemplateResponse
 from django.utils.translation import pgettext
 from django.views.decorators.http import require_POST
 
-from ...discount.forms import CheckoutDiscountForm
-from ...discount.models import Voucher
+from ....discount.forms import CheckoutDiscountForm
+from ....discount.models import Voucher
 from ..core import load_checkout
 
 
@@ -62,7 +62,7 @@ def validate_voucher(view):
                     'Checkout warning',
                     'This voucher has expired. Please review your checkout.')
                 messages.warning(request, msg)
-                return redirect('checkout:summary')
+                return redirect('cart:checkout-summary')
         return view(request, cart, checkout)
     return func
 

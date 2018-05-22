@@ -73,7 +73,6 @@ class Cart(models.Model):
     voucher = models.ForeignKey(
         'discount.Voucher', null=True, related_name='+',
         on_delete=models.SET_NULL)
-    checkout_data = JSONField(null=True, editable=False)
     total = MoneyField(
         currency=settings.DEFAULT_CURRENCY, max_digits=12,
         decimal_places=settings.DEFAULT_DECIMAL_PLACES, default=0)

@@ -9,7 +9,6 @@ from graphene_django.views import GraphQLView
 
 from .account.urls import urlpatterns as account_urls
 from .cart.urls import urlpatterns as cart_urls
-from .checkout.urls import urlpatterns as checkout_urls
 from .core.sitemaps import sitemaps
 from .core.urls import urlpatterns as core_urls
 from .dashboard.urls import urlpatterns as dashboard_urls
@@ -35,8 +34,6 @@ non_translatable_urlpatterns = [
 translatable_urlpatterns = [
     url(r'^', include(core_urls)),
     url(r'^cart/', include((cart_urls, 'cart'), namespace='cart')),
-    url(r'^checkout/',
-        include((checkout_urls, 'checkout'), namespace='checkout')),
     url(r'^jsi18n/$', JavaScriptCatalog.as_view(), name='javascript-catalog'),
     url(r'^order/', include((order_urls, 'order'), namespace='order')),
     url(r'^page/', include((page_urls, 'page'), namespace='page')),

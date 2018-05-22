@@ -5,10 +5,10 @@ from django.contrib.auth.models import AnonymousUser
 from django.urls import reverse
 from prices import Money, TaxedMoney
 
+from saleor.cart.checkout import views
 from saleor.cart.checkout.forms import NoteForm
-from saleor.checkout import views
-from saleor.checkout.core import STORAGE_SESSION_KEY, Checkout
-from saleor.checkout.utils import get_voucher_discount_for_checkout
+from saleor.cart.checkout.utils import get_voucher_discount_for_checkout
+from saleor.cart.checkout.core import STORAGE_SESSION_KEY, Checkout
 from saleor.core.exceptions import InsufficientStock
 from saleor.discount import DiscountValueType, VoucherType
 from saleor.discount.models import Voucher, NotApplicable
@@ -47,12 +47,12 @@ def test_checkout_clear_storage(checkout):
         Mock(
             __len__=Mock(return_value=1),
             is_shipping_required=Mock(return_value=True)),
-        302, reverse('checkout:shipping-address')),
+        302, reverse('cart:checkout-shipping-address')),
     (
         Mock(
             __len__=Mock(return_value=1),
             is_shipping_required=Mock(return_value=False)),
-        302, reverse('checkout:summary')),
+        302, reverse('cart:checkout-summary')),
     (
         Mock(
             __len__=Mock(return_value=0),
@@ -60,7 +60,7 @@ def test_checkout_clear_storage(checkout):
         302, reverse('cart:index'))])
 def test_index_view(checkout, cart, status_code, url, rf, monkeypatch):
     checkout.cart = cart
-    request = rf.get('checkout:index', follow=True)
+    request = rf.get('cart:checkout-index', follow=True)
     request.user = checkout.user
     request.session = {STORAGE_SESSION_KEY: checkout.for_storage()}
     request.discounts = []
@@ -222,7 +222,7 @@ def test_shipping_voucher_checkout_discount_not_applicable(
 def test_product_voucher_checkout_discount_not_applicable(
         settings, monkeypatch):
     monkeypatch.setattr(
-        'saleor.checkout.utils.get_product_variants_and_prices',
+        'saleor.cart.checkout.utils.get_product_variants_and_prices',
         lambda cart, product: [])
     voucher = Voucher(
         code='unique', type=VoucherType.PRODUCT,
@@ -238,7 +238,7 @@ def test_product_voucher_checkout_discount_not_applicable(
 def test_category_voucher_checkout_discount_not_applicable(
         settings, monkeypatch):
     monkeypatch.setattr(
-        'saleor.checkout.utils.get_category_variants_and_prices',
+        'saleor.cart.checkout.utils.get_category_variants_and_prices',
         lambda cart, product: [])
     voucher = Voucher(
         code='unique', type=VoucherType.CATEGORY,

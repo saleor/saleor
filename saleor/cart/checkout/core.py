@@ -7,16 +7,16 @@ from django.utils.encoding import smart_text
 from django.utils.translation import get_language
 from prices import Money
 
-from ..account.models import Address
-from ..account.utils import store_user_address
-from ..cart.models import Cart
-from ..cart.utils import get_or_empty_db_cart
-from ..core import analytics
-from ..core.utils.taxes import get_taxes_for_country
-from ..discount.models import NotApplicable, Voucher
-from ..discount.utils import increase_voucher_usage
-from ..order.models import Order
-from ..order.utils import add_variant_to_order
+from ...account.models import Address
+from ...account.utils import store_user_address
+from ...core import analytics
+from ...core.utils.taxes import get_taxes_for_country
+from ...discount.models import NotApplicable, Voucher
+from ...discount.utils import increase_voucher_usage
+from ...order.models import Order
+from ...order.utils import add_variant_to_order
+from ..models import Cart
+from ..utils import get_or_empty_db_cart
 from .utils import get_voucher_discount_for_checkout
 
 STORAGE_SESSION_KEY = 'checkout_storage'
@@ -225,7 +225,7 @@ class Checkout:
             order_data['user'] = self.user
             order_data['user_email'] = self.user.email
         else:
-            order_data['user_email'] = self.email
+            order_data['user_email'] = self.cart.user_email
 
         if voucher is not None:
             order_data['voucher'] = voucher
