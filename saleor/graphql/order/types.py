@@ -11,8 +11,7 @@ class Order(CountableDjangoObjectType):
         description='Order number.')
 
     class Meta:
-        description = """Represents a version of a product such as different
-        size or color."""
+        description = 'Represents an order in the shop.'
         interfaces = [relay.Node]
         model = models.Order
         exclude_fields = []
@@ -23,9 +22,12 @@ class Order(CountableDjangoObjectType):
 
 class OrderLine(DjangoObjectType):
     class Meta:
+        description = 'Represents order line of particular order.'
         model = models.OrderLine
+        exclude_fields = ['variant']
 
 
 class OrderNote(DjangoObjectType):
     class Meta:
+        description = 'Optional information for the order.'
         model = models.OrderNote
