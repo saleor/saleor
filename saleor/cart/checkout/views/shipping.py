@@ -39,7 +39,7 @@ def user_shipping_address_view(request, cart, checkout):
     one of the existing entries from their address book.
     """
     data = request.POST or None
-    additional_addresses = request.user.addresses.all()
+    user_addresses = request.user.addresses.all()
     checkout.email = request.user.email
     shipping_address = cart.shipping_address
 
@@ -48,20 +48,20 @@ def user_shipping_address_view(request, cart, checkout):
             data, country_code=request.country.code,
             initial={'country': request.country})
         addresses_form = AddressChoiceForm(
-            data, addresses=additional_addresses,
+            data, addresses=user_addresses,
             initial={'address': shipping_address.id})
     elif shipping_address:
         address_form, preview = get_address_form(
             data, country_code=shipping_address.country.code,
             instance=shipping_address)
         addresses_form = AddressChoiceForm(
-            data, addresses=additional_addresses)
+            data, addresses=user_addresses)
     else:
         address_form, preview = get_address_form(
-            data, initial={'country': request.country},
-            country_code=request.country.code)
+            data, country_code=request.country.code,
+            initial={'country': request.country})
         addresses_form = AddressChoiceForm(
-            data, addresses=additional_addresses)
+            data, addresses=user_addresses)
 
     if addresses_form.is_valid() and not preview:
         use_existing_address = (
@@ -81,7 +81,7 @@ def user_shipping_address_view(request, cart, checkout):
 
     ctx = get_checkout_data(cart, request.discounts, checkout.get_taxes())
     ctx.update({
-        'additional_addresses': additional_addresses,
+        'additional_addresses': user_addresses,
         'address_form': address_form,
         'checkout': checkout,
         'user_form': addresses_form})
