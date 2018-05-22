@@ -29,5 +29,5 @@ class OrderLine(DjangoObjectType):
 
 class OrderNote(DjangoObjectType):
     class Meta:
-        description = 'Optional information for the order.'
+        description = 'Note from customer or staff user.'
         model = models.OrderNote
