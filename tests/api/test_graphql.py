@@ -1,17 +1,21 @@
 import json
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 import graphene
+import pytest
 from django.contrib.auth.models import AnonymousUser
 from django.http import HttpResponse
 from django.shortcuts import reverse
 from django.test import RequestFactory
 from graphql_jwt.shortcuts import get_token
+from graphql_relay import to_global_id
 from tests.utils import get_graphql_content
 
 from saleor.graphql.core.mutations import (
     ModelFormMutation, ModelFormUpdateMutation)
 from saleor.graphql.middleware import jwt_middleware
+from saleor.graphql.product.types import Product
+from saleor.graphql.utils import get_nodes
 
 
 def test_jwt_middleware(admin_client, admin_user):
@@ -230,3 +234,16 @@ def test_model_form_update_mutation(model_form_class):
 
     meta = TestUpdateMutation._meta
     assert 'id' in meta.arguments
+
+def test_get_nodes(product_list):
+    global_ids = [to_global_id('Product', product.pk) for product in product_list]
+    # Return products corresponding to global ids
+    products = get_nodes(global_ids, Product)
+    assert products == product_list
+
+    # Raise an error if one of the node is of wrong type
+    invalid_item = Mock(type='test', pk=123)
+    invalid_item_global_id = to_global_id(invalid_item.type, invalid_item.pk)
+    global_ids.append(invalid_item_global_id)
+    with pytest.raises(AssertionError):
+        get_nodes(global_ids, Product)
