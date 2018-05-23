@@ -70,9 +70,6 @@ class Cart(models.Model):
         on_delete=models.CASCADE)
     email = models.EmailField(blank=True, null=True)
     token = models.UUIDField(primary_key=True, default=uuid4, editable=False)
-    voucher = models.ForeignKey(
-        'discount.Voucher', null=True, related_name='+',
-        on_delete=models.SET_NULL)
     total = MoneyField(
         currency=settings.DEFAULT_CURRENCY, max_digits=12,
         decimal_places=settings.DEFAULT_DECIMAL_PLACES, default=0)
@@ -90,6 +87,11 @@ class Cart(models.Model):
         ShippingMethodCountry, blank=True, null=True, related_name='carts',
         on_delete=models.SET_NULL)
     note = models.TextField(blank=True, default='')
+    discount_amount = MoneyField(
+        currency=settings.DEFAULT_CURRENCY, max_digits=12,
+        decimal_places=settings.DEFAULT_DECIMAL_PLACES, default=0)
+    discount_name = models.CharField(max_length=255, default='', blank=True)
+    voucher_code = models.CharField(max_length=12, blank=True, default='')
 
     objects = CartQueryset.as_manager()
 

@@ -1,16 +1,19 @@
+from datetime import date, timedelta
 from unittest.mock import Mock
 
 import pytest
 from django.contrib.auth.models import AnonymousUser
 from django.urls import reverse
+from freezegun import freeze_time
 from prices import Money, TaxedMoney
 
 from saleor.cart.checkout import views
-from saleor.cart.checkout.utils import get_voucher_discount_for_checkout
 from saleor.cart.checkout.core import STORAGE_SESSION_KEY, Checkout
+from saleor.cart.checkout.forms import CheckoutDiscountForm
+from saleor.cart.checkout.utils import get_voucher_discount_for_checkout
 from saleor.core.exceptions import InsufficientStock
 from saleor.discount import DiscountValueType, VoucherType
-from saleor.discount.models import Voucher, NotApplicable
+from saleor.discount.models import NotApplicable, Voucher
 
 
 def test_checkout_version(checkout):
@@ -239,3 +242,65 @@ def test_category_voucher_checkout_discount_not_applicable(
     with pytest.raises(NotApplicable) as e:
         get_voucher_discount_for_checkout(voucher, checkout)
     assert str(e.value) == 'This offer is only valid for selected items.'
+
+
+
+
+def test_checkout_discount_form_invalid_voucher_code(monkeypatch):
+    checkout = Mock(cart=Mock())
+    form = CheckoutDiscountForm({'voucher': 'invalid'}, checkout=checkout)
+    assert not form.is_valid()
+    assert 'voucher' in form.errors
+
+
+def test_checkout_discount_form_not_applicable_voucher(monkeypatch, voucher):
+    checkout = Mock(cart=Mock())
+    form = CheckoutDiscountForm({'voucher': voucher.code}, checkout=checkout)
+    monkeypatch.setattr(
+        'saleor.discount.forms.get_voucher_discount_for_checkout',
+        Mock(side_effect=NotApplicable('Not applicable')))
+    assert not form.is_valid()
+    assert 'voucher' in form.errors
+
+
+def test_checkout_discount_form_active_queryset_voucher_not_active(voucher):
+    assert Voucher.objects.count() == 1
+    checkout = Mock(cart=Mock())
+    voucher.start_date = date.today() + timedelta(days=1)
+    voucher.save()
+    form = CheckoutDiscountForm({'voucher': voucher.code}, checkout=checkout)
+    qs = form.fields['voucher'].queryset
+    assert qs.count() == 0
+
+
+def test_checkout_discount_form_active_queryset_voucher_active(voucher):
+    assert Voucher.objects.count() == 1
+    checkout = Mock(cart=Mock())
+    voucher.start_date = date.today()
+    voucher.save()
+    form = CheckoutDiscountForm({'voucher': voucher.code}, checkout=checkout)
+    qs = form.fields['voucher'].queryset
+    assert qs.count() == 1
+
+
+def test_checkout_discount_form_active_queryset_after_some_time(voucher):
+    assert Voucher.objects.count() == 1
+    checkout = Mock(cart=Mock())
+    voucher.start_date = date(year=2016, month=6, day=1)
+    voucher.end_date = date(year=2016, month=6, day=2)
+    voucher.save()
+
+    with freeze_time('2016-05-31'):
+        form = CheckoutDiscountForm(
+            {'voucher': voucher.code}, checkout=checkout)
+        assert form.fields['voucher'].queryset.count() == 0
+
+    with freeze_time('2016-06-01'):
+        form = CheckoutDiscountForm(
+            {'voucher': voucher.code}, checkout=checkout)
+        assert form.fields['voucher'].queryset.count() == 1
+
+    with freeze_time('2016-06-03'):
+        form = CheckoutDiscountForm(
+            {'voucher': voucher.code}, checkout=checkout)
+        assert form.fields['voucher'].queryset.count() == 0

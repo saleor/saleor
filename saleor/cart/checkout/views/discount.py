@@ -7,9 +7,10 @@ from django.template.response import TemplateResponse
 from django.utils.translation import pgettext
 from django.views.decorators.http import require_POST
 
-from ....discount.forms import CheckoutDiscountForm
 from ....discount.models import Voucher
 from ..core import load_checkout
+from ..forms import CheckoutDiscountForm
+from ..utils import recalculate_cart_discount, remove_discount_from_cart
 
 
 def add_voucher_form(view):
@@ -19,21 +20,19 @@ def add_voucher_form(view):
         prefix = 'discount'
         data = {k: v for k, v in request.POST.items() if k.startswith(prefix)}
         voucher_form = CheckoutDiscountForm(
-            data or None, checkout=checkout, prefix=prefix)
+            data or None, checkout=checkout, prefix=prefix, instance=cart)
         if voucher_form.is_bound:
             if voucher_form.is_valid():
-                voucher_form.apply_discount()
+                voucher_form.save()
                 next_url = request.GET.get(
                     'next', request.META['HTTP_REFERER'])
                 return redirect(next_url)
             else:
-                del checkout.discount
-                del checkout.discount_name
-                del checkout.voucher_code
+                remove_discount_from_cart(cart)
                 # if only discount form was used we clear post for other forms
                 request.POST = {}
         else:
-            checkout.recalculate_discount()
+            recalculate_cart_discount(cart, checkout)
         response = view(request, cart, checkout)
         if isinstance(response, TemplateResponse):
             voucher = voucher_form.initial.get('voucher')
@@ -51,13 +50,14 @@ def validate_voucher(view):
     """
     @wraps(view)
     def func(request, cart, checkout):
-        if checkout.voucher_code:
+        if cart.voucher_code:
             try:
                 Voucher.objects.active(date=date.today()).get(
-                    code=checkout.voucher_code)
+                    code=cart.voucher_code)
             except Voucher.DoesNotExist:
-                del checkout.voucher_code
-                checkout.recalculate_discount()
+                cart.voucher_code = ''
+                cart.save()
+                recalculate_cart_discount(cart, checkout)
                 msg = pgettext(
                     'Checkout warning',
                     'This voucher has expired. Please review your checkout.')
@@ -72,7 +72,5 @@ def validate_voucher(view):
 def remove_voucher_view(request, cart, checkout):
     """Clear the discount and remove the voucher."""
     next_url = request.GET.get('next', request.META['HTTP_REFERER'])
-    del checkout.discount
-    del checkout.discount_name
-    del checkout.voucher_code
+    remove_discount_from_cart(cart)
     return redirect(next_url)
