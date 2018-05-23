@@ -12,6 +12,9 @@ engines:
     plugins:
     - celery
     - django
+    checks:
+      import-error:
+        enabled: false
   duplication:
     enabled: true
     config:
