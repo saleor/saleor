@@ -4,7 +4,7 @@ from unittest.mock import Mock
 import pytest
 from prices import Money, TaxedMoney
 
-from saleor.cart.checkout.utils import get_voucher_discount_for_checkout
+from saleor.cart.checkout.utils import get_voucher_discount_for_cart
 from saleor.discount import (
     DiscountValueType, VoucherApplyToProduct, VoucherType)
 from saleor.discount.models import NotApplicable, Sale, Voucher
@@ -108,7 +108,7 @@ def test_products_voucher_checkout_discount_not(
         discount_value=discount_value,
         apply_to=apply_to)
     checkout = Mock(cart=Mock())
-    discount = get_voucher_discount_for_checkout(voucher, checkout)
+    discount = get_voucher_discount_for_cart(voucher, checkout)
     assert discount == Money(expected_value, 'USD')
 
 

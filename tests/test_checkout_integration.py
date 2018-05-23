@@ -261,13 +261,13 @@ def test_voucher_invalid(
     voucher_response = client.post(
         '{url}?next={url}'.format(url=url), follow=True, data=discount_data,
         HTTP_REFERER=url)
-    assert voucher_response.context['checkout'].voucher_code == voucher.code
+    assert voucher_response.context['cart'].voucher_code == voucher.code
     voucher.used = 3
     voucher.save()
     address_data = {'address': 'shipping_address'}
     assert url == reverse('cart:checkout-summary')
     summary_response = client.post(url, data=address_data, follow=True)
-    assert summary_response.context['checkout'].voucher_code is None
+    assert summary_response.context['cart'].voucher_code is None
 
     summary_response = client.post(url, data=address_data, follow=True)
     assert summary_response.context['order'].voucher is None
@@ -313,7 +313,7 @@ def test_voucher_code_invalid(
         HTTP_REFERER=url)
     assert voucher_response.status_code == 200
     assert 'voucher' in voucher_response.context['voucher_form'].errors
-    assert voucher_response.context['checkout'].voucher_code is None
+    assert voucher_response.context['cart'].voucher_code is None
 
 
 def test_remove_voucher(
@@ -354,12 +354,12 @@ def test_remove_voucher(
     voucher_response = client.post(
         '{url}?next={url}'.format(url=url), follow=True, data=discount_data,
         HTTP_REFERER=url)
-    assert voucher_response.context['checkout'].voucher_code is not None
+    assert voucher_response.context['cart'].voucher_code is not None
     # Remove voucher from checkout
     voucher_response = client.post(
         reverse('cart:checkout-remove-voucher'), follow=True, HTTP_REFERER=url)
     assert voucher_response.status_code == 200
-    assert voucher_response.context['checkout'].voucher_code is None
+    assert voucher_response.context['cart'].voucher_code is None
 
 
 def test_language_is_saved_in_order(

@@ -218,7 +218,7 @@ def get_cart_data(cart, shipping_range, currency, discounts, taxes):
     total_with_shipping = None
     local_total_with_shipping = None
     if cart:
-        cart_total = cart.get_total(discounts, taxes)
+        cart_total = cart.get_subtotal(discounts, taxes)
         local_cart_total = to_local_currency(cart_total, currency)
         shipping_required = cart.is_shipping_required()
         total_with_shipping = TaxedMoneyRange(

@@ -103,7 +103,7 @@ def update(request, cart, variant_id):
             response['subtotal'] = format_money(
                 updated_line.get_total(discounts, taxes).gross)
         if cart:
-            cart_total = cart.get_total(discounts, taxes)
+            cart_total = cart.get_subtotal(discounts, taxes)
             response['total'] = format_money(cart_total.gross)
             local_cart_total = to_local_currency(cart_total, request.currency)
             if local_cart_total is not None:
@@ -136,7 +136,7 @@ def summary(request, cart):
     else:
         data = {
             'quantity': cart.quantity,
-            'total': cart.get_total(discounts, taxes),
+            'total': cart.get_subtotal(discounts, taxes),
             'lines': [prepare_line_data(line) for line in cart.lines.all()]}
 
     return render(request, 'cart_dropdown.html', data)
