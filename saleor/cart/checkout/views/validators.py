@@ -7,17 +7,12 @@ from django.shortcuts import redirect
 def validate_cart(view):
     """Decorate a view making it require a non-empty cart.
 
-    Expects to be decorated with `@load_checkout`.
-
-    Changes view signature from `func(request, cart, checkout)` to
-    `func(request, checkout)`.
-
     If the cart is empty redirects to the cart details.
     """
     @wraps(view)
-    def func(request, cart, checkout):
+    def func(request, cart):
         if cart:
-            return view(request, cart, checkout)
+            return view(request, cart)
         return redirect('cart:index')
     return func
 
@@ -31,14 +26,14 @@ def validate_shipping_address(view):
     shipping address step.
     """
     @wraps(view)
-    def func(request, cart, checkout):
+    def func(request, cart):
         if cart.user_email is None or cart.shipping_address is None:
             return redirect('cart:checkout-shipping-address')
         try:
             cart.shipping_address.full_clean()
         except ValidationError:
             return redirect('cart:checkout-shipping-address')
-        return view(request, cart, checkout)
+        return view(request, cart)
     return func
 
 
@@ -50,10 +45,10 @@ def validate_shipping_method(view):
     If the method is missing redirects to the shipping method step.
     """
     @wraps(view)
-    def func(request, cart, checkout):
+    def func(request, cart):
         if cart.shipping_method is None:
             return redirect('cart:checkout-shipping-method')
-        return view(request, cart, checkout)
+        return view(request, cart)
     return func
 
 
@@ -65,8 +60,8 @@ def validate_is_shipping_required(view):
     If shipping is not needed redirects to the checkout summary.
     """
     @wraps(view)
-    def func(request, cart, checkout):
+    def func(request, cart):
         if not cart.is_shipping_required():
             return redirect('cart:checkout-summary')
-        return view(request, cart, checkout)
+        return view(request, cart)
     return func

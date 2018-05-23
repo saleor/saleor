@@ -5,7 +5,7 @@ from django.utils.encoding import smart_text
 from django.utils.safestring import mark_safe
 from django.utils.translation import pgettext_lazy
 
-from ...cart.checkout.utils import get_voucher_discount_for_checkout
+from ...cart.checkout.utils import get_voucher_discount_for_cart
 from ...cart.models import Cart
 from ...core.utils import format_money
 from ...core.utils.taxes import display_gross_prices
@@ -152,7 +152,8 @@ class VoucherField(forms.ModelChoiceField):
     }
 
 
-class CheckoutDiscountForm(forms.ModelForm):
+class CartVoucherForm(forms.ModelForm):
+    """Apply voucher to a cart form."""
 
     voucher = VoucherField(
         queryset=Voucher.objects.none(),
@@ -167,11 +168,6 @@ class CheckoutDiscountForm(forms.ModelForm):
         fields = ['voucher']
 
     def __init__(self, *args, **kwargs):
-        self.checkout = kwargs.pop('checkout')
-        initial = kwargs.get('initial', {})
-        if 'voucher' not in initial:
-            initial['voucher'] = self.instance.voucher_code
-        kwargs['initial'] = initial
         super().__init__(*args, **kwargs)
         self.fields['voucher'].queryset = Voucher.objects.active(
             date=date.today())
@@ -181,10 +177,9 @@ class CheckoutDiscountForm(forms.ModelForm):
         if 'voucher' in cleaned_data:
             voucher = cleaned_data['voucher']
             try:
-                discount = get_voucher_discount_for_checkout(
-                    voucher, self.checkout)
-                cleaned_data['discount'] = discount
-                cleaned_data['discount_name'] = voucher.name
+                discount_amount = get_voucher_discount_for_cart(
+                    voucher, self.instance)
+                cleaned_data['discount_amount'] = discount_amount
             except NotApplicable as e:
                 self.add_error('voucher', smart_text(e))
         return cleaned_data
@@ -192,6 +187,6 @@ class CheckoutDiscountForm(forms.ModelForm):
     def save(self, commit=True):
         voucher = self.cleaned_data['voucher']
         self.instance.voucher_code = voucher.code
-        self.instance.discount_amount = self.cleaned_data['discount']
-        self.instance.discount_name = self.cleaned_data['discount_name']
+        self.instance.discount_name = voucher.name
+        self.instance.discount_amount = self.cleaned_data['discount_amount']
         return super().save(commit)

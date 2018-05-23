@@ -1,5 +1,4 @@
 """Cart-related ORM models."""
-from collections import namedtuple
 from decimal import Decimal
 from uuid import uuid4
 
@@ -10,7 +9,6 @@ from django.utils.encoding import smart_str
 from django.utils.timezone import now
 from django_prices.models import MoneyField
 from jsonfield import JSONField
-from prices import sum as sum_prices
 
 from . import CartStatus, logger
 from ..account.models import Address
@@ -18,7 +16,6 @@ from ..core.utils.taxes import ZERO_TAXED_MONEY
 from ..shipping.models import ShippingMethodCountry
 
 CENTS = Decimal('0.01')
-SimpleCart = namedtuple('SimpleCart', ('quantity', 'total', 'token'))
 
 
 def find_open_cart_for_user(user):
@@ -90,8 +87,8 @@ class Cart(models.Model):
     discount_amount = MoneyField(
         currency=settings.DEFAULT_CURRENCY, max_digits=12,
         decimal_places=settings.DEFAULT_DECIMAL_PLACES, default=0)
-    discount_name = models.CharField(max_length=255, default='', blank=True)
-    voucher_code = models.CharField(max_length=12, blank=True, default='')
+    discount_name = models.CharField(max_length=255, blank=True, null=True)
+    voucher_code = models.CharField(max_length=12, blank=True, null=True)
 
     objects = CartQueryset.as_manager()
 
@@ -144,13 +141,18 @@ class Cart(models.Model):
             if self.shipping_method and self.is_shipping_required()
             else ZERO_TAXED_MONEY)
 
-    def get_total(self, discounts=None, taxes=None):
+    def get_subtotal(self, discounts=None, taxes=None):
         """Return the total cost of the cart prior to shipping."""
-        subtotals = [
-            line.get_total(discounts, taxes) for line in self.lines.all()]
-        if not subtotals:
-            raise AttributeError('Calling get_total() on an empty cart')
-        return sum_prices(subtotals)
+        subtotals = (
+            line.get_total(discounts, taxes) for line in self.lines.all())
+        return sum(subtotals, ZERO_TAXED_MONEY)
+
+    def get_total(self, discounts=None, taxes=None):
+        """Return the total cost of the cart."""
+        total = self.get_subtotal(discounts, taxes)
+        total += self.get_shipping_price(taxes)
+        total -= self.discount_amount
+        return total
 
     def count(self):
         """Return the total quantity in cart."""

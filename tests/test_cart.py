@@ -15,6 +15,7 @@ from saleor.cart.context_processors import cart_counter
 from saleor.cart.models import Cart, find_open_cart_for_user
 from saleor.cart.views import update
 from saleor.core.exceptions import InsufficientStock
+from saleor.core.utils.taxes import ZERO_TAXED_MONEY
 from saleor.discount.models import Sale
 from saleor.shipping.utils import get_shipment_options
 
@@ -296,7 +297,7 @@ def test_adding_same_variant(cart, product, taxes):
     assert len(cart) == 1
     assert cart.count() == {'total_quantity': 3}
     cart_total = TaxedMoney(net=Money('24.39', 'USD'), gross=Money(30, 'USD'))
-    assert cart.get_total(taxes=taxes) == cart_total
+    assert cart.get_subtotal(taxes=taxes) == cart_total
 
 
 def test_replacing_same_variant(cart, product):
@@ -585,7 +586,7 @@ def test_cart_summary_page(settings, client, product, request_cart, vatlayer):
     assert response.status_code == 200
     content = response.context
     assert content['quantity'] == request_cart.quantity
-    cart_total = request_cart.get_total(taxes=vatlayer)
+    cart_total = request_cart.get_subtotal(taxes=vatlayer)
     assert content['total'] == cart_total
     assert len(content['lines']) == 1
     cart_line = content['lines'][0]
@@ -636,9 +637,7 @@ def test_cart_repr():
 
 def test_cart_get_total_empty(db):
     cart = Cart.objects.create()
-
-    with pytest.raises(AttributeError):
-        cart.get_total()
+    assert cart.get_subtotal() == ZERO_TAXED_MONEY
 
 
 def test_cart_change_user(customer_user):

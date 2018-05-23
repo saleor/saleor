@@ -3,7 +3,7 @@ from io import BytesIO
 from unittest.mock import MagicMock, Mock
 
 import pytest
-from django.contrib.auth.models import AnonymousUser, Group, Permission
+from django.contrib.auth.models import Group, Permission
 from django.contrib.sites.models import Site
 from django.core.files import File
 from django.core.files.uploadedfile import SimpleUploadedFile
@@ -18,7 +18,6 @@ from prices import Money
 from saleor.account.models import Address, User
 from saleor.cart import utils
 from saleor.cart.models import Cart
-from saleor.cart.checkout.core import Checkout
 from saleor.dashboard.order.utils import fulfill_order_line
 from saleor.discount.models import Sale, Voucher
 from saleor.menu.models import Menu, MenuItem
@@ -347,17 +346,6 @@ def product_with_images(product_type, default_category):
     product.images.create(image=file_mock_0)
     product.images.create(image=file_mock_1)
     return product
-
-
-@pytest.fixture
-def checkout():
-    return Checkout(Mock(), AnonymousUser(), None, None, 'tracking_code')
-
-
-@pytest.fixture
-def checkout_with_items(request_cart_with_item, customer_user):
-    return Checkout(
-        request_cart_with_item, customer_user, None, None, 'tracking_code')
 
 
 @pytest.fixture

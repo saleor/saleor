@@ -2,45 +2,17 @@ from datetime import date, timedelta
 from unittest.mock import Mock
 
 import pytest
-from django.contrib.auth.models import AnonymousUser
 from django.urls import reverse
 from freezegun import freeze_time
 from prices import Money, TaxedMoney
 
 from saleor.cart.checkout import views
-from saleor.cart.checkout.core import STORAGE_SESSION_KEY, Checkout
-from saleor.cart.checkout.forms import CheckoutDiscountForm
-from saleor.cart.checkout.utils import get_voucher_discount_for_checkout
+from saleor.cart.checkout.forms import CartVoucherForm
+from saleor.cart.checkout.utils import (
+    create_order, get_voucher_discount_for_cart)
 from saleor.core.exceptions import InsufficientStock
 from saleor.discount import DiscountValueType, VoucherType
 from saleor.discount.models import NotApplicable, Voucher
-
-
-def test_checkout_version(checkout):
-    storage = checkout.for_storage()
-    assert storage['version'] == Checkout.VERSION
-
-
-@pytest.mark.parametrize('storage_data, expected_storage', [
-    (
-        {'version': Checkout.VERSION, 'new': 1},
-        {'version': Checkout.VERSION, 'new': 1}),
-    ({'version': 'wrong', 'new': 1}, {'version': Checkout.VERSION}),
-    ({'new': 1}, {'version': Checkout.VERSION}),
-    ({}, {'version': Checkout.VERSION}),
-    (None, {'version': Checkout.VERSION})])
-def test_checkout_version_with_from_storage(storage_data, expected_storage):
-    checkout = Checkout.from_storage(
-        storage_data, Mock(), AnonymousUser(), None, None, 'tracking_code')
-    storage = checkout.for_storage()
-    assert storage == expected_storage
-
-
-def test_checkout_clear_storage(checkout):
-    checkout.storage['new'] = 1
-    checkout.clear_storage()
-    assert checkout.storage is None
-    assert checkout.modified is True
 
 
 @pytest.mark.parametrize('cart, status_code, url', [
@@ -60,11 +32,9 @@ def test_checkout_clear_storage(checkout):
             __len__=Mock(return_value=0),
             is_shipping_required=Mock(return_value=False)),
         302, reverse('cart:index'))])
-def test_index_view(checkout, cart, status_code, url, rf, monkeypatch):
-    checkout.cart = cart
+def test_index_view(cart, status_code, url, rf, monkeypatch):
     request = rf.get('cart:checkout-index', follow=True)
-    request.user = checkout.user
-    request.session = {STORAGE_SESSION_KEY: checkout.for_storage()}
+    request.user = cart.user
     request.discounts = []
     request.taxes = None
     monkeypatch.setattr(
@@ -74,47 +44,48 @@ def test_index_view(checkout, cart, status_code, url, rf, monkeypatch):
     assert response.url == url
 
 
-def test_checkout_discount(checkout_with_items, sale, vatlayer):
-    checkout_with_items.discounts = (sale,)
-    checkout_with_items.taxes = vatlayer
-    assert checkout_with_items.get_total() == TaxedMoney(
+def test_checkout_discount(request_cart_with_item, sale, vatlayer):
+    total = (
+        request_cart_with_item.get_total(discounts=(sale,), taxes=vatlayer))
+    assert total == TaxedMoney(
         net=Money('4.07', 'USD'), gross=Money('5.00', 'USD'))
 
 
 def test_checkout_create_order_insufficient_stock(
-        checkout, request_cart, customer_user, product):
+        request_cart, customer_user, product):
     product_type = product.product_type
     product_type.is_shipping_required = False
     product_type.save()
     variant = product.variants.get()
     request_cart.add(variant, quantity=10, check_quantity=False)
-    checkout.cart = request_cart
-    checkout.user = customer_user
+    request_cart.user = customer_user
+    request_cart.billing_address = customer_user.default_billing_address
+    request_cart.save()
     with pytest.raises(InsufficientStock):
-        checkout.create_order()
+        create_order(
+            request_cart, 'tracking_code', discounts=None, taxes=None)
 
 
-def test_checkout_taxes(checkout_with_items, shipping_method, vatlayer):
-    checkout_with_items.taxes = vatlayer
-    cart = checkout_with_items.cart
+def test_checkout_taxes(request_cart_with_item, shipping_method, vatlayer):
+    cart = request_cart_with_item
     cart.shipping_method = shipping_method.price_per_country.get()
     cart.save()
-    assert checkout_with_items.cart.get_shipping_price(vatlayer) == (
-        TaxedMoney(net=Money('8.13', 'USD'), gross=Money(10, 'USD')))
-    subtotal = checkout_with_items.cart.get_total(taxes=vatlayer)
-    assert checkout_with_items.get_subtotal() == subtotal
+    taxed_price = TaxedMoney(net=Money('8.13', 'USD'), gross=Money(10, 'USD'))
+    assert cart.get_shipping_price(taxes=vatlayer) == taxed_price
+    assert cart.get_subtotal(taxes=vatlayer) == taxed_price
 
 
-def test_note_in_created_order(checkout_with_items):
-    cart = checkout_with_items.cart
-    cart.note = ''
-    cart.save()
-    order = checkout_with_items.create_order()
+def test_note_in_created_order(request_cart_with_item):
+    request_cart_with_item.note = ''
+    request_cart_with_item.save()
+    order = create_order(
+        request_cart_with_item, 'tracking_code', discounts=None, taxes=None)
     assert not order.notes.all()
 
-    cart.note = 'test_note'
-    cart.save()
-    order = checkout_with_items.create_order()
+    request_cart_with_item.note = 'test_note'
+    request_cart_with_item.save()
+    order = create_order(
+        request_cart_with_item, 'tracking_code', discounts=None, taxes=None)
     assert order.notes.filter(content='test_note').exists()
 
 
@@ -130,8 +101,8 @@ def test_value_voucher_checkout_discount(
         discount_value=discount_value,
         limit=Money(limit, 'USD') if limit is not None else None)
     subtotal = TaxedMoney(net=Money(total, 'USD'), gross=Money(total, 'USD'))
-    checkout = Mock(get_subtotal=Mock(return_value=subtotal))
-    discount = get_voucher_discount_for_checkout(voucher, checkout)
+    cart = Mock(get_subtotal=Mock(return_value=subtotal))
+    discount = get_voucher_discount_for_cart(voucher, cart)
     assert discount == Money(expected_value, 'USD')
 
 
@@ -142,9 +113,9 @@ def test_value_voucher_checkout_discount_not_applicable(settings):
         discount_value=10,
         limit=Money(100, 'USD'))
     subtotal = TaxedMoney(net=Money(10, 'USD'), gross=Money(10, 'USD'))
-    checkout = Mock(get_subtotal=Mock(return_value=subtotal))
+    cart = Mock(get_subtotal=Mock(return_value=subtotal))
     with pytest.raises(NotApplicable) as e:
-        get_voucher_discount_for_checkout(voucher, checkout)
+        get_voucher_discount_for_cart(voucher, cart)
     assert e.value.limit == Money(100, 'USD')
 
 
@@ -160,21 +131,20 @@ def test_shipping_voucher_checkout_discount(
     subtotal = TaxedMoney(net=Money(100, 'USD'), gross=Money(100, 'USD'))
     shipping_total = TaxedMoney(
         net=Money(shipping_cost, 'USD'), gross=Money(shipping_cost, 'USD'))
-    checkout = Mock(
+    cart = Mock(
         get_subtotal=Mock(return_value=subtotal),
-        cart=Mock(
-            is_shipping_required=Mock(return_value=True),
-            shipping_method=Mock(
-                price=Money(shipping_cost, 'USD'),
-                country_code=shipping_country_code,
-                get_total_price=Mock(return_value=shipping_total))))
+        is_shipping_required=Mock(return_value=True),
+        shipping_method=Mock(
+            price=Money(shipping_cost, 'USD'),
+            country_code=shipping_country_code,
+            get_total_price=Mock(return_value=shipping_total)))
     voucher = Voucher(
         code='unique', type=VoucherType.SHIPPING,
         discount_value_type=discount_type,
         discount_value=discount_value,
         apply_to=apply_to,
         limit=None)
-    discount = get_voucher_discount_for_checkout(voucher, checkout)
+    discount = get_voucher_discount_for_cart(voucher, cart)
     assert discount == Money(expected_value, 'USD')
 
 
@@ -197,11 +167,10 @@ def test_shipping_voucher_checkout_discount_not_applicable(
         settings, is_shipping_required, shipping_method, discount_value,
         discount_type, apply_to, limit, subtotal, error_msg):
     subtotal_price = TaxedMoney(net=subtotal, gross=subtotal)
-    checkout = Mock(
-        cart=Mock(
-            is_shipping_required=Mock(return_value=is_shipping_required),
-            shipping_method=shipping_method),
-        get_subtotal=Mock(return_value=subtotal_price))
+    cart = Mock(
+        get_subtotal=Mock(return_value=subtotal_price),
+        is_shipping_required=Mock(return_value=is_shipping_required),
+        shipping_method=shipping_method)
     voucher = Voucher(
         code='unique', type=VoucherType.SHIPPING,
         discount_value_type=discount_type,
@@ -209,7 +178,7 @@ def test_shipping_voucher_checkout_discount_not_applicable(
         limit=Money(limit, 'USD') if limit is not None else None,
         apply_to=apply_to)
     with pytest.raises(NotApplicable) as e:
-        get_voucher_discount_for_checkout(voucher, checkout)
+        get_voucher_discount_for_cart(voucher, cart)
     assert str(e.value) == error_msg
 
 
@@ -222,10 +191,10 @@ def test_product_voucher_checkout_discount_not_applicable(
         code='unique', type=VoucherType.PRODUCT,
         discount_value_type=DiscountValueType.FIXED,
         discount_value=10)
-    checkout = Mock(cart=Mock())
+    cart=Mock()
 
     with pytest.raises(NotApplicable) as e:
-        get_voucher_discount_for_checkout(voucher, checkout)
+        get_voucher_discount_for_cart(voucher, cart)
     assert str(e.value) == 'This offer is only valid for selected items.'
 
 
@@ -238,69 +207,71 @@ def test_category_voucher_checkout_discount_not_applicable(
         code='unique', type=VoucherType.CATEGORY,
         discount_value_type=DiscountValueType.FIXED,
         discount_value=10)
-    checkout = Mock(cart=Mock())
+    cart = Mock()
     with pytest.raises(NotApplicable) as e:
-        get_voucher_discount_for_checkout(voucher, checkout)
+        get_voucher_discount_for_cart(voucher, cart)
     assert str(e.value) == 'This offer is only valid for selected items.'
 
 
-
-
-def test_checkout_discount_form_invalid_voucher_code(monkeypatch):
-    checkout = Mock(cart=Mock())
-    form = CheckoutDiscountForm({'voucher': 'invalid'}, checkout=checkout)
+def test_checkout_discount_form_invalid_voucher_code(
+        monkeypatch, request_cart_with_item):
+    form = CartVoucherForm(
+        {'voucher': 'invalid'}, instance=request_cart_with_item)
     assert not form.is_valid()
     assert 'voucher' in form.errors
 
 
-def test_checkout_discount_form_not_applicable_voucher(monkeypatch, voucher):
-    checkout = Mock(cart=Mock())
-    form = CheckoutDiscountForm({'voucher': voucher.code}, checkout=checkout)
+def test_checkout_discount_form_not_applicable_voucher(
+        monkeypatch, voucher, request_cart_with_item):
+    form = CartVoucherForm(
+        {'voucher': voucher.code}, instance=request_cart_with_item)
     monkeypatch.setattr(
-        'saleor.discount.forms.get_voucher_discount_for_checkout',
+        'saleor.cart.checkout.forms.get_voucher_discount_for_cart',
         Mock(side_effect=NotApplicable('Not applicable')))
     assert not form.is_valid()
     assert 'voucher' in form.errors
 
 
-def test_checkout_discount_form_active_queryset_voucher_not_active(voucher):
+def test_checkout_discount_form_active_queryset_voucher_not_active(
+        voucher, request_cart_with_item):
     assert Voucher.objects.count() == 1
-    checkout = Mock(cart=Mock())
     voucher.start_date = date.today() + timedelta(days=1)
     voucher.save()
-    form = CheckoutDiscountForm({'voucher': voucher.code}, checkout=checkout)
+    form = CartVoucherForm(
+        {'voucher': voucher.code}, instance=request_cart_with_item)
     qs = form.fields['voucher'].queryset
     assert qs.count() == 0
 
 
-def test_checkout_discount_form_active_queryset_voucher_active(voucher):
+def test_checkout_discount_form_active_queryset_voucher_active(
+        voucher, request_cart_with_item):
     assert Voucher.objects.count() == 1
-    checkout = Mock(cart=Mock())
     voucher.start_date = date.today()
     voucher.save()
-    form = CheckoutDiscountForm({'voucher': voucher.code}, checkout=checkout)
+    form = CartVoucherForm(
+        {'voucher': voucher.code}, instance=request_cart_with_item)
     qs = form.fields['voucher'].queryset
     assert qs.count() == 1
 
 
-def test_checkout_discount_form_active_queryset_after_some_time(voucher):
+def test_checkout_discount_form_active_queryset_after_some_time(
+        voucher, request_cart_with_item):
     assert Voucher.objects.count() == 1
-    checkout = Mock(cart=Mock())
     voucher.start_date = date(year=2016, month=6, day=1)
     voucher.end_date = date(year=2016, month=6, day=2)
     voucher.save()
 
     with freeze_time('2016-05-31'):
-        form = CheckoutDiscountForm(
-            {'voucher': voucher.code}, checkout=checkout)
+        form = CartVoucherForm(
+            {'voucher': voucher.code}, instance=request_cart_with_item)
         assert form.fields['voucher'].queryset.count() == 0
 
     with freeze_time('2016-06-01'):
-        form = CheckoutDiscountForm(
-            {'voucher': voucher.code}, checkout=checkout)
+        form = CartVoucherForm(
+            {'voucher': voucher.code}, instance=request_cart_with_item)
         assert form.fields['voucher'].queryset.count() == 1
 
     with freeze_time('2016-06-03'):
-        form = CheckoutDiscountForm(
-            {'voucher': voucher.code}, checkout=checkout)
+        form = CartVoucherForm(
+            {'voucher': voucher.code}, instance=request_cart_with_item)
         assert form.fields['voucher'].queryset.count() == 0
