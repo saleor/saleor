@@ -206,6 +206,7 @@ class StaffMemberRequiredMixin(graphene.Mutation):
         mutate = permission_required(cls.permissions)(super().mutate)
         return mutate(root, info, *args, **kwargs)
 
+
 class CreateToken(ObtainJSONWebToken):
     """Mutation that authenticates a user and returns token and user data.
 

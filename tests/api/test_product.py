@@ -6,7 +6,7 @@ import pytest
 from django.shortcuts import reverse
 from django.utils.text import slugify
 from prices import Money
-from tests.utils import get_graphql_content
+from tests.utils import create_image, get_graphql_content
 
 from saleor.product.models import (
     Category, Product, ProductAttribute, ProductType)
@@ -802,3 +802,29 @@ def test_product_type_delete_mutation(admin_api_client, product_type):
     assert data['productType']['name'] == product_type.name
     with pytest.raises(product_type._meta.model.DoesNotExist):
         product_type.refresh_from_db()
+
+
+def test_product_image_create_mutation(admin_api_client, product):
+    query = """
+    mutation createProductImage($productId: ID!) {
+        productImageCreate(productId: $productId) {
+            productImage {
+                id
+                image
+                url
+                order
+            }
+        }
+    }
+    """
+    variables = json.dumps({
+        'productId': graphene.Node.to_global_id('Product', product.id)})
+    image, image_name = create_image()
+    response = admin_api_client.post(
+        reverse('api'),
+        {'query': query, 'variables': variables, 'image': image})
+    content = get_graphql_content(response)
+    data = content['data']['productImageCreate']
+    file_name = data['productImage']['image']
+    product.refresh_from_db()
+    assert product.images.first().image.name == file_name

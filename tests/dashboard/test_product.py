@@ -1,9 +1,8 @@
 import json
 from io import BytesIO
-from unittest.mock import MagicMock, Mock
+from unittest.mock import MagicMock, Mock, patch
 
 from django.conf import settings
-from django.core.files.uploadedfile import SimpleUploadedFile
 from django.forms import HiddenInput
 from django.forms.models import model_to_dict
 from django.urls import reverse
@@ -17,16 +16,7 @@ from saleor.product.forms import VariantChoiceField
 from saleor.product.models import (
     AttributeChoiceValue, Collection, Product, ProductAttribute, ProductImage,
     ProductType, ProductVariant)
-
-
-def create_image():
-    img_data = BytesIO()
-    image = Image.new('RGB', size=(1, 1), color=(255, 0, 0, 0))
-    image.save(img_data, format='JPEG')
-    image_name = 'product2'
-    image = SimpleUploadedFile(
-        image_name + '.jpg', img_data.getvalue(), 'image/png')
-    return image, image_name
+from ..utils import create_image
 
 
 def test_view_product_list_with_filters(admin_client, product_list):
@@ -261,6 +251,19 @@ def test_view_product_bulk_update_unpublish(admin_client, product_list):
     data = {'action': ProductBulkAction.UNPUBLISH, 'products': products}
 
     response = admin_client.post(url, data)
+
+
+def test_product_variant_form(product):
+    variant = product.variants.first()
+    variant.name = ''
+    variant.save()
+    example_size = 'Small Size'
+    data = {'attribute-size': example_size, 'sku': '1111', 'quantity': 2}
+    form = ProductVariantForm(data, instance=variant)
+    assert form.is_valid()
+    form.save()
+    variant.refresh_from_db()
+    assert variant.name == example_size
 
     assert response.status_code == 302
     assert get_redirect_location(response) == reverse('dashboard:product-list')
