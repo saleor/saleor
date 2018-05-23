@@ -1,8 +1,11 @@
 import json
+from io import BytesIO
 from urllib.parse import urlparse
 
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.db.models import Q
 from django.utils.encoding import smart_text
+from PIL import Image
 
 
 def get_url_path(url):
@@ -30,3 +33,13 @@ def get_graphql_content(response):
 def get_form_errors(response, form_name='form'):
     errors = response.context.get(form_name).errors
     return errors.get('__all__') if errors else []
+
+
+def create_image():
+    img_data = BytesIO()
+    image = Image.new('RGB', size=(1, 1), color=(255, 0, 0, 0))
+    image.save(img_data, format='JPEG')
+    image_name = 'product2'
+    image = SimpleUploadedFile(
+        image_name + '.jpg', img_data.getvalue(), 'image/png')
+    return image, image_name
