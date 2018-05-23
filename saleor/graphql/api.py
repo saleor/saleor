@@ -17,7 +17,8 @@ from .product.mutations import (
     ProductCreateMutation, ProductDeleteMutation, ProductUpdateMutation,
     ProductTypeCreateMutation, ProductTypeDeleteMutation,
     ProductTypeUpdateMutation, ProductVariantCreateMutation,
-    ProductVariantDeleteMutation, ProductVariantUpdateMutation)
+    ProductVariantDeleteMutation, ProductVariantUpdateMutation,
+    ProductImageCreateMutation)
 from .product.resolvers import (
     resolve_attributes, resolve_categories, resolve_products,
     resolve_product_types)
@@ -116,6 +117,8 @@ class Mutations(graphene.ObjectType):
     product_create = ProductCreateMutation.Field()
     product_delete = ProductDeleteMutation.Field()
     product_update = ProductUpdateMutation.Field()
+
+    product_image_create = ProductImageCreateMutation.Field()
 
     product_type_create = ProductTypeCreateMutation.Field()
     product_type_update = ProductTypeUpdateMutation.Field()
