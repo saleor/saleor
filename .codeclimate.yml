@@ -8,6 +8,10 @@ engines:
     enabled: true
   pylint:
     enabled: true
+    channel: beta
+    plugins:
+    - celery
+    - django
   duplication:
     enabled: true
     config:
