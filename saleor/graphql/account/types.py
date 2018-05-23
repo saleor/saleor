@@ -7,16 +7,15 @@ from ..core.types import CountableDjangoObjectType
 
 
 class PermissionDisplay(graphene.ObjectType):
-    code = graphene.String(description="Internal code for permission.")
-    name = graphene.String(description=
-                           "Describe action(s) allowed to do by permission.")
+    code = graphene.String(description='Internal code for permission.')
+    name = graphene.String(
+        description='Describe action(s) allowed to do by permission.')
 
     class Meta:
         description = 'Represents a permission object in a friendly form.'
 
 
 class User(CountableDjangoObjectType):
-
     permissions = graphene.List(PermissionDisplay)
 
     class Meta:
@@ -25,18 +24,18 @@ class User(CountableDjangoObjectType):
             'default_shipping_address', 'default_billing_address',
             'is_superuser', 'last_login', 'ordernote_set',
             'orderhistoryentry_set']
-        description = "Represents user data."
+        description = 'Represents user data.'
         interfaces = [relay.Node]
         model = get_user_model()
 
     def resolve_permissions(self, info, **kwargs):
         if self.is_superuser:
-            permissions = Permission.objects.all().select_related(
-                'content_type')
+            permissions = Permission.objects.all()
         else:
             permissions = (
-                self.user_permissions.all() | Permission.objects.filter(
-            group__user=self)).select_related('content_type')
+                self.user_permissions.all() |
+                Permission.objects.filter(group__user=self))
+        permissions = permissions.select_related('content_type')
         return [PermissionDisplay(
             code='.'.join([permission.content_type.app_label, permission.codename]),
             name=permission.name) for permission in permissions]
