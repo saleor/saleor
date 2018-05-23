@@ -239,7 +239,7 @@ def test_get_nodes(product_list):
     global_ids = [to_global_id('Product', product.pk) for product in product_list]
     # Return products corresponding to global ids
     products = get_nodes(global_ids, Product)
-    assert products == product_list
+    assert list(products) == product_list
 
     # Raise an error if one of the node is of wrong type
     invalid_item = Mock(type='test', pk=123)
