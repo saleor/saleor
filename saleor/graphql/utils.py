@@ -28,6 +28,11 @@ def get_nodes(ids, graphene_type):
         raise Exception(
             "Could not resolve to a nodes with the global id list of '%s'."
             % ids)
+    nodes_pk_list = [str(node.pk) for node in nodes]
+    for pk in pks:
+        assert pk in nodes_pk_list, (
+            'There is no node of type {} with pk {}'.format(_type, pk)
+        )
     return nodes
 
 
