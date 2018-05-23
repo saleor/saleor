@@ -115,7 +115,7 @@ def get_billing_forms_with_shipping(cart, data, user_addresses, country):
             autocomplete_type='billing',
             initial={'country': billing_address.country})
         addresses_form = BillingAddressChoiceForm(
-            data, additional_addresses=user_addresses, initial={
+            data, addresses=user_addresses, initial={
                 'address': billing_address.id})
     else:
         address_form, preview = get_address_form(
