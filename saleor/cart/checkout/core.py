@@ -5,18 +5,17 @@ from functools import wraps
 from django.db import transaction
 from django.utils.encoding import smart_text
 from django.utils.translation import get_language
-from prices import Money
 
 from ...account.utils import store_user_address
 from ...core import analytics
 from ...core.utils.taxes import get_taxes_for_country
-from ...discount.models import NotApplicable, Voucher
+from ...discount.models import Voucher
 from ...discount.utils import increase_voucher_usage
 from ...order.models import Order
 from ...order.utils import add_variant_to_order
 from ..models import Cart
 from ..utils import get_or_empty_db_cart
-from .utils import get_voucher_discount_for_checkout
+from .utils import get_voucher_for_cart
 
 STORAGE_SESSION_KEY = 'checkout_storage'
 
@@ -76,62 +75,6 @@ class Checkout:
         self.storage = None
         self.modified = True
 
-    @property
-    def discount(self):
-        """Return a discount if any."""
-        value = self.storage.get('discount_value')
-        currency = self.storage.get('discount_currency')
-        if value is not None and currency is not None:
-            return Money(value, currency)
-        return None
-
-    @discount.setter
-    def discount(self, discount):
-        self.storage['discount_value'] = smart_text(discount.amount)
-        self.storage['discount_currency'] = discount.currency
-        self.modified = True
-
-    @discount.deleter
-    def discount(self):
-        if 'discount_value' in self.storage:
-            del self.storage['discount_value']
-            self.modified = True
-        if 'discount_currency' in self.storage:
-            del self.storage['discount_currency']
-            self.modified = True
-
-    @property
-    def discount_name(self):
-        """Return a discount name if any."""
-        return self.storage.get('discount_name')
-
-    @discount_name.setter
-    def discount_name(self, discount_name):
-        self.storage['discount_name'] = discount_name
-        self.modified = True
-
-    @discount_name.deleter
-    def discount_name(self):
-        if 'discount_name' in self.storage:
-            del self.storage['discount_name']
-            self.modified = True
-
-    @property
-    def voucher_code(self):
-        """Return a discount voucher code if any."""
-        return self.storage.get('voucher_code')
-
-    @voucher_code.setter
-    def voucher_code(self, voucher_code):
-        self.storage['voucher_code'] = voucher_code
-        self.modified = True
-
-    @voucher_code.deleter
-    def voucher_code(self):
-        if 'voucher_code' in self.storage:
-            del self.storage['voucher_code']
-            self.modified = True
-
     @transaction.atomic
     def create_order(self):
         """Create an order from the checkout session.
@@ -146,12 +89,12 @@ class Checkout:
         which language to use when sending email.
         """
         # FIXME: save locale along with the language
-        taxes = self.get_taxes()
+        voucher = get_voucher_for_cart(
+            self.cart,
+            vouchers=Voucher.objects.active(
+                date=date.today()).select_for_update())
 
-        voucher = self._get_voucher(
-            vouchers=Voucher.objects.active(date=date.today())
-            .select_for_update())
-        if self.voucher_code is not None and voucher is None:
+        if self.cart.voucher_code is not None and voucher is None:
             # Voucher expired in meantime, abort order placement
             return None
 
@@ -180,6 +123,8 @@ class Checkout:
                 shipping_address = shipping_address.get_copy()
             billing_address = billing_address.get_copy()
 
+        taxes = self.get_taxes()
+
         order_data = {
             'language_code': get_language(),
             'billing_address': billing_address,
@@ -198,8 +143,8 @@ class Checkout:
 
         if voucher is not None:
             order_data['voucher'] = voucher
-            order_data['discount_amount'] = self.discount
-            order_data['discount_name'] = self.discount_name
+            order_data['discount_amount'] = self.cart.discount_amount
+            order_data['discount_name'] = self.cart.discount_name
 
         order = Order.objects.create(**order_data)
 
@@ -216,38 +161,6 @@ class Checkout:
 
         return order
 
-    def _get_voucher(self, vouchers=None):
-        voucher_code = self.voucher_code
-        if voucher_code is not None:
-            if vouchers is None:
-                vouchers = Voucher.objects.active(date=date.today())
-            try:
-                return vouchers.get(code=self.voucher_code)
-            except Voucher.DoesNotExist:
-                return None
-        return None
-
-    def recalculate_discount(self):
-        """Recalculate `self.discount` based on the voucher.
-
-        Will clear both voucher and discount if the discount is no longer
-        applicable.
-        """
-        voucher = self._get_voucher()
-        if voucher is not None:
-            try:
-                self.discount = get_voucher_discount_for_checkout(
-                    voucher, self)
-                self.discount_name = voucher.name
-            except NotApplicable:
-                del self.discount
-                del self.discount_name
-                del self.voucher_code
-        else:
-            del self.discount
-            del self.discount_name
-            del self.voucher_code
-
     def get_subtotal(self):
         """Calculate order total without shipping and discount."""
         return self.cart.get_total(self.discounts, self.get_taxes())
@@ -256,8 +169,7 @@ class Checkout:
         """Calculate order total with shipping and discount amount."""
         total = self.get_subtotal()
         total += self.cart.get_shipping_price(self.get_taxes())
-        if self.discount:
-            total -= self.discount
+        total -= self.cart.discount_amount
         return total
 
     def get_taxes(self):

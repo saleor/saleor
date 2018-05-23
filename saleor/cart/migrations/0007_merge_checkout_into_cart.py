@@ -2,6 +2,7 @@
 
 from django.db import migrations, models
 import django.db.models.deletion
+import django_prices.models
 
 
 class Migration(migrations.Migration):
@@ -13,6 +14,10 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
+        migrations.RemoveField(
+            model_name='cart',
+            name='voucher',
+        ),
         migrations.AddField(
             model_name='cart',
             name='billing_address',
@@ -41,5 +46,20 @@ class Migration(migrations.Migration):
             model_name='cart',
             name='note',
             field=models.TextField(blank=True, default=''),
+        ),
+        migrations.AddField(
+            model_name='cart',
+            name='discount_amount',
+            field=django_prices.models.MoneyField(currency='USD', decimal_places=2, default=0, max_digits=12),
+        ),
+        migrations.AddField(
+            model_name='cart',
+            name='discount_name',
+            field=models.CharField(blank=True, default='', max_length=255),
+        ),
+        migrations.AddField(
+            model_name='cart',
+            name='voucher_code',
+            field=models.CharField(blank=True, default='', max_length=12),
         ),
     ]

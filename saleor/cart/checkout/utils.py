@@ -1,9 +1,11 @@
+from datetime import date
+
 from django.utils.translation import pgettext
 
 from ...cart.utils import (
     get_category_variants_and_prices, get_product_variants_and_prices)
 from ...discount import VoucherType
-from ...discount.models import NotApplicable
+from ...discount.models import NotApplicable, Voucher
 from ...discount.utils import (
     get_product_or_category_voucher_discount, get_shipping_voucher_discount,
     get_value_voucher_discount)
@@ -124,3 +126,43 @@ def get_voucher_discount_for_checkout(voucher, checkout):
         return _get_product_or_category_voucher_discount_for_checkout(
             voucher, checkout)
     raise NotImplementedError('Unknown discount type')
+
+
+def get_voucher_for_cart(cart, vouchers=None):
+    """Return voucher with voucher code saved in cart if active or None."""
+    if cart.voucher_code is not None:
+        if vouchers is None:
+            vouchers = Voucher.objects.active(date=date.today())
+        try:
+            return vouchers.get(code=cart.voucher_code)
+        except Voucher.DoesNotExist:
+            return None
+    return None
+
+
+def recalculate_cart_discount(cart, checkout):
+    """Recalculate `cart.discount` based on the voucher.
+
+    Will clear both voucher and discount if the discount is no longer
+    applicable.
+    """
+    voucher = get_voucher_for_cart(cart)
+
+    if voucher is not None:
+        try:
+            cart.discount_amount = get_voucher_discount_for_checkout(
+                voucher, checkout)
+            cart.discount_name = voucher.name
+            cart.save()
+        except NotApplicable:
+            remove_discount_from_cart(cart)
+    else:
+        remove_discount_from_cart(cart)
+
+
+def remove_discount_from_cart(cart):
+    """Remove voucher data from cart."""
+    cart.discount_amount = 0
+    cart.discount_name = ''
+    cart.voucher_code = ''
+    cart.save()
