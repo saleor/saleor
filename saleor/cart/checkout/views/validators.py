@@ -20,10 +20,10 @@ def validate_cart(view):
 def validate_shipping_address(view):
     """Decorate a view making it require a valid shipping address.
 
-    Expects to be decorated with `@validate_cart`.
-
-    If either the shipping address or customer email is empty redirects to the
+    If either the shipping address or customer email is empty, redirect to the
     shipping address step.
+
+    Expects to be decorated with `@validate_cart`.
     """
     @wraps(view)
     def func(request, cart):
@@ -40,9 +40,9 @@ def validate_shipping_address(view):
 def validate_shipping_method(view):
     """Decorate a view making it require a shipping method.
 
-    Expects to be decorated with `@validate_cart`.
+    If the method is missing, redirect to the shipping method step.
 
-    If the method is missing redirects to the shipping method step.
+    Expects to be decorated with `@validate_cart`.
     """
     @wraps(view)
     def func(request, cart):
@@ -53,11 +53,11 @@ def validate_shipping_method(view):
 
 
 def validate_is_shipping_required(view):
-    """Decorate a view making it check if checkout needs shipping.
+    """Decorate a view making it check if cart in checkout needs shipping.
+
+    If shipping is not needed, redirect to the checkout summary.
 
     Expects to be decorated with `@validate_cart`.
-
-    If shipping is not needed redirects to the checkout summary.
     """
     @wraps(view)
     def func(request, cart):

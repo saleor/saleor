@@ -5,7 +5,6 @@ from django.utils.encoding import smart_text
 from django.utils.safestring import mark_safe
 from django.utils.translation import pgettext_lazy
 
-from ...cart.checkout.utils import get_voucher_discount_for_cart
 from ...cart.models import Cart
 from ...core.utils import format_money
 from ...core.utils.taxes import display_gross_prices
@@ -38,10 +37,6 @@ class AnonymousUserBillingForm(forms.ModelForm):
         fields = ['user_email']
 
 
-class RadioSelectChoiceField(forms.ChoiceField):
-    widget = forms.RadioSelect()
-
-
 class AddressChoiceForm(forms.Form):
     """Choose one of user's addresses or to create new one."""
 
@@ -50,9 +45,9 @@ class AddressChoiceForm(forms.Form):
         (NEW_ADDRESS, pgettext_lazy(
             'Shipping addresses form choice', 'Enter a new address'))]
 
-    address = RadioSelectChoiceField(
+    address = forms.ChoiceField(
         label=pgettext_lazy('Shipping addresses form field label', 'Address'),
-        choices=CHOICES, initial=NEW_ADDRESS)
+        choices=CHOICES, initial=NEW_ADDRESS, widget=forms.RadioSelect)
 
     def __init__(self, *args, **kwargs):
         addresses = kwargs.pop('addresses')
@@ -72,13 +67,12 @@ class BillingAddressChoiceForm(AddressChoiceForm):
         (SHIPPING_ADDRESS, pgettext_lazy(
             'Billing addresses form choice', 'Same as shipping'))]
 
-    address = RadioSelectChoiceField(
+    address = forms.ChoiceField(
         label=pgettext_lazy('Billing addresses form field label', 'Address'),
-        choices=CHOICES, initial=SHIPPING_ADDRESS)
+        choices=CHOICES, initial=SHIPPING_ADDRESS, widget=forms.RadioSelect)
 
 
-# FIXME: why is this called a country choice field?
-class ShippingCountryChoiceField(forms.ModelChoiceField):
+class ShippingCountryMethodChoiceField(forms.ModelChoiceField):
     """Shipping method country choice field.
 
     Uses a radio group instead of a dropdown and includes estimated shipping
@@ -103,7 +97,7 @@ class ShippingCountryChoiceField(forms.ModelChoiceField):
 class CartShippingMethodForm(forms.ModelForm):
     """Cart shipping method form."""
 
-    shipping_method = ShippingCountryChoiceField(
+    shipping_method = ShippingCountryMethodChoiceField(
         queryset=ShippingMethodCountry.objects.select_related(
             'shipping_method').order_by('price').all(),
         label=pgettext_lazy(
@@ -148,8 +142,7 @@ class VoucherField(forms.ModelChoiceField):
 
     default_error_messages = {
         'invalid_choice': pgettext_lazy(
-            'Voucher form error', 'Discount code incorrect or expired'),
-    }
+            'Voucher form error', 'Discount code incorrect or expired')}
 
 
 class CartVoucherForm(forms.ModelForm):
@@ -173,6 +166,7 @@ class CartVoucherForm(forms.ModelForm):
             date=date.today())
 
     def clean(self):
+        from .utils import get_voucher_discount_for_cart
         cleaned_data = super().clean()
         if 'voucher' in cleaned_data:
             voucher = cleaned_data['voucher']

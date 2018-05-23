@@ -159,10 +159,6 @@ class Cart(models.Model):
         lines = self.lines.all()
         return lines.aggregate(total_quantity=models.Sum('quantity'))
 
-    def clear(self):
-        """Remove the cart."""
-        self.delete()
-
     def create_line(self, variant, quantity, data):
         """Create a cart line for given variant, quantity and optional data.
 
