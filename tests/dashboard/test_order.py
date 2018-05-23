@@ -15,9 +15,7 @@ from saleor.dashboard.order.utils import (
 from saleor.discount.utils import increase_voucher_usage
 from saleor.order import OrderStatus
 from saleor.order.models import Order, OrderLine, OrderNote
-from saleor.order.utils import (
-    add_variant_to_existing_lines, add_variant_to_order,
-    change_order_line_quantity)
+from saleor.order.utils import add_variant_to_order, change_order_line_quantity
 from saleor.product.models import ProductVariant
 
 
@@ -563,26 +561,6 @@ def test_view_fulfillment_packing_slips_without_shipping(
     response = admin_client.get(url)
     assert response.status_code == 200
     assert response['content-type'] == 'application/pdf'
-
-
-def test_add_variant_to_existing_lines_one_line(
-        order_with_lines_and_stock):
-    order = order_with_lines_and_stock
-    lines = order.lines.filter(product_sku='SKU_A')
-    variant_lines_before = lines.count()
-    line = lines.first()
-    line_quantity_before = line.quantity
-    variant = ProductVariant.objects.get(sku='SKU_A')
-
-    quantity_added = 2
-    quantity_left = add_variant_to_existing_lines(
-        line.order, variant, quantity_added)
-
-    lines_after = order.lines.filter(product_sku='SKU_A').count()
-    line.refresh_from_db()
-    assert quantity_left == 0
-    assert lines_after == variant_lines_before
-    assert line.quantity == line_quantity_before + quantity_added
 
 
 def test_view_add_variant_to_order(

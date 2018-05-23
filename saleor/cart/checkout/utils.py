@@ -485,8 +485,7 @@ def create_order(cart, tracking_code, discounts, taxes):
 
     for line in cart.lines.all():
         add_variant_to_order(
-            order, line.variant, line.quantity, discounts, taxes,
-            add_to_existing=False)
+            order, line.variant, line.quantity, discounts, taxes)
 
     if voucher:
         increase_voucher_usage(voucher)
