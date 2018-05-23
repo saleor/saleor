@@ -1,6 +1,7 @@
 import graphene
 from django.utils.encoding import smart_text
 from django.utils.text import slugify
+from graphql_relay import from_global_id
 
 from ..product.models import AttributeChoiceValue, ProductAttribute
 
@@ -12,6 +13,17 @@ def get_node(info, id, only_type=None):
         raise Exception(
             "Could not resolve to a node with the global id of '%s'." % id)
     return node
+
+
+def get_nodes(ids, graphene_type):
+    """Return list of nodes of proper type."""
+    pks = []
+    for graphql_id in ids:
+        _type, _id = from_global_id(graphql_id)
+        assert str(graphene_type) == _type, (
+            'Must receive an {} id.').format(graphene_type._meta.name)
+        pks.append(_id)
+    return list(graphene_type._meta.model.objects.filter(pk__in=pks))
 
 
 def get_attributes_dict_from_list(attributes, attr_slug_id):
