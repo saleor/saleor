@@ -280,7 +280,7 @@ def orderline_cancel(request, order_pk, line_pk):
     if form.is_valid():
         msg = pgettext_lazy(
             'Dashboard message related to an order line',
-            'Cancelled item %s') % line
+            'Canceled item %s') % line
         with transaction.atomic():
             form.cancel_line()
             messages.success(request, msg)

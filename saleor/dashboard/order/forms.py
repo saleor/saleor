@@ -459,7 +459,7 @@ class CancelOrderForm(forms.Form):
             raise forms.ValidationError(
                 pgettext_lazy(
                     'Cancel order form error',
-                    "This order can't be cancelled"))
+                    "This order can't be canceled"))
         return data
 
     def cancel_order(self):
