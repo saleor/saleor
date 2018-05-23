@@ -4,7 +4,12 @@ from django.db import transaction
 from django.utils.encoding import smart_text
 from django.utils.translation import get_language, pgettext
 
+from ...account.forms import get_address_form
+from ...account.models import Address
 from ...account.utils import store_user_address
+from ...cart.checkout.forms import (
+    AddressChoiceForm, AnonymousUserBillingForm, AnonymousUserShippingForm,
+    BillingAddressChoiceForm)
 from ...cart.utils import (
     get_category_variants_and_prices, get_product_variants_and_prices)
 from ...core.utils.taxes import ZERO_MONEY, get_taxes_for_country
@@ -15,6 +20,235 @@ from ...discount.utils import (
     get_value_voucher_discount, increase_voucher_usage)
 from ...order.models import Order
 from ...order.utils import add_variant_to_order
+
+
+def get_shipping_address_forms(cart, user_addresses, data, country):
+    """Forms initialized with data depending on shipping address in cart."""
+    shipping_address = cart.shipping_address
+
+    if shipping_address and shipping_address in user_addresses:
+        address_form, preview = get_address_form(
+            data, country_code=country.code,
+            initial={'country': country})
+        addresses_form = AddressChoiceForm(
+            data, addresses=user_addresses,
+            initial={'address': shipping_address.id})
+    elif shipping_address:
+        address_form, preview = get_address_form(
+            data, country_code=shipping_address.country.code,
+            instance=shipping_address)
+        addresses_form = AddressChoiceForm(
+            data, addresses=user_addresses)
+    else:
+        address_form, preview = get_address_form(
+            data, country_code=country.code,
+            initial={'country': country})
+        addresses_form = AddressChoiceForm(
+            data, addresses=user_addresses)
+
+    return address_form, addresses_form, preview
+
+
+def update_shipping_address_in_cart(cart, user_addresses, data, country):
+    """Return shipping address choice forms and if and address was updated."""
+    address_form, addresses_form, preview = (
+        get_shipping_address_forms(cart, user_addresses, data, country))
+
+    updated = False
+
+    if addresses_form.is_valid() and not preview:
+        use_existing_address = (
+            addresses_form.cleaned_data['address'] !=
+            AddressChoiceForm.NEW_ADDRESS)
+
+        if use_existing_address:
+            address_id = addresses_form.cleaned_data['address']
+            address = Address.objects.get(id=address_id)
+            save_shipping_address_in_cart(cart, address)
+            updated = True
+
+        elif address_form.is_valid():
+            address = address_form.save()
+            save_shipping_address_in_cart(cart, address)
+            updated = True
+
+    return addresses_form, address_form, updated
+
+
+def update_shipping_address_in_anonymous_cart(cart, data, country):
+    """Return shipping address choice forms and if and address was updated."""
+    address_form, preview = get_address_form(
+        data, country_code=country.code,
+        autocomplete_type='shipping',
+        instance=cart.shipping_address,
+        initial={'country': country})
+    user_form = AnonymousUserShippingForm(
+        data if not preview else None, instance=cart)
+
+    updated = False
+
+    if user_form.is_valid() and address_form.is_valid():
+        user_form.save()
+        address = address_form.save()
+        save_shipping_address_in_cart(cart, address)
+        updated = True
+
+    return user_form, address_form, updated
+
+
+def get_billing_forms_with_shipping(cart, data, user_addresses, country):
+    """Get billing form based on a the current billing and shipping data."""
+    shipping_address = cart.shipping_address
+    billing_address = cart.billing_address or Address(country=country)
+
+    if not billing_address.id or billing_address == shipping_address:
+        address_form, preview = get_address_form(
+            data, country_code=shipping_address.country.code,
+            autocomplete_type='billing',
+            initial={'country': shipping_address.country})
+        addresses_form = BillingAddressChoiceForm(
+            data, addresses=user_addresses, initial={
+                'address': BillingAddressChoiceForm.SHIPPING_ADDRESS})
+    elif billing_address in user_addresses:
+        address_form, preview = get_address_form(
+            data, country_code=billing_address.country.code,
+            autocomplete_type='billing',
+            initial={'country': billing_address.country})
+        addresses_form = BillingAddressChoiceForm(
+            data, additional_addresses=user_addresses, initial={
+                'address': billing_address.id})
+    else:
+        address_form, preview = get_address_form(
+            data, country_code=billing_address.country.code,
+            autocomplete_type='billing',
+            initial={'country': billing_address.country},
+            instance=billing_address)
+        addresses_form = BillingAddressChoiceForm(
+            data, addresses=user_addresses, initial={
+                'address': BillingAddressChoiceForm.NEW_ADDRESS})
+
+    return address_form, addresses_form, preview
+
+
+def update_billing_address_in_cart_with_shipping(
+        cart, user_addresses, data, country):
+    """Return shipping address choice forms and if and address was updated."""
+    address_form, addresses_form, preview = get_billing_forms_with_shipping(
+        cart, data, user_addresses, country)
+
+    updated = False
+
+    if addresses_form.is_valid() and not preview:
+        address = None
+        address_id = addresses_form.cleaned_data['address']
+
+        if address_id == BillingAddressChoiceForm.SHIPPING_ADDRESS:
+            address = cart.shipping_address
+        elif address_id != BillingAddressChoiceForm.NEW_ADDRESS:
+            address = user_addresses.get(id=address_id)
+        elif address_form.is_valid():
+            address = address_form.save()
+
+        if address:
+            save_billing_address_in_cart(cart, address)
+            updated = True
+
+    return addresses_form, address_form, updated
+
+
+def get_anonymous_summary_without_shipping_forms(cart, data, country):
+    """Forms initialized with data depending on addresses in cart."""
+    billing_address = cart.billing_address
+
+    if billing_address:
+        address_form, preview = get_address_form(
+            data, country_code=billing_address.country.code,
+            autocomplete_type='billing', instance=billing_address)
+    else:
+        address_form, preview = get_address_form(
+            data, country_code=country.code,
+            autocomplete_type='billing', initial={'country': country})
+
+    return address_form, preview
+
+
+def update_billing_address_in_anonymous_cart(cart, data, country):
+    """Return shipping address choice forms and if and address was updated."""
+    address_form, preview = get_anonymous_summary_without_shipping_forms(
+        cart, data, country)
+    user_form = AnonymousUserBillingForm(data, instance=cart)
+
+    updated = False
+
+    if user_form.is_valid() and address_form.is_valid() and not preview:
+        user_form.save()
+        address = address_form.save()
+        save_billing_address_in_cart(cart, address)
+        updated = True
+
+    return user_form, address_form, updated
+
+
+def get_summary_without_shipping_forms(cart, user_addresses, data, country):
+    """Forms initialized with data depending on addresses in cart."""
+    billing_address = cart.billing_address
+
+    if billing_address and billing_address in user_addresses:
+        address_form, preview = get_address_form(
+            data,
+            autocomplete_type='billing',
+            country_code=billing_address.country.code,
+            initial={'country': billing_address.country})
+        initial_address = billing_address.id
+    elif billing_address:
+        address_form, preview = get_address_form(
+            data,
+            autocomplete_type='billing',
+            country_code=billing_address.country.code,
+            initial={'country': billing_address.country},
+            instance=billing_address)
+        initial_address = AddressChoiceForm.NEW_ADDRESS
+    else:
+        address_form, preview = get_address_form(
+            data,
+            autocomplete_type='billing',
+            country_code=country.code,
+            initial={'country': country})
+        if cart.user and cart.user.default_billing_address:
+            initial_address = cart.user.default_billing_address.id
+        else:
+            initial_address = AddressChoiceForm.NEW_ADDRESS
+
+    addresses_form = AddressChoiceForm(
+        data, addresses=user_addresses, initial={'address': initial_address})
+    return address_form, addresses_form, preview
+
+
+def update_billing_address_in_cart(cart, user_addresses, data, country):
+    """Return shipping address choice forms and if and address was updated."""
+    address_form, addresses_form, preview = (
+        get_summary_without_shipping_forms(
+            cart, user_addresses, data, country))
+
+    updated = False
+
+    if addresses_form.is_valid():
+        use_existing_address = (
+            addresses_form.cleaned_data['address'] !=
+            AddressChoiceForm.NEW_ADDRESS)
+
+        if use_existing_address:
+            address_id = addresses_form.cleaned_data['address']
+            address = Address.objects.get(id=address_id)
+            save_billing_address_in_cart(cart, address)
+            updated = True
+
+        elif address_form.is_valid():
+            address = address_form.save()
+            save_billing_address_in_cart(cart, address)
+            updated = True
+
+    return addresses_form, address_form, updated
 
 
 def save_billing_address_in_cart(cart, address):
@@ -34,7 +268,7 @@ def save_billing_address_in_cart(cart, address):
         if remove_old_address:
             cart.billing_address.delete()
         cart.billing_address = address
-        cart.save()
+        cart.save(update_fields=['billing_address'])
 
 
 def save_shipping_address_in_cart(cart, address):
@@ -54,7 +288,7 @@ def save_shipping_address_in_cart(cart, address):
         if remove_old_address:
             cart.shipping_address.delete()
         cart.shipping_address = address
-        cart.save()
+        cart.save(update_fields=['shipping_address'])
 
 
 def get_checkout_data(cart, discounts, taxes):
@@ -159,7 +393,7 @@ def recalculate_cart_discount(cart):
         try:
             cart.discount_amount = get_voucher_discount_for_cart(voucher, cart)
             cart.discount_name = voucher.name
-            cart.save()
+            cart.save(update_fields=['discount_amount', 'discount_name'])
         except NotApplicable:
             remove_discount_from_cart(cart)
     else:
@@ -168,10 +402,11 @@ def recalculate_cart_discount(cart):
 
 def remove_discount_from_cart(cart):
     """Remove voucher data from cart."""
-    cart.discount_amount = ZERO_MONEY
-    cart.discount_name = None
     cart.voucher_code = None
-    cart.save()
+    cart.discount_name = None
+    cart.discount_amount = ZERO_MONEY
+    cart.save(update_fields=[
+        'voucher_code', 'discount_name', 'discount_amount'])
 
 
 def get_taxes_for_cart(cart, default_taxes):
@@ -206,26 +441,24 @@ def create_order(cart, tracking_code, discounts, taxes):
 
     billing_address = cart.billing_address
 
+    if cart.user:
+        if billing_address not in cart.user.addresses.all():
+            store_user_address(cart.user, billing_address, billing=True)
+        billing_address = billing_address.get_copy()
+
     if cart.is_shipping_required():
         shipping_address = cart.shipping_address
         shipping_method = cart.shipping_method
         shipping_method_name = smart_text(shipping_method)
+
+        if cart.user and shipping_address not in cart.user.addresses.all():
+            store_user_address(cart.user, shipping_address, shipping=True)
+
+        shipping_address = shipping_address.get_copy()
     else:
         shipping_address = None
         shipping_method = None
         shipping_method_name = None
-
-    if cart.user:
-        if (
-            shipping_address and
-            shipping_address not in cart.user.addresses.all()
-        ):
-            store_user_address(cart.user, shipping_address, shipping=True)
-        if billing_address not in cart.user.addresses.all():
-            store_user_address(cart.user, billing_address, billing=True)
-        if shipping_address:
-            shipping_address = shipping_address.get_copy()
-        billing_address = billing_address.get_copy()
 
     order_data = {
         'language_code': get_language(),
@@ -243,7 +476,7 @@ def create_order(cart, tracking_code, discounts, taxes):
     else:
         order_data['user_email'] = cart.user_email
 
-    if voucher is not None:
+    if voucher:
         order_data['voucher'] = voucher
         order_data['discount_amount'] = cart.discount_amount
         order_data['discount_name'] = cart.discount_name
@@ -255,7 +488,7 @@ def create_order(cart, tracking_code, discounts, taxes):
             order, line.variant, line.quantity, discounts, taxes,
             add_to_existing=False)
 
-    if voucher is not None:
+    if voucher:
         increase_voucher_usage(voucher)
 
     if cart.note:

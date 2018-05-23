@@ -75,7 +75,8 @@ def test_checkout_taxes(request_cart_with_item, shipping_method, vatlayer):
     assert cart.get_subtotal(taxes=vatlayer) == taxed_price
 
 
-def test_note_in_created_order(request_cart_with_item):
+def test_note_in_created_order(request_cart_with_item, address):
+    request_cart_with_item.shipping_address = address
     request_cart_with_item.note = ''
     request_cart_with_item.save()
     order = create_order(
@@ -222,12 +223,11 @@ def test_checkout_discount_form_invalid_voucher_code(
 
 
 def test_checkout_discount_form_not_applicable_voucher(
-        monkeypatch, voucher, request_cart_with_item):
+        voucher, request_cart_with_item):
+    voucher.limit = 200
+    voucher.save()
     form = CartVoucherForm(
         {'voucher': voucher.code}, instance=request_cart_with_item)
-    monkeypatch.setattr(
-        'saleor.cart.checkout.forms.get_voucher_discount_for_cart',
-        Mock(side_effect=NotApplicable('Not applicable')))
     assert not form.is_valid()
     assert 'voucher' in form.errors
 

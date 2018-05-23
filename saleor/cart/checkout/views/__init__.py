@@ -65,8 +65,7 @@ def shipping_method_view(request, cart):
         return redirect('cart:checkout-summary')
 
     ctx = get_checkout_data(cart, request.discounts, taxes)
-    ctx.update({
-        'shipping_method_form': form})
+    ctx.update({'shipping_method_form': form})
     return TemplateResponse(request, 'checkout/shipping_method.html', ctx)
 
 
