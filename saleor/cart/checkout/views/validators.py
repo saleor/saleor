@@ -3,6 +3,8 @@ from functools import wraps
 from django.core.exceptions import ValidationError
 from django.shortcuts import redirect
 
+from ....shipping.models import ShippingMethodCountry
+
 
 def validate_cart(view):
     """Decorate a view making it require a non-empty cart.
@@ -40,13 +42,21 @@ def validate_shipping_address(view):
 def validate_shipping_method(view):
     """Decorate a view making it require a shipping method.
 
-    If the method is missing, redirect to the shipping method step.
+    If the method is missing or incorrect, redirect to the shipping method
+    step.
 
     Expects to be decorated with `@validate_cart`.
     """
     @wraps(view)
     def func(request, cart):
         if cart.shipping_method is None:
+            return redirect('cart:checkout-shipping-method')
+        country_code = cart.shipping_address.country.code
+        valid_methods = ShippingMethodCountry.objects.select_related(
+            'shipping_method').unique_for_country_code(country_code)
+        if cart.shipping_method not in valid_methods:
+            cart.shipping_method = None
+            cart.save()
             return redirect('cart:checkout-shipping-method')
         return view(request, cart)
     return func
