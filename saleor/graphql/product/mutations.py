@@ -6,8 +6,8 @@ from ...dashboard.category.forms import CategoryForm
 from ...dashboard.product.forms import ProductTypeForm
 from ...product import models
 from ..core.mutations import (
-    ModelDeleteMutation, ModelFormMutation, ModelFormUpdateMutation,
-    StaffMemberRequiredMixin)
+    BaseMutation, ModelDeleteMutation, ModelFormMutation,
+    ModelFormUpdateMutation, StaffMemberRequiredMixin, Error)
 from ..utils import get_attributes_dict_from_list, get_node
 from .forms import ProductForm, ProductVariantForm
 from .types import (
@@ -284,10 +284,16 @@ class ProductTypeDeleteMutation(StaffMemberRequiredMixin, ModelDeleteMutation):
         model = models.ProductType
 
 
-class ProductImageCreateMutation(graphene.Mutation):
+class Upload(graphene.Scalar):
+    def serialize(self):
+        pass
+
+
+class ProductImageCreateMutation(BaseMutation):
     class Arguments:
         product_id = graphene.Argument(
             graphene.ID, description='ID of an product.')
+        file = Upload()
 
     class Meta:
         description = 'Creates a product image.'
@@ -299,7 +305,8 @@ class ProductImageCreateMutation(graphene.Mutation):
     def mutate(self, info, product_id, **kwargs):
         files = info.context.FILES
         if not 'image' in files:
-            raise ValueError('Expected \'image\' key with a file.')
+            return ProductImageCreateMutation(
+                errors=[Error(message='No file provided.')])
 
         image_file = files['image']
         product = get_node(info, product_id, only_type=Product)
