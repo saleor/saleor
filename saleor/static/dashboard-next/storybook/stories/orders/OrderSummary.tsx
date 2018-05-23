@@ -11,6 +11,17 @@ import {
 import Decorator from "../../Decorator";
 
 const order = orderFixture(placeholderImage);
+const callbacks = {
+  onCapture: () => {},
+  onCreate: () => {},
+  onFulfill: () => {},
+  onOrderCancel: () => {},
+  onOrderLineChange: () => () => () => {},
+  onOrderLineRemove: () => () => {},
+  onRefund: () => {},
+  onRelease: () => {},
+  onRowClick: () => () => {}
+};
 
 storiesOf("Orders / OrderSummary", module)
   .addDecorator(Decorator)
@@ -25,12 +36,7 @@ storiesOf("Orders / OrderSummary", module)
       status={"unfulfilled"}
       subtotal={order.subtotal}
       total={order.total}
-      onCapture={() => {}}
-      onFulfill={() => {}}
-      onOrderCancel={() => {}}
-      onRefund={() => {}}
-      onRelease={() => {}}
-      onRowClick={() => {}}
+      {...callbacks}
     />
   ))
   .add("order partially fulfilled", () => (
@@ -43,12 +49,7 @@ storiesOf("Orders / OrderSummary", module)
       status={"partially fulfilled"}
       subtotal={order.subtotal}
       total={order.total}
-      onCapture={() => {}}
-      onFulfill={() => {}}
-      onOrderCancel={() => {}}
-      onRefund={() => {}}
-      onRelease={() => {}}
-      onRowClick={() => {}}
+      {...callbacks}
     />
   ))
   .add("order fulfilled", () => (
@@ -61,12 +62,7 @@ storiesOf("Orders / OrderSummary", module)
       status={"fulfilled"}
       subtotal={order.subtotal}
       total={order.total}
-      onCapture={() => {}}
-      onFulfill={() => {}}
-      onOrderCancel={() => {}}
-      onRefund={() => {}}
-      onRelease={() => {}}
-      onRowClick={() => {}}
+      {...callbacks}
     />
   ))
   .add("order cancelled", () => (
@@ -79,12 +75,7 @@ storiesOf("Orders / OrderSummary", module)
       status={"cancelled"}
       subtotal={order.subtotal}
       total={order.total}
-      onCapture={() => {}}
-      onFulfill={() => {}}
-      onOrderCancel={() => {}}
-      onRefund={() => {}}
-      onRelease={() => {}}
-      onRowClick={() => {}}
+      {...callbacks}
     />
   ))
   .add("order draft", () => (
@@ -97,14 +88,7 @@ storiesOf("Orders / OrderSummary", module)
       status={"draft"}
       subtotal={order.subtotal}
       total={order.total}
-      onCapture={() => {}}
-      onCreate={() => {}}
-      onFulfill={() => {}}
-      onOrderCancel={() => {}}
-      onProductAdd={() => {}}
-      onRefund={() => {}}
-      onRelease={() => {}}
-      onRowClick={() => {}}
+      {...callbacks}
     />
   ))
   .add("payment confirmed", () => (
@@ -117,12 +101,7 @@ storiesOf("Orders / OrderSummary", module)
       status={order.status}
       subtotal={order.subtotal}
       total={order.total}
-      onCapture={() => {}}
-      onFulfill={() => {}}
-      onOrderCancel={() => {}}
-      onRefund={() => {}}
-      onRelease={() => {}}
-      onRowClick={() => {}}
+      {...callbacks}
     />
   ))
   .add("payment error", () => (
@@ -135,12 +114,7 @@ storiesOf("Orders / OrderSummary", module)
       status={order.status}
       subtotal={order.subtotal}
       total={order.total}
-      onCapture={() => {}}
-      onFulfill={() => {}}
-      onOrderCancel={() => {}}
-      onRefund={() => {}}
-      onRelease={() => {}}
-      onRowClick={() => {}}
+      {...callbacks}
     />
   ))
   .add("payment input", () => (
@@ -153,12 +127,7 @@ storiesOf("Orders / OrderSummary", module)
       status={order.status}
       subtotal={order.subtotal}
       total={order.total}
-      onCapture={() => {}}
-      onFulfill={() => {}}
-      onOrderCancel={() => {}}
-      onRefund={() => {}}
-      onRelease={() => {}}
-      onRowClick={() => {}}
+      {...callbacks}
     />
   ))
   .add("payment preauth", () => (
@@ -171,12 +140,7 @@ storiesOf("Orders / OrderSummary", module)
       status={order.status}
       subtotal={order.subtotal}
       total={order.total}
-      onCapture={() => {}}
-      onFulfill={() => {}}
-      onOrderCancel={() => {}}
-      onRefund={() => {}}
-      onRelease={() => {}}
-      onRowClick={() => {}}
+      {...callbacks}
     />
   ))
   .add("payment refunded", () => (
@@ -189,12 +153,7 @@ storiesOf("Orders / OrderSummary", module)
       status={order.status}
       subtotal={order.subtotal}
       total={order.total}
-      onCapture={() => {}}
-      onFulfill={() => {}}
-      onOrderCancel={() => {}}
-      onRefund={() => {}}
-      onRelease={() => {}}
-      onRowClick={() => {}}
+      {...callbacks}
     />
   ))
   .add("payment rejected", () => (
@@ -207,12 +166,7 @@ storiesOf("Orders / OrderSummary", module)
       status={order.status}
       subtotal={order.subtotal}
       total={order.total}
-      onCapture={() => {}}
-      onFulfill={() => {}}
-      onOrderCancel={() => {}}
-      onRefund={() => {}}
-      onRelease={() => {}}
-      onRowClick={() => {}}
+      {...callbacks}
     />
   ))
   .add("payment waiting", () => (
@@ -225,11 +179,6 @@ storiesOf("Orders / OrderSummary", module)
       status={order.status}
       subtotal={order.subtotal}
       total={order.total}
-      onCapture={() => {}}
-      onFulfill={() => {}}
-      onOrderCancel={() => {}}
-      onRefund={() => {}}
-      onRelease={() => {}}
-      onRowClick={() => {}}
+      {...callbacks}
     />
   ));

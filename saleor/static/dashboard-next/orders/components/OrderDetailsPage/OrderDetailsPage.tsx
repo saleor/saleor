@@ -112,6 +112,8 @@ interface OrderDetailsPageProps {
   onBack();
   onCreate?();
   onCustomerEmailClick?(id: string);
+  onOrderLineChange?(id: string): (value: string) => () => void;
+  onOrderLineRemove?(id: string): () => void;
   onPrintClick?();
   onProductClick?(id: string);
   onPackingSlipClick?(id: string);
@@ -143,6 +145,8 @@ const OrderDetailsPage = decorate<OrderDetailsPageProps>(
     onCreate,
     onCustomerEmailClick,
     onOrderCancel,
+    onOrderLineChange,
+    onOrderLineRemove,
     onPackingSlipClick,
     onPrintClick,
     onProductClick
@@ -238,6 +242,8 @@ const OrderDetailsPage = decorate<OrderDetailsPageProps>(
                                           onProductAdd={
                                             toggleOrderProductAddDialog
                                           }
+                                          onOrderLineChange={onOrderLineChange}
+                                          onOrderLineRemove={onOrderLineRemove}
                                           onRefund={togglePaymentRefundDialog}
                                           onRelease={togglePaymentReleaseDialog}
                                         />

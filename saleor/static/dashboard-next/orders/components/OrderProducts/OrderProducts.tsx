@@ -1,8 +1,10 @@
 import Cached from "@material-ui/icons/Cached";
+import CloseIcon from "@material-ui/icons/Close";
 import Avatar from "material-ui/Avatar";
 import Button from "material-ui/Button";
 import Card, { CardActions, CardContent } from "material-ui/Card";
 import blue from "material-ui/colors/blue";
+import IconButton from "material-ui/IconButton";
 import { withStyles } from "material-ui/styles";
 import Table, {
   TableBody,
@@ -14,6 +16,7 @@ import Table, {
 import Typography from "material-ui/Typography";
 import * as React from "react";
 
+import EditableTableCell from "../../../components/EditableTableCell";
 import Money from "../../../components/Money";
 import PageHeader from "../../../components/PageHeader";
 import Skeleton from "../../../components/Skeleton";
@@ -30,7 +33,7 @@ interface MoneyType {
   currency: string;
 }
 export interface OrderProductsProps {
-  displayPayment?: boolean;
+  isDraft?: boolean;
   net?: MoneyType;
   paid?: MoneyType;
   products?: Array<{
@@ -44,7 +47,9 @@ export interface OrderProductsProps {
   refunded?: MoneyType;
   subtotal?: MoneyType;
   total?: MoneyType;
-  onRowClick?(id: string);
+  onOrderLineChange?(id: string): (value: string) => () => void;
+  onOrderLineRemove?(id: string): () => any;
+  onRowClick?(id: string): () => any;
 }
 
 const decorate = withStyles(theme => ({
@@ -55,6 +60,10 @@ const decorate = withStyles(theme => ({
   },
   cardActions: {
     direction: "rtl" as "rtl"
+  },
+  deleteIcon: {
+    height: 40,
+    width: 40
   },
   denseTable: {
     "& td, & th": {
@@ -78,13 +87,15 @@ const decorate = withStyles(theme => ({
 const OrderProducts = decorate<OrderProductsProps>(
   ({
     classes,
-    displayPayment,
+    isDraft,
     net,
     paid,
     products,
     refunded,
     subtotal,
     total,
+    onOrderLineChange,
+    onOrderLineRemove,
     onRowClick
   }) => (
     <Table className={classes.denseTable}>
@@ -131,9 +142,25 @@ const OrderProducts = decorate<OrderProductsProps>(
         ) : products.length > 0 ? (
           products.map(product => (
             <TableRow key={product.id}>
-              <TableCell className={classes.avatarCell}>
-                <Avatar src={product.thumbnailUrl} />
-              </TableCell>
+              {isDraft ? (
+                <TableCell className={classes.avatarCell}>
+                  <IconButton
+                    onClick={
+                      !!onOrderLineRemove
+                        ? onOrderLineRemove(product.id)
+                        : undefined
+                    }
+                    disabled={!onOrderLineRemove}
+                    className={classes.deleteIcon}
+                  >
+                    <CloseIcon />
+                  </IconButton>
+                </TableCell>
+              ) : (
+                <TableCell className={classes.avatarCell}>
+                  <Avatar src={product.thumbnailUrl} />
+                </TableCell>
+              )}
               <TableCell>
                 <span
                   onClick={onRowClick ? onRowClick(product.id) : () => {}}
@@ -149,9 +176,21 @@ const OrderProducts = decorate<OrderProductsProps>(
                   currency={product.price.gross.currency}
                 />
               </TableCell>
-              <TableCell className={classes.textRight}>
-                {product.quantity}
-              </TableCell>
+              {isDraft && !!onOrderLineChange ? (
+                <EditableTableCell
+                  className={classes.textRight}
+                  InputProps={{
+                    label: i18n.t("Quantity"),
+                    type: "number"
+                  }}
+                  value={product.quantity.toString()}
+                  onConfirm={onOrderLineChange(product.id)}
+                />
+              ) : (
+                <TableCell className={classes.textRight}>
+                  {product.quantity}
+                </TableCell>
+              )}
               <TableCell className={classes.textRight}>
                 <Money
                   amount={product.price.gross.amount * product.quantity}
@@ -196,7 +235,7 @@ const OrderProducts = decorate<OrderProductsProps>(
             </div>
           </TableCell>
         </TableRow>
-        {displayPayment && (
+        {!isDraft && (
           <TableRow>
             <TableCell colSpan={5} className={classes.textRight}>
               <div className={classes.flexBox}>

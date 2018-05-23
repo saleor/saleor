@@ -30,6 +30,8 @@ interface OrderSummaryProps extends OrderProductsProps {
   onCreate?();
   onFulfill?();
   onOrderCancel?();
+  onOrderLineChange?(id: string): (value: string) => () => void;
+  onOrderLineRemove?(id: string): () => void;
   onProductAdd?();
   onRefund?();
   onRelease?();
@@ -67,6 +69,8 @@ const OrderSummary = decorate<OrderSummaryProps>(
     onCreate,
     onFulfill,
     onOrderCancel,
+    onOrderLineChange,
+    onOrderLineRemove,
     onProductAdd,
     onRefund,
     onRelease,
@@ -89,10 +93,7 @@ const OrderSummary = decorate<OrderSummaryProps>(
       OrderStatus.UNFULFILLED,
       OrderStatus.PARTIALLY_FULFILLED
     ] as any).includes(status);
-    const canCancel = !([
-      OrderStatus.CANCELLED,
-      OrderStatus.DRAFT
-    ] as any).includes(status);
+    const canCancel = status !== OrderStatus.CANCELLED;
     const canGetInvoice = paymentStatus === PaymentStatus.CONFIRMED;
     const isDraft = status === OrderStatus.DRAFT;
     return (
@@ -113,8 +114,10 @@ const OrderSummary = decorate<OrderSummaryProps>(
           </CardContent>
         )}
         <OrderProducts
-          displayPayment={!isDraft}
+          isDraft={isDraft}
           net={net}
+          onOrderLineChange={onOrderLineChange}
+          onOrderLineRemove={onOrderLineRemove}
           onRowClick={onRowClick}
           paid={paid}
           products={products}

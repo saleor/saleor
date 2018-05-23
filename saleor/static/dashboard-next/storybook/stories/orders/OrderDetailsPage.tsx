@@ -17,6 +17,18 @@ const orderDraft = orderFixture(placeholderImage, {
   status: OrderStatus.DRAFT
 });
 
+const callbacks = {
+  onBack: () => {},
+  onCreate: () => {},
+  onCustomerEmailClick: id => () => {},
+  onOrderCancel: () => {},
+  onOrderLineChange: () => () => () => {},
+  onOrderLineRemove: () => () => {},
+  onPackingSlipClick: () => () => {},
+  onPrintClick: () => {},
+  onProductClick: () => {}
+};
+
 storiesOf("Views / Orders / Order details", module)
   .addDecorator(Decorator)
   .add("when loading data", () => <OrderDetailsPage onBack={() => {}} />)
@@ -26,12 +38,7 @@ storiesOf("Views / Orders / Order details", module)
       order={order}
       prefixes={prefixes}
       user="admin@example.com"
-      onBack={() => {}}
-      onCreate={() => {}}
-      onCustomerEmailClick={id => () => {}}
-      onOrderCancel={() => {}}
-      onPackingSlipClick={() => () => {}}
-      onProductClick={() => {}}
+      {...callbacks}
     />
   ))
   .add("as a draft", () => (
@@ -43,11 +50,6 @@ storiesOf("Views / Orders / Order details", module)
       variants={variants}
       variantsLoading={false}
       fetchVariants={() => {}}
-      onBack={() => {}}
-      onCreate={() => {}}
-      onCustomerEmailClick={id => () => {}}
-      onOrderCancel={() => {}}
-      onPackingSlipClick={() => () => {}}
-      onProductClick={() => {}}
+      {...callbacks}
     />
   ));
