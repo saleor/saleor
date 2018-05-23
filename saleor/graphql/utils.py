@@ -23,7 +23,12 @@ def get_nodes(ids, graphene_type):
         assert str(graphene_type) == _type, (
             'Must receive an {} id.').format(graphene_type._meta.name)
         pks.append(_id)
-    return graphene_type._meta.model.objects.filter(pk__in=pks)
+    nodes =  graphene_type._meta.model.objects.filter(pk__in=pks)
+    if not nodes:
+        raise Exception(
+            "Could not resolve to a nodes with the global id list of '%s'."
+            % ids)
+    return nodes
 
 
 def get_attributes_dict_from_list(attributes, attr_slug_id):
