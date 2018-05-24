@@ -24,6 +24,7 @@
     "apollo-client-preset": "^1.0.6",
     "apollo-codegen": "^0.19.1",
     "apollo-link-http": "^1.5.4",
+    "apollo-upload-client": "^8.0.0",
     "bootstrap": "4.0.0",
     "classnames": "^2.2.5",
     "detect-passive-events": "^1.0.4",
