@@ -72,8 +72,9 @@ class CollectionCreateMutation(StaffMemberRequiredMixin, ModelFormMutation):
         product_ids = input.pop('products', None)
         kwargs = super().get_form_kwargs(root, info, **input)
         if product_ids:
-            products = set(
-                get_nodes(info, product_ids, only_type=Product))
+            products = {
+                get_node(info, pr_id, only_type=Product)
+                for pr_id in product_ids}
             kwargs['data']['products'] = products
         return kwargs
 
@@ -245,14 +246,14 @@ class ProductTypeCreateMutation(StaffMemberRequiredMixin, ModelFormMutation):
     def get_form_kwargs(cls, root, info, **input):
         product_attributes = input.pop('product_attributes', None)
         if product_attributes:
-            product_attributes = set(
-                get_nodes(
-                    info, product_attributes, only_type=ProductAttribute))
+            product_attributes = {
+                get_node(info, pr_att_id, only_type=ProductAttribute)
+                for pr_att_id in product_attributes}
         variant_attributes = input.pop('variant_attributes', None)
         if variant_attributes:
-            variant_attributes = set(
-                get_nodes(
-                    info, variant_attributes, only_type=ProductAttribute))
+            variant_attributes = {
+                get_node(info, pr_att_id, only_type=ProductAttribute)
+                for pr_att_id in variant_attributes}
 
         kwargs = super().get_form_kwargs(root, info, **input)
         kwargs['data']['product_attributes'] = product_attributes
