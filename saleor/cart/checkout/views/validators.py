@@ -9,7 +9,7 @@ from ....shipping.models import ShippingMethodCountry
 def validate_cart(view):
     """Decorate a view making it require a non-empty cart.
 
-    If the cart is empty redirects to the cart details.
+    If the cart is empty, redirect to the cart details.
     """
     @wraps(view)
     def func(request, cart):

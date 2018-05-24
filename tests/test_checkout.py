@@ -33,13 +33,12 @@ from saleor.discount.models import NotApplicable, Voucher
             is_shipping_required=Mock(return_value=False)),
         302, reverse('cart:index'))])
 def test_index_view(cart, status_code, url, rf, monkeypatch):
-    request = rf.get('cart:checkout-index', follow=True)
-    request.user = cart.user
-    request.discounts = []
-    request.taxes = None
     monkeypatch.setattr(
         'saleor.cart.utils.get_cart_from_request', lambda req, qs: cart)
+    request = rf.get('cart:checkout-index', follow=True)
+
     response = views.index_view(request)
+
     assert response.status_code == status_code
     assert response.url == url
 
@@ -52,15 +51,13 @@ def test_checkout_discount(request_cart_with_item, sale, vatlayer):
 
 
 def test_checkout_create_order_insufficient_stock(
-        request_cart, customer_user, product):
-    product_type = product.product_type
-    product_type.is_shipping_required = False
-    product_type.save()
-    variant = product.variants.get()
+        request_cart, customer_user, product_without_shipping):
+    variant = product_without_shipping.variants.get()
     request_cart.add(variant, quantity=10, check_quantity=False)
     request_cart.user = customer_user
     request_cart.billing_address = customer_user.default_billing_address
     request_cart.save()
+
     with pytest.raises(InsufficientStock):
         create_order(
             request_cart, 'tracking_code', discounts=None, taxes=None)

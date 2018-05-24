@@ -492,25 +492,21 @@ def test_view_empty_cart(client, request_cart):
     assert response.status_code == 200
 
 
-def test_view_cart_without_taxes(client, sale, product, request_cart):
-    variant = product.variants.get()
-    request_cart.add(variant, 1)
+def test_view_cart_without_taxes(client, sale, request_cart_with_item):
     response = client.get(reverse('cart:index'))
     response_cart_line = response.context[0]['cart_lines'][0]
-    cart_line = request_cart.lines.first()
+    cart_line = request_cart_with_item.lines.first()
     assert not response_cart_line['get_total'].tax.amount
     assert not response_cart_line['get_total'] == cart_line.get_total()
     assert response.status_code == 200
 
 
 def test_view_cart_with_taxes(
-        settings, client, sale, product, request_cart, vatlayer):
+        settings, client, sale, request_cart_with_item, vatlayer):
     settings.DEFAULT_COUNTRY = 'PL'
-    variant = product.variants.get()
-    request_cart.add(variant, 1)
     response = client.get(reverse('cart:index'))
     response_cart_line = response.context[0]['cart_lines'][0]
-    cart_line = request_cart.lines.first()
+    cart_line = request_cart_with_item.lines.first()
     assert response_cart_line['get_total'].tax.amount
     assert not response_cart_line['get_total'] == cart_line.get_total(
         taxes=vatlayer)
@@ -518,55 +514,48 @@ def test_view_cart_with_taxes(
 
 
 def test_view_update_cart_quantity(
-        client, local_currency, product, request_cart):
-    variant = product.variants.get()
-    request_cart.add(variant, 1)
+        client, local_currency, request_cart_with_item):
+    variant = request_cart_with_item.lines.get().variant
     response = client.post(
         reverse('cart:update-line', kwargs={'variant_id': variant.pk}),
         data={'quantity': 3}, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
     assert response.status_code == 200
-    assert request_cart.quantity == 3
+    assert request_cart_with_item.quantity == 3
 
 
 def test_view_update_cart_quantity_with_taxes(
-        client, local_currency, product, request_cart, vatlayer):
-    variant = product.variants.get()
-    request_cart.add(variant, 1)
+        client, local_currency, request_cart_with_item, vatlayer):
+    variant = request_cart_with_item.lines.get().variant
     response = client.post(
         reverse('cart:update-line', kwargs={'variant_id': variant.id}),
         {'quantity': 3}, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
     assert response.status_code == 200
-    assert request_cart.quantity == 3
+    assert request_cart_with_item.quantity == 3
 
 
-def test_view_invalid_update_cart(client, product, request_cart):
-    variant = product.variants.get()
-    request_cart.add(variant, 1)
+def test_view_invalid_update_cart(client, request_cart_with_item):
+    variant = request_cart_with_item.lines.get().variant
     response = client.post(
         reverse('cart:update-line', kwargs={'variant_id': variant.pk}),
         data={}, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
     resp_decoded = json.loads(response.content.decode('utf-8'))
     assert response.status_code == 400
     assert 'error' in resp_decoded.keys()
-    assert request_cart.quantity == 1
+    assert request_cart_with_item.quantity == 1
 
 
 def test_cart_page_without_openexchagerates(
-        client, product, request_cart, settings):
+        client, request_cart_with_item, settings):
     settings.OPENEXCHANGERATES_API_KEY = None
-    variant = product.variants.get()
-    request_cart.add(variant, 1)
     response = client.get(reverse('cart:index'))
     context = response.context
     assert context['local_cart_total'] is None
 
 
 def test_cart_page_with_openexchagerates(
-        client, monkeypatch, product, request_cart, settings):
+        client, monkeypatch, request_cart_with_item, settings):
     settings.DEFAULT_COUNTRY = 'PL'
     settings.OPENEXCHANGERATES_API_KEY = 'fake-key'
-    variant = product.variants.get()
-    request_cart.add(variant, 1)
     response = client.get(reverse('cart:index'))
     context = response.context
     assert context['local_cart_total'] is None
@@ -578,18 +567,17 @@ def test_cart_page_with_openexchagerates(
     assert context['local_cart_total'].currency == 'PLN'
 
 
-def test_cart_summary_page(settings, client, product, request_cart, vatlayer):
+def test_cart_summary_page(settings, client, request_cart_with_item, vatlayer):
     settings.DEFAULT_COUNTRY = 'PL'
-    variant = product.variants.get()
-    request_cart.add(variant, 1)
     response = client.get(reverse('cart:cart-summary'))
     assert response.status_code == 200
     content = response.context
-    assert content['quantity'] == request_cart.quantity
-    cart_total = request_cart.get_subtotal(taxes=vatlayer)
+    assert content['quantity'] == request_cart_with_item.quantity
+    cart_total = request_cart_with_item.get_subtotal(taxes=vatlayer)
     assert content['total'] == cart_total
     assert len(content['lines']) == 1
     cart_line = content['lines'][0]
+    variant = request_cart_with_item.lines.get().variant
     assert cart_line['variant'] == variant.name
     assert cart_line['quantity'] == 1
 
@@ -602,11 +590,9 @@ def test_cart_summary_page_empty_cart(client, request_cart):
 
 
 def test_cart_line_total_with_discount_and_taxes(
-        sale, request_cart, product, taxes):
+        sale, request_cart_with_item, taxes):
     sales = Sale.objects.all()
-    variant = product.variants.get()
-    request_cart.add(variant, 1)
-    line = request_cart.lines.first()
+    line = request_cart_with_item.lines.first()
     assert line.get_total(discounts=sales, taxes=taxes) == TaxedMoney(
         net=Money('4.07', 'USD'), gross=Money('5.00', 'USD'))
 

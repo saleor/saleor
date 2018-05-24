@@ -79,41 +79,38 @@ def test_add_variant_to_order_adds_line_for_new_variant(
 
 
 def test_add_variant_to_order_allocates_stock_for_new_variant(
-        order_with_lines_and_stock, product):
-    order = order_with_lines_and_stock
+        order_with_lines, product):
     variant = product.variants.get()
     stock_before = variant.quantity_allocated
 
-    add_variant_to_order(order, variant, 1)
+    add_variant_to_order(order_with_lines, variant, 1)
 
     variant.refresh_from_db()
     assert variant.quantity_allocated == stock_before + 1
 
 
 def test_add_variant_to_order_edits_line_for_existing_variant(
-        order_with_lines_and_stock):
-    order = order_with_lines_and_stock
-    existing_line = order.lines.first()
+        order_with_lines):
+    existing_line = order_with_lines.lines.first()
     variant = existing_line.variant
-    lines_before = order.lines.count()
+    lines_before = order_with_lines.lines.count()
     line_quantity_before = existing_line.quantity
 
-    add_variant_to_order(order, variant, 1)
+    add_variant_to_order(order_with_lines, variant, 1)
 
     existing_line.refresh_from_db()
-    assert order.lines.count() == lines_before
+    assert order_with_lines.lines.count() == lines_before
     assert existing_line.product_sku == variant.sku
     assert existing_line.quantity == line_quantity_before + 1
 
 
 def test_add_variant_to_order_allocates_stock_for_existing_variant(
-        order_with_lines_and_stock):
-    order = order_with_lines_and_stock
-    existing_line = order.lines.first()
+        order_with_lines):
+    existing_line = order_with_lines.lines.first()
     variant = existing_line.variant
     stock_before = variant.quantity_allocated
 
-    add_variant_to_order(order, variant, 1)
+    add_variant_to_order(order_with_lines, variant, 1)
 
     variant.refresh_from_db()
     assert variant.quantity_allocated == stock_before + 1
@@ -286,8 +283,7 @@ def test_order_queryset_confirmed(draft_order):
         Order.objects.create(status=OrderStatus.UNFULFILLED),
         Order.objects.create(status=OrderStatus.PARTIALLY_FULFILLED),
         Order.objects.create(status=OrderStatus.FULFILLED),
-        Order.objects.create(status=OrderStatus.CANCELED)
-    ]
+        Order.objects.create(status=OrderStatus.CANCELED)]
 
     confirmed_orders = Order.objects.confirmed()
 
@@ -370,7 +366,7 @@ def test_ajax_order_shipping_methods_list_different_country(
     assert resp_decoded == {'results': shipping_methods_list}
 
 
-def test_update_order_prices(order_with_lines, vatlayer):
+def test_update_order_prices(order_with_lines):
     taxes = get_taxes_for_country(Country('DE'))
     address = order_with_lines.shipping_address
     address.country = 'DE'
@@ -389,5 +385,6 @@ def test_update_order_prices(order_with_lines, vatlayer):
     assert line_1.unit_price == price_1
     assert line_2.unit_price == price_2
     assert order_with_lines.shipping_price == shipping_price
-    total = price_1 + price_2 + shipping_price
+    total = (
+        line_1.quantity * price_1 + line_2.quantity * price_2 + shipping_price)
     assert order_with_lines.total == total

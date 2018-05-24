@@ -139,11 +139,10 @@ def test_checkout_flow_authenticated_user(
     assert len(payment.get_purchased_items()) == len(order.lines.all())
 
 
-def test_address_without_shipping(request_cart_with_item, client):
-    line = request_cart_with_item.lines.get()
-    product_type = line.variant.product.product_type
-    product_type.is_shipping_required = False
-    product_type.save()
+def test_address_without_shipping(
+        request_cart, product_without_shipping, client):
+    variant = product_without_shipping.variants.get()
+    request_cart.add(variant)
 
     response = client.get(reverse('cart:checkout-shipping-address'))
     assert response.status_code == 302
@@ -151,11 +150,9 @@ def test_address_without_shipping(request_cart_with_item, client):
 
 
 def test_shipping_method_without_shipping(
-        request_cart_with_item, client):
-    line = request_cart_with_item.lines.get()
-    product_type = line.variant.product.product_type
-    product_type.is_shipping_required = False
-    product_type.save()
+        request_cart, product_without_shipping, client):
+    variant = product_without_shipping.variants.get()
+    request_cart.add(variant)
 
     response = client.get(reverse('cart:checkout-shipping-method'))
     assert response.status_code == 302
