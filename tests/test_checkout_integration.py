@@ -4,22 +4,36 @@ from django.urls import reverse
 from payments import FraudStatus, PaymentStatus
 
 from saleor.account.models import User
+from saleor.cart.checkout.utils import create_order
 from saleor.cart.utils import add_variant_to_cart
 
 from .utils import get_redirect_location
 
 
-@patch('saleor.cart.checkout.views.summary.send_order_confirmation')
-def test_checkout_flow(
-        mock_send_confirmation, request_cart_with_item, client,
-        shipping_method):
-    # Enter checkout
-    checkout_index = client.get(reverse('cart:checkout-index'), follow=True)
-    # Checkout index redirects directly to shipping address step
-    shipping_address = client.get(checkout_index.request['PATH_INFO'])
+def test_checkout_index(client, request_cart_with_item):
+    url = reverse('cart:checkout-index')
 
-    # Enter shipping address data
-    shipping_data = {
+    response = client.get(url, follow=True)
+
+    redirect_url = reverse('cart:checkout-shipping-address')
+    assert response.request['PATH_INFO'] == redirect_url
+
+
+def test_checkout_index_authorized_user(
+        authorized_client, customer_user, request_cart_with_item):
+    request_cart_with_item.user = customer_user
+    request_cart_with_item.save()
+    url = reverse('cart:checkout-index')
+
+    response = authorized_client.get(url, follow=True)
+
+    redirect_url = reverse('cart:checkout-shipping-address')
+    assert response.request['PATH_INFO'] == redirect_url
+
+
+def test_checkout_shipping_address(client, request_cart_with_item):
+    url = reverse('cart:checkout-shipping-address')
+    data = {
         'user_email': 'test@example.com',
         'first_name': 'John',
         'last_name': 'Doe',
@@ -31,32 +45,132 @@ def test_checkout_flow(
         'postal_code': '00-374',
         'phone': '+48536984008',
         'country': 'PL'}
-    shipping_response = client.post(
-        shipping_address.request['PATH_INFO'], data=shipping_data, follow=True)
 
-    # Select shipping method
-    shipping_method_page = client.get(shipping_response.request['PATH_INFO'])
+    response = client.get(url)
 
-    # Redirect to summary after shipping method selection
-    shipping_method_data = {
-        'shipping_method': shipping_method.price_per_country.first().pk}
-    shipping_method_response = client.post(
-        shipping_method_page.request['PATH_INFO'], data=shipping_method_data,
-        follow=True)
+    assert response.request['PATH_INFO'] == url
 
-    # Summary page asks for Billing address, default is the same as shipping
-    address_data = {'address': 'shipping_address'}
-    summary_response = client.post(
-        shipping_method_response.request['PATH_INFO'], data=address_data,
-        follow=True)
+    response = client.post(url, data=data, follow=True)
 
-    # After summary step, order is created and it waits for payment
-    order = summary_response.context['order']
+    redirect_url = reverse('cart:checkout-shipping-method')
+    assert response.request['PATH_INFO'] == redirect_url
+
+
+def test_checkout_shipping_address_authorized_user(
+        authorized_client, customer_user, request_cart_with_item):
+    request_cart_with_item.user = customer_user
+    request_cart_with_item.save()
+    url = reverse('cart:checkout-shipping-address')
+    data = {'address': customer_user.default_billing_address.pk}
+
+    response = authorized_client.post(url, data=data, follow=True)
+
+    redirect_url = reverse('cart:checkout-shipping-method')
+    assert response.request['PATH_INFO'] == redirect_url
+
+
+def test_checkout_shipping_method(
+        client, shipping_method, address, request_cart_with_item):
+    request_cart_with_item.shipping_address = address
+    request_cart_with_item.user_email = 'test@example.com'
+    request_cart_with_item.save()
+    url = reverse('cart:checkout-shipping-method')
+    data = {'shipping_method': shipping_method.price_per_country.first().pk}
+
+    response = client.get(url)
+
+    assert response.request['PATH_INFO'] == url
+
+    response = client.post(url, data=data, follow=True)
+
+    redirect_url = reverse('cart:checkout-summary')
+    assert response.request['PATH_INFO'] == redirect_url
+
+
+def test_checkout_shipping_method_authorized_user(
+        authorized_client, customer_user, shipping_method, address,
+        request_cart_with_item):
+    request_cart_with_item.user = customer_user
+    request_cart_with_item.user_email = customer_user.email
+    request_cart_with_item.shipping_address = address
+    request_cart_with_item.save()
+    url = reverse('cart:checkout-shipping-method')
+    data = {'shipping_method': shipping_method.price_per_country.first().pk}
+
+    response = authorized_client.get(url)
+
+    assert response.request['PATH_INFO'] == url
+
+    response = authorized_client.post(url, data=data, follow=True)
+
+    redirect_url = reverse('cart:checkout-summary')
+    assert response.request['PATH_INFO'] == redirect_url
+
+
+@patch('saleor.cart.checkout.views.summary.send_order_confirmation')
+def test_checkout_summary(
+        mock_send_confirmation, client, shipping_method, address,
+        request_cart_with_item):
+    request_cart_with_item.shipping_address = address
+    request_cart_with_item.user_email = 'test@example.com'
+    request_cart_with_item.shipping_method = (
+        shipping_method.price_per_country.first())
+    request_cart_with_item.save()
+    url = reverse('cart:checkout-summary')
+    data = {'address': 'shipping_address'}
+
+    response = client.get(url)
+
+    assert response.request['PATH_INFO'] == url
+
+    response = client.post(url, data=data, follow=True)
+
+    order = response.context['order']
+    redirect_url = reverse('order:payment', kwargs={'token': order.token})
+    assert response.request['PATH_INFO'] == redirect_url
+    mock_send_confirmation.delay.assert_called_once_with(order.pk)
+
+
+@patch('saleor.cart.checkout.views.summary.send_order_confirmation')
+def test_checkout_summary_authorized_user(
+        mock_send_confirmation, authorized_client, customer_user,
+        shipping_method, address, request_cart_with_item):
+    request_cart_with_item.shipping_address = address
+    request_cart_with_item.user = customer_user
+    request_cart_with_item.user_email = customer_user.email
+    request_cart_with_item.shipping_method = (
+        shipping_method.price_per_country.first())
+    request_cart_with_item.save()
+    url = reverse('cart:checkout-summary')
+    data = {'address': 'shipping_address'}
+
+    response = authorized_client.get(url)
+
+    assert response.request['PATH_INFO'] == url
+
+    response = authorized_client.post(url, data=data, follow=True)
+
+    order = response.context['order']
+    redirect_url = reverse('order:payment', kwargs={'token': order.token})
+    assert response.request['PATH_INFO'] == redirect_url
+    mock_send_confirmation.delay.assert_called_once_with(order.pk)
+
+
+def test_new_order_payment(
+        request_cart_with_item, client, address, shipping_method):
+    request_cart_with_item.shipping_address = address
+    request_cart_with_item.billing_address = address.get_copy()
+    request_cart_with_item.user_email = 'test@example.com'
+    request_cart_with_item.shipping_method = (
+        shipping_method.price_per_country.first())
+    request_cart_with_item.save()
+
+    order = create_order(
+        request_cart_with_item, 'tracking_code', discounts=None, taxes=None)
 
     # Select payment method
-    payment_page = client.post(
-        summary_response.request['PATH_INFO'], data={'method': 'default'},
-        follow=True)
+    url = reverse('order:payment', kwargs={'token': order.token})
+    payment_page = client.post(url, data={'method': 'default'}, follow=True)
     assert len(payment_page.redirect_chain) == 1
     assert payment_page.status_code == 200
     # Go to payment details page, enter payment data
@@ -76,46 +190,27 @@ def test_checkout_flow(
     order_password = reverse(
         'order:checkout-success', kwargs={'token': order.token})
     assert get_redirect_location(success_response) == order_password
-    mock_send_confirmation.delay.assert_called_once_with(order.pk)
 
 
-def test_checkout_flow_authenticated_user(
+def test_new_order_payment_authorized_user(
         authorized_client, request_cart_with_item, customer_user,
         shipping_method):
-    # Prepare some data
     request_cart_with_item.user = customer_user
+    request_cart_with_item.shipping_address = (
+        customer_user.default_shipping_address)
+    request_cart_with_item.billing_address = (
+        customer_user.default_billing_address)
+    request_cart_with_item.shipping_method = (
+        shipping_method.price_per_country.first())
     request_cart_with_item.save()
 
-    # Enter checkout
-    # Checkout index redirects directly to shipping address step
-    shipping_address = authorized_client.get(
-        reverse('cart:checkout-index'), follow=True)
-
-    # Enter shipping address data
-    shipping_data = {'address': customer_user.default_billing_address.pk}
-    shipping_method_page = authorized_client.post(
-        shipping_address.request['PATH_INFO'], data=shipping_data, follow=True)
-
-    # Select shipping method
-    shipping_method_data = {
-        'shipping_method': shipping_method.price_per_country.first().pk}
-    shipping_method_response = authorized_client.post(
-        shipping_method_page.request['PATH_INFO'], data=shipping_method_data,
-        follow=True)
-
-    # Summary page asks for Billing address, default is the same as shipping
-    payment_method_data = {'address': 'shipping_address'}
-    payment_method_page = authorized_client.post(
-        shipping_method_response.request['PATH_INFO'],
-        data=payment_method_data, follow=True)
-
-    # After summary step, order is created and it waits for payment
-    order = payment_method_page.context['order']
+    order = create_order(
+        request_cart_with_item, 'tracking_code', discounts=None, taxes=None)
 
     # Select payment method
+    url = reverse('order:payment', kwargs={'token': order.token})
     payment_page = authorized_client.post(
-        payment_method_page.request['PATH_INFO'], data={'method': 'default'},
-        follow=True)
+        url, data={'method': 'default'}, follow=True)
 
     # Go to payment details page, enter payment data
     payment_data = {
