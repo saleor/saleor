@@ -1,4 +1,3 @@
-from decimal import Decimal
 from io import BytesIO
 from unittest.mock import MagicMock, Mock
 
@@ -18,6 +17,7 @@ from prices import Money
 from saleor.account.models import Address, User
 from saleor.cart import utils
 from saleor.cart.models import Cart
+from saleor.cart.utils import add_variant_to_cart
 from saleor.dashboard.order.utils import fulfill_order_line
 from saleor.discount.models import Sale, Voucher
 from saleor.menu.models import Menu, MenuItem
@@ -88,8 +88,7 @@ def request_cart(cart, monkeypatch):
 @pytest.fixture
 def request_cart_with_item(product, request_cart):
     variant = product.variants.get()
-    # Prepare some data
-    request_cart.add(variant)
+    add_variant_to_cart(request_cart, variant)
     return request_cart
 
 

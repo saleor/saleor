@@ -5,6 +5,7 @@ from django.core.exceptions import NON_FIELD_ERRORS, ObjectDoesNotExist
 from django.utils.translation import npgettext_lazy, pgettext_lazy
 from django_countries.fields import LazyTypedChoiceField, countries
 
+from ..cart.utils import add_variant_to_cart
 from ..core.exceptions import InsufficientStock
 from ..shipping.utils import get_shipment_options
 
@@ -61,16 +62,16 @@ class AddToCartForm(forms.Form):
         if quantity is None:
             return cleaned_data
         try:
-            product_variant = self.get_variant(cleaned_data)
+            variant = self.get_variant(cleaned_data)
         except ObjectDoesNotExist:
             msg = self.error_messages['variant-does-not-exists']
             self.add_error(NON_FIELD_ERRORS, msg)
         else:
-            cart_line = self.cart.get_line(product_variant)
-            used_quantity = cart_line.quantity if cart_line else 0
+            line = self.cart.get_line(variant)
+            used_quantity = line.quantity if line else 0
             new_quantity = quantity + used_quantity
             try:
-                product_variant.check_quantity(new_quantity)
+                variant.check_quantity(new_quantity)
             except InsufficientStock as e:
                 remaining = e.item.quantity_available - used_quantity
                 if remaining:
@@ -83,9 +84,9 @@ class AddToCartForm(forms.Form):
 
     def save(self):
         """Add the selected product variant and quantity to the cart."""
-        product_variant = self.get_variant(self.cleaned_data)
-        return self.cart.add(variant=product_variant,
-                             quantity=self.cleaned_data['quantity'])
+        variant = self.get_variant(self.cleaned_data)
+        quantity = self.cleaned_data['quantity']
+        add_variant_to_cart(self.cart, variant, quantity)
 
     def get_variant(self, cleaned_data):
         """Return a product variant that matches submitted values.
@@ -142,9 +143,9 @@ class ReplaceCartLineForm(AddToCartForm):
 
     def save(self):
         """Replace the selected product's quantity in cart."""
-        product_variant = self.get_variant(self.cleaned_data)
-        return self.cart.add(product_variant, self.cleaned_data['quantity'],
-                             replace=True)
+        variant = self.get_variant(self.cleaned_data)
+        quantity = self.cleaned_data['quantity']
+        add_variant_to_cart(self.cart, variant, quantity, replace=True)
 
 
 class CountryForm(forms.Form):

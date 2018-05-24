@@ -10,7 +10,7 @@ from django.utils.timezone import now
 from django_prices.models import MoneyField
 from jsonfield import JSONField
 
-from . import CartStatus, logger
+from . import CartStatus
 from ..account.models import Address
 from ..core.utils.taxes import ZERO_TAXED_MONEY
 from ..shipping.models import ShippingMethodCountry
@@ -18,30 +18,12 @@ from ..shipping.models import ShippingMethodCountry
 CENTS = Decimal('0.01')
 
 
-def find_open_cart_for_user(user):
-    """Find an open cart for the given user."""
-    carts = user.carts.open()
-    if len(carts) > 1:
-        logger.warning('%s has more than one open basket', user)
-        for cart in carts[1:]:
-            cart.change_status(CartStatus.CANCELED)
-    return carts.first()
-
-
 class CartQueryset(models.QuerySet):
     """A specialized queryset for dealing with carts."""
-
-    def anonymous(self):
-        """Return unassigned carts."""
-        return self.filter(user=None)
 
     def open(self):
         """Return `OPEN` carts."""
         return self.filter(status=CartStatus.OPEN)
-
-    def canceled(self):
-        """Return `CANCELED` carts."""
-        return self.filter(status=CartStatus.CANCELED)
 
     def for_display(self):
         """Annotate the queryset for display purposes.
@@ -101,14 +83,6 @@ class Cart(models.Model):
     def __len__(self):
         return self.lines.count()
 
-    def update_quantity(self):
-        """Recalculate cart quantity based on lines."""
-        total_lines = self.count()['total_quantity']
-        if not total_lines:
-            total_lines = 0
-        self.quantity = total_lines
-        self.save(update_fields=['quantity'])
-
     def change_status(self, status):
         """Change cart status."""
         # FIXME: investigate replacing with django-fsm transitions
@@ -118,18 +92,6 @@ class Cart(models.Model):
             self.status = status
             self.last_status_change = now()
             self.save()
-
-    def change_user(self, user):
-        """Assign cart to a user.
-
-        If the user already has an open cart assigned, cancel it.
-        """
-        open_cart = find_open_cart_for_user(user)
-        if open_cart is not None:
-            open_cart.change_status(status=CartStatus.CANCELED)
-        self.user = user
-        self.shipping_address = user.default_shipping_address
-        self.save(update_fields=['user', 'shipping_address'])
 
     def is_shipping_required(self):
         """Return `True` if any of the lines requires shipping."""
@@ -149,68 +111,15 @@ class Cart(models.Model):
 
     def get_total(self, discounts=None, taxes=None):
         """Return the total cost of the cart."""
-        total = self.get_subtotal(discounts, taxes)
-        total += self.get_shipping_price(taxes)
-        total -= self.discount_amount
-        return total
+        return (
+            self.get_subtotal(discounts, taxes)
+            + self.get_shipping_price(taxes)
+            - self.discount_amount)
 
-    def count(self):
-        """Return the total quantity in cart."""
-        lines = self.lines.all()
-        return lines.aggregate(total_quantity=models.Sum('quantity'))
-
-    def create_line(self, variant, quantity, data):
-        """Create a cart line for given variant, quantity and optional data.
-
-        The `data` parameter may be used to differentiate between items with
-        different customization options.
-        """
-        return self.lines.create(
-            variant=variant, quantity=quantity, data=data or {})
-
-    def get_line(self, variant, data=None):
+    def get_line(self, variant):
         """Return a line matching the given variant and data if any."""
-        all_lines = self.lines.all()
-        if data is None:
-            data = {}
-        line = [
-            line for line in all_lines
-            if line.variant_id == variant.id and line.data == data]
-        if line:
-            return line[0]
-        return None
-
-    def add(self, variant, quantity=1, data=None, replace=False,
-            check_quantity=True):
-        """Add a product vartiant to cart.
-
-        The `data` parameter may be used to differentiate between items with
-        different customization options.
-
-        If `replace` is truthy then any previous quantity is discarded instead
-        of added to.
-        """
-        cart_line, dummy_created = self.lines.get_or_create(
-            variant=variant, defaults={'quantity': 0, 'data': data or {}})
-        if replace:
-            new_quantity = quantity
-        else:
-            new_quantity = cart_line.quantity + quantity
-
-        if new_quantity < 0:
-            raise ValueError('%r is not a valid quantity (results in %r)' % (
-                quantity, new_quantity))
-
-        if check_quantity:
-            variant.check_quantity(new_quantity)
-
-        cart_line.quantity = new_quantity
-
-        if not cart_line.quantity:
-            cart_line.delete()
-        else:
-            cart_line.save(update_fields=['quantity'])
-        self.update_quantity()
+        matching_lines = (l for l in self.lines.all() if l.variant == variant)
+        return next(matching_lines, None)
 
 
 class CartLine(models.Model):
@@ -240,21 +149,20 @@ class CartLine(models.Model):
 
         return (
             self.variant == other.variant and
-            self.quantity == other.quantity and
-            self.data == other.data)
+            self.quantity == other.quantity)
 
     def __ne__(self, other):
         return not self == other  # pragma: no cover
 
     def __repr__(self):
-        return 'CartLine(variant=%r, quantity=%r, data=%r)' % (
-            self.variant, self.quantity, self.data)
+        return 'CartLine(variant=%r, quantity=%r)' % (
+            self.variant, self.quantity)
 
     def __getstate__(self):
-        return self.variant, self.quantity, self.data
+        return self.variant, self.quantity
 
     def __setstate__(self, data):
-        self.variant, self.quantity, self.data = data
+        self.variant, self.quantity = data
 
     def get_total(self, discounts=None, taxes=None):
         """Return the total price of this line."""

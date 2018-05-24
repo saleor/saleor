@@ -21,5 +21,5 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RunPython(convert_lines_data)
+        migrations.RunPython(convert_lines_data, migrations.RunPython.noop)
     ]
