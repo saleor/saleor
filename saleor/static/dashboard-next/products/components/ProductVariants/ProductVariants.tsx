@@ -28,6 +28,7 @@ interface ProductVariantsProps {
       localized: string;
     };
     stockQuantity: number;
+    margin: number;
   }>;
   fallbackPrice?: string;
   fallbackGross?: string;
@@ -136,10 +137,7 @@ export const ProductVariants = decorate<ProductVariantsProps>(
                       : fallbackPrice}
                   </TableCell>
                   <TableCell className={classes.alignRightText}>
-                    {/* TODO: replace with costPrice */}
-                    {variant.priceOverride
-                      ? variant.priceOverride.localized
-                      : fallbackGross}
+                    {variant.margin}
                   </TableCell>
                 </Hidden>
               </TableRow>

@@ -313,6 +313,24 @@ export interface PageDetailsQuery {
   } | null,
 };
 
+export interface ProductImageCreateMutationVariables {
+  id: string,
+  file: string,
+};
+
+export interface ProductImageCreateMutation {
+  productImageCreate:  {
+    // A newly created product image.
+    productImage:  {
+      // The ID of the object.
+      id: string,
+      image: string,
+      url: string,
+      order: number,
+    } | null,
+  } | null,
+};
+
 export interface ProductListQueryVariables {
   first?: number | null,
   after?: string | null,
@@ -452,6 +470,8 @@ export interface ProductDetailsQuery {
           } | null,
           // Quantity of a product available for sale.
           stockQuantity: number,
+          // Gross margin percentage value.
+          margin: number | null,
         } | null,
       } | null >,
     } | null,
