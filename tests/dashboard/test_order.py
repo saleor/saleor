@@ -414,15 +414,14 @@ def test_view_cancel_order_line(admin_client, draft_order):
 
 
 @pytest.mark.integration
-def test_view_change_order_line_quantity(admin_client, draft_order_with_stock):
-    order = draft_order_with_stock
-    lines_before_quantity_change = order.lines.all()
+def test_view_change_order_line_quantity(admin_client, draft_order):
+    lines_before_quantity_change = draft_order.lines.all()
     lines_before_quantity_change_count = lines_before_quantity_change.count()
     line = lines_before_quantity_change.first()
 
     url = reverse(
         'dashboard:orderline-change-quantity',
-        kwargs={'order_pk': order.pk, 'line_pk': line.pk})
+        kwargs={'order_pk': draft_order.pk, 'line_pk': line.pk})
     response = admin_client.get(url)
     assert response.status_code == 200
     response = admin_client.post(url, {'quantity': 2}, follow=True)
@@ -430,7 +429,7 @@ def test_view_change_order_line_quantity(admin_client, draft_order_with_stock):
     # check redirection
     assert redirect_status_code == 302
     assert redirected_to == reverse(
-        'dashboard:order-details', kwargs={'order_pk': order.id})
+        'dashboard:order-details', kwargs={'order_pk': draft_order.id})
     # success messages should appear after redirect
     assert response.context['messages']
     lines_after = Order.objects.get().lines.all()
@@ -563,18 +562,17 @@ def test_view_fulfillment_packing_slips_without_shipping(
     assert response['content-type'] == 'application/pdf'
 
 
-def test_view_add_variant_to_order(
-        admin_client, order_with_lines_and_stock):
-    order = order_with_lines_and_stock
-    order.status = OrderStatus.DRAFT
-    order.save()
+def test_view_add_variant_to_order(admin_client, order_with_lines):
+    order_with_lines.status = OrderStatus.DRAFT
+    order_with_lines.save()
     variant = ProductVariant.objects.get(sku='SKU_A')
     line = OrderLine.objects.get(product_sku='SKU_A')
     line_quantity_before = line.quantity
 
     added_quantity = 2
     url = reverse(
-        'dashboard:add-variant-to-order', kwargs={'order_pk': order.pk})
+        'dashboard:add-variant-to-order',
+        kwargs={'order_pk': order_with_lines.pk})
     data = {'variant': variant.pk, 'quantity': added_quantity}
 
     response = admin_client.post(url, data)
@@ -582,7 +580,7 @@ def test_view_add_variant_to_order(
     line.refresh_from_db()
     assert response.status_code == 302
     assert get_redirect_location(response) == reverse(
-        'dashboard:order-details', kwargs={'order_pk': order.pk})
+        'dashboard:order-details', kwargs={'order_pk': order_with_lines.pk})
     assert line.quantity == line_quantity_before + added_quantity
 
 
