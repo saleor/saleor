@@ -5,11 +5,12 @@ from uuid import UUID
 
 from django.contrib import messages
 from django.db import transaction
+from django.db.models import Sum
 from django.utils.timezone import now
 from django.utils.translation import pgettext_lazy
 from prices import TaxedMoneyRange
 
-from . import CartStatus
+from . import CartStatus, logger
 from ..core.exceptions import InsufficientStock
 from ..core.utils import to_local_currency
 from .models import Cart
@@ -52,10 +53,11 @@ def remove_unavailable_variants(cart):
     """Remove any unavailable items from cart."""
     for line in cart.lines.all():
         try:
-            cart.add(line.variant, quantity=line.quantity, replace=True)
+            add_variant_to_cart(
+                cart, line.variant, line.quantity, replace=True)
         except InsufficientStock as e:
             quantity = e.item.quantity_available
-            cart.add(line.variant, quantity=quantity, replace=True)
+            add_variant_to_cart(cart, line.variant, quantity, replace=True)
 
 
 def get_product_variants_and_prices(cart, product):
@@ -110,7 +112,7 @@ def find_and_assign_anonymous_cart(queryset=Cart.objects.all()):
                 return response
             if request.user.is_authenticated:
                 with transaction.atomic():
-                    cart.change_user(request.user)
+                    change_cart_user(cart, request.user)
                     carts_to_close = Cart.objects.open().filter(
                         user=request.user)
                     carts_to_close = carts_to_close.exclude(token=token)
@@ -239,3 +241,66 @@ def get_cart_data(cart, shipping_range, currency, discounts, taxes):
         'shipping_required': shipping_required,
         'total_with_shipping': total_with_shipping,
         'local_total_with_shipping': local_total_with_shipping}
+
+
+def find_open_cart_for_user(user):
+    """Find an open cart for the given user."""
+    carts = user.carts.open()
+    if len(carts) > 1:
+        logger.warning('%s has more than one open basket', user)
+        for cart in carts[1:]:
+            cart.change_status(CartStatus.CANCELED)
+    return carts.first()
+
+
+def change_cart_user(cart, user):
+    """Assign cart to a user.
+
+    If the user already has an open cart assigned, cancel it.
+    """
+    open_cart = find_open_cart_for_user(user)
+    if open_cart is not None:
+        open_cart.change_status(status=CartStatus.CANCELED)
+    cart.user = user
+    cart.shipping_address = user.default_shipping_address
+    cart.save(update_fields=['user', 'shipping_address'])
+
+
+def update_cart_quantity(cart):
+    """Update the total quantity in cart."""
+    total_lines = cart.lines.aggregate(
+        total_quantity=Sum('quantity'))['total_quantity']
+    if not total_lines:
+        total_lines = 0
+    cart.quantity = total_lines
+    cart.save(update_fields=['quantity'])
+
+
+def add_variant_to_cart(
+        cart, variant, quantity=1, replace=False, check_quantity=True):
+    """Add a product variant to cart.
+
+    The `data` parameter may be used to differentiate between items with
+    different customization options.
+
+    If `replace` is truthy then any previous quantity is discarded instead
+    of added to.
+    """
+    line, _ = cart.lines.get_or_create(
+        variant=variant, defaults={'quantity': 0, 'data': {}})
+    new_quantity = quantity if replace else (quantity + line.quantity)
+
+    if new_quantity < 0:
+        raise ValueError('%r is not a valid quantity (results in %r)' % (
+            quantity, new_quantity))
+
+    if new_quantity == 0:
+        line.delete()
+    else:
+        if check_quantity:
+            variant.check_quantity(new_quantity)
+
+        line.quantity = new_quantity
+        line.save(update_fields=['quantity'])
+
+    update_cart_quantity(cart)

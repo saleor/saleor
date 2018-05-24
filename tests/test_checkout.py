@@ -10,6 +10,7 @@ from saleor.cart.checkout import views
 from saleor.cart.checkout.forms import CartVoucherForm
 from saleor.cart.checkout.utils import (
     create_order, get_voucher_discount_for_cart)
+from saleor.cart.utils import add_variant_to_cart
 from saleor.core.exceptions import InsufficientStock
 from saleor.discount import DiscountValueType, VoucherType
 from saleor.discount.models import NotApplicable, Voucher
@@ -53,7 +54,7 @@ def test_checkout_discount(request_cart_with_item, sale, vatlayer):
 def test_checkout_create_order_insufficient_stock(
         request_cart, customer_user, product_without_shipping):
     variant = product_without_shipping.variants.get()
-    request_cart.add(variant, quantity=10, check_quantity=False)
+    add_variant_to_cart(request_cart, variant, 10, check_quantity=False)
     request_cart.user = customer_user
     request_cart.billing_address = customer_user.default_billing_address
     request_cart.save()

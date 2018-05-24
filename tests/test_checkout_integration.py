@@ -4,6 +4,7 @@ from django.urls import reverse
 from payments import FraudStatus, PaymentStatus
 
 from saleor.account.models import User
+from saleor.cart.utils import add_variant_to_cart
 
 from .utils import get_redirect_location
 
@@ -142,7 +143,7 @@ def test_checkout_flow_authenticated_user(
 def test_address_without_shipping(
         request_cart, product_without_shipping, client):
     variant = product_without_shipping.variants.get()
-    request_cart.add(variant)
+    add_variant_to_cart(request_cart, variant)
 
     response = client.get(reverse('cart:checkout-shipping-address'))
     assert response.status_code == 302
@@ -152,7 +153,7 @@ def test_address_without_shipping(
 def test_shipping_method_without_shipping(
         request_cart, product_without_shipping, client):
     variant = product_without_shipping.variants.get()
-    request_cart.add(variant)
+    add_variant_to_cart(request_cart, variant)
 
     response = client.get(reverse('cart:checkout-shipping-method'))
     assert response.status_code == 302
