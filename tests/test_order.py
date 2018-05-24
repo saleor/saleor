@@ -160,14 +160,6 @@ def test_add_note_to_order(order_with_lines):
     assert order.notes.first().content == 'test_note'
 
 
-def test_create_order_history(order_with_lines):
-    order = order_with_lines
-    order.history.create(content='test_entry', user=order.user)
-    history_entry = models.OrderHistoryEntry.objects.get(order=order)
-    assert history_entry == order.history.first()
-    assert history_entry.content == 'test_entry'
-
-
 def test_restock_order_lines(order_with_lines):
     order = order_with_lines
     line_1 = order.lines.first()
