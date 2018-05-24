@@ -241,7 +241,7 @@ def test_get_nodes(product_list):
     global_ids.append(to_global_id('Product', product_list[0].pk))
     # Return products corresponding to global ids
     products = get_nodes(global_ids, Product)
-    assert list(products) == product_list
+    assert products == product_list
 
     # Raise an error if requested id has no related database object
     nonexistent_item = Mock(type='Product', pk=123)
