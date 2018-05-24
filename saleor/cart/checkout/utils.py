@@ -50,7 +50,7 @@ def get_shipping_address_forms(cart, user_addresses, data, country):
 
 
 def update_shipping_address_in_cart(cart, user_addresses, data, country):
-    """Return shipping address choice forms and if and address was updated."""
+    """Return shipping address choice forms and if an address was updated."""
     address_form, addresses_form, preview = (
         get_shipping_address_forms(cart, user_addresses, data, country))
 
@@ -76,7 +76,7 @@ def update_shipping_address_in_cart(cart, user_addresses, data, country):
 
 
 def update_shipping_address_in_anonymous_cart(cart, data, country):
-    """Return shipping address choice forms and if and address was updated."""
+    """Return shipping address choice forms and if an address was updated."""
     address_form, preview = get_address_form(
         data, country_code=country.code,
         autocomplete_type='shipping',
@@ -132,7 +132,7 @@ def get_billing_forms_with_shipping(cart, data, user_addresses, country):
 
 def update_billing_address_in_cart_with_shipping(
         cart, user_addresses, data, country):
-    """Return shipping address choice forms and if and address was updated."""
+    """Return shipping address choice forms and if an address was updated."""
     address_form, addresses_form, preview = get_billing_forms_with_shipping(
         cart, data, user_addresses, country)
 
@@ -143,7 +143,10 @@ def update_billing_address_in_cart_with_shipping(
         address_id = addresses_form.cleaned_data['address']
 
         if address_id == BillingAddressChoiceForm.SHIPPING_ADDRESS:
-            address = cart.shipping_address
+            if cart.user and cart.shipping_address in user_addresses:
+                address = cart.shipping_address
+            else:
+                address = cart.shipping_address.get_copy()
         elif address_id != BillingAddressChoiceForm.NEW_ADDRESS:
             address = user_addresses.get(id=address_id)
         elif address_form.is_valid():
@@ -173,7 +176,7 @@ def get_anonymous_summary_without_shipping_forms(cart, data, country):
 
 
 def update_billing_address_in_anonymous_cart(cart, data, country):
-    """Return shipping address choice forms and if and address was updated."""
+    """Return shipping address choice forms and if an address was updated."""
     address_form, preview = get_anonymous_summary_without_shipping_forms(
         cart, data, country)
     user_form = AnonymousUserBillingForm(data, instance=cart)
@@ -225,7 +228,7 @@ def get_summary_without_shipping_forms(cart, user_addresses, data, country):
 
 
 def update_billing_address_in_cart(cart, user_addresses, data, country):
-    """Return shipping address choice forms and if and address was updated."""
+    """Return shipping address choice forms and if an address was updated."""
     address_form, addresses_form, preview = (
         get_summary_without_shipping_forms(
             cart, user_addresses, data, country))
@@ -395,12 +398,12 @@ def recalculate_cart_discount(cart):
             cart.discount_name = voucher.name
             cart.save(update_fields=['discount_amount', 'discount_name'])
         except NotApplicable:
-            remove_discount_from_cart(cart)
+            remove_voucher_from_cart(cart)
     else:
-        remove_discount_from_cart(cart)
+        remove_voucher_from_cart(cart)
 
 
-def remove_discount_from_cart(cart):
+def remove_voucher_from_cart(cart):
     """Remove voucher data from cart."""
     cart.voucher_code = None
     cart.discount_name = None

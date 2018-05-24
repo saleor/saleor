@@ -1,19 +1,28 @@
-from datetime import date, timedelta
+import datetime
 from unittest.mock import Mock
 
 import pytest
 from django.urls import reverse
+from django_countries.fields import Country
 from freezegun import freeze_time
 from prices import Money, TaxedMoney
 
+from saleor.account.models import Address
 from saleor.cart.checkout import views
 from saleor.cart.checkout.forms import CartVoucherForm
 from saleor.cart.checkout.utils import (
-    create_order, get_voucher_discount_for_cart)
+    create_order, get_checkout_data, get_taxes_for_cart,
+    get_voucher_discount_for_cart, get_voucher_for_cart,
+    recalculate_cart_discount, remove_voucher_from_cart,
+    save_billing_address_in_cart, save_shipping_address_in_cart)
 from saleor.cart.utils import add_variant_to_cart
 from saleor.core.exceptions import InsufficientStock
+from saleor.core.utils.taxes import (
+    ZERO_MONEY, ZERO_TAXED_MONEY, get_taxes_for_country)
 from saleor.discount import DiscountValueType, VoucherType
 from saleor.discount.models import NotApplicable, Voucher
+
+from .utils import compare_taxes
 
 
 @pytest.mark.parametrize('cart, status_code, url', [
@@ -233,7 +242,7 @@ def test_checkout_discount_form_not_applicable_voucher(
 def test_checkout_discount_form_active_queryset_voucher_not_active(
         voucher, request_cart_with_item):
     assert Voucher.objects.count() == 1
-    voucher.start_date = date.today() + timedelta(days=1)
+    voucher.start_date = datetime.date.today() + datetime.timedelta(days=1)
     voucher.save()
     form = CartVoucherForm(
         {'voucher': voucher.code}, instance=request_cart_with_item)
@@ -244,7 +253,7 @@ def test_checkout_discount_form_active_queryset_voucher_not_active(
 def test_checkout_discount_form_active_queryset_voucher_active(
         voucher, request_cart_with_item):
     assert Voucher.objects.count() == 1
-    voucher.start_date = date.today()
+    voucher.start_date = datetime.date.today()
     voucher.save()
     form = CartVoucherForm(
         {'voucher': voucher.code}, instance=request_cart_with_item)
@@ -255,8 +264,8 @@ def test_checkout_discount_form_active_queryset_voucher_active(
 def test_checkout_discount_form_active_queryset_after_some_time(
         voucher, request_cart_with_item):
     assert Voucher.objects.count() == 1
-    voucher.start_date = date(year=2016, month=6, day=1)
-    voucher.end_date = date(year=2016, month=6, day=2)
+    voucher.start_date = datetime.date(year=2016, month=6, day=1)
+    voucher.end_date = datetime.date(year=2016, month=6, day=2)
     voucher.save()
 
     with freeze_time('2016-05-31'):
@@ -273,3 +282,164 @@ def test_checkout_discount_form_active_queryset_after_some_time(
         form = CartVoucherForm(
             {'voucher': voucher.code}, instance=request_cart_with_item)
         assert form.fields['voucher'].queryset.count() == 0
+
+
+def test_get_taxes_for_cart(cart, vatlayer):
+    taxes = get_taxes_for_cart(cart, vatlayer)
+    compare_taxes(taxes, vatlayer)
+
+
+def test_get_taxes_for_cart_with_shipping_address(cart, address, vatlayer):
+    address.country = 'DE'
+    address.save()
+    cart.shipping_address = address
+    cart.save()
+    taxes = get_taxes_for_cart(cart, vatlayer)
+    compare_taxes(taxes, get_taxes_for_country(Country('DE')))
+
+
+def test_get_voucher_for_cart(cart_with_voucher, voucher):
+    cart_voucher = get_voucher_for_cart(cart_with_voucher)
+    assert cart_voucher == voucher
+
+
+def test_get_voucher_for_cart_expired_voucher(cart_with_voucher, voucher):
+    date_yesterday = datetime.date.today() - datetime.timedelta(days=1)
+    voucher.end_date = date_yesterday
+    voucher.save()
+    cart_voucher = get_voucher_for_cart(cart_with_voucher)
+    assert cart_voucher is None
+
+
+def test_get_voucher_for_cart_no_voucher_code(cart):
+    cart_voucher = get_voucher_for_cart(cart)
+    assert cart_voucher is None
+
+
+def test_remove_voucher_from_cart(cart_with_voucher):
+    cart = cart_with_voucher
+    remove_voucher_from_cart(cart)
+
+    assert not cart.voucher_code
+    assert not cart.discount_name
+    assert cart.discount_amount == ZERO_MONEY
+
+
+def test_recalculate_cart_discount(cart_with_voucher, voucher):
+    voucher.discount_value = 10
+    voucher.save()
+
+    recalculate_cart_discount(cart_with_voucher)
+
+    assert cart_with_voucher.discount_amount == Money('10.00', 'USD')
+
+
+def test_recalculate_cart_discount_voucher_not_applicable(
+        cart_with_voucher, voucher):
+    cart = cart_with_voucher
+    voucher.limit = 100
+    voucher.save()
+
+    recalculate_cart_discount(cart_with_voucher)
+
+    assert not cart.voucher_code
+    assert not cart.discount_name
+    assert cart.discount_amount == ZERO_MONEY
+
+
+def test_recalculate_cart_discount_expired_voucher(cart_with_voucher, voucher):
+    cart = cart_with_voucher
+    date_yesterday = datetime.date.today() - datetime.timedelta(days=1)
+    voucher.end_date = date_yesterday
+    voucher.save()
+
+    recalculate_cart_discount(cart_with_voucher)
+
+    assert not cart.voucher_code
+    assert not cart.discount_name
+    assert cart.discount_amount == ZERO_MONEY
+
+
+def test_get_checkout_data(cart_with_voucher, vatlayer):
+    line_price = TaxedMoney(net=Money('24.39', 'USD'), gross=Money('30.00', 'USD'))
+    expected_data = {
+        'cart': cart_with_voucher,
+        'cart_are_taxes_handled': True,
+        'cart_lines': [(cart_with_voucher.lines.first(), line_price)],
+        'cart_shipping_price': ZERO_TAXED_MONEY,
+        'cart_subtotal': line_price,
+        'cart_total': line_price - cart_with_voucher.discount_amount}
+
+    data = get_checkout_data(cart_with_voucher, discounts=None, taxes=vatlayer)
+
+    assert data == expected_data
+
+
+def test_save_address_in_cart(cart, address):
+    save_shipping_address_in_cart(cart, address)
+    save_billing_address_in_cart(cart, address)
+
+    cart.refresh_from_db()
+    assert cart.shipping_address == address
+    assert cart.billing_address == address
+
+
+def test_save_address_in_cart_to_none(cart, address):
+    cart.shipping_address = address
+    cart.billing_address = address.get_copy()
+    cart.save()
+
+    save_shipping_address_in_cart(cart, None)
+    save_billing_address_in_cart(cart, None)
+
+    cart.refresh_from_db()
+    assert cart.shipping_address is None
+    assert cart.billing_address is None
+
+
+def test_save_address_in_cart_to_same(cart, address):
+    cart.shipping_address = address
+    cart.billing_address = address.get_copy()
+    cart.save(update_fields=['shipping_address', 'billing_address'])
+    shipping_address_id = cart.shipping_address.id
+    billing_address_id = cart.billing_address.id
+
+    save_shipping_address_in_cart(cart, address)
+    save_billing_address_in_cart(cart, address)
+
+    cart.refresh_from_db()
+    assert cart.shipping_address.id == shipping_address_id
+    assert cart.billing_address.id == billing_address_id
+
+
+def test_save_address_in_cart_to_other(cart, address):
+    address_id = address.id
+    cart.shipping_address = address
+    cart.billing_address = address.get_copy()
+    cart.save(update_fields=['shipping_address', 'billing_address'])
+    other_address = Address.objects.create(country=Country('DE'))
+
+    save_shipping_address_in_cart(cart, other_address)
+    save_billing_address_in_cart(cart, other_address)
+
+    cart.refresh_from_db()
+    assert cart.shipping_address == other_address
+    assert cart.billing_address == other_address
+    assert not Address.objects.filter(id=address_id).exists()
+
+
+def test_save_address_in_cart_to_other_with_user(cart, customer_user, address):
+    address_id = address.id
+    cart.user = customer_user
+    cart.shipping_address = address
+    cart.billing_address = address.get_copy()
+    cart.save(update_fields=['shipping_address', 'billing_address'])
+    other_address = Address.objects.create(country=Country('DE'))
+
+    save_shipping_address_in_cart(cart, other_address)
+    save_billing_address_in_cart(cart, other_address)
+
+    cart.refresh_from_db()
+    assert cart.shipping_address == other_address
+    assert cart.billing_address == other_address
+    assert Address.objects.filter(id=address_id).exists()

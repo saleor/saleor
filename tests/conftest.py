@@ -53,6 +53,16 @@ def cart(db):  # pylint: disable=W0613
 
 
 @pytest.fixture
+def cart_with_voucher(cart, product, voucher):
+    variant = product.variants.get()
+    add_variant_to_cart(cart, variant, 3)
+    cart.voucher_code = voucher.code
+    cart.discount_amount = Money('20.00', 'USD')
+    cart.save()
+    return cart
+
+
+@pytest.fixture
 def address(db):  # pylint: disable=W0613
     return Address.objects.create(
         first_name='John', last_name='Doe',

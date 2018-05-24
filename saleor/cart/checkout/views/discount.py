@@ -11,7 +11,7 @@ from ....cart.models import Cart
 from ....cart.utils import get_or_empty_db_cart
 from ....discount.models import Voucher
 from ..forms import CartVoucherForm
-from ..utils import recalculate_cart_discount, remove_discount_from_cart
+from ..utils import recalculate_cart_discount, remove_voucher_from_cart
 
 
 def add_voucher_form(view):
@@ -29,7 +29,7 @@ def add_voucher_form(view):
                     'next', request.META['HTTP_REFERER'])
                 return redirect(next_url)
             else:
-                remove_discount_from_cart(cart)
+                remove_voucher_from_cart(cart)
                 # if only discount form was used we clear post for other forms
                 request.POST = {}
         else:
@@ -54,7 +54,7 @@ def validate_voucher(view):
                 Voucher.objects.active(date=date.today()).get(
                     code=cart.voucher_code)
             except Voucher.DoesNotExist:
-                remove_discount_from_cart(cart)
+                remove_voucher_from_cart(cart)
                 msg = pgettext(
                     'Checkout warning',
                     'This voucher has expired. Please review your checkout.')
@@ -69,5 +69,5 @@ def validate_voucher(view):
 def remove_voucher_view(request, cart):
     """Clear the discount and remove the voucher."""
     next_url = request.GET.get('next', request.META['HTTP_REFERER'])
-    remove_discount_from_cart(cart)
+    remove_voucher_from_cart(cart)
     return redirect(next_url)
