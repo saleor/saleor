@@ -1,0 +1,13 @@
+{% load i18n %}
+{% load bootstrap_field bootstrap_form_errors from bootstrap4 %}
+<div>
+  <h2>{% trans "Selling Contract Acceptance" %}</h2>
+  {% bootstrap_form_errors selling_contract_form %}
+  <p>
+    {% blocktrans trimmed with contract_url=selling_contract_form.contract_url %}
+      Before placing this order you must read and accept our
+      <a href="{{ contract_url }}" target="_blank">selling contract</a>.
+    {% endblocktrans %}
+  </p>
+  <strong>{% bootstrap_field selling_contract_form.contract %}</strong>
+</div>

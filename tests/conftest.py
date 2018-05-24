@@ -95,6 +95,15 @@ def request_cart_with_item(product, request_cart):
 
 
 @pytest.fixture
+def request_cart_with_item_without_shipping(
+        product_without_shipping_in_stock, request_cart):
+    variant = product_without_shipping_in_stock.variants.get()
+    # Prepare some data
+    request_cart.add(variant)
+    return request_cart
+
+
+@pytest.fixture
 def order(customer_user):
     address = customer_user.default_billing_address.get_copy()
     return Order.objects.create(
@@ -272,6 +281,20 @@ def product_without_shipping(default_category):
         name='Test product', price=Money('10.00', 'USD'),
         product_type=product_type, category=default_category)
     ProductVariant.objects.create(product=product, sku='SKU_B')
+    return product
+
+
+@pytest.fixture
+def product_without_shipping_in_stock(
+        product_without_shipping, stock_location):
+
+    product = product_without_shipping
+    variant = product.variants.get()
+    Stock.objects.create(
+        variant=variant,
+        cost_price=Money(Decimal('10.0'), 'USD'), quantity=50,
+        location=stock_location)
+
     return product
 
 

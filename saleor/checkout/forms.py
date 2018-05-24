@@ -1,5 +1,7 @@
 """Checkout-related forms."""
 from django import forms
+from django.urls import reverse
+from django.utils.functional import cached_property
 from django.utils.safestring import mark_safe
 from django.utils.translation import pgettext_lazy
 
@@ -128,6 +130,30 @@ class AnonymousUserBillingForm(forms.Form):
         required=True, widget=forms.EmailInput(
             attrs={'autocomplete': 'billing email'}),
         label=pgettext_lazy('Billing form field label', 'Email'))
+
+
+class ContractAcceptanceForm(forms.Form):
+    """A form requiring the user to check a checkbox to say they accept the
+    contract."""
+
+    contract = forms.BooleanField(
+        required=True,
+        label=pgettext_lazy(
+            'Contract accept checkbox - label',
+            'I read and I accept the selling contract'),
+        error_messages={
+            'required': pgettext_lazy(
+                'Contract accept checkbox - form error message',
+                'You must accept our selling contract.')})
+
+    @cached_property
+    def contract_url(self):
+        url = reverse('page:details', kwargs={'slug': 'selling-contract'})
+        return url
+
+    @property
+    def accepted(self):
+        return self.is_valid()
 
 
 class NoteForm(forms.Form):
