@@ -2,10 +2,10 @@ import gql from "graphql-tag";
 import { Query, QueryProps } from "react-apollo";
 
 import {
-  ProductListQuery,
-  ProductListQueryVariables,
   ProductDetailsQuery,
-  ProductDetailsQueryVariables
+  ProductDetailsQueryVariables,
+  ProductListQuery,
+  ProductListQueryVariables
 } from "../gql-types";
 
 export const TypedProductListQuery = Query as React.ComponentType<
@@ -107,6 +107,7 @@ export const productDetailsQuery = gql`
               localized
             }
             stockQuantity
+            margin
           }
         }
       }

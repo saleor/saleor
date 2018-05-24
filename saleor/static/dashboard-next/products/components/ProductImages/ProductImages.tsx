@@ -26,7 +26,7 @@ interface ProductImagesProps {
   }>;
   loading?: boolean;
   onImageEdit?(id: string);
-  onImageUpload?();
+  onImageUpload?(event: React.ChangeEvent<any>);
   onImageReorder?(event: { oldIndex: number; newIndex: number });
 }
 
