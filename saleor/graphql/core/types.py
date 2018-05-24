@@ -15,16 +15,7 @@ class CountableConnection(graphene.relay.Connection):
         return root.length
 
 
-class GetNodesMixin:
-
-    @classmethod
-    def get_nodes(cls, ids):
-        try:
-            return list(cls._meta.model.objects.filter(pk__in=ids))
-        except cls._meta.model.DoesNotExist:
-            return None
-
-class CountableDjangoObjectType(DjangoObjectType, GetNodesMixin):
+class CountableDjangoObjectType(DjangoObjectType):
     class Meta:
         abstract = True
 
