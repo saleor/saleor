@@ -6,7 +6,7 @@ import pytest
 from django.urls import reverse
 from prices import Money, TaxedMoney, TaxedMoneyRange
 
-from saleor.cart import CartStatus, utils
+from saleor.cart import utils
 from saleor.cart.models import Cart
 from saleor.cart.utils import add_variant_to_cart
 from saleor.discount.models import Sale
@@ -280,8 +280,7 @@ def test_adding_to_cart_with_closed_cart_token(
 
     authorized_client.post(url, data)
 
-    assert Cart.objects.filter(
-        user=customer_user, status=CartStatus.OPEN).count() == 1
+    assert customer_user.carts.count() == 1
 
 
 def test_product_filter_before_filtering(
