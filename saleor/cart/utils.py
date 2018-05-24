@@ -6,11 +6,10 @@ from uuid import UUID
 from django.contrib import messages
 from django.db import transaction
 from django.db.models import Sum
-from django.utils.timezone import now
 from django.utils.translation import pgettext_lazy
 from prices import TaxedMoneyRange
 
-from . import CartStatus, logger
+from . import logger
 from ..core.exceptions import InsufficientStock
 from ..core.utils import to_local_currency
 from .models import Cart
@@ -113,11 +112,9 @@ def find_and_assign_anonymous_cart(queryset=Cart.objects.all()):
             if request.user.is_authenticated:
                 with transaction.atomic():
                     change_cart_user(cart, request.user)
-                    carts_to_close = Cart.objects.open().filter(
-                        user=request.user)
+                    carts_to_close = Cart.objects.filter(user=request.user)
                     carts_to_close = carts_to_close.exclude(token=token)
-                    carts_to_close.update(
-                        status=CartStatus.CANCELED, last_status_change=now())
+                    carts_to_close.delete()
                 response.delete_cookie(COOKIE_NAME)
             return response
 
@@ -128,7 +125,7 @@ def find_and_assign_anonymous_cart(queryset=Cart.objects.all()):
 def get_or_create_anonymous_cart_from_token(
         token, cart_queryset=Cart.objects.all()):
     """Return an open unassigned cart with given token or create a new one."""
-    return cart_queryset.open().filter(token=token, user=None).get_or_create(
+    return cart_queryset.filter(token=token, user=None).get_or_create(
         defaults={'user': None})[0]
 
 
@@ -137,17 +134,17 @@ def get_or_create_user_cart(user, cart_queryset=Cart.objects.all()):
     defaults = {
         'shipping_address': user.default_shipping_address,
         'billing_address': user.default_billing_address}
-    return cart_queryset.open().get_or_create(user=user, defaults=defaults)[0]
+    return cart_queryset.get_or_create(user=user, defaults=defaults)[0]
 
 
 def get_anonymous_cart_from_token(token, cart_queryset=Cart.objects.all()):
     """Return an open unassigned cart with given token if any."""
-    return cart_queryset.open().filter(token=token, user=None).first()
+    return cart_queryset.filter(token=token, user=None).first()
 
 
 def get_user_cart(user, cart_queryset=Cart.objects.all()):
     """Return an open cart for given user if any."""
-    return cart_queryset.open().filter(user=user).first()
+    return cart_queryset.filter(user=user).first()
 
 
 def get_or_create_cart_from_request(request, cart_queryset=Cart.objects.all()):
@@ -245,11 +242,11 @@ def get_cart_data(cart, shipping_range, currency, discounts, taxes):
 
 def find_open_cart_for_user(user):
     """Find an open cart for the given user."""
-    carts = user.carts.open()
+    carts = user.carts.all()
     if len(carts) > 1:
         logger.warning('%s has more than one open basket', user)
         for cart in carts[1:]:
-            cart.change_status(CartStatus.CANCELED)
+            cart.delete()
     return carts.first()
 
 
@@ -260,7 +257,7 @@ def change_cart_user(cart, user):
     """
     open_cart = find_open_cart_for_user(user)
     if open_cart is not None:
-        open_cart.change_status(status=CartStatus.CANCELED)
+        open_cart.delete()
     cart.user = user
     cart.shipping_address = user.default_shipping_address
     cart.save(update_fields=['user', 'shipping_address'])

@@ -17,6 +17,10 @@ class Migration(migrations.Migration):
     operations = [
         migrations.RemoveField(
             model_name='cart',
+            name='status',
+        ),
+        migrations.RemoveField(
+            model_name='cart',
             name='checkout_data',
         ),
         migrations.RemoveField(

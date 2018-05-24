@@ -6,11 +6,9 @@ from django.conf import settings
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.utils.encoding import smart_str
-from django.utils.timezone import now
 from django_prices.models import MoneyField
 from jsonfield import JSONField
 
-from . import CartStatus
 from ..account.models import Address
 from ..core.utils.taxes import ZERO_TAXED_MONEY
 from ..shipping.models import ShippingMethodCountry
@@ -20,10 +18,6 @@ CENTS = Decimal('0.01')
 
 class CartQueryset(models.QuerySet):
     """A specialized queryset for dealing with carts."""
-
-    def open(self):
-        """Return `OPEN` carts."""
-        return self.filter(status=CartStatus.OPEN)
 
     def for_display(self):
         """Annotate the queryset for display purposes.
@@ -40,8 +34,6 @@ class CartQueryset(models.QuerySet):
 class Cart(models.Model):
     """A shopping cart."""
 
-    status = models.CharField(
-        max_length=32, choices=CartStatus.CHOICES, default=CartStatus.OPEN)
     created = models.DateTimeField(auto_now_add=True)
     last_status_change = models.DateTimeField(auto_now_add=True)
     user = models.ForeignKey(
@@ -82,16 +74,6 @@ class Cart(models.Model):
 
     def __len__(self):
         return self.lines.count()
-
-    def change_status(self, status):
-        """Change cart status."""
-        # FIXME: investigate replacing with django-fsm transitions
-        if status not in dict(CartStatus.CHOICES):
-            raise ValueError('Not expected status')
-        if status != self.status:
-            self.status = status
-            self.last_status_change = now()
-            self.save()
 
     def is_shipping_required(self):
         """Return `True` if any of the lines requires shipping."""
