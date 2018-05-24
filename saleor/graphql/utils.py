@@ -6,38 +6,6 @@ from graphql_relay import from_global_id
 from ..product.models import AttributeChoiceValue, ProductAttribute
 
 
-class MirumeeNode(graphene.Node):
-
-    @classmethod
-    def get_node_list_from_global_id(cls, info, global_ids, only_type=None):
-        try:
-            _ids = []
-            for _id in global_ids:
-                _type, _id = cls.from_global_id(_id)
-                _ids.append(_id)
-            graphene_type = info.schema.get_type(_type).graphene_type
-        except Exception:
-            return None
-
-        if only_type:
-            assert graphene_type == only_type, (
-                'Must receive an {} id.'
-            ).format(graphene_type._meta.name)
-
-        get_nodes = getattr(graphene_type, 'get_nodes', None)
-        if get_nodes:
-            return get_nodes(_ids)
-
-
-def get_nodes(info, ids, only_type=None):
-    node_list = MirumeeNode.get_node_list_from_global_id(
-        info, ids, only_type=only_type)
-    if not node_list:
-        raise Exception(
-            "Could not resolve to a node_list with the global ids of '%s'." % id)
-    return node_list
-
-
 def get_node(info, id, only_type=None):
     """Return node or throw an error if the node does not exist."""
     node = graphene.Node.get_node_from_global_id(info, id, only_type=only_type)
