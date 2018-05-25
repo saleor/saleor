@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+
+{% block title %}Privacy policy{% endblock %}
+
+{% block meta_tags %}
+  <meta property="og:title" content="Privacy policy">
+  <meta property="og:description" content="">
+  <meta name="description" content="">
+  <meta property="og:url" content="{% url 'privacy-policy' %}">
+{% endblock meta_tags %}
+
+{% block breadcrumb %}
+  <ul class="breadcrumbs list-unstyled">
+    <li>
+      <a href="{% url 'home' %}">Home</a>
+    </li>
+    <li>
+      <a href="{% url 'privacy-policy' %}">Privacy policy</a>
+    </li>
+  </ul>
+{% endblock breadcrumb %}
+
+{% block content %}
+  <h2>Privacy policy</h2>
+  <p>The Saleor Demo store is operated by Mirumee Software sp. z o.o. sp. k. operating at the following address:</p>
+  <address>
+    Mirumee Software sp. z o.o. sp. k.<br>
+    ul. Tęczowa 7<br>
+    53-601, Wrocław<br>
+    POLAND
+  </address>
+  <h2>Analytics</h2>
+  <p>This website includes Google Analytics software that collects anonymized information about visitors to help us provide better services. <a href="https://www.google.com/policies/privacy/partners/">See how Google uses your data.</a></p>
+  <h2>Personal data</h2>
+  <p>This website allows address data consisting of given and email addresses, family names, shipping and billing addresses to be entered for the purpose of testing the checkout process.
+  <p>In case the data concerning a real person is entered it may be processed for the purpose of completing the checkout process and will be anonymized to avoid leaking it to other visitors accessing the dashboard part of the website.</p>
+  <p>All data is wiped within 60 days of being entered or whenever a new version of the Saleor Demo is released.</p>
+  <h2>Your rights</h2>
+  <p>GDPR guarantees you a number of rights including but not limited to:</p>
+  <ul>
+    <li>the right to know what data concerning you is held by any particular company and how it is processed;</li>
+    <li>the right to rectify any inaccurate personal data;</li>
+    <li>the right to be forgotten;</li>
+    <li>the right to restriction of processing;</li>
+    <li>the right to object to processing.</li>
+  </ul>
+  <p>Please consult the <a href="https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=uriserv:OJ.L_.2016.119.01.0001.01.ENG">GDPR text in your language</a> to better understand your rights. We ask that you direct all questions and requests related to your personal data to <a href="mailto:privacy@mirumee.com">privacy@mirumee.com</a> or that you send them to the postal address of the company listed above.</p>
+{% endblock %}

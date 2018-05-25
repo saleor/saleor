@@ -30,8 +30,3 @@ def navigation(request):
 
 def search_enabled(request):
     return {'SEARCH_IS_ENABLED': settings.ENABLE_SEARCH}
-
-
-def demo_example_page(request):
-    page = Page.objects.filter(slug='about').first()
-    return {'about_page': page}

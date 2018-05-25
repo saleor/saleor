@@ -13,4 +13,5 @@ urlpatterns = [
         name='impersonate-stop'),
     url(r'^404', views.handle_404, name='handle-404'),
     url(r'^manifest\.json$', views.manifest, name='manifest'),
+    url(r'^privacy-policy/$', views.privacy_policy, name='privacy-policy'),
 ]
