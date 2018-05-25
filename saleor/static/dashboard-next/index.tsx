@@ -1,6 +1,6 @@
 import { InMemoryCache } from "apollo-cache-inmemory";
 import { ApolloClient } from "apollo-client";
-import { HttpLink } from "apollo-link-http";
+import { createUploadLink } from "apollo-upload-client";
 import CssBaseline from "material-ui/CssBaseline";
 import MuiThemeProvider from "material-ui/styles/MuiThemeProvider";
 import * as React from "react";
@@ -22,7 +22,7 @@ const cookies = new Cookies();
 
 const apolloClient = new ApolloClient({
   cache: new InMemoryCache(),
-  link: new HttpLink({
+  link: createUploadLink({
     credentials: "same-origin",
     headers: {
       "X-CSRFToken": cookies.get("csrftoken")

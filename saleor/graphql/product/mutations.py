@@ -1,15 +1,18 @@
 import graphene
 from graphene.types import InputObjectType
+from graphene_file_upload import Upload
+from graphql_jwt.decorators import permission_required
 
 from ...dashboard.category.forms import CategoryForm
 from ...dashboard.product.forms import ProductTypeForm
 from ...product import models
 from ..core.mutations import (
-    ModelDeleteMutation, ModelFormMutation, ModelFormUpdateMutation,
-    StaffMemberRequiredMixin)
+    BaseMutation, ModelDeleteMutation, ModelFormMutation,
+    ModelFormUpdateMutation, StaffMemberRequiredMixin, Error)
 from ..utils import get_attributes_dict_from_list, get_node
 from .forms import ProductForm, ProductVariantForm
-from .types import Category, Product, ProductAttribute, ProductType
+from .types import (
+    Category, Product, ProductAttribute, ProductImage, ProductType)
 
 
 class CategoryCreateMutation(StaffMemberRequiredMixin, ModelFormMutation):
@@ -280,3 +283,24 @@ class ProductTypeDeleteMutation(StaffMemberRequiredMixin, ModelDeleteMutation):
     class Meta:
         description = 'Deletes a product type.'
         model = models.ProductType
+
+
+class ProductImageCreateMutation(BaseMutation):
+    class Arguments:
+        file = Upload(required=True)
+        product_id = graphene.Argument(
+            graphene.ID, description='ID of an product.')
+
+    class Meta:
+        description = 'Creates a product image.'
+
+    product_image = graphene.Field(
+        ProductImage, description='A newly created product image.')
+
+    @permission_required('product.edit_product')
+    def mutate(self, info, product_id, file, **kwargs):
+        image_file = info.context.FILES.get(file)
+        product = get_node(info, product_id, only_type=Product)
+        product_image = models.ProductImage(product=product)
+        product_image.image.save(image_file.name, image_file)
+        return ProductImageCreateMutation(product_image=product_image)

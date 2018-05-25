@@ -1,13 +1,10 @@
 import json
-from io import BytesIO
 from unittest.mock import MagicMock, Mock, patch
 
 from django.conf import settings
-from django.core.files.uploadedfile import SimpleUploadedFile
 from django.forms import HiddenInput
 from django.forms.models import model_to_dict
 from django.urls import reverse
-from PIL import Image
 
 from saleor.dashboard.product import ProductBulkAction
 from saleor.dashboard.product.forms import (
@@ -16,19 +13,10 @@ from saleor.product.forms import VariantChoiceField
 from saleor.product.models import (
     AttributeChoiceValue, Collection, Product, ProductAttribute, ProductImage,
     ProductType, ProductVariant)
+from ..utils import create_image
 
 HTTP_STATUS_OK = 200
 HTTP_REDIRECTION = 302
-
-
-def create_image():
-    img_data = BytesIO()
-    image = Image.new('RGB', size=(1, 1), color=(255, 0, 0, 0))
-    image.save(img_data, format='JPEG')
-    image_name = 'product2'
-    image = SimpleUploadedFile(
-        image_name + '.jpg', img_data.getvalue(), 'image/png')
-    return image, image_name
 
 
 def test_product_variant_form(product):

@@ -77,6 +77,7 @@ interface ProductDetailsPageProps {
             localized: string;
           };
           stockQuantity: number;
+          margin: number;
         };
       }>;
     };
@@ -90,7 +91,7 @@ interface ProductDetailsPageProps {
   onDelete();
   onEdit(id: string);
   onImageEdit(id: string);
-  onImageUpload();
+  onImageUpload(event: React.ChangeEvent<any>);
   onImageReorder();
   onProductShow(url: string);
   onVariantShow(id: string);
