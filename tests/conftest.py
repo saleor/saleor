@@ -1,3 +1,4 @@
+import json
 from decimal import Decimal
 from io import BytesIO
 from unittest.mock import MagicMock, Mock
@@ -8,7 +9,7 @@ from django.contrib.sites.models import Site
 from django.core.files import File
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.forms import ModelForm
-from django.test.client import Client
+from django.test.client import Client, MULTIPART_CONTENT
 from django.utils.encoding import smart_text
 from graphql_jwt.shortcuts import get_token
 from payments import FraudStatus, PaymentStatus
@@ -34,6 +35,7 @@ from saleor.site.models import AuthorizationKey, SiteSettings
 
 
 class ApiClient(Client):
+    """GraphQL API client."""
 
     def __init__(self, *args, **kwargs):
         user = kwargs.pop('user')
@@ -44,6 +46,27 @@ class ApiClient(Client):
         environ = super()._base_environ(**request)
         environ.update({'HTTP_AUTHORIZATION': 'JWT %s' % self.token})
         return environ
+
+    def post(self, path, data=None, **kwargs):
+        """Send a POST request.
+
+        This wrapper sets the `application/json` content type which is
+        more suitable for standard GraphQL requests and doesn't mismatch with
+        handling multipart requests in Graphene.
+        """
+        if data:
+            data = json.dumps(data)
+        kwargs['content_type'] = 'application/json'
+        return super().post(path, data, **kwargs)
+
+    def post_multipart(self, *args, **kwargs):
+        """Send a multipart POST request.
+
+        This is used to send multipart requests to GraphQL API when e.g.
+        uploading files.
+        """
+        kwargs['content_type'] = MULTIPART_CONTENT
+        return super().post(*args, **kwargs)
 
 
 @pytest.fixture

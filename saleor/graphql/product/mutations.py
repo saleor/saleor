@@ -1,5 +1,6 @@
 import graphene
 from graphene.types import InputObjectType
+from graphene_file_upload import Upload
 from graphql_jwt.decorators import permission_required
 
 from ...dashboard.category.forms import CategoryForm
@@ -284,16 +285,11 @@ class ProductTypeDeleteMutation(StaffMemberRequiredMixin, ModelDeleteMutation):
         model = models.ProductType
 
 
-class Upload(graphene.Scalar):
-    def serialize(self):
-        pass
-
-
 class ProductImageCreateMutation(BaseMutation):
     class Arguments:
+        file = Upload(required=True)
         product_id = graphene.Argument(
             graphene.ID, description='ID of an product.')
-        file = Upload()
 
     class Meta:
         description = 'Creates a product image.'
@@ -302,13 +298,8 @@ class ProductImageCreateMutation(BaseMutation):
         ProductImage, description='A newly created product image.')
 
     @permission_required('product.edit_product')
-    def mutate(self, info, product_id, **kwargs):
-        files = info.context.FILES
-        if not 'image' in files:
-            return ProductImageCreateMutation(
-                errors=[Error(message='No file provided.')])
-
-        image_file = files['image']
+    def mutate(self, info, product_id, file, **kwargs):
+        image_file = info.context.FILES.get(file)
         product = get_node(info, product_id, only_type=Product)
         product_image = models.ProductImage(product=product)
         product_image.image.save(image_file.name, image_file)

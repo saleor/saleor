@@ -170,7 +170,7 @@ class Product(CountableDjangoObjectType):
     def resolve_product_type(self, info):
         return self.product_type
 
-    @permission_required(('product.view_product'))
+    @permission_required('product.view_product')
     def resolve_purchase_cost(self, info):
         purchase_cost, _ = get_product_costs_data(self)
         return purchase_cost

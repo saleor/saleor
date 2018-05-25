@@ -8,7 +8,7 @@ from tests.utils import get_graphql_content
 from saleor.product.models import Category
 
 
-def test_category_query(client, product):
+def test_category_query(user_api_client, product):
     category = Category.objects.first()
     query = '''
     query {
@@ -32,7 +32,7 @@ def test_category_query(client, product):
         }
     }
     ''' % {'category_pk': graphene.Node.to_global_id('Category', category.pk)}
-    response = client.post(reverse('api'), {'query': query})
+    response = user_api_client.post(reverse('api'), {'query': query})
     content = get_graphql_content(response)
     assert 'errors' not in content
     category_data = content['data']['category']

@@ -35,7 +35,7 @@ def test_jwt_middleware(admin_client, admin_user):
     assert request.user == admin_user
 
 
-def test_real_query(admin_client, product):
+def test_real_query(user_api_client, product):
     product_attr = product.product_type.product_attributes.first()
     category = product.category
     attr_value = product_attr.values.first()
@@ -172,7 +172,7 @@ def test_real_query(admin_client, product):
         __typename
     }
     '''
-    response = admin_client.post(
+    response = user_api_client.post(
         reverse('api'), {
             'query': query,
             'variables': json.dumps(
