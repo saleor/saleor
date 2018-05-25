@@ -18,7 +18,7 @@ from saleor.graphql.product.types import Product
 from saleor.graphql.utils import get_nodes
 
 
-def test_jwt_middleware(admin_client, admin_user):
+def test_jwt_middleware(admin_user):
     def get_response(request):
         return HttpResponse()
 
@@ -236,7 +236,8 @@ def test_model_form_update_mutation(model_form_class):
     assert 'id' in meta.arguments
 
 def test_get_nodes(product_list):
-    global_ids = [to_global_id('Product', product.pk) for product in product_list]
+    global_ids = [
+        to_global_id('Product', product.pk) for product in product_list]
     # Make sure function works even if duplicated ids are provided
     global_ids.append(to_global_id('Product', product_list[0].pk))
     # Return products corresponding to global ids
