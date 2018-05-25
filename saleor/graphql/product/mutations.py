@@ -73,7 +73,7 @@ class CollectionCreateMutation(StaffMemberRequiredMixin, ModelFormMutation):
         product_ids = input.pop('products', None)
         kwargs = super().get_form_kwargs(root, info, **input)
         if product_ids:
-            products = get_nodes(product_ids, Product)
+            products = set(get_nodes(product_ids, Product))
             kwargs['data']['products'] = products
         return kwargs
 
@@ -98,9 +98,9 @@ class CollectionDelete(StaffMemberRequiredMixin, ModelDeleteMutation):
 class CollectionAddProducts(BaseMutation):
     class Arguments:
         collection_id = graphene.Argument(
-            graphene.ID, description='ID of a collection.')
+            graphene.ID, required=True, description='ID of a collection.')
         products = graphene.List(
-            graphene.ID, description='List of product IDs.')
+            graphene.ID, required=True, description='List of product IDs.')
 
     collection = graphene.Field(
         Collection,
@@ -120,9 +120,9 @@ class CollectionAddProducts(BaseMutation):
 class CollectionRemoveProducts(BaseMutation):
     class Arguments:
         collection_id = graphene.Argument(
-            graphene.ID, description='ID of a collection.')
+            graphene.ID, required=True, description='ID of a collection.')
         products = graphene.List(
-            graphene.ID, description='List of product IDs.')
+            graphene.ID, required=True, description='List of product IDs.')
 
     collection = graphene.Field(
         Collection,
