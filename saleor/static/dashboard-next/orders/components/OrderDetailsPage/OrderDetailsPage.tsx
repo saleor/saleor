@@ -1,6 +1,6 @@
 import PrintIcon from "@material-ui/icons/Print";
 import IconButton from "material-ui/IconButton";
-import { withStyles } from "material-ui/styles";
+import { withStyles, WithStyles } from "material-ui/styles";
 import * as React from "react";
 
 import {
@@ -119,371 +119,342 @@ interface OrderDetailsPageProps {
   onPackingSlipClick?(id: string);
   onOrderCancel?();
 }
+interface OrderDetailsPageState {
+  openedBillingAddressEditDialog: boolean;
+  openedCustomerEditDialog: boolean;
+  openedFulfillmentDialog: boolean;
+  openedOrderCancelDialog: boolean;
+  openedOrderProductAddDialog: boolean;
+  openedPaymentCaptureDialog: boolean;
+  openedPaymentRefundDialog: boolean;
+  openedPaymentReleaseDialog: boolean;
+  openedShippingAddressEditDialog: boolean;
+}
 
 const decorate = withStyles(theme => ({
+  orderDate: {
+    marginBottom: theme.spacing.unit * 2,
+    marginLeft: theme.spacing.unit * 10
+  },
   root: {
     display: "grid",
-    gridTemplateColumns: "3fr 1fr",
-    gridColumnGap: theme.spacing.unit * 2 + "px"
-  },
-  orderDate: {
-    marginLeft: theme.spacing.unit * 10,
-    marginBottom: theme.spacing.unit * 2
+    gridColumnGap: theme.spacing.unit * 2 + "px",
+    gridTemplateColumns: "3fr 1fr"
   }
 }));
-const OrderDetailsPage = decorate<OrderDetailsPageProps>(
-  ({
-    classes,
-    countries,
-    order,
-    prefixes,
-    user,
-    variants,
-    variantsLoading,
-    fetchVariants,
-    onBack,
-    onCreate,
-    onCustomerEmailClick,
-    onOrderCancel,
-    onOrderLineChange,
-    onOrderLineRemove,
-    onPackingSlipClick,
-    onPrintClick,
-    onProductClick
-  }) => (
-    <Container width="md">
-      <PageHeader
-        title={
-          order
-            ? i18n.t("Order #{{ orderId }}", { orderId: order.id })
-            : undefined
-        }
-        onBack={onBack}
-      />
-      {order ? (
-        <div className={classes.orderDate}>
-          <DateFormatter date={order.created} typography="caption" />
-        </div>
-      ) : (
-        <Skeleton />
-      )}
-      <div className={classes.root}>
-        <div>
-          <Toggle>
-            {(openedFulfillmentDialog, { toggle: toggleFulfillmentDialog }) => (
-              <Toggle>
-                {(openedPaymentDialog, { toggle: togglePaymentDialog }) => (
-                  <Toggle>
-                    {(
-                      openedPaymentReleaseDialog,
-                      { toggle: togglePaymentReleaseDialog }
-                    ) => (
-                      <Toggle>
-                        {(
-                          openedPaymentCaptureDialog,
-                          { toggle: togglePaymentCaptureDialog }
-                        ) => (
-                          <Toggle>
-                            {(
-                              openedPaymentRefundDialog,
-                              { toggle: togglePaymentRefundDialog }
-                            ) => (
-                              <Toggle>
-                                {(
-                                  openedOrderCancelDialog,
-                                  { toggle: toggleOrderCancelDialog }
-                                ) => (
-                                  <Toggle>
-                                    {(
-                                      openedOrderProductAddDialog,
-                                      { toggle: toggleOrderProductAddDialog }
-                                    ) => (
-                                      <>
-                                        <OrderSummary
-                                          products={
-                                            order ? order.products : undefined
-                                          }
-                                          subtotal={
-                                            order ? order.subtotal : undefined
-                                          }
-                                          status={
-                                            order ? order.status : undefined
-                                          }
-                                          paymentStatus={
-                                            order
-                                              ? order.paymentStatus
-                                              : undefined
-                                          }
-                                          total={
-                                            order ? order.total : undefined
-                                          }
-                                          onRowClick={onProductClick}
-                                          paid={
-                                            order
-                                              ? order.payment.paid
-                                              : undefined
-                                          }
-                                          refunded={
-                                            order
-                                              ? order.payment.refunded
-                                              : undefined
-                                          }
-                                          net={
-                                            order
-                                              ? order.payment.net
-                                              : undefined
-                                          }
-                                          onCreate={onCreate}
-                                          onCapture={togglePaymentCaptureDialog}
-                                          onFulfill={toggleFulfillmentDialog}
-                                          onOrderCancel={
-                                            toggleOrderCancelDialog
-                                          }
-                                          onProductAdd={
-                                            toggleOrderProductAddDialog
-                                          }
-                                          onOrderLineChange={onOrderLineChange}
-                                          onOrderLineRemove={onOrderLineRemove}
-                                          onRefund={togglePaymentRefundDialog}
-                                          onRelease={togglePaymentReleaseDialog}
-                                        />
-                                        {order && (
-                                          <>
-                                            <Form
-                                              initial={
-                                                order
-                                                  ? order.unfulfilled.reduce(
-                                                      (prev, curr) => {
-                                                        prev[curr.id] =
-                                                          curr.quantity;
-                                                        return prev;
-                                                      },
-                                                      {}
-                                                    )
-                                                  : undefined
-                                              }
-                                            >
-                                              {({ data, change, submit }) => (
-                                                <OrderFulfillmentDialog
-                                                  open={openedFulfillmentDialog}
-                                                  onClose={
-                                                    toggleFulfillmentDialog
-                                                  }
-                                                  onChange={change}
-                                                  products={order.unfulfilled}
-                                                  onConfirm={submit}
-                                                  data={data}
-                                                />
-                                              )}
-                                            </Form>
-                                            <Form initial={{ value: 0 }}>
-                                              {({ data, change, submit }) => (
-                                                <OrderPaymentDialog
-                                                  open={
-                                                    openedPaymentCaptureDialog
-                                                  }
-                                                  onClose={
-                                                    togglePaymentCaptureDialog
-                                                  }
-                                                  onChange={change}
-                                                  onConfirm={submit}
-                                                  value={data.value}
-                                                  variant="capture"
-                                                />
-                                              )}
-                                            </Form>
-                                            <Form initial={{ value: 0 }}>
-                                              {({ data, change, submit }) => (
-                                                <OrderPaymentDialog
-                                                  open={
-                                                    openedPaymentRefundDialog
-                                                  }
-                                                  onClose={
-                                                    togglePaymentRefundDialog
-                                                  }
-                                                  onChange={change}
-                                                  onConfirm={submit}
-                                                  value={data.value}
-                                                  variant="refund"
-                                                />
-                                              )}
-                                            </Form>
-                                            <OrderCancelDialog
-                                              open={openedOrderCancelDialog}
-                                              onClose={toggleOrderCancelDialog}
-                                              onConfirm={onOrderCancel}
-                                              id={order.id}
-                                            />
-                                            <Form
-                                              initial={{
-                                                quantity: 1,
-                                                variant: {
-                                                  label: "",
-                                                  value: ""
-                                                }
-                                              }}
-                                            >
-                                              {({ data, change, submit }) => (
-                                                <OrderProductAddDialog
-                                                  open={
-                                                    openedOrderProductAddDialog
-                                                  }
-                                                  onClose={
-                                                    toggleOrderProductAddDialog
-                                                  }
-                                                  onChange={change}
-                                                  onConfirm={submit}
-                                                  variant={data.variant}
-                                                  variants={variants}
-                                                  loading={variantsLoading}
-                                                  fetchVariants={fetchVariants}
-                                                  quantity={data.quantity}
-                                                />
-                                              )}
-                                            </Form>
-                                          </>
-                                        )}
-                                      </>
-                                    )}
-                                  </Toggle>
-                                )}
-                              </Toggle>
-                            )}
-                          </Toggle>
-                        )}
-                      </Toggle>
-                    )}
-                  </Toggle>
-                )}
-              </Toggle>
-            )}
-          </Toggle>
-          {order ? (
-            order.status !== OrderStatus.DRAFT &&
-            order.fulfillments.map(fulfillment => (
-              <Toggle>
-                {(openedCancelDialog, { toggle: toggleCancelDialog }) => (
-                  <Toggle>
-                    {(
-                      openedTrackingDialog,
-                      { toggle: toggleTrackingDialog }
-                    ) => (
-                      <>
-                        <OrderFulfillment
-                          products={fulfillment.products}
-                          status={fulfillment.status}
-                          id={fulfillment.id}
-                          trackingCode={fulfillment.trackingCode}
-                          onFulfillmentCancel={toggleCancelDialog}
-                          onTrackingCodeAdd={toggleTrackingDialog}
-                          onPackingSlipClick={
-                            onPackingSlipClick
-                              ? onPackingSlipClick(fulfillment.id)
-                              : undefined
-                          }
-                        />
-                        <OrderFulfillmentCancelDialog
-                          open={openedCancelDialog}
-                          id={fulfillment.id}
-                          onClose={toggleCancelDialog}
-                        />
-                        <Form
-                          initial={{ trackingCode: fulfillment.trackingCode }}
-                        >
-                          {({ change, data, submit }) => (
-                            <OrderFulfillmentTrackingDialog
-                              open={openedTrackingDialog}
-                              onClose={toggleTrackingDialog}
-                              onChange={change}
-                              trackingCode={data.trackingCode}
-                              variant={
-                                fulfillment.trackingCode ? "edit" : "add"
-                              }
-                            />
-                          )}
-                        </Form>
-                      </>
-                    )}
-                  </Toggle>
-                )}
-              </Toggle>
-            ))
-          ) : (
-            <OrderFulfillment />
-          )}
-          <OrderHistory
-            history={order ? order.events : undefined}
-            user={user}
-          />
-        </div>
-        <div>
-          <Toggle>
-            {(
-              openedShippingAddressEditDialog,
-              { toggle: toggleShippingAddressEditDialog }
-            ) => (
-              <Toggle>
-                {(
-                  openedBillingAddressEditDialog,
-                  { toggle: toggleBillingAddressEditDialog }
-                ) => (
-                  <>
-                    <OrderCustomer
-                      client={order ? order.client : undefined}
-                      shippingAddress={
-                        order ? order.shippingAddress : undefined
-                      }
-                      billingAddress={order ? order.billingAddress : undefined}
-                      onCustomerEmailClick={onCustomerEmailClick}
-                      onBillingAddressEdit={toggleBillingAddressEditDialog}
-                      onShippingAddressEdit={toggleShippingAddressEditDialog}
+class OrderDetailsPageComponent extends React.Component<
+  OrderDetailsPageProps & WithStyles<"orderDate" | "root">,
+  OrderDetailsPageState
+> {
+  state = {
+    openedBillingAddressEditDialog: false,
+    openedCustomerEditDialog: false,
+    openedFulfillmentDialog: false,
+    openedOrderCancelDialog: false,
+    openedOrderProductAddDialog: false,
+    openedPaymentCaptureDialog: false,
+    openedPaymentRefundDialog: false,
+    openedPaymentReleaseDialog: false,
+    openedShippingAddressEditDialog: false
+  };
+
+  toggleFulfillmentDialog = () =>
+    this.setState(prevState => ({
+      openedFulfillmentDialog: !prevState.openedFulfillmentDialog
+    }));
+  togglePaymentReleaseDialog = () =>
+    this.setState(prevState => ({
+      openedPaymentReleaseDialog: !prevState.openedPaymentReleaseDialog
+    }));
+  togglePaymentCaptureDialog = () =>
+    this.setState(prevState => ({
+      openedPaymentCaptureDialog: !prevState.openedPaymentCaptureDialog
+    }));
+  togglePaymentRefundDialog = () =>
+    this.setState(prevState => ({
+      openedPaymentRefundDialog: !prevState.openedPaymentRefundDialog
+    }));
+  toggleOrderCancelDialog = () =>
+    this.setState(prevState => ({
+      openedOrderCancelDialog: !prevState.openedOrderCancelDialog
+    }));
+  toggleOrderProductAddDialog = () =>
+    this.setState(prevState => ({
+      openedOrderProductAddDialog: !prevState.openedOrderProductAddDialog
+    }));
+  toggleCustomerEditDialog = () =>
+    this.setState(prevState => ({
+      openedCustomerEditDialog: !prevState.openedCustomerEditDialog
+    }));
+  toggleShippingAddressEditDialog = () =>
+    this.setState(prevState => ({
+      openedShippingAddressEditDialog: !prevState.openedShippingAddressEditDialog
+    }));
+  toggleBillingAddressEditDialog = () =>
+    this.setState(prevState => ({
+      openedBillingAddressEditDialog: !prevState.openedBillingAddressEditDialog
+    }));
+
+  render() {
+    const {
+      classes,
+      countries,
+      order,
+      prefixes,
+      user,
+      variants,
+      variantsLoading,
+      fetchVariants,
+      onBack,
+      onCreate,
+      onCustomerEmailClick,
+      onOrderCancel,
+      onOrderLineChange,
+      onOrderLineRemove,
+      onPackingSlipClick,
+      onPrintClick,
+      onProductClick
+    } = this.props;
+    const {
+      openedFulfillmentDialog,
+      openedPaymentReleaseDialog,
+      openedPaymentCaptureDialog,
+      openedPaymentRefundDialog,
+      openedOrderCancelDialog,
+      openedOrderProductAddDialog,
+      openedCustomerEditDialog,
+      openedShippingAddressEditDialog,
+      openedBillingAddressEditDialog
+    } = this.state;
+    const isDraft = order.status === OrderStatus.DRAFT;
+    return (
+      <Container width="md">
+        <PageHeader
+          title={
+            order
+              ? i18n.t("Order #{{ orderId }}", { orderId: order.id })
+              : undefined
+          }
+          onBack={onBack}
+        />
+        {order ? (
+          <div className={classes.orderDate}>
+            <DateFormatter date={order.created} typography="caption" />
+          </div>
+        ) : (
+          <Skeleton />
+        )}
+        <div className={classes.root}>
+          <div>
+            <OrderSummary
+              net={order ? order.payment.net : undefined}
+              paid={order ? order.payment.paid : undefined}
+              paymentStatus={order ? order.paymentStatus : undefined}
+              products={order ? order.products : undefined}
+              refunded={order ? order.payment.refunded : undefined}
+              status={order ? order.status : undefined}
+              subtotal={order ? order.subtotal : undefined}
+              total={order ? order.total : undefined}
+              onCapture={this.togglePaymentCaptureDialog}
+              onCreate={onCreate}
+              onFulfill={this.toggleFulfillmentDialog}
+              onOrderCancel={this.toggleOrderCancelDialog}
+              onOrderLineChange={onOrderLineChange}
+              onOrderLineRemove={onOrderLineRemove}
+              onProductAdd={this.toggleOrderProductAddDialog}
+              onRefund={this.togglePaymentRefundDialog}
+              onRelease={this.togglePaymentReleaseDialog}
+              onRowClick={onProductClick}
+            />
+            {order && (
+              <>
+                <Form
+                  initial={
+                    order
+                      ? order.unfulfilled.reduce((prev, curr) => {
+                          prev[curr.id] = curr.quantity;
+                          return prev;
+                        }, {})
+                      : undefined
+                  }
+                >
+                  {({ data, change, submit }) => (
+                    <OrderFulfillmentDialog
+                      data={data}
+                      open={openedFulfillmentDialog}
+                      products={order.unfulfilled}
+                      onChange={change}
+                      onClose={this.toggleFulfillmentDialog}
+                      onConfirm={submit}
                     />
-                    {order && (
-                      <>
-                        <Form
-                          initial={transformAddressToForm(
-                            order.shippingAddress
-                          )}
-                        >
-                          {({ change, data, submit }) => (
-                            <OrderAddressEditDialog
-                              variant="shipping"
-                              open={openedShippingAddressEditDialog}
-                              onClose={toggleShippingAddressEditDialog}
-                              onConfirm={submit}
-                              onChange={change}
-                              prefixes={prefixes}
-                              countries={countries}
-                              data={data}
-                            />
-                          )}
-                        </Form>
-                        <Form
-                          initial={transformAddressToForm(order.billingAddress)}
-                        >
-                          {({ change, data, submit }) => (
-                            <OrderAddressEditDialog
-                              variant="billing"
-                              open={openedBillingAddressEditDialog}
-                              onClose={toggleBillingAddressEditDialog}
-                              onConfirm={submit}
-                              onChange={change}
-                              prefixes={prefixes}
-                              countries={countries}
-                              data={data}
-                            />
-                          )}
-                        </Form>
-                      </>
-                    )}
-                  </>
-                )}
-              </Toggle>
+                  )}
+                </Form>
+                <Form initial={{ value: 0 }}>
+                  {({ data, change, submit }) => (
+                    <OrderPaymentDialog
+                      open={openedPaymentCaptureDialog}
+                      value={data.value}
+                      variant="capture"
+                      onChange={change}
+                      onClose={this.togglePaymentCaptureDialog}
+                      onConfirm={submit}
+                    />
+                  )}
+                </Form>
+                <Form initial={{ value: 0 }}>
+                  {({ data, change, submit }) => (
+                    <OrderPaymentDialog
+                      open={openedPaymentRefundDialog}
+                      value={data.value}
+                      variant="refund"
+                      onChange={change}
+                      onClose={this.togglePaymentRefundDialog}
+                      onConfirm={submit}
+                    />
+                  )}
+                </Form>
+                <OrderCancelDialog
+                  id={order.id}
+                  open={openedOrderCancelDialog}
+                  onClose={this.toggleOrderCancelDialog}
+                  onConfirm={onOrderCancel}
+                />
+                <Form
+                  initial={{
+                    quantity: 1,
+                    variant: {
+                      label: "",
+                      value: ""
+                    }
+                  }}
+                >
+                  {({ data, change, submit }) => (
+                    <OrderProductAddDialog
+                      loading={variantsLoading}
+                      open={openedOrderProductAddDialog}
+                      quantity={data.quantity}
+                      variant={data.variant}
+                      variants={variants}
+                      fetchVariants={fetchVariants}
+                      onChange={change}
+                      onClose={this.toggleOrderProductAddDialog}
+                      onConfirm={submit}
+                    />
+                  )}
+                </Form>
+              </>
             )}
-          </Toggle>
+
+            {order ? (
+              !isDraft &&
+              order.fulfillments.map(fulfillment => (
+                <Toggle key={fulfillment.id}>
+                  {(openedCancelDialog, { toggle: toggleCancelDialog }) => (
+                    <Toggle>
+                      {(
+                        openedTrackingDialog,
+                        { toggle: toggleTrackingDialog }
+                      ) => (
+                        <>
+                          <OrderFulfillment
+                            id={fulfillment.id}
+                            products={fulfillment.products}
+                            status={fulfillment.status}
+                            trackingCode={fulfillment.trackingCode}
+                            onFulfillmentCancel={toggleCancelDialog}
+                            onTrackingCodeAdd={toggleTrackingDialog}
+                            onPackingSlipClick={
+                              onPackingSlipClick
+                                ? onPackingSlipClick(fulfillment.id)
+                                : undefined
+                            }
+                          />
+                          <OrderFulfillmentCancelDialog
+                            open={openedCancelDialog}
+                            id={fulfillment.id}
+                            onClose={toggleCancelDialog}
+                          />
+                          <Form
+                            initial={{
+                              trackingCode: fulfillment.trackingCode
+                            }}
+                          >
+                            {({ change, data, submit }) => (
+                              <OrderFulfillmentTrackingDialog
+                                open={openedTrackingDialog}
+                                trackingCode={data.trackingCode}
+                                variant={
+                                  fulfillment.trackingCode ? "edit" : "add"
+                                }
+                                onChange={change}
+                                onClose={toggleTrackingDialog}
+                              />
+                            )}
+                          </Form>
+                        </>
+                      )}
+                    </Toggle>
+                  )}
+                </Toggle>
+              ))
+            ) : (
+              <OrderFulfillment />
+            )}
+            <OrderHistory
+              history={order ? order.events : undefined}
+              user={user}
+            />
+          </div>
+          <div>
+            <OrderCustomer
+              billingAddress={order ? order.billingAddress : undefined}
+              client={order ? order.client : undefined}
+              editCustomer={isDraft}
+              shippingAddress={order ? order.shippingAddress : undefined}
+              onBillingAddressEdit={this.toggleBillingAddressEditDialog}
+              onCustomerEditClick={this.toggleCustomerEditDialog}
+              onCustomerEmailClick={onCustomerEmailClick}
+              onShippingAddressEdit={this.toggleShippingAddressEditDialog}
+            />
+            {order && (
+              <>
+                <Form initial={transformAddressToForm(order.shippingAddress)}>
+                  {({ change, data, submit }) => (
+                    <OrderAddressEditDialog
+                      countries={countries}
+                      data={data}
+                      open={openedShippingAddressEditDialog}
+                      prefixes={prefixes}
+                      variant="shipping"
+                      onClose={this.toggleShippingAddressEditDialog}
+                      onConfirm={submit}
+                      onChange={change}
+                    />
+                  )}
+                </Form>
+                <Form initial={transformAddressToForm(order.billingAddress)}>
+                  {({ change, data, submit }) => (
+                    <OrderAddressEditDialog
+                      countries={countries}
+                      data={data}
+                      open={openedBillingAddressEditDialog}
+                      prefixes={prefixes}
+                      variant="billing"
+                      onClose={this.toggleBillingAddressEditDialog}
+                      onConfirm={submit}
+                      onChange={change}
+                    />
+                  )}
+                </Form>
+              </>
+            )}
+          </div>
         </div>
-      </div>
-    </Container>
-  )
+      </Container>
+    );
+  }
+}
+const OrderDetailsPage = decorate<OrderDetailsPageProps>(
+  OrderDetailsPageComponent
 );
 export default OrderDetailsPage;

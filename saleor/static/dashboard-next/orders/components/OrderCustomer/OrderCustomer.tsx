@@ -35,6 +35,8 @@ interface OrderCustomerProps {
   };
   shippingAddress?: AddressType;
   billingAddress?: AddressType;
+  editCustomer?: boolean;
+  onCustomerEditClick?();
   onCustomerEmailClick?(id: string);
   onBillingAddressEdit?();
   onShippingAddressEdit?();
@@ -59,13 +61,24 @@ const OrderCustomer = decorate<OrderCustomerProps>(
     classes,
     client,
     billingAddress,
+    editCustomer,
     shippingAddress,
+    onCustomerEditClick,
     onCustomerEmailClick,
     onBillingAddressEdit,
     onShippingAddressEdit
   }) => (
     <Card>
-      <PageHeader title={i18n.t("Customer")} />
+      <PageHeader title={i18n.t("Customer")}>
+        {editCustomer && (
+          <IconButton
+            disabled={!onCustomerEditClick}
+            onClick={onCustomerEditClick}
+          >
+            <EditIcon />
+          </IconButton>
+        )}
+      </PageHeader>
       <CardContent>
         {client === undefined || client === null ? (
           <>

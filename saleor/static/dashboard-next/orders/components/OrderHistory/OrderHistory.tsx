@@ -47,38 +47,41 @@ const OrderHistory = decorate<OrderHistoryProps>(
               />
             )}
           </Form>
-          {history.reverse().map(event => {
-            if (event.type === "note") {
-              return (
-                <TimelineNote
-                  user={event.user}
-                  date={event.date}
-                  content={event.content}
-                />
-              );
-            }
-            if (event.type === "shipped") {
+          {history
+            .slice()
+            .reverse()
+            .map(event => {
+              if (event.type === "note") {
+                return (
+                  <TimelineNote
+                    user={event.user}
+                    date={event.date}
+                    content={event.content}
+                  />
+                );
+              }
+              if (event.type === "shipped") {
+                return (
+                  <TimelineNode date={event.date} title={event.content}>
+                    <Typography variant="caption" className={classes.user}>
+                      {i18n.t("by {{ user }}", { user: event.user })}
+                    </Typography>
+                    <Typography
+                      dangerouslySetInnerHTML={{
+                        __html: event.params.shippingAddress
+                      }}
+                    />
+                  </TimelineNode>
+                );
+              }
               return (
                 <TimelineNode date={event.date} title={event.content}>
-                  <Typography variant="caption" className={classes.user}>
+                  <Typography variant="caption">
                     {i18n.t("by {{ user }}", { user: event.user })}
                   </Typography>
-                  <Typography
-                    dangerouslySetInnerHTML={{
-                      __html: event.params.shippingAddress
-                    }}
-                  />
                 </TimelineNode>
               );
-            }
-            return (
-              <TimelineNode date={event.date} title={event.content}>
-                <Typography variant="caption">
-                  {i18n.t("by {{ user }}", { user: event.user })}
-                </Typography>
-              </TimelineNode>
-            );
-          })}
+            })}
         </Timeline>
       ) : (
         <Skeleton />
