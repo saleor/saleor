@@ -1,3 +1,4 @@
+import json
 import graphene
 from django.shortcuts import reverse
 from tests.utils import get_graphql_content
@@ -16,7 +17,9 @@ def test_create_token_mutation(admin_client, staff_user):
     }
     '''
     success_query = query % {'email': staff_user.email, 'password': 'password'}
-    response = admin_client.post(reverse('api'), {'query': success_query})
+    response = admin_client.post(
+        reverse('api'), json.dumps({'query': success_query}),
+        content_type='application/json')
     content = get_graphql_content(response)
     assert 'errors' not in content
     token_data = content['data']['tokenCreate']
@@ -24,7 +27,9 @@ def test_create_token_mutation(admin_client, staff_user):
     assert not token_data['errors']
 
     error_query = query % {'email': staff_user.email, 'password': 'wat'}
-    response = admin_client.post(reverse('api'), {'query': error_query})
+    response = admin_client.post(
+        reverse('api'), json.dumps({'query': error_query}),
+        content_type='application/json')
     content = get_graphql_content(response)
     assert 'errors' not in content
     token_data = content['data']['tokenCreate']
@@ -59,7 +64,9 @@ def test_token_create_user_data(
     user_id = graphene.Node.to_global_id('User', staff_user.id)
 
     query = query % {'email': staff_user.email, 'password': 'password'}
-    response = staff_client.post(reverse('api'), {'query': query})
+    response = staff_client.post(
+        reverse('api'), json.dumps({'query': query}),
+        content_type='application/json')
     content = get_graphql_content(response)
     assert 'errors' not in content
     token_data = content['data']['tokenCreate']
