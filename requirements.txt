@@ -59,6 +59,7 @@ freezegun==0.3.10
 google-i18n-address==2.3.0
 google-measurement-protocol==1.0.0
 graphene-django==2.0.0
+graphene-file-upload==0.1.1
 graphene==2.0.1           # via django-graphql-jwt, graphene-django
 graphql-core==2.0         # via graphene, graphql-relay
 graphql-relay==0.4.5      # via graphene
