@@ -1,17 +1,21 @@
 import json
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 import graphene
+import pytest
 from django.contrib.auth.models import AnonymousUser
 from django.http import HttpResponse
 from django.shortcuts import reverse
 from django.test import RequestFactory
 from graphql_jwt.shortcuts import get_token
+from graphql_relay import to_global_id
 from tests.utils import get_graphql_content
 
 from saleor.graphql.core.mutations import (
     ModelFormMutation, ModelFormUpdateMutation)
 from saleor.graphql.middleware import jwt_middleware
+from saleor.graphql.product.types import Product
+from saleor.graphql.utils import get_nodes
 
 
 def test_jwt_middleware(admin_client, admin_user):
@@ -230,3 +234,36 @@ def test_model_form_update_mutation(model_form_class):
 
     meta = TestUpdateMutation._meta
     assert 'id' in meta.arguments
+
+def test_get_nodes(product_list):
+    global_ids = [to_global_id('Product', product.pk) for product in product_list]
+    # Make sure function works even if duplicated ids are provided
+    global_ids.append(to_global_id('Product', product_list[0].pk))
+    # Return products corresponding to global ids
+    products = get_nodes(global_ids, Product)
+    assert products == product_list
+
+    # Raise an error if requested id has no related database object
+    nonexistent_item = Mock(type='Product', pk=123)
+    nonexistent_item_global_id = to_global_id(
+        nonexistent_item.type, nonexistent_item.pk)
+    global_ids.append(nonexistent_item_global_id)
+    msg = 'There is no node of type {} with pk {}'.format(
+        nonexistent_item.type, nonexistent_item.pk)
+    with pytest.raises(AssertionError, message=msg):
+        get_nodes(global_ids, Product)
+    global_ids.pop()
+
+    # Raise an error if one of the node is of wrong type
+    invalid_item = Mock(type='test', pk=123)
+    invalid_item_global_id = to_global_id(invalid_item.type, invalid_item.pk)
+    global_ids.append(invalid_item_global_id)
+    with pytest.raises(AssertionError, message='Must receive an Product id.'):
+        get_nodes(global_ids, Product)
+
+    # Raise an error if no nodes were found
+    global_ids = []
+    msg = 'Could not resolve to a nodes with the global id list of {}.'.format(
+        global_ids)
+    with pytest.raises(Exception, message=msg):
+        get_nodes(global_ids, Product)
