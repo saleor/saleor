@@ -11,8 +11,8 @@ from django.utils.translation import pgettext_lazy
 from django_countries.fields import Country, CountryField
 from phonenumber_field.modelfields import PhoneNumber, PhoneNumberField
 
+from ..core.templatetags.demo_obfuscators import obfuscate_string, obfuscate_phone
 from ..core.models import BaseNote
-from ..core.templatetags.demo_obfuscators import obfuscate_email
 from .validators import validate_possible_number
 
 
@@ -72,6 +72,15 @@ class Address(models.Model):
     def get_copy(self):
         """Return a new instance of the same address."""
         return Address.objects.create(**self.as_data())
+
+    def save(self, *args, **kwargs):
+        if not self.pk:
+            self.last_name = obfuscate_string(self.last_name)
+            self.street_address_1 = obfuscate_string(self.street_address_1)
+            self.city = obfuscate_string(self.city)
+            self.postal_code = obfuscate_string(self.postal_code)
+            self.phone = obfuscate_phone(self.phone)
+        super().save(*args, **kwargs)
 
 
 class UserManager(BaseUserManager):
@@ -140,20 +149,21 @@ class User(PermissionsMixin, AbstractBaseUser):
                 'impersonate_users', pgettext_lazy(
                     'Permission description', 'Impersonate customers.')))
 
-    def get_obfuscated_username(self):
-        return obfuscate_email(self.email)
-
     def __str__(self):
-        return self.get_obfuscated_username()
+        return self.email
 
     def get_full_name(self):
-        return self.get_obfuscated_username()
+        return self.email
 
     def get_short_name(self):
-        return self.get_obfuscated_username()
+        return self.email
 
     def get_ajax_label(self):
-        return self.get_short_name()
+        address = self.default_billing_address
+        if address:
+            return '%s %s (%s)' % (
+                address.first_name, address.last_name, self.email)
+        return self.email
 
 
 class CustomerNote(BaseNote):

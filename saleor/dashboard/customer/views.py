@@ -73,7 +73,7 @@ def customer_create(request):
 @permission_required('account.manage_users')
 def customer_edit(request, pk=None):
     customer = get_object_or_404(User, pk=pk)
-    customer.email = obfuscate_email(customer.email)
+    customer.email = customer.email
     form = CustomerForm(request.POST or None, instance=customer)
     if form.is_valid():
         form.save()

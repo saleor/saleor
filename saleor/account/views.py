@@ -10,7 +10,6 @@ from django.utils.translation import pgettext, ugettext_lazy as _
 from django.views.decorators.http import require_POST
 
 from ..checkout.utils import find_and_assign_anonymous_cart
-from ..core.templatetags.demo_obfuscators import obfuscate_address
 from ..core.utils import get_paginator_items
 from .emails import send_account_delete_confirmation_email
 from .forms import (
@@ -100,9 +99,8 @@ def get_or_process_password_form(request):
 @login_required
 def address_edit(request, pk):
     address = get_object_or_404(request.user.addresses, pk=pk)
-    obfuscated_address = obfuscate_address(address)
     address_form, preview = get_address_form(
-        request.POST or None, instance=obfuscated_address,
+        request.POST or None, instance=address,
         country_code=address.country.code)
     if address_form.is_valid() and not preview:
         address_form.save()
