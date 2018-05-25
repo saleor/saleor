@@ -1,5 +1,6 @@
 import graphene
 from graphene.types import InputObjectType
+from graphql_jwt.decorators import permission_required
 from graphene_file_upload import Upload
 from graphql_jwt.decorators import permission_required
 
@@ -78,6 +79,37 @@ class CollectionCreateMutation(StaffMemberRequiredMixin, ModelFormMutation):
             kwargs['data']['products'] = products
         return kwargs
 
+
+class CollectionUpdate(
+    StaffMemberRequiredMixin, ModelFormUpdateMutation):
+    permissions = 'collection.edit_collection'
+
+    class Meta:
+        description = 'Updates an existing collection.'
+        form_class = CollectionForm
+        exclude = ['products']
+
+class CollectionDelete(StaffMemberRequiredMixin, ModelDeleteMutation):
+    permissions = 'collection.edit_collection'
+
+    class Meta:
+        description = 'Deletes a collection.'
+        model = models.Collection
+
+
+class CollectionAddProducts(BaseMutation):
+    class Arguments:
+        collection_id = graphene.Argument(
+            graphene.ID, description='ID of an product.')
+        products = graphene.List(graphene.ID)
+
+    class Meta:
+        description = 'Adds product to the collection.'
+
+    @permission_required('collection.edit_collection')
+    def mutate(self, info, collection_id, products, **kwargs):
+        collection_id = get_node(info, collection_id, only_type=Collection)
+        # products =
 
 class AttributeValueInput(InputObjectType):
     slug = graphene.String(required=True)

@@ -14,7 +14,7 @@ from .page.mutations import PageCreate, PageDelete, PageUpdate
 from .product.filters import ProductFilterSet
 from .product.mutations import (
     CategoryCreateMutation, CategoryDelete, CategoryUpdateMutation,
-    CollectionCreateMutation,
+    CollectionCreateMutation, CollectionUpdate,
     ProductCreateMutation, ProductDeleteMutation, ProductUpdateMutation,
     ProductTypeCreateMutation, ProductTypeDeleteMutation,
     ProductTypeUpdateMutation, ProductVariantCreateMutation,
@@ -124,6 +124,7 @@ class Mutations(graphene.ObjectType):
     category_update = CategoryUpdateMutation.Field()
 
     collection_create = CollectionCreateMutation.Field()
+    collection_update = CollectionUpdate.Field()
 
     page_create = PageCreate.Field()
     page_delete = PageDelete.Field()
