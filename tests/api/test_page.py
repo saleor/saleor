@@ -8,7 +8,7 @@ from tests.utils import get_graphql_content
 from saleor.page.models import Page
 
 
-def test_page_query(client, page):
+def test_page_query(user_api_client, page):
     page.is_visible = True
     query = """
     query PageQuery($id: ID!) {
@@ -20,7 +20,7 @@ def test_page_query(client, page):
     """
     variables = json.dumps({
         'id': graphene.Node.to_global_id('Page', page.id)})
-    response = client.post(
+    response = user_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
     content = get_graphql_content(response)
     assert 'errors' not in content
@@ -102,7 +102,7 @@ def test_page_delete_mutation(admin_api_client, page):
         page.refresh_from_db()
 
 
-def test_paginate_pages(client, page):
+def test_paginate_pages(user_api_client, page):
     page.is_visible = True
     data_02 = {
         'slug': 'test02-url',
@@ -129,7 +129,7 @@ def test_paginate_pages(client, page):
             }
         }
         """
-    response = client.post(
+    response = user_api_client.post(
         reverse('api'), {'query': query})
     content = get_graphql_content(response)
     assert 'errors' not in content
