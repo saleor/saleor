@@ -2,9 +2,9 @@ import json
 
 import graphene
 import pytest
-
 from django.shortcuts import reverse
 from django.utils.text import slugify
+from graphql_relay import to_global_id
 from prices import Money
 from tests.utils import create_image, get_graphql_content
 
@@ -829,3 +829,170 @@ def test_product_image_create_mutation(admin_api_client, product):
     file_name = data['productImage']['image']
     product.refresh_from_db()
     assert product.images.first().image.name == file_name
+
+
+def test_collections_query(user_api_client, collection):
+    query = """
+        query Collections {
+            collections(first: 1) {
+                edges {
+                    node {
+                        name
+                        slug
+                        products {
+                            totalCount
+                        }
+                    }
+                }
+            }
+        }
+    """
+    response = user_api_client.post(reverse('api'), {'query': query})
+    content = get_graphql_content(response)
+    assert 'errors' not in content
+    data = content['data']['collections']['edges'][0]['node']
+    assert data['name'] == collection.name
+    assert data['slug'] == collection.slug
+    assert data['products']['totalCount'] == collection.products.count()
+
+
+def test_create_collection(admin_api_client, product_list):
+    query = """
+        mutation createCollection(
+            $name: String!, $slug: String!, $products: [ID]) {
+            collectionCreate(
+                name: $name, slug: $slug, products: $products) {
+                collection {
+                    name
+                    slug
+                    products {
+                        totalCount
+                    }
+                }
+            }
+        }
+    """
+    product_ids = [
+        to_global_id('Product', product.pk) for product in product_list]
+    name = 'test-name'
+    slug = 'test-slug'
+    variables = json.dumps(
+        {'name': name, 'slug': slug, 'products': product_ids})
+    response = admin_api_client.post(
+        reverse('api'), {'query': query, 'variables': variables})
+    content = get_graphql_content(response)
+    assert 'errors' not in content
+    data = content['data']['collectionCreate']['collection']
+    assert data['name'] == name
+    assert data['slug'] == slug
+    assert data['products']['totalCount'] == len(product_ids)
+
+
+def test_update_collection(admin_api_client, collection):
+    query = """
+        mutation createCollection(
+            $name: String!, $slug: String!, $id: ID!) {
+            collectionUpdate(
+                name: $name, slug: $slug, id: $id) {
+                collection {
+                    name
+                    slug
+                }
+            }
+        }
+    """
+    collection_id = to_global_id('Collection', collection.id)
+    name = 'new-name'
+    slug = 'new-slug'
+    variables = json.dumps(
+        {'name': name, 'slug': slug, 'id': collection_id})
+    response = admin_api_client.post(
+        reverse('api'), {'query': query, 'variables': variables})
+    content = get_graphql_content(response)
+    assert 'errors' not in content
+    data = content['data']['collectionUpdate']['collection']
+    assert data['name'] == name
+    assert data['slug'] == slug
+
+
+def test_delete_collection(admin_api_client, collection):
+    query = """
+        mutation deleteCollection(
+            $id: ID!) {
+            collectionDelete(
+                id: $id) {
+                collection {
+                    name
+                }
+            }
+        }
+    """
+    collection_id = to_global_id('Collection', collection.id)
+    variables = json.dumps({'id': collection_id})
+    response = admin_api_client.post(
+        reverse('api'), {'query': query, 'variables': variables})
+    content = get_graphql_content(response)
+    assert 'errors' not in content
+    data = content['data']['collectionDelete']['collection']
+    assert data['name'] == collection.name
+    with pytest.raises(collection._meta.model.DoesNotExist):
+        collection.refresh_from_db()
+
+
+def test_add_products_to_collection(
+        admin_api_client, collection, product_list):
+    query = """
+        mutation collectionAddProducts(
+            $id: ID!, $products: [ID]!) {
+            collectionAddProducts(collectionId: $id, products: $products) {
+                collection {
+                    products {
+                        totalCount
+                    }
+                }
+            }
+        }
+    """
+    collection_id = to_global_id('Collection', collection.id)
+    product_ids = [
+        to_global_id('Product', product.pk) for product in product_list]
+    no_products_before = collection.products.count()
+    variables = json.dumps(
+        {'id': collection_id, 'products': product_ids})
+    response = admin_api_client.post(
+        reverse('api'), {'query': query, 'variables': variables})
+    content = get_graphql_content(response)
+    assert 'errors' not in content
+    data = content['data']['collectionAddProducts']['collection']
+    assert data[
+        'products']['totalCount'] == no_products_before + len(product_ids)
+
+
+def test_remove_products_to_collection(
+        admin_api_client, collection, product_list):
+    query = """
+        mutation collectionRemoveProducts(
+            $id: ID!, $products: [ID]!) {
+            collectionRemoveProducts(collectionId: $id, products: $products) {
+                collection {
+                    products {
+                        totalCount
+                    }
+                }
+            }
+        }
+    """
+    collection.products.add(*product_list)
+    collection_id = to_global_id('Collection', collection.id)
+    product_ids = [
+        to_global_id('Product', product.pk) for product in product_list]
+    no_products_before = collection.products.count()
+    variables = json.dumps(
+        {'id': collection_id, 'products': product_ids})
+    response = admin_api_client.post(
+        reverse('api'), {'query': query, 'variables': variables})
+    content = get_graphql_content(response)
+    assert 'errors' not in content
+    data = content['data']['collectionRemoveProducts']['collection']
+    assert data[
+        'products']['totalCount'] == no_products_before - len(product_ids)
