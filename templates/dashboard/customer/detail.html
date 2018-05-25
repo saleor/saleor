@@ -1,5 +1,4 @@
 {% extends "dashboard/base.html" %}
-{% load demo_obfuscators %}
 {% load prices_i18n %}
 {% load i18n %}
 {% load materializecss %}
@@ -185,7 +184,7 @@
               {% endif %}
               <svg data-src="{% static "dashboard/images/email.svg" %}" width="14" height="14" />
               <a href="#">
-                {{ customer.email|obfuscate_email }}
+                {{ customer.email }}
               </a>
             </div>
           </div>

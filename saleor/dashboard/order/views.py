@@ -14,7 +14,6 @@ from django_prices.templatetags import prices_i18n
 from payments import PaymentStatus
 
 from ...core.exceptions import InsufficientStock
-from ...core.templatetags.demo_obfuscators import obfuscate_address
 from ...core.utils import get_paginator_items
 from ...core.utils.taxes import (
     ZERO_MONEY, ZERO_TAXED_MONEY, get_taxes_for_address)
@@ -345,8 +344,7 @@ def address_view(request, order_pk, address_type):
             'Dashboard message',
             'Updated billing address')
 
-    obfuscated_address = obfuscate_address(address)
-    form = AddressForm(request.POST or None, instance=obfuscated_address)
+    form = AddressForm(request.POST or None, instance=address)
     if form.is_valid():
         updated_address = form.save()
         if not address:
