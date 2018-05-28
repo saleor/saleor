@@ -41,7 +41,7 @@ class Query(graphene.ObjectType):
         Category, id=graphene.Argument(graphene.ID),
         description='Lookup a category by ID.')
     collection = graphene.Field(
-        Collection, id=graphene.Argument(graphene.ID), slug=graphene.String(),
+        Collection, id=graphene.Argument(graphene.ID),
         description='Lookup a collection by ID.')
     collections = DjangoFilterConnectionField(
         Collection, description='List of the shop\'s collections.')

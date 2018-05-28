@@ -3,7 +3,7 @@ from django.db.models import Q
 from ...product import models
 from ...product.utils import products_visible_to_user
 from ..utils import get_node
-from .types import Category, SelectedAttribute
+from .types import Category
 
 
 def resolve_attributes(category_id, info):
@@ -33,6 +33,7 @@ def resolve_categories(info, level=None):
 
 
 def resolve_collections(info):
+    # FIXME: Return collections based on user after rebasing to master
     return models.Collection.objects.all()
 
 
