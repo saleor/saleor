@@ -10,7 +10,7 @@ from django.utils.encoding import smart_text
 from django.utils.translation import get_language, pgettext, pgettext_lazy
 from prices import TaxedMoneyRange
 
-from . import logger
+from . import AddressType, logger
 from ..account.forms import get_address_form
 from ..account.models import Address
 from ..account.utils import store_user_address
@@ -319,7 +319,8 @@ def add_variant_to_cart(
 
 def get_shipping_address_forms(cart, user_addresses, data, country):
     """Forms initialized with data depending on shipping address in cart."""
-    shipping_address = cart.shipping_address
+    shipping_address = (
+        cart.shipping_address or cart.user.default_shipping_address)
 
     if shipping_address and shipping_address in user_addresses:
         address_form, preview = get_address_form(
@@ -741,24 +742,27 @@ def create_order(cart, tracking_code, discounts, taxes):
 
     billing_address = cart.billing_address
 
-    if cart.user:
-        if billing_address not in cart.user.addresses.all():
-            store_user_address(cart.user, billing_address, billing=True)
-        billing_address = billing_address.get_copy()
-
     if cart.is_shipping_required():
         shipping_address = cart.shipping_address
         shipping_method = cart.shipping_method
         shipping_method_name = smart_text(shipping_method)
-
-        if cart.user and shipping_address not in cart.user.addresses.all():
-            store_user_address(cart.user, shipping_address, shipping=True)
-
-        shipping_address = shipping_address.get_copy()
     else:
         shipping_address = None
         shipping_method = None
         shipping_method_name = None
+
+    if cart.user:
+        store_user_address(cart.user, billing_address, AddressType.BILLING)
+
+        if cart.user.addresses.filter(pk=billing_address.pk).exists():
+            billing_address = billing_address.get_copy()
+
+        if cart.is_shipping_required():
+            store_user_address(
+                cart.user, shipping_address, AddressType.SHIPPING)
+
+            if cart.user.addresses.filter(pk=shipping_address.pk).exists():
+                shipping_address = shipping_address.get_copy()
 
     order_data = {
         'language_code': get_language(),
