@@ -1,6 +1,5 @@
 import { storiesOf } from "@storybook/react";
 import * as React from "react";
-import * as moment from "moment";
 
 import DateFormatter from "../../../components/DateFormatter";
 import Decorator from "../../Decorator";
@@ -8,14 +7,14 @@ import Decorator from "../../Decorator";
 storiesOf("Generics / DateFormatter", module)
   .addDecorator(Decorator)
   .add("default", () => <DateFormatter date="2018-04-07T10:44:44+00:00" />)
-  .add("without tooltip", () => (
-    <DateFormatter date="2018-04-07T10:44:44+00:00" showTooltip={false} />
-  ))
   .add("humanized", () => (
+    <DateFormatter date={"2018-05-27T22:44:44+00:00"} dateNow={1527521275866} />
+  ))
+  .add("humanized without tooltip", () => (
     <DateFormatter
-      date={moment()
-        .subtract(1, "days")
-        .format()}
+      date={"2018-05-27T22:44:44+00:00"}
+      dateNow={1527521275866}
+      showTooltip={false}
     />
   ))
   .add("with custom format", () => (

@@ -6,6 +6,7 @@ import * as React from "react";
 
 interface DateFormatterProps {
   date: string;
+  dateNow?: number;
   inputFormat?: string;
   outputFormat?: string;
   showTooltip?: boolean;
@@ -18,6 +19,7 @@ const DateFormatter = decorate<DateFormatterProps>(
   ({
     classes,
     date,
+    dateNow,
     inputFormat,
     outputFormat,
     showTooltip = true,
@@ -25,7 +27,7 @@ const DateFormatter = decorate<DateFormatterProps>(
     typography
   }) => {
     const momentDate = inputFormat ? moment(date, inputFormat) : moment(date);
-    if (moment().diff(momentDate, "days") > 1) {
+    if (!dateNow || moment(dateNow).diff(momentDate, "days") > 1) {
       return (
         <Typography
           className={classes.root}

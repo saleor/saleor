@@ -103,6 +103,7 @@ interface OrderDetailsPageProps {
       net: MoneyType;
     };
   };
+  dateNow?: number;
   shippingMethods?: Array<{
     id: string;
     name: string;
@@ -226,6 +227,7 @@ class OrderDetailsPageComponent extends React.Component<
     const {
       classes,
       countries,
+      dateNow,
       order,
       prefixes,
       shippingMethods,
@@ -280,7 +282,11 @@ class OrderDetailsPageComponent extends React.Component<
         />
         {order ? (
           <div className={classes.orderDate}>
-            <DateFormatter date={order.created} typography="caption" />
+            <DateFormatter
+              date={order.created}
+              dateNow={dateNow}
+              typography="caption"
+            />
           </div>
         ) : (
           <Skeleton />

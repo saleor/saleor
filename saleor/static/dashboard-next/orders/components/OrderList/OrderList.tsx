@@ -39,6 +39,7 @@ interface OrderListProps {
       currency: string;
     };
   }>;
+  dateNow?: number;
   hasPreviousPage?: boolean;
   hasNextPage?: boolean;
   onPreviousPage?();
@@ -62,6 +63,7 @@ const decorate = withStyles(theme => ({
 export const OrderList = decorate<OrderListProps>(
   ({
     classes,
+    dateNow,
     orders,
     hasPreviousPage,
     onPreviousPage,
@@ -137,7 +139,7 @@ export const OrderList = decorate<OrderListProps>(
                 </TableCell>
                 <TableCell>{order.client.email}</TableCell>
                 <TableCell>
-                  <DateFormatter date={order.created} />
+                  <DateFormatter date={order.created} dateNow={dateNow} />
                 </TableCell>
                 <TableCell>
                   <StatusLabel

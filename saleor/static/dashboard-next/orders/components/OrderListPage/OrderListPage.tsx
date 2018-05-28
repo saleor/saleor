@@ -27,13 +27,14 @@ interface OrderListPageProps {
       };
     }>;
   };
+  dateNow?: number;
   onBack();
   onRowClick(id: string);
 }
 
 const decorate = withStyles(theme => ({ root: {} }));
 const OrderListPage = decorate<OrderListPageProps>(
-  ({ classes, orders, onBack, onRowClick }) => {
+  ({ classes, dateNow, orders, onBack, onRowClick }) => {
     const orderList = orders
       ? orders.edges.map(edge => ({
           ...edge.node,
@@ -44,7 +45,11 @@ const OrderListPage = decorate<OrderListPageProps>(
     return (
       <Container width="md">
         <PageHeader title={i18n.t("Orders")} onBack={onBack} />
-        <OrderList orders={orderList} onRowClick={onRowClick} />
+        <OrderList
+          dateNow={dateNow}
+          onRowClick={onRowClick}
+          orders={orderList}
+        />
       </Container>
     );
   }
