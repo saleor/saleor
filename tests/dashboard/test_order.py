@@ -5,8 +5,10 @@ from django.conf import settings
 from django.urls import reverse
 from payments import PaymentStatus
 from prices import Money
+
 from tests.utils import get_form_errors, get_redirect_location
 
+from saleor.checkout import AddressType
 from saleor.core.utils.taxes import ZERO_MONEY, ZERO_TAXED_MONEY
 from saleor.dashboard.order.forms import ChangeQuantityForm, OrderNoteForm
 from saleor.dashboard.order.utils import (
@@ -949,7 +951,7 @@ def test_save_address_in_order_shipping_address(order, address):
     address.first_name = 'Jane'
     address.save()
 
-    save_address_in_order(order, address, 'shipping')
+    save_address_in_order(order, address, AddressType.SHIPPING)
 
     assert order.shipping_address == address
     assert order.shipping_address.pk == address.pk
@@ -960,7 +962,7 @@ def test_save_address_in_order_billing_address(order, address):
     address.first_name = 'Jane'
     address.save()
 
-    save_address_in_order(order, address, 'billing')
+    save_address_in_order(order, address, AddressType.BILLING)
 
     assert order.billing_address == address
     assert order.billing_address.pk == address.pk
