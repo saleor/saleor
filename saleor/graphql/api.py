@@ -31,10 +31,10 @@ from .utils import get_node
 class Query(graphene.ObjectType):
     attributes = DjangoFilterConnectionField(
         ProductAttribute, filterset_class=DistinctFilterSet,
-        in_category=graphene.Argument(graphene.ID),
+        query=graphene.String(), in_category=graphene.Argument(graphene.ID),
         description='List of the shop\'s product attributes.')
     categories = DjangoFilterConnectionField(
-        Category, filterset_class=DistinctFilterSet,
+        Category, filterset_class=DistinctFilterSet, query=graphene.String(),
         level=graphene.Argument(graphene.Int),
         description='List of the shop\'s categories.')
     category = graphene.Field(
@@ -44,7 +44,8 @@ class Query(graphene.ObjectType):
         Collection, id=graphene.Argument(graphene.ID),
         description='Lookup a collection by ID.')
     collections = DjangoFilterConnectionField(
-        Collection, description='List of the shop\'s collections.')
+        Collection, query=graphene.String(),
+        description='List of the shop\'s collections.')
     order = graphene.Field(
         Order, description='Lookup an order by ID.',
         id=graphene.Argument(graphene.ID))
@@ -61,7 +62,7 @@ class Query(graphene.ObjectType):
         Product, id=graphene.Argument(graphene.ID),
         description='Lookup a product by ID.')
     products = DjangoFilterConnectionField(
-        Product, filterset_class=ProductFilterSet,
+        Product, filterset_class=ProductFilterSet, query=graphene.String(),
         description='List of the shop\'s products.')
     product_type = graphene.Field(
         ProductType, id=graphene.Argument(graphene.ID),
@@ -72,20 +73,20 @@ class Query(graphene.ObjectType):
         description='List of the shop\'s product types.')
     node = graphene.Node.Field()
 
-    def resolve_attributes(self, info, in_category=None, **kwargs):
-        return resolve_attributes(in_category, info)
+    def resolve_attributes(self, info, in_category=None, query=None, **kwargs):
+        return resolve_attributes(in_category, info, query)
 
     def resolve_category(self, info, id):
         return get_node(info, id, only_type=Category)
 
-    def resolve_categories(self, info, level=None, **kwargs):
-        return resolve_categories(info, level)
+    def resolve_categories(self, info, level=None, query=None, **kwargs):
+        return resolve_categories(info, level, query)
 
     def resolve_collection(self, info, id):
         return get_node(info, id, only_type=Collection)
 
-    def resolve_collections(self, info, **kwargs):
-        resolve_collections(info)
+    def resolve_collections(self, info, query=None, **kwargs):
+        resolve_collections(info, query)
 
     def resolve_page(self, info, id=None, slug=None):
         if slug is not None:
@@ -104,8 +105,8 @@ class Query(graphene.ObjectType):
     def resolve_product(self, info, id):
         return get_node(info, id, only_type=Product)
 
-    def resolve_products(self, info, category_id=None, **kwargs):
-        return resolve_products(info, category_id)
+    def resolve_products(self, info, category_id=None, query=None, **kwargs):
+        return resolve_products(info, category_id, query)
 
     def resolve_product_type(self, info, id):
         return get_node(info, id, only_type=ProductType)
