@@ -44,12 +44,17 @@ export interface OrderProductsProps {
     sku: string;
     thumbnailUrl: string;
   }>;
+  shippingMethod?: {
+    name: string;
+    price: MoneyType;
+  };
   refunded?: MoneyType;
   subtotal?: MoneyType;
   total?: MoneyType;
   onOrderLineChange?(id: string): (value: string) => () => void;
   onOrderLineRemove?(id: string): () => any;
   onRowClick?(id: string): () => any;
+  onShippingMethodClick?();
 }
 
 const decorate = withStyles(theme => ({
@@ -92,11 +97,13 @@ const OrderProducts = decorate<OrderProductsProps>(
     paid,
     products,
     refunded,
+    shippingMethod,
     subtotal,
     total,
     onOrderLineChange,
     onOrderLineRemove,
-    onRowClick
+    onRowClick,
+    onShippingMethodClick
   }) => (
     <Table className={classes.denseTable}>
       <TableHead>
@@ -209,7 +216,14 @@ const OrderProducts = decorate<OrderProductsProps>(
           <TableCell colSpan={5} className={classes.textRight}>
             <div className={classes.flexBox}>
               <Typography>{i18n.t("Subtotal")}</Typography>
-              <Typography>{i18n.t("Shipping")}</Typography>
+              <Typography
+                className={
+                  isDraft && !!onShippingMethodClick ? classes.link : ""
+                }
+                onClick={onShippingMethodClick}
+              >
+                {shippingMethod ? shippingMethod.name : i18n.t("Shipping")}
+              </Typography>
               <Typography>
                 <b>{i18n.t("Total")}</b>
               </Typography>
@@ -222,8 +236,11 @@ const OrderProducts = decorate<OrderProductsProps>(
               ) : (
                 <Skeleton />
               )}
-              {subtotal ? (
-                <Money amount={subtotal.amount} currency={subtotal.currency} />
+              {shippingMethod && shippingMethod.price ? (
+                <Money
+                  amount={shippingMethod.price.amount}
+                  currency={shippingMethod.price.currency}
+                />
               ) : (
                 <Skeleton />
               )}

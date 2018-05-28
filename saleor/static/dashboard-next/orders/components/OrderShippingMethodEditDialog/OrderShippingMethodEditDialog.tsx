@@ -15,18 +15,19 @@ import * as React from "react";
 import { SingleAutocompleteSelectField } from "../../../components/SingleAutocompleteSelectField";
 import i18n from "../../../i18n";
 
-interface OrderCustomerEditDialogProps {
+interface OrderShippingMethodEditDialogProps {
   open: boolean;
-  user?: {
+  shippingMethod?: {
     label: string;
     value: string;
   };
-  users?: Array<{
+  shippingMethods?: Array<{
     id: string;
-    email: string;
+    name: string;
+    country: string;
   }>;
   loading?: boolean;
-  fetchUsers(value: string);
+  fetchShippingMethods(value: string);
   onChange(event: React.ChangeEvent<any>);
   onClose?();
   onConfirm?(event: React.FormEvent<any>);
@@ -48,23 +49,25 @@ const decorate = withStyles(theme => ({
     textAlign: "right" as "right"
   }
 }));
-const OrderCustomerEditDialog = decorate<OrderCustomerEditDialogProps>(
+const OrderShippingMethodEditDialog = decorate<
+  OrderShippingMethodEditDialogProps
+>(
   ({
     classes,
     open,
     loading,
-    user,
-    users,
-    fetchUsers,
+    shippingMethod,
+    shippingMethods,
+    fetchShippingMethods,
     onChange,
     onClose,
     onConfirm
   }) => {
     const choices =
-      !loading && users
-        ? users.map(v => ({
-            label: v.email,
-            value: v.id
+      !loading && shippingMethods
+        ? shippingMethods.map(s => ({
+            label: `${s.name} (${s.country})`,
+            value: s.id
           }))
         : [];
     return (
@@ -73,11 +76,10 @@ const OrderCustomerEditDialog = decorate<OrderCustomerEditDialogProps>(
         <DialogContent className={classes.root}>
           <SingleAutocompleteSelectField
             choices={choices}
-            custom
             loading={loading}
             name="user"
-            value={user}
-            fetchChoices={fetchUsers}
+            value={shippingMethod}
+            fetchChoices={fetchShippingMethods}
             onChange={onChange}
           />
         </DialogContent>
@@ -93,4 +95,4 @@ const OrderCustomerEditDialog = decorate<OrderCustomerEditDialogProps>(
     );
   }
 );
-export default OrderCustomerEditDialog;
+export default OrderShippingMethodEditDialog;

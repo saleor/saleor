@@ -25,6 +25,10 @@ interface MoneyType {
 interface OrderSummaryProps extends OrderProductsProps {
   paymentStatus?: string;
   paymentVariant?: string;
+  shippingMethod?: {
+    name: string;
+    price: MoneyType;
+  };
   status?: string;
   onCapture?();
   onCreate?();
@@ -35,6 +39,7 @@ interface OrderSummaryProps extends OrderProductsProps {
   onProductAdd?();
   onRefund?();
   onRelease?();
+  onShippingMethodClick?();
 }
 
 const decorate = withStyles(theme => ({
@@ -62,6 +67,7 @@ const OrderSummary = decorate<OrderSummaryProps>(
     paymentVariant,
     products,
     refunded,
+    shippingMethod,
     status,
     subtotal,
     total,
@@ -74,7 +80,8 @@ const OrderSummary = decorate<OrderSummaryProps>(
     onProductAdd,
     onRefund,
     onRelease,
-    onRowClick
+    onRowClick,
+    onShippingMethodClick
   }) => {
     const orderStatus = status ? transformOrderStatus(status) : undefined;
     const canCapture =
@@ -116,14 +123,16 @@ const OrderSummary = decorate<OrderSummaryProps>(
         <OrderProducts
           isDraft={isDraft}
           net={net}
-          onOrderLineChange={onOrderLineChange}
-          onOrderLineRemove={onOrderLineRemove}
-          onRowClick={onRowClick}
           paid={paid}
           products={products}
           refunded={refunded}
+          shippingMethod={shippingMethod}
           subtotal={subtotal}
           total={total}
+          onOrderLineChange={onOrderLineChange}
+          onOrderLineRemove={onOrderLineRemove}
+          onRowClick={onRowClick}
+          onShippingMethodClick={onShippingMethodClick}
         />
         {status &&
           (canGetInvoice ||

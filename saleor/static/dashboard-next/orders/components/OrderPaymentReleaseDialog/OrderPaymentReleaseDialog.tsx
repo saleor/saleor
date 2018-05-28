@@ -34,7 +34,7 @@ const OrderPaymentReleaseDialog = decorate<OrderPaymentReleaseDialogProps>(
           {i18n.t("Back", { context: "button" })}
         </Button>
         <Button color="primary" variant="raised" onClick={onConfirm}>
-          {i18n.t("Cancel fulfillment", { context: "button" })}
+          {i18n.t("Confirm", { context: "button" })}
         </Button>
       </DialogActions>
     </Dialog>

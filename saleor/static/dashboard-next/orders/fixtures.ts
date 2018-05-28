@@ -290,11 +290,12 @@ export const order = (placeholder, args?) => ({
     currency: "USD"
   },
   shippingMethod: {
-    name: "DHL (whole world)",
-    price: {
-      amount: 5.5,
-      currency: "USD"
-    }
+    id: "s1"
+  },
+  shippingMethodName: "DHL",
+  shippingMethodPriceGross: {
+    amount: 5.5,
+    currency: "USD"
   },
   total: {
     amount: 165.7,
@@ -359,4 +360,8 @@ export const countries = [
   { code: "AL", label: "Albania" },
   { code: "DZ", label: "Algeria" },
   { code: "AS", label: "American Samoa" }
+];
+export const shippingMethods = [
+  { id: "s1", name: "DHL", country: "whole world", price: {} },
+  { id: "s2", name: "UPS", country: "Afghanistan" }
 ];
