@@ -69,16 +69,17 @@ def get_attributes_dict_from_list(attributes, attr_slug_id):
     return attr_ids
 
 
-def filter_by_query_param(queryset, query, query_fields):
+def filter_by_query_param(queryset, query, search_fields):
     """Filter queryset according to given parameters
 
     Keyword arguments:
     queryset - queryset to be filtered
     query - search string
-    query_fields - fields considered in filtering
+    search_fields - fields considered in filtering
     """
     query_by = {
-        '{0}__{1}'.format(field, 'icontains'): query for field in query_fields}
+        '{0}__{1}'.format(
+            field, 'icontains'): query for field in search_fields}
     query_objects = Q()
     for q in query_by:
         query_objects |= Q(**{q:query_by[q]})
