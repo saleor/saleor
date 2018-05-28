@@ -9,7 +9,11 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ('product', '0012_auto_20160218_0812'),
-        ('cart', '0001_initial'),
+        ('checkout', '0001_initial'),
+    ]
+
+    replaces = [
+        ('cart', '0002_auto_20161014_1221'),
     ]
 
     operations = [

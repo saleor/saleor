@@ -9,7 +9,7 @@ from payments import PaymentError, PaymentStatus
 from ...account.i18n import (
     AddressForm as StorefrontAddressForm, PossiblePhoneNumberFormField)
 from ...account.models import User
-from ...cart.forms import QuantityField
+from ...checkout.forms import QuantityField
 from ...core.exceptions import InsufficientStock
 from ...core.utils.taxes import ZERO_TAXED_MONEY
 from ...discount.models import Voucher

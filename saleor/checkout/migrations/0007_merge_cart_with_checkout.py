@@ -11,7 +11,11 @@ class Migration(migrations.Migration):
         ('shipping', '0008_auto_20180108_0814'),
         ('product', '0063_required_attr_value_order'),
         ('account', '0018_auto_20180426_0641'),
-        ('cart', '0006_auto_20180221_0825'),
+        ('checkout', '0006_auto_20180221_0825'),
+    ]
+
+    replaces = [
+        ('cart', '0007_merge_cart_with_checkout.'),
     ]
 
     operations = [
@@ -66,5 +70,13 @@ class Migration(migrations.Migration):
             model_name='cart',
             name='voucher_code',
             field=models.CharField(blank=True, max_length=12, null=True),
+        ),
+        migrations.AlterModelTable(
+            name='cart',
+            table=None,
+        ),
+        migrations.AlterModelTable(
+            name='cartline',
+            table=None,
         ),
     ]
