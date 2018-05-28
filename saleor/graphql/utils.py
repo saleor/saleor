@@ -1,4 +1,5 @@
 import graphene
+from django.db.models import Q
 from django.utils.encoding import smart_text
 from django.utils.text import slugify
 from graphql_relay import from_global_id
@@ -66,3 +67,19 @@ def get_attributes_dict_from_list(attributes, attr_slug_id):
             attr_ids[smart_text(attr_slug_id.get(attr_slug))] = smart_text(
                 value_slug_id.get(value))
     return attr_ids
+
+
+def filter_by_query_param(queryset, query, query_fields):
+    """Filter queryset according to given parameters
+
+    Keyword arguments:
+    queryset - queryset to be filtered
+    query - search string
+    query_fields - fields considered in filtering
+    """
+    query_by = {
+        '{0}__{1}'.format(field, 'icontains'): query for field in query_fields}
+    query_objects = Q()
+    for q in query_by:
+        query_objects |= Q(**{q:query_by[q]})
+    return queryset.filter(query_objects)
