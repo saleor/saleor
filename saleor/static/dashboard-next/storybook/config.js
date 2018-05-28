@@ -4,6 +4,7 @@ import { configure } from "@storybook/react";
 function loadStories() {
   // Components
   require("./stories/components/DateFormatter");
+  require("./stories/components/EditableTableCell");
   require("./stories/components/ErrorMessageCard");
   require("./stories/components/Money");
   require("./stories/components/MultiSelectField");
@@ -58,6 +59,7 @@ function loadStories() {
   require("./stories/orders/OrderAddressEditDialog");
   require("./stories/orders/OrderCancelDialog");
   require("./stories/orders/OrderCustomer");
+  require("./stories/orders/OrderCustomerEditDialog");
   require("./stories/orders/OrderDetailsPage");
   require("./stories/orders/OrderFulfillmentCancelDialog");
   require("./stories/orders/OrderFulfillmentDialog");
@@ -68,6 +70,7 @@ function loadStories() {
   require("./stories/orders/OrderPaymentDialog");
   require("./stories/orders/OrderPaymentReleaseDialog");
   require("./stories/orders/OrderProductAddDialog");
+  require("./stories/orders/OrderShippingMethodEditDialog");
   require("./stories/orders/OrderSummary");
 }
 

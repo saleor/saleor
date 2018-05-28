@@ -10,7 +10,7 @@ import Toggle from "../../components/Toggle";
 
 interface EditableTableCellProps {
   className?: string;
-  InputProps: TextFieldProps;
+  InputProps?: TextFieldProps;
   value: string;
   onConfirm(value: string): () => void;
 }
