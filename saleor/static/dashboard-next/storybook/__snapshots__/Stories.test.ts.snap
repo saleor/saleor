@@ -635,7 +635,19 @@ exports[`Storyshots Generics / DateFormatter humanized 1`] = `
 Array [
   <WithStyles(CssBaseline) />,
   <WithStyles(Component)
-    date="2018-05-27T13:57:59+02:00"
+    date="2018-05-27T22:44:44+00:00"
+    dateNow={1527521275866}
+  />,
+]
+`;
+
+exports[`Storyshots Generics / DateFormatter humanized without tooltip 1`] = `
+Array [
+  <WithStyles(CssBaseline) />,
+  <WithStyles(Component)
+    date="2018-05-27T22:44:44+00:00"
+    dateNow={1527521275866}
+    showTooltip={false}
   />,
 ]
 `;
@@ -652,13 +664,10 @@ Array [
 ]
 `;
 
-exports[`Storyshots Generics / DateFormatter without tooltip 1`] = `
+exports[`Storyshots Generics / EditableTableCell default 1`] = `
 Array [
   <WithStyles(CssBaseline) />,
-  <WithStyles(Component)
-    date="2018-04-07T10:44:44+00:00"
-    showTooltip={false}
-  />,
+  <WithStyles(Table) />,
 ]
 `;
 
@@ -2046,6 +2055,45 @@ Array [
 ]
 `;
 
+exports[`Storyshots Orders / OrderCustomerEditDialog default 1`] = `
+Array [
+  <WithStyles(CssBaseline) />,
+  <WithStyles(Component)
+    fetchUsers={[Function]}
+    onChange={[Function]}
+    onClose={[Function]}
+    onConfirm={[Function]}
+    open={true}
+    user={
+      Object {
+        "label": "test.client1@example.com",
+        "value": "c1",
+      }
+    }
+    users={
+      Array [
+        Object {
+          "email": "test.client1@example.com",
+          "id": "c1",
+        },
+        Object {
+          "email": "test.client2@example.com",
+          "id": "c2",
+        },
+        Object {
+          "email": "test.client3@example.com",
+          "id": "c3",
+        },
+        Object {
+          "email": "test.client4@example.com",
+          "id": "c4",
+        },
+      ]
+    }
+  />,
+]
+`;
+
 exports[`Storyshots Orders / OrderFulfillmentCancelDialog default 1`] = `
 Array [
   <WithStyles(CssBaseline) />,
@@ -2553,6 +2601,40 @@ Array [
           "value": "",
         },
       }
+    }
+  />,
+]
+`;
+
+exports[`Storyshots Orders / OrderShippingMethodEditDialog default 1`] = `
+Array [
+  <WithStyles(CssBaseline) />,
+  <WithStyles(Component)
+    fetchShippingMethods={[Function]}
+    onChange={[Function]}
+    onClose={[Function]}
+    onConfirm={[Function]}
+    open={true}
+    shippingMethod={
+      Object {
+        "label": "DHL",
+        "value": "s1",
+      }
+    }
+    shippingMethods={
+      Array [
+        Object {
+          "country": "whole world",
+          "id": "s1",
+          "name": "DHL",
+          "price": Object {},
+        },
+        Object {
+          "country": "Afghanistan",
+          "id": "s2",
+          "name": "UPS",
+        },
+      ]
     }
   />,
 ]
