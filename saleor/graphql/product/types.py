@@ -206,8 +206,11 @@ class Collection(CountableDjangoObjectType):
 
     class Meta:
         description = "Represents a collection of products."
+        filter_fields = {
+            'name': ['exact', 'icontains', 'istartswith']}
         interfaces = [relay.Node]
         model = models.Collection
+
 
     def resolve_products(self, info, **kwargs):
         user = info.context.user

@@ -14,15 +14,17 @@ from .page.mutations import PageCreate, PageDelete, PageUpdate
 from .product.filters import ProductFilterSet
 from .product.mutations import (
     CategoryCreateMutation, CategoryDelete, CategoryUpdateMutation,
-    ProductCreateMutation, ProductDeleteMutation, ProductUpdateMutation,
-    ProductTypeCreateMutation, ProductTypeDeleteMutation,
+    CollectionAddProducts, CollectionCreateMutation, CollectionDelete,
+    CollectionRemoveProducts, CollectionUpdate, ProductCreateMutation,
+    ProductDeleteMutation, ProductUpdateMutation, ProductTypeCreateMutation,
+    ProductTypeDeleteMutation, ProductImageCreateMutation,
     ProductTypeUpdateMutation, ProductVariantCreateMutation,
-    ProductVariantDeleteMutation, ProductVariantUpdateMutation,
-    ProductImageCreateMutation)
+    ProductVariantDeleteMutation, ProductVariantUpdateMutation)
 from .product.resolvers import (
-    resolve_attributes, resolve_categories, resolve_products,
-    resolve_product_types)
-from .product.types import Category, Product, ProductAttribute, ProductType
+    resolve_attributes, resolve_categories, resolve_collections,
+    resolve_products, resolve_product_types)
+from .product.types import (
+    Category, Collection, Product, ProductAttribute, ProductType)
 from .utils import get_node
 
 
@@ -38,6 +40,11 @@ class Query(graphene.ObjectType):
     category = graphene.Field(
         Category, id=graphene.Argument(graphene.ID),
         description='Lookup a category by ID.')
+    collection = graphene.Field(
+        Collection, id=graphene.Argument(graphene.ID),
+        description='Lookup a collection by ID.')
+    collections = DjangoFilterConnectionField(
+        Collection, description='List of the shop\'s collections.')
     order = graphene.Field(
         Order, description='Lookup an order by ID.',
         id=graphene.Argument(graphene.ID))
@@ -74,6 +81,12 @@ class Query(graphene.ObjectType):
     def resolve_categories(self, info, level=None, **kwargs):
         return resolve_categories(info, level)
 
+    def resolve_collection(self, info, id):
+        return get_node(info, id, only_type=Collection)
+
+    def resolve_collections(self, info, **kwargs):
+        resolve_collections(info)
+
     def resolve_page(self, info, id=None, slug=None):
         if slug is not None:
             return page_models.Page.objects.get(slug=slug)
@@ -109,6 +122,12 @@ class Mutations(graphene.ObjectType):
     category_create = CategoryCreateMutation.Field()
     category_delete = CategoryDelete.Field()
     category_update = CategoryUpdateMutation.Field()
+
+    collection_create = CollectionCreateMutation.Field()
+    collection_update = CollectionUpdate.Field()
+    collection_delete = CollectionDelete.Field()
+    collection_add_products = CollectionAddProducts.Field()
+    collection_remove_products = CollectionRemoveProducts.Field()
 
     page_create = PageCreate.Field()
     page_delete = PageDelete.Field()

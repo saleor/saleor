@@ -1,5 +1,6 @@
 import graphene
 from graphene.types import InputObjectType
+from graphql_jwt.decorators import permission_required
 from graphene_file_upload import Upload
 from graphql_jwt.decorators import permission_required
 
@@ -9,10 +10,10 @@ from ...product import models
 from ..core.mutations import (
     BaseMutation, ModelDeleteMutation, ModelFormMutation,
     ModelFormUpdateMutation, StaffMemberRequiredMixin, Error)
-from ..utils import get_attributes_dict_from_list, get_node
-from .forms import ProductForm, ProductVariantForm
+from ..utils import get_attributes_dict_from_list, get_node, get_nodes
+from .forms import CollectionForm, ProductForm, ProductVariantForm
 from .types import (
-    Category, Product, ProductAttribute, ProductImage, ProductType)
+    Category, Collection, Product, ProductAttribute, ProductImage, ProductType)
 
 
 class CategoryCreateMutation(StaffMemberRequiredMixin, ModelFormMutation):
@@ -58,6 +59,84 @@ class CategoryDelete(StaffMemberRequiredMixin, ModelDeleteMutation):
     class Meta:
         description = 'Deletes a category.'
         model = models.Category
+
+
+class CollectionCreateMutation(StaffMemberRequiredMixin, ModelFormMutation):
+    permissions = 'collection.edit_collection'
+
+    class Meta:
+        description = 'Creates a new collection.'
+        form_class = CollectionForm
+
+    @classmethod
+    def get_form_kwargs(cls, root, info, **input):
+        product_ids = input.pop('products', None)
+        kwargs = super().get_form_kwargs(root, info, **input)
+        if product_ids:
+            products = set(get_nodes(product_ids, Product))
+            kwargs['data']['products'] = products
+        return kwargs
+
+
+class CollectionUpdate(StaffMemberRequiredMixin, ModelFormUpdateMutation):
+    permissions = 'collection.edit_collection'
+
+    class Meta:
+        description = 'Updates an existing collection.'
+        form_class = CollectionForm
+        exclude = ['products']
+
+
+class CollectionDelete(StaffMemberRequiredMixin, ModelDeleteMutation):
+    permissions = 'collection.edit_collection'
+
+    class Meta:
+        description = 'Deletes a collection.'
+        model = models.Collection
+
+
+class CollectionAddProducts(BaseMutation):
+    class Arguments:
+        collection_id = graphene.Argument(
+            graphene.ID, required=True, description='ID of a collection.')
+        products = graphene.List(
+            graphene.ID, required=True, description='List of product IDs.')
+
+    collection = graphene.Field(
+        Collection,
+        description='Collection to which products will be added.')
+
+    class Meta:
+        description = 'Adds products to the collection.'
+
+    @permission_required('collection.edit_collection')
+    def mutate(self, info, collection_id, products):
+        collection = get_node(info, collection_id, only_type=Collection)
+        products = get_nodes(products, Product)
+        collection.products.add(*products)
+        return CollectionAddProducts(collection=collection)
+
+
+class CollectionRemoveProducts(BaseMutation):
+    class Arguments:
+        collection_id = graphene.Argument(
+            graphene.ID, required=True, description='ID of a collection.')
+        products = graphene.List(
+            graphene.ID, required=True, description='List of product IDs.')
+
+    collection = graphene.Field(
+        Collection,
+        description='Collection from which products will be removed.')
+
+    class Meta:
+        description = 'Remove products from the collection.'
+
+    @permission_required('collection.edit_collection')
+    def mutate(self, info, collection_id, products):
+        collection = get_node(info, collection_id, only_type=Collection)
+        products = get_nodes(products, Product)
+        collection.products.remove(*products)
+        return CollectionRemoveProducts(collection=collection)
 
 
 class AttributeValueInput(InputObjectType):
@@ -230,7 +309,6 @@ class ProductTypeCreateMutation(StaffMemberRequiredMixin, ModelFormMutation):
             product_attributes = {
                 get_node(info, pr_att_id, only_type=ProductAttribute)
                 for pr_att_id in product_attributes}
-
         variant_attributes = input.pop('variant_attributes', None)
         if variant_attributes:
             variant_attributes = {
