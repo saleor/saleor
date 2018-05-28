@@ -3,7 +3,7 @@ from functools import wraps
 from django.core.exceptions import ValidationError
 from django.shortcuts import redirect
 
-from ...shipping.models import ShippingMethodCountry
+from ..utils import check_shipping_method
 
 
 def validate_cart(view):
@@ -49,14 +49,7 @@ def validate_shipping_method(view):
     """
     @wraps(view)
     def func(request, cart):
-        if cart.shipping_method is None:
-            return redirect('checkout:shipping-method')
-        country_code = cart.shipping_address.country.code
-        valid_methods = ShippingMethodCountry.objects.select_related(
-            'shipping_method').unique_for_country_code(country_code)
-        if cart.shipping_method not in valid_methods:
-            cart.shipping_method = None
-            cart.save()
+        if not cart.shipping_method or not check_shipping_method(cart):
             return redirect('checkout:shipping-method')
         return view(request, cart)
     return func
