@@ -24,6 +24,7 @@ from ..discount.utils import (
     get_product_or_category_voucher_discount, get_shipping_voucher_discount,
     get_value_voucher_discount, increase_voucher_usage)
 from ..order.models import Order
+from ..shipping.models import ShippingMethodCountry
 from .forms import (
     AddressChoiceForm, AnonymousUserBillingForm, AnonymousUserShippingForm,
     BillingAddressChoiceForm)
@@ -272,7 +273,8 @@ def change_cart_user(cart, user):
         open_cart.delete()
     cart.user = user
     cart.shipping_address = user.default_shipping_address
-    cart.save(update_fields=['user', 'shipping_address'])
+    cart.billing_address = user.default_billing_address
+    cart.save(update_fields=['user', 'shipping_address', 'billing_address'])
 
 
 def update_cart_quantity(cart):
@@ -715,6 +717,18 @@ def get_taxes_for_cart(cart, default_taxes):
         return get_taxes_for_country(cart.shipping_address.country)
 
     return default_taxes
+
+
+def check_shipping_method(cart):
+    """Check if shipping method is valid for address and remove (if not)."""
+    country_code = cart.shipping_address.country.code
+    valid_methods = ShippingMethodCountry.objects.select_related(
+        'shipping_method').unique_for_country_code(country_code)
+    if cart.shipping_method not in valid_methods:
+        cart.shipping_method = None
+        cart.save()
+        return False
+    return True
 
 
 @transaction.atomic
