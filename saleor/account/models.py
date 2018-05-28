@@ -92,7 +92,8 @@ class UserManager(BaseUserManager):
 
 class User(PermissionsMixin, AbstractBaseUser):
     email = models.EmailField(unique=True)
-    addresses = models.ManyToManyField(Address, blank=True)
+    addresses = models.ManyToManyField(
+        Address, blank=True, related_name='user_addresses')
     is_staff = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
     note = models.TextField(null=True, blank=True)

@@ -3,7 +3,6 @@ from django.conf.urls import url
 from . import views
 from .views.discount import remove_voucher_view
 
-
 checkout_urlpatterns = [
     url(r'^$', views.checkout_index, name='index'),
     url(r'^shipping-address/', views.checkout_shipping_address,

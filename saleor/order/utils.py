@@ -3,6 +3,7 @@ from functools import wraps
 from django.shortcuts import get_object_or_404, redirect
 
 from ..account.utils import store_user_address
+from ..checkout import AddressType
 from ..core.exceptions import InsufficientStock
 from ..core.utils.taxes import (
     ZERO_MONEY, get_tax_rate_by_name, get_taxes_for_address)
@@ -138,9 +139,9 @@ def cancel_fulfillment(fulfillment, restock):
 def attach_order_to_user(order, user):
     """Associate existing order with user account."""
     order.user = user
-    store_user_address(user, order.billing_address, billing=True)
+    store_user_address(user, order.billing_address, AddressType.BILLING)
     if order.shipping_address:
-        store_user_address(user, order.shipping_address, shipping=True)
+        store_user_address(user, order.shipping_address, AddressType.SHIPPING)
     order.save(update_fields=['user'])
 
 
