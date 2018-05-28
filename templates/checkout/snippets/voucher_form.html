@@ -4,7 +4,7 @@
 
 {% if form %}
   {% if cart.discount_amount %}
-    <form action="{% url "cart:checkout-remove-voucher" %}?next={{ request.path }}"
+    <form action="{% url "checkout:remove-voucher" %}?next={{ request.path }}"
           method="post"
           class="float-left input-btn">
       {% csrf_token %}

@@ -15,7 +15,7 @@ from saleor.cart.context_processors import cart_counter
 from saleor.cart.models import Cart
 from saleor.cart.utils import (
     add_variant_to_cart, change_cart_user, find_open_cart_for_user)
-from saleor.cart.views import update
+from saleor.cart.views import update_cart_line
 from saleor.core.exceptions import InsufficientStock
 from saleor.core.utils.taxes import ZERO_TAXED_MONEY
 from saleor.discount.models import Sale
@@ -340,30 +340,26 @@ def test_check_product_availability_and_warn(
     assert len(cart) == 0
 
 
-def test_add_to_cart_form(monkeypatch):
-    cart_lines = []
-    cart = Mock(
-        get_line=Mock(return_value=Mock(quantity=1)))
-    monkeypatch.setattr(
-        'saleor.cart.forms.add_variant_to_cart',
-        lambda c, variant, quantity: cart_lines.append(variant))
+def test_add_to_cart_form(cart, product):
+    variant = product.variants.get()
+    add_variant_to_cart(cart, variant, 3)
     data = {'quantity': 1}
-    form = forms.AddToCartForm(data=data, cart=cart, product=Mock())
+    form = forms.AddToCartForm(data=data, cart=cart, product=product)
 
-    product_variant = Mock(check_quantity=Mock(return_value=None))
-    form.get_variant = Mock(return_value=product_variant)
+    form.get_variant = Mock(return_value=variant)
 
     assert form.is_valid()
     form.save()
-    assert cart_lines == [product_variant]
+    assert cart.lines.count() == 1
+    assert cart.lines.filter(variant=variant).exists()
 
     with pytest.raises(NotImplementedError):
         data = {'quantity': 1}
-        form = forms.AddToCartForm(data=data, cart=cart, product=Mock())
+        form = forms.AddToCartForm(data=data, cart=cart, product=product)
         form.is_valid()
     data = {}
 
-    form = forms.AddToCartForm(data=data, cart=cart, product=Mock())
+    form = forms.AddToCartForm(data=data, cart=cart, product=product)
     assert not form.is_valid()
 
 
@@ -505,7 +501,7 @@ def test_cart_page_with_openexchagerates(
 
 def test_cart_summary_page(settings, client, request_cart_with_item, vatlayer):
     settings.DEFAULT_COUNTRY = 'PL'
-    response = client.get(reverse('cart:cart-summary'))
+    response = client.get(reverse('cart:summary'))
     assert response.status_code == 200
     content = response.context
     assert content['quantity'] == request_cart_with_item.quantity
@@ -519,7 +515,7 @@ def test_cart_summary_page(settings, client, request_cart_with_item, vatlayer):
 
 
 def test_cart_summary_page_empty_cart(client, request_cart):
-    response = client.get(reverse('cart:cart-summary'))
+    response = client.get(reverse('cart:summary'))
     assert response.status_code == 200
     data = response.context
     assert data['quantity'] == 0
@@ -595,7 +591,7 @@ def test_update_view_must_be_ajax(customer_user, rf):
     request = rf.post(reverse('home'))
     request.user = customer_user
     request.discounts = None
-    result = update(request, 1)
+    result = update_cart_line(request, 1)
     assert result.status_code == 302
 
 
