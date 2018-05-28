@@ -5,7 +5,7 @@ from ....account.forms import LoginForm
 from ....cart.models import Cart
 from ....cart.utils import get_or_empty_db_cart
 from ..forms import CartShippingMethodForm
-from ..utils import get_checkout_data, get_taxes_for_cart
+from ..utils import get_cart_data_for_checkout, get_taxes_for_cart
 from .discount import add_voucher_form, validate_voucher
 from .shipping import (
     anonymous_user_shipping_address_view, user_shipping_address_view)
@@ -64,7 +64,7 @@ def shipping_method_view(request, cart):
         form.save()
         return redirect('cart:checkout-summary')
 
-    ctx = get_checkout_data(cart, request.discounts, taxes)
+    ctx = get_cart_data_for_checkout(cart, request.discounts, taxes)
     ctx.update({'shipping_method_form': form})
     return TemplateResponse(request, 'checkout/shipping_method.html', ctx)
 

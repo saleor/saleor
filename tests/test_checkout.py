@@ -1,5 +1,5 @@
 import datetime
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
 
 import pytest
 from django.urls import reverse
@@ -11,10 +11,10 @@ from saleor.account.models import Address
 from saleor.cart.checkout import views
 from saleor.cart.checkout.forms import CartVoucherForm
 from saleor.cart.checkout.utils import (
-    create_order, get_checkout_data, get_taxes_for_cart,
+    change_billing_address_in_cart, change_shipping_address_in_cart,
+    create_order, get_cart_data_for_checkout, get_taxes_for_cart,
     get_voucher_discount_for_cart, get_voucher_for_cart,
-    recalculate_cart_discount, remove_voucher_from_cart,
-    save_billing_address_in_cart, save_shipping_address_in_cart)
+    recalculate_cart_discount, remove_voucher_from_cart)
 from saleor.cart.utils import add_variant_to_cart
 from saleor.core.exceptions import InsufficientStock
 from saleor.core.utils.taxes import (
@@ -22,45 +22,342 @@ from saleor.core.utils.taxes import (
 from saleor.discount import DiscountValueType, VoucherType
 from saleor.discount.models import NotApplicable, Voucher
 
-from .utils import compare_taxes
+from .utils import compare_taxes, get_redirect_location
 
 
-@pytest.mark.parametrize('cart, status_code, url', [
-    (Mock(__len__=Mock(return_value=0)), 302, reverse('cart:index')),
-    (
-        Mock(
-            __len__=Mock(return_value=1),
-            is_shipping_required=Mock(return_value=True)),
-        302, reverse('cart:checkout-shipping-address')),
-    (
-        Mock(
-            __len__=Mock(return_value=1),
-            is_shipping_required=Mock(return_value=False)),
-        302, reverse('cart:checkout-summary')),
-    (
-        Mock(
-            __len__=Mock(return_value=0),
-            is_shipping_required=Mock(return_value=False)),
-        302, reverse('cart:index'))])
-def test_index_view(cart, status_code, url, rf, monkeypatch):
+@pytest.mark.parametrize('cart_length, is_shipping_required, redirect_url', [
+    (0, True, reverse('cart:index')),
+    (0, False, reverse('cart:index')),
+    (1, True, reverse('cart:checkout-shipping-address')),
+    (1, False, reverse('cart:checkout-summary'))])
+def test_view_checkout_index(
+        monkeypatch, rf, cart_length, is_shipping_required, redirect_url):
+    cart = Mock(
+        __len__=Mock(return_value=cart_length),
+        is_shipping_required=Mock(return_value=is_shipping_required))
     monkeypatch.setattr(
         'saleor.cart.utils.get_cart_from_request', lambda req, qs: cart)
-    request = rf.get('cart:checkout-index', follow=True)
+    url = reverse('cart:checkout-index')
+    request = rf.get(url, follow=True)
 
     response = views.index_view(request)
 
-    assert response.status_code == status_code
-    assert response.url == url
+    assert response.url == redirect_url
 
 
-def test_checkout_discount(request_cart_with_item, sale, vatlayer):
-    total = (
-        request_cart_with_item.get_total(discounts=(sale,), taxes=vatlayer))
-    assert total == TaxedMoney(
-        net=Money('4.07', 'USD'), gross=Money('5.00', 'USD'))
+def test_view_checkout_index_authorized_user(
+        authorized_client, customer_user, request_cart_with_item):
+    request_cart_with_item.user = customer_user
+    request_cart_with_item.save()
+    url = reverse('cart:checkout-index')
+
+    response = authorized_client.get(url, follow=True)
+
+    redirect_url = reverse('cart:checkout-shipping-address')
+    assert response.request['PATH_INFO'] == redirect_url
 
 
-def test_checkout_create_order_insufficient_stock(
+def test_view_checkout_shipping_address(client, request_cart_with_item):
+    url = reverse('cart:checkout-shipping-address')
+    data = {
+        'user_email': 'test@example.com',
+        'first_name': 'John',
+        'last_name': 'Doe',
+        'street_address_1': 'Aleje Jerozolimskie 2',
+        'street_address_2': '',
+        'city': 'Warszawa',
+        'city_area': '',
+        'country_area': '',
+        'postal_code': '00-374',
+        'phone': '+48536984008',
+        'country': 'PL'}
+
+    response = client.get(url)
+
+    assert response.request['PATH_INFO'] == url
+
+    response = client.post(url, data, follow=True)
+
+    redirect_url = reverse('cart:checkout-shipping-method')
+    assert response.request['PATH_INFO'] == redirect_url
+    assert request_cart_with_item.user_email == 'test@example.com'
+
+
+def test_view_checkout_shipping_address_authorized_user(
+        authorized_client, customer_user, request_cart_with_item):
+    request_cart_with_item.user = customer_user
+    request_cart_with_item.save()
+    url = reverse('cart:checkout-shipping-address')
+    data = {'address': customer_user.default_billing_address.pk}
+
+    response = authorized_client.post(url, data, follow=True)
+
+    redirect_url = reverse('cart:checkout-shipping-method')
+    assert response.request['PATH_INFO'] == redirect_url
+    assert request_cart_with_item.user_email == customer_user.email
+
+
+def test_view_checkout_shipping_address_without_shipping(
+        request_cart, product_without_shipping, client):
+    variant = product_without_shipping.variants.get()
+    add_variant_to_cart(request_cart, variant)
+    url = reverse('cart:checkout-shipping-address')
+
+    response = client.get(url)
+
+    assert response.status_code == 302
+    assert get_redirect_location(response) == reverse('cart:checkout-summary')
+    assert not request_cart.user_email
+
+
+def test_view_checkout_shipping_method(
+        client, shipping_method, address, request_cart_with_item):
+    request_cart_with_item.shipping_address = address
+    request_cart_with_item.user_email = 'test@example.com'
+    request_cart_with_item.save()
+    url = reverse('cart:checkout-shipping-method')
+    data = {'shipping_method': shipping_method.price_per_country.first().pk}
+
+    response = client.get(url)
+
+    assert response.request['PATH_INFO'] == url
+
+    response = client.post(url, data, follow=True)
+
+    redirect_url = reverse('cart:checkout-summary')
+    assert response.request['PATH_INFO'] == redirect_url
+
+
+def test_view_checkout_shipping_method_authorized_user(
+        authorized_client, customer_user, shipping_method, address,
+        request_cart_with_item):
+    request_cart_with_item.user = customer_user
+    request_cart_with_item.user_email = customer_user.email
+    request_cart_with_item.shipping_address = address
+    request_cart_with_item.save()
+    url = reverse('cart:checkout-shipping-method')
+    data = {'shipping_method': shipping_method.price_per_country.first().pk}
+
+    response = authorized_client.get(url)
+
+    assert response.request['PATH_INFO'] == url
+
+    response = authorized_client.post(url, data, follow=True)
+
+    redirect_url = reverse('cart:checkout-summary')
+    assert response.request['PATH_INFO'] == redirect_url
+
+
+def test_view_checkout_shipping_method_without_shipping(
+        request_cart, product_without_shipping, client):
+    variant = product_without_shipping.variants.get()
+    add_variant_to_cart(request_cart, variant)
+    url = reverse('cart:checkout-shipping-method')
+
+    response = client.get(url)
+
+    assert response.status_code == 302
+    assert get_redirect_location(response) == reverse('cart:checkout-summary')
+
+
+def test_view_checkout_shipping_method_without_address(
+        request_cart_with_item, client):
+    url = reverse('cart:checkout-shipping-method')
+
+    response = client.get(url)
+
+    assert response.status_code == 302
+    redirect_url = reverse('cart:checkout-shipping-address')
+    assert get_redirect_location(response) == redirect_url
+
+
+@patch('saleor.cart.checkout.views.summary.send_order_confirmation')
+def test_view_checkout_summary(
+        mock_send_confirmation, client, shipping_method, address,
+        request_cart_with_item):
+    request_cart_with_item.shipping_address = address
+    request_cart_with_item.user_email = 'test@example.com'
+    request_cart_with_item.shipping_method = (
+        shipping_method.price_per_country.first())
+    request_cart_with_item.save()
+    url = reverse('cart:checkout-summary')
+    data = {'address': 'shipping_address'}
+
+    response = client.get(url)
+
+    assert response.request['PATH_INFO'] == url
+
+    response = client.post(url, data, follow=True)
+
+    order = response.context['order']
+    assert order.user_email == 'test@example.com'
+    redirect_url = reverse('order:payment', kwargs={'token': order.token})
+    assert response.request['PATH_INFO'] == redirect_url
+    mock_send_confirmation.delay.assert_called_once_with(order.pk)
+
+
+@patch('saleor.cart.checkout.views.summary.send_order_confirmation')
+def test_view_checkout_summary_authorized_user(
+        mock_send_confirmation, authorized_client, customer_user,
+        shipping_method, address, request_cart_with_item):
+    request_cart_with_item.shipping_address = address
+    request_cart_with_item.user = customer_user
+    request_cart_with_item.user_email = customer_user.email
+    request_cart_with_item.shipping_method = (
+        shipping_method.price_per_country.first())
+    request_cart_with_item.save()
+    url = reverse('cart:checkout-summary')
+    data = {'address': 'shipping_address'}
+
+    response = authorized_client.get(url)
+
+    assert response.request['PATH_INFO'] == url
+
+    response = authorized_client.post(url, data, follow=True)
+
+    order = response.context['order']
+    assert order.user_email == customer_user.email
+    redirect_url = reverse('order:payment', kwargs={'token': order.token})
+    assert response.request['PATH_INFO'] == redirect_url
+    mock_send_confirmation.delay.assert_called_once_with(order.pk)
+
+
+@patch('saleor.cart.checkout.views.summary.send_order_confirmation')
+def test_view_checkout_summary_save_language(
+        mock_send_confirmation, authorized_client, customer_user,
+        shipping_method, address, request_cart_with_item, settings):
+    settings.LANGUAGE_CODE = 'en'
+    user_language = 'fr'
+    authorized_client.cookies[settings.LANGUAGE_COOKIE_NAME] = user_language
+    url = reverse('set_language')
+    data = {'language': 'fr'}
+
+    authorized_client.post(url, data)
+
+    request_cart_with_item.shipping_address = address
+    request_cart_with_item.user = customer_user
+    request_cart_with_item.user_email = customer_user.email
+    request_cart_with_item.shipping_method = (
+        shipping_method.price_per_country.first())
+    request_cart_with_item.save()
+    url = reverse('cart:checkout-summary')
+    data = {'address': 'shipping_address'}
+
+    response = authorized_client.get(url, HTTP_ACCEPT_LANGUAGE=user_language)
+
+    assert response.request['PATH_INFO'] == url
+
+    response = authorized_client.post(
+        url, data, follow=True, HTTP_ACCEPT_LANGUAGE=user_language)
+
+    order = response.context['order']
+    assert order.user_email == customer_user.email
+    assert order.language_code == user_language
+    redirect_url = reverse('order:payment', kwargs={'token': order.token})
+    assert response.request['PATH_INFO'] == redirect_url
+    mock_send_confirmation.delay.assert_called_once_with(order.pk)
+
+
+def test_view_checkout_summary_without_address(request_cart_with_item, client):
+    url = reverse('cart:checkout-summary')
+
+    response = client.get(url)
+
+    assert response.status_code == 302
+    redirect_url = reverse('cart:checkout-shipping-method')
+    assert get_redirect_location(response) == redirect_url
+
+
+def test_view_checkout_summary_without_shipping_method(
+        request_cart_with_item, client):
+    url = reverse('cart:checkout-summary')
+
+    response = client.get(url)
+
+    assert response.status_code == 302
+    redirect_url = reverse('cart:checkout-shipping-method')
+    assert get_redirect_location(response) == redirect_url
+
+
+def test_view_checkout_summary_with_invalid_voucher(
+        client, request_cart_with_item, shipping_method, address, voucher):
+    voucher.usage_limit = 3
+    voucher.save()
+
+    request_cart_with_item.shipping_address = address
+    request_cart_with_item.user_email = 'test@example.com'
+    request_cart_with_item.shipping_method = (
+        shipping_method.price_per_country.first())
+    request_cart_with_item.save()
+
+    url = reverse('cart:checkout-summary')
+    voucher_url = '{url}?next={url}'.format(url=url)
+    data = {'discount-voucher': voucher.code}
+
+    response = client.post(voucher_url, data, follow=True, HTTP_REFERER=url)
+
+    assert response.context['cart'].voucher_code == voucher.code
+
+    voucher.used = 3
+    voucher.save()
+
+    data = {'address': 'shipping_address'}
+    response = client.post(url, data, follow=True)
+    cart = response.context['cart']
+    assert not cart.voucher_code
+    assert not cart.discount_amount
+    assert not cart.discount_name
+
+    response = client.post(url, data, follow=True)
+    order = response.context['order']
+    assert not order.voucher
+    assert not order.discount_amount
+    assert not order.discount_name
+
+
+def test_view_checkout_summary_with_invalid_voucher_code(
+        client, request_cart_with_item, shipping_method, address):
+    request_cart_with_item.shipping_address = address
+    request_cart_with_item.user_email = 'test@example.com'
+    request_cart_with_item.shipping_method = (
+        shipping_method.price_per_country.first())
+    request_cart_with_item.save()
+
+    url = reverse('cart:checkout-summary')
+    voucher_url = '{url}?next={url}'.format(url=url)
+    data = {'discount-voucher': 'invalid-code'}
+
+    response = client.post(voucher_url, data, follow=True, HTTP_REFERER=url)
+
+    assert 'voucher' in response.context['voucher_form'].errors
+    assert response.context['cart'].voucher_code is None
+
+
+def test_view_checkout_summary_remove_voucher(
+        client, request_cart_with_item, shipping_method, voucher, address):
+    request_cart_with_item.shipping_address = address
+    request_cart_with_item.user_email = 'test@example.com'
+    request_cart_with_item.shipping_method = (
+        shipping_method.price_per_country.first())
+    request_cart_with_item.save()
+
+    remove_voucher_url = reverse('cart:checkout-summary')
+    voucher_url = '{url}?next={url}'.format(url=remove_voucher_url)
+    data = {'discount-voucher': voucher.code}
+
+    response = client.post(
+        voucher_url, data, follow=True, HTTP_REFERER=remove_voucher_url)
+
+    assert response.context['cart'].voucher_code == voucher.code
+
+    url = reverse('cart:checkout-remove-voucher')
+
+    response = client.post(url, follow=True, HTTP_REFERER=remove_voucher_url)
+
+    assert not response.context['cart'].voucher_code
+
+
+def test_create_order_insufficient_stock(
         request_cart, customer_user, product_without_shipping):
     variant = product_without_shipping.variants.get()
     add_variant_to_cart(request_cart, variant, 10, check_quantity=False)
@@ -73,23 +370,8 @@ def test_checkout_create_order_insufficient_stock(
             request_cart, 'tracking_code', discounts=None, taxes=None)
 
 
-def test_checkout_taxes(request_cart_with_item, shipping_method, vatlayer):
-    cart = request_cart_with_item
-    cart.shipping_method = shipping_method.price_per_country.get()
-    cart.save()
-    taxed_price = TaxedMoney(net=Money('8.13', 'USD'), gross=Money(10, 'USD'))
-    assert cart.get_shipping_price(taxes=vatlayer) == taxed_price
-    assert cart.get_subtotal(taxes=vatlayer) == taxed_price
-
-
 def test_note_in_created_order(request_cart_with_item, address):
     request_cart_with_item.shipping_address = address
-    request_cart_with_item.note = ''
-    request_cart_with_item.save()
-    order = create_order(
-        request_cart_with_item, 'tracking_code', discounts=None, taxes=None)
-    assert not order.notes.all()
-
     request_cart_with_item.note = 'test_note'
     request_cart_with_item.save()
     order = create_order(
@@ -97,26 +379,38 @@ def test_note_in_created_order(request_cart_with_item, address):
     assert order.notes.filter(content='test_note').exists()
 
 
+def test_note_in_created_order_empty_note(request_cart_with_item, address):
+    request_cart_with_item.shipping_address = address
+    request_cart_with_item.note = ''
+    request_cart_with_item.save()
+    order = create_order(
+        request_cart_with_item, 'tracking_code', discounts=None, taxes=None)
+    assert not order.notes.all()
+
+
 @pytest.mark.parametrize(
-    'total, discount_value, discount_type, limit, expected_value', [
+    'total, discount_value, discount_type, limit, discount_amount', [
         ('100', 10, DiscountValueType.FIXED, None, 10),
         ('100.05', 10, DiscountValueType.PERCENTAGE, 100, 10)])
-def test_value_voucher_checkout_discount(
-        settings, total, discount_value, discount_type, limit, expected_value):
+def test_get_discount_for_cart_value_voucher(
+        settings, total, discount_value, discount_type, limit,
+        discount_amount):
     voucher = Voucher(
-        code='unique', type=VoucherType.VALUE,
+        code='unique',
+        type=VoucherType.VALUE,
         discount_value_type=discount_type,
         discount_value=discount_value,
         limit=Money(limit, 'USD') if limit is not None else None)
     subtotal = TaxedMoney(net=Money(total, 'USD'), gross=Money(total, 'USD'))
     cart = Mock(get_subtotal=Mock(return_value=subtotal))
     discount = get_voucher_discount_for_cart(voucher, cart)
-    assert discount == Money(expected_value, 'USD')
+    assert discount == Money(discount_amount, 'USD')
 
 
-def test_value_voucher_checkout_discount_not_applicable(settings):
+def test_get_discount_for_cart_value_voucher_not_applicable(settings):
     voucher = Voucher(
-        code='unique', type=VoucherType.VALUE,
+        code='unique',
+        type=VoucherType.VALUE,
         discount_value_type=DiscountValueType.FIXED,
         discount_value=10,
         limit=Money(100, 'USD'))
@@ -128,12 +422,13 @@ def test_value_voucher_checkout_discount_not_applicable(settings):
 
 
 @pytest.mark.parametrize(
-    'shipping_cost, shipping_country_code, discount_value, discount_type, apply_to, expected_value', [  # noqa
+    'shipping_cost, shipping_country_code, discount_value, discount_type,'
+    'apply_to, expected_value', [
         (10, None, 50, DiscountValueType.PERCENTAGE, None, 5),
         (10, None, 20, DiscountValueType.FIXED, None, 10),
         (10, 'PL', 20, DiscountValueType.FIXED, '', 10),
         (5, 'PL', 5, DiscountValueType.FIXED, 'PL', 5)])
-def test_shipping_voucher_checkout_discount(
+def test_get_discount_for_cart_shipping_voucher(
         settings, shipping_cost, shipping_country_code, discount_value,
         discount_type, apply_to, expected_value):
     subtotal = TaxedMoney(net=Money(100, 'USD'), gross=Money(100, 'USD'))
@@ -157,7 +452,7 @@ def test_shipping_voucher_checkout_discount(
 
 
 @pytest.mark.parametrize(
-    'is_shipping_required, shipping_method, discount_value, discount_type, '
+    'is_shipping_required, shipping_method, discount_value, discount_type,'
     'apply_to, limit, subtotal, error_msg', [
         (True, Mock(country_code='PL'), 10, DiscountValueType.FIXED,
          'US', None, Money(10, 'USD'),
@@ -171,7 +466,7 @@ def test_shipping_voucher_checkout_discount(
         (True, Mock(price=Money(10, 'USD')), 10,
          DiscountValueType.FIXED, None, 5, Money(2, 'USD'),
          'This offer is only valid for orders over $5.00.')])
-def test_shipping_voucher_checkout_discount_not_applicable(
+def test_get_discount_for_cart_shipping_voucher_not_applicable(
         settings, is_shipping_required, shipping_method, discount_value,
         discount_type, apply_to, limit, subtotal, error_msg):
     subtotal_price = TaxedMoney(net=subtotal, gross=subtotal)
@@ -190,7 +485,7 @@ def test_shipping_voucher_checkout_discount_not_applicable(
     assert str(e.value) == error_msg
 
 
-def test_product_voucher_checkout_discount_not_applicable(
+def test_get_discount_for_cart_product_voucher_not_applicable(
         settings, monkeypatch):
     monkeypatch.setattr(
         'saleor.cart.checkout.utils.get_product_variants_and_prices',
@@ -199,14 +494,14 @@ def test_product_voucher_checkout_discount_not_applicable(
         code='unique', type=VoucherType.PRODUCT,
         discount_value_type=DiscountValueType.FIXED,
         discount_value=10)
-    cart=Mock()
+    cart = Mock()
 
     with pytest.raises(NotApplicable) as e:
         get_voucher_discount_for_cart(voucher, cart)
     assert str(e.value) == 'This offer is only valid for selected items.'
 
 
-def test_category_voucher_checkout_discount_not_applicable(
+def test_get_discount_for_cart_category_voucher_not_applicable(
         settings, monkeypatch):
     monkeypatch.setattr(
         'saleor.cart.checkout.utils.get_category_variants_and_prices',
@@ -216,12 +511,13 @@ def test_category_voucher_checkout_discount_not_applicable(
         discount_value_type=DiscountValueType.FIXED,
         discount_value=10)
     cart = Mock()
+
     with pytest.raises(NotApplicable) as e:
         get_voucher_discount_for_cart(voucher, cart)
     assert str(e.value) == 'This offer is only valid for selected items.'
 
 
-def test_checkout_discount_form_invalid_voucher_code(
+def test_cart_voucher_form_invalid_voucher_code(
         monkeypatch, request_cart_with_item):
     form = CartVoucherForm(
         {'voucher': 'invalid'}, instance=request_cart_with_item)
@@ -229,7 +525,7 @@ def test_checkout_discount_form_invalid_voucher_code(
     assert 'voucher' in form.errors
 
 
-def test_checkout_discount_form_not_applicable_voucher(
+def test_cart_voucher_form_voucher_not_applicable(
         voucher, request_cart_with_item):
     voucher.limit = 200
     voucher.save()
@@ -239,7 +535,7 @@ def test_checkout_discount_form_not_applicable_voucher(
     assert 'voucher' in form.errors
 
 
-def test_checkout_discount_form_active_queryset_voucher_not_active(
+def test_cart_voucher_form_active_queryset_voucher_not_active(
         voucher, request_cart_with_item):
     assert Voucher.objects.count() == 1
     voucher.start_date = datetime.date.today() + datetime.timedelta(days=1)
@@ -250,7 +546,7 @@ def test_checkout_discount_form_active_queryset_voucher_not_active(
     assert qs.count() == 0
 
 
-def test_checkout_discount_form_active_queryset_voucher_active(
+def test_cart_voucher_form_active_queryset_voucher_active(
         voucher, request_cart_with_item):
     assert Voucher.objects.count() == 1
     voucher.start_date = datetime.date.today()
@@ -261,7 +557,7 @@ def test_checkout_discount_form_active_queryset_voucher_active(
     assert qs.count() == 1
 
 
-def test_checkout_discount_form_active_queryset_after_some_time(
+def test_cart_voucher_form_active_queryset_after_some_time(
         voucher, request_cart_with_item):
     assert Voucher.objects.count() == 1
     voucher.start_date = datetime.date(year=2016, month=6, day=1)
@@ -360,8 +656,9 @@ def test_recalculate_cart_discount_expired_voucher(cart_with_voucher, voucher):
     assert cart.discount_amount == ZERO_MONEY
 
 
-def test_get_checkout_data(cart_with_voucher, vatlayer):
-    line_price = TaxedMoney(net=Money('24.39', 'USD'), gross=Money('30.00', 'USD'))
+def test_get_cart_data_for_checkout(cart_with_voucher, vatlayer):
+    line_price = TaxedMoney(
+        net=Money('24.39', 'USD'), gross=Money('30.00', 'USD'))
     expected_data = {
         'cart': cart_with_voucher,
         'cart_are_taxes_handled': True,
@@ -370,57 +667,58 @@ def test_get_checkout_data(cart_with_voucher, vatlayer):
         'cart_subtotal': line_price,
         'cart_total': line_price - cart_with_voucher.discount_amount}
 
-    data = get_checkout_data(cart_with_voucher, discounts=None, taxes=vatlayer)
+    data = get_cart_data_for_checkout(
+        cart_with_voucher, discounts=None, taxes=vatlayer)
 
     assert data == expected_data
 
 
-def test_save_address_in_cart(cart, address):
-    save_shipping_address_in_cart(cart, address)
-    save_billing_address_in_cart(cart, address)
+def test_change_address_in_cart(cart, address):
+    change_shipping_address_in_cart(cart, address)
+    change_billing_address_in_cart(cart, address)
 
     cart.refresh_from_db()
     assert cart.shipping_address == address
     assert cart.billing_address == address
 
 
-def test_save_address_in_cart_to_none(cart, address):
+def test_change_address_in_cart_to_none(cart, address):
     cart.shipping_address = address
     cart.billing_address = address.get_copy()
     cart.save()
 
-    save_shipping_address_in_cart(cart, None)
-    save_billing_address_in_cart(cart, None)
+    change_shipping_address_in_cart(cart, None)
+    change_billing_address_in_cart(cart, None)
 
     cart.refresh_from_db()
     assert cart.shipping_address is None
     assert cart.billing_address is None
 
 
-def test_save_address_in_cart_to_same(cart, address):
+def test_change_address_in_cart_to_same(cart, address):
     cart.shipping_address = address
     cart.billing_address = address.get_copy()
     cart.save(update_fields=['shipping_address', 'billing_address'])
     shipping_address_id = cart.shipping_address.id
     billing_address_id = cart.billing_address.id
 
-    save_shipping_address_in_cart(cart, address)
-    save_billing_address_in_cart(cart, address)
+    change_shipping_address_in_cart(cart, address)
+    change_billing_address_in_cart(cart, address)
 
     cart.refresh_from_db()
     assert cart.shipping_address.id == shipping_address_id
     assert cart.billing_address.id == billing_address_id
 
 
-def test_save_address_in_cart_to_other(cart, address):
+def test_change_address_in_cart_to_other(cart, address):
     address_id = address.id
     cart.shipping_address = address
     cart.billing_address = address.get_copy()
     cart.save(update_fields=['shipping_address', 'billing_address'])
     other_address = Address.objects.create(country=Country('DE'))
 
-    save_shipping_address_in_cart(cart, other_address)
-    save_billing_address_in_cart(cart, other_address)
+    change_shipping_address_in_cart(cart, other_address)
+    change_billing_address_in_cart(cart, other_address)
 
     cart.refresh_from_db()
     assert cart.shipping_address == other_address
@@ -428,7 +726,8 @@ def test_save_address_in_cart_to_other(cart, address):
     assert not Address.objects.filter(id=address_id).exists()
 
 
-def test_save_address_in_cart_to_other_with_user(cart, customer_user, address):
+def test_change_address_in_cart_from_user_address_to_other(
+        cart, customer_user, address):
     address_id = address.id
     cart.user = customer_user
     cart.shipping_address = address
@@ -436,8 +735,8 @@ def test_save_address_in_cart_to_other_with_user(cart, customer_user, address):
     cart.save(update_fields=['shipping_address', 'billing_address'])
     other_address = Address.objects.create(country=Country('DE'))
 
-    save_shipping_address_in_cart(cart, other_address)
-    save_billing_address_in_cart(cart, other_address)
+    change_shipping_address_in_cart(cart, other_address)
+    change_billing_address_in_cart(cart, other_address)
 
     cart.refresh_from_db()
     assert cart.shipping_address == other_address

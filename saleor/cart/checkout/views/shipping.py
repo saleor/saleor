@@ -2,7 +2,7 @@ from django.shortcuts import redirect
 from django.template.response import TemplateResponse
 
 from ..utils import (
-    get_checkout_data, get_taxes_for_cart,
+    get_cart_data_for_checkout, get_taxes_for_cart,
     update_shipping_address_in_anonymous_cart, update_shipping_address_in_cart)
 
 
@@ -16,7 +16,7 @@ def anonymous_user_shipping_address_view(request, cart):
         return redirect('cart:checkout-shipping-method')
 
     taxes = get_taxes_for_cart(cart, request.taxes)
-    ctx = get_checkout_data(cart, request.discounts, taxes)
+    ctx = get_cart_data_for_checkout(cart, request.discounts, taxes)
     ctx.update({
         'address_form': address_form,
         'user_form': user_form})
@@ -40,7 +40,7 @@ def user_shipping_address_view(request, cart):
         return redirect('cart:checkout-shipping-method')
 
     taxes = get_taxes_for_cart(cart, request.taxes)
-    ctx = get_checkout_data(cart, request.discounts, taxes)
+    ctx = get_cart_data_for_checkout(cart, request.discounts, taxes)
     ctx.update({
         'additional_addresses': user_addresses,
         'address_form': address_form,
