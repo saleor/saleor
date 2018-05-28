@@ -6,9 +6,9 @@ import pytest
 from django.urls import reverse
 from prices import Money, TaxedMoney, TaxedMoneyRange
 
-from saleor.cart import utils
-from saleor.cart.models import Cart
-from saleor.cart.utils import add_variant_to_cart
+from saleor.checkout import utils
+from saleor.checkout.models import Cart
+from saleor.checkout.utils import add_variant_to_cart
 from saleor.discount.models import Sale
 from saleor.product import ProductAvailabilityStatus, models
 from saleor.product.thumbnails import create_product_thumbnails

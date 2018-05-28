@@ -11,7 +11,11 @@ import jsonfield.fields
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('cart', '0001_auto_20170113_0435'),
+        ('checkout', '0001_auto_20170113_0435'),
+    ]
+
+    replaces = [
+        ('cart', '0002_auto_20170206_0407'),
     ]
 
     operations = [
@@ -51,7 +55,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='cartline',
             name='cart',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='lines', to='cart.Cart', verbose_name='cart'),
+            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='lines', to='checkout.Cart', verbose_name='cart'),
         ),
         migrations.AlterField(
             model_name='cartline',

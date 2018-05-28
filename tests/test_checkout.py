@@ -8,9 +8,9 @@ from freezegun import freeze_time
 from prices import Money, TaxedMoney
 
 from saleor.account.models import Address
-from saleor.cart import views
-from saleor.cart.forms import CartVoucherForm
-from saleor.cart.utils import (
+from saleor.checkout import views
+from saleor.checkout.forms import CartVoucherForm
+from saleor.checkout.utils import (
     add_variant_to_cart, change_billing_address_in_cart,
     change_shipping_address_in_cart, create_order, get_cart_data_for_checkout,
     get_taxes_for_cart, get_voucher_discount_for_cart, get_voucher_for_cart,
@@ -35,7 +35,7 @@ def test_view_checkout_index(
         __len__=Mock(return_value=cart_length),
         is_shipping_required=Mock(return_value=is_shipping_required))
     monkeypatch.setattr(
-        'saleor.cart.utils.get_cart_from_request', lambda req, qs: cart)
+        'saleor.checkout.utils.get_cart_from_request', lambda req, qs: cart)
     url = reverse('checkout:index')
     request = rf.get(url, follow=True)
 
@@ -170,7 +170,7 @@ def test_view_checkout_shipping_method_without_address(
     assert get_redirect_location(response) == redirect_url
 
 
-@patch('saleor.cart.views.summary.send_order_confirmation')
+@patch('saleor.checkout.views.summary.send_order_confirmation')
 def test_view_checkout_summary(
         mock_send_confirmation, client, shipping_method, address,
         request_cart_with_item):
@@ -195,7 +195,7 @@ def test_view_checkout_summary(
     mock_send_confirmation.delay.assert_called_once_with(order.pk)
 
 
-@patch('saleor.cart.views.summary.send_order_confirmation')
+@patch('saleor.checkout.views.summary.send_order_confirmation')
 def test_view_checkout_summary_authorized_user(
         mock_send_confirmation, authorized_client, customer_user,
         shipping_method, address, request_cart_with_item):
@@ -221,7 +221,7 @@ def test_view_checkout_summary_authorized_user(
     mock_send_confirmation.delay.assert_called_once_with(order.pk)
 
 
-@patch('saleor.cart.views.summary.send_order_confirmation')
+@patch('saleor.checkout.views.summary.send_order_confirmation')
 def test_view_checkout_summary_save_language(
         mock_send_confirmation, authorized_client, customer_user,
         shipping_method, address, request_cart_with_item, settings):
@@ -487,7 +487,7 @@ def test_get_discount_for_cart_shipping_voucher_not_applicable(
 def test_get_discount_for_cart_product_voucher_not_applicable(
         settings, monkeypatch):
     monkeypatch.setattr(
-        'saleor.cart.utils.get_product_variants_and_prices',
+        'saleor.checkout.utils.get_product_variants_and_prices',
         lambda cart, product: [])
     voucher = Voucher(
         code='unique', type=VoucherType.PRODUCT,
@@ -503,7 +503,7 @@ def test_get_discount_for_cart_product_voucher_not_applicable(
 def test_get_discount_for_cart_category_voucher_not_applicable(
         settings, monkeypatch):
     monkeypatch.setattr(
-        'saleor.cart.utils.get_category_variants_and_prices',
+        'saleor.checkout.utils.get_category_variants_and_prices',
         lambda cart, product: [])
     voucher = Voucher(
         code='unique', type=VoucherType.CATEGORY,

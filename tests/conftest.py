@@ -15,9 +15,9 @@ from PIL import Image
 from prices import Money
 
 from saleor.account.models import Address, User
-from saleor.cart import utils
-from saleor.cart.models import Cart
-from saleor.cart.utils import add_variant_to_cart
+from saleor.checkout import utils
+from saleor.checkout.models import Cart
+from saleor.checkout.utils import add_variant_to_cart
 from saleor.dashboard.order.utils import fulfill_order_line
 from saleor.discount.models import Sale, Voucher
 from saleor.menu.models import Menu, MenuItem

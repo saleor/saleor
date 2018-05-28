@@ -8,7 +8,11 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('cart', '0002_auto_20170206_0407'),
+        ('checkout', '0002_auto_20170206_0407'),
+    ]
+
+    replaces = [
+        ('cart', '0003_auto_20170906_0556'),
     ]
 
     operations = [

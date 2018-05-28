@@ -14,9 +14,6 @@ from . import logger
 from ..account.forms import get_address_form
 from ..account.models import Address
 from ..account.utils import store_user_address
-from ..cart.forms import (
-    AddressChoiceForm, AnonymousUserBillingForm, AnonymousUserShippingForm,
-    BillingAddressChoiceForm)
 from ..core.exceptions import InsufficientStock
 from ..core.utils import to_local_currency
 from ..core.utils.taxes import ZERO_MONEY, get_taxes_for_country
@@ -26,6 +23,9 @@ from ..discount.utils import (
     get_product_or_category_voucher_discount, get_shipping_voucher_discount,
     get_value_voucher_discount, increase_voucher_usage)
 from ..order.models import Order
+from .forms import (
+    AddressChoiceForm, AnonymousUserBillingForm, AnonymousUserShippingForm,
+    BillingAddressChoiceForm)
 from .models import Cart
 
 COOKIE_NAME = 'cart'
