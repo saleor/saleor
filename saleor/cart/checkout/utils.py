@@ -64,12 +64,12 @@ def update_shipping_address_in_cart(cart, user_addresses, data, country):
         if use_existing_address:
             address_id = addresses_form.cleaned_data['address']
             address = Address.objects.get(id=address_id)
-            save_shipping_address_in_cart(cart, address)
+            change_shipping_address_in_cart(cart, address)
             updated = True
 
         elif address_form.is_valid():
             address = address_form.save()
-            save_shipping_address_in_cart(cart, address)
+            change_shipping_address_in_cart(cart, address)
             updated = True
 
     return addresses_form, address_form, updated
@@ -90,7 +90,7 @@ def update_shipping_address_in_anonymous_cart(cart, data, country):
     if user_form.is_valid() and address_form.is_valid():
         user_form.save()
         address = address_form.save()
-        save_shipping_address_in_cart(cart, address)
+        change_shipping_address_in_cart(cart, address)
         updated = True
 
     return user_form, address_form, updated
@@ -153,7 +153,7 @@ def update_billing_address_in_cart_with_shipping(
             address = address_form.save()
 
         if address:
-            save_billing_address_in_cart(cart, address)
+            change_billing_address_in_cart(cart, address)
             updated = True
 
     return addresses_form, address_form, updated
@@ -186,7 +186,7 @@ def update_billing_address_in_anonymous_cart(cart, data, country):
     if user_form.is_valid() and address_form.is_valid() and not preview:
         user_form.save()
         address = address_form.save()
-        save_billing_address_in_cart(cart, address)
+        change_billing_address_in_cart(cart, address)
         updated = True
 
     return user_form, address_form, updated
@@ -243,18 +243,18 @@ def update_billing_address_in_cart(cart, user_addresses, data, country):
         if use_existing_address:
             address_id = addresses_form.cleaned_data['address']
             address = Address.objects.get(id=address_id)
-            save_billing_address_in_cart(cart, address)
+            change_billing_address_in_cart(cart, address)
             updated = True
 
         elif address_form.is_valid():
             address = address_form.save()
-            save_billing_address_in_cart(cart, address)
+            change_billing_address_in_cart(cart, address)
             updated = True
 
     return addresses_form, address_form, updated
 
 
-def save_billing_address_in_cart(cart, address):
+def change_billing_address_in_cart(cart, address):
     """Save billing address in cart if changed.
 
     Remove previously saved address if not connected to any user.
@@ -274,7 +274,7 @@ def save_billing_address_in_cart(cart, address):
         cart.save(update_fields=['billing_address'])
 
 
-def save_shipping_address_in_cart(cart, address):
+def change_shipping_address_in_cart(cart, address):
     """Save shipping address in cart if changed.
 
     Remove previously saved address if not connected to any user.
@@ -294,7 +294,7 @@ def save_shipping_address_in_cart(cart, address):
         cart.save(update_fields=['shipping_address'])
 
 
-def get_checkout_data(cart, discounts, taxes):
+def get_cart_data_for_checkout(cart, discounts, taxes):
     """Data shared between views in checkout process."""
     lines = [
         (line, line.get_total(discounts, taxes)) for line in cart.lines.all()]

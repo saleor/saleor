@@ -9,7 +9,7 @@ from ....core.exceptions import InsufficientStock
 from ....order.emails import send_order_confirmation
 from ..forms import CartNoteForm
 from ..utils import (
-    create_order, get_checkout_data, get_taxes_for_cart,
+    create_order, get_cart_data_for_checkout, get_taxes_for_cart,
     update_billing_address_in_anonymous_cart, update_billing_address_in_cart,
     update_billing_address_in_cart_with_shipping)
 
@@ -61,7 +61,7 @@ def summary_with_shipping_view(request, cart):
         return handle_order_placement(request, cart)
 
     taxes = get_taxes_for_cart(cart, request.taxes)
-    ctx = get_checkout_data(cart, request.discounts, taxes)
+    ctx = get_cart_data_for_checkout(cart, request.discounts, taxes)
     ctx.update({
         'additional_addresses': user_addresses,
         'address_form': address_form,
@@ -87,7 +87,7 @@ def anonymous_summary_without_shipping(request, cart):
         return handle_order_placement(request, cart)
 
     taxes = get_taxes_for_cart(cart, request.taxes)
-    ctx = get_checkout_data(cart, request.discounts, taxes)
+    ctx = get_cart_data_for_checkout(cart, request.discounts, taxes)
     ctx.update({
         'address_form': address_form,
         'note_form': note_form,
@@ -114,7 +114,7 @@ def summary_without_shipping(request, cart):
         return handle_order_placement(request, cart)
 
     taxes = get_taxes_for_cart(cart, request.taxes)
-    ctx = get_checkout_data(cart, request.discounts, taxes)
+    ctx = get_cart_data_for_checkout(cart, request.discounts, taxes)
     ctx.update({
         'additional_addresses': user_addresses,
         'address_form': address_form,

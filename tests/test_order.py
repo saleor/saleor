@@ -3,10 +3,13 @@ from decimal import Decimal
 
 from django.urls import reverse
 from django_countries.fields import Country
-from payments import PaymentStatus
+from payments import FraudStatus, PaymentStatus
 from prices import Money, TaxedMoney
+
 from tests.utils import get_redirect_location
 
+from saleor.account.models import User
+from saleor.cart.checkout.utils import create_order
 from saleor.core.utils.taxes import (
     DEFAULT_TAX_RATE_NAME, get_tax_rate_by_name, get_taxes_for_country)
 from saleor.order import FulfillmentStatus, OrderStatus, models
@@ -380,3 +383,72 @@ def test_update_order_prices(order_with_lines):
     total = (
         line_1.quantity * price_1 + line_2.quantity * price_2 + shipping_price)
     assert order_with_lines.total == total
+
+
+def test_order_payment_flow(
+        request_cart_with_item, client, address, shipping_method):
+    request_cart_with_item.shipping_address = address
+    request_cart_with_item.billing_address = address.get_copy()
+    request_cart_with_item.user_email = 'test@example.com'
+    request_cart_with_item.shipping_method = (
+        shipping_method.price_per_country.first())
+    request_cart_with_item.save()
+
+    order = create_order(
+        request_cart_with_item, 'tracking_code', discounts=None, taxes=None)
+
+    # Select payment method
+    url = reverse('order:payment', kwargs={'token': order.token})
+    data = {'method': 'default'}
+    response = client.post(url, data, follow=True)
+
+    assert len(response.redirect_chain) == 1
+    assert response.status_code == 200
+    redirect_url = reverse(
+        'order:payment', kwargs={'token': order.token, 'variant': 'default'})
+    assert response.request['PATH_INFO'] == redirect_url
+
+    # Go to payment details page, enter payment data
+    data = {
+        'status': PaymentStatus.PREAUTH,
+        'fraud_status': FraudStatus.UNKNOWN,
+        'gateway_response': '3ds-disabled',
+        'verification_result': 'waiting'}
+
+    response = client.post(redirect_url, data)
+
+    assert response.status_code == 302
+    redirect_url = reverse(
+        'order:payment-success', kwargs={'token': order.token})
+    assert get_redirect_location(response) == redirect_url
+
+    # Complete payment, go to checkout success page
+    data = {'status': 'ok'}
+    response = client.post(redirect_url, data)
+    assert response.status_code == 302
+    redirect_url = reverse(
+        'order:checkout-success', kwargs={'token': order.token})
+    assert get_redirect_location(response) == redirect_url
+
+    # Assert that payment object was created and contains correct data
+    payment = order.payments.all()[0]
+    assert payment.total == order.total.gross.amount
+    assert payment.tax == order.total.tax.amount
+    assert payment.currency == order.total.currency
+    assert payment.delivery == order.shipping_price.net.amount
+    assert len(payment.get_purchased_items()) == len(order.lines.all())
+
+
+def test_create_user_after_order(order, client):
+    order.user_email = 'hello@mirumee.com'
+    order.save()
+    url = reverse('order:checkout-success', kwargs={'token': order.token})
+    data = {'password': 'password'}
+
+    response = client.post(url, data)
+
+    redirect_url = reverse('order:details', kwargs={'token': order.token})
+    assert get_redirect_location(response) == redirect_url
+    user = User.objects.filter(email='hello@mirumee.com').first()
+    assert user is not None
+    assert user.orders.filter(token=order.token).exists()
