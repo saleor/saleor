@@ -3,6 +3,7 @@ from datetime import date, timedelta
 from functools import wraps
 from uuid import UUID
 
+from django.conf import settings
 from django.contrib import messages
 from django.db import transaction
 from django.db.models import Sum
@@ -181,17 +182,14 @@ def get_cart_from_request(request, cart_queryset=Cart.objects.all()):
     if cart is not None:
         return cart
     if user:
-        return Cart(
-            user=user,
-            shipping_address=user.default_shipping_address,
-            billing_address=user.default_billing_address)
+        return Cart(user=user)
     return Cart()
 
 
 def get_or_create_db_cart(cart_queryset=Cart.objects.all()):
     """Decorate view to always receive a saved cart instance.
 
-    Changes the view signature from `fund(request, ...)` to
+    Changes the view signature from `func(request, ...)` to
     `func(request, cart, ...)`.
 
     If no matching cart is found, one will be created and a cookie will be set
@@ -213,7 +211,7 @@ def get_or_create_db_cart(cart_queryset=Cart.objects.all()):
 def get_or_empty_db_cart(cart_queryset=Cart.objects.all()):
     """Decorate view to receive a cart if one exists.
 
-    Changes the view signature from `fund(request, ...)` to
+    Changes the view signature from `func(request, ...)` to
     `func(request, cart, ...)`.
 
     If no matching cart is found, an unsaved `Cart` instance will be used.
@@ -709,7 +707,10 @@ def remove_voucher_from_cart(cart):
 
 
 def get_taxes_for_cart(cart, default_taxes):
-    """Return taxes based on shipping address (if set) or default one."""
+    """Return taxes (if handled) due to shipping address or default one."""
+    if not settings.VATLAYER_ACCESS_KEY:
+        return None
+
     if cart.shipping_address:
         return get_taxes_for_country(cart.shipping_address.country)
 

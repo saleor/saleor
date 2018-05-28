@@ -593,6 +593,16 @@ def test_get_taxes_for_cart_with_shipping_address(cart, address, vatlayer):
     compare_taxes(taxes, get_taxes_for_country(Country('DE')))
 
 
+def test_get_taxes_for_cart_with_shipping_address_taxes_not_handled(
+        cart, settings, address, vatlayer):
+    settings.VATLAYER_ACCESS_KEY = ''
+    address.country = 'DE'
+    address.save()
+    cart.shipping_address = address
+    cart.save()
+    assert not get_taxes_for_cart(cart, None)
+
+
 def test_get_voucher_for_cart(cart_with_voucher, voucher):
     cart_voucher = get_voucher_for_cart(cart_with_voucher)
     assert cart_voucher == voucher
