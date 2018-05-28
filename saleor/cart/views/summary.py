@@ -3,10 +3,10 @@ from django.shortcuts import redirect
 from django.template.response import TemplateResponse
 from django.utils.translation import pgettext, pgettext_lazy
 
-from ....account.models import Address
-from ....core import analytics
-from ....core.exceptions import InsufficientStock
-from ....order.emails import send_order_confirmation
+from ...account.models import Address
+from ...core import analytics
+from ...core.exceptions import InsufficientStock
+from ...order.emails import send_order_confirmation
 from ..forms import CartNoteForm
 from ..utils import (
     create_order, get_cart_data_for_checkout, get_taxes_for_cart,
@@ -26,12 +26,12 @@ def handle_order_placement(request, cart):
             discounts=request.discounts,
             taxes=get_taxes_for_cart(cart, request.taxes))
     except InsufficientStock:
-        return redirect('cart:index')
+        return redirect('checkout:index')
 
     if not order:
         msg = pgettext('Checkout warning', 'Please review your checkout.')
         messages.warning(request, msg)
-        return redirect('cart:checkout-summary')
+        return redirect('checkout:summary')
 
     user = cart.user
     cart.delete()

@@ -9,7 +9,7 @@ from prices import Money, TaxedMoney
 from tests.utils import get_redirect_location
 
 from saleor.account.models import User
-from saleor.cart.checkout.utils import create_order
+from saleor.cart.utils import create_order
 from saleor.core.utils.taxes import (
     DEFAULT_TAX_RATE_NAME, get_tax_rate_by_name, get_taxes_for_country)
 from saleor.order import FulfillmentStatus, OrderStatus, models

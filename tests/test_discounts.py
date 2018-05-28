@@ -4,7 +4,7 @@ from unittest.mock import Mock
 import pytest
 from prices import Money, TaxedMoney
 
-from saleor.cart.checkout.utils import get_voucher_discount_for_cart
+from saleor.cart.utils import get_voucher_discount_for_cart
 from saleor.discount import (
     DiscountValueType, VoucherApplyToProduct, VoucherType)
 from saleor.discount.models import NotApplicable, Sale, Voucher
@@ -97,7 +97,7 @@ def test_products_voucher_checkout_discount_not(
         settings, monkeypatch, prices, discount_value, discount_type, apply_to,
         expected_value):
     monkeypatch.setattr(
-        'saleor.cart.checkout.utils.get_product_variants_and_prices',
+        'saleor.cart.utils.get_product_variants_and_prices',
         lambda cart, product: (
             (None, TaxedMoney(
                 net=Money(price, 'USD'), gross=Money(price, 'USD')))
