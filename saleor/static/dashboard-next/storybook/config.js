@@ -30,6 +30,7 @@ function loadStories() {
   require("./stories/pages/PageDeleteDialog");
   require("./stories/pages/PageFilters");
   require("./stories/pages/PageList");
+  require("./stories/pages/PageListPage");
 
   // Products
   require("./stories/products/ProductAttributesForm");

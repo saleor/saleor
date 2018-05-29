@@ -2,7 +2,7 @@ import { storiesOf } from "@storybook/react";
 import { DialogContentText } from "material-ui/Dialog";
 import * as React from "react";
 
-import PageBaseForm from "../../../page/components/PageBaseForm";
+import PageBaseForm from "../../../pages/components/PageBaseForm";
 
 const page = {
   availableOn: "2018-03-20T16:39:08.850105+00:00",

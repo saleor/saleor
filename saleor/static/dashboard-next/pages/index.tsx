@@ -36,5 +36,6 @@ export function pageStorefrontUrl(slug: string) {
 }
 
 export const pageListUrl = "/pages/";
+export const pageAddUrl = "/pages/add/";
 
 export default Component;

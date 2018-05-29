@@ -1,7 +1,7 @@
 import { storiesOf } from "@storybook/react";
 import * as React from "react";
 
-import PageFilters from "../../../page/components/PageFilters";
+import PageFilters from "../../../pages/components/PageFilters";
 
 storiesOf("Pages / PageFilters", module)
   .add("with initial data", () => (
