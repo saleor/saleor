@@ -28,7 +28,6 @@ function loadStories() {
   // Pages
   require("./stories/pages/PageBaseForm");
   require("./stories/pages/PageDeleteDialog");
-  require("./stories/pages/PageFilters");
   require("./stories/pages/PageList");
   require("./stories/pages/PageListPage");
 
