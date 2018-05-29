@@ -33,5 +33,5 @@ MODELS_PERMISSIONS = [
 
 def get_permissions():
     codenames = [permission.split('.')[1] for permission in MODELS_PERMISSIONS]
-    return Permission.objects.filter(codename__in=codenames)\
-        .prefetch_related('content_type')
+    return Permission.objects.filter(codename__in=codenames).prefetch_related(
+        'content_type').order_by('codename')
