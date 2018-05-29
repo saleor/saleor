@@ -136,7 +136,7 @@ def cart_index(request, cart):
         'default_country_options': default_country_options}
     ctx.update(cart_data)
 
-    return TemplateResponse(request, 'cart/index.html', ctx)
+    return TemplateResponse(request, 'checkout/index.html', ctx)
 
 
 @get_or_empty_db_cart(cart_queryset=Cart.objects.for_display())
@@ -153,7 +153,7 @@ def cart_shipping_options(request, cart):
     cart_data = get_cart_data(
         cart, shipments, request.currency, request.discounts, request.taxes)
     ctx.update(cart_data)
-    return TemplateResponse(request, 'cart/_subtotal_table.html', ctx)
+    return TemplateResponse(request, 'checkout/_subtotal_table.html', ctx)
 
 
 @get_or_empty_db_cart()
