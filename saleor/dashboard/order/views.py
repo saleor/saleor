@@ -717,7 +717,7 @@ def change_fulfillment_tracking(request, order_pk, fulfillment_pk):
 def ajax_order_shipping_methods_list(request, order_pk):
     order = get_object_or_404(Order, pk=order_pk)
     queryset = ShippingMethodCountry.objects.select_related(
-        'shipping_method').order_by('price').all()
+        'shipping_method').order_by('shipping_method__name', 'price')
 
     if order.shipping_address:
         country_code = order.shipping_address.country.code
