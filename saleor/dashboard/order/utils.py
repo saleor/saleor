@@ -2,6 +2,7 @@ from django.conf import settings
 from django.contrib.sites.shortcuts import get_current_site
 from django.template.loader import get_template
 
+from ...checkout import AddressType
 from ...core.utils.taxes import ZERO_MONEY
 from ...discount import VoucherType
 from ...discount.models import NotApplicable
@@ -156,7 +157,7 @@ def save_address_in_order(order, address, address_type):
 
     If the other type of address is empty, copy it.
     """
-    if address_type == 'shipping':
+    if address_type == AddressType.SHIPPING:
         order.shipping_address = address
         if not order.billing_address:
             order.billing_address = address.get_copy()

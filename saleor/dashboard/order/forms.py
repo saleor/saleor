@@ -9,7 +9,7 @@ from payments import PaymentError, PaymentStatus
 from ...account.i18n import (
     AddressForm as StorefrontAddressForm, PossiblePhoneNumberFormField)
 from ...account.models import User
-from ...cart.forms import QuantityField
+from ...checkout.forms import QuantityField
 from ...core.exceptions import InsufficientStock
 from ...core.utils.taxes import ZERO_TAXED_MONEY
 from ...discount.models import Voucher
@@ -459,7 +459,7 @@ class CancelOrderForm(forms.Form):
             raise forms.ValidationError(
                 pgettext_lazy(
                     'Cancel order form error',
-                    "This order can't be cancelled"))
+                    "This order can't be canceled"))
         return data
 
     def cancel_order(self):

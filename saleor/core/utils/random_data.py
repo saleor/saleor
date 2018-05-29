@@ -16,6 +16,7 @@ from prices import Money
 
 from ...account.models import Address, User
 from ...account.utils import store_user_address
+from ...checkout import AddressType
 from ...core.utils.taxes import get_tax_rate_by_name, get_taxes_for_country
 from ...core.utils.text import strip_html_and_truncate
 from ...discount import DiscountValueType, VoucherType
@@ -556,7 +557,8 @@ def set_featured_products(how_many=8):
 def add_address_to_admin(email):
     address = create_address()
     user = User.objects.get(email=email)
-    store_user_address(user, address, True, True)
+    store_user_address(user, address, AddressType.BILLING)
+    store_user_address(user, address, AddressType.SHIPPING)
 
 
 def create_fake_collection(placeholder_dir, collection_data):

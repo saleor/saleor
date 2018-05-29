@@ -6,7 +6,11 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('cart', '0005_auto_20180108_0814'),
+        ('checkout', '0005_auto_20180108_0814'),
+    ]
+
+    replaces = [
+        ('cart', '0006_auto_20180221_0825'),
     ]
 
     operations = [

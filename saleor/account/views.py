@@ -8,7 +8,7 @@ from django.template.response import TemplateResponse
 from django.urls import reverse, reverse_lazy
 from django.utils.translation import pgettext, ugettext_lazy as _
 
-from ..cart.utils import find_and_assign_anonymous_cart
+from ..checkout.utils import find_and_assign_anonymous_cart
 from ..core.utils import get_paginator_items
 from .forms import (
     ChangePasswordForm, LoginForm, PasswordResetForm, SignupForm,

@@ -8,8 +8,8 @@ from django.views.i18n import JavaScriptCatalog, set_language
 from graphene_django.views import GraphQLView
 
 from .account.urls import urlpatterns as account_urls
-from .cart.urls import urlpatterns as cart_urls
-from .checkout.urls import urlpatterns as checkout_urls
+from .checkout.urls import (
+    cart_urlpatterns as cart_urls, checkout_urlpatterns as checkout_urls)
 from .core.sitemaps import sitemaps
 from .core.urls import urlpatterns as core_urls
 from .dashboard.urls import urlpatterns as dashboard_urls
