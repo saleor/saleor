@@ -7,6 +7,7 @@ from django.utils.translation import pgettext_lazy
 from django_countries.data import COUNTRIES
 from phonenumber_field.formfields import PhoneNumberField
 
+from ..core.templatetags.demo_obfuscators import obfuscate_address
 from .models import Address
 from .validators import validate_possible_number
 from .widgets import DatalistTextWidget, PhonePrefixWidget
@@ -135,6 +136,11 @@ class AddressForm(forms.ModelForm):
             else:
                 autocomplete = autocomplete_dict[field_name]
             field.widget.attrs['autocomplete'] = autocomplete
+
+    def save(self, commit=False):
+        # DEMO: obfuscate address saved by address form
+        self.instance = obfuscate_address(self.instance)
+        return super().save(commit=commit)
 
 
 class CountryAwareAddressForm(AddressForm):

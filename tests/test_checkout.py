@@ -19,6 +19,8 @@ from saleor.checkout.utils import (
 from saleor.core.exceptions import InsufficientStock
 from saleor.core.utils.taxes import (
     ZERO_MONEY, ZERO_TAXED_MONEY, get_taxes_for_country)
+from saleor.core.templatetags.demo_obfuscators import (
+    obfuscate_address, obfuscate_string)
 from saleor.discount import DiscountValueType, VoucherType
 from saleor.discount.models import NotApplicable, Voucher
 from saleor.product.models import Category
