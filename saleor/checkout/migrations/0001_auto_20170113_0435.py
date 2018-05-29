@@ -9,7 +9,11 @@ import jsonfield.fields
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('cart', 'fix_empty_data_in_lines'),
+        ('checkout', 'fix_empty_data_in_lines'),
+    ]
+
+    replaces = [
+        ('cart', '0001_auto_20170113_0435'),
     ]
 
     operations = [

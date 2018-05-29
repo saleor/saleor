@@ -6,8 +6,9 @@ import pytest
 from django.urls import reverse
 from prices import Money, TaxedMoney, TaxedMoneyRange
 
-from saleor.cart import CartStatus, utils
-from saleor.cart.models import Cart
+from saleor.checkout import utils
+from saleor.checkout.models import Cart
+from saleor.checkout.utils import add_variant_to_cart
 from saleor.discount.models import Sale
 from saleor.product import ProductAvailabilityStatus, models
 from saleor.product.thumbnails import create_product_thumbnails
@@ -147,7 +148,7 @@ def test_render_product_detail_with_taxes(client, product, vatlayer):
 
 def test_view_invalid_add_to_cart(client, product, request_cart):
     variant = product.variants.get()
-    request_cart.add(variant, 2)
+    add_variant_to_cart(request_cart, variant, 2)
     response = client.post(
         reverse(
             'product:add-to-cart',
@@ -159,9 +160,8 @@ def test_view_invalid_add_to_cart(client, product, request_cart):
     assert request_cart.quantity == 2
 
 
-def test_view_add_to_cart(client, product, request_cart):
-    variant = product.variants.get()
-    request_cart.add(variant, 1)
+def test_view_add_to_cart(client, product, request_cart_with_item):
+    variant = request_cart_with_item.lines.get().variant
     response = client.post(
         reverse(
             'product:add-to-cart',
@@ -169,118 +169,118 @@ def test_view_add_to_cart(client, product, request_cart):
                     'product_id': product.pk}),
         {'quantity': 1, 'variant': variant.pk})
     assert response.status_code == 302
-    assert request_cart.quantity == 1
+    assert request_cart_with_item.quantity == 1
 
 
 def test_adding_to_cart_with_current_user_token(
-        admin_user, admin_client, product):
-    client = admin_client
+        customer_user, authorized_client, product, request_cart_with_item):
     key = utils.COOKIE_NAME
-    cart = Cart.objects.create(user=admin_user)
-    variant = product.variants.first()
-    cart.add(variant, 1)
+    request_cart_with_item.user = customer_user
+    request_cart_with_item.save()
 
-    response = client.get(reverse('cart:index'))
-    utils.set_cart_cookie(cart, response)
-    client.cookies[key] = response.cookies[key]
+    response = authorized_client.get(reverse('cart:index'))
 
-    client.post(
-        reverse('product:add-to-cart',
-                kwargs={'slug': product.get_slug(),
-                        'product_id': product.pk}),
-        {'quantity': 1, 'variant': variant.pk})
+    utils.set_cart_cookie(request_cart_with_item, response)
+    authorized_client.cookies[key] = response.cookies[key]
+    variant = request_cart_with_item.lines.first().variant
+    url = reverse(
+        'product:add-to-cart',
+        kwargs={'slug': product.get_slug(), 'product_id': product.pk})
+    data = {'quantity': 1, 'variant': variant.pk}
+
+    authorized_client.post(url, data)
 
     assert Cart.objects.count() == 1
-    assert Cart.objects.get(user=admin_user).pk == cart.pk
+    assert Cart.objects.get(user=customer_user).pk == request_cart_with_item.pk
 
 
 def test_adding_to_cart_with_another_user_token(
-        admin_user, admin_client, product, customer_user):
+        admin_user, admin_client, product, customer_user, request_cart_with_item):
     client = admin_client
     key = utils.COOKIE_NAME
-    cart = Cart.objects.create(user=customer_user)
-    variant = product.variants.first()
-    cart.add(variant, 1)
+    request_cart_with_item.user = customer_user
+    request_cart_with_item.save()
 
     response = client.get(reverse('cart:index'))
-    utils.set_cart_cookie(cart, response)
-    client.cookies[key] = response.cookies[key]
 
-    client.post(
-        reverse('product:add-to-cart',
-                kwargs={'slug': product.get_slug(),
-                        'product_id': product.pk}),
-        {'quantity': 1, 'variant': variant.pk})
+    utils.set_cart_cookie(request_cart_with_item, response)
+    client.cookies[key] = response.cookies[key]
+    variant = request_cart_with_item.lines.first().variant
+    url = reverse(
+        'product:add-to-cart',
+        kwargs={'slug': product.get_slug(), 'product_id': product.pk})
+    data = {'quantity': 1, 'variant': variant.pk}
+
+    client.post(url, data)
 
     assert Cart.objects.count() == 2
-    assert Cart.objects.get(user=admin_user).pk != cart.pk
+    assert Cart.objects.get(user=admin_user).pk != request_cart_with_item.pk
 
 
 def test_anonymous_adding_to_cart_with_another_user_token(
-        client, product, customer_user):
+        client, product, customer_user, request_cart_with_item):
     key = utils.COOKIE_NAME
-    cart = Cart.objects.create(user=customer_user)
-    variant = product.variants.first()
-    cart.add(variant, 1)
+    request_cart_with_item.user = customer_user
+    request_cart_with_item.save()
 
     response = client.get(reverse('cart:index'))
-    utils.set_cart_cookie(cart, response)
-    client.cookies[key] = response.cookies[key]
 
-    client.post(
-        reverse('product:add-to-cart',
-                kwargs={'slug': product.get_slug(),
-                        'product_id': product.pk}),
-        {'quantity': 1, 'variant': variant.pk})
+    utils.set_cart_cookie(request_cart_with_item, response)
+    client.cookies[key] = response.cookies[key]
+    variant = product.variants.get()
+    url = reverse(
+        'product:add-to-cart',
+        kwargs={'slug': product.get_slug(), 'product_id': product.pk})
+    data = {'quantity': 1, 'variant': variant.pk}
+
+    client.post(url, data)
 
     assert Cart.objects.count() == 2
-    assert Cart.objects.get(user=None).pk != cart.pk
+    assert Cart.objects.get(user=None).pk != request_cart_with_item.pk
 
 
 def test_adding_to_cart_with_deleted_cart_token(
-        admin_user, admin_client, product):
-    client = admin_client
+        customer_user, authorized_client, product, request_cart_with_item):
     key = utils.COOKIE_NAME
-    cart = Cart.objects.create(user=admin_user)
-    old_token = cart.token
-    variant = product.variants.first()
-    cart.add(variant, 1)
+    request_cart_with_item.user = customer_user
+    request_cart_with_item.save()
+    old_token = request_cart_with_item.token
 
-    response = client.get(reverse('cart:index'))
-    utils.set_cart_cookie(cart, response)
-    client.cookies[key] = response.cookies[key]
-    cart.delete()
+    response = authorized_client.get(reverse('cart:index'))
 
-    client.post(
-        reverse('product:add-to-cart',
-                kwargs={'slug': product.get_slug(),
-                        'product_id': product.pk}),
-        {'quantity': 1, 'variant': variant.pk})
+    utils.set_cart_cookie(request_cart_with_item, response)
+    authorized_client.cookies[key] = response.cookies[key]
+    request_cart_with_item.delete()
+    variant = product.variants.get()
+    url = reverse(
+        'product:add-to-cart',
+        kwargs={'slug': product.get_slug(), 'product_id': product.pk})
+    data = {'quantity': 1, 'variant': variant.pk}
+
+    authorized_client.post(url, data)
 
     assert Cart.objects.count() == 1
     assert not Cart.objects.filter(token=old_token).exists()
 
 
 def test_adding_to_cart_with_closed_cart_token(
-        admin_user, admin_client, product):
-    client = admin_client
+        customer_user, authorized_client, product, request_cart_with_item):
     key = utils.COOKIE_NAME
-    cart = Cart.objects.create(user=admin_user)
-    variant = product.variants.first()
-    cart.add(variant, 1)
+    request_cart_with_item.user = customer_user
+    request_cart_with_item.save()
 
-    response = client.get(reverse('cart:index'))
-    utils.set_cart_cookie(cart, response)
-    client.cookies[key] = response.cookies[key]
+    response = authorized_client.get(reverse('cart:index'))
+    utils.set_cart_cookie(request_cart_with_item, response)
+    authorized_client.cookies[key] = response.cookies[key]
+    variant = product.variants.get()
+    url = reverse(
+        'product:add-to-cart',
+        kwargs={'slug': product.get_slug(), 'product_id': product.pk})
+    data = {'quantity': 1, 'variant': variant.pk}
 
-    client.post(
-        reverse('product:add-to-cart',
-                kwargs={'slug': product.get_slug(),
-                        'product_id': product.pk}),
-        {'quantity': 1, 'variant': variant.pk})
+    authorized_client.post(url, data)
 
-    assert Cart.objects.filter(
-        user=admin_user, status=CartStatus.OPEN).count() == 1
+    assert customer_user.carts.count() == 1
 
 
 def test_product_filter_before_filtering(
@@ -288,9 +288,13 @@ def test_product_filter_before_filtering(
     products = models.Product.objects.all().filter(
         category__name=default_category).order_by('-price')
     url = reverse(
-        'product:category', kwargs={'path': default_category.slug,
-                                    'category_id': default_category.pk})
+        'product:category',
+        kwargs={
+            'path': default_category.slug,
+            'category_id': default_category.pk})
+
     response = authorized_client.get(url)
+
     assert list(products) == list(response.context['filter_set'].qs)
 
 
@@ -301,20 +305,28 @@ def test_product_filter_product_exists(authorized_client, product,
         .filter(category__name=default_category)
         .order_by('-price'))
     url = reverse(
-        'product:category', kwargs={
-            'path': default_category.slug, 'category_id': default_category.pk})
+        'product:category',
+        kwargs={
+            'path': default_category.slug,
+            'category_id': default_category.pk})
     data = {'price_0': [''], 'price_1': ['20']}
+
     response = authorized_client.get(url, data)
+
     assert list(response.context['filter_set'].qs) == list(products)
 
 
 def test_product_filter_product_does_not_exist(
         authorized_client, product, default_category):
     url = reverse(
-        'product:category', kwargs={
-            'path': default_category.slug, 'category_id': default_category.pk})
+        'product:category',
+        kwargs={
+            'path': default_category.slug,
+            'category_id': default_category.pk})
     data = {'price_0': ['20'], 'price_1': ['']}
+
     response = authorized_client.get(url, data)
+
     assert not list(response.context['filter_set'].qs)
 
 
@@ -325,9 +337,13 @@ def test_product_filter_form(authorized_client, product,
         .filter(category__name=default_category)
         .order_by('-price'))
     url = reverse(
-        'product:category', kwargs={
-            'path': default_category.slug, 'category_id': default_category.pk})
+        'product:category',
+        kwargs={
+            'path': default_category.slug,
+            'category_id': default_category.pk})
+
     response = authorized_client.get(url)
+
     assert 'price' in response.context['filter_set'].form.fields.keys()
     assert 'sort_by' in response.context['filter_set'].form.fields.keys()
     assert list(response.context['filter_set'].qs) == list(products)
@@ -340,20 +356,28 @@ def test_product_filter_sorted_by_price_descending(
         .filter(category__name=default_category, is_published=True)
         .order_by('-price'))
     url = reverse(
-        'product:category', kwargs={
-            'path': default_category.slug, 'category_id': default_category.pk})
+        'product:category',
+        kwargs={
+            'path': default_category.slug,
+            'category_id': default_category.pk})
     data = {'sort_by': '-price'}
+
     response = authorized_client.get(url, data)
+
     assert list(response.context['filter_set'].qs) == list(products)
 
 
 def test_product_filter_sorted_by_wrong_parameter(
         authorized_client, product, default_category):
     url = reverse(
-        'product:category', kwargs={
-            'path': default_category.slug, 'category_id': default_category.pk})
+        'product:category',
+        kwargs={
+            'path': default_category.slug,
+            'category_id': default_category.pk})
     data = {'sort_by': 'aaa'}
+
     response = authorized_client.get(url, data)
+
     assert not list(response.context['filter_set'].qs)
 
 
@@ -368,22 +392,22 @@ def test_view_ajax_available_variants_list(admin_client, product):
     variant = product.variants.first()
     variant_list = [
         {'id': variant.pk, 'text': '123, Test product (123), $10.00'}]
-
     url = reverse('dashboard:ajax-available-variants')
-    response = admin_client.get(url, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
-    resp_decoded = json.loads(response.content.decode('utf-8'))
 
+    response = admin_client.get(url, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
+
+    resp_decoded = json.loads(response.content.decode('utf-8'))
     assert response.status_code == 200
     assert resp_decoded == {'results': variant_list}
 
 
 def test_view_ajax_available_products_list(admin_client, product):
     product_list = [{'id': product.pk, 'text': 'Test product'}]
-
     url = reverse('dashboard:ajax-products')
-    response = admin_client.get(url, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
-    resp_decoded = json.loads(response.content.decode('utf-8'))
 
+    response = admin_client.get(url, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
+
+    resp_decoded = json.loads(response.content.decode('utf-8'))
     assert response.status_code == 200
     assert resp_decoded == {'results': product_list}
 

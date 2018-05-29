@@ -16,32 +16,29 @@ def test_get_organization(site_settings):
     assert result['name'] == example_name
 
 
-def test_get_product_data_without_image(order_with_lines_and_stock):
+def test_get_product_data_without_image(order_with_lines):
     """Tested OrderLine Product has no image assigned."""
-    order_line = order_with_lines_and_stock.lines.first()
+    line = order_with_lines.lines.first()
     organization = get_organization()
-    result = get_product_data(order_line, organization)
+    result = get_product_data(line, organization)
     assert 'image' not in result['itemOffered']
 
 
-def test_get_product_data_with_image(
-        order_with_lines_and_stock, product_with_image):
-    order = order_with_lines_and_stock
-    order_line = order.lines.first()
+def test_get_product_data_with_image(order_with_lines, product_with_image):
+    line = order_with_lines.lines.first()
     variant = product_with_image.variants.first()
-    order_line.variant = variant
-    order_line.product_name = variant.display_product()
-    order_line.save()
+    line.variant = variant
+    line.product_name = variant.display_product()
+    line.save()
     organization = get_organization()
-    result = get_product_data(order_line, organization)
+    result = get_product_data(line, organization)
     assert 'image' in result['itemOffered']
     assert result['itemOffered']['name'] == variant.display_product()
 
 
-def test_get_order_confirmation_markup(order_with_lines_and_stock):
-    order = order_with_lines_and_stock
+def test_get_order_confirmation_markup(order_with_lines):
     try:
-        result = get_order_confirmation_markup(order)
+        result = get_order_confirmation_markup(order_with_lines)
     except TypeError:
         pytest.fail('Function output is not JSON serializable')
 

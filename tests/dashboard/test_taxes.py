@@ -3,21 +3,13 @@ from django.urls import reverse
 from django_countries.fields import Country
 from django_prices_vatlayer.models import VAT
 from prices import Money, MoneyRange, TaxedMoney, TaxedMoneyRange
-from tests.utils import get_redirect_location
 
 from saleor.core.utils import get_country_name_by_code
 from saleor.core.utils.taxes import (
     apply_tax_to_price, get_taxes_for_address, get_taxes_for_country)
 from saleor.dashboard.taxes.filters import get_country_choices_for_vat
 
-
-def compare_taxes(taxes_1, taxes_2):
-    assert len(taxes_1) == len(taxes_2)
-
-    for rate_name, tax in taxes_1.items():
-        value_1 = tax['value']
-        value_2 = taxes_2.get(rate_name)['value']
-        assert value_1 == value_2
+from ..utils import compare_taxes, get_redirect_location
 
 
 def test_view_taxes_list(admin_client, vatlayer):

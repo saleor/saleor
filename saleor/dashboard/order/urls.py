@@ -14,7 +14,7 @@ urlpatterns = [
     url(r'^(?P<order_pk>\d+)/cancel/$',
         views.cancel_order, name='order-cancel'),
     url(r'^(?P<order_pk>\d+)/address/(?P<address_type>billing|shipping)/$',
-        views.address_view, name='address-edit'),
+        views.order_address, name='address-edit'),
     url(r'^(?P<order_pk>\d+)/edit-customer/$',
         views.order_customer_edit, name='order-customer-edit'),
     url(r'^(?P<order_pk>\d+)/remove-customer/$',

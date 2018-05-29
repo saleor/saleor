@@ -18,6 +18,10 @@ class Migration(migrations.Migration):
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
+    replaces = [
+        ('cart', '0001_initial'),
+    ]
+
     operations = [
         migrations.CreateModel(
             name='Cart',
@@ -34,6 +38,7 @@ class Migration(migrations.Migration):
                 ('voucher', models.ForeignKey(related_name='+', on_delete=django.db.models.deletion.SET_NULL, to='discount.Voucher', null=True)),
             ],
             options={
+                'db_table': 'cart_cart',
                 'ordering': ('-last_status_change',),
             },
         ),
@@ -43,9 +48,12 @@ class Migration(migrations.Migration):
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
                 ('quantity', models.PositiveIntegerField(verbose_name='quantity', validators=[django.core.validators.MinValueValidator(0), django.core.validators.MaxValueValidator(999)])),
                 ('data', models.TextField(default='{}', blank=True)),
-                ('cart', models.ForeignKey(related_name='lines', to='cart.Cart', on_delete=django.db.models.deletion.CASCADE)),
+                ('cart', models.ForeignKey(related_name='lines', to='checkout.Cart', on_delete=django.db.models.deletion.CASCADE)),
                 ('product', models.ForeignKey(related_name='+', verbose_name='product', to='product.ProductVariant', on_delete=django.db.models.deletion.CASCADE)),
             ],
+            options={
+                'db_table': 'cart_cartline',
+            },
         ),
         migrations.AlterUniqueTogether(
             name='cartline',

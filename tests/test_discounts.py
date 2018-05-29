@@ -2,13 +2,11 @@ from datetime import date, timedelta
 from unittest.mock import Mock
 
 import pytest
-from freezegun import freeze_time
 from prices import Money, TaxedMoney
 
-from saleor.checkout.utils import get_voucher_discount_for_checkout
+from saleor.checkout.utils import get_voucher_discount_for_cart
 from saleor.discount import (
     DiscountValueType, VoucherApplyToProduct, VoucherType)
-from saleor.discount.forms import CheckoutDiscountForm
 from saleor.discount.models import NotApplicable, Sale, Voucher
 from saleor.discount.utils import (
     decrease_voucher_usage, get_product_discount_on_sale,
@@ -68,66 +66,6 @@ def test_voucher_queryset_active(voucher):
     assert len(active_vouchers) == 0
 
 
-def test_checkout_discount_form_invalid_voucher_code(monkeypatch):
-    checkout = Mock(cart=Mock())
-    form = CheckoutDiscountForm({'voucher': 'invalid'}, checkout=checkout)
-    assert not form.is_valid()
-    assert 'voucher' in form.errors
-
-
-def test_checkout_discount_form_not_applicable_voucher(monkeypatch, voucher):
-    checkout = Mock(cart=Mock())
-    form = CheckoutDiscountForm({'voucher': voucher.code}, checkout=checkout)
-    monkeypatch.setattr(
-        'saleor.discount.forms.get_voucher_discount_for_checkout',
-        Mock(side_effect=NotApplicable('Not applicable')))
-    assert not form.is_valid()
-    assert 'voucher' in form.errors
-
-
-def test_checkout_discount_form_active_queryset_voucher_not_active(voucher):
-    assert Voucher.objects.count() == 1
-    checkout = Mock(cart=Mock())
-    voucher.start_date = date.today() + timedelta(days=1)
-    voucher.save()
-    form = CheckoutDiscountForm({'voucher': voucher.code}, checkout=checkout)
-    qs = form.fields['voucher'].queryset
-    assert qs.count() == 0
-
-
-def test_checkout_discount_form_active_queryset_voucher_active(voucher):
-    assert Voucher.objects.count() == 1
-    checkout = Mock(cart=Mock())
-    voucher.start_date = date.today()
-    voucher.save()
-    form = CheckoutDiscountForm({'voucher': voucher.code}, checkout=checkout)
-    qs = form.fields['voucher'].queryset
-    assert qs.count() == 1
-
-
-def test_checkout_discount_form_active_queryset_after_some_time(voucher):
-    assert Voucher.objects.count() == 1
-    checkout = Mock(cart=Mock())
-    voucher.start_date = date(year=2016, month=6, day=1)
-    voucher.end_date = date(year=2016, month=6, day=2)
-    voucher.save()
-
-    with freeze_time('2016-05-31'):
-        form = CheckoutDiscountForm(
-            {'voucher': voucher.code}, checkout=checkout)
-        assert form.fields['voucher'].queryset.count() == 0
-
-    with freeze_time('2016-06-01'):
-        form = CheckoutDiscountForm(
-            {'voucher': voucher.code}, checkout=checkout)
-        assert form.fields['voucher'].queryset.count() == 1
-
-    with freeze_time('2016-06-03'):
-        form = CheckoutDiscountForm(
-            {'voucher': voucher.code}, checkout=checkout)
-        assert form.fields['voucher'].queryset.count() == 0
-
-
 @pytest.mark.parametrize(
     'prices, discount_value, discount_type, apply_to, expected_value', [
         (
@@ -170,7 +108,7 @@ def test_products_voucher_checkout_discount_not(
         discount_value=discount_value,
         apply_to=apply_to)
     checkout = Mock(cart=Mock())
-    discount = get_voucher_discount_for_checkout(voucher, checkout)
+    discount = get_voucher_discount_for_cart(voucher, checkout)
     assert discount == Money(expected_value, 'USD')
 
 

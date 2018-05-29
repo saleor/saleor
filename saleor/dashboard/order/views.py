@@ -280,7 +280,7 @@ def orderline_cancel(request, order_pk, line_pk):
     if form.is_valid():
         msg = pgettext_lazy(
             'Dashboard message related to an order line',
-            'Cancelled item %s') % line
+            'Canceled item %s') % line
         with transaction.atomic():
             form.cancel_line()
             messages.success(request, msg)
@@ -330,7 +330,7 @@ def add_variant_to_order(request, order_pk):
 
 @staff_member_required
 @permission_required('order.edit_order')
-def address_view(request, order_pk, address_type):
+def order_address(request, order_pk, address_type):
     order = get_object_or_404(Order, pk=order_pk)
     update_prices = False
     if address_type == 'shipping':
