@@ -2,6 +2,7 @@ import graphene
 import graphql_jwt
 from graphene_django.filter import DjangoFilterConnectionField
 
+from .descriptions import DESCRIPTIONS
 from ..page import models as page_models
 from .core.filters import DistinctFilterSet
 from .core.mutations import CreateToken, VerifyToken
@@ -31,10 +32,12 @@ from .utils import get_node
 class Query(graphene.ObjectType):
     attributes = DjangoFilterConnectionField(
         ProductAttribute, filterset_class=DistinctFilterSet,
-        query=graphene.String(), in_category=graphene.Argument(graphene.ID),
+        query=graphene.String(description=DESCRIPTIONS['attributes']),
+        in_category=graphene.Argument(graphene.ID),
         description='List of the shop\'s product attributes.')
     categories = DjangoFilterConnectionField(
-        Category, filterset_class=DistinctFilterSet, query=graphene.String(),
+        Category, filterset_class=DistinctFilterSet, query=graphene.String(
+            description=DESCRIPTIONS['category']),
         level=graphene.Argument(graphene.Int),
         description='List of the shop\'s categories.')
     category = graphene.Field(
@@ -44,16 +47,19 @@ class Query(graphene.ObjectType):
         Collection, id=graphene.Argument(graphene.ID),
         description='Lookup a collection by ID.')
     collections = DjangoFilterConnectionField(
-        Collection, query=graphene.String(),
+        Collection, query=graphene.String(
+            description=DESCRIPTIONS['collection']),
         description='List of the shop\'s collections.')
     order = graphene.Field(
         Order, description='Lookup an order by ID.',
         id=graphene.Argument(graphene.ID))
     orders = DjangoFilterConnectionField(
-        Order, filterset_class=OrderFilter, query=graphene.String(),
+        Order, filterset_class=OrderFilter, query=graphene.String(
+            description=DESCRIPTIONS['order']),
         description='List of the shop\'s orders.')
     page = graphene.Field(
-        Page, id=graphene.Argument(graphene.ID), slug=graphene.String(),
+        Page, id=graphene.Argument(graphene.ID), slug=graphene.String(
+            description=DESCRIPTIONS['page']),
         description='Lookup a page by ID or by slug.')
     pages = DjangoFilterConnectionField(
         Page, filterset_class=DistinctFilterSet, query=graphene.String(),
@@ -62,7 +68,8 @@ class Query(graphene.ObjectType):
         Product, id=graphene.Argument(graphene.ID),
         description='Lookup a product by ID.')
     products = DjangoFilterConnectionField(
-        Product, filterset_class=ProductFilterSet, query=graphene.String(),
+        Product, filterset_class=ProductFilterSet, query=graphene.String(
+            description=DESCRIPTIONS['product']),
         description='List of the shop\'s products.')
     product_type = graphene.Field(
         ProductType, id=graphene.Argument(graphene.ID),
