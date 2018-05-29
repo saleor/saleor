@@ -252,11 +252,11 @@ def get_cart_data(cart, shipping_range, currency, discounts, taxes):
 def find_open_cart_for_user(user):
     """Find an open cart for the given user."""
     carts = user.carts.all()
+    open_cart = carts.first()
     if len(carts) > 1:
         logger.warning('%s has more than one open basket', user)
-        for cart in carts[1:]:
-            cart.delete()
-    return carts.first()
+        carts.exclude(token=open_cart.token).delete()
+    return open_cart
 
 
 def change_cart_user(cart, user):

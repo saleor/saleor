@@ -35,6 +35,7 @@ class Cart(models.Model):
     """A shopping cart."""
 
     created = models.DateTimeField(auto_now_add=True)
+    last_change = models.DateTimeField(auto_now_add=True)
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL, blank=True, null=True, related_name='carts',
         on_delete=models.CASCADE)
@@ -58,6 +59,9 @@ class Cart(models.Model):
     voucher_code = models.CharField(max_length=12, blank=True, null=True)
 
     objects = CartQueryset.as_manager()
+
+    class Meta:
+        ordering = ('-last_change',)
 
     def __repr__(self):
         return 'Cart(quantity=%s)' % (self.quantity,)
