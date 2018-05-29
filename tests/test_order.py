@@ -389,7 +389,7 @@ def test_order_payment_flow(
         request_cart_with_item, client, address, shipping_method):
     request_cart_with_item.shipping_address = address
     request_cart_with_item.billing_address = address.get_copy()
-    request_cart_with_item.user_email = 'test@example.com'
+    request_cart_with_item.email = 'test@example.com'
     request_cart_with_item.shipping_method = (
         shipping_method.price_per_country.first())
     request_cart_with_item.save()

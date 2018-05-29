@@ -39,15 +39,12 @@ class Cart(models.Model):
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL, blank=True, null=True, related_name='carts',
         on_delete=models.CASCADE)
-    email = models.EmailField(blank=True, null=True)
+    email = models.EmailField(blank=True, default='')
     token = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     total = MoneyField(
         currency=settings.DEFAULT_CURRENCY, max_digits=12,
         decimal_places=settings.DEFAULT_DECIMAL_PLACES, default=0)
     quantity = models.PositiveIntegerField(default=0)
-
-    # data used for handling checkout process
-    user_email = models.EmailField(blank=True, default='')
     billing_address = models.ForeignKey(
         Address, related_name='+', editable=False, null=True,
         on_delete=models.SET_NULL)
