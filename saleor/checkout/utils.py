@@ -676,7 +676,7 @@ def get_voucher_for_cart(cart, vouchers=None):
     return None
 
 
-def recalculate_cart_discount(cart):
+def recalculate_cart_discount(cart, discounts, taxes):
     """Recalculate `cart.discount` based on the voucher.
 
     Will clear both voucher and discount if the discount is no longer
@@ -685,11 +685,14 @@ def recalculate_cart_discount(cart):
     voucher = get_voucher_for_cart(cart)
     if voucher is not None:
         try:
-            cart.discount_amount = get_voucher_discount_for_cart(voucher, cart)
-            cart.discount_name = voucher.name
-            cart.save(update_fields=['discount_amount', 'discount_name'])
+            discount = get_voucher_discount_for_cart(voucher, cart)
         except NotApplicable:
             remove_voucher_from_cart(cart)
+        else:
+            subtotal = cart.get_subtotal(discounts, taxes).gross
+            cart.discount_amount = min(discount, subtotal)
+            cart.discount_name = voucher.name
+            cart.save(update_fields=['discount_amount', 'discount_name'])
     else:
         remove_voucher_from_cart(cart)
 

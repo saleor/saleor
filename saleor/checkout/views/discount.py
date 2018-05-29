@@ -11,7 +11,8 @@ from ...discount.models import Voucher
 from ..forms import CartVoucherForm
 from ..models import Cart
 from ..utils import (
-    get_or_empty_db_cart, recalculate_cart_discount, remove_voucher_from_cart)
+    get_or_empty_db_cart, get_taxes_for_cart, recalculate_cart_discount,
+    remove_voucher_from_cart)
 
 
 def add_voucher_form(view):
@@ -33,7 +34,8 @@ def add_voucher_form(view):
                 # if only discount form was used we clear post for other forms
                 request.POST = {}
         else:
-            recalculate_cart_discount(cart)
+            taxes = get_taxes_for_cart(cart, request.taxes)
+            recalculate_cart_discount(cart, request.discounts, taxes)
         response = view(request, cart)
         if isinstance(response, TemplateResponse):
             response.context_data['voucher_form'] = voucher_form

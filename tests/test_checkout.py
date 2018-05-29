@@ -634,7 +634,7 @@ def test_recalculate_cart_discount(cart_with_voucher, voucher):
     voucher.discount_value = 10
     voucher.save()
 
-    recalculate_cart_discount(cart_with_voucher)
+    recalculate_cart_discount(cart_with_voucher, None, None)
 
     assert cart_with_voucher.discount_amount == Money('10.00', 'USD')
 
@@ -645,7 +645,7 @@ def test_recalculate_cart_discount_voucher_not_applicable(
     voucher.limit = 100
     voucher.save()
 
-    recalculate_cart_discount(cart_with_voucher)
+    recalculate_cart_discount(cart_with_voucher, None, None)
 
     assert not cart.voucher_code
     assert not cart.discount_name
@@ -658,7 +658,7 @@ def test_recalculate_cart_discount_expired_voucher(cart_with_voucher, voucher):
     voucher.end_date = date_yesterday
     voucher.save()
 
-    recalculate_cart_discount(cart_with_voucher)
+    recalculate_cart_discount(cart_with_voucher, None, None)
 
     assert not cart.voucher_code
     assert not cart.discount_name
