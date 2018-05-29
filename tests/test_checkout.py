@@ -11,6 +11,8 @@ from saleor.checkout.core import STORAGE_SESSION_KEY, Checkout
 from saleor.checkout.forms import NoteForm
 from saleor.checkout.utils import get_voucher_discount_for_checkout
 from saleor.core.exceptions import InsufficientStock
+from saleor.core.templatetags.demo_obfuscators import (
+    obfuscate_address, obfuscate_string)
 from saleor.discount import DiscountValueType, VoucherType
 from saleor.discount.models import Voucher, NotApplicable
 from saleor.shipping.models import ShippingMethodCountry
@@ -75,7 +77,7 @@ def test_checkout_shipping_address_setter(checkout):
     address = Address(first_name='Jan', last_name='Kowalski')
     assert checkout._shipping_address is None
     checkout.shipping_address = address
-    assert checkout._shipping_address == address
+    assert checkout._shipping_address == obfuscate_address(address)
     assert checkout.storage['shipping_address'] == {
         'city': '',
         'city_area': '',
@@ -84,7 +86,7 @@ def test_checkout_shipping_address_setter(checkout):
         'country_area': '',
         'first_name': 'Jan',
         'id': None,
-        'last_name': 'Kowalski',
+        'last_name': obfuscate_string('Kowalski'),
         'phone': '',
         'postal_code': '',
         'street_address_1': '',
