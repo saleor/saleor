@@ -34,11 +34,10 @@ COOKIE_NAME = 'cart'
 
 
 def set_cart_cookie(simple_cart, response):
-    """Update respons with a cart token cookie."""
+    """Update response with a cart token cookie."""
     # FIXME: document why session is not used
-    ten_years = timedelta(days=(365 * 10))
-    response.set_signed_cookie(
-        COOKIE_NAME, simple_cart.token, max_age=int(ten_years.total_seconds()))
+    max_age = int(timedelta(days=30).total_seconds())
+    response.set_signed_cookie(COOKIE_NAME, simple_cart.token, max_age=max_age)
 
 
 def contains_unavailable_variants(cart):
