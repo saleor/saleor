@@ -546,21 +546,35 @@ def update_billing_address_in_cart(cart, user_addresses, data, country):
     return addresses_form, address_form, updated
 
 
+def _check_new_cart_address(cart, address, address_type):
+    """Check if and address in cart has changed and if to remove old one."""
+    if address_type == AddressType.BILLING:
+        old_address = cart.billing_address
+    else:
+        old_address = cart.shipping_address
+
+    has_address_changed = any([
+        not address and old_address,
+        address and not old_address,
+        address and old_address and address != old_address])
+
+    remove_old_address = (
+        has_address_changed and
+        old_address is not None and
+        (not cart.user or old_address not in cart.user.addresses.all()))
+
+    return has_address_changed, remove_old_address
+
+
 def change_billing_address_in_cart(cart, address):
     """Save billing address in cart if changed.
 
     Remove previously saved address if not connected to any user.
     """
-    has_address_changed = (
-        not address and cart.billing_address or
-        address and not cart.billing_address or
-        address and cart.billing_address and address != cart.billing_address)
-    if has_address_changed:
-        remove_old_address = (
-            cart.billing_address and (not cart.user or (
-                cart.user and
-                cart.billing_address not in cart.user.addresses.all())))
-        if remove_old_address:
+    changed, remove = _check_new_cart_address(
+        cart, address, AddressType.BILLING)
+    if changed:
+        if remove:
             cart.billing_address.delete()
         cart.billing_address = address
         cart.save(update_fields=['billing_address'])
@@ -571,16 +585,10 @@ def change_shipping_address_in_cart(cart, address):
 
     Remove previously saved address if not connected to any user.
     """
-    has_address_changed = (
-        not address and cart.shipping_address or
-        address and not cart.shipping_address or
-        address and cart.shipping_address and address != cart.shipping_address)
-    if has_address_changed:
-        remove_old_address = (
-            cart.shipping_address and (not cart.user or (
-                cart.user and
-                cart.shipping_address not in cart.user.addresses.all())))
-        if remove_old_address:
+    changed, remove = _check_new_cart_address(
+        cart, address, AddressType.SHIPPING)
+    if changed:
+        if remove:
             cart.shipping_address.delete()
         cart.shipping_address = address
         cart.save(update_fields=['shipping_address'])
@@ -779,33 +787,27 @@ def create_order(cart, tracking_code, discounts, taxes):
 
     order_data = {
         'language_code': get_language(),
+        'user': cart.user,
+        'user_email': cart.user.email if cart.user else cart.email,
         'billing_address': billing_address,
         'shipping_address': shipping_address,
         'tracking_client_id': tracking_code,
         'shipping_method': shipping_method,
         'shipping_method_name': shipping_method_name,
         'shipping_price': cart.get_shipping_price(taxes),
-        'total': cart.get_total(taxes=taxes)}
-
-    if cart.user:
-        order_data['user'] = cart.user
-        order_data['user_email'] = cart.user.email
-    else:
-        order_data['user_email'] = cart.email
+        'total': cart.get_total(discounts, taxes)}
 
     if voucher:
         order_data['voucher'] = voucher
         order_data['discount_amount'] = cart.discount_amount
         order_data['discount_name'] = cart.discount_name
+        increase_voucher_usage(voucher)
 
     order = Order.objects.create(**order_data)
 
     for line in cart:
         add_variant_to_order(
             order, line.variant, line.quantity, discounts, taxes)
-
-    if voucher:
-        increase_voucher_usage(voucher)
 
     if cart.note:
         order.notes.create(user=order.user, content=cart.note)
