@@ -2,9 +2,8 @@ from django.db.models import Q
 
 from ...product import models
 from ...product.utils import products_visible_to_user
-from ..utils import filter_by_query_param ,get_node
+from ..utils import filter_by_query_param, get_node
 from .types import Category
-
 
 PRODUCT_SEARCH_FIELDS = ('name', 'description', 'category__name')
 CATEGORY_SEARCH_FIELDS = ('name', 'slug', 'description', 'parent__name')
@@ -14,9 +13,7 @@ ATTRIBUTES_SEARCH_FIELDS = ('name', 'slug')
 
 def resolve_attributes(category_id, info, query):
     queryset = models.ProductAttribute.objects.prefetch_related('values')
-    if query:
-        queryset = filter_by_query_param(
-            queryset, query, ATTRIBUTES_SEARCH_FIELDS)
+    queryset = filter_by_query_param(queryset, query, ATTRIBUTES_SEARCH_FIELDS)
     if category_id:
         # Get attributes that are used with product types
         # within the given category.
@@ -38,18 +35,14 @@ def resolve_categories(info, query, level=None):
     queryset = models.Category.objects.all()
     if level is not None:
         queryset = queryset.filter(level=level)
-    if query:
-        queryset = filter_by_query_param(
-            queryset, query, CATEGORY_SEARCH_FIELDS)
+    queryset = filter_by_query_param(queryset, query, CATEGORY_SEARCH_FIELDS)
     return queryset.distinct()
 
 
 def resolve_collections(info, query):
     # FIXME: Return collections based on user after rebasing to master
     queryset = models.Collection.objects.all()
-    if query:
-        queryset = filter_by_query_param(
-            queryset, query, COLLECTION_SEARCH_FIELDS)
+    queryset = filter_by_query_param(queryset, query, COLLECTION_SEARCH_FIELDS)
     return queryset
 
 
@@ -57,9 +50,7 @@ def resolve_products(info, category_id, query):
     user = info.context.user
     queryset = products_visible_to_user(
         user=user).prefetch_related('Category').distinct()
-    if query:
-        queryset = filter_by_query_param(
-            queryset, query, PRODUCT_SEARCH_FIELDS)
+    queryset = filter_by_query_param(queryset, query, PRODUCT_SEARCH_FIELDS)
     if category_id is not None:
         category = get_node(info, category_id, only_type=Category)
         return queryset.filter(category=category).distinct()
