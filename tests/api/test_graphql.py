@@ -283,7 +283,7 @@ def test_filter_by_query_param(qs):
     for q in test_kwargs:
         q_objects |= Q(**{q: test_kwargs[q]})
     # FIXME: django 1.11 fails on called_once_with(q_objects)
-    qs.filter.assert_called_once()
+    qs.filter.call_count == 1
 
 
 def test_generate_query_argument_description():
