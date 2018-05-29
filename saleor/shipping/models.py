@@ -99,5 +99,5 @@ class ShippingMethodCountry(models.Model):
 
     def get_ajax_label(self):
         price_html = format_money(self.price)
-        label = mark_safe('%s %s' % (self.shipping_method, price_html))
+        label = mark_safe('%s %s' % (self, price_html))
         return label
