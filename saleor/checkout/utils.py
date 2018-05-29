@@ -44,7 +44,7 @@ def set_cart_cookie(simple_cart, response):
 def contains_unavailable_variants(cart):
     """Return `True` if cart contains any unfulfillable lines."""
     try:
-        for line in cart.lines.all():
+        for line in cart:
             line.variant.check_quantity(line.quantity)
     except InsufficientStock:
         return True
@@ -66,7 +66,7 @@ def token_is_valid(token):
 
 def remove_unavailable_variants(cart):
     """Remove any unavailable items from cart."""
-    for line in cart.lines.all():
+    for line in cart:
         try:
             add_variant_to_cart(
                 cart, line.variant, line.quantity, replace=True)
@@ -77,9 +77,7 @@ def remove_unavailable_variants(cart):
 
 def get_product_variants_and_prices(cart, product):
     """Get variants and unit prices from cart lines matching the product."""
-    lines = (
-        cart_line for cart_line in cart.lines.all()
-        if cart_line.variant.product_id == product.id)
+    lines = (line for line in cart if line.variant.product_id == product.id)
     for line in lines:
         for dummy_i in range(line.quantity):
             yield line.variant, line.variant.get_price()
@@ -91,11 +89,10 @@ def get_category_variants_and_prices(cart, root_category):
     Product is assumed to be in the category if it belongs to any of its
     descendant subcategories.
     """
-    products = {cart_line.variant.product for cart_line in cart.lines.all()}
-    matching_products = set()
-    for product in products:
-        if product.category.is_descendant_of(root_category, include_self=True):
-            matching_products.add(product)
+    matching_products = {
+        line.variant.product for line in cart
+        if line.variant.product.category.is_descendant_of(
+            root_category, include_self=True)}
     for product in matching_products:
         for line in get_product_variants_and_prices(cart, product):
             yield line
@@ -592,8 +589,7 @@ def change_shipping_address_in_cart(cart, address):
 
 def get_cart_data_for_checkout(cart, discounts, taxes):
     """Data shared between views in checkout process."""
-    lines = [
-        (line, line.get_total(discounts, taxes)) for line in cart.lines.all()]
+    lines = [(line, line.get_total(discounts, taxes)) for line in cart]
     subtotal = cart.get_subtotal(discounts, taxes)
     total = cart.get_total(discounts, taxes)
     shipping_price = cart.get_shipping_price(taxes)
@@ -802,7 +798,7 @@ def create_order(cart, tracking_code, discounts, taxes):
 
     order = Order.objects.create(**order_data)
 
-    for line in cart.lines.all():
+    for line in cart:
         add_variant_to_order(
             order, line.variant, line.quantity, discounts, taxes)
 

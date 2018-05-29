@@ -62,12 +62,15 @@ class Cart(models.Model):
     def __repr__(self):
         return 'Cart(quantity=%s)' % (self.quantity,)
 
+    def __iter__(self):
+        return iter(self.lines.all())
+
     def __len__(self):
         return self.lines.count()
 
     def is_shipping_required(self):
         """Return `True` if any of the lines requires shipping."""
-        return any(line.is_shipping_required() for line in self.lines.all())
+        return any(line.is_shipping_required() for line in self)
 
     def get_shipping_price(self, taxes):
         return (
@@ -77,8 +80,7 @@ class Cart(models.Model):
 
     def get_subtotal(self, discounts=None, taxes=None):
         """Return the total cost of the cart prior to shipping."""
-        subtotals = (
-            line.get_total(discounts, taxes) for line in self.lines.all())
+        subtotals = (line.get_total(discounts, taxes) for line in self)
         return sum(subtotals, ZERO_TAXED_MONEY)
 
     def get_total(self, discounts=None, taxes=None):
@@ -90,7 +92,7 @@ class Cart(models.Model):
 
     def get_line(self, variant):
         """Return a line matching the given variant and data if any."""
-        matching_lines = (l for l in self.lines.all() if l.variant == variant)
+        matching_lines = (line for line in self if line.variant == variant)
         return next(matching_lines, None)
 
 
