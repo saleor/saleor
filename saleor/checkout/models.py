@@ -35,15 +35,11 @@ class Cart(models.Model):
     """A shopping cart."""
 
     created = models.DateTimeField(auto_now_add=True)
-    last_status_change = models.DateTimeField(auto_now_add=True)
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL, blank=True, null=True, related_name='carts',
         on_delete=models.CASCADE)
     email = models.EmailField(blank=True, default='')
     token = models.UUIDField(primary_key=True, default=uuid4, editable=False)
-    total = MoneyField(
-        currency=settings.DEFAULT_CURRENCY, max_digits=12,
-        decimal_places=settings.DEFAULT_DECIMAL_PLACES, default=0)
     quantity = models.PositiveIntegerField(default=0)
     billing_address = models.ForeignKey(
         Address, related_name='+', editable=False, null=True,
@@ -62,9 +58,6 @@ class Cart(models.Model):
     voucher_code = models.CharField(max_length=12, blank=True, null=True)
 
     objects = CartQueryset.as_manager()
-
-    class Meta:
-        ordering = ('-last_status_change',)
 
     def __repr__(self):
         return 'Cart(quantity=%s)' % (self.quantity,)
