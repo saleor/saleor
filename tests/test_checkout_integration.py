@@ -4,6 +4,7 @@ from django.urls import reverse
 from payments import FraudStatus, PaymentStatus
 
 from saleor.account.models import User
+from saleor.core.templatetags.demo_obfuscators import obfuscate_email
 
 from .utils import get_redirect_location
 
@@ -217,7 +218,7 @@ def test_email_is_saved_in_order(
 
     # After summary step, order is created and it waits for payment
     order = payment_method_page.context['order']
-    assert order.user_email == customer_user.email
+    assert order.user_email == obfuscate_email(customer_user.email)
 
 
 def test_voucher_invalid(

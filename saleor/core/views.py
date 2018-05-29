@@ -65,3 +65,7 @@ def handle_404(request, exception=None):
 def manifest(request):
     return TemplateResponse(
         request, 'manifest.json', content_type='application/json')
+
+
+def privacy_policy(request):
+    return TemplateResponse(request, 'privacy_policy.html')

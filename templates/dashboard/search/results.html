@@ -1,5 +1,4 @@
 {% extends "dashboard/base.html" %}
-{% load demo_obfuscators %}
 {% load i18n %}
 {% load materializecss %}
 {% load price from taxed_prices %}
@@ -58,7 +57,7 @@
                 </span>
                 <p class="list-item-price">
                   <small>
-                    {% blocktrans trimmed context "Dashboard customer" with email=order.user_email|obfuscate_email %}
+                    {% blocktrans trimmed context "Dashboard customer" with email=order.user_email %}
                       Customer: {{ email }}
                     {% endblocktrans %}
                   </small>

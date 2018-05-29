@@ -17,7 +17,7 @@ def obfuscate_address(address):
     try:
         return Address(
             first_name=address.first_name,
-            last_name=address.last_name,
+            last_name=obfuscate_string(address.last_name),
             street_address_1=obfuscate_string(address.street_address_1),
             city=obfuscate_string(address.city),
             postal_code=obfuscate_string(address.postal_code),

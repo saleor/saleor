@@ -7,7 +7,6 @@
 {% load staticfiles %}
 {% load status %}
 {% load voucher %}
-{% load demo_obfuscators %}
 
 {% block title %}
   {{ order }} - {% trans "Orders" context "Dashboard orders list" %} - {{ block.super }}
@@ -206,7 +205,7 @@
                   <p>{{ order.user.note|truncatechars:80 }}</p>
                 {% endif %}
               {% elif order.user_email %}
-                {{ order.user_email|obfuscate_email }}
+                {{ order.user_email }}
               {% else %}
                 {% trans "Guest" context "Anonymous user account value" %}
               {% endif %}

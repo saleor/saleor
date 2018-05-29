@@ -14,6 +14,8 @@ from ..cart.models import Cart
 from ..cart.utils import get_or_empty_db_cart
 from ..core import analytics
 from ..core.utils.taxes import ZERO_TAXED_MONEY, get_taxes_for_country
+from ..core.templatetags.demo_obfuscators import (
+    obfuscate_address, obfuscate_email)
 from ..discount.models import NotApplicable, Voucher
 from ..discount.utils import increase_voucher_usage
 from ..order.models import Order
@@ -121,6 +123,8 @@ class Checkout:
 
     @shipping_address.setter
     def shipping_address(self, address):
+        # DEMO: obfuscate shipping address
+        address = obfuscate_address(address)
         address_data = model_to_dict(address)
         phone_number = address_data.get('phone')
         if phone_number:
@@ -200,6 +204,8 @@ class Checkout:
 
     @billing_address.setter
     def billing_address(self, address):
+        # DEMO: obfuscate billing address
+        address = obfuscate_address(address)
         address_data = model_to_dict(address)
         address_data['country'] = smart_text(address_data['country'])
         self.storage['billing_address'] = address_data
@@ -327,6 +333,9 @@ class Checkout:
             order_data['user_email'] = self.user.email
         else:
             order_data['user_email'] = self.email
+
+        # DEMO: obfuscate user email in checkout
+        order_data['user_email'] = obfuscate_email(order_data['user_email'])
 
         if voucher is not None:
             order_data['voucher'] = voucher
