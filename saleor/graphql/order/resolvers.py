@@ -1,17 +1,21 @@
 from graphql_jwt.decorators import login_required
 
 from ...order import models
-from ..utils import get_node
+from ..utils import filter_by_query_param, get_node
 from .types import Order
+
+ORDER_SEARCH_FIELDS = (
+    'id', 'discount_name', 'token', 'user_email', 'user__email')
 
 
 @login_required
-def resolve_orders(info):
+def resolve_orders(info, query):
     user = info.context.user
-    qs = user.orders.confirmed().distinct()
+    queryset = user.orders.confirmed().distinct()
     if user.get_all_permissions() & {'order.view_order', 'order.edit_order'}:
-        qs =  models.Order.objects.all().distinct()
-    return qs.prefetch_related('lines')
+        queryset =  models.Order.objects.all().distinct()
+    queryset = filter_by_query_param(queryset, query, ORDER_SEARCH_FIELDS)
+    return queryset.prefetch_related('lines')
 
 
 @login_required
