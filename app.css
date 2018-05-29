@@ -3531,6 +3531,20 @@ header .navbar {
   .section-developers .boxes .ship-wheel {
     transform: translate(-50%, -62%); } }
 
+.privacy {
+  margin: 3rem 0; }
+  .privacy blockquote {
+    font: inherit; }
+  .privacy h2 {
+    text-align: center;
+    text-transform: uppercase;
+    margin-bottom: 4rem; }
+  .privacy h4 {
+    font-size: 2rem;
+    margin-top: 4rem; }
+  .privacy p {
+    font-size: 1.7rem; }
+
 .releases:last-child .release:before {
   content: none; }
 
