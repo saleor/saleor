@@ -4,6 +4,7 @@ from unittest.mock import Mock, patch
 import graphene
 import pytest
 from django.contrib.auth.models import AnonymousUser
+from django.db.models import Q
 from django.http import HttpResponse
 from django.shortcuts import reverse
 from django.test import RequestFactory
@@ -15,7 +16,7 @@ from saleor.graphql.core.mutations import (
     ModelFormMutation, ModelFormUpdateMutation)
 from saleor.graphql.middleware import jwt_middleware
 from saleor.graphql.product.types import Product
-from saleor.graphql.utils import get_nodes
+from saleor.graphql.utils import filter_by_query_param, get_nodes
 
 
 def test_jwt_middleware(admin_user):
@@ -268,3 +269,16 @@ def test_get_nodes(product_list):
         global_ids)
     with pytest.raises(Exception, message=msg):
         get_nodes(global_ids, Product)
+
+
+@patch('saleor.product.models.Product.objects')
+def test_filter_by_query_param(qs):
+    qs.filter.return_value = qs
+
+    qs = filter_by_query_param(qs, 'test', ['name', 'force'])
+    test_kwargs = {'name__icontains': 'test',
+                   'force__icontains': 'test'}
+    q_objects = Q()
+    for q in test_kwargs:
+        q_objects |= Q(**{q: test_kwargs[q]})
+    qs.filter.assert_called_once_with(q_objects)
