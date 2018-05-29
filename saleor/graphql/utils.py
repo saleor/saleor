@@ -70,7 +70,7 @@ def get_attributes_dict_from_list(attributes, attr_slug_id):
 
 
 def filter_by_query_param(queryset, query, search_fields):
-    """Filter queryset according to given parameters
+    """Filter queryset according to given parameters.
 
     Keyword arguments:
     queryset - queryset to be filtered
@@ -86,3 +86,11 @@ def filter_by_query_param(queryset, query, search_fields):
             query_objects |= Q(**{q:query_by[q]})
         return queryset.filter(query_objects)
     return queryset
+
+
+def generate_query_argument_description(search_fields):
+    header = 'Supported filter parameters:\n'
+    supported_list = ''
+    for field in search_fields:
+        supported_list += '* {0}\n'.format(field)
+    return header + supported_list
