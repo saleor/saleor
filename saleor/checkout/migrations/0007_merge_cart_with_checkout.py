@@ -16,15 +16,16 @@ class Migration(migrations.Migration):
     operations = [
         migrations.AlterModelOptions(
             name='cart',
-            options={},
+            options={'ordering': ('-last_change',)},
+        ),
+        migrations.RenameField(
+            model_name='cart',
+            old_name='last_status_change',
+            new_name='last_change',
         ),
         migrations.RemoveField(
             model_name='cart',
             name='checkout_data',
-        ),
-        migrations.RemoveField(
-            model_name='cart',
-            name='last_status_change',
         ),
         migrations.RemoveField(
             model_name='cart',
