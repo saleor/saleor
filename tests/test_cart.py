@@ -290,7 +290,8 @@ def test_cart_counter(monkeypatch):
 def test_get_product_variants_and_prices():
     variant = Mock(product_id=1, id=1, get_price=Mock(return_value=10))
     cart = MagicMock(spec=Cart)
-    cart.lines.all.return_value = [Mock(quantity=1, variant=variant)]
+    cart.__iter__ = Mock(
+        return_value=iter([Mock(quantity=1, variant=variant)]))
     variants = list(utils.get_product_variants_and_prices(cart, variant))
     assert variants == [(variant, 10)]
 
@@ -299,11 +300,11 @@ def test_contains_unavailable_variants():
     missing_variant = Mock(
         check_quantity=Mock(side_effect=InsufficientStock('')))
     cart = MagicMock()
-    cart.lines.all.return_value = [Mock(variant=missing_variant)]
+    cart.__iter__ = Mock(return_value=iter([Mock(variant=missing_variant)]))
     assert utils.contains_unavailable_variants(cart)
 
     variant = Mock(check_quantity=Mock())
-    cart.lines.all.return_value = [Mock(variant=variant)]
+    cart.__iter__ = Mock(return_value=iter([Mock(variant=variant)]))
     assert not utils.contains_unavailable_variants(cart)
 
 

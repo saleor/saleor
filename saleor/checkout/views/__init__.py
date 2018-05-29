@@ -216,6 +216,6 @@ def cart_summary(request, cart):
         data = {
             'quantity': cart.quantity,
             'total': cart.get_subtotal(discounts, taxes),
-            'lines': [prepare_line_data(line) for line in cart.lines.all()]}
+            'lines': [prepare_line_data(line) for line in cart]}
 
     return render(request, 'cart_dropdown.html', data)
