@@ -178,25 +178,25 @@ class CountryForm(forms.Form):
 class AnonymousUserShippingForm(forms.ModelForm):
     """Additional shipping information form for users who are not logged in."""
 
-    user_email = forms.EmailField(
+    email = forms.EmailField(
         widget=forms.EmailInput(attrs={'autocomplete': 'shipping email'}),
         label=pgettext_lazy('Address form field label', 'Email'))
 
     class Meta:
         model = Cart
-        fields = ['user_email']
+        fields = ['email']
 
 
 class AnonymousUserBillingForm(forms.ModelForm):
     """Additional billing information form for users who are not logged in."""
 
-    user_email = forms.EmailField(
+    email = forms.EmailField(
         widget=forms.EmailInput(attrs={'autocomplete': 'billing email'}),
         label=pgettext_lazy('Address form field label', 'Email'))
 
     class Meta:
         model = Cart
-        fields = ['user_email']
+        fields = ['email']
 
 
 class AddressChoiceForm(forms.Form):

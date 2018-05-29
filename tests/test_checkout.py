@@ -59,7 +59,7 @@ def test_view_checkout_index_authorized_user(
 def test_view_checkout_shipping_address(client, request_cart_with_item):
     url = reverse('checkout:shipping-address')
     data = {
-        'user_email': 'test@example.com',
+        'email': 'test@example.com',
         'first_name': 'John',
         'last_name': 'Doe',
         'street_address_1': 'Aleje Jerozolimskie 2',
@@ -79,7 +79,7 @@ def test_view_checkout_shipping_address(client, request_cart_with_item):
 
     redirect_url = reverse('checkout:shipping-method')
     assert response.request['PATH_INFO'] == redirect_url
-    assert request_cart_with_item.user_email == 'test@example.com'
+    assert request_cart_with_item.email == 'test@example.com'
 
 
 def test_view_checkout_shipping_address_authorized_user(
@@ -93,7 +93,7 @@ def test_view_checkout_shipping_address_authorized_user(
 
     redirect_url = reverse('checkout:shipping-method')
     assert response.request['PATH_INFO'] == redirect_url
-    assert request_cart_with_item.user_email == customer_user.email
+    assert request_cart_with_item.email == customer_user.email
 
 
 def test_view_checkout_shipping_address_without_shipping(
@@ -106,13 +106,13 @@ def test_view_checkout_shipping_address_without_shipping(
 
     assert response.status_code == 302
     assert get_redirect_location(response) == reverse('checkout:summary')
-    assert not request_cart.user_email
+    assert not request_cart.email
 
 
 def test_view_checkout_shipping_method(
         client, shipping_method, address, request_cart_with_item):
     request_cart_with_item.shipping_address = address
-    request_cart_with_item.user_email = 'test@example.com'
+    request_cart_with_item.email = 'test@example.com'
     request_cart_with_item.save()
     url = reverse('checkout:shipping-method')
     data = {'shipping_method': shipping_method.price_per_country.first().pk}
@@ -131,7 +131,7 @@ def test_view_checkout_shipping_method_authorized_user(
         authorized_client, customer_user, shipping_method, address,
         request_cart_with_item):
     request_cart_with_item.user = customer_user
-    request_cart_with_item.user_email = customer_user.email
+    request_cart_with_item.email = customer_user.email
     request_cart_with_item.shipping_address = address
     request_cart_with_item.save()
     url = reverse('checkout:shipping-method')
@@ -175,7 +175,7 @@ def test_view_checkout_summary(
         mock_send_confirmation, client, shipping_method, address,
         request_cart_with_item):
     request_cart_with_item.shipping_address = address
-    request_cart_with_item.user_email = 'test@example.com'
+    request_cart_with_item.email = 'test@example.com'
     request_cart_with_item.shipping_method = (
         shipping_method.price_per_country.first())
     request_cart_with_item.save()
@@ -201,7 +201,7 @@ def test_view_checkout_summary_authorized_user(
         shipping_method, address, request_cart_with_item):
     request_cart_with_item.shipping_address = address
     request_cart_with_item.user = customer_user
-    request_cart_with_item.user_email = customer_user.email
+    request_cart_with_item.email = customer_user.email
     request_cart_with_item.shipping_method = (
         shipping_method.price_per_country.first())
     request_cart_with_item.save()
@@ -235,7 +235,7 @@ def test_view_checkout_summary_save_language(
 
     request_cart_with_item.shipping_address = address
     request_cart_with_item.user = customer_user
-    request_cart_with_item.user_email = customer_user.email
+    request_cart_with_item.email = customer_user.email
     request_cart_with_item.shipping_method = (
         shipping_method.price_per_country.first())
     request_cart_with_item.save()
@@ -284,7 +284,7 @@ def test_view_checkout_summary_with_invalid_voucher(
     voucher.save()
 
     request_cart_with_item.shipping_address = address
-    request_cart_with_item.user_email = 'test@example.com'
+    request_cart_with_item.email = 'test@example.com'
     request_cart_with_item.shipping_method = (
         shipping_method.price_per_country.first())
     request_cart_with_item.save()
@@ -317,7 +317,7 @@ def test_view_checkout_summary_with_invalid_voucher(
 def test_view_checkout_summary_with_invalid_voucher_code(
         client, request_cart_with_item, shipping_method, address):
     request_cart_with_item.shipping_address = address
-    request_cart_with_item.user_email = 'test@example.com'
+    request_cart_with_item.email = 'test@example.com'
     request_cart_with_item.shipping_method = (
         shipping_method.price_per_country.first())
     request_cart_with_item.save()
@@ -335,7 +335,7 @@ def test_view_checkout_summary_with_invalid_voucher_code(
 def test_view_checkout_summary_remove_voucher(
         client, request_cart_with_item, shipping_method, voucher, address):
     request_cart_with_item.shipping_address = address
-    request_cart_with_item.user_email = 'test@example.com'
+    request_cart_with_item.email = 'test@example.com'
     request_cart_with_item.shipping_method = (
         shipping_method.price_per_country.first())
     request_cart_with_item.save()

@@ -793,7 +793,7 @@ def create_order(cart, tracking_code, discounts, taxes):
         order_data['user'] = cart.user
         order_data['user_email'] = cart.user.email
     else:
-        order_data['user_email'] = cart.user_email
+        order_data['user_email'] = cart.email
 
     if voucher:
         order_data['voucher'] = voucher

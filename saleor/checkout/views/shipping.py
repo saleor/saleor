@@ -29,8 +29,8 @@ def user_shipping_address_view(request, cart):
     In addition to entering a new address the user has an option of selecting
     one of the existing entries from their address book.
     """
-    cart.user_email = request.user.email
-    cart.save(update_fields=['user_email'])
+    cart.email = request.user.email
+    cart.save(update_fields=['email'])
     user_addresses = cart.user.addresses.all()
 
     addresses_form, address_form, updated = update_shipping_address_in_cart(
