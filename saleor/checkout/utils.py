@@ -737,6 +737,73 @@ def check_shipping_method(cart):
     return True
 
 
+def _process_voucher_data_for_order(cart):
+    """Fetch, process and return voucher/discount data from cart."""
+    vouchers = Voucher.objects.active(date=date.today()).select_for_update()
+    voucher = get_voucher_for_cart(cart, vouchers)
+
+    if cart.voucher_code and not voucher:
+        msg = pgettext(
+            'Voucher not applicable',
+            'Voucher expired in meantime. Order placement aborted.')
+        raise NotApplicable(msg)
+
+    if not voucher:
+        return {}
+
+    increase_voucher_usage(voucher)
+    return {
+        'voucher': voucher,
+        'discount_amount': cart.discount_amount,
+        'discount_name': cart.discount_name}
+
+
+def _process_shipping_data_for_order(cart, taxes):
+    """Fetch, process and return shipping data from cart."""
+    if not cart.is_shipping_required():
+        return {}
+
+    shipping_address = cart.shipping_address
+
+    if cart.user:
+        store_user_address(cart.user, shipping_address, AddressType.SHIPPING)
+        if cart.user.addresses.filter(pk=shipping_address.pk).exists():
+            shipping_address = shipping_address.get_copy()
+
+    return {
+        'shipping_address': shipping_address,
+        'shipping_method': cart.shipping_method,
+        'shipping_method_name': smart_text(cart.shipping_method),
+        'shipping_price': cart.get_shipping_price(taxes)}
+
+
+def _process_user_data_for_order(cart):
+    """Fetch, process and return shipping data from cart."""
+    billing_address = cart.billing_address
+
+    if cart.user:
+        store_user_address(cart.user, billing_address, AddressType.BILLING)
+        if cart.user.addresses.filter(pk=billing_address.pk).exists():
+            billing_address = billing_address.get_copy()
+
+    return {
+        'user': cart.user,
+        'user_email': cart.user.email if cart.user else cart.email,
+        'billing_address': billing_address}
+
+
+def _fill_order_with_cart_data(order, cart, discounts, taxes):
+    """Fill an order with data (variants, note) from cart."""
+    from ..order.utils import add_variant_to_order
+
+    for line in cart:
+        add_variant_to_order(
+            order, line.variant, line.quantity, discounts, taxes)
+
+    if cart.note:
+        order.notes.create(user=order.user, content=cart.note)
+
+
 @transaction.atomic
 def create_order(cart, tracking_code, discounts, taxes):
     """Create an order from the cart.
@@ -751,65 +818,19 @@ def create_order(cart, tracking_code, discounts, taxes):
     which language to use when sending email.
     """
     # FIXME: save locale along with the language
-    from ..order.utils import add_variant_to_order
-
-    voucher = get_voucher_for_cart(
-        cart, vouchers=Voucher.objects.active(
-            date=date.today()).select_for_update())
-
-    if cart.voucher_code and not voucher:
-        # Voucher expired in meantime, abort order placement
+    try:
+        order_data = _process_voucher_data_for_order(cart)
+    except NotApplicable:
         return None
 
-    billing_address = cart.billing_address
-
-    if cart.is_shipping_required():
-        shipping_address = cart.shipping_address
-        shipping_method = cart.shipping_method
-        shipping_method_name = smart_text(shipping_method)
-    else:
-        shipping_address = None
-        shipping_method = None
-        shipping_method_name = None
-
-    if cart.user:
-        store_user_address(cart.user, billing_address, AddressType.BILLING)
-
-        if cart.user.addresses.filter(pk=billing_address.pk).exists():
-            billing_address = billing_address.get_copy()
-
-        if cart.is_shipping_required():
-            store_user_address(
-                cart.user, shipping_address, AddressType.SHIPPING)
-
-            if cart.user.addresses.filter(pk=shipping_address.pk).exists():
-                shipping_address = shipping_address.get_copy()
-
-    order_data = {
+    order_data.update(_process_shipping_data_for_order(cart, taxes))
+    order_data.update(_process_user_data_for_order(cart))
+    order_data.update({
         'language_code': get_language(),
-        'user': cart.user,
-        'user_email': cart.user.email if cart.user else cart.email,
-        'billing_address': billing_address,
-        'shipping_address': shipping_address,
         'tracking_client_id': tracking_code,
-        'shipping_method': shipping_method,
-        'shipping_method_name': shipping_method_name,
-        'shipping_price': cart.get_shipping_price(taxes),
-        'total': cart.get_total(discounts, taxes)}
-
-    if voucher:
-        order_data['voucher'] = voucher
-        order_data['discount_amount'] = cart.discount_amount
-        order_data['discount_name'] = cart.discount_name
-        increase_voucher_usage(voucher)
+        'total': cart.get_total(discounts, taxes)})
 
     order = Order.objects.create(**order_data)
 
-    for line in cart:
-        add_variant_to_order(
-            order, line.variant, line.quantity, discounts, taxes)
-
-    if cart.note:
-        order.notes.create(user=order.user, content=cart.note)
-
+    _fill_order_with_cart_data(order, cart, discounts, taxes)
     return order
