@@ -8,6 +8,7 @@ from ...product.models import Category, Collection
 from ...site.models import SiteSettings
 from ..forms import (
     AjaxSelect2CombinedChoiceField, OrderedModelMultipleChoiceField)
+from .utils import update_menu_item_linked_object
 
 
 class AssignMenuForm(forms.ModelForm):
@@ -93,17 +94,9 @@ class MenuItemForm(forms.ModelForm):
                 code='invalid')
         return self.cleaned_data
 
-    def save(self, commit=True):
+    def save(self):
         linked_object = self.cleaned_data.get('linked_object')
-
-        if isinstance(linked_object, Collection):
-            self.instance.collection = linked_object
-        elif isinstance(linked_object, Category):
-            self.instance.category = linked_object
-        elif isinstance(linked_object, Page):
-            self.instance.page = linked_object
-
-        return super().save(commit)
+        return update_menu_item_linked_object(self.instance, linked_object)
 
 
 class ReorderMenuItemsForm(forms.ModelForm):
