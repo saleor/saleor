@@ -8,6 +8,8 @@ configure({ adapter: new Adapter() });
 
 initStoryshots({
   configPath: "saleor/static/dashboard-next/storybook/",
-  renderer: shallow,
-  serializer: toJSON
+  test({ story, context }) {
+    const result = shallow(story.render(context)).dive();
+    expect(toJSON(result)).toMatchSnapshot();
+  }
 });

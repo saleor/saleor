@@ -225,7 +225,14 @@ Array [
 `;
 
 exports[`Storyshots Generics / ErrorMessageCard default 1`] = `
-<WithStyles(Card)>
+<Card
+  classes={
+    Object {
+      "root": "MuiCard-root-1",
+    }
+  }
+  raised={false}
+>
   <WithStyles(CardContent)>
     <WithStyles(Typography)
       component="h2"
@@ -239,7 +246,7 @@ exports[`Storyshots Generics / ErrorMessageCard default 1`] = `
       Loren ipsum dolor sit amet!
     </WithStyles(Typography)>
   </WithStyles(CardContent)>
-</WithStyles(Card)>
+</Card>
 `;
 
 exports[`Storyshots Generics / Money default 1`] = `
@@ -253,346 +260,414 @@ Array [
 `;
 
 exports[`Storyshots Generics / MultiSelectField with error hint 1`] = `
-<Component
-  choices={
-    Array [
-      Object {
-        "label": "Apparel",
-        "value": "1",
-      },
-      Object {
-        "label": "Groceries",
-        "value": "2",
-      },
-      Object {
-        "label": "Books",
-        "value": "3",
-      },
-      Object {
-        "label": "Accessories",
-        "value": "4",
-      },
-    ]
-  }
-  classes={
-    Object {
-      "chip": "Component-chip-1",
-      "chipContainer": "Component-chipContainer-2",
-      "formControl": "Component-formControl-3",
-    }
-  }
+<WithStyles(FormControl)
+  className="Component-formControl-4"
   error={true}
-  hint="Lorem error"
-  onChange={[Function]}
-  value={Array []}
-/>
+>
+  <WithStyles(Select)
+    fullWidth={true}
+    multiple={true}
+    onChange={[Function]}
+    renderValue={[Function]}
+    value={Array []}
+  >
+    <WithStyles(MenuItem)
+      key="1"
+      value="1"
+    >
+      Apparel
+    </WithStyles(MenuItem)>
+    <WithStyles(MenuItem)
+      key="2"
+      value="2"
+    >
+      Groceries
+    </WithStyles(MenuItem)>
+    <WithStyles(MenuItem)
+      key="3"
+      value="3"
+    >
+      Books
+    </WithStyles(MenuItem)>
+    <WithStyles(MenuItem)
+      key="4"
+      value="4"
+    >
+      Accessories
+    </WithStyles(MenuItem)>
+  </WithStyles(Select)>
+  <WithStyles(FormHelperText)>
+    Lorem error
+  </WithStyles(FormHelperText)>
+</WithStyles(FormControl)>
 `;
 
 exports[`Storyshots Generics / MultiSelectField with hint 1`] = `
-<Component
-  choices={
-    Array [
-      Object {
-        "label": "Apparel",
-        "value": "1",
-      },
-      Object {
-        "label": "Groceries",
-        "value": "2",
-      },
-      Object {
-        "label": "Books",
-        "value": "3",
-      },
-      Object {
-        "label": "Accessories",
-        "value": "4",
-      },
-    ]
-  }
-  classes={
-    Object {
-      "chip": "Component-chip-1",
-      "chipContainer": "Component-chipContainer-2",
-      "formControl": "Component-formControl-3",
-    }
-  }
-  hint="Lorem ipsum"
-  onChange={[Function]}
-  value={Array []}
-/>
+<WithStyles(FormControl)
+  className="Component-formControl-4"
+>
+  <WithStyles(Select)
+    fullWidth={true}
+    multiple={true}
+    onChange={[Function]}
+    renderValue={[Function]}
+    value={Array []}
+  >
+    <WithStyles(MenuItem)
+      key="1"
+      value="1"
+    >
+      Apparel
+    </WithStyles(MenuItem)>
+    <WithStyles(MenuItem)
+      key="2"
+      value="2"
+    >
+      Groceries
+    </WithStyles(MenuItem)>
+    <WithStyles(MenuItem)
+      key="3"
+      value="3"
+    >
+      Books
+    </WithStyles(MenuItem)>
+    <WithStyles(MenuItem)
+      key="4"
+      value="4"
+    >
+      Accessories
+    </WithStyles(MenuItem)>
+  </WithStyles(Select)>
+  <WithStyles(FormHelperText)>
+    Lorem ipsum
+  </WithStyles(FormHelperText)>
+</WithStyles(FormControl)>
 `;
 
 exports[`Storyshots Generics / MultiSelectField with label 1`] = `
-<Component
-  choices={
-    Array [
-      Object {
-        "label": "Apparel",
-        "value": "1",
-      },
-      Object {
-        "label": "Groceries",
-        "value": "2",
-      },
-      Object {
-        "label": "Books",
-        "value": "3",
-      },
-      Object {
-        "label": "Accessories",
-        "value": "4",
-      },
-    ]
-  }
-  classes={
-    Object {
-      "chip": "Component-chip-1",
-      "chipContainer": "Component-chipContainer-2",
-      "formControl": "Component-formControl-3",
-    }
-  }
-  label="Lorem ipsum"
-  onChange={[Function]}
-  value={Array []}
-/>
+<WithStyles(FormControl)
+  className="Component-formControl-4"
+>
+  <WithStyles(InputLabel)>
+    Lorem ipsum
+  </WithStyles(InputLabel)>
+  <WithStyles(Select)
+    fullWidth={true}
+    multiple={true}
+    onChange={[Function]}
+    renderValue={[Function]}
+    value={Array []}
+  >
+    <WithStyles(MenuItem)
+      key="1"
+      value="1"
+    >
+      Apparel
+    </WithStyles(MenuItem)>
+    <WithStyles(MenuItem)
+      key="2"
+      value="2"
+    >
+      Groceries
+    </WithStyles(MenuItem)>
+    <WithStyles(MenuItem)
+      key="3"
+      value="3"
+    >
+      Books
+    </WithStyles(MenuItem)>
+    <WithStyles(MenuItem)
+      key="4"
+      value="4"
+    >
+      Accessories
+    </WithStyles(MenuItem)>
+  </WithStyles(Select)>
+</WithStyles(FormControl)>
 `;
 
 exports[`Storyshots Generics / MultiSelectField with label and hint 1`] = `
-<Component
-  choices={
-    Array [
-      Object {
-        "label": "Apparel",
-        "value": "1",
-      },
-      Object {
-        "label": "Groceries",
-        "value": "2",
-      },
-      Object {
-        "label": "Books",
-        "value": "3",
-      },
-      Object {
-        "label": "Accessories",
-        "value": "4",
-      },
-    ]
-  }
-  classes={
-    Object {
-      "chip": "Component-chip-1",
-      "chipContainer": "Component-chipContainer-2",
-      "formControl": "Component-formControl-3",
-    }
-  }
-  hint="Ipsum"
-  label="Lorem"
-  onChange={[Function]}
-  value={Array []}
-/>
+<WithStyles(FormControl)
+  className="Component-formControl-4"
+>
+  <WithStyles(InputLabel)>
+    Lorem
+  </WithStyles(InputLabel)>
+  <WithStyles(Select)
+    fullWidth={true}
+    multiple={true}
+    onChange={[Function]}
+    renderValue={[Function]}
+    value={Array []}
+  >
+    <WithStyles(MenuItem)
+      key="1"
+      value="1"
+    >
+      Apparel
+    </WithStyles(MenuItem)>
+    <WithStyles(MenuItem)
+      key="2"
+      value="2"
+    >
+      Groceries
+    </WithStyles(MenuItem)>
+    <WithStyles(MenuItem)
+      key="3"
+      value="3"
+    >
+      Books
+    </WithStyles(MenuItem)>
+    <WithStyles(MenuItem)
+      key="4"
+      value="4"
+    >
+      Accessories
+    </WithStyles(MenuItem)>
+  </WithStyles(Select)>
+  <WithStyles(FormHelperText)>
+    Ipsum
+  </WithStyles(FormHelperText)>
+</WithStyles(FormControl)>
 `;
 
 exports[`Storyshots Generics / MultiSelectField with no value 1`] = `
-<Component
-  choices={
-    Array [
-      Object {
-        "label": "Apparel",
-        "value": "1",
-      },
-      Object {
-        "label": "Groceries",
-        "value": "2",
-      },
-      Object {
-        "label": "Books",
-        "value": "3",
-      },
-      Object {
-        "label": "Accessories",
-        "value": "4",
-      },
-    ]
-  }
-  classes={
-    Object {
-      "chip": "Component-chip-1",
-      "chipContainer": "Component-chipContainer-2",
-      "formControl": "Component-formControl-3",
-    }
-  }
-  onChange={[Function]}
-  value={Array []}
-/>
+<WithStyles(FormControl)
+  className="Component-formControl-4"
+>
+  <WithStyles(Select)
+    fullWidth={true}
+    multiple={true}
+    onChange={[Function]}
+    renderValue={[Function]}
+    value={Array []}
+  >
+    <WithStyles(MenuItem)
+      key="1"
+      value="1"
+    >
+      Apparel
+    </WithStyles(MenuItem)>
+    <WithStyles(MenuItem)
+      key="2"
+      value="2"
+    >
+      Groceries
+    </WithStyles(MenuItem)>
+    <WithStyles(MenuItem)
+      key="3"
+      value="3"
+    >
+      Books
+    </WithStyles(MenuItem)>
+    <WithStyles(MenuItem)
+      key="4"
+      value="4"
+    >
+      Accessories
+    </WithStyles(MenuItem)>
+  </WithStyles(Select)>
+</WithStyles(FormControl)>
 `;
 
 exports[`Storyshots Generics / MultiSelectField with value 1`] = `
-<Component
-  choices={
-    Array [
-      Object {
-        "label": "Apparel",
-        "value": "1",
-      },
-      Object {
-        "label": "Groceries",
-        "value": "2",
-      },
-      Object {
-        "label": "Books",
-        "value": "3",
-      },
-      Object {
-        "label": "Accessories",
-        "value": "4",
-      },
-    ]
-  }
-  classes={
-    Object {
-      "chip": "Component-chip-1",
-      "chipContainer": "Component-chipContainer-2",
-      "formControl": "Component-formControl-3",
+<WithStyles(FormControl)
+  className="Component-formControl-4"
+>
+  <WithStyles(Select)
+    fullWidth={true}
+    multiple={true}
+    onChange={[Function]}
+    renderValue={[Function]}
+    value={
+      Array [
+        "1",
+      ]
     }
-  }
-  onChange={[Function]}
-  value={
-    Array [
-      "1",
-    ]
-  }
-/>
+  >
+    <WithStyles(MenuItem)
+      key="1"
+      value="1"
+    >
+      Apparel
+    </WithStyles(MenuItem)>
+    <WithStyles(MenuItem)
+      key="2"
+      value="2"
+    >
+      Groceries
+    </WithStyles(MenuItem)>
+    <WithStyles(MenuItem)
+      key="3"
+      value="3"
+    >
+      Books
+    </WithStyles(MenuItem)>
+    <WithStyles(MenuItem)
+      key="4"
+      value="4"
+    >
+      Accessories
+    </WithStyles(MenuItem)>
+  </WithStyles(Select)>
+</WithStyles(FormControl)>
 `;
 
 exports[`Storyshots Generics / MultiSelectField with value, label and hint 1`] = `
-<Component
-  choices={
-    Array [
-      Object {
-        "label": "Apparel",
-        "value": "1",
-      },
-      Object {
-        "label": "Groceries",
-        "value": "2",
-      },
-      Object {
-        "label": "Books",
-        "value": "3",
-      },
-      Object {
-        "label": "Accessories",
-        "value": "4",
-      },
-    ]
-  }
-  classes={
-    Object {
-      "chip": "Component-chip-1",
-      "chipContainer": "Component-chipContainer-2",
-      "formControl": "Component-formControl-3",
+<WithStyles(FormControl)
+  className="Component-formControl-4"
+>
+  <WithStyles(InputLabel)>
+    Lorem
+  </WithStyles(InputLabel)>
+  <WithStyles(Select)
+    fullWidth={true}
+    multiple={true}
+    onChange={[Function]}
+    renderValue={[Function]}
+    value={
+      Array [
+        "1",
+      ]
     }
-  }
-  hint="Ipsum"
-  label="Lorem"
-  onChange={[Function]}
-  value={
-    Array [
-      "1",
-    ]
-  }
-/>
+  >
+    <WithStyles(MenuItem)
+      key="1"
+      value="1"
+    >
+      Apparel
+    </WithStyles(MenuItem)>
+    <WithStyles(MenuItem)
+      key="2"
+      value="2"
+    >
+      Groceries
+    </WithStyles(MenuItem)>
+    <WithStyles(MenuItem)
+      key="3"
+      value="3"
+    >
+      Books
+    </WithStyles(MenuItem)>
+    <WithStyles(MenuItem)
+      key="4"
+      value="4"
+    >
+      Accessories
+    </WithStyles(MenuItem)>
+  </WithStyles(Select)>
+  <WithStyles(FormHelperText)>
+    Ipsum
+  </WithStyles(FormHelperText)>
+</WithStyles(FormControl)>
 `;
 
 exports[`Storyshots Generics / PageHeader with title 1`] = `
-<Component
-  classes={
-    Object {
-      "action": "Component-action-4",
-      "grid": "Component-grid-5",
-      "menuButton": "Component-menuButton-6",
-      "root": "Component-root-7",
-      "subtitle": "Component-subtitle-8",
-      "title": "Component-title-9",
-    }
-  }
-  title="Lorem ipsum"
-/>
+<div
+  className="Component-root-8"
+>
+  <WithStyles(Typography)
+    className="Component-title-10"
+    variant="title"
+  >
+    Lorem ipsum
+  </WithStyles(Typography)>
+  <div
+    className="Component-action-5"
+  />
+</div>
 `;
 
 exports[`Storyshots Generics / PageHeader with title and back button 1`] = `
-<Component
-  classes={
-    Object {
-      "action": "Component-action-4",
-      "grid": "Component-grid-5",
-      "menuButton": "Component-menuButton-6",
-      "root": "Component-root-7",
-      "subtitle": "Component-subtitle-8",
-      "title": "Component-title-9",
-    }
-  }
-  onBack={[Function]}
-  title="Lorem ipsum"
-/>
+<div
+  className="Component-root-8"
+>
+  <WithStyles(IconButton)
+    className="Component-menuButton-7"
+    color="inherit"
+    onClick={[Function]}
+  >
+    <pure(ArrowBack) />
+  </WithStyles(IconButton)>
+  <WithStyles(Typography)
+    className="Component-title-10"
+    variant="title"
+  >
+    Lorem ipsum
+  </WithStyles(Typography)>
+  <div
+    className="Component-action-5"
+  />
+</div>
 `;
 
 exports[`Storyshots Generics / PageHeader with title icon bar 1`] = `
-<Component
-  classes={
-    Object {
-      "action": "Component-action-4",
-      "grid": "Component-grid-5",
-      "menuButton": "Component-menuButton-6",
-      "root": "Component-root-7",
-      "subtitle": "Component-subtitle-8",
-      "title": "Component-title-9",
-    }
-  }
-  title="Lorem ipsum"
+<div
+  className="Component-root-8"
 >
-  <WithStyles(IconButton)>
-    <pure(Delete) />
-  </WithStyles(IconButton)>
-</Component>
+  <WithStyles(Typography)
+    className="Component-title-10"
+    variant="title"
+  >
+    Lorem ipsum
+  </WithStyles(Typography)>
+  <div
+    className="Component-action-5"
+  >
+    <WithStyles(IconButton)>
+      <pure(Delete) />
+    </WithStyles(IconButton)>
+  </div>
+</div>
 `;
 
 exports[`Storyshots Generics / PageHeader with title, back button and icon bar 1`] = `
-<Component
-  classes={
-    Object {
-      "action": "Component-action-4",
-      "grid": "Component-grid-5",
-      "menuButton": "Component-menuButton-6",
-      "root": "Component-root-7",
-      "subtitle": "Component-subtitle-8",
-      "title": "Component-title-9",
-    }
-  }
-  onBack={[Function]}
-  title="Lorem ipsum"
+<div
+  className="Component-root-8"
 >
-  <WithStyles(IconButton)>
-    <pure(Delete) />
+  <WithStyles(IconButton)
+    className="Component-menuButton-7"
+    color="inherit"
+    onClick={[Function]}
+  >
+    <pure(ArrowBack) />
   </WithStyles(IconButton)>
-</Component>
+  <WithStyles(Typography)
+    className="Component-title-10"
+    variant="title"
+  >
+    Lorem ipsum
+  </WithStyles(Typography)>
+  <div
+    className="Component-action-5"
+  >
+    <WithStyles(IconButton)>
+      <pure(Delete) />
+    </WithStyles(IconButton)>
+  </div>
+</div>
 `;
 
 exports[`Storyshots Generics / PageHeader without title 1`] = `
-<Component
-  classes={
-    Object {
-      "action": "Component-action-4",
-      "grid": "Component-grid-5",
-      "menuButton": "Component-menuButton-6",
-      "root": "Component-root-7",
-      "subtitle": "Component-subtitle-8",
-      "title": "Component-title-9",
-    }
-  }
-/>
+<div
+  className="Component-root-8"
+>
+  <WithStyles(Typography)
+    className="Component-title-10"
+    variant="title"
+  >
+    <WithStyles(Component)
+      style={
+        Object {
+          "width": "10em",
+        }
+      }
+    />
+  </WithStyles(Typography)>
+  <div
+    className="Component-action-5"
+  />
+</div>
 `;
 
 exports[`Storyshots Generics / PhoneField default 1`] = `
@@ -616,320 +691,597 @@ Array [
 `;
 
 exports[`Storyshots Generics / PriceField disabled 1`] = `
-<Component
-  classes={
-    Object {
-      "inputContainer": "Component-inputContainer-14",
-      "pullDown": "Component-pullDown-15",
-      "separator": "Component-separator-16",
-      "widgetContainer": "Component-widgetContainer-17",
-    }
-  }
-  disabled={true}
-  name="price"
-  onChange={[Function]}
-/>
+<WithStyles(FormControl)
+  fullWidth={true}
+>
+  <WithStyles(Input)
+    disabled={true}
+    endAdornment={<span />}
+    name="price"
+    onChange={[Function]}
+    type="number"
+    value=""
+  />
+</WithStyles(FormControl)>
 `;
 
 exports[`Storyshots Generics / PriceField with currency symbol 1`] = `
-<Component
-  classes={
-    Object {
-      "inputContainer": "Component-inputContainer-14",
-      "pullDown": "Component-pullDown-15",
-      "separator": "Component-separator-16",
-      "widgetContainer": "Component-widgetContainer-17",
+<WithStyles(FormControl)
+  fullWidth={true}
+>
+  <WithStyles(Input)
+    endAdornment={
+      <WithStyles(InputAdornment)
+        position="end"
+      >
+        $
+      </WithStyles(InputAdornment)>
     }
-  }
-  currencySymbol="$"
-  name="price"
-  onChange={[Function]}
-/>
+    name="price"
+    onChange={[Function]}
+    type="number"
+    value=""
+  />
+</WithStyles(FormControl)>
 `;
 
 exports[`Storyshots Generics / PriceField with hint 1`] = `
-<Component
-  classes={
-    Object {
-      "inputContainer": "Component-inputContainer-14",
-      "pullDown": "Component-pullDown-15",
-      "separator": "Component-separator-16",
-      "widgetContainer": "Component-widgetContainer-17",
-    }
-  }
-  hint="Lorem ipsum"
-  name="price"
-  onChange={[Function]}
-/>
+<WithStyles(FormControl)
+  fullWidth={true}
+>
+  <WithStyles(Input)
+    endAdornment={<span />}
+    name="price"
+    onChange={[Function]}
+    type="number"
+    value=""
+  />
+  <WithStyles(FormHelperText)>
+    Lorem ipsum
+  </WithStyles(FormHelperText)>
+</WithStyles(FormControl)>
 `;
 
 exports[`Storyshots Generics / PriceField with label 1`] = `
-<Component
-  classes={
-    Object {
-      "inputContainer": "Component-inputContainer-14",
-      "pullDown": "Component-pullDown-15",
-      "separator": "Component-separator-16",
-      "widgetContainer": "Component-widgetContainer-17",
-    }
-  }
-  label="Lorem ipsum"
-  name="price"
-  onChange={[Function]}
-/>
+<WithStyles(FormControl)
+  fullWidth={true}
+>
+  <WithStyles(InputLabel)
+    htmlFor="price"
+  >
+    Lorem ipsum
+  </WithStyles(InputLabel)>
+  <WithStyles(Input)
+    endAdornment={<span />}
+    name="price"
+    onChange={[Function]}
+    type="number"
+    value=""
+  />
+</WithStyles(FormControl)>
 `;
 
 exports[`Storyshots Generics / PriceField with label and hint 1`] = `
-<Component
-  classes={
-    Object {
-      "inputContainer": "Component-inputContainer-14",
-      "pullDown": "Component-pullDown-15",
-      "separator": "Component-separator-16",
-      "widgetContainer": "Component-widgetContainer-17",
-    }
-  }
-  hint="Ipsum"
-  label="Lorem"
-  name="price"
-  onChange={[Function]}
-/>
+<WithStyles(FormControl)
+  fullWidth={true}
+>
+  <WithStyles(InputLabel)
+    htmlFor="price"
+  >
+    Lorem
+  </WithStyles(InputLabel)>
+  <WithStyles(Input)
+    endAdornment={<span />}
+    name="price"
+    onChange={[Function]}
+    type="number"
+    value=""
+  />
+  <WithStyles(FormHelperText)>
+    Ipsum
+  </WithStyles(FormHelperText)>
+</WithStyles(FormControl)>
 `;
 
 exports[`Storyshots Generics / PriceField with no value 1`] = `
-<Component
-  classes={
-    Object {
-      "inputContainer": "Component-inputContainer-14",
-      "pullDown": "Component-pullDown-15",
-      "separator": "Component-separator-16",
-      "widgetContainer": "Component-widgetContainer-17",
-    }
-  }
-  name="price"
-  onChange={[Function]}
-/>
+<WithStyles(FormControl)
+  fullWidth={true}
+>
+  <WithStyles(Input)
+    endAdornment={<span />}
+    name="price"
+    onChange={[Function]}
+    type="number"
+    value=""
+  />
+</WithStyles(FormControl)>
 `;
 
 exports[`Storyshots Generics / PriceField with value 1`] = `
-<Component
-  classes={
-    Object {
-      "inputContainer": "Component-inputContainer-14",
-      "pullDown": "Component-pullDown-15",
-      "separator": "Component-separator-16",
-      "widgetContainer": "Component-widgetContainer-17",
-    }
-  }
-  name="price"
-  onChange={[Function]}
-  value="30"
-/>
+<WithStyles(FormControl)
+  fullWidth={true}
+>
+  <WithStyles(Input)
+    endAdornment={<span />}
+    name="price"
+    onChange={[Function]}
+    type="number"
+    value="30"
+  />
+</WithStyles(FormControl)>
 `;
 
 exports[`Storyshots Generics / PriceField with value, label, currency symbol and error 1`] = `
-<Component
-  classes={
-    Object {
-      "inputContainer": "Component-inputContainer-14",
-      "pullDown": "Component-pullDown-15",
-      "separator": "Component-separator-16",
-      "widgetContainer": "Component-widgetContainer-17",
-    }
-  }
-  currencySymbol="$"
+<WithStyles(FormControl)
   error={true}
-  hint="Ipsum"
-  label="Lorem"
-  name="price"
-  onChange={[Function]}
-  value="30"
-/>
+  fullWidth={true}
+>
+  <WithStyles(InputLabel)
+    htmlFor="price"
+  >
+    Lorem
+  </WithStyles(InputLabel)>
+  <WithStyles(Input)
+    endAdornment={
+      <WithStyles(InputAdornment)
+        position="end"
+      >
+        $
+      </WithStyles(InputAdornment)>
+    }
+    name="price"
+    onChange={[Function]}
+    type="number"
+    value="30"
+  />
+  <WithStyles(FormHelperText)>
+    Ipsum
+  </WithStyles(FormHelperText)>
+</WithStyles(FormControl)>
 `;
 
 exports[`Storyshots Generics / PriceField with value, label, currency symbol and hint 1`] = `
-<Component
-  classes={
-    Object {
-      "inputContainer": "Component-inputContainer-14",
-      "pullDown": "Component-pullDown-15",
-      "separator": "Component-separator-16",
-      "widgetContainer": "Component-widgetContainer-17",
+<WithStyles(FormControl)
+  fullWidth={true}
+>
+  <WithStyles(InputLabel)
+    htmlFor="price"
+  >
+    Lorem
+  </WithStyles(InputLabel)>
+  <WithStyles(Input)
+    endAdornment={
+      <WithStyles(InputAdornment)
+        position="end"
+      >
+        $
+      </WithStyles(InputAdornment)>
     }
-  }
-  currencySymbol="$"
-  hint="Ipsum"
-  label="Lorem"
-  name="price"
-  onChange={[Function]}
-  value="30"
-/>
+    name="price"
+    onChange={[Function]}
+    type="number"
+    value="30"
+  />
+  <WithStyles(FormHelperText)>
+    Ipsum
+  </WithStyles(FormHelperText)>
+</WithStyles(FormControl)>
 `;
 
 exports[`Storyshots Generics / PriceRangeField disabled 1`] = `
-<Component
-  classes={
-    Object {
-      "inputContainer": "Component-inputContainer-10",
-      "pullDown": "Component-pullDown-11",
-      "separator": "Component-separator-12",
-      "widgetContainer": "Component-widgetContainer-13",
-    }
-  }
-  disabled={true}
-  name="price"
-  onChange={[Function]}
-/>
+<div
+  className="Component-widgetContainer-14"
+>
+  <div
+    className="Component-inputContainer-11"
+  >
+    <WithStyles(FormControl)>
+      <WithStyles(Input)
+        className="Component-pullDown-12"
+        disabled={true}
+        endAdornment={<span />}
+        fullWidth={true}
+        name="price_min"
+        onChange={[Function]}
+        type="number"
+        value=""
+      />
+    </WithStyles(FormControl)>
+    <span
+      className="Component-separator-13"
+    >
+      -
+    </span>
+    <WithStyles(FormControl)>
+      <WithStyles(Input)
+        className="Component-pullDown-12"
+        disabled={true}
+        endAdornment={<span />}
+        fullWidth={true}
+        name="price_max"
+        onChange={[Function]}
+        type="number"
+        value=""
+      />
+    </WithStyles(FormControl)>
+  </div>
+</div>
 `;
 
 exports[`Storyshots Generics / PriceRangeField with currency symbol 1`] = `
-<Component
-  classes={
-    Object {
-      "inputContainer": "Component-inputContainer-10",
-      "pullDown": "Component-pullDown-11",
-      "separator": "Component-separator-12",
-      "widgetContainer": "Component-widgetContainer-13",
-    }
-  }
-  currencySymbol="$"
-  name="price"
-  onChange={[Function]}
-/>
+<div
+  className="Component-widgetContainer-14"
+>
+  <div
+    className="Component-inputContainer-11"
+  >
+    <WithStyles(FormControl)>
+      <WithStyles(Input)
+        className="Component-pullDown-12"
+        endAdornment={
+          <WithStyles(InputAdornment)
+            position="end"
+          >
+            $
+          </WithStyles(InputAdornment)>
+        }
+        fullWidth={true}
+        name="price_min"
+        onChange={[Function]}
+        type="number"
+        value=""
+      />
+    </WithStyles(FormControl)>
+    <span
+      className="Component-separator-13"
+    >
+      -
+    </span>
+    <WithStyles(FormControl)>
+      <WithStyles(Input)
+        className="Component-pullDown-12"
+        endAdornment={
+          <WithStyles(InputAdornment)
+            position="end"
+          >
+            $
+          </WithStyles(InputAdornment)>
+        }
+        fullWidth={true}
+        name="price_max"
+        onChange={[Function]}
+        type="number"
+        value=""
+      />
+    </WithStyles(FormControl)>
+  </div>
+</div>
 `;
 
 exports[`Storyshots Generics / PriceRangeField with hint 1`] = `
-<Component
-  classes={
-    Object {
-      "inputContainer": "Component-inputContainer-10",
-      "pullDown": "Component-pullDown-11",
-      "separator": "Component-separator-12",
-      "widgetContainer": "Component-widgetContainer-13",
-    }
-  }
-  hint="Lorem ipsum"
-  name="price"
-  onChange={[Function]}
-/>
+<div
+  className="Component-widgetContainer-14"
+>
+  <div
+    className="Component-inputContainer-11"
+  >
+    <WithStyles(FormControl)>
+      <WithStyles(Input)
+        className="Component-pullDown-12"
+        endAdornment={<span />}
+        fullWidth={true}
+        name="price_min"
+        onChange={[Function]}
+        type="number"
+        value=""
+      />
+      <WithStyles(FormHelperText)>
+        Lorem ipsum
+      </WithStyles(FormHelperText)>
+    </WithStyles(FormControl)>
+    <span
+      className="Component-separator-13"
+    >
+      -
+    </span>
+    <WithStyles(FormControl)>
+      <WithStyles(Input)
+        className="Component-pullDown-12"
+        endAdornment={<span />}
+        fullWidth={true}
+        name="price_max"
+        onChange={[Function]}
+        type="number"
+        value=""
+      />
+    </WithStyles(FormControl)>
+  </div>
+</div>
 `;
 
 exports[`Storyshots Generics / PriceRangeField with label 1`] = `
-<Component
-  classes={
-    Object {
-      "inputContainer": "Component-inputContainer-10",
-      "pullDown": "Component-pullDown-11",
-      "separator": "Component-separator-12",
-      "widgetContainer": "Component-widgetContainer-13",
-    }
-  }
-  label="Lorem ipsum"
-  name="price"
-  onChange={[Function]}
-/>
+<div
+  className="Component-widgetContainer-14"
+>
+  <div
+    className="Component-inputContainer-11"
+  >
+    <WithStyles(FormControl)>
+      <WithStyles(InputLabel)
+        htmlFor="price_min"
+      >
+        Lorem ipsum
+      </WithStyles(InputLabel)>
+      <WithStyles(Input)
+        className=""
+        endAdornment={<span />}
+        fullWidth={true}
+        name="price_min"
+        onChange={[Function]}
+        type="number"
+        value=""
+      />
+    </WithStyles(FormControl)>
+    <span
+      className="Component-separator-13"
+    >
+      -
+    </span>
+    <WithStyles(FormControl)>
+      <WithStyles(Input)
+        className="Component-pullDown-12"
+        endAdornment={<span />}
+        fullWidth={true}
+        name="price_max"
+        onChange={[Function]}
+        type="number"
+        value=""
+      />
+    </WithStyles(FormControl)>
+  </div>
+</div>
 `;
 
 exports[`Storyshots Generics / PriceRangeField with label and hint 1`] = `
-<Component
-  classes={
-    Object {
-      "inputContainer": "Component-inputContainer-10",
-      "pullDown": "Component-pullDown-11",
-      "separator": "Component-separator-12",
-      "widgetContainer": "Component-widgetContainer-13",
-    }
-  }
-  hint="Ipsum"
-  label="Lorem"
-  name="price"
-  onChange={[Function]}
-/>
+<div
+  className="Component-widgetContainer-14"
+>
+  <div
+    className="Component-inputContainer-11"
+  >
+    <WithStyles(FormControl)>
+      <WithStyles(InputLabel)
+        htmlFor="price_min"
+      >
+        Lorem
+      </WithStyles(InputLabel)>
+      <WithStyles(Input)
+        className=""
+        endAdornment={<span />}
+        fullWidth={true}
+        name="price_min"
+        onChange={[Function]}
+        type="number"
+        value=""
+      />
+      <WithStyles(FormHelperText)>
+        Ipsum
+      </WithStyles(FormHelperText)>
+    </WithStyles(FormControl)>
+    <span
+      className="Component-separator-13"
+    >
+      -
+    </span>
+    <WithStyles(FormControl)>
+      <WithStyles(Input)
+        className="Component-pullDown-12"
+        endAdornment={<span />}
+        fullWidth={true}
+        name="price_max"
+        onChange={[Function]}
+        type="number"
+        value=""
+      />
+    </WithStyles(FormControl)>
+  </div>
+</div>
 `;
 
 exports[`Storyshots Generics / PriceRangeField with no value 1`] = `
-<Component
-  classes={
-    Object {
-      "inputContainer": "Component-inputContainer-10",
-      "pullDown": "Component-pullDown-11",
-      "separator": "Component-separator-12",
-      "widgetContainer": "Component-widgetContainer-13",
-    }
-  }
-  name="price"
-  onChange={[Function]}
-/>
+<div
+  className="Component-widgetContainer-14"
+>
+  <div
+    className="Component-inputContainer-11"
+  >
+    <WithStyles(FormControl)>
+      <WithStyles(Input)
+        className="Component-pullDown-12"
+        endAdornment={<span />}
+        fullWidth={true}
+        name="price_min"
+        onChange={[Function]}
+        type="number"
+        value=""
+      />
+    </WithStyles(FormControl)>
+    <span
+      className="Component-separator-13"
+    >
+      -
+    </span>
+    <WithStyles(FormControl)>
+      <WithStyles(Input)
+        className="Component-pullDown-12"
+        endAdornment={<span />}
+        fullWidth={true}
+        name="price_max"
+        onChange={[Function]}
+        type="number"
+        value=""
+      />
+    </WithStyles(FormControl)>
+  </div>
+</div>
 `;
 
 exports[`Storyshots Generics / PriceRangeField with value 1`] = `
-<Component
-  classes={
-    Object {
-      "inputContainer": "Component-inputContainer-10",
-      "pullDown": "Component-pullDown-11",
-      "separator": "Component-separator-12",
-      "widgetContainer": "Component-widgetContainer-13",
-    }
-  }
-  name="price"
-  onChange={[Function]}
-  value={
-    Object {
-      "max": "30",
-      "min": "10",
-    }
-  }
-/>
+<div
+  className="Component-widgetContainer-14"
+>
+  <div
+    className="Component-inputContainer-11"
+  >
+    <WithStyles(FormControl)>
+      <WithStyles(Input)
+        className="Component-pullDown-12"
+        endAdornment={<span />}
+        fullWidth={true}
+        name="price_min"
+        onChange={[Function]}
+        type="number"
+        value="10"
+      />
+    </WithStyles(FormControl)>
+    <span
+      className="Component-separator-13"
+    >
+      -
+    </span>
+    <WithStyles(FormControl)>
+      <WithStyles(Input)
+        className="Component-pullDown-12"
+        endAdornment={<span />}
+        fullWidth={true}
+        name="price_max"
+        onChange={[Function]}
+        type="number"
+        value="30"
+      />
+    </WithStyles(FormControl)>
+  </div>
+</div>
 `;
 
 exports[`Storyshots Generics / PriceRangeField with value, label, currency symbol and error 1`] = `
-<Component
-  classes={
-    Object {
-      "inputContainer": "Component-inputContainer-10",
-      "pullDown": "Component-pullDown-11",
-      "separator": "Component-separator-12",
-      "widgetContainer": "Component-widgetContainer-13",
-    }
-  }
-  currencySymbol="$"
-  error={true}
-  hint="Ipsum"
-  label="Lorem"
-  name="price"
-  onChange={[Function]}
-  value={
-    Object {
-      "max": "30",
-      "min": "10",
-    }
-  }
-/>
+<div
+  className="Component-widgetContainer-14"
+>
+  <div
+    className="Component-inputContainer-11"
+  >
+    <WithStyles(FormControl)
+      error={true}
+    >
+      <WithStyles(InputLabel)
+        htmlFor="price_min"
+      >
+        Lorem
+      </WithStyles(InputLabel)>
+      <WithStyles(Input)
+        className=""
+        endAdornment={
+          <WithStyles(InputAdornment)
+            position="end"
+          >
+            $
+          </WithStyles(InputAdornment)>
+        }
+        fullWidth={true}
+        name="price_min"
+        onChange={[Function]}
+        type="number"
+        value="10"
+      />
+      <WithStyles(FormHelperText)>
+        Ipsum
+      </WithStyles(FormHelperText)>
+    </WithStyles(FormControl)>
+    <span
+      className="Component-separator-13"
+    >
+      -
+    </span>
+    <WithStyles(FormControl)
+      error={true}
+    >
+      <WithStyles(Input)
+        className="Component-pullDown-12"
+        endAdornment={
+          <WithStyles(InputAdornment)
+            position="end"
+          >
+            $
+          </WithStyles(InputAdornment)>
+        }
+        fullWidth={true}
+        name="price_max"
+        onChange={[Function]}
+        type="number"
+        value="30"
+      />
+    </WithStyles(FormControl)>
+  </div>
+</div>
 `;
 
 exports[`Storyshots Generics / PriceRangeField with value, label, currency symbol and hint 1`] = `
-<Component
-  classes={
-    Object {
-      "inputContainer": "Component-inputContainer-10",
-      "pullDown": "Component-pullDown-11",
-      "separator": "Component-separator-12",
-      "widgetContainer": "Component-widgetContainer-13",
-    }
-  }
-  currencySymbol="$"
-  hint="Ipsum"
-  label="Lorem"
-  name="price"
-  onChange={[Function]}
-  value={
-    Object {
-      "max": "30",
-      "min": "10",
-    }
-  }
-/>
+<div
+  className="Component-widgetContainer-14"
+>
+  <div
+    className="Component-inputContainer-11"
+  >
+    <WithStyles(FormControl)>
+      <WithStyles(InputLabel)
+        htmlFor="price_min"
+      >
+        Lorem
+      </WithStyles(InputLabel)>
+      <WithStyles(Input)
+        className=""
+        endAdornment={
+          <WithStyles(InputAdornment)
+            position="end"
+          >
+            $
+          </WithStyles(InputAdornment)>
+        }
+        fullWidth={true}
+        name="price_min"
+        onChange={[Function]}
+        type="number"
+        value="10"
+      />
+      <WithStyles(FormHelperText)>
+        Ipsum
+      </WithStyles(FormHelperText)>
+    </WithStyles(FormControl)>
+    <span
+      className="Component-separator-13"
+    >
+      -
+    </span>
+    <WithStyles(FormControl)>
+      <WithStyles(Input)
+        className="Component-pullDown-12"
+        endAdornment={
+          <WithStyles(InputAdornment)
+            position="end"
+          >
+            $
+          </WithStyles(InputAdornment)>
+        }
+        fullWidth={true}
+        name="price_max"
+        onChange={[Function]}
+        type="number"
+        value="30"
+      />
+    </WithStyles(FormControl)>
+  </div>
+</div>
 `;
 
 exports[`Storyshots Generics / SingleAutocompleteSelectField with custom option 1`] = `
@@ -981,245 +1333,322 @@ Array [
 `;
 
 exports[`Storyshots Generics / SingleSelectField with error hint 1`] = `
-<Component
-  choices={
-    Array [
-      Object {
-        "label": "Apparel",
-        "value": "1",
-      },
-      Object {
-        "label": "Groceries",
-        "value": "2",
-      },
-      Object {
-        "label": "Books",
-        "value": "3",
-      },
-      Object {
-        "label": "Accessories",
-        "value": "4",
-      },
-    ]
-  }
-  classes={
-    Object {
-      "formControl": "Component-formControl-18",
-    }
-  }
+<WithStyles(FormControl)
+  className="Component-formControl-19"
   error={true}
-  hint="Lorem error"
-  onChange={[Function]}
-/>
+>
+  <WithStyles(InputLabel)
+    shrink={false}
+  />
+  <WithStyles(Select)
+    fullWidth={true}
+    onChange={[Function]}
+    renderValue={[Function]}
+    value=""
+  >
+    <WithStyles(MenuItem)
+      key="1"
+      value="1"
+    >
+      Apparel
+    </WithStyles(MenuItem)>
+    <WithStyles(MenuItem)
+      key="2"
+      value="2"
+    >
+      Groceries
+    </WithStyles(MenuItem)>
+    <WithStyles(MenuItem)
+      key="3"
+      value="3"
+    >
+      Books
+    </WithStyles(MenuItem)>
+    <WithStyles(MenuItem)
+      key="4"
+      value="4"
+    >
+      Accessories
+    </WithStyles(MenuItem)>
+  </WithStyles(Select)>
+  <WithStyles(FormHelperText)>
+    Lorem error
+  </WithStyles(FormHelperText)>
+</WithStyles(FormControl)>
 `;
 
 exports[`Storyshots Generics / SingleSelectField with hint 1`] = `
-<Component
-  choices={
-    Array [
-      Object {
-        "label": "Apparel",
-        "value": "1",
-      },
-      Object {
-        "label": "Groceries",
-        "value": "2",
-      },
-      Object {
-        "label": "Books",
-        "value": "3",
-      },
-      Object {
-        "label": "Accessories",
-        "value": "4",
-      },
-    ]
-  }
-  classes={
-    Object {
-      "formControl": "Component-formControl-18",
-    }
-  }
-  hint="Lorem ipsum"
-  onChange={[Function]}
-/>
+<WithStyles(FormControl)
+  className="Component-formControl-19"
+>
+  <WithStyles(InputLabel)
+    shrink={false}
+  />
+  <WithStyles(Select)
+    fullWidth={true}
+    onChange={[Function]}
+    renderValue={[Function]}
+    value=""
+  >
+    <WithStyles(MenuItem)
+      key="1"
+      value="1"
+    >
+      Apparel
+    </WithStyles(MenuItem)>
+    <WithStyles(MenuItem)
+      key="2"
+      value="2"
+    >
+      Groceries
+    </WithStyles(MenuItem)>
+    <WithStyles(MenuItem)
+      key="3"
+      value="3"
+    >
+      Books
+    </WithStyles(MenuItem)>
+    <WithStyles(MenuItem)
+      key="4"
+      value="4"
+    >
+      Accessories
+    </WithStyles(MenuItem)>
+  </WithStyles(Select)>
+  <WithStyles(FormHelperText)>
+    Lorem ipsum
+  </WithStyles(FormHelperText)>
+</WithStyles(FormControl)>
 `;
 
 exports[`Storyshots Generics / SingleSelectField with label 1`] = `
-<Component
-  choices={
-    Array [
-      Object {
-        "label": "Apparel",
-        "value": "1",
-      },
-      Object {
-        "label": "Groceries",
-        "value": "2",
-      },
-      Object {
-        "label": "Books",
-        "value": "3",
-      },
-      Object {
-        "label": "Accessories",
-        "value": "4",
-      },
-    ]
-  }
-  classes={
-    Object {
-      "formControl": "Component-formControl-18",
-    }
-  }
-  label="Lorem ipsum"
-  onChange={[Function]}
-/>
+<WithStyles(FormControl)
+  className="Component-formControl-19"
+>
+  <WithStyles(InputLabel)
+    shrink={false}
+  >
+    Lorem ipsum
+  </WithStyles(InputLabel)>
+  <WithStyles(Select)
+    fullWidth={true}
+    onChange={[Function]}
+    renderValue={[Function]}
+    value=""
+  >
+    <WithStyles(MenuItem)
+      key="1"
+      value="1"
+    >
+      Apparel
+    </WithStyles(MenuItem)>
+    <WithStyles(MenuItem)
+      key="2"
+      value="2"
+    >
+      Groceries
+    </WithStyles(MenuItem)>
+    <WithStyles(MenuItem)
+      key="3"
+      value="3"
+    >
+      Books
+    </WithStyles(MenuItem)>
+    <WithStyles(MenuItem)
+      key="4"
+      value="4"
+    >
+      Accessories
+    </WithStyles(MenuItem)>
+  </WithStyles(Select)>
+</WithStyles(FormControl)>
 `;
 
 exports[`Storyshots Generics / SingleSelectField with label and hint 1`] = `
-<Component
-  choices={
-    Array [
-      Object {
-        "label": "Apparel",
-        "value": "1",
-      },
-      Object {
-        "label": "Groceries",
-        "value": "2",
-      },
-      Object {
-        "label": "Books",
-        "value": "3",
-      },
-      Object {
-        "label": "Accessories",
-        "value": "4",
-      },
-    ]
-  }
-  classes={
-    Object {
-      "formControl": "Component-formControl-18",
-    }
-  }
-  hint="Ipsum"
-  label="Lorem"
-  onChange={[Function]}
-/>
+<WithStyles(FormControl)
+  className="Component-formControl-19"
+>
+  <WithStyles(InputLabel)
+    shrink={false}
+  >
+    Lorem
+  </WithStyles(InputLabel)>
+  <WithStyles(Select)
+    fullWidth={true}
+    onChange={[Function]}
+    renderValue={[Function]}
+    value=""
+  >
+    <WithStyles(MenuItem)
+      key="1"
+      value="1"
+    >
+      Apparel
+    </WithStyles(MenuItem)>
+    <WithStyles(MenuItem)
+      key="2"
+      value="2"
+    >
+      Groceries
+    </WithStyles(MenuItem)>
+    <WithStyles(MenuItem)
+      key="3"
+      value="3"
+    >
+      Books
+    </WithStyles(MenuItem)>
+    <WithStyles(MenuItem)
+      key="4"
+      value="4"
+    >
+      Accessories
+    </WithStyles(MenuItem)>
+  </WithStyles(Select)>
+  <WithStyles(FormHelperText)>
+    Ipsum
+  </WithStyles(FormHelperText)>
+</WithStyles(FormControl)>
 `;
 
 exports[`Storyshots Generics / SingleSelectField with no value 1`] = `
-<Component
-  choices={
-    Array [
-      Object {
-        "label": "Apparel",
-        "value": "1",
-      },
-      Object {
-        "label": "Groceries",
-        "value": "2",
-      },
-      Object {
-        "label": "Books",
-        "value": "3",
-      },
-      Object {
-        "label": "Accessories",
-        "value": "4",
-      },
-    ]
-  }
-  classes={
-    Object {
-      "formControl": "Component-formControl-18",
-    }
-  }
-  onChange={[Function]}
-/>
+<WithStyles(FormControl)
+  className="Component-formControl-19"
+>
+  <WithStyles(InputLabel)
+    shrink={false}
+  />
+  <WithStyles(Select)
+    fullWidth={true}
+    onChange={[Function]}
+    renderValue={[Function]}
+    value=""
+  >
+    <WithStyles(MenuItem)
+      key="1"
+      value="1"
+    >
+      Apparel
+    </WithStyles(MenuItem)>
+    <WithStyles(MenuItem)
+      key="2"
+      value="2"
+    >
+      Groceries
+    </WithStyles(MenuItem)>
+    <WithStyles(MenuItem)
+      key="3"
+      value="3"
+    >
+      Books
+    </WithStyles(MenuItem)>
+    <WithStyles(MenuItem)
+      key="4"
+      value="4"
+    >
+      Accessories
+    </WithStyles(MenuItem)>
+  </WithStyles(Select)>
+</WithStyles(FormControl)>
 `;
 
 exports[`Storyshots Generics / SingleSelectField with value 1`] = `
-<Component
-  choices={
-    Array [
-      Object {
-        "label": "Apparel",
-        "value": "1",
-      },
-      Object {
-        "label": "Groceries",
-        "value": "2",
-      },
-      Object {
-        "label": "Books",
-        "value": "3",
-      },
-      Object {
-        "label": "Accessories",
-        "value": "4",
-      },
-    ]
-  }
-  classes={
-    Object {
-      "formControl": "Component-formControl-18",
-    }
-  }
-  onChange={[Function]}
-  value="1"
-/>
+<WithStyles(FormControl)
+  className="Component-formControl-19"
+>
+  <WithStyles(InputLabel)
+    shrink={true}
+  />
+  <WithStyles(Select)
+    fullWidth={true}
+    onChange={[Function]}
+    renderValue={[Function]}
+    value="1"
+  >
+    <WithStyles(MenuItem)
+      key="1"
+      value="1"
+    >
+      Apparel
+    </WithStyles(MenuItem)>
+    <WithStyles(MenuItem)
+      key="2"
+      value="2"
+    >
+      Groceries
+    </WithStyles(MenuItem)>
+    <WithStyles(MenuItem)
+      key="3"
+      value="3"
+    >
+      Books
+    </WithStyles(MenuItem)>
+    <WithStyles(MenuItem)
+      key="4"
+      value="4"
+    >
+      Accessories
+    </WithStyles(MenuItem)>
+  </WithStyles(Select)>
+</WithStyles(FormControl)>
 `;
 
 exports[`Storyshots Generics / SingleSelectField with value, label and hint 1`] = `
-<Component
-  choices={
-    Array [
-      Object {
-        "label": "Apparel",
-        "value": "1",
-      },
-      Object {
-        "label": "Groceries",
-        "value": "2",
-      },
-      Object {
-        "label": "Books",
-        "value": "3",
-      },
-      Object {
-        "label": "Accessories",
-        "value": "4",
-      },
-    ]
-  }
-  classes={
-    Object {
-      "formControl": "Component-formControl-18",
-    }
-  }
-  hint="Ipsum"
-  label="Lorem"
-  onChange={[Function]}
-  value="1"
-/>
+<WithStyles(FormControl)
+  className="Component-formControl-19"
+>
+  <WithStyles(InputLabel)
+    shrink={true}
+  >
+    Lorem
+  </WithStyles(InputLabel)>
+  <WithStyles(Select)
+    fullWidth={true}
+    onChange={[Function]}
+    renderValue={[Function]}
+    value="1"
+  >
+    <WithStyles(MenuItem)
+      key="1"
+      value="1"
+    >
+      Apparel
+    </WithStyles(MenuItem)>
+    <WithStyles(MenuItem)
+      key="2"
+      value="2"
+    >
+      Groceries
+    </WithStyles(MenuItem)>
+    <WithStyles(MenuItem)
+      key="3"
+      value="3"
+    >
+      Books
+    </WithStyles(MenuItem)>
+    <WithStyles(MenuItem)
+      key="4"
+      value="4"
+    >
+      Accessories
+    </WithStyles(MenuItem)>
+  </WithStyles(Select)>
+  <WithStyles(FormHelperText)>
+    Ipsum
+  </WithStyles(FormHelperText)>
+</WithStyles(FormControl)>
 `;
 
 exports[`Storyshots Generics / Skeleton default 1`] = `
-<Component
-  classes={
-    Object {
-      "skeleton": "Component-skeleton-19",
-    }
-  }
+<span
+  className="Component-skeleton-20"
   style={
     Object {
       "maxWidth": 300,
     }
   }
-/>
+>
+  ‌
+</span>
 `;
 
 exports[`Storyshots Generics / StatusLabel when error 1`] = `
@@ -1253,13 +1682,8 @@ Array [
 `;
 
 exports[`Storyshots Generics / TablePagination both previous and next pages are available 1`] = `
-<Table
-  classes={
-    Object {
-      "root": "MuiTable-root-20",
-    }
-  }
-  component="table"
+<table
+  className="MuiTable-root-21"
 >
   <WithStyles(Component)
     Actions={[Function]}
@@ -1270,17 +1694,12 @@ exports[`Storyshots Generics / TablePagination both previous and next pages are 
     onNextPage={[Function]}
     onPreviousPage={[Function]}
   />
-</Table>
+</table>
 `;
 
 exports[`Storyshots Generics / TablePagination next page available 1`] = `
-<Table
-  classes={
-    Object {
-      "root": "MuiTable-root-20",
-    }
-  }
-  component="table"
+<table
+  className="MuiTable-root-21"
 >
   <WithStyles(Component)
     Actions={[Function]}
@@ -1291,17 +1710,12 @@ exports[`Storyshots Generics / TablePagination next page available 1`] = `
     onNextPage={[Function]}
     onPreviousPage={[Function]}
   />
-</Table>
+</table>
 `;
 
 exports[`Storyshots Generics / TablePagination no previous / next page 1`] = `
-<Table
-  classes={
-    Object {
-      "root": "MuiTable-root-20",
-    }
-  }
-  component="table"
+<table
+  className="MuiTable-root-21"
 >
   <WithStyles(Component)
     Actions={[Function]}
@@ -1312,17 +1726,12 @@ exports[`Storyshots Generics / TablePagination no previous / next page 1`] = `
     onNextPage={[Function]}
     onPreviousPage={[Function]}
   />
-</Table>
+</table>
 `;
 
 exports[`Storyshots Generics / TablePagination previous page available 1`] = `
-<Table
-  classes={
-    Object {
-      "root": "MuiTable-root-20",
-    }
-  }
-  component="table"
+<table
+  className="MuiTable-root-21"
 >
   <WithStyles(Component)
     Actions={[Function]}
@@ -1333,7 +1742,7 @@ exports[`Storyshots Generics / TablePagination previous page available 1`] = `
     onNextPage={[Function]}
     onPreviousPage={[Function]}
   />
-</Table>
+</table>
 `;
 
 exports[`Storyshots Generics / Timeline default 1`] = `
