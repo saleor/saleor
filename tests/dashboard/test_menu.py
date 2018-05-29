@@ -1,10 +1,10 @@
 import json
 
 import pytest
-
 from django.urls import reverse
-from saleor.account.models import User
+
 from saleor.dashboard.menu.forms import AssignMenuForm
+from saleor.dashboard.menu.utils import update_menu_item_linked_object
 from saleor.menu.models import Menu, MenuItem
 
 from ..utils import get_redirect_location
@@ -304,3 +304,14 @@ def test_view_ajax_menu_links(
 
     assert response.status_code == 200
     assert resp_decoded == {'results': groups}
+
+
+def test_update_menu_item_linked_object(menu, default_category, page):
+    menu_item = menu.items.create(category=default_category)
+
+    update_menu_item_linked_object(menu_item, page)
+
+    assert menu_item.linked_object == page
+    assert menu_item.get_url() == page.get_absolute_url()
+    assert not menu_item.category
+    assert not menu_item.collection

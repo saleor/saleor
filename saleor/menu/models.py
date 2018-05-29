@@ -66,12 +66,12 @@ class MenuItem(MPTTModel, SortableModel):
             prefix = pgettext_lazy('Link object type description', 'URL: ')
             return prefix + self.url
 
-        if isinstance(linked_object, Collection):
-            prefix = pgettext_lazy(
-                'Link object type description', 'Collection: ')
-        elif isinstance(linked_object, Category):
+        if isinstance(linked_object, Category):
             prefix = pgettext_lazy(
                 'Link object type description', 'Category: ')
+        elif isinstance(linked_object, Collection):
+            prefix = pgettext_lazy(
+                'Link object type description', 'Collection: ')
         else:
             prefix = pgettext_lazy(
                 'Link object type description', 'Page: ')
