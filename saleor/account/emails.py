@@ -18,3 +18,19 @@ def send_password_reset_email(context, recipient):
         from_email=settings.DEFAULT_FROM_EMAIL,
         recipient_list=[recipient],
         context=context)
+
+
+@shared_task
+def send_account_delete_confirmation_email(context=None, recipient=None):
+    # TODO - FIXME
+    # reset_url = build_absolute_uri(
+    #     reverse(
+    #         'account:account-delete-confirm',
+    #         kwargs={'token': context['token']}))
+    # context['delete_url'] = reset_url
+    # send_templated_mail(
+    #     template_name='account/password_reset',
+    #     from_email=settings.DEFAULT_FROM_EMAIL,
+    #     recipient_list=[recipient],
+    #     context=context)
+    pass

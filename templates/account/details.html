@@ -42,6 +42,11 @@
             <h3>{% trans "Addresses book" context "User profile tab" %}</h3>
           </a>
         </li>
+        <li class="nav-item">
+          <a class="nav-link" data-toggle="tab" href="#settings" role="tab">
+            <h3>{% trans "Settings" context "User profile tab" %}</h3>
+          </a>
+        </li>
       </ul>
     </div>
     <div class="tab-content col-lg-10 m-auto">
@@ -144,6 +149,19 @@
               {% trans "You will see new addresses here after first successful checkout." context "No addresses text" %}
             </h3>
           {% endif %}
+        </div>
+      </div>
+      <div class="tab-pane fade" id="settings" role="tabpanel">
+        <div class="card-deck-wrapper ">
+          <div class="row card-deck">
+            <div class="address-delete none">
+              <form method="post" novalidate action="{% url 'account:account-delete' token=user.token %}">
+                {% csrf_token %}
+                <button type="submit" class="btn danger narrow float-right">
+                  {% trans "Remove Account" context "Remove account form action" %}
+                </button>
+              </form>
+            </div>
         </div>
       </div>
     </div>
