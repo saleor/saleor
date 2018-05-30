@@ -1273,3 +1273,8 @@ def test_staff_group_member_can_edit_menu_items(
     assert response.status_code == 200
     response = staff_client.get(menu_item_delete_url)
     assert response.status_code == 200
+
+
+def test_staff_group_member_can_remove_user(
+        staff_client, staff_user, staff_group, permission_edit_user):
+    pass
