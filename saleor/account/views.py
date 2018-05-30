@@ -129,8 +129,8 @@ def address_delete(request, pk):
 
 @login_required
 @require_POST
-def account_delete(request, token):
-    user = get_object_or_404(User, token=token)
+def account_delete(request, pk):
+    user = get_object_or_404(User, pk=pk)
     if request.user.token != user.token:
         raise Http404('No such page!')
 

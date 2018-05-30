@@ -152,19 +152,22 @@
         </div>
       </div>
       <div class="tab-pane fade" id="settings" role="tabpanel">
-        <div class="card-deck-wrapper ">
-          <div class="row card-deck">
-            <div class="address-delete none">
-              <form method="post" novalidate action="{% url 'account:account-delete' token=user.token %}">
-                {% csrf_token %}
-                <button type="submit" class="btn danger narrow float-right">
-                  {% trans "Remove Account" context "Remove account form action" %}
-                </button>
-              </form>
-            </div>
+        <div class="row ">
+          <div class="d-block mx-auto text-center">
+            <form action="" method="post">
+              {% csrf_token %}
+              <p>
+                {% blocktrans context "Message above 'delete account' button"%}
+                  If you'd like to remove your account, please click on the button below and a confirmation email will be sent to you.
+                {% endblocktrans %}
+              </p>
+              <button type="submit" class="btn danger narrow text-center">
+                {% trans "Remove Account" context "Remove account form action" %}
+              </button>
+            </form>
+          </div>
         </div>
       </div>
-    </div>
   </div>
 {% endblock content %}
 
