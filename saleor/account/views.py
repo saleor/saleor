@@ -131,7 +131,7 @@ def address_delete(request, pk):
 @require_POST
 def account_delete(request, pk):
     user = get_object_or_404(User, pk=pk)
-    if request.user.token != user.token:
+    if request.user.pk != user.pk:
         raise Http404('No such page!')
 
     send_account_delete_confirmation_email.delay()

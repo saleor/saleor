@@ -80,10 +80,6 @@ class UserManager(BaseUserManager):
         # Google OAuth2 backend send unnecessary username field
         extra_fields.pop('username', None)
 
-        token = str(uuid.uuid4())
-        while User.objects.filter(token=token).exists():
-            token = str(uuid.uuid4())
-        extra_fields['token'] = token
         user = self.model(
             email=email, is_active=is_active, is_staff=is_staff,
             **extra_fields)
