@@ -5210,6 +5210,7 @@ exports[`Storyshots Products / ProductVariants when product has variants 1`] = `
     Array [
       Object {
         "id": "UHJvZHVjdFZhcmlhbnQ6Nw==",
+        "margin": 20,
         "name": "XXL",
         "priceOverride": null,
         "sku": "2-1337",
@@ -5217,6 +5218,7 @@ exports[`Storyshots Products / ProductVariants when product has variants 1`] = `
       },
       Object {
         "id": "UHJvZHVjdFZhcmlhbnQ6OA==",
+        "margin": 20,
         "name": "XL",
         "priceOverride": null,
         "sku": "2-1338",
@@ -5224,6 +5226,7 @@ exports[`Storyshots Products / ProductVariants when product has variants 1`] = `
       },
       Object {
         "id": "UHJvZHVjdFZhcmlhbnQ6OQ==",
+        "margin": 20,
         "name": "L",
         "priceOverride": null,
         "sku": "2-1339",
@@ -5231,6 +5234,7 @@ exports[`Storyshots Products / ProductVariants when product has variants 1`] = `
       },
       Object {
         "id": "UHJvZHVjdFZhcmlhbnQ6MTA=",
+        "margin": 20,
         "name": "M",
         "priceOverride": null,
         "sku": "2-1340",
@@ -5238,6 +5242,7 @@ exports[`Storyshots Products / ProductVariants when product has variants 1`] = `
       },
       Object {
         "id": "UHJvZHVjdFZhcmlhbnQ6MTE=",
+        "margin": 20,
         "name": "S",
         "priceOverride": null,
         "sku": "2-1341",
@@ -5245,6 +5250,7 @@ exports[`Storyshots Products / ProductVariants when product has variants 1`] = `
       },
       Object {
         "id": "UHJvZHVjdFZhcmlhbnQ6MTI=",
+        "margin": 20,
         "name": "XS",
         "priceOverride": null,
         "sku": "2-1342",
@@ -5272,6 +5278,7 @@ exports[`Storyshots Products / ProductVariants with clickable rows 1`] = `
     Array [
       Object {
         "id": "UHJvZHVjdFZhcmlhbnQ6Nw==",
+        "margin": 20,
         "name": "XXL",
         "priceOverride": null,
         "sku": "2-1337",
@@ -5279,6 +5286,7 @@ exports[`Storyshots Products / ProductVariants with clickable rows 1`] = `
       },
       Object {
         "id": "UHJvZHVjdFZhcmlhbnQ6OA==",
+        "margin": 20,
         "name": "XL",
         "priceOverride": null,
         "sku": "2-1338",
@@ -5286,6 +5294,7 @@ exports[`Storyshots Products / ProductVariants with clickable rows 1`] = `
       },
       Object {
         "id": "UHJvZHVjdFZhcmlhbnQ6OQ==",
+        "margin": 20,
         "name": "L",
         "priceOverride": null,
         "sku": "2-1339",
@@ -5293,6 +5302,7 @@ exports[`Storyshots Products / ProductVariants with clickable rows 1`] = `
       },
       Object {
         "id": "UHJvZHVjdFZhcmlhbnQ6MTA=",
+        "margin": 20,
         "name": "M",
         "priceOverride": null,
         "sku": "2-1340",
@@ -5300,6 +5310,7 @@ exports[`Storyshots Products / ProductVariants with clickable rows 1`] = `
       },
       Object {
         "id": "UHJvZHVjdFZhcmlhbnQ6MTE=",
+        "margin": 20,
         "name": "S",
         "priceOverride": null,
         "sku": "2-1341",
@@ -5307,6 +5318,7 @@ exports[`Storyshots Products / ProductVariants with clickable rows 1`] = `
       },
       Object {
         "id": "UHJvZHVjdFZhcmlhbnQ6MTI=",
+        "margin": 20,
         "name": "XS",
         "priceOverride": null,
         "sku": "2-1342",
@@ -6622,6 +6634,7 @@ Soon name recently ground green. There owner sport box them red information.",
           Object {
             "node": Object {
               "id": "UHJvZHVjdFZhcmlhbnQ6Nw==",
+              "margin": 20,
               "name": "XXL",
               "priceOverride": null,
               "sku": "2-1337",
@@ -6631,6 +6644,7 @@ Soon name recently ground green. There owner sport box them red information.",
           Object {
             "node": Object {
               "id": "UHJvZHVjdFZhcmlhbnQ6OA==",
+              "margin": 20,
               "name": "XL",
               "priceOverride": null,
               "sku": "2-1338",
@@ -6640,6 +6654,7 @@ Soon name recently ground green. There owner sport box them red information.",
           Object {
             "node": Object {
               "id": "UHJvZHVjdFZhcmlhbnQ6OQ==",
+              "margin": 20,
               "name": "L",
               "priceOverride": null,
               "sku": "2-1339",
@@ -6649,6 +6664,7 @@ Soon name recently ground green. There owner sport box them red information.",
           Object {
             "node": Object {
               "id": "UHJvZHVjdFZhcmlhbnQ6MTA=",
+              "margin": 20,
               "name": "M",
               "priceOverride": null,
               "sku": "2-1340",
@@ -6658,6 +6674,7 @@ Soon name recently ground green. There owner sport box them red information.",
           Object {
             "node": Object {
               "id": "UHJvZHVjdFZhcmlhbnQ6MTE=",
+              "margin": 20,
               "name": "S",
               "priceOverride": null,
               "sku": "2-1341",
@@ -6667,6 +6684,7 @@ Soon name recently ground green. There owner sport box them red information.",
           Object {
             "node": Object {
               "id": "UHJvZHVjdFZhcmlhbnQ6MTI=",
+              "margin": 20,
               "name": "XS",
               "priceOverride": null,
               "sku": "2-1342",
