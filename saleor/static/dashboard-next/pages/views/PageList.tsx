@@ -13,7 +13,6 @@ import ErrorMessageCard from "../../components/ErrorMessageCard";
 import Navigator from "../../components/Navigator";
 import PageHeader from "../../components/PageHeader";
 import i18n from "../../i18n";
-import PageFilters from "../components/PageFilters";
 import PageListComponent from "../components/PageList";
 import PageListPage from "../components/PageListPage/PageListPage";
 import { pageAddUrl, pageEditUrl, pageStorefrontUrl } from "../index";
