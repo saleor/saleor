@@ -1,4 +1,5 @@
 from django.urls import reverse
+
 from saleor.account.models import CustomerNote, User
 from saleor.dashboard.customer.forms import (
     CustomerDeleteForm, CustomerNoteForm)
@@ -36,7 +37,7 @@ def test_view_delete_customer(admin_client, admin_user, customer_user):
     response = admin_client.post(url, data={'csrf': 'exampledata'})
     assert not User.objects.filter(pk=customer_user.pk).exists()
     assert response.status_code == 302
-    
+
 
 def test_form_delete_customer(
         staff_user, customer_user, admin_user, permission_edit_staff,
