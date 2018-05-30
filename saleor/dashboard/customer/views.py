@@ -13,7 +13,7 @@ from ...core.utils import get_paginator_items
 from ..emails import send_set_password_email
 from ..views import staff_member_required
 from .filters import UserFilter
-from .forms import CustomerForm, CustomerNoteForm
+from .forms import CustomerForm, CustomerNoteForm, CustomerDeleteForm
 
 
 @staff_member_required
@@ -117,3 +117,26 @@ def customer_add_note(request, customer_pk):
     ctx.update(csrf(request))
     template = 'dashboard/customer/modal/add_note.html'
     return TemplateResponse(request, template, ctx, status=status)
+
+
+@staff_member_required
+@permission_required('account.edit_user')
+def customer_delete(request, pk):
+    customer = get_object_or_404(User, pk=pk)
+    form = CustomerDeleteForm(
+        request.POST or None, instance=customer, user=request.user)
+    status = 200
+    if request.method == 'POST' and form.is_valid():
+        customer.delete()
+        msg = pgettext_lazy(
+            'Dashboard message',
+            '%(customer_name)s successfully removed') % {
+                'customer_name': customer}
+        messages.success(request, msg)
+        return redirect('dashboard:customers')
+    elif request.method == 'POST' and not form.is_valid():
+        status = 400
+    ctx = {'customer': customer, 'form': form}
+    return TemplateResponse(
+        request, 'dashboard/customer/modal/confirm_delete.html', ctx,
+        status=status)
