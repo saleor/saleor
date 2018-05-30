@@ -13,7 +13,7 @@ from ...core.utils import get_paginator_items
 from ..emails import send_set_password_email
 from ..views import staff_member_required
 from .filters import UserFilter
-from .forms import CustomerForm, CustomerNoteForm, CustomerDeleteForm
+from .forms import CustomerDeleteForm, CustomerForm, CustomerNoteForm
 
 
 @staff_member_required
