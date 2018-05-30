@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: master\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2018-05-22 04:26-0500\n"
+"POT-Creation-Date: 2018-05-30 07:13-0500\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,22 +18,22 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: saleor/account/forms.py:60
+#: saleor/account/forms.py:58
 msgctxt "Form field"
 msgid "Email"
 msgstr ""
 
-#: saleor/account/forms.py:77
+#: saleor/account/forms.py:75
 msgctxt "Registration error"
 msgid "This email has already been registered."
 msgstr ""
 
-#: saleor/account/forms.py:84
+#: saleor/account/forms.py:82
 msgctxt "Email"
 msgid "Email"
 msgstr ""
 
-#: saleor/account/forms.py:86
+#: saleor/account/forms.py:84
 msgctxt "Password"
 msgid "Password"
 msgstr ""
@@ -193,37 +193,37 @@ msgctxt "Address form"
 msgid "This value is invalid for selected country"
 msgstr ""
 
-#: saleor/account/models.py:114
+#: saleor/account/models.py:115
 msgctxt "Permission description"
 msgid "Can view users"
 msgstr ""
 
-#: saleor/account/models.py:116
+#: saleor/account/models.py:117
 msgctxt "Permission description"
 msgid "Can edit users"
 msgstr ""
 
-#: saleor/account/models.py:118
+#: saleor/account/models.py:119
 msgctxt "Permission description"
 msgid "Can view groups"
 msgstr ""
 
-#: saleor/account/models.py:120
+#: saleor/account/models.py:121
 msgctxt "Permission description"
 msgid "Can edit groups"
 msgstr ""
 
-#: saleor/account/models.py:122
+#: saleor/account/models.py:123
 msgctxt "Permission description"
 msgid "Can view staff"
 msgstr ""
 
-#: saleor/account/models.py:124
+#: saleor/account/models.py:125
 msgctxt "Permission description"
 msgid "Can edit staff"
 msgstr ""
 
-#: saleor/account/models.py:126
+#: saleor/account/models.py:127
 msgctxt "Permission description"
 msgid "Can impersonate users"
 msgstr ""
@@ -269,37 +269,37 @@ msgctxt "Storefront message"
 msgid "Address successfully removed"
 msgstr ""
 
-#: saleor/cart/__init__.py:16
-msgctxt "cart status"
-msgid "Open - currently active"
+#: saleor/checkout/__init__.py:15
+msgctxt "Type of address used to fulfill order"
+msgid "Billing"
 msgstr ""
 
-#: saleor/cart/__init__.py:18
-msgctxt "cart status"
-msgid "Canceled - canceled by user"
+#: saleor/checkout/__init__.py:19
+msgctxt "Type of address used to fulfill order"
+msgid "Shipping"
 msgstr ""
 
-#: saleor/cart/forms.py:30
+#: saleor/checkout/forms.py:39
 msgctxt "Add to cart form field label"
 msgid "Quantity"
 msgstr ""
 
-#: saleor/cart/forms.py:34
+#: saleor/checkout/forms.py:43
 msgctxt "Add to cart form error"
 msgid "Sorry. This product is currently not available."
 msgstr ""
 
-#: saleor/cart/forms.py:37
+#: saleor/checkout/forms.py:46
 msgctxt "Add to cart form error"
 msgid "Sorry. This product is currently out of stock."
 msgstr ""
 
-#: saleor/cart/forms.py:40
+#: saleor/checkout/forms.py:49
 msgctxt "Add to cart form error"
 msgid "Oops. We could not find that product."
 msgstr ""
 
-#: saleor/cart/forms.py:43
+#: saleor/checkout/forms.py:52
 #, python-format
 msgctxt "Add to cart form error"
 msgid "Only %d remaining in stock."
@@ -307,87 +307,102 @@ msgid_plural "Only %d remaining in stock."
 msgstr[0] ""
 msgstr[1] ""
 
-#: saleor/cart/forms.py:154
+#: saleor/checkout/forms.py:165
 msgctxt "Country form field label"
 msgid "Country"
 msgstr ""
 
-#: saleor/cart/utils.py:92
+#: saleor/checkout/forms.py:183 saleor/checkout/forms.py:195
+msgctxt "Address form field label"
+msgid "Email"
+msgstr ""
+
+#: saleor/checkout/forms.py:208
+msgctxt "Shipping addresses form choice"
+msgid "Enter a new address"
+msgstr ""
+
+#: saleor/checkout/forms.py:211
+msgctxt "Shipping addresses form field label"
+msgid "Address"
+msgstr ""
+
+#: saleor/checkout/forms.py:228
+msgctxt "Billing addresses form choice"
+msgid "Enter a new address"
+msgstr ""
+
+#: saleor/checkout/forms.py:230
+msgctxt "Billing addresses form choice"
+msgid "Same as shipping"
+msgstr ""
+
+#: saleor/checkout/forms.py:233
+msgctxt "Billing addresses form field label"
+msgid "Address"
+msgstr ""
+
+#: saleor/checkout/forms.py:266
+msgctxt "Shipping method form field label"
+msgid "Shipping method"
+msgstr ""
+
+#: saleor/checkout/forms.py:307
+msgctxt "Voucher form error"
+msgid "Discount code incorrect or expired"
+msgstr ""
+
+#: saleor/checkout/forms.py:318
+msgctxt "Checkout discount form label for voucher field"
+msgid "Gift card or discount code"
+msgstr ""
+
+#: saleor/checkout/utils.py:105
 msgctxt "Cart warning message"
 msgid ""
 "Sorry. We don't have that many items in stock. Quantity was set to maximum "
 "available for now."
 msgstr ""
 
-#: saleor/checkout/forms.py:24
-msgctxt "Shipping addresses form choice"
-msgid "Enter a new address"
-msgstr ""
-
-#: saleor/checkout/forms.py:27
-msgctxt "Shipping addresses form field label"
-msgid "Address"
-msgstr ""
-
-#: saleor/checkout/forms.py:46
-msgctxt "Billing addresses form choice"
-msgid "Enter a new address"
-msgstr ""
-
-#: saleor/checkout/forms.py:48
-msgctxt "Billing addresses form choice"
-msgid "Same as shipping"
-msgstr ""
-
-#: saleor/checkout/forms.py:97
-msgctxt "Shipping method form field label"
-msgid "Shipping method"
-msgstr ""
-
-#: saleor/checkout/forms.py:121
-msgctxt "Shipping form field label"
-msgid "Email"
-msgstr ""
-
-#: saleor/checkout/forms.py:130
-msgctxt "Billing form field label"
-msgid "Email"
-msgstr ""
-
-#: saleor/checkout/utils.py:22
+#: saleor/checkout/utils.py:622
 msgctxt "Voucher not applicable"
 msgid "Your order does not require shipping."
 msgstr ""
 
-#: saleor/checkout/utils.py:28
+#: saleor/checkout/utils.py:628
 msgctxt "Voucher not applicable"
 msgid "Please select a shipping method first."
 msgstr ""
 
-#: saleor/checkout/utils.py:35
+#: saleor/checkout/utils.py:635
 #, python-format
 msgctxt "Voucher not applicable"
 msgid "This offer is only valid in %(country)s."
 msgstr ""
 
-#: saleor/checkout/utils.py:55
+#: saleor/checkout/utils.py:655
 msgctxt "Voucher not applicable"
 msgid "This offer is only valid for selected items."
 msgstr ""
 
-#: saleor/checkout/views/discount.py:63
+#: saleor/checkout/utils.py:748
+msgctxt "Voucher not applicable"
+msgid "Voucher expired in meantime. Order placement aborted."
+msgstr ""
+
+#: saleor/checkout/views/discount.py:62
 msgctxt "Checkout warning"
 msgid "This voucher has expired. Please review your checkout."
 msgstr ""
 
-#: saleor/checkout/views/summary.py:28
-msgctxt "Order status history entry"
-msgid "Order was placed"
-msgstr ""
-
-#: saleor/checkout/views/summary.py:44
+#: saleor/checkout/views/summary.py:32
 msgctxt "Checkout warning"
 msgid "Please review your checkout."
+msgstr ""
+
+#: saleor/checkout/views/summary.py:38
+msgctxt "Order status history entry"
+msgid "Order was placed"
 msgstr ""
 
 #: saleor/core/filters.py:27
@@ -568,16 +583,6 @@ msgctxt "Voucher application"
 msgid "Apply to all matching products"
 msgstr ""
 
-#: saleor/discount/forms.py:15
-msgctxt "Voucher form error"
-msgid "Discount code incorrect or expired"
-msgstr ""
-
-#: saleor/discount/forms.py:26
-msgctxt "Checkout discount form label for voucher field"
-msgid "Gift card or discount code"
-msgstr ""
-
 #: saleor/discount/models.py:68
 msgctxt "Permission description"
 msgid "Can view vouchers"
@@ -660,12 +665,12 @@ msgstr ""
 
 #: saleor/menu/models.py:71
 msgctxt "Link object type description"
-msgid "Collection: "
+msgid "Category: "
 msgstr ""
 
 #: saleor/menu/models.py:74
 msgctxt "Link object type description"
-msgid "Category: "
+msgid "Collection: "
 msgstr ""
 
 #: saleor/menu/models.py:77
@@ -1028,7 +1033,7 @@ msgid "New address"
 msgstr ""
 
 #: templates/account/address_edit.html:16 templates/account/details.html:16
-#: templates/account/password_change.html:7 templates/cart/index.html:11
+#: templates/account/password_change.html:7 templates/checkout/index.html:11
 #: templates/order/details.html:18 templates/order/payment.html:18
 #: templates/order/payment/details.html:12 templates/page/details.html:27
 #: templates/product/details.html:44
@@ -1381,70 +1386,10 @@ msgctxt "Main navigation item"
 msgid "Style guide"
 msgstr ""
 
-#: templates/cart/_subtotal_table.html:8 templates/cart_dropdown.html:39
+#: templates/cart_dropdown.html:39 templates/checkout/_subtotal_table.html:8
 #: templates/dashboard/order/detail.html:345
 msgctxt "Order subtotal"
 msgid "Subtotal"
-msgstr ""
-
-#: templates/cart/_subtotal_table.html:31
-msgctxt "Cart shipping cost form"
-msgid "Shipping cost for:"
-msgstr ""
-
-#: templates/cart/_subtotal_table.html:55
-msgctxt "Order subtotal"
-msgid "Total"
-msgstr ""
-
-#: templates/cart/_subtotal_table.html:56
-msgctxt "Cart summary text"
-msgid "Shipment and taxes calculated at checkout"
-msgstr ""
-
-#: templates/cart/index.html:7
-msgctxt "Cart page title"
-msgid "Your cart"
-msgstr ""
-
-#: templates/cart/index.html:12
-msgctxt "Cart breadcrumb"
-msgid "Cart"
-msgstr ""
-
-#: templates/cart/index.html:22
-msgctxt "Cart message"
-msgid "Product has been removed from cart"
-msgstr ""
-
-#: templates/cart/index.html:30
-msgctxt "Cart table header"
-msgid "Product"
-msgstr ""
-
-#: templates/cart/index.html:33
-msgctxt "Cart table header"
-msgid "Quantity"
-msgstr ""
-
-#: templates/cart/index.html:36
-msgctxt "Cart table header"
-msgid "Price"
-msgstr ""
-
-#: templates/cart/index.html:81
-msgctxt "Cart primary action"
-msgid "Checkout"
-msgstr ""
-
-#: templates/cart/index.html:88 templates/cart_dropdown.html:62
-msgctxt "Empty cart message"
-msgid "There are no products in your shopping cart."
-msgstr ""
-
-#: templates/cart/index.html:89 templates/cart_dropdown.html:67
-msgctxt "Empty cart link"
-msgid "Check out our sales"
 msgstr ""
 
 #: templates/cart_dropdown.html:40
@@ -1462,9 +1407,34 @@ msgctxt "Cart dropdown primary action"
 msgid "Checkout"
 msgstr ""
 
+#: templates/cart_dropdown.html:62 templates/checkout/index.html:88
+msgctxt "Empty cart message"
+msgid "There are no products in your shopping cart."
+msgstr ""
+
+#: templates/cart_dropdown.html:67 templates/checkout/index.html:89
+msgctxt "Empty cart link"
+msgid "Check out our sales"
+msgstr ""
+
 #: templates/category/index.html:7
 msgctxt "Category breadcrumbs home"
 msgid "Home"
+msgstr ""
+
+#: templates/checkout/_subtotal_table.html:31
+msgctxt "Cart shipping cost form"
+msgid "Shipping cost for:"
+msgstr ""
+
+#: templates/checkout/_subtotal_table.html:55
+msgctxt "Order subtotal"
+msgid "Total"
+msgstr ""
+
+#: templates/checkout/_subtotal_table.html:56
+msgctxt "Cart summary text"
+msgid "Shipment and taxes calculated at checkout"
 msgstr ""
 
 #: templates/checkout/details.html:7
@@ -1497,24 +1467,59 @@ msgctxt "Order review section"
 msgid "Shipment"
 msgstr ""
 
-#: templates/checkout/details.html:78
+#: templates/checkout/details.html:77
 msgctxt "Order review section title"
 msgid "Taxes (included)"
 msgstr ""
 
-#: templates/checkout/details.html:80
+#: templates/checkout/details.html:79
 msgctxt "Order review section title"
 msgid "Taxes"
 msgstr ""
 
-#: templates/checkout/details.html:90
+#: templates/checkout/details.html:89
 msgctxt "Order review section title"
 msgid "Promo code"
 msgstr ""
 
-#: templates/checkout/details.html:96
+#: templates/checkout/details.html:95
 msgctxt "Order review section title"
 msgid "Total"
+msgstr ""
+
+#: templates/checkout/index.html:7
+msgctxt "Cart page title"
+msgid "Your cart"
+msgstr ""
+
+#: templates/checkout/index.html:12
+msgctxt "Cart breadcrumb"
+msgid "Cart"
+msgstr ""
+
+#: templates/checkout/index.html:22
+msgctxt "Cart message"
+msgid "Product has been removed from cart"
+msgstr ""
+
+#: templates/checkout/index.html:30
+msgctxt "Cart table header"
+msgid "Product"
+msgstr ""
+
+#: templates/checkout/index.html:33
+msgctxt "Cart table header"
+msgid "Quantity"
+msgstr ""
+
+#: templates/checkout/index.html:36
+msgctxt "Cart table header"
+msgid "Price"
+msgstr ""
+
+#: templates/checkout/index.html:81
+msgctxt "Cart primary action"
+msgid "Checkout"
 msgstr ""
 
 #: templates/checkout/login.html:6
