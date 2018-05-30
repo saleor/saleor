@@ -42,20 +42,17 @@ const decorate = withStyles(theme => ({
     paddingRight: theme.spacing.unit * 3,
     width: theme.spacing.unit * 5
   },
-  cardActions: {
-    direction: "rtl" as "rtl"
-  },
   root: {
     marginTop: theme.spacing.unit * 2,
     [theme.breakpoints.down("sm")]: {
       marginTop: theme.spacing.unit
     }
   },
-  textRight: {
-    textAlign: "right" as "right"
-  },
   statusBar: {
     paddingTop: 0
+  },
+  textRight: {
+    textAlign: "right" as "right"
   }
 }));
 const OrderFulfillment = decorate<OrderFulfillmentProps>(
@@ -124,7 +121,7 @@ const OrderFulfillment = decorate<OrderFulfillmentProps>(
         </TableBody>
       </Table>
       {status !== "cancelled" && (
-        <CardActions className={classes.cardActions}>
+        <CardActions>
           <Button disabled={!onTrackingCodeAdd} onClick={onTrackingCodeAdd}>
             {trackingCode
               ? i18n.t("Add tracking number")

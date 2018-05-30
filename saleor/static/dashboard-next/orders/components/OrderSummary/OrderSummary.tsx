@@ -51,9 +51,6 @@ const decorate = withStyles(theme => ({
     width: "100%",
     backgroundColor: theme.palette.grey[200]
   },
-  cardActions: {
-    direction: "rtl" as "rtl"
-  },
   statusBar: {
     paddingTop: 0
   }
@@ -142,10 +139,10 @@ const OrderSummary = decorate<OrderSummaryProps>(
             canRelease ||
             canCancel ||
             isDraft) && (
-            <CardActions className={classes.cardActions}>
+            <CardActions>
               {isDraft ? (
                 <Button disabled={!onCreate} onClick={onCreate}>
-                  {i18n.t("Create order")}
+                  {i18n.t("Finalize")}
                 </Button>
               ) : (
                 <>
