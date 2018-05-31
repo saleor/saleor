@@ -60,7 +60,7 @@ def customer_create(request):
     if form.is_valid():
         form.save()
         msg = pgettext_lazy(
-            'Dashboard message', 'Added customer %s' % customer)
+            'Dashboard message', 'Added customer %s') % customer
         send_set_password_email(customer)
         messages.success(request, msg)
         return redirect('dashboard:customer-details', pk=customer.pk)
@@ -76,7 +76,7 @@ def customer_edit(request, pk=None):
     if form.is_valid():
         form.save()
         msg = pgettext_lazy(
-            'Dashboard message', 'Updated customer %s' % customer)
+            'Dashboard message', 'Updated customer %s') % customer
         messages.success(request, msg)
         return redirect('dashboard:customer-details', pk=customer.pk)
     ctx = {'form': form, 'customer': customer}
