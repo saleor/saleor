@@ -1,11 +1,7 @@
-<mj-section css-class="no-display">
-  <mj-column>
-    <mj-text>
-      {% load price from taxed_prices %}
-      {% load voucher %}
-    </mj-text>
-  </mj-column>
-</mj-section>
+<mj-raw>
+  {% load price from taxed_prices %}
+  {% load voucher %}
+</mj-raw>
 <mj-section>
   <mj-column>
     <mj-table>
