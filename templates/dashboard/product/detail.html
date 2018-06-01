@@ -231,6 +231,39 @@
                 </table>
               </div>
             </div>
+      {% if no_variants %}
+          <div class="card">
+            <div class="data-table-header">
+              <div class="data-table-title">
+                <h5>
+                  {% trans "Inventory" context "Product inventory card header" %}
+                </h5>
+              </div>
+            </div>
+            <div class="data-table-container">
+              <table class="data-table bordered highlight">
+                <tbody>
+                  <tr>
+                    <td>
+                      {% trans "Number in stock" context "Dashboard product details view" %}
+                    </td>
+                    <td class="right-align">
+                      {{ only_variant.quantity }}
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>
+                      {% trans "Allocated" context "Dashboard product details view" %}
+                    </td>
+                    <td class="right-align">
+                      {{ only_variant.quantity_allocated }}
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+	{% endif %}
           </div>
         </div>
     </div>
