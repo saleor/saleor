@@ -19,12 +19,15 @@ class SiteForm(forms.ModelForm):
 class SiteSettingsForm(forms.ModelForm):
     class Meta:
         model = SiteSettings
-        fields = ['header_text', 'description']
+        fields = ['header_text', 'description', 'handle_stock_by_default']
         labels = {
             'header_text': pgettext_lazy(
                 'Header text', 'Header text'),
             'description': pgettext_lazy(
-                'Description', 'Description')}
+                'Description', 'Description'),
+            'handle_stock_by_default': pgettext_lazy(
+                'Manage the stock by default settings toggle label',
+                'Manage the stock by default')}
 
 
 class AuthorizationKeyForm(forms.ModelForm):

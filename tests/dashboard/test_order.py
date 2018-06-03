@@ -5,7 +5,6 @@ from django.conf import settings
 from django.urls import reverse
 from payments import PaymentStatus
 from prices import Money
-
 from tests.utils import get_form_errors, get_redirect_location
 
 from saleor.checkout import AddressType
@@ -379,12 +378,16 @@ def test_view_release_order_invalid_payment_input_status(
 
 
 @pytest.mark.integration
-def test_view_cancel_order_line(admin_client, draft_order):
+@pytest.mark.parametrize('handle_stock', (True, False))
+def test_view_cancel_order_line(admin_client, draft_order, handle_stock):
     lines_before = draft_order.lines.all()
     lines_before_count = lines_before.count()
     line = lines_before.first()
     line_quantity = line.quantity
     quantity_allocated_before = line.variant.quantity_allocated
+
+    line.variant.handle_stock = handle_stock
+    line.variant.save()
 
     url = reverse(
         'dashboard:orderline-cancel', kwargs={
@@ -400,10 +403,16 @@ def test_view_cancel_order_line(admin_client, draft_order):
     # check ordered item removal
     lines_after = Order.objects.get().lines.all()
     assert lines_before_count - 1 == lines_after.count()
+
     # check stock deallocation
     line.variant.refresh_from_db()
-    assert line.variant.quantity_allocated == (
-        quantity_allocated_before - line_quantity)
+
+    if handle_stock:
+        assert line.variant.quantity_allocated == (
+            quantity_allocated_before - line_quantity)
+    else:
+        assert line.variant.quantity_allocated == quantity_allocated_before
+
     url = reverse(
         'dashboard:orderline-cancel', kwargs={
             'order_pk': draft_order.pk,
@@ -416,10 +425,15 @@ def test_view_cancel_order_line(admin_client, draft_order):
 
 
 @pytest.mark.integration
-def test_view_change_order_line_quantity(admin_client, draft_order):
+@pytest.mark.parametrize('handle_stock', (True, False))
+def test_view_change_order_line_quantity(
+        admin_client, draft_order, handle_stock):
     lines_before_quantity_change = draft_order.lines.all()
     lines_before_quantity_change_count = lines_before_quantity_change.count()
     line = lines_before_quantity_change.first()
+
+    line.variant.handle_stock = handle_stock
+    line.variant.save()
 
     url = reverse(
         'dashboard:orderline-change-quantity',
@@ -437,8 +451,14 @@ def test_view_change_order_line_quantity(admin_client, draft_order):
     lines_after = Order.objects.get().lines.all()
     # order should have the same lines
     assert lines_before_quantity_change_count == lines_after.count()
-    # stock allocation should be 2 now
-    assert line.variant.quantity_allocated == 2
+    line.variant.refresh_from_db()
+
+    if handle_stock:
+        # stock allocation should be 2 now
+        assert line.variant.quantity_allocated == 2
+    else:
+        assert line.variant.quantity_allocated == 3
+
     line.refresh_from_db()
     # source line quantity should be decreased to 2
     assert line.quantity == 2

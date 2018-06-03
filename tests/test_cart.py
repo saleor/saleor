@@ -375,8 +375,12 @@ def test_form_when_variant_does_not_exist():
     assert not form.is_valid()
 
 
-def test_add_to_cart_form_when_insufficient_stock(product):
+@pytest.mark.parametrize('handle_stock', (True, False))
+def test_add_to_cart_form_when_insufficient_stock(product, handle_stock):
     variant = product.variants.first()
+    variant.handle_stock = handle_stock
+    variant.save()
+
     cart_lines = []
     cart = Mock(
         add=lambda variant, quantity: cart_lines.append(variant),
@@ -384,7 +388,11 @@ def test_add_to_cart_form_when_insufficient_stock(product):
 
     form = forms.AddToCartForm(data={'quantity': 1}, cart=cart, product=Mock())
     form.get_variant = Mock(return_value=variant)
-    assert not form.is_valid()
+
+    if handle_stock:
+        assert not form.is_valid()
+    else:
+        assert form.is_valid()
 
 
 def test_replace_cart_line_form(cart, product):

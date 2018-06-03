@@ -47,9 +47,10 @@ def create_packing_slip_pdf(order, fulfillment, absolute_url):
 
 def fulfill_order_line(order_line, quantity):
     """Fulfill order line with given quantity."""
-    decrease_stock(order_line.variant, quantity)
-    order_line.quantity_fulfilled += quantity
-    order_line.save(update_fields=['quantity_fulfilled'])
+    if order_line.variant.handle_stock:
+        decrease_stock(order_line.variant, quantity)
+        order_line.quantity_fulfilled += quantity
+        order_line.save(update_fields=['quantity_fulfilled'])
 
 
 def update_order_with_user_addresses(order):
