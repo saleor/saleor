@@ -263,7 +263,7 @@ class ProductForm(forms.ModelForm, AttributesMixin):
 
     def clean_vendor(self):
         vendor = self.cleaned_data.pop('vendor')
-        if not isinstance(vendor, ProductVendor):
+        if vendor and not isinstance(vendor, ProductVendor):
             vendor = ProductVendor(name=vendor)
             vendor.save()
         return vendor

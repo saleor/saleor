@@ -109,7 +109,7 @@ class Product(SeoModel):
         ProductType, related_name='products', on_delete=models.CASCADE)
     vendor = models.ForeignKey(
         ProductVendor, related_name='products',
-        on_delete=models.SET_NULL, null=True)
+        on_delete=models.SET_NULL, null=True, blank=True)
     name = models.CharField(max_length=128)
     description = models.TextField()
     category = models.ForeignKey(
