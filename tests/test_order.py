@@ -1,6 +1,7 @@
 import json
 from decimal import Decimal
 
+import pytest
 from django.urls import reverse
 from django_countries.fields import Country
 from payments import FraudStatus, PaymentStatus
@@ -192,7 +193,7 @@ def test_restock_order_lines(order_with_lines, handle_stock):
 
     line_1.variant.refresh_from_db()
     line_2.variant.refresh_from_db()
-    
+
     if handle_stock:
         assert line_1.variant.quantity_allocated == (
             stock_1_quantity_allocated_before - line_1.quantity)
