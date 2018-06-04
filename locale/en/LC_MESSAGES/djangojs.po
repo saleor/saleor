@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2018-05-30 07:13-0500\n"
+"POT-Creation-Date: 2018-06-04 04:15-0500\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -360,8 +360,4 @@ msgstr ""
 #: saleor/static/js/components/variantPicker/VariantPicker.js:166
 msgctxt "Product details primary action"
 msgid "Add to cart"
-msgstr ""
-
-#: themes/saleor/source/js/jquery.js:1
-msgid "["
 msgstr ""
