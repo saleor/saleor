@@ -7,3 +7,4 @@ Guides
    guides/orders
    guides/navigation
    guides/taxes
+   guides/recaptcha
