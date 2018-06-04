@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: master\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2018-05-30 07:13-0500\n"
+"POT-Creation-Date: 2018-06-04 04:15-0500\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -1848,8 +1848,8 @@ msgstr ""
 #: templates/dashboard/menu/item/form.html:80
 #: templates/dashboard/order/address_form.html:61
 #: templates/dashboard/order/fulfillment.html:133
-#: templates/dashboard/product/form.html:126
-#: templates/dashboard/product/form.html:133
+#: templates/dashboard/product/form.html:129
+#: templates/dashboard/product/form.html:136
 #: templates/dashboard/product/product_attribute/form.html:77
 #: templates/dashboard/product/product_attribute/form.html:84
 #: templates/dashboard/product/product_attribute/values/form.html:78
@@ -1978,7 +1978,7 @@ msgstr ""
 #: templates/dashboard/discount/voucher/form.html:133
 #: templates/dashboard/menu/form.html:66
 #: templates/dashboard/menu/item/form.html:88
-#: templates/dashboard/product/form.html:136
+#: templates/dashboard/product/form.html:139
 #: templates/dashboard/product/product_attribute/form.html:87
 #: templates/dashboard/product/product_attribute/values/form.html:86
 #: templates/dashboard/product/product_image/form.html:87
@@ -2871,7 +2871,7 @@ msgid "Storefront Menus"
 msgstr ""
 
 #: templates/dashboard/menu/list.html:98
-#: templates/dashboard/product/form.html:129
+#: templates/dashboard/product/form.html:132
 #: templates/dashboard/product/product_attribute/form.html:80
 #: templates/dashboard/product/product_attribute/values/form.html:82
 #: templates/dashboard/product/product_image/form.html:83
@@ -4046,13 +4046,31 @@ msgctxt "Product field"
 msgid "Margin"
 msgstr ""
 
-#: templates/dashboard/product/detail.html:243
+#: templates/dashboard/product/detail.html:239
+#: templates/dashboard/product/product_variant/detail.html:148
+msgctxt "Product variant inventory card header"
+msgid "Inventory"
+msgstr ""
+
+#: templates/dashboard/product/detail.html:248
+#: templates/dashboard/product/product_variant/detail.html:157
+msgctxt "Dashboard variant details view"
+msgid "Number in stock"
+msgstr ""
+
+#: templates/dashboard/product/detail.html:256
+#: templates/dashboard/product/product_variant/detail.html:165
+msgctxt "Dashboard variant details view"
+msgid "Allocated"
+msgstr ""
+
+#: templates/dashboard/product/detail.html:269
 #: templates/dashboard/product/product_image/list.html:7
 #: templates/dashboard/product/product_image/list.html:41
 msgid "Images"
 msgstr ""
 
-#: templates/dashboard/product/detail.html:254
+#: templates/dashboard/product/detail.html:280
 msgid "Edit images"
 msgstr ""
 
@@ -4076,12 +4094,12 @@ msgctxt "Product form breadcrumbs"
 msgid "Edit"
 msgstr ""
 
-#: templates/dashboard/product/form.html:107
+#: templates/dashboard/product/form.html:110
 #: templates/dashboard/product/product_variant/form.html:76
 msgid "Attributes"
 msgstr ""
 
-#: templates/dashboard/product/form.html:110
+#: templates/dashboard/product/form.html:113
 #, python-format
 msgid ""
 "\n"
@@ -4444,21 +4462,6 @@ msgstr ""
 #: templates/dashboard/product/product_variant/detail.html:66
 msgctxt "Dashboard action"
 msgid "Remove variant"
-msgstr ""
-
-#: templates/dashboard/product/product_variant/detail.html:148
-msgctxt "Product variant inventory card header"
-msgid "Inventory"
-msgstr ""
-
-#: templates/dashboard/product/product_variant/detail.html:157
-msgctxt "Dashboard variant details view"
-msgid "Number in stock"
-msgstr ""
-
-#: templates/dashboard/product/product_variant/detail.html:165
-msgctxt "Dashboard variant details view"
-msgid "Allocated"
 msgstr ""
 
 #: templates/dashboard/product/product_variant/detail.html:177
@@ -5723,7 +5726,7 @@ msgid ""
 msgstr ""
 
 #: templates/templated_email/order/confirm_fulfillment.email:16
-#: templates/templated_email/source/confirm_fulfillment.mjml:25
+#: templates/templated_email/source/confirm_fulfillment.mjml:20
 #, python-format
 msgctxt "Fulfillment confirmation email text"
 msgid "You can track your shipment with %(tracking_number)s code."
@@ -5793,19 +5796,19 @@ msgid "Total"
 msgstr ""
 
 #: templates/templated_email/order/confirm_order.email:25
-#: templates/templated_email/source/confirm_order.mjml:34
+#: templates/templated_email/source/confirm_order.mjml:29
 msgctxt "Order confirmation e-mail billing address"
 msgid "Billing address"
 msgstr ""
 
 #: templates/templated_email/order/confirm_order.email:28
-#: templates/templated_email/source/confirm_order.mjml:35
+#: templates/templated_email/source/confirm_order.mjml:30
 msgctxt "Order confirmation e-mail shipping address"
 msgid "Shipping address"
 msgstr ""
 
 #: templates/templated_email/order/confirm_order.email:29
-#: templates/templated_email/source/confirm_order.mjml:47
+#: templates/templated_email/source/confirm_order.mjml:42
 msgctxt "Order confirmation e-mail text"
 msgid "No shipping required"
 msgstr ""
@@ -5880,7 +5883,7 @@ msgid ""
 msgstr ""
 
 #: templates/templated_email/order/update_fulfillment.email:16
-#: templates/templated_email/source/update_fulfillment.mjml:25
+#: templates/templated_email/source/update_fulfillment.mjml:20
 #, python-format
 msgctxt "Fulfillment update email text"
 msgid "You can track your shipment with %(tracking_number)s code."
@@ -5897,22 +5900,22 @@ msgid ""
 "%(site_name)s\n"
 msgstr ""
 
-#: templates/templated_email/source/confirm_fulfillment.mjml:18
+#: templates/templated_email/source/confirm_fulfillment.mjml:13
 msgctxt "Fulfillment confirmation email text"
 msgid "Hi!"
 msgstr ""
 
-#: templates/templated_email/source/confirm_fulfillment.mjml:21
+#: templates/templated_email/source/confirm_fulfillment.mjml:16
 msgctxt "Fulfillment confirmation email text"
 msgid "Thank you for your order. Below is the list of shipped products."
 msgstr ""
 
-#: templates/templated_email/source/confirm_note.mjml:18
+#: templates/templated_email/source/confirm_note.mjml:13
 msgctxt "Note confirmation e-mail text"
 msgid "Hi!"
 msgstr ""
 
-#: templates/templated_email/source/confirm_note.mjml:21
+#: templates/templated_email/source/confirm_note.mjml:16
 #, python-format
 msgctxt "Note confirmation e-mail text"
 msgid ""
@@ -5920,12 +5923,12 @@ msgid ""
 "href=\"%(url)s\">%(url)s</a>"
 msgstr ""
 
-#: templates/templated_email/source/confirm_order.mjml:19
+#: templates/templated_email/source/confirm_order.mjml:14
 msgctxt "Order confirmation e-mail text"
 msgid "Hi!"
 msgstr ""
 
-#: templates/templated_email/source/confirm_order.mjml:22
+#: templates/templated_email/source/confirm_order.mjml:17
 #, python-format
 msgctxt "Order confirmation e-mail text"
 msgid ""
@@ -5933,12 +5936,12 @@ msgid ""
 "payment details please visit: <a href=\"%(url)s\">%(url)s</a>"
 msgstr ""
 
-#: templates/templated_email/source/confirm_payment.mjml:18
+#: templates/templated_email/source/confirm_payment.mjml:13
 msgctxt "Payment confirmation e-mail text"
 msgid "Hi!"
 msgstr ""
 
-#: templates/templated_email/source/confirm_payment.mjml:21
+#: templates/templated_email/source/confirm_payment.mjml:16
 #, python-format
 msgctxt "Payment confirmation e-mail text"
 msgid ""
@@ -5946,62 +5949,62 @@ msgid ""
 "href=\"%(url)s\">%(url)s</a>"
 msgstr ""
 
-#: templates/templated_email/source/partials/_order_lines.mjml:15
+#: templates/templated_email/source/partials/_order_lines.mjml:11
 msgctxt "E-mail order lines summary table"
 msgid "Subtotal"
 msgstr ""
 
-#: templates/templated_email/source/partials/_order_lines.mjml:23
+#: templates/templated_email/source/partials/_order_lines.mjml:19
 msgctxt "E-mail order lines summary table"
 msgid "Shipping"
 msgstr ""
 
-#: templates/templated_email/source/partials/_order_lines.mjml:32
+#: templates/templated_email/source/partials/_order_lines.mjml:28
 msgctxt "E-mail order lines summary table"
 msgid "Taxes (included)"
 msgstr ""
 
-#: templates/templated_email/source/partials/_order_lines.mjml:34
+#: templates/templated_email/source/partials/_order_lines.mjml:30
 msgctxt "E-mail order lines summary table"
 msgid "Taxes"
 msgstr ""
 
-#: templates/templated_email/source/partials/_order_lines.mjml:44
+#: templates/templated_email/source/partials/_order_lines.mjml:40
 msgctxt "E-mail order lines summary table"
 msgid "Discount"
 msgstr ""
 
-#: templates/templated_email/source/partials/_order_lines.mjml:53
+#: templates/templated_email/source/partials/_order_lines.mjml:49
 msgctxt "E-mail order lines summary table"
 msgid "Total"
 msgstr ""
 
-#: templates/templated_email/source/partials/_order_lines.mjml:62
+#: templates/templated_email/source/partials/_order_lines.mjml:58
 msgctxt "Ordered item name"
 msgid "Item"
 msgstr ""
 
-#: templates/templated_email/source/partials/_order_lines.mjml:63
+#: templates/templated_email/source/partials/_order_lines.mjml:59
 msgctxt "Quantity ordered of a product"
 msgid "Quantity"
 msgstr ""
 
-#: templates/templated_email/source/partials/_order_lines.mjml:64
+#: templates/templated_email/source/partials/_order_lines.mjml:60
 msgctxt "Unit price of a product"
 msgid "Per unit"
 msgstr ""
 
-#: templates/templated_email/source/partials/_order_lines.mjml:65
+#: templates/templated_email/source/partials/_order_lines.mjml:61
 msgctxt "Ordered item subtotal (unit price * quantity)"
 msgid "Subtotal"
 msgstr ""
 
-#: templates/templated_email/source/password_reset.mjml:18
+#: templates/templated_email/source/password_reset.mjml:13
 msgctxt "Password reset e-mail text"
 msgid "Hi!"
 msgstr ""
 
-#: templates/templated_email/source/password_reset.mjml:21
+#: templates/templated_email/source/password_reset.mjml:16
 #, python-format
 msgctxt "Password reset e-mail text"
 msgid ""
@@ -6011,12 +6014,12 @@ msgid ""
 "password."
 msgstr ""
 
-#: templates/templated_email/source/promote_customer.mjml:18
+#: templates/templated_email/source/promote_customer.mjml:13
 msgctxt "Promote customer to staff member confirmation e-mail text"
 msgid "Hi!"
 msgstr ""
 
-#: templates/templated_email/source/promote_customer.mjml:21
+#: templates/templated_email/source/promote_customer.mjml:16
 #, python-format
 msgctxt "Promote customer to staff member confirmation e-mail text"
 msgid ""
@@ -6025,12 +6028,12 @@ msgid ""
 "%(url)s</a>"
 msgstr ""
 
-#: templates/templated_email/source/set_password.mjml:18
+#: templates/templated_email/source/set_password.mjml:13
 msgctxt "Set password for staff member e-mail text"
 msgid "Hi!"
 msgstr ""
 
-#: templates/templated_email/source/set_password.mjml:21
+#: templates/templated_email/source/set_password.mjml:16
 #, python-format
 msgctxt "Set password for staff member e-mail text"
 msgid ""
@@ -6050,12 +6053,12 @@ msgctxt "Base email footer"
 msgid "Sincerely, %(site_name)s"
 msgstr ""
 
-#: templates/templated_email/source/update_fulfillment.mjml:18
+#: templates/templated_email/source/update_fulfillment.mjml:13
 msgctxt "Fulfillment update email text"
 msgid "Hi!"
 msgstr ""
 
-#: templates/templated_email/source/update_fulfillment.mjml:21
+#: templates/templated_email/source/update_fulfillment.mjml:16
 msgctxt "Fulfillment update email text"
 msgid ""
 "Your shipping status has been updated. Below is the list of ordered products "
