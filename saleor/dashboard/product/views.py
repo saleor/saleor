@@ -110,7 +110,7 @@ def product_create(request, type_pk):
         variant = ProductVariant(product=product)
         variant_form = forms.ProductVariantForm(
             request.POST or None,
-            track_inventory_by_default=site_settings.track_inventory_by_default,
+            initial_track_inventory=site_settings.track_inventory_by_default,
             instance=variant, prefix='variant')
         variant_errors = not variant_form.is_valid()
     else:
@@ -320,7 +320,7 @@ def variant_create(request, product_pk):
     variant = ProductVariant(product=product)
     form = forms.ProductVariantForm(
         request.POST or None,
-        track_inventory_by_default=site_settings.track_inventory_by_default,
+        initial_track_inventory=site_settings.track_inventory_by_default,
         instance=variant)
     if form.is_valid():
         form.save()
