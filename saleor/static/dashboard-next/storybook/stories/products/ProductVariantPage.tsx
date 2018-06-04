@@ -7,7 +7,7 @@ import { variant as variantFixture } from "../../../products/fixtures";
 
 const variant = variantFixture(placeholderImage);
 
-storiesOf("Products / ProductVariantPage", module)
+storiesOf("Views / Products / Product variant details", module)
   .add("when loading data", () => (
     <ProductVariantPage
       loading={true}

@@ -622,6 +622,55 @@ exports[`Storyshots Categories / RootCategoryList without initial data 1`] = `
 </WithStyles(Card)>
 `;
 
+exports[`Storyshots Generics / DateFormatter default 1`] = `
+Array [
+  <WithStyles(CssBaseline) />,
+  <WithStyles(Component)
+    date="2018-04-07T10:44:44+00:00"
+  />,
+]
+`;
+
+exports[`Storyshots Generics / DateFormatter humanized 1`] = `
+Array [
+  <WithStyles(CssBaseline) />,
+  <WithStyles(Component)
+    date="2018-05-27T22:44:44+00:00"
+    dateNow={1527521275866}
+  />,
+]
+`;
+
+exports[`Storyshots Generics / DateFormatter humanized without tooltip 1`] = `
+Array [
+  <WithStyles(CssBaseline) />,
+  <WithStyles(Component)
+    date="2018-05-27T22:44:44+00:00"
+    dateNow={1527521275866}
+    showTooltip={false}
+  />,
+]
+`;
+
+exports[`Storyshots Generics / DateFormatter with custom format 1`] = `
+Array [
+  <WithStyles(CssBaseline) />,
+  <WithStyles(Component)
+    date="01.04.1999 14:30"
+    inputFormat="DD.MM.YYYY HH:mm"
+    outputFormat="MM/DD/YYYY"
+    showTooltip={false}
+  />,
+]
+`;
+
+exports[`Storyshots Generics / EditableTableCell default 1`] = `
+Array [
+  <WithStyles(CssBaseline) />,
+  <WithStyles(Table) />,
+]
+`;
+
 exports[`Storyshots Generics / ErrorMessageCard default 1`] = `
 <WithStyles(Card)>
   <WithStyles(CardContent)>
@@ -638,6 +687,16 @@ exports[`Storyshots Generics / ErrorMessageCard default 1`] = `
     </WithStyles(Typography)>
   </WithStyles(CardContent)>
 </WithStyles(Card)>
+`;
+
+exports[`Storyshots Generics / Money default 1`] = `
+Array [
+  <WithStyles(CssBaseline) />,
+  <WithStyles(Component)
+    amount={14}
+    currency="$"
+  />,
+]
 `;
 
 exports[`Storyshots Generics / MultiSelectField with error hint 1`] = `
@@ -983,6 +1042,26 @@ exports[`Storyshots Generics / PageHeader without title 1`] = `
 />
 `;
 
+exports[`Storyshots Generics / PhoneField default 1`] = `
+Array [
+  <WithStyles(CssBaseline) />,
+  <WithStyles(Component)
+    name="phone"
+    number="123 987 456"
+    onChange={[Function]}
+    prefix="41"
+    prefixes={
+      Array [
+        "01",
+        "02",
+        "41",
+        "49",
+      ]
+    }
+  />,
+]
+`;
+
 exports[`Storyshots Generics / PriceField disabled 1`] = `
 <Component
   classes={
@@ -1300,6 +1379,54 @@ exports[`Storyshots Generics / PriceRangeField with value, label, currency symbo
 />
 `;
 
+exports[`Storyshots Generics / SingleAutocompleteSelectField with custom option 1`] = `
+Array [
+  <WithStyles(CssBaseline) />,
+  <Form
+    initial={
+      Object {
+        "country": Object {
+          "label": "Afghanistan",
+          "value": "afghanistan",
+        },
+      }
+    }
+  />,
+]
+`;
+
+exports[`Storyshots Generics / SingleAutocompleteSelectField with loaded data 1`] = `
+Array [
+  <WithStyles(CssBaseline) />,
+  <Form
+    initial={
+      Object {
+        "country": Object {
+          "label": "Afghanistan",
+          "value": "afghanistan",
+        },
+      }
+    }
+  />,
+]
+`;
+
+exports[`Storyshots Generics / SingleAutocompleteSelectField with loading data 1`] = `
+Array [
+  <WithStyles(CssBaseline) />,
+  <Form
+    initial={
+      Object {
+        "country": Object {
+          "label": "Afghanistan",
+          "value": "afghanistan",
+        },
+      }
+    }
+  />,
+]
+`;
+
 exports[`Storyshots Generics / SingleSelectField with error hint 1`] = `
 <Component
   choices={
@@ -1542,6 +1669,36 @@ exports[`Storyshots Generics / Skeleton default 1`] = `
 />
 `;
 
+exports[`Storyshots Generics / StatusLabel when error 1`] = `
+Array [
+  <WithStyles(CssBaseline) />,
+  <WithStyles(Component)
+    label="Example label"
+    status="error"
+  />,
+]
+`;
+
+exports[`Storyshots Generics / StatusLabel when neutral 1`] = `
+Array [
+  <WithStyles(CssBaseline) />,
+  <WithStyles(Component)
+    label="Example label"
+    status="neutral"
+  />,
+]
+`;
+
+exports[`Storyshots Generics / StatusLabel when success 1`] = `
+Array [
+  <WithStyles(CssBaseline) />,
+  <WithStyles(Component)
+    label="Example label"
+    status="success"
+  />,
+]
+`;
+
 exports[`Storyshots Generics / TablePagination both previous and next pages are available 1`] = `
 <Table
   classes={
@@ -1624,6 +1781,2130 @@ exports[`Storyshots Generics / TablePagination previous page available 1`] = `
     onPreviousPage={[Function]}
   />
 </Table>
+`;
+
+exports[`Storyshots Generics / Timeline default 1`] = `
+Array [
+  <WithStyles(CssBaseline) />,
+  <WithStyles(Component) />,
+]
+`;
+
+exports[`Storyshots Generics / Timeline with expansion panels 1`] = `
+Array [
+  <WithStyles(CssBaseline) />,
+  <WithStyles(Component) />,
+]
+`;
+
+exports[`Storyshots Generics / Timeline with order notes 1`] = `
+Array [
+  <WithStyles(CssBaseline) />,
+  <WithStyles(Component) />,
+]
+`;
+
+exports[`Storyshots Orders / OrderAddressEditDialog billing address 1`] = `
+Array [
+  <WithStyles(CssBaseline) />,
+  <WithStyles(Component)
+    countries={
+      Array [
+        Object {
+          "code": "AF",
+          "label": "Afghanistan",
+        },
+        Object {
+          "code": "AX",
+          "label": "Åland Islands",
+        },
+        Object {
+          "code": "AL",
+          "label": "Albania",
+        },
+        Object {
+          "code": "DZ",
+          "label": "Algeria",
+        },
+        Object {
+          "code": "AS",
+          "label": "American Samoa",
+        },
+      ]
+    }
+    data={
+      Object {
+        "city": "Keithport",
+        "cityArea": "",
+        "companyName": "",
+        "country": "Cyprus",
+        "countryArea": "",
+        "firstName": "Test",
+        "id": "a1",
+        "lastName": "Client",
+        "phone": undefined,
+        "phone_number": "",
+        "phone_prefix": "",
+        "postalCode": "95393-6818",
+        "streetAddress_1": "9297 Barker Extension",
+        "streetAddress_2": "",
+      }
+    }
+    onChange={[Function]}
+    open={true}
+    prefixes={
+      Array [
+        "01",
+        "02",
+        "41",
+        "49",
+      ]
+    }
+    variant="billing"
+  />,
+]
+`;
+
+exports[`Storyshots Orders / OrderAddressEditDialog shipping address 1`] = `
+Array [
+  <WithStyles(CssBaseline) />,
+  <WithStyles(Component)
+    countries={
+      Array [
+        Object {
+          "code": "AF",
+          "label": "Afghanistan",
+        },
+        Object {
+          "code": "AX",
+          "label": "Åland Islands",
+        },
+        Object {
+          "code": "AL",
+          "label": "Albania",
+        },
+        Object {
+          "code": "DZ",
+          "label": "Algeria",
+        },
+        Object {
+          "code": "AS",
+          "label": "American Samoa",
+        },
+      ]
+    }
+    data={
+      Object {
+        "city": "Keithport",
+        "cityArea": "",
+        "companyName": "",
+        "country": "Cyprus",
+        "countryArea": "",
+        "firstName": "Test",
+        "id": "a1",
+        "lastName": "Client",
+        "phone": undefined,
+        "phone_number": "",
+        "phone_prefix": "",
+        "postalCode": "95393-6818",
+        "streetAddress_1": "9297 Barker Extension",
+        "streetAddress_2": "",
+      }
+    }
+    onChange={[Function]}
+    open={true}
+    prefixes={
+      Array [
+        "01",
+        "02",
+        "41",
+        "49",
+      ]
+    }
+    variant="shipping"
+  />,
+]
+`;
+
+exports[`Storyshots Orders / OrderCancelDialog default 1`] = `
+Array [
+  <WithStyles(CssBaseline) />,
+  <WithStyles(Component)
+    id="123"
+    onClose={[Function]}
+    onConfirm={[Function]}
+    open={true}
+  />,
+]
+`;
+
+exports[`Storyshots Orders / OrderCustomer when loaded data 1`] = `
+Array [
+  <WithStyles(CssBaseline) />,
+  <WithStyles(Component)
+    billingAddress={
+      Object {
+        "city": "Keithport",
+        "cityArea": "",
+        "companyName": "",
+        "country": "Cyprus",
+        "countryArea": "",
+        "firstName": "Test",
+        "id": "a1",
+        "lastName": "Client",
+        "phone": Object {
+          "number": "",
+          "prefix": "",
+        },
+        "postalCode": "95393-6818",
+        "streetAddress_1": "9297 Barker Extension",
+        "streetAddress_2": "",
+      }
+    }
+    client={
+      Object {
+        "email": "test.client@example.com",
+        "id": "c1",
+        "name": "Test Client",
+      }
+    }
+    onBillingAddressEdit={[Function]}
+    onShippingAddressEdit={[Function]}
+    shippingAddress={
+      Object {
+        "city": "Keithport",
+        "cityArea": "",
+        "companyName": "",
+        "country": "Cyprus",
+        "countryArea": "",
+        "firstName": "Test",
+        "id": "a1",
+        "lastName": "Client",
+        "phone": Object {
+          "number": "",
+          "prefix": "",
+        },
+        "postalCode": "95393-6818",
+        "streetAddress_1": "9297 Barker Extension",
+        "streetAddress_2": "",
+      }
+    }
+  />,
+]
+`;
+
+exports[`Storyshots Orders / OrderCustomer when loading data 1`] = `
+Array [
+  <WithStyles(CssBaseline) />,
+  <WithStyles(Component) />,
+]
+`;
+
+exports[`Storyshots Orders / OrderCustomer with different addresses 1`] = `
+Array [
+  <WithStyles(CssBaseline) />,
+  <WithStyles(Component)
+    billingAddress={
+      Object {
+        "city": "Keithport",
+        "cityArea": "",
+        "companyName": "",
+        "country": "Cyprus",
+        "countryArea": "",
+        "firstName": "Test",
+        "id": "a2",
+        "lastName": "Client",
+        "phone": Object {
+          "number": "",
+          "prefix": "",
+        },
+        "postalCode": "95393-6818",
+        "streetAddress_1": "9297 Barker Extension",
+        "streetAddress_2": "",
+      }
+    }
+    client={
+      Object {
+        "email": "test.client@example.com",
+        "id": "c1",
+        "name": "Test Client",
+      }
+    }
+    onBillingAddressEdit={[Function]}
+    onShippingAddressEdit={[Function]}
+    shippingAddress={
+      Object {
+        "city": "Keithport",
+        "cityArea": "",
+        "companyName": "",
+        "country": "Cyprus",
+        "countryArea": "",
+        "firstName": "Test",
+        "id": "a1",
+        "lastName": "Client",
+        "phone": Object {
+          "number": "",
+          "prefix": "",
+        },
+        "postalCode": "95393-6818",
+        "streetAddress_1": "9297 Barker Extension",
+        "streetAddress_2": "",
+      }
+    }
+  />,
+]
+`;
+
+exports[`Storyshots Orders / OrderCustomerEditDialog default 1`] = `
+Array [
+  <WithStyles(CssBaseline) />,
+  <WithStyles(Component)
+    fetchUsers={[Function]}
+    onChange={[Function]}
+    onClose={[Function]}
+    onConfirm={[Function]}
+    open={true}
+    user={
+      Object {
+        "label": "test.client1@example.com",
+        "value": "c1",
+      }
+    }
+    users={
+      Array [
+        Object {
+          "email": "test.client1@example.com",
+          "id": "c1",
+        },
+        Object {
+          "email": "test.client2@example.com",
+          "id": "c2",
+        },
+        Object {
+          "email": "test.client3@example.com",
+          "id": "c3",
+        },
+        Object {
+          "email": "test.client4@example.com",
+          "id": "c4",
+        },
+      ]
+    }
+  />,
+]
+`;
+
+exports[`Storyshots Orders / OrderFulfillmentCancelDialog default 1`] = `
+Array [
+  <WithStyles(CssBaseline) />,
+  <WithStyles(Component)
+    id="123"
+    onClose={[Function]}
+    onConfirm={[Function]}
+    open={true}
+  />,
+]
+`;
+
+exports[`Storyshots Orders / OrderFulfillmentDialog default 1`] = `
+Array [
+  <WithStyles(CssBaseline) />,
+  <WithStyles(Component)
+    data={Object {}}
+    onChange={[Function]}
+    open={true}
+    products={
+      Array [
+        Object {
+          "id": "UHJvZHVjdDox",
+          "name": "Gardner, Graham and King",
+          "price": Object {
+            "gross": Object {
+              "amount": 12.4,
+              "currency": "USD",
+            },
+          },
+          "quantity": 1,
+          "sku": "9123021",
+          "thumbnailUrl": "placeholder60x60.png",
+        },
+        Object {
+          "id": "UHJvZHVjdDoy",
+          "name": "Gardner and Graham",
+          "price": Object {
+            "gross": Object {
+              "amount": 11.6,
+              "currency": "USD",
+            },
+          },
+          "quantity": 2,
+          "sku": "9123022",
+          "thumbnailUrl": "placeholder60x60.png",
+        },
+        Object {
+          "id": "UHJvZHVjdDoz",
+          "name": "Gardner and King",
+          "price": Object {
+            "gross": Object {
+              "amount": 22.4,
+              "currency": "USD",
+            },
+          },
+          "quantity": 7,
+          "sku": "9123023",
+          "thumbnailUrl": "placeholder60x60.png",
+        },
+        Object {
+          "id": "UHJvZHVjdDoa",
+          "name": "Graham and King",
+          "price": Object {
+            "gross": Object {
+              "amount": 9.9,
+              "currency": "USD",
+            },
+          },
+          "quantity": 3,
+          "sku": "9123024",
+          "thumbnailUrl": "placeholder60x60.png",
+        },
+      ]
+    }
+  />,
+]
+`;
+
+exports[`Storyshots Orders / OrderFulfillmentTrackingDialog add code 1`] = `
+Array [
+  <WithStyles(CssBaseline) />,
+  <WithStyles(Component)
+    onChange={[Function]}
+    onClose={[Function]}
+    onConfirm={[Function]}
+    open={true}
+    trackingCode="123"
+    variant="add"
+  />,
+]
+`;
+
+exports[`Storyshots Orders / OrderFulfillmentTrackingDialog edit code 1`] = `
+Array [
+  <WithStyles(CssBaseline) />,
+  <WithStyles(Component)
+    onChange={[Function]}
+    onClose={[Function]}
+    onConfirm={[Function]}
+    open={true}
+    trackingCode="123"
+    variant="edit"
+  />,
+]
+`;
+
+exports[`Storyshots Orders / OrderHistory default 1`] = `
+Array [
+  <WithStyles(CssBaseline) />,
+  <WithStyles(Component)
+    history={
+      Array [
+        Object {
+          "content": "Created order",
+          "date": "2018-04-07T11:18:19+00:00",
+          "id": "n1",
+          "type": "created",
+          "user": "richard.holder@example.com",
+        },
+        Object {
+          "content": "Received payment",
+          "date": "2018-04-07T11:33:19+00:00",
+          "id": "n1",
+          "params": Object {
+            "amount": 165.7,
+            "currency": "USD",
+          },
+          "type": "payment",
+          "user": "richard.holder@example.com",
+        },
+        Object {
+          "content": "Shipped order",
+          "date": "2018-04-07T13:31:19+00:00",
+          "id": "n3",
+          "params": Object {
+            "shippingAddress": "Test Client<br />9297 Barker Extension<br />95393-6818 Keithport<br />Cyprus",
+          },
+          "type": "shipped",
+          "user": "megan.finger@example.com",
+        },
+        Object {
+          "content": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Curabitur arcu nisi, dignissim non placerat id, varius imperdiet nisi. Duis lobortis, massa sed feugiat ultricies, massa felis commodo dui, tempor tempus tellus ligula id arcu. Nam erat dui, fermentum sed dui a, tincidunt molestie magna.",
+          "date": "2018-04-08T11:18:19+00:00",
+          "id": "n4",
+          "type": "note",
+          "user": "megan.finger@example.com",
+        },
+      ]
+    }
+    user="admin@example.com"
+  />,
+]
+`;
+
+exports[`Storyshots Orders / OrderList when loaded data 1`] = `
+Array [
+  <WithStyles(CssBaseline) />,
+  <WithStyles(Component)
+    orders={
+      Array [
+        Object {
+          "client": Object {
+            "email": "test.client1@example.com",
+            "id": "c1",
+          },
+          "created": "2018-04-07T11:18:19+00:00",
+          "id": "o1",
+          "number": 11,
+          "orderStatus": Object {
+            "localized": "Fulfilled",
+            "status": "success",
+          },
+          "paymentStatus": Object {
+            "localized": "Confirmed",
+            "status": "success",
+          },
+          "price": Object {
+            "amount": 19.2,
+            "currency": "USD",
+          },
+          "status": "fulfilled",
+        },
+        Object {
+          "client": Object {
+            "email": "test.client1@example.com",
+            "id": "c1",
+          },
+          "created": "2018-04-07T11:11:19+00:00",
+          "id": "o2",
+          "number": 10,
+          "orderStatus": Object {
+            "localized": "Unfulfilled",
+            "status": "error",
+          },
+          "paymentStatus": Object {
+            "localized": "Confirmed",
+            "status": "success",
+          },
+          "price": Object {
+            "amount": 28.9,
+            "currency": "USD",
+          },
+          "status": "unfulfilled",
+        },
+        Object {
+          "client": Object {
+            "email": "test.client2@example.com",
+            "id": "c2",
+          },
+          "created": "2018-04-07T10:44:44+00:00",
+          "id": "o3",
+          "number": 9,
+          "orderStatus": Object {
+            "localized": "shipped",
+            "status": "error",
+          },
+          "paymentStatus": Object {
+            "localized": "Rejected",
+            "status": "error",
+          },
+          "price": Object {
+            "amount": 289,
+            "currency": "USD",
+          },
+          "status": "shipped",
+        },
+        Object {
+          "client": Object {
+            "email": "test.client3@example.com",
+            "id": "c3",
+          },
+          "created": "2018-04-07T10:33:19+00:00",
+          "id": "o4",
+          "number": 9,
+          "orderStatus": Object {
+            "localized": "shipped",
+            "status": "error",
+          },
+          "paymentStatus": Object {
+            "localized": "unknown",
+            "status": "error",
+          },
+          "price": Object {
+            "amount": 100.05,
+            "currency": "USD",
+          },
+          "status": "shipped",
+        },
+        Object {
+          "client": Object {
+            "email": "test.client4@example.com",
+            "id": "c4",
+          },
+          "created": "2018-04-07T07:39:19+00:00",
+          "id": "o5",
+          "number": 9,
+          "orderStatus": Object {
+            "localized": "shipped",
+            "status": "error",
+          },
+          "paymentStatus": Object {
+            "localized": "Waiting for confirmation",
+            "status": "neutral",
+          },
+          "price": Object {
+            "amount": 14.87,
+            "currency": "USD",
+          },
+          "status": "shipped",
+        },
+        Object {
+          "client": Object {
+            "email": "test.client4@example.com",
+            "id": "c4",
+          },
+          "created": "2018-04-06T19:18:19+00:00",
+          "id": "o6",
+          "number": 8,
+          "orderStatus": Object {
+            "localized": "Unfulfilled",
+            "status": "error",
+          },
+          "paymentStatus": Object {
+            "localized": "Rejected",
+            "status": "error",
+          },
+          "price": Object {
+            "amount": 14.87,
+            "currency": "USD",
+          },
+          "status": "unfulfilled",
+        },
+      ]
+    }
+  />,
+]
+`;
+
+exports[`Storyshots Orders / OrderList when loading data 1`] = `
+Array [
+  <WithStyles(CssBaseline) />,
+  <WithStyles(Component) />,
+]
+`;
+
+exports[`Storyshots Orders / OrderList when no data 1`] = `
+Array [
+  <WithStyles(CssBaseline) />,
+  <WithStyles(Component)
+    orders={Array []}
+  />,
+]
+`;
+
+exports[`Storyshots Orders / OrderList with clickable rows 1`] = `
+Array [
+  <WithStyles(CssBaseline) />,
+  <WithStyles(Component)
+    onRowClick={[Function]}
+    orders={
+      Array [
+        Object {
+          "client": Object {
+            "email": "test.client1@example.com",
+            "id": "c1",
+          },
+          "created": "2018-04-07T11:18:19+00:00",
+          "id": "o1",
+          "number": 11,
+          "orderStatus": Object {
+            "localized": "Fulfilled",
+            "status": "success",
+          },
+          "paymentStatus": Object {
+            "localized": "Confirmed",
+            "status": "success",
+          },
+          "price": Object {
+            "amount": 19.2,
+            "currency": "USD",
+          },
+          "status": "fulfilled",
+        },
+        Object {
+          "client": Object {
+            "email": "test.client1@example.com",
+            "id": "c1",
+          },
+          "created": "2018-04-07T11:11:19+00:00",
+          "id": "o2",
+          "number": 10,
+          "orderStatus": Object {
+            "localized": "Unfulfilled",
+            "status": "error",
+          },
+          "paymentStatus": Object {
+            "localized": "Confirmed",
+            "status": "success",
+          },
+          "price": Object {
+            "amount": 28.9,
+            "currency": "USD",
+          },
+          "status": "unfulfilled",
+        },
+        Object {
+          "client": Object {
+            "email": "test.client2@example.com",
+            "id": "c2",
+          },
+          "created": "2018-04-07T10:44:44+00:00",
+          "id": "o3",
+          "number": 9,
+          "orderStatus": Object {
+            "localized": "shipped",
+            "status": "error",
+          },
+          "paymentStatus": Object {
+            "localized": "Rejected",
+            "status": "error",
+          },
+          "price": Object {
+            "amount": 289,
+            "currency": "USD",
+          },
+          "status": "shipped",
+        },
+        Object {
+          "client": Object {
+            "email": "test.client3@example.com",
+            "id": "c3",
+          },
+          "created": "2018-04-07T10:33:19+00:00",
+          "id": "o4",
+          "number": 9,
+          "orderStatus": Object {
+            "localized": "shipped",
+            "status": "error",
+          },
+          "paymentStatus": Object {
+            "localized": "unknown",
+            "status": "error",
+          },
+          "price": Object {
+            "amount": 100.05,
+            "currency": "USD",
+          },
+          "status": "shipped",
+        },
+        Object {
+          "client": Object {
+            "email": "test.client4@example.com",
+            "id": "c4",
+          },
+          "created": "2018-04-07T07:39:19+00:00",
+          "id": "o5",
+          "number": 9,
+          "orderStatus": Object {
+            "localized": "shipped",
+            "status": "error",
+          },
+          "paymentStatus": Object {
+            "localized": "Waiting for confirmation",
+            "status": "neutral",
+          },
+          "price": Object {
+            "amount": 14.87,
+            "currency": "USD",
+          },
+          "status": "shipped",
+        },
+        Object {
+          "client": Object {
+            "email": "test.client4@example.com",
+            "id": "c4",
+          },
+          "created": "2018-04-06T19:18:19+00:00",
+          "id": "o6",
+          "number": 8,
+          "orderStatus": Object {
+            "localized": "Unfulfilled",
+            "status": "error",
+          },
+          "paymentStatus": Object {
+            "localized": "Rejected",
+            "status": "error",
+          },
+          "price": Object {
+            "amount": 14.87,
+            "currency": "USD",
+          },
+          "status": "unfulfilled",
+        },
+      ]
+    }
+  />,
+]
+`;
+
+exports[`Storyshots Orders / OrderPaymentDialog capture payment 1`] = `
+Array [
+  <WithStyles(CssBaseline) />,
+  <WithStyles(Component)
+    onChange={[Function]}
+    open={true}
+    value={120}
+    variant="capture"
+  />,
+]
+`;
+
+exports[`Storyshots Orders / OrderPaymentDialog refund payment 1`] = `
+Array [
+  <WithStyles(CssBaseline) />,
+  <WithStyles(Component)
+    onChange={[Function]}
+    open={true}
+    value={140}
+    variant="refund"
+  />,
+]
+`;
+
+exports[`Storyshots Orders / OrderPaymentReleaseDialog default 1`] = `
+Array [
+  <WithStyles(CssBaseline) />,
+  <WithStyles(Component)
+    onClose={[Function]}
+    onConfirm={[Function]}
+    open={true}
+  />,
+]
+`;
+
+exports[`Storyshots Orders / OrderProductAddDialog default 1`] = `
+Array [
+  <WithStyles(CssBaseline) />,
+  <Form
+    initial={
+      Object {
+        "quantity": 0,
+        "variant": Object {
+          "label": "",
+          "value": "",
+        },
+      }
+    }
+  />,
+]
+`;
+
+exports[`Storyshots Orders / OrderShippingMethodEditDialog default 1`] = `
+Array [
+  <WithStyles(CssBaseline) />,
+  <WithStyles(Component)
+    fetchShippingMethods={[Function]}
+    onChange={[Function]}
+    onClose={[Function]}
+    onConfirm={[Function]}
+    open={true}
+    shippingMethod={
+      Object {
+        "label": "DHL",
+        "value": "s1",
+      }
+    }
+    shippingMethods={
+      Array [
+        Object {
+          "country": "whole world",
+          "id": "s1",
+          "name": "DHL",
+          "price": Object {},
+        },
+        Object {
+          "country": "Afghanistan",
+          "id": "s2",
+          "name": "UPS",
+        },
+      ]
+    }
+  />,
+]
+`;
+
+exports[`Storyshots Orders / OrderSummary order cancelled 1`] = `
+Array [
+  <WithStyles(CssBaseline) />,
+  <WithStyles(Component)
+    net={
+      Object {
+        "amount": 6,
+        "currency": "USD",
+      }
+    }
+    onCapture={[Function]}
+    onCreate={[Function]}
+    onFulfill={[Function]}
+    onOrderCancel={[Function]}
+    onOrderLineChange={[Function]}
+    onOrderLineRemove={[Function]}
+    onRefund={[Function]}
+    onRelease={[Function]}
+    onRowClick={[Function]}
+    paid={
+      Object {
+        "amount": 19.2,
+        "currency": "USD",
+      }
+    }
+    paymentStatus="confirmed"
+    products={
+      Array [
+        Object {
+          "id": "UHJvZHVjdDox",
+          "name": "Gardner, Graham and King",
+          "price": Object {
+            "gross": Object {
+              "amount": 12.4,
+              "currency": "USD",
+            },
+          },
+          "quantity": 1,
+          "sku": "9123021",
+          "thumbnailUrl": "placeholder60x60.png",
+        },
+        Object {
+          "id": "UHJvZHVjdDoy",
+          "name": "Gardner and Graham",
+          "price": Object {
+            "gross": Object {
+              "amount": 11.6,
+              "currency": "USD",
+            },
+          },
+          "quantity": 2,
+          "sku": "9123022",
+          "thumbnailUrl": "placeholder60x60.png",
+        },
+        Object {
+          "id": "UHJvZHVjdDoz",
+          "name": "Gardner and King",
+          "price": Object {
+            "gross": Object {
+              "amount": 22.4,
+              "currency": "USD",
+            },
+          },
+          "quantity": 7,
+          "sku": "9123023",
+          "thumbnailUrl": "placeholder60x60.png",
+        },
+        Object {
+          "id": "UHJvZHVjdDoa",
+          "name": "Graham and King",
+          "price": Object {
+            "gross": Object {
+              "amount": 9.9,
+              "currency": "USD",
+            },
+          },
+          "quantity": 3,
+          "sku": "9123024",
+          "thumbnailUrl": "placeholder60x60.png",
+        },
+      ]
+    }
+    refunded={
+      Object {
+        "amount": 13.2,
+        "currency": "USD",
+      }
+    }
+    status="cancelled"
+    subtotal={
+      Object {
+        "amount": 160.2,
+        "currency": "USD",
+      }
+    }
+    total={
+      Object {
+        "amount": 165.7,
+        "currency": "USD",
+      }
+    }
+  />,
+]
+`;
+
+exports[`Storyshots Orders / OrderSummary order draft 1`] = `
+Array [
+  <WithStyles(CssBaseline) />,
+  <WithStyles(Component)
+    net={
+      Object {
+        "amount": 6,
+        "currency": "USD",
+      }
+    }
+    onCapture={[Function]}
+    onCreate={[Function]}
+    onFulfill={[Function]}
+    onOrderCancel={[Function]}
+    onOrderLineChange={[Function]}
+    onOrderLineRemove={[Function]}
+    onRefund={[Function]}
+    onRelease={[Function]}
+    onRowClick={[Function]}
+    paid={
+      Object {
+        "amount": 19.2,
+        "currency": "USD",
+      }
+    }
+    paymentStatus="confirmed"
+    products={
+      Array [
+        Object {
+          "id": "UHJvZHVjdDox",
+          "name": "Gardner, Graham and King",
+          "price": Object {
+            "gross": Object {
+              "amount": 12.4,
+              "currency": "USD",
+            },
+          },
+          "quantity": 1,
+          "sku": "9123021",
+          "thumbnailUrl": "placeholder60x60.png",
+        },
+        Object {
+          "id": "UHJvZHVjdDoy",
+          "name": "Gardner and Graham",
+          "price": Object {
+            "gross": Object {
+              "amount": 11.6,
+              "currency": "USD",
+            },
+          },
+          "quantity": 2,
+          "sku": "9123022",
+          "thumbnailUrl": "placeholder60x60.png",
+        },
+        Object {
+          "id": "UHJvZHVjdDoz",
+          "name": "Gardner and King",
+          "price": Object {
+            "gross": Object {
+              "amount": 22.4,
+              "currency": "USD",
+            },
+          },
+          "quantity": 7,
+          "sku": "9123023",
+          "thumbnailUrl": "placeholder60x60.png",
+        },
+        Object {
+          "id": "UHJvZHVjdDoa",
+          "name": "Graham and King",
+          "price": Object {
+            "gross": Object {
+              "amount": 9.9,
+              "currency": "USD",
+            },
+          },
+          "quantity": 3,
+          "sku": "9123024",
+          "thumbnailUrl": "placeholder60x60.png",
+        },
+      ]
+    }
+    refunded={
+      Object {
+        "amount": 13.2,
+        "currency": "USD",
+      }
+    }
+    status="draft"
+    subtotal={
+      Object {
+        "amount": 160.2,
+        "currency": "USD",
+      }
+    }
+    total={
+      Object {
+        "amount": 165.7,
+        "currency": "USD",
+      }
+    }
+  />,
+]
+`;
+
+exports[`Storyshots Orders / OrderSummary order fulfilled 1`] = `
+Array [
+  <WithStyles(CssBaseline) />,
+  <WithStyles(Component)
+    net={
+      Object {
+        "amount": 6,
+        "currency": "USD",
+      }
+    }
+    onCapture={[Function]}
+    onCreate={[Function]}
+    onFulfill={[Function]}
+    onOrderCancel={[Function]}
+    onOrderLineChange={[Function]}
+    onOrderLineRemove={[Function]}
+    onRefund={[Function]}
+    onRelease={[Function]}
+    onRowClick={[Function]}
+    paid={
+      Object {
+        "amount": 19.2,
+        "currency": "USD",
+      }
+    }
+    paymentStatus="confirmed"
+    products={
+      Array [
+        Object {
+          "id": "UHJvZHVjdDox",
+          "name": "Gardner, Graham and King",
+          "price": Object {
+            "gross": Object {
+              "amount": 12.4,
+              "currency": "USD",
+            },
+          },
+          "quantity": 1,
+          "sku": "9123021",
+          "thumbnailUrl": "placeholder60x60.png",
+        },
+        Object {
+          "id": "UHJvZHVjdDoy",
+          "name": "Gardner and Graham",
+          "price": Object {
+            "gross": Object {
+              "amount": 11.6,
+              "currency": "USD",
+            },
+          },
+          "quantity": 2,
+          "sku": "9123022",
+          "thumbnailUrl": "placeholder60x60.png",
+        },
+        Object {
+          "id": "UHJvZHVjdDoz",
+          "name": "Gardner and King",
+          "price": Object {
+            "gross": Object {
+              "amount": 22.4,
+              "currency": "USD",
+            },
+          },
+          "quantity": 7,
+          "sku": "9123023",
+          "thumbnailUrl": "placeholder60x60.png",
+        },
+        Object {
+          "id": "UHJvZHVjdDoa",
+          "name": "Graham and King",
+          "price": Object {
+            "gross": Object {
+              "amount": 9.9,
+              "currency": "USD",
+            },
+          },
+          "quantity": 3,
+          "sku": "9123024",
+          "thumbnailUrl": "placeholder60x60.png",
+        },
+      ]
+    }
+    refunded={
+      Object {
+        "amount": 13.2,
+        "currency": "USD",
+      }
+    }
+    status="fulfilled"
+    subtotal={
+      Object {
+        "amount": 160.2,
+        "currency": "USD",
+      }
+    }
+    total={
+      Object {
+        "amount": 165.7,
+        "currency": "USD",
+      }
+    }
+  />,
+]
+`;
+
+exports[`Storyshots Orders / OrderSummary order partially fulfilled 1`] = `
+Array [
+  <WithStyles(CssBaseline) />,
+  <WithStyles(Component)
+    net={
+      Object {
+        "amount": 6,
+        "currency": "USD",
+      }
+    }
+    onCapture={[Function]}
+    onCreate={[Function]}
+    onFulfill={[Function]}
+    onOrderCancel={[Function]}
+    onOrderLineChange={[Function]}
+    onOrderLineRemove={[Function]}
+    onRefund={[Function]}
+    onRelease={[Function]}
+    onRowClick={[Function]}
+    paid={
+      Object {
+        "amount": 19.2,
+        "currency": "USD",
+      }
+    }
+    paymentStatus="confirmed"
+    products={
+      Array [
+        Object {
+          "id": "UHJvZHVjdDox",
+          "name": "Gardner, Graham and King",
+          "price": Object {
+            "gross": Object {
+              "amount": 12.4,
+              "currency": "USD",
+            },
+          },
+          "quantity": 1,
+          "sku": "9123021",
+          "thumbnailUrl": "placeholder60x60.png",
+        },
+        Object {
+          "id": "UHJvZHVjdDoy",
+          "name": "Gardner and Graham",
+          "price": Object {
+            "gross": Object {
+              "amount": 11.6,
+              "currency": "USD",
+            },
+          },
+          "quantity": 2,
+          "sku": "9123022",
+          "thumbnailUrl": "placeholder60x60.png",
+        },
+        Object {
+          "id": "UHJvZHVjdDoz",
+          "name": "Gardner and King",
+          "price": Object {
+            "gross": Object {
+              "amount": 22.4,
+              "currency": "USD",
+            },
+          },
+          "quantity": 7,
+          "sku": "9123023",
+          "thumbnailUrl": "placeholder60x60.png",
+        },
+        Object {
+          "id": "UHJvZHVjdDoa",
+          "name": "Graham and King",
+          "price": Object {
+            "gross": Object {
+              "amount": 9.9,
+              "currency": "USD",
+            },
+          },
+          "quantity": 3,
+          "sku": "9123024",
+          "thumbnailUrl": "placeholder60x60.png",
+        },
+      ]
+    }
+    refunded={
+      Object {
+        "amount": 13.2,
+        "currency": "USD",
+      }
+    }
+    status="partially fulfilled"
+    subtotal={
+      Object {
+        "amount": 160.2,
+        "currency": "USD",
+      }
+    }
+    total={
+      Object {
+        "amount": 165.7,
+        "currency": "USD",
+      }
+    }
+  />,
+]
+`;
+
+exports[`Storyshots Orders / OrderSummary order unfulfilled 1`] = `
+Array [
+  <WithStyles(CssBaseline) />,
+  <WithStyles(Component)
+    net={
+      Object {
+        "amount": 6,
+        "currency": "USD",
+      }
+    }
+    onCapture={[Function]}
+    onCreate={[Function]}
+    onFulfill={[Function]}
+    onOrderCancel={[Function]}
+    onOrderLineChange={[Function]}
+    onOrderLineRemove={[Function]}
+    onRefund={[Function]}
+    onRelease={[Function]}
+    onRowClick={[Function]}
+    paid={
+      Object {
+        "amount": 19.2,
+        "currency": "USD",
+      }
+    }
+    paymentStatus="confirmed"
+    products={
+      Array [
+        Object {
+          "id": "UHJvZHVjdDox",
+          "name": "Gardner, Graham and King",
+          "price": Object {
+            "gross": Object {
+              "amount": 12.4,
+              "currency": "USD",
+            },
+          },
+          "quantity": 1,
+          "sku": "9123021",
+          "thumbnailUrl": "placeholder60x60.png",
+        },
+        Object {
+          "id": "UHJvZHVjdDoy",
+          "name": "Gardner and Graham",
+          "price": Object {
+            "gross": Object {
+              "amount": 11.6,
+              "currency": "USD",
+            },
+          },
+          "quantity": 2,
+          "sku": "9123022",
+          "thumbnailUrl": "placeholder60x60.png",
+        },
+        Object {
+          "id": "UHJvZHVjdDoz",
+          "name": "Gardner and King",
+          "price": Object {
+            "gross": Object {
+              "amount": 22.4,
+              "currency": "USD",
+            },
+          },
+          "quantity": 7,
+          "sku": "9123023",
+          "thumbnailUrl": "placeholder60x60.png",
+        },
+        Object {
+          "id": "UHJvZHVjdDoa",
+          "name": "Graham and King",
+          "price": Object {
+            "gross": Object {
+              "amount": 9.9,
+              "currency": "USD",
+            },
+          },
+          "quantity": 3,
+          "sku": "9123024",
+          "thumbnailUrl": "placeholder60x60.png",
+        },
+      ]
+    }
+    refunded={
+      Object {
+        "amount": 13.2,
+        "currency": "USD",
+      }
+    }
+    status="unfulfilled"
+    subtotal={
+      Object {
+        "amount": 160.2,
+        "currency": "USD",
+      }
+    }
+    total={
+      Object {
+        "amount": 165.7,
+        "currency": "USD",
+      }
+    }
+  />,
+]
+`;
+
+exports[`Storyshots Orders / OrderSummary payment confirmed 1`] = `
+Array [
+  <WithStyles(CssBaseline) />,
+  <WithStyles(Component)
+    net={
+      Object {
+        "amount": 6,
+        "currency": "USD",
+      }
+    }
+    onCapture={[Function]}
+    onCreate={[Function]}
+    onFulfill={[Function]}
+    onOrderCancel={[Function]}
+    onOrderLineChange={[Function]}
+    onOrderLineRemove={[Function]}
+    onRefund={[Function]}
+    onRelease={[Function]}
+    onRowClick={[Function]}
+    paid={
+      Object {
+        "amount": 19.2,
+        "currency": "USD",
+      }
+    }
+    paymentStatus="confirmed"
+    products={
+      Array [
+        Object {
+          "id": "UHJvZHVjdDox",
+          "name": "Gardner, Graham and King",
+          "price": Object {
+            "gross": Object {
+              "amount": 12.4,
+              "currency": "USD",
+            },
+          },
+          "quantity": 1,
+          "sku": "9123021",
+          "thumbnailUrl": "placeholder60x60.png",
+        },
+        Object {
+          "id": "UHJvZHVjdDoy",
+          "name": "Gardner and Graham",
+          "price": Object {
+            "gross": Object {
+              "amount": 11.6,
+              "currency": "USD",
+            },
+          },
+          "quantity": 2,
+          "sku": "9123022",
+          "thumbnailUrl": "placeholder60x60.png",
+        },
+        Object {
+          "id": "UHJvZHVjdDoz",
+          "name": "Gardner and King",
+          "price": Object {
+            "gross": Object {
+              "amount": 22.4,
+              "currency": "USD",
+            },
+          },
+          "quantity": 7,
+          "sku": "9123023",
+          "thumbnailUrl": "placeholder60x60.png",
+        },
+        Object {
+          "id": "UHJvZHVjdDoa",
+          "name": "Graham and King",
+          "price": Object {
+            "gross": Object {
+              "amount": 9.9,
+              "currency": "USD",
+            },
+          },
+          "quantity": 3,
+          "sku": "9123024",
+          "thumbnailUrl": "placeholder60x60.png",
+        },
+      ]
+    }
+    refunded={
+      Object {
+        "amount": 13.2,
+        "currency": "USD",
+      }
+    }
+    status="partially fulfilled"
+    subtotal={
+      Object {
+        "amount": 160.2,
+        "currency": "USD",
+      }
+    }
+    total={
+      Object {
+        "amount": 165.7,
+        "currency": "USD",
+      }
+    }
+  />,
+]
+`;
+
+exports[`Storyshots Orders / OrderSummary payment error 1`] = `
+Array [
+  <WithStyles(CssBaseline) />,
+  <WithStyles(Component)
+    net={
+      Object {
+        "amount": 6,
+        "currency": "USD",
+      }
+    }
+    onCapture={[Function]}
+    onCreate={[Function]}
+    onFulfill={[Function]}
+    onOrderCancel={[Function]}
+    onOrderLineChange={[Function]}
+    onOrderLineRemove={[Function]}
+    onRefund={[Function]}
+    onRelease={[Function]}
+    onRowClick={[Function]}
+    paid={
+      Object {
+        "amount": 19.2,
+        "currency": "USD",
+      }
+    }
+    paymentStatus="error"
+    products={
+      Array [
+        Object {
+          "id": "UHJvZHVjdDox",
+          "name": "Gardner, Graham and King",
+          "price": Object {
+            "gross": Object {
+              "amount": 12.4,
+              "currency": "USD",
+            },
+          },
+          "quantity": 1,
+          "sku": "9123021",
+          "thumbnailUrl": "placeholder60x60.png",
+        },
+        Object {
+          "id": "UHJvZHVjdDoy",
+          "name": "Gardner and Graham",
+          "price": Object {
+            "gross": Object {
+              "amount": 11.6,
+              "currency": "USD",
+            },
+          },
+          "quantity": 2,
+          "sku": "9123022",
+          "thumbnailUrl": "placeholder60x60.png",
+        },
+        Object {
+          "id": "UHJvZHVjdDoz",
+          "name": "Gardner and King",
+          "price": Object {
+            "gross": Object {
+              "amount": 22.4,
+              "currency": "USD",
+            },
+          },
+          "quantity": 7,
+          "sku": "9123023",
+          "thumbnailUrl": "placeholder60x60.png",
+        },
+        Object {
+          "id": "UHJvZHVjdDoa",
+          "name": "Graham and King",
+          "price": Object {
+            "gross": Object {
+              "amount": 9.9,
+              "currency": "USD",
+            },
+          },
+          "quantity": 3,
+          "sku": "9123024",
+          "thumbnailUrl": "placeholder60x60.png",
+        },
+      ]
+    }
+    refunded={
+      Object {
+        "amount": 13.2,
+        "currency": "USD",
+      }
+    }
+    status="partially fulfilled"
+    subtotal={
+      Object {
+        "amount": 160.2,
+        "currency": "USD",
+      }
+    }
+    total={
+      Object {
+        "amount": 165.7,
+        "currency": "USD",
+      }
+    }
+  />,
+]
+`;
+
+exports[`Storyshots Orders / OrderSummary payment input 1`] = `
+Array [
+  <WithStyles(CssBaseline) />,
+  <WithStyles(Component)
+    net={
+      Object {
+        "amount": 6,
+        "currency": "USD",
+      }
+    }
+    onCapture={[Function]}
+    onCreate={[Function]}
+    onFulfill={[Function]}
+    onOrderCancel={[Function]}
+    onOrderLineChange={[Function]}
+    onOrderLineRemove={[Function]}
+    onRefund={[Function]}
+    onRelease={[Function]}
+    onRowClick={[Function]}
+    paid={
+      Object {
+        "amount": 19.2,
+        "currency": "USD",
+      }
+    }
+    paymentStatus="input"
+    products={
+      Array [
+        Object {
+          "id": "UHJvZHVjdDox",
+          "name": "Gardner, Graham and King",
+          "price": Object {
+            "gross": Object {
+              "amount": 12.4,
+              "currency": "USD",
+            },
+          },
+          "quantity": 1,
+          "sku": "9123021",
+          "thumbnailUrl": "placeholder60x60.png",
+        },
+        Object {
+          "id": "UHJvZHVjdDoy",
+          "name": "Gardner and Graham",
+          "price": Object {
+            "gross": Object {
+              "amount": 11.6,
+              "currency": "USD",
+            },
+          },
+          "quantity": 2,
+          "sku": "9123022",
+          "thumbnailUrl": "placeholder60x60.png",
+        },
+        Object {
+          "id": "UHJvZHVjdDoz",
+          "name": "Gardner and King",
+          "price": Object {
+            "gross": Object {
+              "amount": 22.4,
+              "currency": "USD",
+            },
+          },
+          "quantity": 7,
+          "sku": "9123023",
+          "thumbnailUrl": "placeholder60x60.png",
+        },
+        Object {
+          "id": "UHJvZHVjdDoa",
+          "name": "Graham and King",
+          "price": Object {
+            "gross": Object {
+              "amount": 9.9,
+              "currency": "USD",
+            },
+          },
+          "quantity": 3,
+          "sku": "9123024",
+          "thumbnailUrl": "placeholder60x60.png",
+        },
+      ]
+    }
+    refunded={
+      Object {
+        "amount": 13.2,
+        "currency": "USD",
+      }
+    }
+    status="partially fulfilled"
+    subtotal={
+      Object {
+        "amount": 160.2,
+        "currency": "USD",
+      }
+    }
+    total={
+      Object {
+        "amount": 165.7,
+        "currency": "USD",
+      }
+    }
+  />,
+]
+`;
+
+exports[`Storyshots Orders / OrderSummary payment preauth 1`] = `
+Array [
+  <WithStyles(CssBaseline) />,
+  <WithStyles(Component)
+    net={
+      Object {
+        "amount": 6,
+        "currency": "USD",
+      }
+    }
+    onCapture={[Function]}
+    onCreate={[Function]}
+    onFulfill={[Function]}
+    onOrderCancel={[Function]}
+    onOrderLineChange={[Function]}
+    onOrderLineRemove={[Function]}
+    onRefund={[Function]}
+    onRelease={[Function]}
+    onRowClick={[Function]}
+    paid={
+      Object {
+        "amount": 19.2,
+        "currency": "USD",
+      }
+    }
+    paymentStatus="preauth"
+    products={
+      Array [
+        Object {
+          "id": "UHJvZHVjdDox",
+          "name": "Gardner, Graham and King",
+          "price": Object {
+            "gross": Object {
+              "amount": 12.4,
+              "currency": "USD",
+            },
+          },
+          "quantity": 1,
+          "sku": "9123021",
+          "thumbnailUrl": "placeholder60x60.png",
+        },
+        Object {
+          "id": "UHJvZHVjdDoy",
+          "name": "Gardner and Graham",
+          "price": Object {
+            "gross": Object {
+              "amount": 11.6,
+              "currency": "USD",
+            },
+          },
+          "quantity": 2,
+          "sku": "9123022",
+          "thumbnailUrl": "placeholder60x60.png",
+        },
+        Object {
+          "id": "UHJvZHVjdDoz",
+          "name": "Gardner and King",
+          "price": Object {
+            "gross": Object {
+              "amount": 22.4,
+              "currency": "USD",
+            },
+          },
+          "quantity": 7,
+          "sku": "9123023",
+          "thumbnailUrl": "placeholder60x60.png",
+        },
+        Object {
+          "id": "UHJvZHVjdDoa",
+          "name": "Graham and King",
+          "price": Object {
+            "gross": Object {
+              "amount": 9.9,
+              "currency": "USD",
+            },
+          },
+          "quantity": 3,
+          "sku": "9123024",
+          "thumbnailUrl": "placeholder60x60.png",
+        },
+      ]
+    }
+    refunded={
+      Object {
+        "amount": 13.2,
+        "currency": "USD",
+      }
+    }
+    status="partially fulfilled"
+    subtotal={
+      Object {
+        "amount": 160.2,
+        "currency": "USD",
+      }
+    }
+    total={
+      Object {
+        "amount": 165.7,
+        "currency": "USD",
+      }
+    }
+  />,
+]
+`;
+
+exports[`Storyshots Orders / OrderSummary payment refunded 1`] = `
+Array [
+  <WithStyles(CssBaseline) />,
+  <WithStyles(Component)
+    net={
+      Object {
+        "amount": 6,
+        "currency": "USD",
+      }
+    }
+    onCapture={[Function]}
+    onCreate={[Function]}
+    onFulfill={[Function]}
+    onOrderCancel={[Function]}
+    onOrderLineChange={[Function]}
+    onOrderLineRemove={[Function]}
+    onRefund={[Function]}
+    onRelease={[Function]}
+    onRowClick={[Function]}
+    paid={
+      Object {
+        "amount": 19.2,
+        "currency": "USD",
+      }
+    }
+    paymentStatus="refunded"
+    products={
+      Array [
+        Object {
+          "id": "UHJvZHVjdDox",
+          "name": "Gardner, Graham and King",
+          "price": Object {
+            "gross": Object {
+              "amount": 12.4,
+              "currency": "USD",
+            },
+          },
+          "quantity": 1,
+          "sku": "9123021",
+          "thumbnailUrl": "placeholder60x60.png",
+        },
+        Object {
+          "id": "UHJvZHVjdDoy",
+          "name": "Gardner and Graham",
+          "price": Object {
+            "gross": Object {
+              "amount": 11.6,
+              "currency": "USD",
+            },
+          },
+          "quantity": 2,
+          "sku": "9123022",
+          "thumbnailUrl": "placeholder60x60.png",
+        },
+        Object {
+          "id": "UHJvZHVjdDoz",
+          "name": "Gardner and King",
+          "price": Object {
+            "gross": Object {
+              "amount": 22.4,
+              "currency": "USD",
+            },
+          },
+          "quantity": 7,
+          "sku": "9123023",
+          "thumbnailUrl": "placeholder60x60.png",
+        },
+        Object {
+          "id": "UHJvZHVjdDoa",
+          "name": "Graham and King",
+          "price": Object {
+            "gross": Object {
+              "amount": 9.9,
+              "currency": "USD",
+            },
+          },
+          "quantity": 3,
+          "sku": "9123024",
+          "thumbnailUrl": "placeholder60x60.png",
+        },
+      ]
+    }
+    refunded={
+      Object {
+        "amount": 13.2,
+        "currency": "USD",
+      }
+    }
+    status="partially fulfilled"
+    subtotal={
+      Object {
+        "amount": 160.2,
+        "currency": "USD",
+      }
+    }
+    total={
+      Object {
+        "amount": 165.7,
+        "currency": "USD",
+      }
+    }
+  />,
+]
+`;
+
+exports[`Storyshots Orders / OrderSummary payment rejected 1`] = `
+Array [
+  <WithStyles(CssBaseline) />,
+  <WithStyles(Component)
+    net={
+      Object {
+        "amount": 6,
+        "currency": "USD",
+      }
+    }
+    onCapture={[Function]}
+    onCreate={[Function]}
+    onFulfill={[Function]}
+    onOrderCancel={[Function]}
+    onOrderLineChange={[Function]}
+    onOrderLineRemove={[Function]}
+    onRefund={[Function]}
+    onRelease={[Function]}
+    onRowClick={[Function]}
+    paid={
+      Object {
+        "amount": 19.2,
+        "currency": "USD",
+      }
+    }
+    paymentStatus="rejected"
+    products={
+      Array [
+        Object {
+          "id": "UHJvZHVjdDox",
+          "name": "Gardner, Graham and King",
+          "price": Object {
+            "gross": Object {
+              "amount": 12.4,
+              "currency": "USD",
+            },
+          },
+          "quantity": 1,
+          "sku": "9123021",
+          "thumbnailUrl": "placeholder60x60.png",
+        },
+        Object {
+          "id": "UHJvZHVjdDoy",
+          "name": "Gardner and Graham",
+          "price": Object {
+            "gross": Object {
+              "amount": 11.6,
+              "currency": "USD",
+            },
+          },
+          "quantity": 2,
+          "sku": "9123022",
+          "thumbnailUrl": "placeholder60x60.png",
+        },
+        Object {
+          "id": "UHJvZHVjdDoz",
+          "name": "Gardner and King",
+          "price": Object {
+            "gross": Object {
+              "amount": 22.4,
+              "currency": "USD",
+            },
+          },
+          "quantity": 7,
+          "sku": "9123023",
+          "thumbnailUrl": "placeholder60x60.png",
+        },
+        Object {
+          "id": "UHJvZHVjdDoa",
+          "name": "Graham and King",
+          "price": Object {
+            "gross": Object {
+              "amount": 9.9,
+              "currency": "USD",
+            },
+          },
+          "quantity": 3,
+          "sku": "9123024",
+          "thumbnailUrl": "placeholder60x60.png",
+        },
+      ]
+    }
+    refunded={
+      Object {
+        "amount": 13.2,
+        "currency": "USD",
+      }
+    }
+    status="partially fulfilled"
+    subtotal={
+      Object {
+        "amount": 160.2,
+        "currency": "USD",
+      }
+    }
+    total={
+      Object {
+        "amount": 165.7,
+        "currency": "USD",
+      }
+    }
+  />,
+]
+`;
+
+exports[`Storyshots Orders / OrderSummary payment waiting 1`] = `
+Array [
+  <WithStyles(CssBaseline) />,
+  <WithStyles(Component)
+    net={
+      Object {
+        "amount": 6,
+        "currency": "USD",
+      }
+    }
+    onCapture={[Function]}
+    onCreate={[Function]}
+    onFulfill={[Function]}
+    onOrderCancel={[Function]}
+    onOrderLineChange={[Function]}
+    onOrderLineRemove={[Function]}
+    onRefund={[Function]}
+    onRelease={[Function]}
+    onRowClick={[Function]}
+    paid={
+      Object {
+        "amount": 19.2,
+        "currency": "USD",
+      }
+    }
+    paymentStatus="waiting"
+    products={
+      Array [
+        Object {
+          "id": "UHJvZHVjdDox",
+          "name": "Gardner, Graham and King",
+          "price": Object {
+            "gross": Object {
+              "amount": 12.4,
+              "currency": "USD",
+            },
+          },
+          "quantity": 1,
+          "sku": "9123021",
+          "thumbnailUrl": "placeholder60x60.png",
+        },
+        Object {
+          "id": "UHJvZHVjdDoy",
+          "name": "Gardner and Graham",
+          "price": Object {
+            "gross": Object {
+              "amount": 11.6,
+              "currency": "USD",
+            },
+          },
+          "quantity": 2,
+          "sku": "9123022",
+          "thumbnailUrl": "placeholder60x60.png",
+        },
+        Object {
+          "id": "UHJvZHVjdDoz",
+          "name": "Gardner and King",
+          "price": Object {
+            "gross": Object {
+              "amount": 22.4,
+              "currency": "USD",
+            },
+          },
+          "quantity": 7,
+          "sku": "9123023",
+          "thumbnailUrl": "placeholder60x60.png",
+        },
+        Object {
+          "id": "UHJvZHVjdDoa",
+          "name": "Graham and King",
+          "price": Object {
+            "gross": Object {
+              "amount": 9.9,
+              "currency": "USD",
+            },
+          },
+          "quantity": 3,
+          "sku": "9123024",
+          "thumbnailUrl": "placeholder60x60.png",
+        },
+      ]
+    }
+    refunded={
+      Object {
+        "amount": 13.2,
+        "currency": "USD",
+      }
+    }
+    status="partially fulfilled"
+    subtotal={
+      Object {
+        "amount": 160.2,
+        "currency": "USD",
+      }
+    }
+    total={
+      Object {
+        "amount": 165.7,
+        "currency": "USD",
+      }
+    }
+  />,
+]
+`;
+
+exports[`Storyshots Orders / OrderSummary when loading data 1`] = `
+Array [
+  <WithStyles(CssBaseline) />,
+  <WithStyles(Component) />,
+]
 `;
 
 exports[`Storyshots Pages / PageBaseForm with 'created' property 1`] = `
@@ -2219,207 +4500,6 @@ exports[`Storyshots Products / ProductDetailsForm with no initial data 1`] = `
 />
 `;
 
-exports[`Storyshots Products / ProductDetailsPage when loaded data 1`] = `
-<Component
-  classes={
-    Object {
-      "root": "Component-root-31",
-    }
-  }
-  onBack={[Function]}
-  onCollectionShow={[Function]}
-  onDelete={[Function]}
-  onEdit={[Function]}
-  onImageEdit={[Function]}
-  onImageReorder={[Function]}
-  onImageUpload={[Function]}
-  onProductPublish={[Function]}
-  onProductShow={[Function]}
-  onVariantShow={[Function]}
-  placeholderImage="placeholder255x255.png"
-  product={
-    Object {
-      "availability": Object {
-        "available": true,
-        "priceRange": Object {
-          "start": Object {
-            "net": Object {
-              "localized": "55,14 USD",
-            },
-          },
-          "stop": Object {
-            "net": Object {
-              "localized": "88,36 USD",
-            },
-          },
-        },
-      },
-      "collections": Object {
-        "edges": Array [
-          Object {
-            "node": Object {
-              "id": "collection-1",
-              "name": "Winter Collection",
-            },
-          },
-          Object {
-            "node": Object {
-              "id": "collection-2",
-              "name": "Summer Collection",
-            },
-          },
-        ],
-      },
-      "description": "Light light office style present life military. Enough executive coach cause own.
-
-Care season wrong fly. Example age between discuss assume.
-
-Their third build might strong account. Worry enter room note level air.
-
-Weight director mother. Because find task with now enter tree management.
-
-Soon name recently ground green. There owner sport box them red information.",
-      "grossMargin": Array [
-        Object {
-          "start": 56,
-          "stop": 98,
-        },
-      ],
-      "id": "UHJvZHVjdDoyOA==",
-      "images": Object {
-        "edges": Array [
-          Object {
-            "node": Object {
-              "alt": "",
-              "id": "UHJvZHVjdEltYWdlOjY2",
-              "order": 0,
-              "url": "placeholder255x255.png",
-            },
-          },
-          Object {
-            "node": Object {
-              "alt": "",
-              "id": "UHJvZHVjdEltYWdlOjY3",
-              "order": 1,
-              "url": "placeholder255x255.png",
-            },
-          },
-          Object {
-            "node": Object {
-              "alt": "",
-              "id": "UHJvZHVjdEltYWdlOjY4",
-              "order": 2,
-              "url": "placeholder255x255.png",
-            },
-          },
-        ],
-      },
-      "isPublished": true,
-      "name": "Stewart-Barrera",
-      "price": Object {
-        "localized": "95,47 USD",
-      },
-      "productType": Object {
-        "id": "UHJvZHVjdFR5cGU6Mw==",
-        "name": "Coffee",
-      },
-      "purchaseCost": Object {
-        "start": Object {
-          "gross": Object {
-            "localized": "1,88 USD",
-          },
-        },
-        "stop": Object {
-          "gross": Object {
-            "localized": "48,10 USD",
-          },
-        },
-      },
-      "url": "/pl/products/stewart-barrera-28/",
-      "variants": Object {
-        "edges": Array [
-          Object {
-            "node": Object {
-              "id": "UHJvZHVjdFZhcmlhbnQ6Nw==",
-              "name": "XXL",
-              "priceOverride": null,
-              "sku": "2-1337",
-              "stockQuantity": 5,
-            },
-          },
-          Object {
-            "node": Object {
-              "id": "UHJvZHVjdFZhcmlhbnQ6OA==",
-              "name": "XL",
-              "priceOverride": null,
-              "sku": "2-1338",
-              "stockQuantity": 0,
-            },
-          },
-          Object {
-            "node": Object {
-              "id": "UHJvZHVjdFZhcmlhbnQ6OQ==",
-              "name": "L",
-              "priceOverride": null,
-              "sku": "2-1339",
-              "stockQuantity": 15,
-            },
-          },
-          Object {
-            "node": Object {
-              "id": "UHJvZHVjdFZhcmlhbnQ6MTA=",
-              "name": "M",
-              "priceOverride": null,
-              "sku": "2-1340",
-              "stockQuantity": 33,
-            },
-          },
-          Object {
-            "node": Object {
-              "id": "UHJvZHVjdFZhcmlhbnQ6MTE=",
-              "name": "S",
-              "priceOverride": null,
-              "sku": "2-1341",
-              "stockQuantity": 0,
-            },
-          },
-          Object {
-            "node": Object {
-              "id": "UHJvZHVjdFZhcmlhbnQ6MTI=",
-              "name": "XS",
-              "priceOverride": null,
-              "sku": "2-1342",
-              "stockQuantity": 0,
-            },
-          },
-        ],
-      },
-    }
-  }
-/>
-`;
-
-exports[`Storyshots Products / ProductDetailsPage when loading data 1`] = `
-<Component
-  classes={
-    Object {
-      "root": "Component-root-31",
-    }
-  }
-  onBack={[Function]}
-  onCollectionShow={[Function]}
-  onDelete={[Function]}
-  onEdit={[Function]}
-  onImageEdit={[Function]}
-  onImageReorder={[Function]}
-  onImageUpload={[Function]}
-  onProductPublish={[Function]}
-  onProductShow={[Function]}
-  onVariantShow={[Function]}
-  placeholderImage="placeholder255x255.png"
-/>
-`;
-
 exports[`Storyshots Products / ProductImagePage data loaded 1`] = `
 <Component
   classes={
@@ -2520,224 +4600,6 @@ exports[`Storyshots Products / ProductImages without data 1`] = `
 />
 `;
 
-exports[`Storyshots Products / ProductListCard when loading data 1`] = `
-<WithStyles(Card)>
-  <WithStyles(Component)
-    title="Product list"
-  >
-    <Hidden
-      implementation="js"
-      lgDown={false}
-      lgUp={false}
-      mdDown={false}
-      mdUp={true}
-      smDown={false}
-      smUp={false}
-      xlDown={false}
-      xlUp={false}
-      xsDown={false}
-      xsUp={false}
-    >
-      <WithStyles(IconButton)
-        onClick={[Function]}
-      >
-        <pure(FilterList) />
-      </WithStyles(IconButton)>
-    </Hidden>
-  </WithStyles(Component)>
-  <WithStyles(Component)
-    hasNextPage={true}
-    hasPreviousPage={false}
-    onNextPage={[Function]}
-    onPreviousPage={[Function]}
-  />
-</WithStyles(Card)>
-`;
-
-exports[`Storyshots Products / ProductListCard with clickable rows 1`] = `
-<WithStyles(Card)>
-  <WithStyles(Component)
-    title="Product list"
-  >
-    <Hidden
-      implementation="js"
-      lgDown={false}
-      lgUp={false}
-      mdDown={false}
-      mdUp={true}
-      smDown={false}
-      smUp={false}
-      xlDown={false}
-      xlUp={false}
-      xsDown={false}
-      xsUp={false}
-    >
-      <WithStyles(IconButton)
-        onClick={[Function]}
-      >
-        <pure(FilterList) />
-      </WithStyles(IconButton)>
-    </Hidden>
-  </WithStyles(Component)>
-  <WithStyles(Component)
-    hasNextPage={true}
-    hasPreviousPage={false}
-    onNextPage={[Function]}
-    onPreviousPage={[Function]}
-    onRowClick={[Function]}
-    products={
-      Array [
-        Object {
-          "id": "UHJvZHVjdDox",
-          "name": "Gardner, Graham and King",
-          "productType": Object {
-            "id": "1",
-            "name": "T-Shirt",
-          },
-          "thumbnailUrl": "placeholder255x255.png",
-        },
-        Object {
-          "id": "UHJvZHVjdDoy",
-          "name": "Gardner, Graham and King",
-          "productType": Object {
-            "id": "1",
-            "name": "T-Shirt",
-          },
-          "thumbnailUrl": "placeholder255x255.png",
-        },
-        Object {
-          "id": "UHJvZHVjdDoz",
-          "name": "Gardner, Graham and King",
-          "productType": Object {
-            "id": "1",
-            "name": "T-Shirt",
-          },
-          "thumbnailUrl": "placeholder255x255.png",
-        },
-        Object {
-          "id": "UHJvZHVjdDoa",
-          "name": "Gardner, Graham and King",
-          "productType": Object {
-            "id": "1",
-            "name": "T-Shirt",
-          },
-          "thumbnailUrl": "placeholder255x255.png",
-        },
-      ]
-    }
-  />
-</WithStyles(Card)>
-`;
-
-exports[`Storyshots Products / ProductListCard with initial data 1`] = `
-<WithStyles(Card)>
-  <WithStyles(Component)
-    title="Product list"
-  >
-    <Hidden
-      implementation="js"
-      lgDown={false}
-      lgUp={false}
-      mdDown={false}
-      mdUp={true}
-      smDown={false}
-      smUp={false}
-      xlDown={false}
-      xlUp={false}
-      xsDown={false}
-      xsUp={false}
-    >
-      <WithStyles(IconButton)
-        onClick={[Function]}
-      >
-        <pure(FilterList) />
-      </WithStyles(IconButton)>
-    </Hidden>
-  </WithStyles(Component)>
-  <WithStyles(Component)
-    hasNextPage={true}
-    hasPreviousPage={false}
-    onNextPage={[Function]}
-    onPreviousPage={[Function]}
-    products={
-      Array [
-        Object {
-          "id": "UHJvZHVjdDox",
-          "name": "Gardner, Graham and King",
-          "productType": Object {
-            "id": "1",
-            "name": "T-Shirt",
-          },
-          "thumbnailUrl": "placeholder255x255.png",
-        },
-        Object {
-          "id": "UHJvZHVjdDoy",
-          "name": "Gardner, Graham and King",
-          "productType": Object {
-            "id": "1",
-            "name": "T-Shirt",
-          },
-          "thumbnailUrl": "placeholder255x255.png",
-        },
-        Object {
-          "id": "UHJvZHVjdDoz",
-          "name": "Gardner, Graham and King",
-          "productType": Object {
-            "id": "1",
-            "name": "T-Shirt",
-          },
-          "thumbnailUrl": "placeholder255x255.png",
-        },
-        Object {
-          "id": "UHJvZHVjdDoa",
-          "name": "Gardner, Graham and King",
-          "productType": Object {
-            "id": "1",
-            "name": "T-Shirt",
-          },
-          "thumbnailUrl": "placeholder255x255.png",
-        },
-      ]
-    }
-  />
-</WithStyles(Card)>
-`;
-
-exports[`Storyshots Products / ProductListCard without initial data 1`] = `
-<WithStyles(Card)>
-  <WithStyles(Component)
-    title="Product list"
-  >
-    <Hidden
-      implementation="js"
-      lgDown={false}
-      lgUp={false}
-      mdDown={false}
-      mdUp={true}
-      smDown={false}
-      smUp={false}
-      xlDown={false}
-      xlUp={false}
-      xsDown={false}
-      xsUp={false}
-    >
-      <WithStyles(IconButton)
-        onClick={[Function]}
-      >
-        <pure(FilterList) />
-      </WithStyles(IconButton)>
-    </Hidden>
-  </WithStyles(Component)>
-  <WithStyles(Component)
-    hasNextPage={true}
-    hasPreviousPage={false}
-    onNextPage={[Function]}
-    onPreviousPage={[Function]}
-    products={Array []}
-  />
-</WithStyles(Card)>
-`;
-
 exports[`Storyshots Products / ProductPriceAndAvailability when loading data 1`] = `
 <Component
   classes={
@@ -2815,183 +4677,6 @@ exports[`Storyshots Products / ProductPriceAndAvailability when product is not a
       "stop": "88,36 USD",
     }
   }
-/>
-`;
-
-exports[`Storyshots Products / ProductUpdatePage when data is fully loaded 1`] = `
-<Component
-  categories={
-    Array [
-      Object {
-        "id": "123123",
-        "name": "Lorem ipsum dolor",
-      },
-      Object {
-        "id": "876752",
-        "name": "Mauris vehicula tortor vulputate",
-      },
-    ]
-  }
-  classes={
-    Object {
-      "cardContainer": "Component-cardContainer-45",
-      "grid": "Component-grid-44",
-      "root": "Component-root-43",
-    }
-  }
-  collections={
-    Array [
-      Object {
-        "id": "1",
-        "name": "Winter collection",
-      },
-      Object {
-        "id": "2",
-        "name": "Emperor's choice",
-      },
-    ]
-  }
-  onBack={[Function]}
-  onSubmit={[Function]}
-  product={
-    Object {
-      "attributes": Array [
-        Object {
-          "name": "brand",
-          "value": "superbrand",
-        },
-        Object {
-          "name": "collar",
-          "value": "round",
-        },
-        Object {
-          "name": "color",
-          "value": "blue",
-        },
-      ],
-      "available": true,
-      "availableOn": "23-01-2006",
-      "category": Object {
-        "id": "123123",
-      },
-      "collections": Object {
-        "edges": Array [
-          Object {
-            "node": Object {
-              "id": "1",
-              "name": "Winter collection",
-            },
-          },
-        ],
-      },
-      "description": "Aenean sit amet malesuada nibh. Proin nisi lorem, facilisis at tortor vel, convallis ornare nibh. In nec ipsum porta, varius leo eu, condimentum quam. Donec gravida euismod ipsum, at consequat orci efficitur nec. Phasellus lectus arcu, auctor eget porttitor eget, venenatis a lacus. Suspendisse quis urna rhoncus, commodo justo at, tempor nisl.",
-      "id": "1231u",
-      "name": "Our awesome book",
-      "price": Object {
-        "currencySymbol": "$",
-        "net": 3000.1,
-      },
-      "productType": Object {
-        "name": "Book",
-        "productAttributes": Object {
-          "edges": Array [
-            Object {
-              "node": Object {
-                "id": "UHJvZHVjdEF0dHJpYnV0ZToz",
-                "name": "Brand",
-                "slug": "brand",
-                "values": Array [
-                  Object {
-                    "id": "UHJvZHVjdEF0dHJpYnV0ZVZhbHVlOjQw",
-                    "name": "dominikibrand",
-                    "slug": "dominikibrand",
-                  },
-                  Object {
-                    "id": "UHJvZHVjdEF0dHJpYnV0ZVZhbHVlOjM5",
-                    "name": "superbrand",
-                    "slug": "superbrand",
-                  },
-                  Object {
-                    "id": "UHJvZHVjdEF0dHJpYnV0ZVZhbHVlOjM4",
-                    "name": "Mirumee",
-                    "slug": "mirumee",
-                  },
-                  Object {
-                    "id": "UHJvZHVjdEF0dHJpYnV0ZVZhbHVlOjY=",
-                    "name": "Saleor",
-                    "slug": "saleor",
-                  },
-                ],
-              },
-            },
-            Object {
-              "node": Object {
-                "id": "UHJvZHVjdEF0dHJpYnV0ZToy",
-                "name": "Collar",
-                "slug": "collar",
-                "values": Array [
-                  Object {
-                    "id": "UHJvZHVjdEF0dHJpYnV0ZVZhbHVlOjU=",
-                    "name": "Polo",
-                    "slug": "polo",
-                  },
-                  Object {
-                    "id": "UHJvZHVjdEF0dHJpYnV0ZVZhbHVlOjQ=",
-                    "name": "V-Neck",
-                    "slug": "v-neck",
-                  },
-                  Object {
-                    "id": "UHJvZHVjdEF0dHJpYnV0ZVZhbHVlOjM=",
-                    "name": "Round",
-                    "slug": "round",
-                  },
-                ],
-              },
-            },
-            Object {
-              "node": Object {
-                "id": "UHJvZHVjdEF0dHJpYnV0ZTox",
-                "name": "Color",
-                "slug": "color",
-                "values": Array [
-                  Object {
-                    "id": "UHJvZHVjdEF0dHJpYnV0ZVZhbHVlOjI=",
-                    "name": "White",
-                    "slug": "white",
-                  },
-                  Object {
-                    "id": "UHJvZHVjdEF0dHJpYnV0ZVZhbHVlOjE=",
-                    "name": "Blue",
-                    "slug": "blue",
-                  },
-                ],
-              },
-            },
-          ],
-        },
-      },
-      "seo": Object {
-        "description": "Order our awesome book right now!",
-        "title": "Buy our awesome book now!",
-      },
-      "slug": "our-awesome-book-1231u",
-    }
-  }
-/>
-`;
-
-exports[`Storyshots Products / ProductUpdatePage when loading data 1`] = `
-<Component
-  classes={
-    Object {
-      "cardContainer": "Component-cardContainer-45",
-      "grid": "Component-grid-44",
-      "root": "Component-root-43",
-    }
-  }
-  loading={true}
-  onBack={[Function]}
-  onSubmit={[Function]}
 />
 `;
 
@@ -3298,199 +4983,6 @@ exports[`Storyshots Products / ProductVariantNavigation with clickable rows 1`] 
 />
 `;
 
-exports[`Storyshots Products / ProductVariantPage when loaded data 1`] = `
-<Component
-  classes={
-    Object {
-      "root": "Component-root-57",
-    }
-  }
-  onBack={[Function]}
-  onDelete={[Function]}
-  onImageSelect={[Function]}
-  variant={
-    Object {
-      "attributes": Array [
-        Object {
-          "attribute": Object {
-            "name": "Cover",
-            "slug": "cover",
-            "values": Array [
-              "hard",
-              "soft",
-            ],
-          },
-          "value": "hard",
-        },
-        Object {
-          "attribute": Object {
-            "name": "Version",
-            "slug": "version",
-            "values": Array [
-              "regular",
-              "extended",
-            ],
-          },
-          "value": "extended",
-        },
-      ],
-      "id": "var1",
-      "images": Object {
-        "edges": Array [
-          Object {
-            "node": Object {
-              "id": "img1",
-            },
-          },
-          Object {
-            "node": Object {
-              "id": "img2",
-            },
-          },
-          Object {
-            "node": Object {
-              "id": "img7",
-            },
-          },
-          Object {
-            "node": Object {
-              "id": "img8",
-            },
-          },
-        ],
-      },
-      "name": "Extended Hard",
-      "priceOverride": Object {
-        "amount": 100,
-        "currency": "USD",
-      },
-      "product": Object {
-        "id": "prod1",
-        "images": Object {
-          "edges": Array [
-            Object {
-              "node": Object {
-                "alt": "Front",
-                "id": "img1",
-                "order": 1,
-                "url": "placeholder60x60.png",
-              },
-            },
-            Object {
-              "node": Object {
-                "alt": "Back",
-                "id": "img2",
-                "order": 4,
-                "url": "placeholder60x60.png",
-              },
-            },
-            Object {
-              "node": Object {
-                "alt": "Right side",
-                "id": "img3",
-                "order": 2,
-                "url": "placeholder60x60.png",
-              },
-            },
-            Object {
-              "node": Object {
-                "alt": "Left side",
-                "id": "img4",
-                "order": 3,
-                "url": "placeholder60x60.png",
-              },
-            },
-            Object {
-              "node": Object {
-                "alt": "Paper",
-                "id": "img5",
-                "order": 0,
-                "url": "placeholder60x60.png",
-              },
-            },
-            Object {
-              "node": Object {
-                "alt": "Hard cover",
-                "id": "img6",
-                "order": 1,
-                "url": "placeholder60x60.png",
-              },
-            },
-            Object {
-              "node": Object {
-                "alt": "Extended version",
-                "id": "img7",
-                "order": 0,
-                "url": "placeholder60x60.png",
-              },
-            },
-            Object {
-              "node": Object {
-                "alt": "Cut version",
-                "id": "img8",
-                "order": 2,
-                "url": "placeholder60x60.png",
-              },
-            },
-            Object {
-              "node": Object {
-                "alt": "Soft cover",
-                "id": "img9",
-                "order": 2,
-                "url": "placeholder60x60.png",
-              },
-            },
-          ],
-        },
-        "name": "Our Awesome Book",
-        "thumbnailUrl": "placeholder60x60.png",
-        "variants": Object {
-          "edges": Array [
-            Object {
-              "node": Object {
-                "id": "var2",
-                "name": "Extended Soft",
-              },
-            },
-            Object {
-              "node": Object {
-                "id": "var3",
-                "name": "Normal Hard",
-              },
-            },
-            Object {
-              "node": Object {
-                "id": "var4",
-                "name": "Normal Soft",
-              },
-            },
-          ],
-          "totalCount": 11,
-        },
-      },
-      "sku": "1230959124123",
-      "stock": 49,
-      "stockAllocated": 12,
-    }
-  }
-/>
-`;
-
-exports[`Storyshots Products / ProductVariantPage when loading data 1`] = `
-<Component
-  classes={
-    Object {
-      "root": "Component-root-57",
-    }
-  }
-  loading={true}
-  onBack={[Function]}
-  onDelete={[Function]}
-  onImageSelect={[Function]}
-  placeholderImage="placeholder60x60.png"
-/>
-`;
-
 exports[`Storyshots Products / ProductVariantPrice when loaded data 1`] = `
 <Component
   classes={
@@ -3718,6 +5210,7 @@ exports[`Storyshots Products / ProductVariants when product has variants 1`] = `
     Array [
       Object {
         "id": "UHJvZHVjdFZhcmlhbnQ6Nw==",
+        "margin": 20,
         "name": "XXL",
         "priceOverride": null,
         "sku": "2-1337",
@@ -3725,6 +5218,7 @@ exports[`Storyshots Products / ProductVariants when product has variants 1`] = `
       },
       Object {
         "id": "UHJvZHVjdFZhcmlhbnQ6OA==",
+        "margin": 20,
         "name": "XL",
         "priceOverride": null,
         "sku": "2-1338",
@@ -3732,6 +5226,7 @@ exports[`Storyshots Products / ProductVariants when product has variants 1`] = `
       },
       Object {
         "id": "UHJvZHVjdFZhcmlhbnQ6OQ==",
+        "margin": 20,
         "name": "L",
         "priceOverride": null,
         "sku": "2-1339",
@@ -3739,6 +5234,7 @@ exports[`Storyshots Products / ProductVariants when product has variants 1`] = `
       },
       Object {
         "id": "UHJvZHVjdFZhcmlhbnQ6MTA=",
+        "margin": 20,
         "name": "M",
         "priceOverride": null,
         "sku": "2-1340",
@@ -3746,6 +5242,7 @@ exports[`Storyshots Products / ProductVariants when product has variants 1`] = `
       },
       Object {
         "id": "UHJvZHVjdFZhcmlhbnQ6MTE=",
+        "margin": 20,
         "name": "S",
         "priceOverride": null,
         "sku": "2-1341",
@@ -3753,6 +5250,7 @@ exports[`Storyshots Products / ProductVariants when product has variants 1`] = `
       },
       Object {
         "id": "UHJvZHVjdFZhcmlhbnQ6MTI=",
+        "margin": 20,
         "name": "XS",
         "priceOverride": null,
         "sku": "2-1342",
@@ -3780,6 +5278,7 @@ exports[`Storyshots Products / ProductVariants with clickable rows 1`] = `
     Array [
       Object {
         "id": "UHJvZHVjdFZhcmlhbnQ6Nw==",
+        "margin": 20,
         "name": "XXL",
         "priceOverride": null,
         "sku": "2-1337",
@@ -3787,6 +5286,7 @@ exports[`Storyshots Products / ProductVariants with clickable rows 1`] = `
       },
       Object {
         "id": "UHJvZHVjdFZhcmlhbnQ6OA==",
+        "margin": 20,
         "name": "XL",
         "priceOverride": null,
         "sku": "2-1338",
@@ -3794,6 +5294,7 @@ exports[`Storyshots Products / ProductVariants with clickable rows 1`] = `
       },
       Object {
         "id": "UHJvZHVjdFZhcmlhbnQ6OQ==",
+        "margin": 20,
         "name": "L",
         "priceOverride": null,
         "sku": "2-1339",
@@ -3801,6 +5302,7 @@ exports[`Storyshots Products / ProductVariants with clickable rows 1`] = `
       },
       Object {
         "id": "UHJvZHVjdFZhcmlhbnQ6MTA=",
+        "margin": 20,
         "name": "M",
         "priceOverride": null,
         "sku": "2-1340",
@@ -3808,6 +5310,7 @@ exports[`Storyshots Products / ProductVariants with clickable rows 1`] = `
       },
       Object {
         "id": "UHJvZHVjdFZhcmlhbnQ6MTE=",
+        "margin": 20,
         "name": "S",
         "priceOverride": null,
         "sku": "2-1341",
@@ -3815,6 +5318,7 @@ exports[`Storyshots Products / ProductVariants with clickable rows 1`] = `
       },
       Object {
         "id": "UHJvZHVjdFZhcmlhbnQ6MTI=",
+        "margin": 20,
         "name": "XS",
         "priceOverride": null,
         "sku": "2-1342",
@@ -3822,5 +5326,1999 @@ exports[`Storyshots Products / ProductVariants with clickable rows 1`] = `
       },
     ]
   }
+/>
+`;
+
+exports[`Storyshots Views / Orders / Order details as a draft 1`] = `
+Array [
+  <WithStyles(CssBaseline) />,
+  <WithStyles(OrderDetailsPageComponent)
+    countries={
+      Array [
+        Object {
+          "code": "AF",
+          "label": "Afghanistan",
+        },
+        Object {
+          "code": "AX",
+          "label": "Åland Islands",
+        },
+        Object {
+          "code": "AL",
+          "label": "Albania",
+        },
+        Object {
+          "code": "DZ",
+          "label": "Algeria",
+        },
+        Object {
+          "code": "AS",
+          "label": "American Samoa",
+        },
+      ]
+    }
+    fetchShippingMethods={[Function]}
+    fetchUsers={[Function]}
+    fetchVariants={[Function]}
+    onBack={[Function]}
+    onCreate={[Function]}
+    onCustomerEmailClick={[Function]}
+    onOrderCancel={[Function]}
+    onOrderLineChange={[Function]}
+    onOrderLineRemove={[Function]}
+    onPackingSlipClick={[Function]}
+    onPaymentRelease={[Function]}
+    onPrintClick={[Function]}
+    onProductClick={[Function]}
+    order={
+      Object {
+        "billingAddress": Object {
+          "city": "Keithport",
+          "cityArea": "",
+          "companyName": "",
+          "country": "Cyprus",
+          "countryArea": "",
+          "firstName": "Test",
+          "id": "a1",
+          "lastName": "Client",
+          "phone": Object {
+            "number": "",
+            "prefix": "",
+          },
+          "postalCode": "95393-6818",
+          "streetAddress_1": "9297 Barker Extension",
+          "streetAddress_2": "",
+        },
+        "client": Object {
+          "email": "test.client@example.com",
+          "id": "c1",
+          "name": "Test Client",
+        },
+        "created": "2018-04-07T11:18:19+00:00",
+        "events": Array [
+          Object {
+            "content": "Created order",
+            "date": "2018-04-07T11:18:19+00:00",
+            "id": "n1",
+            "type": "created",
+            "user": "richard.holder@example.com",
+          },
+          Object {
+            "content": "Received payment",
+            "date": "2018-04-07T11:33:19+00:00",
+            "id": "n1",
+            "params": Object {
+              "amount": 165.7,
+              "currency": "USD",
+            },
+            "type": "payment",
+            "user": "richard.holder@example.com",
+          },
+          Object {
+            "content": "Shipped order",
+            "date": "2018-04-07T13:31:19+00:00",
+            "id": "n3",
+            "params": Object {
+              "shippingAddress": "Test Client<br />9297 Barker Extension<br />95393-6818 Keithport<br />Cyprus",
+            },
+            "type": "shipped",
+            "user": "megan.finger@example.com",
+          },
+          Object {
+            "content": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Curabitur arcu nisi, dignissim non placerat id, varius imperdiet nisi. Duis lobortis, massa sed feugiat ultricies, massa felis commodo dui, tempor tempus tellus ligula id arcu. Nam erat dui, fermentum sed dui a, tincidunt molestie magna.",
+            "date": "2018-04-08T11:18:19+00:00",
+            "id": "n4",
+            "type": "note",
+            "user": "megan.finger@example.com",
+          },
+        ],
+        "fulfillments": Array [
+          Object {
+            "id": "f1",
+            "products": Array [
+              Object {
+                "product": Object {
+                  "id": "UHJvZHVjdDoy",
+                  "name": "Gardner and Graham",
+                  "thumbnailUrl": "placeholder60x60.png",
+                },
+                "quantity": 1,
+              },
+              Object {
+                "product": Object {
+                  "id": "UHJvZHVjdDox",
+                  "name": "Gardner, Graham and King",
+                  "thumbnailUrl": "placeholder60x60.png",
+                },
+                "quantity": 1,
+              },
+            ],
+            "status": "fulfilled",
+            "trackingCode": "012391230412131239052",
+          },
+          Object {
+            "id": "f2",
+            "products": Array [
+              Object {
+                "product": Object {
+                  "id": "UHJvZHVjdDoy",
+                  "name": "Gardner and Graham",
+                  "thumbnailUrl": "placeholder60x60.png",
+                },
+                "quantity": 1,
+              },
+            ],
+            "status": "cancelled",
+            "trackingCode": "012391230412131239052",
+          },
+        ],
+        "id": "o1",
+        "number": 11,
+        "payment": Object {
+          "net": Object {
+            "amount": 6,
+            "currency": "USD",
+          },
+          "paid": Object {
+            "amount": 19.2,
+            "currency": "USD",
+          },
+          "refunded": Object {
+            "amount": 13.2,
+            "currency": "USD",
+          },
+        },
+        "paymentStatus": "confirmed",
+        "price": Object {
+          "amount": 19.2,
+          "currency": "USD",
+        },
+        "products": Array [
+          Object {
+            "id": "UHJvZHVjdDox",
+            "name": "Gardner, Graham and King",
+            "price": Object {
+              "gross": Object {
+                "amount": 12.4,
+                "currency": "USD",
+              },
+            },
+            "quantity": 1,
+            "sku": "9123021",
+            "thumbnailUrl": "placeholder60x60.png",
+          },
+          Object {
+            "id": "UHJvZHVjdDoy",
+            "name": "Gardner and Graham",
+            "price": Object {
+              "gross": Object {
+                "amount": 11.6,
+                "currency": "USD",
+              },
+            },
+            "quantity": 2,
+            "sku": "9123022",
+            "thumbnailUrl": "placeholder60x60.png",
+          },
+          Object {
+            "id": "UHJvZHVjdDoz",
+            "name": "Gardner and King",
+            "price": Object {
+              "gross": Object {
+                "amount": 22.4,
+                "currency": "USD",
+              },
+            },
+            "quantity": 7,
+            "sku": "9123023",
+            "thumbnailUrl": "placeholder60x60.png",
+          },
+          Object {
+            "id": "UHJvZHVjdDoa",
+            "name": "Graham and King",
+            "price": Object {
+              "gross": Object {
+                "amount": 9.9,
+                "currency": "USD",
+              },
+            },
+            "quantity": 3,
+            "sku": "9123024",
+            "thumbnailUrl": "placeholder60x60.png",
+          },
+        ],
+        "shippingAddress": Object {
+          "city": "Keithport",
+          "cityArea": "",
+          "companyName": "",
+          "country": "Cyprus",
+          "countryArea": "",
+          "firstName": "Test",
+          "id": "a1",
+          "lastName": "Client",
+          "phone": Object {
+            "number": "",
+            "prefix": "",
+          },
+          "postalCode": "95393-6818",
+          "streetAddress_1": "9297 Barker Extension",
+          "streetAddress_2": "",
+        },
+        "shippingMethod": Object {
+          "id": "s1",
+        },
+        "shippingMethodName": "DHL",
+        "shippingMethodPriceGross": Object {
+          "amount": 5.5,
+          "currency": "USD",
+        },
+        "status": "draft",
+        "subtotal": Object {
+          "amount": 160.2,
+          "currency": "USD",
+        },
+        "total": Object {
+          "amount": 165.7,
+          "currency": "USD",
+        },
+        "unfulfilled": Array [
+          Object {
+            "id": "UHJvZHVjdDoy",
+            "name": "Gardner and Graham",
+            "quantity": 1,
+            "sku": "9123022",
+            "thumbnailUrl": "placeholder60x60.png",
+          },
+          Object {
+            "id": "UHJvZHVjdDoz",
+            "name": "Gardner and King",
+            "quantity": 7,
+            "sku": "9123023",
+            "thumbnailUrl": "placeholder60x60.png",
+          },
+          Object {
+            "id": "UHJvZHVjdDoa",
+            "name": "Graham and King",
+            "quantity": 3,
+            "sku": "9123024",
+            "thumbnailUrl": "placeholder60x60.png",
+          },
+        ],
+      }
+    }
+    prefixes={
+      Array [
+        "01",
+        "02",
+        "41",
+        "49",
+      ]
+    }
+    shippingMethods={
+      Array [
+        Object {
+          "country": "whole world",
+          "id": "s1",
+          "name": "DHL",
+          "price": Object {},
+        },
+        Object {
+          "country": "Afghanistan",
+          "id": "s2",
+          "name": "UPS",
+        },
+      ]
+    }
+    user="admin@example.com"
+    users={
+      Array [
+        Object {
+          "email": "test.client1@example.com",
+          "id": "c1",
+        },
+        Object {
+          "email": "test.client2@example.com",
+          "id": "c2",
+        },
+        Object {
+          "email": "test.client3@example.com",
+          "id": "c3",
+        },
+        Object {
+          "email": "test.client4@example.com",
+          "id": "c4",
+        },
+      ]
+    }
+    variants={
+      Array [
+        Object {
+          "id": "p1",
+          "name": "Product 1: variant 1",
+          "sku": "12345",
+          "stockAllocated": 3,
+        },
+        Object {
+          "id": "p2",
+          "name": "Product 1: variant 2",
+          "sku": "12346",
+          "stockAllocated": 1,
+        },
+        Object {
+          "id": "p3",
+          "name": "Product 2: variant 1",
+          "sku": "12355",
+          "stockAllocated": 10,
+        },
+        Object {
+          "id": "p4",
+          "name": "Product 3: variant 1",
+          "sku": "12445",
+          "stockAllocated": 12,
+        },
+        Object {
+          "id": "p5",
+          "name": "Product 3: variant 2",
+          "sku": "12545",
+          "stockAllocated": 7,
+        },
+        Object {
+          "id": "p6",
+          "name": "Product 5: variant 1",
+          "sku": "13345",
+          "stockAllocated": 3,
+        },
+        Object {
+          "id": "p7",
+          "name": "Product 5: variant 2",
+          "sku": "14345",
+          "stockAllocated": 11,
+        },
+      ]
+    }
+    variantsLoading={false}
+  />,
+]
+`;
+
+exports[`Storyshots Views / Orders / Order details as a unpaid order 1`] = `
+Array [
+  <WithStyles(CssBaseline) />,
+  <WithStyles(OrderDetailsPageComponent)
+    countries={
+      Array [
+        Object {
+          "code": "AF",
+          "label": "Afghanistan",
+        },
+        Object {
+          "code": "AX",
+          "label": "Åland Islands",
+        },
+        Object {
+          "code": "AL",
+          "label": "Albania",
+        },
+        Object {
+          "code": "DZ",
+          "label": "Algeria",
+        },
+        Object {
+          "code": "AS",
+          "label": "American Samoa",
+        },
+      ]
+    }
+    fetchShippingMethods={[Function]}
+    fetchUsers={[Function]}
+    fetchVariants={[Function]}
+    onBack={[Function]}
+    onCreate={[Function]}
+    onCustomerEmailClick={[Function]}
+    onOrderCancel={[Function]}
+    onOrderLineChange={[Function]}
+    onOrderLineRemove={[Function]}
+    onPackingSlipClick={[Function]}
+    onPaymentRelease={[Function]}
+    onPrintClick={[Function]}
+    onProductClick={[Function]}
+    order={
+      Object {
+        "billingAddress": Object {
+          "city": "Keithport",
+          "cityArea": "",
+          "companyName": "",
+          "country": "Cyprus",
+          "countryArea": "",
+          "firstName": "Test",
+          "id": "a1",
+          "lastName": "Client",
+          "phone": Object {
+            "number": "",
+            "prefix": "",
+          },
+          "postalCode": "95393-6818",
+          "streetAddress_1": "9297 Barker Extension",
+          "streetAddress_2": "",
+        },
+        "client": Object {
+          "email": "test.client@example.com",
+          "id": "c1",
+          "name": "Test Client",
+        },
+        "created": "2018-04-07T11:18:19+00:00",
+        "events": Array [
+          Object {
+            "content": "Created order",
+            "date": "2018-04-07T11:18:19+00:00",
+            "id": "n1",
+            "type": "created",
+            "user": "richard.holder@example.com",
+          },
+          Object {
+            "content": "Received payment",
+            "date": "2018-04-07T11:33:19+00:00",
+            "id": "n1",
+            "params": Object {
+              "amount": 165.7,
+              "currency": "USD",
+            },
+            "type": "payment",
+            "user": "richard.holder@example.com",
+          },
+          Object {
+            "content": "Shipped order",
+            "date": "2018-04-07T13:31:19+00:00",
+            "id": "n3",
+            "params": Object {
+              "shippingAddress": "Test Client<br />9297 Barker Extension<br />95393-6818 Keithport<br />Cyprus",
+            },
+            "type": "shipped",
+            "user": "megan.finger@example.com",
+          },
+          Object {
+            "content": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Curabitur arcu nisi, dignissim non placerat id, varius imperdiet nisi. Duis lobortis, massa sed feugiat ultricies, massa felis commodo dui, tempor tempus tellus ligula id arcu. Nam erat dui, fermentum sed dui a, tincidunt molestie magna.",
+            "date": "2018-04-08T11:18:19+00:00",
+            "id": "n4",
+            "type": "note",
+            "user": "megan.finger@example.com",
+          },
+        ],
+        "fulfillments": Array [
+          Object {
+            "id": "f1",
+            "products": Array [
+              Object {
+                "product": Object {
+                  "id": "UHJvZHVjdDoy",
+                  "name": "Gardner and Graham",
+                  "thumbnailUrl": "placeholder60x60.png",
+                },
+                "quantity": 1,
+              },
+              Object {
+                "product": Object {
+                  "id": "UHJvZHVjdDox",
+                  "name": "Gardner, Graham and King",
+                  "thumbnailUrl": "placeholder60x60.png",
+                },
+                "quantity": 1,
+              },
+            ],
+            "status": "fulfilled",
+            "trackingCode": "012391230412131239052",
+          },
+          Object {
+            "id": "f2",
+            "products": Array [
+              Object {
+                "product": Object {
+                  "id": "UHJvZHVjdDoy",
+                  "name": "Gardner and Graham",
+                  "thumbnailUrl": "placeholder60x60.png",
+                },
+                "quantity": 1,
+              },
+            ],
+            "status": "cancelled",
+            "trackingCode": "012391230412131239052",
+          },
+        ],
+        "id": "o1",
+        "number": 11,
+        "payment": Object {
+          "net": Object {
+            "amount": 6,
+            "currency": "USD",
+          },
+          "paid": Object {
+            "amount": 19.2,
+            "currency": "USD",
+          },
+          "refunded": Object {
+            "amount": 13.2,
+            "currency": "USD",
+          },
+        },
+        "paymentStatus": "preauth",
+        "price": Object {
+          "amount": 19.2,
+          "currency": "USD",
+        },
+        "products": Array [
+          Object {
+            "id": "UHJvZHVjdDox",
+            "name": "Gardner, Graham and King",
+            "price": Object {
+              "gross": Object {
+                "amount": 12.4,
+                "currency": "USD",
+              },
+            },
+            "quantity": 1,
+            "sku": "9123021",
+            "thumbnailUrl": "placeholder60x60.png",
+          },
+          Object {
+            "id": "UHJvZHVjdDoy",
+            "name": "Gardner and Graham",
+            "price": Object {
+              "gross": Object {
+                "amount": 11.6,
+                "currency": "USD",
+              },
+            },
+            "quantity": 2,
+            "sku": "9123022",
+            "thumbnailUrl": "placeholder60x60.png",
+          },
+          Object {
+            "id": "UHJvZHVjdDoz",
+            "name": "Gardner and King",
+            "price": Object {
+              "gross": Object {
+                "amount": 22.4,
+                "currency": "USD",
+              },
+            },
+            "quantity": 7,
+            "sku": "9123023",
+            "thumbnailUrl": "placeholder60x60.png",
+          },
+          Object {
+            "id": "UHJvZHVjdDoa",
+            "name": "Graham and King",
+            "price": Object {
+              "gross": Object {
+                "amount": 9.9,
+                "currency": "USD",
+              },
+            },
+            "quantity": 3,
+            "sku": "9123024",
+            "thumbnailUrl": "placeholder60x60.png",
+          },
+        ],
+        "shippingAddress": Object {
+          "city": "Keithport",
+          "cityArea": "",
+          "companyName": "",
+          "country": "Cyprus",
+          "countryArea": "",
+          "firstName": "Test",
+          "id": "a1",
+          "lastName": "Client",
+          "phone": Object {
+            "number": "",
+            "prefix": "",
+          },
+          "postalCode": "95393-6818",
+          "streetAddress_1": "9297 Barker Extension",
+          "streetAddress_2": "",
+        },
+        "shippingMethod": Object {
+          "id": "s1",
+        },
+        "shippingMethodName": "DHL",
+        "shippingMethodPriceGross": Object {
+          "amount": 5.5,
+          "currency": "USD",
+        },
+        "status": "partially fulfilled",
+        "subtotal": Object {
+          "amount": 160.2,
+          "currency": "USD",
+        },
+        "total": Object {
+          "amount": 165.7,
+          "currency": "USD",
+        },
+        "unfulfilled": Array [
+          Object {
+            "id": "UHJvZHVjdDoy",
+            "name": "Gardner and Graham",
+            "quantity": 1,
+            "sku": "9123022",
+            "thumbnailUrl": "placeholder60x60.png",
+          },
+          Object {
+            "id": "UHJvZHVjdDoz",
+            "name": "Gardner and King",
+            "quantity": 7,
+            "sku": "9123023",
+            "thumbnailUrl": "placeholder60x60.png",
+          },
+          Object {
+            "id": "UHJvZHVjdDoa",
+            "name": "Graham and King",
+            "quantity": 3,
+            "sku": "9123024",
+            "thumbnailUrl": "placeholder60x60.png",
+          },
+        ],
+      }
+    }
+    prefixes={
+      Array [
+        "01",
+        "02",
+        "41",
+        "49",
+      ]
+    }
+    shippingMethods={
+      Array [
+        Object {
+          "country": "whole world",
+          "id": "s1",
+          "name": "DHL",
+          "price": Object {},
+        },
+        Object {
+          "country": "Afghanistan",
+          "id": "s2",
+          "name": "UPS",
+        },
+      ]
+    }
+    user="admin@example.com"
+    users={
+      Array [
+        Object {
+          "email": "test.client1@example.com",
+          "id": "c1",
+        },
+        Object {
+          "email": "test.client2@example.com",
+          "id": "c2",
+        },
+        Object {
+          "email": "test.client3@example.com",
+          "id": "c3",
+        },
+        Object {
+          "email": "test.client4@example.com",
+          "id": "c4",
+        },
+      ]
+    }
+    variants={
+      Array [
+        Object {
+          "id": "p1",
+          "name": "Product 1: variant 1",
+          "sku": "12345",
+          "stockAllocated": 3,
+        },
+        Object {
+          "id": "p2",
+          "name": "Product 1: variant 2",
+          "sku": "12346",
+          "stockAllocated": 1,
+        },
+        Object {
+          "id": "p3",
+          "name": "Product 2: variant 1",
+          "sku": "12355",
+          "stockAllocated": 10,
+        },
+        Object {
+          "id": "p4",
+          "name": "Product 3: variant 1",
+          "sku": "12445",
+          "stockAllocated": 12,
+        },
+        Object {
+          "id": "p5",
+          "name": "Product 3: variant 2",
+          "sku": "12545",
+          "stockAllocated": 7,
+        },
+        Object {
+          "id": "p6",
+          "name": "Product 5: variant 1",
+          "sku": "13345",
+          "stockAllocated": 3,
+        },
+        Object {
+          "id": "p7",
+          "name": "Product 5: variant 2",
+          "sku": "14345",
+          "stockAllocated": 11,
+        },
+      ]
+    }
+    variantsLoading={false}
+  />,
+]
+`;
+
+exports[`Storyshots Views / Orders / Order details when loaded data 1`] = `
+Array [
+  <WithStyles(CssBaseline) />,
+  <WithStyles(OrderDetailsPageComponent)
+    countries={
+      Array [
+        Object {
+          "code": "AF",
+          "label": "Afghanistan",
+        },
+        Object {
+          "code": "AX",
+          "label": "Åland Islands",
+        },
+        Object {
+          "code": "AL",
+          "label": "Albania",
+        },
+        Object {
+          "code": "DZ",
+          "label": "Algeria",
+        },
+        Object {
+          "code": "AS",
+          "label": "American Samoa",
+        },
+      ]
+    }
+    onBack={[Function]}
+    onCreate={[Function]}
+    onCustomerEmailClick={[Function]}
+    onOrderCancel={[Function]}
+    onOrderLineChange={[Function]}
+    onOrderLineRemove={[Function]}
+    onPackingSlipClick={[Function]}
+    onPaymentRelease={[Function]}
+    onPrintClick={[Function]}
+    onProductClick={[Function]}
+    order={
+      Object {
+        "billingAddress": Object {
+          "city": "Keithport",
+          "cityArea": "",
+          "companyName": "",
+          "country": "Cyprus",
+          "countryArea": "",
+          "firstName": "Test",
+          "id": "a1",
+          "lastName": "Client",
+          "phone": Object {
+            "number": "",
+            "prefix": "",
+          },
+          "postalCode": "95393-6818",
+          "streetAddress_1": "9297 Barker Extension",
+          "streetAddress_2": "",
+        },
+        "client": Object {
+          "email": "test.client@example.com",
+          "id": "c1",
+          "name": "Test Client",
+        },
+        "created": "2018-04-07T11:18:19+00:00",
+        "events": Array [
+          Object {
+            "content": "Created order",
+            "date": "2018-04-07T11:18:19+00:00",
+            "id": "n1",
+            "type": "created",
+            "user": "richard.holder@example.com",
+          },
+          Object {
+            "content": "Received payment",
+            "date": "2018-04-07T11:33:19+00:00",
+            "id": "n1",
+            "params": Object {
+              "amount": 165.7,
+              "currency": "USD",
+            },
+            "type": "payment",
+            "user": "richard.holder@example.com",
+          },
+          Object {
+            "content": "Shipped order",
+            "date": "2018-04-07T13:31:19+00:00",
+            "id": "n3",
+            "params": Object {
+              "shippingAddress": "Test Client<br />9297 Barker Extension<br />95393-6818 Keithport<br />Cyprus",
+            },
+            "type": "shipped",
+            "user": "megan.finger@example.com",
+          },
+          Object {
+            "content": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Curabitur arcu nisi, dignissim non placerat id, varius imperdiet nisi. Duis lobortis, massa sed feugiat ultricies, massa felis commodo dui, tempor tempus tellus ligula id arcu. Nam erat dui, fermentum sed dui a, tincidunt molestie magna.",
+            "date": "2018-04-08T11:18:19+00:00",
+            "id": "n4",
+            "type": "note",
+            "user": "megan.finger@example.com",
+          },
+        ],
+        "fulfillments": Array [
+          Object {
+            "id": "f1",
+            "products": Array [
+              Object {
+                "product": Object {
+                  "id": "UHJvZHVjdDoy",
+                  "name": "Gardner and Graham",
+                  "thumbnailUrl": "placeholder60x60.png",
+                },
+                "quantity": 1,
+              },
+              Object {
+                "product": Object {
+                  "id": "UHJvZHVjdDox",
+                  "name": "Gardner, Graham and King",
+                  "thumbnailUrl": "placeholder60x60.png",
+                },
+                "quantity": 1,
+              },
+            ],
+            "status": "fulfilled",
+            "trackingCode": "012391230412131239052",
+          },
+          Object {
+            "id": "f2",
+            "products": Array [
+              Object {
+                "product": Object {
+                  "id": "UHJvZHVjdDoy",
+                  "name": "Gardner and Graham",
+                  "thumbnailUrl": "placeholder60x60.png",
+                },
+                "quantity": 1,
+              },
+            ],
+            "status": "cancelled",
+            "trackingCode": "012391230412131239052",
+          },
+        ],
+        "id": "o1",
+        "number": 11,
+        "payment": Object {
+          "net": Object {
+            "amount": 6,
+            "currency": "USD",
+          },
+          "paid": Object {
+            "amount": 19.2,
+            "currency": "USD",
+          },
+          "refunded": Object {
+            "amount": 13.2,
+            "currency": "USD",
+          },
+        },
+        "paymentStatus": "confirmed",
+        "price": Object {
+          "amount": 19.2,
+          "currency": "USD",
+        },
+        "products": Array [
+          Object {
+            "id": "UHJvZHVjdDox",
+            "name": "Gardner, Graham and King",
+            "price": Object {
+              "gross": Object {
+                "amount": 12.4,
+                "currency": "USD",
+              },
+            },
+            "quantity": 1,
+            "sku": "9123021",
+            "thumbnailUrl": "placeholder60x60.png",
+          },
+          Object {
+            "id": "UHJvZHVjdDoy",
+            "name": "Gardner and Graham",
+            "price": Object {
+              "gross": Object {
+                "amount": 11.6,
+                "currency": "USD",
+              },
+            },
+            "quantity": 2,
+            "sku": "9123022",
+            "thumbnailUrl": "placeholder60x60.png",
+          },
+          Object {
+            "id": "UHJvZHVjdDoz",
+            "name": "Gardner and King",
+            "price": Object {
+              "gross": Object {
+                "amount": 22.4,
+                "currency": "USD",
+              },
+            },
+            "quantity": 7,
+            "sku": "9123023",
+            "thumbnailUrl": "placeholder60x60.png",
+          },
+          Object {
+            "id": "UHJvZHVjdDoa",
+            "name": "Graham and King",
+            "price": Object {
+              "gross": Object {
+                "amount": 9.9,
+                "currency": "USD",
+              },
+            },
+            "quantity": 3,
+            "sku": "9123024",
+            "thumbnailUrl": "placeholder60x60.png",
+          },
+        ],
+        "shippingAddress": Object {
+          "city": "Keithport",
+          "cityArea": "",
+          "companyName": "",
+          "country": "Cyprus",
+          "countryArea": "",
+          "firstName": "Test",
+          "id": "a1",
+          "lastName": "Client",
+          "phone": Object {
+            "number": "",
+            "prefix": "",
+          },
+          "postalCode": "95393-6818",
+          "streetAddress_1": "9297 Barker Extension",
+          "streetAddress_2": "",
+        },
+        "shippingMethod": Object {
+          "id": "s1",
+        },
+        "shippingMethodName": "DHL",
+        "shippingMethodPriceGross": Object {
+          "amount": 5.5,
+          "currency": "USD",
+        },
+        "status": "partially fulfilled",
+        "subtotal": Object {
+          "amount": 160.2,
+          "currency": "USD",
+        },
+        "total": Object {
+          "amount": 165.7,
+          "currency": "USD",
+        },
+        "unfulfilled": Array [
+          Object {
+            "id": "UHJvZHVjdDoy",
+            "name": "Gardner and Graham",
+            "quantity": 1,
+            "sku": "9123022",
+            "thumbnailUrl": "placeholder60x60.png",
+          },
+          Object {
+            "id": "UHJvZHVjdDoz",
+            "name": "Gardner and King",
+            "quantity": 7,
+            "sku": "9123023",
+            "thumbnailUrl": "placeholder60x60.png",
+          },
+          Object {
+            "id": "UHJvZHVjdDoa",
+            "name": "Graham and King",
+            "quantity": 3,
+            "sku": "9123024",
+            "thumbnailUrl": "placeholder60x60.png",
+          },
+        ],
+      }
+    }
+    prefixes={
+      Array [
+        "01",
+        "02",
+        "41",
+        "49",
+      ]
+    }
+    user="admin@example.com"
+  />,
+]
+`;
+
+exports[`Storyshots Views / Orders / Order details when loading data 1`] = `
+Array [
+  <WithStyles(CssBaseline) />,
+  <WithStyles(OrderDetailsPageComponent)
+    onBack={[Function]}
+  />,
+]
+`;
+
+exports[`Storyshots Views / Orders / Order list when loaded data 1`] = `
+Array [
+  <WithStyles(CssBaseline) />,
+  <WithStyles(Component)
+    onBack={[Function]}
+    onRowClick={[Function]}
+  />,
+]
+`;
+
+exports[`Storyshots Views / Orders / Order list when loading data 1`] = `
+Array [
+  <WithStyles(CssBaseline) />,
+  <WithStyles(Component)
+    onBack={[Function]}
+    onRowClick={[Function]}
+    orders={
+      Object {
+        "edges": Array [
+          Object {
+            "node": Object {
+              "client": Object {
+                "email": "test.client1@example.com",
+                "id": "c1",
+              },
+              "created": "2018-04-07T11:18:19+00:00",
+              "id": "o1",
+              "number": 11,
+              "paymentStatus": "confirmed",
+              "price": Object {
+                "amount": 19.2,
+                "currency": "USD",
+              },
+              "status": "fulfilled",
+            },
+          },
+          Object {
+            "node": Object {
+              "client": Object {
+                "email": "test.client1@example.com",
+                "id": "c1",
+              },
+              "created": "2018-04-07T11:11:19+00:00",
+              "id": "o2",
+              "number": 10,
+              "paymentStatus": "confirmed",
+              "price": Object {
+                "amount": 28.9,
+                "currency": "USD",
+              },
+              "status": "unfulfilled",
+            },
+          },
+          Object {
+            "node": Object {
+              "client": Object {
+                "email": "test.client2@example.com",
+                "id": "c2",
+              },
+              "created": "2018-04-07T10:44:44+00:00",
+              "id": "o3",
+              "number": 9,
+              "paymentStatus": "rejected",
+              "price": Object {
+                "amount": 289,
+                "currency": "USD",
+              },
+              "status": "shipped",
+            },
+          },
+          Object {
+            "node": Object {
+              "client": Object {
+                "email": "test.client3@example.com",
+                "id": "c3",
+              },
+              "created": "2018-04-07T10:33:19+00:00",
+              "id": "o4",
+              "number": 9,
+              "paymentStatus": "unknown",
+              "price": Object {
+                "amount": 100.05,
+                "currency": "USD",
+              },
+              "status": "shipped",
+            },
+          },
+          Object {
+            "node": Object {
+              "client": Object {
+                "email": "test.client4@example.com",
+                "id": "c4",
+              },
+              "created": "2018-04-07T07:39:19+00:00",
+              "id": "o5",
+              "number": 9,
+              "paymentStatus": "waiting",
+              "price": Object {
+                "amount": 14.87,
+                "currency": "USD",
+              },
+              "status": "shipped",
+            },
+          },
+          Object {
+            "node": Object {
+              "client": Object {
+                "email": "test.client4@example.com",
+                "id": "c4",
+              },
+              "created": "2018-04-06T19:18:19+00:00",
+              "id": "o6",
+              "number": 8,
+              "paymentStatus": "rejected",
+              "price": Object {
+                "amount": 14.87,
+                "currency": "USD",
+              },
+              "status": "unfulfilled",
+            },
+          },
+        ],
+      }
+    }
+  />,
+]
+`;
+
+exports[`Storyshots Views / Orders / Order list when no data 1`] = `
+Array [
+  <WithStyles(CssBaseline) />,
+  <WithStyles(Component)
+    onBack={[Function]}
+    onRowClick={[Function]}
+    orders={
+      Object {
+        "edges": Array [],
+      }
+    }
+  />,
+]
+`;
+
+exports[`Storyshots Views / Products / Product details when loaded data 1`] = `
+<Component
+  classes={
+    Object {
+      "root": "Component-root-31",
+    }
+  }
+  onBack={[Function]}
+  onCollectionShow={[Function]}
+  onDelete={[Function]}
+  onEdit={[Function]}
+  onImageEdit={[Function]}
+  onImageReorder={[Function]}
+  onImageUpload={[Function]}
+  onProductPublish={[Function]}
+  onProductShow={[Function]}
+  onVariantShow={[Function]}
+  placeholderImage="placeholder255x255.png"
+  product={
+    Object {
+      "availability": Object {
+        "available": true,
+        "priceRange": Object {
+          "start": Object {
+            "net": Object {
+              "localized": "55,14 USD",
+            },
+          },
+          "stop": Object {
+            "net": Object {
+              "localized": "88,36 USD",
+            },
+          },
+        },
+      },
+      "collections": Object {
+        "edges": Array [
+          Object {
+            "node": Object {
+              "id": "collection-1",
+              "name": "Winter Collection",
+            },
+          },
+          Object {
+            "node": Object {
+              "id": "collection-2",
+              "name": "Summer Collection",
+            },
+          },
+        ],
+      },
+      "description": "Light light office style present life military. Enough executive coach cause own.
+
+Care season wrong fly. Example age between discuss assume.
+
+Their third build might strong account. Worry enter room note level air.
+
+Weight director mother. Because find task with now enter tree management.
+
+Soon name recently ground green. There owner sport box them red information.",
+      "grossMargin": Array [
+        Object {
+          "start": 56,
+          "stop": 98,
+        },
+      ],
+      "id": "UHJvZHVjdDoyOA==",
+      "images": Object {
+        "edges": Array [
+          Object {
+            "node": Object {
+              "alt": "",
+              "id": "UHJvZHVjdEltYWdlOjY2",
+              "order": 0,
+              "url": "placeholder255x255.png",
+            },
+          },
+          Object {
+            "node": Object {
+              "alt": "",
+              "id": "UHJvZHVjdEltYWdlOjY3",
+              "order": 1,
+              "url": "placeholder255x255.png",
+            },
+          },
+          Object {
+            "node": Object {
+              "alt": "",
+              "id": "UHJvZHVjdEltYWdlOjY4",
+              "order": 2,
+              "url": "placeholder255x255.png",
+            },
+          },
+        ],
+      },
+      "isPublished": true,
+      "name": "Stewart-Barrera",
+      "price": Object {
+        "localized": "95,47 USD",
+      },
+      "productType": Object {
+        "id": "UHJvZHVjdFR5cGU6Mw==",
+        "name": "Coffee",
+      },
+      "purchaseCost": Object {
+        "start": Object {
+          "gross": Object {
+            "localized": "1,88 USD",
+          },
+        },
+        "stop": Object {
+          "gross": Object {
+            "localized": "48,10 USD",
+          },
+        },
+      },
+      "url": "/pl/products/stewart-barrera-28/",
+      "variants": Object {
+        "edges": Array [
+          Object {
+            "node": Object {
+              "id": "UHJvZHVjdFZhcmlhbnQ6Nw==",
+              "margin": 20,
+              "name": "XXL",
+              "priceOverride": null,
+              "sku": "2-1337",
+              "stockQuantity": 5,
+            },
+          },
+          Object {
+            "node": Object {
+              "id": "UHJvZHVjdFZhcmlhbnQ6OA==",
+              "margin": 20,
+              "name": "XL",
+              "priceOverride": null,
+              "sku": "2-1338",
+              "stockQuantity": 0,
+            },
+          },
+          Object {
+            "node": Object {
+              "id": "UHJvZHVjdFZhcmlhbnQ6OQ==",
+              "margin": 20,
+              "name": "L",
+              "priceOverride": null,
+              "sku": "2-1339",
+              "stockQuantity": 15,
+            },
+          },
+          Object {
+            "node": Object {
+              "id": "UHJvZHVjdFZhcmlhbnQ6MTA=",
+              "margin": 20,
+              "name": "M",
+              "priceOverride": null,
+              "sku": "2-1340",
+              "stockQuantity": 33,
+            },
+          },
+          Object {
+            "node": Object {
+              "id": "UHJvZHVjdFZhcmlhbnQ6MTE=",
+              "margin": 20,
+              "name": "S",
+              "priceOverride": null,
+              "sku": "2-1341",
+              "stockQuantity": 0,
+            },
+          },
+          Object {
+            "node": Object {
+              "id": "UHJvZHVjdFZhcmlhbnQ6MTI=",
+              "margin": 20,
+              "name": "XS",
+              "priceOverride": null,
+              "sku": "2-1342",
+              "stockQuantity": 0,
+            },
+          },
+        ],
+      },
+    }
+  }
+/>
+`;
+
+exports[`Storyshots Views / Products / Product details when loading data 1`] = `
+<Component
+  classes={
+    Object {
+      "root": "Component-root-31",
+    }
+  }
+  onBack={[Function]}
+  onCollectionShow={[Function]}
+  onDelete={[Function]}
+  onEdit={[Function]}
+  onImageEdit={[Function]}
+  onImageReorder={[Function]}
+  onImageUpload={[Function]}
+  onProductPublish={[Function]}
+  onProductShow={[Function]}
+  onVariantShow={[Function]}
+  placeholderImage="placeholder255x255.png"
+/>
+`;
+
+exports[`Storyshots Views / Products / Product edit when data is fully loaded 1`] = `
+<Component
+  categories={
+    Array [
+      Object {
+        "id": "123123",
+        "name": "Lorem ipsum dolor",
+      },
+      Object {
+        "id": "876752",
+        "name": "Mauris vehicula tortor vulputate",
+      },
+    ]
+  }
+  classes={
+    Object {
+      "cardContainer": "Component-cardContainer-45",
+      "grid": "Component-grid-44",
+      "root": "Component-root-43",
+    }
+  }
+  collections={
+    Array [
+      Object {
+        "id": "1",
+        "name": "Winter collection",
+      },
+      Object {
+        "id": "2",
+        "name": "Emperor's choice",
+      },
+    ]
+  }
+  onBack={[Function]}
+  onSubmit={[Function]}
+  product={
+    Object {
+      "attributes": Array [
+        Object {
+          "name": "brand",
+          "value": "superbrand",
+        },
+        Object {
+          "name": "collar",
+          "value": "round",
+        },
+        Object {
+          "name": "color",
+          "value": "blue",
+        },
+      ],
+      "available": true,
+      "availableOn": "23-01-2006",
+      "category": Object {
+        "id": "123123",
+      },
+      "collections": Object {
+        "edges": Array [
+          Object {
+            "node": Object {
+              "id": "1",
+              "name": "Winter collection",
+            },
+          },
+        ],
+      },
+      "description": "Aenean sit amet malesuada nibh. Proin nisi lorem, facilisis at tortor vel, convallis ornare nibh. In nec ipsum porta, varius leo eu, condimentum quam. Donec gravida euismod ipsum, at consequat orci efficitur nec. Phasellus lectus arcu, auctor eget porttitor eget, venenatis a lacus. Suspendisse quis urna rhoncus, commodo justo at, tempor nisl.",
+      "id": "1231u",
+      "name": "Our awesome book",
+      "price": Object {
+        "currencySymbol": "$",
+        "net": 3000.1,
+      },
+      "productType": Object {
+        "name": "Book",
+        "productAttributes": Object {
+          "edges": Array [
+            Object {
+              "node": Object {
+                "id": "UHJvZHVjdEF0dHJpYnV0ZToz",
+                "name": "Brand",
+                "slug": "brand",
+                "values": Array [
+                  Object {
+                    "id": "UHJvZHVjdEF0dHJpYnV0ZVZhbHVlOjQw",
+                    "name": "dominikibrand",
+                    "slug": "dominikibrand",
+                  },
+                  Object {
+                    "id": "UHJvZHVjdEF0dHJpYnV0ZVZhbHVlOjM5",
+                    "name": "superbrand",
+                    "slug": "superbrand",
+                  },
+                  Object {
+                    "id": "UHJvZHVjdEF0dHJpYnV0ZVZhbHVlOjM4",
+                    "name": "Mirumee",
+                    "slug": "mirumee",
+                  },
+                  Object {
+                    "id": "UHJvZHVjdEF0dHJpYnV0ZVZhbHVlOjY=",
+                    "name": "Saleor",
+                    "slug": "saleor",
+                  },
+                ],
+              },
+            },
+            Object {
+              "node": Object {
+                "id": "UHJvZHVjdEF0dHJpYnV0ZToy",
+                "name": "Collar",
+                "slug": "collar",
+                "values": Array [
+                  Object {
+                    "id": "UHJvZHVjdEF0dHJpYnV0ZVZhbHVlOjU=",
+                    "name": "Polo",
+                    "slug": "polo",
+                  },
+                  Object {
+                    "id": "UHJvZHVjdEF0dHJpYnV0ZVZhbHVlOjQ=",
+                    "name": "V-Neck",
+                    "slug": "v-neck",
+                  },
+                  Object {
+                    "id": "UHJvZHVjdEF0dHJpYnV0ZVZhbHVlOjM=",
+                    "name": "Round",
+                    "slug": "round",
+                  },
+                ],
+              },
+            },
+            Object {
+              "node": Object {
+                "id": "UHJvZHVjdEF0dHJpYnV0ZTox",
+                "name": "Color",
+                "slug": "color",
+                "values": Array [
+                  Object {
+                    "id": "UHJvZHVjdEF0dHJpYnV0ZVZhbHVlOjI=",
+                    "name": "White",
+                    "slug": "white",
+                  },
+                  Object {
+                    "id": "UHJvZHVjdEF0dHJpYnV0ZVZhbHVlOjE=",
+                    "name": "Blue",
+                    "slug": "blue",
+                  },
+                ],
+              },
+            },
+          ],
+        },
+      },
+      "seo": Object {
+        "description": "Order our awesome book right now!",
+        "title": "Buy our awesome book now!",
+      },
+      "slug": "our-awesome-book-1231u",
+    }
+  }
+/>
+`;
+
+exports[`Storyshots Views / Products / Product edit when loading data 1`] = `
+<Component
+  classes={
+    Object {
+      "cardContainer": "Component-cardContainer-45",
+      "grid": "Component-grid-44",
+      "root": "Component-root-43",
+    }
+  }
+  loading={true}
+  onBack={[Function]}
+  onSubmit={[Function]}
+/>
+`;
+
+exports[`Storyshots Views / Products / Product list when loading data 1`] = `
+<WithStyles(Component)
+  width="md"
+>
+  <WithStyles(Component)
+    title="Product list"
+  >
+    <Hidden
+      implementation="js"
+      lgDown={false}
+      lgUp={false}
+      mdDown={false}
+      mdUp={true}
+      smDown={false}
+      smUp={false}
+      xlDown={false}
+      xlUp={false}
+      xsDown={false}
+      xsUp={false}
+    >
+      <WithStyles(IconButton)
+        onClick={[Function]}
+      >
+        <pure(FilterList) />
+      </WithStyles(IconButton)>
+    </Hidden>
+  </WithStyles(Component)>
+  <WithStyles(Card)>
+    <WithStyles(Component)
+      hasNextPage={true}
+      hasPreviousPage={false}
+      onNextPage={[Function]}
+      onPreviousPage={[Function]}
+    />
+  </WithStyles(Card)>
+</WithStyles(Component)>
+`;
+
+exports[`Storyshots Views / Products / Product list with clickable rows 1`] = `
+<WithStyles(Component)
+  width="md"
+>
+  <WithStyles(Component)
+    title="Product list"
+  >
+    <Hidden
+      implementation="js"
+      lgDown={false}
+      lgUp={false}
+      mdDown={false}
+      mdUp={true}
+      smDown={false}
+      smUp={false}
+      xlDown={false}
+      xlUp={false}
+      xsDown={false}
+      xsUp={false}
+    >
+      <WithStyles(IconButton)
+        onClick={[Function]}
+      >
+        <pure(FilterList) />
+      </WithStyles(IconButton)>
+    </Hidden>
+  </WithStyles(Component)>
+  <WithStyles(Card)>
+    <WithStyles(Component)
+      hasNextPage={true}
+      hasPreviousPage={false}
+      onNextPage={[Function]}
+      onPreviousPage={[Function]}
+      onRowClick={[Function]}
+      products={
+        Array [
+          Object {
+            "id": "UHJvZHVjdDox",
+            "name": "Gardner, Graham and King",
+            "productType": Object {
+              "id": "1",
+              "name": "T-Shirt",
+            },
+            "thumbnailUrl": "placeholder255x255.png",
+          },
+          Object {
+            "id": "UHJvZHVjdDoy",
+            "name": "Gardner, Graham and King",
+            "productType": Object {
+              "id": "1",
+              "name": "T-Shirt",
+            },
+            "thumbnailUrl": "placeholder255x255.png",
+          },
+          Object {
+            "id": "UHJvZHVjdDoz",
+            "name": "Gardner, Graham and King",
+            "productType": Object {
+              "id": "1",
+              "name": "T-Shirt",
+            },
+            "thumbnailUrl": "placeholder255x255.png",
+          },
+          Object {
+            "id": "UHJvZHVjdDoa",
+            "name": "Gardner, Graham and King",
+            "productType": Object {
+              "id": "1",
+              "name": "T-Shirt",
+            },
+            "thumbnailUrl": "placeholder255x255.png",
+          },
+        ]
+      }
+    />
+  </WithStyles(Card)>
+</WithStyles(Component)>
+`;
+
+exports[`Storyshots Views / Products / Product list with initial data 1`] = `
+<WithStyles(Component)
+  width="md"
+>
+  <WithStyles(Component)
+    title="Product list"
+  >
+    <Hidden
+      implementation="js"
+      lgDown={false}
+      lgUp={false}
+      mdDown={false}
+      mdUp={true}
+      smDown={false}
+      smUp={false}
+      xlDown={false}
+      xlUp={false}
+      xsDown={false}
+      xsUp={false}
+    >
+      <WithStyles(IconButton)
+        onClick={[Function]}
+      >
+        <pure(FilterList) />
+      </WithStyles(IconButton)>
+    </Hidden>
+  </WithStyles(Component)>
+  <WithStyles(Card)>
+    <WithStyles(Component)
+      hasNextPage={true}
+      hasPreviousPage={false}
+      onNextPage={[Function]}
+      onPreviousPage={[Function]}
+      products={
+        Array [
+          Object {
+            "id": "UHJvZHVjdDox",
+            "name": "Gardner, Graham and King",
+            "productType": Object {
+              "id": "1",
+              "name": "T-Shirt",
+            },
+            "thumbnailUrl": "placeholder255x255.png",
+          },
+          Object {
+            "id": "UHJvZHVjdDoy",
+            "name": "Gardner, Graham and King",
+            "productType": Object {
+              "id": "1",
+              "name": "T-Shirt",
+            },
+            "thumbnailUrl": "placeholder255x255.png",
+          },
+          Object {
+            "id": "UHJvZHVjdDoz",
+            "name": "Gardner, Graham and King",
+            "productType": Object {
+              "id": "1",
+              "name": "T-Shirt",
+            },
+            "thumbnailUrl": "placeholder255x255.png",
+          },
+          Object {
+            "id": "UHJvZHVjdDoa",
+            "name": "Gardner, Graham and King",
+            "productType": Object {
+              "id": "1",
+              "name": "T-Shirt",
+            },
+            "thumbnailUrl": "placeholder255x255.png",
+          },
+        ]
+      }
+    />
+  </WithStyles(Card)>
+</WithStyles(Component)>
+`;
+
+exports[`Storyshots Views / Products / Product list without initial data 1`] = `
+<WithStyles(Component)
+  width="md"
+>
+  <WithStyles(Component)
+    title="Product list"
+  >
+    <Hidden
+      implementation="js"
+      lgDown={false}
+      lgUp={false}
+      mdDown={false}
+      mdUp={true}
+      smDown={false}
+      smUp={false}
+      xlDown={false}
+      xlUp={false}
+      xsDown={false}
+      xsUp={false}
+    >
+      <WithStyles(IconButton)
+        onClick={[Function]}
+      >
+        <pure(FilterList) />
+      </WithStyles(IconButton)>
+    </Hidden>
+  </WithStyles(Component)>
+  <WithStyles(Card)>
+    <WithStyles(Component)
+      hasNextPage={true}
+      hasPreviousPage={false}
+      onNextPage={[Function]}
+      onPreviousPage={[Function]}
+      products={Array []}
+    />
+  </WithStyles(Card)>
+</WithStyles(Component)>
+`;
+
+exports[`Storyshots Views / Products / Product variant details when loaded data 1`] = `
+<Component
+  classes={
+    Object {
+      "root": "Component-root-57",
+    }
+  }
+  onBack={[Function]}
+  onDelete={[Function]}
+  onImageSelect={[Function]}
+  variant={
+    Object {
+      "attributes": Array [
+        Object {
+          "attribute": Object {
+            "name": "Cover",
+            "slug": "cover",
+            "values": Array [
+              "hard",
+              "soft",
+            ],
+          },
+          "value": "hard",
+        },
+        Object {
+          "attribute": Object {
+            "name": "Version",
+            "slug": "version",
+            "values": Array [
+              "regular",
+              "extended",
+            ],
+          },
+          "value": "extended",
+        },
+      ],
+      "id": "var1",
+      "images": Object {
+        "edges": Array [
+          Object {
+            "node": Object {
+              "id": "img1",
+            },
+          },
+          Object {
+            "node": Object {
+              "id": "img2",
+            },
+          },
+          Object {
+            "node": Object {
+              "id": "img7",
+            },
+          },
+          Object {
+            "node": Object {
+              "id": "img8",
+            },
+          },
+        ],
+      },
+      "name": "Extended Hard",
+      "priceOverride": Object {
+        "amount": 100,
+        "currency": "USD",
+      },
+      "product": Object {
+        "id": "prod1",
+        "images": Object {
+          "edges": Array [
+            Object {
+              "node": Object {
+                "alt": "Front",
+                "id": "img1",
+                "order": 1,
+                "url": "placeholder60x60.png",
+              },
+            },
+            Object {
+              "node": Object {
+                "alt": "Back",
+                "id": "img2",
+                "order": 4,
+                "url": "placeholder60x60.png",
+              },
+            },
+            Object {
+              "node": Object {
+                "alt": "Right side",
+                "id": "img3",
+                "order": 2,
+                "url": "placeholder60x60.png",
+              },
+            },
+            Object {
+              "node": Object {
+                "alt": "Left side",
+                "id": "img4",
+                "order": 3,
+                "url": "placeholder60x60.png",
+              },
+            },
+            Object {
+              "node": Object {
+                "alt": "Paper",
+                "id": "img5",
+                "order": 0,
+                "url": "placeholder60x60.png",
+              },
+            },
+            Object {
+              "node": Object {
+                "alt": "Hard cover",
+                "id": "img6",
+                "order": 1,
+                "url": "placeholder60x60.png",
+              },
+            },
+            Object {
+              "node": Object {
+                "alt": "Extended version",
+                "id": "img7",
+                "order": 0,
+                "url": "placeholder60x60.png",
+              },
+            },
+            Object {
+              "node": Object {
+                "alt": "Cut version",
+                "id": "img8",
+                "order": 2,
+                "url": "placeholder60x60.png",
+              },
+            },
+            Object {
+              "node": Object {
+                "alt": "Soft cover",
+                "id": "img9",
+                "order": 2,
+                "url": "placeholder60x60.png",
+              },
+            },
+          ],
+        },
+        "name": "Our Awesome Book",
+        "thumbnailUrl": "placeholder60x60.png",
+        "variants": Object {
+          "edges": Array [
+            Object {
+              "node": Object {
+                "id": "var2",
+                "name": "Extended Soft",
+              },
+            },
+            Object {
+              "node": Object {
+                "id": "var3",
+                "name": "Normal Hard",
+              },
+            },
+            Object {
+              "node": Object {
+                "id": "var4",
+                "name": "Normal Soft",
+              },
+            },
+          ],
+          "totalCount": 11,
+        },
+      },
+      "sku": "1230959124123",
+      "stock": 49,
+      "stockAllocated": 12,
+    }
+  }
+/>
+`;
+
+exports[`Storyshots Views / Products / Product variant details when loading data 1`] = `
+<Component
+  classes={
+    Object {
+      "root": "Component-root-57",
+    }
+  }
+  loading={true}
+  onBack={[Function]}
+  onDelete={[Function]}
+  onImageSelect={[Function]}
+  placeholderImage="placeholder60x60.png"
 />
 `;
