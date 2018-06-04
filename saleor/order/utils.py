@@ -165,7 +165,7 @@ def add_variant_to_order(order, variant, quantity, discounts=None, taxes=None):
             unit_price=variant.get_price(discounts, taxes),
             tax_rate=get_tax_rate_by_name(variant.product.tax_rate, taxes))
 
-    if variant.handle_stock:
+    if variant.track_inventory:
         allocate_stock(variant, quantity)
 
 
@@ -181,7 +181,7 @@ def change_order_line_quantity(line, new_quantity):
 def restock_order_lines(order):
     """Return ordered products to corresponding stocks."""
     for line in order:
-        if line.variant and line.variant.handle_stock:
+        if line.variant and line.variant.track_inventory:
             if line.quantity_unfulfilled > 0:
                 deallocate_stock(line.variant, line.quantity_unfulfilled)
             if line.quantity_fulfilled > 0:
@@ -195,6 +195,6 @@ def restock_order_lines(order):
 def restock_fulfillment_lines(fulfillment):
     """Return fulfilled products to corresponding stocks."""
     for line in fulfillment:
-        if line.order_line.variant and line.order_line.variant.handle_stock:
+        if line.order_line.variant and line.order_line.variant.track_inventory:
             increase_stock(
                 line.order_line.variant, line.quantity, allocate=True)

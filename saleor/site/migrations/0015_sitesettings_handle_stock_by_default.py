@@ -12,7 +12,7 @@ class Migration(migrations.Migration):
     operations = [
         migrations.AddField(
             model_name='sitesettings',
-            name='handle_stock_by_default',
-            field=models.BooleanField(default=True, help_text='This will set the default value of stock handling on product and variant creation'),
+            name='track_inventory_by_default',
+            field=models.BooleanField(default=True),
         ),
     ]

@@ -12,7 +12,7 @@ class Migration(migrations.Migration):
     operations = [
         migrations.AddField(
             model_name='productvariant',
-            name='handle_stock',
-            field=models.BooleanField(default=True, help_text='Allow or not to automatically handle stock units from orders'),
+            name='track_inventory',
+            field=models.BooleanField(default=True),
         ),
     ]
