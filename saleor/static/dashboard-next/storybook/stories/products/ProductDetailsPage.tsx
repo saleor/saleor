@@ -10,7 +10,7 @@ product.images.edges = product.images.edges.map(edge => ({
   node: { ...edge.node, url: placeholder }
 }));
 
-storiesOf("Products / ProductDetailsPage", module)
+storiesOf("Views / Products / Product details", module)
   .add("when loading data", () => (
     <ProductDetailsPage
       placeholderImage={placeholder}
