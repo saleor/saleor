@@ -1,11 +1,11 @@
 import json
 from decimal import Decimal
 
+import pytest
 from django.urls import reverse
 from django_countries.fields import Country
 from payments import FraudStatus, PaymentStatus
 from prices import Money, TaxedMoney
-
 from tests.utils import get_redirect_location
 
 from saleor.account.models import User
@@ -81,15 +81,22 @@ def test_add_variant_to_order_adds_line_for_new_variant(
     assert line.tax_rate == taxes[product.tax_rate]['value']
 
 
+@pytest.mark.parametrize('track_inventory', (True, False))
 def test_add_variant_to_order_allocates_stock_for_new_variant(
-        order_with_lines, product):
+        order_with_lines, product, track_inventory):
     variant = product.variants.get()
+    variant.track_inventory = track_inventory
+    variant.save()
+
     stock_before = variant.quantity_allocated
 
     add_variant_to_order(order_with_lines, variant, 1)
 
     variant.refresh_from_db()
-    assert variant.quantity_allocated == stock_before + 1
+    if track_inventory:
+        assert variant.quantity_allocated == stock_before + 1
+    else:
+        assert variant.quantity_allocated == stock_before
 
 
 def test_add_variant_to_order_edits_line_for_existing_variant(
@@ -163,12 +170,22 @@ def test_add_note_to_order(order_with_lines):
     assert order.notes.first().content == 'test_note'
 
 
-def test_restock_order_lines(order_with_lines):
+@pytest.mark.parametrize('track_inventory', (True, False))
+def test_restock_order_lines(order_with_lines, track_inventory):
+
     order = order_with_lines
     line_1 = order.lines.first()
     line_2 = order.lines.last()
+
+    line_1.variant.track_inventory = track_inventory
+    line_2.variant.track_inventory = track_inventory
+
+    line_1.variant.save()
+    line_2.variant.save()
+
     stock_1_quantity_allocated_before = line_1.variant.quantity_allocated
     stock_2_quantity_allocated_before = line_2.variant.quantity_allocated
+
     stock_1_quantity_before = line_1.variant.quantity
     stock_2_quantity_before = line_2.variant.quantity
 
@@ -176,10 +193,18 @@ def test_restock_order_lines(order_with_lines):
 
     line_1.variant.refresh_from_db()
     line_2.variant.refresh_from_db()
-    assert line_1.variant.quantity_allocated == (
-        stock_1_quantity_allocated_before - line_1.quantity)
-    assert line_2.variant.quantity_allocated == (
-        stock_2_quantity_allocated_before - line_2.quantity)
+
+    if track_inventory:
+        assert line_1.variant.quantity_allocated == (
+            stock_1_quantity_allocated_before - line_1.quantity)
+        assert line_2.variant.quantity_allocated == (
+            stock_2_quantity_allocated_before - line_2.quantity)
+    else:
+        assert line_1.variant.quantity_allocated == (
+            stock_1_quantity_allocated_before)
+        assert line_2.variant.quantity_allocated == (
+            stock_2_quantity_allocated_before)
+
     assert line_1.variant.quantity == stock_1_quantity_before
     assert line_2.variant.quantity == stock_2_quantity_before
     assert line_1.quantity_fulfilled == 0
