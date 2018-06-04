@@ -100,6 +100,7 @@ def product_select_type(request):
 @staff_member_required
 @permission_required('product.edit_product')
 def product_create(request, type_pk):
+    site_settings = request.site.settings
     product_type = get_object_or_404(ProductType, pk=type_pk)
     create_variant = not product_type.has_variants
     product = Product()
@@ -108,7 +109,9 @@ def product_create(request, type_pk):
     if create_variant:
         variant = ProductVariant(product=product)
         variant_form = forms.ProductVariantForm(
-            request.POST or None, instance=variant, prefix='variant')
+            request.POST or None,
+            initial_track_inventory=site_settings.track_inventory_by_default,
+            instance=variant, prefix='variant')
         variant_errors = not variant_form.is_valid()
     else:
         variant_form = None
@@ -312,9 +315,13 @@ def variant_details(request, product_pk, variant_pk):
 @staff_member_required
 @permission_required('product.edit_product')
 def variant_create(request, product_pk):
+    site_settings = request.site.settings
     product = get_object_or_404(Product.objects.all(), pk=product_pk)
     variant = ProductVariant(product=product)
-    form = forms.ProductVariantForm(request.POST or None, instance=variant)
+    form = forms.ProductVariantForm(
+        request.POST or None,
+        initial_track_inventory=site_settings.track_inventory_by_default,
+        instance=variant)
     if form.is_valid():
         form.save()
         msg = pgettext_lazy(

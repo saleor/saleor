@@ -21,22 +21,22 @@ from .utils import filter_products_by_attribute
 
 
 @pytest.mark.parametrize(
-    'func, expected_quanitty, expected_quant_allocated',
+    'func, expected_quantity, expected_quantity_allocated',
     (
         (increase_stock, 150, 80),
         (decrease_stock, 50, 30),
         (deallocate_stock, 100, 30),
         (allocate_stock, 100, 130)))
 def test_stock_utils(
-        product, func, expected_quanitty, expected_quant_allocated):
+        product, func, expected_quantity, expected_quantity_allocated):
     variant = product.variants.first()
     variant.quantity = 100
     variant.quantity_allocated = 80
     variant.save()
     func(variant, 50)
     variant.refresh_from_db()
-    assert variant.quantity == expected_quanitty
-    assert variant.quantity_allocated == expected_quant_allocated
+    assert variant.quantity == expected_quantity
+    assert variant.quantity_allocated == expected_quantity_allocated
 
 
 def test_product_page_redirects_to_correct_slug(client, product):
