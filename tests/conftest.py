@@ -1,9 +1,8 @@
-from decimal import Decimal
 from io import BytesIO
 from unittest.mock import MagicMock, Mock
 
 import pytest
-from django.contrib.auth.models import AnonymousUser, Group, Permission
+from django.contrib.auth.models import Group, Permission
 from django.contrib.sites.models import Site
 from django.core.files import File
 from django.core.files.uploadedfile import SimpleUploadedFile
@@ -16,9 +15,9 @@ from PIL import Image
 from prices import Money
 
 from saleor.account.models import Address, User
-from saleor.cart import utils
-from saleor.cart.models import Cart
-from saleor.checkout.core import Checkout
+from saleor.checkout import utils
+from saleor.checkout.models import Cart
+from saleor.checkout.utils import add_variant_to_cart
 from saleor.dashboard.order.utils import fulfill_order_line
 from saleor.discount.models import Sale, Voucher
 from saleor.menu.models import Menu, MenuItem
@@ -51,6 +50,16 @@ def site_settings(db, settings):
 @pytest.fixture
 def cart(db):  # pylint: disable=W0613
     return Cart.objects.create()
+
+
+@pytest.fixture
+def cart_with_voucher(cart, product, voucher):
+    variant = product.variants.get()
+    add_variant_to_cart(cart, variant, 3)
+    cart.voucher_code = voucher.code
+    cart.discount_amount = Money('20.00', 'USD')
+    cart.save()
+    return cart
 
 
 @pytest.fixture
@@ -89,8 +98,7 @@ def request_cart(cart, monkeypatch):
 @pytest.fixture
 def request_cart_with_item(product, request_cart):
     variant = product.variants.get()
-    # Prepare some data
-    request_cart.add(variant)
+    add_variant_to_cart(request_cart, variant)
     return request_cart
 
 
@@ -350,37 +358,25 @@ def product_with_images(product_type, default_category):
 
 
 @pytest.fixture
-def checkout():
-    return Checkout(Mock(), AnonymousUser(), None, None, 'tracking_code')
-
-
-@pytest.fixture
-def checkout_with_items(request_cart_with_item, customer_user):
-    checkout = Checkout(
-        request_cart_with_item, customer_user, None, None, 'tracking_code')
-    checkout.shipping_address = customer_user.default_shipping_address
-    return checkout
-
-
-@pytest.fixture
 def voucher(db):  # pylint: disable=W0613
     return Voucher.objects.create(code='mirumee', discount_value=20)
 
 
 @pytest.fixture()
 def order_with_lines(
-        order, product_type, default_category, shipping_method, taxes):
+        order, product_type, default_category, shipping_method, vatlayer):
+    taxes = vatlayer
     product = Product.objects.create(
         name='Test product', price=Money('10.00', 'USD'),
         product_type=product_type, category=default_category)
     variant = ProductVariant.objects.create(
-        product=product, sku='SKU_A', cost_price=Money(1, 'USD'), quantity=0,
-        quantity_allocated=0)
+        product=product, sku='SKU_A', cost_price=Money(1, 'USD'), quantity=5,
+        quantity_allocated=3)
     order.lines.create(
         product_name=variant.display_product(),
         product_sku=variant.sku,
         is_shipping_required=variant.is_shipping_required(),
-        quantity=1,
+        quantity=3,
         variant=variant,
         unit_price=variant.get_price(taxes=taxes),
         tax_rate=taxes['standard']['value'])
@@ -389,13 +385,13 @@ def order_with_lines(
         name='Test product 2', price=Money('20.00', 'USD'),
         product_type=product_type, category=default_category)
     variant = ProductVariant.objects.create(
-        product=product, sku='SKU_B', cost_price=Money(2, 'USD'), quantity=0,
-        quantity_allocated=0)
+        product=product, sku='SKU_B', cost_price=Money(2, 'USD'), quantity=2,
+        quantity_allocated=2)
     order.lines.create(
         product_name=variant.display_product(),
         product_sku=variant.sku,
         is_shipping_required=variant.is_shipping_required(),
-        quantity=1,
+        quantity=2,
         variant=variant,
         unit_price=variant.get_price(taxes=taxes),
         tax_rate=taxes['standard']['value'])
@@ -409,51 +405,6 @@ def order_with_lines(
 
     recalculate_order(order)
 
-    order.refresh_from_db()
-    return order
-
-
-@pytest.fixture()
-def order_with_lines_and_stock(
-        order, product_type, default_category, shipping_method):
-    product = Product.objects.create(
-        name='Test product', price=Money('10.00', 'USD'),
-        product_type=product_type, category=default_category)
-    variant = ProductVariant.objects.create(
-        product=product, sku='SKU_A', cost_price=Money(1, 'USD'), quantity=5,
-        quantity_allocated=3)
-    order.lines.create(
-        order=order,
-        product_name=product.name,
-        product_sku='SKU_A',
-        is_shipping_required=product.product_type.is_shipping_required,
-        quantity=3,
-        unit_price_net=Decimal('30.00'),
-        unit_price_gross=Decimal('30.00'),
-        variant=variant)
-    product = Product.objects.create(
-        name='Test product 2', price=Money('20.00', 'USD'),
-        product_type=product_type, category=default_category)
-    variant = ProductVariant.objects.create(
-        product=product, sku='SKU_B', cost_price=Money(2, 'USD'), quantity=2,
-        quantity_allocated=2)
-    order.lines.create(
-        order=order,
-        product_name=product.name,
-        product_sku='SKU_B',
-        is_shipping_required=product.product_type.is_shipping_required,
-        quantity=2,
-        unit_price_net=Decimal('20.00'),
-        unit_price_gross=Decimal('20.00'),
-        variant=variant)
-
-    order.shipping_address = order.billing_address.get_copy()
-    order.shipping_method_name = shipping_method.name
-    method = shipping_method.price_per_country.get()
-    order.shipping_method = method
-    order.shipping_price = method.get_total_price()
-    order.save()
-    recalculate_order(order)
     order.refresh_from_db()
     return order
 
@@ -478,13 +429,6 @@ def draft_order(order_with_lines):
     order_with_lines.status = OrderStatus.DRAFT
     order_with_lines.save(update_fields=['status'])
     return order_with_lines
-
-
-@pytest.fixture
-def draft_order_with_stock(order_with_lines_and_stock):
-    order_with_lines_and_stock.status = OrderStatus.DRAFT
-    order_with_lines_and_stock.save(update_fields=['status'])
-    return order_with_lines_and_stock
 
 
 @pytest.fixture()

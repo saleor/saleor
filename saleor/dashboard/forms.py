@@ -149,3 +149,10 @@ class AjaxSelect2MultipleChoiceField(forms.MultipleChoiceField):
         """Set initially selected objects on field's widget."""
         selected = [{'id': obj.pk, 'text': str(obj)} for obj in objects]
         self.widget.attrs['data-initial'] = json.dumps(selected)
+
+
+class PermissionMultipleChoiceField(forms.ModelMultipleChoiceField):
+    """ Permission multiple choice field with label override."""
+
+    def label_from_instance(self, obj):
+        return obj.name

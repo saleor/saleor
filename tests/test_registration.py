@@ -112,10 +112,10 @@ def test_signup_view_redirect(client, customer_user):
     url = reverse('account:signup')
     data = {
         'email': 'client@example.com', 'password': 'password',
-        'next': reverse('cart:index')}
+        'next': reverse('checkout:index')}
     response = client.post(url, data)
     redirect_location = get_redirect_location(response)
-    assert redirect_location == reverse('cart:index')
+    assert redirect_location == reverse('checkout:index')
 
 
 def test_signup_view_fail(client, db, customer_user):

@@ -123,7 +123,7 @@ context_processors = [
     'django.contrib.messages.context_processors.messages',
     'django.template.context_processors.request',
     'saleor.core.context_processors.default_currency',
-    'saleor.cart.context_processors.cart_counter',
+    'saleor.checkout.context_processors.cart_counter',
     'saleor.core.context_processors.navigation',
     'saleor.core.context_processors.search_enabled',
     'saleor.site.context_processors.site',
@@ -187,7 +187,6 @@ INSTALLED_APPS = [
     'saleor.account',
     'saleor.discount',
     'saleor.product',
-    'saleor.cart',
     'saleor.checkout',
     'saleor.core',
     'saleor.graphql',
@@ -430,6 +429,8 @@ SOCIAL_AUTH_USER_MODEL = AUTH_USER_MODEL
 SOCIAL_AUTH_FACEBOOK_SCOPE = ['email']
 SOCIAL_AUTH_FACEBOOK_PROFILE_EXTRA_PARAMS = {
     'fields': 'id, email'}
+# As per March 2018, Facebook requires all traffic to go through HTTPS only
+SOCIAL_AUTH_REDIRECT_IS_HTTPS = True
 
 # CELERY SETTINGS
 CELERY_BROKER_URL = os.environ.get('CELERY_BROKER_URL') or ''

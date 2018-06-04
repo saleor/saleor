@@ -75,6 +75,8 @@ class UserManager(BaseUserManager):
             **extra_fields):
         """Create a user instance with the given email and password."""
         email = UserManager.normalize_email(email)
+        # Google OAuth2 backend send unnecessary username field
+        extra_fields.pop('username', None)
         user = self.model(
             email=email, is_active=is_active, is_staff=is_staff,
             **extra_fields)
@@ -90,7 +92,8 @@ class UserManager(BaseUserManager):
 
 class User(PermissionsMixin, AbstractBaseUser):
     email = models.EmailField(unique=True)
-    addresses = models.ManyToManyField(Address, blank=True)
+    addresses = models.ManyToManyField(
+        Address, blank=True, related_name='user_addresses')
     is_staff = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
     note = models.TextField(null=True, blank=True)

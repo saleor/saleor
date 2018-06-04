@@ -5,7 +5,7 @@ from django.utils.encoding import smart_text
 from django.utils.translation import pgettext_lazy
 from django_prices.templatetags.prices_i18n import amount
 
-from ..cart.forms import AddToCartForm
+from ..checkout.forms import AddToCartForm
 from ..core.utils.taxes import display_gross_prices
 
 

@@ -63,11 +63,11 @@
                         value="{% if field.value.1 %}{{ field.value.1 }}{% endif %}" type="number" min="0"
                         class="form-control d-inline" placeholder="{% trans 'to' context 'Product price filter' %}"/>
                 </div>
-                <button class="btn primary" type="submit">{% trans 'Update' context 'Product price filter' %}</button>
               </div>
             </div>
           {% endif %}
         {% endfor %}
+        <button class="btn primary" type="submit">{% trans 'Update' context 'Apply filters button' %}</button>
       </form>
     </div>
   </div>

@@ -3,10 +3,13 @@ from decimal import Decimal
 
 from django.urls import reverse
 from django_countries.fields import Country
-from payments import PaymentStatus
+from payments import FraudStatus, PaymentStatus
 from prices import Money, TaxedMoney
+
 from tests.utils import get_redirect_location
 
+from saleor.account.models import User
+from saleor.checkout.utils import create_order
 from saleor.core.utils.taxes import (
     DEFAULT_TAX_RATE_NAME, get_tax_rate_by_name, get_taxes_for_country)
 from saleor.order import FulfillmentStatus, OrderStatus, models
@@ -79,41 +82,38 @@ def test_add_variant_to_order_adds_line_for_new_variant(
 
 
 def test_add_variant_to_order_allocates_stock_for_new_variant(
-        order_with_lines_and_stock, product):
-    order = order_with_lines_and_stock
+        order_with_lines, product):
     variant = product.variants.get()
     stock_before = variant.quantity_allocated
 
-    add_variant_to_order(order, variant, 1)
+    add_variant_to_order(order_with_lines, variant, 1)
 
     variant.refresh_from_db()
     assert variant.quantity_allocated == stock_before + 1
 
 
 def test_add_variant_to_order_edits_line_for_existing_variant(
-        order_with_lines_and_stock):
-    order = order_with_lines_and_stock
-    existing_line = order.lines.first()
+        order_with_lines):
+    existing_line = order_with_lines.lines.first()
     variant = existing_line.variant
-    lines_before = order.lines.count()
+    lines_before = order_with_lines.lines.count()
     line_quantity_before = existing_line.quantity
 
-    add_variant_to_order(order, variant, 1)
+    add_variant_to_order(order_with_lines, variant, 1)
 
     existing_line.refresh_from_db()
-    assert order.lines.count() == lines_before
+    assert order_with_lines.lines.count() == lines_before
     assert existing_line.product_sku == variant.sku
     assert existing_line.quantity == line_quantity_before + 1
 
 
 def test_add_variant_to_order_allocates_stock_for_existing_variant(
-        order_with_lines_and_stock):
-    order = order_with_lines_and_stock
-    existing_line = order.lines.first()
+        order_with_lines):
+    existing_line = order_with_lines.lines.first()
     variant = existing_line.variant
     stock_before = variant.quantity_allocated
 
-    add_variant_to_order(order, variant, 1)
+    add_variant_to_order(order_with_lines, variant, 1)
 
     variant.refresh_from_db()
     assert variant.quantity_allocated == stock_before + 1
@@ -161,14 +161,6 @@ def test_add_note_to_order(order_with_lines):
     note_form.is_valid()
     note_form.save()
     assert order.notes.first().content == 'test_note'
-
-
-def test_create_order_history(order_with_lines):
-    order = order_with_lines
-    order.history.create(content='test_entry', user=order.user)
-    history_entry = models.OrderHistoryEntry.objects.get(order=order)
-    assert history_entry == order.history.first()
-    assert history_entry.content == 'test_entry'
 
 
 def test_restock_order_lines(order_with_lines):
@@ -286,8 +278,7 @@ def test_order_queryset_confirmed(draft_order):
         Order.objects.create(status=OrderStatus.UNFULFILLED),
         Order.objects.create(status=OrderStatus.PARTIALLY_FULFILLED),
         Order.objects.create(status=OrderStatus.FULFILLED),
-        Order.objects.create(status=OrderStatus.CANCELED)
-    ]
+        Order.objects.create(status=OrderStatus.CANCELED)]
 
     confirmed_orders = Order.objects.confirmed()
 
@@ -370,7 +361,7 @@ def test_ajax_order_shipping_methods_list_different_country(
     assert resp_decoded == {'results': shipping_methods_list}
 
 
-def test_update_order_prices(order_with_lines, vatlayer):
+def test_update_order_prices(order_with_lines):
     taxes = get_taxes_for_country(Country('DE'))
     address = order_with_lines.shipping_address
     address.country = 'DE'
@@ -389,5 +380,75 @@ def test_update_order_prices(order_with_lines, vatlayer):
     assert line_1.unit_price == price_1
     assert line_2.unit_price == price_2
     assert order_with_lines.shipping_price == shipping_price
-    total = price_1 + price_2 + shipping_price
+    total = (
+        line_1.quantity * price_1 + line_2.quantity * price_2 + shipping_price)
     assert order_with_lines.total == total
+
+
+def test_order_payment_flow(
+        request_cart_with_item, client, address, shipping_method):
+    request_cart_with_item.shipping_address = address
+    request_cart_with_item.billing_address = address.get_copy()
+    request_cart_with_item.email = 'test@example.com'
+    request_cart_with_item.shipping_method = (
+        shipping_method.price_per_country.first())
+    request_cart_with_item.save()
+
+    order = create_order(
+        request_cart_with_item, 'tracking_code', discounts=None, taxes=None)
+
+    # Select payment method
+    url = reverse('order:payment', kwargs={'token': order.token})
+    data = {'method': 'default'}
+    response = client.post(url, data, follow=True)
+
+    assert len(response.redirect_chain) == 1
+    assert response.status_code == 200
+    redirect_url = reverse(
+        'order:payment', kwargs={'token': order.token, 'variant': 'default'})
+    assert response.request['PATH_INFO'] == redirect_url
+
+    # Go to payment details page, enter payment data
+    data = {
+        'status': PaymentStatus.PREAUTH,
+        'fraud_status': FraudStatus.UNKNOWN,
+        'gateway_response': '3ds-disabled',
+        'verification_result': 'waiting'}
+
+    response = client.post(redirect_url, data)
+
+    assert response.status_code == 302
+    redirect_url = reverse(
+        'order:payment-success', kwargs={'token': order.token})
+    assert get_redirect_location(response) == redirect_url
+
+    # Complete payment, go to checkout success page
+    data = {'status': 'ok'}
+    response = client.post(redirect_url, data)
+    assert response.status_code == 302
+    redirect_url = reverse(
+        'order:checkout-success', kwargs={'token': order.token})
+    assert get_redirect_location(response) == redirect_url
+
+    # Assert that payment object was created and contains correct data
+    payment = order.payments.all()[0]
+    assert payment.total == order.total.gross.amount
+    assert payment.tax == order.total.tax.amount
+    assert payment.currency == order.total.currency
+    assert payment.delivery == order.shipping_price.net.amount
+    assert len(payment.get_purchased_items()) == len(order.lines.all())
+
+
+def test_create_user_after_order(order, client):
+    order.user_email = 'hello@mirumee.com'
+    order.save()
+    url = reverse('order:checkout-success', kwargs={'token': order.token})
+    data = {'password': 'password'}
+
+    response = client.post(url, data)
+
+    redirect_url = reverse('order:details', kwargs={'token': order.token})
+    assert get_redirect_location(response) == redirect_url
+    user = User.objects.filter(email='hello@mirumee.com').first()
+    assert user is not None
+    assert user.orders.filter(token=order.token).exists()
