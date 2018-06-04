@@ -131,11 +131,9 @@ def address_delete(request, pk):
 @require_POST
 def account_delete(request, pk):
     user = get_object_or_404(User, pk=pk)
-    import pdb; pdb.set_trace()
-
     if request.user.pk != user.pk:
         raise Http404('No such page!')
-    send_account_delete_confirmation_email.delay(user.token, user.email)
+    send_account_delete_confirmation_email.delay(str(user.token), user.email)
     messages.success(
         request, pgettext(
             'Storefront message, when user requested his account removed',
@@ -145,6 +143,6 @@ def account_delete(request, pk):
 
 def account_delete_confirm(request, token):
     user = get_object_or_404(User, token=token)
-    # user.delete()
+    user.delete()
     return TemplateResponse(
-        request, 'account/account_delete_confirm.html', {'user': user})
+        request, 'account/account_delete.html')
