@@ -5,6 +5,7 @@ from urllib.parse import urlencode
 
 import i18naddress
 import pytest
+from captcha import constants as recaptcha_constants
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.forms import Form
@@ -238,7 +239,10 @@ def test_disabled_recaptcha():
 
 
 @patch.dict(os.environ, {'RECAPTCHA_TESTING': 'True'})
-@patch.object(settings, 'ENABLE_RECAPTCHA', True)
+@patch.object(
+    settings, 'RECAPTCHA_PUBLIC_KEY', recaptcha_constants.TEST_PUBLIC_KEY)
+@patch.object(
+    settings, 'RECAPTCHA_PRIVATE_KEY', recaptcha_constants.TEST_PRIVATE_KEY)
 def test_requires_recaptcha():
     """
     This test creates a new form
