@@ -134,7 +134,7 @@ def account_delete(request, pk):
     if request.user.pk != user.pk:
         raise Http404('No such page!')
 
-    send_account_delete_confirmation_email.delay()
+    send_account_delete_confirmation_email.delay(pk)
     messages.success(
         request, pgettext(
             'Storefront message, when user requested his account removed',

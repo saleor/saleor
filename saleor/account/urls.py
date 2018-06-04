@@ -25,6 +25,6 @@ urlpatterns = [
     url(r'^address/(?P<pk>\d+)/delete/$',
         views.address_delete, name='address-delete'),
     url(r'^(?P<pk>\d+)/delete/$', views.account_delete,
-        name='account-delete'),
-    url(r'^(?P<token>[0-9A-Za-z_\-]+)/delete/',
-        views.account_delete_confirm, name='account-delete-confirm')]
+        name='delete'),
+    url(r'^(?P<token>[0-9A-Za-z_\-]+)/delete-confirm/',
+        views.account_delete_confirm, name='delete-confirm')]
