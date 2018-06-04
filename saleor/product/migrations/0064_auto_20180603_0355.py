@@ -21,7 +21,7 @@ class Migration(migrations.Migration):
         ),
         migrations.AddField(
             model_name='productvariant',
-            name='vendor_sku',
+            name='barcode',
             field=models.CharField(blank=True, max_length=32, null=True, unique=True),
         ),
         migrations.AddField(

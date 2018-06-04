@@ -284,11 +284,12 @@ class ProductVariantForm(forms.ModelForm, AttributesMixin):
     class Meta:
         model = ProductVariant
         fields = [
-            'sku', 'price_override',
+            'sku', 'barcode', 'price_override',
             'quantity', 'cost_price', 'track_inventory']
         labels = {
             'sku': pgettext_lazy('SKU', 'SKU'),
-            'vendor_sku': pgettext_lazy('Vendor\'s SKU', 'Vendor SKU'),
+            'barcode': pgettext_lazy(
+                'Variant barcode', 'Barcode (ISBN, UPC, GTIN, ...)'),
             'price_override': pgettext_lazy(
                 'Override price', 'Selling price override'),
             'quantity': pgettext_lazy('Integer number', 'Number in stock'),

@@ -190,7 +190,7 @@ class Product(SeoModel):
 
 class ProductVariant(models.Model):
     sku = models.CharField(max_length=32, unique=True)
-    vendor_sku = models.CharField(
+    barcode = models.CharField(
         max_length=32, unique=True, null=True, blank=True)
     name = models.CharField(max_length=255, blank=True)
     price_override = MoneyField(
