@@ -1,9 +1,14 @@
 import json
+import os
+from unittest.mock import patch
 from urllib.parse import urlencode
 
 import i18naddress
 import pytest
+from captcha import constants as recaptcha_constants
+from django.conf import settings
 from django.core.exceptions import ValidationError
+from django.forms import Form
 from django.http import QueryDict
 from django.template import Context, Template
 from django.urls import reverse
@@ -218,3 +223,38 @@ def test_ajax_users_list(admin_client, admin_user, customer_user):
 
     assert response.status_code == 200
     assert resp_decoded == {'results': users_list}
+
+
+def test_disabled_recaptcha():
+    """
+    This test creates a new form that should not contain any recaptcha field.
+    """
+    from saleor.account.forms import FormWithReCaptcha
+
+    class TestForm(Form, FormWithReCaptcha):
+        pass
+
+    form = TestForm({})
+    assert form.is_valid()
+
+
+@patch.dict(os.environ, {'RECAPTCHA_TESTING': 'True'})
+@patch.object(
+    settings, 'RECAPTCHA_PUBLIC_KEY', recaptcha_constants.TEST_PUBLIC_KEY)
+@patch.object(
+    settings, 'RECAPTCHA_PRIVATE_KEY', recaptcha_constants.TEST_PRIVATE_KEY)
+def test_requires_recaptcha():
+    """
+    This test creates a new form
+    that should contain a (required) recaptcha field.
+    """
+    from saleor.account.forms import FormWithReCaptcha
+
+    class TestForm(Form, FormWithReCaptcha):
+        pass
+
+    form = TestForm({})
+    assert not form.is_valid()
+
+    form = TestForm({'g-recaptcha-response': 'PASSED'})
+    assert form.is_valid()

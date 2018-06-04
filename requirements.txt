@@ -43,6 +43,7 @@ django-phonenumber-field==2.0.0
 django-prices-openexchangerates==1.0.0
 django-prices-vatlayer==1.0.1
 django-prices==1.0.0
+django-recaptcha==1.4.0
 django-redis==4.8.0
 django-render-block==0.5  # via django-templated-email
 django-storages==1.6.5
