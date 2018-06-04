@@ -132,7 +132,7 @@ const categories = [
   }
 ];
 
-storiesOf("Products / ProductUpdatePage", module)
+storiesOf("Views / Products / Product edit", module)
   .add("when loading data", () => (
     <ProductUpdatePage onBack={() => {}} onSubmit={() => {}} loading={true} />
   ))

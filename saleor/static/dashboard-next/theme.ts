@@ -46,6 +46,14 @@ export default createMuiTheme({
         },
         minWidth: 64
       }
+    },
+    MuiTableCell: {
+      root: {
+        paddingLeft: 0,
+        "&:first-child": {
+          paddingLeft: 24 + "px"
+        }
+      }
     }
   },
   palette: {
