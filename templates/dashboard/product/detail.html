@@ -151,23 +151,93 @@
       {% endif %}
     </div>
     <div class="col s12 l4">
-        <div class="row no-margin">
-          <div class="col s12">
+      <div class="row no-margin">
+        <div class="col s12">
+          <div class="card">
+            <div class="data-table-header">
+              <div class="data-table-title">
+                <h5>
+                  {% trans "Pricing" context "Product pricing card header" %}
+                </h5>
+                <h6>
+                  {% if product.charge_taxes %}
+                    {% blocktrans trimmed with tax_rate=product.tax_rate context "Product pricing card header subtitle" %}
+                      Taxes are charged ({{ tax_rate }} tax rate)
+                    {% endblocktrans %}
+                  {% else %}
+                    {% trans "Taxes are not charged" context "Product pricing card header subtitle" %}
+                  {% endif %}
+                </h6>
+              </div>
+            </div>
+            <div class="data-table-container">
+              <table class="data-table bordered highlight">
+                <tbody>
+                  <tr>
+                    <td>
+                      {% if site.settings.include_taxes_in_prices %}
+                        {% trans "Gross sale price" context "Product field" %}
+                      {% else %}
+                        {% trans "Net sale price" context "Product field" %}
+                      {% endif %}
+                    </td>
+                    <td class="right-align">
+                      {% price sale_price display_gross=site.settings.include_taxes_in_prices %}
+                    </td>
+                  </tr>
+                  {% if discounted_price != sale_price %}
+                    <tr>
+                      <td>
+                        {% if site.settings.include_taxes_in_prices %}
+                          {% trans "Gross discounted price" context "Product field" %}
+                        {% else %}
+                          {% trans "Net discounted price" context "Product field" %}
+                        {% endif %}
+                      </td>
+                      <td class="right-align">
+                        {% price discounted_price display_gross=site.settings.include_taxes_in_prices %}
+                      </td>
+                    </tr>
+                  {% endif %}
+                  <tr>
+                    <td>
+                      {% if site.settings.include_taxes_in_prices %}
+                        {% trans "Gross purchase cost" context "Product field" %}
+                      {% else %}
+                        {% trans "Net purchase cost" context "Product field" %}
+                      {% endif %}
+                    </td>
+                    <td class="right-align">
+                      {% price purchase_cost %}
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>
+                      {% trans "Margin" context "Product field" %}
+                    </td>
+                    <td class="right-align">
+                      {% if margin %}
+                        {% if margin.0 == margin.1 %}
+                          {{ margin.0 }}%
+                        {% else %}
+                          {{ margin.0 }}% - {{ margin.1 }}%
+                        {% endif %}
+                      {% else %}
+                        -
+                      {% endif %}
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+          {% if no_variants %}
             <div class="card">
               <div class="data-table-header">
                 <div class="data-table-title">
                   <h5>
-                    {% trans "Pricing" context "Product pricing card header" %}
+                    {% trans "Inventory" context "Product variant inventory card header" %}
                   </h5>
-                  <h6>
-                    {% if product.charge_taxes %}
-                      {% blocktrans trimmed with tax_rate=product.tax_rate context "Product pricing card header subtitle" %}
-                        Taxes are charged ({{ tax_rate }} tax rate)
-                      {% endblocktrans %}
-                    {% else %}
-                      {% trans "Taxes are not charged" context "Product pricing card header subtitle" %}
-                    {% endif %}
-                  </h6>
                 </div>
               </div>
               <div class="data-table-container">
@@ -175,86 +245,41 @@
                   <tbody>
                     <tr>
                       <td>
-                        {% if site.settings.include_taxes_in_prices %}
-                          {% trans "Gross sale price" context "Product field" %}
-                        {% else %}
-                          {% trans "Net sale price" context "Product field" %}
-                        {% endif %}
+                        {% trans "Number in stock" context "Dashboard variant details view" %}
                       </td>
                       <td class="right-align">
-                        {% price sale_price display_gross=site.settings.include_taxes_in_prices %}
-                      </td>
-                    </tr>
-                    {% if discounted_price != sale_price %}
-                      <tr>
-                        <td>
-                          {% if site.settings.include_taxes_in_prices %}
-                            {% trans "Gross discounted price" context "Product field" %}
-                          {% else %}
-                            {% trans "Net discounted price" context "Product field" %}
-                          {% endif %}
-                        </td>
-                        <td class="right-align">
-                          {% price discounted_price display_gross=site.settings.include_taxes_in_prices %}
-                        </td>
-                      </tr>
-                    {% endif %}
-                    <tr>
-                      <td>
-                        {% if site.settings.include_taxes_in_prices %}
-                          {% trans "Gross purchase cost" context "Product field" %}
-                        {% else %}
-                          {% trans "Net purchase cost" context "Product field" %}
-                        {% endif %}
-                      </td>
-                      <td class="right-align">
-                        {% price purchase_cost %}
+                        {{ only_variant.quantity }}
                       </td>
                     </tr>
                     <tr>
                       <td>
-                        {% trans "Margin" context "Product field" %}
+                        {% trans "Allocated" context "Dashboard variant details view" %}
                       </td>
                       <td class="right-align">
-                        {% if margin %}
-                          {% if margin.0 == margin.1 %}
-                            {{ margin.0 }}%
-                          {% else %}
-                            {{ margin.0 }}% - {{ margin.1 }}%
-                          {% endif %}
-                        {% else %}
-                          -
-                        {% endif %}
+                        {{ only_variant.quantity_allocated }}
                       </td>
                     </tr>
                   </tbody>
                 </table>
               </div>
             </div>
-          </div>
-        </div>
-    </div>
-    <div class="col s12 l4">
-      <div id="images">
-        <div class="row">
-          <div class="col s12">
-            <div class="card">
-              <div class="card-content">
+          {% endif %}
+          <div class="card">
+            <div class="card-content">
               <span class="card-title">{% trans "Images" %}</span>
-                <div class="row">
-                  {% for image in images %}
-                    <div class="col s4">
-                      <img class="responsive-img" src="{{ image.image.crop.255x255 }}" srcset="{{ image.image.crop.255x255 }} 1x, {{ image.image.crop.510x510 }} 2x" alt="{{ image.alt }}">
-                    </div>
-                  {% endfor %}
-                </div>
+              <div class="row">
+                {% for image in images %}
+                  <div class="col s4">
+                    <img class="responsive-img" src="{{ image.image.crop.255x255 }}" srcset="{{ image.image.crop.255x255 }} 1x, {{ image.image.crop.510x510 }} 2x" alt="{{ image.alt }}">
+                  </div>
+                {% endfor %}
               </div>
-              {% if perms.product.edit_product %}
-                <div class="card-action">
-                  <a href="{% url 'dashboard:product-image-list' product.pk %}" class="btn-flat waves-effect">{% trans "Edit images" %}</a>
-                </div>
-              {% endif %}
             </div>
+            {% if perms.product.edit_product %}
+              <div class="card-action">
+                <a href="{% url 'dashboard:product-image-list' product.pk %}" class="btn-flat waves-effect">{% trans "Edit images" %}</a>
+              </div>
+            {% endif %}
           </div>
         </div>
       </div>
