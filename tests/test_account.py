@@ -279,7 +279,8 @@ def test_view_account_delete(
     url = reverse('account:delete', args=[customer_user.pk])
     response = authorized_client.post(url)
     assert response.status_code == 302
-    send_confirmation_mock.assert_called_once_with(str(customer_user.pk))
+    send_confirmation_mock.assert_called_once_with(
+        customer_user.token, customer_user.email)
 
 
 def test_view_account_delete_confirm(customer_user, authorized_client):
