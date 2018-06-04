@@ -14,14 +14,18 @@ def get_list(text):
     return [item.strip() for item in text.split(',')]
 
 
-def get_bool(name, default_value):
+def get_bool_from_env(name, default_value):
     if name in os.environ:
         value = os.environ[name]
-        return ast.literal_eval(value)
+        try:
+            return ast.literal_eval(value)
+        except ValueError as e:
+            raise ValueError(
+                '{} is an invalid value for {}'.format(value, name)) from e
     return default_value
 
 
-DEBUG = get_bool('DEBUG', True)
+DEBUG = get_bool_from_env('DEBUG', True)
 
 SITE_ID = 1
 
@@ -98,7 +102,7 @@ EMAIL_BACKEND = email_config['EMAIL_BACKEND']
 EMAIL_USE_TLS = email_config['EMAIL_USE_TLS']
 EMAIL_USE_SSL = email_config['EMAIL_USE_SSL']
 
-ENABLE_SSL = get_bool('ENABLE_SSL', False)
+ENABLE_SSL = get_bool_from_env('ENABLE_SSL', False)
 
 if ENABLE_SSL:
     SECURE_SSL_REDIRECT = not DEBUG
@@ -232,7 +236,7 @@ if DEBUG:
         'debug_toolbar.middleware.DebugToolbarMiddleware')
     INSTALLED_APPS.append('debug_toolbar')
 
-ENABLE_SILK = get_bool('ENABLE_SILK', False)
+ENABLE_SILK = get_bool_from_env('ENABLE_SILK', False)
 if ENABLE_SILK:
     MIDDLEWARE.insert(0, 'silk.middleware.SilkyMiddleware')
     INSTALLED_APPS.append('silk')
@@ -346,7 +350,7 @@ AWS_SECRET_ACCESS_KEY = os.environ.get('AWS_SECRET_ACCESS_KEY')
 AWS_STORAGE_BUCKET_NAME = os.environ.get('AWS_STORAGE_BUCKET_NAME')
 AWS_MEDIA_BUCKET_NAME = os.environ.get('AWS_MEDIA_BUCKET_NAME')
 AWS_MEDIA_CUSTOM_DOMAIN = os.environ.get('AWS_MEDIA_CUSTOM_DOMAIN')
-AWS_QUERYSTRING_AUTH = get_bool('AWS_QUERYSTRING_AUTH', False)
+AWS_QUERYSTRING_AUTH = get_bool_from_env('AWS_QUERYSTRING_AUTH', False)
 
 if AWS_STORAGE_BUCKET_NAME:
     STATICFILES_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
@@ -368,7 +372,7 @@ VERSATILEIMAGEFIELD_RENDITION_KEY_SETS = {
 
 VERSATILEIMAGEFIELD_SETTINGS = {
     # Images should be pre-generated on Production environment
-    'create_images_on_demand': get_bool('CREATE_IMAGES_ON_DEMAND', DEBUG),
+    'create_images_on_demand': get_bool_from_env('CREATE_IMAGES_ON_DEMAND', DEBUG),
 }
 
 PLACEHOLDER_IMAGES = {
@@ -482,7 +486,7 @@ DEFAULT_MENUS = {
     'bottom_menu_name': 'footer'}
 
 # Enable or not Google's reCaptcha on account forms
-ENABLE_RECAPTCHA = get_bool('ENABLE_RECAPTCHA', False)
+ENABLE_RECAPTCHA = get_bool_from_env('ENABLE_RECAPTCHA', False)
 
 # Set Google's reCaptcha keys
 RECAPTCHA_PUBLIC_KEY = os.environ.get(
