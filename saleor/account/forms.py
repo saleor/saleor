@@ -12,7 +12,7 @@ from .i18n import AddressMetaForm, get_address_form_class
 
 class FormWithReCaptcha(forms.BaseForm):
     def __new__(cls, *args, **kwargs):
-        if settings.ENABLE_RECAPTCHA:
+        if settings.RECAPTCHA_PUBLIC_KEY and settings.RECAPTCHA_PRIVATE_KEY:
             # insert a Google reCaptcha field inside the form
             # note: label is empty, the reCaptcha is self-explanatory making
             #       the form simpler for the user.
