@@ -2,6 +2,7 @@ import graphene
 import graphql_jwt
 from graphene_django.filter import DjangoFilterConnectionField
 
+from .descriptions import DESCRIPTIONS
 from ..page import models as page_models
 from .core.filters import DistinctFilterSet
 from .core.mutations import CreateToken, VerifyToken
@@ -31,10 +32,12 @@ from .utils import get_node
 class Query(graphene.ObjectType):
     attributes = DjangoFilterConnectionField(
         ProductAttribute, filterset_class=DistinctFilterSet,
+        query=graphene.String(description=DESCRIPTIONS['attributes']),
         in_category=graphene.Argument(graphene.ID),
         description='List of the shop\'s product attributes.')
     categories = DjangoFilterConnectionField(
-        Category, filterset_class=DistinctFilterSet,
+        Category, filterset_class=DistinctFilterSet, query=graphene.String(
+            description=DESCRIPTIONS['category']),
         level=graphene.Argument(graphene.Int),
         description='List of the shop\'s categories.')
     category = graphene.Field(
@@ -44,24 +47,29 @@ class Query(graphene.ObjectType):
         Collection, id=graphene.Argument(graphene.ID),
         description='Lookup a collection by ID.')
     collections = DjangoFilterConnectionField(
-        Collection, description='List of the shop\'s collections.')
+        Collection, query=graphene.String(
+            description=DESCRIPTIONS['collection']),
+        description='List of the shop\'s collections.')
     order = graphene.Field(
         Order, description='Lookup an order by ID.',
         id=graphene.Argument(graphene.ID))
     orders = DjangoFilterConnectionField(
-        Order, filterset_class=OrderFilter,
+        Order, filterset_class=OrderFilter, query=graphene.String(
+            description=DESCRIPTIONS['order']),
         description='List of the shop\'s orders.')
     page = graphene.Field(
-        Page, id=graphene.Argument(graphene.ID), slug=graphene.String(),
+        Page, id=graphene.Argument(graphene.ID), slug=graphene.String(
+            description=DESCRIPTIONS['page']),
         description='Lookup a page by ID or by slug.')
     pages = DjangoFilterConnectionField(
-        Page, filterset_class=DistinctFilterSet,
+        Page, filterset_class=DistinctFilterSet, query=graphene.String(),
         description='List of the shop\'s pages.')
     product = graphene.Field(
         Product, id=graphene.Argument(graphene.ID),
         description='Lookup a product by ID.')
     products = DjangoFilterConnectionField(
-        Product, filterset_class=ProductFilterSet,
+        Product, filterset_class=ProductFilterSet, query=graphene.String(
+            description=DESCRIPTIONS['product']),
         description='List of the shop\'s products.')
     product_type = graphene.Field(
         ProductType, id=graphene.Argument(graphene.ID),
@@ -72,40 +80,40 @@ class Query(graphene.ObjectType):
         description='List of the shop\'s product types.')
     node = graphene.Node.Field()
 
-    def resolve_attributes(self, info, in_category=None, **kwargs):
-        return resolve_attributes(in_category, info)
+    def resolve_attributes(self, info, in_category=None, query=None, **kwargs):
+        return resolve_attributes(in_category, info, query)
 
     def resolve_category(self, info, id):
         return get_node(info, id, only_type=Category)
 
-    def resolve_categories(self, info, level=None, **kwargs):
-        return resolve_categories(info, level)
+    def resolve_categories(self, info, level=None, query=None, **kwargs):
+        return resolve_categories(info, level, query)
 
     def resolve_collection(self, info, id):
         return get_node(info, id, only_type=Collection)
 
-    def resolve_collections(self, info, **kwargs):
-        resolve_collections(info)
+    def resolve_collections(self, info, query=None, **kwargs):
+        resolve_collections(info, query)
 
     def resolve_page(self, info, id=None, slug=None):
         if slug is not None:
             return page_models.Page.objects.get(slug=slug)
         return get_node(info, id, only_type=Page)
 
+    def resolve_pages(self, info, query=None, **kwargs):
+        return resolve_pages(user=info.context.user, query=query)
+
     def resolve_order(self, info, id):
         return resolve_order(info, id)
 
-    def resolve_orders(self, info, **kwargs):
-        return resolve_orders(info)
-
-    def resolve_pages(self, info, **kwargs):
-        return resolve_pages(user=info.context.user)
+    def resolve_orders(self, info, query=None, **kwargs):
+        return resolve_orders(info, query)
 
     def resolve_product(self, info, id):
         return get_node(info, id, only_type=Product)
 
-    def resolve_products(self, info, category_id=None, **kwargs):
-        return resolve_products(info, category_id)
+    def resolve_products(self, info, category_id=None, query=None, **kwargs):
+        return resolve_products(info, category_id, query)
 
     def resolve_product_type(self, info, id):
         return get_node(info, id, only_type=ProductType)
