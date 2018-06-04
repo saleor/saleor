@@ -48,8 +48,7 @@
         <div class="card-content">
           <div class="card-title">
             {{ product }}
-            <br>
-            {% trans "SKU" context "Dashboard variant details view" %} {{ variant.sku }}
+            {% include 'dashboard/product/product_variant/_variant_title.html' with variant=variant %}
           </div>
           <div class="row">
             <div class="col s12">
