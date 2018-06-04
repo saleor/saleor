@@ -37,7 +37,7 @@ Prices displayed in orders are gross or net depending on setting how prices are 
 TaxedMoneyRange
 ---------------
 
-Sometimes a product may be available under more than single price due to it's variants defining custom prices different from base brice.
+Sometimes a product may be available under more than single price due to its variants defining custom prices different from the base price.
 
 For such situations `Product` defines additional `get_price_range` method that return `TaxedMoneyRange` object defining minimum and maximum prices on its `start` and `stop` attributes.
 This object is then used by the UI to differentiate between displaying price as "10 USD" or "from 10 USD" in case of products where prices differ between variants.
