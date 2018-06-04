@@ -58,7 +58,7 @@ const products = [
   }
 ];
 
-storiesOf("Products / ProductListCard", module)
+storiesOf("Views / Products / Product list", module)
   .add("without initial data", () => (
     <ProductListCard
       hasNextPage={true}
