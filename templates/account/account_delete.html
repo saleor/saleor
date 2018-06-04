@@ -5,23 +5,20 @@
 {% load i18n %}
 {% load placeholder %}
 
-{% block title %}{% trans "Thank you" context "Checkout success page title" %} — {{ block.super }}{% endblock %}
-
-
-
+{% block title %}{% trans "Account deleted" context "Account deleted page title" %} — {{ block.super }}{% endblock %}
 
 {% block content %}
 <div class="row account__deleted">
-    <div class="col-xl-10 m-auto">
+  <div class="col-xl-10 m-auto">
     <img class="lazyload lazypreload"
-            data-src="{% static 'images/login-bg.png' %}"
-            data-srcset="{% static 'images/login-bg.png' %} 1x, {% static 'images/login-bg2x.png' %} 2x">
+        data-src="{% static 'images/login-bg.png' %}"
+        data-srcset="{% static 'images/login-bg.png' %} 1x, {% static 'images/login-bg2x.png' %} 2x">
     <h1>{% trans "Sorry to see you go!" context "Message displayed to the user after his account was deleted" %}</h1>
     <p>{% blocktrans trimmed context "Message displayed to the user after his account was deleted" %}
         Your account was deleted successfully.
         If any problems or questions contact us.
     {% endblocktrans %}
     </p>
-    </div>
+  </div>
 </div>
 {% endblock %}
