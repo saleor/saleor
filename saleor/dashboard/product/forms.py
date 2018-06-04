@@ -274,7 +274,8 @@ class ProductVariantForm(forms.ModelForm, AttributesMixin):
     class Meta:
         model = ProductVariant
         fields = [
-            'sku', 'price_override', 'track_inventory', 'quantity', 'cost_price']
+            'sku', 'price_override',
+            'quantity', 'cost_price', 'track_inventory']
         labels = {
             'sku': pgettext_lazy('SKU', 'SKU'),
             'price_override': pgettext_lazy(
@@ -288,10 +289,10 @@ class ProductVariantForm(forms.ModelForm, AttributesMixin):
                 'product variant handle stock field help text',
                 'Automatically track this product\'s inventory')}
 
-    def __init__(self, *args, track_inventory_by_default=True, **kwargs):
+    def __init__(self, *args, initial_track_inventory=True, **kwargs):
         super().__init__(*args, **kwargs)
 
-        self.initial['track_inventory'] = track_inventory_by_default
+        self.initial['track_inventory'] = initial_track_inventory
 
         if self.instance.product.pk:
             self.fields['price_override'].widget.attrs[
