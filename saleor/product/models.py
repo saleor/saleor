@@ -185,11 +185,7 @@ class ProductVariant(models.Model):
         Product, related_name='variants', on_delete=models.CASCADE)
     attributes = HStoreField(default={}, blank=True)
     images = models.ManyToManyField('ProductImage', through='VariantImage')
-    handle_stock = models.BooleanField(
-        default=True,
-        help_text=pgettext_lazy(
-            'product variant handle stock field help text',
-            'Allow or not to automatically handle stock units from orders'))
+    track_inventory = models.BooleanField(default=True)
     quantity = models.IntegerField(
         validators=[MinValueValidator(0)], default=Decimal(1))
     quantity_allocated = models.IntegerField(
@@ -212,7 +208,7 @@ class ProductVariant(models.Model):
         """ Check if there is at least the given quantity in stock
         if stock handling is enabled.
         """
-        if self.handle_stock and quantity > self.quantity_available:
+        if self.track_inventory and quantity > self.quantity_available:
             raise InsufficientStock(self)
 
     @property

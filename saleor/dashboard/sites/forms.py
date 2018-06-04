@@ -19,15 +19,20 @@ class SiteForm(forms.ModelForm):
 class SiteSettingsForm(forms.ModelForm):
     class Meta:
         model = SiteSettings
-        fields = ['header_text', 'description', 'handle_stock_by_default']
+        fields = ['header_text', 'description', 'track_inventory_by_default']
         labels = {
             'header_text': pgettext_lazy(
                 'Header text', 'Header text'),
             'description': pgettext_lazy(
                 'Description', 'Description'),
-            'handle_stock_by_default': pgettext_lazy(
-                'Manage the stock by default settings toggle label',
-                'Manage the stock by default')}
+            'track_inventory_by_default': pgettext_lazy(
+                'Inventory tracking by default settings toggle label',
+                'Enable inventory tracking for newly created products')}
+        help_texts = {
+            'track_inventory_by_default': pgettext_lazy(
+                'handle stock by default settings field help text',
+                'This will set the default value of stock handling '
+                'on product and variant creation')}
 
 
 class AuthorizationKeyForm(forms.ModelForm):

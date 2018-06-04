@@ -274,27 +274,31 @@ class ProductVariantForm(forms.ModelForm, AttributesMixin):
     class Meta:
         model = ProductVariant
         fields = [
-            'sku', 'price_override', 'handle_stock', 'quantity', 'cost_price']
+            'sku', 'price_override', 'track_inventory', 'quantity', 'cost_price']
         labels = {
             'sku': pgettext_lazy('SKU', 'SKU'),
             'price_override': pgettext_lazy(
                 'Override price', 'Selling price override'),
             'quantity': pgettext_lazy('Integer number', 'Number in stock'),
             'cost_price': pgettext_lazy('Currency amount', 'Cost price'),
-            'handle_stock': pgettext_lazy(
-                'Manage stock field', 'Automatically manage the stock')}
+            'track_inventory': pgettext_lazy(
+                'Track inventory field', 'Track inventory')}
+        help_texts = {
+            'track_inventory': pgettext_lazy(
+                'product variant handle stock field help text',
+                'Automatically track this product\'s inventory')}
 
-    def __init__(self, *args, handle_stock_by_default=True, **kwargs):
+    def __init__(self, *args, track_inventory_by_default=True, **kwargs):
         super().__init__(*args, **kwargs)
 
-        self.initial['handle_stock'] = handle_stock_by_default
+        self.initial['track_inventory'] = track_inventory_by_default
 
         if self.instance.product.pk:
             self.fields['price_override'].widget.attrs[
                 'placeholder'] = self.instance.product.price.amount
             self.available_attributes = (
                 self.instance.product.product_type.variant_attributes.all()
-                .prefetch_related('values'))
+                    .prefetch_related('values'))
             self.prepare_fields_for_attributes()
 
         if include_taxes_in_prices():
@@ -328,6 +332,7 @@ class CachingModelChoiceField(forms.ModelChoiceField):
         if hasattr(self, '_choices'):
             return self._choices
         return CachingModelChoiceIterator(self)
+
     choices = property(_get_choices, forms.ChoiceField._set_choices)
 
 
@@ -453,7 +458,7 @@ class ReorderProductImagesForm(forms.ModelForm):
 class UploadImageForm(forms.ModelForm):
     class Meta:
         model = ProductImage
-        fields = ('image', )
+        fields = ('image',)
         labels = {
             'image': pgettext_lazy('Product image', 'Image')}
 
