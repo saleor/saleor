@@ -2,9 +2,9 @@ import { parse as parseQs } from "qs";
 import * as React from "react";
 import { Route, RouteComponentProps, Switch } from "react-router-dom";
 
-import { CategoryCreateForm } from "./views/CategoryCreateForm";
-import { CategoryUpdateForm } from "./views/CategoryUpdateForm";
-import CategoryDetails from "./views/details";
+import { CategoryCreateForm } from "./views/CategoryCreate";
+import CategoryDetails from "./views/CategoryDetails";
+import { CategoryUpdateForm } from "./views/CategoryUpdate";
 
 const CategoryPaginator: React.StatelessComponent<RouteComponentProps<any>> = ({
   location,

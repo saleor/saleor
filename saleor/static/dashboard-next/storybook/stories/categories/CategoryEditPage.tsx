@@ -3,9 +3,14 @@ import * as React from "react";
 
 import CategoryEditPage from "../../../categories/components/CategoryEditPage";
 // import Decorator from "../../Decorator";
-import { category, errors } from "../../../categories/fixtures";
+import {
+  category as categoryFixture,
+  errors
+} from "../../../categories/fixtures";
 
-storiesOf("Views / Categories / Category edit form", module)
+const category = categoryFixture("");
+
+storiesOf("Views / Categories / Category edit", module)
   // .addDecorator(Decorator)
   .add("default", () => (
     <CategoryEditPage

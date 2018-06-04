@@ -19,7 +19,7 @@ interface CategoryEditPageProps {
   name: string;
   variant?: "add" | "edit";
   onBack?();
-  onSubmit();
+  onSubmit(data: any);
 }
 
 const CategoryEditPage: React.StatelessComponent<CategoryEditPageProps> = ({
@@ -57,34 +57,32 @@ const CategoryEditPage: React.StatelessComponent<CategoryEditPageProps> = ({
           />
           <Card>
             <CardContent>
-              <>
-                <TextField
-                  autoFocus
-                  fullWidth
-                  disabled={loading}
-                  value={data.name}
-                  error={!!errorList.name}
-                  helperText={errorList.name}
-                  label={i18n.t("Name", { context: "category" })}
-                  name="name"
-                  onChange={change}
-                />
-                <FormSpacer />
-                <TextField
-                  fullWidth
-                  multiline
-                  disabled={loading}
-                  value={data.description}
-                  error={!!errorList.description}
-                  helperText={
-                    errorList.description ||
-                    i18n.t("Optional", { context: "field" })
-                  }
-                  label={i18n.t("Description")}
-                  name="description"
-                  onChange={change}
-                />
-              </>
+              <TextField
+                autoFocus
+                fullWidth
+                disabled={loading}
+                value={data.name}
+                error={!!errorList.name}
+                helperText={errorList.name}
+                label={i18n.t("Name", { context: "category" })}
+                name="name"
+                onChange={change}
+              />
+              <FormSpacer />
+              <TextField
+                fullWidth
+                multiline
+                disabled={loading}
+                value={data.description}
+                error={!!errorList.description}
+                helperText={
+                  errorList.description ||
+                  i18n.t("Optional", { context: "field" })
+                }
+                label={i18n.t("Description")}
+                name="description"
+                onChange={change}
+              />
             </CardContent>
           </Card>
           <SaveButtonBar disabled={loading} onBack={onBack} onSave={submit} />

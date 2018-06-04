@@ -1,625 +1,178 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`Storyshots Categories / CategoryBaseForm with 'errors' property 1`] = `
+exports[`Storyshots Categories / CategoryDeleteDialog default 1`] = `
 <Component
   classes={
     Object {
-      "cardActions": "Component-cardActions-21",
-      "textField": "Component-textField-22",
+      "deleteButton": "Component-deleteButton-21",
     }
   }
-  description="Across pressure PM food discover recognize. Send letter reach listen. Quickly work plan rule.
-Tell lose part purpose do when. Whatever drug contain particularly defense."
-  errors={
-    Array [
-      Object {
-        "field": "name",
-        "message": "To pole jest wymagane.",
-      },
-    ]
-  }
   name="Apparel"
+  onClose={[Function]}
+  onConfirm={[Function]}
+  open={true}
 />
 `;
 
-exports[`Storyshots Categories / CategoryBaseForm with initial data 1`] = `
+exports[`Storyshots Categories / CategoryDeleteDialog with products 1`] = `
 <Component
   classes={
     Object {
-      "cardActions": "Component-cardActions-21",
-      "textField": "Component-textField-22",
+      "deleteButton": "Component-deleteButton-21",
     }
   }
-  description="Across pressure PM food discover recognize. Send letter reach listen. Quickly work plan rule.
-Tell lose part purpose do when. Whatever drug contain particularly defense."
   name="Apparel"
-/>
-`;
-
-exports[`Storyshots Categories / CategoryBaseForm without initial data 1`] = `
-<Component
-  classes={
-    Object {
-      "cardActions": "Component-cardActions-21",
-      "textField": "Component-textField-22",
-    }
-  }
+  onClose={[Function]}
+  onConfirm={[Function]}
+  open={true}
+  productCount={100}
 />
 `;
 
 exports[`Storyshots Categories / CategoryProducts when loading data 1`] = `
-<WithStyles(Card)>
-  <WithStyles(Component)
-    title="Products"
-  >
-    <WithStyles(IconButton)
-      onClick={[Function]}
-    >
-      <pure(Add) />
-    </WithStyles(IconButton)>
-    <Hidden
-      implementation="js"
-      lgDown={false}
-      lgUp={false}
-      mdDown={false}
-      mdUp={true}
-      smDown={false}
-      smUp={false}
-      xlDown={false}
-      xlUp={false}
-      xsDown={false}
-      xsUp={false}
-    >
-      <WithStyles(IconButton)
-        onClick={[Function]}
-      >
-        <pure(FilterList) />
-      </WithStyles(IconButton)>
-    </Hidden>
-  </WithStyles(Component)>
-  <WithStyles(Component)
-    hasNextPage={true}
-    hasPreviousPage={false}
-    onNextPage={[Function]}
-    onPreviousPage={[Function]}
-  />
-</WithStyles(Card)>
+<Component
+  classes={
+    Object {
+      "avatarCell": "Component-avatarCell-23",
+      "link": "Component-link-24",
+    }
+  }
+  hasNextPage={true}
+  hasPreviousPage={false}
+  onAddProduct={[Function]}
+  onNextPage={[Function]}
+  onPreviousPage={[Function]}
+/>
 `;
 
 exports[`Storyshots Categories / CategoryProducts with clickable rows 1`] = `
-<WithStyles(Card)>
-  <WithStyles(Component)
-    title="Products"
-  >
-    <WithStyles(IconButton)
-      onClick={[Function]}
-    >
-      <pure(Add) />
-    </WithStyles(IconButton)>
-    <Hidden
-      implementation="js"
-      lgDown={false}
-      lgUp={false}
-      mdDown={false}
-      mdUp={true}
-      smDown={false}
-      smUp={false}
-      xlDown={false}
-      xlUp={false}
-      xsDown={false}
-      xsUp={false}
-    >
-      <WithStyles(IconButton)
-        onClick={[Function]}
-      >
-        <pure(FilterList) />
-      </WithStyles(IconButton)>
-    </Hidden>
-  </WithStyles(Component)>
-  <WithStyles(Component)
-    hasNextPage={true}
-    hasPreviousPage={false}
-    onNextPage={[Function]}
-    onPreviousPage={[Function]}
-    onRowClick={[Function]}
-    products={
-      Array [
-        Object {
-          "id": "UHJvZHVjdDox",
-          "name": "Gardner, Graham and King",
-          "productType": Object {
-            "id": "1",
-            "name": "T-Shirt",
-          },
-          "thumbnailUrl": "placeholder60x60.png",
-        },
-        Object {
-          "id": "UHJvZHVjdDoy",
-          "name": "Gardner, Graham and King",
-          "productType": Object {
-            "id": "1",
-            "name": "T-Shirt",
-          },
-          "thumbnailUrl": "placeholder60x60.png",
-        },
-        Object {
-          "id": "UHJvZHVjdDoz",
-          "name": "Gardner, Graham and King",
-          "productType": Object {
-            "id": "1",
-            "name": "T-Shirt",
-          },
-          "thumbnailUrl": "placeholder60x60.png",
-        },
-        Object {
-          "id": "UHJvZHVjdDoa",
-          "name": "Gardner, Graham and King",
-          "productType": Object {
-            "id": "1",
-            "name": "T-Shirt",
-          },
-          "thumbnailUrl": "placeholder60x60.png",
-        },
-      ]
+<Component
+  classes={
+    Object {
+      "avatarCell": "Component-avatarCell-23",
+      "link": "Component-link-24",
     }
-  />
-</WithStyles(Card)>
+  }
+  hasNextPage={true}
+  hasPreviousPage={false}
+  onAddProduct={[Function]}
+  onNextPage={[Function]}
+  onPreviousPage={[Function]}
+  onRowClick={[Function]}
+  products={
+    Array [
+      Object {
+        "id": "UHJvZHVjdDox",
+        "name": "Gardner, Graham and King",
+        "productType": Object {
+          "id": "1",
+          "name": "T-Shirt",
+        },
+        "thumbnailUrl": "placeholder60x60.png",
+      },
+      Object {
+        "id": "UHJvZHVjdDoy",
+        "name": "Gardner, Graham and King",
+        "productType": Object {
+          "id": "1",
+          "name": "T-Shirt",
+        },
+        "thumbnailUrl": "placeholder60x60.png",
+      },
+      Object {
+        "id": "UHJvZHVjdDoz",
+        "name": "Gardner, Graham and King",
+        "productType": Object {
+          "id": "1",
+          "name": "T-Shirt",
+        },
+        "thumbnailUrl": "placeholder60x60.png",
+      },
+      Object {
+        "id": "UHJvZHVjdDoa",
+        "name": "Gardner, Graham and King",
+        "productType": Object {
+          "id": "1",
+          "name": "T-Shirt",
+        },
+        "thumbnailUrl": "placeholder60x60.png",
+      },
+    ]
+  }
+/>
 `;
 
 exports[`Storyshots Categories / CategoryProducts with initial data 1`] = `
-<WithStyles(Card)>
-  <WithStyles(Component)
-    title="Products"
-  >
-    <WithStyles(IconButton)
-      onClick={[Function]}
-    >
-      <pure(Add) />
-    </WithStyles(IconButton)>
-    <Hidden
-      implementation="js"
-      lgDown={false}
-      lgUp={false}
-      mdDown={false}
-      mdUp={true}
-      smDown={false}
-      smUp={false}
-      xlDown={false}
-      xlUp={false}
-      xsDown={false}
-      xsUp={false}
-    >
-      <WithStyles(IconButton)
-        onClick={[Function]}
-      >
-        <pure(FilterList) />
-      </WithStyles(IconButton)>
-    </Hidden>
-  </WithStyles(Component)>
-  <WithStyles(Component)
-    hasNextPage={true}
-    hasPreviousPage={false}
-    onNextPage={[Function]}
-    onPreviousPage={[Function]}
-    products={
-      Array [
-        Object {
-          "id": "UHJvZHVjdDox",
-          "name": "Gardner, Graham and King",
-          "productType": Object {
-            "id": "1",
-            "name": "T-Shirt",
-          },
-          "thumbnailUrl": "placeholder60x60.png",
-        },
-        Object {
-          "id": "UHJvZHVjdDoy",
-          "name": "Gardner, Graham and King",
-          "productType": Object {
-            "id": "1",
-            "name": "T-Shirt",
-          },
-          "thumbnailUrl": "placeholder60x60.png",
-        },
-        Object {
-          "id": "UHJvZHVjdDoz",
-          "name": "Gardner, Graham and King",
-          "productType": Object {
-            "id": "1",
-            "name": "T-Shirt",
-          },
-          "thumbnailUrl": "placeholder60x60.png",
-        },
-        Object {
-          "id": "UHJvZHVjdDoa",
-          "name": "Gardner, Graham and King",
-          "productType": Object {
-            "id": "1",
-            "name": "T-Shirt",
-          },
-          "thumbnailUrl": "placeholder60x60.png",
-        },
-      ]
+<Component
+  classes={
+    Object {
+      "avatarCell": "Component-avatarCell-23",
+      "link": "Component-link-24",
     }
-  />
-</WithStyles(Card)>
+  }
+  hasNextPage={true}
+  hasPreviousPage={false}
+  onAddProduct={[Function]}
+  onNextPage={[Function]}
+  onPreviousPage={[Function]}
+  products={
+    Array [
+      Object {
+        "id": "UHJvZHVjdDox",
+        "name": "Gardner, Graham and King",
+        "productType": Object {
+          "id": "1",
+          "name": "T-Shirt",
+        },
+        "thumbnailUrl": "placeholder60x60.png",
+      },
+      Object {
+        "id": "UHJvZHVjdDoy",
+        "name": "Gardner, Graham and King",
+        "productType": Object {
+          "id": "1",
+          "name": "T-Shirt",
+        },
+        "thumbnailUrl": "placeholder60x60.png",
+      },
+      Object {
+        "id": "UHJvZHVjdDoz",
+        "name": "Gardner, Graham and King",
+        "productType": Object {
+          "id": "1",
+          "name": "T-Shirt",
+        },
+        "thumbnailUrl": "placeholder60x60.png",
+      },
+      Object {
+        "id": "UHJvZHVjdDoa",
+        "name": "Gardner, Graham and King",
+        "productType": Object {
+          "id": "1",
+          "name": "T-Shirt",
+        },
+        "thumbnailUrl": "placeholder60x60.png",
+      },
+    ]
+  }
+/>
 `;
 
 exports[`Storyshots Categories / CategoryProducts without initial data 1`] = `
-<WithStyles(Card)>
-  <WithStyles(Component)
-    title="Products"
-  >
-    <WithStyles(IconButton)
-      onClick={[Function]}
-    >
-      <pure(Add) />
-    </WithStyles(IconButton)>
-    <Hidden
-      implementation="js"
-      lgDown={false}
-      lgUp={false}
-      mdDown={false}
-      mdUp={true}
-      smDown={false}
-      smUp={false}
-      xlDown={false}
-      xlUp={false}
-      xsDown={false}
-      xsUp={false}
-    >
-      <WithStyles(IconButton)
-        onClick={[Function]}
-      >
-        <pure(FilterList) />
-      </WithStyles(IconButton)>
-    </Hidden>
-  </WithStyles(Component)>
-  <WithStyles(Component)
-    hasNextPage={true}
-    hasPreviousPage={false}
-    onNextPage={[Function]}
-    onPreviousPage={[Function]}
-    products={Array []}
-  />
-</WithStyles(Card)>
-`;
-
-exports[`Storyshots Categories / CategorySubcategories when loading data 1`] = `
-<WithStyles(Card)>
-  <WithStyles(Component)
-    title="Subcategories"
-  >
-    <WithStyles(IconButton)
-      onClick={[Function]}
-    >
-      <pure(Add) />
-    </WithStyles(IconButton)>
-  </WithStyles(Component)>
-  <Component
-    onClick={[Function]}
-  />
-</WithStyles(Card)>
-`;
-
-exports[`Storyshots Categories / CategorySubcategories with initial data 1`] = `
-<WithStyles(Card)>
-  <WithStyles(Component)
-    title="Subcategories"
-  >
-    <WithStyles(IconButton)
-      onClick={[Function]}
-    >
-      <pure(Add) />
-    </WithStyles(IconButton)>
-  </WithStyles(Component)>
-  <Component
-    categories={
-      Array [
-        Object {
-          "id": "123123",
-          "name": "Lorem ipsum dolor",
-        },
-        Object {
-          "id": "876752",
-          "name": "Mauris vehicula tortor vulputate",
-        },
-      ]
+<Component
+  classes={
+    Object {
+      "avatarCell": "Component-avatarCell-23",
+      "link": "Component-link-24",
     }
-    onClick={[Function]}
-  />
-</WithStyles(Card)>
-`;
-
-exports[`Storyshots Categories / CategorySubcategories without initial data 1`] = `
-<WithStyles(Card)>
-  <WithStyles(Component)
-    title="Subcategories"
-  >
-    <WithStyles(IconButton)
-      onClick={[Function]}
-    >
-      <pure(Add) />
-    </WithStyles(IconButton)>
-  </WithStyles(Component)>
-  <Component
-    categories={Array []}
-    onClick={[Function]}
-  />
-</WithStyles(Card)>
-`;
-
-exports[`Storyshots Categories / ProductFilters with initial data 1`] = `
-<FilterCard
-  handleClear={[Function]}
->
-  <TextField
-    fullWidth={true}
-    label="Name"
-    name="name"
-    onChange={[Function]}
-    required={false}
-    select={false}
-    value="Lorem ipsum"
-  />
-  <WithStyles(Component) />
-  <WithStyles(Component)
-    choices={
-      Array [
-        Object {
-          "label": "Type 1",
-          "value": "123123123",
-        },
-        Object {
-          "label": "Type 2",
-          "value": "123123124",
-        },
-        Object {
-          "label": "Type 3",
-          "value": "123123125",
-        },
-        Object {
-          "label": "Type 4",
-          "value": "123123126",
-        },
-      ]
-    }
-    label="Product type"
-    name="productTypes"
-    onChange={[Function]}
-    value={
-      Array [
-        "123123123",
-        "123123126",
-      ]
-    }
-  />
-  <WithStyles(Component) />
-  <WithStyles(Component)
-    currencySymbol="USD"
-    label="Price"
-    name="price"
-    onChange={[Function]}
-    value={
-      Object {
-        "max": "50",
-        "min": "30",
-      }
-    }
-  />
-  <WithStyles(Component) />
-  <WithStyles(Component)
-    choices={
-      Array [
-        Object {
-          "label": "Published",
-          "value": "1",
-        },
-        Object {
-          "label": "Not published",
-          "value": "0",
-        },
-        Object {
-          "label": "All",
-          "value": "",
-        },
-      ]
-    }
-    label="Published"
-    name="published"
-    onChange={[Function]}
-    value="true"
-  />
-  <WithStyles(Component) />
-  <WithStyles(Component)
-    choices={
-      Array [
-        Object {
-          "label": "Highlighted",
-          "value": "1",
-        },
-        Object {
-          "label": "Not highlighted",
-          "value": "0",
-        },
-        Object {
-          "label": "All",
-          "value": "",
-        },
-      ]
-    }
-    label="Highlighted"
-    name="highlighted"
-    onChange={[Function]}
-    value="false"
-  />
-</FilterCard>
-`;
-
-exports[`Storyshots Categories / ProductFilters without initial data 1`] = `
-<FilterCard
-  handleClear={[Function]}
->
-  <TextField
-    fullWidth={true}
-    label="Name"
-    name="name"
-    onChange={[Function]}
-    required={false}
-    select={false}
-    value=""
-  />
-  <WithStyles(Component) />
-  <WithStyles(Component)
-    choices={
-      Array [
-        Object {
-          "label": "Type 1",
-          "value": "123123123",
-        },
-        Object {
-          "label": "Type 2",
-          "value": "123123124",
-        },
-        Object {
-          "label": "Type 3",
-          "value": "123123125",
-        },
-        Object {
-          "label": "Type 4",
-          "value": "123123126",
-        },
-      ]
-    }
-    label="Product type"
-    name="productTypes"
-    onChange={[Function]}
-    value={Array []}
-  />
-  <WithStyles(Component) />
-  <WithStyles(Component)
-    currencySymbol="USD"
-    label="Price"
-    name="price"
-    onChange={[Function]}
-    value={
-      Object {
-        "max": "",
-        "min": "",
-      }
-    }
-  />
-  <WithStyles(Component) />
-  <WithStyles(Component)
-    choices={
-      Array [
-        Object {
-          "label": "Published",
-          "value": "1",
-        },
-        Object {
-          "label": "Not published",
-          "value": "0",
-        },
-        Object {
-          "label": "All",
-          "value": "",
-        },
-      ]
-    }
-    label="Published"
-    name="published"
-    onChange={[Function]}
-    value=""
-  />
-  <WithStyles(Component) />
-  <WithStyles(Component)
-    choices={
-      Array [
-        Object {
-          "label": "Highlighted",
-          "value": "1",
-        },
-        Object {
-          "label": "Not highlighted",
-          "value": "0",
-        },
-        Object {
-          "label": "All",
-          "value": "",
-        },
-      ]
-    }
-    label="Highlighted"
-    name="highlighted"
-    onChange={[Function]}
-    value=""
-  />
-</FilterCard>
-`;
-
-exports[`Storyshots Categories / RootCategoryList when loading data 1`] = `
-<WithStyles(Card)>
-  <WithStyles(Component)
-    title="Categories"
-  >
-    <WithStyles(IconButton)
-      onClick={[Function]}
-    >
-      <pure(Add) />
-    </WithStyles(IconButton)>
-  </WithStyles(Component)>
-  <Component
-    onClick={[Function]}
-  />
-</WithStyles(Card)>
-`;
-
-exports[`Storyshots Categories / RootCategoryList with initial data 1`] = `
-<WithStyles(Card)>
-  <WithStyles(Component)
-    title="Categories"
-  >
-    <WithStyles(IconButton)
-      onClick={[Function]}
-    >
-      <pure(Add) />
-    </WithStyles(IconButton)>
-  </WithStyles(Component)>
-  <Component
-    categories={
-      Array [
-        Object {
-          "id": "123123",
-          "name": "Lorem ipsum dolor",
-        },
-        Object {
-          "id": "876752",
-          "name": "Mauris vehicula tortor vulputate",
-        },
-      ]
-    }
-    onClick={[Function]}
-  />
-</WithStyles(Card)>
-`;
-
-exports[`Storyshots Categories / RootCategoryList without initial data 1`] = `
-<WithStyles(Card)>
-  <WithStyles(Component)
-    title="Categories"
-  >
-    <WithStyles(IconButton)
-      onClick={[Function]}
-    >
-      <pure(Add) />
-    </WithStyles(IconButton)>
-  </WithStyles(Component)>
-  <Component
-    categories={Array []}
-    onClick={[Function]}
-  />
-</WithStyles(Card)>
+  }
+  hasNextPage={true}
+  hasPreviousPage={false}
+  onAddProduct={[Function]}
+  onNextPage={[Function]}
+  onPreviousPage={[Function]}
+  products={Array []}
+/>
 `;
 
 exports[`Storyshots Generics / DateFormatter default 1`] = `
@@ -7369,7 +6922,7 @@ exports[`Storyshots Views / Products / Product variant details when loading data
 <Component
   classes={
     Object {
-      "root": "Component-root-60",
+      "root": "Component-root-62",
     }
   }
   loading={true}

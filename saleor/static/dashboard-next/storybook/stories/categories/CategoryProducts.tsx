@@ -2,7 +2,7 @@ import { storiesOf } from "@storybook/react";
 import { DialogContentText } from "material-ui/Dialog";
 import * as React from "react";
 
-import CategoryProducts from "../../../category/components/CategoryProducts";
+import CategoryProducts from "../../../categories/components/CategoryProducts";
 import * as placeholder from "../../../../images/placeholder60x60.png";
 
 const products = [
@@ -50,8 +50,7 @@ storiesOf("Categories / CategoryProducts", module)
       hasNextPage={true}
       hasPreviousPage={false}
       products={[]}
-      onCreate={() => {}}
-      onFilter={() => {}}
+      onAddProduct={() => {}}
       onNextPage={() => {}}
       onPreviousPage={() => {}}
     />
@@ -61,8 +60,7 @@ storiesOf("Categories / CategoryProducts", module)
       hasNextPage={true}
       hasPreviousPage={false}
       products={products}
-      onCreate={() => {}}
-      onFilter={() => {}}
+      onAddProduct={() => {}}
       onNextPage={() => {}}
       onPreviousPage={() => {}}
     />
@@ -72,19 +70,17 @@ storiesOf("Categories / CategoryProducts", module)
       hasNextPage={true}
       hasPreviousPage={false}
       products={products}
-      onCreate={() => {}}
-      onFilter={() => {}}
+      onAddProduct={() => {}}
       onNextPage={() => {}}
       onPreviousPage={() => {}}
-      onRowClick={() => {}}
+      onRowClick={() => () => {}}
     />
   ))
   .add("when loading data", () => (
     <CategoryProducts
       hasNextPage={true}
       hasPreviousPage={false}
-      onCreate={() => {}}
-      onFilter={() => {}}
+      onAddProduct={() => {}}
       onNextPage={() => {}}
       onPreviousPage={() => {}}
     />
