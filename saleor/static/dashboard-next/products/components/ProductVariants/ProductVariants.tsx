@@ -137,7 +137,7 @@ export const ProductVariants = decorate<ProductVariantsProps>(
                       : fallbackPrice}
                   </TableCell>
                   <TableCell className={classes.alignRightText}>
-                    {variant.margin}
+                    {variant.margin.toFixed(2)}%
                   </TableCell>
                 </Hidden>
               </TableRow>

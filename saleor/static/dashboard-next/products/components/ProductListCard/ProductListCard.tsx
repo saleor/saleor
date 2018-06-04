@@ -1,9 +1,10 @@
-import Card from "material-ui/Card";
-import * as React from "react";
-
 import FilterListIcon from "@material-ui/icons/FilterList";
+import Card from "material-ui/Card";
 import Hidden from "material-ui/Hidden";
 import IconButton from "material-ui/IconButton";
+import * as React from "react";
+
+import Container from "../../../components/Container";
 import PageHeader from "../../../components/PageHeader";
 import ProductList from "../../../components/ProductList";
 import i18n from "../../../i18n";
@@ -36,7 +37,7 @@ export const ProductListCard: React.StatelessComponent<
   onPreviousPage,
   onRowClick
 }) => (
-  <Card>
+  <Container width="md">
     <PageHeader title={i18n.t("Product list")}>
       <Hidden mdUp>
         <IconButton onClick={onFilter}>
@@ -44,15 +45,17 @@ export const ProductListCard: React.StatelessComponent<
         </IconButton>
       </Hidden>
     </PageHeader>
-    <ProductList
-      products={products}
-      hasNextPage={hasNextPage}
-      hasPreviousPage={hasPreviousPage}
-      onNextPage={onNextPage}
-      onPreviousPage={onPreviousPage}
-      onRowClick={onRowClick}
-    />
-  </Card>
+    <Card>
+      <ProductList
+        products={products}
+        hasNextPage={hasNextPage}
+        hasPreviousPage={hasPreviousPage}
+        onNextPage={onNextPage}
+        onPreviousPage={onPreviousPage}
+        onRowClick={onRowClick}
+      />
+    </Card>
+  </Container>
 );
 
 export default ProductListCard;
