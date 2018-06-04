@@ -16,6 +16,7 @@ from django.urls import reverse
 from django_countries.fields import Country
 from saleor.account import forms, i18n
 from saleor.account.forms import FormWithReCaptcha
+from saleor.account.models import User
 from saleor.account.templatetags.i18n_address_tags import format_address
 from saleor.account.validators import validate_possible_number
 
@@ -280,7 +281,7 @@ def test_view_account_delete(
     response = authorized_client.post(url)
     assert response.status_code == 302
     send_confirmation_mock.assert_called_once_with(
-        customer_user.token, customer_user.email)
+        str(customer_user.token), customer_user.email)
 
 
 def test_view_account_delete_confirm(customer_user, authorized_client):
@@ -292,5 +293,5 @@ def test_view_account_delete_confirm(customer_user, authorized_client):
     url = reverse('account:delete-confirm', args=[customer_user.token])
     response = authorized_client.get(url)
     assert response.status_code == 200
-    customer_user.refresh_from_db()
+    customer_user = User.objects.filter(pk=customer_user.pk).first()
     assert customer_user is None
