@@ -14,7 +14,7 @@ import * as Cookies from "universal-cookie";
 import AppRoot from "./AppRoot";
 import CategorySection from "./category";
 import "./i18n";
-import PageSection from "./page";
+import PageSection from "./pages";
 import ProductSection from "./products";
 import theme from "./theme";
 

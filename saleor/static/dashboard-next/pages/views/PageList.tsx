@@ -13,9 +13,9 @@ import ErrorMessageCard from "../../components/ErrorMessageCard";
 import Navigator from "../../components/Navigator";
 import PageHeader from "../../components/PageHeader";
 import i18n from "../../i18n";
-import PageFilters from "../components/PageFilters";
 import PageListComponent from "../components/PageList";
-import { pageEditUrl, pageStorefrontUrl } from "../index";
+import PageListPage from "../components/PageListPage/PageListPage";
+import { pageAddUrl, pageEditUrl, pageStorefrontUrl } from "../index";
 import { pageListQuery, TypedPageListQuery } from "../queries";
 
 interface PageListProps {
@@ -101,76 +101,28 @@ export class PageList extends React.Component<PageListProps, PageListState> {
           return (
             <Navigator>
               {navigate => {
-                const applyFilters = data => {
-                  navigate(
-                    `?${stringifyQs({ ...filters, ...data.formData })}`,
-                    true
-                  );
-                };
-                const clearFilters = () => navigate("?");
                 const handleEditClick = (id: string) => () =>
                   navigate(pageEditUrl(id));
                 const handleShowPageClick = (slug: string) => () =>
                   window.open(pageStorefrontUrl(slug));
                 return (
-                  <Grid container spacing={16}>
-                    <Grid item xs={12}>
-                      <Grid container spacing={16}>
-                        <Grid item xs={12} md={9}>
-                          <Card>
-                            <PageHeader
-                              title={i18n.t("Pages", {
-                                context: "title"
-                              })}
-                            >
-                              <IconButton
-                                disabled={loading}
-                                onClick={() => navigate("/pages/add/")}
-                              >
-                                <Add />
-                              </IconButton>
-                              <Hidden mdUp>
-                                <IconButton
-                                  disabled={loading}
-                                  onClick={this.handleFilterMenuOpen}
-                                >
-                                  <FilterListIcon />
-                                </IconButton>
-                              </Hidden>
-                            </PageHeader>
-                            <PageListComponent
-                              pageInfo={loading ? null : data.pages.pageInfo}
-                              pages={loading ? null : data.pages.edges}
-                              handlePreviousPage={loadPreviousPage}
-                              handleNextPage={loadNextPage}
-                              onEditClick={handleEditClick}
-                              onShowPageClick={handleShowPageClick}
-                            />
-                          </Card>
-                        </Grid>
-                        <Grid item xs={12} md={3}>
-                          <Hidden smDown>
-                            <PageFilters
-                              handleSubmit={applyFilters}
-                              handleClear={clearFilters}
-                              formState={filters}
-                            />
-                          </Hidden>
-                          <Drawer
-                            open={this.state.isFilterMenuOpened}
-                            onClose={this.handleFilterMenuOpen}
-                            anchor="bottom"
-                          >
-                            <PageFilters
-                              handleSubmit={applyFilters}
-                              handleClear={clearFilters}
-                              formState={filters}
-                            />
-                          </Drawer>
-                        </Grid>
-                      </Grid>
-                    </Grid>
-                  </Grid>
+                  <PageListPage
+                    pages={
+                      data && data.pages
+                        ? data.pages.edges.map(edge => edge.node)
+                        : undefined
+                    }
+                    pageInfo={
+                      data && data.pages && data.pages.pageInfo
+                        ? data.pages.pageInfo
+                        : undefined
+                    }
+                    onAddPage={() => navigate(pageAddUrl)}
+                    onEditPage={handleEditClick}
+                    onNextPage={loadNextPage}
+                    onPreviousPage={loadPreviousPage}
+                    onShowPage={handleShowPageClick}
+                  />
                 );
               }}
             </Navigator>
