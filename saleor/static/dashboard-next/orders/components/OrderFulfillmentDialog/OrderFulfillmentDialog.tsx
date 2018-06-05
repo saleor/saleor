@@ -66,7 +66,7 @@ const OrderFulfillmentDialog = decorate<OrderFulfillmentDialogProps>(
         </TableHead>
         <TableBody>
           {products.map(product => (
-            <TableRow>
+            <TableRow key={product.id}>
               <TableCell className={classes.avatarCell}>
                 <Avatar src={product.thumbnailUrl} />
               </TableCell>

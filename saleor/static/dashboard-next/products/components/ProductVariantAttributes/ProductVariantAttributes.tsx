@@ -50,6 +50,7 @@ const ProductVariantAttributes = decorate<ProductVariantAttributesProps>(
               value={formData ? formData[attribute.attribute.slug] : ""}
               label={attribute.attribute.name}
               name={attribute.attribute.slug}
+              key={attribute.attribute.slug}
             />
           ))
         )}
