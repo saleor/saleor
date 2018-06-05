@@ -46,7 +46,6 @@ const PageListPage = decorate<PageListPageProps>(
         title={i18n.t("Pages", {
           context: "title"
         })}
-        onBack={onBack}
       >
         <IconButton disabled={!onAddPage} onClick={onAddPage}>
           <AddIcon />

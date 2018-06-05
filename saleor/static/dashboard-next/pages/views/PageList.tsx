@@ -122,7 +122,6 @@ export class PageList extends React.Component<PageListProps, PageListState> {
                     onNextPage={loadNextPage}
                     onPreviousPage={loadPreviousPage}
                     onShowPage={handleShowPageClick}
-                    onBack={() => window.history.back()}
                   />
                 );
               }}
