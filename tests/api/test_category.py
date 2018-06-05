@@ -174,3 +174,54 @@ def test_category_delete_mutation(admin_api_client, default_category):
     assert data['category']['name'] == default_category.name
     with pytest.raises(default_category._meta.model.DoesNotExist):
         default_category.refresh_from_db()
+
+
+def test_category_level(user_api_client, default_category):
+    category = default_category
+    query = """
+    query leveled_categories($level: Int) {
+        categories(level: $level) {
+            edges {
+                node {
+                    name
+                    parent {
+                        name
+                    }
+                }
+            }
+        }
+    }
+    """
+    child = Category.objects.create(
+        name='child', slug='chi-ld', parent=category)
+    variables = json.dumps({'level': 0})
+    response = user_api_client.post(
+        reverse('api'), {'query': query, 'variables': variables})
+    content = get_graphql_content(response)
+    assert 'errors' not in content
+    category_data = content['data']['categories']['edges'][0]['node']
+    assert category_data['name'] == category.name
+    assert category_data['parent'] == None
+
+    query = """
+    query leveled_categories($level: Int) {
+        categories(level: $level) {
+            edges {
+                node {
+                    name
+                    parent {
+                        name
+                    }
+                }
+            }
+        }
+    }
+    """
+    variables = json.dumps({'level': 1})
+    response = user_api_client.post(
+        reverse('api'), {'query': query, 'variables': variables})
+    content = get_graphql_content(response)
+    assert 'errors' not in content
+    category_data = content['data']['categories']['edges'][0]['node']
+    assert category_data['name'] == child.name
+    assert category_data['parent']['name'] == category.name
