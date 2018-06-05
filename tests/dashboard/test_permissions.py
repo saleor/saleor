@@ -1277,4 +1277,14 @@ def test_staff_group_member_can_edit_menu_items(
 
 def test_staff_group_member_can_remove_user(
         staff_client, staff_user, staff_group, permission_edit_user):
-    pass
+    url = reverse('dashboard:customer-delete', args=[staff_user.pk])
+
+    response = staff_client.get(url)
+    assert response.status_code == 302
+
+    staff_group.permissions.add(permission_edit_user)
+    staff_user.groups.add(staff_group)
+    staff_user = User.objects.get(pk=staff_user.pk)
+
+    response = staff_client.get(url)
+    assert response.status_code == 200
