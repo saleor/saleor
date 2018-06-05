@@ -26,10 +26,12 @@ function loadStories() {
   require("./stories/categories/RootCategoryList");
 
   // Pages
-  require("./stories/pages/PageBaseForm");
+  require("./stories/pages/PageContent");
   require("./stories/pages/PageDeleteDialog");
-  require("./stories/pages/PageFilters");
+  require("./stories/pages/PageDetailsPage");
   require("./stories/pages/PageList");
+  require("./stories/pages/PageListPage");
+  require("./stories/pages/PageProperties");
 
   // Products
   require("./stories/products/ProductAttributesForm");

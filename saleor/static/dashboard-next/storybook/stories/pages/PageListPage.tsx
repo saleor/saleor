@@ -2,7 +2,7 @@ import { storiesOf } from "@storybook/react";
 import Card from "material-ui/Card";
 import * as React from "react";
 
-import PageList from "../../../pages/components/PageList";
+import PageList from "../../../pages/components/PageListPage";
 import { pages } from "../../../pages/fixtures";
 
 const pageInfo = {
@@ -10,33 +10,36 @@ const pageInfo = {
   hasPreviousPage: false
 };
 
-storiesOf("Pages / PageList", module)
+storiesOf("Views / Pages / Page list", module)
   .add("with data", () => (
     <PageList
       pages={pages}
       pageInfo={pageInfo}
-      onEditClick={() => {}}
+      onBack={() => {}}
+      onEditPage={() => {}}
       onNextPage={() => {}}
       onPreviousPage={() => {}}
-      onShowPageClick={() => {}}
+      onShowPage={() => {}}
     />
   ))
   .add("without data", () => (
     <PageList
       pages={[]}
       pageInfo={pageInfo}
-      onEditClick={() => {}}
+      onBack={() => {}}
+      onEditPage={() => {}}
       onNextPage={() => {}}
       onPreviousPage={() => {}}
-      onShowPageClick={() => {}}
+      onShowPage={() => {}}
     />
   ))
   .add("when loading data", () => (
     <PageList
       pageInfo={pageInfo}
-      onEditClick={() => {}}
+      onBack={() => {}}
+      onEditPage={() => {}}
       onNextPage={() => {}}
       onPreviousPage={() => {}}
-      onShowPageClick={() => {}}
+      onShowPage={() => {}}
     />
   ));
