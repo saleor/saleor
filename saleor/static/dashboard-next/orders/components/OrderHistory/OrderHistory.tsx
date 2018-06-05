@@ -57,6 +57,7 @@ const OrderHistory = decorate<OrderHistoryProps>(
                     user={event.user}
                     date={event.date}
                     content={event.content}
+                    key={event.id}
                   />
                 );
               }
