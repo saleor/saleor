@@ -11,6 +11,8 @@ from .discount.types import Sale, Voucher
 from ..page import models as page_models
 from .core.filters import DistinctFilterSet
 from .core.mutations import CreateToken, VerifyToken
+from .core.resolvers import resolve_shop
+from .core.types import Shop
 from .order.filters import OrderFilter
 from .order.resolvers import resolve_order, resolve_orders
 from .order.types import Order
@@ -90,6 +92,9 @@ class Query(graphene.ObjectType):
     sales = DjangoFilterConnectionField(
         Sale, query=graphene.String(description=DESCRIPTIONS['sale']),
         description="List of the shop\'s sales.")
+    shop = graphene.Field(
+        Shop, description='Represents a shop resources.',
+        resolver=resolve_shop)
     voucher = graphene.Field(
         Voucher, id=graphene.Argument(graphene.ID),
         description='Lookup a voucher by ID.')

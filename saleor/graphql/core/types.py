@@ -63,6 +63,15 @@ class MoneyRange(graphene.ObjectType):
         description = 'Represents a range of amounts of money.'
 
 
+class PermissionDisplay(graphene.ObjectType):
+    code = graphene.String(description='Internal code for permission.')
+    name = graphene.String(
+        description='Describe action(s) allowed to do by permission.')
+
+    class Meta:
+        description = 'Represents a permission object in a friendly form.'
+
+
 class TaxedMoney(graphene.ObjectType):
     currency = graphene.String(description='Currency code.')
     gross = graphene.Field(
@@ -84,3 +93,11 @@ class TaxedMoneyRange(graphene.ObjectType):
 
     class Meta:
         description = 'Represents a range of monetary values.'
+
+
+class Shop(graphene.ObjectType):
+    permissions = graphene.List(
+        PermissionDisplay, description='List of available permissions')
+
+    class Meta:
+        description = 'Represents a shop resources.'
