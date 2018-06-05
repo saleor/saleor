@@ -19,11 +19,10 @@ function loadStories() {
   require("./stories/components/Timeline");
 
   // Categories
-  require("./stories/categories/CategoryBaseForm");
+  require("./stories/categories/CategoryDeleteDialog");
+  require("./stories/categories/CategoryDetailsPage");
+  require("./stories/categories/CategoryEditPage");
   require("./stories/categories/CategoryProducts");
-  require("./stories/categories/CategorySubcategories");
-  require("./stories/categories/ProductFilters");
-  require("./stories/categories/RootCategoryList");
 
   // Pages
   require("./stories/pages/PageContent");

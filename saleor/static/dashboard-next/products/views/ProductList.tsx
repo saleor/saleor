@@ -6,7 +6,6 @@ import { stringify as stringifyQs } from "qs";
 import * as React from "react";
 
 import { productShowUrl } from "..";
-import { ProductFilters } from "../../category/components/ProductFilters";
 import ErrorMessageCard from "../../components/ErrorMessageCard";
 import Navigator from "../../components/Navigator";
 import Toggle from "../../components/Toggle";
@@ -140,30 +139,6 @@ export const ProductList = decorate<ProductListProps>(
                             onRowClick={id => () =>
                               navigate(productShowUrl(id))}
                           />
-                        </div>
-                        <div>
-                          <Hidden smDown>
-                            <ProductFilters
-                              handleSubmit={applyFilters}
-                              handleClear={clearFilters}
-                              productTypes={dummyProductTypes}
-                              formState={filters}
-                            />
-                          </Hidden>
-                          <Hidden mdUp>
-                            <Drawer
-                              open={filtersVisible}
-                              onClose={hideFilters}
-                              anchor="bottom"
-                            >
-                              <ProductFilters
-                                handleSubmit={applyFilters}
-                                handleClear={clearFilters}
-                                productTypes={dummyProductTypes}
-                                formState={filters}
-                              />
-                            </Drawer>
-                          </Hidden>
                         </div>
                       </>
                     );
