@@ -172,7 +172,6 @@ def test_real_query(user_api_client, product):
             id
             name
             slug
-            color
             __typename
         }
         __typename
