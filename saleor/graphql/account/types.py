@@ -4,17 +4,8 @@ from django.contrib.auth.models import Permission
 from graphene import relay
 
 from ...account import models
-from ..core.types import CountableDjangoObjectType
-
-
-class PermissionDisplay(graphene.ObjectType):
-    code = graphene.String(description='Internal code for permission.')
-    name = graphene.String(
-        description='Describe action(s) allowed to do by permission.')
-
-    class Meta:
-        description = 'Represents a permission object in a friendly form.'
-
+from ..core.types import CountableDjangoObjectType, PermissionDisplay
+from ..utils import format_permissions_for_display
 
 class Address(CountableDjangoObjectType):
     class Meta:
@@ -47,6 +38,4 @@ class User(CountableDjangoObjectType):
                 self.user_permissions.all() |
                 Permission.objects.filter(group__user=self))
         permissions = permissions.select_related('content_type')
-        return [PermissionDisplay(
-            code='.'.join([permission.content_type.app_label, permission.codename]),
-            name=permission.name) for permission in permissions]
+        return format_permissions_for_display(permissions)
