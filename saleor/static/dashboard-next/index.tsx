@@ -12,7 +12,7 @@ import { createStore } from "redux";
 import * as Cookies from "universal-cookie";
 
 import AppRoot from "./AppRoot";
-import CategorySection from "./category";
+import CategorySection from "./categories";
 import "./i18n";
 import PageSection from "./pages";
 import ProductSection from "./products";
