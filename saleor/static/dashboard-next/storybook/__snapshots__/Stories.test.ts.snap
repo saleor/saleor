@@ -3907,68 +3907,32 @@ Array [
 ]
 `;
 
-exports[`Storyshots Pages / PageBaseForm with 'created' property 1`] = `
+exports[`Storyshots Pages / PageContent when loaded 1`] = `
 <Component
   availableOn="2018-03-20T16:39:08.850105+00:00"
   classes={
     Object {
       "addHelperTextPadding": "Component-addHelperTextPadding-23",
-      "cardActions": "Component-cardActions-24",
     }
   }
   content="Lorem ipsum dolor sit amet, consectetur adipiscing elit. Proin bibendum et justo sit amet viverra. Maecenas euismod auctor nisi et tincidunt. Maecenas ante urna, aliquet at odio sed, gravida efficitur purus. Morbi ut dapibus ante. Nulla eu neque sit amet odio tincidunt porttitor eu quis purus. Aliquam at diam sit amet turpis varius semper vitae non lectus. Vivamus lectus ligula, molestie eu augue eu, cursus tincidunt sem. Nam ornare egestas tincidunt."
-  created="2018-03-20T16:39:08.850105+00:00"
+  createdAt="2018-03-13T16:39:08.850105+00:00"
   isVisible={true}
   slug="lorem-ipsum-dolor"
-  title="Lorem ipsum"
+  title="Lorem Ipsum"
 />
 `;
 
-exports[`Storyshots Pages / PageBaseForm with 'errors' property 1`] = `
+exports[`Storyshots Pages / PageContent when loading 1`] = `
 <Component
-  availableOn="2018-03-20T16:39:08.850105+00:00"
   classes={
     Object {
       "addHelperTextPadding": "Component-addHelperTextPadding-23",
-      "cardActions": "Component-cardActions-24",
     }
   }
-  content="Lorem ipsum dolor sit amet, consectetur adipiscing elit. Proin bibendum et justo sit amet viverra. Maecenas euismod auctor nisi et tincidunt. Maecenas ante urna, aliquet at odio sed, gravida efficitur purus. Morbi ut dapibus ante. Nulla eu neque sit amet odio tincidunt porttitor eu quis purus. Aliquam at diam sit amet turpis varius semper vitae non lectus. Vivamus lectus ligula, molestie eu augue eu, cursus tincidunt sem. Nam ornare egestas tincidunt."
-  errors={
-    Array [
-      Object {
-        "field": "slug",
-        "message": "To pole jest wymagane.",
-      },
-      Object {
-        "field": "title",
-        "message": "To pole jest wymagane.",
-      },
-      Object {
-        "field": "content",
-        "message": "To pole jest wymagane.",
-      },
-    ]
-  }
-  isVisible={true}
-  slug="lorem-ipsum-dolor"
-  title="Lorem ipsum"
-/>
-`;
-
-exports[`Storyshots Pages / PageBaseForm with initial data 1`] = `
-<Component
-  availableOn="2018-03-20T16:39:08.850105+00:00"
-  classes={
-    Object {
-      "addHelperTextPadding": "Component-addHelperTextPadding-23",
-      "cardActions": "Component-cardActions-24",
-    }
-  }
-  content="Lorem ipsum dolor sit amet, consectetur adipiscing elit. Proin bibendum et justo sit amet viverra. Maecenas euismod auctor nisi et tincidunt. Maecenas ante urna, aliquet at odio sed, gravida efficitur purus. Morbi ut dapibus ante. Nulla eu neque sit amet odio tincidunt porttitor eu quis purus. Aliquam at diam sit amet turpis varius semper vitae non lectus. Vivamus lectus ligula, molestie eu augue eu, cursus tincidunt sem. Nam ornare egestas tincidunt."
-  isVisible={true}
-  slug="lorem-ipsum-dolor"
-  title="Lorem ipsum"
+  content=""
+  loading={true}
+  title=""
 />
 `;
 
@@ -3976,168 +3940,123 @@ exports[`Storyshots Pages / PageDeleteDialog default 1`] = `
 <Component
   classes={
     Object {
-      "deleteButton": "Component-deleteButton-25",
+      "deleteButton": "Component-deleteButton-24",
     }
   }
+  onClose={[Function]}
+  onConfirm={[Function]}
   opened={true}
->
-  <WithStyles(DialogContentText)>
-    Do you really want to delete this page?
-  </WithStyles(DialogContentText)>
-</Component>
-`;
-
-exports[`Storyshots Pages / PageFilters with initial data 1`] = `
-<FilterCard
-  handleClear={[Function]}
->
-  <TextField
-    fullWidth={true}
-    label="Title"
-    name="title"
-    onChange={[Function]}
-    required={false}
-    select={false}
-    value="Initial title"
-  />
-  <WithStyles(Component) />
-  <TextField
-    fullWidth={true}
-    label="Url"
-    name="url"
-    onChange={[Function]}
-    required={false}
-    select={false}
-    value="initial-url"
-  />
-</FilterCard>
-`;
-
-exports[`Storyshots Pages / PageFilters without initial data 1`] = `
-<FilterCard
-  handleClear={[Function]}
->
-  <TextField
-    fullWidth={true}
-    label="Title"
-    name="title"
-    onChange={[Function]}
-    required={false}
-    select={false}
-    value=""
-  />
-  <WithStyles(Component) />
-  <TextField
-    fullWidth={true}
-    label="Url"
-    name="url"
-    onChange={[Function]}
-    required={false}
-    select={false}
-    value=""
-  />
-</FilterCard>
+  title="Lorem Ipsum"
+/>
 `;
 
 exports[`Storyshots Pages / PageList when loading data 1`] = `
-<Card
+<Component
   classes={
     Object {
-      "root": "MuiCard-root-26",
+      "link": "Component-link-26",
+      "textRight": "Component-textRight-27",
     }
   }
-  raised={false}
->
-  <WithStyles(Component)
-    handleNextPage={[Function]}
-    handlePreviousPage={[Function]}
-    onEditClick={[Function]}
-    onShowPageClick={[Function]}
-    pageInfo={
-      Object {
-        "endCursor": "YXJyYXljb25uZWN0aW9uOjE=",
-        "hasNextPage": false,
-        "hasPreviousPage": false,
-        "startCursor": "YXJyYXljb25uZWN0aW9uOjA=",
-      }
+  onEditClick={[Function]}
+  onNextPage={[Function]}
+  onPreviousPage={[Function]}
+  onShowPageClick={[Function]}
+  pageInfo={
+    Object {
+      "hasNextPage": false,
+      "hasPreviousPage": false,
     }
-  />
-</Card>
+  }
+/>
 `;
 
 exports[`Storyshots Pages / PageList with data 1`] = `
-<Card
+<Component
   classes={
     Object {
-      "root": "MuiCard-root-26",
+      "link": "Component-link-26",
+      "textRight": "Component-textRight-27",
     }
   }
-  raised={false}
->
-  <WithStyles(Component)
-    handleNextPage={[Function]}
-    handlePreviousPage={[Function]}
-    onEditClick={[Function]}
-    onShowPageClick={[Function]}
-    pageInfo={
+  onEditClick={[Function]}
+  onNextPage={[Function]}
+  onPreviousPage={[Function]}
+  onShowPageClick={[Function]}
+  pageInfo={
+    Object {
+      "hasNextPage": false,
+      "hasPreviousPage": false,
+    }
+  }
+  pages={
+    Array [
       Object {
-        "endCursor": "YXJyYXljb25uZWN0aW9uOjE=",
-        "hasNextPage": false,
-        "hasPreviousPage": false,
-        "startCursor": "YXJyYXljb25uZWN0aW9uOjA=",
-      }
-    }
-    pages={
-      Array [
-        Object {
-          "cursor": "YXJyYXljb25uZWN0aW9uOjA=",
-          "node": Object {
-            "id": "UGFnZTox",
-            "isVisible": true,
-            "slug": "about",
-            "title": "About",
-          },
-        },
-        Object {
-          "cursor": "YXJyYXljb25uZWN0aW9uOjE=",
-          "node": Object {
-            "id": "UGFnZToy",
-            "isVisible": false,
-            "slug": "terms-of-use",
-            "title": "Terms of use",
-          },
-        },
-      ]
-    }
-  />
-</Card>
+        "id": "UGFnZTox",
+        "isVisible": true,
+        "slug": "about",
+        "title": "About",
+      },
+      Object {
+        "id": "UGFnZToy",
+        "isVisible": false,
+        "slug": "terms-of-use",
+        "title": "Terms of use",
+      },
+    ]
+  }
+/>
 `;
 
 exports[`Storyshots Pages / PageList without data 1`] = `
-<Card
+<Component
   classes={
     Object {
-      "root": "MuiCard-root-26",
+      "link": "Component-link-26",
+      "textRight": "Component-textRight-27",
     }
   }
-  raised={false}
->
-  <WithStyles(Component)
-    handleNextPage={[Function]}
-    handlePreviousPage={[Function]}
-    onEditClick={[Function]}
-    onShowPageClick={[Function]}
-    pageInfo={
-      Object {
-        "endCursor": "YXJyYXljb25uZWN0aW9uOjE=",
-        "hasNextPage": false,
-        "hasPreviousPage": false,
-        "startCursor": "YXJyYXljb25uZWN0aW9uOjA=",
-      }
+  onEditClick={[Function]}
+  onNextPage={[Function]}
+  onPreviousPage={[Function]}
+  onShowPageClick={[Function]}
+  pageInfo={
+    Object {
+      "hasNextPage": false,
+      "hasPreviousPage": false,
     }
-    pages={Array []}
-  />
-</Card>
+  }
+  pages={Array []}
+/>
+`;
+
+exports[`Storyshots Pages / PageProperties when loaded 1`] = `
+<Component
+  availableOn="2018-03-20T16:39:08.850105+00:00"
+  classes={
+    Object {
+      "root": "Component-root-29",
+    }
+  }
+  content="Lorem ipsum dolor sit amet, consectetur adipiscing elit. Proin bibendum et justo sit amet viverra. Maecenas euismod auctor nisi et tincidunt. Maecenas ante urna, aliquet at odio sed, gravida efficitur purus. Morbi ut dapibus ante. Nulla eu neque sit amet odio tincidunt porttitor eu quis purus. Aliquam at diam sit amet turpis varius semper vitae non lectus. Vivamus lectus ligula, molestie eu augue eu, cursus tincidunt sem. Nam ornare egestas tincidunt."
+  createdAt="2018-03-13T16:39:08.850105+00:00"
+  isVisible={true}
+  slug="lorem-ipsum-dolor"
+  title="Lorem Ipsum"
+/>
+`;
+
+exports[`Storyshots Pages / PageProperties when loading 1`] = `
+<Component
+  availableOn=""
+  classes={
+    Object {
+      "root": "Component-root-29",
+    }
+  }
+  isVisible={false}
+  loading={true}
+/>
 `;
 
 exports[`Storyshots Products / ProductAttributesForm when data loaded 1`] = `
@@ -4245,7 +4164,7 @@ exports[`Storyshots Products / ProductAvailabilityForm when loading data 1`] = `
 <Component
   classes={
     Object {
-      "root": "Component-root-27",
+      "root": "Component-root-30",
     }
   }
   onChange={[Function]}
@@ -4258,7 +4177,7 @@ exports[`Storyshots Products / ProductAvailabilityForm with loaded data 1`] = `
   availableOn="04-10-2010"
   classes={
     Object {
-      "root": "Component-root-27",
+      "root": "Component-root-30",
     }
   }
   onChange={[Function]}
@@ -4314,8 +4233,8 @@ exports[`Storyshots Products / ProductCollections when loading data 1`] = `
 <Component
   classes={
     Object {
-      "card": "Component-card-28",
-      "link": "Component-link-29",
+      "card": "Component-card-31",
+      "link": "Component-link-32",
     }
   }
   onRowClick={[Function]}
@@ -4326,8 +4245,8 @@ exports[`Storyshots Products / ProductCollections with collections 1`] = `
 <Component
   classes={
     Object {
-      "card": "Component-card-28",
-      "link": "Component-link-29",
+      "card": "Component-card-31",
+      "link": "Component-link-32",
     }
   }
   collections={
@@ -4350,8 +4269,8 @@ exports[`Storyshots Products / ProductCollections with no collections 1`] = `
 <Component
   classes={
     Object {
-      "card": "Component-card-28",
-      "link": "Component-link-29",
+      "card": "Component-card-31",
+      "link": "Component-link-32",
     }
   }
   collections={Array []}
@@ -4463,7 +4382,7 @@ exports[`Storyshots Products / ProductDetailsForm when loading data 1`] = `
 <Component
   classes={
     Object {
-      "root": "Component-root-30",
+      "root": "Component-root-33",
     }
   }
   loading={true}
@@ -4476,7 +4395,7 @@ exports[`Storyshots Products / ProductDetailsForm with initial data 1`] = `
 <Component
   classes={
     Object {
-      "root": "Component-root-30",
+      "root": "Component-root-33",
     }
   }
   currencySymbol="USD"
@@ -4492,7 +4411,7 @@ exports[`Storyshots Products / ProductDetailsForm with no initial data 1`] = `
 <Component
   classes={
     Object {
-      "root": "Component-root-30",
+      "root": "Component-root-33",
     }
   }
   onBack={[Function]}
@@ -4504,8 +4423,8 @@ exports[`Storyshots Products / ProductImagePage data loaded 1`] = `
 <Component
   classes={
     Object {
-      "image": "Component-image-33",
-      "root": "Component-root-32",
+      "image": "Component-image-36",
+      "root": "Component-root-35",
     }
   }
   image="placeholder255x255.png"
@@ -4518,8 +4437,8 @@ exports[`Storyshots Products / ProductImagePage loading 1`] = `
 <Component
   classes={
     Object {
-      "image": "Component-image-33",
-      "root": "Component-root-32",
+      "image": "Component-image-36",
+      "root": "Component-root-35",
     }
   }
   loading={true}
@@ -4532,11 +4451,11 @@ exports[`Storyshots Products / ProductImages when loading data 1`] = `
 <Component
   classes={
     Object {
-      "card": "Component-card-35",
-      "fileField": "Component-fileField-38",
-      "gridElement": "Component-gridElement-36",
-      "icon": "Component-icon-37",
-      "root": "Component-root-34",
+      "card": "Component-card-38",
+      "fileField": "Component-fileField-41",
+      "gridElement": "Component-gridElement-39",
+      "icon": "Component-icon-40",
+      "root": "Component-root-37",
     }
   }
   onImageReorder={[Function]}
@@ -4549,11 +4468,11 @@ exports[`Storyshots Products / ProductImages with data 1`] = `
 <Component
   classes={
     Object {
-      "card": "Component-card-35",
-      "fileField": "Component-fileField-38",
-      "gridElement": "Component-gridElement-36",
-      "icon": "Component-icon-37",
-      "root": "Component-root-34",
+      "card": "Component-card-38",
+      "fileField": "Component-fileField-41",
+      "gridElement": "Component-gridElement-39",
+      "icon": "Component-icon-40",
+      "root": "Component-root-37",
     }
   }
   images={
@@ -4587,11 +4506,11 @@ exports[`Storyshots Products / ProductImages without data 1`] = `
 <Component
   classes={
     Object {
-      "card": "Component-card-35",
-      "fileField": "Component-fileField-38",
-      "gridElement": "Component-gridElement-36",
-      "icon": "Component-icon-37",
-      "root": "Component-root-34",
+      "card": "Component-card-38",
+      "fileField": "Component-fileField-41",
+      "gridElement": "Component-gridElement-39",
+      "icon": "Component-icon-40",
+      "root": "Component-root-37",
     }
   }
   images={Array []}
@@ -4604,10 +4523,10 @@ exports[`Storyshots Products / ProductPriceAndAvailability when loading data 1`]
 <Component
   classes={
     Object {
-      "greenText": "Component-greenText-39",
-      "leftCell": "Component-leftCell-40",
-      "redText": "Component-redText-41",
-      "rightCell": "Component-rightCell-42",
+      "greenText": "Component-greenText-42",
+      "leftCell": "Component-leftCell-43",
+      "redText": "Component-redText-44",
+      "rightCell": "Component-rightCell-45",
     }
   }
   onPublish={[Function]}
@@ -4618,10 +4537,10 @@ exports[`Storyshots Products / ProductPriceAndAvailability when product is avail
 <Component
   classes={
     Object {
-      "greenText": "Component-greenText-39",
-      "leftCell": "Component-leftCell-40",
-      "redText": "Component-redText-41",
-      "rightCell": "Component-rightCell-42",
+      "greenText": "Component-greenText-42",
+      "leftCell": "Component-leftCell-43",
+      "redText": "Component-redText-44",
+      "rightCell": "Component-rightCell-45",
     }
   }
   grossMargin={
@@ -4651,10 +4570,10 @@ exports[`Storyshots Products / ProductPriceAndAvailability when product is not a
 <Component
   classes={
     Object {
-      "greenText": "Component-greenText-39",
-      "leftCell": "Component-leftCell-40",
-      "redText": "Component-redText-41",
-      "rightCell": "Component-rightCell-42",
+      "greenText": "Component-greenText-42",
+      "leftCell": "Component-leftCell-43",
+      "redText": "Component-redText-44",
+      "rightCell": "Component-rightCell-45",
     }
   }
   grossMargin={
@@ -4710,7 +4629,7 @@ exports[`Storyshots Products / ProductVariantAttributes when loaded data 1`] = `
   }
   classes={
     Object {
-      "grid": "Component-grid-46",
+      "grid": "Component-grid-49",
     }
   }
   onChange={[Function]}
@@ -4721,7 +4640,7 @@ exports[`Storyshots Products / ProductVariantAttributes when loading data 1`] = 
 <Component
   classes={
     Object {
-      "grid": "Component-grid-46",
+      "grid": "Component-grid-49",
     }
   }
   loading={true}
@@ -4733,7 +4652,7 @@ exports[`Storyshots Products / ProductVariantDeleteDialog default 1`] = `
 <Component
   classes={
     Object {
-      "deleteButton": "Component-deleteButton-47",
+      "deleteButton": "Component-deleteButton-50",
     }
   }
   name="Extended Hard"
@@ -4745,10 +4664,10 @@ exports[`Storyshots Products / ProductVariantImageSelectDialog default 1`] = `
 <ProductVariantImageSelectDialogComponent
   classes={
     Object {
-      "gridElement": "ProductVariantImageSelectDialogComponent-gridElement-49",
-      "icon": "ProductVariantImageSelectDialogComponent-icon-50",
-      "iconChecked": "ProductVariantImageSelectDialogComponent-iconChecked-51",
-      "root": "ProductVariantImageSelectDialogComponent-root-48",
+      "gridElement": "ProductVariantImageSelectDialogComponent-gridElement-52",
+      "icon": "ProductVariantImageSelectDialogComponent-icon-53",
+      "iconChecked": "ProductVariantImageSelectDialogComponent-iconChecked-54",
+      "root": "ProductVariantImageSelectDialogComponent-root-51",
     }
   }
   images={
@@ -4833,9 +4752,9 @@ exports[`Storyshots Products / ProductVariantImages when loaded data 1`] = `
 <Component
   classes={
     Object {
-      "card": "Component-card-53",
-      "gridElement": "Component-gridElement-54",
-      "root": "Component-root-52",
+      "card": "Component-card-56",
+      "gridElement": "Component-gridElement-57",
+      "root": "Component-root-55",
     }
   }
   images={
@@ -4905,9 +4824,9 @@ exports[`Storyshots Products / ProductVariantImages when loading data 1`] = `
 <Component
   classes={
     Object {
-      "card": "Component-card-53",
-      "gridElement": "Component-gridElement-54",
-      "root": "Component-root-52",
+      "card": "Component-card-56",
+      "gridElement": "Component-gridElement-57",
+      "root": "Component-root-55",
     }
   }
   loading={true}
@@ -4920,8 +4839,8 @@ exports[`Storyshots Products / ProductVariantNavigation when loaded data 1`] = `
 <Component
   classes={
     Object {
-      "card": "Component-card-55",
-      "link": "Component-link-56",
+      "card": "Component-card-58",
+      "link": "Component-link-59",
     }
   }
   variants={
@@ -4947,8 +4866,8 @@ exports[`Storyshots Products / ProductVariantNavigation when loading data 1`] = 
 <Component
   classes={
     Object {
-      "card": "Component-card-55",
-      "link": "Component-link-56",
+      "card": "Component-card-58",
+      "link": "Component-link-59",
     }
   }
   loading={true}
@@ -4959,8 +4878,8 @@ exports[`Storyshots Products / ProductVariantNavigation with clickable rows 1`] 
 <Component
   classes={
     Object {
-      "card": "Component-card-55",
-      "link": "Component-link-56",
+      "card": "Component-card-58",
+      "link": "Component-link-59",
     }
   }
   onRowClick={[Function]}
@@ -4987,8 +4906,8 @@ exports[`Storyshots Products / ProductVariantPrice when loaded data 1`] = `
 <Component
   classes={
     Object {
-      "grid": "Component-grid-59",
-      "root": "Component-root-58",
+      "grid": "Component-grid-62",
+      "root": "Component-root-61",
     }
   }
   costPrice={100}
@@ -5002,8 +4921,8 @@ exports[`Storyshots Products / ProductVariantPrice when loading data 1`] = `
 <Component
   classes={
     Object {
-      "grid": "Component-grid-59",
-      "root": "Component-root-58",
+      "grid": "Component-grid-62",
+      "root": "Component-root-61",
     }
   }
   loading={true}
@@ -5015,7 +4934,7 @@ exports[`Storyshots Products / ProductVariantProduct when loaded data 1`] = `
 <Component
   classes={
     Object {
-      "root": "Component-root-60",
+      "root": "Component-root-63",
     }
   }
   product={
@@ -5131,7 +5050,7 @@ exports[`Storyshots Products / ProductVariantProduct when loading data 1`] = `
 <Component
   classes={
     Object {
-      "root": "Component-root-60",
+      "root": "Component-root-63",
     }
   }
   loading={true}
@@ -5143,8 +5062,8 @@ exports[`Storyshots Products / ProductVariantStock when loaded data 1`] = `
 <Component
   classes={
     Object {
-      "grid": "Component-grid-62",
-      "root": "Component-root-61",
+      "grid": "Component-grid-65",
+      "root": "Component-root-64",
     }
   }
   onChange={[Function]}
@@ -5158,8 +5077,8 @@ exports[`Storyshots Products / ProductVariantStock when loading data 1`] = `
 <Component
   classes={
     Object {
-      "grid": "Component-grid-62",
-      "root": "Component-root-61",
+      "grid": "Component-grid-65",
+      "root": "Component-root-64",
     }
   }
   loading={true}
@@ -5171,10 +5090,10 @@ exports[`Storyshots Products / ProductVariants when loading data 1`] = `
 <Component
   classes={
     Object {
-      "alignRightText": "Component-alignRightText-63",
-      "greenDot": "Component-greenDot-64",
-      "link": "Component-link-65",
-      "redDot": "Component-redDot-66",
+      "alignRightText": "Component-alignRightText-66",
+      "greenDot": "Component-greenDot-67",
+      "link": "Component-link-68",
+      "redDot": "Component-redDot-69",
     }
   }
 />
@@ -5184,10 +5103,10 @@ exports[`Storyshots Products / ProductVariants when product has no variants 1`] 
 <Component
   classes={
     Object {
-      "alignRightText": "Component-alignRightText-63",
-      "greenDot": "Component-greenDot-64",
-      "link": "Component-link-65",
-      "redDot": "Component-redDot-66",
+      "alignRightText": "Component-alignRightText-66",
+      "greenDot": "Component-greenDot-67",
+      "link": "Component-link-68",
+      "redDot": "Component-redDot-69",
     }
   }
   variants={Array []}
@@ -5198,10 +5117,10 @@ exports[`Storyshots Products / ProductVariants when product has variants 1`] = `
 <Component
   classes={
     Object {
-      "alignRightText": "Component-alignRightText-63",
-      "greenDot": "Component-greenDot-64",
-      "link": "Component-link-65",
-      "redDot": "Component-redDot-66",
+      "alignRightText": "Component-alignRightText-66",
+      "greenDot": "Component-greenDot-67",
+      "link": "Component-link-68",
+      "redDot": "Component-redDot-69",
     }
   }
   fallbackGross="80%"
@@ -5265,10 +5184,10 @@ exports[`Storyshots Products / ProductVariants with clickable rows 1`] = `
 <Component
   classes={
     Object {
-      "alignRightText": "Component-alignRightText-63",
-      "greenDot": "Component-greenDot-64",
-      "link": "Component-link-65",
-      "redDot": "Component-redDot-66",
+      "alignRightText": "Component-alignRightText-66",
+      "greenDot": "Component-greenDot-67",
+      "link": "Component-link-68",
+      "redDot": "Component-redDot-69",
     }
   }
   fallbackGross="80%"
@@ -6512,11 +6431,149 @@ Array [
 ]
 `;
 
+exports[`Storyshots Views / Pages / Page details when loading 1`] = `
+<Component
+  classes={
+    Object {
+      "root": "Component-root-25",
+    }
+  }
+  disabled={true}
+  onBack={[Function]}
+  onSubmit={[Function]}
+/>
+`;
+
+exports[`Storyshots Views / Pages / Page details with delete button 1`] = `
+<Component
+  classes={
+    Object {
+      "root": "Component-root-25",
+    }
+  }
+  onBack={[Function]}
+  onDelete={[Function]}
+  onSubmit={[Function]}
+  page={
+    Object {
+      "availableOn": "2018-03-20T16:39:08.850105+00:00",
+      "content": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Proin bibendum et justo sit amet viverra. Maecenas euismod auctor nisi et tincidunt. Maecenas ante urna, aliquet at odio sed, gravida efficitur purus. Morbi ut dapibus ante. Nulla eu neque sit amet odio tincidunt porttitor eu quis purus. Aliquam at diam sit amet turpis varius semper vitae non lectus. Vivamus lectus ligula, molestie eu augue eu, cursus tincidunt sem. Nam ornare egestas tincidunt.",
+      "createdAt": "2018-03-13T16:39:08.850105+00:00",
+      "isVisible": true,
+      "slug": "lorem-ipsum-dolor",
+      "title": "Lorem Ipsum",
+    }
+  }
+/>
+`;
+
+exports[`Storyshots Views / Pages / Page details with initial data 1`] = `
+<Component
+  classes={
+    Object {
+      "root": "Component-root-25",
+    }
+  }
+  onBack={[Function]}
+  onSubmit={[Function]}
+  page={
+    Object {
+      "availableOn": "2018-03-20T16:39:08.850105+00:00",
+      "content": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Proin bibendum et justo sit amet viverra. Maecenas euismod auctor nisi et tincidunt. Maecenas ante urna, aliquet at odio sed, gravida efficitur purus. Morbi ut dapibus ante. Nulla eu neque sit amet odio tincidunt porttitor eu quis purus. Aliquam at diam sit amet turpis varius semper vitae non lectus. Vivamus lectus ligula, molestie eu augue eu, cursus tincidunt sem. Nam ornare egestas tincidunt.",
+      "createdAt": "2018-03-13T16:39:08.850105+00:00",
+      "isVisible": true,
+      "slug": "lorem-ipsum-dolor",
+      "title": "Lorem Ipsum",
+    }
+  }
+/>
+`;
+
+exports[`Storyshots Views / Pages / Page list when loading data 1`] = `
+<Component
+  classes={
+    Object {
+      "root": "Component-root-28",
+    }
+  }
+  onBack={[Function]}
+  onEditPage={[Function]}
+  onNextPage={[Function]}
+  onPreviousPage={[Function]}
+  onShowPage={[Function]}
+  pageInfo={
+    Object {
+      "hasNextPage": false,
+      "hasPreviousPage": false,
+    }
+  }
+/>
+`;
+
+exports[`Storyshots Views / Pages / Page list with data 1`] = `
+<Component
+  classes={
+    Object {
+      "root": "Component-root-28",
+    }
+  }
+  onBack={[Function]}
+  onEditPage={[Function]}
+  onNextPage={[Function]}
+  onPreviousPage={[Function]}
+  onShowPage={[Function]}
+  pageInfo={
+    Object {
+      "hasNextPage": false,
+      "hasPreviousPage": false,
+    }
+  }
+  pages={
+    Array [
+      Object {
+        "id": "UGFnZTox",
+        "isVisible": true,
+        "slug": "about",
+        "title": "About",
+      },
+      Object {
+        "id": "UGFnZToy",
+        "isVisible": false,
+        "slug": "terms-of-use",
+        "title": "Terms of use",
+      },
+    ]
+  }
+/>
+`;
+
+exports[`Storyshots Views / Pages / Page list without data 1`] = `
+<Component
+  classes={
+    Object {
+      "root": "Component-root-28",
+    }
+  }
+  onBack={[Function]}
+  onEditPage={[Function]}
+  onNextPage={[Function]}
+  onPreviousPage={[Function]}
+  onShowPage={[Function]}
+  pageInfo={
+    Object {
+      "hasNextPage": false,
+      "hasPreviousPage": false,
+    }
+  }
+  pages={Array []}
+/>
+`;
+
 exports[`Storyshots Views / Products / Product details when loaded data 1`] = `
 <Component
   classes={
     Object {
-      "root": "Component-root-31",
+      "root": "Component-root-34",
     }
   }
   onBack={[Function]}
@@ -6702,7 +6759,7 @@ exports[`Storyshots Views / Products / Product details when loading data 1`] = `
 <Component
   classes={
     Object {
-      "root": "Component-root-31",
+      "root": "Component-root-34",
     }
   }
   onBack={[Function]}
@@ -6735,9 +6792,9 @@ exports[`Storyshots Views / Products / Product edit when data is fully loaded 1`
   }
   classes={
     Object {
-      "cardContainer": "Component-cardContainer-45",
-      "grid": "Component-grid-44",
-      "root": "Component-root-43",
+      "cardContainer": "Component-cardContainer-48",
+      "grid": "Component-grid-47",
+      "root": "Component-root-46",
     }
   }
   collections={
@@ -6885,9 +6942,9 @@ exports[`Storyshots Views / Products / Product edit when loading data 1`] = `
 <Component
   classes={
     Object {
-      "cardContainer": "Component-cardContainer-45",
-      "grid": "Component-grid-44",
-      "root": "Component-root-43",
+      "cardContainer": "Component-cardContainer-48",
+      "grid": "Component-grid-47",
+      "root": "Component-root-46",
     }
   }
   loading={true}
@@ -7134,7 +7191,7 @@ exports[`Storyshots Views / Products / Product variant details when loaded data 
 <Component
   classes={
     Object {
-      "root": "Component-root-57",
+      "root": "Component-root-60",
     }
   }
   onBack={[Function]}
@@ -7312,7 +7369,7 @@ exports[`Storyshots Views / Products / Product variant details when loading data
 <Component
   classes={
     Object {
-      "root": "Component-root-57",
+      "root": "Component-root-60",
     }
   }
   loading={true}
