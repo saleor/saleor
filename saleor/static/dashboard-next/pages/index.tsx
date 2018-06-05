@@ -2,9 +2,9 @@ import { parse as parseQs } from "qs";
 import * as React from "react";
 import { Route, RouteComponentProps, Switch } from "react-router-dom";
 
-import PageCreateForm from "./views/PageCreateForm";
+import PageCreate from "./views/PageCreate";
+import PageDetailsComponent from "./views/PageDetails";
 import PageListComponent from "./views/PageList";
-import PageUpdateFormComponent from "./views/PageUpdateForm";
 
 const PageList: React.StatelessComponent<RouteComponentProps<any>> = ({
   location,
@@ -13,17 +13,17 @@ const PageList: React.StatelessComponent<RouteComponentProps<any>> = ({
   const qs = parseQs(location.search.substr(1));
   return <PageListComponent filters={qs} />;
 };
-const PageUpdateForm: React.StatelessComponent<RouteComponentProps<any>> = ({
+const PageDetails: React.StatelessComponent<RouteComponentProps<any>> = ({
   match
 }) => {
-  return <PageUpdateFormComponent id={match.params.id} />;
+  return <PageDetailsComponent id={match.params.id} />;
 };
 
 const Component = ({ match }) => (
   <Switch>
     <Route exact path={match.url} component={PageList} />
-    <Route exact path={`${match.url}/add/`} component={PageCreateForm} />
-    <Route exact path={`${match.url}/:id/`} component={PageUpdateForm} />
+    <Route exact path={`${match.url}/add/`} component={PageCreate} />
+    <Route exact path={`${match.url}/:id/`} component={PageDetails} />
   </Switch>
 );
 
@@ -36,5 +36,6 @@ export function pageStorefrontUrl(slug: string) {
 }
 
 export const pageListUrl = "/pages/";
+export const pageAddUrl = "/pages/add/";
 
 export default Component;
