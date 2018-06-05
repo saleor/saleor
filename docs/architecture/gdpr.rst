@@ -15,7 +15,7 @@ sent to the email address associated with the account.
 
 Deleting a user will delete his account instance, but will leave all the data
 used for the checkout process untouched, for the financial record.
-This behavior in accordance with the GDPR regulations.
+This behavior is in accordance with the GDPR regulations.
 
 Cookies
 -------
