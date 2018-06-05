@@ -416,7 +416,7 @@ def test_replace_cartline_form_when_insufficient_stock(
 
     add_variant_to_cart(cart, variant, initial_quantity)
     exception_mock = InsufficientStock(
-        Mock(get_stock_quantity=Mock(return_value=2)))
+        Mock(quantity_available=2))
     monkeypatch.setattr(
         'saleor.product.models.ProductVariant.check_quantity',
         Mock(side_effect=exception_mock))

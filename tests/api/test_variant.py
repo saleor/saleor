@@ -14,14 +14,16 @@ def test_create_variant(admin_api_client, product, product_type):
             $priceOverride: Float,
             $costPrice: Float,
             $quantity: Int!,
-            $attributes: [AttributeValueInput]) {
+            $attributes: [AttributeValueInput],
+            $trackInventory: Boolean!) {
                 productVariantCreate(
                     productId: $productId,
                     sku: $sku,
                     priceOverride: $priceOverride,
                     costPrice: $costPrice,
                     quantity: $quantity,
-                    attributes: $attributes) {
+                    attributes: $attributes,
+                    trackInventory: $trackInventory) {
                     productVariant {
                         name
                         sku
@@ -64,7 +66,8 @@ def test_create_variant(admin_api_client, product, product_type):
         'costPrice': cost_price,
         'priceOverride': price_override,
         'attributes': [
-            {'slug': variant_slug, 'value': variant_value}]})
+            {'slug': variant_slug, 'value': variant_value}],
+        'trackInventory': True})
     response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
     content = get_graphql_content(response)
@@ -85,12 +88,14 @@ def test_update_product_variant(admin_api_client, product):
             $id: ID!,
             $sku: String!,
             $costPrice: Float,
-            $quantity: Int!) {
+            $quantity: Int!,
+            $trackInventory: Boolean!) {
                 productVariantUpdate(
                     id: $id,
                     sku: $sku,
                     costPrice: $costPrice,
-                    quantity: $quantity) {
+                    quantity: $quantity,
+                    trackInventory: $trackInventory) {
                     productVariant {
                         name
                         sku
@@ -115,7 +120,8 @@ def test_update_product_variant(admin_api_client, product):
         'id': variant_id,
         'sku': sku,
         'quantity': quantity,
-        'costPrice': cost_price})
+        'costPrice': cost_price,
+        'trackInventory': True})
 
     response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})

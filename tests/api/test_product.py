@@ -104,14 +104,10 @@ def test_product_query(admin_api_client, product):
                         }
                         purchaseCost {
                             start {
-                                gross {
-                                    amount
-                                }
+                                amount
                             }
                             stop {
-                                gross {
-                                    amount
-                                }
+                                amount
                             }
                         }
                         margin {
@@ -813,7 +809,7 @@ def test_product_image_create_mutation(admin_api_client, product):
                 id
                 image
                 url
-                order
+                sortOrder
             }
         }
     }
@@ -825,6 +821,7 @@ def test_product_image_create_mutation(admin_api_client, product):
     body = get_multipart_request_body(query, variables, image_file, image_name)
     response = admin_api_client.post_multipart(reverse('api'), body)
     content = get_graphql_content(response)
+    assert 'errors' not in content
     data = content['data']['productImageCreate']
     file_name = data['productImage']['image']
     product.refresh_from_db()
@@ -859,9 +856,9 @@ def test_collections_query(user_api_client, collection):
 def test_create_collection(admin_api_client, product_list):
     query = """
         mutation createCollection(
-            $name: String!, $slug: String!, $products: [ID]) {
+            $name: String!, $slug: String!, $products: [ID], $isPublished: Boolean!) {
             collectionCreate(
-                name: $name, slug: $slug, products: $products) {
+                name: $name, slug: $slug, products: $products, isPublished: $isPublished) {
                 collection {
                     name
                     slug
@@ -877,7 +874,7 @@ def test_create_collection(admin_api_client, product_list):
     name = 'test-name'
     slug = 'test-slug'
     variables = json.dumps(
-        {'name': name, 'slug': slug, 'products': product_ids})
+        {'name': name, 'slug': slug, 'products': product_ids, 'isPublished': True})
     response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
     content = get_graphql_content(response)
@@ -891,9 +888,9 @@ def test_create_collection(admin_api_client, product_list):
 def test_update_collection(admin_api_client, collection):
     query = """
         mutation createCollection(
-            $name: String!, $slug: String!, $id: ID!) {
+            $name: String!, $slug: String!, $id: ID!, $isPublished: Boolean!) {
             collectionUpdate(
-                name: $name, slug: $slug, id: $id) {
+                name: $name, slug: $slug, id: $id, isPublished: $isPublished) {
                 collection {
                     name
                     slug
@@ -905,7 +902,7 @@ def test_update_collection(admin_api_client, collection):
     name = 'new-name'
     slug = 'new-slug'
     variables = json.dumps(
-        {'name': name, 'slug': slug, 'id': collection_id})
+        {'name': name, 'slug': slug, 'id': collection_id, 'isPublished': True})
     response = admin_api_client.post(
         reverse('api'), {'query': query, 'variables': variables})
     content = get_graphql_content(response)
