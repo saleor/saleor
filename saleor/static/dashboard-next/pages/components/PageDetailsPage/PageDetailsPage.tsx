@@ -28,13 +28,20 @@ interface PageDetailsPageProps {
     field: string;
     message: string;
   }>;
-  loading?: boolean;
+  disabled?: boolean;
   title?: string;
   onBack?();
   onDelete?();
   onSubmit(data: PageInput);
 }
 
+const defaultPage = {
+  availableOn: "",
+  content: "",
+  isVisible: false,
+  slug: "",
+  title: ""
+};
 const PageForm: React.ComponentType<FormProps<PageInput>> = Form;
 const decorate = withStyles(theme => ({
   root: {
@@ -44,17 +51,18 @@ const decorate = withStyles(theme => ({
   }
 }));
 const PageDetailsPage = decorate<PageDetailsPageProps>(
-  ({ classes, errors, loading, page, title, onBack, onDelete, onSubmit }) => (
-    <PageForm initial={page} onSubmit={onSubmit}>
+  ({ classes, errors, disabled, page, title, onBack, onDelete, onSubmit }) => (
+    <PageForm
+      key={page ? "ready" : "loading"}
+      initial={page ? page : defaultPage}
+      onSubmit={onSubmit}
+    >
       {({ change, data, submit }) => (
         <Toggle>
           {(opened, { toggle: togglePageDeleteDialog }) => (
             <Container width="md">
               <>
-                <PageHeader
-                  onBack={onBack}
-                  title={title || i18n.t("Add page", { context: "title" })}
-                >
+                <PageHeader onBack={onBack} title={title}>
                   {!!onDelete && (
                     <IconButton onClick={togglePageDeleteDialog}>
                       <DeleteIcon />
@@ -64,26 +72,26 @@ const PageDetailsPage = decorate<PageDetailsPageProps>(
                 <div className={classes.root}>
                   <div>
                     <PageContent
-                      loading={loading}
+                      loading={disabled}
                       onChange={change}
-                      content={loading ? "" : data.content}
-                      title={loading ? "" : data.title}
+                      content={data.content}
+                      title={data.title}
                     />
                   </div>
                   <div>
                     <PageProperties
-                      availableOn={loading ? "" : data.availableOn}
-                      created={loading ? "" : page.created}
-                      isVisible={loading ? false : data.isVisible}
-                      loading={loading}
+                      availableOn={data.availableOn}
+                      created={page ? page.created : undefined}
+                      isVisible={data.isVisible}
+                      loading={disabled}
                       onChange={change}
-                      slug={loading ? "" : data.slug}
+                      slug={data.slug}
                     />
                   </div>
                 </div>
                 <SaveButtonBar onBack={onBack} onSave={submit} />
                 {!!onDelete &&
-                  !loading && (
+                  !disabled && (
                     <PageDeleteDialog
                       opened={opened}
                       onConfirm={onDelete}

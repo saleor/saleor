@@ -5,7 +5,7 @@ import Typography from "material-ui/Typography";
 import * as React from "react";
 
 import ControlledCheckbox from "../../../components/ControlledCheckbox";
-// import DateFormatter from "../../../components/DateFormatter";
+import DateFormatter from "../../../components/DateFormatter";
 import FormSpacer from "../../../components/FormSpacer";
 import i18n from "../../../i18n";
 
@@ -75,12 +75,10 @@ const PageProperties = decorate<PagePropertiesProps>(
           />
           <FormSpacer />
           {created && (
-            // TODO: Replace this when DateFormatter will be merged
-            // <div>
-            //   <Typography variant="body1">Created at: </Typography>
-            //   <DateFormatter date={created} />
-            // </div>
-            <Typography variant="body1">Created at: {created}</Typography>
+            <div>
+              <Typography variant="body1">{i18n.t("Created:")} </Typography>
+              <DateFormatter date={created} />
+            </div>
           )}
           <FormSpacer />
           <ControlledCheckbox

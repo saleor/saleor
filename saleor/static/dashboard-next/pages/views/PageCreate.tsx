@@ -4,6 +4,7 @@ import { Redirect } from "react-router";
 import { pageListUrl } from "..";
 import { NavigatorLink } from "../../components/Navigator";
 import { PageCreateMutationVariables } from "../../gql-types";
+import i18n from "../../i18n";
 import PageDetailsPage from "../../pages/components/PageDetailsPage";
 import { pageCreateMutation, TypedPageCreateMutation } from "../mutations";
 
@@ -22,7 +23,7 @@ export const PageCreateForm: React.StatelessComponent<PageCreateFormProps> = ({
         <NavigatorLink to={pageListUrl}>
           {handleCancel => (
             <PageDetailsPage
-              loading={loading}
+              disabled={loading}
               page={{
                 availableOn: "",
                 content: "",
@@ -36,6 +37,7 @@ export const PageCreateForm: React.StatelessComponent<PageCreateFormProps> = ({
                   variables: data
                 })
               }
+              title={i18n.t("Add page", { context: "title" })}
             />
           )}
         </NavigatorLink>

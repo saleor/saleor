@@ -121,7 +121,7 @@ export const PageListComponent = decorate<PageListComponentProps>(
             ))
           ) : (
             <TableRow>
-              <TableCell colSpan={3}>{i18n.t("No pages found")}</TableCell>
+              <TableCell colSpan={4}>{i18n.t("No pages found")}</TableCell>
             </TableRow>
           )}
         </TableBody>

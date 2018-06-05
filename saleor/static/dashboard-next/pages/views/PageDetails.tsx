@@ -1,18 +1,10 @@
-import DeleteIcon from "@material-ui/icons/Delete";
-import Card from "material-ui/Card";
-import { DialogContentText } from "material-ui/Dialog";
-import Grid from "material-ui/Grid";
-import IconButton from "material-ui/IconButton";
-import { CircularProgress } from "material-ui/Progress";
 import * as React from "react";
 import { Redirect } from "react-router";
 
 import { pageListUrl } from "..";
 import ErrorMessageCard from "../../components/ErrorMessageCard";
-import Form, { FormActions, FormProps } from "../../components/Form";
 import { NavigatorLink } from "../../components/Navigator";
 import PageHeader from "../../components/PageHeader";
-import { PageUpdateMutationVariables } from "../../gql-types";
 import i18n from "../../i18n";
 import PageDetailsPage from "../components/PageDetailsPage";
 import {
@@ -31,10 +23,6 @@ interface PageUpdateFormState {
   opened: boolean;
 }
 
-const PageForm: React.ComponentType<
-  FormProps<PageUpdateMutationVariables>
-> = Form;
-
 export class PageUpdateForm extends React.Component<
   PageUpdateFormProps,
   PageUpdateFormState
@@ -52,26 +40,11 @@ export class PageUpdateForm extends React.Component<
         {({ data: detailsResult, error, loading }) => {
           if (error) {
             return (
-              <Grid container spacing={16}>
-                <Grid item xs={12} md={9}>
-                  <ErrorMessageCard
-                    message={i18n.t("Unable to find matching page.")}
-                  />
-                </Grid>
-              </Grid>
+              <ErrorMessageCard
+                message={i18n.t("Unable to find matching page.")}
+              />
             );
           }
-          if (loading) {
-            return <CircularProgress />;
-          }
-          const { page } = detailsResult;
-          const formInitialValues = {
-            availableOn: page.availableOn,
-            content: page.content,
-            isVisible: page.isVisible,
-            slug: page.slug,
-            title: page.title
-          };
           return (
             <TypedPageDeleteMutation mutation={pageDeleteMutation}>
               {(
@@ -108,6 +81,8 @@ export class PageUpdateForm extends React.Component<
                       if (
                         called &&
                         !updateInProgress &&
+                        updateResult &&
+                        updateResult.pageUpdate &&
                         !updateResult.pageUpdate.errors.length
                       ) {
                         if (error) {
@@ -132,7 +107,14 @@ export class PageUpdateForm extends React.Component<
                                   ? updateResult.pageUpdate.errors
                                   : []
                               }
-                              title={page ? page.title : undefined}
+                              title={
+                                detailsResult && detailsResult.page
+                                  ? detailsResult.page.title
+                                  : undefined
+                              }
+                              disabled={
+                                loading || deleteInProgress || updateInProgress
+                              }
                             />
                           )}
                         </NavigatorLink>

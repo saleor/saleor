@@ -17,4 +17,6 @@ storiesOf("Views / Pages / Page details", module)
   .add("with delete button", () => (
     <PageDetailsPage page={page} {...callbacks} onDelete={() => {}} />
   ))
-  .add("when loading", () => <PageDetailsPage loading={true} {...callbacks} />);
+  .add("when loading", () => (
+    <PageDetailsPage disabled={true} {...callbacks} />
+  ));
