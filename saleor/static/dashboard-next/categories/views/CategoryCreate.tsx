@@ -41,10 +41,9 @@ export const CategoryCreateForm: React.StatelessComponent<
         <NavigatorLink to={categoryShowUrl(parentId)}>
           {handleCancel => (
             <CategoryEditPage
-              description=""
+              category={{ description: "", name: "" }}
               errors={errors}
-              loading={createInProgress}
-              name=""
+              disabled={createInProgress}
               variant="add"
               onBack={handleCancel}
               onSubmit={data => mutate({ variables: { ...data, parentId } })}

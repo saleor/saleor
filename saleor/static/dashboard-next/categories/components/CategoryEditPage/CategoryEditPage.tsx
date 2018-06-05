@@ -10,23 +10,24 @@ import SaveButtonBar from "../../../components/SaveButtonBar";
 import i18n from "../../../i18n";
 
 interface CategoryEditPageProps {
-  description: string;
+  category?: {
+    description: string;
+    name: string;
+  };
   errors?: Array<{
     field: string;
     message: string;
   }>;
-  loading?: boolean;
-  name: string;
+  disabled?: boolean;
   variant?: "add" | "edit";
   onBack?();
   onSubmit(data: any);
 }
 
 const CategoryEditPage: React.StatelessComponent<CategoryEditPageProps> = ({
-  description,
+  category,
   errors,
-  loading,
-  name,
+  disabled,
   variant,
   onBack,
   onSubmit
@@ -40,10 +41,11 @@ const CategoryEditPage: React.StatelessComponent<CategoryEditPageProps> = ({
   return (
     <Form
       initial={{
-        description,
-        name
+        description: category ? category.description : "",
+        name: category ? category.name : ""
       }}
       onSubmit={onSubmit}
+      key={category === undefined ? "loading" : "ready"}
     >
       {({ change, data, submit }) => (
         <Container width="md">
@@ -60,8 +62,8 @@ const CategoryEditPage: React.StatelessComponent<CategoryEditPageProps> = ({
               <TextField
                 autoFocus
                 fullWidth
-                disabled={loading}
-                value={data.name}
+                disabled={disabled}
+                value={data && data.name}
                 error={!!errorList.name}
                 helperText={errorList.name}
                 label={i18n.t("Name", { context: "category" })}
@@ -72,8 +74,8 @@ const CategoryEditPage: React.StatelessComponent<CategoryEditPageProps> = ({
               <TextField
                 fullWidth
                 multiline
-                disabled={loading}
-                value={data.description}
+                disabled={disabled}
+                value={data && data.description}
                 error={!!errorList.description}
                 helperText={
                   errorList.description ||
@@ -85,7 +87,7 @@ const CategoryEditPage: React.StatelessComponent<CategoryEditPageProps> = ({
               />
             </CardContent>
           </Card>
-          <SaveButtonBar disabled={loading} onBack={onBack} onSave={submit} />
+          <SaveButtonBar disabled={disabled} onBack={onBack} onSave={submit} />
         </Container>
       )}
     </Form>

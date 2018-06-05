@@ -33,6 +33,7 @@ export const CategoryUpdateForm: React.StatelessComponent<
             if (
               called &&
               !updateInProgress &&
+              updateResult &&
               updateResult.categoryUpdate.errors.length === 0
             ) {
               return (
@@ -42,28 +43,21 @@ export const CategoryUpdateForm: React.StatelessComponent<
               );
             }
             const errors =
-              called && !updateInProgress
+              called && !updateInProgress && updateResult
                 ? updateResult.categoryUpdate.errors
                 : [];
             return (
               <NavigatorLink to={categoryShowUrl(id)}>
                 {handleCancel => (
                   <CategoryEditPage
-                    description={
-                      data && data.category
-                        ? data.category.description
-                        : undefined
-                    }
+                    category={data ? data.category : undefined}
                     errors={errors}
-                    loading={updateInProgress}
-                    name={
-                      data && data.category ? data.category.name : undefined
-                    }
+                    disabled={updateInProgress || loading}
                     variant="edit"
                     onBack={handleCancel}
                     onSubmit={data =>
                       mutate({
-                        variables: data
+                        variables: { ...data, id }
                       })
                     }
                   />
