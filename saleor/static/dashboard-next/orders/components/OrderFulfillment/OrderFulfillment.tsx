@@ -97,7 +97,7 @@ const OrderFulfillment = decorate<OrderFulfillmentProps>(
         <TableBody>
           {products ? (
             products.map(productLine => (
-              <TableRow>
+              <TableRow key={productLine.product.id}>
                 <TableCell className={classes.avatarCell}>
                   <Avatar src={productLine.product.thumbnailUrl} />
                 </TableCell>
