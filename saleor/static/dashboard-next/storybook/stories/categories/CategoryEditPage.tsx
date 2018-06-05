@@ -14,26 +14,23 @@ storiesOf("Views / Categories / Category edit", module)
   // .addDecorator(Decorator)
   .add("default", () => (
     <CategoryEditPage
-      description={category.description}
-      name={category.name}
+      category={category}
       onBack={() => {}}
       onSubmit={() => {}}
     />
   ))
   .add("when loading", () => (
     <CategoryEditPage
-      description={category.description}
-      loading={true}
-      name={category.name}
+      category={category}
+      disabled={true}
       onBack={() => {}}
       onSubmit={() => {}}
     />
   ))
   .add("with errors", () => (
     <CategoryEditPage
-      description={category.description}
+      category={category}
       errors={errors}
-      name={category.name}
       onBack={() => {}}
       onSubmit={() => {}}
     />

@@ -4985,11 +4985,12 @@ exports[`Storyshots Views / Categories / Category edit default 1`] = `
 <Form
   initial={
     Object {
-      "description": "",
-      "name": "",
+      "description": "Across pressure PM food discover recognize. Send letter reach listen. Quickly work plan rule.
+Tell lose part purpose do when. Whatever drug contain particularly defense.",
+      "name": "Apparel",
     }
   }
-  key="loading"
+  key="ready"
   onSubmit={[Function]}
 />
 `;
@@ -4998,11 +4999,12 @@ exports[`Storyshots Views / Categories / Category edit when loading 1`] = `
 <Form
   initial={
     Object {
-      "description": "",
-      "name": "",
+      "description": "Across pressure PM food discover recognize. Send letter reach listen. Quickly work plan rule.
+Tell lose part purpose do when. Whatever drug contain particularly defense.",
+      "name": "Apparel",
     }
   }
-  key="loading"
+  key="ready"
   onSubmit={[Function]}
 />
 `;
@@ -5011,11 +5013,12 @@ exports[`Storyshots Views / Categories / Category edit with errors 1`] = `
 <Form
   initial={
     Object {
-      "description": "",
-      "name": "",
+      "description": "Across pressure PM food discover recognize. Send letter reach listen. Quickly work plan rule.
+Tell lose part purpose do when. Whatever drug contain particularly defense.",
+      "name": "Apparel",
     }
   }
-  key="loading"
+  key="ready"
   onSubmit={[Function]}
 />
 `;
