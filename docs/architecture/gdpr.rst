@@ -1,7 +1,7 @@
-GDPR Compilance
+GDPR Compliance
 ===============
 
-Saleor handles few aspects of the GDPR regulation by default
+Saleor handles few aspects of the GDPR regulation by default.
 
 Deleting users
 --------------
@@ -20,7 +20,8 @@ This behavior is in accordance with the GDPR regulations.
 Cookies
 -------
 
-All cookies used by Saleor are functional, therefore there's no need to notify
+All cookies used by Saleor are strictly necessary to move around the
+website and use its features, therefore there's no need to notify
 the users about them.
 
 Manual actions required
