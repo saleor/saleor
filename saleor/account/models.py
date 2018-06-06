@@ -1,3 +1,5 @@
+import uuid
+
 from django.conf import settings
 from django.contrib.auth.models import (
     AbstractBaseUser, BaseUserManager, PermissionsMixin)
@@ -77,6 +79,7 @@ class UserManager(BaseUserManager):
         email = UserManager.normalize_email(email)
         # Google OAuth2 backend send unnecessary username field
         extra_fields.pop('username', None)
+
         user = self.model(
             email=email, is_active=is_active, is_staff=is_staff,
             **extra_fields)
@@ -90,11 +93,16 @@ class UserManager(BaseUserManager):
             email, password, is_staff=True, is_superuser=True, **extra_fields)
 
 
+def get_token():
+    return str(uuid.uuid4())
+
+
 class User(PermissionsMixin, AbstractBaseUser):
     email = models.EmailField(unique=True)
     addresses = models.ManyToManyField(
         Address, blank=True, related_name='user_addresses')
     is_staff = models.BooleanField(default=False)
+    token = models.UUIDField(default=get_token, editable=False)
     is_active = models.BooleanField(default=True)
     note = models.TextField(null=True, blank=True)
     date_joined = models.DateTimeField(default=timezone.now, editable=False)

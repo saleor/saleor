@@ -74,6 +74,9 @@
             <a href="{% url 'dashboard:customer-update' customer.pk %}" class="btn-flat waves-effect">
               {% trans "Edit customer" context "Customer action" %}
             </a>
+            <a href="#base-modal" data-href="{% url 'dashboard:customer-delete' pk=customer.pk %}" class="modal-trigger-custom btn-flat waves-effect">
+              {% trans "Remove customer" context "Customer action" %}
+            </a>
           {% endif %}
           {% if perms.account.impersonate_user %}
             <a href="{% url 'impersonate-start' uid=customer.pk %}" class="btn-flat waves-effect">
