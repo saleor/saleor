@@ -40,13 +40,16 @@ interface OrderAddressEditDialogProps {
   onConfirm?(event: React.FormEvent<any>);
 }
 
-const decorate = withStyles(theme => ({
-  root: {
-    display: "grid",
-    gridColumnGap: `${theme.spacing.unit * 2}px`,
-    gridTemplateColumns: "1fr 1fr"
-  }
-}));
+const decorate = withStyles(
+  theme => ({
+    root: {
+      display: "grid",
+      gridColumnGap: `${theme.spacing.unit * 2}px`,
+      gridTemplateColumns: "1fr 1fr"
+    }
+  }),
+  { name: "OrderAddressEditDialog" }
+);
 const OrderAddressEditDialog = decorate<OrderAddressEditDialogProps>(
   ({
     children,

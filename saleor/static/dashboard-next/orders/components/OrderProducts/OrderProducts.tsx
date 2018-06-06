@@ -53,38 +53,41 @@ export interface OrderProductsProps {
   onShippingMethodClick?();
 }
 
-const decorate = withStyles(theme => ({
-  avatarCell: {
-    paddingLeft: theme.spacing.unit * 2,
-    paddingRight: theme.spacing.unit * 3,
-    width: theme.spacing.unit * 5
-  },
-  cardActions: {
-    direction: "rtl" as "rtl"
-  },
-  deleteIcon: {
-    height: 40,
-    width: 40
-  },
-  denseTable: {
-    "& td, & th": {
-      paddingRight: theme.spacing.unit * 3
+const decorate = withStyles(
+  theme => ({
+    avatarCell: {
+      paddingLeft: theme.spacing.unit * 2,
+      paddingRight: theme.spacing.unit * 3,
+      width: theme.spacing.unit * 5
+    },
+    cardActions: {
+      direction: "rtl" as "rtl"
+    },
+    deleteIcon: {
+      height: 40,
+      width: 40
+    },
+    denseTable: {
+      "& td, & th": {
+        paddingRight: theme.spacing.unit * 3
+      }
+    },
+    link: {
+      color: blue[500],
+      cursor: "pointer"
+    },
+    textRight: {
+      textAlign: "right" as "right"
+    },
+    flexBox: {
+      display: "flex",
+      flexDirection: "column" as "column",
+      height: theme.spacing.unit * 12,
+      justifyContent: "space-evenly"
     }
-  },
-  link: {
-    color: blue[500],
-    cursor: "pointer"
-  },
-  textRight: {
-    textAlign: "right" as "right"
-  },
-  flexBox: {
-    display: "flex",
-    flexDirection: "column" as "column",
-    height: theme.spacing.unit * 12,
-    justifyContent: "space-evenly"
-  }
-}));
+  }),
+  { name: "OrderProducts" }
+);
 const OrderProducts = decorate<OrderProductsProps>(
   ({
     classes,

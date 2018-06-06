@@ -25,12 +25,15 @@ interface OrderHistoryProps {
   user?: string;
 }
 
-const decorate = withStyles(theme => ({
-  root: { marginTop: theme.spacing.unit * 2 },
-  user: {
-    marginBottom: theme.spacing.unit
-  }
-}));
+const decorate = withStyles(
+  theme => ({
+    root: { marginTop: theme.spacing.unit * 2 },
+    user: {
+      marginBottom: theme.spacing.unit
+    }
+  }),
+  { name: "OrderHistory" }
+);
 const OrderHistory = decorate<OrderHistoryProps>(
   ({ classes, history, user }) => (
     <div className={classes.root}>

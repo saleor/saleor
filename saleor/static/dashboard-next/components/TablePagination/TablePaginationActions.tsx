@@ -13,7 +13,7 @@ const decorate = withStyles(
     }
   }),
   {
-    name: "MuiTablePaginationActions",
+    name: "TablePaginationActions",
     withTheme: true
   }
 );

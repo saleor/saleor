@@ -14,7 +14,9 @@ interface DateFormatterProps {
   typography?: string;
 }
 
-const decorate = withStyles(theme => ({ root: { display: "inline" } }));
+const decorate = withStyles(theme => ({ root: { display: "inline" } }), {
+  name: "DateFormatter"
+});
 const DateFormatter = decorate<DateFormatterProps>(
   ({
     classes,

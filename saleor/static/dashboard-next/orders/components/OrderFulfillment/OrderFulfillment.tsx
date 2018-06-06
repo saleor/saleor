@@ -37,25 +37,28 @@ interface OrderFulfillmentProps {
   onPackingSlipClick?();
 }
 
-const decorate = withStyles(theme => ({
-  avatarCell: {
-    paddingLeft: theme.spacing.unit * 2,
-    paddingRight: theme.spacing.unit * 3,
-    width: theme.spacing.unit * 5
-  },
-  root: {
-    marginTop: theme.spacing.unit * 2,
-    [theme.breakpoints.down("sm")]: {
-      marginTop: theme.spacing.unit
+const decorate = withStyles(
+  theme => ({
+    avatarCell: {
+      paddingLeft: theme.spacing.unit * 2,
+      paddingRight: theme.spacing.unit * 3,
+      width: theme.spacing.unit * 5
+    },
+    root: {
+      marginTop: theme.spacing.unit * 2,
+      [theme.breakpoints.down("sm")]: {
+        marginTop: theme.spacing.unit
+      }
+    },
+    statusBar: {
+      paddingTop: 0
+    },
+    textRight: {
+      textAlign: "right" as "right"
     }
-  },
-  statusBar: {
-    paddingTop: 0
-  },
-  textRight: {
-    textAlign: "right" as "right"
-  }
-}));
+  }),
+  { name: "OrderFulfillment" }
+);
 const OrderFulfillment = decorate<OrderFulfillmentProps>(
   ({
     classes,

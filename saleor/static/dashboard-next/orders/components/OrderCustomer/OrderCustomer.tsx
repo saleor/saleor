@@ -43,20 +43,23 @@ interface OrderCustomerProps {
   onShippingAddressEdit?();
 }
 
-const decorate = withStyles(theme => ({
-  hr: {
-    height: 1,
-    display: "block",
-    border: "none",
-    width: "100%",
-    backgroundColor: theme.palette.grey[200]
-  },
-  link: {
-    color: blue[500],
-    cursor: "pointer",
-    textDecoration: "none"
-  }
-}));
+const decorate = withStyles(
+  theme => ({
+    hr: {
+      height: 1,
+      display: "block",
+      border: "none",
+      width: "100%",
+      backgroundColor: theme.palette.grey[200]
+    },
+    link: {
+      color: blue[500],
+      cursor: "pointer",
+      textDecoration: "none"
+    }
+  }),
+  { name: "OrderCustomer" }
+);
 const OrderCustomer = decorate<OrderCustomerProps>(
   ({
     classes,

@@ -16,15 +16,18 @@ interface OrderFulfillmentCancelDialogProps {
   onConfirm?();
 }
 
-const decorate = withStyles(theme => ({
-  deleteButton: {
-    "&:hover": {
-      backgroundColor: theme.palette.error.main
-    },
-    backgroundColor: theme.palette.error.main,
-    color: theme.palette.error.contrastText
-  }
-}));
+const decorate = withStyles(
+  theme => ({
+    deleteButton: {
+      "&:hover": {
+        backgroundColor: theme.palette.error.main
+      },
+      backgroundColor: theme.palette.error.main,
+      color: theme.palette.error.contrastText
+    }
+  }),
+  { name: "OrderFulfillmentCancelDialog" }
+);
 const OrderFulfillmentCancelDialog = decorate<
   OrderFulfillmentCancelDialogProps
 >(({ children, classes, id, open, onConfirm, onClose }) => (

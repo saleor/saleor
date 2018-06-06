@@ -26,22 +26,25 @@ interface OrderCustomerEditDialogProps {
   onConfirm?(event: React.FormEvent<any>);
 }
 
-const decorate = withStyles(theme => ({
-  dialog: {
-    overflowY: "visible" as "visible"
-  },
-  root: {
-    overflowY: "visible" as "visible",
-    width: theme.breakpoints.values.sm
-  },
-  select: {
-    flex: 1,
-    marginRight: theme.spacing.unit * 2
-  },
-  textRight: {
-    textAlign: "right" as "right"
-  }
-}));
+const decorate = withStyles(
+  theme => ({
+    dialog: {
+      overflowY: "visible" as "visible"
+    },
+    root: {
+      overflowY: "visible" as "visible",
+      width: theme.breakpoints.values.sm
+    },
+    select: {
+      flex: 1,
+      marginRight: theme.spacing.unit * 2
+    },
+    textRight: {
+      textAlign: "right" as "right"
+    }
+  }),
+  { name: "OrderCustomerEditDialog" }
+);
 const OrderCustomerEditDialog = decorate<OrderCustomerEditDialogProps>(
   ({
     classes,

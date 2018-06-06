@@ -45,19 +45,22 @@ interface OrderListProps {
   onRowClick?(id: string);
 }
 
-const decorate = withStyles(theme => ({
-  currency: {
-    color: theme.palette.grey[400]
-  },
-  link: {
-    color: blue[500],
-    cursor: "pointer",
-    textDecoration: "none"
-  },
-  textRight: {
-    textAlign: "right" as "right"
-  }
-}));
+const decorate = withStyles(
+  theme => ({
+    currency: {
+      color: theme.palette.grey[400]
+    },
+    link: {
+      color: blue[500],
+      cursor: "pointer",
+      textDecoration: "none"
+    },
+    textRight: {
+      textAlign: "right" as "right"
+    }
+  }),
+  { name: "OrderList" }
+);
 export const OrderList = decorate<OrderListProps>(
   ({
     classes,

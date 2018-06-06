@@ -44,19 +44,22 @@ interface OrderSummaryProps extends OrderProductsProps {
   onShippingMethodClick?();
 }
 
-const decorate = withStyles(theme => ({
-  root: {},
-  hr: {
-    height: 1,
-    display: "block",
-    border: "none",
-    width: "100%",
-    backgroundColor: theme.palette.grey[200]
-  },
-  statusBar: {
-    paddingTop: 0
-  }
-}));
+const decorate = withStyles(
+  theme => ({
+    root: {},
+    hr: {
+      height: 1,
+      display: "block",
+      border: "none",
+      width: "100%",
+      backgroundColor: theme.palette.grey[200]
+    },
+    statusBar: {
+      paddingTop: 0
+    }
+  }),
+  { name: "OrderSummary" }
+);
 const OrderSummary = decorate<OrderSummaryProps>(
   ({
     classes,

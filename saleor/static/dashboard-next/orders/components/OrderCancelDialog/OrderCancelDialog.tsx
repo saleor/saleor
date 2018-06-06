@@ -16,15 +16,18 @@ interface OrderCancelDialogProps {
   onConfirm?(event: React.FormEvent<any>);
 }
 
-const decorate = withStyles(theme => ({
-  deleteButton: {
-    "&:hover": {
-      backgroundColor: theme.palette.error.main
-    },
-    backgroundColor: theme.palette.error.main,
-    color: theme.palette.error.contrastText
-  }
-}));
+const decorate = withStyles(
+  theme => ({
+    deleteButton: {
+      "&:hover": {
+        backgroundColor: theme.palette.error.main
+      },
+      backgroundColor: theme.palette.error.main,
+      color: theme.palette.error.contrastText
+    }
+  }),
+  { name: "OrderCancelDialog" }
+);
 const OrderCancelDialog = decorate<OrderCancelDialogProps>(
   ({ children, classes, id, open, onConfirm, onClose }) => (
     <Dialog open={open}>

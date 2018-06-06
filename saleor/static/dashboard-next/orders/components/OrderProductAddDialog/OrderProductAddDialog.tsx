@@ -31,25 +31,28 @@ interface OrderProductAddDialogProps {
   onConfirm?(event: React.FormEvent<any>);
 }
 
-const decorate = withStyles(theme => ({
-  dialog: {
-    overflowY: "visible" as "visible"
-  },
-  select: {
-    flex: 1,
-    marginRight: theme.spacing.unit * 2
-  },
-  root: {
-    display: "grid" as "grid",
-    gridColumnGap: theme.spacing.unit * 2 + "px",
-    gridTemplateColumns: "1fr 6rem",
-    overflowY: "visible" as "visible",
-    width: theme.breakpoints.values.sm
-  },
-  textRight: {
-    textAlign: "right" as "right"
-  }
-}));
+const decorate = withStyles(
+  theme => ({
+    dialog: {
+      overflowY: "visible" as "visible"
+    },
+    select: {
+      flex: 1,
+      marginRight: theme.spacing.unit * 2
+    },
+    root: {
+      display: "grid" as "grid",
+      gridColumnGap: theme.spacing.unit * 2 + "px",
+      gridTemplateColumns: "1fr 6rem",
+      overflowY: "visible" as "visible",
+      width: theme.breakpoints.values.sm
+    },
+    textRight: {
+      textAlign: "right" as "right"
+    }
+  }),
+  { name: "OrderProductAddDialog" }
+);
 const OrderProductAddDialog = decorate<OrderProductAddDialogProps>(
   ({
     classes,

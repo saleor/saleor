@@ -48,7 +48,7 @@ const decorate = withStyles(
     }
   }),
   {
-    name: "MuiTablePagination"
+    name: "TablePagination"
   }
 );
 

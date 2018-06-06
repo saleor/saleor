@@ -29,20 +29,23 @@ interface OrderFulfillmentDialogProps {
   onConfirm?(event: React.FormEvent<any>);
 }
 
-const decorate = withStyles(theme => ({
-  avatarCell: {
-    paddingLeft: theme.spacing.unit * 2,
-    paddingRight: theme.spacing.unit * 3,
-    width: theme.spacing.unit * 5
-  },
-  textRight: {
-    textAlign: "right" as "right"
-  },
-  quantityInput: {
-    width: "4rem"
-  },
-  root: {}
-}));
+const decorate = withStyles(
+  theme => ({
+    avatarCell: {
+      paddingLeft: theme.spacing.unit * 2,
+      paddingRight: theme.spacing.unit * 3,
+      width: theme.spacing.unit * 5
+    },
+    textRight: {
+      textAlign: "right" as "right"
+    },
+    quantityInput: {
+      width: "4rem"
+    },
+    root: {}
+  }),
+  { name: "OrderFulfillmentDialog" }
+);
 const OrderFulfillmentDialog = decorate<OrderFulfillmentDialogProps>(
   ({ classes, open, products, data, onChange, onClose, onConfirm }) => (
     <Dialog open={open}>
