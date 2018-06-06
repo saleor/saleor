@@ -1,8 +1,11 @@
 import graphene
 import graphql_jwt
 from graphene_django.filter import DjangoFilterConnectionField
+from graphql_jwt.decorators import permission_required
 
 from .descriptions import DESCRIPTIONS
+from .discount.resolvers import resolve_vouchers
+from .discount.types import Voucher
 from ..page import models as page_models
 from .core.filters import DistinctFilterSet
 from .core.mutations import CreateToken, VerifyToken
@@ -78,6 +81,12 @@ class Query(graphene.ObjectType):
         ProductType, filterset_class=DistinctFilterSet,
         level=graphene.Argument(graphene.Int),
         description='List of the shop\'s product types.')
+    voucher = graphene.Field(
+        Voucher, id=graphene.Argument(graphene.ID),
+        description='Lookup a voucher by ID.')
+    vouchers = DjangoFilterConnectionField(
+        Voucher, query=graphene.String(description=DESCRIPTIONS['product']),
+        description="List of the shop\'s vouchers.")
     node = graphene.Node.Field()
 
     def resolve_attributes(self, info, in_category=None, query=None, **kwargs):
@@ -120,6 +129,14 @@ class Query(graphene.ObjectType):
 
     def resolve_product_types(self, info):
         return resolve_product_types()
+
+    @permission_required('discount.view_voucher')
+    def resolve_voucher(self, info, id):
+        return get_node(info, id, only_type=Voucher)
+
+    @permission_required('discount.view_voucher')
+    def resolve_vouchers(self, info, query=None, **kwargs):
+        return resolve_vouchers(info, query)
 
 
 class Mutations(graphene.ObjectType):
