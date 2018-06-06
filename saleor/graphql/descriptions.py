@@ -1,3 +1,4 @@
+from .discount.resolvers import VOUCHER_SEARCH_FIELDS
 from .order.resolvers import ORDER_SEARCH_FIELDS
 from .page.resolvers import PAGE_SEARCH_FIELDS
 from .product.resolvers import (
@@ -13,4 +14,5 @@ DESCRIPTIONS = {
         COLLECTION_SEARCH_FIELDS),
     'order': generate_query_argument_description(ORDER_SEARCH_FIELDS),
     'page': generate_query_argument_description(PAGE_SEARCH_FIELDS),
-    'product': generate_query_argument_description(PRODUCT_SEARCH_FIELDS)}
+    'product': generate_query_argument_description(PRODUCT_SEARCH_FIELDS),
+    'voucher': generate_query_argument_description((VOUCHER_SEARCH_FIELDS))}
