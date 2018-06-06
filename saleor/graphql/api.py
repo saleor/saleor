@@ -8,6 +8,11 @@ from .account.mutations import (
     CustomerCreate, CustomerUpdate, SetPassword, StaffCreate, StaffUpdate)
 from .account.resolvers import resolve_user, resolve_users, resolve_groups
 from .account.types import Group, User
+from .menu.mutations import MenuCreate
+from .menu.resolvers import resolve_menus, resolve_menu_items
+from .menu.types import Menu, MenuItem
+from .account.resolvers import resolve_user, resolve_users
+from .account.types import User
 from .descriptions import DESCRIPTIONS
 from .discount.resolvers import resolve_sales, resolve_vouchers
 from .discount.types import Sale, Voucher
@@ -64,6 +69,16 @@ class Query(graphene.ObjectType):
     groups = DjangoConnectionField(
         Group, query=graphene.String(description=DESCRIPTIONS['group']),
         description='List of shop\'s permission groups.')
+    menu = graphene.Field(
+        Menu, id=graphene.Argument(graphene.ID),
+        description='Lookup a menu by ID.')
+    menus = DjangoFilterConnectionField(
+        Menu, description="List of the shop\'s menus.")
+    menu_item = graphene.Field(
+        MenuItem, id=graphene.Argument(graphene.ID),
+        description='Lookup a menu item by ID.')
+    menu_items = DjangoFilterConnectionField(
+        MenuItem, description='List of the shop\'s menu items.')
     order = graphene.Field(
         Order, description='Lookup an order by ID.',
         id=graphene.Argument(graphene.ID))
@@ -144,6 +159,18 @@ class Query(graphene.ObjectType):
     def resolve_groups(self, info, query=None, **kwargs):
         return resolve_groups(info, query)
 
+    def resolve_menu(self, info, id):
+        return get_node(info, id, only_type=Menu)
+
+    def get_menus(self, info, **kwargs):
+        return resolve_menus(info)
+
+    def resolve_menu_item(self, info, id):
+        return get_node(info, id, only_type=MenuItem)
+
+    def get_menu_items(self, info, **kwargs):
+        return resolve_menu_items(info)
+
     def resolve_page(self, info, id=None, slug=None):
         return resolve_page(info, id, slug)
 
@@ -213,6 +240,8 @@ class Mutations(graphene.ObjectType):
     collection_delete = CollectionDelete.Field()
     collection_add_products = CollectionAddProducts.Field()
     collection_remove_products = CollectionRemoveProducts.Field()
+
+    menu_create = MenuCreate.Field()
 
     page_create = PageCreate.Field()
     page_delete = PageDelete.Field()
