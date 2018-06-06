@@ -162,13 +162,13 @@ class Query(graphene.ObjectType):
     def resolve_menu(self, info, id):
         return get_node(info, id, only_type=Menu)
 
-    def get_menus(self, info, **kwargs):
+    def resolve_menus(self, info, **kwargs):
         return resolve_menus(info)
 
     def resolve_menu_item(self, info, id):
         return get_node(info, id, only_type=MenuItem)
 
-    def get_menu_items(self, info, **kwargs):
+    def resolve_menu_items(self, info, **kwargs):
         return resolve_menu_items(info)
 
     def resolve_page(self, info, id=None, slug=None):
