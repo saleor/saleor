@@ -11,7 +11,7 @@ class Voucher(CountableDjangoObjectType):
         interfaces = [relay.Node]
         filter_fields = {
             'name': ['icontains'],
-            'type': ['icontains'],
+            'type': ['exact'],
             'discount_value': ['gte', 'lte'],
             'start_date': ['exact'],
             'end_date': ['exact']}
