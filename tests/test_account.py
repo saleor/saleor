@@ -1,20 +1,22 @@
 import json
 import os
+import uuid
 from unittest.mock import patch
 from urllib.parse import urlencode
 
-import i18naddress
 import pytest
+
+import i18naddress
 from captcha import constants as recaptcha_constants
-from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.forms import Form
 from django.http import QueryDict
 from django.template import Context, Template
 from django.urls import reverse
 from django_countries.fields import Country
-
 from saleor.account import forms, i18n
+from saleor.account.forms import FormWithReCaptcha
+from saleor.account.models import User
 from saleor.account.templatetags.i18n_address_tags import format_address
 from saleor.account.validators import validate_possible_number
 
@@ -229,8 +231,6 @@ def test_disabled_recaptcha():
     """
     This test creates a new form that should not contain any recaptcha field.
     """
-    from saleor.account.forms import FormWithReCaptcha
-
     class TestForm(Form, FormWithReCaptcha):
         pass
 
@@ -239,16 +239,13 @@ def test_disabled_recaptcha():
 
 
 @patch.dict(os.environ, {'RECAPTCHA_TESTING': 'True'})
-@patch.object(
-    settings, 'RECAPTCHA_PUBLIC_KEY', recaptcha_constants.TEST_PUBLIC_KEY)
-@patch.object(
-    settings, 'RECAPTCHA_PRIVATE_KEY', recaptcha_constants.TEST_PRIVATE_KEY)
-def test_requires_recaptcha():
+def test_requires_recaptcha(settings):
     """
     This test creates a new form
     that should contain a (required) recaptcha field.
     """
-    from saleor.account.forms import FormWithReCaptcha
+    settings.RECAPTCHA_PUBLIC_KEY = recaptcha_constants.TEST_PUBLIC_KEY
+    settings.RECAPTCHA_PRIVATE_KEY = recaptcha_constants.TEST_PRIVATE_KEY
 
     class TestForm(Form, FormWithReCaptcha):
         pass
@@ -258,3 +255,43 @@ def test_requires_recaptcha():
 
     form = TestForm({'g-recaptcha-response': 'PASSED'})
     assert form.is_valid()
+
+
+def test_view_account_delete_login_required(customer_user, client):
+    url = reverse('account:delete', args=[444])
+    response = client.post(url)
+    assert response.status_code == 302
+
+
+def test_view_account_post_required(customer_user, authorized_client):
+    url = reverse('account:delete', args=[444])
+    response = authorized_client.get(url)
+    assert response.status_code == 405
+
+
+@patch('saleor.account.views.send_account_delete_confirmation_email.delay')
+def test_view_account_delete(
+        send_confirmation_mock, customer_user, authorized_client, staff_user):
+    # User requests account delete for another user
+    url = reverse('account:delete', args=[staff_user.pk])
+    response = authorized_client.post(url)
+    assert response.status_code == 404
+
+    url = reverse('account:delete', args=[customer_user.pk])
+    response = authorized_client.post(url)
+    assert response.status_code == 302
+    send_confirmation_mock.assert_called_once_with(
+        str(customer_user.token), customer_user.email)
+
+
+def test_view_account_delete_confirm(customer_user, authorized_client):
+    # Non existing token
+    url = reverse('account:delete-confirm', args=[str(uuid.uuid4())])
+    response = authorized_client.get(url)
+    assert response.status_code == 404
+
+    url = reverse('account:delete-confirm', args=[customer_user.token])
+    response = authorized_client.get(url)
+    assert response.status_code == 200
+    customer_user = User.objects.filter(pk=customer_user.pk).first()
+    assert customer_user is None
