@@ -24,6 +24,9 @@ function loadStories() {
   require("./stories/categories/CategoryEditPage");
   require("./stories/categories/CategoryProducts");
 
+  // Customers
+  require("./stories/customers/CustomerListPage");
+
   // Pages
   require("./stories/pages/PageContent");
   require("./stories/pages/PageDeleteDialog");
