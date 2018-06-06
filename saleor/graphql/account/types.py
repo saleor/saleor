@@ -23,13 +23,14 @@ class Address(CountableDjangoObjectType):
         interfaces = [relay.Node]
         model = models.Address
 
+
 class User(CountableDjangoObjectType):
     permissions = graphene.List(PermissionDisplay)
 
     class Meta:
         exclude_fields = [
             'date_joined', 'password', 'is_superuser', 'ordernote_set',
-            'orderhistoryentry_set']
+            'orderhistoryentry_set', 'last_login']
         description = 'Represents user data.'
         interfaces = [relay.Node]
         model = get_user_model()
