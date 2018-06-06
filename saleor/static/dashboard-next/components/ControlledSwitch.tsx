@@ -1,5 +1,5 @@
-import { FormControlLabel } from "material-ui/Form";
-import Switch from "material-ui/Switch";
+import FormControlLabel from "@material-ui/core/FormControlLabel";
+import Switch from "@material-ui/core/Switch";
 import * as React from "react";
 
 interface ControlledSwitchProps {

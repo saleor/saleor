@@ -1,9 +1,10 @@
-import Card, { CardContent } from "material-ui/Card";
-import { withStyles } from "material-ui/styles";
-import Typography from "material-ui/Typography";
+import Card from "@material-ui/core/Card";
+import CardContent from "@material-ui/core/CardContent";
+import { withStyles } from "@material-ui/core/styles";
+import TextField from "@material-ui/core/TextField";
+import Typography from "@material-ui/core/Typography";
 import * as React from "react";
 
-import TextField from "material-ui/TextField";
 import i18n from "../../i18n";
 import FormSpacer from "../FormSpacer";
 import PageHeader from "../PageHeader";

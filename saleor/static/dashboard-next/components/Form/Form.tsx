@@ -19,7 +19,11 @@ class Form<T extends {} = {}> extends React.Component<FormProps<T>, T> {
 
   handleChange = (event: React.ChangeEvent<any>) => {
     const { target } = event;
-    this.setState({ [target.name]: target.value });
+    if (!(target.name in this.state)) {
+      console.error(`Unknown form field: ${target.name}`);
+      return;
+    }
+    this.setState(({ [target.name]: target.value } as any) as Pick<T, keyof T>);
   };
 
   handleSubmit = (event: React.FormEvent<any>) => {

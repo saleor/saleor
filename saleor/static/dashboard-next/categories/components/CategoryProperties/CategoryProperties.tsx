@@ -1,9 +1,9 @@
+import Card from "@material-ui/core/Card";
+import CardContent from "@material-ui/core/CardContent";
+import IconButton from "@material-ui/core/IconButton";
+import Typography from "@material-ui/core/Typography";
 import DeleteIcon from "@material-ui/icons/Delete";
 import EditIcon from "@material-ui/icons/Edit";
-import Card, { CardContent } from "material-ui/Card";
-import IconButton from "material-ui/IconButton";
-import { withStyles } from "material-ui/styles";
-import Typography from "material-ui/Typography";
 import * as React from "react";
 
 import PageHeader from "../../../components/PageHeader";
@@ -16,7 +16,6 @@ interface CategoryPropertiesProps {
   onDelete?();
 }
 
-const decorate = withStyles(theme => ({ root: {} }));
 const CategoryProperties: React.StatelessComponent<CategoryPropertiesProps> = ({
   description,
   onDelete,

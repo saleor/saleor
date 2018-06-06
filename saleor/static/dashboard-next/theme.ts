@@ -1,5 +1,5 @@
-import { createMuiTheme } from "material-ui/styles";
-import { darken } from "material-ui/styles/colorManipulator";
+import { createMuiTheme } from "@material-ui/core/styles";
+import { darken } from "@material-ui/core/styles/colorManipulator";
 
 const createShadow = (pv, pb, ps, uv, ub, us, av, ab, as) =>
   [

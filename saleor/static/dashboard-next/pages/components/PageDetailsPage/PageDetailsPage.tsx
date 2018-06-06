@@ -1,6 +1,6 @@
+import IconButton from "@material-ui/core/IconButton";
+import { withStyles } from "@material-ui/core/styles";
 import DeleteIcon from "@material-ui/icons/Delete";
-import IconButton from "material-ui/IconButton";
-import { withStyles } from "material-ui/styles";
 import * as React from "react";
 
 import { Container } from "../../../components/Container";
@@ -8,7 +8,6 @@ import Form, { FormProps } from "../../../components/Form";
 import PageHeader from "../../../components/PageHeader";
 import SaveButtonBar from "../../../components/SaveButtonBar";
 import Toggle from "../../../components/Toggle";
-import i18n from "../../../i18n";
 import PageContent from "../PageContent";
 import PageDeleteDialog from "../PageDeleteDialog";
 import PageProperties from "../PageProperties";

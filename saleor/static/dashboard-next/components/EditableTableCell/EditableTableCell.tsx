@@ -1,8 +1,9 @@
-import Card, { CardContent } from "material-ui/Card";
-import { withStyles } from "material-ui/styles";
-import { TableCell } from "material-ui/Table";
-import TextField, { TextFieldProps } from "material-ui/TextField";
-import Typography from "material-ui/Typography";
+import Card from "@material-ui/core/Card";
+import CardContent from "@material-ui/core/CardContent";
+import { withStyles } from "@material-ui/core/styles";
+import TableCell from "@material-ui/core/TableCell";
+import TextField, { TextFieldProps } from "@material-ui/core/TextField";
+import Typography from "@material-ui/core/Typography";
 import * as React from "react";
 
 import Form from "../../components/Form";

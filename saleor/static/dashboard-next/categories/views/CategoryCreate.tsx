@@ -1,9 +1,7 @@
-import Card from "material-ui/Card";
 import * as React from "react";
 import { Redirect } from "react-router-dom";
 
 import { NavigatorLink } from "../../components/Navigator";
-import PageHeader from "../../components/PageHeader";
 import CategoryEditPage from "../components/CategoryEditPage";
 import { categoryShowUrl } from "../index";
 import {

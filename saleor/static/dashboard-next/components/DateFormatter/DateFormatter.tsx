@@ -1,6 +1,6 @@
-import { withStyles } from "material-ui/styles";
-import Tooltip from "material-ui/Tooltip";
-import Typography from "material-ui/Typography";
+import { withStyles } from "@material-ui/core/styles";
+import Tooltip from "@material-ui/core/Tooltip";
+import Typography from "@material-ui/core/Typography";
 import * as moment from "moment";
 import * as React from "react";
 

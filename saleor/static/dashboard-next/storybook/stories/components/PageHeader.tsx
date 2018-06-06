@@ -1,6 +1,6 @@
+import IconButton from "@material-ui/core/IconButton";
 import DeleteIcon from "@material-ui/icons/Delete";
 import { storiesOf } from "@storybook/react";
-import IconButton from "material-ui/IconButton";
 import * as React from "react";
 
 import PageHeader from "../../../components/PageHeader";

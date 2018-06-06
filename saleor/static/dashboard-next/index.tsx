@@ -1,8 +1,8 @@
+import CssBaseline from "@material-ui/core/CssBaseline";
+import MuiThemeProvider from "@material-ui/core/styles/MuiThemeProvider";
 import { InMemoryCache } from "apollo-cache-inmemory";
 import { ApolloClient } from "apollo-client";
 import { createUploadLink } from "apollo-upload-client";
-import CssBaseline from "material-ui/CssBaseline";
-import MuiThemeProvider from "material-ui/styles/MuiThemeProvider";
 import * as React from "react";
 import { ApolloProvider } from "react-apollo";
 import { render } from "react-dom";
