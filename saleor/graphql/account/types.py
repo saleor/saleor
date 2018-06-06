@@ -18,7 +18,7 @@ class PermissionDisplay(graphene.ObjectType):
 
 class Address(CountableDjangoObjectType):
     class Meta:
-        exclude_fields = ['user_set']
+        exclude_fields = ['user_set', 'user_addresses']
         description = 'Represents user address data.'
         interfaces = [relay.Node]
         model = models.Address
