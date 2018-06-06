@@ -3,6 +3,8 @@ import graphql_jwt
 from graphene_django.filter import DjangoFilterConnectionField
 from graphql_jwt.decorators import permission_required
 
+from .account.resolvers import resolve_user, resolve_users
+from .account.types import User
 from .descriptions import DESCRIPTIONS
 from .discount.resolvers import resolve_sales, resolve_vouchers
 from .discount.types import Sale, Voucher
@@ -93,6 +95,11 @@ class Query(graphene.ObjectType):
     vouchers = DjangoFilterConnectionField(
         Voucher, query=graphene.String(description=DESCRIPTIONS['product']),
         description="List of the shop\'s vouchers.")
+    user = graphene.Field(
+        User, id=graphene.Argument(graphene.ID),
+        description='Lookup an user type by ID.')
+    users = DjangoFilterConnectionField(
+        User, description='List of the shop\'s users.')
     node = graphene.Node.Field()
 
     def resolve_attributes(self, info, in_category=None, query=None, **kwargs):
@@ -151,6 +158,12 @@ class Query(graphene.ObjectType):
     @permission_required('discount.view_voucher')
     def resolve_vouchers(self, info, query=None, **kwargs):
         return resolve_vouchers(info, query)
+
+    def resolve_user(self, info, id):
+        return resolve_user(info, id)
+
+    def resolve_users(self, info, **kwargs):
+        return resolve_users(info)
 
 
 class Mutations(graphene.ObjectType):

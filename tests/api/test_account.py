@@ -1,4 +1,5 @@
 import json
+
 import graphene
 from django.shortcuts import reverse
 from tests.utils import get_graphql_content
@@ -74,3 +75,60 @@ def test_token_create_user_data(
     assert token_data['user']['email'] == staff_user.email
     assert token_data['user']['permissions'][0]['name'] == name
     assert token_data['user']['permissions'][0]['code'] == code
+
+
+def test_query_user(admin_api_client, customer_user):
+    user = customer_user
+    query = """
+    query User($id: ID!) {
+        user(id: $id) {
+            email
+            isStaff
+            isActive
+            addresses {
+                totalCount
+            }
+            orders {
+                totalCount
+            }
+            defaultShippingAddress {
+                firstName
+                lastName
+                companyName
+                streetAddress1
+                streetAddress2
+                city
+                cityArea
+                postalCode
+                country
+                countryArea
+                phone
+            }
+        }
+    }
+    """
+    ID = graphene.Node.to_global_id('User', customer_user.id)
+    variables = json.dumps({'id': ID})
+    response = admin_api_client.post(
+        reverse('api'), {'query': query, 'variables': variables})
+    content = get_graphql_content(response)
+    assert 'errors' not in content
+    data = content['data']['user']
+    assert data['email'] == user.email
+    assert data['isStaff'] == user.is_staff
+    assert data['isActive'] == user.is_active
+    assert data['addresses']['totalCount'] == user.addresses.count()
+    assert data['orders']['totalCount'] == user.orders.count()
+    address = data['defaultShippingAddress']
+    user_address = user.default_shipping_address
+    assert address['firstName'] == user_address.first_name
+    assert address['lastName'] == user_address.last_name
+    assert address['companyName'] == user_address.company_name
+    assert address['streetAddress1'] == user_address.street_address_1
+    assert address['streetAddress2'] == user_address.street_address_2
+    assert address['city'] == user_address.city
+    assert address['cityArea'] == user_address.city_area
+    assert address['postalCode'] == user_address.postal_code
+    assert address['country'] == user_address.country.code
+    assert address['countryArea'] == user_address.country_area
+    assert address['phone'] == user_address.phone.raw_input
