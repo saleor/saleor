@@ -4,8 +4,8 @@ from graphene_django.filter import DjangoFilterConnectionField
 from graphql_jwt.decorators import permission_required
 
 from .descriptions import DESCRIPTIONS
-from .discount.resolvers import resolve_vouchers
-from .discount.types import Voucher
+from .discount.resolvers import resolve_sales, resolve_vouchers
+from .discount.types import Sale, Voucher
 from ..page import models as page_models
 from .core.filters import DistinctFilterSet
 from .core.mutations import CreateToken, VerifyToken
@@ -81,6 +81,12 @@ class Query(graphene.ObjectType):
         ProductType, filterset_class=DistinctFilterSet,
         level=graphene.Argument(graphene.Int),
         description='List of the shop\'s product types.')
+    sale = graphene.Field(
+        Sale, id=graphene.Argument(graphene.ID),
+        description='Lookup a sale by ID.')
+    sales = DjangoFilterConnectionField(
+        Sale, query=graphene.String(description=DESCRIPTIONS['sale']),
+        description="List of the shop\'s sales.")
     voucher = graphene.Field(
         Voucher, id=graphene.Argument(graphene.ID),
         description='Lookup a voucher by ID.')
@@ -129,6 +135,14 @@ class Query(graphene.ObjectType):
 
     def resolve_product_types(self, info):
         return resolve_product_types()
+
+    @permission_required('discount.view_sale')
+    def resolve_sale(self, info, id):
+        return get_node(info, id, only_type=Sale)
+
+    @permission_required('discount.view_sale')
+    def resolve_sales(self, info, query=None, **kwargs):
+        return resolve_sales(info, query)
 
     @permission_required('discount.view_voucher')
     def resolve_voucher(self, info, id):
