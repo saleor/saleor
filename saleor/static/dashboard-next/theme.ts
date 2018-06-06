@@ -13,40 +13,6 @@ const secondary = "#03a9f4";
 
 export default createMuiTheme({
   overrides: {
-    MuiButton: {
-      flatPrimary: {
-        "&:hover": {
-          backgroundColor: "transparent",
-          color: darken(primary, 0.3)
-        }
-      },
-      flatSecondary: {
-        "&:hover": {
-          backgroundColor: "transparent",
-          color: darken(secondary, 0.3)
-        }
-      },
-      raised: {
-        "&:hover": {
-          boxShadow: createShadow(2, 2, 0, 3, 1, -2, 1, 5, 0)
-        },
-        "@media (hover: none)": {
-          boxShadow: createShadow(2, 2, 0, 3, 1, -2, 1, 5, 0)
-        },
-        boxShadow: createShadow(0, 0, 0, 0, 0, 0, 0, 0, 0)
-      },
-      raisedPrimary: {
-        "&:hover": {
-          backgroundColor: primary
-        }
-      },
-      root: {
-        "&:hover": {
-          backgroundColor: "transparent"
-        },
-        minWidth: 64
-      }
-    },
     MuiTableCell: {
       root: {
         paddingLeft: 0,
