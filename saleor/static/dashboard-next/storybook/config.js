@@ -25,6 +25,7 @@ function loadStories() {
   require("./stories/categories/CategoryProducts");
 
   // Customers
+  require("./stories/customers/CustomerEditPage");
   require("./stories/customers/CustomerListPage");
 
   // Pages
