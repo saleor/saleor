@@ -47,15 +47,17 @@ const DateFormatter = decorate<DateFormatterProps>(
         >
           <Typography className={classes.root}>
             {locale
-              ? momentDate.locale(locale).fromNow()
-              : momentDate.fromNow()}
+              ? momentDate.locale(locale).from(dateNow)
+              : momentDate.from(dateNow)}
           </Typography>
         </Tooltip>
       );
     }
     return (
       <Typography className={classes.root}>
-        {locale ? momentDate.locale(locale).fromNow() : momentDate.fromNow()}
+        {locale
+          ? momentDate.locale(locale).from(dateNow)
+          : momentDate.from(dateNow)}
       </Typography>
     );
   }
