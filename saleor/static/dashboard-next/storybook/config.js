@@ -3,6 +3,9 @@ import { configure } from "@storybook/react";
 
 function loadStories() {
   // Components
+  require("./stories/components/ActionDialog");
+  require("./stories/components/AddressEdit");
+  require("./stories/components/AddressFormatter");
   require("./stories/components/DateFormatter");
   require("./stories/components/EditableTableCell");
   require("./stories/components/ErrorMessageCard");
@@ -25,6 +28,7 @@ function loadStories() {
   require("./stories/categories/CategoryProducts");
 
   // Customers
+  require("./stories/customers/CustomerDetailsPage");
   require("./stories/customers/CustomerEditPage");
   require("./stories/customers/CustomerListPage");
 
