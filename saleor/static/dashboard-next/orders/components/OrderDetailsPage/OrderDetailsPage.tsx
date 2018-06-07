@@ -1,6 +1,4 @@
-import PrintIcon from "@material-ui/icons/Print";
-import IconButton from "material-ui/IconButton";
-import { withStyles, WithStyles } from "material-ui/styles";
+import { withStyles, WithStyles } from "@material-ui/core/styles";
 import * as React from "react";
 
 import {

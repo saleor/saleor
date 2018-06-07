@@ -1,5 +1,4 @@
 import { storiesOf } from "@storybook/react";
-import Card from "material-ui/Card";
 import * as React from "react";
 
 import PageList from "../../../pages/components/PageListPage";

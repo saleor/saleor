@@ -1,63 +1,67 @@
+import AppBar from "@material-ui/core/AppBar";
+import Drawer from "@material-ui/core/Drawer";
+import Hidden from "@material-ui/core/Hidden";
+import IconButton from "@material-ui/core/IconButton";
+import List from "@material-ui/core/List";
+import ListItem from "@material-ui/core/ListItem";
+import ListItemText from "@material-ui/core/ListItemText";
+import { withStyles, WithStyles } from "@material-ui/core/styles";
+import Toolbar from "@material-ui/core/Toolbar";
+import Typography from "@material-ui/core/Typography";
 import MenuIcon from "@material-ui/icons/Menu";
-import AppBar from "material-ui/AppBar";
-import Drawer from "material-ui/Drawer";
-import Hidden from "material-ui/Hidden";
-import IconButton from "material-ui/IconButton";
-import List, { ListItem, ListItemText } from "material-ui/List";
-import { withStyles, WithStyles } from "material-ui/styles";
-import Toolbar from "material-ui/Toolbar";
-import Typography from "material-ui/Typography";
 import * as React from "react";
-import { Link } from "react-router-dom";
 
 import Navigator from "./components/Navigator";
 import i18n from "./i18n";
 
 const drawerWidth = 240;
 
-const decorate = withStyles(theme => ({
-  appBar: {
-    zIndex: theme.zIndex.drawer + 1
-  },
-  appFrame: {
-    display: "flex",
-    width: "100%",
-    zIndex: 1
-  },
-  content: {
-    backgroundColor: theme.palette.background.default,
-    flexGrow: 1,
-    marginLeft: 0,
-    marginTop: 56,
-    padding: theme.spacing.unit,
-    [theme.breakpoints.up("sm")]: {
-      padding: theme.spacing.unit * 2
+const decorate = withStyles(
+  theme => ({
+    appBar: {
+      zIndex: theme.zIndex.drawer + 1
+    },
+    appFrame: {
+      display: "flex",
+      width: "100%",
+      zIndex: 1
+    },
+    content: {
+      backgroundColor: theme.palette.background.default,
+      flexGrow: 1,
+      marginLeft: 0,
+      marginTop: 56,
+      padding: theme.spacing.unit,
+      [theme.breakpoints.up("sm")]: {
+        padding: theme.spacing.unit * 2
+      }
+    },
+    drawerDesktop: {
+      backgroundColor: "transparent",
+      borderRight: "0 none",
+      marginTop: 56,
+      position: "relative" as "relative",
+      width: drawerWidth
+    },
+    hide: {
+      display: "none"
+    },
+    menuButton: {
+      marginRight: theme.spacing.unit * 2
+    },
+    root: {
+      flexGrow: 1
+    },
+    toolBar: {
+      minHeight: 56,
+      paddingLeft: theme.spacing.unit,
+      [theme.breakpoints.up("md")]: {
+        paddingLeft: theme.spacing.unit * 3
+      }
     }
-  },
-  drawerDesktop: {
-    backgroundColor: "transparent",
-    borderRight: "0 none",
-    marginTop: 56,
-    position: "relative" as "relative",
-    width: drawerWidth
-  },
-  hide: {
-    display: "none"
-  },
-  menuButton: {
-    marginRight: theme.spacing.unit * 2
-  },
-  root: {
-    flexGrow: 1
-  },
-  toolBar: {
-    minHeight: 56,
-    paddingLeft: theme.spacing.unit,
-    [theme.breakpoints.up("md")]: {
-      paddingLeft: theme.spacing.unit * 3
-    }
-  }
-}));
+  }),
+  { name: "ResponsiveDrawer" }
+);
 
 interface ResponsiveDrawerProps {
   open: boolean;

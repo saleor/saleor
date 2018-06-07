@@ -1,14 +1,12 @@
+import Card from "@material-ui/core/Card";
+import IconButton from "@material-ui/core/IconButton";
+import List from "@material-ui/core/List";
+import ListItem from "@material-ui/core/ListItem";
+import ListItemIcon from "@material-ui/core/ListItemIcon";
+import ListItemText from "@material-ui/core/ListItemText";
+import ListSubheader from "@material-ui/core/ListSubheader";
 import AddIcon from "@material-ui/icons/Add";
 import Folder from "@material-ui/icons/Folder";
-import Card from "material-ui/Card";
-import IconButton from "material-ui/IconButton";
-import List, {
-  ListItem,
-  ListItemIcon,
-  ListItemText,
-  ListSubheader
-} from "material-ui/List";
-import { withStyles } from "material-ui/styles";
 import * as React from "react";
 
 import PageHeader from "../../../components/PageHeader";

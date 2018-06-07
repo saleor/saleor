@@ -1,25 +1,26 @@
-import Button from "material-ui/Button";
-import Dialog, {
-  DialogActions,
-  DialogContent,
-  DialogContentText,
-  DialogProps,
-  DialogTitle
-} from "material-ui/Dialog";
-import { withStyles } from "material-ui/styles";
+import Button from "@material-ui/core/Button";
+import Dialog from "@material-ui/core/Dialog";
+import DialogActions from "@material-ui/core/DialogActions";
+import DialogContent from "@material-ui/core/DialogContent";
+import DialogContentText from "@material-ui/core/DialogContentText";
+import DialogTitle from "@material-ui/core/DialogTitle";
+import { withStyles } from "@material-ui/core/styles";
 import * as React from "react";
 
 import i18n from "../../../i18n";
 
-const decorate = withStyles(theme => ({
-  deleteButton: {
-    "&:hover": {
-      backgroundColor: theme.palette.error.main
-    },
-    backgroundColor: theme.palette.error.main,
-    color: theme.palette.error.contrastText
-  }
-}));
+const decorate = withStyles(
+  theme => ({
+    deleteButton: {
+      "&:hover": {
+        backgroundColor: theme.palette.error.main
+      },
+      backgroundColor: theme.palette.error.main,
+      color: theme.palette.error.contrastText
+    }
+  }),
+  { name: "CategoryDeleteDialog" }
+);
 
 export interface CategoryDeleteDialogProps {
   open: boolean;
@@ -30,16 +31,7 @@ export interface CategoryDeleteDialogProps {
 }
 
 const CategoryDeleteDialog = decorate<CategoryDeleteDialogProps>(props => {
-  const {
-    children,
-    classes,
-    name,
-    open,
-    onConfirm,
-    onClose,
-    productCount,
-    ...dialogProps
-  } = props;
+  const { classes, name, open, onConfirm, onClose, productCount } = props;
   return (
     <Dialog open={open}>
       <DialogTitle>

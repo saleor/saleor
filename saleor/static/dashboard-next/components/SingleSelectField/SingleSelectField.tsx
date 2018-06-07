@@ -1,8 +1,9 @@
-import { FormControl, FormHelperText } from "material-ui/Form";
-import { InputLabel } from "material-ui/Input";
-import { MenuItem } from "material-ui/Menu";
-import Select, { SelectProps } from "material-ui/Select";
-import { withStyles } from "material-ui/styles";
+import FormControl from "@material-ui/core/FormControl";
+import FormHelperText from "@material-ui/core/FormHelperText";
+import InputLabel from "@material-ui/core/InputLabel";
+import MenuItem from "@material-ui/core/MenuItem";
+import Select, { SelectProps } from "@material-ui/core/Select";
+import { withStyles } from "@material-ui/core/styles";
 import * as React from "react";
 
 const decorate = withStyles({
