@@ -8,6 +8,13 @@ engines:
     enabled: true
   pylint:
     enabled: true
+    channel: beta
+    plugins:
+    - celery
+    - django
+    checks:
+      import-error:
+        enabled: false
   duplication:
     enabled: true
     config:
