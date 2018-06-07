@@ -14,7 +14,8 @@ class Voucher(CountableDjangoObjectType):
             'type': ['exact'],
             'discount_value': ['gte', 'lte'],
             'start_date': ['exact'],
-            'end_date': ['exact']}
+            'end_date': ['exact'],
+            'limit': ['gte', 'lte']}
         model = models.Voucher
 
 
