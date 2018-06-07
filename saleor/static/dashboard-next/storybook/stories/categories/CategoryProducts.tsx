@@ -1,9 +1,8 @@
 import { storiesOf } from "@storybook/react";
-import { DialogContentText } from "material-ui/Dialog";
 import * as React from "react";
 
-import CategoryProducts from "../../../categories/components/CategoryProducts";
 import * as placeholder from "../../../../images/placeholder60x60.png";
+import CategoryProducts from "../../../categories/components/CategoryProducts";
 
 const products = [
   {

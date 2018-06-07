@@ -1,6 +1,9 @@
-import { FormControl, FormHelperText } from "material-ui/Form";
-import Input, { InputAdornment, InputLabel } from "material-ui/Input";
-import { withStyles } from "material-ui/styles";
+import FormControl from "@material-ui/core/FormControl";
+import FormHelperText from "@material-ui/core/FormHelperText";
+import Input from "@material-ui/core/Input";
+import InputAdornment from "@material-ui/core/InputAdornment";
+import InputLabel from "@material-ui/core/InputLabel";
+import { withStyles } from "@material-ui/core/styles";
 import * as React from "react";
 
 interface PriceRangeFieldProps {

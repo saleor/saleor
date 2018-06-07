@@ -1,5 +1,5 @@
-import { withStyles } from "material-ui/styles";
-import Typography from "material-ui/Typography";
+import { withStyles } from "@material-ui/core/styles";
+import Typography from "@material-ui/core/Typography";
 import * as React from "react";
 
 import Form from "../../../components/Form";
@@ -25,12 +25,15 @@ interface OrderHistoryProps {
   user?: string;
 }
 
-const decorate = withStyles(theme => ({
-  root: { marginTop: theme.spacing.unit * 2 },
-  user: {
-    marginBottom: theme.spacing.unit
-  }
-}));
+const decorate = withStyles(
+  theme => ({
+    root: { marginTop: theme.spacing.unit * 2 },
+    user: {
+      marginBottom: theme.spacing.unit
+    }
+  }),
+  { name: "OrderHistory" }
+);
 const OrderHistory = decorate<OrderHistoryProps>(
   ({ classes, history, user }) => (
     <div className={classes.root}>

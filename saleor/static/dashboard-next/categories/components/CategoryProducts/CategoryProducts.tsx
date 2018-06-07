@@ -1,17 +1,16 @@
+import Avatar from "@material-ui/core/Avatar";
+import Card from "@material-ui/core/Card";
+import blue from "@material-ui/core/colors/blue";
+import IconButton from "@material-ui/core/IconButton";
+import { withStyles } from "@material-ui/core/styles";
+import Table from "@material-ui/core/Table";
+import TableBody from "@material-ui/core/TableBody";
+import TableCell from "@material-ui/core/TableCell";
+import TableFooter from "@material-ui/core/TableFooter";
+import TableHead from "@material-ui/core/TableHead";
+import TableRow from "@material-ui/core/TableRow";
 import AddIcon from "@material-ui/icons/Add";
 import Cached from "@material-ui/icons/Cached";
-import Avatar from "material-ui/Avatar";
-import Card from "material-ui/Card";
-import blue from "material-ui/colors/blue";
-import IconButton from "material-ui/IconButton";
-import { withStyles } from "material-ui/styles";
-import Table, {
-  TableBody,
-  TableCell,
-  TableFooter,
-  TableHead,
-  TableRow
-} from "material-ui/Table";
 import * as React from "react";
 
 import PageHeader from "../../../components/PageHeader";
@@ -109,7 +108,7 @@ export const ProductList = decorate<ProductListProps>(
                 </TableCell>
                 <TableCell>
                   <span
-                    onClick={onRowClick ? onRowClick(product.id) : () => {}}
+                    onClick={onRowClick ? onRowClick(product.id) : undefined}
                     className={onRowClick ? classes.link : ""}
                   >
                     {product.name}

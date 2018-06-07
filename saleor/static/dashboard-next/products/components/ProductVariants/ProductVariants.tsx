@@ -1,18 +1,14 @@
-import Card, { CardContent } from "material-ui/Card";
-import blue from "material-ui/colors/blue";
-import green from "material-ui/colors/green";
-import red from "material-ui/colors/red";
-import { FormControlLabel } from "material-ui/Form";
-import Hidden from "material-ui/Hidden";
-import { withStyles } from "material-ui/styles";
-import Switch from "material-ui/Switch";
-import Table, {
-  TableBody,
-  TableCell,
-  TableHead,
-  TableRow
-} from "material-ui/Table";
-import Typography from "material-ui/Typography";
+import Card from "@material-ui/core/Card";
+import blue from "@material-ui/core/colors/blue";
+import green from "@material-ui/core/colors/green";
+import red from "@material-ui/core/colors/red";
+import Hidden from "@material-ui/core/Hidden";
+import { withStyles } from "@material-ui/core/styles";
+import Table from "@material-ui/core/Table";
+import TableBody from "@material-ui/core/TableBody";
+import TableCell from "@material-ui/core/TableCell";
+import TableHead from "@material-ui/core/TableHead";
+import TableRow from "@material-ui/core/TableRow";
 import * as React from "react";
 
 import PageHeader from "../../../components/PageHeader";

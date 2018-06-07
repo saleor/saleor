@@ -3,7 +3,6 @@ import { Redirect } from "react-router";
 
 import { pageListUrl } from "..";
 import { NavigatorLink } from "../../components/Navigator";
-import { PageCreateMutationVariables } from "../../gql-types";
 import i18n from "../../i18n";
 import PageDetailsPage from "../../pages/components/PageDetailsPage";
 import { pageCreateMutation, TypedPageCreateMutation } from "../mutations";

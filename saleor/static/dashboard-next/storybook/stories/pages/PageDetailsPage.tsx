@@ -1,5 +1,4 @@
 import { storiesOf } from "@storybook/react";
-import { DialogContentText } from "material-ui/Dialog";
 import * as React from "react";
 
 import PageDetailsPage from "../../../pages/components/PageDetailsPage";

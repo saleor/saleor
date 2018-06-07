@@ -1,19 +1,8 @@
-import Add from "@material-ui/icons/Add";
-import FilterListIcon from "@material-ui/icons/FilterList";
-import Card from "material-ui/Card";
-import Drawer from "material-ui/Drawer";
-import Grid from "material-ui/Grid";
-import Hidden from "material-ui/Hidden";
-import IconButton from "material-ui/IconButton";
-import { stringify as stringifyQs } from "qs";
 import * as React from "react";
-import { Link } from "react-router-dom";
 
 import ErrorMessageCard from "../../components/ErrorMessageCard";
 import Navigator from "../../components/Navigator";
-import PageHeader from "../../components/PageHeader";
 import i18n from "../../i18n";
-import PageListComponent from "../components/PageList";
 import PageListPage from "../components/PageListPage/PageListPage";
 import { pageAddUrl, pageEditUrl, pageStorefrontUrl } from "../index";
 import { pageListQuery, TypedPageListQuery } from "../queries";
@@ -34,7 +23,6 @@ export class PageList extends React.Component<PageListProps, PageListState> {
     }));
   };
   render() {
-    const { filters } = this.props;
     return (
       <TypedPageListQuery
         query={pageListQuery}

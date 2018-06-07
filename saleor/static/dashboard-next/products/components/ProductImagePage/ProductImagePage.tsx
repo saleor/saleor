@@ -1,8 +1,9 @@
-import Card, { CardContent, CardMedia } from "material-ui/Card";
-import { withStyles } from "material-ui/styles";
+import Card from "@material-ui/core/Card";
+import CardContent from "@material-ui/core/CardContent";
+import { withStyles } from "@material-ui/core/styles";
+import TextField from "@material-ui/core/TextField";
 import * as React from "react";
 
-import TextField from "material-ui/TextField";
 import Container from "../../../components/Container";
 import Form from "../../../components/Form";
 import PageHeader from "../../../components/PageHeader";

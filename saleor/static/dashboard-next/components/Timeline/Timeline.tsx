@@ -1,22 +1,23 @@
+import Avatar from "@material-ui/core/Avatar";
+import Button from "@material-ui/core/Button";
+import Card from "@material-ui/core/Card";
+import CardActions from "@material-ui/core/CardActions";
+import CardContent from "@material-ui/core/CardContent";
+import * as colors from "@material-ui/core/colors";
+import grey from "@material-ui/core/colors/grey";
+import ExpansionPanel from "@material-ui/core/ExpansionPanel";
+import ExpansionPanelDetails from "@material-ui/core/ExpansionPanelDetails";
+import ExpansionPanelSummary from "@material-ui/core/ExpansionPanelSummary";
+import { withStyles } from "@material-ui/core/styles";
+import TextField from "@material-ui/core/TextField";
+import Typography from "@material-ui/core/Typography";
 import ExpandMoreIcon from "@material-ui/icons/ExpandMore";
 import PersonIcon from "@material-ui/icons/Person";
 import * as CRC from "crc-32";
-import Avatar from "material-ui/Avatar";
-import Button from "material-ui/Button";
-import Card, { CardActions, CardContent } from "material-ui/Card";
-import * as colors from "material-ui/colors";
-import grey from "material-ui/colors/grey";
-import ExpansionPanel, {
-  ExpansionPanelDetails,
-  ExpansionPanelSummary
-} from "material-ui/ExpansionPanel";
-import { withStyles } from "material-ui/styles";
-import TextField from "material-ui/TextField";
-import Typography from "material-ui/Typography";
 import * as React from "react";
 
-import DateFormatter from "../DateFormatter";
 import i18n from "../../i18n";
+import DateFormatter from "../DateFormatter";
 
 interface TimelineProps {}
 interface TimelineNodeProps {

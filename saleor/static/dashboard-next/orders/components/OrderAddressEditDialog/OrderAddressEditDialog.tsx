@@ -1,13 +1,10 @@
-import Button from "material-ui/Button";
-import Dialog, {
-  DialogActions,
-  DialogContent,
-  DialogContentText,
-  DialogProps,
-  DialogTitle
-} from "material-ui/Dialog";
-import { withStyles } from "material-ui/styles";
-import TextField from "material-ui/TextField";
+import Button from "@material-ui/core/Button";
+import Dialog, { DialogProps } from "@material-ui/core/Dialog";
+import DialogActions from "@material-ui/core/DialogActions";
+import DialogContent from "@material-ui/core/DialogContent";
+import DialogTitle from "@material-ui/core/DialogTitle";
+import { withStyles } from "@material-ui/core/styles";
+import TextField from "@material-ui/core/TextField";
 import * as React from "react";
 
 import FormSpacer from "../../../components/FormSpacer";
@@ -43,13 +40,16 @@ interface OrderAddressEditDialogProps {
   onConfirm?(event: React.FormEvent<any>);
 }
 
-const decorate = withStyles(theme => ({
-  root: {
-    display: "grid",
-    gridColumnGap: `${theme.spacing.unit * 2}px`,
-    gridTemplateColumns: "1fr 1fr"
-  }
-}));
+const decorate = withStyles(
+  theme => ({
+    root: {
+      display: "grid",
+      gridColumnGap: `${theme.spacing.unit * 2}px`,
+      gridTemplateColumns: "1fr 1fr"
+    }
+  }),
+  { name: "OrderAddressEditDialog" }
+);
 const OrderAddressEditDialog = decorate<OrderAddressEditDialogProps>(
   ({
     children,

@@ -1,10 +1,9 @@
-import { stringify as stringifyQs } from "qs";
 import * as React from "react";
 import { Redirect } from "react-router-dom";
 
 import CategoryDetailsPage from "../../categories/components/CategoryDetailsPage";
 import ErrorMessageCard from "../../components/ErrorMessageCard";
-import Navigator, { NavigatorLink } from "../../components/Navigator";
+import Navigator from "../../components/Navigator";
 import { CategoryPropertiesQuery } from "../../gql-types";
 import i18n from "../../i18n";
 import { productAddUrl, productShowUrl } from "../../products";
@@ -158,15 +157,9 @@ const CategoryDetails: React.StatelessComponent<CategoryDetailsProps> = ({
     return (
       <Navigator>
         {navigate => {
-          const applyFilters = data => {
-            navigate(`?${stringifyQs({ ...filters, ...data.formData })}`, true);
-          };
-          const clearFilters = () => navigate("?");
           return (
             <CategoryPaginationProvider id={id}>
               {({ data, loading, fetchNextPage, fetchPreviousPage }) => {
-                const dataHasProducts =
-                  data && data.category && data.category.products;
                 return (
                   <CategoryDeleteProvider category={data.category}>
                     {deleteCategory => (

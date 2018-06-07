@@ -1,7 +1,8 @@
-import Card, { CardContent } from "material-ui/Card";
+import Card from "@material-ui/core/Card";
+import CardContent from "@material-ui/core/CardContent";
+import TextField from "@material-ui/core/TextField";
 import * as React from "react";
 
-import TextField from "material-ui/TextField";
 import { Container } from "../../../components/Container";
 import Form from "../../../components/Form";
 import { FormSpacer } from "../../../components/FormSpacer";

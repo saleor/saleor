@@ -1,9 +1,10 @@
+import Card from "@material-ui/core/Card";
+import CardContent from "@material-ui/core/CardContent";
+import IconButton from "@material-ui/core/IconButton";
+import Typography from "@material-ui/core/Typography";
 import DeleteIcon from "@material-ui/icons/Delete";
 import EditIcon from "@material-ui/icons/Edit";
 import VisibilityIcon from "@material-ui/icons/Visibility";
-import Card, { CardContent } from "material-ui/Card";
-import IconButton from "material-ui/IconButton";
-import Typography from "material-ui/Typography";
 import * as React from "react";
 
 import PageHeader from "../../../components/PageHeader";
@@ -26,13 +27,13 @@ export const ProductDetailsCard: React.StatelessComponent<
 > = ({ onBack, onDelete, onEdit, onShow, id, name, description, url }) => (
   <Card>
     <PageHeader onBack={onBack} title={name}>
-      <IconButton onClick={url ? onShow(url) : () => {}} disabled={!url}>
+      <IconButton onClick={url ? onShow(url) : undefined} disabled={!url}>
         <VisibilityIcon />
       </IconButton>
-      <IconButton onClick={id ? onEdit(id) : () => {}} disabled={!id}>
+      <IconButton onClick={id ? onEdit(id) : undefined} disabled={!id}>
         <EditIcon />
       </IconButton>
-      <IconButton onClick={id ? onEdit(id) : () => {}} disabled={!id}>
+      <IconButton onClick={id ? onEdit(id) : undefined} disabled={!id}>
         <DeleteIcon />
       </IconButton>
     </PageHeader>

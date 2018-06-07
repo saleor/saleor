@@ -1,5 +1,5 @@
+import Table from "@material-ui/core/Table";
 import { storiesOf } from "@storybook/react";
-import Table from "material-ui/Table";
 import * as React from "react";
 
 import TablePagination from "../../../components/TablePagination";
