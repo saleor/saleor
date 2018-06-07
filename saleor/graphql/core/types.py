@@ -40,6 +40,11 @@ class Error(graphene.ObjectType):
         description = 'Represents an error in the input of a mutation.'
 
 
+class LanguageDisplay(graphene.ObjectType):
+    code = graphene.String(description='Language code.')
+    language = graphene.String(description='Language.')
+
+
 class Money(graphene.ObjectType):
     currency = graphene.String(description='Currency code.')
     amount = graphene.Float(description='Amount of money.')
@@ -98,6 +103,9 @@ class TaxedMoneyRange(graphene.ObjectType):
 class Shop(graphene.ObjectType):
     permissions = graphene.List(
         PermissionDisplay, description='List of available permissions')
+    languages = graphene.List(
+        LanguageDisplay,
+        description='List of the shops\'s supported languages')
 
     class Meta:
         description = 'Represents a shop resources.'
