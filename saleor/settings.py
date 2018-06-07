@@ -472,11 +472,15 @@ APPEND_SLASH = True
 CORS_ORIGIN_WHITELIST = [
     'google.com',
     '127.0.0.1',
+    '192.168.0.3',
+    '192.168.0.3:3000',
     'localhost:8000',
     'localhost:3000',
     'localhost:8080',
     '127.0.0.1:9000',
     '127.0.0.1:8000',
+    '192.168.2.38:3000',
+    '192.168.2.38',
     'local.oye.com:8000',
 ] + os.environ.get('CORS_ORIGIN_WHITELIST', '').split()
 
@@ -584,3 +588,8 @@ RAVEN_CONFIG = {
     # release based on the git info.
     # 'release': raven.fetch_git_sha(os.path.abspath(os.pardir)),
 }
+
+
+MAILCHIMP_API_KEY = os.environ.get('MAILCHIMP_API_KEY')
+MAILCHIMP_USER = os.environ.get('MAILCHIMP_USER')
+MAILCHIMP_DEFAULT_LIST_ID = os.environ.get('MAILCHIMP_DEFAULT_LIST_ID')
