@@ -1,8 +1,10 @@
-import Card, { CardContent } from "material-ui/Card";
-import blue from "material-ui/colors/blue";
-import { FormControlLabel } from "material-ui/Form";
-import { withStyles } from "material-ui/styles";
-import Table, { TableBody, TableCell, TableRow } from "material-ui/Table";
+import Card from "@material-ui/core/Card";
+import blue from "@material-ui/core/colors/blue";
+import { withStyles } from "@material-ui/core/styles";
+import Table from "@material-ui/core/Table";
+import TableBody from "@material-ui/core/TableBody";
+import TableCell from "@material-ui/core/TableCell";
+import TableRow from "@material-ui/core/TableRow";
 import * as React from "react";
 
 import PageHeader from "../../../components/PageHeader";

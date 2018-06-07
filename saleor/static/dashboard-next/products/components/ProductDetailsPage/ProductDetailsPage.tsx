@@ -1,5 +1,5 @@
-import Hidden from "material-ui/Hidden";
-import { withStyles } from "material-ui/styles";
+import Hidden from "@material-ui/core/Hidden";
+import { withStyles } from "@material-ui/core/styles";
 import * as React from "react";
 
 import ProductCollections from "../ProductCollections";

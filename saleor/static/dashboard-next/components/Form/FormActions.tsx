@@ -1,6 +1,6 @@
-import Button from "material-ui/Button";
-import { withStyles } from "material-ui/styles";
-import Toolbar from "material-ui/Toolbar";
+import Button from "@material-ui/core/Button";
+import { withStyles } from "@material-ui/core/styles";
+import Toolbar from "@material-ui/core/Toolbar";
 import * as React from "react";
 
 import i18n from "../../i18n";

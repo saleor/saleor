@@ -1,15 +1,9 @@
-import Button from "material-ui/Button";
-import Dialog, {
-  DialogActions,
-  DialogContent,
-  DialogContentText,
-  DialogProps,
-  DialogTitle
-} from "material-ui/Dialog";
-import { InputAdornment } from "material-ui/Input";
-import { withStyles } from "material-ui/styles";
-import TextField from "material-ui/TextField";
-import Typography from "material-ui/Typography";
+import Button from "@material-ui/core/Button";
+import Dialog, { DialogProps } from "@material-ui/core/Dialog";
+import DialogActions from "@material-ui/core/DialogActions";
+import DialogContent from "@material-ui/core/DialogContent";
+import DialogTitle from "@material-ui/core/DialogTitle";
+import { withStyles } from "@material-ui/core/styles";
 import * as React from "react";
 
 import { SingleAutocompleteSelectField } from "../../../components/SingleAutocompleteSelectField";
@@ -32,22 +26,25 @@ interface OrderCustomerEditDialogProps {
   onConfirm?(event: React.FormEvent<any>);
 }
 
-const decorate = withStyles(theme => ({
-  dialog: {
-    overflowY: "visible" as "visible"
-  },
-  root: {
-    overflowY: "visible" as "visible",
-    width: theme.breakpoints.values.sm
-  },
-  select: {
-    flex: 1,
-    marginRight: theme.spacing.unit * 2
-  },
-  textRight: {
-    textAlign: "right" as "right"
-  }
-}));
+const decorate = withStyles(
+  theme => ({
+    dialog: {
+      overflowY: "visible" as "visible"
+    },
+    root: {
+      overflowY: "visible" as "visible",
+      width: theme.breakpoints.values.sm
+    },
+    select: {
+      flex: 1,
+      marginRight: theme.spacing.unit * 2
+    },
+    textRight: {
+      textAlign: "right" as "right"
+    }
+  }),
+  { name: "OrderCustomerEditDialog" }
+);
 const OrderCustomerEditDialog = decorate<OrderCustomerEditDialogProps>(
   ({
     classes,

@@ -4,7 +4,6 @@ import { Redirect } from "react-router";
 import { pageListUrl } from "..";
 import ErrorMessageCard from "../../components/ErrorMessageCard";
 import { NavigatorLink } from "../../components/Navigator";
-import PageHeader from "../../components/PageHeader";
 import i18n from "../../i18n";
 import PageDetailsPage from "../components/PageDetailsPage";
 import {

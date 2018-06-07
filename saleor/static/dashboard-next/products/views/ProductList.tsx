@@ -1,8 +1,4 @@
-import Card from "material-ui/Card";
-import Drawer from "material-ui/Drawer";
-import Hidden from "material-ui/Hidden";
-import { withStyles } from "material-ui/styles";
-import { stringify as stringifyQs } from "qs";
+import { withStyles } from "@material-ui/core/styles";
 import * as React from "react";
 
 import { productShowUrl } from "..";
@@ -15,14 +11,6 @@ import { productListQuery, TypedProductListQuery } from "../queries";
 interface ProductListProps {
   filters: any;
 }
-
-// TODO: Replace when API is ready
-const dummyProductTypes = [
-  { id: "123123123", name: "Type 1" },
-  { id: "123123124", name: "Type 2" },
-  { id: "123123125", name: "Type 3" },
-  { id: "123123126", name: "Type 4" }
-];
 
 const decorate = withStyles(theme => ({
   root: {
@@ -41,10 +29,6 @@ export const ProductList = decorate<ProductListProps>(
     <div className={classes.root}>
       <Navigator>
         {navigate => {
-          const applyFilters = data => {
-            navigate(`?${stringifyQs({ ...filters, ...data.formData })}`, true);
-          };
-          const clearFilters = () => navigate("?");
           return (
             <Toggle>
               {(

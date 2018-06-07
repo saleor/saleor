@@ -1,15 +1,11 @@
-import Button from "material-ui/Button";
-import Dialog, {
-  DialogActions,
-  DialogContent,
-  DialogContentText,
-  DialogProps,
-  DialogTitle
-} from "material-ui/Dialog";
-import { InputAdornment } from "material-ui/Input";
-import { withStyles } from "material-ui/styles";
-import TextField from "material-ui/TextField";
-import Typography from "material-ui/Typography";
+import Button from "@material-ui/core/Button";
+import Dialog, { DialogProps } from "@material-ui/core/Dialog";
+import DialogActions from "@material-ui/core/DialogActions";
+import DialogContent from "@material-ui/core/DialogContent";
+import DialogTitle from "@material-ui/core/DialogTitle";
+import InputAdornment from "@material-ui/core/InputAdornment";
+import { withStyles } from "@material-ui/core/styles";
+import TextField from "@material-ui/core/TextField";
 import * as React from "react";
 
 import { SingleAutocompleteSelectField } from "../../../components/SingleAutocompleteSelectField";
@@ -35,25 +31,28 @@ interface OrderProductAddDialogProps {
   onConfirm?(event: React.FormEvent<any>);
 }
 
-const decorate = withStyles(theme => ({
-  dialog: {
-    overflowY: "visible" as "visible"
-  },
-  select: {
-    flex: 1,
-    marginRight: theme.spacing.unit * 2
-  },
-  root: {
-    display: "grid" as "grid",
-    gridColumnGap: theme.spacing.unit * 2 + "px",
-    gridTemplateColumns: "1fr 6rem",
-    overflowY: "visible" as "visible",
-    width: theme.breakpoints.values.sm
-  },
-  textRight: {
-    textAlign: "right" as "right"
-  }
-}));
+const decorate = withStyles(
+  theme => ({
+    dialog: {
+      overflowY: "visible" as "visible"
+    },
+    select: {
+      flex: 1,
+      marginRight: theme.spacing.unit * 2
+    },
+    root: {
+      display: "grid" as "grid",
+      gridColumnGap: theme.spacing.unit * 2 + "px",
+      gridTemplateColumns: "1fr 6rem",
+      overflowY: "visible" as "visible",
+      width: theme.breakpoints.values.sm
+    },
+    textRight: {
+      textAlign: "right" as "right"
+    }
+  }),
+  { name: "OrderProductAddDialog" }
+);
 const OrderProductAddDialog = decorate<OrderProductAddDialogProps>(
   ({
     classes,

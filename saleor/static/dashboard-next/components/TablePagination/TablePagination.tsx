@@ -1,8 +1,8 @@
 // @inheritedComponent TableCell
 
-import { withStyles } from "material-ui/styles";
-import { TableCell } from "material-ui/Table";
-import Toolbar from "material-ui/Toolbar";
+import { withStyles } from "@material-ui/core/styles";
+import TableCell from "@material-ui/core/TableCell";
+import Toolbar from "@material-ui/core/Toolbar";
 import * as React from "react";
 
 import TablePaginationActions from "./TablePaginationActions";
@@ -48,7 +48,7 @@ const decorate = withStyles(
     }
   }),
   {
-    name: "MuiTablePagination"
+    name: "TablePagination"
   }
 );
 

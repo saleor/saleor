@@ -1,9 +1,10 @@
+import Card from "@material-ui/core/Card";
+import CardContent from "@material-ui/core/CardContent";
+import blue from "@material-ui/core/colors/blue";
+import IconButton from "@material-ui/core/IconButton";
+import { withStyles } from "@material-ui/core/styles";
+import Typography from "@material-ui/core/Typography";
 import EditIcon from "@material-ui/icons/Edit";
-import Card, { CardContent } from "material-ui/Card";
-import blue from "material-ui/colors/blue";
-import IconButton from "material-ui/IconButton";
-import { withStyles } from "material-ui/styles";
-import Typography from "material-ui/Typography";
 import * as React from "react";
 
 import PageHeader from "../../../components/PageHeader";
@@ -42,20 +43,23 @@ interface OrderCustomerProps {
   onShippingAddressEdit?();
 }
 
-const decorate = withStyles(theme => ({
-  hr: {
-    height: 1,
-    display: "block",
-    border: "none",
-    width: "100%",
-    backgroundColor: theme.palette.grey[200]
-  },
-  link: {
-    color: blue[500],
-    cursor: "pointer",
-    textDecoration: "none"
-  }
-}));
+const decorate = withStyles(
+  theme => ({
+    hr: {
+      height: 1,
+      display: "block",
+      border: "none",
+      width: "100%",
+      backgroundColor: theme.palette.grey[200]
+    },
+    link: {
+      color: blue[500],
+      cursor: "pointer",
+      textDecoration: "none"
+    }
+  }),
+  { name: "OrderCustomer" }
+);
 const OrderCustomer = decorate<OrderCustomerProps>(
   ({
     classes,
