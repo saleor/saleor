@@ -8,7 +8,7 @@ from django.contrib.sites.models import Site
 from django.core.files import File
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.forms import ModelForm
-from django.test.client import Client, MULTIPART_CONTENT
+from django.test.client import MULTIPART_CONTENT, Client
 from django.utils.encoding import smart_text
 from django_prices_vatlayer.models import VAT
 from django_prices_vatlayer.utils import get_tax_for_rate
@@ -78,6 +78,11 @@ def admin_api_client(admin_user):
 @pytest.fixture
 def user_api_client(customer_user):
     return ApiClient(user=customer_user)
+
+
+@pytest.fixture
+def staff_api_client(staff_user):
+    return ApiClient(user=staff_user)
 
 
 @pytest.fixture(autouse=True)
